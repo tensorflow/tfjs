@@ -184,7 +184,7 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
       //   [filter_height, filter_width, input_channels, output_channels]
       // This can be transposed with a 2d transpose to move output_channels to
       // the outer most dimension.
-      transposed_filter = std::vector<float>(filter_info.size);
+      transposed_filter.resize(filter_info.size);
       std::vector<int> filter_shape = {
           filter_height * filter_width * input_channels, output_channels};
       std::vector<int> perm = {1, 0};
