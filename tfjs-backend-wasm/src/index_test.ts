@@ -47,14 +47,4 @@ describeWithFlags('wasm', ALL_ENVS, () => {
     // This should fail in case of a memory leak.
     expect(memOffset1).toBe(memOffset2);
   });
-
-  fit('maxpool x=[3,3,1] f=[2,2] s=1, p=0', () => {
-    // Feed forward.
-    const x = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 9, 8], [3, 3, 1]);
-
-    const result = tf.maxPool(x, 2, 1, 0);
-
-    expect(result.shape).toEqual([2, 2, 1]);
-    result.print();  // [5, 6, 9, 9]
-  });
 });
