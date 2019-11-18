@@ -79,15 +79,18 @@ export function makeShader(
   `);
 
   let uniformDeclaration = '';
-  program.variableNames.forEach((x, i) => {
-    uniformDeclaration += `${getCoordsDataType(inputInfo[i].shape.length)} ${
-        x.charAt(0).toLowerCase() + x.slice(1)}Shape; `;
-    prefixSnippets.push(`
-      layout(std430, set = 0, binding = ${1 + i}) readonly buffer ssb${x} {
-        ${mapToGlslTypes(inputInfo[i].dtype)} ${x}[];
-      };
-    `);
-  });
+  const variableNamesIsArray = Array.isArray(program.variableNames);
+  if (variableNamesIsArray) {
+    program.variableNames.forEach((x, i) => {
+      uniformDeclaration += `${getCoordsDataType(inputInfo[i].shape.length)} ${
+          x.charAt(0).toLowerCase() + x.slice(1)}Shape; `;
+      prefixSnippets.push(`
+        layout(std430, set = 0, binding = ${1 + i}) readonly buffer ssb${x} {
+          ${mapToGlslTypes(inputInfo[i].dtype)} ${x}[];
+        };
+      `);
+    });
+  }
 
   uniformDeclaration +=
       `${getCoordsDataType(outputData.shape.length)} outShape; `;
@@ -95,10 +98,10 @@ export function makeShader(
   if (program.uniforms) {
     uniformDeclaration += program.uniforms;
   }
-
+  const uniformOffset = variableNamesIsArray ? program.variableNames.length : 0;
   prefixSnippets.push(`
     layout(std140, set = 0, binding = ${
-      1 + program.variableNames.length}) uniform Uniforms {
+      1 + uniformOffset}) uniform Uniforms {
       ${uniformDeclaration}
     };
   `);
@@ -227,11 +230,10 @@ function getSamplerFromInInfo(inInfo: InputInfo): string {
       }
     `;
   }
-
   return `
     float ${funcName}(${inputs}) {
-      return ${texName}[getFlatIndex(${type}(${dims.join(',')}),
-        ${texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)];
+      return float(${texName}[getFlatIndex(${type}(${dims.join(',')}),
+        ${texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)]);
     }
   `;
 }
@@ -289,14 +291,14 @@ function getSamplerAtOutputCoords(
     float ${funcName}() {
       ${type} coords = getOutputCoords();
       ${coordsSnippet}
-      return ${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
-      texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)];
+      return float(${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
+      texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)]);
     }
 
     float ${funcName}(${type} coords) {
       ${coordsSnippet}
-      return ${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
-      texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)];
+      return float(${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
+      texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)]);
     }
   `;
 }
