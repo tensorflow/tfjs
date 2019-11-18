@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -84,6 +84,10 @@ function maxPool(args: {
   }
 
   const out = backend.makeOutput(convInfo.outShape, 'float32');
+  if (util.sizeFromShape(convInfo.outShape) <= 1) {
+    return out;
+  }
+
   const outId = backend.dataIdMap.get(out.dataId).id;
 
   wasmMaxPool(
