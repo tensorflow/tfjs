@@ -935,8 +935,8 @@ export class Engine implements TensorTracker, DataMover {
         // This means that we are not computing higher-order gradients
         // and can clean up the tape.
         this.state.activeTape.forEach(node => {
-          for (const key in node.saved) {
-            node.saved[key].dispose();
+          for (const tensor of node.saved) {
+            tensor.dispose();
           }
         });
         this.state.activeTape = null;

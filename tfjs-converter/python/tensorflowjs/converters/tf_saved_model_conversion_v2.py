@@ -265,9 +265,10 @@ def write_artifacts(topology,
       # TODO(piyu): Add tensorflow version below by using `meta_info_def`.
       common.GENERATED_BY_KEY: tf_version,
       common.CONVERTED_BY_KEY: common.get_converted_by(),
-      common.SIGNATURE_KEY: MessageToDict(signature_def)
+      common.USER_DEFINED_METADATA_KEY: {
+          common.SIGNATURE_KEY: MessageToDict(signature_def)
+      }
   }
-
   model_json[common.ARTIFACT_MODEL_TOPOLOGY_KEY] = topology or None
   weights_manifest = write_weights.write_weights(
       weights, os.path.dirname(output_graph), write_manifest=False,
