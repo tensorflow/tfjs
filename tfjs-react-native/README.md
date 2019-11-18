@@ -72,9 +72,10 @@ module.exports = {
 - Install @tensorflow/tfjs - `npm install @tensorflow/tfjs`
 - Install @tensorflow/tfjs-react-native - `npm install @tensorflow/tfjs-react-native@alpha`
 
-### Step 5: Install and configure async-storage
+### Step 5: Install and configure other peerDependencies
 
 - Install and configure [async-storage](https://github.com/react-native-community/async-storage)
+- Install and configure [react-native-fs](https://www.npmjs.com/package/react-native-fs)
 
 ### Step 6: Test that it is working
 
@@ -174,23 +175,23 @@ parameters.
 `bundleResourceIO` only supports non sharded models at the moment. It also cannot save models. Though you
 can use the asyncStorageIO handler to save to AsyncStorage.
 
-### decodeJpeg(contents: Uint8Array, channels: 0 | 1 | 3)
+### decodeJpeg(contents: Uint8Array, channels?: 0 | 1 | 3)
 
 ```js
 const image = require("path/to/img.jpg");
 const imageAssetPath = Image.resolveAssetSource(image);
 const response = await fetch(imageAssetPath.uri, {}, { isBinary: true });
 const rawImageData = await response.arrayBuffer();
+
 const imageTensor = decodeJpeg(rawImageData);
-model.classify(imageTensor);
 ```
 
-The `decodeJpeg` function returns a Tensor3D object that can be classified by your TFJS model. It takes two parameters.
+**returns** a tf.Tensor3D of the decoded image.
 
-1. contents: This is a Uint8Array of the image returned from `fetch`
-1. channels: An optional int that indicates whether the image should be loaded as RBG, Grayscale, or autoselected based on the contents of the image
+Parameters:
 
-`decodeJpeg` only supports RGB channel at the moment.
+1. contents: raw bytes of the image as a Uint8Array
+1. channels: An optional int that indicates whether the image should be loaded as RBG (channels = 3), Grayscale (channels = 1), or autoselected based on the contents of the image (channels = 0). Defaults to 3. Currently only 3 channel RGB images are supported.
 
 ### fetch(path: string, init?: RequestInit, options?: tf.io.RequestDetails)
 

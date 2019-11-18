@@ -101,7 +101,8 @@ export interface InferenceModel {
 }
 
 /**
- * Interface for SavedModel/GraphModel MetaGraph info.
+ * @deprecated Deprecated interface for SavedModel/GraphModel MetaGraph info.
+ *     User MetaGraph instead.
  */
 export interface MetaGraphInfo {
   tags: string[];
@@ -109,7 +110,8 @@ export interface MetaGraphInfo {
 }
 
 /**
- * Interface for SavedModel/GraphModel SignatureDef info.
+ * @deprecated Deprecated interface for SavedModel/GraphModel SignatureDef info.
+ *     User SignatureDef instead.
  */
 export interface SignatureDefInfo {
   [key: string]: {
@@ -119,11 +121,29 @@ export interface SignatureDefInfo {
 }
 
 /**
- * Interface for SavedModel/GraphModel signature input/output Tensor
- * info.
+ * @deprecated Deprecated interface for SavedModel/GraphModel signature
+ *     input/output Tensor info. User ModelTensorInfo instead.
  */
 export interface SavedModelTensorInfo {
   dtype: string;
   shape: number[];
   name: string;
+}
+
+/**
+ * Interface for SavedModel/GraphModel MetaGraph info.
+ */
+export interface MetaGraph {
+  tags: string[];
+  signatureDefs: SignatureDef;
+}
+
+/**
+ * Interface for SavedModel/GraphModel SignatureDef info.
+ */
+export interface SignatureDef {
+  [key: string]: {
+    inputs: {[key: string]: ModelTensorInfo};
+    outputs: {[key: string]: ModelTensorInfo};
+  };
 }

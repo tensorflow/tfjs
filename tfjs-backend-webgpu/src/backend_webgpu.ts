@@ -17,10 +17,9 @@
 
 /// <reference types="@webgpu/types" />
 
-import {backend_util, DataStorage, DataType, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
-// TODO(annxingyuan): get ENGINE from tf.engine() once core 1.3.0 is released.
-// tslint:disable-next-line: no-imports-from-dist
-import {ENGINE} from '@tensorflow/tfjs-core/dist/engine';
+import './flags_webgpu';
+
+import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
 import * as shaderc from '@webgpu/shaderc';
 
 import {BufferManager} from './buffer_manager';
@@ -56,8 +55,7 @@ type BufferInfo = {
 };
 
 type TensorInfo = {
-  values: Float32Array|Int32Array|Uint8Array,
-  id: number,
+  values: backend_util.BackendValues,
   dtype: DataType,
   bufferInfo: BufferInfo
 };
@@ -125,7 +123,7 @@ export class WebGPUBackend extends KernelBackend {
     this.compileOpts = opts;
 
     this.bufferManager = new BufferManager(this.device);
-    this.tensorMap = new DataStorage(this, ENGINE);
+    this.tensorMap = new DataStorage(this, engine());
   }
 
   floatPrecision(): 32 {
@@ -181,29 +179,31 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
-  register(dataId: object, shape: number[], dtype: DataType): void {
-    if (!this.tensorMap.has(dataId)) {
-      const byteSize =
-          util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
-      this.tensorMap.set(dataId, {
-        values: null,
-        id: -1,
-        dtype,
-        bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE}
-      });
-    }
+  write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
+      DataId {
+    const dataId = {};
+    const byteSize =
+        util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
+
+    this.tensorMap.set(dataId, {
+      dtype,
+      values,
+      bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE}
+    });
+    return dataId;
   }
 
-  write(dataId: object, values: Float32Array|Int32Array|Uint8Array): void {
-    if (!this.tensorMap.has(dataId)) {
-      throw new Error(`Tensor ${dataId} was not registered!`);
-    }
+  move(
+      dataId: DataId, values: backend_util.BackendValues, shape: number[],
+      dtype: DataType): void {
+    const byteSize =
+        util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
 
-    const info = this.tensorMap.get(dataId);
-    info.values = values;
-    this.tensorMap.set(dataId, info);
-
-    this.maybeReleaseBuffer(dataId);
+    this.tensorMap.set(dataId, {
+      dtype,
+      values,
+      bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE}
+    });
   }
 
   private submitQueue() {
@@ -220,7 +220,8 @@ export class WebGPUBackend extends KernelBackend {
     return this.tensorMap.get(dataId).bufferInfo.buffer;
   }
 
-  private async getBufferData(info: TensorInfo): Promise<ArrayBuffer> {
+  private async getBufferData(info: TensorInfo):
+      Promise<backend_util.BackendValues> {
     if (info.values != null) {
       // Data is on the CPU.
       return info.values;
@@ -244,7 +245,7 @@ export class WebGPUBackend extends KernelBackend {
           GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
     }
 
-    return values;
+    return values as backend_util.BackendValues;
   }
 
   private convertAndCacheOnCPU(dataId: DataId, data: backend_util.TypedArray):
@@ -259,7 +260,7 @@ export class WebGPUBackend extends KernelBackend {
 
   // TODO: Remove once this is fixed:
   // https://github.com/tensorflow/tfjs/issues/1595
-  readSync(dataId: object): Float32Array|Int32Array|Uint8Array {
+  readSync(dataId: object): backend_util.BackendValues {
     const texData = this.tensorMap.get(dataId);
     const {values} = texData;
 
@@ -271,14 +272,15 @@ export class WebGPUBackend extends KernelBackend {
     return values;
   }
 
-  async read(dataId: object): Promise<Float32Array|Int32Array|Uint8Array> {
+  async read(dataId: object): Promise<backend_util.BackendValues> {
     if (!this.tensorMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
     const info = this.tensorMap.get(dataId);
     const data = await this.getBufferData(info);
+
     const dataAsTypedArray =
-        webgpu_util.ArrayBufferToTypedArray(data, info.dtype);
+        webgpu_util.ArrayBufferToTypedArray(data as ArrayBuffer, info.dtype);
     this.convertAndCacheOnCPU(dataId, dataAsTypedArray);
 
     return dataAsTypedArray;
@@ -339,7 +341,9 @@ export class WebGPUBackend extends KernelBackend {
 
   private makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):
       T {
-    return Tensor.make(shape, {}, dtype, this);
+    const dataId = this.write(null /* values */, shape, dtype);
+
+    return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;
   }
 
   private tensorToBinding(tensor?: Tensor): webgpu_program.BindingInfo {
@@ -383,7 +387,7 @@ export class WebGPUBackend extends KernelBackend {
     info.bufferInfo.buffer = this.acquireBuffer(info.bufferInfo.byteSize);
 
     if (info.values) {
-      info.bufferInfo.buffer.setSubData(0, info.values);
+      info.bufferInfo.buffer.setSubData(0, info.values as ArrayBufferView);
       info.values = null;
     }
   }
@@ -567,7 +571,10 @@ export class WebGPUBackend extends KernelBackend {
   private binaryOp(a: Tensor, b: Tensor, op: string): Tensor {
     const dtype = backend_util.upcastType(a.dtype, b.dtype);
     const program = new BinaryOpProgram(op, a.shape, b.shape);
-    const output = Tensor.make(program.outputShape, {}, dtype);
+
+    const dataId = this.write(null /*values*/, program.outputShape, dtype);
+    const output =
+        engine().makeTensorFromDataId(dataId, program.outputShape, dtype, this);
 
     return this.compileAndRun(program, [a, b], output);
   }
@@ -588,7 +595,9 @@ export class WebGPUBackend extends KernelBackend {
 
   private binaryCompareOp(a: Tensor, b: Tensor, op: string): Tensor {
     const program = new BinaryOpProgram(op, a.shape, b.shape);
-    const output = Tensor.make(program.outputShape, {}, 'bool');
+    const dataId = this.write(null /*values*/, program.outputShape, 'bool');
+    const output = engine().makeTensorFromDataId(
+        dataId, program.outputShape, 'bool', this);
 
     return this.compileAndRun(program, [a, b], output);
   }
@@ -646,7 +655,9 @@ export class WebGPUBackend extends KernelBackend {
       return this.conv2dByMatMul(x, filter, convInfo);
     }
 
-    const output = Tensor.make(convInfo.outShape, {}, x.dtype, this);
+    const dataId = this.write(null /*values*/, convInfo.outShape, x.dtype);
+    const output =
+        engine().makeTensorFromDataId(dataId, convInfo.outShape, x.dtype, this);
     let program: Conv2DMMProgram|Conv2DNaiveProgram;
 
     const workPerThread = env().get('WEBGPU_CONV2D_WORK_PER_THREAD') as number;
@@ -770,7 +781,8 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   reshape<R extends Rank>(x: Tensor, shape: ShapeMap[R]): Tensor<R> {
-    return Tensor.make(shape, {dataId: x.dataId}, x.dtype);
+    return engine().makeTensorFromDataId(x.dataId, shape, x.dtype, this) as
+        Tensor<R>;
   }
 
   cast<T extends Tensor>(x: T, dtype: DataType): T {
@@ -795,18 +807,21 @@ export class WebGPUBackend extends KernelBackend {
     const outerShapeB = b.shape[2];
     const [batch, , ] = a.shape;
 
-    const output: Tensor3D =
-        Tensor.make([batch, outerShapeA, outerShapeB], {}, a.dtype, this);
+    const dataId =
+        this.write(null /*values*/, [batch, outerShapeA, outerShapeB], a.dtype);
+    const output = engine().makeTensorFromDataId(
+        dataId, [batch, outerShapeA, outerShapeB], a.dtype, this);
 
     let program: MatMulProgram|MatMulPackedProgram;
     // TODO: We should eventually use the blocked version, but keeping around
     // the old version while we try to understand conditions under which blocked
     // is faster.
     if (env().get('WEBGPU_MATMUL_WORK_PER_THREAD') === 0) {
-      program = new MatMulProgram(a.shape, output.shape);
+      program =
+          new MatMulProgram(a.shape, output.shape as [number, number, number]);
     } else {
       program = new MatMulPackedProgram(
-          a.shape, output.shape,
+          a.shape, output.shape as [number, number, number],
           env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number);
     }
 
@@ -878,9 +893,17 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     const output = this.makeOutputArray(outShape, 'int32');
-    this.write(output.dataId, Int32Array.from(pixelArray));
+
+    const info = this.tensorMap.get(output.dataId);
+    info.values = Int32Array.from(pixelArray);
+    this.maybeReleaseBuffer(output.dataId);
+
     this.uploadToGPU(output.dataId);
     return output as Tensor3D;
+  }
+
+  numDataIds() {
+    return this.tensorMap.numDataIds();
   }
 
   dispose() {

@@ -45,6 +45,7 @@ function setup(backend: BackendWasm) {
     'number',  // padRight
     'number',  // padBottom
     'number',  // padLeft
+    'number',  // isSamePad
     'number',  // dilationHeight
     'number',  // dilationWidth
     'number',  // strideHeight
@@ -83,7 +84,7 @@ function conv2d(args: {
 
   if (convInfo.dataFormat !== 'channelsLast') {
     throw new Error(
-        `wasm backend does not support dataFormat:'` +
+        `wasm backend Conv2D does not support dataFormat:'` +
         `${convInfo.dataFormat}'. Please use 'channelsLast'.`);
   }
 
