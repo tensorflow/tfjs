@@ -58,9 +58,8 @@ void MaxPool(const int x_id, const int batch_size, const int input_height,
 
   xnn_operator_t max_pool_op = nullptr;
 
-  const int flags =
-      0;  // doesn't seem to get used by maxPool xnn op anywhere...
-  const int channels = 1;
+  const int flags = 0;
+  const int channels = input_channels;
 
   OperatorCacheKey cache_key = {pad_top,         pad_right,     pad_bottom,
                                 pad_left,        filter_height, filter_width,
@@ -77,8 +76,9 @@ void MaxPool(const int x_id, const int batch_size, const int input_height,
     xnn_status status = xnn_create_max_pooling2d_nhwc_f32(
         pad_top, pad_right, pad_bottom, pad_left, filter_height, filter_width,
         stride_height, stride_width, dilation_height, dilation_width, channels,
-        input_channels, output_channels, output_min, output_max, flags,
-        &max_pool_op);
+        input_channels /* input_pixel_stride */,
+        output_channels /* output_pixel_stride */, output_min, output_max,
+        flags, &max_pool_op);
 
     if (status != xnn_status_success) {
       util::warn(
