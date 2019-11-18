@@ -26,7 +26,7 @@ TEST(MAXPOOL, xnn_operator_lifetime) {
   const int x0_id = 0;
   const int x1_id = 1;
   const int size = 9;
-  float x_values[size] = {1, 2, 3, 4, 5, 6, 7, 9, 8};
+  float x_values[size] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
 
   const int out_id = 2;
   const int out_size = 9;
