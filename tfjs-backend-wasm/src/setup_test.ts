@@ -39,9 +39,9 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'maxPool',
     excludes: [
-      'f=[1,1]',            // XNN does not support filter size 1.
-      'maxPoolBackprop',    // Not yet implemented.
-      'maxPool3d',          // Not yet implemented.
+      'f=[1,1]',          // XNN does not support filter height and width of 1.
+      'maxPoolBackprop',  // Not yet implemented.
+      'maxPool3d',        // Not yet implemented.
       'maxPool3dBackprop',  // Not yet implemented.
       'ignores NaNs'        // Actual != expected.
     ]
