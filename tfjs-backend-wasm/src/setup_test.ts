@@ -171,6 +171,7 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'transpose',
     excludes: ['oneHot']  // oneHot not yet implemented.
   },
+  {include: 'pad ', excludes: ['complex', 'zerosLike']},
 ];
 
 const customInclude = (testName: string) => {

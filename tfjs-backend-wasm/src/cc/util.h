@@ -83,8 +83,8 @@ inline int size_from_shape(const std::vector<int>& shape) {
 }
 
 // Returns the indices of an n-dim tensor given the flat offset and its strides.
-inline const std::vector<int> offset_to_loc(int index,
-                                            const std::vector<int>& strides) {
+inline std::vector<int> offset_to_loc(int index,
+                                      const std::vector<int>& strides) {
   int rank = strides.size() + 1;
   std::vector<int> loc(rank);
   if (rank == 0) {

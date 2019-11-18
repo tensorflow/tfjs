@@ -15,15 +15,17 @@
  * =============================================================================
  */
 
-import {DataType} from './types';
+import {DataType, RecursiveArray} from './types';
 
 const kernelRegistry: Map<string, KernelConfig> = new Map();
 
 export type DataId = object;
 
-/** These are extra non-tensor/primitive params passed to kernel functions. */
-export type Attribute =
+type AttributeValue =
     number|number[]|boolean|boolean[]|string|string[]|NamedAttrMap;
+
+/** These are extra non-tensor/primitive params passed to kernel functions. */
+export type Attribute = AttributeValue|RecursiveArray<AttributeValue>;
 
 /** Specifies the code to run when executing a kernel. */
 export type KernelFunc = (params: {
