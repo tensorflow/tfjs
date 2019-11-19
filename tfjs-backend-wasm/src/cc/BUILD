@@ -78,6 +78,7 @@ tfjs_cc_library(
   deps = [
     ":Abs",
     ":Add",
+    ":AddN",
     ":BatchMatMul",
     ":CropAndResize",
     ":Conv2D",
@@ -138,6 +139,15 @@ tfjs_cc_library(
   deps = [
     ":backend",
     ":binary",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "AddN",
+  srcs = ["kernels/AddN.cc"],
+  deps = [
+    ":backend",
     ":util",
   ],
 )

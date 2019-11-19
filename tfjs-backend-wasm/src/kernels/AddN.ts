@@ -15,47 +15,44 @@
  * =============================================================================
  */
 
-import {backend_util, KernelFunc, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelFunc, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+import {CppDType} from './types';
 
-let wasmFunc: (aId: number, bId: number, dtype: number, outId: number) => void;
+let wasmFunc:
+    (inputIds: Uint8Array, inputIdsLen: number, dtype: number, outId: number) =>
+        void;
 
 function setupFunc(backend: BackendWasm): void {
   wasmFunc = backend.wasm.cwrap('AddN', null /* void */, [
-    'number',  // a_id,
-    'number',  // b_id
+    'array',   // input_ids
+    'number',  // input_ids.length
     'number',  // dtype
-    'number'   // out_id
+    'number',  // out_id
   ]);
+}
 
-  function addn(args: {inputs: TensorInfo[], backend: BackendWasm}) {
-    const {inputs, backend} = args;
-    const newShape = backend_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    const out = backend.makeOutput(newShape, a.dtype);
+function addn(args: {inputs: TensorInfo[], backend: BackendWasm}) {
+  const {inputs, backend} = args;
+  const out = backend.makeOutput(inputs[0].shape, inputs[0].dtype);
 
-    // Short-circuit zero-sized tensors.
-    if (util.sizeFromShape(newShape) === 0) {
-      return out;
-    }
-
-    const aBroadcastDims = backend_util.getBroadcastDims(a.shape, newShape);
-    const bBroadcastDims = backend_util.getBroadcastDims(b.shape, newShape);
-    const loopsOverAllOfA = aBroadcastDims.every((v, i) => v === i);
-    const loopsOverAllOfB = bBroadcastDims.every((v, i) => v === i);
-    const outId = backend.dataIdMap.get(out.dataId).id;
-
-    if (loopsOverAllOfA && loopsOverAllOfB) {
-      wasmFunc(aId, bId, CppDType[a.dtype], outId);
-      return out;
-    } else {
-      throw new Error('Broadcasting along inner dims is not yet supported');
-    }
+  // Short-circuit zero-sized tensors.
+  if (util.sizeFromShape(out.shape) === 0) {
+    return out;
   }
 
-  registerKernel({
-    kernelName: 'AddN',
-    backendName: 'wasm',
-    setupFunc,
-    kernelFunc: addn as {} as KernelFunc,
-  });
+  const inputIds = inputs.map(x => backend.dataIdMap.get(x.dataId).id);
+  const inputIdsBytes = new Uint8Array(new Int32Array(inputIds).buffer);
+  const outId = backend.dataIdMap.get(out.dataId).id;
+  wasmFunc(inputIdsBytes, inputIds.length, CppDType[out.dtype], outId);
+
+  return out;
+}
+
+registerKernel({
+  kernelName: 'AddN',
+  backendName: 'wasm',
+  setupFunc,
+  kernelFunc: addn as {} as KernelFunc,
+});
