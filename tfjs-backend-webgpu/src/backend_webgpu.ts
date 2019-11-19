@@ -131,7 +131,10 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   flushDisposalQueue() {
-    this.tensorDisposalQueue.forEach(d => this.maybeReleaseBuffer(d));
+    this.tensorDisposalQueue.forEach(d => {
+      this.maybeReleaseBuffer(d);
+      this.tensorMap.delete(d);
+    });
     this.uniformDisposalQueue.forEach(
         d => this.bufferManager.releaseBuffer(d.buffer, d.byteSize, d.usage));
 
@@ -146,6 +149,7 @@ export class WebGPUBackend extends KernelBackend {
 
     if (this.commandQueueOwnedIds.has(dataId)) {
       this.tensorDisposalQueue.push(dataId);
+      return;
     } else {
       this.maybeReleaseBuffer(dataId);
     }

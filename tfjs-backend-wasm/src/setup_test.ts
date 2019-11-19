@@ -49,6 +49,13 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'depthwiseConv2D ',
+    excludes: [
+      'gradient',  // Gradients not defined yet.
+      'NCHW',      // xnn pack does not support channels first.
+    ]
+  },
+  {
     include: 'conv2d ',
     excludes: [
       // conv2d fusion is only done for bias.
@@ -164,6 +171,8 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'transpose',
     excludes: ['oneHot']  // oneHot not yet implemented.
   },
+  {include: 'pad ', excludes: ['complex', 'zerosLike']},
+  {include: 'clip', excludes: ['gradient']},
 ];
 
 const customInclude = (testName: string) => {

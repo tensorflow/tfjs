@@ -79,11 +79,14 @@ tfjs_cc_library(
     ":Abs",
     ":Add",
     ":BatchMatMul",
+    ":ClipByValue",
     ":CropAndResize",
     ":Conv2D",
+    ":DepthwiseConv2dNative",
     ":FusedConv2D",
     ":Div",
     ":Mul",
+    ":PadV2",
     ":Prelu",
     ":FusedBatchNorm",
     ":Max",
@@ -150,6 +153,16 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "ClipByValue",
+  hdrs = ["kernels/ClipByValue.h"],
+  srcs = ["kernels/ClipByValue.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
   name = "CropAndResize",
   srcs = ["kernels/CropAndResize.cc"],
   deps = [
@@ -177,6 +190,15 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "DepthwiseConv2dNative",
+  srcs = ["kernels/DepthwiseConv2dNative.cc"],
+  hdrs = ["kernels/DepthwiseConv2dNative.h"],
+  deps = [
+    ":conv2d_impl",
+  ],
+)
+
+tfjs_cc_library(
   name = "Div",
   srcs = ["kernels/Div.cc"],
   deps = [
@@ -192,6 +214,15 @@ tfjs_cc_library(
   deps = [
     ":backend",
     ":binary",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "PadV2",
+  srcs = ["kernels/PadV2.cc"],
+  deps = [
+    ":backend",
     ":util",
   ],
 )
@@ -281,9 +312,25 @@ tfjs_unit_test(
 )
 
 tfjs_unit_test(
+  name = "DepthwiseConv2dNative_test",
+  srcs = ["kernels/DepthwiseConv2dNative_test.cc"],
+  deps = [
+    ":DepthwiseConv2dNative",
+  ]
+)
+
+tfjs_unit_test(
   name = "FusedConv2D_test",
   srcs = ["kernels/FusedConv2D_test.cc"],
   deps = [
     ":FusedConv2D",
+  ]
+)
+
+tfjs_unit_test(
+  name = "ClipByValue_test",
+  srcs = ["kernels/ClipByValue_test.cc"],
+  deps = [
+    ":ClipByValue",
   ]
 )
