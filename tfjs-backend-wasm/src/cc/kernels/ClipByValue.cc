@@ -16,10 +16,12 @@
 #include <emscripten.h>
 #endif
 
+#include "src/cc/kernels/ClipByValue.h"
+
 #include <xnnpack.h>
-#include <array>
 #include <cmath>
 #include <map>
+#include <tuple>
 #include <unordered_map>
 
 #include "src/cc/backend.h"
@@ -29,7 +31,7 @@ namespace {
 // These float values are keys to creating the clip operator. We use
 // std::array instead of a vanilla array as it implements the compare operator
 // needed for std::map.
-typedef std::array<float, 6> OperatorCacheKey;
+typedef std::tuple<int, int, int, float, float, int> OperatorCacheKey;
 
 // The operator cache maps the cache key to the xnn_operator_t instantiated for
 // this set of arguments to the xnn_operator.
@@ -56,14 +58,7 @@ void ClipByValue(const int x_id, const float min, const float max,
   const int channels = x_info.size;
   const int strides = channels;
   const int flags = 0;
-  OperatorCacheKey cache_key = {
-      static_cast<float>(channels),
-      static_cast<float>(strides),
-      static_cast<float>(strides),
-      min,
-      max,
-      static_cast<float>(flags),
-  };
+  OperatorCacheKey cache_key = {channels, strides, strides, min, max, flags};
   auto operator_cache_idx = operator_cache.find(cache_key);
   if (operator_cache_idx == operator_cache.end()) {
     xnn_status status = xnn_create_clamp_nc_f32(channels, strides, strides, min,
