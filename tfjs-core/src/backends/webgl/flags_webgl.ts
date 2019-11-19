@@ -44,6 +44,9 @@ ENV.registerFlag('WEBGL_VERSION', () => {
 ENV.registerFlag(
     'WEBGL_BUFFER_SUPPORTED', () => ENV.get('WEBGL_VERSION') === 2);
 
+/** Whether we throw an error if HALF_FLOAT extension is not supported. */
+ENV.registerFlag('WEBGL_REQUIRE_HALF_FLOAT', () => true);
+
 /** Whether the WebGL backend will sometimes forward ops to the CPU. */
 ENV.registerFlag('WEBGL_CPU_FORWARD', () => true);
 
