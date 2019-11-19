@@ -79,7 +79,11 @@ tfjs_cc_library(
     ":Abs",
     ":Add",
     ":BatchMatMul",
+<<<<<<< HEAD
     ":MaxPool",
+=======
+    ":ClipByValue",
+>>>>>>> master
     ":CropAndResize",
     ":Conv2D",
     ":DepthwiseConv2dNative",
@@ -156,6 +160,16 @@ tfjs_cc_library(
 tfjs_cc_library(
   name = "BatchMatMul",
   srcs = ["kernels/BatchMatMul.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "ClipByValue",
+  hdrs = ["kernels/ClipByValue.h"],
+  srcs = ["kernels/ClipByValue.cc"],
   deps = [
     ":backend",
     ":util",
@@ -331,6 +345,14 @@ tfjs_unit_test(
   name = "MaxPool_test",
   srcs = ["kernels/MaxPool_test.cc"],
   deps = [
-    ":MaxPool",
+    ":MaxPool"
+  ]
+)
+
+tfjs_unit_test(
+  name = "ClipByValue_test",
+  srcs = ["kernels/ClipByValue_test.cc"],
+  deps = [
+    ":ClipByValue",
   ]
 )
