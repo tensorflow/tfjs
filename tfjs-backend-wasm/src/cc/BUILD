@@ -79,11 +79,8 @@ tfjs_cc_library(
     ":Abs",
     ":Add",
     ":BatchMatMul",
-<<<<<<< HEAD
     ":MaxPool",
-=======
     ":ClipByValue",
->>>>>>> master
     ":CropAndResize",
     ":Conv2D",
     ":DepthwiseConv2dNative",
