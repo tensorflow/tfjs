@@ -19,9 +19,9 @@
 #include "src/cc/kernels/ClipByValue.h"
 
 #include <xnnpack.h>
+#include <array>
 #include <cmath>
 #include <map>
-#include <tuple>
 #include <unordered_map>
 
 #include "src/cc/backend.h"
@@ -31,7 +31,7 @@ namespace {
 // These float values are keys to creating the clip operator. We use
 // std::array instead of a vanilla array as it implements the compare operator
 // needed for std::map.
-typedef std::tuple<int, int, int, float, float, int> OperatorCacheKey;
+typedef std::array<float, 2> OperatorCacheKey;
 
 // The operator cache maps the cache key to the xnn_operator_t instantiated for
 // this set of arguments to the xnn_operator.
@@ -55,12 +55,12 @@ void ClipByValue(const int x_id, const float min, const float max,
   float* out_buf = out_info.f32_write();
 
   xnn_operator_t clamp_op = nullptr;
-  const int channels = x_info.size;
-  const int strides = channels;
-  const int flags = 0;
-  OperatorCacheKey cache_key = {channels, strides, strides, min, max, flags};
+  OperatorCacheKey cache_key = {min, max};
   auto operator_cache_idx = operator_cache.find(cache_key);
   if (operator_cache_idx == operator_cache.end()) {
+    const int channels = 1;
+    const int strides = channels;
+    const int flags = 0;
     xnn_status status = xnn_create_clamp_nc_f32(channels, strides, strides, min,
                                                 max, flags, &clamp_op);
     if (status != xnn_status_success) {
@@ -76,7 +76,7 @@ void ClipByValue(const int x_id, const float min, const float max,
     clamp_op = operator_cache_idx->second;
   }
 
-  const int batch_size = 1;
+  const int batch_size = x_info.size;
   xnn_status status = xnn_setup_clamp_nc_f32(
       clamp_op, batch_size, x_buf, out_buf, nullptr /* thread pool */);
   if (status != xnn_status_success) {

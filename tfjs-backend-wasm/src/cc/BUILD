@@ -79,6 +79,7 @@ tfjs_cc_library(
     ":Abs",
     ":Add",
     ":BatchMatMul",
+    ":ClipByValue",
     ":CropAndResize",
     ":Conv2D",
     ":DepthwiseConv2dNative",
