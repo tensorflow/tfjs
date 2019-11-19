@@ -75,7 +75,7 @@ export class GPGPUContext {
             'environment flag WEBGL_FORCE_F16_TEXTURES is set to true.');
       }
 
-      this.colorBufferFloatExtension = gl.getExtension(COLOR_BUFFER_FLOAT);
+      this.colorBufferFloatExtension = this.gl.getExtension(COLOR_BUFFER_FLOAT);
       this.colorBufferHalfFloatExtension =
           this.gl.getExtension(COLOR_BUFFER_HALF_FLOAT);
     } else {
