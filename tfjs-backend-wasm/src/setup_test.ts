@@ -191,6 +191,7 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {include: 'pad ', excludes: ['complex', 'zerosLike']},
   {include: 'clip', excludes: ['gradient']},
+  {include: 'addN'},
 ];
 
 const customInclude = (testName: string) => {

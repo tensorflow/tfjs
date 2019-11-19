@@ -79,6 +79,7 @@ tfjs_cc_library(
     ":Abs",
     ":Add",
     ":AvgPool",
+    ":AddN",
     ":BatchMatMul",
     ":MaxPool",
     ":ClipByValue",
@@ -161,6 +162,15 @@ tfjs_cc_library(
   deps = [
     ":backend",
     ":binary",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "AddN",
+  srcs = ["kernels/AddN.cc"],
+  deps = [
+    ":backend",
     ":util",
   ],
 )

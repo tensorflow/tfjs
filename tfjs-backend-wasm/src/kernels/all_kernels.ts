@@ -21,6 +21,7 @@
 import './Abs';
 import './Add';
 import './AvgPool';
+import './AddN';
 import './BatchMatMul';
 import './Cast';
 import './ClipByValue';
