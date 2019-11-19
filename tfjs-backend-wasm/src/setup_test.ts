@@ -36,6 +36,7 @@ const TEST_FILTERS: TestFilter[] = [
       'complex',                         // Complex numbers not supported yet
     ]
   },
+  {include: 'avgPool'},
   {
     include: 'maxPool',
     excludes: [

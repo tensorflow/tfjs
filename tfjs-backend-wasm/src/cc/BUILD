@@ -78,6 +78,7 @@ tfjs_cc_library(
   deps = [
     ":Abs",
     ":Add",
+    ":AvgPool",
     ":BatchMatMul",
     ":MaxPool",
     ":ClipByValue",
@@ -102,6 +103,16 @@ tfjs_cc_library(
   name = "MaxPool",
   srcs = ["kernels/MaxPool.cc"],
   hdrs = ["kernels/MaxPool.h"],
+  deps = [
+    ":backend",
+    ":util"
+  ]
+)
+
+tfjs_cc_library(
+  name = "AvgPool",
+  srcs = ["kernels/AvgPool.cc"],
+  hdrs = ["kernels/AvgPool.h"],
   deps = [
     ":backend",
     ":util"
@@ -335,6 +346,14 @@ tfjs_unit_test(
   srcs = ["kernels/FusedConv2D_test.cc"],
   deps = [
     ":FusedConv2D",
+  ]
+)
+
+tfjs_unit_test(
+  name = "AvgPool_test",
+  srcs = ["kernels/AvgPool_test.cc"],
+  deps = [
+    ":AvgPool"
   ]
 )
 
