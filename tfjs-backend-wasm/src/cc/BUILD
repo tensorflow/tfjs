@@ -79,6 +79,7 @@ tfjs_cc_library(
     ":Abs",
     ":Add",
     ":BatchMatMul",
+    ":ClipByValue",
     ":CropAndResize",
     ":Conv2D",
     ":DepthwiseConv2dNative",
@@ -145,6 +146,16 @@ tfjs_cc_library(
 tfjs_cc_library(
   name = "BatchMatMul",
   srcs = ["kernels/BatchMatMul.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "ClipByValue",
+  hdrs = ["kernels/ClipByValue.h"],
+  srcs = ["kernels/ClipByValue.cc"],
   deps = [
     ":backend",
     ":util",
@@ -313,5 +324,13 @@ tfjs_unit_test(
   srcs = ["kernels/FusedConv2D_test.cc"],
   deps = [
     ":FusedConv2D",
+  ]
+)
+
+tfjs_unit_test(
+  name = "ClipByValue_test",
+  srcs = ["kernels/ClipByValue_test.cc"],
+  deps = [
+    ":ClipByValue",
   ]
 )
