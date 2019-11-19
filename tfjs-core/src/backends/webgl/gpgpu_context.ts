@@ -75,16 +75,9 @@ export class GPGPUContext {
             'environment flag WEBGL_FORCE_F16_TEXTURES is set to true.');
       }
 
-      this.colorBufferFloatExtension = webgl_util.getExtensionOrThrow(
-          this.gl, this.debug, COLOR_BUFFER_FLOAT);
-      if (webgl_util.hasExtension(this.gl, COLOR_BUFFER_HALF_FLOAT)) {
-        this.colorBufferHalfFloatExtension =
-            this.gl.getExtension(COLOR_BUFFER_HALF_FLOAT);
-      } else if (env().get('WEBGL_FORCE_F16_TEXTURES')) {
-        throw new Error(
-            'GL context does not support half float textures, yet the ' +
-            'environment flag WEBGL_FORCE_F16_TEXTURES is set to true.');
-      }
+      this.colorBufferFloatExtension = gl.getExtension(COLOR_BUFFER_FLOAT);
+      this.colorBufferHalfFloatExtension =
+          this.gl.getExtension(COLOR_BUFFER_HALF_FLOAT);
     } else {
       COLOR_BUFFER_FLOAT = 'EXT_color_buffer_float';
       if (webgl_util.hasExtension(this.gl, COLOR_BUFFER_FLOAT)) {
