@@ -99,6 +99,7 @@ void MaxPool(const int x_id, const int batch_size, const int input_height,
         "XNN status for xnn_setup_max_pooling2d_nhwc_f32 is not successful. "
         "Got status %d. Use -c dbg to see XNN logs.",
         status);
+    return;
   }
 
   xnn_run_operator(max_pool_op, nullptr /* thread pool */);
