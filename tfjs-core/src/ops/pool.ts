@@ -192,14 +192,21 @@ function avgPoolImpl_<T extends Tensor3D|Tensor4D>(
 
   const convInfo = conv_util.computePool2DInfo(
       x4D.shape, filterSize, strides, dilations, pad, dimRoundingMode);
+  if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
+      util.arraysEqual(convInfo.inShape, convInfo.outShape) &&
+      convInfo.padInfo.type === 'VALID') {
+    return $x.clone();
+  }
 
   const grad = (dy: Tensor4D) => {
     return {
       x: () => avgPoolBackprop(dy, x4D, filterSize, strides, dilations, pad)
     };
   };
+
   let res = ENGINE.runKernelFunc(
-      backend => backend.avgPool(x4D, convInfo), {x: x4D}, grad);
+      backend => backend.avgPool(x4D, convInfo), {x: x4D}, grad, 'AvgPool',
+      convInfo);
   res = res.cast($x.dtype);
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
