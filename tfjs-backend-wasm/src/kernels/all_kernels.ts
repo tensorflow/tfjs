@@ -20,15 +20,22 @@
 // the contents of this file and import only the kernels that are needed.
 import './Abs';
 import './Add';
+import './AddN';
 import './BatchMatMul';
-import './CropAndResize';
-import './FusedBatchNorm';
 import './Cast';
+import './ClipByValue';
 import './Concat';
+import './Conv2D';
+import './CropAndResize';
+import './DepthwiseConv2dNative';
 import './Div';
-import './Mul';
-import './Min';
+import './FusedBatchNorm';
+import './FusedConv2D';
 import './Max';
+import './MaxPool';
+import './Min';
+import './Mul';
+import './PadV2';
 import './Prelu';
 import './Reshape';
 import './Sigmoid';
