@@ -32,6 +32,7 @@ import './Div';
 import './FusedBatchNorm';
 import './FusedConv2D';
 import './Max';
+import './MaxPool';
 import './Min';
 import './Mul';
 import './PadV2';
