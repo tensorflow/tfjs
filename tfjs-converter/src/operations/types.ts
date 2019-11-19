@@ -87,6 +87,7 @@ export declare interface OpMapper {
 }
 
 export declare interface Node {
+  signatureKey?: string;
   name: string;
   op: string;
   category: Category;
@@ -104,6 +105,7 @@ export declare interface Graph {
   inputs: Node[];
   outputs: Node[];
   weights: Node[];
+  signature?: tensorflow.ISignatureDef;
 }
 
 export type ValueType = string|string[]|number|number[]|number[][]|boolean|
