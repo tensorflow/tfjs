@@ -45,6 +45,7 @@ function setup(backend: BackendWasm) {
     'number',  // padRight
     'number',  // padBottom
     'number',  // padLeft
+    'number',  // isSamePad
     'number',  // dilationHeight
     'number',  // dilationWidth
     'number',  // strideHeight

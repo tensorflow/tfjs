@@ -57,7 +57,7 @@ TEST(CONV2D, xnn_operator_lifetime) {
   const int pad_right = 0;
   const int pad_bottom0 = 0;
   const int pad_left = 0;
-  const int is_same_pad0 = 0;
+  const bool is_same_pad0 = false;
   const int dilation_height = 1;
   const int dilation_width = 1;
   const int stride_height = 1;
@@ -111,7 +111,7 @@ TEST(CONV2D, xnn_operator_lifetime) {
 
   // One more xnn operator should be created for the next call to conv2d with
   // 'SAME' padding.
-  const int is_same_pad1 = 1;
+  const bool is_same_pad1 = true;
   tfjs::wasm::Conv2D(x0_id, batch_size, input_height, input_width, weights1_id,
                      filter_height, filter_width, pad_top0, pad_right,
                      pad_bottom0, pad_left, is_same_pad1, dilation_height,

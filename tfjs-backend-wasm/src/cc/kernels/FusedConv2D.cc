@@ -36,11 +36,12 @@ void FusedConv2D(const int x_id, const int batch_size, const int input_height,
                  const int dilation_width, const int stride_height,
                  const int stride_width, const int input_channels,
                  const int output_channels, const int out_id) {
+  const bool is_depthwise = false;
   tfjs::wasm::conv2d(x_id, batch_size, input_height, input_width, filter_id,
                      filter_height, filter_width, bias_id, pad_top, pad_right,
                      pad_bottom, pad_left, is_same_pad, dilation_height,
                      dilation_width, stride_height, stride_width,
-                     input_channels, output_channels, out_id);
+                     input_channels, output_channels, is_depthwise, out_id);
 }
 
 }  // extern "C"
