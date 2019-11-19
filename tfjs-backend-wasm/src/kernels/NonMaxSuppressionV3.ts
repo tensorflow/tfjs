@@ -32,17 +32,19 @@ interface NonMaxSuppressionAttrs extends NamedAttrMap {
 
 let wasmFunc: (
     boxesId: number, scoresId: number, maxOutputSize: number,
-    iouThreshold: number, scoreThreshold: number, outId: number) => void;
+    iouThreshold: number, scoreThreshold: number) => Uint8Array;
 
 function setup(backend: BackendWasm): void {
-  wasmFunc = backend.wasm.cwrap('NonMaxSuppressionV3', null /*void*/, [
-    'number',  // boxesId
-    'number',  // scoresId
-    'number',  // maxOutputSize
-    'number',  // iouThreshold
-    'number',  // scoreThreshold
-    'number'   // outId
-  ]);
+  wasmFunc = backend.wasm.cwrap(
+      'NonMaxSuppressionV3',
+      'array',  // memoryOffset
+      [
+        'number',  // boxesId
+        'number',  // scoresId
+        'number',  // maxOutputSize
+        'number',  // iouThreshold
+        'number',  // scoreThreshold
+      ]);
 }
 
 function kernelFunc(args: {
@@ -54,17 +56,16 @@ function kernelFunc(args: {
   const {iouThreshold, maxOutputSize, scoreThreshold} = attrs;
   const {boxes, scores} = inputs;
 
-  const numBoxes = boxes.shape[0];
-
   const boxesId = backend.dataIdMap.get(boxes.dataId).id;
   const scoresId = backend.dataIdMap.get(scores.dataId).id;
 
-  const out = backend.makeOutput(outShape, images.dtype);
-  const outId = backend.dataIdMap.get(out.dataId).id;
-
-  wasmFunc(
-      boxesId, scoresId, maxOutputSize, iouThreshold, scoreThreshold, outId);
-  return out;
+  const resultBytes =
+      wasmFunc(boxesId, scoresId, maxOutputSize, iouThreshold, scoreThreshold);
+  const result = new Int32Array(resultBytes.buffer);
+  const memOffset = result[0];
+  const size = result[1];
+  const outShape = [size];
+  return backend.makeOutput(outShape, 'int32', memOffset);
 }
 
 registerKernel({

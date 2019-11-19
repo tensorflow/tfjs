@@ -33,6 +33,7 @@ import './FusedConv2D';
 import './Max';
 import './Min';
 import './Mul';
+import './NonMaxSuppressionV3';
 import './PadV2';
 import './Prelu';
 import './Reshape';
