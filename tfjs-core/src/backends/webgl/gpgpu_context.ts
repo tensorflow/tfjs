@@ -64,24 +64,26 @@ export class GPGPUContext {
       const TEXTURE_FLOAT = 'OES_texture_float';
       const TEXTURE_HALF_FLOAT = 'OES_texture_half_float';
 
-      if (webgl_util.hasExtension(this.gl, TEXTURE_FLOAT)) {
-        this.textureFloatExtension =
-            webgl_util.getExtensionOrThrow(this.gl, this.debug, TEXTURE_FLOAT);
-      } else if (webgl_util.hasExtension(this.gl, TEXTURE_HALF_FLOAT)) {
+      this.textureFloatExtension =
+          webgl_util.getExtensionOrThrow(this.gl, this.debug, TEXTURE_FLOAT);
+      if (webgl_util.hasExtension(this.gl, TEXTURE_HALF_FLOAT)) {
         this.textureHalfFloatExtension = webgl_util.getExtensionOrThrow(
             this.gl, this.debug, TEXTURE_HALF_FLOAT);
-      } else {
-        throw new Error('GL context does not support floats');
+      } else if (env().get('WEBGL_FORCE_F16_TEXTURES')) {
+        throw new Error(
+            'GL context does not support half float textures, yet the ' +
+            'environment flag WEBGL_FORCE_F16_TEXTURES is set to true.');
       }
 
-      if (webgl_util.hasExtension(this.gl, COLOR_BUFFER_FLOAT)) {
-        this.colorBufferFloatExtension =
-            this.gl.getExtension(COLOR_BUFFER_FLOAT);
-      } else if (webgl_util.hasExtension(this.gl, COLOR_BUFFER_HALF_FLOAT)) {
+      this.colorBufferFloatExtension = webgl_util.getExtensionOrThrow(
+          this.gl, this.debug, COLOR_BUFFER_FLOAT);
+      if (webgl_util.hasExtension(this.gl, COLOR_BUFFER_HALF_FLOAT)) {
         this.colorBufferHalfFloatExtension =
             this.gl.getExtension(COLOR_BUFFER_HALF_FLOAT);
-      } else {
-        throw new Error('GL context does not support color renderable floats');
+      } else if (env().get('WEBGL_FORCE_F16_TEXTURES')) {
+        throw new Error(
+            'GL context does not support half float textures, yet the ' +
+            'environment flag WEBGL_FORCE_F16_TEXTURES is set to true.');
       }
     } else {
       COLOR_BUFFER_FLOAT = 'EXT_color_buffer_float';
