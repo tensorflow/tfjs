@@ -128,7 +128,8 @@ function addN_<T extends Tensor>(tensors: Array<T|TensorLike>): T {
     return ders;
   };
   const inputs: NamedTensorMap = $tensors as {} as NamedTensorMap;
-  return ENGINE.runKernelFunc(backend => backend.addN($tensors), inputs, der);
+  return ENGINE.runKernelFunc(
+      backend => backend.addN($tensors), inputs, der, 'AddN');
 }
 
 /**
