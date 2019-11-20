@@ -51,12 +51,11 @@ TEST(MAXPOOL, xnn_operator_lifetime) {
   const int pad_left = 0;
   const int stride_height = 1;
   const int stride_width = 1;
-  const int input_channels = 1;
-  const int output_channels = 1;
+  const int channels = 1;
   tfjs::wasm::AvgPool(x0_id, batch_size, input_height, input_width,
                       filter_height, filter_width, pad_top, pad_right,
                       pad_bottom, pad_left, stride_height, stride_width,
-                      input_channels, output_channels, out_id);
+                      channels, out_id);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
 
   // No new xnn_operators should be created for the second call to avgPool with
@@ -64,7 +63,7 @@ TEST(MAXPOOL, xnn_operator_lifetime) {
   tfjs::wasm::AvgPool(x0_id, batch_size, input_height, input_width,
                       filter_height, filter_width, pad_top, pad_right,
                       pad_bottom, pad_left, stride_height, stride_width,
-                      input_channels, output_channels, out_id);
+                      channels, out_id);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
 
   // One new xnn_operator should be created for the next call to avgPool with
@@ -72,7 +71,7 @@ TEST(MAXPOOL, xnn_operator_lifetime) {
   tfjs::wasm::AvgPool(x0_id, batch_size, input_height, input_width,
                       filter_height, filter_width, pad_top, 0 /* pad_right */,
                       0 /* pad_bottom */, pad_left, stride_height, stride_width,
-                      input_channels, output_channels, out_id);
+                      channels, out_id);
   ASSERT_EQ(2, tfjs::backend::xnn_operator_count);
 
   tfjs::wasm::dispose();
