@@ -67,7 +67,7 @@ inline void warn(const char* format, ...) {
 template <class T>
 inline void log_vector(const std::vector<T>& v) {
   print_log("[", 0);
-  for (auto const& value : v) {
+  for (const auto& value : v) {
     print_log("%d,", value);
   }
   print_log("]\n", 0);
@@ -139,7 +139,7 @@ inline int offset(int i1, int i2, int i3, int i4, int i5, int s1, int s2,
 
 // Returns the strides of a tensor given its shape. Note that the strides
 // are of length R-1 where R is the rank of the tensor.
-std::vector<int> compute_strides(const std::vector<int> shape);
+const std::vector<int> compute_strides(const std::vector<int> shape);
 
 }  // namespace util
 }  // namespace tfjs

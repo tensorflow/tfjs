@@ -238,7 +238,7 @@ function standardizeDataIteratorOutput(
           `provides ${flattenedYs.length} outputs.  (Expected output keys: ` +
           `${JSON.stringify(model.outputNames)})`);
 
-  for (const xIndex in flattenedXs) {
+  for (let xIndex = 0; xIndex < flattenedXs.length; xIndex++) {
     tfc.util.assert(
         flattenedXs[xIndex].shape[0] === batchSize,
         () => `Batch size mismatch: input ` +
@@ -247,7 +247,7 @@ function standardizeDataIteratorOutput(
             `expected  ${batchSize} based on input ${model.inputNames[0]}.`);
   }
 
-  for (const yIndex in flattenedYs) {
+  for (let yIndex = 0; yIndex < flattenedYs.length; yIndex++) {
     tfc.util.assert(
         flattenedYs[yIndex].shape[0] === batchSize,
         () => `Batch size mismatch: output ` +

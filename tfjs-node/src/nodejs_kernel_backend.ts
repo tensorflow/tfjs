@@ -25,7 +25,6 @@ import {isArray, isNullOrUndefined} from 'util';
 
 import {Int64Scalar} from './int64_tensors';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
-
 type TensorData = {
   shape: number[],
   dtype: number,
@@ -477,6 +476,12 @@ export class NodeJSKernelBackend extends KernelBackend {
     const opAttrs =
         [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('Div', opAttrs, [a, b]);
+  }
+
+  divNoNan(a: Tensor, b: Tensor): Tensor {
+    const opAttrs =
+        [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
+    return this.executeSingleOutput('DivNoNan', opAttrs, [a, b]);
   }
 
   unsortedSegmentSum<T extends Tensor>(
@@ -1898,6 +1903,15 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   loadSavedModelMetaGraph(path: string, tags: string): number {
     return this.binding.loadSavedModel(path, tags);
+  }
+
+  runSavedModel(
+      id: number, inputs: Tensor[], inputOpNames: string[],
+      outputOpNames: string[]): Tensor[] {
+    const outputMetadata = this.binding.runSavedModel(
+        id, this.getInputTensorIds(inputs), inputOpNames.join(','),
+        outputOpNames.join(','));
+    return outputMetadata.map(m => this.createOutputTensor(m));
   }
 
   // ------------------------------------------------------------

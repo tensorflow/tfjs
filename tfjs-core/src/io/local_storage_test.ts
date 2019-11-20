@@ -74,7 +74,8 @@ describeWithFlags('LocalStorage', BROWSER_ENVS, () => {
     weightData: weightData1,
     format: 'layers-model',
     generatedBy: 'TensorFlow.js v0.0.0',
-    convertedBy: null
+    convertedBy: '1.13.1',
+    userDefinedMetadata: {}
   };
 
   const artifactsV0: tf.io.ModelArtifacts = {
@@ -173,7 +174,8 @@ describeWithFlags('LocalStorage', BROWSER_ENVS, () => {
     expect(loaded.weightData).toEqual(weightData1);
     expect(loaded.format).toEqual('layers-model');
     expect(loaded.generatedBy).toEqual('TensorFlow.js v0.0.0');
-    expect(loaded.convertedBy).toEqual(null);
+    expect(loaded.convertedBy).toEqual('1.13.1');
+    expect(loaded.userDefinedMetadata).toEqual({});
   });
 
   it('Save-load round trip succeeds: v0 format', async () => {
@@ -185,9 +187,10 @@ describeWithFlags('LocalStorage', BROWSER_ENVS, () => {
     expect(loaded.modelTopology).toEqual(modelTopology1);
     expect(loaded.weightSpecs).toEqual(weightSpecs1);
     expect(loaded.weightData).toEqual(weightData1);
-    expect(loaded.format).toEqual(undefined);
-    expect(loaded.generatedBy).toEqual(undefined);
-    expect(loaded.convertedBy).toEqual(undefined);
+    expect(loaded.format).toBeUndefined();
+    expect(loaded.generatedBy).toBeUndefined();
+    expect(loaded.convertedBy).toBeUndefined();
+    expect(loaded.userDefinedMetadata).toBeUndefined();
   });
 
   it('Loading nonexistent model fails.', done => {

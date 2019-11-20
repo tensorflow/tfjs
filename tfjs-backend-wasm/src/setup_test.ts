@@ -37,6 +37,23 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'avgPool',
+    excludes: [
+      'gradient',   // Not yet implemented.
+      'avgPool3d',  // Not yet implemented.
+    ]
+  },
+  {
+    include: 'maxPool',
+    excludes: [
+      'maxPoolBackprop',    // Not yet implemented.
+      'maxPool3d',          // Not yet implemented.
+      'maxPool3dBackprop',  // Not yet implemented.
+      'ignores NaNs'        // Actual != expected.
+    ]
+  },
+  {include: 'cropAndResize'},
+  {
     include: 'matmul ',
     excludes: [
       'valueAndGradients',       // Gradients not defined yet
@@ -45,6 +62,24 @@ const TEST_FILTERS: TestFilter[] = [
       'zero in its shape',       // Zero in shapes aren't supported yet
       'matmul followed by mul',  // mul not supported yet
       'upcasts',                 // Upcasting not supported yet.
+    ]
+  },
+  {
+    include: 'depthwiseConv2D ',
+    excludes: [
+      'gradient',  // Gradients not defined yet.
+      'NCHW',      // xnn pack does not support channels first.
+    ]
+  },
+  {
+    include: 'conv2d ',
+    excludes: [
+      // conv2d fusion is only done for bias.
+      'im2row with bias and relu', 'im2row with prelu', 'basic with prelu',
+      'basic with bias and relu', 'basic with elu', 'basic with relu',
+      'pointwise with prelu', 'im2row with relu', 'im2row',
+      'gradient',  // Gradients not defined yet.
+      'NCHW',      // xnn pack does not support channels first.
     ]
   },
   {
@@ -110,6 +145,7 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasting same rank Tensors different shape',  // Broadcasting along
                                                          // inner dims not
                                                          // supported yet.
+      'divNoNan'  // divNoNan not yet implemented.
     ]
   },
   {
@@ -151,6 +187,9 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'transpose',
     excludes: ['oneHot']  // oneHot not yet implemented.
   },
+  {include: 'pad ', excludes: ['complex', 'zerosLike']},
+  {include: 'clip', excludes: ['gradient']},
+  {include: 'addN'},
 ];
 
 const customInclude = (testName: string) => {

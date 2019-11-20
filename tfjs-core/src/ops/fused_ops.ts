@@ -95,7 +95,7 @@ const applyActivation =
  * - `activation` Name of activation kernel (defaults to `linear`).
  * - `preluActivationWeights` Tensor of prelu weights.
  */
-function matMul_<T extends Tensor>({
+function fusedMatMul_<T extends Tensor>({
   a,
   b,
   transposeA = false,
@@ -305,7 +305,7 @@ function matMul_<T extends Tensor>({
  * @param preluActivationWeights Tensor of prelu weights to be applied as part
  *     of a `prelu` activation, typically the same shape as `x`.
  */
-function conv2d_<T extends Tensor3D|Tensor4D>({
+function fusedConv2d_<T extends Tensor3D|Tensor4D>({
   x,
   filter,
   strides,
@@ -414,7 +414,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
         {
           x: () =>
               conv2dDerInput(x4D.shape, dyActivation, $filter, strides, pad),
-          $filter: () =>
+          filter: () =>
               conv2dDerFilter(x4D, dyActivation, $filter.shape, strides, pad)
         },
         biasGradient);
@@ -422,33 +422,39 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
 
   const inputs: {
     x: Tensor,
-    $filter: Tensor,
-    $bias?: Tensor,
-    $preluActivationWeights?: Tensor
-  } = {x: x4D, $filter};
+    filter: Tensor,
+    bias?: Tensor,
+    preluActivationWeights?: Tensor
+  } = {x: x4D, filter: $filter};
   if (bias != null) {
-    inputs.$bias = $bias;
+    inputs.bias = $bias;
   }
   if (preluActivationWeights != null) {
-    inputs.$preluActivationWeights = $preluActivationWeights;
+    inputs.preluActivationWeights = $preluActivationWeights;
   }
 
-  const res = ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.fusedConv2d({
-      input: x4D,
-      filter: $filter,
-      convInfo,
-      bias: $bias,
-      activation,
-      preluActivationWeights: $preluActivationWeights
-    });
-    save([$filter, x4D, res]);
-    return res;
-  }, inputs, grad);
+  const inputsToSave = [$filter, x4D];
+  const outputsToSave = [true];  // Save the only output.
+  const res = ENGINE.runKernelFunc(
+      (backend, save) => {
+        const res = backend.fusedConv2d({
+          input: x4D,
+          filter: $filter,
+          convInfo,
+          bias: $bias,
+          activation,
+          preluActivationWeights: $preluActivationWeights
+        });
+        save([$filter, x4D, res]);
+        return res;
+      },
+      inputs, grad, 'FusedConv2D', {convInfo, activation}, inputsToSave,
+      outputsToSave);
 
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   }
+
   return res as T;
 }
 
@@ -502,7 +508,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
  * @param preluActivationWeights Tensor of prelu weights to be applied as part
  *     of a `prelu` activation, typically the same shape as `x`.
  */
-function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
+function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   x,
   filter,
   strides,
@@ -649,8 +655,8 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   return res as T;
 }
 
-export const matMul = op({matMul_});
-export const conv2d = op({conv2d_});
-export const depthwiseConv2d = op({depthwiseConv2d_});
+export const matMul = op({fusedMatMul_});
+export const conv2d = op({fusedConv2d_});
+export const depthwiseConv2d = op({fusedDepthwiseConv2d_});
 
 export {Activation};

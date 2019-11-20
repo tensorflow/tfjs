@@ -90,6 +90,17 @@ export const json: OpMapper[] = [
     ]
   },
   {
+    'tfOpName': 'DivNoNan',
+    'category': 'arithmetic',
+    'inputs': [
+      {'start': 0, 'name': 'a', 'type': 'tensor'},
+      {'start': 1, 'name': 'b', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
+    ]
+  },
+  {
     'tfOpName': 'FloorDiv',
     'category': 'arithmetic',
     'inputs': [
@@ -167,11 +178,8 @@ export const json: OpMapper[] = [
       {'start': 0, 'name': 'a', 'type': 'tensor'},
       {'start': 1, 'name': 'b', 'type': 'tensor'},
     ],
-    'attrs': [{
-      'tfName': 'T',
-      'name': 'dtype',
-      'type': 'dtype',
-      'notSupported': true
-    }]
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
+    ]
   }
 ];
