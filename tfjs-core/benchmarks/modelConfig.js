@@ -93,12 +93,7 @@ const benchmarks = {
     },
     predictFunc: () => {
       const zeros = tf.zeros([1, 224, 224, 3]);
-      return (model) => {
-        if (isAsync) {
-          return model.executeAsync(zeros);
-        }
-        return model.predict(zeros);
-      }
+      return model => model.predict(zeros);
     }
   },
   'USE - batchsize 30': {
@@ -107,7 +102,7 @@ const benchmarks = {
     },
     predictFunc: () => {
       const sentences30 = sentences.slice(0, 30);
-      return async (model) => {
+      return async model => {
         const res = await model.embed(sentences30);
         return await res.data();
       }
@@ -120,7 +115,7 @@ const benchmarks = {
     predictFunc: () => {
       let nextIdx = 0;
 
-      return async () => {
+      return async model => {
         const next = [sentences[(nextIdx % sentences.length)]];
         const res = await model.embed(next);
         nextIdx += 1;
@@ -153,7 +148,7 @@ const benchmarks = {
       return posenetModel;
     },
     predictFunc: () => {
-      return async (model) => {
+      return async model => {
         const image = model.benchmarkImage;
         const pose = await model.estimateSinglePose(image);
         return pose;

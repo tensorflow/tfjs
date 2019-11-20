@@ -107,7 +107,7 @@ limitations under the License.
     const modalDiv = document.getElementById('modal-msg');
     const timeTable = document.querySelector('#timings tbody');
     const envDiv = document.getElementById('env');
-    let model, isAsync, predict, chartWidth;
+    let model, predict, chartWidth;
 
     async function showMsg(message) {
       if (message != null) {
@@ -157,7 +157,9 @@ limitations under the License.
       }
 
       if (res instanceof tf.Tensor) {
+        const tmp = res;
         res = await res.data();
+        tmp.dispose();
       }
 
       const elapsed = performance.now() - start;
@@ -170,7 +172,6 @@ limitations under the License.
       const start = performance.now();
       model = await benchmark.load();
       predict = benchmark.predictFunc();
-      isAsync = model.executor != null && model.executor.isControlFlowModel;
 
       const elapsed = performance.now() - start;
       await showMsg(null);
@@ -216,7 +217,9 @@ limitations under the License.
         }
 
         if (res instanceof tf.Tensor) {
+          const tmp = res;
           res = await res.data();
+          tmp.dispose();
         }
 
         times.push(performance.now() - start);
@@ -249,7 +252,9 @@ limitations under the License.
       }
 
       if (res instanceof tf.Tensor) {
+        const tmp = res;
         res = await res.data();
+        tmp.dispose();
       }
       const elapsed = performance.now() - start;
       await showMsg(null);
@@ -302,7 +307,9 @@ limitations under the License.
       }
 
       if (res instanceof tf.Tensor) {
+        const tmp = res;
         res = await res.data();
+        tmp.dispose();
       }
 
       await showMsg(null);
@@ -341,7 +348,7 @@ limitations under the License.
 
       await tf.ready();
       await tf.setBackend(state.backend);
-      
+
       gui.add(state, 'numRuns');
       gui.add(state, 'benchmark', Object.keys(benchmarks));
       gui.add(state, 'backend', ['wasm', 'webgl', 'cpu']).onChange(backend => {
