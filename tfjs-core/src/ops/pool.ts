@@ -81,8 +81,7 @@ function maxPoolImpl_<T extends Tensor3D|Tensor4D>(
   const convInfo = conv_util.computePool2DInfo(
       x4D.shape, filterSize, strides, dilations, pad, dimRoundingMode);
   if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
-      util.arraysEqual(convInfo.inShape, convInfo.outShape) &&
-      convInfo.padInfo.type === 'VALID') {
+      util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
     return $x.clone();
   }
 
@@ -193,8 +192,7 @@ function avgPoolImpl_<T extends Tensor3D|Tensor4D>(
   const convInfo = conv_util.computePool2DInfo(
       x4D.shape, filterSize, strides, dilations, pad, dimRoundingMode);
   if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
-      util.arraysEqual(convInfo.inShape, convInfo.outShape) &&
-      convInfo.padInfo.type === 'VALID') {
+      util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
     return $x.clone();
   }
 

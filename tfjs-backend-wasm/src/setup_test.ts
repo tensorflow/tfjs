@@ -39,7 +39,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'avgPool',
     excludes: [
-      'f=[1,1]',    // XNN does not support filter height and width of 1.
       'gradient',   // Not yet implemented.
       'avgPool3d',  // Not yet implemented.
     ]
@@ -47,9 +46,8 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'maxPool',
     excludes: [
-      'f=[1,1]',          // XNN does not support filter height and width of 1.
-      'maxPoolBackprop',  // Not yet implemented.
-      'maxPool3d',        // Not yet implemented.
+      'maxPoolBackprop',    // Not yet implemented.
+      'maxPool3d',          // Not yet implemented.
       'maxPool3dBackprop',  // Not yet implemented.
       'ignores NaNs'        // Actual != expected.
     ]
