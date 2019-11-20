@@ -32,12 +32,12 @@ interface NonMaxSuppressionAttrs extends NamedAttrMap {
 
 let wasmFunc: (
     boxesId: number, scoresId: number, maxOutputSize: number,
-    iouThreshold: number, scoreThreshold: number) => Uint8Array;
+    iouThreshold: number, scoreThreshold: number) => number;
 
 function setup(backend: BackendWasm): void {
   wasmFunc = backend.wasm.cwrap(
       'NonMaxSuppressionV3',
-      'array',  // memoryOffset
+      'number',  // Result*
       [
         'number',  // boxesId
         'number',  // scoresId
@@ -59,11 +59,12 @@ function kernelFunc(args: {
   const boxesId = backend.dataIdMap.get(boxes.dataId).id;
   const scoresId = backend.dataIdMap.get(scores.dataId).id;
 
-  const resultBytes =
+  const resOffset =
       wasmFunc(boxesId, scoresId, maxOutputSize, iouThreshold, scoreThreshold);
-  const result = new Int32Array(resultBytes.buffer);
+  const result = new Int32Array(backend.wasm.HEAPU8.buffer, resOffset, 2);
   const memOffset = result[0];
   const size = result[1];
+  backend.wasm._free(resOffset);
   const outShape = [size];
   return backend.makeOutput(outShape, 'int32', memOffset);
 }

@@ -29,6 +29,11 @@ namespace {
 
 float compute_iou(const float* boxes, const int i, const int j) { return 0.0; }
 
+struct Result {
+  int* buf;
+  int size;
+};
+
 }  // namespace
 
 namespace tfjs {
@@ -39,9 +44,10 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-int* NonMaxSuppressionV3(const int boxes_id, const int scores_id,
-                         const int max_out_size, const int iou_threshold,
-                         const int score_threshold) {
+const Result* NonMaxSuppressionV3(const int boxes_id, const int scores_id,
+                                  const int max_out_size,
+                                  const float iou_threshold,
+                                  const float score_threshold) {
   auto& boxes_info = backend::get_tensor_info(boxes_id);
   auto& scores_info = backend::get_tensor_info_out(scores_id);
   const float* boxes = boxes_info.f32();
@@ -62,7 +68,7 @@ int* NonMaxSuppressionV3(const int boxes_id, const int scores_id,
   for (size_t i = 0; i < box_indices.size(); ++i) {
     const int box_i = box_indices[i];
     bool ignore_candidate = false;
-    for (size_t j = selected.size() - 1; j >= 0; --j) {
+    for (size_t j = 0; j < selected.size(); ++j) {
       const int box_j = selected[j];
       const float iou = compute_iou(boxes, box_i, box_j);
       if (iou >= iou_threshold) {
@@ -77,10 +83,9 @@ int* NonMaxSuppressionV3(const int boxes_id, const int scores_id,
       }
     }
   }
-  int* data = (int*)malloc(selected.size() * sizeof(int));
+  int* data = static_cast<int*>(malloc(selected.size() * sizeof(int)));
   std::memcpy(data, selected.data(), selected.size() * sizeof(int));
-  int result[2] = {(int)data, selected.size()};
-  return result;
+  return new Result{data, static_cast<int>(selected.size())};
 }
 
 }  // extern "C"
