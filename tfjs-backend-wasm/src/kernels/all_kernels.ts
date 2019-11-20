@@ -20,6 +20,7 @@
 // the contents of this file and import only the kernels that are needed.
 import './Abs';
 import './Add';
+import './AvgPool';
 import './AddN';
 import './BatchMatMul';
 import './Cast';

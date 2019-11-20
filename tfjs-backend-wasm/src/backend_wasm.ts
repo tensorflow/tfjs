@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, DataStorage, DataType, engine, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import wasmFactory from '../wasm-out/tfjs-backend-wasm';
 import {BackendWasmModule} from '../wasm-out/tfjs-backend-wasm';
@@ -52,6 +52,13 @@ export class BackendWasm extends KernelBackend {
 
   numDataIds(): number {
     return this.dataIdMap.numDataIds();
+  }
+
+  async time(f: () => void): Promise<BackendTimingInfo> {
+    const start = util.now();
+    f();
+    const kernelMs = util.now() - start;
+    return {kernelMs};
   }
 
   move(
