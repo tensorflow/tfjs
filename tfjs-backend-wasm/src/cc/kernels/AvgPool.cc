@@ -44,8 +44,7 @@ void AvgPool(const int x_id, const int batch_size, const int input_height,
              const int input_width, const int filter_height,
              const int filter_width, int pad_top, int pad_right, int pad_bottom,
              int pad_left, const int stride_height, const int stride_width,
-             const int input_channels, const int output_channels,
-             const int out_id) {
+             const int channels, const int out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info(out_id);
 
@@ -55,12 +54,13 @@ void AvgPool(const int x_id, const int batch_size, const int input_height,
   xnn_operator_t avg_pool_op = nullptr;
 
   const int flags = 0;
-  const int channels = input_channels;
+  const int input_pixel_stride = channels;
+  const int output_pixel_stride = channels;
 
-  OperatorCacheKey cache_key = {pad_top,        pad_right,       pad_bottom,
-                                pad_left,       filter_height,   filter_width,
-                                stride_height,  stride_width,    channels,
-                                input_channels, output_channels, flags};
+  OperatorCacheKey cache_key = {
+      pad_top,       pad_right,          pad_bottom,          pad_left,
+      filter_height, filter_width,       stride_height,       stride_width,
+      channels,      input_pixel_stride, output_pixel_stride, flags};
 
   auto operator_cache_idx = operator_cache.find(cache_key);
 
@@ -70,16 +70,15 @@ void AvgPool(const int x_id, const int batch_size, const int input_height,
 
     xnn_status status = xnn_create_average_pooling2d_nhwc_f32(
         pad_top, pad_right, pad_bottom, pad_left, filter_height, filter_width,
-        stride_height, stride_width, channels,
-        input_channels /* input_pixel_stride */,
-        output_channels /* output_pixel_stride */, output_min, output_max,
-        flags, &avg_pool_op);
+        stride_height, stride_width, channels, input_pixel_stride,
+        output_pixel_stride, output_min, output_max, flags, &avg_pool_op);
 
     if (status != xnn_status_success) {
       util::warn(
           "XNN status for xnn_create_average_pooling2d_nhwc_f32 is not "
           "successful. ",
           "Got status %d. Use -c dbg to see XNN logs.", status);
+      return;
     }
 
     operator_cache.emplace(cache_key, avg_pool_op);

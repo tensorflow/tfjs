@@ -28,8 +28,7 @@ let wasmAvgPool: (
     xId: number, batchSize: number, inputHeight: number, inputWidth: number,
     filterHeight: number, filterWidth: number, padTop: number, padRight: number,
     padBottom: number, padLeft: number, strideHeight: number,
-    strideWidth: number, inputChannels: number, outputChannels: number,
-    outId: number) => void;
+    strideWidth: number, channels: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
   wasmAvgPool = backend.wasm.cwrap('AvgPool', null /* void */, [
@@ -45,8 +44,7 @@ function setup(backend: BackendWasm) {
     'number',  // padLeft
     'number',  // strideHeight
     'number',  // strideWidth
-    'number',  // inputChannels
-    'number',  // outputChannels
+    'number',  // channels
     'number',  // outId
   ]);
 }
@@ -70,8 +68,7 @@ function avgPool(args: {
   const padLeft = convInfo.padInfo.left;
   const strideHeight = convInfo.strideHeight;
   const strideWidth = convInfo.strideWidth;
-  const inputChannels = convInfo.inChannels;
-  const outputChannels = convInfo.outChannels;
+  const channels = convInfo.inChannels;
 
   if (convInfo.dataFormat !== 'channelsLast') {
     throw new Error(
@@ -90,8 +87,8 @@ function avgPool(args: {
 
   wasmAvgPool(
       xId, x.shape[0], x.shape[1], x.shape[2], filterHeight, filterWidth,
-      padTop, padRight, padBottom, padLeft, strideHeight, strideWidth,
-      inputChannels, outputChannels, outId);
+      padTop, padRight, padBottom, padLeft, strideHeight, strideWidth, channels,
+      outId);
   return out;
 }
 
