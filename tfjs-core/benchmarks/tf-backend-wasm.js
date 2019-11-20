@@ -205,7 +205,6 @@
           'number',
           'number',
           'number',
-          'number',
       ]);
   }
   function avgPool(args) {
@@ -221,8 +220,7 @@
       var padLeft = convInfo.padInfo.left;
       var strideHeight = convInfo.strideHeight;
       var strideWidth = convInfo.strideWidth;
-      var inputChannels = convInfo.inChannels;
-      var outputChannels = convInfo.outChannels;
+      var channels = convInfo.inChannels;
       if (convInfo.dataFormat !== 'channelsLast') {
           throw new Error("wasm backend does not support dataFormat:'" +
               (convInfo.dataFormat + "'. Please use 'channelsLast'."));
@@ -233,7 +231,7 @@
       }
       var out = backend.makeOutput(convInfo.outShape, 'float32');
       var outId = backend.dataIdMap.get(out.dataId).id;
-      wasmAvgPool(xId, x.shape[0], x.shape[1], x.shape[2], filterHeight, filterWidth, padTop, padRight, padBottom, padLeft, strideHeight, strideWidth, inputChannels, outputChannels, outId);
+      wasmAvgPool(xId, x.shape[0], x.shape[1], x.shape[2], filterHeight, filterWidth, padTop, padRight, padBottom, padLeft, strideHeight, strideWidth, channels, outId);
       return out;
   }
   tfjsCore.registerKernel({
@@ -1496,6 +1494,17 @@
       };
       BackendWasm.prototype.numDataIds = function () {
           return this.dataIdMap.numDataIds();
+      };
+      BackendWasm.prototype.time = function (f) {
+          return __awaiter(this, void 0, void 0, function () {
+              var start, kernelMs;
+              return __generator(this, function (_a) {
+                  start = tfjsCore.util.now();
+                  f();
+                  kernelMs = tfjsCore.util.now() - start;
+                  return [2 /*return*/, { kernelMs: kernelMs }];
+              });
+          });
       };
       BackendWasm.prototype.move = function (dataId, values, shape, dtype) {
           var id = this.dataIdNextNumber++;
