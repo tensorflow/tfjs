@@ -36,6 +36,16 @@ const TEST_FILTERS: TestFilter[] = [
       'complex',                         // Complex numbers not supported yet
     ]
   },
+  {
+    include: 'maxPool',
+    excludes: [
+      'f=[1,1]',          // XNN does not support filter height and width of 1.
+      'maxPoolBackprop',  // Not yet implemented.
+      'maxPool3d',        // Not yet implemented.
+      'maxPool3dBackprop',  // Not yet implemented.
+      'ignores NaNs'        // Actual != expected.
+    ]
+  },
   {include: 'cropAndResize'},
   {
     include: 'matmul ',
@@ -173,6 +183,7 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {include: 'pad ', excludes: ['complex', 'zerosLike']},
   {include: 'clip', excludes: ['gradient']},
+  {include: 'addN'},
 ];
 
 const customInclude = (testName: string) => {

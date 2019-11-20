@@ -78,7 +78,9 @@ tfjs_cc_library(
   deps = [
     ":Abs",
     ":Add",
+    ":AddN",
     ":BatchMatMul",
+    ":MaxPool",
     ":ClipByValue",
     ":CropAndResize",
     ":Conv2D",
@@ -94,6 +96,16 @@ tfjs_cc_library(
     ":Sigmoid",
     ":Sub",
     ":Transpose",
+  ]
+)
+
+tfjs_cc_library(
+  name = "MaxPool",
+  srcs = ["kernels/MaxPool.cc"],
+  hdrs = ["kernels/MaxPool.h"],
+  deps = [
+    ":backend",
+    ":util"
   ]
 )
 
@@ -139,6 +151,15 @@ tfjs_cc_library(
   deps = [
     ":backend",
     ":binary",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "AddN",
+  srcs = ["kernels/AddN.cc"],
+  deps = [
+    ":backend",
     ":util",
   ],
 )
@@ -324,6 +345,14 @@ tfjs_unit_test(
   srcs = ["kernels/FusedConv2D_test.cc"],
   deps = [
     ":FusedConv2D",
+  ]
+)
+
+tfjs_unit_test(
+  name = "MaxPool_test",
+  srcs = ["kernels/MaxPool_test.cc"],
+  deps = [
+    ":MaxPool"
   ]
 )
 

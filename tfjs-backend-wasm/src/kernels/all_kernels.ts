@@ -20,6 +20,7 @@
 // the contents of this file and import only the kernels that are needed.
 import './Abs';
 import './Add';
+import './AddN';
 import './BatchMatMul';
 import './Cast';
 import './ClipByValue';
@@ -31,6 +32,7 @@ import './Div';
 import './FusedBatchNorm';
 import './FusedConv2D';
 import './Max';
+import './MaxPool';
 import './Min';
 import './Mul';
 import './PadV2';
