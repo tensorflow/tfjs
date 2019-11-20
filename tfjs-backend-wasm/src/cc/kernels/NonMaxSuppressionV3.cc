@@ -19,7 +19,6 @@
 #include <algorithm>
 #include <cstring>
 #include <memory>
-#include <utility>
 #include <vector>
 
 #include "src/cc/backend.h"
@@ -27,8 +26,41 @@
 
 namespace {
 
-float compute_iou(const float* boxes, const int i, const int j) { return 0.0; }
+float compute_iou(const float* boxes, const int i, const int j) {
+  const float* i_coord = boxes + i * 4;
+  const float* j_coord = boxes + j * 4;
 
+  const float y_min_i = std::min(i_coord[0], i_coord[2]);
+  const float x_min_i = std::min(i_coord[1], i_coord[3]);
+
+  const float y_max_i = std::max(i_coord[0], i_coord[2]);
+  const float x_max_i = std::max(i_coord[1], i_coord[3]);
+
+  const float y_min_j = std::min(j_coord[0], j_coord[2]);
+  const float x_min_j = std::min(j_coord[1], j_coord[3]);
+
+  const float y_max_j = std::max(j_coord[0], j_coord[2]);
+  const float x_max_j = std::max(j_coord[1], j_coord[3]);
+
+  const float area_i = (y_max_i - y_min_i) * (x_max_i - x_min_i);
+  const float area_j = (y_max_j - y_min_j) * (x_max_j - x_min_j);
+
+  if (area_i <= 0 || area_j <= 0) {
+    return 0.0;
+  }
+
+  const float intersect_y_min = std::max(y_min_i, y_min_j);
+  const float intersect_x_min = std::max(x_min_i, x_min_j);
+  const float intersect_y_max = std::min(y_max_i, y_max_j);
+  const float intersect_x_max = std::min(x_max_i, x_max_j);
+  const float intersect_area =
+      std::max(intersect_y_max - intersect_y_min, .0f) *
+      std::max(intersect_x_max - intersect_x_min, .0f);
+  return intersect_area / (area_i + area_j - intersect_area);
+}
+
+// Structure to store the result of the kernel. In this case we give js a
+// a pointer in memory where the result is stored and how big it is.
 struct Result {
   int* buf;
   int size;
@@ -53,17 +85,22 @@ const Result* NonMaxSuppressionV3(const int boxes_id, const int scores_id,
   const float* boxes = boxes_info.f32();
   const float* scores = scores_info.f32();
   const int num_boxes = boxes_info.size / 4;
+
+  // Filter out boxes that are below the score threshold.
   std::vector<int> box_indices;
   for (size_t i = 0; i < num_boxes; ++i) {
     if (scores[i] > score_threshold) {
       box_indices.push_back(i);
     }
   }
-  // Sort by scores.
+
+  // Sort by remaining boxes by scores.
   std::sort(
       box_indices.begin(), box_indices.end(),
       [&scores](const int i, const int j) { return scores[i] > scores[j]; });
 
+  // Select a box only if it doesn't overlap beyond the threshold with the
+  // already selected boxes.
   std::vector<int> selected;
   for (size_t i = 0; i < box_indices.size(); ++i) {
     const int box_i = box_indices[i];
@@ -83,8 +120,15 @@ const Result* NonMaxSuppressionV3(const int boxes_id, const int scores_id,
       }
     }
   }
+
+  // Allocate memory on the heap for the resulting indices and copy the data
+  // from the `selected` vector since we can't "steal" the data from the
+  // vector.
   int* data = static_cast<int*>(malloc(selected.size() * sizeof(int)));
   std::memcpy(data, selected.data(), selected.size() * sizeof(int));
+
+  // Allocate the result of the method on the heap so it survives past this
+  // function and we can read it in js.
   return new Result{data, static_cast<int>(selected.size())};
 }
 

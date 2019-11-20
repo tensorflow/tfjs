@@ -30,6 +30,27 @@ interface NonMaxSuppressionAttrs extends NamedAttrMap {
   scoreThreshold: number;
 }
 
+// Analogous to `struct Result` in `NonMaxSuppressionV3.cc`.
+interface Result {
+  memOffset: number;
+  size: number;
+}
+
+/**
+ * Parse the result of the c++ method, which is a data structure with two ints
+ * (memOffset and size).
+ */
+function parseResultStruct(backend: BackendWasm, resOffset: number): Result {
+  // The result of c++ method is a data structure with two ints (memOffset, and
+  // size).
+  const result = new Int32Array(backend.wasm.HEAPU8.buffer, resOffset, 2);
+  const memOffset = result[0];
+  const size = result[1];
+  // Since the result was allocated on the heap, we have to delete it.
+  backend.wasm._free(resOffset);
+  return {memOffset, size};
+}
+
 let wasmFunc: (
     boxesId: number, scoresId: number, maxOutputSize: number,
     iouThreshold: number, scoreThreshold: number) => number;
@@ -61,10 +82,9 @@ function kernelFunc(args: {
 
   const resOffset =
       wasmFunc(boxesId, scoresId, maxOutputSize, iouThreshold, scoreThreshold);
-  const result = new Int32Array(backend.wasm.HEAPU8.buffer, resOffset, 2);
-  const memOffset = result[0];
-  const size = result[1];
-  backend.wasm._free(resOffset);
+
+  const {memOffset, size} = parseResultStruct(backend, resOffset);
+
   const outShape = [size];
   return backend.makeOutput(outShape, 'int32', memOffset);
 }
