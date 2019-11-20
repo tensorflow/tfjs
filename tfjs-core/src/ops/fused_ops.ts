@@ -95,7 +95,7 @@ const applyActivation =
  * - `activation` Name of activation kernel (defaults to `linear`).
  * - `preluActivationWeights` Tensor of prelu weights.
  */
-function matMul_<T extends Tensor>({
+function fusedMatMul_<T extends Tensor>({
   a,
   b,
   transposeA = false,
@@ -305,7 +305,7 @@ function matMul_<T extends Tensor>({
  * @param preluActivationWeights Tensor of prelu weights to be applied as part
  *     of a `prelu` activation, typically the same shape as `x`.
  */
-function conv2d_<T extends Tensor3D|Tensor4D>({
+function fusedConv2d_<T extends Tensor3D|Tensor4D>({
   x,
   filter,
   strides,
@@ -508,7 +508,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
  * @param preluActivationWeights Tensor of prelu weights to be applied as part
  *     of a `prelu` activation, typically the same shape as `x`.
  */
-function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
+function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   x,
   filter,
   strides,
@@ -655,8 +655,8 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   return res as T;
 }
 
-export const matMul = op({matMul_});
-export const conv2d = op({conv2d_});
-export const depthwiseConv2d = op({depthwiseConv2d_});
+export const matMul = op({fusedMatMul_});
+export const conv2d = op({fusedConv2d_});
+export const depthwiseConv2d = op({fusedDepthwiseConv2d_});
 
 export {Activation};
