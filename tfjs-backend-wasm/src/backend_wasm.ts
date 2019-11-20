@@ -174,7 +174,7 @@ async function init(): Promise<{wasm: BackendWasmModule}> {
       registerTensor: wasm.cwrap(
           'register_tensor', null,
           [
-            'number',  // dataId
+            'number',  // id
             'number',  // size
             'number',  // memoryOffset
           ]),

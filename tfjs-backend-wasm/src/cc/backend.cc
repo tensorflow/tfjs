@@ -26,7 +26,7 @@
 namespace {
 // Maps a unique tensor id to info about that tensor. The map owns all of its
 // entries.
-std::unordered_map<int, TensorInfo> data;
+static std::unordered_map<int, TensorInfo> data;
 
 // Maps a tensor id to a vector of disposal functions registered on that tensor
 // id.
@@ -75,9 +75,7 @@ void init() { xnn_initialize(); }
 EMSCRIPTEN_KEEPALIVE
 #endif
 void register_tensor(const int tensor_id, const int size, void *memory_offset) {
-  TensorInfo info = {memory_offset, size};
-  // We move info to avoid a copy.
-  data.emplace(tensor_id, std::move(info));
+  data.emplace({tensor_id, TensorInfo{memory_offset, size}});
 }
 
 #ifdef __EMSCRIPTEN__
