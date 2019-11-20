@@ -122,6 +122,12 @@ export class BackendWasm extends KernelBackend {
     return {unreliable: false};
   }
 
+  /**
+   * Make a tensor info for the output of an op. If `memoryOffset` is not
+   * present, this method allocates memory on the WASM heap. If `memoryOffset`
+   * is present, the memory was allocated elsewhere (in c++) and we just record
+   * the pointer where that memory lives.
+   */
   makeOutput(shape: number[], dtype: DataType, memoryOffset?: number):
       TensorInfo {
     let dataId: {};
