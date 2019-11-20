@@ -75,7 +75,7 @@ void init() { xnn_initialize(); }
 EMSCRIPTEN_KEEPALIVE
 #endif
 void register_tensor(const int tensor_id, const int size, void *memory_offset) {
-  data.emplace({tensor_id, TensorInfo{memory_offset, size}});
+  data.insert({tensor_id, TensorInfo{memory_offset, size}});
 }
 
 #ifdef __EMSCRIPTEN__
