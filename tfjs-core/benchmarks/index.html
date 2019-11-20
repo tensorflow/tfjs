@@ -101,7 +101,7 @@ limitations under the License.
       run: (v) => {
         runBenchmark();
       },
-      backend: 'webgl',
+      backend: 'wasm',
     };
 
     const modalDiv = document.getElementById('modal-msg');
@@ -340,10 +340,11 @@ limitations under the License.
       var gui = new dat.gui.GUI();
 
       await tf.ready();
-
+      await tf.setBackend(state.backend);
+      
       gui.add(state, 'numRuns');
       gui.add(state, 'benchmark', Object.keys(benchmarks));
-      gui.add(state, 'backend', ['webgl', 'cpu', 'wasm']).onChange(backend => {
+      gui.add(state, 'backend', ['wasm', 'webgl', 'cpu']).onChange(backend => {
         tf.setBackend(backend);
       });
       gui.add(state, 'run');
