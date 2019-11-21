@@ -116,7 +116,9 @@ export class WebGPUBackend extends KernelBackend {
     super();
     this.binaryCache = {};
     this.device = device;
-    this.queue = device.getQueue();
+    // TODO: Remove any once @webgpu/types is updated to reflect spec change.
+    // tslint:disable-next-line:no-any
+    this.queue = (device as any).defaultQueue;
     this.commandQueue = [];
     this.shaderc = shaderc;
     this.compiler = new shaderc.Compiler();
@@ -776,8 +778,7 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   prelu<T extends Tensor>(x: T, alpha: T): T {
-    const program =
-        new BinaryOpProgram(binary_op.PRELU, x.shape, alpha.shape);
+    const program = new BinaryOpProgram(binary_op.PRELU, x.shape, alpha.shape);
     return this.compileAndRun(program, [x, alpha]);
   }
 
@@ -787,27 +788,26 @@ export class WebGPUBackend extends KernelBackend {
     const dataId = this.write(null /*values*/, program.outputShape, dtype);
     const output =
         engine().makeTensorFromDataId(dataId, program.outputShape, dtype, this);
-    return this.compileAndRun(
-        program, [condition, a, b],output);
+    return this.compileAndRun(program, [condition, a, b], output);
   }
 
   fill<R extends Rank>(
-    shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
-  dtype = dtype || util.inferDtype(value);
+      shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
+    dtype = dtype || util.inferDtype(value);
 
-  if (dtype === 'string') {
-    // String type should be handled in CPU memory.
-    const values = util.getArrayFromDType(dtype, util.sizeFromShape(shape));
-    values.fill(value as string);
-    return engine().makeTensor(values, shape, dtype, this) as Tensor<R>;
-  } else {
-    const program = new FillProgram(shape, value as number);
-    const dataId = this.write(null /*values*/, program.outputShape, dtype);
-    const output =
-        engine().makeTensorFromDataId(dataId, program.outputShape, dtype, this);
-    return this.compileAndRun(program, [], output);
+    if (dtype === 'string') {
+      // String type should be handled in CPU memory.
+      const values = util.getArrayFromDType(dtype, util.sizeFromShape(shape));
+      values.fill(value as string);
+      return engine().makeTensor(values, shape, dtype, this) as Tensor<R>;
+    } else {
+      const program = new FillProgram(shape, value as number);
+      const dataId = this.write(null /*values*/, program.outputShape, dtype);
+      const output = engine().makeTensorFromDataId(
+          dataId, program.outputShape, dtype, this);
+      return this.compileAndRun(program, [], output);
+    }
   }
-}
 
   zerosLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
     return this.fill(x.shape, x.dtype === 'string' ? '' : 0, x.dtype);
