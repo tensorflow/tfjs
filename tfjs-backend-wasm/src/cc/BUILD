@@ -89,6 +89,7 @@ tfjs_cc_library(
     ":FusedConv2D",
     ":Div",
     ":Mul",
+    ":NonMaxSuppressionV3",
     ":PadV2",
     ":Prelu",
     ":FusedBatchNorm",
@@ -246,6 +247,15 @@ tfjs_cc_library(
   deps = [
     ":backend",
     ":binary",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "NonMaxSuppressionV3",
+  srcs = ["kernels/NonMaxSuppressionV3.cc"],
+  deps = [
+    ":backend",
     ":util",
   ],
 )

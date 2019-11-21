@@ -36,6 +36,7 @@ import './Max';
 import './MaxPool';
 import './Min';
 import './Mul';
+import './NonMaxSuppressionV3';
 import './PadV2';
 import './Prelu';
 import './Reshape';
