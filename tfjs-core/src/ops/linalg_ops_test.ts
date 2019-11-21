@@ -18,7 +18,7 @@
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {Tensor1D, Tensor2D, Tensor3D} from '../tensor';
-import {expectArraysClose, expectArraysEqual} from '../test_util';
+import {expectArraysClose} from '../test_util';
 
 import {scalar, tensor1d, tensor2d, tensor3d, tensor4d} from './ops';
 
@@ -131,30 +131,26 @@ describeWithFlags('bandPart', ALL_ENVS, () => {
                            [5, 6, 7, 8],
                            [9,10,11,12]]);
 
-    const expectTensorsEqual = tf.getBackend().startsWith('webgl')
-      ? expectArraysClose // <- necessary on: Mobile Safari 11.0.0 webgl1
-      : expectArraysEqual;
-
-    expectTensorsEqual(
+    expectArraysClose(
       await la.bandPart(a,0,0).array(),
       [[1, 0, 0, 0],
        [0, 6, 0, 0],
        [0, 0,11, 0]]
     );
-    expectTensorsEqual(
+    expectArraysClose(
       await la.bandPart(a,0,1).array(),
       [[1, 2, 0, 0],
        [0, 6, 7, 0],
        [0, 0,11,12]]
     );
-    expectTensorsEqual(
+    expectArraysClose(
       await la.bandPart(a,0,2).array(),
       [[1, 2, 3, 0],
        [0, 6, 7, 8],
        [0, 0,11,12]]
     );
     for( const numUpper of [3,4,-1,-2] ) {
-      expectTensorsEqual(
+      expectArraysClose(
         await la.bandPart(a,0,numUpper).array(),
         [[1, 2, 3, 4],
          [0, 6, 7, 8],
@@ -162,26 +158,26 @@ describeWithFlags('bandPart', ALL_ENVS, () => {
       );
     }
 
-    expectTensorsEqual(
+    expectArraysClose(
       await la.bandPart(a,1,0).array(),
       [[1, 0, 0, 0],
        [5, 6, 0, 0],
        [0,10,11, 0]]
     );
-    expectTensorsEqual(
+    expectArraysClose(
       await la.bandPart(a,1,1).array(),
       [[1, 2, 0, 0],
        [5, 6, 7, 0],
        [0,10,11,12]]
     );
-    expectTensorsEqual(
+    expectArraysClose(
       await la.bandPart(a,1,2).array(),
       [[1, 2, 3, 0],
        [5, 6, 7, 8],
        [0,10,11,12]]
     );
     for( const numUpper of [3,4,-1,-2] ) {
-      expectTensorsEqual(
+      expectArraysClose(
         await la.bandPart(a,1,numUpper).array(),
         [[1, 2, 3, 4],
          [5, 6, 7, 8],
@@ -191,26 +187,26 @@ describeWithFlags('bandPart', ALL_ENVS, () => {
 
     for( const numLower of [2,3,-1,-2])
     {
-      expectTensorsEqual(
+      expectArraysClose(
         await la.bandPart(a,numLower,0).array(),
         [[1, 0, 0, 0],
          [5, 6, 0, 0],
          [9,10,11, 0]]
       );
-      expectTensorsEqual(
+      expectArraysClose(
         await la.bandPart(a,numLower,1).array(),
         [[1, 2, 0, 0],
          [5, 6, 7, 0],
          [9,10,11,12]]
       );
-      expectTensorsEqual(
+      expectArraysClose(
         await la.bandPart(a,numLower,2).array(),
         [[1, 2, 3, 0],
          [5, 6, 7, 8],
          [9,10,11,12]]
       );
       for( const numUpper of [3,4,-1,-2] ) {
-        expectTensorsEqual(
+        expectArraysClose(
           await la.bandPart(a,numLower,numUpper).array(),
           [[1, 2, 3, 4],
            [5, 6, 7, 8],
