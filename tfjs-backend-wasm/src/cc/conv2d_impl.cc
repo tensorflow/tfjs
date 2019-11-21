@@ -38,9 +38,14 @@ namespace {
 // needed for std::map.
 typedef std::array<int, 18> OperatorCacheKey;
 
+struct CachedInfo {
+  xnn_operator_t op;
+  std::vector<float> transposed_filter;
+};
+
 // The operator cache maps the cache key to the xnn_operator_t instantiated for
 // this set of arguments to the xnn_operator.
-std::map<OperatorCacheKey, xnn_operator_t> operator_cache;
+std::map<OperatorCacheKey, CachedInfo> operator_cache;
 
 // Maps a filter id to a list of operator cache keys that this filter belongs
 // to.
@@ -57,14 +62,13 @@ void erase_from_cache(const int tensor_id,
                           operator_cache_key_map) {
   auto operator_cache_keys_idx = operator_cache_key_map.find(tensor_id);
   if (operator_cache_keys_idx != operator_cache_key_map.end()) {
-    std::vector<OperatorCacheKey> operator_cache_keys =
+    std::vector<OperatorCacheKey>& operator_cache_keys =
         operator_cache_keys_idx->second;
     for (auto& operator_cache_key : operator_cache_keys) {
       auto operator_cache_key_idx = operator_cache.find(operator_cache_key);
       if (operator_cache_key_idx != operator_cache.end()) {
-        auto& conv2d_op = operator_cache_key_idx->second;
-
-        xnn_delete_operator(conv2d_op);
+        auto& cached_info = operator_cache_key_idx->second;
+        xnn_delete_operator(cached_info.op);
         tfjs::backend::xnn_operator_count--;
 
         operator_cache.erase(operator_cache_key);
@@ -208,7 +212,10 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
           status);
     }
 
-    operator_cache.emplace(cache_key, conv2d_op);
+    operator_cache.emplace(
+        cache_key,
+        // Move ownership of the transposed filter to the cache map.
+        CachedInfo{conv2d_op, std::move(transposed_filter)});
 
     associate_tensor_with_key(filter_id, cache_key,
                               filter_operator_cache_key_map);
@@ -219,7 +226,7 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
 
     tfjs::backend::xnn_operator_count++;
   } else {
-    conv2d_op = operator_cache_idx->second;
+    conv2d_op = operator_cache_idx->second.op;
   }
 
   xnn_status status = xnn_setup_convolution2d_nhwc_f32(
