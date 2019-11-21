@@ -203,9 +203,8 @@ TEST(CONV2D, transposed_filter_lifetime) {
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
   EXPECT_EQ(out, (std::vector<float>{133, 204, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
 
-  // tfjs::wasm::dispose_data(weights0_id);
-  // tfjs::wasm::dispose_data(weights1_id);
-  // ASSERT_EQ(0, tfjs::backend::xnn_operator_count);
+  tfjs::wasm::dispose_data(weights1_id);
+  ASSERT_EQ(0, tfjs::backend::xnn_operator_count);
 
   tfjs::wasm::dispose();
 }
