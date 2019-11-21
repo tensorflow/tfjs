@@ -87,6 +87,7 @@ limitations under the License.
   <script src="tf-core.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js"></script>
+  <!-- <script src="tf-converter.js"></script> -->
   <script src="tf-backend-wasm.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@1.0.0/dist/posenet.min.js"></script>
@@ -97,7 +98,7 @@ limitations under the License.
 
     const state = {
       numRuns: 50,
-      benchmark: 'mobilenet',
+      benchmark: 'facemesh',
       run: (v) => {
         runBenchmark();
       },
