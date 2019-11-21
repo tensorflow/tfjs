@@ -171,10 +171,12 @@ function nonMaxSuppression_(
   iouThreshold = inputs.iouThreshold;
   scoreThreshold = inputs.scoreThreshold;
 
+  const attrs = {maxOutputSize, iouThreshold, scoreThreshold};
   return ENGINE.runKernelFunc(
       b => b.nonMaxSuppression(
           $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold),
-      {$boxes});
+      {boxes: $boxes, scores: $scores}, null /* grad */, 'NonMaxSuppressionV3',
+      attrs);
 }
 
 /** This is the async version of `nonMaxSuppression` */

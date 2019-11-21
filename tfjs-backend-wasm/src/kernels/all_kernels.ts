@@ -20,6 +20,7 @@
 // the contents of this file and import only the kernels that are needed.
 import './Abs';
 import './Add';
+import './AvgPool';
 import './AddN';
 import './BatchMatMul';
 import './Cast';
@@ -35,6 +36,7 @@ import './Max';
 import './MaxPool';
 import './Min';
 import './Mul';
+import './NonMaxSuppressionV3';
 import './PadV2';
 import './Prelu';
 import './Reshape';
