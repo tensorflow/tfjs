@@ -43,5 +43,5 @@ export type FusedConv2DConfig = {
 // Whether we should call fused ops.
 export const shouldFuse = (gradientDepth: number, activation: Activation) => {
   const gradientMode = gradientDepth > 0;
-  return !gradientMode && (activation === 'linear' || activation === 'relu');
+  return !gradientMode || activation === 'linear';
 };
