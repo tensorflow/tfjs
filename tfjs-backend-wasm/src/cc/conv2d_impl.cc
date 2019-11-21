@@ -57,7 +57,7 @@ void erase_from_cache(const int tensor_id,
                           operator_cache_key_map) {
   auto operator_cache_keys_idx = operator_cache_key_map.find(tensor_id);
   if (operator_cache_keys_idx != operator_cache_key_map.end()) {
-    std::vector<OperatorCacheKey> operator_cache_keys =
+    std::vector<OperatorCacheKey>& operator_cache_keys =
         operator_cache_keys_idx->second;
     for (auto& operator_cache_key : operator_cache_keys) {
       auto operator_cache_key_idx = operator_cache.find(operator_cache_key);
