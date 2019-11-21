@@ -165,11 +165,13 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'valueAndGradients',  // sum not yet implemented.
       'gradient',           // sum not yet implemented.
-      'prelu',              // Not yet implemented.
       'fused',              // Not yet implemented.
       '5D',                 // Rank 5 is not yet implemented.
       '6D',                 // Rank 5 is not yet implemented.
       'propagates NaNs',    // Arrays differ.
+      'derivative',         // sum not yet implemented.
+      'gradient with clones',   // sum not yet implemented.
+      'derivative where alpha got broadcasted',  // sum not yet implemented.
     ]
   },
   {
