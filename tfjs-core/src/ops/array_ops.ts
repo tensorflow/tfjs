@@ -30,7 +30,7 @@ import {zeros, zerosLike} from './tensor_ops';
  *  
  *  The tensor's shape is compared to the broadcast shape from end to beginning.
  *  Ones are prepended to the tensor's shape until is has the same length as
- *  the broadcast shape. If input.shape[i]==shape[i], they (i+1)-th axis is
+ *  the broadcast shape. If input.shape[i]==shape[i], the (i+1)-th axis is
  *  already broadcast-compatible. If input.shape[i]==1 and shape[i]==N, then
  *  the input tensor is tiled N times along that axis (using tf.tile).
  *  
@@ -65,7 +65,7 @@ function broadcastTo_<R extends Rank>(
   }
 
   const reps: number[] = Array.from(shape);
-  for( let i=shape.length; i-- > 0; )
+  for( let i=shape.length-1; i >= 0; i-- )
   {
     if( input.shape[i] === shape[i] ) {
       reps[i] = 1;
@@ -80,7 +80,7 @@ function broadcastTo_<R extends Rank>(
   const axes = reps.map( ( n,i)  => n > 1 ? i : -1 ).filter( i => i >= 0 );
 
   if( axes.length === 0 ) {
-    return input as Tensor<R>;
+    return input.clone() as Tensor<R>;
   }
 
   return ENGINE.runKernelFunc(
