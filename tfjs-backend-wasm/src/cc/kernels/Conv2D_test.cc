@@ -15,6 +15,8 @@
 #include <gtest/gtest.h>
 #include <xnnpack.h>
 
+#include <vector>
+
 #include "src/cc/backend.h"
 #include "src/cc/kernels/Conv2D.h"
 #include "src/cc/util.h"
@@ -188,19 +190,23 @@ TEST(CONV2D, transposed_filter_lifetime) {
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
   EXPECT_EQ(out, (std::vector<float>{133, 204, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
 
-  // Make a new filter.
+  // Make a new filter in case the memory of the first filter was released and
+  // this filter reuses it.
   std::vector<float> weights2 = {8, 7, 6, 5, 4, 3, 2, 1};
   const int weights2_id = 2;
   tfjs::wasm::register_tensor(weights2_id, weights_size, weights2.data());
 
   // No new xnn_operators should be created for the second call to conv2d with
-  // the same arguments.
+  // the same filter.
   tfjs::wasm::Conv2D(x0_id, batch_size, input_height, input_width, weights1_id,
                      filter_height, filter_width, pad_top0, pad_right,
                      pad_bottom0, pad_left, is_same_pad0, dilation_height,
                      dilation_width, stride_height, stride_width,
                      input_channels, output_channels, out_id);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
+
+  // The output should be the same as the first time since we are still using
+  // the first filter.
   EXPECT_EQ(out, (std::vector<float>{133, 204, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
 
   tfjs::wasm::dispose_data(weights1_id);
