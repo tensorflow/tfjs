@@ -234,8 +234,9 @@ describeWithFlags('Custom window size', WEBGL_ENVS, () => {
   const customBackendName = 'custom-webgl';
 
   beforeAll(() => {
-    const kernel = tf.getKernel('Square', 'webgl');
-    tf.registerKernel('Square', customBackendName, kernel);
+    const kernelFunc = tf.getKernel('Square', 'webgl').kernelFunc;
+    tf.registerKernel(
+        {kernelName: 'Square', backendName: customBackendName, kernelFunc});
   });
 
   afterAll(() => {
@@ -483,8 +484,9 @@ describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
 
   beforeAll(() => {
     tf.env().set('WEBGL_CPU_FORWARD', false);
-    const kernel = tf.getKernel('Square', 'webgl');
-    tf.registerKernel('Square', customBackendName, kernel);
+    const kernelFunc = tf.getKernel('Square', 'webgl').kernelFunc;
+    tf.registerKernel(
+        {kernelName: 'Square', backendName: customBackendName, kernelFunc});
   });
 
   afterAll(() => {

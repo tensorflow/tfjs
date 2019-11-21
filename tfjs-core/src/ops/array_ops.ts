@@ -373,10 +373,11 @@ function reshape_<R2 extends Rank>(
       () => 'new shape and old shape must have the same number of elements.');
 
   const grad = (dy: Tensor<R2>) => {
-    return {$x: () => dy.reshape($x.shape)};
+    return {x: () => dy.reshape($x.shape)};
   };
+  const attrs = {shape};
   return ENGINE.runKernelFunc(
-      backend => backend.reshape($x, shape), {$x}, grad);
+      backend => backend.reshape($x, shape), {x: $x}, grad, 'Reshape', attrs);
 }
 
 /**
@@ -422,9 +423,11 @@ function cast_<T extends Tensor>(x: T|TensorLike, dtype: DataType): T {
   }
 
   const grad = (dy: T) => {
-    return {$x: () => dy.clone()};
+    return {x: () => dy.clone()};
   };
-  return ENGINE.runKernelFunc(backend => backend.cast($x, dtype), {$x}, grad);
+  const attrs = {dtype};
+  return ENGINE.runKernelFunc(
+      backend => backend.cast($x, dtype), {x: $x}, grad, 'Cast', attrs);
 }
 
 /**
@@ -605,14 +608,17 @@ function pad_<T extends Tensor>(
   if ($x.rank === 0) {
     throw new Error('pad(scalar) is not defined. Pass non-scalar to pad');
   }
-  // Pad introduces values around the original tensor, so the gradient
-  // slices the original shape out of the gradient.
-  const begin = paddings.map(p => p[0]);
+
   const grad = (dy: T) => {
-    return {$x: () => dy.slice(begin, $x.shape)};
+    // Pad introduces values around the original tensor, so the gradient
+    // slices the original shape out of the gradient.
+    const begin = paddings.map(p => p[0]);
+    return {x: () => dy.slice(begin, $x.shape)};
   };
+  const attrs = {paddings, constantValue};
   return ENGINE.runKernelFunc(
-      backend => backend.pad($x, paddings, constantValue), {$x}, grad);
+      backend => backend.pad($x, paddings, constantValue), {x: $x}, grad,
+      'PadV2', attrs);
 }
 
 /**

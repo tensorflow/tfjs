@@ -17,7 +17,6 @@
 
 import { h, Component, render } from 'preact';
 import { css } from 'glamor';
-import { tachyons as tac } from 'glamor-tachyons';
 
 import { SurfaceComponent } from './surface';
 import { Tabs } from './tabs';
@@ -318,7 +317,15 @@ function VisorControls(props: VisorControlProps) {
   });
 
   const controlsButtonClass = css({
-    ...tac('f6 link br2 ph3 pv2 near-black')
+    fontSize: '.875rem',
+    borderRadius: '.25rem',
+    paddingLeft: '1rem',
+    paddingRight: '1rem',
+    paddingTop: '.5rem',
+    paddingBottom: '.5rem',
+    textDecoration: 'none',
+    transition: 'color .15s ease-in',
+    color: '#111',
   });
 
   const floatRight = css({

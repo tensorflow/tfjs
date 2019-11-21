@@ -17,7 +17,7 @@
 
 import {BackendTimingInfo, DataMover, KernelBackend} from './backends/backend';
 import {Environment, setEnvironmentGlobal} from './environment';
-import {getKernel, NamedAttrMap, NamedTensorInfoMap, TensorInfo} from './kernel_registry';
+import {getKernel, getKernelsForBackend, NamedAttrMap, TensorInfo} from './kernel_registry';
 import {Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, NamedGradientMap, TapeNode} from './tape';
 import {DataId, setTensorTracker, Tensor, Tensor3D, TensorTracker, Variable} from './tensor';
@@ -244,11 +244,29 @@ export class Engine implements TensorTracker, DataMover {
       }
     }
     this.backendInstance = this.registry[backendName];
-
+    this.setupRegisteredKernels();
     // Reset the profiler.
     this.profiler = new Profiler(this.backendInstance);
 
     return true;
+  }
+
+  private setupRegisteredKernels(): void {
+    const kernels = getKernelsForBackend(this.backendName);
+    kernels.forEach(kernel => {
+      if (kernel.setupFunc != null) {
+        kernel.setupFunc(this.backendInstance);
+      }
+    });
+  }
+
+  private disposeRegisteredKernels(backendName: string): void {
+    const kernels = getKernelsForBackend(backendName);
+    kernels.forEach(kernel => {
+      if (kernel.disposeFunc != null) {
+        kernel.disposeFunc(this.registry[backendName]);
+      }
+    });
   }
 
   /**
@@ -316,6 +334,7 @@ export class Engine implements TensorTracker, DataMover {
     }
 
     if (backendName in this.registry) {
+      this.disposeRegisteredKernels(backendName);
       this.registry[backendName].dispose();
       delete this.registry[backendName];
     }
@@ -450,23 +469,29 @@ export class Engine implements TensorTracker, DataMover {
   }
 
   /**
-   * Execute a kernel with the given name and return the output tensor info.
+   * Execute a kernel with the given name and return the output tensor.
    *
    * @param kernelName The name of the kernel to execute.
-   * @param inputs A map of input names to tensor infos.
+   * @param inputs A map of input names to tensors.
    * @param attrs A map of attribute names to their values. An attribute is a
    *     primitive (non-tensor) input to the kernel.
+   * @param inputsToSave A list of tensors, inputs to save for the backprop
+   *     computation.
+   * @param outputsToSave A list of booleans, specifying which output to save
+   *     for the backprop computation. These are booleans since the output
+   * tensors are not visible to the user.
    */
   runKernel(
-      kernelName: string, inputs: NamedTensorInfoMap,
-      attrs: NamedAttrMap): TensorInfo|TensorInfo[] {
+      kernelName: string, inputs: NamedTensorMap, attrs: NamedAttrMap,
+      inputsToSave?: Tensor[], outputsToSave?: boolean[]): Tensor|Tensor[] {
     const forwardFunc: null = null;
     const backwardsFunc: null = null;
     // Call runKernel as a stop-gap until we modularize all kernels.
-    // Once we modularize all kernels, we will remove the existing runKernel().
+    // Once we modularize all kernels, we will remove the existing
+    // `runKernelFunc`.
     return this.runKernelFunc(
-        forwardFunc, inputs as NamedTensorMap, backwardsFunc, kernelName,
-        attrs);
+        forwardFunc, inputs, backwardsFunc, kernelName, attrs, inputsToSave,
+        outputsToSave);
   }
 
   private shouldCheckForMemLeaks(): boolean {
@@ -509,7 +534,8 @@ export class Engine implements TensorTracker, DataMover {
   runKernelFunc<T extends Tensor|Tensor[], I extends NamedTensorMap>(
       forwardFunc: ForwardFunc<T>, inputs: I,
       backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () => I[P]},
-      kernelName?: string, attrs?: NamedAttrMap): T {
+      kernelName?: string, attrs?: NamedAttrMap, inputsToSave: Tensor[] = [],
+      outputsToSave: boolean[] = []): T {
     let outputs: Tensor[];
     let saved: Tensor[] = [];
     const isTapeOn = this.isTapeOn();
@@ -536,17 +562,20 @@ export class Engine implements TensorTracker, DataMover {
     const kernel = getKernel(kernelName, this.backendName);
     let out: TensorInfo|TensorInfo[];
     if (kernel != null) {
-      const storage = this.backend;
       kernelFunc = () => {
         const numDataIdsBefore = this.backend.numDataIds();
-        out = kernel({inputs, attrs, storage, save: saveFunc});
+        out = kernel.kernelFunc({inputs, attrs, backend: this.backend});
         const outInfos = Array.isArray(out) ? out : [out];
         if (this.shouldCheckForMemLeaks()) {
           this.checkKernelForMemLeak(scopeName, numDataIdsBefore, outInfos);
         }
-        return outInfos.map(
+        const outTensors = outInfos.map(
             ({dataId, shape, dtype}) =>
                 this.makeTensorFromDataId(dataId, shape, dtype));
+        const outsToSave = outTensors.filter((_, i) => outputsToSave[i]);
+        // Save the inputs and outputs.
+        saveFunc(inputsToSave.slice().concat(outsToSave));
+        return outTensors;
       };
     } else {
       kernelFunc = () => {
@@ -906,8 +935,8 @@ export class Engine implements TensorTracker, DataMover {
         // This means that we are not computing higher-order gradients
         // and can clean up the tape.
         this.state.activeTape.forEach(node => {
-          for (const key in node.saved) {
-            node.saved[key].dispose();
+          for (const tensor of node.saved) {
+            tensor.dispose();
           }
         });
         this.state.activeTape = null;
@@ -1027,6 +1056,7 @@ export class Engine implements TensorTracker, DataMover {
     this.state = new EngineState();
 
     for (const backendName in this.registry) {
+      this.disposeRegisteredKernels(backendName);
       this.registry[backendName].dispose();
       delete this.registry[backendName];
     }

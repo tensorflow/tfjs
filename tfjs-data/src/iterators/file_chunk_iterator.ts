@@ -17,7 +17,7 @@
  */
 
 // inspired by https://github.com/maxogden/filereader-stream
-import {ENV, util} from '@tensorflow/tfjs-core';
+import {env, util} from '@tensorflow/tfjs-core';
 import {FileElement} from '../types';
 import {ByteChunkIterator} from './byte_chunk_iterator';
 
@@ -45,7 +45,7 @@ export class FileChunkIterator extends ByteChunkIterator {
     super();
     util.assert(
         (file instanceof Uint8Array) ||
-            (ENV.get('IS_BROWSER') ?
+            (env().get('IS_BROWSER') ?
                  (file instanceof File || file instanceof Blob) :
                  false),
         () => 'FileChunkIterator only supports File, Blob and Uint8Array ' +

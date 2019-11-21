@@ -227,7 +227,7 @@ describe('Backend registration', () => {
     });
     tf.setBackend('async');
     await tf.ready();
-    expect(() => tf.square(2)).toThrowError(/Not yet implemented/);
+    expect(() => tf.square(2)).toThrowError(/'write' not yet implemented/);
   });
 
   it('Registering async2 (higher priority) fails, async1 becomes active',
@@ -593,9 +593,11 @@ describeWithFlags(
       });
 
       it('single tidy multiple backends', () => {
-        const kernel = tf.getKernel('Square', 'webgl');
-        tf.registerKernel('Square', 'webgl1', kernel);
-        tf.registerKernel('Square', 'webgl2', kernel);
+        const kernelFunc = tf.getKernel('Square', 'webgl').kernelFunc;
+        tf.registerKernel(
+            {kernelName: 'Square', backendName: 'webgl1', kernelFunc});
+        tf.registerKernel(
+            {kernelName: 'Square', backendName: 'webgl2', kernelFunc});
 
         expect(tf.memory().numTensors).toBe(0);
 
@@ -641,7 +643,7 @@ describeWithFlags('Detects memory leaks in kernels', ALL_ENVS, () => {
       dataIdsCount += 2;
       return {dataId: {}, shape: [], dtype: 'float32'};
     };
-    tf.registerKernel(kernelName, backendName, kernelWithMemLeak);
+    tf.registerKernel({kernelName, backendName, kernelFunc: kernelWithMemLeak});
 
     tf.setBackend(backendName);
     expect(() => tf.engine().runKernel(kernelName, {}, {}))
@@ -669,7 +671,8 @@ describeWithFlags('Detects memory leaks in kernels', ALL_ENVS, () => {
       const t: TensorInfo = {dataId: {}, shape: [], dtype: 'float32'};
       return [t, t, t];
     };
-    tf.registerKernel(kernelName, backendName, kernelWith3Outputs);
+    tf.registerKernel(
+        {kernelName, backendName, kernelFunc: kernelWith3Outputs});
 
     const res = tf.engine().runKernel(kernelName, {}, {});
     expect(Array.isArray(res)).toBe(true);
@@ -679,7 +682,11 @@ describeWithFlags('Detects memory leaks in kernels', ALL_ENVS, () => {
       dataIdsCount += 3;
       return {dataId: {}, shape: [], dtype: 'complex64'};
     };
-    tf.registerKernel(kernelNameComplex, backendName, kernelWithComplexOutputs);
+    tf.registerKernel({
+      kernelName: kernelNameComplex,
+      backendName,
+      kernelFunc: kernelWithComplexOutputs
+    });
 
     const res2 = tf.engine().runKernel(kernelNameComplex, {}, {}) as TensorInfo;
     expect(res2.shape).toEqual([]);

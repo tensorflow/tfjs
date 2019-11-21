@@ -171,10 +171,12 @@ function nonMaxSuppression_(
   iouThreshold = inputs.iouThreshold;
   scoreThreshold = inputs.scoreThreshold;
 
+  const attrs = {maxOutputSize, iouThreshold, scoreThreshold};
   return ENGINE.runKernelFunc(
       b => b.nonMaxSuppression(
           $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold),
-      {$boxes});
+      {boxes: $boxes, scores: $scores}, null /* grad */, 'NonMaxSuppressionV3',
+      attrs);
 }
 
 /** This is the async version of `nonMaxSuppression` */
@@ -302,7 +304,9 @@ function cropAndResize_(
       backend.cropAndResize(
           $image, $boxes, $boxInd, cropSize, method, extrapolationValue);
 
-  const res = ENGINE.runKernelFunc(forward, {$image, $boxes});
+  const res = ENGINE.runKernelFunc(
+      forward, {images: $image, boxes: $boxes, boxInd: $boxInd}, null /* der */,
+      'CropAndResize', {method, extrapolationValue, cropSize});
   return res;
 }
 

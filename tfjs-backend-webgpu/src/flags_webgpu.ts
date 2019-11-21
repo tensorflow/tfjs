@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-import {ENV} from '@tensorflow/tfjs-core';
+import {env} from '@tensorflow/tfjs-core';
+
+const ENV = env();
 
 /** Whether we submit commands to the device queue immediately. */
 ENV.registerFlag('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', () => true);
@@ -38,3 +40,9 @@ ENV.registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 4);
  * >0: conv2d_mm with matmul_packed with WPT=this
  */
 ENV.registerFlag('WEBGPU_CONV2D_WORK_PER_THREAD', () => 2);
+
+/**
+ * Whether we use low power GPU. Otherwise, a high performance GPU will be
+ * requested.
+ */
+ENV.registerFlag('WEBGPU_USE_LOW_POWER_GPU', () => false);

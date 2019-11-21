@@ -17,7 +17,7 @@
 
 import * as tf from '../../index';
 import {describeWithFlags} from '../../jasmine_util';
-import {Tensor2D} from '../../tensor';
+import {Tensor2D, Tensor3D, Tensor4D} from '../../tensor';
 import {expectArraysClose, expectArraysEqual} from '../../test_util';
 import {Rank} from '../../types';
 
@@ -738,6 +738,31 @@ describeWithFlags('slice a packed texture', WEBGL_ENVS, () => {
     expectArraysClose(await c.slice([0, 1]).data(), [22, 50]);
     expectArraysClose(await c.slice([1, 0]).data(), [43, 50]);
     expectArraysClose(await c.slice([1, 1]).data(), [50]);
+  });
+});
+
+describeWithFlags('pointwise conv2d packed', WEBGL_ENVS, () => {
+  beforeAll(() => {
+    tf.env().set('WEBGL_SIZE_UPLOAD_UNIFORM', 0);
+  });
+
+  it('pointwise conv2d optimization with odd input size', async () => {
+    // We do special optimization in the webl backend which avoids an expensive
+    // reshape, when the following 3 conditions are met:
+    // 1) the input width/height is odd-shaped.
+    // 2) the input is already packed.
+    // 3) the filter size is 1x1, i.e. pointwise.
+    const inChannels = 1;
+    const outChannels = 2;
+    const oddInputSize = 3;
+    const x: Tensor3D = tf.ones([oddInputSize, oddInputSize, inChannels]);
+    const xPacked = tf.relu(x);
+    const pointwiseFilter: Tensor4D = tf.ones([1, 1, inChannels, outChannels]);
+    const strides = 1;
+    const pad = 'same';
+    const c = tf.conv2d(xPacked, pointwiseFilter, strides, pad);
+    expectArraysClose(
+        await c.data(), [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
   });
 });
 

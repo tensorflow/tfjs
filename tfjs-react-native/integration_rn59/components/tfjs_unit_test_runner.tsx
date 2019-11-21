@@ -18,6 +18,7 @@
 
 // @ts-ignore
 import jasmineRequire from 'jasmine-core/lib/jasmine-core/jasmine.js';
+// tslint:disable-next-line: no-imports-from-dist
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
 import React, { Component, Fragment } from 'react';
 import { StyleSheet, Text, View, ViewStyle, ScrollView } from 'react-native';
@@ -172,30 +173,60 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
       </Fragment>
     </View>;
   }
+
+  formatTestFailuresForWebDriver(failures: FailedTestInfo[]) {
+    const TEST_SEPARATOR = '###';
+    const TITLE_SEPARATOR = '%%%';
+    return failures.map((failure, i) => {
+      const testName = failure.testName;
+      const messages = failure.failedExpectations.map((expecation, i) =>
+        expecation.message).join('\n');
+
+      return `${testName}${TITLE_SEPARATOR}${messages}`;
+    }).join(TEST_SEPARATOR);
+  }
+
   render() {
     const { passedTests, failedTests, totalTests, backendName, testsComplete }
       = this.state;
 
     return (
       <Fragment>
-        <View testID='info' style={styles.sectionContainer}>
+        <View testID='testInfo'
+          accessibilityLabel='testInfo'
+          style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Info</Text>
-          <Text>backend={backendName}</Text>
-          <Text>testsComplete={String(testsComplete)}</Text>
-          <Text>tf.ENV.platformName={tf.ENV.platformName}</Text>
+          <Text testID='backendName' accessibilityLabel='backendName'>
+            backend={backendName}
+          </Text>
+          <Text testID='testComplete' accessibilityLabel='testComplete'>
+            testsComplete={String(testsComplete)}
+          </Text>
+          <Text>tf.env().platformName={tf.env().platformName}</Text>
         </View>
-        <View testID='passedTests' style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Passed Tests</Text>
-          <Text style={styles.sectionTitle}>{passedTests} of {totalTests}</Text>
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}
+            testID='passedTests'
+            accessibilityLabel='passedTests'>
+            Passed Tests {passedTests} of {totalTests}
+          </Text>
         </View>
-
+        <View>
+          <Text style={styles.failureMessages}
+            testID='failureMessages'
+            accessibilityLabel='failureMessages'>
+            {this.formatTestFailuresForWebDriver(failedTests)}
+          </Text>
+        </View>
         <ScrollView contentInsetAdjustmentBehavior='automatic'>
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>
               Failed Tests ({failedTests.length})
             </Text>
-            <View testID='passedTests'>
-              {failedTests.map(this.renderTestFailure)}
+            <View
+              testID='failedTests'
+              accessibilityLabel='failedTests'>
+              {failedTests.map((f, i) => this.renderTestFailure(f, i))}
             </View>
           </View>
         </ScrollView>
@@ -231,15 +262,18 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     fontWeight: 'bold',
   },
+  failureMessages: {
+    fontSize: 1,
+  },
   sectionContainer: {
-    marginTop: 32,
+    marginTop: 24,
     paddingHorizontal: 12,
-    paddingBottom: 10,
+    paddingBottom: 4,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },
   sectionTitle: {
-    fontSize: 24,
+    fontSize: 14,
     fontWeight: '600',
     color: 'black',
     marginBottom: 6,

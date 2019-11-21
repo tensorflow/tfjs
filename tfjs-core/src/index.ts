@@ -47,6 +47,7 @@ import * as backend_util from './backends/backend_util';
 import * as io from './io/io';
 import * as math from './math';
 import * as browser from './ops/browser';
+import * as slice_util from './ops/slice_util';
 import * as serialization from './serialization';
 import {setOpHandler} from './tensor';
 import * as tensor_util from './tensor_util';
@@ -55,7 +56,7 @@ import * as util from './util';
 import {version} from './version';
 import * as webgl from './webgl';
 
-export {InferenceModel, MetaGraphInfo, ModelPredictConfig, ModelTensorInfo, SavedModelTensorInfo, SignatureDefInfo} from './model_types';
+export {InferenceModel, MetaGraph, MetaGraphInfo, ModelPredictConfig, ModelTensorInfo, SavedModelTensorInfo, SignatureDef, SignatureDefInfo} from './model_types';
 // Optimizers.
 export {AdadeltaOptimizer} from './optimizers/adadelta_optimizer';
 export {AdagradOptimizer} from './optimizers/adagrad_optimizer';
@@ -97,7 +98,8 @@ export {
   util,
   backend_util,
   webgl,
-  tensor_util
+  tensor_util,
+  slice_util
 };
 
 // Backend specific.

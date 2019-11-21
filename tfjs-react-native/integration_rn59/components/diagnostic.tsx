@@ -20,7 +20,7 @@ import { Button, SafeAreaView, StyleSheet, ScrollView, View, StatusBar } from 'r
 
 import * as tf from '@tensorflow/tfjs';
 import { Run } from './run';
-import { simpleOpRunner, precisionTestRunner, mobilenetRunner, localModelRunner, trainModelRunner, saveModelRunner } from './ml';
+import { simpleOpRunner, precisionTestRunner, mobilenetRunner, localModelRunner, trainModelRunner, saveModelRunner, localGraphModelRunner } from './ml';
 
 interface ScreenProps {
   returnToMain: () => void;
@@ -54,16 +54,16 @@ export class Diagnostic extends React.Component<ScreenProps> {
                 <Run label='tf.version_core' result={`${tf.version_core}`}>
                 </Run>
                 <Run label='WEBGL_VERSION' result={`${
-                  tf.ENV.getNumber('WEBGL_VERSION')}`}>
+                  tf.env().getNumber('WEBGL_VERSION')}`}>
                 </Run>
                 <Run label='WEBGL_RENDER_FLOAT32_ENABLED' result={`${
-                  tf.ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED')}`}>
+                  tf.env().getBool('WEBGL_RENDER_FLOAT32_ENABLED')}`}>
                 </Run>
                 <Run label='WEBGL_DOWNLOAD_FLOAT_ENABLED' result={`${
-                  tf.ENV.getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED')}`}>
+                  tf.env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED')}`}>
                 </Run>
                 <Run label='WEBGL_BUFFER_SUPPORTED' result={`${
-                  tf.ENV.getNumber('WEBGL_BUFFER_SUPPORTED')}`}>
+                  tf.env().getNumber('WEBGL_BUFFER_SUPPORTED')}`}>
                 </Run>
                 <Run label='new Float32Array([2,3, NaN])' result={`${
                   new Float32Array([2, 3, NaN])
@@ -77,6 +77,8 @@ export class Diagnostic extends React.Component<ScreenProps> {
                   getRunner={mobilenetRunner} numRuns={1}></Run>
                 <Run label='bundleStorageIO'
                   getRunner={localModelRunner} numRuns={1}></Run>
+                <Run label='bundleStorageIO - graph model'
+                  getRunner={localGraphModelRunner} numRuns={1}></Run>
                 <Run label='train model'
                   getRunner={trainModelRunner} numRuns={1}></Run>
                 <Run label='asyncStorareIO'
