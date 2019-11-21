@@ -31,11 +31,13 @@ import {ConcatProgram} from './kernels/concat_webgpu';
 import {Conv2DMMProgram} from './kernels/conv2d_mm_webgpu';
 import {Conv2DNaiveProgram} from './kernels/conv2d_naive_webgpu';
 import {DepthwiseConv2DProgram} from './kernels/depthwise_conv2d_webgpu';
+import {FillProgram} from './kernels/fill_webgpu';
 import {MatMulPackedProgram} from './kernels/matmul_packed_webgpu';
 import {MatMulProgram} from './kernels/matmul_webgpu';
 import {MaxPoolProgram} from './kernels/maxpool_webgpu';
 import {PadProgram} from './kernels/pad_webgpu';
 import {ResizeBilinearProgram} from './kernels/resize_bilinear_webgpu';
+import {SelectProgram} from './kernels/select_webgpu';
 import {TransposeProgram} from './kernels/transpose_webgpu';
 import * as unary_op from './kernels/unary_op_webgpu';
 import {UnaryOpProgram} from './kernels/unary_op_webgpu';
@@ -114,7 +116,9 @@ export class WebGPUBackend extends KernelBackend {
     super();
     this.binaryCache = {};
     this.device = device;
-    this.queue = device.getQueue();
+    // TODO: Remove any once @webgpu/types is updated to reflect spec change.
+    // tslint:disable-next-line:no-any
+    this.queue = (device as any).defaultQueue;
     this.commandQueue = [];
     this.shaderc = shaderc;
     this.compiler = new shaderc.Compiler();
@@ -771,6 +775,42 @@ export class WebGPUBackend extends KernelBackend {
   relu6<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.RELU6);
     return this.compileAndRun(program, [x]);
+  }
+
+  prelu<T extends Tensor>(x: T, alpha: T): T {
+    const program = new BinaryOpProgram(binary_op.PRELU, x.shape, alpha.shape);
+    return this.compileAndRun(program, [x, alpha]);
+  }
+
+  select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
+    const program = new SelectProgram(condition.rank, a.shape, a.rank);
+    const dtype = backend_util.upcastType(a.dtype, b.dtype);
+    const dataId = this.write(null /*values*/, program.outputShape, dtype);
+    const output =
+        engine().makeTensorFromDataId(dataId, program.outputShape, dtype, this);
+    return this.compileAndRun(program, [condition, a, b], output);
+  }
+
+  fill<R extends Rank>(
+      shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
+    dtype = dtype || util.inferDtype(value);
+
+    if (dtype === 'string') {
+      // String type should be handled in CPU memory.
+      const values = util.getArrayFromDType(dtype, util.sizeFromShape(shape));
+      values.fill(value as string);
+      return engine().makeTensor(values, shape, dtype, this) as Tensor<R>;
+    } else {
+      const program = new FillProgram(shape, value as number);
+      const dataId = this.write(null /*values*/, program.outputShape, dtype);
+      const output = engine().makeTensorFromDataId(
+          dataId, program.outputShape, dtype, this);
+      return this.compileAndRun(program, [], output);
+    }
+  }
+
+  zerosLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
+    return this.fill(x.shape, x.dtype === 'string' ? '' : 0, x.dtype);
   }
 
   resizeBilinear(
