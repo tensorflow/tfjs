@@ -117,6 +117,7 @@ export class WebGPUBackend extends KernelBackend {
     this.binaryCache = {};
     this.device = device;
     // TODO: Remove any once @webgpu/types is updated to reflect spec change.
+    // tslint:disable-next-line:no-any
     this.queue = (device as any).defaultQueue;
     this.commandQueue = [];
     this.shaderc = shaderc;
