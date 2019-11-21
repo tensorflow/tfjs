@@ -37,11 +37,17 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'avgPool',
+    excludes: [
+      'gradient',   // Not yet implemented.
+      'avgPool3d',  // Not yet implemented.
+    ]
+  },
+  {
     include: 'maxPool',
     excludes: [
-      'f=[1,1]',          // XNN does not support filter height and width of 1.
-      'maxPoolBackprop',  // Not yet implemented.
-      'maxPool3d',        // Not yet implemented.
+      'maxPoolBackprop',    // Not yet implemented.
+      'maxPool3d',          // Not yet implemented.
       'maxPool3dBackprop',  // Not yet implemented.
       'ignores NaNs'        // Actual != expected.
     ]
@@ -184,6 +190,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'pad ', excludes: ['complex', 'zerosLike']},
   {include: 'clip', excludes: ['gradient']},
   {include: 'addN'},
+  {include: 'nonMaxSuppression'},
 ];
 
 const customInclude = (testName: string) => {
