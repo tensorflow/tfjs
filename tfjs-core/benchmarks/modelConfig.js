@@ -71,12 +71,51 @@ const sentences = [
   'what is the forecast for here at tea time',
 ];
 
+const getExactlyOneTensor = (xs) => {
+  if (Array.isArray(xs)) {
+    if (xs.length !== 1) {
+      throw new Error(`Expected Tensor length to be 1; got ${xs.length}.`);
+    }
+    return xs[0];
+  }
+  return xs;
+};
+class ChannelPadding extends tf.layers.Layer {
+  constructor(config) {
+    super({});
+    this.padding = config.padding;
+  }
+  computeOutputShape(inputShape) {
+    const [batch, dim1, dim2, values] = inputShape;
+    return [batch, dim1, dim2, values + this.padding];
+  }
+  call(inputs) {
+    const input = getExactlyOneTensor(inputs);
+    return tf.pad(input, [[0, 0], [0, 0], [0, 0], [0, this.padding]], 0.0);
+  }
+  static get className() {
+    return 'ChannelPadding';
+  }
+}
+tf.serialization.registerClass(ChannelPadding);
+tf.registerOp('Prelu', (node) => {
+  const x = node.inputs[0];
+  const alpha = node.inputs[1];
+  return tf.prelu(x, alpha);
+});
+
 const benchmarks = {
   'facemesh': {
     load: async () => {
-      const url =
-          'https://storage.googleapis.com/learnjs-data/face_mesh/model.json';
-      return tf.loadGraphModel(url);
+      // landmarks
+      // const url = 'https://storage.googleapis.com/learnjs-data/facemesh_staging/facemesh_ping/model.json';
+      // const url =
+      //     'https://storage.googleapis.com/learnjs-data/face_mesh/model.json';
+      // return tf.loadGraphModel(url);
+
+      // bounding box
+      const url = 'https://facemesh.s3.amazonaws.com/facedetector/rewritten_detector.json';
+      return tf.loadLayersModel(url);
     },
     predictFunc: () => {
       const zeros = tf.zeros([1, 128, 128, 3]);
