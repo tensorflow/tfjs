@@ -88,7 +88,7 @@ const benchmarks = {
   'mobilenet': {
     load: async () => {
       const url =
-          'https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/classification/2'
+          'https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v2_100_224/classification/2/default/1'
       return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
