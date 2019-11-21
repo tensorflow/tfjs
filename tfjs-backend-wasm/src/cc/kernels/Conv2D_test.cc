@@ -138,3 +138,74 @@ TEST(CONV2D, xnn_operator_lifetime) {
 
   tfjs::wasm::dispose();
 }
+
+TEST(CONV2D, transposed_filter_lifetime) {
+  tfjs::wasm::init();
+
+  ASSERT_EQ(0, tfjs::backend::num_tensors());
+
+  const int x0_id = 0;
+  const int weights1_id = 1;
+
+  const int x_size = 8;
+  const int weights_size = 8;
+  std::vector<float> x{1, 2, 3, 4, 5, 6, 7, 8};
+  std::vector<float> weights{1, 2, 3, 4, 5, 6, 7, 8};
+
+  const int out_id = 4;
+  const int out_size = 12;
+  std::vector<float> out{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+  tfjs::wasm::register_tensor(x0_id, x_size, x.data());
+  tfjs::wasm::register_tensor(weights1_id, weights_size, weights.data());
+  tfjs::wasm::register_tensor(out_id, out_size, out.data());
+
+  ASSERT_EQ(3, tfjs::backend::num_tensors());
+  ASSERT_EQ(0, tfjs::backend::xnn_operator_count);
+
+  // One xnn_operator should be created for the first call to conv2d.
+  const int batch_size = 1;
+  const int input_height = 4;
+  const int input_width = 2;
+  const int filter_height = 4;
+  const int filter_width = 2;
+  const int pad_top0 = 1;
+  const int pad_right = 0;
+  const int pad_bottom0 = 0;
+  const int pad_left = 0;
+  const bool is_same_pad0 = false;
+  const int dilation_height = 1;
+  const int dilation_width = 1;
+  const int stride_height = 1;
+  const int stride_width = 1;
+  const int input_channels = 1;
+  const int output_channels = 1;
+  tfjs::wasm::Conv2D(x0_id, batch_size, input_height, input_width, weights1_id,
+                     filter_height, filter_width, pad_top0, pad_right,
+                     pad_bottom0, pad_left, is_same_pad0, dilation_height,
+                     dilation_width, stride_height, stride_width,
+                     input_channels, output_channels, out_id);
+  ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
+  EXPECT_EQ(out, (std::vector<float>{133, 204, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
+
+  // Make a new filter.
+  std::vector<float> weights2 = {8, 7, 6, 5, 4, 3, 2, 1};
+  const int weights2_id = 2;
+  tfjs::wasm::register_tensor(weights2_id, weights_size, weights2.data());
+
+  // No new xnn_operators should be created for the second call to conv2d with
+  // the same arguments.
+  tfjs::wasm::Conv2D(x0_id, batch_size, input_height, input_width, weights1_id,
+                     filter_height, filter_width, pad_top0, pad_right,
+                     pad_bottom0, pad_left, is_same_pad0, dilation_height,
+                     dilation_width, stride_height, stride_width,
+                     input_channels, output_channels, out_id);
+  ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
+  EXPECT_EQ(out, (std::vector<float>{133, 204, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
+
+  // tfjs::wasm::dispose_data(weights0_id);
+  // tfjs::wasm::dispose_data(weights1_id);
+  // ASSERT_EQ(0, tfjs::backend::xnn_operator_count);
+
+  tfjs::wasm::dispose();
+}
