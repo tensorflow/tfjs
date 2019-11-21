@@ -75,9 +75,8 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'conv2d ',
     excludes: [
       // conv2d fusion is only done for bias.
-      'im2row with bias and relu', 'im2row with prelu', 'basic with prelu',
-      'basic with bias and relu', 'basic with elu', 'basic with relu',
-      'pointwise with prelu', 'im2row with relu', 'im2row',
+      'im2row with prelu', 'basic with prelu', 'basic with elu',
+      'pointwise with prelu', 'im2row',
       'gradient',  // Gradients not defined yet.
       'NCHW',      // xnn pack does not support channels first.
     ]

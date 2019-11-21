@@ -58,6 +58,8 @@ function setup(backend: BackendWasm) {
   ]);
 }
 
+const fusableActivations = ['linear', 'relu', 'relu6'];
+
 function fusedConv2d(args: {
   inputs: FusedConv2DInputs,
   backend: BackendWasm,
@@ -66,7 +68,7 @@ function fusedConv2d(args: {
 }) {
   const {inputs, attrs, backend} = args;
   const {convInfo, activation} = attrs;
-  if (activation !== 'linear') {
+  if (!fusableActivations.includes(activation)) {
     throw new Error(
         `${activation} activation not yet supported for FusedConv2D ` +
         `in the wasm backend.`);
