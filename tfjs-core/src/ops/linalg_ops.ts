@@ -80,50 +80,57 @@ function bandPart_<T extends Tensor>(
 ): T
 {
   if( numLower%1 !== 0 ){
-    throw new Error(`bandPart(): numLower=${numLower} not an integer.`);
+    throw new Error(
+      `bandPart(): numLower must be an integer, got ${numLower}.`
+    );
   }
   if( numUpper%1 !== 0 ){
-    throw new Error(`bandPart(): numUpper=${numUpper} not an integer.`);
+    throw new Error(
+      `bandPart(): numUpper must be an integer, got ${numUpper}.`
+    );
   }
 
-  return ENGINE.tidy( () => {
-    const $a = convertToTensor(a,'a','bandPart');
-    a = undefined;
+  const $a = convertToTensor(a,'a','bandPart');
 
-    if( $a.rank < 2 ) {
-      throw new Error(`bandPart(): Rank must be at least 2.`);
-    }
+  if( $a.rank < 2 ) {
+    throw new Error(`bandPart(): Rank must be at least 2, got ${$a.rank}.`);
+  }
 
-    const shape = $a.shape,
-          [M,N] = $a.shape.slice(-2);
+  const shape = $a.shape,
+        [M,N] = $a.shape.slice(-2);
 
-    if( !(numLower <= M) ) {
-      throw new Error(`bandPart() check failed: numLower <= #rows.`   );
-    }
-    if( !(numUpper <= N) ) {
-      throw new Error(`bandPart() check failed: numUpper <= #columns.`);
-    }
-
-    if( numLower < 0 ) { numLower = M; }
-    if( numUpper < 0 ) { numUpper = N; }
-
-    const i = range(0,M, 1, 'int32').reshape([-1,1]),
-          j = range(0,N, 1, 'int32'),
-         ij = sub(i,j);
-
-    const inBand = logicalAnd(
-      ij.   lessEqual( scalar(+numLower,'int32') ),
-      ij.greaterEqual( scalar(-numUpper,'int32') )
+  if( !(numLower <= M) ) {
+    throw new Error(
+      `bandPart(): numLower (${numLower})` +
+      ` must not be greater than the number of rows (${M}).`
     );
+  }
+  if( !(numUpper <= N) ) {
+    throw new Error(
+      `bandPart(): numUpper (${numUpper})` +
+      ` must not be greater than the number of columns (${N}).`
+    );
+  }
 
-    const zero = zeros([M,N], $a.dtype);
+  if( numLower < 0 ) { numLower = M; }
+  if( numUpper < 0 ) { numUpper = N; }
 
-    return stack(
-      unstack( $a.reshape([-1,M,N]) ).map(
-        mat => where(inBand, mat, zero)
-      )
-    ).reshape(shape) as T;
-  });
+  const i = range(0,M, 1, 'int32').reshape([-1,1]),
+        j = range(0,N, 1, 'int32'),
+       ij = sub(i,j);
+
+  const inBand = logicalAnd(
+    ij.   lessEqual( scalar(+numLower,'int32') ),
+    ij.greaterEqual( scalar(-numUpper,'int32') )
+  );
+
+  const zero = zeros([M,N], $a.dtype);
+
+  return stack(
+    unstack( $a.reshape([-1,M,N]) ).map(
+      mat => where(inBand, mat, zero)
+    )
+  ).reshape(shape) as T;
 }
 
 /**

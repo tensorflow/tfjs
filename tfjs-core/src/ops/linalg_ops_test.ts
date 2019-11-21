@@ -23,49 +23,49 @@ import {expectArraysClose, expectArraysEqual} from '../test_util';
 import {scalar, tensor1d, tensor2d, tensor3d, tensor4d} from './ops';
 
 describeWithFlags('bandPart', ALL_ENVS, () => {
-  it('bandPart to keep tensor unchanged', async () => {
+  it('keeps tensor unchanged', async () => {
     const x: Tensor2D = tensor2d([1, 1, 1, 1, 1, 1, 1, 1, 1], [3, 3]);
     expectArraysClose(
         await tf.linalg.bandPart(x, -1, -1).array(),
         [[1, 1, 1], [1, 1, 1], [1, 1, 1]]);
   });
 
-  it('bandPart for upper triangular matrix', async () => {
+  it('upper triangular matrix', async () => {
     const x: Tensor2D = tensor2d([1, 1, 1, 1, 1, 1, 1, 1, 1], [3, 3]);
     expectArraysClose(
         await tf.linalg.bandPart(x, 0, -1).array(),
         [[1, 1, 1], [0, 1, 1], [0, 0, 1]]);
   });
 
-  it('bandPart for lower triangular matrix', async () => {
+  it('lower triangular matrix', async () => {
     const x: Tensor2D = tensor2d([1, 1, 1, 1, 1, 1, 1, 1, 1], [3, 3]);
     expectArraysClose(
         await tf.linalg.bandPart(x, -1, 0).array(),
         [[1, 0, 0], [1, 1, 0], [1, 1, 1]]);
   });
 
-  it('bandPart for diagonal elements', async () => {
+  it('diagonal elements', async () => {
     const x: Tensor2D = tensor2d([1, 1, 1, 1, 1, 1, 1, 1, 1], [3, 3]);
     expectArraysClose(
         await tf.linalg.bandPart(x, 0, 0).array(),
         [[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
   });
 
-  it('bandPart for lower triangular elements', async () => {
+  it('lower triangular elements', async () => {
     const x: Tensor2D = tensor2d([1, 1, 1, 1, 1, 1, 1, 1, 1], [3, 3]);
     expectArraysClose(
         await tf.linalg.bandPart(x, 1, 0).array(),
         [[1, 0, 0], [1, 1, 0], [0, 1, 1]]);
   });
 
-  it('bandPart for upper triangular elements', async () => {
+  it('upper triangular elements', async () => {
     const x: Tensor2D = tensor2d([1, 1, 1, 1, 1, 1, 1, 1, 1], [3, 3]);
     expectArraysClose(
         await tf.linalg.bandPart(x, 0, 1).array(),
         [[1, 1, 0], [0, 1, 1], [0, 0, 1]]);
   });
 
-  it('bandPart for 4X4 matrix - tensorflow python examples', async () => {
+  it('4X4 matrix - tensorflow python examples', async () => {
     const x: Tensor2D = tensor2d(
         [[0, 1, 2, 3], [-1, 0, 1, 2], [-2, -1, 0, 1], [-3, -2, -1, 0]]);
     expectArraysClose(
@@ -76,14 +76,14 @@ describeWithFlags('bandPart', ALL_ENVS, () => {
         [[0, 1, 0, 0], [-1, 0, 1, 0], [-2, -1, 0, 1], [0, -2, -1, 0]]);
   });
 
-  it('bandPart for 3 dimensional matrix', async () => {
+  it('3 dimensional matrix', async () => {
     const x: Tensor3D = tensor3d([[[1, 1], [1, 1]], [[1, 1], [1, 1]]]);
     expectArraysClose(
         await tf.linalg.bandPart(x, 0, 0).array(),
         [[[1, 0], [0, 1]], [[1, 0], [0, 1]]]);
   });
 
-  it('bandPart for 2X3X3', async () => {
+  it('2X3X3 tensor', async () => {
     const x: Tensor3D = tensor3d(
         [[[1, 1, 1], [1, 1, 1], [1, 1, 1]], [[1, 1, 1], [1, 1, 1], [1, 1, 1]]]);
     expectArraysClose(
@@ -153,12 +153,6 @@ describeWithFlags('bandPart', ALL_ENVS, () => {
        [0, 6, 7, 8],
        [0, 0,11,12]]
     );
-    expectTensorsEqual(
-      await la.bandPart(a,0,2).array(),
-      [[1, 2, 3, 0],
-       [0, 6, 7, 8],
-       [0, 0,11,12]]
-    );
     for( const numUpper of [3,4,-1,-2] ) {
       expectTensorsEqual(
         await la.bandPart(a,0,numUpper).array(),
@@ -178,12 +172,6 @@ describeWithFlags('bandPart', ALL_ENVS, () => {
       await la.bandPart(a,1,1).array(),
       [[1, 2, 0, 0],
        [5, 6, 7, 0],
-       [0,10,11,12]]
-    );
-    expectTensorsEqual(
-      await la.bandPart(a,1,2).array(),
-      [[1, 2, 3, 0],
-       [5, 6, 7, 8],
        [0,10,11,12]]
     );
     expectTensorsEqual(
@@ -213,12 +201,6 @@ describeWithFlags('bandPart', ALL_ENVS, () => {
         await la.bandPart(a,numLower,1).array(),
         [[1, 2, 0, 0],
          [5, 6, 7, 0],
-         [9,10,11,12]]
-      );
-      expectTensorsEqual(
-        await la.bandPart(a,numLower,2).array(),
-        [[1, 2, 3, 0],
-         [5, 6, 7, 8],
          [9,10,11,12]]
       );
       expectTensorsEqual(
