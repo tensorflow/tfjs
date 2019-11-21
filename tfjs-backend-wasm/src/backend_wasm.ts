@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, DataStorage, DataType, engine, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import wasmFactory from '../wasm-out/tfjs-backend-wasm';
 import {BackendWasmModule} from '../wasm-out/tfjs-backend-wasm';
@@ -54,6 +54,13 @@ export class BackendWasm extends KernelBackend {
     return this.dataIdMap.numDataIds();
   }
 
+  async time(f: () => void): Promise<BackendTimingInfo> {
+    const start = util.now();
+    f();
+    const kernelMs = util.now() - start;
+    return {kernelMs};
+  }
+
   move(
       dataId: DataId, values: backend_util.BackendValues, shape: number[],
       dtype: DataType): void {
@@ -64,12 +71,15 @@ export class BackendWasm extends KernelBackend {
           dataId, {id, stringBytes, shape, dtype, memoryOffset: null});
       return;
     }
-    const numBytes = util.sizeFromShape(shape) * util.bytesPerElement(dtype);
+
+    const size = util.sizeFromShape(shape);
+    const numBytes = size * util.bytesPerElement(dtype);
     const memoryOffset = this.wasm._malloc(numBytes);
+
     this.dataIdMap.set(dataId, {id, memoryOffset, shape, dtype});
-    const shapeBytes = new Uint8Array(new Int32Array(shape).buffer);
-    this.wasm.tfjs.registerTensor(
-        id, shapeBytes, shape.length, dtypeToEnumValue(dtype), memoryOffset);
+
+    this.wasm.tfjs.registerTensor(id, size, memoryOffset);
+
     if (values != null) {
       this.wasm.HEAPU8.set(
           new Uint8Array((values as backend_util.TypedArray).buffer),
@@ -115,21 +125,43 @@ export class BackendWasm extends KernelBackend {
     this.wasm = null;
   }
 
-  makeOutput(shape: number[], dtype: DataType): TensorInfo {
-    const dataId = this.write(null /* values */, shape, dtype);
+  memory() {
+    return {unreliable: false};
+  }
+
+  /**
+   * Make a tensor info for the output of an op. If `memoryOffset` is not
+   * present, this method allocates memory on the WASM heap. If `memoryOffset`
+   * is present, the memory was allocated elsewhere (in c++) and we just record
+   * the pointer where that memory lives.
+   */
+  makeOutput(shape: number[], dtype: DataType, memoryOffset?: number):
+      TensorInfo {
+    let dataId: {};
+    if (memoryOffset == null) {
+      dataId = this.write(null /* values */, shape, dtype);
+    } else {
+      dataId = {};
+      const id = this.dataIdNextNumber++;
+      this.dataIdMap.set(dataId, {id, memoryOffset, shape, dtype});
+      const size = util.sizeFromShape(shape);
+      this.wasm.tfjs.registerTensor(id, size, memoryOffset);
+    }
     return {dataId, shape, dtype};
   }
 
-  typedArrayFromHeap(offset: number, dtype: DataType, size: number):
+  typedArrayFromHeap({shape, dtype, dataId}: TensorInfo):
       backend_util.TypedArray {
     const buffer = this.wasm.HEAPU8.buffer;
+    const {memoryOffset} = this.dataIdMap.get(dataId);
+    const size = util.sizeFromShape(shape);
     switch (dtype) {
       case 'float32':
-        return new Float32Array(buffer, offset, size);
+        return new Float32Array(buffer, memoryOffset, size);
       case 'int32':
-        return new Int32Array(buffer, offset, size);
+        return new Int32Array(buffer, memoryOffset, size);
       case 'bool':
-        return new Uint8Array(buffer, offset, size);
+        return new Uint8Array(buffer, memoryOffset, size);
       default:
         throw new Error(`Uknown dtype ${dtype}`);
     }
@@ -159,9 +191,7 @@ async function init(): Promise<{wasm: BackendWasmModule}> {
           'register_tensor', null,
           [
             'number',  // dataId
-            'array',   // shape[]
-            'number',  // shapeLength
-            'number',  // dtype
+            'number',  // size
             'number',  // memoryOffset
           ]),
       disposeData: wasm.cwrap('dispose_data', voidReturnType, ['number']),
@@ -169,19 +199,6 @@ async function init(): Promise<{wasm: BackendWasmModule}> {
     };
     wasm.onRuntimeInitialized = () => resolve({wasm});
   });
-}
-
-function dtypeToEnumValue(dtype: DataType): number {
-  switch (dtype) {
-    case 'float32':
-      return 0;
-    case 'int32':
-      return 1;
-    case 'bool':
-      return 2;
-    default:
-      throw new Error(`Uknown dtype ${dtype}`);
-  }
 }
 
 function typedArrayFromBuffer(

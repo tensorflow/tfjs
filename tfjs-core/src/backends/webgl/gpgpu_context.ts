@@ -58,19 +58,34 @@ export class GPGPUContext {
       this.gl = getWebGLContext(glVersion);
     }
     // WebGL 2.0 enables texture floats without an extension.
+    let COLOR_BUFFER_FLOAT = 'WEBGL_color_buffer_float';
+    const COLOR_BUFFER_HALF_FLOAT = 'EXT_color_buffer_half_float';
     if (env().getNumber('WEBGL_VERSION') === 1) {
-      this.textureFloatExtension = webgl_util.getExtensionOrThrow(
-          this.gl, this.debug, 'OES_texture_float');
-      this.colorBufferFloatExtension =
-          this.gl.getExtension('WEBGL_color_buffer_float');
+      const TEXTURE_FLOAT = 'OES_texture_float';
+      const TEXTURE_HALF_FLOAT = 'OES_texture_half_float';
 
-      this.textureHalfFloatExtension = webgl_util.getExtensionOrThrow(
-          this.gl, this.debug, 'OES_texture_half_float');
-      this.colorBufferHalfFloatExtension =
-          this.gl.getExtension('EXT_color_buffer_half_float');
+      this.textureFloatExtension =
+          webgl_util.getExtensionOrThrow(this.gl, this.debug, TEXTURE_FLOAT);
+      if (webgl_util.hasExtension(this.gl, TEXTURE_HALF_FLOAT)) {
+        this.textureHalfFloatExtension = webgl_util.getExtensionOrThrow(
+            this.gl, this.debug, TEXTURE_HALF_FLOAT);
+      } else if (env().get('WEBGL_FORCE_F16_TEXTURES')) {
+        throw new Error(
+            'GL context does not support half float textures, yet the ' +
+            'environment flag WEBGL_FORCE_F16_TEXTURES is set to true.');
+      }
+
+      this.colorBufferFloatExtension = this.gl.getExtension(COLOR_BUFFER_FLOAT);
+      if (webgl_util.hasExtension(this.gl, COLOR_BUFFER_HALF_FLOAT)) {
+        this.colorBufferHalfFloatExtension = webgl_util.getExtensionOrThrow(
+            this.gl, this.debug, COLOR_BUFFER_HALF_FLOAT);
+      } else if (env().get('WEBGL_FORCE_F16_TEXTURES')) {
+        throw new Error(
+            'GL context does not support color renderable half floats, yet ' +
+            'the environment flag WEBGL_FORCE_F16_TEXTURES is set to true.');
+      }
     } else {
-      const COLOR_BUFFER_FLOAT = 'EXT_color_buffer_float';
-      const COLOR_BUFFER_HALF_FLOAT = 'EXT_color_buffer_half_float';
+      COLOR_BUFFER_FLOAT = 'EXT_color_buffer_float';
       if (webgl_util.hasExtension(this.gl, COLOR_BUFFER_FLOAT)) {
         this.colorBufferFloatExtension =
             this.gl.getExtension(COLOR_BUFFER_FLOAT);

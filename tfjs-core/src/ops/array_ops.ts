@@ -674,14 +674,17 @@ function pad_<T extends Tensor>(
   if ($x.rank === 0) {
     throw new Error('pad(scalar) is not defined. Pass non-scalar to pad');
   }
-  // Pad introduces values around the original tensor, so the gradient
-  // slices the original shape out of the gradient.
-  const begin = paddings.map(p => p[0]);
+
   const grad = (dy: T) => {
-    return {$x: () => dy.slice(begin, $x.shape)};
+    // Pad introduces values around the original tensor, so the gradient
+    // slices the original shape out of the gradient.
+    const begin = paddings.map(p => p[0]);
+    return {x: () => dy.slice(begin, $x.shape)};
   };
+  const attrs = {paddings, constantValue};
   return ENGINE.runKernelFunc(
-      backend => backend.pad($x, paddings, constantValue), {$x}, grad);
+      backend => backend.pad($x, paddings, constantValue), {x: $x}, grad,
+      'PadV2', attrs);
 }
 
 /**
