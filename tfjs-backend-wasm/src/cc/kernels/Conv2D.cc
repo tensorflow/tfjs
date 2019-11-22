@@ -37,7 +37,7 @@ void Conv2D(const int x_id, const int batch_size, const int input_height,
             const int output_channels, const int out_id) {
   const int bias_id = -1;
   const bool is_depthwise = false;
-  const int activation = 0;
+  const int activation = FusableActivation::LINEAR;
   tfjs::wasm::conv2d(
       x_id, batch_size, input_height, input_width, filter_id, filter_height,
       filter_width, bias_id, pad_top, pad_right, pad_bottom, pad_left,
