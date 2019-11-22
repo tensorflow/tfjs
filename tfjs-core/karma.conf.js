@@ -111,6 +111,7 @@ module.exports = function(config) {
     captureTimeout: 120000,
     reportSlowerThan: 500,
     browserNoActivityTimeout: 180000,
+    browserDisconnectTimeout: 5000,
     customLaunchers: {
       // For browserstack configs see:
       // https://www.browserstack.com/automate/node
