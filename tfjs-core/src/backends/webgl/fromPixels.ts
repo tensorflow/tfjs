@@ -40,8 +40,7 @@ registerKernel({
   kernelFunc: fromPixels as {} as KernelFunc,
 });
 
-let fromPixels2DContext: CanvasRenderingContext2D|
-    OffscreenCanvasRenderingContext2D;
+let fromPixels2DContext: CanvasRenderingContext2D;
 
 function fromPixels(args: {
   inputs: FromPixelsInputs,
@@ -49,7 +48,7 @@ function fromPixels(args: {
   attrs: FromPixelsAttrs
 }): TensorInfo {
   const {inputs, backend, attrs} = args;
-  const {pixels} = inputs;
+  let {pixels} = inputs;
   const {numChannels} = attrs;
 
   const isVideo = typeof (HTMLVideoElement) !== 'undefined' &&
@@ -68,15 +67,14 @@ function fromPixels(args: {
 
   if (isImage || isVideo) {
     if (fromPixels2DContext == null) {
-      //@ts-ignore
-      fromPixels2DContext = createCanvas().getContext('2d');
+      fromPixels2DContext =
+          createCanvas().getContext('2d') as CanvasRenderingContext2D;
     }
 
     fromPixels2DContext.canvas.width = width;
     fromPixels2DContext.canvas.height = height;
     fromPixels2DContext.drawImage(
         pixels as HTMLVideoElement | HTMLImageElement, 0, 0, width, height);
-    //@ts-ignore
     pixels = fromPixels2DContext.canvas;
   }
 

@@ -15,8 +15,6 @@
  * =============================================================================
  */
 import {env} from '../environment';
-import {tensor3d} from '../ops/tensor_ops';
-import {Tensor3D} from '../tensor';
 
 import {Platform} from './platform';
 
@@ -81,39 +79,6 @@ export class PlatformNode implements Platform {
       return '';
     }
     return new this.util.TextDecoder(encoding).decode(bytes);
-  }
-
-  fromPixels(
-      pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
-      numChannels: number): Tensor3D {
-    // tslint:disable-next-line:no-any
-    const isCanvasLike = (pixels as any).getContext != null;
-    if (!isCanvasLike) {
-      throw new Error(
-          'When running in node, pixels must be an HTMLCanvasElement ' +
-          'like the one returned by the `canvas` npm package');
-    }
-    const vals: Uint8ClampedArray =
-        // tslint:disable-next-line:no-any
-        (pixels as any)
-            .getContext('2d')
-            .getImageData(0, 0, pixels.width, pixels.height)
-            .data;
-    let values: Int32Array;
-    if (numChannels === 4) {
-      values = new Int32Array(vals);
-    } else {
-      const numPixels = pixels.width * pixels.height;
-      values = new Int32Array(numPixels * numChannels);
-      for (let i = 0; i < numPixels; i++) {
-        for (let channel = 0; channel < numChannels; ++channel) {
-          values[i * numChannels + channel] = vals[i * 4 + channel];
-        }
-      }
-    }
-    const outShape: [number, number, number] =
-        [pixels.height, pixels.width, numChannels];
-    return tensor3d(values, outShape, 'int32');
   }
 }
 

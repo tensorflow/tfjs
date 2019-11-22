@@ -16,6 +16,7 @@
  */
 
 import {env} from '../environment';
+
 import {Platform} from './platform';
 
 export class PlatformBrowser implements Platform {
