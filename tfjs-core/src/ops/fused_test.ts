@@ -684,7 +684,7 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  it('basic with bias and relu', async () => {
+  it('basic with broadcasted bias and relu', async () => {
     const inputDepth = 2;
     const inShape: [number, number, number, number] = [2, 2, 2, inputDepth];
     const outputDepth = 2;
