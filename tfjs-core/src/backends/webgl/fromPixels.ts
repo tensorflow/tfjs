@@ -17,7 +17,7 @@
 
 import {env} from '../../environment';
 import {KernelFunc, registerKernel, TensorInfo} from '../../kernel_registry';
-import {PixelData} from '../../platforms/platform';
+import {PixelData} from '../../types';
 
 import {MathBackendWebGL} from './backend_webgl';
 import {createCanvas} from './canvas_util';
@@ -69,8 +69,7 @@ function fromPixels(args: {
   if (isImage || isVideo) {
     if (fromPixels2DContext == null) {
       //@ts-ignore
-      fromPixels2DContext =
-          createCanvas(env().getNumber('WEBGL_VERSION')).getContext('2d');
+      fromPixels2DContext = createCanvas().getContext('2d');
     }
 
     fromPixels2DContext.canvas.width = width;

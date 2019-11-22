@@ -232,8 +232,6 @@ export class MathBackendWebGL extends KernelBackend {
   private numBytesInGPU = 0;
 
   private canvas: HTMLCanvasElement|OffscreenCanvas;
-  private fromPixels2DContext: CanvasRenderingContext2D|
-      OffscreenCanvasRenderingContext2D;
 
   private programTimersStack: TimerNode[];
   private activeTimers: TimerNode[];
@@ -2636,12 +2634,6 @@ export class MathBackendWebGL extends KernelBackend {
       this.canvas.remove();
     } else {
       this.canvas = null;
-    }
-    if (this.fromPixels2DContext != null &&
-        //@ts-ignore
-        this.fromPixels2DContext.canvas.remove) {
-      //@ts-ignore
-      this.fromPixels2DContext.canvas.remove();
     }
     if (this.gpgpuCreatedLocally) {
       this.gpgpu.program = null;

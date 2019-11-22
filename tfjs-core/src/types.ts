@@ -15,6 +15,13 @@
  * =============================================================================
  */
 
+/** Type for representing image dat in Uint8Array type. */
+export interface PixelData {
+  width: number;
+  height: number;
+  data: Uint8Array;
+}
+
 /** @docalias number[] */
 export interface ShapeMap {
   R0: number[];

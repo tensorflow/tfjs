@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {PixelData} from '../../platforms/platform';
-import {TypedArray} from '../../types';
+import {PixelData, TypedArray} from '../../types';
 
 import {getGlslDifferences} from './glsl_version';
 import * as tex_util from './tex_util';

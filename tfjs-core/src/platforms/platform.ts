@@ -16,14 +16,6 @@
  */
 
 import {RequestDetails} from '../io/types';
-import {Tensor3D} from '../tensor';
-
-/** Type for representing image dat in Uint8Array type. */
-export interface PixelData {
-  width: number;
-  height: number;
-  data: Uint8Array;
-}
 
 /**
  * At any given time a single platform is active and represents and
@@ -54,10 +46,4 @@ export interface Platform {
   encode(text: string, encoding: string): Uint8Array;
   /** Decode the provided bytes into a string using the provided encoding. */
   decode(bytes: Uint8Array, encoding: string): string;
-
-  /** Transform an image/video/canvas into a tensor. */
-  fromPixels(
-      pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-      HTMLVideoElement,
-      numChannels: number): Tensor3D;
 }
