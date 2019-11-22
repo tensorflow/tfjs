@@ -59,6 +59,7 @@ function setup(backend: BackendWasm) {
   ]);
 }
 
+// Must match enum in conv2d_impl.h.
 enum FusableActivation {
   linear = 0,
   relu = 1,

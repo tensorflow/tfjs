@@ -15,6 +15,7 @@
 #ifndef CONV2D_IMPL_H_
 #define CONV2D_IMPL_H_
 
+// Must match enum in FusedConv2D.ts.
 enum FusableActivation { LINEAR = 0, RELU = 1, RELU6 = 2 };
 
 namespace tfjs {
