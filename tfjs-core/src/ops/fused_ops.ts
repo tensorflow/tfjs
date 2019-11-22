@@ -407,7 +407,7 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
 
     let biasGradient = {};
     if (bias != null) {
-      biasGradient = {$bias: () => getFusedBiasGradient($bias, dyActivation)};
+      biasGradient = {bias: () => getFusedBiasGradient($bias, dyActivation)};
     }
 
     return Object.assign(
