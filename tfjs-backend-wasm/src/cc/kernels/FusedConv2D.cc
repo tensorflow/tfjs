@@ -20,8 +20,6 @@
 
 #include "src/cc/conv2d_impl.h"
 
-enum InterpolationMethod { LINEAR = 0, RELU = 1, RELU6 = 2 };
-
 namespace tfjs {
 namespace wasm {
 // We use C-style API to interface with Javascript.

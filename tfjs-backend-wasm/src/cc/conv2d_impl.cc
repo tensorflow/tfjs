@@ -32,6 +32,8 @@
 #include "src/cc/transpose_impl.h"
 #include "src/cc/util.h"
 
+enum FusableActivation { LINEAR = 0, RELU = 1, RELU6 = 2 };
+
 namespace {
 // These integer values are keys to creating the conv2d operator. We use
 // std::array instead of a vanilla array as it implements the compare operator
