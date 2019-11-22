@@ -157,10 +157,3 @@ export type TensorLike5D =
 export type TensorLike6D =
     TypedArray|number[]|number[][][][][][]|boolean[]|boolean[][][][][][]|
     string[]|string[][][][][][]|Uint8Array[]|Uint8Array[][][][][];
-
-/** Type for representing image dat in Uint8Array type. */
-export interface PixelData {
-  width: number;
-  height: number;
-  data: Uint8Array;
-}

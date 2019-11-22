@@ -16,8 +16,8 @@
  */
 
 import {env} from '../../environment';
-
-import {PixelData, TypedArray} from '../../types';
+import {PixelData} from '../../platforms/platform';
+import {TypedArray} from '../../types';
 import * as util from '../../util';
 
 import {getWebGLContext, setWebGLContext} from './canvas_util';

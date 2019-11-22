@@ -39,7 +39,7 @@ import * as slice_util from '../../ops/slice_util';
 import {softmax} from '../../ops/softmax';
 import {range, scalar, tensor} from '../../ops/tensor_ops';
 import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../../tensor';
-import {BackendValues, DataType, DataTypeMap, NumericDataType, PixelData, Rank, RecursiveArray, ShapeMap, sumOutType, TypedArray, upcastType} from '../../types';
+import {BackendValues, DataType, DataTypeMap, NumericDataType, Rank, RecursiveArray, ShapeMap, sumOutType, TypedArray, upcastType} from '../../types';
 import * as util from '../../util';
 import {getArrayFromDType, getTypedArrayFromDType, inferDtype, sizeFromShape} from '../../util';
 import {DataStorage, EPSILON_FLOAT16, EPSILON_FLOAT32, KernelBackend} from '../backend';
@@ -64,7 +64,7 @@ import * as binaryop_gpu from './binaryop_gpu';
 import {BinaryOpProgram} from './binaryop_gpu';
 import * as binaryop_packed_gpu from './binaryop_packed_gpu';
 import {BinaryOpPackedProgram} from './binaryop_packed_gpu';
-import {createCanvas, getWebGLContext} from './canvas_util';
+import {getWebGLContext} from './canvas_util';
 import {ClipProgram} from './clip_gpu';
 import {ClipPackedProgram} from './clip_packed_gpu';
 import {ComplexAbsProgram} from './complex_abs_gpu';
@@ -88,8 +88,6 @@ import {EncodeMatrixPackedProgram} from './encode_matrix_packed_gpu';
 import * as fft_gpu from './fft_gpu';
 import {FFTProgram} from './fft_gpu';
 import {FillProgram} from './fill_gpu';
-import {FromPixelsProgram} from './from_pixels_gpu';
-import {FromPixelsPackedProgram} from './from_pixels_packed_gpu';
 import {GatherProgram} from './gather_gpu';
 import {GatherNDProgram} from './gather_nd_gpu';
 import {GPGPUContext} from './gpgpu_context';
@@ -221,6 +219,8 @@ export const MATMUL_SHARED_DIM_THRESHOLD = 1000;
 
 export class MathBackendWebGL extends KernelBackend {
   texData: DataStorage<TextureData>;
+  gpgpu: GPGPUContext;
+
   // Maps data ids that have a pending read operation, to list of subscribers.
   private pendingRead = new WeakMap<DataId, Array<(arr: TypedArray) => void>>();
   // List of data ids that are scheduled for disposal, but are waiting on a
@@ -252,7 +252,7 @@ export class MathBackendWebGL extends KernelBackend {
   private numMBBeforeWarning: number;
   private warnedAboutMemory = false;
 
-  constructor(private gpgpu?: GPGPUContext) {
+  constructor(gpgpu?: GPGPUContext) {
     super();
     if (!env().getBool('HAS_WEBGL')) {
       throw new Error('WebGL is not supported on this device');
@@ -265,6 +265,7 @@ export class MathBackendWebGL extends KernelBackend {
       this.canvas = gl.canvas;
       this.gpgpuCreatedLocally = true;
     } else {
+      this.gpgpu = gpgpu;
       this.binaryCache = {};
       this.gpgpuCreatedLocally = false;
       this.canvas = gpgpu.gl.canvas;
@@ -279,79 +280,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.texData.numDataIds() +
         (this.cpuBackend ? this.cpuBackend.numDataIds() : 0) -
         this.pendingDeletes;
-  }
-
-  fromPixels(
-      pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-      HTMLVideoElement,
-      numChannels: number): Tensor3D {
-    if (pixels == null) {
-      throw new Error(
-          'pixels passed to tf.browser.fromPixels() can not be null');
-    }
-
-    const isCanvas = (typeof (OffscreenCanvas) !== 'undefined' &&
-                      pixels instanceof OffscreenCanvas) ||
-        (typeof (HTMLCanvasElement) !== 'undefined' &&
-         pixels instanceof HTMLCanvasElement);
-    const isPixelData = (pixels as PixelData).data instanceof Uint8Array;
-    const isImageData =
-        typeof (ImageData) !== 'undefined' && pixels instanceof ImageData;
-    const isVideo = typeof (HTMLVideoElement) !== 'undefined' &&
-        pixels instanceof HTMLVideoElement;
-    const isImage = typeof (HTMLImageElement) !== 'undefined' &&
-        pixels instanceof HTMLImageElement;
-    const [width, height] = isVideo ?
-        [
-          (pixels as HTMLVideoElement).videoWidth,
-          (pixels as HTMLVideoElement).videoHeight
-        ] :
-        [pixels.width, pixels.height];
-
-    const texShape: [number, number] = [height, width];
-    const outShape = [height, width, numChannels];
-
-    if (!isCanvas && !isPixelData && !isImageData && !isVideo && !isImage) {
-      throw new Error(
-          'pixels passed to tf.browser.fromPixels() must be either an ' +
-          `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData ` +
-          `in browser, or OffscreenCanvas, ImageData in webworker` +
-          ` or {data: Uint32Array, width: number, height: number}, ` +
-          `but was ${(pixels as {}).constructor.name}`);
-    }
-
-    if (isImage || isVideo) {
-      if (this.fromPixels2DContext == null) {
-        //@ts-ignore
-        this.fromPixels2DContext =
-            createCanvas(env().getNumber('WEBGL_VERSION')).getContext('2d');
-      }
-
-      this.fromPixels2DContext.canvas.width = width;
-      this.fromPixels2DContext.canvas.height = height;
-      this.fromPixels2DContext.drawImage(
-          pixels as HTMLVideoElement | HTMLImageElement, 0, 0, width, height);
-      //@ts-ignore
-      pixels = this.fromPixels2DContext.canvas;
-    }
-
-    const tempPixelHandle = this.makeTensorInfo(texShape, 'int32');
-    // This is a byte texture with pixels.
-    this.texData.get(tempPixelHandle.dataId).usage = TextureUsage.PIXELS;
-    this.gpgpu.uploadPixelDataToTexture(
-        this.getTexture(tempPixelHandle.dataId), pixels as ImageData);
-    let program, res;
-    if (env().getBool('WEBGL_PACK')) {
-      program = new FromPixelsPackedProgram(outShape);
-      res = this.compileAndRun(program, [tempPixelHandle]);
-    } else {
-      program = new FromPixelsProgram(outShape);
-      res = this.compileAndRun(program, [tempPixelHandle]);
-    }
-
-    this.disposeData(tempPixelHandle.dataId);
-
-    return res as Tensor3D;
   }
 
   write(values: BackendValues, shape: number[], dtype: DataType): DataId {
@@ -2482,7 +2410,7 @@ export class MathBackendWebGL extends KernelBackend {
     return backend_util.linspaceImpl(start, stop, num);
   }
 
-  private makeTensorInfo(shape: number[], dtype: DataType): TensorInfo {
+  makeTensorInfo(shape: number[], dtype: DataType): TensorInfo {
     const dataId = this.write(null /* values */, shape, dtype);
     this.texData.get(dataId).usage = null;
     return {dataId, shape, dtype};

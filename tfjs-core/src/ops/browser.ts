@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../engine';
+import {env} from '../environment';
+import {PixelData} from '../platforms/platform';
 import {Tensor, Tensor2D, Tensor3D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
-import {PixelData, TensorLike} from '../types';
+import {TensorLike} from '../types';
 
 import {op} from './operation';
 
@@ -52,6 +53,9 @@ function fromPixels_(
     throw new Error(
         'Cannot construct Tensor with more than 4 channels from pixels.');
   }
+  if (pixels == null) {
+    throw new Error('pixels passed to tf.browser.fromPixels() can not be null');
+  }
   const isVideo = typeof (HTMLVideoElement) !== 'undefined' &&
       pixels instanceof HTMLVideoElement;
   if (isVideo) {
@@ -64,7 +68,7 @@ function fromPixels_(
           '`loadeddata` event on the <video> element.');
     }
   }
-  return ENGINE.fromPixels(pixels, numChannels);
+  return env().platform.fromPixels(pixels, numChannels);
 }
 
 /**
