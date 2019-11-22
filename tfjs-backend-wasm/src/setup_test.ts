@@ -139,9 +139,8 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'div ',
     excludes: [
-      'gradient',          // Gradient not defined yet.
-      'integer division',  // FloorDiv not yet implemented.
-      'upcasts',           // Cast not supported yet.
+      'gradient',  // Gradient not defined yet.
+      'upcasts',   // Cast not supported yet.
       'broadcasting same rank Tensors different shape',  // Broadcasting along
                                                          // inner dims not
                                                          // supported yet.
