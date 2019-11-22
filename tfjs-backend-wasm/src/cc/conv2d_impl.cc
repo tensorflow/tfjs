@@ -111,7 +111,7 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
             const int dilation_height, const int dilation_width,
             const int stride_height, const int stride_width,
             const int input_channels, const int output_channels,
-            const bool is_depthwise, const int out_id) {
+            const bool is_depthwise, const int activation, const int out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& filter_info = backend::get_tensor_info(filter_id);
   auto& out_info = backend::get_tensor_info_out(out_id);

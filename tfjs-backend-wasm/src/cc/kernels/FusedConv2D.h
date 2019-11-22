@@ -26,7 +26,8 @@ void FusedConv2D(const int x_id, const int batch_size, const int input_height,
                  int pad_left, const int is_same_pad, const int dilation_height,
                  const int dilation_width, const int stride_height,
                  const int stride_width, const int input_channels,
-                 const int output_channels, const int out_id);
+                 const int output_channels, const int activation,
+                 const int out_id);
 }
 
 }  // namespace wasm

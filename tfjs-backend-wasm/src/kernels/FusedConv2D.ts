@@ -31,7 +31,7 @@ let wasmFusedConv2d: (
     padTop: number, padRight: number, padBottom: number, padLeft: number,
     isSamePad: number, dilationHeight: number, dilationWidth: number,
     strideHeight: number, strideWidth: number, inputChannels: number,
-    outputChannels: number, outId: number) => void;
+    outputChannels: number, activation: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
   wasmFusedConv2d = backend.wasm.cwrap('FusedConv2D', null /* void */, [
@@ -54,11 +54,16 @@ function setup(backend: BackendWasm) {
     'number',  // strideWidth
     'number',  // inputChannels
     'number',  // outputChannels
+    'number',  // activation
     'number',  // outId
   ]);
 }
 
-const fusableActivations = ['linear', 'relu', 'relu6'];
+enum FusableActivation {
+  linear = 0,
+  relu = 1,
+  relu6 = 2
+}
 
 function fusedConv2d(args: {
   inputs: FusedConv2DInputs,
@@ -68,7 +73,9 @@ function fusedConv2d(args: {
 }) {
   const {inputs, attrs, backend} = args;
   const {convInfo, activation} = attrs;
-  if (!fusableActivations.includes(activation)) {
+  const fusedActivation =
+      FusableActivation[activation as {} as keyof typeof FusableActivation];
+  if (fusedActivation == null) {
     throw new Error(
         `${activation} activation not yet supported for FusedConv2D ` +
         `in the wasm backend.`);
@@ -124,7 +131,7 @@ function fusedConv2d(args: {
       xId, batchSize, inHeight, inWidth, filterId, filterHeight, filterWidth,
       biasId, padTop, padRight, padBottom, padLeft, isSamePad, dilationHeight,
       dilationWidth, strideHeight, strideWidth, inputChannels, outputChannels,
-      outId);
+      fusedActivation, outId);
   return out;
 }
 

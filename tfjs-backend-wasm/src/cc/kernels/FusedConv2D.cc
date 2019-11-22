@@ -20,6 +20,8 @@
 
 #include "src/cc/conv2d_impl.h"
 
+enum InterpolationMethod { LINEAR = 0, RELU = 1, RELU6 = 2 };
+
 namespace tfjs {
 namespace wasm {
 // We use C-style API to interface with Javascript.
@@ -35,13 +37,14 @@ void FusedConv2D(const int x_id, const int batch_size, const int input_height,
                  int pad_left, const int is_same_pad, const int dilation_height,
                  const int dilation_width, const int stride_height,
                  const int stride_width, const int input_channels,
-                 const int output_channels, const int out_id) {
+                 const int output_channels, const int activation,
+                 const int out_id) {
   const bool is_depthwise = false;
-  tfjs::wasm::conv2d(x_id, batch_size, input_height, input_width, filter_id,
-                     filter_height, filter_width, bias_id, pad_top, pad_right,
-                     pad_bottom, pad_left, is_same_pad, dilation_height,
-                     dilation_width, stride_height, stride_width,
-                     input_channels, output_channels, is_depthwise, out_id);
+  tfjs::wasm::conv2d(
+      x_id, batch_size, input_height, input_width, filter_id, filter_height,
+      filter_width, bias_id, pad_top, pad_right, pad_bottom, pad_left,
+      is_same_pad, dilation_height, dilation_width, stride_height, stride_width,
+      input_channels, output_channels, is_depthwise, activation, out_id);
 }
 
 }  // extern "C"

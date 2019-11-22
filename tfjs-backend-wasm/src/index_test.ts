@@ -76,4 +76,32 @@ describeWithFlags('wasm', ALL_ENVS, () => {
 
     // expectArraysClose(await result.data(), expected);
   });
+
+  fit('basic with relu', async () => {
+    const inputDepth = 2;
+    const inShape: [number, number, number, number] = [2, 2, 2, inputDepth];
+    const outputDepth = 2;
+    const fSize = 1;
+    const pad = 0;
+    const stride = 1;
+
+    const x = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], inShape);
+    const w =
+        tf.tensor4d([-1, 1, -2, 0.5], [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.fused.conv2d({
+      x,
+      filter: w,
+      strides: stride,
+      pad,
+      dataFormat: 'NHWC',
+      dilations: [1, 1]
+    });
+    expect(result.shape).toEqual([2, 2, 2, 2]);
+    result.print();
+    // const expected = [0, 2, 0, 5, 0, 8, 0, 11, 0, 14, 0, 17, 0, 20, 0, 23];
+
+    // expectArraysClose(await result.data(), expected);
+  });
 });
