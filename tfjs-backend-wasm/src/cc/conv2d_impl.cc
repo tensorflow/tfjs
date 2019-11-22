@@ -38,7 +38,7 @@ namespace {
 // These integer values are keys to creating the conv2d operator. We use
 // std::array instead of a vanilla array as it implements the compare operator
 // needed for std::map.
-typedef std::array<int, 18> OperatorCacheKey;
+typedef std::array<int, 19> OperatorCacheKey;
 
 struct CachedInfo {
   xnn_operator_t op;
@@ -165,6 +165,7 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
                                 group_output_channels,
                                 input_pixel_stride,
                                 output_pixel_stride,
+                                activation,
                                 filter_id,
                                 bias_id,
                                 flags};
@@ -173,6 +174,13 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
   if (operator_cache_idx == operator_cache.end()) {
     float output_min = -std::numeric_limits<float>::infinity();
     float output_max = std::numeric_limits<float>::infinity();
+
+    if (activation == FusableActivation::RELU) {
+      output_min = 0;
+    } else if (activation == FusableActivation::RELU6) {
+      output_min = 0;
+      output_max = 6;
+    }
 
     // This lives outside the if statement so the data survives the scope.
     std::vector<float> transposed_filter;
