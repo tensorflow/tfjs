@@ -831,7 +831,7 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     ]);
   });
 
-  it('im2row with bias and relu', async () => {
+  it('im2row with broadcasted bias and relu', async () => {
     const inputDepth = 1;
     const inputShape: [number, number, number] = [4, 4, inputDepth];
     const outputDepth = 3;

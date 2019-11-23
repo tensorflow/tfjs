@@ -48,7 +48,7 @@ describeWithFlags('wasm', ALL_ENVS, () => {
     expect(memOffset1).toBe(memOffset2);
   });
 
-  fit('basic with prelu', async () => {
+  it('basic with prelu', async () => {
     const inputDepth = 2;
     const inShape: [number, number, number, number] = [2, 2, 2, inputDepth];
     const outputDepth = 2;
