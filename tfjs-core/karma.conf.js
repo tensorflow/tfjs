@@ -118,6 +118,7 @@ module.exports = function(config) {
       bs_chrome_mac: {
         base: 'BrowserStack',
         browser: 'chrome',
+        // Latest Chrome on Safari causes browser to freeze (transport error).
         browser_version: '77.0',
         os: 'OS X',
         os_version: 'High Sierra'
