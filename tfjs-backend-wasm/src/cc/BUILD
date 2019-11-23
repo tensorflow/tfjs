@@ -97,6 +97,7 @@ tfjs_cc_library(
     ":CropAndResize",
     ":Conv2D",
     ":DepthwiseConv2dNative",
+    ":FloorDiv",
     ":FusedConv2D",
     ":Div",
     ":Mul",
@@ -221,6 +222,16 @@ tfjs_cc_library(
   hdrs = ["kernels/Conv2D.h"],
   deps = [
     ":conv2d_impl",
+  ],
+)
+
+tfjs_cc_library(
+  name = "FloorDiv",
+  srcs = ["kernels/FloorDiv.cc"],
+  deps = [
+    ":backend",
+    ":binary",
+    ":util",
   ],
 )
 

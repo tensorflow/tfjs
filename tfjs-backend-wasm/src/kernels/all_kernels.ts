@@ -30,6 +30,7 @@ import './Conv2D';
 import './CropAndResize';
 import './DepthwiseConv2dNative';
 import './Div';
+import './FloorDiv';
 import './FusedBatchNorm';
 import './FusedConv2D';
 import './Max';
