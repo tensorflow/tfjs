@@ -67,8 +67,9 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'depthwiseConv2D ',
     excludes: [
-      'gradient',  // Gradients not defined yet.
-      'NCHW',      // xnn pack does not support channels first.
+      'broadcasted bias',  // Broadcasted bias not yet supported.
+      'gradient',          // Gradients not defined yet.
+      'NCHW',              // xnn pack does not support channels first.
     ]
   },
   {

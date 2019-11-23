@@ -99,6 +99,7 @@ tfjs_cc_library(
     ":DepthwiseConv2dNative",
     ":FloorDiv",
     ":FusedConv2D",
+    ":FusedDepthwiseConv2D",
     ":Div",
     ":Mul",
     ":NonMaxSuppressionV3",
@@ -239,6 +240,15 @@ tfjs_cc_library(
   name = "FusedConv2D",
   srcs = ["kernels/FusedConv2D.cc"],
   hdrs = ["kernels/FusedConv2D.h"],
+  deps = [
+    ":conv2d_impl",
+  ],
+)
+
+tfjs_cc_library(
+  name = "FusedDepthwiseConv2D",
+  srcs = ["kernels/FusedDepthwiseConv2D.cc"],
+  hdrs = ["kernels/FusedDepthwiseConv2D.h"],
   deps = [
     ":conv2d_impl",
   ],
@@ -389,6 +399,14 @@ tfjs_unit_test(
   srcs = ["kernels/FusedConv2D_test.cc"],
   deps = [
     ":FusedConv2D",
+  ]
+)
+
+tfjs_unit_test(
+  name = "FusedDepthwiseConv2D_test",
+  srcs = ["kernels/FusedDepthwiseConv2D_test.cc"],
+  deps = [
+    ":FusedDepthwiseConv2D",
   ]
 )
 

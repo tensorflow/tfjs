@@ -309,7 +309,7 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags('fused depthwiseConv2d', ALL_ENVS, () => {
+describeWithFlags('fused depthwiseConv2D', ALL_ENVS, () => {
   it('basic', async () => {
     const fSize = 2;
     const pad = 'valid';
@@ -359,7 +359,7 @@ describeWithFlags('fused depthwiseConv2d', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  it('basic with bias and relu', async () => {
+  it('basic with broadcasted bias and relu', async () => {
     const fSize = 2;
     const pad = 'valid';
     const strides = 1;
