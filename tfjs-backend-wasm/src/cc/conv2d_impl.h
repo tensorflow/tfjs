@@ -15,11 +15,11 @@
 #ifndef CONV2D_IMPL_H_
 #define CONV2D_IMPL_H_
 
-// Must match enum in FusedConv2D.ts.
-enum FusableActivation { LINEAR = 0, RELU = 1, RELU6 = 2, PRELU = 3 };
-
 namespace tfjs {
 namespace wasm {
+
+// Must match enum in FusedConv2D.ts.
+enum FusableActivation { LINEAR = 0, RELU = 1, RELU6 = 2, PRELU = 3 };
 
 void conv2d(const int x_id, const int batch_size, const int input_height,
             const int input_width, const int filter_id, const int filter_height,
