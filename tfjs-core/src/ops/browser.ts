@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {createCanvas} from '../backends/webgl/canvas_util';
 import {ENGINE} from '../engine';
 import {getKernel} from '../kernel_registry';
 import {Tensor, Tensor2D, Tensor3D} from '../tensor';
@@ -113,8 +112,7 @@ function fromPixels_(
     vals = (pixels as PixelData | ImageData).data;
   } else if (isImage || isVideo) {
     if (fromPixels2DContext == null) {
-      fromPixels2DContext =
-          createCanvas().getContext('2d') as CanvasRenderingContext2D;
+      fromPixels2DContext = document.createElement('canvas').getContext('2d');
     }
     fromPixels2DContext.canvas.width = width;
     fromPixels2DContext.canvas.height = height;

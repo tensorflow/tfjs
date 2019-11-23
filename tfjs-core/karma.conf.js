@@ -111,15 +111,13 @@ module.exports = function(config) {
     captureTimeout: 120000,
     reportSlowerThan: 500,
     browserNoActivityTimeout: 180000,
-    browserDisconnectTimeout: 5000,
     customLaunchers: {
       // For browserstack configs see:
       // https://www.browserstack.com/automate/node
       bs_chrome_mac: {
         base: 'BrowserStack',
         browser: 'chrome',
-        // Latest Chrome on Safari causes browser to freeze (transport error).
-        browser_version: '77.0',
+        browser_version: 'latest',
         os: 'OS X',
         os_version: 'High Sierra'
       },

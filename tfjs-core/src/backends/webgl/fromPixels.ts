@@ -20,7 +20,6 @@ import {KernelFunc, registerKernel, TensorInfo} from '../../kernel_registry';
 import {PixelData} from '../../types';
 
 import {MathBackendWebGL} from './backend_webgl';
-import {createCanvas} from './canvas_util';
 import {FromPixelsProgram} from './from_pixels_gpu';
 import {FromPixelsPackedProgram} from './from_pixels_packed_gpu';
 import {TextureUsage} from './tex_util';
@@ -67,8 +66,7 @@ function fromPixels(args: {
 
   if (isImage || isVideo) {
     if (fromPixels2DContext == null) {
-      fromPixels2DContext =
-          createCanvas().getContext('2d') as CanvasRenderingContext2D;
+      fromPixels2DContext = document.createElement('canvas').getContext('2d');
     }
 
     fromPixels2DContext.canvas.width = width;
