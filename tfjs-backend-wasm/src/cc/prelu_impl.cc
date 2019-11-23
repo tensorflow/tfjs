@@ -55,7 +55,7 @@ void prelu(const float* x_buf, const int x_size, const int weights_id,
 
   auto operator_cache_idx = operator_cache.find(weights_id);
   if (operator_cache_idx == operator_cache.end()) {
-    const int channels = x_size;
+    const int channels = weights_info.size;
     const int strides = channels;
     const float output_min = -std::numeric_limits<float>::infinity();
     const float output_max = std::numeric_limits<float>::infinity();
@@ -80,7 +80,7 @@ void prelu(const float* x_buf, const int x_size, const int weights_id,
     prelu_op = operator_cache_idx->second;
   }
 
-  const int batch_size = 1;
+  const int batch_size = x_size / weights_info.size;
   xnn_status status = xnn_setup_prelu_nc_f32(
       prelu_op, batch_size, x_buf, out_buf, nullptr /* thread pool */);
   if (status != xnn_status_success) {
