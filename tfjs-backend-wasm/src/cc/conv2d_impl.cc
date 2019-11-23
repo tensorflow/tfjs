@@ -259,7 +259,8 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
   xnn_run_operator(conv2d_op, nullptr /* thread pool */);
 
   if (activation == FusableActivation::PRELU) {
-    // tfjs::wasm::prelu();
+    tfjs::wasm::prelu(out_buf, out_info.size, prelu_activation_weights_id,
+                      out_id);
   }
 }
 
