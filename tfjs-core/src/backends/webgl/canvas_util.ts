@@ -55,13 +55,13 @@ export function getWebGLContext(webGLVersion: number): WebGLRenderingContext {
   return contexts[webGLVersion];
 }
 
-function createCanvas(webglVersion: number) {
-  if (typeof OffscreenCanvas !== 'undefined' && webglVersion === 2) {
+function createCanvas(webGLVersion: number) {
+  if (typeof OffscreenCanvas !== 'undefined' && webGLVersion === 2) {
     return new OffscreenCanvas(300, 150);
   } else if (typeof document !== 'undefined') {
     return document.createElement('canvas');
   } else {
-    throw new Error('Failed to create canvas in this environment.');
+    throw new Error('Cannot create a canvas in this context');
   }
 }
 

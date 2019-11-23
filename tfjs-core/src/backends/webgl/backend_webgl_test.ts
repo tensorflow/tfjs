@@ -532,7 +532,7 @@ describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
   });
 });
 
-describeWithFlags('WebGL backend has sync init', {}, () => {
+describeWithFlags('WebGL backend has sync init', WEBGL_ENVS, () => {
   it('can do matmul without waiting for ready', async () => {
     tf.registerBackend('my-webgl', () => {
       return new MathBackendWebGL();

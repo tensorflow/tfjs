@@ -16,6 +16,7 @@
  */
 
 import {env} from '../../environment';
+
 import {PixelData, TypedArray} from '../../types';
 import * as util from '../../util';
 
