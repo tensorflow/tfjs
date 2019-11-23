@@ -12,25 +12,16 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef KERNELS_FUSEDCONV2D_H_
-#define KERNELS_FUSEDCONV2D_H_
+#ifndef PRELU_IMPL_H_
+#define PRELU_IMPL_H_
 
 namespace tfjs {
-
 namespace wasm {
-extern "C" {
-void FusedConv2D(const int x_id, const int batch_size, const int input_height,
-                 const int input_width, const int filter_id,
-                 const int filter_height, const int filter_width,
-                 const int bias_id, int pad_top, int pad_right, int pad_bottom,
-                 int pad_left, const int is_same_pad, const int dilation_height,
-                 const int dilation_width, const int stride_height,
-                 const int stride_width, const int input_channels,
-                 const int output_channels, const int activation,
-                 const int prelu_activation_weights_id, const int out_id);
-}
+
+void prelu(const float* x_buf, const int x_size, const int weights_id,
+           const int out_id);
 
 }  // namespace wasm
 }  // namespace tfjs
 
-#endif  // KERNELS_FUSEDCONV2D_H_
+#endif  // PRELU_IMPL_H_

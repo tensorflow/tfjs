@@ -74,11 +74,11 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'conv2d ',
     excludes: [
-      'broadcasted bias',   // Broadcasted bias not yet supported.
-      'im2row with prelu',  // Only fused relu and relu6 activations supported.
-      'basic with prelu', 'basic with elu', 'pointwise with prelu', 'im2row',
-      'gradient',  // Gradients not defined yet.
-      'NCHW',      // xnn pack does not support channels first.
+      'broadcasted bias',  // Broadcasted bias not yet supported.
+      'basic with elu',    // Only fused relu, relu6, prelu activations
+                           // supported.
+      'gradient',          // Gradients not defined yet.
+      'NCHW',              // xnn pack does not support channels first.
     ]
   },
   {

@@ -31,7 +31,8 @@ let wasmFusedConv2d: (
     padTop: number, padRight: number, padBottom: number, padLeft: number,
     isSamePad: number, dilationHeight: number, dilationWidth: number,
     strideHeight: number, strideWidth: number, inputChannels: number,
-    outputChannels: number, activation: number, outId: number) => void;
+    outputChannels: number, activation: number,
+    preluActivationWeightsId: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
   wasmFusedConv2d = backend.wasm.cwrap('FusedConv2D', null /* void */, [
@@ -55,6 +56,7 @@ function setup(backend: BackendWasm) {
     'number',  // inputChannels
     'number',  // outputChannels
     'number',  // activation
+    'number',  // preluActivationWeightsId
     'number',  // outId
   ]);
 }
@@ -63,7 +65,8 @@ function setup(backend: BackendWasm) {
 enum FusableActivation {
   linear = 0,
   relu = 1,
-  relu6 = 2
+  relu6 = 2,
+  prelu = 3
 }
 
 function fusedConv2d(args: {
@@ -82,7 +85,7 @@ function fusedConv2d(args: {
         `in the wasm backend.`);
   }
 
-  const {x, filter, bias} = inputs;
+  const {x, filter, bias, preluActivationWeights} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
   const filterId = backend.dataIdMap.get(filter.dataId).id;
 
@@ -128,11 +131,14 @@ function fusedConv2d(args: {
 
   const out = backend.makeOutput(convInfo.outShape, 'float32');
   const outId = backend.dataIdMap.get(out.dataId).id;
+  const preluActivationWeightsId = preluActivationWeights == null ?
+      -1 :
+      backend.dataIdMap.get(preluActivationWeights.dataId).id;
   wasmFusedConv2d(
       xId, batchSize, inHeight, inWidth, filterId, filterHeight, filterWidth,
       biasId, padTop, padRight, padBottom, padLeft, isSamePad, dilationHeight,
       dilationWidth, strideHeight, strideWidth, inputChannels, outputChannels,
-      fusedActivation, outId);
+      fusedActivation, preluActivationWeightsId, outId);
   return out;
 }
 

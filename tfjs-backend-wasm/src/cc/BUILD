@@ -63,12 +63,23 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "prelu_impl",
+  hdrs = ["prelu_impl.h"],
+  srcs = ["prelu_impl.cc"],
+  deps = [
+    ":backend",
+    ":util"
+  ],
+)
+
+tfjs_cc_library(
   name = "conv2d_impl",
   hdrs = ["conv2d_impl.h"],
   srcs = ["conv2d_impl.cc"],
   deps = [
     ":backend",
     ":transpose_impl",
+    ":prelu_impl",
     ":util",
   ],
 )
@@ -276,6 +287,7 @@ tfjs_cc_library(
   deps = [
     ":backend",
     ":util",
+    ":prelu_impl",
   ],
 )
 
