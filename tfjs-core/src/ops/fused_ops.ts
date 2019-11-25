@@ -649,7 +649,7 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
           activation,
           preluActivationWeights: $preluActivationWeights
         });
-        save([x4D, $filter, res]);
+        save([$filter, x4D, res]);
         return res;
       },
       inputs, grad, 'FusedDepthwiseConv2D', {convInfo, activation},
