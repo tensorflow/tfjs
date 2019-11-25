@@ -93,6 +93,8 @@ tfjs_cc_library(
     ":NonMaxSuppressionV3",
     ":PadV2",
     ":Prelu",
+    ":Relu",
+    ":Relu6",
     ":FusedBatchNorm",
     ":Max",
     ":Min",
@@ -293,6 +295,24 @@ tfjs_cc_library(
 tfjs_cc_library(
   name = "Sigmoid",
   srcs = ["kernels/Sigmoid.cc"],
+  deps = [
+    ":backend",
+    ":unary",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Relu",
+  srcs = ["kernels/Relu.cc"],
+  deps = [
+    ":backend",
+    ":unary",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Relu6",
+  srcs = ["kernels/Relu6.cc"],
   deps = [
     ":backend",
     ":unary",

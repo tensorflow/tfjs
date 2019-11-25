@@ -44,6 +44,15 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'relu',
+    excludes: [
+      'derivative',         // Not yet implemented.
+      'gradient',           // Not yet implemented.
+      'valueAndGradients',  // Not yet implemented.
+      'fused',              // Not yet implemented.
+    ]
+  },
+  {
     include: 'maxPool',
     excludes: [
       'maxPoolBackprop',    // Not yet implemented.
@@ -119,9 +128,9 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcast inner dim',  //  Broadcasting along inner dims not supported.
       'broadcast each with 1 dim',  //  Broadcasting along inner dims not
                                     //  supported.
-      'broadcasting same rank Tensors different shape',  //  Broadcasting along
-                                                         //  inner dims not
-                                                         //  supported.
+      'broadcasting same rank Tensors different shape',  //  Broadcasting
+                                                         //  along inner dims
+                                                         //  not supported.
     ]
   },
   {
@@ -132,7 +141,8 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasting same rank Tensors different shape',  // Broadcasting along
                                                          // inner dims not
                                                          // supported yet.
-      'broadcast 5D + 2D',  // Broadcasting along inner dims not supported yet.
+      'broadcast 5D + 2D',  // Broadcasting along inner dims not supported
+                            // yet.
       'broadcast 6D + 2D'   // Broadcasting along inner dims not supported yet.
     ]
   },
