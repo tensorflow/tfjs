@@ -236,6 +236,13 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'stridedSlice',
+    excludes: [
+      'strided slice with several new axes',  // Rank 6 is not yet implemented.
+      'strided slice with new axes and',      // Rank 6 is not yet implemented.
+    ]
+  },
+  {
     include: 'mul ',
     excludes: [
       'int32 * int32',  // Actual != Expected.
