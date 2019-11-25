@@ -157,6 +157,11 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
     group_output_channels = output_channels;
   }
 
+  int clamp_method = activation;
+  if (activation == tfjs::wasm::FusableActivation::PRELU) {
+    clamp_method = tfjs::wasm::FusableActivation::LINEAR;
+  }
+
   OperatorCacheKey cache_key = {pad_top,
                                 pad_right,
                                 pad_bottom,
@@ -172,7 +177,7 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
                                 group_output_channels,
                                 input_pixel_stride,
                                 output_pixel_stride,
-                                activation,
+                                clamp_method,
                                 filter_id,
                                 bias_id,
                                 flags};
