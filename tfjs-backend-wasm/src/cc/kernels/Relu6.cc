@@ -23,9 +23,10 @@
 #include "src/cc/unary.h"
 
 namespace {
-float max = 6.;
+// TODO: Use XNN clamp operator.
+const float kMax = 6.;
 inline float oper(const float val) {
-  return val < 0. ? 0. : std::min(max, val);
+  return val < 0. ? 0. : std::min(kMax, val);
 }
 }  // namespace
 

@@ -22,6 +22,7 @@
 #include "src/cc/unary.h"
 
 namespace {
+// TODO: Use XNN clamp operator.
 inline float oper(const float val) { return val < 0. ? 0. : val; }
 }  // namespace
 
