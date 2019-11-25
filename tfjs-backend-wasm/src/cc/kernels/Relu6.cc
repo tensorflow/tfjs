@@ -23,7 +23,7 @@
 #include "src/cc/unary.h"
 
 namespace {
-// TODO: Use XNN clamp operator.
+// TODO(annxingyuan): Use XNN clamp operator.
 const float kMax = 6.;
 inline float oper(const float val) {
   return val < 0. ? 0. : std::min(kMax, val);
