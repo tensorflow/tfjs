@@ -18,6 +18,9 @@
 namespace tfjs {
 namespace wasm {
 
+// Must match enum in FusedConv2D.ts.
+enum FusableActivation { LINEAR = 0, RELU = 1, RELU6 = 2, PRELU = 3 };
+
 void conv2d(const int x_id, const int batch_size, const int input_height,
             const int input_width, const int filter_id, const int filter_height,
             const int filter_width, const int bias_id, int pad_top,
@@ -25,7 +28,8 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
             const int dilation_height, const int dilation_width,
             const int stride_height, const int stride_width,
             const int input_channels, const int output_channels,
-            const bool is_depthwise, const int out_id);
+            const bool is_depthwise, const int activation,
+            const int prelu_weighs_id, const int out_id);
 }  // namespace wasm
 }  // namespace tfjs
 

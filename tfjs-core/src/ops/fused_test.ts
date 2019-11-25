@@ -309,7 +309,7 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags('fused depthwiseConv2d', ALL_ENVS, () => {
+describeWithFlags('fused depthwiseConv2D', ALL_ENVS, () => {
   it('basic', async () => {
     const fSize = 2;
     const pad = 'valid';
@@ -359,7 +359,7 @@ describeWithFlags('fused depthwiseConv2d', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  it('basic with bias and relu', async () => {
+  it('basic with broadcasted bias and relu', async () => {
     const fSize = 2;
     const pad = 'valid';
     const strides = 1;
@@ -684,7 +684,7 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  it('basic with bias and relu', async () => {
+  it('basic with broadcasted bias and relu', async () => {
     const inputDepth = 2;
     const inShape: [number, number, number, number] = [2, 2, 2, inputDepth];
     const outputDepth = 2;
@@ -831,7 +831,7 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     ]);
   });
 
-  it('im2row with bias and relu', async () => {
+  it('im2row with broadcasted bias and relu', async () => {
     const inputDepth = 1;
     const inputShape: [number, number, number] = [4, 4, inputDepth];
     const outputDepth = 3;

@@ -33,6 +33,7 @@ import './Div';
 import './FloorDiv';
 import './FusedBatchNorm';
 import './FusedConv2D';
+import './FusedDepthwiseConv2D';
 import './Max';
 import './MaxPool';
 import './Min';

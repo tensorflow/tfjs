@@ -12,36 +12,16 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#endif
-
-#include "src/cc/kernels/Prelu.h"
-
-#include <xnnpack.h>
-#include <cmath>
-#include <limits>
-#include <unordered_map>
-
-#include "src/cc/backend.h"
-#include "src/cc/prelu_impl.h"
-#include "src/cc/util.h"
+#ifndef PRELU_IMPL_H_
+#define PRELU_IMPL_H_
 
 namespace tfjs {
 namespace wasm {
-// We use C-style API to interface with Javascript.
-extern "C" {
 
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif
-void Prelu(const int x_id, const int weights_id, const int out_id) {
-  auto& x_info = backend::get_tensor_info(x_id);
-  const float* x_buf = x_info.f32();
+void prelu(const float* x_buf, const int x_size, const int weights_id,
+           const int out_id);
 
-  tfjs::wasm::prelu(x_buf, x_info.size, weights_id, out_id);
-}
-
-}  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs
+
+#endif  // PRELU_IMPL_H_
