@@ -23,8 +23,9 @@
 #include "src/cc/unary.h"
 
 namespace {
+float max = 6.;
 inline float oper(const float val) {
-  return val < 0. ? 0. : std::min(float(6), val);
+  return val < 0. ? 0. : std::min(max, val);
 }
 }  // namespace
 
