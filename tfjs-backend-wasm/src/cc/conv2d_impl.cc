@@ -29,6 +29,7 @@
 #include <vector>
 
 #include "src/cc/backend.h"
+#include "src/cc/prelu_impl.h"
 #include "src/cc/transpose_impl.h"
 #include "src/cc/util.h"
 
@@ -36,11 +37,16 @@ namespace {
 // These integer values are keys to creating the conv2d operator. We use
 // std::array instead of a vanilla array as it implements the compare operator
 // needed for std::map.
-typedef std::array<int, 18> OperatorCacheKey;
+typedef std::array<int, 19> OperatorCacheKey;
+
+struct CachedInfo {
+  xnn_operator_t op;
+  std::vector<float> transposed_filter;
+};
 
 // The operator cache maps the cache key to the xnn_operator_t instantiated for
 // this set of arguments to the xnn_operator.
-std::map<OperatorCacheKey, xnn_operator_t> operator_cache;
+std::map<OperatorCacheKey, CachedInfo> operator_cache;
 
 // Maps a filter id to a list of operator cache keys that this filter belongs
 // to.
@@ -62,9 +68,8 @@ void erase_from_cache(const int tensor_id,
     for (auto& operator_cache_key : operator_cache_keys) {
       auto operator_cache_key_idx = operator_cache.find(operator_cache_key);
       if (operator_cache_key_idx != operator_cache.end()) {
-        auto& conv2d_op = operator_cache_key_idx->second;
-
-        xnn_delete_operator(conv2d_op);
+        auto& cached_info = operator_cache_key_idx->second;
+        xnn_delete_operator(cached_info.op);
         tfjs::backend::xnn_operator_count--;
 
         operator_cache.erase(operator_cache_key);
@@ -107,7 +112,8 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
             const int dilation_height, const int dilation_width,
             const int stride_height, const int stride_width,
             const int input_channels, const int output_channels,
-            const bool is_depthwise, const int out_id) {
+            const bool is_depthwise, const int activation,
+            const int prelu_weights_id, const int out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& filter_info = backend::get_tensor_info(filter_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
@@ -118,7 +124,14 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
   if (bias_id != -1) {
     bias_buf = backend::get_tensor_info_out(bias_id).f32();
   }
+
   float* out_buf = out_info.f32_write();
+  std::vector<float> intermediate_output;
+
+  if (prelu_weights_id > -1) {
+    intermediate_output.resize(out_info.size);
+    out_buf = intermediate_output.data();
+  }
 
   xnn_operator_t conv2d_op = nullptr;
 
@@ -144,6 +157,11 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
     group_output_channels = output_channels;
   }
 
+  int clamp_method = activation;
+  if (activation == tfjs::wasm::FusableActivation::PRELU) {
+    clamp_method = tfjs::wasm::FusableActivation::LINEAR;
+  }
+
   OperatorCacheKey cache_key = {pad_top,
                                 pad_right,
                                 pad_bottom,
@@ -159,6 +177,7 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
                                 group_output_channels,
                                 input_pixel_stride,
                                 output_pixel_stride,
+                                clamp_method,
                                 filter_id,
                                 bias_id,
                                 flags};
@@ -167,6 +186,13 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
   if (operator_cache_idx == operator_cache.end()) {
     float output_min = -std::numeric_limits<float>::infinity();
     float output_max = std::numeric_limits<float>::infinity();
+
+    if (activation == FusableActivation::RELU) {
+      output_min = 0;
+    } else if (activation == FusableActivation::RELU6) {
+      output_min = 0;
+      output_max = 6;
+    }
 
     // This lives outside the if statement so the data survives the scope.
     std::vector<float> transposed_filter;
@@ -208,7 +234,10 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
           status);
     }
 
-    operator_cache.emplace(cache_key, conv2d_op);
+    operator_cache.emplace(
+        cache_key,
+        // Move ownership of the transposed filter to the cache map.
+        CachedInfo{conv2d_op, std::move(transposed_filter)});
 
     associate_tensor_with_key(filter_id, cache_key,
                               filter_operator_cache_key_map);
@@ -219,7 +248,7 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
 
     tfjs::backend::xnn_operator_count++;
   } else {
-    conv2d_op = operator_cache_idx->second;
+    conv2d_op = operator_cache_idx->second.op;
   }
 
   xnn_status status = xnn_setup_convolution2d_nhwc_f32(
@@ -233,6 +262,10 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
   }
 
   xnn_run_operator(conv2d_op, nullptr /* thread pool */);
+
+  if (activation == FusableActivation::PRELU) {
+    tfjs::wasm::prelu(out_buf, out_info.size, prelu_weights_id, out_id);
+  }
 }
 
 }  // namespace wasm

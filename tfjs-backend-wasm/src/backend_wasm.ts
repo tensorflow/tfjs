@@ -129,8 +129,24 @@ export class BackendWasm extends KernelBackend {
     return {unreliable: false};
   }
 
-  makeOutput(shape: number[], dtype: DataType): TensorInfo {
-    const dataId = this.write(null /* values */, shape, dtype);
+  /**
+   * Make a tensor info for the output of an op. If `memoryOffset` is not
+   * present, this method allocates memory on the WASM heap. If `memoryOffset`
+   * is present, the memory was allocated elsewhere (in c++) and we just record
+   * the pointer where that memory lives.
+   */
+  makeOutput(shape: number[], dtype: DataType, memoryOffset?: number):
+      TensorInfo {
+    let dataId: {};
+    if (memoryOffset == null) {
+      dataId = this.write(null /* values */, shape, dtype);
+    } else {
+      dataId = {};
+      const id = this.dataIdNextNumber++;
+      this.dataIdMap.set(dataId, {id, memoryOffset, shape, dtype});
+      const size = util.sizeFromShape(shape);
+      this.wasm.tfjs.registerTensor(id, size, memoryOffset);
+    }
     return {dataId, shape, dtype};
   }
 

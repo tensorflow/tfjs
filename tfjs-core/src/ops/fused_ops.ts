@@ -407,7 +407,7 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
 
     let biasGradient = {};
     if (bias != null) {
-      biasGradient = {$bias: () => getFusedBiasGradient($bias, dyActivation)};
+      biasGradient = {bias: () => getFusedBiasGradient($bias, dyActivation)};
     }
 
     return Object.assign(
@@ -603,13 +603,13 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
         () => 'Error in gradient of fused depthwiseConv2d: dilation rates ' +
             `greater than 1 are not yet supported. Got dilations ` +
             `'${dilations}'`);
-    const [x4D, $filter, y] = saved;
+    const [$filter, x4D, y] = saved;
 
     const dyActivation = getFusedDyActivation(dy, y, activation) as Tensor4D;
 
     let biasGradient = {};
     if (bias != null) {
-      biasGradient = {$bias: () => getFusedBiasGradient($bias, dyActivation)};
+      biasGradient = {bias: () => getFusedBiasGradient($bias, dyActivation)};
     }
 
     return Object.assign(
@@ -617,7 +617,7 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
           x: () => depthwiseConv2dDerInput(
               (x4D as Tensor4D).shape, dyActivation, $filter as Tensor4D,
               convInfo),
-          $filter: () => depthwiseConv2dDerFilter(
+          filter: () => depthwiseConv2dDerFilter(
               x4D as Tensor4D, dyActivation, ($filter as Tensor4D).shape,
               convInfo),
         },
@@ -626,29 +626,34 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
 
   const inputs: {
     x: Tensor,
-    $filter: Tensor,
-    $bias?: Tensor,
-    $preluActivationWeights?: Tensor
-  } = {x: x4D, $filter};
+    filter: Tensor,
+    bias?: Tensor,
+    preluActivationWeights?: Tensor
+  } = {x: x4D, filter: $filter};
   if (bias != null) {
-    inputs.$bias = $bias;
+    inputs.bias = $bias;
   }
   if (preluActivationWeights != null) {
-    inputs.$preluActivationWeights = $preluActivationWeights;
+    inputs.preluActivationWeights = $preluActivationWeights;
   }
 
-  const res = ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.fusedDepthwiseConv2D({
-      input: x4D,
-      filter: $filter,
-      convInfo,
-      bias: $bias,
-      activation,
-      preluActivationWeights: $preluActivationWeights
-    });
-    save([x4D, $filter, res]);
-    return res;
-  }, inputs, grad);
+  const inputsToSave = [$filter, x4D];
+  const outputsToSave = [true];
+  const res = ENGINE.runKernelFunc(
+      (backend, save) => {
+        const res = backend.fusedDepthwiseConv2D({
+          input: x4D,
+          filter: $filter,
+          convInfo,
+          bias: $bias,
+          activation,
+          preluActivationWeights: $preluActivationWeights
+        });
+        save([$filter, x4D, res]);
+        return res;
+      },
+      inputs, grad, 'FusedDepthwiseConv2D', {convInfo, activation},
+      inputsToSave, outputsToSave);
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   }

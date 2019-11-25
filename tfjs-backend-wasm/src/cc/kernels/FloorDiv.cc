@@ -16,15 +16,10 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/kernels/Prelu.h"
-
-#include <xnnpack.h>
 #include <cmath>
-#include <limits>
-#include <unordered_map>
 
 #include "src/cc/backend.h"
-#include "src/cc/prelu_impl.h"
+#include "src/cc/binary.h"
 #include "src/cc/util.h"
 
 namespace tfjs {
@@ -35,11 +30,24 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Prelu(const int x_id, const int weights_id, const int out_id) {
-  auto& x_info = backend::get_tensor_info(x_id);
-  const float* x_buf = x_info.f32();
-
-  tfjs::wasm::prelu(x_buf, x_info.size, weights_id, out_id);
+void FloorDiv(const int a_id, const int b_id, const DType dtype,
+              const int out_id) {
+  auto& a_info = backend::get_tensor_info(a_id);
+  switch (dtype) {
+    case DType::float32:
+      binary_f32(a_id, b_id, out_id,
+                 [](float a, float b) { return floor(a / b); });
+      break;
+    case DType::int32:
+      binary_i32(a_id, b_id, out_id, [](int a, int b) {
+        return static_cast<int>(floor(static_cast<float>(a) / b));
+      });
+      break;
+    default:
+      util::warn(
+          "FloorDiv for tensor ids %d and %d failed. Unsupported dtype %d",
+          a_id, b_id, dtype);
+  }
 }
 
 }  // extern "C"

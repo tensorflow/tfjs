@@ -75,9 +75,7 @@ void init() { xnn_initialize(nullptr); }
 EMSCRIPTEN_KEEPALIVE
 #endif
 void register_tensor(const int tensor_id, const int size, void *memory_offset) {
-  TensorInfo info = {memory_offset, size};
-  // We move info to avoid a copy.
-  data.emplace(tensor_id, std::move(info));
+  data.emplace(tensor_id, TensorInfo{memory_offset, size});
 }
 
 #ifdef __EMSCRIPTEN__

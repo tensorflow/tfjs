@@ -19,13 +19,13 @@ import {backend_util, KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo
 
 import {BackendWasm} from '../backend_wasm';
 
-interface FusedConv2DInputs extends NamedTensorInfoMap {
+interface FusedDepthwiseConv2DInputs extends NamedTensorInfoMap {
   x: TensorInfo;
   filter: TensorInfo;
   bias?: TensorInfo;
 }
 
-let wasmFusedConv2d: (
+let wasmFusedDepthwiseConv2d: (
     xId: number, batchSize: number, inputHeight: number, inputWidth: number,
     filterId: number, filterHeight: number, filterWidth: number, biasId: number,
     padTop: number, padRight: number, padBottom: number, padLeft: number,
@@ -35,30 +35,31 @@ let wasmFusedConv2d: (
     preluActivationWeightsId: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmFusedConv2d = backend.wasm.cwrap('FusedConv2D', null /* void */, [
-    'number',  // xId
-    'number',  // batchSize
-    'number',  // inputHeight
-    'number',  // inputWidth
-    'number',  // filterId
-    'number',  // filterHeight
-    'number',  // filterWidth
-    'number',  // biasId
-    'number',  // padTop
-    'number',  // padRight
-    'number',  // padBottom
-    'number',  // padLeft
-    'number',  // isSamePad
-    'number',  // dilationHeight
-    'number',  // dilationWidth
-    'number',  // strideHeight
-    'number',  // strideWidth
-    'number',  // inputChannels
-    'number',  // outputChannels
-    'number',  // activation
-    'number',  // preluActivationWeightsId
-    'number',  // outId
-  ]);
+  wasmFusedDepthwiseConv2d =
+      backend.wasm.cwrap('FusedDepthwiseConv2D', null /* void */, [
+        'number',  // xId
+        'number',  // batchSize
+        'number',  // inputHeight
+        'number',  // inputWidth
+        'number',  // filterId
+        'number',  // filterHeight
+        'number',  // filterWidth
+        'number',  // biasId
+        'number',  // padTop
+        'number',  // padRight
+        'number',  // padBottom
+        'number',  // padLeft
+        'number',  // isSamePad
+        'number',  // dilationHeight
+        'number',  // dilationWidth
+        'number',  // strideHeight
+        'number',  // strideWidth
+        'number',  // inputChannels
+        'number',  // outputChannels
+        'number',  // activation
+        'number',  // preluActivationWeightsId
+        'number',  // outId
+      ]);
 }
 
 // Must match enum in conv2d_impl.h.
@@ -69,8 +70,8 @@ enum FusableActivation {
   prelu = 3
 }
 
-function fusedConv2d(args: {
-  inputs: FusedConv2DInputs,
+function fusedDepthwiseConv2d(args: {
+  inputs: FusedDepthwiseConv2DInputs,
   backend: BackendWasm,
   attrs:
       {convInfo: backend_util.Conv2DInfo, activation: backend_util.Activation}
@@ -81,7 +82,7 @@ function fusedConv2d(args: {
       FusableActivation[activation as {} as keyof typeof FusableActivation];
   if (fusedActivation == null) {
     throw new Error(
-        `${activation} activation not yet supported for FusedConv2D ` +
+        `${activation} activation not yet supported for FusedDepthwiseConv2D ` +
         `in the wasm backend.`);
   }
 
@@ -96,12 +97,12 @@ function fusedConv2d(args: {
     const biasData = backend.dataIdMap.get(bias.dataId);
     if (biasData.shape.length !== 1) {
       throw new Error(
-          `FusedConv2D only supports rank-1 bias but got ` +
+          `FusedDepthwiseConv2D only supports rank-1 bias but got ` +
           `rank ${biasData.shape.length}.`);
     }
     if (biasData.shape[0] !== outputChannels) {
       throw new Error(
-          `FusedConv2D bias shape (${biasData.shape}) does not ` +
+          `FusedDepthwiseConv2D bias shape (${biasData.shape}) does not ` +
           `match the number of output channels (${outputChannels})`);
     }
     biasId = biasData.id;
@@ -125,7 +126,7 @@ function fusedConv2d(args: {
 
   if (convInfo.dataFormat !== 'channelsLast') {
     throw new Error(
-        `wasm backend FusedConv2D does not support dataFormat:'` +
+        `wasm backend FusedDepthwiseConv2D does not support dataFormat:'` +
         `${convInfo.dataFormat}'. Please use 'channelsLast'.`);
   }
 
@@ -134,7 +135,7 @@ function fusedConv2d(args: {
   const preluActivationWeightsId = preluActivationWeights == null ?
       -1 :
       backend.dataIdMap.get(preluActivationWeights.dataId).id;
-  wasmFusedConv2d(
+  wasmFusedDepthwiseConv2d(
       xId, batchSize, inHeight, inWidth, filterId, filterHeight, filterWidth,
       biasId, padTop, padRight, padBottom, padLeft, isSamePad, dilationHeight,
       dilationWidth, strideHeight, strideWidth, inputChannels, outputChannels,
@@ -143,8 +144,8 @@ function fusedConv2d(args: {
 }
 
 registerKernel({
-  kernelName: 'FusedConv2D',
+  kernelName: 'FusedDepthwiseConv2D',
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: fusedConv2d as {} as KernelFunc
+  kernelFunc: fusedDepthwiseConv2d as {} as KernelFunc
 });

@@ -40,6 +40,6 @@ describeWithFlags('canvas_util', BROWSER_ENVS, () => {
 describeWithFlags('canvas_util webgl2', {flags: {WEBGL_VERSION: 2}}, () => {
   it('is ok when the user requests webgl 1 canvas', () => {
     const canvas = getWebGLContext(1).canvas;
-    expect((canvas instanceof HTMLCanvasElement)).toBe(true);
+    expect(canvas.getContext != null).toBe(true);
   });
 });
