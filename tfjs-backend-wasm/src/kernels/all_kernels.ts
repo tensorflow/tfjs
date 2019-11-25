@@ -42,6 +42,8 @@ import './NonMaxSuppressionV3';
 import './PadV2';
 import './Prelu';
 import './Reshape';
+import './Relu';
+import './Relu6';
 import './Sigmoid';
 import './Slice';
 import './Square';
