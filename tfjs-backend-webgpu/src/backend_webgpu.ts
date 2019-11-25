@@ -939,7 +939,7 @@ export class WebGPUBackend extends KernelBackend {
     const output = this.makeOutputArray(outShape, 'int32');
 
     const info = this.tensorMap.get(output.dataId);
-    info.values = Int32Array.from(pixelArray);
+    info.values = new Int32Array(pixelArray);
     this.maybeReleaseBuffer(output.dataId);
 
     this.uploadToGPU(output.dataId);
