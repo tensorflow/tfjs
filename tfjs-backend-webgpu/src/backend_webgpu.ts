@@ -38,6 +38,7 @@ import {MaxPoolProgram} from './kernels/maxpool_webgpu';
 import {PadProgram} from './kernels/pad_webgpu';
 import {ResizeBilinearProgram} from './kernels/resize_bilinear_webgpu';
 import {SelectProgram} from './kernels/select_webgpu';
+import {SliceProgram} from './kernels/slice_webgpu';
 import {TransposeProgram} from './kernels/transpose_webgpu';
 import * as unary_op from './kernels/unary_op_webgpu';
 import {UnaryOpProgram} from './kernels/unary_op_webgpu';
@@ -718,6 +719,19 @@ export class WebGPUBackend extends KernelBackend {
   clip<T extends Tensor>(x: T, min: number, max: number): T {
     const program = new ClipProgram(x.shape, min, max);
     return this.compileAndRun(program, [x]);
+  }
+
+  slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.slice(x, begin, size);
+    }
+    // Short-circuit computation if the slice is zero-sized.
+    if (util.sizeFromShape(size) === 0) {
+      return engine().makeTensor([], size, x.dtype, this) as T;
+    }
+    // TODO(xing.xu): Add shadow slice support.
+    const program = new SliceProgram(begin, size);
+    return this.compileAndRun(program, [x], null);
   }
 
   concat(tensors: Tensor[], axis: number): Tensor {
