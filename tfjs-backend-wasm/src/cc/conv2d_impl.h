@@ -29,7 +29,7 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
             const int stride_height, const int stride_width,
             const int input_channels, const int output_channels,
             const bool is_depthwise, const int activation,
-            const int prelu_activation_weighs_id, const int out_id);
+            const int prelu_weighs_id, const int out_id);
 }  // namespace wasm
 }  // namespace tfjs
 

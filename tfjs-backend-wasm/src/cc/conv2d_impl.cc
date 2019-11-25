@@ -113,7 +113,7 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
             const int stride_height, const int stride_width,
             const int input_channels, const int output_channels,
             const bool is_depthwise, const int activation,
-            const int prelu_activation_weights_id, const int out_id) {
+            const int prelu_weights_id, const int out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& filter_info = backend::get_tensor_info(filter_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
@@ -128,7 +128,7 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
   float* out_buf = out_info.f32_write();
   std::vector<float> intermediate_output;
 
-  if (prelu_activation_weights_id > -1) {
+  if (prelu_weights_id > -1) {
     intermediate_output.resize(out_info.size);
     out_buf = intermediate_output.data();
   }
@@ -259,8 +259,7 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
   xnn_run_operator(conv2d_op, nullptr /* thread pool */);
 
   if (activation == FusableActivation::PRELU) {
-    tfjs::wasm::prelu(out_buf, out_info.size, prelu_activation_weights_id,
-                      out_id);
+    tfjs::wasm::prelu(out_buf, out_info.size, prelu_weights_id, out_id);
   }
 }
 
