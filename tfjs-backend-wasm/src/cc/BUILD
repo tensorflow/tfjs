@@ -91,6 +91,7 @@ tfjs_cc_library(
     ":Add",
     ":AvgPool",
     ":AddN",
+    ":ArgMax",
     ":BatchMatMul",
     ":MaxPool",
     ":ClipByValue",
@@ -185,6 +186,15 @@ tfjs_cc_library(
 tfjs_cc_library(
   name = "AddN",
   srcs = ["kernels/AddN.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "ArgMax",
+  srcs = ["kernels/ArgMax.cc"],
   deps = [
     ":backend",
     ":util",
