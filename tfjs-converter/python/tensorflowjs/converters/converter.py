@@ -555,7 +555,7 @@ def convert(arguments):
 
   if (not args.output_node_names and input_format == common.TF_FROZEN_MODEL):
     raise ValueError(
-        'The --output_node_names flag is required for "tf_frozeon_model"')
+        'The --output_node_names flag is required for "tf_frozen_model"')
 
   if (args.signature_name and input_format not in
       (common.TF_SAVED_MODEL, common.TF_HUB_MODEL)):
