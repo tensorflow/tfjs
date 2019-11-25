@@ -190,7 +190,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'clip', excludes: ['gradient']},
   {include: 'addN'},
   {include: 'nonMaxSuppression'},
-  {include: 'Reduction: argmax', excludes: ['gradient']},
+  {include: 'argmax', excludes: ['gradient']},
 ];
 
 const customInclude = (testName: string) => {

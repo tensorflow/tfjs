@@ -16,8 +16,6 @@
 #include <emscripten.h>
 #endif
 
-#include <vector>
-
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
 
