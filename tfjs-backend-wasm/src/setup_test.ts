@@ -49,7 +49,8 @@ const TEST_FILTERS: TestFilter[] = [
       'derivative',         // Not yet implemented.
       'gradient',           // Not yet implemented.
       'valueAndGradients',  // Not yet implemented.
-      'fused',              // Not yet implemented.
+      'fused matmul',       // Not yet implemented.
+      'broadcasted bias',   // Not yet implemented.
     ]
   },
   {
