@@ -603,7 +603,7 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
         () => 'Error in gradient of fused depthwiseConv2d: dilation rates ' +
             `greater than 1 are not yet supported. Got dilations ` +
             `'${dilations}'`);
-    const [x4D, $filter, y] = saved;
+    const [$filter, x4D, y] = saved;
 
     const dyActivation = getFusedDyActivation(dy, y, activation) as Tensor4D;
 
