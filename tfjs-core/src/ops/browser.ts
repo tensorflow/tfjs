@@ -60,16 +60,35 @@ function fromPixels_(
   if (pixels == null) {
     throw new Error('pixels passed to tf.browser.fromPixels() can not be null');
   }
-  const isPixelData = (pixels as PixelData).data instanceof Uint8Array;
-  const isImageData =
-      typeof (ImageData) !== 'undefined' && pixels instanceof ImageData;
-  const isVideo = typeof (HTMLVideoElement) !== 'undefined' &&
-      pixels instanceof HTMLVideoElement;
-  const isImage = typeof (HTMLImageElement) !== 'undefined' &&
-      pixels instanceof HTMLImageElement;
-  // tslint:disable-next-line:no-any
-  const isCanvasLike = (pixels as any).getContext != null;
-
+  let isPixelData = false;
+  let isImageData = false;
+  let isVideo = false;
+  let isImage = false;
+  let isCanvasLike = false;
+  if ((pixels as PixelData).data instanceof Uint8Array) {
+    isPixelData = true;
+  } else if (
+      typeof (ImageData) !== 'undefined' && pixels instanceof ImageData) {
+    isImageData = true;
+  } else if (
+      typeof (HTMLVideoElement) !== 'undefined' &&
+      pixels instanceof HTMLVideoElement) {
+    isVideo = true;
+  } else if (
+      typeof (HTMLImageElement) !== 'undefined' &&
+      pixels instanceof HTMLImageElement) {
+    isImage = true;
+    // tslint:disable-next-line: no-any
+  } else if ((pixels as any).getContext != null) {
+    isCanvasLike = true;
+  } else {
+    throw new Error(
+        'pixels passed to tf.browser.fromPixels() must be either an ' +
+        `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData ` +
+        `in browser, or OffscreenCanvas, ImageData in webworker` +
+        ` or {data: Uint32Array, width: number, height: number}, ` +
+        `but was ${(pixels as {}).constructor.name}`);
+  }
   if (isVideo) {
     const HAVE_CURRENT_DATA_READY_STATE = 2;
     if (isVideo &&
@@ -79,14 +98,6 @@ function fromPixels_(
           'The video element has not loaded data yet. Please wait for ' +
           '`loadeddata` event on the <video> element.');
     }
-  }
-  if (!isCanvasLike && !isPixelData && !isImageData && !isVideo && !isImage) {
-    throw new Error(
-        'pixels passed to tf.browser.fromPixels() must be either an ' +
-        `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData ` +
-        `in browser, or OffscreenCanvas, ImageData in webworker` +
-        ` or {data: Uint32Array, width: number, height: number}, ` +
-        `but was ${(pixels as {}).constructor.name}`);
   }
   // If the current backend has 'FromPixels' registered, it has a more
   // efficient way of handling pixel uploads, so we call that.
