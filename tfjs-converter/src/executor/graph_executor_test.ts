@@ -14,9 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
-
 import * as tfc from '@tensorflow/tfjs-core';
 
+import * as tensorflow from '../data/compiled_api';
 import {createTensorAttr} from '../operations/executors/test_helper';
 import {Graph, Node} from '../operations/types';
 
@@ -32,12 +32,26 @@ let graph: Graph;
 let graphWithControlFlow: Graph;
 let constTensor: tfc.Tensor;
 
+const SIGNATURE: tensorflow.ISignatureDef = {
+  inputs: {
+    x: {name: 'input', dtype: tensorflow.DataType.DT_INT32, tensorShape: {}}
+  },
+  outputs: {
+    add: {
+      name: 'output',
+      dtype: tensorflow.DataType.DT_FLOAT,
+      tensorShape: {}
+    }
+  }
+};
+
 describe('GraphExecutor', () => {
   beforeEach(() => {
     inputNode = {
       inputNames: [],
       inputs: [],
       children: [],
+      signatureKey: 'x',
       name: 'input',
       op: 'Placeholder',
       category: 'graph',
@@ -70,13 +84,14 @@ describe('GraphExecutor', () => {
       inputs: [intermediateNode, constNode],
       children: [],
       name: 'output',
+      signatureKey: 'add',
       op: 'Add',
       category: 'arithmetic',
       inputParams: {'a': createTensorAttr(0), 'b': createTensorAttr(1)},
       attrParams: {}
     };
     graph = {
-      inputs: [constNode, inputNode],
+      inputs: [inputNode],
       nodes: {
         'input': inputNode,
         'const': constNode,
@@ -85,7 +100,8 @@ describe('GraphExecutor', () => {
       },
       outputs: [outputNode],
       weights: [constNode],
-      placeholders: [inputNode]
+      placeholders: [inputNode],
+      signature: SIGNATURE
     };
     inputNode.children.push(intermediateNode);
     constNode.children.push(intermediateNode, outputNode);
@@ -98,15 +114,15 @@ describe('GraphExecutor', () => {
 
   describe('execute graph', () => {
     describe('initialization', () => {
-      it('should expose placehoder names', () => {
-        expect(executor.inputNodes).toEqual(['input']);
+      it('should expose input names', () => {
+        expect(executor.inputNodes).toEqual(['x']);
       });
 
       it('should expose output names', () => {
-        expect(executor.outputNodes).toEqual(['output']);
+        expect(executor.outputNodes).toEqual(['add']);
       });
 
-      it('should expose placeholders', () => {
+      it('should expose inputs', () => {
         inputNode.attrParams['shape'] = {value: [1], type: 'shape'};
         inputNode.attrParams['dtype'] = {value: 'float32', type: 'dtype'};
         expect(executor.inputs).toEqual([

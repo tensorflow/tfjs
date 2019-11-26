@@ -36,6 +36,32 @@ const TEST_FILTERS: TestFilter[] = [
       'complex',                         // Complex numbers not supported yet
     ]
   },
+  {
+    include: 'avgPool',
+    excludes: [
+      'gradient',   // Not yet implemented.
+      'avgPool3d',  // Not yet implemented.
+    ]
+  },
+  {
+    include: 'relu',
+    excludes: [
+      'derivative',         // Not yet implemented.
+      'gradient',           // Not yet implemented.
+      'valueAndGradients',  // Not yet implemented.
+      'fused matmul',       // Not yet implemented.
+      'broadcasted bias',   // Not yet implemented.
+    ]
+  },
+  {
+    include: 'maxPool',
+    excludes: [
+      'maxPoolBackprop',    // Not yet implemented.
+      'maxPool3d',          // Not yet implemented.
+      'maxPool3dBackprop',  // Not yet implemented.
+      'ignores NaNs'        // Actual != expected.
+    ]
+  },
   {include: 'cropAndResize'},
   {
     include: 'matmul ',
@@ -49,14 +75,21 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'depthwiseConv2D ',
+    excludes: [
+      'broadcasted bias',  // Broadcasted bias not yet supported.
+      'gradient',          // Gradients not defined yet.
+      'NCHW',              // xnn pack does not support channels first.
+    ]
+  },
+  {
     include: 'conv2d ',
     excludes: [
-      // conv2d fusion is only done for bias.
-      'im2row with bias and relu', 'im2row with prelu', 'basic with prelu',
-      'basic with bias and relu', 'basic with elu', 'basic with relu',
-      'pointwise with prelu', 'im2row with relu', 'im2row',
-      'gradient',  // Gradients not defined yet.
-      'NCHW',      // xnn pack does not support channels first.
+      'broadcasted bias',  // Broadcasted bias not yet supported.
+      'basic with elu',    // Only fused relu, relu6, prelu activations
+                           // supported.
+      'gradient',          // Gradients not defined yet.
+      'NCHW',              // xnn pack does not support channels first.
     ]
   },
   {
@@ -96,9 +129,9 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcast inner dim',  //  Broadcasting along inner dims not supported.
       'broadcast each with 1 dim',  //  Broadcasting along inner dims not
                                     //  supported.
-      'broadcasting same rank Tensors different shape',  //  Broadcasting along
-                                                         //  inner dims not
-                                                         //  supported.
+      'broadcasting same rank Tensors different shape',  //  Broadcasting
+                                                         //  along inner dims
+                                                         //  not supported.
     ]
   },
   {
@@ -109,16 +142,16 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasting same rank Tensors different shape',  // Broadcasting along
                                                          // inner dims not
                                                          // supported yet.
-      'broadcast 5D + 2D',  // Broadcasting along inner dims not supported yet.
+      'broadcast 5D + 2D',  // Broadcasting along inner dims not supported
+                            // yet.
       'broadcast 6D + 2D'   // Broadcasting along inner dims not supported yet.
     ]
   },
   {
     include: 'div ',
     excludes: [
-      'gradient',          // Gradient not defined yet.
-      'integer division',  // FloorDiv not yet implemented.
-      'upcasts',           // Cast not supported yet.
+      'gradient',  // Gradient not defined yet.
+      'upcasts',   // Cast not supported yet.
       'broadcasting same rank Tensors different shape',  // Broadcasting along
                                                          // inner dims not
                                                          // supported yet.
@@ -164,6 +197,11 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'transpose',
     excludes: ['oneHot']  // oneHot not yet implemented.
   },
+  {include: 'pad ', excludes: ['complex', 'zerosLike']},
+  {include: 'clip', excludes: ['gradient']},
+  {include: 'addN'},
+  {include: 'nonMaxSuppression'},
+  {include: 'argmax', excludes: ['gradient']},
 ];
 
 const customInclude = (testName: string) => {

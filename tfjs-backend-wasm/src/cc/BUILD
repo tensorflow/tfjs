@@ -63,12 +63,23 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "prelu_impl",
+  hdrs = ["prelu_impl.h"],
+  srcs = ["prelu_impl.cc"],
+  deps = [
+    ":backend",
+    ":util"
+  ],
+)
+
+tfjs_cc_library(
   name = "conv2d_impl",
   hdrs = ["conv2d_impl.h"],
   srcs = ["conv2d_impl.cc"],
   deps = [
     ":backend",
     ":transpose_impl",
+    ":prelu_impl",
     ":util",
   ],
 )
@@ -78,19 +89,51 @@ tfjs_cc_library(
   deps = [
     ":Abs",
     ":Add",
+    ":AvgPool",
+    ":AddN",
+    ":ArgMax",
     ":BatchMatMul",
+    ":MaxPool",
+    ":ClipByValue",
     ":CropAndResize",
     ":Conv2D",
+    ":DepthwiseConv2dNative",
+    ":FloorDiv",
     ":FusedConv2D",
+    ":FusedDepthwiseConv2D",
     ":Div",
     ":Mul",
+    ":NonMaxSuppressionV3",
+    ":PadV2",
     ":Prelu",
+    ":Relu",
+    ":Relu6",
     ":FusedBatchNorm",
     ":Max",
     ":Min",
     ":Sigmoid",
     ":Sub",
     ":Transpose",
+  ]
+)
+
+tfjs_cc_library(
+  name = "MaxPool",
+  srcs = ["kernels/MaxPool.cc"],
+  hdrs = ["kernels/MaxPool.h"],
+  deps = [
+    ":backend",
+    ":util"
+  ]
+)
+
+tfjs_cc_library(
+  name = "AvgPool",
+  srcs = ["kernels/AvgPool.cc"],
+  hdrs = ["kernels/AvgPool.h"],
+  deps = [
+    ":backend",
+    ":util"
   ]
 )
 
@@ -141,8 +184,36 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "AddN",
+  srcs = ["kernels/AddN.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "ArgMax",
+  srcs = ["kernels/ArgMax.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
   name = "BatchMatMul",
   srcs = ["kernels/BatchMatMul.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "ClipByValue",
+  hdrs = ["kernels/ClipByValue.h"],
+  srcs = ["kernels/ClipByValue.cc"],
   deps = [
     ":backend",
     ":util",
@@ -168,9 +239,37 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "FloorDiv",
+  srcs = ["kernels/FloorDiv.cc"],
+  deps = [
+    ":backend",
+    ":binary",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
   name = "FusedConv2D",
   srcs = ["kernels/FusedConv2D.cc"],
   hdrs = ["kernels/FusedConv2D.h"],
+  deps = [
+    ":conv2d_impl",
+  ],
+)
+
+tfjs_cc_library(
+  name = "FusedDepthwiseConv2D",
+  srcs = ["kernels/FusedDepthwiseConv2D.cc"],
+  hdrs = ["kernels/FusedDepthwiseConv2D.h"],
+  deps = [
+    ":conv2d_impl",
+  ],
+)
+
+tfjs_cc_library(
+  name = "DepthwiseConv2dNative",
+  srcs = ["kernels/DepthwiseConv2dNative.cc"],
+  hdrs = ["kernels/DepthwiseConv2dNative.h"],
   deps = [
     ":conv2d_impl",
   ],
@@ -197,9 +296,8 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-  name = "Prelu",
-  srcs = ["kernels/Prelu.cc"],
-  hdrs = ["kernels/Prelu.h"],
+  name = "NonMaxSuppressionV3",
+  srcs = ["kernels/NonMaxSuppressionV3.cc"],
   deps = [
     ":backend",
     ":util",
@@ -207,8 +305,46 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "PadV2",
+  srcs = ["kernels/PadV2.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Prelu",
+  srcs = ["kernels/Prelu.cc"],
+  hdrs = ["kernels/Prelu.h"],
+  deps = [
+    ":backend",
+    ":util",
+    ":prelu_impl",
+  ],
+)
+
+tfjs_cc_library(
   name = "Sigmoid",
   srcs = ["kernels/Sigmoid.cc"],
+  deps = [
+    ":backend",
+    ":unary",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Relu",
+  srcs = ["kernels/Relu.cc"],
+  deps = [
+    ":backend",
+    ":unary",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Relu6",
+  srcs = ["kernels/Relu6.cc"],
   deps = [
     ":backend",
     ":unary",
@@ -281,9 +417,49 @@ tfjs_unit_test(
 )
 
 tfjs_unit_test(
+  name = "DepthwiseConv2dNative_test",
+  srcs = ["kernels/DepthwiseConv2dNative_test.cc"],
+  deps = [
+    ":DepthwiseConv2dNative",
+  ]
+)
+
+tfjs_unit_test(
   name = "FusedConv2D_test",
   srcs = ["kernels/FusedConv2D_test.cc"],
   deps = [
     ":FusedConv2D",
+  ]
+)
+
+tfjs_unit_test(
+  name = "FusedDepthwiseConv2D_test",
+  srcs = ["kernels/FusedDepthwiseConv2D_test.cc"],
+  deps = [
+    ":FusedDepthwiseConv2D",
+  ]
+)
+
+tfjs_unit_test(
+  name = "AvgPool_test",
+  srcs = ["kernels/AvgPool_test.cc"],
+  deps = [
+    ":AvgPool"
+  ]
+)
+
+tfjs_unit_test(
+  name = "MaxPool_test",
+  srcs = ["kernels/MaxPool_test.cc"],
+  deps = [
+    ":MaxPool"
+  ]
+)
+
+tfjs_unit_test(
+  name = "ClipByValue_test",
+  srcs = ["kernels/ClipByValue_test.cc"],
+  deps = [
+    ":ClipByValue",
   ]
 )

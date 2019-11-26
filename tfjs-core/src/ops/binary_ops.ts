@@ -128,7 +128,8 @@ function addN_<T extends Tensor>(tensors: Array<T|TensorLike>): T {
     return ders;
   };
   const inputs: NamedTensorMap = $tensors as {} as NamedTensorMap;
-  return ENGINE.runKernelFunc(backend => backend.addN($tensors), inputs, der);
+  return ENGINE.runKernelFunc(
+      backend => backend.addN($tensors), inputs, der, 'AddN');
 }
 
 /**
@@ -533,13 +534,13 @@ function floorDiv_<T extends Tensor>(
       const tmp = $b.square();
       return res.div(tmp.toFloat()).neg();
     };
-    return {$a: derA, $b: derB};
+    return {a: derA, b: derB};
   };
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.floorDiv($a, $b);
     save([$a, $b]);
     return res;
-  }, {$a, $b}, der) as T;
+  }, {a: $a, b: $b}, der, 'FloorDiv') as T;
 }
 
 /**
