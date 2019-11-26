@@ -84,6 +84,21 @@ void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
             top_row_offset + source_col_ceil * x_strides[2];
         const int bot_right_offset =
             bot_row_offset + source_col_ceil * x_strides[2];
+
+        for (int d = 0; d < num_channels; ++d) {
+          const float top_left = x_buf[top_left_offset + d];
+          const float bottom_left = x_buf[bot_left_offset + d];
+          const float top_right = x_buf[top_right_offset + d];
+          const float bottom_right = x_buf[bot_right_offset + d];
+
+          const float top = top_left + (top_right - top_left) * col_frac;
+          const float bottom =
+              bottom_left + (bottom_right - bottom_left) * col_frac;
+          const float new_value = top + (bottom - top) * row_frac;
+
+          *out_buf = new_value;
+          out_buf++;
+        }
       }
     }
   }
