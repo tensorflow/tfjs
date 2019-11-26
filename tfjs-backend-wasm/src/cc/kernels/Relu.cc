@@ -16,16 +16,15 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/kernels/Prelu.h"
-
-#include <xnnpack.h>
 #include <cmath>
-#include <limits>
-#include <unordered_map>
 
 #include "src/cc/backend.h"
-#include "src/cc/prelu_impl.h"
-#include "src/cc/util.h"
+#include "src/cc/unary.h"
+
+namespace {
+// TODO(annxingyuan): Use XNN clamp operator.
+inline float oper(const float val) { return val < 0. ? 0. : val; }
+}  // namespace
 
 namespace tfjs {
 namespace wasm {
@@ -35,12 +34,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Prelu(const int x_id, const int weights_id, const int out_id) {
-  auto& x_info = backend::get_tensor_info(x_id);
-  const float* x_buf = x_info.f32();
-
-  tfjs::wasm::prelu(x_buf, x_info.size, weights_id, out_id);
-}
+void Relu(const int x_id, const int out_id) { unary(x_id, out_id, oper); }
 
 }  // extern "C"
 }  // namespace wasm

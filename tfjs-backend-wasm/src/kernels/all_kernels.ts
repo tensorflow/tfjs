@@ -20,8 +20,9 @@
 // the contents of this file and import only the kernels that are needed.
 import './Abs';
 import './Add';
-import './AvgPool';
 import './AddN';
+import './ArgMax';
+import './AvgPool';
 import './BatchMatMul';
 import './Cast';
 import './ClipByValue';
@@ -33,6 +34,7 @@ import './Div';
 import './FloorDiv';
 import './FusedBatchNorm';
 import './FusedConv2D';
+import './FusedDepthwiseConv2D';
 import './Max';
 import './MaxPool';
 import './Min';
@@ -41,6 +43,8 @@ import './NonMaxSuppressionV3';
 import './PadV2';
 import './Prelu';
 import './Reshape';
+import './Relu';
+import './Relu6';
 import './Sigmoid';
 import './Slice';
 import './Square';

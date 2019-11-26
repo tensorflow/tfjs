@@ -63,12 +63,23 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "prelu_impl",
+  hdrs = ["prelu_impl.h"],
+  srcs = ["prelu_impl.cc"],
+  deps = [
+    ":backend",
+    ":util"
+  ],
+)
+
+tfjs_cc_library(
   name = "conv2d_impl",
   hdrs = ["conv2d_impl.h"],
   srcs = ["conv2d_impl.cc"],
   deps = [
     ":backend",
     ":transpose_impl",
+    ":prelu_impl",
     ":util",
   ],
 )
@@ -80,6 +91,7 @@ tfjs_cc_library(
     ":Add",
     ":AvgPool",
     ":AddN",
+    ":ArgMax",
     ":BatchMatMul",
     ":MaxPool",
     ":ClipByValue",
@@ -88,11 +100,14 @@ tfjs_cc_library(
     ":DepthwiseConv2dNative",
     ":FloorDiv",
     ":FusedConv2D",
+    ":FusedDepthwiseConv2D",
     ":Div",
     ":Mul",
     ":NonMaxSuppressionV3",
     ":PadV2",
     ":Prelu",
+    ":Relu",
+    ":Relu6",
     ":FusedBatchNorm",
     ":Max",
     ":Min",
@@ -178,6 +193,15 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "ArgMax",
+  srcs = ["kernels/ArgMax.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
   name = "BatchMatMul",
   srcs = ["kernels/BatchMatMul.cc"],
   deps = [
@@ -228,6 +252,15 @@ tfjs_cc_library(
   name = "FusedConv2D",
   srcs = ["kernels/FusedConv2D.cc"],
   hdrs = ["kernels/FusedConv2D.h"],
+  deps = [
+    ":conv2d_impl",
+  ],
+)
+
+tfjs_cc_library(
+  name = "FusedDepthwiseConv2D",
+  srcs = ["kernels/FusedDepthwiseConv2D.cc"],
+  hdrs = ["kernels/FusedDepthwiseConv2D.h"],
   deps = [
     ":conv2d_impl",
   ],
@@ -287,12 +320,31 @@ tfjs_cc_library(
   deps = [
     ":backend",
     ":util",
+    ":prelu_impl",
   ],
 )
 
 tfjs_cc_library(
   name = "Sigmoid",
   srcs = ["kernels/Sigmoid.cc"],
+  deps = [
+    ":backend",
+    ":unary",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Relu",
+  srcs = ["kernels/Relu.cc"],
+  deps = [
+    ":backend",
+    ":unary",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Relu6",
+  srcs = ["kernels/Relu6.cc"],
   deps = [
     ":backend",
     ":unary",
@@ -377,6 +429,14 @@ tfjs_unit_test(
   srcs = ["kernels/FusedConv2D_test.cc"],
   deps = [
     ":FusedConv2D",
+  ]
+)
+
+tfjs_unit_test(
+  name = "FusedDepthwiseConv2D_test",
+  srcs = ["kernels/FusedDepthwiseConv2D_test.cc"],
+  deps = [
+    ":FusedDepthwiseConv2D",
   ]
 )
 

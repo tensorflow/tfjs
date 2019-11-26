@@ -46,13 +46,13 @@ function relu_<T extends Tensor>(x: T|TensorLike): T {
   }
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => dy.mulStrict($x.step().toFloat() as T)};
+    return {x: () => dy.mulStrict($x.step().toFloat() as T)};
   };
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.relu($x);
     save([$x]);
     return res;
-  }, {$x}, grad);
+  }, {x: $x}, grad, 'Relu');
 }
 
 /**
@@ -76,13 +76,13 @@ function relu6_<T extends Tensor>(x: T|TensorLike): T {
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
     const mask = $x.lessEqual(6).mul($x.step());
-    return {$x: () => dy.mulStrict(mask.toFloat() as T)};
+    return {x: () => dy.mulStrict(mask.toFloat() as T)};
   };
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.relu6($x);
     save([$x]);
     return res;
-  }, {$x}, grad);
+  }, {x: $x}, grad, 'Relu6');
 }
 
 /**

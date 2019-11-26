@@ -477,13 +477,15 @@ function argMax_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
   }
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => zerosLike($x)};
+    return {x: () => zerosLike($x)};
   };
+  const attrs = {axis: axes[0]};
+  const inputsToSave = [$x];
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.argMax($x, axes[0]);
     save([$x]);
     return res;
-  }, {$x}, grad) as T;
+  }, {x: $x}, grad, 'ArgMax', attrs, inputsToSave) as T;
 }
 
 /**

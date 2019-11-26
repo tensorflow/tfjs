@@ -20,10 +20,10 @@ import {Environment, setEnvironmentGlobal} from './environment';
 import {getKernel, getKernelsForBackend, NamedAttrMap, TensorInfo} from './kernel_registry';
 import {Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, NamedGradientMap, TapeNode} from './tape';
-import {DataId, setTensorTracker, Tensor, Tensor3D, TensorTracker, Variable} from './tensor';
+import {DataId, setTensorTracker, Tensor, TensorTracker, Variable} from './tensor';
 import {GradSaveFunc, NamedTensorMap, NamedVariableMap, TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';
-import {BackendValues, DataType, DataValues, PixelData} from './types';
+import {BackendValues, DataType, DataValues} from './types';
 import * as util from './util';
 import {bytesFromStringArray, makeOnesTypedArray, now, sizeFromShape} from './util';
 
@@ -1011,12 +1011,7 @@ export class Engine implements TensorTracker, DataMover {
     const info = this.state.tensorInfo.get(dataId);
     return info.backend.read(dataId);
   }
-  fromPixels(
-      pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-      HTMLVideoElement,
-      numChannels: number): Tensor3D {
-    return this.backend.fromPixels(pixels, numChannels);
-  }
+
   async time(query: () => void): Promise<TimingInfo> {
     const start = now();
     const timingInfo = await this.backend.time(query) as TimingInfo;
