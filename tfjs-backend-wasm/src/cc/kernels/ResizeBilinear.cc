@@ -58,6 +58,9 @@ void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
   const float effective_col_size_ratio =
       effective_input_width / effective_output_width;
 
+  float old_height_m1 = old_height - 1;
+  float old_width_m1 = old_width - 1;
+
   for (int b = 0; b < batch; ++b) {
     for (int r = 0; r < new_height; ++r) {
       const float source_frac_row = effective_row_size_ratio * r;
@@ -65,7 +68,7 @@ void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
       const float row_frac = source_frac_row - source_row_floor;
 
       const int source_row_ceil =
-          std::min(float(old_height - 1), std::ceil(source_frac_row));
+          std::min(old_height_m1, std::ceil(source_frac_row));
       const int top_row_offset =
           b * x_strides[0] + source_row_floor * x_strides[1];
       const int bot_row_offset =
@@ -81,7 +84,7 @@ void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
           const int source_col_floor = std::floor(source_frac_col);
           const float col_frac = source_frac_col - source_col_floor;
           const float source_col_ceil =
-              std::min(float(old_width - 1), std::ceil(source_frac_col));
+              std::min(old_width_m1, std::ceil(source_frac_col));
 
           const int top_left_offset =
               top_row_offset + source_col_floor * x_strides[2];
