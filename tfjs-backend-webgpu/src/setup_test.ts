@@ -224,6 +224,18 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {include: 'subtract ', excludes: []},
   {
+    include: 'slice ',
+    excludes: [
+      'square a sliced texture',     // abs not yet implemented.
+      'square a non-sliced texture', // abs not not yet implemented.
+      'flatten a sliced tensor not continuous',   // square not yet implemented.
+      'reshape a sliced 1d into a 2d tensor and', // square not yet implemented.
+      '5D', // Rank 5 is not yet implemented.
+      '6D', // Rank 6 is not yet implemented.
+      'strided slice with', // Rank 6 is not yet implemented.
+    ]
+  },
+  {
     include: 'mul ',
     excludes: [
       'int32 * int32',  // Actual != Expected.
