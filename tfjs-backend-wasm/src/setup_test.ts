@@ -63,6 +63,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {include: 'cropAndResize'},
+  {include: 'resizeBilinear'},
   {
     include: 'matmul ',
     excludes: [

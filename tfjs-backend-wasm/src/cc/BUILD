@@ -108,6 +108,7 @@ tfjs_cc_library(
     ":Prelu",
     ":Relu",
     ":Relu6",
+    ":ResizeBilinear",
     ":FusedBatchNorm",
     ":Max",
     ":Min",
@@ -223,6 +224,15 @@ tfjs_cc_library(
 tfjs_cc_library(
   name = "CropAndResize",
   srcs = ["kernels/CropAndResize.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "ResizeBilinear",
+  srcs = ["kernels/ResizeBilinear.cc"],
   deps = [
     ":backend",
     ":util",

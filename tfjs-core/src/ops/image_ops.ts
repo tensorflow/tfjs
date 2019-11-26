@@ -73,7 +73,9 @@ function resizeBilinear_<T extends Tensor3D|Tensor4D>(
     };
   };
 
-  const res = ENGINE.runKernelFunc(forward, {batchImages}, backward);
+  const res = ENGINE.runKernelFunc(
+      forward, {batchImages}, backward, 'ResizeBilinear',
+      {alignCorners, newHeight, newWidth});
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   }
