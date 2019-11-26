@@ -8,6 +8,7 @@
 |AddN|addN|
 |BiasAdd|add|
 |Div|div|
+|DivNoNan|divNoNan|
 |FloorDiv|floorDiv|
 |FloorMod|mod|
 |Maximum|maximum|
@@ -66,7 +67,7 @@
 |Tan|tan|
 |Tanh|tanh|
 |Not mapped|logSigmoid|
-|Not mapped|prelu|
+|Prelu|prelu|
 |Not mapped|step|
 
 ## Operations - Control Flow

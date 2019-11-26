@@ -21,7 +21,8 @@ import {DisposeResult, InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
 import {ActivationIdentifier} from '../keras_format/activation_config';
-import {Shape} from '../keras_format/common';
+import {DataFormat, Shape} from '../keras_format/common';
+import {LayerConfig} from '../keras_format/topology_config';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs} from '../types';
 import {assertPositiveInteger, mapActivationToFusedKernel} from '../utils/generic_utils';
@@ -63,7 +64,7 @@ export class Dropout extends Layer {
     this.supportsMasking = true;
   }
 
-  private getNoiseShape(input: Tensor): Shape {
+  protected getNoiseShape(input: Tensor): Shape {
     if (this.noiseShape == null) {
       return this.noiseShape;
     }
@@ -159,6 +160,30 @@ export declare interface DenseLayerArgs extends LayerArgs {
    */
   activityRegularizer?: RegularizerIdentifier|Regularizer;
 }
+
+export interface SpatialDropout1DLayerConfig extends LayerConfig {
+  /** Float between 0 and 1. Fraction of the input units to drop. */
+  rate: number;
+
+  /** An integer to use as random seed. */
+  seed?: number;
+}
+
+export class SpatialDropout1D extends Dropout {
+  /** @nocollapse */
+  static className = 'SpatialDropout1D';
+
+  constructor(args: SpatialDropout1DLayerConfig) {
+    super(args);
+    this.inputSpec = [{ndim: 3}];
+  }
+
+  protected getNoiseShape(input: Tensor): Shape {
+    const inputShape = input.shape;
+    return [inputShape[0], 1, inputShape[2]];
+  }
+}
+serialization.registerClass(SpatialDropout1D);
 
 export class Dense extends Layer {
   /** @nocollapse */
@@ -284,12 +309,21 @@ export class Dense extends Layer {
 }
 serialization.registerClass(Dense);
 
+export declare interface FlattenLayerArgs extends LayerArgs {
+  /** Image data format: channeLast (default) or channelFirst. */
+  dataFormat?: DataFormat;
+}
+
 export class Flatten extends Layer {
+  private dataFormat: DataFormat;
+
   /** @nocollapse */
   static className = 'Flatten';
-  constructor(args?: LayerArgs) {
-    super(args || {});
+  constructor(args?: FlattenLayerArgs) {
+    args = args || {};
+    super(args);
     this.inputSpec = [{minNDim: 3}];
+    this.dataFormat = args.dataFormat;
   }
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
@@ -309,8 +343,29 @@ export class Flatten extends Layer {
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
-      return K.batchFlatten(getExactlyOneTensor(inputs));
+
+      let input = getExactlyOneTensor(inputs);
+      if (this.dataFormat === 'channelsFirst' && input.rank > 1) {
+        const permutation: number[] = [0];
+        for (let i = 2; i < input.rank; ++i) {
+          permutation.push(i);
+        }
+        permutation.push(1);
+        input = input.transpose(permutation);
+      }
+
+      return K.batchFlatten(input);
     });
+  }
+
+  getConfig(): serialization.ConfigDict {
+    const config: serialization.ConfigDict = {};
+    if (this.dataFormat != null) {
+      config['dataFormat'] = this.dataFormat;
+    }
+    const baseConfig = super.getConfig();
+    Object.assign(config, baseConfig);
+    return config;
   }
 }
 serialization.registerClass(Flatten);

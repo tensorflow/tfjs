@@ -195,17 +195,18 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
 
     return {
       x: () => conv2dDerInput(x4D.shape, dy, $filter, strides, pad, dataFormat),
-      $filter: () =>
+      filter: () =>
           conv2dDerFilter(x4D, dy, $filter.shape, strides, pad, dataFormat)
     };
   };
 
-  const res = ENGINE.runKernel((backend, save) => {
+  const inputsToSave = [$filter, x4D];
+  const res = ENGINE.runKernelFunc((backend, save) => {
     const res = backend.conv2d(x4D, $filter, convInfo);
     save([$filter, x4D]);
 
     return res;
-  }, {x: x4D, $filter}, grad);
+  }, {x: x4D, filter: $filter}, grad, 'Conv2D', convInfo, inputsToSave);
 
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
@@ -305,7 +306,7 @@ function conv2dDerInput_<T extends Tensor3D|Tensor4D>(
   const convInfo = conv_util.computeConv2DInfo(
       xShape4D, filter.shape, strides, dilations, pad, dimRoundingMode, false,
       $dataFormat);
-  const res = ENGINE.runKernel((backend, save) => {
+  const res = ENGINE.runKernelFunc((backend, save) => {
     const res = backend.conv2dDerInput(dy4D, filter, convInfo);
     save([filter, dy4D]);
     return res;
@@ -385,7 +386,7 @@ function conv2dDerFilter_<T extends Tensor3D|Tensor4D>(
   const convInfo = conv_util.computeConv2DInfo(
       x4D.shape, filterShape, strides, dilations, pad, dimRoundingMode, false,
       $dataFormat);
-  return ENGINE.runKernel(
+  return ENGINE.runKernelFunc(
       backend => backend.conv2dDerFilter(x4D, dy4D, convInfo), {x4D, dy4D});
 }
 
@@ -524,16 +525,20 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
     return {
       x: () => depthwiseConv2dDerInput(
           (x4D as Tensor4D).shape, dy, $filter as Tensor4D, convInfo),
-      $filter: () => depthwiseConv2dDerFilter(
+      filter: () => depthwiseConv2dDerFilter(
           x4D as Tensor4D, dy, ($filter as Tensor4D).shape, convInfo),
     };
   };
 
-  const res = ENGINE.runKernel((backend, save) => {
-    const res = backend.depthwiseConv2D(x4D, $filter, convInfo);
-    save([x4D, $filter]);
-    return res;
-  }, {x: x4D, $filter}, grad);
+  const inputsToSave = [x4D, $filter];
+  const res = ENGINE.runKernelFunc(
+      (backend, save) => {
+        const res = backend.depthwiseConv2D(x4D, $filter, convInfo);
+        save([x4D, $filter]);
+        return res;
+      },
+      {x: x4D, filter: $filter}, grad, 'DepthwiseConv2dNative', convInfo,
+      inputsToSave);
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   }
@@ -683,7 +688,7 @@ function depthwiseConv2dDerInput_<T extends Tensor3D|Tensor4D>(
     reshapedTo4D = true;
     dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
   }
-  const res = ENGINE.runKernel(
+  const res = ENGINE.runKernelFunc(
       backend => backend.depthwiseConv2DDerInput(dy4D, filter, convInfo),
       {dy4D});
   if (reshapedTo4D) {
@@ -703,7 +708,7 @@ function depthwiseConv2dDerFilter_<T extends Tensor3D|Tensor4D>(
   if (dy4D.rank === 3) {
     dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
   }
-  return ENGINE.runKernel(
+  return ENGINE.runKernelFunc(
       backend => backend.depthwiseConv2DDerFilter(x4D, dy4D, convInfo),
       {x4D, dy4D});
 }
@@ -793,7 +798,7 @@ function conv3d_<T extends Tensor4D|Tensor5D>(
     };
   };
 
-  const res = ENGINE.runKernel((backend, save) => {
+  const res = ENGINE.runKernelFunc((backend, save) => {
     const res = backend.conv3d(x5D, $filter, convInfo);
     save([x5D, $filter]);
     return res;
@@ -871,7 +876,7 @@ function conv3dDerInput_<T extends Tensor4D|Tensor5D>(
 
   const convInfo = conv_util.computeConv3DInfo(
       xShape5D, filter.shape, strides, dilations, pad);
-  const res = ENGINE.runKernel(
+  const res = ENGINE.runKernelFunc(
       backend => backend.conv3dDerInput(dy5D, filter, convInfo), {dy5D});
   if (reshapedTo5D) {
     return res.as4D(res.shape[1], res.shape[2], res.shape[3], res.shape[4]) as
@@ -932,7 +937,7 @@ function conv3dDerFilter_<T extends Tensor4D|Tensor5D>(
 
   const convInfo = conv_util.computeConv3DInfo(
       x5D.shape, filterShape, strides, dilations, pad);
-  return ENGINE.runKernel(
+  return ENGINE.runKernelFunc(
       backend => backend.conv3dDerFilter(x5D, dy5D, convInfo), {x5D, dy5D});
 }
 

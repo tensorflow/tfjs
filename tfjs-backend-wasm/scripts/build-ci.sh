@@ -21,13 +21,9 @@ git clone --depth=1 --single-branch https://github.com/emscripten-core/emsdk.git
 cd emsdk
 # Need to tell emsdk where to write the .emscripten file.
 export HOME='/root'
-./emsdk install 1.38.41
-./emsdk activate 1.38.41
+./emsdk install 1.39.1
+./emsdk activate 1.39.1
 source ./emsdk_env.sh
 cd ..
 
-yarn
-yarn lint
 yarn build
-yarn test-cc
-yarn karma start --singleRun --browsers=bs_chrome_mac

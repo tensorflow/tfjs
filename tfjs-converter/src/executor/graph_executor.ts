@@ -17,6 +17,7 @@
 
 import {DataType, NamedTensorMap, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
+import {ISignatureDef} from '../data/compiled_api';
 import {NamedTensorsMap, TensorArrayMap, TensorInfo} from '../data/types';
 import {getNodeNameAndIndex, getParamValue, getTensor, getTensorsForCurrentContenxt, parseNodeName} from '../operations/executors/utils';
 import {executeOp} from '../operations/operation_executor';
@@ -34,7 +35,8 @@ export class GraphExecutor {
   private compiledMap: Map<string, Node[]> = new Map();
   private _weightMap: NamedTensorsMap = {};
   private weightIds: number[];
-  private placeholders: Node[];
+  private _signature: ISignatureDef;
+  private _inputs: Node[];
   private _outputs: Node[];
   private SEPERATOR = ',';
   get weightMap(): NamedTensorsMap {
@@ -48,7 +50,7 @@ export class GraphExecutor {
   }
 
   get inputs(): TensorInfo[] {
-    return this.placeholders.map(node => {
+    return this._inputs.map(node => {
       return {
         name: node.name,
         shape: node.attrParams['shape'] ?
@@ -76,16 +78,17 @@ export class GraphExecutor {
   }
 
   get inputNodes(): string[] {
-    return this.placeholders.map(node => node.name);
+    return this._inputs.map(node => node.signatureKey || node.name);
   }
 
   get outputNodes(): string[] {
-    return this.outputs.map(node => node.name);
+    return this._outputs.map(node => node.signatureKey || node.name);
   }
 
   constructor(private graph: Graph) {
-    this.placeholders = graph.placeholders;
     this._outputs = graph.outputs;
+    this._inputs = graph.inputs;
+    this._signature = graph.signature;
   }
 
   private getCompilationKey(inputs: Node[], outputs: Node[]): string {
@@ -132,11 +135,14 @@ export class GraphExecutor {
    * array.
    */
   execute(inputs: NamedTensorMap, outputs: string[]): Tensor[] {
+    inputs = this.mapInputs(inputs);
     const names = Object.keys(inputs).sort();
     this.checkInputs(inputs);
     this.checkInputShapeAndType(inputs);
+    outputs = this.mapOutputs(outputs);
     this.checkOutputs(outputs);
-    const inputNodes = names.map(name => this.graph.nodes[name]);
+    const inputNodes =
+        names.map(name => this.graph.nodes[parseNodeName(name)[0]]);
     const outputNodes =
         outputs.map(name => this.graph.nodes[parseNodeName(name)[0]]);
     const compilationKey = this.getCompilationKey(inputNodes, outputNodes);
@@ -151,7 +157,10 @@ export class GraphExecutor {
       const context = new ExecutionContext(this._weightMap, tensorArrayMap);
       const tensorsMap: NamedTensorsMap = {...this.weightMap};
       Object.keys(inputs).forEach(name => {
-        tensorsMap[name] = [inputs[name]];
+        const [nodeName, index] = parseNodeName(name);
+        const tensors: Tensor[] = [];
+        tensors[index] = inputs[name];
+        tensorsMap[nodeName] = tensors;
       });
       const tensorsToKeep = this.getFrozenTensorIds(tensorsMap);
       const intermediateTensorConsumerCount: {[key: number]: number} = {};
@@ -235,8 +244,10 @@ export class GraphExecutor {
    */
   async executeAsync(inputs: NamedTensorMap, outputs: string[]):
       Promise<Tensor[]> {
+    inputs = this.mapInputs(inputs);
     this.checkInputs(inputs);
     this.checkInputShapeAndType(inputs);
+    outputs = this.mapOutputs(outputs);
     this.checkOutputs(outputs);
     const tensorArrayMap: TensorArrayMap = {};
     const context = new ExecutionContext(this._weightMap, tensorArrayMap);
@@ -274,7 +285,8 @@ export class GraphExecutor {
       inputs: NamedTensorMap, context: ExecutionContext,
       outputNames: string[]): Promise<NamedTensorsMap> {
     const names = Object.keys(inputs);
-    const inputNodes = names.map(name => this.graph.nodes[name]);
+    const inputNodes =
+        names.map(name => this.graph.nodes[parseNodeName(name)[0]]);
     const outputNodes =
         outputNames.map(name => this.graph.nodes[parseNodeName(name)[0]]);
     const {usedNodes, missingInputs, dynamicNode, syncInputs} =
@@ -286,7 +298,10 @@ export class GraphExecutor {
         });
     const tensorsMap: NamedTensorsMap = {...this.weightMap};
     Object.keys(inputs).forEach(name => {
-      tensorsMap[name] = [inputs[name]];
+      const [nodeName, index] = parseNodeName(name);
+      const tensors: Tensor[] = [];
+      tensors[index] = inputs[name];
+      tensorsMap[nodeName] = tensors;
     });
     const intermediateTensorConsumerCount: {[key: number]: number} = {};
     const tensorsToKeep = this.getFrozenTensorIds(tensorsMap);
@@ -415,7 +430,8 @@ export class GraphExecutor {
   private checkInputShapeAndType(inputs: NamedTensorMap) {
     Object.keys(inputs).forEach(name => {
       const input = inputs[name];
-      const node = this.graph.nodes[name];
+      const [nodeName, ] = parseNodeName(name);
+      const node = this.graph.nodes[nodeName];
       if (node.attrParams['shape'] && node.attrParams['shape'].value) {
         const shape = node.attrParams['shape'].value as number[];
         const match = shape.length === input.shape.length &&
@@ -437,9 +453,25 @@ export class GraphExecutor {
     });
   }
 
+  private mapInputs(inputs: NamedTensorMap) {
+    const result: NamedTensorMap = {};
+    for (const inputName in inputs) {
+      if (this._signature != null && this._signature.inputs != null &&
+          this._signature.inputs[inputName] != null) {
+        const tensor = this._signature.inputs[inputName];
+        result[tensor.name] = inputs[inputName];
+      } else {
+        result[inputName] = inputs[inputName];
+      }
+    }
+    return result;
+  }
+
   private checkInputs(inputs: NamedTensorMap) {
-    const notInGraph =
-        Object.keys(inputs).filter(name => !this.graph.nodes[name]);
+    const notInGraph = Object.keys(inputs).filter(name => {
+      const [nodeName] = parseNodeName(name);
+      return this.graph.nodes[nodeName] == null;
+    });
     if (notInGraph.length > 0) {
       throw new Error(
           `The dict provided in model.execute(dict) has ` +
@@ -447,6 +479,16 @@ export class GraphExecutor {
     }
   }
 
+  private mapOutputs(outputs: string[]) {
+    return outputs.map(name => {
+      if (this._signature != null && this._signature.outputs != null &&
+          this._signature.outputs[name] != null) {
+        const tensor = this._signature.outputs[name];
+        return tensor.name;
+      }
+      return name;
+    }, {});
+  }
   private checkOutputs(outputs: string[]): void {
     outputs.forEach(name => {
       const [normalizedName] = parseNodeName(name);

@@ -15,8 +15,11 @@
  * =============================================================================
  */
 
-import {io} from '@tensorflow/tfjs-core';
-import {Image, ImageSourcePropType} from 'react-native';
+import {io, util} from '@tensorflow/tfjs-core';
+import {Asset} from 'expo-asset';
+import {Platform} from 'react-native';
+import * as RNFS from 'react-native-fs';
+
 import {fetch} from './platform_react_native';
 
 class BundleResourceHandler implements io.IOHandler {
@@ -56,14 +59,6 @@ class BundleResourceHandler implements io.IOHandler {
   async load(): Promise<io.ModelArtifacts> {
     const modelJson = this.modelJson;
 
-    // Load the weights
-    const weightsAssetPath =
-        Image.resolveAssetSource(this.modelWeightsId as ImageSourcePropType);
-    const requestInit: undefined = undefined;
-    const response =
-        await fetch(weightsAssetPath.uri, requestInit, {isBinary: true});
-    const weightData = await response.arrayBuffer();
-
     if (modelJson.weightsManifest.length > 1) {
       throw new Error(
           'Bundle resource IO handler does not currently support loading ' +
@@ -71,6 +66,61 @@ class BundleResourceHandler implements io.IOHandler {
           'sharded weights (more than one weights file).');
     }
 
+    const weightsAsset = Asset.fromModule(this.modelWeightsId);
+    if (weightsAsset.uri.match('^http')) {
+      // In debug/dev mode RN will serve these assets over HTTP
+      return this.loadViaHttp(weightsAsset);
+    } else {
+      // In release mode the assets will be on the file system.
+      return this.loadLocalAsset(weightsAsset);
+    }
+  }
+
+  async loadViaHttp(weightsAsset: Asset): Promise<io.ModelArtifacts> {
+    const modelJson = this.modelJson;
+
+    // Load the weights
+    const url = weightsAsset.uri;
+    const requestInit: undefined = undefined;
+    const response = await fetch(url, requestInit, {isBinary: true});
+    const weightData = await response.arrayBuffer();
+
+    const modelArtifacts: io.ModelArtifacts = Object.assign({}, modelJson);
+    modelArtifacts.weightSpecs = modelJson.weightsManifest[0].weights;
+    //@ts-ignore
+    delete modelArtifacts.weightManifest;
+    modelArtifacts.weightData = weightData;
+    return modelArtifacts;
+  }
+
+  async loadLocalAsset(weightsAsset: Asset): Promise<io.ModelArtifacts> {
+    const modelJson = this.modelJson;
+
+    let base64Weights: string;
+    if (Platform.OS === 'android') {
+      // On android we get a resource id instead of a regular path. We need
+      // to load the weights from the res/raw folder using this id.
+      try {
+        const fileName = `${weightsAsset.uri}.${weightsAsset.type}`;
+        base64Weights = await RNFS.readFileRes(fileName, 'base64');
+      } catch (e) {
+        throw new Error(
+            `Error reading resource ${weightsAsset.uri}. Make sure the file is
+            in located in the res/raw folder of the bundle`,
+        );
+      }
+    } else {
+      try {
+        base64Weights = await RNFS.readFile(weightsAsset.uri, 'base64');
+      } catch (e) {
+        throw new Error(
+            `Error reading resource ${weightsAsset.uri}. Make sure the file is
+            in located in the res/raw folder of the bundle`,
+        );
+      }
+    }
+
+    const weightData = util.encodeString(base64Weights, 'base64').buffer;
     const modelArtifacts: io.ModelArtifacts = Object.assign({}, modelJson);
     modelArtifacts.weightSpecs = modelJson.weightsManifest[0].weights;
     //@ts-ignore

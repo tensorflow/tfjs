@@ -34,6 +34,9 @@ TFJS_LAYERS_MODEL_FORMAT = 'layers-model'
 GENERATED_BY_KEY = 'generatedBy'
 CONVERTED_BY_KEY = 'convertedBy'
 
+SIGNATURE_KEY = 'signature'
+USER_DEFINED_METADATA_KEY = 'userDefinedMetadata'
+
 # Model formats.
 KERAS_SAVED_MODEL = 'keras_saved_model'
 KERAS_MODEL = 'keras'
@@ -41,12 +44,14 @@ TF_SAVED_MODEL = 'tf_saved_model'
 TF_HUB_MODEL = 'tf_hub'
 TFJS_GRAPH_MODEL = 'tfjs_graph_model'
 TFJS_LAYERS_MODEL = 'tfjs_layers_model'
+TF_FROZEN_MODEL = 'tf_frozen_model'
 
 # CLI argument strings.
 INPUT_PATH = 'input_path'
 OUTPUT_PATH = 'output_path'
 INPUT_FORMAT = 'input_format'
 OUTPUT_FORMAT = 'output_format'
+OUTPUT_NODE = 'output_node_names'
 SIGNATURE_NAME = 'signature_name'
 SAVED_MODEL_TAGS = 'saved_model_tags'
 QUANTIZATION_BYTES = 'quantization_bytes'

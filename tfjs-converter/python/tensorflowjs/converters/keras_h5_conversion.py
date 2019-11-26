@@ -26,9 +26,9 @@ import json
 import os
 import tempfile
 
+import six
 import h5py
 import numpy as np
-import six
 
 from tensorflowjs import write_weights  # pylint: disable=import-error
 from tensorflowjs.converters import common

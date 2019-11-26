@@ -23,17 +23,21 @@ import {KernelFunc, TensorInfo} from './kernel_registry';
 describeWithFlags('kernel_registry', ALL_ENVS, () => {
   it('register a kernel and call it', () => {
     let called = false;
-    tf.registerKernel('MyKernel', tf.getBackend(), ({inputs, attrs}) => {
-      expect(attrs.a).toBe(5);
-      expect(inputs.x.shape).toEqual([2, 2]);
-      expect(inputs.x.dtype).toBe('float32');
-      called = true;
-      return {dtype: 'float32', shape: [3, 3], dataId: {}};
+    tf.registerKernel({
+      kernelName: 'MyKernel',
+      backendName: tf.getBackend(),
+      kernelFunc: ({inputs, attrs}) => {
+        expect(attrs.a).toBe(5);
+        expect(inputs.x.shape).toEqual([2, 2]);
+        expect(inputs.x.dtype).toBe('float32');
+        called = true;
+        return {dtype: 'float32', shape: [3, 3], dataId: {}};
+      }
     });
 
     const inputs = {x: tf.zeros([2, 2])};
     const attrs = {a: 5};
-    const res = tf.engine().run('MyKernel', inputs, attrs) as TensorInfo;
+    const res = tf.engine().runKernel('MyKernel', inputs, attrs) as TensorInfo;
 
     expect(called).toBe(true);
     expect(res.dtype).toBe('float32');
@@ -45,22 +49,31 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
   it('errors when running non-existent kernel', () => {
     const inputs = {};
     const attrs = {};
-    expect(() => tf.engine().run('DoesNotExist', inputs, attrs)).toThrowError();
+    expect(() => tf.engine().runKernel('DoesNotExist', inputs, attrs))
+        .toThrowError();
   });
 
   it('errors when registering the same kernel twice', () => {
-    tf.registerKernel('MyKernel', tf.getBackend(), () => {
-      return null;
+    tf.registerKernel({
+      kernelName: 'MyKernel',
+      backendName: tf.getBackend(),
+      kernelFunc: () => {
+        return null;
+      }
     });
-    expect(() => tf.registerKernel('MyKernel', tf.getBackend(), () => {
-      return null;
+    expect(() => tf.registerKernel({
+      kernelName: 'MyKernel',
+      backendName: tf.getBackend(),
+      kernelFunc: () => {
+        return null;
+      }
     })).toThrowError();
 
     tf.unregisterKernel('MyKernel', tf.getBackend());
   });
 
   it('register same kernel on two different backends', () => {
-    interface TestStorage extends KernelBackend {
+    interface TestBackend extends KernelBackend {
       id: number;
     }
     tf.registerBackend('backend1', () => {
@@ -68,40 +81,88 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
         id: 1,
         dispose: () => null,
         disposeData: (dataId: {}) => null,
-      } as TestStorage;
+        numDataIds: () => 0
+      } as TestBackend;
     });
     tf.registerBackend('backend2', () => {
       return {
         id: 2,
         dispose: () => null,
         disposeData: (dataId: {}) => null,
-      } as TestStorage;
+        numDataIds: () => 0
+      } as TestBackend;
     });
 
     let lastStorageId = -1;
-    const kernelFunc: KernelFunc = ({storage}) => {
-      lastStorageId = (storage as TestStorage).id;
+    const kernelFunc: KernelFunc = ({backend}) => {
+      lastStorageId = (backend as TestBackend).id;
       return {dataId: {}, shape: [], dtype: 'float32'};
     };
-    tf.registerKernel('MyKernel', 'backend1', kernelFunc);
-    tf.registerKernel('MyKernel', 'backend2', kernelFunc);
+    tf.registerKernel(
+        {kernelName: 'MyKernel', backendName: 'backend1', kernelFunc});
+    tf.registerKernel(
+        {kernelName: 'MyKernel', backendName: 'backend2', kernelFunc});
 
     // No kernel has been executed yet.
     expect(lastStorageId).toBe(-1);
 
     // Kernel was executed on the first backend.
     tf.setBackend('backend1');
-    tf.engine().run('MyKernel', {}, {});
+    tf.engine().runKernel('MyKernel', {}, {});
     expect(lastStorageId).toBe(1);
 
     // Kernel was executed on the second backend.
     tf.setBackend('backend2');
-    tf.engine().run('MyKernel', {}, {});
+    tf.engine().runKernel('MyKernel', {}, {});
     expect(lastStorageId).toBe(2);
 
     tf.removeBackend('backend1');
     tf.removeBackend('backend2');
     tf.unregisterKernel('MyKernel', 'backend1');
     tf.unregisterKernel('MyKernel', 'backend2');
+  });
+
+  it('register kernel with setup and dispose functions', () => {
+    const backendName = 'custom-backend';
+    const kernelName = 'MyKernel';
+    interface TestBackend extends KernelBackend {}
+    const customBackend = {
+      dispose: () => null,
+      disposeData: (dataId: {}) => null,
+      numDataIds: () => 0
+    } as TestBackend;
+    tf.registerBackend(backendName, () => customBackend);
+
+    const kernelFunc: KernelFunc = () => {
+      return {dataId: {}, shape: [], dtype: 'float32'};
+    };
+    let setupCalled = false;
+    const setupFunc = (backend: KernelBackend) => {
+      expect(backend).toBe(customBackend);
+      setupCalled = true;
+    };
+    let disposeCalled = false;
+    const disposeFunc = (backend: KernelBackend) => {
+      expect(backend).toBe(customBackend);
+      disposeCalled = true;
+    };
+    tf.registerKernel(
+        {kernelName, backendName, kernelFunc, setupFunc, disposeFunc});
+
+    expect(setupCalled).toBe(false);
+    expect(disposeCalled).toBe(false);
+
+    tf.setBackend(backendName);
+    expect(setupCalled).toBe(true);
+    expect(disposeCalled).toBe(false);
+
+    // Kernel was executed on the first backend.
+    tf.engine().runKernel(kernelName, {}, {});
+
+    tf.removeBackend(backendName);
+    expect(setupCalled).toBe(true);
+    expect(disposeCalled).toBe(true);
+
+    tf.unregisterKernel(kernelName, backendName);
   });
 });

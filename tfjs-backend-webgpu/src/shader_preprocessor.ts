@@ -137,8 +137,14 @@ const SHADER_PREFIX = `#version 450
     return res;
   }
 
-  bool coordIsValid(ivec4 coord, ivec4 shape) {
+  // Checks whether coordinates lie within the bounds of the shape.
+  bool coordsInBounds(ivec4 coord, ivec4 shape) {
     return all(greaterThanEqual(coord, ivec4(0))) &&
+        all(lessThan(coord, shape));
+  }
+
+  bool coordsInBounds(ivec2 coord, ivec2 shape) {
+    return all(greaterThanEqual(coord, ivec2(0))) &&
         all(lessThan(coord, shape));
   }
 `;
@@ -167,12 +173,12 @@ function getSetOutputSnippet(outRank: number, outBufferType: DataType): string {
   let snippet = `void setOutput(int flatIndex, float value) {
       result[flatIndex] = ${
       glslType === 'int' ? 'int(value)' :
-        (glslType === 'bool' ? 'bool(value)' : 'value')};
+                           (glslType === 'bool' ? 'bool(value)' : 'value')};
     }
     void setOutput(int flatIndex, int value) {
       result[flatIndex] = ${
       glslType === 'float' ? 'float(value)' :
-        (glslType === 'bool' ? 'bool(value)' : 'value')};
+                             (glslType === 'bool' ? 'bool(value)' : 'value')};
     }`;
 
   if (outRank >= 2) {
@@ -224,8 +230,8 @@ function getSamplerFromInInfo(inInfo: InputInfo): string {
 
   return `
     float ${funcName}(${inputs}) {
-      return ${texName}[getFlatIndex(${type}(${dims.join(',')}),
-        ${texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)];
+      return float(${texName}[getFlatIndex(${type}(${dims.join(',')}),
+        ${texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)]);
     }
   `;
 }
@@ -283,14 +289,14 @@ function getSamplerAtOutputCoords(
     float ${funcName}() {
       ${type} coords = getOutputCoords();
       ${coordsSnippet}
-      return ${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
-      texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)];
+      return float(${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
+      texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)]);
     }
 
     float ${funcName}(${type} coords) {
       ${coordsSnippet}
-      return ${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
-      texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)];
+      return float(${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
+      texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)]);
     }
   `;
 }
@@ -346,8 +352,7 @@ function generateGetOutputCoords(
   let snippet = `${dtype} getOutputCoords() {
     ${gatherDimensionsStr}
   `;
-  if (dimensions.length === 0)
-  {
+  if (dimensions.length === 0) {
     snippet += `return ${dtype}(0);}`;
   } else {
     snippet += `return ${dtype}(${dimensions.join(',')});}`;

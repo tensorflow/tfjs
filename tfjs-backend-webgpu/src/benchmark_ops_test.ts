@@ -161,4 +161,16 @@ describeWebGPU('Ops benchmarks', () => {
     await time(() => tf.maxPool(x, 2, 1, 'same'));
   });
 
+  it('prelu', async () => {
+    const x = tf.randomNormal([500]);
+    const a = tf.randomNormal([500]);
+
+    await time(() => tf.prelu(x, a), null, false, 50, 50);
+  });
+
+  it('slice', async () => {
+    const a = tf.randomNormal<tf.Rank.R1>([500]);
+
+    await time(() => tf.slice1d(a, 2, 498), null, false, 50, 50);
+  });
 });
