@@ -83,22 +83,17 @@ void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
           const float source_frac_col = effective_col_size_ratio * c;
           const int source_col_floor = std::floor(source_frac_col);
           const float col_frac = source_frac_col - source_col_floor;
-          const float source_col_ceil =
+          const int source_col_ceil =
               std::min(old_width_m1, std::ceil(source_frac_col));
 
-          const int top_left_offset =
-              top_row_offset + source_col_floor * x_strides[2];
-          const int bot_left_offset =
-              bot_row_offset + source_col_floor * x_strides[2];
-          const int top_right_offset =
-              top_row_offset + source_col_ceil * x_strides[2];
-          const int bot_right_offset =
-              bot_row_offset + source_col_ceil * x_strides[2];
-
-          const float* x_buf_top_left = x_buf + top_left_offset;
-          const float* x_buf_bottom_left = x_buf + bot_left_offset;
-          const float* x_buf_top_right = x_buf + top_right_offset;
-          const float* x_buf_bottom_right = x_buf + bot_right_offset;
+          const float* x_buf_top_left =
+              x_buf + top_row_offset + source_col_floor * x_strides[2];
+          const float* x_buf_bottom_left =
+              x_buf + bot_row_offset + source_col_floor * x_strides[2];
+          const float* x_buf_top_right =
+              x_buf + top_row_offset + source_col_ceil * x_strides[2];
+          const float* x_buf_bottom_right =
+              x_buf + bot_row_offset + source_col_ceil * x_strides[2];
 
           for (int d = 0; d < num_channels; ++d) {
             const float top_left = *x_buf_top_left;
