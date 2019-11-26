@@ -48,7 +48,7 @@ describeWithFlags('wasm', ALL_ENVS, () => {
     expect(memOffset1).toBe(memOffset2);
   });
 
-  fit('matches tensorflow w/ random numbers alignCorners=false', async () => {
+  it('matches tensorflow w/ random numbers alignCorners=false', async () => {
     const input = tf.tensor3d(
         [
           1.19074044, 0.91373104, 2.01611669, -0.52270832, 0.38725395,
@@ -71,7 +71,7 @@ describeWithFlags('wasm', ALL_ENVS, () => {
     // ]);
   });
 
-  fit('matches tensorflow w/ random numbers alignCorners=true', async () => {
+  it('matches tensorflow w/ random numbers alignCorners=true', async () => {
     const input = tf.tensor3d(
         [
           1.56324531, 2.13817752, 1.44398421, 1.07632684, 0.59306785,

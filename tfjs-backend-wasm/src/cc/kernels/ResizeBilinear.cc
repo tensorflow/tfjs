@@ -34,6 +34,10 @@ EMSCRIPTEN_KEEPALIVE
 void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
                     int num_channels, int new_height, int new_width,
                     int align_corners, int out_id) {
+  // util::warn("old height %d", old_height);
+  // util::warn("old width %d", old_width);
+  // util::warn("new height %d", new_height);
+  // util::warn("new width %d", new_width);
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
 
@@ -42,15 +46,19 @@ void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
 
   const std::vector<int> x_shape = {batch, old_height, old_width, num_channels};
   const auto x_strides = util::compute_strides(x_shape);
+  // util::warn("x strides 0 %d", x_strides[0]);
+  // util::warn("x strides 1 %d", x_strides[1]);
+  // util::warn("x strides 2 %d", x_strides[2]);
+  // util::warn("x strides 3 %d", x_strides[3]);
 
-  const int effective_input_height =
+  const float effective_input_height =
       (align_corners > 0 && new_height > 1) ? old_height - 1 : old_height;
-  const int effective_input_width =
+  const float effective_input_width =
       (align_corners > 0 && new_width > 1) ? old_width - 1 : old_width;
 
-  const int effective_output_height =
+  const float effective_output_height =
       (align_corners > 0 && new_height > 1) ? new_height - 1 : new_height;
-  const int effective_output_width =
+  const float effective_output_width =
       (align_corners > 0 && new_width > 1) ? new_width - 1 : new_width;
 
   const float effective_row_size_ratio =
@@ -69,6 +77,9 @@ void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
           b * x_strides[0] + source_row_floor * x_strides[1];
       const int bot_row_offset =
           b * x_strides[0] + source_row_ceil * x_strides[1];
+
+      // util::warn("r is %d", r);
+      // util::warn("top row offset is %d", top_row_offset);
 
       for (int c = 0; c < new_width; ++c) {
         const float source_frac_col = effective_col_size_ratio * c;
@@ -95,7 +106,7 @@ void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
           const float bottom =
               bottom_left + (bottom_right - bottom_left) * col_frac;
           const float new_value = top + (bottom - top) * row_frac;
-
+          // util::warn("top left offset is %d", top_left_offset);
           *out_buf = new_value;
           out_buf++;
         }
