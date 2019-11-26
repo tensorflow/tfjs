@@ -34,10 +34,6 @@ EMSCRIPTEN_KEEPALIVE
 void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
                     int num_channels, int new_height, int new_width,
                     int align_corners, int out_id) {
-  // util::warn("old height %d", old_height);
-  // util::warn("old width %d", old_width);
-  // util::warn("new height %d", new_height);
-  // util::warn("new width %d", new_width);
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
 
@@ -46,10 +42,6 @@ void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
 
   const std::vector<int> x_shape = {batch, old_height, old_width, num_channels};
   const auto x_strides = util::compute_strides(x_shape);
-  // util::warn("x strides 0 %d", x_strides[0]);
-  // util::warn("x strides 1 %d", x_strides[1]);
-  // util::warn("x strides 2 %d", x_strides[2]);
-  // util::warn("x strides 3 %d", x_strides[3]);
 
   const float effective_input_height =
       (align_corners > 0 && new_height > 1) ? old_height - 1 : old_height;
@@ -78,15 +70,13 @@ void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
       const int bot_row_offset =
           b * x_strides[0] + source_row_ceil * x_strides[1];
 
-      // util::warn("r is %d", r);
-      // util::warn("top row offset is %d", top_row_offset);
-
       for (int c = 0; c < new_width; ++c) {
         const float source_frac_col = effective_col_size_ratio * c;
         const int source_col_floor = std::floor(source_frac_col);
         const float col_frac = source_frac_col - source_col_floor;
         const float source_col_ceil =
             std::min(float(old_width - 1), std::ceil(source_frac_col));
+
         const int top_left_offset =
             top_row_offset + source_col_floor * x_strides[2];
         const int bot_left_offset =
@@ -96,17 +86,26 @@ void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
         const int bot_right_offset =
             bot_row_offset + source_col_ceil * x_strides[2];
 
+        const float* x_buf_top_left = x_buf + top_left_offset;
+        const float* x_buf_bottom_left = x_buf + bot_left_offset;
+        const float* x_buf_top_right = x_buf + top_right_offset;
+        const float* x_buf_bottom_right = x_buf + bot_right_offset;
+
         for (int d = 0; d < num_channels; ++d) {
-          const float top_left = x_buf[top_left_offset + d];
-          const float bottom_left = x_buf[bot_left_offset + d];
-          const float top_right = x_buf[top_right_offset + d];
-          const float bottom_right = x_buf[bot_right_offset + d];
+          const float top_left = *x_buf_top_left;
+          const float bottom_left = *x_buf_bottom_left;
+          const float top_right = *x_buf_top_right;
+          const float bottom_right = *x_buf_bottom_right;
+
+          x_buf_top_left++;
+          x_buf_bottom_left++;
+          x_buf_top_right++;
+          x_buf_bottom_right++;
 
           const float top = top_left + (top_right - top_left) * col_frac;
           const float bottom =
               bottom_left + (bottom_right - bottom_left) * col_frac;
           const float new_value = top + (bottom - top) * row_frac;
-          // util::warn("top left offset is %d", top_left_offset);
           *out_buf = new_value;
           out_buf++;
         }
