@@ -63,51 +63,58 @@ void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
       const float source_frac_row = effective_row_size_ratio * r;
       const int source_row_floor = std::floor(source_frac_row);
       const float row_frac = source_frac_row - source_row_floor;
-      const float source_row_ceil =
+
+      const int source_row_ceil =
           std::min(float(old_height - 1), std::ceil(source_frac_row));
       const int top_row_offset =
           b * x_strides[0] + source_row_floor * x_strides[1];
       const int bot_row_offset =
           b * x_strides[0] + source_row_ceil * x_strides[1];
 
-      for (int c = 0; c < new_width; ++c) {
-        const float source_frac_col = effective_col_size_ratio * c;
-        const int source_col_floor = std::floor(source_frac_col);
-        const float col_frac = source_frac_col - source_col_floor;
-        const float source_col_ceil =
-            std::min(float(old_width - 1), std::ceil(source_frac_col));
+      if (effective_col_size_ratio == 1 && row_frac == 0) {
+        memcpy(out_buf, x_buf + top_row_offset,
+               sizeof(float) * new_width * num_channels);
+        out_buf += (new_width * num_channels);
+      } else {
+        for (int c = 0; c < new_width; ++c) {
+          const float source_frac_col = effective_col_size_ratio * c;
+          const int source_col_floor = std::floor(source_frac_col);
+          const float col_frac = source_frac_col - source_col_floor;
+          const float source_col_ceil =
+              std::min(float(old_width - 1), std::ceil(source_frac_col));
 
-        const int top_left_offset =
-            top_row_offset + source_col_floor * x_strides[2];
-        const int bot_left_offset =
-            bot_row_offset + source_col_floor * x_strides[2];
-        const int top_right_offset =
-            top_row_offset + source_col_ceil * x_strides[2];
-        const int bot_right_offset =
-            bot_row_offset + source_col_ceil * x_strides[2];
+          const int top_left_offset =
+              top_row_offset + source_col_floor * x_strides[2];
+          const int bot_left_offset =
+              bot_row_offset + source_col_floor * x_strides[2];
+          const int top_right_offset =
+              top_row_offset + source_col_ceil * x_strides[2];
+          const int bot_right_offset =
+              bot_row_offset + source_col_ceil * x_strides[2];
 
-        const float* x_buf_top_left = x_buf + top_left_offset;
-        const float* x_buf_bottom_left = x_buf + bot_left_offset;
-        const float* x_buf_top_right = x_buf + top_right_offset;
-        const float* x_buf_bottom_right = x_buf + bot_right_offset;
+          const float* x_buf_top_left = x_buf + top_left_offset;
+          const float* x_buf_bottom_left = x_buf + bot_left_offset;
+          const float* x_buf_top_right = x_buf + top_right_offset;
+          const float* x_buf_bottom_right = x_buf + bot_right_offset;
 
-        for (int d = 0; d < num_channels; ++d) {
-          const float top_left = *x_buf_top_left;
-          const float bottom_left = *x_buf_bottom_left;
-          const float top_right = *x_buf_top_right;
-          const float bottom_right = *x_buf_bottom_right;
+          for (int d = 0; d < num_channels; ++d) {
+            const float top_left = *x_buf_top_left;
+            const float bottom_left = *x_buf_bottom_left;
+            const float top_right = *x_buf_top_right;
+            const float bottom_right = *x_buf_bottom_right;
 
-          x_buf_top_left++;
-          x_buf_bottom_left++;
-          x_buf_top_right++;
-          x_buf_bottom_right++;
+            x_buf_top_left++;
+            x_buf_bottom_left++;
+            x_buf_top_right++;
+            x_buf_bottom_right++;
 
-          const float top = top_left + (top_right - top_left) * col_frac;
-          const float bottom =
-              bottom_left + (bottom_right - bottom_left) * col_frac;
-          const float new_value = top + (bottom - top) * row_frac;
-          *out_buf = new_value;
-          out_buf++;
+            const float top = top_left + (top_right - top_left) * col_frac;
+            const float bottom =
+                bottom_left + (bottom_right - bottom_left) * col_frac;
+            const float new_value = top + (bottom - top) * row_frac;
+            *out_buf = new_value;
+            out_buf++;
+          }
         }
       }
     }
