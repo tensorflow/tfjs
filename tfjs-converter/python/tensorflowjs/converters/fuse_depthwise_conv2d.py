@@ -14,7 +14,7 @@
 # ==============================================================================
 """
  This transformation rule tries to identify following transformation
-  DepthwiseConv2dNative + BiasAdd + Activation => _FusedDepthwiseConv2dNative
+  DepthwiseConv2dNative + BiasAdd + Activation => FusedDepthwiseConv2dNative
 """
 
 from __future__ import absolute_import
