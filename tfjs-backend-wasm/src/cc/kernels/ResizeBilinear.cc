@@ -20,6 +20,7 @@
 
 #include <cmath>
 #include "src/cc/backend.h"
+#include "src/cc/interpolate_bilinear_impl.h"
 
 #include "src/cc/util.h"
 
@@ -41,7 +42,7 @@ void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
   float* out_buf = out_info.f32_write();
 
   const std::vector<int> x_shape = {batch, old_height, old_width, num_channels};
-  const auto x_strides = util::compute_strides(x_shape);
+  const auto image_strides = util::compute_strides(x_shape);
 
   const float effective_input_height =
       (align_corners > 0 && new_height > 1) ? old_height - 1 : old_height;
@@ -63,37 +64,39 @@ void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
 
   for (int b = 0; b < batch; ++b) {
     for (int r = 0; r < new_height; ++r) {
-      const float source_frac_row = effective_row_size_ratio * r;
-      const int source_row_floor = std::floor(source_frac_row);
-      const float row_frac = source_frac_row - source_row_floor;
+      const float y_ind = effective_row_size_ratio * r;
+      const int top_ind = std::floor(y_ind);
+      const float y_lerp = y_ind - top_ind;
 
-      const int source_row_ceil =
-          std::min(old_height_m1, std::ceil(source_frac_row));
-      const int top_row_offset =
-          b * x_strides[0] + source_row_floor * x_strides[1];
-      const int bot_row_offset =
-          b * x_strides[0] + source_row_ceil * x_strides[1];
+      const int source_row_ceil = std::min(old_height_m1, std::ceil(y_ind));
+      const int batch_offset = b * image_strides[0];
 
-      if (effective_col_size_ratio == 1 && row_frac == 0) {
-        memcpy(out_buf, x_buf + top_row_offset,
+      if (effective_col_size_ratio == 1 && y_lerp == 0) {
+        memcpy(out_buf, x_buf + batch_offset + top_ind * image_strides[1],
                sizeof(float) * new_width * num_channels);
         out_buf += (new_width * num_channels);
       } else {
-        for (int c = 0; c < new_width; ++c) {
-          const float source_frac_col = effective_col_size_ratio * c;
-          const int source_col_floor = std::floor(source_frac_col);
-          const float col_frac = source_frac_col - source_col_floor;
-          const int source_col_ceil =
-              std::min(old_width_m1, std::ceil(source_frac_col));
+        // tfjs::wasm::interpolate_bilinear(out_buf, x_buf, image_strides,
+        // new_width, old_width, old_width - 1, num_channels, 0.0, 0, );
 
-          const float* x_buf_top_left =
-              x_buf + top_row_offset + source_col_floor * x_strides[2];
-          const float* x_buf_bottom_left =
-              x_buf + bot_row_offset + source_col_floor * x_strides[2];
-          const float* x_buf_top_right =
-              x_buf + top_row_offset + source_col_ceil * x_strides[2];
-          const float* x_buf_bottom_right =
-              x_buf + bot_row_offset + source_col_ceil * x_strides[2];
+        for (int c = 0; c < new_width; ++c) {
+          const float c_ind = effective_col_size_ratio * c;
+          const int left_ind = std::floor(c_ind);
+          const float x_lerp = c_ind - left_ind;
+          const int right_ind = std::min(old_width_m1, std::ceil(c_ind));
+
+          const float* x_buf_top_left = x_buf + batch_offset +
+                                        top_ind * image_strides[1] +
+                                        left_ind * image_strides[2];
+          const float* x_buf_bottom_left = x_buf + batch_offset +
+                                           source_row_ceil * image_strides[1] +
+                                           left_ind * image_strides[2];
+          const float* x_buf_top_right = x_buf + batch_offset +
+                                         top_ind * image_strides[1] +
+                                         right_ind * image_strides[2];
+          const float* x_buf_bottom_right = x_buf + batch_offset +
+                                            source_row_ceil * image_strides[1] +
+                                            right_ind * image_strides[2];
 
           for (int d = 0; d < num_channels; ++d) {
             const float top_left = *x_buf_top_left;
@@ -101,10 +104,10 @@ void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
             const float top_right = *x_buf_top_right;
             const float bottom_right = *x_buf_bottom_right;
 
-            const float top = top_left + (top_right - top_left) * col_frac;
+            const float top = top_left + (top_right - top_left) * x_lerp;
             const float bottom =
-                bottom_left + (bottom_right - bottom_left) * col_frac;
-            *out_buf = top + (bottom - top) * row_frac;
+                bottom_left + (bottom_right - bottom_left) * x_lerp;
+            *out_buf = top + (bottom - top) * y_lerp;
             out_buf++;
 
             x_buf_top_left++;

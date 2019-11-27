@@ -29,8 +29,8 @@ namespace wasm {
 void interpolate_bilinear(float* out_buf_ptr, const float* images_buf,
                           const std::vector<int> images_strides, int crop_width,
                           int image_width, int image_width_m1, int num_channels,
-                          float extrapolation_value, int box_ind, float y_ind,
-                          float width_scale, float x1, float x2) {
+                          float extrapolation_value, int batch_offset,
+                          float y_ind, float width_scale, float x1, float x2) {
   float top_ind = floor(y_ind);
   float bottom_ind = ceil(y_ind);
   float y_lerp = y_ind - top_ind;
@@ -53,21 +53,21 @@ void interpolate_bilinear(float* out_buf_ptr, const float* images_buf,
 
     for (int c = 0; c < num_channels; ++c) {
       int ind = c + left_ind * images_strides[2] + top_ind * images_strides[1] +
-                box_ind;
+                batch_offset;
       const float top_left = images_buf[ind];
 
       ind = c + right_ind * images_strides[2] + top_ind * images_strides[1] +
-            box_ind;
+            batch_offset;
 
       const float top_right = images_buf[ind];
 
       ind = c + left_ind * images_strides[2] + bottom_ind * images_strides[1] +
-            box_ind;
+            batch_offset;
 
       const float bottom_left = images_buf[ind];
 
       ind = c + right_ind * images_strides[2] + bottom_ind * images_strides[1] +
-            box_ind;
+            batch_offset;
 
       const float bottom_right = images_buf[ind];
 

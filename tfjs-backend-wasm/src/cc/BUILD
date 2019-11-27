@@ -246,6 +246,7 @@ tfjs_cc_library(
   srcs = ["kernels/ResizeBilinear.cc"],
   deps = [
     ":backend",
+    ":interpolate_bilinear_impl",
     ":util",
   ],
 )
