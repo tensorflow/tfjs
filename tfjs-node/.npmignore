@@ -23,7 +23,6 @@ yarn-error.log
 .yalc/
 lib/
 deps/
-build-tmp-napi-v3/
-build-tmp-napi-v4/
+build-tmp-napi-v*/
 *.tar.gz
 *.zip
