@@ -188,8 +188,97 @@
    * limitations under the License.
    * =============================================================================
    */
-  var wasmAvgPool;
+  var wasmFunc;
+  function setupFunc(backend) {
+      wasmFunc = backend.wasm.cwrap('AddN', null /* void */, [
+          'array',
+          'number',
+          'number',
+          'number',
+      ]);
+  }
+  function addn(args) {
+      var inputs = args.inputs, backend = args.backend;
+      var out = backend.makeOutput(inputs[0].shape, inputs[0].dtype);
+      // Short-circuit zero-sized tensors.
+      if (tfjsCore.util.sizeFromShape(out.shape) === 0) {
+          return out;
+      }
+      var inputIds = inputs.map(function (x) { return backend.dataIdMap.get(x.dataId).id; });
+      var inputIdsBytes = new Uint8Array(new Int32Array(inputIds).buffer);
+      var outId = backend.dataIdMap.get(out.dataId).id;
+      wasmFunc(inputIdsBytes, inputIds.length, CppDType[out.dtype], outId);
+      return out;
+  }
+  tfjsCore.registerKernel({
+      kernelName: 'AddN',
+      backendName: 'wasm',
+      setupFunc: setupFunc,
+      kernelFunc: addn,
+  });
+
+  /**
+   * @license
+   * Copyright 2019 Google Inc. All Rights Reserved.
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   * http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   * =============================================================================
+   */
+  var wasmFunc$1;
   function setup(backend) {
+      wasmFunc$1 = backend.wasm.cwrap('ArgMax', null /* void */, [
+          'number',
+          'number',
+          'number',
+          'number',
+          'number' // out_id
+      ]);
+  }
+  function argmax(args) {
+      var x = args.inputs.x, backend = args.backend, axis = args.attrs.axis;
+      var outShape = x.shape.slice(0, -1);
+      var out = backend.makeOutput(outShape, 'int32');
+      var xId = backend.dataIdMap.get(x.dataId).id;
+      var outId = backend.dataIdMap.get(out.dataId).id;
+      var outerSize = tfjsCore.util.sizeFromShape(out.shape);
+      var innerSize = x.shape[axis];
+      wasmFunc$1(xId, CppDType[x.dtype], outerSize, innerSize, outId);
+      return out;
+  }
+  tfjsCore.registerKernel({
+      kernelName: 'ArgMax',
+      backendName: 'wasm',
+      kernelFunc: argmax,
+      setupFunc: setup
+  });
+
+  /**
+   * @license
+   * Copyright 2019 Google Inc. All Rights Reserved.
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   * http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   * =============================================================================
+   */
+  var wasmAvgPool;
+  function setup$1(backend) {
       wasmAvgPool = backend.wasm.cwrap('AvgPool', null /* void */, [
           'number',
           'number',
@@ -237,7 +326,7 @@
   tfjsCore.registerKernel({
       kernelName: 'AvgPool',
       backendName: 'wasm',
-      setupFunc: setup,
+      setupFunc: setup$1,
       kernelFunc: avgPool
   });
 
@@ -257,53 +346,8 @@
    * limitations under the License.
    * =============================================================================
    */
-  var wasmFunc;
-  function setupFunc(backend) {
-      wasmFunc = backend.wasm.cwrap('AddN', null /* void */, [
-          'array',
-          'number',
-          'number',
-          'number',
-      ]);
-  }
-  function addn(args) {
-      var inputs = args.inputs, backend = args.backend;
-      var out = backend.makeOutput(inputs[0].shape, inputs[0].dtype);
-      // Short-circuit zero-sized tensors.
-      if (tfjsCore.util.sizeFromShape(out.shape) === 0) {
-          return out;
-      }
-      var inputIds = inputs.map(function (x) { return backend.dataIdMap.get(x.dataId).id; });
-      var inputIdsBytes = new Uint8Array(new Int32Array(inputIds).buffer);
-      var outId = backend.dataIdMap.get(out.dataId).id;
-      wasmFunc(inputIdsBytes, inputIds.length, CppDType[out.dtype], outId);
-      return out;
-  }
-  tfjsCore.registerKernel({
-      kernelName: 'AddN',
-      backendName: 'wasm',
-      setupFunc: setupFunc,
-      kernelFunc: addn,
-  });
-
-  /**
-   * @license
-   * Copyright 2019 Google Inc. All Rights Reserved.
-   * Licensed under the Apache License, Version 2.0 (the "License");
-   * you may not use this file except in compliance with the License.
-   * You may obtain a copy of the License at
-   *
-   * http://www.apache.org/licenses/LICENSE-2.0
-   *
-   * Unless required by applicable law or agreed to in writing, software
-   * distributed under the License is distributed on an "AS IS" BASIS,
-   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   * See the License for the specific language governing permissions and
-   * limitations under the License.
-   * =============================================================================
-   */
   var wasmBatchMatMul;
-  function setup$1(backend) {
+  function setup$2(backend) {
       wasmBatchMatMul = backend.wasm.cwrap('BatchMatMul', null /* void */, [
           'number', 'number', 'number', 'number', 'number', 'number', 'number',
           'number', 'number', 'number', 'number', 'number', 'number'
@@ -338,7 +382,7 @@
   tfjsCore.registerKernel({
       kernelName: 'BatchMatMul',
       backendName: 'wasm',
-      setupFunc: setup$1,
+      setupFunc: setup$2,
       kernelFunc: batchMatMul
   });
 
@@ -389,7 +433,7 @@
    * =============================================================================
    */
   var wasmClip;
-  function setup$2(backend) {
+  function setup$3(backend) {
       wasmClip = backend.wasm.cwrap('ClipByValue', null /* void */, [
           'number',
           'number',
@@ -410,7 +454,7 @@
   tfjsCore.registerKernel({
       kernelName: 'ClipByValue',
       backendName: 'wasm',
-      setupFunc: setup$2,
+      setupFunc: setup$3,
       kernelFunc: clip
   });
 
@@ -478,7 +522,7 @@
    * =============================================================================
    */
   var wasmConv2d;
-  function setup$3(backend) {
+  function setup$4(backend) {
       wasmConv2d = backend.wasm.cwrap('Conv2D', null /* void */, [
           'number',
           'number',
@@ -532,7 +576,7 @@
   tfjsCore.registerKernel({
       kernelName: 'Conv2D',
       backendName: 'wasm',
-      setupFunc: setup$3,
+      setupFunc: setup$4,
       kernelFunc: conv2d
   });
 
@@ -559,7 +603,7 @@
       InterpolationMethod[InterpolationMethod["nearest"] = 1] = "nearest";
   })(InterpolationMethod || (InterpolationMethod = {}));
   var wasmCropAndResize;
-  function setup$4(backend) {
+  function setup$5(backend) {
       wasmCropAndResize = backend.wasm.cwrap('CropAndResize', null /*void*/, [
           'number',
           'number',
@@ -592,7 +636,7 @@
   tfjsCore.registerKernel({
       kernelName: 'CropAndResize',
       backendName: 'wasm',
-      setupFunc: setup$4,
+      setupFunc: setup$5,
       kernelFunc: cropAndResize
   });
 
@@ -613,7 +657,7 @@
    * =============================================================================
    */
   var wasmDepthwiseConv2d;
-  function setup$5(backend) {
+  function setup$6(backend) {
       wasmDepthwiseConv2d =
           backend.wasm.cwrap('DepthwiseConv2dNative', null /* void */, [
               'number',
@@ -668,7 +712,7 @@
   tfjsCore.registerKernel({
       kernelName: 'DepthwiseConv2dNative',
       backendName: 'wasm',
-      setupFunc: setup$5,
+      setupFunc: setup$6,
       kernelFunc: depthwiseConv2d
   });
 
@@ -706,8 +750,26 @@
    * limitations under the License.
    * =============================================================================
    */
+  registerBinaryKernel('FloorDiv');
+
+  /**
+   * @license
+   * Copyright 2019 Google Inc. All Rights Reserved.
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   * http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   * =============================================================================
+   */
   var wasmBatchNorm;
-  function setup$6(backend) {
+  function setup$7(backend) {
       wasmBatchNorm = backend.wasm.cwrap('FusedBatchNorm', null /* void */, ['number', 'number', 'number', 'number', 'number', 'number', 'number']);
   }
   function fusedBatchNorm(args) {
@@ -731,7 +793,7 @@
   tfjsCore.registerKernel({
       kernelName: 'BatchNormalization',
       backendName: 'wasm',
-      setupFunc: setup$6,
+      setupFunc: setup$7,
       kernelFunc: fusedBatchNorm
   });
 
@@ -752,8 +814,10 @@
    * =============================================================================
    */
   var wasmFusedConv2d;
-  function setup$7(backend) {
+  function setup$8(backend) {
       wasmFusedConv2d = backend.wasm.cwrap('FusedConv2D', null /* void */, [
+          'number',
+          'number',
           'number',
           'number',
           'number',
@@ -776,14 +840,23 @@
           'number',
       ]);
   }
+  // Must match enum in conv2d_impl.h.
+  var FusableActivation;
+  (function (FusableActivation) {
+      FusableActivation[FusableActivation["linear"] = 0] = "linear";
+      FusableActivation[FusableActivation["relu"] = 1] = "relu";
+      FusableActivation[FusableActivation["relu6"] = 2] = "relu6";
+      FusableActivation[FusableActivation["prelu"] = 3] = "prelu";
+  })(FusableActivation || (FusableActivation = {}));
   function fusedConv2d(args) {
       var inputs = args.inputs, attrs = args.attrs, backend = args.backend;
       var convInfo = attrs.convInfo, activation = attrs.activation;
-      if (activation !== 'linear') {
+      var fusedActivation = FusableActivation[activation];
+      if (fusedActivation == null) {
           throw new Error(activation + " activation not yet supported for FusedConv2D " +
               "in the wasm backend.");
       }
-      var x = inputs.x, filter = inputs.filter, bias = inputs.bias;
+      var x = inputs.x, filter = inputs.filter, bias = inputs.bias, preluActivationWeights = inputs.preluActivationWeights;
       var xId = backend.dataIdMap.get(x.dataId).id;
       var filterId = backend.dataIdMap.get(filter.dataId).id;
       var outputChannels = convInfo.outChannels;
@@ -821,13 +894,16 @@
       }
       var out = backend.makeOutput(convInfo.outShape, 'float32');
       var outId = backend.dataIdMap.get(out.dataId).id;
-      wasmFusedConv2d(xId, batchSize, inHeight, inWidth, filterId, filterHeight, filterWidth, biasId, padTop, padRight, padBottom, padLeft, isSamePad, dilationHeight, dilationWidth, strideHeight, strideWidth, inputChannels, outputChannels, outId);
+      var preluActivationWeightsId = preluActivationWeights == null ?
+          -1 :
+          backend.dataIdMap.get(preluActivationWeights.dataId).id;
+      wasmFusedConv2d(xId, batchSize, inHeight, inWidth, filterId, filterHeight, filterWidth, biasId, padTop, padRight, padBottom, padLeft, isSamePad, dilationHeight, dilationWidth, strideHeight, strideWidth, inputChannels, outputChannels, fusedActivation, preluActivationWeightsId, outId);
       return out;
   }
   tfjsCore.registerKernel({
       kernelName: 'FusedConv2D',
       backendName: 'wasm',
-      setupFunc: setup$7,
+      setupFunc: setup$8,
       kernelFunc: fusedConv2d
   });
 
@@ -847,8 +923,119 @@
    * limitations under the License.
    * =============================================================================
    */
+  var wasmFusedDepthwiseConv2d;
+  function setup$9(backend) {
+      wasmFusedDepthwiseConv2d =
+          backend.wasm.cwrap('FusedDepthwiseConv2D', null /* void */, [
+              'number',
+              'number',
+              'number',
+              'number',
+              'number',
+              'number',
+              'number',
+              'number',
+              'number',
+              'number',
+              'number',
+              'number',
+              'number',
+              'number',
+              'number',
+              'number',
+              'number',
+              'number',
+              'number',
+              'number',
+              'number',
+              'number',
+          ]);
+  }
+  // Must match enum in conv2d_impl.h.
+  var FusableActivation$1;
+  (function (FusableActivation) {
+      FusableActivation[FusableActivation["linear"] = 0] = "linear";
+      FusableActivation[FusableActivation["relu"] = 1] = "relu";
+      FusableActivation[FusableActivation["relu6"] = 2] = "relu6";
+      FusableActivation[FusableActivation["prelu"] = 3] = "prelu";
+  })(FusableActivation$1 || (FusableActivation$1 = {}));
+  function fusedDepthwiseConv2d(args) {
+      var inputs = args.inputs, attrs = args.attrs, backend = args.backend;
+      var convInfo = attrs.convInfo, activation = attrs.activation;
+      var fusedActivation = FusableActivation$1[activation];
+      if (fusedActivation == null) {
+          throw new Error(activation + " activation not yet supported for FusedDepthwiseConv2D " +
+              "in the wasm backend.");
+      }
+      var x = inputs.x, filter = inputs.filter, bias = inputs.bias, preluActivationWeights = inputs.preluActivationWeights;
+      var xId = backend.dataIdMap.get(x.dataId).id;
+      var filterId = backend.dataIdMap.get(filter.dataId).id;
+      var outputChannels = convInfo.outChannels;
+      var biasId = -1;
+      if (bias != null) {
+          var biasData = backend.dataIdMap.get(bias.dataId);
+          if (biasData.shape.length !== 1) {
+              throw new Error("FusedDepthwiseConv2D only supports rank-1 bias but got " +
+                  ("rank " + biasData.shape.length + "."));
+          }
+          if (biasData.shape[0] !== outputChannels) {
+              throw new Error("FusedDepthwiseConv2D bias shape (" + biasData.shape + ") does not " +
+                  ("match the number of output channels (" + outputChannels + ")"));
+          }
+          biasId = biasData.id;
+      }
+      var filterHeight = convInfo.filterHeight;
+      var filterWidth = convInfo.filterWidth;
+      var padTop = convInfo.padInfo.top;
+      var padRight = convInfo.padInfo.right;
+      var padBottom = convInfo.padInfo.bottom;
+      var padLeft = convInfo.padInfo.left;
+      var dilationHeight = convInfo.dilationHeight;
+      var dilationWidth = convInfo.dilationWidth;
+      var strideHeight = convInfo.strideHeight;
+      var strideWidth = convInfo.strideWidth;
+      var inputChannels = convInfo.inChannels;
+      var isSamePad = convInfo.padInfo.type === 'SAME' ? 1 : 0;
+      var batchSize = convInfo.batchSize;
+      var inHeight = convInfo.inHeight;
+      var inWidth = convInfo.inWidth;
+      if (convInfo.dataFormat !== 'channelsLast') {
+          throw new Error("wasm backend FusedDepthwiseConv2D does not support dataFormat:'" +
+              (convInfo.dataFormat + "'. Please use 'channelsLast'."));
+      }
+      var out = backend.makeOutput(convInfo.outShape, 'float32');
+      var outId = backend.dataIdMap.get(out.dataId).id;
+      var preluActivationWeightsId = preluActivationWeights == null ?
+          -1 :
+          backend.dataIdMap.get(preluActivationWeights.dataId).id;
+      wasmFusedDepthwiseConv2d(xId, batchSize, inHeight, inWidth, filterId, filterHeight, filterWidth, biasId, padTop, padRight, padBottom, padLeft, isSamePad, dilationHeight, dilationWidth, strideHeight, strideWidth, inputChannels, outputChannels, fusedActivation, preluActivationWeightsId, outId);
+      return out;
+  }
+  tfjsCore.registerKernel({
+      kernelName: 'FusedDepthwiseConv2D',
+      backendName: 'wasm',
+      setupFunc: setup$9,
+      kernelFunc: fusedDepthwiseConv2d
+  });
+
+  /**
+   * @license
+   * Copyright 2019 Google Inc. All Rights Reserved.
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   * http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   * =============================================================================
+   */
   var wasmMax;
-  function setup$8(backend) {
+  function setup$a(backend) {
       wasmMax =
           backend.wasm.cwrap('Max', null /*void*/, ['number, number, number']);
   }
@@ -871,7 +1058,7 @@
   tfjsCore.registerKernel({
       kernelName: 'Max',
       backendName: 'wasm',
-      setupFunc: setup$8,
+      setupFunc: setup$a,
       kernelFunc: max
   });
 
@@ -892,7 +1079,7 @@
    * =============================================================================
    */
   var wasmMaxPool;
-  function setup$9(backend) {
+  function setup$b(backend) {
       wasmMaxPool = backend.wasm.cwrap('MaxPool', null /* void */, [
           'number',
           'number',
@@ -942,7 +1129,7 @@
   tfjsCore.registerKernel({
       kernelName: 'MaxPool',
       backendName: 'wasm',
-      setupFunc: setup$9,
+      setupFunc: setup$b,
       kernelFunc: maxPool
   });
 
@@ -963,7 +1150,7 @@
    * =============================================================================
    */
   var wasmMin;
-  function setup$a(backend) {
+  function setup$c(backend) {
       wasmMin =
           backend.wasm.cwrap('Min', null /*void*/, ['number, number, number']);
   }
@@ -986,7 +1173,7 @@
   tfjsCore.registerKernel({
       kernelName: 'Min',
       backendName: 'wasm',
-      setupFunc: setup$a,
+      setupFunc: setup$c,
       kernelFunc: min
   });
 
@@ -1024,8 +1211,67 @@
    * limitations under the License.
    * =============================================================================
    */
+  /**
+   * Parse the result of the c++ method, which is a data structure with two ints
+   * (memOffset and size).
+   */
+  function parseResultStruct(backend, resOffset) {
+      // The result of c++ method is a data structure with two ints (memOffset, and
+      // size).
+      var result = new Int32Array(backend.wasm.HEAPU8.buffer, resOffset, 2);
+      var memOffset = result[0];
+      var size = result[1];
+      // Since the result was allocated on the heap, we have to delete it.
+      backend.wasm._free(resOffset);
+      return { memOffset: memOffset, size: size };
+  }
+  var wasmFunc$2;
+  function setup$d(backend) {
+      wasmFunc$2 = backend.wasm.cwrap('NonMaxSuppressionV3', 'number', // Result*
+      [
+          'number',
+          'number',
+          'number',
+          'number',
+          'number',
+      ]);
+  }
+  function kernelFunc(args) {
+      var backend = args.backend, inputs = args.inputs, attrs = args.attrs;
+      var iouThreshold = attrs.iouThreshold, maxOutputSize = attrs.maxOutputSize, scoreThreshold = attrs.scoreThreshold;
+      var boxes = inputs.boxes, scores = inputs.scores;
+      var boxesId = backend.dataIdMap.get(boxes.dataId).id;
+      var scoresId = backend.dataIdMap.get(scores.dataId).id;
+      var resOffset = wasmFunc$2(boxesId, scoresId, maxOutputSize, iouThreshold, scoreThreshold);
+      var _a = parseResultStruct(backend, resOffset), memOffset = _a.memOffset, size = _a.size;
+      var outShape = [size];
+      return backend.makeOutput(outShape, 'int32', memOffset);
+  }
+  tfjsCore.registerKernel({
+      kernelName: 'NonMaxSuppressionV3',
+      backendName: 'wasm',
+      setupFunc: setup$d,
+      kernelFunc: kernelFunc,
+  });
+
+  /**
+   * @license
+   * Copyright 2019 Google Inc. All Rights Reserved.
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   * http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   * =============================================================================
+   */
   var wasmPadV2;
-  function setup$b(backend) {
+  function setup$e(backend) {
       wasmPadV2 = backend.wasm.cwrap('PadV2', null /* void */, [
           'number',
           'array',
@@ -1052,7 +1298,7 @@
       kernelName: 'PadV2',
       backendName: 'wasm',
       kernelFunc: pad,
-      setupFunc: setup$b
+      setupFunc: setup$e
   });
 
   /**
@@ -1072,7 +1318,7 @@
    * =============================================================================
    */
   var wasmPrelu;
-  function setup$c(backend) {
+  function setup$f(backend) {
       wasmPrelu = backend.wasm.cwrap('Prelu', null /* void */, [
           'number',
           'number',
@@ -1092,7 +1338,7 @@
   tfjsCore.registerKernel({
       kernelName: 'Prelu',
       backendName: 'wasm',
-      setupFunc: setup$c,
+      setupFunc: setup$f,
       kernelFunc: prelu
   });
 
@@ -1120,6 +1366,94 @@
       kernelName: 'Reshape',
       backendName: 'wasm',
       kernelFunc: reshape,
+  });
+
+  /**
+   * @license
+   * Copyright 2019 Google Inc. All Rights Reserved.
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   * http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   * =============================================================================
+   */
+  registerUnaryKernel('Relu');
+
+  /**
+   * @license
+   * Copyright 2019 Google Inc. All Rights Reserved.
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   * http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   * =============================================================================
+   */
+  registerUnaryKernel('Relu6');
+
+  /**
+   * @license
+   * Copyright 2019 Google Inc. All Rights Reserved.
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   * http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   * =============================================================================
+   */
+  var wasmResizeBilinear;
+  function setup$g(backend) {
+      wasmResizeBilinear = backend.wasm.cwrap('ResizeBilinear', null /*void*/, [
+          'number',
+          'number',
+          'number',
+          'number',
+          'number',
+          'number',
+          'number',
+          'number',
+          'number' // outId
+      ]);
+  }
+  function cropAndResize$1(args) {
+      var backend = args.backend, inputs = args.inputs, attrs = args.attrs;
+      var x = inputs.x;
+      var alignCorners = attrs.alignCorners, newHeight = attrs.newHeight, newWidth = attrs.newWidth;
+      var _a = x.shape, batch = _a[0], oldHeight = _a[1], oldWidth = _a[2], numChannels = _a[3];
+      var outShape = [batch, newHeight, newWidth, numChannels];
+      var xId = backend.dataIdMap.get(x.dataId).id;
+      var out = backend.makeOutput(outShape, x.dtype);
+      if (tfjsCore.util.sizeFromShape(x.shape) === 0) {
+          return out;
+      }
+      var outId = backend.dataIdMap.get(out.dataId).id;
+      wasmResizeBilinear(xId, batch, oldHeight, oldWidth, numChannels, newHeight, newWidth, alignCorners ? 1 : 0, outId);
+      return out;
+  }
+  tfjsCore.registerKernel({
+      kernelName: 'ResizeBilinear',
+      backendName: 'wasm',
+      setupFunc: setup$g,
+      kernelFunc: cropAndResize$1
   });
 
   /**
@@ -1296,7 +1630,7 @@
    * =============================================================================
    */
   var wasmTranspose;
-  function setup$d(backend) {
+  function setup$h(backend) {
       wasmTranspose = backend.wasm.cwrap('Transpose', null /* void */, [
           'number',
           'array',
@@ -1369,7 +1703,7 @@
       kernelName: 'Transpose',
       backendName: 'wasm',
       kernelFunc: transpose,
-      setupFunc: setup$d,
+      setupFunc: setup$h,
   });
 
   /*! *****************************************************************************
@@ -1449,7 +1783,7 @@
   function(WasmBackendModule) {
     WasmBackendModule = WasmBackendModule || {};
 
-  var Module=typeof WasmBackendModule!=="undefined"?WasmBackendModule:{};var moduleOverrides={};var key;for(key in Module){if(Module.hasOwnProperty(key)){moduleOverrides[key]=Module[key];}}var arguments_=[];var thisProgram="./this.program";var quit_=function(status,toThrow){throw toThrow};var ENVIRONMENT_IS_WEB=true;var scriptDirectory="";function locateFile(path){if(Module["locateFile"]){return Module["locateFile"](path,scriptDirectory)}return scriptDirectory+path}var readBinary;{if(document.currentScript){scriptDirectory=document.currentScript.src;}if(_scriptDir){scriptDirectory=_scriptDir;}if(scriptDirectory.indexOf("blob:")!==0){scriptDirectory=scriptDirectory.substr(0,scriptDirectory.lastIndexOf("/")+1);}else{scriptDirectory="";}}var out=Module["print"]||console.log.bind(console);var err=Module["printErr"]||console.warn.bind(console);for(key in moduleOverrides){if(moduleOverrides.hasOwnProperty(key)){Module[key]=moduleOverrides[key];}}moduleOverrides=null;if(Module["arguments"])arguments_=Module["arguments"];if(Module["thisProgram"])thisProgram=Module["thisProgram"];if(Module["quit"])quit_=Module["quit"];var wasmBinary;if(Module["wasmBinary"])wasmBinary=Module["wasmBinary"];var noExitRuntime;if(Module["noExitRuntime"])noExitRuntime=Module["noExitRuntime"];if(typeof WebAssembly!=="object"){err("no native wasm support detected");}var wasmMemory;var wasmTable=new WebAssembly.Table({"initial":79,"maximum":79+0,"element":"anyfunc"});var ABORT=false;function assert(condition,text){if(!condition){abort("Assertion failed: "+text);}}function getCFunc(ident){var func=Module["_"+ident];assert(func,"Cannot call unknown function "+ident+", make sure it is exported");return func}function ccall(ident,returnType,argTypes,args,opts){var toC={"string":function(str){var ret=0;if(str!==null&&str!==undefined&&str!==0){var len=(str.length<<2)+1;ret=stackAlloc(len);stringToUTF8(str,ret,len);}return ret},"array":function(arr){var ret=stackAlloc(arr.length);writeArrayToMemory(arr,ret);return ret}};function convertReturnValue(ret){if(returnType==="string")return UTF8ToString(ret);if(returnType==="boolean")return Boolean(ret);return ret}var func=getCFunc(ident);var cArgs=[];var stack=0;if(args){for(var i=0;i<args.length;i++){var converter=toC[argTypes[i]];if(converter){if(stack===0)stack=stackSave();cArgs[i]=converter(args[i]);}else{cArgs[i]=args[i];}}}var ret=func.apply(null,cArgs);ret=convertReturnValue(ret);if(stack!==0)stackRestore(stack);return ret}function cwrap(ident,returnType,argTypes,opts){argTypes=argTypes||[];var numericArgs=argTypes.every(function(type){return type==="number"});var numericRet=returnType!=="string";if(numericRet&&numericArgs&&!opts){return getCFunc(ident)}return function(){return ccall(ident,returnType,argTypes,arguments)}}var UTF8Decoder=typeof TextDecoder!=="undefined"?new TextDecoder("utf8"):undefined;function UTF8ArrayToString(u8Array,idx,maxBytesToRead){var endIdx=idx+maxBytesToRead;var endPtr=idx;while(u8Array[endPtr]&&!(endPtr>=endIdx))++endPtr;if(endPtr-idx>16&&u8Array.subarray&&UTF8Decoder){return UTF8Decoder.decode(u8Array.subarray(idx,endPtr))}else{var str="";while(idx<endPtr){var u0=u8Array[idx++];if(!(u0&128)){str+=String.fromCharCode(u0);continue}var u1=u8Array[idx++]&63;if((u0&224)==192){str+=String.fromCharCode((u0&31)<<6|u1);continue}var u2=u8Array[idx++]&63;if((u0&240)==224){u0=(u0&15)<<12|u1<<6|u2;}else{u0=(u0&7)<<18|u1<<12|u2<<6|u8Array[idx++]&63;}if(u0<65536){str+=String.fromCharCode(u0);}else{var ch=u0-65536;str+=String.fromCharCode(55296|ch>>10,56320|ch&1023);}}}return str}function UTF8ToString(ptr,maxBytesToRead){return ptr?UTF8ArrayToString(HEAPU8,ptr,maxBytesToRead):""}function stringToUTF8Array(str,outU8Array,outIdx,maxBytesToWrite){if(!(maxBytesToWrite>0))return 0;var startIdx=outIdx;var endIdx=outIdx+maxBytesToWrite-1;for(var i=0;i<str.length;++i){var u=str.charCodeAt(i);if(u>=55296&&u<=57343){var u1=str.charCodeAt(++i);u=65536+((u&1023)<<10)|u1&1023;}if(u<=127){if(outIdx>=endIdx)break;outU8Array[outIdx++]=u;}else if(u<=2047){if(outIdx+1>=endIdx)break;outU8Array[outIdx++]=192|u>>6;outU8Array[outIdx++]=128|u&63;}else if(u<=65535){if(outIdx+2>=endIdx)break;outU8Array[outIdx++]=224|u>>12;outU8Array[outIdx++]=128|u>>6&63;outU8Array[outIdx++]=128|u&63;}else{if(outIdx+3>=endIdx)break;outU8Array[outIdx++]=240|u>>18;outU8Array[outIdx++]=128|u>>12&63;outU8Array[outIdx++]=128|u>>6&63;outU8Array[outIdx++]=128|u&63;}}outU8Array[outIdx]=0;return outIdx-startIdx}function stringToUTF8(str,outPtr,maxBytesToWrite){return stringToUTF8Array(str,HEAPU8,outPtr,maxBytesToWrite)}var UTF16Decoder=typeof TextDecoder!=="undefined"?new TextDecoder("utf-16le"):undefined;function writeArrayToMemory(array,buffer){HEAP8.set(array,buffer);}var WASM_PAGE_SIZE=65536;function alignUp(x,multiple){if(x%multiple>0){x+=multiple-x%multiple;}return x}var buffer,HEAP8,HEAPU8,HEAP16,HEAPU16,HEAP32,HEAPU32,HEAPF32,HEAPF64;function updateGlobalBufferAndViews(buf){buffer=buf;Module["HEAP8"]=HEAP8=new Int8Array(buf);Module["HEAP16"]=HEAP16=new Int16Array(buf);Module["HEAP32"]=HEAP32=new Int32Array(buf);Module["HEAPU8"]=HEAPU8=new Uint8Array(buf);Module["HEAPU16"]=HEAPU16=new Uint16Array(buf);Module["HEAPU32"]=HEAPU32=new Uint32Array(buf);Module["HEAPF32"]=HEAPF32=new Float32Array(buf);Module["HEAPF64"]=HEAPF64=new Float64Array(buf);}var DYNAMIC_BASE=5247648,DYNAMICTOP_PTR=4608;var INITIAL_TOTAL_MEMORY=Module["TOTAL_MEMORY"]||16777216;if(Module["wasmMemory"]){wasmMemory=Module["wasmMemory"];}else{wasmMemory=new WebAssembly.Memory({"initial":INITIAL_TOTAL_MEMORY/WASM_PAGE_SIZE});}if(wasmMemory){buffer=wasmMemory.buffer;}INITIAL_TOTAL_MEMORY=buffer.byteLength;updateGlobalBufferAndViews(buffer);HEAP32[DYNAMICTOP_PTR>>2]=DYNAMIC_BASE;function callRuntimeCallbacks(callbacks){while(callbacks.length>0){var callback=callbacks.shift();if(typeof callback=="function"){callback();continue}var func=callback.func;if(typeof func==="number"){if(callback.arg===undefined){Module["dynCall_v"](func);}else{Module["dynCall_vi"](func,callback.arg);}}else{func(callback.arg===undefined?null:callback.arg);}}}var __ATPRERUN__=[];var __ATINIT__=[];var __ATMAIN__=[];var __ATPOSTRUN__=[];function preRun(){if(Module["preRun"]){if(typeof Module["preRun"]=="function")Module["preRun"]=[Module["preRun"]];while(Module["preRun"].length){addOnPreRun(Module["preRun"].shift());}}callRuntimeCallbacks(__ATPRERUN__);}function initRuntime(){callRuntimeCallbacks(__ATINIT__);}function preMain(){callRuntimeCallbacks(__ATMAIN__);}function postRun(){if(Module["postRun"]){if(typeof Module["postRun"]=="function")Module["postRun"]=[Module["postRun"]];while(Module["postRun"].length){addOnPostRun(Module["postRun"].shift());}}callRuntimeCallbacks(__ATPOSTRUN__);}function addOnPreRun(cb){__ATPRERUN__.unshift(cb);}function addOnPostRun(cb){__ATPOSTRUN__.unshift(cb);}var Math_ceil=Math.ceil;var Math_floor=Math.floor;var runDependencies=0;var runDependencyWatcher=null;var dependenciesFulfilled=null;function addRunDependency(id){runDependencies++;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies);}}function removeRunDependency(id){runDependencies--;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies);}if(runDependencies==0){if(runDependencyWatcher!==null){clearInterval(runDependencyWatcher);runDependencyWatcher=null;}if(dependenciesFulfilled){var callback=dependenciesFulfilled;dependenciesFulfilled=null;callback();}}}Module["preloadedImages"]={};Module["preloadedAudios"]={};function abort(what){if(Module["onAbort"]){Module["onAbort"](what);}what+="";out(what);err(what);ABORT=true;what="abort("+what+"). Build with -s ASSERTIONS=1 for more info.";throw new WebAssembly.RuntimeError(what)}var dataURIPrefix="data:application/octet-stream;base64,";function isDataURI(filename){return String.prototype.startsWith?filename.startsWith(dataURIPrefix):filename.indexOf(dataURIPrefix)===0}var wasmBinaryFile="tfjs-backend-wasm.wasm";if(!isDataURI(wasmBinaryFile)){wasmBinaryFile=locateFile(wasmBinaryFile);}function getBinary(){try{if(wasmBinary){return new Uint8Array(wasmBinary)}if(readBinary){return readBinary(wasmBinaryFile)}else{throw "both async and sync fetching of the wasm failed"}}catch(err){abort(err);}}function getBinaryPromise(){if(!wasmBinary&&(ENVIRONMENT_IS_WEB)&&typeof fetch==="function"){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){if(!response["ok"]){throw "failed to load wasm binary file at '"+wasmBinaryFile+"'"}return response["arrayBuffer"]()}).catch(function(){return getBinary()})}return new Promise(function(resolve,reject){resolve(getBinary());})}function createWasm(){var info={"env":asmLibraryArg,"wasi_unstable":asmLibraryArg};function receiveInstance(instance,module){var exports=instance.exports;Module["asm"]=exports;removeRunDependency();}addRunDependency();function receiveInstantiatedSource(output){receiveInstance(output["instance"]);}function instantiateArrayBuffer(receiver){return getBinaryPromise().then(function(binary){return WebAssembly.instantiate(binary,info)}).then(receiver,function(reason){err("failed to asynchronously prepare wasm: "+reason);abort(reason);})}function instantiateAsync(){if(!wasmBinary&&typeof WebAssembly.instantiateStreaming==="function"&&!isDataURI(wasmBinaryFile)&&typeof fetch==="function"){fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){var result=WebAssembly.instantiateStreaming(response,info);return result.then(receiveInstantiatedSource,function(reason){err("wasm streaming compile failed: "+reason);err("falling back to ArrayBuffer instantiation");instantiateArrayBuffer(receiveInstantiatedSource);})});}else{return instantiateArrayBuffer(receiveInstantiatedSource)}}if(Module["instantiateWasm"]){try{var exports=Module["instantiateWasm"](info,receiveInstance);return exports}catch(e){err("Module.instantiateWasm callback failed with error: "+e);return false}}instantiateAsync();return {}}__ATINIT__.push({func:function(){___wasm_call_ctors();}});function _abort(){abort();}function _emscripten_memcpy_big(dest,src,num){HEAPU8.set(HEAPU8.subarray(src,src+num),dest);}function _emscripten_get_heap_size(){return HEAP8.length}function emscripten_realloc_buffer(size){try{wasmMemory.grow(size-buffer.byteLength+65535>>16);updateGlobalBufferAndViews(wasmMemory.buffer);return 1}catch(e){}}function _emscripten_resize_heap(requestedSize){var oldSize=_emscripten_get_heap_size();var PAGE_MULTIPLE=65536;var LIMIT=2147483648-PAGE_MULTIPLE;if(requestedSize>LIMIT){return false}var MIN_TOTAL_MEMORY=16777216;var newSize=Math.max(oldSize,MIN_TOTAL_MEMORY);while(newSize<requestedSize){if(newSize<=536870912){newSize=alignUp(2*newSize,PAGE_MULTIPLE);}else{newSize=Math.min(alignUp((3*newSize+2147483648)/4,PAGE_MULTIPLE),LIMIT);}}var replacement=emscripten_realloc_buffer(newSize);if(!replacement){return false}return true}var SYSCALLS={buffers:[null,[],[]],printChar:function(stream,curr){var buffer=SYSCALLS.buffers[stream];if(curr===0||curr===10){(stream===1?out:err)(UTF8ArrayToString(buffer,0));buffer.length=0;}else{buffer.push(curr);}},varargs:0,get:function(varargs){SYSCALLS.varargs+=4;var ret=HEAP32[SYSCALLS.varargs-4>>2];return ret},getStr:function(){var ret=UTF8ToString(SYSCALLS.get());return ret},get64:function(){var low=SYSCALLS.get(),high=SYSCALLS.get();return low},getZero:function(){SYSCALLS.get();}};function _fd_close(fd){try{return 0}catch(e){if(typeof FS==="undefined"||!(e instanceof FS.ErrnoError))abort(e);return e.errno}}function _fd_seek(fd,offset_low,offset_high,whence,newOffset){try{return 0}catch(e){if(typeof FS==="undefined"||!(e instanceof FS.ErrnoError))abort(e);return e.errno}}function _fd_write(fd,iov,iovcnt,pnum){try{var num=0;for(var i=0;i<iovcnt;i++){var ptr=HEAP32[iov+i*8>>2];var len=HEAP32[iov+(i*8+4)>>2];for(var j=0;j<len;j++){SYSCALLS.printChar(fd,HEAPU8[ptr+j]);}num+=len;}HEAP32[pnum>>2]=num;return 0}catch(e){if(typeof FS==="undefined"||!(e instanceof FS.ErrnoError))abort(e);return e.errno}}function _roundf(d){d=+d;return d>=+0?+Math_floor(d+ +.5):+Math_ceil(d-+.5)}var asmLibraryArg={"a":_abort,"d":_emscripten_memcpy_big,"e":_emscripten_resize_heap,"g":_fd_close,"c":_fd_seek,"f":_fd_write,"memory":wasmMemory,"b":_roundf,"table":wasmTable};var asm=createWasm();Module["asm"]=asm;var ___wasm_call_ctors=Module["___wasm_call_ctors"]=function(){return Module["asm"]["h"].apply(null,arguments)};var _init=Module["_init"]=function(){return Module["asm"]["i"].apply(null,arguments)};var _register_tensor=Module["_register_tensor"]=function(){return Module["asm"]["j"].apply(null,arguments)};var _dispose_data=Module["_dispose_data"]=function(){return Module["asm"]["k"].apply(null,arguments)};var _dispose=Module["_dispose"]=function(){return Module["asm"]["l"].apply(null,arguments)};var _Abs=Module["_Abs"]=function(){return Module["asm"]["m"].apply(null,arguments)};var _Add=Module["_Add"]=function(){return Module["asm"]["n"].apply(null,arguments)};var _AddN=Module["_AddN"]=function(){return Module["asm"]["o"].apply(null,arguments)};var _AvgPool=Module["_AvgPool"]=function(){return Module["asm"]["p"].apply(null,arguments)};var _BatchMatMul=Module["_BatchMatMul"]=function(){return Module["asm"]["q"].apply(null,arguments)};var _ClipByValue=Module["_ClipByValue"]=function(){return Module["asm"]["r"].apply(null,arguments)};var _Conv2D=Module["_Conv2D"]=function(){return Module["asm"]["s"].apply(null,arguments)};var _CropAndResize=Module["_CropAndResize"]=function(){return Module["asm"]["t"].apply(null,arguments)};var _DepthwiseConv2dNative=Module["_DepthwiseConv2dNative"]=function(){return Module["asm"]["u"].apply(null,arguments)};var _Div=Module["_Div"]=function(){return Module["asm"]["v"].apply(null,arguments)};var _FusedBatchNorm=Module["_FusedBatchNorm"]=function(){return Module["asm"]["w"].apply(null,arguments)};var _FusedConv2D=Module["_FusedConv2D"]=function(){return Module["asm"]["x"].apply(null,arguments)};var _Max=Module["_Max"]=function(){return Module["asm"]["y"].apply(null,arguments)};var _MaxPool=Module["_MaxPool"]=function(){return Module["asm"]["z"].apply(null,arguments)};var _Min=Module["_Min"]=function(){return Module["asm"]["A"].apply(null,arguments)};var _Mul=Module["_Mul"]=function(){return Module["asm"]["B"].apply(null,arguments)};var _PadV2=Module["_PadV2"]=function(){return Module["asm"]["C"].apply(null,arguments)};var _Prelu=Module["_Prelu"]=function(){return Module["asm"]["D"].apply(null,arguments)};var _Sigmoid=Module["_Sigmoid"]=function(){return Module["asm"]["E"].apply(null,arguments)};var _Square=Module["_Square"]=function(){return Module["asm"]["F"].apply(null,arguments)};var _Sub=Module["_Sub"]=function(){return Module["asm"]["G"].apply(null,arguments)};var _Transpose=Module["_Transpose"]=function(){return Module["asm"]["H"].apply(null,arguments)};var _malloc=Module["_malloc"]=function(){return Module["asm"]["I"].apply(null,arguments)};var _free=Module["_free"]=function(){return Module["asm"]["J"].apply(null,arguments)};var stackSave=Module["stackSave"]=function(){return Module["asm"]["K"].apply(null,arguments)};var stackAlloc=Module["stackAlloc"]=function(){return Module["asm"]["L"].apply(null,arguments)};var stackRestore=Module["stackRestore"]=function(){return Module["asm"]["M"].apply(null,arguments)};var dynCall_vi=Module["dynCall_vi"]=function(){return Module["asm"]["N"].apply(null,arguments)};var dynCall_v=Module["dynCall_v"]=function(){return Module["asm"]["O"].apply(null,arguments)};Module["asm"]=asm;Module["cwrap"]=cwrap;var calledRun;Module["then"]=function(func){if(calledRun){func(Module);}else{var old=Module["onRuntimeInitialized"];Module["onRuntimeInitialized"]=function(){if(old)old();func(Module);};}return Module};dependenciesFulfilled=function runCaller(){if(!calledRun)run();if(!calledRun)dependenciesFulfilled=runCaller;};function run(args){if(runDependencies>0){return}preRun();if(runDependencies>0)return;function doRun(){if(calledRun)return;calledRun=true;if(ABORT)return;initRuntime();preMain();if(Module["onRuntimeInitialized"])Module["onRuntimeInitialized"]();postRun();}if(Module["setStatus"]){Module["setStatus"]("Running...");setTimeout(function(){setTimeout(function(){Module["setStatus"]("");},1);doRun();},1);}else{doRun();}}Module["run"]=run;if(Module["preInit"]){if(typeof Module["preInit"]=="function")Module["preInit"]=[Module["preInit"]];while(Module["preInit"].length>0){Module["preInit"].pop()();}}noExitRuntime=true;run();
+  var Module=typeof WasmBackendModule!=="undefined"?WasmBackendModule:{};var moduleOverrides={};var key;for(key in Module){if(Module.hasOwnProperty(key)){moduleOverrides[key]=Module[key];}}var arguments_=[];var thisProgram="./this.program";var quit_=function(status,toThrow){throw toThrow};var ENVIRONMENT_IS_WEB=true;var scriptDirectory="";function locateFile(path){if(Module["locateFile"]){return Module["locateFile"](path,scriptDirectory)}return scriptDirectory+path}var readBinary;{if(document.currentScript){scriptDirectory=document.currentScript.src;}if(_scriptDir){scriptDirectory=_scriptDir;}if(scriptDirectory.indexOf("blob:")!==0){scriptDirectory=scriptDirectory.substr(0,scriptDirectory.lastIndexOf("/")+1);}else{scriptDirectory="";}}var out=Module["print"]||console.log.bind(console);var err=Module["printErr"]||console.warn.bind(console);for(key in moduleOverrides){if(moduleOverrides.hasOwnProperty(key)){Module[key]=moduleOverrides[key];}}moduleOverrides=null;if(Module["arguments"])arguments_=Module["arguments"];if(Module["thisProgram"])thisProgram=Module["thisProgram"];if(Module["quit"])quit_=Module["quit"];var wasmBinary;if(Module["wasmBinary"])wasmBinary=Module["wasmBinary"];var noExitRuntime;if(Module["noExitRuntime"])noExitRuntime=Module["noExitRuntime"];if(typeof WebAssembly!=="object"){err("no native wasm support detected");}var wasmMemory;var wasmTable=new WebAssembly.Table({"initial":79,"maximum":79+0,"element":"anyfunc"});var ABORT=false;function assert(condition,text){if(!condition){abort("Assertion failed: "+text);}}function getCFunc(ident){var func=Module["_"+ident];assert(func,"Cannot call unknown function "+ident+", make sure it is exported");return func}function ccall(ident,returnType,argTypes,args,opts){var toC={"string":function(str){var ret=0;if(str!==null&&str!==undefined&&str!==0){var len=(str.length<<2)+1;ret=stackAlloc(len);stringToUTF8(str,ret,len);}return ret},"array":function(arr){var ret=stackAlloc(arr.length);writeArrayToMemory(arr,ret);return ret}};function convertReturnValue(ret){if(returnType==="string")return UTF8ToString(ret);if(returnType==="boolean")return Boolean(ret);return ret}var func=getCFunc(ident);var cArgs=[];var stack=0;if(args){for(var i=0;i<args.length;i++){var converter=toC[argTypes[i]];if(converter){if(stack===0)stack=stackSave();cArgs[i]=converter(args[i]);}else{cArgs[i]=args[i];}}}var ret=func.apply(null,cArgs);ret=convertReturnValue(ret);if(stack!==0)stackRestore(stack);return ret}function cwrap(ident,returnType,argTypes,opts){argTypes=argTypes||[];var numericArgs=argTypes.every(function(type){return type==="number"});var numericRet=returnType!=="string";if(numericRet&&numericArgs&&!opts){return getCFunc(ident)}return function(){return ccall(ident,returnType,argTypes,arguments)}}var UTF8Decoder=typeof TextDecoder!=="undefined"?new TextDecoder("utf8"):undefined;function UTF8ArrayToString(u8Array,idx,maxBytesToRead){var endIdx=idx+maxBytesToRead;var endPtr=idx;while(u8Array[endPtr]&&!(endPtr>=endIdx))++endPtr;if(endPtr-idx>16&&u8Array.subarray&&UTF8Decoder){return UTF8Decoder.decode(u8Array.subarray(idx,endPtr))}else{var str="";while(idx<endPtr){var u0=u8Array[idx++];if(!(u0&128)){str+=String.fromCharCode(u0);continue}var u1=u8Array[idx++]&63;if((u0&224)==192){str+=String.fromCharCode((u0&31)<<6|u1);continue}var u2=u8Array[idx++]&63;if((u0&240)==224){u0=(u0&15)<<12|u1<<6|u2;}else{u0=(u0&7)<<18|u1<<12|u2<<6|u8Array[idx++]&63;}if(u0<65536){str+=String.fromCharCode(u0);}else{var ch=u0-65536;str+=String.fromCharCode(55296|ch>>10,56320|ch&1023);}}}return str}function UTF8ToString(ptr,maxBytesToRead){return ptr?UTF8ArrayToString(HEAPU8,ptr,maxBytesToRead):""}function stringToUTF8Array(str,outU8Array,outIdx,maxBytesToWrite){if(!(maxBytesToWrite>0))return 0;var startIdx=outIdx;var endIdx=outIdx+maxBytesToWrite-1;for(var i=0;i<str.length;++i){var u=str.charCodeAt(i);if(u>=55296&&u<=57343){var u1=str.charCodeAt(++i);u=65536+((u&1023)<<10)|u1&1023;}if(u<=127){if(outIdx>=endIdx)break;outU8Array[outIdx++]=u;}else if(u<=2047){if(outIdx+1>=endIdx)break;outU8Array[outIdx++]=192|u>>6;outU8Array[outIdx++]=128|u&63;}else if(u<=65535){if(outIdx+2>=endIdx)break;outU8Array[outIdx++]=224|u>>12;outU8Array[outIdx++]=128|u>>6&63;outU8Array[outIdx++]=128|u&63;}else{if(outIdx+3>=endIdx)break;outU8Array[outIdx++]=240|u>>18;outU8Array[outIdx++]=128|u>>12&63;outU8Array[outIdx++]=128|u>>6&63;outU8Array[outIdx++]=128|u&63;}}outU8Array[outIdx]=0;return outIdx-startIdx}function stringToUTF8(str,outPtr,maxBytesToWrite){return stringToUTF8Array(str,HEAPU8,outPtr,maxBytesToWrite)}var UTF16Decoder=typeof TextDecoder!=="undefined"?new TextDecoder("utf-16le"):undefined;function writeArrayToMemory(array,buffer){HEAP8.set(array,buffer);}var WASM_PAGE_SIZE=65536;function alignUp(x,multiple){if(x%multiple>0){x+=multiple-x%multiple;}return x}var buffer,HEAP8,HEAPU8,HEAP16,HEAPU16,HEAP32,HEAPU32,HEAPF32,HEAPF64;function updateGlobalBufferAndViews(buf){buffer=buf;Module["HEAP8"]=HEAP8=new Int8Array(buf);Module["HEAP16"]=HEAP16=new Int16Array(buf);Module["HEAP32"]=HEAP32=new Int32Array(buf);Module["HEAPU8"]=HEAPU8=new Uint8Array(buf);Module["HEAPU16"]=HEAPU16=new Uint16Array(buf);Module["HEAPU32"]=HEAPU32=new Uint32Array(buf);Module["HEAPF32"]=HEAPF32=new Float32Array(buf);Module["HEAPF64"]=HEAPF64=new Float64Array(buf);}var DYNAMIC_BASE=5247744,DYNAMICTOP_PTR=4704;var INITIAL_TOTAL_MEMORY=Module["TOTAL_MEMORY"]||16777216;if(Module["wasmMemory"]){wasmMemory=Module["wasmMemory"];}else{wasmMemory=new WebAssembly.Memory({"initial":INITIAL_TOTAL_MEMORY/WASM_PAGE_SIZE});}if(wasmMemory){buffer=wasmMemory.buffer;}INITIAL_TOTAL_MEMORY=buffer.byteLength;updateGlobalBufferAndViews(buffer);HEAP32[DYNAMICTOP_PTR>>2]=DYNAMIC_BASE;function callRuntimeCallbacks(callbacks){while(callbacks.length>0){var callback=callbacks.shift();if(typeof callback=="function"){callback();continue}var func=callback.func;if(typeof func==="number"){if(callback.arg===undefined){Module["dynCall_v"](func);}else{Module["dynCall_vi"](func,callback.arg);}}else{func(callback.arg===undefined?null:callback.arg);}}}var __ATPRERUN__=[];var __ATINIT__=[];var __ATMAIN__=[];var __ATPOSTRUN__=[];function preRun(){if(Module["preRun"]){if(typeof Module["preRun"]=="function")Module["preRun"]=[Module["preRun"]];while(Module["preRun"].length){addOnPreRun(Module["preRun"].shift());}}callRuntimeCallbacks(__ATPRERUN__);}function initRuntime(){callRuntimeCallbacks(__ATINIT__);}function preMain(){callRuntimeCallbacks(__ATMAIN__);}function postRun(){if(Module["postRun"]){if(typeof Module["postRun"]=="function")Module["postRun"]=[Module["postRun"]];while(Module["postRun"].length){addOnPostRun(Module["postRun"].shift());}}callRuntimeCallbacks(__ATPOSTRUN__);}function addOnPreRun(cb){__ATPRERUN__.unshift(cb);}function addOnPostRun(cb){__ATPOSTRUN__.unshift(cb);}var Math_ceil=Math.ceil;var Math_floor=Math.floor;var runDependencies=0;var runDependencyWatcher=null;var dependenciesFulfilled=null;function addRunDependency(id){runDependencies++;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies);}}function removeRunDependency(id){runDependencies--;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies);}if(runDependencies==0){if(runDependencyWatcher!==null){clearInterval(runDependencyWatcher);runDependencyWatcher=null;}if(dependenciesFulfilled){var callback=dependenciesFulfilled;dependenciesFulfilled=null;callback();}}}Module["preloadedImages"]={};Module["preloadedAudios"]={};function abort(what){if(Module["onAbort"]){Module["onAbort"](what);}what+="";out(what);err(what);ABORT=true;what="abort("+what+"). Build with -s ASSERTIONS=1 for more info.";throw new WebAssembly.RuntimeError(what)}var dataURIPrefix="data:application/octet-stream;base64,";function isDataURI(filename){return String.prototype.startsWith?filename.startsWith(dataURIPrefix):filename.indexOf(dataURIPrefix)===0}var wasmBinaryFile="tfjs-backend-wasm.wasm";if(!isDataURI(wasmBinaryFile)){wasmBinaryFile=locateFile(wasmBinaryFile);}function getBinary(){try{if(wasmBinary){return new Uint8Array(wasmBinary)}if(readBinary){return readBinary(wasmBinaryFile)}else{throw "both async and sync fetching of the wasm failed"}}catch(err){abort(err);}}function getBinaryPromise(){if(!wasmBinary&&(ENVIRONMENT_IS_WEB)&&typeof fetch==="function"){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){if(!response["ok"]){throw "failed to load wasm binary file at '"+wasmBinaryFile+"'"}return response["arrayBuffer"]()}).catch(function(){return getBinary()})}return new Promise(function(resolve,reject){resolve(getBinary());})}function createWasm(){var info={"env":asmLibraryArg,"wasi_unstable":asmLibraryArg};function receiveInstance(instance,module){var exports=instance.exports;Module["asm"]=exports;removeRunDependency();}addRunDependency();function receiveInstantiatedSource(output){receiveInstance(output["instance"]);}function instantiateArrayBuffer(receiver){return getBinaryPromise().then(function(binary){return WebAssembly.instantiate(binary,info)}).then(receiver,function(reason){err("failed to asynchronously prepare wasm: "+reason);abort(reason);})}function instantiateAsync(){if(!wasmBinary&&typeof WebAssembly.instantiateStreaming==="function"&&!isDataURI(wasmBinaryFile)&&typeof fetch==="function"){fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){var result=WebAssembly.instantiateStreaming(response,info);return result.then(receiveInstantiatedSource,function(reason){err("wasm streaming compile failed: "+reason);err("falling back to ArrayBuffer instantiation");instantiateArrayBuffer(receiveInstantiatedSource);})});}else{return instantiateArrayBuffer(receiveInstantiatedSource)}}if(Module["instantiateWasm"]){try{var exports=Module["instantiateWasm"](info,receiveInstance);return exports}catch(e){err("Module.instantiateWasm callback failed with error: "+e);return false}}instantiateAsync();return {}}__ATINIT__.push({func:function(){___wasm_call_ctors();}});function _abort(){abort();}function _emscripten_memcpy_big(dest,src,num){HEAPU8.set(HEAPU8.subarray(src,src+num),dest);}function _emscripten_get_heap_size(){return HEAP8.length}function emscripten_realloc_buffer(size){try{wasmMemory.grow(size-buffer.byteLength+65535>>16);updateGlobalBufferAndViews(wasmMemory.buffer);return 1}catch(e){}}function _emscripten_resize_heap(requestedSize){var oldSize=_emscripten_get_heap_size();var PAGE_MULTIPLE=65536;var LIMIT=2147483648-PAGE_MULTIPLE;if(requestedSize>LIMIT){return false}var MIN_TOTAL_MEMORY=16777216;var newSize=Math.max(oldSize,MIN_TOTAL_MEMORY);while(newSize<requestedSize){if(newSize<=536870912){newSize=alignUp(2*newSize,PAGE_MULTIPLE);}else{newSize=Math.min(alignUp((3*newSize+2147483648)/4,PAGE_MULTIPLE),LIMIT);}}var replacement=emscripten_realloc_buffer(newSize);if(!replacement){return false}return true}var SYSCALLS={buffers:[null,[],[]],printChar:function(stream,curr){var buffer=SYSCALLS.buffers[stream];if(curr===0||curr===10){(stream===1?out:err)(UTF8ArrayToString(buffer,0));buffer.length=0;}else{buffer.push(curr);}},varargs:0,get:function(varargs){SYSCALLS.varargs+=4;var ret=HEAP32[SYSCALLS.varargs-4>>2];return ret},getStr:function(){var ret=UTF8ToString(SYSCALLS.get());return ret},get64:function(){var low=SYSCALLS.get(),high=SYSCALLS.get();return low},getZero:function(){SYSCALLS.get();}};function _fd_close(fd){try{return 0}catch(e){if(typeof FS==="undefined"||!(e instanceof FS.ErrnoError))abort(e);return e.errno}}function _fd_seek(fd,offset_low,offset_high,whence,newOffset){try{return 0}catch(e){if(typeof FS==="undefined"||!(e instanceof FS.ErrnoError))abort(e);return e.errno}}function _fd_write(fd,iov,iovcnt,pnum){try{var num=0;for(var i=0;i<iovcnt;i++){var ptr=HEAP32[iov+i*8>>2];var len=HEAP32[iov+(i*8+4)>>2];for(var j=0;j<len;j++){SYSCALLS.printChar(fd,HEAPU8[ptr+j]);}num+=len;}HEAP32[pnum>>2]=num;return 0}catch(e){if(typeof FS==="undefined"||!(e instanceof FS.ErrnoError))abort(e);return e.errno}}function _roundf(d){d=+d;return d>=+0?+Math_floor(d+ +.5):+Math_ceil(d-+.5)}var asmLibraryArg={"a":_abort,"d":_emscripten_memcpy_big,"e":_emscripten_resize_heap,"f":_fd_close,"c":_fd_seek,"g":_fd_write,"memory":wasmMemory,"b":_roundf,"table":wasmTable};var asm=createWasm();Module["asm"]=asm;var ___wasm_call_ctors=Module["___wasm_call_ctors"]=function(){return Module["asm"]["h"].apply(null,arguments)};var _init=Module["_init"]=function(){return Module["asm"]["i"].apply(null,arguments)};var _register_tensor=Module["_register_tensor"]=function(){return Module["asm"]["j"].apply(null,arguments)};var _dispose_data=Module["_dispose_data"]=function(){return Module["asm"]["k"].apply(null,arguments)};var _dispose=Module["_dispose"]=function(){return Module["asm"]["l"].apply(null,arguments)};var _Abs=Module["_Abs"]=function(){return Module["asm"]["m"].apply(null,arguments)};var _Add=Module["_Add"]=function(){return Module["asm"]["n"].apply(null,arguments)};var _AddN=Module["_AddN"]=function(){return Module["asm"]["o"].apply(null,arguments)};var _ArgMax=Module["_ArgMax"]=function(){return Module["asm"]["p"].apply(null,arguments)};var _AvgPool=Module["_AvgPool"]=function(){return Module["asm"]["q"].apply(null,arguments)};var _BatchMatMul=Module["_BatchMatMul"]=function(){return Module["asm"]["r"].apply(null,arguments)};var _ClipByValue=Module["_ClipByValue"]=function(){return Module["asm"]["s"].apply(null,arguments)};var _Conv2D=Module["_Conv2D"]=function(){return Module["asm"]["t"].apply(null,arguments)};var _CropAndResize=Module["_CropAndResize"]=function(){return Module["asm"]["u"].apply(null,arguments)};var _DepthwiseConv2dNative=Module["_DepthwiseConv2dNative"]=function(){return Module["asm"]["v"].apply(null,arguments)};var _Div=Module["_Div"]=function(){return Module["asm"]["w"].apply(null,arguments)};var _FloorDiv=Module["_FloorDiv"]=function(){return Module["asm"]["x"].apply(null,arguments)};var _FusedBatchNorm=Module["_FusedBatchNorm"]=function(){return Module["asm"]["y"].apply(null,arguments)};var _FusedConv2D=Module["_FusedConv2D"]=function(){return Module["asm"]["z"].apply(null,arguments)};var _FusedDepthwiseConv2D=Module["_FusedDepthwiseConv2D"]=function(){return Module["asm"]["A"].apply(null,arguments)};var _Max=Module["_Max"]=function(){return Module["asm"]["B"].apply(null,arguments)};var _MaxPool=Module["_MaxPool"]=function(){return Module["asm"]["C"].apply(null,arguments)};var _Min=Module["_Min"]=function(){return Module["asm"]["D"].apply(null,arguments)};var _Mul=Module["_Mul"]=function(){return Module["asm"]["E"].apply(null,arguments)};var _NonMaxSuppressionV3=Module["_NonMaxSuppressionV3"]=function(){return Module["asm"]["F"].apply(null,arguments)};var _malloc=Module["_malloc"]=function(){return Module["asm"]["G"].apply(null,arguments)};var _PadV2=Module["_PadV2"]=function(){return Module["asm"]["H"].apply(null,arguments)};var _Prelu=Module["_Prelu"]=function(){return Module["asm"]["I"].apply(null,arguments)};var _Relu=Module["_Relu"]=function(){return Module["asm"]["J"].apply(null,arguments)};var _Relu6=Module["_Relu6"]=function(){return Module["asm"]["K"].apply(null,arguments)};var _ResizeBilinear=Module["_ResizeBilinear"]=function(){return Module["asm"]["L"].apply(null,arguments)};var _Sigmoid=Module["_Sigmoid"]=function(){return Module["asm"]["M"].apply(null,arguments)};var _Square=Module["_Square"]=function(){return Module["asm"]["N"].apply(null,arguments)};var _Sub=Module["_Sub"]=function(){return Module["asm"]["O"].apply(null,arguments)};var _Transpose=Module["_Transpose"]=function(){return Module["asm"]["P"].apply(null,arguments)};var _free=Module["_free"]=function(){return Module["asm"]["Q"].apply(null,arguments)};var stackSave=Module["stackSave"]=function(){return Module["asm"]["R"].apply(null,arguments)};var stackAlloc=Module["stackAlloc"]=function(){return Module["asm"]["S"].apply(null,arguments)};var stackRestore=Module["stackRestore"]=function(){return Module["asm"]["T"].apply(null,arguments)};var dynCall_vi=Module["dynCall_vi"]=function(){return Module["asm"]["U"].apply(null,arguments)};var dynCall_v=Module["dynCall_v"]=function(){return Module["asm"]["V"].apply(null,arguments)};Module["asm"]=asm;Module["cwrap"]=cwrap;var calledRun;Module["then"]=function(func){if(calledRun){func(Module);}else{var old=Module["onRuntimeInitialized"];Module["onRuntimeInitialized"]=function(){if(old)old();func(Module);};}return Module};dependenciesFulfilled=function runCaller(){if(!calledRun)run();if(!calledRun)dependenciesFulfilled=runCaller;};function run(args){if(runDependencies>0){return}preRun();if(runDependencies>0)return;function doRun(){if(calledRun)return;calledRun=true;if(ABORT)return;initRuntime();preMain();if(Module["onRuntimeInitialized"])Module["onRuntimeInitialized"]();postRun();}if(Module["setStatus"]){Module["setStatus"]("Running...");setTimeout(function(){setTimeout(function(){Module["setStatus"]("");},1);doRun();},1);}else{doRun();}}Module["run"]=run;if(Module["preInit"]){if(typeof Module["preInit"]=="function")Module["preInit"]=[Module["preInit"]];while(Module["preInit"].length>0){Module["preInit"].pop()();}}noExitRuntime=true;run();
 
 
     return WasmBackendModule
@@ -1558,8 +1892,24 @@
       BackendWasm.prototype.memory = function () {
           return { unreliable: false };
       };
-      BackendWasm.prototype.makeOutput = function (shape, dtype) {
-          var dataId = this.write(null /* values */, shape, dtype);
+      /**
+       * Make a tensor info for the output of an op. If `memoryOffset` is not
+       * present, this method allocates memory on the WASM heap. If `memoryOffset`
+       * is present, the memory was allocated elsewhere (in c++) and we just record
+       * the pointer where that memory lives.
+       */
+      BackendWasm.prototype.makeOutput = function (shape, dtype, memoryOffset) {
+          var dataId;
+          if (memoryOffset == null) {
+              dataId = this.write(null /* values */, shape, dtype);
+          }
+          else {
+              dataId = {};
+              var id = this.dataIdNextNumber++;
+              this.dataIdMap.set(dataId, { id: id, memoryOffset: memoryOffset, shape: shape, dtype: dtype });
+              var size = tfjsCore.util.sizeFromShape(shape);
+              this.wasm.tfjs.registerTensor(id, size, memoryOffset);
+          }
           return { dataId: dataId, shape: shape, dtype: dtype };
       };
       BackendWasm.prototype.typedArrayFromHeap = function (_a) {

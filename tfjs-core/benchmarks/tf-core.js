@@ -3606,9 +3606,6 @@
             var info = this.state.tensorInfo.get(dataId);
             return info.backend.read(dataId);
         };
-        Engine.prototype.fromPixels = function (pixels, numChannels) {
-            return this.backend.fromPixels(pixels, numChannels);
-        };
         Engine.prototype.time = function (query) {
             return __awaiter(this, void 0, void 0, function () {
                 var start, timingInfo;
@@ -7303,6 +7300,51 @@
      * limitations under the License.
      * =============================================================================
      */
+    /** Broadcast an array to a compatible shape NumPy-style.
+     *
+     *  The tensor's shape is compared to the broadcast shape from end to beginning.
+     *  Ones are prepended to the tensor's shape until is has the same length as
+     *  the broadcast shape. If input.shape[i]==shape[i], the (i+1)-th axis is
+     *  already broadcast-compatible. If input.shape[i]==1 and shape[i]==N, then
+     *  the input tensor is tiled N times along that axis (using tf.tile).
+     *
+     *  @param input The tensor that is to be broadcasted.
+     *  @param shape The input is to be broadcast to this shape.
+     */
+    /** @doc {heading: 'Tensors', subheading: 'Transformations'} */
+    function broadcastTo_(x, shape) {
+        var input = convertToTensor(x, 'broadcastTo', 'x');
+        var xShape = input.shape;
+        if (shape.some(function (d) { return !(d > 0) || d % 1 !== 0; })) {
+            throw new Error("broadcastTo(): Invalid broadcast shape [" + shape + "].");
+        }
+        if (shape.length < input.rank) {
+            throw new Error("broadcastTo(): shape.length=" + shape.length + " < input.rank=" + input.rank + ".");
+        }
+        if (shape.length > input.rank) {
+            var newShape = input.shape.slice();
+            while (newShape.length < shape.length) {
+                newShape.unshift(1);
+            }
+            input = input.reshape(newShape);
+        }
+        var reps = Array.from(shape);
+        for (var i = shape.length - 1; i >= 0; i--) {
+            if (input.shape[i] === shape[i]) {
+                reps[i] = 1;
+            }
+            else if (input.shape[i] !== 1) {
+                throw new Error("broadcastTo(): [" + xShape + "] cannot be broadcast to [" + shape + "].");
+            }
+        }
+        var axes = reps.map(function (n, i) { return n > 1 ? i : -1; }).filter(function (i) { return i >= 0; });
+        if (axes.length === 0) {
+            return input.clone();
+        }
+        return ENGINE.runKernelFunc(function (backend) { return backend.tile(input, reps); }, { input: input }, function (dy) { return ({
+            input: function () { return dy.sum(axes, /*keepDims=*/ true); }
+        }); });
+    }
     /**
      * Creates a new tensor with the same values and shape as the specified
      * tensor.
@@ -8246,6 +8288,7 @@
         console.log(x.toString(verbose));
     }
     var batchToSpaceND = op({ batchToSpaceND_: batchToSpaceND_ });
+    var broadcastTo = op({ broadcastTo_: broadcastTo_ });
     var cast = op({ cast_: cast_ });
     var clone = op({ clone_: clone_ });
     var cumsum = op({ cumsum_: cumsum_ });
@@ -9300,9 +9343,6 @@
         };
         KernelBackend.prototype.disposeData = function (dataId) {
             return notYetImplemented('disposeData');
-        };
-        KernelBackend.prototype.fromPixels = function (pixels, numChannels) {
-            return notYetImplemented('fromPixels');
         };
         KernelBackend.prototype.write = function (values, shape, dtype) {
             return notYetImplemented('write');
@@ -13059,62 +13099,6 @@
 
     /**
      * @license
-     * Copyright 2018 Google Inc. All Rights Reserved.
-     * Licensed under the Apache License, Version 2.0 (the "License");
-     * you may not use this file except in compliance with the License.
-     * You may obtain a copy of the License at
-     *
-     * http://www.apache.org/licenses/LICENSE-2.0
-     *
-     * Unless required by applicable law or agreed to in writing, software
-     * distributed under the License is distributed on an "AS IS" BASIS,
-     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     * See the License for the specific language governing permissions and
-     * limitations under the License.
-     * =============================================================================
-     */
-    var FromPixelsProgram = /** @class */ (function () {
-        function FromPixelsProgram(outputShape) {
-            this.variableNames = ['A'];
-            var glsl = getGlslDifferences();
-            var height = outputShape[0], width = outputShape[1];
-            this.outputShape = outputShape;
-            this.userCode = "\n      void main() {\n        ivec3 coords = getOutputCoords();\n        int texR = coords[0];\n        int texC = coords[1];\n        int depth = coords[2];\n        vec2 uv = (vec2(texC, texR) + halfCR) / vec2(" + width + ".0, " + height + ".0);\n\n        vec4 values = " + glsl.texture2D + "(A, uv);\n        float value;\n        if (depth == 0) {\n          value = values.r;\n        } else if (depth == 1) {\n          value = values.g;\n        } else if (depth == 2) {\n          value = values.b;\n        } else if (depth == 3) {\n          value = values.a;\n        }\n\n        setOutput(floor(value * 255.0 + 0.5));\n      }\n    ";
-        }
-        return FromPixelsProgram;
-    }());
-
-    /**
-     * @license
-     * Copyright 2018 Google Inc. All Rights Reserved.
-     * Licensed under the Apache License, Version 2.0 (the "License");
-     * you may not use this file except in compliance with the License.
-     * You may obtain a copy of the License at
-     *
-     * http://www.apache.org/licenses/LICENSE-2.0
-     *
-     * Unless required by applicable law or agreed to in writing, software
-     * distributed under the License is distributed on an "AS IS" BASIS,
-     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     * See the License for the specific language governing permissions and
-     * limitations under the License.
-     * =============================================================================
-     */
-    var FromPixelsPackedProgram = /** @class */ (function () {
-        function FromPixelsPackedProgram(outputShape) {
-            this.variableNames = ['A'];
-            this.packedInputs = false;
-            this.packedOutput = true;
-            var glsl = getGlslDifferences();
-            var height = outputShape[0], width = outputShape[1];
-            this.outputShape = outputShape;
-            this.userCode = "\n      void main() {\n        ivec3 coords = getOutputCoords();\n        int texR = coords[0];\n        int texC = coords[1];\n        int depth = coords[2];\n\n        vec4 result = vec4(0.);\n\n        for(int row=0; row<=1; row++) {\n          for(int col=0; col<=1; col++) {\n            texC = coords[1] + row;\n            depth = coords[2] + col;\n\n            vec2 uv = (vec2(texC, texR) + halfCR) /\n                       vec2(" + width + ".0, " + height + ".0);\n            vec4 values = " + glsl.texture2D + "(A, uv);\n            float value;\n            if (depth == 0) {\n              value = values.r;\n            } else if (depth == 1) {\n              value = values.g;\n            } else if (depth == 2) {\n              value = values.b;\n            } else if (depth == 3) {\n              value = values.a;\n            }\n\n            result[row * 2 + col] = floor(value * 255.0 + 0.5);\n          }\n        }\n\n        " + glsl.output + " = result;\n      }\n    ";
-        }
-        return FromPixelsPackedProgram;
-    }());
-
-    /**
-     * @license
      * Copyright 2017 Google Inc. All Rights Reserved.
      * Licensed under the Apache License, Version 2.0 (the "License");
      * you may not use this file except in compliance with the License.
@@ -15871,7 +15855,6 @@
         __extends(MathBackendWebGL, _super);
         function MathBackendWebGL(gpgpu) {
             var _this = _super.call(this) || this;
-            _this.gpgpu = gpgpu;
             // Maps data ids that have a pending read operation, to list of subscribers.
             _this.pendingRead = new WeakMap();
             // List of data ids that are scheduled for disposal, but are waiting on a
@@ -15899,6 +15882,7 @@
                 _this.gpgpuCreatedLocally = true;
             }
             else {
+                _this.gpgpu = gpgpu;
                 _this.binaryCache = {};
                 _this.gpgpuCreatedLocally = false;
                 _this.canvas = gpgpu.gl.canvas;
@@ -15912,63 +15896,6 @@
             return this.texData.numDataIds() +
                 (this.cpuBackend ? this.cpuBackend.numDataIds() : 0) -
                 this.pendingDeletes;
-        };
-        MathBackendWebGL.prototype.fromPixels = function (pixels, numChannels) {
-            if (pixels == null) {
-                throw new Error('pixels passed to tf.browser.fromPixels() can not be null');
-            }
-            var isCanvas = (typeof (OffscreenCanvas) !== 'undefined' &&
-                pixels instanceof OffscreenCanvas) ||
-                (typeof (HTMLCanvasElement) !== 'undefined' &&
-                    pixels instanceof HTMLCanvasElement);
-            var isPixelData = pixels.data instanceof Uint8Array;
-            var isImageData = typeof (ImageData) !== 'undefined' && pixels instanceof ImageData;
-            var isVideo = typeof (HTMLVideoElement) !== 'undefined' &&
-                pixels instanceof HTMLVideoElement;
-            var isImage = typeof (HTMLImageElement) !== 'undefined' &&
-                pixels instanceof HTMLImageElement;
-            var _a = isVideo ?
-                [
-                    pixels.videoWidth,
-                    pixels.videoHeight
-                ] :
-                [pixels.width, pixels.height], width = _a[0], height = _a[1];
-            var texShape = [height, width];
-            var outShape = [height, width, numChannels];
-            if (!isCanvas && !isPixelData && !isImageData && !isVideo && !isImage) {
-                throw new Error('pixels passed to tf.browser.fromPixels() must be either an ' +
-                    "HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData " +
-                    "in browser, or OffscreenCanvas, ImageData in webworker" +
-                    " or {data: Uint32Array, width: number, height: number}, " +
-                    ("but was " + pixels.constructor.name));
-            }
-            if (isImage || isVideo) {
-                if (this.fromPixels2DContext == null) {
-                    //@ts-ignore
-                    this.fromPixels2DContext =
-                        createCanvas(env().getNumber('WEBGL_VERSION')).getContext('2d');
-                }
-                this.fromPixels2DContext.canvas.width = width;
-                this.fromPixels2DContext.canvas.height = height;
-                this.fromPixels2DContext.drawImage(pixels, 0, 0, width, height);
-                //@ts-ignore
-                pixels = this.fromPixels2DContext.canvas;
-            }
-            var tempPixelHandle = this.makeTensorInfo(texShape, 'int32');
-            // This is a byte texture with pixels.
-            this.texData.get(tempPixelHandle.dataId).usage = TextureUsage.PIXELS;
-            this.gpgpu.uploadPixelDataToTexture(this.getTexture(tempPixelHandle.dataId), pixels);
-            var program, res;
-            if (env().getBool('WEBGL_PACK')) {
-                program = new FromPixelsPackedProgram(outShape);
-                res = this.compileAndRun(program, [tempPixelHandle]);
-            }
-            else {
-                program = new FromPixelsProgram(outShape);
-                res = this.compileAndRun(program, [tempPixelHandle]);
-            }
-            this.disposeData(tempPixelHandle.dataId);
-            return res;
         };
         MathBackendWebGL.prototype.write = function (values, shape, dtype) {
             if (env().getBool('DEBUG')) {
@@ -17848,12 +17775,6 @@
             }
             else {
                 this.canvas = null;
-            }
-            if (this.fromPixels2DContext != null &&
-                //@ts-ignore
-                this.fromPixels2DContext.canvas.remove) {
-                //@ts-ignore
-                this.fromPixels2DContext.canvas.remove();
             }
             if (this.gpgpuCreatedLocally) {
                 this.gpgpu.program = null;
@@ -19881,13 +19802,13 @@
                 var tmp = $b.square();
                 return res.div(tmp.toFloat()).neg();
             };
-            return { $a: derA, $b: derB };
+            return { a: derA, b: derB };
         };
         return ENGINE.runKernelFunc(function (backend, save) {
             var res = backend.floorDiv($a, $b);
             save([$a, $b]);
             return res;
-        }, { $a: $a, $b: $b }, der);
+        }, { a: $a, b: $b }, der, 'FloorDiv');
     }
     /**
      * Divides two `tf.Tensor`s element-wise, A / B. Inputs must
@@ -21742,8 +21663,7 @@
         }
         var convInfo = computePool2DInfo(x4D.shape, filterSize, strides, dilations, pad, dimRoundingMode);
         if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
-            arraysEqual(convInfo.inShape, convInfo.outShape) &&
-            convInfo.padInfo.type === 'VALID') {
+            arraysEqual(convInfo.inShape, convInfo.outShape)) {
             return $x.clone();
         }
         var grad = function (dy, saved) {
@@ -21834,8 +21754,7 @@
         }
         var convInfo = computePool2DInfo(x4D.shape, filterSize, strides, dilations, pad, dimRoundingMode);
         if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
-            arraysEqual(convInfo.inShape, convInfo.outShape) &&
-            convInfo.padInfo.type === 'VALID') {
+            arraysEqual(convInfo.inShape, convInfo.outShape)) {
             return $x.clone();
         }
         var grad = function (dy) {
@@ -22964,13 +22883,15 @@
         }
         var grad = function (dy, saved) {
             var $x = saved[0];
-            return { $x: function () { return zerosLike($x); } };
+            return { x: function () { return zerosLike($x); } };
         };
+        var attrs = { axis: axes[0] };
+        var inputsToSave = [$x];
         return ENGINE.runKernelFunc(function (backend, save) {
             var res = backend.argMax($x, axes[0]);
             save([$x]);
             return res;
-        }, { $x: $x }, grad);
+        }, { x: $x }, grad, 'ArgMax', attrs, inputsToSave);
     }
     /**
      * Computes the logical and of elements across dimensions of a `tf.Tensor`.
@@ -23139,13 +23060,13 @@
         }
         var grad = function (dy, saved) {
             var $x = saved[0];
-            return { $x: function () { return dy.mulStrict($x.step().toFloat()); } };
+            return { x: function () { return dy.mulStrict($x.step().toFloat()); } };
         };
         return ENGINE.runKernelFunc(function (backend, save) {
             var res = backend.relu($x);
             save([$x]);
             return res;
-        }, { $x: $x }, grad);
+        }, { x: $x }, grad, 'Relu');
     }
     /**
      * Computes rectified linear 6 element-wise: `min(max(x, 0), 6)`.
@@ -23167,13 +23088,13 @@
         var grad = function (dy, saved) {
             var $x = saved[0];
             var mask = $x.lessEqual(6).mul($x.step());
-            return { $x: function () { return dy.mulStrict(mask.toFloat()); } };
+            return { x: function () { return dy.mulStrict(mask.toFloat()); } };
         };
         return ENGINE.runKernelFunc(function (backend, save) {
             var res = backend.relu6($x);
             save([$x]);
             return res;
-        }, { $x: $x }, grad);
+        }, { x: $x }, grad, 'Relu6');
     }
     /**
      * Computes exponential linear element-wise: `x > 0 ? e ^ x - 1 : 0`.
@@ -25052,6 +24973,78 @@
      * =============================================================================
      */
     /**
+     * Copy a tensor setting everything outside a central band in each innermost
+     * matrix to zero.
+     *
+     * The band part is computed as follows: Assume input has `k` dimensions
+     * `[I, J, K, ..., M, N]`, then the output is a tensor with the same shape where
+     * `band[i, j, k, ..., m, n] = in_band(m, n) * input[i, j, k, ..., m, n]`.
+     * The indicator function
+     * `in_band(m, n) = (num_lower < 0 || (m-n) <= num_lower))`
+     * `&& (num_upper < 0 || (n-m) <= num_upper)`
+     *
+     * ```js
+     * const x = tf.tensor2d([[ 0,  1,  2, 3],
+     *                        [-1,  0,  1, 2],
+     *                        [-2, -1,  0, 1],
+     *                        [-3, -2, -1, 0]]);
+     * let y = tf.linalg.bandPart(x, 1, -1);
+     * y.print(); // [[ 0,  1,  2, 3],
+     *            //  [-1,  0,  1, 2],
+     *            //  [ 0, -1,  0, 1],
+     *            //  [ 0, 0 , -1, 0]]
+     * let z = tf.linalg.bandPart(x, 2, 1);
+     * z.print(); // [[ 0,  1,  0, 0],
+     *            //  [-1,  0,  1, 0],
+     *            //  [-2, -1,  0, 1],
+     *            //  [ 0, -2, -1, 0]]
+     * ```
+     *
+     * @param x Rank `k` tensor
+     * @param numLower Number of subdiagonals to keep.
+     *   If negative, keep entire lower triangle.
+     * @param numUpper Number of subdiagonals to keep.
+     *   If negative, keep entire upper triangle.
+     * @returns Rank `k` tensor of the same shape as input.
+     *   The extracted banded tensor.
+     */
+    /**
+     * @doc {heading:'Operations',
+     *       subheading:'Linear Algebra',
+     *       namespace:'linalg'}
+     */
+    function bandPart_(a, numLower, numUpper) {
+        if (numLower % 1 !== 0) {
+            throw new Error("bandPart(): numLower must be an integer, got " + numLower + ".");
+        }
+        if (numUpper % 1 !== 0) {
+            throw new Error("bandPart(): numUpper must be an integer, got " + numUpper + ".");
+        }
+        var $a = convertToTensor(a, 'a', 'bandPart');
+        if ($a.rank < 2) {
+            throw new Error("bandPart(): Rank must be at least 2, got " + $a.rank + ".");
+        }
+        var shape = $a.shape, _a = $a.shape.slice(-2), M = _a[0], N = _a[1];
+        if (!(numLower <= M)) {
+            throw new Error("bandPart(): numLower (" + numLower + ")" +
+                (" must not be greater than the number of rows (" + M + ")."));
+        }
+        if (!(numUpper <= N)) {
+            throw new Error("bandPart(): numUpper (" + numUpper + ")" +
+                (" must not be greater than the number of columns (" + N + ")."));
+        }
+        if (numLower < 0) {
+            numLower = M;
+        }
+        if (numUpper < 0) {
+            numUpper = N;
+        }
+        var i = range(0, M, 1, 'int32').reshape([-1, 1]), j = range(0, N, 1, 'int32'), ij = sub(i, j);
+        var inBand = logicalAnd(ij.lessEqual(scalar(+numLower, 'int32')), ij.greaterEqual(scalar(-numUpper, 'int32')));
+        var zero = zeros([M, N], $a.dtype);
+        return stack(unstack($a.reshape([-1, M, N])).map(function (mat) { return where(inBand, mat, zero); })).reshape(shape);
+    }
+    /**
      * Gram-Schmidt orthogonalization.
      *
      * ```js
@@ -25272,10 +25265,12 @@
             return [q, r];
         });
     }
+    var bandPart = op({ bandPart_: bandPart_ });
     var gramSchmidt = op({ gramSchmidt_: gramSchmidt_ });
     var qr = op({ qr_: qr_ });
 
     var linalg_ops = /*#__PURE__*/Object.freeze({
+        bandPart: bandPart,
         gramSchmidt: gramSchmidt,
         qr: qr
     });
@@ -25330,10 +25325,10 @@
         };
         var backward = function (dy, saved) {
             return {
-                batchImages: function () { return ENGINE.runKernelFunc(function (backend) { return backend.resizeBilinearBackprop(dy, saved[0], alignCorners); }, {}); }
+                x: function () { return ENGINE.runKernelFunc(function (backend) { return backend.resizeBilinearBackprop(dy, saved[0], alignCorners); }, {}); }
             };
         };
-        var res = ENGINE.runKernelFunc(forward, { batchImages: batchImages }, backward);
+        var res = ENGINE.runKernelFunc(forward, { x: batchImages }, backward, 'ResizeBilinear', { alignCorners: alignCorners, newHeight: newHeight, newWidth: newWidth });
         if (reshapedTo4D) {
             return res.as3D(res.shape[1], res.shape[2], res.shape[3]);
         }
@@ -25411,7 +25406,8 @@
         maxOutputSize = inputs.maxOutputSize;
         iouThreshold = inputs.iouThreshold;
         scoreThreshold = inputs.scoreThreshold;
-        return ENGINE.runKernelFunc(function (b) { return b.nonMaxSuppression($boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold); }, { $boxes: $boxes });
+        var attrs = { maxOutputSize: maxOutputSize, iouThreshold: iouThreshold, scoreThreshold: scoreThreshold };
+        return ENGINE.runKernelFunc(function (b) { return b.nonMaxSuppression($boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold); }, { boxes: $boxes, scores: $scores }, null /* grad */, 'NonMaxSuppressionV3', attrs);
     }
     /** This is the async version of `nonMaxSuppression` */
     function nonMaxSuppressionAsync_(boxes, scores, maxOutputSize, iouThreshold, scoreThreshold) {
@@ -25542,7 +25538,7 @@
     // Whether we should call fused ops.
     var shouldFuse = function (gradientDepth, activation) {
         var gradientMode = gradientDepth > 0;
-        return !gradientMode && (activation === 'linear' || activation === 'relu');
+        return !gradientMode || activation === 'linear';
     };
 
     /**
@@ -25619,7 +25615,7 @@
      * - `activation` Name of activation kernel (defaults to `linear`).
      * - `preluActivationWeights` Tensor of prelu weights.
      */
-    function matMul_$1(_a) {
+    function fusedMatMul_(_a) {
         var _b;
         var a = _a.a, b = _a.b, _c = _a.transposeA, transposeA = _c === void 0 ? false : _c, _d = _a.transposeB, transposeB = _d === void 0 ? false : _d, bias = _a.bias, _e = _a.activation, activation = _e === void 0 ? 'linear' : _e, preluActivationWeights = _a.preluActivationWeights;
         if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
@@ -25776,7 +25772,7 @@
      * @param preluActivationWeights Tensor of prelu weights to be applied as part
      *     of a `prelu` activation, typically the same shape as `x`.
      */
-    function conv2d_$1(_a) {
+    function fusedConv2d_(_a) {
         var x = _a.x, filter = _a.filter, strides = _a.strides, pad = _a.pad, _b = _a.dataFormat, dataFormat = _b === void 0 ? 'NHWC' : _b, _c = _a.dilations, dilations = _c === void 0 ? [1, 1] : _c, dimRoundingMode = _a.dimRoundingMode, bias = _a.bias, _d = _a.activation, activation = _d === void 0 ? 'linear' : _d, preluActivationWeights = _a.preluActivationWeights;
         activation = activation || 'linear';
         if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
@@ -25826,7 +25822,7 @@
                 ("are not yet supported in gradients. Got dilations '" + dilations + "'"); });
             var biasGradient = {};
             if (bias != null) {
-                biasGradient = { $bias: function () { return getFusedBiasGradient($bias, dyActivation); } };
+                biasGradient = { bias: function () { return getFusedBiasGradient($bias, dyActivation); } };
             }
             return Object.assign({
                 x: function () {
@@ -25913,7 +25909,7 @@
      * @param preluActivationWeights Tensor of prelu weights to be applied as part
      *     of a `prelu` activation, typically the same shape as `x`.
      */
-    function depthwiseConv2d_$1(_a) {
+    function fusedDepthwiseConv2d_(_a) {
         var x = _a.x, filter = _a.filter, strides = _a.strides, pad = _a.pad, _b = _a.dataFormat, dataFormat = _b === void 0 ? 'NHWC' : _b, _c = _a.dilations, dilations = _c === void 0 ? [1, 1] : _c, dimRoundingMode = _a.dimRoundingMode, bias = _a.bias, _d = _a.activation, activation = _d === void 0 ? 'linear' : _d, preluActivationWeights = _a.preluActivationWeights;
         if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
             var result = depthwiseConv2d(x, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
@@ -25963,24 +25959,26 @@
             assert(tupleValuesAreOne(dilations), function () { return 'Error in gradient of fused depthwiseConv2d: dilation rates ' +
                 "greater than 1 are not yet supported. Got dilations " +
                 ("'" + dilations + "'"); });
-            var x4D = saved[0], $filter = saved[1], y = saved[2];
+            var $filter = saved[0], x4D = saved[1], y = saved[2];
             var dyActivation = getFusedDyActivation(dy, y, activation);
             var biasGradient = {};
             if (bias != null) {
-                biasGradient = { $bias: function () { return getFusedBiasGradient($bias, dyActivation); } };
+                biasGradient = { bias: function () { return getFusedBiasGradient($bias, dyActivation); } };
             }
             return Object.assign({
                 x: function () { return depthwiseConv2dDerInput(x4D.shape, dyActivation, $filter, convInfo); },
-                $filter: function () { return depthwiseConv2dDerFilter(x4D, dyActivation, $filter.shape, convInfo); },
+                filter: function () { return depthwiseConv2dDerFilter(x4D, dyActivation, $filter.shape, convInfo); },
             }, biasGradient);
         };
-        var inputs = { x: x4D, $filter: $filter };
+        var inputs = { x: x4D, filter: $filter };
         if (bias != null) {
-            inputs.$bias = $bias;
+            inputs.bias = $bias;
         }
         if (preluActivationWeights != null) {
-            inputs.$preluActivationWeights = $preluActivationWeights;
+            inputs.preluActivationWeights = $preluActivationWeights;
         }
+        var inputsToSave = [$filter, x4D];
+        var outputsToSave = [true];
         var res = ENGINE.runKernelFunc(function (backend, save) {
             var res = backend.fusedDepthwiseConv2D({
                 input: x4D,
@@ -25990,17 +25988,17 @@
                 activation: activation,
                 preluActivationWeights: $preluActivationWeights
             });
-            save([x4D, $filter, res]);
+            save([$filter, x4D, res]);
             return res;
-        }, inputs, grad);
+        }, inputs, grad, 'FusedDepthwiseConv2D', { convInfo: convInfo, activation: activation }, inputsToSave, outputsToSave);
         if (reshapedTo4D) {
             return res.as3D(res.shape[1], res.shape[2], res.shape[3]);
         }
         return res;
     }
-    var matMul$1 = op({ matMul_: matMul_$1 });
-    var conv2d$1 = op({ conv2d_: conv2d_$1 });
-    var depthwiseConv2d$1 = op({ depthwiseConv2d_: depthwiseConv2d_$1 });
+    var matMul$1 = op({ fusedMatMul_: fusedMatMul_ });
+    var conv2d$1 = op({ fusedConv2d_: fusedConv2d_ });
+    var depthwiseConv2d$1 = op({ fusedDepthwiseConv2d_: fusedDepthwiseConv2d_ });
 
     var fused_ops = /*#__PURE__*/Object.freeze({
         matMul: matMul$1,
@@ -26171,6 +26169,7 @@
         buffer: buffer,
         print: print,
         batchToSpaceND: batchToSpaceND,
+        broadcastTo: broadcastTo,
         cast: cast,
         clone: clone,
         cumsum: cumsum,
@@ -26301,28 +26300,12 @@
         }
         throw new Error("Activation " + activation + " has not been implemented for the CPU backend.");
     }
-    function createCanvas$1() {
-        if (typeof OffscreenCanvas !== 'undefined') {
-            return new OffscreenCanvas(300, 150);
-        }
-        else if (typeof document !== 'undefined') {
-            return document.createElement('canvas');
-        }
-        return null;
-    }
     var MathBackendCPU = /** @class */ (function (_super) {
         __extends(MathBackendCPU, _super);
         function MathBackendCPU() {
             var _this = _super.call(this) || this;
             _this.blockSize = 48;
             _this.firstUse = true;
-            if (env().get('IS_BROWSER')) {
-                var canvas = createCanvas$1();
-                if (canvas !== null) {
-                    _this.fromPixels2DContext =
-                        canvas.getContext('2d');
-                }
-            }
             _this.data = new DataStorage(_this, ENGINE);
             return _this;
         }
@@ -26351,71 +26334,6 @@
         };
         MathBackendCPU.prototype.numDataIds = function () {
             return this.data.numDataIds();
-        };
-        MathBackendCPU.prototype.fromPixels = function (pixels, numChannels) {
-            if (pixels == null) {
-                throw new Error('pixels passed to tf.browser.fromPixels() can not be null');
-            }
-            var isPixelData = pixels.data instanceof Uint8Array;
-            var isImageData = typeof (ImageData) !== 'undefined' && pixels instanceof ImageData;
-            var isVideo = typeof (HTMLVideoElement) !== 'undefined' &&
-                pixels instanceof HTMLVideoElement;
-            var isImage = typeof (HTMLImageElement) !== 'undefined' &&
-                pixels instanceof HTMLImageElement;
-            var _a = isVideo ?
-                [
-                    pixels.videoWidth,
-                    pixels.videoHeight
-                ] :
-                [pixels.width, pixels.height], width = _a[0], height = _a[1];
-            var vals;
-            // tslint:disable-next-line:no-any
-            if (env().get('IS_NODE') && pixels.getContext == null) {
-                throw new Error('When running in node, pixels must be an HTMLCanvasElement ' +
-                    'like the one returned by the `canvas` npm package');
-            }
-            // tslint:disable-next-line:no-any
-            if (pixels.getContext != null) {
-                // tslint:disable-next-line:no-any
-                vals = pixels
-                    .getContext('2d')
-                    .getImageData(0, 0, width, height)
-                    .data;
-            }
-            else if (isImageData || isPixelData) {
-                vals = pixels.data;
-            }
-            else if (isImage || isVideo) {
-                if (this.fromPixels2DContext == null) {
-                    throw new Error('Can\'t read pixels from HTMLImageElement outside ' +
-                        'the browser.');
-                }
-                this.fromPixels2DContext.canvas.width = width;
-                this.fromPixels2DContext.canvas.height = height;
-                this.fromPixels2DContext.drawImage(pixels, 0, 0, width, height);
-                vals = this.fromPixels2DContext.getImageData(0, 0, width, height).data;
-            }
-            else {
-                throw new Error('pixels passed to tf.browser.fromPixels() must be either an ' +
-                    "HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData " +
-                    "or {data: Uint32Array, width: number, height: number}, " +
-                    ("but was " + pixels.constructor.name));
-            }
-            var values;
-            if (numChannels === 4) {
-                values = new Int32Array(vals);
-            }
-            else {
-                var numPixels = width * height;
-                values = new Int32Array(numPixels * numChannels);
-                for (var i = 0; i < numPixels; i++) {
-                    for (var channel = 0; channel < numChannels; ++channel) {
-                        values[i * numChannels + channel] = vals[i * 4 + channel];
-                    }
-                }
-            }
-            var outShape = [height, width, numChannels];
-            return tensor3d(values, outShape, 'int32');
         };
         MathBackendCPU.prototype.read = function (dataId) {
             return __awaiter(this, void 0, void 0, function () {
@@ -28656,7 +28574,7 @@
                         var sourceColCeil = Math.min(oldWidth - 1, Math.ceil(sourceFracCol));
                         var topLeftOffest = topRowOffset + sourceColFloor * x.strides[2];
                         var botLeftOffset = botRowOffset + sourceColFloor * x.strides[2];
-                        var topRightOffset = topRowOffset + +sourceColCeil * x.strides[2];
+                        var topRightOffset = topRowOffset + sourceColCeil * x.strides[2];
                         var botRightOffest = botRowOffset + sourceColCeil * x.strides[2];
                         for (var d = 0; d < numChannels; d++) {
                             // Begin shader.
@@ -29487,6 +29405,121 @@
             return webglBackend.runWebGLProgram(program, [x], x.dtype);
         }
     });
+
+    /**
+     * @license
+     * Copyright 2018 Google Inc. All Rights Reserved.
+     * Licensed under the Apache License, Version 2.0 (the "License");
+     * you may not use this file except in compliance with the License.
+     * You may obtain a copy of the License at
+     *
+     * http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
+     * =============================================================================
+     */
+    var FromPixelsProgram = /** @class */ (function () {
+        function FromPixelsProgram(outputShape) {
+            this.variableNames = ['A'];
+            var glsl = getGlslDifferences();
+            var height = outputShape[0], width = outputShape[1];
+            this.outputShape = outputShape;
+            this.userCode = "\n      void main() {\n        ivec3 coords = getOutputCoords();\n        int texR = coords[0];\n        int texC = coords[1];\n        int depth = coords[2];\n        vec2 uv = (vec2(texC, texR) + halfCR) / vec2(" + width + ".0, " + height + ".0);\n\n        vec4 values = " + glsl.texture2D + "(A, uv);\n        float value;\n        if (depth == 0) {\n          value = values.r;\n        } else if (depth == 1) {\n          value = values.g;\n        } else if (depth == 2) {\n          value = values.b;\n        } else if (depth == 3) {\n          value = values.a;\n        }\n\n        setOutput(floor(value * 255.0 + 0.5));\n      }\n    ";
+        }
+        return FromPixelsProgram;
+    }());
+
+    /**
+     * @license
+     * Copyright 2018 Google Inc. All Rights Reserved.
+     * Licensed under the Apache License, Version 2.0 (the "License");
+     * you may not use this file except in compliance with the License.
+     * You may obtain a copy of the License at
+     *
+     * http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
+     * =============================================================================
+     */
+    var FromPixelsPackedProgram = /** @class */ (function () {
+        function FromPixelsPackedProgram(outputShape) {
+            this.variableNames = ['A'];
+            this.packedInputs = false;
+            this.packedOutput = true;
+            var glsl = getGlslDifferences();
+            var height = outputShape[0], width = outputShape[1];
+            this.outputShape = outputShape;
+            this.userCode = "\n      void main() {\n        ivec3 coords = getOutputCoords();\n        int texR = coords[0];\n        int texC = coords[1];\n        int depth = coords[2];\n\n        vec4 result = vec4(0.);\n\n        for(int row=0; row<=1; row++) {\n          for(int col=0; col<=1; col++) {\n            texC = coords[1] + row;\n            depth = coords[2] + col;\n\n            vec2 uv = (vec2(texC, texR) + halfCR) /\n                       vec2(" + width + ".0, " + height + ".0);\n            vec4 values = " + glsl.texture2D + "(A, uv);\n            float value;\n            if (depth == 0) {\n              value = values.r;\n            } else if (depth == 1) {\n              value = values.g;\n            } else if (depth == 2) {\n              value = values.b;\n            } else if (depth == 3) {\n              value = values.a;\n            }\n\n            result[row * 2 + col] = floor(value * 255.0 + 0.5);\n          }\n        }\n\n        " + glsl.output + " = result;\n      }\n    ";
+        }
+        return FromPixelsPackedProgram;
+    }());
+
+    /**
+     * @license
+     * Copyright 2019 Google LLC. All Rights Reserved.
+     * Licensed under the Apache License, Version 2.0 (the "License");
+     * you may not use this file except in compliance with the License.
+     * You may obtain a copy of the License at
+     *
+     * http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
+     * =============================================================================
+     */
+    registerKernel({
+        kernelName: 'FromPixels',
+        backendName: 'webgl',
+        kernelFunc: fromPixels,
+    });
+    var fromPixels2DContext;
+    function fromPixels(args) {
+        var inputs = args.inputs, backend = args.backend, attrs = args.attrs;
+        var pixels = inputs.pixels;
+        var numChannels = attrs.numChannels;
+        var isVideo = typeof (HTMLVideoElement) !== 'undefined' &&
+            pixels instanceof HTMLVideoElement;
+        var isImage = typeof (HTMLImageElement) !== 'undefined' &&
+            pixels instanceof HTMLImageElement;
+        var _a = isVideo ?
+            [
+                pixels.videoWidth,
+                pixels.videoHeight
+            ] :
+            [pixels.width, pixels.height], width = _a[0], height = _a[1];
+        var texShape = [height, width];
+        var outShape = [height, width, numChannels];
+        if (isImage || isVideo) {
+            if (fromPixels2DContext == null) {
+                fromPixels2DContext = document.createElement('canvas').getContext('2d');
+            }
+            fromPixels2DContext.canvas.width = width;
+            fromPixels2DContext.canvas.height = height;
+            fromPixels2DContext.drawImage(pixels, 0, 0, width, height);
+            pixels = fromPixels2DContext.canvas;
+        }
+        var tempPixelHandle = backend.makeTensorInfo(texShape, 'int32');
+        // This is a byte texture with pixels.
+        backend.texData.get(tempPixelHandle.dataId).usage = TextureUsage.PIXELS;
+        backend.gpgpu.uploadPixelDataToTexture(backend.getTexture(tempPixelHandle.dataId), pixels);
+        var program = env().getBool('WEBGL_PACK') ?
+            new FromPixelsPackedProgram(outShape) :
+            new FromPixelsProgram(outShape);
+        var res = backend.runWebGLProgram(program, [tempPixelHandle], 'int32');
+        backend.disposeData(tempPixelHandle.dataId);
+        return res;
+    }
 
     /**
      * @license
@@ -32202,6 +32235,7 @@
      * limitations under the License.
      * =============================================================================
      */
+    var fromPixels2DContext$1;
     /**
      * Creates a `tf.Tensor` from an image.
      *
@@ -32226,11 +32260,43 @@
     /** @doc {heading: 'Browser', namespace: 'browser', ignoreCI: true} */
     function fromPixels_(pixels, numChannels) {
         if (numChannels === void 0) { numChannels = 3; }
+        // Sanity checks.
         if (numChannels > 4) {
             throw new Error('Cannot construct Tensor with more than 4 channels from pixels.');
         }
-        var isVideo = typeof (HTMLVideoElement) !== 'undefined' &&
-            pixels instanceof HTMLVideoElement;
+        if (pixels == null) {
+            throw new Error('pixels passed to tf.browser.fromPixels() can not be null');
+        }
+        var isPixelData = false;
+        var isImageData = false;
+        var isVideo = false;
+        var isImage = false;
+        var isCanvasLike = false;
+        if (pixels.data instanceof Uint8Array) {
+            isPixelData = true;
+        }
+        else if (typeof (ImageData) !== 'undefined' && pixels instanceof ImageData) {
+            isImageData = true;
+        }
+        else if (typeof (HTMLVideoElement) !== 'undefined' &&
+            pixels instanceof HTMLVideoElement) {
+            isVideo = true;
+        }
+        else if (typeof (HTMLImageElement) !== 'undefined' &&
+            pixels instanceof HTMLImageElement) {
+            isImage = true;
+            // tslint:disable-next-line: no-any
+        }
+        else if (pixels.getContext != null) {
+            isCanvasLike = true;
+        }
+        else {
+            throw new Error('pixels passed to tf.browser.fromPixels() must be either an ' +
+                "HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData " +
+                "in browser, or OffscreenCanvas, ImageData in webworker" +
+                " or {data: Uint32Array, width: number, height: number}, " +
+                ("but was " + pixels.constructor.name));
+        }
         if (isVideo) {
             var HAVE_CURRENT_DATA_READY_STATE = 2;
             if (isVideo &&
@@ -32240,7 +32306,51 @@
                     '`loadeddata` event on the <video> element.');
             }
         }
-        return ENGINE.fromPixels(pixels, numChannels);
+        // If the current backend has 'FromPixels' registered, it has a more
+        // efficient way of handling pixel uploads, so we call that.
+        var kernel = getKernel('FromPixels', ENGINE.backendName);
+        if (kernel != null) {
+            return ENGINE.runKernel('FromPixels', { pixels: pixels }, { numChannels: numChannels });
+        }
+        var _a = isVideo ?
+            [
+                pixels.videoWidth,
+                pixels.videoHeight
+            ] :
+            [pixels.width, pixels.height], width = _a[0], height = _a[1];
+        var vals;
+        if (isCanvasLike) {
+            vals =
+                // tslint:disable-next-line:no-any
+                pixels.getContext('2d').getImageData(0, 0, width, height).data;
+        }
+        else if (isImageData || isPixelData) {
+            vals = pixels.data;
+        }
+        else if (isImage || isVideo) {
+            if (fromPixels2DContext$1 == null) {
+                fromPixels2DContext$1 = document.createElement('canvas').getContext('2d');
+            }
+            fromPixels2DContext$1.canvas.width = width;
+            fromPixels2DContext$1.canvas.height = height;
+            fromPixels2DContext$1.drawImage(pixels, 0, 0, width, height);
+            vals = fromPixels2DContext$1.getImageData(0, 0, width, height).data;
+        }
+        var values;
+        if (numChannels === 4) {
+            values = new Int32Array(vals);
+        }
+        else {
+            var numPixels = width * height;
+            values = new Int32Array(numPixels * numChannels);
+            for (var i = 0; i < numPixels; i++) {
+                for (var channel = 0; channel < numChannels; ++channel) {
+                    values[i * numChannels + channel] = vals[i * 4 + channel];
+                }
+            }
+        }
+        var outShape = [height, width, numChannels];
+        return tensor3d(values, outShape, 'int32');
     }
     /**
      * Draws a `tf.Tensor` of pixel values to a byte array or optionally a
@@ -32353,11 +32463,11 @@
             });
         });
     }
-    var fromPixels = op({ fromPixels_: fromPixels_ });
+    var fromPixels$1 = op({ fromPixels_: fromPixels_ });
 
     var browser = /*#__PURE__*/Object.freeze({
         toPixels: toPixels,
-        fromPixels: fromPixels
+        fromPixels: fromPixels$1
     });
 
     /**
@@ -34059,6 +34169,7 @@
     exports.batchNormalization4d = batchNormalization4d;
     exports.batchToSpaceND = batchToSpaceND;
     exports.booleanMaskAsync = booleanMaskAsync;
+    exports.broadcastTo = broadcastTo;
     exports.browser = browser;
     exports.buffer = buffer;
     exports.cast = cast;

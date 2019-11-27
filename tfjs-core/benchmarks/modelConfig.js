@@ -107,13 +107,21 @@ tf.registerOp('Prelu', (node) => {
 const benchmarks = {
   'facemesh': {
     load: async () => {
-      // landmarks
-      // const url =
-      //     'https://storage.googleapis.com/learnjs-data/facemesh_staging/facemesh_ping/model.json';
-      // return tf.loadGraphModel(url);
-
-      // bounding box
-      const url = 'https://storage.googleapis.com/learnjs-data/facemesh_staging/facedetector_tfjs/model.json';
+      const url =
+          'https://storage.googleapis.com/learnjs-data/facemesh_staging/facemesh_ping/model.json';
+      return tf.loadGraphModel(url);
+    },
+    predictFunc: () => {
+      const zeros = tf.zeros([1, 128, 128, 3]);
+      return model => {
+        return model.predict(zeros);
+      };
+    },
+  },
+  'facedetector': {
+    load: async () => {
+      const url =
+          'https://storage.googleapis.com/learnjs-data/facemesh_staging/facedetector_tfjs/model.json';
       return tf.loadGraphModel(url);
     },
     predictFunc: () => {
