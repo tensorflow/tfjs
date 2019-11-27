@@ -26,8 +26,7 @@
 
 namespace tfjs {
 namespace wasm {
-template <typename T>
-void interpolate_bilinear(T* out_buf_ptr, const T* images_buf,
+void interpolate_bilinear(float* out_buf_ptr, const float* images_buf,
                           const std::vector<int> images_strides, int crop_width,
                           int image_width, int image_width_m1, int num_channels,
                           float extrapolation_value, int box_ind, float y_ind,
@@ -81,10 +80,5 @@ void interpolate_bilinear(T* out_buf_ptr, const T* images_buf,
   }
 }
 
-template void interpolate_bilinear<float>(
-    float* out_buf_ptr, const float* images_buf,
-    const std::vector<int> images_strides, int crop_width, int image_width,
-    int image_width_m1, int num_channels, float extrapolation_value,
-    int box_ind, float y_ind, float width_scale, float x1, float x2);
 }  // namespace wasm
 }  // namespace tfjs
