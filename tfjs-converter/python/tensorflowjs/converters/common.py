@@ -15,6 +15,8 @@
 
 import re
 
+from tensorflow.core.framework import graph_pb2
+from tensorflow.core.framework import node_def_pb2
 from tensorflow.python.framework import tensor_util
 
 from tensorflowjs import version
@@ -118,3 +120,31 @@ def node_name_from_input(node_name):
   if m:
     node_name = m.group(1)
   return node_name
+
+def cleanup_graph_def(input_graph_def, nodes_to_skip, inputs_to_remove):
+  """Clean up the graph def by removing the skipped nodes and clean up the nodes
+    with inputs that have been removed.
+
+  Args:
+    input_graph_def: GraphDef object to be cleaned.
+    node_to_skip: Dict with node names to be skipped.
+    inputs_to_remove: List of nodes to be removed from inputs of all nodes.
+  Returns:
+    GraphDef that has been cleaned..
+
+  """
+  result_graph_def = graph_pb2.GraphDef()
+  for node in input_graph_def.node:
+    if node.name in nodes_to_skip:
+      continue
+    new_node = node_def_pb2.NodeDef()
+    new_node.CopyFrom(node)
+    for value in inputs_to_remove:
+      if value.name in new_node.input:
+        for i, input_node in enumerate(new_node.input):
+          if input_node == value.name:
+            print(value.input)
+            new_node.input[i] = value.input[0]
+    result_graph_def.node.extend([new_node])
+  result_graph_def.versions.CopyFrom(input_graph_def.versions)
+  return result_graph_def

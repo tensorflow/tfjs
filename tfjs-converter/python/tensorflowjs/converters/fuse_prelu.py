@@ -24,8 +24,6 @@ from __future__ import print_function
 import tensorflow as tf
 
 from tensorflow.core.framework import attr_value_pb2
-from tensorflow.core.framework import graph_pb2
-from tensorflow.core.framework import node_def_pb2
 from tensorflow.core.framework import op_def_pb2
 from tensorflow.python.framework import function
 from tensorflow.python.framework import op_def_registry
@@ -147,7 +145,8 @@ def fuse_ops_for_prelu(input_graph_def):
     nodes_to_skip[node.name] = True
     inputs_to_remove.append(node)
 
-  return _cleanup_graph_def(input_graph_def, nodes_to_skip, inputs_to_remove)
+  return common.cleanup_graph_def(input_graph_def, nodes_to_skip,
+                                  inputs_to_remove)
 
 def _create_alpha_node(neg_alpha_op, updated_alpha):
   if neg_alpha_op.name not in updated_alpha:
@@ -200,23 +199,8 @@ def fuse_prelu_with_fused_conv2d(input_graph_def):
     nodes_to_skip[node.name] = True
     inputs_to_remove.append(node)
 
-  return _cleanup_graph_def(input_graph_def, nodes_to_skip, inputs_to_remove)
-
-def _cleanup_graph_def(input_graph_def, nodes_to_skip, inputs_to_remove):
-  result_graph_def = graph_pb2.GraphDef()
-  for node in input_graph_def.node:
-    if node.name in nodes_to_skip:
-      continue
-    new_node = node_def_pb2.NodeDef()
-    new_node.CopyFrom(node)
-    for value in inputs_to_remove:
-      if value.name in new_node.input:
-        for i, input_node in enumerate(new_node.input):
-          if input_node == value.name:
-            new_node.input[i] = value.input[0]
-    result_graph_def.node.extend([new_node])
-  result_graph_def.versions.CopyFrom(input_graph_def.versions)
-  return result_graph_def
+  return common.cleanup_graph_def(input_graph_def, nodes_to_skip,
+                                  inputs_to_remove)
 
 def register_prelu_func(graph):
   """Register Prelu op with function def, this is needed for importing graph_def

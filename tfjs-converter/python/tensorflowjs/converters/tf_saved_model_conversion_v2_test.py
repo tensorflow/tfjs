@@ -35,6 +35,7 @@ from tensorflow.python.saved_model.save import save
 import tensorflow_hub as hub
 from tensorflowjs import version
 from tensorflowjs.converters import tf_saved_model_conversion_v2
+from tensorflowjs.converters import fuse_depthwise_conv2d
 
 SAVED_MODEL_DIR = 'saved_model'
 HUB_MODULE_DIR = 'hub_module'
@@ -134,11 +135,29 @@ class ConvertTest(tf.test.TestCase):
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     tf.saved_model.save(model, save_dir)
 
+  def _create_saved_model_with_fusable_depthwise_conv2d(self):
+    """Test a basic model with fusable depthwise conv2d."""
+    layers = [
+        tf.keras.layers.DepthwiseConv2D(
+            1, use_bias=True,
+            bias_initializer=tf.initializers.constant(0.25)),
+        tf.keras.layers.ReLU()
+    ]
+    model = tf.keras.Sequential(layers)
+    model.predict(tf.ones((1, 2, 2, 3)))
+    tf.keras.backend.set_learning_phase(0)
+    save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    tf.saved_model.save(model, save_dir)
+
   def _create_saved_model_with_prelu(self):
     """Test a basic model with fusable conv2d."""
     layers = [
         tf.keras.layers.Conv2D(
             16, [3, 3], padding='same', use_bias=True,
+            bias_initializer=tf.initializers.constant(0.25)),
+        tf.keras.layers.PReLU(alpha_initializer=tf.initializers.constant(0.25)),
+        tf.keras.layers.DepthwiseConv2D(
+            1, use_bias=True,
             bias_initializer=tf.initializers.constant(0.25)),
         tf.keras.layers.PReLU(alpha_initializer=tf.initializers.constant(0.25))
     ]
@@ -421,6 +440,54 @@ class ConvertTest(tf.test.TestCase):
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
 
+  def test_convert_saved_model_with_fused_depthwise_conv2d(self):
+    self._create_saved_model_with_fusable_depthwise_conv2d()
+    tf_saved_model_conversion_v2.convert_tf_saved_model(
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    )
+
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertTrue(model_json['modelTopology'])
+    self.assertIsNot(model_json['modelTopology']['versions'], None)
+    signature = model_json['userDefinedMetadata']['signature']
+    self.assertIsNot(signature, None)
+    self.assertIsNot(signature['inputs'], None)
+    self.assertIsNot(signature['outputs'], None)
+
+    nodes = model_json['modelTopology']['node']
+
+    fusedOp = None
+    for node in nodes:
+      self.assertTrue(not 'BatchNorm' in node['op'])
+      self.assertTrue(not 'Relu' in node['op'])
+      self.assertTrue(not 'BiasAdd' in node['op'])
+      if node['op'] == fuse_depthwise_conv2d.FUSED_DEPTHWISE_CONV2D:
+        fusedOp = node
+    self.assertTrue(fusedOp is not None)
+    self.assertIsNot(fusedOp['attr']['dilations'], None)
+    self.assertIsNot(fusedOp['attr']['strides'], None)
+    self.assertEqual(
+        base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][0]),
+        b'BiasAdd')
+    self.assertEqual(
+        base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][1]),
+        b'Relu')
+
+    # Check meta-data in the artifact JSON.
+    self.assertEqual(model_json['format'], 'graph-model')
+    self.assertEqual(
+        model_json['convertedBy'],
+        'TensorFlow.js Converter v%s' % version.version)
+    self.assertEqual(model_json['generatedBy'],
+                     tf.__version__)
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+
   def test_convert_saved_model_with_prelu(self):
     self._create_saved_model_with_prelu()
     tf_saved_model_conversion_v2.convert_tf_saved_model(
@@ -432,6 +499,7 @@ class ConvertTest(tf.test.TestCase):
     # Check model.json and weights manifest.
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
+    print(model_json)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
     signature = model_json['userDefinedMetadata']['signature']
