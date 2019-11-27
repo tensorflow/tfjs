@@ -64,6 +64,12 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {include: 'cropAndResize'},
   {
+    include: 'resizeBilinear',
+    excludes: [
+      'gradients'  // Not yet implemented.
+    ]
+  },
+  {
     include: 'matmul ',
     excludes: [
       'valueAndGradients',       // Gradients not defined yet
