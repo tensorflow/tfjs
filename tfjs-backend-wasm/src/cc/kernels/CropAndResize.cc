@@ -182,8 +182,8 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
       if (method == InterpolationMethod::BILINEAR) {
         tfjs::wasm::interpolate_bilinear(
             out_buf_ptr, images_buf, images_strides, crop_width, image_width,
-            image_width_m1, image_height_m1, num_channels, extrapolation_value,
-            box_ind, y_ind, width_scale, x1, x2);
+            image_width_m1, image_height_m1, num_channels, true,
+            extrapolation_value, box_ind, y_ind, width_scale, x1, x2);
 
       } else {
         interpolate_nearest(out_buf_ptr, images_buf, images_strides, crop_width,

@@ -80,7 +80,7 @@ void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
       } else {
         tfjs::wasm::interpolate_bilinear(
             out_buf_ptr, x_buf, image_strides, new_width, old_width,
-            old_width_m1, old_height_m1, num_channels, NULL, batch_offset,
+            old_width_m1, old_height_m1, num_channels, false, 0.0, batch_offset,
             y_ind, width_scale, 0.0, 0.0);
       }
     }

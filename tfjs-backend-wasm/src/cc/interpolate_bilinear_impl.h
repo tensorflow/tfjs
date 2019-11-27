@@ -22,10 +22,11 @@ namespace wasm {
 
 void interpolate_bilinear(float* out_buf_ptr, const float* images_buf,
                           const std::vector<int> images_strides, int crop_width,
-                          int image_width, float image_width_m1,
-                          float image_height_m1, int num_channels,
-                          float extrapolation_value, int box_ind, float y_ind,
-                          float width_scale, float x1, float x2);
+                          int image_width, int image_width_m1,
+                          int image_height_m1, int num_channels,
+                          bool should_extrapolate, float extrapolation_value,
+                          int box_ind, float y_ind, float width_scale, float x1,
+                          float x2);
 
 }  // namespace wasm
 }  // namespace tfjs
