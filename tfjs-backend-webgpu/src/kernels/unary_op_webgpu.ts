@@ -14,22 +14,22 @@
  * limitations under the License.
  * =============================================================================
  */
-import {util} from '@tensorflow/tfjs-core';
+import { util } from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType} from '../shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+import { getCoordsDataType } from '../shader_preprocessor';
+import { computeDispatch, flatDispatchLayout } from '../webgpu_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import { WebGPUProgram } from './webgpu_program';
 
 export const RELU = 'return max(a, 0.0);';
 export const RELU6 = 'return (a < 0.0) ? 0.0 : min(6.0, a);';
 
 export const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
-
+export const ABS = `return abs(a);`;
 export class UnaryOpProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;
-  dispatchLayout: {x: number[]};
+  dispatchLayout: { x: number[] };
   dispatch: [number, number, number];
   variableNames = ['A'];
   workPerThread = 4;
@@ -41,8 +41,8 @@ export class UnaryOpProgram implements WebGPUProgram {
 
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
+      this.dispatchLayout, this.outputShape, this.workGroupSize,
+      [this.workPerThread, 1, 1]);
     const type = getCoordsDataType(this.outputShape.length);
 
     this.userCode = `
