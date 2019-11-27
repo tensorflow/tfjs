@@ -38,7 +38,7 @@ async function sync_reactnative(event, context, callback) {
   const browserStackKey = result.plaintext.toString();
 
   try {
-    const syncRes = await request.post('', {
+    const syncRes = await request.post(browserStackUploadUrl, {
       auth: {
         user: browserStackUser,
         pass: browserStackKey,
