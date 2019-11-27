@@ -34,8 +34,8 @@ from tensorflow.python.tools import freeze_graph
 from tensorflow.python.saved_model.save import save
 import tensorflow_hub as hub
 from tensorflowjs import version
+from tensorflowjs.converters import graph_rewrite_util
 from tensorflowjs.converters import tf_saved_model_conversion_v2
-from tensorflowjs.converters import fuse_depthwise_conv2d
 
 SAVED_MODEL_DIR = 'saved_model'
 HUB_MODULE_DIR = 'hub_module'
@@ -465,7 +465,7 @@ class ConvertTest(tf.test.TestCase):
       self.assertTrue(not 'BatchNorm' in node['op'])
       self.assertTrue(not 'Relu' in node['op'])
       self.assertTrue(not 'BiasAdd' in node['op'])
-      if node['op'] == fuse_depthwise_conv2d.FUSED_DEPTHWISE_CONV2D:
+      if node['op'] == graph_rewrite_util.FUSED_DEPTHWISE_CONV2D:
         fusedOp = node
     self.assertTrue(fusedOp is not None)
     self.assertIsNot(fusedOp['attr']['dilations'], None)
@@ -499,7 +499,6 @@ class ConvertTest(tf.test.TestCase):
     # Check model.json and weights manifest.
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)
-    print(model_json)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
     signature = model_json['userDefinedMetadata']['signature']
@@ -511,18 +510,27 @@ class ConvertTest(tf.test.TestCase):
 
     prelu_op = None
     fused_op = None
+    depthwise_fused_op = None
     for node in nodes:
       if node['op'] == 'Prelu':
         prelu_op = node
       if node['op'] == '_FusedConv2D':
         fused_op = node
+      if node['op'] == graph_rewrite_util.FUSED_DEPTHWISE_CONV2D:
+        depthwise_fused_op = node
     self.assertTrue(prelu_op is None)
     self.assertTrue(fused_op is not None)
+    self.assertTrue(depthwise_fused_op is not None)
 
     fused_ops = list(map(base64.b64decode,
                          fused_op['attr']['fused_ops']['list']['s']))
     self.assertEqual(fused_ops, [b'BiasAdd', b'Prelu'])
     self.assertEqual(fused_op['attr']['num_args']['i'], '2')
+    depthwise_fused_ops = list(
+        map(base64.b64decode,
+            depthwise_fused_op['attr']['fused_ops']['list']['s']))
+    self.assertEqual(depthwise_fused_ops, [b'BiasAdd', b'Prelu'])
+    self.assertEqual(depthwise_fused_op['attr']['num_args']['i'], '2')
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'graph-model')
     self.assertEqual(

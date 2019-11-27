@@ -171,13 +171,13 @@ def optimize_graph(graph, signature_def, output_graph,
   optimized_graph = _run_grappler(config, optimized_graph, graph, signature_def)
   optimized_graph = _remove_unused_control_flow_inputs(optimized_graph)
 
-  # Because grappler does not support DepthwiseConv2d fusing, we have
-  # implemented it here.
-  optimized_graph = fuse_depthwise_conv2d.fuse_depthwise_conv2d(optimized_graph)
-
   # Because TF break the Prelu op into 6 ops, for performance we are
   # fusing those ops into a single prelu
   optimized_graph = fuse_prelu.fuse_ops_for_prelu(optimized_graph)
+
+  # Because grappler does not support DepthwiseConv2d fusing, we have
+  # implemented it here.
+  optimized_graph = fuse_depthwise_conv2d.fuse_depthwise_conv2d(optimized_graph)
 
   # Since the grappler remap optimizer doe snot support prelu as the activation
   # function for _FusedConv2D op, we are doing it manually here.
@@ -224,9 +224,9 @@ def extract_weights(graph_def,
   fuse_prelu.register_prelu_func(graph)
   fuse_depthwise_conv2d.register_fused_depthwise_conv2d_func(graph)
 
-  extraced_graph = fuse_depthwise_conv2d.extract_op_attributes(graph_def)
+  extracted_graph = fuse_depthwise_conv2d.extract_op_attributes(graph_def)
   with tf.compat.v1.Session(graph=graph) as sess:
-    tf.import_graph_def(extraced_graph, name='')
+    tf.import_graph_def(extracted_graph, name='')
     for const in constants:
       tensor = graph.get_tensor_by_name(const.name + ':0')
       value = tensor.eval(session=sess)

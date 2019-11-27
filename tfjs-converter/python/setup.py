@@ -64,6 +64,7 @@ setuptools.setup(
         'tensorflowjs.converters.common',
         'tensorflowjs.converters.converter',
         'tensorflowjs.converters.fold_batch_norms',
+        'tensorflowjs.converters.fuse_depthwise_conv2d',
         'tensorflowjs.converters.fuse_prelu',
         'tensorflowjs.converters.keras_h5_conversion',
         'tensorflowjs.converters.keras_tfjs_loader',

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Unit tests for prelu op fusing."""
+"""Unit tests for depthwise conv2d op fusing."""
 
 import os
 import shutil
@@ -21,7 +21,9 @@ import tempfile
 import tensorflow as tf
 
 from tensorflowjs.converters import fuse_depthwise_conv2d
+from tensorflowjs.converters import graph_rewrite_util
 from tensorflowjs.converters import tf_saved_model_conversion_v2
+
 
 class FuseDepthwiseConv2dTest(tf.test.TestCase):
   def setUp(self):
@@ -57,7 +59,7 @@ class FuseDepthwiseConv2dTest(tf.test.TestCase):
     for node in optimized_graph_def.node:
       self.assertNotEqual("BiasAdd", node.op)
       self.assertNotEqual("DepthwiseConv2dNative", node.op)
-      if node.op == fuse_depthwise_conv2d.FUSED_DEPTHWISE_CONV2D:
+      if node.op == graph_rewrite_util.FUSED_DEPTHWISE_CONV2D:
         depthwise_conv2d_count += 1
         depthwise_conv2d = node
     self.assertEqual(depthwise_conv2d_count, 1)
@@ -89,7 +91,7 @@ class FuseDepthwiseConv2dTest(tf.test.TestCase):
       self.assertNotEqual("BiasAdd", node.op)
       self.assertNotEqual("DepthwiseConv2dNative", node.op)
       self.assertNotEqual("Relu", node.op)
-      if node.op == fuse_depthwise_conv2d.FUSED_DEPTHWISE_CONV2D:
+      if node.op == graph_rewrite_util.FUSED_DEPTHWISE_CONV2D:
         depthwise_conv2d_count += 1
         depthwise_conv2d = node
     self.assertEqual(depthwise_conv2d_count, 1)
