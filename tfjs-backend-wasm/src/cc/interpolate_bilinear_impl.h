@@ -25,8 +25,8 @@ void interpolate_bilinear(float* out_buf_ptr, const float* images_buf,
                           int image_width, int image_width_m1,
                           int image_height_m1, int num_channels,
                           bool should_extrapolate, float extrapolation_value,
-                          int box_ind, float y_ind, float width_scale, float x1,
-                          float x2);
+                          int batch_offset, float y_ind, float width_scale,
+                          float x1, float x2);
 
 }  // namespace wasm
 }  // namespace tfjs
