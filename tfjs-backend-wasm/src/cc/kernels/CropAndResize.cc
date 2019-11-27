@@ -31,9 +31,7 @@ enum InterpolationMethod {
 };
 
 namespace {
-
-template <typename T>
-void interpolate_nearest(T* out_buf_ptr, const T* images_buf,
+void interpolate_nearest(float* out_buf_ptr, const float* images_buf,
                          std::vector<int> images_strides, int crop_width,
                          int image_width, int image_width_m1, int num_channels,
                          float extrapolation_value, int box_ind, float y_ind,
