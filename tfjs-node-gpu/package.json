@@ -70,7 +70,8 @@
     "remote_path": "./napi-v{napi_build_version}/{version}/",
     "napi_versions": [
       3,
-      4
+      4,
+      5
     ]
   }
 }

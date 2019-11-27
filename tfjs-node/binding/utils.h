@@ -316,7 +316,7 @@ inline std::vector<const char *> splitStringByComma(const std::string &str) {
     std::string token = str.substr(prev, pos - prev);
     if (!token.empty()) {
       char *cstr = new char[str.length() + 1];
-      std::strcpy(cstr, str.c_str());
+      std::strcpy(cstr, token.c_str());
       tokens.push_back(cstr);
     }
     prev = pos + 1;

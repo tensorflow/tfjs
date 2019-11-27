@@ -66,14 +66,16 @@ function resizeBilinear_<T extends Tensor3D|Tensor4D>(
 
   const backward = (dy: Tensor4D, saved: Tensor[]) => {
     return {
-      batchImages: () => ENGINE.runKernelFunc(
+      x: () => ENGINE.runKernelFunc(
           backend => backend.resizeBilinearBackprop(
               dy, saved[0] as Tensor4D, alignCorners),
           {})
     };
   };
 
-  const res = ENGINE.runKernelFunc(forward, {batchImages}, backward);
+  const res = ENGINE.runKernelFunc(
+      forward, {x: batchImages}, backward, 'ResizeBilinear',
+      {alignCorners, newHeight, newWidth});
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   }

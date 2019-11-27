@@ -57,6 +57,14 @@ After that operation completes, re-run `yarn add` or `npm install` for the `@ten
 
 You only need to include `@tensorflow/tfjs-node` or `@tensorflow/tfjs-node-gpu` in the package.json file, since those packages ship with `@tensorflow/tfjs` already.
 
+#### Rebuild the package on Raspberry Pi
+
+To use this package on Raspberry Pi, you need to rebuild the node native addon with the following command after you installed the package:
+
+```sh
+$ npm rebuild @tensorflow/tfjs-node --build-from-source
+```
+
 ## Using the binding
 
 Before executing any TensorFlow.js code, import the node package:
