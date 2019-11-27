@@ -73,6 +73,16 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "interpolate_bilinear_impl",
+  hdrs = ["interpolate_bilinear_impl.h"],
+  srcs = ["interpolate_bilinear_impl.cc"],
+  deps = [
+    ":backend",
+    ":util"
+  ],
+)
+
+tfjs_cc_library(
   name = "conv2d_impl",
   hdrs = ["conv2d_impl.h"],
   srcs = ["conv2d_impl.cc"],
@@ -226,6 +236,7 @@ tfjs_cc_library(
   srcs = ["kernels/CropAndResize.cc"],
   deps = [
     ":backend",
+    ":interpolate_bilinear_impl",
     ":util",
   ],
 )
