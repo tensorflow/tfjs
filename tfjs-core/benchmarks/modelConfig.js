@@ -108,14 +108,13 @@ const benchmarks = {
   'facemesh': {
     load: async () => {
       // landmarks
-      // const url = 'https://storage.googleapis.com/learnjs-data/facemesh_staging/facemesh_ping/model.json';
       // const url =
-      //     'https://storage.googleapis.com/learnjs-data/face_mesh/model.json';
+      //     'https://storage.googleapis.com/learnjs-data/facemesh_staging/facemesh_ping/model.json';
       // return tf.loadGraphModel(url);
 
       // bounding box
-      const url = 'https://facemesh.s3.amazonaws.com/facedetector/rewritten_detector.json';
-      return tf.loadLayersModel(url);
+      const url = 'https://storage.googleapis.com/learnjs-data/facemesh_staging/facedetector_tfjs/model.json';
+      return tf.loadGraphModel(url);
     },
     predictFunc: () => {
       const zeros = tf.zeros([1, 128, 128, 3]);
