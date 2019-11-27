@@ -31,7 +31,9 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
   uniforms = 'ivec2 filterDims, pad, stride, dilation;';
   workGroupSize: [number, number, number] = [4, 8, 4];
 
-  constructor(convInfo: backend_util.Conv2DInfo) {
+  constructor(
+      convInfo: backend_util.Conv2DInfo, addBias = false,
+      activation: string = null, hasPreluActivationWeights = false) {
     this.outputShape = convInfo.outShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0, 3]};
     this.dispatch = computeDispatch(
@@ -40,8 +42,35 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
     util.assert(
         convInfo.dataFormat === 'channelsLast',
         () => 'TODO: NCHW is unimplemented');
+    let activationSnippet = '', applyActivationSnippet = '';
+    if (activation) {
+      if (hasPreluActivationWeights) {
+        activationSnippet = `float activation(float a) {
+                  float b = getPreluActivationWeightsAtOutCoords();
+                  ${activation}
+                }`;
+      } else {
+        activationSnippet = `
+                  float activation(float x) {
+                    ${activation}
+                  }
+                `;
+      }
+
+      applyActivationSnippet = `value = activation(value);`;
+    }
+
+    const addBiasSnippet = addBias ? 'value += getBiasAtOutCoords();' : '';
+    if (addBias) {
+      this.variableNames.push('bias');
+    }
+
+    if (hasPreluActivationWeights) {
+      this.variableNames.push('preluActivationWeights');
+    }
 
     this.userCode = `
+      ${activationSnippet}
       float readInp(int batch, int row, int col, int chan) {
         ivec4 coord = ivec4(batch, row, col, chan);
         return coordsInBounds(coord, xShape) ?
@@ -57,6 +86,8 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
       void writeResult(int batch, int row, int col, int chan, float value) {
         ivec4 coord = ivec4(batch, row, col, chan);
         if (coordsInBounds(coord, outShape)) {
+          ${addBiasSnippet}
+          ${applyActivationSnippet}
           setOutput(batch, row, col, chan, value);
         }
       }
