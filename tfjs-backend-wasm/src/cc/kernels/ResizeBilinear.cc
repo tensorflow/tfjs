@@ -64,6 +64,10 @@ void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
     for (int r = 0; r < new_height; ++r) {
       const float y_ind = height_scale * r;
 
+      float* out_buf_ptr = out_buf +
+                           b * (new_height * new_width * num_channels) +
+                           r * (new_width * num_channels);
+
       const int top_ind = std::floor(y_ind);
       const int bottom_ind = std::min(old_height_m1, std::ceil(y_ind));
       const float y_lerp = y_ind - top_ind;
@@ -71,50 +75,13 @@ void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
       const int batch_offset = b * image_strides[0];
 
       if (width_scale == 1 && y_lerp == 0) {
-        memcpy(out_buf, x_buf + batch_offset + top_ind * image_strides[1],
+        memcpy(out_buf_ptr, x_buf + batch_offset + top_ind * image_strides[1],
                sizeof(float) * new_width * num_channels);
-        out_buf += (new_width * num_channels);
       } else {
-        // tfjs::wasm::interpolate_bilinear(out_buf, x_buf, image_strides,
-        //                                  new_width, old_width, old_width - 1,
-        //                                  num_channels, 0.0, 0, y_ind,
-        //                                  width_scale, 0.0, 0.0);
-        // x1 = 0
-        // x2 = 0
-
-        for (int c = 0; c < new_width; ++c) {
-          const float c_ind = width_scale * c;
-          const int left_ind = std::floor(c_ind);
-          const float x_lerp = c_ind - left_ind;
-          const int right_ind = std::min(old_width_m1, std::ceil(c_ind));
-
-          for (int d = 0; d < num_channels; ++d) {
-            int ind = d + left_ind * image_strides[2] +
-                      top_ind * image_strides[1] + batch_offset;
-            const float top_left = x_buf[ind];
-
-            ind = d + right_ind * image_strides[2] +
-                  top_ind * image_strides[1] + batch_offset;
-
-            const float top_right = x_buf[ind];
-
-            ind = d + left_ind * image_strides[2] +
-                  bottom_ind * image_strides[1] + batch_offset;
-
-            const float bottom_left = x_buf[ind];
-
-            ind = d + right_ind * image_strides[2] +
-                  bottom_ind * image_strides[1] + batch_offset;
-
-            const float bottom_right = x_buf[ind];
-
-            const float top = top_left + (top_right - top_left) * x_lerp;
-            const float bottom =
-                bottom_left + (bottom_right - bottom_left) * x_lerp;
-            *out_buf = top + (bottom - top) * y_lerp;
-            out_buf++;
-          }
-        }
+        tfjs::wasm::interpolate_bilinear(
+            out_buf_ptr, x_buf, image_strides, new_width, old_width,
+            old_width_m1, old_height_m1, num_channels, NULL, batch_offset,
+            y_ind, width_scale, 0.0, 0.0);
       }
     }
   }
