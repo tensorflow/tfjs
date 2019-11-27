@@ -68,7 +68,7 @@ void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
       const int top_ind = std::floor(y_ind);
       const float y_lerp = y_ind - top_ind;
 
-      const int source_row_ceil = std::min(old_height_m1, std::ceil(y_ind));
+      const int bottom_ind = std::min(old_height_m1, std::ceil(y_ind));
       const int batch_offset = b * image_strides[0];
 
       if (effective_col_size_ratio == 1 && y_lerp == 0) {
@@ -85,35 +85,31 @@ void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
           const float x_lerp = c_ind - left_ind;
           const int right_ind = std::min(old_width_m1, std::ceil(c_ind));
 
-          const float* x_buf_top_left = x_buf + batch_offset +
-                                        top_ind * image_strides[1] +
-                                        left_ind * image_strides[2];
-          const float* x_buf_bottom_left = x_buf + batch_offset +
-                                           source_row_ceil * image_strides[1] +
-                                           left_ind * image_strides[2];
-          const float* x_buf_top_right = x_buf + batch_offset +
-                                         top_ind * image_strides[1] +
-                                         right_ind * image_strides[2];
-          const float* x_buf_bottom_right = x_buf + batch_offset +
-                                            source_row_ceil * image_strides[1] +
-                                            right_ind * image_strides[2];
-
           for (int d = 0; d < num_channels; ++d) {
-            const float top_left = *x_buf_top_left;
-            const float bottom_left = *x_buf_bottom_left;
-            const float top_right = *x_buf_top_right;
-            const float bottom_right = *x_buf_bottom_right;
+            int ind = d + left_ind * image_strides[2] +
+                      top_ind * image_strides[1] + batch_offset;
+            const float top_left = x_buf[ind];
+
+            ind = d + right_ind * image_strides[2] +
+                  top_ind * image_strides[1] + batch_offset;
+
+            const float top_right = x_buf[ind];
+
+            ind = d + left_ind * image_strides[2] +
+                  bottom_ind * image_strides[1] + batch_offset;
+
+            const float bottom_left = x_buf[ind];
+
+            ind = d + right_ind * image_strides[2] +
+                  bottom_ind * image_strides[1] + batch_offset;
+
+            const float bottom_right = x_buf[ind];
 
             const float top = top_left + (top_right - top_left) * x_lerp;
             const float bottom =
                 bottom_left + (bottom_right - bottom_left) * x_lerp;
             *out_buf = top + (bottom - top) * y_lerp;
             out_buf++;
-
-            x_buf_top_left++;
-            x_buf_bottom_left++;
-            x_buf_top_right++;
-            x_buf_bottom_right++;
           }
         }
       }
