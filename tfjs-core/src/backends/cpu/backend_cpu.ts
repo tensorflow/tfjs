@@ -2842,7 +2842,7 @@ export class MathBackendCPU extends KernelBackend {
               Math.min(oldWidth - 1, Math.ceil(sourceFracCol));
           const topLeftOffest = topRowOffset + sourceColFloor * x.strides[2];
           const botLeftOffset = botRowOffset + sourceColFloor * x.strides[2];
-          const topRightOffset = topRowOffset + +sourceColCeil * x.strides[2];
+          const topRightOffset = topRowOffset + sourceColCeil * x.strides[2];
           const botRightOffest = botRowOffset + sourceColCeil * x.strides[2];
           for (let d = 0; d < numChannels; d++) {
             // Begin shader.

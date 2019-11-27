@@ -45,6 +45,7 @@ import './Prelu';
 import './Reshape';
 import './Relu';
 import './Relu6';
+import './ResizeBilinear';
 import './Sigmoid';
 import './Slice';
 import './Square';
