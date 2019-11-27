@@ -20,36 +20,33 @@ const projectId = 'learnjs-174218';
 const locationId = 'global';
 const keyRingId = 'tfjs';
 const cryptoKeyId = 'enc'
+const ciphertext =
+    'CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=';
+const browserStackUploadUrl =
+    'https://api-cloud.browserstack.com/app-automate/upload';
+const browserStackUser = 'deeplearnjs1';
+const testAppUrl =
+    'https://storage.googleapis.com/tfjs-rn/integration-tests/app-debug.apk';
+const appUploadId = 'tfjs-rn-integration-android';
 
 async function sync_reactnative(event, context, callback) {
   const client = new kms.KeyManagementServiceClient();
-  console.log('Getting key');
   const name =
       client.cryptoKeyPath(projectId, locationId, keyRingId, cryptoKeyId);
 
-  const ciphertext =
-      'CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=';
-
-  console.log('Decrypting secret');
   const [result] = await client.decrypt({name, ciphertext});
   const browserStackKey = result.plaintext.toString();
 
   try {
-    console.log('Triggering sync');
-    const syncRes = await request.post(
-        'https://api-cloud.browserstack.com/app-automate/upload', {
-          auth: {
-            user: 'deeplearnjs1',
-            pass: browserStackKey,
-          },
-          form: {
-            data: JSON.stringify({
-              'url':
-                  'https://storage.googleapis.com/tfjs-rn/integration-tests/app-debug.apk',
-              'custom_id': 'tfjs-rn-integration-android'
-            })
-          }
-        });
+    const syncRes = await request.post('', {
+      auth: {
+        user: browserStackUser,
+        pass: browserStackKey,
+      },
+      form: {
+        data: JSON.stringify({'url': testAppUrl, 'custom_id': appUploadId}),
+      }
+    });
     sendChatMsg(
         process.env.BOTS_HANGOUTS_URL,
         'Success syncing tfjs-react-native integration test app to BrowserStack');
@@ -59,8 +56,6 @@ async function sync_reactnative(event, context, callback) {
         process.env.HANGOUTS_URL,
         'Error syncing tfjs-react-native integration test app to BrowserStack');
   }
-
-  console.log('done');
 };
 
 async function sendChatMsg(url, msg) {
