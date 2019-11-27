@@ -94,7 +94,8 @@ def fuse_depthwise_conv2d(input_graph_def):
     input_graph_def: A GraphDef containing a model.
 
   Returns:
-    Modified graph with Prelu ops generated, and modified weights.
+    Modified graph with FusedDepthwiseConv2dNative ops generated, and modified
+    weights.
 
   Raises:
     ValueError: If the graph is badly formed with duplicate node names.
@@ -121,7 +122,8 @@ def _fuse_depthwise_conv2d_with_match_function(input_graph_def, match_function):
       contraction, bias_add and activation nodes.
 
   Returns:
-    Modified graph with Prelu ops generated, and modified weights.
+    Modified graph with FusedDepthwiseConv2dNative ops generated, and modified
+    weights.
 
   Raises:
     ValueError: If the graph is badly formed with duplicate node names.
