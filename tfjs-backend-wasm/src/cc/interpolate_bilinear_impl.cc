@@ -28,8 +28,8 @@
 namespace tfjs {
 namespace wasm {
 void interpolate_bilinear(float* out_buf_ptr, const float* images_buf,
-                          const std::vector<int> images_strides, int crop_width,
-                          int image_width, int image_width_m1,
+                          const std::vector<int>& images_strides,
+                          int crop_width, int image_width, int image_width_m1,
                           int image_height_m1, int num_channels,
                           bool should_extrapolate, float extrapolation_value,
                           int batch_offset, float y_ind, float width_scale,

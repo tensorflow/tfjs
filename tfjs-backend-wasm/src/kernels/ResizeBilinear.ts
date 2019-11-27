@@ -70,7 +70,7 @@ function cropAndResize(args: {
 
   wasmResizeBilinear(
       xId, batch, oldHeight, oldWidth, numChannels, newHeight, newWidth,
-      alignCorners === true ? 1 : 0, outId);
+      alignCorners ? 1 : 0, outId);
   return out;
 }
 
