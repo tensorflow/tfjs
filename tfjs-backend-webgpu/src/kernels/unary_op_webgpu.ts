@@ -26,6 +26,8 @@ export const RELU6 = 'return (a < 0.0) ? 0.0 : min(6.0, a);';
 
 export const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
 
+export const ABS = `return abs(a);`;
+
 export class UnaryOpProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;
