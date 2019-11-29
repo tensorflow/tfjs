@@ -38,15 +38,13 @@ export class ReduceProgram implements WebGPUProgram {
 
     const op = reduceType == 'min' ? '<' : '>';
     const reductionFactor = 2;
-    const xMaxThreads = 1024;  // gl_MaxComputeWorkGroupSize
+    const xMaxThreads = 1024;
     const xThreads =
         Math.min(Math.ceil(reduceSize / reductionFactor), xMaxThreads);
 
     this.workGroupSize = [xThreads, 1, 1];
     this.dispatchLayout = {x: [], y: this.outputShape.map((d, i) => i)};
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
-    // When xThreads > 1, each thread reduces Length / xThreads values.
-    // Thes results are stored in shared memory and iteratively reduced.
     const reduceInSharedMemory = xThreads > 1;
 
     const minmaxOp = `
@@ -57,11 +55,9 @@ export class ReduceProgram implements WebGPUProgram {
     const sumOp = `
             bestValue += candidate;
       `;
-
     const sharedMemorySnippet = `
         shared float xBestValues[WorkGroupSize];
       `;
-
     const sharedMemoryReduceSnippet = `
       xBestValues[gl_LocalInvocationID.x] = bestValue;
       ${reduceType === 'sum' ? `bestValue=0;` : ``}
@@ -78,9 +74,7 @@ export class ReduceProgram implements WebGPUProgram {
         }
 
         xBestValues[gl_LocalInvocationID.x] = bestValue;
-
         currentSize = DIV_CEIL(currentSize, ${reductionFactor});
-
         ${reduceType === 'sum' ? `if(currentSize > 1) bestValue=0;` : ``}
       }
 
@@ -90,7 +84,6 @@ export class ReduceProgram implements WebGPUProgram {
     `;
 
     const outputCoordsType = getCoordsDataType(this.outputShape.length);
-
     const indexOutputCoords = (outputCoords: string, index: string) => {
       if (this.outputShape.length === 1) {
         return outputCoords;
@@ -98,7 +91,6 @@ export class ReduceProgram implements WebGPUProgram {
         return `${outputCoords}[${index}]`;
       }
     };
-
     const indexInputShape = (index: string) => {
       if (inputShape.length === 1) {
         return 'xShape';
