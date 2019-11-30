@@ -132,30 +132,6 @@
     ]
   },
   {
-    "tfOpName": "Mul",
-    "category": "arithmetic",
-    "inputs": [
-      {
-        "start": 0,
-        "name": "a",
-        "type": "tensor"
-      },
-      {
-        "start": 1,
-        "name": "b",
-        "type": "tensor"
-      }
-    ],
-    "attrs": [
-      {
-        "tfName": "T",
-        "name": "dtype",
-        "type": "dtype",
-        "notSupported": true
-      }
-    ]
-  },
-  {
     "tfOpName": "Maximum",
     "category": "arithmetic",
     "inputs": [

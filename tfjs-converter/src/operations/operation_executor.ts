@@ -20,7 +20,6 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {NamedTensorsMap} from '../data/types';
 import {ExecutionContext} from '../executor/execution_context';
 
-import {NodeValueImpl} from './custom_op/node_value_impl';
 import {getRegisteredOp} from './custom_op/register';
 import * as arithmetic from './executors/arithmetic_executor';
 import * as basicMath from './executors/basic_math_executor';
@@ -38,6 +37,7 @@ import * as reduction from './executors/reduction_executor';
 import * as sliceJoin from './executors/slice_join_executor';
 import * as spectral from './executors/spectral_executor';
 import * as transformation from './executors/transformation_executor';
+import {getTensor} from './executors/utils';
 import {Node} from './types';
 
 /**
@@ -52,8 +52,9 @@ export function executeOp(
       ((node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext) => {
         const opMapper = getRegisteredOp(node.op);
         if (opMapper) {
-          return opMapper.customExecutor(
-              new NodeValueImpl(node, tensorMap, context));
+          const inputs =
+              node.inputNames.map(name => getTensor(name, tensorMap, context));
+          return opMapper.customExecutor({inputs, attrs: node.attrs});
         }
         switch (node.category) {
           case 'arithmetic':
