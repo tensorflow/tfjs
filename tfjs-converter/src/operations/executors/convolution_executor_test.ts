@@ -17,10 +17,10 @@
 import * as tfc from '@tensorflow/tfjs-core';
 
 import {ExecutionContext} from '../../executor/execution_context';
+import {executeOp} from '../operation_executor';
 import {Node} from '../types';
 
-import {executeOp} from './convolution_executor';
-import {createNumberAttr, createNumericArrayAttr, createStrArrayAttr, createStrAttr, createTensorAttr, createTensorsAttr} from './test_helper';
+import {createNumberAttr, createNumericArrayAttr, createStrAttr, createTensorAttr} from './test_helper';
 
 describe('convolution', () => {
   let node: Node;
@@ -36,6 +36,7 @@ describe('convolution', () => {
       inputs: [],
       inputParams: {x: createTensorAttr(0)},
       attrParams: {},
+      attrs: {},
       children: []
     };
   });
@@ -213,19 +214,16 @@ describe('convolution', () => {
       it('with bias and activation func', () => {
         spyOn(tfc.fused, 'conv2d');
         node.op = '_FusedConv2D';
-        node.inputParams['filter'] = createTensorAttr(1);
-        node.inputParams['args'] = createTensorsAttr(2, 0);
-        node.attrParams['fusedOps'] = createStrArrayAttr(['biasadd', 'relu']);
-        node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
-        node.attrParams['pad'] = createStrAttr('same');
-        node.attrParams['dataFormat'] = createStrAttr('NHWC');
-        node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
-        node.attrParams['numArgs'] = createNumberAttr(1);
+        node.attrs['fused_ops'] = ['biasadd', 'relu'];
+        node.attrs['strides'] = [1, 2, 2, 1];
+        node.attrs['padding'] = 'same';
+        node.attrs['data_format'] = 'NHWC';
+        node.attrs['dilations'] = [1, 2, 2, 1];
+        node.attrs['num_args'] = 1;
+        node.inputNames = ['input1', 'input2', 'input3'];
         const input1 = [tfc.scalar(1.0)];
         const input2 = [tfc.scalar(2.0)];
         const input3 = [tfc.scalar(3.0)];
-
-        node.inputNames = ['input1', 'input2', 'input3'];
         executeOp(node, {input1, input2, input3}, context);
 
         expect(tfc.fused.conv2d).toHaveBeenCalledWith({
@@ -244,19 +242,17 @@ describe('convolution', () => {
       it('with bias and prelu activation func', () => {
         spyOn(tfc.fused, 'conv2d');
         node.op = '_FusedConv2D';
-        node.inputParams['filter'] = createTensorAttr(1);
-        node.inputParams['args'] = createTensorsAttr(2, 0);
-        node.attrParams['fusedOps'] = createStrArrayAttr(['biasadd', 'prelu']);
-        node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
-        node.attrParams['pad'] = createStrAttr('same');
-        node.attrParams['dataFormat'] = createStrAttr('NHWC');
-        node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
-        node.attrParams['numArgs'] = createNumberAttr(2);
+        node.attrs['fused_ops'] = ['biasadd', 'prelu'];
+        node.attrs['strides'] = [1, 2, 2, 1];
+        node.attrs['padding'] = 'same';
+        node.attrs['data_format'] = 'NHWC';
+        node.attrs['dilations'] = [1, 2, 2, 1];
+        node.attrs['num_args'] = 2;
+        node.inputNames = ['input1', 'input2', 'input3', 'input4'];
         const input1 = [tfc.scalar(1.0)];
         const input2 = [tfc.scalar(2.0)];
         const input3 = [tfc.scalar(3.0)];
         const input4 = [tfc.scalar(4.0)];
-        node.inputNames = ['input1', 'input2', 'input3', 'input4'];
         executeOp(node, {input1, input2, input3, input4}, context);
 
         expect(tfc.fused.conv2d).toHaveBeenCalledWith({
@@ -275,19 +271,17 @@ describe('convolution', () => {
       it('bias add', () => {
         spyOn(tfc.fused, 'conv2d');
         node.op = '_FusedConv2D';
-        node.inputParams['filter'] = createTensorAttr(1);
-        node.inputParams['args'] = createTensorsAttr(2, 0);
-        node.attrParams['fusedOps'] = createStrArrayAttr(['biasadd']);
-        node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
-        node.attrParams['pad'] = createStrAttr('same');
-        node.attrParams['dataFormat'] = createStrAttr('NHWC');
-        node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
-        node.attrParams['numArgs'] = createNumberAttr(1);
+        node.attrs['fused_ops'] = ['biasadd'];
+        node.attrs['strides'] = [1, 2, 2, 1];
+        node.attrs['padding'] = 'same';
+        node.attrs['data_format'] = 'NHWC';
+        node.attrs['dilations'] = [1, 2, 2, 1];
+        node.attrs['num_args'] = 1;
+        node.inputNames = ['input1', 'input2', 'input3'];
+
         const input1 = [tfc.scalar(1.0)];
         const input2 = [tfc.scalar(2.0)];
         const input3 = [tfc.scalar(3.0)];
-
-        node.inputNames = ['input1', 'input2', 'input3'];
         executeOp(node, {input1, input2, input3}, context);
 
         expect(tfc.fused.conv2d).toHaveBeenCalledWith({
@@ -302,22 +296,21 @@ describe('convolution', () => {
           preluActivationWeights: undefined
         });
       });
+
       it('fail with batchnorm', () => {
         spyOn(tfc.fused, 'conv2d');
         node.op = '_FusedConv2D';
-        node.inputParams['filter'] = createTensorAttr(1);
-        node.inputParams['args'] = createTensorsAttr(2, 0);
-        node.attrParams['fusedOps'] = createStrArrayAttr(['fusedbatchnorm']);
-        node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
-        node.attrParams['pad'] = createStrAttr('same');
-        node.attrParams['dataFormat'] = createStrAttr('NHWC');
-        node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
-        node.attrParams['numArgs'] = createNumberAttr(1);
+        node.attrs['fused_ops'] = ['fusedbatchnorm'];
+        node.attrs['strides'] = [1, 2, 2, 1];
+        node.attrs['padding'] = 'same';
+        node.attrs['data_format'] = 'NHWC';
+        node.attrs['dilations'] = [1, 2, 2, 1];
+        node.attrs['num_args'] = 1;
+        node.inputNames = ['input1', 'input2', 'input3'];
         const input1 = [tfc.scalar(1.0)];
         const input2 = [tfc.scalar(2.0)];
         const input3 = [tfc.scalar(3.0)];
 
-        node.inputNames = ['input1', 'input2', 'input3'];
         expect(() => executeOp(node, {input1, input2, input3}, context))
             .toThrow();
       });

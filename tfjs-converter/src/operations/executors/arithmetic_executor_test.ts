@@ -16,9 +16,11 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
+
 import {ExecutionContext} from '../../executor/execution_context';
+import {executeOp} from '../operation_executor';
 import {Node} from '../types';
-import {executeOp} from './arithmetic_executor';
+
 import {createTensorAttr, createTensorsAttr} from './test_helper';
 
 describe('arithmetic', () => {

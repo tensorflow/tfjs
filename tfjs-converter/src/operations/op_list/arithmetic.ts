@@ -19,42 +19,9 @@ import {OpMapper} from '../types';
 
 export const json: OpMapper[] = [
   {
-    'tfOpName': 'Add',
-    'category': 'arithmetic',
-    'inputs': [
-      {'start': 0, 'name': 'a', 'type': 'tensor'},
-      {'start': 1, 'name': 'b', 'type': 'tensor'},
-    ],
-    'attrs': [
-      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
-    ]
-  },
-  {
-    'tfOpName': 'AddV2',
-    'category': 'arithmetic',
-    'inputs': [
-      {'start': 0, 'name': 'a', 'type': 'tensor'},
-      {'start': 1, 'name': 'b', 'type': 'tensor'},
-    ],
-    'attrs': [
-      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
-    ]
-  },
-  {
     'tfOpName': 'AddN',
     'category': 'arithmetic',
     'inputs': [{'start': 0, 'end': 0, 'name': 'tensors', 'type': 'tensors'}]
-  },
-  {
-    'tfOpName': 'BiasAdd',
-    'category': 'arithmetic',
-    'inputs': [
-      {'start': 0, 'name': 'a', 'type': 'tensor'},
-      {'start': 1, 'name': 'b', 'type': 'tensor'},
-    ],
-    'attrs': [
-      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
-    ]
   },
   {
     'tfOpName': 'Sub',
@@ -102,17 +69,6 @@ export const json: OpMapper[] = [
   },
   {
     'tfOpName': 'FloorDiv',
-    'category': 'arithmetic',
-    'inputs': [
-      {'start': 0, 'name': 'a', 'type': 'tensor'},
-      {'start': 1, 'name': 'b', 'type': 'tensor'},
-    ],
-    'attrs': [
-      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
-    ]
-  },
-  {
-    'tfOpName': 'Mul',
     'category': 'arithmetic',
     'inputs': [
       {'start': 0, 'name': 'a', 'type': 'tensor'},
@@ -178,8 +134,11 @@ export const json: OpMapper[] = [
       {'start': 0, 'name': 'a', 'type': 'tensor'},
       {'start': 1, 'name': 'b', 'type': 'tensor'},
     ],
-    'attrs': [
-      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
-    ]
+    'attrs': [{
+      'tfName': 'T',
+      'name': 'dtype',
+      'type': 'dtype',
+      'notSupported': true
+    }]
   }
 ];

@@ -1,0 +1,20 @@
+[
+  {
+    "tfOpName": "Add"
+  },
+  {
+    "tfOpName": "AddV2"
+  },
+  {
+    "tfOpName": "BiasAdd"
+  },
+  {
+    "tfOpName": "Mul"
+  },
+  {
+    "tfOpName": "_FusedConv2D"
+  },
+  {
+    "tfOpName": "all_ops"
+  }
+]

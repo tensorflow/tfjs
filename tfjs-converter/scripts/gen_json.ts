@@ -43,6 +43,7 @@ const fileNames = fs.readdirSync(srcDir);
 const testing = process.argv.indexOf('--test') !== -1;
 
 const tsFilesNamesWithJSONs: string[] = [];
+const supportedOps: Array<{tfOpName: string}> = [];
 fileNames.forEach(fileName => {
   const srcPath = path.join(srcDir, fileName);
   if (srcPath.endsWith('_test.ts')) {
@@ -50,7 +51,7 @@ fileNames.forEach(fileName => {
   }
   const m = require('../' + srcPath);
   if (m.json == null) {
-    console.log(`Ignored ${srcPath} due to absent "json" field.`);
+    supportedOps.push({tfOpName: fileName.substring(0, fileName.length - 3)});
     return;
   }
   tsFilesNamesWithJSONs.push(path.basename(srcPath));
@@ -74,12 +75,21 @@ fileNames.forEach(fileName => {
   }
 });
 
+console.log('Found the following ops', supportedOps.map(m => m.tfOpName));
+// Writing modular ops.
+fs.writeFileSync(
+    path.join(destDir, 'supported_ops.json'),
+    JSON.stringify(supportedOps, null, 2));
+
 if (testing) {
   const dirContent = fs.readdirSync(destDir);
   dirContent.forEach(itemPath => {
     if (!itemPath.endsWith('.json')) {
       throw new Error(
           `Found non-json file in directory ${destDir}: ${itemPath}`);
+    }
+    if (itemPath === 'supported_ops.json') {
+      return;
     }
     if (tsFilesNamesWithJSONs.indexOf(itemPath.replace('.json', '.ts')) ===
         -1) {

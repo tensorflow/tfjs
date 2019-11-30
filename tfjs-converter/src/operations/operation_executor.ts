@@ -50,6 +50,11 @@ export function executeOp(
     context: ExecutionContext): tfc.Tensor[]|Promise<tfc.Tensor[]> {
   const value =
       ((node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext) => {
+        const opMapper = getRegisteredOp(node.op);
+        if (opMapper) {
+          return opMapper.customExecutor(
+              new NodeValueImpl(node, tensorMap, context));
+        }
         switch (node.category) {
           case 'arithmetic':
             return arithmetic.executeOp(node, tensorMap, context);
@@ -83,14 +88,6 @@ export function executeOp(
             return spectral.executeOp(node, tensorMap, context);
           case 'transformation':
             return transformation.executeOp(node, tensorMap, context);
-          case 'custom':
-            const opMapper = getRegisteredOp(node.op);
-            if (opMapper && opMapper.customExecutor) {
-              return opMapper.customExecutor(
-                  new NodeValueImpl(node, tensorMap, context));
-            } else {
-              throw TypeError(`Custom op ${node.op} is not registered.`);
-            }
           default:
             throw TypeError(
                 `Unknown op '${node.op}'. File an issue at ` +

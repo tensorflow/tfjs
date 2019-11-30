@@ -73,7 +73,7 @@ describe('OperationExecutor', () => {
     it('should throw exception if custom op is not registered', () => {
       node.category = 'custom';
       expect(() => executeOp(node, {}, context))
-          .toThrowError('Custom op const is not registered.');
+          .toThrowError(/Unknown op 'const'. File an issue/);
     });
   });
 
@@ -94,15 +94,15 @@ describe('OperationExecutor', () => {
         const b = node.inputs[1];
         const attrC = node.attrs['c'] as Tensor;
         const attrD = node.attrs['d'] as number;
-        return [add(mul(attrC.dataSync()[0], a), mul(attrD, b))];
+        return [add(mul(attrC, a), mul(attrD, b))];
       });
 
       node.category = 'custom';
+      node.attrs = {c: 2, d: 3};
       node.inputNames = ['a', 'b'];
-      node.rawAttrs = {c: {tensor: {}}, d: {i: 3}};
-      const result = executeOp(
-                         node, {a: [scalar(1)], b: [scalar(2)], c: [scalar(2)]},
-                         context) as Tensor[];
+      const result =
+          executeOp(node, {a: [scalar(1)], b: [scalar(2)]}, context) as
+          Tensor[];
       // result = 2 * 1 + 3 * 2
       test_util.expectArraysClose(await result[0].data(), [8]);
       deregisterOp('const');

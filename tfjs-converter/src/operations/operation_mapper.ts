@@ -37,7 +37,7 @@ import * as reduction from './op_list/reduction';
 import * as sliceJoin from './op_list/slice_join';
 import * as spectral from './op_list/spectral';
 import * as transformation from './op_list/transformation';
-import {Graph, InputParamValue, Node, OpMapper, ParamValue} from './types';
+import {Graph, InputParamValue, Node, OpMapper, ParamValue, ValueType} from './types';
 
 export class OperationMapper {
   private static _instance: OperationMapper;
@@ -167,8 +167,13 @@ export class OperationMapper {
       children: [],
       inputParams: {},
       attrParams: {},
-      rawAttrs: node.attr
     };
+    const attrs: {[key: string]: ValueType} = {};
+    for (const attrName in node.attr) {
+      const rawAttr = node.attr[attrName];
+      attrs[attrName] = parseRawAttr(rawAttr);
+    }
+    newNode.attrs = attrs;
 
     if (mapper.inputs != null) {
       newNode.inputParams =
@@ -187,107 +192,12 @@ export class OperationMapper {
       newNode.attrParams =
           mapper.attrs.reduce<{[key: string]: ParamValue}>((map, param) => {
             const type = param.type;
-            let value = undefined;
-            switch (param.type) {
-              case 'string':
-                value = getStringParam(
-                    node.attr, param.tfName, param.defaultValue as string);
-
-                if (value === undefined && !!param.tfDeprecatedName) {
-                  value = getStringParam(
-                      node.attr, param.tfDeprecatedName,
-                      param.defaultValue as string);
-                }
-                break;
-              case 'string[]':
-                value = getStringArrayParam(
-                    node.attr, param.tfName, param.defaultValue as string[]);
-
-                if (value === undefined && !!param.tfDeprecatedName) {
-                  value = getStringArrayParam(
-                      node.attr, param.tfDeprecatedName,
-                      param.defaultValue as string[]);
-                }
-                break;
-              case 'number':
-                value = getNumberParam(
-                    node.attr, param.tfName,
-                    (param.defaultValue || 0) as number);
-                if (value === undefined && !!param.tfDeprecatedName) {
-                  value = getNumberParam(
-                      node.attr, param.tfDeprecatedName,
-                      param.defaultValue as number);
-                }
-                break;
-              case 'number[]':
-                value = getNumericArrayParam(
-                    node.attr, param.tfName, param.defaultValue as number[]);
-                if (value === undefined && !!param.tfDeprecatedName) {
-                  value = getNumericArrayParam(
-                      node.attr, param.tfDeprecatedName,
-                      param.defaultValue as number[]);
-                }
-                break;
-              case 'bool':
-                value = getBoolParam(
-                    node.attr, param.tfName, param.defaultValue as boolean);
-                if (value === undefined && !!param.tfDeprecatedName) {
-                  value = getBoolParam(
-                      node.attr, param.tfDeprecatedName,
-                      param.defaultValue as boolean);
-                }
-                break;
-              case 'bool[]':
-                value = getBoolArrayParam(
-                    node.attr, param.tfName, param.defaultValue as boolean[]);
-                if (value === undefined && !!param.tfDeprecatedName) {
-                  value = getBoolArrayParam(
-                      node.attr, param.tfDeprecatedName,
-                      param.defaultValue as boolean[]);
-                }
-                break;
-              case 'shape':
-                value = getTensorShapeParam(
-                    node.attr, param.tfName, param.defaultValue as number[]);
-                if (value === undefined && !!param.tfDeprecatedName) {
-                  value = getTensorShapeParam(
-                      node.attr, param.tfDeprecatedName,
-                      param.defaultValue as number[]);
-                }
-                break;
-              case 'shape[]':
-                value = getTensorShapeArrayParam(
-                    node.attr, param.tfName, param.defaultValue as number[][]);
-                if (value === undefined && !!param.tfDeprecatedName) {
-                  value = getTensorShapeArrayParam(
-                      node.attr, param.tfDeprecatedName,
-                      param.defaultValue as number[][]);
-                }
-                break;
-              case 'dtype':
-                value = getDtypeParam(
-                    node.attr, param.tfName, param.defaultValue as DataType);
-                if (value === undefined && !!param.tfDeprecatedName) {
-                  value = getDtypeParam(
-                      node.attr, param.tfDeprecatedName,
-                      param.defaultValue as DataType);
-                }
-                break;
-              case 'dtype[]':
-                value = getDtypeArrayParam(
-                    node.attr, param.tfName, param.defaultValue as DataType[]);
-                if (value === undefined && !!param.tfDeprecatedName) {
-                  value = getDtypeArrayParam(
-                      node.attr, param.tfDeprecatedName,
-                      param.defaultValue as DataType[]);
-                }
-                break;
-              case 'tensor':
-              case 'tensors':
-                break;
-              default:
-                throw new Error(
-                    `Unsupported param type: ${param.type} for op: ${node.op}`);
+            let value = newNode.attrs[param.tfName];
+            if (value == null) {
+              value = param.defaultValue;
+            }
+            if (value == null) {
+              value = newNode.attrs[param.tfDeprecatedName];
             }
             map[param.name] = {value, type};
             return map;
@@ -316,10 +226,55 @@ export function parseStringParam(s: []|string, keepCase: boolean): string {
   return keepCase ? value : value.toLowerCase();
 }
 
+/**
+ * Return the value of the attribute.
+ */
+export function parseRawAttr(value: tensorflow.IAttrValue): ValueType {
+  const defaultValue: ValueType = undefined;
+  if (value.i != null || value.f != null) {
+    return getNumberParam(value, defaultValue as number);
+  }
+  if (value.s != null) {
+    return getStringParam(value, defaultValue as string);
+  }
+  if (value.b != null) {
+    return getBoolParam(value, defaultValue as boolean);
+  }
+  if (value.shape != null) {
+    return getTensorShapeParam(value, defaultValue as number[]);
+  }
+  if (value.type != null) {
+    return getDtypeParam(value, defaultValue as DataType);
+  }
+  if (value.tensor != null) {
+    return null;
+  }
+  if (value.list != null) {
+    if (value.list.i != null || value.list.f != null) {
+      return getNumericArrayParam(value, defaultValue as number[]);
+    }
+    if (value.list.s != null) {
+      return getStringArrayParam(value, defaultValue as string[]);
+    }
+    if (value.list.shape != null) {
+      return getTensorShapeArrayParam(value, defaultValue as number[][]);
+    }
+    if (value.list.b != null) {
+      return getBoolArrayParam(value, defaultValue as boolean[]);
+    }
+    if (value.list.type != null) {
+      return getDtypeArrayParam(value, defaultValue as DataType[]);
+    }
+    if (value.list.tensor != null) {
+      return null;
+    }
+    return [];
+  }
+  return defaultValue;
+}
+
 export function getStringParam(
-    attrs: {[key: string]: tensorflow.IAttrValue}, name: string, def: string,
-    keepCase = false): string {
-  const param = attrs[name];
+    param: tensorflow.IAttrValue, def: string, keepCase = false): string {
   if (param != null) {
     return parseStringParam(param.s, keepCase);
   }
@@ -327,16 +282,13 @@ export function getStringParam(
 }
 
 export function getBoolParam(
-    attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
-    def: boolean): boolean {
-  const param = attrs[name];
+    param: tensorflow.IAttrValue, def: boolean): boolean {
   return param ? param.b : def;
 }
 
 export function getNumberParam(
-    attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
-    def: number): number {
-  const param = attrs[name] || {};
+    param: tensorflow.IAttrValue, def: number): number {
+  param = param || {};
   const value =
       param['i'] != null ? param['i'] : (param['f'] != null ? param['f'] : def);
   return (typeof value === 'number') ? value : parseInt(value, 10);
@@ -361,15 +313,14 @@ export function parseDtypeParam(value: string|tensorflow.DataType): DataType {
       return 'string';
     default:
       // Unknown dtype error will happen at runtime (instead of parse time),
-      // since these nodes might not be used by the actual subgraph execution.
+      // since these nodes might not be used by the actual subgraph
+      // execution.
       return null;
   }
 }
 
 export function getDtypeParam(
-    attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
-    def: DataType): DataType {
-  const param = attrs[name];
+    param: tensorflow.IAttrValue, def: DataType): DataType {
   if (param && param.type) {
     return parseDtypeParam(param.type);
   }
@@ -377,9 +328,7 @@ export function getDtypeParam(
 }
 
 export function getDtypeArrayParam(
-    attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
-    def: DataType[]): DataType[] {
-  const param = attrs[name];
+    param: tensorflow.IAttrValue, def: DataType[]): DataType[] {
   if (param && param.list && param.list.type) {
     return param.list.type.map(v => parseDtypeParam(v));
   }
@@ -400,9 +349,7 @@ export function parseTensorShapeParam(shape: tensorflow.ITensorShape): number[]|
 }
 
 export function getTensorShapeParam(
-    attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
-    def?: number[]): number[]|undefined {
-  const param = attrs[name];
+    param: tensorflow.IAttrValue, def?: number[]): number[]|undefined {
   if (param && param.shape) {
     return parseTensorShapeParam(param.shape);
   }
@@ -410,9 +357,7 @@ export function getTensorShapeParam(
 }
 
 export function getNumericArrayParam(
-    attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
-    def: number[]): number[] {
-  const param = attrs[name];
+    param: tensorflow.IAttrValue, def: number[]): number[] {
   if (param) {
     return ((param.list.f && param.list.f.length ? param.list.f :
                                                    param.list.i) ||
@@ -423,9 +368,7 @@ export function getNumericArrayParam(
 }
 
 export function getStringArrayParam(
-    attrs: {[key: string]: tensorflow.IAttrValue}, name: string, def: string[],
-    keepCase = false): string[] {
-  const param = attrs[name];
+    param: tensorflow.IAttrValue, def: string[], keepCase = false): string[] {
   if (param && param.list && param.list.s) {
     return param.list.s.map((v) => {
       return parseStringParam(v, keepCase);
@@ -435,9 +378,7 @@ export function getStringArrayParam(
 }
 
 export function getTensorShapeArrayParam(
-    attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
-    def: number[][]): number[][] {
-  const param = attrs[name];
+    param: tensorflow.IAttrValue, def: number[][]): number[][] {
   if (param && param.list && param.list.shape) {
     return param.list.shape.map((v) => {
       return parseTensorShapeParam(v);
@@ -447,9 +388,7 @@ export function getTensorShapeArrayParam(
 }
 
 export function getBoolArrayParam(
-    attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
-    def: boolean[]): boolean[] {
-  const param = attrs[name];
+    param: tensorflow.IAttrValue, def: boolean[]): boolean[] {
   if (param && param.list && param.list.b) {
     return param.list.b;
   }

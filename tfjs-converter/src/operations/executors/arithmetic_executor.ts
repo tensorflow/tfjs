@@ -28,13 +28,6 @@ export let executeOp: InternalOpExecutor = (node: Node,
                                             context: ExecutionContext):
                                                tfc.Tensor[] => {
   switch (node.op) {
-    case 'BiasAdd':
-    case 'AddV2':
-    case 'Add': {
-      return [tfc.add(
-          (getParamValue('a', node, tensorMap, context) as tfc.Tensor),
-          getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
-    }
     case 'AddN': {
       return [tfc.addN((
           getParamValue('tensors', node, tensorMap, context) as tfc.Tensor[]))];
@@ -42,10 +35,6 @@ export let executeOp: InternalOpExecutor = (node: Node,
     case 'FloorMod':
     case 'Mod':
       return [tfc.mod(
-          getParamValue('a', node, tensorMap, context) as tfc.Tensor,
-          getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
-    case 'Mul':
-      return [tfc.mul(
           getParamValue('a', node, tensorMap, context) as tfc.Tensor,
           getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
     case 'RealDiv':

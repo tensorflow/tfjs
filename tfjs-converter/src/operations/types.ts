@@ -96,7 +96,7 @@ export declare interface Node {
   inputParams: {[key: string]: InputParamValue};
   attrParams: {[key: string]: ParamValue};
   children: Node[];
-  rawAttrs?: {[k: string]: tensorflow.IAttrValue};
+  attrs?: {[key: string]: ValueType};
 }
 
 export declare interface Graph {

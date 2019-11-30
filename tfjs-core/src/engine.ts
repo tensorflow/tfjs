@@ -570,11 +570,12 @@ export class Engine implements TensorTracker, DataMover {
           this.checkKernelForMemLeak(scopeName, numDataIdsBefore, outInfos);
         }
         const outTensors = outInfos.map(
-            ({dataId, shape, dtype}) =>
-                this.makeTensorFromDataId(dataId, shape, dtype));
-        const outsToSave = outTensors.filter((_, i) => outputsToSave[i]);
-        // Save the inputs and outputs.
-        saveFunc(inputsToSave.slice().concat(outsToSave));
+            out => this.makeTensorFromDataId(out.dataId, out.shape, out.dtype));
+        if (isTapeOn) {
+          const outsToSave = outTensors.filter((_, i) => outputsToSave[i]);
+          // Save the inputs and outputs.
+          saveFunc(inputsToSave.slice().concat(outsToSave));
+        }
         return outTensors;
       };
     } else {

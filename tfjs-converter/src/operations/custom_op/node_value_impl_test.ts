@@ -18,6 +18,7 @@ import {scalar, test_util} from '@tensorflow/tfjs-core';
 
 import * as tensorflow from '../../data/compiled_api';
 import {ExecutionContext} from '../../executor/execution_context';
+import {parseRawAttr} from '../operation_mapper';
 import {Node} from '../types';
 
 import {NodeValueImpl} from './node_value_impl';
@@ -31,32 +32,39 @@ const NODE: Node = {
   inputParams: {},
   attrParams: {},
   children: [],
-  rawAttrs: {
-    c: {tensor: {}},
-    d: {i: 3},
-    e: {s: 'TkhXQw=='},
-    f: {type: tensorflow.DataType.DT_FLOAT},
-    g: {b: true},
-    h: {f: 4.5},
-    i: {list: {i: [3, 6, 0]}},
-    j: {list: {f: [4.5, 5.5, 0.0]}},
-    k: {list: {s: ['TkhXQw==', 'TkhXQw==', '']}},
-    l: {
-      list:
-          {type: [tensorflow.DataType.DT_FLOAT, tensorflow.DataType.DT_INT32]}
-    },
-    m: {shape: {dim: [{name: 'a', size: 1}, {name: 'b', size: 2}]}},
-    n: {
-      list: {
-        shape: [
-          {dim: [{name: 'a', size: 1}, {name: 'b', size: 2}]},
-          {dim: [{name: 'c', size: 2}, {name: 'd', size: 3}]}
-        ]
-      }
-    },
-    o: {list: {b: [true, false]}}
-  }
 };
+
+const rawAttrs = {
+  c: {tensor: {}},
+  d: {i: 3},
+  e: {s: 'TkhXQw=='},
+  f: {type: tensorflow.DataType.DT_FLOAT},
+  g: {b: true},
+  h: {f: 4.5},
+  i: {list: {i: [3, 6, 0]}},
+  j: {list: {f: [4.5, 5.5, 0.0]}},
+  k: {list: {s: ['TkhXQw==', 'TkhXQw==', '']}},
+  l: {
+    list: {type: [tensorflow.DataType.DT_FLOAT, tensorflow.DataType.DT_INT32]}
+  },
+  m: {shape: {dim: [{name: 'a', size: 1}, {name: 'b', size: 2}]}},
+  n: {
+    list: {
+      shape: [
+        {dim: [{name: 'a', size: 1}, {name: 'b', size: 2}]},
+        {dim: [{name: 'c', size: 2}, {name: 'd', size: 3}]}
+      ]
+    }
+  },
+  o: {list: {b: [true, false]}}
+} as tensorflow.INameAttrList;
+NODE.attrs = {};
+for (const attrName in rawAttrs) {
+  // tslint:disable-next-line:no-any
+  const rawAttr = (rawAttrs as any)[attrName];
+  NODE.attrs[attrName] = parseRawAttr(rawAttr);
+}
+
 const TENSOR_MAP = {
   'a': [scalar(1)],
   'b': [scalar(2)],
