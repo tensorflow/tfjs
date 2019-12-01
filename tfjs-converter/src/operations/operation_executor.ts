@@ -52,8 +52,8 @@ export function executeOp(
       ((node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext) => {
         const opMapper = getRegisteredOp(node.op);
         if (opMapper) {
-          const inputs =
-              node.inputNames.map(name => getTensor(name, tensorMap, context));
+          const inputs = node.inputNames.map(
+              input => getTensor(input.name, input.index, tensorMap, context));
           return opMapper.customExecutor({inputs, attrs: node.attrs});
         }
         switch (node.category) {

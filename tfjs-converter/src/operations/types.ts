@@ -91,7 +91,7 @@ export declare interface Node {
   name: string;
   op: string;
   category: Category;
-  inputNames: string[];
+  inputNames: Array<{name: string, index: number}>;
   inputs: Node[];
   inputParams: {[key: string]: InputParamValue};
   attrParams: {[key: string]: ParamValue};

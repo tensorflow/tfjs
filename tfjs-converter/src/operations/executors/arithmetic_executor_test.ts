@@ -35,7 +35,7 @@ describe('arithmetic', () => {
       name: 'test',
       op: '',
       category: 'arithmetic',
-      inputNames: ['input1', 'input2'],
+      inputNames: [{name: 'input1', index: 0}, {name: 'input2', index: 0}],
       inputs: [],
       inputParams: {a: createTensorAttr(0), b: createTensorAttr(1)},
       attrParams: {},
@@ -57,7 +57,8 @@ describe('arithmetic', () => {
           });
         }));
 
-    it('AddV2', async () => {
+    // tslint:disable-next-line: ban
+    fit('AddV2', async () => {
       const spy = spyOn(tfc, 'add').and.callThrough();
       node.op = 'AddV2';
       const res = executeOp(node, {input1, input2}, context) as tfc.Tensor[];

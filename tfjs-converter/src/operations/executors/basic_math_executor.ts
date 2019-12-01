@@ -154,7 +154,9 @@ export let executeOp: InternalOpExecutor = (node: Node,
           getParamValue('clipValueMin', node, tensorMap, context) as number,
           getParamValue('clipValueMax', node, tensorMap, context) as number)];
     case 'Rsqrt':
-      return [tfc.rsqrt(getTensor(node.inputNames[0], tensorMap, context))];
+      const input = node.inputNames[0];
+      return [tfc.rsqrt(
+          getTensor(input.name, input.index, tensorMap, context))];
     case 'Prod':
       return [tfc.prod(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor,

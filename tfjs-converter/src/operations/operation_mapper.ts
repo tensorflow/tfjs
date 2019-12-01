@@ -20,7 +20,7 @@ import {DataType, env} from '@tensorflow/tfjs-core';
 import * as tensorflow from '../data/compiled_api';
 import {getRegisteredOp} from './custom_op/register';
 
-import {getNodeNameAndIndex} from './executors/utils';
+import {parseNodeName} from './executors/utils';
 import * as arithmetic from './op_list/arithmetic';
 import * as basicMath from './op_list/basic_math';
 import * as control from './op_list/control';
@@ -96,10 +96,9 @@ export class OperationMapper {
     const allNodes = Object.keys(nodes);
     allNodes.forEach(key => {
       const node = nodes[key];
-      node.inputNames.forEach(name => {
-        const [nodeName, ] = getNodeNameAndIndex(name);
-        node.inputs.push(nodes[nodeName]);
-        nodes[nodeName].children.push(node);
+      node.inputNames.forEach(input => {
+        node.inputs.push(nodes[input.name]);
+        nodes[input.name].children.push(node);
       });
     });
 
@@ -114,7 +113,7 @@ export class OperationMapper {
       });
     } else {
       Object.keys(outputNodeNameToKey).forEach(name => {
-        const [nodeName, ] = getNodeNameAndIndex(name);
+        const [nodeName, ] = parseNodeName(name);
         const node = nodes[nodeName];
         if (node != null) {
           node.signatureKey = outputNodeNameToKey[name];
@@ -125,7 +124,7 @@ export class OperationMapper {
 
     if (Object.keys(inputNodeNameToKey).length > 0) {
       Object.keys(inputNodeNameToKey).forEach(name => {
-        const [nodeName, ] = getNodeNameAndIndex(name);
+        const [nodeName, ] = parseNodeName(name);
         const node = nodes[nodeName];
         if (node) {
           node.signatureKey = inputNodeNameToKey[name];
@@ -156,13 +155,21 @@ export class OperationMapper {
       node.attr = {};
     }
 
+    let inputNames: Array<{name: string, index: number}> = [];
+    if (node.input != null) {
+      inputNames = node.input.map(rawName => {
+        if (rawName.startsWith('^')) {
+          rawName = rawName.substr(1);
+        }
+        const [name, index] = parseNodeName(rawName);
+        return {name, index};
+      });
+    }
     const newNode: Node = {
       name: node.name,
       op: node.op,
       category: mapper.category,
-      inputNames:
-          (node.input ||
-           []).map(input => input.startsWith('^') ? input.substr(1) : input),
+      inputNames,
       inputs: [],
       children: [],
       inputParams: {},

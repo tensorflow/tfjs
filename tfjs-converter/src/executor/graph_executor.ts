@@ -136,15 +136,18 @@ export class GraphExecutor {
    */
   execute(inputs: NamedTensorMap, outputs: string[]): Tensor[] {
     inputs = this.mapInputs(inputs);
-    const names = Object.keys(inputs).sort();
+    const parsedInputs = Object.keys(inputs).sort().map(
+        name => ({name, parsedName: parseNodeName(name)}));
     this.checkInputs(inputs);
     this.checkInputShapeAndType(inputs);
     outputs = this.mapOutputs(outputs);
     this.checkOutputs(outputs);
     const inputNodes =
-        names.map(name => this.graph.nodes[parseNodeName(name)[0]]);
+        parsedInputs.map(({parsedName}) => this.graph.nodes[parsedName[0]]);
+    const parsedOutputs = outputs.map(o => parseNodeName(o));
+    const outputSet = new Set(parsedOutputs.map(o => o[0]));
     const outputNodes =
-        outputs.map(name => this.graph.nodes[parseNodeName(name)[0]]);
+        parsedOutputs.map(([name, _]) => this.graph.nodes[name]);
     const compilationKey = this.getCompilationKey(inputNodes, outputNodes);
     // Do nothing if the compiled graph cache contains the input.
     let orderedNodes = this.compiledMap.get(compilationKey);
@@ -156,8 +159,7 @@ export class GraphExecutor {
     return tidy(() => {
       const context = new ExecutionContext(this._weightMap, tensorArrayMap);
       const tensorsMap: NamedTensorsMap = {...this.weightMap};
-      Object.keys(inputs).forEach(name => {
-        const [nodeName, index] = parseNodeName(name);
+      parsedInputs.forEach(({name, parsedName: [nodeName, index]}) => {
         const tensors: Tensor[] = [];
         tensors[index] = inputs[name];
         tensorsMap[nodeName] = tensors;
@@ -175,11 +177,12 @@ export class GraphExecutor {
           }
           tensorsMap[node.name] = tensors;
           this.checkTensorForDisposal(
-              node.name, node, tensorsMap, context, tensorsToKeep, outputs,
+              node.name, node, tensorsMap, context, tensorsToKeep, outputSet,
               intermediateTensorConsumerCount);
         }
       }
-      return outputs.map(name => getTensor(name, tensorsMap, context));
+      return parsedOutputs.map(
+          ([name, index]) => getTensor(name, index, tensorsMap, context));
     });
   }
 
@@ -194,11 +197,11 @@ export class GraphExecutor {
   private checkTensorForDisposal(
       nodeName: string, node: Node, tensorMap: NamedTensorsMap,
       context: ExecutionContext, tensorsToKeep: Set<number>,
-      outputNames: string[],
+      outputs: Set<string>,
       intermediateTensorConsumerCount: {[key: string]: number}) {
     // Skip output nodes and any control flow nodes, since its dependency is
     // tricky to track correctly.
-    if (node.category === 'control' || outputNames.indexOf(nodeName) !== -1) {
+    if (node.category === 'control' || outputs.has(nodeName)) {
       return;
     }
 
@@ -249,14 +252,16 @@ export class GraphExecutor {
     this.checkInputShapeAndType(inputs);
     outputs = this.mapOutputs(outputs);
     this.checkOutputs(outputs);
+    const parsedOutputs = outputs.map(o => parseNodeName(o));
     const tensorArrayMap: TensorArrayMap = {};
     const context = new ExecutionContext(this._weightMap, tensorArrayMap);
     // Graph with control flow op requires runtime evaluation of the execution
     // order, while without control flow the execution order is pre-determined
     // in the compile method.
     const tensorMap =
-        await this.executeWithControlFlow(inputs, context, outputs);
-    const results = outputs.map(name => getTensor(name, tensorMap, context));
+        await this.executeWithControlFlow(inputs, context, parsedOutputs);
+    const results = parsedOutputs.map(
+        ([name, index]) => getTensor(name, index, tensorMap, context));
 
     // dispose all the intermediate tensors
     const outputIds = new Set<number>(results.map(t => t.id));
@@ -283,12 +288,13 @@ export class GraphExecutor {
    */
   private async executeWithControlFlow(
       inputs: NamedTensorMap, context: ExecutionContext,
-      outputNames: string[]): Promise<NamedTensorsMap> {
+      parsedOutputs: Array<[string, number]>): Promise<NamedTensorsMap> {
     const names = Object.keys(inputs);
     const inputNodes =
         names.map(name => this.graph.nodes[parseNodeName(name)[0]]);
     const outputNodes =
-        outputNames.map(name => this.graph.nodes[parseNodeName(name)[0]]);
+        parsedOutputs.map(([name, _]) => this.graph.nodes[name]);
+    const outputSet = new Set(parsedOutputs.map(o => o[0]));
     const {usedNodes, missingInputs, dynamicNode, syncInputs} =
         getExecutionSubgraph(inputs, outputNodes, this.weightMap);
 
@@ -309,7 +315,7 @@ export class GraphExecutor {
     while (stack.length > 0) {
       const promises = this.processStack(
           inputNodes, stack, context, tensorsMap, added, tensorsToKeep,
-          outputNames, intermediateTensorConsumerCount, usedNodes);
+          outputSet, intermediateTensorConsumerCount, usedNodes);
       await Promise.all(promises);
     }
     if (dynamicNode == null) {
@@ -321,7 +327,7 @@ export class GraphExecutor {
         outputNodes
             .filter(
                 node => !isControlFlow(node) &&
-                    !getTensor(node.name, tensorsMap, context))
+                    !getTensor(node.name, 0, tensorsMap, context))
             .map(node => node.name);
     if (missingOutputs.length > 0) {
       let alternativeMsg = '';
@@ -341,7 +347,7 @@ export class GraphExecutor {
   private processStack(
       inputNodes: Node[], stack: NodeWithContexts[], context: ExecutionContext,
       tensorMap: NamedTensorsMap, added: {[key: string]: boolean},
-      tensorsToKeep: Set<number>, outputNames: string[],
+      tensorsToKeep: Set<number>, outputs: Set<string>,
       intermediateTensorConsumerCount: {[key: number]: number},
       usedNodes: Set<string>) {
     const promises: Array<Promise<Tensor[]>> = [];
@@ -369,8 +375,8 @@ export class GraphExecutor {
             tensorMap[nodeName] = t;
             context.currentContext = currentContext;
             this.checkTensorForDisposal(
-                nodeName, item.node, tensorMap, context, tensorsToKeep,
-                outputNames, intermediateTensorConsumerCount);
+                nodeName, item.node, tensorMap, context, tensorsToKeep, outputs,
+                intermediateTensorConsumerCount);
             this.processChildNodes(
                 item.node, stack, context, tensorMap, added, usedNodes);
             return t;
@@ -378,8 +384,8 @@ export class GraphExecutor {
         } else {
           tensorMap[nodeName] = tensors;
           this.checkTensorForDisposal(
-              nodeName, item.node, tensorMap, context, tensorsToKeep,
-              outputNames, intermediateTensorConsumerCount);
+              nodeName, item.node, tensorMap, context, tensorsToKeep, outputs,
+              intermediateTensorConsumerCount);
           this.processChildNodes(
               item.node, stack, context, tensorMap, added, usedNodes);
         }
@@ -402,15 +408,15 @@ export class GraphExecutor {
       }
       // Merge op can be pushed if any of its inputs has value.
       if (childNode.op === 'Merge') {
-        if (childNode.inputNames.some(name => {
-              return !!getTensor(name, tensorMap, context);
+        if (childNode.inputNames.some(input => {
+              return !!getTensor(input.name, input.index, tensorMap, context);
             })) {
           added[nodeName] = true;
           stack.push({contexts: context.currentContext, node: childNode});
         }
       } else  // Otherwise all inputs must to have value.
-          if (childNode.inputNames.every(name => {
-                return !!getTensor(name, tensorMap, context);
+          if (childNode.inputNames.every(input => {
+                return !!getTensor(input.name, input.index, tensorMap, context);
               })) {
         added[nodeName] = true;
         stack.push({contexts: context.currentContext, node: childNode});

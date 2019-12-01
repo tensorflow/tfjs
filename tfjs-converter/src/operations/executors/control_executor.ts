@@ -43,10 +43,14 @@ export async function executeOp(
                                       [data.clone(), undefined];
     }
     case 'Merge':
-      const inputName = node.inputNames.find(
-          name => getTensor(name, tensorMap, context) !== undefined);
-      return inputName ? [getTensor(inputName, tensorMap, context).clone()] :
-                         undefined;
+      const computedInput = node.inputNames.find(
+          input => getTensor(input.name, input.index, tensorMap, context) !==
+              undefined);
+      return computedInput ?
+          [getTensor(
+               computedInput.name, computedInput.index, tensorMap, context)
+               .clone()] :
+          undefined;
 
     case 'Enter':
       const frameId =

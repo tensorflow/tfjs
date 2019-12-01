@@ -26,24 +26,26 @@ export function getParamValue(
     context: ExecutionContext): ValueType {
   const inputParam = node.inputParams[paramName];
   if (inputParam && inputParam.inputIndexStart !== undefined) {
-    const start = inputParam.inputIndexStart;
+    let start = inputParam.inputIndexStart;
+    if (start < 0) {
+      start += node.inputNames.length;
+    }
     const end = inputParam.inputIndexEnd === 0 ?
         undefined :
         (inputParam.inputIndexEnd === undefined ? start + 1 :
                                                   inputParam.inputIndexEnd);
     if (inputParam.type === 'tensor') {
-      return getTensor(
-          node.inputNames[inputParam.inputIndexStart], tensorMap, context);
+      const input = node.inputNames[inputParam.inputIndexStart];
+      return getTensor(input.name, input.index, tensorMap, context);
     }
     if (inputParam.type === 'tensors') {
       const inputs = node.inputNames.slice(start, end);
-
-      return inputs.map(name => getTensor(name, tensorMap, context));
+      return inputs.map(i => getTensor(i.name, i.index, tensorMap, context));
     }
-    const data = Array.prototype.slice.call(
-        getTensor(node.inputNames.slice(start)[0], tensorMap, context)
-            .dataSync());
-    return inputParam.type === 'number' ? data[0] : data;
+    const input = node.inputNames[start];
+    const data =
+        getTensor(input.name, input.index, tensorMap, context).dataSync();
+    return inputParam.type === 'number' ? data[0] : Array.from(data);
   }
   const attrParam = node.attrParams[paramName];
   return attrParam && attrParam.value;
@@ -56,9 +58,8 @@ export function getParamValue(
  * @param tensorsMap Tensors map keyed by the node
  */
 export function getTensor(
-    name: string, tensorsMap: NamedTensorsMap,
+    nodeName: string, index: number, tensorsMap: NamedTensorsMap,
     context: ExecutionContext): tfc.Tensor {
-  const [nodeName, index] = parseNodeName(name);
   const contextId = context.currentContextIds.find(contextId => {
     return !!tensorsMap[getNodeNameWithContextId(nodeName, contextId)];
   });
@@ -86,7 +87,7 @@ export function getTensorsForCurrentContenxt(
  * default to 0.
  */
 export function getNodeNameAndIndex(
-    inputName: string, context?: ExecutionContext): [string, number] {
+    inputName: string, context: ExecutionContext): [string, number] {
   const [nodeName, index] = parseNodeName(inputName);
 
   return [

@@ -34,9 +34,9 @@ export let executeOp: InternalOpExecutor = (node: Node,
     case 'PlaceholderWithDefault':
       const def =
           getParamValue('default', node, tensorMap, context) as tfc.Tensor;
-      return [getTensor(node.name, tensorMap, context) || def];
+      return [getTensor(node.name, 0, tensorMap, context) || def];
     case 'Placeholder':
-      return [getTensor(node.name, tensorMap, context)];
+      return [getTensor(node.name, 0, tensorMap, context)];
     case 'Identity':
     case 'StopGradient':
     case 'FakeQuantWithMinMaxVars':  // This op is currently ignored.
