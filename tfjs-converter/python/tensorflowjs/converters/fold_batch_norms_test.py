@@ -187,7 +187,7 @@ class FoldBatchNormsTest(tf.test.TestCase):
       for node in optimized_graph_def.node:
         self.assertNotEqual("FusedBatchNormV3", node.op)
 
-def _generate_fused_batchnorm(data_format, conv2d_func, count=1):
+def _generate_fused_batchnorm(data_format, conv2d_func, count=1, add_bias=False):
   inputs = [1, 4, 2, 5, 3, 6, -1, -4, -2, -5, -3, -6]
   input_op = constant_op.constant(
       np.array(inputs),
@@ -217,6 +217,10 @@ def _generate_fused_batchnorm(data_format, conv2d_func, count=1):
         padding="SAME",
         data_format=data_format,
         name="conv_op")
+    if add_bias:
+      bias = constant_op.constant(
+          np.array([1.0, 2.0]), shape=[2], dtype=dtypes.float32)
+      conv_op = nn_ops.bias_add(conv_op, 0)
     gen_nn_ops.fused_batch_norm_v3(
         conv_op,
         gamma_op,

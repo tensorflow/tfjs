@@ -84,19 +84,28 @@ def fold_batch_norms(input_graph_def):
                         "FusedBatchNorm", "FusedBatchNormV3")):
       continue
 
-    biasadd_value = None
+    bias_value = None
     conv_op = graph_rewrite_util.node_from_map(
         input_node_map,
         node.input[INPUT_ORDER[node.op].index("conv_op")])
-    if conv_op.op == 'BiasAdd':
+    # There might be an Add/BiasAdd op in-between the conv and the batchnorm
+    # but we can still fold that bias into the mean param of the batchnorm.
+    if conv_op.op in ['BiasAdd', 'Add', 'AddV2']:
+      add_op = conv_op
       bias = graph_rewrite_util.node_from_map(
           input_node_map,
-          conv_op.input[1])
-      biasadd_value = graph_rewrite_util.values_from_const(bias)
+          add_op.input[1])
+      bias_value = graph_rewrite_util.values_from_const(bias)
+      # Follow the first input of the add to get to the conv.
       conv_op = graph_rewrite_util.node_from_map(
           input_node_map,
-          conv_op.input[0])
-    if conv_op.op != "Conv2D" and conv_op.op != "DepthwiseConv2dNative":
+          add_op.input[0])
+      if conv_op not in ["Conv2D", "DepthwiseConv2dNative"]:
+        # Follow the second input of the add to get to the conv.
+        conv_op = graph_rewrite_util.node_from_map(
+          input_node_map,
+          add_op.input[1])
+    if conv_op not in ["Conv2D", "DepthwiseConv2dNative"]:
       tf_logging.warning("Didn't find expected Conv2D or DepthwiseConv2dNative"
                          " input to '%s'" % node.name)
       continue
@@ -123,8 +132,10 @@ def fold_batch_norms(input_graph_def):
                          " run first?" % (node.name, mean_op))
       continue
     mean_value = graph_rewrite_util.values_from_const(mean_op)
-    if biasadd_value is not None:
-      mean_value = mean_value - biasadd_value
+    if bias_value is not None:
+      # Adjust the mean of the batchnorm based on the add op in-between the conv
+      # and the batchnorm.
+      mean_value = mean_value - bias_value
     if mean_value.shape != (channel_count,):
       tf_logging.warning("Incorrect shape for mean, found %s, expected %s,"
                          " for node %s" % (str(mean_value.shape), str(
