@@ -23,6 +23,16 @@ steps:
   secretEnv: ['BROWSERSTACK_KEY']
   waitFor: ['yarn']
 
+# Run published core unit tests against latest source
+- name: 'node:10'
+  dir: 'tfjs-react-native/integration_rn59'
+  id: 'react-native-against-published-core'
+  entrypoint: 'yarn'
+  args: ['test-ci']
+  waitFor: ['yarn']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+  secretEnv: ['BROWSERSTACK_KEY']
+
 # General configuration
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
@@ -34,4 +44,5 @@ substitutions:
   _NIGHTLY: ''
 options:
   logStreamingOption: 'STREAM_ON'
+  machineType: 'N1_HIGHCPU_8'
   substitution_option: 'ALLOW_LOOSE'
