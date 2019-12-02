@@ -29,7 +29,7 @@ steps:
   id: 'react-native-against-core'
   entrypoint: 'yarn'
   args: ['test-ci']
-  waitFor: ['yarn']
+  waitFor: ['test-react-native']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
 
