@@ -28,7 +28,7 @@ steps:
   dir: 'tfjs-react-native/integration_rn59'
   id: 'react-native-against-core'
   entrypoint: 'yarn'
-  args: ['test-ci']
+  args: ['test-ci', 'build-head']
   waitFor: ['yarn']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
