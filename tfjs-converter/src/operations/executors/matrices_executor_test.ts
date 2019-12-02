@@ -77,6 +77,29 @@ describe('matrices', () => {
           preluActivationWeights: undefined
         });
       });
+      it('should call tfc.fused.matMul - prelu activation', () => {
+        spyOn(tfc.fused, 'matMul');
+        node.op = '_FusedMatMul';
+        node.inputParams['args'] = createTensorsAttr(2, 0);
+        node.attrParams['fusedOps'] = createStrArrayAttr(['biasadd', 'prelu']);
+        node.attrParams['numArgs'] = createNumberAttr(2);
+        node.attrParams.transposeA = createBoolAttr(true);
+        node.attrParams.transposeB = createBoolAttr(false);
+        const input3 = [tfc.scalar(3.0)];
+        const input4 = [tfc.scalar(4.0)];
+        node.inputNames = ['input1', 'input2', 'input3', 'input4'];
+        executeOp(node, {input1, input2, input3, input4}, context);
+
+        expect(tfc.fused.matMul).toHaveBeenCalledWith({
+          a: input1[0],
+          b: input2[0],
+          transposeA: true,
+          transposeB: false,
+          bias: input3[0],
+          activation: 'prelu',
+          preluActivationWeights: input4[0]
+        });
+      });
     });
     describe('BatchMatMul', () => {
       it('should call tfc.matMul', () => {
