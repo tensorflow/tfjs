@@ -33,8 +33,8 @@ Unit tests from tfjs-core are imported into a react native application and run a
 Because these are part of an app to run them you must compile and run the integration_rn59 of the target device. There is a button in that app to start the unit tests.
 
 This is _automated in CI_ and runs on:
- - Changes to tfjs-core: Tests will be run against HEAD of tfjs-core
- - Changes to tfjs-react-native: Tests will be run against the **published** version of tfjs on npm that is references in `integration_rn59/package.json`
+ - Changes to tfjs-core: [Tests will be run against HEAD of tfjs-core](../tfjs-core/cloudbuild.yml)
+ - Changes to tfjs-react-native: [Tests will be run against the **published** version](./cloudbuild.yml) of tfjs on npm that is references in `integration_rn59/package.json`
 
 ### Other integration tests
 
