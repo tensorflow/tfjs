@@ -88,23 +88,24 @@ def fold_batch_norms(input_graph_def):
     conv_op = graph_rewrite_util.node_from_map(
         input_node_map,
         node.input[INPUT_ORDER[node.op].index("conv_op")])
-    # There might be an Add/BiasAdd op in-between the conv and the batchnorm
-    # but we can still fold that bias into the mean param of the batchnorm.
+    # There might be an Add/BiasAdd op between the conv and the batchnorm,
+    # which we can fold into the mean param of the batchnorm.
     if conv_op.op in ['BiasAdd', 'Add', 'AddV2']:
       add_op = conv_op
       # Follow the first input of the add to get to the conv.
       conv_op = graph_rewrite_util.node_from_map(
-          input_node_map,
-          add_op.input[0])
-      bias = graph_rewrite_util.node_from_map(
-          input_node_map,
-          add_op.input[1])
+          input_node_map, add_op.input[0])
+      bias = graph_rewrite_util.node_from_map(input_node_map, add_op.input[1])
       if conv_op.op not in ["Conv2D", "DepthwiseConv2dNative"]:
         # Follow the second input of the add to get to the conv.
         conv_op = graph_rewrite_util.node_from_map(
-            input_node_map,
-            add_op.input[1])
+            input_node_map, add_op.input[1])
         bias = graph_rewrite_util.node_from_map(input_node_map, add_op.input[0])
+    if bias and bias.op != 'Const':
+      tf_logging.warning("The bias %s after the conv %s was not a constant. "
+                         "Maybe because freeze_graph wasn't "
+                         "run first?" % (bias.name, conv_op.name))
+      continue
     if conv_op.op not in ["Conv2D", "DepthwiseConv2dNative"]:
       tf_logging.warning("Didn't find expected Conv2D or DepthwiseConv2dNative"
                          " input to '%s'" % node.name)
