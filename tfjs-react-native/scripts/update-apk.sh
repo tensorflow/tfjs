@@ -18,8 +18,6 @@
 
 set -e
 
-echo "$(pwd)"
 cd integration_rn59/android && ./gradlew clean assembleDebug && cd ../../
-echo "$(pwd)"
 gsutil cp ./integration_rn59/android/app/build/outputs/apk/debug/app-debug.apk gs://tfjs-rn/integration-tests/
 gcloud pubsub topics publish sync_reactnative --message "{}"
