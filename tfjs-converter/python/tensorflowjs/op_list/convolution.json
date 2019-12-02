@@ -464,7 +464,7 @@
     "inputs": [
       {
         "start": 0,
-        "name": "input",
+        "name": "x",
         "type": "tensor"
       },
       {

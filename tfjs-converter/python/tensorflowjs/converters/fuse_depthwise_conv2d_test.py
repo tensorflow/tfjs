@@ -97,6 +97,6 @@ class FuseDepthwiseConv2dTest(tf.test.TestCase):
     self.assertEqual(depthwise_conv2d_count, 1)
     self.assertEqual(
         depthwise_conv2d.attr['fused_ops'].list.s, [b'BiasAdd', b'Relu'])
-    self.assertEqual(depthwise_conv2d.attr['num_args'].i, 2)
+    self.assertEqual(depthwise_conv2d.attr['num_args'].i, 1)
 if __name__ == '__main__':
   tf.test.main()
