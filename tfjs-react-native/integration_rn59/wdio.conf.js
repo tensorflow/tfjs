@@ -24,7 +24,6 @@ const sharedCapabilities = Object.freeze({
   'browserstack.local': true,
   'browserstack.networkLogs': true,
   'browserstack.localIdentifier': localIdentifier,
-  // 'browserstack.tunnelIdentifier': localIdentifier,
 });
 
 
@@ -54,7 +53,6 @@ exports.config = {
     // Create a local id to separate this instance of browserstack local from
     // ones that may be created by karma.
     localIdentifier,
-    // tunnelIdentifier: localIdentifier,
   },
 
   // =====================
