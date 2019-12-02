@@ -23,10 +23,10 @@ steps:
   secretEnv: ['BROWSERSTACK_KEY']
   waitFor: ['yarn']
 
-# Run core unit tests against latest source
+# Run published core unit tests against latest source
 - name: 'node:10'
   dir: 'tfjs-react-native/integration_rn59'
-  id: 'react-native-against-core'
+  id: 'react-native-against-published-core'
   entrypoint: 'yarn'
   args: ['test-ci']
   waitFor: ['yarn']
