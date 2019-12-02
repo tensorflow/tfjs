@@ -20,7 +20,8 @@
     "unlink-local": "yalc remove",
     "lint": "tslint -p . -t verbose",
     "test": "karma start",
-    "test-ci": "./scripts/test-ci.sh"
+    "test-ci": "./scripts/test-ci.sh",
+    "update-apk": "./scripts/update-apk.sh"
   },
   "devDependencies": {
     "@react-native-community/async-storage": "^1.4.2",
