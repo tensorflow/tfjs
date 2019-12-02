@@ -84,9 +84,18 @@ def fold_batch_norms(input_graph_def):
                         "FusedBatchNorm", "FusedBatchNormV3")):
       continue
 
+    biasadd_value = None
     conv_op = graph_rewrite_util.node_from_map(
         input_node_map,
         node.input[INPUT_ORDER[node.op].index("conv_op")])
+    if conv_op.op == 'BiasAdd':
+      bias = graph_rewrite_util.node_from_map(
+          input_node_map,
+          conv_op.input[1])
+      biasadd_value = graph_rewrite_util.values_from_const(bias)
+      conv_op = graph_rewrite_util.node_from_map(
+          input_node_map,
+          conv_op.input[0])
     if conv_op.op != "Conv2D" and conv_op.op != "DepthwiseConv2dNative":
       tf_logging.warning("Didn't find expected Conv2D or DepthwiseConv2dNative"
                          " input to '%s'" % node.name)
@@ -114,6 +123,8 @@ def fold_batch_norms(input_graph_def):
                          " run first?" % (node.name, mean_op))
       continue
     mean_value = graph_rewrite_util.values_from_const(mean_op)
+    if biasadd_value is not None:
+      mean_value = mean_value - biasadd_value
     if mean_value.shape != (channel_count,):
       tf_logging.warning("Incorrect shape for mean, found %s, expected %s,"
                          " for node %s" % (str(mean_value.shape), str(

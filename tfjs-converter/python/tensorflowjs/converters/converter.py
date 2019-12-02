@@ -30,6 +30,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
+from custom_layers import ChannelPadding, StopGradient
 from tensorflowjs import quantization
 from tensorflowjs import version
 from tensorflowjs.converters import common
@@ -127,9 +128,12 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
         'directory: %s' % h5_path)
 
   temp_savedmodel_dir = tempfile.mktemp(suffix='.savedmodel')
-  model = keras.models.load_model(h5_path)
-  keras.experimental.export_saved_model(
-      model, temp_savedmodel_dir, serving_only=True)
+  custom_objects = {
+    'ChannelPadding': ChannelPadding,
+    'StopGradient': StopGradient
+  }
+  model = keras.models.load_model(h5_path, custom_objects, compile=False)
+  model.save(temp_savedmodel_dir, include_optimizer=False, save_format='tf')
 
   # NOTE(cais): This cannot use `tf.compat.v1` because
   #   `convert_tf_saved_model()` works only in v2.
