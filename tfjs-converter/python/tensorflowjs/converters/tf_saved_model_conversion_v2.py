@@ -156,7 +156,7 @@ def optimize_graph(graph, signature_def, output_graph,
   # batch norm folding
   optimized_graph = fold_batch_norms.fold_batch_norms(optimized_graph)
 
-  # set the device to CPU for all Conv2d and MatMul nodes, since grappler 
+  # set the device to CPU for all Conv2d and MatMul nodes, since grappler
   # remap optimizer only support FusedConv2D and FusedMatMul for CPU.
   for node in optimized_graph.node:
     if node.op == 'Conv2D' or node.op == 'MatMul':

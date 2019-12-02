@@ -21,10 +21,6 @@ import tempfile
 import tensorflow as tf
 from tensorflow.core.protobuf import config_pb2
 from tensorflow.core.protobuf import meta_graph_pb2
-from tensorflow.python.eager import def_function
-from tensorflow.python.framework import constant_op
-from tensorflow.python.ops import variables
-from tensorflow.python.training.tracking import tracking
 
 from tensorflowjs.converters import fuse_depthwise_conv2d
 from tensorflowjs.converters import fuse_prelu
@@ -187,7 +183,7 @@ class FusePreluTest(tf.test.TestCase):
     self.assertEqual(matmul_op.attr['fused_ops'].list.s, [b'BiasAdd', b'Prelu'])
     self.assertEqual(matmul_op.attr['num_args'].i, 2)
 
-def testFusePreluWithDepthwiseConv2d(self):
+  def testFusePreluWithDepthwiseConv2d(self):
     layers = [
         tf.keras.layers.DepthwiseConv2D(
             1, bias_initializer=tf.initializers.constant(0.25)),

@@ -192,12 +192,14 @@ class ConvertTest(tf.test.TestCase):
     save(root, save_dir, to_save)
 
   def _create_saved_model_with_fusable_matmul(self):
-    """Test a fusable matmul model with functions to make sure functions are inlined."""
+    """Test a fusable matmul model."""
     input_data = constant_op.constant(1., shape=[1, 1])
     bias_data = constant_op.constant(1., shape=[1])
     root = tracking.AutoTrackable()
     root.v2 = variables.Variable([[2.]])
-    root.f = def_function.function(lambda x: tf.nn.relu(tf.nn.bias_add(tf.matmul(x, root.v2), bias_data)))
+    root.f = def_function.function(
+        lambda x: tf.nn.relu(tf.nn.bias_add(tf.matmul(x, root.v2),
+                                            bias_data)))
     to_save = root.f.get_concrete_function(input_data)
 
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
@@ -473,7 +475,7 @@ class ConvertTest(tf.test.TestCase):
     nodes = model_json['modelTopology']['node']
     fusedOp = None
     for node in nodes:
-      self.assertTrue(not 'MatMul' == node['op'])
+      self.assertTrue(node['op'] != 'MatMul')
       self.assertTrue(not 'Relu' in node['op'])
       self.assertTrue(not 'BiasAdd' in node['op'])
       if node['op'] == graph_rewrite_util.FUSED_MATMUL:
