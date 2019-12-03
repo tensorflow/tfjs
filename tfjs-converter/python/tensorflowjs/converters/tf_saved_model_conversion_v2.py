@@ -126,7 +126,6 @@ def optimize_graph(graph, signature_def, output_graph,
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to strip debug ops.
   """
-  fuse_prelu.register_prelu_func(graph)
 
   # Add a collection 'train_op' so that Grappler knows the outputs.
   for _, output in signature_def.outputs.items():
