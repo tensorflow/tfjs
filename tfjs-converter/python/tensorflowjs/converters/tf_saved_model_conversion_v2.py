@@ -42,6 +42,7 @@ from tensorflowjs.converters import common
 from tensorflowjs.converters import fold_batch_norms
 from tensorflowjs.converters import fuse_prelu
 from tensorflowjs.converters import fuse_depthwise_conv2d
+from tensorflowjs.converters import graph_rewrite_util
 from tensorflowjs import resource_loader
 
 # enable eager execution for v2 APIs
@@ -220,27 +221,19 @@ def extract_weights(graph_def,
   print('Writing weight file ' + output_graph + '...')
   const_manifest = []
 
-  graph = tf.Graph()
-  fuse_prelu.register_prelu_func(graph)
-  fuse_depthwise_conv2d.register_fused_depthwise_conv2d_func(graph)
+  for node in graph_def.node:
+    if node.op != 'Const':
+      continue
+    const_manifest.append({
+      'name': node.name,
+      'data': graph_rewrite_util.values_from_const(node)
+    })
+    # Restore the conditional inputs
+    node.input[:] = const_inputs[node.name]
 
-  extracted_graph = fuse_depthwise_conv2d.extract_op_attributes(graph_def)
-  with tf.compat.v1.Session(graph=graph) as sess:
-    tf.import_graph_def(extracted_graph, name='')
-    for const in constants:
-      tensor = graph.get_tensor_by_name(const.name + ':0')
-      value = tensor.eval(session=sess)
-      if not isinstance(value, np.ndarray):
-        value = np.array(value)
-
-      const_manifest.append({'name': const.name, 'data': value})
-
-      # Restore the conditional inputs
-      const.input[:] = const_inputs[const.name]
-
-      # Remove the binary array from tensor and save it to the external file.
-      for field_name in CLEARED_TENSOR_FIELDS:
-        const.attr["value"].tensor.ClearField(field_name)
+    # Remove the binary array from tensor and save it to the external file.
+    for field_name in CLEARED_TENSOR_FIELDS:
+      node.attr["value"].tensor.ClearField(field_name)
 
   write_artifacts(MessageToDict(graph_def), [const_manifest], output_graph,
                   tf_version, signature_def,
