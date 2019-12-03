@@ -121,11 +121,11 @@ class ConvertTest(tf.test.TestCase):
 
       builder.save()
 
-  def _create_saved_model_with_fusable_conv2d(self):
+  def _create_saved_model_with_fusable_conv2d(self, use_bias):
     """Test a basic model with fusable conv2d."""
     layers = [
         tf.keras.layers.Conv2D(
-            16, [3, 3], padding='same', use_bias=False),
+            16, [3, 3], padding='same', use_bias=use_bias),
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.ReLU()
     ]
@@ -395,50 +395,51 @@ class ConvertTest(tf.test.TestCase):
     self.assertIn('weights', weights_manifest[0])
 
   def test_convert_saved_model_with_fused_conv2d(self):
-    self._create_saved_model_with_fusable_conv2d()
-    tf_saved_model_conversion_v2.convert_tf_saved_model(
-        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
-        os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
-    )
+    for use_bias in [True, False]:
+      self._create_saved_model_with_fusable_conv2d(use_bias)
+      tf_saved_model_conversion_v2.convert_tf_saved_model(
+          os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+          os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+      )
 
-    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
-    # Check model.json and weights manifest.
-    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
-      model_json = json.load(f)
-    self.assertTrue(model_json['modelTopology'])
-    self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['userDefinedMetadata']['signature']
-    self.assertIsNot(signature, None)
-    self.assertIsNot(signature['inputs'], None)
-    self.assertIsNot(signature['outputs'], None)
+      tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+      # Check model.json and weights manifest.
+      with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+        model_json = json.load(f)
+      self.assertTrue(model_json['modelTopology'])
+      self.assertIsNot(model_json['modelTopology']['versions'], None)
+      signature = model_json['userDefinedMetadata']['signature']
+      self.assertIsNot(signature, None)
+      self.assertIsNot(signature['inputs'], None)
+      self.assertIsNot(signature['outputs'], None)
 
-    nodes = model_json['modelTopology']['node']
+      nodes = model_json['modelTopology']['node']
 
-    fusedOp = None
-    for node in nodes:
-      self.assertTrue(not 'BatchNorm' in node['op'])
-      self.assertTrue(not 'Relu' in node['op'])
-      self.assertTrue(not 'BiasAdd' in node['op'])
-      if node['op'] == '_FusedConv2D':
-        fusedOp = node
-    self.assertTrue(fusedOp is not None)
-    self.assertEqual(
-        base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][0]),
-        b'BiasAdd')
-    self.assertEqual(
-        base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][1]),
-        b'Relu')
+      fusedOp = None
+      for node in nodes:
+        self.assertTrue(not 'BatchNorm' in node['op'])
+        self.assertTrue(not 'Relu' in node['op'])
+        self.assertTrue(not 'BiasAdd' in node['op'])
+        if node['op'] == '_FusedConv2D':
+          fusedOp = node
+      self.assertTrue(fusedOp is not None)
+      self.assertEqual(
+          base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][0]),
+          b'BiasAdd')
+      self.assertEqual(
+          base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][1]),
+          b'Relu')
 
-    # Check meta-data in the artifact JSON.
-    self.assertEqual(model_json['format'], 'graph-model')
-    self.assertEqual(
-        model_json['convertedBy'],
-        'TensorFlow.js Converter v%s' % version.version)
-    self.assertEqual(model_json['generatedBy'],
-                     tf.__version__)
-    self.assertTrue(
-        glob.glob(
-            os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+      # Check meta-data in the artifact JSON.
+      self.assertEqual(model_json['format'], 'graph-model')
+      self.assertEqual(
+          model_json['convertedBy'],
+          'TensorFlow.js Converter v%s' % version.version)
+      self.assertEqual(model_json['generatedBy'],
+                       tf.__version__)
+      self.assertTrue(
+          glob.glob(
+              os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
 
   def test_convert_saved_model_with_fused_depthwise_conv2d(self):
     self._create_saved_model_with_fusable_depthwise_conv2d()
