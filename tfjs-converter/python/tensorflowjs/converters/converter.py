@@ -36,7 +36,36 @@ from tensorflowjs.converters import common
 from tensorflowjs.converters import keras_h5_conversion as conversion
 from tensorflowjs.converters import keras_tfjs_loader
 from tensorflowjs.converters import tf_saved_model_conversion_v2
+from tensorflowjs.converters import keras_force_batch
 
+from tensorflow.keras.layers import Layer
+
+class ChannelPadding(Layer):
+    def __init__(self, padding, mode='CONSTANT', **kwargs):
+        super(ChannelPadding, self).__init__(**kwargs)
+        self.padding = padding
+        self.mode = mode
+
+    def call(self, inputs):
+        return tf.pad(inputs, [[0, 0], [0, 0], [0, 0], [0, self.padding]], self.mode)
+
+    def compute_output_shape(self, input_shape):
+        batch, dim1, dim2, values = input_shape
+        return (batch, dim1, dim2, values + self.padding)
+
+    def get_config(self):
+        config = {
+            'padding': self.padding,
+            'mode': self.mode,
+        }
+        base_config = super(ChannelPadding, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
+
+class StopGradient(Layer):
+
+  def call(self, inputs, **kwargs):
+    return tf.stop_gradient(inputs)
 
 def dispatch_keras_h5_to_tfjs_layers_model_conversion(
     h5_path, output_dir=None, quantization_dtype=None,
@@ -127,8 +156,13 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
         'directory: %s' % h5_path)
 
   temp_savedmodel_dir = tempfile.mktemp(suffix='.savedmodel')
-  model = keras.models.load_model(h5_path, compile=False)
-  model.save(temp_savedmodel_dir, include_optimizer=False, save_format='tf')
+  custom_objects = {
+    'ChannelPadding': ChannelPadding,
+    'StopGradient': StopGradient
+  }
+  with keras_force_batch.fixed_batch_size():
+    model = keras.models.load_model(h5_path, custom_objects, compile=False)
+    model.save(temp_savedmodel_dir, include_optimizer=False, save_format='tf')
 
   # NOTE(cais): This cannot use `tf.compat.v1` because
   #   `convert_tf_saved_model()` works only in v2.
