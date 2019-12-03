@@ -70,6 +70,7 @@ export function makeMatMulSource(): string {
 
 export class MatMulProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
@@ -84,14 +85,15 @@ export class MatMulProgram implements WebGPUProgram {
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-
-    const sampleA = tilesFitEvenlyIntoShape(
-                        this.workGroupSize.slice(0, 2), aShape.slice(1)) ?
+    const fitA = tilesFitEvenlyIntoShape(
+        this.workGroupSize.slice(0, 2), aShape.slice(1));
+    const sampleA = fitA ?
         `A[row * dimInner + col]` :
         `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
           A[row * dimInner + col] : 0`;
-    const sampleB = tilesFitEvenlyIntoShape(
-                        this.workGroupSize.slice(0, 2), bShape.slice(1)) ?
+    const fitB = tilesFitEvenlyIntoShape(
+        this.workGroupSize.slice(0, 2), bShape.slice(1));
+    const sampleB = fitB ?
         `B[row * dimBOuter + col]` :
         `coordsInBounds(ivec2(row, col), ivec2(dimInner, dimBOuter)) ?
           B[row * dimBOuter + col] : 0`;
@@ -119,5 +121,6 @@ export class MatMulProgram implements WebGPUProgram {
         mm_matMul(dimAOuter, dimInner, dimBOuter);
       }
     `;
+    this.shaderKey = `matmul${fitA}${fitB}`;
   }
 }

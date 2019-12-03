@@ -15,13 +15,16 @@
  * =============================================================================
  */
 import {util} from '@tensorflow/tfjs-core';
-import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
-import {WebGPUProgram} from './webgpu_program';
+
 import {getCoordsDataType} from '../shader_preprocessor';
+import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+
+import {WebGPUProgram} from './webgpu_program';
 
 export class SelectProgram implements WebGPUProgram {
   variableNames = ['c', 'a', 'b'];
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
@@ -80,5 +83,6 @@ export class SelectProgram implements WebGPUProgram {
         }
       }
     `;
+    this.shaderKey = `select${size}${rank}`;
   }
 }
