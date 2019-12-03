@@ -21,7 +21,9 @@ import * as shaderc from '@webgpu/shaderc';
 import * as shader_preprocessor from '../shader_preprocessor';
 
 export interface WebGPUProgram {
-  shaderKey: string;
+  // The unique key to distinguish different shader source code. If shaderKey is
+  // not specified, use userCode to replace.
+  shaderKey?: string;
   userCode: string;
   outputShape: number[];
   // dispatchLayout enumerates how tensor dimensions are distributed among
@@ -120,6 +122,7 @@ export const compileProgram =
 // recompilation.
 export function makeShaderKey(program: WebGPUProgram, ranks: number[]): string {
   const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
-      ranks.join(',') + program.shaderKey;
+      ranks.join(',') +
+      (program.shaderKey ? program.shaderKey : program.userCode);
   return key;
 }
