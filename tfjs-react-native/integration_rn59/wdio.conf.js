@@ -16,13 +16,14 @@
  */
 
 
-const localIdentifier = `rn_integration_${Date.now()}`;
+const localIdentifier =
+    `rn_integration_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 
 const sharedCapabilities = Object.freeze({
   'browserstack.debug': true,
   'browserstack.local': true,
   'browserstack.networkLogs': true,
-  'browserstack.localIdentifier': localIdentifier
+  'browserstack.localIdentifier': localIdentifier,
 });
 
 
