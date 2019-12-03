@@ -593,6 +593,6 @@ def convert_tf_hub_module(module_handle, output_dir,
                            output_dir=output_dir,
                            signature_def=signature,
                            saved_model_tags=saved_model_tags,
-                           quantization_dtype=None,
-                           skip_op_check=False,
-                           strip_debug_ops=False)
+                           quantization_dtype=quantization_dtype,
+                           skip_op_check=skip_op_check,
+                           strip_debug_ops=strip_debug_ops)
