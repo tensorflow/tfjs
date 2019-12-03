@@ -242,7 +242,7 @@ export const json: OpMapper[] = [
     'tfOpName': 'FusedDepthwiseConv2dNative',
     'category': 'convolution',
     'inputs': [
-      {'start': 0, 'name': 'input', 'type': 'tensor'},
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
       {'start': 1, 'name': 'filter', 'type': 'tensor'},
       {'start': 2, end: 0, 'name': 'args', 'type': 'tensors'},
     ],

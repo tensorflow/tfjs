@@ -32,7 +32,9 @@ Unit tests from tfjs-core are imported into a react native application and run a
 
 Because these are part of an app to run them you must compile and run the integration_rn59 of the target device. There is a button in that app to start the unit tests.
 
-This is _automated in CI_ and runs on changes to tfjs-core.
+This is _automated in CI_ and runs on:
+ - Changes to tfjs-core: [Tests will be run against HEAD of tfjs-core](../tfjs-core/cloudbuild.yml)
+ - Changes to tfjs-react-native: [Tests will be run against the **published** version](./cloudbuild.yml) of tfjs on npm that is references in `integration_rn59/package.json`
 
 ### Other integration tests
 
@@ -43,6 +45,7 @@ The integration_rn59 app also contains some other tests and sanity checks. These
 Integration tests on CI have a few moving pieces, the basic workflow is as follows.
 
 1. A native app ([.apk](https://storage.googleapis.com/tfjs-rn/integration-tests/app-debug.apk)) is built manually and stored on GCP. This app doesn't need to change unless a new native dependency is added.
-2. TODO the native app is __periodically synced__ to browserstack as part of our 'nightly' tasks.
-3. On PRs a Google Cloud Build builder will trigger a browserstack test (using browserstack app automate), and serve the JS bundle to the device running in browserstack using metro. The tests are designed to create a tunnel between the native device and the cloud builder machine.
-4. The tests complete on browserstack and results are reported back to Google Cloud Build which are reported back to GitHub.
+2. To update this `apk` run `yarn update-api`. This will update what is stored on GCP and also sync it to Browserstack.
+3. The app is also synced periodically from GCP to BrowserStack as BrowserStack caches it for 30 days from the last update. This is done with a cloud function (sync_reactnative) that is triggered via cloud scheduler.
+4. On PRs a Google Cloud Build builder will trigger a browserstack test (using browserstack app automate), and serve the JS bundle to the device running in browserstack using metro. The tests are designed to create a tunnel between the native device and the cloud builder machine.
+5. The tests complete on browserstack and results are reported back to Google Cloud Build which are reported back to GitHub.
