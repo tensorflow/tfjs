@@ -156,13 +156,13 @@ def optimize_graph(graph, signature_def, output_graph,
   # batch norm folding
   optimized_graph = fold_batch_norms.fold_batch_norms(optimized_graph)
 
-  # set the device to CPU for all Conv2d nodes, since grappler remap optimizer
-  # only support FusedConv2D for CPU.
+  # set the device to CPU for all Conv2d and MatMul nodes, since grappler
+  # remap optimizer only support FusedConv2D and FusedMatMul for CPU.
   for node in optimized_graph.node:
-    if node.op == 'Conv2D':
+    if node.op == 'Conv2D' or node.op == 'MatMul':
       node.device = '/device:CPU:0'
 
-  # rerun grappler to fuse conv2d
+  # rerun grappler to fuse conv2d/matmul
   config.graph_options.rewrite_options.optimizers[:] = [
       'remap',
       'constfold', 'arithmetic', 'dependency'
@@ -181,7 +181,8 @@ def optimize_graph(graph, signature_def, output_graph,
 
   # Since the grappler remap optimizer doe snot support prelu as the activation
   # function for _FusedConv2D op, we are doing it manually here.
-  optimized_graph = fuse_prelu.fuse_prelu_with_fused_conv2d(optimized_graph)
+  optimized_graph = fuse_prelu.fuse_prelu_with_fused_conv2d_or_matmul(
+      optimized_graph)
 
   unsupported = validate(optimized_graph.node, skip_op_check,
                          strip_debug_ops)

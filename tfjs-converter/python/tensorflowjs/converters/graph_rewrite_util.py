@@ -20,6 +20,8 @@ from tensorflow.python.framework import tensor_util
 
 # Custom op name for fused depthwise conv2d
 FUSED_DEPTHWISE_CONV2D = 'FusedDepthwiseConv2dNative'
+# The grappler op name for fused MatMul which starts with '_'
+FUSED_MATMUL = '_FusedMatMul'
 
 def node_from_map(node_map, name):
   """Pulls a node def from a dictionary for a given name.
