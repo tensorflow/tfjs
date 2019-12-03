@@ -129,23 +129,16 @@ def dispatch_keras_h5_to_tfjs_layers_model_conversion(
 
   return model_json, groups
 
-def fill_tensor_info(info, tensor):
-  info.name = tensor.name
-  info.dtype = tensor.dtype.as_datatype_enum
-  info.tensor_shape.MergeFrom(tensor.shape.as_proto())
-
-def build_signature(keras_model):
-  signature = SignatureDef()
-
-  for tensor, name in zip(keras_model.inputs, keras_model.input_names):
-    info = signature.inputs[name]
-    fill_tensor_info(info, tensor)
-
-  for tensor, name in zip(keras_model.outputs, keras_model.output_names):
-    info = signature.outputs[name]
-    fill_tensor_info(info, tensor)
-
-  return signature
+def build_signature(model):
+  specs = []
+  for tensor, name in zip(model.inputs, model.input_names):
+    specs.append(tf.TensorSpec(
+      shape=tensor.shape,
+      dtype=tensor.dtype,
+      name=name))
+  
+  run_model = tf.function(lambda x : model(x))
+  return run_model.get_concrete_function(specs)
 
 def dispatch_keras_h5_to_tfjs_graph_model_conversion(
     h5_path, output_dir=None,
@@ -180,10 +173,7 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
   }
   with keras_force_batch.fixed_batch_size():
     model = keras.models.load_model(h5_path, custom_objects, compile=True)
-    run_model = tf.function(lambda x : model(x))
-    signatures = run_model.get_concrete_function(
-        tf.TensorSpec(shape=[1, 128, 128, 3], dtype=tf.float32,
-        name=model.input_names[0]))
+    signatures = build_signature(model)
     model.save(temp_savedmodel_dir, include_optimizer=False,
         save_format='tf', signatures=signatures)
 
