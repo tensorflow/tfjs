@@ -21,12 +21,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import tensorflow as tf
-
-from tensorflow.core.framework import graph_pb2
-from tensorflow.core.framework import node_def_pb2
-from tensorflow.python.framework import function
-
 from tensorflowjs.converters import graph_rewrite_util
 
 def _is_supported_activation(node):

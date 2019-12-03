@@ -21,7 +21,6 @@ from __future__ import print_function
 import json
 import os
 
-import numpy as np
 import tensorflow as tf
 from tensorflow.core.framework import graph_pb2
 from tensorflow.core.framework import node_def_pb2
@@ -225,8 +224,8 @@ def extract_weights(graph_def,
     if node.op != 'Const':
       continue
     const_manifest.append({
-      'name': node.name,
-      'data': graph_rewrite_util.values_from_const(node)
+        'name': node.name,
+        'data': graph_rewrite_util.values_from_const(node)
     })
     # Restore the conditional inputs
     node.input[:] = const_inputs[node.name]
