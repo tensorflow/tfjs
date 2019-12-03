@@ -23,6 +23,7 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class MaxPoolProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
@@ -76,5 +77,6 @@ export class MaxPoolProgram implements WebGPUProgram {
         }
       }
     `;
+   this.shaderKey = 'maxpool';
   }
 }

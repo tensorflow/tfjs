@@ -23,6 +23,7 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class ClipProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   variableNames = ['A'];
   dispatchLayout: {x: number[]};
@@ -35,8 +36,8 @@ export class ClipProgram implements WebGPUProgram {
     const size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape,
-        this.workGroupSize, [this.workPerThread, 1 ,1]);
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        [this.workPerThread, 1, 1]);
     const type = getCoordsDataType(this.outputShape.length);
 
     this.userCode = `
@@ -58,5 +59,7 @@ export class ClipProgram implements WebGPUProgram {
         }
       }
     `;
+
+    this.shaderKey = `clip${size}${type}`;
   }
 }

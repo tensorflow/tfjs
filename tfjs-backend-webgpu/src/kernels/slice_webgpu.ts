@@ -15,13 +15,15 @@
  * =============================================================================
  */
 
-import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
-import {WebGPUProgram} from './webgpu_program';
 import {getCoordsDataType} from '../shader_preprocessor';
+import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+
+import {WebGPUProgram} from './webgpu_program';
 
 export class SliceProgram implements WebGPUProgram {
   variableNames = ['source'];
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   rank: number;
   dispatchLayout: {x: number[]};
@@ -53,6 +55,7 @@ export class SliceProgram implements WebGPUProgram {
         setOutput(index, getSource(${sourceCoords}));
       }
     `;
+    this.shaderKey = `slice${this.rank}${start.join(',')}`;
   }
 }
 

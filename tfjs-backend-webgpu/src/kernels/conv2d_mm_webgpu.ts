@@ -25,11 +25,12 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class Conv2DMMProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = 'ivec2 filterDims, pad, stride;';
+  uniforms = 'ivec2 filterDims, pad, stride, dilation;';
   workGroupSize: [number, number, number];
 
   constructor(convInfo: backend_util.Conv2DInfo, workPerThread: number) {
@@ -52,9 +53,6 @@ export class Conv2DMMProgram implements WebGPUProgram {
       matMulSource = makeMatMulPackedSource(elementsPerThread);
     }
 
-    const dilationHeight = convInfo.dilationHeight;
-    const dilationWidth = convInfo.dilationWidth;
-
     const tileAOuter = this.workGroupSize[1] * elementsPerThread[1];
     const tileBOuter = this.workGroupSize[0] * elementsPerThread[0];
     const tileInner = tileBOuter;
@@ -64,10 +62,12 @@ export class Conv2DMMProgram implements WebGPUProgram {
     const dimBOuter = this.outputShape[1] * this.outputShape[2];
     const dimInner =
         convInfo.filterHeight * convInfo.filterWidth * convInfo.inChannels;
-    const sampleA = tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]) ?
+    const fitA = tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]);
+    const sampleA = fitA ?
         `W[getFlatIndex(coord, shape)]` :
         `coordsInBounds(coord, shape) ? W[getFlatIndex(coord, shape)] : 0`;
-    const sampleB = tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter]) ?
+    const fitB = tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter]);
+    const sampleB = fitB ?
         `x[getFlatIndex(coord, xShape)]` :
         `coordsInBounds(coord, xShape) ? x[getFlatIndex(coord, xShape)] : 0`;
 
@@ -102,8 +102,8 @@ export class Conv2DMMProgram implements WebGPUProgram {
 
           ivec4 coord = ivec4(
               batch,
-              pad[0] + outRow * stride[0] + ${dilationHeight} * WRow,
-              pad[1] + outCol * stride[1] + ${dilationWidth} * WCol,
+              pad[0] + outRow * stride[0] + dilation[0] * WRow,
+              pad[1] + outCol * stride[1] + dilation[1] * WCol,
               r / (filterDims[0] * filterDims[1]));
           return ${sampleB};
         }
@@ -128,5 +128,6 @@ export class Conv2DMMProgram implements WebGPUProgram {
           mm_matMul(dimAOuter, dimInner, dimBOuter);
         }
       `;
+    this.shaderKey = `conv2dmm'${elementsPerThread.join('')}${fitA}${fitB}`;
   }
 }
