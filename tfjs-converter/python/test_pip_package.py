@@ -1006,7 +1006,10 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
     self.assertIn(os.path.join(keras_saved_model_dir, 'assets'), files)
 
   def testConvertTfHubModelToTfjsGraphModel(self):
-    tfhub_url = "https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/feature_vector/3"
+    tfhub_url = (
+        'https://tfhub.dev/google/imagenet/mobilenet_v2_100_224'
+        '/feature_vector/3'
+    )
     graph_model_output_dir = os.path.join(self._tmp_dir, 'tfjs_graph')
     process = subprocess.Popen([
         'tensorflowjs_converter', '--input_format', 'tf_hub',
