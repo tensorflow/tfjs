@@ -76,7 +76,6 @@ def _add_fused_contraction_node(contraction, bias_add, activation,
 
   if activation:
     fused_op.attr['fused_ops'].list.s.extend([activation.op.encode('ascii')])
-    fused_op.attr['num_args'].i = fused_op.attr['num_args'].i + 1
     nodes_to_skip[activation.name] = True
     activation.input[:] = [contraction.name]
     inputs_to_remove.append(activation)
