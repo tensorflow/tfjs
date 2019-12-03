@@ -21,7 +21,6 @@ from __future__ import print_function
 import json
 import os
 
-import numpy as np
 import tensorflow as tf
 from tensorflow.core.framework import graph_pb2
 from tensorflow.core.framework import node_def_pb2
@@ -42,6 +41,7 @@ from tensorflowjs.converters import common
 from tensorflowjs.converters import fold_batch_norms
 from tensorflowjs.converters import fuse_prelu
 from tensorflowjs.converters import fuse_depthwise_conv2d
+from tensorflowjs.converters import graph_rewrite_util
 from tensorflowjs import resource_loader
 
 # enable eager execution for v2 APIs
@@ -126,7 +126,6 @@ def optimize_graph(graph, signature_def, output_graph,
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to strip debug ops.
   """
-  fuse_prelu.register_prelu_func(graph)
 
   # Add a collection 'train_op' so that Grappler knows the outputs.
   for _, output in signature_def.outputs.items():
@@ -221,27 +220,17 @@ def extract_weights(graph_def,
   print('Writing weight file ' + output_graph + '...')
   const_manifest = []
 
-  graph = tf.Graph()
-  fuse_prelu.register_prelu_func(graph)
-  fuse_depthwise_conv2d.register_fused_depthwise_conv2d_func(graph)
+  for const in constants:
+    const_manifest.append({
+        'name': const.name,
+        'data': graph_rewrite_util.values_from_const(const)
+    })
+    # Restore the conditional inputs
+    const.input[:] = const_inputs[const.name]
 
-  extracted_graph = fuse_depthwise_conv2d.extract_op_attributes(graph_def)
-  with tf.compat.v1.Session(graph=graph) as sess:
-    tf.import_graph_def(extracted_graph, name='')
-    for const in constants:
-      tensor = graph.get_tensor_by_name(const.name + ':0')
-      value = tensor.eval(session=sess)
-      if not isinstance(value, np.ndarray):
-        value = np.array(value)
-
-      const_manifest.append({'name': const.name, 'data': value})
-
-      # Restore the conditional inputs
-      const.input[:] = const_inputs[const.name]
-
-      # Remove the binary array from tensor and save it to the external file.
-      for field_name in CLEARED_TENSOR_FIELDS:
-        const.attr["value"].tensor.ClearField(field_name)
+    # Remove the binary array from tensor and save it to the external file.
+    for field_name in CLEARED_TENSOR_FIELDS:
+      const.attr["value"].tensor.ClearField(field_name)
 
   write_artifacts(MessageToDict(graph_def), [const_manifest], output_graph,
                   tf_version, signature_def,
