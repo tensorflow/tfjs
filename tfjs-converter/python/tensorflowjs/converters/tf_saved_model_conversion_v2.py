@@ -220,19 +220,17 @@ def extract_weights(graph_def,
   print('Writing weight file ' + output_graph + '...')
   const_manifest = []
 
-  for node in graph_def.node:
-    if node.op != 'Const':
-      continue
+  for const in constants:
     const_manifest.append({
-        'name': node.name,
-        'data': graph_rewrite_util.values_from_const(node)
+        'name': const.name,
+        'data': graph_rewrite_util.values_from_const(const)
     })
     # Restore the conditional inputs
-    node.input[:] = const_inputs[node.name]
+    const.input[:] = const_inputs[const.name]
 
     # Remove the binary array from tensor and save it to the external file.
     for field_name in CLEARED_TENSOR_FIELDS:
-      node.attr["value"].tensor.ClearField(field_name)
+      const.attr["value"].tensor.ClearField(field_name)
 
   write_artifacts(MessageToDict(graph_def), [const_manifest], output_graph,
                   tf_version, signature_def,
