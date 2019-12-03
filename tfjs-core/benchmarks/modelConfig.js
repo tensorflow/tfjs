@@ -114,7 +114,7 @@ const benchmarks = {
     predictFunc: () => {
       const zeros = tf.zeros([1, 128, 128, 3]);
       return model => {
-        return model.predict(zeros);
+        return model.predict(zeros)[0];
       };
     },
   },
@@ -133,9 +133,8 @@ const benchmarks = {
   },
   'mobilenet': {
     load: async () => {
-      const url =
-          'https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v2_100_224/classification/2/default/1'
-      return tf.loadGraphModel(url, {fromTFHub: true});
+      const url = 'https://storage.googleapis.com/learnjs-data/mobilenet_v2_100_fused/model.json';
+      return tf.loadGraphModel(url);
     },
     predictFunc: () => {
       const zeros = tf.zeros([1, 224, 224, 3]);
