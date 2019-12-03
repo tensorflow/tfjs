@@ -37,6 +37,7 @@ from tensorflowjs.converters import keras_h5_conversion as conversion
 from tensorflowjs.converters import keras_tfjs_loader
 from tensorflowjs.converters import tf_saved_model_conversion_v2
 from tensorflowjs.converters import keras_force_batch
+from tensorflow.core.protobuf.meta_graph_pb2 import SignatureDef
 
 from tensorflow.keras.layers import Layer
 
@@ -128,6 +129,23 @@ def dispatch_keras_h5_to_tfjs_layers_model_conversion(
 
   return model_json, groups
 
+def fill_tensor_info(info, tensor):
+  info.name = tensor.name
+  info.dtype = tensor.dtype.as_datatype_enum
+  info.tensor_shape.MergeFrom(tensor.shape.as_proto())
+
+def build_signature(keras_model):
+  signature = SignatureDef()
+
+  for tensor, name in zip(keras_model.inputs, keras_model.input_names):
+    info = signature.inputs[name]
+    fill_tensor_info(info, tensor)
+
+  for tensor, name in zip(keras_model.outputs, keras_model.output_names):
+    info = signature.outputs[name]
+    fill_tensor_info(info, tensor)
+
+  return signature
 
 def dispatch_keras_h5_to_tfjs_graph_model_conversion(
     h5_path, output_dir=None,
@@ -161,8 +179,13 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
     'StopGradient': StopGradient
   }
   with keras_force_batch.fixed_batch_size():
-    model = keras.models.load_model(h5_path, custom_objects, compile=False)
-    model.save(temp_savedmodel_dir, include_optimizer=False, save_format='tf')
+    model = keras.models.load_model(h5_path, custom_objects, compile=True)
+    run_model = tf.function(lambda x : model(x))
+    signatures = run_model.get_concrete_function(
+        tf.TensorSpec(shape=[1, 128, 128, 3], dtype=tf.float32,
+        name=model.input_names[0]))
+    model.save(temp_savedmodel_dir, include_optimizer=False,
+        save_format='tf', signatures=signatures)
 
   # NOTE(cais): This cannot use `tf.compat.v1` because
   #   `convert_tf_saved_model()` works only in v2.
