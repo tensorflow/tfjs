@@ -1018,7 +1018,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
     process.communicate()
     self.assertEqual(0, process.returncode)
 
-    # 4. Check the files that belong to the conversion result.
+    # Check the files that belong to the conversion result.
     files = glob.glob(os.path.join(graph_model_output_dir, '*'))
     self.assertIn(os.path.join(graph_model_output_dir, 'model.json'), files)
     weight_files = sorted(
@@ -1040,7 +1040,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
     process.communicate()
     self.assertEqual(0, process.returncode)
 
-    # 4. Check the files that belong to the conversion result.
+    # Check the files that belong to the conversion result.
     files = glob.glob(os.path.join(graph_model_output_dir, '*'))
     self.assertIn(os.path.join(graph_model_output_dir, 'model.json'), files)
     weight_files = sorted(
