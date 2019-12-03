@@ -181,7 +181,8 @@ def optimize_graph(graph, signature_def, output_graph,
 
   # Since the grappler remap optimizer doe snot support prelu as the activation
   # function for _FusedConv2D op, we are doing it manually here.
-  optimized_graph = fuse_prelu.fuse_prelu_with_fused_conv2d(optimized_graph)
+  optimized_graph = fuse_prelu.fuse_prelu_with_fused_conv2d_or_matmul(
+      optimized_graph)
 
   unsupported = validate(optimized_graph.node, skip_op_check,
                          strip_debug_ops)

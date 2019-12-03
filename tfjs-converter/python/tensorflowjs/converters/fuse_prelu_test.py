@@ -124,7 +124,8 @@ class FusePreluTest(tf.test.TestCase):
         config, graph_def, graph, signature)
     graph_def = fuse_prelu.fuse_ops_for_prelu(graph_def)
 
-    optimized_graph_def = fuse_prelu.fuse_prelu_with_fused_conv2d(graph_def)
+    optimized_graph_def = fuse_prelu.fuse_prelu_with_fused_conv2d_or_matmul(
+        graph_def)
 
     conv2d_op = None
     for node in optimized_graph_def.node:
@@ -172,7 +173,8 @@ class FusePreluTest(tf.test.TestCase):
     graph_def = tf_saved_model_conversion_v2._run_grappler(
         config, graph_def, graph, signature)
     graph_def = fuse_prelu.fuse_ops_for_prelu(graph_def)
-    optimized_graph_def = fuse_prelu.fuse_prelu_with_fused_conv2d(graph_def)
+    optimized_graph_def = fuse_prelu.fuse_prelu_with_fused_conv2d_or_matmul(
+        graph_def)
 
     matmul_op = None
     for node in optimized_graph_def.node:
@@ -221,7 +223,8 @@ class FusePreluTest(tf.test.TestCase):
     graph_def = fuse_prelu.fuse_ops_for_prelu(graph_def)
     graph_def = fuse_depthwise_conv2d.fuse_depthwise_conv2d(graph_def)
 
-    optimized_graph_def = fuse_prelu.fuse_prelu_with_fused_conv2d(graph_def)
+    optimized_graph_def = fuse_prelu.fuse_prelu_with_fused_conv2d_or_matmul(
+        graph_def)
 
     conv2d_op = None
     for node in optimized_graph_def.node:

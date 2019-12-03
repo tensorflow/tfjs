@@ -157,7 +157,7 @@ def _create_alpha_node(neg_alpha_op, updated_alpha):
             alpha_value, alpha_value.dtype.type, alpha_value.shape)))
     updated_alpha.append(neg_alpha_op.name)
 
-def fuse_prelu_with_fused_conv2d(input_graph_def):
+def fuse_prelu_with_fused_conv2d_or_matmul(input_graph_def):
   """Tensorflow does not support Prelu op, and the grappler remap optimizer
   will not fuse the prelu op with _FusedConv2D op. This method searches for
   the pattern and fuse the (_FusedConv2D||FusedDepthwiseConv2dNative + Prelu)
