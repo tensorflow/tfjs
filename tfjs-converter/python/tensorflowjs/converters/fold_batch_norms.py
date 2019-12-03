@@ -27,7 +27,7 @@ from tensorflow.core.framework import node_def_pb2
 from tensorflow.python.framework import tensor_util
 from tensorflow.python.platform import tf_logging
 
-from tensorflowjs.converters import common
+from tensorflowjs.converters import graph_rewrite_util
 
 INPUT_ORDER = {
     # Order of inputs for BatchNormWithGlobalNormalization.
@@ -84,27 +84,46 @@ def fold_batch_norms(input_graph_def):
                         "FusedBatchNorm", "FusedBatchNormV3")):
       continue
 
-    conv_op = common.node_from_map(
+    bias = None
+    conv_op = graph_rewrite_util.node_from_map(
         input_node_map,
         node.input[INPUT_ORDER[node.op].index("conv_op")])
-    if conv_op.op != "Conv2D" and conv_op.op != "DepthwiseConv2dNative":
+    # There might be an Add/BiasAdd op between the conv and the batchnorm,
+    # which we can fold into the mean param of the batchnorm.
+    if conv_op.op in ['BiasAdd', 'Add', 'AddV2']:
+      add_op = conv_op
+      # Follow the first input of the add to get to the conv.
+      conv_op = graph_rewrite_util.node_from_map(
+          input_node_map, add_op.input[0])
+      bias = graph_rewrite_util.node_from_map(input_node_map, add_op.input[1])
+      if conv_op.op not in ["Conv2D", "DepthwiseConv2dNative"]:
+        # Follow the second input of the add to get to the conv.
+        conv_op = graph_rewrite_util.node_from_map(
+            input_node_map, add_op.input[1])
+        bias = graph_rewrite_util.node_from_map(input_node_map, add_op.input[0])
+    if bias and bias.op != 'Const':
+      tf_logging.warning("The bias %s after the conv %s was not a constant. "
+                         "Maybe because freeze_graph wasn't "
+                         "run first?" % (bias.name, conv_op.name))
+      continue
+    if conv_op.op not in ["Conv2D", "DepthwiseConv2dNative"]:
       tf_logging.warning("Didn't find expected Conv2D or DepthwiseConv2dNative"
                          " input to '%s'" % node.name)
       continue
-
-    weights_op = common.node_from_map(input_node_map, conv_op.input[1])
+    weights_op = graph_rewrite_util.node_from_map(
+        input_node_map, conv_op.input[1])
     if weights_op.op != "Const":
       tf_logging.warning("Didn't find expected conv Constant input to '%s',"
                          " found %s instead. Maybe because freeze_graph wasn't"
                          " run first?" % (conv_op.name, weights_op))
       continue
-    weights = common.values_from_const(weights_op)
+    weights = graph_rewrite_util.values_from_const(weights_op)
     if conv_op.op == "Conv2D":
       channel_count = weights.shape[3]
     elif conv_op.op == "DepthwiseConv2dNative":
       channel_count = weights.shape[2] * weights.shape[3]
 
-    mean_op = common.node_from_map(
+    mean_op = graph_rewrite_util.node_from_map(
         input_node_map,
         node.input[INPUT_ORDER[node.op].index("mean_op")])
     if mean_op.op != "Const":
@@ -112,14 +131,18 @@ def fold_batch_norms(input_graph_def):
                          " found %s instead. Maybe because freeze_graph wasn't"
                          " run first?" % (node.name, mean_op))
       continue
-    mean_value = common.values_from_const(mean_op)
+    mean_value = graph_rewrite_util.values_from_const(mean_op)
+    if bias is not None:
+      # Adjust the mean of the batchnorm based on the add op in-between the conv
+      # and the batchnorm.
+      mean_value = mean_value - graph_rewrite_util.values_from_const(bias)
     if mean_value.shape != (channel_count,):
       tf_logging.warning("Incorrect shape for mean, found %s, expected %s,"
                          " for node %s" % (str(mean_value.shape), str(
                              (channel_count,)), node.name))
       continue
 
-    var_op = common.node_from_map(
+    var_op = graph_rewrite_util.node_from_map(
         input_node_map,
         node.input[INPUT_ORDER[node.op].index("var_op")])
     if var_op.op != "Const":
@@ -127,14 +150,14 @@ def fold_batch_norms(input_graph_def):
                          " found %s instead. Maybe because freeze_graph wasn't"
                          " run first?" % (node.name, var_op))
       continue
-    var_value = common.values_from_const(var_op)
+    var_value = graph_rewrite_util.values_from_const(var_op)
     if var_value.shape != (channel_count,):
       tf_logging.warning("Incorrect shape for var, found %s, expected %s,"
                          " for node %s" % (str(var_value.shape), str(
                              (channel_count,)), node.name))
       continue
 
-    beta_op = common.node_from_map(
+    beta_op = graph_rewrite_util.node_from_map(
         input_node_map,
         node.input[INPUT_ORDER[node.op].index("beta_op")])
     if beta_op.op != "Const":
@@ -142,14 +165,14 @@ def fold_batch_norms(input_graph_def):
                          " found %s instead. Maybe because freeze_graph wasn't"
                          " run first?" % (node.name, beta_op))
       continue
-    beta_value = common.values_from_const(beta_op)
+    beta_value = graph_rewrite_util.values_from_const(beta_op)
     if beta_value.shape != (channel_count,):
       tf_logging.warning("Incorrect shape for beta, found %s, expected %s,"
                          " for node %s" % (str(beta_value.shape), str(
                              (channel_count,)), node.name))
       continue
 
-    gamma_op = common.node_from_map(
+    gamma_op = graph_rewrite_util.node_from_map(
         input_node_map,
         node.input[INPUT_ORDER[node.op].index("gamma_op")])
     if gamma_op.op != "Const":
@@ -157,7 +180,7 @@ def fold_batch_norms(input_graph_def):
                          " found %s instead. Maybe because freeze_graph wasn't"
                          " run first?" % (node.name, gamma_op))
       continue
-    gamma_value = common.values_from_const(gamma_op)
+    gamma_value = graph_rewrite_util.values_from_const(gamma_op)
     if gamma_value.shape != (channel_count,):
       tf_logging.warning("Incorrect shape for gamma, found %s, expected %s,"
                          " for node %s" % (str(gamma_value.shape), str(
@@ -168,6 +191,8 @@ def fold_batch_norms(input_graph_def):
     nodes_to_skip[node.name] = True
     nodes_to_skip[weights_op.name] = True
     nodes_to_skip[conv_op.name] = True
+    if bias is not None:
+      nodes_to_skip[add_op.name] = True
 
     if scale_after_normalization(node):
       scale_value = (

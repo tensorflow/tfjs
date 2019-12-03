@@ -688,7 +688,8 @@ export class WebGPUBackend extends KernelBackend {
 
     const dimensions = [
       convInfo.filterHeight, convInfo.filterWidth, ...pad,
-      convInfo.strideHeight, convInfo.strideWidth
+      convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationHeight,
+      convInfo.dilationWidth
     ];
 
     return this.compileAndRun(program, [x, filter], output, dimensions);
@@ -698,7 +699,13 @@ export class WebGPUBackend extends KernelBackend {
       x: Tensor4D, filter: Tensor4D,
       convInfo: backend_util.Conv2DInfo): Tensor4D {
     const program = new DepthwiseConv2DProgram(convInfo);
-    return this.compileAndRun(program, [x, filter]);
+    const dimensions = [
+      convInfo.filterHeight, convInfo.filterWidth, convInfo.padInfo.top,
+      convInfo.padInfo.left, convInfo.strideHeight, convInfo.strideWidth,
+      convInfo.dilationHeight, convInfo.dilationWidth, convInfo.inHeight,
+      convInfo.inWidth
+    ];
+    return this.compileAndRun(program, [x, filter], null, dimensions);
   }
 
   private argMinMaxReduce(x: Tensor, axis: number, reduceType: 'min'|'max'):
@@ -942,7 +949,8 @@ export class WebGPUBackend extends KernelBackend {
     if (numChannels != null && numChannels !== 4) {
       pixelArray = new Uint8Array(pixels.width * pixels.height * numChannels);
 
-      for (let i = 0; i < imageData.length; i++) {
+      const dataLength = imageData.length;
+      for (let i = 0; i < dataLength; i++) {
         if (i % 4 < numChannels) {
           const pixelIndex = Math.floor(i / 4);
           pixelArray[pixelIndex * numChannels + i % 4] = imageData[i];
@@ -953,7 +961,7 @@ export class WebGPUBackend extends KernelBackend {
     const output = this.makeOutputArray(outShape, 'int32');
 
     const info = this.tensorMap.get(output.dataId);
-    info.values = Int32Array.from(pixelArray);
+    info.values = new Int32Array(pixelArray);
     this.maybeReleaseBuffer(output.dataId);
 
     this.uploadToGPU(output.dataId);

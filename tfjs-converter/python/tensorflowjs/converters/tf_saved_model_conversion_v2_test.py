@@ -34,6 +34,7 @@ from tensorflow.python.tools import freeze_graph
 from tensorflow.python.saved_model.save import save
 import tensorflow_hub as hub
 from tensorflowjs import version
+from tensorflowjs.converters import graph_rewrite_util
 from tensorflowjs.converters import tf_saved_model_conversion_v2
 
 SAVED_MODEL_DIR = 'saved_model'
@@ -120,11 +121,11 @@ class ConvertTest(tf.test.TestCase):
 
       builder.save()
 
-  def _create_saved_model_with_fusable_conv2d(self):
+  def _create_saved_model_with_fusable_conv2d(self, use_bias):
     """Test a basic model with fusable conv2d."""
     layers = [
         tf.keras.layers.Conv2D(
-            16, [3, 3], padding='same', use_bias=False),
+            16, [3, 3], padding='same', use_bias=use_bias),
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.ReLU()
     ]
@@ -134,11 +135,29 @@ class ConvertTest(tf.test.TestCase):
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     tf.saved_model.save(model, save_dir)
 
+  def _create_saved_model_with_fusable_depthwise_conv2d(self):
+    """Test a basic model with fusable depthwise conv2d."""
+    layers = [
+        tf.keras.layers.DepthwiseConv2D(
+            1, use_bias=True,
+            bias_initializer=tf.initializers.constant(0.25)),
+        tf.keras.layers.ReLU()
+    ]
+    model = tf.keras.Sequential(layers)
+    model.predict(tf.ones((1, 2, 2, 3)))
+    tf.keras.backend.set_learning_phase(0)
+    save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    tf.saved_model.save(model, save_dir)
+
   def _create_saved_model_with_prelu(self):
     """Test a basic model with fusable conv2d."""
     layers = [
         tf.keras.layers.Conv2D(
             16, [3, 3], padding='same', use_bias=True,
+            bias_initializer=tf.initializers.constant(0.25)),
+        tf.keras.layers.PReLU(alpha_initializer=tf.initializers.constant(0.25)),
+        tf.keras.layers.DepthwiseConv2D(
+            1, use_bias=True,
             bias_initializer=tf.initializers.constant(0.25)),
         tf.keras.layers.PReLU(alpha_initializer=tf.initializers.constant(0.25))
     ]
@@ -376,7 +395,54 @@ class ConvertTest(tf.test.TestCase):
     self.assertIn('weights', weights_manifest[0])
 
   def test_convert_saved_model_with_fused_conv2d(self):
-    self._create_saved_model_with_fusable_conv2d()
+    for use_bias in [True, False]:
+      self._create_saved_model_with_fusable_conv2d(use_bias)
+      tf_saved_model_conversion_v2.convert_tf_saved_model(
+          os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+          os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+      )
+
+      tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+      # Check model.json and weights manifest.
+      with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+        model_json = json.load(f)
+      self.assertTrue(model_json['modelTopology'])
+      self.assertIsNot(model_json['modelTopology']['versions'], None)
+      signature = model_json['userDefinedMetadata']['signature']
+      self.assertIsNot(signature, None)
+      self.assertIsNot(signature['inputs'], None)
+      self.assertIsNot(signature['outputs'], None)
+
+      nodes = model_json['modelTopology']['node']
+
+      fusedOp = None
+      for node in nodes:
+        self.assertTrue(not 'BatchNorm' in node['op'])
+        self.assertTrue(not 'Relu' in node['op'])
+        self.assertTrue(not 'BiasAdd' in node['op'])
+        if node['op'] == '_FusedConv2D':
+          fusedOp = node
+      self.assertTrue(fusedOp is not None)
+      self.assertEqual(
+          base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][0]),
+          b'BiasAdd')
+      self.assertEqual(
+          base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][1]),
+          b'Relu')
+
+      # Check meta-data in the artifact JSON.
+      self.assertEqual(model_json['format'], 'graph-model')
+      self.assertEqual(
+          model_json['convertedBy'],
+          'TensorFlow.js Converter v%s' % version.version)
+      self.assertEqual(model_json['generatedBy'],
+                       tf.__version__)
+      self.assertTrue(
+          glob.glob(
+              os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+
+  def test_convert_saved_model_with_fused_depthwise_conv2d(self):
+    self._create_saved_model_with_fusable_depthwise_conv2d()
     tf_saved_model_conversion_v2.convert_tf_saved_model(
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
@@ -400,9 +466,11 @@ class ConvertTest(tf.test.TestCase):
       self.assertTrue(not 'BatchNorm' in node['op'])
       self.assertTrue(not 'Relu' in node['op'])
       self.assertTrue(not 'BiasAdd' in node['op'])
-      if node['op'] == '_FusedConv2D':
+      if node['op'] == graph_rewrite_util.FUSED_DEPTHWISE_CONV2D:
         fusedOp = node
     self.assertTrue(fusedOp is not None)
+    self.assertIsNot(fusedOp['attr']['dilations'], None)
+    self.assertIsNot(fusedOp['attr']['strides'], None)
     self.assertEqual(
         base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][0]),
         b'BiasAdd')
@@ -443,18 +511,27 @@ class ConvertTest(tf.test.TestCase):
 
     prelu_op = None
     fused_op = None
+    depthwise_fused_op = None
     for node in nodes:
       if node['op'] == 'Prelu':
         prelu_op = node
       if node['op'] == '_FusedConv2D':
         fused_op = node
+      if node['op'] == graph_rewrite_util.FUSED_DEPTHWISE_CONV2D:
+        depthwise_fused_op = node
     self.assertTrue(prelu_op is None)
     self.assertTrue(fused_op is not None)
+    self.assertTrue(depthwise_fused_op is not None)
 
     fused_ops = list(map(base64.b64decode,
                          fused_op['attr']['fused_ops']['list']['s']))
     self.assertEqual(fused_ops, [b'BiasAdd', b'Prelu'])
     self.assertEqual(fused_op['attr']['num_args']['i'], '2')
+    depthwise_fused_ops = list(
+        map(base64.b64decode,
+            depthwise_fused_op['attr']['fused_ops']['list']['s']))
+    self.assertEqual(depthwise_fused_ops, [b'BiasAdd', b'Prelu'])
+    self.assertEqual(depthwise_fused_op['attr']['num_args']['i'], '2')
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'graph-model')
     self.assertEqual(
