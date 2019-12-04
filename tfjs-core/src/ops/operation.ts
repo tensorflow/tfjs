@@ -15,6 +15,11 @@
  * =============================================================================
  */
 import {ENGINE} from '../engine';
+import {getBackend} from '../globals';
+
+// tslint:disable-next-line: no-any
+const wany = window as any;
+wany.activations = {};
 
 /**
  * Used for wrapping functions that perform math operations on
@@ -47,6 +52,17 @@ export function op<T extends Function>(f: {[name: string]: T}): T {
         console.error('Cannot return a Promise inside of tidy.');
       }
       ENGINE.endScope(result);
+      let y;
+      if (Array.isArray(result)) {
+        y = result.map(r => r.dataSync());
+      } else {
+        y = result.dataSync();
+      }
+      if (wany.activations[getBackend()] == null) {
+        wany.activations[getBackend()] = [];
+      }
+      wany.activations[getBackend()].push({opName, y});
+
       return result;
     } catch (ex) {
       ENGINE.endScope(null);
