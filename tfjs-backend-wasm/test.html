@@ -1,0 +1,58 @@
+<script src="../tfjs-core/dist/tf-core.js"></script>
+<script src="https://unpkg.com/@tensorflow/tfjs-converter"></script>
+<script src="dist/tf-backend-wasm.js"></script>
+
+<img id="img" src="coffee.jpg" crossorigin="anonymous">
+
+<script>
+async function go() {
+  tf.setBackend('wasm');
+  await tf.ready();
+
+  // let img = tf.browser.fromPixels(document.getElementById('img'))
+  //     .resizeBilinear([224, 224])
+  //     .expandDims(0)
+  //     .toFloat();
+  let img = tf.ones([1, 224, 224, 3]);
+  let model = await tf.loadGraphModel(
+    'https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/classification/2',
+    {fromTFHub: true});
+  const y = model.predict(img);
+  y.print();
+  console.log(y[1209]);
+
+  tf.setBackend('webgl');
+  await tf.ready();
+  // img = tf.browser.fromPixels(document.getElementById('img'))
+  //     .resizeBilinear([224, 224])
+  //     .expandDims(0)
+  //     .toFloat();
+  img = tf.ones([1, 224, 224, 3]);
+  img.print();
+
+  model = await tf.loadGraphModel(
+    'https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/classification/2',
+    {fromTFHub: true});
+  model.predict(img).print();
+
+  return;
+  console.log(window.activations);
+  for (let i = 0; i < window.activations['wasm'].length; i++) {
+    const wasma = window.activations['wasm'][i];
+    const webgla = window.activations['webgl'][i];
+
+    const wasmy = wasma.y;
+    const webgly = webgla.y;
+
+    for (let j = 0; j < wasmy.length; j++) {
+      if (wasmy[j] != webgly[j]) {
+        console.log('FOUND DIFFERENCE', i, j);
+        console.log('wasm', wasma, 'value', wasmy[j]);
+        console.log('webgl', webgla, 'value', webgly[j]);
+        return;
+      }
+    }
+  }
+}
+go();
+</script>
