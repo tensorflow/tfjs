@@ -121,11 +121,11 @@ class ConvertTest(tf.test.TestCase):
 
       builder.save()
 
-  def _create_saved_model_with_fusable_conv2d(self):
+  def _create_saved_model_with_fusable_conv2d(self, use_bias):
     """Test a basic model with fusable conv2d."""
     layers = [
         tf.keras.layers.Conv2D(
-            16, [3, 3], padding='same', use_bias=False),
+            16, [3, 3], padding='same', use_bias=use_bias),
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.ReLU()
     ]
@@ -186,6 +186,20 @@ class ConvertTest(tf.test.TestCase):
     root.v1 = variables.Variable(3.)
     root.v2 = variables.Variable(2.)
     root.f = def_function.function(lambda x: root.v1 * root.v2 * x)
+    to_save = root.f.get_concrete_function(input_data)
+
+    save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    save(root, save_dir, to_save)
+
+  def _create_saved_model_with_fusable_matmul(self):
+    """Test a fusable matmul model."""
+    input_data = constant_op.constant(1., shape=[1, 1])
+    bias_data = constant_op.constant(1., shape=[1])
+    root = tracking.AutoTrackable()
+    root.v2 = variables.Variable([[2.]])
+    root.f = def_function.function(
+        lambda x: tf.nn.relu(tf.nn.bias_add(tf.matmul(x, root.v2),
+                                            bias_data)))
     to_save = root.f.get_concrete_function(input_data)
 
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
@@ -395,7 +409,54 @@ class ConvertTest(tf.test.TestCase):
     self.assertIn('weights', weights_manifest[0])
 
   def test_convert_saved_model_with_fused_conv2d(self):
-    self._create_saved_model_with_fusable_conv2d()
+    for use_bias in [True, False]:
+      self._create_saved_model_with_fusable_conv2d(use_bias)
+      tf_saved_model_conversion_v2.convert_tf_saved_model(
+          os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+          os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+      )
+
+      tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+      # Check model.json and weights manifest.
+      with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+        model_json = json.load(f)
+      self.assertTrue(model_json['modelTopology'])
+      self.assertIsNot(model_json['modelTopology']['versions'], None)
+      signature = model_json['userDefinedMetadata']['signature']
+      self.assertIsNot(signature, None)
+      self.assertIsNot(signature['inputs'], None)
+      self.assertIsNot(signature['outputs'], None)
+
+      nodes = model_json['modelTopology']['node']
+
+      fusedOp = None
+      for node in nodes:
+        self.assertTrue(not 'BatchNorm' in node['op'])
+        self.assertTrue(not 'Relu' in node['op'])
+        self.assertTrue(not 'BiasAdd' in node['op'])
+        if node['op'] == '_FusedConv2D':
+          fusedOp = node
+      self.assertTrue(fusedOp is not None)
+      self.assertEqual(
+          base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][0]),
+          b'BiasAdd')
+      self.assertEqual(
+          base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][1]),
+          b'Relu')
+
+      # Check meta-data in the artifact JSON.
+      self.assertEqual(model_json['format'], 'graph-model')
+      self.assertEqual(
+          model_json['convertedBy'],
+          'TensorFlow.js Converter v%s' % version.version)
+      self.assertEqual(model_json['generatedBy'],
+                       tf.__version__)
+      self.assertTrue(
+          glob.glob(
+              os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+
+  def test_convert_saved_model_with_fused_matmul(self):
+    self._create_saved_model_with_fusable_matmul()
     tf_saved_model_conversion_v2.convert_tf_saved_model(
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
@@ -413,15 +474,16 @@ class ConvertTest(tf.test.TestCase):
     self.assertIsNot(signature['outputs'], None)
 
     nodes = model_json['modelTopology']['node']
-
     fusedOp = None
     for node in nodes:
-      self.assertTrue(not 'BatchNorm' in node['op'])
+      self.assertTrue(node['op'] != 'MatMul')
       self.assertTrue(not 'Relu' in node['op'])
       self.assertTrue(not 'BiasAdd' in node['op'])
-      if node['op'] == '_FusedConv2D':
+      if node['op'] == graph_rewrite_util.FUSED_MATMUL:
         fusedOp = node
     self.assertTrue(fusedOp is not None)
+    self.assertIsNot(fusedOp['attr']['transpose_a'], None)
+    self.assertIsNot(fusedOp['attr']['transpose_b'], None)
     self.assertEqual(
         base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][0]),
         b'BiasAdd')
