@@ -1006,6 +1006,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
     self.assertIn(os.path.join(keras_saved_model_dir, 'assets'), files)
 
   def testConvertTfHubModelToTfjsGraphModel(self):
+    # 1. Convert tfhub mobilenet v2 module.
     tfhub_url = (
         'https://tfhub.dev/google/imagenet/mobilenet_v2_100_224'
         '/feature_vector/3'
@@ -1018,7 +1019,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
     process.communicate()
     self.assertEqual(0, process.returncode)
 
-    # Check the files that belong to the conversion result.
+    # 2. Check the files that belong to the conversion result.
     files = glob.glob(os.path.join(graph_model_output_dir, '*'))
     self.assertIn(os.path.join(graph_model_output_dir, 'model.json'), files)
     weight_files = sorted(
@@ -1027,11 +1028,13 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
 
   def testConvertKerasSavedModelToTfjsGraphModel(self):
     """create the keras mobilenet v2 model."""
+    # 1. Create a saved model from keras mobilenet v2.
     model = tf.keras.applications.MobileNetV2()
 
     save_dir = os.path.join(self._tmp_dir, 'mobilenetv2')
     save(model, save_dir)
 
+    # 2. Convert to graph model.
     graph_model_output_dir = os.path.join(self._tmp_dir, 'tfjs_graph')
     process = subprocess.Popen([
         'tensorflowjs_converter', '--input_format', 'tf_saved_model',
@@ -1040,7 +1043,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
     process.communicate()
     self.assertEqual(0, process.returncode)
 
-    # Check the files that belong to the conversion result.
+    # 3. Check the files that belong to the conversion result.
     files = glob.glob(os.path.join(graph_model_output_dir, '*'))
     self.assertIn(os.path.join(graph_model_output_dir, 'model.json'), files)
     weight_files = sorted(
