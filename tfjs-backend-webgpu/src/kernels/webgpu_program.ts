@@ -16,7 +16,7 @@
  */
 
 import {DataType, Tensor} from '@tensorflow/tfjs-core';
-import * as shaderc from '@webgpu/shaderc';
+// import * as shaderc from '@webgpu/glslang';
 
 import * as shader_preprocessor from '../shader_preprocessor';
 
@@ -88,16 +88,15 @@ const makeBindGroupLayout =
     };
 
 export const compileProgram =
-    (shaderCompiler: shaderc.Compiler, shaderKind: shaderc.ShaderKind,
-     compileOptions: shaderc.CompileOptions, device: GPUDevice,
-     program: WebGPUProgram, inputsData: shader_preprocessor.InputInfo[],
-     output: Tensor, uniforms?: BindingInfo): WebGPUBinary => {
+    (shaderCompiler: any, device: GPUDevice, program: WebGPUProgram,
+     inputsData: shader_preprocessor.InputInfo[], output: Tensor,
+     uniforms?: BindingInfo): WebGPUBinary => {
       const outputData = {dtype: output.dtype, shape: output.shape};
 
       const source =
           shader_preprocessor.makeShader(inputsData, outputData, program);
-      const result = shaderCompiler.CompileGlslToSpv(
-          source, shaderKind, 'file', 'main', compileOptions);
+      const result =
+          shaderCompiler.CompileGlslToSpv(source, 'compute', 'file', 'main');
       const error = result.GetErrorMessage();
       if (error.length) {
         console.error(

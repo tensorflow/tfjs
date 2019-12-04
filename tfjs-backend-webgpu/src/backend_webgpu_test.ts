@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import * as Shaderc from '@webgpu/shaderc';
+import * as Shaderc from '@webgpu/glslang';
 
 import {WebGPUBackend, WebGPUMemoryInfo} from './backend_webgpu';
 import {describeWebGPU} from './test_util';
@@ -227,7 +227,7 @@ describeWebGPU('backend webgpu', () => {
   });
 
   it('lazily upload', async () => {
-    const shaderc = await Shaderc.instantiate();
+    const shaderc = await Shaderc.default();
     const adapter = await navigator.gpu.requestAdapter({});
     const device = await adapter.requestDevice({});
     const backend = new WebGPUBackend(device, shaderc);

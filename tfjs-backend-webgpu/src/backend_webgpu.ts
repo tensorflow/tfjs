@@ -20,7 +20,7 @@
 import './flags_webgpu';
 
 import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
-import * as shaderc from '@webgpu/shaderc';
+// import * as shaderc from '@webgpu/shaderc';
 
 import {BufferManager} from './buffer_manager';
 import {ArgMinMaxProgram} from './kernels/argminmax_webgpu';
@@ -91,9 +91,8 @@ const DEFAULT_GPUBUFFER_USAGE =
 export class WebGPUBackend extends KernelBackend {
   device: GPUDevice;
   queue: GPUQueue;
-  shaderc: shaderc.Shaderc;
-  compiler: shaderc.Compiler;
-  compileOpts: shaderc.CompileOptions;
+  shaderc: any;
+  compiler: any;
   commandQueue: GPUCommandEncoder[];
 
   private commandQueueOwnedIds = new WeakSet<DataId>();
@@ -113,7 +112,7 @@ export class WebGPUBackend extends KernelBackend {
   private downloadWaitMs = 0;
   private cpuBackend: KernelBackend;
 
-  constructor(device: GPUDevice, shaderc: shaderc.Shaderc) {
+  constructor(device: GPUDevice, shaderc: any) {
     super();
     this.binaryCache = {};
     this.device = device;
@@ -122,10 +121,9 @@ export class WebGPUBackend extends KernelBackend {
     this.queue = (device as any).defaultQueue;
     this.commandQueue = [];
     this.shaderc = shaderc;
-    this.compiler = new shaderc.Compiler();
+    this.compiler = shaderc;
     const opts = new shaderc.CompileOptions();
     opts.SetOptimizationLevel(shaderc.optimization_level.performance);
-    this.compileOpts = opts;
 
     this.bufferManager = new BufferManager(this.device);
     this.tensorMap = new DataStorage(this, engine());
@@ -473,8 +471,7 @@ export class WebGPUBackend extends KernelBackend {
     this.uploadToGPU(output.dataId);
     const {bindGroupLayout, pipeline} = this.getAndSavePipeline(key, () => {
       return webgpu_program.compileProgram(
-          this.compiler, this.shaderc.shader_kind.compute, this.compileOpts,
-          this.device, program, inputsData, output, uniforms);
+          this.compiler, this.device, program, inputsData, output, uniforms);
     });
 
     const shouldTimeProgram = this.activeTimers != null;
