@@ -17,7 +17,7 @@
 
 import './flags_webgpu';
 import * as tf from '@tensorflow/tfjs-core';
-import * as Shaderc from '@webgpu/glslang';
+import * as Shaderc from '@webgpu/glslang/dist/web-devel/glslang';
 
 import {WebGPUBackend} from './backend_webgpu';
 

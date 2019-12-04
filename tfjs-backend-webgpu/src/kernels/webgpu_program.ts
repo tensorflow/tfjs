@@ -16,7 +16,6 @@
  */
 
 import {DataType, Tensor} from '@tensorflow/tfjs-core';
-// import * as shaderc from '@webgpu/glslang';
 
 import * as shader_preprocessor from '../shader_preprocessor';
 
