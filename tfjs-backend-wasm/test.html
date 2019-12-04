@@ -54,5 +54,28 @@ async function go() {
     }
   }
 }
-go();
+
+async function go2() {
+  tf.setBackend('wasm');
+  await tf.ready();
+  console.log(tf.getBackend());
+
+  let img = tf.browser.fromPixels(document.getElementById('img'));
+  let data = img.dataSync();
+  console.log(data);
+
+  tf.setBackend('webgl');
+  await tf.ready();
+
+  img = tf.browser.fromPixels(document.getElementById('img'));
+  let datawebgl = img.dataSync();
+  console.log(datawebgl);
+
+  for (let i = 0; i < data.length; i++) {
+    if (data[i] != datawebgl[i]) {
+      console.log('i', data[i], datawebgl[i], 'are different');
+    }
+  }
+}
+go2();
 </script>
