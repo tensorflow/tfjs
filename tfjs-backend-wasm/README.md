@@ -27,7 +27,7 @@ import '@tensorflow/tfjs-backend-wasm';
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm"></script>
 ```
 
-## Using the backend.
+## Using the backend with MobileNet.
 
 ```js
 async function main() {
@@ -35,7 +35,21 @@ async function main() {
   tf.setBackend('wasm');
 
   // Wait for the WASM module to be ready.
+  await tf.ready();
+
+  let img = tf.browser.fromPixels(document.getElementById('img'))
+      .resizeBilinear([224, 224])
+      .expandDims(0)
+      .toFloat();
+
+  let model = await tf.loadGraphModel(
+    'https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/classification/2',
+    {fromTFHub: true});
+  const y = model.predict(img);
+
+  y.print();
 }
+main();
 ```
 
 # Development
