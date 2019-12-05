@@ -19,6 +19,8 @@ import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from
 
 import {BackendWasm} from '../backend_wasm';
 
+import {cast} from './Cast';
+
 interface ResizeBilinearInputs extends NamedTensorInfoMap {
   x: TensorInfo;
 }
@@ -48,7 +50,7 @@ function setup(backend: BackendWasm): void {
   ]);
 }
 
-function cropAndResize(args: {
+function resizeBilinear(args: {
   backend: BackendWasm,
   inputs: ResizeBilinearInputs,
   attrs: ResizeBilinearAttrs
@@ -60,9 +62,15 @@ function cropAndResize(args: {
   const [batch, oldHeight, oldWidth, numChannels] = x.shape;
   const outShape = [batch, newHeight, newWidth, numChannels];
 
-  const xId = backend.dataIdMap.get(x.dataId).id;
+  let xData = backend.dataIdMap.get(x.dataId);
+  let castedData;
+  if (xData.dtype !== 'float32') {
+    castedData = cast({backend, inputs: {x}, attrs: {dtype: 'float32'}});
+    xData = backend.dataIdMap.get(castedData.dataId);
+  }
+  const xId = xData.id;
 
-  const out = backend.makeOutput(outShape, x.dtype);
+  const out = backend.makeOutput(outShape, 'float32');
   if (util.sizeFromShape(x.shape) === 0) {
     return out;
   }
@@ -71,6 +79,11 @@ function cropAndResize(args: {
   wasmResizeBilinear(
       xId, batch, oldHeight, oldWidth, numChannels, newHeight, newWidth,
       alignCorners ? 1 : 0, outId);
+
+  if (castedData != null) {
+    backend.disposeData(castedData.dataId);
+  }
+
   return out;
 }
 
@@ -78,5 +91,5 @@ registerKernel({
   kernelName: 'ResizeBilinear',
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: cropAndResize
+  kernelFunc: resizeBilinear
 });
