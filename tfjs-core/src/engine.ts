@@ -172,15 +172,16 @@ export class Engine implements TensorTracker, DataMover {
     if (this.pendingBackendInit != null) {
       throw new Error(
           `Backend '${this.backendName}' has not yet been initialized. Make ` +
-          `sure to await tf.ready() before calling other methods`);
+          `sure to await tf.ready() or await tf.setBackend() before calling ` +
+          `other methods`);
     }
     if (this.backendInstance == null) {
       const {name, asyncInit} = this.initializeBackendsAndReturnBest();
       if (asyncInit) {
         throw new Error(
             `The highest priority backend '${name}' has not yet been ` +
-            `initialized. Make sure to await tf.ready() before calling ` +
-            `other methods`);
+            `initialized. Make sure to await tf.ready() or ` +
+            `await tf.setBackend() before calling other methods`);
       }
       this.setBackend(name);
     }
