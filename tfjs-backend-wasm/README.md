@@ -21,7 +21,7 @@ import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-wasm';
 ```
 
-### Via a script tag.
+### Via a script tag
 
 ```html
 <!-- Import @tensorflow/tfjs or @tensorflow/tfjs-core -->
@@ -31,7 +31,7 @@ import '@tensorflow/tfjs-backend-wasm';
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm"></script>
 ```
 
-## Using the backend with MobileNet.
+## Using the backend with MobileNet
 
 ```js
 async function main() {
