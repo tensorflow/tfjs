@@ -2195,7 +2195,7 @@ export class MathBackendWebGL extends KernelBackend {
         new ResizeBilinearPackedProgram(
             x.shape, newHeight, newWidth, alignCorners) :
         new ResizeBilinearProgram(x.shape, newHeight, newWidth, alignCorners);
-    return this.compileAndRun(program, [x.toFloat()]);
+    return this.compileAndRun(program, [x], 'float32');
   }
 
   resizeBilinearBackprop(dy: Tensor4D, x: Tensor4D, alignCorners: boolean):
