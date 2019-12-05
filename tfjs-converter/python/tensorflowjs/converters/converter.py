@@ -596,8 +596,11 @@ def convert(arguments):
   elif (input_format == common.TF_HUB_MODEL and
         output_format == common.TFJS_GRAPH_MODEL):
     tf_saved_model_conversion_v2.convert_tf_hub_module(
-        args.input_path, args.output_path, args.signature_name,
-        args.saved_model_tags, skip_op_check=args.skip_op_check,
+        args.input_path, args.output_path,
+        signature=args.signature_name,
+        saved_model_tags=args.saved_model_tags,
+        quantization_dtype=quantization_dtype,
+        skip_op_check=args.skip_op_check,
         strip_debug_ops=args.strip_debug_ops)
   elif (input_format == common.TFJS_LAYERS_MODEL and
         output_format == common.KERAS_MODEL):
