@@ -43,8 +43,7 @@ void transpose_2d(const T* x_data, const std::vector<int>& x_shape,
 template <typename T>
 void transpose_3d(const T* x_data, const std::vector<int>& x_shape,
                   const std::vector<int>& perm, T* out_data) {
-  int s1, s2, s3;
-  s1 = x_shape[0];
+  int s2, s3;
   s2 = x_shape[1];
   s3 = x_shape[2];
 
@@ -95,8 +94,7 @@ void transpose_3d(const T* x_data, const std::vector<int>& x_shape,
 template <typename T>
 void transpose_4d(const T* x_data, const std::vector<int>& x_shape,
                   const std::vector<int>& perm, T* out_data) {
-  int s1, s2, s3, s4;
-  s1 = x_shape[0];
+  int s2, s3, s4;
   s2 = x_shape[1];
   s3 = x_shape[2];
   s4 = x_shape[3];
@@ -172,7 +170,7 @@ void slow_transpose_nd(const T* x_data, const std::vector<int>& x_shape,
   const int size = tfjs::util::size_from_shape(x_shape);
   const auto x_strides = tfjs::util::compute_strides(x_shape);
   std::vector<int> out_shape(x_shape.size());
-  for (int i = 0; i < x_shape.size(); ++i) {
+  for (size_t i = 0; i < x_shape.size(); ++i) {
     out_shape[i] = x_shape[perm[i]];
   }
   const auto out_strides = tfjs::util::compute_strides(out_shape);
@@ -182,7 +180,7 @@ void slow_transpose_nd(const T* x_data, const std::vector<int>& x_shape,
 
     // Permute location.
     std::vector<int> new_loc(loc.size());
-    for (int i = 0; i < loc.size(); ++i) {
+    for (size_t i = 0; i < loc.size(); ++i) {
       new_loc[i] = loc[perm[i]];
     }
 
