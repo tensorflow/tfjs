@@ -69,7 +69,6 @@ function resizeBilinear(args: {
     xData = backend.dataIdMap.get(castedDataId.dataId);
   }
   const xId = xData.id;
-  const dtype = xData.dtype;
 
   const out = backend.makeOutput(outShape, 'float32');
   if (util.sizeFromShape(x.shape) === 0) {
