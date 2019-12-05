@@ -105,10 +105,20 @@ tf.registerOp('Prelu', (node) => {
 });
 
 const benchmarks = {
-  'facemesh': {
+  'mobilenet_v2_100': {
+    load: async () => {
+      const url = 'https://storage.googleapis.com/learnjs-data/mobilenet_v2_100_fused/model.json';
+      return tf.loadGraphModel(url);
+    },
+    predictFunc: () => {
+      const zeros = tf.zeros([1, 224, 224, 3]);
+      return model => model.predict(zeros);
+    }
+  },
+  'mesh_128_shift30_fixed_batch': {
     load: async () => {
       const url =
-          'https://storage.googleapis.com/learnjs-data/facemesh_staging/facemesh_ping/model.json';
+          'https://storage.googleapis.com/learnjs-data/mesh_128_shift30_fixed_batch/model.json';
       return tf.loadGraphModel(url);
     },
     predictFunc: () => {
@@ -130,16 +140,6 @@ const benchmarks = {
         return model.predict(zeros);
       };
     },
-  },
-  'mobilenet': {
-    load: async () => {
-      const url = 'https://storage.googleapis.com/learnjs-data/mobilenet_v2_100_fused/model.json';
-      return tf.loadGraphModel(url);
-    },
-    predictFunc: () => {
-      const zeros = tf.zeros([1, 224, 224, 3]);
-      return model => model.predict(zeros);
-    }
   },
   'USE - batchsize 30': {
     load: async () => {
