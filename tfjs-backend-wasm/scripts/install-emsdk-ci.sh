@@ -25,5 +25,3 @@ export HOME='/root'
 ./emsdk activate 1.39.1
 source ./emsdk_env.sh
 cd ..
-
-yarn build
