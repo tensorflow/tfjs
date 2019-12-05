@@ -2260,7 +2260,7 @@ export class MathBackendWebGL extends KernelBackend {
       extrapolationValue: number): Tensor4D {
     const program = new CropAndResizeProgram(
         image.shape, boxes.shape, cropSize, method, extrapolationValue);
-    return this.compileAndRun(program, [image, boxes, boxIndex]);
+    return this.compileAndRun(program, [image, boxes, boxIndex], 'float32');
   }
 
   depthToSpace(x: Tensor4D, blockSize: number, dataFormat: 'NHWC'|'NCHW'):

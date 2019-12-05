@@ -18,6 +18,8 @@
 import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+
+import {cast} from './Cast';
 import {CppDType} from './types';
 
 interface ResizeBilinearInputs extends NamedTensorInfoMap {
@@ -62,11 +64,16 @@ function resizeBilinear(args: {
   const [batch, oldHeight, oldWidth, numChannels] = x.shape;
   const outShape = [batch, newHeight, newWidth, numChannels];
 
-  const xData = backend.dataIdMap.get(x.dataId)
+  let xData = backend.dataIdMap.get(x.dataId);
+  let castedDataId;
+  if (xData.dtype !== 'float32') {
+    castedDataId = cast({backend, inputs: {x}, attrs: {dtype: 'float32'}});
+    xData = backend.dataIdMap.get(castedDataId.dataId);
+  }
   const xId = xData.id;
   const dtype = xData.dtype;
 
-  const out = backend.makeOutput(outShape, x.dtype);
+  const out = backend.makeOutput(outShape, 'float32');
   if (util.sizeFromShape(x.shape) === 0) {
     return out;
   }
@@ -75,6 +82,11 @@ function resizeBilinear(args: {
   wasmResizeBilinear(
       xId, CppDType[dtype], batch, oldHeight, oldWidth, numChannels, newHeight,
       newWidth, alignCorners ? 1 : 0, outId);
+
+  if (castedDataId != null) {
+    backend.disposeData(castedDataId.dataId);
+  }
+
   return out;
 }
 
