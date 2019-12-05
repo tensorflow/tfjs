@@ -1,4 +1,46 @@
-# Emscripten installation
+# Usage
+
+This package adds a WebAssembly backend to TensorFlow.js.
+
+Importing this package augments the TensorFlow.js package
+(@tensorflow/tfjs-core) by registering a new backend.
+
+## Importing the backend
+
+### Via NPM
+
+```js
+// Import @tensorflow/tfjs or @tensorflow/tfjs-core
+import * as tf from '@tensorflow/tfjs';
+
+// Import the WASM backend.
+import '@tensorflow/tfjs-backend-wasm';
+```
+
+### Via a script tag.
+
+```html
+<!-- Import @tensorflow/tfjs or @tensorflow/tfjs-core -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+
+<!-- Import the WASM backend. -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm"></script>
+```
+
+## Using the backend.
+
+```js
+async function main() {
+  // Set the backend to WASM.
+  tf.setBackend('wasm');
+
+  // Wait for the WASM module to be ready.
+}
+```
+
+# Development
+
+## Emscripten installation
 
 Install the Emscripten SDK (version 1.39.1):
 
@@ -9,7 +51,7 @@ cd emsdk
 ./emsdk activate 1.39.1
 ```
 
-# Prepare the environment
+## Prepare the environment
 
 Before developing, make sure the environment variable `EMSDK` points to the
 emscripten directory (e.g. `~/emsdk`). Emscripten provides a script that does
@@ -24,19 +66,19 @@ source ./emsdk_env.sh
 For details, see instructions
 [here](https://emscripten.org/docs/getting_started/downloads.html#installation-instructions).
 
-# Building
+## Building
 
 ```sh
 yarn build
 ```
 
-# Testing
+## Testing
 
 ```sh
 yarn test
 ```
 
-# Deployment
+## Deployment
 ```sh
 ./scripts/build-npm.sh
 npm publish
