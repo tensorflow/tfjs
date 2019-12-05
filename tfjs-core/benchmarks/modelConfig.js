@@ -105,7 +105,7 @@ tf.registerOp('Prelu', (node) => {
 });
 
 const benchmarks = {
-  'mobilenet_v2_100': {
+  'mobilenet_v2': {
     load: async () => {
       const url = 'https://storage.googleapis.com/learnjs-data/mobilenet_v2_100_fused/model.json';
       return tf.loadGraphModel(url);
@@ -115,7 +115,7 @@ const benchmarks = {
       return model => model.predict(zeros);
     }
   },
-  'mesh_128_shift30_fixed_batch': {
+  'mesh_128': {
     load: async () => {
       const url =
           'https://storage.googleapis.com/learnjs-data/mesh_128_shift30_fixed_batch/model.json';
