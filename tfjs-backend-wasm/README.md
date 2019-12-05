@@ -1,9 +1,13 @@
 # Usage
 
-This package adds a WebAssembly backend to TensorFlow.js.
+This package adds a WebAssembly backend to TensorFlow.js. This is currently in
+alpha and subject to change. Not every op in TensorFlow.js is supported on this
+backend.
 
 Importing this package augments the TensorFlow.js package
-(@tensorflow/tfjs-core) by registering a new backend.
+(@tensorflow/tfjs-core) by registering a new backend meaning existing
+TensorFlow.js code, models, and dependent packages will work with only a few
+lines of code changed.
 
 ## Importing the backend
 
