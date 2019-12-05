@@ -52,6 +52,14 @@ describeWithFlags('resizeBilinear', ALL_ENVS, () => {
       1.62451875, 1.83673334, 1.13944793, 2.01993227, 2.01919961, 2.67524052]);
   });
 
+  it('works for ints', async () => {
+    const input = tf.tensor3d([1, 2, 3, 4, 5], [1, 5, 1], 'int32');
+    const output = input.resizeBilinear([1, 10]);
+
+    expect(output.dtype).toBe('float32');
+    expectArraysClose(await output.data(), [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5]);
+  });
+
   it('matches tensorflow w/ random numbers alignCorners=false', async () => {
     const input = tf.tensor3d(
         [

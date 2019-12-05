@@ -18,6 +18,7 @@
 import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+import {CppDType} from './types';
 
 interface ResizeBilinearInputs extends NamedTensorInfoMap {
   x: TensorInfo;
@@ -30,13 +31,14 @@ interface ResizeBilinearAttrs extends NamedAttrMap {
 }
 
 let wasmResizeBilinear: (
-    xId: number, batch: number, oldHeight: number, oldWidth: number,
-    numChannels: number, newHeight: number, newWidth: number,
+    xId: number, dtype: number, batch: number, oldHeight: number,
+    oldWidth: number, numChannels: number, newHeight: number, newWidth: number,
     alignCorners: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmResizeBilinear = backend.wasm.cwrap('ResizeBilinear', null /*void*/, [
     'number',  // xId
+    'number',  // dtype
     'number',  // batch
     'number',  // oldHeight
     'number',  // oldWidth
@@ -48,7 +50,7 @@ function setup(backend: BackendWasm): void {
   ]);
 }
 
-function cropAndResize(args: {
+function resizeBilinear(args: {
   backend: BackendWasm,
   inputs: ResizeBilinearInputs,
   attrs: ResizeBilinearAttrs
@@ -60,7 +62,9 @@ function cropAndResize(args: {
   const [batch, oldHeight, oldWidth, numChannels] = x.shape;
   const outShape = [batch, newHeight, newWidth, numChannels];
 
-  const xId = backend.dataIdMap.get(x.dataId).id;
+  const xData = backend.dataIdMap.get(x.dataId)
+  const xId = xData.id;
+  const dtype = xData.dtype;
 
   const out = backend.makeOutput(outShape, x.dtype);
   if (util.sizeFromShape(x.shape) === 0) {
@@ -69,8 +73,8 @@ function cropAndResize(args: {
   const outId = backend.dataIdMap.get(out.dataId).id;
 
   wasmResizeBilinear(
-      xId, batch, oldHeight, oldWidth, numChannels, newHeight, newWidth,
-      alignCorners ? 1 : 0, outId);
+      xId, CppDType[dtype], batch, oldHeight, oldWidth, numChannels, newHeight,
+      newWidth, alignCorners ? 1 : 0, outId);
   return out;
 }
 
@@ -78,5 +82,5 @@ registerKernel({
   kernelName: 'ResizeBilinear',
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: cropAndResize
+  kernelFunc: resizeBilinear
 });
