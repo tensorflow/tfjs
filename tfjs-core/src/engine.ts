@@ -1102,4 +1102,4 @@ function getOrMakeEngine(): Engine {
   return ns._tfengine;
 }
 
-export let ENGINE = getOrMakeEngine();
+export const ENGINE = getOrMakeEngine();
