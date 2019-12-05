@@ -205,6 +205,10 @@ async function main() {
             parsedPkg['peerDependencies'] != null &&
             parsedPkg['peerDependencies'][depNpmName] != null) {
           version = parsedPkg['peerDependencies'][depNpmName];
+        } else if (
+            parsedPkg['devDependencies'] != null &&
+            parsedPkg['devDependencies'][depNpmName] != null) {
+          version = parsedPkg['devDependencies'][depNpmName];
         }
         if (version == null) {
           throw new Error(`No dependency found for ${dep}.`);
