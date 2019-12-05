@@ -2195,7 +2195,7 @@ export class MathBackendWebGL extends KernelBackend {
         new ResizeBilinearPackedProgram(
             x.shape, newHeight, newWidth, alignCorners) :
         new ResizeBilinearProgram(x.shape, newHeight, newWidth, alignCorners);
-    return this.compileAndRun(program, [x]);
+    return this.compileAndRun(program, [x], 'float32');
   }
 
   resizeBilinearBackprop(dy: Tensor4D, x: Tensor4D, alignCorners: boolean):
@@ -2260,7 +2260,7 @@ export class MathBackendWebGL extends KernelBackend {
       extrapolationValue: number): Tensor4D {
     const program = new CropAndResizeProgram(
         image.shape, boxes.shape, cropSize, method, extrapolationValue);
-    return this.compileAndRun(program, [image, boxes, boxIndex]);
+    return this.compileAndRun(program, [image, boxes, boxIndex], 'float32');
   }
 
   depthToSpace(x: Tensor4D, blockSize: number, dataFormat: 'NHWC'|'NCHW'):
