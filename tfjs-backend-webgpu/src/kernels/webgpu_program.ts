@@ -95,7 +95,7 @@ export const compileProgram =
 
       const source =
           shader_preprocessor.makeShader(inputsData, outputData, program);
-      const result = glslang.compileGLSLZeroCopy(source, 'compute');
+      const result = glslang.compileGLSLZeroCopy(source, 'compute', false);
       if (result.data.length === 0) {
         throw new Error('Shader compilation failed');
       }
