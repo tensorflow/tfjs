@@ -6,7 +6,6 @@ cloudbuild.yml
 scripts/
 tools/
 toolchain/
-wasm-out/
 **/node_modules/
 karma.conf.js
 *.tgz
