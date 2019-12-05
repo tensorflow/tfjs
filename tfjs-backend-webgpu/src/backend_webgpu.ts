@@ -36,6 +36,7 @@ import {MatMulPackedProgram} from './kernels/matmul_packed_webgpu';
 import {MatMulProgram} from './kernels/matmul_webgpu';
 import {MaxPoolProgram} from './kernels/maxpool_webgpu';
 import {PadProgram} from './kernels/pad_webgpu';
+import {ReduceProgram} from './kernels/reduce_webgpu';
 import {ResizeBilinearProgram} from './kernels/resize_bilinear_webgpu';
 import {SelectProgram} from './kernels/select_webgpu';
 import {SliceProgram} from './kernels/slice_webgpu';
@@ -44,6 +45,7 @@ import * as unary_op from './kernels/unary_op_webgpu';
 import {UnaryOpProgram} from './kernels/unary_op_webgpu';
 import * as webgpu_program from './kernels/webgpu_program';
 import {WebGPUBinary} from './kernels/webgpu_program';
+import {assertAxesAreInnerMostDims, computeOptimalWindowSize, computeOutAndReduceShapes, sumOutType} from './reduce_util';
 import * as webgpu_util from './webgpu_util';
 
 export interface WebGPUMemoryInfo extends backend_util.MemoryInfo {
@@ -723,6 +725,47 @@ export class WebGPUBackend extends KernelBackend {
     return this.argMinMaxReduce(x, axis, 'max');
   }
 
+  private reduce(x: Tensor2D, reduceType: 'max'|'min'|'sum', dtype: DataType):
+      Tensor2D {
+    const batchSize = x.shape[0];
+    const inSize = x.shape[1];
+    const windowSize = computeOptimalWindowSize(inSize);
+    const reduceInfo = {windowSize, inSize, batchSize};
+    const program = new ReduceProgram(reduceInfo, reduceType);
+    const output = this.makeOutputArray(program.outputShape, dtype);
+    // // No need to run another WebGPU program.
+    if (output.shape[1] === 1) {
+      return this.compileAndRun(program, [x], output);
+    }
+    return this.reduce(
+        this.compileAndRun(program, [x], output), reduceType, dtype);
+  }
+
+  max(x: Tensor, axes: number[]): Tensor {
+    assertAxesAreInnerMostDims('max', axes, x.rank);
+    const [outShape, reduceShape] = computeOutAndReduceShapes(x.shape, axes);
+    const reduceSize = util.sizeFromShape(reduceShape);
+    const a2D = x.as2D(-1, reduceSize);
+    return this.reduce(a2D, 'max', a2D.dtype).reshape(outShape);
+  }
+
+  min(x: Tensor, axes: number[]): Tensor {
+    assertAxesAreInnerMostDims('min', axes, x.rank);
+    const [outShape, reduceShape] = computeOutAndReduceShapes(x.shape, axes);
+    const reduceSize = util.sizeFromShape(reduceShape);
+    const a2D = x.as2D(-1, reduceSize);
+    return this.reduce(a2D, 'min', a2D.dtype).reshape(outShape);
+  }
+
+  sum(x: Tensor, axes: number[]): Tensor {
+    assertAxesAreInnerMostDims('sum', axes, x.rank);
+    const [outShape, reduceShape] = computeOutAndReduceShapes(x.shape, axes);
+    const reduceSize = util.sizeFromShape(reduceShape);
+    const a2D = x.as2D(-1, reduceSize);
+    const outputDType = sumOutType(x.dtype);
+    return this.reduce(a2D, 'sum', outputDType).reshape(outShape);
+  }
+
   clip<T extends Tensor>(x: T, min: number, max: number): T {
     const program = new ClipProgram(x.shape, min, max);
     return this.compileAndRun(program, [x]);
@@ -795,6 +838,14 @@ export class WebGPUBackend extends KernelBackend {
 
   relu6<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.RELU6);
+    return this.compileAndRun(program, [x]);
+  }
+
+  abs<T extends Tensor>(x: T): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.abs(x);
+    }
+    const program = new UnaryOpProgram(x.shape, unary_op.ABS);
     return this.compileAndRun(program, [x]);
   }
 
