@@ -1,7 +1,7 @@
 # Usage
 
 This package adds a WebAssembly backend to TensorFlow.js. This is currently in
-alpha and subject to change. Not every op in TensorFlow.js is supported on this
+**alpha** and subject to change. Not every op in TensorFlow.js is supported on this
 backend.
 
 Importing this package augments the TensorFlow.js package
@@ -35,11 +35,8 @@ import '@tensorflow/tfjs-backend-wasm';
 
 ```js
 async function main() {
-  // Set the backend to WASM.
-  tf.setBackend('wasm');
-
-  // Wait for the WASM module to be ready.
-  await tf.ready();
+  // Set the backend to WASM and wait for the module to be ready.
+  await tf.setBackend('wasm');
 
   let img = tf.browser.fromPixels(document.getElementById('img'))
       .resizeBilinear([224, 224])
