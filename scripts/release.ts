@@ -76,6 +76,11 @@ const NODE_PHASE: Phase = {
   scripts: {'tfjs-node-gpu': {'before-yarn': ['yarn prep-gpu']}}
 };
 
+const WASM_PHASE: Phase = {
+  packages: ['tfjs-backend-wasm'],
+  deps: ['tfjs-core']
+};
+
 const VIS_PHASE: Phase = {
   packages: ['tfjs-vis']
 };
@@ -91,7 +96,7 @@ const WEBSITE_PHASE: Phase = {
 
 const PHASES: Phase[] = [
   CORE_PHASE, LAYERS_CONVERTER_PHASE, DATA_PHASE, UNION_PHASE, NODE_PHASE,
-  VIS_PHASE, WEBSITE_PHASE
+  WASM_PHASE, VIS_PHASE, WEBSITE_PHASE
 ];
 
 const TMP_DIR = '/tmp/tfjs-release';
