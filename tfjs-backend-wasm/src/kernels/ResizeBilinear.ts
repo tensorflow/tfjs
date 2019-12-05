@@ -63,10 +63,10 @@ function resizeBilinear(args: {
   const outShape = [batch, newHeight, newWidth, numChannels];
 
   let xData = backend.dataIdMap.get(x.dataId);
-  let castedDataId;
+  let castedData;
   if (xData.dtype !== 'float32') {
-    castedDataId = cast({backend, inputs: {x}, attrs: {dtype: 'float32'}});
-    xData = backend.dataIdMap.get(castedDataId.dataId);
+    castedData = cast({backend, inputs: {x}, attrs: {dtype: 'float32'}});
+    xData = backend.dataIdMap.get(castedData.dataId);
   }
   const xId = xData.id;
 
@@ -80,8 +80,8 @@ function resizeBilinear(args: {
       xId, batch, oldHeight, oldWidth, numChannels, newHeight, newWidth,
       alignCorners ? 1 : 0, outId);
 
-  if (castedDataId != null) {
-    backend.disposeData(castedDataId.dataId);
+  if (castedData != null) {
+    backend.disposeData(castedData.dataId);
   }
 
   return out;

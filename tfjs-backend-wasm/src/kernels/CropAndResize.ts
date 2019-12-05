@@ -73,11 +73,11 @@ function cropAndResize(args: {
   const outShape = [numBoxes, cropHeight, cropWidth, images.shape[3]];
 
   let imagesData = backend.dataIdMap.get(images.dataId);
-  let castedDataId;
+  let castedData;
   if (images.dtype !== 'float32') {
-    castedDataId =
+    castedData =
         cast({backend, inputs: {x: images}, attrs: {dtype: 'float32'}});
-    imagesData = backend.dataIdMap.get(castedDataId.dataId);
+    imagesData = backend.dataIdMap.get(castedData.dataId);
   }
 
   const imagesId = imagesData.id;
@@ -95,8 +95,8 @@ function cropAndResize(args: {
       InterpolationMethod[method as {} as keyof typeof InterpolationMethod],
       extrapolationValue, outId);
 
-  if (castedDataId != null) {
-    backend.disposeData(castedDataId.dataId);
+  if (castedData != null) {
+    backend.disposeData(castedData.dataId);
   }
 
   return out;
