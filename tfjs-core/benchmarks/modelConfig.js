@@ -128,10 +128,9 @@ const benchmarks = {
       };
     },
   },
-  'facedetector': {
+  'face_detector': {
     load: async () => {
-      const url =
-          'https://storage.googleapis.com/learnjs-data/facemesh_staging/facedetector_tfjs/model.json';
+      const url = 'https://storage.googleapis.com/learnjs-data/face_detector_front/model.json';
       return tf.loadGraphModel(url);
     },
     predictFunc: () => {
