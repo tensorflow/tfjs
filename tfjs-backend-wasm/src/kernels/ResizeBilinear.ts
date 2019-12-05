@@ -20,7 +20,6 @@ import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from
 import {BackendWasm} from '../backend_wasm';
 
 import {cast} from './Cast';
-import {CppDType} from './types';
 
 interface ResizeBilinearInputs extends NamedTensorInfoMap {
   x: TensorInfo;
@@ -33,14 +32,13 @@ interface ResizeBilinearAttrs extends NamedAttrMap {
 }
 
 let wasmResizeBilinear: (
-    xId: number, dtype: number, batch: number, oldHeight: number,
-    oldWidth: number, numChannels: number, newHeight: number, newWidth: number,
+    xId: number, batch: number, oldHeight: number, oldWidth: number,
+    numChannels: number, newHeight: number, newWidth: number,
     alignCorners: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmResizeBilinear = backend.wasm.cwrap('ResizeBilinear', null /*void*/, [
     'number',  // xId
-    'number',  // dtype
     'number',  // batch
     'number',  // oldHeight
     'number',  // oldWidth
@@ -80,8 +78,8 @@ function resizeBilinear(args: {
   const outId = backend.dataIdMap.get(out.dataId).id;
 
   wasmResizeBilinear(
-      xId, CppDType[dtype], batch, oldHeight, oldWidth, numChannels, newHeight,
-      newWidth, alignCorners ? 1 : 0, outId);
+      xId, batch, oldHeight, oldWidth, numChannels, newHeight, newWidth,
+      alignCorners ? 1 : 0, outId);
 
   if (castedDataId != null) {
     backend.disposeData(castedDataId.dataId);

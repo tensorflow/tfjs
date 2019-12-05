@@ -32,12 +32,11 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 
-void ResizeBilinear(int x_id, const DType dtype, int batch, int old_height,
-                    int old_width, int num_channels, int new_height,
-                    int new_width, int align_corners, int out_id) {
+void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
+                    int num_channels, int new_height, int new_width,
+                    int align_corners, int out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
-  std::vector<void*> inputs_buf;
 
   const float* x_buf = x_info.f32();
   float* out_buf = out_info.f32_write();
