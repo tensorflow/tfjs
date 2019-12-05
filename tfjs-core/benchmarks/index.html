@@ -347,7 +347,6 @@ limitations under the License.
     async function onPageLoad() {
       var gui = new dat.gui.GUI();
 
-      await tf.ready();
       await tf.setBackend(state.backend);
 
       gui.add(state, 'numRuns');
