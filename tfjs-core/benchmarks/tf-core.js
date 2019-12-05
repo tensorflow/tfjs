@@ -1098,7 +1098,8 @@
             var shape = rightPad(result.shape.toString(), 14);
             var inputShapesDescription = '';
             for (var name_1 in inputs) {
-                var inputShape = inputs[name_1].shape;
+                var input = inputs[name_1];
+                var inputShape = input.shape || result.shape;
                 var inputRank = inputShape.length;
                 inputShapesDescription +=
                     name_1 + ": " + inputRank + "D " + (inputRank > 0 ? inputShape : '') + " ";
@@ -17447,7 +17448,7 @@
             var program = env().getBool('WEBGL_PACK_IMAGE_OPERATIONS') ?
                 new ResizeBilinearPackedProgram(x.shape, newHeight, newWidth, alignCorners) :
                 new ResizeBilinearProgram(x.shape, newHeight, newWidth, alignCorners);
-            return this.compileAndRun(program, [x]);
+            return this.compileAndRun(program, [x], 'float32');
         };
         MathBackendWebGL.prototype.resizeBilinearBackprop = function (dy, x, alignCorners) {
             var program = new ResizeBilinearBackpropProgram(dy, x, alignCorners);
@@ -17486,7 +17487,7 @@
         };
         MathBackendWebGL.prototype.cropAndResize = function (image, boxes, boxIndex, cropSize, method, extrapolationValue) {
             var program = new CropAndResizeProgram(image.shape, boxes.shape, cropSize, method, extrapolationValue);
-            return this.compileAndRun(program, [image, boxes, boxIndex]);
+            return this.compileAndRun(program, [image, boxes, boxIndex], 'float32');
         };
         MathBackendWebGL.prototype.depthToSpace = function (x, blockSize, dataFormat) {
             assert(blockSize > 1, function () {
@@ -25483,7 +25484,7 @@
      */
     /** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
     function cropAndResize_(image, boxes, boxInd, cropSize, method, extrapolationValue) {
-        var $image = convertToTensor(image, 'image', 'cropAndResize', 'float32');
+        var $image = convertToTensor(image, 'image', 'cropAndResize');
         var $boxes = convertToTensor(boxes, 'boxes', 'cropAndResize', 'float32');
         var $boxInd = convertToTensor(boxInd, 'boxInd', 'cropAndResize', 'int32');
         method = method || 'bilinear';
@@ -29129,7 +29130,7 @@
             var _a = images.shape, batch = _a[0], imageHeight = _a[1], imageWidth = _a[2], numChannels = _a[3];
             var numBoxes = boxes.shape[0];
             var cropHeight = cropSize[0], cropWidth = cropSize[1];
-            var output = buffer([numBoxes, cropHeight, cropWidth, numChannels], images.dtype);
+            var output = buffer([numBoxes, cropHeight, cropWidth, numChannels], 'float32');
             var boxVals = this.readSync(boxes.dataId);
             var boxIndVals = this.readSync(boxIndex.dataId);
             var imageVals = this.readSync(images.dataId);

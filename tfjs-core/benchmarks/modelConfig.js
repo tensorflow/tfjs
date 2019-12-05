@@ -136,34 +136,40 @@ const benchmarks = {
   },
   'posenet': {
     load: async () => {
-      const imageBucket =
-          'https://storage.googleapis.com/tfjs-models/assets/posenet/';
-
-      async function loadImage(imagePath) {
-        const image = new Image();
-        const promise = new Promise((resolve, reject) => {
-          image.crossOrigin = '';
-          image.onload = () => {
-            resolve(image);
-          };
-        });
-
-        image.src = `${imageBucket}${imagePath}`;
-        return promise;
-      }
-
-      const posenetModel = await posenet.load();
-      const image = await loadImage('tennis_standing.jpg');
-
-      posenetModel.benchmarkImage = image;
-      return posenetModel;
+      const model = await posenet.load();
+      model.image = await loadImage('tennis_standing.jpg');
+      return model;
     },
     predictFunc: () => {
       return async model => {
-        const image = model.benchmarkImage;
-        const pose = await model.estimateSinglePose(image);
-        return pose;
+        return model.estimateSinglePose(model.image);
+      }
+    }
+  },
+  'bodypix': {
+    load: async () => {
+      const model = await bodyPix.load();
+      model.image = await loadImage('tennis_standing.jpg');
+      return model;
+    },
+    predictFunc: () => {
+      return async model => {
+        return model.segmentPerson(model.image);
       }
     }
   },
 };
+
+const imageBucket = 'https://storage.googleapis.com/tfjs-models/assets/posenet/';
+async function loadImage(imagePath) {
+  const image = new Image();
+  const promise = new Promise((resolve, reject) => {
+    image.crossOrigin = '';
+    image.onload = () => {
+      resolve(image);
+    };
+  });
+
+  image.src = `${imageBucket}${imagePath}`;
+  return promise;
+}
