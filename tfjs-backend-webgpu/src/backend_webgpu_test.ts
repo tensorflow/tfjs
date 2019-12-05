@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import * as Shaderc from '@webgpu/glslang/dist/web-devel/glslang';
+import * as Shaderc from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {WebGPUBackend, WebGPUMemoryInfo} from './backend_webgpu';
 import {describeWebGPU} from './test_util';
