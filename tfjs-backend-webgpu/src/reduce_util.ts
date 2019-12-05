@@ -64,7 +64,6 @@ const upcastTypeMap = {
   'complex64': UpcastComplex64AndMap
 };
 
-
 export function upcastType(typeA: DataType, typeB: DataType): DataType {
   if (typeA === 'string' || typeB === 'string') {
     if (typeA === 'string' && typeB === 'string') {
