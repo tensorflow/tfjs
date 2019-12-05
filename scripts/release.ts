@@ -55,10 +55,15 @@ const CORE_PHASE: Phase = {
   packages: ['tfjs-core']
 };
 
-const LAYERS_CONVERTER_DATA_PHASE: Phase = {
-  packages: ['tfjs-layers', 'tfjs-converter', 'tfjs-data'],
+const LAYERS_CONVERTER_PHASE: Phase = {
+  packages: ['tfjs-layers', 'tfjs-converter'],
   deps: ['tfjs-core']
 };
+
+const DATA_PHASE: Phase = {
+  packages: ['tfjs-data'],
+  deps: ['tfjs-core', 'tfjs-layers']
+}
 
 const UNION_PHASE: Phase = {
   packages: ['tfjs'],
@@ -85,8 +90,8 @@ const WEBSITE_PHASE: Phase = {
 };
 
 const PHASES: Phase[] = [
-  CORE_PHASE, LAYERS_CONVERTER_DATA_PHASE, UNION_PHASE, NODE_PHASE, VIS_PHASE,
-  WEBSITE_PHASE
+  CORE_PHASE, LAYERS_CONVERTER_PHASE, DATA_PHASE, UNION_PHASE, NODE_PHASE,
+  VIS_PHASE, WEBSITE_PHASE
 ];
 
 const TMP_DIR = '/tmp/tfjs-release';
