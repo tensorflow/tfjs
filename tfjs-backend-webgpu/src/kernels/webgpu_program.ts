@@ -16,6 +16,7 @@
  */
 
 import {DataType, Tensor} from '@tensorflow/tfjs-core';
+import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import * as shader_preprocessor from '../shader_preprocessor';
 
@@ -87,32 +88,27 @@ const makeBindGroupLayout =
     };
 
 export const compileProgram =
-    (shaderCompiler: any, device: GPUDevice, program: WebGPUProgram,
+    (glslang: Glslang, device: GPUDevice, program: WebGPUProgram,
      inputsData: shader_preprocessor.InputInfo[], output: Tensor,
      uniforms?: BindingInfo): WebGPUBinary => {
       const outputData = {dtype: output.dtype, shape: output.shape};
 
       const source =
           shader_preprocessor.makeShader(inputsData, outputData, program);
-      const result =
-          shaderCompiler.CompileGlslToSpv(source, 'compute', 'file', 'main');
-      const error = result.GetErrorMessage();
-      if (error.length) {
-        console.error(
-            source.split('\n')
-                .map((s, l) => (l + 1).toString().padStart(5, ' ') + ' ' + s)
-                .join('\n'));
-        throw new Error(`Shader compilation failed: ${error}`);
+      const result = glslang.compileGLSLZeroCopy(source, 'compute');
+      if (result.data.length === 0) {
+        throw new Error('Shader compilation failed');
       }
+
       const bindGroupLayout =
           makeBindGroupLayout(device, inputsData, output, uniforms);
-      const code = result.GetBinary();
       const layout =
           device.createPipelineLayout({bindGroupLayouts: [bindGroupLayout]});
-      const module = device.createShaderModule({code});
+      const module = device.createShaderModule({code: result.data});
       const pipeline = device.createComputePipeline(
           {layout, computeStage: {module, entryPoint: 'main'}});
 
+      result.free();
       return {bindGroupLayout, pipeline};
     };
 
