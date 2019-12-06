@@ -431,12 +431,12 @@ class ConvertTest(tf.test.TestCase):
 
       fusedOp = None
       for node in nodes:
-        self.assertTrue(not 'BatchNorm' in node['op'])
-        self.assertTrue(not 'Relu' in node['op'])
-        self.assertTrue(not 'BiasAdd' in node['op'])
+        self.assertNotIn('BatchNorm', node['op'])
+        self.assertNotIn('Relu', node['op'])
+        self.assertNotIn('BiasAdd', node['op'])
         if node['op'] == '_FusedConv2D':
           fusedOp = node
-      self.assertTrue(fusedOp is not None)
+      self.assertIsNot(fusedOp, None)
       self.assertEqual(
           base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][0]),
           b'BiasAdd')
@@ -476,12 +476,12 @@ class ConvertTest(tf.test.TestCase):
     nodes = model_json['modelTopology']['node']
     fusedOp = None
     for node in nodes:
-      self.assertTrue(node['op'] != 'MatMul')
-      self.assertTrue(not 'Relu' in node['op'])
-      self.assertTrue(not 'BiasAdd' in node['op'])
+      self.assertNotEqual(node['op'], 'MatMul')
+      self.assertNotIn('Relu', node['op'])
+      self.assertNotIn('BiasAdd', node['op'])
       if node['op'] == graph_rewrite_util.FUSED_MATMUL:
         fusedOp = node
-    self.assertTrue(fusedOp is not None)
+    self.assertIsNot(fusedOp, None)
     self.assertIsNot(fusedOp['attr']['transpose_a'], None)
     self.assertIsNot(fusedOp['attr']['transpose_b'], None)
     self.assertEqual(
@@ -524,12 +524,12 @@ class ConvertTest(tf.test.TestCase):
 
     fusedOp = None
     for node in nodes:
-      self.assertTrue(not 'BatchNorm' in node['op'])
-      self.assertTrue(not 'Relu' in node['op'])
-      self.assertTrue(not 'BiasAdd' in node['op'])
+      self.assertNotIn('BatchNorm', node['op'])
+      self.assertNotIn('Relu', node['op'])
+      self.assertNotIn('BiasAdd', node['op'])
       if node['op'] == graph_rewrite_util.FUSED_DEPTHWISE_CONV2D:
         fusedOp = node
-    self.assertTrue(fusedOp is not None)
+    self.assertIsNot(fusedOp, None)
     self.assertIsNot(fusedOp['attr']['dilations'], None)
     self.assertIsNot(fusedOp['attr']['strides'], None)
     self.assertEqual(
@@ -581,8 +581,8 @@ class ConvertTest(tf.test.TestCase):
       if node['op'] == graph_rewrite_util.FUSED_DEPTHWISE_CONV2D:
         depthwise_fused_op = node
     self.assertTrue(prelu_op is None)
-    self.assertTrue(fused_op is not None)
-    self.assertTrue(depthwise_fused_op is not None)
+    self.assertIsNot(fused_op, None)
+    self.assertIsNot(depthwise_fused_op, None)
 
     fused_ops = list(map(base64.b64decode,
                          fused_op['attr']['fused_ops']['list']['s']))
