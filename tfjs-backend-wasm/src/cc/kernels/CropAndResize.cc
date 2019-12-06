@@ -123,7 +123,7 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
       continue;
     }
 
-    const int box_ind = *box_ind_buf * images_strides[0];
+    const int box_ind = *box_ind_buf;
 
     const float height_scale =
         (crop_height > 1) ? (y2 - y1) * image_height_m1 / (crop_height - 1) : 0;
@@ -175,9 +175,10 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
 
       if (should_memcpy) {
         int y_ind_int = y_ind;
-        images_buf += (y_ind_int * images_strides[1] + box_ind);
-
-        memcpy(out_buf_ptr, images_buf, sizeof(float) * crop_width);
+        int offset =
+            box_ind * images_strides[0] + y_ind_int * images_strides[1];
+        memcpy(out_buf_ptr, images_buf + offset,
+               sizeof(float) * crop_width * num_channels);
         continue;
       }
 
