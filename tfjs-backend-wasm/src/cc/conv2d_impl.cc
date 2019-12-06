@@ -34,7 +34,6 @@
 #include "src/cc/util.h"
 
 namespace {
-// These values are keys to creating the conv2d operator.
 typedef std::tuple<int, int, int, int, int, int, int, int, int, int, int, int,
                    int, int, int, int, int, int, int, float, float>
     OperatorCacheKey;
