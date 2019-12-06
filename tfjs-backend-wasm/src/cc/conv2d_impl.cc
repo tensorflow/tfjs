@@ -19,7 +19,7 @@
 #include "src/cc/conv2d_impl.h"
 
 #include <xnnpack.h>
-#include <array>
+#include <tuple>
 #include <cmath>
 #include <limits>
 #include <map>
