@@ -12,26 +12,16 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#endif
-
-#include "src/cc/clamp_impl.h"
+#ifndef CLAMP_IMPL_H_
+#define CLAMP_IMPL_H_
 
 namespace tfjs {
 namespace wasm {
-// We use C-style API to interface with Javascript.
-extern "C" {
 
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif
-void Relu6(const int x_id, const int out_id) {
-  const float min = 0;
-  const float max = 6;
-  xnn_clamp(x_id, out_id, min, max);
-}
+void xnn_clamp(const int x_id, const int out_id, const float min,
+               const float max);
 
-}  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs
+
+#endif  // CLAMP_IMPL_H_

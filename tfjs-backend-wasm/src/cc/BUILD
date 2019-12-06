@@ -96,6 +96,16 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "clamp_impl",
+  hdrs = ["clamp_impl.h"],
+  srcs = ["clamp_impl.cc"],
+  deps = [
+    ":backend",
+    ":util"
+  ],
+)
+
+tfjs_cc_library(
   name = "all_kernels",
   deps = [
     ":Abs",
@@ -361,6 +371,7 @@ tfjs_cc_library(
   srcs = ["kernels/Relu.cc"],
   deps = [
     ":backend",
+    ":clamp_impl",
     ":unary",
   ],
 )
@@ -370,6 +381,7 @@ tfjs_cc_library(
   srcs = ["kernels/Relu6.cc"],
   deps = [
     ":backend",
+    ":clamp_impl",
     ":unary",
   ],
 )

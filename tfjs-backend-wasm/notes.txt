@@ -1,4 +1,0 @@
-Perf improvements:
-- Detector (15.8ms --> 14.3ms) (~1.10X)
-- Mesh (9.2ms --> 8.2ms) (~1.12X)
-- MobileNet (103ms --> 101ms) (~1X)
