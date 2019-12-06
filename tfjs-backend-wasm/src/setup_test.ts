@@ -28,10 +28,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'add ',
     excludes: [
-      'gradient',                   // Gradient is missing.
-      'broadcast inner dim',        // Broadcast inner dim not yet supported.
-      'broadcast each with 1 dim',  // Same as above.
-      'broadcasting same rank Tensors different shape',  // Same as above.
+      'gradient',                        // Gradient is missing.
       'upcasts when dtypes dont match',  // Uses the 'complex' dtype.
       'complex',                         // Complex numbers not supported yet
     ]
