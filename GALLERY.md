@@ -24,7 +24,7 @@ Please reach out to us if you'd like to put your project on the list.
 - [Deep Roll](https://codepen.io/teropa/pen/zpbLOj) by Tero Parviainen
 - [Latent Cycles](https://codepen.io/teropa/pen/rdoPbG) by Tero Parviainen
 - [PoseNet + Pts.js](https://github.com/williamngan/pts/tree/master/demo/more/tfjs_posenet) - Visualizing pose with pts.js
-- [Falling balls + DQN](http://web.sfc.keio.ac.jp/~t15704yn/falling/index.html) - A demo of a DQN agent that learns to dodge falling balls by seann999
+- [Falling balls + DQN](https://github.com/seann999/dodge_tfjs) - A demo of a DQN agent that learns to dodge falling balls by seann999
 - [Tenori Off](https://tenori-off.glitch.me/) - An ML-powered music sequencer by Monica Dinculescu
 - [Hello TensorFlow.js](https://hello-tensorflow.glitch.me/) - Polynomial Regression by Monica Dinculescu
 - [Simple MNIST GAN](https://mwdchang.github.io/tfjs-gan/) by Daniel Chang
@@ -43,7 +43,6 @@ Please reach out to us if you'd like to put your project on the list.
 - [trynottolaugh](http://trynottolaugh.net) - Try not to laugh game with face landmark detection if you laugh during video you lose!
 - [Neuroglancer](https://github.com/google/neuroglancer) - A browser-based app for examining 3D volumetric neuroimaging data.
 - [Chester Radiology Assistant](https://mlmed.org/tools/xray) - A web-based tool for diagnosing chest x-ray images.
-- [Membrane](https://membrane.today) - An interactive audiovisual tone mirror that responds to nose movement, by Ashlin Aronin.
 
 ## Tutorials
 
