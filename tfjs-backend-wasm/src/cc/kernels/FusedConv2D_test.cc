@@ -168,9 +168,20 @@ TEST(FUSEDCONV2D, xnn_operator_lifetime) {
       prelu_weights_id, out_id);
   ASSERT_EQ(6, tfjs::backend::xnn_operator_count);
 
+  // One new XNN operator should be created for the next call to conv2d with a
+  // different activation.
+  const int activation2 = tfjs::wasm::FusableActivation::RELU6;
+  tfjs::wasm::FusedConv2D(
+      x1_id, batch_size, input_height, input_width, weights1_id, filter_height,
+      filter_width, bias1_id, pad_top1, pad_right, pad_bottom1, pad_left,
+      is_same_pad1, dilation_height, dilation_width, stride_height,
+      stride_width, input_channels, output_channels, activation2,
+      prelu_weights_id, out_id);
+  ASSERT_EQ(7, tfjs::backend::xnn_operator_count);
+
   // Disposing the first weights should remove 2 operators.
   tfjs::wasm::dispose_data(weights0_id);
-  ASSERT_EQ(4, tfjs::backend::xnn_operator_count);
+  ASSERT_EQ(5, tfjs::backend::xnn_operator_count);
 
   // Disposing the second bias should remove 2 operators it's associated with.
   tfjs::wasm::dispose_data(bias1_id);
