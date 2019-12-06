@@ -34,6 +34,8 @@
 #include "src/cc/util.h"
 
 namespace {
+// We use std::tuple as the cache key as it implements the compare operator
+// needed for std::map.
 typedef std::tuple<int, int, int, int, int, int, int, int, int, int, int, int,
                    int, int, int, int, int, int, int, float, float>
     OperatorCacheKey;
