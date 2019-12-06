@@ -22,8 +22,7 @@
 #include "src/cc/util.h"
 
 namespace {
-// The operator cache maps the create_op_type to the xnn_operator_t
-// instantiated for this set of weights.
+// Maps an `xnn_create_*_nd_f32` function pointer to an instantiated operator.
 std::unordered_map<tfjs::wasm::xnn_create_binary_op, xnn_operator_t> op_cache;
 }  // namespace
 
