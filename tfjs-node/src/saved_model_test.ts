@@ -15,7 +15,10 @@
  * =============================================================================
  */
 
-import {getEnumKeyFromValue, readSavedModelProto} from './saved_model';
+import {NamedTensorMap, test_util} from '@tensorflow/tfjs-core';
+import * as tf from './index';
+import {nodeBackend} from './nodejs_kernel_backend';
+import {getEnumKeyFromValue, getInputAndOutputNodeNameFromMetaGraphInfo, readSavedModelProto} from './saved_model';
 
 // tslint:disable-next-line:no-require-imports
 const messages = require('./proto/api_pb');
@@ -50,8 +53,8 @@ describe('SavedModel', () => {
      *  }
      * }
      */
-    const modelMessage =
-        await readSavedModelProto('./test_objects/times_three_float');
+    const modelMessage = await readSavedModelProto(
+        './test_objects/saved_model/times_three_float');
 
     // This SavedModel has one MetaGraph with tag serve
     expect(modelMessage.getMetaGraphsList().length).toBe(1);
@@ -119,5 +122,329 @@ describe('SavedModel', () => {
           .toBe(`There is no saved_model.pb file in the directory: /not-exist`);
       done();
     }
+  });
+
+  it('inspect SavedModel metagraphs', async () => {
+    const modelInfo = await tf.node.getMetaGraphsFromSavedModel(
+        './test_objects/saved_model/times_three_float');
+    /**
+     * The inspection output should be
+     * [{
+     *  'tags': ['serve'],
+     *  'signatureDefs': {
+     *      '__saved_model_init_op': {
+     *        'inputs': {},
+     *        'outputs': {
+     *          '__saved_model_init_op': {
+     *            'dtype': 'DT_INVALID',
+     *            'name': 'NoOp',
+     *            'shape': []
+     *          }
+     *        }
+     *      },
+     *      'serving_default': {
+     *        'inputs': {
+     *          'x': {
+     *            'dtype': 'DT_FLOAT',
+     *            'name': 'serving_default_x:0',
+     *            'shape':[]
+     *          }
+     *        },
+     *        'outputs': {
+     *          'output_0': {
+     *            'dtype': 'DT_FLOAT',
+     *            'name': 'StatefulPartitionedCall:0',
+     *            'shape': []
+     *          }
+     *        }
+     *      }
+     *   }
+     * }]
+     */
+    expect(modelInfo.length).toBe(1);
+    expect(modelInfo[0].tags.length).toBe(1);
+    expect(modelInfo[0].tags[0]).toBe('serve');
+    expect(Object.keys(modelInfo[0].signatureDefs).length).toBe(1);
+    expect(Object.keys(modelInfo[0].signatureDefs)[0]).toBe('serving_default');
+    expect(Object.keys(modelInfo[0].signatureDefs['serving_default'].inputs)
+               .length)
+        .toBe(1);
+    expect(modelInfo[0].signatureDefs['serving_default'].inputs['x'].name)
+        .toBe('serving_default_x:0');
+    expect(modelInfo[0].signatureDefs['serving_default'].inputs['x'].dtype)
+        .toBe('float32');
+    expect(Object.keys(modelInfo[0].signatureDefs['serving_default'].outputs)
+               .length)
+        .toBe(1);
+    expect(
+        modelInfo[0].signatureDefs['serving_default'].outputs['output_0'].name)
+        .toBe('StatefulPartitionedCall:0');
+    expect(
+        modelInfo[0].signatureDefs['serving_default'].outputs['output_0'].dtype)
+        .toBe('float32');
+  });
+
+  it('get input and output node names from SavedModel metagraphs', async () => {
+    const modelInfo = await tf.node.getMetaGraphsFromSavedModel(
+        './test_objects/saved_model/times_three_float');
+    const inputAndOutputNodeNames = getInputAndOutputNodeNameFromMetaGraphInfo(
+        modelInfo, ['serve'], 'serving_default');
+    expect(inputAndOutputNodeNames.length).toBe(2);
+    expect(inputAndOutputNodeNames[0]['x']).toBe('serving_default_x:0');
+    expect(inputAndOutputNodeNames[1]['output_0'])
+        .toBe('StatefulPartitionedCall:0');
+  });
+
+  it('load TFSavedModel', async () => {
+    const loadSavedModelMetaGraphSpy =
+        spyOn(nodeBackend(), 'loadSavedModelMetaGraph').and.callThrough();
+    expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(0);
+    const model = await tf.node.loadSavedModel(
+        './test_objects/saved_model/times_three_float', ['serve'],
+        'serving_default');
+    expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+    model.dispose();
+  });
+
+  it('load TFSavedModel with wrong tags throw exception', async done => {
+    try {
+      await tf.node.loadSavedModel(
+          './test_objects/saved_model/times_three_float', ['serve', 'gpu'],
+          'serving_default');
+      done.fail();
+    } catch (error) {
+      expect(error.message)
+          .toBe('The SavedModel does not have tags: serve,gpu');
+      done();
+    }
+  });
+
+  it('load TFSavedModel with wrong signature throw exception', async done => {
+    try {
+      await tf.node.loadSavedModel(
+          './test_objects/saved_model/times_three_float', ['serve'],
+          'wrong_signature');
+      done.fail();
+    } catch (error) {
+      expect(error.message)
+          .toBe('The SavedModel does not have signature: wrong_signature');
+      done();
+    }
+  });
+
+  it('load TFSavedModel and delete', async () => {
+    const loadSavedModelMetaGraphSpy =
+        spyOn(nodeBackend(), 'loadSavedModelMetaGraph').and.callThrough();
+    const deleteSavedModelSpy =
+        spyOn(nodeBackend(), 'deleteSavedModel').and.callThrough();
+    expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(0);
+    expect(deleteSavedModelSpy).toHaveBeenCalledTimes(0);
+    const model = await tf.node.loadSavedModel(
+        './test_objects/saved_model/times_three_float', ['serve'],
+        'serving_default');
+    expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+    expect(deleteSavedModelSpy).toHaveBeenCalledTimes(0);
+    model.dispose();
+    expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+    expect(deleteSavedModelSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('delete TFSavedModel multiple times throw exception', async done => {
+    const model = await tf.node.loadSavedModel(
+        './test_objects/saved_model/times_three_float', ['serve'],
+        'serving_default');
+    model.dispose();
+    try {
+      model.dispose();
+      done.fail();
+    } catch (error) {
+      expect(error.message).toBe('This SavedModel has already been deleted.');
+      done();
+    }
+  });
+
+  it('load multiple signatures from the same metagraph only call binding once',
+     async () => {
+       const backend = nodeBackend();
+       const loadSavedModelMetaGraphSpy =
+           spyOn(backend, 'loadSavedModelMetaGraph').and.callThrough();
+       expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(0);
+       const model1 = await tf.node.loadSavedModel(
+           './test_objects/saved_model/module_with_multiple_signatures',
+           ['serve'], 'serving_default');
+       expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+       const model2 = await tf.node.loadSavedModel(
+           './test_objects/saved_model/module_with_multiple_signatures',
+           ['serve'], 'timestwo');
+       expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+       model1.dispose();
+       model2.dispose();
+       expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+     });
+
+  it('load signature after delete call binding', async () => {
+    const backend = nodeBackend();
+    const spyOnCallBindingLoad =
+        spyOn(backend, 'loadSavedModelMetaGraph').and.callThrough();
+    const spyOnNodeBackendDelete =
+        spyOn(backend, 'deleteSavedModel').and.callThrough();
+    expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(0);
+    expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(0);
+    const model1 = await tf.node.loadSavedModel(
+        './test_objects/saved_model/module_with_multiple_signatures', ['serve'],
+        'serving_default');
+    expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(1);
+    expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(0);
+    model1.dispose();
+    expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(1);
+    expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(1);
+    const model2 = await tf.node.loadSavedModel(
+        './test_objects/saved_model/module_with_multiple_signatures', ['serve'],
+        'timestwo');
+    expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(2);
+    expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(1);
+    model2.dispose();
+    expect(spyOnCallBindingLoad).toHaveBeenCalledTimes(2);
+    expect(spyOnNodeBackendDelete).toHaveBeenCalledTimes(2);
+  });
+
+  it('throw error when input tensors do not match input ops', async done => {
+    try {
+      const model = await tf.node.loadSavedModel(
+          './test_objects/saved_model/times_three_float', ['serve'],
+          'serving_default');
+      const input1 = tf.tensor1d([1.0, 2, 3]);
+      const input2 = tf.tensor1d([1.0, 2, 3]);
+      model.predict([input1, input2]);
+      done.fail();
+    } catch (error) {
+      expect(error.message)
+          .toBe(
+              'Length of input op names (1) does not match the ' +
+              'length of input tensors (2).');
+      done();
+    }
+  });
+
+  it('execute model float times three', async () => {
+    const model = await tf.node.loadSavedModel(
+        './test_objects/saved_model/times_three_float', ['serve'],
+        'serving_default');
+    const input = tf.tensor1d([1.0, 2, 3]);
+    const output = model.predict(input) as tf.Tensor;
+    expect(output.shape).toEqual(input.shape);
+    expect(output.dtype).toBe(input.dtype);
+    expect(output.dtype).toBe('float32');
+    test_util.expectArraysClose(await output.data(), await input.mul(3).data());
+    model.dispose();
+  });
+
+  it('execute model with tensor array as input', async () => {
+    const model = await tf.node.loadSavedModel(
+        './test_objects/saved_model/times_three_float', ['serve'],
+        'serving_default');
+    const input = tf.tensor1d([1.0, 2, 3]);
+    const outputArray = model.predict([input]) as tf.Tensor[];
+    expect(outputArray.length).toBe(1);
+    const output = outputArray[0];
+    expect(output.shape).toEqual(input.shape);
+    expect(output.dtype).toBe(input.dtype);
+    expect(output.dtype).toBe('float32');
+    test_util.expectArraysClose(await output.data(), [3.0, 6.0, 9.0]);
+    model.dispose();
+  });
+
+  it('execute model with tensor map as input', async () => {
+    const model = await tf.node.loadSavedModel(
+        './test_objects/saved_model/times_three_float', ['serve'],
+        'serving_default');
+    const input = tf.tensor1d([1.0, 2, 3]);
+    const outputMap = model.predict({'x': input}) as NamedTensorMap;
+    const output = outputMap['output_0'];
+    expect(output.shape).toEqual(input.shape);
+    expect(output.dtype).toBe(input.dtype);
+    expect(output.dtype).toBe('float32');
+    test_util.expectArraysClose(await output.data(), [3.0, 6.0, 9.0]);
+    model.dispose();
+  });
+
+  it('execute model with wrong tensor name', async done => {
+    try {
+      const model = await tf.node.loadSavedModel(
+          './test_objects/saved_model/times_three_float', ['serve'],
+          'serving_default');
+      const input = tf.tensor1d([1.0, 2, 3]);
+      model.predict({'xyz': input});
+      done.fail();
+    } catch (error) {
+      expect(error.message)
+          .toBe(
+              'The model signatureDef input names are x, however ' +
+              'the provided input names are xyz.');
+      done();
+    }
+  });
+
+  it('execute model int times two', async () => {
+    const model = await tf.node.loadSavedModel(
+        './test_objects/saved_model/times_two_int', ['serve'],
+        'serving_default');
+    const input = tf.tensor1d([1, 2, 3], 'int32');
+    const output = model.predict(input) as tf.Tensor;
+    expect(output.shape).toEqual(input.shape);
+    expect(output.dtype).toBe(input.dtype);
+    test_util.expectArraysClose(await output.data(), [2, 4, 6]);
+    model.dispose();
+  });
+
+  it('execute multiple signatures from the same model', async () => {
+    const backend = nodeBackend();
+    const loadSavedModelMetaGraphSpy =
+        spyOn(backend, 'loadSavedModelMetaGraph').and.callThrough();
+    expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(0);
+
+    const model1 = await tf.node.loadSavedModel(
+        './test_objects/saved_model/module_with_multiple_signatures', ['serve'],
+        'serving_default');
+    expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+    const input1 = tf.tensor1d([1, 2, 3]);
+    const output1 = model1.predict(input1) as tf.Tensor;
+    expect(output1.shape).toEqual(input1.shape);
+    expect(output1.dtype).toBe(input1.dtype);
+    test_util.expectArraysClose(await output1.data(), [3.0, 6.0, 9.0]);
+
+    expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+    const model2 = await tf.node.loadSavedModel(
+        './test_objects/saved_model/module_with_multiple_signatures', ['serve'],
+        'timestwo');
+    expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+    const input2 = tf.tensor1d([1, 2, 3]);
+    const output2 = model2.predict(input2) as tf.Tensor;
+    expect(output2.shape).toEqual(input2.shape);
+    expect(output2.dtype).toBe(input2.dtype);
+    test_util.expectArraysClose(await output2.data(), [2.0, 4.0, 6.0]);
+
+    expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+    model1.dispose();
+    model2.dispose();
+  });
+
+  it('execute model with multiple inputs and outputs', async () => {
+    const model = await tf.node.loadSavedModel(
+        './test_objects/saved_model/model_multi_output', ['serve'],
+        'serving_default');
+    const input1 = tf.tensor1d([1, 2, 3], 'int32');
+    const input2 = tf.tensor1d([1, 2, 3], 'int32');
+    const output =
+        model.predict({'x': input1, 'y': input2}) as tf.NamedTensorMap;
+    const output1 = output['output_0'];
+    const output2 = output['output_1'];
+    expect(output1.shape).toEqual(input1.shape);
+    expect(output1.dtype).toBe(input1.dtype);
+    expect(output2.shape).toEqual(input2.shape);
+    expect(output2.dtype).toBe(input2.dtype);
+    test_util.expectArraysClose(await output1.data(), [2, 4, 6]);
+    test_util.expectArraysClose(await output2.data(), [1, 2, 3]);
+    model.dispose();
   });
 });

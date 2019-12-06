@@ -33,21 +33,32 @@ export interface TFJSBinding {
   TensorMetadata: typeof TensorMetadata;
   TFEOpAttr: typeof TFEOpAttr;
 
-  // Creates a tensor with the backend:
+  // Creates a tensor with the backend.
   createTensor(
       shape: number[], dtype: number,
       buffer: backend_util.BackendValues): number;
 
-  // Deletes a tensor with the backend:
+  // Deletes a tensor with the backend.
   deleteTensor(tensorId: number): void;
 
-  // Reads data-sync from a tensor on the backend:
+  // Reads data-sync from a tensor on the backend.
   tensorDataSync(tensorId: number): Float32Array|Int32Array|Uint8Array;
 
-  // Executes an Op on the backend, returns an array of output TensorMetadata:
+  // Executes an Op on the backend, returns an array of output TensorMetadata.
   executeOp(
       opName: string, opAttrs: TFEOpAttr[], inputTensorIds: number[],
       numOutputs: number): TensorMetadata[];
+
+  // Load a SavedModel from a path.
+  loadSavedModel(exportDir: string, tags: string): number;
+
+  // Remove a SavedModel from memory.
+  deleteSavedModel(savedModelId: number): void;
+
+  // Execute a SavedModel with input, returns an array of output TensorMetadata.
+  runSavedModel(
+      savedModelId: number, inputTensorIds: number[], inputOpNames: string,
+      outputOpNames: string): TensorMetadata[];
 
   isUsingGpuDevice(): boolean;
 

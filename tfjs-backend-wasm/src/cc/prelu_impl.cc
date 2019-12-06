@@ -16,6 +16,8 @@
 #include <emscripten.h>
 #endif
 
+#include "src/cc/prelu_impl.h"
+
 #include <xnnpack.h>
 #include <cmath>
 #include <limits>
@@ -29,7 +31,7 @@ namespace {
 // // this set of weights.
 std::unordered_map<int, xnn_operator_t> operator_cache;
 
-void delete_xnn_operator(int weights_id) {
+void delete_xnn_operator(const int weights_id) {
   xnn_operator_t prelu_op = operator_cache.at(weights_id);
   xnn_delete_operator(prelu_op);
   tfjs::backend::xnn_operator_count--;
@@ -40,29 +42,23 @@ void delete_xnn_operator(int weights_id) {
 
 namespace tfjs {
 namespace wasm {
-// We use C-style API to interface with Javascript.
-extern "C" {
 
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif
-void prelu(int x_id, int x_size, int weights_id, int out_id) {
-  const TensorInfo x_info = backend::get_tensor_info(x_id);
-  const TensorInfo weights_info = backend::get_tensor_info(weights_id);
-  const TensorInfo out_info = backend::get_tensor_info(out_id);
+void prelu(const float* x_buf, const int x_size, const int weights_id,
+           const int out_id) {
+  auto& weights_info = backend::get_tensor_info(weights_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
 
-  const float* x_buf = x_info.buf.f32;
-  const float* weights_buf = weights_info.buf.f32;
-  float* out_buf = out_info.buf.f32;
+  const float* weights_buf = weights_info.f32();
+  float* out_buf = out_info.f32_write();
 
   xnn_operator_t prelu_op = nullptr;
 
   auto operator_cache_idx = operator_cache.find(weights_id);
   if (operator_cache_idx == operator_cache.end()) {
-    int channels = x_size;
-    int strides = channels;
-    float output_min = -std::numeric_limits<float>::infinity();
-    float output_max = std::numeric_limits<float>::infinity();
+    const int channels = weights_info.size;
+    const int strides = channels;
+    const float output_min = -std::numeric_limits<float>::infinity();
+    const float output_max = std::numeric_limits<float>::infinity();
 
     const int flags = 0;
     xnn_status status =
@@ -84,7 +80,7 @@ void prelu(int x_id, int x_size, int weights_id, int out_id) {
     prelu_op = operator_cache_idx->second;
   }
 
-  const int batch_size = 1;
+  const int batch_size = x_size / weights_info.size;
   xnn_status status = xnn_setup_prelu_nc_f32(
       prelu_op, batch_size, x_buf, out_buf, nullptr /* thread pool */);
   if (status != xnn_status_success) {
@@ -97,6 +93,5 @@ void prelu(int x_id, int x_size, int weights_id, int out_id) {
   xnn_run_operator(prelu_op, nullptr /* thread pool */);
 }
 
-}  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs

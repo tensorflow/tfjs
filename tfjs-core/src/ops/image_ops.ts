@@ -66,14 +66,16 @@ function resizeBilinear_<T extends Tensor3D|Tensor4D>(
 
   const backward = (dy: Tensor4D, saved: Tensor[]) => {
     return {
-      batchImages: () => ENGINE.runKernel(
+      x: () => ENGINE.runKernelFunc(
           backend => backend.resizeBilinearBackprop(
               dy, saved[0] as Tensor4D, alignCorners),
           {})
     };
   };
 
-  const res = ENGINE.runKernel(forward, {batchImages}, backward);
+  const res = ENGINE.runKernelFunc(
+      forward, {x: batchImages}, backward, 'ResizeBilinear',
+      {alignCorners, newHeight, newWidth});
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   }
@@ -126,14 +128,14 @@ function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
 
   const backward = (dy: Tensor4D, saved: Tensor[]) => {
     return {
-      batchImages: () => ENGINE.runKernel(
+      batchImages: () => ENGINE.runKernelFunc(
           backend => backend.resizeNearestNeighborBackprop(
               dy, saved[0] as Tensor4D, alignCorners),
           {})
     };
   };
 
-  const res = ENGINE.runKernel(forward, {batchImages}, backward);
+  const res = ENGINE.runKernelFunc(forward, {batchImages}, backward);
 
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
@@ -171,10 +173,12 @@ function nonMaxSuppression_(
   iouThreshold = inputs.iouThreshold;
   scoreThreshold = inputs.scoreThreshold;
 
-  return ENGINE.runKernel(
+  const attrs = {maxOutputSize, iouThreshold, scoreThreshold};
+  return ENGINE.runKernelFunc(
       b => b.nonMaxSuppression(
           $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold),
-      {$boxes});
+      {boxes: $boxes, scores: $scores}, null /* grad */, 'NonMaxSuppressionV3',
+      attrs);
 }
 
 /** This is the async version of `nonMaxSuppression` */
@@ -267,7 +271,7 @@ function cropAndResize_(
     method?: 'bilinear'|'nearest',
     extrapolationValue?: number,
     ): Tensor4D {
-  const $image = convertToTensor(image, 'image', 'cropAndResize', 'float32');
+  const $image = convertToTensor(image, 'image', 'cropAndResize');
   const $boxes = convertToTensor(boxes, 'boxes', 'cropAndResize', 'float32');
   const $boxInd = convertToTensor(boxInd, 'boxInd', 'cropAndResize', 'int32');
   method = method || 'bilinear';
@@ -302,7 +306,9 @@ function cropAndResize_(
       backend.cropAndResize(
           $image, $boxes, $boxInd, cropSize, method, extrapolationValue);
 
-  const res = ENGINE.runKernel(forward, {$image, $boxes});
+  const res = ENGINE.runKernelFunc(
+      forward, {images: $image, boxes: $boxes, boxInd: $boxInd}, null /* der */,
+      'CropAndResize', {method, extrapolationValue, cropSize});
   return res;
 }
 

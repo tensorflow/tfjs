@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-node",
-  "version": "1.2.11",
+  "version": "1.4.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "gypfile": true,
@@ -12,7 +12,7 @@
     "node": ">=8.11.0"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && mkdir -p dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js",
     "build-npm": "./scripts/build-npm.sh",
     "build-addon": "./scripts/build-and-upload-addon.sh",
     "build-addon-from-source": "node-pre-gyp install --build-from-source",
@@ -37,6 +37,7 @@
     "@types/node": "^10.5.1",
     "@types/progress": "^2.0.1",
     "@types/rimraf": "~2.0.2",
+    "@types/yargs": "^13.0.3",
     "clang-format": "~1.2.2",
     "jasmine": "~3.1.0",
     "node-fetch": "^2.3.0",
@@ -46,10 +47,11 @@
     "tslint": "~5.9.1",
     "tslint-no-circular-imports": "^0.7.0",
     "typescript": "3.5.3",
-    "yalc": "~1.0.0-pre.21"
+    "yalc": "~1.0.0-pre.21",
+    "yargs": "^14.2.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "1.2.11",
+    "@tensorflow/tfjs": "1.4.0",
     "adm-zip": "^0.4.11",
     "google-protobuf": "^3.9.2",
     "https-proxy-agent": "^2.2.1",
@@ -65,7 +67,8 @@
     "remote_path": "./napi-v{napi_build_version}/{version}/",
     "napi_versions": [
       3,
-      4
+      4,
+      5
     ]
   }
 }

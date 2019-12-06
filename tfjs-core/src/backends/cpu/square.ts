@@ -15,28 +15,30 @@
  * =============================================================================
  */
 
-import {registerKernel, TensorInfo} from '../../kernel_registry';
-import {CPUStorage} from './cpu_types';
-import {assertNotComplex, storeData} from './cpu_util';
+import {NamedTensorInfoMap, registerKernel, TensorInfo} from '../../kernel_registry';
 
-interface SquareInputs {
+import {MathBackendCPU} from './backend_cpu';
+import {assertNotComplex} from './cpu_util';
+
+interface SquareInputs extends NamedTensorInfoMap {
   x: TensorInfo;
 }
 
-registerKernel('Square', 'cpu', ({inputs, storage, save}) => {
-  const {x} = inputs as {} as SquareInputs;
-  const cpuStorage = storage as CPUStorage;
-  assertNotComplex(x, 'square');
+registerKernel({
+  kernelName: 'Square',
+  backendName: 'cpu',
+  kernelFunc: ({inputs, backend}) => {
+    const {x} = inputs as SquareInputs;
+    const cpuBackend = backend as MathBackendCPU;
+    assertNotComplex(x, 'square');
 
-  // Save it for the gradient.
-  save([x]);
-
-  const values = cpuStorage.data.get(x.dataId).values as Float32Array;
-  const newValues = new Float32Array(values.length);
-  for (let i = 0; i < values.length; ++i) {
-    const value = values[i];
-    newValues[i] = value * value;
+    const values = cpuBackend.data.get(x.dataId).values as Float32Array;
+    const newValues = new Float32Array(values.length);
+    for (let i = 0; i < values.length; ++i) {
+      const value = values[i];
+      newValues[i] = value * value;
+    }
+    const dataId = cpuBackend.write(newValues, x.shape, x.dtype);
+    return {dataId, shape: x.shape, dtype: x.dtype};
   }
-  const dataId = storeData(cpuStorage.data, x.dtype, newValues);
-  return {dataId, shape: x.shape, dtype: x.dtype};
 });

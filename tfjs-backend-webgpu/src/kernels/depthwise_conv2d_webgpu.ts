@@ -21,11 +21,12 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class DepthwiseConv2DProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = 'ivec2 filterDims, pad, stride;';
+  uniforms = 'ivec2 filterDims, pad, stride, dilation, inDims;';
   workGroupSize: [number, number, number] = [4, 8, 4];
 
   constructor(convInfo: backend_util.Conv2DInfo) {
@@ -33,32 +34,16 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
     this.dispatchLayout = {x: [2], y: [1], z: [0, 3]};
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-    const xNumRows = convInfo.inHeight;
-    const xNumCols = convInfo.inWidth;
-    const padTop = convInfo.padInfo.top;
-    const padLeft = convInfo.padInfo.left;
-    const strideHeight = convInfo.strideHeight;
-    const strideWidth = convInfo.strideWidth;
-    const dilationHeight = convInfo.dilationHeight;
-    const dilationWidth = convInfo.dilationWidth;
-    const filterHeight = convInfo.filterHeight;
-    const filterWidth = convInfo.filterWidth;
     const channelMul = convInfo.outChannels / convInfo.inChannels;
 
     util.assert(
         convInfo.dataFormat === 'channelsLast',
         () => 'TODO: NCHW is unimplemented');
-    util.assert(
-        convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1,
-        () => 'TODO: Dilation is unimplemented');
 
     this.userCode = `
-      const ivec2 strides = ivec2(${strideHeight}, ${strideWidth});
-      const ivec2 pads = ivec2(${padTop}, ${padLeft});
-
       void writeResult(int batch, int row, int col, int chan, float value) {
         ivec4 coord = ivec4(batch, row, col, chan);
-        if (coordIsValid(coord, outShape)) {
+        if (coordsInBounds(coord, outShape)) {
           setOutput(batch, row, col, chan, value);
         }
       }
@@ -66,7 +51,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
       void main() {
         ivec4 coords = getOutputCoords();
         int batch = coords[0];
-        ivec2 xRCCorner = coords.yz * strides - pads;
+        ivec2 xRCCorner = coords.yz * stride - pad;
         int d2 = coords[3];
         int d1 = d2 / ${channelMul};
         int q = d2 - d1 * ${channelMul};
@@ -78,17 +63,17 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
         // ? = to be determined. : = across all values in that axis.
         float dotProd = 0.0;
         // TODO(xing.xu): Flatten the two for loops and vec4 the operations.
-        for (int wR = 0; wR < ${filterHeight}; wR++) {
-          int xR = xRCorner + wR * ${dilationHeight};
+        for (int wR = 0; wR < filterDims[0]; wR++) {
+          int xR = xRCorner + wR * dilation[0];
 
-          if (xR < 0 || xR >= ${xNumRows}) {
+          if (xR < 0 || xR >= inDims[0]) {
             continue;
           }
 
-          for (int wC = 0; wC < ${filterWidth}; wC++) {
-            int xC = xCCorner + wC * ${dilationWidth};
+          for (int wC = 0; wC < filterDims[1]; wC++) {
+            int xC = xCCorner + wC * dilation[1];
 
-            if (xC < 0 || xC >= ${xNumCols}) {
+            if (xC < 0 || xC >= inDims[1]) {
               continue;
             }
 
@@ -100,5 +85,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
         writeResult(batch, coords[1], coords[2], d2, dotProd);
       }
     `;
+
+    this.shaderKey = `depthwise${channelMul}`;
   }
 }

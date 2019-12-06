@@ -18,7 +18,7 @@
 import {ENGINE} from '../engine';
 import {env} from '../environment';
 
-import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, Tensor6D} from '../tensor';
+import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, Tensor6D, Variable} from '../tensor';
 import {convertToTensor, inferShape} from '../tensor_util_env';
 import {TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TensorLike5D, TensorLike6D, TypedArray} from '../types';
 import {DataType, Rank, ShapeMap} from '../types';
@@ -110,7 +110,7 @@ function makeTensor(
   values = dtype !== 'string' ?
       toTypedArray(values, dtype, env().getBool('DEBUG')) :
       flatten(values as string[], [], true) as string[];
-  return Tensor.make(shape, values as TypedArray, dtype);
+  return ENGINE.makeTensor(values as TypedArray, shape, dtype);
 }
 
 /**
@@ -387,6 +387,28 @@ function tensor6d(
 }
 
 /**
+ * Creates a new variable with the provided initial value.
+ * ```js
+ * const x = tf.variable(tf.tensor([1, 2, 3]));
+ * x.assign(tf.tensor([4, 5, 6]));
+ *
+ * x.print();
+ * ```
+ *
+ * @param initialValue Initial value for the tensor.
+ * @param trainable If true, optimizers are allowed to update it.
+ * @param name Name of the variable. Defaults to a unique id.
+ * @param dtype If set, initialValue will be converted to the given type.
+ */
+/** @doc {heading: 'Tensors', subheading: 'Creation'} */
+function variable<R extends Rank>(
+    initialValue: Tensor<R>, trainable = true, name?: string,
+    dtype?: DataType): Variable<R> {
+  return ENGINE.makeVariable(initialValue, trainable, name, dtype) as
+      Variable<R>;
+}
+
+/**
  * Creates a `tf.Tensor` with all elements set to 1.
  *
  * ```js
@@ -406,7 +428,7 @@ function ones<R extends Rank>(
     return complex(real, imag);
   }
   const values = makeOnesTypedArray(sizeFromShape(shape), dtype);
-  return Tensor.make(shape, values, dtype);
+  return ENGINE.makeTensor(values, shape, dtype) as Tensor<R>;
 }
 
 /**
@@ -429,7 +451,7 @@ function zeros<R extends Rank>(
     return complex(real, imag);
   }
   const values = makeZerosTypedArray(sizeFromShape(shape), dtype);
-  return Tensor.make(shape, values, dtype);
+  return ENGINE.makeTensor(values, shape, dtype) as Tensor<R>;
 }
 
 /**
@@ -447,7 +469,7 @@ function zeros<R extends Rank>(
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function fill<R extends Rank>(
     shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
-  return ENGINE.runKernel(backend => backend.fill(shape, value, dtype), {});
+  return ENGINE.runKernelFunc(backend => backend.fill(shape, value, dtype), {});
 }
 
 /**
@@ -469,7 +491,7 @@ function onesLike_<T extends Tensor>(x: T|TensorLike): T {
     return complex(r, i);
   }
   const der = (dy: T, saved: Tensor[]) => ({$x: () => zerosLike(dy)});
-  return ENGINE.runKernel(backend => backend.onesLike($x), {$x}, der) as T;
+  return ENGINE.runKernelFunc(backend => backend.onesLike($x), {$x}, der) as T;
 }
 
 /**
@@ -487,7 +509,7 @@ function onesLike_<T extends Tensor>(x: T|TensorLike): T {
 function zerosLike_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'zerosLike');
   const der = (dy: T, saved: Tensor[]) => ({$x: () => zerosLike(dy)});
-  return ENGINE.runKernel(backend => backend.zerosLike($x), {$x}, der) as T;
+  return ENGINE.runKernelFunc(backend => backend.zerosLike($x), {$x}, der) as T;
 }
 
 /**
@@ -505,7 +527,8 @@ function linspace(start: number, stop: number, num: number): Tensor1D {
   if (num <= 0) {
     throw new Error('The number of values should be positive.');
   }
-  return ENGINE.runKernel(backend => backend.linspace(start, stop, num), {});
+  return ENGINE.runKernelFunc(
+      backend => backend.linspace(start, stop, num), {});
 }
 
 /**
@@ -571,6 +594,7 @@ export {
   tensor4d,
   tensor5d,
   tensor6d,
+  variable,
   zeros
 };
 

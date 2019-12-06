@@ -28,17 +28,15 @@ export class Profiler {
     }
   }
 
-  profileKernel<T extends Tensor|Tensor[]>(
-      kernelName: string, inputs: NamedTensorMap, f: () => T | Tensor[]): T {
-    let result: T|Tensor[];
+  profileKernel(kernelName: string, inputs: NamedTensorMap, f: () => Tensor[]):
+      Tensor[] {
+    let outputs: Tensor[];
     const holdResultWrapperFn = () => {
-      result = f();
+      outputs = f();
     };
     const timer = this.backendTimer.time(holdResultWrapperFn);
 
-    const results: Tensor[] =
-        Array.isArray(result) ? result : [result] as Tensor[];
-    results.forEach(r => {
+    outputs.forEach(r => {
       // Dangling promise here because we don't want to propagate up
       // asynchronicity.
       r.data().then(vals => {
@@ -56,7 +54,7 @@ export class Profiler {
       });
     });
 
-    return result as T;
+    return outputs;
   }
 }
 
@@ -89,7 +87,10 @@ export class Logger {
     let inputShapesDescription = '';
 
     for (const name in inputs) {
-      const inputShape = inputs[name].shape;
+      const input = inputs[name];
+      // The input might be a non-tensor (e.g HTMLImageElement), in which case
+      // we claim the output shape as input shape.
+      const inputShape = input.shape || result.shape;
       const inputRank = inputShape.length;
       inputShapesDescription +=
           `${name}: ${inputRank}D ${inputRank > 0 ? inputShape : ''} `;

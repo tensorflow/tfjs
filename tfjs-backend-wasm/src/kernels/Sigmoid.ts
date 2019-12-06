@@ -15,21 +15,5 @@
  * =============================================================================
  */
 
-import {Tensor} from '../../tensor';
-import {BackendValues, DataType} from '../../types';
-import {DataStorage} from '../backend';
-
-export interface TensorData<D extends DataType> {
-  values?: BackendValues;
-  dtype: D;
-  // For complex numbers, the real and imaginary parts are stored as their own
-  // individual tensors, with a parent joining the two with the
-  // complexTensors field.
-  // TODO(smilkov): Replace Tensor with TensorInfo when you modularize ops
-  // that work with complex tensors.
-  complexTensors?: {real: Tensor, imag: Tensor};
-}
-
-export interface CPUStorage {
-  data: DataStorage<TensorData<DataType>>;
-}
+import {registerUnaryKernel} from './unary_kernel';
+registerUnaryKernel('Sigmoid');

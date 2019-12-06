@@ -127,6 +127,10 @@
     "queue": "cpp",
     "stack": "cpp",
     "*.ipp": "cpp",
-    "forward_list": "cpp"
+    "forward_list": "cpp",
+    "typeindex": "cpp",
+    "*.inc": "cpp",
+    "hash_map": "cpp",
+    "__refstring": "cpp"
   }
 }

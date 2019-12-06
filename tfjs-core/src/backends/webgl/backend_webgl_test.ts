@@ -15,17 +15,14 @@
  * =============================================================================
  */
 
+import {ENGINE} from '../../engine';
 import * as tf from '../../index';
 import {describeWithFlags} from '../../jasmine_util';
 import {expectArraysClose, expectArraysEqual} from '../../test_util';
-import {decodeString, encodeString} from '../../util';
+import {decodeString} from '../../util';
 
 import {MathBackendWebGL, WebGLMemoryInfo} from './backend_webgl';
 import {WEBGL_ENVS} from './backend_webgl_test_registry';
-
-function encodeStrings(a: string[]): Uint8Array[] {
-  return a.map(s => encodeString(s));
-}
 
 function decodeStrings(bytes: Uint8Array[]): string[] {
   return bytes.map(b => decodeString(b));
@@ -153,48 +150,15 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     tf.removeBackend('test-storage');
   });
 
-  it('register empty string tensor', () => {
-    const backend = new MathBackendWebGL();
-    tf.registerBackend('test-storage', () => backend);
-    tf.setBackend('test-storage');
-
-    const t = tf.Tensor.make([3], null, 'string');
-    expect(backend.readSync(t.dataId) == null).toBe(true);
-  });
-
-  it('register empty string tensor and write', () => {
-    const backend = new MathBackendWebGL();
-    tf.registerBackend('test-storage', () => backend);
-    tf.setBackend('test-storage');
-
-    const t = tf.Tensor.make([3], null, 'string');
-    backend.write(t.dataId, encodeStrings(['c', 'a', 'b']));
-    expectArraysEqual(
-        decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),
-        ['c', 'a', 'b']);
-  });
-
   it('register string tensor with values', () => {
     const backend = new MathBackendWebGL();
     tf.registerBackend('test-storage', () => backend);
     tf.setBackend('test-storage');
 
-    const t = tf.Tensor.make([3], ['a', 'b', 'c'], 'string');
+    const t = ENGINE.makeTensor(['a', 'b', 'c'], [3], 'string');
     expectArraysEqual(
         decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),
         ['a', 'b', 'c']);
-  });
-
-  it('register string tensor with values and overwrite', () => {
-    const backend = new MathBackendWebGL();
-    tf.registerBackend('test-storage', () => backend);
-    tf.setBackend('test-storage');
-
-    const t = tf.Tensor.make([3], ['a', 'b', 'c'], 'string');
-    backend.write(t.dataId, encodeStrings(['c', 'a', 'b']));
-    expectArraysEqual(
-        decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),
-        ['c', 'a', 'b']);
   });
 
   it('register string tensor with values and wrong shape throws error', () => {
@@ -210,8 +174,7 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     tf.setBackend('test-storage');
 
     const texManager = backend.getTextureManager();
-    const t = tf.Tensor.make([3], null, 'float32');
-    backend.write(t.dataId, new Float32Array([1, 2, 3]));
+    const t = ENGINE.makeTensor(new Float32Array([1, 2, 3]), [3], 'float32');
     expect(texManager.getNumUsedTextures()).toBe(0);
     backend.getTexture(t.dataId);
     expect(texManager.getNumUsedTextures()).toBe(1);
@@ -252,34 +215,42 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     tf.setBackend('test-storage');
 
     const texManager = backend.getTextureManager();
-    const t = tf.Tensor.make([3], null, 'float32');
-    backend.write(t.dataId, new Float32Array([1, 2, 3]));
-    backend.getTexture(t.dataId);
-    expect(texManager.getNumUsedTextures()).toBe(1);
-    // overwrite.
-    backend.write(t.dataId, new Float32Array([4, 5, 6]));
-    expect(texManager.getNumUsedTextures()).toBe(0);
-    expectArraysClose(
-        backend.readSync(t.dataId) as Float32Array,
-        new Float32Array([4, 5, 6]));
+    const t = ENGINE.makeTensor(new Float32Array([1, 2, 3]), [3], 'float32');
     backend.getTexture(t.dataId);
     expect(texManager.getNumUsedTextures()).toBe(1);
     expectArraysClose(
         backend.readSync(t.dataId) as Float32Array,
-        new Float32Array([4, 5, 6]));
+        new Float32Array([1, 2, 3]));
+    backend.getTexture(t.dataId);
+    expect(texManager.getNumUsedTextures()).toBe(1);
+    expectArraysClose(
+        backend.readSync(t.dataId) as Float32Array,
+        new Float32Array([1, 2, 3]));
     expect(texManager.getNumUsedTextures()).toBe(0);
   });
 });
 
 describeWithFlags('Custom window size', WEBGL_ENVS, () => {
+  const customBackendName = 'custom-webgl';
+
+  beforeAll(() => {
+    const kernelFunc = tf.getKernel('Square', 'webgl').kernelFunc;
+    tf.registerKernel(
+        {kernelName: 'Square', backendName: customBackendName, kernelFunc});
+  });
+
+  afterAll(() => {
+    tf.unregisterKernel('Square', customBackendName);
+  });
+
   it('Set screen area to be 1x1', () => {
     // This will set the screen size to 1x1 to make sure the page limit is
     // very small.
     spyOnProperty(window, 'screen', 'get')
         .and.returnValue({height: 1, width: 1});
 
-    tf.registerBackend('custom-webgl', () => new MathBackendWebGL());
-    tf.setBackend('custom-webgl');
+    tf.registerBackend(customBackendName, () => new MathBackendWebGL());
+    tf.setBackend(customBackendName);
 
     // Allocate ~40KB.
     const a = tf.ones([100, 100]);
@@ -304,7 +275,7 @@ describeWithFlags('Custom window size', WEBGL_ENVS, () => {
     expect(numWarnCalls).toBe(1);
     expect((tf.memory() as tf.webgl.WebGLMemoryInfo).numBytesInGPU)
         .toBe(100 * 100 * 4 * 3);
-    tf.removeBackend('custom-webgl');
+    tf.removeBackend(customBackendName);
   });
 });
 
@@ -509,14 +480,23 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
 });
 
 describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
+  const customBackendName = 'cache-on-cpu';
+
   beforeAll(() => {
     tf.env().set('WEBGL_CPU_FORWARD', false);
+    const kernelFunc = tf.getKernel('Square', 'webgl').kernelFunc;
+    tf.registerKernel(
+        {kernelName: 'Square', backendName: customBackendName, kernelFunc});
+  });
+
+  afterAll(() => {
+    tf.unregisterKernel('Square', customBackendName);
   });
 
   it('caches on cpu after async read', async () => {
     const backend = new MathBackendWebGL();
-    tf.registerBackend('cache-on-cpu', () => backend);
-    tf.setBackend('cache-on-cpu');
+    tf.registerBackend(customBackendName, () => backend);
+    tf.setBackend(customBackendName);
 
     const t = tf.square(2);
     const info = backend.getDataInfo(t.dataId);
@@ -529,13 +509,13 @@ describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
     // Make sure the tensor is cached on CPU.
     expect(info.values).not.toBe(null);
 
-    tf.removeBackend('cache-on-cpu');
+    tf.removeBackend(customBackendName);
   });
 
   it('caches on cpu after sync read', () => {
     const backend = new MathBackendWebGL();
-    tf.registerBackend('cache-on-cpu', () => backend);
-    tf.setBackend('cache-on-cpu');
+    tf.registerBackend(customBackendName, () => backend);
+    tf.setBackend(customBackendName);
 
     const t = tf.square(2);
     const info = backend.getDataInfo(t.dataId);
@@ -548,15 +528,16 @@ describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
     // Make sure the tensor is cached on CPU.
     expect(info.values).not.toBe(null);
 
-    tf.removeBackend('cache-on-cpu');
+    tf.removeBackend(customBackendName);
   });
 });
 
-describe('WebGL backend has sync init', () => {
+describeWithFlags('WebGL backend has sync init', WEBGL_ENVS, () => {
   it('can do matmul without waiting for ready', async () => {
     tf.registerBackend('my-webgl', () => {
       return new MathBackendWebGL();
     });
+    tf.setBackend('my-webgl');
     const a = tf.tensor1d([5]);
     const b = tf.tensor1d([3]);
     const res = tf.dot(a, b);

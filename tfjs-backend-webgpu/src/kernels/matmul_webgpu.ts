@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {computeDispatch} from '../webgpu_util';
+import {computeDispatch, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
@@ -70,17 +70,33 @@ export function makeMatMulSource(): string {
 
 export class MatMulProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
   workGroupSize: [number, number, number] = [16, 16, 1];  // Must be square.
 
-  constructor(outputShape: [number, number, number]) {
+  constructor(aShape: [number, number, number], outputShape: [
+    number, number, number
+  ]) {
+    const bShape = [outputShape[0], aShape[2], outputShape[2]];
     this.outputShape = outputShape;
-    this.dispatchLayout = {x: [1], y: [2], z: [0]};
+    this.dispatchLayout = {x: [2], y: [1], z: [0]};
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
+    const fitA = tilesFitEvenlyIntoShape(
+        this.workGroupSize.slice(0, 2), aShape.slice(1));
+    const sampleA = fitA ?
+        `A[row * dimInner + col]` :
+        `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
+          A[row * dimInner + col] : 0`;
+    const fitB = tilesFitEvenlyIntoShape(
+        this.workGroupSize.slice(0, 2), bShape.slice(1));
+    const sampleB = fitB ?
+        `B[row * dimBOuter + col]` :
+        `coordsInBounds(ivec2(row, col), ivec2(dimInner, dimBOuter)) ?
+          B[row * dimBOuter + col] : 0`;
 
     this.userCode = `
       int dimAOuter = aShape[1];
@@ -90,19 +106,11 @@ export class MatMulProgram implements WebGPUProgram {
       ${makeMatMulSource()}
 
       float mm_readA(int row, int col) {
-        if (row < dimAOuter && col < dimInner) {
-          return A[row * dimInner + col];
-        } else {
-          return 0.0;
-        }
+        return ${sampleA};
       }
 
       float mm_readB(int row, int col) {
-        if (row < dimInner && col < dimBOuter) {
-          return B[row * dimBOuter + col];
-        } else {
-          return 0.0;
-        }
+        return ${sampleB};
       }
 
       void mm_write(int row, int col, float value) {
@@ -113,5 +121,6 @@ export class MatMulProgram implements WebGPUProgram {
         mm_matMul(dimAOuter, dimInner, dimBOuter);
       }
     `;
+    this.shaderKey = `matmul${fitA}${fitB}`;
   }
 }
