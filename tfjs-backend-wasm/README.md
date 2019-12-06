@@ -78,8 +78,8 @@ We are actively working on adding SIMD before we do the official release.
 The switch to SIMD should happen transparently for browsers that support it.
 
 ### Do you support multi-threading?
-WASM multi-thread support is still in the early stages so it is not a priority
-for us at this point.
+Multi-threading support is not a priority for us at this point since it is still
+a proposal. We will keep a close eye on it as the proposal progresses.
 
 # Development
 
