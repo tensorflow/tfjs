@@ -126,15 +126,9 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'sub ',
     excludes: [
-      'complex',              // Complex numbers not yet implemented.
-      'gradient',             // Not yet implemented.
-      'upcasts',              // Upcasting not supported yet.
-      'broadcast inner dim',  //  Broadcasting along inner dims not supported.
-      'broadcast each with 1 dim',  //  Broadcasting along inner dims not
-                                    //  supported.
-      'broadcasting same rank Tensors different shape',  //  Broadcasting
-                                                         //  along inner dims
-                                                         //  not supported.
+      'complex',   // Complex numbers not yet implemented.
+      'gradient',  // Not yet implemented.
+      'upcasts',   // Upcasting not supported yet.
     ]
   },
   {
@@ -142,12 +136,6 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'complex',   // Complex numbers not yet supported.
       'gradient',  // Gradient not defined yet.
-      'broadcasting same rank Tensors different shape',  // Broadcasting along
-                                                         // inner dims not
-                                                         // supported yet.
-      'broadcast 5D + 2D',  // Broadcasting along inner dims not supported
-                            // yet.
-      'broadcast 6D + 2D'   // Broadcasting along inner dims not supported yet.
     ]
   },
   {

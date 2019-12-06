@@ -49,7 +49,8 @@ tfjs_cc_library(
 
 tfjs_cc_library(
   name = "binary",
-  srcs = ["binary.h"],
+  hdrs = ["binary.h"],
+  srcs = ["binary.cc"],
   deps = [
     ":backend",
   ],
