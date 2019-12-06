@@ -67,6 +67,7 @@ void xnn_clamp(const int x_id, const int out_id, const float min,
         "XNN status for xnn_setup_clamp_nc_f32 is not successful. "
         "Got status %d. Use -c dbg to see XNN logs.",
         status);
+    return;
   }
 
   xnn_run_operator(op, nullptr /* thread pool */);
