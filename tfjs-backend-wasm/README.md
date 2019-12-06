@@ -53,21 +53,33 @@ async function main() {
 main();
 ```
 
-Our WASM backend uses the [XNNPACK library](https://github.com/google/XNNPACK), a high-efficiency floating-point neural network inference operators.
+Our WASM backend builds on top of the
+[XNNPACK library](https://github.com/google/XNNPACK) which provides
+high-efficiency floating-point neural network inference operators.
 
 # FAQ
 
 ### How many ops have you implemented?
-See [`all_kernels.ts`](https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/src/kernels/all_kernels.ts) for an up-to-date list of supported ops. We love contributions. See the [contributing](https://github.com/tensorflow/tfjs/blob/master/CONTRIBUTING.md#adding-functionality) document for more info.
+See [`all_kernels.ts`](https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/src/kernels/all_kernels.ts)
+for an up-to-date list of supported ops. We love contributions. See the
+[contributing](https://github.com/tensorflow/tfjs/blob/master/CONTRIBUTING.md#adding-functionality)
+document for more info.
 
 ### Do you support training?
-Maybe. There is still a decent number of ops that we are missing in WASM that are needed for gradient computation. At this point we are focused on making the inference as fast as possible.
+Maybe. There are still a decent number of ops that we are missing in WASM that
+are needed for gradient computation. At this point we are focused on making
+inference as fast as possible.
 
 ### Do you work in node?
-Node runs on V8, and V8 supports WASM, so there is no reason not to. If you run into issues, let us know.
+Yes. If you run into issues, please let us know.
 
 ### Do you support SIMD?
-We are actively working on adding a SIMD build before we do the official release.
+We are actively working on adding SIMD before we do the official release.
+The switch to SIMD should happen transparently for browsers that support it.
+
+### Do you support multi-threading?
+WASM multi-thread support is still in the early stages so it is not a priority
+for us at this point.
 
 # Development
 
