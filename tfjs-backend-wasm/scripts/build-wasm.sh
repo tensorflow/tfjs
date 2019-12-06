@@ -23,4 +23,5 @@ cp -f bazel-bin/src/cc/tfjs-backend-wasm.js \
       bazel-bin/src/cc/tfjs-backend-wasm.wasm \
       wasm-out/
 
+mkdir -p dist
 cp wasm-out/*.wasm dist/

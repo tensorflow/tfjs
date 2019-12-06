@@ -14,6 +14,8 @@
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
+
 #include "src/cc/backend.h"
 #include "src/cc/kernels/Prelu.h"
 
@@ -22,8 +24,8 @@ TEST(BACKEND, register_tensor) {
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
-  const int tensor_id = 0;
-  const int size = 2;
+  const size_t tensor_id = 0;
+  const size_t size = 2;
   float values[size] = {1, 2};
 
   tfjs::wasm::register_tensor(tensor_id, size, values);
@@ -43,11 +45,11 @@ TEST(BACKEND, register_tensor) {
 }
 
 // C++ doesn't allow lambda functions with captures so we define the callback
-// outside the function. In the future we can consider changing the signature of
-// register_disposal_callback to take a std::function.
-int tensor_0_callback_count = 0;
-int tensor_1_callback_count = 0;
-void fake_dispose_tensor_callback(int tensor_id) {
+// outside the funcinttion. In the future we can consider changing the signature
+// of register_disposal_callback to take a std::function.
+size_t tensor_0_callback_count = 0;
+size_t tensor_1_callback_count = 0;
+void fake_dispose_tensor_callback(size_t tensor_id) {
   if (tensor_id == 0) {
     tensor_0_callback_count++;
   } else if (tensor_id == 1) {
@@ -59,9 +61,9 @@ TEST(BACKEND, disposal_callback) {
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
-  const int tensor_id_0 = 0;
-  const int tensor_id_1 = 1;
-  const int size = 2;
+  const size_t tensor_id_0 = 0;
+  const size_t tensor_id_1 = 1;
+  const size_t size = 2;
   float values_0[size] = {1, 2};
   float values_1[size] = {3, 4};
 
@@ -97,9 +99,9 @@ TEST(BACKEND, dispose_backend) {
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
-  const int tensor_id_0 = 0;
-  const int tensor_id_1 = 1;
-  const int size = 2;
+  const size_t tensor_id_0 = 0;
+  const size_t tensor_id_1 = 1;
+  const size_t size = 2;
   float values_0[size] = {1, 2};
   float values_1[size] = {3, 4};
 

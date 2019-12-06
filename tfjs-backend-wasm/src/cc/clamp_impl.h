@@ -15,10 +15,12 @@
 #ifndef CLAMP_IMPL_H_
 #define CLAMP_IMPL_H_
 
+#include <cstddef>
+
 namespace tfjs {
 namespace wasm {
 
-void xnn_clamp(const int x_id, const int out_id, const float min,
+void xnn_clamp(const size_t x_id, const size_t out_id, const float min,
                const float max);
 
 }  // namespace wasm

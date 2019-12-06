@@ -15,17 +15,20 @@
 #ifndef KERNELS_MAXPOOL_H_
 #define KERNELS_MAXPOOL_H_
 
-namespace tfjs {
+#include <cstddef>
 
+namespace tfjs {
 namespace wasm {
 extern "C" {
-void MaxPool(const int x_id, const int batch_size, const int input_height,
-             const int input_width, const int filter_height,
-             const int filter_width, int pad_top, int pad_right, int pad_bottom,
-             int pad_left, const int dilation_height, const int dilation_width,
-             const int stride_height, const int stride_width,
-             const int input_channels, const int output_channels,
-             const int out_id);
+
+void MaxPool(const size_t x_id, const size_t batch_size,
+             const size_t input_height, const size_t input_width,
+             const size_t filter_height, const size_t filter_width,
+             size_t pad_top, size_t pad_right, size_t pad_bottom,
+             size_t pad_left, const size_t dilation_height,
+             const size_t dilation_width, const size_t stride_height,
+             const size_t stride_width, const size_t input_channels,
+             const size_t output_channels, const size_t out_id);
 }
 
 }  // namespace wasm

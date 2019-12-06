@@ -19,11 +19,12 @@
 #include "src/cc/conv2d_impl.h"
 
 #include <xnnpack.h>
-#include <tuple>
 #include <cmath>
+#include <cstddef>
 #include <limits>
 #include <map>
 #include <memory>
+#include <tuple>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -36,8 +37,9 @@
 namespace {
 // We use std::tuple as the cache key as it implements the compare operator
 // needed for std::map.
-typedef std::tuple<int, int, int, int, int, int, int, int, int, int, int, int,
-                   int, int, int, int, int, int, int, float, float>
+typedef std::tuple<size_t, size_t, size_t, size_t, size_t, size_t, size_t,
+                   size_t, size_t, size_t, size_t, size_t, size_t, size_t,
+                   size_t, size_t, size_t, size_t, size_t, float, float>
     OperatorCacheKey;
 
 struct CachedInfo {
@@ -51,16 +53,16 @@ std::map<OperatorCacheKey, CachedInfo> operator_cache;
 
 // Maps a filter id to a list of operator cache keys that this filter belongs
 // to.
-std::unordered_map<int, std::vector<OperatorCacheKey>>
+std::unordered_map<size_t, std::vector<OperatorCacheKey>>
     filter_operator_cache_key_map;
 
 // Maps a bias id to a list of operator cache keys that this filter belongs
 // to.
-std::unordered_map<int, std::vector<OperatorCacheKey>>
+std::unordered_map<size_t, std::vector<OperatorCacheKey>>
     bias_operator_cache_key_map;
 
-void erase_from_cache(const int tensor_id,
-                      std::unordered_map<int, std::vector<OperatorCacheKey>>&
+void erase_from_cache(const size_t tensor_id,
+                      std::unordered_map<size_t, std::vector<OperatorCacheKey>>&
                           operator_cache_key_map) {
   auto operator_cache_keys_idx = operator_cache_key_map.find(tensor_id);
   if (operator_cache_keys_idx != operator_cache_key_map.end()) {
@@ -80,14 +82,14 @@ void erase_from_cache(const int tensor_id,
   }
 }
 
-void delete_xnn_operators(int tensor_id) {
+void delete_xnn_operators(size_t tensor_id) {
   erase_from_cache(tensor_id, filter_operator_cache_key_map);
   erase_from_cache(tensor_id, bias_operator_cache_key_map);
 }
 
 void associate_tensor_with_key(
-    const int tensor_id, const OperatorCacheKey& cache_key,
-    std::unordered_map<int, std::vector<OperatorCacheKey>>&
+    const size_t tensor_id, const OperatorCacheKey& cache_key,
+    std::unordered_map<size_t, std::vector<OperatorCacheKey>>&
         operator_cache_key_map) {
   auto cache_keys_idx = operator_cache_key_map.find(tensor_id);
   if (cache_keys_idx == operator_cache_key_map.end()) {
@@ -106,15 +108,17 @@ void associate_tensor_with_key(
 namespace tfjs {
 namespace wasm {
 
-void conv2d(const int x_id, const int batch_size, const int input_height,
-            const int input_width, const int filter_id, const int filter_height,
-            const int filter_width, const int bias_id, int pad_top,
-            int pad_right, int pad_bottom, int pad_left, const bool is_same_pad,
-            const int dilation_height, const int dilation_width,
-            const int stride_height, const int stride_width,
-            const int input_channels, const int output_channels,
-            const bool is_depthwise, const int activation,
-            const int prelu_weights_id, const int out_id) {
+void conv2d(const size_t x_id, const size_t batch_size,
+            const size_t input_height, const size_t input_width,
+            const size_t filter_id, const size_t filter_height,
+            const size_t filter_width, const size_t bias_id, size_t pad_top,
+            size_t pad_right, size_t pad_bottom, size_t pad_left,
+            const bool is_same_pad, const size_t dilation_height,
+            const size_t dilation_width, const size_t stride_height,
+            const size_t stride_width, const size_t input_channels,
+            const size_t output_channels, const bool is_depthwise,
+            const size_t activation, const size_t prelu_weights_id,
+            const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& filter_info = backend::get_tensor_info(filter_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
@@ -136,17 +140,17 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
 
   xnn_operator_t conv2d_op = nullptr;
 
-  int flags = 0;
+  size_t flags = 0;
   if (is_same_pad) {
     pad_top = 0, pad_right = 0, pad_bottom = 0, pad_left = 0;
     flags |= XNN_FLAG_TENSORFLOW_SAME_PADDING;
   }
 
-  int groups;
-  int group_input_channels;
-  int group_output_channels;
-  const int input_pixel_stride = input_channels;
-  const int output_pixel_stride = output_channels;
+  size_t groups;
+  size_t group_input_channels;
+  size_t group_output_channels;
+  const size_t input_pixel_stride = input_channels;
+  const size_t output_pixel_stride = output_channels;
   if (is_depthwise) {
     groups = input_channels;
     group_input_channels = 1;
@@ -158,7 +162,7 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
     group_output_channels = output_channels;
   }
 
-  int clamp_method = activation;
+  size_t clamp_method = activation;
   if (activation == tfjs::wasm::FusableActivation::PRELU) {
     clamp_method = tfjs::wasm::FusableActivation::LINEAR;
   }
@@ -214,9 +218,9 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
       // This can be transposed with a 2d transpose to move output_channels to
       // the outer most dimension.
       transposed_filter.resize(filter_info.size);
-      std::vector<int> filter_shape = {
+      std::vector<size_t> filter_shape = {
           filter_height * filter_width * input_channels, output_channels};
-      std::vector<int> perm = {1, 0};
+      std::vector<size_t> perm = {1, 0};
 
       tfjs::wasm::transpose(filter_buf, filter_shape, perm,
                             transposed_filter.data());

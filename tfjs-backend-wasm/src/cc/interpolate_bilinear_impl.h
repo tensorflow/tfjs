@@ -15,18 +15,19 @@
 #ifndef INTERPOLATE_BILINEAR_IMPL_H_
 #define INTERPOLATE_BILINEAR_IMPL_H_
 
+#include <cstddef>
 #include <vector>
 
 namespace tfjs {
 namespace wasm {
 
 void interpolate_bilinear(float* out_buf_ptr, const float* images_buf,
-                          const std::vector<int>& images_strides,
-                          int crop_width, int image_width, int image_width_m1,
-                          int image_height_m1, int num_channels,
-                          bool should_extrapolate, float extrapolation_value,
-                          int batch_offset, float y_ind, float width_scale,
-                          float x1, float x2);
+                          const std::vector<size_t>& images_strides,
+                          size_t crop_width, size_t image_width,
+                          size_t image_width_m1, size_t image_height_m1,
+                          size_t num_channels, bool should_extrapolate,
+                          float extrapolation_value, size_t batch_offset,
+                          float y_ind, float width_scale, float x1, float x2);
 
 }  // namespace wasm
 }  // namespace tfjs
