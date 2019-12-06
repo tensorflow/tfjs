@@ -53,6 +53,34 @@ async function main() {
 main();
 ```
 
+Our WASM backend builds on top of the
+[XNNPACK library](https://github.com/google/XNNPACK) which provides
+high-efficiency floating-point neural network inference operators.
+
+# FAQ
+
+### How many ops have you implemented?
+See [`all_kernels.ts`](https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/src/kernels/all_kernels.ts)
+for an up-to-date list of supported ops. We love contributions. See the
+[contributing](https://github.com/tensorflow/tfjs/blob/master/CONTRIBUTING.md#adding-functionality)
+document for more info.
+
+### Do you support training?
+Maybe. There are still a decent number of ops that we are missing in WASM that
+are needed for gradient computation. At this point we are focused on making
+inference as fast as possible.
+
+### Do you work in node?
+Yes. If you run into issues, please let us know.
+
+### Do you support SIMD?
+We are actively working on adding SIMD before we do the official release.
+The switch to SIMD should happen transparently for browsers that support it.
+
+### Do you support multi-threading?
+Multi-threading support is not a priority for us at this point since it is still
+a proposal. We will keep a close eye on it as the proposal progresses.
+
 # Development
 
 ## Emscripten installation
