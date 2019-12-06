@@ -1,6 +1,4 @@
-/**
- * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,9 +10,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * =============================================================================
- */
+ * ===========================================================================*/
 
-import {registerBinaryKernel} from './binary_kernel';
-const supportsBroadcast = false;
-registerBinaryKernel('Div', supportsBroadcast);
+#ifndef CLAMP_IMPL_H_
+#define CLAMP_IMPL_H_
+
+namespace tfjs {
+namespace wasm {
+
+void xnn_clamp(const int x_id, const int out_id, const float min,
+               const float max);
+
+}  // namespace wasm
+}  // namespace tfjs
+
+#endif  // CLAMP_IMPL_H_

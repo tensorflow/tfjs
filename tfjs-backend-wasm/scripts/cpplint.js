@@ -26,27 +26,25 @@ const ignoreCode = true;
 const commandOpts = null;
 
 let pythonVersion = exec('python --version', commandOpts, ignoreCode);
-if(pythonVersion['stderr'].includes('Python 2')) {
+if (pythonVersion['stderr'].includes('Python 2')) {
   python2Cmd = 'python';
 } else {
   pythonVersion = exec('python2 --version', commandOpts, ignoreCode);
-  if(pythonVersion.code === 0) {
+  if (pythonVersion.code === 0) {
     python2Cmd = 'python2';
   }
 }
 
-if(python2Cmd != null) {
+if (python2Cmd != null) {
   const result = shell.find('src/cc').filter(
-    fileName => fileName.endsWith('.cc') || fileName.endsWith('.h'));
-
-  console.log(`C++ linting files:`);
-  console.log(result);
+      fileName => fileName.endsWith('.cc') || fileName.endsWith('.h'));
 
   const cwd = process.cwd() + '/' + CC_FILEPATH;
   const filenameArgument = result.join(' ');
 
   exec(`${python2Cmd} tools/cpplint.py --root ${cwd} ${filenameArgument}`);
 } else {
-  console.warn('No python2.x version found - please install python2. ' +
-  'cpplint.py only works correctly with python 2.x.');
+  console.warn(
+      'No python2.x version found - please install python2. ' +
+      'cpplint.py only works correctly with python 2.x.');
 }

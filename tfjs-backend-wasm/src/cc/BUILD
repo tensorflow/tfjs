@@ -49,7 +49,8 @@ tfjs_cc_library(
 
 tfjs_cc_library(
   name = "binary",
-  srcs = ["binary.h"],
+  hdrs = ["binary.h"],
+  srcs = ["binary.cc"],
   deps = [
     ":backend",
   ],
@@ -91,6 +92,16 @@ tfjs_cc_library(
     ":transpose_impl",
     ":prelu_impl",
     ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "clamp_impl",
+  hdrs = ["clamp_impl.h"],
+  srcs = ["clamp_impl.cc"],
+  deps = [
+    ":backend",
+    ":util"
   ],
 )
 
@@ -360,6 +371,7 @@ tfjs_cc_library(
   srcs = ["kernels/Relu.cc"],
   deps = [
     ":backend",
+    ":clamp_impl",
     ":unary",
   ],
 )
@@ -369,6 +381,7 @@ tfjs_cc_library(
   srcs = ["kernels/Relu6.cc"],
   deps = [
     ":backend",
+    ":clamp_impl",
     ":unary",
   ],
 )

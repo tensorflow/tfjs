@@ -35,7 +35,9 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Div(const int a_id, const int b_id, const DType dtype, const int out_id) {
+void Div(const int a_id, const size_t* a_shape_ptr, const int a_shape_len,
+         const int b_id, const size_t* b_shape_ptr, const int b_shape_len,
+         const DType dtype, const int out_id) {
   auto& a_info = backend::get_tensor_info(a_id);
   switch (dtype) {
     case DType::float32:
