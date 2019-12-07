@@ -27,10 +27,15 @@ const {
   depsLibTensorFlowPath,
   getLibTensorFlowMajorDotMinorVersion,
   LIBTENSORFLOW_VERSION,
+  SUPPORTED_ARCH,
+  SUPPORTED_PLATFORM,
+  PLATFORM_MAPPING,
+  ARCH_MAPPING,
+  PLATFORM_EXTENSION,
   modulePath
 } = require('./deps-constants.js');
 const resources = require('./resources');
-const {addonName} = require('./get-addon-name.js');
+const { addonName } = require('./get-addon-name.js');
 
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
@@ -38,12 +43,7 @@ const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
 
 const BASE_URI =
-    'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
-const CPU_DARWIN = `cpu-darwin-x86_64-${LIBTENSORFLOW_VERSION}.tar.gz`;
-const CPU_LINUX = `cpu-linux-x86_64-${LIBTENSORFLOW_VERSION}.tar.gz`;
-const GPU_LINUX = `gpu-linux-x86_64-${LIBTENSORFLOW_VERSION}.tar.gz`;
-const CPU_WINDOWS = `cpu-windows-x86_64-${LIBTENSORFLOW_VERSION}.zip`;
-const GPU_WINDOWS = `gpu-windows-x86_64-${LIBTENSORFLOW_VERSION}.zip`;
+  'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
 
 // TODO(kreeger): Update to TensorFlow 1.13:
 // https://github.com/tensorflow/tfjs/issues/1369
@@ -52,6 +52,10 @@ const TF_WIN_HEADERS_URI =
     `${getLibTensorFlowMajorDotMinorVersion()}.zip`;
 
 const platform = os.platform();
+// Use windows path
+if (platform === 'win32') {
+  path = path.win32;
+}
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
 let forceDownload = process.argv[3] === undefined ? undefined : process.argv[3];
 
@@ -78,33 +82,17 @@ async function revertAddonName() {
  * Returns the libtensorflow hosted path of the current platform.
  */
 function getPlatformLibtensorflowUri() {
-  let targetUri = BASE_URI;
-  if (platform === 'linux') {
-    if (os.arch() === 'arm') {
-      // TODO(kreeger): Handle arm64 as well:
-      targetUri =
-          'https://storage.googleapis.com/tf-builds/libtensorflow_r1_14_linux_arm.tar.gz';
-    } else {
-      if (libType === 'gpu') {
-        targetUri += GPU_LINUX;
-      } else {
-        targetUri += CPU_LINUX;
-      }
-    }
-  } else if (platform === 'darwin') {
-    targetUri += CPU_DARWIN;
-  } else if (platform === 'win32') {
-    // Use windows path
-    path = path.win32;
-    if (libType === 'gpu') {
-      targetUri += GPU_WINDOWS;
-    } else {
-      targetUri += CPU_WINDOWS;
-    }
-  } else {
+  if (SUPPORTED_PLATFORM.indexOf(platform) === -1) {
     throw new Error(`Unsupported platform: ${platform}`);
   }
-  return targetUri;
+
+  if (SUPPORTED_ARCH.indexOf(process.arch) === -1) {
+    throw new Error(`Unsupported architecture: ${process.arch}`);
+  }
+
+  return `${BASE_URI}${libType}-${PLATFORM_MAPPING[platform]}-` +
+    `${ARCH_MAPPING[os.arch()]}-${LIBTENSORFLOW_VERSION}.` +
+    `${PLATFORM_EXTENSION}`;
 }
 
 /**

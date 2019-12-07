@@ -22,6 +22,21 @@ const modulePath = module_path_napi.replace('{napi_build_version}', process.vers
 /** Version of the libtensorflow shared library to depend on. */
 const LIBTENSORFLOW_VERSION = '1.14.0';
 
+/** Current supported platforms */
+const SUPPORTED_PLATFORM = ['darwin', 'linux', 'win32'];
+/** Current supported architectures */
+const SUPPORTED_ARCH = ['x64', 'arm', 'arm64'];
+/** Map the os.arch() to arch string in a file name */
+const ARCH_MAPPING = { 'x64': 'x86_64', 'arm': 'arm', 'arm64': 'arm64' };
+/** Map the os.platform() to the platform value in a file name */
+const PLATFORM_MAPPING = {
+  'darwin': 'darwin',
+  'linux': 'linux',
+  'win32': 'windows'
+};
+/** The extension of a compressed file */
+const PLATFORM_EXTENSION = os.platform() === 'win32' ? 'zip' : 'tar.gz';
+
 /** Get the MAJOR.MINOR-only version of libtensorflow. */
 function getLibTensorFlowMajorDotMinorVersion() {
   const items = LIBTENSORFLOW_VERSION.split('.');
@@ -79,5 +94,10 @@ module.exports = {
   destLibTensorFlowName,
   getLibTensorFlowMajorDotMinorVersion,
   modulePath,
-  LIBTENSORFLOW_VERSION
+  LIBTENSORFLOW_VERSION,
+  SUPPORTED_ARCH,
+  SUPPORTED_PLATFORM,
+  PLATFORM_MAPPING,
+  PLATFORM_EXTENSION,
+  ARCH_MAPPING
 };
