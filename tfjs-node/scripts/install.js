@@ -30,7 +30,15 @@ const {
   modulePath
 } = require('./deps-constants.js');
 const resources = require('./resources');
-const {addonName} = require('./get-addon-name.js');
+const {
+  addonName,
+  customTFLibUri,
+  customAddon,
+  PLATFORM_MAPPING,
+  ARCH_MAPPING,
+  PLATFORM_EXTENSION,
+  ALL_SUPPORTED_COMBINATION,
+} = require('./get-addon-name.js');
 
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
@@ -38,15 +46,16 @@ const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
 
 const BASE_URI =
-    'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
-const CPU_DARWIN = `cpu-darwin-x86_64-${LIBTENSORFLOW_VERSION}.tar.gz`;
-const CPU_LINUX = `cpu-linux-x86_64-${LIBTENSORFLOW_VERSION}.tar.gz`;
-const GPU_LINUX = `gpu-linux-x86_64-${LIBTENSORFLOW_VERSION}.tar.gz`;
-const CPU_WINDOWS = `cpu-windows-x86_64-${LIBTENSORFLOW_VERSION}.zip`;
-const GPU_WINDOWS = `gpu-windows-x86_64-${LIBTENSORFLOW_VERSION}.zip`;
+  'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
 
 const platform = os.platform();
+// Use windows path
+if (platform === 'win32') {
+  path = path.win32;
+}
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
+const system = `${libType}-${PLATFORM_MAPPING[platform]}-` +
+    `${ARCH_MAPPING[os.arch()]}`;
 let forceDownload = process.argv[3] === undefined ? undefined : process.argv[3];
 
 let packageJsonFile;
@@ -56,14 +65,20 @@ async function setPackageJsonFile() {
       JSON.parse(fs.readFileSync(`${__dirname}/../package.json`).toString());
 }
 
-async function updateAddonName() {
-  packageJsonFile['binary']['package_name'] = addonName;
+function updateAddonName() {
+  const origBinary = JSON.parse(JSON.stringify(packageJsonFile['binary']));
+  if (customAddon !== undefined) {
+    Object.assign(packageJsonFile['binary'], customAddon);
+  } else {
+    packageJsonFile['binary']['package_name'] = addonName;
+  }
   const stringFile = JSON.stringify(packageJsonFile, null, 2);
   fs.writeFileSync((`${__dirname}/../package.json`), stringFile);
+  return origBinary;
 }
 
-async function revertAddonName() {
-  delete packageJsonFile['binary']['package_name'];
+function revertAddonName(orig) {
+  packageJsonFile['binary'] = orig;
   const stringFile = JSON.stringify(packageJsonFile, null, 2).concat('\n');
   fs.writeFileSync((`${__dirname}/../package.json`), stringFile);
 }
@@ -72,33 +87,16 @@ async function revertAddonName() {
  * Returns the libtensorflow hosted path of the current platform.
  */
 function getPlatformLibtensorflowUri() {
-  let targetUri = BASE_URI;
-  if (platform === 'linux') {
-    if (os.arch() === 'arm') {
-      // TODO(kreeger): Handle arm64 as well:
-      targetUri =
-          'https://storage.googleapis.com/tf-builds/libtensorflow_r1_14_linux_arm.tar.gz';
-    } else {
-      if (libType === 'gpu') {
-        targetUri += GPU_LINUX;
-      } else {
-        targetUri += CPU_LINUX;
-      }
-    }
-  } else if (platform === 'darwin') {
-    targetUri += CPU_DARWIN;
-  } else if (platform === 'win32') {
-    // Use windows path
-    path = path.win32;
-    if (libType === 'gpu') {
-      targetUri += GPU_WINDOWS;
-    } else {
-      targetUri += CPU_WINDOWS;
-    }
-  } else {
-    throw new Error(`Unsupported platform: ${platform}`);
+
+  if (customTFLibUri !== undefined) {
+    return customTFLibUri;
   }
-  return targetUri;
+
+  if (ALL_SUPPORTED_COMBINATION.indexOf(system) === -1) {
+    throw new Error(`Unsupported system: ${libType}-${platform}-${os.arch()}`);
+  }
+
+  return `${BASE_URI}${system}-${LIBTENSORFLOW_VERSION}.${PLATFORM_EXTENSION}`;
 }
 
 /**
@@ -157,7 +155,12 @@ async function downloadLibtensorflow(callback) {
  */
 async function build() {
   console.error('* Building TensorFlow Node.js bindings');
-  cp.exec('node-pre-gyp install --fallback-to-build', (err) => {
+  let buildOption = '--fallback-to-build';
+  if (customTFLibUri !== undefined && customAddon === undefined) {
+    // Has custom tensorflow shared libs but no addon. Then build it from source
+    buildOption = '--build-from-source';
+  }
+  cp.exec(`node-pre-gyp install ${buildOption}`, (err) => {
     if (err) {
       console.log('node-pre-gyp install failed with error: ' + err);
     }
@@ -165,7 +168,6 @@ async function build() {
       // Move libtensorflow to module path, where tfjs_binding.node locates.
       cp.exec('node scripts/deps-stage.js symlink ' + modulePath);
     }
-    revertAddonName();
   });
 }
 
@@ -176,7 +178,7 @@ async function run() {
   // Load package.json file
   setPackageJsonFile();
   // Update addon name in package.json file
-  await updateAddonName();
+  const origBinary = updateAddonName();
   // First check if deps library exists:
   if (forceDownload !== 'download' && await exists(depsLibTensorFlowPath)) {
     // Library has already been downloaded, then compile and simlink:
@@ -186,6 +188,7 @@ async function run() {
     await cleanDeps();
     await downloadLibtensorflow(build);
   }
+  revertAddonName(origBinary);
 }
 
 run();
