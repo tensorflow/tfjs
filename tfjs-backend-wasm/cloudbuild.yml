@@ -29,7 +29,7 @@ steps:
   args: ['build-ci']
   waitFor: ['yarn']
 
-# Run browser tests.
+# Run tests in browser.
 - name: 'node:10'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
@@ -38,6 +38,14 @@ steps:
   waitFor: ['build']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
+
+# Run tests in node.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  entrypoint: 'yarn'
+  id: 'test-node'
+  args: ['test-node']
+  waitFor: ['build']
 
 # Run C++ tests.
 - name: 'node:10'

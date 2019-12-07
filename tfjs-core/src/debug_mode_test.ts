@@ -22,11 +22,9 @@ import {expectArraysClose} from './test_util';
 
 describeWithFlags('debug on', SYNC_BACKEND_ENVS, () => {
   beforeAll(() => {
-    tf.env().set('DEBUG', true);
-  });
-
-  afterAll(() => {
-    tf.env().set('DEBUG', false);
+    // Silence debug warnings.
+    spyOn(console, 'warn');
+    tf.enableDebugMode();
   });
 
   it('debug mode does not error when no nans', async () => {
