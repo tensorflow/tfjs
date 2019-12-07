@@ -23,6 +23,29 @@ const modulePath =
 /** Version of the libtensorflow shared library to depend on. */
 const LIBTENSORFLOW_VERSION = '1.15.0';
 
+/** Map the os.arch() to arch string in a file name */
+const ARCH_MAPPING = { 'x64': 'x86_64' };
+/** Map the os.platform() to the platform value in a file name */
+const PLATFORM_MAPPING = {
+  'darwin': 'darwin',
+  'linux': 'linux',
+  'win32': 'windows'
+};
+/** The extension of a compressed file */
+const PLATFORM_EXTENSION = os.platform() === 'win32' ? 'zip' : 'tar.gz';
+/**
+ * Current supported type, platform and architecture combinations
+ * `tf-lib` represents tensorflow shared libraries and `binding` represents
+ * node binding.
+ */
+const ALL_SUPPORTED_COMBINATION = [
+  'cpu-darwin-x86_64',
+  'gpu-linux-x86_64',
+  'cpu-linux-x86_64',
+  'cpu-windows-x86_64',
+  'gpu-windows-x86_64'
+];
+
 /** Get the MAJOR.MINOR-only version of libtensorflow. */
 function getLibTensorFlowMajorDotMinorVersion() {
   const items = LIBTENSORFLOW_VERSION.split('.');
@@ -80,5 +103,9 @@ module.exports = {
   destLibTensorFlowName,
   getLibTensorFlowMajorDotMinorVersion,
   modulePath,
-  LIBTENSORFLOW_VERSION
+  LIBTENSORFLOW_VERSION,
+  ARCH_MAPPING,
+  PLATFORM_MAPPING,
+  PLATFORM_EXTENSION,
+  ALL_SUPPORTED_COMBINATION
 };

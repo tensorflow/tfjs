@@ -15,39 +15,41 @@
  * =============================================================================
  */
 const os = require('os');
+const fs = require('fs');
+const join = require('path').join;
 const name = require('../package.json').name;
 const version = require('../package.json').version;
 
 const platform = os.platform();
+const CUSTOM_BINARY_FILENAME = 'custom-binary.json';
+const customBinaries = loadCustomBinary();
 
-const CPU_DARWIN = `CPU-darwin-${version}.tar.gz`;
-const CPU_LINUX = `CPU-linux-${version}.tar.gz`;
-const GPU_LINUX = `GPU-linux-${version}.tar.gz`;
-const CPU_WINDOWS = `CPU-windows-${version}.zip`;
-const GPU_WINDOWS = `GPU-windows-${version}.zip`;
+const {
+  PLATFORM_MAPPING,
+  ARCH_MAPPING,
+  PLATFORM_EXTENSION,
+  ALL_SUPPORTED_COMBINATION
+} = require('./deps-constants.js');
 
-let addonName;
-
-if (name.includes('gpu')) {
-  if (platform === 'linux') {
-    addonName = GPU_LINUX;
-  } else if (platform === 'win32') {
-    addonName = GPU_WINDOWS;
-  }
-} else {
-  if (platform === 'linux') {
-    addonName = CPU_LINUX;
-  } else if (platform === 'darwin') {
-    addonName = CPU_DARWIN;
-  } else if (platform === 'win32') {
-    addonName = CPU_WINDOWS;
-  }
-}
+const type = name.includes('gpu')? 'GPU': 'CPU';
+const addonName = `${type}-${PLATFORM_MAPPING[platform]}-` +
+    `${version}.${PLATFORM_EXTENSION}`;
 
 // Print out the addon tarball name so that it can be used in bash script when
 // uploading the tarball to GCP bucket.
 console.log(addonName);
 
+function loadCustomBinary() {
+  const cfg = join(__dirname, CUSTOM_BINARY_FILENAME);
+  return fs.existsSync(cfg) ? require(cfg) : {};
+}
+
+function getCustomBinary(name) {
+  return customBinaries[name];
+}
+
 module.exports = {
-  addonName: addonName
+  addonName: addonName,
+  customTFLibUri: customBinaries['tf-lib'],
+  customAddon: customBinaries['addon']
 };
