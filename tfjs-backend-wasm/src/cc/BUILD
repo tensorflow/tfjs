@@ -136,6 +136,7 @@ tfjs_cc_library(
     ":Sigmoid",
     ":Sub",
     ":Transpose",
+    ":Exp",
   ]
 )
 
@@ -412,6 +413,15 @@ tfjs_cc_library(
     ":backend",
     ":util",
     ":transpose_impl",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Exp",
+  srcs = ["kernels/Exp.cc"],
+  deps = [
+    ":backend",
+    ":unary",
   ],
 )
 
