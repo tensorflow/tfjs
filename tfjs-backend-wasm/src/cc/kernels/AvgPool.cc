@@ -65,8 +65,8 @@ void AvgPool(const int x_id, const int batch_size, const int input_height,
   auto operator_cache_idx = operator_cache.find(cache_key);
 
   if (operator_cache_idx == operator_cache.end()) {
-    float output_min = -std::numeric_limits<float>::infinity();
-    float output_max = std::numeric_limits<float>::infinity();
+    const float output_min = -std::numeric_limits<float>::infinity();
+    const float output_max = std::numeric_limits<float>::infinity();
 
     xnn_status status = xnn_create_average_pooling2d_nhwc_f32(
         pad_top, pad_right, pad_bottom, pad_left, filter_height, filter_width,
