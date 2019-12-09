@@ -27,7 +27,7 @@ steps:
   entrypoint: 'yarn'
   id: 'build'
   args: ['build-ci']
-  waitFor: ['yarn']
+  waitFor: ['lint']
 
 # Run tests in browser.
 - name: 'node:10'
