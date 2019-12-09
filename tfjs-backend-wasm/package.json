@@ -8,8 +8,8 @@
   "unpkg": "dist/tf-wasm.min.js",
   "jsdelivr": "dist/tf-wasm.min.js",
   "scripts": {
-    "preinstall": "cd ../tfjs-core && yarn && yarn build",
-    "build": "rimraf dist/ && yarn link-core-master && tsc && ./scripts/build-wasm.sh",
+    "build-core": "yarn link-core-master && cd ../tfjs-core && yarn && yarn build",
+    "build": "yarn build-core && rimraf dist/ && tsc && ./scripts/build-wasm.sh",
     "build-ci": "./scripts/build-ci.sh",
     "build-npm": "./scripts/build-npm.sh",
     "clean": "rimraf dist/ && bazel clean --expunge",
