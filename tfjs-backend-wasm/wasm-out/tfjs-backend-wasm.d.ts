@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-export interface BackendWasmModule extends EmscriptenModule {
+interface BackendWasmModule extends EmscriptenModule {
   onRuntimeInitialized: () => void;
   // Using the tfjs namespace to avoid conflict with emscripten's API.
   tfjs: {
@@ -29,4 +29,4 @@ export interface BackendWasmModule extends EmscriptenModule {
 }
 
 declare var moduleFactory: () => BackendWasmModule;
-export default moduleFactory;
+export = moduleFactory;

@@ -18,7 +18,7 @@
 import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import wasmFactory from '../wasm-out/tfjs-backend-wasm';
-import {BackendWasmModule} from '../wasm-out/tfjs-backend-wasm';
+type BackendWasmModule = ReturnType<typeof wasmFactory>;
 
 const WASM_PRIORITY = 2;
 
