@@ -51,4 +51,5 @@ import './Slice';
 import './Square';
 import './Sub';
 import './Transpose';
+import './Exp';
 import './Unpack';
