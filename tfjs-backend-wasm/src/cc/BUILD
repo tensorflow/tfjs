@@ -416,6 +416,15 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "Exp",
+  srcs = ["kernels/Exp.cc"],
+  deps = [
+    ":backend",
+    ":unary",
+  ],
+)
+
+tfjs_cc_library(
   name = "util",
   hdrs = ["util.h"],
   srcs = ["util.cc"],
