@@ -212,13 +212,16 @@ function exp_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'exp');
 
   const bck = (dy: T, saved: Tensor[]) => {
-    return {$x: () => dy.mulStrict(saved[0] as T)};
+    return {x: () => dy.mulStrict(saved[0] as T)};
   };
+  const attrs = {};
+  const inputsToSave: Tensor[] = [];
+  const outputsToSave = [true];
   return ENGINE.runKernelFunc((backend, save) => {
     const y = backend.exp($x);
     save([y]);
     return y;
-  }, {$x}, bck);
+  }, {x: $x}, bck, 'Exp', attrs, inputsToSave, outputsToSave);
 }
 
 /**
