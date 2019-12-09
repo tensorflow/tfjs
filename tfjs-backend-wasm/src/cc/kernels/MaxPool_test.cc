@@ -25,12 +25,12 @@ TEST(MAXPOOL, xnn_operator_lifetime) {
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
-  const size_t x0_id = 0;
-  const size_t x1_id = 1;
+  const size_t x0_id = 1;
+  const size_t x1_id = 2;
   const size_t size = 9;
   float x_values[size] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
 
-  const size_t out_id = 2;
+  const size_t out_id = 3;
   const size_t out_size = 9;
   float out_values[out_size] = {};
 

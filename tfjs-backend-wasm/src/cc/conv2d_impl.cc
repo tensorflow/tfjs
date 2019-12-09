@@ -126,14 +126,14 @@ void conv2d(const size_t x_id, const size_t batch_size,
   const float* x_buf = x_info.f32();
   const float* filter_buf = filter_info.f32();
   const float* bias_buf = nullptr;
-  if (bias_id != -1) {
+  if (bias_id != 0) {
     bias_buf = backend::get_tensor_info_out(bias_id).f32();
   }
 
   float* out_buf = out_info.f32_write();
   std::vector<float> intermediate_output;
 
-  if (prelu_weights_id > -1) {
+  if (prelu_weights_id != 0) {
     intermediate_output.resize(out_info.size);
     out_buf = intermediate_output.data();
   }
@@ -248,7 +248,7 @@ void conv2d(const size_t x_id, const size_t batch_size,
 
     associate_tensor_with_key(filter_id, cache_key,
                               filter_operator_cache_key_map);
-    if (bias_id != -1) {
+    if (bias_id != 0) {
       associate_tensor_with_key(bias_id, cache_key,
                                 bias_operator_cache_key_map);
     }

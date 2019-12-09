@@ -27,22 +27,22 @@ TEST(FUSEDDEPTHWISECONV2D, xnn_operator_lifetime) {
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
-  const size_t x0_id = 0;
-  const size_t x1_id = 1;
+  const size_t x0_id = 1;
+  const size_t x1_id = 2;
   const size_t size = 8;
   float x_values[size] = {1, 2, 3, 4, 5, 6, 7, 8};
 
-  const size_t weights0_id = 2;
-  const size_t weights1_id = 3;
+  const size_t weights0_id = 3;
+  const size_t weights1_id = 4;
   const size_t weights_size = 8;
   float weights_values[weights_size] = {1, 2, 3, 4, 5, 6, 7, 8};
 
-  const size_t bias0_id = 4;
-  const size_t bias1_id = 5;
+  const size_t bias0_id = 5;
+  const size_t bias1_id = 6;
   const size_t bias_size = 1;
   float bias_values[bias_size] = {1};
 
-  const size_t out_id = 6;
+  const size_t out_id = 7;
   const size_t out_size = 12;
   float out_values[out_size] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -80,24 +80,24 @@ TEST(FUSEDDEPTHWISECONV2D, xnn_operator_lifetime) {
 
   tfjs::wasm::FusedDepthwiseConv2D(
       x0_id, batch_size, input_height, input_width, weights0_id, filter_height,
-      filter_width, -1 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
+      filter_width, 0 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
       is_same_pad0, dilation_height, dilation_width, stride_height,
       stride_width, input_channels, output_channels, activation,
-      -1 /* prelu weights */, out_id);
+      0 /* prelu weights */, out_id);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
 
   // One new xnn operator should be created for second call to conv2d with no
   // bias and prelu activation.
   const size_t prelu_activation = tfjs::wasm::FusableActivation::PRELU;
 
-  const size_t prelu_weights_id = 7;
+  const size_t prelu_weights_id = 8;
   const size_t prelu_size = 8;
   float prelu_values[prelu_size] = {1, 2, 3, 4, 5, 6, 7, 8};
   tfjs::wasm::register_tensor(prelu_weights_id, prelu_size, prelu_values);
 
   tfjs::wasm::FusedDepthwiseConv2D(
       x0_id, batch_size, input_height, input_width, weights0_id, filter_height,
-      filter_width, -1 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
+      filter_width, 0 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
       is_same_pad0, dilation_height, dilation_width, stride_height,
       stride_width, input_channels, output_channels, prelu_activation,
       prelu_weights_id, out_id);
@@ -107,7 +107,7 @@ TEST(FUSEDDEPTHWISECONV2D, xnn_operator_lifetime) {
   // the same arguments.
   tfjs::wasm::FusedDepthwiseConv2D(
       x0_id, batch_size, input_height, input_width, weights0_id, filter_height,
-      filter_width, -1 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
+      filter_width, 0 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
       is_same_pad0, dilation_height, dilation_width, stride_height,
       stride_width, input_channels, output_channels, activation,
       prelu_weights_id, out_id);
@@ -117,7 +117,7 @@ TEST(FUSEDDEPTHWISECONV2D, xnn_operator_lifetime) {
   // the same arguments but different input.
   tfjs::wasm::FusedDepthwiseConv2D(
       x1_id, batch_size, input_height, input_width, weights0_id, filter_height,
-      filter_width, -1 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
+      filter_width, 0 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
       is_same_pad0, dilation_height, dilation_width, stride_height,
       stride_width, input_channels, output_channels, activation,
       prelu_weights_id, out_id);
@@ -129,7 +129,7 @@ TEST(FUSEDDEPTHWISECONV2D, xnn_operator_lifetime) {
   const size_t pad_bottom1 = 1;
   tfjs::wasm::FusedDepthwiseConv2D(
       x0_id, batch_size, input_height, input_width, weights0_id, filter_height,
-      filter_width, -1 /* bias */, pad_top1, pad_right, pad_bottom1, pad_left,
+      filter_width, 0 /* bias */, pad_top1, pad_right, pad_bottom1, pad_left,
       is_same_pad0, dilation_height, dilation_width, stride_height,
       stride_width, input_channels, output_channels, activation,
       prelu_weights_id, out_id);
@@ -139,7 +139,7 @@ TEST(FUSEDDEPTHWISECONV2D, xnn_operator_lifetime) {
   // new weights and same input.
   tfjs::wasm::FusedDepthwiseConv2D(
       x0_id, batch_size, input_height, input_width, weights1_id, filter_height,
-      filter_width, -1 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
+      filter_width, 0 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
       is_same_pad0, dilation_height, dilation_width, stride_height,
       stride_width, input_channels, output_channels, activation,
       prelu_weights_id, out_id);

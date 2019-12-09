@@ -24,11 +24,12 @@ TEST(BACKEND, register_tensor) {
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
-  const size_t tensor_id = 0;
+  const size_t tensor_id = 1;
   const size_t size = 2;
   float values[size] = {1, 2};
 
   tfjs::wasm::register_tensor(tensor_id, size, values);
+
   ASSERT_EQ(1, tfjs::backend::num_tensors());
 
   auto& tensor_info = tfjs::backend::get_tensor_info(tensor_id);
@@ -50,9 +51,9 @@ TEST(BACKEND, register_tensor) {
 size_t tensor_0_callback_count = 0;
 size_t tensor_1_callback_count = 0;
 void fake_dispose_tensor_callback(size_t tensor_id) {
-  if (tensor_id == 0) {
+  if (tensor_id == 1) {
     tensor_0_callback_count++;
-  } else if (tensor_id == 1) {
+  } else if (tensor_id == 2) {
     tensor_1_callback_count++;
   }
 }
@@ -61,8 +62,8 @@ TEST(BACKEND, disposal_callback) {
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
-  const size_t tensor_id_0 = 0;
-  const size_t tensor_id_1 = 1;
+  const size_t tensor_id_0 = 1;
+  const size_t tensor_id_1 = 2;
   const size_t size = 2;
   float values_0[size] = {1, 2};
   float values_1[size] = {3, 4};
@@ -99,8 +100,8 @@ TEST(BACKEND, dispose_backend) {
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
-  const size_t tensor_id_0 = 0;
-  const size_t tensor_id_1 = 1;
+  const size_t tensor_id_0 = 1;
+  const size_t tensor_id_1 = 2;
   const size_t size = 2;
   float values_0[size] = {1, 2};
   float values_1[size] = {3, 4};

@@ -24,8 +24,8 @@ TEST(ClipByValue, xnn_operator_count) {
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
-  size_t x0_id = 0;
-  size_t x1_id = 1;
+  size_t x0_id = 1;
+  size_t x1_id = 2;
   size_t size = 2;
   size_t min = 0;
   size_t max = 1;

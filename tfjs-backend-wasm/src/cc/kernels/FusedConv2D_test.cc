@@ -27,22 +27,22 @@ TEST(FUSEDCONV2D, xnn_operator_lifetime) {
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
-  const size_t x0_id = 0;
-  const size_t x1_id = 1;
+  const size_t x0_id = 1;
+  const size_t x1_id = 2;
   const size_t size = 8;
   float x_values[size] = {1, 2, 3, 4, 5, 6, 7, 8};
 
-  const size_t weights0_id = 2;
-  const size_t weights1_id = 3;
+  const size_t weights0_id = 3;
+  const size_t weights1_id = 4;
   const size_t weights_size = 8;
   float weights_values[weights_size] = {1, 2, 3, 4, 5, 6, 7, 8};
 
-  const size_t bias0_id = 4;
-  const size_t bias1_id = 5;
+  const size_t bias0_id = 5;
+  const size_t bias1_id = 6;
   const size_t bias_size = 1;
   float bias_values[bias_size] = {1};
 
-  const size_t out_id = 6;
+  const size_t out_id = 7;
   const size_t out_size = 12;
   float out_values[out_size] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -77,11 +77,11 @@ TEST(FUSEDCONV2D, xnn_operator_lifetime) {
   const size_t output_channels = 1;
 
   const size_t activation = tfjs::wasm::FusableActivation::LINEAR;
-  const size_t prelu_weights_id = -1;
+  const size_t prelu_weights_id = 0;
 
   tfjs::wasm::FusedConv2D(
       x0_id, batch_size, input_height, input_width, weights0_id, filter_height,
-      filter_width, -1 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
+      filter_width, 0 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
       is_same_pad0, dilation_height, dilation_width, stride_height,
       stride_width, input_channels, output_channels, activation,
       prelu_weights_id, out_id);
@@ -91,7 +91,7 @@ TEST(FUSEDCONV2D, xnn_operator_lifetime) {
   // the same arguments.
   tfjs::wasm::FusedConv2D(
       x0_id, batch_size, input_height, input_width, weights0_id, filter_height,
-      filter_width, -1 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
+      filter_width, 0 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
       is_same_pad0, dilation_height, dilation_width, stride_height,
       stride_width, input_channels, output_channels, activation,
       prelu_weights_id, out_id);
@@ -101,7 +101,7 @@ TEST(FUSEDCONV2D, xnn_operator_lifetime) {
   // the same arguments but different input.
   tfjs::wasm::FusedConv2D(
       x1_id, batch_size, input_height, input_width, weights0_id, filter_height,
-      filter_width, -1 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
+      filter_width, 0 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
       is_same_pad0, dilation_height, dilation_width, stride_height,
       stride_width, input_channels, output_channels, activation,
       prelu_weights_id, out_id);
@@ -113,7 +113,7 @@ TEST(FUSEDCONV2D, xnn_operator_lifetime) {
   const size_t pad_bottom1 = 1;
   tfjs::wasm::FusedConv2D(
       x0_id, batch_size, input_height, input_width, weights0_id, filter_height,
-      filter_width, -1 /* bias */, pad_top1, pad_right, pad_bottom1, pad_left,
+      filter_width, 0 /* bias */, pad_top1, pad_right, pad_bottom1, pad_left,
       is_same_pad0, dilation_height, dilation_width, stride_height,
       stride_width, input_channels, output_channels, activation,
       prelu_weights_id, out_id);
@@ -123,7 +123,7 @@ TEST(FUSEDCONV2D, xnn_operator_lifetime) {
   // new weights and same input.
   tfjs::wasm::FusedConv2D(
       x0_id, batch_size, input_height, input_width, weights1_id, filter_height,
-      filter_width, -1 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
+      filter_width, 0 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
       is_same_pad0, dilation_height, dilation_width, stride_height,
       stride_width, input_channels, output_channels, activation,
       prelu_weights_id, out_id);

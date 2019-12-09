@@ -56,7 +56,7 @@ void FusedBatchNorm(const size_t x_id, const size_t mean_id,
   const float scale_buf_default[1] = {1};
   const float* scale_buf;
   size_t scale_size;
-  if (scale_id < 0) {
+  if (scale_id == 0) {
     scale_buf = scale_buf_default;
     scale_size = 1;
   } else {
@@ -68,7 +68,7 @@ void FusedBatchNorm(const size_t x_id, const size_t mean_id,
   const float offset_buf_default[1] = {0};
   const float* offset_buf;
   size_t offset_size;
-  if (offset_id < 0) {
+  if (offset_id == 0) {
     offset_buf = offset_buf_default;
     offset_size = 1;
   } else {

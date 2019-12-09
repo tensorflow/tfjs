@@ -26,17 +26,17 @@ TEST(CONV2D, xnn_operator_lifetime) {
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
-  const size_t x0_id = 0;
-  const size_t x1_id = 1;
+  const size_t x0_id = 1;
+  const size_t x1_id = 2;
   const size_t size = 9;
   float x_values[size] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
 
-  const size_t weights0_id = 2;
-  const size_t weights1_id = 3;
+  const size_t weights0_id = 3;
+  const size_t weights1_id = 4;
   const size_t weights_size = 8;
   float weights_values[weights_size] = {1, 2, 3, 4, 5, 6, 7, 8};
 
-  const size_t out_id = 4;
+  const size_t out_id = 5;
   const size_t out_size = 36;
   float out_values[out_size] = {};
 

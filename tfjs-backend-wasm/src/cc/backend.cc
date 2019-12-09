@@ -23,6 +23,8 @@
 #include <vector>
 
 #include "src/cc/backend.h"
+#include "src/cc/check_macros.h"
+#include "src/cc/util.h"
 
 namespace {
 // Maps a unique tensor id to info about that tensor. The map owns all of its
@@ -77,6 +79,13 @@ EMSCRIPTEN_KEEPALIVE
 #endif
 void register_tensor(const size_t tensor_id, const size_t size,
                      void *memory_offset) {
+  DCHECK(tensor_id > 0,
+         "register_tensor: tensor_id must a positive number but got %d.",
+         tensor_id);
+  DCHECK(data.find(tensor_id) == data.end(),
+         "register_tensor: tensor_id %d has already been registered.",
+         tensor_id);
+
   data.emplace(tensor_id, TensorInfo{memory_offset, size});
 }
 

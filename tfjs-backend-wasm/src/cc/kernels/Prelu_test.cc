@@ -24,13 +24,13 @@ TEST(PRELU, xnn_operator_lifetime) {
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
-  size_t x0_id = 0;
-  size_t x1_id = 1;
+  size_t x0_id = 1;
+  size_t x1_id = 2;
   size_t size = 2;
   float x_values[2] = {1, 2};
 
-  size_t weights0_id = 2;
-  size_t weights1_id = 3;
+  size_t weights0_id = 3;
+  size_t weights1_id = 4;
   float weights_values[2] = {1, 2};
 
   size_t out_id = 5;

@@ -27,17 +27,17 @@ TEST(CONV2D, xnn_operator_lifetime) {
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
-  const size_t x0_id = 0;
-  const size_t x1_id = 1;
+  const size_t x0_id = 1;
+  const size_t x1_id = 2;
   const size_t size = 8;
   float x_values[size] = {1, 2, 3, 4, 5, 6, 7, 8};
 
-  const size_t weights0_id = 2;
-  const size_t weights1_id = 3;
+  const size_t weights0_id = 3;
+  const size_t weights1_id = 4;
   const size_t weights_size = 8;
   float weights_values[weights_size] = {1, 2, 3, 4, 5, 6, 7, 8};
 
-  const size_t out_id = 4;
+  const size_t out_id = 5;
   const size_t out_size = 12;
   float out_values[out_size] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -147,15 +147,15 @@ TEST(CONV2D, transposed_filter_lifetime) {
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
-  const size_t x0_id = 0;
-  const size_t weights1_id = 1;
+  const size_t x0_id = 1;
+  const size_t weights1_id = 2;
 
   const size_t x_size = 8;
   const size_t weights_size = 8;
   std::vector<float> x{1, 2, 3, 4, 5, 6, 7, 8};
   std::vector<float> weights{1, 2, 3, 4, 5, 6, 7, 8};
 
-  const size_t out_id = 4;
+  const size_t out_id = 3;
   const size_t out_size = 12;
   std::vector<float> out{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -194,7 +194,7 @@ TEST(CONV2D, transposed_filter_lifetime) {
   // Make a new filter in case the memory of the first filter was released and
   // this filter reuses it.
   std::vector<float> weights2 = {8, 7, 6, 5, 4, 3, 2, 1};
-  const size_t weights2_id = 2;
+  const size_t weights2_id = 4;
   tfjs::wasm::register_tensor(weights2_id, weights_size, weights2.data());
 
   // No new xnn_operators should be created for the second call to conv2d with
