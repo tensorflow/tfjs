@@ -133,14 +133,17 @@ TEST(util, compute_strides) {
   std::vector<size_t> shape = {5, 7};
   EXPECT_EQ(std::vector<size_t>({7}), compute_strides(shape));
 
-  // shape = {3, 5, 7};
-  // EXPECT_EQ(std::vector<size_t>({35, 7}), compute_strides(shape));
+  shape = {3, 5, 7};
+  EXPECT_EQ(std::vector<size_t>({35, 7}), compute_strides(shape));
 
-  // shape = {3, 5, 7, 9};
-  // EXPECT_EQ(std::vector<size_t>({315, 63, 9}), compute_strides(shape));
+  shape = {3, 5, 7, 9};
+  EXPECT_EQ(std::vector<size_t>({315, 63, 9}), compute_strides(shape));
 
-  // shape = {2, 3, 5, 7, 9};
-  // EXPECT_EQ(std::vector<size_t>({945, 315, 63, 9}), compute_strides(shape));
+  shape = {2, 3, 5, 7, 9};
+  EXPECT_EQ(std::vector<size_t>({945, 315, 63, 9}), compute_strides(shape));
+
+  shape = {2, 2, 2, 2, 2, 2};
+  EXPECT_EQ(std::vector<size_t>({32, 16, 8, 4, 2}), compute_strides(shape));
 }
 
 }  // namespace

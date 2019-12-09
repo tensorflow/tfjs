@@ -72,6 +72,8 @@ function transpose(
   const outId = backend.dataIdMap.get(out.dataId).id;
   const permBytes = new Uint8Array(new Int32Array(perm).buffer);
   const xShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
+
+  console.log('transposing', x.shape, perm, x.dtype);
   wasmTranspose(
       xId, xShapeBytes, x.shape.length, CppDType[x.dtype], outId, permBytes,
       perm.length);

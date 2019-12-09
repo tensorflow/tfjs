@@ -171,7 +171,14 @@ template <typename T>
 void slow_transpose_nd(const T* x_data, const std::vector<size_t>& x_shape,
                        const std::vector<size_t>& perm, T* out_data) {
   const size_t size = tfjs::util::size_from_shape(x_shape);
+
+  tfjs::util::warn("computing strides %d", size);
+  tfjs::util::warn("size = %d 2", size);
+
+  //
   const auto x_strides = tfjs::util::compute_strides(x_shape);
+  tfjs::util::warn("done with computing strides.");
+
   std::vector<size_t> out_shape(x_shape.size());
   for (size_t i = 0; i < x_shape.size(); ++i) {
     out_shape[i] = x_shape[perm[i]];
@@ -244,6 +251,8 @@ size_t flatten(const std::vector<size_t>& x_shape,
 template <typename T>
 void transpose_impl(const T* x_data, const std::vector<size_t>& x_shape,
                     const std::vector<size_t>& perm, T* out_data) {
+  tfjs::util::warn("DDDD = %d", x_shape.size());
+
   if (x_shape.size() == 2) {
     transpose_2d(x_data, x_shape, out_data);
   } else if (x_shape.size() == 3) {

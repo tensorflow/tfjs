@@ -196,7 +196,8 @@ describeWithFlags('transpose', ALL_ENVS, () => {
     ]);
   });
 
-  it('6D [r, c, d, e, f, g] => [c, r, d, e, f, g]', async () => {
+  // tslint:disable-next-line: ban
+  fit('6D [r, c, d, e, f, g] => [c, r, d, e, f, g]', async () => {
     const t = tf.tensor6d(
         new Array(64).fill(0).map((x, i) => i + 1), [2, 2, 2, 2, 2, 2]);
     const t2 = tf.transpose(t, [1, 0, 2, 3, 4, 5]);

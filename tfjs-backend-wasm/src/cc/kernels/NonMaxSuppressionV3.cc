@@ -63,7 +63,7 @@ float compute_iou(const float* boxes, const size_t i, const size_t j) {
 // Structure to store the result of the kernel. In this case we give js a
 // a pointer in memory where the result is stored and how big it is.
 struct Result {
-  size_t* buf;
+  int* buf;
   size_t size;
 };
 
@@ -88,8 +88,8 @@ const Result* NonMaxSuppressionV3(const size_t boxes_id, const size_t scores_id,
   const size_t num_boxes = boxes_info.size / 4;
 
   // Filter out boxes that are below the score threshold.
-  std::vector<size_t> box_indices;
-  for (size_t i = 0; i < num_boxes; ++i) {
+  std::vector<int> box_indices;
+  for (int i = 0; i < num_boxes; ++i) {
     if (scores[i] > score_threshold) {
       box_indices.push_back(i);
     }
@@ -103,12 +103,12 @@ const Result* NonMaxSuppressionV3(const size_t boxes_id, const size_t scores_id,
 
   // Select a box only if it doesn't overlap beyond the threshold with the
   // already selected boxes.
-  std::vector<size_t> selected;
-  for (size_t i = 0; i < box_indices.size(); ++i) {
+  std::vector<int> selected;
+  for (int i = 0; i < box_indices.size(); ++i) {
     const size_t box_i = box_indices[i];
     bool ignore_candidate = false;
-    for (size_t j = 0; j < selected.size(); ++j) {
-      const size_t box_j = selected[j];
+    for (int j = 0; j < selected.size(); ++j) {
+      const int box_j = selected[j];
       const float iou = compute_iou(boxes, box_i, box_j);
       if (iou >= iou_threshold) {
         ignore_candidate = true;
@@ -126,12 +126,12 @@ const Result* NonMaxSuppressionV3(const size_t boxes_id, const size_t scores_id,
   // Allocate memory on the heap for the resulting indices and copy the data
   // from the `selected` vector since we can't "steal" the data from the
   // vector.
-  size_t* data = static_cast<size_t*>(malloc(selected.size() * sizeof(size_t)));
-  std::memcpy(data, selected.data(), selected.size() * sizeof(size_t));
+  int* data = static_cast<int*>(malloc(selected.size() * sizeof(int)));
+  std::memcpy(data, selected.data(), selected.size() * sizeof(int));
 
   // Allocate the result of the method on the heap so it survives past this
   // function and we can read it in js.
-  return new Result{data, static_cast<size_t>(selected.size())};
+  return new Result{data, selected.size()};
 }
 
 }  // extern "C"
