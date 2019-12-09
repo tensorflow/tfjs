@@ -78,7 +78,7 @@ module.exports = cmdOptions => {
     bundles.push(config({
       output: {
         format: 'umd',
-        name: 'tf',
+        name: 'tf.wasm',
         extend: true,
         file: 'dist/tf-backend-wasm.js',
       }
@@ -90,7 +90,7 @@ module.exports = cmdOptions => {
     plugins: [terser({output: {preamble: PREAMBLE}})],
     output: {
       format: 'umd',
-      name: 'tf',
+      name: 'tf.wasm',
       extend: true,
       file: 'dist/tf-backend-wasm.min.js',
     },

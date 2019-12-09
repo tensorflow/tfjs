@@ -131,6 +131,11 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
 });
 
 describe('profiler.checkComputationForErrors', () => {
+  beforeAll(() => {
+    // Silence warnings.
+    spyOn(console, 'warn');
+  });
+
   it('Float32Array has NaN', () => {
     expect(checkComputationForErrors(
                new Float32Array([1, 2, 3, NaN, 4, 255]), 'float32', 'test'))
