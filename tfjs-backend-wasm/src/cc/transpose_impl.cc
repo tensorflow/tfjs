@@ -279,10 +279,9 @@ template void transpose<float>(const float* x_data,
                                const std::vector<size_t>& x_shape,
                                const std::vector<size_t>& perm,
                                float* out_data);
-template void transpose<size_t>(const size_t* x_data,
-                                const std::vector<size_t>& x_shape,
-                                const std::vector<size_t>& perm,
-                                size_t* out_data);
+template void transpose<int>(const int* x_data,
+                             const std::vector<size_t>& x_shape,
+                             const std::vector<size_t>& perm, int* out_data);
 template void transpose<bool>(const bool* x_data,
                               const std::vector<size_t>& x_shape,
                               const std::vector<size_t>& perm, bool* out_data);

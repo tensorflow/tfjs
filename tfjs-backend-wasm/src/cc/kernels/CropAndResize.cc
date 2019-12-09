@@ -96,7 +96,7 @@ void CropAndResize(size_t images_id, size_t boxes_id, size_t box_ind_id,
   const float* boxes_buf = boxes_info.f32();
   const size_t boxes_size = boxes_info.size;
 
-  const size_t* box_ind_buf = box_ind_info.i32();
+  const int* box_ind_buf = box_ind_info.i32();
   const size_t box_ind_size = box_ind_info.size;
 
   float* out_buf = out_info.f32_write();

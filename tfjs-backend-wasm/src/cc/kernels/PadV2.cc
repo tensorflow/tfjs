@@ -204,8 +204,8 @@ void PadV2(const size_t x_id, const size_t* x_shape_ptr,
                  out_info.f32_write());
       break;
     case DType::int32:
-      pad<size_t>(x_info.i32(), x_shape, paddings,
-                  static_cast<size_t>(pad_value), out_info.i32_write());
+      pad<int>(x_info.i32(), x_shape, paddings, static_cast<int>(pad_value),
+               out_info.i32_write());
       break;
     case DType::boolean:
       pad<bool>(x_info.b(), x_shape, paddings, static_cast<bool>(pad_value),

@@ -46,8 +46,8 @@ void Transpose(const size_t x_id, const size_t* x_shape_ptr,
                                    out_info.f32_write());
       break;
     case DType::int32:
-      tfjs::wasm::transpose<size_t>(x_info.i32(), x_shape, perm,
-                                    out_info.i32_write());
+      tfjs::wasm::transpose<int>(x_info.i32(), x_shape, perm,
+                                 out_info.i32_write());
       break;
     case DType::boolean:
       tfjs::wasm::transpose<bool>(x_info.b(), x_shape, perm,

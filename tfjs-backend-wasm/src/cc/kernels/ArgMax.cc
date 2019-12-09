@@ -25,12 +25,12 @@ namespace {
 
 template <typename T>
 void argmax(const T* x, const size_t outer_size, const size_t inner_size,
-            size_t* out_buf) {
-  for (size_t i = 0; i < outer_size; ++i) {
-    const size_t offset = i * inner_size;
+            int* out_buf) {
+  for (int i = 0; i < outer_size; ++i) {
+    const int offset = i * inner_size;
     T max = x[offset];
-    size_t max_index = 0;
-    for (size_t j = 1; j < inner_size; ++j) {
+    int max_index = 0;
+    for (int j = 1; j < inner_size; ++j) {
       const T val = x[offset + j];
       if (val > max) {
         max = val;
@@ -55,14 +55,14 @@ void ArgMax(const size_t x_id, const DType dtype, const size_t outer_size,
             const size_t inner_size, const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
-  size_t* out_buf = out_info.i32_write();
+  int* out_buf = out_info.i32_write();
 
   switch (dtype) {
     case DType::float32:
       argmax<float>(x_info.f32(), outer_size, inner_size, out_buf);
       break;
     case DType::int32:
-      argmax<size_t>(x_info.i32(), outer_size, inner_size, out_buf);
+      argmax<int>(x_info.i32(), outer_size, inner_size, out_buf);
       break;
     case DType::boolean:
       argmax<bool>(x_info.b(), outer_size, inner_size, out_buf);

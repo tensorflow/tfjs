@@ -47,7 +47,7 @@ void Add(const size_t a_id, const size_t* a_shape_ptr, const size_t a_shape_len,
                      xnn_setup_add_nd_f32);
       break;
     case DType::int32:
-      binary_i32(a_id, b_id, out_id, add<size_t>);
+      binary_i32(a_id, b_id, out_id, add<int>);
       break;
     case DType::boolean:
       binary_bool(a_id, b_id, out_id, add<bool>);

@@ -39,11 +39,11 @@ struct TensorInfo {
 
   float *f32_write() { return reinterpret_cast<float *>(memory_offset); }
 
-  const size_t *i32() const {
-    return reinterpret_cast<const size_t *>(memory_offset);
+  const int *i32() const {
+    return reinterpret_cast<const int *>(memory_offset);
   }
 
-  size_t *i32_write() { return reinterpret_cast<size_t *>(memory_offset); }
+  int *i32_write() { return reinterpret_cast<int *>(memory_offset); }
 
   const bool *b() const {
     return reinterpret_cast<const bool *>(memory_offset);

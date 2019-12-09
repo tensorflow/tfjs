@@ -42,8 +42,8 @@ void FloorDiv(const size_t a_id, const size_t* a_shape_ptr,
                  [](float a, float b) { return floor(a / b); });
       break;
     case DType::int32:
-      binary_i32(a_id, b_id, out_id, [](size_t a, size_t b) {
-        return static_cast<size_t>(floor(static_cast<float>(a) / b));
+      binary_i32(a_id, b_id, out_id, [](int a, int b) {
+        return static_cast<int>(floor(static_cast<float>(a) / b));
       });
       break;
     default:
