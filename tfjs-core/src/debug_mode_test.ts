@@ -57,8 +57,6 @@ describeWithFlags('debug on', SYNC_BACKEND_ENVS, () => {
     const a = tf.tensor1d([1, 2, 3, 4]);
     const b = tf.tensor1d([2, -1, 0, 3]);
 
-    spyOn(console, 'warn');
-
     const c = async () => {
       const result = a.div(b);
       // Must await result so we know exception would have happened by the
@@ -74,8 +72,6 @@ describeWithFlags('debug on', SYNC_BACKEND_ENVS, () => {
   it('debug mode errors when nans in op output', async () => {
     const a = tf.tensor1d([-1, 2]);
     const b = tf.tensor1d([0.5, 1]);
-
-    spyOn(console, 'warn');
 
     const c = async () => {
       const result = a.pow(b);
