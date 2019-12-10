@@ -271,7 +271,7 @@ function cropAndResize_(
     method?: 'bilinear'|'nearest',
     extrapolationValue?: number,
     ): Tensor4D {
-  const $image = convertToTensor(image, 'image', 'cropAndResize', 'float32');
+  const $image = convertToTensor(image, 'image', 'cropAndResize');
   const $boxes = convertToTensor(boxes, 'boxes', 'cropAndResize', 'float32');
   const $boxInd = convertToTensor(boxInd, 'boxInd', 'cropAndResize', 'int32');
   method = method || 'bilinear';

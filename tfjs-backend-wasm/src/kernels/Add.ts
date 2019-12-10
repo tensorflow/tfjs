@@ -16,4 +16,5 @@
  */
 
 import {registerBinaryKernel} from './binary_kernel';
-registerBinaryKernel('Add');
+const supportsBroadcast = true;
+registerBinaryKernel('Add', supportsBroadcast);

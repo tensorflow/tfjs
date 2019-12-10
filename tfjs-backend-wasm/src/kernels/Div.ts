@@ -16,4 +16,5 @@
  */
 
 import {registerBinaryKernel} from './binary_kernel';
-registerBinaryKernel('Div');
+const supportsBroadcast = false;
+registerBinaryKernel('Div', supportsBroadcast);

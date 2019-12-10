@@ -34,16 +34,8 @@ const RENDER_FLOAT32_ENVS = {
 };
 
 describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
-  let renderToF32FlagSaved: boolean;
-
   beforeAll(() => {
-    renderToF32FlagSaved =
-        tf.env().get('WEBGL_RENDER_FLOAT32_ENABLED') as boolean;
     tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', false);
-  });
-
-  afterAll(() => {
-    tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', renderToF32FlagSaved);
   });
 
   it('should overflow if larger than 66k', async () => {
@@ -53,11 +45,12 @@ describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
   });
 
   it('should error in debug mode', () => {
-    const savedDebugFlag = tf.env().getBool('DEBUG');
-    tf.env().set('DEBUG', true);
+    // Silence debug warnings.
+    spyOn(console, 'warn');
+
+    tf.enableDebugMode();
     const a = () => tf.tensor1d([2, Math.pow(2, 17)], 'float32');
     expect(a).toThrowError();
-    tf.env().set('DEBUG', savedDebugFlag);
   });
 });
 
@@ -356,11 +349,7 @@ describeWithFlags('debug on webgl', WEBGL_ENVS, () => {
   beforeAll(() => {
     // Silences debug warnings.
     spyOn(console, 'warn');
-    tf.env().set('DEBUG', true);
-  });
-
-  afterAll(() => {
-    tf.env().set('DEBUG', false);
+    tf.enableDebugMode();
   });
 
   it('debug mode errors when overflow in tensor construction', () => {

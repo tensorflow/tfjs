@@ -130,6 +130,7 @@
     "forward_list": "cpp",
     "typeindex": "cpp",
     "*.inc": "cpp",
-    "hash_map": "cpp"
+    "hash_map": "cpp",
+    "__refstring": "cpp"
   }
 }
