@@ -44,7 +44,7 @@
     "yalc": "~1.0.0-pre.21"
   },
   "dependencies": {
-    "@webgpu/glslang": "0.0.11",
+    "@webgpu/glslang": "0.0.12",
     "@webgpu/types": "0.0.18"
   },
   "peerDependencies": {
