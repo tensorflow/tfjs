@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -65,26 +65,12 @@ function batchMatMul(args: {
   const aId = backend.dataIdMap.get(a.dataId).id;
   const bId = backend.dataIdMap.get(b.dataId).id;
 
-  const sharedDim = transposeA ? a.shape[1] : a.shape[2];
   const leftDim = transposeA ? a.shape[2] : a.shape[1];
   const rightDim = transposeB ? b.shape[1] : b.shape[2];
   const batchDim = a.shape[0];
 
-  const aStrides = util.computeStrides(a.shape);
-  const bStrides = util.computeStrides(b.shape);
-  const [aBatch, aOuterStep, aInnerStep] = transposeA ?
-      [aStrides[0], 1, aStrides[1]] :
-      [aStrides[0], aStrides[1], 1];
-  const [bInnerStep, bOuterStep, bBatch] = transposeB ?
-      [1, bStrides[1], bStrides[0]] :
-      [bStrides[1], 1, bStrides[0]];
-
   const out = backend.makeOutput([batchDim, leftDim, rightDim], a.dtype);
   const outId = backend.dataIdMap.get(out.dataId).id;
-
-  // wasmBatchMatMul(
-  //     aId, bId, sharedDim, leftDim, rightDim, batchDim, aBatch, aOuterStep,
-  //     aInnerStep, bBatch, bOuterStep, bInnerStep, outId);
 
   const aShapeBytes = new Uint8Array(new Int32Array(a.shape).buffer);
   const bShapeBytes = new Uint8Array(new Int32Array(b.shape).buffer);
