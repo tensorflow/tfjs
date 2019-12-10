@@ -46,7 +46,7 @@ TEST(BACKEND, register_tensor) {
 }
 
 // C++ doesn't allow lambda functions with captures so we define the callback
-// outside the funcinttion. In the future we can consider changing the signature
+// outside the function. In the future we can consider changing the signature
 // of register_disposal_callback to take a std::function.
 size_t tensor_0_callback_count = 0;
 size_t tensor_1_callback_count = 0;
