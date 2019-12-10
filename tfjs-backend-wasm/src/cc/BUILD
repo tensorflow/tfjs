@@ -135,6 +135,7 @@ tfjs_cc_library(
     ":Sigmoid",
     ":Sub",
     ":Transpose",
+    ":Greater",
   ]
 )
 
@@ -420,6 +421,16 @@ tfjs_cc_library(
   deps = [
     ":backend",
     ":unary",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Greater",
+  srcs = ["kernels/Greater.cc"],
+  deps = [
+    ":backend",
+    ":binary",
+    ":util",
   ],
 )
 

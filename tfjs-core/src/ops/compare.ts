@@ -202,8 +202,10 @@ function greater_<T extends Tensor>(
   [$a, $b] = makeTypesMatch($a, $b);
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
-  return ENGINE.runKernelFunc(backend => backend.greater($a, $b), {$a, $b}) as
-      T;
+  return ENGINE.runKernelFunc(
+    backend => backend.greater($a, $b),
+    {a: $a, b: $b}, null /* grad */, 'Greater'
+  ) as T;
 }
 
 function greaterStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
