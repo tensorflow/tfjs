@@ -119,7 +119,7 @@ describeWithFlags('nonMaxSuppression', ALL_ENVS, () => {
         boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
 
     expect(indices.shape).toEqual([1]);
-    expectArraysEqual(await indices.data(), [0]);
+    expectArraysEqual(await indices.data(), [9]);
   });
 
   it('inconsistent box and score shapes', () => {
