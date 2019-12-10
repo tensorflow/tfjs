@@ -211,6 +211,25 @@ const TEST_FILTERS: TestFilter[] = [
                                                  // dims not supported yet.
     ]
   },
+  {
+    include: 'greater ',
+    excludes: [
+      'broadcasting Tensor2D shapes',  // Broadcasting along inner dims not
+                                       // supported yet.
+      'broadcasting Tensor3D shapes',  // Same as above.
+      'broadcasting Tensor4D shapes'  // Same as above.
+    ]
+  },
+  {
+    include: 'greaterEqual',
+    excludes: [
+      'gradient',  // Not yet implemented.
+      'broadcasting Tensor2D shapes',  // Broadcasting along inner dims not
+                                       // supported yet.
+      'broadcasting Tensor3D shapes',  // Same as above.
+      'broadcasting Tensor4D shapes'  // Same as above.
+    ]
+  },
 ];
 
 const customInclude = (testName: string) => {

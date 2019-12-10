@@ -65,6 +65,14 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "compare",
+  srcs = ["compare.h"],
+  deps = [
+    ":backend",
+  ],
+)
+
+tfjs_cc_library(
   name = "transpose_impl",
   hdrs = ["transpose_impl.h"],
   srcs = ["transpose_impl.cc"],
@@ -146,6 +154,8 @@ tfjs_cc_library(
     ":Sigmoid",
     ":Sub",
     ":Transpose",
+    ":Greater",
+    ":GreaterEqual",
   ]
 )
 
@@ -451,6 +461,26 @@ tfjs_cc_library(
   deps = [
     ":backend",
     ":unary",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Greater",
+  srcs = ["kernels/Greater.cc"],
+  deps = [
+    ":backend",
+    ":compare",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "GreaterEqual",
+  srcs = ["kernels/GreaterEqual.cc"],
+  deps = [
+    ":backend",
+    ":compare",
+    ":util",
   ],
 )
 
