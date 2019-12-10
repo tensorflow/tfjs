@@ -12,20 +12,25 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef NDEBUG
-#include "src/cc/util.h"
+#ifndef CHECK_MACROS_H_
+#define CHECK_MACROS_H_
 
+#ifndef NDEBUG
+
+#include "src/cc/util.h"
 #define DCHECK(condition, message, ...) \
   if (!(condition)) {                   \
     util::warn(message, __VA_ARGS__);   \
     abort();                            \
   }
+
 #else
-#include "src/cc/util.h"
 
 #define DCHECK(condition, message, ...) \
   if (false && !(condition)) {          \
-    util::warn(message, __VA_ARGS__);   \
     abort();                            \
   }
-#endif
+
+#endif  // NDEBUG
+
+#endif  // CHECK_MACROS_H_

@@ -46,7 +46,7 @@ void Div(const size_t a_id, const size_t* a_shape_ptr, const size_t a_shape_len,
       binary_f32(a_id, b_id, out_id, div<float>);
       break;
     case DType::int32:
-      binary_i32(a_id, b_id, out_id, div<int>);
+      binary_i32(a_id, b_id, out_id, div<int32_t>);
       break;
     case DType::boolean:
       binary_bool(a_id, b_id, out_id, div<bool>);

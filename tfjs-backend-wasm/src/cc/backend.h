@@ -16,6 +16,7 @@
 #define BACKEND_H_
 
 #include <cstddef>
+#include <cstdint>
 
 // This enum should align with the DType defined in kernels/types.ts.
 enum DType {
@@ -39,11 +40,11 @@ struct TensorInfo {
 
   float *f32_write() { return reinterpret_cast<float *>(memory_offset); }
 
-  const int *i32() const {
+  const int32_t *i32() const {
     return reinterpret_cast<const int *>(memory_offset);
   }
 
-  int *i32_write() { return reinterpret_cast<int *>(memory_offset); }
+  int32_t *i32_write() { return reinterpret_cast<int32_t *>(memory_offset); }
 
   const bool *b() const {
     return reinterpret_cast<const bool *>(memory_offset);

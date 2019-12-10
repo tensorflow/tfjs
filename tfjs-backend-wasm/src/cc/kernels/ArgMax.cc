@@ -62,7 +62,7 @@ void ArgMax(const size_t x_id, const DType dtype, const size_t outer_size,
       argmax<float>(x_info.f32(), outer_size, inner_size, out_buf);
       break;
     case DType::int32:
-      argmax<int>(x_info.i32(), outer_size, inner_size, out_buf);
+      argmax<int32_t>(x_info.i32(), outer_size, inner_size, out_buf);
       break;
     case DType::boolean:
       argmax<bool>(x_info.b(), outer_size, inner_size, out_buf);

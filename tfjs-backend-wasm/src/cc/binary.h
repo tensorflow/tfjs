@@ -47,8 +47,8 @@ inline void binary_i32(const size_t a_id, const size_t b_id,
   auto& a_info = backend::get_tensor_info(a_id);
   auto& b_info = backend::get_tensor_info(b_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
-  binary_impl<int>(a_info.i32(), a_info.size, b_info.i32(), b_info.size,
-                   out_info.i32_write(), operation);
+  binary_impl<int32_t>(a_info.i32(), a_info.size, b_info.i32(), b_info.size,
+                       out_info.i32_write(), operation);
 }
 
 inline void binary_bool(const size_t a_id, const size_t b_id,

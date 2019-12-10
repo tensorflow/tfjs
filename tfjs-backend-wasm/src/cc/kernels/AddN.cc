@@ -63,8 +63,8 @@ void AddN(const size_t* input_ids_ptr, const size_t input_ids_len,
                   out_info.size, out_info.f32_write());
       break;
     case DType::int32:
-      addn<int>(reinterpret_cast<std::vector<const int*>&>(inputs_buf),
-                out_info.size, out_info.i32_write());
+      addn<int32_t>(reinterpret_cast<std::vector<const int*>&>(inputs_buf),
+                    out_info.size, out_info.i32_write());
       break;
     case DType::boolean:
       addn<bool>(reinterpret_cast<std::vector<const bool*>&>(inputs_buf),
