@@ -22,7 +22,6 @@ namespace util {
 
 const std::vector<size_t> compute_strides(const std::vector<size_t> shape) {
   const size_t rank = shape.size();
-
   std::vector<size_t> strides(rank - 1);
 
   if (rank < 2) {
@@ -37,19 +36,9 @@ const std::vector<size_t> compute_strides(const std::vector<size_t> shape) {
     return strides;
   }
 
-  util::warn("rank - 3 = %u", rank - 3);
-  for (int i = rank - 3; i >= 0; i--) {
-    if (i % 100 == 0) {
-      if (i >= 0) {
-        // util::warn("i is creater than 0");
-      }
-      // util::warn("hi %u  ==== %u", i, strides[i + 1] * shape[i + 1]);
-    }
-
-    // if (i < -10) {
-    //   return strides;
-    // }
-
+  // We do i < rank here because i <= 0 is always true for unsigned integers and
+  // decrementing will wrap to the max int.
+  for (size_t i = rank - 3; i < rank; i--) {
     strides[i] = strides[i + 1] * shape[i + 1];
   }
 
