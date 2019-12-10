@@ -30,15 +30,21 @@ interface BatchMatMulAttrs extends NamedAttrMap {
 }
 
 let wasmBatchMatMul: (
-    aId: number, bId: number, sharedDim: number, leftDim: number,
-    rightDim: number, batchDim: number, aBatch: number, aOuterStep: number,
-    aInnerStep: number, bBatch: number, bOuterStep: number, bInnerStep: number,
-    outId: number) => void;
+    aId: number, aShape: Uint8Array, aShapeSize: number, bId: number,
+    bShape: Uint8Array, bShapeSize: number, transposeA: boolean,
+    transposeB: boolean, outId: number) => void;
 
 function setup(backend: BackendWasm) {
   wasmBatchMatMul = backend.wasm.cwrap('BatchMatMul', null /* void */, [
-    'number', 'number', 'number', 'number', 'number', 'number', 'number',
-    'number', 'number', 'number', 'number', 'number', 'number'
+    'number',  // a_id
+    'array',   // a_shape
+    'number',  // a_shape.length
+    'number',  // b_id
+    'array',   // b_shape
+    'number',  // b_shape.length
+    'number',  // transpose_a
+    'number',  // transpose_b
+    'number'   // out_id
   ]);
 }
 
@@ -76,9 +82,16 @@ function batchMatMul(args: {
   const out = backend.makeOutput([batchDim, leftDim, rightDim], a.dtype);
   const outId = backend.dataIdMap.get(out.dataId).id;
 
+  // wasmBatchMatMul(
+  //     aId, bId, sharedDim, leftDim, rightDim, batchDim, aBatch, aOuterStep,
+  //     aInnerStep, bBatch, bOuterStep, bInnerStep, outId);
+
+  const aShapeBytes = new Uint8Array(new Int32Array(a.shape).buffer);
+  const bShapeBytes = new Uint8Array(new Int32Array(b.shape).buffer);
   wasmBatchMatMul(
-      aId, bId, sharedDim, leftDim, rightDim, batchDim, aBatch, aOuterStep,
-      aInnerStep, bBatch, bOuterStep, bInnerStep, outId);
+      aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length,
+      transposeA, transposeB, outId);
+
   return out;
 }
 

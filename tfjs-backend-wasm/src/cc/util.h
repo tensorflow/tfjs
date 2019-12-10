@@ -139,7 +139,7 @@ inline int offset(int i1, int i2, int i3, int i4, int i5, int s1, int s2,
 
 // Returns the strides of a tensor given its shape. Note that the strides
 // are of length R-1 where R is the rank of the tensor.
-const std::vector<int> compute_strides(const std::vector<int> shape);
+const std::vector<size_t> compute_strides(const std::vector<size_t> shape);
 
 }  // namespace util
 }  // namespace tfjs

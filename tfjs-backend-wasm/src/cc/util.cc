@@ -19,9 +19,9 @@
 namespace tfjs {
 namespace util {
 
-const std::vector<int> compute_strides(const std::vector<int> shape) {
+const std::vector<size_t> compute_strides(const std::vector<size_t> shape) {
   const int rank = shape.size();
-  std::vector<int> strides(rank - 1);
+  std::vector<size_t> strides(rank - 1);
   // Last dimension has implicit stride of 1, thus having D-1 (instead of D)
   // strides.
   strides[rank - 2] = shape[rank - 1];
@@ -30,6 +30,5 @@ const std::vector<int> compute_strides(const std::vector<int> shape) {
   }
   return strides;
 }
-
 }  // namespace util
 }  // namespace tfjs

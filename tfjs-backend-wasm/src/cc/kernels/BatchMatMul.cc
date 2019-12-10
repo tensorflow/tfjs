@@ -29,12 +29,40 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void BatchMatMul(const int a_id, const int b_id, const int shared_dim,
-                 const int left_dim, const int right_dim, const int batch_dim,
-                 const int a_batch, const int a_outer_step,
-                 const int a_inner_step, const int b_batch,
-                 const int b_outer_step, const int b_inner_step,
+void BatchMatMul(const int a_id, const size_t* a_shape_ptr,
+                 const int a_shape_len, const int b_id,
+                 const size_t* b_shape_ptr, const int b_shape_len,
+                 const bool transpose_a, const bool transpose_b,
                  const int out_id) {
+  const int shared_dim = transpose_a ? a_shape_ptr[1] : a_shape_ptr[2];
+  const int left_dim = transpose_a ? a_shape_ptr[2] : a_shape_ptr[1];
+  const int right_dim = transpose_b ? b_shape_ptr[1] : b_shape_ptr[2];
+  const int batch_dim = a_shape_ptr[0];
+
+  std::vector<size_t> a_shape(a_shape_ptr, a_shape_ptr + a_shape_len);
+  std::vector<size_t> b_shape(b_shape_ptr, b_shape_ptr + b_shape_len);
+  const std::vector<size_t> a_strides = tfjs::util::compute_strides(a_shape);
+  const std::vector<size_t> b_strides = tfjs::util::compute_strides(b_shape);
+
+  int a_batch = a_strides[0];
+  int a_outer_step, a_inner_step;
+  if (transpose_a) {
+    a_outer_step = 1;
+    a_inner_step = a_strides[1];
+  } else {
+    a_outer_step = a_strides[1];
+    a_inner_step = 1;
+  }
+  int b_batch = b_strides[0];
+  int b_outer_step, b_inner_step;
+  if (transpose_b) {
+    a_outer_step = b_strides[1];
+    a_inner_step = 1;
+  } else {
+    a_outer_step = 1;
+    a_inner_step = b_strides[1];
+  }
+
   auto& a_info = backend::get_tensor_info(a_id);
   auto& b_info = backend::get_tensor_info(b_id);
   auto& out_info = backend::get_tensor_info_out(out_id);

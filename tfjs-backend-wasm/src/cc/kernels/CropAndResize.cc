@@ -74,12 +74,12 @@ void CropAndResize(int images_id, int boxes_id, int box_ind_id, int num_boxes,
                    InterpolationMethod method, float extrapolation_value,
                    int out_id) {
   const int images_shape_length = 4;
-  const std::vector<int>& images_shape = std::vector<int>(
+  const std::vector<size_t>& images_shape = std::vector<size_t>(
       images_shape_ptr, images_shape_ptr + images_shape_length);
   const auto images_strides = util::compute_strides(images_shape);
 
-  const std::vector<int>& output_shape = {num_boxes, crop_height, crop_width,
-                                          images_shape[3]};
+  const std::vector<size_t>& output_shape = {num_boxes, crop_height, crop_width,
+                                             images_shape[3]};
   const auto output_strides = util::compute_strides(output_shape);
 
   auto& images_info = backend::get_tensor_info(images_id);
