@@ -15,21 +15,24 @@
 #ifndef KERNELS_FUSEDDEPTHWISECONV2D_H_
 #define KERNELS_FUSEDDEPTHWISECONV2D_H_
 
+#include <cstddef>
+
+#include "src/cc/conv2d_impl.h"
+
 namespace tfjs {
 
 namespace wasm {
 extern "C" {
-void FusedDepthwiseConv2D(const int x_id, const int batch_size,
-                          const int input_height, const int input_width,
-                          const int filter_id, const int filter_height,
-                          const int filter_width, const int bias_id,
-                          int pad_top, int pad_right, int pad_bottom,
-                          int pad_left, const int is_same_pad,
-                          const int dilation_height, const int dilation_width,
-                          const int stride_height, const int stride_width,
-                          const int input_channels, const int output_channels,
-                          const int activation, const int prelu_weights_id,
-                          const int out_id);
+void FusedDepthwiseConv2D(
+    const size_t x_id, const size_t batch_size, const size_t input_height,
+    const size_t input_width, const size_t filter_id,
+    const size_t filter_height, const size_t filter_width, const size_t bias_id,
+    size_t pad_top, size_t pad_right, size_t pad_bottom, size_t pad_left,
+    const size_t is_same_pad, const size_t dilation_height,
+    const size_t dilation_width, const size_t stride_height,
+    const size_t stride_width, const size_t input_channels,
+    const size_t output_channels, const FusableActivation activation,
+    const size_t prelu_weights_id, const size_t out_id);
 }
 
 }  // namespace wasm
