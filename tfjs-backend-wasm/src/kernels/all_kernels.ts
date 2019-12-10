@@ -39,6 +39,7 @@ import './FusedDepthwiseConv2D';
 import './Max';
 import './MaxPool';
 import './Min';
+import './Minimum';
 import './Mul';
 import './NonMaxSuppressionV3';
 import './PadV2';

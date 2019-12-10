@@ -128,6 +128,7 @@ tfjs_cc_library(
     ":Conv2D",
     ":DepthwiseConv2dNative",
     ":FloorDiv",
+    ":Minimum",
     ":FusedConv2D",
     ":FusedDepthwiseConv2D",
     ":Div",
@@ -282,6 +283,16 @@ tfjs_cc_library(
 tfjs_cc_library(
   name = "FloorDiv",
   srcs = ["kernels/FloorDiv.cc"],
+  deps = [
+    ":backend",
+    ":binary",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Minimum",
+  srcs = ["kernels/Minimum.cc"],
   deps = [
     ":backend",
     ":binary",

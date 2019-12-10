@@ -673,13 +673,13 @@ function minimum_<T extends Tensor>(
     const [$a, $b] = saved;
     const derA = () => dy.mul($a.lessEqual($b).toFloat());
     const derB = () => dy.mul($a.greater($b).toFloat());
-    return {$a: derA, $b: derB};
+    return {a: derA, b: derB};
   };
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.minimum($a, $b);
     save([$a, $b]);
     return res;
-  }, {$a, $b}, der) as T;
+  }, {a: $a, b: $b}, der, 'Minimum') as T;
 }
 
 /**
