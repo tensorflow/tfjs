@@ -256,6 +256,9 @@ function nonMaxSuppSanityCheck(
       scores.shape[0] === numBoxes,
       () => `scores has incompatible shape with boxes. Expected ${numBoxes}, ` +
           `but was ${scores.shape[0]}`);
+  util.assert(
+      0 <= softNmsSigma && softNmsSigma <= 1,
+      () => `softNmsSigma must be in [0, 1], but was '${softNmsSigma}'`);
   return {maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma};
 }
 
