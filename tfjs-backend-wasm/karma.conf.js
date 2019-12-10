@@ -54,6 +54,7 @@ module.exports = function(config) {
       // Import the rest of the sources.
       {pattern: 'src/**/*.ts'},
     ],
+    exclude: ['src/test_node.ts'],
     preprocessors: {
       'wasm-out/**/*.js': ['karma-typescript'],
       '**/*.ts': ['karma-typescript']

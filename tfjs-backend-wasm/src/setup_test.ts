@@ -193,6 +193,8 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'addN'},
   {include: 'nonMaxSuppression'},
   {include: 'argmax', excludes: ['gradient']},
+  {include: 'exp '},
+  {include: 'unstack'},
 ];
 
 const customInclude = (testName: string) => {

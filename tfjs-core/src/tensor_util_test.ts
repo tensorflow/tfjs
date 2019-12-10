@@ -211,7 +211,9 @@ describeWithFlags('convertToTensor', ALL_ENVS, () => {
 
 describeWithFlags('convertToTensor debug mode', ALL_ENVS, () => {
   beforeAll(() => {
-    tf.env().set('DEBUG', true);
+    // Silence debug warnings.
+    spyOn(console, 'warn');
+    tf.enableDebugMode();
   });
 
   it('fails to convert a non-valid shape array to tensor', () => {
