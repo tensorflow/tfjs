@@ -103,7 +103,7 @@ export class MathBackendCPU extends KernelBackend {
             'Then call require(\'@tensorflow/tfjs-node\'); (-gpu ' +
             'suffix for CUDA) at the start of your program. ' +
             'Visit https://github.com/tensorflow/tfjs-node for more details.' +
-            '\n============================\n');
+            '\n============================');
       }
     }
     const dataId = {};
@@ -3561,8 +3561,8 @@ export class MathBackendCPU extends KernelBackend {
     const numBoxes = boxes.shape[0];
 
     const [cropHeight, cropWidth] = cropSize;
-    const output = ops.buffer(
-        [numBoxes, cropHeight, cropWidth, numChannels], images.dtype);
+    const output =
+        ops.buffer([numBoxes, cropHeight, cropWidth, numChannels], 'float32');
 
     const boxVals = this.readSync(boxes.dataId) as TypedArray;
     const boxIndVals = this.readSync(boxIndex.dataId) as TypedArray;

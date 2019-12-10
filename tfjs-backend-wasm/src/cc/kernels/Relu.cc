@@ -16,15 +16,9 @@
 #include <emscripten.h>
 #endif
 
-#include <cmath>
+#include <limits>
 
-#include "src/cc/backend.h"
-#include "src/cc/unary.h"
-
-namespace {
-// TODO(annxingyuan): Use XNN clamp operator.
-inline float oper(const float val) { return val < 0. ? 0. : val; }
-}  // namespace
+#include "src/cc/clamp_impl.h"
 
 namespace tfjs {
 namespace wasm {
@@ -34,7 +28,11 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Relu(const int x_id, const int out_id) { unary(x_id, out_id, oper); }
+void Relu(const int x_id, const int out_id) {
+  const float min = 0;
+  const float max = std::numeric_limits<float>::infinity();
+  xnn_clamp(x_id, out_id, min, max);
+}
 
 }  // extern "C"
 }  // namespace wasm

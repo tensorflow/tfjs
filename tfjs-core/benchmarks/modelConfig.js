@@ -72,20 +72,63 @@ const sentences = [
 ];
 
 const benchmarks = {
-  'mobilenet': {
+  'mobilenet_v2': {
     load: async () => {
       const url =
-          'https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/classification/2'
-      return tf.loadGraphModel(url, {fromTFHub: true});
+          'https://storage.googleapis.com/learnjs-data/mobilenet_v2_100_fused/model.json';
+      return tf.loadGraphModel(url);
     },
     predictFunc: () => {
       const zeros = tf.zeros([1, 224, 224, 3]);
-      return (model) => {
-        if (isAsync) {
-          return model.executeAsync(zeros);
-        }
+      return model => model.predict(zeros);
+    }
+  },
+  'mesh_128': {
+    load: async () => {
+      const url =
+          'https://storage.googleapis.com/learnjs-data/mesh_128_shift30_fixed_batch/model.json';
+      return tf.loadGraphModel(url);
+    },
+    predictFunc: () => {
+      const zeros = tf.zeros([1, 128, 128, 3]);
+      return model => {
+        return model.predict(zeros)[0];
+      };
+    },
+  },
+  'face_detector': {
+    load: async () => {
+      const url =
+          'https://storage.googleapis.com/learnjs-data/face_detector_front/model.json';
+      return tf.loadGraphModel(url);
+    },
+    predictFunc: () => {
+      const zeros = tf.zeros([1, 128, 128, 3]);
+      return model => {
         return model.predict(zeros);
-      }
+      };
+    },
+  },
+  'AutoML Image': {
+    load: async () => {
+      const url =
+          'https://storage.googleapis.com/tfjs-testing/tfjs-automl/img_classification/model.json';
+      return tf.automl.loadImageClassification(url);
+    },
+    predictFunc: () => {
+      const zeros = tf.zeros([224, 224, 3]);
+      return model => model.classify(zeros);
+    }
+  },
+  'AutoML Object': {
+    load: async () => {
+      const url =
+          'https://storage.googleapis.com/tfjs-testing/tfjs-automl/object_detection/model.json';
+      return tf.automl.loadObjectDetection(url);
+    },
+    predictFunc: () => {
+      const zeros = tf.zeros([224, 224, 3]);
+      return model => model.detect(zeros);
     }
   },
   'USE - batchsize 30': {
@@ -94,7 +137,7 @@ const benchmarks = {
     },
     predictFunc: () => {
       const sentences30 = sentences.slice(0, 30);
-      return async (model) => {
+      return async model => {
         const res = await model.embed(sentences30);
         return await res.data();
       }
@@ -107,7 +150,7 @@ const benchmarks = {
     predictFunc: () => {
       let nextIdx = 0;
 
-      return async () => {
+      return async model => {
         const next = [sentences[(nextIdx % sentences.length)]];
         const res = await model.embed(next);
         nextIdx += 1;
@@ -117,34 +160,41 @@ const benchmarks = {
   },
   'posenet': {
     load: async () => {
-      const imageBucket =
-          'https://storage.googleapis.com/tfjs-models/assets/posenet/';
-
-      async function loadImage(imagePath) {
-        const image = new Image();
-        const promise = new Promise((resolve, reject) => {
-          image.crossOrigin = '';
-          image.onload = () => {
-            resolve(image);
-          };
-        });
-
-        image.src = `${imageBucket}${imagePath}`;
-        return promise;
-      }
-
-      const posenetModel = await posenet.load();
-      const image = await loadImage('tennis_standing.jpg');
-
-      posenetModel.benchmarkImage = image;
-      return posenetModel;
+      const model = await posenet.load();
+      model.image = await loadImage('tennis_standing.jpg');
+      return model;
     },
     predictFunc: () => {
-      return async (model) => {
-        const image = model.benchmarkImage;
-        const pose = await model.estimateSinglePose(image);
-        return pose;
+      return async model => {
+        return model.estimateSinglePose(model.image);
+      }
+    }
+  },
+  'bodypix': {
+    load: async () => {
+      const model = await bodyPix.load();
+      model.image = await loadImage('tennis_standing.jpg');
+      return model;
+    },
+    predictFunc: () => {
+      return async model => {
+        return model.segmentPerson(model.image);
       }
     }
   },
 };
+
+const imageBucket =
+    'https://storage.googleapis.com/tfjs-models/assets/posenet/';
+async function loadImage(imagePath) {
+  const image = new Image();
+  const promise = new Promise((resolve, reject) => {
+    image.crossOrigin = '';
+    image.onload = () => {
+      resolve(image);
+    };
+  });
+
+  image.src = `${imageBucket}${imagePath}`;
+  return promise;
+}

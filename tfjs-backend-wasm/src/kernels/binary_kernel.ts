@@ -20,14 +20,21 @@ import {backend_util, NamedTensorInfoMap, registerKernel, TensorInfo, util} from
 import {BackendWasm} from '../backend_wasm';
 import {CppDType} from './types';
 
-export function registerBinaryKernel(kernelName: string) {
-  let wasmFunc: (aId: number, bId: number, dtype: number, outId: number) =>
-      void;
+export function registerBinaryKernel(
+    kernelName: string, supportsBroadcast: boolean) {
+  let wasmFunc:
+      (aId: number, aShape: Uint8Array, aShapeLen: number, bId: number,
+       bShape: Uint8Array, bShapeLen: number, dtype: number, outId: number) =>
+          void;
 
   function setupFunc(backend: BackendWasm): void {
     wasmFunc = backend.wasm.cwrap(kernelName, null /* void */, [
       'number',  // a_id,
+      'array',   // a_shape
+      'number',  // a_shape.length
       'number',  // b_id
+      'array',   // b_shape
+      'number',  // b_shape.length
       'number',  // dtype
       'number'   // out_id
     ]);
@@ -42,8 +49,21 @@ export function registerBinaryKernel(kernelName: string) {
 
     const newShape = backend_util.assertAndGetBroadcastShape(a.shape, b.shape);
     const out = backend.makeOutput(newShape, a.dtype);
+
     // Short-circuit zero-sized tensors.
     if (util.sizeFromShape(newShape) === 0) {
+      return out;
+    }
+
+    const aShapeBytes = new Uint8Array(new Int32Array(a.shape).buffer);
+    const bShapeBytes = new Uint8Array(new Int32Array(b.shape).buffer);
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    const kernelFunc = () => wasmFunc(
+        aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length,
+        CppDType[a.dtype], outId);
+
+    if (supportsBroadcast) {
+      kernelFunc();
       return out;
     }
 
@@ -51,10 +71,8 @@ export function registerBinaryKernel(kernelName: string) {
     const bBroadcastDims = backend_util.getBroadcastDims(b.shape, newShape);
     const loopsOverAllOfA = aBroadcastDims.every((v, i) => v === i);
     const loopsOverAllOfB = bBroadcastDims.every((v, i) => v === i);
-    const outId = backend.dataIdMap.get(out.dataId).id;
-
     if (loopsOverAllOfA && loopsOverAllOfB) {
-      wasmFunc(aId, bId, CppDType[a.dtype], outId);
+      kernelFunc();
       return out;
     } else {
       throw new Error('Broadcasting along inner dims is not yet supported');

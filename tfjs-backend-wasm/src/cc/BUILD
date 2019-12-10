@@ -18,7 +18,6 @@ cc_binary(
         "-s EXIT_RUNTIME=0",
         "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
         "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
-        "-s ENVIRONMENT=web",
         "-s MODULARIZE=1",
         "-s EXPORT_NAME=WasmBackendModule",
         "-s MALLOC=emmalloc",
@@ -49,7 +48,8 @@ tfjs_cc_library(
 
 tfjs_cc_library(
   name = "binary",
-  srcs = ["binary.h"],
+  hdrs = ["binary.h"],
+  srcs = ["binary.cc"],
   deps = [
     ":backend",
   ],
@@ -91,6 +91,16 @@ tfjs_cc_library(
     ":transpose_impl",
     ":prelu_impl",
     ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "clamp_impl",
+  hdrs = ["clamp_impl.h"],
+  srcs = ["clamp_impl.cc"],
+  deps = [
+    ":backend",
+    ":util"
   ],
 )
 
@@ -360,6 +370,7 @@ tfjs_cc_library(
   srcs = ["kernels/Relu.cc"],
   deps = [
     ":backend",
+    ":clamp_impl",
     ":unary",
   ],
 )
@@ -369,6 +380,7 @@ tfjs_cc_library(
   srcs = ["kernels/Relu6.cc"],
   deps = [
     ":backend",
+    ":clamp_impl",
     ":unary",
   ],
 )
@@ -399,6 +411,15 @@ tfjs_cc_library(
     ":backend",
     ":util",
     ":transpose_impl",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Exp",
+  srcs = ["kernels/Exp.cc"],
+  deps = [
+    ":backend",
+    ":unary",
   ],
 )
 

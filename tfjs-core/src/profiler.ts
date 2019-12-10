@@ -87,7 +87,10 @@ export class Logger {
     let inputShapesDescription = '';
 
     for (const name in inputs) {
-      const inputShape = inputs[name].shape;
+      const input = inputs[name];
+      // The input might be a non-tensor (e.g HTMLImageElement), in which case
+      // we claim the output shape as input shape.
+      const inputShape = input.shape || result.shape;
       const inputRank = inputShape.length;
       inputShapesDescription +=
           `${name}: ${inputRank}D ${inputRank > 0 ? inputShape : ''} `;

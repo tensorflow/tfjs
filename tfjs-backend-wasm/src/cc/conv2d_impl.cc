@@ -19,7 +19,7 @@
 #include "src/cc/conv2d_impl.h"
 
 #include <xnnpack.h>
-#include <array>
+#include <tuple>
 #include <cmath>
 #include <limits>
 #include <map>
@@ -34,10 +34,11 @@
 #include "src/cc/util.h"
 
 namespace {
-// These integer values are keys to creating the conv2d operator. We use
-// std::array instead of a vanilla array as it implements the compare operator
+// We use std::tuple as the cache key as it implements the compare operator
 // needed for std::map.
-typedef std::array<int, 19> OperatorCacheKey;
+typedef std::tuple<int, int, int, int, int, int, int, int, int, int, int, int,
+                   int, int, int, int, int, int, int, float, float>
+    OperatorCacheKey;
 
 struct CachedInfo {
   xnn_operator_t op;
@@ -162,6 +163,16 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
     clamp_method = tfjs::wasm::FusableActivation::LINEAR;
   }
 
+  float output_min = -std::numeric_limits<float>::infinity();
+  float output_max = std::numeric_limits<float>::infinity();
+
+  if (activation == FusableActivation::RELU) {
+    output_min = 0;
+  } else if (activation == FusableActivation::RELU6) {
+    output_min = 0;
+    output_max = 6;
+  }
+
   OperatorCacheKey cache_key = {pad_top,
                                 pad_right,
                                 pad_bottom,
@@ -180,20 +191,12 @@ void conv2d(const int x_id, const int batch_size, const int input_height,
                                 clamp_method,
                                 filter_id,
                                 bias_id,
-                                flags};
+                                flags,
+                                output_min,
+                                output_max};
 
   auto operator_cache_idx = operator_cache.find(cache_key);
   if (operator_cache_idx == operator_cache.end()) {
-    float output_min = -std::numeric_limits<float>::infinity();
-    float output_max = std::numeric_limits<float>::infinity();
-
-    if (activation == FusableActivation::RELU) {
-      output_min = 0;
-    } else if (activation == FusableActivation::RELU6) {
-      output_min = 0;
-      output_max = 6;
-    }
-
     // This lives outside the if statement so the data survives the scope.
     std::vector<float> transposed_filter;
 
