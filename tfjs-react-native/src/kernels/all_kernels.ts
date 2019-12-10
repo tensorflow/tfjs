@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,11 +15,6 @@
  * =============================================================================
  */
 
-import './platform_react_native';
-import './kernels/all_kernels';
-
-export {asyncStorageIO} from './async_storage_io';
-export {bundleResourceIO} from './bundle_resource_io';
-export {decodeJpeg} from './decode_image';
-export {fetch} from './platform_react_native';
-export * from './ops';
+// We explicitly import the modular kernels so they get registered in the
+// global registry when we compile the library.
+import './from_camera';
