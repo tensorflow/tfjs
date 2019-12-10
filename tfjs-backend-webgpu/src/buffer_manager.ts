@@ -93,21 +93,21 @@ export class BufferManager {
   }
 
   dispose() {
-    if (this.freeBuffers == null) {
+    if (this.freeBuffers == null && this.usedBuffers) {
       return;
     }
 
-    for (const key in this.freeBuffers) {
-      this.freeBuffers.get(key).forEach(buff => {
+    this.freeBuffers.forEach((buffers, key) => {
+      buffers.forEach(buff => {
         buff.destroy();
       });
-    }
+    });
 
-    for (const key in this.usedBuffers) {
-      this.usedBuffers.get(key).forEach(buff => {
+    this.usedBuffers.forEach((buffers, key) => {
+      buffers.forEach(buff => {
         buff.destroy();
       });
-    }
+    });
 
     this.freeBuffers = null;
     this.usedBuffers = null;
