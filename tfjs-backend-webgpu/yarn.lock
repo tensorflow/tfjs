@@ -72,10 +72,10 @@
   resolved "https://registry.yarnpkg.com/@types/webgl2/-/webgl2-0.0.4.tgz#c3b0f9d6b465c66138e84e64cb3bdf8373c2c279"
   integrity sha512-PACt1xdErJbMUOUweSrbVM7gSIYm1vTncW2hF6Os/EeWi6TXYAYMPp+8v6rzHmypE5gHrxaxZNXgMkJVIdZpHw==
 
-"@webgpu/glslang@0.0.11":
-  version "0.0.11"
-  resolved "https://registry.yarnpkg.com/@webgpu/glslang/-/glslang-0.0.11.tgz#a1d8135bd738264d0f38f1277d3650ba3c7fe562"
-  integrity sha512-2SPO3w8L3SeEQKe/e9y/gxfO5OQ81ThvJb+qxe7ICKYnRCsTUB3li7qbekhvOtjn9XYojs9ARhwuNBV2NP0Y/g==
+"@webgpu/glslang@0.0.12":
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/@webgpu/glslang/-/glslang-0.0.12.tgz#ee40e8d38c31436508147feaf0f646fde9bb4da6"
+  integrity sha512-GfEVo1GUxNfXjO4Z7I06XXYJA45N6sHoKqI5Ptf3vafnPowq2C1woCqVe7frsClMfBB2yLn1vJss2oWl5EdTig==
 
 "@webgpu/types@0.0.18":
   version "0.0.18"
