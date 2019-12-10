@@ -129,7 +129,6 @@ py_test(
     srcs_version = "PY2AND3",
     deps = [
         ":fuse_depthwise_conv2d",
-        ":tf_saved_model_conversion_v2",
         "//tensorflowjs:expect_numpy_installed",
         "//tensorflowjs:expect_tensorflow_installed",
     ],

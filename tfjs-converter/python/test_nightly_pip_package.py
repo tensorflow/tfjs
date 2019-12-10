@@ -1,4 +1,4 @@
-# Copyright 2018 Google LLC
+# Copyright 2019 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -45,22 +45,13 @@ import tensorflowjs as tfjs
 class APIAndShellTest(tf.test.TestCase):
   """Nightly tests for the Python API of the pip package."""
 
-  @classmethod
-  def setUpClass(cls):
-    cls.class_tmp_dir = tempfile.mkdtemp()
-    cls.tf_saved_model_dir = os.path.join(cls.class_tmp_dir, 'tf_saved_model')
-
-  @classmethod
-  def tearDownClass(cls):
-    shutil.rmtree(cls.class_tmp_dir)
-
   def setUp(self):
     # Make sure this file is not being run from the source directory, to
     # avoid picking up source files.
-    # if os.path.isdir(
-    #     os.path.join(os.path.dirname(__file__), 'tensorflowjs')):
-    #   self.fail('Do not run this test from the Python source directory. '
-    #             'This file is intended to be run on pip install.')
+    if os.path.isdir(
+        os.path.join(os.path.dirname(__file__), 'tensorflowjs')):
+      self.fail('Do not run this test from the Python source directory. '
+                'This file is intended to be run on pip install.')
 
     self._tmp_dir = tempfile.mkdtemp()
     super(APIAndShellTest, self).setUp()
@@ -70,11 +61,11 @@ class APIAndShellTest(tf.test.TestCase):
       shutil.rmtree(self._tmp_dir)
     super(APIAndShellTest, self).tearDown()
 
-  def testConvertTfHubModelToTfjsGraphModel(self):
+  def testConvertTfHubMobileNetV2ToTfjsGraphModel(self):
     # 1. Convert tfhub mobilenet v2 module.
     tfhub_url = (
         'https://tfhub.dev/google/imagenet/mobilenet_v2_100_224'
-        '/feature_vector/3'
+        '/classification/3'
     )
     graph_model_output_dir = os.path.join(self._tmp_dir, 'tfjs_graph')
     process = subprocess.Popen([
@@ -87,11 +78,11 @@ class APIAndShellTest(tf.test.TestCase):
     # 2. Check the files that belong to the conversion result.
     files = glob.glob(os.path.join(graph_model_output_dir, '*'))
     self.assertIn(os.path.join(graph_model_output_dir, 'model.json'), files)
-    weight_files = sorted(
-        glob.glob(os.path.join(graph_model_output_dir, 'group*.bin')))
-    self.assertEqual(len(weight_files), 3)
+    weight_files = glob.glob(
+        os.path.join(graph_model_output_dir, 'group*.bin'))
+    self.assertEqual(len(weight_files), 4)
 
-  def testConvertKerasSavedModelToTfjsGraphModel(self):
+  def testConvertMobileNetV2ModelToTfjsGraphModel(self):
     """create the keras mobilenet v2 model."""
     # 1. Create a saved model from keras mobilenet v2.
     model = tf.keras.applications.MobileNetV2()
@@ -111,11 +102,11 @@ class APIAndShellTest(tf.test.TestCase):
     # 3. Check the files that belong to the conversion result.
     files = glob.glob(os.path.join(graph_model_output_dir, '*'))
     self.assertIn(os.path.join(graph_model_output_dir, 'model.json'), files)
-    weight_files = sorted(
-        glob.glob(os.path.join(graph_model_output_dir, 'group*.bin')))
+    weight_files = glob.glob(
+        os.path.join(graph_model_output_dir, 'group*.bin'))
     self.assertEqual(len(weight_files), 4)
 
-  def testConvertKerasHdf5ModelToTfjsGraphModel(self):
+  def testConvertMobileNetV2Hdf5ToTfjsGraphModel(self):
     # 1. Create a model for testing.
     model = tf.keras.applications.MobileNetV2()
 
@@ -136,8 +127,8 @@ class APIAndShellTest(tf.test.TestCase):
     # 3. Check the files that belong to the conversion result.
     files = glob.glob(os.path.join(graph_model_output_dir, '*'))
     self.assertIn(os.path.join(graph_model_output_dir, 'model.json'), files)
-    weight_files = sorted(
-        glob.glob(os.path.join(graph_model_output_dir, 'group*.bin')))
+    weight_files = glob.glob(
+        os.path.join(graph_model_output_dir, 'group*.bin'))
     self.assertEqual(len(weight_files), 4)
 
 if __name__ == '__main__':
