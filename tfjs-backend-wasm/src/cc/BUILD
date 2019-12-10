@@ -18,7 +18,6 @@ cc_binary(
         "-s EXIT_RUNTIME=0",
         "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
         "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
-        "-s ENVIRONMENT=web",
         "-s MODULARIZE=1",
         "-s EXPORT_NAME=WasmBackendModule",
         "-s MALLOC=emmalloc",
@@ -34,8 +33,17 @@ tfjs_cc_library(
   srcs = ["backend.cc"],
   hdrs = ["backend.h"],
   deps = [
+    ":check_macros",
     ":util",
     "@xnnpack//:xnnpack_operators_nhwc_f32",
+  ],
+)
+
+tfjs_cc_library(
+  name = "check_macros",
+  srcs = ["check_macros.h"],
+  deps = [
+    ":util",
   ],
 )
 
@@ -412,6 +420,15 @@ tfjs_cc_library(
     ":backend",
     ":util",
     ":transpose_impl",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Exp",
+  srcs = ["kernels/Exp.cc"],
+  deps = [
+    ":backend",
+    ":unary",
   ],
 )
 

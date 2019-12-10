@@ -12,31 +12,25 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#endif
+#ifndef CHECK_MACROS_H_
+#define CHECK_MACROS_H_
 
-#include <cstddef>
+#ifndef NDEBUG
 
-#include "src/cc/backend.h"
-#include "src/cc/unary.h"
+#include "src/cc/util.h"
+#define DCHECK(condition, message, ...) \
+  if (!(condition)) {                   \
+    util::warn(message, __VA_ARGS__);   \
+    abort();                            \
+  }
 
-namespace {
-inline float square(const float val) { return val * val; }
-}  // namespace
+#else
 
-namespace tfjs {
-namespace wasm {
-// We use C-style API to interface with Javascript.
-extern "C" {
+#define DCHECK(condition, message, ...) \
+  if (false) {                          \
+    abort();                            \
+  }
 
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif
-void Square(const size_t x_id, const size_t out_id) {
-  unary(x_id, out_id, square);
-}
+#endif  // NDEBUG
 
-}  // extern "C"
-}  // namespace wasm
-}  // namespace tfjs
+#endif  // CHECK_MACROS_H_

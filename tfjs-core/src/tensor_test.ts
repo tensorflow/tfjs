@@ -1533,7 +1533,9 @@ describeWithFlags('tensor', ALL_ENVS, () => {
 
 describeWithFlags('tensor debug mode', ALL_ENVS, () => {
   beforeAll(() => {
-    tf.env().set('DEBUG', true);
+    // Silence debug warnings.
+    spyOn(console, 'warn');
+    tf.enableDebugMode();
   });
 
   it('tf.tensor() from TypedArray + number[] fails due to wrong shape', () => {

@@ -105,19 +105,6 @@ describeWithFlags('nonMaxSuppression', ALL_ENVS, () => {
   });
 
   it('select from ten identical boxes', async () => {
-    const boxes = tf.tensor2d([0, 0, 1, 1], [1, 4]);
-    const scores = tf.tensor1d([0.9]);
-    const maxOutputSize = 3;
-    const iouThreshold = 0.5;
-    const scoreThreshold = 0;
-    const indices = tf.image.nonMaxSuppression(
-        boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
-
-    expect(indices.shape).toEqual([1]);
-    expectArraysEqual(await indices.data(), [0]);
-  });
-
-  it('select from ten identical boxes', async () => {
     const numBoxes = 10;
     const corners = new Array(numBoxes)
                         .fill(0)
@@ -185,6 +172,26 @@ describeWithFlags('nonMaxSuppression', ALL_ENVS, () => {
     expect(indices.dtype).toEqual('int32');
     expectArraysEqual(await indices.data(), [1, 0]);
   });
+
+  it('select from three clusters with SoftNMS', async () => {
+    const boxes = tf.tensor2d(
+        [
+          0, 0,  1, 1,  0, 0.1,  1, 1.1,  0, -0.1, 1, 0.9,
+          0, 10, 1, 11, 0, 10.1, 1, 11.1, 0, 100,  1, 101
+        ],
+        [6, 4]);
+    const scores = tf.tensor1d([0.9, 0.75, 0.6, 0.95, 0.5, 0.3]);
+    const maxOutputSize = 6;
+    const iouThreshold = 1.0;
+    const scoreThreshold = 0;
+    const softNmsSigma = 0.5;
+    const indices = tf.image.nonMaxSuppression(
+        boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
+        softNmsSigma);
+
+    expect(indices.shape).toEqual([6]);
+    expectArraysEqual(await indices.data(), [3, 0, 1, 5, 4, 2]);
+  });
 });
 
 describeWithFlags('nonMaxSuppressionAsync', ALL_ENVS, () => {
@@ -214,6 +221,26 @@ describeWithFlags('nonMaxSuppressionAsync', ALL_ENVS, () => {
     expect(indices.dtype).toEqual('int32');
     expectArraysEqual(await indices.data(), [1, 0]);
   });
+
+  it('select from three clusters with SoftNMS', async () => {
+    const boxes = tf.tensor2d(
+        [
+          0, 0,  1, 1,  0, 0.1,  1, 1.1,  0, -0.1, 1, 0.9,
+          0, 10, 1, 11, 0, 10.1, 1, 11.1, 0, 100,  1, 101
+        ],
+        [6, 4]);
+    const scores = tf.tensor1d([0.9, 0.75, 0.6, 0.95, 0.5, 0.3]);
+    const maxOutputSize = 6;
+    const iouThreshold = 1.0;
+    const scoreThreshold = 0;
+    const softNmsSigma = 0.5;
+    const indices = await tf.image.nonMaxSuppressionAsync(
+        boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
+        softNmsSigma);
+
+    expect(indices.shape).toEqual([6]);
+    expectArraysEqual(await indices.data(), [3, 0, 1, 5, 4, 2]);
+  });
 });
 
 describeWithFlags('cropAndResize', ALL_ENVS, () => {
@@ -229,6 +256,33 @@ describeWithFlags('cropAndResize', ALL_ENVS, () => {
     expect(output.dtype).toBe('float32');
     expectArraysClose(await output.data(), [2.5]);
   });
+
+  it('5x5-bilinear, no change in shape', async () => {
+    const image: tf.Tensor4D = tf.ones([1, 5, 5, 3]);
+    const boxes: tf.Tensor2D = tf.tensor2d([0, 0, 1, 1], [1, 4]);
+    const boxInd: tf.Tensor1D = tf.tensor1d([0], 'int32');
+
+    const output =
+        tf.image.cropAndResize(image, boxes, boxInd, [5, 5], 'bilinear', 0);
+
+    expect(output.shape).toEqual([1, 5, 5, 3]);
+    expect(output.dtype).toBe('float32');
+    expectArraysClose(await output.data(), await image.data());
+  });
+
+  it('5x5-bilinear, just a crop, no resize', async () => {
+    const image: tf.Tensor4D = tf.ones([1, 6, 6, 3]);
+    const boxes: tf.Tensor2D = tf.tensor2d([0.5, 0.5, 1, 1], [1, 4]);
+    const boxInd: tf.Tensor1D = tf.tensor1d([0], 'int32');
+
+    const output =
+        tf.image.cropAndResize(image, boxes, boxInd, [3, 3], 'bilinear', 0);
+
+    expect(output.shape).toEqual([1, 3, 3, 3]);
+    expect(output.dtype).toBe('float32');
+    expectArraysClose(await output.data(), await tf.ones([1, 3, 3, 3]).data());
+  });
+
   it('1x1-nearest', async () => {
     const image: tf.Tensor4D = tf.tensor4d([1, 2, 3, 4], [1, 2, 2, 1]);
     const boxes: tf.Tensor2D = tf.tensor2d([0, 0, 1, 1], [1, 4]);

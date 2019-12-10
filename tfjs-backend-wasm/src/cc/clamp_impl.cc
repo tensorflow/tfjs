@@ -15,6 +15,7 @@
 #include "src/cc/clamp_impl.h"
 
 #include <xnnpack.h>
+#include <cstddef>
 #include <map>
 #include <tuple>
 
@@ -32,7 +33,7 @@ std::map<CacheKey, xnn_operator_t> op_cache;
 namespace tfjs {
 namespace wasm {
 
-void xnn_clamp(const int x_id, const int out_id, const float min,
+void xnn_clamp(const size_t x_id, const size_t out_id, const float min,
                const float max) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);

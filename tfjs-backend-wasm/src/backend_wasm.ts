@@ -34,7 +34,8 @@ interface TensorData {
 export type DataId = object;  // object instead of {} to force non-primitive.
 
 export class BackendWasm extends KernelBackend {
-  private dataIdNextNumber = 0;
+  // 0 is reserved for null data ids.
+  private dataIdNextNumber = 1;
   dataIdMap: DataStorage<TensorData>;
 
   constructor(public wasm: BackendWasmModule) {

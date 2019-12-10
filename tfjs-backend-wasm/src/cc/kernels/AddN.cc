@@ -16,6 +16,7 @@
 #include <emscripten.h>
 #endif
 
+#include <cstddef>
 #include <vector>
 
 #include "src/cc/backend.h"
@@ -24,7 +25,8 @@
 namespace {
 
 template <typename T>
-void addn(const std::vector<const T*>& inputs_buf, const int size, T* out_buf) {
+void addn(const std::vector<const T*>& inputs_buf, const size_t size,
+          T* out_buf) {
   // Initialize the output to 0.
   memset(out_buf, 0, size * sizeof(T));
 
@@ -46,14 +48,14 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void AddN(const int* input_ids_ptr, const int input_ids_len, const DType dtype,
-          const int out_id) {
-  std::vector<int> inputs(input_ids_ptr, input_ids_ptr + input_ids_len);
+void AddN(const size_t* input_ids_ptr, const size_t input_ids_len,
+          const DType dtype, const size_t out_id) {
+  std::vector<size_t> inputs(input_ids_ptr, input_ids_ptr + input_ids_len);
   auto& out_info = backend::get_tensor_info_out(out_id);
   std::vector<void*> inputs_buf;
   std::transform(
       inputs.begin(), inputs.end(), std::back_inserter(inputs_buf),
-      [](int id) { return backend::get_tensor_info(id).memory_offset; });
+      [](size_t id) { return backend::get_tensor_info(id).memory_offset; });
 
   switch (dtype) {
     case DType::float32:
@@ -61,8 +63,8 @@ void AddN(const int* input_ids_ptr, const int input_ids_len, const DType dtype,
                   out_info.size, out_info.f32_write());
       break;
     case DType::int32:
-      addn<int>(reinterpret_cast<std::vector<const int*>&>(inputs_buf),
-                out_info.size, out_info.i32_write());
+      addn<int32_t>(reinterpret_cast<std::vector<const int*>&>(inputs_buf),
+                    out_info.size, out_info.i32_write());
       break;
     case DType::boolean:
       addn<bool>(reinterpret_cast<std::vector<const bool*>&>(inputs_buf),
