@@ -56,6 +56,7 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [Basic Tutorial with TensorFlow.js: Linear Regression](https://medium.com/@tristansokol/basic-tutorial-with-tensorflow-js-linear-regression-aa68b16e5b8e) by Tristan Sokol
 
 ## Video tutorials
+- [Beginning Machine Learning with TensorFlow.js](https://academy.infinite.red/p/beginning-machine-learning-with-tensorflow-js)
 - [The Coding Train - TensorFlow.js Introduction](https://www.youtube.com/playlist?list=PLRqwX-V7Uu6YIeVA3dNxbR9PYj4wV31oQ)
 - [The Coding Train - TensorFlow.js Color Classifier](https://www.youtube.com/playlist?list=PLRqwX-V7Uu6bmMRCIoTi72aNWHo7epX4L)
 - [Siraj Raval - TensorFlow.js Explained](https://www.youtube.com/watch?v=Nc8kZABv-KE)
