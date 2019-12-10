@@ -27,7 +27,7 @@
 #else
 
 #define DCHECK(condition, message, ...) \
-  if (false && !(condition)) {          \
+  if (false) {                          \
     abort();                            \
   }
 

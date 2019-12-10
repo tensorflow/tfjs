@@ -32,7 +32,7 @@ void conv2d(const size_t x_id, const size_t batch_size,
             const size_t dilation_width, const size_t stride_height,
             const size_t stride_width, const size_t input_channels,
             const size_t output_channels, const bool is_depthwise,
-            const size_t activation, const size_t prelu_weighs_id,
+            const FusableActivation activation, const size_t prelu_weighs_id,
             const size_t out_id);
 }  // namespace wasm
 }  // namespace tfjs

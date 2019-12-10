@@ -17,6 +17,8 @@
 
 #include <cstddef>
 
+#include "src/cc/conv2d_impl.h"
+
 namespace tfjs {
 namespace wasm {
 extern "C" {
@@ -30,8 +32,8 @@ void FusedConv2D(const size_t x_id, const size_t batch_size,
                  const size_t dilation_height, const size_t dilation_width,
                  const size_t stride_height, const size_t stride_width,
                  const size_t input_channels, const size_t output_channels,
-                 const size_t activation, const size_t prelu_weights_id,
-                 const size_t out_id);
+                 const FusableActivation activation,
+                 const size_t prelu_weights_id, const size_t out_id);
 }
 
 }  // namespace wasm

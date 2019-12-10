@@ -41,7 +41,7 @@ void DepthwiseConv2dNative(
   const size_t bias_id = 0;
   const size_t prelu_weights_id = 0;
   const bool is_depthwise = true;
-  const size_t activation = FusableActivation::LINEAR;
+  const FusableActivation activation = FusableActivation::LINEAR;
   tfjs::wasm::conv2d(x_id, batch_size, input_height, input_width, filter_id,
                      filter_height, filter_width, bias_id, pad_top, pad_right,
                      pad_bottom, pad_left, is_same_pad, dilation_height,

@@ -117,7 +117,7 @@ void conv2d(const size_t x_id, const size_t batch_size,
             const size_t dilation_width, const size_t stride_height,
             const size_t stride_width, const size_t input_channels,
             const size_t output_channels, const bool is_depthwise,
-            const size_t activation, const size_t prelu_weights_id,
+            const FusableActivation activation, const size_t prelu_weights_id,
             const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& filter_info = backend::get_tensor_info(filter_id);
@@ -162,9 +162,9 @@ void conv2d(const size_t x_id, const size_t batch_size,
     group_output_channels = output_channels;
   }
 
-  size_t clamp_method = activation;
-  if (activation == tfjs::wasm::FusableActivation::PRELU) {
-    clamp_method = tfjs::wasm::FusableActivation::LINEAR;
+  FusableActivation clamp_method = activation;
+  if (activation == FusableActivation::PRELU) {
+    clamp_method = FusableActivation::LINEAR;
   }
 
   float output_min = -std::numeric_limits<float>::infinity();
@@ -222,8 +222,7 @@ void conv2d(const size_t x_id, const size_t batch_size,
           filter_height * filter_width * input_channels, output_channels};
       std::vector<size_t> perm = {1, 0};
 
-      tfjs::wasm::transpose(filter_buf, filter_shape, perm,
-                            transposed_filter.data());
+      transpose(filter_buf, filter_shape, perm, transposed_filter.data());
 
       filter_xnn = transposed_filter.data();
     }
@@ -271,7 +270,7 @@ void conv2d(const size_t x_id, const size_t batch_size,
   xnn_run_operator(conv2d_op, nullptr /* thread pool */);
 
   if (activation == FusableActivation::PRELU) {
-    tfjs::wasm::prelu(out_buf, out_info.size, prelu_weights_id, out_id);
+    prelu(out_buf, out_info.size, prelu_weights_id, out_id);
   }
 }
 
