@@ -191,7 +191,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'pad ', excludes: ['complex', 'zerosLike']},
   {include: 'clip', excludes: ['gradient']},
   {include: 'addN'},
-  {include: 'nonMaxSuppression'},
+  {include: 'nonMaxSuppression', excludes: ['SoftNMS']},
   {include: 'argmax', excludes: ['gradient']},
   {include: 'exp '},
   {include: 'unstack'},
