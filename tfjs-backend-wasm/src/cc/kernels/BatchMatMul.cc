@@ -58,11 +58,11 @@ void BatchMatMul(const size_t a_id, const size_t* a_shape_ptr,
   size_t b_batch = b_strides[0];
   size_t b_outer_step, b_inner_step;
   if (transpose_b) {
-    a_outer_step = b_strides[1];
-    a_inner_step = 1;
+    b_outer_step = b_strides[1];
+    b_inner_step = 1;
   } else {
-    a_outer_step = 1;
-    a_inner_step = b_strides[1];
+    b_outer_step = 1;
+    b_inner_step = b_strides[1];
   }
 
   auto& a_info = backend::get_tensor_info(a_id);

@@ -74,6 +74,7 @@ function batchMatMul(args: {
 
   const aShapeBytes = new Uint8Array(new Int32Array(a.shape).buffer);
   const bShapeBytes = new Uint8Array(new Int32Array(b.shape).buffer);
+
   wasmBatchMatMul(
       aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length,
       transposeA, transposeB, outId);
