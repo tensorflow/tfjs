@@ -17,6 +17,7 @@
 #endif
 
 #include <cmath>
+#include <cstddef>
 
 #include "src/cc/backend.h"
 #include "src/cc/unary.h"
@@ -33,7 +34,9 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Sigmoid(const int x_id, const int out_id) { unary(x_id, out_id, oper); }
+void Sigmoid(const size_t x_id, const size_t out_id) {
+  unary(x_id, out_id, oper);
+}
 
 }  // extern "C"
 }  // namespace wasm

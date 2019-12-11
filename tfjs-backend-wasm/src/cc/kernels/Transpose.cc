@@ -16,6 +16,7 @@
 #include <emscripten.h>
 #endif
 
+#include <cstddef>
 #include <vector>
 
 #include "src/cc/backend.h"
@@ -30,11 +31,12 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Transpose(const int x_id, const int* x_shape_ptr, const int x_shape_length,
-               const DType dtype, const int out_id, int* perm_ptr,
-               const int perm_length) {
-  auto x_shape = std::vector<int>(x_shape_ptr, x_shape_ptr + x_shape_length);
-  auto perm = std::vector<int>(perm_ptr, perm_ptr + perm_length);
+void Transpose(const size_t x_id, const size_t* x_shape_ptr,
+               const size_t x_shape_length, const DType dtype,
+               const size_t out_id, size_t* perm_ptr,
+               const size_t perm_length) {
+  auto x_shape = std::vector<size_t>(x_shape_ptr, x_shape_ptr + x_shape_length);
+  auto perm = std::vector<size_t>(perm_ptr, perm_ptr + perm_length);
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
 
@@ -44,8 +46,8 @@ void Transpose(const int x_id, const int* x_shape_ptr, const int x_shape_length,
                                    out_info.f32_write());
       break;
     case DType::int32:
-      tfjs::wasm::transpose<int>(x_info.i32(), x_shape, perm,
-                                 out_info.i32_write());
+      tfjs::wasm::transpose<int32_t>(x_info.i32(), x_shape, perm,
+                                     out_info.i32_write());
       break;
     case DType::boolean:
       tfjs::wasm::transpose<bool>(x_info.b(), x_shape, perm,

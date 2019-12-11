@@ -33,8 +33,17 @@ tfjs_cc_library(
   srcs = ["backend.cc"],
   hdrs = ["backend.h"],
   deps = [
+    ":check_macros",
     ":util",
     "@xnnpack//:xnnpack_operators_nhwc_f32",
+  ],
+)
+
+tfjs_cc_library(
+  name = "check_macros",
+  srcs = ["check_macros.h"],
+  deps = [
+    ":util",
   ],
 )
 

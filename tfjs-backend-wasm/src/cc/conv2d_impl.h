@@ -15,21 +15,25 @@
 #ifndef CONV2D_IMPL_H_
 #define CONV2D_IMPL_H_
 
+#include <cstddef>
+
 namespace tfjs {
 namespace wasm {
 
 // Must match enum in FusedConv2D.ts.
 enum FusableActivation { LINEAR = 0, RELU = 1, RELU6 = 2, PRELU = 3 };
 
-void conv2d(const int x_id, const int batch_size, const int input_height,
-            const int input_width, const int filter_id, const int filter_height,
-            const int filter_width, const int bias_id, int pad_top,
-            int pad_right, int pad_bottom, int pad_left, const bool is_same_pad,
-            const int dilation_height, const int dilation_width,
-            const int stride_height, const int stride_width,
-            const int input_channels, const int output_channels,
-            const bool is_depthwise, const int activation,
-            const int prelu_weighs_id, const int out_id);
+void conv2d(const size_t x_id, const size_t batch_size,
+            const size_t input_height, const size_t input_width,
+            const size_t filter_id, const size_t filter_height,
+            const size_t filter_width, const size_t bias_id, size_t pad_top,
+            size_t pad_right, size_t pad_bottom, size_t pad_left,
+            const bool is_same_pad, const size_t dilation_height,
+            const size_t dilation_width, const size_t stride_height,
+            const size_t stride_width, const size_t input_channels,
+            const size_t output_channels, const bool is_depthwise,
+            const FusableActivation activation, const size_t prelu_weighs_id,
+            const size_t out_id);
 }  // namespace wasm
 }  // namespace tfjs
 
