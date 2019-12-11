@@ -102,6 +102,14 @@ steps:
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 
+# Monorepo tests
+- name: 'node:10'
+  id: 'test-monorepo'
+  entrypoint: 'yarn'
+  args: ['test-ci']
+  waitFor: ['diff']
+
+
 # General settings.
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
