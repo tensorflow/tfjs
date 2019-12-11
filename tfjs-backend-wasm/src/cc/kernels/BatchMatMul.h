@@ -12,36 +12,23 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#endif
+#ifndef BATCH_MAT_MUL_H
+#define BATCH_MAT_MUL_H
 
-#include "src/cc/kernels/Prelu.h"
-
-#include <xnnpack.h>
-#include <cmath>
 #include <cstddef>
-#include <unordered_map>
-
-#include "src/cc/backend.h"
-#include "src/cc/prelu_impl.h"
-#include "src/cc/util.h"
 
 namespace tfjs {
 namespace wasm {
-// We use C-style API to interface with Javascript.
 extern "C" {
 
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif
-void Prelu(const size_t x_id, const size_t weights_id, const size_t out_id) {
-  auto& x_info = backend::get_tensor_info(x_id);
-  const float* x_buf = x_info.f32();
-
-  tfjs::wasm::prelu(x_buf, x_info.size, weights_id, out_id);
+void BatchMatMul(const size_t a_id, const size_t* a_shape_ptr,
+                 const size_t a_shape_len, const size_t b_id,
+                 const size_t* b_shape_ptr, const size_t b_shape_len,
+                 const bool transpose_a, const bool transpose_b,
+                 const size_t out_id);
 }
 
-}  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs
+
+#endif  // BATCH_MAT_MUL_H
