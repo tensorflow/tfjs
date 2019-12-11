@@ -37,6 +37,7 @@ import './FusedBatchNorm';
 import './FusedConv2D';
 import './FusedDepthwiseConv2D';
 import './Max';
+import './Maximum';
 import './MaxPool';
 import './Min';
 import './Minimum';
