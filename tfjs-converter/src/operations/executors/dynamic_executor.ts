@@ -26,6 +26,7 @@ export async function executeOp(
     node: Node, tensorMap: NamedTensorsMap,
     context: ExecutionContext): Promise<tfc.Tensor[]> {
   switch (node.op) {
+    case 'NonMaxSuppressionV5':
     case 'NonMaxSuppressionV3':
     case 'NonMaxSuppressionV2': {
       const boxes =
@@ -38,9 +39,11 @@ export async function executeOp(
           getParamValue('iouThreshold', node, tensorMap, context) as number;
       const scoreThreshold =
           getParamValue('scoreThreshold', node, tensorMap, context) as number;
+      const softNmsSigma =
+          getParamValue('softNmsSigma', node, tensorMap, context) as number;
       return [await tfc.image.nonMaxSuppressionAsync(
           boxes as tfc.Tensor2D, scores as tfc.Tensor1D, maxOutputSize,
-          iouThreshold, scoreThreshold)];
+          iouThreshold, scoreThreshold, softNmsSigma)];
     }
     case 'Where': {
       return [await tfc.whereAsync(
