@@ -15,6 +15,7 @@
 #include <gtest/gtest.h>
 
 #include <cstddef>
+#include <vector>
 
 #include "src/cc/backend.h"
 #include "src/cc/kernels/BatchMatMul.h"

@@ -24,6 +24,8 @@
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
 
+#include "src/cc/BatchMatMul.h"
+
 const size_t kBlockSize = 48;
 
 namespace {

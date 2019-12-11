@@ -12,8 +12,8 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef BATCH_MAT_MUL_H
-#define BATCH_MAT_MUL_H
+#ifndef KERNELS_BATCHMATMUL_H_
+#define KERNELS_BATCHMATMUL_H_
 
 #include <cstddef>
 
@@ -31,4 +31,4 @@ void BatchMatMul(const size_t a_id, const size_t* a_shape_ptr,
 }  // namespace wasm
 }  // namespace tfjs
 
-#endif  // BATCH_MAT_MUL_H
+#endif  // KERNELS_BATCHMATMUL_H_
