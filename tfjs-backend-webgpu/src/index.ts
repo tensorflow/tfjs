@@ -17,12 +17,12 @@
 
 import './flags_webgpu';
 import * as tf from '@tensorflow/tfjs-core';
-import * as Shaderc from '@webgpu/shaderc';
+import glslangInit from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {WebGPUBackend} from './backend_webgpu';
 
 tf.registerBackend('webgpu', async () => {
-  const shaderc = await Shaderc.instantiate();
+  const glslang = await glslangInit();
   const gpuDescriptor: GPURequestAdapterOptions = {
     powerPreference: tf.env().get('WEBGPU_USE_LOW_POWER_GPU') ?
         'low-power' :
@@ -31,5 +31,5 @@ tf.registerBackend('webgpu', async () => {
 
   const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
   const device = await adapter.requestDevice({});
-  return new WebGPUBackend(device, shaderc);
+  return new WebGPUBackend(device, glslang);
 }, 3 /*priority*/);
