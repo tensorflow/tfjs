@@ -16,26 +16,95 @@
 #include <emscripten.h>
 #endif
 
+#include <xnnpack.h>
 #include <cstddef>
+#include <unordered_map>
 
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
 
 const size_t kBlockSize = 48;
 
-namespace tfjs {
-namespace wasm {
-// We use C-style API to interface with Javascript.
-extern "C" {
+namespace {
+// The operator cache maps the weights id to the xnn_operator_t instantiated for
+// this set of weights.
+std::unordered_map<size_t, xnn_operator_t> operator_cache;
 
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif
-void BatchMatMul(const size_t a_id, const size_t* a_shape_ptr,
-                 const size_t a_shape_len, const size_t b_id,
-                 const size_t* b_shape_ptr, const size_t b_shape_len,
-                 const bool transpose_a, const bool transpose_b,
-                 const size_t out_id) {
+void delete_xnn_operator(const size_t weights_id) {
+  xnn_operator_t fully_connected_op = operator_cache.at(weights_id);
+  xnn_delete_operator(fully_connected_op);
+  tfjs::backend::xnn_operator_count--;
+
+  operator_cache.erase(weights_id);
+}
+
+void xnn_matmul(const size_t a_id, const size_t* a_shape_ptr,
+                const size_t a_shape_len, const size_t b_id,
+                const size_t* b_shape_ptr, const size_t b_shape_len,
+                const size_t out_id) {
+  auto& a_info = tfjs::backend::get_tensor_info(a_id);
+  auto& b_info = tfjs::backend::get_tensor_info(b_id);
+  auto& out_info = tfjs::backend::get_tensor_info_out(out_id);
+
+  const float* a_buf = a_info.f32();
+  const float* b_buf = b_info.f32();
+  float* out_buf = out_info.f32_write();
+
+  xnn_operator_t fully_connected_op = nullptr;
+
+  // We assume b is the weights and cache the xnn operator on it.
+  auto operator_cache_idx = operator_cache.find(b_id);
+  if (operator_cache_idx == operator_cache.end()) {
+    const size_t input_channels = b_shape_ptr[1];
+    const size_t output_channels = b_shape_ptr[2];
+    const size_t input_stride = b_shape_ptr[1];
+    const size_t output_stride = b_shape_ptr[2];
+    const float* bias = nullptr;
+
+    const float output_min = -std::numeric_limits<float>::infinity();
+    const float output_max = std::numeric_limits<float>::infinity();
+
+    // XNNPack expects b to already be transposed. TensorFlow.js doesn't do this
+    // automatically so we have to tell XNNPack to do the transposing.
+    const uint32_t flags = XNN_FLAG_TRANSPOSE_WEIGHTS;
+    xnn_status status = xnn_create_fully_connected_nc_f32(
+        input_channels, output_channels, input_stride, output_stride, b_buf,
+        bias, output_min, output_max, flags, &fully_connected_op);
+    if (status != xnn_status_success) {
+      tfjs::util::warn(
+          "XNN status for xnn_create_fully_connected_nc_f32 is not successful. "
+          "Got status %d. Use -c dbg to see XNN logs.",
+          status);
+    }
+
+    operator_cache.insert({b_id, fully_connected_op});
+
+    tfjs::backend::register_disposal_callback(b_id, *delete_xnn_operator);
+
+    tfjs::backend::xnn_operator_count++;
+  } else {
+    fully_connected_op = operator_cache_idx->second;
+  }
+
+  const size_t batch_size = a_shape_ptr[1];
+  xnn_status status =
+      xnn_setup_fully_connected_nc_f32(fully_connected_op, batch_size, a_buf,
+                                       out_buf, nullptr /* thread pool */);
+  if (status != xnn_status_success) {
+    tfjs::util::warn(
+        "XNN status for xnn_setup_fully_connected_nc_f32 is not successful. "
+        "Got status %d. Use -c dbg to see XNN logs.",
+        status);
+  }
+
+  xnn_run_operator(fully_connected_op, nullptr /* thread pool */);
+}
+
+void slow_batch_matmul(const size_t a_id, const size_t* a_shape_ptr,
+                       const size_t a_shape_len, const size_t b_id,
+                       const size_t* b_shape_ptr, const size_t b_shape_len,
+                       const bool transpose_a, const bool transpose_b,
+                       const size_t out_id) {
   const size_t shared_dim = transpose_a ? a_shape_ptr[1] : a_shape_ptr[2];
   const size_t left_dim = transpose_a ? a_shape_ptr[2] : a_shape_ptr[1];
   const size_t right_dim = transpose_b ? b_shape_ptr[1] : b_shape_ptr[2];
@@ -65,9 +134,9 @@ void BatchMatMul(const size_t a_id, const size_t* a_shape_ptr,
     b_inner_step = b_strides[1];
   }
 
-  auto& a_info = backend::get_tensor_info(a_id);
-  auto& b_info = backend::get_tensor_info(b_id);
-  auto& out_info = backend::get_tensor_info_out(out_id);
+  auto& a_info = tfjs::backend::get_tensor_info(a_id);
+  auto& b_info = tfjs::backend::get_tensor_info(b_id);
+  auto& out_info = tfjs::backend::get_tensor_info_out(out_id);
 
   const float* a_buf = a_info.f32();
   const float* b_buf = b_info.f32();
@@ -102,6 +171,30 @@ void BatchMatMul(const size_t a_id, const size_t* a_shape_ptr,
         }
       }
     }
+  }
+}
+}  // namespace
+
+namespace tfjs {
+namespace wasm {
+// We use C-style API to interface with Javascript.
+extern "C" {
+
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif
+void BatchMatMul(const size_t a_id, const size_t* a_shape_ptr,
+                 const size_t a_shape_len, const size_t b_id,
+                 const size_t* b_shape_ptr, const size_t b_shape_len,
+                 const bool transpose_a, const bool transpose_b,
+                 const size_t out_id) {
+  if (!transpose_a && !transpose_b && a_shape_ptr[0] == 1 &&
+      b_shape_ptr[0] == 1) {
+    xnn_matmul(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr, b_shape_len,
+               out_id);
+  } else {
+    slow_batch_matmul(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr,
+                      b_shape_len, transpose_a, transpose_b, out_id);
   }
 }
 

@@ -23,11 +23,11 @@
     "test-browser-ci": "karma start --singleRun --browsers=bs_chrome_mac"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "1.4.0"
+    "@tensorflow/tfjs-core": "link:../tfjs-core"
   },
   "devDependencies": {
     "@bazel/bazel": "^0.28.0",
-    "@tensorflow/tfjs-core": "1.4.0",
+    "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@types/emscripten": "~0.0.34",
     "@types/jasmine": "~2.8.6",
     "clang-format": "~1.2.4",
