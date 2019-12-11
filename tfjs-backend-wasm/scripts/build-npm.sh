@@ -16,9 +16,10 @@
 
 set -e
 
-yarn rimraf dist/
 yarn
-yarn build
+yarn rimraf dist/
+yarn tsc
+./scripts/build-wasm.sh
 yarn rollup -c
 
 echo "Stored standalone library at dist/tf-backend-wasm(.min).js"
