@@ -1,7 +1,9 @@
 {
   "devDependencies": {
     "@octokit/rest": "15.2.6",
+    "@types/jasmine": "2.8.7",
     "@types/node": "^12.7.5",
+    "jasmine": "3.1.0",
     "argparse": "^1.0.10",
     "chalk": "~2.4.2",
     "clang-format": "~1.2.4",
