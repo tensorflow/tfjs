@@ -15,11 +15,13 @@
 #ifndef PRELU_IMPL_H_
 #define PRELU_IMPL_H_
 
+#include <cstddef>
+
 namespace tfjs {
 namespace wasm {
 
-void prelu(const float* x_buf, const int x_size, const int weights_id,
-           const int out_id);
+void prelu(const float* x_buf, const size_t x_size, const size_t weights_id,
+           const size_t out_id);
 
 }  // namespace wasm
 }  // namespace tfjs

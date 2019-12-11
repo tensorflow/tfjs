@@ -14,6 +14,8 @@
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
+
 #include "src/cc/backend.h"
 #include "src/cc/kernels/Prelu.h"
 
@@ -22,16 +24,16 @@ TEST(PRELU, xnn_operator_lifetime) {
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
-  int x0_id = 0;
-  int x1_id = 1;
-  int size = 2;
+  size_t x0_id = 1;
+  size_t x1_id = 2;
+  size_t size = 2;
   float x_values[2] = {1, 2};
 
-  int weights0_id = 2;
-  int weights1_id = 3;
+  size_t weights0_id = 3;
+  size_t weights1_id = 4;
   float weights_values[2] = {1, 2};
 
-  int out_id = 5;
+  size_t out_id = 5;
   float out_values[2] = {0, 0};
 
   tfjs::wasm::register_tensor(x0_id, size, x_values);

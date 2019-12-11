@@ -3270,13 +3270,15 @@ export class MathBackendCPU extends KernelBackend {
 
   nonMaxSuppression(
       boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
-      iouThreshold: number, scoreThreshold: number): Tensor1D {
+      iouThreshold: number, scoreThreshold: number,
+      softNmsSigma: number): Tensor1D {
     assertNotComplex(boxes, 'nonMaxSuppression');
 
     const boxesVals = this.readSync(boxes.dataId) as TypedArray;
     const scoresVals = this.readSync(scores.dataId) as TypedArray;
     return nonMaxSuppressionImpl(
-        boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
+        boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold,
+        softNmsSigma);
   }
 
   fft(x: Tensor2D): Tensor2D {

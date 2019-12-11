@@ -2244,14 +2244,16 @@ export class MathBackendWebGL extends KernelBackend {
 
   nonMaxSuppression(
       boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
-      iouThreshold: number, scoreThreshold: number): Tensor1D {
+      iouThreshold: number, scoreThreshold: number,
+      softNmsSigma: number): Tensor1D {
     warn(
         'tf.nonMaxSuppression() in webgl locks the UI thread. ' +
         'Call tf.nonMaxSuppressionAsync() instead');
     const boxesVals = boxes.dataSync();
     const scoresVals = scores.dataSync();
     return nonMaxSuppressionImpl(
-        boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
+        boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold,
+        softNmsSigma);
   }
 
   cropAndResize(
