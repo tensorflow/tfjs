@@ -30,7 +30,7 @@ const {
   modulePath
 } = require('./deps-constants.js');
 const resources = require('./resources');
-const {addonName} = require('./get-addon-name.js');
+const { addonName } = require('./get-addon-name.js');
 
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
@@ -38,7 +38,7 @@ const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
 
 const BASE_URI =
-    'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
+  'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
 const CPU_DARWIN = `cpu-darwin-x86_64-${LIBTENSORFLOW_VERSION}.tar.gz`;
 const CPU_LINUX = `cpu-linux-x86_64-${LIBTENSORFLOW_VERSION}.tar.gz`;
 const GPU_LINUX = `gpu-linux-x86_64-${LIBTENSORFLOW_VERSION}.tar.gz`;
@@ -48,8 +48,8 @@ const GPU_WINDOWS = `gpu-windows-x86_64-${LIBTENSORFLOW_VERSION}.zip`;
 // TODO(kreeger): Update to TensorFlow 1.13:
 // https://github.com/tensorflow/tfjs/issues/1369
 const TF_WIN_HEADERS_URI =
-    `https://storage.googleapis.com/tf-builds/tensorflow-headers-` +
-    `${getLibTensorFlowMajorDotMinorVersion()}.zip`;
+  `https://storage.googleapis.com/tf-builds/tensorflow-headers-` +
+  `${getLibTensorFlowMajorDotMinorVersion()}.zip`;
 
 const platform = os.platform();
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
@@ -59,7 +59,7 @@ let packageJsonFile;
 
 async function setPackageJsonFile() {
   packageJsonFile =
-      JSON.parse(fs.readFileSync(`${__dirname}/../package.json`).toString());
+    JSON.parse(fs.readFileSync(`${__dirname}/../package.json`).toString());
 }
 
 async function updateAddonName() {
@@ -83,7 +83,7 @@ function getPlatformLibtensorflowUri() {
     if (os.arch() === 'arm') {
       // TODO(kreeger): Handle arm64 as well:
       targetUri =
-          'https://storage.googleapis.com/tf-builds/libtensorflow_r1_14_linux_arm.tar.gz';
+        'https://storage.googleapis.com/tf-builds/libtensorflow_r1_14_linux_arm.tar.gz';
     } else {
       if (libType === 'gpu') {
         targetUri += GPU_LINUX;
@@ -135,43 +135,27 @@ async function downloadLibtensorflow(callback) {
 
   console.warn('* Downloading libtensorflow');
   resources.downloadAndUnpackResource(
-      getPlatformLibtensorflowUri(), depsPath, async () => {
-        if (platform === 'win32') {
-          // Some windows libtensorflow zip files are missing structure and the
-          // eager headers. Check, restructure, and download resources as
-          // needed.
-          const depsIncludePath = path.join(depsPath, 'include');
-          if (!await exists(depsLibTensorFlowPath)) {
-            // Verify that tensorflow.dll exists
-            const libtensorflowDll = path.join(depsPath, 'tensorflow.dll');
-            if (!await exists(libtensorflowDll)) {
-              throw new Error('Could not find libtensorflow.dll');
-            }
-
-            await ensureDir(depsLibPath);
-            await rename(libtensorflowDll, depsLibTensorFlowPath);
+    getPlatformLibtensorflowUri(), depsPath, async () => {
+      if (platform === 'win32') {
+        // Some windows libtensorflow zip files are missing structure and the
+        // eager headers. Check, restructure, and download resources as
+        // needed.
+        if (!await exists(depsLibTensorFlowPath)) {
+          // Verify that tensorflow.dll exists
+          const libtensorflowDll = path.join(depsPath, 'tensorflow.dll');
+          if (!await exists(libtensorflowDll)) {
+            throw new Error('Could not find libtensorflow.dll');
           }
 
-          // The shipped headers for Windows libtensorflow are old - remove and
-          // download the latest:
-          if (await exists(depsIncludePath)) {
-            await rimrafPromise(depsIncludePath);
-          }
-
-          // Download the C headers only and unpack:
-          resources.downloadAndUnpackResource(
-              TF_WIN_HEADERS_URI, depsPath, () => {
-                if (callback !== undefined) {
-                  callback();
-                }
-              });
-        } else {
-          // No other work is required on other platforms.
-          if (callback !== undefined) {
-            callback();
-          }
+          await ensureDir(depsLibPath);
+          await rename(libtensorflowDll, depsLibTensorFlowPath);
         }
-      });
+      }
+      // No other work is required on other platforms.
+      if (callback !== undefined) {
+        callback();
+      }
+    });
 }
 
 /**
