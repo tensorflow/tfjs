@@ -916,8 +916,9 @@ export class WebGPUBackend extends KernelBackend {
     // the old version while we try to understand conditions under which blocked
     // is faster.
     if (env().get('WEBGPU_MATMUL_WORK_PER_THREAD') === 0) {
-      program =
-          new MatMulProgram(a.shape, output.shape as [number, number, number]);
+      program = new MatMulProgram(
+          a.shape, output.shape as [number, number, number], transposeA,
+          transposeB);
     } else {
       program = new MatMulPackedProgram(
           a.shape, output.shape as [number, number, number],
