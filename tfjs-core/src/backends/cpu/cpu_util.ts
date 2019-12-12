@@ -15,11 +15,8 @@
  * =============================================================================
  */
 
-import {DataId, TensorInfo} from '../../kernel_registry';
-import {BackendValues, DataType} from '../../types';
+import {TensorInfo} from '../../kernel_registry';
 import {assert} from '../../util';
-import {DataStorage} from '../backend';
-import {TensorData} from './cpu_types';
 
 export function assertNotComplex(
     tensor: TensorInfo|TensorInfo[], opName: string): void {
@@ -33,16 +30,4 @@ export function assertNotComplex(
           () => `${opName} does not support complex64 tensors.`);
     }
   });
-}
-
-/**
- * Helper method that stores the values in the storage and returns the
- * associated data id.
- */
-export function storeData(
-    data: DataStorage<TensorData<DataType>>, dtype: DataType,
-    values: BackendValues): DataId {
-  const dataId = {};
-  data.set(dataId, {dtype, values});
-  return dataId;
 }

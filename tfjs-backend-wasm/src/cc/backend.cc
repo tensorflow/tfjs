@@ -17,42 +17,51 @@
 #endif
 
 #include <xnnpack.h>
+#include <cstddef>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "src/cc/backend.h"
+#include "src/cc/check_macros.h"
 #include "src/cc/util.h"
 
 namespace {
 // Maps a unique tensor id to info about that tensor. The map owns all of its
 // entries.
-std::unordered_map<int, TensorInfo> data;
+std::unordered_map<size_t, TensorInfo> data;
 
 // Maps a tensor id to a vector of disposal functions registered on that tensor
 // id.
-std::unordered_map<int, std::vector<tfjs::backend::DisposeFunction>>
+std::unordered_map<size_t, std::vector<tfjs::backend::DisposeFunction>>
     disposal_callbacks;
 }  // namespace
 
 namespace tfjs {
 namespace backend {
-TensorInfo get_tensor_info(int tensor_id) { return data.at(tensor_id); }
+const TensorInfo &get_tensor_info(const size_t tensor_id) {
+  return data.at(tensor_id);
+}
 
-int xnn_operator_count = 0;
+TensorInfo &get_tensor_info_out(const size_t tensor_id) {
+  return data.at(tensor_id);
+}
+
+size_t xnn_operator_count = 0;
 
 // Registers a disposal callback for a tensor id with a given callback function.
-void register_disposal_callback(int tensor_id, DisposeFunction dispose_fn) {
+void register_disposal_callback(const size_t tensor_id,
+                                const DisposeFunction dispose_fn) {
   if (disposal_callbacks.count(tensor_id) == 0) {
-    auto callbacks = std::vector<DisposeFunction>{dispose_fn};
     // We move callbacks to avoid a copy.
-    disposal_callbacks.insert({tensor_id, std::move(callbacks)});
+    disposal_callbacks.insert({tensor_id, {dispose_fn}});
   } else {
-    auto callbacks = disposal_callbacks.at(tensor_id);
+    auto &callbacks = disposal_callbacks[tensor_id];
     callbacks.push_back(dispose_fn);
   }
 }
 
-int num_tensors() { return data.size(); }
+const size_t num_tensors() { return data.size(); }
 
 }  // namespace backend
 
@@ -63,46 +72,34 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void init() { xnn_initialize(); }
+void init() { xnn_initialize(nullptr); }
 
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void register_tensor(int tensor_id, int *shape_ptr, int shape_length,
-                     DType dtype, void *memory_offset) {
-  auto shape = std::vector<int>(shape_ptr, shape_ptr + shape_length);
-  auto size = util::size_from_shape(shape);
+void register_tensor(const size_t tensor_id, const size_t size,
+                     void *memory_offset) {
+  DCHECK(tensor_id > 0,
+         "register_tensor: tensor_id must a positive number but got %d.",
+         tensor_id);
+  DCHECK(data.find(tensor_id) == data.end(),
+         "register_tensor: tensor_id %d has already been registered.",
+         tensor_id);
 
-  TensorInfo info = {{}, dtype, std::move(shape), size};
-  switch (dtype) {
-    case DType::float32:
-      info.buf.f32 = static_cast<float *>(memory_offset);
-      break;
-    case DType::int32:
-      info.buf.i32 = static_cast<int *>(memory_offset);
-      break;
-    case DType::boolean:
-      info.buf.b = static_cast<bool *>(memory_offset);
-      break;
-    default:
-      util::warn("Failed to register tensor id %d failed. Unknown dtype %d",
-                 tensor_id, dtype);
-  }
-  // We move info to avoid a copy.
-  data.insert({tensor_id, std::move(info)});
+  data.emplace(tensor_id, TensorInfo{memory_offset, size});
 }
 
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void dispose_data(int tensor_id) {
+void dispose_data(const size_t tensor_id) {
   data.erase(tensor_id);
 
   // Call all disposal callbacks for this tensor id.
   auto disposal_callback_idx = disposal_callbacks.find(tensor_id);
   if (disposal_callback_idx != disposal_callbacks.end()) {
-    auto callbacks = disposal_callback_idx->second;
-    for (auto dispose_function : callbacks) {
+    auto &callbacks = disposal_callback_idx->second;
+    for (auto &dispose_function : callbacks) {
       dispose_function(tensor_id);
     }
 
@@ -116,11 +113,11 @@ EMSCRIPTEN_KEEPALIVE
 void dispose() {
   // We have to create a separate vector of tensor ids because we erase from the
   // map while we're iterating it.
-  std::vector<int> tensor_ids_to_dispose;
-  for (auto const &element : data) {
+  std::vector<size_t> tensor_ids_to_dispose;
+  for (const auto &element : data) {
     tensor_ids_to_dispose.push_back(element.first);
   }
-  for (auto const tensor_id : tensor_ids_to_dispose) {
+  for (const auto tensor_id : tensor_ids_to_dispose) {
     dispose_data(tensor_id);
   }
 

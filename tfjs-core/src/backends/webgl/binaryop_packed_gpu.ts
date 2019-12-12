@@ -177,7 +177,8 @@ export class BinaryOpPackedProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
   supportsBroadcasting = true;
-  usesPackedTextures = true;
+  packedInputs = true;
+  packedOutput = true;
 
   constructor(
       op: string, aShape: number[], bShape: number[],

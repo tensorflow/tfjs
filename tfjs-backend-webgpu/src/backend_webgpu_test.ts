@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import * as Shaderc from '@webgpu/shaderc';
+import glslangInit from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {WebGPUBackend, WebGPUMemoryInfo} from './backend_webgpu';
 import {describeWebGPU} from './test_util';
@@ -35,8 +35,8 @@ describeWebGPU('backend webgpu cpu forwarding turned on', () => {
   });
 
   it('should not allocate GPU memory when CPU forwarding', async () => {
-    const savedFlag = tf.ENV.get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
-    tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', true);
+    const savedFlag = tf.env().get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
+    tf.env().set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', true);
 
     const a = tf.tensor2d([2, 4, 6, 8], [2, 2]);
     const b = tf.tensor2d([0.5, 0.5, 0.5, 0.5], [2, 2]);
@@ -65,14 +65,14 @@ describeWebGPU('backend webgpu cpu forwarding turned on', () => {
 
     tf.test_util.expectArraysClose(
         dData, new Float32Array([9, 12, 15, 19, 26, 33]));
-    tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
+    tf.env().set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
   });
 });
 
 describeWebGPU('backend webgpu', () => {
   it('should not leak memory in delayed mode', async () => {
-    const savedFlag = tf.ENV.get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
-    tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', false);
+    const savedFlag = tf.env().get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
+    tf.env().set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', false);
     const a = tf.tensor2d([2, 4, 6, 8], [2, 2]);
     const b = tf.tensor2d([0.5, 0.5, 0.5, 0.5], [2, 2]);
 
@@ -96,12 +96,12 @@ describeWebGPU('backend webgpu', () => {
 
     tf.test_util.expectArraysClose(
         dData, new Float32Array([9, 12, 15, 19, 26, 33]));
-    tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
+    tf.env().set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
   });
 
   it('should not leak memory in immediate mode', async () => {
-    const savedFlag = tf.ENV.get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
-    tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', true);
+    const savedFlag = tf.env().get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
+    tf.env().set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', true);
     const a = tf.tensor2d([2, 4, 6, 8], [2, 2]);
     const b = tf.tensor2d([0.5, 0.5, 0.5, 0.5], [2, 2]);
 
@@ -125,12 +125,12 @@ describeWebGPU('backend webgpu', () => {
 
     tf.test_util.expectArraysClose(
         dData, new Float32Array([9, 12, 15, 19, 26, 33]));
-    tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
+    tf.env().set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
   });
 
   it('should recycle buffers in immediate mode', () => {
-    const savedFlag = tf.ENV.get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
-    tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', true);
+    const savedFlag = tf.env().get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
+    tf.env().set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', true);
     const backend = tf.backend() as WebGPUBackend;
     const bufferManager = backend.getBufferManager();
     bufferManager.reset();
@@ -166,12 +166,12 @@ describeWebGPU('backend webgpu', () => {
     const usedBuffersAfterSecondMatMul = bufferManager.getNumUsedBuffers();
     expect(freeBuffersAfterSecondMatMul - freeBuffersAfterSecondMul).toEqual(0);
     expect(usedBuffersAfterSecondMatMul - usedBuffersAfterSecondMul).toEqual(2);
-    tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
+    tf.env().set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
   });
 
   it('should not recycle buffers in delayed mode', async () => {
-    const savedFlag = tf.ENV.get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
-    tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', false);
+    const savedFlag = tf.env().get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
+    tf.env().set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', false);
     const backend = tf.backend() as WebGPUBackend;
     const bufferManager = backend.getBufferManager();
     bufferManager.reset();
@@ -209,7 +209,7 @@ describeWebGPU('backend webgpu', () => {
     // Tests happen within a tidy so we need to read a tensor at the end of a
     // test in delayed mode in order to force flush the disposal queue.
     await c3.data();
-    tf.ENV.set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
+    tf.env().set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
   });
 
   it('readSync should throw if tensors are on the GPU', async () => {
@@ -227,36 +227,20 @@ describeWebGPU('backend webgpu', () => {
   });
 
   it('lazily upload', async () => {
-    const shaderc = await Shaderc.instantiate();
+    const glslang = await glslangInit();
     const adapter = await navigator.gpu.requestAdapter({});
     const device = await adapter.requestDevice({});
-    const backend = new WebGPUBackend(device, shaderc);
+    const backend = new WebGPUBackend(device, glslang);
     tf.registerBackend('test-storage', () => backend);
     tf.setBackend('test-storage');
 
     const bufferManager = backend.getBufferManager();
-    const t = tf.Tensor.make([3], {}, 'float32');
-    backend.write(t.dataId, new Float32Array([1, 2, 3]));
+    const t = tf.tensor1d([1, 2, 3], 'float32');
 
     expect(bufferManager.getNumUsedBuffers()).toBe(0);
 
     backend.getBuffer(t.dataId);
     expect(bufferManager.getNumUsedBuffers()).toBe(1);
-
-    backend.write(t.dataId, new Float32Array([4, 5, 6]));
-    expect(bufferManager.getNumUsedBuffers()).toBe(0);
-
-    tf.test_util.expectArraysClose(
-        await backend.read(t.dataId), new Float32Array([4, 5, 6]));
-
-    expect(bufferManager.getNumUsedBuffers()).toBe(0);
-
-    backend.getBuffer(t.dataId);
-    expect(bufferManager.getNumUsedBuffers()).toBe(1);
-
-    tf.test_util.expectArraysClose(
-        await backend.read(t.dataId), new Float32Array([4, 5, 6]));
-    expect(bufferManager.getNumUsedBuffers()).toBe(0);
   });
 
   it('should be possible to move data from webgl to webgpu', async () => {

@@ -24,6 +24,8 @@ export class PackProgram implements GPGPUProgram {
   variableNames = ['A'];
   outputShape: number[];
   userCode: string;
+  packedInputs = false;
+  packedOutput = true;
 
   constructor(
       outputShape:

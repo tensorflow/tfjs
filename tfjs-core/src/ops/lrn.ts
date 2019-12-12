@@ -57,14 +57,14 @@ function localResponseNormalization_<T extends Tensor3D|Tensor4D>(
   const backward = (dy: Tensor4D, saved: Tensor[]) => {
     const [x4D, y] = saved;
     return {
-      x4D: () => ENGINE.runKernel(
+      x4D: () => ENGINE.runKernelFunc(
           backend => backend.LRNGrad(
               dy, x4D as Tensor4D, y as Tensor4D, depthRadius, bias, alpha,
               beta),
           {})
     };
   };
-  const res = ENGINE.runKernel((backend, save) => {
+  const res = ENGINE.runKernelFunc((backend, save) => {
     const y = backend.localResponseNormalization4D(
         x4D, depthRadius, bias, alpha, beta);
     save([x4D, y]);

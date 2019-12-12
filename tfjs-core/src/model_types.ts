@@ -16,7 +16,8 @@
  */
 
 import {Tensor} from './tensor';
-import {NamedTensorMap, TensorInfo} from './tensor_types';
+import {NamedTensorMap} from './tensor_types';
+import {DataType} from './types';
 
 export interface ModelPredictConfig {
   /**
@@ -31,18 +32,30 @@ export interface ModelPredictConfig {
 }
 
 /**
+ * Interface for model input/output tensor info.
+ */
+export interface ModelTensorInfo {
+  // Name of the tensor.
+  name: string;
+  // Tensor shape information, Optional.
+  shape?: number[];
+  // Data type of the tensor.
+  dtype: DataType;
+}
+
+/**
  * Common interface for a machine learning model that can do inference.
  */
 export interface InferenceModel {
   /**
    * Return the array of input tensor info.
    */
-  readonly inputs: TensorInfo[];
+  readonly inputs: ModelTensorInfo[];
 
   /**
    * Return the array of output tensor info.
    */
-  readonly outputs: TensorInfo[];
+  readonly outputs: ModelTensorInfo[];
 
   /**
    * Execute the inference for the input tensors.
@@ -88,7 +101,8 @@ export interface InferenceModel {
 }
 
 /**
- * Interface for SavedModel/GraphModel MetaGraph info.
+ * @deprecated Deprecated interface for SavedModel/GraphModel MetaGraph info.
+ *     User MetaGraph instead.
  */
 export interface MetaGraphInfo {
   tags: string[];
@@ -96,7 +110,8 @@ export interface MetaGraphInfo {
 }
 
 /**
- * Interface for SavedModel/GraphModel SignatureDef info.
+ * @deprecated Deprecated interface for SavedModel/GraphModel SignatureDef info.
+ *     User SignatureDef instead.
  */
 export interface SignatureDefInfo {
   [key: string]: {
@@ -106,11 +121,29 @@ export interface SignatureDefInfo {
 }
 
 /**
- * Interface for SavedModel/GraphModel signature input/output Tensor
- * info.
+ * @deprecated Deprecated interface for SavedModel/GraphModel signature
+ *     input/output Tensor info. User ModelTensorInfo instead.
  */
 export interface SavedModelTensorInfo {
   dtype: string;
   shape: number[];
   name: string;
+}
+
+/**
+ * Interface for SavedModel/GraphModel MetaGraph info.
+ */
+export interface MetaGraph {
+  tags: string[];
+  signatureDefs: SignatureDef;
+}
+
+/**
+ * Interface for SavedModel/GraphModel SignatureDef info.
+ */
+export interface SignatureDef {
+  [key: string]: {
+    inputs: {[key: string]: ModelTensorInfo};
+    outputs: {[key: string]: ModelTensorInfo};
+  };
 }

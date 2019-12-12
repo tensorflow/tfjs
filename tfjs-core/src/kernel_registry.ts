@@ -15,24 +15,38 @@
  * =============================================================================
  */
 
-import {DataType} from './types';
+import {DataType, RecursiveArray} from './types';
 
-const kernelRegistry: {[key: string]: KernelFunc} = {};
-
-export type GradSaveFunc = (save: DataId[]) => void;
+const kernelRegistry: Map<string, KernelConfig> = new Map();
 
 export type DataId = object;
 
+type AttributeValue =
+    number|number[]|boolean|boolean[]|string|string[]|NamedAttrMap;
+
 /** These are extra non-tensor/primitive params passed to kernel functions. */
-export type Attribute = number|number[]|boolean|boolean[]|string|string[];
+export type Attribute = AttributeValue|RecursiveArray<AttributeValue>;
 
 /** Specifies the code to run when executing a kernel. */
 export type KernelFunc = (params: {
   inputs: NamedTensorInfoMap,
-  storage: {},
+  backend: {},
   attrs?: NamedAttrMap,
-  save?: GradSaveFunc
 }) => TensorInfo|TensorInfo[];
+
+/** Function that gets called after the backend initializes. */
+export type KernelSetupFunc = (backend: {}) => void;
+/** Function that gets called right before the backend is disposed. */
+export type KernelDisposeFunc = KernelSetupFunc;
+
+/** Config object for registering a kernel in the global registry. */
+export interface KernelConfig {
+  kernelName: string;
+  backendName: string;
+  kernelFunc: KernelFunc;
+  setupFunc?: KernelSetupFunc;
+  disposeFunc?: KernelDisposeFunc;
+}
 
 /** Holds metadata for a given tensor. */
 export interface TensorInfo {
@@ -55,31 +69,50 @@ export interface NamedAttrMap {
  * @param kernelName The official name of the kernel.
  * @param backendName The official name of the backend.
  */
-export function getKernel(kernelName: string, backendName: string): KernelFunc {
+export function getKernel(
+    kernelName: string, backendName: string): KernelConfig {
   const key = makeKey(kernelName, backendName);
-  return kernelRegistry[key];
+  return kernelRegistry.get(key);
 }
 
-export function getKernelRegistry(): {[key: string]: KernelFunc} {
-  return kernelRegistry;
+export function getKernelsForBackend(backendName: string): KernelConfig[] {
+  const it = kernelRegistry.entries();
+  const result: KernelConfig[] = [];
+
+  while (true) {
+    const {done, value} = it.next();
+    if (done) {
+      break;
+    }
+    const [key, config] = value;
+    const [backend, ] = key.split('_');
+    if (backend === backendName) {
+      result.push(config);
+    }
+  }
+  return result;
 }
 
 /**
  * Registers the function (forward pass) for the kernel in a global registry.
  *
- * @param kernelName The official name of the kernel.
- * @param backendName The official name of the backend.
- * @param forward The function to run during the forward pass of the kernel.
+ * @param config A config object with the following properties:
+ * - `kernelName` The official name of the kernel.
+ * - `backendName` The official name of the backend.
+ * - `kernelFunc` The function to run during the forward pass of the kernel.
+ * - `setupFunc` Optional. Gets called once, after the backend initializes.
+ * - `disposeFunc` Optional. Gets called once, right before the backend is
+ * disposed.
  */
-export function registerKernel(
-    kernelName: string, backendName: string, kernelFunc: KernelFunc) {
+export function registerKernel(config: KernelConfig) {
+  const {kernelName, backendName} = config;
   const key = makeKey(kernelName, backendName);
-  if (key in kernelRegistry) {
+  if (kernelRegistry.has(key)) {
     throw new Error(
         `The kernel '${kernelName}' for backend ` +
         `'${backendName}' is already registered`);
   }
-  kernelRegistry[key] = kernelFunc;
+  kernelRegistry.set(key, config);
 }
 
 /**
@@ -92,12 +125,12 @@ export function registerKernel(
 export function unregisterKernel(
     kernelName: string, backendName: string): void {
   const key = makeKey(kernelName, backendName);
-  if (!(key in kernelRegistry)) {
+  if (!kernelRegistry.has(key)) {
     throw new Error(
         `The kernel '${kernelName}' for backend ` +
         `'${backendName}' is not registered`);
   }
-  delete kernelRegistry[key];
+  kernelRegistry.delete(key);
 }
 
 function makeKey(kernelName: string, backendName: string) {

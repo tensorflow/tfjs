@@ -69,6 +69,17 @@ tensorflowjs_converter \
     /mobilenet/saved_model \
     /mobilenet/web_model
 ```
+* __TensorFlow Frozen Model__ example:
+
+__Note:__ Frozen model is a deprecated format and support is added for backward compatibility purpose.
+
+```bash
+$ tensorflowjs_converter \
+    --input_format=tf_frozen_model \
+    --output_node_names='MobilenetV1/Predictions/Reshape_1' \
+    /mobilenet/frozen_model.pb \
+    /mobilenet/web_model
+```
 
 * __Tensorflow Hub module__ example:
 
@@ -115,8 +126,9 @@ saved a tf.keras model in the SavedModel format.
 |`--signature_name`   | Only applicable to TensorFlow SavedModel and Hub module conversion, signature to load. Defaults to `serving_default` for SavedModel and `default` for Hub module. See https://www.tensorflow.org/hub/common_signatures/.|
 |`--strip_debug_ops`   | Strips out TensorFlow debug operations `Print`, `Assert`, `CheckNumerics`. Defaults to `True`.|
 |`--quantization_bytes`  | How many bytes to optionally quantize/compress the weights to. Valid values are 1 and 2. which will quantize int32 and float32 to 1 or 2 bytes respectively. The default (unquantized) size is 4 bytes.|
+|<nobr>`--output_node_names`</nobr>| Only applicable to Frozen Model. The names of the output nodes, separated by commas.|
 
-__Note: If you want to convert TensorFlow frozen model or session bundle, you can install older versions of the tensorflowjs pip package, i.e. `pip install tensorflowjs==0.8.6`.__
+__Note: If you want to convert TensorFlow session bundle, you can install older versions of the tensorflowjs pip package, i.e. `pip install tensorflowjs==0.8.6`.__
 
 ### Format Conversion Support Tables
 
@@ -133,6 +145,7 @@ most cases.
 | `keras_saved_model` | `tfjs_layers_model` | Convert a tf.keras SavedModel model file (from [`tf.contrib.saved_model.save_keras_model`](https://www.tensorflow.org/api_docs/python/tf/contrib/saved_model/save_keras_model)) to TensorFlow.js Layers model format. Use [`tf.loadLayersModel()`](https://js.tensorflow.org/api/latest/#loadLayersModel) to load the model in JavaScript. |
 | `tf_hub` | `tfjs_graph_model` | Convert a [TF-Hub](https://www.tensorflow.org/hub) model file to TensorFlow.js graph model format. Use [`tf.loadGraphModel()`](https://js.tensorflow.org/api/latest/#loadGraphModel) to load the converted model in JavaScript. |
 | `tf_saved_model` | `tfjs_graph_model` | Convert a [TensorFlow SavedModel](https://www.tensorflow.org/guide/saved_model#build_and_load_a_savedmodel) to TensorFlow.js graph model format. Use [`tf.loadGraphModel()`](https://js.tensorflow.org/api/latest/#loadGraphModel) to load the converted model in JavaScript. |
+| `tf_frozen_model` | `tfjs_graph_model` | Convert a [Frozen Model](https://www.tensorflow.org/mobile/prepare_models#how_do_you_get_a_model_you_can_use_on_mobile) to TensorFlow.js graph model format. Use [`tf.loadGraphModel()`](https://js.tensorflow.org/api/latest/#loadGraphModel) to load the converted model in JavaScript. |
 
 #### JavaScript-to-Python
 
@@ -373,7 +386,7 @@ yarn ts-node tools/pb2json_converter.ts pb_model_directory/ json_model_directory
 version is located.
 `json_model_directory` is the destination directory for the converted model.
 
-__7. I have a model formatted as a Session bundle or Frozen model. How do I convert it to TensorFlow.js?__
+__7. I have a model formatted as a Session bundle. How do I convert it to TensorFlow.js?__
 
 You can install a previous version of TensorFlow.js in a virtual environment to
 convert the model to the JSON format. Here is how you can achieve this.
@@ -396,18 +409,6 @@ tensorflowjs_converter \
     --output_json=true \
     --output_node_names='MobilenetV1/Predictions/Reshape_1' \
     /mobilenet/session_bundle \
-    /mobilenet/web_model
-```
-
-* Convert a frozen model:
-
-```bash
-tensorflowjs_converter \
-    --input_format=tf_frozen_model \
-    --output_json=true \
-    --output_node_names='MobilenetV1/Predictions/Reshape_1' \
-    --saved_model_tags=serve \
-    /mobilenet/frozen_model.pb \
     /mobilenet/web_model
 ```
 

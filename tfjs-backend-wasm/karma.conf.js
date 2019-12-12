@@ -22,7 +22,10 @@ const karmaTypescriptConfig = {
     sourceMap: true,
     // Ignore the import of the `worker_threads` package used in a core test
     // meant to run in node.
-    exclude: ['worker_threads']
+    exclude: ['worker_threads'],
+    // worker_node_test in tfjs-core contains a conditional require statement
+    // that confuses the bundler of karma-typescript.
+    ignore: ['./worker_node_test']
   },
   // Disable coverage reports and instrumentation by default for tests
   coverageOptions: {instrumentation: false},
@@ -51,6 +54,7 @@ module.exports = function(config) {
       // Import the rest of the sources.
       {pattern: 'src/**/*.ts'},
     ],
+    exclude: ['src/test_node.ts'],
     preprocessors: {
       'wasm-out/**/*.js': ['karma-typescript'],
       '**/*.ts': ['karma-typescript']

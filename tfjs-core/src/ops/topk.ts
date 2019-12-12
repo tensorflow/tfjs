@@ -58,7 +58,7 @@ function topk_<T extends Tensor>(
   }
 
   const [values, indices] =
-      ENGINE.runKernel(b => b.topk($x as NumericTensor, k, sorted), {$x});
+      ENGINE.runKernelFunc(b => b.topk($x as NumericTensor, k, sorted), {$x});
   return {values, indices} as {values: T, indices: T};
 }
 

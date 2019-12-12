@@ -21,6 +21,9 @@ const karmaTypescriptConfig = {
   coverageOptions: {instrumentation: false},
   reports: {},
   bundlerOptions: {
+    transforms: [
+      require('karma-typescript-es6-transform')()
+    ],
     // worker_node_test in tfjs-core contains a conditional require statement
     // that confuses the bundler of karma-typescript.
     ignore: ['./worker_node_test']

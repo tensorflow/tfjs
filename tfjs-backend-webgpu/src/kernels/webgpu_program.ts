@@ -16,11 +16,14 @@
  */
 
 import {DataType, Tensor} from '@tensorflow/tfjs-core';
-import * as shaderc from '@webgpu/shaderc';
+import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import * as shader_preprocessor from '../shader_preprocessor';
 
 export interface WebGPUProgram {
+  // The unique key to distinguish different shader source code. If shaderKey is
+  // not specified, use userCode to replace.
+  shaderKey?: string;
   userCode: string;
   outputShape: number[];
   // dispatchLayout enumerates how tensor dimensions are distributed among
@@ -85,42 +88,35 @@ const makeBindGroupLayout =
     };
 
 export const compileProgram =
-    (shaderCompiler: shaderc.Compiler, shaderKind: shaderc.ShaderKind,
-     compileOptions: shaderc.CompileOptions, device: GPUDevice,
-     program: WebGPUProgram, inputsData: shader_preprocessor.InputInfo[],
-     output: Tensor, uniforms?: BindingInfo): WebGPUBinary => {
+    (glslang: Glslang, device: GPUDevice, program: WebGPUProgram,
+     inputsData: shader_preprocessor.InputInfo[], output: Tensor,
+     uniforms?: BindingInfo): WebGPUBinary => {
       const outputData = {dtype: output.dtype, shape: output.shape};
 
       const source =
           shader_preprocessor.makeShader(inputsData, outputData, program);
-      const result = shaderCompiler.CompileGlslToSpv(
-          source, shaderKind, 'file', 'main', compileOptions);
-      const error = result.GetErrorMessage();
-      if (error.length) {
-        console.error(
-            source.split('\n')
-                .map((s, l) => (l + 1).toString().padStart(5, ' ') + ' ' + s)
-                .join('\n'));
-        throw new Error(`Shader compilation failed: ${error}`);
+      const result = glslang.compileGLSLZeroCopy(source, 'compute', false);
+      if (result.data.length === 0) {
+        throw new Error('Shader compilation failed');
       }
+
       const bindGroupLayout =
           makeBindGroupLayout(device, inputsData, output, uniforms);
-      const code = result.GetBinary();
       const layout =
           device.createPipelineLayout({bindGroupLayouts: [bindGroupLayout]});
-      const module = device.createShaderModule({code});
+      const module = device.createShaderModule({code: result.data});
       const pipeline = device.createComputePipeline(
           {layout, computeStage: {module, entryPoint: 'main'}});
 
+      result.free();
       return {bindGroupLayout, pipeline};
     };
 
-// TODO: Consider allowing each program to specify its own shader key. E.g. some
-// kernels account for different work group sizes, but some don't.
 // TODO: Consider uploading shape info as vec4s regardless of rank to reduce
 // recompilation.
 export function makeShaderKey(program: WebGPUProgram, ranks: number[]): string {
   const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
-      ranks.join(',') + program.userCode;
+      ranks.join(',') +
+      (program.shaderKey ? program.shaderKey : program.userCode);
   return key;
 }

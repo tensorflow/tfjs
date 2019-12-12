@@ -22,6 +22,6 @@
   "dependencies": {
     "@tensorflow/tfjs-converter": "^1.2.8",
     "@tensorflow/tfjs-core": "^1.2.8",
-    "@tensorflow/tfjs-automl": "~0.1.0"
+    "@tensorflow/tfjs-automl": "^1.0.0"
   }
 }

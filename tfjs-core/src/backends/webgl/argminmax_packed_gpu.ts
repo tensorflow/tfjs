@@ -25,7 +25,8 @@ export class ArgMinMaxPackedProgram implements GPGPUProgram {
   variableNames = ['A'];
   outputShape: number[];
   userCode: string;
-  usesPackedTextures = true;
+  packedInputs = true;
+  packedOutput = true;
 
   constructor(
       shape: number[], windowSize: number, op: 'max'|'min',

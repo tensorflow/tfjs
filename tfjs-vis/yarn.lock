@@ -2634,13 +2634,6 @@ get-value@^2.0.3, get-value@^2.0.6:
   resolved "https://registry.yarnpkg.com/get-value/-/get-value-2.0.6.tgz#dc15ca1c672387ca76bd37ac0a395ba2042a2c28"
   integrity sha1-3BXKHGcjh8p2vTesCjlbogQqLCg=
 
-glamor-tachyons@~1.0.0-alpha.1:
-  version "1.0.0-alpha.1"
-  resolved "https://registry.yarnpkg.com/glamor-tachyons/-/glamor-tachyons-1.0.0-alpha.1.tgz#76c295f9c3bfad056a30341a5a9cea7ac865d78d"
-  integrity sha512-C51lRkk206gkKUHRQIyNcZHv3Oj00SFFnV1RfI3kKhOQur9eavOABb09ZL2vE3ub8EMM0dOjDOS1Bg88MesAWw==
-  dependencies:
-    lodash "^4.17.4"
-
 glamor@~2.20.40:
   version "2.20.40"
   resolved "https://registry.yarnpkg.com/glamor/-/glamor-2.20.40.tgz#f606660357b7cf18dface731ad1a2cfa93817f05"

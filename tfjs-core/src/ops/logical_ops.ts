@@ -39,7 +39,7 @@ import {zerosLike} from './tensor_ops';
 /** @doc {heading: 'Operations', subheading: 'Logical'} */
 function logicalNot_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'logicalNot', 'bool');
-  return ENGINE.runKernel(backend => backend.logicalNot($x), {$x});
+  return ENGINE.runKernelFunc(backend => backend.logicalNot($x), {$x});
 }
 
 /**
@@ -62,7 +62,8 @@ function logicalAnd_<T extends Tensor>(
   const $b = convertToTensor(b, 'b', 'logicalAnd', 'bool');
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
-  return ENGINE.runKernel(backend => backend.logicalAnd($a, $b), {$a, $b}) as T;
+  return ENGINE.runKernelFunc(
+             backend => backend.logicalAnd($a, $b), {$a, $b}) as T;
 }
 
 /**
@@ -84,7 +85,8 @@ function logicalOr_<T extends Tensor>(
   const $b = convertToTensor(b, 'b', 'logicalOr', 'bool');
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
-  return ENGINE.runKernel(backend => backend.logicalOr($a, $b), {$a, $b}) as T;
+  return ENGINE.runKernelFunc(backend => backend.logicalOr($a, $b), {$a, $b}) as
+      T;
 }
 
 /**
@@ -160,7 +162,7 @@ function where_<T extends Tensor>(
     } as {$a: () => T, $b: () => T, $condition: () => T};
   };
 
-  return ENGINE.runKernel((backend, save) => {
+  return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.select($condition, $a, $b);
     save([$condition]);
     return res;

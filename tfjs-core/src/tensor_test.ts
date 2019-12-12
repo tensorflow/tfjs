@@ -17,6 +17,7 @@
 
 import * as tf from './index';
 import {ALL_ENVS, describeWithFlags, SYNC_BACKEND_ENVS} from './jasmine_util';
+import {tensor5d} from './ops/ops';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
 import {expectArraysClose, expectArraysEqual, expectNumbersClose} from './test_util';
 import {Rank, RecursiveArray, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TypedArray} from './types';
@@ -173,7 +174,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
 
   it('indexToLoc Tensor 5D', async () => {
     const values = new Float32Array([1, 2, 3, 4]);
-    const a = await Tensor.make([2, 1, 1, 1, 2], values).buffer();
+    const a = await tensor5d(values, [2, 1, 1, 1, 2]).buffer();
     expect(a.indexToLoc(0)).toEqual([0, 0, 0, 0, 0]);
     expect(a.indexToLoc(1)).toEqual([0, 0, 0, 0, 1]);
     expect(a.indexToLoc(2)).toEqual([1, 0, 0, 0, 0]);
@@ -1532,7 +1533,9 @@ describeWithFlags('tensor', ALL_ENVS, () => {
 
 describeWithFlags('tensor debug mode', ALL_ENVS, () => {
   beforeAll(() => {
-    tf.env().set('DEBUG', true);
+    // Silence debug warnings.
+    spyOn(console, 'warn');
+    tf.enableDebugMode();
   });
 
   it('tf.tensor() from TypedArray + number[] fails due to wrong shape', () => {
@@ -1936,66 +1939,80 @@ describeWithFlags('tensor.toString', SYNC_BACKEND_ENVS, () => {
 
   it('2d complex64 tensor verbose', () => {
     const verbose = true;
-    const str = tf.zeros([3, 3], 'complex64').toString(verbose);
+    const str = tf.complex(tf.linspace(0, 8, 9), tf.linspace(8, 0, 9))
+                    .reshape([3, 3])
+                    .toString(verbose);
     expect(str).toEqual(
         'Tensor\n' +
         '  dtype: complex64\n' +
         '  rank: 2\n' +
         '  shape: [3,3]\n' +
         '  values:\n' +
-        '    [[0 + 0j, 0 + 0j, 0 + 0j],\n' +
-        '     [0 + 0j, 0 + 0j, 0 + 0j],\n' +
-        '     [0 + 0j, 0 + 0j, 0 + 0j]]');
+        '    [[0 + 8j, 1 + 7j, 2 + 6j],\n' +
+        '     [3 + 5j, 4 + 4j, 5 + 3j],\n' +
+        '     [6 + 2j, 7 + 1j, 8 + 0j]]');
   });
 
   it('3d complex64 tensor verbose', () => {
     const verbose = true;
-    const str = tf.zeros([3, 3, 2], 'complex64').toString(verbose);
+    const str = tf.complex(tf.linspace(0, 17, 18), tf.linspace(17, 0, 18))
+                    .reshape([3, 3, 2])
+                    .toString(verbose);
     expect(str).toEqual(
         'Tensor\n' +
         '  dtype: complex64\n' +
         '  rank: 3\n' +
         '  shape: [3,3,2]\n' +
         '  values:\n' +
-        '    [[[0 + 0j, 0 + 0j],\n' +
-        '      [0 + 0j, 0 + 0j],\n' +
-        '      [0 + 0j, 0 + 0j]],\n\n' +
-        '     [[0 + 0j, 0 + 0j],\n' +
-        '      [0 + 0j, 0 + 0j],\n' +
-        '      [0 + 0j, 0 + 0j]],\n\n' +
-        '     [[0 + 0j, 0 + 0j],\n' +
-        '      [0 + 0j, 0 + 0j],\n' +
-        '      [0 + 0j, 0 + 0j]]]');
+        '    [[[0 + 17j, 1 + 16j],\n' +
+        '      [2 + 15j, 3 + 14j],\n' +
+        '      [4 + 13j, 5 + 12j]],\n\n' +
+        '     [[6 + 11j, 7 + 10j],\n' +
+        '      [8 + 9j , 9 + 8j ],\n' +
+        '      [10 + 7j, 11 + 6j]],\n\n' +
+        '     [[12 + 5j, 13 + 4j],\n' +
+        '      [14 + 3j, 15 + 2j],\n' +
+        '      [16 + 1j, 17 + 0j]]]');
   });
 
-  it('1d long tensor verbose', () => {
+  it('1d long complex64 tensor verbose', () => {
     const verbose = true;
-    const str = tf.zeros([100], 'complex64').toString(verbose);
+    const str = tf.complex(tf.linspace(0, 99, 100), tf.linspace(99, 0, 100))
+                    .toString(verbose);
     expect(str).toEqual(
         'Tensor\n' +
         '  dtype: complex64\n' +
         '  rank: 1\n' +
         '  shape: [100]\n' +
         '  values:\n' +
-        '    [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j]');
+        '    [0 + 99j, 1 + 98j, 2 + 97j, ..., 97 + 2j, 98 + 1j, 99 + 0j]');
   });
 
-  it('2d long tensor verbose', () => {
+  it('2d long complex64 tensor verbose', () => {
     const verbose = true;
-    const str = tf.zeros([100, 100], 'complex64').toString(verbose);
+
+    const dim = 100;
+    const str = tf.complex(
+                      tf.linspace(0, dim * dim - 1, dim * dim),
+                      tf.linspace(dim * dim - 1, 0, dim * dim))
+                    .reshape([dim, dim])
+                    .toString(verbose);
+
     expect(str).toEqual(
         'Tensor\n' +
         '  dtype: complex64\n' +
         '  rank: 2\n' +
         '  shape: [100,100]\n' +
         '  values:\n' +
-        '    [[0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j],\n' +
-        '     [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j],\n' +
-        '     [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j],\n' +
+        // tslint:disable:max-line-length
+        '    [[0 + 9999j   , 1 + 9998j   , 2 + 9997j   , ..., 97 + 9902j  , 98 + 9901j  , 99 + 9900j  ],\n' +
+        '     [100 + 9899j , 101 + 9898j , 102 + 9897j , ..., 197 + 9802j , 198 + 9801j , 199 + 9800j ],\n' +
+        '     [200 + 9799j , 201 + 9798j , 202 + 9797j , ..., 297 + 9702j , 298 + 9701j , 299 + 9700j ],\n' +
         '     ...,\n' +
-        '     [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j],\n' +
-        '     [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j],\n' +
-        '     [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j]]');
+        '     [9700 + 299j , 9701 + 298j , 9702 + 297j , ..., 9797 + 202j , 9798 + 201j , 9799 + 200j ],\n' +
+        '     [9800 + 199j , 9801 + 198j , 9802 + 197j , ..., 9897 + 102j , 9898 + 101j , 9899 + 100j ],\n' +
+        '     [9900 + 99j  , 9901 + 98j  , 9902 + 97j  , ..., 9997 + 2j   , 9998 + 1j   , 9999 + 0j   ]]');
+    // tslint:enable:max-line-length
   });
 
   it('2d complex64 with padding to align columns verbose', () => {
@@ -2027,54 +2044,70 @@ describeWithFlags('tensor.toString', SYNC_BACKEND_ENVS, () => {
   });
 
   it('1d complex64 tensor', () => {
-    const str = tf.zeros([4], 'complex64').toString();
+    const str =
+        tf.complex(tf.linspace(0, 3, 4), tf.linspace(3, 0, 4)).toString();
     expect(str).toEqual(
         'Tensor\n' +
-        '    [0 + 0j, 0 + 0j, 0 + 0j, 0 + 0j]');
+        '    [0 + 3j, 1 + 2j, 2 + 1j, 3 + 0j]');
   });
 
   it('2d complex64 tensor', () => {
-    const str = tf.zeros([3, 3], 'complex64').toString();
+    const str = tf.complex(tf.linspace(0, 8, 9), tf.linspace(8, 0, 9))
+                    .reshape([3, 3])
+                    .toString();
     expect(str).toEqual(
         'Tensor\n' +
-        '    [[0 + 0j, 0 + 0j, 0 + 0j],\n' +
-        '     [0 + 0j, 0 + 0j, 0 + 0j],\n' +
-        '     [0 + 0j, 0 + 0j, 0 + 0j]]');
+        '    [[0 + 8j, 1 + 7j, 2 + 6j],\n' +
+        '     [3 + 5j, 4 + 4j, 5 + 3j],\n' +
+        '     [6 + 2j, 7 + 1j, 8 + 0j]]');
   });
 
   it('3d complex64 tensor', () => {
-    const str = tf.zeros([3, 3, 2], 'complex64').toString();
+    const str = tf.complex(tf.linspace(0, 17, 18), tf.linspace(17, 0, 18))
+                    .reshape([3, 3, 2])
+                    .toString();
+
     expect(str).toEqual(
         'Tensor\n' +
-        '    [[[0 + 0j, 0 + 0j],\n' +
-        '      [0 + 0j, 0 + 0j],\n' +
-        '      [0 + 0j, 0 + 0j]],\n\n' +
-        '     [[0 + 0j, 0 + 0j],\n' +
-        '      [0 + 0j, 0 + 0j],\n' +
-        '      [0 + 0j, 0 + 0j]],\n\n' +
-        '     [[0 + 0j, 0 + 0j],\n' +
-        '      [0 + 0j, 0 + 0j],\n' +
-        '      [0 + 0j, 0 + 0j]]]');
+        '    [[[0 + 17j, 1 + 16j],\n' +
+        '      [2 + 15j, 3 + 14j],\n' +
+        '      [4 + 13j, 5 + 12j]],\n\n' +
+        '     [[6 + 11j, 7 + 10j],\n' +
+        '      [8 + 9j , 9 + 8j ],\n' +
+        '      [10 + 7j, 11 + 6j]],\n\n' +
+        '     [[12 + 5j, 13 + 4j],\n' +
+        '      [14 + 3j, 15 + 2j],\n' +
+        '      [16 + 1j, 17 + 0j]]]');
   });
 
   it('1d long complex64 tensor', () => {
-    const str = tf.zeros([100], 'complex64').toString();
+    const str =
+        tf.complex(tf.linspace(0, 99, 100), tf.linspace(99, 0, 100)).toString();
+
     expect(str).toEqual(
         'Tensor\n' +
-        '    [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j]');
+        '    [0 + 99j, 1 + 98j, 2 + 97j, ..., 97 + 2j, 98 + 1j, 99 + 0j]');
   });
 
   it('2d long complex64 tensor', () => {
-    const str = tf.zeros([100, 100], 'complex64').toString();
+    const dim = 100;
+    const str = tf.complex(
+                      tf.linspace(0, dim * dim - 1, dim * dim),
+                      tf.linspace(dim * dim - 1, 0, dim * dim))
+                    .reshape([dim, dim])
+                    .toString();
+
     expect(str).toEqual(
         'Tensor\n' +
-        '    [[0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j],\n' +
-        '     [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j],\n' +
-        '     [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j],\n' +
+        // tslint:disable:max-line-length
+        '    [[0 + 9999j   , 1 + 9998j   , 2 + 9997j   , ..., 97 + 9902j  , 98 + 9901j  , 99 + 9900j  ],\n' +
+        '     [100 + 9899j , 101 + 9898j , 102 + 9897j , ..., 197 + 9802j , 198 + 9801j , 199 + 9800j ],\n' +
+        '     [200 + 9799j , 201 + 9798j , 202 + 9797j , ..., 297 + 9702j , 298 + 9701j , 299 + 9700j ],\n' +
         '     ...,\n' +
-        '     [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j],\n' +
-        '     [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j],\n' +
-        '     [0 + 0j, 0 + 0j, 0 + 0j, ..., 0 + 0j, 0 + 0j, 0 + 0j]]');
+        '     [9700 + 299j , 9701 + 298j , 9702 + 297j , ..., 9797 + 202j , 9798 + 201j , 9799 + 200j ],\n' +
+        '     [9800 + 199j , 9801 + 198j , 9802 + 197j , ..., 9897 + 102j , 9898 + 101j , 9899 + 100j ],\n' +
+        '     [9900 + 99j  , 9901 + 98j  , 9902 + 97j  , ..., 9997 + 2j   , 9998 + 1j   , 9999 + 0j   ]]');
+    // tslint:enable:max-line-length
   });
 
   it('2d complex64 with padding to align columns', () => {

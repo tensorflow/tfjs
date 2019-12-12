@@ -19,8 +19,9 @@
 import './index';
 
 import * as tf from '@tensorflow/tfjs';
-// tslint:disable-next-line: no-imports-from-dist
+// tslint:disable-next-line:no-imports-from-dist
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {argv} from 'yargs';
 
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
@@ -100,8 +101,14 @@ if (process.env.JASMINE_SEED) {
 
 const env = jasmine.getEnv();
 
+const grepRegex = new RegExp(argv.grep as string);
+
 // Filter method that returns boolean, if a given test should return.
 env.specFilter = spec => {
+  // Filter based on the grep flag.
+  if (!grepRegex.test(spec.getFullName())) {
+    return false;
+  }
   // Return false (skip the test) if the test is in the ignore list.
   for (let i = 0; i < IGNORE_LIST.length; ++i) {
     if (spec.getFullName().indexOf(IGNORE_LIST[i]) > -1) {

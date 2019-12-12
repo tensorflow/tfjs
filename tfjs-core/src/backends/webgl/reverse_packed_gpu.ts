@@ -23,7 +23,8 @@ export class ReversePackedProgram implements GPGPUProgram {
   variableNames = ['x'];
   outputShape: number[];
   userCode: string;
-  usesPackedTextures = true;
+  packedInputs = true;
+  packedOutput = true;
 
   constructor(xShape: number[], axis: number[]) {
     const rank = xShape.length;

@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-core",
-  "version": "1.2.11",
+  "version": "1.4.0",
   "description": "Hardware-accelerated JavaScript library for machine intelligence",
   "private": false,
   "main": "dist/index.js",
@@ -21,7 +21,7 @@
   "devDependencies": {
     "@bazel/bazel": "^0.24.0",
     "@bazel/typescript": "^0.27.8",
-    "@types/jasmine": "~2.5.53",
+    "@types/jasmine": "~3.0.0",
     "@types/node": "~9.6.0",
     "@types/node-fetch": "~2.1.2",
     "browserify": "~16.2.3",

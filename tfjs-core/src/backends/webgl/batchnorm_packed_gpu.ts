@@ -22,7 +22,8 @@ export class BatchNormPackedProgram implements GPGPUProgram {
   variableNames: string[];
   outputShape: number[];
   userCode: string;
-  usesPackedTextures = true;
+  packedInputs = true;
+  packedOutput = true;
 
   constructor(
       xShape: number[], meanShape: number[], varianceShape: number[],

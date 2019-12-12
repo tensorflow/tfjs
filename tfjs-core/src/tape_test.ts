@@ -18,6 +18,7 @@
 import {ScopeFn} from './engine';
 import * as tf from './index';
 import {ALL_ENVS, describeWithFlags} from './jasmine_util';
+import {zerosLike} from './ops/ops';
 import {backpropagateGradients, getFilteredNodesXToY, TapeNode} from './tape';
 import {expectArraysClose} from './test_util';
 
@@ -251,8 +252,8 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
       name: 'node0',
       inputs: {x},
       outputs: [y],
-      gradient: (dy: tf.Scalar) => {
-        return {x: () => dy.add(tf.scalar(1))};
+      gradient: (dys: tf.Tensor[]) => {
+        return {x: () => dys[0].add(tf.scalar(1))};
       }
     }];
 
@@ -278,8 +279,8 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
         name: 'node0',
         inputs: {x},
         outputs: [intermediate],
-        gradient: (dy: tf.Scalar) => {
-          return {x: () => dy.add(tf.scalar(1))};
+        gradient: (dys: tf.Tensor[]) => {
+          return {x: () => dys[0].add(tf.scalar(1))};
         }
       },
       {
@@ -287,8 +288,8 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
         name: 'node1',
         inputs: {intermediate},
         outputs: [y],
-        gradient: (dy: tf.Scalar) => {
-          return {intermediate: () => dy.add(tf.scalar(1))};
+        gradient: (dys: tf.Tensor[]) => {
+          return {intermediate: () => dys[0].add(tf.scalar(1))};
         }
       }
     ];
@@ -317,8 +318,8 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
         name: 'node0',
         inputs: {x},
         outputs: [intermediate1],
-        gradient: (dy: tf.Scalar) => {
-          return {x: () => dy.add(tf.scalar(1))};
+        gradient: (dys: tf.Tensor[]) => {
+          return {x: () => dys[0].add(tf.scalar(1))};
         }
       },
       {
@@ -326,8 +327,8 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
         name: 'node1',
         inputs: {x},
         outputs: [intermediate2],
-        gradient: (dy: tf.Scalar) => {
-          return {x: () => dy.add(tf.scalar(1))};
+        gradient: (dys: tf.Tensor[]) => {
+          return {x: () => dys[0].add(tf.scalar(1))};
         }
       },
       {
@@ -335,10 +336,10 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
         name: 'node2',
         inputs: {intermediate1, intermediate2},
         outputs: [y],
-        gradient: (dy: tf.Scalar) => {
+        gradient: (dys: tf.Tensor[]) => {
           return {
-            intermediate1: () => dy.add(tf.scalar(1)),
-            intermediate2: () => dy.add(tf.scalar(1))
+            intermediate1: () => dys[0].add(tf.scalar(1)),
+            intermediate2: () => dys[0].add(tf.scalar(1))
           };
         }
       }
@@ -371,8 +372,8 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
          inputs: {x},
          outputs: [y1, y2, y3],
          gradient: (dys_: tf.Scalar[]) => {
-           dys = dys_;
-           return {x: () => tf.stack(dys_)};
+           dys = dys_.map(dy => dy || zerosLike(y1));
+           return {x: () => tf.stack(dys)};
          }
        }];
 

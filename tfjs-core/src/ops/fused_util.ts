@@ -16,6 +16,7 @@
  */
 
 import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+
 import {Conv2DInfo} from './conv_util';
 
 export type Activation = 'linear'|'relu'|'prelu'|'elu'|'relu6';
@@ -37,4 +38,10 @@ export type FusedConv2DConfig = {
   bias?: Tensor,
   activation?: Activation,
   preluActivationWeights?: Tensor
+};
+
+// Whether we should call fused ops.
+export const shouldFuse = (gradientDepth: number, activation: Activation) => {
+  const gradientMode = gradientDepth > 0;
+  return !gradientMode || activation === 'linear';
 };

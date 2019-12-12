@@ -127,9 +127,8 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
         'directory: %s' % h5_path)
 
   temp_savedmodel_dir = tempfile.mktemp(suffix='.savedmodel')
-  model = keras.models.load_model(h5_path)
-  keras.experimental.export_saved_model(
-      model, temp_savedmodel_dir, serving_only=True)
+  model = keras.models.load_model(h5_path, compile=False)
+  model.save(temp_savedmodel_dir, include_optimizer=False, save_format='tf')
 
   # NOTE(cais): This cannot use `tf.compat.v1` because
   #   `convert_tf_saved_model()` works only in v2.
@@ -390,7 +389,8 @@ def _standardize_input_output_formats(input_format, output_format):
   input_format_is_keras = (
       input_format in [common.KERAS_MODEL, common.KERAS_SAVED_MODEL])
   input_format_is_tf = (
-      input_format in [common.TF_SAVED_MODEL, common.TF_HUB_MODEL])
+      input_format in [common.TF_SAVED_MODEL,
+                       common.TF_FROZEN_MODEL, common.TF_HUB_MODEL])
   if output_format is None:
     # If no explicit output_format is provided, infer it from input format.
     if input_format_is_keras:
@@ -425,7 +425,7 @@ def get_arg_parser():
       type=str,
       help='Path to the input file or directory. For input format "keras", '
       'an HDF5 (.h5) file is expected. For input format "tensorflow", '
-      'a SavedModel directory, session bundle directory, frozen model file, '
+      'a SavedModel directory, frozen model file, '
       'or TF-Hub module is expected.')
   parser.add_argument(
       common.OUTPUT_PATH,
@@ -439,7 +439,7 @@ def get_arg_parser():
       default=common.TF_SAVED_MODEL,
       choices=set([common.KERAS_MODEL, common.KERAS_SAVED_MODEL,
                    common.TF_SAVED_MODEL, common.TF_HUB_MODEL,
-                   common.TFJS_LAYERS_MODEL]),
+                   common.TFJS_LAYERS_MODEL, common.TF_FROZEN_MODEL]),
       help='Input format. '
       'For "keras", the input path can be one of the two following formats:\n'
       '  - A topology+weights combined HDF5 (e.g., generated with'
@@ -452,7 +452,7 @@ def get_arg_parser():
       'The subfolder is generated automatically by tensorflow when '
       'saving keras model in the SavedModel format. It is usually named '
       'as a Unix epoch time (e.g., 1542212752).\n'
-      'For "tf" formats, a SavedModel, frozen model, session bundle model, '
+      'For "tf" formats, a SavedModel, frozen model, '
       ' or TF-Hub module is expected.')
   parser.add_argument(
       '--%s' % common.OUTPUT_FORMAT,
@@ -508,6 +508,12 @@ def get_arg_parser():
       default=None,
       help='Shard size (in bytes) of the weight files. Currently applicable '
       'only to output_format=tfjs_layers_model.')
+  parser.add_argument(
+      '--output_node_names',
+      type=str,
+      help='The names of the output nodes, separated by commas. E.g., '
+      '"logits,activations". Applicable only if input format is '
+      '"tf_frozen_model".')
   return parser
 
 def convert(arguments):
@@ -545,6 +551,10 @@ def convert(arguments):
   quantization_dtype = (
       quantization.QUANTIZATION_BYTES_TO_DTYPES[args.quantization_bytes]
       if args.quantization_bytes else None)
+
+  if (not args.output_node_names and input_format == common.TF_FROZEN_MODEL):
+    raise ValueError(
+        'The --output_node_names flag is required for "tf_frozen_model"')
 
   if (args.signature_name and input_format not in
       (common.TF_SAVED_MODEL, common.TF_HUB_MODEL)):
@@ -586,8 +596,11 @@ def convert(arguments):
   elif (input_format == common.TF_HUB_MODEL and
         output_format == common.TFJS_GRAPH_MODEL):
     tf_saved_model_conversion_v2.convert_tf_hub_module(
-        args.input_path, args.output_path, args.signature_name,
-        args.saved_model_tags, skip_op_check=args.skip_op_check,
+        args.input_path, args.output_path,
+        signature=args.signature_name,
+        saved_model_tags=args.saved_model_tags,
+        quantization_dtype=quantization_dtype,
+        skip_op_check=args.skip_op_check,
         strip_debug_ops=args.strip_debug_ops)
   elif (input_format == common.TFJS_LAYERS_MODEL and
         output_format == common.KERAS_MODEL):
@@ -607,6 +620,13 @@ def convert(arguments):
         output_format == common.TFJS_GRAPH_MODEL):
     dispatch_tfjs_layers_model_to_tfjs_graph_conversion(
         args.input_path, args.output_path,
+        quantization_dtype=_parse_quantization_bytes(args.quantization_bytes),
+        skip_op_check=args.skip_op_check,
+        strip_debug_ops=args.strip_debug_ops)
+  elif (input_format == common.TF_FROZEN_MODEL and
+        output_format == common.TFJS_GRAPH_MODEL):
+    tf_saved_model_conversion_v2.convert_tf_frozen_model(
+        args.input_path, args.output_node_names, args.output_path,
         quantization_dtype=_parse_quantization_bytes(args.quantization_bytes),
         skip_op_check=args.skip_op_check,
         strip_debug_ops=args.strip_debug_ops)

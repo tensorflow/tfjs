@@ -25,7 +25,8 @@ export class TransposePackedProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
   rank: number;
-  usesPackedTextures = true;
+  packedInputs = true;
+  packedOutput = true;
 
   constructor(aShape: number[], newDim: number[]) {
     const outputShape: number[] = new Array(aShape.length);
@@ -64,7 +65,7 @@ export class TransposePackedProgram implements GPGPUProgram {
         if(${nextColumn}) {
           result[3] = ${getc};
         }
-      }  
+      }
       setOutput(result);
     }
     `;

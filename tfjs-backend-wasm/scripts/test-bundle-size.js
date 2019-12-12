@@ -19,7 +19,7 @@ const {exec} = require('../../scripts/test-util');
 const {showDiff, getFileSizeBytes} = require('../../scripts/bundle-size-util');
 
 // Get the bundle sizes from this change.
-exec(`yarn rollup -c`, {silent: true});
+exec(`yarn rollup -c`, {silent: false});
 
 const bundleFilename = 'dist/tf-backend-wasm.min.js';
 const minBundleSize = getFileSizeBytes(bundleFilename);
@@ -36,7 +36,9 @@ exec(
 
 shell.cd(dirName);
 shell.cd(wasmDirName);
-exec(`yarn && ./scripts/build-ci.sh && yarn rollup -c`, {silent: true});
+exec(
+    `yarn && yarn build-core && ./scripts/build-ci.sh && yarn rollup -c`,
+    {silent: false});
 
 const masterMinBundleSize = getFileSizeBytes(bundleFilename);
 const masterWasmSize = getFileSizeBytes(wasmFileName);

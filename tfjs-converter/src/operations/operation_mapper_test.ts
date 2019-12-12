@@ -145,6 +145,25 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
   versions: {producer: 1.0}
 };
 
+const SIGNATURE: tensorflow.ISignatureDef = {
+  inputs: {
+    image: {
+      name: 'image_placeholder',
+      dtype: tensorflow.DataType.DT_INT32,
+      tensorShape: {
+
+      }
+    }
+  },
+  outputs: {
+    squeeze: {
+      name: 'Squeeze',
+      dtype: tensorflow.DataType.DT_FLOAT,
+      tensorShape: {}
+    }
+  }
+};
+
 describe('completeness check', () => {
   it('should convert all op categories', () => {
     ops.forEach(op => {
@@ -159,7 +178,7 @@ describe('completeness check', () => {
     });
   });
 });
-describe('operationMapper', () => {
+describe('operationMapper without signature', () => {
   beforeEach(() => {
     convertedGraph = mapper.transformGraph(SIMPLE_MODEL);
   });
@@ -169,13 +188,110 @@ describe('operationMapper', () => {
     describe('graph level', () => {
       it('should find the graph input nodes', () => {
         expect(convertedGraph.inputs.map(node => node.name)).toEqual([
-          'image_placeholder', 'Const', 'Shape', 'Value'
+          'image_placeholder'
         ]);
       });
 
       it('should find the graph output nodes', () => {
         expect(convertedGraph.outputs.map(node => node.name)).toEqual([
           'Fill', 'Squeeze', 'Squeeze2', 'Split', 'LogicalNot', 'FusedBatchNorm'
+        ]);
+      });
+
+      it('should find the graph weight nodes', () => {
+        expect(convertedGraph.weights.map(node => node.name)).toEqual([
+          'Const', 'Shape', 'Value'
+        ]);
+      });
+
+      it('should convert nodes', () => {
+        expect(Object.keys(convertedGraph.nodes)).toEqual([
+          'image_placeholder', 'Const', 'Shape', 'Value', 'Fill', 'Conv2D',
+          'BiasAdd', 'Cast', 'Squeeze', 'Squeeze2', 'Split', 'LogicalNot',
+          'FusedBatchNorm'
+        ]);
+      });
+    });
+
+    describe('node level', () => {
+      it('should find the input nodes', () => {
+        expect(convertedGraph.nodes['Fill'].inputs.map(node => node.name))
+            .toEqual(['Shape', 'Value']);
+      });
+      it('should find the children nodes', () => {
+        expect(convertedGraph.nodes['image_placeholder'].children.map(
+                   node => node.name))
+            .toEqual(['Conv2D', 'Split', 'LogicalNot', 'FusedBatchNorm']);
+      });
+
+      it('should map the input params', () => {
+        expect(
+            convertedGraph.nodes['Fill'].inputParams['shape'].inputIndexStart)
+            .toEqual(0);
+        expect(
+            convertedGraph.nodes['Fill'].inputParams['value'].inputIndexStart)
+            .toEqual(1);
+      });
+
+      it('should map the attribute params', () => {
+        expect(convertedGraph.nodes['Conv2D'].attrParams['strides'].value)
+            .toEqual([1, 2, 2, 1]);
+        expect(convertedGraph.nodes['Conv2D'].attrParams['pad'].value)
+            .toEqual('same');
+        expect(convertedGraph.nodes['Conv2D'].attrParams['useCudnnOnGpu'].value)
+            .toEqual(true);
+        expect(
+            convertedGraph.nodes['Split'].attrParams['numOrSizeSplits'].value)
+            .toEqual(3);
+        expect(
+            convertedGraph.nodes['FusedBatchNorm'].attrParams['epsilon'].value)
+            .toEqual(0.0001);
+        expect(convertedGraph.nodes['Squeeze2'].attrParams['axis'].value)
+            .toEqual([]);
+      });
+
+      it('should map the placeholder attribute params', () => {
+        expect(
+            convertedGraph.nodes['image_placeholder'].attrParams['shape'].value)
+            .toEqual([3, 3, 3, 1]);
+        expect(
+            convertedGraph.nodes['image_placeholder'].attrParams['dtype'].value)
+            .toEqual('float32');
+      });
+      it('should map params with deprecated name', () => {
+        expect(convertedGraph.nodes['Squeeze'].attrParams['axis'].value)
+            .toEqual([1, 2]);
+      });
+      it('should map params with int64 dtype', () => {
+        expect(convertedGraph.nodes['Cast'].attrParams['dtype'].value)
+            .toEqual('int32');
+      });
+    });
+  });
+});
+describe('operationMapper with signature', () => {
+  beforeEach(() => {
+    convertedGraph = mapper.transformGraph(SIMPLE_MODEL, SIGNATURE);
+  });
+  afterEach(() => {});
+
+  describe('transform graph', () => {
+    describe('graph level', () => {
+      it('should find the graph input nodes', () => {
+        expect(convertedGraph.inputs.map(node => node.name)).toEqual([
+          'image_placeholder'
+        ]);
+        expect(convertedGraph.inputs.map(node => node.signatureKey)).toEqual([
+          'image'
+        ]);
+      });
+
+      it('should find the graph output nodes', () => {
+        expect(convertedGraph.outputs.map(node => node.name)).toEqual([
+          'Squeeze'
+        ]);
+        expect(convertedGraph.outputs.map(node => node.signatureKey)).toEqual([
+          'squeeze'
         ]);
       });
 

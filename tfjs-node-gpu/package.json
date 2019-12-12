@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-node-gpu",
-  "version": "1.2.11",
+  "version": "1.4.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "gypfile": true,
@@ -12,7 +12,7 @@
     "node": ">=8.11.0"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && mkdir -p dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js",
     "build-npm": "yarn prep-gpu && ./scripts/build-npm.sh",
     "build-addon": "./scripts/build-and-upload-addon.sh",
     "build-addon-from-source": "node-pre-gyp install --build-from-source",
@@ -21,24 +21,25 @@
     "enable-gpu": "node scripts/install.js gpu download && yarn && yarn build-addon-from-source",
     "ensure-cpu-gpu-packages-align": "node scripts/ensure-cpu-gpu-packages-align.js",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
-    "install": "yarn install-gpu",
-    "install-gpu": "node scripts/install.js gpu download",
+    "install": "node scripts/install.js gpu download",
     "install-from-source": "yarn clean-deps && yarn && yarn build-addon-from-source",
     "link-local": "yalc link",
     "lint": "tslint -p . -t verbose",
     "prep": "cd node_modules/@tensorflow/tfjs-core && yarn && yarn build",
     "prep-gpu": "./prep-gpu.sh",
+    "prep-gpu-windows": "./prep-gpu-windows.bat",
     "publish-local": "yarn prep && yalc push",
     "test": "ts-node src/run_tests.ts",
     "test-ci": "./scripts/test-ci.sh",
     "test-ts-integration": "./scripts/test-ts-integration.sh",
-    "upload-windows-addon": "./scripts/build-and-upload-windows-addon-gpu.bat"
+    "upload-windows-addon": "prep-gpu-windows.bat && ./scripts/build-and-upload-windows-addon-gpu.bat"
   },
   "devDependencies": {
     "@types/jasmine": "~2.8.6",
     "@types/node": "^10.5.1",
     "@types/progress": "^2.0.1",
     "@types/rimraf": "~2.0.2",
+    "@types/yargs": "^13.0.3",
     "clang-format": "~1.2.2",
     "jasmine": "~3.1.0",
     "node-fetch": "^2.3.0",
@@ -49,10 +50,11 @@
     "tslint": "~5.9.1",
     "tslint-no-circular-imports": "^0.7.0",
     "typescript": "3.5.3",
-    "yalc": "~1.0.0-pre.21"
+    "yalc": "~1.0.0-pre.21",
+    "yargs": "^14.2.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "1.2.11",
+    "@tensorflow/tfjs": "1.4.0",
     "adm-zip": "^0.4.11",
     "google-protobuf": "^3.9.2",
     "https-proxy-agent": "^2.2.1",
@@ -68,7 +70,8 @@
     "remote_path": "./napi-v{napi_build_version}/{version}/",
     "napi_versions": [
       3,
-      4
+      4,
+      5
     ]
   }
 }

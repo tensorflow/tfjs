@@ -33,6 +33,8 @@ const karmaTypescriptConfig = {
         '@react-native-community/async-storage':
             './src/test_utils/async_storage_mock.ts',
         'expo-gl': './src/test_utils/gl_view_mock.ts',
+        'react-native-fs': './src/test_utils/react_native_fs_mock.ts',
+        'expo-asset': './src/test_utils/expo_asset_mock.ts'
       }
     }
   }

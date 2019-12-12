@@ -16,4 +16,4 @@
 
 set -euo pipefail
 
-external/emsdk/emsdk/fastcomp/emscripten/emar "$@"
+external/emsdk/emsdk/upstream/emscripten/emar "$@"

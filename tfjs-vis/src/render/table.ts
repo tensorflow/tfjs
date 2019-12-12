@@ -18,7 +18,6 @@
 import {format as d3Format} from 'd3-format';
 import {select as d3Select} from 'd3-selection';
 import {css} from 'glamor';
-import {tachyons as tac} from 'glamor-tachyons';
 import {Drawable, TableData} from '../types';
 import {getDrawArea} from './render_utils';
 
@@ -65,8 +64,11 @@ export function table(
   let table = d3Select(drawArea).select('table.tf-table');
 
   const tableStyle = css({
-    ...tac('f6 w-100 mw8 center'),
-    fontSize: options.fontSize,
+    fontSize: options.fontSize || '.875rem',
+    width: '100%',
+    maxWidth: '64rem',
+    marginRight: 'auto',
+    marginLeft: 'auto',
   });
 
   // If a table is not already present on this element add one
@@ -86,8 +88,16 @@ export function table(
   //
   // Add the reader row
   //
-  const headerRowStyle =
-      css({...tac('fw6 bb b--black-20 tl pb3 pr3 bg-white')});
+  const headerRowStyle = css({
+    fontWeight: '600',
+    borderBottomStyle: 'solid',
+    borderBottomWidth: '1px',
+    borderColor: 'rgba( 0, 0, 0, .2 )',
+    textAlign: 'left',
+    paddingBottom: '1rem',
+    paddingRight: '1rem',
+    backgroundColor: '#fff',
+  });
   const headers =
       table.select('thead').select('tr').selectAll('th').data(data.headers);
   const headersEnter =
@@ -105,7 +115,12 @@ export function table(
   const rowsEnter = rows.enter().append('tr');
 
   // Nested selection to add individual cells
-  const cellStyle = css({...tac('pa1 bb b--black-20')});
+  const cellStyle = css({
+    padding: '0.25rem',
+    borderBottomStyle: 'solid',
+    borderBottomWidth: '1px',
+    borderColor: 'rgba( 0, 0, 0, .2 )',
+  });
   const cells = rows.merge(rowsEnter).selectAll('td').data(d => d);
   const cellsEnter = cells.enter().append('td').attr('class', `${cellStyle}`);
   cells.merge(cellsEnter).html(d => typeof d === 'number' ? format(d) : d);

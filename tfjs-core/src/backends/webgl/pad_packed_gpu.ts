@@ -22,7 +22,8 @@ import {getCoordsDataType} from './shader_compiler';
 
 export class PadPackedProgram implements GPGPUProgram {
   variableNames = ['x'];
-  usesPackedTextures = true;
+  packedInputs = true;
+  packedOutput = true;
   outputShape: number[];
   userCode: string;
 

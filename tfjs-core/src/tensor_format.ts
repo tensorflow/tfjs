@@ -112,7 +112,8 @@ function subTensorToString(
       let firstVals = Array.from<number|string|[number, number]>(
           vals.slice(0, firstValsSize));
       let lastVals = Array.from<number|string|[number, number]>(vals.slice(
-          size - FORMAT_NUM_FIRST_LAST_VALS * storagePerElement, size));
+          (size - FORMAT_NUM_FIRST_LAST_VALS) * storagePerElement,
+          size * storagePerElement));
       if (dtype === 'complex64') {
         firstVals = createComplexTuples(firstVals);
         lastVals = createComplexTuples(lastVals);

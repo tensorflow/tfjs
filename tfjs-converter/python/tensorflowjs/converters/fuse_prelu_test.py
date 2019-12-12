@@ -22,8 +22,10 @@ import tensorflow as tf
 from tensorflow.core.protobuf import config_pb2
 from tensorflow.core.protobuf import meta_graph_pb2
 
+from tensorflowjs.converters import fuse_depthwise_conv2d
 from tensorflowjs.converters import fuse_prelu
 from tensorflowjs.converters import tf_saved_model_conversion_v2
+from tensorflowjs.converters import graph_rewrite_util
 
 class FusePreluTest(tf.test.TestCase):
   def setUp(self):
@@ -50,21 +52,45 @@ class FusePreluTest(tf.test.TestCase):
     def execute_model(tensor):
       return model(tensor)
 
-    graph_def = execute_model.get_concrete_function(
-        input_tensor).graph.as_graph_def()
+    graph = tf_saved_model_conversion_v2._freeze_saved_model_v2(
+        execute_model.get_concrete_function(input_tensor))
+    graph_def = graph.as_graph_def()
+    for node in graph_def.node:
+      if node.op == 'Conv2D':
+        node.device = "/CPU:0"
+
+    config = config_pb2.ConfigProto()
+    rewriter_config = config.graph_options.rewrite_options
+    rewriter_config.optimizers[:] = [
+        'pruning', 'constfold', 'arithmetic', 'dependency', 'pruning',
+        'remap', 'constfold', 'arithmetic', 'dependency'
+    ]
+
+    for output in ['Identity']:
+      graph.add_to_collection('train_op', graph.get_operation_by_name(output))
+
+    signature = meta_graph_pb2.SignatureDef()
+    graph_def = tf_saved_model_conversion_v2._run_grappler(
+        config, graph_def, graph, signature)
+
     optimized_graph_def = fuse_prelu.fuse_ops_for_prelu(graph_def)
 
     prelu_op_count = 0
+    value = None
     for node in optimized_graph_def.node:
       self.assertNotEqual("Relu", node.op)
       if node.op == 'Prelu':
         prelu_op_count += 1
+      if node.op == 'Const':
+        value = graph_rewrite_util.values_from_const(node)
     self.assertEqual(prelu_op_count, 2)
+    self.assertEqual(value, [0.25])
 
   def testFusePreluWithConv2d(self):
     layers = [
         tf.keras.layers.Conv2D(
-            16, [3, 3], padding='same', use_bias=True),
+            16, [3, 3], padding='same', use_bias=True,
+            bias_initializer=tf.initializers.constant(0.25)),
         tf.keras.layers.PReLU()
     ]
     model = tf.keras.Sequential(layers)
@@ -75,8 +101,8 @@ class FusePreluTest(tf.test.TestCase):
     def execute_model(tensor):
       return model(tensor)
 
-    graph = execute_model.get_concrete_function(
-        input_tensor).graph
+    graph = tf_saved_model_conversion_v2._freeze_saved_model_v2(
+        execute_model.get_concrete_function(input_tensor))
     graph_def = graph.as_graph_def()
 
     for node in graph_def.node:
@@ -96,10 +122,10 @@ class FusePreluTest(tf.test.TestCase):
     signature = meta_graph_pb2.SignatureDef()
     graph_def = tf_saved_model_conversion_v2._run_grappler(
         config, graph_def, graph, signature)
-
     graph_def = fuse_prelu.fuse_ops_for_prelu(graph_def)
 
-    optimized_graph_def = fuse_prelu.fuse_prelu_with_fused_conv2d(graph_def)
+    optimized_graph_def = fuse_prelu.fuse_prelu_with_fused_conv2d_or_matmul(
+        graph_def)
 
     conv2d_op = None
     for node in optimized_graph_def.node:
@@ -110,5 +136,103 @@ class FusePreluTest(tf.test.TestCase):
     self.assertEqual(conv2d_op.attr['fused_ops'].list.s, [b'BiasAdd', b'Prelu'])
     self.assertEqual(conv2d_op.attr['num_args'].i, 2)
 
+  def testFusePreluWithMatMul(self):
+    layers = [
+        tf.keras.layers.Dense(
+            2, use_bias=True,
+            kernel_initializer=tf.initializers.constant(0.25),
+            bias_initializer=tf.initializers.constant(0.25)),
+        tf.keras.layers.PReLU()
+    ]
+    model = tf.keras.Sequential(layers)
+    tf.keras.backend.set_learning_phase(0)
+    input_tensor = tf.constant([1.0, 1.0], shape=[1, 2])
+
+    @tf.function
+    def execute_model(tensor):
+      return model(tensor)
+
+    graph = tf_saved_model_conversion_v2._freeze_saved_model_v2(
+        execute_model.get_concrete_function(input_tensor))
+    graph_def = graph.as_graph_def()
+    for node in graph_def.node:
+      if node.op == 'MatMul':
+        node.device = "/CPU:0"
+
+    config = config_pb2.ConfigProto()
+    rewriter_config = config.graph_options.rewrite_options
+    rewriter_config.optimizers[:] = [
+        'pruning', 'constfold', 'arithmetic', 'dependency', 'pruning', 'remap',
+        'constfold', 'arithmetic', 'dependency'
+    ]
+
+    for output in ['Identity']:
+      graph.add_to_collection('train_op', graph.get_operation_by_name(output))
+
+    signature = meta_graph_pb2.SignatureDef()
+    graph_def = tf_saved_model_conversion_v2._run_grappler(
+        config, graph_def, graph, signature)
+    graph_def = fuse_prelu.fuse_ops_for_prelu(graph_def)
+    optimized_graph_def = fuse_prelu.fuse_prelu_with_fused_conv2d_or_matmul(
+        graph_def)
+
+    matmul_op = None
+    for node in optimized_graph_def.node:
+      self.assertNotEqual("Prelu", node.op)
+      if node.op == '_FusedMatMul':
+        matmul_op = node
+    self.assertNotEqual(matmul_op, None)
+    self.assertEqual(matmul_op.attr['fused_ops'].list.s, [b'BiasAdd', b'Prelu'])
+    self.assertEqual(matmul_op.attr['num_args'].i, 2)
+
+  def testFusePreluWithDepthwiseConv2d(self):
+    layers = [
+        tf.keras.layers.DepthwiseConv2D(
+            1, bias_initializer=tf.initializers.constant(0.25)),
+        tf.keras.layers.PReLU()
+    ]
+    model = tf.keras.Sequential(layers)
+    tf.keras.backend.set_learning_phase(0)
+    input_tensor = tf.constant([1.0, 1.0], shape=[1, 2, 1, 1])
+
+    @tf.function
+    def execute_model(tensor):
+      return model(tensor)
+
+    graph = tf_saved_model_conversion_v2._freeze_saved_model_v2(
+        execute_model.get_concrete_function(input_tensor))
+    graph_def = graph.as_graph_def()
+
+    for node in graph_def.node:
+      if node.op == 'Conv2D':
+        node.device = "/CPU:0"
+
+    config = config_pb2.ConfigProto()
+    rewriter_config = config.graph_options.rewrite_options
+    rewriter_config.optimizers[:] = [
+        'pruning', 'constfold', 'arithmetic', 'dependency', 'pruning', 'remap',
+        'constfold', 'arithmetic', 'dependency'
+    ]
+
+    for output in ['Identity']:
+      graph.add_to_collection('train_op', graph.get_operation_by_name(output))
+
+    signature = meta_graph_pb2.SignatureDef()
+    graph_def = tf_saved_model_conversion_v2._run_grappler(
+        config, graph_def, graph, signature)
+    graph_def = fuse_prelu.fuse_ops_for_prelu(graph_def)
+    graph_def = fuse_depthwise_conv2d.fuse_depthwise_conv2d(graph_def)
+
+    optimized_graph_def = fuse_prelu.fuse_prelu_with_fused_conv2d_or_matmul(
+        graph_def)
+
+    conv2d_op = None
+    for node in optimized_graph_def.node:
+      self.assertNotEqual("Prelu", node.op)
+      if node.op == 'FusedDepthwiseConv2dNative':
+        conv2d_op = node
+    self.assertNotEqual(conv2d_op, None)
+    self.assertEqual(conv2d_op.attr['fused_ops'].list.s, [b'BiasAdd', b'Prelu'])
+    self.assertEqual(conv2d_op.attr['num_args'].i, 2)
 if __name__ == '__main__':
   tf.test.main()

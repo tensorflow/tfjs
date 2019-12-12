@@ -16,7 +16,7 @@
  * =============================================================================
  */
 
-import {browser, ENV, image, tensor1d, Tensor1D, tensor2d, Tensor2D, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
+import {browser, env, image, tensor1d, Tensor1D, tensor2d, Tensor2D, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 import {WebcamConfig} from '../types';
 import {LazyIterator} from './lazy_iterator';
 
@@ -67,7 +67,7 @@ export class WebcamIterator extends LazyIterator<Tensor3D> {
   // Construct a WebcamIterator and start it's video stream.
   static async create(
       webcamVideoElement?: HTMLVideoElement, webcamConfig: WebcamConfig = {}) {
-    if (ENV.get('IS_NODE')) {
+    if (env().get('IS_NODE')) {
       throw new Error(
           'tf.data.webcam is only supported in browser environment.');
     }
@@ -158,7 +158,7 @@ export class WebcamIterator extends LazyIterator<Tensor3D> {
     }
     if (this.resize) {
       try {
-        return { value: this.cropAndResizeFrame(img), done: false };
+        return {value: this.cropAndResizeFrame(img), done: false};
       } catch (e) {
         throw new Error(`Error thrown cropping the video: ${e.message}`);
       } finally {
@@ -187,8 +187,8 @@ export class WebcamIterator extends LazyIterator<Tensor3D> {
       const expandedImage: Tensor4D = img.toFloat().expandDims(0);
       let resizedImage;
       resizedImage = image.cropAndResize(
-        expandedImage, this.cropBox, this.cropBoxInd, this.cropSize,
-        'bilinear');
+          expandedImage, this.cropBox, this.cropBoxInd, this.cropSize,
+          'bilinear');
       // Extract image from batch cropping.
       const shape = resizedImage.shape;
       return resizedImage.reshape(shape.slice(1) as [number, number, number]);

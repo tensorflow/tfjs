@@ -25,7 +25,7 @@ export interface TapeNode {
   outputs: Tensor[];
   inputs: NamedTensorMap;
   // Optional params, defined only for ops with gradient impl.
-  gradient?: (dy: Tensor|Tensor[]) => NamedGradientMap;
+  gradient?: (dys: Tensor[]) => NamedGradientMap;
   saved?: Tensor[];
 }
 
@@ -142,10 +142,8 @@ export function backpropagateGradients(
         dys.push(gradTensor);
       } else {
         // This particular output is not in the back-propagation subgraph, so it
-        // does not affect the final output, thus we put zeros for its dy.
-        const dy = Tensor.make(
-            o.shape, util.makeZerosTypedArray(o.size, o.dtype), o.dtype);
-        dys.push(dy);
+        // does not affect the final output, thus we put null for its dy.
+        dys.push(null);
       }
     });
 
@@ -156,10 +154,7 @@ export function backpropagateGradients(
     }
 
     // Backprop dy through this node and accumulate gradients over the inputs.
-    const inputGradients =
-        // Grad functions of ops with single outputs expect a dy, while ops
-        // with multiple outputs expect dys (array of dy).
-        node.gradient(node.outputs.length === 1 ? dys[0] : dys);
+    const inputGradients = node.gradient(dys);
     for (const inputName in node.inputs) {
       if (!(inputName in inputGradients)) {
         throw new Error(

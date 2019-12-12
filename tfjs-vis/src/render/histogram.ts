@@ -121,8 +121,7 @@ export async function histogram(
         'type': 'quantitative',
       },
       'color': {
-        // TODO extract to theme?
-        'value': '#001B44',
+        'value': options.color || '#001B44',
       }
     }
   };

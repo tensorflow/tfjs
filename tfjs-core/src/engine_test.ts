@@ -18,7 +18,9 @@
 import {KernelBackend} from './backends/backend';
 import {ENGINE} from './engine';
 import * as tf from './index';
+import {KernelFunc} from './index';
 import {ALL_ENVS, describeWithFlags, TestKernelBackend} from './jasmine_util';
+import {TensorInfo} from './kernel_registry';
 import {Tensor} from './tensor';
 import {expectArraysClose} from './test_util';
 
@@ -225,7 +227,7 @@ describe('Backend registration', () => {
     });
     tf.setBackend('async');
     await tf.ready();
-    expect(() => tf.square(2)).toThrowError(/Not yet implemented/);
+    expect(() => tf.square(2)).toThrowError(/'write' not yet implemented/);
   });
 
   it('Registering async2 (higher priority) fails, async1 becomes active',
@@ -392,7 +394,7 @@ describeWithFlags('profile', ALL_ENVS, () => {
         'tensorsAdded': 1,
         'totalTensorsSnapshot': 2,
         'inputShapes': [[3]],
-        'outputShape': [3]
+        'outputShapes': [[3]]
       },
       {
         'name': 'square',
@@ -401,7 +403,7 @@ describeWithFlags('profile', ALL_ENVS, () => {
         'tensorsAdded': 1,
         'totalTensorsSnapshot': 2,
         'inputShapes': [[3]],
-        'outputShape': [3]
+        'outputShapes': [[3]]
       }
     ]);
   });
@@ -426,7 +428,7 @@ describeWithFlags('profile', ALL_ENVS, () => {
       'tensorsAdded': 1,
       'totalTensorsSnapshot': 2,
       'inputShapes': [[3]],
-      'outputShape': [3]
+      'outputShapes': [[3]]
     }]);
   });
 });
@@ -591,6 +593,12 @@ describeWithFlags(
       });
 
       it('single tidy multiple backends', () => {
+        const kernelFunc = tf.getKernel('Square', 'webgl').kernelFunc;
+        tf.registerKernel(
+            {kernelName: 'Square', backendName: 'webgl1', kernelFunc});
+        tf.registerKernel(
+            {kernelName: 'Square', backendName: 'webgl2', kernelFunc});
+
         expect(tf.memory().numTensors).toBe(0);
 
         tf.tidy(() => {
@@ -605,21 +613,87 @@ describeWithFlags(
           expect(tf.memory().numTensors).toBe(4);
         });
         expect(tf.memory().numTensors).toBe(0);
+
+        tf.unregisterKernel('Square', 'webgl1');
+        tf.unregisterKernel('Square', 'webgl2');
       });
     });
 
-// NOTE: This describe is purposefully not a describeWithFlags so that we
-// test tensor allocation where no scopes have been created. The backend
-// here must be set to CPU because we cannot allocate GPU tensors outside
-// a describeWithFlags because the default webgl backend and the test
-// backends share a WebGLContext. When backends get registered, global
-// WebGL state is initialized, which causes the two backends to step on
-// each other and get in a bad state.
-describe('Memory allocation outside a test scope', () => {
-  it('constructing a tensor works', async () => {
-    tf.setBackend('cpu');
-    const a = tf.tensor1d([1, 2, 3]);
-    expectArraysClose(await a.data(), [1, 2, 3]);
-    a.dispose();
+interface TestStorage extends KernelBackend {
+  id: number;
+}
+
+describeWithFlags('Detects memory leaks in kernels', ALL_ENVS, () => {
+  const backendName = 'test-mem';
+  const kernelName = 'MyKernel';
+  const kernelNameComplex = 'Kernel-complex';
+
+  it('Detects memory leak in a kernel', () => {
+    let dataIdsCount = 0;
+    tf.registerBackend(backendName, () => {
+      return {
+        id: 1,
+        dispose: () => null,
+        disposeData: (dataId: {}) => null,
+        numDataIds: () => dataIdsCount
+      } as TestStorage;
+    });
+
+    const kernelWithMemLeak: KernelFunc = () => {
+      dataIdsCount += 2;
+      return {dataId: {}, shape: [], dtype: 'float32'};
+    };
+    tf.registerKernel({kernelName, backendName, kernelFunc: kernelWithMemLeak});
+
+    tf.setBackend(backendName);
+    expect(() => tf.engine().runKernel(kernelName, {}, {}))
+        .toThrowError(
+            /Backend 'test-mem' has an internal memory leak \(1 data ids\)/);
+
+    tf.removeBackend(backendName);
+    tf.unregisterKernel(kernelName, backendName);
+  });
+
+  it('No mem leak in a kernel with multiple outputs', () => {
+    let dataIdsCount = 0;
+    tf.registerBackend(backendName, () => {
+      return {
+        id: 1,
+        dispose: () => null,
+        disposeData: (dataId: {}) => null,
+        numDataIds: () => dataIdsCount
+      } as TestStorage;
+    });
+    tf.setBackend(backendName);
+
+    const kernelWith3Outputs: KernelFunc = () => {
+      dataIdsCount += 3;
+      const t: TensorInfo = {dataId: {}, shape: [], dtype: 'float32'};
+      return [t, t, t];
+    };
+    tf.registerKernel(
+        {kernelName, backendName, kernelFunc: kernelWith3Outputs});
+
+    const res = tf.engine().runKernel(kernelName, {}, {});
+    expect(Array.isArray(res)).toBe(true);
+    expect((res as Array<{}>).length).toBe(3);
+
+    const kernelWithComplexOutputs: KernelFunc = () => {
+      dataIdsCount += 3;
+      return {dataId: {}, shape: [], dtype: 'complex64'};
+    };
+    tf.registerKernel({
+      kernelName: kernelNameComplex,
+      backendName,
+      kernelFunc: kernelWithComplexOutputs
+    });
+
+    const res2 = tf.engine().runKernel(kernelNameComplex, {}, {}) as TensorInfo;
+    expect(res2.shape).toEqual([]);
+    expect(res2.dtype).toEqual('complex64');
+
+    tf.removeBackend(backendName);
+    tf.unregisterKernel(kernelName, backendName);
+    tf.unregisterKernel(kernelNameComplex, backendName);
   });
 });

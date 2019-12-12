@@ -24,7 +24,7 @@ module.exports = function(config) {
     },
     karmaTypescriptConfig: {
       tsconfig: 'tsconfig.json',
-      reports: {} // Do not produce coverage html.
+      reports: {}  // Do not produce coverage html.
     },
     reporters: ['progress', 'karma-typescript'],
     browsers: ['Chrome', 'Firefox'],
@@ -45,10 +45,7 @@ module.exports = function(config) {
       bs_firefox_mac: {
         base: 'BrowserStack',
         browser: 'firefox',
-        // TODO(cais): Restore 'latest' to browser_version once ongoing
-        // instability in BrowserStack + OS X + FireFox is resolved.
-        // https://github.com/tensorflow/tfjs/issues/1620
-        browser_version: '66.0',
+        browser_version: 'latest',
         os: 'OS X',
         os_version: 'Sierra'
       },
@@ -57,8 +54,6 @@ module.exports = function(config) {
         flags: ['--blacklist-accelerated-compositing', '--blacklist-webgl']
       }
     },
-    client: {
-      args: ['--grep', config.grep || '']
-    }
+    client: {args: ['--grep', config.grep || '']}
   });
 };
