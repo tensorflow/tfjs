@@ -102,12 +102,12 @@ steps:
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 
-# Monorepo tests
+# Release notes test
 - name: 'node:10'
   id: 'test-monorepo'
   entrypoint: 'yarn'
-  args: ['test-ci']
-  waitFor: ['diff']
+  args: ['test-release-notes']
+  waitFor: ['yarn']
 
 # General settings.
 secrets:

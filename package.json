@@ -16,6 +16,6 @@
     "diff": "./scripts/diff.js",
     "release": "ts-node ./scripts/release.ts",
     "release-notes": "ts-node ./scripts/release_notes/release_notes.ts",
-    "test-ci": "./scripts/test-ci.sh"
+    "test-release-notes": "ts-node ./scripts/release_notes/run_tests.ts"
   }
 }

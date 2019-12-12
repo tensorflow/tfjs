@@ -194,6 +194,7 @@ async function main() {
 
     const commits: Commit[] = [];
     for (let i = 0; i < commitFields[0].length; i++) {
+      // Make sure the files touched contain the repo directory.
       const filesTouched =
           $(`git show --pretty="format:" --name-only ${commitFields[3][i]}`)
               .split('\n');
