@@ -87,7 +87,7 @@ module.exports = cmdOptions => {
 
   // tf-backend-wasm.min.js
   bundles.push(config({
-    plugins: [terser({output: {preamble: PREAMBLE}})],
+    plugins: [terser({output: {preamble: PREAMBLE, comments: false}})],
     output: {
       format: 'umd',
       name: 'tf.wasm',
@@ -99,7 +99,7 @@ module.exports = cmdOptions => {
   if (!cmdOptions.ci) {
     // tf-backend-wasm.esm.js
     bundles.push(config({
-      plugins: [terser({output: {preamble: PREAMBLE}})],
+      plugins: [terser({output: {preamble: PREAMBLE, comments: false}})],
       output: {
         format: 'es',
         file: 'dist/tf-backend-wasm.esm.js',
