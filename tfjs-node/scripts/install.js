@@ -45,12 +45,6 @@ const GPU_LINUX = `gpu-linux-x86_64-${LIBTENSORFLOW_VERSION}.tar.gz`;
 const CPU_WINDOWS = `cpu-windows-x86_64-${LIBTENSORFLOW_VERSION}.zip`;
 const GPU_WINDOWS = `gpu-windows-x86_64-${LIBTENSORFLOW_VERSION}.zip`;
 
-// TODO(kreeger): Update to TensorFlow 1.13:
-// https://github.com/tensorflow/tfjs/issues/1369
-const TF_WIN_HEADERS_URI =
-    `https://storage.googleapis.com/tf-builds/tensorflow-headers-` +
-    `${getLibTensorFlowMajorDotMinorVersion()}.zip`;
-
 const platform = os.platform();
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
 let forceDownload = process.argv[3] === undefined ? undefined : process.argv[3];
