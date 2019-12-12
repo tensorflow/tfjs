@@ -68,7 +68,7 @@ steps:
   dir: 'tfjs-backend-wasm'
   id: 'test-bundle-size'
   entrypoint: 'yarn'
-  args: ['test-bundle-size']
+  args: ['test-bundle-size-ci']
   waitFor: ['build']
 
 # General configuration
