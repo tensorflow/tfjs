@@ -19,7 +19,7 @@
     "test": "yarn link-core-master && ./scripts/build-wasm.sh && karma start",
     "test-node": "ts-node src/test_node.ts",
     "test-bundle-size": "./scripts/test-bundle-size.js",
-    "test-bundle-size-ci": ". /workspace/tfjs-backend-wasm/emsdk/emsdk_env.sh && yarn test-bundle-size",
+    "test-bundle-size-ci": "/bin/sh /workspace/tfjs-backend-wasm/emsdk/emsdk_env.sh && yarn test-bundle-size",
     "test-cc": "bazel test //src/cc:cc_tests --test_output=all",
     "test-browser-ci": "karma start --singleRun --browsers=bs_chrome_mac"
   },
