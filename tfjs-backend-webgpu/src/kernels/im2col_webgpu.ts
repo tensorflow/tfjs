@@ -16,7 +16,6 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
-// import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
