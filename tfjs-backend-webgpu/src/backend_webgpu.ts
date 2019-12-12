@@ -902,11 +902,8 @@ export class WebGPUBackend extends KernelBackend {
   batchMatMul(
       a: Tensor3D, b: Tensor3D, transposeA: boolean,
       transposeB: boolean): Tensor3D {
-    // TODO: Support transposed inputs.
-    // const outerShapeA = transposeA ? a.shape[2] : a.shape[1];
-    // const outerShapeB = transposeB ? b.shape[1] : b.shape[2];
-    const outerShapeA = a.shape[1];
-    const outerShapeB = b.shape[2];
+    const outerShapeA = transposeA ? a.shape[2] : a.shape[1];
+    const outerShapeB = transposeB ? b.shape[1] : b.shape[2];
     const [batch, , ] = a.shape;
 
     const dataId =
@@ -924,7 +921,8 @@ export class WebGPUBackend extends KernelBackend {
     } else {
       program = new MatMulPackedProgram(
           a.shape, output.shape as [number, number, number],
-          env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number);
+          env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, transposeA,
+          transposeB);
     }
 
     return this.compileAndRun(program, [a, b], output);

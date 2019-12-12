@@ -128,7 +128,10 @@ export class MatMulPackedProgram implements WebGPUProgram {
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
       workPerThread: number, transposeA = false, transposeB = false) {
-    const bShape = [outputShape[0], aShape[2], outputShape[2]];
+    const dimInner = transposeA ? aShape[1] : aShape[2];
+    const dimBOuter = outputShape[2];
+    const bShape = transposeB ? [outputShape[0], dimBOuter, dimInner] :
+                                [outputShape[0], dimInner, dimBOuter];
     this.outputShape = outputShape;
     this.workPerThread = workPerThread;
     const tileAOuter = this.workGroupSize[1] * workPerThread;
@@ -159,9 +162,9 @@ export class MatMulPackedProgram implements WebGPUProgram {
             B[row * dimBOuter + col] : 0`;
     } else {
       sampleB = fitB ?
-          `B[row * dimInner + col]` :
+          `B[col * dimInner + row]` :
           `coordsInBounds(ivec2(row, col), ivec2(dimInner, dimBOuter)) ?
-            B[row * dimInner + col] : 0`;
+            B[col * dimInner + row] : 0`;
     }
 
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
