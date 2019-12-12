@@ -136,12 +136,23 @@ export class MatMulPackedProgram implements WebGPUProgram {
     const tileInner = tileBOuter;
     const tileSizeA = [tileAOuter, tileInner];
     const tileSizeB = [tileInner, tileBOuter];
+    console.log(bShape, tileSizeB);
     const fitA = tilesFitEvenlyIntoShape(tileSizeA, aShape.slice(1));
-    const sampleA = fitA ?
-        `A[row * dimInner + col]` :
-        `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
-          A[row * dimInner + col] : 0`;
-    const fitB = tilesFitEvenlyIntoShape(tileSizeB, bShape.slice(1));
+    let sampleA;
+    if (transposeA === false) {
+      sampleA = fitA ?
+          `A[row * dimInner + col]` :
+          `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
+            A[row * dimInner + col] : 0`;
+    } else {
+      sampleA = fitA ?
+          `A[col * dimAOuter + row]` :
+          `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
+            A[col * dimAOuter + row] : 0`;
+    }
+
+    // const fitB = tilesFitEvenlyIntoShape(tileSizeB, bShape.slice(1));
+    const fitB = false;
     const sampleB = fitB ?
         `B[row * dimBOuter + col]` :
         `coordsInBounds(ivec2(row, col), ivec2(dimInner, dimBOuter)) ?
