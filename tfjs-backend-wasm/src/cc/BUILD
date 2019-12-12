@@ -236,6 +236,7 @@ tfjs_cc_library(
 tfjs_cc_library(
   name = "BatchMatMul",
   srcs = ["kernels/BatchMatMul.cc"],
+  hdrs = ["kernels/BatchMatMul.h"],
   deps = [
     ":backend",
     ":util",
@@ -471,6 +472,14 @@ tfjs_unit_test(
     ":backend",
     ":util",
     ":Prelu",
+  ]
+)
+
+tfjs_unit_test(
+  name = "BatchMatMul_test",
+  srcs = ["kernels/BatchMatMul_test.cc"],
+  deps = [
+    ":BatchMatMul",
   ]
 )
 

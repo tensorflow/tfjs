@@ -90,6 +90,19 @@ async function askUserForVersions(validVersions: string[], packageName: string):
   return {startVersion, endVersion};
 }
 
+function getTaggedVersions(packageName: string) {
+  const versions =
+      $(`git tag`)
+          .split('\n')
+          .filter(x => new RegExp('^' + packageName + '-v([0-9])').test(x))
+          .map(x => x.substring((packageName + '-v').length));
+  return versions;
+}
+
+function getTagName(packageName: string, version: string) {
+  return packageName + '-v' + version;
+}
+
 async function main() {
   mkdirp(TMP_DIR, (err) => {
     if (err) {
@@ -102,27 +115,23 @@ async function main() {
   $(`rm -f -r ${TMP_DIR}/*`);
 
   // Get union start version and end version.
-  const versions = $(`git tag`).split('\n');
+  const versions = getTaggedVersions('tfjs');
   const {startVersion, endVersion} = await askUserForVersions(versions, 'tfjs');
 
   // Clone the Node.js repo eagerly so we can query the tags.
-  const nodeDir = `${TMP_DIR}/${NODE_REPO.name}`;
-  // Clone the repo and find the commit from the tagged start version.
-  console.log(`Cloning ${NODE_REPO.identifier}...`);
-  $(`mkdir ${nodeDir}`);
-  $(`git clone https://github.com/tensorflow/${NODE_REPO.identifier} ${
-      nodeDir}`);
-  const validNodeVersions = $(`git -C ${nodeDir} tag`).split('\n');
+  const validNodeVersions = getTaggedVersions('tfjs-node');
   const nodeVersions =
       await askUserForVersions(validNodeVersions, NODE_REPO.identifier);
   NODE_REPO.startVersion = nodeVersions.startVersion;
   NODE_REPO.endVersion = nodeVersions.endVersion;
-  NODE_REPO.startCommit =
-      $(`git -C ${nodeDir} rev-list -n 1 ${NODE_REPO.startVersion}`);
+  NODE_REPO.startCommit = $(`git rev-list -n 1 ${
+      getTagName(NODE_REPO.identifier, NODE_REPO.startVersion)}`);
 
   // Get all the commits of the union package between the versions.
   const unionCommits =
-      $(`git log --pretty=format:"%H" ${startVersion}..${endVersion}`);
+      $(`git log --pretty=format:"%H" ` +
+        `${getTagName('tfjs', startVersion)}..` +
+        `${getTagName('tfjs', endVersion)}`);
 
   const commitLines = unionCommits.trim().split('\n');
 
@@ -130,10 +139,10 @@ async function main() {
   // dependencies.
   const earliestCommit = commitLines[commitLines.length - 1];
   const earliestUnionPackageJson =
-      JSON.parse($(`git show ${earliestCommit}:package.json`));
+      JSON.parse($(`git show ${earliestCommit}:tfjs/package.json`));
   const latestCommit = commitLines[0];
   const latestUnionPackageJson =
-      JSON.parse($(`git show ${latestCommit}:package.json`));
+      JSON.parse($(`git show ${latestCommit}:tfjs/package.json`));
 
   // Populate start and end for each of the union dependencies.
   UNION_DEPENDENCIES.forEach(repo => {
@@ -143,30 +152,23 @@ async function main() {
     const repoStartVersion = earliestUnionPackageJson.dependencies[npm];
     const repoEndVersion = latestUnionPackageJson.dependencies[npm];
 
-    const dir = `${TMP_DIR}/${repo.name}`;
-
-    // Clone the repo and find the commit from the tagged start version.
-    console.log(`Cloning ${repo.identifier}...`);
-
-    $(`mkdir ${dir}`);
-    $(`git clone https://github.com/tensorflow/${repo.identifier} ${dir}`);
+    const dir = `${repo.name}`;
 
     repo.startCommit =
         $(repoStartVersion != null ?
-              `git -C ${dir} rev-list -n 1 v${repoStartVersion}` :
+              `git rev-list -n 1 ` +
+                  getTagName(repo.identifier, repoStartVersion) :
               // Get the first commit if there are no tags yet.
               `git rev-list --max-parents=0 HEAD`);
 
-    repo.startVersion =
-        repoStartVersion != null ? `v${repoStartVersion}` : null;
-    repo.endVersion = `v${repoEndVersion}`;
+    repo.startVersion = repoStartVersion != null ? repoStartVersion : null;
+    repo.endVersion = repoEndVersion;
   });
 
   const repoCommits: RepoCommits[] = [];
 
   // Clone all of the dependencies into the tmp directory.
   [...UNION_DEPENDENCIES, NODE_REPO].forEach(repo => {
-    const dir = `${TMP_DIR}/${repo.name}`;
     console.log(
         `${repo.name}: ${repo.startVersion}` +
         ` =====> ${repo.endVersion}`);
@@ -178,10 +180,11 @@ async function main() {
       // Use a unique delimiter so we can split the log.
       const uniqueDelimiter = '--^^&&';
       const versionQuery = repo.startVersion != null ?
-          `${repo.startVersion}..${repo.endVersion}` :
-          `#${repo.startCommit}..${repo.endVersion}`;
-      return $(`git -C ${dir} log --pretty=format:"${query}${
-                   uniqueDelimiter}" ` +
+          `${getTagName(repo.identifier, repo.startVersion)}..` +
+              `${getTagName(repo.identifier, repo.endVersion)}` :
+          `#${repo.startCommit}..${
+              getTagName(repo.identifier, repo.endVersion)}`;
+      return $(`git log --pretty=format:"${query}${uniqueDelimiter}" ` +
                `${versionQuery}`)
           .trim()
           .split(uniqueDelimiter)
@@ -191,6 +194,21 @@ async function main() {
 
     const commits: Commit[] = [];
     for (let i = 0; i < commitFields[0].length; i++) {
+      // Make sure the files touched contain the repo directory.
+      const filesTouched =
+          $(`git show --pretty="format:" --name-only ${commitFields[3][i]}`)
+              .split('\n');
+      let touchedDir = false;
+      for (let j = 0; j < filesTouched.length; j++) {
+        if (filesTouched[j].startsWith(repo.identifier)) {
+          touchedDir = true;
+          break;
+        }
+      }
+      if (!touchedDir) {
+        continue;
+      }
+
       commits.push({
         subject: commitFields[0][i],
         body: commitFields[1][i],
