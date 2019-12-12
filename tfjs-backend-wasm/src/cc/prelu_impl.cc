@@ -29,7 +29,7 @@
 
 namespace {
 // The operator cache maps the weights id to the xnn_operator_t instantiated for
-// // this set of weights.
+// this set of weights.
 std::unordered_map<size_t, xnn_operator_t> operator_cache;
 
 void delete_xnn_operator(const size_t weights_id) {

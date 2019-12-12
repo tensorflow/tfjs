@@ -12,37 +12,23 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#include <cstddef>
-#include <vector>
+#ifndef KERNELS_BATCHMATMUL_H_
+#define KERNELS_BATCHMATMUL_H_
 
-#include "src/cc/util.h"
+#include <cstddef>
 
 namespace tfjs {
-namespace util {
+namespace wasm {
+extern "C" {
 
-const std::vector<size_t> compute_strides(const std::vector<size_t> shape) {
-  const size_t rank = shape.size();
-  std::vector<size_t> strides(rank - 1);
-
-  if (rank < 2) {
-    return strides;
-  }
-
-  // Last dimension has implicit stride of 1, thus having D-1 (instead of D)
-  // strides.
-  strides[rank - 2] = shape[rank - 1];
-
-  if (rank < 3) {
-    return strides;
-  }
-
-  // We do i < rank here because i <= 0 is always true for unsigned integers and
-  // decrementing will wrap to the max int.
-  for (size_t i = rank - 3; i < rank; i--) {
-    strides[i] = strides[i + 1] * shape[i + 1];
-  }
-
-  return strides;
+void BatchMatMul(const size_t a_id, const size_t* a_shape_ptr,
+                 const size_t a_shape_len, const size_t b_id,
+                 const size_t* b_shape_ptr, const size_t b_shape_len,
+                 const bool transpose_a, const bool transpose_b,
+                 const size_t out_id);
 }
-}  // namespace util
+
+}  // namespace wasm
 }  // namespace tfjs
+
+#endif  // KERNELS_BATCHMATMUL_H_
