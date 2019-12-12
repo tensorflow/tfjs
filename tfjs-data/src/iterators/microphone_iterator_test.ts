@@ -203,6 +203,8 @@ describeBrowserEnvs('MicrophoneIterator', () => {
         expect(tensorsReturned).toBe(0);
         const result = await microphoneIterator.next();
         tensorsReturned++;
+        // When the first tensor got returned (~464ms), getTensor() function
+        // should have been called 3 times (at 400ms).
         expect(timesRun).toBe(3);
         expect(result.done).toBeFalsy();
         // tslint:disable-next-line:no-any
@@ -214,11 +216,11 @@ describeBrowserEnvs('MicrophoneIterator', () => {
     // Call iterator.next() every 200 milliseconds, stop after 3 times.
     const interval = setInterval(getTensor, 200);
 
-    // Wait 4 seconds for the intervals to run.
+    // Wait 3 seconds for the intervals to run.
     await new Promise(resolve => {
       setTimeout(() => {
         resolve();
-      }, 2000);
+      }, 3000);
     });
     // Assert the intervals run 3 times.
     expect(timesRun).toBe(3);
