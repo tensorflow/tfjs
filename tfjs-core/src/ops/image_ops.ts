@@ -163,6 +163,7 @@ function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
  *     Defaults to 0.5 (50% box overlap).
  * @param scoreThreshold A threshold for deciding when to remove boxes based
  *     on score. Defaults to -inf, which means any score is accepted.
+ * @param softNmsSigma A float representing the sigma parameter for Soft NMS.
  * @return A 1D tensor with the selected box indices.
  */
 /** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
