@@ -191,10 +191,26 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'pad ', excludes: ['complex', 'zerosLike']},
   {include: 'clip', excludes: ['gradient']},
   {include: 'addN'},
-  {include: 'nonMaxSuppression'},
+  {include: 'nonMaxSuppression', excludes: ['SoftNMS']},
   {include: 'argmax', excludes: ['gradient']},
   {include: 'exp '},
   {include: 'unstack'},
+  {
+    include: 'minimum',
+    excludes: [
+      'gradient',  // Not yet implemented.
+      'broadcasts 2x1 Tensor2D and 2x2 Tensor2D' // Broadcasting along inner
+                                                 // dims not supported yet.
+    ]
+  },
+  {
+    include: 'maximum',
+    excludes: [
+      'gradient',  // Not yet implemented.
+      'broadcasts 2x1 Tensor2D and 2x2 Tensor2D' // Broadcasting along inner
+                                                 // dims not supported yet.
+    ]
+  },
 ];
 
 const customInclude = (testName: string) => {
