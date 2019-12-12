@@ -77,18 +77,18 @@ export class Im2ColProgram implements WebGPUProgram {
             int offsetY = int(blockIndex / ${outWidth}) * ${strideHeight} -
               ${top};
             int d0 = offsetY + ${dilationHeight} * (pos / ${itemsPerBlockRow});
+            float value = 0.0;
             if(d0 < ${inputShape[rowDim]} && d0 >= 0) {
               int offsetX = int(mod(float(blockIndex), ${outWidth}.) *
                 ${strideWidth}. - ${left}.);
               int d1 = offsetX + ${dilationWidth} * (int(mod(float(pos),
                 ${itemsPerBlockRow}.) / ${inChannels}.));
               int ch = int(mod(float(pos), ${inChannels}.));
-              float value = 0.0;
               if(d1 < ${inputShape[colDim]} && d1 >= 0) {
                 value = getA(d0, d1, ch);
               }
-              setOutput(flatIndex, value);
             }
+            setOutput(flatIndex, value);
           }
         }
       }
