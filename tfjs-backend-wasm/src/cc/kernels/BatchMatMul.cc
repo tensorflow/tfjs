@@ -19,19 +19,24 @@
 #include <xnnpack.h>
 #include <cstddef>
 #include <limits>
-#include <unordered_map>
+#include <map>
+#include <tuple>
 
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
 
-#include "src/cc/BatchMatMul.h"
+#include "src/cc/kernels/BatchMatMul.h"
 
 const size_t kBlockSize = 48;
 
 namespace {
+// We use std::tuple as the cache key as it implements the compare operator
+// needed for std::map.
+typedef std::tuple<size_t> OperatorCacheKey;
+
 // The operator cache maps the weights id to the xnn_operator_t instantiated for
 // this set of weights.
-std::unordered_map<size_t, xnn_operator_t> operator_cache;
+std::map<OperatorCacheKey, xnn_operator_t> operator_cache;
 
 void delete_xnn_operator(const size_t weights_id) {
   xnn_operator_t fully_connected_op = operator_cache.at(weights_id);
@@ -55,13 +60,15 @@ void xnn_matmul(const size_t a_id, const size_t* a_shape_ptr,
 
   xnn_operator_t fully_connected_op = nullptr;
 
+  OperatorCacheKey cache_key = {b_id};
+
   // We assume b is the weights and cache the xnn operator on it.
-  auto operator_cache_idx = operator_cache.find(b_id);
+  auto operator_cache_idx = operator_cache.find(cache_key);
   if (operator_cache_idx == operator_cache.end()) {
     const size_t input_channels = b_shape_ptr[1];
     const size_t output_channels = b_shape_ptr[2];
-    const size_t input_stride = b_shape_ptr[1];
-    const size_t output_stride = b_shape_ptr[2];
+    const size_t input_stride = input_channels;
+    const size_t output_stride = output_channels;
     const float* bias = nullptr;
 
     const float output_min = -std::numeric_limits<float>::infinity();
@@ -78,9 +85,10 @@ void xnn_matmul(const size_t a_id, const size_t* a_shape_ptr,
           "XNN status for xnn_create_fully_connected_nc_f32 is not successful. "
           "Got status %d. Use -c dbg to see XNN logs.",
           status);
+      return;
     }
 
-    operator_cache.insert({b_id, fully_connected_op});
+    operator_cache.insert({cache_key, fully_connected_op});
 
     tfjs::backend::register_disposal_callback(b_id, *delete_xnn_operator);
 
@@ -98,6 +106,7 @@ void xnn_matmul(const size_t a_id, const size_t* a_shape_ptr,
         "XNN status for xnn_setup_fully_connected_nc_f32 is not successful. "
         "Got status %d. Use -c dbg to see XNN logs.",
         status);
+    return;
   }
 
   xnn_run_operator(fully_connected_op, nullptr /* thread pool */);
