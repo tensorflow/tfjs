@@ -17,10 +17,12 @@
 #endif
 
 #include <xnnpack.h>
+#include <algorithm>
 #include <cstddef>
 #include <limits>
 #include <map>
 #include <tuple>
+#include <vector>
 
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
