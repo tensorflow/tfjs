@@ -646,10 +646,9 @@ export class WebGPUBackend extends KernelBackend {
 
     const im2ColProgram =
         new Im2ColProgram(x2ColShape, xSqueezed.shape, convInfo);
-    const im2Col =
-        (this.compileAndRun(im2ColProgram, [xSqueezed]) as Tensor).reshape([
-          1, x2ColShape[0], x2ColShape[1]
-        ]);
+    const im2Col = this.compileAndRun(im2ColProgram, [xSqueezed]);
+    const im2Col3D =
+        (im2Col as Tensor3D).reshape([1, x2ColShape[0], x2ColShape[1]]);
 
     const transposeA = true;
     const transposeB = false;
@@ -658,7 +657,7 @@ export class WebGPUBackend extends KernelBackend {
         [1, x2ColShape[0], x2ColShape[1]], [1, numCols, convInfo.outChannels],
         env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, transposeA,
         transposeB);
-    const result: Tensor = this.compileAndRun(matMulProgram, [im2Col, w2Row]);
+    const result: Tensor = this.compileAndRun(matMulProgram, [im2Col3D, w2Row]);
     const isChannelsLast = dataFormat === 'channelsLast';
     if (isChannelsLast) {
       return result.reshape([1, outHeight, outWidth, convInfo.outChannels]);
