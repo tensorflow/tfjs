@@ -259,7 +259,7 @@ describeWebGPU('backend webgpu', () => {
     expect(f).not.toThrow();
   });
 
-  fit('x=[2,2,1] f=[2,2,1,1] s=1 d=1 p=0', async () => {
+  it('x=[2,2,1] f=[2,2,1,1] s=1 d=1 p=0', async () => {
     const inputDepth = 1;
     const inputShape: [number, number, number] = [2, 2, inputDepth];
     const outputDepth = 1;
