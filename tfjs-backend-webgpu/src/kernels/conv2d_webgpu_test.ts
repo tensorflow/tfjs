@@ -34,18 +34,8 @@ function generateCaseInputs(totalSizeTensor: number, totalSizeFilter: number) {
 }
 
 describeWebGPU('im2col as separate shader', () => {
-  let webgpuIm2colSeparateShaderFlagSaved: boolean;
-
   beforeAll(() => {
-    webgpuIm2colSeparateShaderFlagSaved =
-        tf.env().getBool('WEBGPU_CONV_SEPARATE_IM2COL_SHADER');
     tf.env().set('WEBGPU_CONV_SEPARATE_IM2COL_SHADER', true);
-  });
-
-  afterAll(() => {
-    tf.env().set(
-        'WEBGPU_CONV_SEPARATE_IM2COL_SHADER',
-        webgpuIm2colSeparateShaderFlagSaved);
   });
 
   it('x=[1,4,4,1] f=[1,1,1,3] s=2 d=1 p=same', async () => {
