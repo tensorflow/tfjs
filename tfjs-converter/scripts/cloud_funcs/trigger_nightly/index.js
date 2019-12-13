@@ -15,7 +15,7 @@
 
 const {google} = require('googleapis');
 
-module.exports.nightly = async data => {
+module.exports.converter_python_nightly = async data => {
   const cloudbuild = google.cloudbuild('v1');
   const auth = await google.auth.getClient(
       {scopes: ['https://www.googleapis.com/auth/cloud-platform']});
