@@ -24,7 +24,7 @@ export HOME='/root'
 ./emsdk install 1.39.1
 ./emsdk activate 1.39.1
 source ./emsdk_env.sh
-cd ../tfjs-backend-wasm
+cd ..
 
 yarn tsc
 
