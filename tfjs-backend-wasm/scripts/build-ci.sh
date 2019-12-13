@@ -20,7 +20,7 @@ set -e
 git clone --depth=1 --single-branch https://github.com/emscripten-core/emsdk.git
 cd emsdk
 # Need to tell emsdk where to write the .emscripten file.
-export HOME='/root'
+export HOME='/workspace'
 ./emsdk install 1.39.1
 ./emsdk activate 1.39.1
 source ./emsdk_env.sh
