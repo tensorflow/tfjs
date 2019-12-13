@@ -21,8 +21,6 @@ steps:
   args: ['./build-pip-package.sh', '--test-nightly', '/tmp/tfjs-pips']
   waitFor: ['yarn']
 
-secrets:
-- kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
 substitutions:
