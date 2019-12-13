@@ -6,7 +6,7 @@ You can also trigger the function manually via the Cloud UI.
 
 Command to re-deploy:
 ```sh
-gcloud functions deploy converter_pip_nightly_test \
+gcloud functions deploy converter_python_nightly \
   --runtime nodejs8 \
   --trigger-topic converter_python_nightly
 ```
