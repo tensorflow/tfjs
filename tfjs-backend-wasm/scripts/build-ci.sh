@@ -16,6 +16,7 @@
 
 set -e
 
+cd ..
 # Install emsdk
 git clone --depth=1 --single-branch https://github.com/emscripten-core/emsdk.git
 cd emsdk
@@ -24,8 +25,9 @@ export HOME='/workspace'
 ./emsdk install 1.39.1
 ./emsdk activate 1.39.1
 source ./emsdk_env.sh
-cd ..
+cd ../tfjs-backend-wasm
 
 yarn tsc
+ln -s /workspace/emsdk/.emscripten /root/.emscripten
 export HOME='/workspace'
 ./scripts/build-wasm.sh
