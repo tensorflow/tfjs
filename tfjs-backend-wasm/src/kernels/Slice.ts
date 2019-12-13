@@ -29,7 +29,7 @@ interface SliceAttrs extends NamedAttrMap {
   size: number[];
 }
 
-function slice(
+export function slice(
     args: {inputs: SliceInputs, attrs: SliceAttrs, backend: BackendWasm}) {
   const {inputs: {x}, attrs: {begin, size}, backend} = args;
   const isContinous = slice_util.isSliceContinous(x.shape, begin, size);

@@ -44,7 +44,7 @@ function config({plugins = [], output = {}}) {
       typescript({
         tsconfigOverride: {compilerOptions: {module: 'ES2015'}},
       }),
-      node(),
+      node({preferBuiltins: true}),
       // Polyfill require() from dependencies.
       commonjs({
         ignore: ['crypto', 'node-fetch', 'util'],
@@ -55,10 +55,10 @@ function config({plugins = [], output = {}}) {
     output: {
       banner: PREAMBLE,
       sourcemap: true,
-      globals: {'@tensorflow/tfjs-core': 'tf'},
+      globals: {'@tensorflow/tfjs-core': 'tf', 'fs': 'fs', 'path': 'path'},
       ...output,
     },
-    external: ['crypto', '@tensorflow/tfjs-core'],
+    external: ['crypto', '@tensorflow/tfjs-core', 'fs', 'path'],
     onwarn: warning => {
       let {code} = warning;
       if (code === 'CIRCULAR_DEPENDENCY' || code === 'CIRCULAR' ||
