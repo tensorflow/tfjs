@@ -27,5 +27,5 @@ source ./emsdk_env.sh
 cd ..
 
 yarn tsc
-
+export HOME='/workspace'
 ./scripts/build-wasm.sh
