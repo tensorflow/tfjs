@@ -8,7 +8,7 @@ Command to re-deploy:
 ```sh
 gcloud functions deploy converter_pip_nightly_test \
   --runtime nodejs8 \
-  --trigger-topic nightly
+  --trigger-topic converter_python_nightly
 ```
 
 ### The pipeline
