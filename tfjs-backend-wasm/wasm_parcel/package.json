@@ -1,0 +1,26 @@
+{
+  "name": "vanilla",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "watch": "parcel index.html --open",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs-backend-wasm": "1.4.0-alpha3",
+    "@tensorflow/tfjs-core": "1.4.0"
+  },
+  "browserslist": [
+    "last 1 Chrome versions"
+  ],
+  "staticFiles": {
+    "staticPath": "./node_modules/@tensorflow/tfjs-backend-wasm/dist"
+  },
+  "devDependencies": {
+    "@babel/core": "7.2.0",
+    "parcel-bundler": "^1.6.1",
+    "parcel-plugin-static-files-copy": "^2.2.1",
+  },
+  "keywords": []
+}
