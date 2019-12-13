@@ -22,12 +22,16 @@ git clone --depth=1 --single-branch https://github.com/emscripten-core/emsdk.git
 cd emsdk
 # Need to tell emsdk where to write the .emscripten file.
 export HOME='/workspace'
+export EM_CONFIG=/workspace/emsdk/.emscripten
+export EM_CACHE=/workspace/emsdk/.data/cache
+export EM_PORTS=/workspace/emsdk/.data/ports
 ./emsdk install 1.39.1
 ./emsdk activate 1.39.1
 source ./emsdk_env.sh
 cd ../tfjs-backend-wasm
 
 yarn tsc
-ln -s /workspace/emsdk/.emscripten /root/.emscripten
 export HOME='/workspace'
+# Export this image specific Environment variables
+# Those variables are important to use dedicated folder for all cache and predefined config file
 ./scripts/build-wasm.sh
