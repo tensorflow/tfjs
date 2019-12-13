@@ -145,7 +145,13 @@ function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
 
 /**
  * Performs non maximum suppression of bounding boxes based on
- * iou (intersection over union)
+ * iou (intersection over union).
+ *
+ * This op also supports a Soft-NMS mode (c.f.
+ * Bodla et al, https://arxiv.org/abs/1704.04503) where boxes reduce the score
+ * of other overlapping boxes, therefore favoring different regions of the image
+ * with high scores. To enable this Soft-NMS mode, set the `softNmsSigma`
+ * parameter to be larger than 0.
  *
  * @param boxes a 2d tensor of shape `[numBoxes, 4]`. Each entry is
  *     `[y1, x1, y2, x2]`, where `(y1, x1)` and `(y2, x2)` are the corners of
@@ -157,18 +163,20 @@ function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
  *     Defaults to 0.5 (50% box overlap).
  * @param scoreThreshold A threshold for deciding when to remove boxes based
  *     on score. Defaults to -inf, which means any score is accepted.
+ * @param softNmsSigma A float representing the sigma parameter for Soft NMS.
  * @return A 1D tensor with the selected box indices.
  */
 /** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
 function nonMaxSuppression_(
     boxes: Tensor2D|TensorLike, scores: Tensor1D|TensorLike,
     maxOutputSize: number, iouThreshold = 0.5,
-    scoreThreshold = Number.NEGATIVE_INFINITY): Tensor1D {
+    scoreThreshold = Number.NEGATIVE_INFINITY, softNmsSigma = 0): Tensor1D {
   const $boxes = convertToTensor(boxes, 'boxes', 'nonMaxSuppression');
   const $scores = convertToTensor(scores, 'scores', 'nonMaxSuppression');
 
   const inputs = nonMaxSuppSanityCheck(
-      $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold);
+      $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold,
+      softNmsSigma);
   maxOutputSize = inputs.maxOutputSize;
   iouThreshold = inputs.iouThreshold;
   scoreThreshold = inputs.scoreThreshold;
@@ -176,7 +184,8 @@ function nonMaxSuppression_(
   const attrs = {maxOutputSize, iouThreshold, scoreThreshold};
   return ENGINE.runKernelFunc(
       b => b.nonMaxSuppression(
-          $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold),
+          $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold,
+          softNmsSigma),
       {boxes: $boxes, scores: $scores}, null /* grad */, 'NonMaxSuppressionV3',
       attrs);
 }
@@ -185,22 +194,26 @@ function nonMaxSuppression_(
 async function nonMaxSuppressionAsync_(
     boxes: Tensor2D|TensorLike, scores: Tensor1D|TensorLike,
     maxOutputSize: number, iouThreshold = 0.5,
-    scoreThreshold = Number.NEGATIVE_INFINITY): Promise<Tensor1D> {
+    scoreThreshold = Number.NEGATIVE_INFINITY,
+    softNmsSigma = 0.0): Promise<Tensor1D> {
   const $boxes = convertToTensor(boxes, 'boxes', 'nonMaxSuppressionAsync');
   const $scores = convertToTensor(scores, 'scores', 'nonMaxSuppressionAsync');
 
   const inputs = nonMaxSuppSanityCheck(
-      $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold);
+      $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold,
+      softNmsSigma);
   maxOutputSize = inputs.maxOutputSize;
   iouThreshold = inputs.iouThreshold;
   scoreThreshold = inputs.scoreThreshold;
+  softNmsSigma = inputs.softNmsSigma;
 
   const boxesAndScores = await Promise.all([$boxes.data(), $scores.data()]);
   const boxesVals = boxesAndScores[0];
   const scoresVals = boxesAndScores[1];
 
   const res = nonMaxSuppressionImpl(
-      boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
+      boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold,
+      softNmsSigma);
   if ($boxes !== boxes) {
     $boxes.dispose();
   }
@@ -212,14 +225,22 @@ async function nonMaxSuppressionAsync_(
 
 function nonMaxSuppSanityCheck(
     boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
-    iouThreshold: number, scoreThreshold: number):
-    {maxOutputSize: number, iouThreshold: number, scoreThreshold: number} {
+    iouThreshold: number, scoreThreshold: number, softNmsSigma: number): {
+  maxOutputSize: number,
+  iouThreshold: number,
+  scoreThreshold: number,
+  softNmsSigma: number
+} {
   if (iouThreshold == null) {
     iouThreshold = 0.5;
   }
   if (scoreThreshold == null) {
     scoreThreshold = Number.NEGATIVE_INFINITY;
   }
+  if (softNmsSigma == null) {
+    softNmsSigma = 0;
+  }
+
   const numBoxes = boxes.shape[0];
   maxOutputSize = Math.min(maxOutputSize, numBoxes);
 
@@ -238,7 +259,10 @@ function nonMaxSuppSanityCheck(
       scores.shape[0] === numBoxes,
       () => `scores has incompatible shape with boxes. Expected ${numBoxes}, ` +
           `but was ${scores.shape[0]}`);
-  return {maxOutputSize, iouThreshold, scoreThreshold};
+  util.assert(
+      0 <= softNmsSigma && softNmsSigma <= 1,
+      () => `softNmsSigma must be in [0, 1], but was '${softNmsSigma}'`);
+  return {maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma};
 }
 
 /**

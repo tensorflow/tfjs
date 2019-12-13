@@ -16,9 +16,10 @@
 #include <emscripten.h>
 #endif
 
+#include <cmath>
+#include <cstddef>
 #include <vector>
 
-#include <cmath>
 #include "src/cc/backend.h"
 #include "src/cc/interpolate_bilinear_impl.h"
 
@@ -32,16 +33,17 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 
-void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
-                    int num_channels, int new_height, int new_width,
-                    int align_corners, int out_id) {
+void ResizeBilinear(size_t x_id, size_t batch, size_t old_height,
+                    size_t old_width, size_t num_channels, size_t new_height,
+                    size_t new_width, size_t align_corners, size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
 
   const float* x_buf = x_info.f32();
   float* out_buf = out_info.f32_write();
 
-  const std::vector<int> x_shape = {batch, old_height, old_width, num_channels};
+  const std::vector<size_t> x_shape = {batch, old_height, old_width,
+                                       num_channels};
   const auto image_strides = util::compute_strides(x_shape);
 
   const float effective_input_height =
@@ -62,19 +64,19 @@ void ResizeBilinear(int x_id, int batch, int old_height, int old_width,
   const float old_height_m1 = old_height - 1;
   const float old_width_m1 = old_width - 1;
 
-  for (int b = 0; b < batch; ++b) {
-    for (int r = 0; r < new_height; ++r) {
+  for (size_t b = 0; b < batch; ++b) {
+    for (size_t r = 0; r < new_height; ++r) {
       const float y_ind = height_scale * r;
 
       float* out_buf_ptr = out_buf +
                            b * (new_height * new_width * num_channels) +
                            r * (new_width * num_channels);
 
-      const int top_ind = std::floor(y_ind);
-      const int bottom_ind = std::min(old_height_m1, std::ceil(y_ind));
+      const size_t top_ind = std::floor(y_ind);
+      const size_t bottom_ind = std::min(old_height_m1, std::ceil(y_ind));
       const float y_lerp = y_ind - top_ind;
 
-      const int batch_offset = b * image_strides[0];
+      const size_t batch_offset = b * image_strides[0];
 
       if (width_scale == 1 && y_lerp == 0) {
         memcpy(out_buf_ptr, x_buf + batch_offset + top_ind * image_strides[1],

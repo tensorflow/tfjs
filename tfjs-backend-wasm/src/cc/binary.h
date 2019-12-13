@@ -17,6 +17,7 @@
 
 #include <xnnpack.h>
 #include <algorithm>
+#include <cstddef>
 
 #include "src/cc/backend.h"
 
@@ -24,16 +25,16 @@ namespace tfjs {
 namespace wasm {
 
 template <class T>
-inline void binary_impl(const T* a_buf, const int a_size, const T* b_buf,
-                        const int b_size, T* out_buf, T operation(T, T)) {
-  int size = std::max(a_size, b_size);
-  for (int i = 0; i < size; ++i) {
+inline void binary_impl(const T* a_buf, const size_t a_size, const T* b_buf,
+                        const size_t b_size, T* out_buf, T operation(T, T)) {
+  size_t size = std::max(a_size, b_size);
+  for (size_t i = 0; i < size; ++i) {
     out_buf[i] = operation(a_buf[i % a_size], b_buf[i % b_size]);
   }
 }
 
-inline void binary_f32(const int a_id, const int b_id, const int out_id,
-                       float operation(float, float)) {
+inline void binary_f32(const size_t a_id, const size_t b_id,
+                       const size_t out_id, float operation(float, float)) {
   auto& a_info = backend::get_tensor_info(a_id);
   auto& b_info = backend::get_tensor_info(b_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
@@ -41,17 +42,17 @@ inline void binary_f32(const int a_id, const int b_id, const int out_id,
                      out_info.f32_write(), operation);
 }
 
-inline void binary_i32(const int a_id, const int b_id, const int out_id,
-                       int operation(int, int)) {
+inline void binary_i32(const size_t a_id, const size_t b_id,
+                       const size_t out_id, int operation(int, int)) {
   auto& a_info = backend::get_tensor_info(a_id);
   auto& b_info = backend::get_tensor_info(b_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
-  binary_impl<int>(a_info.i32(), a_info.size, b_info.i32(), b_info.size,
-                   out_info.i32_write(), operation);
+  binary_impl<int32_t>(a_info.i32(), a_info.size, b_info.i32(), b_info.size,
+                       out_info.i32_write(), operation);
 }
 
-inline void binary_bool(const int a_id, const int b_id, const int out_id,
-                        bool operation(bool, bool)) {
+inline void binary_bool(const size_t a_id, const size_t b_id,
+                        const size_t out_id, bool operation(bool, bool)) {
   auto& a_info = backend::get_tensor_info(a_id);
   auto& b_info = backend::get_tensor_info(b_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
@@ -65,10 +66,10 @@ typedef xnn_status (*xnn_setup_binary_op)(xnn_operator_t, size_t, const size_t*,
                                           size_t, const size_t*, const float*,
                                           const float*, float*, pthreadpool_t);
 
-void binary_xnn_f32(const int a_id, const size_t* a_shape_ptr,
-                    const int a_shape_len, const int b_id,
-                    const size_t* b_shape_ptr, const int b_shape_len,
-                    const int out_id, xnn_create_binary_op create_op,
+void binary_xnn_f32(const size_t a_id, const size_t* a_shape_ptr,
+                    const size_t a_shape_len, const size_t b_id,
+                    const size_t* b_shape_ptr, const size_t b_shape_len,
+                    const size_t out_id, xnn_create_binary_op create_op,
                     xnn_setup_binary_op setup_op);
 
 }  // namespace wasm

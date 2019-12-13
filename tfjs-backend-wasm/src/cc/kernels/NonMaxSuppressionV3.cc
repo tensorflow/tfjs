@@ -17,6 +17,7 @@
 #endif
 
 #include <algorithm>
+#include <cstddef>
 #include <cstring>
 #include <memory>
 #include <vector>
@@ -26,7 +27,7 @@
 
 namespace {
 
-float compute_iou(const float* boxes, const int i, const int j) {
+float compute_iou(const float* boxes, const size_t i, const size_t j) {
   const float* i_coord = boxes + i * 4;
   const float* j_coord = boxes + j * 4;
 
@@ -62,8 +63,8 @@ float compute_iou(const float* boxes, const int i, const int j) {
 // Structure to store the result of the kernel. In this case we give js a
 // a pointer in memory where the result is stored and how big it is.
 struct Result {
-  int* buf;
-  int size;
+  int32_t* buf;
+  size_t size;
 };
 
 }  // namespace
@@ -76,37 +77,38 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-const Result* NonMaxSuppressionV3(const int boxes_id, const int scores_id,
-                                  const int max_out_size,
+const Result* NonMaxSuppressionV3(const size_t boxes_id, const size_t scores_id,
+                                  const size_t max_out_size,
                                   const float iou_threshold,
                                   const float score_threshold) {
   auto& boxes_info = backend::get_tensor_info(boxes_id);
   auto& scores_info = backend::get_tensor_info_out(scores_id);
   const float* boxes = boxes_info.f32();
   const float* scores = scores_info.f32();
-  const int num_boxes = boxes_info.size / 4;
+  const size_t num_boxes = boxes_info.size / 4;
 
   // Filter out boxes that are below the score threshold.
-  std::vector<int> box_indices;
-  for (size_t i = 0; i < num_boxes; ++i) {
+  std::vector<int32_t> box_indices;
+  for (int32_t i = 0; i < num_boxes; ++i) {
     if (scores[i] > score_threshold) {
       box_indices.push_back(i);
     }
   }
 
   // Sort by remaining boxes by scores.
-  std::sort(
-      box_indices.begin(), box_indices.end(),
-      [&scores](const int i, const int j) { return scores[i] > scores[j]; });
+  std::sort(box_indices.begin(), box_indices.end(),
+            [&scores](const size_t i, const size_t j) {
+              return scores[i] > scores[j];
+            });
 
   // Select a box only if it doesn't overlap beyond the threshold with the
   // already selected boxes.
-  std::vector<int> selected;
-  for (size_t i = 0; i < box_indices.size(); ++i) {
-    const int box_i = box_indices[i];
+  std::vector<int32_t> selected;
+  for (int32_t i = 0; i < box_indices.size(); ++i) {
+    const size_t box_i = box_indices[i];
     bool ignore_candidate = false;
-    for (size_t j = 0; j < selected.size(); ++j) {
-      const int box_j = selected[j];
+    for (int32_t j = 0; j < selected.size(); ++j) {
+      const int32_t box_j = selected[j];
       const float iou = compute_iou(boxes, box_i, box_j);
       if (iou >= iou_threshold) {
         ignore_candidate = true;
@@ -124,12 +126,13 @@ const Result* NonMaxSuppressionV3(const int boxes_id, const int scores_id,
   // Allocate memory on the heap for the resulting indices and copy the data
   // from the `selected` vector since we can't "steal" the data from the
   // vector.
-  int* data = static_cast<int*>(malloc(selected.size() * sizeof(int)));
-  std::memcpy(data, selected.data(), selected.size() * sizeof(int));
+  int32_t* data =
+      static_cast<int32_t*>(malloc(selected.size() * sizeof(int32_t)));
+  std::memcpy(data, selected.data(), selected.size() * sizeof(int32_t));
 
   // Allocate the result of the method on the heap so it survives past this
   // function and we can read it in js.
-  return new Result{data, static_cast<int>(selected.size())};
+  return new Result{data, selected.size()};
 }
 
 }  // extern "C"

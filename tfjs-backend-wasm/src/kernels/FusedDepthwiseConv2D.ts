@@ -92,7 +92,7 @@ function fusedDepthwiseConv2d(args: {
 
   const outputChannels = convInfo.outChannels;
 
-  let biasId = -1;
+  let biasId = 0;
   if (bias != null) {
     const biasData = backend.dataIdMap.get(bias.dataId);
     if (biasData.shape.length !== 1) {
@@ -133,7 +133,7 @@ function fusedDepthwiseConv2d(args: {
   const out = backend.makeOutput(convInfo.outShape, 'float32');
   const outId = backend.dataIdMap.get(out.dataId).id;
   const preluActivationWeightsId = preluActivationWeights == null ?
-      -1 :
+      0 :
       backend.dataIdMap.get(preluActivationWeights.dataId).id;
   wasmFusedDepthwiseConv2d(
       xId, batchSize, inHeight, inWidth, filterId, filterHeight, filterWidth,

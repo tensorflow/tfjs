@@ -33,8 +33,17 @@ tfjs_cc_library(
   srcs = ["backend.cc"],
   hdrs = ["backend.h"],
   deps = [
+    ":check_macros",
     ":util",
     "@xnnpack//:xnnpack_operators_nhwc_f32",
+  ],
+)
+
+tfjs_cc_library(
+  name = "check_macros",
+  srcs = ["check_macros.h"],
+  deps = [
+    ":util",
   ],
 )
 
@@ -119,6 +128,8 @@ tfjs_cc_library(
     ":Conv2D",
     ":DepthwiseConv2dNative",
     ":FloorDiv",
+    ":Minimum",
+    ":Maximum",
     ":FusedConv2D",
     ":FusedDepthwiseConv2D",
     ":Div",
@@ -225,6 +236,7 @@ tfjs_cc_library(
 tfjs_cc_library(
   name = "BatchMatMul",
   srcs = ["kernels/BatchMatMul.cc"],
+  hdrs = ["kernels/BatchMatMul.h"],
   deps = [
     ":backend",
     ":util",
@@ -273,6 +285,26 @@ tfjs_cc_library(
 tfjs_cc_library(
   name = "FloorDiv",
   srcs = ["kernels/FloorDiv.cc"],
+  deps = [
+    ":backend",
+    ":binary",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Minimum",
+  srcs = ["kernels/Minimum.cc"],
+  deps = [
+    ":backend",
+    ":binary",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Maximum",
+  srcs = ["kernels/Maximum.cc"],
   deps = [
     ":backend",
     ":binary",
@@ -440,6 +472,14 @@ tfjs_unit_test(
     ":backend",
     ":util",
     ":Prelu",
+  ]
+)
+
+tfjs_unit_test(
+  name = "BatchMatMul_test",
+  srcs = ["kernels/BatchMatMul_test.cc"],
+  deps = [
+    ":BatchMatMul",
   ]
 )
 

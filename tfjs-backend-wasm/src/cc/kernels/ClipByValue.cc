@@ -21,6 +21,7 @@
 #include <xnnpack.h>
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <map>
 #include <unordered_map>
 
@@ -46,8 +47,8 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void ClipByValue(const int x_id, const float min, const float max,
-                 const int out_id) {
+void ClipByValue(const size_t x_id, const float min, const float max,
+                 const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
 
@@ -58,9 +59,9 @@ void ClipByValue(const int x_id, const float min, const float max,
   OperatorCacheKey cache_key = {min, max};
   auto operator_cache_idx = operator_cache.find(cache_key);
   if (operator_cache_idx == operator_cache.end()) {
-    const int channels = 1;
-    const int strides = channels;
-    const int flags = 0;
+    const size_t channels = 1;
+    const size_t strides = channels;
+    const uint32_t flags = 0;
     xnn_status status = xnn_create_clamp_nc_f32(channels, strides, strides, min,
                                                 max, flags, &clamp_op);
     if (status != xnn_status_success) {
@@ -76,7 +77,7 @@ void ClipByValue(const int x_id, const float min, const float max,
     clamp_op = operator_cache_idx->second;
   }
 
-  const int batch_size = x_info.size;
+  const size_t batch_size = x_info.size;
   xnn_status status = xnn_setup_clamp_nc_f32(
       clamp_op, batch_size, x_buf, out_buf, nullptr /* thread pool */);
   if (status != xnn_status_success) {

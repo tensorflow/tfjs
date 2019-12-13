@@ -16,13 +16,15 @@
 #include <emscripten.h>
 #endif
 
+#include <cstddef>
+
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
 
 namespace {
 
 template <typename T>
-void argmax(const T* x, const int outer_size, const int inner_size,
+void argmax(const T* x, const size_t outer_size, const size_t inner_size,
             int* out_buf) {
   for (int i = 0; i < outer_size; ++i) {
     const int offset = i * inner_size;
@@ -49,8 +51,8 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void ArgMax(const int x_id, const DType dtype, const int outer_size,
-            const int inner_size, const int out_id) {
+void ArgMax(const size_t x_id, const DType dtype, const size_t outer_size,
+            const size_t inner_size, const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
   int* out_buf = out_info.i32_write();
@@ -60,7 +62,7 @@ void ArgMax(const int x_id, const DType dtype, const int outer_size,
       argmax<float>(x_info.f32(), outer_size, inner_size, out_buf);
       break;
     case DType::int32:
-      argmax<int>(x_info.i32(), outer_size, inner_size, out_buf);
+      argmax<int32_t>(x_info.i32(), outer_size, inner_size, out_buf);
       break;
     case DType::boolean:
       argmax<bool>(x_info.b(), outer_size, inner_size, out_buf);

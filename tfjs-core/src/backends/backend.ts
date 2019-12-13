@@ -590,7 +590,8 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
 
   nonMaxSuppression(
       boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
-      iouThreshold: number, scoreThreshold?: number): Tensor1D {
+      iouThreshold: number, scoreThreshold?: number,
+      softNmsSigma?: number): Tensor1D {
     return notYetImplemented('nonMaxSuppression');
   }
 

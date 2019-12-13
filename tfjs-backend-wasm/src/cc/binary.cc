@@ -15,6 +15,7 @@
 #include "src/cc/binary.h"
 
 #include <xnnpack.h>
+#include <cstddef>
 #include <limits>
 #include <unordered_map>
 
@@ -29,10 +30,10 @@ std::unordered_map<tfjs::wasm::xnn_create_binary_op, xnn_operator_t> op_cache;
 namespace tfjs {
 namespace wasm {
 
-void binary_xnn_f32(const int a_id, const size_t* a_shape_ptr,
-                    const int a_shape_len, const int b_id,
-                    const size_t* b_shape_ptr, const int b_shape_len,
-                    const int out_id, xnn_create_binary_op create_op,
+void binary_xnn_f32(const size_t a_id, const size_t* a_shape_ptr,
+                    const size_t a_shape_len, const size_t b_id,
+                    const size_t* b_shape_ptr, const size_t b_shape_len,
+                    const size_t out_id, xnn_create_binary_op create_op,
                     xnn_setup_binary_op setup_op) {
   auto& a_info = backend::get_tensor_info(a_id);
   auto& b_info = backend::get_tensor_info(b_id);
@@ -47,7 +48,7 @@ void binary_xnn_f32(const int a_id, const size_t* a_shape_ptr,
   if (cache_result == op_cache.end()) {
     const float sum_min = -std::numeric_limits<float>::infinity(),
                 sum_max = std::numeric_limits<float>::infinity();
-    const int flags = 0;
+    const uint32_t flags = 0;
     xnn_status status = create_op(sum_min, sum_max, flags, &binary_op);
     if (status != xnn_status_success) {
       util::warn(
@@ -60,7 +61,7 @@ void binary_xnn_f32(const int a_id, const size_t* a_shape_ptr,
   } else {
     binary_op = cache_result->second;
   }
-  const int batch_size = out_info.size;
+  const size_t batch_size = out_info.size;
   xnn_status status =
       setup_op(binary_op, a_shape_len, a_shape_ptr, b_shape_len, b_shape_ptr,
                a_buf, b_buf, out_buf, nullptr /* thread pool */);
