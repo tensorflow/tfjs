@@ -206,8 +206,7 @@ const TEST_FILTERS: TestFilter[] = [
       'has zero in its shape',           // Test times out.
       'valueAndGradients',               // backend.sum() not yet implemented.
       'upcasts when dtypes dont match',  // Missing cast().
-      '^t',              // Shape mismatch for transposed matmul.
-      'batched matmul',  // Actual != expected, shape mismatch.
+      'batched matmul',                  // Actual != expected, shape mismatch.
     ]
   },
   {
