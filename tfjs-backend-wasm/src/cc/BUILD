@@ -266,9 +266,9 @@ tfjs_cc_library(
 tfjs_cc_library(
   name = "ResizeBilinear",
   srcs = ["kernels/ResizeBilinear.cc"],
+  hdrs = ["kernels/ResizeBilinear.h"],
   deps = [
     ":backend",
-    ":interpolate_bilinear_impl",
     ":util",
   ],
 )
@@ -546,3 +546,12 @@ tfjs_unit_test(
     ":ClipByValue",
   ]
 )
+
+tfjs_unit_test(
+  name = "ResizeBilinear_test",
+  srcs = ["kernels/ResizeBilinear_test.cc"],
+  deps = [
+    ":ResizeBilinear",
+  ]
+)
+
