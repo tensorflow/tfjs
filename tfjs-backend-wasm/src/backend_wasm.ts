@@ -227,6 +227,13 @@ function typedArrayFromBuffer(
 
 let wasmPath: string;
 
+/**
+ * Sets the path to the .wasm file which will be fetched when the wasm
+ * backend is initialized. See
+ * https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/README.md#using-bundlers
+ * for more details.
+ */
+/** @doc {heading: 'Environment', namespace: 'webgl'} */
 export function setWasmPath(path: string): void {
   wasmPath = path;
 }

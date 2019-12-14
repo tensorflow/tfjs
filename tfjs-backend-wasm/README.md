@@ -57,6 +57,27 @@ Our WASM backend builds on top of the
 [XNNPACK library](https://github.com/google/XNNPACK) which provides
 high-efficiency floating-point neural network inference operators.
 
+## Using bundlers
+
+The shipped library on NPM consists of 2 files:
+- the main js file (bundled js for browsers)
+- the WebAssembly binary in `dist/tfjs-backend-wasm.wasm`
+
+When the WASM backend is initialized, we make a `fetch`/`readFile` for
+`tfjs-backend-wasm.wasm` relative from the main js file. This means that
+bundlers such as Parcel and WebPack need to be able to serve the `.wasm` file in
+production. See [starter/parcel](./starter/parcel/) and
+[starter/webpack](./starter/webpack/) for how to setup your favorite bundler.
+
+If your server is serving the `.wasm` file on a different path or a different
+name, use `setWasmPath` before you initialize the backend:
+
+```ts
+import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
+setWasmPath(yourCustomPath); // or tf.wasm.setWasmPath when using <script> tags.
+tf.setBackend('wasm').then(() => {...});
+```
+
 # FAQ
 
 ### How many ops have you implemented?
