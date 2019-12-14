@@ -1,5 +1,4 @@
 import '@tensorflow/tfjs-backend-wasm';
-
 import * as tf from '@tensorflow/tfjs-core';
 
 async function run() {
