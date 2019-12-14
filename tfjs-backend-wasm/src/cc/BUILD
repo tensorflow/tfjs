@@ -69,6 +69,7 @@ tfjs_cc_library(
   srcs = ["compare.h"],
   deps = [
     ":backend",
+    ":binary",
   ],
 )
 

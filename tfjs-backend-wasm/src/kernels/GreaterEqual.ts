@@ -15,6 +15,6 @@
  * =============================================================================
  */
 
-import { registerCompareKernel } from './compare_kernel';
+import { registerBinaryKernel } from './binary_kernel';
 const supportsBroadcast = true;
-registerCompareKernel('GreaterEqual', supportsBroadcast);
+registerBinaryKernel('GreaterEqual', supportsBroadcast, 'bool');
