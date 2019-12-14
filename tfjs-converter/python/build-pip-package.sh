@@ -29,6 +29,9 @@
 # Optional argumnets:
 #   --test: Test the pip packages by installing it (inside virtualenv)
 #           and running test_pip_package.py against the install.
+#   --test-nightly: Test the pip packages by installing it (inside virtualenv)
+#           and running test_pip_package.py and test_pip_nightly_package.py
+#           against the install.
 #   --upload:         Upload the py2 and py3 wheels to prod PyPI.
 #   --upload-to-test: Upload the py2 and py3 wheels to test PyPI, mutually
 #                     exclusive with --upload.
@@ -59,7 +62,7 @@ set -e
 function print_usage() {
   echo "Usage:"
   echo "  build-pip-packages.sh \\"
-  echo "      [--test] [--upload] [--upload-to-test] [--confirm-upload] <OUTPUT_DIR>"
+  echo "      [--test] [--test-nightly] [--upload] [--upload-to-test] [--confirm-upload] <OUTPUT_DIR>"
   echo
 }
 
@@ -71,6 +74,7 @@ if [[ $# == 0 ]]; then
 fi
 
 RUN_TEST=0
+RUN_TEST_NIGHTLY=0
 UPLOAD_TO_PROD_PYPI=0
 UPLOAD_TO_TEST_PYPI=0
 CONFIRM_UPLOAD=0
@@ -78,6 +82,8 @@ DEST_DIR=""
 while true; do
   if [[ "$1" == "--test" ]]; then
     RUN_TEST=1
+  elif [[ "$1" == "--test-nightly" ]]; then
+    RUN_TEST_NIGHTLY=1
   elif [[ "$1" == "--upload" ]]; then
     UPLOAD_TO_PROD_PYPI=1
   elif [[ "$1" == "--upload-to-test" ]]; then
@@ -208,7 +214,7 @@ for VENV_PYTHON_BIN in ${VENV_PYTHON_BINS}; do
   done
 
   # Run test on install.
-  if [[ "${RUN_TEST}" == "1" ]]; then
+  if [[ "${RUN_TEST}" == "1" || "${RUN_TEST_NIGHTLY}" == 1 ]]; then
     echo
     echo "Running test-on-install for $(python --version 2>&1) ..."
     echo
@@ -223,6 +229,9 @@ for VENV_PYTHON_BIN in ${VENV_PYTHON_BINS}; do
     TEST_ON_INSTALL_DIR="$(mktemp -d)"
 
     cp "${SCRIPTS_DIR}/test_pip_package.py" "${TEST_ON_INSTALL_DIR}"
+    if [[ "${RUN_TEST_NIGHTLY}" == 1 ]]; then
+      cp "${SCRIPTS_DIR}/test_nightly_pip_package.py" "${TEST_ON_INSTALL_DIR}"
+    fi
 
     pushd "${TEST_ON_INSTALL_DIR}" > /dev/null
 
@@ -231,6 +240,10 @@ for VENV_PYTHON_BIN in ${VENV_PYTHON_BINS}; do
     echo
 
     python test_pip_package.py
+
+    if [[ "${RUN_TEST_NIGHTLY}" == 1 ]]; then
+      python test_nightly_pip_package.py
+    fi
 
     popd > /dev/null
 

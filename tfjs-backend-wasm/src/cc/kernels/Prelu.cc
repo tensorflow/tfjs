@@ -21,7 +21,6 @@
 #include <xnnpack.h>
 #include <cmath>
 #include <cstddef>
-#include <limits>
 #include <unordered_map>
 
 #include "src/cc/backend.h"

@@ -212,6 +212,6 @@ function typedArrayFromBuffer(
     case 'bool':
       return new Uint8Array(buffer);
     default:
-      throw new Error(`Uknown dtype ${dtype}`);
+      throw new Error(`Unknown dtype ${dtype}`);
   }
 }
