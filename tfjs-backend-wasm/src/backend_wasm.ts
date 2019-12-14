@@ -181,8 +181,8 @@ registerBackend('wasm', async () => {
  * returning Promise<BackendWasmModule> to avoid freezing Chrome (last tested in
  * Chrome 76).
  */
-async function init(): Promise<{wasm: BackendWasmModule}> {
-  return new Promise(resolve => {
+export async function init(): Promise<{wasm: BackendWasmModule}> {
+  return new Promise((resolve, reject) => {
     const factoryConfig: WasmFactoryConfig = {};
     if (wasmPath != null) {
       factoryConfig.locateFile = (path, prefix) => {
@@ -207,7 +207,27 @@ async function init(): Promise<{wasm: BackendWasmModule}> {
       disposeData: wasm.cwrap('dispose_data', voidReturnType, ['number']),
       dispose: wasm.cwrap('dispose', voidReturnType, []),
     };
-    wasm.onRuntimeInitialized = () => resolve({wasm});
+    let initialized = false;
+    let initAborted = false;
+    wasm.onRuntimeInitialized = () => {
+      initialized = true;
+      resolve({wasm});
+    };
+    wasm.onAbort = () => {
+      if (initialized) {
+        // Emscripten already called console.warn so no need to double log.
+        return;
+      }
+      if (initAborted) {
+        // Emscripten calls `onAbort` twice, resulting in double error messages.
+        return;
+      }
+      initAborted = true;
+      const rejectMsg =
+          'Make sure the server can serve the `.wasm` file relative to the ' +
+          'bundled js file. For more details see https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/README.md#using-bundlers';
+      reject({message: rejectMsg});
+    };
   });
 }
 
@@ -228,12 +248,12 @@ function typedArrayFromBuffer(
 let wasmPath: string;
 
 /**
- * Sets the path to the .wasm file which will be fetched when the wasm
+ * Sets the path to the `.wasm` file which will be fetched when the wasm
  * backend is initialized. See
  * https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/README.md#using-bundlers
  * for more details.
  */
-/** @doc {heading: 'Environment', namespace: 'webgl'} */
+/** @doc {heading: 'Environment', namespace: 'wasm'} */
 export function setWasmPath(path: string): void {
   wasmPath = path;
 }

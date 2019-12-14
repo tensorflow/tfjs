@@ -17,6 +17,7 @@
 
 export interface BackendWasmModule extends EmscriptenModule {
   onRuntimeInitialized: () => void;
+  onAbort: (msg: string) => void;
   // Using the tfjs namespace to avoid conflict with emscripten's API.
   tfjs: {
     init(): void,
