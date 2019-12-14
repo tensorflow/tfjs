@@ -1,8 +1,7 @@
 {
-  "name": "vanilla",
+  "name": "wasm-parcel",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.html",
+  "description": "Sample parcel app that uses the WASM backend",
   "scripts": {
     "watch": "parcel index.html --open",
     "build": "parcel build index.html"

@@ -17,8 +17,8 @@
 
 import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
 
-import wasmFactory from '../wasm-out/tfjs-backend-wasm';
-import {BackendWasmModule} from '../wasm-out/tfjs-backend-wasm';
+import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
+import wasmFactory from '../wasm-out/tfjs-backend-wasm.js';
 
 const WASM_PRIORITY = 2;
 
@@ -183,7 +183,16 @@ registerBackend('wasm', async () => {
  */
 async function init(): Promise<{wasm: BackendWasmModule}> {
   return new Promise(resolve => {
-    const wasm = wasmFactory();
+    const factoryConfig: WasmFactoryConfig = {};
+    if (wasmPath != null) {
+      factoryConfig.locateFile = (path, prefix) => {
+        if (path.endsWith('.wasm')) {
+          return wasmPath;
+        }
+        return prefix + path;
+      };
+    }
+    const wasm = wasmFactory(factoryConfig);
     const voidReturnType: string = null;
     // Using the tfjs namespace to avoid conflict with emscripten's API.
     wasm.tfjs = {
@@ -214,4 +223,10 @@ function typedArrayFromBuffer(
     default:
       throw new Error(`Unknown dtype ${dtype}`);
   }
+}
+
+let wasmPath: string;
+
+export function setWasmPath(path: string): void {
+  wasmPath = path;
 }

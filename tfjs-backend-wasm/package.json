@@ -22,6 +22,10 @@
     "test-cc": "bazel test //src/cc:cc_tests --test_output=all",
     "test-browser-ci": "karma start --singleRun --browsers=bs_chrome_mac"
   },
+  "browser": {
+    "fs": false,
+    "path": false
+  },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "link:../tfjs-core"
   },

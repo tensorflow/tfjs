@@ -28,9 +28,9 @@ export interface BackendWasmModule extends EmscriptenModule {
   }
 }
 
-export interface WasmFactorySettings {
+export interface WasmFactoryConfig {
   locateFile?(path: string, prefix: string): string;
 }
 
-declare var moduleFactory: (settings: WasmFactorySettings) => BackendWasmModule;
+declare var moduleFactory: (settings: WasmFactoryConfig) => BackendWasmModule;
 export default moduleFactory;
