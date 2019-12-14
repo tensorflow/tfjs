@@ -42,7 +42,7 @@ import {getArrayFromDType, inferDtype, now, sizeFromShape} from '../../util';
 import {BackendTimingInfo, DataStorage, EPSILON_FLOAT32, KernelBackend} from '../backend';
 import * as backend_util from '../backend_util';
 import * as complex_util from '../complex_util';
-import {nonMaxSuppressionImpl} from '../non_max_suppression_impl';
+import {nonMaxSuppressionV3, nonMaxSuppressionV5} from '../non_max_suppression_impl';
 import {split} from '../split_shared';
 import {tile} from '../tile_impl';
 import {topkImpl} from '../topk_impl';
@@ -3270,13 +3270,24 @@ export class MathBackendCPU extends KernelBackend {
 
   nonMaxSuppression(
       boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
-      iouThreshold: number, scoreThreshold: number,
-      softNmsSigma: number): Tensor1D {
+      iouThreshold: number, scoreThreshold: number): Tensor1D {
     assertNotComplex(boxes, 'nonMaxSuppression');
 
     const boxesVals = this.readSync(boxes.dataId) as TypedArray;
     const scoresVals = this.readSync(scores.dataId) as TypedArray;
-    return nonMaxSuppressionImpl(
+    return nonMaxSuppressionV3(
+        boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
+  }
+
+  nonMaxSuppressionWithScore(
+      boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
+      iouThreshold: number, scoreThreshold: number,
+      softNmsSigma: number): [Tensor1D, Tensor1D, Scalar] {
+    assertNotComplex(boxes, 'nonMaxSuppressionWithScore');
+
+    const boxesVals = this.readSync(boxes.dataId) as TypedArray;
+    const scoresVals = this.readSync(scores.dataId) as TypedArray;
+    return nonMaxSuppressionV5(
         boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold,
         softNmsSigma);
   }

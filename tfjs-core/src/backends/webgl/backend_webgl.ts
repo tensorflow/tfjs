@@ -45,7 +45,7 @@ import {getArrayFromDType, getTypedArrayFromDType, inferDtype, sizeFromShape} fr
 import {DataStorage, EPSILON_FLOAT16, EPSILON_FLOAT32, KernelBackend} from '../backend';
 import * as backend_util from '../backend_util';
 import {mergeRealAndImagArrays} from '../complex_util';
-import {nonMaxSuppressionImpl} from '../non_max_suppression_impl';
+import {nonMaxSuppressionV3, nonMaxSuppressionV5} from '../non_max_suppression_impl';
 import {split} from '../split_shared';
 import {tile} from '../tile_impl';
 import {topkImpl} from '../topk_impl';
@@ -2244,14 +2244,26 @@ export class MathBackendWebGL extends KernelBackend {
 
   nonMaxSuppression(
       boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
-      iouThreshold: number, scoreThreshold: number,
-      softNmsSigma: number): Tensor1D {
+      iouThreshold: number, scoreThreshold: number): Tensor1D {
     warn(
         'tf.nonMaxSuppression() in webgl locks the UI thread. ' +
         'Call tf.nonMaxSuppressionAsync() instead');
     const boxesVals = boxes.dataSync();
     const scoresVals = scores.dataSync();
-    return nonMaxSuppressionImpl(
+    return nonMaxSuppressionV3(
+        boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
+  }
+
+  nonMaxSuppressionWithScore(
+      boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
+      iouThreshold: number, scoreThreshold: number,
+      softNmsSigma: number): [Tensor1D, Tensor1D, Scalar] {
+    warn(
+        'tf.nonMaxSuppression() in webgl locks the UI thread. ' +
+        'Call tf.nonMaxSuppressionAsync() instead');
+    const boxesVals = boxes.dataSync();
+    const scoresVals = scores.dataSync();
+    return nonMaxSuppressionV5(
         boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold,
         softNmsSigma);
   }
