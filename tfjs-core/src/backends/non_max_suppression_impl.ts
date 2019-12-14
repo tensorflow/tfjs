@@ -19,8 +19,8 @@
  * Implementation of the NonMaxSuppression kernel shared between webgl and cpu.
  */
 
-import {tensor1d} from '../ops/tensor_ops';
-import {Tensor1D} from '../tensor';
+import {scalar, tensor1d} from '../ops/tensor_ops';
+import {Scalar, Tensor1D} from '../tensor';
 import {TypedArray} from '../types';
 
 import {binaryInsert} from './array_util';
@@ -31,10 +31,34 @@ interface Candidate {
   suppressBeginIndex: number;
 }
 
-export function nonMaxSuppressionImpl(
+export function nonMaxSuppressionV3(
+    boxes: TypedArray, scores: TypedArray, maxOutputSize: number,
+    iouThreshold: number, scoreThreshold: number): Tensor1D {
+  const dummySoftNmsSigma = 0.0;
+
+  return nonMaxSuppressionImpl_(
+      boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
+      dummySoftNmsSigma)[0];
+}
+
+export function nonMaxSuppressionV5(
     boxes: TypedArray, scores: TypedArray, maxOutputSize: number,
     iouThreshold: number, scoreThreshold: number,
-    softNmsSigma: number): Tensor1D {
+    softNmsSigma: number): [Tensor1D, Tensor1D, Scalar] {
+  // For NonMaxSuppressionV5Op, we always return a second output holding
+  // corresponding scores.
+  const returnScoresTensor = true;
+
+  return nonMaxSuppressionImpl_(
+      boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma,
+      returnScoresTensor);
+}
+
+function nonMaxSuppressionImpl_(
+    boxes: TypedArray, scores: TypedArray, maxOutputSize: number,
+    iouThreshold: number, scoreThreshold: number, softNmsSigma: number,
+    returnScoresTensor = false,
+    padToMaxOutputSize = false): [Tensor1D, Tensor1D, Scalar] {
   // The list is sorted in ascending order, so that we can always pop the
   // candidate with the largest score in O(1) time.
   const candidates =
@@ -48,6 +72,7 @@ export function nonMaxSuppressionImpl(
   const scale = softNmsSigma > 0 ? (-0.5 / softNmsSigma) : 0.0;
 
   const selected: number[] = [];
+  const selectedScore: number[] = [];
 
   while (selected.length < maxOutputSize && candidates.length > 0) {
     const candidate = candidates.pop();
@@ -59,10 +84,10 @@ export function nonMaxSuppressionImpl(
 
     // Overlapping boxes are likely to have similar scores, therefore we
     // iterate through the previously selected boxes backwards in order to
-    // see if candidate's score should be suppressed. We use suppressBeginIndex
-    // to track and ensure a candidate can be suppressed by a selected box no
-    // more than once. Also, if the overlap exceeds iouThreshold, we simply
-    // ignore the candidate.
+    // see if candidate's score should be suppressed. We use
+    // suppressBeginIndex to track and ensure a candidate can be suppressed
+    // by a selected box no more than once. Also, if the overlap exceeds
+    // iouThreshold, we simply ignore the candidate.
     let ignoreCandidate = false;
     for (let j = selected.length - 1; j >= suppressBeginIndex; --j) {
       const iou = intersectionOverUnion(boxes, boxIndex, selected[j]);
@@ -81,19 +106,20 @@ export function nonMaxSuppressionImpl(
     }
 
     // At this point, if `candidate.score` has not dropped below
-    // `scoreThreshold`, then we know that we went through all of the previous
-    // selections and can safely update `suppressBeginIndex` to the end of the
-    // selected array. Then we can re-insert the candidate with the updated
-    // score and suppressBeginIndex back in the candidate list. If on the other
-    // hand, `candidate.score` has dropped below the score threshold, we will
-    // not add it back to the candidates list.
+    // `scoreThreshold`, then we know that we went through all of the
+    // previous selections and can safely update `suppressBeginIndex` to the
+    // end of the selected array. Then we can re-insert the candidate with
+    // the updated score and suppressBeginIndex back in the candidate list.
+    // If on the other hand, `candidate.score` has dropped below the score
+    // threshold, we will not add it back to the candidates list.
     candidate.suppressBeginIndex = selected.length;
 
     if (!ignoreCandidate) {
-      // Candidate has passed all the tests, and is not suppressed, so select
-      // the candidate.
+      // Candidate has passed all the tests, and is not suppressed, so
+      // select the candidate.
       if (candidate.score === originalScore) {
         selected.push(boxIndex);
+        selectedScore.push(candidate.score);
       } else if (candidate.score > scoreThreshold) {
         // Candidate's score is suppressed but is still high enough to be
         // considered, so add back to the candidates list.
@@ -102,7 +128,17 @@ export function nonMaxSuppressionImpl(
     }
   }
 
-  return tensor1d(selected, 'int32');
+  // NonMaxSuppressionV4 feature: padding output to maxOutputSize.
+  const numValidOutputs = selected.length;
+  if (padToMaxOutputSize) {
+    selected.fill(0, numValidOutputs);
+    selectedScore.fill(0.0, numValidOutputs);
+  }
+
+  return [
+    tensor1d(selected, 'int32'), tensor1d(selectedScore, 'float32'),
+    scalar(numValidOutputs, 'int32')
+  ];
 }
 
 function intersectionOverUnion(boxes: TypedArray, i: number, j: number) {
