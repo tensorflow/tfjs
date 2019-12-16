@@ -21,7 +21,7 @@ import {expectArraysClose, expectArraysEqual} from '../test_util';
 
 import * as reduce_util from './reduce_util';
 
-describeWithFlags(' min', ALL_ENVS, () => {
+describeWithFlags('min', ALL_ENVS, () => {
   it('Tensor1D', async () => {
     const a = tf.tensor1d([3, -1, 0, 100, -7, 2]);
     expectArraysClose(await tf.min(a).data(), -7);
@@ -225,7 +225,7 @@ describeWithFlags(' min', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags(' max', ALL_ENVS, () => {
+describeWithFlags('max', ALL_ENVS, () => {
   it('with one element dominating', async () => {
     const a = tf.tensor1d([3, -1, 0, 100, -7, 2]);
     const r = tf.max(a);
@@ -446,7 +446,7 @@ describeWithFlags(' max', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags(' argmax', ALL_ENVS, () => {
+describeWithFlags('argmax', ALL_ENVS, () => {
   it('Tensor1D', async () => {
     const a = tf.tensor1d([1, 0, 3, 2]);
     const result = tf.argMax(a);
@@ -1100,7 +1100,7 @@ describeWithFlags('prod', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags(' mean', ALL_ENVS, () => {
+describeWithFlags('mean', ALL_ENVS, () => {
   it('basic', async () => {
     const a = tf.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
     const r = tf.mean(a);
@@ -1247,7 +1247,7 @@ describeWithFlags(' mean', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags(' moments', ALL_ENVS, () => {
+describeWithFlags('moments', ALL_ENVS, () => {
   it('basic', async () => {
     const a = tf.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
     const {mean, variance} = tf.moments(a);
@@ -1375,7 +1375,7 @@ describeWithFlags(' moments', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags(' norm', ALL_ENVS, () => {
+describeWithFlags('norm', ALL_ENVS, () => {
   it('scalar norm', async () => {
     const a = tf.scalar(-22.0);
     const norm = tf.norm(a);
@@ -1646,7 +1646,7 @@ describeWithFlags(' norm', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags(' all', ALL_ENVS, () => {
+describeWithFlags('all', ALL_ENVS, () => {
   it('Tensor1D', async () => {
     let a = tf.tensor1d([0, 0, 0], 'bool');
     expectArraysClose(await tf.all(a).data(), 0);
@@ -1736,7 +1736,7 @@ describeWithFlags(' all', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags(' any', ALL_ENVS, () => {
+describeWithFlags('any', ALL_ENVS, () => {
   it('Tensor1D', async () => {
     let a = tf.tensor1d([0, 0, 0], 'bool');
     expectArraysClose(await tf.any(a).data(), 0);
