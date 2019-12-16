@@ -108,6 +108,10 @@ function clone_<T extends Tensor>(x: T|TensorLike): T {
 /**
  * Create an identity matrix.
  *
+ * ```js
+ * tf.eye(4, 4, [2, 2]).print()
+ * ```
+ * 
  * @param numRows Number of rows.
  * @param numColumns Number of columns. Defaults to `numRows`.
  * @param batchShape If provided, will add the batch shape to the beginning
