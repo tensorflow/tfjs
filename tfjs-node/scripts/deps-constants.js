@@ -17,17 +17,18 @@
 const os = require('os');
 const path = require('path');
 const module_path_napi = require('../package.json').binary.module_path;
-const modulePath = module_path_napi.replace('{napi_build_version}', process.versions.napi);
+const modulePath =
+    module_path_napi.replace('{napi_build_version}', process.versions.napi);
 
 /** Version of the libtensorflow shared library to depend on. */
-const LIBTENSORFLOW_VERSION = '1.14.0';
+const LIBTENSORFLOW_VERSION = '1.15.0';
 
 /** Get the MAJOR.MINOR-only version of libtensorflow. */
 function getLibTensorFlowMajorDotMinorVersion() {
   const items = LIBTENSORFLOW_VERSION.split('.');
   if (items.length < 3) {
     throw new Error(
-      `Invalid version string for libtensorflow: ${LIBTENSORFLOW_VERSION}`);
+        `Invalid version string for libtensorflow: ${LIBTENSORFLOW_VERSION}`);
   }
   return `${items[0]}.${items[1]}`;
 }
@@ -41,10 +42,10 @@ let destLibTensorFlowFrameworkName = depsLibTensorFlowFrameworkName;
 
 if (os.platform() === 'win32') {
   depsLibTensorFlowName = 'tensorflow.dll';
-  depsLibTensorFlowFrameworkName = ''; // Not supported on Windows
+  depsLibTensorFlowFrameworkName = '';  // Not supported on Windows
 
   destLibTensorFlowName = depsLibTensorFlowName;
-  destLibTensorFlowFrameworkName = ''; // Not supported on Windows
+  destLibTensorFlowFrameworkName = '';  // Not supported on Windows
 } else if (os.platform() === 'darwin') {
   depsLibTensorFlowName += '.dylib';
   depsLibTensorFlowFrameworkName += '.dylib';
@@ -66,7 +67,7 @@ const depsLibPath = path.join(depsPath, 'lib');
 
 const depsLibTensorFlowPath = path.join(depsLibPath, depsLibTensorFlowName);
 const depsLibTensorFlowFrameworkPath =
-  path.join(depsLibPath, depsLibTensorFlowFrameworkName);
+    path.join(depsLibPath, depsLibTensorFlowFrameworkName);
 
 module.exports = {
   depsPath,

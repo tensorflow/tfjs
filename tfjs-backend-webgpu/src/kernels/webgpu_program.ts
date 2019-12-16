@@ -72,10 +72,19 @@ export const makeBindGroup =
 const makeBindGroupLayout =
     (device: GPUDevice, inputs: shader_preprocessor.InputInfo[], output: Tensor,
      uniforms?: BindingInfo): GPUBindGroupLayout => {
-      const bindings = Array(1 + inputs.length).fill({
+      const bindings =
+          Array(1 + inputs.length)
+              .fill(
+                  {
+                    visibility: GPUShaderStage.COMPUTE,
+                    type: 'readonly-storage-buffer' as GPUBindingType
+                  },
+                  1);
+      bindings[0] = {
         visibility: GPUShaderStage.COMPUTE,
         type: 'storage-buffer' as GPUBindingType
-      });
+      };
+
       if (uniforms) {
         bindings.push({
           visibility: GPUShaderStage.COMPUTE,
