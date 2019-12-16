@@ -212,6 +212,9 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'log ',
+  },
+  {
     include: 'mean ',
     excludes: [
       'axis=0',  // Reduction not supported along inner dimensions.
@@ -224,7 +227,6 @@ const TEST_FILTERS: TestFilter[] = [
       'axis=[-1,-2]',  // Reduction not supported along inner dimensions.
     ]
   },
-
 ];
 
 const customInclude = (testName: string) => {
