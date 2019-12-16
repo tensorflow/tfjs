@@ -54,5 +54,6 @@ import './Sigmoid';
 import './Slice';
 import './Square';
 import './Sub';
+import './Sum';
 import './Transpose';
 import './Unpack';
