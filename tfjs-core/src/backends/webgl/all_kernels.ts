@@ -20,3 +20,4 @@
 // the contents of this file and import only the kernels that are needed.
 import './square';
 import './fromPixels';
+import './non_max_suppression_with_score';

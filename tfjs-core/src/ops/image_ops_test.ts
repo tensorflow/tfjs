@@ -188,19 +188,16 @@ describeWithFlags('nonMaxSuppression', ALL_ENVS, () => {
       const iouThreshold = 1.0;
       const scoreThreshold = 0;
       const softNmsSigma = 0.5;
-      const indices = tf.image.nonMaxSuppressionWithScore(
-          boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
-          softNmsSigma);
 
-      expect(indices[0].shape).toEqual([6]);
-      expectArraysEqual(await indices[0].data(), [3, 0, 1, 5, 4, 2]);
+      const {selectedIndices, selectedScores} =
+          tf.image.nonMaxSuppressionWithScore(
+              boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
+              softNmsSigma);
 
-      expect(indices[1].shape).toEqual([6]);
+      expectArraysEqual(await selectedIndices.data(), [3, 0, 1, 5, 4, 2]);
+
       expectArraysClose(
-          await indices[1].data(), [0.95, 0.9, 0.384, 0.3, 0.256, 0.197]);
-
-      expect(indices[2].shape).toEqual([]);
-      expectArraysEqual(await indices[2].data(), [6]);
+          await selectedScores.data(), [0.95, 0.9, 0.384, 0.3, 0.256, 0.197]);
     });
   });
 });
@@ -248,19 +245,15 @@ describeWithFlags('nonMaxSuppressionAsync', ALL_ENVS, () => {
       const iouThreshold = 1.0;
       const scoreThreshold = 0;
       const softNmsSigma = 0.5;
-      const indices = await tf.image.nonMaxSuppressionWithScoreAsync(
-          boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
-          softNmsSigma);
+      const {selectedIndices, selectedScores} =
+          await tf.image.nonMaxSuppressionWithScoreAsync(
+              boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
+              softNmsSigma);
 
-      expect(indices[0].shape).toEqual([6]);
-      expectArraysEqual(await indices[0].data(), [3, 0, 1, 5, 4, 2]);
+      expectArraysEqual(await selectedIndices.data(), [3, 0, 1, 5, 4, 2]);
 
-      expect(indices[1].shape).toEqual([6]);
       expectArraysClose(
-          await indices[1].data(), [0.95, 0.9, 0.384, 0.3, 0.256, 0.197]);
-
-      expect(indices[2].shape).toEqual([]);
-      expectArraysEqual(await indices[2].data(), [6]);
+          await selectedScores.data(), [0.95, 0.9, 0.384, 0.3, 0.256, 0.197]);
     });
   });
 });
