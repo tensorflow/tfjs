@@ -63,8 +63,10 @@ The shipped library on NPM consists of 2 files:
 - the main js file (bundled js for browsers)
 - the WebAssembly binary in `dist/tfjs-backend-wasm.wasm`
 
-When the WASM backend is initialized, we make a `fetch`/`readFile` for
-`tfjs-backend-wasm.wasm` relative from the main js file. This means that
+There is a [proposal](https://github.com/WebAssembly/esm-integration) to add
+WASM support for ES6 modules. In the meantime, we have to manually read the wasm
+file. When the WASM backend is initialized, we make a `fetch`/`readFile`
+for `tfjs-backend-wasm.wasm` relative from the main js file. This means that
 bundlers such as Parcel and WebPack need to be able to serve the `.wasm` file in
 production. See [starter/parcel](./starter/parcel/) and
 [starter/webpack](./starter/webpack/) for how to setup your favorite bundler.

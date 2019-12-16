@@ -208,9 +208,9 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
       dispose: wasm.cwrap('dispose', voidReturnType, []),
     };
     let initialized = false;
-    let initAborted = false;
     wasm.onRuntimeInitialized = () => {
       initialized = true;
+      initAborted = false;
       resolve({wasm});
     };
     wasm.onAbort = () => {
@@ -245,7 +245,8 @@ function typedArrayFromBuffer(
   }
 }
 
-let wasmPath: string;
+let wasmPath: string = null;
+let initAborted = false;
 
 /**
  * Sets the path to the `.wasm` file which will be fetched when the wasm
@@ -255,5 +256,15 @@ let wasmPath: string;
  */
 /** @doc {heading: 'Environment', namespace: 'wasm'} */
 export function setWasmPath(path: string): void {
+  if (initAborted) {
+    throw new Error(
+        'The WASM backend was already initialized. Make sure you call ' +
+        '`setWasmPath()` before you call `tf.setBackend()` or `tf.ready()`');
+  }
   wasmPath = path;
+}
+
+/** Used in unit tests. */
+export function resetWasmPath(): void {
+  wasmPath = null;
 }

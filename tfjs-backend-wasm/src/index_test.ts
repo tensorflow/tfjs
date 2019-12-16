@@ -20,7 +20,7 @@ import {registerBackend, removeBackend, test_util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line:no-imports-from-dist
 import {ALL_ENVS, BROWSER_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-import {init} from './backend_wasm';
+import {init, resetWasmPath} from './backend_wasm';
 import {BackendWasm, setWasmPath} from './index';
 
 /**
@@ -51,11 +51,23 @@ describeWithFlags('wasm read/write', ALL_ENVS, () => {
 });
 
 describeWithFlags('wasm init', BROWSER_ENVS, () => {
-  it('backend init fails when the path is invalid', async () => {
+  beforeEach(() => {
     registerBackend('wasm-test', async () => {
       const {wasm} = await init();
       return new BackendWasm(wasm);
     }, 100);
+
+    // Silences backend registration warnings.
+    spyOn(console, 'warn');
+    spyOn(console, 'log');
+  });
+
+  afterEach(() => {
+    resetWasmPath();
+    removeBackend('wasm-test');
+  });
+
+  it('backend init fails when the path is invalid', async () => {
     setWasmPath('invalid/path');
     let wasmPath: string;
     const realFetch = fetch;
@@ -65,16 +77,19 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     });
     expect(await tf.setBackend('wasm-test')).toBe(false);
     expect(wasmPath).toBe('invalid/path');
-    removeBackend('wasm-test');
-    setWasmPath(null);
   });
 
   it('backend init succeeds with default path', async () => {
-    registerBackend('wasm-test', async () => {
-      const {wasm} = await init();
-      return new BackendWasm(wasm);
-    }, 100);
     expect(await tf.setBackend('wasm-test')).toBe(true);
-    removeBackend('wasm-test');
+  });
+
+  it('setWasmPath called too late', async () => {
+    // Set an invalid path.
+    setWasmPath('invalid/path');
+    await tf.setBackend('wasm-test');
+
+    // Setting the path too late.
+    expect(() => setWasmPath('too/late'))
+        .toThrowError(/The WASM backend was already initialized. Make sure/);
   });
 });
