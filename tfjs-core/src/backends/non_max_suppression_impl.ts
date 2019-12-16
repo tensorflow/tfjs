@@ -20,7 +20,8 @@
  */
 
 import {scalar, tensor1d} from '../ops/tensor_ops';
-import {Scalar, Tensor1D} from '../tensor';
+import {Tensor1D} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {TypedArray} from '../types';
 
 import {binaryInsert} from './array_util';
@@ -37,28 +38,35 @@ export function nonMaxSuppressionV3(
   const dummySoftNmsSigma = 0.0;
 
   return nonMaxSuppressionImpl_(
-      boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
-      dummySoftNmsSigma)[0];
+             boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
+             dummySoftNmsSigma)
+             .selectedIndices as Tensor1D;
 }
 
 export function nonMaxSuppressionV5(
     boxes: TypedArray, scores: TypedArray, maxOutputSize: number,
     iouThreshold: number, scoreThreshold: number,
-    softNmsSigma: number): [Tensor1D, Tensor1D, Scalar] {
+    softNmsSigma: number): NamedTensorMap {
   // For NonMaxSuppressionV5Op, we always return a second output holding
   // corresponding scores.
   const returnScoresTensor = true;
 
-  return nonMaxSuppressionImpl_(
+  const result = nonMaxSuppressionImpl_(
       boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma,
       returnScoresTensor);
+
+  result.numValidOutputs.dispose();
+
+  return {
+    selectedIndices: result.selectedIndices,
+    selectedScores: result.selectedScores
+  };
 }
 
 function nonMaxSuppressionImpl_(
     boxes: TypedArray, scores: TypedArray, maxOutputSize: number,
     iouThreshold: number, scoreThreshold: number, softNmsSigma: number,
-    returnScoresTensor = false,
-    padToMaxOutputSize = false): [Tensor1D, Tensor1D, Scalar] {
+    returnScoresTensor = false, padToMaxOutputSize = false): NamedTensorMap {
   // The list is sorted in ascending order, so that we can always pop the
   // candidate with the largest score in O(1) time.
   const candidates =
@@ -71,10 +79,10 @@ function nonMaxSuppressionImpl_(
   // before.
   const scale = softNmsSigma > 0 ? (-0.5 / softNmsSigma) : 0.0;
 
-  const selected: number[] = [];
-  const selectedScore: number[] = [];
+  const selectedIndices: number[] = [];
+  const selectedScores: number[] = [];
 
-  while (selected.length < maxOutputSize && candidates.length > 0) {
+  while (selectedIndices.length < maxOutputSize && candidates.length > 0) {
     const candidate = candidates.pop();
     const {score: originalScore, boxIndex, suppressBeginIndex} = candidate;
 
@@ -89,8 +97,8 @@ function nonMaxSuppressionImpl_(
     // by a selected box no more than once. Also, if the overlap exceeds
     // iouThreshold, we simply ignore the candidate.
     let ignoreCandidate = false;
-    for (let j = selected.length - 1; j >= suppressBeginIndex; --j) {
-      const iou = intersectionOverUnion(boxes, boxIndex, selected[j]);
+    for (let j = selectedIndices.length - 1; j >= suppressBeginIndex; --j) {
+      const iou = intersectionOverUnion(boxes, boxIndex, selectedIndices[j]);
 
       if (iou >= iouThreshold) {
         ignoreCandidate = true;
@@ -112,14 +120,14 @@ function nonMaxSuppressionImpl_(
     // the updated score and suppressBeginIndex back in the candidate list.
     // If on the other hand, `candidate.score` has dropped below the score
     // threshold, we will not add it back to the candidates list.
-    candidate.suppressBeginIndex = selected.length;
+    candidate.suppressBeginIndex = selectedIndices.length;
 
     if (!ignoreCandidate) {
       // Candidate has passed all the tests, and is not suppressed, so
       // select the candidate.
       if (candidate.score === originalScore) {
-        selected.push(boxIndex);
-        selectedScore.push(candidate.score);
+        selectedIndices.push(boxIndex);
+        selectedScores.push(candidate.score);
       } else if (candidate.score > scoreThreshold) {
         // Candidate's score is suppressed but is still high enough to be
         // considered, so add back to the candidates list.
@@ -129,16 +137,17 @@ function nonMaxSuppressionImpl_(
   }
 
   // NonMaxSuppressionV4 feature: padding output to maxOutputSize.
-  const numValidOutputs = selected.length;
+  const numValidOutputs = selectedIndices.length;
   if (padToMaxOutputSize) {
-    selected.fill(0, numValidOutputs);
-    selectedScore.fill(0.0, numValidOutputs);
+    selectedIndices.fill(0, numValidOutputs);
+    selectedScores.fill(0.0, numValidOutputs);
   }
 
-  return [
-    tensor1d(selected, 'int32'), tensor1d(selectedScore, 'float32'),
-    scalar(numValidOutputs, 'int32')
-  ];
+  return {
+    selectedIndices: tensor1d(selectedIndices, 'int32'),
+    selectedScores: tensor1d(selectedScores, 'float32'),
+    numValidOutputs: scalar(numValidOutputs, 'int32')
+  };
 }
 
 function intersectionOverUnion(boxes: TypedArray, i: number, j: number) {
