@@ -86,7 +86,7 @@ The benchmarks below show inference time (in ms) for two different edge-friendly
 models: MobileNet V2, which represents a medium-sized model and Face Detector,
 which represents a lite model. All the tests are performed in
 Chrome 79.0 using [this benchmark page](../tfjs-core/benchmarks/index.html)
-across our three different backends: CPU, WebGL and WASM. The inference time is
+across our three backends: CPU, WebGL and WASM. The inference time is
 an average across 200 runs.
 
 ### MobileNet V2
@@ -127,10 +127,11 @@ only 1X-1.7X slower than the WebGL backend.
 You should always try to use the WASM backend over the CPU backend since it is
 strictly faster on all devices, across all model sizes.
 Compared to the WebGL backend, the WASM backend has better numerical stability,
-wider device support and does not rely on GPU drivers. Performance-wise:
+wider device support and does not rely on GPU drivers. Performance-wise, our
+benchmarks show that:
 - For medium-sized models (~100-500M MAdds), the WASM backend is several times
-slower than the WebGL backend
-- For lite models (~20-60M Madds) however, the WASM backend has comparable
+slower than the WebGL backend.
+- For lite models (~20-60M Madds), the WASM backend has comparable
 performance to the WebGL backend
 (see the [Face Detector model](#face-detector) above).
 
