@@ -64,7 +64,6 @@ void ResizeBilinear(size_t x_id, size_t batch, size_t old_height,
 
   OperatorCacheKey cache_key = {num_channels, flags};
 
-  // We assume b is the weights and cache the xnn operator on it.
   auto operator_cache_idx = operator_cache.find(cache_key);
   if (operator_cache_idx == operator_cache.end()) {
     const size_t channels = num_channels;
@@ -94,8 +93,8 @@ void ResizeBilinear(size_t x_id, size_t batch, size_t old_height,
       x_buf, out_buf, nullptr /* thread pool */);
   if (status != xnn_status_success) {
     tfjs::util::warn(
-        "XNN status for xnn_setup_fully_connected_nc_f32 is not successful. "
-        "Got status %d. Use -c dbg to see XNN logs.",
+        "XNN status for xnn_setup_resize_bilinear2d_nhwc_f32 is not "
+        "successful. Got status %d. Use -c dbg to see XNN logs.",
         status);
     return;
   }
