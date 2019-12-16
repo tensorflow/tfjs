@@ -149,19 +149,3 @@ describeWithFlags('CPU backend has sync init', CPU_ENVS, () => {
     tf.removeBackend('my-cpu');
   });
 });
-
-// NOTE: This describe is purposefully not a describeWithFlags so that we
-// test tensor allocation where no scopes have been created. The backend
-// here must be set to CPU because we cannot allocate GPU tensors outside
-// a describeWithFlags because the default webgl backend and the test
-// backends share a WebGLContext. When backends get registered, global
-// WebGL state is initialized, which causes the two backends to step on
-// each other and get in a bad state.
-describe('Memory allocation outside a test scope', () => {
-  it('constructing a tensor works', async () => {
-    tf.setBackend('cpu');
-    const a = tf.tensor1d([1, 2, 3]);
-    expectArraysClose(await a.data(), [1, 2, 3]);
-    a.dispose();
-  });
-});

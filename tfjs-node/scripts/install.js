@@ -45,12 +45,6 @@ const GPU_LINUX = `gpu-linux-x86_64-${LIBTENSORFLOW_VERSION}.tar.gz`;
 const CPU_WINDOWS = `cpu-windows-x86_64-${LIBTENSORFLOW_VERSION}.zip`;
 const GPU_WINDOWS = `gpu-windows-x86_64-${LIBTENSORFLOW_VERSION}.zip`;
 
-// TODO(kreeger): Update to TensorFlow 1.13:
-// https://github.com/tensorflow/tfjs/issues/1369
-const TF_WIN_HEADERS_URI =
-    `https://storage.googleapis.com/tf-builds/tensorflow-headers-` +
-    `${getLibTensorFlowMajorDotMinorVersion()}.zip`;
-
 const platform = os.platform();
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
 let forceDownload = process.argv[3] === undefined ? undefined : process.argv[3];
@@ -140,7 +134,6 @@ async function downloadLibtensorflow(callback) {
           // Some windows libtensorflow zip files are missing structure and the
           // eager headers. Check, restructure, and download resources as
           // needed.
-          const depsIncludePath = path.join(depsPath, 'include');
           if (!await exists(depsLibTensorFlowPath)) {
             // Verify that tensorflow.dll exists
             const libtensorflowDll = path.join(depsPath, 'tensorflow.dll');
@@ -151,25 +144,10 @@ async function downloadLibtensorflow(callback) {
             await ensureDir(depsLibPath);
             await rename(libtensorflowDll, depsLibTensorFlowPath);
           }
-
-          // The shipped headers for Windows libtensorflow are old - remove and
-          // download the latest:
-          if (await exists(depsIncludePath)) {
-            await rimrafPromise(depsIncludePath);
-          }
-
-          // Download the C headers only and unpack:
-          resources.downloadAndUnpackResource(
-              TF_WIN_HEADERS_URI, depsPath, () => {
-                if (callback !== undefined) {
-                  callback();
-                }
-              });
-        } else {
-          // No other work is required on other platforms.
-          if (callback !== undefined) {
-            callback();
-          }
+        }
+        // No other work is required on other platforms.
+        if (callback !== undefined) {
+          callback();
         }
       });
 }

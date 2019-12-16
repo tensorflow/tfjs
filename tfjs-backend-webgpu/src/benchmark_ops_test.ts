@@ -97,7 +97,8 @@ describeWebGPU('Ops benchmarks', () => {
             for (const t of maxes) {
               t.dispose();
             }
-          }, false, 50, n);
+          },
+          false, 50, n);
     };
 
     await doTest(0);
@@ -172,5 +173,10 @@ describeWebGPU('Ops benchmarks', () => {
     const a = tf.randomNormal<tf.Rank.R1>([500]);
 
     await time(() => tf.slice1d(a, 2, 498), null, false, 50, 50);
+  });
+
+  it('transpose', async () => {
+    const x = tf.randomNormal([1024, 1024]);
+    await time(() => tf.transpose(x, [1, 0]), null, false, 10, 10);
   });
 });
