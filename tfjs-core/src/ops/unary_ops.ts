@@ -266,13 +266,17 @@ function log_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => dy.div($x.toFloat())} as {$x: () => T};
+    return {x: () => dy.div($x.toFloat())} as {x: () => T};
   };
+
+  const attrs = {};
+  const inputsToSave = [$x];
+
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.log($x);
     save([$x]);
     return res;
-  }, {$x}, grad);
+  }, {x: $x}, grad, 'Log', attrs, inputsToSave);
 }
 
 /**
