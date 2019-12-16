@@ -18,11 +18,13 @@
 import {nonMaxSuppressionV3, nonMaxSuppressionV5} from '../backends/non_max_suppression_impl';
 import {ENGINE, ForwardFunc} from '../engine';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
 import {op} from './operation';
+
 
 /**
  * Bilinear resize a batch of 3D images to a new shape.
@@ -232,18 +234,17 @@ async function nonMaxSuppressionAsync_(
  *     on score. Defaults to -inf, which means any score is accepted.
  * @param softNmsSigma A float representing the sigma parameter for Soft NMS.
  *     When sigma is 0, it falls back to nonMaxSuppression.
- * @return An `Array` of
- *     - A 1D tensor with the selected box indices.
- *     - A 1D tensor with the corresponding scores for each selected box.
- *     - A number representing the number of valid elements in the selected
- *       box indices.
+ * @return A map with the following properties:
+ *     - selectedIndices: A 1D tensor with the selected box indices.
+ *     - selectedScores: A 1D tensor with the corresponding scores for each
+ *       selected box.
  */
 /** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
 function nonMaxSuppressionWithScore_(
     boxes: Tensor2D|TensorLike, scores: Tensor1D|TensorLike,
     maxOutputSize: number, iouThreshold = 0.5,
     scoreThreshold = Number.NEGATIVE_INFINITY,
-    softNmsSigma = 0.0): [Tensor1D, Tensor1D, Tensor] {
+    softNmsSigma = 0.0): NamedTensorMap {
   const $boxes = convertToTensor(boxes, 'boxes', 'nonMaxSuppression');
   const $scores = convertToTensor(scores, 'scores', 'nonMaxSuppression');
 
@@ -253,14 +254,15 @@ function nonMaxSuppressionWithScore_(
   maxOutputSize = inputs.maxOutputSize;
   iouThreshold = inputs.iouThreshold;
   scoreThreshold = inputs.scoreThreshold;
+  softNmsSigma = inputs.softNmsSigma;
 
-  const attrs = {maxOutputSize, iouThreshold, scoreThreshold};
-  return ENGINE.runKernelFunc(
-      b => b.nonMaxSuppressionWithScore(
-          $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold,
-          softNmsSigma),
-      {boxes: $boxes, scores: $scores}, null /* grad */, 'NonMaxSuppressionV5',
-      attrs);
+  const attrs = {maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma};
+
+  const result = ENGINE.runKernel(
+                     'NonMaxSuppressionWithScore',
+                     {boxes: $boxes, scores: $scores}, attrs) as Tensor[];
+
+  return {selectedIndices: result[0], selectedScores: result[1]};
 }
 
 /** This is the async version of `nonMaxSuppressionWithScore` */
@@ -268,7 +270,7 @@ async function nonMaxSuppressionWithScoreAsync_(
     boxes: Tensor2D|TensorLike, scores: Tensor1D|TensorLike,
     maxOutputSize: number, iouThreshold = 0.5,
     scoreThreshold = Number.NEGATIVE_INFINITY,
-    softNmsSigma = 0.0): Promise<[Tensor1D, Tensor1D, Tensor]> {
+    softNmsSigma = 0.0): Promise<NamedTensorMap> {
   const $boxes = convertToTensor(boxes, 'boxes', 'nonMaxSuppressionAsync');
   const $scores = convertToTensor(scores, 'scores', 'nonMaxSuppressionAsync');
 
@@ -287,6 +289,7 @@ async function nonMaxSuppressionWithScoreAsync_(
   const res = nonMaxSuppressionV5(
       boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold,
       softNmsSigma);
+
   if ($boxes !== boxes) {
     $boxes.dispose();
   }
