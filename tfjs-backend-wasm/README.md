@@ -80,7 +80,59 @@ setWasmPath(yourCustomPath); // or tf.wasm.setWasmPath when using <script> tags.
 tf.setBackend('wasm').then(() => {...});
 ```
 
+## Benchmarks
+
+The benchmarks below show inference time (in ms) for two different edge-friendly
+models: MobileNet V2, which represents a medium-sized model and Face Detector,
+which represents a lite model. All the tests are performed in
+Chrome 79.0 using [this benchmark page](../tfjs-core/benchmarks/index.html)
+across our three different backends: CPU, WebGL and WASM. The inference time is
+an average across 200 runs.
+
+### MobileNet V2
+
+MobileNet is a medium-sized model with 3.48M params and ~300M MAdds. For this
+model, the WASM backend is between ~3X-11.5X faster than the vanilla CPU
+backend, and ~5.3-7.7X slower than the WebGL backend.
+
+<img src="./mobilenet-v2-bench.svg">
+
+| MobileNet inference (ms) | WASM  | WebGL | CPU   |
+|-------------------|-------|-------|-------|
+| iPhone X          | 147.1 | 20.3  | 941.3 |
+| iPhone XS         | 140   | 18.1  | 426.4 |
+| Desktop Linux     | 91.5  | 17.1  | 1049  |
+| Macbook Pro       |       |       |       |
+
+
+
+### Face Detector
+
+Face detector is a lite model with 0.1M params and ~20M MAdds. For this model,
+the WASM backend is between ~8.2-19.8X faster than the vanilla CPU backend, and
+only 1X-1.7X slower than the WebGL backend.
+
+| Face Detector inference (ms) | WASM | WebGL | CPU   |
+|---------------|------|-------|-------|
+| iPhone X      | 23   | 13.5  | 318   |
+| iPhone XS     | 21.4 | 10.5  | 176.9 |
+| Desktop Linux | 12.6 | 12.7  | 249.5 |
+| Macbook Pro   |      |       |       |
+
+<img src="./face-detector-bench.svg">
+
 # FAQ
+
+### When to use the WASM backend?
+You should always try to use the WASM backend over the CPU backend since it is
+strictly faster on all devices, across all model sizes.
+Compared to the WebGL backend, the WASM backend has better numerical stability,
+wider device support and does not rely on GPU drivers. Performance-wise:
+- For medium-sized models (~100-500M MAdds), the WASM backend is several times
+slower than the WebGL backend
+- For lite models (~20-60M Madds) however, the WASM backend has comparable
+performance to the WebGL backend
+(see the [Face Detector model](#face-detector) above).
 
 ### How many ops have you implemented?
 See [`all_kernels.ts`](https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/src/kernels/all_kernels.ts)
