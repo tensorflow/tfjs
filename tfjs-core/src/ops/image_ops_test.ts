@@ -245,15 +245,24 @@ describeWithFlags('nonMaxSuppressionAsync', ALL_ENVS, () => {
       const iouThreshold = 1.0;
       const scoreThreshold = 0;
       const softNmsSigma = 0.5;
+
+      const numTensorsBefore = tf.memory().numTensors;
+
       const {selectedIndices, selectedScores} =
           await tf.image.nonMaxSuppressionWithScoreAsync(
               boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
               softNmsSigma);
 
+      const numTensorsAfter = tf.memory().numTensors;
+
       expectArraysEqual(await selectedIndices.data(), [3, 0, 1, 5, 4, 2]);
 
       expectArraysClose(
           await selectedScores.data(), [0.95, 0.9, 0.384, 0.3, 0.256, 0.197]);
+
+      // The number of tensors should increase by the number of tensors
+      // returned (i.e. selectedIndices and selectedScores).
+      expect(numTensorsAfter).toEqual(numTensorsBefore + 2);
     });
   });
 });
