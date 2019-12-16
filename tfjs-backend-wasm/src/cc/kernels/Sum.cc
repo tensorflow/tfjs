@@ -29,7 +29,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Max(const size_t x_id, const size_t reduce_size, const size_t out_id) {
+void Sum(const size_t x_id, const size_t reduce_size, const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
 
@@ -43,20 +43,17 @@ void Max(const size_t x_id, const size_t reduce_size, const size_t out_id) {
 
   for (size_t i = 0; i < out_size; ++i) {
     const size_t offset = i * reduce_size;
-    float max = x_buf[offset];
+    float sum = 0;
 
     const float* x_iter_end = x_offset + reduce_size;
 
     for (const float* x = x_offset; x < x_iter_end; ++x) {
-      float value = *x;
-      if (value > max) {
-        max = value;
-      }
+      sum += *x;
     }
 
     x_offset += reduce_size;
 
-    out_buf[i] = max;
+    out_buf[i] = sum;
   }
 }
 

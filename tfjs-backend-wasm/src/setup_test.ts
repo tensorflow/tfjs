@@ -198,19 +198,33 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'minimum',
     excludes: [
-      'gradient',  // Not yet implemented.
-      'broadcasts 2x1 Tensor2D and 2x2 Tensor2D' // Broadcasting along inner
-                                                 // dims not supported yet.
+      'gradient',                                 // Not yet implemented.
+      'broadcasts 2x1 Tensor2D and 2x2 Tensor2D'  // Broadcasting along inner
+                                                  // dims not supported yet.
     ]
   },
   {
     include: 'maximum',
     excludes: [
-      'gradient',  // Not yet implemented.
-      'broadcasts 2x1 Tensor2D and 2x2 Tensor2D' // Broadcasting along inner
-                                                 // dims not supported yet.
+      'gradient',                                 // Not yet implemented.
+      'broadcasts 2x1 Tensor2D and 2x2 Tensor2D'  // Broadcasting along inner
+                                                  // dims not supported yet.
     ]
   },
+  {
+    include: 'mean ',
+    excludes: [
+      'axis=0',  // Reduction not supported along inner dimensions.
+    ]
+  },
+  {
+    startsWith: 'sum ',
+    excludes: [
+      'axis=0',        // Reduction not supported along inner dimensions.
+      'axis=[-1,-2]',  // Reduction not supported along inner dimensions.
+    ]
+  },
+
 ];
 
 const customInclude = (testName: string) => {
