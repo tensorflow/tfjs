@@ -16,7 +16,7 @@
     "cpplint": "./scripts/cpplint.js",
     "lint": "tslint -p . -t verbose && yarn cpplint",
     "link-core-master": "./scripts/link-core-master.js && yarn",
-    "test": "yarn link-core-master && ./scripts/build-wasm.sh && karma start",
+    "test": "yarn link-core-master && yarn build-core && ./scripts/build-wasm.sh && karma start",
     "test-node": "ts-node src/test_node.ts",
     "test-bundle-size": "./scripts/test-bundle-size.js",
     "test-cc": "bazel test //src/cc:cc_tests --test_output=all",

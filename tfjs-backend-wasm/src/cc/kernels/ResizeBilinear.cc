@@ -20,6 +20,7 @@
 #include <cmath>
 #include <cstddef>
 #include <map>
+#include <tuple>
 #include <vector>
 
 #include "src/cc/kernels/ResizeBilinear.h"
