@@ -109,7 +109,7 @@ function clone_<T extends Tensor>(x: T|TensorLike): T {
  * Create an identity matrix.
  *
  * ```js
- * tf.eye(4, 4, [2, 2]).print()
+ * tf.eye(4, 4).print()
  * ```
  * 
  * @param numRows Number of rows.
