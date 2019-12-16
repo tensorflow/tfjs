@@ -16,17 +16,32 @@
 #include <emscripten.h>
 #endif
 
+#include <xnnpack.h>
 #include <cmath>
 #include <cstddef>
+#include <map>
+#include <tuple>
 #include <vector>
 
-#include "src/cc/backend.h"
-#include "src/cc/interpolate_bilinear_impl.h"
+#include "src/cc/kernels/ResizeBilinear.h"
 
+#include "src/cc/backend.h"
 #include "src/cc/util.h"
+
+namespace {
+// We use std::tuple as the cache key as it implements the compare operator
+// needed for std::map.
+typedef std::tuple<size_t, uint32_t> OperatorCacheKey;
+
+// The operator cache maps the weights id to the xnn_operator_t instantiated for
+// this set of weights.
+std::map<OperatorCacheKey, xnn_operator_t> operator_cache;
+
+}  // namespace
 
 namespace tfjs {
 namespace wasm {
+
 extern "C" {
 
 #ifdef __EMSCRIPTEN__
@@ -35,60 +50,56 @@ EMSCRIPTEN_KEEPALIVE
 
 void ResizeBilinear(size_t x_id, size_t batch, size_t old_height,
                     size_t old_width, size_t num_channels, size_t new_height,
-                    size_t new_width, size_t align_corners, size_t out_id) {
+                    size_t new_width, bool align_corners, size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
 
   const float* x_buf = x_info.f32();
   float* out_buf = out_info.f32_write();
 
-  const std::vector<size_t> x_shape = {batch, old_height, old_width,
-                                       num_channels};
-  const auto image_strides = util::compute_strides(x_shape);
+  xnn_operator_t resize_bilinear_op = nullptr;
 
-  const float effective_input_height =
-      (align_corners > 0 && new_height > 1) ? old_height - 1 : old_height;
-  const float effective_input_width =
-      (align_corners > 0 && new_width > 1) ? old_width - 1 : old_width;
+  const uint32_t flags = XNN_FLAG_TENSORFLOW_LEGACY_MODE |
+                         (align_corners ? XNN_FLAG_ALIGN_CORNERS : 0);
 
-  const float effective_output_height =
-      (align_corners > 0 && new_height > 1) ? new_height - 1 : new_height;
-  const float effective_output_width =
-      (align_corners > 0 && new_width > 1) ? new_width - 1 : new_width;
+  OperatorCacheKey cache_key = {num_channels, flags};
 
-  const float height_scale = effective_input_height / effective_output_height;
-  const float width_scale = effective_input_width / effective_output_width;
+  auto operator_cache_idx = operator_cache.find(cache_key);
+  if (operator_cache_idx == operator_cache.end()) {
+    const size_t channels = num_channels;
+    const size_t input_pixel_stride = num_channels;
+    const size_t output_pixel_stride = num_channels;
 
-  const bool should_extrapolate = false;
-
-  const float old_height_m1 = old_height - 1;
-  const float old_width_m1 = old_width - 1;
-
-  for (size_t b = 0; b < batch; ++b) {
-    for (size_t r = 0; r < new_height; ++r) {
-      const float y_ind = height_scale * r;
-
-      float* out_buf_ptr = out_buf +
-                           b * (new_height * new_width * num_channels) +
-                           r * (new_width * num_channels);
-
-      const size_t top_ind = std::floor(y_ind);
-      const size_t bottom_ind = std::min(old_height_m1, std::ceil(y_ind));
-      const float y_lerp = y_ind - top_ind;
-
-      const size_t batch_offset = b * image_strides[0];
-
-      if (width_scale == 1 && y_lerp == 0) {
-        memcpy(out_buf_ptr, x_buf + batch_offset + top_ind * image_strides[1],
-               sizeof(float) * new_width * num_channels);
-      } else {
-        tfjs::wasm::interpolate_bilinear(
-            out_buf_ptr, x_buf, image_strides, new_width, old_width,
-            old_width_m1, old_height_m1, num_channels, should_extrapolate, 0.0,
-            batch_offset, y_ind, width_scale, 0.0, 0.0);
-      }
+    xnn_status status = xnn_create_resize_bilinear2d_nhwc_f32(
+        channels, input_pixel_stride, output_pixel_stride, flags,
+        &resize_bilinear_op);
+    if (status != xnn_status_success) {
+      tfjs::util::warn(
+          "XNN status for xnn_create_resize_bilinear2d_nhwc_f32 is not "
+          "successful. Got status %d. Use -c dbg to see XNN logs.",
+          status);
+      return;
     }
+
+    operator_cache.insert({cache_key, resize_bilinear_op});
+
+    tfjs::backend::xnn_operator_count++;
+  } else {
+    resize_bilinear_op = operator_cache_idx->second;
   }
+
+  xnn_status status = xnn_setup_resize_bilinear2d_nhwc_f32(
+      resize_bilinear_op, batch, old_height, old_width, new_height, new_width,
+      x_buf, out_buf, nullptr /* thread pool */);
+  if (status != xnn_status_success) {
+    tfjs::util::warn(
+        "XNN status for xnn_setup_resize_bilinear2d_nhwc_f32 is not "
+        "successful. Got status %d. Use -c dbg to see XNN logs.",
+        status);
+    return;
+  }
+
+  xnn_run_operator(resize_bilinear_op, nullptr /* thread pool */);
 }
 
 }  // extern "C"
