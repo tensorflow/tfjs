@@ -182,7 +182,7 @@ describeBrowserEnvs('MicrophoneIterator', () => {
     let timesRun = 0;
     let tensorsReturned = 0;
     const microphoneIterator = await tfd.microphone(
-        {numFramesPerSpectrogram: 10, columnTruncateLength: 10, fftSize: 128});
+        {numFramesPerSpectrogram: 10, columnTruncateLength: 10, fftSize: 32});
 
     // This function will be called 3 times. Between each call there is a 200ms
     // interval. The spectrogram tensor will be returned after 464ms.
@@ -191,7 +191,7 @@ describeBrowserEnvs('MicrophoneIterator', () => {
      * call 1st at 0ms,    timesRun:1, tensorsReturned:0;
      * call 2nd at 1ms,  timesRun:2, tensorsReturned:0;
      * call 3rd at 2ms,  timesRun:3, tensorsReturned:0;
-     * tensor returned from 1st call at ~23ms, timesRun:3, tensorsReturned:1;
+     * tensor returned from 1st call at ~7ms, timesRun:3, tensorsReturned:1;
      * tensor returned from 2nd call,  timesRun:3, tensorsReturned:2;
      * tensor returned from 3rd call,  timesRun:3, tensorsReturned:3.
      */
