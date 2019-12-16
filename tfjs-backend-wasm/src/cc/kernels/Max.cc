@@ -22,7 +22,6 @@
 
 namespace tfjs {
 namespace wasm {
-
 // We use C-style API to interface with Javascript.
 extern "C" {
 
