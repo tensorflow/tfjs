@@ -32,10 +32,6 @@ test_suite(
     name = "cc_tests",
 )
 
-buildifier(
-    name = "buildifier",
-)
-
 ## Library
 
 tfjs_cc_library(
