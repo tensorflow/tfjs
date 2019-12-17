@@ -24,8 +24,8 @@
 
 namespace {
 template <typename T>
-void tile(const T* x_data, const std::vector<size_t>& x_shape,
-          const std::vector<size_t>& new_shape, T* out_data) {
+void tile_slow(const T* x_data, const std::vector<size_t>& x_shape,
+               const std::vector<size_t>& new_shape, T* out_data) {
   const size_t x_rank = x_shape.size();
   const std::vector<size_t> x_strides = tfjs::util::compute_strides(x_shape);
 
@@ -71,13 +71,14 @@ void Tile(const size_t x_id, const size_t* x_shape_ptr,
 
   switch (dtype) {
     case DType::float32:
-      tile<float>(x_info.f32(), x_shape, new_shape, out_info.f32_write());
+      tile_slow<float>(x_info.f32(), x_shape, new_shape, out_info.f32_write());
       break;
     case DType::int32:
-      tile<int32_t>(x_info.i32(), x_shape, new_shape, out_info.i32_write());
+      tile_slow<int32_t>(x_info.i32(), x_shape, new_shape,
+                         out_info.i32_write());
       break;
     case DType::boolean:
-      tile<bool>(x_info.b(), x_shape, new_shape, out_info.b_write());
+      tile_slow<bool>(x_info.b(), x_shape, new_shape, out_info.b_write());
       break;
     default:
       util::warn("Tile for tensor id %d failed. Unknown dtype %d", x_id, dtype);
