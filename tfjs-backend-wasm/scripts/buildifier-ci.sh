@@ -25,6 +25,7 @@ else
   echo "'yarn bazel:format-check' failed!"
   echo "Please run 'yarn bazel:format'."
   echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+  echo
   exit 1
 fi
 
@@ -39,5 +40,6 @@ else
   echo "'yarn bazel:lint-check' failed!"
   echo "Please run 'yarn bazel:lint'."
   echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+  echo
   exit 1
 fi

@@ -8,9 +8,6 @@ KERNELS_WITH_KEEPALIVE = glob(
     exclude = ["**/*_test.cc"],
 )
 
-
-
-
 cc_binary(
     name = "tfjs-backend-wasm.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
