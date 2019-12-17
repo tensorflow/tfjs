@@ -158,6 +158,8 @@ tfjs_cc_library(
         ":FusedDepthwiseConv2D",
         ":Greater",
         ":GreaterEqual",
+        ":Less",
+        ":LessEqual",
         ":Max",
         ":MaxPool",
         ":Maximum",
@@ -172,6 +174,7 @@ tfjs_cc_library(
         ":ResizeBilinear",
         ":Sigmoid",
         ":Sub",
+        ":Tile",
         ":Transpose",
     ],
 )
@@ -404,6 +407,36 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "Less",
+    srcs = ["kernels/Less.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "LessEqual",
+    srcs = ["kernels/LessEqual.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "LogicalAnd",
+    srcs = ["kernels/LogicalAnd.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "Log",
     srcs = ["kernels/Log.cc"],
     deps = [
@@ -577,6 +610,15 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Tile",
+    srcs = ["kernels/Tile.cc"],
+    deps = [
+        ":backend",
         ":util",
     ],
 )
