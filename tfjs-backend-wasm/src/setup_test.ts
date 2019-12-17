@@ -198,18 +198,21 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'minimum',
     excludes: [
-      'gradient',  // Not yet implemented.
-      'broadcasts 2x1 Tensor2D and 2x2 Tensor2D' // Broadcasting along inner
-                                                 // dims not supported yet.
+      'gradient',                                 // Not yet implemented.
+      'broadcasts 2x1 Tensor2D and 2x2 Tensor2D'  // Broadcasting along inner
+                                                  // dims not supported yet.
     ]
   },
   {
     include: 'maximum',
     excludes: [
-      'gradient',  // Not yet implemented.
-      'broadcasts 2x1 Tensor2D and 2x2 Tensor2D' // Broadcasting along inner
-                                                 // dims not supported yet.
+      'gradient',                                 // Not yet implemented.
+      'broadcasts 2x1 Tensor2D and 2x2 Tensor2D'  // Broadcasting along inner
+                                                  // dims not supported yet.
     ]
+  },
+  {
+    include: 'log ',
   },
   {
     include: 'greater ',
@@ -229,7 +232,7 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasting Tensor3D shapes',  // Same as above.
       'broadcasting Tensor4D shapes'  // Same as above.
     ]
-  },
+  }
 ];
 
 const customInclude = (testName: string) => {

@@ -38,6 +38,7 @@ import './FusedConv2D';
 import './FusedDepthwiseConv2D';
 import './Greater';
 import './GreaterEqual';
+import './Log';
 import './Max';
 import './Maximum';
 import './MaxPool';
