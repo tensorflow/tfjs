@@ -21,8 +21,7 @@ import {BackendWasm} from '../backend_wasm';
 import {CppDType} from './types';
 
 export function registerBinaryKernel(
-    kernelName: string, supportsBroadcast: boolean,
-    outputTypeOverride?: DataType) {
+    kernelName: string, supportsBroadcast: boolean, dtype?: DataType) {
   let wasmFunc:
       (aId: number, aShape: Uint8Array, aShapeLen: number, bId: number,
        bShape: Uint8Array, bShapeLen: number, dtype: number, outId: number) =>
@@ -48,13 +47,7 @@ export function registerBinaryKernel(
     const aId = backend.dataIdMap.get(a.dataId).id;
     const bId = backend.dataIdMap.get(b.dataId).id;
 
-    let outputType: DataType;
-    if (outputTypeOverride === undefined) {
-      outputType = a.dtype;
-    } else {
-      outputType = outputTypeOverride;
-    }
-
+    const outputType = dtype != null ? dtype : a.dtype;
     const newShape = backend_util.assertAndGetBroadcastShape(a.shape, b.shape);
     const out = backend.makeOutput(newShape, outputType);
 

@@ -16,7 +16,7 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/compare.h"
+#include "src/cc/binary.h"
 #include "src/cc/util.h"
 
 namespace {
