@@ -71,7 +71,7 @@ steps:
   args: ['test-bundle-size']
   waitFor: ['build']
 
-# Check bundle size.
+# Lint bazel files.
 - name: 'node:10'
   dir: 'tfjs-backend-wasm'
   id: 'buildifier'
