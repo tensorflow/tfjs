@@ -404,6 +404,26 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "Less",
+    srcs = ["kernels/Less.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "LessEqual",
+    srcs = ["kernels/LessEqual.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":util"
+    ],
+)
+
+tfjs_cc_library(
     name = "Log",
     srcs = ["kernels/Log.cc"],
     deps = [
