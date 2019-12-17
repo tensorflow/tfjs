@@ -15,23 +15,14 @@
  * =============================================================================
  */
 const os = require('os');
-const fs = require('fs');
-const join = require('path').join;
 const name = require('../package.json').name;
 const version = require('../package.json').version;
 
 const platform = os.platform();
-const CUSTOM_BINARY_FILENAME = 'custom-binary.json';
-const customBinaries = loadCustomBinary();
 
-const {
-  PLATFORM_MAPPING,
-  ARCH_MAPPING,
-  PLATFORM_EXTENSION,
-  ALL_SUPPORTED_COMBINATION
-} = require('./deps-constants.js');
+const {PLATFORM_MAPPING, PLATFORM_EXTENSION} = require('./deps-constants.js');
 
-const type = name.includes('gpu')? 'GPU': 'CPU';
+const type = name.includes('gpu') ? 'GPU' : 'CPU';
 const addonName = `${type}-${PLATFORM_MAPPING[platform]}-` +
     `${version}.${PLATFORM_EXTENSION}`;
 
@@ -39,17 +30,6 @@ const addonName = `${type}-${PLATFORM_MAPPING[platform]}-` +
 // uploading the tarball to GCP bucket.
 console.log(addonName);
 
-function loadCustomBinary() {
-  const cfg = join(__dirname, CUSTOM_BINARY_FILENAME);
-  return fs.existsSync(cfg) ? require(cfg) : {};
-}
-
-function getCustomBinary(name) {
-  return customBinaries[name];
-}
-
 module.exports = {
-  addonName: addonName,
-  customTFLibUri: customBinaries['tf-lib'],
-  customAddon: customBinaries['addon']
+  addonName: addonName
 };

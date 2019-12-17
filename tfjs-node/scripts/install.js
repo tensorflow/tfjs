@@ -25,20 +25,17 @@ const {
   depsPath,
   depsLibPath,
   depsLibTensorFlowPath,
-  getLibTensorFlowMajorDotMinorVersion,
   LIBTENSORFLOW_VERSION,
   PLATFORM_MAPPING,
   ARCH_MAPPING,
   PLATFORM_EXTENSION,
   ALL_SUPPORTED_COMBINATION,
-  modulePath
-} = require('./deps-constants.js');
-const resources = require('./resources');
-const {
-  addonName,
+  modulePath,
   customTFLibUri,
   customAddon
-} = require('./get-addon-name.js');
+} = require('./deps-constants.js');
+const resources = require('./resources');
+const {addonName} = require('./get-addon-name.js');
 
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
@@ -46,7 +43,7 @@ const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
 
 const BASE_URI =
-  'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
+    'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
 
 const platform = os.platform();
 // Use windows path
@@ -66,7 +63,6 @@ function setPackageJsonFile() {
 }
 
 function updateAddonName() {
-  const origBinary = JSON.parse(JSON.stringify(packageJsonFile['binary']));
   if (customAddon !== undefined) {
     Object.assign(packageJsonFile['binary'], customAddon);
   } else {
@@ -74,7 +70,6 @@ function updateAddonName() {
   }
   const stringFile = JSON.stringify(packageJsonFile, null, 2);
   fs.writeFileSync((`${__dirname}/../package.json`), stringFile);
-  return origBinary;
 }
 
 function revertAddonName(orig) {
@@ -161,7 +156,8 @@ async function build() {
   // Load package.json file
   setPackageJsonFile();
   // Update addon name in package.json file
-  const origBinary = updateAddonName();
+  const origBinary = JSON.parse(JSON.stringify(packageJsonFile['binary']));
+  updateAddonName();
   console.error('* Building TensorFlow Node.js bindings');
   let buildOption = '--fallback-to-build';
   if (customTFLibUri !== undefined && customAddon === undefined) {
@@ -184,18 +180,14 @@ async function build() {
  * Ensures libtensorflow requirements are met for building the binding.
  */
 async function run() {
-  try {
-    // First check if deps library exists:
-    if (forceDownload !== 'download' && await exists(depsLibTensorFlowPath)) {
-      // Library has already been downloaded, then compile and simlink:
-      await build();
-    } else {
-      // Library has not been downloaded, download, then compile and symlink:
-      await cleanDeps();
-      await downloadLibtensorflow(build);
-    }
-  } finally {
-
+  // First check if deps library exists:
+  if (forceDownload !== 'download' && await exists(depsLibTensorFlowPath)) {
+    // Library has already been downloaded, then compile and simlink:
+    await build();
+  } else {
+    // Library has not been downloaded, download, then compile and symlink:
+    await cleanDeps();
+    await downloadLibtensorflow(build);
   }
 }
 

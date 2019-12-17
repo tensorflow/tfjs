@@ -1,8 +1,8 @@
 {
-  "tf-lib": "https://s3.us.cloud-object-storage.appdomain.cloud/tfjs-public/libtensorflow-gpu-linux-arm64-1.14.0.tar.gz",
+  "tf-lib": "url-to-download-customized-binary",
   "addon": {
-    "host": "https://s3.us.cloud-object-storage.appdomain.cloud",
-    "remote_path": "./tfjs-public",
-    "package_name": "GPU-linux-arm64-1.4.0.tar.gz"
+    "host": "host-of-pre-compiled-addon",
+    "remote_path": "remote-path-of-pre-compiled-addon",
+    "package_name": "file-name-of-pre-compile-addon"
   }
 }

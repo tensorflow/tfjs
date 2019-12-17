@@ -15,7 +15,8 @@
  * =============================================================================
  */
 const os = require('os');
-const path = require('path');
+const fs = require('fs');
+const join = require('path').join;
 const module_path_napi = require('../package.json').binary.module_path;
 const modulePath =
     module_path_napi.replace('{napi_build_version}', process.versions.napi);
@@ -24,7 +25,9 @@ const modulePath =
 const LIBTENSORFLOW_VERSION = '1.15.0';
 
 /** Map the os.arch() to arch string in a file name */
-const ARCH_MAPPING = { 'x64': 'x86_64' };
+const ARCH_MAPPING = {
+  'x64': 'x86_64'
+};
 /** Map the os.platform() to the platform value in a file name */
 const PLATFORM_MAPPING = {
   'darwin': 'darwin',
@@ -39,11 +42,8 @@ const PLATFORM_EXTENSION = os.platform() === 'win32' ? 'zip' : 'tar.gz';
  * node binding.
  */
 const ALL_SUPPORTED_COMBINATION = [
-  'cpu-darwin-x86_64',
-  'gpu-linux-x86_64',
-  'cpu-linux-x86_64',
-  'cpu-windows-x86_64',
-  'gpu-windows-x86_64'
+  'cpu-darwin-x86_64', 'gpu-linux-x86_64', 'cpu-linux-x86_64',
+  'cpu-windows-x86_64', 'gpu-windows-x86_64'
 ];
 
 /** Get the MAJOR.MINOR-only version of libtensorflow. */
@@ -85,12 +85,20 @@ if (os.platform() === 'win32') {
   throw Exception('Unsupported platform: ' + os.platform());
 }
 
-const depsPath = path.join(__dirname, '..', 'deps');
-const depsLibPath = path.join(depsPath, 'lib');
+const depsPath = join(__dirname, '..', 'deps');
+const depsLibPath = join(depsPath, 'lib');
 
-const depsLibTensorFlowPath = path.join(depsLibPath, depsLibTensorFlowName);
+const depsLibTensorFlowPath = join(depsLibPath, depsLibTensorFlowName);
 const depsLibTensorFlowFrameworkPath =
-    path.join(depsLibPath, depsLibTensorFlowFrameworkName);
+    join(depsLibPath, depsLibTensorFlowFrameworkName);
+
+// Get information for custom binary
+const CUSTOM_BINARY_FILENAME = 'custom-binary.json';
+function loadCustomBinary() {
+  const cfg = join(__dirname, CUSTOM_BINARY_FILENAME);
+  return fs.existsSync(cfg) ? require(cfg) : {};
+}
+const customBinaries = loadCustomBinary();
 
 module.exports = {
   depsPath,
@@ -107,5 +115,7 @@ module.exports = {
   ARCH_MAPPING,
   PLATFORM_MAPPING,
   PLATFORM_EXTENSION,
-  ALL_SUPPORTED_COMBINATION
+  ALL_SUPPORTED_COMBINATION,
+  customTFLibUri: customBinaries['tf-lib'],
+  customAddon: customBinaries['addon']
 };
