@@ -240,20 +240,22 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'less ',
     excludes: [
-      'broadcasting Tensor2D shapes',  // Broadcasting along inner dims not
-                                       // supported yet.
-      'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes'   // Same as above.
+      'broadcasting Tensor2D shapes',   // Broadcasting along inner dims not
+                                        // supported yet.
+      'broadcasting Tensor3D shapes',   // Same as above.
+      'broadcasting Tensor3D float32',  // Same as above.
+      'broadcasting Tensor4D shapes'    // Same as above.
     ]
   },
   {
     include: 'lessEqual',
     excludes: [
-      'gradient',                      // Not yet implemented.
-      'broadcasting Tensor2D shapes',  // Broadcasting along inner dims not
-                                       // supported yet.
-      'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes'   // Same as above.
+      'gradient',                       // Not yet implemented.
+      'broadcasting Tensor2D shapes',   // Broadcasting along inner dims not
+                                        // supported yet.
+      'broadcasting Tensor3D shapes',   // Same as above.
+      'broadcasting Tensor3D float32',  // Same as above.
+      'broadcasting Tensor4D shapes'    // Same as above.
     ]
   },
   {

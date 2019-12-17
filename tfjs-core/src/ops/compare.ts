@@ -169,7 +169,7 @@ function lessEqual_<T extends Tensor>(
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
   return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.greaterEqual($a, $b);
+    const res = backend.lessEqual($a, $b);
     save([$a, $b]);
     return res;
   }, {a: $a, b: $b}, null /* grad */, 'LessEqual') as T;
