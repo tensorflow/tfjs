@@ -17,4 +17,4 @@
 
 import { registerBinaryKernel } from './binary_kernel';
 const supportsBroadcast = false;
-registerBinaryKernel('Maximum', supportsBroadcast);
+registerBinaryKernel('Maximum', 'Maximum', supportsBroadcast);

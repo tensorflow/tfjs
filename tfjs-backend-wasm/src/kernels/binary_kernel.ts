@@ -15,20 +15,20 @@
  * =============================================================================
  */
 
-import {backend_util, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import { backend_util, NamedTensorInfoMap, registerKernel, TensorInfo, util } from '@tensorflow/tfjs-core';
 
-import {BackendWasm} from '../backend_wasm';
-import {CppDType} from './types';
+import { BackendWasm } from '../backend_wasm';
+import { CppDType } from './types';
 
 export function registerBinaryKernel(
-    kernelName: string, supportsBroadcast: boolean) {
+  opName: string, kernelName: string, supportsBroadcast: boolean) {
   let wasmFunc:
-      (aId: number, aShape: Uint8Array, aShapeLen: number, bId: number,
-       bShape: Uint8Array, bShapeLen: number, dtype: number, outId: number) =>
-          void;
+    (aId: number, aShape: Uint8Array, aShapeLen: number, bId: number,
+      bShape: Uint8Array, bShapeLen: number, dtype: number, outId: number) =>
+      void;
 
   function setupFunc(backend: BackendWasm): void {
-    wasmFunc = backend.wasm.cwrap(kernelName, null /* void */, [
+    wasmFunc = backend.wasm.cwrap(opName, null /* void */, [
       'number',  // a_id,
       'array',   // a_shape
       'number',  // a_shape.length
@@ -40,10 +40,10 @@ export function registerBinaryKernel(
     ]);
   }
 
-  function kernelFunc(args: {backend: BackendWasm, inputs: BinaryInputs}):
-      TensorInfo {
-    const {backend, inputs} = args;
-    const {a, b} = inputs;
+  function kernelFunc(args: { backend: BackendWasm, inputs: BinaryInputs }):
+    TensorInfo {
+    const { backend, inputs } = args;
+    const { a, b } = inputs;
     const aId = backend.dataIdMap.get(a.dataId).id;
     const bId = backend.dataIdMap.get(b.dataId).id;
 
@@ -59,8 +59,8 @@ export function registerBinaryKernel(
     const bShapeBytes = new Uint8Array(new Int32Array(b.shape).buffer);
     const outId = backend.dataIdMap.get(out.dataId).id;
     const kernelFunc = () => wasmFunc(
-        aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length,
-        CppDType[a.dtype], outId);
+      aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length,
+      CppDType[a.dtype], outId);
 
     if (supportsBroadcast) {
       kernelFunc();
@@ -79,7 +79,7 @@ export function registerBinaryKernel(
     }
   }
 
-  registerKernel({kernelName, backendName: 'wasm', setupFunc, kernelFunc});
+  registerKernel({ kernelName, backendName: 'wasm', setupFunc, kernelFunc });
 }
 
 interface BinaryInputs extends NamedTensorInfoMap {
