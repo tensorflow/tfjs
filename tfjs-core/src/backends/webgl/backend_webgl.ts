@@ -2629,6 +2629,8 @@ export class MathBackendWebGL extends KernelBackend {
     if (this.disposed) {
       return;
     }
+    // We avoid disposing the compiled webgl programs during unit testing to
+    // avoid slowing down test execution.
     if (!ENV.getBool('IS_TEST')) {
       const allKeys = Object.keys(this.binaryCache);
       allKeys.forEach(key => {
