@@ -16,11 +16,11 @@
  */
 
 import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '../../kernel_registry';
-import {warn} from '../../log';
 import {TypedArray} from '../../types';
 import {nonMaxSuppressionV5} from '../non_max_suppression_impl';
 
-import {MathBackendWebGL} from './backend_webgl';
+import {MathBackendCPU} from './backend_cpu';
+import {assertNotComplex} from './cpu_util';
 
 interface NonMaxSuppressionWithScoreInputs extends NamedTensorInfoMap {
   boxes: TensorInfo;
@@ -35,21 +35,19 @@ interface NonMaxSuppressionWithScoreAttrs extends NamedAttrMap {
 }
 
 registerKernel({
-  kernelName: 'NonMaxSuppressionWithScore',
-  backendName: 'webgl',
+  kernelName: 'NonMaxSuppressionV5',
+  backendName: 'cpu',
   kernelFunc: ({inputs, backend, attrs}) => {
-    warn(
-        'tf.nonMaxSuppression() in webgl locks the UI thread. ' +
-        'Call tf.nonMaxSuppressionAsync() instead');
-
     const {boxes, scores} = inputs as NonMaxSuppressionWithScoreInputs;
     const {maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma} =
         attrs as NonMaxSuppressionWithScoreAttrs;
 
-    const gpuBackend = backend as MathBackendWebGL;
+    const cpuBackend = backend as MathBackendCPU;
 
-    const boxesVals = gpuBackend.readSync(boxes.dataId) as TypedArray;
-    const scoresVals = gpuBackend.readSync(scores.dataId) as TypedArray;
+    assertNotComplex(boxes, 'NonMaxSuppressionWithScore');
+
+    const boxesVals = cpuBackend.data.get(boxes.dataId).values as TypedArray;
+    const scoresVals = cpuBackend.data.get(scores.dataId).values as TypedArray;
 
     const maxOutputSizeVal = maxOutputSize;
     const iouThresholdVal = iouThreshold;
