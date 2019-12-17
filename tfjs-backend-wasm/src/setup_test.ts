@@ -238,6 +238,25 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'less ',
+    excludes: [
+      'broadcasting Tensor2D shapes',  // Broadcasting along inner dims not
+                                       // supported yet.
+      'broadcasting Tensor3D shapes',  // Same as above.
+      'broadcasting Tensor4D shapes'   // Same as above.
+    ]
+  },
+  {
+    include: 'lessEqual',
+    excludes: [
+      'gradient',                      // Not yet implemented.
+      'broadcasting Tensor2D shapes',  // Broadcasting along inner dims not
+                                       // supported yet.
+      'broadcasting Tensor3D shapes',  // Same as above.
+      'broadcasting Tensor4D shapes'   // Same as above.
+    ]
+  },
+  {
     include: 'mean ',
     excludes: [
       'axis=0',  // Reduction not supported along inner dimensions.
