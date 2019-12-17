@@ -20,7 +20,7 @@ import './flags_webgl';
 
 import * as device_util from '../../device_util';
 import {ENGINE, MemoryInfo, TimingInfo} from '../../engine';
-import {env} from '../../environment';
+import {env, ENV} from '../../environment';
 import {tidy} from '../../globals';
 import {TensorInfo} from '../../kernel_registry';
 import {warn} from '../../log';
@@ -155,7 +155,7 @@ export interface WebGLTimingInfo extends TimingInfo {
 
 const binaryCaches: {[webGLVersion: string]: {[key: string]: GPGPUBinary}} = {};
 
-function getBinaryCache(webGLVersion: number) {
+export function getBinaryCache(webGLVersion: number) {
   if (webGLVersion in binaryCaches) {
     return binaryCaches[webGLVersion];
   }
@@ -2628,6 +2628,13 @@ export class MathBackendWebGL extends KernelBackend {
   dispose() {
     if (this.disposed) {
       return;
+    }
+    if (!ENV.getBool('IS_TEST')) {
+      const allKeys = Object.keys(this.binaryCache);
+      allKeys.forEach(key => {
+        this.gpgpu.deleteProgram(this.binaryCache[key].webGLProgram);
+        delete this.binaryCache[key];
+      });
     }
     this.textureManager.dispose();
     if (this.canvas != null &&
