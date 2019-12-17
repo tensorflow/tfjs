@@ -17,8 +17,8 @@
 
 import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
 
-import wasmFactory from '../wasm-out/tfjs-backend-wasm';
-import {BackendWasmModule} from '../wasm-out/tfjs-backend-wasm';
+import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
+import wasmFactory from '../wasm-out/tfjs-backend-wasm.js';
 
 const WASM_PRIORITY = 2;
 
@@ -181,9 +181,18 @@ registerBackend('wasm', async () => {
  * returning Promise<BackendWasmModule> to avoid freezing Chrome (last tested in
  * Chrome 76).
  */
-async function init(): Promise<{wasm: BackendWasmModule}> {
-  return new Promise(resolve => {
-    const wasm = wasmFactory();
+export async function init(): Promise<{wasm: BackendWasmModule}> {
+  return new Promise((resolve, reject) => {
+    const factoryConfig: WasmFactoryConfig = {};
+    if (wasmPath != null) {
+      factoryConfig.locateFile = (path, prefix) => {
+        if (path.endsWith('.wasm')) {
+          return wasmPath;
+        }
+        return prefix + path;
+      };
+    }
+    const wasm = wasmFactory(factoryConfig);
     const voidReturnType: string = null;
     // Using the tfjs namespace to avoid conflict with emscripten's API.
     wasm.tfjs = {
@@ -198,7 +207,27 @@ async function init(): Promise<{wasm: BackendWasmModule}> {
       disposeData: wasm.cwrap('dispose_data', voidReturnType, ['number']),
       dispose: wasm.cwrap('dispose', voidReturnType, []),
     };
-    wasm.onRuntimeInitialized = () => resolve({wasm});
+    let initialized = false;
+    wasm.onRuntimeInitialized = () => {
+      initialized = true;
+      initAborted = false;
+      resolve({wasm});
+    };
+    wasm.onAbort = () => {
+      if (initialized) {
+        // Emscripten already called console.warn so no need to double log.
+        return;
+      }
+      if (initAborted) {
+        // Emscripten calls `onAbort` twice, resulting in double error messages.
+        return;
+      }
+      initAborted = true;
+      const rejectMsg =
+          'Make sure the server can serve the `.wasm` file relative to the ' +
+          'bundled js file. For more details see https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/README.md#using-bundlers';
+      reject({message: rejectMsg});
+    };
   });
 }
 
@@ -214,4 +243,28 @@ function typedArrayFromBuffer(
     default:
       throw new Error(`Unknown dtype ${dtype}`);
   }
+}
+
+let wasmPath: string = null;
+let initAborted = false;
+
+/**
+ * Sets the path to the `.wasm` file which will be fetched when the wasm
+ * backend is initialized. See
+ * https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/README.md#using-bundlers
+ * for more details.
+ */
+/** @doc {heading: 'Environment', namespace: 'wasm'} */
+export function setWasmPath(path: string): void {
+  if (initAborted) {
+    throw new Error(
+        'The WASM backend was already initialized. Make sure you call ' +
+        '`setWasmPath()` before you call `tf.setBackend()` or `tf.ready()`');
+  }
+  wasmPath = path;
+}
+
+/** Used in unit tests. */
+export function resetWasmPath(): void {
+  wasmPath = null;
 }
