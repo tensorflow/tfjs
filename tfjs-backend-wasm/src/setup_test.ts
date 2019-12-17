@@ -273,6 +273,13 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasting Tensor3D shapes',  // Same as above.
       'broadcasting Tensor4D shapes',  // Same as above.
     ]
+  },
+  {
+    startsWith: 'tile ',
+    excludes: [
+      'gradient',      // Gradient not yet implemented.
+      'string tensor'  // String tensors not yet implemented.
+    ]
   }
 ];
 

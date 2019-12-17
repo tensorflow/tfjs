@@ -60,5 +60,6 @@ import './Slice';
 import './Square';
 import './Sub';
 import './Sum';
+import './Tile';
 import './Transpose';
 import './Unpack';

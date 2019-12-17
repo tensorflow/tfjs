@@ -174,6 +174,7 @@ tfjs_cc_library(
         ":ResizeBilinear",
         ":Sigmoid",
         ":Sub",
+        ":Tile",
         ":Transpose",
     ],
 )
@@ -609,6 +610,15 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Tile",
+    srcs = ["kernels/Tile.cc"],
+    deps = [
+        ":backend",
         ":util",
     ],
 )
