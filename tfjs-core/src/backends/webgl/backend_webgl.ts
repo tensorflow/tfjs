@@ -20,7 +20,7 @@ import './flags_webgl';
 
 import * as device_util from '../../device_util';
 import {ENGINE, MemoryInfo, TimingInfo} from '../../engine';
-import {env, ENV} from '../../environment';
+import {env} from '../../environment';
 import {tidy} from '../../globals';
 import {TensorInfo} from '../../kernel_registry';
 import {warn} from '../../log';
@@ -2629,9 +2629,9 @@ export class MathBackendWebGL extends KernelBackend {
     if (this.disposed) {
       return;
     }
-    // We avoid disposing the compiled webgl programs during unit testing to
-    // avoid slowing down test execution.
-    if (!ENV.getBool('IS_TEST')) {
+    // Avoid disposing the compiled webgl programs during unit testing because
+    // it slows down test execution.
+    if (!env().getBool('IS_TEST')) {
       const allKeys = Object.keys(this.binaryCache);
       allKeys.forEach(key => {
         this.gpgpu.deleteProgram(this.binaryCache[key].webGLProgram);
