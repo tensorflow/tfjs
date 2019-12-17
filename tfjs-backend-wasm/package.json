@@ -16,7 +16,7 @@
     "build": "yarn link-core-master && yarn build-core && rimraf dist/ && tsc && ./scripts/build-wasm.sh",
     "build-ci": "./scripts/build-ci.sh",
     "build-npm": "./scripts/build-npm.sh",
-    "buildifier": "./scripts/buildifier-ci.sh",
+    "buildifier-ci": "./scripts/buildifier-ci.sh",
     "clean": "rimraf dist/ && bazel clean --expunge",
     "cpplint": "./scripts/cpplint.js",
     "lint": "tslint -p . -t verbose && yarn cpplint",
