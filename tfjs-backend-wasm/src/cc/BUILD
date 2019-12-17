@@ -79,8 +79,8 @@ tfjs_cc_library(
 
 tfjs_cc_library(
     name = "clamp_impl",
-    srcs = ["clamp_impl.cc"],
     hdrs = ["clamp_impl.h"],
+    srcs = ["clamp_impl.cc"],
     deps = [
         ":backend",
         ":util",
