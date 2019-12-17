@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
-import {registerBinaryKernel} from './binary_kernel';
+import { registerBinaryKernel } from './binary_kernel';
 const supportsBroadcast = true;
-registerBinaryKernel('Add', supportsBroadcast);
+registerBinaryKernel('Add', 'Add', supportsBroadcast);
+registerBinaryKernel('Add', 'BiasAdd', supportsBroadcast);
