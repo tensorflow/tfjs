@@ -101,7 +101,7 @@ CPU backend, and ~5.3-7.7X slower than the WebGL backend.
 |--------------------------|-------|-------|-------|
 | iPhone X                 | 147.1 | 20.3  | 941.3 |
 | iPhone XS                | 140   | 18.1  | 426.4 |
-| Pixel 3                  |       |       |       |
+| Pixel 3                  | 266.2 | 77.3  | 2345.2|
 | Desktop Linux            | 91.5  | 17.1  | 1049  |
 | Macbook Pro              | 98.4  | 19.6  | 893.5 |
 
@@ -111,7 +111,7 @@ CPU backend, and ~5.3-7.7X slower than the WebGL backend.
 
 Face detector is a lite model with 0.1M params and ~20M multiply-adds. For this model,
 the WASM backend is between ~8.2-19.8X faster than the vanilla CPU backend and
-comparable to the WebGL backend (up to ~2X faster, or 2X slower, depending on
+comparable to the WebGL backend (up to ~1.7X faster, or 2X slower, depending on
 the device).
 
 <img src="./face-detector-bench.svg">
@@ -120,9 +120,9 @@ the device).
 |------------------------------|------|-------|-------|
 | iPhone X                     | 22.4 | 13.5  | 318   |
 | iPhone XS                    | 21.4 | 10.5  | 176.9 |
-| Pixel 3                      |      |       |       |
+| Pixel 3                      | 40.7 | 31.8  | 535.2 |
 | Desktop Linux                | 12.6 | 12.7  | 249.5 |
-| Macbook Pro                  | 14.1 | 26.1  | 209.1 |
+| Macbook Pro 15 2019          | 13.6 | 22.7  | 209.1 |
 
 # FAQ
 
