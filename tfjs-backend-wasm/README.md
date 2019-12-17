@@ -112,7 +112,7 @@ CPU backend, and ~5.3-7.7X slower than the WebGL backend.
 Face detector is a lite model with 0.1M params and ~20M multiply-adds. For this model,
 the WASM backend is between ~8.2-19.8X faster than the vanilla CPU backend and
 comparable to the WebGL backend (up to ~2X faster, or 2X slower, depending on
-the hardware).
+the device).
 
 <img src="./face-detector-bench.svg">
 
