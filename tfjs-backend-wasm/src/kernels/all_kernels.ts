@@ -38,6 +38,7 @@ import './FusedConv2D';
 import './FusedDepthwiseConv2D';
 import './Greater';
 import './GreaterEqual';
+import './LogicalAnd';
 import './Less';
 import './LessEqual';
 import './Log';

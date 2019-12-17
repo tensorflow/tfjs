@@ -221,7 +221,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'greater ',
     excludes: [
-      'broadcasting Tensor2D shapes',  // Broadcasting along inner dims not
+      'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
                                        // supported yet.
       'broadcasting Tensor3D shapes',  // Same as above.
       'broadcasting Tensor4D shapes'   // Same as above.
@@ -231,7 +231,7 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'greaterEqual',
     excludes: [
       'gradient',                      // Not yet implemented.
-      'broadcasting Tensor2D shapes',  // Broadcasting along inner dims not
+      'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
                                        // supported yet.
       'broadcasting Tensor3D shapes',  // Same as above.
       'broadcasting Tensor4D shapes'   // Same as above.
@@ -240,7 +240,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'less ',
     excludes: [
-      'broadcasting Tensor2D shapes',   // Broadcasting along inner dims not
+      'broadcasting Tensor2D shapes',   // Broadcasting along outer dims not
                                         // supported yet.
       'broadcasting Tensor3D shapes',   // Same as above.
       'broadcasting Tensor3D float32',  // Same as above.
@@ -251,7 +251,7 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'lessEqual',
     excludes: [
       'gradient',                       // Not yet implemented.
-      'broadcasting Tensor2D shapes',   // Broadcasting along inner dims not
+      'broadcasting Tensor2D shapes',   // Broadcasting along outer dims not
                                         // supported yet.
       'broadcasting Tensor3D shapes',   // Same as above.
       'broadcasting Tensor3D float32',  // Same as above.
@@ -264,7 +264,16 @@ const TEST_FILTERS: TestFilter[] = [
       'axis=0',  // Reduction not supported along inner dimensions.
     ]
   },
-  {startsWith: 'sum '}
+  {startsWith: 'sum '},
+  {
+    startsWith: 'logicalAnd ',
+    excludes: [
+      'broadcasting Tensor2D shapes',  // Broadcasting along outer dimensions
+                                       // not yet supported.
+      'broadcasting Tensor3D shapes',  // Same as above.
+      'broadcasting Tensor4D shapes',  // Same as above.
+    ]
+  }
 ];
 
 const customInclude = (testName: string) => {

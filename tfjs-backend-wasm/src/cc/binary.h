@@ -87,6 +87,15 @@ inline void compare_bool(const int a_id, const int b_id, const int out_id,
                           out_info.b_write(), operation);
 }
 
+inline void logical(const int a_id, const int b_id, const int out_id,
+                    bool operation(bool, bool)) {
+  auto& a_info = backend::get_tensor_info(a_id);
+  auto& b_info = backend::get_tensor_info(b_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
+  binary_impl<bool, bool>(a_info.b(), a_info.size, b_info.b(), b_info.size,
+                          out_info.b_write(), operation);
+}
+
 typedef xnn_status (*xnn_create_binary_op)(float, float, uint32_t,
                                            xnn_operator_t*);
 typedef xnn_status (*xnn_setup_binary_op)(xnn_operator_t, size_t, const size_t*,

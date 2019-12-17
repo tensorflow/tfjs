@@ -158,6 +158,8 @@ tfjs_cc_library(
         ":FusedDepthwiseConv2D",
         ":Greater",
         ":GreaterEqual",
+        ":Less",
+        ":LessEqual",
         ":Max",
         ":MaxPool",
         ":Maximum",
@@ -416,6 +418,16 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "LessEqual",
     srcs = ["kernels/LessEqual.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "LogicalAnd",
+    srcs = ["kernels/LogicalAnd.cc"],
     deps = [
         ":backend",
         ":binary",
