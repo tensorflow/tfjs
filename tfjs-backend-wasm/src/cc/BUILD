@@ -1,5 +1,5 @@
-load(":build_defs.bzl", "tfjs_cc_library", "tfjs_unit_test")
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
+load(":build_defs.bzl", "tfjs_cc_library", "tfjs_unit_test")
 
 # Emcripten produces a much larger wasm bundle unless the cc_binary has srcs
 # explicitly pointing to files with exported methods (EMSCRIPTEN_KEEPALIVE).
@@ -7,6 +7,9 @@ KERNELS_WITH_KEEPALIVE = glob(
     ["kernels/*.cc"],
     exclude = ["**/*_test.cc"],
 )
+
+
+
 
 cc_binary(
     name = "tfjs-backend-wasm.js",
@@ -79,8 +82,8 @@ tfjs_cc_library(
 
 tfjs_cc_library(
     name = "clamp_impl",
-    hdrs = ["clamp_impl.h"],
     srcs = ["clamp_impl.cc"],
+    hdrs = ["clamp_impl.h"],
     deps = [
         ":backend",
         ":util",
