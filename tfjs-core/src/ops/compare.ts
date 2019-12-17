@@ -90,7 +90,9 @@ function less_<T extends Tensor>(
   [$a, $b] = makeTypesMatch($a, $b);
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
-  return ENGINE.runKernelFunc(backend => backend.less($a, $b), {$a, $b}) as T;
+  return ENGINE.runKernelFunc(
+             backend => backend.less($a, $b), {a: $a, b: $b}, null /* grad */,
+             'Less') as T;
 }
 
 /**
@@ -166,8 +168,11 @@ function lessEqual_<T extends Tensor>(
   [$a, $b] = makeTypesMatch($a, $b);
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
-  return ENGINE.runKernelFunc(backend => backend.lessEqual($a, $b), {$a, $b}) as
-      T;
+  return ENGINE.runKernelFunc((backend, save) => {
+    const res = backend.greaterEqual($a, $b);
+    save([$a, $b]);
+    return res;
+  }, {a: $a, b: $b}, null /* grad */, 'LessEqual') as T;
 }
 
 function lessEqualStrict_<T extends Tensor>(
@@ -203,9 +208,8 @@ function greater_<T extends Tensor>(
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
   return ENGINE.runKernelFunc(
-    backend => backend.greater($a, $b),
-    {a: $a, b: $b}, null /* grad */, 'Greater'
-  ) as T;
+             backend => backend.greater($a, $b), {a: $a, b: $b},
+             null /* grad */, 'Greater') as T;
 }
 
 function greaterStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
