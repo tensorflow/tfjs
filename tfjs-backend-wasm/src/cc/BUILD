@@ -28,6 +28,12 @@ cc_binary(
     ],
 )
 
+test_suite(
+  name = "cc_tests"
+)
+
+## Library
+
 tfjs_cc_library(
   name = "backend",
   srcs = ["backend.cc"],
@@ -39,20 +45,14 @@ tfjs_cc_library(
   ],
 )
 
-tfjs_cc_library(
-  name = "check_macros",
-  srcs = ["check_macros.h"],
-  deps = [
-    ":util",
-  ],
-)
-
-tfjs_cc_library(
-  name = "unary",
-  srcs = ["unary.h"],
+tfjs_unit_test(
+  name = "backend_tests",
+  srcs = glob(["*_test.cc"]),
   deps = [
     ":backend",
-  ],
+    ":util",
+    ":Prelu",
+  ]
 )
 
 tfjs_cc_library(
@@ -65,26 +65,17 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-  name = "transpose_impl",
-  hdrs = ["transpose_impl.h"],
-  srcs = ["transpose_impl.cc"],
-  deps = [":util"],
-)
-
-tfjs_cc_library(
-  name = "prelu_impl",
-  hdrs = ["prelu_impl.h"],
-  srcs = ["prelu_impl.cc"],
+  name = "check_macros",
+  srcs = ["check_macros.h"],
   deps = [
-    ":backend",
-    ":util"
+    ":util",
   ],
 )
 
 tfjs_cc_library(
-  name = "interpolate_bilinear_impl",
-  hdrs = ["interpolate_bilinear_impl.h"],
-  srcs = ["interpolate_bilinear_impl.cc"],
+  name = "clamp_impl",
+  hdrs = ["clamp_impl.h"],
+  srcs = ["clamp_impl.cc"],
   deps = [
     ":backend",
     ":util"
@@ -104,14 +95,47 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-  name = "clamp_impl",
-  hdrs = ["clamp_impl.h"],
-  srcs = ["clamp_impl.cc"],
+  name = "interpolate_bilinear_impl",
+  hdrs = ["interpolate_bilinear_impl.h"],
+  srcs = ["interpolate_bilinear_impl.cc"],
   deps = [
     ":backend",
     ":util"
   ],
 )
+
+tfjs_cc_library(
+  name = "prelu_impl",
+  hdrs = ["prelu_impl.h"],
+  srcs = ["prelu_impl.cc"],
+  deps = [
+    ":backend",
+    ":util"
+  ],
+)
+
+tfjs_cc_library(
+  name = "transpose_impl",
+  hdrs = ["transpose_impl.h"],
+  srcs = ["transpose_impl.cc"],
+  deps = [":util"],
+)
+
+tfjs_cc_library(
+  name = "util",
+  hdrs = ["util.h"],
+  srcs = ["util.cc"],
+)
+
+tfjs_cc_library(
+  name = "unary",
+  srcs = ["unary.h"],
+  deps = [
+    ":backend",
+  ],
+)
+
+# Kernels
 
 tfjs_cc_library(
   name = "all_kernels",
@@ -122,17 +146,21 @@ tfjs_cc_library(
     ":AddN",
     ":ArgMax",
     ":BatchMatMul",
-    ":MaxPool",
+    ":Div",
     ":ClipByValue",
     ":CropAndResize",
     ":Conv2D",
     ":DepthwiseConv2dNative",
+    ":Exp",
     ":FloorDiv",
-    ":Minimum",
-    ":Maximum",
+    ":FusedBatchNorm",
     ":FusedConv2D",
     ":FusedDepthwiseConv2D",
-    ":Div",
+    ":Max",
+    ":Maximum",
+    ":MaxPool",
+    ":Minimum",
+    ":Min",
     ":Mul",
     ":NonMaxSuppressionV3",
     ":PadV2",
@@ -140,60 +168,10 @@ tfjs_cc_library(
     ":Relu",
     ":Relu6",
     ":ResizeBilinear",
-    ":FusedBatchNorm",
-    ":Max",
-    ":Min",
     ":Sigmoid",
     ":Sub",
     ":Transpose",
   ]
-)
-
-tfjs_cc_library(
-  name = "MaxPool",
-  srcs = ["kernels/MaxPool.cc"],
-  hdrs = ["kernels/MaxPool.h"],
-  deps = [
-    ":backend",
-    ":util"
-  ]
-)
-
-tfjs_cc_library(
-  name = "AvgPool",
-  srcs = ["kernels/AvgPool.cc"],
-  hdrs = ["kernels/AvgPool.h"],
-  deps = [
-    ":backend",
-    ":util"
-  ]
-)
-
-tfjs_cc_library(
-  name = "FusedBatchNorm",
-  srcs = ["kernels/FusedBatchNorm.cc"],
-  deps = [
-    ":backend",
-    ":util",
-  ],
-)
-
-tfjs_cc_library(
-  name = "Max",
-  srcs = ["kernels/Max.cc"],
-  deps = [
-    ":backend",
-    ":util",
-  ],
-)
-
-tfjs_cc_library(
-  name = "Min",
-  srcs = ["kernels/Min.cc"],
-  deps = [
-    ":backend",
-    ":util",
-  ],
 )
 
 tfjs_cc_library(
@@ -234,6 +212,24 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+  name = "AvgPool",
+  srcs = ["kernels/AvgPool.cc"],
+  hdrs = ["kernels/AvgPool.h"],
+  deps = [
+    ":backend",
+    ":util"
+  ]
+)
+
+tfjs_unit_test(
+  name = "AvgPool_test",
+  srcs = ["kernels/AvgPool_test.cc"],
+  deps = [
+    ":AvgPool"
+  ]
+)
+
+tfjs_cc_library(
   name = "BatchMatMul",
   srcs = ["kernels/BatchMatMul.cc"],
   hdrs = ["kernels/BatchMatMul.h"],
@@ -241,6 +237,14 @@ tfjs_cc_library(
     ":backend",
     ":util",
   ],
+)
+
+tfjs_unit_test(
+  name = "BatchMatMul_test",
+  srcs = ["kernels/BatchMatMul_test.cc"],
+  deps = [
+    ":BatchMatMul",
+  ]
 )
 
 tfjs_cc_library(
@@ -251,6 +255,31 @@ tfjs_cc_library(
     ":backend",
     ":util",
   ],
+)
+
+tfjs_unit_test(
+  name = "ClipByValue_test",
+  srcs = ["kernels/ClipByValue_test.cc"],
+  deps = [
+    ":ClipByValue",
+  ]
+)
+
+tfjs_cc_library(
+  name = "Conv2D",
+  srcs = ["kernels/Conv2D.cc"],
+  hdrs = ["kernels/Conv2D.h"],
+  deps = [
+    ":conv2d_impl",
+  ],
+)
+
+tfjs_unit_test(
+  name = "Conv2D_test",
+  srcs = ["kernels/Conv2D_test.cc"],
+  deps = [
+    ":Conv2D",
+  ]
 )
 
 tfjs_cc_library(
@@ -264,21 +293,38 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-  name = "ResizeBilinear",
-  srcs = ["kernels/ResizeBilinear.cc"],
+  name = "DepthwiseConv2dNative",
+  srcs = ["kernels/DepthwiseConv2dNative.cc"],
+  hdrs = ["kernels/DepthwiseConv2dNative.h"],
+  deps = [
+    ":conv2d_impl",
+  ],
+)
+
+tfjs_unit_test(
+  name = "DepthwiseConv2dNative_test",
+  srcs = ["kernels/DepthwiseConv2dNative_test.cc"],
+  deps = [
+    ":DepthwiseConv2dNative",
+  ]
+)
+
+tfjs_cc_library(
+  name = "Div",
+  srcs = ["kernels/Div.cc"],
   deps = [
     ":backend",
-    ":interpolate_bilinear_impl",
+    ":binary",
     ":util",
   ],
 )
 
 tfjs_cc_library(
-  name = "Conv2D",
-  srcs = ["kernels/Conv2D.cc"],
-  hdrs = ["kernels/Conv2D.h"],
+  name = "Exp",
+  srcs = ["kernels/Exp.cc"],
   deps = [
-    ":conv2d_impl",
+    ":backend",
+    ":unary",
   ],
 )
 
@@ -293,11 +339,62 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-  name = "Minimum",
-  srcs = ["kernels/Minimum.cc"],
+  name = "FusedBatchNorm",
+  srcs = ["kernels/FusedBatchNorm.cc"],
   deps = [
     ":backend",
-    ":binary",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "FusedConv2D",
+  srcs = ["kernels/FusedConv2D.cc"],
+  hdrs = ["kernels/FusedConv2D.h"],
+  deps = [
+    ":conv2d_impl",
+  ],
+)
+
+tfjs_unit_test(
+  name = "FusedConv2D_test",
+  srcs = ["kernels/FusedConv2D_test.cc"],
+  deps = [
+    ":FusedConv2D",
+  ]
+)
+
+tfjs_cc_library(
+  name = "FusedDepthwiseConv2D",
+  srcs = ["kernels/FusedDepthwiseConv2D.cc"],
+  hdrs = ["kernels/FusedDepthwiseConv2D.h"],
+  deps = [
+    ":conv2d_impl",
+  ],
+)
+
+tfjs_unit_test(
+  name = "FusedDepthwiseConv2D_test",
+  srcs = ["kernels/FusedDepthwiseConv2D_test.cc"],
+  deps = [
+    ":FusedDepthwiseConv2D",
+  ]
+)
+
+tfjs_cc_library(
+  name = "Log",
+  srcs = ["kernels/Log.cc"],
+  deps = [
+    ":backend",
+    ":unary",
+  ],
+)
+
+tfjs_cc_library(
+  name = "Max",
+  srcs = ["kernels/Max.cc"],
+  deps = [
+    ":backend",
     ":util",
   ],
 )
@@ -313,35 +410,35 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-  name = "FusedConv2D",
-  srcs = ["kernels/FusedConv2D.cc"],
-  hdrs = ["kernels/FusedConv2D.h"],
+  name = "MaxPool",
+  srcs = ["kernels/MaxPool.cc"],
+  hdrs = ["kernels/MaxPool.h"],
   deps = [
-    ":conv2d_impl",
+    ":backend",
+    ":util"
+  ]
+)
+
+tfjs_unit_test(
+  name = "MaxPool_test",
+  srcs = ["kernels/MaxPool_test.cc"],
+  deps = [
+    ":MaxPool"
+  ]
+)
+
+tfjs_cc_library(
+  name = "Min",
+  srcs = ["kernels/Min.cc"],
+  deps = [
+    ":backend",
+    ":util",
   ],
 )
 
 tfjs_cc_library(
-  name = "FusedDepthwiseConv2D",
-  srcs = ["kernels/FusedDepthwiseConv2D.cc"],
-  hdrs = ["kernels/FusedDepthwiseConv2D.h"],
-  deps = [
-    ":conv2d_impl",
-  ],
-)
-
-tfjs_cc_library(
-  name = "DepthwiseConv2dNative",
-  srcs = ["kernels/DepthwiseConv2dNative.cc"],
-  hdrs = ["kernels/DepthwiseConv2dNative.h"],
-  deps = [
-    ":conv2d_impl",
-  ],
-)
-
-tfjs_cc_library(
-  name = "Div",
-  srcs = ["kernels/Div.cc"],
+  name = "Minimum",
+  srcs = ["kernels/Minimum.cc"],
   deps = [
     ":backend",
     ":binary",
@@ -388,13 +485,12 @@ tfjs_cc_library(
   ],
 )
 
-tfjs_cc_library(
-  name = "Sigmoid",
-  srcs = ["kernels/Sigmoid.cc"],
+tfjs_unit_test(
+  name = "Prelu_test",
+  srcs = ["kernels/Prelu_test.cc"],
   deps = [
-    ":backend",
-    ":unary",
-  ],
+    ":Prelu",
+  ]
 )
 
 tfjs_cc_library(
@@ -413,6 +509,33 @@ tfjs_cc_library(
   deps = [
     ":backend",
     ":clamp_impl",
+    ":unary",
+  ],
+)
+
+tfjs_cc_library(
+  name = "ResizeBilinear",
+  srcs = ["kernels/ResizeBilinear.cc"],
+  hdrs = ["kernels/ResizeBilinear.h"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
+)
+
+tfjs_unit_test(
+  name = "ResizeBilinear_test",
+  srcs = ["kernels/ResizeBilinear_test.cc"],
+  deps = [
+    ":ResizeBilinear",
+  ]
+)
+
+tfjs_cc_library(
+  name = "Sigmoid",
+  srcs = ["kernels/Sigmoid.cc"],
+  deps = [
+    ":backend",
     ":unary",
   ],
 )
@@ -444,105 +567,4 @@ tfjs_cc_library(
     ":util",
     ":transpose_impl",
   ],
-)
-
-tfjs_cc_library(
-  name = "Exp",
-  srcs = ["kernels/Exp.cc"],
-  deps = [
-    ":backend",
-    ":unary",
-  ],
-)
-
-tfjs_cc_library(
-  name = "util",
-  hdrs = ["util.h"],
-  srcs = ["util.cc"],
-)
-
-test_suite(
-  name = "cc_tests"
-)
-
-tfjs_unit_test(
-  name = "backend_tests",
-  srcs = glob(["*_test.cc"]),
-  deps = [
-    ":backend",
-    ":util",
-    ":Prelu",
-  ]
-)
-
-tfjs_unit_test(
-  name = "BatchMatMul_test",
-  srcs = ["kernels/BatchMatMul_test.cc"],
-  deps = [
-    ":BatchMatMul",
-  ]
-)
-
-tfjs_unit_test(
-  name = "Prelu_test",
-  srcs = ["kernels/Prelu_test.cc"],
-  deps = [
-    ":Prelu",
-  ]
-)
-
-tfjs_unit_test(
-  name = "Conv2D_test",
-  srcs = ["kernels/Conv2D_test.cc"],
-  deps = [
-    ":Conv2D",
-  ]
-)
-
-tfjs_unit_test(
-  name = "DepthwiseConv2dNative_test",
-  srcs = ["kernels/DepthwiseConv2dNative_test.cc"],
-  deps = [
-    ":DepthwiseConv2dNative",
-  ]
-)
-
-tfjs_unit_test(
-  name = "FusedConv2D_test",
-  srcs = ["kernels/FusedConv2D_test.cc"],
-  deps = [
-    ":FusedConv2D",
-  ]
-)
-
-tfjs_unit_test(
-  name = "FusedDepthwiseConv2D_test",
-  srcs = ["kernels/FusedDepthwiseConv2D_test.cc"],
-  deps = [
-    ":FusedDepthwiseConv2D",
-  ]
-)
-
-tfjs_unit_test(
-  name = "AvgPool_test",
-  srcs = ["kernels/AvgPool_test.cc"],
-  deps = [
-    ":AvgPool"
-  ]
-)
-
-tfjs_unit_test(
-  name = "MaxPool_test",
-  srcs = ["kernels/MaxPool_test.cc"],
-  deps = [
-    ":MaxPool"
-  ]
-)
-
-tfjs_unit_test(
-  name = "ClipByValue_test",
-  srcs = ["kernels/ClipByValue_test.cc"],
-  deps = [
-    ":ClipByValue",
-  ]
 )
