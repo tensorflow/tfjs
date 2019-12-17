@@ -135,7 +135,7 @@ function sum_<T extends Tensor>(
       return {x: () => gradFunc(dy)};
     };
 
-    const attrs = {axes};
+    const attrs = {axes: reductionAxes};
     let value = ENGINE.runKernelFunc(
         backend => backend.sum(permutedX, reductionAxes), {x: permutedX},
         gradInputs, 'Sum', attrs);
