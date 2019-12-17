@@ -156,6 +156,8 @@ tfjs_cc_library(
     ":FusedBatchNorm",
     ":FusedConv2D",
     ":FusedDepthwiseConv2D",
+    ":Greater",
+    ":GreaterEqual",
     ":Max",
     ":Maximum",
     ":MaxPool",
@@ -171,8 +173,6 @@ tfjs_cc_library(
     ":Sigmoid",
     ":Sub",
     ":Transpose",
-    ":Greater",
-    ":GreaterEqual",
   ]
 )
 
