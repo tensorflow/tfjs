@@ -25,7 +25,6 @@ import * as util from '../util';
 
 import {op} from './operation';
 
-
 /**
  * Bilinear resize a batch of 3D images to a new shape.
  *
