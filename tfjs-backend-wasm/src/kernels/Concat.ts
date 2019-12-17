@@ -15,17 +15,17 @@
  * =============================================================================
  */
 
-import {backend_util, KernelFunc, NamedAttrMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import { backend_util, KernelFunc, NamedAttrMap, registerKernel, TensorInfo, util } from '@tensorflow/tfjs-core';
 
-import {BackendWasm} from '../backend_wasm';
+import { BackendWasm } from '../backend_wasm';
 
 interface ConcatAttrs extends NamedAttrMap {
   axis: number;
 }
 
 function concat(
-    args: {inputs: TensorInfo[], backend: BackendWasm, attrs: ConcatAttrs}) {
-  const {inputs, backend, attrs: {axis}} = args;
+  args: { inputs: TensorInfo[], backend: BackendWasm, attrs: ConcatAttrs }) {
+  const { inputs, backend, attrs: { axis } } = args;
   const outShape = backend_util.computeOutShape(inputs.map(t => t.shape), axis);
   const out = backend.makeOutput(outShape, inputs[0].dtype);
 
@@ -53,6 +53,13 @@ function concat(
 
 registerKernel({
   kernelName: 'Concat',
+  backendName: 'wasm',
+  kernelFunc: concat as {} as KernelFunc,
+});
+
+// register ConcatV2 op using same kernel
+registerKernel({
+  kernelName: 'ConcatV2',
   backendName: 'wasm',
   kernelFunc: concat as {} as KernelFunc,
 });
