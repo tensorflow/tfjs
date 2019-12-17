@@ -59,7 +59,7 @@ describe('dynamic', () => {
         const result =
             executeOp(node, {input1, input2, input3, input4, input5}, context);
         expect(tfc.image.nonMaxSuppressionAsync)
-            .toHaveBeenCalledWith(input1[0], input2[0], 1, 1, 1, undefined);
+            .toHaveBeenCalledWith(input1[0], input2[0], 1, 1, 1);
         expect(result instanceof Promise).toBeTruthy();
       });
       it('should match json def', () => {
@@ -92,7 +92,7 @@ describe('dynamic', () => {
         const result =
             executeOp(node, {input1, input2, input3, input4, input5}, context);
         expect(tfc.image.nonMaxSuppressionAsync)
-            .toHaveBeenCalledWith(input1[0], input2[0], 1, 1, 1, undefined);
+            .toHaveBeenCalledWith(input1[0], input2[0], 1, 1, 1);
         expect(result instanceof Promise).toBeTruthy();
       });
       it('should match json def', () => {
@@ -125,10 +125,10 @@ describe('dynamic', () => {
         const input4 = [tfc.tensor1d([1])];
         const input5 = [tfc.tensor1d([1])];
         const input6 = [tfc.tensor1d([1])];
-        spyOn(tfc.image, 'nonMaxSuppressionAsync').and.callThrough();
+        spyOn(tfc.image, 'nonMaxSuppressionWithScoreAsync').and.callThrough();
         const result = executeOp(
             node, {input1, input2, input3, input4, input5, input6}, context);
-        expect(tfc.image.nonMaxSuppressionAsync)
+        expect(tfc.image.nonMaxSuppressionWithScoreAsync)
             .toHaveBeenCalledWith(input1[0], input2[0], 1, 1, 1, 1);
         expect(result instanceof Promise).toBeTruthy();
       });
