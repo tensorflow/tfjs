@@ -258,8 +258,8 @@ function nonMaxSuppressionWithScore_(
   const attrs = {maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma};
 
   const result = ENGINE.runKernel(
-                     'NonMaxSuppressionWithScore',
-                     {boxes: $boxes, scores: $scores}, attrs) as Tensor[];
+                     'NonMaxSuppressionV5', {boxes: $boxes, scores: $scores},
+                     attrs) as Tensor[];
 
   return {selectedIndices: result[0], selectedScores: result[1]};
 }
