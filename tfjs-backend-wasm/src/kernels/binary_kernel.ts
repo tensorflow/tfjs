@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
-import {backend_util, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataType, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 import {CppDType} from './types';
 
 export function registerBinaryKernel(
-    kernelName: string, supportsBroadcast: boolean) {
+    kernelName: string, supportsBroadcast: boolean, dtype?: DataType) {
   let wasmFunc:
       (aId: number, aShape: Uint8Array, aShapeLen: number, bId: number,
        bShape: Uint8Array, bShapeLen: number, dtype: number, outId: number) =>
@@ -47,8 +47,9 @@ export function registerBinaryKernel(
     const aId = backend.dataIdMap.get(a.dataId).id;
     const bId = backend.dataIdMap.get(b.dataId).id;
 
+    const outputType = dtype != null ? dtype : a.dtype;
     const newShape = backend_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    const out = backend.makeOutput(newShape, a.dtype);
+    const out = backend.makeOutput(newShape, outputType);
 
     // Short-circuit zero-sized tensors.
     if (util.sizeFromShape(newShape) === 0) {

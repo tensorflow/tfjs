@@ -171,6 +171,8 @@ tfjs_cc_library(
     ":Sigmoid",
     ":Sub",
     ":Transpose",
+    ":Greater",
+    ":GreaterEqual",
   ]
 )
 
@@ -379,6 +381,26 @@ tfjs_unit_test(
   deps = [
     ":FusedDepthwiseConv2D",
   ]
+)
+
+tfjs_cc_library(
+  name = "Greater",
+  srcs = ["kernels/Greater.cc"],
+  deps = [
+    ":backend",
+    ":binary",
+    ":util",
+  ],
+)
+
+tfjs_cc_library(
+  name = "GreaterEqual",
+  srcs = ["kernels/GreaterEqual.cc"],
+  deps = [
+    ":backend",
+    ":binary",
+    ":util",
+  ],
 )
 
 tfjs_cc_library(
