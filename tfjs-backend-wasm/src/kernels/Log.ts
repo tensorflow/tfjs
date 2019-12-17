@@ -15,23 +15,5 @@
  * =============================================================================
  */
 
-export interface BackendWasmModule extends EmscriptenModule {
-  onRuntimeInitialized: () => void;
-  onAbort: (msg: string) => void;
-  // Using the tfjs namespace to avoid conflict with emscripten's API.
-  tfjs: {
-    init(): void,
-    registerTensor(id: number, size: number, memoryOffset: number): void,
-    // Disposes the data behind the data bucket.
-    disposeData(id: number): void,
-    // Disposes the backend and all of its associated data.
-    dispose(): void,
-  }
-}
-
-export interface WasmFactoryConfig {
-  locateFile?(path: string, prefix: string): string;
-}
-
-declare var moduleFactory: (settings: WasmFactoryConfig) => BackendWasmModule;
-export default moduleFactory;
+import {registerUnaryKernel} from './unary_kernel';
+registerUnaryKernel('Log');
