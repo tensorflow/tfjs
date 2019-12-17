@@ -146,6 +146,27 @@ describeWebGPU('Ops benchmarks', () => {
     await time(() => tf.conv2d(a, b, 1, 'same'));
   });
 
+  it('conv2d1', async () => {
+    const a = tf.randomNormal<tf.Rank.R4>([1, 15, 15, 64]);
+    const b = tf.randomNormal<tf.Rank.R4>([3, 3, 64, 256]);
+
+    await time(() => tf.conv2d(a, b, 1, 'same'), null, true, 20, 20);
+  });
+
+  it('conv2d2', async () => {
+    const a = tf.randomNormal<tf.Rank.R4>([1, 8, 8, 512]);
+    const b = tf.randomNormal<tf.Rank.R4>([3, 3, 512, 512]);
+
+    await time(() => tf.conv2d(a, b, 1, 'same'), null, true, 20, 20);
+  });
+
+  it('conv2d3', async () => {
+    const a = tf.randomNormal<tf.Rank.R4>([1, 17, 17, 256]);
+    const b = tf.randomNormal<tf.Rank.R4>([3, 3, 256, 256]);
+
+    await time(() => tf.conv2d(a, b, 2, 'valid'), null, true, 20, 20);
+  });
+
   it('depthwiseconv2d', async () => {
     const x = tf.randomNormal<tf.Rank.R4>([1, 128, 128, 1]);
     const w = tf.tensor4d(
