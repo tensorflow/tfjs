@@ -16,18 +16,19 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {test_util} from '@tensorflow/tfjs-core';
+import {registerBackend, removeBackend, test_util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line:no-imports-from-dist
-import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {ALL_ENVS, BROWSER_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-import {BackendWasm} from './index';
+import {init, resetWasmPath} from './backend_wasm';
+import {BackendWasm, setWasmPath} from './index';
 
 /**
  * Tests specific to the wasm backend. The name of these tests must start with
  * 'wasm' so that they are always included in the test runner. See
  * `env.specFilter` in `setup_test.ts` for details.
  */
-describeWithFlags('wasm', ALL_ENVS, () => {
+describeWithFlags('wasm read/write', ALL_ENVS, () => {
   it('write and read values', async () => {
     const x = tf.tensor1d([1, 2, 3]);
     test_util.expectArraysClose([1, 2, 3], await x.data());
@@ -46,5 +47,49 @@ describeWithFlags('wasm', ALL_ENVS, () => {
     const memOffset2 = backend.getMemoryOffset(t2.dataId);
     // This should fail in case of a memory leak.
     expect(memOffset1).toBe(memOffset2);
+  });
+});
+
+describeWithFlags('wasm init', BROWSER_ENVS, () => {
+  beforeEach(() => {
+    registerBackend('wasm-test', async () => {
+      const {wasm} = await init();
+      return new BackendWasm(wasm);
+    }, 100);
+
+    // Silences backend registration warnings.
+    spyOn(console, 'warn');
+    spyOn(console, 'log');
+  });
+
+  afterEach(() => {
+    resetWasmPath();
+    removeBackend('wasm-test');
+  });
+
+  it('backend init fails when the path is invalid', async () => {
+    setWasmPath('invalid/path');
+    let wasmPath: string;
+    const realFetch = fetch;
+    spyOn(self, 'fetch').and.callFake((path: string) => {
+      wasmPath = path;
+      return realFetch(path);
+    });
+    expect(await tf.setBackend('wasm-test')).toBe(false);
+    expect(wasmPath).toBe('invalid/path');
+  });
+
+  it('backend init succeeds with default path', async () => {
+    expect(await tf.setBackend('wasm-test')).toBe(true);
+  });
+
+  it('setWasmPath called too late', async () => {
+    // Set an invalid path.
+    setWasmPath('invalid/path');
+    await tf.setBackend('wasm-test');
+
+    // Setting the path too late.
+    expect(() => setWasmPath('too/late'))
+        .toThrowError(/The WASM backend was already initialized. Make sure/);
   });
 });

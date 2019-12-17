@@ -6,6 +6,7 @@ Please reach out to us if you'd like to put your project on the list.
 
 ## Demos & Applications
 
+- [Object Tracking JS](https://cp4ms.csb.app/) - Track any object as it moves through a video with no training required. [library](https://github.com/cloud-annotations/object-tracking-js) by [Nick Bourdakos](http://github.com/bourdakos1)
 - [NSFW JS](https://nsfwjs.com/) - Client-side indecent content checker. [library](https://github.com/infinitered/nsfwjs) and [blogpost](https://shift.infinite.red/avoid-nightmares-nsfw-js-ab7b176978b1) by [Gant Laborde](http://gantlaborde.com/)
 - [Honkling](https://castorini.github.io/honkling/) - An in-browser keyword spotting system by Jaejun Lee, Raphael Tang, Jimmy Lin
 - [TensorSpace.js](https://github.com/tensorspace-team/tensorspace) - A 3D visualization framework for neural networks, featuring interactive and intuitive display of models in the browser. Supports pre-trained models from TensorFlow, Keras, and TensorFlow.js.
