@@ -20,9 +20,11 @@ if [ $? -eq 0 ]
 then
   echo
 else
-  echo && \
-  echo "'yarn bazel:format-check' failed!" && \
-  echo "Please run 'yarn bazel:format'." && \
+  echo
+  echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+  echo "'yarn bazel:format-check' failed!"
+  echo "Please run 'yarn bazel:format'."
+  echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
   exit 1
 fi
 
@@ -32,8 +34,10 @@ if [ $? -eq 0 ]
 then
   echo
 else
-  echo && \
-  echo "'yarn bazel:lint-check' failed!" && \
-  echo "Please run 'yarn bazel:lint'." && \
+  echo
+  echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+  echo "'yarn bazel:lint-check' failed!"
+  echo "Please run 'yarn bazel:lint'."
+  echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
   exit 1
 fi
