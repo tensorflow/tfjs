@@ -1,4 +1,3 @@
-load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
 load(":build_defs.bzl", "tfjs_cc_library", "tfjs_unit_test")
 
 # Emcripten produces a much larger wasm bundle unless the cc_binary has srcs
