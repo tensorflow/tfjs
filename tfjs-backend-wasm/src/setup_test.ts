@@ -165,7 +165,9 @@ const TEST_FILTERS: TestFilter[] = [
       '2D, axis=0',  // Permuted axes requires transpose, which is not yet
                      // implemented.
       'index corresponds to start of a non-initial window',  // argMin not yet
-                                                             // implemented.
+                                                             // implemented.,
+      'gradient',     // Gradients not yet implemented
+      'ignores NaNs'  // Doesn't yet ignore NaN
     ]
   },
   {
@@ -173,8 +175,10 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'derivative: 1D tensor with max or min value',  // Clip not yet
                                                       // implemented.
-      '2D, axis=0'  // Permuted axes requires transpose, which is not yet
-                    // implemented.
+      '2D, axis=0',   // Permuted axes requires transpose, which is not yet
+                      // implemented.
+      'gradient',     // Gradients not yet implemented
+      'ignores NaNs'  // Doesn't yet ignore NaN
     ]
   },
   {
@@ -213,7 +217,20 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {
     include: 'log ',
-  }
+  },
+  {
+    include: 'mean ',
+    excludes: [
+      'axis=0',  // Reduction not supported along inner dimensions.
+    ]
+  },
+  {
+    startsWith: 'sum ',
+    excludes: [
+      'axis=0',        // Reduction not supported along inner dimensions.
+      'axis=[-1,-2]',  // Reduction not supported along inner dimensions.
+    ]
+  },
 ];
 
 const customInclude = (testName: string) => {
