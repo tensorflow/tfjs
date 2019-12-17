@@ -37,7 +37,6 @@ test_suite(
 tfjs_cc_library(
     name = "backend",
     srcs = ["backend.cc"],
-    hdrs = ["backend.h"],
     deps = [
         ":check_macros",
         ":util",

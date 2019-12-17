@@ -26,6 +26,14 @@
   "[cpp]": {
     "editor.formatOnSave": true
   },
+  "emeraldwalk.runonsave": {
+    "commands": [
+      {
+        "match": "(BUILD|.*bzl)",
+        "cmd": "yarn bazel:format && yarn bazel:lint"
+      }
+    ]
+  },
   "editor.defaultFormatter": "xaver.clang-format",
   "editor.rulers": [80],
   "clang-format.style": "Google",
