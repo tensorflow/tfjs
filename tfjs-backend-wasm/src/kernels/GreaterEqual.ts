@@ -15,6 +15,6 @@
  * =============================================================================
  */
 
-import { registerBinaryKernel } from './binary_kernel';
-const supportsBroadcast = true;
-registerBinaryKernel('GreaterEqual', supportsBroadcast, 'bool');
+import {registerBinaryKernel} from './binary_kernel';
+const supportsFullBroadcast = false;
+registerBinaryKernel('GreaterEqual', supportsFullBroadcast, 'bool');

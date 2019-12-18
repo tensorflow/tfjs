@@ -21,7 +21,7 @@ import {BackendWasm} from '../backend_wasm';
 import {CppDType} from './types';
 
 export function registerBinaryKernel(
-    kernelName: string, supportsBroadcast: boolean, dtype?: DataType) {
+    kernelName: string, supportsFullBroadcast: boolean, dtype?: DataType) {
   let wasmFunc:
       (aId: number, aShape: Uint8Array, aShapeLen: number, bId: number,
        bShape: Uint8Array, bShapeLen: number, dtype: number, outId: number) =>
@@ -63,7 +63,7 @@ export function registerBinaryKernel(
         aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length,
         CppDType[a.dtype], outId);
 
-    if (supportsBroadcast) {
+    if (supportsFullBroadcast) {
       kernelFunc();
       return out;
     }
@@ -76,7 +76,9 @@ export function registerBinaryKernel(
       kernelFunc();
       return out;
     } else {
-      throw new Error('Broadcasting along inner dims is not yet supported');
+      throw new Error(
+          `Broadcasting along outer dims is not yet ` +
+          `supported for ${kernelName}.`);
     }
   }
 

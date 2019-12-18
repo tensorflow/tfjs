@@ -62,7 +62,9 @@
       // Formats typescript, javascript and c++ code.
       "xaver.clang-format",
       // Lints typescipt code.
-      "ms-vscode.vscode-typescript-tslint-plugin"
+      "ms-vscode.vscode-typescript-tslint-plugin",
+      // Running custom linters on save.
+      "emeraldwalk.RunOnSave"
     ]
   }
 }
