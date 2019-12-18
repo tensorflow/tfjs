@@ -1,0 +1,8 @@
+{
+  "tf-lib": "url-to-download-customized-binary",
+  "addon": {
+    "host": "host-of-pre-compiled-addon",
+    "remote_path": "remote-path-of-pre-compiled-addon",
+    "package_name": "file-name-of-pre-compile-addon"
+  }
+}

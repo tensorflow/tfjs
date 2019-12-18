@@ -338,7 +338,7 @@ limitations under the License.
       await sleep(200);
       await measureAveragePredictTime();
       await sleep(200);
-      if (queryTimerIsEnabled()) {
+      if (state.backend != 'webgl' || queryTimerIsEnabled()) {
         await profileKernelTime();
       } else {
         showMsg('Skipping kernel times since query timer extension is not ' +

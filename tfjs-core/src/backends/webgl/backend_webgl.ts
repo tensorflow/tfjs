@@ -155,7 +155,7 @@ export interface WebGLTimingInfo extends TimingInfo {
 
 const binaryCaches: {[webGLVersion: string]: {[key: string]: GPGPUBinary}} = {};
 
-function getBinaryCache(webGLVersion: number) {
+export function getBinaryCache(webGLVersion: number) {
   if (webGLVersion in binaryCaches) {
     return binaryCaches[webGLVersion];
   }
@@ -2628,6 +2628,15 @@ export class MathBackendWebGL extends KernelBackend {
   dispose() {
     if (this.disposed) {
       return;
+    }
+    // Avoid disposing the compiled webgl programs during unit testing because
+    // it slows down test execution.
+    if (!env().getBool('IS_TEST')) {
+      const allKeys = Object.keys(this.binaryCache);
+      allKeys.forEach(key => {
+        this.gpgpu.deleteProgram(this.binaryCache[key].webGLProgram);
+        delete this.binaryCache[key];
+      });
     }
     this.textureManager.dispose();
     if (this.canvas != null &&

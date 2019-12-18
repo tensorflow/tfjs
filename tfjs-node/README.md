@@ -116,3 +116,18 @@ cp bazel-bin/tensorflow/tools/lib_package/libtensorflow.tar.gz ~/myproject/node_
 cd path-to-my-project/node_modules/@tensorflow/tfjs-node/deps
 tar -xf libtensorflow.tar.gz
 ```
+
+If you want to publish an addon library with your own libtensorflow binary, you can host the custom libtensorflow binary and optional pre-compiled node addon module on the cloud service you choose, and add a `custom-binary.json` file in `scripts` folder with the following information:
+
+```js
+{
+  "tf-lib": "url-to-download-customized-binary",
+  "addon": {
+    "host": "host-of-pre-compiled-addon",
+    "remote_path": "remote-path-of-pre-compiled-addon",
+    "package_name": "file-name-of-pre-compile-addon"
+  }
+}
+```
+
+The installation scripts will automatically catch this file and use the custom libtensorflow binary and addon. If `addon` is not provided, the installation script will compile addon from source.
