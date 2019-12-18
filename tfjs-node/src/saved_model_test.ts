@@ -429,7 +429,8 @@ describe('SavedModel', () => {
     model2.dispose();
   });
 
-  it('execute model with single inputs and outputs', async () => {
+  it('execute model with single input and multiple outputs', async () => {
+    // This test model behaves as: f(x)=[2*x, x]
     const model = await tf.node.loadSavedModel(
         './test_objects/saved_model/model_single_input_multi_output', ['serve'],
         'serving_default');
@@ -446,7 +447,8 @@ describe('SavedModel', () => {
     model.dispose();
   });
 
-  it('execute model with multiple inputs and outputs', async () => {
+  it('execute model with multiple inputs and multiple outputs', async () => {
+    // This test model behaves as: f(x, y)=[2*x, y]
     const model = await tf.node.loadSavedModel(
         './test_objects/saved_model/model_multi_output', ['serve'],
         'serving_default');
