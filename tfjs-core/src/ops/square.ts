@@ -16,9 +16,11 @@
  */
 
 import {ENGINE} from '../engine';
+import {registerGradient} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
+
 import {op} from './operation';
 
 /**
@@ -35,18 +37,28 @@ import {op} from './operation';
 function square_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'square');
 
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [x] = saved;
-    return {x: () => dy.mul(x.toFloat().mul(2))} as {x: () => T};
-  };
+  // const grad = (dy: T, saved: Tensor[]) => {
+  //   const [x] = saved;
+  //   return {x: () => dy.mul(x.toFloat().mul(2))} as {x: () => T};
+  // };
   const kernelName = 'Square';
   const attrs = {};
   const inputsToSave = [$x];
   const outputsToSave: boolean[] = [];
-  return ENGINE.runKernelFunc((backend, save) => {
-    save([$x]);
-    return backend.square($x);
-  }, {x: $x}, grad, kernelName, attrs, inputsToSave, outputsToSave);
+  return ENGINE.runKernel(
+             kernelName, {x: $x}, attrs, inputsToSave, outputsToSave) as T;
+  // return ENGINE.runKernelFunc((backend, save) => {
+  //   save([$x]);
+  //   return backend.square($x);
+  // }, {x: $x}, grad, kernelName, attrs, inputsToSave, outputsToSave);
 }
+
+registerGradient({
+  kernelName: 'Square',
+  gradFunc: (dy: Tensor, saved: Tensor[]) => {
+    const [x] = saved;
+    return {x: () => dy.mul(x.toFloat().mul(2))};
+  }
+});
 
 export const square = op({square_});

@@ -15,17 +15,18 @@
  * =============================================================================
  */
 
+import {getGradient} from './kernel_registry';
 import {Tensor} from './tensor';
 import {NamedTensorMap} from './tensor_types';
 import * as util from './util';
 
 export interface TapeNode {
   id: number;
-  name: string;
+  kernelName: string;
   outputs: Tensor[];
   inputs: NamedTensorMap;
   // Optional params, defined only for ops with gradient impl.
-  gradient?: (dys: Tensor[]) => NamedGradientMap;
+  gradient?: (dy: Tensor|Tensor[], saved: Tensor[]) => NamedGradientMap;
   saved?: Tensor[];
 }
 
@@ -130,7 +131,8 @@ export function getFilteredNodesXToY(
  */
 export function backpropagateGradients(
     tensorAccumulatedGradientMap: {[tensorId: number]: Tensor},
-    filteredTape: TapeNode[], tidy: (f: Function) => Tensor) {
+    filteredTape: TapeNode[], tidy: (f: Function) => Tensor,
+    zeros: (shape: number[]) => Tensor) {
   // Walk the tape backward and keep a map of Tensor to its gradient.
   for (let i = filteredTape.length - 1; i >= 0; i--) {
     const node = filteredTape[i];
@@ -142,19 +144,25 @@ export function backpropagateGradients(
         dys.push(gradTensor);
       } else {
         // This particular output is not in the back-propagation subgraph, so it
-        // does not affect the final output, thus we put null for its dy.
-        dys.push(null);
+        // does not affect the final output.
+        // TODO(smilkov): To optimize back-prop, pass dys that are not used in
+        // the backprop graph to the user as null instead of zeros.
+        dys.push(zeros(o.shape));
       }
     });
-
-    if (node.gradient == null) {
+    const gradConfig = getGradient(node.kernelName);
+    const gradFunc = gradConfig ? gradConfig.gradFunc : node.gradient;
+    if (gradFunc == null) {
       throw new Error(
           `Cannot compute gradient: gradient function not found ` +
-          `for ${node.name}.`);
+          `for ${node.kernelName}.`);
     }
 
     // Backprop dy through this node and accumulate gradients over the inputs.
-    const inputGradients = node.gradient(dys);
+    // Grad functions of ops with single outputs expect a dy, while ops
+    // with multiple outputs expect dys (array of dy).
+    const inputGradients = gradFunc(dys.length > 1 ? dys : dys[0], node.saved);
+
     for (const inputName in node.inputs) {
       if (!(inputName in inputGradients)) {
         throw new Error(
@@ -166,13 +174,15 @@ export function backpropagateGradients(
       const dx = tidy(() => inputGradients[inputName]());
       if (dx.dtype !== 'float32') {
         throw new Error(
-            `Error in gradient for op ${node.name}. The gradient of input ` +
+            `Error in gradient for op ${
+                node.kernelName}. The gradient of input ` +
             `${inputName} must have 'float32' dtype, but has '${dx.dtype}'`);
       }
       const x = node.inputs[inputName];
       if (!util.arraysEqual(dx.shape, x.shape)) {
         throw new Error(
-            `Error in gradient for op ${node.name}. The gradient of input ` +
+            `Error in gradient for op ${
+                node.kernelName}. The gradient of input ` +
             `'${inputName}' has shape '${dx.shape}', which does not match ` +
             `the shape of the input '${x.shape}'`);
       }

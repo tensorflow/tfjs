@@ -15,9 +15,11 @@
  * =============================================================================
  */
 
+import {Tensor} from './tensor';
 import {DataType, RecursiveArray} from './types';
 
 const kernelRegistry: Map<string, KernelConfig> = new Map();
+const gradRegistry: Map<string, GradConfig> = new Map();
 
 export type DataId = object;
 
@@ -34,6 +36,9 @@ export type KernelFunc = (params: {
   attrs?: NamedAttrMap,
 }) => TensorInfo|TensorInfo[];
 
+export type GradFunc = (dy: Tensor|Tensor[], saved: Tensor[]) =>
+    ({[inputName: string]: () => Tensor});
+
 /** Function that gets called after the backend initializes. */
 export type KernelSetupFunc = (backend: {}) => void;
 /** Function that gets called right before the backend is disposed. */
@@ -44,6 +49,13 @@ export interface KernelConfig {
   kernelName: string;
   backendName: string;
   kernelFunc: KernelFunc;
+  setupFunc?: KernelSetupFunc;
+  disposeFunc?: KernelDisposeFunc;
+}
+
+export interface GradConfig {
+  kernelName: string;
+  gradFunc: GradFunc;
   setupFunc?: KernelSetupFunc;
   disposeFunc?: KernelDisposeFunc;
 }
@@ -73,6 +85,10 @@ export function getKernel(
     kernelName: string, backendName: string): KernelConfig {
   const key = makeKey(kernelName, backendName);
   return kernelRegistry.get(key);
+}
+
+export function getGradient(kernelName: string): GradConfig {
+  return gradRegistry.get(kernelName);
 }
 
 export function getKernelsForBackend(backendName: string): KernelConfig[] {
@@ -115,6 +131,14 @@ export function registerKernel(config: KernelConfig) {
   kernelRegistry.set(key, config);
 }
 
+export function registerGradient(config: GradConfig) {
+  const {kernelName} = config;
+  if (gradRegistry.has(kernelName)) {
+    throw new Error(`The gradient '${kernelName} is already registered`);
+  }
+  gradRegistry.set(kernelName, config);
+}
+
 /**
  * Removes the kernel function from the registry.
  *
@@ -131,6 +155,14 @@ export function unregisterKernel(
         `'${backendName}' is not registered`);
   }
   kernelRegistry.delete(key);
+}
+
+export function unregisterGradient(kernelName: string): void {
+  if (!gradRegistry.has(kernelName)) {
+    throw new Error(
+        `The gradient '${kernelName}' for backend is not registered`);
+  }
+  gradRegistry.delete(kernelName);
 }
 
 function makeKey(kernelName: string, backendName: string) {

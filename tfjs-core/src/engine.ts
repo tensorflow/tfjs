@@ -25,7 +25,7 @@ import {GradSaveFunc, NamedTensorMap, NamedVariableMap, TensorContainer} from '.
 import {getTensorsInContainer} from './tensor_util';
 import {BackendValues, DataType, DataValues} from './types';
 import * as util from './util';
-import {bytesFromStringArray, makeOnesTypedArray, now, sizeFromShape} from './util';
+import {bytesFromStringArray, makeOnesTypedArray, makeZerosTypedArray, now, sizeFromShape} from './util';
 
 /**
  * A function that computes an output. The save function is for saving tensors
@@ -500,7 +500,7 @@ export class Engine implements TensorTracker, DataMover {
   }
 
   private checkKernelForMemLeak(
-      scopeName: string, numDataIdsBefore: number,
+      kernelName: string, numDataIdsBefore: number,
       outInfos: TensorInfo[]): void {
     const numDataIdsAfter = this.backend.numDataIds();
 
@@ -524,7 +524,7 @@ export class Engine implements TensorTracker, DataMover {
     if (dataIdsLeaked > 0) {
       throw new Error(
           `Backend '${this.backendName}' has an internal memory leak ` +
-          `(${dataIdsLeaked} data ids) after running '${scopeName}'`);
+          `(${dataIdsLeaked} data ids) after running '${kernelName}'`);
     }
   }
 
@@ -540,8 +540,10 @@ export class Engine implements TensorTracker, DataMover {
     let outputs: Tensor[];
     let saved: Tensor[] = [];
     const isTapeOn = this.isTapeOn();
-    const scopeName =
-        this.state.activeScope != null ? this.state.activeScope.name : '';
+    if (kernelName == null) {
+      kernelName =
+          this.state.activeScope != null ? this.state.activeScope.name : '';
+    }
     const saveFunc: GradSaveFunc = (tensors) => {
       // Do not save unless we are recording to the tape. Otherwise it would
       // cause a mem leak since we would never run backprop, which disposes
@@ -568,7 +570,7 @@ export class Engine implements TensorTracker, DataMover {
         out = kernel.kernelFunc({inputs, attrs, backend: this.backend});
         const outInfos = Array.isArray(out) ? out : [out];
         if (this.shouldCheckForMemLeaks()) {
-          this.checkKernelForMemLeak(scopeName, numDataIdsBefore, outInfos);
+          this.checkKernelForMemLeak(kernelName, numDataIdsBefore, outInfos);
         }
         const outTensors = outInfos.map(
             ({dataId, shape, dtype}) =>
@@ -584,7 +586,7 @@ export class Engine implements TensorTracker, DataMover {
         out = this.tidy(() => forwardFunc(this.backend, saveFunc));
         const outs = (Array.isArray(out) ? out : [out]) as Tensor[];
         if (this.shouldCheckForMemLeaks()) {
-          this.checkKernelForMemLeak(scopeName, numDataIdsBefore, outs);
+          this.checkKernelForMemLeak(kernelName, numDataIdsBefore, outs);
         }
         return outs;
       };
@@ -597,17 +599,17 @@ export class Engine implements TensorTracker, DataMover {
             outputs = kernelFunc();
           } else {
             outputs = this.profiler.profileKernel(
-                scopeName, inputs, () => kernelFunc());
+                kernelName, inputs, () => kernelFunc());
           }
         });
 
     if (isTapeOn) {
-      this.addTapeNode(scopeName, inputs, outputs, backwardsFunc, saved);
+      this.addTapeNode(kernelName, inputs, outputs, backwardsFunc, saved);
     }
 
     if (this.state.profiling) {
       this.state.activeProfile.kernels.push({
-        name: scopeName,
+        name: kernelName,
         bytesAdded: this.state.numBytes - startingBytecount,
         totalBytesSnapshot: this.state.numBytes,
         tensorsAdded: this.state.numTensors - startingNumTensors,
@@ -795,33 +797,17 @@ export class Engine implements TensorTracker, DataMover {
   }
 
   private addTapeNode(
-      scopeName: string, inputs: NamedTensorMap, outputs: Tensor[],
-      gradientsFunc: (dy: Tensor|Tensor[], saved: Tensor[]) => NamedGradientMap,
+      kernelName: string, inputs: NamedTensorMap, outputs: Tensor[],
+      gradient: (dy: Tensor|Tensor[], saved: Tensor[]) => NamedGradientMap,
       saved: Tensor[]): void {
     const tapeNode: TapeNode = {
       id: this.state.nextTapeNodeId++,
-      name: scopeName,
+      kernelName,
       inputs,
       outputs,
-      saved
+      saved,
+      gradient
     };
-    if (gradientsFunc != null) {
-      tapeNode.gradient = (dys: Tensor[]) => {
-        // TODO(smilkov): To optimize back-prop, pass dys that are not used in
-        // the backprop graph to the user as null instead of zeros
-        dys = dys.map((dy, i) => {
-          if (dy == null) {
-            const output = outputs[i];
-            const vals = util.makeZerosTypedArray(output.size, output.dtype);
-            return this.makeTensor(vals, output.shape, output.dtype);
-          }
-          return dy;
-        });
-        // Grad functions of ops with single outputs expect a dy, while ops
-        // with multiple outputs expect dys (array of dy).
-        return gradientsFunc(dys.length > 1 ? dys : dys[0], saved);
-      };
-    }
     this.state.activeTape.push(tapeNode);
   }
 
@@ -929,7 +915,7 @@ export class Engine implements TensorTracker, DataMover {
       backpropagateGradients(
           accumulatedGradientMap, filteredTape,
           // Pass the tidy function to avoid circular dep with `tape.ts`.
-          f => this.tidy(f as ScopeFn<Tensor>));
+          f => this.tidy(f as ScopeFn<Tensor>), zeros);
       const grads = xs.map(x => accumulatedGradientMap[x.id]);
 
       if (this.state.gradientDepth === 0) {
@@ -1064,6 +1050,11 @@ export class Engine implements TensorTracker, DataMover {
 
 function ones(shape: number[]): Tensor {
   const values = makeOnesTypedArray(sizeFromShape(shape), 'float32');
+  return ENGINE.makeTensor(values, shape, 'float32');
+}
+
+function zeros(shape: number[]): Tensor {
+  const values = makeZerosTypedArray(sizeFromShape(shape), 'float32');
   return ENGINE.makeTensor(values, shape, 'float32');
 }
 
