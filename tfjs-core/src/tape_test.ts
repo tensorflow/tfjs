@@ -22,10 +22,6 @@ import {zerosLike} from './ops/ops';
 import {backpropagateGradients, getFilteredNodesXToY, TapeNode} from './tape';
 import {expectArraysClose} from './test_util';
 
-function zeros(shape: number[]): tf.Tensor {
-  return tf.zeros(shape, 'float32');
-}
-
 describeWithFlags('getFilteredNodesXToY', ALL_ENVS, () => {
   it('no paths from x to y', () => {
     const x = tf.scalar(1);
@@ -270,7 +266,7 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
     expect(
         () => backpropagateGradients(
             accumulatedGradientsMap, tape,
-            f => tf.tidy(f as ScopeFn<tf.Tensor>), zeros))
+            f => tf.tidy(f as ScopeFn<tf.Tensor>)))
         .toThrowError();
   });
 
@@ -288,14 +284,13 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
       kernelName: 'node0',
       inputs: {x},
       outputs: [y],
-      gradient: (dy: tf.Tensor) => {
-        return {x: () => dy.add(tf.scalar(1))};
+      gradient: (dys: tf.Tensor[]) => {
+        return {x: () => dys[0].add(tf.scalar(1))};
       }
     }];
 
     backpropagateGradients(
-        accumulatedGradientsMap, tape, f => tf.tidy(f as ScopeFn<tf.Tensor>),
-        zeros);
+        accumulatedGradientsMap, tape, f => tf.tidy(f as ScopeFn<tf.Tensor>));
 
     expectArraysClose(await accumulatedGradientsMap[x.id].data(), [2]);
   });
@@ -316,8 +311,8 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
         kernelName: 'node0',
         inputs: {x},
         outputs: [intermediate],
-        gradient: (dy: tf.Tensor) => {
-          return {x: () => dy.add(tf.scalar(1))};
+        gradient: (dys: tf.Tensor[]) => {
+          return {x: () => dys[0].add(tf.scalar(1))};
         }
       },
       {
@@ -325,15 +320,14 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
         kernelName: 'node1',
         inputs: {intermediate},
         outputs: [y],
-        gradient: (dy: tf.Tensor) => {
-          return {intermediate: () => dy.add(tf.scalar(1))};
+        gradient: (dys: tf.Tensor[]) => {
+          return {intermediate: () => dys[0].add(tf.scalar(1))};
         }
       }
     ];
 
     backpropagateGradients(
-        accumulatedGradientsMap, tape, f => tf.tidy(f as ScopeFn<tf.Tensor>),
-        zeros);
+        accumulatedGradientsMap, tape, f => tf.tidy(f as ScopeFn<tf.Tensor>));
 
     // dx = dy + 1 + 1
     expectArraysClose(await accumulatedGradientsMap[x.id].data(), [3]);
@@ -356,8 +350,8 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
         kernelName: 'node0',
         inputs: {x},
         outputs: [intermediate1],
-        gradient: (dy: tf.Tensor) => {
-          return {x: () => dy.add(tf.scalar(1))};
+        gradient: (dys: tf.Tensor[]) => {
+          return {x: () => dys[0].add(tf.scalar(1))};
         }
       },
       {
@@ -365,8 +359,8 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
         kernelName: 'node1',
         inputs: {x},
         outputs: [intermediate2],
-        gradient: (dy: tf.Tensor) => {
-          return {x: () => dy.add(tf.scalar(1))};
+        gradient: (dys: tf.Tensor[]) => {
+          return {x: () => dys[0].add(tf.scalar(1))};
         }
       },
       {
@@ -374,18 +368,17 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
         kernelName: 'node2',
         inputs: {intermediate1, intermediate2},
         outputs: [y],
-        gradient: (dy: tf.Tensor) => {
+        gradient: (dys: tf.Tensor[]) => {
           return {
-            intermediate1: () => dy.add(tf.scalar(1)),
-            intermediate2: () => dy.add(tf.scalar(1))
+            intermediate1: () => dys[0].add(tf.scalar(1)),
+            intermediate2: () => dys[0].add(tf.scalar(1))
           };
         }
       }
     ];
 
     backpropagateGradients(
-        accumulatedGradientsMap, tape, f => tf.tidy(f as ScopeFn<tf.Tensor>),
-        zeros);
+        accumulatedGradientsMap, tape, f => tf.tidy(f as ScopeFn<tf.Tensor>));
 
     // dx = dy + 1 + 1 + 1 + 1 + 1
     expectArraysClose(
@@ -417,8 +410,8 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
        }];
 
        backpropagateGradients(
-           accumulatedGradientsMap, tape, f => tf.tidy(f as ScopeFn<tf.Tensor>),
-           zeros);
+           accumulatedGradientsMap, tape,
+           f => tf.tidy(f as ScopeFn<tf.Tensor>));
        expectArraysClose(await accumulatedGradientsMap[x.id].data(), [0, 5, 0]);
        expectArraysClose(await dys[0].data(), [0]);
        expectArraysClose(await dys[1].data(), [5]);

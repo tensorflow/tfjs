@@ -17,7 +17,7 @@
 
 import {BackendTimingInfo, DataMover, KernelBackend} from './backends/backend';
 import {Environment, setEnvironmentGlobal} from './environment';
-import {getKernel, getKernelsForBackend, NamedAttrMap, TensorInfo} from './kernel_registry';
+import {getGradient, getKernel, getKernelsForBackend, NamedAttrMap, TensorInfo} from './kernel_registry';
 import {Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, NamedGradientMap, TapeNode} from './tape';
 import {DataId, setTensorTracker, Tensor, TensorTracker, Variable} from './tensor';
@@ -25,7 +25,7 @@ import {GradSaveFunc, NamedTensorMap, NamedVariableMap, TensorContainer} from '.
 import {getTensorsInContainer} from './tensor_util';
 import {BackendValues, DataType, DataValues} from './types';
 import * as util from './util';
-import {bytesFromStringArray, makeOnesTypedArray, makeZerosTypedArray, now, sizeFromShape} from './util';
+import {bytesFromStringArray, makeOnesTypedArray, now, sizeFromShape} from './util';
 
 /**
  * A function that computes an output. The save function is for saving tensors
@@ -798,16 +798,32 @@ export class Engine implements TensorTracker, DataMover {
 
   private addTapeNode(
       kernelName: string, inputs: NamedTensorMap, outputs: Tensor[],
-      gradient: (dy: Tensor|Tensor[], saved: Tensor[]) => NamedGradientMap,
+      gradientsFunc: (dy: Tensor|Tensor[], saved: Tensor[]) => NamedGradientMap,
       saved: Tensor[]): void {
-    const tapeNode: TapeNode = {
-      id: this.state.nextTapeNodeId++,
-      kernelName,
-      inputs,
-      outputs,
-      saved,
-      gradient
-    };
+    const tapeNode: TapeNode =
+        {id: this.state.nextTapeNodeId++, kernelName, inputs, outputs, saved};
+
+    const gradConfig = getGradient(kernelName);
+    if (gradConfig) {
+      gradientsFunc = gradConfig.gradFunc;
+    }
+    if (gradientsFunc != null) {
+      tapeNode.gradient = (dys: Tensor[]) => {
+        // TODO(smilkov): To optimize back-prop, pass dys that are not used in
+        // the backprop graph to the user as null instead of zeros
+        dys = dys.map((dy, i) => {
+          if (dy == null) {
+            const output = outputs[i];
+            const vals = util.makeZerosTypedArray(output.size, output.dtype);
+            return this.makeTensor(vals, output.shape, output.dtype);
+          }
+          return dy;
+        });
+        // Grad functions of ops with single outputs expect a dy, while ops
+        // with multiple outputs expect dys (array of dy).
+        return gradientsFunc(dys.length > 1 ? dys : dys[0], saved);
+      };
+    }
     this.state.activeTape.push(tapeNode);
   }
 
@@ -915,7 +931,7 @@ export class Engine implements TensorTracker, DataMover {
       backpropagateGradients(
           accumulatedGradientMap, filteredTape,
           // Pass the tidy function to avoid circular dep with `tape.ts`.
-          f => this.tidy(f as ScopeFn<Tensor>), zeros);
+          f => this.tidy(f as ScopeFn<Tensor>));
       const grads = xs.map(x => accumulatedGradientMap[x.id]);
 
       if (this.state.gradientDepth === 0) {
@@ -1050,11 +1066,6 @@ export class Engine implements TensorTracker, DataMover {
 
 function ones(shape: number[]): Tensor {
   const values = makeOnesTypedArray(sizeFromShape(shape), 'float32');
-  return ENGINE.makeTensor(values, shape, 'float32');
-}
-
-function zeros(shape: number[]): Tensor {
-  const values = makeZerosTypedArray(sizeFromShape(shape), 'float32');
   return ENGINE.makeTensor(values, shape, 'float32');
 }
 

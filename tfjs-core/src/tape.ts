@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {getGradient} from './kernel_registry';
 import {Tensor} from './tensor';
 import {NamedTensorMap} from './tensor_types';
 import * as util from './util';
@@ -26,7 +25,7 @@ export interface TapeNode {
   outputs: Tensor[];
   inputs: NamedTensorMap;
   // Optional params, defined only for ops with gradient impl.
-  gradient?: (dy: Tensor|Tensor[], saved: Tensor[]) => NamedGradientMap;
+  gradient?: (dys: Tensor[]) => NamedGradientMap;
   saved?: Tensor[];
 }
 
@@ -131,8 +130,7 @@ export function getFilteredNodesXToY(
  */
 export function backpropagateGradients(
     tensorAccumulatedGradientMap: {[tensorId: number]: Tensor},
-    filteredTape: TapeNode[], tidy: (f: Function) => Tensor,
-    zeros: (shape: number[]) => Tensor) {
+    filteredTape: TapeNode[], tidy: (f: Function) => Tensor) {
   // Walk the tape backward and keep a map of Tensor to its gradient.
   for (let i = filteredTape.length - 1; i >= 0; i--) {
     const node = filteredTape[i];
@@ -144,24 +142,19 @@ export function backpropagateGradients(
         dys.push(gradTensor);
       } else {
         // This particular output is not in the back-propagation subgraph, so it
-        // does not affect the final output.
-        // TODO(smilkov): To optimize back-prop, pass dys that are not used in
-        // the backprop graph to the user as null instead of zeros.
-        dys.push(zeros(o.shape));
+        // does not affect the final output, thus we put null for its dy.
+        dys.push(null);
       }
     });
-    const gradConfig = getGradient(node.kernelName);
-    const gradFunc = gradConfig ? gradConfig.gradFunc : node.gradient;
-    if (gradFunc == null) {
+
+    if (node.gradient == null) {
       throw new Error(
           `Cannot compute gradient: gradient function not found ` +
           `for ${node.kernelName}.`);
     }
 
     // Backprop dy through this node and accumulate gradients over the inputs.
-    // Grad functions of ops with single outputs expect a dy, while ops
-    // with multiple outputs expect dys (array of dy).
-    const inputGradients = gradFunc(dys.length > 1 ? dys : dys[0], node.saved);
+    const inputGradients = node.gradient(dys);
 
     for (const inputName in node.inputs) {
       if (!(inputName in inputGradients)) {
