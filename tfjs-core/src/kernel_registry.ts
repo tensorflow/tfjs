@@ -36,6 +36,7 @@ export type KernelFunc = (params: {
   attrs?: NamedAttrMap,
 }) => TensorInfo|TensorInfo[];
 
+/** The function to run when computing a gradient during backprop. */
 export type GradFunc = (dy: Tensor|Tensor[], saved: Tensor[]) =>
     ({[inputName: string]: () => Tensor});
 
@@ -53,11 +54,10 @@ export interface KernelConfig {
   disposeFunc?: KernelDisposeFunc;
 }
 
+/** Config object for registering a gradient in the global registry. */
 export interface GradConfig {
   kernelName: string;
   gradFunc: GradFunc;
-  setupFunc?: KernelSetupFunc;
-  disposeFunc?: KernelDisposeFunc;
 }
 
 /** Holds metadata for a given tensor. */
@@ -87,6 +87,10 @@ export function getKernel(
   return kernelRegistry.get(key);
 }
 
+/**
+ * Returns the registered gradient info associated with the provided kernel.
+ * @param kernelName The official TF kernel name.
+ */
 export function getGradient(kernelName: string): GradConfig {
   return gradRegistry.get(kernelName);
 }
@@ -131,10 +135,18 @@ export function registerKernel(config: KernelConfig) {
   kernelRegistry.set(key, config);
 }
 
+/**
+ * Registers the function and related info for the gradient to the global
+ * registry to be used during back-propagation.
+ *
+ * @param config An object with the following properties:
+ * - `kernelName` The official TF name of the kernel.
+ * - `gradFunc` The function to run during back-propagation.
+ */
 export function registerGradient(config: GradConfig) {
   const {kernelName} = config;
   if (gradRegistry.has(kernelName)) {
-    throw new Error(`The gradient '${kernelName} is already registered`);
+    throw new Error(`The gradient for '${kernelName}' is already registered`);
   }
   gradRegistry.set(kernelName, config);
 }
@@ -157,6 +169,7 @@ export function unregisterKernel(
   kernelRegistry.delete(key);
 }
 
+/** Removes the registered gradient from the global registry. */
 export function unregisterGradient(kernelName: string): void {
   if (!gradRegistry.has(kernelName)) {
     throw new Error(

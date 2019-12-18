@@ -19,6 +19,7 @@ import * as tf from './index';
 import {KernelBackend} from './index';
 import {ALL_ENVS, describeWithFlags} from './jasmine_util';
 import {KernelFunc, TensorInfo} from './kernel_registry';
+import {expectArraysClose} from './test_util';
 
 describeWithFlags('kernel_registry', ALL_ENVS, () => {
   it('register a kernel and call it', () => {
@@ -164,5 +165,77 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
     expect(disposeCalled).toBe(true);
 
     tf.unregisterKernel(kernelName, backendName);
+  });
+});
+
+describeWithFlags('gradient registry', ALL_ENVS, () => {
+  it('register a kernel with gradient and call it', async () => {
+    let kernelWasCalled = false;
+    let gradientWasCalled = false;
+    const kernelName = 'MyKernel';
+    const x = tf.zeros([2, 2]);
+
+    tf.registerKernel({
+      kernelName,
+      backendName: tf.getBackend(),
+      kernelFunc: () => {
+        kernelWasCalled = true;
+        return {dtype: 'float32', shape: [3, 3], dataId: {}};
+      }
+    });
+
+    tf.registerGradient({
+      kernelName,
+      gradFunc: (dy: tf.Tensor, saved) => {
+        // Make sure saved input (x) was passed to the gradient function.
+        expect(saved[0].dataId).toEqual(x.dataId);
+        // Make sure dy matches the shape of the output.
+        expect(dy.shape).toEqual([3, 3]);
+        gradientWasCalled = true;
+        return {x: () => tf.fill([2, 2], 3)};
+      },
+    });
+
+    const gradFunc = tf.grad(
+        x => tf.engine().runKernel(
+                 kernelName, {x}, {} /* attrs */, [x] /* inputsToSave */) as
+            tf.Tensor);
+    const dx = gradFunc(x);
+    expect(kernelWasCalled).toBe(true);
+    expect(gradientWasCalled).toBe(true);
+    expect(dx.dtype).toBe('float32');
+    expect(dx.shape).toEqual([2, 2]);
+    expectArraysClose(await dx.data(), [3, 3, 3, 3]);
+    tf.unregisterKernel(kernelName, tf.getBackend());
+    tf.unregisterGradient(kernelName);
+  });
+
+  it('errors when running non-existent gradient', () => {
+    const kernelName = 'MyKernel';
+    const x = tf.zeros([2, 2]);
+
+    tf.registerKernel({
+      kernelName,
+      backendName: tf.getBackend(),
+      kernelFunc: () => ({dtype: 'float32', shape: [3, 3], dataId: {}})
+    });
+
+    const gradFunc = tf.grad(
+        x => tf.engine().runKernel(
+                 kernelName, {x}, {} /* attrs */, [x] /* inputsToSave */) as
+            tf.Tensor);
+    expect(() => gradFunc(x))
+        .toThrowError(/gradient function not found for MyKernel/);
+
+    tf.unregisterKernel(kernelName, tf.getBackend());
+  });
+
+  it('errors when registering the same gradient twice', () => {
+    const kernelName = 'MyKernel';
+    tf.registerGradient({kernelName, gradFunc: () => null});
+
+    expect(() => tf.registerGradient({kernelName, gradFunc: () => null}))
+        .toThrowError(/The gradient for 'MyKernel' is already registered/);
+    tf.unregisterGradient(kernelName);
   });
 });
