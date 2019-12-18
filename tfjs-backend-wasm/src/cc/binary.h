@@ -24,9 +24,9 @@
 namespace tfjs {
 namespace wasm {
 
-template <class T>
-inline void binary_impl(const T* a_buf, const size_t a_size, const T* b_buf,
-                        const size_t b_size, T* out_buf, T operation(T, T)) {
+template <class I, class O>
+inline void binary_impl(const I* a_buf, const size_t a_size, const I* b_buf,
+                        const size_t b_size, O* out_buf, O operation(I, I)) {
   size_t size = std::max(a_size, b_size);
   for (size_t i = 0; i < size; ++i) {
     out_buf[i] = operation(a_buf[i % a_size], b_buf[i % b_size]);
@@ -38,8 +38,8 @@ inline void binary_f32(const size_t a_id, const size_t b_id,
   auto& a_info = backend::get_tensor_info(a_id);
   auto& b_info = backend::get_tensor_info(b_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
-  binary_impl<float>(a_info.f32(), a_info.size, b_info.f32(), b_info.size,
-                     out_info.f32_write(), operation);
+  binary_impl<float, float>(a_info.f32(), a_info.size, b_info.f32(),
+                            b_info.size, out_info.f32_write(), operation);
 }
 
 inline void binary_i32(const size_t a_id, const size_t b_id,
@@ -47,8 +47,8 @@ inline void binary_i32(const size_t a_id, const size_t b_id,
   auto& a_info = backend::get_tensor_info(a_id);
   auto& b_info = backend::get_tensor_info(b_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
-  binary_impl<int32_t>(a_info.i32(), a_info.size, b_info.i32(), b_info.size,
-                       out_info.i32_write(), operation);
+  binary_impl<int32_t, int32_t>(a_info.i32(), a_info.size, b_info.i32(),
+                                b_info.size, out_info.i32_write(), operation);
 }
 
 inline void binary_bool(const size_t a_id, const size_t b_id,
@@ -56,8 +56,44 @@ inline void binary_bool(const size_t a_id, const size_t b_id,
   auto& a_info = backend::get_tensor_info(a_id);
   auto& b_info = backend::get_tensor_info(b_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
-  binary_impl<bool>(a_info.b(), a_info.size, b_info.b(), b_info.size,
-                    out_info.b_write(), operation);
+  binary_impl<bool, bool>(a_info.b(), a_info.size, b_info.b(), b_info.size,
+                          out_info.b_write(), operation);
+}
+
+inline void compare_f32(const int a_id, const int b_id, const int out_id,
+                        bool operation(float, float)) {
+  auto& a_info = backend::get_tensor_info(a_id);
+  auto& b_info = backend::get_tensor_info(b_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
+  binary_impl<float, bool>(a_info.f32(), a_info.size, b_info.f32(), b_info.size,
+                           out_info.b_write(), operation);
+}
+
+inline void compare_i32(const int a_id, const int b_id, const int out_id,
+                        bool operation(int, int)) {
+  auto& a_info = backend::get_tensor_info(a_id);
+  auto& b_info = backend::get_tensor_info(b_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
+  binary_impl<int, bool>(a_info.i32(), a_info.size, b_info.i32(), b_info.size,
+                         out_info.b_write(), operation);
+}
+
+inline void compare_bool(const int a_id, const int b_id, const int out_id,
+                         bool operation(bool, bool)) {
+  auto& a_info = backend::get_tensor_info(a_id);
+  auto& b_info = backend::get_tensor_info(b_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
+  binary_impl<bool, bool>(a_info.b(), a_info.size, b_info.b(), b_info.size,
+                          out_info.b_write(), operation);
+}
+
+inline void logical(const int a_id, const int b_id, const int out_id,
+                    bool operation(bool, bool)) {
+  auto& a_info = backend::get_tensor_info(a_id);
+  auto& b_info = backend::get_tensor_info(b_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
+  binary_impl<bool, bool>(a_info.b(), a_info.size, b_info.b(), b_info.size,
+                          out_info.b_write(), operation);
 }
 
 typedef xnn_status (*xnn_create_binary_op)(float, float, uint32_t,

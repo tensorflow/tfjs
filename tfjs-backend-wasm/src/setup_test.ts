@@ -165,7 +165,9 @@ const TEST_FILTERS: TestFilter[] = [
       '2D, axis=0',  // Permuted axes requires transpose, which is not yet
                      // implemented.
       'index corresponds to start of a non-initial window',  // argMin not yet
-                                                             // implemented.
+                                                             // implemented.,
+      'gradient',     // Gradients not yet implemented
+      'ignores NaNs'  // Doesn't yet ignore NaN
     ]
   },
   {
@@ -173,8 +175,10 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'derivative: 1D tensor with max or min value',  // Clip not yet
                                                       // implemented.
-      '2D, axis=0'  // Permuted axes requires transpose, which is not yet
-                    // implemented.
+      '2D, axis=0',   // Permuted axes requires transpose, which is not yet
+                      // implemented.
+      'gradient',     // Gradients not yet implemented
+      'ignores NaNs'  // Doesn't yet ignore NaN
     ]
   },
   {
@@ -213,6 +217,69 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {
     include: 'log ',
+  },
+  {
+    include: 'greater ',
+    excludes: [
+      'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
+                                       // supported yet.
+      'broadcasting Tensor3D shapes',  // Same as above.
+      'broadcasting Tensor4D shapes'   // Same as above.
+    ]
+  },
+  {
+    include: 'greaterEqual',
+    excludes: [
+      'gradient',                      // Not yet implemented.
+      'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
+                                       // supported yet.
+      'broadcasting Tensor3D shapes',  // Same as above.
+      'broadcasting Tensor4D shapes'   // Same as above.
+    ]
+  },
+  {
+    include: 'less ',
+    excludes: [
+      'broadcasting Tensor2D shapes',   // Broadcasting along outer dims not
+                                        // supported yet.
+      'broadcasting Tensor3D shapes',   // Same as above.
+      'broadcasting Tensor3D float32',  // Same as above.
+      'broadcasting Tensor4D shapes'    // Same as above.
+    ]
+  },
+  {
+    include: 'lessEqual',
+    excludes: [
+      'gradient',                       // Not yet implemented.
+      'broadcasting Tensor2D shapes',   // Broadcasting along outer dims not
+                                        // supported yet.
+      'broadcasting Tensor3D shapes',   // Same as above.
+      'broadcasting Tensor3D float32',  // Same as above.
+      'broadcasting Tensor4D shapes'    // Same as above.
+    ]
+  },
+  {
+    include: 'mean ',
+    excludes: [
+      'axis=0',  // Reduction not supported along inner dimensions.
+    ]
+  },
+  {startsWith: 'sum '},
+  {
+    startsWith: 'logicalAnd ',
+    excludes: [
+      'broadcasting Tensor2D shapes',  // Broadcasting along outer dimensions
+                                       // not yet supported.
+      'broadcasting Tensor3D shapes',  // Same as above.
+      'broadcasting Tensor4D shapes',  // Same as above.
+    ]
+  },
+  {
+    startsWith: 'tile ',
+    excludes: [
+      'gradient',      // Gradient not yet implemented.
+      'string tensor'  // String tensors not yet implemented.
+    ]
   }
 ];
 
