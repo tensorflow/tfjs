@@ -1534,8 +1534,8 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const a = new Float32Array([1, 2, 3, 4, 5]);
     const b = a.subarray(0, 2);
     const t = tf.tensor1d(b);
-    expect(t.shape).toEqual([3]);
-    expectArraysClose(await t.data(), [1, 2, 3]);
+    expect(t.shape).toEqual([2]);
+    expectArraysClose(await t.data(), [1, 2]);
   });
 });
 
