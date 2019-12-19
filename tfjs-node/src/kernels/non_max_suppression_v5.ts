@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, scalar, TensorInfo} from '@tensorflow/tfjs-core';
+import {NamedAttrMap, NamedTensorInfoMap, registerKernel, scalar, Tensor1D, Tensor2D, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {createTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
@@ -46,13 +46,12 @@ registerKernel({
 
     const nodeBackend = backend as NodeJSKernelBackend;
 
-    const outputMetadata = nodeBackend.binding.executeOp(
-        'NonMaxSuppressionV5', opAttrs, nodeBackend.getInputTensorIds([
-          boxes, scores, maxOutputSizeTensor, iouThresholdTensor,
-          scoreThresholdTensor, softNmsSigmaTensor
-        ]),
+    return nodeBackend.executeMultipleOutputs(
+        'NonMaxSuppressionV5', opAttrs,
+        [
+          boxes as Tensor2D, scores as Tensor1D, maxOutputSizeTensor,
+          iouThresholdTensor, scoreThresholdTensor, softNmsSigmaTensor
+        ],
         2);
-
-    return outputMetadata.map(m => nodeBackend.createOutputTensor(m));
   }
 });
