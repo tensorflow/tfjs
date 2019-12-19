@@ -26,6 +26,15 @@ setTestEnvs([{name: 'test-wasm', backendName: 'wasm', isDataSync: true}]);
  */
 const TEST_FILTERS: TestFilter[] = [
   {
+    startsWith: 'tensor ',
+    excludes: [
+      'complex',     // Complex numbers not supported yet
+      'derivative',  // Gradients not yet supported.
+      // Downcasting broken, see: https://github.com/tensorflow/tfjs/issues/2590
+      'Tensor2D float32 -> bool', 'Tensor2D int32 -> bool'
+    ]
+  },
+  {
     include: 'add ',
     excludes: [
       'gradient',                        // Gradient is missing.
