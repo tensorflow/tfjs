@@ -15,8 +15,9 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, scalar} from '@tensorflow/tfjs-core';
-import { NodeJSKernelBackend, createTypeOpAttr } from '../nodejs_kernel_backend';
+import {NamedAttrMap, NamedTensorInfoMap, registerKernel, scalar, TensorInfo} from '@tensorflow/tfjs-core';
+
+import {createTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
 interface NonMaxSuppressionWithScoreInputs extends NamedTensorInfoMap {
   boxes: TensorInfo;
@@ -37,15 +38,20 @@ registerKernel({
     const {boxes, scores} = inputs as NonMaxSuppressionWithScoreInputs;
     const {maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma} =
         attrs as NonMaxSuppressionWithScoreAttrs;
-        const maxOutputSizeTensor = scalar(maxOutputSize, 'int32');
-        const iouThresholdTensor = scalar(iouThreshold);
-        const scoreThresholdTensor = scalar(scoreThreshold);
-        const softNmsSigmaTensor = scalar(softNmsSigma);
+    const maxOutputSizeTensor = scalar(maxOutputSize, 'int32');
+    const iouThresholdTensor = scalar(iouThreshold);
+    const scoreThresholdTensor = scalar(scoreThreshold);
+    const softNmsSigmaTensor = scalar(softNmsSigma);
     const opAttrs = [createTypeOpAttr('T', boxes.dtype)];
 
     const nodeBackend = backend as NodeJSKernelBackend;
 
-    const outputMetadata = nodeBackend.binding.executeOp('NonMaxSuppressionV5', opAttrs, nodeBackend.getInputTensorIds([boxes, scores, maxOutputSizeTensor, iouThresholdTensor, scoreThresholdTensor, softNmsSigmaTensor]), 2);
+    const outputMetadata = nodeBackend.binding.executeOp(
+        'NonMaxSuppressionV5', opAttrs, nodeBackend.getInputTensorIds([
+          boxes, scores, maxOutputSizeTensor, iouThresholdTensor,
+          scoreThresholdTensor, softNmsSigmaTensor
+        ]),
+        2);
 
     return outputMetadata.map(m => nodeBackend.createOutputTensor(m));
   }
