@@ -522,12 +522,12 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-  name = "NonMaxSuppressionV5",
-  srcs = ["kernels/NonMaxSuppressionV5.cc"],
-  deps = [
-    ":backend",
-    ":util",
-  ],
+    name = "NonMaxSuppressionV5",
+    srcs = ["kernels/NonMaxSuppressionV5.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
 )
 
 tfjs_cc_library(
