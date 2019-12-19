@@ -804,7 +804,7 @@ export class Engine implements TensorTracker, DataMover {
         {id: this.state.nextTapeNodeId++, kernelName, inputs, outputs, saved};
 
     const gradConfig = getGradient(kernelName);
-    if (gradConfig) {
+    if (gradConfig != null) {
       gradientsFunc = gradConfig.gradFunc;
     }
     if (gradientsFunc != null) {

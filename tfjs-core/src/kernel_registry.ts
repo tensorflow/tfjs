@@ -136,17 +136,17 @@ export function registerKernel(config: KernelConfig) {
 }
 
 /**
- * Registers the function and related info for the gradient to the global
- * registry to be used during back-propagation.
+ * Registers a gradient function for a given kernel in the global registry,
+ * to be used during the back-propagation of that kernel.
  *
  * @param config An object with the following properties:
- * - `kernelName` The official TF name of the kernel.
+ * - `kernelName` The name of the kernel that the gradient function is for.
  * - `gradFunc` The function to run during back-propagation.
  */
 export function registerGradient(config: GradConfig) {
   const {kernelName} = config;
   if (gradRegistry.has(kernelName)) {
-    throw new Error(`The gradient for '${kernelName}' is already registered`);
+    console.warn(`Overriding the gradient for '${kernelName}'`);
   }
   gradRegistry.set(kernelName, config);
 }

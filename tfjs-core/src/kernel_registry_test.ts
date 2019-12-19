@@ -230,12 +230,13 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
     tf.unregisterKernel(kernelName, tf.getBackend());
   });
 
-  it('errors when registering the same gradient twice', () => {
+  it('warning when registering the same gradient twice', () => {
     const kernelName = 'MyKernel';
     tf.registerGradient({kernelName, gradFunc: () => null});
-
-    expect(() => tf.registerGradient({kernelName, gradFunc: () => null}))
-        .toThrowError(/The gradient for 'MyKernel' is already registered/);
+    spyOn(console, 'warn').and.callFake((msg: string) => {
+      expect(msg).toBe('Overriding the gradient for \'MyKernel\'');
+    });
+    tf.registerGradient({kernelName, gradFunc: () => null});
     tf.unregisterGradient(kernelName);
   });
 });
