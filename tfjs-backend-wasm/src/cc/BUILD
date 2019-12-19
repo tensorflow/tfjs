@@ -167,6 +167,7 @@ tfjs_cc_library(
         ":Minimum",
         ":Mul",
         ":NonMaxSuppressionV3",
+        ":NonMaxSuppressionV5",
         ":PadV2",
         ":Prelu",
         ":Relu",
@@ -427,7 +428,6 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-<<<<<<< HEAD
     name = "LogicalAnd",
     srcs = ["kernels/LogicalAnd.cc"],
     deps = [
@@ -435,23 +435,6 @@ tfjs_cc_library(
         ":binary",
         ":util",
     ],
-=======
-  name = "NonMaxSuppressionV5",
-  srcs = ["kernels/NonMaxSuppressionV5.cc"],
-  deps = [
-    ":backend",
-    ":util",
-  ],
-)
-
-tfjs_cc_library(
-  name = "PadV2",
-  srcs = ["kernels/PadV2.cc"],
-  deps = [
-    ":backend",
-    ":util",
-  ],
->>>>>>> Add support to NonMaxSuppressionV5
 )
 
 tfjs_cc_library(
@@ -536,6 +519,15 @@ tfjs_cc_library(
         ":backend",
         ":util",
     ],
+)
+
+tfjs_cc_library(
+  name = "NonMaxSuppressionV5",
+  srcs = ["kernels/NonMaxSuppressionV5.cc"],
+  deps = [
+    ":backend",
+    ":util",
+  ],
 )
 
 tfjs_cc_library(
