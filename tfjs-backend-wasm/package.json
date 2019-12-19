@@ -3,10 +3,10 @@
   "version": "1.4.0-alpha3",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "jsnext:main": "dist/tf-wasm.esm.js",
-  "module": "dist/tf-wasm.esm.js",
-  "unpkg": "dist/tf-wasm.min.js",
-  "jsdelivr": "dist/tf-wasm.min.js",
+  "jsnext:main": "dist/tf-backend-wasm.esm.js",
+  "module": "dist/tf-backend-wasm.esm.js",
+  "unpkg": "dist/tf-backend-wasm.min.js",
+  "jsdelivr": "dist/tf-backend-wasm.min.js",
   "scripts": {
     "bazel:format": "find . -type f \\( -name \"*.bzl\" -or -name WORKSPACE -or -name BUILD -or -name BUILD.bazel \\) ! -path \"*/node_modules/*\" | xargs buildifier -v --warnings=attr-cfg,attr-license,attr-non-empty,attr-output-default,attr-single-file,constant-glob,ctx-actions,ctx-args,depset-iteration,depset-union,dict-concatenation,duplicated-name,filetype,git-repository,http-archive,integer-division,load,load-on-top,native-build,native-package,out-of-order-load,output-group,package-name,package-on-top,positional-args,redefined-variable,repository-name,same-origin-load,string-iteration,unsorted-dict-items,unused-variable",
     "bazel:format-check": "yarn bazel:format --mode=check",
@@ -34,11 +34,13 @@
   "peerDependencies": {
     "@tensorflow/tfjs-core": "link:../tfjs-core"
   },
+  "dependencies": {
+    "@types/emscripten": "~0.0.34"
+  },
   "devDependencies": {
     "@bazel/bazel": "^0.28.0",
     "@bazel/buildifier": "0.29.0",
     "@tensorflow/tfjs-core": "link:../tfjs-core",
-    "@types/emscripten": "~0.0.34",
     "@types/jasmine": "~2.8.6",
     "clang-format": "~1.2.4",
     "jasmine": "~3.1.0",
