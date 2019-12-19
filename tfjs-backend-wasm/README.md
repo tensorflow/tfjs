@@ -86,50 +86,49 @@ The benchmarks below show inference times (ms) for two different edge-friendly
 models: MobileNet V2 (a medium-sized model) and Face Detector (a lite model).
 All the benchmarks were run in Chrome 79.0 using
 [this benchmark page](../tfjs-core/benchmarks/index.html) across our three
-backends: CPU (vanilla JS), WebGL and WASM. Inference times are averaged
+backends: Plain JS (CPU), WebGL and WASM. Inference times are averaged
 across 200 runs.
 
 ### MobileNet V2
 
 MobileNet is a medium-sized model with 3.48M params and ~300M multiply-adds.
-For this model, the WASM backend is between ~3X-11.5X faster than the vanilla
-CPU backend, and ~5.3-7.7X slower than the WebGL backend.
+For this model, the WASM backend is between ~3X-11.5X faster than the plain
+JS backend, and ~5.3-7.7X slower than the WebGL backend.
 
 <img src="./mobilenet-v2-bench.svg">
 
-| MobileNet inference (ms) | WASM  | WebGL | CPU   |
-|--------------------------|-------|-------|-------|
-| iPhone X                 | 147.1 | 20.3  | 941.3 |
-| iPhone XS                | 140   | 18.1  | 426.4 |
-| Pixel 3                  | 266.2 | 77.3  | 2345.2|
-| Desktop Linux            | 91.5  | 17.1  | 1049  |
-| Macbook Pro              | 98.4  | 19.6  | 893.5 |
+| MobileNet inference (ms) | WASM  | WebGL | Plain JS |
+|--------------------------|-------|-------|----------|
+| iPhone X                 | 147.1 | 20.3  | 941.3    |
+| iPhone XS                | 140   | 18.1  | 426.4    |
+| Pixel 3                  | 266.2 | 77.3  | 2345.2   |
+| Desktop Linux            | 91.5  | 17.1  | 1049     |
+| Macbook Pro              | 98.4  | 19.6  | 893.5    |
 
 
 
 ### Face Detector
 
 Face detector is a lite model with 0.1M params and ~20M multiply-adds. For this model,
-the WASM backend is between ~8.2-19.8X faster than the vanilla CPU backend and
+the WASM backend is between ~8.2-19.8X faster than the plain JS backend and
 comparable to the WebGL backend (up to ~1.7X faster, or 2X slower, depending on
 the device).
 
 <img src="./face-detector-bench.svg">
 
-| Face Detector inference (ms) | WASM | WebGL | CPU   |
-|------------------------------|------|-------|-------|
-| iPhone X                     | 22.4 | 13.5  | 318   |
-| iPhone XS                    | 21.4 | 10.5  | 176.9 |
-| Pixel 3                      | 40.7 | 31.8  | 535.2 |
-| Desktop Linux                | 12.6 | 12.7  | 249.5 |
-| Macbook Pro 15 2019          | 13.6 | 22.7  | 209.1 |
+| Face Detector inference (ms) | WASM | WebGL | Plain JS |
+|------------------------------|------|-------|----------|
+| iPhone X                     | 22.4 | 13.5  | 318      |
+| iPhone XS                    | 21.4 | 10.5  | 176.9    |
+| Pixel 3                      | 40.7 | 31.8  | 535.2    |
+| Desktop Linux                | 12.6 | 12.7  | 249.5    |
+| Macbook Pro 15 2019          | 13.6 | 22.7  | 209.1    |
 
 # FAQ
 
 ### When should I use the WASM backend?
-You should always try to use the WASM backend over the CPU backend
-(which is implemented in vanilla js) since it is strictly faster on all devices,
-across all model sizes.
+You should always try to use the WASM backend over the plain JS backend since
+it is strictly faster on all devices, across all model sizes.
 Compared to the WebGL backend, the WASM backend has better numerical stability,
 and wider device support. Performance-wise, our benchmarks show that:
 - For medium-sized models (~100-500M multiply-adds), the WASM backend is several
