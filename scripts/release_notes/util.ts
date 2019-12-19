@@ -20,7 +20,8 @@ import * as shell from 'shelljs';
 import * as readline from 'readline';
 
 const GOOGLERS_WITH_GMAIL = [
-  'dsmilkov', 'kainino0x', 'davidsoergel', 'pyu10055', 'nkreeger', 'tafsiri'
+  'dsmilkov', 'kainino0x', 'davidsoergel', 'pyu10055', 'nkreeger', 'tafsiri',
+  'annxingyuan'
 ];
 
 const rl =
@@ -111,7 +112,7 @@ export async function getReleaseNotesDraft(
 
     const getUsernameForCommit = async (sha: string) => {
       const result = await octokit.repos.getCommit(
-          {owner: 'tensorflow', repo: repoCommit.repo.identifier, sha});
+          {owner: 'tensorflow', repo: 'tfjs', sha});
       return result.data.author.login;
     };
 
@@ -173,8 +174,9 @@ export async function getReleaseNotesDraft(
 
         // Attach the link to the pull request.
         const pullRequestSuffix = pullRequestNumber != null ?
-            ` ([#${pullRequestNumber}](https://github.com/tensorflow/` +
-                `${repoCommit.repo.identifier}/pull/${pullRequestNumber})).` :
+            ` ([#${pullRequestNumber}]` +
+                `(https://github.com/tensorflow/tfjs/pull/${
+                    pullRequestNumber})).` :
             '';
 
         entry = entry.trim() + pullRequestSuffix;

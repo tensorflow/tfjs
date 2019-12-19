@@ -87,8 +87,12 @@ limitations under the License.
   <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-backend-wasm@latest/dist/tf-backend-wasm.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-automl@latest/dist/tf-automl.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@1.0.0/dist/posenet.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2"></script>
+
   <script src="./modelConfig.js"></script>
   <script src="./util.js"></script>
   <script>
@@ -96,16 +100,17 @@ limitations under the License.
 
     const state = {
       numRuns: 50,
-      benchmark: 'mobilenet',
+      benchmark: 'mobilenet_v2',
       run: (v) => {
         runBenchmark();
       },
+      backend: 'wasm',
     };
 
     const modalDiv = document.getElementById('modal-msg');
     const timeTable = document.querySelector('#timings tbody');
     const envDiv = document.getElementById('env');
-    let model, isAsync, predict, chartWidth;
+    let model, predict, chartWidth;
 
     async function showMsg(message) {
       if (message != null) {
@@ -155,7 +160,9 @@ limitations under the License.
       }
 
       if (res instanceof tf.Tensor) {
+        const tmp = res;
         res = await res.data();
+        tmp.dispose();
       }
 
       const elapsed = performance.now() - start;
@@ -168,7 +175,6 @@ limitations under the License.
       const start = performance.now();
       model = await benchmark.load();
       predict = benchmark.predictFunc();
-      isAsync = model.executor != null && model.executor.isControlFlowModel;
 
       const elapsed = performance.now() - start;
       await showMsg(null);
@@ -210,11 +216,13 @@ limitations under the License.
         const start = performance.now();
         let res = predict(model);
         if (res instanceof Promise) {
-          await res;
+          res = await res;
         }
 
         if (res instanceof tf.Tensor) {
+          const tmp = res;
           res = await res.data();
+          tmp.dispose();
         }
 
         times.push(performance.now() - start);
@@ -247,7 +255,9 @@ limitations under the License.
       }
 
       if (res instanceof tf.Tensor) {
+        const tmp = res;
         res = await res.data();
+        tmp.dispose();
       }
       const elapsed = performance.now() - start;
       await showMsg(null);
@@ -300,7 +310,9 @@ limitations under the License.
       }
 
       if (res instanceof tf.Tensor) {
+        const tmp = res;
         res = await res.data();
+        tmp.dispose();
       }
 
       await showMsg(null);
@@ -326,7 +338,7 @@ limitations under the License.
       await sleep(200);
       await measureAveragePredictTime();
       await sleep(200);
-      if (queryTimerIsEnabled()) {
+      if (state.backend != 'webgl' || queryTimerIsEnabled()) {
         await profileKernelTime();
       } else {
         showMsg('Skipping kernel times since query timer extension is not ' +
@@ -337,17 +349,17 @@ limitations under the License.
     async function onPageLoad() {
       var gui = new dat.gui.GUI();
 
-      await tf.ready();
+      await tf.setBackend(state.backend);
 
       gui.add(state, 'numRuns');
-      gui.add(state, 'benchmark', ['', ...Object.keys(benchmarks)]);
+      gui.add(state, 'benchmark', Object.keys(benchmarks));
+      gui.add(state, 'backend', ['wasm', 'webgl', 'cpu']).onChange(backend => {
+        tf.setBackend(backend);
+      });
       gui.add(state, 'run');
 
       showVersions();
       await showEnvironment();
-
-      // Run first benchmark by default on page load.
-      runBenchmark();
     }
 
     onPageLoad();

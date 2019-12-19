@@ -16,11 +16,13 @@
 #include <emscripten.h>
 #endif
 
+#include <cstddef>
+
 #include "src/cc/backend.h"
 #include "src/cc/unary.h"
 
 namespace {
-inline float square(float val) { return val * val; }
+inline float square(const float val) { return val * val; }
 }  // namespace
 
 namespace tfjs {
@@ -31,7 +33,9 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Square(int x_id, int out_id) { unary(x_id, out_id, square); }
+void Square(const size_t x_id, const size_t out_id) {
+  unary(x_id, out_id, square);
+}
 
 }  // extern "C"
 }  // namespace wasm

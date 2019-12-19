@@ -19,7 +19,7 @@ import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
-describeWithFlags('pad1d', ALL_ENVS, () => {
+describeWithFlags('pad 1d', ALL_ENVS, () => {
   it('Should pad 1D arrays', async () => {
     const a = tf.tensor1d([1, 2, 3, 4, 5, 6], 'int32');
     const b = tf.pad1d(a, [2, 3]);
@@ -85,7 +85,7 @@ describeWithFlags('pad1d', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags('pad2d', ALL_ENVS, () => {
+describeWithFlags('pad 2d', ALL_ENVS, () => {
   it('Should pad 2D arrays', async () => {
     let a = tf.tensor2d([[1], [2]], [2, 1], 'int32');
     let b = tf.pad2d(a, [[1, 1], [1, 1]]);
@@ -171,7 +171,34 @@ describeWithFlags('pad2d', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags('pad4d', ALL_ENVS, () => {
+describeWithFlags('pad 3d', ALL_ENVS, () => {
+  it('works with 3d tensor, float32', async () => {
+    const a = tf.tensor3d([[[1]], [[2]]], [2, 1, 1], 'float32');
+    const b = tf.pad3d(a, [[1, 1], [1, 1], [1, 1]]);
+    // 0, 0, 0
+    // 0, 0, 0
+    // 0, 0, 0
+
+    // 0, 0, 0
+    // 0, 1, 0
+    // 0, 0, 0
+
+    // 0, 0, 0
+    // 0, 2, 0
+    // 0, 0, 0
+
+    // 0, 0, 0
+    // 0, 0, 0
+    // 0, 0, 0
+    expect(b.shape).toEqual([4, 3, 3]);
+    expectArraysClose(await b.data(), [
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+      0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    ]);
+  });
+});
+
+describeWithFlags('pad 4d', ALL_ENVS, () => {
   it('Should pad 4D arrays', async () => {
     const a = tf.tensor4d([[[[9]]]], [1, 1, 1, 1], 'int32');
     const b = tf.pad4d(a, [[0, 0], [1, 1], [1, 1], [0, 0]]);

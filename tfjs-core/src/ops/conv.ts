@@ -195,17 +195,18 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
 
     return {
       x: () => conv2dDerInput(x4D.shape, dy, $filter, strides, pad, dataFormat),
-      $filter: () =>
+      filter: () =>
           conv2dDerFilter(x4D, dy, $filter.shape, strides, pad, dataFormat)
     };
   };
 
+  const inputsToSave = [$filter, x4D];
   const res = ENGINE.runKernelFunc((backend, save) => {
     const res = backend.conv2d(x4D, $filter, convInfo);
     save([$filter, x4D]);
 
     return res;
-  }, {x: x4D, $filter}, grad);
+  }, {x: x4D, filter: $filter}, grad, 'Conv2D', convInfo, inputsToSave);
 
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
@@ -524,16 +525,20 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
     return {
       x: () => depthwiseConv2dDerInput(
           (x4D as Tensor4D).shape, dy, $filter as Tensor4D, convInfo),
-      $filter: () => depthwiseConv2dDerFilter(
+      filter: () => depthwiseConv2dDerFilter(
           x4D as Tensor4D, dy, ($filter as Tensor4D).shape, convInfo),
     };
   };
 
-  const res = ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.depthwiseConv2D(x4D, $filter, convInfo);
-    save([x4D, $filter]);
-    return res;
-  }, {x: x4D, $filter}, grad);
+  const inputsToSave = [x4D, $filter];
+  const res = ENGINE.runKernelFunc(
+      (backend, save) => {
+        const res = backend.depthwiseConv2D(x4D, $filter, convInfo);
+        save([x4D, $filter]);
+        return res;
+      },
+      {x: x4D, filter: $filter}, grad, 'DepthwiseConv2dNative', convInfo,
+      inputsToSave);
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   }

@@ -309,7 +309,7 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags('fused depthwiseConv2d', ALL_ENVS, () => {
+describeWithFlags('fused depthwiseConv2D', ALL_ENVS, () => {
   it('basic', async () => {
     const fSize = 2;
     const pad = 'valid';
@@ -359,7 +359,7 @@ describeWithFlags('fused depthwiseConv2d', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  it('basic with bias and relu', async () => {
+  it('basic with broadcasted bias and relu', async () => {
     const fSize = 2;
     const pad = 'valid';
     const strides = 1;
@@ -593,6 +593,35 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
+  it('basic with bias', async () => {
+    const inputDepth = 2;
+    const inShape: [number, number, number, number] = [2, 2, 2, inputDepth];
+    const outputDepth = 2;
+    const fSize = 1;
+    const pad = 0;
+    const stride = 1;
+
+    const x = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], inShape);
+    const w =
+        tf.tensor4d([-1, 1, -2, 0.5], [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.fused.conv2d({
+      x,
+      filter: w,
+      strides: stride,
+      pad,
+      dataFormat: 'NHWC',
+      dilations: [1, 1],
+      bias: tf.tensor1d([5, 6])
+    });
+    expect(result.shape).toEqual([2, 2, 2, 2]);
+    const expected =
+        [0, 8, -6, 11, -12, 14, -18, 17, -24, 20, -30, 23, -36, 26, -42, 29];
+
+    expectArraysClose(await result.data(), expected);
+  });
+
   it('basic with elu', async () => {
     const inputDepth = 2;
     const inShape: [number, number, number, number] = [2, 2, 2, inputDepth];
@@ -655,7 +684,7 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  it('basic with bias and relu', async () => {
+  it('basic with broadcasted bias and relu', async () => {
     const inputDepth = 2;
     const inShape: [number, number, number, number] = [2, 2, 2, inputDepth];
     const outputDepth = 2;
@@ -802,7 +831,7 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     ]);
   });
 
-  it('im2row with bias and relu', async () => {
+  it('im2row with broadcasted bias and relu', async () => {
     const inputDepth = 1;
     const inputShape: [number, number, number] = [4, 4, inputDepth];
     const outputDepth = 3;

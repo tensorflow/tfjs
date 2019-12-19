@@ -51,9 +51,8 @@ function fusedBatchNorm(
   const xId = backend.dataIdMap.get(x.dataId).id;
   const meanId = backend.dataIdMap.get(mean.dataId).id;
   const varianceId = backend.dataIdMap.get(variance.dataId).id;
-  const offsetId =
-      offset != null ? backend.dataIdMap.get(offset.dataId).id : -1;
-  const scaleId = scale != null ? backend.dataIdMap.get(scale.dataId).id : -1;
+  const offsetId = offset != null ? backend.dataIdMap.get(offset.dataId).id : 0;
+  const scaleId = scale != null ? backend.dataIdMap.get(scale.dataId).id : 0;
 
   const out = backend.makeOutput(x.shape, x.dtype);
   // Short-circuit zero-sized tensors.

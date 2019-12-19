@@ -230,6 +230,7 @@ export interface OpHandler {
   mul<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   mulStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   div<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
+  divNoNan<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   floorDiv<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   divStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   mod<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
@@ -958,6 +959,10 @@ export class Tensor<R extends Rank = Rank> {
   div<T extends Tensor>(x: Tensor|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.div(this, x);
+  }
+  divNoNan<T extends Tensor>(x: Tensor|TensorLike): T {
+    this.throwIfDisposed();
+    return opHandler.divNoNan(this, x);
   }
   floorDiv<T extends Tensor>(x: Tensor|TensorLike): T {
     this.throwIfDisposed();

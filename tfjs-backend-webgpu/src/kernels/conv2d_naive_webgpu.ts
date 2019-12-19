@@ -23,11 +23,12 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class Conv2DNaiveProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = 'ivec2 filterDims, pad, stride;';
+  uniforms = 'ivec2 filterDims, pad, stride, dilation;';
   workGroupSize: [number, number, number] = [4, 8, 4];
 
   constructor(convInfo: backend_util.Conv2DInfo) {
@@ -39,9 +40,6 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
     util.assert(
         convInfo.dataFormat === 'channelsLast',
         () => 'TODO: NCHW is unimplemented');
-    util.assert(
-        convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1,
-        () => 'TODO: Dilation is unimplemented');
 
     this.userCode = `
       float readInp(int batch, int row, int col, int chan) {
@@ -74,8 +72,9 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
           for (int col = 0; col < filterDims[1]; ++col) {
             for (int xChannel = 0; xChannel < xShape[3]; ++xChannel) {
               float v = readInp(batch,
-                  pad[0] + coords[1] * stride[0] + row,
-                  pad[1] + coords[2] * stride[1] + col, xChannel);
+                  pad[0] + coords[1] * stride[0] + dilation[0] * row,
+                  pad[1] + coords[2] * stride[1] + dilation[1] * col,
+                  xChannel);
               float f = readFilt(row, col, xChannel, outChannel);
               acc += v * f;
             }
@@ -85,5 +84,6 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
         writeResult(batch, coords[1], coords[2], outChannel, acc);
       }
     `;
+    this.shaderKey = 'conv2dnaive';
   }
 }

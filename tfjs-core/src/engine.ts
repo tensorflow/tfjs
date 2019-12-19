@@ -20,10 +20,10 @@ import {Environment, setEnvironmentGlobal} from './environment';
 import {getKernel, getKernelsForBackend, NamedAttrMap, TensorInfo} from './kernel_registry';
 import {Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, NamedGradientMap, TapeNode} from './tape';
-import {DataId, setTensorTracker, Tensor, Tensor3D, TensorTracker, Variable} from './tensor';
+import {DataId, setTensorTracker, Tensor, TensorTracker, Variable} from './tensor';
 import {GradSaveFunc, NamedTensorMap, NamedVariableMap, TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';
-import {BackendValues, DataType, DataValues, PixelData} from './types';
+import {BackendValues, DataType, DataValues} from './types';
 import * as util from './util';
 import {bytesFromStringArray, makeOnesTypedArray, now, sizeFromShape} from './util';
 
@@ -172,15 +172,16 @@ export class Engine implements TensorTracker, DataMover {
     if (this.pendingBackendInit != null) {
       throw new Error(
           `Backend '${this.backendName}' has not yet been initialized. Make ` +
-          `sure to await tf.ready() before calling other methods`);
+          `sure to await tf.ready() or await tf.setBackend() before calling ` +
+          `other methods`);
     }
     if (this.backendInstance == null) {
       const {name, asyncInit} = this.initializeBackendsAndReturnBest();
       if (asyncInit) {
         throw new Error(
             `The highest priority backend '${name}' has not yet been ` +
-            `initialized. Make sure to await tf.ready() before calling ` +
-            `other methods`);
+            `initialized. Make sure to await tf.ready() or ` +
+            `await tf.setBackend() before calling other methods`);
       }
       this.setBackend(name);
     }
@@ -935,8 +936,8 @@ export class Engine implements TensorTracker, DataMover {
         // This means that we are not computing higher-order gradients
         // and can clean up the tape.
         this.state.activeTape.forEach(node => {
-          for (const key in node.saved) {
-            node.saved[key].dispose();
+          for (const tensor of node.saved) {
+            tensor.dispose();
           }
         });
         this.state.activeTape = null;
@@ -1011,12 +1012,7 @@ export class Engine implements TensorTracker, DataMover {
     const info = this.state.tensorInfo.get(dataId);
     return info.backend.read(dataId);
   }
-  fromPixels(
-      pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-      HTMLVideoElement,
-      numChannels: number): Tensor3D {
-    return this.backend.fromPixels(pixels, numChannels);
-  }
+
   async time(query: () => void): Promise<TimingInfo> {
     const start = now();
     const timingInfo = await this.backend.time(query) as TimingInfo;
@@ -1106,4 +1102,4 @@ function getOrMakeEngine(): Engine {
   return ns._tfengine;
 }
 
-export let ENGINE = getOrMakeEngine();
+export const ENGINE = getOrMakeEngine();

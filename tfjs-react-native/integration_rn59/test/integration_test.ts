@@ -9,7 +9,10 @@ describe('tfjs-core unit tests', () => {
     const driver = browser;
 
     const unitTestBtn = await driver.$('~unit-test-btn');
-    await unitTestBtn.waitForExist(INITIAL_LOAD_TIMEOUT);
+    await unitTestBtn.waitForExist(
+        INITIAL_LOAD_TIMEOUT, false,
+        'Could not find unit test button. \n' +
+            'The browserstacklocal tunnel was likely not established');
     await unitTestBtn.waitForEnabled(INITIAL_LOAD_TIMEOUT);
     await unitTestBtn.click();
 

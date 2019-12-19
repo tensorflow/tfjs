@@ -116,12 +116,18 @@ export class GraphModel implements InferenceModel {
     }
     const artifacts = await this.handler.load();
     const graph = artifacts.modelTopology as tensorflow.IGraphDef;
+    let signature = {};
+    if (artifacts.userDefinedMetadata != null) {
+      signature =  // tslint:disable-next-line:no-any
+          (artifacts.userDefinedMetadata as any).signature as
+          tensorflow.ISignatureDef;
+    }
 
     this.version = `${graph.versions.producer}.${graph.versions.minConsumer}`;
     const weightMap =
         io.decodeWeights(artifacts.weightData, artifacts.weightSpecs);
-    this.executor =
-        new GraphExecutor(OperationMapper.Instance.transformGraph(graph));
+    this.executor = new GraphExecutor(
+        OperationMapper.Instance.transformGraph(graph, signature));
     this.executor.weightMap = this.convertTensorMapToTensorsMap(weightMap);
     return true;
   }

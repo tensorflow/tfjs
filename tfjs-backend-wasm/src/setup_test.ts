@@ -28,12 +28,42 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'add ',
     excludes: [
-      'gradient',                   // Gradient is missing.
-      'broadcast inner dim',        // Broadcast inner dim not yet supported.
-      'broadcast each with 1 dim',  // Same as above.
-      'broadcasting same rank Tensors different shape',  // Same as above.
+      'gradient',                        // Gradient is missing.
       'upcasts when dtypes dont match',  // Uses the 'complex' dtype.
       'complex',                         // Complex numbers not supported yet
+    ]
+  },
+  {
+    include: 'avgPool',
+    excludes: [
+      'gradient',   // Not yet implemented.
+      'avgPool3d',  // Not yet implemented.
+    ]
+  },
+  {
+    include: 'relu',
+    excludes: [
+      'derivative',         // Not yet implemented.
+      'gradient',           // Not yet implemented.
+      'valueAndGradients',  // Not yet implemented.
+      'fused matmul',       // Not yet implemented.
+      'broadcasted bias',   // Not yet implemented.
+    ]
+  },
+  {
+    include: 'maxPool',
+    excludes: [
+      'maxPoolBackprop',    // Not yet implemented.
+      'maxPool3d',          // Not yet implemented.
+      'maxPool3dBackprop',  // Not yet implemented.
+      'ignores NaNs'        // Actual != expected.
+    ]
+  },
+  {include: 'cropAndResize'},
+  {
+    include: 'resizeBilinear',
+    excludes: [
+      'gradients'  // Not yet implemented.
     ]
   },
   {
@@ -45,6 +75,24 @@ const TEST_FILTERS: TestFilter[] = [
       'zero in its shape',       // Zero in shapes aren't supported yet
       'matmul followed by mul',  // mul not supported yet
       'upcasts',                 // Upcasting not supported yet.
+    ]
+  },
+  {
+    include: 'depthwiseConv2D ',
+    excludes: [
+      'broadcasted bias',  // Broadcasted bias not yet supported.
+      'gradient',          // Gradients not defined yet.
+      'NCHW',              // xnn pack does not support channels first.
+    ]
+  },
+  {
+    include: 'conv2d ',
+    excludes: [
+      'broadcasted bias',  // Broadcasted bias not yet supported.
+      'basic with elu',    // Only fused relu, relu6, prelu activations
+                           // supported.
+      'gradient',          // Gradients not defined yet.
+      'NCHW',              // xnn pack does not support channels first.
     ]
   },
   {
@@ -78,15 +126,9 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'sub ',
     excludes: [
-      'complex',              // Complex numbers not yet implemented.
-      'gradient',             // Not yet implemented.
-      'upcasts',              // Upcasting not supported yet.
-      'broadcast inner dim',  //  Broadcasting along inner dims not supported.
-      'broadcast each with 1 dim',  //  Broadcasting along inner dims not
-                                    //  supported.
-      'broadcasting same rank Tensors different shape',  //  Broadcasting along
-                                                         //  inner dims not
-                                                         //  supported.
+      'complex',   // Complex numbers not yet implemented.
+      'gradient',  // Not yet implemented.
+      'upcasts',   // Upcasting not supported yet.
     ]
   },
   {
@@ -94,22 +136,17 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'complex',   // Complex numbers not yet supported.
       'gradient',  // Gradient not defined yet.
-      'broadcasting same rank Tensors different shape',  // Broadcasting along
-                                                         // inner dims not
-                                                         // supported yet.
-      'broadcast 5D + 2D',  // Broadcasting along inner dims not supported yet.
-      'broadcast 6D + 2D'   // Broadcasting along inner dims not supported yet.
     ]
   },
   {
     include: 'div ',
     excludes: [
-      'gradient',          // Gradient not defined yet.
-      'integer division',  // FloorDiv not yet implemented.
-      'upcasts',           // Cast not supported yet.
+      'gradient',  // Gradient not defined yet.
+      'upcasts',   // Cast not supported yet.
       'broadcasting same rank Tensors different shape',  // Broadcasting along
                                                          // inner dims not
                                                          // supported yet.
+      'divNoNan'  // divNoNan not yet implemented.
     ]
   },
   {
@@ -128,7 +165,9 @@ const TEST_FILTERS: TestFilter[] = [
       '2D, axis=0',  // Permuted axes requires transpose, which is not yet
                      // implemented.
       'index corresponds to start of a non-initial window',  // argMin not yet
-                                                             // implemented.
+                                                             // implemented.,
+      'gradient',     // Gradients not yet implemented
+      'ignores NaNs'  // Doesn't yet ignore NaN
     ]
   },
   {
@@ -136,8 +175,10 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'derivative: 1D tensor with max or min value',  // Clip not yet
                                                       // implemented.
-      '2D, axis=0'  // Permuted axes requires transpose, which is not yet
-                    // implemented.
+      '2D, axis=0',   // Permuted axes requires transpose, which is not yet
+                      // implemented.
+      'gradient',     // Gradients not yet implemented
+      'ignores NaNs'  // Doesn't yet ignore NaN
     ]
   },
   {
@@ -151,6 +192,95 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'transpose',
     excludes: ['oneHot']  // oneHot not yet implemented.
   },
+  {include: 'pad ', excludes: ['complex', 'zerosLike']},
+  {include: 'clip', excludes: ['gradient']},
+  {include: 'addN'},
+  {include: 'nonMaxSuppression', excludes: ['SoftNMS']},
+  {include: 'argmax', excludes: ['gradient']},
+  {include: 'exp '},
+  {include: 'unstack'},
+  {
+    include: 'minimum',
+    excludes: [
+      'gradient',                                 // Not yet implemented.
+      'broadcasts 2x1 Tensor2D and 2x2 Tensor2D'  // Broadcasting along inner
+                                                  // dims not supported yet.
+    ]
+  },
+  {
+    include: 'maximum',
+    excludes: [
+      'gradient',                                 // Not yet implemented.
+      'broadcasts 2x1 Tensor2D and 2x2 Tensor2D'  // Broadcasting along inner
+                                                  // dims not supported yet.
+    ]
+  },
+  {
+    include: 'log ',
+  },
+  {
+    include: 'greater ',
+    excludes: [
+      'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
+                                       // supported yet.
+      'broadcasting Tensor3D shapes',  // Same as above.
+      'broadcasting Tensor4D shapes'   // Same as above.
+    ]
+  },
+  {
+    include: 'greaterEqual',
+    excludes: [
+      'gradient',                      // Not yet implemented.
+      'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
+                                       // supported yet.
+      'broadcasting Tensor3D shapes',  // Same as above.
+      'broadcasting Tensor4D shapes'   // Same as above.
+    ]
+  },
+  {
+    include: 'less ',
+    excludes: [
+      'broadcasting Tensor2D shapes',   // Broadcasting along outer dims not
+                                        // supported yet.
+      'broadcasting Tensor3D shapes',   // Same as above.
+      'broadcasting Tensor3D float32',  // Same as above.
+      'broadcasting Tensor4D shapes'    // Same as above.
+    ]
+  },
+  {
+    include: 'lessEqual',
+    excludes: [
+      'gradient',                       // Not yet implemented.
+      'broadcasting Tensor2D shapes',   // Broadcasting along outer dims not
+                                        // supported yet.
+      'broadcasting Tensor3D shapes',   // Same as above.
+      'broadcasting Tensor3D float32',  // Same as above.
+      'broadcasting Tensor4D shapes'    // Same as above.
+    ]
+  },
+  {
+    include: 'mean ',
+    excludes: [
+      'axis=0',  // Reduction not supported along inner dimensions.
+    ]
+  },
+  {startsWith: 'sum '},
+  {
+    startsWith: 'logicalAnd ',
+    excludes: [
+      'broadcasting Tensor2D shapes',  // Broadcasting along outer dimensions
+                                       // not yet supported.
+      'broadcasting Tensor3D shapes',  // Same as above.
+      'broadcasting Tensor4D shapes',  // Same as above.
+    ]
+  },
+  {
+    startsWith: 'tile ',
+    excludes: [
+      'gradient',      // Gradient not yet implemented.
+      'string tensor'  // String tensors not yet implemented.
+    ]
+  }
 ];
 
 const customInclude = (testName: string) => {

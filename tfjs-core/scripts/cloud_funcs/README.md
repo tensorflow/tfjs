@@ -27,6 +27,19 @@ gcloud functions deploy send_email \
   --set-env-vars MAILGUN_API_KEY="[API_KEY_HERE]",HANGOUTS_URL="[URL_HERE]"
 ```
 
+### `sync_reactnative`
+Makes a request to browserStack to sync the current build of the tfjs-react-native integration app to browserstack. The app itself is stored in a GCP bucket. This needs to be done at least once every 30 days and is triggered via cloud scheduler via the `sync_reactnative` topic.
+Currently set to run weekly on Thursdays at 3AM.
+
+Command to re-deploy:
+
+```sh
+gcloud functions deploy sync_reactnative \
+  --runtime nodejs8 \
+  --trigger-topic sync_reactnative \
+  --set-env-vars HANGOUTS_URL="[URL_HERE]",BOTS_HANGOUTS_URL="[URL_HERE]"
+```
+
 ### The pipeline
 
 The pipeline looks like this:

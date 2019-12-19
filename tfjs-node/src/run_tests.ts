@@ -65,8 +65,8 @@ const IGNORE_LIST: string[] = [
   // tslint:disable-next-line:max-line-length
   'maxPool3d test-tensorflow {} x=[1,2,2,2,1] f=[2,2,2] s=1 p=1 roundingMode=floor',
   // libtensorflow doesn't support 6D ArgMax yet.
-  'Reduction: argmax test-tensorflow {} 6D, axis=0',
-  'diag test-tensorflow {} complex', 'diag test-tensorflow {} bool',
+  'argmax test-tensorflow {} 6D, axis=0', 'diag test-tensorflow {} complex',
+  'diag test-tensorflow {} bool',
   // See https://github.com/tensorflow/tfjs/issues/1891
   'conv2d test-tensorflow {} x=[2,1,2,2] f=[1,1,1,1] s=1 d=1 p=0 NCHW',
   'conv2d test-tensorflow {} x=[1,2,2] f=[2,2,1,1] s=1 d=1 p=same NCHW',

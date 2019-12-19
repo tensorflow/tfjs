@@ -31,7 +31,8 @@ process.on('unhandledRejection', e => {
  */
 const FIELDS_TO_IGNORE = [
   'name', 'scripts/install', 'scripts/test', 'scripts/prepare', 'scripts/prep',
-  'scripts/upload-windows-addon', 'scripts/build-npm'
+  'scripts/upload-windows-addon', 'scripts/build-npm',
+  'scripts/prep-gpu-windows'
 ];
 
 const cpuPackageKeys = Object.keys(cpuPackage);

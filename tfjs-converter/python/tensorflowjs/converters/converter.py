@@ -127,9 +127,8 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
         'directory: %s' % h5_path)
 
   temp_savedmodel_dir = tempfile.mktemp(suffix='.savedmodel')
-  model = keras.models.load_model(h5_path)
-  keras.experimental.export_saved_model(
-      model, temp_savedmodel_dir, serving_only=True)
+  model = keras.models.load_model(h5_path, compile=False)
+  model.save(temp_savedmodel_dir, include_optimizer=False, save_format='tf')
 
   # NOTE(cais): This cannot use `tf.compat.v1` because
   #   `convert_tf_saved_model()` works only in v2.
@@ -390,7 +389,8 @@ def _standardize_input_output_formats(input_format, output_format):
   input_format_is_keras = (
       input_format in [common.KERAS_MODEL, common.KERAS_SAVED_MODEL])
   input_format_is_tf = (
-      input_format in [common.TF_SAVED_MODEL, common.TF_HUB_MODEL])
+      input_format in [common.TF_SAVED_MODEL,
+                       common.TF_FROZEN_MODEL, common.TF_HUB_MODEL])
   if output_format is None:
     # If no explicit output_format is provided, infer it from input format.
     if input_format_is_keras:
@@ -552,6 +552,10 @@ def convert(arguments):
       quantization.QUANTIZATION_BYTES_TO_DTYPES[args.quantization_bytes]
       if args.quantization_bytes else None)
 
+  if (not args.output_node_names and input_format == common.TF_FROZEN_MODEL):
+    raise ValueError(
+        'The --output_node_names flag is required for "tf_frozen_model"')
+
   if (args.signature_name and input_format not in
       (common.TF_SAVED_MODEL, common.TF_HUB_MODEL)):
     raise ValueError(
@@ -592,8 +596,11 @@ def convert(arguments):
   elif (input_format == common.TF_HUB_MODEL and
         output_format == common.TFJS_GRAPH_MODEL):
     tf_saved_model_conversion_v2.convert_tf_hub_module(
-        args.input_path, args.output_path, args.signature_name,
-        args.saved_model_tags, skip_op_check=args.skip_op_check,
+        args.input_path, args.output_path,
+        signature=args.signature_name,
+        saved_model_tags=args.saved_model_tags,
+        quantization_dtype=quantization_dtype,
+        skip_op_check=args.skip_op_check,
         strip_debug_ops=args.strip_debug_ops)
   elif (input_format == common.TFJS_LAYERS_MODEL and
         output_format == common.KERAS_MODEL):

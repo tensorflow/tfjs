@@ -20,13 +20,31 @@ const fs = require('fs');
 
 const CC_FILEPATH = 'src/cc';
 
-const result = shell.find('src/cc').filter(
-    fileName => fileName.endsWith('.cc') || fileName.endsWith('.h'));
+let python2Cmd;
 
-console.log(`C++ linting files:`);
-console.log(result);
+const ignoreCode = true;
+const commandOpts = null;
 
-const cwd = process.cwd() + '/' + CC_FILEPATH;
+let pythonVersion = exec('python --version', commandOpts, ignoreCode);
+if (pythonVersion['stderr'].includes('Python 2')) {
+  python2Cmd = 'python';
+} else {
+  pythonVersion = exec('python2 --version', commandOpts, ignoreCode);
+  if (pythonVersion.code === 0) {
+    python2Cmd = 'python2';
+  }
+}
 
-const filenameArgument = result.join(' ');
-exec(`python2 tools/cpplint.py --root ${cwd} ${filenameArgument}`);
+if (python2Cmd != null) {
+  const result = shell.find('src/cc').filter(
+      fileName => fileName.endsWith('.cc') || fileName.endsWith('.h'));
+
+  const cwd = process.cwd() + '/' + CC_FILEPATH;
+  const filenameArgument = result.join(' ');
+
+  exec(`${python2Cmd} tools/cpplint.py --root ${cwd} ${filenameArgument}`);
+} else {
+  console.warn(
+      'No python2.x version found - please install python2. ' +
+      'cpplint.py only works correctly with python 2.x.');
+}

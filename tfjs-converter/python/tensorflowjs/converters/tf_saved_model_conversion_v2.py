@@ -21,7 +21,6 @@ from __future__ import print_function
 import json
 import os
 
-import numpy as np
 import tensorflow as tf
 from tensorflow.core.framework import graph_pb2
 from tensorflow.core.framework import node_def_pb2
@@ -41,6 +40,8 @@ from tensorflowjs import write_weights
 from tensorflowjs.converters import common
 from tensorflowjs.converters import fold_batch_norms
 from tensorflowjs.converters import fuse_prelu
+from tensorflowjs.converters import fuse_depthwise_conv2d
+from tensorflowjs.converters import graph_rewrite_util
 from tensorflowjs import resource_loader
 
 # enable eager execution for v2 APIs
@@ -125,7 +126,6 @@ def optimize_graph(graph, signature_def, output_graph,
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to strip debug ops.
   """
-  fuse_prelu.register_prelu_func(graph)
 
   # Add a collection 'train_op' so that Grappler knows the outputs.
   for _, output in signature_def.outputs.items():
@@ -155,13 +155,13 @@ def optimize_graph(graph, signature_def, output_graph,
   # batch norm folding
   optimized_graph = fold_batch_norms.fold_batch_norms(optimized_graph)
 
-  # set the device to CPU for all Conv2d nodes, since grappler remap optimizer
-  # only support FusedConv2D for CPU.
+  # set the device to CPU for all Conv2d and MatMul nodes, since grappler
+  # remap optimizer only support FusedConv2D and FusedMatMul for CPU.
   for node in optimized_graph.node:
-    if node.op == 'Conv2D':
+    if node.op == 'Conv2D' or node.op == 'MatMul':
       node.device = '/device:CPU:0'
 
-  # rerun grappler to fuse conv2d
+  # rerun grappler to fuse conv2d/matmul
   config.graph_options.rewrite_options.optimizers[:] = [
       'remap',
       'constfold', 'arithmetic', 'dependency'
@@ -174,9 +174,14 @@ def optimize_graph(graph, signature_def, output_graph,
   # fusing those ops into a single prelu
   optimized_graph = fuse_prelu.fuse_ops_for_prelu(optimized_graph)
 
+  # Because grappler does not support DepthwiseConv2d fusing, we have
+  # implemented it here.
+  optimized_graph = fuse_depthwise_conv2d.fuse_depthwise_conv2d(optimized_graph)
+
   # Since the grappler remap optimizer doe snot support prelu as the activation
   # function for _FusedConv2D op, we are doing it manually here.
-  optimized_graph = fuse_prelu.fuse_prelu_with_fused_conv2d(optimized_graph)
+  optimized_graph = fuse_prelu.fuse_prelu_with_fused_conv2d_or_matmul(
+      optimized_graph)
 
   unsupported = validate(optimized_graph.node, skip_op_check,
                          strip_debug_ops)
@@ -185,13 +190,15 @@ def optimize_graph(graph, signature_def, output_graph,
                      ', '.join(unsupported))
 
   extract_weights(
-      optimized_graph, output_graph, tf_version, quantization_dtype)
+      optimized_graph, output_graph, tf_version,
+      signature_def, quantization_dtype)
   return optimize_graph
 
 
 def extract_weights(graph_def,
                     output_graph,
                     tf_version,
+                    signature_def,
                     quantization_dtype=None):
   """Takes a Python GraphDef object and extract the weights.
 
@@ -199,6 +206,7 @@ def extract_weights(graph_def,
     graph_def: tf.GraphDef TensorFlow GraphDef proto object, which represents
       the model topology.
     tf_version: Tensorflow version of the input graph.
+    signature_def: the SignatureDef of the inference graph.
     quantization_dtype: An optional numpy dtype to quantize weights to for
         compression. Only np.uint8 and np.uint16 are supported.
   """
@@ -212,34 +220,28 @@ def extract_weights(graph_def,
   print('Writing weight file ' + output_graph + '...')
   const_manifest = []
 
-  graph = tf.Graph()
-  fuse_prelu.register_prelu_func(graph)
+  for const in constants:
+    const_manifest.append({
+        'name': const.name,
+        'data': graph_rewrite_util.values_from_const(const)
+    })
+    # Restore the conditional inputs
+    const.input[:] = const_inputs[const.name]
 
-  with tf.compat.v1.Session(graph=graph) as sess:
-    tf.import_graph_def(graph_def, name='')
-    for const in constants:
-      tensor = graph.get_tensor_by_name(const.name + ':0')
-      value = tensor.eval(session=sess)
-      if not isinstance(value, np.ndarray):
-        value = np.array(value)
-
-      const_manifest.append({'name': const.name, 'data': value})
-
-      # Restore the conditional inputs
-      const.input[:] = const_inputs[const.name]
-
-      # Remove the binary array from tensor and save it to the external file.
-      for field_name in CLEARED_TENSOR_FIELDS:
-        const.attr["value"].tensor.ClearField(field_name)
+    # Remove the binary array from tensor and save it to the external file.
+    for field_name in CLEARED_TENSOR_FIELDS:
+      const.attr["value"].tensor.ClearField(field_name)
 
   write_artifacts(MessageToDict(graph_def), [const_manifest], output_graph,
-                  tf_version, quantization_dtype=quantization_dtype)
+                  tf_version, signature_def,
+                  quantization_dtype=quantization_dtype)
 
 
 def write_artifacts(topology,
                     weights,
                     output_graph,
                     tf_version,
+                    signature_def,
                     quantization_dtype=None):
   """Writes weights and topology to the output_dir.
 
@@ -251,6 +253,7 @@ def write_artifacts(topology,
     weights: an array of weight groups (as defined in tfjs write_weights).
     output_graph: the output file name to hold all the contents.
     tf_version: Tensorflow version of the input graph.
+    signature_def: the SignatureDef of the inference graph.
     quantization_dtype: An optional numpy dtype to quantize weights to for
       compression. Only np.uint8 and np.uint16 are supported.
   """
@@ -259,8 +262,10 @@ def write_artifacts(topology,
       # TODO(piyu): Add tensorflow version below by using `meta_info_def`.
       common.GENERATED_BY_KEY: tf_version,
       common.CONVERTED_BY_KEY: common.get_converted_by(),
+      common.USER_DEFINED_METADATA_KEY: {
+          common.SIGNATURE_KEY: MessageToDict(signature_def)
+      }
   }
-
   model_json[common.ARTIFACT_MODEL_TOPOLOGY_KEY] = topology or None
   weights_manifest = write_weights.write_weights(
       weights, os.path.dirname(output_graph), write_manifest=False,
@@ -407,7 +412,7 @@ def convert_tf_saved_model(saved_model_dir,
   output_graph = os.path.join(
       output_dir, common.ARTIFACT_MODEL_JSON_FILE_NAME)
 
-  saved_model_tags = saved_model_tags.split(', ')
+  saved_model_tags = saved_model_tags.split(',')
   model = load(saved_model_dir, saved_model_tags)
 
   _check_signature_in_model(model, signature_def)
@@ -577,6 +582,6 @@ def convert_tf_hub_module(module_handle, output_dir,
                            output_dir=output_dir,
                            signature_def=signature,
                            saved_model_tags=saved_model_tags,
-                           quantization_dtype=None,
-                           skip_op_check=False,
-                           strip_debug_ops=False)
+                           quantization_dtype=quantization_dtype,
+                           skip_op_check=skip_op_check,
+                           strip_debug_ops=strip_debug_ops)

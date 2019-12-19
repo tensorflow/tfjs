@@ -15,17 +15,20 @@
 #ifndef UNARY_H_
 #define UNARY_H_
 
+#include <cstddef>
+
 namespace tfjs {
 namespace wasm {
 
-inline void unary(int x_id, int out_id, float operation(float)) {
+inline void unary(const size_t x_id, const size_t out_id,
+                  float operation(float)) {
   auto& a_info = backend::get_tensor_info(x_id);
-  auto& out_info = backend::get_tensor_info(out_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
 
-  const float* a_buf = reinterpret_cast<float*>(a_info.memory_offset);
-  float* out_buf = reinterpret_cast<float*>(out_info.memory_offset);
+  const float* a_buf = a_info.f32();
+  float* out_buf = out_info.f32_write();
 
-  for (int i = 0; i < a_info.size; ++i) {
+  for (size_t i = 0; i < a_info.size; ++i) {
     out_buf[i] = operation(a_buf[i]);
   }
 }

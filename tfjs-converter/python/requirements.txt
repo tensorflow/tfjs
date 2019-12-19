@@ -1,7 +1,7 @@
 h5py==2.8.0
 numpy==1.16.4
 six==1.11.0
-tensorflow-cpu==1.15.0
+tensorflow==1.15.0
 tensorflow-hub==0.5.0
 gast==0.2.2
 PyInquirer==1.0.3

@@ -200,6 +200,30 @@ static napi_value DeleteSavedModel(napi_env env, napi_callback_info info) {
   return js_this;
 }
 
+static napi_value RunSavedModel(napi_env env, napi_callback_info info) {
+  napi_status nstatus;
+
+  // Run SavedModel takes 4 params: session_id, input_tensor_ids,
+  // input_op_names, output_op_names.
+  size_t argc = 4;
+  napi_value args[4];
+  napi_value js_this;
+  nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+  if (argc < 4) {
+    NAPI_THROW_ERROR(env, "Invalid number of args passed to RunSavedModel()");
+    return nullptr;
+  }
+
+  ENSURE_VALUE_IS_NUMBER_RETVAL(env, args[0], nullptr);
+  ENSURE_VALUE_IS_ARRAY_RETVAL(env, args[1], nullptr);
+  ENSURE_VALUE_IS_STRING_RETVAL(env, args[2], nullptr);
+  ENSURE_VALUE_IS_STRING_RETVAL(env, args[3], nullptr);
+
+  return gBackend->RunSavedModel(env, args[0], args[1], args[2], args[3]);
+}
+
 static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
   napi_status nstatus;
 
@@ -224,6 +248,8 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
       {"loadSavedModel", nullptr, LoadSavedModel, nullptr, nullptr, nullptr,
        napi_default, nullptr},
       {"deleteSavedModel", nullptr, DeleteSavedModel, nullptr, nullptr, nullptr,
+       napi_default, nullptr},
+      {"runSavedModel", nullptr, RunSavedModel, nullptr, nullptr, nullptr,
        napi_default, nullptr},
       {"TF_Version", nullptr, nullptr, nullptr, nullptr, tf_version,
        napi_default, nullptr},

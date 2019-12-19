@@ -19,9 +19,94 @@ import * as tf from '../index';
 import {ALL_ENVS, BROWSER_ENVS, describeWithFlags, NODE_ENVS} from '../jasmine_util';
 import {expectArraysClose, expectArraysEqual, expectPromiseToFail, expectValuesInRange} from '../test_util';
 import {TypedArray} from '../types';
+import {Tensor} from '../tensor';
 import * as util from '../util';
 
 import {expectArrayInMeanStdRange, jarqueBeraNormalityTest} from './rand_util';
+
+describeWithFlags('broadcastTo', ALL_ENVS, () => {
+  it('[] -> [3,2]', async () => {
+    const a = tf.scalar(4.2);
+    const A = tf.tensor2d([[4.2, 4.2],
+                           [4.2, 4.2],
+                           [4.2, 4.2]]);
+
+    expectArraysClose(
+      await A.array(),
+      await tf.broadcastTo(a,A.shape).array()
+    );
+
+    // test gradients
+    const w = tf.tensor2d([[ 4.7, 4.5],
+                           [-6.1,-6.6],
+                           [-8.1,-3.4]]),
+          f = (a: Tensor) => tf.broadcastTo(a,A.shape).mul(w).mean().asScalar(),
+          h = (a: Tensor) =>                         a.mul(w).mean().asScalar();
+
+    const df = tf.grad(f),
+          dh = tf.grad(h);
+
+    expectArraysClose(
+      await df(a).array(),
+      await dh(a).array()
+    );
+  });
+
+  it('[2] -> [3,2]', async () => {
+    const a = tf.tensor1d( [1,2] );
+    const A = tf.tensor2d([[1,2],
+                           [1,2],
+                           [1,2]]);
+    expectArraysClose(
+      await A.array(),
+      await tf.broadcastTo(a,A.shape).array()
+    );
+
+    // test gradients
+    const w = tf.tensor2d([[ 4.7, 4.5],
+                           [-6.1,-6.6],
+                           [-8.1,-3.4]]),
+          f = (a: Tensor) => tf.broadcastTo(a,A.shape).mul(w).mean().asScalar(),
+          h = (a: Tensor) =>                         a.mul(w).mean().asScalar();
+
+    const df = tf.grad(f),
+          dh = tf.grad(h);
+
+    expectArraysClose(
+      await df(a).array(),
+      await dh(a).array()
+    );
+  });
+
+  it('[3,1] -> [3,2]', async () => {
+    const a = tf.tensor2d([[1],
+                           [2],
+                           [3]]);
+    const A = tf.tensor2d([[1,1],
+                           [2,2],
+                           [3,3]]);
+
+    expectArraysClose(
+      await A.array(),
+      await tf.broadcastTo(a,A.shape).array()
+    );
+
+    // test gradients
+    const w = tf.tensor2d([[ 4.7, 4.5],
+                           [-6.1,-6.6],
+                           [-8.1,-3.4]]),
+          f = (a: Tensor) => tf.broadcastTo(a,A.shape).mul(w).mean().asScalar(),
+          h = (a: Tensor) =>                         a.mul(w).mean().asScalar();
+
+    const df = tf.grad(f),
+          dh = tf.grad(h);
+
+    expectArraysClose(
+      await df(a).array(),
+      await dh(a).array()
+    );
+  });
+});
 
 describeWithFlags('zeros', ALL_ENVS, () => {
   it('1D default dtype', async () => {

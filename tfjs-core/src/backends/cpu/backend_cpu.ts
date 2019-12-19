@@ -31,12 +31,12 @@ import * as erf_util from '../../ops/erf_util';
 import {Activation, FusedBatchMatMulConfig, FusedConv2DConfig} from '../../ops/fused_util';
 import * as gather_nd_util from '../../ops/gather_nd_util';
 import * as ops from '../../ops/ops';
-import {buffer, scalar, tensor, tensor3d, tensor4d} from '../../ops/ops';
+import {buffer, scalar, tensor, tensor4d} from '../../ops/ops';
 import * as scatter_nd_util from '../../ops/scatter_nd_util';
 import * as selu_util from '../../ops/selu_util';
 import {computeFlatOffset, computeOutShape, isSliceContinous} from '../../ops/slice_util';
 import {DataId, Scalar, StringTensor, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer} from '../../tensor';
-import {BackendValues, DataType, DataValues, NumericDataType, PixelData, Rank, ShapeMap, TypedArray, upcastType} from '../../types';
+import {BackendValues, DataType, DataValues, NumericDataType, Rank, ShapeMap, TypedArray, upcastType} from '../../types';
 import * as util from '../../util';
 import {getArrayFromDType, inferDtype, now, sizeFromShape} from '../../util';
 import {BackendTimingInfo, DataStorage, EPSILON_FLOAT32, KernelBackend} from '../backend';
@@ -68,15 +68,6 @@ function mapActivation(
       `Activation ${activation} has not been implemented for the CPU backend.`);
 }
 
-function createCanvas() {
-  if (typeof OffscreenCanvas !== 'undefined') {
-    return new OffscreenCanvas(300, 150);
-  } else if (typeof document !== 'undefined') {
-    return document.createElement('canvas');
-  }
-  return null;
-}
-
 export interface TensorData<D extends DataType> {
   values?: BackendValues;
   dtype: D;
@@ -92,19 +83,10 @@ export class MathBackendCPU extends KernelBackend {
   public blockSize = 48;
 
   data: DataStorage<TensorData<DataType>>;
-  private fromPixels2DContext: CanvasRenderingContext2D|
-      OffscreenCanvasRenderingContext2D;
   private firstUse = true;
 
   constructor() {
     super();
-    if (env().get('IS_BROWSER')) {
-      const canvas = createCanvas();
-      if (canvas !== null) {
-        this.fromPixels2DContext =
-            canvas.getContext('2d') as CanvasRenderingContext2D;
-      }
-    }
     this.data = new DataStorage(this, ENGINE);
   }
 
@@ -122,7 +104,7 @@ export class MathBackendCPU extends KernelBackend {
             'Then call require(\'@tensorflow/tfjs-node\'); (-gpu ' +
             'suffix for CUDA) at the start of your program. ' +
             'Visit https://github.com/tensorflow/tfjs-node for more details.' +
-            '\n============================\n');
+            '\n============================');
       }
     }
     const dataId = {};
@@ -139,77 +121,6 @@ export class MathBackendCPU extends KernelBackend {
     return this.data.numDataIds();
   }
 
-  fromPixels(
-      pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-      HTMLVideoElement,
-      numChannels: number): Tensor3D {
-    if (pixels == null) {
-      throw new Error(
-          'pixels passed to tf.browser.fromPixels() can not be null');
-    }
-
-    const isPixelData = (pixels as PixelData).data instanceof Uint8Array;
-    const isImageData =
-        typeof (ImageData) !== 'undefined' && pixels instanceof ImageData;
-    const isVideo = typeof (HTMLVideoElement) !== 'undefined' &&
-        pixels instanceof HTMLVideoElement;
-    const isImage = typeof (HTMLImageElement) !== 'undefined' &&
-        pixels instanceof HTMLImageElement;
-    const [width, height] = isVideo ?
-        [
-          (pixels as HTMLVideoElement).videoWidth,
-          (pixels as HTMLVideoElement).videoHeight
-        ] :
-        [pixels.width, pixels.height];
-    let vals: Uint8ClampedArray|Uint8Array;
-    // tslint:disable-next-line:no-any
-    if (env().get('IS_NODE') && (pixels as any).getContext == null) {
-      throw new Error(
-          'When running in node, pixels must be an HTMLCanvasElement ' +
-          'like the one returned by the `canvas` npm package');
-    }
-    // tslint:disable-next-line:no-any
-    if ((pixels as any).getContext != null) {
-      // tslint:disable-next-line:no-any
-      vals = (pixels as any)
-                 .getContext('2d')
-                 .getImageData(0, 0, width, height)
-                 .data;
-    } else if (isImageData || isPixelData) {
-      vals = (pixels as PixelData | ImageData).data;
-    } else if (isImage || isVideo) {
-      if (this.fromPixels2DContext == null) {
-        throw new Error(
-            'Can\'t read pixels from HTMLImageElement outside ' +
-            'the browser.');
-      }
-      this.fromPixels2DContext.canvas.width = width;
-      this.fromPixels2DContext.canvas.height = height;
-      this.fromPixels2DContext.drawImage(
-          pixels as HTMLVideoElement, 0, 0, width, height);
-      vals = this.fromPixels2DContext.getImageData(0, 0, width, height).data;
-    } else {
-      throw new Error(
-          'pixels passed to tf.browser.fromPixels() must be either an ' +
-          `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData ` +
-          `or {data: Uint32Array, width: number, height: number}, ` +
-          `but was ${(pixels as {}).constructor.name}`);
-    }
-    let values: Int32Array;
-    if (numChannels === 4) {
-      values = new Int32Array(vals);
-    } else {
-      const numPixels = width * height;
-      values = new Int32Array(numPixels * numChannels);
-      for (let i = 0; i < numPixels; i++) {
-        for (let channel = 0; channel < numChannels; ++channel) {
-          values[i * numChannels + channel] = vals[i * 4 + channel];
-        }
-      }
-    }
-    const outShape: [number, number, number] = [height, width, numChannels];
-    return tensor3d(values, outShape, 'int32');
-  }
   async read(dataId: DataId): Promise<BackendValues> {
     return this.readSync(dataId);
   }
@@ -2932,7 +2843,7 @@ export class MathBackendCPU extends KernelBackend {
               Math.min(oldWidth - 1, Math.ceil(sourceFracCol));
           const topLeftOffest = topRowOffset + sourceColFloor * x.strides[2];
           const botLeftOffset = botRowOffset + sourceColFloor * x.strides[2];
-          const topRightOffset = topRowOffset + +sourceColCeil * x.strides[2];
+          const topRightOffset = topRowOffset + sourceColCeil * x.strides[2];
           const botRightOffest = botRowOffset + sourceColCeil * x.strides[2];
           for (let d = 0; d < numChannels; d++) {
             // Begin shader.
@@ -3360,13 +3271,15 @@ export class MathBackendCPU extends KernelBackend {
 
   nonMaxSuppression(
       boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
-      iouThreshold: number, scoreThreshold: number): Tensor1D {
+      iouThreshold: number, scoreThreshold: number,
+      softNmsSigma: number): Tensor1D {
     assertNotComplex(boxes, 'nonMaxSuppression');
 
     const boxesVals = this.readSync(boxes.dataId) as TypedArray;
     const scoresVals = this.readSync(scores.dataId) as TypedArray;
     return nonMaxSuppressionImpl(
-        boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
+        boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold,
+        softNmsSigma);
   }
 
   fft(x: Tensor2D): Tensor2D {
@@ -3662,8 +3575,8 @@ export class MathBackendCPU extends KernelBackend {
     const numBoxes = boxes.shape[0];
 
     const [cropHeight, cropWidth] = cropSize;
-    const output = ops.buffer(
-        [numBoxes, cropHeight, cropWidth, numChannels], images.dtype);
+    const output =
+        ops.buffer([numBoxes, cropHeight, cropWidth, numChannels], 'float32');
 
     const boxVals = this.readSync(boxes.dataId) as TypedArray;
     const boxIndVals = this.readSync(boxIndex.dataId) as TypedArray;

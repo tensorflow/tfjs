@@ -23,7 +23,7 @@ import {InternalOpExecutor, Node} from '../types';
 
 import {getParamValue} from './utils';
 
-export let executeOp: InternalOpExecutor = (node: Node,
+export const executeOp: InternalOpExecutor = (node: Node,
                                             tensorMap: NamedTensorsMap,
                                             context: ExecutionContext):
                                                tfc.Tensor[] => {
@@ -51,6 +51,11 @@ export let executeOp: InternalOpExecutor = (node: Node,
     case 'RealDiv':
     case 'Div': {
       return [tfc.div(
+          getParamValue('a', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
+    }
+    case 'DivNoNan': {
+      return [tfc.divNoNan(
           getParamValue('a', node, tensorMap, context) as tfc.Tensor,
           getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
     }

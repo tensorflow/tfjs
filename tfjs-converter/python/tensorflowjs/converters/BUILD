@@ -61,11 +61,18 @@ py_test(
 )
 
 py_library(
+    name = "graph_rewrite_util",
+    srcs = ["graph_rewrite_util.py"],
+    srcs_version = "PY2AND3",
+    deps = ["//tensorflowjs:version"],
+)
+
+py_library(
     name = "fuse_prelu",
     srcs = ["fuse_prelu.py"],
     srcs_version = "PY2AND3",
     deps = [
-        ":common",
+        ":graph_rewrite_util",
         "//tensorflowjs:expect_numpy_installed",
         "//tensorflowjs:expect_tensorflow_installed",
     ],
@@ -88,7 +95,7 @@ py_library(
     srcs = ["fold_batch_norms.py"],
     srcs_version = "PY2AND3",
     deps = [
-        ":common",
+        ":graph_rewrite_util",
         "//tensorflowjs:expect_numpy_installed",
         "//tensorflowjs:expect_tensorflow_installed",
     ],
@@ -100,6 +107,28 @@ py_test(
     srcs_version = "PY2AND3",
     deps = [
         ":fold_batch_norms",
+        "//tensorflowjs:expect_numpy_installed",
+        "//tensorflowjs:expect_tensorflow_installed",
+    ],
+)
+
+py_library(
+    name = "fuse_depthwise_conv2d",
+    srcs = ["fuse_depthwise_conv2d.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":graph_rewrite_util",
+        "//tensorflowjs:expect_numpy_installed",
+        "//tensorflowjs:expect_tensorflow_installed",
+    ],
+)
+
+py_test(
+    name = "fuse_depthwise_conv2d_test",
+    srcs = ["fuse_depthwise_conv2d_test.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":fuse_depthwise_conv2d",
         "//tensorflowjs:expect_numpy_installed",
         "//tensorflowjs:expect_tensorflow_installed",
     ],
@@ -125,6 +154,7 @@ py_library(
         ":common",
         ":fold_batch_norms",
         ":fuse_prelu",
+        ":fuse_depthwise_conv2d",
         "//tensorflowjs:expect_numpy_installed",
         "//tensorflowjs:expect_tensorflow_installed",
         "//tensorflowjs:expect_tensorflow_hub_installed",
@@ -151,7 +181,6 @@ py_binary(
     deps = [
         ":common",
         ":converter",
-        ":fuse_prelu",
         "//tensorflowjs:expect_h5py_installed",
         "//tensorflowjs:expect_tensorflow_installed",
     ],

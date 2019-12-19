@@ -212,13 +212,16 @@ function exp_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'exp');
 
   const bck = (dy: T, saved: Tensor[]) => {
-    return {$x: () => dy.mulStrict(saved[0] as T)};
+    return {x: () => dy.mulStrict(saved[0] as T)};
   };
+  const attrs = {};
+  const inputsToSave: Tensor[] = [];
+  const outputsToSave = [true];
   return ENGINE.runKernelFunc((backend, save) => {
     const y = backend.exp($x);
     save([y]);
     return y;
-  }, {$x}, bck);
+  }, {x: $x}, bck, 'Exp', attrs, inputsToSave, outputsToSave);
 }
 
 /**
@@ -263,13 +266,17 @@ function log_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => dy.div($x.toFloat())} as {$x: () => T};
+    return {x: () => dy.div($x.toFloat())} as {x: () => T};
   };
+
+  const attrs = {};
+  const inputsToSave = [$x];
+
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.log($x);
     save([$x]);
     return res;
-  }, {$x}, grad);
+  }, {x: $x}, grad, 'Log', attrs, inputsToSave);
 }
 
 /**
@@ -427,17 +434,19 @@ function clipByValue_<T extends Tensor>(
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
     return {
-      $x: () => dy.where(
-                    $x.greaterEqual(clipValueMin)
-                        .logicalAnd($x.lessEqual(clipValueMax)),
-                    zerosLike(dy)) as T,
+      x: () => dy.where(
+                   $x.greaterEqual(clipValueMin)
+                       .logicalAnd($x.lessEqual(clipValueMax)),
+                   zerosLike(dy)) as T,
     };
   };
+  const inputsToSave = [$x];
+  const attr = {min: clipValueMin, max: clipValueMax};
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.clip($x, clipValueMin, clipValueMax);
     save([$x]);
     return res;
-  }, {$x}, grad);
+  }, {x: $x}, grad, 'ClipByValue', attr, inputsToSave);
 }
 
 /**

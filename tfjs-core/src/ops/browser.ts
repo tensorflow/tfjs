@@ -16,11 +16,15 @@
  */
 
 import {ENGINE} from '../engine';
+import {getKernel} from '../kernel_registry';
 import {Tensor, Tensor2D, Tensor3D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {PixelData, TensorLike} from '../types';
 
 import {op} from './operation';
+import {tensor3d} from './tensor_ops';
+
+let fromPixels2DContext: CanvasRenderingContext2D;
 
 /**
  * Creates a `tf.Tensor` from an image.
@@ -48,12 +52,43 @@ function fromPixels_(
     pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
     HTMLVideoElement,
     numChannels = 3): Tensor3D {
+  // Sanity checks.
   if (numChannels > 4) {
     throw new Error(
         'Cannot construct Tensor with more than 4 channels from pixels.');
   }
-  const isVideo = typeof (HTMLVideoElement) !== 'undefined' &&
-      pixels instanceof HTMLVideoElement;
+  if (pixels == null) {
+    throw new Error('pixels passed to tf.browser.fromPixels() can not be null');
+  }
+  let isPixelData = false;
+  let isImageData = false;
+  let isVideo = false;
+  let isImage = false;
+  let isCanvasLike = false;
+  if ((pixels as PixelData).data instanceof Uint8Array) {
+    isPixelData = true;
+  } else if (
+      typeof (ImageData) !== 'undefined' && pixels instanceof ImageData) {
+    isImageData = true;
+  } else if (
+      typeof (HTMLVideoElement) !== 'undefined' &&
+      pixels instanceof HTMLVideoElement) {
+    isVideo = true;
+  } else if (
+      typeof (HTMLImageElement) !== 'undefined' &&
+      pixels instanceof HTMLImageElement) {
+    isImage = true;
+    // tslint:disable-next-line: no-any
+  } else if ((pixels as any).getContext != null) {
+    isCanvasLike = true;
+  } else {
+    throw new Error(
+        'pixels passed to tf.browser.fromPixels() must be either an ' +
+        `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData ` +
+        `in browser, or OffscreenCanvas, ImageData in webworker` +
+        ` or {data: Uint32Array, width: number, height: number}, ` +
+        `but was ${(pixels as {}).constructor.name}`);
+  }
   if (isVideo) {
     const HAVE_CURRENT_DATA_READY_STATE = 2;
     if (isVideo &&
@@ -64,7 +99,52 @@ function fromPixels_(
           '`loadeddata` event on the <video> element.');
     }
   }
-  return ENGINE.fromPixels(pixels, numChannels);
+  // If the current backend has 'FromPixels' registered, it has a more
+  // efficient way of handling pixel uploads, so we call that.
+  const kernel = getKernel('FromPixels', ENGINE.backendName);
+  if (kernel != null) {
+    return ENGINE.runKernel('FromPixels', {pixels} as {}, {numChannels}) as
+        Tensor3D;
+  }
+
+  const [width, height] = isVideo ?
+      [
+        (pixels as HTMLVideoElement).videoWidth,
+        (pixels as HTMLVideoElement).videoHeight
+      ] :
+      [pixels.width, pixels.height];
+  let vals: Uint8ClampedArray|Uint8Array;
+
+  if (isCanvasLike) {
+    vals =
+        // tslint:disable-next-line:no-any
+        (pixels as any).getContext('2d').getImageData(0, 0, width, height).data;
+  } else if (isImageData || isPixelData) {
+    vals = (pixels as PixelData | ImageData).data;
+  } else if (isImage || isVideo) {
+    if (fromPixels2DContext == null) {
+      fromPixels2DContext = document.createElement('canvas').getContext('2d');
+    }
+    fromPixels2DContext.canvas.width = width;
+    fromPixels2DContext.canvas.height = height;
+    fromPixels2DContext.drawImage(
+        pixels as HTMLVideoElement, 0, 0, width, height);
+    vals = fromPixels2DContext.getImageData(0, 0, width, height).data;
+  }
+  let values: Int32Array;
+  if (numChannels === 4) {
+    values = new Int32Array(vals);
+  } else {
+    const numPixels = width * height;
+    values = new Int32Array(numPixels * numChannels);
+    for (let i = 0; i < numPixels; i++) {
+      for (let channel = 0; channel < numChannels; ++channel) {
+        values[i * numChannels + channel] = vals[i * 4 + channel];
+      }
+    }
+  }
+  const outShape: [number, number, number] = [height, width, numChannels];
+  return tensor3d(values, outShape, 'int32');
 }
 
 /**

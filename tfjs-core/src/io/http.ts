@@ -173,6 +173,10 @@ export class HTTPRequest implements IOHandler {
     }
     const modelTopology = modelConfig.modelTopology;
     const weightsManifest = modelConfig.weightsManifest;
+    const generatedBy = modelConfig.generatedBy;
+    const convertedBy = modelConfig.convertedBy;
+    const format = modelConfig.format;
+    const userDefinedMetadata = modelConfig.userDefinedMetadata;
 
     // We do not allow both modelTopology and weightsManifest to be missing.
     if (modelTopology == null && weightsManifest == null) {
@@ -188,7 +192,15 @@ export class HTTPRequest implements IOHandler {
       [weightSpecs, weightData] = results;
     }
 
-    return {modelTopology, weightSpecs, weightData};
+    return {
+      modelTopology,
+      weightSpecs,
+      weightData,
+      userDefinedMetadata,
+      generatedBy,
+      convertedBy,
+      format
+    };
   }
 
   private async loadWeights(weightsManifest: WeightsManifestConfig):

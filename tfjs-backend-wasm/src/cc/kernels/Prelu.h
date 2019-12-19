@@ -15,11 +15,13 @@
 #ifndef KERNELS_PRELU_H_
 #define KERNELS_PRELU_H_
 
-namespace tfjs {
+#include <cstddef>
 
+namespace tfjs {
 namespace wasm {
 extern "C" {
-void Prelu(int x_id, int weights_id, int out_id);
+
+void Prelu(const size_t x_id, const size_t weights_id, const size_t out_id);
 }
 
 }  // namespace wasm

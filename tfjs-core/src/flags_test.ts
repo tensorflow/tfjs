@@ -80,7 +80,9 @@ describe('TENSORLIKE_CHECK_SHAPE_CONSISTENCY', () => {
   });
 
   it('enabled when debug is enabled', () => {
-    tf.env().set('DEBUG', true);
+    // Silence debug warnings.
+    spyOn(console, 'warn');
+    tf.enableDebugMode();
     expect(tf.env().getBool('TENSORLIKE_CHECK_SHAPE_CONSISTENCY')).toBe(true);
   });
 });

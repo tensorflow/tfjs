@@ -29,6 +29,7 @@ export const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
 export class UnaryOpProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;
+  shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A'];
@@ -44,7 +45,6 @@ export class UnaryOpProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
     const type = getCoordsDataType(this.outputShape.length);
-
     this.userCode = `
       float unaryOperation(float a) {
         ${op}
@@ -65,5 +65,6 @@ export class UnaryOpProgram implements WebGPUProgram {
         }
       }
     `;
+    this.shaderKey = `unary${op}${type}${size}`;
   }
 }

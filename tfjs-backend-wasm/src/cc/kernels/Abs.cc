@@ -17,6 +17,7 @@
 #endif
 
 #include <cmath>
+#include <cstddef>
 
 #include "src/cc/backend.h"
 #include "src/cc/unary.h"
@@ -29,7 +30,9 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Abs(int x_id, int out_id) { unary(x_id, out_id, std::abs); }
+void Abs(const size_t x_id, const size_t out_id) {
+  unary(x_id, out_id, std::abs);
+}
 
 }  // extern "C"
 }  // namespace wasm

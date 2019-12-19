@@ -23,6 +23,7 @@ import {ALL_ENVS, describeWithFlags, TestKernelBackend} from './jasmine_util';
 import {TensorInfo} from './kernel_registry';
 import {Tensor} from './tensor';
 import {expectArraysClose} from './test_util';
+import {BackendValues, DataType} from './types';
 
 describe('Backend registration', () => {
   beforeAll(() => {
@@ -227,7 +228,7 @@ describe('Backend registration', () => {
     });
     tf.setBackend('async');
     await tf.ready();
-    expect(() => tf.square(2)).toThrowError(/Not yet implemented/);
+    expect(() => tf.square(2)).toThrowError(/'write' not yet implemented/);
   });
 
   it('Registering async2 (higher priority) fails, async1 becomes active',
@@ -699,17 +700,31 @@ describeWithFlags('Detects memory leaks in kernels', ALL_ENVS, () => {
 });
 
 // NOTE: This describe is purposefully not a describeWithFlags so that we
-// test tensor allocation where no scopes have been created. The backend
-// here must be set to CPU because we cannot allocate GPU tensors outside
-// a describeWithFlags because the default webgl backend and the test
-// backends share a WebGLContext. When backends get registered, global
-// WebGL state is initialized, which causes the two backends to step on
-// each other and get in a bad state.
+// test tensor allocation where no scopes have been created.
 describe('Memory allocation outside a test scope', () => {
   it('constructing a tensor works', async () => {
-    tf.setBackend('cpu');
+    const backendName = 'test-backend';
+    tf.registerBackend(backendName, () => {
+      let storedValues: BackendValues = null;
+      return {
+        id: 1,
+        floatPrecision: () => 32,
+        write: (values: BackendValues, shape: number[], dtype: DataType) => {
+          const dataId = {};
+          storedValues = values;
+          return dataId;
+        },
+        read: async (dataId: object) => storedValues,
+        dispose: () => null,
+        disposeData: (dataId: {}) => null,
+      } as TestStorage;
+    });
+    tf.setBackend(backendName);
+
     const a = tf.tensor1d([1, 2, 3]);
     expectArraysClose(await a.data(), [1, 2, 3]);
     a.dispose();
+
+    tf.removeBackend(backendName);
   });
 });

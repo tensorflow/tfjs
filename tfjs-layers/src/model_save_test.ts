@@ -35,8 +35,8 @@ describeMathCPUAndGPU('LayersModel.save', () => {
 
     await model.save(handler);
     expect(handler.savedArtifacts.format).toEqual('layers-model');
-    expect(handler.savedArtifacts.generatedBy).toEqual(
-        `TensorFlow.js tfjs-layers v${version}`);
+    expect(handler.savedArtifacts.generatedBy)
+        .toEqual(`TensorFlow.js tfjs-layers v${version}`);
     expect(handler.savedArtifacts.convertedBy).toEqual(null);
   });
 
@@ -49,8 +49,8 @@ describeMathCPUAndGPU('LayersModel.save', () => {
 
     await model.save(handler);
     expect(handler.savedArtifacts.format).toEqual('layers-model');
-    expect(handler.savedArtifacts.generatedBy).toEqual(
-        `TensorFlow.js tfjs-layers v${version}`);
+    expect(handler.savedArtifacts.generatedBy)
+        .toEqual(`TensorFlow.js tfjs-layers v${version}`);
     expect(handler.savedArtifacts.convertedBy).toEqual(null);
   });
 
@@ -443,8 +443,8 @@ describeMathGPU('Save-load round trips', () => {
 
     const gramSchmidtSpy = spyOn(linalg, 'gramSchmidt').and.callThrough();
     const strict = false;
-    const modelPrime = await tfl.loadLayersModel(
-        io.fromMemory(savedArtifacts), {strict});
+    const modelPrime =
+        await tfl.loadLayersModel(io.fromMemory(savedArtifacts), {strict});
     const weightsPrime = modelPrime.getWeights();
     expect(weightsPrime.length).toEqual(weights.length);
     expectTensorsClose(weightsPrime[0], weights[0]);
@@ -474,8 +474,8 @@ describeMathGPU('Save-load round trips', () => {
 
     const gramSchmidtSpy = spyOn(linalg, 'gramSchmidt').and.callThrough();
     const strict = false;
-    const modelPrime = await tfl.loadLayersModel(
-        io.fromMemory(savedArtifacts), {strict});
+    const modelPrime =
+        await tfl.loadLayersModel(io.fromMemory(savedArtifacts), {strict});
     const weightsPrime = modelPrime.getWeights();
     expect(weightsPrime.length).toEqual(weights.length);
     expectTensorsClose(weightsPrime[0], weights[0]);
