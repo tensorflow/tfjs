@@ -280,7 +280,23 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient',      // Gradient not yet implemented.
       'string tensor'  // String tensors not yet implemented.
     ]
-  }
+  },
+  {startsWith: 'sin '},
+  {
+    startsWith: 'cos ',
+    excludes: [
+      'gradient',  // Gradient not yet implemented.
+    ]
+  },
+  {
+    startsWith: 'tanh ',
+    excludes: ['gradient']  // Gradient not yet implemented.
+  },
+  {
+    startsWith: 'rsqrt ',
+    excludes: ['gradient']  // Gradient not yet implemented.
+  },
+
 ];
 
 const customInclude = (testName: string) => {
