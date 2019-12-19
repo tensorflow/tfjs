@@ -72,14 +72,7 @@ limitations under the License.
       </div>
     </div>
     <table class="table" id="kernels">
-      <thead>
-        <tr>
-          <th>Kernel</th>
-          <th>Time(ms)</th>
-          <th>Inputs</th>
-          <th>Output</th>
-          <th>GPUPrograms</th>
-        </tr>
+      <thead id="kernels-thead">
       </thead>
       <tbody></tbody>
     </table>
@@ -105,11 +98,14 @@ limitations under the License.
         runBenchmark();
       },
       backend: 'wasm',
+      kernelTiming: 'aggregate',
     };
 
     const modalDiv = document.getElementById('modal-msg');
     const timeTable = document.querySelector('#timings tbody');
     const envDiv = document.getElementById('env');
+    const kernelsTableHead = document.getElementById('kernels-thead');
+
     let model, predict, chartWidth;
 
     async function showMsg(message) {
@@ -135,6 +131,18 @@ limitations under the License.
       await tf.time(() => tf.add(tf.tensor1d([1]), tf.tensor1d([1])).data());
       envDiv.innerHTML += `<br/>${JSON.stringify(tf.env().features, null, 2)
         } `;
+    }
+
+    async function showTableHeaders() {
+      kernelsTableHead.innerText = '';
+      await tf.nextFrame();
+      const rows = ['Kernel', 'Time(ms)'];
+      if (state.kernelTiming === 'individual') {
+        rows.push('Inputs', 'Output', 'GPUPrograms');
+      }
+      appendRow(kernelsTableHead, ...rows);
+
+      await tf.nextFrame();
     }
 
     function appendRow(tbody, ...cells) {
@@ -330,6 +338,7 @@ limitations under the License.
 
     async function runBenchmark() {
       const benchmark = benchmarks[state.benchmark];
+      await showTableHeaders();
       await loadAndRecordTime(benchmark);
       await warmUpAndRecordTime();
       await showMsg('Waiting for GC');
@@ -356,6 +365,7 @@ limitations under the License.
       gui.add(state, 'backend', ['wasm', 'webgl', 'cpu']).onChange(backend => {
         tf.setBackend(backend);
       });
+      gui.add(state, 'kernelTiming', ['aggregate', 'individual']);
       gui.add(state, 'run');
 
       showVersions();
