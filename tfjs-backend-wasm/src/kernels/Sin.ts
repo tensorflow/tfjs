@@ -14,22 +14,6 @@
  * limitations under the License.
  * =============================================================================
  */
-const os = require('os');
-const name = require('../package.json').name;
-const version = require('../package.json').version;
 
-const platform = os.platform();
-
-const {PLATFORM_MAPPING, PLATFORM_EXTENSION} = require('./deps-constants.js');
-
-const type = name.includes('gpu') ? 'GPU' : 'CPU';
-const addonName = `${type}-${PLATFORM_MAPPING[platform]}-` +
-    `${version}.${PLATFORM_EXTENSION}`;
-
-// Print out the addon tarball name so that it can be used in bash script when
-// uploading the tarball to GCP bucket.
-console.log(addonName);
-
-module.exports = {
-  addonName: addonName
-};
+import {registerUnaryKernel} from './unary_kernel';
+registerUnaryKernel('Sin');
