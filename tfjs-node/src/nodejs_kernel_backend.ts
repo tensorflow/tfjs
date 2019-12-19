@@ -68,7 +68,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   // Creates a new Tensor and maps the dataId to the passed in ID.
-  private createOutputTensor(metadata: TensorMetadata): Tensor {
+  createOutputTensor(metadata: TensorMetadata): Tensor {
     const newId = {};
 
     this.tensorMap.set(newId, {
@@ -112,7 +112,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   // Prepares Tensor instances for Op execution.
-  private getInputTensorIds(tensors: Array<TensorInfo|Int64Scalar>): number[] {
+  getInputTensorIds(tensors: Array<TensorInfo|Int64Scalar>): number[] {
     const ids: number[] = [];
     for (let i = 0; i < tensors.length; i++) {
       if (tensors[i] instanceof Int64Scalar) {
