@@ -45,7 +45,7 @@ function encodeBase64_<T extends StringTensor>(
 
   const backwardsFunc = (dy: T) => ({$str: () => decodeBase64(dy)});
 
-  return ENGINE.runKernel(
+  return ENGINE.runKernelFunc(
       backend => backend.encodeBase64($str, pad), {$str}, backwardsFunc);
 }
 
@@ -70,7 +70,7 @@ function decodeBase64_<T extends StringTensor>(str: StringTensor|Tensor): T {
 
   const backwardsFunc = (dy: T) => ({$str: () => encodeBase64(dy)});
 
-  return ENGINE.runKernel(
+  return ENGINE.runKernelFunc(
       backend => backend.decodeBase64($str), {$str}, backwardsFunc);
 }
 

@@ -16,8 +16,9 @@
  */
 
 import {arrayBufferToBase64String, base64StringToArrayBuffer, urlSafeBase64, urlUnsafeBase64} from '../io/io_utils';
-import {StringTensor, Tensor} from '../tensor';
+import {StringTensor} from '../tensor';
 import {decodeString} from '../util';
+import {ENGINE} from '../engine';
 
 /** Shared implementation of the encodeBase64 kernel across WebGL and CPU. */
 export function encodeBase64Impl<T extends StringTensor>(
@@ -36,7 +37,7 @@ export function encodeBase64Impl<T extends StringTensor>(
     }
   }
 
-  return Tensor.make(shape, {values: resultValues}, 'string');
+  return ENGINE.makeTensor(resultValues, shape, 'string') as T;
 }
 
 /** Shared implementation of the decodeBase64 kernel across WebGL and CPU. */
@@ -53,5 +54,5 @@ export function decodeBase64Impl<T extends StringTensor>(
     resultValues[i] = decodeString(new Uint8Array(aBuff));
   }
 
-  return Tensor.make(shape, {values: resultValues}, 'string');
+  return ENGINE.makeTensor(resultValues, shape, 'string') as T;
 }
