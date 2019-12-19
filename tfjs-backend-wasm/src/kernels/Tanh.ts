@@ -16,4 +16,4 @@
  */
 
 import {registerUnaryKernel} from './unary_kernel';
-registerUnaryKernel('Exp');
+registerUnaryKernel('Tanh');

@@ -577,7 +577,7 @@ export class Engine implements TensorTracker, DataMover {
                 this.makeTensorFromDataId(dataId, shape, dtype));
         const outsToSave = outTensors.filter((_, i) => outputsToSave[i]);
         // Save the inputs and outputs.
-        saveFunc(inputsToSave.slice().concat(outsToSave));
+        saveFunc((inputsToSave || []).slice().concat(outsToSave));
         return outTensors;
       };
     } else {
