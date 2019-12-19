@@ -16,7 +16,7 @@
  */
 
 import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, scalar} from '@tensorflow/tfjs-core';
-import { NodeJSKernelBackend, createTypeOpAttr } from './nodejs_kernel_backend';
+import { NodeJSKernelBackend, createTypeOpAttr } from '../nodejs_kernel_backend';
 
 interface NonMaxSuppressionWithScoreInputs extends NamedTensorInfoMap {
   boxes: TensorInfo;

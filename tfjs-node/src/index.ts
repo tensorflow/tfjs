@@ -25,7 +25,7 @@ import {TFJSBinding} from './tfjs_binding';
 import * as nodeVersion from './version';
 
 // Import all kernels.
-import './all_kernels';
+import './kernels/all_kernels';
 
 // tslint:disable-next-line:no-require-imports
 const binary = require('node-pre-gyp');

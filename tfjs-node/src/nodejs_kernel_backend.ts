@@ -46,7 +46,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     this.tensorMap = new tfc.DataStorage<TensorData>(this, tfc.engine());
   }
 
-  private getDTypeInteger(dtype: DataType): number {
+  getDTypeInteger(dtype: DataType): number {
     switch (dtype) {
       case 'float32':
         return this.binding.TF_FLOAT;
@@ -63,7 +63,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     }
   }
 
-  private typeAttributeFromTensor(value: Tensor): number {
+  typeAttributeFromTensor(value: Tensor): number {
     return this.getDTypeInteger(value.dtype);
   }
 
@@ -137,7 +137,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     return ids;
   }
 
-  private createReductionOpAttrs(tensor: Tensor): TFEOpAttr[] {
+  createReductionOpAttrs(tensor: Tensor): TFEOpAttr[] {
     return [
       {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: false},
       createTypeOpAttr('T', tensor.dtype), createTypeOpAttr('Tidx', 'int32')
