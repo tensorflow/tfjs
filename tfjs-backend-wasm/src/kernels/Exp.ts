@@ -15,5 +15,5 @@
  * =============================================================================
  */
 
-import { registerUnaryKernel } from './unary_kernel';
+import {registerUnaryKernel} from './unary_kernel';
 registerUnaryKernel('Exp');

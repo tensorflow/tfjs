@@ -15,9 +15,5 @@
  * =============================================================================
  */
 
-// We explicitly import the modular kernels so they get registered in the
-// global registry when we compile the library. A modular build would replace
-// the contents of this file and import only the kernels that are needed.
-import './square';
-import './fromPixels';
-import './non_max_suppression_v5';
+import {registerUnaryKernel} from './unary_kernel';
+registerUnaryKernel('Cos');
