@@ -15,10 +15,16 @@
 #ifndef SCATTER_IMPL_H_
 #define SCATTER_IMPL_H_
 
+#include <cstddef>
+#include <vector>
+
 namespace tfjs {
 namespace wasm {
 
-void scatter();
+void scatter(size_t indices_id, size_t updates_id, size_t slice_rank,
+             size_t num_updates, size_t slice_size,
+             const std::vector<size_t>& strides_ptr,
+             const std::vector<size_t>& shape_ptr, size_t out_id);
 
 }  // namespace wasm
 }  // namespace tfjs

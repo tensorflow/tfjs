@@ -32,7 +32,20 @@ EMSCRIPTEN_KEEPALIVE
 
 void ScatterND(size_t indices_id, size_t updates_id, size_t slice_rank,
                size_t num_updates, size_t slice_size, size_t* strides_ptr,
-               size_t* shape_ptr, size_t out_id) {}
+               size_t* shape_ptr, size_t output_size, size_t out_id) {
+  auto& indices_info = backend::get_tensor_info(indices_id);
+  auto& updates_info = backend::get_tensor_info(updates_id);
+  const std::vector<size_t>& strides =
+      std::vector<size_t>(strides_ptr, strides_ptr + slice_rank);
+  const std::vector<size_t>& shape =
+      std::vector<size_t>(shape_ptr, shape_ptr + output_size);
+
+  const int* indices_buf = indices_info.i32();
+  const float* updates_buf = updates_info.f32();
+  auto& out_info = backend::get_tensor_info(out_id);
+  tfjs::wasm::scatter(indices_id, updates_id, slice_rank, num_updates,
+                      slice_size, strides, shape, out_id);
+}
 }  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs

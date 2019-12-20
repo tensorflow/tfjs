@@ -16,6 +16,9 @@
 #include <emscripten.h>
 #endif
 
+#include <cstddef>
+#include <vector>
+
 #include "src/cc/scatter_impl.h"
 
 #include "src/cc/backend.h"
@@ -23,6 +26,9 @@
 
 namespace tfjs {
 namespace wasm {
-void scatter() {}
+void scatter(size_t indices_id, size_t updates_id, size_t slice_rank,
+             size_t num_updates, size_t slice_size,
+             const std::vector<size_t>& strides_ptr,
+             const std::vector<size_t>& shape_ptr, size_t out_id) {}
 }  // namespace wasm
 }  // namespace tfjs
