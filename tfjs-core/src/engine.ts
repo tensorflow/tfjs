@@ -17,7 +17,7 @@
 
 import {BackendTimingInfo, DataMover, KernelBackend} from './backends/backend';
 import {Environment, setEnvironmentGlobal} from './environment';
-import {getKernel, getKernelsForBackend, NamedAttrMap, TensorInfo} from './kernel_registry';
+import {getGradient, getKernel, getKernelsForBackend, NamedAttrMap, TensorInfo} from './kernel_registry';
 import {Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, NamedGradientMap, TapeNode} from './tape';
 import {DataId, setTensorTracker, Tensor, TensorTracker, Variable} from './tensor';
@@ -500,7 +500,7 @@ export class Engine implements TensorTracker, DataMover {
   }
 
   private checkKernelForMemLeak(
-      scopeName: string, numDataIdsBefore: number,
+      kernelName: string, numDataIdsBefore: number,
       outInfos: TensorInfo[]): void {
     const numDataIdsAfter = this.backend.numDataIds();
 
@@ -524,7 +524,7 @@ export class Engine implements TensorTracker, DataMover {
     if (dataIdsLeaked > 0) {
       throw new Error(
           `Backend '${this.backendName}' has an internal memory leak ` +
-          `(${dataIdsLeaked} data ids) after running '${scopeName}'`);
+          `(${dataIdsLeaked} data ids) after running '${kernelName}'`);
     }
   }
 
@@ -540,8 +540,10 @@ export class Engine implements TensorTracker, DataMover {
     let outputs: Tensor[];
     let saved: Tensor[] = [];
     const isTapeOn = this.isTapeOn();
-    const scopeName =
-        this.state.activeScope != null ? this.state.activeScope.name : '';
+    if (kernelName == null) {
+      kernelName =
+          this.state.activeScope != null ? this.state.activeScope.name : '';
+    }
     const saveFunc: GradSaveFunc = (tensors) => {
       // Do not save unless we are recording to the tape. Otherwise it would
       // cause a mem leak since we would never run backprop, which disposes
@@ -568,7 +570,7 @@ export class Engine implements TensorTracker, DataMover {
         out = kernel.kernelFunc({inputs, attrs, backend: this.backend});
         const outInfos = Array.isArray(out) ? out : [out];
         if (this.shouldCheckForMemLeaks()) {
-          this.checkKernelForMemLeak(scopeName, numDataIdsBefore, outInfos);
+          this.checkKernelForMemLeak(kernelName, numDataIdsBefore, outInfos);
         }
         const outTensors = outInfos.map(
             ({dataId, shape, dtype}) =>
@@ -584,7 +586,7 @@ export class Engine implements TensorTracker, DataMover {
         out = this.tidy(() => forwardFunc(this.backend, saveFunc));
         const outs = (Array.isArray(out) ? out : [out]) as Tensor[];
         if (this.shouldCheckForMemLeaks()) {
-          this.checkKernelForMemLeak(scopeName, numDataIdsBefore, outs);
+          this.checkKernelForMemLeak(kernelName, numDataIdsBefore, outs);
         }
         return outs;
       };
@@ -597,17 +599,17 @@ export class Engine implements TensorTracker, DataMover {
             outputs = kernelFunc();
           } else {
             outputs = this.profiler.profileKernel(
-                scopeName, inputs, () => kernelFunc());
+                kernelName, inputs, () => kernelFunc());
           }
         });
 
     if (isTapeOn) {
-      this.addTapeNode(scopeName, inputs, outputs, backwardsFunc, saved);
+      this.addTapeNode(kernelName, inputs, outputs, backwardsFunc, saved);
     }
 
     if (this.state.profiling) {
       this.state.activeProfile.kernels.push({
-        name: scopeName,
+        name: kernelName,
         bytesAdded: this.state.numBytes - startingBytecount,
         totalBytesSnapshot: this.state.numBytes,
         tensorsAdded: this.state.numTensors - startingNumTensors,
@@ -795,16 +797,16 @@ export class Engine implements TensorTracker, DataMover {
   }
 
   private addTapeNode(
-      scopeName: string, inputs: NamedTensorMap, outputs: Tensor[],
+      kernelName: string, inputs: NamedTensorMap, outputs: Tensor[],
       gradientsFunc: (dy: Tensor|Tensor[], saved: Tensor[]) => NamedGradientMap,
       saved: Tensor[]): void {
-    const tapeNode: TapeNode = {
-      id: this.state.nextTapeNodeId++,
-      name: scopeName,
-      inputs,
-      outputs,
-      saved
-    };
+    const tapeNode: TapeNode =
+        {id: this.state.nextTapeNodeId++, kernelName, inputs, outputs, saved};
+
+    const gradConfig = getGradient(kernelName);
+    if (gradConfig != null) {
+      gradientsFunc = gradConfig.gradFunc;
+    }
     if (gradientsFunc != null) {
       tapeNode.gradient = (dys: Tensor[]) => {
         // TODO(smilkov): To optimize back-prop, pass dys that are not used in
