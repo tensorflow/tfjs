@@ -22,9 +22,11 @@ other client-side data.
 ## About this repo
 
 This repository contains the logic and scripts that combine
-four packages:
+several packages.
+
+APIs:
 - [TensorFlow.js Core](/tfjs-core),
-  a flexible low-level API, formerly known as *deeplearn.js*.
+  a flexible low-level API for neural networks and numerical computation.
 - [TensorFlow.js Layers](/tfjs-layers),
   a high-level API which implements functionality similar to
   [Keras](https://keras.io/).
@@ -33,6 +35,18 @@ four packages:
   [tf.data](https://www.tensorflow.org/guide/datasets).
 - [TensorFlow.js Converter](/tfjs-converter),
   tools to import a TensorFlow SavedModel to TensorFlow.js
+- [TensorFlow.js Vis](/tfjs-converter),
+  In browser visualization for TensorFlow.js models
+- [TensorFlow.js AutoML](/tfjs-automl),
+  Set of APIs to load and run models produced by
+  [AutoML Edge](https://cloud.google.com/vision/automl/docs/edge-quickstart).
+
+
+Backends/Platforms:
+- [TensorFlow.js Node](/tfjs-node), Node backend via TensorFlow C++
+- [TensorFlow.js WASM](/tfjs-backend-wasm), WebAssembly backend
+- [TensorFlow.js React Native](/tfjs-react-native), Support for React Native.
+- [TensorFlow.js WebGPU](/tfjs-backend-webgpu), WebGPU backend.
 
 If you care about bundle size, you can import those packages individually.
 
