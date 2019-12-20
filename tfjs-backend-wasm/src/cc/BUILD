@@ -115,6 +115,16 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "scatter_impl",
+    srcs = ["scatter_impl.cc"],
+    hdrs = ["scatter_impl.h"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "transpose_impl",
     srcs = ["transpose_impl.cc"],
     hdrs = ["transpose_impl.h"],
@@ -172,6 +182,7 @@ tfjs_cc_library(
         ":Relu",
         ":Relu6",
         ":ResizeBilinear",
+        ":ScatterND",
         ":Sigmoid",
         ":Sub",
         ":Tile",
@@ -583,6 +594,17 @@ tfjs_unit_test(
     srcs = ["kernels/ResizeBilinear_test.cc"],
     deps = [
         ":ResizeBilinear",
+    ],
+)
+
+tfjs_cc_library(
+    name = "ScatterND",
+    hdrs = ["kernels/ScatterND.h"],
+    srcs = ["kernels/ScatterND.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":scatter_impl",
     ],
 )
 
