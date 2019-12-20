@@ -23,8 +23,7 @@ namespace wasm {
 
 void scatter(const int* indices_ptr, const float* updates_ptr,
              size_t slice_rank, size_t num_updates, size_t slice_size,
-             const std::vector<size_t>& strides_ptr,
-             const std::vector<size_t>& shape_ptr, size_t output_size,
+             const std::vector<size_t>& strides_ptr, size_t output_size,
              float* out_buf_ptr);
 
 }  // namespace wasm

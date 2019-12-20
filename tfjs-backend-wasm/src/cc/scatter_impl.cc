@@ -28,8 +28,7 @@ namespace tfjs {
 namespace wasm {
 void scatter(const int* indices_ptr, const float* updates_ptr,
              size_t slice_rank, size_t num_updates, size_t slice_size,
-             const std::vector<size_t>& strides_ptr,
-             const std::vector<size_t>& shape_ptr, size_t output_size,
+             const std::vector<size_t>& strides_ptr, size_t output_size,
              float* out_buf_ptr) {
   // Initialize output to 0.
   memset(out_buf_ptr, 0, output_size * sizeof(float));
@@ -37,8 +36,9 @@ void scatter(const int* indices_ptr, const float* updates_ptr,
   for (size_t i = 0; i < num_updates; ++i) {
     size_t flattened_index = 0;
     for (size_t j = 0; j < slice_rank; ++j) {
-      int dim = indices_ptr[i * slice_rank + j];
-      flattened_index += dim * strides_ptr[j];
+      flattened_index += *indices_ptr * strides_ptr[j];
+
+      indices_ptr++;
     }
 
     out_buf_ptr += flattened_index * slice_size;
@@ -50,7 +50,6 @@ void scatter(const int* indices_ptr, const float* updates_ptr,
       updates_ptr++;
     }
 
-    updates_ptr += (slice_size - slice_size);
     out_buf_ptr -= (flattened_index * slice_size + slice_size);
   }
 }
