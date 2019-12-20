@@ -29,7 +29,12 @@ namespace wasm {
 void scatter(const int* indices_ptr, const float* updates_ptr,
              size_t slice_rank, size_t num_updates, size_t slice_size,
              const std::vector<size_t>& strides_ptr,
-             const std::vector<size_t>& shape_ptr, float* out_buf_ptr) {
+             const std::vector<size_t>& shape_ptr, size_t output_size,
+             float* out_buf_ptr) {
+  for (size_t i = 0; i < output_size; ++i) {
+    out_buf_ptr[i] = 0;
+  }
+
   for (size_t i = 0; i < num_updates; ++i) {
     size_t flattened_index = 0;
     for (size_t j = 0; j < slice_rank; ++j) {
@@ -39,6 +44,7 @@ void scatter(const int* indices_ptr, const float* updates_ptr,
 
     for (size_t k = 0; k < slice_size; ++k) {
       out_buf_ptr[flattened_index * slice_size + k] =
+          out_buf_ptr[flattened_index * slice_size + k] +
           updates_ptr[i * slice_size + k];
     }
   }
