@@ -21,7 +21,6 @@
 #include <vector>
 
 #include "src/cc/backend.h"
-#include "src/cc/util.h"
 
 #include "src/cc/scatter_impl.h"
 

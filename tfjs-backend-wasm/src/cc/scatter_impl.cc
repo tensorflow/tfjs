@@ -21,7 +21,6 @@
 
 #include "src/cc/scatter_impl.h"
 
-#include "src/cc/backend.h"
 #include "src/cc/util.h"
 
 namespace tfjs {

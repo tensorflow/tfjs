@@ -118,10 +118,7 @@ tfjs_cc_library(
     name = "scatter_impl",
     srcs = ["scatter_impl.cc"],
     hdrs = ["scatter_impl.h"],
-    deps = [
-        ":backend",
-        ":util",
-    ],
+    deps = [":util"],
 )
 
 tfjs_cc_library(
@@ -603,7 +600,6 @@ tfjs_cc_library(
     srcs = ["kernels/ScatterND.cc"],
     deps = [
         ":backend",
-        ":unary",
         ":scatter_impl",
     ],
 )
