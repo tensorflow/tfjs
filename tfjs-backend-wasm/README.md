@@ -20,7 +20,7 @@ import * as tf from '@tensorflow/tfjs';
 // Adds the WASM backend to the global backend registry.
 import '@tensorflow/tfjs-backend-wasm';
 // Set the backend to WASM and wait for the module to be ready.
-tf.setBackend('wasm').then(() => {...});
+tf.setBackend('wasm').then(() => main());
 ```
 
 ### Via a script tag
@@ -32,7 +32,7 @@ tf.setBackend('wasm').then(() => {...});
 <!-- Adds the WASM backend to the global backend registry -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm"></script>
 <script>
-tf.setBackend('wasm').then(() => {...});
+tf.setBackend('wasm').then(() => main());
 </script>
 ```
 
@@ -40,9 +40,6 @@ tf.setBackend('wasm').then(() => {...});
 
 ```js
 async function main() {
-  // Set the backend to WASM and wait for the module to be ready.
-  await tf.setBackend('wasm');
-
   let img = tf.browser.fromPixels(document.getElementById('img'))
       .resizeBilinear([224, 224])
       .expandDims(0)
