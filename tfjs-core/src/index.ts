@@ -29,7 +29,6 @@
 import './engine';
 // Register backend-agnostic flags.
 import './flags';
-
 // backend_cpu.ts and backend_webgl.ts are standalone files and should be
 // explicitly included here.
 import './backends/webgl/backend_webgl';
@@ -38,7 +37,6 @@ import './backends/cpu/backend_cpu';
 import './backends/cpu/all_kernels';
 // Import all kernels from webgl.
 import './backends/webgl/all_kernels';
-
 import './platforms/platform_browser';
 import './platforms/platform_node';
 
@@ -47,6 +45,7 @@ import * as backend_util from './backends/backend_util';
 import * as io from './io/io';
 import * as math from './math';
 import * as browser from './ops/browser';
+import * as scatter_nd_util from './ops/scatter_nd_util';
 import * as slice_util from './ops/slice_util';
 import * as serialization from './serialization';
 import {setOpHandler} from './tensor';
@@ -99,7 +98,8 @@ export {
   backend_util,
   webgl,
   tensor_util,
-  slice_util
+  slice_util,
+  scatter_nd_util
 };
 
 // Backend specific.

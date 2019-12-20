@@ -21,6 +21,8 @@
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
 
+#include "src/cc/scatter_impl.h"
+
 namespace tfjs {
 namespace wasm {
 extern "C" {
@@ -28,7 +30,9 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 
-void ScatterND(size_t indices_id, size_t updates_id, size_t out_id) {}
+void ScatterND(size_t indices_id, size_t updates_id, size_t slice_rank,
+               size_t num_updates, size_t slice_size, size_t* strides_ptr,
+               size_t* shape_ptr, size_t out_id) {}
 }  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs

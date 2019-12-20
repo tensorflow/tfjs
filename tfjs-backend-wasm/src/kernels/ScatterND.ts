@@ -15,27 +15,33 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {NamedAttrMap, NamedTensorInfoMap, registerKernel, scatter_nd_util, Tensor, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
 interface ScatterNDInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
+  indices: TensorInfo;
+  updates: TensorInfo;
 }
 
 interface ScatterNDAttrs extends NamedAttrMap {
-  newWidth: number;
-  newHeight: number;
-  alignCorners: boolean;
+  shape: number[];
 }
 
-let wasmScatterND: (indicesId: number, updatesId: number, outId: number) =>
+let wasmScatterND: (
+    indicesId: number, updatesId: number, sliceRank: number, numUpdates: number,
+    sliceSize: number, strides: Uint8Array, shape: Uint8Array, outId: number) =>
     void;
 
 function setup(backend: BackendWasm): void {
   wasmScatterND = backend.wasm.cwrap('ScatterND', null /*void*/, [
     'number',  // indicesId
     'number',  // updatesId
+    'number',  // sliceRank
+    'number',  // numUpdates
+    'number',  // sliceSize
+    'array',   // strides
+    'array',   // shape
     'number'   // outId
   ]);
 }
@@ -53,14 +59,23 @@ function scatterND(
     return out;
   }
 
+  const {sliceRank, numUpdates, sliceSize, strides} =
+      scatter_nd_util.calculateShapes(
+          updates as Tensor, indices as Tensor, shape);
+
   const indicesData = backend.dataIdMap.get(indices.dataId);
   const indicesId = indicesData.id;
 
   const updatesData = backend.dataIdMap.get(updates.dataId);
   const updatesId = updatesData.id;
 
+  const stridesBytes = new Uint8Array(new Int32Array(strides).buffer);
+  const shapeBytes = new Uint8Array(new Int32Array(shape).buffer);
+
   const outId = backend.dataIdMap.get(out.dataId).id;
-  wasmScatterND(indicesId, updatesId, outId);
+  wasmScatterND(
+      indicesId, updatesId, sliceRank, numUpdates, sliceSize, stridesBytes,
+      shapeBytes, outId);
 
   return out;
 }
