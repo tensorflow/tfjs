@@ -16,10 +16,10 @@
 #include <emscripten.h>
 #endif
 
+#include "src/cc/scatter_impl.h"
+
 #include <cstddef>
 #include <vector>
-
-#include "src/cc/scatter_impl.h"
 
 namespace tfjs {
 namespace wasm {
