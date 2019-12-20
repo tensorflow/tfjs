@@ -429,7 +429,26 @@ describe('SavedModel', () => {
     model2.dispose();
   });
 
-  it('execute model with multiple inputs and outputs', async () => {
+  it('execute model with single input and multiple outputs', async () => {
+    // This test model behaves as: f(x)=[2*x, x]
+    const model = await tf.node.loadSavedModel(
+        './test_objects/saved_model/model_single_input_multi_output', ['serve'],
+        'serving_default');
+    const input = tf.tensor1d([1, 2, 3], 'int32');
+    const output = model.predict(input) as tf.Tensor[];
+    const output1 = output[0];
+    const output2 = output[1];
+    expect(output1.shape).toEqual(input.shape);
+    expect(output1.dtype).toBe(input.dtype);
+    expect(output2.shape).toEqual(input.shape);
+    expect(output2.dtype).toBe(input.dtype);
+    test_util.expectArraysClose(await output1.data(), [2, 4, 6]);
+    test_util.expectArraysClose(await output2.data(), [1, 2, 3]);
+    model.dispose();
+  });
+
+  it('execute model with multiple inputs and multiple outputs', async () => {
+    // This test model behaves as: f(x, y)=[2*x, y]
     const model = await tf.node.loadSavedModel(
         './test_objects/saved_model/model_multi_output', ['serve'],
         'serving_default');
