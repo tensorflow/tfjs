@@ -1,13 +1,14 @@
 # Usage
 
 This package adds a WebAssembly backend to TensorFlow.js. This is currently in
-**alpha** and subject to change. Not every op in TensorFlow.js is supported on this
-backend.
-
-Importing this package augments the TensorFlow.js package
-(@tensorflow/tfjs-core) by registering a new backend meaning existing
-TensorFlow.js code, models, and dependent packages will work with only a few
-lines of code changed.
+**alpha** and has enough op support to run the following models
+from our [models](https://github.com/tensorflow/tfjs-models) repo:
+- MobileNet
+- BodyPix
+- PoseNet
+- CocoSSD
+- AutoML Image classification
+- AutoML Object detection
 
 ## Importing the backend
 
@@ -16,9 +17,10 @@ lines of code changed.
 ```js
 // Import @tensorflow/tfjs or @tensorflow/tfjs-core
 import * as tf from '@tensorflow/tfjs';
-
-// Import the WASM backend.
+// Adds the WASM backend to the global backend registry.
 import '@tensorflow/tfjs-backend-wasm';
+// Set the backend to WASM and wait for the module to be ready.
+tf.setBackend('wasm').then(() => {...});
 ```
 
 ### Via a script tag
@@ -31,7 +33,7 @@ import '@tensorflow/tfjs-backend-wasm';
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm"></script>
 ```
 
-## Using the backend with MobileNet
+## Running MobileNet
 
 ```js
 async function main() {
