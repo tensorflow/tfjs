@@ -31,9 +31,8 @@ void scatter(const int* indices_ptr, const float* updates_ptr,
              const std::vector<size_t>& strides_ptr,
              const std::vector<size_t>& shape_ptr, size_t output_size,
              float* out_buf_ptr) {
-  for (size_t i = 0; i < output_size; ++i) {
-    out_buf_ptr[i] = 0;
-  }
+  // Initialize output to 0.
+  memset(out_buf_ptr, 0, output_size * sizeof(float));
 
   for (size_t i = 0; i < num_updates; ++i) {
     size_t flattened_index = 0;
