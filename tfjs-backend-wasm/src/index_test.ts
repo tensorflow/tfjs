@@ -58,8 +58,8 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     }, 100);
 
     // Silences backend registration warnings.
-    // spyOn(console, 'warn');
-    // spyOn(console, 'log');
+    spyOn(console, 'warn');
+    spyOn(console, 'log');
   });
 
   afterEach(() => {
@@ -92,56 +92,4 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     expect(() => setWasmPath('too/late'))
         .toThrowError(/The WASM backend was already initialized. Make sure/);
   });
-
-  // it('should work for 2d', async () => {
-  //   const indices = tf.tensor1d([0, 4, 2], 'int32');
-  //   const updates = tf.tensor2d(
-  //       [100, 101, 102, 777, 778, 779, 1000, 1001, 1002], [3, 3], 'int32');
-  //   const shape = [5, 3];
-  //   const result = tf.scatterND(indices, updates, shape);
-  //   expect(result.shape).toEqual(shape);
-  //   expect(result.dtype).toEqual(updates.dtype);
-  //   const resultData = await result.data();
-  //   console.log(Array.from(resultData));
-  //   // expectArraysClose(
-  //   //     await result.data(),
-  //   //     [100, 101, 102, 0, 0, 0, 1000, 1001, 1002, 0, 0, 0, 777, 778,
-  //   779]);
-  // });
-
-  // it('should work for multiple 1d', async () => {
-  //   const indices = tf.tensor1d([0, 4, 2], 'int32');
-  //   const updates = tf.tensor1d([100, 101, 102], 'float32');
-  //   const shape = [5];
-  //   const result = tf.scatterND(indices, updates, shape);
-  //   expect(result.shape).toEqual(shape);
-  //   expect(result.dtype).toEqual(updates.dtype);
-  //   const resultData = await result.data();
-  //   console.log(Array.from(resultData));
-  //   // expectArraysClose(await result.data(), [100, 0, 102, 0, 101]);
-  // });
-
-  // it('should work for high rank indices', async () => {
-  //   const indices = tf.tensor2d([0, 2, 0, 1], [2, 2], 'int32');
-  //   const updates = tf.tensor1d([10, 20], 'float32');
-  //   const shape = [3, 3];
-  //   const result = tf.scatterND(indices, updates, shape);
-  //   expect(result.shape).toEqual(shape);
-  //   expect(result.dtype).toEqual(updates.dtype);
-  //   const resultData = await result.data();
-  //   console.log(Array.from(resultData));
-  //   // expectArraysClose(await result.data(), [0, 20, 10, 0, 0, 0, 0, 0, 0]);
-  // });
-
-  // it('should sum the duplicated indices', async () => {
-  //   const indices = tf.tensor1d([0, 4, 2, 1, 3, 0], 'int32');
-  //   const updates = tf.tensor1d([10, 20, 30, 40, 50, 60], 'float32');
-  //   const shape = [8];
-  //   const result = tf.scatterND(indices, updates, shape);
-  //   expect(result.shape).toEqual(shape);
-  //   expect(result.dtype).toEqual(updates.dtype);
-  //   const resultData = await result.data();
-  //   console.log(Array.from(resultData));
-  //   // expectArraysClose(await result.data(), [70, 40, 30, 50, 20, 0, 0, 0]);
-  // });
 });
