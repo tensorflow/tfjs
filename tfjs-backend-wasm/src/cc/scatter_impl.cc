@@ -26,9 +26,16 @@
 
 namespace tfjs {
 namespace wasm {
-void scatter(size_t indices_id, size_t updates_id, size_t slice_rank,
-             size_t num_updates, size_t slice_size,
+void scatter(const int* indices_ptr, const float* updates_ptr,
+             size_t slice_rank, size_t num_updates, size_t slice_size,
              const std::vector<size_t>& strides_ptr,
-             const std::vector<size_t>& shape_ptr, size_t out_id) {}
+             const std::vector<size_t>& shape_ptr, float* out_buf_ptr) {
+  for (size_t i = 0; i < num_updates; ++i) {
+    size_t index = 0;
+    for (size_t j = 0; j < slice_rank; ++j) {
+      // int dim = indices
+    }
+  }
+}
 }  // namespace wasm
 }  // namespace tfjs

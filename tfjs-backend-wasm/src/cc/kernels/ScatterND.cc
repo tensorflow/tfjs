@@ -42,9 +42,10 @@ void ScatterND(size_t indices_id, size_t updates_id, size_t slice_rank,
 
   const int* indices_buf = indices_info.i32();
   const float* updates_buf = updates_info.f32();
-  auto& out_info = backend::get_tensor_info(out_id);
-  tfjs::wasm::scatter(indices_id, updates_id, slice_rank, num_updates,
-                      slice_size, strides, shape, out_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
+  float* out_buf = out_info.f32_write();
+  tfjs::wasm::scatter(indices_buf, updates_buf, slice_rank, num_updates,
+                      slice_size, strides, shape, out_buf);
 }
 }  // extern "C"
 }  // namespace wasm
