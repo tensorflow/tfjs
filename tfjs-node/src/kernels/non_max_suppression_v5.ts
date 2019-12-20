@@ -46,12 +46,21 @@ registerKernel({
 
     const nodeBackend = backend as NodeJSKernelBackend;
 
-    return nodeBackend.executeMultipleOutputs(
-        'NonMaxSuppressionV5', opAttrs,
-        [
-          boxes as Tensor2D, scores as Tensor1D, maxOutputSizeTensor,
-          iouThresholdTensor, scoreThresholdTensor, softNmsSigmaTensor
-        ],
-        2);
+    const [selectedIndices, selectedScores, validOutputs] =
+        nodeBackend.executeMultipleOutputs(
+            'NonMaxSuppressionV5', opAttrs,
+            [
+              boxes as Tensor2D, scores as Tensor1D, maxOutputSizeTensor,
+              iouThresholdTensor, scoreThresholdTensor, softNmsSigmaTensor
+            ],
+            3);
+
+    maxOutputSizeTensor.dispose();
+    iouThresholdTensor.dispose();
+    scoreThresholdTensor.dispose();
+    softNmsSigmaTensor.dispose();
+    validOutputs.dispose();
+
+    return [selectedIndices, selectedScores];
   }
 });
