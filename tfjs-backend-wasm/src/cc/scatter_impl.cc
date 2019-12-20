@@ -44,14 +44,13 @@ void scatter(const int* indices_ptr, const float* updates_ptr,
     out_buf_ptr += flattened_index * slice_size;
 
     for (size_t k = 0; k < slice_size; ++k) {
-      *out_buf_ptr += updates_ptr[i * slice_size + k];
-      // *out_buf_ptr += *updates_ptr;
+      *out_buf_ptr += *updates_ptr;
+
       out_buf_ptr++;
-      // updates_ptr++;
+      updates_ptr++;
     }
 
-    // updates_ptr += slice_size;
-
+    updates_ptr += (slice_size - slice_size);
     out_buf_ptr -= (flattened_index * slice_size + slice_size);
   }
 }
