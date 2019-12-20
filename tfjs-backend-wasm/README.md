@@ -163,6 +163,10 @@ The switch to SIMD should happen transparently for browsers that support it.
 Multi-threading support is not a priority for us at this point since it is still
 a proposal. We will keep a close eye on it as the proposal progresses.
 
+### How do I give feedback?
+We'd love your feedback as we develop this backend! Please file an issue
+[here](https://github.com/tensorflow/tfjs/issues/new).
+
 # Development
 
 ## Emscripten installation
