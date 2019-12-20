@@ -19,7 +19,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, slice_util, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 // TODO(xing.xu): use FusedConv2DConfig from backend_util:
 // https://github.com/tensorflow/tfjs/issues/2471
@@ -44,6 +44,7 @@ import {PadProgram} from './kernels/pad_webgpu';
 import {ResizeBilinearProgram} from './kernels/resize_bilinear_webgpu';
 import {SelectProgram} from './kernels/select_webgpu';
 import {SliceProgram} from './kernels/slice_webgpu';
+import {StridedSliceProgram} from './kernels/strided_slice_webgpu';
 import {TransposeSharedProgram} from './kernels/transpose_shared_webgpu';
 import {TransposeProgram} from './kernels/transpose_webgpu';
 import * as unary_op from './kernels/unary_op_webgpu';
@@ -840,6 +841,22 @@ export class WebGPUBackend extends KernelBackend {
     // TODO(xing.xu): Add shadow slice support.
     const program = new SliceProgram(begin, size);
     return this.compileAndRun(program, [x], null);
+  }
+
+  stridedSlice<T extends Tensor>(
+      x: T, begin: number[], end: number[], strides: number[]): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.stridedSlice(x, begin, end, strides);
+    }
+
+    const outShape = slice_util.computeOutShape(begin, end, strides);
+
+    if (outShape.some(axis => axis === 0)) {
+      return engine().makeTensor([], outShape, x.dtype, this) as T;
+    }
+
+    const program = new StridedSliceProgram(begin, strides, outShape);
+    return this.compileAndRun(program, [x]);
   }
 
   concat(tensors: Tensor[], axis: number): Tensor {
