@@ -35,7 +35,7 @@ APIs:
   [tf.data](https://www.tensorflow.org/guide/datasets).
 - [TensorFlow.js Converter](/tfjs-converter),
   tools to import a TensorFlow SavedModel to TensorFlow.js
-- [TensorFlow.js Vis](/tfjs-converter),
+- [TensorFlow.js Vis](/tfjs-vis),
   in-browser visualization for TensorFlow.js models
 - [TensorFlow.js AutoML](/tfjs-automl),
   Set of APIs to load and run models produced by
