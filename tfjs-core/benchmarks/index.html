@@ -50,26 +50,6 @@ limitations under the License.
           </svg>
         </div>
       </div>
-      <div class="box" id="mem-trendline-container">
-        <div class="label">Number of tensors</div>
-        <div class="trendline">
-          <div class="yMax"></div>
-          <div class="yMin"></div>
-          <svg>
-            <path></path>
-          </svg>
-        </div>
-      </div>
-      <div class="box" id="bytes-trendline-container">
-        <div class="label">Number of bytes used</div>
-        <div class="trendline">
-          <div class="yMax"></div>
-          <div class="yMin"></div>
-          <svg>
-            <path></path>
-          </svg>
-        </div>
-      </div>
     </div>
     <table class="table" id="kernels">
       <thead id="kernels-thead">
@@ -105,6 +85,7 @@ limitations under the License.
     const timeTable = document.querySelector('#timings tbody');
     const envDiv = document.getElementById('env');
     const kernelsTableHead = document.getElementById('kernels-thead');
+    const kernelTable = document.querySelector('#kernels tbody');
 
     let model, predict, chartWidth;
 
@@ -133,12 +114,16 @@ limitations under the License.
         } `;
     }
 
-    async function showTableHeaders() {
+    async function setupTable() {
       kernelsTableHead.innerText = '';
+      kernelTable.innerHTML = '';
       await tf.nextFrame();
-      const rows = ['Kernel', 'Time(ms)'];
+      const rows = ['<b>Kernel</b>', '<b>Time(ms)</b>'];
       if (state.kernelTiming === 'individual') {
-        rows.push('Inputs', 'Output', 'GPUPrograms');
+        rows.push('<b>Inputs</b>', '<b>Output</b>');
+        if (state.backend === 'webgl') {
+          rows.push('<b>GPUPrograms</b>');
+        }
       }
       appendRow(kernelsTableHead, ...rows);
 
@@ -181,7 +166,12 @@ limitations under the License.
     async function loadAndRecordTime(benchmark) {
       await showMsg('Loading the model');
       const start = performance.now();
-      model = await benchmark.load();
+      if (benchmark.model == null) {
+        model = await benchmark.load();
+        benchmark.model = model;
+      } else {
+        model = benchmark.model;
+      }
       predict = benchmark.predictFunc();
 
       const elapsed = performance.now() - start;
@@ -217,11 +207,11 @@ limitations under the License.
       chartWidth = document.querySelector("#perf-trendline-container").getBoundingClientRect().width;
 
       const times = [];
-      const numTensors = [];
-      const numBytes = [];
+      const numLeakedTensors = [];
 
       for (let i = 0; i < state.numRuns; i++) {
         const start = performance.now();
+        const tensorsBefore = tf.memory().numTensors;
         let res = predict(model);
         if (res instanceof Promise) {
           res = await res;
@@ -235,22 +225,19 @@ limitations under the License.
 
         times.push(performance.now() - start);
         const memInfo = tf.memory();
-        numTensors.push(memInfo.numTensors);
-        numBytes.push(memInfo.numBytes);
+        const leakedTensors = memInfo.numTensors - tensorsBefore;
+        numLeakedTensors.push(leakedTensors);
       }
 
       const forceInferenceTrendYMinToZero = true;
       populateTrendline(document.querySelector("#perf-trendline-container"), times, forceInferenceTrendYMinToZero, printTime);
-      populateTrendline(document.querySelector("#mem-trendline-container"), numTensors);
-
-      const forceBytesTrendlineYMinToZero = false;
-      populateTrendline(document.querySelector("#bytes-trendline-container"), numBytes, forceBytesTrendlineYMinToZero, d => `${(d / 1e6).toPrecision(3)} MB`);
 
       await showMsg(null);
       const average = times.reduce((acc, curr) => acc + curr, 0) / times.length;
       const min = Math.min(...times);
       appendRow(timeTable, `Subsequent average(${state.numRuns} runs)`, printTime(average));
       appendRow(timeTable, 'Best time', printTime(min));
+      appendRow(timeTable, 'Leaked tensors', numLeakedTensors[0]);
     }
 
     async function profileMemory() {
@@ -275,12 +262,33 @@ limitations under the License.
 
     function showKernelTime(kernels) {
       const tbody = document.querySelector('#kernels tbody');
-      kernels.forEach(k => {
-        const nameSpan = document.createElement('span');
-        nameSpan.setAttribute('title', k.scopes.slice(0, -1).join(' --> '));
-        nameSpan.textContent = k.scopes[k.scopes.length - 1];
-        appendRow(tbody, nameSpan, k.time.toFixed(2), k.inputs, k.output, k.gpuProgramsInfo);
-      });
+      if (state.kernelTiming === 'individual') {
+        kernels.forEach(k => {
+          const nameSpan = document.createElement('span');
+          nameSpan.setAttribute('title', k.scopes.slice(0, -1).join(' --> '));
+          nameSpan.textContent = k.scopes[k.scopes.length - 1];
+          appendRow(tbody, nameSpan, k.time.toFixed(2), k.inputs, k.output, k.gpuProgramsInfo);
+        });
+      } else {
+        const kernelTotalTime = {};
+        kernels.forEach(k => {
+          const kernelName = k.scopes[0];
+          if (kernelTotalTime[kernelName] == null) {
+            kernelTotalTime[kernelName] = 0;
+          }
+          kernelTotalTime[kernelName] += k.time;
+        });
+
+        const result = Object.keys(kernelTotalTime)
+            .map(k => [k, kernelTotalTime[k]])
+            .sort((a, b) => b[1] - a[1]);
+        result.forEach(r => {
+          const nameSpan = document.createElement('span');
+          nameSpan.setAttribute('title', r[0]);
+          nameSpan.textContent = r[0];
+          appendRow(tbody, nameSpan, r[1].toFixed(2));
+        });
+      }
     }
 
     async function profileKernelTime() {
@@ -338,7 +346,7 @@ limitations under the License.
 
     async function runBenchmark() {
       const benchmark = benchmarks[state.benchmark];
-      await showTableHeaders();
+      await setupTable();
       await loadAndRecordTime(benchmark);
       await warmUpAndRecordTime();
       await showMsg('Waiting for GC');
