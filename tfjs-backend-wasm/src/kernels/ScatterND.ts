@@ -29,11 +29,13 @@ interface ScatterNDAttrs extends NamedAttrMap {
   alignCorners: boolean;
 }
 
-let wasmScatterND: (xId: number, outId: number) => void;
+let wasmScatterND: (indicesId: number, updatesId: number, outId: number) =>
+    void;
 
 function setup(backend: BackendWasm): void {
   wasmScatterND = backend.wasm.cwrap('ScatterND', null /*void*/, [
-    'number',  // xId
+    'number',  // indicesId
+    'number',  // updatesId
     'number'   // outId
   ]);
 }
@@ -43,18 +45,22 @@ function scatterND(
         {backend: BackendWasm, inputs: ScatterNDInputs, attrs: ScatterNDAttrs}):
     TensorInfo {
   const {backend, inputs, attrs} = args;
-  const {x} = inputs;
+  const {indices, updates} = inputs;
+  const {shape} = attrs;
 
-  const out = backend.makeOutput([], x.dtype);
-  if (util.sizeFromShape(x.shape) === 0) {
+  const out = backend.makeOutput(shape as number[], updates.dtype);
+  if (util.sizeFromShape(shape as number[]) === 0) {
     return out;
   }
 
-  const xData = backend.dataIdMap.get(x.dataId);
+  const indicesData = backend.dataIdMap.get(indices.dataId);
+  const indicesId = indicesData.id;
 
-  const xId = xData.id;
+  const updatesData = backend.dataIdMap.get(updates.dataId);
+  const updatesId = updatesData.id;
+
   const outId = backend.dataIdMap.get(out.dataId).id;
-  wasmScatterND(xId, outId);
+  wasmScatterND(indicesId, updatesId, outId);
 
   return out;
 }

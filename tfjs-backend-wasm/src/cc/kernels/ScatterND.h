@@ -21,7 +21,7 @@ namespace tfjs {
 namespace wasm {
 extern "C" {
 
-void ScatterND();
+void ScatterND(size_t indices_id, size_t updates_id, size_t out_id);
 }
 
 }  // namespace wasm

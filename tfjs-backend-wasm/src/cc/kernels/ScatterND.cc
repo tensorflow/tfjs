@@ -28,7 +28,7 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 
-void ScatterND() {}
+void ScatterND(size_t indices_id, size_t updates_id, size_t out_id) {}
 }  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs

@@ -125,7 +125,7 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient'              // Not yet implemented.
     ]
   },
-  {include: 'scatter '},
+  {include: 'scatterND '},
   {
     include: 'abs ',
     excludes: [
