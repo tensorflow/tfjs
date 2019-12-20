@@ -31,6 +31,7 @@ interface NonMaxSuppressionWithScoreAttrs extends NamedAttrMap {
   softNmsSigma: number;
 }
 
+// TODO(nsthorat, dsmilkov): Remove dependency on tensors, use dataId.
 registerKernel({
   kernelName: 'NonMaxSuppressionV5',
   backendName: 'tensorflow',
