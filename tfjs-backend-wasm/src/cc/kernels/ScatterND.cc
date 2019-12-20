@@ -34,7 +34,7 @@ EMSCRIPTEN_KEEPALIVE
 
 void ScatterND(size_t indices_id, size_t updates_id, size_t slice_rank,
                size_t num_updates, size_t slice_size, size_t* strides_ptr,
-               size_t* shape_ptr, size_t output_size, size_t out_id) {
+               size_t output_size, size_t out_id) {
   auto& indices_info = backend::get_tensor_info(indices_id);
   auto& updates_info = backend::get_tensor_info(updates_id);
   const std::vector<size_t>& strides =

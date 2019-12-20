@@ -30,8 +30,8 @@ interface ScatterNDAttrs extends NamedAttrMap {
 
 let wasmScatterND: (
     indicesId: number, updatesId: number, sliceRank: number, numUpdates: number,
-    sliceSize: number, strides: Uint8Array, shape: Uint8Array,
-    outputSize: number, outId: number) => void;
+    sliceSize: number, strides: Uint8Array, outputSize: number,
+    outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmScatterND = backend.wasm.cwrap('ScatterND', null /*void*/, [
@@ -41,7 +41,6 @@ function setup(backend: BackendWasm): void {
     'number',  // numUpdates
     'number',  // sliceSize
     'array',   // strides
-    'array',   // shape
     'number',  // outputSize
     'number'   // outId
   ]);
@@ -71,12 +70,11 @@ function scatterND(
   const updatesId = updatesData.id;
 
   const stridesBytes = new Uint8Array(new Int32Array(strides).buffer);
-  const shapeBytes = new Uint8Array(new Int32Array(shape).buffer);
 
   const outId = backend.dataIdMap.get(out.dataId).id;
   wasmScatterND(
       indicesId, updatesId, sliceRank, numUpdates, sliceSize, stridesBytes,
-      shapeBytes, outputSize, outId);
+      outputSize, outId);
 
   return out;
 }
