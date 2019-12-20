@@ -55,8 +55,8 @@ function scatterND(
   const {indices, updates} = inputs;
   const {shape} = attrs;
 
-  const out = backend.makeOutput(shape as number[], updates.dtype);
-  if (util.sizeFromShape(shape as number[]) === 0) {
+  const out = backend.makeOutput(shape, updates.dtype);
+  if (util.sizeFromShape(shape) === 0) {
     return out;
   }
 
