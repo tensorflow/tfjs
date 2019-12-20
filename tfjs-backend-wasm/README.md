@@ -29,8 +29,11 @@ tf.setBackend('wasm').then(() => {...});
 <!-- Import @tensorflow/tfjs or @tensorflow/tfjs-core -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
 
-<!-- Import the WASM backend. -->
+<!-- Adds the WASM backend to the global backend registry -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm"></script>
+<script>
+tf.setBackend('wasm').then(() => {...});
+</script>
 ```
 
 ## Running MobileNet
