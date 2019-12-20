@@ -29,6 +29,7 @@
 import './engine';
 // Register backend-agnostic flags.
 import './flags';
+
 // backend_cpu.ts and backend_webgl.ts are standalone files and should be
 // explicitly included here.
 import './backends/webgl/backend_webgl';
@@ -37,6 +38,7 @@ import './backends/cpu/backend_cpu';
 import './backends/cpu/all_kernels';
 // Import all kernels from webgl.
 import './backends/webgl/all_kernels';
+
 import './platforms/platform_browser';
 import './platforms/platform_node';
 
