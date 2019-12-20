@@ -389,7 +389,7 @@ describeWithFlags('profile', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [1, 2, 3]);
     expect(profile.kernels).toEqual([
       {
-        'name': 'square',
+        'name': 'Square',
         'bytesAdded': 12,
         'totalBytesSnapshot': 24,
         'tensorsAdded': 1,
@@ -398,7 +398,7 @@ describeWithFlags('profile', ALL_ENVS, () => {
         'outputShapes': [[3]]
       },
       {
-        'name': 'square',
+        'name': 'Square',
         'bytesAdded': 12,
         'totalBytesSnapshot': 24,
         'tensorsAdded': 1,
@@ -423,7 +423,7 @@ describeWithFlags('profile', ALL_ENVS, () => {
     expect(profile.newTensors).toBe(2);
     expectArraysClose(await result.data(), [1, 4, 9]);
     expect(profile.kernels).toEqual([{
-      'name': 'square',
+      'name': 'Square',
       'bytesAdded': 12,
       'totalBytesSnapshot': 24,
       'tensorsAdded': 1,
