@@ -118,7 +118,6 @@ tfjs_cc_library(
     name = "scatter_impl",
     srcs = ["scatter_impl.cc"],
     hdrs = ["scatter_impl.h"],
-    deps = [":util"],
 )
 
 tfjs_cc_library(

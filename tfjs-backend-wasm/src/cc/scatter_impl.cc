@@ -21,8 +21,6 @@
 
 #include "src/cc/scatter_impl.h"
 
-#include "src/cc/util.h"
-
 namespace tfjs {
 namespace wasm {
 void scatter(const int* indices_ptr, const float* updates_ptr,
