@@ -118,6 +118,7 @@ const TEST_FILTERS: TestFilter[] = [
       'shallow slice an input that was cast'  // Slice is not implemented.
     ]
   },
+  {include: 'gather '},
   {
     include: 'sigmoid ',
     excludes: [

@@ -156,6 +156,8 @@ tfjs_cc_library(
         ":FusedBatchNorm",
         ":FusedConv2D",
         ":FusedDepthwiseConv2D",
+        ":Gather",
+        ":GatherND",
         ":Greater",
         ":GreaterEqual",
         ":Less",
@@ -383,6 +385,26 @@ tfjs_unit_test(
     srcs = ["kernels/FusedDepthwiseConv2D_test.cc"],
     deps = [
         ":FusedDepthwiseConv2D",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Gather",
+    srcs = ["kernels/Gather.cc"],
+    hdrs = ["kernels/Gather.h"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "GatherND",
+    srcs = ["kernels/GatherND.cc"],
+    hdrs = ["kernels/GatherND.h"],
+    deps = [
+        ":backend",
+        ":util",
     ],
 )
 

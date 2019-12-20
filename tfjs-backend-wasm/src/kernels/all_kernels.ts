@@ -37,6 +37,8 @@ import './FloorDiv';
 import './FusedBatchNorm';
 import './FusedConv2D';
 import './FusedDepthwiseConv2D';
+import './Gather';
+import './GatherND';
 import './Greater';
 import './GreaterEqual';
 import './LogicalAnd';
