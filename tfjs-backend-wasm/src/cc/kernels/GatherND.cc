@@ -28,9 +28,9 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 
-void GatherND(size_t x_id, size_t indices_id, size_t num_slices,
-              size_t slice_rank, size_t slice_size, size_t* strides_ptr,
-              size_t out_id) {
+void GatherND(size_t x_id, const DType dtype, size_t indices_id,
+              size_t num_slices, size_t slice_rank, size_t slice_size,
+              size_t* strides_ptr, size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& indices_info = backend::get_tensor_info(indices_id);
   const std::vector<size_t>& strides =

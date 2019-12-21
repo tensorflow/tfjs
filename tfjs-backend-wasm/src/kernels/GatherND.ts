@@ -18,6 +18,7 @@
 import {gather_nd_util, NamedTensorInfoMap, registerKernel, Tensor, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+import {CppDType} from './types';
 
 interface GatherNDInputs extends NamedTensorInfoMap {
   x: TensorInfo;
@@ -25,12 +26,14 @@ interface GatherNDInputs extends NamedTensorInfoMap {
 }
 
 let wasmGatherND: (
-    xId: number, indicesId: number, numSlices: number, sliceRank: number,
-    sliceSize: number, strides: Uint8Array, outId: number) => void;
+    xId: number, dtype: CppDType, indicesId: number, numSlices: number,
+    sliceRank: number, sliceSize: number, strides: Uint8Array, outId: number) =>
+    void;
 
 function setup(backend: BackendWasm): void {
   wasmGatherND = backend.wasm.cwrap('GatherND', null /*void*/, [
     'number',  // xId
+    'number',  // dtype
     'number',  // indicesId
     'number',  // numSlices
     'number',  // sliceRank
@@ -65,7 +68,8 @@ function gatherND(args: {backend: BackendWasm, inputs: GatherNDInputs}):
 
   const outId = backend.dataIdMap.get(out.dataId).id;
   wasmGatherND(
-      xId, indicesId, numSlices, sliceRank, sliceSize, stridesBytes, outId);
+      xId, CppDType[x.dtype], indicesId, numSlices, sliceRank, sliceSize,
+      stridesBytes, outId);
 
   return out;
 }
