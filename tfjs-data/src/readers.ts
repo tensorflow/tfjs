@@ -62,7 +62,9 @@ import {CSVConfig, MicrophoneConfig, WebcamConfig} from './types';
  *       {
  *         // Convert xs(features) and ys(labels) from object form (keyed by
  *         // column name) to array form.
- *         return {xs:[xs.crim, xs.zn, xs.indus, xs.chas, xs.nox, xs.rm, xs.age, xs.dis, xs.rad, xs.tax, xs.ptratio, xs.lstat], ys:[ys.medv]};
+ *         return {xs:[xs.crim, xs.zn, xs.indus, xs.chas, xs.nox, xs.rm, 
+ *          xs.age, xs.dis, xs.rad, xs.tax, xs.ptratio, xs.lstat], 
+ *          ys:[ys.medv]};
  *       })
  *     .batch(10);
  *
