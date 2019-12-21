@@ -15,45 +15,57 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {gather_nd_util, NamedTensorInfoMap, registerKernel, Tensor, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
 interface GatherNDInputs extends NamedTensorInfoMap {
   x: TensorInfo;
+  indices: TensorInfo;
 }
 
-interface GatherNDAttrs extends NamedAttrMap {
-  newWidth: number;
-  newHeight: number;
-  alignCorners: boolean;
-}
-
-let wasmGatherND: (xId: number, outId: number) => void;
+let wasmGatherND: (
+    xId: number, indicesId: number, numSlices: number, sliceRank: number,
+    sliceSize: number, strides: Uint8Array, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmGatherND = backend.wasm.cwrap('GatherND', null /*void*/, [
     'number',  // xId
+    'number',  // indicesId
+    'number',  // numSlices
+    'number',  // sliceRank
+    'number',  // sliceSize
+    'array',   // strides
     'number'   // outId
   ]);
 }
 
-function gatherND(
-    args: {backend: BackendWasm, inputs: GatherNDInputs, attrs: GatherNDAttrs}):
+function gatherND(args: {backend: BackendWasm, inputs: GatherNDInputs}):
     TensorInfo {
-  const {backend, inputs, attrs} = args;
-  const {x} = inputs;
+  const {backend, inputs} = args;
+  const {x, indices} = inputs;
 
-  const out = backend.makeOutput([], x.dtype);
-  if (util.sizeFromShape(x.shape) === 0) {
+  const [resultShape, numSlices, sliceSize, strides] =
+      gather_nd_util.prepareAndValidate(x as Tensor, indices as Tensor);
+
+  const out = backend.makeOutput(resultShape, x.dtype);
+  if (numSlices === 0) {
     return out;
   }
 
-  const xData = backend.dataIdMap.get(x.dataId);
+  const indicesShape = indices.shape;
+  const sliceRank = indicesShape[indicesShape.length - 1];
 
+  const xData = backend.dataIdMap.get(x.dataId);
   const xId = xData.id;
+  const indicesData = backend.dataIdMap.get(indices.dataId);
+  const indicesId = indicesData.id;
+
+  const stridesBytes = new Uint8Array(new Int32Array(strides).buffer);
+
   const outId = backend.dataIdMap.get(out.dataId).id;
-  wasmGatherND(xId, outId);
+  wasmGatherND(
+      xId, indicesId, numSlices, sliceRank, sliceSize, stridesBytes, outId);
 
   return out;
 }
