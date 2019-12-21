@@ -28,7 +28,9 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 
-void GatherND() {}
+void GatherND(size_t x_id, size_t indices_id, size_t num_slices,
+              size_t slice_rank, size_t slice_size, size_t* strides_ptr,
+              size_t out_id) {}
 }  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs
