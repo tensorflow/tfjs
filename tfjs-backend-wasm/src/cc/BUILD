@@ -600,6 +600,7 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":scatter_impl",
+        ":util",
     ],
 )
 

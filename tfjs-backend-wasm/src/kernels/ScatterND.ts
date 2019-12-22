@@ -18,6 +18,7 @@
 import {NamedAttrMap, NamedTensorInfoMap, registerKernel, scatter_nd_util, Tensor, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+import {CppDType} from './types';
 
 interface ScatterNDInputs extends NamedTensorInfoMap {
   indices: TensorInfo;
@@ -29,14 +30,15 @@ interface ScatterNDAttrs extends NamedAttrMap {
 }
 
 let wasmScatterND: (
-    indicesId: number, updatesId: number, sliceRank: number, numUpdates: number,
-    sliceSize: number, strides: Uint8Array, outputSize: number,
-    outId: number) => void;
+    indicesId: number, updatesId: number, dtype: CppDType, sliceRank: number,
+    numUpdates: number, sliceSize: number, strides: Uint8Array,
+    outputSize: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmScatterND = backend.wasm.cwrap('ScatterND', null /*void*/, [
     'number',  // indicesId
     'number',  // updatesId
+    'number',  // dtype
     'number',  // sliceRank
     'number',  // numUpdates
     'number',  // sliceSize
@@ -73,8 +75,8 @@ function scatterND(
 
   const outId = backend.dataIdMap.get(out.dataId).id;
   wasmScatterND(
-      indicesId, updatesId, sliceRank, numUpdates, sliceSize, stridesBytes,
-      outputSize, outId);
+      indicesId, updatesId, CppDType[updates.dtype], sliceRank, numUpdates,
+      sliceSize, stridesBytes, outputSize, outId);
 
   return out;
 }
