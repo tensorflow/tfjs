@@ -1,0 +1,42 @@
+{
+  "name": "@tensorflow/tfjs-codegen",
+  "version": "0.0.1",
+  "description": "Code generator for TF.js",
+  "private": true,
+  "main": "dist/index.js",
+  "jsdelivr": "dist/tf-codegen.min.js",
+  "unpkg": "dist/tf-codegen.min.js",
+  "types": "dist/index.d.ts",
+  "jsnext:main": "dist/tf-codegen.esm.js",
+  "module": "dist/tf-codegen.esm.js",
+  "engines": {
+    "yarn": ">= 1.3.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tensorflow/tfjs.git",
+    "directory": "codegen"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/jasmine": "~3.0.0",
+    "@types/node": "~9.6.0",
+    "clang-format": "~1.2.4",
+    "jasmine": "~3.1.0",
+    "jasmine-core": "~3.1.0",
+    "rimraf": "~2.6.2",
+    "shelljs": "~0.8.3",
+    "ts-node": "~7.0.0",
+    "tslint": "~5.11.0",
+    "tslint-no-circular-imports": "~0.5.0",
+    "typescript": "3.5.3",
+    "yalc": "~1.0.0-pre.21",
+    "yargs": "~13.2.2"
+  },
+  "scripts": {},
+  "dependencies": {
+    "@tensorflow/tfjs-core": "^1.5.1",
+    "@tensorflow/tfjs-node": "^1.5.1"
+  },
+  "browser": {}
+}
