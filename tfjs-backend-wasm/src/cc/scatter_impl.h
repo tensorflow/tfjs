@@ -21,10 +21,11 @@
 namespace tfjs {
 namespace wasm {
 
-void scatter(const int* indices_ptr, const float* updates_ptr,
-             size_t slice_rank, size_t num_updates, size_t slice_size,
+template <typename T>
+void scatter(const int* indices_ptr, const T* updates_ptr, size_t slice_rank,
+             size_t num_updates, size_t slice_size,
              const std::vector<size_t>& strides_ptr, size_t output_size,
-             float* out_buf_ptr);
+             T* out_buf_ptr);
 
 }  // namespace wasm
 }  // namespace tfjs

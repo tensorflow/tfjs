@@ -39,13 +39,29 @@ void ScatterND(size_t indices_id, size_t updates_id, const DType dtype,
   auto& updates_info = backend::get_tensor_info(updates_id);
   const std::vector<size_t>& strides =
       std::vector<size_t>(strides_ptr, strides_ptr + slice_rank);
-
   const int* indices_buf = indices_info.i32();
-  const float* updates_buf = updates_info.f32();
   auto& out_info = backend::get_tensor_info_out(out_id);
-  float* out_buf = out_info.f32_write();
-  tfjs::wasm::scatter(indices_buf, updates_buf, slice_rank, num_updates,
-                      slice_size, strides, output_size, out_buf);
+
+  switch (dtype) {
+    case DType::float32:
+      tfjs::wasm::scatter<float>(indices_buf, updates_info.f32(), slice_rank,
+                                 num_updates, slice_size, strides, output_size,
+                                 out_info.f32_write());
+      break;
+    case DType::int32:
+      tfjs::wasm::scatter<int32_t>(indices_buf, updates_info.i32(), slice_rank,
+                                   num_updates, slice_size, strides,
+                                   output_size, out_info.i32_write());
+      break;
+    case DType::boolean:
+      tfjs::wasm::scatter<bool>(indices_buf, updates_info.b(), slice_rank,
+                                num_updates, slice_size, strides, output_size,
+                                out_info.b_write());
+      break;
+    default:
+      util::warn("Scatter for tensor id %d failed. Unknown dtype %d",
+                 indices_id, dtype);
+  }
 }
 }  // extern "C"
 }  // namespace wasm
