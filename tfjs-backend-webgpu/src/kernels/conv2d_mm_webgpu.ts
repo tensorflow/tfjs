@@ -33,7 +33,9 @@ export class Conv2DMMProgram implements WebGPUProgram {
   uniforms = 'ivec2 filterDims, pad, stride, dilation;';
   workGroupSize: [number, number, number];
 
-  constructor(convInfo: backend_util.Conv2DInfo, workPerThread: number) {
+  constructor(
+      convInfo: backend_util.Conv2DInfo, workPerThread: number, addBias = false,
+      activation: string = null, hasPreluActivationWeights = false) {
     this.outputShape = convInfo.outShape;
 
     util.assert(
@@ -75,7 +77,35 @@ export class Conv2DMMProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         elementsPerThread);
 
+    let activationSnippet = '', applyActivationSnippet = '';
+    if (activation) {
+      if (hasPreluActivationWeights) {
+        activationSnippet = `float activation(float a) {
+              float b = getPreluActivationWeightsAtOutCoords();
+              ${activation}
+            }`;
+      } else {
+        activationSnippet = `
+              float activation(float x) {
+                ${activation}
+              }
+            `;
+      }
+
+      applyActivationSnippet = `value = activation(value);`;
+    }
+
+    const addBiasSnippet = addBias ? 'value += getBiasAtOutCoords();' : '';
+    if (addBias) {
+      this.variableNames.push('bias');
+    }
+
+    if (hasPreluActivationWeights) {
+      this.variableNames.push('preluActivationWeights');
+    }
+
     this.userCode = `
+        ${activationSnippet}
         ${matMulSource}
 
         int batch;
@@ -115,6 +145,8 @@ export class Conv2DMMProgram implements WebGPUProgram {
               col % outShape[2],
               row);
           if (coordsInBounds(outCoord, outShape)) {
+            ${addBiasSnippet}
+            ${applyActivationSnippet}
             result[getFlatIndex(outCoord, outShape)] = value;
           }
         }

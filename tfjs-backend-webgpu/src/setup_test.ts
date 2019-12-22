@@ -182,6 +182,21 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {include: 'floor divide ', excludes: []},
   {
+    include: 'fused',
+    excludes: [
+      'A x B',           // fusedBatchMatMul not yet implemented.
+      'A x B with elu',  // elu not yet implemented.
+      'A x B with elu and broadcasted bias',  // elu not yet implemented.
+      'A x B with bias only',  // fusedBatchMatMul not yet implemented.
+      'basic with elu',        // elu not yet implemented.
+      'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0',  // conv2dDerInput not yet
+                                                   // implemented.
+      'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0 with bias',  // conv2dDerInput
+                                                             // not yet
+                                                             // implemented.
+    ]
+  },
+  {
     include: 'maxPool',
     excludes: [
       'maxPoolBackprop',  // Not yet implemented.
@@ -236,6 +251,13 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'stridedSlice',
+    excludes: [
+      'strided slice with several new axes',  // Rank 6 is not yet implemented.
+      'strided slice with new axes and',      // Rank 6 is not yet implemented.
+    ]
+  },
+  {
     include: 'mul ',
     excludes: [
       'int32 * int32',  // Actual != Expected.
@@ -250,7 +272,6 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'NCHW',             // Not yet implemented.
       'gradient',         // 'conv2dDerInput' not yet implemented
-      'fused',            // Not yet implemented.
       'conv2dTranspose',  // DerInput is not Implemented.
     ]
   },
