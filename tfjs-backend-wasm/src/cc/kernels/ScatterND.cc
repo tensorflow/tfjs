@@ -46,17 +46,17 @@ void ScatterND(size_t indices_id, size_t updates_id, const DType dtype,
     case DType::float32:
       tfjs::wasm::scatter<float>(indices_buf, updates_info.f32(), slice_rank,
                                  num_updates, slice_size, strides, output_size,
-                                 out_info.f32_write());
+                                 sizeof(float), out_info.f32_write());
       break;
     case DType::int32:
-      tfjs::wasm::scatter<int32_t>(indices_buf, updates_info.i32(), slice_rank,
-                                   num_updates, slice_size, strides,
-                                   output_size, out_info.i32_write());
+      tfjs::wasm::scatter<int32_t>(
+          indices_buf, updates_info.i32(), slice_rank, num_updates, slice_size,
+          strides, output_size, sizeof(int32), out_info.i32_write());
       break;
     case DType::boolean:
       tfjs::wasm::scatter<bool>(indices_buf, updates_info.b(), slice_rank,
                                 num_updates, slice_size, strides, output_size,
-                                out_info.b_write());
+                                sizeof(bool), out_info.b_write());
       break;
     default:
       util::warn("Scatter for tensor id %d failed. Unknown dtype %d",

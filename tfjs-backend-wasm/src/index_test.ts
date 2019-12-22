@@ -58,8 +58,8 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     }, 100);
 
     // Silences backend registration warnings.
-    // spyOn(console, 'warn');
-    // spyOn(console, 'log');
+    spyOn(console, 'warn');
+    spyOn(console, 'log');
   });
 
   afterEach(() => {
@@ -91,21 +91,5 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     // Setting the path too late.
     expect(() => setWasmPath('too/late'))
         .toThrowError(/The WASM backend was already initialized. Make sure/);
-  });
-
-  fit('should work for 2d', async () => {
-    const indices = tf.tensor1d([0, 4, 2], 'int32');
-    const updates = tf.tensor2d(
-        [100, 101, 102, 777, 778, 779, 1000, 1001, 1002], [3, 3], 'int32');
-    const shape = [5, 3];
-    const result = tf.scatterND(indices, updates, shape);
-    expect(result.shape).toEqual(shape);
-    expect(result.dtype).toEqual(updates.dtype);
-    const resultData = await result.data();
-    console.log(Array.from(resultData));
-    console.log(result.dtype);
-    // expectArraysClose(
-    //     await result.data(),
-    //     [100, 101, 102, 0, 0, 0, 1000, 1001, 1002, 0, 0, 0, 777, 778, 779]);
   });
 });

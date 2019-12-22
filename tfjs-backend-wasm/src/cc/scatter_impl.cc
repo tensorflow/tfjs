@@ -28,9 +28,9 @@ template <typename T>
 void scatter(const int* indices_ptr, const T* updates_ptr, size_t slice_rank,
              size_t num_updates, size_t slice_size,
              const std::vector<size_t>& strides_ptr, size_t output_size,
-             T* out_buf_ptr) {
+             size_t dtype_size, T* out_buf_ptr) {
   // Initialize output to 0.
-  memset(out_buf_ptr, 0, output_size * sizeof(float));
+  memset(out_buf_ptr, 0, output_size * dtype_size);
 
   for (size_t i = 0; i < num_updates; ++i) {
     size_t flattened_index = 0;
@@ -57,17 +57,20 @@ template void scatter<float>(const int* indices_ptr, const float* updates_ptr,
                              size_t slice_rank, size_t num_updates,
                              size_t slice_size,
                              const std::vector<size_t>& strides_ptr,
-                             size_t output_size, float* out_buf_ptr);
+                             size_t output_size, size_t dtype_size,
+                             float* out_buf_ptr);
 template void scatter<int32_t>(const int* indices_ptr, const int* updates_ptr,
                                size_t slice_rank, size_t num_updates,
                                size_t slice_size,
                                const std::vector<size_t>& strides_ptr,
-                               size_t output_size, int* out_buf_ptr);
+                               size_t output_size, size_t dtype_size,
+                               int* out_buf_ptr);
 template void scatter<bool>(const int* indices_ptr, const bool* updates_ptr,
                             size_t slice_rank, size_t num_updates,
                             size_t slice_size,
                             const std::vector<size_t>& strides_ptr,
-                            size_t output_size, bool* out_buf_ptr);
+                            size_t output_size, size_t dtype_size,
+                            bool* out_buf_ptr);
 
 }  // namespace wasm
 }  // namespace tfjs
