@@ -15,7 +15,7 @@
 #ifndef KERNELS_GATHERND_H_
 #define KERNELS_GATHERND_H_
 
-#include <cstddef>
+#include "src/cc/backend.h"
 
 namespace tfjs {
 namespace wasm {

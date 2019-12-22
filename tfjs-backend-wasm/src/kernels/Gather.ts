@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -23,26 +23,20 @@ interface GatherInputs extends NamedTensorInfoMap {
   x: TensorInfo;
 }
 
-interface GatherAttrs extends NamedAttrMap {
-  newWidth: number;
-  newHeight: number;
-  alignCorners: boolean;
-}
-
-let wasmGather: (xId: number, outId: number) => void;
+let wasmGather: (xId: number, indicesId: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmGather = backend.wasm.cwrap('Gather', null /*void*/, [
     'number',  // xId
+    'number',  // indicesId
     'number'   // outId
   ]);
 }
 
-function gather(
-    args: {backend: BackendWasm, inputs: GatherInputs, attrs: GatherAttrs}):
+function gather(args: {backend: BackendWasm, inputs: GatherInputs}):
     TensorInfo {
-  const {backend, inputs, attrs} = args;
-  const {x} = inputs;
+  const {backend, inputs} = args;
+  const {x, indices} = inputs;
 
   const out = backend.makeOutput([], x.dtype);
   if (util.sizeFromShape(x.shape) === 0) {
@@ -50,10 +44,13 @@ function gather(
   }
 
   const xData = backend.dataIdMap.get(x.dataId);
-
   const xId = xData.id;
+
+  const indicesData = backend.dataIdMap.get(indices.dataId);
+  const indicesId = indicesData.id;
+
   const outId = backend.dataIdMap.get(out.dataId).id;
-  wasmGather(xId, outId);
+  wasmGather(xId, indicesId, outId);
 
   return out;
 }
