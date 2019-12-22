@@ -15,9 +15,7 @@
 #ifndef KERNELS_SCATTERND_H_
 #define KERNELS_SCATTERND_H_
 
-#include <cstddef>
 #include "src/cc/backend.h"
-#include "src/cc/util.h"
 
 namespace tfjs {
 namespace wasm {

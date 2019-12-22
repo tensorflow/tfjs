@@ -18,7 +18,6 @@
 
 #include "src/cc/kernels/ScatterND.h"
 
-#include <cstddef>
 #include <vector>
 
 #include "src/cc/backend.h"
