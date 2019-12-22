@@ -21,6 +21,19 @@
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
 
+namespace {
+
+template <typename T>
+void gathernd_impl(const T* x_ptr, const int* indices_ptr, T* out_buf_ptr) {}
+
+template void gathernd_impl<float>(const float* x_ptr, const int* indices_ptr,
+                                   float* out_buf_ptr);
+template void gathernd_impl<int32_t>(const int* x_ptr, const int* indices_ptr,
+                                     int* out_buf_ptr);
+template void gathernd_impl<bool>(const bool* x_ptr, const int* indices_ptr,
+                                  bool* out_buf_ptr);
+}  // namespace
+
 namespace tfjs {
 namespace wasm {
 extern "C" {
@@ -40,6 +53,21 @@ void GatherND(size_t x_id, const DType dtype, size_t indices_id,
   const int* indices_buf = indices_info.i32();
   auto& out_info = backend::get_tensor_info_out(out_id);
   float* out_buf = out_info.f32_write();
+
+  switch (dtype) {
+    case DType::float32:
+      gathernd_impl<float>(x_info.f32(), indices_buf, out_info.f32_write());
+      break;
+    case DType::int32:
+      gathernd_impl<int32_t>(x_info.i32(), indices_buf, out_info.i32_write());
+      break;
+    case DType::boolean:
+      gathernd_impl<bool>(x_info.b(), indices_buf, out_info.b_write());
+      break;
+    default:
+      util::warn("Scatter for tensor id %d failed. Unknown dtype %d",
+                 indices_id, dtype);
+  }
 }
 }  // extern "C"
 }  // namespace wasm
