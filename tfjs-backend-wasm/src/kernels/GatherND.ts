@@ -15,23 +15,23 @@
  * =============================================================================
  */
 
-import {gather_nd_util, NamedTensorInfoMap, registerKernel, Tensor, TensorInfo} from '@tensorflow/tfjs-core';
+import {gather_util, NamedTensorInfoMap, registerKernel, Tensor, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 import {CppDType} from './types';
 
-interface GatherNDInputs extends NamedTensorInfoMap {
+interface GatherNdInputs extends NamedTensorInfoMap {
   x: TensorInfo;
   indices: TensorInfo;
 }
 
-let wasmGatherND: (
+let wasmGatherNd: (
     xId: number, dtype: CppDType, indicesId: number, numSlices: number,
     sliceRank: number, sliceSize: number, strides: Uint8Array, outId: number) =>
     void;
 
 function setup(backend: BackendWasm): void {
-  wasmGatherND = backend.wasm.cwrap('GatherND', null /*void*/, [
+  wasmGatherNd = backend.wasm.cwrap('GatherNd', null /*void*/, [
     'number',  // xId
     'number',  // dtype
     'number',  // indicesId
@@ -43,13 +43,13 @@ function setup(backend: BackendWasm): void {
   ]);
 }
 
-function gatherND(args: {backend: BackendWasm, inputs: GatherNDInputs}):
+function gatherNd(args: {backend: BackendWasm, inputs: GatherNdInputs}):
     TensorInfo {
   const {backend, inputs} = args;
   const {x, indices} = inputs;
 
   const [resultShape, numSlices, sliceSize, strides] =
-      gather_nd_util.prepareAndValidate(x as Tensor, indices as Tensor);
+      gather_util.prepareAndValidate(x as Tensor, indices as Tensor);
 
   const out = backend.makeOutput(resultShape, x.dtype);
   if (numSlices === 0) {
@@ -67,7 +67,7 @@ function gatherND(args: {backend: BackendWasm, inputs: GatherNDInputs}):
   const stridesBytes = new Uint8Array(new Int32Array(strides).buffer);
 
   const outId = backend.dataIdMap.get(out.dataId).id;
-  wasmGatherND(
+  wasmGatherNd(
       xId, CppDType[x.dtype], indicesId, numSlices, sliceRank, sliceSize,
       stridesBytes, outId);
 
@@ -75,8 +75,8 @@ function gatherND(args: {backend: BackendWasm, inputs: GatherNDInputs}):
 }
 
 registerKernel({
-  kernelName: 'GatherND',
+  kernelName: 'GatherNd',
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: gatherND
+  kernelFunc: gatherNd
 });

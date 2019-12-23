@@ -38,7 +38,7 @@ import './FusedBatchNorm';
 import './FusedConv2D';
 import './FusedDepthwiseConv2D';
 import './Gather';
-import './GatherND';
+import './GatherNd';
 import './Greater';
 import './GreaterEqual';
 import './LogicalAnd';

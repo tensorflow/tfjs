@@ -157,7 +157,7 @@ tfjs_cc_library(
         ":FusedConv2D",
         ":FusedDepthwiseConv2D",
         ":Gather",
-        ":GatherND",
+        ":GatherNd",
         ":Greater",
         ":GreaterEqual",
         ":Less",
@@ -399,9 +399,8 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-    name = "GatherND",
-    srcs = ["kernels/GatherND.cc"],
-    hdrs = ["kernels/GatherND.h"],
+    name = "GatherNd",
+    srcs = ["kernels/GatherNd.cc"],
     deps = [
         ":backend",
         ":util",

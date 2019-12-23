@@ -62,6 +62,6 @@ function gatherND_(x: Tensor|TensorLike, indices: Tensor|TensorLike): Tensor {
   const $x = convertToTensor(x, 'x', 'gatherND');
   return ENGINE.runKernelFunc(
       backend => backend.gatherND($x, $indices), {x: $x, indices: $indices},
-      null /* backward */, 'GatherND');
+      null /* backward */, 'GatherNd');
 }
 export const gatherND = op({gatherND_});

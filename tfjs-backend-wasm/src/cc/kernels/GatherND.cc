@@ -16,8 +16,6 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/kernels/GatherND.h"
-
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
 
@@ -72,7 +70,7 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 
-void GatherND(size_t x_id, const DType dtype, size_t indices_id,
+void GatherNd(size_t x_id, const DType dtype, size_t indices_id,
               size_t num_slices, size_t slice_rank, size_t slice_size,
               size_t* strides_ptr, size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
@@ -97,7 +95,7 @@ void GatherND(size_t x_id, const DType dtype, size_t indices_id,
                           slice_size, strides, out_info.b_write());
       break;
     default:
-      util::warn("Scatter for tensor id %d failed. Unknown dtype %d",
+      util::warn("GatherNd for tensor id %d failed. Unknown dtype %d",
                  indices_id, dtype);
   }
 }

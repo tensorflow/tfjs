@@ -45,7 +45,7 @@ import * as backend_util from './backends/backend_util';
 import * as io from './io/io';
 import * as math from './math';
 import * as browser from './ops/browser';
-import * as gather_nd_util from './ops/gather_nd_util';
+import * as gather_util from './ops/gather_nd_util';
 import * as slice_util from './ops/slice_util';
 import * as serialization from './serialization';
 import {setOpHandler} from './tensor';
@@ -99,7 +99,7 @@ export {
   webgl,
   tensor_util,
   slice_util,
-  gather_nd_util
+  gather_util
 };
 
 // Backend specific.
