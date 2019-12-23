@@ -47,9 +47,10 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 
-void Gather(size_t x_id, const DType dtype, const size_t* x_strides_ptr,
-            const size_t strides_size, size_t indices_id, size_t axis,
-            const size_t* out_strides_ptr, size_t out_id) {
+void Gather(const size_t x_id, const DType dtype, const size_t* x_strides_ptr,
+            const size_t strides_size, const size_t indices_id,
+            const size_t axis, const size_t* out_strides_ptr,
+            const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& indices_info = backend::get_tensor_info(indices_id);
 
