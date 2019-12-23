@@ -45,22 +45,6 @@ void gathernd_impl(const T* x_ptr, const int* indices_ptr, size_t num_slices,
     x_ptr -= ((flattened_index + 1) * slice_size);
   }
 }
-
-template void gathernd_impl<float>(const float* x_ptr, const int* indices_ptr,
-                                   size_t num_slices, size_t slice_rank,
-                                   size_t slice_size,
-                                   const std::vector<size_t>& strides_ptr,
-                                   float* out_buf_ptr);
-template void gathernd_impl<int32_t>(const int* x_ptr, const int* indices_ptr,
-                                     size_t num_slices, size_t slice_rank,
-                                     size_t slice_size,
-                                     const std::vector<size_t>& strides_ptr,
-                                     int* out_buf_ptr);
-template void gathernd_impl<bool>(const bool* x_ptr, const int* indices_ptr,
-                                  size_t num_slices, size_t slice_rank,
-                                  size_t slice_size,
-                                  const std::vector<size_t>& strides_ptr,
-                                  bool* out_buf_ptr);
 }  // namespace
 
 namespace tfjs {

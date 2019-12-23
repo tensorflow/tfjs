@@ -38,25 +38,6 @@ void gather_impl(const T* x_ptr, const std::vector<size_t>& x_strides,
     out_buf_ptr++;
   }
 }
-
-template void gather_impl<float>(const float* x_ptr,
-                                 const std::vector<size_t>& x_strides,
-                                 const int* indices_ptr, const size_t axis,
-                                 const size_t out_size,
-                                 const std::vector<size_t>& out_strides,
-                                 float* out_buf);
-template void gather_impl<int32_t>(const int* x_ptr,
-                                   const std::vector<size_t>& x_strides,
-                                   const int* indices_ptr, const size_t axis,
-                                   const size_t out_size,
-                                   const std::vector<size_t>& out_strides,
-                                   int* out_buf);
-template void gather_impl<bool>(const bool* x_ptr,
-                                const std::vector<size_t>& x_strides,
-                                const int* indices_ptr, const size_t axis,
-                                const size_t out_size,
-                                const std::vector<size_t>& out_strides,
-                                bool* out_buf);
 }  // namespace
 
 namespace tfjs {
