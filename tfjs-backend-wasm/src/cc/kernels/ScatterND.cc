@@ -23,10 +23,11 @@
 
 namespace {
 template <typename T>
-void scatter(const int* indices_ptr, const T* updates_ptr, size_t slice_rank,
-             size_t num_updates, size_t slice_size,
-             const std::vector<size_t>& strides_ptr, size_t output_size,
-             size_t dtype_size, T* out_buf_ptr) {
+void scatter(const int* indices_ptr, const T* updates_ptr,
+             const size_t slice_rank, const size_t num_updates,
+             const size_t slice_size, const std::vector<size_t>& strides_ptr,
+             const size_t output_size, const size_t dtype_size,
+             T* out_buf_ptr) {
   // Initialize output to 0.
   memset(out_buf_ptr, 0, output_size * dtype_size);
 
@@ -60,9 +61,11 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 
-void ScatterND(size_t indices_id, size_t updates_id, const DType dtype,
-               size_t slice_rank, size_t num_updates, size_t slice_size,
-               size_t* strides_ptr, size_t output_size, size_t out_id) {
+void ScatterND(const size_t indices_id, const size_t updates_id,
+               const DType dtype, const size_t slice_rank,
+               const size_t num_updates, const size_t slice_size,
+               const size_t* strides_ptr, const size_t output_size,
+               const size_t out_id) {
   auto& indices_info = backend::get_tensor_info(indices_id);
   auto& updates_info = backend::get_tensor_info(updates_id);
   const std::vector<size_t>& strides =
