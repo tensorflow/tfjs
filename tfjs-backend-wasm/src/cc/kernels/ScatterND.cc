@@ -21,8 +21,58 @@
 #include <vector>
 
 #include "src/cc/backend.h"
-#include "src/cc/scatter_impl.h"
 #include "src/cc/util.h"
+
+namespace {
+template <typename T>
+void scatter(const int* indices_ptr, const T* updates_ptr, size_t slice_rank,
+             size_t num_updates, size_t slice_size,
+             const std::vector<size_t>& strides_ptr, size_t output_size,
+             size_t dtype_size, T* out_buf_ptr) {
+  // Initialize output to 0.
+  memset(out_buf_ptr, 0, output_size * dtype_size);
+
+  for (size_t i = 0; i < num_updates; ++i) {
+    size_t flattened_index = 0;
+    for (size_t j = 0; j < slice_rank; ++j) {
+      flattened_index += *indices_ptr * strides_ptr[j];
+
+      indices_ptr++;
+    }
+
+    out_buf_ptr += flattened_index * slice_size;
+
+    for (size_t k = 0; k < slice_size; ++k) {
+      *out_buf_ptr += *updates_ptr;
+
+      out_buf_ptr++;
+      updates_ptr++;
+    }
+
+    out_buf_ptr -= (flattened_index * slice_size + slice_size);
+  }
+}
+
+template void scatter<float>(const int* indices_ptr, const float* updates_ptr,
+                             size_t slice_rank, size_t num_updates,
+                             size_t slice_size,
+                             const std::vector<size_t>& strides_ptr,
+                             size_t output_size, size_t dtype_size,
+                             float* out_buf_ptr);
+template void scatter<int32_t>(const int* indices_ptr, const int* updates_ptr,
+                               size_t slice_rank, size_t num_updates,
+                               size_t slice_size,
+                               const std::vector<size_t>& strides_ptr,
+                               size_t output_size, size_t dtype_size,
+                               int* out_buf_ptr);
+template void scatter<bool>(const int* indices_ptr, const bool* updates_ptr,
+                            size_t slice_rank, size_t num_updates,
+                            size_t slice_size,
+                            const std::vector<size_t>& strides_ptr,
+                            size_t output_size, size_t dtype_size,
+                            bool* out_buf_ptr);
+
+}  // namespace
 
 namespace tfjs {
 namespace wasm {
@@ -43,19 +93,19 @@ void ScatterND(size_t indices_id, size_t updates_id, const DType dtype,
 
   switch (dtype) {
     case DType::float32:
-      tfjs::wasm::scatter<float>(indices_buf, updates_info.f32(), slice_rank,
-                                 num_updates, slice_size, strides, output_size,
-                                 sizeof(float), out_info.f32_write());
+      scatter<float>(indices_buf, updates_info.f32(), slice_rank, num_updates,
+                     slice_size, strides, output_size, sizeof(float),
+                     out_info.f32_write());
       break;
     case DType::int32:
-      tfjs::wasm::scatter<int32_t>(
-          indices_buf, updates_info.i32(), slice_rank, num_updates, slice_size,
-          strides, output_size, sizeof(int32), out_info.i32_write());
+      scatter<int32_t>(indices_buf, updates_info.i32(), slice_rank, num_updates,
+                       slice_size, strides, output_size, sizeof(int32),
+                       out_info.i32_write());
       break;
     case DType::boolean:
-      tfjs::wasm::scatter<bool>(indices_buf, updates_info.b(), slice_rank,
-                                num_updates, slice_size, strides, output_size,
-                                sizeof(bool), out_info.b_write());
+      scatter<bool>(indices_buf, updates_info.b(), slice_rank, num_updates,
+                    slice_size, strides, output_size, sizeof(bool),
+                    out_info.b_write());
       break;
     default:
       util::warn("Scatter for tensor id %d failed. Unknown dtype %d",

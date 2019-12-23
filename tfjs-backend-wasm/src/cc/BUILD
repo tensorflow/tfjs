@@ -115,12 +115,6 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-    name = "scatter_impl",
-    srcs = ["scatter_impl.cc"],
-    hdrs = ["scatter_impl.h"],
-)
-
-tfjs_cc_library(
     name = "transpose_impl",
     srcs = ["transpose_impl.cc"],
     hdrs = ["transpose_impl.h"],
@@ -599,7 +593,6 @@ tfjs_cc_library(
     srcs = ["kernels/ScatterND.cc"],
     deps = [
         ":backend",
-        ":scatter_impl",
         ":util",
     ],
 )
