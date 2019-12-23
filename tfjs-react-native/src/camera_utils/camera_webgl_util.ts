@@ -94,7 +94,7 @@ export function uploadTextureData(
   const targetTextureHeight = dims.height;
 
   tf.util.assert(
-      targetTextureWidth * targetTextureHeight * dims.depth !==
+      targetTextureWidth * targetTextureHeight * dims.depth ===
           imageData.length,
       () => 'uploadTextureData Error: imageData length must match w * h * d');
 

@@ -259,7 +259,7 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
       gl.viewport(0, 0, width, height);
       start = Date.now();
       const res = fromTexture(gl, cameraTexture,
-          {x, y, width:gl.drawingBufferWidth, height:gl.drawingBufferHeight, depth});
+          {x, y, width, height, depth});
       // console.log('from rexture res', res.shape);
       end = Date.now();
       // console.log('fromTexture:time', end - start);
@@ -278,7 +278,7 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
       // res.dispose();
       // gl.viewport(0,0, width, height);
       gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight); // THIS IS KEY AND CONTROLS THE MAPPING TO PIXEL SPACE
-      renderToGLView(gl, newT, {
+      renderToGLView(gl, cameraTexture, {
         x, y,
         width,
         height,

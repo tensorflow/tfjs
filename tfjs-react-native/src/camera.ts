@@ -29,12 +29,6 @@ interface Dimensions {
   depth: number;
 }
 
-interface Size {
-  width: number;
-  height: number;
-  depth: number;
-}
-
 // Draws image tensorData to a textre
 export async function toTexture(
     gl: WebGL2RenderingContext, imageTensor: tf.Tensor3D,
