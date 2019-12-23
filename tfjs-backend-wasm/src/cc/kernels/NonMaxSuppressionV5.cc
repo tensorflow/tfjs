@@ -53,8 +53,8 @@ const Result* NonMaxSuppressionV5(const size_t boxes_id, const size_t scores_id,
       boxes_id, scores_id, max_out_size, iou_threshold, score_threshold,
       soft_nms_sigma);
 
-  return new Result{result &.selected_indices, result.selected_size,
-                    result.selected_scores};
+  return new Result{result->selected_indices, result->selected_size,
+                    result->selected_scores};
 }
 
 }  // extern "C"
