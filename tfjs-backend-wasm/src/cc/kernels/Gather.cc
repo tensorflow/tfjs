@@ -77,7 +77,7 @@ void Gather(const size_t x_id, const DType dtype, const size_t* x_strides_ptr,
                         out_strides, out_info.b_write());
       break;
     default:
-      util::warn("Scatter for tensor id %d failed. Unknown dtype %d", x_id,
+      util::warn("Gather for tensor id %d failed. Unknown dtype %d", x_id,
                  dtype);
   }
 }
