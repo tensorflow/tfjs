@@ -21,6 +21,10 @@ import './flags_webgpu';
 
 import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, slice_util, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
+// TODO(xing.xu): use FusedConv2DConfig from backend_util:
+// https://github.com/tensorflow/tfjs/issues/2471
+// tslint:disable-next-line: no-imports-from-dist
+import {FusedConv2DConfig} from '@tensorflow/tfjs-core/dist/ops/fused_util';
 
 import {BufferManager} from './buffer_manager';
 import {ArgMinMaxProgram} from './kernels/argminmax_webgpu';
@@ -745,6 +749,65 @@ export class WebGPUBackend extends KernelBackend {
       convInfo.inWidth
     ];
     return this.compileAndRun(program, [x, filter], null, dimensions);
+  }
+
+  mapActivationToShaderProgram(
+      activation: backend_util.Activation, packed = false): string {
+    if (activation === 'linear') {
+      return unary_op.LINEAR;
+    } else if (activation === 'relu') {
+      return unary_op.RELU;
+    } else if (activation === 'elu') {
+      return unary_op.ELU;
+    } else if (activation === 'relu6') {
+      return unary_op.RELU6;
+    } else if (activation === 'prelu') {
+      return binary_op.PRELU;
+    }
+    throw new Error(`Activation ${
+        activation} has not been implemented for the WebGL backend.`);
+  }
+
+  fusedConv2d(
+      {input, filter, convInfo, bias, activation, preluActivationWeights}:
+          FusedConv2DConfig): Tensor4D {
+    const dataId = this.write(null /*values*/, convInfo.outShape, input.dtype);
+    const output = engine().makeTensorFromDataId(
+        dataId, convInfo.outShape, input.dtype, this);
+
+    const hasBias = bias != null;
+    const hasPreluActivationWeights = preluActivationWeights != null;
+    const fusedActivation = activation ?
+        this.mapActivationToShaderProgram(activation, false) :
+        null;
+    let program: Conv2DMMProgram|Conv2DNaiveProgram;
+
+    const workPerThread = env().get('WEBGPU_CONV2D_WORK_PER_THREAD') as number;
+    if (workPerThread === -1) {
+      // TODO(kainino0x): This may be obsolete, but is kept for reference.
+      program = new Conv2DNaiveProgram(
+          convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
+    } else {
+      program = new Conv2DMMProgram(
+          convInfo, workPerThread, hasBias, fusedActivation,
+          hasPreluActivationWeights);
+    }
+
+    const pad = convInfo.padInfo.type === 'VALID' ?
+        [0, 0] :
+        convInfo.padInfo.type === 'SAME' ?
+        [
+          -Math.floor((convInfo.filterShape[0] - 1) / 2),
+          -Math.floor((convInfo.filterShape[1] - 1) / 2)
+        ] :
+        [convInfo.padInfo.top, convInfo.padInfo.left];
+
+    const dimensions = [
+      convInfo.filterHeight, convInfo.filterWidth, ...pad,
+      convInfo.strideHeight, convInfo.strideWidth
+    ];
+
+    return this.compileAndRun(program, [input, filter], output, dimensions);
   }
 
   private argMinMaxReduce(x: Tensor, axis: number, reduceType: 'min'|'max'):

@@ -23,6 +23,8 @@ import {WebGPUProgram} from './webgpu_program';
 
 export const RELU = 'return max(a, 0.0);';
 export const RELU6 = 'return (a < 0.0) ? 0.0 : min(6.0, a);';
+export const LINEAR = `return x;`;
+export const ELU = `return (x >= 0.0) ? x : (exp(x) - 1.0);`;
 
 export const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
 
