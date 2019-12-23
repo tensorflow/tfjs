@@ -98,9 +98,9 @@
   integrity sha512-056oRlBBp7MDzr+HoU5su099s/s7wjZ3KcHxLfv+Byqb9MwdLUvsfLgw1VS97hsh3ddxSPyQu+olHMnoVTUY6g==
 
 "@types/node@*":
-  version "12.12.21"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.12.21.tgz#aa44a6363291c7037111c47e4661ad210aded23f"
-  integrity sha512-8sRGhbpU+ck1n0PGAUgVrWrWdjSW2aqNeyC15W88GRsMpSwzv6RJGlLhE7s2RhVSOdyDmxbqlWSeThq4/7xqlA==
+  version "13.1.0"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-13.1.0.tgz#225cbaac5fdb2b9ac651b02c070d8aa3c37cc812"
+  integrity sha512-zwrxviZS08kRX40nqBrmERElF2vpw4IUTd5khkhBTfFH8AOaeoLVx48EC4+ZzS2/Iga7NevncqnsUSYjM4OWYA==
 
 "@types/offscreencanvas@~2019.3.0":
   version "2019.3.0"
