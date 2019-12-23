@@ -29,16 +29,20 @@ interface GatherAttrs extends NamedAttrMap {
   axis: number;
 }
 
-let wasmGather: (
-    xId: number, dtype: CppDType, indicesId: number, axis: number,
-    outId: number) => void;
+let wasmGather:
+    (xId: number, dtype: CppDType, xShape: Uint8Array, rank: number,
+     indicesId: number, axis: number, outShape: Uint8Array, outId: number) =>
+        void;
 
 function setup(backend: BackendWasm): void {
   wasmGather = backend.wasm.cwrap('Gather', null /*void*/, [
     'number',  // xId
     'number',  // dtype
+    'array',   // x.shape
+    'number',  // rank
     'number',  // indicesId
     'number',  // axis
+    'array',   // out.shape
     'number'   // outId
   ]);
 }
@@ -52,6 +56,7 @@ function gather(
 
   const newShape = x.shape.slice();
   newShape[axis] = util.sizeFromShape(indices.shape);
+  const rank = x.shape.length;
 
   const out = backend.makeOutput(newShape, x.dtype);
   if (util.sizeFromShape(x.shape) === 0) {
@@ -65,7 +70,12 @@ function gather(
   const indicesId = indicesData.id;
 
   const outId = backend.dataIdMap.get(out.dataId).id;
-  wasmGather(xId, CppDType[x.dtype], indicesId, axis, outId);
+
+  const xShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
+  const outShapeBytes = new Uint8Array(new Int32Array(newShape).buffer);
+  wasmGather(
+      xId, CppDType[x.dtype], xShapeBytes, rank, indicesId, axis, outShapeBytes,
+      outId);
 
   return out;
 }

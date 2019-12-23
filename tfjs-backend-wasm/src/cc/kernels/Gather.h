@@ -21,8 +21,9 @@ namespace tfjs {
 namespace wasm {
 extern "C" {
 
-void Gather(size_t x_id, const DType dtype, size_t indices_id, size_t axis,
-            size_t out_id);
+void Gather(size_t x_id, const DType dtype, const size_t* x_shape_ptr,
+            const size_t rank, size_t indices_id, size_t axis,
+            const size_t* out_shape_ptr, size_t out_id);
 }
 
 }  // namespace wasm

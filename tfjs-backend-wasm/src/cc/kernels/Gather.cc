@@ -24,8 +24,11 @@
 namespace {
 
 template <typename T>
-void gather_impl(const T* x_ptr, const int* indices_ptr, const size_t axis,
-                 const size_t out_size, T* out_buf_ptr) {
+void gather_impl(const T* x_ptr, const std::vector<size_t>& x_shape,
+                 const int* indices_ptr, const size_t axis,
+                 const size_t out_size, const std::vector<size_t>& out_shape,
+                 T* out_buf_ptr) {
+  // need: outshape, x_shape
   for (size_t i = 0; i < out_size; ++i) {
     *out_buf_ptr = i;
 
@@ -33,14 +36,23 @@ void gather_impl(const T* x_ptr, const int* indices_ptr, const size_t axis,
   }
 }
 
-template void gather_impl<float>(const float* x_ptr, const int* indices_ptr,
-                                 const size_t axis, const size_t out_size,
+template void gather_impl<float>(const float* x_ptr,
+                                 const std::vector<size_t>& x_shape,
+                                 const int* indices_ptr, const size_t axis,
+                                 const size_t out_size,
+                                 const std::vector<size_t>& out_shape,
                                  float* out_buf);
-template void gather_impl<int32_t>(const int* x_ptr, const int* indices_ptr,
-                                   const size_t axis, const size_t out_size,
+template void gather_impl<int32_t>(const int* x_ptr,
+                                   const std::vector<size_t>& x_shape,
+                                   const int* indices_ptr, const size_t axis,
+                                   const size_t out_size,
+                                   const std::vector<size_t>& out_shape,
                                    int* out_buf);
-template void gather_impl<bool>(const bool* x_ptr, const int* indices_ptr,
-                                const size_t axis, const size_t out_size,
+template void gather_impl<bool>(const bool* x_ptr,
+                                const std::vector<size_t>& x_shape,
+                                const int* indices_ptr, const size_t axis,
+                                const size_t out_size,
+                                const std::vector<size_t>& out_shape,
                                 bool* out_buf);
 }  // namespace
 
@@ -51,8 +63,9 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 
-void Gather(size_t x_id, const DType dtype, size_t indices_id, size_t axis,
-            size_t out_id) {
+void Gather(size_t x_id, const DType dtype, const size_t* x_shape_ptr,
+            const size_t rank, size_t indices_id, size_t axis,
+            const size_t* out_shape_ptr, size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& indices_info = backend::get_tensor_info(indices_id);
 
@@ -60,18 +73,21 @@ void Gather(size_t x_id, const DType dtype, size_t indices_id, size_t axis,
   auto& out_info = backend::get_tensor_info_out(out_id);
   const size_t out_size = out_info.size;
 
+  auto x_shape = std::vector<size_t>(x_shape_ptr, x_shape_ptr + rank);
+  auto out_shape = std::vector<size_t>(out_shape_ptr, out_shape_ptr + rank);
+
   switch (dtype) {
     case DType::float32:
-      gather_impl<float>(x_info.f32(), indices_buf, axis, out_size,
-                         out_info.f32_write());
+      gather_impl<float>(x_info.f32(), x_shape, indices_buf, axis, out_size,
+                         out_shape, out_info.f32_write());
       break;
     case DType::int32:
-      gather_impl<int32_t>(x_info.i32(), indices_buf, axis, out_size,
-                           out_info.i32_write());
+      gather_impl<int32_t>(x_info.i32(), x_shape, indices_buf, axis, out_size,
+                           out_shape, out_info.i32_write());
       break;
     case DType::boolean:
-      gather_impl<bool>(x_info.b(), indices_buf, axis, out_size,
-                        out_info.b_write());
+      gather_impl<bool>(x_info.b(), x_shape, indices_buf, axis, out_size,
+                        out_shape, out_info.b_write());
       break;
     default:
       util::warn("Scatter for tensor id %d failed. Unknown dtype %d", x_id,
