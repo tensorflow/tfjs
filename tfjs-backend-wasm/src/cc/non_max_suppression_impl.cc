@@ -96,11 +96,13 @@ const NonMaxSuppressionResult* non_max_suppression_impl(
                       decltype(score_comparator)>
       candidate_priority_queue(score_comparator);
 
+  const size_t suppress_at_start = 0;
   // Filter out boxes that are below the score threshold and also maintain
   // the order of boxes by scores.
   for (size_t i = 0; i < num_boxes; i++) {
     if (scores[i] > score_threshold) {
-      candidate_priority_queue.emplace(Candidate({i, scores[i], 0}));
+      candidate_priority_queue.emplace(
+          Candidate({i, scores[i], suppress_at_start}));
     }
   }
 
@@ -132,7 +134,7 @@ const NonMaxSuppressionResult* non_max_suppression_impl(
     // by a selected box no more than once. Also, if the overlap exceeds
     // iou_threshold, we simply ignore the candidate.
     bool ignore_candidate = false;
-    for (int j = selected_indices.size() - 1;
+    for (size_t j = selected_indices.size() - 1;
          j >= candidate.suppress_begin_index; --j) {
       const float iou =
           compute_iou(boxes, candidate.box_index, selected_indices[j]);
