@@ -22,10 +22,10 @@
 namespace {
 
 template <typename T>
-void gathernd_impl(const T* x_ptr, const int* indices_ptr,
+void gathernd_impl(const T* x_ptr, const int32_t* indices_ptr,
                    const size_t num_slices, const size_t slice_rank,
                    const size_t slice_size,
-                   const std::vector<size_t>& strides_ptr, T* out_buf_ptr) {
+                   const std::vector<int32_t>& strides_ptr, T* out_buf_ptr) {
   for (size_t i = 0; i < num_slices; ++i) {
     size_t flattened_index = 0;
     for (size_t j = 0; j < slice_rank; ++j) {
@@ -57,12 +57,12 @@ EMSCRIPTEN_KEEPALIVE
 
 void GatherNd(const size_t x_id, const DType dtype, const size_t indices_id,
               const size_t num_slices, const size_t slice_rank,
-              const size_t slice_size, const size_t* strides_ptr,
+              const size_t slice_size, const int32_t* strides_ptr,
               const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& indices_info = backend::get_tensor_info(indices_id);
-  const std::vector<size_t>& strides =
-      std::vector<size_t>(strides_ptr, strides_ptr + slice_rank);
+  const std::vector<int32_t>& strides =
+      std::vector<int32_t>(strides_ptr, strides_ptr + slice_rank);
 
   const int* indices_buf = indices_info.i32();
   auto& out_info = backend::get_tensor_info_out(out_id);
