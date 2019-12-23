@@ -391,7 +391,6 @@ tfjs_unit_test(
 tfjs_cc_library(
     name = "Gather",
     srcs = ["kernels/Gather.cc"],
-    hdrs = ["kernels/Gather.h"],
     deps = [
         ":backend",
         ":util",

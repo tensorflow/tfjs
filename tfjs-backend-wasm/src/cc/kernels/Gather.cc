@@ -16,8 +16,6 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/kernels/Gather.h"
-
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
 
