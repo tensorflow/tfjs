@@ -17,45 +17,62 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 
-import {downloadTextureData, getPassthroughProgram, runResizeProgram, uploadTextureData} from './camera_webgl_util';
+// import {downloadTextureData, getPassthroughProgram, runResizeProgram,
+// uploadTextureData} from './camera_webgl_util';
+import {downloadTextureData, drawTexture, uploadTextureData} from './camera_utils/camera_webgl_util';
 
 interface Dimensions {
   x?: number;
   y?: number;
   width: number;
   height: number;
-  depth: 3|4;
+  depth: number;
+}
+
+interface Size {
+  width: number;
+  height: number;
+  depth: number;
 }
 
 // Draws image tensorData to a textre
 export async function toTexture(
-    imageTensor: tf.Tensor, gl: WebGL2RenderingContext, dims: Dimensions,
+    gl: WebGL2RenderingContext, imageTensor: tf.Tensor3D,
     texture?: WebGLTexture): Promise<WebGLTexture> {
   const imageData = Uint8Array.from(await imageTensor.data());
+  const dims = {
+    x: 0,
+    y: 0,
+    width: imageTensor.shape[0],
+    height: imageTensor.shape[1],
+    depth: imageTensor.shape[2],
+  };
   return uploadTextureData(imageData, gl, dims, texture);
 }
 
 export function fromTexture(
     gl: WebGL2RenderingContext, texture: WebGLTexture,
     dims: Dimensions): tf.Tensor {
-  const sourceDims = {
-    x: 0,
-    y: 0,
-    width: gl.drawingBufferWidth,
-    height: gl.drawingBufferHeight,
-    depth: 4 as 4,
-  };
+  // const sourceDims = {
+  //   x: 0,
+  //   y: 0,
+  //   width: gl.drawingBufferWidth,
+  //   height: gl.drawingBufferHeight,
+  //   depth: 4 as 4,
+  // };
 
   const targetDims = {
     x: 0,
     y: 0,
-    width: dims.width || gl.drawingBufferWidth,
-    height: dims.height || gl.drawingBufferHeight,
+    width: dims.width,
+    height: dims.height,
     depth: dims.depth,
   };
 
-  const resizedTexture = runResizeProgram(gl, texture, sourceDims, targetDims);
-  const textureData = downloadTextureData(gl, resizedTexture, targetDims);
+  //@ts-ignore
+  // const resizedTexture = runResizeProgram(gl, texture, sourceDims,
+  // targetDims); console.log('resizedTexture', resizedTexture);
+  const textureData = downloadTextureData(gl, texture, targetDims);
 
   return tf.tensor(
       textureData, [targetDims.width, targetDims.height, targetDims.depth],
@@ -70,28 +87,6 @@ export function fromTexture(
  * @param texture
  */
 export function renderToGLView(
-    gl: WebGL2RenderingContext, texture: WebGLTexture) {
-  const program = getPassthroughProgram(gl);
-  gl.useProgram(program);
-
-  // Set up geometry
-  const positionAttrib = gl.getAttribLocation(program, 'position');
-  gl.enableVertexAttribArray(positionAttrib);
-  const buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  const verts = new Float32Array([-2, 0, 0, -2, 2, 2]);
-  gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STATIC_DRAW);
-  gl.vertexAttribPointer(positionAttrib, 2, gl.FLOAT, false, 0, 0);
-
-  // Set texture sampler uniform
-  const TEXTURE_UNIT = 0;
-  gl.uniform1i(gl.getUniformLocation(program, 'displayTexture'), TEXTURE_UNIT);
-  gl.activeTexture(gl.TEXTURE0 + TEXTURE_UNIT);
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-
-  // Draw to screen
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gl.clearColor(1, 1, 1, 1);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  gl.drawArrays(gl.TRIANGLES, 0, verts.length / 2);
+    gl: WebGL2RenderingContext, texture: WebGLTexture, dims: Dimensions) {
+  drawTexture(gl, texture, dims);
 }

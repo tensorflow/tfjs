@@ -24,26 +24,7 @@ import {base64ImageToTensor, tensorToImageUrl, resizeImage, toDataUri} from './i
 import * as tf from '@tensorflow/tfjs';
 import { GLView, ExpoWebGLRenderingContext } from 'expo-gl';
 import {fromTexture, toTexture, renderToGLView} from '@tensorflow/tfjs-react-native';
-import {Platform} from 'react-native';
-
-const vertShaderSource = `#version 300 es
-precision highp float;
-in vec2 position;
-out vec2 uv;
-void main() {
-  uv = position;
-  gl_Position = vec4(1.0 - 2.0 * position, 0, 1);
-}`;
-
-const fragShaderSource = `#version 300 es
-precision highp float;
-uniform sampler2D cameraTexture;
-in vec2 uv;
-out vec4 fragColor;
-void main() {
-  vec4 texSample = texture(cameraTexture, uv);
-  fragColor = texSample;
-}`;
+import { Dimensions,PixelRatio, LayoutChangeEvent } from 'react-native';
 
 interface ScreenProps {
   returnToMain: () => void;
@@ -59,6 +40,9 @@ interface ScreenState {
   cameraType: any;
   isLoading: boolean;
 }
+
+let cameraPreviewWidth: number;
+let cameraPreviewHeight: number;
 
 export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
   private camera?: Camera|null;
@@ -221,19 +205,16 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     return this.glView!.createCameraTextureAsync(this.camera!);
   }
 
-  async getCameraTextureFromHiddenContext() : Promise<WebGLTexture> {
-    // Create texture asynchronously on hiden context
-    const createCamTex = this.glView!.createCameraTextureAsync;
-    console.log('createCamTex', createCamTex);
-    //@ts-ignore
-    const fakeExGlView = {exglCtxId: global.glContext.__exglCtxId};
-    const boundCamTex = createCamTex.bind(fakeExGlView);
-    //@ts-ignore
-    const cameraTexture = await boundCamTex(this.camera);
-    //@ts-ignore
-    const gl = global.glContext as ExpoWebGLRenderingContext;
+  onCameraLayout(event: LayoutChangeEvent) {
+    const {x, y, width, height} = event.nativeEvent.layout;
+    cameraPreviewHeight = height;
+    cameraPreviewWidth = width;
+    console.log('onCameraLayout', x, y, width, height);
+  }
 
-    return cameraTexture;
+  onGLViewLayout(event: LayoutChangeEvent) {
+    const {x, y, width, height} = event.nativeEvent.layout;
+    console.log('onGLViewLayout', x, y, width, height);
   }
 
  async onContextCreate(gl: ExpoWebGLRenderingContext) {
@@ -242,47 +223,73 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     console.log('ratios', ratios);
     const picSizes = await this.camera!.getAvailablePictureSizesAsync('4:3');
     console.log('picSizes', picSizes);
+    const picSizes2 = await this.camera!.getAvailablePictureSizesAsync('16:9');
+    console.log('picSizes2', picSizes2);
 
     this.texture = await this.createCameraTexture();
     const cameraTexture = this.texture;
     console.log('cameratexture', cameraTexture);
 
+    const pixelRatio = PixelRatio.get();
+    const screenWidth = Math.round(Dimensions.get('window').width);
+    const screenHeight = Math.round(Dimensions.get('window').height);
     const x = 0;
     const y = 0;
-    const width = 200; // gl.drawingBufferWidth;
-    const height = 200; //gl.drawingBufferHeight;
-    const depth = 4; // bug when depth == 3;
+
+    const width = Math.floor(cameraPreviewWidth * pixelRatio);
+    const height = Math.floor(cameraPreviewHeight * pixelRatio);
+    const depth = 4;
+
+    console.log('onContextCreate.screenWidth:screenHeight',
+      screenWidth, screenHeight);
+    console.log('onContextCreate.pixelRatio', pixelRatio);
+    console.log('onContextCreate.w:h:d', width, height, depth);
+    console.log('onContextCreate.gl dims',
+      gl.drawingBufferWidth, gl.drawingBufferHeight);
+    console.log('onContextCreate.gl viewport', gl.getParameter(gl.VIEWPORT));
 
 
-    const renderT = gl.createTexture();
+    // const renderT = gl.createTexture();
     // Render loop
     let start;
     let end;
     const loop = async () => {
-      // this._rafID = requestAnimationFrame(loop);
 
+      // this._rafID = requestAnimationFrame(loop);
+      gl.viewport(0, 0, width, height);
       start = Date.now();
       const res = fromTexture(gl, cameraTexture,
-          {x, y, width, height, depth});
+          {x, y, width:gl.drawingBufferWidth, height:gl.drawingBufferHeight, depth});
+      // console.log('from rexture res', res.shape);
       end = Date.now();
-      // console.log('res data', Array.from(res.dataSync().slice(0, 10)));
       // console.log('fromTexture:time', end - start);
 
       start = Date.now();
-      const newT = await toTexture(res, gl,
-          {x, y, width, height, depth}, renderT!);
+      const newT = await toTexture(gl, res as tf.Tensor3D);
       end = Date.now();
       // console.log('toTexture:time', end - start);
 
-      res.dispose();
+      // const roundTrip = fromTexture(gl, newT, {x, y, width, height, depth});
+      // const nonMatchingCount = (await res.notEqual(roundTrip).data())[0];
+      // if(nonMatchingCount !== 0) {
+      //   console.log('roundtrip failed');
+      // }
 
-      renderToGLView(gl, newT);
+      // res.dispose();
+      // gl.viewport(0,0, width, height);
+      gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight); // THIS IS KEY AND CONTROLS THE MAPPING TO PIXEL SPACE
+      renderToGLView(gl, newT, {
+        x, y,
+        width,
+        height,
+        depth: 4
+      });
       gl.endFrameEXP();
     };
 
     setInterval(() => {
       loop();
-    }, 200);
+    }, 1000);
 
   }
 
@@ -371,13 +378,15 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     const {isLoading} = this.state;
     const camV = <View style={styles.cameraContainer}>
         <Camera
-          style={StyleSheet.absoluteFill}
+          style={styles.camera}
           type={this.state.cameraType}
           zoom={0}
           ref={ref => this.camera = ref!}
+          onLayout={this.onCameraLayout.bind(this)}
         />
         <GLView
           style={styles.camera}
+          onLayout={this.onGLViewLayout.bind(this)}
           onContextCreate={this.onContextCreate.bind(this)}
           ref={ref => this.glView = ref!}
         />
@@ -432,12 +441,12 @@ const styles = StyleSheet.create({
   },
   camera : {
     display: 'flex',
-    width: '92%',
-    height: '64%',
+    width: '60%',
+    height: '40%',
     // backgroundColor: '#f0F',
     zIndex: 1,
-    borderWidth: 20,
-    borderRadius: 40,
+    borderWidth: 2,
+    borderRadius: 2,
     borderColor: '#f0f',
   },
   cameraControls: {
