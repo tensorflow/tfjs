@@ -20,6 +20,17 @@ import {io} from '@tensorflow/tfjs-core';
 import {nodeFileSystemRouter} from '@tensorflow/tfjs-node/dist/io/file_system';
 import {writeFileSync} from 'fs';
 
+const HEADER = `
+#include "src/cc/backend.h"
+#include "src/cc/util.h"
+
+int main() {
+`;
+
+const FOOTER = `
+}
+`;
+
 process.on('unhandledRejection', e => {
   throw e;
 });
@@ -47,8 +58,11 @@ async function main() {
     }
     lines.push(
         `static const unsigned char weight${id}[] = {${hexCodes.join(',')}};`);
+    lines.push(
+        `tfjs::wasm::register_tensor(${id}, ${tensor.size}, ` +
+        `const_cast<void*>(static_cast<const void*>(weight${id})));`);
   }
-  writeFileSync('src/cc/model.cc', lines.join('\n'));
+  writeFileSync('src/cc/model.cc', HEADER + lines.join('\n') + FOOTER);
 }
 
 function byteToHexCode(byte: number): string {

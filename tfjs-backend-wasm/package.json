@@ -25,7 +25,8 @@
     "test-node": "ts-node src/test_node.ts",
     "test-bundle-size": "./scripts/test-bundle-size.js",
     "test-cc": "bazel test //src/cc:cc_tests --test_output=all",
-    "test-browser-ci": "karma start --singleRun --browsers=bs_chrome_mac"
+    "test-browser-ci": "karma start --singleRun --browsers=bs_chrome_mac",
+    "codegen": "yarn ts-node codegen/src/codegen.ts && yarn bazel build -c opt src/cc:model.js --config=wasm"
   },
   "browser": {
     "fs": false,
