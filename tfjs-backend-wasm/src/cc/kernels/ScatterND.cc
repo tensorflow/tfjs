@@ -81,7 +81,7 @@ void ScatterND(const size_t indices_id, const size_t updates_id,
       break;
     case DType::int32:
       scatter<int32_t>(indices_buf, updates_info.i32(), slice_rank, num_updates,
-                       slice_size, strides, output_size, sizeof(int32),
+                       slice_size, strides, output_size, sizeof(int32_t),
                        out_info.i32_write());
       break;
     case DType::boolean:
