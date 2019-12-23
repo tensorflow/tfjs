@@ -27,6 +27,7 @@
 #include "src/cc/non_max_suppression_impl.h"
 
 namespace {
+
 // Structure to store the result of the kernel. In this case we give js a
 // a pointer in memory where the result is stored and how big it is.
 struct Result {
@@ -34,6 +35,7 @@ struct Result {
   size_t selected_size;
   float* selected_scores;
 };
+
 }  // namespace
 
 namespace tfjs {
