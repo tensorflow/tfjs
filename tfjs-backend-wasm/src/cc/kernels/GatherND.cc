@@ -29,9 +29,8 @@ void gathernd_impl(const T* x_ptr, const int* indices_ptr, size_t num_slices,
                    const std::vector<size_t>& strides_ptr, T* out_buf_ptr) {
   for (size_t i = 0; i < num_slices; ++i) {
     size_t flattened_index = 0;
-
     for (size_t j = 0; j < slice_rank; ++j) {
-      flattened_index += *indices_ptr * strides_ptr[j];
+      flattened_index += (*indices_ptr * strides_ptr[j]);
 
       indices_ptr++;
     }
@@ -39,13 +38,12 @@ void gathernd_impl(const T* x_ptr, const int* indices_ptr, size_t num_slices,
     x_ptr += flattened_index * slice_size;
 
     for (size_t k = 0; k < slice_size; ++k) {
-      *out_buf_ptr += *x_ptr;
+      *out_buf_ptr = *x_ptr;
 
       out_buf_ptr++;
       x_ptr++;
     }
 
-    out_buf_ptr += slice_size;
     x_ptr -= ((flattened_index + 1) * slice_size);
   }
 }
