@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-backend-wasm",
-  "version": "1.5.1-alpha1",
+  "version": "1.5.1-alpha5",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "jsnext:main": "dist/tf-backend-wasm.esm.js",
