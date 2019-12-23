@@ -20,6 +20,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstring>
+#include <deque>
 #include <memory>
 #include <queue>
 #include <vector>
