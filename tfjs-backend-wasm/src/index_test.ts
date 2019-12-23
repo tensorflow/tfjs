@@ -93,7 +93,7 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
         .toThrowError(/The WASM backend was already initialized. Make sure/);
   });
 
-  fit('should work for simple slice', async () => {
+  it('should work for simple slice', async () => {
     const indices = tf.tensor2d([0, 4, 8], [3, 1], 'int32');
     const input =
         tf.tensor1d([100, 101, 102, 777, 778, 779, 1000, 1001, 1002], 'int32');
