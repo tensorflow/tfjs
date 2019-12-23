@@ -589,7 +589,6 @@ tfjs_unit_test(
 
 tfjs_cc_library(
     name = "ScatterND",
-    hdrs = ["kernels/ScatterND.h"],
     srcs = ["kernels/ScatterND.cc"],
     deps = [
         ":backend",

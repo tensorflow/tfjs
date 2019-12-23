@@ -16,8 +16,6 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/kernels/ScatterND.h"
-
 #include <vector>
 
 #include "src/cc/backend.h"
@@ -52,25 +50,6 @@ void scatter(const int* indices_ptr, const T* updates_ptr, size_t slice_rank,
     out_buf_ptr -= (flattened_index * slice_size + slice_size);
   }
 }
-
-template void scatter<float>(const int* indices_ptr, const float* updates_ptr,
-                             size_t slice_rank, size_t num_updates,
-                             size_t slice_size,
-                             const std::vector<size_t>& strides_ptr,
-                             size_t output_size, size_t dtype_size,
-                             float* out_buf_ptr);
-template void scatter<int32_t>(const int* indices_ptr, const int* updates_ptr,
-                               size_t slice_rank, size_t num_updates,
-                               size_t slice_size,
-                               const std::vector<size_t>& strides_ptr,
-                               size_t output_size, size_t dtype_size,
-                               int* out_buf_ptr);
-template void scatter<bool>(const int* indices_ptr, const bool* updates_ptr,
-                            size_t slice_rank, size_t num_updates,
-                            size_t slice_size,
-                            const std::vector<size_t>& strides_ptr,
-                            size_t output_size, size_t dtype_size,
-                            bool* out_buf_ptr);
 
 }  // namespace
 
