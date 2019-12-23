@@ -30,19 +30,19 @@ interface GatherAttrs extends NamedAttrMap {
 }
 
 let wasmGather:
-    (xId: number, dtype: CppDType, xShape: Uint8Array, rank: number,
-     indicesId: number, axis: number, outShape: Uint8Array, outId: number) =>
+    (xId: number, dtype: CppDType, xStrides: Uint8Array, stridesSize: number,
+     indicesId: number, axis: number, outStrides: Uint8Array, outId: number) =>
         void;
 
 function setup(backend: BackendWasm): void {
   wasmGather = backend.wasm.cwrap('Gather', null /*void*/, [
     'number',  // xId
     'number',  // dtype
-    'array',   // x.shape
-    'number',  // rank
+    'array',   // xStrides
+    'number',  // stridesSize
     'number',  // indicesId
     'number',  // axis
-    'array',   // out.shape
+    'array',   // outStrides
     'number'   // outId
   ]);
 }
@@ -56,7 +56,7 @@ function gather(
 
   const newShape = x.shape.slice();
   newShape[axis] = util.sizeFromShape(indices.shape);
-  const rank = x.shape.length;
+  const stridesSize = x.shape.length - 1;
 
   const out = backend.makeOutput(newShape, x.dtype);
   if (util.sizeFromShape(x.shape) === 0) {
@@ -71,11 +71,14 @@ function gather(
 
   const outId = backend.dataIdMap.get(out.dataId).id;
 
-  const xShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
-  const outShapeBytes = new Uint8Array(new Int32Array(newShape).buffer);
+  const xStridesBytes =
+      new Uint8Array(new Int32Array(util.computeStrides(x.shape)).buffer);
+  const outStridesBytes =
+      new Uint8Array(new Int32Array(util.computeStrides(newShape)).buffer);
+
   wasmGather(
-      xId, CppDType[x.dtype], xShapeBytes, rank, indicesId, axis, outShapeBytes,
-      outId);
+      xId, CppDType[x.dtype], xStridesBytes, stridesSize, indicesId, axis,
+      outStridesBytes, outId);
 
   return out;
 }

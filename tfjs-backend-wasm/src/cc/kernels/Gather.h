@@ -22,7 +22,7 @@ namespace wasm {
 extern "C" {
 
 void Gather(size_t x_id, const DType dtype, const size_t* x_shape_ptr,
-            const size_t rank, size_t indices_id, size_t axis,
+            const size_t strides_size, size_t indices_id, size_t axis,
             const size_t* out_shape_ptr, size_t out_id);
 }
 
