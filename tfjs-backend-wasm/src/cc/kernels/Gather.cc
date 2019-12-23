@@ -22,9 +22,9 @@
 namespace {
 
 template <typename T>
-void gather_impl(const T* x_ptr, const std::vector<int32_t>& x_strides,
+void gather_impl(const T* x_ptr, const std::vector<size_t>& x_strides,
                  const int32_t* indices_ptr, const size_t axis,
-                 const size_t out_size, const std::vector<int32_t>& out_strides,
+                 const size_t out_size, const std::vector<size_t>& out_strides,
                  T* out_buf_ptr) {
   for (size_t i = 0; i < out_size; ++i) {
     auto loc = tfjs::util::offset_to_loc(i, out_strides);
@@ -59,9 +59,9 @@ void Gather(const size_t x_id, const DType dtype, const int32_t* x_strides_ptr,
   const size_t out_size = out_info.size;
 
   const auto x_strides =
-      std::vector<int32_t>(x_strides_ptr, x_strides_ptr + strides_size);
+      std::vector<size_t>(x_strides_ptr, x_strides_ptr + strides_size);
   const auto out_strides =
-      std::vector<int32_t>(out_strides_ptr, out_strides_ptr + strides_size);
+      std::vector<size_t>(out_strides_ptr, out_strides_ptr + strides_size);
 
   switch (dtype) {
     case DType::float32:
