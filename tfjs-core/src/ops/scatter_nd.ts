@@ -49,7 +49,7 @@ function scatterND_<R extends Rank>(
 
   return ENGINE.runKernelFunc(
       backend => backend.scatterND($indices, $updates, shape),
-      {indices: $indices, updates: $updates}, null /* backward */, 'ScatterND',
+      {indices: $indices, updates: $updates}, null /* backward */, 'ScatterNd',
       {shape});
 }
 

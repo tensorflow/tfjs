@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, scatter_nd_util, Tensor, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {NamedAttrMap, NamedTensorInfoMap, registerKernel, scatter_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 import {CppDType} from './types';
@@ -62,8 +62,7 @@ function scatterND(
   }
 
   const {sliceRank, numUpdates, sliceSize, strides, outputSize} =
-      scatter_nd_util.calculateShapes(
-          updates as Tensor, indices as Tensor, shape);
+      scatter_util.calculateShapes(updates, indices, shape);
 
   const indicesData = backend.dataIdMap.get(indices.dataId);
   const indicesId = indicesData.id;
@@ -82,7 +81,7 @@ function scatterND(
 }
 
 registerKernel({
-  kernelName: 'ScatterND',
+  kernelName: 'ScatterNd',
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: scatterND
