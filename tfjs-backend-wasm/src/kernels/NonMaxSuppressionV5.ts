@@ -19,6 +19,8 @@ import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@ten
 
 import {BackendWasm} from '../backend_wasm';
 
+import {parseResultStruct} from './NonMaxSuppression_util';
+
 interface NonMaxSuppressionInputs extends NamedTensorInfoMap {
   boxes: TensorInfo;
   scores: TensorInfo;
@@ -29,30 +31,6 @@ interface NonMaxSuppressionAttrs extends NamedAttrMap {
   iouThreshold: number;
   scoreThreshold: number;
   softNmsSigma: number;
-}
-
-// Analogous to `struct Result` in `NonMaxSuppressionV5.cc`.
-interface Result {
-  pSelectedIndices: number;
-  selectedSize: number;
-  pSelectedScores: number;
-}
-
-/**
- * Parse the result of the c++ method, which is a data structure with four ints
- * for selected_indices pointer, selected_indices size, selected_scores pointer,
- * selected_scores size.
- */
-function parseResultStruct(backend: BackendWasm, resOffset: number): Result {
-  const result = new Int32Array(backend.wasm.HEAPU8.buffer, resOffset, 3);
-  const pSelectedIndices = result[0];
-  const selectedSize = result[1];
-  const pSelectedScores = result[2];
-
-  // Since the result was allocated on the heap, we have to delete it.
-  backend.wasm._free(resOffset);
-
-  return {pSelectedIndices, selectedSize, pSelectedScores};
 }
 
 let wasmFunc:
@@ -96,12 +74,12 @@ function kernelFunc(args: {
     pSelectedScores,
   } = parseResultStruct(backend, resOffset);
 
-  const selectedIndices =
+  const selectedIndicesTensor =
       backend.makeOutput([selectedSize], 'int32', pSelectedIndices);
-  const selectedScores =
+  const selectedScoresTensor =
       backend.makeOutput([selectedSize], 'float32', pSelectedScores);
 
-  return [selectedIndices, selectedScores];
+  return [selectedIndicesTensor, selectedScoresTensor];
 }
 
 registerKernel({
