@@ -31,7 +31,7 @@ namespace {
 // Structure to store the result of the kernel. In this case we give js a
 // a pointer in memory where the result is stored and how big it is.
 struct Result {
-  size_t* selected_indices;
+  int32_t* selected_indices;
   size_t selected_size;
   float* selected_scores;
 };
@@ -46,17 +46,15 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-const Result* NonMaxSuppressionV5(const size_t boxes_id, const size_t scores_id,
-                                  const size_t max_out_size,
-                                  const float iou_threshold,
-                                  const float score_threshold,
-                                  const float soft_nms_sigma) {
-  auto* result = tfjs::wasm::non_max_suppression_impl(
-      boxes_id, scores_id, max_out_size, iou_threshold, score_threshold,
-      soft_nms_sigma);
-
-  return new Result{result->selected_indices, result->selected_size,
-                    result->selected_scores};
+const NonMaxSuppressionResult* NonMaxSuppressionV5(const size_t boxes_id,
+                                                   const size_t scores_id,
+                                                   const size_t max_out_size,
+                                                   const float iou_threshold,
+                                                   const float score_threshold,
+                                                   const float soft_nms_sigma) {
+  return tfjs::wasm::non_max_suppression_impl(boxes_id, scores_id, max_out_size,
+                                              iou_threshold, score_threshold,
+                                              soft_nms_sigma);
 }
 
 }  // extern "C"

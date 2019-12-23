@@ -24,7 +24,7 @@ namespace wasm {
 // Structure to store the result of the kernel. In this case we give js a
 // a pointer in memory where the result is stored and how big it is.
 struct NonMaxSuppressionResult {
-  size_t* selected_indices;
+  int32_t* selected_indices;
   size_t selected_size;
   float* selected_scores;
 };
