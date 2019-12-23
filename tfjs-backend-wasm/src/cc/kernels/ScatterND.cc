@@ -61,7 +61,7 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 
-void ScatterND(const size_t indices_id, const size_t updates_id,
+void ScatterNd(const size_t indices_id, const size_t updates_id,
                const DType dtype, const size_t slice_rank,
                const size_t num_updates, const size_t slice_size,
                const size_t* strides_ptr, const size_t output_size,

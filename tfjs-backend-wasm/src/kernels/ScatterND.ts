@@ -20,22 +20,22 @@ import {NamedAttrMap, NamedTensorInfoMap, registerKernel, scatter_util, TensorIn
 import {BackendWasm} from '../backend_wasm';
 import {CppDType} from './types';
 
-interface ScatterNDInputs extends NamedTensorInfoMap {
+interface ScatterNdInputs extends NamedTensorInfoMap {
   indices: TensorInfo;
   updates: TensorInfo;
 }
 
-interface ScatterNDAttrs extends NamedAttrMap {
+interface ScatterNdAttrs extends NamedAttrMap {
   shape: number[];
 }
 
-let wasmScatterND: (
+let wasmScatterNd: (
     indicesId: number, updatesId: number, dtype: CppDType, sliceRank: number,
     numUpdates: number, sliceSize: number, strides: Uint8Array,
     outputSize: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
-  wasmScatterND = backend.wasm.cwrap('ScatterND', null /*void*/, [
+  wasmScatterNd = backend.wasm.cwrap('ScatterNd', null /*void*/, [
     'number',  // indicesId
     'number',  // updatesId
     'number',  // dtype
@@ -48,9 +48,9 @@ function setup(backend: BackendWasm): void {
   ]);
 }
 
-function scatterND(
+function scatterNd(
     args:
-        {backend: BackendWasm, inputs: ScatterNDInputs, attrs: ScatterNDAttrs}):
+        {backend: BackendWasm, inputs: ScatterNdInputs, attrs: ScatterNdAttrs}):
     TensorInfo {
   const {backend, inputs, attrs} = args;
   const {indices, updates} = inputs;
@@ -73,7 +73,7 @@ function scatterND(
   const stridesBytes = new Uint8Array(new Int32Array(strides).buffer);
 
   const outId = backend.dataIdMap.get(out.dataId).id;
-  wasmScatterND(
+  wasmScatterNd(
       indicesId, updatesId, CppDType[updates.dtype], sliceRank, numUpdates,
       sliceSize, stridesBytes, outputSize, outId);
 
@@ -84,5 +84,5 @@ registerKernel({
   kernelName: 'ScatterNd',
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: scatterND
+  kernelFunc: scatterNd
 });

@@ -172,7 +172,7 @@ tfjs_cc_library(
         ":Relu",
         ":Relu6",
         ":ResizeBilinear",
-        ":ScatterND",
+        ":ScatterNd",
         ":Sigmoid",
         ":Sub",
         ":Tile",
@@ -588,8 +588,8 @@ tfjs_unit_test(
 )
 
 tfjs_cc_library(
-    name = "ScatterND",
-    srcs = ["kernels/ScatterND.cc"],
+    name = "ScatterNd",
+    srcs = ["kernels/ScatterNd.cc"],
     deps = [
         ":backend",
         ":util",
