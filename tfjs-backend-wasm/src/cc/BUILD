@@ -109,7 +109,7 @@ tfjs_cc_library(
     srcs = ["non_max_suppression_impl.cc"],
     hdrs = ["non_max_suppression_impl.h"],
     deps = [
-      ":backend",
+        ":backend",
     ],
 )
 
