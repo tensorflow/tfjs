@@ -28,7 +28,8 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 
-void Gather() {}
+void Gather(size_t x_id, const DType dtype, size_t indices_id, size_t axis,
+            size_t out_id) {}
 }  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs

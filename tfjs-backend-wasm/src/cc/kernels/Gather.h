@@ -15,13 +15,14 @@
 #ifndef KERNELS_GATHER_H_
 #define KERNELS_GATHER_H_
 
-#include <cstddef>
+#include "src/cc/backend.h"
 
 namespace tfjs {
 namespace wasm {
 extern "C" {
 
-void Gather();
+void Gather(size_t x_id, const DType dtype, size_t indices_id, size_t axis,
+            size_t out_id);
 }
 
 }  // namespace wasm

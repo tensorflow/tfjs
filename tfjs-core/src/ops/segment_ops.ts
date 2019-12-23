@@ -126,7 +126,7 @@ function gather_<T extends Tensor>(
 
       return paramsGrad as T;
     };
-    return {x: derX};
+    return {x: derX, indices: () => $indices};
   };
   return (ENGINE.runKernelFunc(
               (backend, save) => {
@@ -134,7 +134,7 @@ function gather_<T extends Tensor>(
                 save([$indices]);
                 return res;
               },
-              {x: $x}, grad, 'Gather', {axis}))
+              {x: $x, indices: $indices}, grad, 'Gather', {axis}))
              .reshape(shapeInfo.outputShape) as T;
 }
 

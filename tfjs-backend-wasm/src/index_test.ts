@@ -105,4 +105,41 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     console.log(Array.from(resultData));
     // expectArraysClose(await result.data(), [100, 778, 1002]);
   });
+
+  fit('1D (gather), 1D indices', async () => {
+    const t = tf.tensor1d([1, 2, 3]);
+
+    const t2 = tf.gather(t, tf.tensor1d([0, 2, 0, 1], 'int32'), 0);
+    console.log(t2.shape);
+    expect(t2.shape).toEqual([4]);
+    const resultData = await t2.data();
+    console.log(Array.from(resultData));
+    // expectArraysClose(await t2.data(), [1, 3, 1, 2]);
+  });
+
+  fit('1D (gather), 2D indices', async () => {
+    const t = tf.tensor1d([1, 2, 3]);
+
+    const t2 = tf.gather(t, tf.tensor2d([0, 2, 0, 1], [1, 4], 'int32'), 0);
+    console.log(t2.shape);
+    expect(t2.shape).toEqual([1, 4]);
+    const resultData = await t2.data();
+    console.log(Array.from(resultData));
+    // expectArraysClose(await t2.data(), [1, 3, 1, 2]);
+  });
+
+  fit('2D (gather), scalar indices', async () => {
+    const t = tf.tensor2d([1, 11, 2, 22], [2, 2]);
+    let t2 = tf.gather(t, tf.scalar(1, 'int32'), 0);
+    expect(t2.shape).toEqual([2]);
+    let resultData = await t2.data();
+    console.log(Array.from(resultData));
+    // expectArraysClose(await t2.data(), [2, 22]);
+
+    t2 = tf.gather(t, tf.scalar(1, 'int32'), 1);
+    expect(t2.shape).toEqual([2]);
+    resultData = await t2.data();
+    console.log(Array.from(resultData));
+    // expectArraysClose(await t2.data(), [11, 22]);
+  });
 });
