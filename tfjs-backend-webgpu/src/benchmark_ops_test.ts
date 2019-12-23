@@ -166,17 +166,23 @@ describeWebGPU('Ops benchmarks', () => {
     const x = tf.randomNormal([500]);
     const a = tf.randomNormal([500]);
 
-    await time(() => tf.prelu(x, a), null, false, 50, 50);
+    await time(() => tf.prelu(x, a), null, false, 10, 10);
   });
 
   it('slice', async () => {
     const a = tf.randomNormal<tf.Rank.R1>([500]);
 
-    await time(() => tf.slice1d(a, 2, 498), null, false, 50, 50);
+    await time(() => tf.slice1d(a, 2, 498), null, false, 10, 10);
   });
 
   it('transpose', async () => {
     const x = tf.randomNormal([1024, 1024]);
     await time(() => tf.transpose(x, [1, 0]), null, false, 10, 10);
+  });
+
+  it('stridedSlice', async () => {
+    const a = tf.randomNormal<tf.Rank.R1>([500]);
+
+    await time(() => tf.stridedSlice(a, [0], [500], [2]), null, true, 10, 10);
   });
 });
