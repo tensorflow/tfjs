@@ -526,6 +526,7 @@ tfjs_cc_library(
     srcs = ["kernels/NonMaxSuppressionV3.cc"],
     deps = [
         ":backend",
+        ":non_max_suppression_impl",
         ":util",
     ],
 )
