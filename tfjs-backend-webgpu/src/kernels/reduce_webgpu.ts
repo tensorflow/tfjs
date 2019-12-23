@@ -23,6 +23,7 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class ReduceProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[], y: number[]};
   dispatch: [number, number, number];
@@ -36,7 +37,6 @@ export class ReduceProgram implements WebGPUProgram {
     this.outputShape = outputShape.length === 0 ? [1] : outputShape;
     const reduceSize = util.sizeFromShape(reduceShape);
 
-    const op = reduceType === 'min' ? '<' : '>';
     const reductionFactor = 2;
     const xMaxThreads = 1024;
     const xThreads =
@@ -48,19 +48,20 @@ export class ReduceProgram implements WebGPUProgram {
     const reduceInSharedMemory = xThreads > 1;
 
     const minmaxOp = `
-          if (candidate ${op} bestValue && !isnan(candidate)) {
-            bestValue = candidate;
-          }
+          if (candidate ${reduceType === 'min' ? '<' : '>'} bestValue
+          && !isnan(candidate))
+          {  bestValue = candidate; }
       `;
-    const sumOp = `
-            bestValue += candidate;
-      `;
+    const sumOp = ' bestValue += candidate; ';
+    const op =
+        (reduceType === 'min' || reduceType === 'max') ? minmaxOp : sumOp;
+
     const sharedMemorySnippet = `
         shared float xBestValues[WorkGroupSize];
       `;
     const sharedMemoryReduceSnippet = `
       xBestValues[gl_LocalInvocationID.x] = bestValue;
-      ${reduceType === 'sum' ? `bestValue=0;` : ``}
+      ${reduceType === 'sum' ? 'bestValue=0;' : ' '}
       int currentSize = WorkGroupSize;
       while (currentSize > 1) {
         barrier();
@@ -68,12 +69,12 @@ export class ReduceProgram implements WebGPUProgram {
           int i = int(gl_LocalInvocationID.x) * ${reductionFactor} + w;
           if (i < currentSize) {
             float candidate = xBestValues[i];
-            ${(reduceType === 'min' || reduceType === 'max') ? minmaxOp : sumOp}
+            ${op}
           }
         }
         xBestValues[gl_LocalInvocationID.x] = bestValue;
         currentSize = DIV_CEIL(currentSize, ${reductionFactor});
-        ${reduceType === 'sum' ? `if(currentSize > 1) bestValue=0;` : ``}
+        ${reduceType === 'sum' ? 'if(currentSize > 1) bestValue=0;' : ''}
       }
       if (gl_LocalInvocationID.x == 0) {
         setOutput(flatOutputIndex, bestValue);
@@ -81,20 +82,6 @@ export class ReduceProgram implements WebGPUProgram {
     `;
 
     const outputCoordsType = getCoordsDataType(this.outputShape.length);
-    const indexOutputCoords = (outputCoords: string, index: string) => {
-      if (this.outputShape.length === 1) {
-        return outputCoords;
-      } else {
-        return `${outputCoords}[${index}]`;
-      }
-    };
-    const indexInputShape = (index: string) => {
-      if (inputShape.length === 1) {
-        return 'xShape';
-      } else {
-        return `xShape[${index}]`;
-      }
-    };
 
     this.userCode = `
       #define DIV_CEIL(x, y) (((x) - 1) / (y) + 1)
@@ -102,15 +89,17 @@ export class ReduceProgram implements WebGPUProgram {
       ${reduceInSharedMemory ? sharedMemorySnippet : ''}
       int getOffset() {
         const ${outputCoordsType} outputCoords = getOutputCoords();
-        int offset = ${indexOutputCoords('outputCoords', '0')} * xShape[1];
+        int offset = ${
+        this.outputShape.length === 1 ? 'outputCoords' :
+                                        'outputCoords[0]'} * xShape[1];
         return offset;
       }
       void main() {
         const int offset= getOffset();
         ${
-        reduceType === 'sum' ? `float bestValue = 0;` :
-                               `float bestValue = x[offset];`}
-        const int Length = ${indexInputShape('1')};
+        reduceType === 'sum' ? 'float bestValue = 0;' :
+                               'float bestValue = x[offset];'}
+        const int Length = ${inputShape.length === 1 ? 'xShape' : 'xShape[1]'};
         const int WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
         for (int w = 0; w < WorkPerThread; ++w) {
           int i = int(gl_GlobalInvocationID.x) * WorkPerThread + w;

@@ -20,6 +20,9 @@
 import './flags_webgpu';
 
 import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
+import {assertAxesAreInnerMostDims, computeOutAndReduceShapes} from '@tensorflow/tfjs-core/src/ops/axis_util';
+import {computeOptimalWindowSize} from '@tensorflow/tfjs-core/src/ops/reduce_util';
+import {sumOutType} from '@tensorflow/tfjs-core/src/types'
 import * as shaderc from '@webgpu/shaderc';
 
 import {BufferManager} from './buffer_manager';
@@ -45,7 +48,6 @@ import * as unary_op from './kernels/unary_op_webgpu';
 import {UnaryOpProgram} from './kernels/unary_op_webgpu';
 import * as webgpu_program from './kernels/webgpu_program';
 import {WebGPUBinary} from './kernels/webgpu_program';
-import {assertAxesAreInnerMostDims, computeOptimalWindowSize, computeOutAndReduceShapes, sumOutType} from './reduce_util';
 import * as webgpu_util from './webgpu_util';
 
 export interface WebGPUMemoryInfo extends backend_util.MemoryInfo {

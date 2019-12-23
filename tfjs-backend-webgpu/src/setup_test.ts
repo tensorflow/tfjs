@@ -285,7 +285,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'Reduction: sum',
     excludes: [
-      'dtype bool',
+      'dtype bool',                // not support dtype bool yet.
       '5D',                        // Rank 5 is not yet implemented.
       '6D',                        // Rank 5 is not yet implemented.
       'accepts tensor with bool',  // Actual != Expected.
@@ -295,12 +295,12 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'abs',
     excludes: [
-      'complex64',
+      'complex',                   // No complex support yet.
       '5D',                        // Rank 5 is not yet implemented.
       '6D',                        // Rank 5 is not yet implemented.
       'accepts tensor with bool',  // Actual != Expected.
       'gradient',                  // zerosLike not yet implemented.
-      'Reduction.SUM_BY_NONZERO_WEIGHTS',
+      'absoluteDifference',        // absoluteDifference not yet implemented
     ]
   }
 ];
