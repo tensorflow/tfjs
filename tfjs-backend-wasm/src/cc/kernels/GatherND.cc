@@ -24,13 +24,46 @@
 namespace {
 
 template <typename T>
-void gathernd_impl(const T* x_ptr, const int* indices_ptr, T* out_buf_ptr) {}
+void gathernd_impl(const T* x_ptr, const int* indices_ptr, size_t num_slices,
+                   size_t slice_rank, size_t slice_size,
+                   const std::vector<size_t>& strides_ptr, T* out_buf_ptr) {
+  for (size_t i = 0; i < num_slices; ++i) {
+    size_t flattened_index = 0;
+
+    for (size_t j = 0; j < slice_rank; ++j) {
+      flattened_index += *indices_ptr * strides_ptr[j];
+
+      indices_ptr++;
+    }
+
+    x_ptr += flattened_index * slice_size;
+
+    for (size_t k = 0; k < slice_size; ++k) {
+      *out_buf_ptr += *x_ptr;
+
+      out_buf_ptr++;
+      x_ptr++;
+    }
+
+    out_buf_ptr += slice_size;
+    x_ptr -= ((flattened_index + 1) * slice_size);
+  }
+}
 
 template void gathernd_impl<float>(const float* x_ptr, const int* indices_ptr,
+                                   size_t num_slices, size_t slice_rank,
+                                   size_t slice_size,
+                                   const std::vector<size_t>& strides_ptr,
                                    float* out_buf_ptr);
 template void gathernd_impl<int32_t>(const int* x_ptr, const int* indices_ptr,
+                                     size_t num_slices, size_t slice_rank,
+                                     size_t slice_size,
+                                     const std::vector<size_t>& strides_ptr,
                                      int* out_buf_ptr);
 template void gathernd_impl<bool>(const bool* x_ptr, const int* indices_ptr,
+                                  size_t num_slices, size_t slice_rank,
+                                  size_t slice_size,
+                                  const std::vector<size_t>& strides_ptr,
                                   bool* out_buf_ptr);
 }  // namespace
 
@@ -56,13 +89,16 @@ void GatherND(size_t x_id, const DType dtype, size_t indices_id,
 
   switch (dtype) {
     case DType::float32:
-      gathernd_impl<float>(x_info.f32(), indices_buf, out_info.f32_write());
+      gathernd_impl<float>(x_info.f32(), indices_buf, num_slices, slice_rank,
+                           slice_size, strides, out_info.f32_write());
       break;
     case DType::int32:
-      gathernd_impl<int32_t>(x_info.i32(), indices_buf, out_info.i32_write());
+      gathernd_impl<int32_t>(x_info.i32(), indices_buf, num_slices, slice_rank,
+                             slice_size, strides, out_info.i32_write());
       break;
     case DType::boolean:
-      gathernd_impl<bool>(x_info.b(), indices_buf, out_info.b_write());
+      gathernd_impl<bool>(x_info.b(), indices_buf, num_slices, slice_rank,
+                          slice_size, strides, out_info.b_write());
       break;
     default:
       util::warn("Scatter for tensor id %d failed. Unknown dtype %d",
