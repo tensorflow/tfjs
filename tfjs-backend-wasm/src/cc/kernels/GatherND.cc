@@ -80,10 +80,8 @@ void GatherND(size_t x_id, const DType dtype, size_t indices_id,
   const std::vector<size_t>& strides =
       std::vector<size_t>(strides_ptr, strides_ptr + slice_rank);
 
-  const float* x_buf = x_info.f32();
   const int* indices_buf = indices_info.i32();
   auto& out_info = backend::get_tensor_info_out(out_id);
-  float* out_buf = out_info.f32_write();
 
   switch (dtype) {
     case DType::float32:

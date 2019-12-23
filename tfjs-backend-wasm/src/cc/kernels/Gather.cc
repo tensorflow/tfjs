@@ -21,6 +21,20 @@
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
 
+namespace {
+
+template <typename T>
+void gather_impl(const T* x_ptr, const int* indices_ptr, const size_t axis,
+                 T* out_buf_ptr) {}
+
+template void gather_impl<float>(const float* x_ptr, const int* indices_ptr,
+                                 const size_t axis, float* out_buf);
+template void gather_impl<int32_t>(const int* x_ptr, const int* indices_ptr,
+                                   const size_t axis, int* out_buf);
+template void gather_impl<bool>(const bool* x_ptr, const int* indices_ptr,
+                                const size_t axis, bool* out_buf);
+}  // namespace
+
 namespace tfjs {
 namespace wasm {
 extern "C" {
@@ -29,7 +43,29 @@ EMSCRIPTEN_KEEPALIVE
 #endif
 
 void Gather(size_t x_id, const DType dtype, size_t indices_id, size_t axis,
-            size_t out_id) {}
+            size_t out_id) {
+  auto& x_info = backend::get_tensor_info(x_id);
+  auto& indices_info = backend::get_tensor_info(indices_id);
+
+  const int* indices_buf = indices_info.i32();
+  auto& out_info = backend::get_tensor_info_out(out_id);
+
+  switch (dtype) {
+    case DType::float32:
+      gather_impl<float>(x_info.f32(), indices_buf, axis, out_info.f32_write());
+      break;
+    case DType::int32:
+      gather_impl<int32_t>(x_info.i32(), indices_buf, axis,
+                           out_info.i32_write());
+      break;
+    case DType::boolean:
+      gather_impl<bool>(x_info.b(), indices_buf, axis, out_info.b_write());
+      break;
+    default:
+      util::warn("Scatter for tensor id %d failed. Unknown dtype %d", x_id,
+                 dtype);
+  }
+}
 }  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs
