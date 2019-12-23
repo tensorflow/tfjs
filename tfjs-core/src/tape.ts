@@ -21,7 +21,7 @@ import * as util from './util';
 
 export interface TapeNode {
   id: number;
-  name: string;
+  kernelName: string;
   outputs: Tensor[];
   inputs: NamedTensorMap;
   // Optional params, defined only for ops with gradient impl.
@@ -150,11 +150,12 @@ export function backpropagateGradients(
     if (node.gradient == null) {
       throw new Error(
           `Cannot compute gradient: gradient function not found ` +
-          `for ${node.name}.`);
+          `for ${node.kernelName}.`);
     }
 
     // Backprop dy through this node and accumulate gradients over the inputs.
     const inputGradients = node.gradient(dys);
+
     for (const inputName in node.inputs) {
       if (!(inputName in inputGradients)) {
         throw new Error(
@@ -166,13 +167,15 @@ export function backpropagateGradients(
       const dx = tidy(() => inputGradients[inputName]());
       if (dx.dtype !== 'float32') {
         throw new Error(
-            `Error in gradient for op ${node.name}. The gradient of input ` +
+            `Error in gradient for op ${
+                node.kernelName}. The gradient of input ` +
             `${inputName} must have 'float32' dtype, but has '${dx.dtype}'`);
       }
       const x = node.inputs[inputName];
       if (!util.arraysEqual(dx.shape, x.shape)) {
         throw new Error(
-            `Error in gradient for op ${node.name}. The gradient of input ` +
+            `Error in gradient for op ${
+                node.kernelName}. The gradient of input ` +
             `'${inputName}' has shape '${dx.shape}', which does not match ` +
             `the shape of the input '${x.shape}'`);
       }
