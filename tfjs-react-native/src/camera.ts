@@ -19,17 +19,22 @@ import * as tf from '@tensorflow/tfjs-core';
 
 // import {downloadTextureData, getPassthroughProgram, runResizeProgram,
 // uploadTextureData} from './camera_webgl_util';
-import {downloadTextureData, drawTexture, uploadTextureData} from './camera_utils/camera_webgl_util';
+import {downloadTextureData, drawTexture, runResizeProgram, uploadTextureData} from './camera_utils/camera_webgl_util';
 
 interface Dimensions {
-  x?: number;
-  y?: number;
   width: number;
   height: number;
   depth: number;
 }
 
-// Draws image tensorData to a textre
+/**
+ * Transfers tensor data to an RGB(A) texture.
+ *
+ * @param gl the WebGL context that owns the texture.
+ * @param imageTensor the tensor to upload
+ * @param texture optional the target texture. If none is passed in a new
+ *     texture will be created.
+ */
 export async function toTexture(
     gl: WebGL2RenderingContext, imageTensor: tf.Tensor3D,
     texture?: WebGLTexture): Promise<WebGLTexture> {
@@ -44,32 +49,30 @@ export async function toTexture(
   return uploadTextureData(imageData, gl, dims, texture);
 }
 
+/**
+ * Creates a tensor3D from a texture.
+ *
+ * Allows for resizing the image and dropping the alpha channel from the data.
+ *
+ * Note that the tensor's data will live in the internal tfjs webgl context.
+ *
+ * @param gl the WebGL context that owns the input texture
+ * @param texture the texture to convert into a tensor
+ * @param sourceDims source dimensions of input texture (width, height, depth)
+ * @param targetShape desired shape of output tensor
+ */
 export function fromTexture(
-    gl: WebGL2RenderingContext, texture: WebGLTexture,
-    dims: Dimensions): tf.Tensor {
-  // const sourceDims = {
-  //   x: 0,
-  //   y: 0,
-  //   width: gl.drawingBufferWidth,
-  //   height: gl.drawingBufferHeight,
-  //   depth: 4 as 4,
-  // };
+    gl: WebGL2RenderingContext, texture: WebGLTexture, sourceDims: Dimensions,
+    targetShape: Dimensions): tf.Tensor3D {
+  tf.util.assert(
+      targetShape.depth === 3 || targetShape.depth === 4,
+      () => 'fromTexture Error: target depth must be 3 or 4');
 
-  const targetDims = {
-    x: 0,
-    y: 0,
-    width: dims.width,
-    height: dims.height,
-    depth: dims.depth,
-  };
+  const resizedTexture = runResizeProgram(gl, texture, sourceDims, targetShape);
+  const textureData = downloadTextureData(gl, resizedTexture, targetShape);
 
-  //@ts-ignore
-  // const resizedTexture = runResizeProgram(gl, texture, sourceDims,
-  // targetDims); console.log('resizedTexture', resizedTexture);
-  const textureData = downloadTextureData(gl, texture, targetDims);
-
-  return tf.tensor(
-      textureData, [targetDims.width, targetDims.height, targetDims.depth],
+  return tf.tensor3d(
+      textureData, [targetShape.width, targetShape.height, targetShape.depth],
       'int32');
 }
 

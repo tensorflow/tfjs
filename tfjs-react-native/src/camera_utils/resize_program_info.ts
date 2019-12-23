@@ -82,7 +82,6 @@ ${mainFunc}
   return source;
 }
 
-
 // vec4 texSample =
 //     texture(inputTexture, vec2(sourceNearestRC.x, sourceNearestRC.y));
 

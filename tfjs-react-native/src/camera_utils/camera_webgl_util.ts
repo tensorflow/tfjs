@@ -22,8 +22,6 @@ import {m4} from './matrix_utils';
 import * as resizeProgramInfo from './resize_program_info';
 
 interface Dimensions {
-  x?: number;
-  y?: number;
   width: number;
   height: number;
   depth: number;
@@ -54,7 +52,7 @@ const programCache: Map<string, ProgramObjects> = new Map();
 export function downloadTextureData(
     gl: WebGL2RenderingContext, texture: WebGLTexture,
     dims: Dimensions): Uint8Array {
-  const {x, y, width, height, depth} = dims;
+  const {width, height, depth} = dims;
   const pixels = new Uint8Array(width * height * depth);
 
   if (fbo == null) {
@@ -69,6 +67,8 @@ export function downloadTextureData(
       gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, LEVEL);
 
   const format = depth === 3 ? gl.RGB : gl.RGBA;
+  const x = 0;
+  const y = 0;
   tf.webgl.webgl_util.callAndCheck(gl, true, () => {
     gl.readPixels(x, y, width, height, format, gl.UNSIGNED_BYTE, pixels);
   });

@@ -258,8 +258,14 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
       // this._rafID = requestAnimationFrame(loop);
       gl.viewport(0, 0, width, height);
       start = Date.now();
-      const res = fromTexture(gl, cameraTexture,
-          {x, y, width, height, depth});
+      const res = fromTexture(
+        gl,
+        cameraTexture,
+        // Source
+        {width, height, depth},
+        // Target
+        {width, height, depth},
+      );
       // console.log('from rexture res', res.shape);
       end = Date.now();
       // console.log('fromTexture:time', end - start);
