@@ -25,14 +25,23 @@ namespace {
 
 template <typename T>
 void gather_impl(const T* x_ptr, const int* indices_ptr, const size_t axis,
-                 T* out_buf_ptr) {}
+                 const size_t out_size, T* out_buf_ptr) {
+  for (size_t i = 0; i < out_size; ++i) {
+    *out_buf_ptr = i;
+
+    out_buf_ptr++;
+  }
+}
 
 template void gather_impl<float>(const float* x_ptr, const int* indices_ptr,
-                                 const size_t axis, float* out_buf);
+                                 const size_t axis, const size_t out_size,
+                                 float* out_buf);
 template void gather_impl<int32_t>(const int* x_ptr, const int* indices_ptr,
-                                   const size_t axis, int* out_buf);
+                                   const size_t axis, const size_t out_size,
+                                   int* out_buf);
 template void gather_impl<bool>(const bool* x_ptr, const int* indices_ptr,
-                                const size_t axis, bool* out_buf);
+                                const size_t axis, const size_t out_size,
+                                bool* out_buf);
 }  // namespace
 
 namespace tfjs {
@@ -49,17 +58,20 @@ void Gather(size_t x_id, const DType dtype, size_t indices_id, size_t axis,
 
   const int* indices_buf = indices_info.i32();
   auto& out_info = backend::get_tensor_info_out(out_id);
+  const size_t out_size = out_info.size;
 
   switch (dtype) {
     case DType::float32:
-      gather_impl<float>(x_info.f32(), indices_buf, axis, out_info.f32_write());
+      gather_impl<float>(x_info.f32(), indices_buf, axis, out_size,
+                         out_info.f32_write());
       break;
     case DType::int32:
-      gather_impl<int32_t>(x_info.i32(), indices_buf, axis,
+      gather_impl<int32_t>(x_info.i32(), indices_buf, axis, out_size,
                            out_info.i32_write());
       break;
     case DType::boolean:
-      gather_impl<bool>(x_info.b(), indices_buf, axis, out_info.b_write());
+      gather_impl<bool>(x_info.b(), indices_buf, axis, out_size,
+                        out_info.b_write());
       break;
     default:
       util::warn("Scatter for tensor id %d failed. Unknown dtype %d", x_id,
