@@ -105,6 +105,15 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "non_max_suppression_impl",
+    srcs = ["non_max_suppression_impl.cc"],
+    hdrs = ["non_max_suppression_impl.h"],
+    deps = [
+      ":backend",
+    ],
+)
+
+tfjs_cc_library(
     name = "prelu_impl",
     srcs = ["prelu_impl.cc"],
     hdrs = ["prelu_impl.h"],
@@ -547,6 +556,7 @@ tfjs_cc_library(
     srcs = ["kernels/NonMaxSuppressionV5.cc"],
     deps = [
         ":backend",
+        ":non_max_suppression_impl",
         ":util",
     ],
 )

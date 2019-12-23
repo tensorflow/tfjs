@@ -34,9 +34,8 @@ interface NonMaxSuppressionAttrs extends NamedAttrMap {
 // Analogous to `struct Result` in `NonMaxSuppressionV5.cc`.
 interface Result {
   pSelectedIndices: number;
-  selectedIndicesSize: number;
+  selectedSize: number;
   pSelectedScores: number;
-  selectedScoresSize: number;
 }
 
 /**
@@ -45,19 +44,15 @@ interface Result {
  * selected_scores size.
  */
 function parseResultStruct(backend: BackendWasm, resOffset: number): Result {
-  const result = new Int32Array(backend.wasm.HEAPU8.buffer, resOffset, 4);
+  const result = new Int32Array(backend.wasm.HEAPU8.buffer, resOffset, 3);
   const pSelectedIndices = result[0];
-  const selectedIndicesSize = result[1];
+  const selectedSize = result[1];
   const pSelectedScores = result[2];
-  const selectedScoresSize = result[3];
+
   // Since the result was allocated on the heap, we have to delete it.
   backend.wasm._free(resOffset);
-  return {
-    pSelectedIndices,
-    selectedIndicesSize,
-    pSelectedScores,
-    selectedScoresSize
-  };
+
+  return {pSelectedIndices, selectedSize, pSelectedScores};
 }
 
 let wasmFunc:
@@ -97,15 +92,14 @@ function kernelFunc(args: {
 
   const {
     pSelectedIndices,
-    selectedIndicesSize,
+    selectedSize,
     pSelectedScores,
-    selectedScoresSize
   } = parseResultStruct(backend, resOffset);
 
   const selectedIndices =
-      backend.makeOutput([selectedIndicesSize], 'int32', pSelectedIndices);
+      backend.makeOutput([selectedSize], 'int32', pSelectedIndices);
   const selectedScores =
-      backend.makeOutput([selectedScoresSize], 'float32', pSelectedScores);
+      backend.makeOutput([selectedSize], 'float32', pSelectedScores);
 
   return [selectedIndices, selectedScores];
 }

@@ -35,11 +35,6 @@ struct Candidate {
   size_t suppress_begin_index;
 };
 
-auto score_comparator(const Candidate i, const Candidate j) {
-  return i.score < j.score ||
-         ((i.score == j.score) && (i.box_index > j.box_index));
-};
-
 float compute_iou(const float* boxes, const size_t i, const size_t j) {
   const float* i_coord = boxes + i * 4;
   const float* j_coord = boxes + j * 4;
@@ -82,24 +77,20 @@ float suppress_weight(const float iou_threshold, const float scale,
 
 namespace tfjs {
 namespace wasm {
-// We use C-style API to interface with Javascript.
-extern "C" {
-
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif
-const NonMaxSuppressionResult* NonMaxSuppressionV5(const size_t boxes_id,
-                                                   const size_t scores_id,
-                                                   const size_t max_out_size,
-                                                   const float iou_threshold,
-                                                   const float score_threshold,
-                                                   const float soft_nms_sigma) {
+const NonMaxSuppressionResult* non_max_suppression_impl(
+    const size_t boxes_id, const size_t scores_id, const size_t max_out_size,
+    const float iou_threshold, const float score_threshold,
+    const float soft_nms_sigma) {
   auto& boxes_info = backend::get_tensor_info(boxes_id);
   auto& scores_info = backend::get_tensor_info_out(scores_id);
   const float* boxes = boxes_info.f32();
   const float* scores = scores_info.f32();
   const size_t num_boxes = boxes_info.size / 4;
 
+  auto score_comparator = [](const Candidate i, const Candidate j) {
+    return i.score < j.score ||
+           ((i.score == j.score) && (i.box_index > j.box_index));
+  };
   // Construct a max heap by candidate scores.
   std::priority_queue<Candidate, std::deque<Candidate>,
                       decltype(score_comparator)>
@@ -107,7 +98,7 @@ const NonMaxSuppressionResult* NonMaxSuppressionV5(const size_t boxes_id,
 
   // Filter out boxes that are below the score threshold and also maintain
   // the order of boxes by scores.
-  for (int i = 0; i < num_boxes; i++) {
+  for (size_t i = 0; i < num_boxes; i++) {
     if (scores[i] > score_threshold) {
       candidate_priority_queue.emplace(Candidate({i, scores[i], 0}));
     }
@@ -199,6 +190,5 @@ const NonMaxSuppressionResult* NonMaxSuppressionV5(const size_t boxes_id,
       selected_indices_data, selected_indices.size(), selected_scores_data};
 }
 
-}  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs
