@@ -182,6 +182,15 @@ export interface MaxPoolWithArgmaxAttrs {
 export const NotEqual = 'NotEqual';
 export type NotEqualInputs = BinaryInputs;
 
+export const NonMaxSuppressionV3 = 'NonMaxSuppressionV3';
+export type NonMaxSuppressionV3Inputs =
+    Pick<NamedTensorInfoMap, 'boxes'|'scores'>;
+export interface NonMaxSuppressionV3Attrs {
+  maxOutputSize: number;
+  iouThreshold: number;
+  scoreThreshold: number;
+}
+
 export const NonMaxSuppressionV5 = 'NonMaxSuppressionV5';
 export type NonMaxSuppressionV5Inputs =
     Pick<NamedTensorInfoMap, 'boxes'|'scores'>;

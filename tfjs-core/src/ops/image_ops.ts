@@ -24,6 +24,7 @@ import {TensorLike} from '../types';
 import * as util from '../util';
 
 import {op} from './operation';
+export {nonMaxSuppression} from './NonMaxSuppression';
 
 /**
  * Bilinear resize a batch of 3D images to a new shape.
@@ -161,27 +162,6 @@ function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
  * @return A 1D tensor with the selected box indices.
  */
 /** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
-function nonMaxSuppression_(
-    boxes: Tensor2D|TensorLike, scores: Tensor1D|TensorLike,
-    maxOutputSize: number, iouThreshold = 0.5,
-    scoreThreshold = Number.NEGATIVE_INFINITY): Tensor1D {
-  const $boxes = convertToTensor(boxes, 'boxes', 'nonMaxSuppression');
-  const $scores = convertToTensor(scores, 'scores', 'nonMaxSuppression');
-
-  const inputs = nonMaxSuppSanityCheck(
-      $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold);
-  maxOutputSize = inputs.maxOutputSize;
-  iouThreshold = inputs.iouThreshold;
-  scoreThreshold = inputs.scoreThreshold;
-
-  const attrs = {maxOutputSize, iouThreshold, scoreThreshold};
-  return ENGINE.runKernelFunc(
-      b => b.nonMaxSuppression(
-          $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold),
-      {boxes: $boxes, scores: $scores}, null /* grad */, 'NonMaxSuppressionV3',
-      attrs);
-}
-
 /** This is the async version of `nonMaxSuppression` */
 async function nonMaxSuppressionAsync_(
     boxes: Tensor2D|TensorLike, scores: Tensor1D|TensorLike,
@@ -413,7 +393,7 @@ function cropAndResize_(
 
 export const resizeBilinear = op({resizeBilinear_});
 export const resizeNearestNeighbor = op({resizeNearestNeighbor_});
-export const nonMaxSuppression = op({nonMaxSuppression_});
+// export const nonMaxSuppression = op({nonMaxSuppression_});
 export const nonMaxSuppressionAsync = nonMaxSuppressionAsync_;
 export const nonMaxSuppressionWithScore = op({nonMaxSuppressionWithScore_});
 export const nonMaxSuppressionWithScoreAsync = nonMaxSuppressionWithScoreAsync_;
