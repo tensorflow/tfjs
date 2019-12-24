@@ -20,6 +20,9 @@
 import './flags_webgpu';
 
 import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, slice_util, sumOutType, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
+// TODO(xing.xu): use nonMaxSuppressionV3 from backend_util:
+// tslint:disable-next-line: no-imports-from-dist
+import {nonMaxSuppressionImpl} from '@tensorflow/tfjs-core/dist/backends/non_max_suppression_impl';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
@@ -1086,6 +1089,19 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     return this.compileAndRun(program, [a, b], output);
+  }
+
+  nonMaxSuppression(
+      boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
+      iouThreshold: number, scoreThreshold: number): Tensor1D {
+    console.warn(
+        'tf.nonMaxSuppression() in WebGPU locks the UI thread. ' +
+        'Call tf.nonMaxSuppressionAsync() instead');
+
+    const boxesVals = boxes.dataSync();
+    const scoresVals = scores.dataSync();
+    return nonMaxSuppressionImpl(
+        boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   }
 
   fromPixels(
