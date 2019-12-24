@@ -28,7 +28,7 @@ import {FusedConv2DConfig} from '@tensorflow/tfjs-core/dist/ops/fused_util';
 // from backend_util, rather than from 'dist'
 import {assertAxesAreInnerMostDims, computeOutAndReduceShapes} from '@tensorflow/tfjs-core/src/ops/axis_util';
 import {computeOptimalWindowSize} from '@tensorflow/tfjs-core/src/ops/reduce_util';
-import {sumOutType} from '@tensorflow/tfjs-core/src/types'
+import {sumOutType} from '@tensorflow/tfjs-core/src/types';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
