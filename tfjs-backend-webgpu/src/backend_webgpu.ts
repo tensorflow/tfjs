@@ -22,7 +22,7 @@ import './flags_webgpu';
 import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
 import {assertAxesAreInnerMostDims, computeOutAndReduceShapes} from '@tensorflow/tfjs-core/src/ops/axis_util';
 import {computeOptimalWindowSize} from '@tensorflow/tfjs-core/src/ops/reduce_util';
-import {sumOutType} from '@tensorflow/tfjs-core/src/types'
+import {sumOutType} from '@tensorflow/tfjs-core/src/types';
 import * as shaderc from '@webgpu/shaderc';
 
 import {BufferManager} from './buffer_manager';
