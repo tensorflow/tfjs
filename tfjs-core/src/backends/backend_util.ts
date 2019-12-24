@@ -29,6 +29,9 @@ export * from '../ops/axis_util';
 export * from '../ops/broadcast_util';
 export * from '../ops/concat_util';
 export * from '../ops/conv_util';
+// TODO to import computeOptimalWindowSize from backend_util, rather than from
+// 'dist'
+export * from '../ops/reduce_util';
 export {Activation} from '../ops/fused_util';
 
 export {BackendValues, TypedArray, upcastType, PixelData} from '../types';
