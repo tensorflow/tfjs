@@ -15,22 +15,25 @@
  * =============================================================================
  */
 
-import {backend_util, kernel_impls, KernelConfig, TypedArray} from '@tensorflow/tfjs-core';
-import {NonMaxSuppressionV5, NonMaxSuppressionV5Attrs, NonMaxSuppressionV5Inputs} from '@tensorflow/tfjs-core';
-const nonMaxSuppressionV5 = kernel_impls.nonMaxSuppressionV5;
+import {NonMaxSuppressionV3, NonMaxSuppressionV3Attrs, NonMaxSuppressionV3Inputs} from '../../../kernel_names';
+import {KernelConfig} from '../../../kernel_registry';
+import {warn} from '../../../log';
+import {TypedArray} from '../../../types';
+import {nonMaxSuppressionV3} from '../../non_max_suppression_impl';
+
 import {MathBackendWebGL} from '../backend_webgl';
 
-export const nonMaxSuppressionV5Config: KernelConfig = {
-  kernelName: NonMaxSuppressionV5,
+export const nonMaxSuppressionV3Config: KernelConfig = {
+  kernelName: NonMaxSuppressionV3,
   backendName: 'webgl',
   kernelFunc: ({inputs, backend, attrs}) => {
-    backend_util.warn(
+    warn(
         'tf.nonMaxSuppression() in webgl locks the UI thread. ' +
         'Call tf.nonMaxSuppressionAsync() instead');
 
-    const {boxes, scores} = inputs as NonMaxSuppressionV5Inputs;
-    const {maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma} =
-        attrs as unknown as NonMaxSuppressionV5Attrs;
+    const {boxes, scores} = inputs as NonMaxSuppressionV3Inputs;
+    const {maxOutputSize, iouThreshold, scoreThreshold} =
+        attrs as unknown as NonMaxSuppressionV3Attrs;
 
     const gpuBackend = backend as MathBackendWebGL;
 
@@ -40,12 +43,9 @@ export const nonMaxSuppressionV5Config: KernelConfig = {
     const maxOutputSizeVal = maxOutputSize;
     const iouThresholdVal = iouThreshold;
     const scoreThresholdVal = scoreThreshold;
-    const softNmsSigmaVal = softNmsSigma;
 
-    const {selectedIndices, selectedScores} = nonMaxSuppressionV5(
+    return nonMaxSuppressionV3(
         boxesVals, scoresVals, maxOutputSizeVal, iouThresholdVal,
-        scoreThresholdVal, softNmsSigmaVal);
-
-    return [selectedIndices, selectedScores];
+        scoreThresholdVal);
   }
 };
