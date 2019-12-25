@@ -61,8 +61,12 @@ export function computeDispatch(
 export function computeWorkGroupSizeForConv2d(
     layout: {x: number[], y?: number[], z?: number[]},
     outputShape: number[]): [number, number, number] {
+  const dim0 = arrayProduct(layout.x.map(d => outputShape[d]));
   const dim1 = arrayProduct(layout.y.map(d => outputShape[d]));
   // TODO(jiajia.qin@intel.com): More fine tune based on outputShape.
+  if (dim0 <= 4) {
+    return [4, 16, 1];
+  }
   if (dim1 <= 4) {
     return [16, 4, 1];
   }
@@ -76,6 +80,9 @@ export function computeWorkPerThreadForConv2d(
   const dim0 = arrayProduct(layout.x.map(d => outputShape[d]));
   const dim1 = arrayProduct(layout.y.map(d => outputShape[d]));
   // TODO(jiajia.qin@intel.com): More fine tune based on outputShape.
+  if (dim0 <= 4) {
+    return [1, 2, 1];
+  }
   if (dim1 <= 4) {
     return [2, 1, 1];
   }

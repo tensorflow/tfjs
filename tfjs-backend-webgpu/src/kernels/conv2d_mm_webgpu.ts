@@ -57,7 +57,10 @@ export class Conv2DMMProgram implements WebGPUProgram {
 
     const tileAOuter = this.workGroupSize[1] * elementsPerThread[1];
     const tileBOuter = this.workGroupSize[0] * elementsPerThread[0];
-    const tileInner = tileBOuter;
+    const tileInner = tileAOuter > tileBOuter ? tileAOuter : tileBOuter;
+    util.assert(tileInner % this.workGroupSize[0] === 0 &&
+                tileInner % this.workGroupSize[1] === 0,
+                () => 'tileInner must be multiple of workgroupsize.x and workgroupsize.y');
     const tileSizeA = [tileAOuter, tileInner];
     const tileSizeB = [tileInner, tileBOuter];
     const dimAOuter = this.outputShape[1] * this.outputShape[2];

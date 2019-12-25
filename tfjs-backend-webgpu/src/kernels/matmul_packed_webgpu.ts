@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {util} from '@tensorflow/tfjs-core';
 import {computeDispatch, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {matMulHeader} from './matmul_webgpu';
@@ -28,7 +29,7 @@ export function makeMatMulPackedSource(workPerThread: number[]): string {
     const int ColPerThread = ${workPerThread[0]};
     const int TileAOuter = int(gl_WorkGroupSize.y) * RowPerThread;
     const int TileBOuter = int(gl_WorkGroupSize.x) * ColPerThread;
-    const int TileInner = TileBOuter;
+    const int TileInner = TileAOuter > TileBOuter ? TileAOuter : TileBOuter;
 
     shared float mm_Asub[TileAOuter][TileInner];
     shared float mm_Bsub[TileInner][TileBOuter];
@@ -53,6 +54,8 @@ export function makeMatMulPackedSource(workPerThread: number[]): string {
         }
       }
 
+      const int ColPerThreadA = TileInner / int(gl_WorkGroupSize.x);
+      int tileColA = int(gl_LocalInvocationID.x) * ColPerThreadA;
       const int RowPerThreadB = TileInner / int(gl_WorkGroupSize.y);
       int tileRowB = int(gl_LocalInvocationID.y) * RowPerThreadB;
 
@@ -60,9 +63,9 @@ export function makeMatMulPackedSource(workPerThread: number[]): string {
       for (int t = 0; t < numTiles; t++) {
         // Load one tile of A into local memory.
         for (int innerRow = 0; innerRow < RowPerThread; innerRow++) {
-          for (int innerCol = 0; innerCol < ColPerThread; innerCol++) {
+          for (int innerCol = 0; innerCol < ColPerThreadA; innerCol++) {
             int inputRow = tileRow + innerRow;
-            int inputCol = tileCol + innerCol;
+            int inputCol = tileColA + innerCol;
 
             mm_Asub[inputRow][inputCol] = mm_readA(
                 globalRow + innerRow,
@@ -136,7 +139,10 @@ export class MatMulPackedProgram implements WebGPUProgram {
     this.workPerThread = workPerThread;
     const tileAOuter = this.workGroupSize[1] * workPerThread;
     const tileBOuter = this.workGroupSize[0] * workPerThread;
-    const tileInner = tileBOuter;
+    const tileInner = tileAOuter > tileBOuter ? tileAOuter : tileBOuter;
+    util.assert(tileInner % this.workGroupSize[0] === 0 &&
+                tileInner % this.workGroupSize[1] === 0,
+                () => 'tileInner must be multiple of workgroupsize.x and workgroupsize.y');
     const tileSizeA = [tileAOuter, tileInner];
     const tileSizeB = [tileInner, tileBOuter];
     const fitA = tilesFitEvenlyIntoShape(tileSizeA, aShape.slice(1));
