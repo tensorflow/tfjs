@@ -217,85 +217,191 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     console.log('onGLViewLayout', x, y, width, height);
   }
 
- async onContextCreate(gl: ExpoWebGLRenderingContext) {
-   console.log('camera');
-    const ratios = await this.camera!.getSupportedRatiosAsync();
-    console.log('ratios', ratios);
-    const picSizes = await this.camera!.getAvailablePictureSizesAsync('4:3');
-    console.log('picSizes', picSizes);
-    const picSizes2 = await this.camera!.getAvailablePictureSizesAsync('16:9');
-    console.log('picSizes2', picSizes2);
-
-    this.texture = await this.createCameraTexture();
-    const cameraTexture = this.texture;
-    console.log('cameratexture', cameraTexture);
-
-    const pixelRatio = PixelRatio.get();
-    const screenWidth = Math.round(Dimensions.get('window').width);
-    const screenHeight = Math.round(Dimensions.get('window').height);
-    const x = 0;
-    const y = 0;
-
-    const width = Math.floor(cameraPreviewWidth * pixelRatio);
-    const height = Math.floor(cameraPreviewHeight * pixelRatio);
+  async roundtrip(gl: WebGL2RenderingContext) {
+    const width = 21;
+    const height = 39;
     const depth = 4;
 
-    console.log('onContextCreate.screenWidth:screenHeight',
-      screenWidth, screenHeight);
-    console.log('onContextCreate.pixelRatio', pixelRatio);
-    console.log('onContextCreate.w:h:d', width, height, depth);
-    console.log('onContextCreate.gl dims',
-      gl.drawingBufferWidth, gl.drawingBufferHeight);
-    console.log('onContextCreate.gl viewport', gl.getParameter(gl.VIEWPORT));
+    const inTensor =
+      tf.truncatedNormal([width, height, depth], 127, 40, 'int32');
+    const texture = await toTexture(gl, inTensor as tf.Tensor3D);
 
+    const outTensor = fromTexture(gl, texture,
+      {width, height, depth},
+      {width, height, depth});
 
-    // const renderT = gl.createTexture();
-    // Render loop
-    let start;
-    let end;
-    const loop = async () => {
+    const inData = inTensor.dataSync();
+    const outData = outTensor.dataSync();
+    const matches = tf.util.arraysEqual(inData, outData);
 
-      // this._rafID = requestAnimationFrame(loop);
-      gl.viewport(0, 0, width, height);
-      start = Date.now();
-      const res = fromTexture(
-        gl,
-        cameraTexture,
-        // Source
-        {width, height, depth},
-        // Target
-        {width, height, depth},
-      );
-      // console.log('from rexture res', res.shape);
-      end = Date.now();
-      // console.log('fromTexture:time', end - start);
+    if(matches) {
+      console.log('toTexture -> fromTexture roundtrip success');
+    } else {
+      console.log('ERROR toTexture -> fromTexture roundtrip failed');
+      console.log('input', inTensor.shape, Array.from(inData));
+      console.log('output', outTensor.shape, Array.from(outData));
+    }
 
-      start = Date.now();
-      const newT = await toTexture(gl, res as tf.Tensor3D);
-      end = Date.now();
-      // console.log('toTexture:time', end - start);
+    tf.dispose([inTensor, outTensor]);
+    return matches;
+  }
 
-      // const roundTrip = fromTexture(gl, newT, {x, y, width, height, depth});
-      // const nonMatchingCount = (await res.notEqual(roundTrip).data())[0];
-      // if(nonMatchingCount !== 0) {
-      //   console.log('roundtrip failed');
-      // }
+  resizeNNTest(gl: WebGL2RenderingContext) {
+    return tf.tidy(() => {
+      const input = tf.tensor3d([
+        [
+          [97.98934936523438, 77.24969482421875, 113.70111846923828],
+          [111.34081268310547, 113.15758514404297, 157.90521240234375],
+          [105.77980041503906, 85.75989532470703, 69.62374114990234],
+          [125.94231414794922, 73.11385345458984, 87.03099822998047]
+        ],
+        [
+          [62.25117111206055, 90.23927307128906, 119.1966552734375],
+          [93.55166625976562, 95.9106674194336, 115.56237030029297],
+          [102.98121643066406, 98.1983413696289, 97.55982971191406],
+          [86.47753143310547, 97.04051208496094, 121.50492095947266]
+        ],
+        [
+          [92.4140853881836, 118.45619201660156, 108.0341796875],
+          [126.43061065673828, 123.28077697753906, 121.03379821777344],
+          [128.6694793701172, 98.47042846679688, 114.47464752197266],
+          [93.31566619873047, 95.2713623046875, 102.51188659667969]
+        ],
+        [
+          [101.55884552001953, 83.31947326660156, 119.08016204833984],
+          [128.28546142578125, 92.56212615966797, 74.85054779052734],
+          [88.9786148071289, 119.43685913085938, 73.06110382080078],
+          [98.17908477783203, 105.54570007324219, 93.45832061767578]
+        ]
+      ]);
 
-      // res.dispose();
-      // gl.viewport(0,0, width, height);
-      gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight); // THIS IS KEY AND CONTROLS THE MAPPING TO PIXEL SPACE
-      renderToGLView(gl, cameraTexture, {
-        x, y,
-        width,
-        height,
-        depth: 4
-      });
-      gl.endFrameEXP();
-    };
+      const expected = tf.tensor3d([
+        [
+          [ 97.98935 ,  77.249695, 113.70112 ]
+        ],
+        [
+          [ 62.25117 ,  90.23927 , 119.196655]
+        ],
+        [
+          [ 92.414085, 118.45619 , 108.03418 ]
+        ]
+      ]);
 
-    setInterval(() => {
-      loop();
-    }, 1000);
+      const size: [number, number] = [3, 1];
+
+      const tfResult = tf.image.resizeNearestNeighbor(input, size, false);
+
+      // Sanity check
+      const tfresizematch =
+        tf.util.arraysEqual(expected.dataSync(), tfResult.dataSync());
+      if(!tfresizematch) {
+        console.log('tf resize does not have expected result');
+      }
+
+      // Test
+      const texture = toTexture(gl, input);
+      const outTensor = fromTexture(gl, texture,
+        {width: 4, height: 4, depth: 3},
+        {width: 3, height: 1, depth: 3});
+
+      const fromTexResizeMatch = tf.util.arraysEqual(
+        Array.from(expected.dataSync()),
+        Array.from(outTensor.dataSync()));
+
+      if(fromTexResizeMatch) {
+        console.log('ERROR fromTexture resize NN sucess');
+      } else {
+        console.log('ERROR fromTexture resize NN failed');
+        console.log('expected', Array.from(expected.dataSync()));
+        console.log('outTensor', Array.from(outTensor.dataSync()));
+      }
+
+      return fromTexResizeMatch;
+    });
+  }
+
+ async onContextCreate(gl: ExpoWebGLRenderingContext) {
+    console.log('onContextCreate texture tests');
+    await this.roundtrip(gl);
+    // this.resizeNNTest(gl);
+    console.log('------ END onContextCreate texture tests --------');
+    // console.log('camera');
+    // const ratios = await this.camera!.getSupportedRatiosAsync();
+    // console.log('ratios', ratios);
+    // const picSizes = await this.camera!.getAvailablePictureSizesAsync('4:3');
+    // console.log('picSizes', picSizes);
+    // const picSizes2 = await this.camera!.getAvailablePictureSizesAsync('16:9');
+    // console.log('picSizes2', picSizes2);
+
+    // this.texture = await this.createCameraTexture();
+    // const cameraTexture = this.texture;
+    // console.log('cameratexture', cameraTexture);
+
+    // const pixelRatio = PixelRatio.get();
+    // const screenWidth = Math.round(Dimensions.get('window').width);
+    // const screenHeight = Math.round(Dimensions.get('window').height);
+
+    // const width = Math.floor(cameraPreviewWidth * pixelRatio);
+    // const height = Math.floor(cameraPreviewHeight * pixelRatio);
+    // const depth = 4;
+
+    // console.log('onContextCreate.screenWidth:screenHeight',
+    //   screenWidth, screenHeight);
+    // console.log('onContextCreate.pixelRatio', pixelRatio);
+    // console.log('onContextCreate.w:h:d', width, height, depth);
+    // console.log('onContextCreate.gl dims',
+    //   gl.drawingBufferWidth, gl.drawingBufferHeight);
+    // console.log('onContextCreate.gl viewport', gl.getParameter(gl.VIEWPORT));
+
+    // const targetWidth = width / 2;
+    // const targetHeight = height / 2;
+    // const targetDepth = depth;
+
+    // // const renderT = gl.createTexture();
+    // // Render loop
+    // let start;
+    // let end;
+    // const loop = async () => {
+
+    //   // this._rafID = requestAnimationFrame(loop);
+    //   gl.viewport(0, 0, width, height);
+    //   start = Date.now();
+    //   const res = fromTexture(
+    //     gl,
+    //     cameraTexture,
+    //     // Source
+    //     {width, height, depth},
+    //     // Target
+    //     {width: targetWidth, height: targetHeight, depth: targetDepth},
+    //   );
+    //   // console.log('from rexture res', res.shape);
+    //   end = Date.now();
+    //   // console.log('fromTexture:time', end - start);
+
+    //   start = Date.now();
+    //   const newT = await toTexture(gl, res);
+    //   end = Date.now();
+    //   // console.log('toTexture:time', end - start);
+
+    //   // const roundTrip = fromTexture(gl, newT, {x, y, width, height, depth});
+    //   // const nonMatchingCount = (await res.notEqual(roundTrip).data())[0];
+    //   // if(nonMatchingCount !== 0) {
+    //   //   console.log('roundtrip failed');
+    //   // }
+
+    //   res.dispose();
+    //   // gl.viewport(0,0, width, height);
+    //    // THIS IS KEY AND CONTROLS THE MAPPING TO PIXEL SPACE
+    //   gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+    //   renderToGLView(gl, newT, {
+    //     width: gl.drawingBufferWidth, height: gl.drawingBufferHeight
+    //   });
+    //   gl.endFrameEXP();
+    // };
+
+    // setInterval(() => {
+    //   loop();
+    // }, 800);
 
   }
 

@@ -107,34 +107,63 @@ function getResizeNearestNeighborMain(
 
   return `
 void main() {
-  vec2 texUV = gl_FragCoord.xy / vec2(${tWidth}.0, ${tHeight}.0);
-  // vec4 texSampleRR = texture(inputTexture, texUV);
-  // vec4 texSample = vec4(texUV, 0.5, texSampleRR[3]);
+  // vec2 sourceDims = vec2(float(${tWidth}), float(${tHeight}));
 
-  // vec4 texSample = vec4(uv.x, uv.x, uv.x, 1.0);
-  // vec4 texSample = vec4(uv.y, uv.y, uv.y, 1.0);
-  vec4 texSample = vec4(0.8, 0.8, 0.8, 1.0);
+  // // Fractional source index.
+  // vec2 sourceFracIndexRC = uv * effectiveInputOverOutputRatioRC;
+  // vec2 sourceNearest = sourceFracIndexRC * sourceDims;
+  // ivec2 sourceNearestRC = ivec2(sourceNearest);
 
+  // vec4 texSample2 = texelFetch(inputTexture, sourceNearestRC, 0);
+
+  vec4 texSample = texture(inputTexture, uv);
+  // vec4 texSample = vec4(uv[0], uv[0], uv[0], texture(inputTexture, uv).a);
   fragColor = ${outputFragColor};
 }`;
 }
 
+// export function vertices() {
+//   return new Float32Array([
+//     // x, y,
+//     -1, 1,   // upper left
+//     1, 1,    // upper right
+//     -1, -1,  // lower left
+//     1, -1,   // lower right
+//   ]);
+// }
+
+// export function texCoords() {
+//   return new Float32Array([
+//     // u, v
+//     0, 1,  // upper left
+//     1, 1,  // upper right
+//     0, 0,  // lower left
+//     1, 0,  // lower right
+//   ]);
+// }
+
 export function vertices() {
   return new Float32Array([
-    // x, y,
-    -1, 1,   // upper left
-    1, 1,    // upper right
-    -1, -1,  // lower left
-    1, -1,   // lower right
+    // clang-format off
+    -1, -1,
+    -1, 1,
+    1, 1,
+    1, 1,
+    -1, -1,
+    1, -1,
+    // clang-format on
   ]);
 }
 
 export function texCoords() {
   return new Float32Array([
-    // u, v
-    0, 1,  // upper left
-    1, 1,  // upper right
-    0, 0,  // lower left
-    1, 0,  // lower right
+    // clang-format off
+    0, 0,
+    0, 1,
+    1, 1,
+    1, 1,
+    0, 0,
+    1, 0,
+    // clang-format on
   ]);
 }

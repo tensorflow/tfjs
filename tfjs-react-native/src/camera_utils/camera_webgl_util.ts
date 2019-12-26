@@ -32,7 +32,7 @@ let fbo: WebGLFramebuffer;
 
 // Internal target texture used for resizing camera texture input
 let resizeTexture: WebGLTexture;
-let resizeTextureDims: {width: number, height: number};
+// let resizeTextureDims: {width: number, height: number};
 
 interface ProgramObjects {
   program: WebGLProgram;
@@ -60,11 +60,18 @@ export function downloadTextureData(
   }
 
   const LEVEL = 0;
-  gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-  gl.bindTexture(gl.TEXTURE_2D, texture);
+  tf.webgl.webgl_util.callAndCheck(gl, true, () => {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+  });
 
-  gl.framebufferTexture2D(
-      gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, LEVEL);
+  tf.webgl.webgl_util.callAndCheck(gl, true, () => {
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+  });
+
+  tf.webgl.webgl_util.callAndCheck(gl, true, () => {
+    gl.framebufferTexture2D(
+        gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, LEVEL);
+  });
 
   const format = depth === 3 ? gl.RGB : gl.RGBA;
   const x = 0;
@@ -74,7 +81,9 @@ export function downloadTextureData(
   });
 
   // Unbind framebuffer
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  tf.webgl.webgl_util.callAndCheck(gl, true, () => {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  });
   return pixels;
 }
 
@@ -126,10 +135,11 @@ export function uploadTextureData(
  * WIP Render a texture to the default framebuffer (i.e. screen)
  * @param gl WebGL context to use
  * @param texture texture to render
- * @param dims texture size
+ * @param textureSize texture size
  */
 export function drawTexture(
-    gl: WebGL2RenderingContext, texture: WebGLTexture, dims: Dimensions) {
+    gl: WebGL2RenderingContext, texture: WebGLTexture,
+    textureSize: {width: number, height: number}) {
   const {program, vao, vertices} = drawTextureProgram(gl);
   gl.useProgram(program);
   gl.bindVertexArray(vao);
@@ -143,7 +153,7 @@ export function drawTexture(
   let matrix = m4.orthographic(
       0, gl.drawingBufferWidth, gl.drawingBufferHeight, 0, -1, 1);
   matrix = m4.translate(matrix, 0, 0, 0);
-  matrix = m4.scale(matrix, dims.width, dims.height, 1);
+  matrix = m4.scale(matrix, textureSize.width, textureSize.height, 1);
 
   // console.log('matrix', matrix);
   gl.uniformMatrix4fv(
@@ -171,7 +181,7 @@ export function runResizeProgram(
   });
 
   //
-  // Set up input texutre
+  // Set up input texture
   //
   gl.uniform1i(gl.getUniformLocation(program, 'inputTexture'), 1);
   gl.activeTexture(gl.TEXTURE0 + 1);
@@ -195,23 +205,28 @@ export function runResizeProgram(
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
+  console.log(
+      'runResizeProgram. ouput dims', targetTextureWidth, targetTextureHeight,
+      outputDims.depth);
+
   // Reallocate texture if target size has changed.
-  if (resizeTextureDims == null ||
-      resizeTextureDims.width !== targetTextureWidth ||
-      resizeTextureDims.height !== targetTextureHeight) {
-    const level = 0;
-    const internalFormat = gl.RGBA;
-    const border = 0;
-    const format = gl.RGBA;
-    const type = gl.UNSIGNED_BYTE;
-    gl.texImage2D(
-        gl.TEXTURE_2D, level, internalFormat, targetTextureWidth,
-        targetTextureHeight, border, format, type, null);
-    resizeTextureDims = {
-      width: targetTextureWidth,
-      height: targetTextureHeight
-    };
-  }
+  // if (resizeTextureDims == null ||
+  //     resizeTextureDims.width !== targetTextureWidth ||
+  //     resizeTextureDims.height !== targetTextureHeight) {
+  const level = 0;
+  const format = gl.RGBA;  // TODO switch on 3/4
+  const internalFormat = format;
+  const border = 0;
+
+  const type = gl.UNSIGNED_BYTE;
+  gl.texImage2D(
+      gl.TEXTURE_2D, level, internalFormat, targetTextureWidth,
+      targetTextureHeight, border, format, type, null);
+  //   resizeTextureDims = {
+  //     width: targetTextureWidth,
+  //     height: targetTextureHeight
+  //   };
+  // }
 
   //
   // Render to output texture
@@ -220,13 +235,14 @@ export function runResizeProgram(
     fbo = createFrameBuffer(gl);
   }
 
+  gl.viewport(0, 0, targetTextureWidth, targetTextureHeight);
   gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
   gl.framebufferTexture2D(
       gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, targetTexture, 0);
 
   gl.clearColor(1, 0, 1, 1);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertices.length / 2);
+  gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 2);
 
   // Restore previous state
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -262,6 +278,8 @@ function createFrameBuffer(gl: WebGL2RenderingContext): WebGLFramebuffer {
       default:
         console.log('unknown fbo complete status');
     }
+  } else {
+    console.log('created frambuffer that is framebuffer complete')
   }
   return fb;
 }
@@ -312,6 +330,7 @@ function createProgramObjects(
     const errorString =
         JSON.parse(JSON.stringify(gl.getShaderInfoLog(vertShader)));
     console.log('Error compiling vertex shader\n', errorString);
+    console.log('\nVertex Shader Source\n', fragmentShaderSource);
   }
 
   const fragShader = gl.createShader(gl.FRAGMENT_SHADER);
@@ -321,6 +340,7 @@ function createProgramObjects(
     const errorString =
         JSON.parse(JSON.stringify(gl.getShaderInfoLog(fragShader)));
     console.log('Error compiling fragment shader\n', errorString);
+    console.log('\nFragment Shader Source\n', fragmentShaderSource);
   }
 
   const program = gl.createProgram();

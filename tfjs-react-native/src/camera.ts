@@ -19,12 +19,18 @@ import * as tf from '@tensorflow/tfjs-core';
 
 // import {downloadTextureData, getPassthroughProgram, runResizeProgram,
 // uploadTextureData} from './camera_webgl_util';
+//@ts-ignore
 import {downloadTextureData, drawTexture, runResizeProgram, uploadTextureData} from './camera_utils/camera_webgl_util';
 
 interface Dimensions {
   width: number;
   height: number;
   depth: number;
+}
+
+interface Size {
+  width: number;
+  height: number;
 }
 
 /**
@@ -68,12 +74,27 @@ export function fromTexture(
       targetShape.depth === 3 || targetShape.depth === 4,
       () => 'fromTexture Error: target depth must be 3 or 4');
 
-  const resizedTexture = runResizeProgram(gl, texture, sourceDims, targetShape);
-  const textureData = downloadTextureData(gl, resizedTexture, targetShape);
+  //@ts-ignore
+  const _sourceDims = {
+    width: Math.floor(targetShape.width),
+    height: Math.floor(targetShape.height),
+    depth: sourceDims.depth,
+  };
+
+  const _targetShape = {
+    width: Math.floor(targetShape.width),
+    height: Math.floor(targetShape.height),
+    depth: targetShape.depth
+  };
+
+  const resizedTexture =
+      runResizeProgram(gl, texture, _sourceDims, targetShape);
+  // console.log('resizedTexture', resizedTexture);
+  const textureData = downloadTextureData(gl, resizedTexture, _targetShape);
 
   return tf.tensor3d(
-      textureData, [targetShape.width, targetShape.height, targetShape.depth],
-      'int32');
+      textureData,
+      [_targetShape.width, _targetShape.height, _targetShape.depth], 'int32');
 }
 
 /**
@@ -82,8 +103,13 @@ export function fromTexture(
  *
  * @param gl
  * @param texture
+ * @param dims Dimensions of tensor
  */
 export function renderToGLView(
-    gl: WebGL2RenderingContext, texture: WebGLTexture, dims: Dimensions) {
-  drawTexture(gl, texture, dims);
+    gl: WebGL2RenderingContext, texture: WebGLTexture, size: Size) {
+  const _size = {
+    width: Math.floor(size.width),
+    height: Math.floor(size.width),
+  };
+  drawTexture(gl, texture, _size);
 }
