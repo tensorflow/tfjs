@@ -14,6 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
+import {TensorInfo} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {computeStrides, sizeFromShape} from '../util';
 
@@ -123,9 +124,11 @@ export function validateInput(
  * @returns ScatterShapeInfo
  */
 export function calculateShapes(
-    updates: Tensor, indices: Tensor, shape: number[]): ScatterShapeInfo {
+    updates: TensorInfo, indices: TensorInfo,
+    shape: number[]): ScatterShapeInfo {
   // Calculate the number of dimensions in indices
-  const sliceRank = (indices.rank > 1) ? indices.shape[indices.rank - 1] : 1;
+  const indicesRank = indices.shape.length;
+  const sliceRank = (indicesRank > 1) ? indices.shape[indicesRank - 1] : 1;
 
   // Calculate the number of elements that make up each slice of our updated
   // tensor. This allows us to work with flattened tensors and copy over whole
@@ -138,7 +141,7 @@ export function calculateShapes(
   }
 
   const safeSliceDim = (sliceRank < 1) ? 1 : sliceRank;
-  const numUpdates = indices.size / safeSliceDim;
+  const numUpdates = sizeFromShape(indices.shape) / safeSliceDim;
 
   const strides = [...computeStrides(shape.slice(0, sliceRank)), 1];
   const outputSize = sizeFromShape(shape);
