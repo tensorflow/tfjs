@@ -156,6 +156,8 @@ tfjs_cc_library(
         ":FusedBatchNorm",
         ":FusedConv2D",
         ":FusedDepthwiseConv2D",
+        ":Gather",
+        ":GatherNd",
         ":Greater",
         ":GreaterEqual",
         ":Less",
@@ -172,6 +174,7 @@ tfjs_cc_library(
         ":Relu",
         ":Relu6",
         ":ResizeBilinear",
+        ":ScatterNd",
         ":Sigmoid",
         ":Sub",
         ":Tile",
@@ -387,6 +390,24 @@ tfjs_unit_test(
 )
 
 tfjs_cc_library(
+    name = "Gather",
+    srcs = ["kernels/Gather.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "GatherNd",
+    srcs = ["kernels/GatherNd.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "Greater",
     srcs = ["kernels/Greater.cc"],
     deps = [
@@ -583,6 +604,15 @@ tfjs_unit_test(
     srcs = ["kernels/ResizeBilinear_test.cc"],
     deps = [
         ":ResizeBilinear",
+    ],
+)
+
+tfjs_cc_library(
+    name = "ScatterNd",
+    srcs = ["kernels/ScatterNd.cc"],
+    deps = [
+        ":backend",
+        ":util",
     ],
 )
 
