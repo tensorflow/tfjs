@@ -59,6 +59,7 @@ import './Relu6';
 import './Reshape';
 import './ResizeBilinear';
 import './Rsqrt';
+import './ScatterNd';
 import './Sigmoid';
 import './Sin';
 import './Slice';

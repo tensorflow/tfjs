@@ -174,6 +174,7 @@ tfjs_cc_library(
         ":Relu",
         ":Relu6",
         ":ResizeBilinear",
+        ":ScatterNd",
         ":Sigmoid",
         ":Sub",
         ":Tile",
@@ -603,6 +604,15 @@ tfjs_unit_test(
     srcs = ["kernels/ResizeBilinear_test.cc"],
     deps = [
         ":ResizeBilinear",
+    ],
+)
+
+tfjs_cc_library(
+    name = "ScatterNd",
+    srcs = ["kernels/ScatterNd.cc"],
+    deps = [
+        ":backend",
+        ":util",
     ],
 )
 
