@@ -72,9 +72,10 @@ export class Conv2DMMProgram implements WebGPUProgram {
         `x[getFlatIndex(coord, xShape)]` :
         `coordsInBounds(coord, xShape) ? x[getFlatIndex(coord, xShape)] : 0`;
     const fitB = tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter]);
-    const sampleB = fitB ?
-        `W[getFlatIndex(coord, shape)]` :
-        `coordsInBounds(coord, shape) ? W[getFlatIndex(coord, shape)] : 0`;
+    const sampleB =
+        fitB ? `W[row * dimBOuter + col]` :
+        `coordsInBounds(ivec2(row, col), ivec2(dimInner, dimBOuter)) ?
+        W[row * dimBOuter + col] : 0`;
 
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
@@ -112,31 +113,26 @@ export class Conv2DMMProgram implements WebGPUProgram {
         ${matMulSource}
 
         int batch;
+        int dimAOuter = outShape[1] * outShape[2];
+        int dimBOuter = outShape[3];
+        int dimInner = filterDims[0] * filterDims[1] * xShape[3];
         float mm_readA(int row, int col) {
           int r = int(row), c = int(col);
           int outRow = r / outShape[2];
           int outCol = r % outShape[2];
 
-          int WRow = (c / filterDims[1]) % filterDims[0];
-          int WCol = c % filterDims[1];
+          int WRow = c / (filterDims[1] * xShape[3]);
+          int WCol = (c / xShape[3]) % filterDims[1];
 
           ivec4 coord = ivec4(
               batch,
               pad[0] + outRow * stride[0] + dilation[0] * WRow,
               pad[1] + outCol * stride[1] + dilation[1] * WCol,
-              c / (filterDims[0] * filterDims[1]));
+              c % xShape[3]);
           return ${sampleA};
         }
 
         float mm_readB(int row, int col) {
-          int r = int(row), c = int(col);
-          ivec4 coord = ivec4(
-              (r / filterDims[1]) % filterDims[0],
-              r % filterDims[1],
-              r / (filterDims[0] * filterDims[1]),
-              c);
-
-          ivec4 shape = ivec4(filterDims, xShape[3], outShape[3]);
           return ${sampleB};
         }
 
@@ -156,9 +152,6 @@ export class Conv2DMMProgram implements WebGPUProgram {
         void main() {
           batch = int(gl_GlobalInvocationID.z);
 
-          int dimAOuter = outShape[1] * outShape[2];
-          int dimBOuter = outShape[3];
-          int dimInner = filterDims[0] * filterDims[1] * xShape[3];
           mm_matMul(dimAOuter, dimInner, dimBOuter);
         }
       `;
