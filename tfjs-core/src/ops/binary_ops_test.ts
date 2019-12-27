@@ -1231,3 +1231,35 @@ describeWithFlags('atan2', ALL_ENVS, () => {
         .toThrowError(/Argument 'b' passed to 'atan2' must be numeric/);
   });
 });
+
+describeWithFlags('div', ALL_ENVS, () => {
+  it('divNoNan divide 0', async () => {
+    // Broadcast div a with b.
+    const a = tf.tensor1d([2, 4, 6, 8]);
+    const b = tf.tensor1d([0, 0, 0, 0]);
+
+    const c = a.divNoNan(b);
+    expect(c.shape).toEqual(a.shape);
+    expectArraysClose(await c.data(), [0, 0, 0, 0]);
+  });
+
+  it('divNoNan divide 0 and non-0', async () => {
+    // Broadcast div a with b.
+    const a = tf.tensor1d([2, 4, 6, 8]);
+    const b = tf.tensor1d([2, 2, 0, 4]);
+
+    const c = a.divNoNan(b);
+    expect(c.shape).toEqual(a.shape);
+    expectArraysClose(await c.data(), [1, 2, 0, 2]);
+  });
+
+  it('divNoNan divide 0 broadcast', async () => {
+    // Broadcast div a with b.
+    const a = tf.tensor1d([2, 4, 6, 8]);
+    const b = tf.scalar(0);
+
+    const c = a.divNoNan(b);
+    expect(c.shape).toEqual(a.shape);
+    expectArraysClose(await c.data(), [0, 0, 0, 0]);
+  });
+});

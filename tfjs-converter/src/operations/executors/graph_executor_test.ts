@@ -145,9 +145,11 @@ describe('graph', () => {
       });
     });
     describe('NoOp', () => {
-      it('should return empty', () => {
+      it('should return empty', async () => {
         node.op = 'NoOp';
-        expect(executeOp(node, {}, context)).toEqual([]);
+        test_util.expectArraysClose(
+            await (executeOp(node, {}, context) as tfc.Tensor[])[0].data(),
+            [1]);
       });
     });
   });

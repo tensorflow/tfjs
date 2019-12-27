@@ -23,14 +23,17 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class Conv2DNaiveProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = 'ivec2 filterDims, pad, stride;';
+  uniforms = 'ivec2 filterDims, pad, stride, dilation;';
   workGroupSize: [number, number, number] = [4, 8, 4];
 
-  constructor(convInfo: backend_util.Conv2DInfo) {
+  constructor(
+      convInfo: backend_util.Conv2DInfo, addBias = false,
+      activation: string = null, hasPreluActivationWeights = false) {
     this.outputShape = convInfo.outShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0, 3]};
     this.dispatch = computeDispatch(
@@ -39,26 +42,52 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
     util.assert(
         convInfo.dataFormat === 'channelsLast',
         () => 'TODO: NCHW is unimplemented');
-    util.assert(
-        convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1,
-        () => 'TODO: Dilation is unimplemented');
+    let activationSnippet = '', applyActivationSnippet = '';
+    if (activation) {
+      if (hasPreluActivationWeights) {
+        activationSnippet = `float activation(float a) {
+                  float b = getPreluActivationWeightsAtOutCoords();
+                  ${activation}
+                }`;
+      } else {
+        activationSnippet = `
+                  float activation(float x) {
+                    ${activation}
+                  }
+                `;
+      }
+
+      applyActivationSnippet = `value = activation(value);`;
+    }
+
+    const addBiasSnippet = addBias ? 'value += getBiasAtOutCoords();' : '';
+    if (addBias) {
+      this.variableNames.push('bias');
+    }
+
+    if (hasPreluActivationWeights) {
+      this.variableNames.push('preluActivationWeights');
+    }
 
     this.userCode = `
+      ${activationSnippet}
       float readInp(int batch, int row, int col, int chan) {
         ivec4 coord = ivec4(batch, row, col, chan);
-        return coordIsValid(coord, xShape) ?
+        return coordsInBounds(coord, xShape) ?
           getX(batch, row, col, chan) : 0;
       }
 
       float readFilt(int row, int col, int xChannel, int outChannel) {
         ivec4 coord = ivec4(row, col, xChannel, outChannel);
-        return coordIsValid(coord, wShape) ?
+        return coordsInBounds(coord, wShape) ?
           getW(row, col, xChannel, outChannel) : 0;
       }
 
       void writeResult(int batch, int row, int col, int chan, float value) {
         ivec4 coord = ivec4(batch, row, col, chan);
-        if (coordIsValid(coord, outShape)) {
+        if (coordsInBounds(coord, outShape)) {
+          ${addBiasSnippet}
+          ${applyActivationSnippet}
           setOutput(batch, row, col, chan, value);
         }
       }
@@ -74,8 +103,9 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
           for (int col = 0; col < filterDims[1]; ++col) {
             for (int xChannel = 0; xChannel < xShape[3]; ++xChannel) {
               float v = readInp(batch,
-                  pad[0] + coords[1] * stride[0] + row,
-                  pad[1] + coords[2] * stride[1] + col, xChannel);
+                  pad[0] + coords[1] * stride[0] + dilation[0] * row,
+                  pad[1] + coords[2] * stride[1] + dilation[1] * col,
+                  xChannel);
               float f = readFilt(row, col, xChannel, outChannel);
               acc += v * f;
             }
@@ -85,5 +115,6 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
         writeResult(batch, coords[1], coords[2], outChannel, acc);
       }
     `;
+    this.shaderKey = 'conv2dnaive';
   }
 }

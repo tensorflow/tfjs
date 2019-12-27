@@ -1973,7 +1973,7 @@ describeWithFlags('greater', ALL_ENVS, () => {
     expect(res.dtype).toBe('bool');
     expectArraysClose(await res.data(), [0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1]);
   });
-  it('broadcasting Tensor3D float32', async () => {
+  it('broadcasting Tensor3D shapes - float32', async () => {
     const a = tf.tensor3d(
         [
           [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
@@ -2354,7 +2354,7 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
     expect(res.dtype).toBe('bool');
     expectArraysClose(await res.data(), [1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1]);
   });
-  it('broadcasting Tensor3D float32', async () => {
+  it('broadcasting Tensor3D shapes - float32', async () => {
     const a = tf.tensor3d(
         [
           [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],

@@ -129,6 +129,25 @@ describe('basic math', () => {
         expect(validateParam(node, basic_math.json)).toBeTruthy();
       });
     });
+    describe('Prelu', () => {
+      it('should call tfc.Prelu', () => {
+        spyOn(tfc, 'prelu');
+        node.op = 'Prelu';
+        node.inputParams['x'] = createTensorAttr(0);
+        node.inputParams['alpha'] = createTensorAttr(1);
+        node.inputNames = ['input1', 'input2'];
+        const input2 = [tfc.scalar(1)];
+        executeOp(node, {input1, input2}, context);
+
+        expect(tfc.prelu).toHaveBeenCalledWith(input1[0], input2[0]);
+      });
+      it('should match op def', () => {
+        node.op = 'Prelu';
+        node.inputParams['x'] = createTensorAttr(0);
+        node.inputParams['alpha'] = createTensorAttr(1);
+        expect(validateParam(node, basic_math.json)).toBeTruthy();
+      });
+    });
     describe('Atan2', () => {
       it('should call tfc.atan2', () => {
         spyOn(tfc, 'atan2');

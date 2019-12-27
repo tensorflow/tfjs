@@ -10,7 +10,7 @@ scripts/publish-npm.sh
 build/
 integration/
 node_modules/
-test_images/
+test_objects/
 *.tgz
 .travis.yml
 .npmignore
@@ -23,7 +23,6 @@ yarn-error.log
 .yalc/
 lib/
 deps/
-build-tmp-napi-v3/
-build-tmp-napi-v4/
+build-tmp-napi-v*/
 *.tar.gz
 *.zip

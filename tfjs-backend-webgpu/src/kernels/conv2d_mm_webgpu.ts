@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {computeDispatch} from '../webgpu_util';
+import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {makeMatMulPackedSource} from './matmul_packed_webgpu';
 import {makeMatMulSource} from './matmul_webgpu';
@@ -25,46 +25,87 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class Conv2DMMProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = 'ivec2 filterDims, pad, stride;';
-  workGroupSize: [number, number, number] = [
-    16, 16,  // must be square (for matmul)
-    1
-  ];
+  uniforms = 'ivec2 filterDims, pad, stride, dilation;';
+  workGroupSize: [number, number, number];
 
-  constructor(convInfo: backend_util.Conv2DInfo, workPerThread: number) {
+  constructor(
+      convInfo: backend_util.Conv2DInfo, workPerThread: number, addBias = false,
+      activation: string = null, hasPreluActivationWeights = false) {
     this.outputShape = convInfo.outShape;
 
     util.assert(
         convInfo.dataFormat === 'channelsLast',
         () => 'TODO: NCHW is unimplemented');
-    util.assert(
-        convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1,
-        () => 'TODO: Dilation is unimplemented');
-
+    this.dispatchLayout = {x: [1, 2], y: [3], z: [0]};
+    this.workGroupSize =
+        computeWorkGroupSizeForConv2d(this.dispatchLayout, this.outputShape);
     let elementsPerThread: [number, number, number];
     let matMulSource: string;
     if (workPerThread === 0) {
       elementsPerThread = [1, 1, 1];
       matMulSource = makeMatMulSource();
     } else {
-      elementsPerThread = [workPerThread, workPerThread, 1];
-      matMulSource = makeMatMulPackedSource(workPerThread);
+      elementsPerThread =
+          computeWorkPerThreadForConv2d(this.dispatchLayout, this.outputShape);
+      matMulSource = makeMatMulPackedSource(elementsPerThread);
     }
 
-    this.dispatchLayout = {x: [1], y: [2], z: [0]};
-    const matMulOutShape = [
-      convInfo.outShape[0], convInfo.outShape[1] * convInfo.outShape[2],
-      convInfo.outShape[3]
-    ];
+    const tileAOuter = this.workGroupSize[1] * elementsPerThread[1];
+    const tileBOuter = this.workGroupSize[0] * elementsPerThread[0];
+    const tileInner = tileBOuter;
+    const tileSizeA = [tileAOuter, tileInner];
+    const tileSizeB = [tileInner, tileBOuter];
+    const dimAOuter = this.outputShape[3];
+    const dimBOuter = this.outputShape[1] * this.outputShape[2];
+    const dimInner =
+        convInfo.filterHeight * convInfo.filterWidth * convInfo.inChannels;
+    const fitA = tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]);
+    const sampleA = fitA ?
+        `W[getFlatIndex(coord, shape)]` :
+        `coordsInBounds(coord, shape) ? W[getFlatIndex(coord, shape)] : 0`;
+    const fitB = tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter]);
+    const sampleB = fitB ?
+        `x[getFlatIndex(coord, xShape)]` :
+        `coordsInBounds(coord, xShape) ? x[getFlatIndex(coord, xShape)] : 0`;
+
     this.dispatch = computeDispatch(
-        this.dispatchLayout, matMulOutShape, this.workGroupSize,
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
         elementsPerThread);
 
+    let activationSnippet = '', applyActivationSnippet = '';
+    if (activation) {
+      if (hasPreluActivationWeights) {
+        activationSnippet = `float activation(float a) {
+              float b = getPreluActivationWeightsAtOutCoords();
+              ${activation}
+            }`;
+      } else {
+        activationSnippet = `
+              float activation(float x) {
+                ${activation}
+              }
+            `;
+      }
+
+      applyActivationSnippet = `value = activation(value);`;
+    }
+
+    const addBiasSnippet = addBias ? 'value += getBiasAtOutCoords();' : '';
+    if (addBias) {
+      this.variableNames.push('bias');
+    }
+
+    if (hasPreluActivationWeights) {
+      this.variableNames.push('preluActivationWeights');
+    }
+
     this.userCode = `
+        ${activationSnippet}
         ${matMulSource}
 
         int batch;
@@ -78,7 +119,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
               r);
 
           ivec4 shape = ivec4(filterDims, xShape[3], outShape[3]);
-          return coordIsValid(coord, shape) ? W[getFlatIndex(coord, shape)] : 0;
+          return ${sampleA};
         }
 
         float mm_readB(int row, int col) {
@@ -91,11 +132,10 @@ export class Conv2DMMProgram implements WebGPUProgram {
 
           ivec4 coord = ivec4(
               batch,
-              pad[0] + outRow * stride[0] + WRow,
-              pad[1] + outCol * stride[1] + WCol,
+              pad[0] + outRow * stride[0] + dilation[0] * WRow,
+              pad[1] + outCol * stride[1] + dilation[1] * WCol,
               r / (filterDims[0] * filterDims[1]));
-          return coordIsValid(coord, xShape) ?
-              x[getFlatIndex(coord, xShape)] : 0;
+          return ${sampleB};
         }
 
         void mm_write(int row, int col, float value) {
@@ -104,7 +144,9 @@ export class Conv2DMMProgram implements WebGPUProgram {
               col / outShape[2],
               col % outShape[2],
               row);
-          if (coordIsValid(outCoord, outShape)) {
+          if (coordsInBounds(outCoord, outShape)) {
+            ${addBiasSnippet}
+            ${applyActivationSnippet}
             result[getFlatIndex(outCoord, outShape)] = value;
           }
         }
@@ -118,5 +160,6 @@ export class Conv2DMMProgram implements WebGPUProgram {
           mm_matMul(dimAOuter, dimInner, dimBOuter);
         }
       `;
+    this.shaderKey = `conv2dmm'${elementsPerThread.join('')}${fitA}${fitB}`;
   }
 }

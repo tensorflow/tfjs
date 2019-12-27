@@ -23,6 +23,7 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class MaxPoolProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
@@ -33,7 +34,7 @@ export class MaxPoolProgram implements WebGPUProgram {
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.outShape;
 
-    this.dispatchLayout = {x: [1], y: [2], z: [0, 3]};
+    this.dispatchLayout = {x: [2], y: [1], z: [0, 3]};
 
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
@@ -76,5 +77,6 @@ export class MaxPoolProgram implements WebGPUProgram {
         }
       }
     `;
+   this.shaderKey = 'maxpool';
   }
 }

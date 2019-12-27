@@ -16,7 +16,6 @@
  */
 
 import {css} from 'glamor';
-import {tachyons as tac} from 'glamor-tachyons';
 
 import {getDrawArea} from '../render/render_utils';
 import {Drawable} from '../types';
@@ -34,7 +33,8 @@ export function subSurface(parent: Drawable, name: string, opts: Options = {}) {
     '& canvas': {
       display: 'block',
     },
-    ...tac('mv2'),
+    marginTop: '.5rem',
+    marginBottom: '.5rem',
   });
   const titleStyle = css({
     backgroundColor: 'white',
@@ -44,7 +44,8 @@ export function subSurface(parent: Drawable, name: string, opts: Options = {}) {
     lineHeight: '2em',
     padding: '0 10px 0 10px',
     marginBottom: '20px',
-    ...tac('fw6 tl')
+    fontWeight: '600',
+    textAlign: 'left',
   });
   const options = Object.assign({}, DEFAULT_SUBSURFACE_OPTS, opts);
 

@@ -15,29 +15,23 @@
  * =============================================================================
  */
 
-export type BackendWasmModule = EmscriptenModule&{
+export interface BackendWasmModule extends EmscriptenModule {
   onRuntimeInitialized: () => void;
+  onAbort: (msg: string) => void;
   // Using the tfjs namespace to avoid conflict with emscripten's API.
   tfjs: {
     init(): void,
-    registerTensor(
-        dataId: number, shape: Uint8Array, shapeLength: number, dtype: number,
-        memoryOffset: number): void,
+    registerTensor(id: number, size: number, memoryOffset: number): void,
     // Disposes the data behind the data bucket.
-    disposeData(dataId: number): void,
+    disposeData(id: number): void,
     // Disposes the backend and all of its associated data.
     dispose(): void,
-
-    // Kernels.
-    add(aId: number, bId: number, outId: number): void,
-
-    batchMatMul(
-        aId: number, bId: number, sharedDim: number, leftDim: number,
-        rightDim: number, batchDim: number, aBatch: number, aOuterStep: number,
-        aInnerStep: number, bBatch: number, bOuterStep: number,
-        bInnerStep: number, outId: number): void,
   }
-};
+}
 
-declare var moduleFactory: () => BackendWasmModule;
+export interface WasmFactoryConfig {
+  locateFile?(path: string, prefix: string): string;
+}
+
+declare var moduleFactory: (settings: WasmFactoryConfig) => BackendWasmModule;
 export default moduleFactory;

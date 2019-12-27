@@ -117,7 +117,13 @@ describe('dynamic', () => {
         spyOn(tfc, 'whereAsync').and.callThrough();
 
         const result = executeOp(node, {input1}, context);
-        expect(tfc.whereAsync).toHaveBeenCalledWith(input1[0]);
+        expect((tfc.whereAsync as jasmine.Spy).calls.mostRecent().args[0].dtype)
+            .toEqual('bool');
+        expect((tfc.whereAsync as jasmine.Spy)
+                   .calls.mostRecent()
+                   .args[0]
+                   .arraySync())
+            .toEqual(1);
         expect(result instanceof Promise).toBeTruthy();
       });
       it('should match json def', () => {

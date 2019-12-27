@@ -29,12 +29,14 @@
 import './engine';
 // Register backend-agnostic flags.
 import './flags';
-
 // backend_cpu.ts and backend_webgl.ts are standalone files and should be
 // explicitly included here.
 import './backends/webgl/backend_webgl';
 import './backends/cpu/backend_cpu';
-
+// Import all kernels from cpu.
+import './backends/cpu/all_kernels';
+// Import all kernels from webgl.
+import './backends/webgl/all_kernels';
 import './platforms/platform_browser';
 import './platforms/platform_node';
 
@@ -43,6 +45,9 @@ import * as backend_util from './backends/backend_util';
 import * as io from './io/io';
 import * as math from './math';
 import * as browser from './ops/browser';
+import * as gather_util from './ops/gather_nd_util';
+import * as scatter_util from './ops/scatter_nd_util';
+import * as slice_util from './ops/slice_util';
 import * as serialization from './serialization';
 import {setOpHandler} from './tensor';
 import * as tensor_util from './tensor_util';
@@ -51,7 +56,7 @@ import * as util from './util';
 import {version} from './version';
 import * as webgl from './webgl';
 
-export {InferenceModel, ModelPredictConfig} from './model_types';
+export {InferenceModel, MetaGraph, MetaGraphInfo, ModelPredictConfig, ModelTensorInfo, SavedModelTensorInfo, SignatureDef, SignatureDefInfo} from './model_types';
 // Optimizers.
 export {AdadeltaOptimizer} from './optimizers/adadelta_optimizer';
 export {AdagradOptimizer} from './optimizers/adagrad_optimizer';
@@ -61,7 +66,7 @@ export {MomentumOptimizer} from './optimizers/momentum_optimizer';
 export {Optimizer} from './optimizers/optimizer';
 export {RMSPropOptimizer} from './optimizers/rmsprop_optimizer';
 export {SGDOptimizer} from './optimizers/sgd_optimizer';
-export {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, variable, Variable} from './tensor';
+export {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, Variable} from './tensor';
 export {GradSaveFunc, NamedTensorMap, TensorContainer, TensorContainerArray, TensorContainerObject} from './tensor_types';
 export {DataType, DataTypeMap, DataValues, Rank, RecursiveArray, ShapeMap, TensorLike} from './types';
 
@@ -71,6 +76,7 @@ export {Reduction} from './ops/loss_ops';
 
 export * from './train';
 export * from './globals';
+export * from './kernel_registry';
 export {customGrad, grad, grads, valueAndGrad, valueAndGrads, variableGrads} from './gradients';
 
 export {TimingInfo, MemoryInfo} from './engine';
@@ -92,7 +98,10 @@ export {
   util,
   backend_util,
   webgl,
-  tensor_util
+  tensor_util,
+  slice_util,
+  gather_util,
+  scatter_util
 };
 
 // Backend specific.

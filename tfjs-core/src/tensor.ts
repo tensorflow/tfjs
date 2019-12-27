@@ -16,7 +16,7 @@
  */
 
 import {tensorToString} from './tensor_format';
-import {ArrayMap, BackendValues, DataType, DataTypeMap, NumericDataType, Rank, ShapeMap, SingleValueMap, TensorLike, TensorLike1D, TensorLike3D, TensorLike4D, TypedArray} from './types';
+import {ArrayMap, BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, SingleValueMap, TensorLike, TensorLike1D, TensorLike3D, TensorLike4D, TypedArray} from './types';
 import * as util from './util';
 import {computeStrides, toNestedArray} from './util';
 
@@ -27,12 +27,7 @@ export interface TensorData<D extends DataType> {
 
 // This interface mimics KernelBackend (in backend.ts), which would create a
 // circular dependency if imported.
-export interface Backend {
-  read(dataId: object): Promise<BackendValues>;
-  readSync(dataId: object): BackendValues;
-  disposeData(dataId: object): void;
-  write(dataId: object, values: BackendValues): void;
-}
+export interface Backend {}
 
 /**
  * A mutable object, similar to `tf.Tensor`, that allows users to set values
@@ -151,20 +146,23 @@ export class TensorBuffer<R extends Rank, D extends DataType = 'float32'> {
    */
   /** @doc {heading: 'Tensors', subheading: 'Creation'} */
   toTensor(): Tensor<R> {
-    return Tensor.make(this.shape, {values: this.values}, this.dtype);
+    return trackerFn().makeTensor(this.values, this.shape, this.dtype) as
+        Tensor<R>;
   }
 }
 
 export interface TensorTracker {
-  registerTensor(t: Tensor, backend?: Backend): void;
+  makeTensor(
+      values: DataValues, shape: number[], dtype: DataType,
+      backend?: Backend): Tensor;
+  makeVariable(
+      initialValue: Tensor, trainable?: boolean, name?: string,
+      dtype?: DataType): Variable;
+  incRef(a: Tensor, backend: Backend): void;
   disposeTensor(t: Tensor): void;
   disposeVariable(v: Variable): void;
-  write(backend: Backend, dataId: DataId, values: BackendValues): void;
   read(dataId: DataId): Promise<BackendValues>;
   readSync(dataId: DataId): BackendValues;
-  registerVariable(v: Variable): void;
-  nextTensorId(): number;
-  nextVariableId(): number;
 }
 
 /**
@@ -232,6 +230,7 @@ export interface OpHandler {
   mul<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   mulStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   div<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
+  divNoNan<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   floorDiv<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   divStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   mod<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
@@ -392,7 +391,8 @@ export function setTensorTracker(fn: () => TensorTracker) {
 
 /**
  * An external consumer can register itself as the op handler. This way the
- * Tensor class can have chaining methods that call into ops via the op handler.
+ * Tensor class can have chaining methods that call into ops via the op
+ * handler.
  */
 export function setOpHandler(handler: OpHandler) {
   opHandler = handler;
@@ -452,36 +452,14 @@ export class Tensor<R extends Rank = Rank> {
    */
   readonly strides: number[];
 
-  protected constructor(
-      shape: ShapeMap[R], dtype: DataType, values?: BackendValues,
-      dataId?: DataId, backend?: Backend) {
+  constructor(shape: ShapeMap[R], dtype: DataType, dataId: DataId, id: number) {
     this.shape = shape.slice() as ShapeMap[R];
     this.dtype = dtype || 'float32';
     this.size = util.sizeFromShape(shape);
     this.strides = computeStrides(shape);
-    this.dataId = dataId != null ? dataId : {};
-    this.id = trackerFn().nextTensorId();
+    this.dataId = dataId;
+    this.id = id;
     this.rankType = (this.rank < 5 ? this.rank.toString() : 'higher') as R;
-    trackerFn().registerTensor(this, backend);
-    if (values != null) {
-      trackerFn().write(backend, this.dataId, values);
-    }
-  }
-
-  /**
-   * Makes a new tensor with the provided shape and values. Values should be in
-   * a flat array.
-   */
-  static make<T extends Tensor<R>, D extends DataType = 'float32',
-                                             R extends Rank = Rank>(
-      shape: ShapeMap[R], data: TensorData<D>, dtype?: D,
-      backend?: Backend): T {
-    let backendVals = data.values as BackendValues;
-    if (data.values != null && dtype === 'string' &&
-        util.isString(data.values[0])) {
-      backendVals = (data.values as string[]).map(d => util.encodeString(d));
-    }
-    return new Tensor(shape, dtype, backendVals, data.dataId, backend) as T;
   }
 
   /** Flatten a Tensor to a 1D array. */
@@ -577,7 +555,9 @@ export class Tensor<R extends Rank = Rank> {
     return this.shape.length;
   }
 
-  /** Returns a promise of `tf.TensorBuffer` that holds the underlying data. */
+  /**
+   * Returns a promise of `tf.TensorBuffer` that holds the underlying data.
+   */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   async buffer<D extends DataType = 'float32'>(): Promise<TensorBuffer<R, D>> {
     const vals = await this.data<D>();
@@ -610,8 +590,8 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
-   * Asynchronously downloads the values from the `tf.Tensor`. Returns a promise
-   * of `TypedArray` that resolves when the computation has finished.
+   * Asynchronously downloads the values from the `tf.Tensor`. Returns a
+   * promise of `TypedArray` that resolves when the computation has finished.
    */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   async data<D extends DataType = NumericDataType>(): Promise<DataTypeMap[D]> {
@@ -631,8 +611,8 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
-   * Synchronously downloads the values from the `tf.Tensor`. This blocks the UI
-   * thread until the values are ready, which can cause performance issues.
+   * Synchronously downloads the values from the `tf.Tensor`. This blocks the
+   * UI thread until the values are ready, which can cause performance issues.
    */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   dataSync<D extends DataType = NumericDataType>(): DataTypeMap[D] {
@@ -742,7 +722,7 @@ export class Tensor<R extends Rank = Rank> {
    * into the tensor's shape. See `tf.expandDims` for details.
    *
    * @param axis The dimension index at which to insert shape of 1. Defaults to
-   *    0 (the first dimension).
+   *     0 (the first dimension).
    */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   expandDims<R2 extends Rank>(axis = 0): Tensor<R2> {
@@ -754,9 +734,9 @@ export class Tensor<R extends Rank = Rank> {
    *
    * @param axis The axis along which to sum. Optional. Defaults to 0.
    * @param exclusive Whether to perform exclusive cumulative sum. Defaults to
-   *    false. If set to true then the sum of each tensor entry does not include
-   *    its own value, but only the values previous to it along the specified
-   *    axis.
+   *    false. If set to true then the sum of each tensor entry does not
+   * include its own value, but only the values previous to it along the
+   * specified axis.
    * @param reverse Whether to sum in the opposite direction. Defaults to
    *    false.
    */
@@ -792,7 +772,9 @@ export class Tensor<R extends Rank = Rank> {
     return opHandler.oneHot(this, depth, onValue, offValue);
   }
 
-  /** Returns a human-readable description of the tensor. Useful for logging. */
+  /**
+   * Returns a human-readable description of the tensor. Useful for logging.
+   */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   toString(verbose = false): string {
     const vals = this.dataSync();
@@ -975,6 +957,10 @@ export class Tensor<R extends Rank = Rank> {
   div<T extends Tensor>(x: Tensor|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.div(this, x);
+  }
+  divNoNan<T extends Tensor>(x: Tensor|TensorLike): T {
+    this.throwIfDisposed();
+    return opHandler.divNoNan(this, x);
   }
   floorDiv<T extends Tensor>(x: Tensor|TensorLike): T {
     this.throwIfDisposed();
@@ -1369,7 +1355,8 @@ export class Tensor<R extends Rank = Rank> {
 
   variable(trainable = true, name?: string, dtype?: DataType): Variable<R> {
     this.throwIfDisposed();
-    return Variable.variable(this, trainable, name, dtype);
+    return trackerFn().makeVariable(this, trainable, name, dtype) as
+        Variable<R>;
   }
 
   unsortedSegmentSum<T extends Tensor>(
@@ -1473,50 +1460,12 @@ export type Tensor6D = Tensor<Rank.R6>;
 export class Variable<R extends Rank = Rank> extends Tensor<R> {
   name: string;
 
-  /**
-   * Private constructor since we cannot add logic before calling `super()`.
-   * Instead, we expose static `Variable.variable` method below, which will be
-   * added to global namespace.
-   */
-  private constructor(
-      initialValue: Tensor<R>, public trainable = true, name?: string) {
+  constructor(
+      initialValue: Tensor<R>, public trainable: boolean, name: string,
+      tensorId: number) {
     super(
-        initialValue.shape, initialValue.dtype, null /* values */,
-        initialValue.dataId);
+        initialValue.shape, initialValue.dtype, initialValue.dataId, tensorId);
     this.name = name;
-    if (this.name == null) {
-      this.name = trackerFn().nextVariableId().toString();
-    }
-    try {
-      trackerFn().registerVariable(this);
-    } catch (ex) {
-      trackerFn().disposeTensor(this);
-      throw ex;
-    }
-  }
-
-  /**
-   * Creates a new variable with the provided initial value.
-   * ```js
-   * const x = tf.variable(tf.tensor([1, 2, 3]));
-   * x.assign(tf.tensor([4, 5, 6]));
-   *
-   * x.print();
-   * ```
-   *
-   * @param initialValue Initial value for the tensor.
-   * @param trainable If true, optimizers are allowed to update it.
-   * @param name Name of the variable. Defaults to a unique id.
-   * @param dtype If set, initialValue will be converted to the given type.
-   */
-  /** @doc {heading: 'Tensors', subheading: 'Creation'} */
-  static variable<R extends Rank>(
-      initialValue: Tensor<R>, trainable = true, name?: string,
-      dtype?: DataType): Variable<R> {
-    if (dtype != null && dtype !== initialValue.dtype) {
-      initialValue = initialValue.asType(dtype);
-    }
-    return new Variable(initialValue, trainable, name);
   }
 
   /**
@@ -1539,7 +1488,7 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
     }
     trackerFn().disposeTensor(this);
     this.dataId = newValue.dataId;
-    trackerFn().registerTensor(this);
+    trackerFn().incRef(this, null /* backend */);
   }
 
   dispose(): void {
@@ -1554,6 +1503,3 @@ Object.defineProperty(Variable, Symbol.hasInstance, {
         instance.assign instanceof Function;
   }
 });
-
-const variable = Variable.variable;
-export {variable};

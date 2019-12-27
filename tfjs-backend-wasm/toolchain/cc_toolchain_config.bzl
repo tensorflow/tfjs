@@ -1,3 +1,4 @@
+load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
 load(
     "@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl",
     "feature",
@@ -6,7 +7,6 @@ load(
     "tool_path",
     "with_feature_set",
 )
-load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
 
 def _impl(ctx):
     tool_paths = [
@@ -81,11 +81,19 @@ def _impl(ctx):
                     flag_group(
                         flags = [
                             "-isystem",
-                            "external/emsdk/emsdk/fastcomp/emscripten/system/include/libcxx",
+                            "external/emsdk/emsdk/upstream/emscripten/system/include/libcxx",
                             "-isystem",
-                            "external/emsdk/emsdk/fastcomp/emscripten/system/include/libc",
+                            "external/emsdk/emsdk/upstream/emscripten/system/lib/libcxxabi/include",
                             "-isystem",
-                            "external/emsdk/emsdk/fastcomp/emscripten/system/include/emscripten",
+                            "external/emsdk/emsdk/upstream/emscripten/system/include/compat",
+                            "-isystem",
+                            "external/emsdk/emsdk/upstream/emscripten/system/include",
+                            "-isystem",
+                            "external/emsdk/emsdk/upstream/emscripten/system/include/libc",
+                            "-isystem",
+                            "external/emsdk/emsdk/upstream/emscripten/system/lib/libc/musl/arch/emscripten",
+                            "-isystem",
+                            "external/emsdk/emsdk/upstream/emscripten/system/local/include",
                         ],
                     ),
                 ],
@@ -164,8 +172,8 @@ cc_toolchain_config = rule(
 
 def _emsdk_impl(ctx):
     if "EMSDK" not in ctx.os.environ or ctx.os.environ["EMSDK"].strip() == "":
-      fail("The environment variable EMSDK is not found. " +
-           "Did you run source ./emsdk_env.sh ?")
+        fail("The environment variable EMSDK is not found. " +
+             "Did you run source ./emsdk_env.sh ?")
     path = ctx.os.environ["EMSDK"]
     ctx.symlink(path, "emsdk")
     ctx.file("BUILD", """

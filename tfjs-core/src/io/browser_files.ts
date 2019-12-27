@@ -191,6 +191,10 @@ class BrowserFiles implements IOHandler {
                   modelTopology,
                   weightSpecs,
                   weightData: concatenateArrayBuffers(perFileBuffers),
+                  format: modelJSON.format,
+                  generatedBy: modelJSON.generatedBy,
+                  convertedBy: modelJSON.convertedBy,
+                  userDefinedMetadata: modelJSON.userDefinedMetadata
                 });
               }
             };

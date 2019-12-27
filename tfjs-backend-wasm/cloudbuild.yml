@@ -13,15 +13,71 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
-# Run tests.
+# Build core from master.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  id: 'build-core'
+  entrypoint: 'yarn'
+  args: ['build-core']
+  waitFor: ['yarn-common']
+
+# Run lint.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  entrypoint: 'yarn'
+  id: 'lint'
+  args: ['lint']
+  waitFor: ['build-core']
+
+# Build the project.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  entrypoint: 'yarn'
+  id: 'build'
+  args: ['build-ci']
+  waitFor: ['build-core']
+
+# Run tests in browser.
 - name: 'node:10'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'test-wasm'
-  args: ['test-ci']
-  waitFor: ['yarn']
+  args: ['test-browser-ci']
+  waitFor: ['build']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
+
+# Run tests in node.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  entrypoint: 'yarn'
+  id: 'test-node'
+  args: ['test-node']
+  waitFor: ['build']
+
+# Run C++ tests.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  entrypoint: 'yarn'
+  id: 'test-cc'
+  args: ['test-cc']
+  waitFor: ['build']
+
+# Check bundle size.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  id: 'test-bundle-size'
+  entrypoint: 'yarn'
+  args: ['test-bundle-size']
+  waitFor: ['build']
+
+# Lint bazel files.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  id: 'buildifier'
+  entrypoint: 'yarn'
+  args: ['buildifier-ci']
+  waitFor: ['yarn']
 
 # General configuration
 secrets:
@@ -34,4 +90,5 @@ substitutions:
   _NIGHTLY: ''
 options:
   logStreamingOption: 'STREAM_ON'
+  machineType: 'N1_HIGHCPU_8'
   substitution_option: 'ALLOW_LOOSE'

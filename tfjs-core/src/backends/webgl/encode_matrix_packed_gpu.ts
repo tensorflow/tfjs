@@ -39,6 +39,8 @@ export class EncodeMatrixPackedProgram implements GPGPUProgram {
   variableNames = ['A'];
   userCode: string;
   outputShape: number[];
+  packedInputs = false;
+  packedOutput = true;
 
   constructor(
       outputShape: [number, number, number], texShape: [number, number],
@@ -66,7 +68,7 @@ export class EncodeMatrixPackedProgram implements GPGPUProgram {
 
               flatIndex = getFlatIndex(localCoords);
               offset = imod(flatIndex, 4);
-    
+
               flatIndex = idiv(flatIndex, 4, 1.);
 
               r = flatIndex / ${width};
@@ -100,7 +102,7 @@ export class EncodeMatrixPackedProgram implements GPGPUProgram {
         ivec3 localCoords;
         vec2 uv;
         vec4 values;
-        
+
         ${mainLoop}
 
         ${glsl.output} = ${output};

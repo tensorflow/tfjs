@@ -16,20 +16,21 @@
  * =============================================================================
  */
 
-import {ENV} from '@tensorflow/tfjs-core';
+import {env} from '@tensorflow/tfjs-core';
 import {FileChunkIterator} from './file_chunk_iterator';
 
 const runes = `ᚠᛇᚻ᛫ᛒᛦᚦ᛫ᚠᚱᚩᚠᚢᚱ᛫ᚠᛁᚱᚪ᛫ᚷᛖᚻᚹᛦᛚᚳᚢᛗ
 ᛋᚳᛖᚪᛚ᛫ᚦᛖᚪᚻ᛫ᛗᚪᚾᚾᚪ᛫ᚷᛖᚻᚹᛦᛚᚳ᛫ᛗᛁᚳᛚᚢᚾ᛫ᚻᛦᛏ᛫ᛞᚫᛚᚪᚾ
 ᚷᛁᚠ᛫ᚻᛖ᛫ᚹᛁᛚᛖ᛫ᚠᚩᚱ᛫ᛞᚱᛁᚻᛏᚾᛖ᛫ᛞᚩᛗᛖᛋ᛫ᚻᛚᛇᛏᚪᚾ᛬`;
 
-const testData = ENV.get('IS_BROWSER') ? new Blob([runes]) : Buffer.from(runes);
+const testData =
+    env().get('IS_BROWSER') ? new Blob([runes]) : Buffer.from(runes);
 
 describe('ByteChunkIterator.decodeUTF8()', () => {
   it('Correctly reassembles split characters', async () => {
     const byteChunkIterator = new FileChunkIterator(testData, {chunkSize: 50});
-    expect((ENV.get('IS_BROWSER') ? (testData as Blob).size :
-                                    (testData as Buffer).byteLength))
+    expect((env().get('IS_BROWSER') ? (testData as Blob).size :
+                                      (testData as Buffer).byteLength))
         .toEqual(323);
     const utf8Iterator = byteChunkIterator.decodeUTF8();
 

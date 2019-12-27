@@ -83,6 +83,31 @@
     <section>
       <h2>Render Functions</h2>
 
+      <h3>render.table(data, container, options)</h3>
+      <div id='table-cont'></div>
+      <script class='show-script'>
+        {
+          const headers = [
+            'Col 1',
+            'Col 2',
+            'Col 3',
+            ];
+          const values = [
+            [1, 2, 3],
+            ['4', '5', '6'],
+            ['strong>7</strong>', true, false],
+            ];
+
+          // Render to visor
+          const surface = { name: 'Table', tab: 'Charts' };
+          tfvis.render.table(surface, { headers, values });
+
+          // Render to page
+          const container = document.getElementById('table-cont');
+          tfvis.render.table(container, { headers, values });
+        }
+      </script>
+
       <h3>render.barchart(data, container, options)</h3>
       <div id='barchart-cont'></div>
       <script class='show-script'>
@@ -106,6 +131,62 @@
             height: 250,
             fontSize: 14
           });
+        }
+      </script>
+
+      <h4>render.barchart with custom color</h3>
+      <div id='barchart-col-cont'></div>
+      <script class='show-script'>
+        {
+          const data = [
+            { index: 0, value: 50 },
+            { index: 1, value: 100 },
+            { index: 2, value: 150 },
+          ];
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Barchart Color', tab: 'Charts' });
+          tfvis.render.barchart(surface, data, {color: 'tomato',});
+
+          // Render to page
+          const container = document.getElementById('barchart-col-cont');
+          tfvis.render.barchart(container, data, {
+            xLabel: 'my x axis',
+            yLabel: 'values',
+            width: 500,
+            height: 250,
+            fontSize: 14,
+            color: 'tomato'
+          });
+        }
+      </script>
+
+      <h4>Individual bars can also be given custom colos</h3>
+      <div id='barchart-multicol-cont'></div>
+      <script class='show-script'>
+        {
+          const data = [
+            { index: 0, value: 50 },
+            { index: 1, value: 100 },
+            { index: 5, value: 150 },
+          ];
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Barchart Multi Color', tab: 'Charts' });
+
+          const opts = {
+            xLabel: 'my x axis',
+            yLabel: 'values',
+            width: 500,
+            height: 250,
+            fontSize: 14,
+            color: ['tomato', '#230000', 'purple']
+          }
+          tfvis.render.barchart(surface, data, opts);
+
+          // Render to page
+          const container = document.getElementById('barchart-multicol-cont');
+          tfvis.render.barchart(container, data, opts);
         }
       </script>
 
@@ -156,39 +237,6 @@
 
       <hr>
 
-      <h3>render.table(data, container)</h3>
-
-      <div id='table-cont'></div>
-
-      <script class='show-script'>
-        {
-          const headers = [
-            'Col1',
-            'Col 2',
-            '<em>Column 3</em>',
-          ];
-
-          const values = [
-            [1, 2, 3],
-            ['4', '5', '6'],
-            ['<strong>7</strong>', true, false],
-          ];
-
-
-          // Render to visor
-          const surface = tfvis.visor().surface({ name: 'Table', tab: 'Charts' });
-          tfvis.render.table(surface, { headers, values });
-
-          // Render to page
-          const container = document.getElementById('table-cont');
-          tfvis.render.table(container, { headers, values }, {
-            fontSize: 14
-          });
-        }
-      </script>
-
-      <hr>
-
       <h3>render.histogram(data, container, opts)</h3>
 
       <div id='histogram-cont'></div>
@@ -209,6 +257,31 @@
           // Render to page
           const container = document.getElementById('histogram-cont');
           tfvis.render.histogram(container, data);
+        }
+      </script>
+
+      <h4>render.histogram custom color</h4>
+
+      <div id='histogram-col-cont'></div>
+
+      <script class='show-script'>
+        {
+          const data = Array(100).fill(0)
+            .map(x => Math.random() * 100 - (Math.random() * 50))
+
+          // Push some special values for the stats table.
+          data.push(Infinity);
+          data.push(NaN);
+          data.push(0);
+
+          const opts = {color: 'tomato'};
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Histogram w Color', tab: 'Charts' });
+          tfvis.render.histogram(surface, data, opts);
+
+          // Render to page
+          const container = document.getElementById('histogram-col-cont');
+          tfvis.render.histogram(container, data, opts);
         }
       </script>
 
@@ -277,6 +350,39 @@
           // Render to page
           const container = document.getElementById('linechart-cont');
           tfvis.render.linechart(container, data);
+        }
+      </script>
+
+      <h4>render.linechart supports custom colors for lines</h4>
+
+      <div id='linechart-colors-cont'></div>
+
+      <script class='show-script'>
+        {
+          const series1 = Array(100).fill(0)
+            .map(y => Math.random() * 100 - (Math.random() * 50))
+            .map((y, x) => ({ x, y, }));
+
+          const series2 = Array(100).fill(0)
+            .map(y => Math.random() * 100 - (Math.random() * 150))
+            .map((y, x) => ({ x, y, }));
+
+          const series3 = Array(100).fill(0)
+            .map(y => Math.random() * 100 - (Math.random() * 150))
+            .map((y, x) => ({ x, y, }));
+
+
+          const series = ['First', 'Second', 'Third'];
+          const data = { values: [series1, series2, series3], series }
+          const opts = { seriesColors: ['tomato', '#230000', 'purple']};
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Linechart custom colors', tab: 'Charts' });
+          tfvis.render.linechart(surface, data, opts);
+
+          // Render to page
+          const container = document.getElementById('linechart-colors-cont');
+          tfvis.render.linechart(container, data, opts);
         }
       </script>
 
@@ -353,6 +459,43 @@
           // Render to page
           const container = document.getElementById('scatterplot-cont');
           tfvis.render.scatterplot(container, data, { width: 500, height: 500 });
+        }
+      </script>
+
+
+      <h4>render.scatterplot supports custom colors for marks</h4>
+
+      <div id='scatterplot-colors-cont'></div>
+
+      <script class='show-script'>
+        {
+          const series1 = Array(100).fill(0)
+            .map(y => Math.random() * 100 - (Math.random() * 50))
+            .map((y, x) => ({ x, y, }));
+
+          const series2 = Array(100).fill(0)
+            .map(y => Math.random() * 100 - (Math.random() * 150))
+            .map((y, x) => ({ x, y, }));
+
+          const series3 = Array(100).fill(0)
+            .map(y => Math.random() * 100 - (Math.random() * 150))
+            .map((y, x) => ({ x, y, }));
+
+
+          const series = ['First', 'Second', 'Third'];
+          const data = { values: [series1, series2, series3], series }
+          const opts = {
+            seriesColors: ['tomato', '#230000', 'purple'],
+            width: 500, height: 500
+          };
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Scatterplot custom colors', tab: 'Charts' });
+          tfvis.render.scatterplot(surface, data, opts);
+
+          // Render to page
+          const container = document.getElementById('scatterplot-colors-cont');
+          tfvis.render.scatterplot(container, data, opts);
         }
       </script>
 

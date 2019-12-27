@@ -785,15 +785,15 @@
     "@parcel/utils" "^1.11.0"
     physical-cpu-count "^2.0.0"
 
-"@tensorflow/tfjs-converter@1.2.9":
-  version "1.2.9"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-1.2.9.tgz#4774dd9447ac81c0c6776f9fd186374b9fa3bf1a"
-  integrity sha512-OKmiuZicIgadT3Bv9BvM+oom7wRz9eC5rTglQnuv7VN9H0syFVuhf5oD1Ff70tGDhJjJgL+cPz01fZRxTXjRWA==
+"@tensorflow/tfjs-converter@1.3.1":
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-1.3.1.tgz#4e08e07621f43690a0b69c345cd63bc1f6974879"
+  integrity sha512-8IHzcIZwqCofcRBhaCTN6W73m2RGdBDH6BEORf0KDdbgbz4DouItVcKX692PrA8gchY+Xy8ZHMpj93PcAOs17g==
 
-"@tensorflow/tfjs-core@1.2.9":
-  version "1.2.9"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.2.9.tgz#125830270a0bdd0e856914778a300c4ad6f51e21"
-  integrity sha512-s0hHZSx6rGTlkkB8u8gs5n7sIPv1GXDNHmISRy+kqGzmlpkfI2kr6WXqOWQy6wFgjzopRD8cJQjBZ9USPZnYTQ==
+"@tensorflow/tfjs-core@1.3.1":
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.3.1.tgz#89e3253f320233120ee24d4ae62fca65c315580f"
+  integrity sha512-X4MKhpg1gLEZetKUMeQNW6diP3gbFFddeF6UT816sH8jOenX/8x2HnVmANpNnUxCTPhDniY3V9zhBWwbl13+Yg==
   dependencies:
     "@types/offscreencanvas" "~2019.3.0"
     "@types/seedrandom" "2.4.27"
@@ -802,42 +802,41 @@
     node-fetch "~2.1.2"
     seedrandom "2.4.3"
 
-"@tensorflow/tfjs-data@1.2.9":
-  version "1.2.9"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-1.2.9.tgz#54030a7990eb58d20288cab099d966d496710760"
-  integrity sha512-Ti9Cj3pte9butuEsK5OPq0Lcqdi4wVUdtQXm0o7iYOZ0umseRzfbIb6zbdqucc2MQzOMTnRoxN+FL7LZmncsHg==
+"@tensorflow/tfjs-data@1.3.1":
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-1.3.1.tgz#0e529076048e8ac96b6157eb0619a86381e02fea"
+  integrity sha512-GCATkRXKBewLdri+qfzTLcVsToX9W7fz5JwApY6Ysel/aTtKSYArU8+OppUKAfWkczBA/fZKlJTONnqC42H6bA==
   dependencies:
     "@types/node-fetch" "^2.1.2"
     node-fetch "~2.1.2"
 
-"@tensorflow/tfjs-layers@1.2.9":
-  version "1.2.9"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-1.2.9.tgz#d30d1bdfed228a07a3d4e9dcb9a6884031ae56e7"
-  integrity sha512-OlXYaIb1rCk5dYmpaNsPEkO7R+T0oxfS3vQGIztNJB+YxrN8mwCu3hqgpbdKhAITiP+jxO0o+7bny8MsOCkOSQ==
+"@tensorflow/tfjs-layers@1.3.1":
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-1.3.1.tgz#05f5e61bae5afaaadc798892b9bd85f3145945af"
+  integrity sha512-LiC9mGU9ZQ7+c3PiQ6MDkvT/gZgqNN67TsypfKm+L44u2TLtMZf77mRaQ/8rW/F89Ey4PDDFftDRDYv0t3fukw==
 
-"@tensorflow/tfjs-vis@1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-vis/-/tfjs-vis-1.2.0.tgz#76d1f879cdf0200f9fc29136cdf8440d523f7a6f"
-  integrity sha512-AdRLPw2gkm2jT/bSjD1zIYmNL8h/Uv312FHEX4qRcmlCcfMkcSE5UADLyOTVlmFgYf64w+R9vJbsLeNU+jycpw==
+"@tensorflow/tfjs-vis@1.3.0":
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-vis/-/tfjs-vis-1.3.0.tgz#a083024fc97ba85ebe0c47a1b5477cdb22050a62"
+  integrity sha512-12jNUK/9jk6XneblrNmotxCluX+w08TWpQtgXi5RHaLHGnWGUxlTl1cWQRSQmAYA68BYRrsu00k30x565seIfg==
   dependencies:
     d3-format "~1.3.0"
     d3-selection "~1.3.0"
     glamor "~2.20.40"
-    glamor-tachyons "~1.0.0-alpha.1"
     preact "~8.2.9"
     vega "~5.4.0"
     vega-embed "~5.1.2"
     vega-lite "~4.0.0-beta.1"
 
-"@tensorflow/tfjs@1.2.9":
-  version "1.2.9"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-1.2.9.tgz#120f55a2826f71a5816e02b5bc0311fd583beedb"
-  integrity sha512-9UAQnSp638FyM5eedYEM+j2R7VcNajiFmkeT5EXtf7YIurmMFNEm1sbajKJx7/ckz31YcYrVoUPc/iLhhDQl2A==
+"@tensorflow/tfjs@1.3.1":
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-1.3.1.tgz#9c26add0fbee1c42e9bfedf7f854ec2906e4c309"
+  integrity sha512-eJ8+WYRYYx6o3R4daV3T46ZHI/FN0+wslNnobh6d2Sp/T8PfaFpdR38nRrYtxnz33A80B2pMk4VxzoVivS4/jA==
   dependencies:
-    "@tensorflow/tfjs-converter" "1.2.9"
-    "@tensorflow/tfjs-core" "1.2.9"
-    "@tensorflow/tfjs-data" "1.2.9"
-    "@tensorflow/tfjs-layers" "1.2.9"
+    "@tensorflow/tfjs-converter" "1.3.1"
+    "@tensorflow/tfjs-core" "1.3.1"
+    "@tensorflow/tfjs-data" "1.3.1"
+    "@tensorflow/tfjs-layers" "1.3.1"
 
 "@types/clone@~0.1.30":
   version "0.1.30"
@@ -3085,13 +3084,6 @@ getpass@^0.1.1:
   integrity sha1-Xv+OPmhNVprkyysSgmBOi6YhSfo=
   dependencies:
     assert-plus "^1.0.0"
-
-glamor-tachyons@~1.0.0-alpha.1:
-  version "1.0.0-alpha.1"
-  resolved "https://registry.yarnpkg.com/glamor-tachyons/-/glamor-tachyons-1.0.0-alpha.1.tgz#76c295f9c3bfad056a30341a5a9cea7ac865d78d"
-  integrity sha512-C51lRkk206gkKUHRQIyNcZHv3Oj00SFFnV1RfI3kKhOQur9eavOABb09ZL2vE3ub8EMM0dOjDOS1Bg88MesAWw==
-  dependencies:
-    lodash "^4.17.4"
 
 glamor@~2.20.40:
   version "2.20.40"

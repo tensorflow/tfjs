@@ -21,7 +21,8 @@ export class AddNPackedProgram implements GPGPUProgram {
   variableNames: string[];
   outputShape: number[] = [];
   userCode: string;
-  usesPackedTextures = true;
+  packedInputs = true;
+  packedOutput = true;
 
   constructor(outputShape: number[], shapes: number[][]) {
     this.outputShape = outputShape;

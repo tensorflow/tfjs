@@ -1,0 +1,30 @@
+steps:
+
+# Install common dependencies.
+- name: 'node:10'
+  entrypoint: 'yarn'
+  id: 'yarn-common'
+  args: ['install']
+
+# Install converter dependencies
+- name: 'node:10'
+  dir: 'tfjs-converter'
+  entrypoint: 'yarn'
+  id: 'yarn'
+  args: ['install']
+  waitFor: ['yarn-common']
+
+# Run python tests.
+- name: 'gcr.io/google-appengine/python'
+  dir: 'tfjs-converter/python'
+  entrypoint: 'bash'
+  args: ['./build-pip-package.sh', '--test-nightly', '/tmp/tfjs-pips']
+  waitFor: ['yarn']
+
+timeout: 1800s
+logsBucket: 'gs://tfjs-build-logs'
+substitutions:
+  _NIGHTLY: ''
+options:
+  logStreamingOption: 'STREAM_ON'
+  substitution_option: 'ALLOW_LOOSE'

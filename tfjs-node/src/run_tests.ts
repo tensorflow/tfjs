@@ -19,8 +19,9 @@
 import './index';
 
 import * as tf from '@tensorflow/tfjs';
-// tslint:disable-next-line: no-imports-from-dist
+// tslint:disable-next-line:no-imports-from-dist
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {argv} from 'yargs';
 
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
@@ -64,8 +65,8 @@ const IGNORE_LIST: string[] = [
   // tslint:disable-next-line:max-line-length
   'maxPool3d test-tensorflow {} x=[1,2,2,2,1] f=[2,2,2] s=1 p=1 roundingMode=floor',
   // libtensorflow doesn't support 6D ArgMax yet.
-  'Reduction: argmax test-tensorflow {} 6D, axis=0',
-  'diag test-tensorflow {} complex', 'diag test-tensorflow {} bool',
+  'argmax test-tensorflow {} 6D, axis=0', 'diag test-tensorflow {} complex',
+  'diag test-tensorflow {} bool',
   // See https://github.com/tensorflow/tfjs/issues/1891
   'conv2d test-tensorflow {} x=[2,1,2,2] f=[1,1,1,1] s=1 d=1 p=0 NCHW',
   'conv2d test-tensorflow {} x=[1,2,2] f=[2,2,1,1] s=1 d=1 p=same NCHW',
@@ -89,7 +90,7 @@ if (process.platform === 'win32') {
 }
 
 const coreTests = 'node_modules/@tensorflow/tfjs-core/dist/**/*_test.js';
-const nodeTests = 'src/**/image_test.ts';
+const nodeTests = 'src/**/*_test.ts';
 
 const runner = new jasmineCtor();
 runner.loadConfig({spec_files: [coreTests, nodeTests], random: false});
@@ -100,8 +101,14 @@ if (process.env.JASMINE_SEED) {
 
 const env = jasmine.getEnv();
 
+const grepRegex = new RegExp(argv.grep as string);
+
 // Filter method that returns boolean, if a given test should return.
 env.specFilter = spec => {
+  // Filter based on the grep flag.
+  if (!grepRegex.test(spec.getFullName())) {
+    return false;
+  }
   // Return false (skip the test) if the test is in the ignore list.
   for (let i = 0; i < IGNORE_LIST.length; ++i) {
     if (spec.getFullName().indexOf(IGNORE_LIST[i]) > -1) {

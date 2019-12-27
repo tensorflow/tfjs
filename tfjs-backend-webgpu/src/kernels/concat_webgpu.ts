@@ -15,25 +15,30 @@
  * =============================================================================
  */
 
-import {backend_util} from '@tensorflow/tfjs-core';
+import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {computeDispatch} from '../webgpu_util';
+import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {WebGPUProgram} from './webgpu_program';
 
 export class ConcatProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
-  dispatchLayout: {x: number[], y: number[]};
+  dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames: string[];
+  workPerThread = 4;
+  workGroupSize: [number, number, number] = [64, 1, 1];
 
   constructor(shapes: Array<[number, number]>) {
     this.outputShape =
         backend_util.computeOutShape(shapes, 1 /* axis */) as [number, number];
     this.variableNames = shapes.map((_, i) => `T${i}`);
-
-    this.dispatchLayout = {x: [0], y: [1]};
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
+    const size = util.sizeFromShape(this.outputShape);
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        [this.workPerThread, 1, 1]);
 
     const offsets: number[] = new Array(shapes.length - 1);
     offsets[0] = shapes[0][1];
@@ -58,12 +63,20 @@ export class ConcatProgram implements WebGPUProgram {
 
     this.userCode = `
       void main() {
-        ivec2 coords = getOutputCoords();
-        int yR = coords.x;
-        int yC = coords.y;
+        int index = int(gl_GlobalInvocationID.x);
 
-        ${snippets.join('\n        ')}
+        for(int i = 0; i < ${this.workPerThread}; i++) {
+          int flatIndex = index * ${this.workPerThread} + i;
+          if(flatIndex < ${size}) {
+            ivec2 coords = getCoordsFromFlatIndex(flatIndex);
+            int yR = coords.x;
+            int yC = coords.y;
+
+            ${snippets.join('\n        ')}
+          }
+        }
       }
     `;
+    this.shaderKey = `concat${size}${offsets.join(',')}`;
   }
 }

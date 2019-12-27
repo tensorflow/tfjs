@@ -51,35 +51,39 @@ yarn upgrade \
     @tensorflow/tfjs
 
 if [[ "${IS_TFJS_NODE}" == "1" ]]; then
-  rm -rf tfjs-node/
-  cp -r ../../tfjs-node .
+  rm -rf tfjs-node/ tfjs-node-gpu
+  cp -r ../../tfjs-node ../../tfjs-node-gpu .
 
-  pushd tfjs-node
+  if [[ "${IS_TFJS_NODE_GPU}" == "1" ]]; then
+    pushd tfjs-node-gpu
+  else
+    # The Python library for comparison may contain both the CPU and GPU
+    # kernels. The line below prevent the GPU from being used during CPU
+    # benchmarks.
+    export CUDA_VISIBLE_DEVICES=""
+    pushd tfjs-node
+  fi
+
   HASH_NODE="$(git rev-parse HEAD)"
   rm -rf dist/
   yarn
   rm -f tensorflow-tfjs-*.tgz
 
-  if [[ "${IS_TFJS_NODE_GPU}" == "1" ]]; then
-    yarn build-npm-gpu
-    TAR_BALL="$(find ./ -name "tensorflow-tfjs-node-gpu-*.tgz")"
-  else
-    yarn build-npm
-    TAR_BALL="$(find ./ -name "tensorflow-tfjs-node-*.tgz")"
-  fi
+  yarn build-npm
 
-  TAR_BALL_COUNT="$(ls tensorflow-tfjs-*.tgz | wc -w)"
+  TAR_BALL_COUNT="$(ls tensorflow-tfjs-node-*.tgz | wc -w)"
   if [[ "${TAR_BALL_COUNT}" != "1" ]]; then
     echo "ERROR: Expected to find exactly one tensorflow-tfjs-node-* tar ball"
     echo "       But found ${TAR_BALL_COUNT}."
     exit 1
   fi
 
+  TAR_BALL="$(find ./ -name "tensorflow-tfjs-node-*.tgz")"
   if [[ -z "${TAR_BALL}" ]]; then
     echo "Unable to find the tar ball built by `yarn build-npm`."
     exit 1
   fi
-  echo "Find built tar ball at: ${TAR_BALL}"
+  echo "Found built tar ball at: ${TAR_BALL}"
 
   rm -rf ../node_modules/@tensorflow/tfjs-node/*
   tar xvzf "${TAR_BALL}" --directory ../node_modules/@tensorflow/tfjs-node
@@ -95,6 +99,9 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
   popd
   popd
 else
+  # NOTE: Browser benchmarks are compared with Python CPU.
+  export CUDA_VISIBLE_DEVICES=""
+
   # Copy the tfjs repositories, build them, and link them.
   rm -rf tfjs-core/
   cp -r ../../tfjs-core .

@@ -24,6 +24,18 @@ const arrayProduct = (arr: number[]) => {
   return product;
 };
 
+export function tilesFitEvenlyIntoShape(
+    tileSize: number[], shape: number[]): boolean {
+  if (tileSize.length !== shape.length) {
+    throw new Error(
+        `Cannot compute whether rank ${tileSize.length}` +
+        ` tiles fit evenly into rank ${shape.length} shape` +
+        ` - ranks must match.`);
+  }
+  return shape.every(
+      (dim: number, dimIdx: number) => dim % tileSize[dimIdx] === 0);
+}
+
 // Computes dispatch geometry based on layout of output dimensions and
 // workGroupSize.
 export function computeDispatch(
@@ -46,6 +58,38 @@ export function computeDispatch(
   ];
 }
 
+export function computeWorkGroupSizeForConv2d(
+    layout: {x: number[], y?: number[], z?: number[]},
+    outputShape: number[]): [number, number, number] {
+  const dim1 = arrayProduct(layout.y.map(d => outputShape[d]));
+  // TODO(jiajia.qin@intel.com): More fine tune based on outputShape.
+  if (dim1 <= 4) {
+    return [16, 4, 1];
+  }
+
+  return [16, 16, 1];
+}
+
+export function computeWorkPerThreadForConv2d(
+    layout: {x: number[], y?: number[], z?: number[]},
+    outputShape: number[]): [number, number, number] {
+  const dim0 = arrayProduct(layout.x.map(d => outputShape[d]));
+  const dim1 = arrayProduct(layout.y.map(d => outputShape[d]));
+  // TODO(jiajia.qin@intel.com): More fine tune based on outputShape.
+  if (dim1 <= 4) {
+    return [2, 1, 1];
+  }
+
+  if ((dim1 > dim0) && (dim1 / dim0 >= 2)) {
+    return [2, 4, 1];
+  }
+  if ((dim0 > dim1) && (dim0 / dim1 >= 2)) {
+    return [4, 2, 1];
+  }
+
+  return [2, 2, 1];
+}
+
 export function flatDispatchLayout(shape: number[]) {
   return {x: shape.map((d, i) => i)};
 }
@@ -60,12 +104,10 @@ export function GPUBytesPerElement(dtype: DataType): number {
   }
 }
 
-export function ArrayBufferToTypedArray(
-    data: ArrayBuffer, dtype: DataType) {
+export function ArrayBufferToTypedArray(data: ArrayBuffer, dtype: DataType) {
   if (dtype === 'float32') {
     return new Float32Array(data);
-  }
-  else if (dtype === 'int32') {
+  } else if (dtype === 'int32') {
     return new Int32Array(data);
   } else if (dtype === 'bool') {
     const dataAsInt32Array = new Int32Array(data);

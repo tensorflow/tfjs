@@ -16,16 +16,7 @@
 
 const shell = require('shelljs');
 const {exec} = require('../../scripts/test-util');
-
-function getFileSizeBytes(filename) {
-  const gzipFilename = `${filename}.gzip}`;
-  exec(`gzip -c ${filename} > ${gzipFilename}`, {silent: true});
-  const fileSizeBytes =
-      +(exec(`ls -l ${filename} | awk '{print $5}'`, {silent: true}));
-  const gzipFileSizeBytes =
-      +(exec(`ls -l ${gzipFilename} | awk '{print $5}'`, {silent: true}));
-  return {fileSizeBytes, gzipFileSizeBytes};
-}
+const {showDiff, getFileSizeBytes} = require('../../scripts/bundle-size-util');
 
 // Get the bundle sizes from this change.
 exec(`yarn rollup -c --ci`, {silent: true});
@@ -45,24 +36,7 @@ exec(`yarn && yarn rollup -c --ci`, {silent: true});
 
 const masterMinSize = getFileSizeBytes('dist/tf-core.min.js');
 
-function showDiff(newSize, masterSize) {
-  const diffBytes = newSize - masterSize;
-  const diffPercent = (100 * diffBytes / masterSize).toFixed(2);
-  const sign = diffBytes > 0 ? '+' : '';
-
-  const charWidth = 7;
-  const diffKiloBytes =
-      (sign + (diffBytes / 1024).toFixed(2)).padStart(charWidth, ' ');
-  const masterKiloBytes =
-      ((masterSize / 1024).toFixed(2)).padStart(charWidth, ' ');
-  const newKiloBytes = ((newSize / 1024).toFixed(2)).padStart(charWidth, ' ');
-
-  console.log(`  diff:   ${diffKiloBytes} K  (${sign}${diffPercent}%)`);
-  console.log(`  master: ${masterKiloBytes} K`);
-  console.log(`  change: ${newKiloBytes} K`);
-}
-
-console.log(`~~~~minified bundle~~~~`);
+console.log(`~~~~ minified bundle ~~~~`);
 console.log(`==> post-gzip`)
 showDiff(minSize.gzipFileSizeBytes, masterMinSize.gzipFileSizeBytes);
 console.log();

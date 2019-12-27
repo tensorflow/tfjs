@@ -22,6 +22,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <cstdlib>
+#include <cstring>
 #include <vector>
 #include "tensorflow/c/c_api.h"
 #include "tf_auto_status.h"
@@ -45,8 +46,8 @@ namespace tfnodejs {
 #define NAPI_THROW_ERROR(env, message, ...) \
   NapiThrowError(env, __FILE__, __LINE__, message, ##__VA_ARGS__);
 
-inline void NapiThrowError(napi_env env, const char* file,
-                           const size_t line_number, const char* message, ...) {
+inline void NapiThrowError(napi_env env, const char *file,
+                           const size_t line_number, const char *message, ...) {
   char buffer[500];
   va_list args;
   va_start(args, message);
@@ -61,10 +62,10 @@ inline void NapiThrowError(napi_env env, const char* file,
 #define ENSURE_NAPI_OK_RETVAL(env, status, retval) \
   if (!EnsureNapiOK(env, status, __FILE__, __LINE__)) return retval;
 
-inline bool EnsureNapiOK(napi_env env, napi_status status, const char* file,
+inline bool EnsureNapiOK(napi_env env, napi_status status, const char *file,
                          const size_t line_number) {
   if (status != napi_ok) {
-    const napi_extended_error_info* error_info = 0;
+    const napi_extended_error_info *error_info = 0;
     napi_get_last_error_info(env, &error_info);
     NapiThrowError(
         env, file, line_number, "Invalid napi_status: %s\n",
@@ -78,7 +79,7 @@ inline bool EnsureNapiOK(napi_env env, napi_status status, const char* file,
 #define ENSURE_TF_OK_RETVAL(env, status, retval) \
   if (!EnsureTFOK(env, status, __FILE__, __LINE__)) return retval;
 
-inline bool EnsureTFOK(napi_env env, TF_AutoStatus& status, const char* file,
+inline bool EnsureTFOK(napi_env env, TF_AutoStatus &status, const char *file,
                        const size_t line_number) {
   TF_Code tf_code = TF_GetCode(status.status);
   if (tf_code != TF_OK) {
@@ -94,7 +95,7 @@ inline bool EnsureTFOK(napi_env env, TF_AutoStatus& status, const char* file,
   if (!EnsureConstructorCall(env, info, __FILE__, __LINE__)) return retval;
 
 inline bool EnsureConstructorCall(napi_env env, napi_callback_info info,
-                                  const char* file, const size_t line_number) {
+                                  const char *file, const size_t line_number) {
   napi_value js_target;
   napi_status nstatus = napi_get_new_target(env, info, &js_target);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, false);
@@ -112,7 +113,7 @@ inline bool EnsureConstructorCall(napi_env env, napi_callback_info info,
   if (!EnsureValueIsObject(env, value, __FILE__, __LINE__)) return retval;
 
 inline bool EnsureValueIsObject(napi_env env, napi_value value,
-                                const char* file, const size_t line_number) {
+                                const char *file, const size_t line_number) {
   napi_valuetype type;
   ENSURE_NAPI_OK_RETVAL(env, napi_typeof(env, value, &type), false);
   bool is_object = type == napi_object;
@@ -128,7 +129,7 @@ inline bool EnsureValueIsObject(napi_env env, napi_value value,
   if (!EnsureValueIsString(env, value, __FILE__, __LINE__)) return retval;
 
 inline bool EnsureValueIsString(napi_env env, napi_value value,
-                                const char* file, const size_t line_number) {
+                                const char *file, const size_t line_number) {
   napi_valuetype type;
   ENSURE_NAPI_OK_RETVAL(env, napi_typeof(env, value, &type), false);
   bool is_string = type == napi_string;
@@ -144,7 +145,7 @@ inline bool EnsureValueIsString(napi_env env, napi_value value,
   if (!EnsureValueIsNumber(env, value, __FILE__, __LINE__)) return retval;
 
 inline bool EnsureValueIsNumber(napi_env env, napi_value value,
-                                const char* file, const size_t line_number) {
+                                const char *file, const size_t line_number) {
   napi_valuetype type;
   ENSURE_NAPI_OK_RETVAL(env, napi_typeof(env, value, &type), false);
   bool is_number = type == napi_number;
@@ -159,7 +160,7 @@ inline bool EnsureValueIsNumber(napi_env env, napi_value value,
 #define ENSURE_VALUE_IS_ARRAY_RETVAL(env, value, retval) \
   if (!EnsureValueIsArray(env, value, __FILE__, __LINE__)) return retval;
 
-inline bool EnsureValueIsArray(napi_env env, napi_value value, const char* file,
+inline bool EnsureValueIsArray(napi_env env, napi_value value, const char *file,
                                const size_t line_number) {
   bool is_array;
   ENSURE_NAPI_OK_RETVAL(env, napi_is_array(env, value, &is_array), false);
@@ -175,7 +176,7 @@ inline bool EnsureValueIsArray(napi_env env, napi_value value, const char* file,
   if (!EnsureValueIsTypedArray(env, value, __FILE__, __LINE__)) return retval;
 
 inline bool EnsureValueIsTypedArray(napi_env env, napi_value value,
-                                    const char* file,
+                                    const char *file,
                                     const size_t line_number) {
   bool is_array;
   ENSURE_NAPI_OK_RETVAL(env, napi_is_typedarray(env, value, &is_array), false);
@@ -192,7 +193,7 @@ inline bool EnsureValueIsTypedArray(napi_env env, napi_value value,
     return retval;
 
 inline bool EnsureValueIsLessThan(napi_env env, uint32_t value, uint32_t max,
-                                  const char* file, const size_t line_number) {
+                                  const char *file, const size_t line_number) {
   if (value > max) {
     NapiThrowError(env, file, line_number,
                    "Argument is greater than max: %u > %u", value, max);
@@ -206,7 +207,7 @@ inline bool EnsureValueIsLessThan(napi_env env, uint32_t value, uint32_t max,
   ReportUnknownTFDataType(env, type, __FILE__, __LINE__)
 
 inline void ReportUnknownTFDataType(napi_env env, TF_DataType type,
-                                    const char* file,
+                                    const char *file,
                                     const size_t line_number) {
   NapiThrowError(env, file, line_number, "Unhandled TF_DataType: %u\n", type);
 }
@@ -215,7 +216,7 @@ inline void ReportUnknownTFDataType(napi_env env, TF_DataType type,
   ReportUnknownTFAttrType(env, type, __FILE__, __LINE__)
 
 inline void ReportUnknownTFAttrType(napi_env env, TF_AttrType type,
-                                    const char* file,
+                                    const char *file,
                                     const size_t line_number) {
   NapiThrowError(env, file, line_number, "Unhandled TF_AttrType: %u\n", type);
 }
@@ -224,7 +225,7 @@ inline void ReportUnknownTFAttrType(napi_env env, TF_AttrType type,
   ReportUnknownTypedArrayType(env, type, __FILE__, __LINE__)
 
 inline void ReportUnknownTypedArrayType(napi_env env, napi_typedarray_type type,
-                                        const char* file,
+                                        const char *file,
                                         const size_t line_number) {
   NapiThrowError(env, file, line_number, "Unhandled napi typed_array_type: %u",
                  type);
@@ -232,7 +233,7 @@ inline void ReportUnknownTypedArrayType(napi_env env, napi_typedarray_type type,
 
 // Returns a vector with the shape values of an array.
 inline void ExtractArrayShape(napi_env env, napi_value array_value,
-                              std::vector<int64_t>* result) {
+                              std::vector<int64_t> *result) {
   napi_status nstatus;
 
   uint32_t array_length;
@@ -264,7 +265,7 @@ inline bool IsExceptionPending(napi_env env) {
 #define ENSURE_VALUE_IS_NOT_NULL_RETVAL(env, value, retval) \
   if (!EnsureValueIsNotNull(env, value, __FILE__, __LINE__)) return retval;
 
-inline bool EnsureValueIsNotNull(napi_env env, void* value, const char* file,
+inline bool EnsureValueIsNotNull(napi_env env, void *value, const char *file,
                                  const size_t line_number) {
   bool is_null = value == nullptr;
   if (is_null) {
@@ -274,7 +275,7 @@ inline bool EnsureValueIsNotNull(napi_env env, void* value, const char* file,
 }
 
 inline napi_status GetStringParam(napi_env env, napi_value string_value,
-                                  std::string& string) {
+                                  std::string &string) {
   ENSURE_VALUE_IS_STRING_RETVAL(env, string_value, napi_invalid_arg);
 
   napi_status nstatus;
@@ -284,7 +285,7 @@ inline napi_status GetStringParam(napi_env env, napi_value string_value,
       napi_get_value_string_utf8(env, string_value, nullptr, 0, &str_length);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nstatus);
 
-  char* buffer = (char*)(malloc(sizeof(char) * (str_length + 1)));
+  char *buffer = (char *)(malloc(sizeof(char) * (str_length + 1)));
   ENSURE_VALUE_IS_NOT_NULL_RETVAL(env, buffer, napi_generic_failure);
 
   nstatus = napi_get_value_string_utf8(env, string_value, buffer,
@@ -297,12 +298,30 @@ inline napi_status GetStringParam(napi_env env, napi_value string_value,
 }
 
 // Returns the number of elements in a Tensor.
-inline size_t GetTensorNumElements(TF_Tensor* tensor) {
+inline size_t GetTensorNumElements(TF_Tensor *tensor) {
   size_t ret = 1;
   for (int i = 0; i < TF_NumDims(tensor); ++i) {
     ret *= TF_Dim(tensor, i);
   }
   return ret;
+}
+
+// Split a string into an array of characters array with `,` as delimiter.
+inline std::vector<const char *> splitStringByComma(const std::string &str) {
+  std::vector<const char *> tokens;
+  size_t prev = 0, pos = 0;
+  do {
+    pos = str.find(',', prev);
+    if (pos == std::string::npos) pos = str.length();
+    std::string token = str.substr(prev, pos - prev);
+    if (!token.empty()) {
+      char *cstr = new char[str.length() + 1];
+      std::strcpy(cstr, token.c_str());
+      tokens.push_back(cstr);
+    }
+    prev = pos + 1;
+  } while (pos < str.length() && prev < str.length());
+  return tokens;
 }
 
 }  // namespace tfnodejs

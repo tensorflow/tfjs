@@ -184,7 +184,7 @@ def benchmark_and_serialize_model(model_name,
 
   if export_saved_model:
     tmp_saved_model_dir = tempfile.mkdtemp()
-    keras.experimental.export_saved_model(
+    tf.compat.v1.keras.experimental.export_saved_model(
         model, tmp_saved_model_dir, serving_only=True)
     subprocess.check_output([
         'tensorflowjs_converter',

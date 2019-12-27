@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
+import {ENGINE} from './engine';
 import {env} from './environment';
-
 import {Tensor} from './tensor';
 import {DataType, TensorLike} from './types';
 import {assert, flatten, inferDtype, isTypedArray, toTypedArray} from './util';
@@ -115,7 +115,7 @@ export function convertToTensor<T extends Tensor>(
   const values = inferredDtype !== 'string' ?
       toTypedArray(x, inferredDtype as DataType, env().getBool('DEBUG')) :
       flatten(x as string[], [], skipTypedArray) as string[];
-  return Tensor.make(inferredShape, {values}, inferredDtype);
+  return ENGINE.makeTensor(values, inferredShape, inferredDtype) as T;
 }
 
 export function convertToTensorArray<T extends Tensor>(

@@ -23,26 +23,25 @@ steps:
   secretEnv: ['BROWSERSTACK_KEY']
 
 # Run python tests
-# TODO(cais): Enable after 1.12.10 release.
-# - name: 'node:10'
-#   dir: 'tfjs-layers'
-#   entrypoint: 'yarn'
-#   id: 'tfjs2keras-js'
-#   args: ['tfjs2keras-js']
-#   waitFor: ['yarn']
+- name: 'node:10'
+  dir: 'tfjs-layers'
+  entrypoint: 'yarn'
+  id: 'tfjs2keras-js'
+  args: ['tfjs2keras-js']
+  waitFor: ['test-browser']
 
-# - name: 'python:2'
-#   dir: 'tfjs-layers'
-#   entrypoint: 'bash'
-#   id: 'tfjs2keras-py'
-#   args: ['-c', './scripts/tfjs2keras-py.sh --stable && ./scripts/tfjs2keras-py.sh --stable --tfkeras && ./scripts/tfjs2keras-py.sh --dev --tfkeras']
-#   waitFor: ['tfjs2keras-js']
+- name: 'python:2'
+  dir: 'tfjs-layers'
+  entrypoint: 'bash'
+  id: 'tfjs2keras-py'
+  args: ['-c', './scripts/tfjs2keras-py.sh --stable && ./scripts/tfjs2keras-py.sh --stable --tfkeras && ./scripts/tfjs2keras-py.sh --dev --tfkeras']
+  waitFor: ['tfjs2keras-js']
 - name: 'node:10'
   dir: 'tfjs-layers'
   entrypoint: 'yarn'
   id: 'test-snippets'
   args: ['test-snippets']
-  waitFor: ['yarn']
+  waitFor: ['tfjs2keras-py']
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
   secretEnv:

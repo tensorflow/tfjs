@@ -1,0 +1,24 @@
+<!-- [START entire_app]  -->
+<!-- [START deps]  -->
+<script src="https://unpkg.com/@tensorflow/tfjs"></script>
+<script src="https://unpkg.com/@tensorflow/tfjs-automl"></script>
+<!-- [END deps]  -->
+<!-- [START img_tag]  -->
+<img id="daisy" crossorigin="anonymous" src="https://storage.googleapis.com/tfjs-testing/tfjs-automl/img_classification/daisy.jpg">
+<!-- [END img_tag]  -->
+<script>
+async function run() {
+  // [START load_and_run_model]
+  const model = await tf.automl.loadImageClassification('model.json');
+  const image = document.getElementById('daisy');
+  const predictions = await model.classify(image);
+  // [END load_and_run_model]
+  console.log(predictions);
+  // Show the resulting object on the page.
+  const pre = document.createElement('pre');
+  pre.textContent = JSON.stringify(predictions, null, 2);
+  document.body.append(pre);
+}
+run();
+</script>
+<!-- [END entire_app]  -->

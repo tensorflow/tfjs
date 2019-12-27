@@ -16,7 +16,7 @@ Use TensorFlow.js model converters to run pre-existing TensorFlow models right
 in the browser.
 
 **Retrain Existing models** <br/>
-Retrain pre-existing ML models using sensor data connected to the browser, or
+Retrain pre-existing ML models using sensor data connected to the browser or
 other client-side data.
 
 ## About this repo
@@ -50,7 +50,7 @@ Be sure to check out [the gallery](GALLERY.md) of all projects related to Tensor
 
 ## Pre-trained models
 
-Be sure to also check out our [models repository](https://github.com/tensorflow/tfjs-models) where we host pretrained models
+Be sure to also check out our [models repository](https://github.com/tensorflow/tfjs-models) where we host pre-trained models
 on NPM.
 
 ## Getting started
@@ -101,7 +101,7 @@ Add the following code to an HTML file:
 </html>
 ```
 
-Open up that html file in your browser and the code should run!
+Open up that HTML file in your browser, and the code should run!
 
 ### via NPM
 
@@ -110,7 +110,7 @@ we use ES2017 syntax (such as `import`), this workflow assumes you are using a m
 to convert your code to something older browsers understand. See our
 <a href='https://github.com/tensorflow/tfjs-examples' target="_blank">examples</a>
 to see how we use <a href="https://parceljs.org/" target="_blank">Parcel</a> to build
-our code. However you are free to use any build tool that you prefer.
+our code. However, you are free to use any build tool that you prefer.
 
 
 
@@ -154,4 +154,4 @@ We support porting pre-trained models from:
 - [API reference](https://js.tensorflow.org/api/latest/)
 - [Discussion mailing list](https://groups.google.com/a/tensorflow.org/forum/#!forum/tfjs)
 
-Thanks <a href="https://www.browserstack.com/">BrowserStack</a> for providing testing support.
+Thanks, <a href="https://www.browserstack.com/">BrowserStack</a>, for providing testing support.

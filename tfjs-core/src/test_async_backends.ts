@@ -27,6 +27,7 @@ import {setTestEnvs} from './jasmine_util';
 import {MathBackendCPU} from './backends/cpu/backend_cpu';
 import {registerBackend} from './globals';
 import {KernelBackend} from './backends/backend';
+import {getKernelsForBackend, registerKernel} from './kernel_registry';
 
 // tslint:disable-next-line:no-require-imports
 const jasmine = require('jasmine');
@@ -63,13 +64,23 @@ const proxyBackend = new Proxy(asyncBackend, {
   }
 });
 
+const proxyBackendName = 'test-async-cpu';
+
 // The registration is async on purpose, so we know our testing infra works
 // with backends that have async init (e.g. WASM and WebGPU).
-registerBackend('test-async-cpu', async () => proxyBackend);
+registerBackend(proxyBackendName, async () => proxyBackend);
+
+// All the kernels are registered under the 'cpu' name, so we need to register
+// them also under the proxy backend name.
+const kernels = getKernelsForBackend('cpu');
+kernels.forEach(({kernelName, kernelFunc, setupFunc}) => {
+  registerKernel(
+      {kernelName, backendName: proxyBackendName, kernelFunc, setupFunc});
+});
 
 setTestEnvs([{
-  name: 'test-async-cpu',
-  backendName: 'test-async-cpu',
+  name: proxyBackendName,
+  backendName: proxyBackendName,
   isDataSync: false,
 }]);
 

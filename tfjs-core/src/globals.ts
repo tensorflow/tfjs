@@ -96,6 +96,10 @@ export function engine(): Engine {
  *    `unreliable` is true.
  * - `reasons`: `string[]`, reasons why the memory is unreliable, present if
  *    `unreliable` is true.
+ *
+ * WebGL Properties:
+ * - `numBytesInGPU`: Number of bytes allocated (undisposed) in the GPU only at
+ *     this time.
  */
 /** @doc {heading: 'Performance', subheading: 'Memory'} */
 export function memory(): MemoryInfo {
@@ -255,7 +259,7 @@ export function time(f: () => void): Promise<TimingInfo> {
 }
 
 /**
- * Sets the backend (cpu, webgl, etc) responsible for creating tensors and
+ * Sets the backend (cpu, webgl, wasm, etc) responsible for creating tensors and
  * executing operations on those tensors. Returns a promise that resolves
  * to a boolean if the backend initialization was successful.
  *
@@ -264,8 +268,8 @@ export function time(f: () => void): Promise<TimingInfo> {
  * same type as the previous one.
  *
  * @param backendName The name of the backend. Currently supports
- *     `'webgl'|'cpu'` in the browser, and `'tensorflow'` under node.js
- *     (requires tfjs-node).
+ *     `'webgl'|'cpu'` in the browser, `'tensorflow'` under node.js
+ *     (requires tfjs-node), and `'wasm'` (requires tfjs-backend-wasm).
  */
 /** @doc {heading: 'Backends'} */
 export function setBackend(backendName: string): Promise<boolean> {

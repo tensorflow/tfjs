@@ -16,7 +16,6 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-
 import {createTensorsTypeOpAttr, createTypeOpAttr, ensureTensorflowBackend, getTFDType, nodeBackend, NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 describe('delayed upload', () => {
@@ -55,7 +54,7 @@ describe('conv3d dilations', () => {
   it('GPU should handle dilations >1', () => {
     // This test can only run locally with CUDA bindings and GPU package
     // installed.
-    if ((tf.backend() as NodeJSKernelBackend).isGPUPackage) {
+    if ((tf.backend() as NodeJSKernelBackend).isUsingGpuDevice) {
       const input: tf.Tensor5D = tf.ones([1, 2, 2, 2, 1]);
       const filter: tf.Tensor5D = tf.ones([1, 1, 1, 1, 1]);
       tf.conv3d(input, filter, 1, 'same', 'NDHWC', [2, 2, 2]);

@@ -28,6 +28,8 @@ export const SUB = 'return a - b;';
 export const DIV = 'return a / b;';
 export const GREATER = 'return float(a > b);';
 export const GREATER_EQUAL = 'return float(a >= b);';
+export const LESS = `return float(a < b);`;
+export const LESS_EQUAL = `return float(a <= b);`;
 
 export const INT_DIV = `
   float s = sign(a) * sign(b);
@@ -36,8 +38,11 @@ export const INT_DIV = `
   return float(idiv(ia, ib, s));
 `;
 
+export const PRELU = `return (a < 0.) ? b * a : a;`;
+
 export class BinaryOpProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
@@ -76,5 +81,6 @@ export class BinaryOpProgram implements WebGPUProgram {
         }
       }
     `;
+    this.shaderKey = `binary${op}${type}${size}`;
   }
 }

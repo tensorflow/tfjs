@@ -72,7 +72,7 @@ function sparseToDense_<R extends Rank>(
   sparse_to_dense.validateInput(
       $sparseIndices, $sparseValues, outputShape, $defaultValue);
 
-  return ENGINE.runKernel(
+  return ENGINE.runKernelFunc(
       backend => backend.sparseToDense(
           $sparseIndices, $sparseValues, outputShape, $defaultValue),
       {$sparseIndices, $sparseValues, $defaultValue});

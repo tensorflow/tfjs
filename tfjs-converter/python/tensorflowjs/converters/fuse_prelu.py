@@ -1,13 +1,13 @@
 # Copyright 2019 Google LLC
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
+# distributed under the License is distributed on an 'AS IS' BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
@@ -21,31 +21,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import tensorflow as tf
-
 from tensorflow.core.framework import attr_value_pb2
-from tensorflow.core.framework import graph_pb2
-from tensorflow.core.framework import node_def_pb2
-from tensorflow.core.framework import op_def_pb2
-from tensorflow.core.framework import types_pb2
-from tensorflow.python.framework import function
-from tensorflow.python.framework import op_def_registry
+from tensorflow.python.framework import tensor_util
 
-from tensorflowjs.converters import common
-
-# The function is only needed for TensorFlow 1.X and 2.0. Remove once tfjs
-# no longer depends on these versions.
-def register_prelu_op():
-  """Register a virtual PReLU OpDef.
-
-  This allows to bypass MetaGraph validity checks on TensorFlow 1.X and 2.0.
-  """
-
-  prelu_op_def = op_def_pb2.OpDef()
-  prelu_op_def.name = 'Prelu'
-  missing_op_list = op_def_pb2.OpList()
-  missing_op_list.op.extend([prelu_op_def])
-  op_def_registry.register_op_list(missing_op_list)
+from tensorflowjs.converters import graph_rewrite_util
 
 def fuse_ops_for_prelu(input_graph_def):
   """Modifies the provided graph by fusing a set of ops into a single Prelu op.
@@ -79,35 +58,51 @@ def fuse_ops_for_prelu(input_graph_def):
     if node.name not in input_node_map:
       input_node_map[node.name] = node
     else:
-      raise ValueError("Duplicate node names detected for ", node.name)
+      raise ValueError('Duplicate node names detected for ', node.name)
 
   nodes_to_skip = {}
+  inputs_to_remove = []
+  updated_alpha = []
   for node in input_graph_def.node:
-    if (node.op not in ("Add", "AddV2") or len(node.input) != 2):
+    if (node.op not in ('Add', 'AddV2') or len(node.input) != 2):
       continue
 
-    relu_input_op = common.node_from_map(input_node_map, node.input[0])
-    if (not relu_input_op or relu_input_op.op != "Relu" or
-        len(relu_input_op.input) != 1):
+    relu_input_op = graph_rewrite_util.node_from_map(
+        input_node_map, node.input[0])
+    if (not relu_input_op or relu_input_op.op != 'Relu'):
       continue
 
-    mul_op = common.node_from_map(input_node_map, node.input[1])
-    if (not mul_op or mul_op.op != 'Mul' or len(mul_op.input) != 2):
+    mul_op = graph_rewrite_util.node_from_map(input_node_map, node.input[1])
+    if (not mul_op or mul_op.op != 'Mul'):
       continue
 
-    neg_alpha_op = common.node_from_map(input_node_map, mul_op.input[0])
-    if (not neg_alpha_op or len(neg_alpha_op.input) != 1):
-      continue
-    alpha_tensor_name = neg_alpha_op.input[0]
+    neg_alpha_op = None
+    for name in mul_op.input:
+      op = graph_rewrite_util.node_from_map(input_node_map, name)
+      if op.op == 'Const':
+        neg_alpha_op = op
+        break
 
-    relu_neg_input_op = common.node_from_map(input_node_map, mul_op.input[1])
+    if not neg_alpha_op:
+      continue
+
+    alpha_tensor_name = neg_alpha_op.name
+    _create_alpha_node(neg_alpha_op, updated_alpha)
+
+    relu_neg_input_op = None
+    for name in mul_op.input:
+      op = graph_rewrite_util.node_from_map(input_node_map, name)
+      if op.op == 'Relu':
+        relu_neg_input_op = op
+        break
+
     if (not relu_neg_input_op or len(relu_neg_input_op.input) != 1 or
         relu_neg_input_op.op != 'Relu'):
       continue
 
     # This detects a Neg op followed by a separated Relu op.
-    neg_input_op = common.node_from_map(input_node_map,
-                                        relu_neg_input_op.input[0])
+    neg_input_op = graph_rewrite_util.node_from_map(
+        input_node_map, relu_neg_input_op.input[0])
     if (not neg_input_op or len(neg_input_op.input) != 1 or
         neg_input_op.op != 'Neg'):
       continue
@@ -129,78 +124,69 @@ def fuse_ops_for_prelu(input_graph_def):
     nodes_to_skip[mul_op.name] = True
     nodes_to_skip[relu_neg_input_op.name] = True
     nodes_to_skip[neg_input_op.name] = True
+    nodes_to_skip[node.name] = True
+    inputs_to_remove.append(node)
 
-  result_graph_def = graph_pb2.GraphDef()
-  for node in input_graph_def.node:
-    if node.name in nodes_to_skip:
-      continue
-    new_node = node_def_pb2.NodeDef()
-    new_node.CopyFrom(node)
-    result_graph_def.node.extend([new_node])
+  return graph_rewrite_util.cleanup_graph_def(
+      input_graph_def, nodes_to_skip, inputs_to_remove)
 
-  return result_graph_def
+def _create_alpha_node(neg_alpha_op, updated_alpha):
+  if neg_alpha_op.name not in updated_alpha:
+    alpha_value = -graph_rewrite_util.values_from_const(neg_alpha_op)
+    neg_alpha_op.attr['value'].CopyFrom(
+        attr_value_pb2.AttrValue(tensor=tensor_util.make_tensor_proto(
+            alpha_value, alpha_value.dtype.type, alpha_value.shape)))
+    updated_alpha.append(neg_alpha_op.name)
 
-def fuse_prelu_with_fused_conv2d(input_graph_def):
+def fuse_prelu_with_fused_conv2d_or_matmul(input_graph_def):
   """Tensorflow does not support Prelu op, and the grappler remap optimizer
   will not fuse the prelu op with _FusedConv2D op. This method searches for
-  the pattern and fuse the (_FusedConv2D + Prelu) nodes into a single
-  _FusedConv2D op with activation information.
+  the pattern and fuse the (_FusedConv2D||FusedDepthwiseConv2dNative + Prelu)
+  nodes into a single _FusedConv2D||FusedDepthwiseConv2dNative op with
+  activation information.
 
   Args:
     input_graph_def: A GraphDef containing a model.
 
   Returns:
-    Modified graph with Prelu ops fused with _FusedConv2D as activation function
+    Modified graph with Prelu ops fused with _FusedConv2D or
+    FusedDepthwiseConv2dNative as activation function
 
   Raises:
     ValueError: If the graph is badly formed with duplicate node names.
   """
   input_node_map = {}
+  nodes_to_skip = {}
+  inputs_to_remove = []
   for node in input_graph_def.node:
     if node.name not in input_node_map:
       input_node_map[node.name] = node
     else:
-      raise ValueError("Duplicate node names detected for ", node.name)
+      raise ValueError('Duplicate node names detected for ', node.name)
 
   for node in input_graph_def.node:
-    if node.op != "Prelu":
+    if node.op != 'Prelu':
       continue
 
-    fused_conv_op = common.node_from_map(input_node_map, node.input[0])
-    if (not fused_conv_op or fused_conv_op.op != "_FusedConv2D" or
-        len(fused_conv_op.attr['fused_ops'].list.s) > 1):
+    fused_op = graph_rewrite_util.node_from_map(
+        input_node_map, node.input[0])
+    if (not fused_op or
+        (fused_op.op != '_FusedConv2D'
+         and fused_op.op != '_FusedMatMul'
+         and fused_op.op != 'FusedDepthwiseConv2dNative') or
+        len(fused_op.attr['fused_ops'].list.s) > 1):
       continue
 
     alpha_tensor_name = node.input[1]
 
-    fused_conv_op.input.extend([alpha_tensor_name])
-    fused_conv_op.attr['fused_ops'].list.s.extend([b'Prelu'])
-    fused_conv_op.attr['num_args'].i = fused_conv_op.attr['num_args'].i + 1
+    fused_op.input.extend([alpha_tensor_name])
+    fused_op.attr['fused_ops'].list.s.extend([b'Prelu'])
+    fused_op.attr['num_args'].i = fused_op.attr['num_args'].i + 1
     node.op = 'Identity'
     node.input[:] = [node.input[0]]
-    # Add the 'T' definition for Identity op, since Prelu op does not have that.
-    value = attr_value_pb2.AttrValue()
-    # Set the type to float, since it is not used by TFJS.
-    value.type = types_pb2.DT_FLOAT
-    node.attr['T'].CopyFrom(value)
+    nodes_to_skip[node.name] = True
+    inputs_to_remove.append(node)
 
-  return input_graph_def
-
-def register_prelu_func(graph):
-  """Register Prelu op with function def, this is needed for importing graph_def
-  with unregistered Prelu op.
-  Args:
-    graph: A tf.Graph object to insert prelu function into.
-  """
-
-  # Create a function for Prelu op
-  @function.Defun(tf.float32, tf.float32, func_name='Prelu')
-  def prelu_fn(*args):
-    return tf.add(args[0], args[1])
-  # Insert the function into graph
-  with graph.as_default():
-    prelu_fn(tf.constant(1.0), tf.constant(1.0))
-
-
-if hasattr(op_def_registry, 'register_op_list'):
-  register_prelu_op()
+  return graph_rewrite_util.cleanup_graph_def(
+      input_graph_def, nodes_to_skip, inputs_to_remove)
+      

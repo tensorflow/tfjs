@@ -23,7 +23,8 @@ import {getCoordsDataType} from './shader_compiler';
 
 export class ConcatPackedProgram implements GPGPUProgram {
   variableNames: string[];
-  usesPackedTextures = true;
+  packedInputs = true;
+  packedOutput = true;
   outputShape: number[] = [];
   userCode: string;
 

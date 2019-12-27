@@ -979,7 +979,7 @@ describeAllEnvs('Dataset', () => {
 
 describeAllEnvs('Dataset with DEBUG mode', () => {
   beforeAll(() => {
-    tf.ENV.set('DEBUG', true);
+    tf.env().set('DEBUG', true);
   });
 
   it('throws an error when given an array of inconsistent shape',

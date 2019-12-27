@@ -16,7 +16,6 @@
  */
 
 import {Tensor, Variable} from './tensor';
-import {DataType} from './types';
 
 /** @docalias {[name: string]: Tensor} */
 export type NamedTensorMap = {
@@ -45,12 +44,3 @@ export interface TensorContainerObject {
   [x: string]: TensorContainer;
 }
 export interface TensorContainerArray extends Array<TensorContainer> {}
-
-export interface TensorInfo {
-  // Name of the tensor.
-  name: string;
-  // Tensor shape information, Optional.
-  shape?: number[];
-  // Data type of the tensor.
-  dtype: DataType;
-}

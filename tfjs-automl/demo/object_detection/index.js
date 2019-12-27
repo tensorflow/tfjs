@@ -15,9 +15,7 @@
  * =============================================================================
  */
 
-// TODO(smilkov): Import from "@tensoflow/tfjs-automl" when the package
-// is released.
-import * as automl from '../../src/index';
+import * as automl from '@tensorflow/tfjs-automl';
 
 const MODEL_URL =
     'https://storage.googleapis.com/tfjs-testing/tfjs-automl/object_detection/model.json';
@@ -28,6 +26,12 @@ async function run() {
   // These are the default options.
   const options = {score: 0.5, iou: 0.5, topk: 20};
   const predictions = await model.detect(image, options);
+
+  // Show the resulting object on the page.
+  const pre = document.createElement('pre');
+  pre.textContent = JSON.stringify(predictions, null, 2);
+  document.body.append(pre);
+
   drawBoxes(predictions);
 }
 

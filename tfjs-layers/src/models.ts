@@ -1090,14 +1090,14 @@ export class Sequential extends LayersModel {
     //   because the `Sequential` class is a special case among `Container`
     //   subtypes in that its getConfig() method returns an Array (not a
     //   dict).
-    const config: serialization.ConfigDict[] = [];
+    const layers: serialization.ConfigDict[] = [];
     for (const layer of this.layers) {
       const dict: serialization.ConfigDict = {};
       dict['className'] = layer.getClassName();
       dict['config'] = layer.getConfig();
-      config.push(dict);
+      layers.push(dict);
     }
-    return config;
+    return {name: this.name, layers};
   }
 }
 serialization.registerClass(Sequential);

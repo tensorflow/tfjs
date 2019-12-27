@@ -20,7 +20,8 @@ import * as shader_util from './shader_compiler_util';
 
 export class ReshapePackedProgram implements GPGPUProgram {
   variableNames = ['A'];
-  usesPackedTextures = true;
+  packedInputs = true;
+  packedOutput = true;
   outputShape: number[];
   userCode: string;
 

@@ -57,9 +57,7 @@ module.exports = function(config) {
       bs_firefox_mac: {
         base: 'BrowserStack',
         browser: 'firefox',
-        // TODO(cais): Change to latest after browser stack infrastructure
-        // stabilizes. https://github.com/tensorflow/tfjs/issues/1620
-        browser_version: '66.0',
+        browser_version: 'latest',
         os: 'OS X',
         os_version: 'High Sierra'
       },
@@ -68,11 +66,6 @@ module.exports = function(config) {
         flags: ['--blacklist-accelerated-compositing', '--blacklist-webgl']
       }
     },
-    client: {
-      jasmine: {
-        random: false
-      },
-      args: ['--grep', config.grep || '']
-    }
+    client: {jasmine: {random: false}, args: ['--grep', config.grep || '']}
   });
 };

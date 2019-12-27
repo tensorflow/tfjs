@@ -16,7 +16,7 @@
  * =============================================================================
  */
 
-import {ENV} from '@tensorflow/tfjs-core';
+import {env} from '@tensorflow/tfjs-core';
 import {FileDataSource} from '../sources/file_data_source';
 import {CSVDataset} from './csv_dataset';
 
@@ -32,9 +32,9 @@ const csvStringWithHeaders = `foo,bar,baz
 ` + csvString;
 
 const csvData =
-    ENV.get('IS_BROWSER') ? new Blob([csvString]) : Buffer.from(csvString);
+    env().get('IS_BROWSER') ? new Blob([csvString]) : Buffer.from(csvString);
 
-const csvDataWithHeaders = ENV.get('IS_BROWSER') ?
+const csvDataWithHeaders = env().get('IS_BROWSER') ?
     new Blob([csvStringWithHeaders]) :
     Buffer.from(csvStringWithHeaders);
 
@@ -96,26 +96,27 @@ const csvWithMissingElement = `A,B,C
 
 const csvWithDOSLineBreaker = `A,B,C\r\n1,2,3\r\nv,\rw,x\r\n3,2,3`;
 
-const csvDataWithHeadersExtra = ENV.get('IS_BROWSER') ?
+const csvDataWithHeadersExtra = env().get('IS_BROWSER') ?
     new Blob([csvDataExtra]) :
     Buffer.from(csvDataExtra);
-const csvDataWithSemicolon = ENV.get('IS_BROWSER') ?
+const csvDataWithSemicolon = env().get('IS_BROWSER') ?
     new Blob([csvDataSemicolon]) :
     Buffer.from(csvDataSemicolon);
-const csvDataWithMixedType = ENV.get('IS_BROWSER') ? new Blob([csvMixedType]) :
-                                                     Buffer.from(csvMixedType);
-const csvDataWithQuote = ENV.get('IS_BROWSER') ? new Blob([csvWithQuote]) :
-                                                 Buffer.from(csvWithQuote);
-const csvDataWithMultiWhitespaces = ENV.get('IS_BROWSER') ?
+const csvDataWithMixedType = env().get('IS_BROWSER') ?
+    new Blob([csvMixedType]) :
+    Buffer.from(csvMixedType);
+const csvDataWithQuote = env().get('IS_BROWSER') ? new Blob([csvWithQuote]) :
+                                                   Buffer.from(csvWithQuote);
+const csvDataWithMultiWhitespaces = env().get('IS_BROWSER') ?
     new Blob([csvWithMultiWhitespaces]) :
     Buffer.from(csvWithMultiWhitespaces);
-const csvDataWithMissingElement = ENV.get('IS_BROWSER') ?
+const csvDataWithMissingElement = env().get('IS_BROWSER') ?
     new Blob([csvWithMissingElement]) :
     Buffer.from(csvWithMissingElement);
-const csvDataWithSingleWhitespace = ENV.get('IS_BROWSER') ?
+const csvDataWithSingleWhitespace = env().get('IS_BROWSER') ?
     new Blob([csvWithSingleWhitespace]) :
     Buffer.from(csvWithSingleWhitespace);
-const csvDataWithDOSLineBreaker = ENV.get('IS_BROWSER') ?
+const csvDataWithDOSLineBreaker = env().get('IS_BROWSER') ?
     new Blob([csvWithDOSLineBreaker]) :
     Buffer.from(csvWithDOSLineBreaker);
 
@@ -419,7 +420,7 @@ describe('CSVDataset', () => {
     try {
       const csvStringWithDuplicateColumnNames = `foo,bar,foo
     ` + csvString;
-      const csvDataWithDuplicateColumnNames = ENV.get('IS_BROWSER') ?
+      const csvDataWithDuplicateColumnNames = env().get('IS_BROWSER') ?
           new Blob([csvStringWithDuplicateColumnNames]) :
           Buffer.from(csvStringWithDuplicateColumnNames);
       const source =

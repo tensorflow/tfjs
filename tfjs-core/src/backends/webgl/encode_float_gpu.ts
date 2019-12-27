@@ -18,11 +18,13 @@
 import {getGlslDifferences} from './glsl_version';
 import {GPGPUProgram} from './gpgpu_math';
 import {ENCODE_FLOAT_SNIPPET} from './shader_compiler_util';
+import {TextureUsage} from './tex_util';
 
 export class EncodeFloatProgram implements GPGPUProgram {
   variableNames = ['A'];
   userCode: string;
   outputShape: number[];
+  outTexUsage = TextureUsage.DOWNLOAD;
 
   constructor(outputShape: number[]) {
     const glsl = getGlslDifferences();

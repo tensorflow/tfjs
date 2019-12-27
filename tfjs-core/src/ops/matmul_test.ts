@@ -230,6 +230,36 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [4, 0, 0]);
   });
 
+  it('batched matmul called twice so memory of output is reused', async () => {
+    const batch = 3;
+    const n = 2;
+    const vals = new Float32Array(batch * n * n);
+    vals[0] = 2;
+    vals[4] = 3;
+    vals[8] = 4;
+
+    const a = tf.tensor(vals, [batch, n, n]);
+    const b = tf.tensor(vals, [batch, n, n]);
+    const result = tf.matMul(a, b);
+    expect(result.shape).toEqual([batch, n, n]);
+    expectArraysClose(
+        await result.data(), [4, 0, 0, 0, 9, 0, 0, 0, 16, 0, 0, 0]);
+    // Dispose the first output, so memory of the second output (which has the
+    // same shape), could be reused.
+    result.dispose();
+
+    const vals2 = new Float32Array(batch * n * n);
+    vals2[3] = 2;
+    vals2[7] = 3;
+    vals2[11] = 4;
+    const a2 = tf.tensor(vals2, [batch, n, n]);
+    const b2 = tf.tensor(vals2, [batch, n, n]);
+    const result2 = tf.matMul(a2, b2);
+    expect(result2.shape).toEqual([batch, n, n]);
+    expectArraysClose(
+        await result2.data(), [0, 0, 0, 4, 0, 0, 0, 9, 0, 0, 0, 16]);
+  });
+
   it('batched matmul with the matrices being vectors transposedA', async () => {
     const batch = 3;
     const sharedDim = MATMUL_SHARED_DIM_THRESHOLD + 1;

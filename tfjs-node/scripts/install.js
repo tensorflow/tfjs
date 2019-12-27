@@ -25,9 +25,14 @@ const {
   depsPath,
   depsLibPath,
   depsLibTensorFlowPath,
-  getLibTensorFlowMajorDotMinorVersion,
   LIBTENSORFLOW_VERSION,
-  modulePath
+  PLATFORM_MAPPING,
+  ARCH_MAPPING,
+  PLATFORM_EXTENSION,
+  ALL_SUPPORTED_COMBINATION,
+  modulePath,
+  customTFLibUri,
+  customAddon
 } = require('./deps-constants.js');
 const resources = require('./resources');
 const {addonName} = require('./get-addon-name.js');
@@ -39,80 +44,58 @@ const rimrafPromise = util.promisify(rimraf);
 
 const BASE_URI =
     'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
-const CPU_DARWIN = `cpu-darwin-x86_64-${LIBTENSORFLOW_VERSION}.tar.gz`;
-const CPU_LINUX = `cpu-linux-x86_64-${LIBTENSORFLOW_VERSION}.tar.gz`;
-const GPU_LINUX = `gpu-linux-x86_64-${LIBTENSORFLOW_VERSION}.tar.gz`;
-const CPU_WINDOWS = `cpu-windows-x86_64-${LIBTENSORFLOW_VERSION}.zip`;
-const GPU_WINDOWS = `gpu-windows-x86_64-${LIBTENSORFLOW_VERSION}.zip`;
-
-// TODO(kreeger): Update to TensorFlow 1.13:
-// https://github.com/tensorflow/tfjs/issues/1369
-const TF_WIN_HEADERS_URI =
-    `https://storage.googleapis.com/tf-builds/tensorflow-headers-` +
-    `${getLibTensorFlowMajorDotMinorVersion()}.zip`;
 
 const platform = os.platform();
+// Use windows path
+if (platform === 'win32') {
+  path = path.win32;
+}
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
+let system = `${libType}-${PLATFORM_MAPPING[platform]}-` +
+    `${ARCH_MAPPING[os.arch()]}`;
 let forceDownload = process.argv[3] === undefined ? undefined : process.argv[3];
 
 let packageJsonFile;
 
-async function setPackageJsonFile() {
+function setPackageJsonFile() {
   packageJsonFile =
       JSON.parse(fs.readFileSync(`${__dirname}/../package.json`).toString());
 }
 
-async function updateAddonName() {
-  packageJsonFile['binary']['package_name'] = addonName;
+function updateAddonName() {
+  if (customAddon !== undefined) {
+    Object.assign(packageJsonFile['binary'], customAddon);
+  } else {
+    packageJsonFile['binary']['package_name'] = addonName;
+  }
   const stringFile = JSON.stringify(packageJsonFile, null, 2);
-  fs.writeFile((`${__dirname}/../package.json`), stringFile, err => {
-    if (err) {
-      console.log('Faile to update addon name in package.json: ' + err);
-    }
-  });
+  fs.writeFileSync((`${__dirname}/../package.json`), stringFile);
 }
 
-async function revertAddonName() {
-  delete packageJsonFile['binary']['package_name'];
-  const stringFile = JSON.stringify(packageJsonFile, null, 2);
-  fs.writeFile((`${__dirname}/../package.json`), stringFile, err => {
-    if (err) {
-      console.log('Faile to update addon name in package.json: ' + err);
-    }
-  });
+function revertAddonName(orig) {
+  packageJsonFile['binary'] = orig;
+  const stringFile = JSON.stringify(packageJsonFile, null, 2).concat('\n');
+  fs.writeFileSync((`${__dirname}/../package.json`), stringFile);
 }
 
 /**
  * Returns the libtensorflow hosted path of the current platform.
  */
 function getPlatformLibtensorflowUri() {
-  let targetUri = BASE_URI;
-  if (platform === 'linux') {
-    if (os.arch() === 'arm') {
-      // TODO(kreeger): Handle arm64 as well:
-      targetUri =
-          'https://storage.googleapis.com/tf-builds/libtensorflow_r1_14_linux_arm.tar.gz';
-    } else {
-      if (libType === 'gpu') {
-        targetUri += GPU_LINUX;
-      } else {
-        targetUri += CPU_LINUX;
-      }
-    }
-  } else if (platform === 'darwin') {
-    targetUri += CPU_DARWIN;
-  } else if (platform === 'win32') {
-    // Use windows path
-    path = path.win32;
-    if (libType === 'gpu') {
-      targetUri += GPU_WINDOWS;
-    } else {
-      targetUri += CPU_WINDOWS;
-    }
-  } else {
-    throw new Error(`Unsupported platform: ${platform}`);
+  // Exception for mac+gpu user
+  if (platform === 'darwin') {
+    system = `cpu-${PLATFORM_MAPPING[platform]}-${ARCH_MAPPING[os.arch()]}`;
   }
-  return targetUri;
+
+  if (customTFLibUri !== undefined) {
+    return customTFLibUri;
+  }
+
+  if (ALL_SUPPORTED_COMBINATION.indexOf(system) === -1) {
+    throw new Error(`Unsupported system: ${libType}-${platform}-${os.arch()}`);
+  }
+
+  return `${BASE_URI}${system}-${LIBTENSORFLOW_VERSION}.${PLATFORM_EXTENSION}`;
 }
 
 /**
@@ -148,7 +131,6 @@ async function downloadLibtensorflow(callback) {
           // Some windows libtensorflow zip files are missing structure and the
           // eager headers. Check, restructure, and download resources as
           // needed.
-          const depsIncludePath = path.join(depsPath, 'include');
           if (!await exists(depsLibTensorFlowPath)) {
             // Verify that tensorflow.dll exists
             const libtensorflowDll = path.join(depsPath, 'tensorflow.dll');
@@ -159,25 +141,10 @@ async function downloadLibtensorflow(callback) {
             await ensureDir(depsLibPath);
             await rename(libtensorflowDll, depsLibTensorFlowPath);
           }
-
-          // The shipped headers for Windows libtensorflow are old - remove and
-          // download the latest:
-          if (await exists(depsIncludePath)) {
-            await rimrafPromise(depsIncludePath);
-          }
-
-          // Download the C headers only and unpack:
-          resources.downloadAndUnpackResource(
-              TF_WIN_HEADERS_URI, depsPath, () => {
-                if (callback !== undefined) {
-                  callback();
-                }
-              });
-        } else {
-          // No other work is required on other platforms.
-          if (callback !== undefined) {
-            callback();
-          }
+        }
+        // No other work is required on other platforms.
+        if (callback !== undefined) {
+          callback();
         }
       });
 }
@@ -186,8 +153,18 @@ async function downloadLibtensorflow(callback) {
  * Calls node-gyp for Node.js Tensorflow binding after lib is downloaded.
  */
 async function build() {
+  // Load package.json file
+  setPackageJsonFile();
+  // Update addon name in package.json file
+  const origBinary = JSON.parse(JSON.stringify(packageJsonFile['binary']));
+  updateAddonName();
   console.error('* Building TensorFlow Node.js bindings');
-  cp.exec('node-pre-gyp install --fallback-to-build', (err) => {
+  let buildOption = '--fallback-to-build';
+  if (customTFLibUri !== undefined && customAddon === undefined) {
+    // Has custom tensorflow shared libs but no addon. Then build it from source
+    buildOption = '--build-from-source';
+  }
+  cp.exec(`node-pre-gyp install ${buildOption}`, (err) => {
     if (err) {
       console.log('node-pre-gyp install failed with error: ' + err);
     }
@@ -195,7 +172,7 @@ async function build() {
       // Move libtensorflow to module path, where tfjs_binding.node locates.
       cp.exec('node scripts/deps-stage.js symlink ' + modulePath);
     }
-    revertAddonName();
+    revertAddonName(origBinary);
   });
 }
 
@@ -203,10 +180,6 @@ async function build() {
  * Ensures libtensorflow requirements are met for building the binding.
  */
 async function run() {
-  // Load package.json file
-  setPackageJsonFile();
-  // Update addon name in package.json file
-  await updateAddonName();
   // First check if deps library exists:
   if (forceDownload !== 'download' && await exists(depsLibTensorFlowPath)) {
     // Library has already been downloaded, then compile and simlink:

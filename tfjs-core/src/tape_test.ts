@@ -18,6 +18,7 @@
 import {ScopeFn} from './engine';
 import * as tf from './index';
 import {ALL_ENVS, describeWithFlags} from './jasmine_util';
+import {zerosLike} from './ops/ops';
 import {backpropagateGradients, getFilteredNodesXToY, TapeNode} from './tape';
 import {expectArraysClose} from './test_util';
 
@@ -32,14 +33,14 @@ describeWithFlags('getFilteredNodesXToY', ALL_ENVS, () => {
     const tape: TapeNode[] = [
       {
         id: 0,
-        name: 'node0',
+        kernelName: 'node0',
         inputs: {x},
         outputs: [intermediate1],
         gradient: null
       },
       {
         id: 1,
-        name: 'node1',
+        kernelName: 'node1',
         inputs: {intermediate2},
         outputs: [y],
         gradient: null
@@ -56,8 +57,9 @@ describeWithFlags('getFilteredNodesXToY', ALL_ENVS, () => {
     const x = tf.scalar(1);
     const y = tf.scalar(2);
 
-    const tape: TapeNode[] =
-        [{id: 0, name: 'node0', inputs: {x}, outputs: [y], gradient: null}];
+    const tape: TapeNode[] = [
+      {id: 0, kernelName: 'node0', inputs: {x}, outputs: [y], gradient: null}
+    ];
 
     const filteredTapeNodes = getFilteredNodesXToY(tape, [x], y);
 
@@ -70,9 +72,13 @@ describeWithFlags('getFilteredNodesXToY', ALL_ENVS, () => {
     const x1 = tf.scalar(1);
     const y = tf.scalar(2);
 
-    const tape: TapeNode[] = [
-      {id: 0, name: 'node0', inputs: {x0, x1}, outputs: [y], gradient: null}
-    ];
+    const tape: TapeNode[] = [{
+      id: 0,
+      kernelName: 'node0',
+      inputs: {x0, x1},
+      outputs: [y],
+      gradient: null
+    }];
 
     const filteredTapeNodes = getFilteredNodesXToY(tape, [x0, x1], y);
 
@@ -85,17 +91,25 @@ describeWithFlags('getFilteredNodesXToY', ALL_ENVS, () => {
     const x1 = tf.scalar(1);
     const y = tf.scalar(2);
 
-    const tape: TapeNode[] = [
-      {id: 0, name: 'node0', inputs: {x0, x1}, outputs: [y], gradient: null}
-    ];
+    const tape: TapeNode[] = [{
+      id: 0,
+      kernelName: 'node0',
+      inputs: {x0, x1},
+      outputs: [y],
+      gradient: null
+    }];
 
     const filteredTapeNodes = getFilteredNodesXToY(tape, [x0], y);
 
     expect(filteredTapeNodes.length).toBe(1);
     // x1 input should be pruned, we don't ask for the gradient of x1.
-    expect(filteredTapeNodes[0])
-        .toEqual(
-            {id: 0, name: 'node0', inputs: {x0}, outputs: [y], gradient: null});
+    expect(filteredTapeNodes[0]).toEqual({
+      id: 0,
+      kernelName: 'node0',
+      inputs: {x0},
+      outputs: [y],
+      gradient: null
+    });
   });
 
   it('two operations x => intermediate => y', () => {
@@ -106,14 +120,14 @@ describeWithFlags('getFilteredNodesXToY', ALL_ENVS, () => {
     const tape: TapeNode[] = [
       {
         id: 0,
-        name: 'node0',
+        kernelName: 'node0',
         inputs: {x},
         outputs: [intermediate],
         gradient: null
       },
       {
         id: 1,
-        name: 'node1',
+        kernelName: 'node1',
         inputs: {intermediate},
         outputs: [y],
         gradient: null
@@ -138,14 +152,14 @@ describeWithFlags('getFilteredNodesXToY', ALL_ENVS, () => {
        const tape: TapeNode[] = [
          {
            id: 0,
-           name: 'node0',
+           kernelName: 'node0',
            inputs: {x0, x1},
            outputs: [intermediate],
            gradient: null
          },
          {
            id: 1,
-           name: 'node1',
+           kernelName: 'node1',
            inputs: {x2, intermediate},
            outputs: [y],
            gradient: null
@@ -164,8 +178,14 @@ describeWithFlags('getFilteredNodesXToY', ALL_ENVS, () => {
     const y = tf.scalar(2);
 
     const tape: TapeNode[] = [
-      {id: 0, name: 'node0', inputs: {x}, outputs: [orphan], gradient: null},
-      {id: 1, name: 'node1', inputs: {x}, outputs: [y], gradient: null}
+      {
+        id: 0,
+        kernelName: 'node0',
+        inputs: {x},
+        outputs: [orphan],
+        gradient: null
+      },
+      {id: 1, kernelName: 'node1', inputs: {x}, outputs: [y], gradient: null}
     ];
 
     const filteredTapeNodes = getFilteredNodesXToY(tape, [x], y);
@@ -180,17 +200,25 @@ describeWithFlags('getFilteredNodesXToY', ALL_ENVS, () => {
     const orphan = tf.scalar(0);
     const y = tf.scalar(2);
 
-    const tape: TapeNode[] = [
-      {id: 0, name: 'node0', inputs: {x, orphan}, outputs: [y], gradient: null}
-    ];
+    const tape: TapeNode[] = [{
+      id: 0,
+      kernelName: 'node0',
+      inputs: {x, orphan},
+      outputs: [y],
+      gradient: null
+    }];
 
     const filteredTapeNodes = getFilteredNodesXToY(tape, [x], y);
 
     expect(filteredTapeNodes.length).toBe(1);
     // The orphan should be pruned from the node's input.
-    expect(filteredTapeNodes[0])
-        .toEqual(
-            {id: 0, name: 'node0', inputs: {x}, outputs: [y], gradient: null});
+    expect(filteredTapeNodes[0]).toEqual({
+      id: 0,
+      kernelName: 'node0',
+      inputs: {x},
+      outputs: [y],
+      gradient: null
+    });
   });
 
   it('1 op with 3 outputs x => y1, y2, y3', () => {
@@ -199,9 +227,13 @@ describeWithFlags('getFilteredNodesXToY', ALL_ENVS, () => {
     const y2 = tf.scalar(2);
     const y3 = tf.scalar(2);
 
-    const tape: TapeNode[] = [
-      {id: 0, name: 'node0', inputs: {x}, outputs: [y1, y2, y3], gradient: null}
-    ];
+    const tape: TapeNode[] = [{
+      id: 0,
+      kernelName: 'node0',
+      inputs: {x},
+      outputs: [y1, y2, y3],
+      gradient: null
+    }];
 
     const filteredNodes1 = getFilteredNodesXToY(tape, [x], y1);
     expect(filteredNodes1.length).toBe(1);
@@ -227,8 +259,9 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
     const accumulatedGradientsMap: {[tensorId: number]: tf.Tensor} = {};
     accumulatedGradientsMap[y.id] = dy;
 
-    const tape: TapeNode[] =
-        [{id: 0, name: 'node0', inputs: {x}, outputs: [y], gradient: null}];
+    const tape: TapeNode[] = [
+      {id: 0, kernelName: 'node0', inputs: {x}, outputs: [y], gradient: null}
+    ];
 
     expect(
         () => backpropagateGradients(
@@ -248,11 +281,11 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
 
     const tape: TapeNode[] = [{
       id: 0,
-      name: 'node0',
+      kernelName: 'node0',
       inputs: {x},
       outputs: [y],
-      gradient: (dy: tf.Scalar) => {
-        return {x: () => dy.add(tf.scalar(1))};
+      gradient: (dys: tf.Tensor[]) => {
+        return {x: () => dys[0].add(tf.scalar(1))};
       }
     }];
 
@@ -275,20 +308,20 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
     const tape: TapeNode[] = [
       {
         id: 0,
-        name: 'node0',
+        kernelName: 'node0',
         inputs: {x},
         outputs: [intermediate],
-        gradient: (dy: tf.Scalar) => {
-          return {x: () => dy.add(tf.scalar(1))};
+        gradient: (dys: tf.Tensor[]) => {
+          return {x: () => dys[0].add(tf.scalar(1))};
         }
       },
       {
         id: 1,
-        name: 'node1',
+        kernelName: 'node1',
         inputs: {intermediate},
         outputs: [y],
-        gradient: (dy: tf.Scalar) => {
-          return {intermediate: () => dy.add(tf.scalar(1))};
+        gradient: (dys: tf.Tensor[]) => {
+          return {intermediate: () => dys[0].add(tf.scalar(1))};
         }
       }
     ];
@@ -314,31 +347,31 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
     const tape: TapeNode[] = [
       {
         id: 0,
-        name: 'node0',
+        kernelName: 'node0',
         inputs: {x},
         outputs: [intermediate1],
-        gradient: (dy: tf.Scalar) => {
-          return {x: () => dy.add(tf.scalar(1))};
+        gradient: (dys: tf.Tensor[]) => {
+          return {x: () => dys[0].add(tf.scalar(1))};
         }
       },
       {
         id: 1,
-        name: 'node1',
+        kernelName: 'node1',
         inputs: {x},
         outputs: [intermediate2],
-        gradient: (dy: tf.Scalar) => {
-          return {x: () => dy.add(tf.scalar(1))};
+        gradient: (dys: tf.Tensor[]) => {
+          return {x: () => dys[0].add(tf.scalar(1))};
         }
       },
       {
         id: 2,
-        name: 'node2',
+        kernelName: 'node2',
         inputs: {intermediate1, intermediate2},
         outputs: [y],
-        gradient: (dy: tf.Scalar) => {
+        gradient: (dys: tf.Tensor[]) => {
           return {
-            intermediate1: () => dy.add(tf.scalar(1)),
-            intermediate2: () => dy.add(tf.scalar(1))
+            intermediate1: () => dys[0].add(tf.scalar(1)),
+            intermediate2: () => dys[0].add(tf.scalar(1))
           };
         }
       }
@@ -367,12 +400,12 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
        let dys: tf.Scalar[];
        const tape: TapeNode[] = [{
          id: 0,
-         name: 'node0',
+         kernelName: 'node0',
          inputs: {x},
          outputs: [y1, y2, y3],
          gradient: (dys_: tf.Scalar[]) => {
-           dys = dys_;
-           return {x: () => tf.stack(dys_)};
+           dys = dys_.map(dy => dy || zerosLike(y1));
+           return {x: () => tf.stack(dys)};
          }
        }];
 

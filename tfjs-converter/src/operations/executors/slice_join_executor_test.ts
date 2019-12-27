@@ -51,14 +51,26 @@ describe('slice join', () => {
         node.op = 'Concat';
         node.inputParams.tensors = createTensorsAttr(1, 0);
         node.inputParams.axis = createNumberAttrFromIndex(0);
+        node.attrParams.n = createNumberAttr(2);
         executeOp(node, {input1, input2, input3}, context);
 
         expect(spy).toHaveBeenCalledWith([input2[0], input3[0]], 1);
+      });
+      it('Concat when input length and n mismatch', () => {
+        const spy = spyOn(tfc, 'concat');
+        node.op = 'Concat';
+        node.inputParams.tensors = createTensorsAttr(0, -1);
+        node.inputParams.axis = createNumberAttrFromIndex(-1);
+        node.attrParams.n = createNumberAttr(1);
+        executeOp(node, {input1, input2, input3}, context);
+
+        expect(spy).toHaveBeenCalledWith([input1[0]], 3);
       });
       it('should match json def for Concat', () => {
         node.op = 'Concat';
         node.inputParams.tensors = createTensorsAttr(1, 0);
         node.inputParams.axis = createNumberAttrFromIndex(0);
+        node.attrParams.n = createNumberAttr(2);
 
         expect(validateParam(node, slice_join.json, 'Concat')).toBeTruthy();
       });
@@ -67,14 +79,26 @@ describe('slice join', () => {
         node.op = 'ConcatV2';
         node.inputParams.tensors = createTensorsAttr(0, -1);
         node.inputParams.axis = createNumberAttrFromIndex(-1);
+        node.attrParams.n = createNumberAttr(2);
         executeOp(node, {input1, input2, input3}, context);
 
         expect(spy).toHaveBeenCalledWith([input1[0], input2[0]], 3);
+      });
+      it('ConcatV2 when input length and n mismatch', () => {
+        const spy = spyOn(tfc, 'concat');
+        node.op = 'ConcatV2';
+        node.inputParams.tensors = createTensorsAttr(0, -1);
+        node.inputParams.axis = createNumberAttrFromIndex(-1);
+        node.attrParams.n = createNumberAttr(1);
+        executeOp(node, {input1, input2, input3}, context);
+
+        expect(spy).toHaveBeenCalledWith([input1[0]], 3);
       });
       it('should match json def for ConcatV2', () => {
         node.op = 'ConcatV2';
         node.inputParams.tensors = createTensorsAttr(0, -1);
         node.inputParams.axis = createNumberAttrFromIndex(-1);
+        node.attrParams.n = createNumberAttr(3);
 
         expect(validateParam(node, slice_join.json, 'ConcatV2')).toBeTruthy();
       });

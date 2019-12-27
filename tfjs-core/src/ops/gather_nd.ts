@@ -60,7 +60,8 @@ import {op} from './operation';
 function gatherND_(x: Tensor|TensorLike, indices: Tensor|TensorLike): Tensor {
   const $indices = convertToTensor(indices, 'indices', 'gatherND', 'int32');
   const $x = convertToTensor(x, 'x', 'gatherND');
-  return ENGINE.runKernel(
-      backend => backend.gatherND($x, $indices), {$x, $indices});
+  return ENGINE.runKernelFunc(
+      backend => backend.gatherND($x, $indices), {x: $x, indices: $indices},
+      null /* backward */, 'GatherNd');
 }
 export const gatherND = op({gatherND_});

@@ -21,7 +21,8 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class Im2ColPackedProgram implements GPGPUProgram {
   variableNames = ['A'];
-  usesPackedTextures = true;
+  packedInputs = true;
+  packedOutput = true;
   outputShape: number[];
   userCode: string;
 

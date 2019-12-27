@@ -19,6 +19,7 @@ import embed, {Mode, VisualizationSpec} from 'vega-embed';
 
 import {Drawable, Point2D, XYPlotData, XYPlotOptions} from '../types';
 import {getDefaultHeight, getDefaultWidth} from '../util/dom';
+import {assert} from '../util/utils';
 import {getDrawArea} from './render_utils';
 
 /**
@@ -60,6 +61,12 @@ export async function scatterplot(
         seriesData.map(v => Object.assign({}, v, {series: seriesName}));
     values.push(...seriesVals);
   });
+
+  if (opts.seriesColors != null) {
+    assert(
+        opts.seriesColors.length === _values.length,
+        'Must have an equal number of series colors as there are data series');
+  }
 
   const drawArea = getDrawArea(container);
   const options = Object.assign({}, defaultOpts, opts);
@@ -132,6 +139,9 @@ export async function scatterplot(
       'color': {
         'field': 'series',
         'type': 'nominal',
+        'scale': {
+          'range': options.seriesColors,
+        }
       },
       'shape': {
         'field': 'series',

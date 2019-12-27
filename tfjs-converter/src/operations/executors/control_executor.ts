@@ -157,7 +157,7 @@ export async function executeOp(
           getParamValue('tensorArrayId', node, tensorMap, context) as number;
       const closeTensorArray = context.getTensorArray(closeId);
       closeTensorArray.clearAndClose();
-      return [];
+      return [scalar(0)];
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }
