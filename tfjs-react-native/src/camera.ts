@@ -76,8 +76,8 @@ export function fromTexture(
 
   //@ts-ignore
   const _sourceDims = {
-    width: Math.floor(targetShape.width),
-    height: Math.floor(targetShape.height),
+    width: Math.floor(sourceDims.width),
+    height: Math.floor(sourceDims.height),
     depth: sourceDims.depth,
   };
 

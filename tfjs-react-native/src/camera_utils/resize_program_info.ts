@@ -60,6 +60,7 @@ export function fragmentShaderSource(
     (alignCorners && tHeight > 1) ? tHeight - 1 : tHeight,
   ];
 
+  console.log('sounceDims', sourceDims);
   const roundBase = alignCorners ? '0.5' : '0.0';
   const mainFunc =
       getResizeNearestNeighborMain(targetDims, roundBase, outputFragColor);
@@ -82,65 +83,27 @@ ${mainFunc}
   return source;
 }
 
-// vec4 texSample =
-//     texture(inputTexture, vec2(sourceNearestRC.x, sourceNearestRC.y));
-
-// // Fractional source index.
-// vec2 sourceFracIndexRC = uv * effectiveInputOverOutputRatioRC;
-
-// // Compute the coordinates of nearest neighbor point.
-// ivec2 sourceNearestRC =
-//     ivec2(min(inputShapeRC - 1.0, floor(sourceFracIndexRC + ${roundBase})));
-
-// vec2 sourceFracIndexRC = uv * effectiveInputOverOutputRatioRC;
-
-// vec2 texelLoc = inputShapeRC * st;
-// // vec2 sourceNearestRC =
-// //   min(inputShapeRC - 1.0, floor(sourceFracIndexRC + ${roundBase}));
-
-// // vec4 texSample = texelFetch(inputTexture, ivec2(texelLoc), 0);
-
 function getResizeNearestNeighborMain(
     targetDims: Dimensions, roundBase: string, outputFragColor: string) {
   const tWidth = targetDims.width;
   const tHeight = targetDims.height;
 
+  console.log('getnnmain', tWidth, tHeight);
   return `
 void main() {
-  // vec2 sourceDims = vec2(float(${tWidth}), float(${tHeight}));
+  vec2 targetDims = vec2(float(${tWidth}), float(${tHeight}));
 
-  // // Fractional source index.
-  // vec2 sourceFracIndexRC = uv * effectiveInputOverOutputRatioRC;
-  // vec2 sourceNearest = sourceFracIndexRC * sourceDims;
-  // ivec2 sourceNearestRC = ivec2(sourceNearest);
+  ivec2 targetCoords = ivec2(uv * targetDims);
 
-  // vec4 texSample2 = texelFetch(inputTexture, sourceNearestRC, 0);
+  vec2 sourceLoc = (vec2(targetCoords) / targetDims) * inputShapeRC;
+  ivec2 finalSamplePos = ivec2(min(
+    inputShapeRC - 1.0,
+    floor(sourceLoc + ${roundBase})));
 
-  vec4 texSample = texture(inputTexture, uv);
-  // vec4 texSample = vec4(uv[0], uv[0], uv[0], texture(inputTexture, uv).a);
+  vec4 texSample = texelFetch(inputTexture, finalSamplePos, 0);
   fragColor = ${outputFragColor};
 }`;
 }
-
-// export function vertices() {
-//   return new Float32Array([
-//     // x, y,
-//     -1, 1,   // upper left
-//     1, 1,    // upper right
-//     -1, -1,  // lower left
-//     1, -1,   // lower right
-//   ]);
-// }
-
-// export function texCoords() {
-//   return new Float32Array([
-//     // u, v
-//     0, 1,  // upper left
-//     1, 1,  // upper right
-//     0, 0,  // lower left
-//     1, 0,  // lower right
-//   ]);
-// }
 
 export function vertices() {
   return new Float32Array([

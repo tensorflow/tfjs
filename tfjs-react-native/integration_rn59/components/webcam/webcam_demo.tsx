@@ -218,8 +218,8 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
   }
 
   async roundtrip(gl: WebGL2RenderingContext) {
-    const width = 21;
-    const height = 39;
+    const width = 2;
+    const height = 2;
     const depth = 4;
 
     const inTensor =
@@ -235,7 +235,7 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     const matches = tf.util.arraysEqual(inData, outData);
 
     if(matches) {
-      console.log('toTexture -> fromTexture roundtrip success');
+      console.log('**toTexture -> fromTexture roundtrip success');
     } else {
       console.log('ERROR toTexture -> fromTexture roundtrip failed');
       console.log('input', inTensor.shape, Array.from(inData));
@@ -246,84 +246,152 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     return matches;
   }
 
-  resizeNNTest(gl: WebGL2RenderingContext) {
-    return tf.tidy(() => {
-      const input = tf.tensor3d([
-        [
-          [97.98934936523438, 77.24969482421875, 113.70111846923828],
-          [111.34081268310547, 113.15758514404297, 157.90521240234375],
-          [105.77980041503906, 85.75989532470703, 69.62374114990234],
-          [125.94231414794922, 73.11385345458984, 87.03099822998047]
-        ],
-        [
-          [62.25117111206055, 90.23927307128906, 119.1966552734375],
-          [93.55166625976562, 95.9106674194336, 115.56237030029297],
-          [102.98121643066406, 98.1983413696289, 97.55982971191406],
-          [86.47753143310547, 97.04051208496094, 121.50492095947266]
-        ],
-        [
-          [92.4140853881836, 118.45619201660156, 108.0341796875],
-          [126.43061065673828, 123.28077697753906, 121.03379821777344],
-          [128.6694793701172, 98.47042846679688, 114.47464752197266],
-          [93.31566619873047, 95.2713623046875, 102.51188659667969]
-        ],
-        [
-          [101.55884552001953, 83.31947326660156, 119.08016204833984],
-          [128.28546142578125, 92.56212615966797, 74.85054779052734],
-          [88.9786148071289, 119.43685913085938, 73.06110382080078],
-          [98.17908477783203, 105.54570007324219, 93.45832061767578]
-        ]
-      ]);
+  async resizeNNSameAspect(gl: WebGL2RenderingContext) {
+    // Same aspect ratio
+    const inShape: [number, number, number] = [4,4,4];
+    const input = tf.tensor3d([
+      [
+        [200, 201, 202, 255], // a
+        [190, 191, 192, 255], // b
+        [180, 181, 182, 255], // c
+        [170, 171, 172, 255], // d
+      ],
+      [
+        [160, 161, 162, 255], // e
+        [150, 151, 152, 255], // f
+        [140, 141, 142, 255], // g
+        [130, 131, 132, 255], // h
+      ],
+      [
+        [120, 121, 122, 255], // i
+        [110, 111, 112, 255], // j
+        [100, 101, 102, 255], // k
+        [90, 91, 92, 255],    // l
+      ],
+      [
+        [80, 81, 82, 255],    // m
+        [70, 71, 72, 255],    // n
+        [60, 61, 62, 255],    // o
+        [50, 51, 52, 255],    // p
+      ]
+    ], inShape, 'int32');
 
-      const expected = tf.tensor3d([
-        [
-          [ 97.98935 ,  77.249695, 113.70112 ]
-        ],
-        [
-          [ 62.25117 ,  90.23927 , 119.196655]
-        ],
-        [
-          [ 92.414085, 118.45619 , 108.03418 ]
-        ]
-      ]);
 
-      const size: [number, number] = [3, 1];
+    const expected = tf.tensor3d([
+      [
+        [200, 201, 202, 255],  // x
+        [180, 181, 182, 255],  // y
+      ],
+      [
+        [120, 121, 122, 255],  // z
+        [100, 101, 102, 255],  // w
+      ]
+    ], [2,2,4], 'int32');
 
-      const tfResult = tf.image.resizeNearestNeighbor(input, size, false);
+    const size: [number, number] = [2, 2];
 
-      // Sanity check
-      const tfresizematch =
-        tf.util.arraysEqual(expected.dataSync(), tfResult.dataSync());
-      if(!tfresizematch) {
-        console.log('tf resize does not have expected result');
-      }
+    //
+    const texture = await toTexture(gl, input);
+    const outTensor = fromTexture(gl, texture,
+      {width: inShape[0], height: inShape[1], depth: inShape[2]},
+      {width: size[0], height: size[1], depth: 4});
 
-      // Test
-      const texture = toTexture(gl, input);
-      const outTensor = fromTexture(gl, texture,
-        {width: 4, height: 4, depth: 3},
-        {width: 3, height: 1, depth: 3});
+    const fromTexResizeMatch = tf.util.arraysEqual(
+      Array.from(expected.dataSync()),
+      Array.from(outTensor.dataSync()));
 
-      const fromTexResizeMatch = tf.util.arraysEqual(
-        Array.from(expected.dataSync()),
-        Array.from(outTensor.dataSync()));
+    if(fromTexResizeMatch) {
+      console.log('**fromTexture resizeNNSameAspect sucess');
+    } else {
+      console.log('ERROR fromTexture resizeNNSameAspect failed');
+      console.log('input');
+      input.print();
+      console.log('expected');
+      expected.print();
+      console.log('outTensor');
+      outTensor.print();
+    }
 
-      if(fromTexResizeMatch) {
-        console.log('ERROR fromTexture resize NN sucess');
-      } else {
-        console.log('ERROR fromTexture resize NN failed');
-        console.log('expected', Array.from(expected.dataSync()));
-        console.log('outTensor', Array.from(outTensor.dataSync()));
-      }
+    tf.dispose([input, expected, outTensor]);
+    return fromTexResizeMatch;
+  }
 
-      return fromTexResizeMatch;
-    });
+  async resizeNNWide(gl: WebGL2RenderingContext) {
+    // Same aspect ratio
+    const inShape: [number, number, number] = [4,4,4];
+    const input = tf.tensor3d([
+      [
+        [200, 201, 202, 255], // a
+        [190, 191, 192, 255], // b
+        [180, 181, 182, 255], // c
+        [170, 171, 172, 255], // d
+      ],
+      [
+        [160, 161, 162, 255], // e
+        [150, 151, 152, 255], // f
+        [140, 141, 142, 255], // g
+        [130, 131, 132, 255], // h
+      ],
+      [
+        [120, 121, 122, 255], // i
+        [110, 111, 112, 255], // j
+        [100, 101, 102, 255], // k
+        [90, 91, 92, 255],    // l
+      ],
+      [
+        [80, 81, 82, 255],    // m
+        [70, 71, 72, 255],    // n
+        [60, 61, 62, 255],    // o
+        [50, 51, 52, 255],    // p
+      ]
+    ], inShape, 'int32');
+
+    const expShape: [number, number, number] = [3, 2, 4];
+    const expected = tf.tensor3d([
+      [
+        [200, 201, 202, 255],
+        [190, 191, 192, 255],
+        [180, 181, 182, 255]
+      ],
+      [
+        [120, 121, 122, 255],
+        [110, 111, 112, 255],
+        [100, 101, 102, 255]
+      ]
+    ], expShape, 'int32');
+
+    //
+    const texture = await toTexture(gl, input);
+    const outTensor = fromTexture(gl, texture,
+      {width: inShape[0], height: inShape[1], depth: inShape[2]},
+      {width: expShape[0], height: expShape[1], depth: expShape[2]});
+
+    const fromTexResizeMatch = tf.util.arraysEqual(
+      Array.from(expected.dataSync()),
+      Array.from(outTensor.dataSync()));
+
+    if(fromTexResizeMatch) {
+      console.log('**fromTexture resizeNNNarrow sucess');
+      outTensor.print();
+    } else {
+      console.log('ERROR fromTexture resizeNNNarrow failed');
+      console.log('input');
+      input.print();
+      console.log('expected');
+      expected.print();
+      console.log('outTensor');
+      outTensor.print();
+    }
+
+    tf.dispose([input, expected, outTensor]);
+    return fromTexResizeMatch;
   }
 
  async onContextCreate(gl: ExpoWebGLRenderingContext) {
     console.log('onContextCreate texture tests');
     await this.roundtrip(gl);
-    // this.resizeNNTest(gl);
+    await this.resizeNNSameAspect(gl);
+    await this.resizeNNWide(gl);
     console.log('------ END onContextCreate texture tests --------');
     // console.log('camera');
     // const ratios = await this.camera!.getSupportedRatiosAsync();

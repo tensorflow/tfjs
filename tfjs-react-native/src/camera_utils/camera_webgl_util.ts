@@ -173,6 +173,8 @@ export function drawTexture(
 export function runResizeProgram(
     gl: WebGL2RenderingContext, inputTexture: WebGLTexture,
     inputDims: Dimensions, outputDims: Dimensions) {
+  console.log('$$$ run resize program, inputdims', inputDims);
+  console.log('$$$ run resize program, outputDims', outputDims);
   const {program, vao, vertices} = getResizeProgram(gl, inputDims, outputDims);
   gl.useProgram(program);
   // Set up geometry
@@ -190,9 +192,9 @@ export function runResizeProgram(
   //
   // Set up output texture.
   //
-  if (resizeTexture == null) {
-    resizeTexture = gl.createTexture();
-  }
+  // if (resizeTexture == null) {
+  resizeTexture = gl.createTexture();
+  // }
   const targetTexture = resizeTexture;
   const targetTextureWidth = outputDims.width;
   const targetTextureHeight = outputDims.height;
@@ -304,11 +306,15 @@ function drawTextureProgram(gl: WebGL2RenderingContext): ProgramObjects {
 function getResizeProgram(
     gl: WebGL2RenderingContext, sourceDims: Dimensions,
     targetDims: Dimensions): ProgramObjects {
-  const cacheKey = `resize_${targetDims.depth}`;
+  const cacheKey =
+      `resize_${sourceDims.width}_${sourceDims.height}_${sourceDims.depth}_${
+          targetDims.width}_${targetDims.height}_${targetDims.depth}`;
+
   if (!programCache.has(cacheKey)) {
     const vertSource = resizeProgramInfo.vertexShaderSource();
-    const fragSource =
-        resizeProgramInfo.fragmentShaderSource(sourceDims, targetDims, false);
+    const alignCorners = false;
+    const fragSource = resizeProgramInfo.fragmentShaderSource(
+        sourceDims, targetDims, alignCorners);
     const vertices = resizeProgramInfo.vertices();
     const texCoords = resizeProgramInfo.texCoords();
     const programObjects =
