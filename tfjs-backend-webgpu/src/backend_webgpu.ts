@@ -24,9 +24,6 @@ import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBac
 // https://github.com/tensorflow/tfjs/issues/2471
 // tslint:disable-next-line: no-imports-from-dist
 import {FusedConv2DConfig} from '@tensorflow/tfjs-core/dist/ops/fused_util';
-// TODO TODO to import computeOptimalWindowSize and other reduce_util function
-// from backend_util, rather than from 'dist'
-import {assertAxesAreInnerMostDims, computeOutAndReduceShapes} from '@tensorflow/tfjs-core/src/ops/axis_util';
 import {computeOptimalWindowSize} from '@tensorflow/tfjs-core/src/ops/reduce_util';
 import {sumOutType} from '@tensorflow/tfjs-core/src/types';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
@@ -843,24 +840,27 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   max(x: Tensor, axes: number[]): Tensor {
-    assertAxesAreInnerMostDims('max', axes, x.rank);
-    const [outShape, reduceShape] = computeOutAndReduceShapes(x.shape, axes);
+    backend_util.assertAxesAreInnerMostDims('max', axes, x.rank);
+    const [outShape, reduceShape] =
+        backend_util.computeOutAndReduceShapes(x.shape, axes);
     const reduceSize = util.sizeFromShape(reduceShape);
     const a2D = x.as2D(-1, reduceSize);
     return this.reduce(a2D, 'max', a2D.dtype).reshape(outShape);
   }
 
   min(x: Tensor, axes: number[]): Tensor {
-    assertAxesAreInnerMostDims('min', axes, x.rank);
-    const [outShape, reduceShape] = computeOutAndReduceShapes(x.shape, axes);
+    backend_util.assertAxesAreInnerMostDims('min', axes, x.rank);
+    const [outShape, reduceShape] =
+        backend_util.computeOutAndReduceShapes(x.shape, axes);
     const reduceSize = util.sizeFromShape(reduceShape);
     const a2D = x.as2D(-1, reduceSize);
     return this.reduce(a2D, 'min', a2D.dtype).reshape(outShape);
   }
 
   sum(x: Tensor, axes: number[]): Tensor {
-    assertAxesAreInnerMostDims('sum', axes, x.rank);
-    const [outShape, reduceShape] = computeOutAndReduceShapes(x.shape, axes);
+    backend_util.assertAxesAreInnerMostDims('sum', axes, x.rank);
+    const [outShape, reduceShape] =
+        backend_util.computeOutAndReduceShapes(x.shape, axes);
     const reduceSize = util.sizeFromShape(reduceShape);
     const a2D = x.as2D(-1, reduceSize);
     const outputDType = sumOutType(x.dtype);

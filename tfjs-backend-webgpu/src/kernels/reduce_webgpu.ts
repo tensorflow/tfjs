@@ -16,6 +16,7 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
+// TODO : use backend_util.reduce_util with the next release of tfjs-core.
 import {ReduceInfo} from '@tensorflow/tfjs-core/src/ops/reduce_util';
 import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
