@@ -32,6 +32,7 @@ interface Size {
 
 interface FromTextureOptions {
   alignCorners?: boolean;
+  interpolation?: 'nearest_neighbor'|'bilinear';
 }
 
 /**
@@ -89,16 +90,19 @@ export function fromTexture(
 
   const alignCorners =
       options.alignCorners != null ? options.alignCorners : false;
+  const interpolation = options.interpolation != null ? options.interpolation :
+                                                        'nearest_neighbor';
   console.log('fromTexture:alignCorners', alignCorners, options);
+  console.log('fromTexture:interpolation', interpolation, options);
 
-  const resizedTexture =
-      runResizeProgram(gl, texture, _sourceDims, targetShape, alignCorners);
+  const resizedTexture = runResizeProgram(
+      gl, texture, _sourceDims, targetShape, alignCorners, interpolation);
   // console.log('resizedTexture', resizedTexture);
   const textureData = downloadTextureData(gl, resizedTexture, _targetShape);
 
   return tf.tensor3d(
       textureData,
-      [_targetShape.width, _targetShape.height, _targetShape.depth], 'int32');
+      [_targetShape.height, _targetShape.width, _targetShape.depth], 'int32');
 }
 
 /**

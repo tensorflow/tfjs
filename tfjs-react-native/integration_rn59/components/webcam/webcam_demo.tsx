@@ -308,11 +308,12 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
       texture,
       {width: inShape[0], height: inShape[1], depth: inShape[2]},
       {width: size[0], height: size[1], depth: 4},
-      {alignCorners});
+      {alignCorners, interpolation: 'nearest_neighbor'});
 
     const fromTexResizeMatch = tf.util.arraysEqual(
-      Array.from(expected.dataSync()),
-      Array.from(outTensor.dataSync()));
+      expected.dataSync(),
+      outTensor.dataSync()) &&
+      tf.util.arraysEqual(expected.shape, outTensor.shape);
 
     if(fromTexResizeMatch) {
       console.log(
@@ -320,11 +321,99 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     } else {
       console.log(
         `ERROR fromTexture resizeNNSameAspect alignCorners=${alignCorners}`);
-      console.log('input');
+      console.log('input', input.shape);
       input.print();
-      console.log('expected');
+      console.log('expected', expected.shape);
       expected.print();
-      console.log('outTensor');
+      console.log('outTensor', outTensor.shape);
+      outTensor.print();
+    }
+
+    tf.dispose([input, expected, outTensor]);
+    return fromTexResizeMatch;
+  }
+
+  async resizeBilinearSameAspect(gl: WebGL2RenderingContext,
+    alignCorners: boolean) {
+    // Same aspect ratio
+    const inShape: [number, number, number] = [4,4,4];
+    const input = tf.tensor3d([
+      [
+        [200, 201, 202, 255], // a
+        [190, 191, 192, 255], // b
+        [180, 181, 182, 255], // c
+        [170, 171, 172, 255], // d
+      ],
+      [
+        [160, 161, 162, 255], // e
+        [150, 151, 152, 255], // f
+        [140, 141, 142, 255], // g
+        [130, 131, 132, 255], // h
+      ],
+      [
+        [120, 121, 122, 255], // i
+        [110, 111, 112, 255], // j
+        [100, 101, 102, 255], // k
+        [90, 91, 92, 255],    // l
+      ],
+      [
+        [80, 81, 82, 255],    // m
+        [70, 71, 72, 255],    // n
+        [60, 61, 62, 255],    // o
+        [50, 51, 52, 255],    // p
+      ]
+    ], inShape, 'int32');
+
+    let expected: tf.Tensor3D;
+    if (alignCorners) {
+      expected = tf.tensor3d([
+        [
+          [200, 201, 202, 255],
+          [170, 171, 172, 255]
+        ],
+        [
+          [ 80,  81,  82, 255],
+          [ 50,  51,  52, 255]
+        ]
+      ], [2,2,4], 'int32');
+    } else {
+      expected = tf.tensor3d([
+        [
+          [200, 201, 202, 255],  // x
+          [180, 181, 182, 255],  // y
+        ],
+        [
+          [120, 121, 122, 255],  // z
+          [100, 101, 102, 255],  // w
+        ]
+      ], [2,2,4], 'int32');
+    }
+
+    const size: [number, number] = [2, 2];
+    const texture = await toTexture(gl, input);
+    const outTensor = fromTexture(
+      gl,
+      texture,
+      {width: inShape[0], height: inShape[1], depth: inShape[2]},
+      {width: size[0], height: size[1], depth: 4},
+      {alignCorners, interpolation: 'bilinear'});
+
+    const fromTexResizeMatch = tf.util.arraysEqual(
+      expected.dataSync(),
+      outTensor.dataSync()) &&
+      tf.util.arraysEqual(expected.shape, outTensor.shape);
+
+    if(fromTexResizeMatch) {
+      console.log(
+        `**fromTexture resizeBilinearSameAspect success alignCorners=${alignCorners}`);
+    } else {
+      console.log(
+        `ERROR fromTexture resizeBilinearSameAspect alignCorners=${alignCorners}`);
+      console.log('input', input.shape);
+      input.print();
+      console.log('expected', expected.shape);
+      expected.print();
+      console.log('outTensor', outTensor.shape);
       outTensor.print();
     }
 
@@ -403,11 +492,12 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
       texture,
       {width: inWidth, height: inHeight, depth: inDepth},
       {width: outWidth, height: outHeight, depth: outDepth},
-      {alignCorners});
+      {alignCorners, interpolation: 'nearest_neighbor'});
 
     const fromTexResizeMatch = tf.util.arraysEqual(
-      Array.from(expected.dataSync()),
-      Array.from(outTensor.dataSync()));
+      expected.dataSync(),
+      outTensor.dataSync()) &&
+      tf.util.arraysEqual(expected.shape, outTensor.shape);
 
     if(fromTexResizeMatch) {
       console.log(
@@ -415,11 +505,106 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     } else {
       console.log(
         `ERROR fromTexture resizeNNNarrow. alignCorners=${alignCorners}`);
-      console.log('input');
+      console.log('input', input.shape);
       input.print();
-      console.log('expected');
+      console.log('expected', expected.shape);
       expected.print();
-      console.log('outTensor');
+      console.log('outTensor', outTensor.shape);
+      outTensor.print();
+    }
+
+    tf.dispose([input, expected, outTensor]);
+    return fromTexResizeMatch;
+  }
+
+  async resizeBilinearWide(gl: WebGL2RenderingContext,
+    alignCorners: boolean) {
+    const inHeight = 4;
+    const inWidth = 4;
+    const inDepth = 4;
+
+    const outHeight = 2;
+    const outWidth = 3;
+    const outDepth = 4;
+
+    const input = tf.tensor3d([
+      [
+        [200, 201, 202, 255], // a
+        [190, 191, 192, 255], // b
+        [180, 181, 182, 255], // c
+        [170, 171, 172, 255], // d
+      ],
+      [
+        [160, 161, 162, 255], // e
+        [150, 151, 152, 255], // f
+        [140, 141, 142, 255], // g
+        [130, 131, 132, 255], // h
+      ],
+      [
+        [120, 121, 122, 255], // i
+        [110, 111, 112, 255], // j
+        [100, 101, 102, 255], // k
+        [90, 91, 92, 255],    // l
+      ],
+      [
+        [80, 81, 82, 255],    // m
+        [70, 71, 72, 255],    // n
+        [60, 61, 62, 255],    // o
+        [50, 51, 52, 255],    // p
+      ]
+    ], [inHeight, inWidth, inDepth], 'int32');
+
+    let expected: tf.Tensor3D;
+    if (alignCorners) {
+      expected = tf.tensor3d([
+        [
+          [200, 201, 202, 255],
+          [185, 186, 187, 255],
+          [170, 171, 172, 255]],
+        [
+          [80 , 81 , 82 , 255],
+          [65 , 66 , 67 , 255],
+          [50 , 51 , 52 , 255]
+        ]
+      ], [outHeight, outWidth, outDepth], 'int32');
+    } else {
+      expected = tf.tensor3d([
+        [
+          [200, 201, 202, 255],
+          [187, 188, 189, 255],
+          [173, 174, 175, 255]],
+        [
+          [120, 121, 122, 255],
+          [107, 108, 109, 255],
+          [93 , 94 , 95 , 255]
+        ]
+      ], [outHeight, outWidth, outDepth], 'int32');
+    }
+
+    const texture = await toTexture(gl, input);
+    const outTensor = fromTexture(
+      gl,
+      texture,
+      {width: inWidth, height: inHeight, depth: inDepth},
+      {width: outWidth, height: outHeight, depth: outDepth},
+      {alignCorners, interpolation: 'bilinear'});
+
+    const fromTexResizeMatch = tf.util.arraysEqual(
+      expected.dataSync(),
+      outTensor.dataSync()) &&
+      tf.util.arraysEqual(expected.shape, outTensor.shape);
+
+    if(fromTexResizeMatch) {
+      console.log(
+        `**fromTexture resizeBilinearWide success alignCorners=${alignCorners}`);
+    } else {
+      console.log(
+        `ERROR fromTexture resizeBilinearWide. alignCorners=${alignCorners}`);
+      console.log('input', input.shape);
+      input.print();
+      console.log('expected', expected.shape);
+      expected.print();
+      console.log('outTensor', outTensor.shape);
       outTensor.print();
     }
 
@@ -434,6 +619,11 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     await this.resizeNNSameAspect(gl, true);
     await this.resizeNNWide(gl, false);
     await this.resizeNNSameAspect(gl, true);
+
+    await this.resizeBilinearSameAspect(gl, false);
+    await this.resizeBilinearSameAspect(gl, true);
+    await this.resizeBilinearWide(gl, false);
+    await this.resizeBilinearWide(gl, true);
     console.log('------ END onContextCreate texture tests --------');
     // console.log('camera');
     // const ratios = await this.camera!.getSupportedRatiosAsync();

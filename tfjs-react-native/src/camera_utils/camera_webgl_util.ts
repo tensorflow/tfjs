@@ -19,7 +19,8 @@ import * as tf from '@tensorflow/tfjs-core';
 
 import * as drawTextureProgramInfo from './draw_texture_program_info';
 import {m4} from './matrix_utils';
-import * as resizeProgramInfo from './resize_nearest_neigbor_program_info';
+import * as resizeBilinearProgramInfo from './resize_bilinear_program_info';
+import * as resizeNNProgramInfo from './resize_nearest_neigbor_program_info';
 
 interface Dimensions {
   width: number;
@@ -172,9 +173,10 @@ export function drawTexture(
 
 export function runResizeProgram(
     gl: WebGL2RenderingContext, inputTexture: WebGLTexture,
-    inputDims: Dimensions, outputDims: Dimensions, alignCorners: boolean) {
+    inputDims: Dimensions, outputDims: Dimensions, alignCorners: boolean,
+    interpolation: 'nearest_neighbor'|'bilinear') {
   const {program, vao, vertices} =
-      getResizeProgram(gl, inputDims, outputDims, alignCorners);
+      getResizeProgram(gl, inputDims, outputDims, alignCorners, interpolation);
   gl.useProgram(program);
   // Set up geometry
   tf.webgl.webgl_util.callAndCheck(gl, true, () => {
@@ -304,17 +306,25 @@ function drawTextureProgram(gl: WebGL2RenderingContext): ProgramObjects {
 
 function getResizeProgram(
     gl: WebGL2RenderingContext, sourceDims: Dimensions, targetDims: Dimensions,
-    alignCorners: boolean): ProgramObjects {
+    alignCorners: boolean,
+    interpolation: 'nearest_neighbor'|'bilinear'): ProgramObjects {
   const cacheKey = `resize_${sourceDims.width}_${sourceDims.height}_${
       sourceDims.depth}_${targetDims.width}_${targetDims.height}_${
-      targetDims.depth}_${alignCorners}`;
+      targetDims.depth}_${alignCorners}_${interpolation}`;
 
   if (!programCache.has(cacheKey)) {
-    const vertSource = resizeProgramInfo.vertexShaderSource();
-    const fragSource = resizeProgramInfo.fragmentShaderSource(
-        sourceDims, targetDims, alignCorners);
-    const vertices = resizeProgramInfo.vertices();
-    const texCoords = resizeProgramInfo.texCoords();
+    const vertSource = resizeNNProgramInfo.vertexShaderSource();
+    let fragSource: string;
+    if (interpolation === 'nearest_neighbor') {
+      fragSource = resizeNNProgramInfo.fragmentShaderSource(
+          sourceDims, targetDims, alignCorners);
+    } else {
+      fragSource = resizeBilinearProgramInfo.fragmentShaderSource(
+          sourceDims, targetDims, alignCorners);
+    }
+
+    const vertices = resizeNNProgramInfo.vertices();
+    const texCoords = resizeNNProgramInfo.texCoords();
     const programObjects =
         createProgramObjects(gl, vertSource, fragSource, vertices, texCoords);
 
@@ -377,7 +387,6 @@ function createProgramObjects(
     gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
     gl.vertexAttribPointer(positionAttrib, 2, gl.FLOAT, false, 0, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    console.log('Done setting VERTS_COORDS info');
   });
 
   const texCoordsAttrib = gl.getAttribLocation(program, 'texCoords');
@@ -393,7 +402,6 @@ function createProgramObjects(
       gl.enableVertexAttribArray(texCoordsAttrib);
       gl.vertexAttribPointer(texCoordsAttrib, 2, gl.FLOAT, false, 0, 0);
       gl.bindBuffer(gl.ARRAY_BUFFER, null);
-      console.log('Done setting TEX_COORDS info');
     });
   }
 
