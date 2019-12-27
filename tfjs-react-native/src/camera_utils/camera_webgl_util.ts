@@ -19,7 +19,7 @@ import * as tf from '@tensorflow/tfjs-core';
 
 import * as drawTextureProgramInfo from './draw_texture_program_info';
 import {m4} from './matrix_utils';
-import * as resizeProgramInfo from './resize_program_info';
+import * as resizeProgramInfo from './resize_nearest_neigbor_program_info';
 
 interface Dimensions {
   width: number;
@@ -172,10 +172,9 @@ export function drawTexture(
 
 export function runResizeProgram(
     gl: WebGL2RenderingContext, inputTexture: WebGLTexture,
-    inputDims: Dimensions, outputDims: Dimensions) {
-  console.log('$$$ run resize program, inputdims', inputDims);
-  console.log('$$$ run resize program, outputDims', outputDims);
-  const {program, vao, vertices} = getResizeProgram(gl, inputDims, outputDims);
+    inputDims: Dimensions, outputDims: Dimensions, alignCorners: boolean) {
+  const {program, vao, vertices} =
+      getResizeProgram(gl, inputDims, outputDims, alignCorners);
   gl.useProgram(program);
   // Set up geometry
   tf.webgl.webgl_util.callAndCheck(gl, true, () => {
@@ -304,15 +303,14 @@ function drawTextureProgram(gl: WebGL2RenderingContext): ProgramObjects {
 }
 
 function getResizeProgram(
-    gl: WebGL2RenderingContext, sourceDims: Dimensions,
-    targetDims: Dimensions): ProgramObjects {
-  const cacheKey =
-      `resize_${sourceDims.width}_${sourceDims.height}_${sourceDims.depth}_${
-          targetDims.width}_${targetDims.height}_${targetDims.depth}`;
+    gl: WebGL2RenderingContext, sourceDims: Dimensions, targetDims: Dimensions,
+    alignCorners: boolean): ProgramObjects {
+  const cacheKey = `resize_${sourceDims.width}_${sourceDims.height}_${
+      sourceDims.depth}_${targetDims.width}_${targetDims.height}_${
+      targetDims.depth}_${alignCorners}`;
 
   if (!programCache.has(cacheKey)) {
     const vertSource = resizeProgramInfo.vertexShaderSource();
-    const alignCorners = false;
     const fragSource = resizeProgramInfo.fragmentShaderSource(
         sourceDims, targetDims, alignCorners);
     const vertices = resizeProgramInfo.vertices();

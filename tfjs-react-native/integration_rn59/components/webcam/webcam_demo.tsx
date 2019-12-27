@@ -246,7 +246,7 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     return matches;
   }
 
-  async resizeNNSameAspect(gl: WebGL2RenderingContext) {
+  async resizeNNSameAspect(gl: WebGL2RenderingContext, alignCorners: boolean) {
     // Same aspect ratio
     const inShape: [number, number, number] = [4,4,4];
     const input = tf.tensor3d([
@@ -276,34 +276,50 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
       ]
     ], inShape, 'int32');
 
-
-    const expected = tf.tensor3d([
-      [
-        [200, 201, 202, 255],  // x
-        [180, 181, 182, 255],  // y
-      ],
-      [
-        [120, 121, 122, 255],  // z
-        [100, 101, 102, 255],  // w
-      ]
-    ], [2,2,4], 'int32');
+    let expected: tf.Tensor3D;
+    if (alignCorners) {
+      expected = tf.tensor3d([
+        [
+          [200, 201, 202, 255],
+          [170, 171, 172, 255]
+        ],
+        [
+          [ 80,  81,  82, 255],
+          [ 50,  51,  52, 255]
+        ]
+      ], [2,2,4], 'int32');
+    } else {
+      expected = tf.tensor3d([
+        [
+          [200, 201, 202, 255],  // x
+          [180, 181, 182, 255],  // y
+        ],
+        [
+          [120, 121, 122, 255],  // z
+          [100, 101, 102, 255],  // w
+        ]
+      ], [2,2,4], 'int32');
+    }
 
     const size: [number, number] = [2, 2];
-
-    //
     const texture = await toTexture(gl, input);
-    const outTensor = fromTexture(gl, texture,
+    const outTensor = fromTexture(
+      gl,
+      texture,
       {width: inShape[0], height: inShape[1], depth: inShape[2]},
-      {width: size[0], height: size[1], depth: 4});
+      {width: size[0], height: size[1], depth: 4},
+      {alignCorners});
 
     const fromTexResizeMatch = tf.util.arraysEqual(
       Array.from(expected.dataSync()),
       Array.from(outTensor.dataSync()));
 
     if(fromTexResizeMatch) {
-      console.log('**fromTexture resizeNNSameAspect sucess');
+      console.log(
+        `**fromTexture resizeNNSameAspect success alignCorners=${alignCorners}`);
     } else {
-      console.log('ERROR fromTexture resizeNNSameAspect failed');
+      console.log(
+        `ERROR fromTexture resizeNNSameAspect alignCorners=${alignCorners}`);
       console.log('input');
       input.print();
       console.log('expected');
@@ -316,9 +332,15 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     return fromTexResizeMatch;
   }
 
-  async resizeNNWide(gl: WebGL2RenderingContext) {
-    // Same aspect ratio
-    const inShape: [number, number, number] = [4,4,4];
+  async resizeNNWide(gl: WebGL2RenderingContext, alignCorners: boolean) {
+    const inHeight = 4;
+    const inWidth = 4;
+    const inDepth = 4;
+
+    const outHeight = 2;
+    const outWidth = 3;
+    const outDepth = 4;
+
     const input = tf.tensor3d([
       [
         [200, 201, 202, 255], // a
@@ -344,37 +366,55 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
         [60, 61, 62, 255],    // o
         [50, 51, 52, 255],    // p
       ]
-    ], inShape, 'int32');
+    ], [inHeight, inWidth, inDepth], 'int32');
 
-    const expShape: [number, number, number] = [3, 2, 4];
-    const expected = tf.tensor3d([
-      [
-        [200, 201, 202, 255],
-        [190, 191, 192, 255],
-        [180, 181, 182, 255]
-      ],
-      [
-        [120, 121, 122, 255],
-        [110, 111, 112, 255],
-        [100, 101, 102, 255]
-      ]
-    ], expShape, 'int32');
+    let expected: tf.Tensor3D;
+    if (alignCorners) {
+      expected = tf.tensor3d([
+        [
+          [200, 201, 202, 255],
+          [180, 181, 182, 255],
+          [170, 171, 172, 255]],
 
-    //
+        [
+          [ 80,  81,  82, 255],
+          [ 60,  61,  62, 255],
+          [ 50,  51,  52, 255]
+        ]
+      ], [outHeight, outWidth, outDepth], 'int32');
+    } else {
+      expected = tf.tensor3d([
+        [
+          [200, 201, 202, 255],
+          [190, 191, 192, 255],
+          [180, 181, 182, 255]
+        ],
+        [
+          [120, 121, 122, 255],
+          [110, 111, 112, 255],
+          [100, 101, 102, 255]
+        ]
+      ], [outHeight, outWidth, outDepth], 'int32');
+    }
+
     const texture = await toTexture(gl, input);
-    const outTensor = fromTexture(gl, texture,
-      {width: inShape[0], height: inShape[1], depth: inShape[2]},
-      {width: expShape[0], height: expShape[1], depth: expShape[2]});
+    const outTensor = fromTexture(
+      gl,
+      texture,
+      {width: inWidth, height: inHeight, depth: inDepth},
+      {width: outWidth, height: outHeight, depth: outDepth},
+      {alignCorners});
 
     const fromTexResizeMatch = tf.util.arraysEqual(
       Array.from(expected.dataSync()),
       Array.from(outTensor.dataSync()));
 
     if(fromTexResizeMatch) {
-      console.log('**fromTexture resizeNNNarrow sucess');
-      outTensor.print();
+      console.log(
+        `**fromTexture resizeNNNarrow success alignCorners=${alignCorners}`);
     } else {
-      console.log('ERROR fromTexture resizeNNNarrow failed');
+      console.log(
+        `ERROR fromTexture resizeNNNarrow. alignCorners=${alignCorners}`);
       console.log('input');
       input.print();
       console.log('expected');
@@ -390,8 +430,10 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
  async onContextCreate(gl: ExpoWebGLRenderingContext) {
     console.log('onContextCreate texture tests');
     await this.roundtrip(gl);
-    await this.resizeNNSameAspect(gl);
-    await this.resizeNNWide(gl);
+    await this.resizeNNSameAspect(gl, false);
+    await this.resizeNNSameAspect(gl, true);
+    await this.resizeNNWide(gl, false);
+    await this.resizeNNSameAspect(gl, true);
     console.log('------ END onContextCreate texture tests --------');
     // console.log('camera');
     // const ratios = await this.camera!.getSupportedRatiosAsync();

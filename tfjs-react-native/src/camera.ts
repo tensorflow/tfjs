@@ -17,9 +17,6 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 
-// import {downloadTextureData, getPassthroughProgram, runResizeProgram,
-// uploadTextureData} from './camera_webgl_util';
-//@ts-ignore
 import {downloadTextureData, drawTexture, runResizeProgram, uploadTextureData} from './camera_utils/camera_webgl_util';
 
 interface Dimensions {
@@ -31,6 +28,10 @@ interface Dimensions {
 interface Size {
   width: number;
   height: number;
+}
+
+interface FromTextureOptions {
+  alignCorners?: boolean;
 }
 
 /**
@@ -69,12 +70,11 @@ export async function toTexture(
  */
 export function fromTexture(
     gl: WebGL2RenderingContext, texture: WebGLTexture, sourceDims: Dimensions,
-    targetShape: Dimensions): tf.Tensor3D {
+    targetShape: Dimensions, options: FromTextureOptions = {}): tf.Tensor3D {
   tf.util.assert(
       targetShape.depth === 3 || targetShape.depth === 4,
       () => 'fromTexture Error: target depth must be 3 or 4');
 
-  //@ts-ignore
   const _sourceDims = {
     width: Math.floor(sourceDims.width),
     height: Math.floor(sourceDims.height),
@@ -87,8 +87,12 @@ export function fromTexture(
     depth: targetShape.depth
   };
 
+  const alignCorners =
+      options.alignCorners != null ? options.alignCorners : false;
+  console.log('fromTexture:alignCorners', alignCorners, options);
+
   const resizedTexture =
-      runResizeProgram(gl, texture, _sourceDims, targetShape);
+      runResizeProgram(gl, texture, _sourceDims, targetShape, alignCorners);
   // console.log('resizedTexture', resizedTexture);
   const textureData = downloadTextureData(gl, resizedTexture, _targetShape);
 

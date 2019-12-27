@@ -40,14 +40,9 @@ void main() {
 
 export function fragmentShaderSource(
     sourceDims: Dimensions, targetDims: Dimensions, alignCorners: boolean) {
-  const outputFragType = targetDims.depth === 3 ? 'vec3' : 'vec4';
-  const outputFragColor = targetDims.depth === 3 ?
-      'vec3(texSample.r,texSample.g,texSample.b)' :
-      'texSample';
-
-  const sWidth = sourceDims.height;
+  const sWidth = sourceDims.width;
   const sHeight = sourceDims.height;
-  const tWidth = targetDims.height;
+  const tWidth = targetDims.width;
   const tHeight = targetDims.height;
 
   const effectiveInSize: [number, number] = [
@@ -60,49 +55,41 @@ export function fragmentShaderSource(
     (alignCorners && tHeight > 1) ? tHeight - 1 : tHeight,
   ];
 
-  console.log('sounceDims', sourceDims);
   const roundBase = alignCorners ? '0.5' : '0.0';
-  const mainFunc =
-      getResizeNearestNeighborMain(targetDims, roundBase, outputFragColor);
+
+  const outputFragType = targetDims.depth === 3 ? 'vec3' : 'vec4';
+  const outputFragColor = targetDims.depth === 3 ?
+      'vec3(texSample.r,texSample.g,texSample.b)' :
+      'texSample';
 
   const source = `#version 300 es
 precision highp float;
-precision highp int;
 
 uniform sampler2D inputTexture;
 in vec2 uv;
 out ${outputFragType} fragColor;
 
-vec2 effectiveInputOverOutputRatioRC = vec2(
-          ${effectiveInSize[0] / effectiveOutSize[0]},
-          ${effectiveInSize[1] / effectiveOutSize[1]});
-vec2 inputShapeRC = vec2(${sourceDims.width}.0, ${sourceDims.height}.0);
-${mainFunc}
+vec2 sourceDims = vec2(${sWidth}, ${sHeight});
+vec2 targetDims = vec2(${tWidth}, ${tHeight});
+
+const vec2 inputToOutputRatio = vec2(
+    ${effectiveInSize[0] / effectiveOutSize[0]},
+    ${effectiveInSize[1] / effectiveOutSize[1]});
+
+void main() {
+  ivec2 targetCoords = ivec2(uv * targetDims);
+
+  vec2 sourceCoords = vec2(targetCoords) * inputToOutputRatio;
+  ivec2 iSourceCoords = ivec2(min(
+    sourceDims - 1.0,
+    floor(sourceCoords + ${roundBase})));
+
+  vec4 texSample = texelFetch(inputTexture, iSourceCoords, 0);
+  fragColor = ${outputFragColor};
+}
 `;
 
   return source;
-}
-
-function getResizeNearestNeighborMain(
-    targetDims: Dimensions, roundBase: string, outputFragColor: string) {
-  const tWidth = targetDims.width;
-  const tHeight = targetDims.height;
-
-  console.log('getnnmain', tWidth, tHeight);
-  return `
-void main() {
-  vec2 targetDims = vec2(float(${tWidth}), float(${tHeight}));
-
-  ivec2 targetCoords = ivec2(uv * targetDims);
-
-  vec2 sourceLoc = (vec2(targetCoords) / targetDims) * inputShapeRC;
-  ivec2 finalSamplePos = ivec2(min(
-    inputShapeRC - 1.0,
-    floor(sourceLoc + ${roundBase})));
-
-  vec4 texSample = texelFetch(inputTexture, finalSamplePos, 0);
-  fragColor = ${outputFragColor};
-}`;
 }
 
 export function vertices() {
