@@ -64,6 +64,13 @@ export function computeWorkGroupSizeForConv2d(
   const dim0 = arrayProduct(layout.x.map(d => outputShape[d]));
   const dim1 = arrayProduct(layout.y.map(d => outputShape[d]));
   // TODO(jiajia.qin@intel.com): More fine tune based on outputShape.
+  // These are experimental values. Usually, we need to adjust the work group
+  // size based on the output shape. For example, when one dimension is smaller
+  // than 4, it will be wasteful if we assign a larger size for this dimension,
+  // which results lots of threads doing useless work and reduces parallelism
+  // of hardware threads. But it is always a balance between work group size
+  // and shared memory. If one dimension is too small, such as 1, shared memory
+  // will won't be fully utilized.
   if (dim0 <= 4) {
     return [4, 16, 1];
   }
@@ -80,6 +87,8 @@ export function computeWorkPerThreadForConv2d(
   const dim0 = arrayProduct(layout.x.map(d => outputShape[d]));
   const dim1 = arrayProduct(layout.y.map(d => outputShape[d]));
   // TODO(jiajia.qin@intel.com): More fine tune based on outputShape.
+  // The following conditions correspond to the values set in
+  // computeWorkGroupSizeForConv2d.
   if (dim0 <= 4) {
     return [1, 2, 1];
   }
