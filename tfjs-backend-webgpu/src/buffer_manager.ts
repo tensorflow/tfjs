@@ -93,7 +93,7 @@ export class BufferManager {
   }
 
   dispose() {
-    if (this.freeBuffers == null && this.usedBuffers) {
+    if (this.freeBuffers == null && this.usedBuffers == null) {
       return;
     }
 
