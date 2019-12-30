@@ -18,7 +18,7 @@
 import * as tf from '@tensorflow/tfjs-core';
 
 import * as drawTextureProgramInfo from './draw_texture_program_info';
-import {m4} from './matrix_utils';
+// import {m4} from './matrix_utils';
 import * as resizeBilinearProgramInfo from './resize_bilinear_program_info';
 import * as resizeNNProgramInfo from './resize_nearest_neigbor_program_info';
 
@@ -136,11 +136,11 @@ export function uploadTextureData(
  * WIP Render a texture to the default framebuffer (i.e. screen)
  * @param gl WebGL context to use
  * @param texture texture to render
- * @param textureSize texture size
+ * @param dims texture size
  */
 export function drawTexture(
     gl: WebGL2RenderingContext, texture: WebGLTexture,
-    textureSize: {width: number, height: number}) {
+    dims: {width: number, height: number}) {
   const {program, vao, vertices} = drawTextureProgram(gl);
   gl.useProgram(program);
   gl.bindVertexArray(vao);
@@ -151,17 +151,18 @@ export function drawTexture(
   gl.activeTexture(gl.TEXTURE0 + TEXTURE_UNIT);
   gl.bindTexture(gl.TEXTURE_2D, texture);
 
-  let matrix = m4.orthographic(
-      0, gl.drawingBufferWidth, gl.drawingBufferHeight, 0, -1, 1);
-  matrix = m4.translate(matrix, 0, 0, 0);
-  matrix = m4.scale(matrix, textureSize.width, textureSize.height, 1);
+  // let matrix = m4.orthographic(
+  //     0, gl.drawingBufferWidth, gl.drawingBufferHeight, 0, -1, 1);
+  // matrix = m4.translate(matrix, 0, 0, 0);
+  // matrix = m4.scale(matrix, dims.width, dims.height, 1);
 
-  // console.log('matrix', matrix);
-  gl.uniformMatrix4fv(
-      gl.getUniformLocation(program, 'u_matrix'), false, matrix);
+  // // console.log('matrix', matrix);
+  // gl.uniformMatrix4fv(
+  //     gl.getUniformLocation(program, 'u_matrix'), false, matrix);
 
   // Draw to screen
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.viewport(0, 0, dims.width, dims.height);
   gl.clearColor(1, 1, 0, 1);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 2);

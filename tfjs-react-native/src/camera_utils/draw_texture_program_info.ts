@@ -26,7 +26,7 @@ in vec2 texCoords;
 out vec2 uv;
 
 void main() {
-  gl_Position = vec4(u_matrix * vec4(position, 0, 1));
+  gl_Position = vec4(position, 0, 1);
   uv = texCoords;
 }`;
 }
@@ -46,15 +46,41 @@ void main() {
 }`;
 }
 
+// export function vertices() {
+//   return new Float32Array([
+//     // clang-format off
+//     0, 0,
+//     0, 1,
+//     1, 0,
+//     1, 0,
+//     0, 1,
+//     1, 1,
+//     // clang-format on
+//   ]);
+// }
+
+// export function texCoords() {
+//   return new Float32Array([
+//     // clang-format off
+//     0, 0,
+//     0, 1,
+//     1, 0,
+//     1, 0,
+//     0, 1,
+//     1, 1,
+//     // clang-format on
+//   ]);
+// }
+
 export function vertices() {
   return new Float32Array([
     // clang-format off
-    0, 0,
-    0, 1,
-    1, 0,
-    1, 0,
-    0, 1,
+    -1, -1,
+    -1, 1,
     1, 1,
+    1, 1,
+    -1, -1,
+    1, -1,
     // clang-format on
   ]);
 }
@@ -64,10 +90,10 @@ export function texCoords() {
     // clang-format off
     0, 0,
     0, 1,
-    1, 0,
-    1, 0,
-    0, 1,
     1, 1,
+    1, 1,
+    0, 0,
+    1, 0,
     // clang-format on
   ]);
 }

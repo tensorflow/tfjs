@@ -23,8 +23,10 @@ import {StyleTranfer} from './style_transfer';
 import {base64ImageToTensor, tensorToImageUrl, resizeImage, toDataUri} from './image_utils';
 import * as tf from '@tensorflow/tfjs';
 import { GLView, ExpoWebGLRenderingContext } from 'expo-gl';
-import {fromTexture, toTexture, renderToGLView} from '@tensorflow/tfjs-react-native';
+import {fromTexture, toTexture, renderToGLView, decodeJpeg, fetch} from '@tensorflow/tfjs-react-native';
 import { Dimensions,PixelRatio, LayoutChangeEvent } from 'react-native';
+
+
 
 interface ScreenProps {
   returnToMain: () => void;
@@ -625,83 +627,92 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     await this.resizeBilinearWide(gl, false);
     await this.resizeBilinearWide(gl, true);
     console.log('------ END onContextCreate texture tests --------');
-    // console.log('camera');
-    // const ratios = await this.camera!.getSupportedRatiosAsync();
-    // console.log('ratios', ratios);
-    // const picSizes = await this.camera!.getAvailablePictureSizesAsync('4:3');
-    // console.log('picSizes', picSizes);
-    // const picSizes2 = await this.camera!.getAvailablePictureSizesAsync('16:9');
-    // console.log('picSizes2', picSizes2);
+
+
+    const ratios = await this.camera!.getSupportedRatiosAsync();
+    console.log('Supported aspect ratios', ratios);
+    const picSizes = await this.camera!.getAvailablePictureSizesAsync('4:3');
+    console.log('Available picSizes 4:3', picSizes);
+    const picSizes2 = await this.camera!.getAvailablePictureSizesAsync('16:9');
+    console.log('Available picSizes 16:9', picSizes2);
 
     // this.texture = await this.createCameraTexture();
     // const cameraTexture = this.texture;
-    // console.log('cameratexture', cameraTexture);
+    const pixelRatio = PixelRatio.get();
 
-    // const pixelRatio = PixelRatio.get();
-    // const screenWidth = Math.round(Dimensions.get('window').width);
-    // const screenHeight = Math.round(Dimensions.get('window').height);
+    let width = Math.floor(cameraPreviewWidth * pixelRatio);
+    let height = Math.floor(cameraPreviewHeight * pixelRatio);
+    const depth = 4;
 
-    // const width = Math.floor(cameraPreviewWidth * pixelRatio);
-    // const height = Math.floor(cameraPreviewHeight * pixelRatio);
-    // const depth = 4;
+    // 4032x3024
+    // width = Math.floor(3024);
+    // height = Math.floor(4032);
 
-    // console.log('onContextCreate.screenWidth:screenHeight',
-    //   screenWidth, screenHeight);
-    // console.log('onContextCreate.pixelRatio', pixelRatio);
-    // console.log('onContextCreate.w:h:d', width, height, depth);
-    // console.log('onContextCreate.gl dims',
-    //   gl.drawingBufferWidth, gl.drawingBufferHeight);
-    // console.log('onContextCreate.gl viewport', gl.getParameter(gl.VIEWPORT));
+    console.log('onContextCreate.pixelRatio', pixelRatio);
+    console.log('onContextCreate.w:h:d', width, height, depth);
+    console.log('onContextCreate.gl dims',
+      gl.drawingBufferWidth, gl.drawingBufferHeight);
+    console.log('onContextCreate.gl viewport', gl.getParameter(gl.VIEWPORT));
 
-    // const targetWidth = width / 2;
-    // const targetHeight = height / 2;
-    // const targetDepth = depth;
+    const targetWidth = width / 4;
+    const targetHeight = height/ 4;
+    const targetDepth = depth;
 
-    // // const renderT = gl.createTexture();
-    // // Render loop
-    // let start;
-    // let end;
-    // const loop = async () => {
+    const image = require('../../assets/images/catsmall.jpg');
+    const imageAssetPath = Image.resolveAssetSource(image);
+    const response = await fetch(imageAssetPath.uri, {}, { isBinary: true });
+    const rawImageData = await response.arrayBuffer();
 
-    //   // this._rafID = requestAnimationFrame(loop);
-    //   gl.viewport(0, 0, width, height);
-    //   start = Date.now();
-    //   const res = fromTexture(
-    //     gl,
-    //     cameraTexture,
-    //     // Source
-    //     {width, height, depth},
-    //     // Target
-    //     {width: targetWidth, height: targetHeight, depth: targetDepth},
-    //   );
-    //   // console.log('from rexture res', res.shape);
-    //   end = Date.now();
-    //   // console.log('fromTexture:time', end - start);
+    const imageTensor = decodeJpeg(new Uint8Array(rawImageData), 3);
+    const imageTensor4d = imageTensor.pad([[0,0],[0,0],[0,1]], 255);
+    console.log('imagetensorshape', imageTensor.shape);
+    console.log('imagetensordata', Array.from(imageTensor.dataSync().slice(0, 10)));
+    console.log('imageTensor4d shape', imageTensor4d.shape);
+    console.log('imageTensor4d', Array.from(imageTensor4d.dataSync().slice(0, 10)));
 
-    //   start = Date.now();
-    //   const newT = await toTexture(gl, res);
-    //   end = Date.now();
-    //   // console.log('toTexture:time', end - start);
+    // Render loop
+    let start;
+    let end;
+    const loop = async () => {
+      // this._rafID = requestAnimationFrame(loop);
+      // gl.viewport(0, 0, width, height);
+      // start = Date.now();
+      // const resizedCamTensor = fromTexture(
+      //   gl,
+      //   cameraTexture,
+      //   // Source
+      //   {width, height, depth},
+      //   // Target
+      //   {width: targetWidth, height: targetHeight, depth: targetDepth},
+      //   {alignCorners: false},
+      // );
+      // console.log('from rexture res', resizedCamTensor.shape);
+      // // console.log('from rexture res data', Array.from(resizedCamTensor.dataSync().slice(0, 100)));
+      // end = Date.now();
+      // // console.log('fromTexture:time', end - start);
 
-    //   // const roundTrip = fromTexture(gl, newT, {x, y, width, height, depth});
-    //   // const nonMatchingCount = (await res.notEqual(roundTrip).data())[0];
-    //   // if(nonMatchingCount !== 0) {
-    //   //   console.log('roundtrip failed');
-    //   // }
+      // start = Date.now();
+      // const resizedCamTexture = await toTexture(gl, resizedCamTensor);
+      // end = Date.now();
+      // console.log('toTexture:time', end - start);
 
-    //   res.dispose();
-    //   // gl.viewport(0,0, width, height);
-    //    // THIS IS KEY AND CONTROLS THE MAPPING TO PIXEL SPACE
-    //   gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-    //   renderToGLView(gl, newT, {
-    //     width: gl.drawingBufferWidth, height: gl.drawingBufferHeight
-    //   });
-    //   gl.endFrameEXP();
-    // };
 
-    // setInterval(() => {
-    //   loop();
-    // }, 800);
+
+      // resizedCamTensor.dispose();
+
+      const catTexture = await toTexture(gl, imageTensor4d);
+      // gl.viewport(0,0, width, height);
+       // THIS IS KEY AND CONTROLS THE MAPPING TO PIXEL SPACE
+      // gl.viewport(0, 0, width, height);
+      renderToGLView(gl, catTexture, {
+        width, height
+      });
+      gl.endFrameEXP();
+    };
+
+    setInterval(() => {
+      loop();
+    }, 800);
 
   }
 

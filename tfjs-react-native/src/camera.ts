@@ -50,8 +50,8 @@ export async function toTexture(
   const dims = {
     x: 0,
     y: 0,
-    width: imageTensor.shape[0],
-    height: imageTensor.shape[1],
+    height: imageTensor.shape[0],
+    width: imageTensor.shape[1],
     depth: imageTensor.shape[2],
   };
   return uploadTextureData(imageData, gl, dims, texture);
@@ -77,14 +77,14 @@ export function fromTexture(
       () => 'fromTexture Error: target depth must be 3 or 4');
 
   const _sourceDims = {
-    width: Math.floor(sourceDims.width),
     height: Math.floor(sourceDims.height),
+    width: Math.floor(sourceDims.width),
     depth: sourceDims.depth,
   };
 
   const _targetShape = {
-    width: Math.floor(targetShape.width),
     height: Math.floor(targetShape.height),
+    width: Math.floor(targetShape.width),
     depth: targetShape.depth
   };
 
@@ -117,7 +117,7 @@ export function renderToGLView(
     gl: WebGL2RenderingContext, texture: WebGLTexture, size: Size) {
   const _size = {
     width: Math.floor(size.width),
-    height: Math.floor(size.width),
+    height: Math.floor(size.height),
   };
   drawTexture(gl, texture, _size);
 }
