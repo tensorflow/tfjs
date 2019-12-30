@@ -30,7 +30,6 @@ export * from '../ops/broadcast_util';
 export * from '../ops/concat_util';
 export * from '../ops/conv_util';
 export {Activation, FusedConv2DConfig} from '../ops/fused_util';
-// TODO : use backend_util.reduce_util with the next release of tfjs-core.
 export * from '../ops/reduce_util';
 export {BackendValues, TypedArray, upcastType, PixelData} from '../types';
 export {MemoryInfo, TimingInfo} from '../engine';
