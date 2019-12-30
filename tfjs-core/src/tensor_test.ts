@@ -1529,6 +1529,14 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const a = tf.ones([2, 2], 'complex64');
     expectArraysClose(await a.data(), [1, 0, 1, 0, 1, 0, 1, 0]);
   });
+
+  it('can create a tensor where values.size != buffer.size', async () => {
+    const a = new Float32Array([1, 2, 3, 4, 5]);
+    const b = a.subarray(0, 2);
+    const t = tf.tensor1d(b);
+    expect(t.shape).toEqual([2]);
+    expectArraysClose(await t.data(), [1, 2]);
+  });
 });
 
 describeWithFlags('tensor debug mode', ALL_ENVS, () => {

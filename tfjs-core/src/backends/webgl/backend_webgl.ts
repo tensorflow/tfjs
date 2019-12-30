@@ -45,7 +45,7 @@ import {getArrayFromDType, getTypedArrayFromDType, inferDtype, sizeFromShape} fr
 import {DataStorage, EPSILON_FLOAT16, EPSILON_FLOAT32, KernelBackend} from '../backend';
 import * as backend_util from '../backend_util';
 import {mergeRealAndImagArrays} from '../complex_util';
-import {nonMaxSuppressionImpl} from '../non_max_suppression_impl';
+import {nonMaxSuppressionV3} from '../non_max_suppression_impl';
 import {split} from '../split_shared';
 import {tile} from '../tile_impl';
 import {topkImpl} from '../topk_impl';
@@ -155,7 +155,7 @@ export interface WebGLTimingInfo extends TimingInfo {
 
 const binaryCaches: {[webGLVersion: string]: {[key: string]: GPGPUBinary}} = {};
 
-function getBinaryCache(webGLVersion: number) {
+export function getBinaryCache(webGLVersion: number) {
   if (webGLVersion in binaryCaches) {
     return binaryCaches[webGLVersion];
   }
@@ -2244,16 +2244,14 @@ export class MathBackendWebGL extends KernelBackend {
 
   nonMaxSuppression(
       boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
-      iouThreshold: number, scoreThreshold: number,
-      softNmsSigma: number): Tensor1D {
+      iouThreshold: number, scoreThreshold: number): Tensor1D {
     warn(
         'tf.nonMaxSuppression() in webgl locks the UI thread. ' +
         'Call tf.nonMaxSuppressionAsync() instead');
     const boxesVals = boxes.dataSync();
     const scoresVals = scores.dataSync();
-    return nonMaxSuppressionImpl(
-        boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold,
-        softNmsSigma);
+    return nonMaxSuppressionV3(
+        boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   }
 
   cropAndResize(
@@ -2628,6 +2626,15 @@ export class MathBackendWebGL extends KernelBackend {
   dispose() {
     if (this.disposed) {
       return;
+    }
+    // Avoid disposing the compiled webgl programs during unit testing because
+    // it slows down test execution.
+    if (!env().getBool('IS_TEST')) {
+      const allKeys = Object.keys(this.binaryCache);
+      allKeys.forEach(key => {
+        this.gpgpu.deleteProgram(this.binaryCache[key].webGLProgram);
+        delete this.binaryCache[key];
+      });
     }
     this.textureManager.dispose();
     if (this.canvas != null &&

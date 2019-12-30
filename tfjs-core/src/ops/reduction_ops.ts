@@ -120,12 +120,6 @@ function sum_<T extends Tensor>(
       permutedX = x.transpose(permutation);
       reductionAxes = axis_util.getInnerMostAxes(reductionAxes.length, x.rank);
     }
-    let value = ENGINE.runKernelFunc(
-        backend => backend.sum(permutedX, reductionAxes), {permutedX});
-    if (keepDims) {
-      const newShape = axis_util.expandShapeToKeepDim(value.shape, axes);
-      value = value.reshape(newShape);
-    }
 
     const gradFunc = (dy: Tensor) => {
       const expandedDyShape = x.shape.slice();
@@ -136,6 +130,21 @@ function sum_<T extends Tensor>(
       const derX = expandedDy.mul(ones(x.shape, 'float32'));
       return derX;
     };
+
+    const gradInputs = (dy: Tensor) => {
+      return {x: () => gradFunc(dy)};
+    };
+
+    const attrs = {axes: reductionAxes};
+    let value = ENGINE.runKernelFunc(
+        backend => backend.sum(permutedX, reductionAxes), {x: permutedX},
+        gradInputs, 'Sum', attrs);
+
+    if (keepDims) {
+      const newShape = axis_util.expandShapeToKeepDim(value.shape, axes);
+      value = value.reshape(newShape);
+    }
+
     return {value, gradFunc};
   });
 

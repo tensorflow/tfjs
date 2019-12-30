@@ -21,7 +21,7 @@ import {describeWithFlags} from '../../jasmine_util';
 import {expectArraysClose, expectArraysEqual} from '../../test_util';
 import {decodeString} from '../../util';
 
-import {MathBackendWebGL, WebGLMemoryInfo} from './backend_webgl';
+import {getBinaryCache, MathBackendWebGL, WebGLMemoryInfo} from './backend_webgl';
 import {WEBGL_ENVS} from './backend_webgl_test_registry';
 
 function decodeStrings(bytes: Uint8Array[]): string[] {
@@ -220,6 +220,74 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
         backend.readSync(t.dataId) as Float32Array,
         new Float32Array([1, 2, 3]));
     expect(texManager.getNumUsedTextures()).toBe(0);
+  });
+});
+
+describeWithFlags('Webgl backend disposal', WEBGL_ENVS, () => {
+  it('register and dispose a backend outside unit test', () => {
+    // Simulate outside unit test environment.
+    tf.ENV.set('IS_TEST', false);
+
+    const backend = new MathBackendWebGL();
+    tf.registerBackend('test-disposal', () => backend);
+    tf.setBackend('test-disposal');
+    // Compile and run a program.
+    tf.zeros([1000]).sqrt().dataSync();
+
+    // Dispose the backend.
+    tf.backend().dispose();
+
+    // Make sure the cache is empty.
+    const cache = getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION'));
+    expect(Object.keys(cache).length).toBe(0);
+    tf.removeBackend('test-disposal');
+  });
+
+  it('register and dispose a backend inside unit test', () => {
+    // Simulate inside unit test environment.
+    tf.ENV.set('IS_TEST', true);
+
+    const backend = new MathBackendWebGL();
+    tf.registerBackend('test-disposal', () => backend);
+    tf.setBackend('test-disposal');
+    // Compile and run a program.
+    tf.zeros([1000]).sqrt().dataSync();
+
+    // Dispose the backend.
+    tf.backend().dispose();
+
+    // Make sure the cache is NOT empty.
+    const cache = getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION'));
+    expect(Object.keys(cache).length).toBeGreaterThan(0);
+    tf.removeBackend('test-disposal');
+  });
+
+  it('register, dispose and re-register a backend outside unit test', () => {
+    // Simulate outside unit test environment.
+    tf.ENV.set('IS_TEST', false);
+
+    tf.registerBackend('test-disposal', () => new MathBackendWebGL());
+    tf.setBackend('test-disposal');
+    // Compile and run a program.
+    tf.zeros([1000]).sqrt().dataSync();
+
+    // Dispose the backend.
+    tf.backend().dispose();
+    tf.removeBackend('test-disposal');
+
+    // Re-register a backend.
+    tf.registerBackend('test-disposal', () => new MathBackendWebGL());
+    tf.setBackend('test-disposal');
+    // Compile and run a program.
+    tf.zeros([1000]).sqrt().dataSync();
+
+    // Dispose the 2nd backend.
+    tf.backend().dispose();
+
+    // Make sure the cache is empty.
+    const cache = getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION'));
+    expect(Object.keys(cache).length).toBe(0);
+    tf.removeBackend('test-disposal');
   });
 });
 

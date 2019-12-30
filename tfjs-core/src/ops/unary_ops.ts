@@ -266,13 +266,17 @@ function log_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => dy.div($x.toFloat())} as {$x: () => T};
+    return {x: () => dy.div($x.toFloat())} as {x: () => T};
   };
+
+  const attrs = {};
+  const inputsToSave = [$x];
+
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.log($x);
     save([$x]);
     return res;
-  }, {$x}, grad);
+  }, {x: $x}, grad, 'Log', attrs, inputsToSave);
 }
 
 /**
@@ -343,13 +347,14 @@ function rsqrt_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => dy.div($x.pow(1.5).mul(2)).neg() as T};
+    return {x: () => dy.div($x.pow(1.5).mul(2)).neg() as T};
   };
+  const inputsToSave = [$x];
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.rsqrt($x);
     save([$x]);
     return res;
-  }, {$x}, grad);
+  }, {x: $x}, grad, 'Rsqrt', {} /* attrs */, inputsToSave);
 }
 
 /**
@@ -537,13 +542,14 @@ function sin_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => $x.toFloat().cos().mul(dy)} as {$x: () => T};
+    return {x: () => $x.toFloat().cos().mul(dy)} as {x: () => T};
   };
+  const inputsToSave = [$x];
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.sin($x);
     save([$x]);
     return res;
-  }, {$x}, grad);
+  }, {x: $x}, grad, 'Sin', {} /* attrs */, inputsToSave);
 }
 
 /**
@@ -562,13 +568,14 @@ function cos_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => $x.toFloat().sin().neg().mul(dy)} as {$x: () => T};
+    return {x: () => $x.toFloat().sin().neg().mul(dy)} as {x: () => T};
   };
+  const inputsToSave = [$x];
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.cos($x);
     save([$x]);
     return res;
-  }, {$x}, grad);
+  }, {x: $x}, grad, 'Cos', {} /* attrs */, inputsToSave);
 }
 
 /**
@@ -742,13 +749,17 @@ function tanh_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [y] = saved;
-    return {$x: () => scalar(1).sub(y.square()).mulStrict(dy) as T};
+    return {x: () => scalar(1).sub(y.square()).mulStrict(dy) as T};
   };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const y = backend.tanh($x);
-    save([y]);
-    return y;
-  }, {$x}, grad);
+  const outputsToSave = [true];
+  return ENGINE.runKernelFunc(
+      (backend, save) => {
+        const y = backend.tanh($x);
+        save([y]);
+        return y;
+      },
+      {x: $x}, grad, 'Tanh', {} /* attrs */, null /* inputsToSave */,
+      outputsToSave);
 }
 
 /**
