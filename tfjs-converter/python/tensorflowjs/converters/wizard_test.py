@@ -21,7 +21,7 @@ import tempfile
 import json
 import os
 import shutil
-import tensorflow as tf
+import tensorflow.compat.v2 as tf
 from tensorflow import keras
 from tensorflow.python.eager import def_function
 from tensorflow.python.ops import variables

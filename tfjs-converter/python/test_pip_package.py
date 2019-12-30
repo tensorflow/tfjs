@@ -28,7 +28,7 @@ import tempfile
 import unittest
 
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v2 as tf
 from tensorflow import keras
 from tensorflow.python.eager import def_function
 from tensorflow.python.framework import constant_op
@@ -151,20 +151,21 @@ def _create_frozen_model(save_path):
   saved_model_dir = os.path.join(save_path)
   with graph.as_default():
     x = tf.constant([[37.0, -23.0], [1.0, 4.0]])
-    w = tf.Variable(tf.random_uniform([2, 2]))
+    w = tf.Variable(tf.random.uniform([2, 2]))
     y = tf.matmul(x, w)
     tf.nn.softmax(y)
     init_op = w.initializer
 
     # Create a builder
-    builder = tf.saved_model.builder.SavedModelBuilder(saved_model_dir)
+    builder = tf.compat.v1.saved_model.builder.SavedModelBuilder(
+        saved_model_dir)
 
-    with tf.Session() as sess:
+    with tf.compat.v1.Session() as sess:
       # Run the initializer on `w`.
       sess.run(init_op)
 
       builder.add_meta_graph_and_variables(
-          sess, [tf.saved_model.tag_constants.SERVING],
+          sess, [tf.compat.v1.saved_model.tag_constants.SERVING],
           signature_def_map=None,
           assets_collection=None)
 
@@ -182,7 +183,7 @@ def _create_frozen_model(save_path):
       frozen_file,
       True,
       '',
-      saved_model_tags=tf.saved_model.tag_constants.SERVING,
+      saved_model_tags=tf.compat.v1.saved_model.tag_constants.SERVING,
       input_saved_model_dir=saved_model_dir)
 class APIAndShellTest(tf.test.TestCase):
   """Tests for the Python API of the pip package."""

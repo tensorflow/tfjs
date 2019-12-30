@@ -26,7 +26,7 @@ import tempfile
 import unittest
 
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v2 as tf
 from tensorflow import keras
 
 from tensorflowjs import version

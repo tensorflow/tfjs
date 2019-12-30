@@ -28,7 +28,7 @@ import tempfile
 import unittest
 
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v2 as tf
 from tensorflow import keras
 from tensorflow.python.eager import def_function
 from tensorflow.python.framework import constant_op
