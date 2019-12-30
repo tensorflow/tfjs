@@ -369,11 +369,11 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
       expected = tf.tensor3d([
         [
           [200, 201, 202, 255],
-          [170, 171, 172, 255]
+          [170, 171, 172, 255],
         ],
         [
           [ 80,  81,  82, 255],
-          [ 50,  51,  52, 255]
+          [ 50,  51,  52, 255],
         ]
       ], [2,2,4], 'int32');
     } else {
@@ -468,7 +468,7 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
         [
           [ 80,  81,  82, 255],
           [ 60,  61,  62, 255],
-          [ 50,  51,  52, 255]
+          [ 50,  51,  52, 255],
         ]
       ], [outHeight, outWidth, outDepth], 'int32');
     } else {
@@ -476,12 +476,12 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
         [
           [200, 201, 202, 255],
           [190, 191, 192, 255],
-          [180, 181, 182, 255]
+          [180, 181, 182, 255],
         ],
         [
           [120, 121, 122, 255],
           [110, 111, 112, 255],
-          [100, 101, 102, 255]
+          [100, 101, 102, 255],
         ]
       ], [outHeight, outWidth, outDepth], 'int32');
     }
@@ -560,11 +560,11 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
         [
           [200, 201, 202, 255],
           [185, 186, 187, 255],
-          [170, 171, 172, 255]],
+          [170, 171, 172, 255],],
         [
           [80 , 81 , 82 , 255],
           [65 , 66 , 67 , 255],
-          [50 , 51 , 52 , 255]
+          [50 , 51 , 52 , 255],
         ]
       ], [outHeight, outWidth, outDepth], 'int32');
     } else {
@@ -572,11 +572,11 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
         [
           [200, 201, 202, 255],
           [187, 188, 189, 255],
-          [173, 174, 175, 255]],
+          [173, 174, 175, 255],],
         [
           [120, 121, 122, 255],
           [107, 108, 109, 255],
-          [93 , 94 , 95 , 255]
+          [93 , 94 , 95 , 255],
         ]
       ], [outHeight, outWidth, outDepth], 'int32');
     }

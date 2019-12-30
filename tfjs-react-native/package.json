@@ -15,7 +15,7 @@
   ],
   "scripts": {
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
-    "build": "tsc",
+    "build": "./scripts/enumerate-tests.js && tsc",
     "link-local": "yalc link",
     "unlink-local": "yalc remove",
     "lint": "tslint -p . -t verbose",

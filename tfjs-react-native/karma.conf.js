@@ -46,6 +46,7 @@ const baseConfig = {
   files: [
     {pattern: 'src/**/*.ts'},
   ],
+  exclude: ['src/camera_test.ts'],
   preprocessors: {
     'src/**/*.ts': ['karma-typescript'],
   },
