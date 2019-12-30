@@ -22,6 +22,8 @@
 #include <map>
 #include <tuple>
 
+#include "src/cc/kernels/ResizeBilinear.h"
+
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
 
