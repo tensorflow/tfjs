@@ -26,7 +26,8 @@ import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBac
 import {FusedConv2DConfig} from '@tensorflow/tfjs-core/dist/ops/fused_util';
 // TODO: Import reduce_util from backend_util with next release of core.
 import {computeOptimalWindowSize} from '@tensorflow/tfjs-core/src/ops/reduce_util';
-// TODO: import sumOutType directly from '@tensorflow/tfjs-core' with next release of core.
+// TODO: import sumOutType directly from '@tensorflow/tfjs-core' with next 
+// release of core.
 import {sumOutType} from '@tensorflow/tfjs-core/src/types';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
