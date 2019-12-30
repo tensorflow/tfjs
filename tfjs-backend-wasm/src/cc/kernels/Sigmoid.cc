@@ -53,9 +53,7 @@ void Sigmoid(const size_t x_id, const size_t out_id) {
 
   xnn_operator_t sigmoid_op = nullptr;
 
-  const size_t channels = x_info.size;
-  tfjs::util::warn("gto size %u", channels);
-
+  const size_t channels = 1;
   OperatorCacheKey cache_key = {channels};
 
   auto operator_cache_idx = operator_cache.find(cache_key);
@@ -81,7 +79,7 @@ void Sigmoid(const size_t x_id, const size_t out_id) {
     sigmoid_op = operator_cache_idx->second;
   }
 
-  const size_t batch = 1;
+  const size_t batch = x_info.size;
   xnn_status status = xnn_setup_sigmoid_nc_f32(
       sigmoid_op, batch, x_buf, out_buf, nullptr /* thread pool */);
   if (status != xnn_status_success) {
