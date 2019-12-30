@@ -12,8 +12,8 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef KERNELS_RESIZEBILINEAR_H_
-#define KERNELS_RESIZEBILINEAR_H_
+#ifndef KERNELS_SIGMOID_H_
+#define KERNELS_SIGMOID_H_
 
 #include <cstddef>
 
@@ -28,4 +28,4 @@ void Sigmoid(const size_t x_id, const size_t out_id);
 }  // namespace wasm
 }  // namespace tfjs
 
-#endif  // KERNELS_RESIZEBILINEAR_H_
+#endif  // KERNELS_SIGMOID_H_
