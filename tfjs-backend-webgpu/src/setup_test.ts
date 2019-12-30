@@ -283,6 +283,45 @@ const TEST_FILTERS: TestFilter[] = [
       'grad',   // 'depthwiseConv2DDerFilter' not yet implemented, slice not yet
                 // implemented
     ]
+  },
+  {
+    include: 'Reduction: max',
+    excludes: [
+      '5D',                        // Rank 5 is not yet implemented.
+      '6D',                        // Rank 5 is not yet implemented.
+      'accepts tensor with bool',  // Actual != Expected.
+      'gradient',                  // zerosLike not yet implemented.
+    ]
+  },
+  {
+    include: 'Reduction: min',
+    excludes: [
+      '5D',                        // Rank 5 is not yet implemented.
+      '6D',                        // Rank 5 is not yet implemented.
+      'accepts tensor with bool',  // Actual != Expected.
+      'gradient',                  // zerosLike not yet implemented.
+    ]
+  },
+  {
+    include: 'Reduction: sum',
+    excludes: [
+      'dtype bool',                // not support dtype bool yet.
+      '5D',                        // Rank 5 is not yet implemented.
+      '6D',                        // Rank 5 is not yet implemented.
+      'accepts tensor with bool',  // Actual != Expected.
+      'gradient',                  // zerosLike not yet implemented.
+    ]
+  },
+  {
+    include: 'abs',
+    excludes: [
+      'complex',                   // No complex support yet.
+      '5D',                        // Rank 5 is not yet implemented.
+      '6D',                        // Rank 5 is not yet implemented.
+      'accepts tensor with bool',  // Actual != Expected.
+      'gradient',                  // zerosLike not yet implemented.
+      'absoluteDifference',        // absoluteDifference not yet implemented
+    ]
   }
 ];
 
