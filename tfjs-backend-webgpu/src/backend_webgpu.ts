@@ -20,11 +20,16 @@
 import './flags_webgpu';
 
 import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, slice_util, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
-import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 // TODO(xing.xu): use FusedConv2DConfig from backend_util:
 // https://github.com/tensorflow/tfjs/issues/2471
 // tslint:disable-next-line: no-imports-from-dist
 import {FusedConv2DConfig} from '@tensorflow/tfjs-core/dist/ops/fused_util';
+// TODO: Import reduce_util from backend_util with next release of core.
+import {computeOptimalWindowSize} from '@tensorflow/tfjs-core/src/ops/reduce_util';
+// TODO: import sumOutType directly from '@tensorflow/tfjs-core' with next 
+// release of core.
+import {sumOutType} from '@tensorflow/tfjs-core/src/types';
+import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
 import {ArgMinMaxProgram} from './kernels/argminmax_webgpu';
@@ -41,6 +46,7 @@ import {MatMulPackedProgram} from './kernels/matmul_packed_webgpu';
 import {MatMulProgram} from './kernels/matmul_webgpu';
 import {MaxPoolProgram} from './kernels/maxpool_webgpu';
 import {PadProgram} from './kernels/pad_webgpu';
+import {ReduceProgram} from './kernels/reduce_webgpu';
 import {ResizeBilinearProgram} from './kernels/resize_bilinear_webgpu';
 import {SelectProgram} from './kernels/select_webgpu';
 import {SliceProgram} from './kernels/slice_webgpu';
@@ -825,6 +831,45 @@ export class WebGPUBackend extends KernelBackend {
     return this.argMinMaxReduce(x, axis, 'max');
   }
 
+  private reduce(x: Tensor2D, reduceType: 'max'|'min'|'sum', dtype: DataType):
+      Tensor2D {
+    const batchSize = x.shape[0];
+    const inSize = x.shape[1];
+    const windowSize = computeOptimalWindowSize(inSize);
+    const reduceInfo = {windowSize, inSize, batchSize};
+    const program = new ReduceProgram(reduceInfo, reduceType);
+    const output = this.makeOutputArray(program.outputShape, dtype);
+    return this.compileAndRun(program, [x], output);
+  }
+
+  max(x: Tensor, axes: number[]): Tensor {
+    backend_util.assertAxesAreInnerMostDims('max', axes, x.rank);
+    const [outShape, reduceShape] =
+        backend_util.computeOutAndReduceShapes(x.shape, axes);
+    const reduceSize = util.sizeFromShape(reduceShape);
+    const a2D = x.as2D(-1, reduceSize);
+    return this.reduce(a2D, 'max', a2D.dtype).reshape(outShape);
+  }
+
+  min(x: Tensor, axes: number[]): Tensor {
+    backend_util.assertAxesAreInnerMostDims('min', axes, x.rank);
+    const [outShape, reduceShape] =
+        backend_util.computeOutAndReduceShapes(x.shape, axes);
+    const reduceSize = util.sizeFromShape(reduceShape);
+    const a2D = x.as2D(-1, reduceSize);
+    return this.reduce(a2D, 'min', a2D.dtype).reshape(outShape);
+  }
+
+  sum(x: Tensor, axes: number[]): Tensor {
+    backend_util.assertAxesAreInnerMostDims('sum', axes, x.rank);
+    const [outShape, reduceShape] =
+        backend_util.computeOutAndReduceShapes(x.shape, axes);
+    const reduceSize = util.sizeFromShape(reduceShape);
+    const a2D = x.as2D(-1, reduceSize);
+    const outputDType = sumOutType(x.dtype);
+    return this.reduce(a2D, 'sum', outputDType).reshape(outShape);
+  }
+
   clip<T extends Tensor>(x: T, min: number, max: number): T {
     const program = new ClipProgram(x.shape, min, max);
     return this.compileAndRun(program, [x]);
@@ -913,6 +958,14 @@ export class WebGPUBackend extends KernelBackend {
 
   relu6<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.RELU6);
+    return this.compileAndRun(program, [x]);
+  }
+
+  abs<T extends Tensor>(x: T): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.abs(x);
+    }
+    const program = new UnaryOpProgram(x.shape, unary_op.ABS);
     return this.compileAndRun(program, [x]);
   }
 
