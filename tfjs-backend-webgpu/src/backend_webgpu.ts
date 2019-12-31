@@ -20,11 +20,6 @@
 import './flags_webgpu';
 
 import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, slice_util, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
-// TODO: Import reduce_util from backend_util with next release of core.
-import {computeOptimalWindowSize} from '@tensorflow/tfjs-core/dist/ops/reduce_util';
-// TODO: import sumOutType directly from '@tensorflow/tfjs-core' with next
-// release of core.
-import {sumOutType} from '@tensorflow/tfjs-core/dist/types';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
@@ -831,7 +826,7 @@ export class WebGPUBackend extends KernelBackend {
       Tensor2D {
     const batchSize = x.shape[0];
     const inSize = x.shape[1];
-    const windowSize = computeOptimalWindowSize(inSize);
+    const windowSize = backend_util.computeOptimalWindowSize(inSize);
     const reduceInfo = {windowSize, inSize, batchSize};
     const program = new ReduceProgram(reduceInfo, reduceType);
     const output = this.makeOutputArray(program.outputShape, dtype);
@@ -862,7 +857,7 @@ export class WebGPUBackend extends KernelBackend {
         backend_util.computeOutAndReduceShapes(x.shape, axes);
     const reduceSize = util.sizeFromShape(reduceShape);
     const a2D = x.as2D(-1, reduceSize);
-    const outputDType = sumOutType(x.dtype);
+    const outputDType = backend_util.sumOutType(x.dtype);
     return this.reduce(a2D, 'sum', outputDType).reshape(outShape);
   }
 
