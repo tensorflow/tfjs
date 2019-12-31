@@ -1002,7 +1002,8 @@ export class WebGPUBackend extends KernelBackend {
     const program =
         new ResizeBilinearProgram(x.shape, newHeight, newWidth, alignCorners);
 
-    const output: Tensor4D = this.makeOutputArray(program.outputShape, x.dtype);
+    const output: Tensor4D =
+        this.makeOutputArray(program.outputShape, 'float32');
 
     return this.compileAndRun(program, [x], output);
   }
