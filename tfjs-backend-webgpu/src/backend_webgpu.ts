@@ -20,15 +20,11 @@
 import './flags_webgpu';
 
 import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, slice_util, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
-// TODO(xing.xu): use FusedConv2DConfig from backend_util:
-// https://github.com/tensorflow/tfjs/issues/2471
-// tslint:disable-next-line: no-imports-from-dist
-import {FusedConv2DConfig} from '@tensorflow/tfjs-core/dist/ops/fused_util';
 // TODO: Import reduce_util from backend_util with next release of core.
-import {computeOptimalWindowSize} from '@tensorflow/tfjs-core/src/ops/reduce_util';
-// TODO: import sumOutType directly from '@tensorflow/tfjs-core' with next 
+import {computeOptimalWindowSize} from '@tensorflow/tfjs-core/dist/ops/reduce_util';
+// TODO: import sumOutType directly from '@tensorflow/tfjs-core' with next
 // release of core.
-import {sumOutType} from '@tensorflow/tfjs-core/src/types';
+import {sumOutType} from '@tensorflow/tfjs-core/dist/types';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
@@ -776,7 +772,7 @@ export class WebGPUBackend extends KernelBackend {
 
   fusedConv2d(
       {input, filter, convInfo, bias, activation, preluActivationWeights}:
-          FusedConv2DConfig): Tensor4D {
+          backend_util.FusedConv2DConfig): Tensor4D {
     const dataId = this.write(null /*values*/, convInfo.outShape, input.dtype);
     const output = engine().makeTensorFromDataId(
         dataId, convInfo.outShape, input.dtype, this);
