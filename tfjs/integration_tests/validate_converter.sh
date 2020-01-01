@@ -101,7 +101,7 @@ fi
 if [[ -z "$(which pip)" ]]; then
   echo "pip is not on path. Attempting to install it..."
   apt-get update
-  apt-get install -y python-pip
+  apt-get install -y python3-pip python3-dev
 fi
 
 DATA_ROOT="${SCRIPT_DIR}/data"
