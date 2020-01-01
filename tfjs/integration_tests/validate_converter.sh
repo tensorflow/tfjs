@@ -111,7 +111,7 @@ pip install virtualenv
 
 VENV_DIR="$(mktemp -d)_venv"
 echo "Creating virtualenv at ${VENV_DIR} ..."
-virtualenv "${VENV_DIR}"
+virtualenv -p python3 "${VENV_DIR}"
 source "${VENV_DIR}/bin/activate"
 
 echo "Installing Python dependencies..."
