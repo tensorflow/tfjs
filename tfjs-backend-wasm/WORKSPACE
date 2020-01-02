@@ -75,10 +75,10 @@ http_archive(
 http_archive(
     name = "psimd",
     build_file = "@xnnpack//third_party:psimd.BUILD",
-    sha256 = "7d1795ebf289af26e404cff5877c284775e491414cf41d7d99ab850ceaced458",
-    strip_prefix = "psimd-4f2c53947184b56f58607b9e777416bb63ebbde1",
+    sha256 = "1fefd66702cb2eb3462b962f33d4fb23d59a55d5889ee6372469d286c4512df4",
+    strip_prefix = "psimd-10b4ffc6ea9e2e11668f86969586f88bc82aaefa",
     urls = [
-        "https://github.com/Maratyszcza/psimd/archive/4f2c53947184b56f58607b9e777416bb63ebbde1.tar.gz",
+        "https://github.com/Maratyszcza/psimd/archive/10b4ffc6ea9e2e11668f86969586f88bc82aaefa.tar.gz",
     ],
 )
 
