@@ -18,7 +18,6 @@
 import * as tf from '@tensorflow/tfjs-core';
 
 import * as drawTextureProgramInfo from './draw_texture_program_info';
-// import {m4} from './matrix_utils';
 import * as resizeBilinearProgramInfo from './resize_bilinear_program_info';
 import * as resizeNNProgramInfo from './resize_nearest_neigbor_program_info';
 
@@ -208,10 +207,6 @@ export function runResizeProgram(
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-  console.log(
-      'runResizeProgram. ouput dims', targetTextureWidth, targetTextureHeight,
-      outputDims.depth);
 
   // Reallocate texture if target size has changed.
   // if (resizeTextureDims == null ||

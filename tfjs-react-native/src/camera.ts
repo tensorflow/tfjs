@@ -92,12 +92,9 @@ export function fromTexture(
       options.alignCorners != null ? options.alignCorners : false;
   const interpolation = options.interpolation != null ? options.interpolation :
                                                         'nearest_neighbor';
-  console.log('fromTexture:alignCorners', alignCorners, options);
-  console.log('fromTexture:interpolation', interpolation, options);
 
   const resizedTexture = runResizeProgram(
-      gl, texture, _sourceDims, targetShape, alignCorners, interpolation);
-  // console.log('resizedTexture', resizedTexture);
+      gl, texture, _sourceDims, _targetShape, alignCorners, interpolation);
   const textureData = downloadTextureData(gl, resizedTexture, _targetShape);
 
   return tf.tensor3d(

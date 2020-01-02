@@ -636,8 +636,8 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     const picSizes2 = await this.camera!.getAvailablePictureSizesAsync('16:9');
     console.log('Available picSizes 16:9', picSizes2);
 
-    // this.texture = await this.createCameraTexture();
-    // const cameraTexture = this.texture;
+    this.texture = await this.createCameraTexture();
+    const cameraTexture = this.texture;
     const pixelRatio = PixelRatio.get();
 
     let width = Math.floor(cameraPreviewWidth * pixelRatio);
@@ -675,38 +675,42 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     let end;
     const loop = async () => {
       // this._rafID = requestAnimationFrame(loop);
-      // gl.viewport(0, 0, width, height);
-      // start = Date.now();
-      // const resizedCamTensor = fromTexture(
-      //   gl,
-      //   cameraTexture,
-      //   // Source
-      //   {width, height, depth},
-      //   // Target
-      //   {width: targetWidth, height: targetHeight, depth: targetDepth},
-      //   {alignCorners: false},
-      // );
-      // console.log('from rexture res', resizedCamTensor.shape);
-      // // console.log('from rexture res data', Array.from(resizedCamTensor.dataSync().slice(0, 100)));
-      // end = Date.now();
-      // // console.log('fromTexture:time', end - start);
 
-      // start = Date.now();
-      // const resizedCamTexture = await toTexture(gl, resizedCamTensor);
-      // end = Date.now();
+      start = Date.now();
+      const resizedCamTensor = fromTexture(
+        gl,
+        cameraTexture,
+        // Source
+        {width, height, depth},
+        // Target
+        {width: targetWidth, height: targetHeight, depth: targetDepth},
+        {alignCorners: false},
+      );
+      // console.log('from rexture res', resizedCamTensor.shape);
+      // console.log('from rexture res data', Array.from(resizedCamTensor.dataSync().slice(0, 100)));
+      end = Date.now();
+      // console.log('fromTexture:time', end - start);
+
+      start = Date.now();
+      const resizedCamTexture = await toTexture(gl, resizedCamTensor);
+      end = Date.now();
       // console.log('toTexture:time', end - start);
 
 
 
-      // resizedCamTensor.dispose();
+      resizedCamTensor.dispose();
+
+      // renderToGLView(gl, resizedCamTexture, { width, height });
+
 
       const catTexture = await toTexture(gl, imageTensor4d);
-      // gl.viewport(0,0, width, height);
-       // THIS IS KEY AND CONTROLS THE MAPPING TO PIXEL SPACE
-      // gl.viewport(0, 0, width, height);
-      renderToGLView(gl, catTexture, {
-        width, height
-      });
+      const catT = fromTexture(gl, catTexture,
+        {height: imageTensor4d.shape[0], width: imageTensor4d.shape[1], depth: imageTensor4d.shape[2]},
+        {height: imageTensor4d.shape[0]/2, width: imageTensor4d.shape[1]/2, depth: imageTensor4d.shape[2]}
+      );
+      const smallCat = await toTexture(gl, catT);
+      renderToGLView(gl, smallCat, { width, height });
+
       gl.endFrameEXP();
     };
 

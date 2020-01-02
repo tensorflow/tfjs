@@ -46,32 +46,6 @@ void main() {
 }`;
 }
 
-// export function vertices() {
-//   return new Float32Array([
-//     // clang-format off
-//     0, 0,
-//     0, 1,
-//     1, 0,
-//     1, 0,
-//     0, 1,
-//     1, 1,
-//     // clang-format on
-//   ]);
-// }
-
-// export function texCoords() {
-//   return new Float32Array([
-//     // clang-format off
-//     0, 0,
-//     0, 1,
-//     1, 0,
-//     1, 0,
-//     0, 1,
-//     1, 1,
-//     // clang-format on
-//   ]);
-// }
-
 export function vertices() {
   return new Float32Array([
     // clang-format off
