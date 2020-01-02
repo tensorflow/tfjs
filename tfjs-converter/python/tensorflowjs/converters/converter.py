@@ -168,7 +168,8 @@ def dispatch_keras_saved_model_to_tensorflowjs_conversion(
       (Default: `False`).
   """
   with tf.Graph().as_default(), tf.compat.v1.Session():
-    model = tf.keras.modelexperimental.load_from_saved_model(keras_saved_model_path)
+    model = tf.keras.modelexperimental.load_from_saved_model(
+        keras_saved_model_path)
 
     # Save model temporarily in HDF5 format.
     temp_h5_path = tempfile.mktemp(suffix='.h5')
