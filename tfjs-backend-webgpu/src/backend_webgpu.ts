@@ -19,16 +19,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, slice_util, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
-// TODO(xing.xu): use FusedConv2DConfig from backend_util:
-// https://github.com/tensorflow/tfjs/issues/2471
-// tslint:disable-next-line: no-imports-from-dist
-import {FusedConv2DConfig} from '@tensorflow/tfjs-core/dist/ops/fused_util';
-// TODO: Import reduce_util from backend_util with next release of core.
-import {computeOptimalWindowSize} from '@tensorflow/tfjs-core/src/ops/reduce_util';
-// TODO: import sumOutType directly from '@tensorflow/tfjs-core' with next 
-// release of core.
-import {sumOutType} from '@tensorflow/tfjs-core/src/types';
+import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, slice_util, sumOutType, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
@@ -776,7 +767,7 @@ export class WebGPUBackend extends KernelBackend {
 
   fusedConv2d(
       {input, filter, convInfo, bias, activation, preluActivationWeights}:
-          FusedConv2DConfig): Tensor4D {
+          backend_util.FusedConv2DConfig): Tensor4D {
     const dataId = this.write(null /*values*/, convInfo.outShape, input.dtype);
     const output = engine().makeTensorFromDataId(
         dataId, convInfo.outShape, input.dtype, this);
@@ -835,7 +826,7 @@ export class WebGPUBackend extends KernelBackend {
       Tensor2D {
     const batchSize = x.shape[0];
     const inSize = x.shape[1];
-    const windowSize = computeOptimalWindowSize(inSize);
+    const windowSize = backend_util.computeOptimalWindowSize(inSize);
     const reduceInfo = {windowSize, inSize, batchSize};
     const program = new ReduceProgram(reduceInfo, reduceType);
     const output = this.makeOutputArray(program.outputShape, dtype);
@@ -1011,7 +1002,8 @@ export class WebGPUBackend extends KernelBackend {
     const program =
         new ResizeBilinearProgram(x.shape, newHeight, newWidth, alignCorners);
 
-    const output: Tensor4D = this.makeOutputArray(program.outputShape, x.dtype);
+    const output: Tensor4D =
+        this.makeOutputArray(program.outputShape, 'float32');
 
     return this.compileAndRun(program, [x], output);
   }
