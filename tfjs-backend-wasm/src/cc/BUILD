@@ -619,9 +619,18 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "Sigmoid",
     srcs = ["kernels/Sigmoid.cc"],
+    hdrs = ["kernels/Sigmoid.h"],
     deps = [
         ":backend",
         ":unary",
+    ],
+)
+
+tfjs_unit_test(
+    name = "Sigmoid_test",
+    srcs = ["kernels/Sigmoid_test.cc"],
+    deps = [
+        ":Sigmoid",
     ],
 )
 
