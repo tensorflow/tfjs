@@ -642,7 +642,7 @@ export class WebGPUBackend extends KernelBackend {
 
     const sharedDim = filterWidth * filterHeight * inChannels;
     const numCols = outHeight * outWidth;
-    const x2ColShape = [sharedDim, numCols];
+    const x2ColShape = [numCols, sharedDim];
 
     const xSqueezed = x.squeeze([0]);
     const w2Row = filter.reshape([1, sharedDim, -1]);
@@ -653,7 +653,7 @@ export class WebGPUBackend extends KernelBackend {
     const im2Col3D =
         (im2Col as Tensor3D).reshape([1, x2ColShape[0], x2ColShape[1]]);
 
-    const transposeA = true;
+    const transposeA = false;
     const transposeB = false;
 
     const matMulProgram = new MatMulPackedProgram(
