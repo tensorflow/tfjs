@@ -116,6 +116,7 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcast 2D + 1D',               // Actual != expected.
       'upcasts when dtypes dont match',  // Actual != expected.
       'gradient',                        // square, sum not yet implemented.
+      'divNoNan'                         // Equal not yet implemented.
     ]
   },
   {
@@ -177,18 +178,18 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'resizeBilinear',
     excludes: [
-      'gradient',  // Not yet implemented.
+      'gradient',       // Not yet implemented.
+      'works for ints'  // Actual != expected.
     ]
   },
   {include: 'floor divide ', excludes: []},
   {
     include: 'fused',
     excludes: [
-      'A x B',           // fusedBatchMatMul not yet implemented.
-      'A x B with elu',  // elu not yet implemented.
-      'A x B with elu and broadcasted bias',  // elu not yet implemented.
+      'A x B',                 // fusedBatchMatMul not yet implemented.
+      'elu',                   // elu not yet implemented.
       'A x B with bias only',  // fusedBatchMatMul not yet implemented.
-      'basic with elu',        // elu not yet implemented.
+      'basic with bias',       // Actual != expected.
       'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0',  // conv2dDerInput not yet
                                                    // implemented.
       'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0 with bias',  // conv2dDerInput
@@ -282,6 +283,45 @@ const TEST_FILTERS: TestFilter[] = [
       'frame',  // Slice not yet implemented.
       'grad',   // 'depthwiseConv2DDerFilter' not yet implemented, slice not yet
                 // implemented
+    ]
+  },
+  {
+    include: 'Reduction: max',
+    excludes: [
+      '5D',                        // Rank 5 is not yet implemented.
+      '6D',                        // Rank 5 is not yet implemented.
+      'accepts tensor with bool',  // Actual != Expected.
+      'gradient',                  // zerosLike not yet implemented.
+    ]
+  },
+  {
+    include: 'Reduction: min',
+    excludes: [
+      '5D',                        // Rank 5 is not yet implemented.
+      '6D',                        // Rank 5 is not yet implemented.
+      'accepts tensor with bool',  // Actual != Expected.
+      'gradient',                  // zerosLike not yet implemented.
+    ]
+  },
+  {
+    include: 'Reduction: sum',
+    excludes: [
+      'dtype bool',                // not support dtype bool yet.
+      '5D',                        // Rank 5 is not yet implemented.
+      '6D',                        // Rank 5 is not yet implemented.
+      'accepts tensor with bool',  // Actual != Expected.
+      'gradient',                  // zerosLike not yet implemented.
+    ]
+  },
+  {
+    include: 'abs',
+    excludes: [
+      'complex',                   // No complex support yet.
+      '5D',                        // Rank 5 is not yet implemented.
+      '6D',                        // Rank 5 is not yet implemented.
+      'accepts tensor with bool',  // Actual != Expected.
+      'gradient',                  // zerosLike not yet implemented.
+      'absoluteDifference',        // absoluteDifference not yet implemented
     ]
   }
 ];

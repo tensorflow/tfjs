@@ -109,7 +109,7 @@ export function memory(): MemoryInfo {
 /**
  * Executes the provided function `f()` and returns a promise that resolves
  * with information about the function's memory use:
- * - `newBytes`: tne number of new bytes allocated
+ * - `newBytes`: the number of new bytes allocated
  * - `newTensors`: the number of new tensors created
  * - `peakBytes`: the peak number of bytes allocated
  * - `kernels`: an array of objects for each kernel involved that reports

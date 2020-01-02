@@ -119,12 +119,19 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'gather',
+    excludes: [
+      'gradient'  // Not yet implemented.
+    ]
+  },
+  {
     include: 'sigmoid ',
     excludes: [
       'sigmoidCrossEntropy',  // Not yet implemented.
       'gradient'              // Not yet implemented.
     ]
   },
+  {include: 'scatterND '},
   {
     include: 'abs ',
     excludes: [
