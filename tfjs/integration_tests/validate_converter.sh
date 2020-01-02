@@ -98,8 +98,8 @@ fi
 # The extension names are ".js" because they will later be converted into
 # sourceable JavaScript files.
 
-if [[ -z "$(which pip)" ]]; then
-  echo "pip is not on path. Attempting to install it..."
+if [[ -z "$(which pip3)" ]]; then
+  echo "pip3 is not on path. Attempting to install it..."
   apt-get update
   apt-get install -y python3-pip python3-dev
 fi
@@ -107,7 +107,7 @@ fi
 DATA_ROOT="${SCRIPT_DIR}/data"
 
 echo "Installing virtualenv..."
-pip install virtualenv
+pip3 install virtualenv
 
 VENV_DIR="$(mktemp -d)_venv"
 echo "Creating virtualenv at ${VENV_DIR} ..."
@@ -116,9 +116,9 @@ source "${VENV_DIR}/bin/activate"
 
 echo "Installing Python dependencies..."
 if [[ "${IS_TFJS_NODE_GPU}" == "1" ]]; then
-  pip install -r python/requirements_gpu.txt
+  pip3 install -r python/requirements_gpu.txt
 else
-  pip install -r python/requirements.txt
+  pip3 install -r python/requirements.txt
 fi
 
 echo "Running python converter..."
