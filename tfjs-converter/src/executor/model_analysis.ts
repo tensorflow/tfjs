@@ -129,8 +129,9 @@ export function getNodesInTopologicalOrder(
 }
 
 const CONTROL_FLOW_OPS = ['Switch', 'Merge', 'Enter', 'Exit', 'NextIteration'];
-const DYNAMIC_SHAPE_OPS =
-    ['NonMaxSuppressionV2', 'NonMaxSuppressionV3', 'Where'];
+const DYNAMIC_SHAPE_OPS = [
+  'NonMaxSuppressionV2', 'NonMaxSuppressionV3', 'NonMaxSuppressionV5', 'Where'
+];
 
 export function isControlFlow(node: Node) {
   return CONTROL_FLOW_OPS.indexOf(node.op) >= 0;
