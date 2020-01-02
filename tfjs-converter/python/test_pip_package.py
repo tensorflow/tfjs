@@ -722,7 +722,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       model = self._createNestedSequentialModel()
       y = model.predict(x)
 
-      keras.experimental.export_saved_model(model, self._tmp_dir)
+      keras..export_saved_model(model, self._tmp_dir)
 
       # 2. Convert the keras saved model to tfjs format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
@@ -763,7 +763,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       model = self._createFunctionalModelWithWeights()
       y = model.predict([x1, x2])
 
-      keras.experimental.export_saved_model(model, self._tmp_dir)
+      tf.keras.models.save_model(model, self._tmp_dir)
 
       # 2. Convert the keras saved model to tfjs format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
@@ -804,7 +804,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       model = self._createNestedSequentialModel()
       y = model.predict(x)
 
-      keras.experimental.export_saved_model(model, self._tmp_dir)
+      tf.keras.models.save_model(model, self._tmp_dir)
 
       # 2. Convert the keras saved model to tfjs format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
@@ -833,7 +833,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       weights = model.get_weights()
       total_weight_bytes = sum(np.size(w) for w in weights) * 4
 
-      keras.experimental.export_saved_model(model, self._tmp_dir)
+      tf.keras.models.save_model(model, self._tmp_dir)
 
       # 2. Convert the keras saved model to tfjs_layers_model format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
@@ -897,7 +897,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       weights = model.get_weights()
       total_weight_bytes = sum(np.size(w) for w in weights) * 4
 
-      keras.experimental.export_saved_model(model, self._tmp_dir)
+      tf.keras.models.save_model(model, self._tmp_dir)
 
       # 2. Convert the keras saved model to tfjs_layers_model format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')

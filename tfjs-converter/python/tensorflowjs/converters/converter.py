@@ -156,7 +156,7 @@ def dispatch_keras_saved_model_to_tensorflowjs_conversion(
     keras_saved_model_path: path to a folder in which the
       assets/saved_model.json can be found. This is usually a subfolder
       that is under the folder passed to
-      `keras.experimental.export_saved_model()` and has a Unix epoch time
+      `tf.keras.models.save_model()` and has a Unix epoch time
       as its name (e.g., 1542212752).
     output_dir: Output directory to which the TensorFlow.js-format model JSON
       file and weights files will be written. If the directory does not exist,
@@ -168,12 +168,11 @@ def dispatch_keras_saved_model_to_tensorflowjs_conversion(
       (Default: `False`).
   """
   with tf.Graph().as_default(), tf.compat.v1.Session():
-    model = tf.keras.modelexperimental.load_from_saved_model(
-        keras_saved_model_path)
+    model = tf.keras.models.load_model(keras_saved_model_path)
 
     # Save model temporarily in HDF5 format.
     temp_h5_path = tempfile.mktemp(suffix='.h5')
-    model.save(temp_h5_path)
+    model.save(temp_h5_path, save_format='h5')
     assert os.path.isfile(temp_h5_path)
 
     dispatch_keras_h5_to_tfjs_layers_model_conversion(
@@ -255,8 +254,8 @@ def dispatch_tensorflowjs_to_keras_saved_model_conversion(
 
   with tf.Graph().as_default(), tf.compat.v1.Session():
     model = keras_tfjs_loader.load_keras_model(config_json_path)
-    keras.experimental.export_saved_model(
-        model, keras_saved_model_path, serving_only=True)
+    tf.keras.models.save_model(
+        model, keras_saved_model_path)
 
 
 def dispatch_tensorflowjs_to_tensorflowjs_conversion(

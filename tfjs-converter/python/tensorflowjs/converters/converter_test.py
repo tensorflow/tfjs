@@ -335,12 +335,17 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
     model.add(keras.layers.Reshape([2, 3], input_shape=[6]))
     model.add(keras.layers.LSTM(10))
     model.add(keras.layers.Dense(1, activation='sigmoid'))
+    model.compile(optimizer='adam', loss='binary_crossentropy')
+    model.predict(tf.ones((1, 6)), steps=1)
+    tf.keras.backend.set_learning_phase(0)
     return model
 
   def _createNestedSequentialModel(self):
     model = keras.Sequential()
     model.add(keras.layers.Dense(6, input_shape=[10], activation='relu'))
     model.add(self._createSimpleSequentialModel())
+    model.compile(optimizer='adam', loss='binary_crossentropy')
+    model.predict(tf.ones((1, 10)), steps=1)
     return model
 
   def _createFunctionalModelWithWeights(self):
@@ -349,6 +354,8 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
     y = keras.layers.Concatenate()([input1, input2])
     y = keras.layers.Dense(4, activation='softmax')(y)
     model = keras.Model([input1, input2], y)
+    model.compile(optimizer='adam', loss='binary_crossentropy')
+    model.predict([tf.ones((1, 8)), tf.ones((1, 10))], steps=1)
     return model
 
   def testConvertTfKerasSequentialSavedAsSavedModel(self):
@@ -356,7 +363,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       model = self._createSimpleSequentialModel()
       old_model_json = json.loads(model.to_json())
       old_weights = model.get_weights()
-      keras.experimental.export_saved_model(model, self._tmp_dir)
+      tf.keras.models.save_model(model, self._tmp_dir)
 
       # Convert the keras SavedModel to tfjs format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
@@ -384,14 +391,10 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
   def testConvertTfKerasSequentialCompiledAndSavedAsSavedModel(self):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       model = self._createSimpleSequentialModel()
-      # Compile the model before saving.
-      model.compile(
-          loss='binary_crossentropy',
-          optimizer=tf.compat.v1.train.GradientDescentOptimizer(2.5e-3))
 
       old_model_json = json.loads(model.to_json())
       old_weights = model.get_weights()
-      keras.experimental.export_saved_model(model, self._tmp_dir)
+      tf.keras.models.save_model(model, self._tmp_dir)
 
       # Convert the keras SavedModel to tfjs format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
@@ -419,7 +422,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
   def testWrongConverterRaisesCorrectErrorMessage(self):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       model = self._createSimpleSequentialModel()
-      keras.experimental.export_saved_model(model, self._tmp_dir)
+      tf.keras.models.save_model(model, self._tmp_dir)
 
       # Convert the keras SavedModel to tfjs format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
@@ -436,7 +439,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       model = self._createNestedSequentialModel()
       old_model_json = json.loads(model.to_json())
       old_weights = model.get_weights()
-      keras.experimental.export_saved_model(model, self._tmp_dir)
+      tf.keras.models.save_model(model, self._tmp_dir)
 
       # Convert the keras SavedModel to tfjs format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
@@ -466,8 +469,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       model = self._createFunctionalModelWithWeights()
       old_model_json = json.loads(model.to_json())
       old_weights = model.get_weights()
-      keras.experimental.export_saved_model(
-          model, self._tmp_dir)
+      tf.keras.models.save_model(model, self._tmp_dir)
 
       # Convert the keras SavedModel to tfjs format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
@@ -495,8 +497,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
   def testConvertTfKerasSequentialSavedAsSavedModelWithQuantization(self):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       model = self._createSimpleSequentialModel()
-      keras.experimental.export_saved_model(
-          model, self._tmp_dir)
+      tf.keras.models.save_model(model, self._tmp_dir)
 
       # Convert the keras SavedModel to tfjs format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')

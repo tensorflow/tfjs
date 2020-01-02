@@ -70,7 +70,7 @@ class CliTest(unittest.TestCase):
     model.add(keras.layers.LSTM(10))
     model.add(keras.layers.Dense(1, activation='sigmoid'))
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
-    keras.experimental.export_saved_model(model, save_dir)
+    tf.keras.models.save_model(model, save_dir)
 
   def _create_saved_model(self):
     """Test a basic model with functions to make sure functions are inlined."""
@@ -172,11 +172,11 @@ class CliTest(unittest.TestCase):
   def testAvailableSignatureNames(self):
     self._create_saved_model()
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
-    self.assertEqual(['__saved_model_init_op', 'serving_default'],
-                     [x['value'] for x in wizard.available_signature_names(
+    self.assertEqual(sorted(['__saved_model_init_op', 'serving_default']),
+                     sorted([x['value'] for x in wizard.available_signature_names(
                          {'input_path': save_dir,
                           'input_format': 'tf_saved_model',
-                          'saved_model_tags': 'serve'})])
+                          'saved_model_tags': 'serve'})]))
 
   def testGenerateCommandForSavedModel(self):
     options = {'input_format': 'tf_saved_model',
