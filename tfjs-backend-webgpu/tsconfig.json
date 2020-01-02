@@ -7,7 +7,7 @@
     "node_modules/"
   ],
   "compilerOptions": {
-    "esModuleInterop": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "target": "es2017"
   }
 }
