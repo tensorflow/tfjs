@@ -19,28 +19,13 @@ from __future__ import division
 from __future__ import print_function
 
 import glob
-import json
 import os
 import shutil
 import subprocess
-import sys
 import tempfile
-import unittest
 
-import numpy as np
 import tensorflow.compat.v2 as tf
-from tensorflow import keras
-from tensorflow.python.eager import def_function
-from tensorflow.python.framework import constant_op
-from tensorflow.python.framework import dtypes
-from tensorflow.python.framework import tensor_spec
-from tensorflow.python.ops import variables
-from tensorflow.python.tools import freeze_graph
-from tensorflow.python.training.tracking import tracking
 from tensorflow.python.saved_model.save import save
-import tensorflow_hub as hub
-
-import tensorflowjs as tfjs
 
 class APIAndShellTest(tf.test.TestCase):
   """Nightly tests for the Python API of the pip package."""
