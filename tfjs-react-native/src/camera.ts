@@ -46,10 +46,14 @@ interface FromTextureOptions {
 export async function toTexture(
     gl: WebGL2RenderingContext, imageTensor: tf.Tensor3D,
     texture?: WebGLTexture): Promise<WebGLTexture> {
+  tf.util.assert(
+      imageTensor.dtype === 'int32', () => 'imageTensor must be of type int32');
+
+  tf.util.assert(
+      imageTensor.rank === 3, () => 'imageTensor must be a Tensor3D');
+
   const imageData = Uint8Array.from(await imageTensor.data());
   const dims = {
-    x: 0,
-    y: 0,
     height: imageTensor.shape[0],
     width: imageTensor.shape[1],
     depth: imageTensor.shape[2],
@@ -76,6 +80,12 @@ export function fromTexture(
       targetShape.depth === 3 || targetShape.depth === 4,
       () => 'fromTexture Error: target depth must be 3 or 4');
 
+  if (targetShape.depth === 3 && targetShape.width % 4 !== 0) {
+    throw new Error(
+        'When using targetShape.depth=3, targetShape.width must be' +
+        ' a multiple of 4');
+  }
+
   const _sourceDims = {
     height: Math.floor(sourceDims.height),
     width: Math.floor(sourceDims.width),
@@ -90,13 +100,17 @@ export function fromTexture(
 
   const alignCorners =
       options.alignCorners != null ? options.alignCorners : false;
-  const interpolation = options.interpolation != null ? options.interpolation :
-                                                        'nearest_neighbor';
+  const interpolation =
+      options.interpolation != null ? options.interpolation : 'bilinear';
+
+  tf.util.assert(
+      interpolation === 'bilinear' || interpolation === 'nearest_neighbor',
+      () => 'fromTexture Error: interpolation must be one of' +
+          ' "bilinear" or "nearest_neighbor"');
 
   const resizedTexture = runResizeProgram(
       gl, texture, _sourceDims, _targetShape, alignCorners, interpolation);
   const textureData = downloadTextureData(gl, resizedTexture, _targetShape);
-
   return tf.tensor3d(
       textureData,
       [_targetShape.height, _targetShape.width, _targetShape.depth], 'int32');

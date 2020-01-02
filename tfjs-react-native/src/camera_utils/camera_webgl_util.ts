@@ -65,17 +65,23 @@ export function downloadTextureData(
   });
 
   tf.webgl.webgl_util.callAndCheck(gl, true, () => {
+    gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
+  });
+
+  tf.webgl.webgl_util.callAndCheck(gl, true, () => {
+    gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
   });
 
   tf.webgl.webgl_util.callAndCheck(gl, true, () => {
     gl.framebufferTexture2D(
         gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, LEVEL);
   });
-
   const format = depth === 3 ? gl.RGB : gl.RGBA;
   const x = 0;
   const y = 0;
+
   tf.webgl.webgl_util.callAndCheck(gl, true, () => {
     gl.readPixels(x, y, width, height, format, gl.UNSIGNED_BYTE, pixels);
   });
@@ -108,7 +114,10 @@ export function uploadTextureData(
       () => 'uploadTextureData Error: imageData length must match w * h * d');
 
   const targetTexture = texture || gl.createTexture();
+  gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, targetTexture);
+  gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -150,15 +159,6 @@ export function drawTexture(
   gl.activeTexture(gl.TEXTURE0 + TEXTURE_UNIT);
   gl.bindTexture(gl.TEXTURE_2D, texture);
 
-  // let matrix = m4.orthographic(
-  //     0, gl.drawingBufferWidth, gl.drawingBufferHeight, 0, -1, 1);
-  // matrix = m4.translate(matrix, 0, 0, 0);
-  // matrix = m4.scale(matrix, dims.width, dims.height, 1);
-
-  // // console.log('matrix', matrix);
-  // gl.uniformMatrix4fv(
-  //     gl.getUniformLocation(program, 'u_matrix'), false, matrix);
-
   // Draw to screen
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.viewport(0, 0, dims.width, dims.height);
@@ -189,7 +189,8 @@ export function runResizeProgram(
   gl.uniform1i(gl.getUniformLocation(program, 'inputTexture'), 1);
   gl.activeTexture(gl.TEXTURE0 + 1);
   gl.bindTexture(gl.TEXTURE_2D, inputTexture);
-
+  gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
   //
   // Set up output texture.
   //
@@ -202,6 +203,11 @@ export function runResizeProgram(
 
   gl.activeTexture(gl.TEXTURE0 + 2);
   gl.bindTexture(gl.TEXTURE_2D, targetTexture);
+  tf.webgl.webgl_util.callAndCheck(gl, true, () => {
+    gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+  });
+
 
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -213,14 +219,17 @@ export function runResizeProgram(
   //     resizeTextureDims.width !== targetTextureWidth ||
   //     resizeTextureDims.height !== targetTextureHeight) {
   const level = 0;
-  const format = gl.RGBA;  // TODO switch on 3/4
+  const format = outputDims.depth === 3 ? gl.RGB : gl.RGBA;
   const internalFormat = format;
   const border = 0;
-
   const type = gl.UNSIGNED_BYTE;
-  gl.texImage2D(
-      gl.TEXTURE_2D, level, internalFormat, targetTextureWidth,
-      targetTextureHeight, border, format, type, null);
+
+  tf.webgl.webgl_util.callAndCheck(gl, true, () => {
+    gl.texImage2D(
+        gl.TEXTURE_2D, level, internalFormat, targetTextureWidth,
+        targetTextureHeight, border, format, type, null);
+  });
+
   //   resizeTextureDims = {
   //     width: targetTextureWidth,
   //     height: targetTextureHeight
@@ -239,8 +248,6 @@ export function runResizeProgram(
   gl.framebufferTexture2D(
       gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, targetTexture, 0);
 
-  gl.clearColor(1, 0, 1, 1);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 2);
 
   // Restore previous state

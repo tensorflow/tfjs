@@ -20,9 +20,8 @@ export function vertexShaderSource() {
 precision highp float;
 
 in vec2 position;
-uniform mat4 u_matrix;
-
 in vec2 texCoords;
+
 out vec2 uv;
 
 void main() {
@@ -38,9 +37,6 @@ uniform sampler2D inputTexture;
 in vec2 uv;
 out vec4 fragColor;
 void main() {
-  // vec4 texSample = vec4(uv.x, uv.x, uv.x, 1.0);
-  // vec4 texSample = vec4(uv.y, uv.y, uv.y, 1.0);
-
   vec4 texSample = texture(inputTexture, uv);
   fragColor = texSample;
 }`;

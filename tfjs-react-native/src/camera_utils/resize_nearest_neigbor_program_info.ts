@@ -58,9 +58,8 @@ export function fragmentShaderSource(
   const roundBase = alignCorners ? '0.5' : '0.0';
 
   const outputFragType = targetDims.depth === 3 ? 'vec3' : 'vec4';
-  const outputFragColor = targetDims.depth === 3 ?
-      'vec3(texSample.r,texSample.g,texSample.b)' :
-      'texSample';
+  const outputFragColor =
+      targetDims.depth === 3 ? 'vec3(texSample)' : 'texSample';
 
   const source = `#version 300 es
 precision highp float;

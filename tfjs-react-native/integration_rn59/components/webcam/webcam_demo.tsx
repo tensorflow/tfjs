@@ -664,11 +664,11 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
     const rawImageData = await response.arrayBuffer();
 
     const imageTensor = decodeJpeg(new Uint8Array(rawImageData), 3);
-    const imageTensor4d = imageTensor.pad([[0,0],[0,0],[0,1]], 255);
+    const imageTensorWAlpha = imageTensor.pad([[0,0],[0,0],[0,1]], 255);
     console.log('imagetensorshape', imageTensor.shape);
     console.log('imagetensordata', Array.from(imageTensor.dataSync().slice(0, 10)));
-    console.log('imageTensor4d shape', imageTensor4d.shape);
-    console.log('imageTensor4d', Array.from(imageTensor4d.dataSync().slice(0, 10)));
+    console.log('imageTensor4d shape', imageTensorWAlpha.shape);
+    console.log('imageTensor4d', Array.from(imageTensorWAlpha.dataSync().slice(0, 10)));
 
     // Render loop
     let start;
@@ -702,12 +702,14 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
 
       // renderToGLView(gl, resizedCamTexture, { width, height });
 
-
-      const catTexture = await toTexture(gl, imageTensor4d);
+      const catTexture = await toTexture(gl, imageTensorWAlpha);
       const catT = fromTexture(gl, catTexture,
-        {height: imageTensor4d.shape[0], width: imageTensor4d.shape[1], depth: imageTensor4d.shape[2]},
-        {height: imageTensor4d.shape[0]/2, width: imageTensor4d.shape[1]/2, depth: imageTensor4d.shape[2]}
+        {height: imageTensorWAlpha.shape[0], width: imageTensorWAlpha.shape[1], depth: imageTensorWAlpha.shape[2]},
+        {height: 4, width: 24, depth: 3},
+        {alignCorners: false, interpolation: 'nearest_neighbor'}
       );
+      console.log('catT', catT.shape);
+      catT.print();
       const smallCat = await toTexture(gl, catT);
       renderToGLView(gl, smallCat, { width, height });
 
