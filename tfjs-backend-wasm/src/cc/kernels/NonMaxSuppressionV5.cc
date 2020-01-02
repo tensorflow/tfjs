@@ -26,18 +26,6 @@
 
 #include "src/cc/non_max_suppression_impl.h"
 
-namespace {
-
-// Structure to store the result of the kernel. In this case we give js a
-// a pointer in memory where the result is stored and how big it is.
-struct Result {
-  int32_t* selected_indices;
-  size_t selected_size;
-  float* selected_scores;
-};
-
-}  // namespace
-
 namespace tfjs {
 namespace wasm {
 // We use C-style API to interface with Javascript.
