@@ -68,8 +68,11 @@ def _createKerasModel(layer_name_prefix, h5_path=None):
       kernel_initializer='ones',
       name=layer_name_prefix + '2')(dense1)
   model = keras.models.Model(inputs=[input_tensor], outputs=[output])
+  model.compile(optimizer='adam', loss='binary_crossentropy')
+  model.predict(tf.ones((1, 3)), steps=1)
+
   if h5_path:
-    model.save(h5_path)
+    model.save(h5_path, save_format='h5')
   return model
 
 def _createTensorFlowSavedModelV1(name_scope, save_path):
@@ -722,7 +725,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       model = self._createNestedSequentialModel()
       y = model.predict(x)
 
-      keras..export_saved_model(model, self._tmp_dir)
+      keras.models.save_model(model, self._tmp_dir)
 
       # 2. Convert the keras saved model to tfjs format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
@@ -939,9 +942,11 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       model = keras.Sequential()
       model.add(keras.layers.Dense(10, activation='relu', input_shape=[4]))
       model.add(keras.layers.Dense(1, activation='sigmoid'))
+      model.compile(optimizer='adam', loss='binary_crossentropy')
+      model.predict(tf.ones((1, 4)), steps=1)
 
       h5_path = os.path.join(self._tmp_dir, 'model.h5')
-      model.save(h5_path)
+      model.save(h5_path, save_format='h5')
 
     # 2. Convert the keras saved model to tfjs_layers_model format.
     layers_model_output_dir = os.path.join(self._tmp_dir, 'tfjs_layers')
@@ -975,9 +980,11 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       model = keras.Sequential()
       model.add(keras.layers.Dense(10, activation='relu', input_shape=[4]))
       model.add(keras.layers.Dense(1, activation='sigmoid'))
+      model.compile(optimizer='adam', loss='binary_crossentropy')
+      model.predict(tf.ones((1, 4)), steps=1)
 
       h5_path = os.path.join(self._tmp_dir, 'model.h5')
-      model.save(h5_path)
+      model.save(h5_path, save_format='h5')
 
     # 2. Convert the keras saved model to tfjs_layers_model format.
     layers_model_output_dir = os.path.join(self._tmp_dir, 'tfjs_layers')

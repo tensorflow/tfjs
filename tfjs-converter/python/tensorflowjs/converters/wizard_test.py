@@ -173,10 +173,11 @@ class CliTest(unittest.TestCase):
     self._create_saved_model()
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     self.assertEqual(sorted(['__saved_model_init_op', 'serving_default']),
-                     sorted([x['value'] for x in wizard.available_signature_names(
-                         {'input_path': save_dir,
-                          'input_format': 'tf_saved_model',
-                          'saved_model_tags': 'serve'})]))
+                     sorted(
+                         [x['value'] for x in wizard.available_signature_names(
+                             {'input_path': save_dir,
+                              'input_format': 'tf_saved_model',
+                              'saved_model_tags': 'serve'})]))
 
   def testGenerateCommandForSavedModel(self):
     options = {'input_format': 'tf_saved_model',

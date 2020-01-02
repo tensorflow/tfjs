@@ -78,7 +78,7 @@ def dispatch_keras_h5_to_tfjs_layers_model_conversion(
         'Expected path to point to an HDF5 file, but it points to a '
         'directory: %s' % h5_path)
 
-  h5_file = h5py.File(h5_path)
+  h5_file = h5py.File(h5_path, 'r')
   if 'layer_names' in h5_file.attrs:
     model_json = None
     groups = conversion.h5_weights_to_tfjs_format(
