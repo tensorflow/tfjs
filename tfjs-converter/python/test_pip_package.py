@@ -647,12 +647,16 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
     model.add(keras.layers.Reshape([2, 3], input_shape=[6]))
     model.add(keras.layers.LSTM(10))
     model.add(keras.layers.Dense(1, activation='sigmoid'))
+    model.compile(optimizer='adam', loss='binary_crossentropy')
+    model.predict(tf.ones((1, 6)), steps=1)
     return model
 
   def _createNestedSequentialModel(self):
     model = keras.Sequential()
     model.add(keras.layers.Dense(6, input_shape=[10], activation='relu'))
     model.add(self._createSimpleSequentialModel())
+    model.compile(optimizer='adam', loss='binary_crossentropy')
+    model.predict(tf.ones((1, 10)), steps=1)
     return model
 
   def _createFunctionalModelWithWeights(self):
@@ -661,6 +665,8 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
     y = keras.layers.Concatenate()([input1, input2])
     y = keras.layers.Dense(4, activation='softmax')(y)
     model = keras.Model([input1, input2], y)
+    model.compile(optimizer='adam', loss='binary_crossentropy')
+    model.predict([tf.ones((1, 8)), tf.ones((1, 10))], steps=1)
     return model
 
   def testConvertTfKerasNestedSequentialSavedModelIntoTfjsFormat(self):
@@ -750,7 +756,6 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       # 1. Run the model.predict(), store the result. Then saved the model
       #    as a SavedModel.
       model = self._createNestedSequentialModel()
-
       tf.keras.models.save_model(model, self._tmp_dir)
 
       # 2. Convert the keras saved model to tfjs format.
@@ -854,14 +859,11 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
 
       # 3. Convert the tfjs_layers_model to another tfjs_layers_model,
       #    with uint16 quantization.
-      weight_shard_size_bytes = int(total_weight_bytes * 0.3)
-      # Due to the shard size, there ought to be 4 shards after conversion.
       sharded_model_dir = os.path.join(self._tmp_dir, 'tfjs_sharded')
       process = subprocess.Popen([
           'tensorflowjs_converter', '--input_format', 'tfjs_layers_model',
           '--output_format', 'tfjs_layers_model',
           '--quantization_bytes', '2',
-          '--weight_shard_size_bytes', weight_shard_size_bytes,
           os.path.join(tfjs_output_dir, 'model.json'), sharded_model_dir
       ])
       process.communicate()
