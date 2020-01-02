@@ -64,9 +64,11 @@ export async function toTexture(
 /**
  * Creates a tensor3D from a texture.
  *
- * Allows for resizing the image and dropping the alpha channel from the data.
+ * Allows for resizing the image and dropping the alpha channel from the
+ * resulting tensor.
  *
- * Note that the tensor's data will live in the internal tfjs webgl context.
+ * Note that if you the output depth is 3 then the output width should be a
+ * multiple of 4.
  *
  * @param gl the WebGL context that owns the input texture
  * @param texture the texture to convert into a tensor
@@ -81,6 +83,10 @@ export function fromTexture(
       () => 'fromTexture Error: target depth must be 3 or 4');
 
   if (targetShape.depth === 3 && targetShape.width % 4 !== 0) {
+    // See
+    // https://www.khronos.org/opengl/wiki/Common_Mistakes#Texture_upload_and_pixel_reads
+    // for more details. At the moment gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
+    // does not seem to solve this issue.
     throw new Error(
         'When using targetShape.depth=3, targetShape.width must be' +
         ' a multiple of 4');
