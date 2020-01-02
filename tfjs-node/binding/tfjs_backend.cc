@@ -1218,4 +1218,13 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
   return output_tensor_infos;
 }
 
+napi_value TFJSBackend::GetNumOfSavedModel(napi_env env) {
+  napi_status nstatus;
+  napi_value number_of_savedmodel;
+  nstatus =
+      napi_create_int32(env, tf_savedmodel_map_.size(), &number_of_savedmodel);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+  return number_of_savedmodel;
+}
+
 }  // namespace tfnodejs
