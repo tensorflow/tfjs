@@ -64,8 +64,11 @@ function kernelFunc(args: {
   const resOffset =
       wasmFunc(boxesId, scoresId, maxOutputSize, iouThreshold, scoreThreshold);
 
-  const {pSelectedIndices, selectedSize} =
+  const {pSelectedIndices, selectedSize, pSelectedScores} =
       parseResultStruct(backend, resOffset);
+
+  // Since we are not using scores for V3, we have to delete it from the heap.
+  backend.wasm._free(pSelectedScores);
 
   const selectedIndicesTensor =
       backend.makeOutput([selectedSize], 'int32', pSelectedIndices);
