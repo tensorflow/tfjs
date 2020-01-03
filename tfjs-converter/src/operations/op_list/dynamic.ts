@@ -40,6 +40,18 @@ export const json: OpMapper[] = [
     ]
   },
   {
+    'tfOpName': 'NonMaxSuppressionV5',
+    'category': 'dynamic',
+    'inputs': [
+      {'start': 0, 'name': 'boxes', 'type': 'tensor'},
+      {'start': 1, 'name': 'scores', 'type': 'tensor'},
+      {'start': 2, 'name': 'maxOutputSize', 'type': 'number'},
+      {'start': 3, 'name': 'iouThreshold', 'type': 'number'},
+      {'start': 4, 'name': 'scoreThreshold', 'type': 'number'},
+      {'start': 5, 'name': 'softNmsSigma', 'type': 'number'}
+    ]
+  },
+  {
     'tfOpName': 'Where',
     'category': 'dynamic',
     'inputs': [
