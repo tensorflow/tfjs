@@ -25,7 +25,7 @@ in vec2 texCoords;
 out vec2 uv;
 
 void main() {
-  gl_Position = vec4(position, 0, 1);
+  gl_Position = vec4(position * vec2(1., -1.), 0, 1);
   uv = texCoords;
 }`;
 }

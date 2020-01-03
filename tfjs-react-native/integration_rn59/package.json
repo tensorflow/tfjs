@@ -16,6 +16,7 @@
   "dependencies": {
     "@react-native-community/async-storage": "^1.6.1",
     "@tensorflow-models/mobilenet": "^2.0.4",
+    "@tensorflow-models/posenet": "^2.2.1",
     "@tensorflow/tfjs": "~1.3.2",
     "@tensorflow/tfjs-react-native": "0.1.0-alpha.3",
     "expo-camera": "^7.0.0",
@@ -27,6 +28,7 @@
     "react": "16.8.3",
     "react-native": "0.59.10",
     "react-native-fs": "^2.16.1",
+    "react-native-svg": "^9.13.6",
     "react-native-unimodules": "^0.5.4",
     "rn-fetch-blob": "^0.10.15"
   },
