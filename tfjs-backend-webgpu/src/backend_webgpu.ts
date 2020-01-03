@@ -19,7 +19,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, slice_util, sumOutType, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, slice_util, sumOutType, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
@@ -30,6 +30,7 @@ import {ClipProgram} from './kernels/clip_webgpu';
 import {ConcatProgram} from './kernels/concat_webgpu';
 import {Conv2DMMProgram} from './kernels/conv2d_mm_webgpu';
 import {Conv2DNaiveProgram} from './kernels/conv2d_naive_webgpu';
+import {CropAndResizeProgram} from './kernels/crop_and_resize_webgpu';
 import {DepthwiseConv2DProgram} from './kernels/depthwise_conv2d_webgpu';
 import {FillProgram} from './kernels/fill_webgpu';
 import {Im2ColProgram} from './kernels/im2col_webgpu';
@@ -972,6 +973,19 @@ export class WebGPUBackend extends KernelBackend {
     const output =
         engine().makeTensorFromDataId(dataId, program.outputShape, dtype, this);
     return this.compileAndRun(program, [condition, a, b], output);
+  }
+
+  cropAndResize(
+      image: Tensor4D, boxes: Tensor2D, boxIndex: Tensor1D,
+      cropSize: [number, number], method: 'bilinear'|'nearest',
+      extrapolationValue: number): Tensor4D {
+    const program = new CropAndResizeProgram(
+        image.shape, boxes.shape, cropSize, method, extrapolationValue);
+    const dataId =
+        this.write(null /*values*/, program.outputShape, image.dtype);
+    const output = engine().makeTensorFromDataId(
+        dataId, program.outputShape, image.dtype, this);
+    return this.compileAndRun(program, [image, boxes, boxIndex], output);
   }
 
   fill<R extends Rank>(
