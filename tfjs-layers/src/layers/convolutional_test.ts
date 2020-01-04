@@ -1656,7 +1656,7 @@ describeMathCPU('Conv3DTranspose: Symbolic', () => {
                 if (kernelSize[0] === 2) {
                   expectedShape = [1, 6, 33, 27, filters];
                 } else {
-                  expectedShape = [1, 6, 34, 28, filters]
+                  expectedShape = [1, 6, 34, 28, filters];
                 }
               }
             }
@@ -1668,8 +1668,10 @@ describeMathCPU('Conv3DTranspose: Symbolic', () => {
   }
 
   it('Correct weight names', () => {
-    const x = new tfl.SymbolicTensor('float32', [1, 2, 3, 4, 5], null, [], null);
-    const layer = tfl.layers.conv3dTranspose({filters: 2, kernelSize: [3, 3, 3]});
+    const x =
+        new tfl.SymbolicTensor('float32', [1, 2, 3, 4, 5], null, [], null);
+    const layer =
+        tfl.layers.conv3dTranspose({filters: 2, kernelSize: [3, 3, 3]});
     layer.apply(x);  // Let the layer build first.
 
     expect(layer.weights.length).toEqual(2);
