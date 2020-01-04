@@ -1616,3 +1616,99 @@ describeMathCPUAndGPU('UpSampling2D Layer', () => {
     expectTensorsClose(layer.apply(x2, null) as Tensor, y2);
   });
 });
+
+describeMathCPU('Conv3DTranspose: Symbolic', () => {
+  const filtersArray = [1, 64];
+  const paddingModes: PaddingMode[] = ['valid', 'same'];
+  const kernelSizes = [[2, 2, 2], [3, 4, 4]];
+  const stridesArray = [1, 3];
+
+  for (const filters of filtersArray) {
+    for (const padding of paddingModes) {
+      for (const kernelSize of kernelSizes) {
+        for (const strides of stridesArray) {
+          const testTitle = `filters=${filters}, paddingMode=${padding},` +
+              `kernelSize=${JSON.stringify(kernelSize)}, strides=${strides}`;
+          it(testTitle, () => {
+            const inputShape = [1, 2, 11, 9, 16];
+            const x =
+                new tfl.SymbolicTensor('float32', inputShape, null, [], null);
+
+            const layer = tfl.layers.conv3dTranspose(
+                {filters, kernelSize, padding, strides});
+            const y = layer.apply(x) as tfl.SymbolicTensor;
+
+            let expectedShape: [number, number, number, number, number];
+            if (strides === 1) {
+              if (padding === 'same') {
+                expectedShape = [1, 2, 11, 9, filters];
+              } else {
+                if (kernelSize[0] === 2) {
+                  expectedShape = [1, 3, 12, 10, filters];
+                } else {
+                  expectedShape = [1, 4, 14, 12, filters];
+                }
+              }
+            } else if (strides === 3) {
+              if (padding === 'same') {
+                expectedShape = [1, 6, 33, 27, filters];
+              } else {
+                if (kernelSize[0] === 2) {
+                  expectedShape = [1, 6, 33, 27, filters];
+                } else {
+                  expectedShape = [1, 6, 34, 28, filters]
+                }
+              }
+            }
+            expect(y.shape).toEqual(expectedShape);
+          });
+        }
+      }
+    }
+  }
+
+  it('Correct weight names', () => {
+    const x = new tfl.SymbolicTensor('float32', [1, 2, 3, 4, 5], null, [], null);
+    const layer = tfl.layers.conv3dTranspose({filters: 2, kernelSize: [3, 3, 3]});
+    layer.apply(x);  // Let the layer build first.
+
+    expect(layer.weights.length).toEqual(2);
+    expect(layer.weights[0].name.indexOf('/kernel')).toBeGreaterThan(0);
+    expect(layer.weights[1].name.indexOf('/bias')).toBeGreaterThan(0);
+  });
+});
+
+describeMathCPUAndGPU('Conv3DTranspose: Tensor', () => {
+  const dataFormats: DataFormat[] = ['channelsFirst', 'channelsLast'];
+  const stridesArray = [1, 2];
+  for (const dataFormat of dataFormats) {
+    for (const strides of stridesArray) {
+      const testTitle =
+          `filters=8, kernelSize=[2,2], padding=valid, strides=${strides}` +
+          `dataFormat=${dataFormat}`;
+      it(testTitle, () => {
+        const filters = 8;
+        const kernelSize = [2, 2, 2];
+        const padding = 'valid';
+        const strides = 2;
+        const layer = tfl.layers.conv3dTranspose({
+          filters,
+          kernelSize,
+          padding,
+          strides,
+          dataFormat,
+          kernelInitializer: 'ones',
+          biasInitializer: 'ones'
+        });
+
+        const x = tfc.ones([2, 3, 4, 5, 2]);
+        const y = layer.apply(x) as Tensor;
+        if (dataFormat === 'channelsLast') {
+          expectTensorsClose(y, tfc.ones([2, 6, 8, 10, 8]).mul(scalar(3)));
+        } else {
+          expectTensorsClose(y, tfc.ones([2, 8, 8, 10, 4]).mul(scalar(4)));
+        }
+      });
+    }
+  }
+});
