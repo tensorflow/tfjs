@@ -17,6 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 
+import {getDebugMode} from '../platform_react_native';
 import * as drawTextureProgramInfo from './draw_texture_program_info';
 import * as resizeBilinearProgramInfo from './resize_bilinear_program_info';
 import * as resizeNNProgramInfo from './resize_nearest_neigbor_program_info';
@@ -32,12 +33,13 @@ let fbo: WebGLFramebuffer;
 
 // Internal target texture used for resizing camera texture input
 let resizeTexture: WebGLTexture;
-// let resizeTextureDims: {width: number, height: number};
+let resizeTextureDims: {width: number, height: number};
 
 interface ProgramObjects {
   program: WebGLProgram;
   vao: WebGLVertexArrayObject;
   vertices: Float32Array;
+  uniformLocations: Map<string, WebGLUniformLocation>;
 }
 
 // Cache for shader programs and associated vertex array buffers.
@@ -59,30 +61,32 @@ export function downloadTextureData(
     fbo = createFrameBuffer(gl);
   }
 
-  const LEVEL = 0;
-  tf.webgl.webgl_util.callAndCheck(gl, true, () => {
+  const debugMode = getDebugMode();
+
+  tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
   });
 
-  tf.webgl.webgl_util.callAndCheck(gl, true, () => {
+  tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
   });
 
-  tf.webgl.webgl_util.callAndCheck(gl, true, () => {
+  tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
+    const level = 0;
     gl.framebufferTexture2D(
-        gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, LEVEL);
+        gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, level);
   });
-  const format = depth === 3 ? gl.RGB : gl.RGBA;
-  const x = 0;
-  const y = 0;
 
-  tf.webgl.webgl_util.callAndCheck(gl, true, () => {
+  tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
+    const format = depth === 3 ? gl.RGB : gl.RGBA;
+    const x = 0;
+    const y = 0;
     gl.readPixels(x, y, width, height, format, gl.UNSIGNED_BYTE, pixels);
   });
 
   // Unbind framebuffer
-  tf.webgl.webgl_util.callAndCheck(gl, true, () => {
+  tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   });
   return pixels;
@@ -117,13 +121,15 @@ export function uploadTextureData(
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
+  const debugMode = getDebugMode();
+
   const level = 0;
   const format = dims.depth === 3 ? gl.RGB : gl.RGBA;
   const internalFormat = format;
   const border = 0;
   const type = gl.UNSIGNED_BYTE;
 
-  tf.webgl.webgl_util.callAndCheck(gl, true, () => {
+  tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
     gl.texImage2D(
         gl.TEXTURE_2D, level, internalFormat, targetTextureWidth,
         targetTextureHeight, border, format, type, imageData);
@@ -142,13 +148,13 @@ export function uploadTextureData(
 export function drawTexture(
     gl: WebGL2RenderingContext, texture: WebGLTexture,
     dims: {width: number, height: number}) {
-  const {program, vao, vertices} = drawTextureProgram(gl);
+  const {program, vao, vertices, uniformLocations} = drawTextureProgram(gl);
   gl.useProgram(program);
   gl.bindVertexArray(vao);
 
   // Set texture sampler uniform
   const TEXTURE_UNIT = 0;
-  gl.uniform1i(gl.getUniformLocation(program, 'inputTexture'), TEXTURE_UNIT);
+  gl.uniform1i(uniformLocations.get('inputTexture'), TEXTURE_UNIT);
   gl.activeTexture(gl.TEXTURE0 + TEXTURE_UNIT);
   gl.bindTexture(gl.TEXTURE_2D, texture);
 
@@ -168,27 +174,29 @@ export function runResizeProgram(
     gl: WebGL2RenderingContext, inputTexture: WebGLTexture,
     inputDims: Dimensions, outputDims: Dimensions, alignCorners: boolean,
     interpolation: 'nearest_neighbor'|'bilinear') {
-  const {program, vao, vertices} =
+  const debugMode = getDebugMode();
+
+  const {program, vao, vertices, uniformLocations} =
       getResizeProgram(gl, inputDims, outputDims, alignCorners, interpolation);
   gl.useProgram(program);
   // Set up geometry
-  tf.webgl.webgl_util.callAndCheck(gl, true, () => {
+  tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
     gl.bindVertexArray(vao);
   });
 
   //
   // Set up input texture
   //
-  gl.uniform1i(gl.getUniformLocation(program, 'inputTexture'), 1);
+  gl.uniform1i(uniformLocations.get('inputTexture'), 1);
   gl.activeTexture(gl.TEXTURE0 + 1);
   gl.bindTexture(gl.TEXTURE_2D, inputTexture);
 
   //
   // Set up output texture.
   //
-  // if (resizeTexture == null) {
-  resizeTexture = gl.createTexture();
-  // }
+  if (resizeTexture == null) {
+    resizeTexture = gl.createTexture();
+  }
   const targetTexture = resizeTexture;
   const targetTextureWidth = outputDims.width;
   const targetTextureHeight = outputDims.height;
@@ -202,26 +210,26 @@ export function runResizeProgram(
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
   // Reallocate texture if target size has changed.
-  // if (resizeTextureDims == null ||
-  //     resizeTextureDims.width !== targetTextureWidth ||
-  //     resizeTextureDims.height !== targetTextureHeight) {
-  const level = 0;
-  const format = outputDims.depth === 3 ? gl.RGB : gl.RGBA;
-  const internalFormat = format;
-  const border = 0;
-  const type = gl.UNSIGNED_BYTE;
+  if (resizeTextureDims == null ||
+      resizeTextureDims.width !== targetTextureWidth ||
+      resizeTextureDims.height !== targetTextureHeight) {
+    const level = 0;
+    const format = outputDims.depth === 3 ? gl.RGB : gl.RGBA;
+    const internalFormat = format;
+    const border = 0;
+    const type = gl.UNSIGNED_BYTE;
 
-  tf.webgl.webgl_util.callAndCheck(gl, true, () => {
-    gl.texImage2D(
-        gl.TEXTURE_2D, level, internalFormat, targetTextureWidth,
-        targetTextureHeight, border, format, type, null);
-  });
+    tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
+      gl.texImage2D(
+          gl.TEXTURE_2D, level, internalFormat, targetTextureWidth,
+          targetTextureHeight, border, format, type, null);
+    });
 
-  //   resizeTextureDims = {
-  //     width: targetTextureWidth,
-  //     height: targetTextureHeight
-  //   };
-  // }
+    resizeTextureDims = {
+      width: targetTextureWidth,
+      height: targetTextureHeight
+    };
+  }
 
   //
   // Render to output texture
@@ -327,50 +335,28 @@ function createProgramObjects(
     gl: WebGL2RenderingContext, vertexShaderSource: string,
     fragmentShaderSource: string, vertices: Float32Array,
     texCoords: Float32Array): ProgramObjects {
+  const debugMode = getDebugMode();
   const vertShader = gl.createShader(gl.VERTEX_SHADER);
   gl.shaderSource(vertShader, vertexShaderSource);
   gl.compileShader(vertShader);
-  if (gl.getShaderParameter(vertShader, gl.COMPILE_STATUS) === false) {
-    const errorString =
-        JSON.parse(JSON.stringify(gl.getShaderInfoLog(vertShader)));
-    console.log('Error compiling vertex shader\n', errorString);
-    console.log('\nVertex Shader Source\n', fragmentShaderSource);
-  }
 
   const fragShader = gl.createShader(gl.FRAGMENT_SHADER);
   gl.shaderSource(fragShader, fragmentShaderSource);
   gl.compileShader(fragShader);
-  if (gl.getShaderParameter(fragShader, gl.COMPILE_STATUS) === false) {
-    const errorString =
-        JSON.parse(JSON.stringify(gl.getShaderInfoLog(fragShader)));
-    console.log('Error compiling fragment shader\n', errorString);
-    console.log('\nFragment Shader Source\n', fragmentShaderSource);
-  }
 
   const program = gl.createProgram();
   gl.attachShader(program, vertShader);
   gl.attachShader(program, fragShader);
   gl.linkProgram(program);
   gl.validateProgram(program);
-  if (gl.getProgramParameter(program, gl.VALIDATE_STATUS) === false) {
-    console.log(gl.getProgramInfoLog(program));
-    throw new Error('Shader program validation failed.');
-  }
 
-  // vao allows us to store geometry settings.
+  // Use a vertex array objects to record geometry info
   const vao = gl.createVertexArray();
-
-  gl.useProgram(program);
   gl.bindVertexArray(vao);
 
   // Set up geometry
-  const positionAttrib = gl.getAttribLocation(program, 'position');
-  if (positionAttrib === -1) {
-    console.log('Could not get attribute location for "position"');
-    console.log('vertex shader', gl.getShaderSource(vertShader));
-    console.log('fragment shader', gl.getShaderSource(fragShader));
-  }
-  tf.webgl.webgl_util.callAndCheck(gl, true, () => {
+  tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
+    const positionAttrib = gl.getAttribLocation(program, 'position');
     const vertsCoordsBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertsCoordsBuffer);
     gl.enableVertexAttribArray(positionAttrib);
@@ -379,28 +365,28 @@ function createProgramObjects(
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
   });
 
-  const texCoordsAttrib = gl.getAttribLocation(program, 'texCoords');
-  if (texCoordsAttrib === -1) {
-    console.log('Could not get attribute location for "texCoords"');
-    console.log('vertex shader', gl.getShaderSource(vertShader));
-    console.log('fragment shader', gl.getShaderSource(fragShader));
-  } else {
-    tf.webgl.webgl_util.callAndCheck(gl, true, () => {
-      const texCoordsBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, texCoordsBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
-      gl.enableVertexAttribArray(texCoordsAttrib);
-      gl.vertexAttribPointer(texCoordsAttrib, 2, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    });
-  }
+  tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
+    const texCoordsAttrib = gl.getAttribLocation(program, 'texCoords');
+    const texCoordsBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordsBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(texCoordsAttrib);
+    gl.vertexAttribPointer(texCoordsAttrib, 2, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+  });
+
+  const uniformLocations = new Map<string, WebGLUniformLocation>();
+  tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
+    const inputTextureLoc = gl.getUniformLocation(program, 'inputTexture');
+    uniformLocations.set('inputTexture', inputTextureLoc);
+  });
 
   // Unbind
   gl.bindVertexArray(null);
-  gl.useProgram(null);
   return {
     program,
     vao,
     vertices,
+    uniformLocations,
   };
 }
