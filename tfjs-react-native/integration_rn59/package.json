@@ -17,6 +17,7 @@
     "@react-native-community/async-storage": "^1.6.1",
     "@tensorflow-models/blazeface": "^0.0.2",
     "@tensorflow-models/mobilenet": "^2.0.4",
+    "@tensorflow-models/posenet": "^2.2.1",
     "@tensorflow/tfjs": "~1.5.1",
     "@tensorflow/tfjs-react-native": "0.1.0-alpha.3",
     "expo-camera": "^7.0.0",
