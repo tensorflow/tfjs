@@ -25,6 +25,7 @@ import {isArray, isNullOrUndefined} from 'util';
 
 import {Int64Scalar} from './int64_tensors';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
+
 type TensorData = {
   shape: number[],
   dtype: number,
@@ -1961,6 +1962,10 @@ export class NodeJSKernelBackend extends KernelBackend {
     // milliseconds.
     const elapsed = process.hrtime(start);
     return {kernelMs: elapsed[0] * 1000 + elapsed[1] / 1000000};
+  }
+
+  getNumOfSavedModel() {
+    return this.binding.getNumOfSavedModel();
   }
 }
 

@@ -225,25 +225,8 @@ static napi_value RunSavedModel(napi_env env, napi_callback_info info) {
 }
 
 static napi_value GetNumOfSavedModel(napi_env env, napi_callback_info info) {
-  napi_status nstatus;
-
   // Delete SavedModel takes 0 param;
-  size_t argc = 0;
-  napi_value args[0];
-  napi_value js_this;
-  nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
-  ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
-
-  if (argc > 1) {
-    NAPI_THROW_ERROR(env,
-                     "Invalid number of args passed to deleteSavedModel(). "
-                     "Expecting 0 arg but got %d.",
-                     argc);
-    return js_this;
-  }
-
-  gBackend->GetNumOfSavedModel(env);
-  return js_this;
+  return gBackend->GetNumOfSavedModel(env);
 }
 
 static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
