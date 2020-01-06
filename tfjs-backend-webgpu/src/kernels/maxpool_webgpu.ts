@@ -104,6 +104,6 @@ export class MaxPoolProgram implements WebGPUProgram {
         }
       }
     `;
-    this.shaderKey = 'maxpool';
+    this.shaderKey = `maxpool${this.workPerThread}`;
   }
 }
