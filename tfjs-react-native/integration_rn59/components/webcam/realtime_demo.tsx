@@ -16,15 +16,16 @@
  */
 
 import React from 'react';
-import { ActivityIndicator, StyleSheet, View, Image, Text, TouchableHighlight } from 'react-native';
+import { ActivityIndicator, StyleSheet, View, Text, Dimensions ,PixelRatio, LayoutChangeEvent } from 'react-native';
 import Svg, { Circle, Line} from 'react-native-svg';
+
 import * as Permissions from 'expo-permissions';
 import { Camera } from 'expo-camera';
-import * as tf from '@tensorflow/tfjs';
 import { GLView, ExpoWebGLRenderingContext } from 'expo-gl';
-import {fromTexture, toTexture, renderToGLView, decodeJpeg, fetch} from '@tensorflow/tfjs-react-native';
-import { Dimensions,PixelRatio, LayoutChangeEvent } from 'react-native';
+
+import * as tf from '@tensorflow/tfjs';
 import * as posenet from '@tensorflow-models/posenet';
+import {fromTexture, toTexture, renderToGLView, decodeJpeg, fetch} from '@tensorflow/tfjs-react-native';
 
 interface ScreenProps {
   returnToMain: () => void;
@@ -42,8 +43,8 @@ interface ScreenState {
 let cameraPreviewWidth: number;
 let cameraPreviewHeight: number;
 
-let inputTensorWidth = 256;
-let inputTensorHeight = 256;
+const inputTensorWidth = 152;
+const inputTensorHeight = 200;
 
 export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
   private camera?: Camera|null;
@@ -53,7 +54,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
     super(props);
     this.state = {
       isLoading: true,
-      cameraType: Camera.Constants.Type.back,
+      cameraType: Camera.Constants.Type.front,
     };
   }
 
@@ -104,38 +105,35 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
     const width = Math.floor(cameraPreviewWidth * pixelRatio);
     const height = Math.floor(cameraPreviewHeight * pixelRatio);
 
-    const tensorTargetDims = {
+    const targetDims = {
       height: inputTensorHeight,
       width: inputTensorWidth,
       depth: 3,
     };
 
-    let start;
-    let end;
-    const loop = async () => {
-      start = Date.now();
-      const inputTensor = fromTexture(gl, inputTexture,
-         sourceDims, tensorTargetDims);
-      end = Date.now();
-      console.log('fromTexture:time', end - start);
-
-      start = Date.now();
-      const pose = await this.state.posenetModel!.estimateSinglePose(
-        inputTensor, { flipHorizontal: false });
-        end = Date.now();
-      console.log('estimateSinglePose:time', end - start);
-
-      this.setState({pose});
-
-      // console.log('POSE', pose[0]);
-
+    const previewLoop = async () => {
       renderToGLView(gl, inputTexture, { width, height });
       gl.endFrameEXP();
+      requestAnimationFrame(previewLoop);
     };
 
-    setInterval(() => {
-      loop();
-    }, 800);
+    setTimeout(() => {
+      previewLoop();
+    }, 100);
+
+    const poseLoop = async () => {
+      const inputTensor = fromTexture(gl, inputTexture, sourceDims, targetDims);
+
+      const pose = await this.state.posenetModel!.estimateSinglePose(
+        inputTensor, { flipHorizontal: false });
+      this.setState({pose});
+
+      requestAnimationFrame(poseLoop);
+    };
+
+    setTimeout(() => {
+      poseLoop();
+    }, 1000);
   }
 
   async getImageTensor() {
@@ -151,15 +149,20 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
   }
 
  async onContextCreate(gl: ExpoWebGLRenderingContext) {
-    // const cameraTexture = await gl.create
-
-    const imageTensor = await this.getImageTensor();
-    const targetTexture = await toTexture(gl, imageTensor);
+    const targetTexture = await this.createCameraTexture();
     const sourceDims = {
-      height: 513,
-      width: 513,
+      height: 600,
+      width: 800,
       depth: 4,
     };
+
+    // const imageTensor = await this.getImageTensor();
+    // const targetTexture = await toTexture(gl, imageTensor);
+    // const sourceDims = {
+    //   height: 513,
+    //   width: 513,
+    //   depth: 4,
+    // };
 
     this.startRenderLoop(gl, targetTexture, sourceDims);
   }

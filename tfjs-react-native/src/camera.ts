@@ -86,7 +86,8 @@ export function fromTexture(
     // See
     // https://www.khronos.org/opengl/wiki/Common_Mistakes#Texture_upload_and_pixel_reads
     // for more details. At the moment gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
-    // does not seem to solve this issue.
+    // is not supported on expo. "EXGL: gl.pixelStorei() doesn't support this
+    // parameter yet!"
     throw new Error(
         'When using targetShape.depth=3, targetShape.width must be' +
         ' a multiple of 4');

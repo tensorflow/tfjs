@@ -70,11 +70,6 @@ export function downloadTextureData(
   });
 
   tf.webgl.webgl_util.callAndCheck(gl, true, () => {
-    gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
-    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-  });
-
-  tf.webgl.webgl_util.callAndCheck(gl, true, () => {
     gl.framebufferTexture2D(
         gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, LEVEL);
   });
@@ -116,8 +111,6 @@ export function uploadTextureData(
   const targetTexture = texture || gl.createTexture();
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, targetTexture);
-  gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
-  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -189,8 +182,7 @@ export function runResizeProgram(
   gl.uniform1i(gl.getUniformLocation(program, 'inputTexture'), 1);
   gl.activeTexture(gl.TEXTURE0 + 1);
   gl.bindTexture(gl.TEXTURE_2D, inputTexture);
-  gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
-  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+
   //
   // Set up output texture.
   //
@@ -203,11 +195,6 @@ export function runResizeProgram(
 
   gl.activeTexture(gl.TEXTURE0 + 2);
   gl.bindTexture(gl.TEXTURE_2D, targetTexture);
-  tf.webgl.webgl_util.callAndCheck(gl, true, () => {
-    gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
-    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-  });
-
 
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
