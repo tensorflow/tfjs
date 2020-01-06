@@ -17,7 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 
-import {downloadTextureData, drawTexture, runResizeProgram, uploadTextureData} from './camera_utils/camera_webgl_util';
+import {downloadTextureData, drawTexture, runResizeProgram, uploadTextureData} from './camera_webgl_util';
 
 interface Dimensions {
   width: number;

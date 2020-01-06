@@ -22,8 +22,9 @@ import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import {expectArraysEqual} from '@tensorflow/tfjs-core/dist/test_util';
 import {ExpoWebGLRenderingContext, GLView} from 'expo-gl';
 
-import {fromTexture, toTexture} from './camera';
-import {RN_ENVS} from './test_env_registry';
+import {RN_ENVS} from '../test_env_registry';
+
+import {fromTexture, toTexture} from '.';
 
 async function createGLContext(): Promise<ExpoWebGLRenderingContext> {
   return GLView.createContextAsync();
@@ -338,8 +339,6 @@ describeWithFlags('fromTexture:nearestNeighbor', RN_ENVS, () => {
         },
         {alignCorners: true, interpolation: 'nearest_neighbor'},
     );
-
-    output.print();
 
     expectArraysEqual(await output.data(), await expected.data());
     expectArraysEqual(output.shape, expected.shape);
