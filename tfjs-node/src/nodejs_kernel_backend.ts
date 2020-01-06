@@ -1964,8 +1964,8 @@ export class NodeJSKernelBackend extends KernelBackend {
     return {kernelMs: elapsed[0] * 1000 + elapsed[1] / 1000000};
   }
 
-  getNumOfSavedModel() {
-    return this.binding.getNumOfSavedModel();
+  getNumOfSavedModels() {
+    return this.binding.getNumOfSavedModels();
   }
 }
 

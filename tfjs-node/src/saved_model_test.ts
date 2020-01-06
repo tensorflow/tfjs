@@ -233,7 +233,7 @@ describe('SavedModel', () => {
   });
 
   it('load TFSavedModel and delete', async () => {
-    expect(tf.node.getNumOfSavedModel()).toBe(0);
+    expect(tf.node.getNumOfSavedModels()).toBe(0);
     const loadSavedModelMetaGraphSpy =
         spyOn(nodeBackend(), 'loadSavedModelMetaGraph').and.callThrough();
     const deleteSavedModelSpy =
@@ -245,11 +245,11 @@ describe('SavedModel', () => {
         'serving_default');
     expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
     expect(deleteSavedModelSpy).toHaveBeenCalledTimes(0);
-    expect(tf.node.getNumOfSavedModel()).toBe(1);
+    expect(tf.node.getNumOfSavedModels()).toBe(1);
     model.dispose();
     expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
     expect(deleteSavedModelSpy).toHaveBeenCalledTimes(1);
-    expect(tf.node.getNumOfSavedModel()).toBe(0);
+    expect(tf.node.getNumOfSavedModels()).toBe(0);
   });
 
   it('delete TFSavedModel multiple times throw exception', async done => {
@@ -268,7 +268,7 @@ describe('SavedModel', () => {
 
   it('load multiple signatures from the same metagraph only call binding once',
      async () => {
-       expect(tf.node.getNumOfSavedModel()).toBe(0);
+       expect(tf.node.getNumOfSavedModels()).toBe(0);
        const backend = nodeBackend();
        const loadSavedModelMetaGraphSpy =
            spyOn(backend, 'loadSavedModelMetaGraph').and.callThrough();
@@ -277,17 +277,17 @@ describe('SavedModel', () => {
            './test_objects/saved_model/module_with_multiple_signatures',
            ['serve'], 'serving_default');
        expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
-       expect(tf.node.getNumOfSavedModel()).toBe(1);
+       expect(tf.node.getNumOfSavedModels()).toBe(1);
        const model2 = await tf.node.loadSavedModel(
            './test_objects/saved_model/module_with_multiple_signatures',
            ['serve'], 'timestwo');
        expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
-       expect(tf.node.getNumOfSavedModel()).toBe(1);
+       expect(tf.node.getNumOfSavedModels()).toBe(1);
        model1.dispose();
-       expect(tf.node.getNumOfSavedModel()).toBe(1);
+       expect(tf.node.getNumOfSavedModels()).toBe(1);
        model2.dispose();
        expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
-       expect(tf.node.getNumOfSavedModel()).toBe(0);
+       expect(tf.node.getNumOfSavedModels()).toBe(0);
      });
 
   it('load signature after delete call binding', async () => {
@@ -478,18 +478,18 @@ describe('SavedModel', () => {
   });
 
   it('load multiple models', async () => {
-    expect(tf.node.getNumOfSavedModel()).toBe(0);
+    expect(tf.node.getNumOfSavedModels()).toBe(0);
     const model1 = await tf.node.loadSavedModel(
         './test_objects/saved_model/module_with_multiple_signatures', ['serve'],
         'serving_default');
-    expect(tf.node.getNumOfSavedModel()).toBe(1);
+    expect(tf.node.getNumOfSavedModels()).toBe(1);
     const model2 = await tf.node.loadSavedModel(
         './test_objects/saved_model/model_multi_output', ['serve'],
         'serving_default');
-    expect(tf.node.getNumOfSavedModel()).toBe(2);
+    expect(tf.node.getNumOfSavedModels()).toBe(2);
     model1.dispose();
-    expect(tf.node.getNumOfSavedModel()).toBe(1);
+    expect(tf.node.getNumOfSavedModels()).toBe(1);
     model2.dispose();
-    expect(tf.node.getNumOfSavedModel()).toBe(0);
+    expect(tf.node.getNumOfSavedModels()).toBe(0);
   });
 });

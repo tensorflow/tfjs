@@ -81,7 +81,7 @@ class TFJSBackend {
                            napi_value output_op_names);
 
   // Get number of loaded SavedModel in the backend:
-  napi_value GetNumOfSavedModel(napi_env env);
+  napi_value GetNumOfSavedModels(napi_env env);
 
  private:
   TFJSBackend(napi_env env);

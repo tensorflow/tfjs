@@ -60,7 +60,7 @@ export interface TFJSBinding {
       savedModelId: number, inputTensorIds: number[], inputOpNames: string,
       outputOpNames: string): TensorMetadata[];
 
-  getNumOfSavedModel(): number;
+  getNumOfSavedModels(): number;
 
   isUsingGpuDevice(): boolean;
 

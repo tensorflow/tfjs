@@ -21,7 +21,7 @@
 
 import {tensorBoard} from './callbacks';
 import {decodeBmp, decodeGif, decodeImage, decodeJpeg, decodePng, encodeJpeg, encodePng} from './image';
-import {getMetaGraphsFromSavedModel, getNumOfSavedModel, loadSavedModel} from './saved_model';
+import {getMetaGraphsFromSavedModel, getNumOfSavedModels, loadSavedModel} from './saved_model';
 import {summaryFileWriter} from './tensorboard';
 
 export const node = {
@@ -35,6 +35,6 @@ export const node = {
   summaryFileWriter,
   tensorBoard,
   getMetaGraphsFromSavedModel,
-  getNumOfSavedModel,
+  getNumOfSavedModels,
   loadSavedModel
 };

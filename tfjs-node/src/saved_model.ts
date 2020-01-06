@@ -438,9 +438,8 @@ function mapTFDtypeToJSDtype(tfDtype: string): DataType {
   }
 }
 
-
-export function getNumOfSavedModel() {
+export function getNumOfSavedModels() {
   ensureTensorflowBackend();
   const backend = nodeBackend();
-  return backend.getNumOfSavedModel();
+  return backend.getNumOfSavedModels();
 }
