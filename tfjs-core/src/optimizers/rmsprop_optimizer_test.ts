@@ -217,4 +217,10 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
         tf.RMSPropOptimizer, originalOpt.getConfig());
     expect(reserialized.getConfig()).toEqual(originalOpt.getConfig());
   });
+
+  it('must define learning rate', () => {
+    const learningRate: number = undefined;
+    expect(() => tf.train.rmsprop(learningRate))
+        .toThrowError(/learningRate for RMSPropOptimizer must be defined./);
+  });
 });

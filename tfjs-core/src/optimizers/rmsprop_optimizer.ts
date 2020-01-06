@@ -44,6 +44,9 @@ export class RMSPropOptimizer extends Optimizer {
     if (epsilon == null) {
       this.epsilon = ENGINE.backend.epsilon();
     }
+    if (learningRate == null) {
+      throw new Error(`learningRate for RMSPropOptimizer must be defined.`);
+    }
   }
 
   applyGradients(variableGradients: NamedTensorMap|NamedTensor[]) {
