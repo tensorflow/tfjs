@@ -30,15 +30,17 @@ interface NonMaxSuppressionAttrs extends NamedAttrMap {
   maxOutputSize: number;
   iouThreshold: number;
   scoreThreshold: number;
+  softNmsSigma: number;
 }
 
-let wasmFunc: (
-    boxesId: number, scoresId: number, maxOutputSize: number,
-    iouThreshold: number, scoreThreshold: number) => number;
+let wasmFunc:
+    (boxesId: number, scoresId: number, maxOutputSize: number,
+     iouThreshold: number, scoreThreshold: number, softNmsSigma: number) =>
+        number;
 
 function setup(backend: BackendWasm): void {
   wasmFunc = backend.wasm.cwrap(
-      'NonMaxSuppressionV3',
+      'NonMaxSuppressionV5',
       'number',  // Result*
       [
         'number',  // boxesId
@@ -46,6 +48,7 @@ function setup(backend: BackendWasm): void {
         'number',  // maxOutputSize
         'number',  // iouThreshold
         'number',  // scoreThreshold
+        'number',  // softNmsSigma
       ]);
 }
 
@@ -53,31 +56,34 @@ function kernelFunc(args: {
   backend: BackendWasm,
   inputs: NonMaxSuppressionInputs,
   attrs: NonMaxSuppressionAttrs
-}): TensorInfo {
+}): TensorInfo[] {
   const {backend, inputs, attrs} = args;
-  const {iouThreshold, maxOutputSize, scoreThreshold} = attrs;
+  const {iouThreshold, maxOutputSize, scoreThreshold, softNmsSigma} = attrs;
   const {boxes, scores} = inputs;
 
   const boxesId = backend.dataIdMap.get(boxes.dataId).id;
   const scoresId = backend.dataIdMap.get(scores.dataId).id;
 
-  const resOffset =
-      wasmFunc(boxesId, scoresId, maxOutputSize, iouThreshold, scoreThreshold);
+  const resOffset = wasmFunc(
+      boxesId, scoresId, maxOutputSize, iouThreshold, scoreThreshold,
+      softNmsSigma);
 
-  const {pSelectedIndices, selectedSize, pSelectedScores} =
-      parseResultStruct(backend, resOffset);
-
-  // Since we are not using scores for V3, we have to delete it from the heap.
-  backend.wasm._free(pSelectedScores);
+  const {
+    pSelectedIndices,
+    selectedSize,
+    pSelectedScores,
+  } = parseResultStruct(backend, resOffset);
 
   const selectedIndicesTensor =
       backend.makeOutput([selectedSize], 'int32', pSelectedIndices);
+  const selectedScoresTensor =
+      backend.makeOutput([selectedSize], 'float32', pSelectedScores);
 
-  return selectedIndicesTensor;
+  return [selectedIndicesTensor, selectedScoresTensor];
 }
 
 registerKernel({
-  kernelName: 'NonMaxSuppressionV3',
+  kernelName: 'NonMaxSuppressionV5',
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc,

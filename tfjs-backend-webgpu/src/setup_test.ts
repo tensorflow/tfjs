@@ -323,6 +323,14 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient',                  // zerosLike not yet implemented.
       'absoluteDifference',        // absoluteDifference not yet implemented
     ]
+  },
+  {
+    include: 'cropAndResize',
+    excludes: [
+      '2x2to3x3-NoCrop',  // The operation failed for an operation-specific
+                          // reason
+      'MultipleBoxes-DifferentBoxes',  // TimeOut
+    ]
   }
 ];
 
