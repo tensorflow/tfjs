@@ -16,7 +16,7 @@
  */
 
 import React from 'react';
-import { ActivityIndicator, StyleSheet, View, Text, Dimensions ,PixelRatio, LayoutChangeEvent } from 'react-native';
+import { ActivityIndicator, StyleSheet, View, PixelRatio, LayoutChangeEvent } from 'react-native';
 import Svg, { Circle, Line} from 'react-native-svg';
 
 import * as Permissions from 'expo-permissions';
@@ -63,7 +63,8 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
       architecture: 'MobileNetV1',
       outputStride: 16,
       inputResolution: { width: inputTensorWidth, height: inputTensorHeight },
-      multiplier: 0.75
+      multiplier: 0.75,
+      quantBytes: 2
     });
     return model;
   }
@@ -128,6 +129,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
         inputTensor, { flipHorizontal: false });
       this.setState({pose});
 
+      tf.dispose(inputTensor);
       requestAnimationFrame(poseLoop);
     };
 
@@ -156,6 +158,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
       depth: 4,
     };
 
+    // Test image
     // const imageTensor = await this.getImageTensor();
     // const targetTexture = await toTexture(gl, imageTensor);
     // const sourceDims = {
