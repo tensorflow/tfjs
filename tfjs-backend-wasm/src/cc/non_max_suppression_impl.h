@@ -12,36 +12,29 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#endif
+#ifndef NON_MAX_SUPPRESSION_IMPL_H_
+#define NON_MAX_SUPPRESSION_IMPL_H_
 
-#include <algorithm>
 #include <cstddef>
-#include <cstring>
-#include <memory>
 #include <vector>
-
-#include "src/cc/non_max_suppression_impl.h"
 
 namespace tfjs {
 namespace wasm {
-// We use C-style API to interface with Javascript.
-extern "C" {
 
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif
-const NonMaxSuppressionResult* NonMaxSuppressionV3(
+// Structure to store the result of the kernel. In this case we give js a
+// a pointer in memory where the result is stored and how big it is.
+struct NonMaxSuppressionResult {
+  int32_t* selected_indices;
+  size_t selected_size;
+  float* selected_scores;
+};
+
+const NonMaxSuppressionResult* non_max_suppression_impl(
     const size_t boxes_id, const size_t scores_id, const size_t max_out_size,
-    const float iou_threshold, const float score_threshold) {
-  const float dummy_soft_nms_sigma = 0.0;
+    const float iou_threshold, const float score_threshold,
+    const float soft_nms_sigma);
 
-  return tfjs::wasm::non_max_suppression_impl(boxes_id, scores_id, max_out_size,
-                                              iou_threshold, score_threshold,
-                                              dummy_soft_nms_sigma);
-}
-
-}  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs
+
+#endif  // NON_MAX_SUPPRESSION_IMPL_H_

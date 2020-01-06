@@ -17,9 +17,11 @@
 #endif
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <cstring>
 #include <memory>
+#include <queue>
 #include <vector>
 
 #include "src/cc/non_max_suppression_impl.h"
@@ -32,14 +34,15 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-const NonMaxSuppressionResult* NonMaxSuppressionV3(
-    const size_t boxes_id, const size_t scores_id, const size_t max_out_size,
-    const float iou_threshold, const float score_threshold) {
-  const float dummy_soft_nms_sigma = 0.0;
-
+const NonMaxSuppressionResult* NonMaxSuppressionV5(const size_t boxes_id,
+                                                   const size_t scores_id,
+                                                   const size_t max_out_size,
+                                                   const float iou_threshold,
+                                                   const float score_threshold,
+                                                   const float soft_nms_sigma) {
   return tfjs::wasm::non_max_suppression_impl(boxes_id, scores_id, max_out_size,
                                               iou_threshold, score_threshold,
-                                              dummy_soft_nms_sigma);
+                                              soft_nms_sigma);
 }
 
 }  // extern "C"
