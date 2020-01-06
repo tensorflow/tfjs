@@ -17,15 +17,15 @@
 
 import React from 'react';
 import { ActivityIndicator, StyleSheet, View, PixelRatio, LayoutChangeEvent } from 'react-native';
-import Svg, { Circle, Line} from 'react-native-svg';
+import Svg, { Circle, Rect, G} from 'react-native-svg';
 
 import * as Permissions from 'expo-permissions';
 import { Camera } from 'expo-camera';
 import { GLView, ExpoWebGLRenderingContext } from 'expo-gl';
 
 import * as tf from '@tensorflow/tfjs';
-import * as posenet from '@tensorflow-models/posenet';
-import {fromTexture, toTexture, renderToGLView, decodeJpeg, fetch} from '@tensorflow/tfjs-react-native';
+import * as blazeface from '@tensorflow-models/blazeface';
+import {fromTexture, renderToGLView, decodeJpeg, fetch} from '@tensorflow/tfjs-react-native';
 
 interface ScreenProps {
   returnToMain: () => void;
@@ -36,8 +36,13 @@ interface ScreenState {
   // tslint:disable-next-line: no-any
   cameraType: any;
   isLoading: boolean;
-  posenetModel?: posenet.PoseNet;
-  pose?: posenet.Pose;
+  // tslint:disable-next-line: no-any
+  faceDetector?: any;
+  faces?: blazeface.NormalizedFace[];
+  xScale?: number;
+  yScale?: number;
+  drawWidth?: number;
+  drawHeight?: number;
 }
 
 let cameraPreviewWidth: number;
@@ -54,28 +59,22 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
     super(props);
     this.state = {
       isLoading: true,
-      cameraType: Camera.Constants.Type.front,
+      cameraType: Camera.Constants.Type.back,
     };
   }
 
-  async loadPosenetModel() {
-    const model =  await posenet.load({
-      architecture: 'MobileNetV1',
-      outputStride: 16,
-      inputResolution: { width: inputTensorWidth, height: inputTensorHeight },
-      multiplier: 0.75,
-      quantBytes: 2
-    });
+  async loadBlazefaceModel() {
+    const model =  await blazeface.load();
     return model;
   }
 
   async componentDidMount() {
     const { status } = await Permissions.askAsync(Permissions.CAMERA);
-    const posenetModel = await this.loadPosenetModel();
+    const blazefaceModel = await this.loadBlazefaceModel();
     this.setState({
       hasCameraPermission: status === 'granted',
       isLoading: false,
-      posenetModel,
+      faceDetector: blazefaceModel,
     });
   }
 
@@ -112,6 +111,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
       depth: 3,
     };
 
+
     const previewLoop = async () => {
       renderToGLView(gl, inputTexture, { width, height });
       gl.endFrameEXP();
@@ -122,20 +122,30 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
       previewLoop();
     }, 100);
 
-    const poseLoop = async () => {
-      const inputTensor = fromTexture(gl, inputTexture, sourceDims, targetDims);
+    const faceDetectorLoop = async () => {
+      let start;
+      let end;
 
-      const pose = await this.state.posenetModel!.estimateSinglePose(
-        inputTensor, { flipHorizontal: false });
-      this.setState({pose});
+      start = Date.now();
+      const inputTensor = fromTexture(gl, inputTexture, sourceDims, targetDims);
+      end = Date.now();
+      // console.log('fromTexture time', end - start);
+
+      start = Date.now();
+      const faces = await this.state.faceDetector.estimateFaces(
+        inputTensor, false);
+      end = Date.now();
+      // console.log('faces', faces)
+      // console.log('facedetector time', end - start);
+      this.setState({faces});
 
       tf.dispose(inputTensor);
-      requestAnimationFrame(poseLoop);
+      requestAnimationFrame(faceDetectorLoop);
     };
 
     setTimeout(() => {
-      poseLoop();
-    }, 1000);
+      faceDetectorLoop();
+    }, 500);
   }
 
   async getImageTensor() {
@@ -158,6 +168,13 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
       depth: 4,
     };
 
+    this.setState({
+      xScale: sourceDims.width / inputTensorWidth,
+      yScale: sourceDims.height / inputTensorHeight,
+      drawWidth: sourceDims.width,
+      drawHeight: sourceDims.height,
+    });
+
     // Test image
     // const imageTensor = await this.getImageTensor();
     // const targetTexture = await toTexture(gl, imageTensor);
@@ -170,41 +187,40 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
     this.startRenderLoop(gl, targetTexture, sourceDims);
   }
 
-  renderPose() {
-    const MIN_KEYPOINT_SCORE = 0.2;
-    const {pose} = this.state;
-    if(pose != null) {
-      const keypoints = pose.keypoints
-        .filter(k => k.score > MIN_KEYPOINT_SCORE)
-        .map((k,i) => {
+  renderFaces() {
+    const {faces, xScale, yScale, drawHeight, drawWidth} = this.state;
+    if(faces != null) {
+      const faceBoxes = faces.map((f, fIndex) => {
+        const topLeft = f.topLeft as number[];
+        const bottomRight = f.bottomRight as number[];
+
+        const landmarks = (f.landmarks as number[][]).map((l, lIndex) => {
           return <Circle
-            key={`skeletonkp_${i}`}
-            cx={k.position.x}
-            cy={k.position.y}
-            r='5'
+            key={`landmark_${fIndex}_${lIndex}`}
+            cx={l[0]}
+            cy={l[1]}
+            r='2'
             strokeWidth='0'
             fill='blue'
-          />;
+            />;
         });
 
-      const adjacentKeypoints =
-        posenet.getAdjacentKeyPoints(pose.keypoints, MIN_KEYPOINT_SCORE);
-
-      const skeleton = adjacentKeypoints.map(([from, to], i) => {
-        return <Line
-          key={`skeletonls_${i}`}
-          x1={from.position.x}
-          y1={from.position.y}
-          x2={to.position.x}
-          y2={to.position.y}
-          stroke='magenta'
-          strokeWidth='1'
-        />;
+        return <G key={`facebox_${fIndex}`}>
+          <Rect
+            x={topLeft[0]}
+            y={topLeft[1]}
+            fill={'red'}
+            fillOpacity={0.2}
+            width={(bottomRight[0] - topLeft[0])}
+            height={(bottomRight[1] - topLeft[1])}
+          />
+          {landmarks}
+        </G>;
       });
 
-      return <Svg height='100%' width='100%'>
-          {skeleton}
-          {keypoints}
+      return <Svg height='100%' width='100%'
+        viewBox={`0 0 ${drawWidth! / xScale!} ${drawHeight! / yScale!}`}>
+          {faceBoxes}
         </Svg>;
     } else {
       return null;
@@ -228,7 +244,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
           ref={ref => this.glView = ref!}
         />
         <View style={styles.camera}>
-          {this.renderPose()}
+          {this.renderFaces()}
         </View>
 
         </View>;

@@ -256,31 +256,16 @@ function createFrameBuffer(gl: WebGL2RenderingContext): WebGLFramebuffer {
   const fb = gl.createFramebuffer();
   const fboComplete = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
   if (fboComplete !== gl.FRAMEBUFFER_COMPLETE) {
-    console.log('initFrameBuffer: FRAMBUFFER IS NOT COMPLETE', fboComplete);
     switch (fboComplete) {
       case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-        console.log('gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT');
-        break;
-      case gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-        console.log('gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT');
-        break;
-      case gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
-        console.log('gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS');
-        break;
+        throw new Error(
+            'createFrameBuffer Error: gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT');
       case gl.FRAMEBUFFER_UNSUPPORTED:
-        console.log('gl.FRAMEBUFFER_UNSUPPORTED');
-        break;
-      case gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-        console.log('gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE');
-        break;
-      case gl.RENDERBUFFER_SAMPLES:
-        console.log('gl.RENDERBUFFER_SAMPLES');
-        break;
+        throw new Error('createFrameBuffer Error: gl.FRAMEBUFFER_UNSUPPORTED');
       default:
-        console.log('unknown fbo complete status');
+        throw new Error(
+            'createFrameBuffer Error: Other or unknown fbo complete status');
     }
-  } else {
-    console.log('created frambuffer that is framebuffer complete')
   }
   return fb;
 }
