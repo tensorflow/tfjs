@@ -143,7 +143,13 @@ const TEST_FILTERS: TestFilter[] = [
                           // 'CanvasRenderingContext2D': The source width is 0
     ]
   },
-  {include: 'nonMaxSuppression', excludes: []},
+  {
+    include: 'nonMaxSuppression',
+    excludes: [
+      'select from three clusters with SoftNMS',  // nonMaxSuppressionV5 is not
+                                                  // yet implemented.
+    ]
+  },
   {
     include: 'argmax',
     excludes: [
