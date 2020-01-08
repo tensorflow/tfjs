@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util} from '@tensorflow/tfjs-core'
+import {backend_util} from '@tensorflow/tfjs-core';
 
 import {computeDispatch} from '../webgpu_util';
 
