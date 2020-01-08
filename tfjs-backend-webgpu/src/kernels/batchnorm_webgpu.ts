@@ -38,7 +38,7 @@ export class BatchNormProgram implements WebGPUProgram {
     backend_util.assertAndGetBroadcastShape(xShape, meanShape);
     backend_util.assertAndGetBroadcastShape(xShape, varianceShape);
     this.outputShape = xShape;
-    this.dispatchLayout = {x: [0, 1], y: [2], z: [3]};
+    this.dispatchLayout = {x: [1, 2], y: [0], z: [3]};
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
