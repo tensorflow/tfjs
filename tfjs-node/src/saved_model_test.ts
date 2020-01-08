@@ -233,6 +233,7 @@ describe('SavedModel', () => {
   });
 
   it('load TFSavedModel and delete', async () => {
+    expect(tf.node.getNumOfSavedModels()).toBe(0);
     const loadSavedModelMetaGraphSpy =
         spyOn(nodeBackend(), 'loadSavedModelMetaGraph').and.callThrough();
     const deleteSavedModelSpy =
@@ -244,9 +245,11 @@ describe('SavedModel', () => {
         'serving_default');
     expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
     expect(deleteSavedModelSpy).toHaveBeenCalledTimes(0);
+    expect(tf.node.getNumOfSavedModels()).toBe(1);
     model.dispose();
     expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
     expect(deleteSavedModelSpy).toHaveBeenCalledTimes(1);
+    expect(tf.node.getNumOfSavedModels()).toBe(0);
   });
 
   it('delete TFSavedModel multiple times throw exception', async done => {
@@ -265,6 +268,7 @@ describe('SavedModel', () => {
 
   it('load multiple signatures from the same metagraph only call binding once',
      async () => {
+       expect(tf.node.getNumOfSavedModels()).toBe(0);
        const backend = nodeBackend();
        const loadSavedModelMetaGraphSpy =
            spyOn(backend, 'loadSavedModelMetaGraph').and.callThrough();
@@ -273,13 +277,17 @@ describe('SavedModel', () => {
            './test_objects/saved_model/module_with_multiple_signatures',
            ['serve'], 'serving_default');
        expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+       expect(tf.node.getNumOfSavedModels()).toBe(1);
        const model2 = await tf.node.loadSavedModel(
            './test_objects/saved_model/module_with_multiple_signatures',
            ['serve'], 'timestwo');
        expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+       expect(tf.node.getNumOfSavedModels()).toBe(1);
        model1.dispose();
+       expect(tf.node.getNumOfSavedModels()).toBe(1);
        model2.dispose();
        expect(loadSavedModelMetaGraphSpy).toHaveBeenCalledTimes(1);
+       expect(tf.node.getNumOfSavedModels()).toBe(0);
      });
 
   it('load signature after delete call binding', async () => {
@@ -309,12 +317,12 @@ describe('SavedModel', () => {
   });
 
   it('throw error when input tensors do not match input ops', async done => {
+    const model = await tf.node.loadSavedModel(
+        './test_objects/saved_model/times_three_float', ['serve'],
+        'serving_default');
+    const input1 = tf.tensor1d([1.0, 2, 3]);
+    const input2 = tf.tensor1d([1.0, 2, 3]);
     try {
-      const model = await tf.node.loadSavedModel(
-          './test_objects/saved_model/times_three_float', ['serve'],
-          'serving_default');
-      const input1 = tf.tensor1d([1.0, 2, 3]);
-      const input2 = tf.tensor1d([1.0, 2, 3]);
       model.predict([input1, input2]);
       done.fail();
     } catch (error) {
@@ -322,6 +330,7 @@ describe('SavedModel', () => {
           .toBe(
               'Length of input op names (1) does not match the ' +
               'length of input tensors (2).');
+      model.dispose();
       done();
     }
   });
@@ -369,11 +378,11 @@ describe('SavedModel', () => {
   });
 
   it('execute model with wrong tensor name', async done => {
+    const model = await tf.node.loadSavedModel(
+        './test_objects/saved_model/times_three_float', ['serve'],
+        'serving_default');
+    const input = tf.tensor1d([1.0, 2, 3]);
     try {
-      const model = await tf.node.loadSavedModel(
-          './test_objects/saved_model/times_three_float', ['serve'],
-          'serving_default');
-      const input = tf.tensor1d([1.0, 2, 3]);
       model.predict({'xyz': input});
       done.fail();
     } catch (error) {
@@ -381,6 +390,7 @@ describe('SavedModel', () => {
           .toBe(
               'The model signatureDef input names are x, however ' +
               'the provided input names are xyz.');
+      model.dispose();
       done();
     }
   });
@@ -465,5 +475,21 @@ describe('SavedModel', () => {
     test_util.expectArraysClose(await output1.data(), [2, 4, 6]);
     test_util.expectArraysClose(await output2.data(), [1, 2, 3]);
     model.dispose();
+  });
+
+  it('load multiple models', async () => {
+    expect(tf.node.getNumOfSavedModels()).toBe(0);
+    const model1 = await tf.node.loadSavedModel(
+        './test_objects/saved_model/module_with_multiple_signatures', ['serve'],
+        'serving_default');
+    expect(tf.node.getNumOfSavedModels()).toBe(1);
+    const model2 = await tf.node.loadSavedModel(
+        './test_objects/saved_model/model_multi_output', ['serve'],
+        'serving_default');
+    expect(tf.node.getNumOfSavedModels()).toBe(2);
+    model1.dispose();
+    expect(tf.node.getNumOfSavedModels()).toBe(1);
+    model2.dispose();
+    expect(tf.node.getNumOfSavedModels()).toBe(0);
   });
 });

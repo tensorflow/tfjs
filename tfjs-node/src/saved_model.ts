@@ -437,3 +437,9 @@ function mapTFDtypeToJSDtype(tfDtype: string): DataType {
       throw new Error('Unsupported tensor DataType: ' + tfDtype);
   }
 }
+
+export function getNumOfSavedModels() {
+  ensureTensorflowBackend();
+  const backend = nodeBackend();
+  return backend.getNumOfSavedModels();
+}
