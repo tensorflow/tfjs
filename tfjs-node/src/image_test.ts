@@ -213,7 +213,7 @@ describe('decode images', () => {
     } catch (error) {
       expect(error.message)
           .toBe(
-              'Expected image (JPEG, PNG, or GIF), ' +
+              'Expected image (BMP, JPEG, PNG, or GIF), ' +
               'but got unsupported image type');
       done();
     }
