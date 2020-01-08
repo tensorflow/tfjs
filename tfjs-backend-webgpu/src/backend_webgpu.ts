@@ -19,7 +19,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, slice_util, sumOutType, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
@@ -30,6 +30,7 @@ import {ClipProgram} from './kernels/clip_webgpu';
 import {ConcatProgram} from './kernels/concat_webgpu';
 import {Conv2DMMProgram} from './kernels/conv2d_mm_webgpu';
 import {Conv2DNaiveProgram} from './kernels/conv2d_naive_webgpu';
+import {CropAndResizeProgram} from './kernels/crop_and_resize_webgpu';
 import {DepthwiseConv2DProgram} from './kernels/depthwise_conv2d_webgpu';
 import {FillProgram} from './kernels/fill_webgpu';
 import {Im2ColProgram} from './kernels/im2col_webgpu';
@@ -37,9 +38,11 @@ import {MatMulPackedProgram} from './kernels/matmul_packed_webgpu';
 import {MatMulProgram} from './kernels/matmul_webgpu';
 import {MaxPoolProgram} from './kernels/maxpool_webgpu';
 import {PadProgram} from './kernels/pad_webgpu';
+import {ReduceProgram} from './kernels/reduce_webgpu';
 import {ResizeBilinearProgram} from './kernels/resize_bilinear_webgpu';
 import {SelectProgram} from './kernels/select_webgpu';
 import {SliceProgram} from './kernels/slice_webgpu';
+import {StridedSliceProgram} from './kernels/strided_slice_webgpu';
 import {TransposeSharedProgram} from './kernels/transpose_shared_webgpu';
 import {TransposeProgram} from './kernels/transpose_webgpu';
 import * as unary_op from './kernels/unary_op_webgpu';
@@ -640,7 +643,7 @@ export class WebGPUBackend extends KernelBackend {
 
     const sharedDim = filterWidth * filterHeight * inChannels;
     const numCols = outHeight * outWidth;
-    const x2ColShape = [sharedDim, numCols];
+    const x2ColShape = [numCols, sharedDim];
 
     const xSqueezed = x.squeeze([0]);
     const w2Row = filter.reshape([1, sharedDim, -1]);
@@ -651,7 +654,7 @@ export class WebGPUBackend extends KernelBackend {
     const im2Col3D =
         (im2Col as Tensor3D).reshape([1, x2ColShape[0], x2ColShape[1]]);
 
-    const transposeA = true;
+    const transposeA = false;
     const transposeB = false;
 
     const matMulProgram = new MatMulPackedProgram(
@@ -746,6 +749,65 @@ export class WebGPUBackend extends KernelBackend {
     return this.compileAndRun(program, [x, filter], null, dimensions);
   }
 
+  mapActivationToShaderProgram(
+      activation: backend_util.Activation, packed = false): string {
+    if (activation === 'linear') {
+      return unary_op.LINEAR;
+    } else if (activation === 'relu') {
+      return unary_op.RELU;
+    } else if (activation === 'elu') {
+      return unary_op.ELU;
+    } else if (activation === 'relu6') {
+      return unary_op.RELU6;
+    } else if (activation === 'prelu') {
+      return binary_op.PRELU;
+    }
+    throw new Error(`Activation ${
+        activation} has not been implemented for the WebGL backend.`);
+  }
+
+  fusedConv2d(
+      {input, filter, convInfo, bias, activation, preluActivationWeights}:
+          backend_util.FusedConv2DConfig): Tensor4D {
+    const dataId = this.write(null /*values*/, convInfo.outShape, input.dtype);
+    const output = engine().makeTensorFromDataId(
+        dataId, convInfo.outShape, input.dtype, this);
+
+    const hasBias = bias != null;
+    const hasPreluActivationWeights = preluActivationWeights != null;
+    const fusedActivation = activation ?
+        this.mapActivationToShaderProgram(activation, false) :
+        null;
+    let program: Conv2DMMProgram|Conv2DNaiveProgram;
+
+    const workPerThread = env().get('WEBGPU_CONV2D_WORK_PER_THREAD') as number;
+    if (workPerThread === -1) {
+      // TODO(kainino0x): This may be obsolete, but is kept for reference.
+      program = new Conv2DNaiveProgram(
+          convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
+    } else {
+      program = new Conv2DMMProgram(
+          convInfo, workPerThread, hasBias, fusedActivation,
+          hasPreluActivationWeights);
+    }
+
+    const pad = convInfo.padInfo.type === 'VALID' ?
+        [0, 0] :
+        convInfo.padInfo.type === 'SAME' ?
+        [
+          -Math.floor((convInfo.filterShape[0] - 1) / 2),
+          -Math.floor((convInfo.filterShape[1] - 1) / 2)
+        ] :
+        [convInfo.padInfo.top, convInfo.padInfo.left];
+
+    const dimensions = [
+      convInfo.filterHeight, convInfo.filterWidth, ...pad,
+      convInfo.strideHeight, convInfo.strideWidth
+    ];
+
+    return this.compileAndRun(program, [input, filter], output, dimensions);
+  }
+
   private argMinMaxReduce(x: Tensor, axis: number, reduceType: 'min'|'max'):
       Tensor {
     const program = new ArgMinMaxProgram(x.shape, axis, reduceType);
@@ -759,6 +821,45 @@ export class WebGPUBackend extends KernelBackend {
 
   argMax(x: Tensor, axis: number): Tensor {
     return this.argMinMaxReduce(x, axis, 'max');
+  }
+
+  private reduce(x: Tensor2D, reduceType: 'max'|'min'|'sum', dtype: DataType):
+      Tensor2D {
+    const batchSize = x.shape[0];
+    const inSize = x.shape[1];
+    const windowSize = backend_util.computeOptimalWindowSize(inSize);
+    const reduceInfo = {windowSize, inSize, batchSize};
+    const program = new ReduceProgram(reduceInfo, reduceType);
+    const output = this.makeOutputArray(program.outputShape, dtype);
+    return this.compileAndRun(program, [x], output);
+  }
+
+  max(x: Tensor, axes: number[]): Tensor {
+    backend_util.assertAxesAreInnerMostDims('max', axes, x.rank);
+    const [outShape, reduceShape] =
+        backend_util.computeOutAndReduceShapes(x.shape, axes);
+    const reduceSize = util.sizeFromShape(reduceShape);
+    const a2D = x.as2D(-1, reduceSize);
+    return this.reduce(a2D, 'max', a2D.dtype).reshape(outShape);
+  }
+
+  min(x: Tensor, axes: number[]): Tensor {
+    backend_util.assertAxesAreInnerMostDims('min', axes, x.rank);
+    const [outShape, reduceShape] =
+        backend_util.computeOutAndReduceShapes(x.shape, axes);
+    const reduceSize = util.sizeFromShape(reduceShape);
+    const a2D = x.as2D(-1, reduceSize);
+    return this.reduce(a2D, 'min', a2D.dtype).reshape(outShape);
+  }
+
+  sum(x: Tensor, axes: number[]): Tensor {
+    backend_util.assertAxesAreInnerMostDims('sum', axes, x.rank);
+    const [outShape, reduceShape] =
+        backend_util.computeOutAndReduceShapes(x.shape, axes);
+    const reduceSize = util.sizeFromShape(reduceShape);
+    const a2D = x.as2D(-1, reduceSize);
+    const outputDType = sumOutType(x.dtype);
+    return this.reduce(a2D, 'sum', outputDType).reshape(outShape);
   }
 
   clip<T extends Tensor>(x: T, min: number, max: number): T {
@@ -777,6 +878,22 @@ export class WebGPUBackend extends KernelBackend {
     // TODO(xing.xu): Add shadow slice support.
     const program = new SliceProgram(begin, size);
     return this.compileAndRun(program, [x], null);
+  }
+
+  stridedSlice<T extends Tensor>(
+      x: T, begin: number[], end: number[], strides: number[]): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.stridedSlice(x, begin, end, strides);
+    }
+
+    const outShape = slice_util.computeOutShape(begin, end, strides);
+
+    if (outShape.some(axis => axis === 0)) {
+      return engine().makeTensor([], outShape, x.dtype, this) as T;
+    }
+
+    const program = new StridedSliceProgram(begin, strides, outShape);
+    return this.compileAndRun(program, [x]);
   }
 
   concat(tensors: Tensor[], axis: number): Tensor {
@@ -836,6 +953,14 @@ export class WebGPUBackend extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
+  abs<T extends Tensor>(x: T): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.abs(x);
+    }
+    const program = new UnaryOpProgram(x.shape, unary_op.ABS);
+    return this.compileAndRun(program, [x]);
+  }
+
   prelu<T extends Tensor>(x: T, alpha: T): T {
     const program = new BinaryOpProgram(binary_op.PRELU, x.shape, alpha.shape);
     return this.compileAndRun(program, [x, alpha]);
@@ -848,6 +973,19 @@ export class WebGPUBackend extends KernelBackend {
     const output =
         engine().makeTensorFromDataId(dataId, program.outputShape, dtype, this);
     return this.compileAndRun(program, [condition, a, b], output);
+  }
+
+  cropAndResize(
+      image: Tensor4D, boxes: Tensor2D, boxIndex: Tensor1D,
+      cropSize: [number, number], method: 'bilinear'|'nearest',
+      extrapolationValue: number): Tensor4D {
+    const program = new CropAndResizeProgram(
+        image.shape, boxes.shape, cropSize, method, extrapolationValue);
+    const dataId =
+        this.write(null /*values*/, program.outputShape, image.dtype);
+    const output = engine().makeTensorFromDataId(
+        dataId, program.outputShape, image.dtype, this);
+    return this.compileAndRun(program, [image, boxes, boxIndex], output);
   }
 
   fill<R extends Rank>(
@@ -878,7 +1016,8 @@ export class WebGPUBackend extends KernelBackend {
     const program =
         new ResizeBilinearProgram(x.shape, newHeight, newWidth, alignCorners);
 
-    const output: Tensor4D = this.makeOutputArray(program.outputShape, x.dtype);
+    const output: Tensor4D =
+        this.makeOutputArray(program.outputShape, 'float32');
 
     return this.compileAndRun(program, [x], output);
   }

@@ -27,6 +27,7 @@ import {Int64Scalar} from './int64_tensors';
 // tslint:disable-next-line: no-imports-from-dist
 import { StringTensor } from '@tensorflow/tfjs-core/dist/tensor';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
+
 type TensorData = {
   shape: number[],
   dtype: number,
@@ -1977,6 +1978,10 @@ export class NodeJSKernelBackend extends KernelBackend {
     // milliseconds.
     const elapsed = process.hrtime(start);
     return {kernelMs: elapsed[0] * 1000 + elapsed[1] / 1000000};
+  }
+
+  getNumOfSavedModels() {
+    return this.binding.getNumOfSavedModels();
   }
 }
 

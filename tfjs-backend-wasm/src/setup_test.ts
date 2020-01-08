@@ -26,6 +26,15 @@ setTestEnvs([{name: 'test-wasm', backendName: 'wasm', isDataSync: true}]);
  */
 const TEST_FILTERS: TestFilter[] = [
   {
+    startsWith: 'tensor ',
+    excludes: [
+      'complex',     // Complex numbers not supported yet
+      'derivative',  // Gradients not yet supported.
+      // Downcasting broken, see: https://github.com/tensorflow/tfjs/issues/2590
+      'Tensor2D float32 -> bool', 'Tensor2D int32 -> bool'
+    ]
+  },
+  {
     include: 'add ',
     excludes: [
       'gradient',                        // Gradient is missing.
@@ -110,12 +119,19 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'gather',
+    excludes: [
+      'gradient'  // Not yet implemented.
+    ]
+  },
+  {
     include: 'sigmoid ',
     excludes: [
       'sigmoidCrossEntropy',  // Not yet implemented.
       'gradient'              // Not yet implemented.
     ]
   },
+  {include: 'scatterND '},
   {
     include: 'abs ',
     excludes: [
@@ -195,7 +211,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'pad ', excludes: ['complex', 'zerosLike']},
   {include: 'clip', excludes: ['gradient']},
   {include: 'addN'},
-  {include: 'nonMaxSuppression', excludes: ['SoftNMS']},
+  {include: 'nonMaxSuppression'},
   {include: 'argmax', excludes: ['gradient']},
   {include: 'exp '},
   {include: 'unstack'},
