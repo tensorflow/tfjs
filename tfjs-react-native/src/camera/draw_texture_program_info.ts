@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-export function vertexShaderSource() {
+export function vertexShaderSource(flipHorizontal: boolean) {
+  const horizontalScale = flipHorizontal ? -1 : 1;
   return `#version 300 es
 precision highp float;
 
@@ -26,7 +27,7 @@ out vec2 uv;
 
 void main() {
   // Invert geometry to match the image orientation from the camera.
-  gl_Position = vec4(position * vec2(-1., -1.), 0, 1);
+  gl_Position = vec4(position * vec2(${horizontalScale}., -1.), 0, 1);
   uv = texCoords;
 }`;
 }

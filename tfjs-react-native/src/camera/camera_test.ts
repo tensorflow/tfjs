@@ -24,7 +24,7 @@ import {ExpoWebGLRenderingContext, GLView} from 'expo-gl';
 
 import {RN_ENVS} from '../test_env_registry';
 
-import {fromTexture, toTexture} from '.';
+import {detectGLCapabilities, fromTexture, toTexture} from '.';
 
 async function createGLContext(): Promise<ExpoWebGLRenderingContext> {
   return GLView.createContextAsync();
@@ -345,6 +345,7 @@ describeWithFlags('fromTexture:nearestNeighbor', RN_ENVS, () => {
   });
 
   it('same size, should drop alpha channel', async () => {
+    await detectGLCapabilities(gl);
     const expected = tf.tensor3d(
         [
           [
@@ -634,6 +635,7 @@ describeWithFlags('fromTexture:bilinear', RN_ENVS, () => {
   });
 
   it('same size, should drop alpha channel', async () => {
+    await detectGLCapabilities(gl);
     const expected = tf.tensor3d(
         [
           [

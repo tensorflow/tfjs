@@ -18,7 +18,6 @@
 import * as tf from '@tensorflow/tfjs-core';
 
 import {downloadTextureData, drawTexture, runResizeProgram, uploadTextureData} from './camera_webgl_util';
-
 interface Dimensions {
   width: number;
   height: number;
@@ -33,6 +32,64 @@ interface Size {
 interface FromTextureOptions {
   alignCorners?: boolean;
   interpolation?: 'nearest_neighbor'|'bilinear';
+}
+
+const glCapabilities = {
+  canDownloadFromRGBTexture: false,
+  // Has detectGLCapabilities been run on a particular GL context;
+  glCapabilitiesTested: new WeakMap<WebGL2RenderingContext, boolean>()
+};
+
+/**
+ * Utility function that tests the GL context for capabilities to enable
+ * optimizations.
+ *
+ * For best performance this should be be called once before using the other
+ * camera related functions.
+ */
+export async function detectGLCapabilities(gl: WebGL2RenderingContext) {
+  if (glCapabilities.glCapabilitiesTested.get(gl)) {
+    return;
+  }
+  // Test whether we can successfully download from an RGB texture.
+  // Notably this isn't supported on iOS, but we use this test rather than a
+  // platform check to be more robust on android devices we may not have
+  // directly tested.
+
+  // Set this to true temporarily so that fromTexture does not
+  // use its workaround.
+  glCapabilities.canDownloadFromRGBTexture = true;
+
+  try {
+    const height = 2;
+    const width = 4;  // This must be a multiple of 4.
+    const data = new Uint8Array(height * width * 4);
+    for (let i = 0; i < data.length; i++) {
+      data[i] = i;
+    }
+    const sourceDims = {height, width, depth: 4};
+    const tex = uploadTextureData(data, gl, sourceDims);
+
+    const targetDims = {height, width, depth: 3};
+    const downloaded = fromTexture(gl, tex, sourceDims, targetDims);
+    const downloadedData = await downloaded.data();
+    tf.dispose(downloaded);
+
+    const matches = tf.util.arraysEqual(downloadedData, [
+      0,  1,  2,  4,  5,  6,  8,  9,  10, 12, 13, 14,
+      16, 17, 18, 20, 21, 22, 24, 25, 26, 28, 29, 30
+    ]);
+
+    if (matches) {
+      glCapabilities.canDownloadFromRGBTexture = true;
+    } else {
+      glCapabilities.canDownloadFromRGBTexture = false;
+    }
+  } catch (e) {
+    glCapabilities.canDownloadFromRGBTexture = false;
+  } finally {
+    glCapabilities.glCapabilitiesTested.set(gl, true);
+  }
 }
 
 /**
@@ -83,15 +140,23 @@ export function fromTexture(
       () => 'fromTexture Error: target depth must be 3 or 4');
 
   if (targetShape.depth === 3 && targetShape.width % 4 !== 0) {
-    // See
-    // https://www.khronos.org/opengl/wiki/Common_Mistakes#Texture_upload_and_pixel_reads
-    // for more details. At the moment gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
-    // is not supported on expo. "EXGL: gl.pixelStorei() doesn't support this
-    // parameter yet!"
-    throw new Error(
-        'When using targetShape.depth=3, targetShape.width must be' +
-        ' a multiple of 4');
+    // We throw an error here rather than use the CPU workaround as the user is
+    // likely trying to get the maximum performance.
+    if (glCapabilities.canDownloadFromRGBTexture) {
+      // See
+      // https://www.khronos.org/opengl/wiki/Common_Mistakes#Texture_upload_and_pixel_reads
+      // for more details. At the moment gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
+      // is not supported on expo. "EXGL: gl.pixelStorei() doesn't support this
+      // parameter yet!"
+      throw new Error(
+          'When using targetShape.depth=3, targetShape.width must be' +
+          ' a multiple of 4. Alternatively do not call detectGLCapabilities()');
+    }
   }
+
+  const originalTargetDepth = targetShape.depth;
+  const targetDepth =
+      glCapabilities.canDownloadFromRGBTexture ? originalTargetDepth : 4;
 
   const _sourceDims = {
     height: Math.floor(sourceDims.height),
@@ -102,7 +167,7 @@ export function fromTexture(
   const _targetShape = {
     height: Math.floor(targetShape.height),
     width: Math.floor(targetShape.width),
-    depth: targetShape.depth
+    depth: targetDepth
   };
 
   const alignCorners =
@@ -117,10 +182,29 @@ export function fromTexture(
 
   const resizedTexture = runResizeProgram(
       gl, texture, _sourceDims, _targetShape, alignCorners, interpolation);
-  const textureData = downloadTextureData(gl, resizedTexture, _targetShape);
+  const textureData_ = downloadTextureData(gl, resizedTexture, _targetShape);
+
+  let textureData;
+  if (originalTargetDepth !== targetDepth && originalTargetDepth === 3) {
+    // We are on a device that does not support downloading from an RGB texture.
+    // Remove the alpha channel values on the CPU.
+    const area = _targetShape.height * _targetShape.width;
+    textureData = new Uint8Array(area * originalTargetDepth);
+
+    for (let i = 0; i < area; i++) {
+      const flatIndexRGB = i * 3;
+      const flatIndexRGBA = i * 4;
+      textureData[flatIndexRGB] = textureData_[flatIndexRGBA];
+      textureData[flatIndexRGB + 1] = textureData_[flatIndexRGBA + 1];
+      textureData[flatIndexRGB + 2] = textureData_[flatIndexRGBA + 2];
+    }
+  } else {
+    textureData = textureData_;
+  }
+
   return tf.tensor3d(
       textureData,
-      [_targetShape.height, _targetShape.width, _targetShape.depth], 'int32');
+      [_targetShape.height, _targetShape.width, originalTargetDepth], 'int32');
 }
 
 /**
@@ -132,10 +216,11 @@ export function fromTexture(
  * @param dims Dimensions of tensor
  */
 export function renderToGLView(
-    gl: WebGL2RenderingContext, texture: WebGLTexture, size: Size) {
+    gl: WebGL2RenderingContext, texture: WebGLTexture, size: Size,
+    flipHorizontal = true) {
   const _size = {
     width: Math.floor(size.width),
     height: Math.floor(size.height),
   };
-  drawTexture(gl, texture, _size);
+  drawTexture(gl, texture, _size, flipHorizontal);
 }

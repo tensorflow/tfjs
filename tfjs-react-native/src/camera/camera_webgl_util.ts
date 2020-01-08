@@ -147,8 +147,9 @@ export function uploadTextureData(
  */
 export function drawTexture(
     gl: WebGL2RenderingContext, texture: WebGLTexture,
-    dims: {width: number, height: number}) {
-  const {program, vao, vertices, uniformLocations} = drawTextureProgram(gl);
+    dims: {width: number, height: number}, flipHorizontal: boolean) {
+  const {program, vao, vertices, uniformLocations} =
+      drawTextureProgram(gl, flipHorizontal);
   gl.useProgram(program);
   gl.bindVertexArray(vao);
 
@@ -161,8 +162,8 @@ export function drawTexture(
   // Draw to screen
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.viewport(0, 0, dims.width, dims.height);
-  gl.clearColor(1, 1, 0, 1);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  // gl.clearColor(1, 1, 0, 1);
+  // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 2);
 
   gl.bindVertexArray(null);
@@ -243,6 +244,35 @@ export function runResizeProgram(
   gl.framebufferTexture2D(
       gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, targetTexture, 0);
 
+  const fboComplete = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+  if (fboComplete !== gl.FRAMEBUFFER_COMPLETE) {
+    console.log('checkFramebufferStatus is not complete', fboComplete);
+    switch (fboComplete) {
+      case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+        throw new Error(
+            'createFrameBuffer: gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT');
+
+      case gl.FRAMEBUFFER_UNSUPPORTED:
+        throw new Error('createFrameBuffer: gl.FRAMEBUFFER_UNSUPPORTED');
+
+      case gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+        throw new Error(
+            'createFrameBuffer: gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT');
+
+      case gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+        throw new Error(
+            'createFrameBuffer: gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS');
+
+      case gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+        throw new Error(
+            'createFrameBuffer: gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE');
+      default:
+        throw new Error(
+            'createFrameBuffer Error: Other or unknown fbo complete status: ' +
+            `${fboComplete}`);
+    }
+  }
+
   gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 2);
 
   // Restore previous state
@@ -254,26 +284,18 @@ export function runResizeProgram(
 
 function createFrameBuffer(gl: WebGL2RenderingContext): WebGLFramebuffer {
   const fb = gl.createFramebuffer();
-  const fboComplete = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-  if (fboComplete !== gl.FRAMEBUFFER_COMPLETE) {
-    switch (fboComplete) {
-      case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-        throw new Error(
-            'createFrameBuffer Error: gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT');
-      case gl.FRAMEBUFFER_UNSUPPORTED:
-        throw new Error('createFrameBuffer Error: gl.FRAMEBUFFER_UNSUPPORTED');
-      default:
-        throw new Error(
-            'createFrameBuffer Error: Other or unknown fbo complete status');
-    }
+  if (fb == null) {
+    throw new Error('Could not create framebuffer');
   }
   return fb;
 }
 
-function drawTextureProgram(gl: WebGL2RenderingContext): ProgramObjects {
-  const cacheKey = `drawTexture`;
+function drawTextureProgram(
+    gl: WebGL2RenderingContext, flipHorizontal: boolean): ProgramObjects {
+  const cacheKey = `drawTexture_${flipHorizontal}`;
   if (!programCache.has(cacheKey)) {
-    const vertSource = drawTextureProgramInfo.vertexShaderSource();
+    const vertSource =
+        drawTextureProgramInfo.vertexShaderSource(flipHorizontal);
     const fragSource = drawTextureProgramInfo.fragmentShaderSource();
 
     const vertices = drawTextureProgramInfo.vertices();

@@ -28,7 +28,7 @@
     "jpeg-js": "^0.3.5",
     "react": "16.8.3",
     "react-native": "0.59.10",
-    "react-native-fs": "^2.16.1",
+    "react-native-fs": "2.13.2",
     "react-native-svg": "^9.13.6",
     "react-native-unimodules": "^0.5.4",
     "rn-fetch-blob": "^0.10.15"

@@ -16,7 +16,7 @@
  */
 
 import React from 'react';
-import { ActivityIndicator, StyleSheet, View, PixelRatio, LayoutChangeEvent } from 'react-native';
+import { ActivityIndicator, StyleSheet, View, PixelRatio, LayoutChangeEvent, Dimensions, Platform } from 'react-native';
 import Svg, { Circle, Rect, G, Line} from 'react-native-svg';
 
 import * as Permissions from 'expo-permissions';
@@ -26,7 +26,7 @@ import { GLView, ExpoWebGLRenderingContext } from 'expo-gl';
 import * as tf from '@tensorflow/tfjs';
 import * as blazeface from '@tensorflow-models/blazeface';
 import * as posenet from '@tensorflow-models/posenet';
-import {fromTexture, renderToGLView} from '@tensorflow/tfjs-react-native';
+import {fromTexture, renderToGLView, detectGLCapabilities} from '@tensorflow/tfjs-react-native';
 
 interface ScreenProps {
   returnToMain: () => void;
@@ -42,10 +42,6 @@ interface ScreenState {
   // tslint:disable-next-line: no-any
   faceDetector?: any;
   faces?: blazeface.NormalizedFace[];
-  xScale?: number;
-  yScale?: number;
-  drawWidth?: number;
-  drawHeight?: number;
 }
 
 let cameraPreviewWidth: number;
@@ -62,7 +58,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
     super(props);
     this.state = {
       isLoading: true,
-      cameraType: Camera.Constants.Type.back,
+      cameraType: Camera.Constants.Type.front,
     };
   }
 
@@ -87,6 +83,12 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
 
     const [blazefaceModel, posenetModel] =
       await Promise.all([this.loadBlazefaceModel(), this.loadPosenetModel()]);
+
+    const deviceDims =  {
+      width: Dimensions.get('window').width,
+      height: Dimensions.get('window').height
+    };
+    console.log('device dims', deviceDims);
 
     this.setState({
       hasCameraPermission: status === 'granted',
@@ -119,76 +121,85 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
 
   startRenderLoop(gl: ExpoWebGLRenderingContext, inputTexture: WebGLTexture,
     sourceDims:{width: number, height: number, depth:number}, model: string) {
-    const pixelRatio = PixelRatio.get();
-    const width = Math.floor(cameraPreviewWidth * pixelRatio);
-    const height = Math.floor(cameraPreviewHeight * pixelRatio);
+    const width = PixelRatio.getPixelSizeForLayoutSize(cameraPreviewWidth);
+    const height = PixelRatio.getPixelSizeForLayoutSize(cameraPreviewHeight);
 
+    const targetDepth = 3;
     const targetDims = {
       height: inputTensorHeight,
       width: inputTensorWidth,
-      depth: 3,
+      depth: targetDepth,
     };
 
-    const previewLoop = async () => {
-      renderToGLView(gl, inputTexture, { width, height });
-      gl.endFrameEXP();
-      requestAnimationFrame(previewLoop);
-    };
-    previewLoop();
+    const flipHorizontal = Platform.OS === 'ios' ? false : true;
 
-    const poseLoop = async () => {
-      const inputTensor = fromTexture(gl, inputTexture, sourceDims, targetDims);
+    const poseLoop = async (inputTensor: tf.Tensor3D) => {
       const pose = await this.state.posenetModel!.estimateSinglePose(
-        inputTensor, { flipHorizontal: true });
+        inputTensor, { flipHorizontal });
 
       this.setState({pose});
-      tf.dispose(inputTensor);
-
-      requestAnimationFrame(poseLoop);
+      tf.dispose([inputTensor, inputTensor]);
     };
 
-    const faceDetectorLoop = async () => {
-      const inputTensor = fromTexture(gl, inputTexture, sourceDims, targetDims);
+    const faceDetectorLoop = async (inputTensor: tf.Tensor3D) => {
       const faces = await this.state.faceDetector.estimateFaces(
         inputTensor, false);
 
       this.setState({faces});
       tf.dispose(inputTensor);
-
-      requestAnimationFrame(faceDetectorLoop);
     };
 
-    setTimeout(() => {
+
+
+    const previewLoop = async () => {
+      renderToGLView(gl, inputTexture, {width, height}, flipHorizontal);
+
+      const inputTensor = fromTexture(gl, inputTexture, sourceDims, targetDims);
       if(model === 'posenet') {
-        poseLoop();
+        await poseLoop(inputTensor);
       } else if (model=== 'blazeface') {
-        faceDetectorLoop();
+        await faceDetectorLoop(inputTensor);
       }
-    }, 100);
+
+      // Note that call gl.enfFrameExp() here synchronizes the display of the
+      // video texture and the react rendered markers. To desync them
+      // (i.e. draw the video as fast as possible, move this line to below the
+      // renderToGLView call)
+      gl.endFrameEXP();
+      requestAnimationFrame(previewLoop);
+    };
+    setTimeout(() => {
+      previewLoop();
+    }, 200);
   }
 
  async onContextCreate(gl: ExpoWebGLRenderingContext) {
+
+
+    let textureDims;
+    if (Platform.OS === 'ios') {
+      textureDims = {
+        height: 1920,
+        width: 1080,
+        depth: 4,
+      };
+    } else {
+      textureDims = {
+        height: 1200,
+        width: 1600,
+        depth: 4,
+      };
+    }
     const targetTexture = await this.createCameraTexture();
-    const sourceDims = {
-      height: 600,
-      width: 800,
-      depth: 4,
-    };
-
-    this.setState({
-      xScale: sourceDims.width / inputTensorWidth,
-      yScale: sourceDims.height / inputTensorHeight,
-      drawWidth: sourceDims.width,
-      drawHeight: sourceDims.height,
-    });
-
-    this.startRenderLoop(gl, targetTexture, sourceDims, 'posenet');
+    await detectGLCapabilities(gl);
+    this.startRenderLoop(gl, targetTexture, textureDims, 'posenet');
   }
 
   renderPose() {
     const MIN_KEYPOINT_SCORE = 0.2;
-    const {pose, xScale, yScale, drawHeight, drawWidth} = this.state;
+    const {pose} = this.state;
     if(pose != null) {
+      // console.log('Pose.keypoints', pose.keypoints[0]);
       const keypoints = pose.keypoints
         .filter(k => k.score > MIN_KEYPOINT_SCORE)
         .map((k,i) => {
@@ -196,7 +207,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
             key={`skeletonkp_${i}`}
             cx={k.position.x}
             cy={k.position.y}
-            r='5'
+            r='2'
             strokeWidth='0'
             fill='blue'
           />;
@@ -218,7 +229,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
       });
 
       return <Svg height='100%' width='100%'
-        viewBox={`0 0 ${drawWidth! / xScale!} ${drawHeight! / yScale!}`}>
+        viewBox={`0 0 ${inputTensorWidth} ${inputTensorHeight}`}>
           {skeleton}
           {keypoints}
         </Svg>;
@@ -228,7 +239,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
   }
 
   renderFaces() {
-    const {faces, xScale, yScale, drawHeight, drawWidth} = this.state;
+    const {faces} = this.state;
     if(faces != null) {
       const faceBoxes = faces.map((f, fIndex) => {
         const topLeft = f.topLeft as number[];
@@ -258,8 +269,10 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
         </G>;
       });
 
+      const flipHorizontal = Platform.OS === 'ios' ? 1 : -1;
       return <Svg height='100%' width='100%'
-        viewBox={`0 0 ${drawWidth! / xScale!} ${drawHeight! / yScale!}`}>
+        viewBox={`0 0 ${inputTensorWidth} ${inputTensorHeight}`}
+        scaleX={flipHorizontal}>
           {faceBoxes}
         </Svg>;
     } else {
@@ -285,7 +298,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
         />
         <View style={styles.camera}>
           {this.renderPose()}
-          {/* {this.renderFaces()} */}
+          {this.renderFaces()}
         </View>
 
         </View>;
@@ -308,6 +321,7 @@ const styles = StyleSheet.create({
   },
   cameraContainer: {
     display: 'flex',
+    flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
@@ -315,13 +329,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   camera : {
-    display: 'flex',
-    width: '50%',
-    height: '30%',
-    // backgroundColor: '#f0F',
+    position:'absolute',
+    left: 50,
+    top: 100,
+    width: 600/2,
+    height: 800/2,
     zIndex: 1,
-    borderWidth: 2,
-    borderRadius: 2,
-    borderColor: '#f0f',
+    borderWidth: 1,
+    borderColor: 'black',
+    borderRadius: 0,
   }
 });
