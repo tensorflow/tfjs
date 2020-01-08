@@ -149,8 +149,6 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
       tf.dispose(inputTensor);
     };
 
-
-
     const previewLoop = async () => {
       renderToGLView(gl, inputTexture, {width, height}, flipHorizontal);
 
@@ -174,8 +172,6 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
   }
 
  async onContextCreate(gl: ExpoWebGLRenderingContext) {
-
-
     let textureDims;
     if (Platform.OS === 'ios') {
       textureDims = {

@@ -175,12 +175,6 @@ function registerWebGLBackend() {
     tf.registerBackend('rn-webgl', async () => {
       const glContext = await GLView.createContextAsync();
 
-      //@ts-ignore
-      glContext.sentinel = 'yannick-sentinel';
-
-      //@ts-ignore
-      global.glContext = glContext;
-
       // ExpoGl getBufferSubData is not implemented yet (throws an exception).
       tf.env().set('WEBGL_BUFFER_SUPPORTED', false);
 
