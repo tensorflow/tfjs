@@ -24,7 +24,7 @@ import {ExpoWebGLRenderingContext, GLView} from 'expo-gl';
 
 import {RN_ENVS} from '../test_env_registry';
 
-import {detectGLCapabilities, fromTexture, toTexture} from '.';
+import {detectGLCapabilities, fromTexture, toTexture} from './camera';
 
 async function createGLContext(): Promise<ExpoWebGLRenderingContext> {
   return GLView.createContextAsync();
