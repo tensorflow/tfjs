@@ -128,10 +128,6 @@ export async function confusionMatrix(
     }
   }
 
-  const colorMap = typeof options.colorMap === 'string' ?
-      {scheme: options.colorMap} :
-      options.colorMap;
-
   const embedOpts = {
     actions: false,
     mode: 'vega-lite' as Mode,
@@ -188,7 +184,7 @@ export async function confusionMatrix(
           'color': {
             'field': 'scaleCount',
             'type': 'quantitative',
-            'scale': {'range': colorMap},
+            'scale': {'range': options.colorMap},
           },
           'tooltip': [
             {'field': 'label', 'type': 'nominal'},
@@ -234,6 +230,12 @@ export async function confusionMatrix(
       }
     });
   }
+
+  const colorMap = typeof options.colorMap === 'string' ?
+      {scheme: options.colorMap} :
+      options.colorMap;
+  //@ts-ignore
+  spec.layer[0].encoding.color.scale.range = colorMap;
 
   await embed(drawArea, spec, embedOpts);
 }

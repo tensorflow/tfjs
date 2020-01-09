@@ -262,7 +262,7 @@ export interface ConfusionMatrixOptions extends VisOptions {
    * Output range of color scale. Either a 2 element array of valid
    * css color or one of 'greyscale'|'viridis'|'blues'
    */
-  colorMap?: NamedColorMap|[string, string]
+  colorMap?: NamedColorMap|[string, string];
 }
 
 /**
