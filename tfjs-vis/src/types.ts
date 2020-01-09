@@ -258,6 +258,11 @@ export interface ConfusionMatrixOptions extends VisOptions {
    * render the values of each cell as text. Defaults to true
    */
   showTextOverlay?: boolean;
+  /**
+   * Output range of color scale. Either a 2 element array of valid
+   * css color or one of 'greyscale'|'viridis'|'blues'
+   */
+  colorMap?: NamedColorMap|[string, string]
 }
 
 /**
@@ -304,7 +309,7 @@ export interface HeatmapOptions extends VisOptions {
   colorMap?: NamedColorMap;
 
   /**
-   * Custom output domain for the color scale.
+   * Custom input domain for the color scale.
    * Useful if you want to plot multiple heatmaps using the same scale.
    */
   domain?: number[];

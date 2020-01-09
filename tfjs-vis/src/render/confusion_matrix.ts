@@ -128,6 +128,10 @@ export async function confusionMatrix(
     }
   }
 
+  const colorMap = typeof options.colorMap === 'string' ?
+      {scheme: options.colorMap} :
+      options.colorMap;
+
   const embedOpts = {
     actions: false,
     mode: 'vega-lite' as Mode,
@@ -184,7 +188,7 @@ export async function confusionMatrix(
           'color': {
             'field': 'scaleCount',
             'type': 'quantitative',
-            'scale': {'range': ['#f7fbff', '#4292c6']},
+            'scale': {'range': colorMap},
           },
           'tooltip': [
             {'field': 'label', 'type': 'nominal'},
@@ -243,6 +247,7 @@ const defaultOpts: ConfusionMatrixOptions = {
   fontSize: 12,
   showTextOverlay: true,
   height: 400,
+  colorMap: ['#f7fbff', '#4292c6'],
 };
 
 interface MatrixEntry {
