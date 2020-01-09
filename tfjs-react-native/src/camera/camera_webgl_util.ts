@@ -47,6 +47,7 @@ const programCache: Map<string, ProgramObjects> = new Map();
 
 /**
  * Download data from an texture.
+ *
  * @param gl
  * @param texture
  * @param dims
@@ -140,7 +141,8 @@ export function uploadTextureData(
 }
 
 /**
- * WIP Render a texture to the default framebuffer (i.e. screen)
+ * Render a texture to the default framebuffer (i.e. screen)
+ *
  * @param gl WebGL context to use
  * @param texture texture to render
  * @param dims texture size
@@ -178,7 +180,7 @@ export function runResizeProgram(
   const debugMode = getDebugMode();
 
   const {program, vao, vertices, uniformLocations} =
-      getResizeProgram(gl, inputDims, outputDims, alignCorners, interpolation);
+      resizeProgram(gl, inputDims, outputDims, alignCorners, interpolation);
   gl.useProgram(program);
   // Set up geometry
   tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
@@ -210,7 +212,7 @@ export function runResizeProgram(
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-  // Reallocate texture if target size has changed.
+  // Reallocate texture storage if target size has changed.
   if (resizeTextureDims == null ||
       resizeTextureDims.width !== targetTextureWidth ||
       resizeTextureDims.height !== targetTextureHeight) {
@@ -309,7 +311,7 @@ function drawTextureProgram(
   return programCache.get(cacheKey);
 }
 
-function getResizeProgram(
+function resizeProgram(
     gl: WebGL2RenderingContext, sourceDims: Dimensions, targetDims: Dimensions,
     alignCorners: boolean,
     interpolation: 'nearest_neighbor'|'bilinear'): ProgramObjects {

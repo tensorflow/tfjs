@@ -103,20 +103,13 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
     if (status !== 'granted') {
       throw new Error('Denied camera permissions!');
     }
-    //@ts-ignore
     return this.glView!.createCameraTextureAsync(this.camera!);
   }
 
   onCameraLayout(event: LayoutChangeEvent) {
-    const {x, y, width, height} = event.nativeEvent.layout;
+    const {width, height} = event.nativeEvent.layout;
     cameraPreviewHeight = height;
     cameraPreviewWidth = width;
-    console.log('onCameraLayout', x, y, width, height);
-  }
-
-  onGLViewLayout(event: LayoutChangeEvent) {
-    const {x, y, width, height} = event.nativeEvent.layout;
-    console.log('onGLViewLayout', x, y, width, height);
   }
 
   startRenderLoop(gl: ExpoWebGLRenderingContext, inputTexture: WebGLTexture,
@@ -288,7 +281,6 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
         />
         <GLView
           style={styles.camera}
-          onLayout={this.onGLViewLayout.bind(this)}
           onContextCreate={this.onContextCreate.bind(this)}
           ref={ref => this.glView = ref!}
         />
