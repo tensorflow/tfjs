@@ -159,13 +159,13 @@ export function fromTexture(
       originalTargetDepth :
       4;
 
-  const sourceDims_ = {
+  sourceDims = {
     height: Math.floor(sourceDims.height),
     width: Math.floor(sourceDims.width),
     depth: sourceDims.depth,
   };
 
-  const targetShape_ = {
+  targetShape = {
     height: Math.floor(targetShape.height),
     width: Math.floor(targetShape.width),
     depth: targetDepth
@@ -182,30 +182,31 @@ export function fromTexture(
           ' "bilinear" or "nearest_neighbor"');
 
   const resizedTexture = runResizeProgram(
-      gl, texture, sourceDims_, targetShape_, alignCorners, interpolation);
-  const textureData_ = downloadTextureData(gl, resizedTexture, targetShape_);
+      gl, texture, sourceDims, targetShape, alignCorners, interpolation);
+  const downloadedTextureData =
+      downloadTextureData(gl, resizedTexture, targetShape);
 
-  let textureData;
+  let finalTexData;
   if (originalTargetDepth !== targetDepth && originalTargetDepth === 3) {
     // We are on a device that does not support downloading from an RGB texture.
     // Remove the alpha channel values on the CPU.
-    const area = targetShape_.height * targetShape_.width;
-    textureData = new Uint8Array(area * originalTargetDepth);
+    const area = targetShape.height * targetShape.width;
+    finalTexData = new Uint8Array(area * originalTargetDepth);
 
     for (let i = 0; i < area; i++) {
       const flatIndexRGB = i * 3;
       const flatIndexRGBA = i * 4;
-      textureData[flatIndexRGB] = textureData_[flatIndexRGBA];
-      textureData[flatIndexRGB + 1] = textureData_[flatIndexRGBA + 1];
-      textureData[flatIndexRGB + 2] = textureData_[flatIndexRGBA + 2];
+      finalTexData[flatIndexRGB] = downloadedTextureData[flatIndexRGBA];
+      finalTexData[flatIndexRGB + 1] = downloadedTextureData[flatIndexRGBA + 1];
+      finalTexData[flatIndexRGB + 2] = downloadedTextureData[flatIndexRGBA + 2];
     }
   } else {
-    textureData = textureData_;
+    finalTexData = downloadedTextureData;
   }
 
   return tf.tensor3d(
-      textureData,
-      [targetShape_.height, targetShape_.width, originalTargetDepth], 'int32');
+      finalTexData,
+      [targetShape.height, targetShape.width, originalTargetDepth], 'int32');
 }
 
 /**
@@ -219,9 +220,9 @@ export function fromTexture(
 export function renderToGLView(
     gl: WebGL2RenderingContext, texture: WebGLTexture, size: Size,
     flipHorizontal = true) {
-  const size_ = {
+  size = {
     width: Math.floor(size.width),
     height: Math.floor(size.height),
   };
-  drawTexture(gl, texture, size_, flipHorizontal);
+  drawTexture(gl, texture, size, flipHorizontal);
 }
