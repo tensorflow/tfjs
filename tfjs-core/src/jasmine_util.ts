@@ -210,7 +210,7 @@ export interface TestEnv {
   isDataSync?: boolean;
 }
 
-export let TEST_ENVS: TestEnv[] = [];
+export const TEST_ENVS: TestEnv[] = [];
 
 // Whether a call to setTestEnvs has been called so we turn off
 // registration. This allows command line overriding or programmatic
@@ -218,7 +218,8 @@ export let TEST_ENVS: TestEnv[] = [];
 let testEnvSet = false;
 export function setTestEnvs(testEnvs: TestEnv[]) {
   testEnvSet = true;
-  TEST_ENVS = testEnvs;
+  TEST_ENVS.length = 0;
+  TEST_ENVS.push(...testEnvs);
 }
 
 export function registerTestEnv(testEnv: TestEnv) {

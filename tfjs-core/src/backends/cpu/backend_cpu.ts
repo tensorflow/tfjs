@@ -42,7 +42,7 @@ import {getArrayFromDType, inferDtype, now, sizeFromShape} from '../../util';
 import {BackendTimingInfo, DataStorage, EPSILON_FLOAT32, KernelBackend} from '../backend';
 import * as backend_util from '../backend_util';
 import * as complex_util from '../complex_util';
-import {nonMaxSuppressionImpl} from '../non_max_suppression_impl';
+import {nonMaxSuppressionV3} from '../non_max_suppression_impl';
 import {split} from '../split_shared';
 import {tile} from '../tile_impl';
 import {topkImpl} from '../topk_impl';
@@ -103,7 +103,7 @@ export class MathBackendCPU extends KernelBackend {
             'Then call require(\'@tensorflow/tfjs-node\'); (-gpu ' +
             'suffix for CUDA) at the start of your program. ' +
             'Visit https://github.com/tensorflow/tfjs-node for more details.' +
-            '\n============================\n');
+            '\n============================');
       }
     }
     const dataId = {};
@@ -3275,7 +3275,7 @@ export class MathBackendCPU extends KernelBackend {
 
     const boxesVals = this.readSync(boxes.dataId) as TypedArray;
     const scoresVals = this.readSync(scores.dataId) as TypedArray;
-    return nonMaxSuppressionImpl(
+    return nonMaxSuppressionV3(
         boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   }
 
@@ -3561,8 +3561,8 @@ export class MathBackendCPU extends KernelBackend {
     const numBoxes = boxes.shape[0];
 
     const [cropHeight, cropWidth] = cropSize;
-    const output = ops.buffer(
-        [numBoxes, cropHeight, cropWidth, numChannels], images.dtype);
+    const output =
+        ops.buffer([numBoxes, cropHeight, cropWidth, numChannels], 'float32');
 
     const boxVals = this.readSync(boxes.dataId) as TypedArray;
     const boxIndVals = this.readSync(boxIndex.dataId) as TypedArray;

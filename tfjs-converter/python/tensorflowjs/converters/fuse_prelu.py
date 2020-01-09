@@ -21,29 +21,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import tensorflow as tf
-
 from tensorflow.core.framework import attr_value_pb2
-from tensorflow.core.framework import op_def_pb2
-from tensorflow.python.framework import function
-from tensorflow.python.framework import op_def_registry
 from tensorflow.python.framework import tensor_util
 
 from tensorflowjs.converters import graph_rewrite_util
-
-# The function is only needed for TensorFlow 1.X and 2.0. Remove once tfjs
-# no longer depends on these versions.
-def register_prelu_op():
-  """Register a virtual PReLU OpDef.
-
-  This allows to bypass MetaGraph validity checks on TensorFlow 1.X and 2.0.
-  """
-
-  prelu_op_def = op_def_pb2.OpDef()
-  prelu_op_def.name = 'Prelu'
-  missing_op_list = op_def_pb2.OpList()
-  missing_op_list.op.extend([prelu_op_def])
-  op_def_registry.register_op_list(missing_op_list)
 
 def fuse_ops_for_prelu(input_graph_def):
   """Modifies the provided graph by fusing a set of ops into a single Prelu op.
@@ -208,22 +189,4 @@ def fuse_prelu_with_fused_conv2d_or_matmul(input_graph_def):
 
   return graph_rewrite_util.cleanup_graph_def(
       input_graph_def, nodes_to_skip, inputs_to_remove)
-
-def register_prelu_func(graph):
-  """Register Prelu op with function def, this is needed for importing graph_def
-  with unregistered Prelu op.
-  Args:
-    graph: A tf.Graph object to insert prelu function into.
-  """
-
-  # Create a function for Prelu op
-  @function.Defun(tf.float32, tf.float32, func_name='Prelu')
-  def prelu_fn(*args):
-    return tf.add(args[0], args[1])
-  # Insert the function into graph
-  with graph.as_default():
-    prelu_fn(tf.constant(1.0), tf.constant(1.0))
-
-
-if hasattr(op_def_registry, 'register_op_list'):
-  register_prelu_op()
+      

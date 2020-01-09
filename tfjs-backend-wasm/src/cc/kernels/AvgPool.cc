@@ -19,6 +19,7 @@
 #include <xnnpack.h>
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <limits>
 #include <map>
 #include <unordered_map>
@@ -28,7 +29,7 @@
 #include "src/cc/util.h"
 
 namespace {
-typedef std::array<int, 14> OperatorCacheKey;
+typedef std::array<size_t, 14> OperatorCacheKey;
 
 std::map<OperatorCacheKey, xnn_operator_t> operator_cache;
 }  // namespace
@@ -40,11 +41,13 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void AvgPool(const int x_id, const int batch_size, const int input_height,
-             const int input_width, const int filter_height,
-             const int filter_width, int pad_top, int pad_right, int pad_bottom,
-             int pad_left, const int stride_height, const int stride_width,
-             const int channels, const int out_id) {
+void AvgPool(const size_t x_id, const size_t batch_size,
+             const size_t input_height, const size_t input_width,
+             const size_t filter_height, const size_t filter_width,
+             size_t pad_top, size_t pad_right, size_t pad_bottom,
+             size_t pad_left, const size_t stride_height,
+             const size_t stride_width, const size_t channels,
+             const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info(out_id);
 
@@ -53,9 +56,9 @@ void AvgPool(const int x_id, const int batch_size, const int input_height,
 
   xnn_operator_t avg_pool_op = nullptr;
 
-  const int flags = 0;
-  const int input_pixel_stride = channels;
-  const int output_pixel_stride = channels;
+  const uint32_t flags = 0;
+  const size_t input_pixel_stride = channels;
+  const size_t output_pixel_stride = channels;
 
   OperatorCacheKey cache_key = {
       pad_top,       pad_right,          pad_bottom,          pad_left,
@@ -65,8 +68,8 @@ void AvgPool(const int x_id, const int batch_size, const int input_height,
   auto operator_cache_idx = operator_cache.find(cache_key);
 
   if (operator_cache_idx == operator_cache.end()) {
-    float output_min = -std::numeric_limits<float>::infinity();
-    float output_max = std::numeric_limits<float>::infinity();
+    const float output_min = -std::numeric_limits<float>::infinity();
+    const float output_max = std::numeric_limits<float>::infinity();
 
     xnn_status status = xnn_create_average_pooling2d_nhwc_f32(
         pad_top, pad_right, pad_bottom, pad_left, filter_height, filter_width,

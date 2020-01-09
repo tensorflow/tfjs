@@ -18,6 +18,7 @@
 import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+import {cast} from './Cast';
 
 interface CropAndResizeInputs extends NamedTensorInfoMap {
   images: TensorInfo;
@@ -71,11 +72,19 @@ function cropAndResize(args: {
   const [cropHeight, cropWidth] = cropSize as [number, number];
   const outShape = [numBoxes, cropHeight, cropWidth, images.shape[3]];
 
-  const imagesId = backend.dataIdMap.get(images.dataId).id;
+  let imagesData = backend.dataIdMap.get(images.dataId);
+  let castedData;
+  if (images.dtype !== 'float32') {
+    castedData =
+        cast({backend, inputs: {x: images}, attrs: {dtype: 'float32'}});
+    imagesData = backend.dataIdMap.get(castedData.dataId);
+  }
+
+  const imagesId = imagesData.id;
   const boxesId = backend.dataIdMap.get(boxes.dataId).id;
   const boxIndId = backend.dataIdMap.get(boxInd.dataId).id;
 
-  const out = backend.makeOutput(outShape, images.dtype);
+  const out = backend.makeOutput(outShape, 'float32');
   const outId = backend.dataIdMap.get(out.dataId).id;
 
   const imagesShapeBytes = new Uint8Array(new Int32Array(images.shape).buffer);
@@ -85,6 +94,11 @@ function cropAndResize(args: {
       cropWidth,
       InterpolationMethod[method as {} as keyof typeof InterpolationMethod],
       extrapolationValue, outId);
+
+  if (castedData != null) {
+    backend.disposeData(castedData.dataId);
+  }
+
   return out;
 }
 

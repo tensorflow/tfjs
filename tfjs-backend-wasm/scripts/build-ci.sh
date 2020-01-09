@@ -26,4 +26,6 @@ export HOME='/root'
 source ./emsdk_env.sh
 cd ..
 
-yarn build
+yarn tsc
+
+./scripts/build-wasm.sh

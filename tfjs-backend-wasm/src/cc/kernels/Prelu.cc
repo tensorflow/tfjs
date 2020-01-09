@@ -20,7 +20,7 @@
 
 #include <xnnpack.h>
 #include <cmath>
-#include <limits>
+#include <cstddef>
 #include <unordered_map>
 
 #include "src/cc/backend.h"
@@ -35,7 +35,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Prelu(const int x_id, const int weights_id, const int out_id) {
+void Prelu(const size_t x_id, const size_t weights_id, const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   const float* x_buf = x_info.f32();
 

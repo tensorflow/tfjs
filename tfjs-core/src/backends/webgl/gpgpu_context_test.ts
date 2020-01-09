@@ -37,7 +37,7 @@ describeWithFlags(
         gpgpu = new GPGPUContext();
         // Silences debug warnings.
         spyOn(console, 'warn');
-        tf.env().set('DEBUG', true);
+        tf.enableDebugMode();
         texture = gpgpu.createFloat32MatrixTexture(1, 1);
       });
 
@@ -71,7 +71,7 @@ describeWithFlags(
         gpgpu = new GPGPUContext();
         // Silences debug warnings.
         spyOn(console, 'warn');
-        tf.env().set('DEBUG', true);
+        tf.enableDebugMode();
       });
 
       afterEach(() => {
@@ -109,7 +109,7 @@ describeWithFlags(
         gpgpu = new GPGPUContext();
         // Silences debug warnings.
         spyOn(console, 'warn');
-        tf.env().set('DEBUG', true);
+        tf.enableDebugMode();
         const glsl = getGlslDifferences();
         const src = `${glsl.version}
           precision highp float;
@@ -148,7 +148,7 @@ describeWithFlags('GPGPUContext', DOWNLOAD_FLOAT_ENVS, () => {
     gpgpu = new GPGPUContext();
     // Silences debug warnings.
     spyOn(console, 'warn');
-    tf.env().set('DEBUG', true);
+    tf.enableDebugMode();
   });
 
   afterEach(() => {

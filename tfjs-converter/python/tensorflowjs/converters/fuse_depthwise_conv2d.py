@@ -21,12 +21,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import tensorflow as tf
-
-from tensorflow.core.framework import graph_pb2
-from tensorflow.core.framework import node_def_pb2
-from tensorflow.python.framework import function
-
 from tensorflowjs.converters import graph_rewrite_util
 
 def _is_supported_activation(node):
@@ -149,41 +143,3 @@ def _fuse_depthwise_conv2d_with_match_function(input_graph_def, match_function):
 
   # No pattern detected
   return input_graph_def
-
-def extract_op_attributes(input_graph_def):
-  """Since TF does not allow function defined custom op to have any attributes,
-     we need to clean up the attributes for FusedDepthwiseConv2dNative op.
-  Args:
-    input_graph_def: Modified tf.Graph object.
-  """
-  result_graph_def = graph_pb2.GraphDef()
-  for node in input_graph_def.node:
-    new_node = node_def_pb2.NodeDef()
-    new_node.CopyFrom(node)
-    if new_node.op == graph_rewrite_util.FUSED_DEPTHWISE_CONV2D:
-      new_node.ClearField('attr')
-      if len(new_node.input) > 3:
-        new_node.input[:] = new_node.input[0:3]
-    result_graph_def.node.extend([new_node])
-  result_graph_def.versions.CopyFrom(input_graph_def.versions)
-  return result_graph_def
-
-def register_fused_depthwise_conv2d_func(graph):
-  """Register FusedDepthwiseConv2dNative op with function def, this is needed
-  for importing graph_def with unregistered op.
-  Args:
-    graph: A tf.Graph object to insert FusedDepthwiseConv2d function into.
-  """
-
-  # Create a function for FusedDepthwiseConv2dNative op
-  @function.Defun(tf.float32, tf.float32, tf.float32,
-                  func_name=graph_rewrite_util.FUSED_DEPTHWISE_CONV2D)
-  def fused_depthwise_conv2d_fn(*args):
-  # This is a placeholder for the Op definition, the exact implemenation of the
-  # function does not matter.
-    return tf.nn.depthwise_conv2d(
-        args[0], args[1], strides=[1, 1, 1, 1], padding='SAME')
-  # Insert the function into graph
-  with graph.as_default():
-    fused_depthwise_conv2d_fn(
-        tf.ones([1, 1, 1]), tf.ones([1, 1, 1]), tf.ones([1]))

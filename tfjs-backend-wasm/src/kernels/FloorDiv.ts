@@ -16,4 +16,5 @@
  */
 
 import {registerBinaryKernel} from './binary_kernel';
-registerBinaryKernel('FloorDiv');
+const supportsFullBroadcast = false;
+registerBinaryKernel('FloorDiv', supportsFullBroadcast);

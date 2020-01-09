@@ -45,7 +45,7 @@ import {getArrayFromDType, getTypedArrayFromDType, inferDtype, sizeFromShape} fr
 import {DataStorage, EPSILON_FLOAT16, EPSILON_FLOAT32, KernelBackend} from '../backend';
 import * as backend_util from '../backend_util';
 import {mergeRealAndImagArrays} from '../complex_util';
-import {nonMaxSuppressionImpl} from '../non_max_suppression_impl';
+import {nonMaxSuppressionV3} from '../non_max_suppression_impl';
 import {split} from '../split_shared';
 import {tile} from '../tile_impl';
 import {topkImpl} from '../topk_impl';
@@ -155,7 +155,7 @@ export interface WebGLTimingInfo extends TimingInfo {
 
 const binaryCaches: {[webGLVersion: string]: {[key: string]: GPGPUBinary}} = {};
 
-function getBinaryCache(webGLVersion: number) {
+export function getBinaryCache(webGLVersion: number) {
   if (webGLVersion in binaryCaches) {
     return binaryCaches[webGLVersion];
   }
@@ -2195,7 +2195,7 @@ export class MathBackendWebGL extends KernelBackend {
         new ResizeBilinearPackedProgram(
             x.shape, newHeight, newWidth, alignCorners) :
         new ResizeBilinearProgram(x.shape, newHeight, newWidth, alignCorners);
-    return this.compileAndRun(program, [x]);
+    return this.compileAndRun(program, [x], 'float32');
   }
 
   resizeBilinearBackprop(dy: Tensor4D, x: Tensor4D, alignCorners: boolean):
@@ -2250,7 +2250,7 @@ export class MathBackendWebGL extends KernelBackend {
         'Call tf.nonMaxSuppressionAsync() instead');
     const boxesVals = boxes.dataSync();
     const scoresVals = scores.dataSync();
-    return nonMaxSuppressionImpl(
+    return nonMaxSuppressionV3(
         boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   }
 
@@ -2260,7 +2260,7 @@ export class MathBackendWebGL extends KernelBackend {
       extrapolationValue: number): Tensor4D {
     const program = new CropAndResizeProgram(
         image.shape, boxes.shape, cropSize, method, extrapolationValue);
-    return this.compileAndRun(program, [image, boxes, boxIndex]);
+    return this.compileAndRun(program, [image, boxes, boxIndex], 'float32');
   }
 
   depthToSpace(x: Tensor4D, blockSize: number, dataFormat: 'NHWC'|'NCHW'):
@@ -2626,6 +2626,15 @@ export class MathBackendWebGL extends KernelBackend {
   dispose() {
     if (this.disposed) {
       return;
+    }
+    // Avoid disposing the compiled webgl programs during unit testing because
+    // it slows down test execution.
+    if (!env().getBool('IS_TEST')) {
+      const allKeys = Object.keys(this.binaryCache);
+      allKeys.forEach(key => {
+        this.gpgpu.deleteProgram(this.binaryCache[key].webGLProgram);
+        delete this.binaryCache[key];
+      });
     }
     this.textureManager.dispose();
     if (this.canvas != null &&

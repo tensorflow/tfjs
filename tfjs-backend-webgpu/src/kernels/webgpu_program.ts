@@ -16,7 +16,7 @@
  */
 
 import {DataType, Tensor} from '@tensorflow/tfjs-core';
-import * as shaderc from '@webgpu/shaderc';
+import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import * as shader_preprocessor from '../shader_preprocessor';
 
@@ -72,10 +72,19 @@ export const makeBindGroup =
 const makeBindGroupLayout =
     (device: GPUDevice, inputs: shader_preprocessor.InputInfo[], output: Tensor,
      uniforms?: BindingInfo): GPUBindGroupLayout => {
-      const bindings = Array(1 + inputs.length).fill({
+      const bindings =
+          Array(1 + inputs.length)
+              .fill(
+                  {
+                    visibility: GPUShaderStage.COMPUTE,
+                    type: 'readonly-storage-buffer' as GPUBindingType
+                  },
+                  1);
+      bindings[0] = {
         visibility: GPUShaderStage.COMPUTE,
         type: 'storage-buffer' as GPUBindingType
-      });
+      };
+
       if (uniforms) {
         bindings.push({
           visibility: GPUShaderStage.COMPUTE,
@@ -88,33 +97,27 @@ const makeBindGroupLayout =
     };
 
 export const compileProgram =
-    (shaderCompiler: shaderc.Compiler, shaderKind: shaderc.ShaderKind,
-     compileOptions: shaderc.CompileOptions, device: GPUDevice,
-     program: WebGPUProgram, inputsData: shader_preprocessor.InputInfo[],
-     output: Tensor, uniforms?: BindingInfo): WebGPUBinary => {
+    (glslang: Glslang, device: GPUDevice, program: WebGPUProgram,
+     inputsData: shader_preprocessor.InputInfo[], output: Tensor,
+     uniforms?: BindingInfo): WebGPUBinary => {
       const outputData = {dtype: output.dtype, shape: output.shape};
 
       const source =
           shader_preprocessor.makeShader(inputsData, outputData, program);
-      const result = shaderCompiler.CompileGlslToSpv(
-          source, shaderKind, 'file', 'main', compileOptions);
-      const error = result.GetErrorMessage();
-      if (error.length) {
-        console.error(
-            source.split('\n')
-                .map((s, l) => (l + 1).toString().padStart(5, ' ') + ' ' + s)
-                .join('\n'));
-        throw new Error(`Shader compilation failed: ${error}`);
+      const result = glslang.compileGLSLZeroCopy(source, 'compute', false);
+      if (result.data.length === 0) {
+        throw new Error('Shader compilation failed');
       }
+
       const bindGroupLayout =
           makeBindGroupLayout(device, inputsData, output, uniforms);
-      const code = result.GetBinary();
       const layout =
           device.createPipelineLayout({bindGroupLayouts: [bindGroupLayout]});
-      const module = device.createShaderModule({code});
+      const module = device.createShaderModule({code: result.data});
       const pipeline = device.createComputePipeline(
           {layout, computeStage: {module, entryPoint: 'main'}});
 
+      result.free();
       return {bindGroupLayout, pipeline};
     };
 

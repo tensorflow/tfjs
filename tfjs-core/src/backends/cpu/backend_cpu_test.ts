@@ -135,7 +135,7 @@ describeWithFlags('memory cpu', CPU_ENVS, () => {
   });
 });
 
-describeWithFlags('CPU backend has sync init', {}, () => {
+describeWithFlags('CPU backend has sync init', CPU_ENVS, () => {
   it('can do matmul without waiting for ready', async () => {
     tf.registerBackend('my-cpu', () => {
       return new MathBackendCPU();

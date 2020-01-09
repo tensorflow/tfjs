@@ -17,6 +17,7 @@
 #endif
 
 #include <cmath>
+#include <cstddef>
 
 #include "src/cc/backend.h"
 #include "src/cc/binary.h"
@@ -30,8 +31,10 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void FloorDiv(const int a_id, const int b_id, const DType dtype,
-              const int out_id) {
+void FloorDiv(const size_t a_id, const size_t* a_shape_ptr,
+              const size_t a_shape_len, const size_t b_id,
+              const size_t* b_shape_ptr, const size_t b_shape_len,
+              const DType dtype, const size_t out_id) {
   auto& a_info = backend::get_tensor_info(a_id);
   switch (dtype) {
     case DType::float32:
@@ -40,7 +43,7 @@ void FloorDiv(const int a_id, const int b_id, const DType dtype,
       break;
     case DType::int32:
       binary_i32(a_id, b_id, out_id, [](int a, int b) {
-        return static_cast<int>(floor(static_cast<float>(a) / b));
+        return static_cast<int32_t>(floor(static_cast<float>(a) / b));
       });
       break;
     default:

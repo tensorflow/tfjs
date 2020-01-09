@@ -28,8 +28,9 @@ interface CastAttrs extends NamedAttrMap {
   dtype: DataType;
 }
 
-function cast(
-    args: {inputs: CastInputs, attrs: CastAttrs, backend: BackendWasm}) {
+export function cast(
+    args: {inputs: CastInputs, attrs: CastAttrs, backend: BackendWasm}):
+    TensorInfo {
   const {inputs: {x}, attrs: {dtype}, backend} = args;
   const out = backend.makeOutput(x.shape, dtype);
   const inVals = backend.typedArrayFromHeap(x);

@@ -22,8 +22,7 @@ import shutil
 import tempfile
 import unittest
 
-import tensorflow as tf
-from tensorflow.contrib import lookup as contrib_lookup
+import tensorflow.compat.v2 as tf
 from tensorflow.python.eager import def_function
 from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import dtypes
@@ -88,7 +87,7 @@ class ConvertTest(tf.test.TestCase):
 
     graph = tf.Graph()
     with graph.as_default():
-      x = tf.placeholder('float32', [2, 2])
+      x = tf.compat.v1.placeholder('float32', [2, 2])
       w = tf.compat.v1.get_variable('w', shape=[2, 2])
       output = tf.compat.v1.matmul(x, w)
       init_op = w.initializer
@@ -96,18 +95,18 @@ class ConvertTest(tf.test.TestCase):
       # Add a hash table that is not used by the output.
       keys = tf.constant(['key'])
       values = tf.constant([1])
-      initializer = contrib_lookup.KeyValueTensorInitializer(keys, values)
-      table = contrib_lookup.HashTable(initializer, -1)
+      initializer = tf.lookup.KeyValueTensorInitializer(keys, values)
+      table = tf.lookup.StaticHashTable(initializer, -1)
 
       # Create a builder.
       save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
-      builder = tf.compat.v1.saved_model.builder.SavedModelBuilder(save_dir)
+      builder = tf.compat.v1.saved_model.builder.SavedModelBuilder(
+          save_dir)
 
       with tf.compat.v1.Session() as sess:
         # Run the initializer on `w`.
         sess.run(init_op)
-        table.init.run()
-
+        table.lookup(keys)
         builder.add_meta_graph_and_variables(
             sess, [tf.compat.v1.saved_model.tag_constants.SERVING],
             signature_def_map={
@@ -280,20 +279,21 @@ class ConvertTest(tf.test.TestCase):
     saved_model_dir = os.path.join(self._tmp_dir, FROZEN_MODEL_DIR)
     with graph.as_default():
       x = tf.constant([[37.0, -23.0], [1.0, 4.0]])
-      w = tf.Variable(tf.random_uniform([2, 2]))
+      w = tf.Variable(tf.random.uniform([2, 2]))
       y = tf.matmul(x, w)
       tf.nn.softmax(y)
       init_op = w.initializer
 
       # Create a builder
-      builder = tf.saved_model.builder.SavedModelBuilder(saved_model_dir)
+      builder = tf.compat.v1.saved_model.builder.SavedModelBuilder(
+          saved_model_dir)
 
-      with tf.Session() as sess:
+      with tf.compat.v1.Session() as sess:
         # Run the initializer on `w`.
         sess.run(init_op)
 
         builder.add_meta_graph_and_variables(
-            sess, [tf.saved_model.tag_constants.SERVING],
+            sess, [tf.compat.v1.saved_model.tag_constants.SERVING],
             signature_def_map=None,
             assets_collection=None)
 
@@ -311,7 +311,7 @@ class ConvertTest(tf.test.TestCase):
         frozen_file,
         True,
         '',
-        saved_model_tags=tf.saved_model.tag_constants.SERVING,
+        saved_model_tags=tf.compat.v1.saved_model.tag_constants.SERVING,
         input_saved_model_dir=saved_model_dir)
 
   def test_convert_saved_model_v1(self):
@@ -431,12 +431,12 @@ class ConvertTest(tf.test.TestCase):
 
       fusedOp = None
       for node in nodes:
-        self.assertTrue(not 'BatchNorm' in node['op'])
-        self.assertTrue(not 'Relu' in node['op'])
-        self.assertTrue(not 'BiasAdd' in node['op'])
+        self.assertNotIn('BatchNorm', node['op'])
+        self.assertNotIn('Relu', node['op'])
+        self.assertNotIn('BiasAdd', node['op'])
         if node['op'] == '_FusedConv2D':
           fusedOp = node
-      self.assertTrue(fusedOp is not None)
+      self.assertIsNot(fusedOp, None)
       self.assertEqual(
           base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][0]),
           b'BiasAdd')
@@ -476,12 +476,12 @@ class ConvertTest(tf.test.TestCase):
     nodes = model_json['modelTopology']['node']
     fusedOp = None
     for node in nodes:
-      self.assertTrue(node['op'] != 'MatMul')
-      self.assertTrue(not 'Relu' in node['op'])
-      self.assertTrue(not 'BiasAdd' in node['op'])
+      self.assertNotEqual(node['op'], 'MatMul')
+      self.assertNotIn('Relu', node['op'])
+      self.assertNotIn('BiasAdd', node['op'])
       if node['op'] == graph_rewrite_util.FUSED_MATMUL:
         fusedOp = node
-    self.assertTrue(fusedOp is not None)
+    self.assertIsNot(fusedOp, None)
     self.assertIsNot(fusedOp['attr']['transpose_a'], None)
     self.assertIsNot(fusedOp['attr']['transpose_b'], None)
     self.assertEqual(
@@ -524,12 +524,12 @@ class ConvertTest(tf.test.TestCase):
 
     fusedOp = None
     for node in nodes:
-      self.assertTrue(not 'BatchNorm' in node['op'])
-      self.assertTrue(not 'Relu' in node['op'])
-      self.assertTrue(not 'BiasAdd' in node['op'])
+      self.assertNotIn('BatchNorm', node['op'])
+      self.assertNotIn('Relu', node['op'])
+      self.assertNotIn('BiasAdd', node['op'])
       if node['op'] == graph_rewrite_util.FUSED_DEPTHWISE_CONV2D:
         fusedOp = node
-    self.assertTrue(fusedOp is not None)
+    self.assertIsNot(fusedOp, None)
     self.assertIsNot(fusedOp['attr']['dilations'], None)
     self.assertIsNot(fusedOp['attr']['strides'], None)
     self.assertEqual(
@@ -581,8 +581,8 @@ class ConvertTest(tf.test.TestCase):
       if node['op'] == graph_rewrite_util.FUSED_DEPTHWISE_CONV2D:
         depthwise_fused_op = node
     self.assertTrue(prelu_op is None)
-    self.assertTrue(fused_op is not None)
-    self.assertTrue(depthwise_fused_op is not None)
+    self.assertIsNot(fused_op, None)
+    self.assertIsNot(depthwise_fused_op, None)
 
     fused_ops = list(map(base64.b64decode,
                          fused_op['attr']['fused_ops']['list']['s']))
