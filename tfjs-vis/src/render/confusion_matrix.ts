@@ -159,12 +159,14 @@ export async function confusionMatrix(
       'x': {
         'field': 'prediction',
         'type': 'ordinal',
+        'title': options.xLabel || 'prediction',
         // Maintain sort order of the axis if labels is passed in
         'scale': {'domain': tickLabels},
       },
       'y': {
         'field': 'label',
         'type': 'ordinal',
+        'title': options.yLabel || 'label',
         // Maintain sort order of the axis if labels is passed in
         'scale': {'domain': tickLabels},
       },
