@@ -38,7 +38,7 @@
     "karma": "~4.2.0",
     "karma-browserstack-launcher": "~1.5.1",
     "karma-chrome-launcher": "~2.2.0",
-    "karma-jasmine": "~1.1.0",
+    "karma-jasmine": "~3.0.3",
     "karma-typescript": "~4.1.1",
     "karma-verbose-reporter": "^0.0.6",
     "rimraf": "~2.6.2",
