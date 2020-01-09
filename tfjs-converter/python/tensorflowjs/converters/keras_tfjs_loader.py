@@ -23,7 +23,7 @@ import os
 import uuid
 
 import six
-import tensorflow as tf
+import tensorflow.compat.v2 as tf
 from tensorflow import keras
 
 from tensorflowjs import read_weights
