@@ -16,10 +16,9 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
+import {test_util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
-// tslint:disable-next-line: no-imports-from-dist
-import {expectArraysEqual} from '@tensorflow/tfjs-core/dist/test_util';
 import {ExpoWebGLRenderingContext, GLView} from 'expo-gl';
 
 import {RN_ENVS} from '../test_env_registry';
@@ -29,6 +28,8 @@ import {detectGLCapabilities, fromTexture, toTexture} from './camera';
 async function createGLContext(): Promise<ExpoWebGLRenderingContext> {
   return GLView.createContextAsync();
 }
+
+const expectArraysEqual = test_util.expectArraysEqual;
 
 let gl: ExpoWebGLRenderingContext;
 
@@ -147,6 +148,10 @@ describeWithFlags('fromTexture:nearestNeighbor', RN_ENVS, () => {
 
   beforeEach(async () => {
     texture = await toTexture(gl, input);
+  });
+
+  afterAll(() => {
+    tf.dispose(input);
   });
 
   it('same size alignCorners=false', async () => {
@@ -436,6 +441,10 @@ describeWithFlags('fromTexture:bilinear', RN_ENVS, () => {
           ]
         ],
         inShape, 'int32');
+  });
+
+  afterAll(() => {
+    tf.dispose(input);
   });
 
   beforeEach(async () => {

@@ -52,7 +52,7 @@ const inputTensorHeight = 200;
 
 export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
   private camera?: Camera|null;
-  private glView?: GLView;
+  private glView?: GLView|null;
 
   constructor(props: ScreenProps) {
     super(props);
@@ -103,7 +103,12 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
     if (status !== 'granted') {
       throw new Error('Denied camera permissions!');
     }
-    return this.glView!.createCameraTextureAsync(this.camera!);
+    if(this.glView != null && this.camera != null) {
+      return this.glView.createCameraTextureAsync(this.camera);
+    } else {
+      throw new Error('glView or camera not available');
+    }
+
   }
 
   onCameraLayout(event: LayoutChangeEvent) {
@@ -127,16 +132,19 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
     const flipHorizontal = Platform.OS === 'ios' ? false : true;
 
     const poseLoop = async (inputTensor: tf.Tensor3D) => {
-      const pose = await this.state.posenetModel!.estimateSinglePose(
+      if (this.state.posenetModel != null) {
+        const pose = await this.state.posenetModel.estimateSinglePose(
         inputTensor, { flipHorizontal });
 
-      this.setState({pose});
-      tf.dispose([inputTensor, inputTensor]);
+        this.setState({pose});
+      tf.dispose([inputTensor]);
+      }
     };
 
     const faceDetectorLoop = async (inputTensor: tf.Tensor3D) => {
+      const returnTensors = false;
       const faces = await this.state.faceDetector.estimateFaces(
-        inputTensor, false);
+        inputTensor, returnTensors);
 
       this.setState({faces});
       tf.dispose(inputTensor);
@@ -187,8 +195,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
   renderPose() {
     const MIN_KEYPOINT_SCORE = 0.2;
     const {pose} = this.state;
-    if(pose != null) {
-      // console.log('Pose.keypoints', pose.keypoints[0]);
+    if (pose != null) {
       const keypoints = pose.keypoints
         .filter(k => k.score > MIN_KEYPOINT_SCORE)
         .map((k,i) => {
@@ -276,13 +283,13 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
           style={styles.camera}
           type={this.state.cameraType}
           zoom={0}
-          ref={ref => this.camera = ref!}
+          ref={ref => this.camera = ref}
           onLayout={this.onCameraLayout.bind(this)}
         />
         <GLView
           style={styles.camera}
           onContextCreate={this.onContextCreate.bind(this)}
-          ref={ref => this.glView = ref!}
+          ref={ref => this.glView = ref}
         />
         <View style={styles.camera}>
           {this.renderPose()}

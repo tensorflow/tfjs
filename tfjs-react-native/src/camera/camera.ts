@@ -35,7 +35,7 @@ interface FromTextureOptions {
 }
 
 const glCapabilities = {
-  canDownloadFromRGBTexture: false,
+  canDownloadFromRGBTexture: new WeakMap<WebGL2RenderingContext, boolean>(),
   // Has detectGLCapabilities been run on a particular GL context;
   glCapabilitiesTested: new WeakMap<WebGL2RenderingContext, boolean>()
 };
@@ -58,7 +58,7 @@ export async function detectGLCapabilities(gl: WebGL2RenderingContext) {
 
   // Set this to true temporarily so that fromTexture does not
   // use its workaround.
-  glCapabilities.canDownloadFromRGBTexture = true;
+  glCapabilities.canDownloadFromRGBTexture.set(gl, true);
 
   try {
     const height = 2;
@@ -81,12 +81,12 @@ export async function detectGLCapabilities(gl: WebGL2RenderingContext) {
     ]);
 
     if (matches) {
-      glCapabilities.canDownloadFromRGBTexture = true;
+      glCapabilities.canDownloadFromRGBTexture.set(gl, true);
     } else {
-      glCapabilities.canDownloadFromRGBTexture = false;
+      glCapabilities.canDownloadFromRGBTexture.set(gl, false);
     }
   } catch (e) {
-    glCapabilities.canDownloadFromRGBTexture = false;
+    glCapabilities.canDownloadFromRGBTexture.set(gl, false);
   } finally {
     glCapabilities.glCapabilitiesTested.set(gl, true);
   }
@@ -142,7 +142,7 @@ export function fromTexture(
   if (targetShape.depth === 3 && targetShape.width % 4 !== 0) {
     // We throw an error here rather than use the CPU workaround as the user is
     // likely trying to get the maximum performance.
-    if (glCapabilities.canDownloadFromRGBTexture) {
+    if (glCapabilities.canDownloadFromRGBTexture.get(gl)) {
       // See
       // https://www.khronos.org/opengl/wiki/Common_Mistakes#Texture_upload_and_pixel_reads
       // for more details. At the moment gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
@@ -155,16 +155,17 @@ export function fromTexture(
   }
 
   const originalTargetDepth = targetShape.depth;
-  const targetDepth =
-      glCapabilities.canDownloadFromRGBTexture ? originalTargetDepth : 4;
+  const targetDepth = glCapabilities.canDownloadFromRGBTexture.get(gl) ?
+      originalTargetDepth :
+      4;
 
-  const _sourceDims = {
+  const sourceDims_ = {
     height: Math.floor(sourceDims.height),
     width: Math.floor(sourceDims.width),
     depth: sourceDims.depth,
   };
 
-  const _targetShape = {
+  const targetShape_ = {
     height: Math.floor(targetShape.height),
     width: Math.floor(targetShape.width),
     depth: targetDepth
@@ -181,14 +182,14 @@ export function fromTexture(
           ' "bilinear" or "nearest_neighbor"');
 
   const resizedTexture = runResizeProgram(
-      gl, texture, _sourceDims, _targetShape, alignCorners, interpolation);
-  const textureData_ = downloadTextureData(gl, resizedTexture, _targetShape);
+      gl, texture, sourceDims_, targetShape_, alignCorners, interpolation);
+  const textureData_ = downloadTextureData(gl, resizedTexture, targetShape_);
 
   let textureData;
   if (originalTargetDepth !== targetDepth && originalTargetDepth === 3) {
     // We are on a device that does not support downloading from an RGB texture.
     // Remove the alpha channel values on the CPU.
-    const area = _targetShape.height * _targetShape.width;
+    const area = targetShape_.height * targetShape_.width;
     textureData = new Uint8Array(area * originalTargetDepth);
 
     for (let i = 0; i < area; i++) {
@@ -204,7 +205,7 @@ export function fromTexture(
 
   return tf.tensor3d(
       textureData,
-      [_targetShape.height, _targetShape.width, originalTargetDepth], 'int32');
+      [targetShape_.height, targetShape_.width, originalTargetDepth], 'int32');
 }
 
 /**
@@ -218,9 +219,9 @@ export function fromTexture(
 export function renderToGLView(
     gl: WebGL2RenderingContext, texture: WebGLTexture, size: Size,
     flipHorizontal = true) {
-  const _size = {
+  const size_ = {
     width: Math.floor(size.width),
     height: Math.floor(size.height),
   };
-  drawTexture(gl, texture, _size, flipHorizontal);
+  drawTexture(gl, texture, size_, flipHorizontal);
 }
