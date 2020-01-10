@@ -3,7 +3,8 @@
   "compilerOptions": {
     "target": "es2017",
     "lib": [
-      "es2017"
+      "es2017",
+      "dom"
     ],
     "outDir": "./dist/",
     "skipLibCheck": true,

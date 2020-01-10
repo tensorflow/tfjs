@@ -15,17 +15,20 @@
  * =============================================================================
  */
 
-apply from: '../node_modules/react-native-unimodules/gradle.groovy'
-includeUnimodulesProjects()
-include ':@react-native-community_async-storage'
-project(':@react-native-community_async-storage').projectDir = new File(rootProject.projectDir, '../node_modules/@react-native-community/async-storage/android')
+// tslint:disable-next-line: no-imports-from-dist
+import {Constraints, registerTestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-include ':react-native-fs'
-project(':react-native-fs').projectDir = new File(settingsDir, '../node_modules/react-native-fs/android')
+export const RN_ENVS: Constraints = {
+  predicate: testEnv => testEnv.backendName === 'rn-webgl'
+};
 
-include ':react-native-svg'
-project(':react-native-svg').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-svg/android')
-
-rootProject.name = 'integration_rn59'
-
-include ':app'
+registerTestEnv({
+  name: 'test-rn-webgl',
+  backendName: 'rn-webgl',
+  flags: {
+    'WEBGL_VERSION': 2,
+    'WEBGL_CPU_FORWARD': false,
+    'WEBGL_SIZE_UPLOAD_UNIFORM': 0
+  },
+  isDataSync: true
+});
