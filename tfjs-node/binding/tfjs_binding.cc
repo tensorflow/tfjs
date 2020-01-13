@@ -224,6 +224,11 @@ static napi_value RunSavedModel(napi_env env, napi_callback_info info) {
   return gBackend->RunSavedModel(env, args[0], args[1], args[2], args[3]);
 }
 
+static napi_value GetNumOfSavedModels(napi_env env, napi_callback_info info) {
+  // Delete SavedModel takes 0 param;
+  return gBackend->GetNumOfSavedModels(env);
+}
+
 static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
   napi_status nstatus;
 
@@ -255,6 +260,8 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
        napi_default, nullptr},
       {"isUsingGpuDevice", nullptr, IsUsingGPUDevice, nullptr, nullptr, nullptr,
        napi_default, nullptr},
+      {"getNumOfSavedModels", nullptr, GetNumOfSavedModels, nullptr, nullptr,
+       nullptr, napi_default, nullptr},
   };
   nstatus = napi_define_properties(env, exports, ARRAY_SIZE(exports_properties),
                                    exports_properties);

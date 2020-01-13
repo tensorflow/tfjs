@@ -88,7 +88,7 @@ describe('BundleResourceIO', () => {
 
   it('loads model artifacts', async () => {
     const response = new Response(weightData1);
-    spyOn(tfjsRn, 'fetch').and.returnValue(response);
+    spyOn(tfjsRn, 'fetch').and.returnValue(Promise.resolve(response));
 
     const modelJson: tf.io.ModelJSON = {
       modelTopology: modelTopology1,
@@ -110,7 +110,8 @@ describe('BundleResourceIO', () => {
 
   it('errors on string modelJSON', async () => {
     const response = new Response(weightData1);
-    spyOn(tf.env().platform, 'fetch').and.returnValue(response);
+    spyOn(tf.env().platform, 'fetch')
+        .and.returnValue(Promise.resolve(response));
 
     const modelJson = `{
       modelTopology: modelTopology1,

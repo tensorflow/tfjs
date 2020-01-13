@@ -25,15 +25,13 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import unittest
 
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v2 as tf
+from tensorflow.compat.v1 import saved_model
 from tensorflow import keras
 from tensorflow.python.eager import def_function
 from tensorflow.python.framework import constant_op
-from tensorflow.python.framework import dtypes
-from tensorflow.python.framework import tensor_spec
 from tensorflow.python.ops import variables
 from tensorflow.python.tools import freeze_graph
 from tensorflow.python.training.tracking import tracking
@@ -68,8 +66,11 @@ def _createKerasModel(layer_name_prefix, h5_path=None):
       kernel_initializer='ones',
       name=layer_name_prefix + '2')(dense1)
   model = keras.models.Model(inputs=[input_tensor], outputs=[output])
+  model.compile(optimizer='adam', loss='binary_crossentropy')
+  model.predict(tf.ones((1, 3)), steps=1)
+
   if h5_path:
-    model.save(h5_path)
+    model.save(h5_path, save_format='h5')
   return model
 
 def _createTensorFlowSavedModelV1(name_scope, save_path):
@@ -89,17 +90,17 @@ def _createTensorFlowSavedModelV1(name_scope, save_path):
       init_op = w.initializer
 
       # Create a builder.
-      builder = tf.compat.v1.saved_model.builder.SavedModelBuilder(save_path)
+      builder = saved_model.builder.SavedModelBuilder(save_path)
 
       with tf.compat.v1.Session() as sess:
         # Run the initializer on `w`.
         sess.run(init_op)
 
         builder.add_meta_graph_and_variables(
-            sess, [tf.compat.v1.saved_model.tag_constants.SERVING],
+            sess, [saved_model.tag_constants.SERVING],
             signature_def_map={
                 "serving_default":
-                    tf.compat.v1.saved_model.signature_def_utils.predict_signature_def(
+                    saved_model.signature_def_utils.predict_signature_def(
                         inputs={"x": x},
                         outputs={"output": output})
             },
@@ -107,12 +108,10 @@ def _createTensorFlowSavedModelV1(name_scope, save_path):
 
       builder.save()
 
-def _createTensorFlowSavedModel(name_scope, save_path):
+def _createTensorFlowSavedModel(save_path):
   """Create a TensorFlow SavedModel for testing.
 
   Args:
-    name_scope: Name scope to create the model under. This helps avoid
-      op and variable name clashes between different test methods.
     save_path: The directory path in which to save the model.
   """
 
@@ -151,20 +150,21 @@ def _create_frozen_model(save_path):
   saved_model_dir = os.path.join(save_path)
   with graph.as_default():
     x = tf.constant([[37.0, -23.0], [1.0, 4.0]])
-    w = tf.Variable(tf.random_uniform([2, 2]))
+    w = tf.Variable(tf.random.uniform([2, 2]))
     y = tf.matmul(x, w)
     tf.nn.softmax(y)
     init_op = w.initializer
 
     # Create a builder
-    builder = tf.saved_model.builder.SavedModelBuilder(saved_model_dir)
+    builder = saved_model.builder.SavedModelBuilder(
+        saved_model_dir)
 
-    with tf.Session() as sess:
+    with tf.compat.v1.Session() as sess:
       # Run the initializer on `w`.
       sess.run(init_op)
 
       builder.add_meta_graph_and_variables(
-          sess, [tf.saved_model.tag_constants.SERVING],
+          sess, [saved_model.tag_constants.SERVING],
           signature_def_map=None,
           assets_collection=None)
 
@@ -182,7 +182,7 @@ def _create_frozen_model(save_path):
       frozen_file,
       True,
       '',
-      saved_model_tags=tf.saved_model.tag_constants.SERVING,
+      saved_model_tags=saved_model.tag_constants.SERVING,
       input_saved_model_dir=saved_model_dir)
 class APIAndShellTest(tf.test.TestCase):
   """Tests for the Python API of the pip package."""
@@ -194,7 +194,7 @@ class APIAndShellTest(tf.test.TestCase):
     cls.tf_saved_model_v1_dir = os.path.join(
                 cls.class_tmp_dir, 'tf_saved_model_v1')
     cls.tf_frozen_model_dir = os.path.join(cls.class_tmp_dir, 'tf_frozen_model')
-    _createTensorFlowSavedModel('a', cls.tf_saved_model_dir)
+    _createTensorFlowSavedModel(cls.tf_saved_model_dir)
     _createTensorFlowSavedModelV1('b', cls.tf_saved_model_v1_dir)
     _create_frozen_model(cls.tf_frozen_model_dir)
     cls.tf_hub_module_dir = os.path.join(cls.class_tmp_dir, 'tf_hub_module')
@@ -264,7 +264,8 @@ class APIAndShellTest(tf.test.TestCase):
       self.assertEqual(weight_dtypes['MergedDense2/kernel'], 'float32')
 
   def testLoadKerasModel(self):
-    # Use separate tf.Graph and tf.compat.v1.Session contexts to prevent name collision.
+    # Use separate tf.Graph and tf.compat.v1.Session contexts
+    # to prevent name collision.
     with tf.Graph().as_default(), tf.compat.v1.Session():
       # First create a toy keras model.
       model1 = _createKerasModel('MergedDense')
@@ -494,9 +495,9 @@ class APIAndShellTest(tf.test.TestCase):
     weights = [{
         'paths': ['group1-shard1of1.bin'],
         'weights': [{
-          'dtype': 'float32',
-          'shape': [],
-          'name': 'StatefulPartitionedCall/mul'
+            'dtype': 'float32',
+            'shape': [],
+            'name': 'StatefulPartitionedCall/mul'
         }]
     }]
 
@@ -515,31 +516,6 @@ class APIAndShellTest(tf.test.TestCase):
                             weights[0]['paths'])
       self.assertCountEqual(weights_manifest[0]['weights'],
                             weights[0]['weights'])
-
-    # Check the content of the output directory.
-    self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
-
-  def testConvertTFHubModuleWithCommandLineWorks(self):
-    output_dir = os.path.join(self._tmp_dir)
-    process = subprocess.Popen([
-        'tensorflowjs_converter', '--input_format', 'tf_hub',
-        self.tf_hub_module_dir, output_dir
-    ])
-    process.communicate()
-    self.assertEqual(0, process.returncode)
-
-    weights = [{
-        'paths': ['group1-shard1of1.bin'],
-        'weights': [{
-            'shape': [2],
-            'name': 'module/Variable',
-            'dtype': 'float32'
-        }]
-    }]
-    # Load the saved weights as a JSON string.
-    output_json = json.load(
-        open(os.path.join(output_dir, 'model.json'), 'rt'))
-    self.assertEqual(output_json['weightsManifest'], weights)
 
     # Check the content of the output directory.
     self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
@@ -574,31 +550,6 @@ class APIAndShellTest(tf.test.TestCase):
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, 'group*-*')))
-
-    # Check the content of the output directory.
-    self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
-
-  def testConvertTFHubModuleWithCommandLineWorks(self):
-    output_dir = os.path.join(self._tmp_dir)
-    process = subprocess.Popen([
-        'tensorflowjs_converter', '--input_format', 'tf_hub',
-        self.tf_hub_module_dir, output_dir
-    ])
-    process.communicate()
-    self.assertEqual(0, process.returncode)
-
-    weights = [{
-        'paths': ['group1-shard1of1.bin'],
-        'weights': [{
-            'shape': [2],
-            'name': 'module/Variable',
-            'dtype': 'float32'
-        }]
-    }]
-    # Load the saved weights as a JSON string.
-    output_json = json.load(
-        open(os.path.join(output_dir, 'model.json'), 'rt'))
-    self.assertEqual(output_json['weightsManifest'], weights)
 
     # Check the content of the output directory.
     self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
@@ -696,12 +647,16 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
     model.add(keras.layers.Reshape([2, 3], input_shape=[6]))
     model.add(keras.layers.LSTM(10))
     model.add(keras.layers.Dense(1, activation='sigmoid'))
+    model.compile(optimizer='adam', loss='binary_crossentropy')
+    model.predict(tf.ones((1, 6)), steps=1)
     return model
 
   def _createNestedSequentialModel(self):
     model = keras.Sequential()
     model.add(keras.layers.Dense(6, input_shape=[10], activation='relu'))
     model.add(self._createSimpleSequentialModel())
+    model.compile(optimizer='adam', loss='binary_crossentropy')
+    model.predict(tf.ones((1, 10)), steps=1)
     return model
 
   def _createFunctionalModelWithWeights(self):
@@ -710,6 +665,8 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
     y = keras.layers.Concatenate()([input1, input2])
     y = keras.layers.Dense(4, activation='softmax')(y)
     model = keras.Model([input1, input2], y)
+    model.compile(optimizer='adam', loss='binary_crossentropy')
+    model.predict([tf.ones((1, 8)), tf.ones((1, 10))], steps=1)
     return model
 
   def testConvertTfKerasNestedSequentialSavedModelIntoTfjsFormat(self):
@@ -721,7 +678,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       model = self._createNestedSequentialModel()
       y = model.predict(x)
 
-      keras.experimental.export_saved_model(model, self._tmp_dir)
+      keras.models.save_model(model, self._tmp_dir)
 
       # 2. Convert the keras saved model to tfjs format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
@@ -762,7 +719,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       model = self._createFunctionalModelWithWeights()
       y = model.predict([x1, x2])
 
-      keras.experimental.export_saved_model(model, self._tmp_dir)
+      tf.keras.models.save_model(model, self._tmp_dir)
 
       # 2. Convert the keras saved model to tfjs format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
@@ -796,22 +753,18 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
 
   def testUsingIncorrectKerasSavedModelRaisesError(self):
     with tf.Graph().as_default(), tf.compat.v1.Session():
-      x = np.random.randn(8, 10)
-
       # 1. Run the model.predict(), store the result. Then saved the model
       #    as a SavedModel.
       model = self._createNestedSequentialModel()
-      y = model.predict(x)
-
-      keras.experimental.export_saved_model(model, self._tmp_dir)
+      tf.keras.models.save_model(model, self._tmp_dir)
 
       # 2. Convert the keras saved model to tfjs format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
       # Use incorrect --input_format value: keras
       process = subprocess.Popen(
           [
-            'tensorflowjs_converter', '--input_format', 'keras',
-            self._tmp_dir, tfjs_output_dir
+              'tensorflowjs_converter', '--input_format', 'keras',
+              self._tmp_dir, tfjs_output_dir
           ],
           stdout=subprocess.PIPE,
           stderr=subprocess.PIPE)
@@ -832,7 +785,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       weights = model.get_weights()
       total_weight_bytes = sum(np.size(w) for w in weights) * 4
 
-      keras.experimental.export_saved_model(model, self._tmp_dir)
+      tf.keras.models.save_model(model, self._tmp_dir)
 
       # 2. Convert the keras saved model to tfjs_layers_model format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
@@ -886,17 +839,13 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
 
   def testConvertTfjsLayersModelWithQuantization(self):
     with tf.Graph().as_default(), tf.compat.v1.Session():
-      x = np.random.randn(8, 10)
-
-      # 1. Run the model.predict(), store the result. Then saved the model
-      #    as a SavedModel.
+      # 1. Saved the model as a SavedModel.
       model = self._createNestedSequentialModel()
-      y = model.predict(x)
 
       weights = model.get_weights()
       total_weight_bytes = sum(np.size(w) for w in weights) * 4
 
-      keras.experimental.export_saved_model(model, self._tmp_dir)
+      tf.keras.models.save_model(model, self._tmp_dir)
 
       # 2. Convert the keras saved model to tfjs_layers_model format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
@@ -910,8 +859,6 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
 
       # 3. Convert the tfjs_layers_model to another tfjs_layers_model,
       #    with uint16 quantization.
-      weight_shard_size_bytes = int(total_weight_bytes * 0.3)
-      # Due to the shard size, there ought to be 4 shards after conversion.
       sharded_model_dir = os.path.join(self._tmp_dir, 'tfjs_sharded')
       process = subprocess.Popen([
           'tensorflowjs_converter', '--input_format', 'tfjs_layers_model',
@@ -931,16 +878,16 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       self.assertEqual(weight_file_size, total_weight_bytes // 2)
 
   def testConvertTfjsLayersModelToTfjsGraphModel(self):
-    x = np.random.randn(8, 10)
-
     with tf.Graph().as_default(), tf.compat.v1.Session():
       # 1. Create a model for testing.
       model = keras.Sequential()
       model.add(keras.layers.Dense(10, activation='relu', input_shape=[4]))
       model.add(keras.layers.Dense(1, activation='sigmoid'))
+      model.compile(optimizer='adam', loss='binary_crossentropy')
+      model.predict(tf.ones((1, 4)), steps=1)
 
       h5_path = os.path.join(self._tmp_dir, 'model.h5')
-      model.save(h5_path)
+      model.save(h5_path, save_format='h5')
 
     # 2. Convert the keras saved model to tfjs_layers_model format.
     layers_model_output_dir = os.path.join(self._tmp_dir, 'tfjs_layers')
@@ -974,9 +921,11 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       model = keras.Sequential()
       model.add(keras.layers.Dense(10, activation='relu', input_shape=[4]))
       model.add(keras.layers.Dense(1, activation='sigmoid'))
+      model.compile(optimizer='adam', loss='binary_crossentropy')
+      model.predict(tf.ones((1, 4)), steps=1)
 
       h5_path = os.path.join(self._tmp_dir, 'model.h5')
-      model.save(h5_path)
+      model.save(h5_path, save_format='h5')
 
     # 2. Convert the keras saved model to tfjs_layers_model format.
     layers_model_output_dir = os.path.join(self._tmp_dir, 'tfjs_layers')

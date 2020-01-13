@@ -105,6 +105,15 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "non_max_suppression_impl",
+    srcs = ["non_max_suppression_impl.cc"],
+    hdrs = ["non_max_suppression_impl.h"],
+    deps = [
+        ":backend",
+    ],
+)
+
+tfjs_cc_library(
     name = "prelu_impl",
     srcs = ["prelu_impl.cc"],
     hdrs = ["prelu_impl.h"],
@@ -169,6 +178,7 @@ tfjs_cc_library(
         ":Minimum",
         ":Mul",
         ":NonMaxSuppressionV3",
+        ":NonMaxSuppressionV5",
         ":PadV2",
         ":Prelu",
         ":Relu",
@@ -537,6 +547,17 @@ tfjs_cc_library(
     srcs = ["kernels/NonMaxSuppressionV3.cc"],
     deps = [
         ":backend",
+        ":non_max_suppression_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "NonMaxSuppressionV5",
+    srcs = ["kernels/NonMaxSuppressionV5.cc"],
+    deps = [
+        ":backend",
+        ":non_max_suppression_impl",
         ":util",
     ],
 )
@@ -619,9 +640,18 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "Sigmoid",
     srcs = ["kernels/Sigmoid.cc"],
+    hdrs = ["kernels/Sigmoid.h"],
     deps = [
         ":backend",
         ":unary",
+    ],
+)
+
+tfjs_unit_test(
+    name = "Sigmoid_test",
+    srcs = ["kernels/Sigmoid_test.cc"],
+    deps = [
+        ":Sigmoid",
     ],
 )
 

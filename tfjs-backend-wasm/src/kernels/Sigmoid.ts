@@ -15,5 +15,40 @@
  * =============================================================================
  */
 
-import {registerUnaryKernel} from './unary_kernel';
-registerUnaryKernel('Sigmoid');
+import {NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+
+import {BackendWasm} from '../backend_wasm';
+
+interface SigmoidInputs extends NamedTensorInfoMap {
+  x: TensorInfo;
+}
+
+let wasmFunc: (xId: number, outId: number) => void;
+
+function setup(backend: BackendWasm): void {
+  wasmFunc =
+      backend.wasm.cwrap('Sigmoid', null /* void */, ['number', 'number']);
+}
+
+function sigmoid(args: {backend: BackendWasm, inputs: SigmoidInputs}):
+    TensorInfo {
+  const {backend, inputs: {x}} = args;
+  const xId = backend.dataIdMap.get(x.dataId).id;
+  const out = backend.makeOutput(x.shape, x.dtype);
+  const outId = backend.dataIdMap.get(out.dataId).id;
+
+  // Short-circuit zero-sized tensors.
+  if (util.sizeFromShape(out.shape) === 0) {
+    return out;
+  }
+
+  wasmFunc(xId, outId);
+  return out;
+}
+
+registerKernel({
+  kernelName: 'Sigmoid',
+  backendName: 'wasm',
+  setupFunc: setup,
+  kernelFunc: sigmoid
+});

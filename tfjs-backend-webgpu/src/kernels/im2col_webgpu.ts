@@ -70,8 +70,8 @@ export class Im2ColProgram implements WebGPUProgram {
           ivec2 rc = getCoordsFromFlatIndex(flatIndex);
 
           if(flatIndex < ${size}) {
-            int blockIndex = rc[1];
-            int pos = rc[0];
+            int blockIndex = rc[0];
+            int pos = rc[1];
 
             int offsetY = int(blockIndex / ${outWidth}) * ${strideHeight} -
               ${top};

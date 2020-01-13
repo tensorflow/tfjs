@@ -159,7 +159,7 @@ describeWebGPU('Ops benchmarks', () => {
   it('maxPool', async () => {
     const x = tf.randomNormal<tf.Rank.R4>([1, 131, 131, 64]);
 
-    await time(() => tf.maxPool(x, 2, 1, 'same'));
+    await time(() => tf.maxPool(x, 2, 1, 'same'), null, true, 10, 10);
   });
 
   it('prelu', async () => {

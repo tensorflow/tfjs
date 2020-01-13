@@ -25,7 +25,7 @@ import traceback
 
 import PyInquirer
 import h5py
-import tensorflow as tf
+import tensorflow.compat.v2 as tf
 from tensorflow.core.framework import types_pb2
 from tensorflow.python.saved_model import loader_impl
 from tensorflowjs.converters import converter

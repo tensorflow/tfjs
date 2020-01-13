@@ -68,7 +68,7 @@ export {RMSPropOptimizer} from './optimizers/rmsprop_optimizer';
 export {SGDOptimizer} from './optimizers/sgd_optimizer';
 export {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, Variable} from './tensor';
 export {GradSaveFunc, NamedTensorMap, TensorContainer, TensorContainerArray, TensorContainerObject} from './tensor_types';
-export {DataType, DataTypeMap, DataValues, Rank, RecursiveArray, ShapeMap, TensorLike} from './types';
+export {DataType, DataTypeMap, DataValues, Rank, RecursiveArray, ShapeMap, sumOutType, TensorLike} from './types';
 
 export * from './ops/ops';
 export {LSTMCellFunc} from './ops/lstm';

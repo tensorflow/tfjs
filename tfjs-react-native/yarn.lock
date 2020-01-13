@@ -29,10 +29,10 @@
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-0.0.38.tgz#c1be40aa933723c608820a99a373a16d215a1ca2"
   integrity sha512-F/v7t1LwS4vnXuPooJQGBRKRGIoxWUTmA4VHfqjOccFsNDThD5bfUNpITive6s352O7o384wcpEaDV8rHCehDA==
 
-"@types/jasmine@~2.5.53":
-  version "2.5.54"
-  resolved "https://registry.yarnpkg.com/@types/jasmine/-/jasmine-2.5.54.tgz#a6b5f2ae2afb6e0307774e8c7c608e037d491c63"
-  integrity sha512-B9YofFbUljs19g5gBKUYeLIulsh31U5AK70F41BImQRHEZQGm4GcN922UvnYwkduMqbC/NH+9fruWa/zrqvHIg==
+"@types/jasmine@~3.3.0":
+  version "3.3.16"
+  resolved "https://registry.yarnpkg.com/@types/jasmine/-/jasmine-3.3.16.tgz#7c84074f5d7f84da9a14f816ccfb9aeb4da13f27"
+  integrity sha512-Nveep4zKGby8uIvG2AEUyYOwZS8uVeHK9TgbuWYSawUDDdIgfhCKz28QzamTo//Jk7Ztt9PO3f+vzlB6a4GV1Q==
 
 "@types/node@*":
   version "12.6.6"
@@ -45,9 +45,9 @@
   integrity sha512-esIJx9bQg+QYF0ra8GnvfianIY8qWB0GBx54PK5Eps6m+xTj86KLavHv6qDhzKcu5UUOgNfJ2pWaIIV7TRUd9Q==
 
 "@types/prop-types@*":
-  version "15.7.1"
-  resolved "https://registry.yarnpkg.com/@types/prop-types/-/prop-types-15.7.1.tgz#f1a11e7babb0c3cad68100be381d1e064c68f1f6"
-  integrity sha512-CFzn9idOEpHrgdw8JsoTkaDDyRWk1jrzIV8djzcgpq0y9tG4B4lFT+Nxh52DVpDXV+n4+NPNv7M1Dj5uMp6XFg==
+  version "15.7.3"
+  resolved "https://registry.yarnpkg.com/@types/prop-types/-/prop-types-15.7.3.tgz#2ab0d5da2e5815f94b0b9d4b95d1e5f243ab2ca7"
+  integrity sha512-KfRL3PuHmqQLOG+2tGpRO26Ctg+Cq1E01D2DMriKEATHgWLfeNDmq9e29Q9WIky0dQ3NPkd1mzYH8Lm936Z9qw==
 
 "@types/react-native-fs@^2.13.0":
   version "2.13.0"
@@ -56,7 +56,7 @@
   dependencies:
     react-native-fs "*"
 
-"@types/react-native@^0.60.2":
+"@types/react-native@0.60.2":
   version "0.60.2"
   resolved "https://registry.yarnpkg.com/@types/react-native/-/react-native-0.60.2.tgz#2dca78481a904419c2a5907288dd97d1090c6e3c"
   integrity sha512-K4+/etirpv52xu24xAc++OdhbD0VQEt0Kq0h6dZrLU82OlA+I7BhpKF3JBvx9tbmrFaZDxhHp8N4TEvRYS4fdQ==
@@ -65,9 +65,9 @@
     "@types/react" "*"
 
 "@types/react@*":
-  version "16.8.23"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-16.8.23.tgz#ec6be3ceed6353a20948169b6cb4c97b65b97ad2"
-  integrity sha512-abkEOIeljniUN9qB5onp++g0EY38h7atnDHxwKUFz1r3VH1+yG1OKi2sNPTyObL40goBmfKFpdii2lEzwLX1cA==
+  version "16.9.15"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-16.9.15.tgz#aeabb7a50f96c9e31a16079ada20ede9ed602977"
+  integrity sha512-WsmM1b6xQn1tG3X2Hx4F3bZwc2E82pJXt5OPs2YJgg71IzvUoKOSSSYOvLXYCg1ttipM+UuA4Lj3sfvqjVxyZw==
   dependencies:
     "@types/prop-types" "*"
     csstype "^2.2.0"
@@ -737,9 +737,9 @@ crypto-browserify@^3.12.0:
     randomfill "^1.0.3"
 
 csstype@^2.2.0:
-  version "2.6.6"
-  resolved "https://registry.yarnpkg.com/csstype/-/csstype-2.6.6.tgz#c34f8226a94bbb10c32cc0d714afdf942291fc41"
-  integrity sha512-RpFbQGUE74iyPgvr46U9t1xoQBM8T4BL8SxrN66Le2xYAPSaDJJKeztV3awugusb3g3G9iL8StmkBBXhcbbXhg==
+  version "2.6.7"
+  resolved "https://registry.yarnpkg.com/csstype/-/csstype-2.6.7.tgz#20b0024c20b6718f4eda3853a1f5a1cce7f5e4a5"
+  integrity sha512-9Mcn9sFbGBAdmimWb2gLVDtFJzeKtDGIr76TUqmjZrw9LFXBMSU70lcs+C0/7fyCd6iBDqmksUcCOUIkisPHsQ==
 
 currently-unhandled@^0.4.1:
   version "0.4.1"
@@ -1608,18 +1608,23 @@ istanbul@0.4.5, istanbul@^0.4.0:
     which "^1.1.1"
     wordwrap "^1.0.0"
 
-jasmine-core@~3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/jasmine-core/-/jasmine-core-3.1.0.tgz#a4785e135d5df65024dfc9224953df585bd2766c"
-  integrity sha1-pHheE11d9lAk38kiSVPfWFvSdmw=
+jasmine-core@^3.5.0:
+  version "3.5.0"
+  resolved "https://registry.yarnpkg.com/jasmine-core/-/jasmine-core-3.5.0.tgz#132c23e645af96d85c8bca13c8758b18429fc1e4"
+  integrity sha512-nCeAiw37MIMA9w9IXso7bRaLl+c/ef3wnxsoSAlYrzS+Ot0zTG6nU8G/cIfGkqpkjX2wNaIW9RFG0TwIFnG6bA==
 
-jasmine@~3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/jasmine/-/jasmine-3.1.0.tgz#2bd59fd7ec6ec0e8acb64e09f45a68ed2ad1952a"
-  integrity sha1-K9Wf1+xuwOistk4J9Fpo7SrRlSo=
+jasmine-core@~3.3.0:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/jasmine-core/-/jasmine-core-3.3.0.tgz#dea1cdc634bc93c7e0d4ad27185df30fa971b10e"
+  integrity sha512-3/xSmG/d35hf80BEN66Y6g9Ca5l/Isdeg/j6zvbTYlTzeKinzmaTM4p9am5kYqOmE05D7s1t8FGjzdSnbUbceA==
+
+jasmine@~3.3.0:
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/jasmine/-/jasmine-3.3.1.tgz#d61bb1dd8888859bd11ea83074a78ee13d949905"
+  integrity sha512-/vU3/H7U56XsxIXHwgEuWpCgQ0bRi2iiZeUpx7Nqo8n1TpoDHfZhkPIc7CO8I4pnMzYsi3XaSZEiy8cnTfujng==
   dependencies:
     glob "^7.0.6"
-    jasmine-core "~3.1.0"
+    jasmine-core "~3.3.0"
 
 jpeg-js@^0.3.6:
   version "0.3.6"
@@ -1684,10 +1689,12 @@ karma-coverage@^1.1.1:
     minimatch "^3.0.0"
     source-map "^0.5.1"
 
-karma-jasmine@~1.1.0:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/karma-jasmine/-/karma-jasmine-1.1.2.tgz#394f2b25ffb4a644b9ada6f22d443e2fd08886c3"
-  integrity sha1-OU8rJf+0pkS5rabyLUQ+L9CIhsM=
+karma-jasmine@~3.0.3:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/karma-jasmine/-/karma-jasmine-3.0.3.tgz#751ae15d84d16e9148d0af42787fc12f5959f66d"
+  integrity sha512-80iBR8/hLFY2Uw3S2GG6EndWtMCGMJjrCYNwYROWsJFVTjWrRSsLqcA2ye+U3ygW5sjOQo8f+78L8cGUxjC/+A==
+  dependencies:
+    jasmine-core "^3.5.0"
 
 karma-typescript@~4.1.1:
   version "4.1.1"
