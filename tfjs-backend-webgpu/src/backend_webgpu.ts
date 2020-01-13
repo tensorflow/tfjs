@@ -30,6 +30,7 @@ import {ClipProgram} from './kernels/clip_webgpu';
 import {ConcatProgram} from './kernels/concat_webgpu';
 import {Conv2DMMProgram} from './kernels/conv2d_mm_webgpu';
 import {Conv2DNaiveProgram} from './kernels/conv2d_naive_webgpu';
+import {Conv2DDerFilterProgram, Conv2DDerInputProgram} from './kernels/conv_backprop_webgpu';
 import {CropAndResizeProgram} from './kernels/crop_and_resize_webgpu';
 import {DepthwiseConv2DProgram} from './kernels/depthwise_conv2d_webgpu';
 import {FillProgram} from './kernels/fill_webgpu';
@@ -743,6 +744,38 @@ export class WebGPUBackend extends KernelBackend {
 
     return this.compileAndRun(program, [x, filter], output, dimensions);
   }
+
+
+  conv2dDerInput(
+      dy: Tensor4D, filter: Tensor4D,
+      convInfo: backend_util.Conv2DInfo): Tensor4D {
+    const dataId = this.write(null /*values*/, convInfo.outShape, dy.dtype);
+    const output =
+        engine().makeTensorFromDataId(dataId, convInfo.outShape, dy.dtype, this);
+    const pad = convInfo.padInfo.type === 'VALID' ?
+        [0, 0] :
+        convInfo.padInfo.type === 'SAME' ?
+        [
+          -Math.floor((convInfo.filterShape[0] - 1) / 2),
+          -Math.floor((convInfo.filterShape[1] - 1) / 2)
+        ] :
+        [convInfo.padInfo.top, convInfo.padInfo.left];
+    const dimensions = [
+      convInfo.filterHeight, convInfo.filterWidth, ...pad,
+      convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationHeight,
+      convInfo.dilationWidth
+    ];
+
+    const program = new Conv2DDerInputProgram(convInfo);
+    return this.compileAndRun(program, [dy, filter], output, dimensions);
+  }
+
+  conv2dDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: backend_util.Conv2DInfo):
+      Tensor4D {
+    const program = new Conv2DDerFilterProgram(convInfo);
+    return this.compileAndRun(program, [x, dy]);
+  }
+
 
   depthwiseConv2D(
       x: Tensor4D, filter: Tensor4D,
