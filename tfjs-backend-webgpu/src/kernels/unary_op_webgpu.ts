@@ -28,6 +28,8 @@ export const ELU = `return (x >= 0.0) ? x : (exp(x) - 1.0);`;
 
 export const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
 export const ABS = `return abs(a);`;
+export const SQUARE = `return a * a;`;
+export const NEG = `return -a;`;
 
 export class UnaryOpProgram implements WebGPUProgram {
   outputShape: number[];

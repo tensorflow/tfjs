@@ -113,10 +113,9 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'div',
     excludes: [
-      'broadcast 2D + 1D',               // Actual != expected.
-      'upcasts when dtypes dont match',  // Actual != expected.
-      'gradient',                        // square, sum not yet implemented.
-      'divNoNan'                         // Equal not yet implemented.
+      'upcasts when dtypes dont match',     // Actual != expected.'
+      'gradient: 1d<int32> with 1d<bool>',  // Actual != expected.
+      'divNoNan'                            // Equal not yet implemented.
     ]
   },
   {

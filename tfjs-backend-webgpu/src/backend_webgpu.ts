@@ -339,10 +339,8 @@ export class WebGPUBackend extends KernelBackend {
 
   private getAndSavePipeline(
       key: string, getBinary: () => webgpu_program.WebGPUBinary) {
-    if (!(key in this.binaryCache)) {
-      this.binaryCache[key] = getBinary();
-    }
-    return this.binaryCache[key];
+    // TODO(xing.xu): This cache is buggy. Enable this at a better place.
+    return this.binaryCache[key] = getBinary();
   }
 
   private makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):
@@ -940,6 +938,16 @@ export class WebGPUBackend extends KernelBackend {
 
   sigmoid<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.SIGMOID);
+    return this.compileAndRun(program, [x]);
+  }
+
+  square<T extends Tensor>(x: T): T {
+    const program = new UnaryOpProgram(x.shape, unary_op.SQUARE);
+    return this.compileAndRun(program, [x]);
+  }
+
+  neg<T extends Tensor>(x: T): T {
+    const program = new UnaryOpProgram(x.shape, unary_op.NEG);
     return this.compileAndRun(program, [x]);
   }
 
