@@ -31,8 +31,10 @@
     "@types/react-native": "0.60.2",
     "@types/react-native-fs": "^2.13.0",
     "clang-format": "~1.2.2",
-    "expo-gl": "^5.0.1",
     "expo-asset": "^7.0.0",
+    "expo-camera": "^7.0.0",
+    "expo-gl": "^7.0.0",
+    "gts": "^1.1.2",
     "jasmine": "~3.3.0",
     "jasmine-core": "~3.3.0",
     "karma": "~4.2.0",
@@ -41,6 +43,7 @@
     "karma-jasmine": "~3.0.3",
     "karma-typescript": "~4.1.1",
     "karma-verbose-reporter": "^0.0.6",
+    "react": "^16.12.0",
     "rimraf": "~2.6.2",
     "rollup": "^0.58.2",
     "rollup-plugin-commonjs": "9.1.3",
@@ -60,8 +63,10 @@
   "peerDependencies": {
     "@react-native-community/async-storage": "^1.4.2",
     "@tensorflow/tfjs-core": ">=1.3.0",
-    "expo-gl": "^5.0.1",
     "expo-asset": "^7.0.0",
+    "expo-camera": "^7.0.0",
+    "expo-gl": "^7.0.0",
+    "react": "^16.12.0",
     "react-native": ">= 0.58.0",
     "react-native-fs": "^2.16.1"
   }

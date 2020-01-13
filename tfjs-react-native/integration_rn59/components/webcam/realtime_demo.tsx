@@ -16,17 +16,17 @@
  */
 
 import React from 'react';
-import { ActivityIndicator, StyleSheet, View, PixelRatio, LayoutChangeEvent, Dimensions, Platform } from 'react-native';
+import {ActivityIndicator, StyleSheet, View, Platform } from 'react-native';
 import Svg, { Circle, Rect, G, Line} from 'react-native-svg';
 
 import * as Permissions from 'expo-permissions';
 import { Camera } from 'expo-camera';
-import { GLView, ExpoWebGLRenderingContext } from 'expo-gl';
+import { ExpoWebGLRenderingContext } from 'expo-gl';
 
 import * as tf from '@tensorflow/tfjs';
 import * as blazeface from '@tensorflow-models/blazeface';
 import * as posenet from '@tensorflow-models/posenet';
-import {fromTexture, renderToGLView, detectGLCapabilities} from '@tensorflow/tfjs-react-native';
+import {cameraWithTensors} from '@tensorflow/tfjs-react-native';
 
 interface ScreenProps {
   returnToMain: () => void;
@@ -42,24 +42,27 @@ interface ScreenState {
   // tslint:disable-next-line: no-any
   faceDetector?: any;
   faces?: blazeface.NormalizedFace[];
+  runModel: string;
 }
-
-let cameraPreviewWidth: number;
-let cameraPreviewHeight: number;
 
 const inputTensorWidth = 152;
 const inputTensorHeight = 200;
 
-export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
-  private camera?: Camera|null;
-  private glView?: GLView|null;
+const AUTORENDER = true;
 
+
+// tslint:disable-next-line: variable-name
+const TensorCamera = cameraWithTensors(Camera);
+
+export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
   constructor(props: ScreenProps) {
     super(props);
     this.state = {
       isLoading: true,
       cameraType: Camera.Constants.Type.front,
+      runModel: 'posenet',
     };
+    this.handleImageTensorReady = this.handleImageTensorReady.bind(this);
   }
 
   async loadPosenetModel() {
@@ -78,17 +81,51 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
     return model;
   }
 
+  async handleImageTensorReady(
+    images: IterableIterator<tf.Tensor3D>,
+    updatePreview: () => void, gl: ExpoWebGLRenderingContext) {
+    const loop = async () => {
+      const {runModel} = this.state;
+      if(!AUTORENDER) {
+        updatePreview();
+      }
+
+      if(runModel === 'posenet') {
+        if (this.state.posenetModel != null) {
+          const imageTensor = images.next().value;
+          const flipHorizontal = Platform.OS === 'ios' ? false : true;
+          const pose = await this.state.posenetModel.estimateSinglePose(
+            imageTensor, { flipHorizontal });
+
+          this.setState({pose});
+          tf.dispose([imageTensor]);
+        }
+      } else {
+        if (this.state.faceDetector != null) {
+          const imageTensor = images.next().value;
+          const returnTensors = false;
+          const faces = await this.state.faceDetector.estimateFaces(
+            imageTensor, returnTensors);
+
+          this.setState({faces});
+          tf.dispose(imageTensor);
+        }
+      }
+
+      if(!AUTORENDER) {
+        gl.endFrameEXP();
+      }
+      requestAnimationFrame(loop);
+    };
+
+    loop();
+  }
+
   async componentDidMount() {
     const { status } = await Permissions.askAsync(Permissions.CAMERA);
 
     const [blazefaceModel, posenetModel] =
       await Promise.all([this.loadBlazefaceModel(), this.loadPosenetModel()]);
-
-    const deviceDims =  {
-      width: Dimensions.get('window').width,
-      height: Dimensions.get('window').height
-    };
-    console.log('device dims', deviceDims);
 
     this.setState({
       hasCameraPermission: status === 'granted',
@@ -96,100 +133,6 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
       faceDetector: blazefaceModel,
       posenetModel,
     });
-  }
-
-  async createCameraTexture(): Promise<WebGLTexture> {
-    const { status } = await Permissions.askAsync(Permissions.CAMERA);
-    if (status !== 'granted') {
-      throw new Error('Denied camera permissions!');
-    }
-    if(this.glView != null && this.camera != null) {
-      return this.glView.createCameraTextureAsync(this.camera);
-    } else {
-      throw new Error('glView or camera not available');
-    }
-
-  }
-
-  onCameraLayout(event: LayoutChangeEvent) {
-    const {width, height} = event.nativeEvent.layout;
-    cameraPreviewHeight = height;
-    cameraPreviewWidth = width;
-  }
-
-  startRenderLoop(gl: ExpoWebGLRenderingContext, inputTexture: WebGLTexture,
-    sourceDims:{width: number, height: number, depth:number}, model: string) {
-    const width = PixelRatio.getPixelSizeForLayoutSize(cameraPreviewWidth);
-    const height = PixelRatio.getPixelSizeForLayoutSize(cameraPreviewHeight);
-
-    const targetDepth = 3;
-    const targetDims = {
-      height: inputTensorHeight,
-      width: inputTensorWidth,
-      depth: targetDepth,
-    };
-
-    const flipHorizontal = Platform.OS === 'ios' ? false : true;
-
-    const poseLoop = async (inputTensor: tf.Tensor3D) => {
-      if (this.state.posenetModel != null) {
-        const pose = await this.state.posenetModel.estimateSinglePose(
-        inputTensor, { flipHorizontal });
-
-        this.setState({pose});
-      tf.dispose([inputTensor]);
-      }
-    };
-
-    const faceDetectorLoop = async (inputTensor: tf.Tensor3D) => {
-      const returnTensors = false;
-      const faces = await this.state.faceDetector.estimateFaces(
-        inputTensor, returnTensors);
-
-      this.setState({faces});
-      tf.dispose(inputTensor);
-    };
-
-    const previewLoop = async () => {
-      renderToGLView(gl, inputTexture, {width, height}, flipHorizontal);
-
-      const inputTensor = fromTexture(gl, inputTexture, sourceDims, targetDims);
-      if(model === 'posenet') {
-        await poseLoop(inputTensor);
-      } else if (model=== 'blazeface') {
-        await faceDetectorLoop(inputTensor);
-      }
-
-      // Note that call gl.enfFrameExp() here synchronizes the display of the
-      // video texture and the react rendered markers. To desync them
-      // (i.e. draw the video as fast as possible, move this line to below the
-      // renderToGLView call)
-      gl.endFrameEXP();
-      requestAnimationFrame(previewLoop);
-    };
-    setTimeout(() => {
-      previewLoop();
-    }, 200);
-  }
-
- async onContextCreate(gl: ExpoWebGLRenderingContext) {
-    let textureDims;
-    if (Platform.OS === 'ios') {
-      textureDims = {
-        height: 1920,
-        width: 1080,
-        depth: 4,
-      };
-    } else {
-      textureDims = {
-        height: 1200,
-        width: 1600,
-        depth: 4,
-      };
-    }
-    const targetTexture = await this.createCameraTexture();
-    await detectGLCapabilities(gl);
-    this.startRenderLoop(gl, targetTexture, textureDims, 'posenet');
   }
 
   renderPose() {
@@ -277,26 +220,43 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
   }
 
   render() {
-    const {isLoading} = this.state;
-    const camView = <View style={styles.cameraContainer}>
-        <Camera
-          style={styles.camera}
-          type={this.state.cameraType}
-          zoom={0}
-          ref={ref => this.camera = ref}
-          onLayout={this.onCameraLayout.bind(this)}
-        />
-        <GLView
-          style={styles.camera}
-          onContextCreate={this.onContextCreate.bind(this)}
-          ref={ref => this.glView = ref}
-        />
-        <View style={styles.camera}>
-          {this.renderPose()}
-          {this.renderFaces()}
-        </View>
+    const {isLoading, runModel} = this.state;
 
-        </View>;
+    // TODO File issue to be able get this from expo.
+    // Caller will still need to account for orientation/phone rotation changes
+    let textureDims: { width: number; height: number; };
+    if (Platform.OS === 'ios') {
+        textureDims = {
+          height: 1920,
+          width: 1080,
+        };
+      } else {
+        textureDims = {
+          height: 1200,
+          width: 1600,
+        };
+      }
+
+    const camView = <View style={styles.cameraContainer}>
+      <TensorCamera
+        // Standard Camera props
+        style={styles.camera}
+        type={this.state.cameraType}
+        zoom={0}
+        // tensor related props
+        cameraTextureHeight={textureDims.height}
+        cameraTextureWidth={textureDims.width}
+        resizeHeight={inputTensorHeight}
+        resizeWidth={inputTensorWidth}
+        resizeDepth={3}
+        onReady={this.handleImageTensorReady}
+        autorender={AUTORENDER}
+      />
+      <View style={styles.modelResults}>
+        {runModel === 'posenet' ? this.renderPose() : this.renderFaces()}
+
+      </View>
+    </View>;
     return (
       <View style={{width:'100%'}}>
         {isLoading ? <View style={[styles.loadingIndicator]}>
@@ -305,6 +265,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
       </View>
     );
   }
+
 }
 
 const styles = StyleSheet.create({
@@ -330,6 +291,17 @@ const styles = StyleSheet.create({
     width: 600/2,
     height: 800/2,
     zIndex: 1,
+    borderWidth: 1,
+    borderColor: 'black',
+    borderRadius: 0,
+  },
+  modelResults: {
+    position:'absolute',
+    left: 50,
+    top: 100,
+    width: 600/2,
+    height: 800/2,
+    zIndex: 10,
     borderWidth: 1,
     borderColor: 'black',
     borderRadius: 0,
