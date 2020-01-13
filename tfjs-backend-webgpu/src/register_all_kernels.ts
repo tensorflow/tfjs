@@ -15,13 +15,16 @@
  * =============================================================================
  */
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
-
+import {conv2dDerFilterConfig} from './kernels/Conv2dDerFilter';
+import {conv2dDerInputConfig} from './kernels/Conv2dDerInput';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 
 // List all kernel configs here
-const kernelConfigs: KernelConfig[] =
-    [squareConfig, squaredDifferenceConfig];
+const kernelConfigs: KernelConfig[] = [
+  conv2dDerFilterConfig, conv2dDerInputConfig, squareConfig,
+  squaredDifferenceConfig
+];
 
 for (const kernelConfig of kernelConfigs) {
   registerKernel(kernelConfig);

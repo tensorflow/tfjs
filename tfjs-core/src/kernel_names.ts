@@ -45,6 +45,67 @@ export type NotEqualInputs = BinaryInputs;
 export const SquaredDifference = 'SquaredDifference';
 export type SquaredDifferenceInputs = BinaryInputs;
 
+type PadType = 'SAME'|'VALID'|'NUMBER';
+
+export type PadInfo = {
+  top: number,
+  left: number,
+  right: number,
+  bottom: number,
+  type: PadType
+};
+
+// name is from state.activeScope.name
+export const Conv2dDerInput = 'conv2dDerInput';
+export type Conv2dDerInputInputs = Pick<NamedTensorInfoMap, 'dy4D'|'filter'>;
+export interface Conv2dDerInputAttrs {
+  batchSize: number;
+  inHeight: number;
+  inWidth: number;
+  inChannels: number;
+  outHeight: number;
+  outWidth: number;
+  outChannels: number;
+  dataFormat: 'channelsFirst'|'channelsLast';
+  strideHeight: number;
+  strideWidth: number;
+  dilationHeight: number;
+  dilationWidth: number;
+  filterHeight: number;
+  filterWidth: number;
+  effectiveFilterHeight: number;
+  effectiveFilterWidth: number;
+  padInfo: PadInfo;
+  inShape: [number, number, number, number];
+  outShape: [number, number, number, number];
+  filterShape: [number, number, number, number]
+}
+
+export const Conv2dDerFilter = 'conv2dDerFilter';
+export type Conv2dDerFilterInputs = Pick<NamedTensorInfoMap, 'x4D'|'dy4D'>;
+export interface Conv2dDerFilterAttrs {
+  batchSize: number;
+  inHeight: number;
+  inWidth: number;
+  inChannels: number;
+  outHeight: number;
+  outWidth: number;
+  outChannels: number;
+  dataFormat: 'channelsFirst'|'channelsLast';
+  strideHeight: number;
+  strideWidth: number;
+  dilationHeight: number;
+  dilationWidth: number;
+  filterHeight: number;
+  filterWidth: number;
+  effectiveFilterHeight: number;
+  effectiveFilterWidth: number;
+  padInfo: PadInfo;
+  inShape: [number, number, number, number];
+  outShape: [number, number, number, number];
+  filterShape: [number, number, number, number]
+}
+
 export const Square = 'Square';
 export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
 

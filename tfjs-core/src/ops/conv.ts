@@ -16,7 +16,10 @@
  */
 
 import {ENGINE} from '../engine';
+import {Conv2dDerFilter, Conv2dDerFilterAttrs, Conv2dDerFilterInputs, Conv2dDerInput, Conv2dDerInputAttrs, Conv2dDerInputInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
@@ -306,11 +309,38 @@ function conv2dDerInput_<T extends Tensor3D|Tensor4D>(
   const convInfo = conv_util.computeConv2DInfo(
       xShape4D, filter.shape, strides, dilations, pad, dimRoundingMode, false,
       $dataFormat);
-  const res = ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.conv2dDerInput(dy4D, filter, convInfo);
-    save([filter, dy4D]);
-    return res;
-  }, {dy4D, filter}, grad);
+
+  const attrs: Conv2dDerInputAttrs = {
+    batchSize: convInfo.batchSize,
+    inHeight: convInfo.inHeight,
+    inWidth: convInfo.inWidth,
+    inChannels: convInfo.inChannels,
+    outHeight: convInfo.outHeight,
+    outWidth: convInfo.outWidth,
+    outChannels: convInfo.outChannels,
+    dataFormat: convInfo.dataFormat,
+    strideHeight: convInfo.strideHeight,
+    strideWidth: convInfo.strideWidth,
+    dilationHeight: convInfo.dilationHeight,
+    dilationWidth: convInfo.dilationWidth,
+    filterHeight: convInfo.filterHeight,
+    filterWidth: convInfo.filterWidth,
+    effectiveFilterHeight: convInfo.effectiveFilterHeight,
+    effectiveFilterWidth: convInfo.effectiveFilterWidth,
+    padInfo: convInfo.padInfo,
+    inShape: convInfo.inShape,
+    outShape: convInfo.outShape,
+    filterShape: convInfo.filterShape
+  };
+  const inputs: Conv2dDerInputInputs = {dy4D, filter};
+  const res = ENGINE.runKernelFunc(
+      (backend, save) => {
+        const res = backend.conv2dDerInput(dy4D, filter, convInfo);
+        save([filter, dy4D]);
+        return res;
+      },
+      inputs as unknown as NamedTensorMap, grad, Conv2dDerInput,
+      attrs as unknown as NamedAttrMap);
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   }
@@ -330,9 +360,9 @@ function conv2dDerInput_<T extends Tensor3D|Tensor4D>(
  * strideWidth].
  * @param pad A string from: 'same', 'valid'. The type of padding algorithm
  *     used in the forward prop of the op.
- * @param dataFormat: An optional string from: "NHWC", "NCHW". Defaults to
- *     "NHWC". Specify the data format of the input and output data. With the
- *     default format "NHWC", the data is stored in the order of: [batch,
+ * @param dataFormat: An optional string from: 'NHWC', 'NCHW'. Defaults to
+ *     'NHWC'. Specify the data format of the input and output data. With the
+ *     default format 'NHWC', the data is stored in the order of: [batch,
  *     height, width, channels].
  * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
  *     rounding mode used when computing output dimensions if pad is a
@@ -386,8 +416,38 @@ function conv2dDerFilter_<T extends Tensor3D|Tensor4D>(
   const convInfo = conv_util.computeConv2DInfo(
       x4D.shape, filterShape, strides, dilations, pad, dimRoundingMode, false,
       $dataFormat);
+
+  const attrs: Conv2dDerFilterAttrs = {
+    batchSize: convInfo.batchSize,
+    inHeight: convInfo.inHeight,
+    inWidth: convInfo.inWidth,
+    inChannels: convInfo.inChannels,
+    outHeight: convInfo.outHeight,
+    outWidth: convInfo.outWidth,
+    outChannels: convInfo.outChannels,
+    dataFormat: convInfo.dataFormat,
+    strideHeight: convInfo.strideHeight,
+    strideWidth: convInfo.strideWidth,
+    dilationHeight: convInfo.dilationHeight,
+    dilationWidth: convInfo.dilationWidth,
+    filterHeight: convInfo.filterHeight,
+    filterWidth: convInfo.filterWidth,
+    effectiveFilterHeight: convInfo.effectiveFilterHeight,
+    effectiveFilterWidth: convInfo.effectiveFilterWidth,
+    padInfo: convInfo.padInfo,
+    inShape: convInfo.inShape,
+    outShape: convInfo.outShape,
+    filterShape: convInfo.filterShape
+  };
+  const inputs: Conv2dDerFilterInputs = {x4D, dy4D};
   return ENGINE.runKernelFunc(
-      backend => backend.conv2dDerFilter(x4D, dy4D, convInfo), {x4D, dy4D});
+      (backend, save) => {
+        const res = backend.conv2dDerInput(x4D, dy4D, convInfo);
+        save([x, dy]);
+        return res;
+      },
+      inputs as unknown as NamedTensorMap, null, Conv2dDerFilter,
+      attrs as unknown as NamedAttrMap);
 }
 
 /**
@@ -458,10 +518,10 @@ function conv2dTranspose_<T extends Tensor3D|Tensor4D>(
  *     in atrous convolution. Defaults to `[1, 1]`. If `rate` is a single
  *     number, then `dilationHeight == dilationWidth`. If it is greater than
  *     1, then all values of `strides` must be 1.
- * @param dataFormat: An optional string from: "NHWC", "NCHW". Defaults to
- *     "NHWC". Specify the data format of the input and output data. With the
- *     default format "NHWC", the data is stored in the order of: [batch,
- *     height, width, channels]. Only "NHWC" is currently supported.
+ * @param dataFormat: An optional string from: 'NHWC', 'NCHW'. Defaults to
+ *     'NHWC'. Specify the data format of the input and output data. With the
+ *     default format 'NHWC', the data is stored in the order of: [batch,
+ *     height, width, channels]. Only 'NHWC' is currently supported.
  * @param dimRoundingMode The rounding mode used when computing output
  *     dimensions if pad is a number. If none is provided, it will not round
  *     and error if the output is of fractional size.
@@ -583,10 +643,10 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
  *     in atrous convolution. Defaults to `[1, 1]`. If `rate` is a single
  *     number, then `dilationHeight == dilationWidth`. If it is greater than
  *     1, then all values of `strides` must be 1.
- * @param dataFormat: An optional string from: "NHWC", "NCHW". Defaults to
- *     "NHWC". Specify the data format of the input and output data. With the
- *     default format "NHWC", the data is stored in the order of: [batch,
- *     height, width, channels]. Only "NHWC" is currently supported.
+ * @param dataFormat: An optional string from: 'NHWC', 'NCHW'. Defaults to
+ *     'NHWC'. Specify the data format of the input and output data. With the
+ *     default format 'NHWC', the data is stored in the order of: [batch,
+ *     height, width, channels]. Only 'NHWC' is currently supported.
  */
 /** @doc {heading: 'Operations', subheading: 'Convolution'} */
 function separableConv2d_<T extends Tensor3D|Tensor4D>(
@@ -732,10 +792,10 @@ function depthwiseConv2dDerFilter_<T extends Tensor3D|Tensor4D>(
  *   - For more info, see this guide:
  *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
  *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
- * @param dataFormat: An optional string from: "NDHWC", "NCDHW". Defaults to
- *     "NDHWC". Specify the data format of the input and output data. With the
- *     default format "NDHWC", the data is stored in the order of: [batch,
- *     depth, height, width, channels]. Only "NDHWC" is currently supported.
+ * @param dataFormat: An optional string from: 'NDHWC', 'NCDHW'. Defaults to
+ *     'NDHWC'. Specify the data format of the input and output data. With the
+ *     default format 'NDHWC', the data is stored in the order of: [batch,
+ *     depth, height, width, channels]. Only 'NDHWC' is currently supported.
  * @param dilations The dilation rates: `[dilationDepth, dilationHeight,
  *     dilationWidth]` in which we sample input values across the height
  *     and width dimensions in atrous convolution. Defaults to `[1, 1, 1]`.

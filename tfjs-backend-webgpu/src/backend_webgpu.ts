@@ -797,8 +797,8 @@ export class WebGPUBackend extends KernelBackend {
 
     const dimensions = [
       convInfo.filterHeight, convInfo.filterWidth, ...pad,
-      convInfo.strideHeight, convInfo.strideWidth,
-      convInfo.dilationHeight, convInfo.dilationWidth
+      convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationHeight,
+      convInfo.dilationWidth
     ];
 
     const inputs: Tensor[] = [input, filter];
@@ -943,6 +943,16 @@ export class WebGPUBackend extends KernelBackend {
 
   sigmoid<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.SIGMOID);
+    return this.compileAndRun(program, [x]);
+  }
+
+  square<T extends Tensor>(x: T): T {
+    const program = new UnaryOpProgram(x.shape, unary_op.SQUARE);
+    return this.compileAndRun(program, [x]);
+  }
+
+  neg<T extends Tensor>(x: T): T {
+    const program = new UnaryOpProgram(x.shape, unary_op.NEG);
     return this.compileAndRun(program, [x]);
   }
 
