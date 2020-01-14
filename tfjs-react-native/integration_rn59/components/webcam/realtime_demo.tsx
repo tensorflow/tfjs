@@ -50,7 +50,6 @@ const inputTensorHeight = 200;
 
 const AUTORENDER = true;
 
-
 // tslint:disable-next-line: variable-name
 const TensorCamera = cameraWithTensors(Camera);
 
