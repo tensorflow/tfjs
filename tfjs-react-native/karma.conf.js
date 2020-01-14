@@ -45,10 +45,12 @@ const baseConfig = {
   autoWatch: true,
   files: [
     {pattern: 'src/**/*.ts'},
+    {pattern: 'src/**/*.tsx'},
   ],
   exclude: ['src/camera/camera_test.ts'],
   preprocessors: {
     'src/**/*.ts': ['karma-typescript'],
+    'src/**/*.tsx': ['karma-typescript'],
   },
   karmaTypescriptConfig,
   reporters: ['verbose', 'karma-typescript'],
