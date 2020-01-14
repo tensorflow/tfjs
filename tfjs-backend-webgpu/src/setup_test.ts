@@ -293,7 +293,6 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'conv2d',
     excludes: [
       'NCHW',             // Not yet implemented.
-      'gradient',         // 'conv2dDerInput' not yet implemented
       'conv2dTranspose',  // DerInput is not Implemented.
     ]
   },
