@@ -157,6 +157,9 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
     // import tests
     require('@tensorflow/tfjs-core/dist/tests');
 
+    // import tfjs-react-native-tests;
+    require('@tensorflow/tfjs-react-native/dist/tests');
+
     // Start the test runner
     env.execute();
   }
