@@ -308,6 +308,9 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
     render() {
       const { cameraLayout } = this.state;
 
+      // Before passing props into the original wrapped component we want to
+      // remove the props that we augment the component with.
+
       // Use this object to use typescript to check that we are removing
       // all the tensorCamera properties.
       const tensorCameraPropMap: Props = {
@@ -357,7 +360,8 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
             top: cameraLayout.y,
             width: cameraLayout.width,
             height: cameraLayout.height,
-            zIndex: 10,
+            zIndex: this.props.style.zIndex ?
+             parseInt(this.props.style.zIndex, 10) + 10 : 10,
           }
 
         });
