@@ -19,8 +19,6 @@
     "link-local": "yalc link",
     "unlink-local": "yalc remove",
     "lint": "tslint -p . -t verbose",
-    "test": "karma start",
-    "test-ci": "./scripts/test-ci.sh",
     "update-apk": "./scripts/update-apk.sh"
   },
   "devDependencies": {
@@ -35,14 +33,6 @@
     "expo-camera": "^7.0.0",
     "expo-gl": "^7.0.0",
     "gts": "^1.1.2",
-    "jasmine": "~3.3.0",
-    "jasmine-core": "~3.3.0",
-    "karma": "~4.2.0",
-    "karma-browserstack-launcher": "~1.5.1",
-    "karma-chrome-launcher": "~2.2.0",
-    "karma-jasmine": "~3.0.3",
-    "karma-typescript": "~4.1.1",
-    "karma-verbose-reporter": "^0.0.6",
     "react": "^16.12.0",
     "rimraf": "~2.6.2",
     "rollup": "^0.58.2",

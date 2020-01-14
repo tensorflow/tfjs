@@ -13,17 +13,7 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
-# Run react native tests.
-# - name: 'node:10'
-#   dir: 'tfjs-react-native'
-#   entrypoint: 'yarn'
-#   id: 'test-react-native'
-#   args: ['test-ci']
-#   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
-#   secretEnv: ['BROWSERSTACK_KEY']
-#   waitFor: ['yarn']
-
-# Run published core unit tests against latest source
+# Run unit tests against latest source
 - name: 'node:10'
   dir: 'tfjs-react-native/integration_rn59'
   id: 'react-native-against-published-core'
