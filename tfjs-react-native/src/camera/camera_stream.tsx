@@ -54,6 +54,113 @@ interface State {
 const DEFAULT_AUTORENDER = true;
 const DEFAULT_RESIZE_DEPTH = 3;
 
+/**
+ * A higher-order-component (HOC) that augments the (Expo.Camera)[https://docs.expo.io/versions/latest/sdk/camera/]
+ * component with the ability to yield tensors representing the camera stream.
+ *
+ * Because the camera data will be consumed in the process, the original
+ * camera component will not render any content. A provided by this component
+ * is used to render the camera preview.
+ *
+ * Notably the component allows on-the-fly resizing of the camera image to
+ * smaller dimensions, this speeds up data transfer between the native and
+ * javascript threads immensely.
+ *
+ * __In addition to__ all the props taken by Expo.Camera. The returned
+ * component takes the following props
+ *
+ * - cameraTextureWidth: number — the width the camera preview texture
+ *   (see example and note below)
+ * - cameraTextureHeight: number — the height the camera preview texture
+ *   (see example and note below)
+ * - resizeWidth: number — the width of the output tensor
+ * - resizeHeight: number — the height of the output tensor
+ * - resizeDepth: number — the depth (num of channels) of the output tensor.
+ *    Should be 3 or 4.
+ * - autorender: boolean — if true the view will be automatically updated with
+ *   the contents of the camera. Set this to false if you want more direct
+ *   control on when rendering happens.
+ * - onReady: (
+ *    images: IterableIterator<tf.Tensor3D>,
+ *    updateCameraPreview: () => void,
+ *    gl: ExpoWebGLRenderingContext
+ *  ) => void — When the component is mounted and ready this callback will
+ *  be called and recieve the following 3 elements:
+ *    - images is a (iterator)[https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators]
+ *      that yields tensors representing the camera image on demand.
+ *    - updateCameraPreview is a function that will update the WebGL render
+ *      buffer with the contents of the camera. Not needed when `autorender`
+ *      is true
+ *    - gl is the ExpoWebGl context used to do the rendering. After calling
+ *      `updateCameraPreview` and any other operations you want to synchronize
+ *      to the camera rendering you must call gl.endFrameExp() to display it
+ *      on the screen. This is also provided in case you want to do other
+ *      rendering using WebGL.
+ *      Not needed when `autorender` is true.
+ *
+ * ```js
+ * import {cameraWithTensors} from '@tensorflow/tfjs-react-native';
+ *
+ * const TensorCamera = cameraWithTensors(Camera);
+ *
+ * class MyComponent {
+ *
+ *   handleCameraStream(images, updatePreview, gl) {
+ *     const loop = async () => {
+ *       const nextImageTensor = images.next().value
+ *
+ *       //
+ *       // do something with tensor here
+ *       //
+ *
+ *       // if autorender is false you need the following two lines.
+ *       // updatePreview();
+ *       // gl.endFrameEXP();
+ *
+ *       requestAnimation(loop);
+ *     }
+ *     loop();
+ *   }
+ *
+ *   render() {
+ *    // Currently expo does not support automatically determining the
+ *    // resolution of the camera texture used. So it must be determined
+ *    // empirically for the supported devices and preview size.
+ *
+ *    let textureDims;
+ *    if (Platform.OS === 'ios') {
+ *     textureDims = {
+ *       height: 1920,
+ *       width: 1080,
+ *     };
+ *    } else {
+ *     textureDims = {
+ *       height: 1200,
+ *       width: 1600,
+ *     };
+ *    }
+ *
+ *    return <View>
+ *      <TensorCamera
+ *       // Standard Camera props
+ *       style={styles.camera}
+ *       type={Camera.Constants.Type.front}
+ *       // Tensor related props
+ *       cameraTextureHeight={textureDims.height}
+ *       cameraTextureWidth={textureDims.width}
+ *       resizeHeight={200}
+ *       resizeWidth={152}
+ *       resizeDepth={3}
+ *       onReady={this.handleCameraStream}
+ *       autorender={true}
+ *      />
+ *    </View>
+ *   }
+ * }
+ * ```
+ *
+ * @param CameraComponent an expo Camera component constructor
+ */
 export function cameraWithTensors<T extends WrappedComponentProps>(
   // tslint:disable-next-line: variable-name
   CameraComponent: React.ComponentType<T>,
@@ -100,7 +207,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
         //@ts-ignore
         return this.glView.createCameraTextureAsync(this.camera);
       } else {
-        throw new Error('glView or camera not available');
+        throw new Error('Expo GL context or camera not available');
       }
     }
 
