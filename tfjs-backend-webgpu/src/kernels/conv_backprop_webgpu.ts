@@ -87,7 +87,7 @@ export class Conv2DDerFilterProgram implements WebGPUProgram {
             }
           }
         }
-        writeResult(batch, coords[1], coords[2], coords[3], dotProd);
+        writeResult(coords[0], coords[1], coords[2], coords[3], dotProd);
       }
     `;
     this.shaderKey = `conv2dderfilter`;
@@ -101,11 +101,10 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
-  workGroupSize: [number, number, number];
+  workGroupSize: [number, number, number] = [4, 8, 4];
 
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.inShape;
-    this.outputShape = convInfo.outShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0, 3]};
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);

@@ -742,10 +742,10 @@ export class WebGPUBackend extends KernelBackend {
     return this.compileAndRun(program, [x, filter], output, dimensions);
   }
 
-
   conv2dDerInput(
       dy: Tensor4D, filter: Tensor4D,
       convInfo: backend_util.Conv2DInfo): Tensor4D {
+    convInfo.outShape = convInfo.inShape;
     const dataId = this.write(null /*values*/, convInfo.outShape, dy.dtype);
     const output = engine().makeTensorFromDataId(
         dataId, convInfo.outShape, dy.dtype, this);
@@ -769,10 +769,27 @@ export class WebGPUBackend extends KernelBackend {
 
   conv2dDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: backend_util.Conv2DInfo):
       Tensor4D {
-    const program = new Conv2DDerFilterProgram(convInfo);
-    return this.compileAndRun(program, [x, dy]);
-  }
+    convInfo.outShape = convInfo.filterShape;
+    const dataId = this.write(null /*values*/, convInfo.outShape, dy.dtype);
+    const output = engine().makeTensorFromDataId(
+        dataId, convInfo.outShape, dy.dtype, this);
+    const pad = convInfo.padInfo.type === 'VALID' ?
+        [0, 0] :
+        convInfo.padInfo.type === 'SAME' ?
+        [
+          -Math.floor((convInfo.filterShape[0] - 1) / 2),
+          -Math.floor((convInfo.filterShape[1] - 1) / 2)
+        ] :
+        [convInfo.padInfo.top, convInfo.padInfo.left];
+    const dimensions = [
+      convInfo.filterHeight, convInfo.filterWidth, ...pad,
+      convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationHeight,
+      convInfo.dilationWidth
+    ];
 
+    const program = new Conv2DDerFilterProgram(convInfo);
+    return this.compileAndRun(program, [x, dy], output, dimensions);
+  }
 
   depthwiseConv2D(
       x: Tensor4D, filter: Tensor4D,

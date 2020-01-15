@@ -129,11 +129,15 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'fused conv2d',
     excludes: [
-      'im2row with prelu',                         // Actual != expected.
-      'pointwise with prelu',                      // Actual != expected.
-      'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0',  // conv2dDerInput not yet
-                                                   // implemented
-      'fused matmul with relu6',                   // step not yet implemented
+      'im2row with prelu',        // Actual != expected.
+      'pointwise with prelu',     // Actual != expected.
+      'fused matmul with relu6',  // step not yet implemented.
+      'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0 with bias and relu',  // step
+                                                                      // not yet
+                                                                      // implemented.
+      'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0 with bias and elu',  // elu not
+                                                                     // yet
+                                                                     // implemented
     ]
   },
   {
@@ -200,11 +204,6 @@ const TEST_FILTERS: TestFilter[] = [
       'elu',                   // elu not yet implemented.
       'A x B with bias only',  // fusedBatchMatMul not yet implemented.
       'basic with bias',       // Actual != expected.
-      'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0',  // conv2dDerInput not yet
-                                                   // implemented.
-      'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0 with bias',  // conv2dDerInput
-                                                             // not yet
-                                                             // implemented.
     ]
   },
   {
@@ -292,7 +291,10 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'conv2d',
     excludes: [
-      'NCHW',             // Not yet implemented.
+      'NCHW',  // Not yet implemented.
+      'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0 with bias and elu',  // elu is
+                                                                     // not
+                                                                     // Implemented.
       'conv2dTranspose',  // DerInput is not Implemented.
     ]
   },
