@@ -16,7 +16,6 @@
  */
 
 import {InferenceModel, io, ModelPredictConfig, NamedTensorMap, Tensor} from '@tensorflow/tfjs-core';
-import {ModelArtifacts} from '@tensorflow/tfjs-core/dist/io/io';
 
 import * as tensorflow from '../data/compiled_api';
 import {NamedTensorsMap, TensorInfo} from '../data/types';
@@ -39,7 +38,7 @@ export class GraphModel implements InferenceModel {
   private executor: GraphExecutor;
   private version = 'n/a';
   private handler: io.IOHandler;
-  private artifacts: ModelArtifacts;
+  private artifacts: io.ModelArtifacts;
   // Returns the version information for the tensorflow model GraphDef.
   get modelVersion(): string {
     return this.version;
