@@ -155,7 +155,10 @@ const CUSTOM_HTTP_MODEL_LOADER = {
     return {
       modelTopology: CUSTOM_OP_MODEL,
       weightSpecs: weightsManifest,
-      weightData: bias.dataSync()
+      weightData: bias.dataSync(),
+      format: 'tfjs-graph-model',
+      generatedBy: '1.15',
+      convertedBy: '1.3.1'
     };
   }
 };
@@ -170,10 +173,23 @@ const CONTROL_FLOW_HTTP_MODEL_LOADER = {
       modelTopology: CONTROL_FLOW_MODEL,
       weightSpecs: weightsManifest,
       weightData: bias.dataSync(),
-      userDefinedMetadata: {signature: CONTROL_SIGNATURE}
+      userDefinedMetadata: {signature: CONTROL_SIGNATURE},
+      format: 'tfjs-graph-model',
+      generatedBy: '1.15',
+      convertedBy: '1.3.1'
     };
   }
 };
+
+class IOHandlerForTest implements tfc.io.IOHandler {
+  savedArtifacts: tfc.io.ModelArtifacts;
+
+  async save(modelArtifacts: tfc.io.ModelArtifacts):
+      Promise<tfc.io.SaveResult> {
+    this.savedArtifacts = modelArtifacts;
+    return {modelArtifactsInfo: null};
+  }
+}
 
 describe('loadGraphModel', () => {
   it('Pass a custom io handler', async () => {
@@ -233,6 +249,22 @@ describe('Model', () => {
         expect((output as tfc.Tensor).dataSync()[0]).toEqual(3);
       });
     });
+
+    describe('save', () => {
+      it('should call the save io handler', async () => {
+        await model.load();
+        const handler = new IOHandlerForTest();
+
+        await model.save(handler);
+        expect(handler.savedArtifacts.format).toEqual('tfjs-graph-model');
+        expect(handler.savedArtifacts.generatedBy).toEqual('1.15');
+        expect(handler.savedArtifacts.convertedBy).toEqual('1.3.1');
+        expect(handler.savedArtifacts.modelTopology).toEqual(CUSTOM_OP_MODEL);
+        expect(handler.savedArtifacts.weightSpecs).toEqual(weightsManifest);
+        tfc.test_util.expectArraysClose(
+            new Int32Array(handler.savedArtifacts.weightData), bias.dataSync());
+      });
+    });
   });
 
   describe('simple model', () => {
@@ -246,6 +278,25 @@ describe('Model', () => {
     it('load', async () => {
       const loaded = await model.load();
       expect(loaded).toBe(true);
+    });
+
+    describe('save', () => {
+      it('should call the save io handler', async () => {
+        await model.load();
+        const handler = new IOHandlerForTest();
+
+        await model.save(handler);
+        expect(handler.savedArtifacts.format).toEqual('tfjs-graph-model');
+        expect(handler.savedArtifacts.generatedBy).toEqual('1.15');
+        expect(handler.savedArtifacts.convertedBy).toEqual('1.3.1');
+        expect(handler.savedArtifacts.modelTopology).toEqual(SIMPLE_MODEL);
+        expect(handler.savedArtifacts.userDefinedMetadata).toEqual({
+          signature: SIGNATURE
+        });
+        expect(handler.savedArtifacts.weightSpecs).toEqual(weightsManifest);
+        tfc.test_util.expectArraysClose(
+            new Int32Array(handler.savedArtifacts.weightData), bias.dataSync());
+      });
     });
 
     describe('predict', () => {
@@ -425,6 +476,26 @@ describe('Model', () => {
       ]);
       spyOn(tfc.io, 'browserHTTPRequest')
           .and.returnValue(CONTROL_FLOW_HTTP_MODEL_LOADER);
+    });
+
+    describe('save', () => {
+      it('should call the save io handler', async () => {
+        await model.load();
+        const handler = new IOHandlerForTest();
+
+        await model.save(handler);
+        expect(handler.savedArtifacts.format).toEqual('tfjs-graph-model');
+        expect(handler.savedArtifacts.generatedBy).toEqual('1.15');
+        expect(handler.savedArtifacts.convertedBy).toEqual('1.3.1');
+        expect(handler.savedArtifacts.modelTopology)
+            .toEqual(CONTROL_FLOW_MODEL);
+        expect(handler.savedArtifacts.userDefinedMetadata).toEqual({
+          signature: CONTROL_SIGNATURE
+        });
+        expect(handler.savedArtifacts.weightSpecs).toEqual(weightsManifest);
+        tfc.test_util.expectArraysClose(
+            new Int32Array(handler.savedArtifacts.weightData), bias.dataSync());
+      });
     });
 
     it('should throw error if call predict directly', async () => {
