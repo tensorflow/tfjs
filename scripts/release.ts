@@ -275,7 +275,9 @@ async function main() {
   console.log(
       `Done. FYI, this script does not publish to NPM. ` +
       `Please publish by running ./scripts/publish-npm.sh ` +
-      `from each repo after you merge the PR.`);
+      `from each repo after you merge the PR.` +
+      `Please remeber to update the website once you have released ` +
+      'a new package version');
 
   process.exit(0);
 }
