@@ -56,8 +56,7 @@ export class OperationMapper {
       evaluation, logical, image, graph, matrices, normalization, reduction,
       sliceJoin, spectral, transformation
     ];
-    // const mappersJson: OpMapper[] = [].concat(...ops.map(op => op.json));
-    const mappersJson: OpMapper[] = [].concat.apply([], ops.map(op => op.json));
+    const mappersJson: OpMapper[] = [].concat(...ops.map(op => op.json));
 
     this.opMappers = mappersJson.reduce<{[key: string]: OpMapper}>(
         (map, mapper: OpMapper) => {
