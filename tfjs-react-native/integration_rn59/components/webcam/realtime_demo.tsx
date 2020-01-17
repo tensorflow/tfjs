@@ -42,7 +42,7 @@ interface ScreenState {
   // tslint:disable-next-line: no-any
   faceDetector?: any;
   faces?: blazeface.NormalizedFace[];
-  runModel: string;
+  modelName: string;
 }
 
 const inputTensorWidth = 152;
@@ -59,7 +59,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
     this.state = {
       isLoading: true,
       cameraType: Camera.Constants.Type.front,
-      runModel: 'posenet',
+      modelName: 'posenet',
     };
     this.handleImageTensorReady = this.handleImageTensorReady.bind(this);
   }
@@ -84,18 +84,19 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
     images: IterableIterator<tf.Tensor3D>,
     updatePreview: () => void, gl: ExpoWebGLRenderingContext) {
     const loop = async () => {
-      const {runModel} = this.state;
+      const {modelName} = this.state;
       if(!AUTORENDER) {
         updatePreview();
       }
 
-      if(runModel === 'posenet') {
+      if(modelName === 'posenet') {
         if (this.state.posenetModel != null) {
           const imageTensor = images.next().value;
           const flipHorizontal = Platform.OS === 'ios' ? false : true;
           const pose = await this.state.posenetModel.estimateSinglePose(
             imageTensor, { flipHorizontal });
 
+          // console.log('pose', pose);
           this.setState({pose});
           tf.dispose([imageTensor]);
         }
@@ -219,7 +220,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
   }
 
   render() {
-    const {isLoading, runModel} = this.state;
+    const {isLoading, modelName} = this.state;
 
     // TODO File issue to be able get this from expo.
     // Caller will still need to account for orientation/phone rotation changes
@@ -252,7 +253,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
         autorender={AUTORENDER}
       />
       <View style={styles.modelResults}>
-        {runModel === 'posenet' ? this.renderPose() : this.renderFaces()}
+        {modelName === 'posenet' ? this.renderPose() : this.renderFaces()}
 
       </View>
     </View>;
@@ -300,7 +301,7 @@ const styles = StyleSheet.create({
     top: 100,
     width: 600/2,
     height: 800/2,
-    zIndex: 10,
+    zIndex: 20,
     borderWidth: 1,
     borderColor: 'black',
     borderRadius: 0,
