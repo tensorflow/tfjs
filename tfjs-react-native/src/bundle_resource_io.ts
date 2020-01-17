@@ -137,6 +137,17 @@ class BundleResourceHandler implements io.IOHandler {
  * loading models that have been statically bundled (at compile time)
  * with an app.
  *
+ * ```js
+ *  const modelJson = require('../path/to/model.json');
+ *  const modelWeights = require('../path/to/model_weights.bin');
+ *  async function bundleResourceIOExample() {
+ *    const model =
+ *      await tf.loadLayersModel(bundleResourceIO(modelJson, modelWeights));
+ *
+ *     const res = model.predict(tf.randomNormal([1, 28, 28, 1])) as tf.Tensor;
+ *  }
+ * ```
+ *
  * @param modelJson The JSON object for the serialized model.
  * @param modelWeightsId An identifier for the model weights file. This is
  * generally a resourceId or a path to the resource in the app package.
@@ -149,6 +160,7 @@ class BundleResourceHandler implements io.IOHandler {
  *
  * @returns An instance of `IOHandler`
  */
+/** @doc {heading: 'Models', subheading: 'IOHandlers'} */
 export function bundleResourceIO(
     modelJson: io.ModelJSON, modelWeightsId: number): io.IOHandler {
   if (typeof modelJson !== 'object') {
