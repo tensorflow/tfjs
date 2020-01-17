@@ -60,7 +60,6 @@ limitations under the License.
   <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js"></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-backend-wasm@latest/dist/tf-backend-wasm.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-automl@latest/dist/tf-automl.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2"></script>
@@ -71,14 +70,16 @@ limitations under the License.
   <script>
     'use strict';
 
+    window.logKernelProfileOutputs = [];
+
     const state = {
       numRuns: 50,
-      benchmark: 'mobilenet_v2',
+      benchmark: 'posenet',
       run: (v) => {
         runBenchmark();
       },
-      backend: 'wasm',
-      kernelTiming: 'aggregate',
+      backend: 'webgl',
+      kernelTiming: 'individual',
     };
 
     const modalDiv = document.getElementById('modal-msg');
@@ -361,6 +362,40 @@ limitations under the License.
         showMsg('Skipping kernel times since query timer extension is not ' +
           'available. <br/> Use Chrome 70+.');
       };
+
+      const inputsEqual = (a, b) => {
+        if(a.length !== b.length) {
+          return false;
+        }
+
+        for(let i=0; i<a.length; i++) {
+          const aInput = a[i];
+          const bInput = b[i];
+
+          if(aInput.length !== bInput.length) {
+            return false;
+          }
+
+          for(let j=0; j<aInput.length; j++) {
+            if(aInput[j] !== bInput[j]) {
+              return false;
+            }
+          }
+        }
+
+        return true;
+      }
+
+      window.logKernelProfileOutputs = window.logKernelProfileOutputs.filter(d => {
+        return d.name !== 'Reshape';
+      });
+      window.uniqueKernels = [];
+      for(let i=0; i<window.logKernelProfileOutputs.length; i++) {
+        const kernel = window.logKernelProfileOutputs[i];
+        if(!window.uniqueKernels.find(d => d.name === kernel.name && inputsEqual(d.inputs, kernel.inputs))) {
+          window.uniqueKernels.push(kernel);
+        }
+      }
     }
 
     async function onPageLoad() {
@@ -370,7 +405,7 @@ limitations under the License.
 
       gui.add(state, 'numRuns');
       gui.add(state, 'benchmark', Object.keys(benchmarks));
-      gui.add(state, 'backend', ['wasm', 'webgl', 'cpu']).onChange(backend => {
+      gui.add(state, 'backend', ['webgl', 'cpu']).onChange(backend => {
         tf.setBackend(backend);
       });
       gui.add(state, 'kernelTiming', ['aggregate', 'individual']);

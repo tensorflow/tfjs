@@ -160,7 +160,12 @@ const benchmarks = {
   },
   'posenet': {
     load: async () => {
-      const model = await posenet.load();
+      const model = await posenet.load({
+        architecture: 'ResNet50',
+        outputStride: 32,
+        inputResolution: 257,
+        quantBytes: 2
+      });
       model.image = await loadImage('tennis_standing.jpg');
       return model;
     },

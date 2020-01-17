@@ -110,12 +110,34 @@ describeWebGPU('Ops benchmarks', () => {
         `maxPool${getInputInfo([a])}`, () => tf.maxPool(a, 2, 1, 'same'));
   });
 
-  fit('posenet', async () => {
+  fit('maxpool', async () => {
+    const a = tf.randomNormal<tf.Rank.R4>([1, 65, 65, 256]);
+
+    await benchmarkAndLog(
+        `maxPool${getInputInfo([a])}`, () => tf.maxPool(a, 2, 1, 'same'));
+  });
+
+  fit('posenet_resnet', async () => {
     const posenetModel = await posenet.load({
       architecture: 'ResNet50',
       outputStride: 32,
       inputResolution: 257,
       quantBytes: 2
+    });
+    const image = tf.zeros([257, 257, 3]) as tf.Tensor3D;
+
+    await benchmarkAndLog('posenet', async () => {
+      const pose = await posenetModel.estimateSinglePose(image);
+      return pose;
+    }, null, false, 10);
+  }, 100000000000000000);
+
+  fit('posenet_mobilenet', async () => {
+    const posenetModel = await posenet.load({
+      architecture: 'MobileNetV1',
+      outputStride: 16,
+      inputResolution: 257,
+      quantBytes: 4
     });
     const image = tf.zeros([257, 257, 3]) as tf.Tensor3D;
 
