@@ -101,7 +101,7 @@ export class App extends React.Component<{}, AppState> {
         />
       </View>
       <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}>tfjs-core unit tests</Text>
+        <Text style={styles.sectionTitle}>Unit tests</Text>
         <Button
           testID='unit-test-btn'
           accessibilityLabel='unit-test-btn'

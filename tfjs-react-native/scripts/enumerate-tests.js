@@ -54,10 +54,7 @@ function findTestFiles(dir, files) {
         fs.statSync(filePath).isDirectory() &&
         !fs.existsSync(path.join(filePath, 'package.json'))) {
       files = findTestFiles(filePath, files);
-    } else if (
-        // TODO: Temporary. next cl will switch all the tests to run in app
-        filePath.endsWith('camera_test.ts') &&
-        filePath !== 'src/setup_test.ts') {
+    } else if (filePath.endsWith('test.ts')) {
       files.push(filePath.replace('src/', './').replace('.ts', ''));
     }
   });
