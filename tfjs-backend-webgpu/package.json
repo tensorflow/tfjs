@@ -15,9 +15,10 @@
     "link-local": "yalc link",
     "unlink-local": "yalc remove",
     "lint": "tslint -p . -t verbose",
-    "test": "karma start --browsers=chrome_webgpu --excludeTest='src/benchmark_ops_test.ts'",
+    "test": "karma start --browsers=chrome_webgpu --excludeTest='src/benchmark_ops_test.ts,src/benchmark_posenet_ops_test.ts'",
     "test-ci": "./scripts/test-ci.sh",
-    "benchmark": "karma start --grep=benchmark --browsers=chrome_webgpu"
+    "benchmark": "karma start --grep=benchmark --browsers=chrome_webgpu",
+    "benchmark-posenet": "karma start --grep=benchmark-posenet --browsers=chrome_webgpu"
   },
   "license": "Apache-2.0",
   "devDependencies": {

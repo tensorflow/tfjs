@@ -40,7 +40,7 @@ module.exports = function(config) {
   }
   let exclude = [];
   if (config.excludeTest != null) {
-    exclude.push(config.excludeTest);
+    exclude = exclude.concat(config.excludeTest.split(','));
   }
 
   config.set({
