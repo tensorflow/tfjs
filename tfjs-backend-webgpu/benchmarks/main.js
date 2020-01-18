@@ -42,10 +42,10 @@ while (daysElapsed / interval > MAX_NUM_LOGS) {
   interval += 1;
 }
 
-for (let i = 0; i <= daysElapsed; i += interval) {
+for (let i = daysElapsed; i >= 0; i -= interval) {
   const current = startDate.clone().add(i, 'days');
-  files.push(`${current.format('MM_DD_YYYY')}`);
-  dateFormats.push(current.format('M/DD'));
+  files.unshift(`${current.format('MM_DD_YYYY')}`);
+  dateFormats.unshift(current.format('M/DD'));
 }
 
 function getSwatchBackground(swatch, stroke) {

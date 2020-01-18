@@ -126,7 +126,7 @@ describeWebGPU('Ops benchmarks', () => {
     });
     const image = tf.zeros([257, 257, 3]) as tf.Tensor3D;
 
-    await benchmarkAndLog('posenet', async () => {
+    await benchmarkAndLog('posenet_resnet', async () => {
       const pose = await posenetModel.estimateSinglePose(image);
       return pose;
     }, null, false, 10);
@@ -141,7 +141,7 @@ describeWebGPU('Ops benchmarks', () => {
     });
     const image = tf.zeros([257, 257, 3]) as tf.Tensor3D;
 
-    await benchmarkAndLog('posenet', async () => {
+    await benchmarkAndLog('posenet_mobilenet', async () => {
       const pose = await posenetModel.estimateSinglePose(image);
       return pose;
     }, null, false, 10);
