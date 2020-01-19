@@ -93,4 +93,4 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [face-api.js](https://github.com/justadudewhohacks/face-api.js) - A JavaScript API for face detection and face recognition in the browser.
 - [machinelearn.js](https://github.com/machinelearnjs/machinelearnjs) - A general machine learning library like ScikitLearn directly in the Browser and Node.
 - [TensorFlow.js GPU-accelerated t-SNE](https://github.com/tensorflow/tfjs-tsne) - A linear t-SNE for the web.
-- [Pipcook] A front-end Node.js algrithm engineer platform based on tfjs-node
+- [Pipcook](https://github.com/alibaba/pipcook) - A front-end Node.js algrithm engineer platform based on tfjs-node
