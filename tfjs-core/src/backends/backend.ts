@@ -18,7 +18,7 @@
 import {Conv2DInfo, Conv3DInfo} from '../ops/conv_util';
 import {FusedBatchMatMulConfig, FusedConv2DConfig} from '../ops/fused_util';
 import {Backend, DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../tensor';
-import {BackendValues, DataType, PixelData, Rank, ShapeMap} from '../types';
+import {BackendValues, DataType, Rank, ShapeMap} from '../types';
 
 export const EPSILON_FLOAT32 = 1e-7;
 export const EPSILON_FLOAT16 = 1e-4;
@@ -37,10 +37,6 @@ export interface TensorStorage {
   write(values: BackendValues, shape: number[], dtype: DataType): DataId;
   move(dataId: DataId, values: BackendValues, shape: number[], dtype: DataType):
       void;
-  fromPixels(
-      pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-      HTMLVideoElement,
-      numChannels: number): Tensor3D;
   memory(): {unreliable: boolean;};  // Backend-specific information.
   /** Returns number of data ids currently in the storage. */
   numDataIds(): number;
@@ -113,12 +109,6 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   }
   disposeData(dataId: object): void {
     return notYetImplemented('disposeData');
-  }
-  fromPixels(
-      pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-      HTMLVideoElement,
-      numChannels: number): Tensor<Rank.R3> {
-    return notYetImplemented('fromPixels');
   }
   write(values: BackendValues, shape: number[], dtype: DataType): DataId {
     return notYetImplemented('write');

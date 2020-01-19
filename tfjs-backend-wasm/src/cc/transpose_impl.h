@@ -15,14 +15,15 @@
 #ifndef TRANSPOSE_IMPL_H_
 #define TRANSPOSE_IMPL_H_
 
+#include <cstddef>
 #include <vector>
 
 namespace tfjs {
 namespace wasm {
 
 template <typename T>
-void transpose(const T* x_data, const std::vector<int>& x_shape,
-               const std::vector<int>& perm, T* out_data);
+void transpose(const T* x_data, const std::vector<size_t>& x_shape,
+               const std::vector<size_t>& perm, T* out_data);
 
 }  // namespace wasm
 }  // namespace tfjs

@@ -28,11 +28,49 @@ describeWithFlags('resizeBilinear', ALL_ENVS, () => {
         await output.data(), [2, 2, 2, 10 / 3, 10 / 3, 10 / 3, 4, 4, 4]);
   });
 
+  it('5x5-bilinear, no change in shape', async () => {
+    const image: tf.Tensor4D = tf.ones([1, 5, 5, 3]);
+
+    const alignCorners = false;
+    const output = tf.image.resizeBilinear(image, [5, 5], alignCorners);
+
+    expect(output.shape).toEqual([1, 5, 5, 3]);
+    expect(output.dtype).toBe('float32');
+    expectArraysClose(await output.data(), await image.data());
+  });
+
   it('simple alignCorners=true', async () => {
     const input = tf.tensor3d([2, 2, 4, 4], [2, 2, 1]);
     const output = input.resizeBilinear([3, 3], true);
 
     expectArraysClose(await output.data(), [2, 2, 2, 3, 3, 3, 4, 4, 4]);
+  });
+
+  it('works when rows are copied', async () => {
+    const input = tf.tensor3d(
+        [
+          1.56324531, 2.13817752, 1.44398421, 1.07632684, 0.59306785,
+          -0.36970865, 1.62451879, 1.8367334, 1.13944798, 2.01993218,
+          2.01919952, 2.67524054
+        ],
+        [2, 3, 2]);
+    const output = input.resizeBilinear([4, 3], false);
+
+    expectArraysClose(await output.data(), [
+      1.5632453, 2.13817763, 1.44398415, 1.07632685, 0.59306782, -0.36970866,
+      1.59388208, 1.98745549, 1.2917161, 1.54812956, 1.30613375, 1.15276587,
+      1.62451875, 1.83673334, 1.13944793, 2.01993227, 2.01919961, 2.67524052,
+      1.62451875, 1.83673334, 1.13944793, 2.01993227, 2.01919961, 2.67524052]);
+  });
+
+  it('works for ints', async () => {
+    const input = tf.tensor3d([1, 2, 3, 4, 5], [1, 5, 1], 'int32');
+    const output = input.resizeBilinear([1, 10]);
+
+    expect(output.shape).toEqual([1, 10, 1]);
+    expect(output.dtype).toBe('float32');
+    expectArraysClose(
+      await output.data(), [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5]);
   });
 
   it('matches tensorflow w/ random numbers alignCorners=false', async () => {

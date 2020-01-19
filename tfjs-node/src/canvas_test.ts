@@ -61,6 +61,6 @@ describe('tf.browser.fromPixels with polyfills', () => {
     // tslint:disable-next-line:no-any
     expect(() => tf.browser.fromPixels(c as any))
         .toThrowError(
-            /When running in node, pixels must be an HTMLCanvasElement/);
+            /pixels passed to tf\.browser\.fromPixels\(\) must be either an/);
   });
 });

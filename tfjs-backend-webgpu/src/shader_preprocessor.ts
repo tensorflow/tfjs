@@ -230,8 +230,8 @@ function getSamplerFromInInfo(inInfo: InputInfo): string {
 
   return `
     float ${funcName}(${inputs}) {
-      return ${texName}[getFlatIndex(${type}(${dims.join(',')}),
-        ${texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)];
+      return float(${texName}[getFlatIndex(${type}(${dims.join(',')}),
+        ${texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)]);
     }
   `;
 }
@@ -289,14 +289,14 @@ function getSamplerAtOutputCoords(
     float ${funcName}() {
       ${type} coords = getOutputCoords();
       ${coordsSnippet}
-      return ${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
-      texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)];
+      return float(${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
+      texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)]);
     }
 
     float ${funcName}(${type} coords) {
       ${coordsSnippet}
-      return ${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
-      texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)];
+      return float(${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
+      texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)]);
     }
   `;
 }

@@ -284,9 +284,10 @@ export class TFSavedModel implements InferenceModel {
       let inputTensors: Tensor[] = [];
       if (inputs instanceof Tensor) {
         inputTensors.push(inputs);
-        return this.backend.runSavedModel(
+        const result = this.backend.runSavedModel(
             this.sessionId, inputTensors, Object.values(this.inputNodeNames),
-            Object.values(this.outputNodeNames))[0];
+            Object.values(this.outputNodeNames));
+        return result.length > 1 ? result : result[0];
       } else if (Array.isArray(inputs)) {
         inputTensors = inputs;
         return this.backend.runSavedModel(
@@ -435,4 +436,10 @@ function mapTFDtypeToJSDtype(tfDtype: string): DataType {
     default:
       throw new Error('Unsupported tensor DataType: ' + tfDtype);
   }
+}
+
+export function getNumOfSavedModels() {
+  ensureTensorflowBackend();
+  const backend = nodeBackend();
+  return backend.getNumOfSavedModels();
 }

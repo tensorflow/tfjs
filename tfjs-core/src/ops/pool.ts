@@ -80,6 +80,10 @@ function maxPoolImpl_<T extends Tensor3D|Tensor4D>(
   }
   const convInfo = conv_util.computePool2DInfo(
       x4D.shape, filterSize, strides, dilations, pad, dimRoundingMode);
+  if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
+      util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
+    return $x.clone();
+  }
 
   const grad = (dy: Tensor4D, saved: Tensor[]) => {
     const [x4D, y] = saved;
@@ -90,11 +94,12 @@ function maxPoolImpl_<T extends Tensor3D|Tensor4D>(
     };
   };
 
+  const inputsToSave = [x4D];
   const res = ENGINE.runKernelFunc((backend, save) => {
     const y = backend.maxPool(x4D, convInfo);
     save([x4D, y]);
     return y;
-  }, {x: x4D}, grad);
+  }, {x: x4D}, grad, 'MaxPool', convInfo, inputsToSave);
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   }
@@ -186,14 +191,20 @@ function avgPoolImpl_<T extends Tensor3D|Tensor4D>(
 
   const convInfo = conv_util.computePool2DInfo(
       x4D.shape, filterSize, strides, dilations, pad, dimRoundingMode);
+  if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
+      util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
+    return $x.clone();
+  }
 
   const grad = (dy: Tensor4D) => {
     return {
       x: () => avgPoolBackprop(dy, x4D, filterSize, strides, dilations, pad)
     };
   };
+
   let res = ENGINE.runKernelFunc(
-      backend => backend.avgPool(x4D, convInfo), {x: x4D}, grad);
+      backend => backend.avgPool(x4D, convInfo), {x: x4D}, grad, 'AvgPool',
+      convInfo);
   res = res.cast($x.dtype);
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;

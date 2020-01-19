@@ -16,7 +16,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {backend_util, BackendTimingInfo, DataId, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, Tensor5D, TensorInfo, tidy, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, DataId, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, Tensor5D, TensorInfo, tidy, util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {EPSILON_FLOAT32} from '@tensorflow/tfjs-core/dist/backends/backend';
 // tslint:disable-next-line: no-imports-from-dist
@@ -25,6 +25,7 @@ import {isArray, isNullOrUndefined} from 'util';
 
 import {Int64Scalar} from './int64_tensors';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
+
 type TensorData = {
   shape: number[],
   dtype: number,
@@ -1750,41 +1751,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('LinSpace', opAttrs, inputs) as Tensor1D;
   }
 
-  fromPixels(
-      pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
-      numChannels: number): Tensor3D {
-    if (pixels == null) {
-      throw new Error('pixels passed to fromPixels() can not be null');
-    }
-    // tslint:disable-next-line:no-any
-    if ((pixels as any).getContext == null) {
-      throw new Error(
-          'When running in node, pixels must be an HTMLCanvasElement ' +
-          'like the one returned by the `canvas` npm package');
-    }
-    const vals: Uint8ClampedArray =
-        // tslint:disable-next-line:no-any
-        (pixels as any)
-            .getContext('2d')
-            .getImageData(0, 0, pixels.width, pixels.height)
-            .data;
-    let values: Int32Array;
-    if (numChannels === 4) {
-      values = new Int32Array(vals);
-    } else {
-      const numPixels = pixels.width * pixels.height;
-      values = new Int32Array(numPixels * numChannels);
-      for (let i = 0; i < numPixels; i++) {
-        for (let channel = 0; channel < numChannels; ++channel) {
-          values[i * numChannels + channel] = vals[i * 4 + channel];
-        }
-      }
-    }
-    const outShape: [number, number, number] =
-        [pixels.height, pixels.width, numChannels];
-    return tensor3d(values, outShape, 'int32');
-  }
-
   decodeJpeg(
       contents: Uint8Array, channels: number, ratio: number,
       fancyUpscaling: boolean, tryRecoverTruncated: boolean,
@@ -1996,6 +1962,10 @@ export class NodeJSKernelBackend extends KernelBackend {
     // milliseconds.
     const elapsed = process.hrtime(start);
     return {kernelMs: elapsed[0] * 1000 + elapsed[1] / 1000000};
+  }
+
+  getNumOfSavedModels() {
+    return this.binding.getNumOfSavedModels();
   }
 }
 

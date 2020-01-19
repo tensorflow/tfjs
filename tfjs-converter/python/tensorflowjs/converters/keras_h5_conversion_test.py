@@ -26,8 +26,8 @@ import unittest
 
 import h5py
 import numpy as np
-import tensorflow as tf
-from tensorflow import keras
+import tensorflow.compat.v2 as tf
+from tensorflow.compat.v2 import keras
 
 from tensorflowjs import version
 from tensorflowjs.converters import keras_h5_conversion as conversion

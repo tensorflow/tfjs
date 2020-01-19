@@ -55,10 +55,15 @@ const CORE_PHASE: Phase = {
   packages: ['tfjs-core']
 };
 
-const LAYERS_CONVERTER_DATA_PHASE: Phase = {
-  packages: ['tfjs-layers', 'tfjs-converter', 'tfjs-data'],
+const LAYERS_CONVERTER_PHASE: Phase = {
+  packages: ['tfjs-layers', 'tfjs-converter'],
   deps: ['tfjs-core']
 };
+
+const DATA_PHASE: Phase = {
+  packages: ['tfjs-data'],
+  deps: ['tfjs-core', 'tfjs-layers']
+}
 
 const UNION_PHASE: Phase = {
   packages: ['tfjs'],
@@ -69,6 +74,11 @@ const NODE_PHASE: Phase = {
   packages: ['tfjs-node', 'tfjs-node-gpu'],
   deps: ['tfjs'],
   scripts: {'tfjs-node-gpu': {'before-yarn': ['yarn prep-gpu']}}
+};
+
+const WASM_PHASE: Phase = {
+  packages: ['tfjs-backend-wasm'],
+  deps: ['tfjs-core']
 };
 
 const VIS_PHASE: Phase = {
@@ -85,8 +95,8 @@ const WEBSITE_PHASE: Phase = {
 };
 
 const PHASES: Phase[] = [
-  CORE_PHASE, LAYERS_CONVERTER_DATA_PHASE, UNION_PHASE, NODE_PHASE, VIS_PHASE,
-  WEBSITE_PHASE
+  CORE_PHASE, LAYERS_CONVERTER_PHASE, DATA_PHASE, UNION_PHASE, NODE_PHASE,
+  WASM_PHASE, VIS_PHASE, WEBSITE_PHASE
 ];
 
 const TMP_DIR = '/tmp/tfjs-release';
@@ -200,6 +210,10 @@ async function main() {
             parsedPkg['peerDependencies'] != null &&
             parsedPkg['peerDependencies'][depNpmName] != null) {
           version = parsedPkg['peerDependencies'][depNpmName];
+        } else if (
+            parsedPkg['devDependencies'] != null &&
+            parsedPkg['devDependencies'][depNpmName] != null) {
+          version = parsedPkg['devDependencies'][depNpmName];
         }
         if (version == null) {
           throw new Error(`No dependency found for ${dep}.`);
@@ -261,7 +275,9 @@ async function main() {
   console.log(
       `Done. FYI, this script does not publish to NPM. ` +
       `Please publish by running ./scripts/publish-npm.sh ` +
-      `from each repo after you merge the PR.`);
+      `from each repo after you merge the PR.` +
+      `Please remeber to update the website once you have released ` +
+      'a new package version');
 
   process.exit(0);
 }

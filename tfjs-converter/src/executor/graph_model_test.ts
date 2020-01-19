@@ -99,12 +99,20 @@ const DYNAMIC_SHAPE_MODEL: tensorflow.IGraphDef = {
   ],
   versions: {producer: 1.0, minConsumer: 3}
 };
+const SIGNATURE: tensorflow.ISignatureDef = {
+  inputs: {x: {name: 'Input:0', dtype: tensorflow.DataType.DT_INT32}},
+  outputs: {y: {name: 'Add:0', dtype: tensorflow.DataType.DT_INT32}}
+};
 const SIMPLE_HTTP_MODEL_LOADER = {
   load: async () => {
     return {
       modelTopology: SIMPLE_MODEL,
       weightSpecs: weightsManifest,
-      weightData: bias.dataSync()
+      weightData: bias.dataSync(),
+      format: 'tfjs-graph-model',
+      generatedBy: '1.15',
+      convertedBy: '1.3.1',
+      userDefinedMetadata: {signature: SIGNATURE}
     };
   }
 };
@@ -147,20 +155,41 @@ const CUSTOM_HTTP_MODEL_LOADER = {
     return {
       modelTopology: CUSTOM_OP_MODEL,
       weightSpecs: weightsManifest,
-      weightData: bias.dataSync()
+      weightData: bias.dataSync(),
+      format: 'tfjs-graph-model',
+      generatedBy: '1.15',
+      convertedBy: '1.3.1'
     };
   }
 };
 
+const CONTROL_SIGNATURE: tensorflow.ISignatureDef = {
+  inputs: {x: {name: 'Input:0', dtype: tensorflow.DataType.DT_INT32}},
+  outputs: {y: {name: 'Enter:0', dtype: tensorflow.DataType.DT_INT32}}
+};
 const CONTROL_FLOW_HTTP_MODEL_LOADER = {
   load: async () => {
     return {
       modelTopology: CONTROL_FLOW_MODEL,
       weightSpecs: weightsManifest,
-      weightData: bias.dataSync()
+      weightData: bias.dataSync(),
+      userDefinedMetadata: {signature: CONTROL_SIGNATURE},
+      format: 'tfjs-graph-model',
+      generatedBy: '1.15',
+      convertedBy: '1.3.1'
     };
   }
 };
+
+class IOHandlerForTest implements tfc.io.IOHandler {
+  savedArtifacts: tfc.io.ModelArtifacts;
+
+  async save(modelArtifacts: tfc.io.ModelArtifacts):
+      Promise<tfc.io.SaveResult> {
+    this.savedArtifacts = modelArtifacts;
+    return {modelArtifactsInfo: null};
+  }
+}
 
 describe('loadGraphModel', () => {
   it('Pass a custom io handler', async () => {
@@ -220,6 +249,22 @@ describe('Model', () => {
         expect((output as tfc.Tensor).dataSync()[0]).toEqual(3);
       });
     });
+
+    describe('save', () => {
+      it('should call the save io handler', async () => {
+        await model.load();
+        const handler = new IOHandlerForTest();
+
+        await model.save(handler);
+        expect(handler.savedArtifacts.format).toEqual('tfjs-graph-model');
+        expect(handler.savedArtifacts.generatedBy).toEqual('1.15');
+        expect(handler.savedArtifacts.convertedBy).toEqual('1.3.1');
+        expect(handler.savedArtifacts.modelTopology).toEqual(CUSTOM_OP_MODEL);
+        expect(handler.savedArtifacts.weightSpecs).toEqual(weightsManifest);
+        tfc.test_util.expectArraysClose(
+            new Int32Array(handler.savedArtifacts.weightData), bias.dataSync());
+      });
+    });
   });
 
   describe('simple model', () => {
@@ -235,11 +280,37 @@ describe('Model', () => {
       expect(loaded).toBe(true);
     });
 
+    describe('save', () => {
+      it('should call the save io handler', async () => {
+        await model.load();
+        const handler = new IOHandlerForTest();
+
+        await model.save(handler);
+        expect(handler.savedArtifacts.format).toEqual('tfjs-graph-model');
+        expect(handler.savedArtifacts.generatedBy).toEqual('1.15');
+        expect(handler.savedArtifacts.convertedBy).toEqual('1.3.1');
+        expect(handler.savedArtifacts.modelTopology).toEqual(SIMPLE_MODEL);
+        expect(handler.savedArtifacts.userDefinedMetadata).toEqual({
+          signature: SIGNATURE
+        });
+        expect(handler.savedArtifacts.weightSpecs).toEqual(weightsManifest);
+        tfc.test_util.expectArraysClose(
+            new Int32Array(handler.savedArtifacts.weightData), bias.dataSync());
+      });
+    });
+
     describe('predict', () => {
       it('should generate the output for single tensor', async () => {
         await model.load();
         const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
         const output = model.predict(input);
+        expect((output as tfc.Tensor).dataSync()[0]).toEqual(3);
+      });
+
+      it('should support signature keys', async () => {
+        await model.load();
+        const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+        const output = model.predict({x: input});
         expect((output as tfc.Tensor).dataSync()[0]).toEqual(3);
       });
 
@@ -255,6 +326,12 @@ describe('Model', () => {
         const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
         const output = model.predict({'Input': input});
         expect((output as tfc.Tensor).dataSync()[0]).toEqual(3);
+      });
+
+      it('should throw error if wrong signature key is used', async () => {
+        await model.load();
+        const input = tfc.tensor1d([1], 'int32');
+        expect(() => model.predict({x1: input})).toThrow();
       });
 
       it('should throw error if input size mismatch', async () => {
@@ -279,6 +356,12 @@ describe('Model', () => {
         await model.load();
         const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
         const output = model.execute({'Input': input});
+        expect((output as tfc.Tensor).dataSync()[0]).toEqual(3);
+      });
+      it('should allow signature keys', async () => {
+        await model.load();
+        const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+        const output = model.execute({x: input}, ['y']);
         expect((output as tfc.Tensor).dataSync()[0]).toEqual(3);
       });
       it('should generate the output array', async () => {
@@ -310,6 +393,12 @@ describe('Model', () => {
         await model.load();
         const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
         const output = model.execute({'Add1': input}) as tfc.Tensor;
+        tfc.test_util.expectArraysClose(await output.data(), [2, 2]);
+      });
+      it('should allow feed intermediate node with index', async () => {
+        await model.load();
+        const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+        const output = model.execute({'Add1:0': input}) as tfc.Tensor;
         tfc.test_util.expectArraysClose(await output.data(), [2, 2]);
       });
     });
@@ -389,6 +478,26 @@ describe('Model', () => {
           .and.returnValue(CONTROL_FLOW_HTTP_MODEL_LOADER);
     });
 
+    describe('save', () => {
+      it('should call the save io handler', async () => {
+        await model.load();
+        const handler = new IOHandlerForTest();
+
+        await model.save(handler);
+        expect(handler.savedArtifacts.format).toEqual('tfjs-graph-model');
+        expect(handler.savedArtifacts.generatedBy).toEqual('1.15');
+        expect(handler.savedArtifacts.convertedBy).toEqual('1.3.1');
+        expect(handler.savedArtifacts.modelTopology)
+            .toEqual(CONTROL_FLOW_MODEL);
+        expect(handler.savedArtifacts.userDefinedMetadata).toEqual({
+          signature: CONTROL_SIGNATURE
+        });
+        expect(handler.savedArtifacts.weightSpecs).toEqual(weightsManifest);
+        tfc.test_util.expectArraysClose(
+            new Int32Array(handler.savedArtifacts.weightData), bias.dataSync());
+      });
+    });
+
     it('should throw error if call predict directly', async () => {
       await model.load();
       const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
@@ -410,6 +519,14 @@ describe('Model', () => {
       expect(res).not.toBeNull();
     });
 
+    it('should be success if call executeAsync with signature keys',
+       async () => {
+         await model.load();
+         const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+         const res = await model.executeAsync({x: input}, ['y']);
+         expect(res).not.toBeNull();
+       });
+
     it('should allow feed intermediate node with executeAsync', async () => {
       await model.load();
       const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
@@ -417,12 +534,17 @@ describe('Model', () => {
       expect(res).not.toBeNull();
     });
   });
+  const DYNAMIC_SIGNATURE: tensorflow.ISignatureDef = {
+    inputs: {x: {name: 'Input:0', dtype: tensorflow.DataType.DT_INT32}},
+    outputs: {y: {name: 'Where:0', dtype: tensorflow.DataType.DT_INT32}}
+  };
   const DYNAMIC_HTTP_MODEL_LOADER = {
     load: async () => {
       return {
         modelTopology: DYNAMIC_SHAPE_MODEL,
         weightSpecs: weightsManifest,
-        weightData: bias.dataSync()
+        weightData: bias.dataSync(),
+        userDefinedMetadata: {signature: DYNAMIC_SIGNATURE}
       };
     }
   };
@@ -455,6 +577,14 @@ describe('Model', () => {
       const res = await model.executeAsync([input]);
       expect(res).not.toBeNull();
     });
+
+    it('should be success if call executeAsync with signature key',
+       async () => {
+         await model.load();
+         const input = tfc.tensor2d([1, 1], [2, 1], 'bool');
+         const res = await model.executeAsync({x: input}, ['y']);
+         expect(res).not.toBeNull();
+       });
 
     it('should allow feed intermediate node with executeAsync', async () => {
       await model.load();

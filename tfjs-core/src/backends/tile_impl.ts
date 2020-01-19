@@ -35,8 +35,8 @@ export function tile<R extends Rank>(
     const newLoc = result.indexToLoc(i);
 
     const originalLoc: number[] = new Array(xBuf.rank);
-    for (let i = 0; i < originalLoc.length; i++) {
-      originalLoc[i] = newLoc[i] % xBuf.shape[i];
+    for (let j = 0; j < originalLoc.length; j++) {
+      originalLoc[j] = newLoc[j] % xBuf.shape[j];
     }
 
     const originalIndex = xBuf.locToIndex(originalLoc);

@@ -21,13 +21,13 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class FromPixelsProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   variableNames = ['A'];
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
 
   constructor(outputShape: number[]) {
-    const [height, width, ] = outputShape;
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
@@ -38,7 +38,7 @@ export class FromPixelsProgram implements WebGPUProgram {
         int texR = coords[0];
         int texC = coords[1];
         int depth = coords[2];
-        vec2 uv = (vec2(texC, texR) + halfCR) / vec2(${width}.0, ${height}.0);
+        vec2 uv = (vec2(texC, texR) + halfCR) / vec2(outShape.yx);
 
         vec4 values = texelFetch(A, uv);
         float value;
@@ -55,5 +55,6 @@ export class FromPixelsProgram implements WebGPUProgram {
         setOutput(floor(value * 255.0 + 0.5));
       }
     `;
+    this.shaderKey = 'fromPixel';
   }
 }

@@ -57,6 +57,14 @@ After that operation completes, re-run `yarn add` or `npm install` for the `@ten
 
 You only need to include `@tensorflow/tfjs-node` or `@tensorflow/tfjs-node-gpu` in the package.json file, since those packages ship with `@tensorflow/tfjs` already.
 
+#### Rebuild the package on Raspberry Pi
+
+To use this package on Raspberry Pi, you need to rebuild the node native addon with the following command after you installed the package:
+
+```sh
+$ npm rebuild @tensorflow/tfjs-node --build-from-source
+```
+
 ## Using the binding
 
 Before executing any TensorFlow.js code, import the node package:
@@ -108,3 +116,18 @@ cp bazel-bin/tensorflow/tools/lib_package/libtensorflow.tar.gz ~/myproject/node_
 cd path-to-my-project/node_modules/@tensorflow/tfjs-node/deps
 tar -xf libtensorflow.tar.gz
 ```
+
+If you want to publish an addon library with your own libtensorflow binary, you can host the custom libtensorflow binary and optional pre-compiled node addon module on the cloud service you choose, and add a `custom-binary.json` file in `scripts` folder with the following information:
+
+```js
+{
+  "tf-lib": "url-to-download-customized-binary",
+  "addon": {
+    "host": "host-of-pre-compiled-addon",
+    "remote_path": "remote-path-of-pre-compiled-addon",
+    "package_name": "file-name-of-pre-compile-addon"
+  }
+}
+```
+
+The installation scripts will automatically catch this file and use the custom libtensorflow binary and addon. If `addon` is not provided, the installation script will compile addon from source.

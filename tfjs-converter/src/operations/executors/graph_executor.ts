@@ -23,7 +23,7 @@ import {InternalOpExecutor, Node} from '../types';
 
 import {getParamValue, getTensor} from './utils';
 
-export let executeOp: InternalOpExecutor = (node: Node,
+export const executeOp: InternalOpExecutor = (node: Node,
                                             tensorMap: NamedTensorsMap,
                                             context: ExecutionContext):
                                                tfc.Tensor[] => {
