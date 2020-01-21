@@ -1,12 +1,19 @@
 export const ops = [
-  {'name': 'Mul', 'result': [17, 2], 'inputs': [[17, 2], []], 'timeMs': 0},
-  {'name': 'Add', 'result': [17, 2], 'inputs': [[17, 2], [17, 2]], 'timeMs': 0},
   {
-    'name': 'Conv2D',
-    'result': [1, 129, 129, 64],
-    'inputs': [[1, 263, 263, 3], [7, 7, 3, 64]],
-    'timeMs': 9.573
-  }
+    'name': 'FromPixels',
+    'result': [513, 513, 3],
+    'inputs': {'pixels': {}},
+    'timeMs': 0.197
+  },
+  {
+    'name': 'Cast',
+    'result': [257, 257, 3],
+    'inputs': [[257, 257, 3]],
+    'timeMs': 0
+  },
+  {'name': 'Mul', 'result': [17, 2], 'inputs': [[17, 2], []], 'timeMs': 0},
+  {'name': 'Cast', 'result': [17, 2], 'inputs': [[17, 2]], 'timeMs': 0},
+  {'name': 'Add', 'result': [17, 2], 'inputs': [[17, 2], [17, 2]], 'timeMs': 0}
 ];
 // export const ops = [
 //   {

@@ -35,7 +35,7 @@ describeWebGPU('benchmark-posenet', () => {
           }
 
           await benchmarkAndLog(
-              `${obj.name}`,
+              `${obj.name}_${(obj.inputs as any).join('|')}`,
               () => (tf as any)[opName].call(
                   tf, ...inputs.concat(additionalArgs)));
         });
