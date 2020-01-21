@@ -210,7 +210,7 @@ function getFloatTextureSetRSnippet(glsl: GLSL): string {
 function getFloatTextureSetRGBASnippet(glsl: GLSL): string {
   return `
     void setOutput(vec4 val) {
-      ${glsl.output} = val;
+      // ${glsl.output} = val;
     }
   `;
 }
@@ -220,8 +220,12 @@ function getShaderPrefix(glsl: GLSL): string {
     precision highp float;
     precision highp int;
     precision highp sampler2D;
+
+    layout(location = 0) out vec4 buf_0;
+    layout(location = 1) out vec4 buf_1;
+
     ${glsl.varyingFs} vec2 resultUV;
-    ${glsl.defineOutput}
+    // ${glsl.defineOutput}
     const vec2 halfCR = vec2(0.5, 0.5);
 
     struct ivec5

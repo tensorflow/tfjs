@@ -54,7 +54,8 @@ export class DecodeMatrixPackedProgram implements GPGPUProgram {
           result[i] = getChannel(getA(rc.x, rc.y, rc.z), vec2(rc.y, rc.z));
         }
 
-        ${glsl.output} = result;
+        // ${glsl.output} = result;
+        buf_0 = result;
       }
     `;
   }

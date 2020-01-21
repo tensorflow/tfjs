@@ -90,7 +90,8 @@ export class MatMulPackedProgram implements GPGPUProgram {
 
         ${applyActivationSnippet}
 
-        setOutput(result);
+        // setOutput(result);
+        buf_0 = result;
       }
     `;
   }

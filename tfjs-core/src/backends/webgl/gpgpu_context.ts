@@ -410,8 +410,8 @@ export class GPGPUContext {
       this.debugValidate();
     }
 
-    // (gl as any).drawBuffers(
-    //     [gl.COLOR_ATTACHMENT0, (gl as any).COLOR_ATTACHMENT1]);
+    (gl as any).drawBuffers(
+        [gl.COLOR_ATTACHMENT0, (gl as any).COLOR_ATTACHMENT1]);
 
     webgl_util.callAndCheck(
         gl, this.debug,
