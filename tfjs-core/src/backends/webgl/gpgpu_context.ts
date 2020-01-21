@@ -402,12 +402,17 @@ export class GPGPUContext {
   }
 
   public executeProgram() {
+    console.log('EXECUTE');
     this.throwIfDisposed();
     this.throwIfNoProgram();
     const gl = this.gl;
     if (this.debug) {
       this.debugValidate();
     }
+
+    // (gl as any).drawBuffers(
+    //     [gl.COLOR_ATTACHMENT0, (gl as any).COLOR_ATTACHMENT1]);
+
     webgl_util.callAndCheck(
         gl, this.debug,
         () => gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0));

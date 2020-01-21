@@ -2559,10 +2559,12 @@ export class MathBackendWebGL extends KernelBackend {
         savedInput.shape = targetShape;
       }
 
+      console.log('UPLOAD INPUT TO GPU');
       this.uploadToGPU(input.dataId);
       return {shape: input.shape, texData, isUniform: false};
     });
 
+    console.log('UPLOAD OUTPUT TO GPU');
     this.uploadToGPU(output.dataId);
     const outputData:
         TensorData = {shape: output.shape, texData: outData, isUniform: false};
@@ -2577,6 +2579,7 @@ export class MathBackendWebGL extends KernelBackend {
       query = this.startTimer();
     }
 
+    console.log('RUN ACTUAL PROGRAM');
     gpgpu_math.runProgram(
         this.gpgpu, binary, inputsData, outputData, customSetup);
 
@@ -2601,6 +2604,8 @@ export class MathBackendWebGL extends KernelBackend {
       program: GPGPUProgram, inputs: TensorInfo[], outputDtype?: DataType,
       customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => void,
       preventEagerUnpackingOfOutput = false): K {
+    console.log('COMPILEANDRUN');
+    console.log(program.constructor.name);
     outputDtype = outputDtype || inputs[0].dtype;
     const outInfo = this.runWebGLProgram(
         program, inputs, outputDtype, customSetup,
