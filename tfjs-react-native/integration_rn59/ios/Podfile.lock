@@ -2,7 +2,7 @@ PODS:
   - boost-for-react-native (1.63.0)
   - DoubleConversion (1.1.6)
   - EXAppLoaderProvider (6.0.0)
-  - EXCamera (6.0.0):
+  - EXCamera (7.0.0):
     - UMBarCodeScannerInterface
     - UMCore
     - UMFaceDetectorInterface
@@ -15,14 +15,14 @@ PODS:
   - EXFileSystem (6.0.2):
     - UMCore
     - UMFileSystemInterface
-  - EXGL (6.0.0):
+  - EXGL (7.0.0):
     - EXGL-CPP
     - UMCameraInterface
     - UMCore
     - UMFileSystemInterface
-  - EXGL-CPP (6.0.0):
-    - EXGL-CPP/UEXGL (= 6.0.0)
-  - EXGL-CPP/UEXGL (6.0.0)
+  - EXGL-CPP (7.0.0):
+    - EXGL-CPP/UEXGL (= 7.0.0)
+  - EXGL-CPP/UEXGL (7.0.0)
   - EXImageManipulator (6.0.0):
     - UMCore
     - UMFileSystemInterface
@@ -82,6 +82,10 @@ PODS:
     - React/RCTBlob
   - RNCAsyncStorage (1.6.1):
     - React
+  - RNFS (2.13.2):
+    - React
+  - RNSVG (9.13.6):
+    - React
   - UMBarCodeScannerInterface (3.0.0)
   - UMCameraInterface (3.0.0)
   - UMConstantsInterface (3.0.0)
@@ -120,6 +124,8 @@ DEPENDENCIES:
   - React/RCTText (from `../node_modules/react-native`)
   - React/RCTWebSocket (from `../node_modules/react-native`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-community/async-storage`)"
+  - RNFS (from `../node_modules/react-native-fs`)
+  - RNSVG (from `../node_modules/react-native-svg`)
   - UMBarCodeScannerInterface (from `../node_modules/unimodules-barcode-scanner-interface/ios`)
   - UMCameraInterface (from `../node_modules/unimodules-camera-interface/ios`)
   - UMConstantsInterface (from `../node_modules/unimodules-constants-interface/ios`)
@@ -173,6 +179,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-community/async-storage"
+  RNFS:
+    :path: "../node_modules/react-native-fs"
+  RNSVG:
+    :path: "../node_modules/react-native-svg"
   UMBarCodeScannerInterface:
     :path: !ruby/object:Pathname
     path: "../node_modules/unimodules-barcode-scanner-interface/ios"
@@ -216,17 +226,19 @@ SPEC CHECKSUMS:
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
   DoubleConversion: bb338842f62ab1d708ceb63ec3d999f0f3d98ecd
   EXAppLoaderProvider: 7a8185228d8ba9e689a0e2d6d957fe9bdd49c8a0
-  EXCamera: 54623e310d33bccbb8d8fbc84a0081523d0436be
+  EXCamera: 8ad7012d4e0fef09ff35de14fcb41b410357e9be
   EXConstants: 5d81e84ca71b9a552529889cc798b4a04e9e22b3
   EXFileSystem: 091907902fcec9f9182b656fdead41a82f30986a
-  EXGL: dc4ae6520b142a74e28e6f4472d27a26fc211f37
-  EXGL-CPP: 06949fa99656c36b488ff51155ca865c871f3d3d
+  EXGL: 4b21885aee37fb5f5230e05a62bba480fa886a3d
+  EXGL-CPP: da3c4f31ff50a34bd8184fadbf409806281b103d
   EXImageManipulator: b2e17bdbd0872cc59b43b76756f76fdb8a849831
   EXPermissions: 99e52dc3e5f8e55153f1958004f6df2a30a1f2f5
   Folly: de497beb10f102453a1afa9edbf8cf8a251890de
   glog: aefd1eb5dda2ab95ba0938556f34b98e2da3a60d
   React: 36d0768f9e93be2473b37e7fa64f92c1d5341eef
   RNCAsyncStorage: 2e2e3feb9bdadc752a026703d8c4065ca912e75a
+  RNFS: d229ee245fa9685417e6d9367031d670d723547e
+  RNSVG: 8ba35cbeb385a52fd960fd28db9d7d18b4c2974f
   UMBarCodeScannerInterface: 84ea2d6b58ff0dc27ef9b68bab71286be18ee020
   UMCameraInterface: 26b26005d1756a0d5f4f04f1e168e39ea9154535
   UMConstantsInterface: 038bacb19de12b6fd328c589122c8dc977cccf61
@@ -241,6 +253,6 @@ SPEC CHECKSUMS:
   UMTaskManagerInterface: 8664abd37a00715727e60df9ecd65e42ba47b548
   yoga: 684513b14b03201579ba3cee20218c9d1298b0cc
 
-PODFILE CHECKSUM: 957cdf7e16144c165dddb5041e16b597336a0a72
+PODFILE CHECKSUM: f319444641fc4bb5878ba573d414469954b15b11
 
 COCOAPODS: 1.7.2

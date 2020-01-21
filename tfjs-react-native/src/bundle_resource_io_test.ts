@@ -18,11 +18,14 @@
 import './platform_react_native';
 
 import * as tf from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {bundleResourceIO} from './bundle_resource_io';
 import * as tfjsRn from './platform_react_native';
+import {RN_ENVS} from './test_env_registry';
 
-describe('BundleResourceIO', () => {
+describeWithFlags('BundleResourceIO', RN_ENVS, () => {
   // Test data.
   const modelTopology1: {} = {
     'class_name': 'Sequential',
@@ -88,7 +91,7 @@ describe('BundleResourceIO', () => {
 
   it('loads model artifacts', async () => {
     const response = new Response(weightData1);
-    spyOn(tfjsRn, 'fetch').and.returnValue(response);
+    spyOn(tfjsRn, 'fetch').and.returnValue(Promise.resolve(response));
 
     const modelJson: tf.io.ModelJSON = {
       modelTopology: modelTopology1,
@@ -110,7 +113,8 @@ describe('BundleResourceIO', () => {
 
   it('errors on string modelJSON', async () => {
     const response = new Response(weightData1);
-    spyOn(tf.env().platform, 'fetch').and.returnValue(response);
+    spyOn(tf.env().platform, 'fetch')
+        .and.returnValue(Promise.resolve(response));
 
     const modelJson = `{
       modelTopology: modelTopology1,

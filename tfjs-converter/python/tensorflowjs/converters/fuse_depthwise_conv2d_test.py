@@ -18,7 +18,7 @@ import os
 import shutil
 import tempfile
 
-import tensorflow as tf
+import tensorflow.compat.v2 as tf
 
 from tensorflowjs.converters import fuse_depthwise_conv2d
 from tensorflowjs.converters import graph_rewrite_util

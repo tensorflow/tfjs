@@ -16,7 +16,11 @@
  */
 
 import {memory, test_util} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
 import * as tf from './index';
+import {RN_ENVS} from './test_env_registry';
 
 const uint8array = new Uint8Array([
   255, 216, 255, 224, 0,   16,  74,  70,  73,  70,  0,   1,   1,   2,   0,
@@ -67,7 +71,7 @@ const uint8array = new Uint8Array([
   200, 77,  239, 120, 73,  43,  255, 217
 ]);
 
-describe('decode images', () => {
+describeWithFlags('decode images', RN_ENVS, () => {
   it('decode jpg', async () => {
     const beforeNumTensors: number = memory().numTensors;
     const imageTensor = await tf.decodeJpeg(uint8array);
