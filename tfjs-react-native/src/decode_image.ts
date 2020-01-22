@@ -12,7 +12,7 @@ enum ImageType {
  * Decode a JPEG-encoded image to a 3D Tensor of dtype `int32`.
  *
  * ```js
- * const image = require("path/to/img.jpg");
+ * const image = require('path/to/img.jpg');
  * const imageAssetPath = Image.resolveAssetSource(image);
  * const response = await fetch(imageAssetPath.uri, {}, { isBinary: true });
  * const rawImageData = await response.arrayBuffer();
