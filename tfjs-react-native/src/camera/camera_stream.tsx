@@ -100,7 +100,7 @@ const DEFAULT_RESIZE_DEPTH = 3;
  *
  * ```js
  * import { Camera } from 'expo-camera';
- * import {cameraWithTensors} from '@tensorflow/tfjs-react-native';
+ * import { cameraWithTensors } from '@tensorflow/tfjs-react-native';
  *
  * const TensorCamera = cameraWithTensors(Camera);
  *
