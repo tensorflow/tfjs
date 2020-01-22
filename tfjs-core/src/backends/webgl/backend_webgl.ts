@@ -310,6 +310,7 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   readSync(dataId: DataId): BackendValues {
+    console.log('READSYNC');
     const texData = this.texData.get(dataId);
     const {values, dtype, complexTensors, slice, shape, isPacked} = texData;
     if (slice != null) {
@@ -343,6 +344,7 @@ export class MathBackendWebGL extends KernelBackend {
       const imagValues = complexTensors.imag.dataSync() as Float32Array;
       result = mergeRealAndImagArrays(realValues, imagValues);
     } else {
+      console.log('GET VALUES FROM TEX');
       result = this.getValuesFromTexture(dataId);
     }
 
@@ -414,8 +416,10 @@ export class MathBackendWebGL extends KernelBackend {
       vals = mergeRealAndImagArrays(
           realValues as Float32Array, imagValues as Float32Array);
     } else if (buffer == null) {
+      console.log('GET VALUES FROM TEXTURE');
       vals = this.getValuesFromTexture(dataId);
     } else {
+      console.log('download f32');
       const size = util.sizeFromShape(shape);
       vals = this.gpgpu.downloadFloat32MatrixFromBuffer(buffer, size);
     }
@@ -459,6 +463,7 @@ export class MathBackendWebGL extends KernelBackend {
     const {shape, dtype, isPacked} = this.texData.get(dataId);
     const size = util.sizeFromShape(shape);
     if (env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
+      console.log('RUN DOWNLOAD MATRIX FROM PACKED TEXTURE');
       const tmpTarget = this.decode(dataId);
       const tmpData = this.texData.get(tmpTarget.dataId);
       const vals = this.gpgpu

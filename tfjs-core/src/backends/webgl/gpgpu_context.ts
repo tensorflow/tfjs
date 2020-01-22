@@ -604,6 +604,7 @@ export class GPGPUContext {
   private setOutputMatrixTextureDriver(
       outputMatrixTextureMaybePacked: WebGLTexture, width: number,
       height: number) {
+    console.log('SET OUTPUT MATRIX TEXTURE DRIVER');
     this.throwIfDisposed();
     const gl = this.gl;
     webgl_util.bindColorTextureToFramebuffer(
