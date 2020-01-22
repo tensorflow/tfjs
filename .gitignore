@@ -16,8 +16,7 @@
 /compiled_api.js
 bazel-out/
 bazel-*
-build-tmp-napi-v3/
-build-tmp-napi-v4/
+build-tmp-napi-v*/
 build/
 clone/
 coverage/

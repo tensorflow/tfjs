@@ -13,15 +13,15 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
-# Run react native tests.
+# Run unit tests against latest source
 - name: 'node:10'
-  dir: 'tfjs-react-native'
+  dir: 'tfjs-react-native/integration_rn59'
+  id: 'react-native-against-published-core'
   entrypoint: 'yarn'
-  id: 'test-react-native'
   args: ['test-ci']
+  waitFor: ['yarn']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
-  waitFor: ['yarn']
 
 # General configuration
 secrets:
@@ -34,4 +34,5 @@ substitutions:
   _NIGHTLY: ''
 options:
   logStreamingOption: 'STREAM_ON'
+  machineType: 'N1_HIGHCPU_8'
   substitution_option: 'ALLOW_LOOSE'

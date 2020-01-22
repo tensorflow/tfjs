@@ -50,36 +50,9 @@ limitations under the License.
           </svg>
         </div>
       </div>
-      <div class="box" id="mem-trendline-container">
-        <div class="label">Number of tensors</div>
-        <div class="trendline">
-          <div class="yMax"></div>
-          <div class="yMin"></div>
-          <svg>
-            <path></path>
-          </svg>
-        </div>
-      </div>
-      <div class="box" id="bytes-trendline-container">
-        <div class="label">Number of bytes used</div>
-        <div class="trendline">
-          <div class="yMax"></div>
-          <div class="yMin"></div>
-          <svg>
-            <path></path>
-          </svg>
-        </div>
-      </div>
     </div>
     <table class="table" id="kernels">
-      <thead>
-        <tr>
-          <th>Kernel</th>
-          <th>Time(ms)</th>
-          <th>Inputs</th>
-          <th>Output</th>
-          <th>GPUPrograms</th>
-        </tr>
+      <thead id="kernels-thead">
       </thead>
       <tbody></tbody>
     </table>
@@ -87,8 +60,12 @@ limitations under the License.
   <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-backend-wasm@latest/dist/tf-backend-wasm.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-automl@latest/dist/tf-automl.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@1.0.0/dist/posenet.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2"></script>
+
   <script src="./modelConfig.js"></script>
   <script src="./util.js"></script>
   <script>
@@ -96,16 +73,21 @@ limitations under the License.
 
     const state = {
       numRuns: 50,
-      benchmark: 'mobilenet',
+      benchmark: 'mobilenet_v2',
       run: (v) => {
         runBenchmark();
       },
+      backend: 'wasm',
+      kernelTiming: 'aggregate',
     };
 
     const modalDiv = document.getElementById('modal-msg');
     const timeTable = document.querySelector('#timings tbody');
     const envDiv = document.getElementById('env');
-    let model, isAsync, predict, chartWidth;
+    const kernelsTableHead = document.getElementById('kernels-thead');
+    const kernelTable = document.querySelector('#kernels tbody');
+
+    let model, predict, chartWidth;
 
     async function showMsg(message) {
       if (message != null) {
@@ -132,6 +114,22 @@ limitations under the License.
         } `;
     }
 
+    async function setupTable() {
+      kernelsTableHead.innerText = '';
+      kernelTable.innerHTML = '';
+      await tf.nextFrame();
+      const rows = ['<b>Kernel</b>', '<b>Time(ms)</b>'];
+      if (state.kernelTiming === 'individual') {
+        rows.push('<b>Inputs</b>', '<b>Output</b>');
+        if (state.backend === 'webgl') {
+          rows.push('<b>GPUPrograms</b>');
+        }
+      }
+      appendRow(kernelsTableHead, ...rows);
+
+      await tf.nextFrame();
+    }
+
     function appendRow(tbody, ...cells) {
       const tr = document.createElement('tr');
       cells.forEach(c => {
@@ -155,7 +153,9 @@ limitations under the License.
       }
 
       if (res instanceof tf.Tensor) {
+        const tmp = res;
         res = await res.data();
+        tmp.dispose();
       }
 
       const elapsed = performance.now() - start;
@@ -166,9 +166,13 @@ limitations under the License.
     async function loadAndRecordTime(benchmark) {
       await showMsg('Loading the model');
       const start = performance.now();
-      model = await benchmark.load();
+      if (benchmark.model == null) {
+        model = await benchmark.load();
+        benchmark.model = model;
+      } else {
+        model = benchmark.model;
+      }
       predict = benchmark.predictFunc();
-      isAsync = model.executor != null && model.executor.isControlFlowModel;
 
       const elapsed = performance.now() - start;
       await showMsg(null);
@@ -203,38 +207,37 @@ limitations under the License.
       chartWidth = document.querySelector("#perf-trendline-container").getBoundingClientRect().width;
 
       const times = [];
-      const numTensors = [];
-      const numBytes = [];
+      const numLeakedTensors = [];
 
       for (let i = 0; i < state.numRuns; i++) {
         const start = performance.now();
+        const tensorsBefore = tf.memory().numTensors;
         let res = predict(model);
         if (res instanceof Promise) {
-          await res;
+          res = await res;
         }
 
         if (res instanceof tf.Tensor) {
+          const tmp = res;
           res = await res.data();
+          tmp.dispose();
         }
 
         times.push(performance.now() - start);
         const memInfo = tf.memory();
-        numTensors.push(memInfo.numTensors);
-        numBytes.push(memInfo.numBytes);
+        const leakedTensors = memInfo.numTensors - tensorsBefore;
+        numLeakedTensors.push(leakedTensors);
       }
 
       const forceInferenceTrendYMinToZero = true;
       populateTrendline(document.querySelector("#perf-trendline-container"), times, forceInferenceTrendYMinToZero, printTime);
-      populateTrendline(document.querySelector("#mem-trendline-container"), numTensors);
-
-      const forceBytesTrendlineYMinToZero = false;
-      populateTrendline(document.querySelector("#bytes-trendline-container"), numBytes, forceBytesTrendlineYMinToZero, d => `${(d / 1e6).toPrecision(3)} MB`);
 
       await showMsg(null);
       const average = times.reduce((acc, curr) => acc + curr, 0) / times.length;
       const min = Math.min(...times);
       appendRow(timeTable, `Subsequent average(${state.numRuns} runs)`, printTime(average));
       appendRow(timeTable, 'Best time', printTime(min));
+      appendRow(timeTable, 'Leaked tensors', numLeakedTensors[0]);
     }
 
     async function profileMemory() {
@@ -247,7 +250,9 @@ limitations under the License.
       }
 
       if (res instanceof tf.Tensor) {
+        const tmp = res;
         res = await res.data();
+        tmp.dispose();
       }
       const elapsed = performance.now() - start;
       await showMsg(null);
@@ -257,12 +262,33 @@ limitations under the License.
 
     function showKernelTime(kernels) {
       const tbody = document.querySelector('#kernels tbody');
-      kernels.forEach(k => {
-        const nameSpan = document.createElement('span');
-        nameSpan.setAttribute('title', k.scopes.slice(0, -1).join(' --> '));
-        nameSpan.textContent = k.scopes[k.scopes.length - 1];
-        appendRow(tbody, nameSpan, k.time.toFixed(2), k.inputs, k.output, k.gpuProgramsInfo);
-      });
+      if (state.kernelTiming === 'individual') {
+        kernels.forEach(k => {
+          const nameSpan = document.createElement('span');
+          nameSpan.setAttribute('title', k.scopes.slice(0, -1).join(' --> '));
+          nameSpan.textContent = k.scopes[k.scopes.length - 1];
+          appendRow(tbody, nameSpan, k.time.toFixed(2), k.inputs, k.output, k.gpuProgramsInfo);
+        });
+      } else {
+        const kernelTotalTime = {};
+        kernels.forEach(k => {
+          const kernelName = k.scopes[0];
+          if (kernelTotalTime[kernelName] == null) {
+            kernelTotalTime[kernelName] = 0;
+          }
+          kernelTotalTime[kernelName] += k.time;
+        });
+
+        const result = Object.keys(kernelTotalTime)
+            .map(k => [k, kernelTotalTime[k]])
+            .sort((a, b) => b[1] - a[1]);
+        result.forEach(r => {
+          const nameSpan = document.createElement('span');
+          nameSpan.setAttribute('title', r[0]);
+          nameSpan.textContent = r[0];
+          appendRow(tbody, nameSpan, r[1].toFixed(2));
+        });
+      }
     }
 
     async function profileKernelTime() {
@@ -300,7 +326,9 @@ limitations under the License.
       }
 
       if (res instanceof tf.Tensor) {
+        const tmp = res;
         res = await res.data();
+        tmp.dispose();
       }
 
       await showMsg(null);
@@ -318,6 +346,7 @@ limitations under the License.
 
     async function runBenchmark() {
       const benchmark = benchmarks[state.benchmark];
+      await setupTable();
       await loadAndRecordTime(benchmark);
       await warmUpAndRecordTime();
       await showMsg('Waiting for GC');
@@ -326,7 +355,7 @@ limitations under the License.
       await sleep(200);
       await measureAveragePredictTime();
       await sleep(200);
-      if (queryTimerIsEnabled()) {
+      if (state.backend != 'webgl' || queryTimerIsEnabled()) {
         await profileKernelTime();
       } else {
         showMsg('Skipping kernel times since query timer extension is not ' +
@@ -337,17 +366,18 @@ limitations under the License.
     async function onPageLoad() {
       var gui = new dat.gui.GUI();
 
-      await tf.ready();
+      await tf.setBackend(state.backend);
 
       gui.add(state, 'numRuns');
-      gui.add(state, 'benchmark', ['', ...Object.keys(benchmarks)]);
+      gui.add(state, 'benchmark', Object.keys(benchmarks));
+      gui.add(state, 'backend', ['wasm', 'webgl', 'cpu']).onChange(backend => {
+        tf.setBackend(backend);
+      });
+      gui.add(state, 'kernelTiming', ['aggregate', 'individual']);
       gui.add(state, 'run');
 
       showVersions();
       await showEnvironment();
-
-      // Run first benchmark by default on page load.
-      runBenchmark();
     }
 
     onPageLoad();

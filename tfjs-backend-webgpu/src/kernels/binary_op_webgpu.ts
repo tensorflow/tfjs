@@ -38,8 +38,11 @@ export const INT_DIV = `
   return float(idiv(ia, ib, s));
 `;
 
+export const PRELU = `return (a < 0.) ? b * a : a;`;
+
 export class BinaryOpProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
@@ -78,5 +81,6 @@ export class BinaryOpProgram implements WebGPUProgram {
         }
       }
     `;
+    this.shaderKey = `binary${op}${type}${size}`;
   }
 }

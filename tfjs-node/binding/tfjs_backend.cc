@@ -1131,10 +1131,10 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
 
     // The item in input_op_name_array is something like "serving_default_x:0".
     // Parse it into input op name and index for provided tensor.
-    char name[strlen(input_op_name_array[i])];
-    strcpy(name, input_op_name_array[i]);
-    char *input_op_name = strtok(name, ":");
-    char *input_op_index = strtok(NULL, ":");
+    std::string name(input_op_name_array[i]);
+    int index = name.find(":");
+    std::string input_op_name = name.substr(0, index);
+    const char *input_op_index = name.substr(index + 1).c_str();
     int input_tensor_index;
     if (strlen(input_op_index) == 0) {
       input_tensor_index = 0;
@@ -1145,8 +1145,8 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
     // Add input op into input ops list.
     // TODO(kangyizhang): Store these TF_Operations somewhere so they don't need
     // to be generated  every time.
-    TF_Operation *input_op =
-        TF_GraphOperationByName(savedmodel_entry->second.second, input_op_name);
+    TF_Operation *input_op = TF_GraphOperationByName(
+        savedmodel_entry->second.second, input_op_name.c_str());
     if (input_op == nullptr) {
       NAPI_THROW_ERROR(env, "Input op name can not be found in the graph.");
       return nullptr;
@@ -1159,10 +1159,10 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
   for (uint32_t i = 0; i < output_op_name_array.size(); i++) {
     // The item in output_op_name_array is something like
     // "StatefulPartitionedCall:0". Parse it into output op name and index.
-    char name[strlen(output_op_name_array[i])];
-    strcpy(name, output_op_name_array[i]);
-    char *output_op_name = strtok(name, ":");
-    char *output_op_index = strtok(NULL, ":");
+    std::string name(output_op_name_array[i]);
+    int index = name.find(":");
+    std::string output_op_name = name.substr(0, index);
+    const char *output_op_index = name.substr(index + 1).c_str();
     int output_tensor_index;
     if (strlen(output_op_index) == 0) {
       output_tensor_index = 0;
@@ -1171,7 +1171,7 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
     }
 
     TF_Operation *output_op = TF_GraphOperationByName(
-        savedmodel_entry->second.second, output_op_name);
+        savedmodel_entry->second.second, output_op_name.c_str());
     if (output_op == nullptr) {
       NAPI_THROW_ERROR(env, "Output op name can not be found in the graph.");
       return nullptr;
@@ -1216,6 +1216,15 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
   }
 
   return output_tensor_infos;
+}
+
+napi_value TFJSBackend::GetNumOfSavedModels(napi_env env) {
+  napi_status nstatus;
+  napi_value num_saved_models;
+  nstatus =
+      napi_create_int32(env, tf_savedmodel_map_.size(), &num_saved_models);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+  return num_saved_models;
 }
 
 }  // namespace tfnodejs

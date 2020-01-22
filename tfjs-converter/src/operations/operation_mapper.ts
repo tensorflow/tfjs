@@ -68,13 +68,15 @@ export class OperationMapper {
 
   // Converts the model from Tensorflow GraphDef to local representation for
   // TensorFlow.js API
-  transformGraph(graph: tensorflow.IGraphDef): Graph {
+  transformGraph(
+      graph: tensorflow.IGraphDef,
+      signature: tensorflow.ISignatureDef = {}): Graph {
     const tfNodes = graph.node;
     const placeholders: Node[] = [];
     const weights: Node[] = [];
     const nodes = tfNodes.reduce<{[key: string]: Node}>((map, node) => {
       map[node.name] = this.mapNode(node);
-      if (node.op === 'Placeholder') {
+      if (node.op.startsWith('Placeholder')) {
         placeholders.push(map[node.name]);
       }
       if (node.op === 'Const') {
@@ -83,8 +85,14 @@ export class OperationMapper {
       return map;
     }, {});
 
-    const inputs: Node[] = [];
+    let inputs: Node[] = [];
     const outputs: Node[] = [];
+    let inputNodeNameToKey: {[key: string]: string} = {};
+    let outputNodeNameToKey: {[key: string]: string} = {};
+    if (signature != null) {
+      inputNodeNameToKey = this.mapSignatureEntries(signature.inputs);
+      outputNodeNameToKey = this.mapSignatureEntries(signature.outputs);
+    }
     const allNodes = Object.keys(nodes);
     allNodes.forEach(key => {
       const node = nodes[key];
@@ -93,19 +101,50 @@ export class OperationMapper {
         node.inputs.push(nodes[nodeName]);
         nodes[nodeName].children.push(node);
       });
-      if (node.inputs.length === 0) {
-        inputs.push(node);
-      }
     });
 
-    allNodes.forEach(key => {
-      const node = nodes[key];
-      if (node.children.length === 0) {
-        outputs.push(node);
-      }
-    });
+    // if signature has not outputs set, add any node that does not have
+    // outputs.
+    if (Object.keys(outputNodeNameToKey).length === 0) {
+      allNodes.forEach(key => {
+        const node = nodes[key];
+        if (node.children.length === 0) {
+          outputs.push(node);
+        }
+      });
+    } else {
+      Object.keys(outputNodeNameToKey).forEach(name => {
+        const [nodeName, ] = getNodeNameAndIndex(name);
+        const node = nodes[nodeName];
+        if (node != null) {
+          node.signatureKey = outputNodeNameToKey[name];
+          outputs.push(node);
+        }
+      });
+    }
 
-    return {nodes, inputs, outputs, weights, placeholders};
+    if (Object.keys(inputNodeNameToKey).length > 0) {
+      Object.keys(inputNodeNameToKey).forEach(name => {
+        const [nodeName, ] = getNodeNameAndIndex(name);
+        const node = nodes[nodeName];
+        if (node) {
+          node.signatureKey = inputNodeNameToKey[name];
+          inputs.push(node);
+        }
+      });
+    } else {
+      inputs = placeholders;
+    }
+
+    return {nodes, inputs, outputs, weights, placeholders, signature};
+  }
+
+  private mapSignatureEntries(entries: {[k: string]: tensorflow.ITensorInfo}) {
+    return Object.keys(entries || {})
+        .reduce<{[key: string]: string}>((prev, curr) => {
+          prev[entries[curr].name] = curr;
+          return prev;
+        }, {});
   }
 
   private mapNode(node: tensorflow.INodeDef): Node {

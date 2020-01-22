@@ -20,25 +20,12 @@
 
 #include <xnnpack.h>
 #include <cmath>
-#include <limits>
+#include <cstddef>
 #include <unordered_map>
 
 #include "src/cc/backend.h"
+#include "src/cc/prelu_impl.h"
 #include "src/cc/util.h"
-
-namespace {
-// The operator cache maps the weights id to the xnn_operator_t instantiated for
-// // this set of weights.
-std::unordered_map<int, xnn_operator_t> operator_cache;
-
-void delete_xnn_operator(const int weights_id) {
-  xnn_operator_t prelu_op = operator_cache.at(weights_id);
-  xnn_delete_operator(prelu_op);
-  tfjs::backend::xnn_operator_count--;
-
-  operator_cache.erase(weights_id);
-}
-}  // namespace
 
 namespace tfjs {
 namespace wasm {
@@ -48,55 +35,11 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Prelu(const int x_id, const int weights_id, const int out_id) {
+void Prelu(const size_t x_id, const size_t weights_id, const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
-  auto& weights_info = backend::get_tensor_info(weights_id);
-  auto& out_info = backend::get_tensor_info_out(out_id);
-
   const float* x_buf = x_info.f32();
-  const float* weights_buf = weights_info.f32();
-  float* out_buf = out_info.f32_write();
 
-  xnn_operator_t prelu_op = nullptr;
-
-  auto operator_cache_idx = operator_cache.find(weights_id);
-  if (operator_cache_idx == operator_cache.end()) {
-    const int channels = x_info.size;
-    const int strides = channels;
-    const float output_min = -std::numeric_limits<float>::infinity();
-    const float output_max = std::numeric_limits<float>::infinity();
-
-    const int flags = 0;
-    xnn_status status =
-        xnn_create_prelu_nc_f32(channels, strides, strides, weights_buf,
-                                output_min, output_max, flags, &prelu_op);
-    if (status != xnn_status_success) {
-      util::warn(
-          "XNN status for xnn_create_prelu_nc_f32 is not successful. Got "
-          "status %d. Use -c dbg to see XNN logs.",
-          status);
-    }
-
-    operator_cache.insert({weights_id, prelu_op});
-
-    backend::register_disposal_callback(weights_id, *delete_xnn_operator);
-
-    tfjs::backend::xnn_operator_count++;
-  } else {
-    prelu_op = operator_cache_idx->second;
-  }
-
-  const int batch_size = 1;
-  xnn_status status = xnn_setup_prelu_nc_f32(
-      prelu_op, batch_size, x_buf, out_buf, nullptr /* thread pool */);
-  if (status != xnn_status_success) {
-    util::warn(
-        "XNN status for xnn_setup_prelu_nc_f32 is not successful. Got "
-        "status %d. Use -c dbg to see XNN logs.",
-        status);
-  }
-
-  xnn_run_operator(prelu_op, nullptr /* thread pool */);
+  tfjs::wasm::prelu(x_buf, x_info.size, weights_id, out_id);
 }
 
 }  // extern "C"

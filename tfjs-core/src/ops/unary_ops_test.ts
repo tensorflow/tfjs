@@ -3124,7 +3124,7 @@ describeWithFlags('clip', ALL_ENVS, () => {
     expect(f).toThrowError();
   });
 
-  it('derivative: 1D tensor', async () => {
+  it('gradient: 1D tensor', async () => {
     const min = -1;
     const max = 2;
     const x = tf.tensor1d([3, -2, 1]);  // Only 1 is not clipped.
@@ -3136,7 +3136,7 @@ describeWithFlags('clip', ALL_ENVS, () => {
     expectArraysClose(await gradients.data(), [0, 0, 500]);
   });
 
-  it('derivative: 1D tensor with max or min value', async () => {
+  it('gradient: 1D tensor with max or min value', async () => {
     const min = -1;
     const max = 2;
     const x = tf.tensor1d([-1, 1, 2, 3]);
@@ -3148,7 +3148,7 @@ describeWithFlags('clip', ALL_ENVS, () => {
     expectArraysClose(await gradients.data(), [1, 10, 100, 0]);
   });
 
-  it('derivative: scalar', async () => {
+  it('gradient: scalar', async () => {
     const min = -1;
     const max = 2;
     const x = tf.scalar(-10);  // Clipped.
@@ -3173,7 +3173,7 @@ describeWithFlags('clip', ALL_ENVS, () => {
     expectArraysClose(await gradients.data(), [0]);
   });
 
-  it('derivate with primitive as input', async () => {
+  it('gradient with primitive as input', async () => {
     const min = -1;
     const max = 2;
     const x = -10;

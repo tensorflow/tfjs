@@ -21,9 +21,9 @@ from tensorflowjs import version
 DIR_NAME = os.path.dirname(__file__)
 
 def _get_requirements(file):
-    "Reads the requirements file and returns the packages"
-    with open(os.path.join(DIR_NAME, file), 'r') as requirements:
-        return requirements.readlines()
+  "Reads the requirements file and returns the packages"
+  with open(os.path.join(DIR_NAME, file), 'r') as requirements:
+    return requirements.readlines()
 
 CONSOLE_SCRIPTS = [
     'tensorflowjs_converter = tensorflowjs.converters.converter:pip_main',
@@ -64,7 +64,9 @@ setuptools.setup(
         'tensorflowjs.converters.common',
         'tensorflowjs.converters.converter',
         'tensorflowjs.converters.fold_batch_norms',
+        'tensorflowjs.converters.fuse_depthwise_conv2d',
         'tensorflowjs.converters.fuse_prelu',
+        'tensorflowjs.converters.graph_rewrite_util',
         'tensorflowjs.converters.keras_h5_conversion',
         'tensorflowjs.converters.keras_tfjs_loader',
         'tensorflowjs.converters.tf_saved_model_conversion_v2',

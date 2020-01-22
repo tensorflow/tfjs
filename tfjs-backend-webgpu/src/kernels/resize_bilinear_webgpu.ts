@@ -21,6 +21,7 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class ResizeBilinearProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
@@ -83,5 +84,6 @@ export class ResizeBilinearProgram implements WebGPUProgram {
         }
       }
     `;
+    this.shaderKey = `resizeblilinear${adjustHeight}${adjustWidth}`;
   }
 }

@@ -21,3 +21,5 @@ export {asyncStorageIO} from './async_storage_io';
 export {bundleResourceIO} from './bundle_resource_io';
 export {decodeJpeg} from './decode_image';
 export {fetch} from './platform_react_native';
+export * from './camera/camera';
+export * from './camera/camera_stream';

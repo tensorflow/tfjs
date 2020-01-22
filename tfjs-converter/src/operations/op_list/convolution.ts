@@ -239,6 +239,38 @@ export const json: OpMapper[] = [
     ]
   },
   {
+    'tfOpName': 'FusedDepthwiseConv2dNative',
+    'category': 'convolution',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+      {'start': 1, 'name': 'filter', 'type': 'tensor'},
+      {'start': 2, end: 0, 'name': 'args', 'type': 'tensors'},
+    ],
+    'attrs': [
+      {'tfName': 'num_args', 'name': 'numArgs', 'type': 'number'},
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true},
+      {'tfName': 'strides', 'name': 'strides', 'type': 'number[]'},
+      {'tfName': 'padding', 'name': 'pad', 'type': 'string'}, {
+        'tfName': 'data_format',
+        'name': 'dataFormat',
+        'type': 'string',
+        'defaultValue': 'NHWC'
+      },
+      {
+        'tfName': 'dilations',
+        'name': 'dilations',
+        'type': 'number[]',
+        'defaultValue': [1, 1, 1, 1]
+      },
+      {
+        'tfName': 'fused_ops',
+        'name': 'fusedOps',
+        'type': 'string[]',
+        'defaultValue': []
+      }
+    ]
+  },
+  {
     'tfOpName': 'Conv3D',
     'category': 'convolution',
     'inputs': [

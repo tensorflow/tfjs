@@ -21,7 +21,7 @@ import {describeWithFlags} from '../../jasmine_util';
 import {expectArraysClose, expectArraysEqual} from '../../test_util';
 import {decodeString} from '../../util';
 
-import {MathBackendWebGL, WebGLMemoryInfo} from './backend_webgl';
+import {getBinaryCache, MathBackendWebGL, WebGLMemoryInfo} from './backend_webgl';
 import {WEBGL_ENVS} from './backend_webgl_test_registry';
 
 function decodeStrings(bytes: Uint8Array[]): string[] {
@@ -34,16 +34,8 @@ const RENDER_FLOAT32_ENVS = {
 };
 
 describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
-  let renderToF32FlagSaved: boolean;
-
   beforeAll(() => {
-    renderToF32FlagSaved =
-        tf.env().get('WEBGL_RENDER_FLOAT32_ENABLED') as boolean;
     tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', false);
-  });
-
-  afterAll(() => {
-    tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', renderToF32FlagSaved);
   });
 
   it('should overflow if larger than 66k', async () => {
@@ -53,11 +45,12 @@ describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
   });
 
   it('should error in debug mode', () => {
-    const savedDebugFlag = tf.env().getBool('DEBUG');
-    tf.env().set('DEBUG', true);
+    // Silence debug warnings.
+    spyOn(console, 'warn');
+
+    tf.enableDebugMode();
     const a = () => tf.tensor1d([2, Math.pow(2, 17)], 'float32');
     expect(a).toThrowError();
-    tf.env().set('DEBUG', savedDebugFlag);
   });
 });
 
@@ -230,6 +223,74 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
   });
 });
 
+describeWithFlags('Webgl backend disposal', WEBGL_ENVS, () => {
+  it('register and dispose a backend outside unit test', () => {
+    // Simulate outside unit test environment.
+    tf.ENV.set('IS_TEST', false);
+
+    const backend = new MathBackendWebGL();
+    tf.registerBackend('test-disposal', () => backend);
+    tf.setBackend('test-disposal');
+    // Compile and run a program.
+    tf.zeros([1000]).sqrt().dataSync();
+
+    // Dispose the backend.
+    tf.backend().dispose();
+
+    // Make sure the cache is empty.
+    const cache = getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION'));
+    expect(Object.keys(cache).length).toBe(0);
+    tf.removeBackend('test-disposal');
+  });
+
+  it('register and dispose a backend inside unit test', () => {
+    // Simulate inside unit test environment.
+    tf.ENV.set('IS_TEST', true);
+
+    const backend = new MathBackendWebGL();
+    tf.registerBackend('test-disposal', () => backend);
+    tf.setBackend('test-disposal');
+    // Compile and run a program.
+    tf.zeros([1000]).sqrt().dataSync();
+
+    // Dispose the backend.
+    tf.backend().dispose();
+
+    // Make sure the cache is NOT empty.
+    const cache = getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION'));
+    expect(Object.keys(cache).length).toBeGreaterThan(0);
+    tf.removeBackend('test-disposal');
+  });
+
+  it('register, dispose and re-register a backend outside unit test', () => {
+    // Simulate outside unit test environment.
+    tf.ENV.set('IS_TEST', false);
+
+    tf.registerBackend('test-disposal', () => new MathBackendWebGL());
+    tf.setBackend('test-disposal');
+    // Compile and run a program.
+    tf.zeros([1000]).sqrt().dataSync();
+
+    // Dispose the backend.
+    tf.backend().dispose();
+    tf.removeBackend('test-disposal');
+
+    // Re-register a backend.
+    tf.registerBackend('test-disposal', () => new MathBackendWebGL());
+    tf.setBackend('test-disposal');
+    // Compile and run a program.
+    tf.zeros([1000]).sqrt().dataSync();
+
+    // Dispose the 2nd backend.
+    tf.backend().dispose();
+
+    // Make sure the cache is empty.
+    const cache = getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION'));
+    expect(Object.keys(cache).length).toBe(0);
+    tf.removeBackend('test-disposal');
+  });
+});
+
 describeWithFlags('Custom window size', WEBGL_ENVS, () => {
   const customBackendName = 'custom-webgl';
 
@@ -356,11 +417,7 @@ describeWithFlags('debug on webgl', WEBGL_ENVS, () => {
   beforeAll(() => {
     // Silences debug warnings.
     spyOn(console, 'warn');
-    tf.env().set('DEBUG', true);
-  });
-
-  afterAll(() => {
-    tf.env().set('DEBUG', false);
+    tf.enableDebugMode();
   });
 
   it('debug mode errors when overflow in tensor construction', () => {
@@ -532,11 +589,12 @@ describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
   });
 });
 
-describe('WebGL backend has sync init', () => {
+describeWithFlags('WebGL backend has sync init', WEBGL_ENVS, () => {
   it('can do matmul without waiting for ready', async () => {
     tf.registerBackend('my-webgl', () => {
       return new MathBackendWebGL();
     });
+    tf.setBackend('my-webgl');
     const a = tf.tensor1d([5]);
     const b = tf.tensor1d([3]);
     const res = tf.dot(a, b);

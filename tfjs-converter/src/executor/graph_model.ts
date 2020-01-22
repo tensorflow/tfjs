@@ -38,6 +38,7 @@ export class GraphModel implements InferenceModel {
   private executor: GraphExecutor;
   private version = 'n/a';
   private handler: io.IOHandler;
+  private artifacts: io.ModelArtifacts;
   // Returns the version information for the tensorflow model GraphDef.
   get modelVersion(): string {
     return this.version;
@@ -114,16 +115,90 @@ export class GraphModel implements InferenceModel {
           'Cannot proceed with model loading because the IOHandler provided ' +
           'does not have the `load` method implemented.');
     }
-    const artifacts = await this.handler.load();
-    const graph = artifacts.modelTopology as tensorflow.IGraphDef;
+    this.artifacts = await this.handler.load();
+    const graph = this.artifacts.modelTopology as tensorflow.IGraphDef;
+    let signature = {};
+    if (this.artifacts.userDefinedMetadata != null) {
+      signature =  // tslint:disable-next-line:no-any
+          (this.artifacts.userDefinedMetadata as any).signature as
+          tensorflow.ISignatureDef;
+    }
 
     this.version = `${graph.versions.producer}.${graph.versions.minConsumer}`;
     const weightMap =
-        io.decodeWeights(artifacts.weightData, artifacts.weightSpecs);
-    this.executor =
-        new GraphExecutor(OperationMapper.Instance.transformGraph(graph));
+        io.decodeWeights(this.artifacts.weightData, this.artifacts.weightSpecs);
+    this.executor = new GraphExecutor(
+        OperationMapper.Instance.transformGraph(graph, signature));
     this.executor.weightMap = this.convertTensorMapToTensorsMap(weightMap);
     return true;
+  }
+
+  /**
+   * Save the configuration and/or weights of the GraphModel.
+   *
+   * An `IOHandler` is an object that has a `save` method of the proper
+   * signature defined. The `save` method manages the storing or
+   * transmission of serialized data ("artifacts") that represent the
+   * model's topology and weights onto or via a specific medium, such as
+   * file downloads, local storage, IndexedDB in the web browser and HTTP
+   * requests to a server. TensorFlow.js provides `IOHandler`
+   * implementations for a number of frequently used saving mediums, such as
+   * `tf.io.browserDownloads` and `tf.io.browserLocalStorage`. See `tf.io`
+   * for more details.
+   *
+   * This method also allows you to refer to certain types of `IOHandler`s
+   * as URL-like string shortcuts, such as 'localstorage://' and
+   * 'indexeddb://'.
+   *
+   * Example 1: Save `model`'s topology and weights to browser [local
+   * storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage);
+   * then load it back.
+   *
+   * ```js
+   * const modelUrl =
+   *    'https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json';
+   * const model = await tf.loadGraphModel(modelUrl);
+   * const zeros = tf.zeros([1, 224, 224, 3]);
+   * model.predict(zeros).print();
+   *
+   * const saveResults = await model.save('localstorage://my-model-1');
+   *
+   * const loadedModel = await tf.loadGraphModel('localstorage://my-model-1');
+   * console.log('Prediction from loaded model:');
+   * model.predict(zeros).print();
+   * ```
+   *
+   * @param handlerOrURL An instance of `IOHandler` or a URL-like,
+   * scheme-based string shortcut for `IOHandler`.
+   * @param config Options for saving the model.
+   * @returns A `Promise` of `SaveResult`, which summarizes the result of
+   * the saving, such as byte sizes of the saved artifacts for the model's
+   *   topology and weight values.
+   */
+  /**
+   * @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true}
+   */
+  async save(handlerOrURL: io.IOHandler|string, config?: io.SaveConfig):
+      Promise<io.SaveResult> {
+    if (typeof handlerOrURL === 'string') {
+      const handlers = io.getSaveHandlers(handlerOrURL);
+      if (handlers.length === 0) {
+        throw new Error(
+            `Cannot find any save handlers for URL '${handlerOrURL}'`);
+      } else if (handlers.length > 1) {
+        throw new Error(
+            `Found more than one (${handlers.length}) save handlers for ` +
+            `URL '${handlerOrURL}'`);
+      }
+      handlerOrURL = handlers[0];
+    }
+    if (handlerOrURL.save == null) {
+      throw new Error(
+          'GraphModel.save() cannot proceed because the IOHandler ' +
+          'provided does not have the `save` attribute defined.');
+    }
+
+    return handlerOrURL.save(this.artifacts);
   }
 
   /**

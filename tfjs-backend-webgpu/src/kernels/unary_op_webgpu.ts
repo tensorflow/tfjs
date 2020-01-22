@@ -23,12 +23,16 @@ import {WebGPUProgram} from './webgpu_program';
 
 export const RELU = 'return max(a, 0.0);';
 export const RELU6 = 'return (a < 0.0) ? 0.0 : min(6.0, a);';
+export const LINEAR = `return x;`;
+export const ELU = `return (x >= 0.0) ? x : (exp(x) - 1.0);`;
 
 export const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
+export const ABS = `return abs(a);`;
 
 export class UnaryOpProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;
+  shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A'];
@@ -44,7 +48,6 @@ export class UnaryOpProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
     const type = getCoordsDataType(this.outputShape.length);
-
     this.userCode = `
       float unaryOperation(float a) {
         ${op}
@@ -65,5 +68,6 @@ export class UnaryOpProgram implements WebGPUProgram {
         }
       }
     `;
+    this.shaderKey = `unary${op}${type}${size}`;
   }
 }

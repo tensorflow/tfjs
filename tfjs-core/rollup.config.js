@@ -101,7 +101,7 @@ module.exports = cmdOptions => {
 
   // tf-core.min.js
   bundles.push(config({
-    plugins: [terser({output: {preamble: PREAMBLE}})],
+    plugins: [terser({output: {preamble: PREAMBLE, comments: false}})],
     output: {
       format: 'umd',
       name: 'tf',
@@ -114,7 +114,7 @@ module.exports = cmdOptions => {
   if (!cmdOptions.ci) {
     // tf-core.esm.js
     bundles.push(config({
-      plugins: [terser({output: {preamble: PREAMBLE}})],
+      plugins: [terser({output: {preamble: PREAMBLE, comments: false}})],
       output: {
         format: 'es',
         file: 'dist/tf-core.esm.js',

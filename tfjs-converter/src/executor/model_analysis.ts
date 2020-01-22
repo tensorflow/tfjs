@@ -18,6 +18,7 @@
 import {NamedTensorMap} from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../data/types';
+import {parseNodeName} from '../operations/executors/utils';
 import {Graph, Node} from '../operations/types';
 
 export interface ExecutionInfo {
@@ -48,6 +49,8 @@ export function getExecutionSubgraph(
   // Start with the outputs, going backwards and find all the nodes that are
   // needed to compute those outputs.
   const seen = new Set<string>();
+  const inputNodeNames =
+      Object.keys(inputs).map(name => parseNodeName(name)[0]);
   const frontier = [...outputs];
   while (frontier.length > 0) {
     const node = frontier.pop();
@@ -65,7 +68,8 @@ export function getExecutionSubgraph(
       continue;
     }
     // This node is a dead end since it's one of the user-provided inputs.
-    if (inputs[node.name] != null) {
+
+    if (inputNodeNames.indexOf(node.name) !== -1) {
       continue;
     }
     if (node.inputs.length === 0) {
@@ -93,7 +97,9 @@ export function getNodesInTopologicalOrder(
     executionInfo: ExecutionInfo): Node[] {
   const {usedNodes, inputs} = executionInfo;
   const frontier: Node[] = [];
-  const inputNodes = Object.keys(inputs).map(name => graph.nodes[name]);
+  const inputNodes = Object.keys(inputs)
+                         .map(name => parseNodeName(name)[0])
+                         .map(name => graph.nodes[name]);
   inputNodes.forEach(input => {
     if (usedNodes.has(input.name)) {
       frontier.push(input);
@@ -123,8 +129,9 @@ export function getNodesInTopologicalOrder(
 }
 
 const CONTROL_FLOW_OPS = ['Switch', 'Merge', 'Enter', 'Exit', 'NextIteration'];
-const DYNAMIC_SHAPE_OPS =
-    ['NonMaxSuppressionV2', 'NonMaxSuppressionV3', 'Where'];
+const DYNAMIC_SHAPE_OPS = [
+  'NonMaxSuppressionV2', 'NonMaxSuppressionV3', 'NonMaxSuppressionV5', 'Where'
+];
 
 export function isControlFlow(node: Node) {
   return CONTROL_FLOW_OPS.indexOf(node.op) >= 0;
