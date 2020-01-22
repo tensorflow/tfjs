@@ -20,7 +20,7 @@ const karmaTypescriptConfig = {
   // Disable coverage reports and instrumentation by default for tests
   coverageOptions: {instrumentation: false},
   reports: {},
-  bundlerOptions: {sourceMap: true}
+  bundlerOptions: {sourceMap: false}
 };
 
 // Enable coverage reports and instrumentation under KARMA_COVERAGE=1 env
