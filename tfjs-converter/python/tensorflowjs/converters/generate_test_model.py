@@ -22,7 +22,7 @@ import argparse
 import os
 import sys
 
-import tensorflow as tf
+import tensorflow.compat.v2 as tf
 
 tf.enable_eager_execution()
 
