@@ -117,7 +117,7 @@ module.exports = function(config) {
       bs_chrome_mac: {
         base: 'BrowserStack',
         browser: 'chrome',
-        browser_version: '77.0',
+        browser_version: 'latest',
         os: 'OS X',
         os_version: 'High Sierra'
       },
