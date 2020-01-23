@@ -250,12 +250,13 @@ export function arrayBufferToBase64String(buffer: ArrayBuffer): string {
   if (useNodeBuffer) {
     return Buffer.from(buffer).toString('base64');
   }
-  const buf = new Uint8Array(buffer);
-  let s = '';
-  for (let i = 0; i < buf.length; i++) {
-    s += String.fromCharCode(buf[i]);
-  }
-  return btoa(s);
+  // const buf = new Uint8Array(buffer);
+  // let s = '';
+  // for (let i = 0; i < buf.length; i++) {
+  //   s += String.fromCharCode(buf[i]);
+  // }
+  // return btoa(s);
+  return btoa(String.fromCharCode.apply(null, new Uint8Array(buffer)));
 }
 
 /**
