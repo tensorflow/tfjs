@@ -76,5 +76,5 @@ substitutions:
   _NIGHTLY: ''
 options:
   logStreamingOption: 'STREAM_ON'
-  machineType: 'N1_HIGHCPU_32'
+  machineType: 'N1_HIGHCPU_8'
   substitution_option: 'ALLOW_LOOSE'

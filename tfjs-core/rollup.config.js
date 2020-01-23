@@ -42,7 +42,7 @@ function config({plugins = [], output = {}, external = [], visualize = false}) {
   if (visualize) {
     const filename = output.file + '.html';
     plugins.push(visualizer({
-      sourcemap: false,
+      sourcemap: true,
       filename,
     }));
     console.log(`Will output a bundle visualization in ${filename}`);
@@ -69,7 +69,7 @@ function config({plugins = [], output = {}, external = [], visualize = false}) {
     ],
     output: {
       banner: PREAMBLE,
-      sourcemap: false,
+      sourcemap: true,
       ...output,
     },
     external: ['crypto', ...external],
