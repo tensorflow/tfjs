@@ -166,18 +166,34 @@ class AsyncStorageHandler implements io.IOHandler {
  * This `IOHandler` supports both `save` and `load`.
  *
  * For each model's saved artifacts, three items are saved to async storage.
- *   - `${PATH_PREFIX}/${modelPath}/info`: Contains meta-info about the
+ *   - `tensorflowjs_models/${modelPath}/info`: Contains meta-info about the
  *     model, such as date saved, type of the topology, size in bytes, etc.
- *   - `${PATH_PREFIX}/${modelPath}/model_without_weight`: The topology,
+ *   - `tensorflowjs_models/${modelPath}/model_without_weight`: The topology,
  *     weights_specs and all other information about the model except for the
  *     weights.
- *   - `${PATH_PREFIX}/${modelPath}/weight_data`: Concatenated binary
+ *   - `tensorflowjs_models/${modelPath}/weight_data`: Concatenated binary
  *     weight values, stored as a base64-encoded string.
+ *
+ * ```js
+ *  async function asyncStorageExample() {
+ *    // Define a model
+ *    const model = tf.sequential();
+ *    model.add(tf.layers.dense({units: 5, inputShape: [1]}));
+ *    model.add(tf.layers.dense({units: 1}));
+ *    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+ *
+ *    // Save the model to async storage
+ *    await model.save(asyncStorageIO('custom-model-test'));
+ *    // Load the model from async storage
+ *    await tf.loadLayersModel(asyncStorageIO('custom-model-test'));
+ * }
+ * ```
  *
  * @param modelPath A unique identifier for the model to be saved. Must be a
  *   non-empty string.
  * @returns An instance of `IOHandler`
  */
+/** @doc {heading: 'Models', subheading: 'IOHandlers'} */
 export function asyncStorageIO(modelPath: string): io.IOHandler {
   return new AsyncStorageHandler(modelPath);
 }
