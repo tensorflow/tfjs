@@ -55,7 +55,7 @@ const DEFAULT_AUTORENDER = true;
 const DEFAULT_RESIZE_DEPTH = 3;
 
 /**
- * A higher-order-component (HOC) that augments the (Expo.Camera)[https://docs.expo.io/versions/latest/sdk/camera/]
+ * A higher-order-component (HOC) that augments the [Expo.Camera](https://docs.expo.io/versions/latest/sdk/camera/)
  * component with the ability to yield tensors representing the camera stream.
  *
  * Because the camera data will be consumed in the process, the original
@@ -69,29 +69,29 @@ const DEFAULT_RESIZE_DEPTH = 3;
  * __In addition to__ all the props taken by Expo.Camera. The returned
  * component takes the following props
  *
- * - cameraTextureWidth: number — the width the camera preview texture
+ * - __cameraTextureWidth__: number — the width the camera preview texture
  *   (see example and note below)
- * - cameraTextureHeight: number — the height the camera preview texture
+ * - __cameraTextureHeight__: number — the height the camera preview texture
  *   (see example and note below)
- * - resizeWidth: number — the width of the output tensor
- * - resizeHeight: number — the height of the output tensor
- * - resizeDepth: number — the depth (num of channels) of the output tensor.
+ * - __resizeWidth__: number — the width of the output tensor
+ * - __resizeHeight__: number — the height of the output tensor
+ * - __resizeDepth__: number — the depth (num of channels) of the output tensor.
  *    Should be 3 or 4.
- * - autorender: boolean — if true the view will be automatically updated with
+ * - __autorender__: boolean — if true the view will be automatically updated with
  *   the contents of the camera. Set this to false if you want more direct
  *   control on when rendering happens.
- * - onReady: (
+ * - __onReady__: (
  *    images: IterableIterator<tf.Tensor3D>,
  *    updateCameraPreview: () => void,
  *    gl: ExpoWebGLRenderingContext
  *  ) => void — When the component is mounted and ready this callback will
  *  be called and recieve the following 3 elements:
- *    - images is a (iterator)[https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators]
+ *    - __images__ is a (iterator)[https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators]
  *      that yields tensors representing the camera image on demand.
- *    - updateCameraPreview is a function that will update the WebGL render
+ *    - __updateCameraPreview__ is a function that will update the WebGL render
  *      buffer with the contents of the camera. Not needed when `autorender`
  *      is true
- *    - gl is the ExpoWebGl context used to do the rendering. After calling
+ *    - __gl__ is the ExpoWebGl context used to do the rendering. After calling
  *      `updateCameraPreview` and any other operations you want to synchronize
  *      to the camera rendering you must call gl.endFrameExp() to display it
  *      on the screen. This is also provided in case you want to do other
@@ -99,7 +99,8 @@ const DEFAULT_RESIZE_DEPTH = 3;
  *      Not needed when `autorender` is true.
  *
  * ```js
- * import {cameraWithTensors} from '@tensorflow/tfjs-react-native';
+ * import { Camera } from 'expo-camera';
+ * import { cameraWithTensors } from '@tensorflow/tfjs-react-native';
  *
  * const TensorCamera = cameraWithTensors(Camera);
  *
@@ -161,6 +162,7 @@ const DEFAULT_RESIZE_DEPTH = 3;
  *
  * @param CameraComponent an expo Camera component constructor
  */
+/** @doc {heading: 'Media', subheading: 'Camera'} */
 export function cameraWithTensors<T extends WrappedComponentProps>(
   // tslint:disable-next-line: variable-name
   CameraComponent: React.ComponentType<T>,
@@ -328,7 +330,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
       const allProps = Object.keys(this.props);
       for (let i = 0; i < allProps.length; i++) {
         const key = allProps[i];
-        if(!tensorCameraPropKeys.includes(key)) {
+        if (!tensorCameraPropKeys.includes(key)) {
           cameraProps[key] = this.props[key];
         }
       }
@@ -361,7 +363,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
             width: cameraLayout.width,
             height: cameraLayout.height,
             zIndex: this.props.style.zIndex ?
-             parseInt(this.props.style.zIndex, 10) + 10 : 10,
+              parseInt(this.props.style.zIndex, 10) + 10 : 10,
           }
 
         });

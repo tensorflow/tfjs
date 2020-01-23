@@ -12,9 +12,9 @@
     "jsx": "react-native"
   },
   "include": [
-    "src/",
+    "src/"
   ],
   "exclude": [
     "node_modules"
-  ],
+  ]
 }
