@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-react-native",
-  "version": "0.1.0-alpha.3",
+  "version": "0.2",
   "description": "TensorFlow.js platform implementation for React Native",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
