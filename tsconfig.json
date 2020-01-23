@@ -3,7 +3,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "noImplicitAny": true,
-    "sourceMap": true,
+    "sourceMap": false,
     "removeComments": false,
     "preserveConstEnums": true,
     "declaration": true,
