@@ -250,9 +250,12 @@ export function arrayBufferToBase64String(buffer: ArrayBuffer): string {
   if (useNodeBuffer) {
     return Buffer.from(buffer).toString('base64');
   }
-  // TODO(lina128): Change to just ...new Uint8Array(buffer) after upgrade
-  // to es6, or after Typescript supports spread operator on Uint8Array.
-  return btoa(String.fromCharCode(...Array.from(new Uint8Array(buffer))));
+  const buf = new Uint8Array(buffer);
+  let s = '';
+  for (let i = 0, l = buf.length; i < l; i++) {
+    s += String.fromCharCode(buf[i]);
+  }
+  return btoa(s);
 }
 
 /**
