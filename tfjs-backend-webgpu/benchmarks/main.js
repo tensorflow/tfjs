@@ -30,7 +30,8 @@ const strokes = {
 };
 
 const MAX_NUM_LOGS = 50;
-const START_LOGGING_DATE = '2019-08-16';
+// const START_LOGGING_DATE = '2019-08-16';
+const START_LOGGING_DATE = '2019-11-16';
 const startDate = moment(START_LOGGING_DATE, 'YYYY-MM-DD');
 const endDate = moment();
 const files = [];
@@ -84,9 +85,13 @@ Promise
         const processedResponse = [];
 
         for (let idx = 0; idx < response.length; idx++) {
-          const {name, backend, min, mean} = response[idx];
-          let testIndex = processedResponse.map(d => d.name).indexOf(name);
+          const {backend, min, mean} = response[idx];
+          let name = response[idx]['name'];
+          if(name === 'posenet') { // Merge posenet and posenet_resnet records.
+            name = 'posenet_resnet';
+          }
 
+          let testIndex = processedResponse.map(d => d.name).indexOf(name);
           if (testIndex === -1) {
             processedResponse.push({name: name, params: []});
             testIndex = processedResponse.length - 1;
