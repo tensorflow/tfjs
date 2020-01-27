@@ -427,8 +427,6 @@ function mapTFDtypeToJSDtype(tfDtype: string): DataType {
       return 'float32';
     case 'DT_INT32':
       return 'int32';
-    case 'DT_INT64':
-      return 'int64';
     case 'DT_BOOL':
       return 'bool';
     case 'DT_COMPLEX64':
@@ -436,7 +434,7 @@ function mapTFDtypeToJSDtype(tfDtype: string): DataType {
     case 'DT_STRING':
       return 'string';
     default:
-      throw new Error('Unsupported tensor DataType: ' + tfDtype);
+      throw new Error('Unsupported tensor DataType: ' + tfDtype + ', try to modify the model in python to convert the datatype' );
   }
 }
 
