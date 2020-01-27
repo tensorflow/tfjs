@@ -434,7 +434,8 @@ function mapTFDtypeToJSDtype(tfDtype: string): DataType {
     case 'DT_STRING':
       return 'string';
     default:
-      throw new Error('Unsupported tensor DataType: ' + tfDtype + ', try to modify the model in python to convert the datatype' );
+      throw new Error('Unsupported tensor DataType: ' + tfDtype + 
+                      ', try to modify the model in python to convert the datatype' );
   }
 }
 
