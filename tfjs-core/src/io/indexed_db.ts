@@ -178,7 +178,12 @@ export class BrowserIndexedDB implements IOHandler {
               // If the put-model request fails, roll back the info entry as
               // well.
               infoStore = infoTx.objectStore(INFO_STORE_NAME);
-              const deleteInfoRequest = infoStore.delete(this.modelPath);
+              let deleteInfoRequest: IDBRequest;
+              try {
+                deleteInfoRequest = infoStore.delete(this.modelPath);
+              } catch (err) {
+                return reject(putModelRequest.error);
+              }
               deleteInfoRequest.onsuccess = () => {
                 db.close();
                 return reject(putModelRequest.error);
