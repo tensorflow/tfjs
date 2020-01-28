@@ -67,10 +67,11 @@ function parseHeaders(rawHeaders: string) {
  * @param path The URL path to make a request to
  * @param init The request init. See init here:
  *     https://developer.mozilla.org/en-US/docs/Web/API/Request/Request
- * @param options A RequestDetails object
- * @param options.isBinary boolean indicating whether this request is for a
+ * @param options A RequestDetails object.
+ *    - __options.isBinary__ boolean indicating whether this request is for a
  *     binary file.
  */
+/** @doc {heading: 'Platform helpers', subheading: 'http'} */
 export async function fetch(
     path: string, init?: RequestInit,
     options?: tf.io.RequestDetails): Promise<Response> {
