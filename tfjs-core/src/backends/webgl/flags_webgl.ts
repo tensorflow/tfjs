@@ -26,6 +26,8 @@ const ENV = env();
  * This file contains WebGL-specific flag registrations.
  */
 
+ENV.registerFlag('DEBUG_COLOR_ATTACHMENT_INDEX', () => 1);
+
 /**
  * True if WebGL is supported.
  */

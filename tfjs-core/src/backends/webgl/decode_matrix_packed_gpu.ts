@@ -55,7 +55,8 @@ export class DecodeMatrixPackedProgram implements GPGPUProgram {
         }
 
         // ${glsl.output} = result;
-        buf_0 = result;
+        // buf_0 = result;
+        buf_1 = result;
       }
     `;
   }

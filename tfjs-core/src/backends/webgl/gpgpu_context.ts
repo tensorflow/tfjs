@@ -163,14 +163,15 @@ export class GPGPUContext {
   }
 
   public uploadPixelDataToTexture(
-      texture: WebGLTexture,
+      textures: WebGLTexture[],
       pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement) {
     this.throwIfDisposed();
-    gpgpu_util.uploadPixelDataToTexture(this.gl, this.debug, texture, pixels);
+    gpgpu_util.uploadPixelDataToTexture(this.gl, this.debug, textures, pixels);
   }
 
   public uploadDenseMatrixToTexture(
-      texture: WebGLTexture, width: number, height: number, data: TypedArray) {
+      texture: WebGLTexture[], width: number, height: number,
+      data: TypedArray) {
     this.throwIfDisposed();
     gpgpu_util.uploadDenseMatrixToTexture(
         this.gl, this.debug, texture, width, height, data, this.textureConfig);
@@ -224,7 +225,7 @@ export class GPGPUContext {
 
   public createBufferFromTexture(
       texture: WebGLTexture, rows: number, columns: number): WebGLBuffer {
-    this.bindTextureToFrameBuffer(texture);
+    this.bindTextureToFrameBuffer([texture]);
     const result = gpgpu_util.createBufferFromOutputTexture(
         this.gl as WebGL2RenderingContext, this.debug, rows, columns,
         this.textureConfig);
@@ -369,12 +370,13 @@ export class GPGPUContext {
   }
 
   public setOutputMatrixTexture(
-      outputMatrixTexture: WebGLTexture, rows: number, columns: number) {
+      outputMatrixTexture: WebGLTexture[], rows: number, columns: number) {
     this.setOutputMatrixTextureDriver(outputMatrixTexture, columns, rows);
   }
 
   public setOutputPackedMatrixTexture(
-      outputPackedMatrixTexture: WebGLTexture, rows: number, columns: number) {
+      outputPackedMatrixTexture: WebGLTexture[], rows: number,
+      columns: number) {
     this.throwIfDisposed();
     const [width, height] =
         tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
@@ -570,7 +572,7 @@ export class GPGPUContext {
     });
   }
 
-  private bindTextureToFrameBuffer(texture: WebGLTexture) {
+  private bindTextureToFrameBuffer(texture: WebGLTexture[]) {
     this.throwIfDisposed();
     webgl_util.bindColorTextureToFramebuffer(
         this.gl, this.debug, texture, this.framebuffer);
@@ -582,7 +584,7 @@ export class GPGPUContext {
   private unbindTextureToFrameBuffer() {
     if (this.outputTexture != null) {
       webgl_util.bindColorTextureToFramebuffer(
-          this.gl, this.debug, this.outputTexture, this.framebuffer);
+          this.gl, this.debug, [this.outputTexture], this.framebuffer);
       if (this.debug) {
         webgl_util.validateFramebuffer(this.gl);
       }
@@ -595,7 +597,7 @@ export class GPGPUContext {
   private downloadMatrixDriver(
       texture: WebGLTexture,
       downloadAndDecode: () => Float32Array): Float32Array {
-    this.bindTextureToFrameBuffer(texture);
+    this.bindTextureToFrameBuffer([texture]);
     const result = downloadAndDecode();
     this.unbindTextureToFrameBuffer();
 
@@ -603,7 +605,7 @@ export class GPGPUContext {
   }
 
   private setOutputMatrixTextureDriver(
-      outputMatrixTextureMaybePacked: WebGLTexture, width: number,
+      outputMatrixTextureMaybePacked: WebGLTexture[], width: number,
       height: number) {
     console.log('SET OUTPUT MATRIX TEXTURE DRIVER');
     this.throwIfDisposed();
@@ -613,7 +615,8 @@ export class GPGPUContext {
     if (this.debug) {
       webgl_util.validateFramebuffer(gl);
     }
-    this.outputTexture = outputMatrixTextureMaybePacked;
+    this.outputTexture = outputMatrixTextureMaybePacked[env().getNumber(
+        'DEBUG_COLOR_ATTACHMENT_INDEX')];
     webgl_util.callAndCheck(
         gl, this.debug, () => gl.viewport(0, 0, width, height));
     webgl_util.callAndCheck(

@@ -396,7 +396,8 @@ export class MathBackendWebGL extends KernelBackend {
       const tmpData = this.texData.get(tmpDownloadTarget.dataId);
 
       buffer = this.gpgpu.createBufferFromTexture(
-          tmpData.texture, ...tex_util.getDenseTexShape(shape));
+          tmpData.texture[env().getNumber('DEBUG_COLOR_ATTACHMENT_INDEX')],
+          ...tex_util.getDenseTexShape(shape));
     }
 
     this.pendingRead.set(dataId, []);
@@ -466,10 +467,13 @@ export class MathBackendWebGL extends KernelBackend {
       console.log('RUN DOWNLOAD MATRIX FROM PACKED TEXTURE');
       const tmpTarget = this.decode(dataId);
       const tmpData = this.texData.get(tmpTarget.dataId);
-      const vals = this.gpgpu
-                       .downloadMatrixFromPackedTexture(
-                           tmpData.texture, ...tex_util.getDenseTexShape(shape))
-                       .subarray(0, size);
+      const vals =
+          this.gpgpu
+              .downloadMatrixFromPackedTexture(
+                  tmpData
+                      .texture[env().getNumber('DEBUG_COLOR_ATTACHMENT_INDEX')],
+                  ...tex_util.getDenseTexShape(shape))
+              .subarray(0, size);
 
       this.disposeData(tmpTarget.dataId);
 
@@ -489,7 +493,9 @@ export class MathBackendWebGL extends KernelBackend {
     const vals =
         this.gpgpu
             .downloadByteEncodedFloatMatrixFromOutputTexture(
-                tmpData.texture, tmpData.texShape[0], tmpData.texShape[1])
+                tmpData
+                    .texture[env().getNumber('DEBUG_COLOR_ATTACHMENT_INDEX')],
+                tmpData.texShape[0], tmpData.texShape[1])
             .subarray(0, size);
     this.disposeData(output.dataId);
 
@@ -606,7 +612,9 @@ export class MathBackendWebGL extends KernelBackend {
       this.dataRefCount.delete(key);
       if (texture != null) {
         this.numBytesInGPU -= this.computeBytes(texShape, dtype);
-        this.textureManager.releaseTexture(texture, texShape, usage, isPacked);
+        this.textureManager.releaseTexture(
+            texture[env().getNumber('DEBUG_COLOR_ATTACHMENT_INDEX')], texShape,
+            usage, isPacked);
       }
     }
     const texData = this.texData.get(dataId);
@@ -616,7 +624,7 @@ export class MathBackendWebGL extends KernelBackend {
     texData.slice = null;
   }
 
-  getTexture(dataId: DataId): WebGLTexture {
+  getTexture(dataId: DataId): WebGLTexture[] {
     this.uploadToGPU(dataId);
     return this.texData.get(dataId).texture;
   }
@@ -2777,7 +2785,7 @@ export class MathBackendWebGL extends KernelBackend {
 
   private acquireTexture(
       texShape: [number, number], texType: TextureUsage, dtype: DataType,
-      isPacked: boolean): WebGLTexture {
+      isPacked: boolean): WebGLTexture[] {
     this.numBytesInGPU += this.computeBytes(texShape, dtype);
     if (!this.warnedAboutMemory &&
         this.numBytesInGPU > this.numMBBeforeWarning * 1024 * 1024) {
@@ -2787,7 +2795,12 @@ export class MathBackendWebGL extends KernelBackend {
           `High memory usage in GPU: ${mb} MB, ` +
           `most likely due to a memory leak`);
     }
-    return this.textureManager.acquireTexture(texShape, texType, isPacked);
+    // return this.textureManager.acquireTexture(texShape, texType, isPacked);
+
+    return [
+      this.textureManager.acquireTexture(texShape, texType, isPacked),
+      this.textureManager.acquireTexture(texShape, texType, isPacked)
+    ];
   }
 
   private computeBytes(shape: [number, number], dtype: DataType) {
