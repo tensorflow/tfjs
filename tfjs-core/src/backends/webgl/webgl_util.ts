@@ -305,7 +305,7 @@ export function bindColorTextureToFramebuffer(
   callAndCheck(
       gl, debug,
       () => gl.framebufferTexture2D(
-          (gl as any).DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D,
+          (gl as any).FRAMEBUFFER, (gl as any).COLOR_ATTACHMENT1, gl.TEXTURE_2D,
           texture, 0));
 
   const texConfig = getTextureConfig(gl);
@@ -318,8 +318,8 @@ export function bindColorTextureToFramebuffer(
   callAndCheck(
       gl, debug,
       () => gl.framebufferTexture2D(
-          (gl as any).DRAW_FRAMEBUFFER, (gl as any).COLOR_ATTACHMENT1,
-          gl.TEXTURE_2D, secondTexture, 0));
+          (gl as any).FRAMEBUFFER, (gl as any).COLOR_ATTACHMENT0, gl.TEXTURE_2D,
+          secondTexture, 0));
 }
 
 export function unbindColorTextureFromFramebuffer(

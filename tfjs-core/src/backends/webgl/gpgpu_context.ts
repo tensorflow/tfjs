@@ -410,8 +410,9 @@ export class GPGPUContext {
       this.debugValidate();
     }
 
+    // Must be in order: 0, 1, 2, 3 etc.
     (gl as any).drawBuffers(
-        [gl.COLOR_ATTACHMENT0, (gl as any).COLOR_ATTACHMENT1]);
+        [(gl as any).COLOR_ATTACHMENT0, (gl as any).COLOR_ATTACHMENT1]);
 
     webgl_util.callAndCheck(
         gl, this.debug,
