@@ -22,6 +22,7 @@ async function run() {
   setWasmPath(wasmPath);
   await tf.setBackend('wasm');
   tf.add(5, 3).print();
+  tf.tensor1d([1, 2, -3]).exp().print();
 }
 
 run();
