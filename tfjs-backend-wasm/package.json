@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-backend-wasm",
-  "version": "1.5.1-alpha5",
+  "version": "1.5.2-alpha1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "jsnext:main": "dist/tf-backend-wasm.esm.js",
@@ -32,7 +32,7 @@
     "path": false
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "link:../tfjs-core"
+    "@tensorflow/tfjs-core": "1.5.2"
   },
   "dependencies": {
     "@types/emscripten": "~0.0.34"
@@ -40,7 +40,7 @@
   "devDependencies": {
     "@bazel/bazel": "^0.28.0",
     "@bazel/buildifier": "0.29.0",
-    "@tensorflow/tfjs-core": "link:../tfjs-core",
+    "@tensorflow/tfjs-core": "1.5.2",
     "@types/jasmine": "~2.8.6",
     "clang-format": "~1.2.4",
     "jasmine": "~3.1.0",
