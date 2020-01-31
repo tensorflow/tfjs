@@ -518,7 +518,7 @@ export class Reshape extends Layer {
 
   computeOutputShape(inputShape: Shape): Shape {
     let anyUnknownDims = false;
-    for (let i = 0; i < inputShape.length; ++i) {
+    for (let i = 1; i < inputShape.length; ++i) {
       if (this.isUnknown(inputShape[i])) {
         anyUnknownDims = true;
         break;

@@ -589,6 +589,17 @@ describe('Reshape Layer: Symbolic', () => {
     expect(output.inputs).toEqual([symbolicInput]);
   });
 
+  it('One unknown dimension with unknown batch size.', () => {
+    const symbolicInput =
+        new tfl.SymbolicTensor('float32', [null, 10, 4], null, [], null);
+    const targetShape = [5, null];
+    const flattenLayer = tfl.layers.reshape({targetShape});
+    const output = flattenLayer.apply(symbolicInput) as tfl.SymbolicTensor;
+    expect(output.shape).toEqual([null, 5, 8]);
+    expect(output.sourceLayer).toEqual(flattenLayer);
+    expect(output.inputs).toEqual([symbolicInput]);
+  });
+
   it('Incompatible size.', () => {
     const symbolicInput =
         new tfl.SymbolicTensor('float32', [12, 10, 4], null, [], null);
