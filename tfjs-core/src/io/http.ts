@@ -297,7 +297,7 @@ IORouterRegistry.registerLoadRouter(httpRouter);
  *     tf.layers.dense({units: 1, inputShape: [100], activation: 'sigmoid'}));
  *
  * const saveResult = await model.save(tf.io.http(
- *     'http://model-server:5000/upload', {method: 'PUT'}));
+ *     'http://model-server:5000/upload', {requestInit: {method: 'PUT'}}));
  * console.log(saveResult);
  * ```
  *

@@ -362,7 +362,8 @@ export class TFSavedModel implements InferenceModel {
  * function. The directory also has a variables directory contains a standard
  * training checkpoint. The directory may also has a assets directory contains
  * files used by the TensorFlow graph, for example text files used to initialize
- * vocabulary tables. For more information, see this guide:
+ * vocabulary tables. These are supported datatypes: float32, int32, complex64, 
+ * string.For more information, see this guide:
  * https://www.tensorflow.org/guide/saved_model.
  *
  * @param path The path to the SavedModel.
@@ -434,7 +435,8 @@ function mapTFDtypeToJSDtype(tfDtype: string): DataType {
     case 'DT_STRING':
       return 'string';
     default:
-      throw new Error('Unsupported tensor DataType: ' + tfDtype);
+      throw new Error('Unsupported tensor DataType: ' + tfDtype + 
+           ', try to modify the model in python to convert the datatype' );
   }
 }
 

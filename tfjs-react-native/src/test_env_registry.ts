@@ -15,11 +15,20 @@
  * =============================================================================
  */
 
-// We mock this library as it cannot be loaded in a browser yet we do want
-// to do JS only unit tests.
+// tslint:disable-next-line: no-imports-from-dist
+import {Constraints, registerTestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-// @ts-ignore (use of window)
-const localStorage = window.localStorage;
-// Use default export to match the library we are mocking.
-// tslint:disable-next-line
-export default localStorage;
+export const RN_ENVS: Constraints = {
+  predicate: testEnv => testEnv.backendName === 'rn-webgl'
+};
+
+registerTestEnv({
+  name: 'test-rn-webgl',
+  backendName: 'rn-webgl',
+  flags: {
+    'WEBGL_VERSION': 2,
+    'WEBGL_CPU_FORWARD': false,
+    'WEBGL_SIZE_UPLOAD_UNIFORM': 0
+  },
+  isDataSync: true
+});
