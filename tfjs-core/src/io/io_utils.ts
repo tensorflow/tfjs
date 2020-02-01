@@ -251,10 +251,9 @@ export function arrayBufferToBase64String(buffer: ArrayBuffer): string {
     return Buffer.from(buffer).toString('base64');
   }
   const buf = new Uint8Array(buffer);
-  let s = '';
-  for (let i = 0, l = buf.length; i < l; i++) {
-    s += String.fromCharCode(buf[i]);
-  }
+  const s = buf.reduce((acc, c) => {
+    return acc += String.fromCharCode(c)
+  }, '');
   return btoa(s);
 }
 
