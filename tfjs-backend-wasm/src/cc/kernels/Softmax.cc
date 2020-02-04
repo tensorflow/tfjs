@@ -60,8 +60,8 @@ void Softmax(size_t x_id, size_t out_id) {
 
   auto operator_cache_idx = operator_cache.find(cache_key);
   if (operator_cache_idx == operator_cache.end()) {
-    const size_t input_stride = 1;
-    const size_t output_stride = 1;
+    const size_t input_stride = channels;
+    const size_t output_stride = channels;
     const uint32_t flags = 0;
 
     xnn_status status = xnn_create_softmax_nc_f32(
