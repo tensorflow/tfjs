@@ -70,9 +70,7 @@ function softmax_<T extends Tensor>(logits: T|TensorLike, dim = -1): T {
         const keepDims = true;
 
         return {
-          logits: () => {
-            return dyTimesY.sub(dyTimesY.sum([dim], keepDims).mul(y));
-          }
+          logits: () => dyTimesY.sub(dyTimesY.sum([dim], keepDims).mul(y))
         };
       },
       'Softmax', {dim});
