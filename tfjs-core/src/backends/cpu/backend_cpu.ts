@@ -384,15 +384,9 @@ export class MathBackendCPU extends KernelBackend {
         logits,
         maxLogit.reshape(axis_util.expandShapeToKeepDim(maxLogit.shape, axes)));
     const b = this.exp(a);
-    const c = this.sum(b, axes);
-    const d = this.log(c);
-    let lse = this.add(this.reshape(maxLogit, d.shape), d);
-    const newShape = axis_util.expandShapeToKeepDim(lse.shape, axes);
-    lse = this.reshape(lse, newShape);
+    const sumExp = this.sum(b, axes);
 
-    const logResult = this.subtract(logits, lse);
-    const y = this.exp(logResult);
-    return y as T;
+    return b.div(sumExp);
   }
 
   subtract(a: Tensor, b: Tensor): Tensor {
