@@ -377,6 +377,24 @@ export class MathBackendCPU extends KernelBackend {
     return result.toTensor() as T;
   }
 
+  softmax<T extends Tensor>(logits: T): T {
+    const axes = util.parseAxisParam([logits.rank - 1], logits.shape);
+    const maxLogit = this.max(logits, axes);
+    const a = this.subtract(
+        logits,
+        maxLogit.reshape(axis_util.expandShapeToKeepDim(maxLogit.shape, axes)));
+    const b = this.exp(a);
+    const c = this.sum(b, axes);
+    const d = this.log(c);
+    let lse = this.add(this.reshape(maxLogit, d.shape), d);
+    const newShape = axis_util.expandShapeToKeepDim(lse.shape, axes);
+    lse = this.reshape(lse, newShape);
+
+    const logResult = this.subtract(logits, lse);
+    const y = this.exp(logResult);
+    return y as T;
+  }
+
   subtract(a: Tensor, b: Tensor): Tensor {
     if (a.dtype === 'complex64' || b.dtype === 'complex64') {
       return this.broadcastedBinaryComplexOp(
