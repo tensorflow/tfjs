@@ -18,9 +18,8 @@
 #include <vector>
 
 #include "src/cc/backend.h"
-#include "src/cc/kernels/Sigmoid.h"
 
-TEST(BATCH_MATMUL, xnn_operator_lifetime) {
+TEST(SOFTMAX, xnn_operator_lifetime) {
   tfjs::wasm::init();
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
@@ -41,18 +40,18 @@ TEST(BATCH_MATMUL, xnn_operator_lifetime) {
   ASSERT_EQ(3, tfjs::backend::num_tensors());
   ASSERT_EQ(0, tfjs::backend::xnn_operator_count);
 
-  // One new xnn_operator should be created for the first call to Sigmoid.
-  tfjs::wasm::Sigmoid(x0_id, out_id);
+  // One new xnn_operator should be created for the first call to Softmax.
+  tfjs::wasm::Softmax(x0_id, out_id);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
 
   // No new xnn_operators should be created for the second call to
-  // Sigmoid with the same arguments.
-  tfjs::wasm::Sigmoid(x0_id, out_id);
+  // Softmax with the same arguments.
+  tfjs::wasm::Softmax(x0_id, out_id);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
 
   // No new xnn_operators should be created for the second call to
-  // Sigmoid with different arguments.
-  tfjs::wasm::Sigmoid(x1_id, out_id);
+  // Softmax with different arguments.
+  tfjs::wasm::Softmax(x1_id, out_id);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
 
   tfjs::wasm::dispose();
