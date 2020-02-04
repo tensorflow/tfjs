@@ -73,7 +73,7 @@ function softmax_<T extends Tensor>(logits: T|TensorLike, dim = -1): T {
           logits: () => dyTimesY.sub(dyTimesY.sum([dim], keepDims).mul(y))
         };
       },
-      'Softmax', {dim});
+      'Softmax');
 }
 
 /**

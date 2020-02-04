@@ -64,6 +64,7 @@ import './ScatterNd';
 import './Sigmoid';
 import './Sin';
 import './Slice';
+import './Softmax';
 import './Square';
 import './Sub';
 import './Sum';

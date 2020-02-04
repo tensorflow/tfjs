@@ -19,6 +19,7 @@ import * as tf from '@tensorflow/tfjs-core';
 import {registerBackend, removeBackend, test_util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line:no-imports-from-dist
 import {ALL_ENVS, BROWSER_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 
 import {init, resetWasmPath} from './backend_wasm';
 import {BackendWasm, setWasmPath} from './index';
@@ -58,8 +59,8 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     }, 100);
 
     // Silences backend registration warnings.
-    spyOn(console, 'warn');
-    spyOn(console, 'log');
+    // spyOn(console, 'warn');
+    // spyOn(console, 'log');
   });
 
   afterEach(() => {
@@ -91,5 +92,15 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     // Setting the path too late.
     expect(() => setWasmPath('too/late'))
         .toThrowError(/The WASM backend was already initialized. Make sure/);
+  });
+
+  fit('softmax basic', async () => {
+    const y = tf.softmax(tf.tensor1d([2, 1, 3]));
+    const data = await y.data();
+    console.log('SOFTMAX BASIC');
+    console.log(Array.from(data));
+
+    expectArraysClose(data, [0.24472847, 0.09003057, 0.66524095]);
+    expectArraysClose(await y.sum().data(), 1);
   });
 });

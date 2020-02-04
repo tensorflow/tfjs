@@ -186,6 +186,7 @@ tfjs_cc_library(
         ":ResizeBilinear",
         ":ScatterNd",
         ":Sigmoid",
+        ":Softmax",
         ":Sub",
         ":Tile",
         ":Transpose",
@@ -647,11 +648,28 @@ tfjs_cc_library(
     ],
 )
 
+tfjs_cc_library(
+    name = "Softmax",
+    srcs = ["kernels/Softmax.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+    ],
+)
+
 tfjs_unit_test(
     name = "Sigmoid_test",
     srcs = ["kernels/Sigmoid_test.cc"],
     deps = [
         ":Sigmoid",
+    ],
+)
+
+tfjs_unit_test(
+    name = "Softmax_test",
+    srcs = ["kernels/Softmax_test.cc"],
+    deps = [
+        ":Softmax",
     ],
 )
 
