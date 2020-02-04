@@ -58,11 +58,16 @@ function softmax_<T extends Tensor>(logits: T|TensorLike, dim = -1): T {
   }
 
   return ENGINE.runKernelFunc(
-      (_, save) => {
-        const keepDims = true;
-        const lse = $logits.logSumExp([dim], keepDims);
-        const logResult = $logits.toFloat().sub(lse);
-        const y = logResult.exp() as T;
+      (backend, save) => {
+        // SAVED WORKING IMPLEMENTATION
+        // const keepDims = true;
+        // const lse = $logits.logSumExp([dim], keepDims);
+        // const logResult = $logits.toFloat().sub(lse);
+        // const y = logResult.exp() as T;
+
+        // NEW KERNEL
+        const y = backend.softmax($logits);
+
         save([y]);
 
         return y;

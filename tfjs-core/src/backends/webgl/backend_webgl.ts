@@ -1589,8 +1589,8 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   softmax<T extends Tensor>(x: T): T {
-    // const program = new
-    return x;
+    const program = new UnaryOpProgram(x.shape, unary_op.EXP);
+    return this.compileAndRun(program, [x]);
   }
 
   log<T extends Tensor>(x: T): T {
