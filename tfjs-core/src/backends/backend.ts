@@ -305,6 +305,9 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   expm1<T extends Tensor>(x: T): T {
     return notYetImplemented('expm1');
   }
+  softmax<T extends Tensor>(x: T): T {
+    return notYetImplemented('softmax');
+  }
   log<T extends Tensor>(x: T): T {
     return notYetImplemented('log');
   }

@@ -1588,6 +1588,11 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
+  softmax<T extends Tensor>(x: T): T {
+    // const program = new
+    return x;
+  }
+
   log<T extends Tensor>(x: T): T {
     if (this.shouldExecuteOnCPU([x])) {
       return this.cpuBackend.log(x);
