@@ -46,7 +46,7 @@ import {op} from './operation';
  */
 /** @doc {heading: 'Operations', subheading: 'Normalization'} */
 function softmax_<T extends Tensor>(logits: T|TensorLike, dim = -1): T {
-  const $logits = convertToTensor(logits, 'logits', 'softmax');
+  const $logits = convertToTensor(logits, 'logits', 'softmax', 'float32');
 
   if (dim === -1) {
     dim = $logits.rank - 1;
@@ -59,17 +59,8 @@ function softmax_<T extends Tensor>(logits: T|TensorLike, dim = -1): T {
 
   return ENGINE.runKernelFunc(
       (backend, save) => {
-        // SAVED WORKING IMPLEMENTATION
-        // const keepDims = true;
-        // const lse = $logits.logSumExp([dim], keepDims);
-        // const logResult = $logits.toFloat().sub(lse);
-        // const y = logResult.exp() as T;
-
-        // NEW KERNEL
         const y = backend.softmax($logits);
-
         save([y]);
-
         return y;
       },
       {logits: $logits},

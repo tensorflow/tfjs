@@ -1601,8 +1601,9 @@ export class MathBackendWebGL extends KernelBackend {
     const newShape = axis_util.expandShapeToKeepDim(lse.shape, axes);
     lse = this.reshape(lse, newShape);
 
-    const program = new UnaryOpProgram(logits.shape, unary_op.EXP);
-    return this.compileAndRun(program, [logits]);
+    const logResult = this.subtract(logits, lse);
+    const y = this.exp(logResult);
+    return y as T;
   }
 
   log<T extends Tensor>(x: T): T {
