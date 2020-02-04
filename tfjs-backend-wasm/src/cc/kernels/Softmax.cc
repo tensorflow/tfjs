@@ -46,7 +46,7 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 
-void Softmax(size_t x_id, size_t out_id) {
+void Softmax(const size_t x_id, const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
 
@@ -55,7 +55,7 @@ void Softmax(size_t x_id, size_t out_id) {
 
   xnn_operator_t softmax_op = nullptr;
 
-  const size_t channels = 3;
+  const size_t channels = x_info.size;
   OperatorCacheKey cache_key = {channels};
 
   auto operator_cache_idx = operator_cache.find(cache_key);
@@ -63,6 +63,7 @@ void Softmax(size_t x_id, size_t out_id) {
     const size_t input_stride = channels;
     const size_t output_stride = channels;
     const uint32_t flags = 0;
+    // input_stride / output_stride must be >= channels
 
     xnn_status status = xnn_create_softmax_nc_f32(
         channels, input_stride, output_stride, flags, &softmax_op);
