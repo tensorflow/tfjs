@@ -95,12 +95,11 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
   });
 
   fit('softmax basic', async () => {
-    const y = tf.softmax(tf.tensor1d([2, 1, 3]));
+    const y = tf.softmax(tf.tensor1d([1, 2, 2, 2]));
     const data = await y.data();
-    console.log('SOFTMAX BASIC');
-    console.log(Array.from(data));
+    console.log(Array.from(data));  // [0.1428571, 0.285714, 0.285714, 0.285714]
 
-    expectArraysClose(data, [0.24472847, 0.09003057, 0.66524095]);
+    expectArraysClose(data, [0.1092318, 0.2969227, 0.2969227, 0.2969227]);
     expectArraysClose(await y.sum().data(), 1);
   });
 });

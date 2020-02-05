@@ -18,6 +18,8 @@
 #include <vector>
 
 #include "src/cc/backend.h"
+#include "src/cc/kernels/Softmax.h"
+#include "src/cc/util.h"
 
 TEST(SOFTMAX, xnn_operator_lifetime) {
   tfjs::wasm::init();
@@ -30,8 +32,8 @@ TEST(SOFTMAX, xnn_operator_lifetime) {
   float x_values[x_size] = {1, 2, 2, 2};
 
   const size_t out_id = 3;
-  const size_t out_size = 8;
-  float out_values[out_size] = {0, 0, 0, 0, 0, 0, 0, 0};
+  const size_t out_size = 4;
+  float out_values[out_size] = {0, 0, 0, 0};
 
   tfjs::wasm::register_tensor(x0_id, x_size, x_values);
   tfjs::wasm::register_tensor(x1_id, x_size, x_values);
@@ -41,17 +43,26 @@ TEST(SOFTMAX, xnn_operator_lifetime) {
   ASSERT_EQ(0, tfjs::backend::xnn_operator_count);
 
   // One new xnn_operator should be created for the first call to Softmax.
-  tfjs::wasm::Softmax(x0_id, out_id);
+  tfjs::wasm::Softmax(x0_id, out_id, 4, 1);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
+
+  auto& out_info = tfjs::backend::get_tensor_info(out_id);
+  const float* out_buf = out_info.f32();
+
+  tfjs::util::log("PRINTING OUT VALUES");
+  for (size_t i = 0; i < out_size; ++i) {
+    tfjs::util::log("%f", out_buf[i]);
+  }
+  // prints: 0.109232, 0.296923, 0.296923, 0.296923
 
   // No new xnn_operators should be created for the second call to
   // Softmax with the same arguments.
-  tfjs::wasm::Softmax(x0_id, out_id);
+  tfjs::wasm::Softmax(x0_id, out_id, 4, 1);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
 
   // No new xnn_operators should be created for the second call to
   // Softmax with different arguments.
-  tfjs::wasm::Softmax(x1_id, out_id);
+  tfjs::wasm::Softmax(x1_id, out_id, 4, 1);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
 
   tfjs::wasm::dispose();
