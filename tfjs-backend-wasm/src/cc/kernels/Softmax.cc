@@ -29,7 +29,7 @@
 namespace {
 // We use std::tuple as the cache key as it implements the compare operator
 // needed for std::map.
-typedef std::tuple<size_t> OperatorCacheKey;
+typedef std::tuple<size_t, size_t> OperatorCacheKey;
 
 // The operator cache maps the weights id to the xnn_operator_t instantiated for
 // this set of weights.
@@ -64,14 +64,13 @@ void Softmax(const size_t x_id, const size_t out_id, const size_t channels,
 
   xnn_operator_t softmax_op = nullptr;
 
-  OperatorCacheKey cache_key = {channels};
+  OperatorCacheKey cache_key = {channels, batch};
 
   auto operator_cache_idx = operator_cache.find(cache_key);
   if (operator_cache_idx == operator_cache.end()) {
     const size_t input_stride = channels;
     const size_t output_stride = channels;
     const uint32_t flags = 0;
-    // input_stride / output_stride must be >= channels
 
     xnn_status status = xnn_create_softmax_nc_f32(
         channels, input_stride, output_stride, flags, &softmax_op);
