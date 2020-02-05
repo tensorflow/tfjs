@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -23,26 +23,39 @@ interface SoftmaxInputs extends NamedTensorInfoMap {
   x: TensorInfo;
 }
 
-let wasmFunc: (xId: number, outId: number) => void;
-
-function setup(backend: BackendWasm): void {
-  wasmFunc =
-      backend.wasm.cwrap('Softmax', null /* void */, ['number', 'number']);
+interface SoftmaxAttrs extends NamedAttrMap {
+  dim: number;
 }
 
-function softmax(args: {backend: BackendWasm, inputs: SoftmaxInputs}):
+let wasmFunc: (xId: number, outId: number, channels: number, batch: number) =>
+    void;
+
+function setup(backend: BackendWasm): void {
+  wasmFunc = backend.wasm.cwrap('Softmax', null /* void */, [
+    'number',  // xId
+    'number',  // outId
+    'number',  // channels
+    'number'   // batch
+  ]);
+}
+
+function softmax(
+    args: {backend: BackendWasm, inputs: SoftmaxInputs, attrs: SoftmaxAttrs}):
     TensorInfo {
-  const {backend, inputs: {logits}} = args;
+  const {backend, inputs: {logits}, attrs: {dim}} = args;
   const xId = backend.dataIdMap.get(logits.dataId).id;
   const out = backend.makeOutput(logits.shape, logits.dtype);
   const outId = backend.dataIdMap.get(out.dataId).id;
+
+  const channels = logits.shape[dim];
+  const batch = util.sizeFromShape(logits.shape) / channels;
 
   // Short-circuit zero-sized tensors.
   if (util.sizeFromShape(out.shape) === 0) {
     return out;
   }
 
-  wasmFunc(xId, outId);
+  wasmFunc(xId, outId, channels, batch);
   return out;
 }
 
