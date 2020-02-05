@@ -54,14 +54,6 @@ void Softmax(const size_t x_id, const size_t out_id, const size_t channels,
   const float* x_buf = x_info.f32();
   float* out_buf = out_info.f32_write();
 
-  tfjs::util::log("XNN INPUT");
-  for (size_t i = 0; i < batch; ++i) {
-    for (size_t j = 0; j < channels; ++j) {
-      tfjs::util::log("%f", x_buf[i * channels + j]);
-    }
-  }
-  // prints: 1.0, 2.0, 2.0, 2.0
-
   xnn_operator_t softmax_op = nullptr;
 
   OperatorCacheKey cache_key = {channels, batch};
@@ -98,6 +90,14 @@ void Softmax(const size_t x_id, const size_t out_id, const size_t channels,
         status);
     return;
   }
+
+  tfjs::util::log("XNN INPUT");
+  for (size_t i = 0; i < batch; ++i) {
+    for (size_t j = 0; j < channels; ++j) {
+      tfjs::util::log("%f", x_buf[i * channels + j]);
+    }
+  }
+  // prints: 1.0, 2.0, 2.0, 2.0
 
   xnn_run_operator(softmax_op, nullptr /* thread pool */);
 
