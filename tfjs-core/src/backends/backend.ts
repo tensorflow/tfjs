@@ -25,7 +25,7 @@ export const EPSILON_FLOAT16 = 1e-4;
 
 // Required information for all backends.
 export interface BackendTimingInfo {
-  kernelMs: number;
+  kernelMs: number|{error: string};
   getExtraProfileInfo?(): string;  // a field for additional timing information
                                    // e.g. packing / unpacking for WebGL backend
 }
