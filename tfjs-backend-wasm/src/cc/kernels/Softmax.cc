@@ -105,6 +105,7 @@ void Softmax(const size_t x_id, const size_t out_id, const size_t channels,
       tfjs::util::log("%f", out_buf[i * channels + j]);
     }
   }
+  // prints: 0, 0, 0, 0
 
   xnn_run_operator(softmax_op, nullptr /* thread pool */);
 
