@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <vector>
 
 #include "src/cc/interpolate_bilinear_impl.h"
@@ -28,23 +29,23 @@
 namespace tfjs {
 namespace wasm {
 void interpolate_bilinear(float* out_buf_ptr, const float* images_buf,
-                          const std::vector<int>& images_strides,
-                          int crop_width, int image_width, int image_width_m1,
-                          int image_height_m1, int num_channels,
-                          bool should_extrapolate, float extrapolation_value,
-                          int batch_offset, float y_ind, float width_scale,
-                          float x1, float x2) {
+                          const std::vector<size_t>& images_strides,
+                          size_t crop_width, size_t image_width,
+                          size_t image_width_m1, size_t image_height_m1,
+                          size_t num_channels, bool should_extrapolate,
+                          float extrapolation_value, size_t batch_offset,
+                          float y_ind, float width_scale, float x1, float x2) {
   float top_ind = floor(y_ind);
   float image_height_m1_f = image_height_m1;
   float bottom_ind = std::min(image_height_m1_f, ceil(y_ind));
   float y_lerp = y_ind - top_ind;
 
-  for (int x = 0; x < crop_width; ++x) {
+  for (size_t x = 0; x < crop_width; ++x) {
     float x_ind = (crop_width > 1) ? x1 * image_width_m1 + x * width_scale
                                    : 0.5 * (x1 + x2) * image_width_m1;
 
     if (should_extrapolate && (x_ind < 0 || x_ind > image_width - 1)) {
-      for (int c = 0; c < num_channels; ++c) {
+      for (size_t c = 0; c < num_channels; ++c) {
         *out_buf_ptr = extrapolation_value;
         out_buf_ptr++;
       }
@@ -56,9 +57,9 @@ void interpolate_bilinear(float* out_buf_ptr, const float* images_buf,
     float right_ind = std::min(image_width_m1_f, ceil(x_ind));
     float x_lerp = x_ind - left_ind;
 
-    for (int c = 0; c < num_channels; ++c) {
-      int ind = c + left_ind * images_strides[2] + top_ind * images_strides[1] +
-                batch_offset;
+    for (size_t c = 0; c < num_channels; ++c) {
+      size_t ind = c + left_ind * images_strides[2] +
+                   top_ind * images_strides[1] + batch_offset;
       const float top_left = images_buf[ind];
 
       ind = c + right_ind * images_strides[2] + top_ind * images_strides[1] +

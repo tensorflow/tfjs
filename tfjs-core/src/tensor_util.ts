@@ -36,12 +36,7 @@ export function assertTypesMatch(a: Tensor, b: Tensor): void {
 }
 
 export function isTensorInList(tensor: Tensor, tensorList: Tensor[]): boolean {
-  for (let i = 0; i < tensorList.length; i++) {
-    if (tensorList[i].id === tensor.id) {
-      return true;
-    }
-  }
-  return false;
+  return tensorList.some(x => x.id === tensor.id);
 }
 
 /**

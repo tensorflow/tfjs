@@ -63,7 +63,8 @@ function logicalAnd_<T extends Tensor>(
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
   return ENGINE.runKernelFunc(
-             backend => backend.logicalAnd($a, $b), {$a, $b}) as T;
+             backend => backend.logicalAnd($a, $b), {a: $a, b: $b},
+             null /* grad */, 'LogicalAnd') as T;
 }
 
 /**

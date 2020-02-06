@@ -19,200 +19,251 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose, expectArraysEqual} from '../test_util';
 
 describeWithFlags('nonMaxSuppression', ALL_ENVS, () => {
-  it('select from three clusters', async () => {
-    const boxes = tf.tensor2d(
-        [
-          0, 0,  1, 1,  0, 0.1,  1, 1.1,  0, -0.1, 1, 0.9,
-          0, 10, 1, 11, 0, 10.1, 1, 11.1, 0, 100,  1, 101
-        ],
-        [6, 4]);
-    const scores = tf.tensor1d([0.9, 0.75, 0.6, 0.95, 0.5, 0.3]);
-    const maxOutputSize = 3;
-    const iouThreshold = 0.5;
-    const scoreThreshold = 0;
-    const indices = tf.image.nonMaxSuppression(
-        boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
+  describe('NonMaxSuppression Basic', () => {
+    it('select from three clusters', async () => {
+      const boxes = tf.tensor2d(
+          [
+            0, 0,  1, 1,  0, 0.1,  1, 1.1,  0, -0.1, 1, 0.9,
+            0, 10, 1, 11, 0, 10.1, 1, 11.1, 0, 100,  1, 101
+          ],
+          [6, 4]);
+      const scores = tf.tensor1d([0.9, 0.75, 0.6, 0.95, 0.5, 0.3]);
+      const maxOutputSize = 3;
+      const iouThreshold = 0.5;
+      const scoreThreshold = 0;
+      const indices = tf.image.nonMaxSuppression(
+          boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
 
-    expect(indices.shape).toEqual([3]);
-    expectArraysEqual(await indices.data(), [3, 0, 5]);
+      expect(indices.shape).toEqual([3]);
+      expectArraysEqual(await indices.data(), [3, 0, 5]);
+    });
+
+    it('select from three clusters flipped coordinates', async () => {
+      const boxes = tf.tensor2d(
+          [
+            1, 1,  0, 0,  0, 0.1,  1, 1.1,  0, .9,  1, -0.1,
+            0, 10, 1, 11, 1, 10.1, 0, 11.1, 1, 101, 0, 100
+          ],
+          [6, 4]);
+      const scores = tf.tensor1d([0.9, 0.75, 0.6, 0.95, 0.5, 0.3]);
+      const maxOutputSize = 3;
+      const iouThreshold = 0.5;
+      const scoreThreshold = 0;
+      const indices = tf.image.nonMaxSuppression(
+          boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
+
+      expect(indices.shape).toEqual([3]);
+      expectArraysEqual(await indices.data(), [3, 0, 5]);
+    });
+
+    it('select at most two boxes from three clusters', async () => {
+      const boxes = tf.tensor2d(
+          [
+            0, 0,  1, 1,  0, 0.1,  1, 1.1,  0, -0.1, 1, 0.9,
+            0, 10, 1, 11, 0, 10.1, 1, 11.1, 0, 100,  1, 101
+          ],
+          [6, 4]);
+      const scores = tf.tensor1d([0.9, 0.75, 0.6, 0.95, 0.5, 0.3]);
+      const maxOutputSize = 2;
+      const iouThreshold = 0.5;
+      const scoreThreshold = 0;
+      const indices = tf.image.nonMaxSuppression(
+          boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
+
+      expect(indices.shape).toEqual([2]);
+      expectArraysEqual(await indices.data(), [3, 0]);
+    });
+
+    it('select at most thirty boxes from three clusters', async () => {
+      const boxes = tf.tensor2d(
+          [
+            0, 0,  1, 1,  0, 0.1,  1, 1.1,  0, -0.1, 1, 0.9,
+            0, 10, 1, 11, 0, 10.1, 1, 11.1, 0, 100,  1, 101
+          ],
+          [6, 4]);
+      const scores = tf.tensor1d([0.9, 0.75, 0.6, 0.95, 0.5, 0.3]);
+      const maxOutputSize = 30;
+      const iouThreshold = 0.5;
+      const scoreThreshold = 0;
+      const indices = tf.image.nonMaxSuppression(
+          boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
+
+      expect(indices.shape).toEqual([3]);
+      expectArraysEqual(await indices.data(), [3, 0, 5]);
+    });
+
+    it('select single box', async () => {
+      const boxes = tf.tensor2d([0, 0, 1, 1], [1, 4]);
+      const scores = tf.tensor1d([0.9]);
+      const maxOutputSize = 3;
+      const iouThreshold = 0.5;
+      const scoreThreshold = 0;
+      const indices = tf.image.nonMaxSuppression(
+          boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
+
+      expect(indices.shape).toEqual([1]);
+      expectArraysEqual(await indices.data(), [0]);
+    });
+
+    it('select from ten identical boxes', async () => {
+      const numBoxes = 10;
+      const corners = new Array(numBoxes)
+                          .fill(0)
+                          .map(_ => [0, 0, 1, 1])
+                          .reduce((arr, curr) => arr.concat(curr));
+      const boxes = tf.tensor2d(corners, [numBoxes, 4]);
+      const scores = tf.tensor1d(Array(numBoxes).fill(0.9));
+      const maxOutputSize = 3;
+      const iouThreshold = 0.5;
+      const scoreThreshold = 0;
+      const indices = tf.image.nonMaxSuppression(
+          boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
+
+      expect(indices.shape).toEqual([1]);
+      expectArraysEqual(await indices.data(), [0]);
+    });
+
+    it('inconsistent box and score shapes', () => {
+      const boxes = tf.tensor2d(
+          [
+            0, 0,  1, 1,  0, 0.1,  1, 1.1,  0, -0.1, 1, 0.9,
+            0, 10, 1, 11, 0, 10.1, 1, 11.1, 0, 100,  1, 101
+          ],
+          [6, 4]);
+      const scores = tf.tensor1d([0.9, 0.75, 0.6, 0.95, 0.5]);
+      const maxOutputSize = 30;
+      const iouThreshold = 0.5;
+      const scoreThreshold = 0;
+      expect(
+          () => tf.image.nonMaxSuppression(
+              boxes, scores, maxOutputSize, iouThreshold, scoreThreshold))
+          .toThrowError(/scores has incompatible shape with boxes/);
+    });
+
+    it('invalid iou threshold', () => {
+      const boxes = tf.tensor2d([0, 0, 1, 1], [1, 4]);
+      const scores = tf.tensor1d([0.9]);
+      const maxOutputSize = 3;
+      const iouThreshold = 1.2;
+      const scoreThreshold = 0;
+      expect(
+          () => tf.image.nonMaxSuppression(
+              boxes, scores, maxOutputSize, iouThreshold, scoreThreshold))
+          .toThrowError(/iouThreshold must be in \[0, 1\]/);
+    });
+
+    it('empty input', async () => {
+      const boxes = tf.tensor2d([], [0, 4]);
+      const scores = tf.tensor1d([]);
+      const maxOutputSize = 3;
+      const iouThreshold = 0.5;
+      const scoreThreshold = 0;
+      const indices = tf.image.nonMaxSuppression(
+          boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
+
+      expect(indices.shape).toEqual([0]);
+      expectArraysEqual(await indices.data(), []);
+    });
+
+    it('accepts a tensor-like object', async () => {
+      const boxes = [[0, 0, 1, 1], [0, 1, 1, 2]];
+      const scores = [1, 2];
+      const indices = tf.image.nonMaxSuppression(boxes, scores, 10);
+      expect(indices.shape).toEqual([2]);
+      expect(indices.dtype).toEqual('int32');
+      expectArraysEqual(await indices.data(), [1, 0]);
+    });
   });
 
-  it('select from three clusters flipped coordinates', async () => {
-    const boxes = tf.tensor2d(
-        [
-          1, 1,  0, 0,  0, 0.1,  1, 1.1,  0, .9,  1, -0.1,
-          0, 10, 1, 11, 1, 10.1, 0, 11.1, 1, 101, 0, 100
-        ],
-        [6, 4]);
-    const scores = tf.tensor1d([0.9, 0.75, 0.6, 0.95, 0.5, 0.3]);
-    const maxOutputSize = 3;
-    const iouThreshold = 0.5;
-    const scoreThreshold = 0;
-    const indices = tf.image.nonMaxSuppression(
-        boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
+  describe('NonMaxSuppressionWithScore', () => {
+    it('select from three clusters with SoftNMS', async () => {
+      const boxes = tf.tensor2d(
+          [
+            0, 0,  1, 1,  0, 0.1,  1, 1.1,  0, -0.1, 1, 0.9,
+            0, 10, 1, 11, 0, 10.1, 1, 11.1, 0, 100,  1, 101
+          ],
+          [6, 4]);
+      const scores = tf.tensor1d([0.9, 0.75, 0.6, 0.95, 0.5, 0.3]);
+      const maxOutputSize = 6;
+      const iouThreshold = 1.0;
+      const scoreThreshold = 0;
+      const softNmsSigma = 0.5;
 
-    expect(indices.shape).toEqual([3]);
-    expectArraysEqual(await indices.data(), [3, 0, 5]);
-  });
+      const {selectedIndices, selectedScores} =
+          tf.image.nonMaxSuppressionWithScore(
+              boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
+              softNmsSigma);
 
-  it('select at most two boxes from three clusters', async () => {
-    const boxes = tf.tensor2d(
-        [
-          0, 0,  1, 1,  0, 0.1,  1, 1.1,  0, -0.1, 1, 0.9,
-          0, 10, 1, 11, 0, 10.1, 1, 11.1, 0, 100,  1, 101
-        ],
-        [6, 4]);
-    const scores = tf.tensor1d([0.9, 0.75, 0.6, 0.95, 0.5, 0.3]);
-    const maxOutputSize = 2;
-    const iouThreshold = 0.5;
-    const scoreThreshold = 0;
-    const indices = tf.image.nonMaxSuppression(
-        boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
+      expectArraysEqual(await selectedIndices.data(), [3, 0, 1, 5, 4, 2]);
 
-    expect(indices.shape).toEqual([2]);
-    expectArraysEqual(await indices.data(), [3, 0]);
-  });
-
-  it('select at most thirty boxes from three clusters', async () => {
-    const boxes = tf.tensor2d(
-        [
-          0, 0,  1, 1,  0, 0.1,  1, 1.1,  0, -0.1, 1, 0.9,
-          0, 10, 1, 11, 0, 10.1, 1, 11.1, 0, 100,  1, 101
-        ],
-        [6, 4]);
-    const scores = tf.tensor1d([0.9, 0.75, 0.6, 0.95, 0.5, 0.3]);
-    const maxOutputSize = 30;
-    const iouThreshold = 0.5;
-    const scoreThreshold = 0;
-    const indices = tf.image.nonMaxSuppression(
-        boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
-
-    expect(indices.shape).toEqual([3]);
-    expectArraysEqual(await indices.data(), [3, 0, 5]);
-  });
-
-  it('select single box', async () => {
-    const boxes = tf.tensor2d([0, 0, 1, 1], [1, 4]);
-    const scores = tf.tensor1d([0.9]);
-    const maxOutputSize = 3;
-    const iouThreshold = 0.5;
-    const scoreThreshold = 0;
-    const indices = tf.image.nonMaxSuppression(
-        boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
-
-    expect(indices.shape).toEqual([1]);
-    expectArraysEqual(await indices.data(), [0]);
-  });
-
-  it('select from ten identical boxes', async () => {
-    const boxes = tf.tensor2d([0, 0, 1, 1], [1, 4]);
-    const scores = tf.tensor1d([0.9]);
-    const maxOutputSize = 3;
-    const iouThreshold = 0.5;
-    const scoreThreshold = 0;
-    const indices = tf.image.nonMaxSuppression(
-        boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
-
-    expect(indices.shape).toEqual([1]);
-    expectArraysEqual(await indices.data(), [0]);
-  });
-
-  it('select from ten identical boxes', async () => {
-    const numBoxes = 10;
-    const corners = new Array(numBoxes)
-                        .fill(0)
-                        .map(_ => [0, 0, 1, 1])
-                        .reduce((arr, curr) => arr.concat(curr));
-    const boxes = tf.tensor2d(corners, [numBoxes, 4]);
-    const scores = tf.tensor1d(Array(numBoxes).fill(0.9));
-    const maxOutputSize = 3;
-    const iouThreshold = 0.5;
-    const scoreThreshold = 0;
-    const indices = tf.image.nonMaxSuppression(
-        boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
-
-    expect(indices.shape).toEqual([1]);
-    expectArraysEqual(await indices.data(), [0]);
-  });
-
-  it('inconsistent box and score shapes', () => {
-    const boxes = tf.tensor2d(
-        [
-          0, 0,  1, 1,  0, 0.1,  1, 1.1,  0, -0.1, 1, 0.9,
-          0, 10, 1, 11, 0, 10.1, 1, 11.1, 0, 100,  1, 101
-        ],
-        [6, 4]);
-    const scores = tf.tensor1d([0.9, 0.75, 0.6, 0.95, 0.5]);
-    const maxOutputSize = 30;
-    const iouThreshold = 0.5;
-    const scoreThreshold = 0;
-    expect(
-        () => tf.image.nonMaxSuppression(
-            boxes, scores, maxOutputSize, iouThreshold, scoreThreshold))
-        .toThrowError(/scores has incompatible shape with boxes/);
-  });
-
-  it('invalid iou threshold', () => {
-    const boxes = tf.tensor2d([0, 0, 1, 1], [1, 4]);
-    const scores = tf.tensor1d([0.9]);
-    const maxOutputSize = 3;
-    const iouThreshold = 1.2;
-    const scoreThreshold = 0;
-    expect(
-        () => tf.image.nonMaxSuppression(
-            boxes, scores, maxOutputSize, iouThreshold, scoreThreshold))
-        .toThrowError(/iouThreshold must be in \[0, 1\]/);
-  });
-
-  it('empty input', async () => {
-    const boxes = tf.tensor2d([], [0, 4]);
-    const scores = tf.tensor1d([]);
-    const maxOutputSize = 3;
-    const iouThreshold = 0.5;
-    const scoreThreshold = 0;
-    const indices = tf.image.nonMaxSuppression(
-        boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
-
-    expect(indices.shape).toEqual([0]);
-    expectArraysEqual(await indices.data(), []);
-  });
-
-  it('accepts a tensor-like object', async () => {
-    const boxes = [[0, 0, 1, 1], [0, 1, 1, 2]];
-    const scores = [1, 2];
-    const indices = tf.image.nonMaxSuppression(boxes, scores, 10);
-    expect(indices.shape).toEqual([2]);
-    expect(indices.dtype).toEqual('int32');
-    expectArraysEqual(await indices.data(), [1, 0]);
+      expectArraysClose(
+          await selectedScores.data(), [0.95, 0.9, 0.384, 0.3, 0.256, 0.197]);
+    });
   });
 });
 
 describeWithFlags('nonMaxSuppressionAsync', ALL_ENVS, () => {
-  it('select from three clusters', async () => {
-    const boxes = tf.tensor2d(
-        [
-          0, 0,  1, 1,  0, 0.1,  1, 1.1,  0, -0.1, 1, 0.9,
-          0, 10, 1, 11, 0, 10.1, 1, 11.1, 0, 100,  1, 101
-        ],
-        [6, 4]);
-    const scores = tf.tensor1d([0.9, 0.75, 0.6, 0.95, 0.5, 0.3]);
-    const maxOutputSize = 3;
-    const iouThreshold = 0.5;
-    const scoreThreshold = 0;
-    const indices = await tf.image.nonMaxSuppressionAsync(
-        boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
+  describe('NonMaxSuppressionAsync basic', () => {
+    it('select from three clusters', async () => {
+      const boxes = tf.tensor2d(
+          [
+            0, 0,  1, 1,  0, 0.1,  1, 1.1,  0, -0.1, 1, 0.9,
+            0, 10, 1, 11, 0, 10.1, 1, 11.1, 0, 100,  1, 101
+          ],
+          [6, 4]);
+      const scores = tf.tensor1d([0.9, 0.75, 0.6, 0.95, 0.5, 0.3]);
+      const maxOutputSize = 3;
+      const iouThreshold = 0.5;
+      const scoreThreshold = 0;
+      const indices = await tf.image.nonMaxSuppressionAsync(
+          boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
 
-    expect(indices.shape).toEqual([3]);
-    expectArraysEqual(await indices.data(), [3, 0, 5]);
+      expect(indices.shape).toEqual([3]);
+      expectArraysEqual(await indices.data(), [3, 0, 5]);
+    });
+
+    it('accepts a tensor-like object', async () => {
+      const boxes = [[0, 0, 1, 1], [0, 1, 1, 2]];
+      const scores = [1, 2];
+      const indices = await tf.image.nonMaxSuppressionAsync(boxes, scores, 10);
+      expect(indices.shape).toEqual([2]);
+      expect(indices.dtype).toEqual('int32');
+      expectArraysEqual(await indices.data(), [1, 0]);
+    });
   });
 
-  it('accepts a tensor-like object', async () => {
-    const boxes = [[0, 0, 1, 1], [0, 1, 1, 2]];
-    const scores = [1, 2];
-    const indices = await tf.image.nonMaxSuppressionAsync(boxes, scores, 10);
-    expect(indices.shape).toEqual([2]);
-    expect(indices.dtype).toEqual('int32');
-    expectArraysEqual(await indices.data(), [1, 0]);
+  describe('NonMaxSuppressionWithScoreAsync', () => {
+    it('select from three clusters with SoftNMS', async () => {
+      const boxes = tf.tensor2d(
+          [
+            0, 0,  1, 1,  0, 0.1,  1, 1.1,  0, -0.1, 1, 0.9,
+            0, 10, 1, 11, 0, 10.1, 1, 11.1, 0, 100,  1, 101
+          ],
+          [6, 4]);
+      const scores = tf.tensor1d([0.9, 0.75, 0.6, 0.95, 0.5, 0.3]);
+      const maxOutputSize = 6;
+      const iouThreshold = 1.0;
+      const scoreThreshold = 0;
+      const softNmsSigma = 0.5;
+
+      const numTensorsBefore = tf.memory().numTensors;
+
+      const {selectedIndices, selectedScores} =
+          await tf.image.nonMaxSuppressionWithScoreAsync(
+              boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
+              softNmsSigma);
+
+      const numTensorsAfter = tf.memory().numTensors;
+
+      expectArraysEqual(await selectedIndices.data(), [3, 0, 1, 5, 4, 2]);
+
+      expectArraysClose(
+          await selectedScores.data(), [0.95, 0.9, 0.384, 0.3, 0.256, 0.197]);
+
+      // The number of tensors should increase by the number of tensors
+      // returned (i.e. selectedIndices and selectedScores).
+      expect(numTensorsAfter).toEqual(numTensorsBefore + 2);
+    });
   });
 });
 
@@ -229,6 +280,33 @@ describeWithFlags('cropAndResize', ALL_ENVS, () => {
     expect(output.dtype).toBe('float32');
     expectArraysClose(await output.data(), [2.5]);
   });
+
+  it('5x5-bilinear, no change in shape', async () => {
+    const image: tf.Tensor4D = tf.ones([1, 5, 5, 3]);
+    const boxes: tf.Tensor2D = tf.tensor2d([0, 0, 1, 1], [1, 4]);
+    const boxInd: tf.Tensor1D = tf.tensor1d([0], 'int32');
+
+    const output =
+        tf.image.cropAndResize(image, boxes, boxInd, [5, 5], 'bilinear', 0);
+
+    expect(output.shape).toEqual([1, 5, 5, 3]);
+    expect(output.dtype).toBe('float32');
+    expectArraysClose(await output.data(), await image.data());
+  });
+
+  it('5x5-bilinear, just a crop, no resize', async () => {
+    const image: tf.Tensor4D = tf.ones([1, 6, 6, 3]);
+    const boxes: tf.Tensor2D = tf.tensor2d([0.5, 0.5, 1, 1], [1, 4]);
+    const boxInd: tf.Tensor1D = tf.tensor1d([0], 'int32');
+
+    const output =
+        tf.image.cropAndResize(image, boxes, boxInd, [3, 3], 'bilinear', 0);
+
+    expect(output.shape).toEqual([1, 3, 3, 3]);
+    expect(output.dtype).toBe('float32');
+    expectArraysClose(await output.data(), await tf.ones([1, 3, 3, 3]).data());
+  });
+
   it('1x1-nearest', async () => {
     const image: tf.Tensor4D = tf.tensor4d([1, 2, 3, 4], [1, 2, 2, 1]);
     const boxes: tf.Tensor2D = tf.tensor2d([0, 0, 1, 1], [1, 4]);

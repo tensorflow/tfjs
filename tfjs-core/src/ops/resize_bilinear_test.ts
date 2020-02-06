@@ -28,6 +28,17 @@ describeWithFlags('resizeBilinear', ALL_ENVS, () => {
         await output.data(), [2, 2, 2, 10 / 3, 10 / 3, 10 / 3, 4, 4, 4]);
   });
 
+  it('5x5-bilinear, no change in shape', async () => {
+    const image: tf.Tensor4D = tf.ones([1, 5, 5, 3]);
+
+    const alignCorners = false;
+    const output = tf.image.resizeBilinear(image, [5, 5], alignCorners);
+
+    expect(output.shape).toEqual([1, 5, 5, 3]);
+    expect(output.dtype).toBe('float32');
+    expectArraysClose(await output.data(), await image.data());
+  });
+
   it('simple alignCorners=true', async () => {
     const input = tf.tensor3d([2, 2, 4, 4], [2, 2, 1]);
     const output = input.resizeBilinear([3, 3], true);

@@ -26,6 +26,15 @@ setTestEnvs([{name: 'test-wasm', backendName: 'wasm', isDataSync: true}]);
  */
 const TEST_FILTERS: TestFilter[] = [
   {
+    startsWith: 'tensor ',
+    excludes: [
+      'complex',     // Complex numbers not supported yet
+      'derivative',  // Gradients not yet supported.
+      // Downcasting broken, see: https://github.com/tensorflow/tfjs/issues/2590
+      'Tensor2D float32 -> bool', 'Tensor2D int32 -> bool'
+    ]
+  },
+  {
     include: 'add ',
     excludes: [
       'gradient',                        // Gradient is missing.
@@ -110,12 +119,19 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'gather',
+    excludes: [
+      'gradient'  // Not yet implemented.
+    ]
+  },
+  {
     include: 'sigmoid ',
     excludes: [
       'sigmoidCrossEntropy',  // Not yet implemented.
       'gradient'              // Not yet implemented.
     ]
   },
+  {include: 'scatterND '},
   {
     include: 'abs ',
     excludes: [
@@ -165,7 +181,9 @@ const TEST_FILTERS: TestFilter[] = [
       '2D, axis=0',  // Permuted axes requires transpose, which is not yet
                      // implemented.
       'index corresponds to start of a non-initial window',  // argMin not yet
-                                                             // implemented.
+                                                             // implemented.,
+      'gradient',     // Gradients not yet implemented
+      'ignores NaNs'  // Doesn't yet ignore NaN
     ]
   },
   {
@@ -173,8 +191,10 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'derivative: 1D tensor with max or min value',  // Clip not yet
                                                       // implemented.
-      '2D, axis=0'  // Permuted axes requires transpose, which is not yet
-                    // implemented.
+      '2D, axis=0',   // Permuted axes requires transpose, which is not yet
+                      // implemented.
+      'gradient',     // Gradients not yet implemented
+      'ignores NaNs'  // Doesn't yet ignore NaN
     ]
   },
   {
@@ -193,6 +213,106 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'addN'},
   {include: 'nonMaxSuppression'},
   {include: 'argmax', excludes: ['gradient']},
+  {include: 'exp '},
+  {include: 'unstack'},
+  {
+    include: 'minimum',
+    excludes: [
+      'gradient',                                 // Not yet implemented.
+      'broadcasts 2x1 Tensor2D and 2x2 Tensor2D'  // Broadcasting along inner
+                                                  // dims not supported yet.
+    ]
+  },
+  {
+    include: 'maximum',
+    excludes: [
+      'gradient',                                 // Not yet implemented.
+      'broadcasts 2x1 Tensor2D and 2x2 Tensor2D'  // Broadcasting along inner
+                                                  // dims not supported yet.
+    ]
+  },
+  {
+    include: 'log ',
+  },
+  {
+    include: 'greater ',
+    excludes: [
+      'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
+                                       // supported yet.
+      'broadcasting Tensor3D shapes',  // Same as above.
+      'broadcasting Tensor4D shapes'   // Same as above.
+    ]
+  },
+  {
+    include: 'greaterEqual',
+    excludes: [
+      'gradient',                      // Not yet implemented.
+      'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
+                                       // supported yet.
+      'broadcasting Tensor3D shapes',  // Same as above.
+      'broadcasting Tensor4D shapes'   // Same as above.
+    ]
+  },
+  {
+    include: 'less ',
+    excludes: [
+      'broadcasting Tensor2D shapes',   // Broadcasting along outer dims not
+                                        // supported yet.
+      'broadcasting Tensor3D shapes',   // Same as above.
+      'broadcasting Tensor3D float32',  // Same as above.
+      'broadcasting Tensor4D shapes'    // Same as above.
+    ]
+  },
+  {
+    include: 'lessEqual',
+    excludes: [
+      'gradient',                       // Not yet implemented.
+      'broadcasting Tensor2D shapes',   // Broadcasting along outer dims not
+                                        // supported yet.
+      'broadcasting Tensor3D shapes',   // Same as above.
+      'broadcasting Tensor3D float32',  // Same as above.
+      'broadcasting Tensor4D shapes'    // Same as above.
+    ]
+  },
+  {
+    include: 'mean ',
+    excludes: [
+      'axis=0',  // Reduction not supported along inner dimensions.
+    ]
+  },
+  {startsWith: 'sum '},
+  {
+    startsWith: 'logicalAnd ',
+    excludes: [
+      'broadcasting Tensor2D shapes',  // Broadcasting along outer dimensions
+                                       // not yet supported.
+      'broadcasting Tensor3D shapes',  // Same as above.
+      'broadcasting Tensor4D shapes',  // Same as above.
+    ]
+  },
+  {
+    startsWith: 'tile ',
+    excludes: [
+      'gradient',      // Gradient not yet implemented.
+      'string tensor'  // String tensors not yet implemented.
+    ]
+  },
+  {startsWith: 'sin '},
+  {
+    startsWith: 'cos ',
+    excludes: [
+      'gradient',  // Gradient not yet implemented.
+    ]
+  },
+  {
+    startsWith: 'tanh ',
+    excludes: ['gradient']  // Gradient not yet implemented.
+  },
+  {
+    startsWith: 'rsqrt ',
+    excludes: ['gradient']  // Gradient not yet implemented.
+  },
+
 ];
 
 const customInclude = (testName: string) => {

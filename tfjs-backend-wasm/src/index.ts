@@ -16,4 +16,4 @@
  */
 
 import './kernels/all_kernels';
-export {BackendWasm} from './backend_wasm';
+export {BackendWasm, setWasmPath} from './backend_wasm';

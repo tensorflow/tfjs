@@ -51,12 +51,18 @@ describe('Flag flipping methods', () => {
     tf.env().reset();
   });
 
+  afterEach(() => {
+    tf.env().reset();
+  });
+
   it('tf.enableProdMode', () => {
     tf.enableProdMode();
     expect(tf.env().getBool('PROD')).toBe(true);
   });
 
   it('tf.enableDebugMode', () => {
+    // Silence debug warnings.
+    spyOn(console, 'warn');
     tf.enableDebugMode();
     expect(tf.env().getBool('DEBUG')).toBe(true);
   });

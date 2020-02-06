@@ -109,7 +109,7 @@ export function memory(): MemoryInfo {
 /**
  * Executes the provided function `f()` and returns a promise that resolves
  * with information about the function's memory use:
- * - `newBytes`: tne number of new bytes allocated
+ * - `newBytes`: the number of new bytes allocated
  * - `newTensors`: the number of new tensors created
  * - `peakBytes`: the peak number of bytes allocated
  * - `kernels`: an array of objects for each kernel involved that reports
@@ -239,7 +239,9 @@ export function keep<T extends Tensor>(result: T): T {
  * The result is an object with the following properties:
  *
  * - `wallMs`: Wall execution time.
- * - `kernelMs`: Kernel execution time, ignoring data transfer.
+ * - `kernelMs`: Kernel execution time, ignoring data transfer. If using the
+ * WebGL backend and the query timer extension is not available, this will
+ * return an error object.
  * - On `WebGL` The following additional properties exist:
  *   - `uploadWaitMs`: CPU blocking time on texture uploads.
  *   - `downloadWaitMs`: CPU blocking time on texture downloads (readPixels).
@@ -259,7 +261,7 @@ export function time(f: () => void): Promise<TimingInfo> {
 }
 
 /**
- * Sets the backend (cpu, webgl, etc) responsible for creating tensors and
+ * Sets the backend (cpu, webgl, wasm, etc) responsible for creating tensors and
  * executing operations on those tensors. Returns a promise that resolves
  * to a boolean if the backend initialization was successful.
  *
@@ -268,8 +270,8 @@ export function time(f: () => void): Promise<TimingInfo> {
  * same type as the previous one.
  *
  * @param backendName The name of the backend. Currently supports
- *     `'webgl'|'cpu'` in the browser, and `'tensorflow'` under node.js
- *     (requires tfjs-node).
+ *     `'webgl'|'cpu'` in the browser, `'tensorflow'` under node.js
+ *     (requires tfjs-node), and `'wasm'` (requires tfjs-backend-wasm).
  */
 /** @doc {heading: 'Backends'} */
 export function setBackend(backendName: string): Promise<boolean> {

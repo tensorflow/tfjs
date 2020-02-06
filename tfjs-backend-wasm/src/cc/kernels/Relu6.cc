@@ -16,6 +16,8 @@
 #include <emscripten.h>
 #endif
 
+#include <cstddef>
+
 #include "src/cc/clamp_impl.h"
 
 namespace tfjs {
@@ -26,7 +28,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Relu6(const int x_id, const int out_id) {
+void Relu6(const size_t x_id, const size_t out_id) {
   const float min = 0;
   const float max = 6;
   xnn_clamp(x_id, out_id, min, max);

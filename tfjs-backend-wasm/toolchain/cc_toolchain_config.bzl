@@ -1,3 +1,4 @@
+load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
 load(
     "@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl",
     "feature",
@@ -6,7 +7,6 @@ load(
     "tool_path",
     "with_feature_set",
 )
-load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
 
 def _impl(ctx):
     tool_paths = [
@@ -172,8 +172,8 @@ cc_toolchain_config = rule(
 
 def _emsdk_impl(ctx):
     if "EMSDK" not in ctx.os.environ or ctx.os.environ["EMSDK"].strip() == "":
-      fail("The environment variable EMSDK is not found. " +
-           "Did you run source ./emsdk_env.sh ?")
+        fail("The environment variable EMSDK is not found. " +
+             "Did you run source ./emsdk_env.sh ?")
     path = ctx.os.environ["EMSDK"]
     ctx.symlink(path, "emsdk")
     ctx.file("BUILD", """

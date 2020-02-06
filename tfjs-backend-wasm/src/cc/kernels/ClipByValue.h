@@ -15,12 +15,14 @@
 #ifndef KERNELS_CLIPBYVALUE_H_
 #define KERNELS_CLIPBYVALUE_H_
 
+#include <cstddef>
+
 namespace tfjs {
 namespace wasm {
 extern "C" {
 
-void ClipByValue(const int x_id, const float min, const float max,
-                 const int out_id);
+void ClipByValue(const size_t x_id, const float min, const float max,
+                 const size_t out_id);
 }  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs

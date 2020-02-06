@@ -14,7 +14,7 @@ def tfjs_unit_test(name, srcs, deps = []):
         linkstatic = True,
         deps = [
             "@com_google_googletest//:gtest_main",
-        ] + deps
+        ] + deps,
     )
 
 def tfjs_cc_library(name, srcs = [], hdrs = [], deps = []):
@@ -27,9 +27,9 @@ def tfjs_cc_library(name, srcs = [], hdrs = [], deps = []):
     """
 
     native.cc_library(
-      name = name,
-      linkstatic = True,
-      srcs = srcs,
-      hdrs = hdrs,
-      deps = deps,
+        name = name,
+        linkstatic = True,
+        srcs = srcs,
+        hdrs = hdrs,
+        deps = deps,
     )

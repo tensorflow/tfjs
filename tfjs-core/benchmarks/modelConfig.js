@@ -74,7 +74,8 @@ const sentences = [
 const benchmarks = {
   'mobilenet_v2': {
     load: async () => {
-      const url = 'https://storage.googleapis.com/learnjs-data/mobilenet_v2_100_fused/model.json';
+      const url =
+          'https://storage.googleapis.com/learnjs-data/mobilenet_v2_100_fused/model.json';
       return tf.loadGraphModel(url);
     },
     predictFunc: () => {
@@ -97,7 +98,8 @@ const benchmarks = {
   },
   'face_detector': {
     load: async () => {
-      const url = 'https://storage.googleapis.com/learnjs-data/face_detector_front/model.json';
+      const url =
+          'https://storage.googleapis.com/learnjs-data/face_detector_front/model.json';
       return tf.loadGraphModel(url);
     },
     predictFunc: () => {
@@ -106,6 +108,28 @@ const benchmarks = {
         return model.predict(zeros);
       };
     },
+  },
+  'AutoML Image': {
+    load: async () => {
+      const url =
+          'https://storage.googleapis.com/tfjs-testing/tfjs-automl/img_classification/model.json';
+      return tf.automl.loadImageClassification(url);
+    },
+    predictFunc: () => {
+      const zeros = tf.zeros([224, 224, 3]);
+      return model => model.classify(zeros);
+    }
+  },
+  'AutoML Object': {
+    load: async () => {
+      const url =
+          'https://storage.googleapis.com/tfjs-testing/tfjs-automl/object_detection/model.json';
+      return tf.automl.loadObjectDetection(url);
+    },
+    predictFunc: () => {
+      const zeros = tf.zeros([224, 224, 3]);
+      return model => model.detect(zeros);
+    }
   },
   'USE - batchsize 30': {
     load: async () => {
@@ -160,7 +184,8 @@ const benchmarks = {
   },
 };
 
-const imageBucket = 'https://storage.googleapis.com/tfjs-models/assets/posenet/';
+const imageBucket =
+    'https://storage.googleapis.com/tfjs-models/assets/posenet/';
 async function loadImage(imagePath) {
   const image = new Image();
   const promise = new Promise((resolve, reject) => {

@@ -6,6 +6,7 @@
   "main": "index.js",
   "scripts": {
     "watch": "NODE_ENV=development parcel index.html --no-hmr --open --no-autoinstall",
+    "debug": "NODE_ENV=development parcel debug.html --no-hmr --open --no-autoinstall",
     "build": "NODE_ENV=production parcel build index.html --no-minify --public-url ./"
   },
   "author": "",

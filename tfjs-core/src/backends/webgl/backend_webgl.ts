@@ -45,7 +45,7 @@ import {getArrayFromDType, getTypedArrayFromDType, inferDtype, sizeFromShape} fr
 import {DataStorage, EPSILON_FLOAT16, EPSILON_FLOAT32, KernelBackend} from '../backend';
 import * as backend_util from '../backend_util';
 import {mergeRealAndImagArrays} from '../complex_util';
-import {nonMaxSuppressionImpl} from '../non_max_suppression_impl';
+import {nonMaxSuppressionV3} from '../non_max_suppression_impl';
 import {split} from '../split_shared';
 import {tile} from '../tile_impl';
 import {topkImpl} from '../topk_impl';
@@ -157,7 +157,7 @@ export interface WebGLTimingInfo extends TimingInfo {
 
 const binaryCaches: {[webGLVersion: string]: {[key: string]: GPGPUBinary}} = {};
 
-function getBinaryCache(webGLVersion: number) {
+export function getBinaryCache(webGLVersion: number) {
   if (webGLVersion in binaryCaches) {
     return binaryCaches[webGLVersion];
   }
@@ -522,18 +522,27 @@ export class MathBackendWebGL extends KernelBackend {
       this.programTimersStack = null;
     }
 
-    const kernelMs = await Promise.all(flattenedActiveTimerQueries);
-
     const res: WebGLTimingInfo = {
       uploadWaitMs: this.uploadWaitMs,
       downloadWaitMs: this.downloadWaitMs,
-      kernelMs: util.sum(kernelMs),
-      getExtraProfileInfo: () =>
-          kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
-              .map(d => `${d.name}: ${d.ms}`)
-              .join(', '),
+      kernelMs: null,
       wallMs: null  // will be filled by the engine
     };
+
+    if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') > 0) {
+      const kernelMs = await Promise.all(flattenedActiveTimerQueries);
+
+      res['kernelMs'] = util.sum(kernelMs);
+      res['getExtraProfileInfo'] = () =>
+          kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
+              .map(d => `${d.name}: ${d.ms}`)
+              .join(', ');
+    } else {
+      res['kernelMs'] = {
+        error: 'WebGL query timers are not supported in this environment.'
+      };
+    }
+
     this.uploadWaitMs = 0;
     this.downloadWaitMs = 0;
     return res;
@@ -544,14 +553,14 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   private startTimer(): WebGLQuery|CPUTimerQuery {
-    if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0) {
+    if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') > 0) {
       return this.gpgpu.beginQuery();
     }
     return {startMs: util.now(), endMs: null};
   }
 
   private endTimer(query: WebGLQuery|CPUTimerQuery): WebGLQuery|CPUTimerQuery {
-    if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0) {
+    if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') > 0) {
       this.gpgpu.endQuery();
       return query;
     }
@@ -560,7 +569,7 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   private async getQueryTime(query: WebGLQuery|CPUTimerQuery): Promise<number> {
-    if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0) {
+    if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') > 0) {
       return this.gpgpu.waitForQueryAndGetTime(query as WebGLQuery);
     }
     const timerQuery = query as CPUTimerQuery;
@@ -2252,7 +2261,7 @@ export class MathBackendWebGL extends KernelBackend {
         'Call tf.nonMaxSuppressionAsync() instead');
     const boxesVals = boxes.dataSync();
     const scoresVals = scores.dataSync();
-    return nonMaxSuppressionImpl(
+    return nonMaxSuppressionV3(
         boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   }
 
@@ -2651,6 +2660,15 @@ export class MathBackendWebGL extends KernelBackend {
   dispose() {
     if (this.disposed) {
       return;
+    }
+    // Avoid disposing the compiled webgl programs during unit testing because
+    // it slows down test execution.
+    if (!env().getBool('IS_TEST')) {
+      const allKeys = Object.keys(this.binaryCache);
+      allKeys.forEach(key => {
+        this.gpgpu.deleteProgram(this.binaryCache[key].webGLProgram);
+        delete this.binaryCache[key];
+      });
     }
     this.textureManager.dispose();
     if (this.canvas != null &&

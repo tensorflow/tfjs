@@ -85,6 +85,10 @@ const VIS_PHASE: Phase = {
   packages: ['tfjs-vis']
 };
 
+const REACT_NATIVE_PHASE: Phase = {
+  packages: ['tfjs-react-native']
+};
+
 const WEBSITE_PHASE: Phase = {
   repo: 'tfjs-website',
   packages: ['tfjs-website'],
@@ -96,7 +100,7 @@ const WEBSITE_PHASE: Phase = {
 
 const PHASES: Phase[] = [
   CORE_PHASE, LAYERS_CONVERTER_PHASE, DATA_PHASE, UNION_PHASE, NODE_PHASE,
-  WASM_PHASE, VIS_PHASE, WEBSITE_PHASE
+  WASM_PHASE, VIS_PHASE, REACT_NATIVE_PHASE, WEBSITE_PHASE
 ];
 
 const TMP_DIR = '/tmp/tfjs-release';
@@ -275,7 +279,9 @@ async function main() {
   console.log(
       `Done. FYI, this script does not publish to NPM. ` +
       `Please publish by running ./scripts/publish-npm.sh ` +
-      `from each repo after you merge the PR.`);
+      `from each repo after you merge the PR.` +
+      `Please remeber to update the website once you have released ` +
+      'a new package version');
 
   process.exit(0);
 }

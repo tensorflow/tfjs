@@ -905,6 +905,11 @@ describeWithFlags('batchNorm2D', ALL_ENVS, () => {
 });
 
 describeWithFlags('deprecated batchNormalization', ALL_ENVS, () => {
+  beforeAll(() => {
+    // Silence deprecation warnings.
+    spyOn(console, 'warn');
+  });
+
   it('simple batchnorm2D, 2x2', async () => {
     const xT = tf.tensor2d([2, 4, 9, 23], [2, 2]);
     const meanT = tf.tensor1d([1, 2]);
