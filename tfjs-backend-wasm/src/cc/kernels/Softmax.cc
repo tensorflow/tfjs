@@ -29,7 +29,7 @@
 namespace {
 // We use std::tuple as the cache key as it implements the compare operator
 // needed for std::map.
-typedef std::tuple<size_t, size_t> OperatorCacheKey;
+typedef std::tuple<size_t> OperatorCacheKey;
 
 // The operator cache maps the weights id to the xnn_operator_t instantiated for
 // this set of weights.
@@ -56,7 +56,7 @@ void Softmax(const size_t x_id, const size_t out_id, const size_t channels,
 
   xnn_operator_t softmax_op = nullptr;
 
-  OperatorCacheKey cache_key = {channels, batch};
+  OperatorCacheKey cache_key = {channels};
 
   auto operator_cache_idx = operator_cache.find(cache_key);
   if (operator_cache_idx == operator_cache.end()) {
@@ -99,9 +99,16 @@ void Softmax(const size_t x_id, const size_t out_id, const size_t channels,
   }
   // prints: 1.0, 2.0, 2.0, 2.0
 
+  tfjs::util::log("XNN OUTPUT BEFORE");
+  for (size_t i = 0; i < batch; ++i) {
+    for (size_t j = 0; j < channels; ++j) {
+      tfjs::util::log("%f", out_buf[i * channels + j]);
+    }
+  }
+
   xnn_run_operator(softmax_op, nullptr /* thread pool */);
 
-  tfjs::util::log("XNN OUTPUT");
+  tfjs::util::log("XNN OUTPUT AFTER");
   for (size_t i = 0; i < batch; ++i) {
     for (size_t j = 0; j < channels; ++j) {
       tfjs::util::log("%f", out_buf[i * channels + j]);
