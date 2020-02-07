@@ -544,6 +544,15 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "Neg",
+    srcs = ["kernels/Neg.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
     name = "NonMaxSuppressionV3",
     srcs = ["kernels/NonMaxSuppressionV3.cc"],
     deps = [

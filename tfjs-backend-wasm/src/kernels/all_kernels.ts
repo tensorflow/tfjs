@@ -51,6 +51,7 @@ import './MaxPool';
 import './Min';
 import './Minimum';
 import './Mul';
+import './Neg';
 import './NonMaxSuppressionV3';
 import './NonMaxSuppressionV5';
 import './PadV2';
