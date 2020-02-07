@@ -49,12 +49,6 @@ TEST(SOFTMAX, xnn_operator_lifetime) {
   auto& out_info = tfjs::backend::get_tensor_info(out_id);
   const float* out_buf = out_info.f32();
 
-  tfjs::util::log("PRINTING OUT VALUES");
-  for (size_t i = 0; i < out_size; ++i) {
-    tfjs::util::log("%f", out_buf[i]);
-  }
-  // prints: 0.109232, 0.296923, 0.296923, 0.296923
-
   // No new xnn_operators should be created for the second call to
   // Softmax with the same arguments.
   tfjs::wasm::Softmax(x0_id, out_id, 4, 1);
