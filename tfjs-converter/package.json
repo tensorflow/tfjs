@@ -59,7 +59,7 @@
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
     "test": "yarn gen-json --test && karma start",
-    "test-ci": "yarn gen-json --test && yarn build && yarn lint && yarn run-browserstack",
+    "test-ci": "yarn gen-json --test && yarn build && yarn lint && ts-node run_tests.ts",
     "test-snippets": "ts-node ./scripts/test_snippets.ts",
     "run-browserstack": "karma start --singleRun --browsers='bs_firefox_mac,bs_chrome_mac' --reporters='dots,karma-typescript,BrowserStack'",
     "lint": "tslint -p . -t verbose",
