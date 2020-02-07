@@ -94,7 +94,7 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
         .toThrowError(/The WASM backend was already initialized. Make sure/);
   });
 
-  fit('softmax basic', async () => {
+  it('softmax basic', async () => {
     const y = tf.softmax(tf.tensor1d([1, 2, 2, 2]));
     const data = await y.data();
     console.log(Array.from(data));  // [0.1428571, 0.285714, 0.285714, 0.285714]
