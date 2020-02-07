@@ -18,7 +18,6 @@
 #include <vector>
 
 #include "src/cc/backend.h"
-#include "src/cc/kernels/Softmax.h"
 #include "src/cc/util.h"
 
 TEST(SOFTMAX, xnn_operator_lifetime) {
