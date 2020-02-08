@@ -54,6 +54,7 @@ import './Mul';
 import './Neg';
 import './NonMaxSuppressionV3';
 import './NonMaxSuppressionV5';
+import './NotEqual';
 import './PadV2';
 import './Prelu';
 import './Relu';

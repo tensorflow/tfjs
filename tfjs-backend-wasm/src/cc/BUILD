@@ -177,6 +177,7 @@ tfjs_cc_library(
         ":Min",
         ":Minimum",
         ":Mul",
+        ":NotEqual",
         ":NonMaxSuppressionV3",
         ":NonMaxSuppressionV5",
         ":PadV2",
@@ -451,6 +452,16 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "LessEqual",
     srcs = ["kernels/LessEqual.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "NotEqual",
+    srcs = ["kernels/NotEqual.cc"],
     deps = [
         ":backend",
         ":binary",
