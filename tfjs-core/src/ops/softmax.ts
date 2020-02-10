@@ -24,7 +24,6 @@ import {TensorLike} from '../types';
 
 import {op} from './operation';
 
-
 /**
  * Computes the softmax normalized vector given the logits.
  *
