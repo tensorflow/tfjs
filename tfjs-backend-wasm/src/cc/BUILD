@@ -177,6 +177,7 @@ tfjs_cc_library(
         ":Min",
         ":Minimum",
         ":Mul",
+        ":Neg",
         ":NotEqual",
         ":NonMaxSuppressionV3",
         ":NonMaxSuppressionV5",
