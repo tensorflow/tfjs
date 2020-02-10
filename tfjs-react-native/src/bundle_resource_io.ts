@@ -68,11 +68,9 @@ class BundleResourceHandler implements io.IOHandler {
     const weightsAsset = Asset.fromModule(this.modelWeightsId);
     if (weightsAsset.uri.match('^http')) {
       // In debug/dev mode RN will serve these assets over HTTP
-      console.log('calling load via http asset');
       return this.loadViaHttp(weightsAsset);
     } else {
       // In release mode the assets will be on the file system.
-      console.log('calling load local asset');
       return this.loadLocalAsset(weightsAsset);
     }
   }
@@ -101,7 +99,6 @@ class BundleResourceHandler implements io.IOHandler {
 
     // tslint:disable-next-line: no-require-imports
     const RNFS = require('react-native-fs');
-    console.log('RNFS', RNFS);
 
     const modelJson = this.modelJson;
 
