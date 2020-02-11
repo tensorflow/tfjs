@@ -97,8 +97,6 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
           const flipHorizontal = Platform.OS === 'ios' ? false : true;
           const pose = await this.state.posenetModel.estimateSinglePose(
             imageTensor, { flipHorizontal });
-
-          // console.log('pose', pose);
           this.setState({pose});
           tf.dispose([imageTensor]);
         }
@@ -262,9 +260,9 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
       />
       <View style={styles.modelResults}>
         {modelName === 'posenet' ? this.renderPose() : this.renderFaces()}
-
       </View>
     </View>;
+
     return (
       <View style={{width:'100%'}}>
         <View style={styles.sectionContainer}>
