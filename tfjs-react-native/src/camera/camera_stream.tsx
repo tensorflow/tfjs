@@ -43,7 +43,8 @@ interface Props {
   onReady: (
     images: IterableIterator<tf.Tensor3D>,
     updateCameraPreview: () => void,
-    gl: ExpoWebGLRenderingContext
+    gl: ExpoWebGLRenderingContext,
+    cameraTexture: WebGLTexture,
   ) => void;
 }
 
@@ -77,13 +78,14 @@ const DEFAULT_RESIZE_DEPTH = 3;
  * - __resizeHeight__: number — the height of the output tensor
  * - __resizeDepth__: number — the depth (num of channels) of the output tensor.
  *    Should be 3 or 4.
- * - __autorender__: boolean — if true the view will be automatically updated with
- *   the contents of the camera. Set this to false if you want more direct
+ * - __autorender__: boolean — if true the view will be automatically updated
+ *   with the contents of the camera. Set this to false if you want more direct
  *   control on when rendering happens.
  * - __onReady__: (
  *    images: IterableIterator<tf.Tensor3D>,
  *    updateCameraPreview: () => void,
- *    gl: ExpoWebGLRenderingContext
+ *    gl: ExpoWebGLRenderingContext,
+ *    cameraTexture: WebGLTexture
  *  ) => void — When the component is mounted and ready this callback will
  *  be called and recieve the following 3 elements:
  *    - __images__ is a (iterator)[https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators]
@@ -95,8 +97,9 @@ const DEFAULT_RESIZE_DEPTH = 3;
  *      `updateCameraPreview` and any other operations you want to synchronize
  *      to the camera rendering you must call gl.endFrameExp() to display it
  *      on the screen. This is also provided in case you want to do other
- *      rendering using WebGL.
- *      Not needed when `autorender` is true.
+ *      rendering using WebGL. Not needed when `autorender` is true.
+ *    - __cameraTexture__ The underlying cameraTexture. This can be used to
+ *      implement your own __updateCameraPreview__.
  *
  * ```js
  * import { Camera } from 'expo-camera';
@@ -284,7 +287,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
       const nextFrameIterator = nextFrameGenerator();
 
       // Pass the utility functions to the caller provided callback
-      this.props.onReady(nextFrameIterator, updatePreview, gl);
+      this.props.onReady(nextFrameIterator, updatePreview, gl, cameraTexture);
     }
 
     /**
