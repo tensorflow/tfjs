@@ -34,12 +34,7 @@ const TEST_FILTERS: TestFilter[] = [
       'Tensor2D float32 -> bool', 'Tensor2D int32 -> bool'
     ]
   },
-  {
-    include: 'softmax',
-    excludes: [
-      'gradient'  // Gradient not yet implemented.
-    ]
-  },
+  {include: 'softmax'},
   {
     include: 'add ',
     excludes: [
