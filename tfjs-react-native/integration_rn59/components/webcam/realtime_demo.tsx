@@ -16,7 +16,7 @@
  */
 
 import React from 'react';
-import {ActivityIndicator, StyleSheet, View, Platform } from 'react-native';
+import {ActivityIndicator, Button, StyleSheet, View, Platform } from 'react-native';
 import Svg, { Circle, Rect, G, Line} from 'react-native-svg';
 
 import * as Permissions from 'expo-permissions';
@@ -54,6 +54,8 @@ const AUTORENDER = true;
 const TensorCamera = cameraWithTensors(Camera);
 
 export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
+  rafID?: number;
+
   constructor(props: ScreenProps) {
     super(props);
     this.state = {
@@ -115,10 +117,16 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
       if(!AUTORENDER) {
         gl.endFrameEXP();
       }
-      requestAnimationFrame(loop);
+      this.rafID = requestAnimationFrame(loop);
     };
 
     loop();
+  }
+
+  componentWillUnmount() {
+    if(this.rafID) {
+      cancelAnimationFrame(this.rafID);
+    }
   }
 
   async componentDidMount() {
@@ -259,6 +267,12 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
     </View>;
     return (
       <View style={{width:'100%'}}>
+        <View style={styles.sectionContainer}>
+          <Button
+            onPress={this.props.returnToMain}
+            title='Back'
+          />
+        </View>
         {isLoading ? <View style={[styles.loadingIndicator]}>
           <ActivityIndicator size='large' color='#FF0266' />
         </View> : camView}
@@ -274,6 +288,10 @@ const styles = StyleSheet.create({
     top: 20,
     right: 20,
     zIndex: 200,
+  },
+  sectionContainer: {
+    marginTop: 32,
+    paddingHorizontal: 24,
   },
   cameraContainer: {
     display: 'flex',

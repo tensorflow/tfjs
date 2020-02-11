@@ -171,6 +171,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
     extends React.Component<T & Props, State> {
     camera: Camera;
     glView: GLView;
+    glContext: ExpoWebGLRenderingContext;
     rafID: number;
 
     constructor(props: T & Props) {
@@ -184,9 +185,13 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
     }
 
     componentWillUnmount() {
+      cancelAnimationFrame(this.rafID);
+      if(this.glContext) {
+        GLView.destroyContextAsync(this.glContext);
+      }
       this.camera = null;
       this.glView = null;
-      cancelAnimationFrame(this.rafID);
+      this.glContext = null;
     }
 
     /*
@@ -219,6 +224,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
      * @param gl
      */
     async onGLContextCreate(gl: ExpoWebGLRenderingContext) {
+      this.glContext = gl;
       const cameraTexture = await this.createCameraTexture();
       await detectGLCapabilities(gl);
 
@@ -250,6 +256,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
       //  Set up a generator function that yields tensors representing the
       // camera on demand.
       //
+      const cameraStreamView = this;
       function* nextFrameGenerator() {
         const RGBA_DEPTH = 4;
         const textureDims = {
@@ -264,7 +271,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
           depth: resizeDepth || DEFAULT_RESIZE_DEPTH,
         };
 
-        while (true) {
+        while (cameraStreamView.glContext != null) {
           const imageTensor = fromTexture(
             gl,
             cameraTexture,
