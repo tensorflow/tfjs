@@ -29,11 +29,12 @@ interface Dimensions {
 }
 
 // Shared cached frameBuffer object from external context
-let fbo: WebGLFramebuffer;
+const fboCache = new WeakMap<WebGL2RenderingContext, WebGLFramebuffer>();
 
 // Internal target texture used for resizing camera texture input
-let resizeTexture: WebGLTexture;
-let resizeTextureDims: {width: number, height: number};
+const resizeTextureCache = new WeakMap<WebGL2RenderingContext, WebGLTexture>();
+const resizeTextureDimsCache =
+    new WeakMap<WebGL2RenderingContext, {width: number, height: number}>();
 
 interface ProgramObjects {
   program: WebGLProgram;
@@ -43,7 +44,9 @@ interface ProgramObjects {
 }
 
 // Cache for shader programs and associated vertex array buffers.
-const programCache: Map<string, ProgramObjects> = new Map();
+const programCacheByContext:
+    WeakMap<WebGL2RenderingContext, Map<string, ProgramObjects>> =
+        new WeakMap();
 
 /**
  * Download data from an texture.
@@ -58,9 +61,10 @@ export function downloadTextureData(
   const {width, height, depth} = dims;
   const pixels = new Uint8Array(width * height * depth);
 
-  if (fbo == null) {
-    fbo = createFrameBuffer(gl);
+  if (!fboCache.has(gl)) {
+    fboCache.set(gl, createFrameBuffer(gl));
   }
+  const fbo = fboCache.get(gl);
 
   const debugMode = getDebugMode();
 
@@ -197,9 +201,11 @@ export function runResizeProgram(
   //
   // Set up output texture.
   //
-  if (resizeTexture == null) {
-    resizeTexture = gl.createTexture();
+  if (!resizeTextureCache.has(gl)) {
+    resizeTextureCache.set(gl, gl.createTexture());
   }
+  const resizeTexture = resizeTextureCache.get(gl);
+
   const targetTexture = resizeTexture;
   const targetTextureWidth = outputDims.width;
   const targetTextureHeight = outputDims.height;
@@ -213,6 +219,11 @@ export function runResizeProgram(
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
   // Reallocate texture storage if target size has changed.
+  if (!resizeTextureDimsCache.has(gl)) {
+    resizeTextureDimsCache.set(gl, {width: -1, height: -1});
+  }
+  const resizeTextureDims = resizeTextureDimsCache.get(gl);
+
   if (resizeTextureDims == null ||
       resizeTextureDims.width !== targetTextureWidth ||
       resizeTextureDims.height !== targetTextureHeight) {
@@ -228,18 +239,17 @@ export function runResizeProgram(
           targetTextureHeight, border, format, type, null);
     });
 
-    resizeTextureDims = {
-      width: targetTextureWidth,
-      height: targetTextureHeight
-    };
+    resizeTextureDimsCache.set(
+        gl, {width: targetTextureWidth, height: targetTextureHeight});
   }
 
   //
   // Render to output texture
   //
-  if (fbo == null) {
-    fbo = createFrameBuffer(gl);
+  if (!fboCache.has(gl)) {
+    fboCache.set(gl, createFrameBuffer(gl));
   }
+  const fbo = fboCache.get(gl);
 
   gl.viewport(0, 0, targetTextureWidth, targetTextureHeight);
   gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
@@ -248,7 +258,6 @@ export function runResizeProgram(
 
   const fboComplete = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
   if (fboComplete !== gl.FRAMEBUFFER_COMPLETE) {
-    console.log('checkFramebufferStatus is not complete', fboComplete);
     switch (fboComplete) {
       case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
         throw new Error(
@@ -294,6 +303,11 @@ function createFrameBuffer(gl: WebGL2RenderingContext): WebGLFramebuffer {
 
 function drawTextureProgram(
     gl: WebGL2RenderingContext, flipHorizontal: boolean): ProgramObjects {
+  if (!programCacheByContext.has(gl)) {
+    programCacheByContext.set(gl, new Map());
+  }
+  const programCache = programCacheByContext.get(gl);
+
   const cacheKey = `drawTexture_${flipHorizontal}`;
   if (!programCache.has(cacheKey)) {
     const vertSource =
@@ -315,6 +329,11 @@ function resizeProgram(
     gl: WebGL2RenderingContext, sourceDims: Dimensions, targetDims: Dimensions,
     alignCorners: boolean,
     interpolation: 'nearest_neighbor'|'bilinear'): ProgramObjects {
+  if (!programCacheByContext.has(gl)) {
+    programCacheByContext.set(gl, new Map());
+  }
+  const programCache = programCacheByContext.get(gl);
+
   const cacheKey = `resize_${sourceDims.width}_${sourceDims.height}_${
       sourceDims.depth}_${targetDims.width}_${targetDims.height}_${
       targetDims.depth}_${alignCorners}_${interpolation}`;
