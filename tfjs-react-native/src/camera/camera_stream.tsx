@@ -306,7 +306,10 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
         const height = PixelRatio.getPixelSizeForLayoutSize(
           cameraLayout.height
         );
-        const flipHorizontal = Platform.OS === 'ios' ? false : true;
+        const isFrontCamera = 
+          this.camera.props.type === Camera.Constants.Type.front;
+        const flipHorizontal = 
+          Platform.OS === 'ios' && isFrontCamera ? false : true;
 
         renderToGLView(gl, cameraTexture, { width, height }, flipHorizontal);
       };
