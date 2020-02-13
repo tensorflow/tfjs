@@ -21,7 +21,7 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 describeWithFlags('softmax', CPU_ENVS, () => {
-  fit('regular test', async () => {
+  it('regular test', async () => {
     const y = tf.softmax(tf.tensor1d([2, 1, 3]));
 
     expectArraysClose(await y.data(), [0.24472847, 0.09003057, 0.66524095]);
