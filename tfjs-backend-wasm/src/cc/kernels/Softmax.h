@@ -19,9 +19,10 @@
 
 namespace tfjs {
 namespace wasm {
-
+extern "C" {
 void Softmax(const size_t x_id, const size_t out_id, const size_t channels,
              const size_t batch);
+}
 
 }  // namespace wasm
 }  // namespace tfjs

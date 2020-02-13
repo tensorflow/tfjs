@@ -21,9 +21,9 @@
 #include <cstddef>
 #include <map>
 #include <tuple>
-#include <vector>
 
 #include "src/cc/backend.h"
+#include "src/cc/kernels/Softmax.h"
 #include "src/cc/util.h"
 
 namespace {
