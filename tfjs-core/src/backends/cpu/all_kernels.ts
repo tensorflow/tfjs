@@ -22,3 +22,4 @@ import './non_max_suppression_v5';
 import './kernels/square';
 import './kernels/softmax';
 import './kernels/max';
+import './kernels/Sub';

@@ -43,16 +43,19 @@ registerKernel({
 
     const axes = parseAxisParam([dim], logits.shape);
 
-    const [outShape, reduceShape] =
+    const [maxLogitOutShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(logits.shape, axes);
     const values = cpuBackend.data.get(logits.dataId).values as Float32Array;
-    const outValues = new Float32Array(sizeFromShape(outShape));
+    const outValues = new Float32Array(sizeFromShape(maxLogitOutShape));
     const maxLogit = max(values, reduceShape, outValues);
+
+    const expandedShape =
+        axis_util.expandShapeToKeepDim(maxLogitOutShape, axes);
 
     console.log('MAX LOGIT');
     console.log(maxLogit);
 
-    const dataId = cpuBackend.write(maxLogit, outShape, logits.dtype);
-    return {dataId, shape: outShape, dtype: logits.dtype};
+    const dataId = cpuBackend.write(maxLogit, maxLogitOutShape, logits.dtype);
+    return {dataId, shape: maxLogitOutShape, dtype: logits.dtype};
   }
 });
