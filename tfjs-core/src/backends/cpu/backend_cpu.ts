@@ -377,16 +377,16 @@ export class MathBackendCPU extends KernelBackend {
     return result.toTensor() as T;
   }
 
-  // softmax<T extends Tensor>(logits: T, dim: number): T {
-  //   const axes = util.parseAxisParam([dim], logits.shape);
-  //   const maxLogit = this.max(logits, axes);
-  //   const expandedShape = axis_util.expandShapeToKeepDim(maxLogit.shape,
-  //   axes); const a = this.subtract(logits, maxLogit.reshape(expandedShape));
-  //   const b = this.exp(a);
-  //   const sumExp = this.sum(b, axes).reshape(expandedShape);
+  softmax(logits: Tensor, dim: number): Tensor {
+    const axes = util.parseAxisParam([dim], logits.shape);
+    const maxLogit = this.max(logits, axes);
+    const expandedShape = axis_util.expandShapeToKeepDim(maxLogit.shape, axes);
+    const a = this.subtract(logits, maxLogit.reshape(expandedShape));
+    const b = this.exp(a);
+    const sumExp = this.sum(b, axes).reshape(expandedShape);
 
-  //   return b.div(sumExp);
-  // }
+    return this.realDivide(b, sumExp);
+  }
 
   subtract(a: Tensor, b: Tensor): Tensor {
     if (a.dtype === 'complex64' || b.dtype === 'complex64') {
@@ -826,30 +826,30 @@ export class MathBackendCPU extends KernelBackend {
     });
   }
 
-  // max(x: Tensor, axes: number[]): Tensor {
-  //   assertNotComplex(x, 'max');
+  max(x: Tensor, axes: number[]): Tensor {
+    assertNotComplex(x, 'max');
 
-  //   axis_util.assertAxesAreInnerMostDims('max', axes, x.rank);
-  //   const [outShape, reduceShape] =
-  //       axis_util.computeOutAndReduceShapes(x.shape, axes);
-  //   const result = ops.zeros(outShape, x.dtype);
-  //   const reduceSize = util.sizeFromShape(reduceShape);
-  //   const vals = this.readSync(result.dataId) as TypedArray;
+    axis_util.assertAxesAreInnerMostDims('max', axes, x.rank);
+    const [outShape, reduceShape] =
+        axis_util.computeOutAndReduceShapes(x.shape, axes);
+    const result = ops.zeros(outShape, x.dtype);
+    const reduceSize = util.sizeFromShape(reduceShape);
+    const vals = this.readSync(result.dataId) as TypedArray;
 
-  //   const aVals = this.readSync(x.dataId) as TypedArray;
-  //   for (let i = 0; i < vals.length; ++i) {
-  //     const offset = i * reduceSize;
-  //     let max = aVals[offset];
-  //     for (let j = 0; j < reduceSize; ++j) {
-  //       const value = aVals[offset + j];
-  //       if (value > max) {
-  //         max = value;
-  //       }
-  //     }
-  //     vals[i] = max;
-  //   }
-  //   return result;
-  // }
+    const aVals = this.readSync(x.dataId) as TypedArray;
+    for (let i = 0; i < vals.length; ++i) {
+      const offset = i * reduceSize;
+      let max = aVals[offset];
+      for (let j = 0; j < reduceSize; ++j) {
+        const value = aVals[offset + j];
+        if (value > max) {
+          max = value;
+        }
+      }
+      vals[i] = max;
+    }
+    return result;
+  }
 
   maximum(a: Tensor, b: Tensor): Tensor {
     assertNotComplex([a, b], 'maximum');
