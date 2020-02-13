@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo} from '../../kernel_registry';
+import {NamedTensorInfoMap, registerKernel, TensorInfo} from '../../../kernel_registry';
 
-import {MathBackendCPU} from './backend_cpu';
-import {assertNotComplex} from './cpu_util';
+import {MathBackendCPU} from '../backend_cpu';
+import {assertNotComplex} from '../cpu_util';
 
 interface SquareInputs extends NamedTensorInfoMap {
   x: TensorInfo;

@@ -378,6 +378,7 @@ export class MathBackendCPU extends KernelBackend {
   }
 
   softmax<T extends Tensor>(logits: T, dim: number): T {
+    console.log('softmaxxxxx');
     const axes = util.parseAxisParam([dim], logits.shape);
     const maxLogit = this.max(logits, axes);
     const expandedShape = axis_util.expandShapeToKeepDim(maxLogit.shape, axes);
