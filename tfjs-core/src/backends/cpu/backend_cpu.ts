@@ -377,17 +377,17 @@ export class MathBackendCPU extends KernelBackend {
     return result.toTensor() as T;
   }
 
-  softmax<T extends Tensor>(logits: T, dim: number): T {
-    console.log('softmaxxxxx');
-    const axes = util.parseAxisParam([dim], logits.shape);
-    const maxLogit = this.max(logits, axes);
-    const expandedShape = axis_util.expandShapeToKeepDim(maxLogit.shape, axes);
-    const a = this.subtract(logits, maxLogit.reshape(expandedShape));
-    const b = this.exp(a);
-    const sumExp = this.sum(b, axes).reshape(expandedShape);
+  // softmax<T extends Tensor>(logits: T, dim: number): T {
+  //   console.log('softmaxxxxx');
+  //   const axes = util.parseAxisParam([dim], logits.shape);
+  //   const maxLogit = this.max(logits, axes);
+  //   const expandedShape = axis_util.expandShapeToKeepDim(maxLogit.shape,
+  //   axes); const a = this.subtract(logits, maxLogit.reshape(expandedShape));
+  //   const b = this.exp(a);
+  //   const sumExp = this.sum(b, axes).reshape(expandedShape);
 
-    return this.realDivide(b, sumExp) as T;
-  }
+  //   return this.realDivide(b, sumExp) as T;
+  // }
 
   subtract(a: Tensor, b: Tensor): Tensor {
     if (a.dtype === 'complex64' || b.dtype === 'complex64') {

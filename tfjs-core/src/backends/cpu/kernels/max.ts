@@ -17,42 +17,39 @@
 
 import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '../../../kernel_registry';
 import * as axis_util from '../../../ops/axis_util';
-import {parseAxisParam, sizeFromShape} from '../../../util';
+import {sizeFromShape} from '../../../util';
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
-
 import {max} from './max_impl';
 
-interface SoftmaxInputs extends NamedTensorInfoMap {
+interface MaxInputs extends NamedTensorInfoMap {
   x: TensorInfo;
 }
 
-interface SoftmaxAttrs extends NamedAttrMap {
-  dim: number;
+interface MaxAttrs extends NamedAttrMap {
+  axes: number[];
 }
 
 registerKernel({
-  kernelName: 'Softmax',
+  kernelName: 'Max',
   backendName: 'cpu',
   kernelFunc: ({inputs, attrs, backend}) => {
-    console.log('BLERG KERNEL FUNC');
-    const {logits} = inputs as SoftmaxInputs;
-    const {dim} = attrs as SoftmaxAttrs;
+    const {x} = inputs as MaxInputs;
+    const {axes} = attrs as MaxAttrs;
     const cpuBackend = backend as MathBackendCPU;
-    assertNotComplex(logits, 'softmax');
 
-    const axes = parseAxisParam([dim], logits.shape);
+    assertNotComplex(x, 'max');
+
+    axis_util.assertAxesAreInnerMostDims('max', axes, x.shape.length);
 
     const [outShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(logits.shape, axes);
-    const values = cpuBackend.data.get(logits.dataId).values as Float32Array;
+        axis_util.computeOutAndReduceShapes(x.shape, axes);
+
+    const xVals = cpuBackend.data.get(x.dataId).values as Float32Array;
     const outValues = new Float32Array(sizeFromShape(outShape));
-    const maxLogit = max(values, reduceShape, outValues);
+    const result = max(xVals, reduceShape, outValues);
 
-    console.log('MAX LOGIT');
-    console.log(maxLogit);
-
-    const dataId = cpuBackend.write(maxLogit, outShape, logits.dtype);
-    return {dataId, shape: outShape, dtype: logits.dtype};
+    const dataId = cpuBackend.write(result, outShape, x.dtype);
+    return {dataId, shape: outShape, dtype: x.dtype};
   }
 });
