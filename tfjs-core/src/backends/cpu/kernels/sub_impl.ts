@@ -15,38 +15,6 @@
  * =============================================================================
  */
 
-import * as broadcast_util from '../../../ops/broadcast_util';
-import {TypedArray} from '../../../types';
-import * as util from '../../../util';
+import {createBinaryOp} from './binary_impl';
 
-export const sub =
-    (a: TypedArray, aShape: number[], b: TypedArray, bShape: number[],
-     outValues: TypedArray, outShape: number[]): TypedArray => {
-      const aBroadcastDims = broadcast_util.getBroadcastDims(aShape, outShape);
-      const bBroadcastDims = broadcast_util.getBroadcastDims(bShape, outShape);
-
-      const aStrides = util.computeStrides(aShape);
-      const bStrides = util.computeStrides(bShape);
-      const outStrides = util.computeStrides(outShape);
-
-      if (aBroadcastDims.length + bBroadcastDims.length === 0) {
-        for (let i = 0; i < outValues.length; ++i) {
-          outValues[i] = a[i % a.length] - b[i % b.length];
-        }
-      } else {
-        for (let i = 0; i < outValues.length; ++i) {
-          const loc = util.indexToLoc(i, outStrides);
-
-          const aLoc = loc.slice(-aShape.length);
-          aBroadcastDims.forEach(d => aLoc[d] = 0);
-          const aIndex = util.locToIndex(aLoc, aStrides);
-
-          const bLoc = loc.slice(-bShape.length);
-          bBroadcastDims.forEach(d => bLoc[d] = 0);
-          const bIndex = util.locToIndex(bLoc, bStrides);
-
-          outValues[i] = a[aIndex] - b[bIndex];
-        }
-      }
-      return outValues;
-    };
+export const sub = createBinaryOp((a: number, b: number) => a - b);
