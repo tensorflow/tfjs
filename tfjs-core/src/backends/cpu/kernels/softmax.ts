@@ -21,6 +21,7 @@ import {parseAxisParam, sizeFromShape} from '../../../util';
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 
+import {exp} from './exp_impl';
 import {max} from './max_impl';
 import {sub} from './sub_impl';
 
@@ -63,6 +64,10 @@ registerKernel({
 
     console.log('subtract');
     console.log(a);
+
+    const b = exp(a, new Float32Array(sizeFromShape(logits.shape)));
+    console.log('exp');
+    console.log(b);
 
     const dataId = cpuBackend.write(maxLogit, maxLogitOutShape, logits.dtype);
     return {dataId, shape: maxLogitOutShape, dtype: logits.dtype};
