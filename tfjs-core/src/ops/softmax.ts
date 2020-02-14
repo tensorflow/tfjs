@@ -15,11 +15,13 @@
  * =============================================================================
  */
 
+import {ENGINE} from '../engine';
 import {customGrad} from '../gradients';
 import {Tensor} from '../tensor';
 import {GradSaveFunc} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
+
 import {op} from './operation';
 
 /**
@@ -43,7 +45,7 @@ import {op} from './operation';
  */
 /** @doc {heading: 'Operations', subheading: 'Normalization'} */
 function softmax_<T extends Tensor>(logits: T|TensorLike, dim = -1): T {
-  const $logits = convertToTensor(logits, 'logits', 'softmax');
+  const $logits = convertToTensor(logits, 'logits', 'softmax', 'float32');
 
   if (dim === -1) {
     dim = $logits.rank - 1;
@@ -54,25 +56,26 @@ function softmax_<T extends Tensor>(logits: T|TensorLike, dim = -1): T {
         `Logits was rank ${$logits.rank} and dim was ${dim}`);
   }
 
-  const customOp = customGrad((logits: Tensor, save: GradSaveFunc) => {
-    // Do it in log space for numerical stability.
-    // exp(X - logSumExp(X))
-    const keepDims = true;
-    const lse = logits.logSumExp([dim], keepDims);
-    const logResult = logits.toFloat().sub(lse);
-    const y = logResult.exp() as T;
-    save([y]);
-    const gradFunc = (dy: T, saved: Tensor[]) => {
-      const [y] = saved;
-      const dyTimesY = dy.mul(y);
-      const keepDims = true;
-      return dyTimesY.sub(dyTimesY.sum([dim], keepDims).mul(y));
-    };
+  const inputsToSave: Tensor[] = [];
+  const outputsToSave = [true];
 
-    return {value: y, gradFunc};
-  });
+  return ENGINE.runKernelFunc(
+      (backend, save) => {
+        const y = backend.softmax($logits, dim);
+        save([y]);
+        return y;
+      },
+      {logits: $logits},
+      (dy: T, saved: Tensor[]) => {
+        const [y] = saved;
+        const dyTimesY = dy.mul(y);
+        const keepDims = true;
 
-  return customOp($logits);
+        return {
+          logits: () => dyTimesY.sub(dyTimesY.sum([dim], keepDims).mul(y))
+        };
+      },
+      'Softmax', {dim}, inputsToSave, outputsToSave);
 }
 
 /**

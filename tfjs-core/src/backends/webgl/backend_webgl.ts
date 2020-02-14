@@ -1597,6 +1597,17 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
+  softmax<T extends Tensor>(logits: T, dim: number): T {
+    const axes = util.parseAxisParam([dim], logits.shape);
+    const maxLogit = this.max(logits, axes);
+    const expandedShape = axis_util.expandShapeToKeepDim(maxLogit.shape, axes);
+    const a = this.subtract(logits, maxLogit.reshape(expandedShape));
+    const b = this.exp(a);
+    const sumExp = this.sum(b, axes).reshape(expandedShape);
+
+    return this.realDivide(b, sumExp) as T;
+  }
+
   log<T extends Tensor>(x: T): T {
     if (this.shouldExecuteOnCPU([x])) {
       return this.cpuBackend.log(x);

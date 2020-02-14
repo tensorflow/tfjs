@@ -8,9 +8,9 @@ emsdk_configure(name = "emsdk")
 
 git_repository(
     name = "xnnpack",
-    commit = "3a77ea7bbe30b2411591f2ab15f9c5032a25f688",
+    commit = "7278a95e3cfae6eac73f363c4fda5db53e1b2a87",
     remote = "https://github.com/google/XNNPACK.git",
-    shallow_since = "1577131863 -0800",
+    shallow_since = "1580796377 -0800",
 )
 
 # The libraries below are transitive dependencies of XNNPACK that we need to
@@ -64,6 +64,7 @@ http_archive(
 http_archive(
     name = "cpuinfo",
     build_file = "@xnnpack//third_party:cpuinfo.BUILD",
+    patches = ["@xnnpack//third_party:cpuinfo.patch"],
     sha256 = "3f2dc1970f397a0e59db72f9fca6ff144b216895c1d606f6c94a507c1e53a025",
     strip_prefix = "cpuinfo-d5e37adf1406cf899d7d9ec1d317c47506ccb970",
     urls = [
