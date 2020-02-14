@@ -15,37 +15,7 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo} from '../../../kernel_registry';
-import * as broadcast_util from '../../../ops/broadcast_util';
-import {upcastType} from '../../../types';
-import {sizeFromShape} from '../../../util';
-import {MathBackendCPU} from '../backend_cpu';
-
+import {registerBinaryKernel} from './binary_kernel';
 import {div} from './div_impl';
 
-interface DivInputs extends NamedTensorInfoMap {
-  a: TensorInfo;
-  b: TensorInfo;
-}
-
-registerKernel({
-  kernelName: 'Div',
-  backendName: 'cpu',
-  kernelFunc: ({inputs, backend}) => {
-    const {a, b} = inputs as DivInputs;
-    const cpuBackend = backend as MathBackendCPU;
-
-    const dtype = upcastType(a.dtype, b.dtype);
-    const outShape =
-        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    const outValues = new Float32Array(sizeFromShape(outShape));
-
-    const aVals = cpuBackend.data.get(a.dataId).values as Float32Array;
-    const bVals = cpuBackend.data.get(b.dataId).values as Float32Array;
-
-    const result = div(aVals, a.shape, bVals, b.shape, outValues, outShape);
-
-    const dataId = cpuBackend.write(result, outShape, dtype);
-    return {dataId, shape: outShape, dtype};
-  }
-});
+registerBinaryKernel('Div', div);
