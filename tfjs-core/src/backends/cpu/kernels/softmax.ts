@@ -21,6 +21,7 @@ import {parseAxisParam, sizeFromShape} from '../../../util';
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 
+import {div} from './div_impl';
 import {exp} from './exp_impl';
 import {max} from './max_impl';
 import {sub} from './sub_impl';
@@ -74,7 +75,11 @@ registerKernel({
     console.log('sumexp');
     console.log(sumExp);
 
-    const dataId = cpuBackend.write(maxLogit, reduceOutShape, logits.dtype);
-    return {dataId, shape: reduceOutShape, dtype: logits.dtype};
+    const out =
+        div(b, logits.shape, sumExp, expandedShape,
+            new Float32Array(sizeFromShape(logits.shape)), logits.shape);
+
+    const dataId = cpuBackend.write(out, logits.shape, logits.dtype);
+    return {dataId, shape: logits.shape, dtype: logits.dtype};
   }
 });

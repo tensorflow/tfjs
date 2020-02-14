@@ -25,3 +25,4 @@ import './kernels/max';
 import './kernels/Sub';
 import './kernels/Exp';
 import './kernels/Sum';
+import './kernels/Div';
