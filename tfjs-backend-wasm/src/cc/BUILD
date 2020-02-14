@@ -672,6 +672,7 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "Softmax",
     srcs = ["kernels/Softmax.cc"],
+    hdrs = ["kernels/Softmax.h"],
     deps = [
         ":backend",
         ":unary",

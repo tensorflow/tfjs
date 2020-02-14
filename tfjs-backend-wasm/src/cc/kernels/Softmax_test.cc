@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "src/cc/backend.h"
-#include "src/cc/util.h"
+#include "src/cc/kernels/Softmax.h"
 
 TEST(SOFTMAX, xnn_operator_lifetime) {
   tfjs::wasm::init();
@@ -44,9 +44,6 @@ TEST(SOFTMAX, xnn_operator_lifetime) {
   // One new xnn_operator should be created for the first call to Softmax.
   tfjs::wasm::Softmax(x0_id, out_id, 4, 1);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
-
-  auto& out_info = tfjs::backend::get_tensor_info(out_id);
-  const float* out_buf = out_info.f32();
 
   // No new xnn_operators should be created for the second call to
   // Softmax with the same arguments.
