@@ -22,6 +22,7 @@ import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 
 import {max} from './max_impl';
+import {sub} from './sub_impl';
 
 interface SoftmaxInputs extends NamedTensorInfoMap {
   x: TensorInfo;
@@ -35,7 +36,6 @@ registerKernel({
   kernelName: 'Softmax',
   backendName: 'cpu',
   kernelFunc: ({inputs, attrs, backend}) => {
-    console.log('BLERG KERNEL FUNC');
     const {logits} = inputs as SoftmaxInputs;
     const {dim} = attrs as SoftmaxAttrs;
     const cpuBackend = backend as MathBackendCPU;
@@ -45,15 +45,24 @@ registerKernel({
 
     const [maxLogitOutShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(logits.shape, axes);
-    const values = cpuBackend.data.get(logits.dataId).values as Float32Array;
-    const outValues = new Float32Array(sizeFromShape(maxLogitOutShape));
-    const maxLogit = max(values, reduceShape, outValues);
+    const logitsValues =
+        cpuBackend.data.get(logits.dataId).values as Float32Array;
+    const maxLogit =
+        max(logitsValues, reduceShape,
+            new Float32Array(sizeFromShape(maxLogitOutShape)));
 
     const expandedShape =
         axis_util.expandShapeToKeepDim(maxLogitOutShape, axes);
 
     console.log('MAX LOGIT');
     console.log(maxLogit);
+
+    const a =
+        sub(logitsValues, logits.shape, maxLogit, expandedShape,
+            new Float32Array(sizeFromShape(logits.shape)), logits.shape);
+
+    console.log('subtract');
+    console.log(a);
 
     const dataId = cpuBackend.write(maxLogit, maxLogitOutShape, logits.dtype);
     return {dataId, shape: maxLogitOutShape, dtype: logits.dtype};

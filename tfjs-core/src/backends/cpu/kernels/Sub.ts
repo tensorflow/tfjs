@@ -16,11 +16,12 @@
  */
 
 import {NamedTensorInfoMap, registerKernel, TensorInfo} from '../../../kernel_registry';
-import * as axis_util from '../../../ops/axis_util';
+import * as broadcast_util from '../../../ops/broadcast_util';
+import {upcastType} from '../../../types';
 import {sizeFromShape} from '../../../util';
 import {MathBackendCPU} from '../backend_cpu';
-import {assertNotComplex} from '../cpu_util';
-import {max} from './max_impl';
+
+import {sub} from './sub_impl';
 
 interface SubInputs extends NamedTensorInfoMap {
   a: TensorInfo;
@@ -34,18 +35,17 @@ registerKernel({
     const {a, b} = inputs as SubInputs;
     const cpuBackend = backend as MathBackendCPU;
 
-    assertNotComplex(x, 'max');
-
-    axis_util.assertAxesAreInnerMostDims('max', axes, x.shape.length);
-
-    const [outShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(x.shape, axes);
-
-    const xVals = cpuBackend.data.get(x.dataId).values as Float32Array;
+    const dtype = upcastType(a.dtype, b.dtype);
+    const outShape =
+        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     const outValues = new Float32Array(sizeFromShape(outShape));
-    const result = max(xVals, reduceShape, outValues);
 
-    const dataId = cpuBackend.write(result, outShape, x.dtype);
-    return {dataId, shape: outShape, dtype: x.dtype};
+    const aVals = cpuBackend.data.get(a.dataId).values as Float32Array;
+    const bVals = cpuBackend.data.get(b.dataId).values as Float32Array;
+
+    const result = sub(aVals, a.shape, bVals, b.shape, outValues, outShape);
+
+    const dataId = cpuBackend.write(result, outShape, dtype);
+    return {dataId, shape: outShape, dtype};
   }
 });
