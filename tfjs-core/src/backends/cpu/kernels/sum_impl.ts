@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,13 +15,23 @@
  * =============================================================================
  */
 
-// We explicitly import the modular kernels so they get registered in the
-// global registry when we compile the library. A modular build would replace
-// the contents of this file and import only the kernels that are needed.
-import './non_max_suppression_v5';
-import './kernels/square';
-import './kernels/softmax';
-import './kernels/max';
-import './kernels/Sub';
-import './kernels/Exp';
-import './kernels/Sum';
+import {TypedArray} from '../../../types';
+import {sizeFromShape} from '../../../util';
+
+export const sum =
+    (x: TypedArray, reduceShape: number[], outValues: TypedArray):
+        TypedArray => {
+          const reduceSize = sizeFromShape(reduceShape);
+
+          for (let i = 0; i < x.length; ++i) {
+            const offset = i * reduceSize;
+            let sum = 0;
+            for (let j = 0; j < reduceSize; ++j) {
+              const value = x[offset + j];
+              sum += value;
+            }
+            outValues[i] = sum;
+          }
+
+          return outValues;
+        };

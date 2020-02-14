@@ -24,6 +24,7 @@ import {assertNotComplex} from '../cpu_util';
 import {exp} from './exp_impl';
 import {max} from './max_impl';
 import {sub} from './sub_impl';
+import {sum} from './sum_impl';
 
 interface SoftmaxInputs extends NamedTensorInfoMap {
   x: TensorInfo;
@@ -44,16 +45,15 @@ registerKernel({
 
     const axes = parseAxisParam([dim], logits.shape);
 
-    const [maxLogitOutShape, reduceShape] =
+    const [reduceOutShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(logits.shape, axes);
     const logitsValues =
         cpuBackend.data.get(logits.dataId).values as Float32Array;
     const maxLogit =
         max(logitsValues, reduceShape,
-            new Float32Array(sizeFromShape(maxLogitOutShape)));
+            new Float32Array(sizeFromShape(reduceOutShape)));
 
-    const expandedShape =
-        axis_util.expandShapeToKeepDim(maxLogitOutShape, axes);
+    const expandedShape = axis_util.expandShapeToKeepDim(reduceOutShape, axes);
 
     console.log('MAX LOGIT');
     console.log(maxLogit);
@@ -69,7 +69,12 @@ registerKernel({
     console.log('exp');
     console.log(b);
 
-    const dataId = cpuBackend.write(maxLogit, maxLogitOutShape, logits.dtype);
-    return {dataId, shape: maxLogitOutShape, dtype: logits.dtype};
+    const sumExp =
+        sum(b, reduceShape, new Float32Array(sizeFromShape(reduceOutShape)));
+    console.log('sumexp');
+    console.log(sumExp);
+
+    const dataId = cpuBackend.write(maxLogit, reduceOutShape, logits.dtype);
+    return {dataId, shape: reduceOutShape, dtype: logits.dtype};
   }
 });
