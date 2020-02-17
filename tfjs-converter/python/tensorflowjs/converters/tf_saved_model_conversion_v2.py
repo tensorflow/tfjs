@@ -113,7 +113,8 @@ def _run_grappler(config, graph_def, graph, signature_def):
 
 def optimize_graph(graph, signature_def, output_graph,
                    tf_version, quantization_dtype=None, skip_op_check=False,
-                   strip_debug_ops=False):
+                   strip_debug_ops=False,
+                   weight_shard_size_bytes=1024 * 1024 * 4):
   """Takes a Python Graph object and optimizes the graph.
 
   Args:
@@ -125,6 +126,8 @@ def optimize_graph(graph, signature_def, output_graph,
       compression. Only np.uint8 and np.uint16 are supported.
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to strip debug ops.
+    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
+      The size of each weight file will be <= this value.
   """
 
   # Add a collection 'train_op' so that Grappler knows the outputs.
@@ -191,7 +194,7 @@ def optimize_graph(graph, signature_def, output_graph,
 
   extract_weights(
       optimized_graph, output_graph, tf_version,
-      signature_def, quantization_dtype)
+      signature_def, quantization_dtype, weight_shard_size_bytes)
   return optimize_graph
 
 
@@ -199,7 +202,8 @@ def extract_weights(graph_def,
                     output_graph,
                     tf_version,
                     signature_def,
-                    quantization_dtype=None):
+                    quantization_dtype=None,
+                    weight_shard_size_bytes=1024 * 1024 * 4):
   """Takes a Python GraphDef object and extract the weights.
 
   Args:
@@ -209,6 +213,8 @@ def extract_weights(graph_def,
     signature_def: the SignatureDef of the inference graph.
     quantization_dtype: An optional numpy dtype to quantize weights to for
         compression. Only np.uint8 and np.uint16 are supported.
+    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
+      The size of each weight file will be <= this value.
   """
   constants = [node for node in graph_def.node if node.op == 'Const']
   const_inputs = {}
@@ -234,7 +240,8 @@ def extract_weights(graph_def,
 
   write_artifacts(MessageToDict(graph_def), [const_manifest], output_graph,
                   tf_version, signature_def,
-                  quantization_dtype=quantization_dtype)
+                  quantization_dtype=quantization_dtype,
+                  weight_shard_size_bytes=weight_shard_size_bytes)
 
 
 def write_artifacts(topology,
@@ -242,7 +249,8 @@ def write_artifacts(topology,
                     output_graph,
                     tf_version,
                     signature_def,
-                    quantization_dtype=None):
+                    quantization_dtype=None,
+                    weight_shard_size_bytes=1024 * 1024 * 4):
   """Writes weights and topology to the output_dir.
 
   If `topology` is Falsy (e.g., `None`), only emit weights to output_dir.
@@ -256,7 +264,10 @@ def write_artifacts(topology,
     signature_def: the SignatureDef of the inference graph.
     quantization_dtype: An optional numpy dtype to quantize weights to for
       compression. Only np.uint8 and np.uint16 are supported.
+    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
+      The size of each weight file will be <= this value.
   """
+
   model_json = {
       common.FORMAT_KEY: common.TFJS_GRAPH_MODEL_FORMAT,
       # TODO(piyu): Add tensorflow version below by using `meta_info_def`.
@@ -269,7 +280,8 @@ def write_artifacts(topology,
   model_json[common.ARTIFACT_MODEL_TOPOLOGY_KEY] = topology or None
   weights_manifest = write_weights.write_weights(
       weights, os.path.dirname(output_graph), write_manifest=False,
-      quantization_dtype=quantization_dtype)
+      quantization_dtype=quantization_dtype,
+      shard_size_bytes=weight_shard_size_bytes)
   assert isinstance(weights_manifest, list)
   model_json[common.ARTIFACT_WEIGHTS_MANIFEST_KEY] = weights_manifest
 
@@ -347,7 +359,8 @@ def convert_tf_frozen_model(frozen_model_path,
                             output_node_names,
                             output_dir, quantization_dtype=None,
                             skip_op_check=False,
-                            strip_debug_ops=False):
+                            strip_debug_ops=False,
+                            weight_shard_size_bytes=1024 * 1024 * 4):
   """Convert frozen model and check the model compatibility with Tensorflow.js.
   Optimize and convert the model to Tensorflow.js format, when the model passes
   the compatiblity check.
@@ -362,6 +375,8 @@ def convert_tf_frozen_model(frozen_model_path,
       compression. Only np.uint8 and np.uint16 are supported.
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to strip debug ops.
+    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
+      The size of each weight file will be <= this value.
   """
 
   if not os.path.exists(output_dir):
@@ -376,14 +391,16 @@ def convert_tf_frozen_model(frozen_model_path,
                  output_graph, tf.__version__,
                  quantization_dtype=quantization_dtype,
                  skip_op_check=skip_op_check,
-                 strip_debug_ops=strip_debug_ops)
+                 strip_debug_ops=strip_debug_ops,
+                 weight_shard_size_bytes=weight_shard_size_bytes)
 
 def convert_tf_saved_model(saved_model_dir,
                            output_dir, signature_def='serving_default',
                            saved_model_tags='serve',
                            quantization_dtype=None,
                            skip_op_check=False,
-                           strip_debug_ops=False):
+                           strip_debug_ops=False,
+                           weight_shard_size_bytes=1024 * 1024 * 4):
   """Freeze the SavedModel and check the model compatibility with Tensorflow.js.
 
   Optimize and convert the model to Tensorflow.js format, when the model passes
@@ -403,6 +420,8 @@ def convert_tf_saved_model(saved_model_dir,
       compression. Only np.uint8 and np.uint16 are supported.
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to strip debug ops.
+    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
+      The size of each weight file will be <= this value.
   """
   if signature_def is None:
     signature_def = 'serving_default'
@@ -437,7 +456,8 @@ def convert_tf_saved_model(saved_model_dir,
                  output_graph, model.tensorflow_version,
                  quantization_dtype=quantization_dtype,
                  skip_op_check=skip_op_check,
-                 strip_debug_ops=strip_debug_ops)
+                 strip_debug_ops=strip_debug_ops,
+                 weight_shard_size_bytes=weight_shard_size_bytes)
 
 def load_and_initialize_hub_module(module_path, signature='default'):
   """Loads graph of a TF-Hub module and initializes it into a session.
@@ -487,7 +507,8 @@ def load_and_initialize_hub_module(module_path, signature='default'):
 
 def convert_tf_hub_module_v1(module_path, output_dir,
                              signature='default', quantization_dtype=None,
-                             skip_op_check=False, strip_debug_ops=False):
+                             skip_op_check=False, strip_debug_ops=False,
+                             weight_shard_size_bytes=1024 * 1024 * 4):
   """Freeze the TF-Hub module and check compatibility with Tensorflow.js.
 
   Optimize and convert the TF-Hub module to Tensorflow.js format, if it passes
@@ -502,6 +523,8 @@ def convert_tf_hub_module_v1(module_path, output_dir,
     signature: string Signature to load.
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to strip debug ops.
+    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
+      The size of each weight file will be <= this value.
   """
 
   if signature is None:
@@ -540,7 +563,9 @@ def convert_tf_hub_module_v1(module_path, output_dir,
     optimize_graph(frozen_graph, signature,
                    output_graph, tf.__version__,
                    quantization_dtype=quantization_dtype,
-                   skip_op_check=skip_op_check, strip_debug_ops=strip_debug_ops)
+                   skip_op_check=skip_op_check,
+                   strip_debug_ops=strip_debug_ops,
+                   shard_size_bytes=weight_shard_size_bytes)
   finally:
     # Clean up the temp files.
     if os.path.exists(frozen_file):
@@ -550,7 +575,8 @@ def convert_tf_hub_module_v1(module_path, output_dir,
 def convert_tf_hub_module(module_handle, output_dir,
                           signature='default', saved_model_tags='serve',
                           quantization_dtype=None, skip_op_check=False,
-                          strip_debug_ops=False):
+                          strip_debug_ops=False,
+                          weight_shard_size_bytes=1024 * 1024 * 4):
   """Conversion for TF Hub modules V1 and V2.
 
   See convert_tf_hub_module and convert_tf_saved_model.
@@ -565,6 +591,8 @@ def convert_tf_hub_module(module_handle, output_dir,
     saved_model_tags: tags of the GraphDef to load. Defaults to ''.
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to strip debug ops.
+    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
+      The size of each weight file will be <= this value.
   """
   module_path = hub.resolve(module_handle)
   # TODO(vbardiovskyg): We can remove this v1 code path once loading of all v1
@@ -573,7 +601,8 @@ def convert_tf_hub_module(module_handle, output_dir,
   if tf.io.gfile.exists(os.path.join(module_path, _HUB_V1_MODULE_PB)):
     print("Loading the module using TF 1.X interface from %s." % module_path)
     convert_tf_hub_module_v1(module_path, output_dir, signature,
-                             quantization_dtype, skip_op_check, strip_debug_ops)
+                             quantization_dtype, skip_op_check, strip_debug_ops,
+                             weight_shard_size_bytes)
   else:
     print("Loading the module using TF 2.X interface from %s." % module_path)
     if signature is None:
@@ -584,4 +613,5 @@ def convert_tf_hub_module(module_handle, output_dir,
                            saved_model_tags=saved_model_tags,
                            quantization_dtype=quantization_dtype,
                            skip_op_check=skip_op_check,
-                           strip_debug_ops=strip_debug_ops)
+                           strip_debug_ops=strip_debug_ops,
+                           weight_shard_size_bytes=weight_shard_size_bytes)
