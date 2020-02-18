@@ -29,7 +29,7 @@ describeWithFlags('softmax', WEBGL_ENVS, () => {
     // expectArraysClose(await y.data(), [0.24472847, 0.09003057, 0.66524095]);
     // expectArraysClose(await y.sum().data(), 1);
     const x = tf.tensor1d([1, 2, 3]);
-    console.log(x.max());
+    x.softmax().print();
   });
 });
 

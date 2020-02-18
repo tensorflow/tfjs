@@ -21,6 +21,7 @@ import * as axis_util from '../../../ops/axis_util';
 import {parseAxisParam} from '../../../util';
 import {MathBackendWebGL} from '../backend_webgl';
 import {maxImpl} from './Max';
+import {subImpl} from './Sub';
 
 interface SoftmaxInputs extends NamedTensorInfoMap {
   x: TensorInfo;
@@ -43,8 +44,14 @@ registerKernel({
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(logits.shape, axes);
 
-    const out = maxImpl(logits, reduceShape, webglBackend);
+    const max = maxImpl(logits, reduceShape, webglBackend);
     console.log(outShape);
+
+    const out = subImpl(logits, max, webglBackend);
+
+    webglBackend.disposeData(max.dataId);
+
+    console.log('RAN SUB');
 
     return {dataId: out.dataId, shape: out.shape, dtype: out.dtype};
   }
