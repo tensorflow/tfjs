@@ -36,7 +36,7 @@ registerKernel({
     const {logits} = inputs as SoftmaxInputs;
     const {dim} = attrs as SoftmaxAttrs;
     const webglBackend = backend as MathBackendWebGL;
-    const textureManager = webglBackend.getTextureManager();
+    // const textureManager = webglBackend.getTextureManager();
 
     const axes = parseAxisParam([dim], logits.shape);
 
@@ -62,14 +62,17 @@ registerKernel({
     const texForMax = webglBackend.acquireTexture(
         texShapeForMax, texUsage, logits.dtype, logitsTexdata.isPacked);
 
-    const maxLogit = max(
-        logitsTexdata,
-        reduceShape,
-    );
+    // const maxLogit = max(
+    //     logitsTexdata,
+    //     reduceShape,
+    // );
 
     console.log('MAX');
+    console.log(texForMax, reduceShape, sizeFromShape);
 
-    const dataId = webglBackend.write(maxLogit, logits.shape, logits.dtype);
-    return {dataId, shape: logits.shape, dtype: logits.dtype};
+    return {dataId: logits.dataId, shape: logits.shape, dtype: logits.dtype};
+
+    // const dataId = webglBackend.write(maxLogit, logits.shape, logits.dtype);
+    // return {dataId, shape: logits.shape, dtype: logits.dtype};
   }
 });
