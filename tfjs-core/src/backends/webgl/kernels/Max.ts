@@ -21,6 +21,7 @@ import {computeOptimalWindowSize} from '../../../ops/reduce_util';
 import {sizeFromShape} from '../../../util';
 import {MathBackendWebGL} from '../backend_webgl';
 import {ReduceProgram} from '../reduce_gpu';
+import {reshape} from '../reshape';
 
 interface MaxInputs extends NamedTensorInfoMap {
   x: TensorInfo;
@@ -37,8 +38,7 @@ export const maxImpl =
           const xSize = sizeFromShape(x.shape);
           const batchSize = xSize / inSize;
 
-          // TODO: Call reshape kernel.
-          x.shape = [batchSize, inSize];
+          x = reshape(x, [batchSize, inSize], backend);
 
           const windowSize = computeOptimalWindowSize(inSize);
           const reduceInfo = {windowSize, inSize, batchSize};
