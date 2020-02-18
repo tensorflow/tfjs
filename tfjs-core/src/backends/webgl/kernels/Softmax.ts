@@ -20,6 +20,8 @@ import * as axis_util from '../../../ops/axis_util';
 // import {parseAxisParam, sizeFromShape} from '../../../util';
 import {parseAxisParam} from '../../../util';
 import {MathBackendWebGL} from '../backend_webgl';
+
+import {expImpl} from './Exp';
 import {maxImpl} from './Max';
 import {subImpl} from './Sub';
 
@@ -47,9 +49,11 @@ registerKernel({
     const max = maxImpl(logits, reduceShape, webglBackend);
     console.log(outShape);
 
-    const out = subImpl(logits, max, webglBackend);
+    const subtracted = subImpl(logits, max, webglBackend);
+    const out = expImpl(subtracted, webglBackend);
 
     webglBackend.disposeData(max.dataId);
+    webglBackend.disposeData(subtracted.dataId);
 
     console.log('RAN SUB');
 

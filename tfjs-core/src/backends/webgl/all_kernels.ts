@@ -22,5 +22,6 @@ import './square';
 import './kernels/Softmax';
 import './kernels/Max';
 import './kernels/Sub';
+import './kernels/Exp';
 import './fromPixels';
 import './non_max_suppression_v5';
