@@ -544,14 +544,6 @@ def convert(arguments):
     raise ValueError(
         'Missing output_path argument. For usage, use the --help flag.')
 
-  weight_shard_size_bytes = 1024 * 1024 * 4
-  if args.weight_shard_size_bytes:
-    if  args.output_format != common.TFJS_LAYERS_MODEL:
-      raise ValueError(
-          'The --weight_shard_size_bytes flag is only supported under '
-          'output_format=tfjs_layers_model.')
-    weight_shard_size_bytes = args.weight_shard_size_bytes
-
   if args.input_path is None:
     raise ValueError(
         'Error: The input_path argument must be set. '
@@ -559,6 +551,15 @@ def convert(arguments):
 
   input_format, output_format = _standardize_input_output_formats(
       args.input_format, args.output_format)
+
+  weight_shard_size_bytes = 1024 * 1024 * 4
+  if args.weight_shard_size_bytes:
+    if (output_format not in
+        (common.TFJS_LAYERS_MODEL, common.TFJS_GRAPH_MODEL)):
+      raise ValueError(
+          'The --weight_shard_size_bytes flag is only supported when '
+          'output_format is tfjs_layers_model or tfjs_graph_model.')
+    weight_shard_size_bytes = args.weight_shard_size_bytes
 
   quantization_dtype = (
       quantization.QUANTIZATION_BYTES_TO_DTYPES[args.quantization_bytes]
