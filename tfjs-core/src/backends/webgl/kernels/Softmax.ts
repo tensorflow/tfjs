@@ -17,9 +17,10 @@
 
 import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '../../../kernel_registry';
 import * as axis_util from '../../../ops/axis_util';
-import {parseAxisParam, sizeFromShape} from '../../../util';
-import {webgl_util} from '../../../webgl';
+// import {parseAxisParam, sizeFromShape} from '../../../util';
+import {parseAxisParam} from '../../../util';
 import {MathBackendWebGL} from '../backend_webgl';
+import {maxImpl} from './Max';
 
 interface SoftmaxInputs extends NamedTensorInfoMap {
   x: TensorInfo;
@@ -36,43 +37,15 @@ registerKernel({
     const {logits} = inputs as SoftmaxInputs;
     const {dim} = attrs as SoftmaxAttrs;
     const webglBackend = backend as MathBackendWebGL;
-    // const textureManager = webglBackend.getTextureManager();
 
     const axes = parseAxisParam([dim], logits.shape);
 
-    const [reduceOutShape, reduceShape] =
+    const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(logits.shape, axes);
-    // const logitsValues =
-    //     webglBackend.data.get(logits.dataId).values as Float32Array;
-    // const maxLogit =
-    //     max(logitsValues, reduceShape,
-    //         new Float32Array(sizeFromShape(reduceOutShape)));
 
+    const out = maxImpl(logits, reduceShape, webglBackend);
+    console.log(outShape);
 
-    // Create resource for max kernel:
-    const logitsTexdata = webglBackend.texData.get(logits.dataId);
-
-    const texShapeForMax =
-        webgl_util.getTextureShapeFromLogicalShape(reduceOutShape);
-
-    // Not sure about usage - check webglBackend.runWebglProgram for reference
-    // on shader program output usage.
-    const texUsage: any = null;
-    // This is only the texture... need to create texData object.
-    const texForMax = webglBackend.acquireTexture(
-        texShapeForMax, texUsage, logits.dtype, logitsTexdata.isPacked);
-
-    // const maxLogit = max(
-    //     logitsTexdata,
-    //     reduceShape,
-    // );
-
-    console.log('MAX');
-    console.log(texForMax, reduceShape, sizeFromShape);
-
-    return {dataId: logits.dataId, shape: logits.shape, dtype: logits.dtype};
-
-    // const dataId = webglBackend.write(maxLogit, logits.shape, logits.dtype);
-    // return {dataId, shape: logits.shape, dtype: logits.dtype};
+    return {dataId: out.dataId, shape: out.shape, dtype: out.dtype};
   }
 });

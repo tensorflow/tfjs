@@ -31,18 +31,25 @@ interface MaxAttrs extends NamedAttrMap {
 }
 
 export const maxImpl =
-    (x: TensorInfo, backend: MathBackendWebGL): TensorInfo => {
-      const [batchSize, inSize] = x.shape;
-      const windowSize = computeOptimalWindowSize(inSize);
-      const reduceInfo = {windowSize, inSize, batchSize};
-      const program = new ReduceProgram(reduceInfo, 'max');
-      const output = backend.runWebGLProgram(program, [x], x.dtype);
+    (x: TensorInfo, reduceShape: number[], backend: MathBackendWebGL):
+        TensorInfo => {
+          const inSize = sizeFromShape(reduceShape);
+          const xSize = sizeFromShape(x.shape);
+          const batchSize = xSize / inSize;
 
-      if (output.shape[1] === 1) {
-        return output;
-      }
-      return maxImpl(output, backend);
-    };
+          // TODO: Call reshape kernel.
+          x.shape = [batchSize, inSize];
+
+          const windowSize = computeOptimalWindowSize(inSize);
+          const reduceInfo = {windowSize, inSize, batchSize};
+          const program = new ReduceProgram(reduceInfo, 'max');
+          const output = backend.runWebGLProgram(program, [x], x.dtype);
+
+          if (output.shape[1] === 1) {
+            return output;
+          }
+          return maxImpl(output, reduceShape, backend);
+        };
 
 registerKernel({
   kernelName: 'Max',
@@ -56,13 +63,8 @@ registerKernel({
 
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
-    const inSize = sizeFromShape(reduceShape);
-    const xSize = sizeFromShape(x.shape);
 
-    // TODO: Call reshape kernel.
-    x.shape = [xSize / inSize, inSize];
-
-    const out = maxImpl(x, webglBackend);
+    const out = maxImpl(x, reduceShape, webglBackend);
 
     return {dataId: out.dataId, shape: outShape, dtype: x.dtype};
   }
