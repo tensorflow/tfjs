@@ -449,11 +449,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('AddN', opAttrs, tensors) as T;
   }
 
-  softmax<T extends Tensor>(logits: T, dim: number): T {
-    const opAttrs = [createTypeOpAttr('T', logits.dtype)];
-    return this.executeSingleOutput('Softmax', opAttrs, [logits]) as T;
-  }
-
   subtract(a: Tensor, b: Tensor): Tensor {
     const opAttrs =
         [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
