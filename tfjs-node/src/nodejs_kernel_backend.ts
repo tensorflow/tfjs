@@ -449,6 +449,19 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('AddN', opAttrs, tensors) as T;
   }
 
+  softmax<T extends Tensor>(logits: T, dim: number): T {
+    const axes = util.parseAxisParam([dim], logits.shape);
+
+    const maxLogit = this.max(logits, axes);
+    const expandedShape =
+        backend_util.expandShapeToKeepDim(maxLogit.shape, axes);
+    const a = this.subtract(logits, maxLogit.reshape(expandedShape));
+    const b = this.exp(a);
+    const sumExp = this.sum(b, axes).reshape(expandedShape);
+
+    return this.realDivide(b, sumExp) as T;
+  }
+
   subtract(a: Tensor, b: Tensor): Tensor {
     const opAttrs =
         [createTypeOpAttr('T', backend_util.upcastType(a.dtype, b.dtype))];
