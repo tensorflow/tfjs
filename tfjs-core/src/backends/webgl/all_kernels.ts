@@ -21,6 +21,7 @@
 import './square';
 import './kernels/Softmax';
 import './kernels/Max';
+import './kernels/Sum';
 import './kernels/Sub';
 import './kernels/Exp';
 import './fromPixels';

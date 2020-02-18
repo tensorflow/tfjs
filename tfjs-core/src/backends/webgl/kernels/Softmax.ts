@@ -24,6 +24,7 @@ import {MathBackendWebGL} from '../backend_webgl';
 import {expImpl} from './Exp';
 import {maxImpl} from './Max';
 import {subImpl} from './Sub';
+import {sumImpl} from './Sum';
 
 interface SoftmaxInputs extends NamedTensorInfoMap {
   x: TensorInfo;
@@ -50,10 +51,13 @@ registerKernel({
     console.log(outShape);
 
     const subtracted = subImpl(logits, max, webglBackend);
-    const out = expImpl(subtracted, webglBackend);
+    const exponentiated = expImpl(subtracted, webglBackend);
+
+    const out = sumImpl(exponentiated, reduceShape, webglBackend);
 
     webglBackend.disposeData(max.dataId);
     webglBackend.disposeData(subtracted.dataId);
+    webglBackend.disposeData(exponentiated.dataId);
 
     console.log('RAN SUB');
 
