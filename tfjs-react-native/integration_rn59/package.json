@@ -19,7 +19,7 @@
     "@tensorflow-models/mobilenet": "^2.0.4",
     "@tensorflow-models/posenet": "^2.2.1",
     "@tensorflow/tfjs": "~1.5.1",
-    "@tensorflow/tfjs-react-native": "0.2.0",
+    "@tensorflow/tfjs-react-native": "0.2.3",
     "expo-camera": "^7.0.0",
     "expo-gl": "^7.0.0",
     "expo-gl-cpp": "^7.0.0",
