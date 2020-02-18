@@ -23,7 +23,6 @@ interface SoftmaxInputs extends NamedTensorInfoMap {
   logits: TensorInfo;
 }
 
-// TODO(nsthorat, dsmilkov): Remove dependency on tensors, use dataId.
 registerKernel({
   kernelName: 'Softmax',
   backendName: 'tensorflow',
