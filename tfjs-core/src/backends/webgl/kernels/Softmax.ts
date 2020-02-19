@@ -21,6 +21,7 @@ import * as axis_util from '../../../ops/axis_util';
 import {parseAxisParam} from '../../../util';
 import {MathBackendWebGL} from '../backend_webgl';
 
+import {divImpl} from './Div';
 import {expImpl} from './Exp';
 import {maxImpl} from './Max';
 import {subImpl} from './Sub';
@@ -44,22 +45,22 @@ registerKernel({
 
     const axes = parseAxisParam([dim], logits.shape);
 
-    const [outShape, reduceShape] =
+    const [, reduceShape] =
         axis_util.computeOutAndReduceShapes(logits.shape, axes);
 
     const max = maxImpl(logits, reduceShape, webglBackend);
-    console.log(outShape);
 
     const subtracted = subImpl(logits, max, webglBackend);
     const exponentiated = expImpl(subtracted, webglBackend);
 
-    const out = sumImpl(exponentiated, reduceShape, webglBackend);
+    const summed = sumImpl(exponentiated, reduceShape, webglBackend);
+
+    const out = divImpl(exponentiated, summed, webglBackend);
 
     webglBackend.disposeData(max.dataId);
     webglBackend.disposeData(subtracted.dataId);
     webglBackend.disposeData(exponentiated.dataId);
-
-    console.log('RAN SUB');
+    webglBackend.disposeData(summed.dataId);
 
     return {dataId: out.dataId, shape: out.shape, dtype: out.dtype};
   }
