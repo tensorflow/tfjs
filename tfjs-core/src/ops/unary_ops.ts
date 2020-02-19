@@ -40,9 +40,13 @@ function neg_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'neg');
 
   const grad = (dy: T) => {
-    return {$x: () => dy.neg()};
+    return {x: () => dy.neg()};
   };
-  return ENGINE.runKernelFunc(backend => backend.neg($x), {$x}, grad);
+
+  const attrs = {};
+  const inputsToSave = [$x];
+  return ENGINE.runKernelFunc(
+      backend => backend.neg($x), {x: $x}, grad, 'Neg', attrs, inputsToSave);
 }
 
 /**

@@ -18,7 +18,6 @@
 import {io, util} from '@tensorflow/tfjs-core';
 import {Asset} from 'expo-asset';
 import {Platform} from 'react-native';
-import * as RNFS from 'react-native-fs';
 
 import {fetch} from './platform_react_native';
 
@@ -94,18 +93,25 @@ class BundleResourceHandler implements io.IOHandler {
   }
 
   async loadLocalAsset(weightsAsset: Asset): Promise<io.ModelArtifacts> {
+    // Use a dynamic import here because react-native-fs is not compatible
+    // with managed expo workflow. However the managed expo workflow should
+    // never hit this code path.
+
+    // tslint:disable-next-line: no-require-imports
+    const RNFS = require('react-native-fs');
+
     const modelJson = this.modelJson;
 
     let base64Weights: string;
     if (Platform.OS === 'android') {
       // On android we get a resource id instead of a regular path. We need
       // to load the weights from the res/raw folder using this id.
+      const fileName = `${weightsAsset.uri}.${weightsAsset.type}`;
       try {
-        const fileName = `${weightsAsset.uri}.${weightsAsset.type}`;
         base64Weights = await RNFS.readFileRes(fileName, 'base64');
       } catch (e) {
         throw new Error(
-            `Error reading resource ${weightsAsset.uri}. Make sure the file is
+            `Error reading resource ${fileName}. Make sure the file is
             in located in the res/raw folder of the bundle`,
         );
       }
@@ -114,8 +120,7 @@ class BundleResourceHandler implements io.IOHandler {
         base64Weights = await RNFS.readFile(weightsAsset.uri, 'base64');
       } catch (e) {
         throw new Error(
-            `Error reading resource ${weightsAsset.uri}. Make sure the file is
-            in located in the res/raw folder of the bundle`,
+            `Error reading resource ${weightsAsset.uri}.`,
         );
       }
     }
