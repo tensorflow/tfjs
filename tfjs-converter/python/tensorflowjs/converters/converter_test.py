@@ -154,9 +154,9 @@ class ConvertH5WeightsTest(unittest.TestCase):
   def testConvertSavedKerasModeltoTfLayersModelSharded(self):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       sequential_model = keras.models.Sequential([
-        keras.layers.Dense(
-            3, input_shape=(2,), use_bias=True, kernel_initializer='ones',
-            name='Dense1')])
+          keras.layers.Dense(
+              3, input_shape=(2,), use_bias=True, kernel_initializer='ones',
+              name='Dense1')])
       h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
       sequential_model.save(h5_path)
 
