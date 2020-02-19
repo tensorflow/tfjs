@@ -21,7 +21,7 @@
 import './non_max_suppression_v5';
 import './square';
 
-// TODO this will be a dist import from types to avoid a circular dependency
+// TODO this will be a dist import from types
 import {KernelConfig} from '../../kernel_registry';
 
 // Import Kernel Configs here.

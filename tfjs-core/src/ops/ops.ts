@@ -15,9 +15,6 @@
  * =============================================================================
  */
 
-// Importing this file registers gradients in the global registry.
-import './all_gradients';
-
 // Modularized ops.
 export {square} from './square';
 export {squaredDifference} from './squared_difference';

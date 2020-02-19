@@ -37,6 +37,10 @@ import './backends/cpu/backend_cpu';
 import './backends/cpu/register_all_kernels';
 // Import all kernels from webgl.
 import './backends/webgl/register_all_kernels';
+
+// Register all the gradients
+import './register_all_gradients';
+
 import './platforms/platform_browser';
 import './platforms/platform_node';
 
