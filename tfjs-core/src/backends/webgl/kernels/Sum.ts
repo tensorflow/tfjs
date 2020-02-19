@@ -35,6 +35,7 @@ interface SumAttrs extends NamedAttrMap {
 export const sumImpl =
     (x: TensorInfo, reduceShape: number[], outShape: number[],
      backend: MathBackendWebGL): TensorInfo => {
+      console.log('SUM IMPL');
       const inSize = sizeFromShape(reduceShape);
       const xSize = sizeFromShape(x.shape);
       const batchSize = xSize / inSize;
@@ -50,6 +51,7 @@ registerKernel({
   kernelName: 'Sum',
   backendName: 'webgl',
   kernelFunc: ({inputs, attrs, backend}) => {
+    console.log('SUM KERNEL FUNC');
     const {x} = inputs as SumInputs;
     const {axes} = attrs as SumAttrs;
     const webglBackend = backend as MathBackendWebGL;
@@ -60,6 +62,8 @@ registerKernel({
         axis_util.computeOutAndReduceShapes(x.shape, axes);
 
     const out = sumImpl(x, reduceShape, outShape, webglBackend);
+
+    webglBackend.disposeData(x);
 
     return {dataId: out.dataId, shape: outShape, dtype: x.dtype};
   }

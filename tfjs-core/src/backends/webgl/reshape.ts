@@ -24,6 +24,7 @@ import {ReshapePackedProgram} from './reshape_packed_gpu';
 const packedReshape =
     (input: TensorInfo, afterShape: number[],
      backend: MathBackendWebGL): TensorInfo => {
+      console.log('PACKED RESHAPE');
       const input3DShape = [
         webgl_util.getBatchDim(input.shape),
         ...webgl_util.getRowsCols(input.shape)
@@ -49,6 +50,7 @@ const packedReshape =
 export const reshape =
     (x: TensorInfo, afterShape: number[],
      backend: MathBackendWebGL): TensorInfo => {
+      console.log('RESHAPE');
       const xTexData = backend.texData.get(x.dataId);
       if (xTexData.isPacked && !webgl_util.isReshapeFree(x.shape, afterShape) &&
           !(xTexData.texture !== null &&
