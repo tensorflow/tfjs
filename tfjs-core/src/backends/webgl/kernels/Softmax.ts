@@ -48,7 +48,7 @@ registerKernel({
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(logits.shape, axes);
 
-    const max = maxImpl(logits, reduceShape, webglBackend);
+    const max = maxImpl(logits, reduceShape, outShape, webglBackend);
 
     const subtracted = subImpl(logits, max, webglBackend);
     const exponentiated = expImpl(subtracted, webglBackend);

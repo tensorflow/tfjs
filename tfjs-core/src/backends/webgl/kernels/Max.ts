@@ -17,10 +17,9 @@
 
 import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '../../../kernel_registry';
 import * as axis_util from '../../../ops/axis_util';
-import {computeOptimalWindowSize} from '../../../ops/reduce_util';
 import {sizeFromShape} from '../../../util';
 import {MathBackendWebGL} from '../backend_webgl';
-import {ReduceProgram} from '../reduce_gpu';
+import {reduce} from '../reduce';
 import {reshape} from '../reshape';
 
 interface MaxInputs extends NamedTensorInfoMap {
@@ -32,24 +31,17 @@ interface MaxAttrs extends NamedAttrMap {
 }
 
 export const maxImpl =
-    (x: TensorInfo, reduceShape: number[], backend: MathBackendWebGL):
-        TensorInfo => {
-          const inSize = sizeFromShape(reduceShape);
-          const xSize = sizeFromShape(x.shape);
-          const batchSize = xSize / inSize;
+    (x: TensorInfo, reduceShape: number[], outShape: number[],
+     backend: MathBackendWebGL): TensorInfo => {
+      const inSize = sizeFromShape(reduceShape);
+      const xSize = sizeFromShape(x.shape);
+      const batchSize = xSize / inSize;
 
-          x = reshape(x, [batchSize, inSize], backend);
+      x = reshape(x, [batchSize, inSize], backend);
 
-          const windowSize = computeOptimalWindowSize(inSize);
-          const reduceInfo = {windowSize, inSize, batchSize};
-          const program = new ReduceProgram(reduceInfo, 'max');
-          const output = backend.runWebGLProgram(program, [x], x.dtype);
-
-          if (output.shape[1] === 1) {
-            return output;
-          }
-          return maxImpl(output, reduceShape, backend);
-        };
+      return reshape(
+          reduce(x, reduceShape, x.dtype, backend), outShape, backend);
+    };
 
 registerKernel({
   kernelName: 'Max',
@@ -64,7 +56,7 @@ registerKernel({
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
 
-    const out = maxImpl(x, reduceShape, webglBackend);
+    const out = maxImpl(x, reduceShape, outShape, webglBackend);
 
     return {dataId: out.dataId, shape: outShape, dtype: x.dtype};
   }
