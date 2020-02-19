@@ -20,3 +20,13 @@
 // the contents of this file and import only the kernels that are needed.
 import './square';
 import './non_max_suppression_v5';
+
+import {KernelConfig} from '../../kernel_registry';
+
+// Import Kernel Configs here.
+import {squaredDifference_} from './kernels/squared_difference';
+
+// Export all kernel configs here so that the package can auto register them
+export const kernelConfigs: KernelConfig[] = [
+  squaredDifference_,
+];

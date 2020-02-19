@@ -65,6 +65,8 @@ export interface TensorInfo {
   dataId: DataId;
   shape: number[];
   dtype: DataType;
+  strides?: number[];
+  rank?: number;
 }
 
 export interface NamedTensorInfoMap {

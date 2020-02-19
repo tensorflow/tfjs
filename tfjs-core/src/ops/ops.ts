@@ -20,6 +20,7 @@ import './all_gradients';
 
 // Modularized ops.
 export {square} from './square';
+export {squaredDifference} from './squared_difference';
 
 export * from './batchnorm';
 export * from './boolean_mask';
