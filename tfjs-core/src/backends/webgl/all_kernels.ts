@@ -21,3 +21,14 @@
 import './square';
 import './fromPixels';
 import './non_max_suppression_v5';
+
+// TODO import from tfjs-core
+import {KernelConfig} from '../../kernel_registry';
+
+// Import Kernel Configs here.
+import {squaredDifference_} from './kernels/SquaredDifference';
+
+// Export all kernel configs here so that the package can auto register them
+export const kernelConfigs: KernelConfig[] = [
+  squaredDifference_,
+];

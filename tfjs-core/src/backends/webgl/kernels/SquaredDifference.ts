@@ -15,27 +15,25 @@
  * =============================================================================
  */
 
+import {env} from '../../../environment';
 import {SquaredDifference, SquaredDifferenceInputs} from '../../../kernel_names';
 import {KernelConfig} from '../../../kernel_registry';
 
-import {MathBackendCPU} from '../backend_cpu';
-import {assertNotComplex} from '../cpu_util';
-import {broadcastedBinaryOp} from '../kernel_utils';
+import {MathBackendWebGL} from '../backend_webgl';
+import {BinaryOpProgram} from '../binaryop_gpu';
+import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
 
 export const squaredDifference_: KernelConfig = {
   kernelName: SquaredDifference,
-  backendName: 'cpu',
+  backendName: 'webgl',
   kernelFunc: ({inputs, backend}) => {
     const {$a, $b} = inputs as SquaredDifferenceInputs;
-    const cpuBackend = backend as MathBackendCPU;
-    assertNotComplex([$a, $b], SquaredDifference);
+    const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
+    const webGLBackend = backend as MathBackendWebGL;
 
-    const resultData =
-        broadcastedBinaryOp($a, $b, $a.dtype, cpuBackend, (aVal, bVal) => {
-          const diff = aVal - bVal;
-          return diff * diff;
-        });
-
-    return resultData;
+    const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
+        new BinaryOpPackedProgram(SQUARED_DIFFERENCE, $a.shape, $b.shape) :
+        new BinaryOpProgram(SQUARED_DIFFERENCE, $a.shape, $b.shape);
+    return webGLBackend.compileAndRun(program, [$a, $b]);
   }
 };

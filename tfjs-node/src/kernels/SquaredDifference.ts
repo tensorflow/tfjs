@@ -15,27 +15,25 @@
  * =============================================================================
  */
 
-import {SquaredDifference, SquaredDifferenceInputs} from '../../../kernel_names';
-import {KernelConfig} from '../../../kernel_registry';
+import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
-import {MathBackendCPU} from '../backend_cpu';
-import {assertNotComplex} from '../cpu_util';
-import {broadcastedBinaryOp} from '../kernel_utils';
+// Can only be done once a core release with these exports is done
+// import {SquaredDifference, SquaredDifferenceInputs} from '@tf/tfjs-core'
+
+import {createTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
 export const squaredDifference_: KernelConfig = {
-  kernelName: SquaredDifference,
-  backendName: 'cpu',
+  kernelName: 'SquaredDifference',
+  backendName: 'tensorflow',
   kernelFunc: ({inputs, backend}) => {
-    const {$a, $b} = inputs as SquaredDifferenceInputs;
-    const cpuBackend = backend as MathBackendCPU;
-    assertNotComplex([$a, $b], SquaredDifference);
+    const {$a, $b} = inputs;  // as SquaredDifferenceInputs;
 
-    const resultData =
-        broadcastedBinaryOp($a, $b, $a.dtype, cpuBackend, (aVal, bVal) => {
-          const diff = aVal - bVal;
-          return diff * diff;
-        });
+    const opAttrs = [createTypeOpAttr('T', $a.dtype)];
+    const nodeBackend = backend as NodeJSKernelBackend;
 
-    return resultData;
+    return nodeBackend.executeSingleOutput(
+        'SquaredDifference', opAttrs, [$a, $b]);
   }
 };
+
+registerKernel(squaredDifference_);

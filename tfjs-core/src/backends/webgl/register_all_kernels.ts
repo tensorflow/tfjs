@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,18 +15,9 @@
  * =============================================================================
  */
 
-// We explicitly import the modular kernels so they get registered in the
-// global registry when we compile the library. A modular build would replace
-// the contents of this file and import only the kernels that are needed.
-import './square';
-import './non_max_suppression_v5';
+import {registerKernel} from '../../kernel_registry';
+import {kernelConfigs} from './all_kernels';
 
-import {KernelConfig} from '../../';
-
-// Import Kernel Configs here.
-import {squaredDifference_} from './kernels/squared_difference';
-
-// Export all kernel configs here so that the package can auto register them
-export const kernelConfigs: KernelConfig[] = [
-  squaredDifference_,
-];
+for (const kernelConfig of kernelConfigs) {
+  registerKernel(kernelConfig);
+}
