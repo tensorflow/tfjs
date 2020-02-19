@@ -22,7 +22,7 @@ import './square';
 import './fromPixels';
 import './non_max_suppression_v5';
 
-// TODO import from tfjs-core
+// TODO import from tensorflow/tfjs-core once core stops importing this file.
 import {KernelConfig} from '../../kernel_registry';
 
 // Import Kernel Configs here.

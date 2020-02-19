@@ -15,11 +15,14 @@
  * =============================================================================
  */
 
-import {TensorInfo} from '../../../kernel_registry';
+import {TensorInfo} from '../../../';
+
+// TODO export from core
 import {assertAndGetBroadcastShape, getBroadcastDims} from '../../../ops/broadcast_util';
 import {DataType, NumericDataType, TypedArray} from '../../../types';
 import {computeStrides, getTypedArrayFromDType, sizeFromShape} from '../../../util';
 import {indexToLoc, locToIndex} from '../../../util';
+
 import {MathBackendCPU} from '../backend_cpu';
 
 export function broadcastedBinaryOp(

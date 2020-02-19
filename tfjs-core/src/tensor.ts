@@ -239,6 +239,7 @@ export interface OpHandler {
   minimumStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   maximum<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   maximumStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
+  // TODO remove
   squaredDifference<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   squaredDifferenceStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   transpose<T extends Tensor>(x: T, perm?: number[]): T;
@@ -994,6 +995,7 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.modStrict(this, x);
   }
+  // TODO remove
   squaredDifference<T extends Tensor>(x: Tensor|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.squaredDifference(this, x);

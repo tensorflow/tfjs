@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
-import {env} from '../../../environment';
+import {env, KernelConfig} from '../../../';
+
+// TODO import from tfjs-core
 import {SquaredDifference, SquaredDifferenceInputs} from '../../../kernel_names';
-import {KernelConfig} from '../../../kernel_registry';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {BinaryOpProgram} from '../binaryop_gpu';

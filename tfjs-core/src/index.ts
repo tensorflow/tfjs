@@ -109,3 +109,6 @@ export {KernelBackend, BackendTimingInfo, DataMover, DataStorage} from './backen
 
 import * as ops from './ops/ops';
 setOpHandler(ops);
+
+// Import all op chainers
+import './public/chained_ops/index';

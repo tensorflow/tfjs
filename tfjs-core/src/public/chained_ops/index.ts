@@ -15,19 +15,4 @@
  * =============================================================================
  */
 
-// We explicitly import the modular kernels so they get registered in the
-// global registry when we compile the library. A modular build would replace
-// the contents of this file and import only the kernels that are needed.
-import './square';
-import './non_max_suppression_v5';
-
-// TODO import from tensorflow/tfjs-core once core stops importing this file.
-import {KernelConfig} from '../../kernel_registry';
-
-// Import Kernel Configs here.
-import {squaredDifference_} from './kernels/SquaredDifference';
-
-// Export all kernel configs here so that the package can auto register them
-export const kernelConfigs: KernelConfig[] = [
-  squaredDifference_,
-];
+import './SquaredDifference';
