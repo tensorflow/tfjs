@@ -16,7 +16,9 @@
  */
 
 import {ENGINE, ForwardFunc} from '../engine';
+import {SquaredDifference, SquaredDifferenceInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -71,12 +73,15 @@ function squaredDifference_<T extends Tensor>(
     save([$a, $b]);
     return res;
   };
+
+  const inputs: SquaredDifferenceInputs = {$a, $b};
   const attrs = {};
+
   const inputsToSave = [$a, $b];
   const outputToSave: boolean[] = [];
   return ENGINE.runKernelFunc(
-             forward, {$a, $b}, der, 'SquaredDifference', attrs, inputsToSave,
-             outputToSave) as T;
+             forward, inputs as unknown as NamedTensorMap, der,
+             SquaredDifference, attrs, inputsToSave, outputToSave) as T;
 }
 
 export const squaredDifference = op({squaredDifference_});
