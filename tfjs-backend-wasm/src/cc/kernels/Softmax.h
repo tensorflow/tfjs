@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,19 +12,19 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef KERNELS_SIGMOID_H_
-#define KERNELS_SIGMOID_H_
+#ifndef KERNELS_SOFTMAX_H_
+#define KERNELS_SOFTMAX_H_
 
 #include <cstddef>
 
 namespace tfjs {
 namespace wasm {
 extern "C" {
-
-void Sigmoid(const size_t x_id, const size_t out_id);
+void Softmax(const size_t x_id, const size_t out_id, const size_t channels,
+             const size_t batch);
 }
 
 }  // namespace wasm
 }  // namespace tfjs
 
-#endif  // KERNELS_SIGMOID_H_
+#endif  // KERNELS_SOFTMAX_H_
