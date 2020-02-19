@@ -33,7 +33,7 @@ export const divImpl =
       let program = new BinaryOpProgram(binaryop_gpu.DIV, a.shape, b.shape);
       if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
         program = new BinaryOpPackedProgram(
-            binaryop_packed_gpu.DIV, a.shape, b.shape);
+            binaryop_packed_gpu.DIV, a.shape, b.shape, true);
       }
       const output = backend.runWebGLProgram(program, [a, b], 'float32');
       return output;
