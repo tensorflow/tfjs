@@ -17,11 +17,11 @@
 
 import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '../../../kernel_registry';
 import * as axis_util from '../../../ops/axis_util';
-import {computeOptimalWindowSize} from '../../../ops/reduce_util';
 import {sumOutType} from '../../../types';
+
 import {sizeFromShape} from '../../../util';
 import {MathBackendWebGL} from '../backend_webgl';
-import {ReduceProgram} from '../reduce_gpu';
+import {reduce} from '../reduce';
 import {reshape} from '../reshape';
 
 interface SumInputs extends NamedTensorInfoMap {
@@ -32,21 +32,6 @@ interface SumAttrs extends NamedAttrMap {
   axes: number[];
 }
 
-const reduce =
-    (x: TensorInfo, reduceShape: number[],
-     backend: MathBackendWebGL): TensorInfo => {
-      const [batchSize, inSize] = x.shape;
-      const windowSize = computeOptimalWindowSize(inSize);
-      const reduceInfo = {windowSize, inSize, batchSize};
-      const program = new ReduceProgram(reduceInfo, 'sum');
-      const output = backend.runWebGLProgram(program, [x], sumOutType(x.dtype));
-
-      if (output.shape[1] === 1) {
-        return output;
-      }
-      return reduce(output, reduceShape, backend);
-    };
-
 export const sumImpl =
     (x: TensorInfo, reduceShape: number[], outShape: number[],
      backend: MathBackendWebGL): TensorInfo => {
@@ -56,7 +41,9 @@ export const sumImpl =
 
       x = reshape(x, [batchSize, inSize], backend);
 
-      return reshape(reduce(x, reduceShape, backend), outShape, backend);
+      return reshape(
+          reduce(x, reduceShape, sumOutType(x.dtype), backend), outShape,
+          backend);
     };
 
 registerKernel({
