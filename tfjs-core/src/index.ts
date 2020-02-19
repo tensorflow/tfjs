@@ -34,9 +34,9 @@ import './flags';
 import './backends/webgl/backend_webgl';
 import './backends/cpu/backend_cpu';
 // Import all kernels from cpu.
-import './backends/cpu/all_kernels';
+import './backends/cpu/register_all_kernels';
 // Import all kernels from webgl.
-import './backends/webgl/all_kernels';
+import './backends/webgl/register_all_kernels';
 import './platforms/platform_browser';
 import './platforms/platform_node';
 
