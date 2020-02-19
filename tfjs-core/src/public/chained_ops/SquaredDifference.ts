@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-import {squaredDifference, Tensor, TensorLike} from '../../';
+import {squaredDifference} from '../../ops/squared_difference';
+import {Tensor} from '../../tensor';
+import {TensorLike} from '../../types';
 
 declare global {
   interface Tensor {

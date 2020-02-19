@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {TensorInfo} from '../../../';
+import {TensorInfo} from '../../../kernel_registry';
 
 // TODO export from core
 import {assertAndGetBroadcastShape, getBroadcastDims} from '../../../ops/broadcast_util';

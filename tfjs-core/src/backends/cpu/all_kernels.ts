@@ -21,7 +21,7 @@
 import './square';
 import './non_max_suppression_v5';
 
-// TODO import from tensorflow/tfjs-core once core stops importing this file.
+// TODO this will be a dist import from types to avoid a circular dependency
 import {KernelConfig} from '../../kernel_registry';
 
 // Import Kernel Configs here.
