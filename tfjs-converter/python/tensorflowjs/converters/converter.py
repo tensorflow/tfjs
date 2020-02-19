@@ -519,7 +519,7 @@ def get_arg_parser():
       type=int,
       default=None,
       help='Shard size (in bytes) of the weight files. Currently applicable '
-      'only to output_format=tfjs_layers_model.')
+      'only when output_format is tfjs_layers_model or tfjs_graph_model.')
   parser.add_argument(
       '--output_node_names',
       type=str,
