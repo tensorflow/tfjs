@@ -577,24 +577,18 @@ export class MathBackendWebGL extends KernelBackend {
   private pendingDeletes = 0;
 
   disposeData(dataId: DataId): void {
-    console.log('ATTEMPTING TO RELEASE DATA');
     if (this.pendingDisposal.has(dataId)) {
-      console.log('pending disposal');
       return;
     }
     if (this.pendingRead.has(dataId)) {
-      console.log('pending read');
       this.pendingDisposal.add(dataId);
       this.pendingDeletes++;
       return;
     }
     // No-op if already disposed.
     if (!this.texData.has(dataId)) {
-      console.log('already disposed');
       return;
     }
-
-    console.log('RELEASE DATA');
 
     this.releaseGPUData(dataId);
     const {complexTensors} = this.texData.get(dataId);
@@ -2502,7 +2496,6 @@ export class MathBackendWebGL extends KernelBackend {
       program: GPGPUProgram, inputs: TensorInfo[], outputDtype: DataType,
       customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => void,
       preventEagerUnpackingOfOutput = false): TensorInfo {
-    console.log('run webgl program', program.constructor.name);
     const output = this.makeTensorInfo(program.outputShape, outputDtype);
     const outData = this.texData.get(output.dataId);
     if (program.packedOutput) {
@@ -2586,12 +2579,10 @@ export class MathBackendWebGL extends KernelBackend {
         savedInput.shape = targetShape;
       }
 
-      console.log('maybe upload input...');
       this.uploadToGPU(input.dataId);
       return {shape: input.shape, texData, isUniform: false};
     });
 
-    console.log('maybe upload output....');
     this.uploadToGPU(output.dataId);
     const outputData:
         TensorData = {shape: output.shape, texData: outData, isUniform: false};

@@ -50,7 +50,6 @@ registerKernel({
   kernelName: 'Sum',
   backendName: 'webgl',
   kernelFunc: ({inputs, attrs, backend}) => {
-    console.log('SUM KERNEL FUNC');
     const {x} = inputs as SumInputs;
     const {axes} = attrs as SumAttrs;
     const webglBackend = backend as MathBackendWebGL;
