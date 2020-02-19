@@ -35,7 +35,6 @@ interface SumAttrs extends NamedAttrMap {
 export const sumImpl =
     (x: TensorInfo, reduceShape: number[], outShape: number[],
      backend: MathBackendWebGL): TensorInfo => {
-      console.log('SUM IMPL');
       const inSize = sizeFromShape(reduceShape);
       const xSize = sizeFromShape(x.shape);
       const batchSize = xSize / inSize;

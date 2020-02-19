@@ -25,17 +25,13 @@ import {ReduceProgram} from './reduce_gpu';
 export const reduce =
     (x: TensorInfo, reduceShape: number[], dtype: DataType,
      backend: MathBackendWebGL): TensorInfo => {
-      console.log('REDUCING -------------------------');
       const [batchSize, inSize] = x.shape;
       const windowSize = computeOptimalWindowSize(inSize);
       const reduceInfo = {windowSize, inSize, batchSize};
       const program = new ReduceProgram(reduceInfo, 'sum');
       const output = backend.runWebGLProgram(program, [x], dtype);
-      console.log('FINISHED COMPUTING REDUCE');
-      // I think the problem is that somehow, when recursing the input tensor is
-      // deemed to already be disposed, even though it's not...
 
-      backend.disposeData(x);
+      backend.disposeData(x.dataId);
 
       if (output.shape[1] === 1) {
         return output;
