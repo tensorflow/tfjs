@@ -22,34 +22,29 @@ import {MathBackendWebGL} from './backend_webgl';
 import {ReshapePackedProgram} from './reshape_packed_gpu';
 
 const packedReshape =
-    (input: TensorInfo, afterShape: number[], backend: MathBackendWebGL):
-        TensorInfo => {
-          const input3DShape = [
-            webgl_util.getBatchDim(input.shape),
-            ...webgl_util.getRowsCols(input.shape)
-          ] as [number, number, number];
-          const input3D: TensorInfo = {
-            dtype: input.dtype,
-            shape: input3DShape,
-            dataId: input.dataId
-          };
-          const afterShapeAs3D = [
-            webgl_util.getBatchDim(afterShape),
-            ...webgl_util.getRowsCols(afterShape)
-          ] as [number, number, number];
+    (input: TensorInfo, afterShape: number[],
+     backend: MathBackendWebGL): TensorInfo => {
+      const input3DShape = [
+        webgl_util.getBatchDim(input.shape),
+        ...webgl_util.getRowsCols(input.shape)
+      ] as [number, number, number];
+      const input3D: TensorInfo = {
+        dtype: input.dtype,
+        shape: input3DShape,
+        dataId: input.dataId
+      };
+      const afterShapeAs3D = [
+        webgl_util.getBatchDim(afterShape),
+        ...webgl_util.getRowsCols(afterShape)
+      ] as [number, number, number];
 
-          const program =
-              new ReshapePackedProgram(afterShapeAs3D, input3DShape);
-          const preventEagerUnpackingOfOutput = true;
-          const output = backend.runWebGLProgram(
-              program, [input3D], input.dtype, null /* customSetup */,
-              preventEagerUnpackingOfOutput);
-          return {
-            dataId: output.dataId,
-            shape: afterShape,
-            dtype: output.dtype
-          };
-        }
+      const program = new ReshapePackedProgram(afterShapeAs3D, input3DShape);
+      const preventEagerUnpackingOfOutput = true;
+      const output = backend.runWebGLProgram(
+          program, [input3D], input.dtype, null /* customSetup */,
+          preventEagerUnpackingOfOutput);
+      return {dataId: output.dataId, shape: afterShape, dtype: output.dtype};
+    };
 
 export const reshape =
     (x: TensorInfo, afterShape: number[],
