@@ -151,6 +151,35 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertIsInstance(output_json['weightsManifest'], list)
     self.assertTrue(glob.glob(os.path.join(self._tmp_dir, 'group*-*')))
 
+  def testConvertSavedKerasModeltoTfLayersModelSharded(self):
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      sequential_model = keras.models.Sequential([
+        keras.layers.Dense(
+            3, input_shape=(2,), use_bias=True, kernel_initializer='ones',
+            name='Dense1')])
+      h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
+      sequential_model.save(h5_path)
+
+      weights = sequential_model.get_weights()
+      total_weight_bytes = sum(np.size(w) for w in weights) * 4
+
+      # Due to the shard size, there ought to be 4 shards after conversion.
+      weight_shard_size_bytes = int(total_weight_bytes * 0.3)
+
+      # Convert Keras model to tfjs_layers_model format.
+      output_dir = os.path.join(self._tmp_dir, 'sharded_tfjs')
+      converter.dispatch_keras_h5_to_tfjs_layers_model_conversion(
+          h5_path, output_dir,
+          weight_shard_size_bytes=weight_shard_size_bytes)
+
+      weight_files = sorted(glob.glob(os.path.join(output_dir, 'group*.bin')))
+      self.assertEqual(len(weight_files), 4)
+      weight_file_sizes = [os.path.getsize(f) for f in weight_files]
+      self.assertEqual(sum(weight_file_sizes), total_weight_bytes)
+      self.assertEqual(weight_file_sizes[0], weight_file_sizes[1])
+      self.assertEqual(weight_file_sizes[0], weight_file_sizes[2])
+      self.assertLess(weight_file_sizes[3], weight_file_sizes[0])
+
   def testConvertWeightsFromSequentialModel(self):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       sequential_model = keras.models.Sequential([
@@ -317,6 +346,40 @@ class ConvertKerasToTfGraphModelTest(tf.test.TestCase):
     self.assertEqual(model_json['generatedBy'],
                      tf.__version__)
     self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
+
+  def testConvertKerasModelToTfGraphModelSharded(self):
+    output_dir = os.path.join(self._tmp_dir, 'foo_model')
+    sequential_model = keras.models.Sequential([
+        keras.layers.Dense(
+            3, input_shape=(2,), use_bias=True, kernel_initializer='ones',
+            name='Dense1')])
+    h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
+    sequential_model.save(h5_path)
+
+    # Do initial conversion without sharding.
+    converter.dispatch_keras_h5_to_tfjs_graph_model_conversion(
+        h5_path, output_dir)
+    weight_files = glob.glob(os.path.join(output_dir, 'group*.bin'))
+
+    # Get size of weights in bytes after graph optimizations.
+    optimized_total_weight = sum([os.path.getsize(f) for f in weight_files])
+
+    # Due to the shard size, there ought to be 4 shards after conversion.
+    weight_shard_size_bytes = int(optimized_total_weight * 0.3)
+
+    output_dir = os.path.join(self._tmp_dir, 'sharded_model')
+    # Convert Keras model again with shard argument set.
+    converter.dispatch_keras_h5_to_tfjs_graph_model_conversion(
+        h5_path, output_dir,
+        weight_shard_size_bytes=weight_shard_size_bytes)
+
+    weight_files = sorted(glob.glob(os.path.join(output_dir, 'group*.bin')))
+    self.assertEqual(len(weight_files), 4)
+    weight_file_sizes = [os.path.getsize(f) for f in weight_files]
+    self.assertEqual(sum(weight_file_sizes), optimized_total_weight)
+    self.assertEqual(weight_file_sizes[0], weight_file_sizes[1])
+    self.assertEqual(weight_file_sizes[0], weight_file_sizes[2])
+    self.assertLess(weight_file_sizes[3], weight_file_sizes[0])
 
 
 class ConvertTfKerasSavedModelTest(tf.test.TestCase):

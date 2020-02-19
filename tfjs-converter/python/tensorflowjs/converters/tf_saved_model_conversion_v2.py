@@ -565,7 +565,7 @@ def convert_tf_hub_module_v1(module_path, output_dir,
                    quantization_dtype=quantization_dtype,
                    skip_op_check=skip_op_check,
                    strip_debug_ops=strip_debug_ops,
-                   shard_size_bytes=weight_shard_size_bytes)
+                   weight_shard_size_bytes=weight_shard_size_bytes)
   finally:
     # Clean up the temp files.
     if os.path.exists(frozen_file):
