@@ -45,7 +45,7 @@ registerKernel({
 
     const axes = parseAxisParam([dim], logits.shape);
 
-    const [, reduceShape] =
+    const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(logits.shape, axes);
 
     const max = maxImpl(logits, reduceShape, webglBackend);
@@ -53,7 +53,7 @@ registerKernel({
     const subtracted = subImpl(logits, max, webglBackend);
     const exponentiated = expImpl(subtracted, webglBackend);
 
-    const summed = sumImpl(exponentiated, reduceShape, webglBackend);
+    const summed = sumImpl(exponentiated, reduceShape, outShape, webglBackend);
 
     const out = divImpl(exponentiated, summed, webglBackend);
 
