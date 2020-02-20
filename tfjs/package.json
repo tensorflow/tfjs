@@ -50,7 +50,11 @@
     "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
-    "build": "tsc",
+    "build-core": "cd ../tfjs-core && yarn && yarn build",
+    "build-converter": "cd ../tfjs-converter && yarn && yarn build",
+    "build-data": "cd ../tfjs-data && yarn && yarn build",
+    "build-layers": "cd ../tfjs-layers && yarn && yarn build",
+    "build": "yarn build-converter && yarn build-core && yarn build-data && yarn build-layers && tsc",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
