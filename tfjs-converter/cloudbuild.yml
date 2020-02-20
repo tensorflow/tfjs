@@ -14,6 +14,14 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
+# Build core from master.
+- name: 'node:10'
+  dir: 'tfjs-converter'
+  id: 'build-core'
+  entrypoint: 'yarn'
+  args: ['build-core']
+  waitFor: ['yarn-common']
+
 # Run lint.
 - name: 'node:10'
   dir: 'tfjs-converter'
