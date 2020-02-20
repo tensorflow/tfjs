@@ -851,7 +851,6 @@ export const mul = op({mul_});
 export const mulStrict = op({mulStrict_});
 export const pow = op({pow_});
 export const powStrict = op({powStrict_});
-// export const squaredDifference = op({squaredDifference_});
 export const squaredDifferenceStrict = op({squaredDifferenceStrict_});
 export const sub = op({sub_});
 export const subStrict = op({subStrict_});

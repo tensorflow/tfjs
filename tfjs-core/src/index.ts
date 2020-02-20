@@ -114,7 +114,5 @@ export {KernelBackend, BackendTimingInfo, DataMover, DataStorage} from './backen
 import * as ops from './ops/ops';
 setOpHandler(ops);
 
-// Import all op chainers
-// Note this is appears redundant (at least at runtime) becuase of setOpHandler
-// but it does type augmentention on Tensor.
+// Import all op chainers and add type info to Tensor
 import './public/chained_ops/index';
