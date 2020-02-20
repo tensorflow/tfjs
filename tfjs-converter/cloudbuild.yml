@@ -22,13 +22,21 @@ steps:
   args: ['lint']
   waitFor: ['yarn']
 
+# Generate json file.
+- name: 'node:10'
+  dir: 'tfjs-converter'
+  entrypoint: 'yarn'
+  id: 'gen-json'
+  args: ['gen-json', '--test']
+  waitFor: ['yarn']
+
 # Build the project.
 - name: 'node:10'
   dir: 'tfjs-converter'
   entrypoint: 'yarn'
   id: 'build'
   args: ['build']
-  waitFor: ['yarn']
+  waitFor: ['gen-json']
 
 # Run javascript tests.
 - name: 'node:10'
@@ -36,27 +44,28 @@ steps:
   entrypoint: 'yarn'
   id: 'test-js'
   args: ['test-ci']
-  waitFor: ['yarn']
+  waitFor: ['build']
   env: ['NIGHTLY=$_NIGHTLY']
 
 # Run python tests.
 - name: 'gcr.io/google-appengine/python'
   dir: 'tfjs-converter/python'
   entrypoint: 'bash'
+  id: 'python-build'
   args: ['./build-pip-package.sh', '--test', '/tmp/tfjs-pips']
-  waitFor: ['yarn']
+  waitFor: ['gen-json']
 
 - name: 'python:2'
   dir: 'tfjs-converter/python'
   entrypoint: 'bash'
   args: ['./run-python-tests.sh']
-  waitFor: ['yarn']
+  waitFor: ['python-build']
 
 - name: 'python:3.6'
   dir: 'tfjs-converter/python'
   entrypoint: 'bash'
   args: ['./run-python-tests.sh']
-  waitFor: ['yarn']
+  waitFor: ['python-build']
 
 - name: 'node:10'
   dir: 'tfjs-converter'
