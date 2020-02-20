@@ -59,9 +59,9 @@
     "test-ci": "./scripts/test-ci.sh"
   },
   "dependencies": {
-    "@tensorflow/tfjs-converter": "1.5.2",
-    "@tensorflow/tfjs-core": "1.5.2",
-    "@tensorflow/tfjs-data": "1.5.2",
-    "@tensorflow/tfjs-layers": "1.5.2"
+    "@tensorflow/tfjs-converter": "link:../tfjs-converter",
+    "@tensorflow/tfjs-core": "link:../tfjs-core",
+    "@tensorflow/tfjs-data": "link:../tfjs-data",
+    "@tensorflow/tfjs-layers": "link:../tfjs-layers"
   }
 }
