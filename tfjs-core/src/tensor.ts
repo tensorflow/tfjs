@@ -239,6 +239,7 @@ export interface OpHandler {
   minimumStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   maximum<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   maximumStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
+  squaredDifferenceStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   transpose<T extends Tensor>(x: T, perm?: number[]): T;
   logicalNot<T extends Tensor>(x: T): T;
   logicalAnd<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
@@ -991,6 +992,10 @@ export class Tensor<R extends Rank = Rank> {
   modStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.modStrict(this, x);
+  }
+  squaredDifferenceStrict<T extends this>(this: T, x: T|TensorLike): T {
+    this.throwIfDisposed();
+    return opHandler.squaredDifferenceStrict(this, x);
   }
   transpose<T extends Tensor>(this: T, perm?: number[]): T {
     this.throwIfDisposed();
