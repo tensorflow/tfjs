@@ -56,6 +56,7 @@
   "scripts": {
     "build": "yarn gen-json --test && tsc && copyfiles -f src/data/compiled_api.* dist/src/data/",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
+    "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",

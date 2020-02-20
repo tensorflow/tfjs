@@ -11,7 +11,7 @@ steps:
   dir: 'tfjs-converter'
   id: 'build-core'
   entrypoint: 'yarn'
-  args: ['build-core']
+  args: ['build-core-ci']
   waitFor: ['yarn-common']
 
 # Install converter dependencies.
