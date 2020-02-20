@@ -17,11 +17,11 @@
 
 import {squaredDifference} from '../../ops/squared_difference';
 import {Tensor} from '../../tensor';
-import {TensorLike} from '../../types';
+import {Rank, TensorLike} from '../../types';
 
-declare global {
-  interface Tensor {
-    squaredDifference(b: Tensor|TensorLike): Tensor;
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    squaredDifference<T extends Tensor>(b: Tensor|TensorLike): T;
   }
 }
 

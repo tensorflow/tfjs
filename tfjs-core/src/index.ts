@@ -115,4 +115,5 @@ import * as ops from './ops/ops';
 setOpHandler(ops);
 
 // Import all op chainers
+// Note this is redundant becuase of setOpHandler above, but will replace it
 import './public/chained_ops/index';
