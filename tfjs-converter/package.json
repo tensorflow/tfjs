@@ -58,7 +58,7 @@
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
-    "test": "yarn gen-json --test && yarn build && yarn lint && ts-node run_tests.ts",
+    "test": "yarn gen-json --test && ts-node run_tests.ts",
     "test-ci": "yarn test",
     "test-snippets": "ts-node ./scripts/test_snippets.ts",
     "lint": "tslint -p . -t verbose",

@@ -6,13 +6,29 @@ steps:
   id: 'yarn-common'
   args: ['install']
 
-# Install converter dependencies
+# Install converter dependencies.
 - name: 'node:10'
   dir: 'tfjs-converter'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
   waitFor: ['yarn-common']
+
+# Run lint.
+- name: 'node:10'
+  dir: 'tfjs-converter'
+  entrypoint: 'yarn'
+  id: 'lint'
+  args: ['lint']
+  waitFor: ['yarn']
+
+# Build the project.
+- name: 'node:10'
+  dir: 'tfjs-converter'
+  entrypoint: 'yarn'
+  id: 'build'
+  args: ['build']
+  waitFor: ['yarn']
 
 # Run javascript tests.
 - name: 'node:10'
