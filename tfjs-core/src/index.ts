@@ -115,5 +115,6 @@ import * as ops from './ops/ops';
 setOpHandler(ops);
 
 // Import all op chainers
-// Note this is redundant becuase of setOpHandler above, but will replace it
+// Note this is appears redundant (at least at runtime) becuase of setOpHandler
+// but it does type augmentention on Tensor.
 import './public/chained_ops/index';
