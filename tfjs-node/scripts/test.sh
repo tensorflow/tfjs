@@ -20,23 +20,23 @@
 
 echo "=====Publish tfjs-core locally.====="
 cd ../tfjs-core
-yarn build & yarn yalc publish
+yarn build && yarn yalc publish
 
 echo "=====Publish tfjs-converter locally.====="
 cd ../tfjs-converter
-yarn build & yarn yalc publish
+yarn build && yarn yalc publish
 
 echo "=====Publish tfjs-data locally.====="
 cd ../tfjs-data
-yarn build & yarn yalc publish
+yarn build && yarn yalc publish
 
 echo "=====Publish tfjs-layers locally.====="
 cd ../tfjs-layers
-yarn build & yarn yalc publish
+yarn build && yarn yalc publish
 
 echo "=====Link package.====="
 cd ../tfjs-node
-yarn yalc link @tensorflow/tfjs-core & yarn yalc link @tensorflow/tfjs-converter & yarn yalc link @tensorflow/tfjs-data & yarn yalc link @tensorflow/tfjs-layers & yarn
+yarn yalc link @tensorflow/tfjs-core && yarn yalc link @tensorflow/tfjs-converter && yarn yalc link @tensorflow/tfjs-data && yarn yalc link @tensorflow/tfjs-layers && yarn
 
 echo "=====Start testing.====="
 ts-node src/run_tests.ts
