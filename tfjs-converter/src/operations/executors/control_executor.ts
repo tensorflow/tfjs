@@ -21,13 +21,13 @@ import {scalar} from '@tensorflow/tfjs-core';
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
 import {TensorArray} from '../../executor/tensor_array';
-import {Node} from '../types';
+import {InternalOpAsyncExecutor, Node} from '../types';
 
 import {getParamValue, getTensor} from './utils';
 
-export async function executeOp(
+export const executeOp: InternalOpAsyncExecutor = async(
     node: Node, tensorMap: NamedTensorsMap,
-    context: ExecutionContext): Promise<tfc.Tensor[]> {
+    context: ExecutionContext): Promise<tfc.Tensor[]> => {
   switch (node.op) {
     case 'LoopCond':
       return [
@@ -161,6 +161,6 @@ export async function executeOp(
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }
-}
+};
 
 export const CATEGORY = 'control';
