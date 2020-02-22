@@ -229,6 +229,38 @@ const benchmarks = {
       }
     }
   },
+  'speech-commands': {
+    load: async () => {
+      const recognizer = speechCommands.create('BROWSER_FFT');
+      await recognizer.ensureModelLoaded();
+      return recognizer;
+    },
+    predictFunc: (model) => {
+      const shape = model.modelInputShape();
+      const mySpectrogramData = new Float32Array(shape.reduce((acc, curr) => {
+        if(curr == null) {
+          return acc;
+        }
+        return acc * curr;
+      }, 1));
+      const x = tf.tensor4d(
+        mySpectrogramData, [1].concat(shape.slice(1)));
+      return async () => {
+        return await model.recognize(x);
+      }
+    }
+  },
+  'toxicity': {
+    load: async () => {
+      return toxicity.load();
+    },
+    predictFunc: model => {
+      const sentences = ['you suck'];
+      return async () => {
+        return model.classify(sentences);
+      }
+    }
+  },
   'qna': {
     load: async () => {
       return qna.load();

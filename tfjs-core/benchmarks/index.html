@@ -72,6 +72,7 @@ limitations under the License.
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/knn-classifier"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/qna"> </script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands"> </script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/toxicity"> </script>
 
   <script src="./modelConfig.js"></script>
   <script src="./util.js"></script>
@@ -80,7 +81,7 @@ limitations under the License.
 
     const state = {
       numRuns: 50,
-      benchmark: 'qna',
+      benchmark: 'toxicity',
       run: (v) => {
         runBenchmark();
       },
@@ -179,7 +180,7 @@ limitations under the License.
       } else {
         model = benchmark.model;
       }
-      predict = benchmark.predictFunc();
+      predict = benchmark.predictFunc(benchmark.model);
 
       const elapsed = performance.now() - start;
       await showMsg(null);
