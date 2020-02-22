@@ -96,11 +96,11 @@ const benchmarks = {
       };
     },
   },
-  'face_detector': {
+  'blazeface': {
     load: async () => {
       const url =
-          'https://storage.googleapis.com/learnjs-data/face_detector_front/model.json';
-      return tf.loadGraphModel(url);
+        'https://tfhub.dev/tensorflow/tfjs-model/blazeface/1/default/1';
+      return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
       const zeros = tf.zeros([1, 128, 128, 3]);
@@ -158,6 +158,18 @@ const benchmarks = {
       }
     }
   },
+  'cocossd': {
+    load: async () => {
+      const model = await cocoSsd.load();
+      model.image = await loadImage('tennis_standing.jpg');
+      return model;
+    },
+    predictFunc: () => {
+      return async model => {
+        return model.detect(model.image);
+      }
+    }
+  },
   'posenet': {
     load: async () => {
       const model = await posenet.load();
@@ -182,6 +194,53 @@ const benchmarks = {
       }
     }
   },
+  'deeplab': {
+    load: async () => {
+      const modelName = 'pascal';   // set to your preferred model, either `pascal`, `cityscapes` or `ade20k`
+      const quantizationBytes = 2;  // either 1, 2 or 4
+      return await deeplab.load({base: modelName, quantizationBytes});
+    },
+    predictFunc: () => {
+      const zeros = tf.zeros([227, 500, 3]);
+      return model => model.segment(zeros);
+    }
+  },
+  'knn': {
+    load: async() => {
+      const url =
+          'https://storage.googleapis.com/learnjs-data/mobilenet_v2_100_fused/model.json';
+      window.mobilenetModule = await tf.loadGraphModel(url);
+      const classifier = knnClassifier.create();
+
+      const logits0 = mobilenetModule.predict(tf.zeros([1, 224, 224, 3]), 'conv_preds');
+      classifier.addExample(logits0, 0);
+
+      // window.img1 = await loadImage('tennis_standing.jpg');
+      window.img1 = tf.ones([1, 224, 224, 3]);
+
+      const logits1 = mobilenetModule.predict(img1, 'conv_preds');
+      classifier.addExample(logits1, 1);
+      return classifier;
+    },
+    predictFunc: () => {
+      const logits0 = mobilenetModule.predict(window.img1, 'conv_preds');
+      return async model => {
+        return model.predictClass(logits0);
+      }
+    }
+  },
+  'qna': {
+    load: async () => {
+      return qna.load();
+    },
+    predictFunc: () => {
+      const passage = "Google LLC is an American multinational technology company that specializes in Internet-related services and products, which include online advertising technologies, search engine, cloud computing, software, and hardware. It is considered one of the Big Four technology companies, alongside Amazon, Apple, and Facebook. Google was founded in September 1998 by Larry Page and Sergey Brin while they were Ph.D. students at Stanford University in California. Together they own about 14 percent of its shares and control 56 percent of the stockholder voting power through supervoting stock. They incorporated Google as a California privately held company on September 4, 1998, in California. Google was then reincorporated in Delaware on October 22, 2002. An initial public offering (IPO) took place on August 19, 2004, and Google moved to its headquarters in Mountain View, California, nicknamed the Googleplex. In August 2015, Google announced plans to reorganize its various interests as a conglomerate called Alphabet Inc. Google is Alphabet's leading subsidiary and will continue to be the umbrella company for Alphabet's Internet interests. Sundar Pichai was appointed CEO of Google, replacing Larry Page who became the CEO of Alphabet.";
+const question = "Who is the CEO of Google?";
+      return async model => {
+        return model.findAnswers(question, passage);
+      }
+    }
+  }
 };
 
 const imageBucket =
