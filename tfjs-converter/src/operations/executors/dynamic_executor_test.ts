@@ -171,6 +171,17 @@ describe('dynamic', () => {
 
         expect(validateParam(node, dynamic.json)).toBeTruthy();
       });
+      it('should not have memory leak', async () => {
+        node.op = 'Where';
+        node.inputParams = {'condition': createTensorAttr(0)};
+        const input1 = [tfc.scalar(1)];
+        spyOn(tfc, 'whereAsync').and.callThrough();
+
+        const prevCount = tfc.memory().numTensors;
+        await executeOp(node, {input1}, context);
+        const afterCount = tfc.memory().numTensors;
+        expect(afterCount).toEqual(prevCount + 1);
+      });
     });
 
     describe('ListDiff', () => {
