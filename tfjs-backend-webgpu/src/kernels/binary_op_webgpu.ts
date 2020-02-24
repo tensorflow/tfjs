@@ -26,6 +26,8 @@ export const MUL = 'return a * b;';
 export const ADD = 'return a + b;';
 export const SUB = 'return a - b;';
 export const DIV = 'return a / b;';
+export const EQUAL = `return float(a == b);`;
+export const NOT_EQUAL = `return float(a != b);`;
 export const GREATER = 'return float(a > b);';
 export const GREATER_EQUAL = 'return float(a >= b);';
 export const LESS = `return float(a < b);`;

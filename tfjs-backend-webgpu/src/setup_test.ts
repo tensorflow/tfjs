@@ -225,6 +225,7 @@ const TEST_FILTERS: TestFilter[] = [
       'batched matmul',                  // Actual != expected, shape mismatch.
     ]
   },
+  {include: 'equal ', excludes: []},
   {
     include: 'add ',
     excludes: [

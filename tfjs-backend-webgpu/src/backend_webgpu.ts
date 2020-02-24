@@ -609,6 +609,14 @@ export class WebGPUBackend extends KernelBackend {
     return this.compileAndRun(program, [a, b], output);
   }
 
+  equal(a: Tensor, b: Tensor): Tensor {
+    return this.binaryCompareOp(a, b, binary_op.EQUAL);
+  }
+
+  notEqual(a: Tensor, b: Tensor): Tensor {
+    return this.binaryCompareOp(a, b, binary_op.NOT_EQUAL);
+  }
+
   less(a: Tensor, b: Tensor): Tensor {
     return this.binaryCompareOp(a, b, binary_op.LESS);
   }
