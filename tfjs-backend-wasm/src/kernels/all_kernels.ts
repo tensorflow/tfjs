@@ -56,6 +56,7 @@ import './NonMaxSuppressionV3';
 import './NonMaxSuppressionV5';
 import './NotEqual';
 import './PadV2';
+import './Pow';
 import './Prelu';
 import './Relu';
 import './Relu6';

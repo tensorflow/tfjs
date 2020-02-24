@@ -35,6 +35,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {include: 'softmax'},
+  {include: 'pow'},
   {
     include: 'add ',
     excludes: [

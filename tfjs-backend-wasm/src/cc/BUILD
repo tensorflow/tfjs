@@ -182,6 +182,7 @@ tfjs_cc_library(
         ":NonMaxSuppressionV5",
         ":NotEqual",
         ":PadV2",
+        ":Pow",
         ":Prelu",
         ":Relu",
         ":Relu6",
@@ -587,6 +588,15 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "PadV2",
     srcs = ["kernels/PadV2.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Pow",
+    srcs = ["kernels/Pow.cc"],
     deps = [
         ":backend",
         ":util",
