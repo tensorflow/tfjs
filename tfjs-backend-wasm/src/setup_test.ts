@@ -35,7 +35,15 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {include: 'softmax'},
-  {include: 'pow'},
+  {
+    include: 'pow',
+    excludes: [
+      'gradient',  // zerosLike not defined yet.
+      'broadcasting same rank Tensors different shape',  // Broadcasting along
+                                                         // inner dims not
+                                                         // supported yet.
+    ]
+  },
   {
     include: 'add ',
     excludes: [
