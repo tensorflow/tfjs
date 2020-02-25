@@ -24,7 +24,7 @@
 
 namespace {
 template <class T>
-inline T pow(T a, T b) {
+inline T power(T a, T b) {
   return pow(a, b);
 }
 }  // namespace
@@ -42,13 +42,13 @@ void Pow(const size_t a_id, const size_t* a_shape_ptr, const size_t a_shape_len,
          const DType dtype, const size_t out_id) {
   switch (dtype) {
     case DType::float32:
-      binary_f32(a_id, b_id, out_id, pow<float>);
+      binary_f32(a_id, b_id, out_id, power<float>);
       break;
     case DType::int32:
-      binary_i32(a_id, b_id, out_id, pow<int32_t>);
+      binary_i32(a_id, b_id, out_id, power<int32_t>);
       break;
     case DType::boolean:
-      binary_bool(a_id, b_id, out_id, pow<bool>);
+      binary_bool(a_id, b_id, out_id, power<bool>);
       break;
     default:
       util::warn("Pow for tensor ids %d and %d failed. Unknown dtype %d", a_id,

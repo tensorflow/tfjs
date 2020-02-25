@@ -97,6 +97,7 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     const a = tf.tensor2d([1, -2, -3, 0, 7, 1], [2, 3]);
     const b = tf.tensor2d([5, 3, 4, 5, 2, -3], [2, 3], 'int32');
     // const expected = [1, -8, 81, 0, 49, 1];
+    // const result = tf.pow(a, b);
     const result = tf.pow(a, b);
     const data = await result.data();
     console.log(Array.from(data));
