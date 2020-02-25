@@ -27,8 +27,8 @@ import tempfile
 
 import h5py
 import numpy as np
-import tensorflow as tf
-from tensorflow import keras
+import tensorflow.compat.v1 as tf
+from tensorflow.compat.v1 import keras
 
 from tensorflowjs import quantization
 from tensorflowjs import version
