@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,19 +12,29 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef KERNELS_SIGMOID_H_
-#define KERNELS_SIGMOID_H_
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
-#include <cstddef>
+#include <cmath>
+
+#include "src/cc/backend.h"
+#include "src/cc/unary.h"
+
+namespace {
+inline float neg(const float val) { return -val; }
+}  // namespace
 
 namespace tfjs {
 namespace wasm {
+// We use C-style API to interface with Javascript.
 extern "C" {
 
-void Sigmoid(const size_t x_id, const size_t out_id);
-}
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif
+void Neg(const int x_id, const int out_id) { unary(x_id, out_id, neg); }
 
+}  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs
-
-#endif  // KERNELS_SIGMOID_H_

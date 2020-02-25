@@ -75,12 +75,17 @@ export declare interface AttrParamMapper extends ParamMapper {
 
 export interface InternalOpExecutor {
   (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext): Tensor
-      |Tensor[]|Promise<Tensor|Tensor[]>;
+      |Tensor[];
+}
+
+export interface InternalOpAsyncExecutor {
+  (node: Node, tensorMap: NamedTensorsMap,
+   context: ExecutionContext): Promise<Tensor[]>;
 }
 
 export declare interface OpMapper {
   tfOpName: string;
-  category: Category;
+  category?: Category;
   inputs?: InputParamMapper[];
   attrs?: AttrParamMapper[];
   customExecutor?: OpExecutor;

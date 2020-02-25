@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,13 +15,24 @@
  * =============================================================================
  */
 
-import './platform_react_native';
+// tslint:disable-next-line:no-imports-from-dist
+import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-export {asyncStorageIO} from './async_storage_io';
-export {bundleResourceIO} from './bundle_resource_io';
-export {decodeJpeg} from './decode_image';
-export {fetch} from './platform_react_native';
-export {version} from './version';
+// tslint:disable-next-line:no-require-imports
+const jasmineCtor = require('jasmine');
+// tslint:disable-next-line:no-require-imports
 
-export * from './camera/camera';
-export * from './camera/camera_stream';
+Error.stackTraceLimit = Infinity;
+
+process.on('unhandledRejection', e => {
+  throw e;
+});
+
+jasmine_util.setTestEnvs(
+    [{name: 'test-converter', backendName: 'cpu', flags: {}}]);
+
+const unitTests = 'src/**/*_test.ts';
+
+const runner = new jasmineCtor();
+runner.loadConfig({spec_files: [unitTests], random: false});
+runner.execute();

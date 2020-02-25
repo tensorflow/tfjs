@@ -521,18 +521,27 @@ export class MathBackendWebGL extends KernelBackend {
       this.programTimersStack = null;
     }
 
-    const kernelMs = await Promise.all(flattenedActiveTimerQueries);
-
     const res: WebGLTimingInfo = {
       uploadWaitMs: this.uploadWaitMs,
       downloadWaitMs: this.downloadWaitMs,
-      kernelMs: util.sum(kernelMs),
-      getExtraProfileInfo: () =>
-          kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
-              .map(d => `${d.name}: ${d.ms}`)
-              .join(', '),
+      kernelMs: null,
       wallMs: null  // will be filled by the engine
     };
+
+    if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') > 0) {
+      const kernelMs = await Promise.all(flattenedActiveTimerQueries);
+
+      res['kernelMs'] = util.sum(kernelMs);
+      res['getExtraProfileInfo'] = () =>
+          kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
+              .map(d => `${d.name}: ${d.ms}`)
+              .join(', ');
+    } else {
+      res['kernelMs'] = {
+        error: 'WebGL query timers are not supported in this environment.'
+      };
+    }
+
     this.uploadWaitMs = 0;
     this.downloadWaitMs = 0;
     return res;
@@ -543,14 +552,14 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   private startTimer(): WebGLQuery|CPUTimerQuery {
-    if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0) {
+    if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') > 0) {
       return this.gpgpu.beginQuery();
     }
     return {startMs: util.now(), endMs: null};
   }
 
   private endTimer(query: WebGLQuery|CPUTimerQuery): WebGLQuery|CPUTimerQuery {
-    if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0) {
+    if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') > 0) {
       this.gpgpu.endQuery();
       return query;
     }
@@ -559,7 +568,7 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   private async getQueryTime(query: WebGLQuery|CPUTimerQuery): Promise<number> {
-    if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0) {
+    if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') > 0) {
       return this.gpgpu.waitForQueryAndGetTime(query as WebGLQuery);
     }
     const timerQuery = query as CPUTimerQuery;
@@ -1587,6 +1596,17 @@ export class MathBackendWebGL extends KernelBackend {
 
     const program = new UnaryOpProgram(x.shape, unary_op.EXPM1);
     return this.compileAndRun(program, [x]);
+  }
+
+  softmax<T extends Tensor>(logits: T, dim: number): T {
+    const axes = util.parseAxisParam([dim], logits.shape);
+    const maxLogit = this.max(logits, axes);
+    const expandedShape = axis_util.expandShapeToKeepDim(maxLogit.shape, axes);
+    const a = this.subtract(logits, maxLogit.reshape(expandedShape));
+    const b = this.exp(a);
+    const sumExp = this.sum(b, axes).reshape(expandedShape);
+
+    return this.realDivide(b, sumExp) as T;
   }
 
   log<T extends Tensor>(x: T): T {

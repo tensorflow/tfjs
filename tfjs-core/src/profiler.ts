@@ -77,9 +77,11 @@ export function checkComputationForErrors<D extends DataType>(
 
 export class Logger {
   logKernelProfile(
-      name: string, result: Tensor, vals: TypedArray, timeMs: number,
-      inputs: NamedTensorMap, extraInfo?: string) {
-    const time = util.rightPad(`${timeMs}ms`, 9);
+      name: string, result: Tensor, vals: TypedArray,
+      timeMs: number|{error: string}, inputs: NamedTensorMap,
+      extraInfo?: string) {
+    const time = typeof timeMs === 'number' ? util.rightPad(`${timeMs}ms`, 9) :
+                                              timeMs['error'];
     const paddedName = util.rightPad(name, 25);
     const rank = result.rank;
     const size = result.size;

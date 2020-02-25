@@ -177,8 +177,10 @@ tfjs_cc_library(
         ":Min",
         ":Minimum",
         ":Mul",
+        ":Neg",
         ":NonMaxSuppressionV3",
         ":NonMaxSuppressionV5",
+        ":NotEqual",
         ":PadV2",
         ":Prelu",
         ":Relu",
@@ -186,6 +188,7 @@ tfjs_cc_library(
         ":ResizeBilinear",
         ":ScatterNd",
         ":Sigmoid",
+        ":Softmax",
         ":Sub",
         ":Tile",
         ":Transpose",
@@ -458,6 +461,16 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "NotEqual",
+    srcs = ["kernels/NotEqual.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "LogicalAnd",
     srcs = ["kernels/LogicalAnd.cc"],
     deps = [
@@ -539,6 +552,15 @@ tfjs_cc_library(
         ":backend",
         ":binary",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Neg",
+    srcs = ["kernels/Neg.cc"],
+    deps = [
+        ":backend",
+        ":unary",
     ],
 )
 
@@ -647,11 +669,29 @@ tfjs_cc_library(
     ],
 )
 
+tfjs_cc_library(
+    name = "Softmax",
+    srcs = ["kernels/Softmax.cc"],
+    hdrs = ["kernels/Softmax.h"],
+    deps = [
+        ":backend",
+        ":unary",
+    ],
+)
+
 tfjs_unit_test(
     name = "Sigmoid_test",
     srcs = ["kernels/Sigmoid_test.cc"],
     deps = [
         ":Sigmoid",
+    ],
+)
+
+tfjs_unit_test(
+    name = "Softmax_test",
+    srcs = ["kernels/Softmax_test.cc"],
+    deps = [
+        ":Softmax",
     ],
 )
 

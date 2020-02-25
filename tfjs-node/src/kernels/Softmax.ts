@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,13 +15,23 @@
  * =============================================================================
  */
 
-import './platform_react_native';
+import {NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
 
-export {asyncStorageIO} from './async_storage_io';
-export {bundleResourceIO} from './bundle_resource_io';
-export {decodeJpeg} from './decode_image';
-export {fetch} from './platform_react_native';
-export {version} from './version';
+import {createTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
-export * from './camera/camera';
-export * from './camera/camera_stream';
+interface SoftmaxInputs extends NamedTensorInfoMap {
+  logits: TensorInfo;
+}
+
+registerKernel({
+  kernelName: 'Softmax',
+  backendName: 'tensorflow',
+  kernelFunc: ({inputs, backend}) => {
+    const {logits} = inputs as SoftmaxInputs;
+    const opAttrs = [createTypeOpAttr('T', logits.dtype)];
+
+    const nodeBackend = backend as NodeJSKernelBackend;
+
+    return nodeBackend.executeSingleOutput('Softmax', opAttrs, [logits]);
+  }
+});

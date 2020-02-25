@@ -85,10 +85,14 @@ const VIS_PHASE: Phase = {
   packages: ['tfjs-vis']
 };
 
+const REACT_NATIVE_PHASE: Phase = {
+  packages: ['tfjs-react-native']
+};
+
 const WEBSITE_PHASE: Phase = {
   repo: 'tfjs-website',
   packages: ['tfjs-website'],
-  deps: ['tfjs', 'tfjs-node', 'tfjs-vis'],
+  deps: ['tfjs', 'tfjs-node', 'tfjs-vis', 'tfjs-react-native'],
   scripts: {'tfjs-website': {'after-yarn': ['yarn build-prod']}},
   leaveVersion: true,
   title: 'Update website to latest dependencies.'
@@ -96,7 +100,7 @@ const WEBSITE_PHASE: Phase = {
 
 const PHASES: Phase[] = [
   CORE_PHASE, LAYERS_CONVERTER_PHASE, DATA_PHASE, UNION_PHASE, NODE_PHASE,
-  WASM_PHASE, VIS_PHASE, WEBSITE_PHASE
+  WASM_PHASE, VIS_PHASE, REACT_NATIVE_PHASE, WEBSITE_PHASE
 ];
 
 const TMP_DIR = '/tmp/tfjs-release';
