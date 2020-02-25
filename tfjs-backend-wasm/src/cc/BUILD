@@ -599,6 +599,7 @@ tfjs_cc_library(
     srcs = ["kernels/Pow.cc"],
     deps = [
         ":backend",
+        ":binary",
         ":util",
     ],
 )

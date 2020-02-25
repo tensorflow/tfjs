@@ -276,13 +276,17 @@ function pow_<T extends Tensor>(base: T|TensorLike, exp: Tensor|TensorLike): T {
       }
       return res.reshape($exp.shape);
     };
-    return {base: derBase, exp: derExp};
+    return {a: derBase, b: derExp};
   };
+
+  const attrs = {};
+  const inputsToSave = [$base, $exp];
+  const outputsToSave = [true];
   return ENGINE.runKernelFunc((backend, save) => {
     const y = backend.pow($base, $exp);
     save([$base, $exp, y]);
     return y;
-  }, {base: $base, exp: $exp}, grad, 'Pow') as T;
+  }, {a: $base, b: $exp}, grad, 'Pow', attrs, inputsToSave, outputsToSave) as T;
 }
 
 /**
