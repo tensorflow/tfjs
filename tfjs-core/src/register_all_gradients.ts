@@ -15,7 +15,7 @@
  * =============================================================================
  */
 // TODO(yassogba) update this gradient to the new convention
-import './square_grad';
+import './ops/square_grad';
 
 // Import Grad Configs here.
 import {squaredDifferenceGradConfig} from './gradients/SquaredDifference_grad';
