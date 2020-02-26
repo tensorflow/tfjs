@@ -1,0 +1,12 @@
+{
+  "packages": [
+    {
+      "package": "tfjs-core",
+      "dependencies": []
+    },
+    {
+      "package": "tfjs-converter",
+      "dependencies": ["tfjs-core"]
+    }
+  ]
+}

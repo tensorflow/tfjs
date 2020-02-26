@@ -14,6 +14,7 @@
 // =============================================================================
 
 const shell = require('shelljs');
+const fs = require('fs');
 
 function exec(command, opt, ignoreCode) {
   const res = shell.exec(command, opt);
@@ -24,4 +25,58 @@ function exec(command, opt, ignoreCode) {
   return res;
 }
 
+function calculateAffectedPackages(dependencyGraph, package) {
+  const affectedPackages = new Set();
+  traverseDependencyGraph(graph, package, affectedPackages);
+
+  return affectedPackages;
+}
+
+function constructDependencyGraph(path) {
+  try {
+    const str = fs.readFileSync(path);
+  } catch (err) {
+    console.log('Error reading dependency file.');
+    return {};
+  }
+
+  try {
+    const dependencyInfo = JSON.parse(str);
+  } catch (err) {
+    console.log('Error parsing dependency file to JSON.');
+    return {};
+  }
+
+  const dependencyGraph = {};
+
+  dependencyInfo.packages.forEach(
+      package => {package.dependencies.forEach(dependency => {
+        if (!dependencyGraph[dependency]) {
+          dependencyGraph[dependency] = [];
+        }
+        dependencyGraph[dependency].push(package.package);
+      })});
+
+  return dependencyGraph;
+}
+
+function traverseDependencyGraph(graph, package, affectedPackages) {
+  if (affectedPackages.has(package)) {
+    return;
+  }
+
+  const consumingPackages = graph[package];
+
+  if (!consumingPackages) {
+    return;
+  }
+
+  consumingPackages.forEach(consumingPackage => {
+    traverseDependencyGraph(graph, consumingPackage, affectedPackages);
+    affectedPackages.add(consumingPackage);
+  });
+}
+
 exports.exec = exec;
+exports.constructDependencyGraph = constructDependencyGraph;
+exports.calculateAffectedPackages = calculateAffectedPackages;

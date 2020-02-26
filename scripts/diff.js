@@ -104,6 +104,22 @@ dirs.forEach(dir => {
 
 console.log();  // Break up the console for readability.
 
+let dependencyGraph = constructDependencyGraph('dependency.json');
+
+triggeredBuilds.forEach(triggeredBuild => {
+  const affectedPackages =
+      calculateAffectedPackages(dependencyGraph, triggeredBuild);
+  if (affectedPackages.length > 0) {
+    affectedPackages.forEach(package => {
+      writeFileSync(join(package, 'diff'), '');
+      triggeredBuild.push(package);
+    })
+  }
+});
+
+// Deduplicate the triggered builds for log.
+triggeredBuilds = [...new Set(triggeredBuilds)];
+
 // Filter the triggered builds to log by whether a cloudbuild.yml file
 // exists for that directory.
 triggeredBuilds = triggeredBuilds.filter(
