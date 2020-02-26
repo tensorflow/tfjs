@@ -107,10 +107,11 @@ console.log();  // Break up the console for readability.
 
 if (!triggerAllBuilds) {
   let dependencyGraph = constructDependencyGraph('scripts/dependency.json');
-
+  console.log(dependencyGraph);
   triggeredBuilds.forEach(triggeredBuild => {
     const affectedPackages =
         calculateAffectedPackages(dependencyGraph, triggeredBuild);
+    console.log(affectedPackages);
     if (affectedPackages.length > 0) {
       affectedPackages.forEach(package => {
         writeFileSync(join(package, 'diff'), '');
@@ -121,6 +122,7 @@ if (!triggerAllBuilds) {
 
   // Deduplicate the triggered builds for log.
   triggeredBuilds = [...new Set(triggeredBuilds)];
+  console.log(triggeredBuilds);
 }
 
 // Filter the triggered builds to log by whether a cloudbuild.yml file
