@@ -33,8 +33,8 @@ export const squaredDifferenceConfig: KernelConfig = {
     const aVals = cpuBackend.data.get(a.dataId).values as TypedArray;
     const bVals = cpuBackend.data.get(b.dataId).values as TypedArray;
 
-    const [resultData, resultShape] =
-        broadcastedBinaryOp(a, b, aVals, bVals, a.dtype, (aVal, bVal) => {
+    const [resultData, resultShape] = broadcastedBinaryOp(
+        a.shape, b.shape, aVals, bVals, a.dtype, (aVal, bVal) => {
           const diff = aVal - bVal;
           return diff * diff;
         });

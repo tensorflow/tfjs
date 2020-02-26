@@ -23,7 +23,7 @@ import {MathBackendWebGL} from '../backend_webgl';
 import {BinaryOpProgram} from '../binaryop_gpu';
 import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
 
-export const squaredDifference_: KernelConfig = {
+export const squaredDifferenceConfig: KernelConfig = {
   kernelName: SquaredDifference,
   backendName: 'webgl',
   kernelFunc: ({inputs, backend}) => {

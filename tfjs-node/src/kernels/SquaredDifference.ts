@@ -18,7 +18,7 @@
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 import {createTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
-export const squaredDifference_: KernelConfig = {
+export const squaredDifferenceConfig: KernelConfig = {
   // TODO import this kernelName from core once exported.
   kernelName: 'SquaredDifference',
   backendName: 'tensorflow',
@@ -33,4 +33,4 @@ export const squaredDifference_: KernelConfig = {
   }
 };
 
-registerKernel(squaredDifference_);
+registerKernel(squaredDifferenceConfig);
