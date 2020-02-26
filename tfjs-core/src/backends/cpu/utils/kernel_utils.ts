@@ -15,32 +15,32 @@
  * =============================================================================
  */
 
+import {backend_util, util} from '../../../index';
 import {TensorInfo} from '../../../kernel_registry';
-
-// TODO(yassogba) export from core
-import {assertAndGetBroadcastShape, getBroadcastDims} from '../../../ops/broadcast_util';
+// TODO(yassogba) export types from core
 import {DataType, NumericDataType, TypedArray} from '../../../types';
-import {computeStrides, getTypedArrayFromDType, sizeFromShape} from '../../../util';
-import {indexToLoc, locToIndex} from '../../../util';
-
-import {MathBackendCPU} from '../backend_cpu';
 
 export function broadcastedBinaryOp(
-    a: TensorInfo, b: TensorInfo, dtype: DataType, backend: MathBackendCPU,
-    op: (a: number, b: number) => number): TensorInfo {
-  const newShape = assertAndGetBroadcastShape(a.shape, b.shape);
+    a: TensorInfo, b: TensorInfo, aVals: TypedArray, bVals: TypedArray,
+    dtype: DataType,
+    op: (a: number, b: number) => number): [TypedArray, number[]] {
+  const newShape = backend_util.assertAndGetBroadcastShape(a.shape, b.shape);
 
   const resultRank = newShape.length;
-  const resultStrides = computeStrides(newShape);
-  const resultSize = sizeFromShape(newShape);
+  const resultStrides = util.computeStrides(newShape);
+  const resultSize = util.sizeFromShape(newShape);
 
-  const result = getTypedArrayFromDType(dtype as NumericDataType, resultSize);
+  const result =
+      util.getTypedArrayFromDType(dtype as NumericDataType, resultSize);
 
-  const aVals = backend.data.get(a.dataId).values as TypedArray;
-  const bVals = backend.data.get(b.dataId).values as TypedArray;
+  const aRank = a.shape.length;
+  const bRank = b.shape.length;
 
-  const aBroadcastDims = getBroadcastDims(a.shape, newShape);
-  const bBroadcastDims = getBroadcastDims(b.shape, newShape);
+  const aStrides = util.computeStrides(a.shape);
+  const bStrides = util.computeStrides(b.shape);
+
+  const aBroadcastDims = backend_util.getBroadcastDims(a.shape, newShape);
+  const bBroadcastDims = backend_util.getBroadcastDims(b.shape, newShape);
 
   if (aBroadcastDims.length + bBroadcastDims.length === 0) {
     for (let i = 0; i < result.length; ++i) {
@@ -48,26 +48,19 @@ export function broadcastedBinaryOp(
     }
   } else {
     for (let i = 0; i < result.length; ++i) {
-      const loc = indexToLoc(i, resultRank, resultStrides);
+      const loc = util.indexToLoc(i, resultRank, resultStrides);
 
-      const aLoc = loc.slice(-a.rank);
+      const aLoc = loc.slice(-aRank);
       aBroadcastDims.forEach(d => aLoc[d] = 0);
-      const aIndex = locToIndex(aLoc, a.rank, a.strides);
+      const aIndex = util.locToIndex(aLoc, aRank, aStrides);
 
-      const bLoc = loc.slice(-b.rank);
+      const bLoc = loc.slice(-bRank);
       bBroadcastDims.forEach(d => bLoc[d] = 0);
-      const bIndex = locToIndex(bLoc, b.rank, b.strides);
+      const bIndex = util.locToIndex(bLoc, bRank, bStrides);
 
       result[i] = op(aVals[aIndex], bVals[bIndex]);
     }
   }
 
-  const dataId = backend.write(result, newShape, dtype);
-  return {
-    dataId,
-    shape: newShape,
-    dtype,
-    strides: resultStrides,
-    rank: resultRank
-  };
+  return [result, newShape];
 }

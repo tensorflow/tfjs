@@ -17,7 +17,7 @@
 
 import {SquaredDifference, SquaredDifferenceInputs} from '../../../kernel_names';
 import {KernelConfig} from '../../../kernel_registry';
-
+import {TypedArray} from '../../../types';
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 import {broadcastedBinaryOp} from '../utils/kernel_utils';
@@ -30,12 +30,16 @@ export const squaredDifferenceConfig: KernelConfig = {
     const cpuBackend = backend as MathBackendCPU;
     assertNotComplex([a, b], SquaredDifference);
 
-    const resultData =
-        broadcastedBinaryOp(a, b, a.dtype, cpuBackend, (aVal, bVal) => {
+    const aVals = cpuBackend.data.get(a.dataId).values as TypedArray;
+    const bVals = cpuBackend.data.get(b.dataId).values as TypedArray;
+
+    const [resultData, resultShape] =
+        broadcastedBinaryOp(a, b, aVals, bVals, a.dtype, (aVal, bVal) => {
           const diff = aVal - bVal;
           return diff * diff;
         });
 
-    return resultData;
+    const dataId = cpuBackend.write(resultData, resultShape, a.dtype);
+    return {dataId, shape: resultShape, dtype: a.dtype};
   }
 };

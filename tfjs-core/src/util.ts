@@ -712,6 +712,14 @@ export function decodeString(bytes: Uint8Array, encoding = 'utf-8'): string {
   return env().platform.decode(bytes, encoding);
 }
 
+/**
+ * Computes flat index for a given location (multidimentionsal index) in a
+ * Tensor/multidimensional array
+ *
+ * @param locs - the location in the tensor
+ * @param rank - the rank of the tensor
+ * @param strides - tensor strides
+ */
 export function locToIndex(
     locs: number[], rank: number, strides: number[]): number {
   if (rank === 0) {
@@ -726,6 +734,14 @@ export function locToIndex(
   return index;
 }
 
+/**
+ * Computes the location (multidimensional index) in a tensor/multidimentional
+ * array for a given flat index.
+ *
+ * @param index index in flat array
+ * @param rank rank of tensor
+ * @param strides strides of tensor
+ */
 export function indexToLoc(
     index: number, rank: number, strides: number[]): number[] {
   if (rank === 0) {
