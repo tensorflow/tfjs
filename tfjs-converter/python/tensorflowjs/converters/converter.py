@@ -553,12 +553,18 @@ def convert(arguments):
       args.input_format, args.output_format)
 
   weight_shard_size_bytes = 1024 * 1024 * 4
-  if args.weight_shard_size_bytes:
+  if args.weight_shard_size_bytes is not None:
     if (output_format not in
         (common.TFJS_LAYERS_MODEL, common.TFJS_GRAPH_MODEL)):
       raise ValueError(
           'The --weight_shard_size_bytes flag is only supported when '
           'output_format is tfjs_layers_model or tfjs_graph_model.')
+
+    if not (isinstance(args.weight_shard_size_bytes, int) and
+            args.weight_shard_size_bytes > 0):
+      raise ValueError(
+          'Expected weight_shard_size_bytes to be a positive integer, '
+          'but got %s' % args.weight_shard_size_bytes)
     weight_shard_size_bytes = args.weight_shard_size_bytes
 
   quantization_dtype = (
