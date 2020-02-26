@@ -27,7 +27,7 @@ function exec(command, opt, ignoreCode) {
 
 function calculateAffectedPackages(dependencyGraph, package) {
   const affectedPackages = new Set();
-  traverseDependencyGraph(graph, package, affectedPackages);
+  traverseDependencyGraph(dependencyGraph, package, affectedPackages);
 
   return affectedPackages;
 }
