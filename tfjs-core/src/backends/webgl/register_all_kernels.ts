@@ -25,11 +25,11 @@ import {registerKernel} from '../../kernel_registry';
 import {KernelConfig} from '../../kernel_registry';
 
 // Import Kernel Configs here.
-import {squaredDifference_} from './kernels/SquaredDifference';
+import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
-  squaredDifference_,
+  squaredDifferenceConfig,
 ];
 
 for (const kernelConfig of kernelConfigs) {
