@@ -41,8 +41,10 @@ function constructDependencyGraph(path) {
   }
 
   try {
+    console.log(str);
     const dependencyInfo = JSON.parse(str);
   } catch (err) {
+    console.log(err);
     console.log('Error parsing dependency file to JSON.');
     return {};
   }
