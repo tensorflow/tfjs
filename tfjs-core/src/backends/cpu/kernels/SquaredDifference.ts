@@ -20,18 +20,18 @@ import {KernelConfig} from '../../../kernel_registry';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
-import {broadcastedBinaryOp} from '../kernel_utils';
+import {broadcastedBinaryOp} from '../utils/kernel_utils';
 
-export const squaredDifference_: KernelConfig = {
+export const squaredDifferenceConfig: KernelConfig = {
   kernelName: SquaredDifference,
   backendName: 'cpu',
   kernelFunc: ({inputs, backend}) => {
-    const {$a, $b} = inputs as SquaredDifferenceInputs;
+    const {a, b} = inputs as SquaredDifferenceInputs;
     const cpuBackend = backend as MathBackendCPU;
-    assertNotComplex([$a, $b], SquaredDifference);
+    assertNotComplex([a, b], SquaredDifference);
 
     const resultData =
-        broadcastedBinaryOp($a, $b, $a.dtype, cpuBackend, (aVal, bVal) => {
+        broadcastedBinaryOp(a, b, a.dtype, cpuBackend, (aVal, bVal) => {
           const diff = aVal - bVal;
           return diff * diff;
         });

@@ -14,8 +14,23 @@
  * limitations under the License.
  * =============================================================================
  */
+// We explicitly import the modular kernels so they get registered in the
+// global registry when we compile the library. A modular build would replace
+// the contents of this file and import only the kernels that are needed.
+
+// TODO(yassogba) update these kernels to the new convention
+import './non_max_suppression_v5';
+import './square';
+
 import {registerKernel} from '../../kernel_registry';
-import {kernelConfigs} from './all_kernels';
+import {KernelConfig} from '../../kernel_registry';
+
+import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+
+// List all kernel configs here
+const kernelConfigs: KernelConfig[] = [
+  squaredDifferenceConfig,
+];
 
 for (const kernelConfig of kernelConfigs) {
   registerKernel(kernelConfig);

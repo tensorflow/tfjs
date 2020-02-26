@@ -66,7 +66,7 @@ function squaredDifference_<T extends Tensor>(
     const two = scalar(2);
     const derA = () => dy.mul($a.sub($b).mul(two));
     const derB = () => dy.mul($b.sub($a).mul(two));
-    return {$a: derA, $b: derB};
+    return {a: derA, b: derB};
   };
   const forward: ForwardFunc<Tensor> = (backend, save) => {
     const res = backend.squaredDifference($a, $b);
@@ -74,7 +74,7 @@ function squaredDifference_<T extends Tensor>(
     return res;
   };
 
-  const inputs: SquaredDifferenceInputs = {$a, $b};
+  const inputs: SquaredDifferenceInputs = {a: $a, b: $b};
   const attrs = {};
 
   const inputsToSave = [$a, $b];

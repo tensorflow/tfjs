@@ -15,8 +15,22 @@
  * =============================================================================
  */
 
+import './square';
+import './fromPixels';
+import './non_max_suppression_v5';
+
 import {registerKernel} from '../../kernel_registry';
-import {kernelConfigs} from './all_kernels';
+// TODO(yassogba) import from tensorflow/tfjs-core once core stops importing
+// this file.
+import {KernelConfig} from '../../kernel_registry';
+
+// Import Kernel Configs here.
+import {squaredDifference_} from './kernels/SquaredDifference';
+
+// List all kernel configs here
+const kernelConfigs: KernelConfig[] = [
+  squaredDifference_,
+];
 
 for (const kernelConfig of kernelConfigs) {
   registerKernel(kernelConfig);

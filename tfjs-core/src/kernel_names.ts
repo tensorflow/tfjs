@@ -19,10 +19,7 @@
 // Unfortunately just enabling PascalCase per file (tslint:enable:
 // allow-pascal-case) doesn't work.
 
-import {NamedTensorInfoMap, TensorInfo} from './kernel_registry';
+import {NamedTensorInfoMap} from './kernel_registry';
 
 export const SquaredDifference = 'SquaredDifference';
-export interface SquaredDifferenceInputs extends NamedTensorInfoMap {
-  $a: TensorInfo;
-  $b: TensorInfo;
-}
+export type SquaredDifferenceInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;

@@ -27,13 +27,13 @@ export const squaredDifference_: KernelConfig = {
   kernelName: SquaredDifference,
   backendName: 'webgl',
   kernelFunc: ({inputs, backend}) => {
-    const {$a, $b} = inputs as SquaredDifferenceInputs;
+    const {a, b} = inputs as SquaredDifferenceInputs;
     const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
     const webGLBackend = backend as MathBackendWebGL;
 
     const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
-        new BinaryOpPackedProgram(SQUARED_DIFFERENCE, $a.shape, $b.shape) :
-        new BinaryOpProgram(SQUARED_DIFFERENCE, $a.shape, $b.shape);
-    return webGLBackend.compileAndRun(program, [$a, $b]);
+        new BinaryOpPackedProgram(SQUARED_DIFFERENCE, a.shape, b.shape) :
+        new BinaryOpProgram(SQUARED_DIFFERENCE, a.shape, b.shape);
+    return webGLBackend.compileAndRun(program, [a, b]);
   }
 };

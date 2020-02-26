@@ -17,7 +17,7 @@
 
 import {TensorInfo} from '../../../kernel_registry';
 
-// TODO export from core
+// TODO(yassogba) export from core
 import {assertAndGetBroadcastShape, getBroadcastDims} from '../../../ops/broadcast_util';
 import {DataType, NumericDataType, TypedArray} from '../../../types';
 import {computeStrides, getTypedArrayFromDType, sizeFromShape} from '../../../util';

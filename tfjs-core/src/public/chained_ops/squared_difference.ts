@@ -25,8 +25,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.squaredDifference = function<T extends Tensor>(
-    b: Tensor|TensorLike,
-    ): T {
+Tensor.prototype.squaredDifference = function<T extends Tensor>(b: Tensor|
+                                                                TensorLike): T {
   return squaredDifference(this, b);
 };

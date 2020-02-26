@@ -14,8 +14,18 @@
  * limitations under the License.
  * =============================================================================
  */
+// TODO(yassogba) update this gradient to the new convention
+import './square_grad';
+
+// Import Grad Configs here.
+import {squaredDifferenceGradConfig} from './gradients/SquaredDifference_grad';
+import {GradConfig} from './kernel_registry';
 import {registerGradient} from './kernel_registry';
-import {gradConfigs} from './ops/all_gradients';
+
+// Export all kernel configs here so that the package can auto register them
+const gradConfigs: GradConfig[] = [
+  squaredDifferenceGradConfig,
+];
 
 for (const gradientConfig of gradConfigs) {
   registerGradient(gradientConfig);

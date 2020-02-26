@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2010 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,13 +21,13 @@ import {mul, sub} from '../ops/binary_ops';
 import {scalar} from '../ops/tensor_ops';
 import {Tensor} from '../tensor';
 
-export const squaredDifferenceGrad_: GradConfig = {
+export const squaredDifferenceGradConfig: GradConfig = {
   kernelName: SquaredDifference,
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
-    const [$a, $b] = saved;
+    const [a, b] = saved;
     const two = scalar(2);
-    const derA = () => mul(dy, mul(two, sub($a, $b)));
-    const derB = () => mul(dy, mul(two, sub($b, $a)));
-    return {$a: derA, $b: derB};
+    const derA = () => mul(dy, mul(two, sub(a, b)));
+    const derB = () => mul(dy, mul(two, sub(b, a)));
+    return {a: derA, b: derB};
   }
 };

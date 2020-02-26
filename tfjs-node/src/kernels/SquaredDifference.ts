@@ -16,23 +16,20 @@
  */
 
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
-
-// Can only be done once a core release with these exports is done
-// import {SquaredDifference, SquaredDifferenceInputs} from '@tf/tfjs-core'
-
 import {createTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
 export const squaredDifference_: KernelConfig = {
+  // TODO import this kernelName from core once exported.
   kernelName: 'SquaredDifference',
   backendName: 'tensorflow',
   kernelFunc: ({inputs, backend}) => {
-    const {$a, $b} = inputs;  // as SquaredDifferenceInputs;
+    const {a, b} = inputs;
 
-    const opAttrs = [createTypeOpAttr('T', $a.dtype)];
+    const opAttrs = [createTypeOpAttr('T', a.dtype)];
     const nodeBackend = backend as NodeJSKernelBackend;
 
     return nodeBackend.executeSingleOutput(
-        'SquaredDifference', opAttrs, [$a, $b]);
+        'SquaredDifference', opAttrs, [a, b]);
   }
 };
 
