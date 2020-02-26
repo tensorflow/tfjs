@@ -33,21 +33,8 @@ function calculateAffectedPackages(dependencyGraph, package) {
 }
 
 function constructDependencyGraph(path) {
-  try {
-    const str = fs.readFileSync(path, 'utf8');
-  } catch (err) {
-    console.log('Error reading dependency file.');
-    return {};
-  }
-
-  try {
-    console.log(str);
-    const dependencyInfo = JSON.parse(str);
-  } catch (err) {
-    console.log(err);
-    console.log('Error parsing dependency file to JSON.');
-    return {};
-  }
+  const str = fs.readFileSync(path, 'utf8');
+  const dependencyInfo = JSON.parse(str);
 
   const dependencyGraph = {};
 
