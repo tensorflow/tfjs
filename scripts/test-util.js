@@ -29,7 +29,7 @@ function calculateAffectedPackages(dependencyGraph, package) {
   const affectedPackages = new Set();
   traverseDependencyGraph(dependencyGraph, package, affectedPackages);
 
-  return affectedPackages;
+  return [...affectedPackages];
 }
 
 function constructDependencyGraph(path) {
