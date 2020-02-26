@@ -106,7 +106,7 @@ dirs.forEach(dir => {
 console.log();  // Break up the console for readability.
 
 if (!triggerAllBuilds) {
-  let dependencyGraph = constructDependencyGraph('dependency.json');
+  let dependencyGraph = constructDependencyGraph('scripts/dependency.json');
 
   triggeredBuilds.forEach(triggeredBuild => {
     const affectedPackages =
