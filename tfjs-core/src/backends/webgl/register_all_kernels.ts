@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+// TODO(yassogba) migrate these to the new convention
 import './square';
 import './fromPixels';
 import './non_max_suppression_v5';
