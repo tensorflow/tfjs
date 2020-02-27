@@ -115,7 +115,7 @@ if (!triggerAllBuilds) {
     if (affectedPackages.length > 0) {
       affectedPackages.forEach(package => {
         writeFileSync(join(package, 'diff'), '');
-        triggeredBuild.push(package);
+        triggeredBuilds.push(package);
         console.log('adding to triggeredBuild', package);
       })
     }
