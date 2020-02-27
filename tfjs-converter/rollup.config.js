@@ -54,7 +54,6 @@ function config({plugins = [], output = {}}) {
       // Polyfill require() from dependencies.
       commonjs({
         namedExports: {
-          './src/data/compiled_api.js': ['tensorflow'],
           './node_modules/protobufjs/minimal.js': ['roots', 'Reader', 'util']
         }
       }),
