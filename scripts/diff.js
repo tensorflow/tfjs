@@ -107,7 +107,7 @@ console.log();  // Break up the console for readability.
 
 // Only add affected packages if not triggering all builds.
 if (!triggerAllBuilds) {
-  let dependencyGraph = constructDependencyGraph('scripts/dependency.json');
+  const dependencyGraph = constructDependencyGraph('scripts/dependency.json');
   triggeredBuilds.forEach(triggeredBuild => {
     const affectedPackages =
         calculateAffectedPackages(dependencyGraph, triggeredBuild);
