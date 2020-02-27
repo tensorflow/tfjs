@@ -111,11 +111,12 @@ if (!triggerAllBuilds) {
   triggeredBuilds.forEach(triggeredBuild => {
     const affectedPackages =
         calculateAffectedPackages(dependencyGraph, triggeredBuild);
-    console.log(affectedPackages);
+    console.log('affectedPackages are: ', affectedPackages);
     if (affectedPackages.length > 0) {
       affectedPackages.forEach(package => {
         writeFileSync(join(package, 'diff'), '');
         triggeredBuild.push(package);
+        console.log('adding to triggeredBuild', package);
       })
     }
   });
