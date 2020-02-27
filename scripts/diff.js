@@ -23,7 +23,7 @@ const fs = require('fs');
 
 const filesWhitelistToTriggerBuild = [
   'cloudbuild.yml', 'package.json', 'tsconfig.json', 'tslint.json',
-  'scripts/run-build.sh'
+  'scripts/diff.js', 'scripts/run-build.sh'
 ];
 
 const CLONE_PATH = 'clone';
@@ -105,25 +105,20 @@ dirs.forEach(dir => {
 
 console.log();  // Break up the console for readability.
 
+// Only add affected packages if not triggering all builds.
 if (!triggerAllBuilds) {
   let dependencyGraph = constructDependencyGraph('scripts/dependency.json');
-  console.log(dependencyGraph);
   triggeredBuilds.forEach(triggeredBuild => {
     const affectedPackages =
         calculateAffectedPackages(dependencyGraph, triggeredBuild);
-    console.log('affectedPackages are: ', affectedPackages);
-    if (affectedPackages.length > 0) {
-      affectedPackages.forEach(package => {
-        writeFileSync(join(package, 'diff'), '');
-        triggeredBuilds.push(package);
-        console.log('adding to triggeredBuild', package);
-      })
-    }
+    affectedPackages.forEach(package => {
+      writeFileSync(join(package, 'diff'), '');
+      triggeredBuilds.push(package);
+    });
   });
 
   // Deduplicate the triggered builds for log.
   triggeredBuilds = [...new Set(triggeredBuilds)];
-  console.log(triggeredBuilds);
 }
 
 // Filter the triggered builds to log by whether a cloudbuild.yml file

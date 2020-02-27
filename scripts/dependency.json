@@ -7,22 +7,6 @@
     {
       "package": "tfjs-converter",
       "dependencies": ["tfjs-core"]
-    },
-    {
-      "package": "tfjs-layers",
-      "dependencies": ["tfjs-core"]
-    },
-    {
-      "package": "tfjs-data",
-      "dependencies": ["tfjs-core", "tfjs-layers"]
-    },
-    {
-      "package": "tfjs",
-      "dependencies": ["tfjs-core", "tfjs-converter", "tfjs-layers", "tfjs-data"]
-    },
-    {
-      "package": "tfjs-node",
-      "dependencies": ["tfjs"]
     }
   ]
 }
