@@ -25,15 +25,15 @@ function exec(command, opt, ignoreCode) {
   return res;
 }
 
-function calculateAffectedPackages(dependencyGraph, package) {
-  const affectedPackages = new Set();
-  traverseDependencyGraph(dependencyGraph, package, affectedPackages);
-
-  return [...affectedPackages];
-}
-
-function constructDependencyGraph(path) {
-  const str = fs.readFileSync(path, 'utf8');
+// Construct a dependency graph keyed by dependency package.
+// Example:
+//   dependencyGraph = {
+//     "tfjs-core": ["tfjs-converter", "tfjs", ...],
+//     "tfjs": ["tfjs-node"],
+//     ...
+//   }
+function constructDependencyGraph(dependencyFilePath) {
+  const str = fs.readFileSync(dependencyFilePath, 'utf8');
   const dependencyInfo = JSON.parse(str);
 
   const dependencyGraph = {};
@@ -49,7 +49,17 @@ function constructDependencyGraph(path) {
   return dependencyGraph;
 }
 
+function calculateAffectedPackages(dependencyGraph, package) {
+  const affectedPackages = new Set();
+  traverseDependencyGraph(dependencyGraph, package, affectedPackages);
+
+  return [...affectedPackages];
+}
+
+// This function performs a depth-first-search to add affected packages that
+// transitively depend on the given package.
 function traverseDependencyGraph(graph, package, affectedPackages) {
+  // Terminate early if the package has been visited.
   if (affectedPackages.has(package)) {
     return;
   }
