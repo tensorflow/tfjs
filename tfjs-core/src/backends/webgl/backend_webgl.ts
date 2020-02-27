@@ -1372,14 +1372,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.reduce(a2D, 'any', a2D.dtype).reshape(outShape);
   }
 
-  squaredDifference(a: Tensor, b: Tensor): Tensor {
-    const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
-        new BinaryOpPackedProgram(
-            binaryop_gpu.SQUARED_DIFFERENCE, a.shape, b.shape) :
-        new BinaryOpProgram(binaryop_gpu.SQUARED_DIFFERENCE, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b]);
-  }
-
   realDivide(a: Tensor, b: Tensor): Tensor {
     const op = binaryop_gpu.DIV;
     const outputDtype = 'float32';
