@@ -763,54 +763,6 @@ function maximumStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
 
 /**
  * Returns (a - b) * (a - b) element-wise.
- * Supports broadcasting.
- *
- * We also expose `tf.squaredDifferenceStrict` which has the same signature as
- * this op and asserts that `a` and `b` are the same shape (does not
- * broadcast).
- *
- * ```js
- * const a = tf.tensor1d([1, 4, 3, 16]);
- * const b = tf.tensor1d([1, 2, 9, 4]);
- *
- * a.squaredDifference(b).print();  // or tf.squaredDifference(a, b)
- * ```
- *
- * ```js
- * // Broadcast squared difference  a with b.
- * const a = tf.tensor1d([2, 4, 6, 8]);
- * const b = tf.scalar(5);
- *
- * a.squaredDifference(b).print();  // or tf.squaredDifference(a, b)
- * ```
- *
- * @param a The first tensor.
- * @param b The second tensor. Must have the same type as `a`.
- */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
-function squaredDifference_<T extends Tensor>(
-    a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'squaredDifference');
-  let $b = convertToTensor(b, 'b', 'squaredDifference');
-  [$a, $b] = makeTypesMatch($a, $b);
-
-  broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
-  const der = (dy: Tensor, saved: Tensor[]) => {
-    const [$a, $b] = saved;
-    const two = scalar(2);
-    const derA = () => dy.mul($a.sub($b).mul(two));
-    const derB = () => dy.mul($b.sub($a).mul(two));
-    return {$a: derA, $b: derB};
-  };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.squaredDifference($a, $b);
-    save([$a, $b]);
-    return res;
-  }, {$a, $b}, der) as T;
-}
-
-/**
- * Returns (a - b) * (a - b) element-wise.
  *
  * Inputs must be the same shape. For broadcasting support, use
  * `tf.squaredDifference` instead.
@@ -899,7 +851,6 @@ export const mul = op({mul_});
 export const mulStrict = op({mulStrict_});
 export const pow = op({pow_});
 export const powStrict = op({powStrict_});
-export const squaredDifference = op({squaredDifference_});
 export const squaredDifferenceStrict = op({squaredDifferenceStrict_});
 export const sub = op({sub_});
 export const subStrict = op({subStrict_});
