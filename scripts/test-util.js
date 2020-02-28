@@ -78,4 +78,4 @@ function traverseDependencyGraph(graph, package, affectedPackages) {
 
 exports.exec = exec;
 exports.constructDependencyGraph = constructDependencyGraph;
-exports.calculateAffectedPackages = computeAffectedPackages;
+exports.computeAffectedPackages = computeAffectedPackages;

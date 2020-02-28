@@ -14,11 +14,8 @@
 // limitations under the License.
 // =============================================================================
 
-const {
-  exec,
-  constructDependencyGraph,
-  computeAffectedPackages: computeAffectedPackages
-} = require('./test-util');
+const {exec, constructDependencyGraph, computeAffectedPackages} =
+    require('./test-util');
 const shell = require('shelljs');
 const {readdirSync, statSync, writeFileSync} = require('fs');
 const {join} = require('path');
