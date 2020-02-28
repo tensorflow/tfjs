@@ -38,22 +38,22 @@ function constructDependencyGraph(dependencyFilePath) {
 
   const dependencyGraph = {};
 
-  dependencyInfo.packages.forEach(
-      package => {package.dependencies.forEach(dependency => {
+  Object.keys(dependencyInfo)
+      .forEach(package => dependencyInfo[package].forEach(dependency => {
         if (!dependencyGraph[dependency]) {
           dependencyGraph[dependency] = [];
         }
-        dependencyGraph[dependency].push(package.package);
-      })});
+        dependencyGraph[dependency].push(package);
+      }));
 
   return dependencyGraph;
 }
 
-function calculateAffectedPackages(dependencyGraph, package) {
+function computeAffectedPackages(dependencyGraph, package) {
   const affectedPackages = new Set();
   traverseDependencyGraph(dependencyGraph, package, affectedPackages);
 
-  return [...affectedPackages];
+  return Array.from(affectedPackages);
 }
 
 // This function performs a depth-first-search to add affected packages that
@@ -78,4 +78,4 @@ function traverseDependencyGraph(graph, package, affectedPackages) {
 
 exports.exec = exec;
 exports.constructDependencyGraph = constructDependencyGraph;
-exports.calculateAffectedPackages = calculateAffectedPackages;
+exports.calculateAffectedPackages = computeAffectedPackages;

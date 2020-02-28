@@ -14,8 +14,11 @@
 // limitations under the License.
 // =============================================================================
 
-const {exec, constructDependencyGraph, calculateAffectedPackages} =
-    require('./test-util');
+const {
+  exec,
+  constructDependencyGraph,
+  computeAffectedPackages: computeAffectedPackages
+} = require('./test-util');
 const shell = require('shelljs');
 const {readdirSync, statSync, writeFileSync} = require('fs');
 const {join} = require('path');
@@ -23,7 +26,7 @@ const fs = require('fs');
 
 const filesWhitelistToTriggerBuild = [
   'cloudbuild.yml', 'package.json', 'tsconfig.json', 'tslint.json',
-  'scripts/diff.js', 'scripts/run-build.sh'
+  'scripts/run-build.sh'
 ];
 
 const CLONE_PATH = 'clone';
@@ -107,18 +110,19 @@ console.log();  // Break up the console for readability.
 
 // Only add affected packages if not triggering all builds.
 if (!triggerAllBuilds) {
-  const dependencyGraph = constructDependencyGraph('scripts/dependency.json');
+  const affectedBuilds = new Set();
+  const dependencyGraph =
+      constructDependencyGraph('scripts/package_dependencies.json');
   triggeredBuilds.forEach(triggeredBuild => {
     const affectedPackages =
-        calculateAffectedPackages(dependencyGraph, triggeredBuild);
+        computeAffectedPackages(dependencyGraph, triggeredBuild);
     affectedPackages.forEach(package => {
-      writeFileSync(join(package, 'diff'), '');
-      triggeredBuilds.push(package);
+      writeFileSync(join(package, 'diff'));
+      affectedBuilds.add(package);
     });
   });
 
-  // Deduplicate the triggered builds for log.
-  triggeredBuilds = [...new Set(triggeredBuilds)];
+  triggeredBuilds.push(Array.from(affectedBuilds));
 }
 
 // Filter the triggered builds to log by whether a cloudbuild.yml file
