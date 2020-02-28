@@ -23,7 +23,7 @@ const fs = require('fs');
 
 const filesWhitelistToTriggerBuild = [
   'cloudbuild.yml', 'package.json', 'tsconfig.json', 'tslint.json',
-  'scripts/diff.js', 'scripts/run-build.sh'
+  'scripts/run-build.sh'
 ];
 
 const CLONE_PATH = 'clone';
@@ -87,7 +87,7 @@ console.log();  // Break up the console for readability.
 
 let triggeredBuilds = [];
 dirs.forEach(dir => {
-  shell.rm('-f', `${dir}/diff`);
+  shell.rm('-f', `${dir}/run-ci`);
   const diffOutput = diff(`${dir}/`);
   if (diffOutput !== '') {
     console.log(`${dir} has modified files.`);
@@ -98,7 +98,7 @@ dirs.forEach(dir => {
   const shouldDiff = diffOutput !== '' || triggerAllBuilds;
   if (shouldDiff) {
     const diffContents = whitelistDiffOutput.join('\n') + '\n' + diffOutput;
-    writeFileSync(join(dir, 'diff'), diffContents);
+    writeFileSync(join(dir, 'run-ci'), diffContents);
     triggeredBuilds.push(dir);
   }
 });
@@ -114,7 +114,7 @@ if (!triggerAllBuilds) {
     const affectedPackages =
         computeAffectedPackages(dependencyGraph, triggeredBuild);
     affectedPackages.forEach(package => {
-      writeFileSync(join(package, 'diff'));
+      writeFileSync(join(package, 'run-ci'));
       affectedBuilds.add(package);
     });
   });

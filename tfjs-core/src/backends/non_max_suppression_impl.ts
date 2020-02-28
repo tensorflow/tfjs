@@ -48,7 +48,7 @@ export function nonMaxSuppressionV5(
     iouThreshold: number, scoreThreshold: number,
     softNmsSigma: number): NamedTensorMap {
   // For NonMaxSuppressionV5Op, we always return a second output holding
-  // corresponding scores.
+  // corresponding scores
   const returnScoresTensor = true;
 
   const result = nonMaxSuppressionImpl_(
