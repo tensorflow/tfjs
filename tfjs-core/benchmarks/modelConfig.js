@@ -83,14 +83,14 @@ const benchmarks = {
       return model => model.predict(zeros);
     }
   },
-  'mesh_128': {
+  'facemesh': {
     load: async () => {
       const url =
-          'https://storage.googleapis.com/learnjs-data/mesh_128_shift30_fixed_batch/model.json';
+          'https://storage.googleapis.com/learnjs-data/facemesh_staging/facemesh_facecontours_faceflag-blaze_shift30-2019_01_14-v0.hdf5_tfjs_fixed_batch/model.json';
       return tf.loadGraphModel(url);
     },
     predictFunc: () => {
-      const zeros = tf.zeros([1, 128, 128, 3]);
+      const zeros = tf.zeros([1, 192, 192, 3]);
       return model => {
         return model.predict(zeros)[0];
       };
