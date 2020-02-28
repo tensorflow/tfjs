@@ -56,8 +56,8 @@ __2. Run the converter script provided by the pip package:__
 
 There are two way to trigger the model conversion:
 
-- The conversion wizard: tensorflowjs_wizard
-- Regular conversion script: tensorflowjs_converter
+- The conversion wizard: ```tensorflowjs_wizard```
+- Regular conversion script: ```tensorflowjs_converter```
 
 To start the conversion wizard:
 ```bash
@@ -66,21 +66,22 @@ tensorflowjs_wizard
 
 This tool will walk you through the conversion process and provide you with
 details explanations for each choice you need to make. Behind the scene it calls
-the converter script (`tensorflowjs_converter`) in pip package. This is the easier
-way to convert a single model.
+the converter script (`tensorflowjs_converter`) in pip package. This is the
+recommended way to convert a single model.
 
-There is also dry run mode for the wizard, which will not perform the actual
+There is also a dry run mode for the wizard, which will not perform the actual
 conversion but only generate the command for `tensorflowjs_converter` command.
 This generated command can be used in your own shell script.
 
+Here is an screen capture of the wizard in action. ![wizard](./tensorflowjs_wizard.gif)
 ```bash
 tensorflowjs_wizard --dryrun
 ```
 
 To convert a batch of models or integrate the conversion process into your own
-script, you should look into using the tensorflowjs_converter script.
+script, you should use the tensorflowjs_converter script.
 
-Here is detail information of parameters of the converter script.
+## Conversion flags
 
 The converter expects a __TensorFlow SavedModel__, __TensorFlow Hub module__,
 __TensorFlow.js JSON__ format, __Keras HDF5 model__, or __tf.keras SavedModel__
