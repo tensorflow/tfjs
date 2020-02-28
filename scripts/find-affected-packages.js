@@ -107,6 +107,7 @@ console.log();  // Break up the console for readability.
 
 // Only add affected packages if not triggering all builds.
 if (!triggerAllBuilds) {
+  console.log('Computing affected packages.');
   const affectedBuilds = new Set();
   const dependencyGraph =
       constructDependencyGraph('scripts/package_dependencies.json');
