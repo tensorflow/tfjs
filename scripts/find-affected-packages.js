@@ -21,10 +21,8 @@ const {readdirSync, statSync, writeFileSync} = require('fs');
 const {join} = require('path');
 const fs = require('fs');
 
-const filesWhitelistToTriggerBuild = [
-  'cloudbuild.yml', 'package.json', 'tsconfig.json', 'tslint.json',
-  'scripts/run-build.sh'
-];
+const filesWhitelistToTriggerBuild =
+    ['package.json', 'tsconfig.json', 'tslint.json'];
 
 const CLONE_PATH = 'clone';
 
