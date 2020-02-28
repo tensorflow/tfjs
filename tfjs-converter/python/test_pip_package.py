@@ -520,6 +520,41 @@ class APIAndShellTest(tf.test.TestCase):
     # Check the content of the output directory.
     self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
 
+  def testConvertTFSavedModelIntoShardedWeights(self):
+    output_dir = os.path.join(self._tmp_dir, 'tfjs_model')
+    # Do initial conversion without sharding.
+    process = subprocess.Popen([
+        'tensorflowjs_converter', '--input_format', 'tf_saved_model',
+        '--output_format', 'tfjs_graph_model',
+        self.tf_saved_model_dir, output_dir
+    ])
+    process.communicate()
+    self.assertEqual(0, process.returncode)
+
+    weight_files = glob.glob(os.path.join(output_dir, 'group*.bin'))
+
+    # Get size of weights in bytes after graph optimizations.
+    optimized_total_weight = sum([os.path.getsize(f) for f in weight_files])
+    # Due to the shard size, there ought to be 2 shards after conversion.
+    weight_shard_size_bytes = int(optimized_total_weight * 0.8)
+
+    output_dir = os.path.join(self._tmp_dir, 'sharded_model')
+    # Convert Saved Model again with shard argument set.
+    process = subprocess.Popen([
+        'tensorflowjs_converter', '--input_format', 'tf_saved_model',
+        '--output_format', 'tfjs_graph_model',
+        '--weight_shard_size_bytes', str(weight_shard_size_bytes),
+        self.tf_saved_model_dir, output_dir
+    ])
+    process.communicate()
+    self.assertEqual(0, process.returncode)
+
+    weight_files = sorted(glob.glob(os.path.join(output_dir, 'group*.bin')))
+    self.assertEqual(len(weight_files), 2)
+    weight_file_sizes = [os.path.getsize(f) for f in weight_files]
+    self.assertEqual(sum(weight_file_sizes), optimized_total_weight)
+    self.assertLess(weight_file_sizes[1], weight_file_sizes[0])
+
   def testConvertTFFrozenModelWithCommandLineWorks(self):
     output_dir = os.path.join(self._tmp_dir)
     frozen_file = os.path.join(self.tf_frozen_model_dir, 'frozen.pb')

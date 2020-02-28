@@ -397,7 +397,7 @@ def _assert_weight_groups_valid(weight_groups):
 
 
 def _assert_shard_size_bytes_valid(shard_size_bytes):
-  if shard_size_bytes < 0:
+  if shard_size_bytes <= 0:
     raise ValueError(
         'shard_size_bytes must be greater than 0, but got %s' %
         shard_size_bytes)
