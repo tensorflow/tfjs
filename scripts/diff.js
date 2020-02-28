@@ -23,7 +23,7 @@ const fs = require('fs');
 
 const filesWhitelistToTriggerBuild = [
   'cloudbuild.yml', 'package.json', 'tsconfig.json', 'tslint.json',
-  'scripts/run-build.sh'
+  'scripts/diff.js', 'scripts/run-build.sh'
 ];
 
 const CLONE_PATH = 'clone';
