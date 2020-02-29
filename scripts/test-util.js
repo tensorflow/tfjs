@@ -14,6 +14,7 @@
 // =============================================================================
 
 const shell = require('shelljs');
+const fs = require('fs');
 
 function exec(command, opt, ignoreCode) {
   const res = shell.exec(command, opt);
@@ -24,4 +25,57 @@ function exec(command, opt, ignoreCode) {
   return res;
 }
 
+// Construct a dependency graph keyed by dependency package.
+// Example:
+//   dependencyGraph = {
+//     "tfjs-core": ["tfjs-converter", "tfjs", ...],
+//     "tfjs": ["tfjs-node"],
+//     ...
+//   }
+function constructDependencyGraph(dependencyFilePath) {
+  const str = fs.readFileSync(dependencyFilePath, 'utf8');
+  const dependencyInfo = JSON.parse(str);
+
+  const dependencyGraph = {};
+
+  Object.keys(dependencyInfo)
+      .forEach(package => dependencyInfo[package].forEach(dependency => {
+        if (!dependencyGraph[dependency]) {
+          dependencyGraph[dependency] = [];
+        }
+        dependencyGraph[dependency].push(package);
+      }));
+
+  return dependencyGraph;
+}
+
+function computeAffectedPackages(dependencyGraph, package) {
+  const affectedPackages = new Set();
+  traverseDependencyGraph(dependencyGraph, package, affectedPackages);
+
+  return Array.from(affectedPackages);
+}
+
+// This function performs a depth-first-search to add affected packages that
+// transitively depend on the given package.
+function traverseDependencyGraph(graph, package, affectedPackages) {
+  // Terminate early if the package has been visited.
+  if (affectedPackages.has(package)) {
+    return;
+  }
+
+  const consumingPackages = graph[package];
+
+  if (!consumingPackages) {
+    return;
+  }
+
+  consumingPackages.forEach(consumingPackage => {
+    traverseDependencyGraph(graph, consumingPackage, affectedPackages);
+    affectedPackages.add(consumingPackage);
+  });
+}
+
 exports.exec = exec;
+exports.constructDependencyGraph = constructDependencyGraph;
+exports.computeAffectedPackages = computeAffectedPackages;

@@ -185,6 +185,7 @@ class CliTest(unittest.TestCase):
                'saved_model_tags': 'test',
                'signature_name': 'test_default',
                'quantization_bytes': 2,
+               'weight_shard_size_bytes': '4194304',
                'skip_op_check': False,
                'strip_debug_ops': True,
                'output_path': 'tmp/web_model'}
@@ -192,6 +193,7 @@ class CliTest(unittest.TestCase):
     self.assertEqual(['--input_format=tf_saved_model',
                       '--quantization_bytes=2', '--saved_model_tags=test',
                       '--signature_name=test_default', '--strip_debug_ops=True',
+                      '--weight_shard_size_bytes=4194304',
                       'tmp/saved_model', 'tmp/web_model'],
                      wizard.generate_arguments(options))
 
@@ -201,6 +203,7 @@ class CliTest(unittest.TestCase):
                'input_path': 'tmp/saved_model',
                'saved_model_tags': 'test',
                'signature_name': 'test_default',
+               'weight_shard_size_bytes': '100',
                'quantization_bytes': 1,
                'skip_op_check': True,
                'strip_debug_ops': False,
@@ -210,17 +213,20 @@ class CliTest(unittest.TestCase):
                       '--output_format=tfjs_layers_model',
                       '--quantization_bytes=1', '--saved_model_tags=test',
                       '--signature_name=test_default', '--skip_op_check',
-                      '--strip_debug_ops=False', 'tmp/saved_model',
-                      'tmp/web_model'],
+                      '--strip_debug_ops=False',
+                      '--weight_shard_size_bytes=100',
+                      'tmp/saved_model', 'tmp/web_model'],
                      wizard.generate_arguments(options))
 
   def testGenerateCommandForKerasModel(self):
     options = {'input_format': 'keras',
                'input_path': 'tmp/model.HD5',
+               'weight_shard_size_bytes': '100',
                'quantization_bytes': 1,
                'output_path': 'tmp/web_model'}
 
     self.assertEqual(['--input_format=keras', '--quantization_bytes=1',
+                      '--weight_shard_size_bytes=100',
                       'tmp/model.HD5', 'tmp/web_model'],
                      wizard.generate_arguments(options))
 
@@ -229,11 +235,14 @@ class CliTest(unittest.TestCase):
                'output_format': 'keras',
                'input_path': 'tmp/model.json',
                'quantization_bytes': 1,
+               'weight_shard_size_bytes': '100',
                'output_path': 'tmp/web_model'}
 
     self.assertEqual(['--input_format=tfjs_layers_model',
                       '--output_format=keras',
-                      '--quantization_bytes=1', 'tmp/model.json',
+                      '--quantization_bytes=1',
+                      '--weight_shard_size_bytes=100',
+                      'tmp/model.json',
                       'tmp/web_model'],
                      wizard.generate_arguments(options))
 
