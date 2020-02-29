@@ -34,7 +34,7 @@ steps:
   dir: 'tfjs-layers'
   entrypoint: 'bash'
   id: 'tfjs2keras-py'
-  args: ['-c', './scripts/tfjs2keras-py.sh --stable && ./scripts/tfjs2keras-py.sh --stable --tfkeras && ./scripts/tfjs2keras-py.sh --dev --tfkeras']
+  args: ['-c', './scripts/tfjs2keras-py.sh --stable && ./scripts/tfjs2keras-py.sh --stable --tfkeras]
   waitFor: ['tfjs2keras-js']
 - name: 'node:10'
   dir: 'tfjs-layers'
