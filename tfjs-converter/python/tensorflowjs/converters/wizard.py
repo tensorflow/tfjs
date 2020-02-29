@@ -482,8 +482,15 @@ def run(dryrun):
           'name': common.WEIGHT_SHARD_SIZE_BYTES,
           'message': 'Please enter shard size (in bytes) of the weight files?',
           'default': str(4 * 1024 * 1024),
-          'when': lambda answers: value_in_list(answers, common.OUTPUT_FORMAT,
-                                                (common.TFJS_LAYERS_MODEL))
+          'validate':
+              lambda size: ('Please enter a positive integer' if not
+                            (size.isdigit() and int(size) > 0) else True),
+          'when': lambda answers: (value_in_list(answers, common.OUTPUT_FORMAT,
+                                                 (common.TFJS_LAYERS_MODEL,
+                                                  common.TFJS_GRAPH_MODEL)) or
+                                   value_in_list(answers, common.INPUT_FORMAT,
+                                                 (common.TF_SAVED_MODEL,
+                                                  common.TF_HUB_MODEL)))
       },
       {
           'type': 'confirm',
