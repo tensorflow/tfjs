@@ -72,6 +72,7 @@ module.exports = {
 
 - Install and configure [async-storage](https://github.com/react-native-community/async-storage)
 - Install and configure [react-native-fs](https://www.npmjs.com/package/react-native-fs)
+- Install and configure [expo-camera](https://www.npmjs.com/package/expo-camera)
 
 ### Step 6: Test that it is working
 
