@@ -15,14 +15,14 @@
  * =============================================================================
  */
 
-import * as gpgpu_util from './backends/webgl/gpgpu_util';
-import * as webgl_util from './backends/webgl/webgl_util';
 import {env} from './environment';
+import * as gpgpu_util from './packages/tfjs-backend-webgl/src/gpgpu_util';
+import * as webgl_util from './packages/tfjs-backend-webgl/src/webgl_util';
 
-export {MathBackendWebGL, WebGLMemoryInfo, WebGLTimingInfo} from './backends/webgl/backend_webgl';
-export {setWebGLContext} from './backends/webgl/canvas_util';
-export {GPGPUContext} from './backends/webgl/gpgpu_context';
-export {GPGPUProgram} from './backends/webgl/gpgpu_math';
+export {MathBackendWebGL, WebGLMemoryInfo, WebGLTimingInfo} from './packages/tfjs-backend-webgl/src/backend_webgl';
+export {setWebGLContext} from './packages/tfjs-backend-webgl/src/canvas_util';
+export {GPGPUContext} from './packages/tfjs-backend-webgl/src/gpgpu_context';
+export {GPGPUProgram} from './packages/tfjs-backend-webgl/src/gpgpu_math';
 // WebGL specific utils.
 export {gpgpu_util, webgl_util};
 

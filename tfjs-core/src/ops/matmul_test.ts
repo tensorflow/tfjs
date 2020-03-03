@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import {MATMUL_SHARED_DIM_THRESHOLD} from '../backends/webgl/backend_webgl';
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
+import {MATMUL_SHARED_DIM_THRESHOLD} from '../packages/tfjs-backend-webgl/src/backend_webgl';
 import {expectArraysClose, expectArraysEqual} from '../test_util';
 import {Rank} from '../types';
 

@@ -16,9 +16,9 @@
  */
 
 import {BackendTimer, BackendTimingInfo} from './backends/backend';
-import {WEBGL_ENVS} from './backends/webgl/backend_webgl_test_registry';
 import * as tf from './index';
 import {describeWithFlags, SYNC_BACKEND_ENVS} from './jasmine_util';
+import {WEBGL_ENVS} from './packages/tfjs-backend-webgl/src/backend_webgl_test_registry';
 import {checkComputationForErrors, Logger, Profiler} from './profiler';
 import {Tensor} from './tensor';
 import {TypedArray} from './types';

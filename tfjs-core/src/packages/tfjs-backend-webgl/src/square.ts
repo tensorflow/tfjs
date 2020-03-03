@@ -15,20 +15,22 @@
  * =============================================================================
  */
 
-/**
- * This file is necessary so we register all test environments before we start
- * executing tests.
- */
-import './packages/tfjs-backend-cpu/src/backend_cpu_test_registry';
-import './packages/tfjs-backend-webgl/src/backend_webgl_test_registry';
+import {NamedTensorInfoMap, registerKernel, TensorInfo} from '../../../kernel_registry';
 
-import {parseTestEnvFromKarmaFlags, setTestEnvs, TEST_ENVS} from './jasmine_util';
+import {MathBackendWebGL} from './backend_webgl';
+import {SQUARE, UnaryOpProgram} from './unaryop_gpu';
 
-// tslint:disable-next-line:no-any
-declare let __karma__: any;
-if (typeof __karma__ !== 'undefined') {
-  const testEnv = parseTestEnvFromKarmaFlags(__karma__.config.args, TEST_ENVS);
-  if (testEnv != null) {
-    setTestEnvs([testEnv]);
-  }
+interface SquareInputs extends NamedTensorInfoMap {
+  x: TensorInfo;
 }
+
+registerKernel({
+  kernelName: 'Square',
+  backendName: 'webgl',
+  kernelFunc: ({inputs, backend}) => {
+    const {x} = inputs as SquareInputs;
+    const webglBackend = backend as MathBackendWebGL;
+    const program = new UnaryOpProgram(x.shape, SQUARE);
+    return webglBackend.runWebGLProgram(program, [x], x.dtype);
+  }
+});
