@@ -502,7 +502,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       model = self._createNestedSequentialModel()
       old_model_json = json.loads(model.to_json())
       old_weights = model.get_weights()
-      tf.keras.models.save_model(model, self._tmp_dir)
+      tf.keras.models.save_model(model, self._tmp_dir, save_format='tf')
 
       # Convert the keras SavedModel to tfjs format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')

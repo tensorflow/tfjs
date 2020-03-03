@@ -24,9 +24,6 @@ import sys
 
 import tensorflow.compat.v2 as tf
 
-tf.enable_eager_execution()
-
-
 def parse_args():
   parser = argparse.ArgumentParser(
       'Generates saved model artifacts for testing.')
