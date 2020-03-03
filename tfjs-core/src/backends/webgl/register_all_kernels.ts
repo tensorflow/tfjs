@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,8 +15,24 @@
  * =============================================================================
  */
 
-// We explicitly import the modular kernels so they get registered in the
-// global registry when we compile the library. A modular build would replace
-// the contents of this file and import only the kernels that are needed.
-import './non_max_suppression_v5';
+// TODO(yassogba) migrate these to the new convention
 import './square';
+import './fromPixels';
+import './non_max_suppression_v5';
+
+import {registerKernel} from '../../kernel_registry';
+// TODO(yassogba) import from tensorflow/tfjs-core once core stops importing
+// this file.
+import {KernelConfig} from '../../kernel_registry';
+
+// Import Kernel Configs here.
+import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+
+// List all kernel configs here
+const kernelConfigs: KernelConfig[] = [
+  squaredDifferenceConfig,
+];
+
+for (const kernelConfig of kernelConfigs) {
+  registerKernel(kernelConfig);
+}
