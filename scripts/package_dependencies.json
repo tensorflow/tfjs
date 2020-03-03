@@ -1,0 +1,5 @@
+
+{
+  "tfjs-core": [],
+  "tfjs-converter": ["tfjs-core"]
+}

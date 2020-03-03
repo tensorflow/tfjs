@@ -5,11 +5,11 @@ steps:
   id: 'yarn'
   args: ['install']
 
-# Run diff to find modified files in each folder.
+# Run find-affected-packages to find affected files in each folder.
 - name: 'node:10'
   entrypoint: 'yarn'
-  id: 'diff'
-  args: ['diff']
+  id: 'find-affected-packages'
+  args: ['find-affected-packages']
   waitFor: ['yarn']
   env:
   - 'COMMIT_SHA=$COMMIT_SHA'
@@ -20,77 +20,77 @@ steps:
   entrypoint: 'bash'
   id: 'tfjs-core'
   args: ['./scripts/run-build.sh', 'tfjs-core']
-  waitFor: ['diff']
+  waitFor: ['find-affected-packages']
 
 # Converter.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
   id: 'tfjs-converter'
   args: ['./scripts/run-build.sh', 'tfjs-converter']
-  waitFor: ['diff']
+  waitFor: ['find-affected-packages']
 
 # Data.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
   id: 'tfjs-data'
   args: ['./scripts/run-build.sh', 'tfjs-data']
-  waitFor: ['diff']
+  waitFor: ['find-affected-packages']
 
 # Layers.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
   id: 'tfjs-layers'
   args: ['./scripts/run-build.sh', 'tfjs-layers']
-  waitFor: ['diff']
+  waitFor: ['find-affected-packages']
 
 # Union.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
   id: 'tfjs'
   args: ['./scripts/run-build.sh', 'tfjs']
-  waitFor: ['diff']
+  waitFor: ['find-affected-packages']
 
 # Vis.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
   id: 'tfjs-vis'
   args: ['./scripts/run-build.sh', 'tfjs-vis']
-  waitFor: ['diff']
+  waitFor: ['find-affected-packages']
 
 # WebGPU.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
   id: 'tfjs-backend-webgpu'
   args: ['./scripts/run-build.sh', 'tfjs-backend-webgpu']
-  waitFor: ['diff']
+  waitFor: ['find-affected-packages']
 
 # WASM.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
   id: 'tfjs-backend-wasm'
   args: ['./scripts/run-build.sh', 'tfjs-backend-wasm']
-  waitFor: ['diff']
+  waitFor: ['find-affected-packages']
 
 # React Native.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
   id: 'tfjs-react-native'
   args: ['./scripts/run-build.sh', 'tfjs-react-native']
-  waitFor: ['diff']
+  waitFor: ['find-affected-packages']
 
 # Node CPU.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
   id: 'tfjs-node'
   args: ['./scripts/run-build.sh', 'tfjs-node']
-  waitFor: ['diff']
+  waitFor: ['find-affected-packages']
 
 # Node GPU.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
   id: 'tfjs-node-gpu'
   args: ['./scripts/run-build.sh', 'tfjs-node-gpu']
-  waitFor: ['diff']
+  waitFor: ['find-affected-packages']
 
 # Integration tests
 - name: 'node:10'
@@ -98,7 +98,7 @@ steps:
   id: 'test-integration'
   entrypoint: 'yarn'
   args: ['test-integration']
-  waitFor: ['diff']
+  waitFor: ['find-affected-packages']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 
