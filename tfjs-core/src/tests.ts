@@ -101,6 +101,7 @@ import './optimizers/momentum_optimizer_test';
 import './optimizers/optimizer_test';
 import './optimizers/rmsprop_optimizer_test';
 import './optimizers/sgd_optimizer_test';
+import './packages/tfjs-backend-cpu/src/backend_cpu_test';
 import './platforms/platform_browser_test';
 import './platforms/platform_node_test';
 import './profiler_test';
