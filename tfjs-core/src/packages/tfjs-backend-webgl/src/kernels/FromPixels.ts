@@ -15,29 +15,13 @@
  * =============================================================================
  */
 
-import {env} from '../../../environment';
-import {KernelFunc, registerKernel, TensorInfo} from '../../../kernel_registry';
-import {PixelData} from '../../../types';
-
-import {MathBackendWebGL} from './backend_webgl';
-import {FromPixelsProgram} from './from_pixels_gpu';
-import {FromPixelsPackedProgram} from './from_pixels_packed_gpu';
-import {TextureUsage} from './tex_util';
-
-interface FromPixelsInputs {
-  pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-      HTMLVideoElement;
-}
-
-interface FromPixelsAttrs {
-  numChannels: number;
-}
-
-registerKernel({
-  kernelName: 'FromPixels',
-  backendName: 'webgl',
-  kernelFunc: fromPixels as {} as KernelFunc,
-});
+import {env} from '../../../../environment';
+import {FromPixels, FromPixelsAttrs, FromPixelsInputs} from '../../../../kernel_names';
+import {KernelConfig, KernelFunc, TensorInfo} from '../../../../kernel_registry';
+import {MathBackendWebGL} from '../backend_webgl';
+import {FromPixelsProgram} from '../from_pixels_gpu';
+import {FromPixelsPackedProgram} from '../from_pixels_packed_gpu';
+import {TextureUsage} from '../tex_util';
 
 let fromPixels2DContext: CanvasRenderingContext2D;
 
@@ -88,3 +72,11 @@ function fromPixels(args: {
   backend.disposeData(tempPixelHandle.dataId);
   return res;
 }
+
+
+
+export const fromPixelsConfig: KernelConfig = {
+  kernelName: FromPixels,
+  backendName: 'webgl',
+  kernelFunc: fromPixels as {} as KernelFunc,
+};

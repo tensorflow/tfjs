@@ -15,36 +15,25 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '../../../kernel_registry';
-import {warn} from '../../../log';
-import {TypedArray} from '../../../types';
-import {nonMaxSuppressionV5Impl} from '../../tfjs-backend-cpu/src/shared';
+import {NonMaxSuppressionV5, NonMaxSuppressionV5Attrs, NonMaxSuppressionV5Inputs} from '../../../../kernel_names';
+import {KernelConfig} from '../../../../kernel_registry';
+import {warn} from '../../../../log';
+import {TypedArray} from '../../../../types';
+import {nonMaxSuppressionV5Impl} from '../../../tfjs-backend-cpu/src/shared';
 
-import {MathBackendWebGL} from './backend_webgl';
+import {MathBackendWebGL} from '../backend_webgl';
 
-interface NonMaxSuppressionWithScoreInputs extends NamedTensorInfoMap {
-  boxes: TensorInfo;
-  scores: TensorInfo;
-}
-
-interface NonMaxSuppressionWithScoreAttrs extends NamedAttrMap {
-  maxOutputSize: number;
-  iouThreshold: number;
-  scoreThreshold: number;
-  softNmsSigma: number;
-}
-
-registerKernel({
-  kernelName: 'NonMaxSuppressionV5',
+export const nonMaxSuppressionV5Config: KernelConfig = {
+  kernelName: NonMaxSuppressionV5,
   backendName: 'webgl',
   kernelFunc: ({inputs, backend, attrs}) => {
     warn(
         'tf.nonMaxSuppression() in webgl locks the UI thread. ' +
         'Call tf.nonMaxSuppressionAsync() instead');
 
-    const {boxes, scores} = inputs as NonMaxSuppressionWithScoreInputs;
+    const {boxes, scores} = inputs as NonMaxSuppressionV5Inputs;
     const {maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma} =
-        attrs as NonMaxSuppressionWithScoreAttrs;
+        attrs as unknown as NonMaxSuppressionV5Attrs;
 
     const gpuBackend = backend as MathBackendWebGL;
 
@@ -62,4 +51,4 @@ registerKernel({
 
     return [selectedIndices, selectedScores];
   }
-});
+};

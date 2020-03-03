@@ -20,6 +20,7 @@
 // allow-pascal-case) doesn't work.
 
 import {NamedAttrMap, NamedTensorInfoMap} from './kernel_registry';
+import {PixelData} from './types';
 
 export const SquaredDifference = 'SquaredDifference';
 export type SquaredDifferenceInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
@@ -35,4 +36,16 @@ export interface NonMaxSuppressionV5Attrs extends Pick<NamedAttrMap, ''> {
   iouThreshold: number;
   scoreThreshold: number;
   softNmsSigma: number;
+}
+
+/**
+ * TensorFlow.js-only kernels
+ */
+export const FromPixels = 'FromPixels';
+export interface FromPixelsInputs {
+  pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
+      HTMLVideoElement;
+}
+export interface FromPixelsAttrs {
+  numChannels: number;
 }

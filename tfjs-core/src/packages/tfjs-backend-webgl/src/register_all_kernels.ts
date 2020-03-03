@@ -15,22 +15,20 @@
  * =============================================================================
  */
 
-// TODO(yassogba) migrate these to the new convention
-import './square';
-import './fromPixels';
-import './non_max_suppression_v5';
-
 import {registerKernel} from '../../../kernel_registry';
-// TODO(yassogba) import from tensorflow/tfjs-core once core stops importing
-// this file.
 import {KernelConfig} from '../../../kernel_registry';
 
-// Import Kernel Configs here.
+import {fromPixelsConfig} from './kernels/fromPixels';
+import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppresionV5';
+import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
+  fromPixelsConfig,
+  nonMaxSuppressionV5Config,
   squaredDifferenceConfig,
+  squareConfig,
 ];
 
 for (const kernelConfig of kernelConfigs) {
