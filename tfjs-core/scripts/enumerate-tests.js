@@ -52,7 +52,9 @@ function findTestFiles(dir, files) {
   fs.readdirSync(dir).forEach(file => {
     const filePath = path.join(dir, file);
     if (!file.endsWith('node_modules') && !filePath.endsWith('src/backends') &&
-        !file.startsWith('.') && fs.statSync(filePath).isDirectory() &&
+        !filePath.endsWith('tfjs-backend-cpu/src') &&
+        !filePath.endsWith('tfjs-backend-webgl/src') && !file.startsWith('.') &&
+        fs.statSync(filePath).isDirectory() &&
         !fs.existsSync(path.join(filePath, 'package.json'))) {
       files = findTestFiles(filePath, files);
     } else if (
