@@ -15,12 +15,12 @@
  * =============================================================================
  */
 
-import {SquaredDifference, SquaredDifferenceInputs} from '../../../kernel_names';
-import {KernelConfig} from '../../../kernel_registry';
-import {TypedArray} from '../../../types';
+import {SquaredDifference, SquaredDifferenceInputs} from '../../../../kernel_names';
+import {KernelConfig} from '../../../../kernel_registry';
+import {TypedArray} from '../../../../types';
 import {MathBackendCPU} from '../backend_cpu';
-import {assertNotComplex} from '../cpu_util';
 import {broadcastedBinaryOp} from '../utils/kernel_utils';
+import {assertNotComplex} from '../utils/tensor_utils';
 
 export const squaredDifferenceConfig: KernelConfig = {
   kernelName: SquaredDifference,

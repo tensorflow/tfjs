@@ -38,6 +38,7 @@ import * as segment_util from '../../ops/segment_util';
 import * as slice_util from '../../ops/slice_util';
 import {softmax} from '../../ops/softmax';
 import {range, scalar, tensor} from '../../ops/tensor_ops';
+import {nonMaxSuppressionV3Impl} from '../../packages/tfjs-backend-cpu/src/shared';
 import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../../tensor';
 import {BackendValues, DataType, DataTypeMap, NumericDataType, Rank, RecursiveArray, ShapeMap, sumOutType, TypedArray, upcastType} from '../../types';
 import * as util from '../../util';
@@ -45,7 +46,6 @@ import {getArrayFromDType, getTypedArrayFromDType, inferDtype, sizeFromShape} fr
 import {DataStorage, EPSILON_FLOAT16, EPSILON_FLOAT32, KernelBackend} from '../backend';
 import * as backend_util from '../backend_util';
 import {mergeRealAndImagArrays} from '../complex_util';
-import {nonMaxSuppressionV3} from '../non_max_suppression_impl';
 import {split} from '../split_shared';
 import {tile} from '../tile_impl';
 import {topkImpl} from '../topk_impl';
@@ -2262,7 +2262,7 @@ export class MathBackendWebGL extends KernelBackend {
         'Call tf.nonMaxSuppressionAsync() instead');
     const boxesVals = boxes.dataSync();
     const scoresVals = scores.dataSync();
-    return nonMaxSuppressionV3(
+    return nonMaxSuppressionV3Impl(
         boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   }
 

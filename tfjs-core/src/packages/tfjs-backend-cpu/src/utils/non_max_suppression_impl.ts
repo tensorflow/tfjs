@@ -19,12 +19,11 @@
  * Implementation of the NonMaxSuppression kernel shared between webgl and cpu.
  */
 
-import {scalar, tensor1d} from '../ops/tensor_ops';
-import {Tensor1D} from '../tensor';
-import {NamedTensorMap} from '../tensor_types';
-import {TypedArray} from '../types';
-
-import {binaryInsert} from './array_util';
+import {binaryInsert} from '../../../../backends/array_util';
+import {scalar, tensor1d} from '../../../../ops/tensor_ops';
+import {Tensor1D} from '../../../../tensor';
+import {NamedTensorMap} from '../../../../tensor_types';
+import {TypedArray} from '../../../../types';
 
 interface Candidate {
   score: number;
@@ -32,7 +31,7 @@ interface Candidate {
   suppressBeginIndex: number;
 }
 
-export function nonMaxSuppressionV3(
+export function nonMaxSuppressionV3Impl(
     boxes: TypedArray, scores: TypedArray, maxOutputSize: number,
     iouThreshold: number, scoreThreshold: number): Tensor1D {
   const dummySoftNmsSigma = 0.0;
@@ -43,7 +42,7 @@ export function nonMaxSuppressionV3(
              .selectedIndices as Tensor1D;
 }
 
-export function nonMaxSuppressionV5(
+export function nonMaxSuppressionV5Impl(
     boxes: TypedArray, scores: TypedArray, maxOutputSize: number,
     iouThreshold: number, scoreThreshold: number,
     softNmsSigma: number): NamedTensorMap {

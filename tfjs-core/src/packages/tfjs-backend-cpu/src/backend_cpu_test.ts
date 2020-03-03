@@ -15,12 +15,12 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../../engine';
-import * as tf from '../../index';
-import {describeWithFlags} from '../../jasmine_util';
-import {tensor2d} from '../../ops/ops';
-import {expectArraysClose, expectArraysEqual} from '../../test_util';
-import {decodeString} from '../../util';
+import {ENGINE} from '../../../engine';
+import * as tf from '../../../index';
+import {describeWithFlags} from '../../../jasmine_util';
+import {tensor2d} from '../../../ops/ops';
+import {expectArraysClose, expectArraysEqual} from '../../../test_util';
+import {decodeString} from '../../../util';
 
 import {MathBackendCPU} from './backend_cpu';
 import {CPU_ENVS} from './backend_cpu_test_registry';

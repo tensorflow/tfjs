@@ -17,8 +17,8 @@
 
 import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '../../kernel_registry';
 import {warn} from '../../log';
+import {nonMaxSuppressionV5Impl} from '../../packages/tfjs-backend-cpu/src/shared';
 import {TypedArray} from '../../types';
-import {nonMaxSuppressionV5} from '../non_max_suppression_impl';
 
 import {MathBackendWebGL} from './backend_webgl';
 
@@ -56,7 +56,7 @@ registerKernel({
     const scoreThresholdVal = scoreThreshold;
     const softNmsSigmaVal = softNmsSigma;
 
-    const {selectedIndices, selectedScores} = nonMaxSuppressionV5(
+    const {selectedIndices, selectedScores} = nonMaxSuppressionV5Impl(
         boxesVals, scoresVals, maxOutputSizeVal, iouThresholdVal,
         scoreThresholdVal, softNmsSigmaVal);
 

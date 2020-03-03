@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,20 +15,6 @@
  * =============================================================================
  */
 
-/**
- * This file is necessary so we register all test environments before we start
- * executing tests.
- */
-import './packages/tfjs-backend-cpu/src/backend_cpu_test_registry';
-import './backends/webgl/backend_webgl_test_registry';
-
-import {parseTestEnvFromKarmaFlags, setTestEnvs, TEST_ENVS} from './jasmine_util';
-
-// tslint:disable-next-line:no-any
-declare let __karma__: any;
-if (typeof __karma__ !== 'undefined') {
-  const testEnv = parseTestEnvFromKarmaFlags(__karma__.config.args, TEST_ENVS);
-  if (testEnv != null) {
-    setTestEnvs([testEnv]);
-  }
-}
+// base.ts has exports all the symbols from tfjs-backend-cpu but **does not**
+// trigger side effects like kernel registration.
+export * from './backend_cpu';

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,19 +15,7 @@
  * =============================================================================
  */
 
-import {TensorInfo} from '../../kernel_registry';
-import {assert} from '../../util';
+// This file exports low level functionality intended to be used by other
+// backends. These are not expected to be used by end users of tensorflow.js
 
-export function assertNotComplex(
-    tensor: TensorInfo|TensorInfo[], opName: string): void {
-  if (!Array.isArray(tensor)) {
-    tensor = [tensor];
-  }
-  tensor.forEach(t => {
-    if (t != null) {
-      assert(
-          t.dtype !== 'complex64',
-          () => `${opName} does not support complex64 tensors.`);
-    }
-  });
-}
+export {nonMaxSuppressionV3Impl, nonMaxSuppressionV5Impl} from './utils/non_max_suppression_impl';

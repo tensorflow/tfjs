@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {nonMaxSuppressionV3, nonMaxSuppressionV5} from '../backends/non_max_suppression_impl';
 import {ENGINE, ForwardFunc} from '../engine';
+import {nonMaxSuppressionV3Impl, nonMaxSuppressionV5Impl} from '../packages/tfjs-backend-cpu/src/shared';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
@@ -200,7 +200,7 @@ async function nonMaxSuppressionAsync_(
   const boxesVals = boxesAndScores[0];
   const scoresVals = boxesAndScores[1];
 
-  const res = nonMaxSuppressionV3(
+  const res = nonMaxSuppressionV3Impl(
       boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   if ($boxes !== boxes) {
     $boxes.dispose();
@@ -285,7 +285,7 @@ async function nonMaxSuppressionWithScoreAsync_(
   const boxesVals = boxesAndScores[0];
   const scoresVals = boxesAndScores[1];
 
-  const res = nonMaxSuppressionV5(
+  const res = nonMaxSuppressionV5Impl(
       boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold,
       softNmsSigma);
 

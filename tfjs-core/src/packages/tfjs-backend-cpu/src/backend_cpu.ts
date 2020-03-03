@@ -17,37 +17,37 @@
 
 import * as seedrandom from 'seedrandom';
 
-import {ENGINE} from '../../engine';
-import {env} from '../../environment';
+import {BackendTimingInfo, DataStorage, EPSILON_FLOAT32, KernelBackend} from '../../../backends/backend';
+import * as backend_util from '../../../backends/backend_util';
+import * as complex_util from '../../../backends/complex_util';
+import {split} from '../../../backends/split_shared';
+import {tile} from '../../../backends/tile_impl';
+import {topkImpl} from '../../../backends/topk_impl';
+import {whereImpl} from '../../../backends/where_impl';
+import {ENGINE} from '../../../engine';
+import {env} from '../../../environment';
+import {warn} from '../../../log';
+import * as array_ops_util from '../../../ops/array_ops_util';
+import * as axis_util from '../../../ops/axis_util';
+import * as broadcast_util from '../../../ops/broadcast_util';
+import {complex, imag, real} from '../../../ops/complex_ops';
+import * as concat_util from '../../../ops/concat_util';
+import {Conv2DInfo, Conv3DInfo} from '../../../ops/conv_util';
+import * as erf_util from '../../../ops/erf_util';
+import {Activation, FusedBatchMatMulConfig, FusedConv2DConfig} from '../../../ops/fused_util';
+import * as gather_nd_util from '../../../ops/gather_nd_util';
+import * as ops from '../../../ops/ops';
+import {buffer, scalar, tensor, tensor4d} from '../../../ops/ops';
+import * as scatter_nd_util from '../../../ops/scatter_nd_util';
+import * as selu_util from '../../../ops/selu_util';
+import {computeFlatOffset, computeOutShape, isSliceContinous} from '../../../ops/slice_util';
+import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer} from '../../../tensor';
+import {BackendValues, DataType, DataValues, NumericDataType, Rank, ShapeMap, TypedArray, upcastType} from '../../../types';
+import * as util from '../../../util';
+import {getArrayFromDType, inferDtype, now, sizeFromShape} from '../../../util';
 
-import {warn} from '../../log';
-import * as array_ops_util from '../../ops/array_ops_util';
-import * as axis_util from '../../ops/axis_util';
-import * as broadcast_util from '../../ops/broadcast_util';
-import {complex, imag, real} from '../../ops/complex_ops';
-import * as concat_util from '../../ops/concat_util';
-import {Conv2DInfo, Conv3DInfo} from '../../ops/conv_util';
-import * as erf_util from '../../ops/erf_util';
-import {Activation, FusedBatchMatMulConfig, FusedConv2DConfig} from '../../ops/fused_util';
-import * as gather_nd_util from '../../ops/gather_nd_util';
-import * as ops from '../../ops/ops';
-import {buffer, scalar, tensor, tensor4d} from '../../ops/ops';
-import * as scatter_nd_util from '../../ops/scatter_nd_util';
-import * as selu_util from '../../ops/selu_util';
-import {computeFlatOffset, computeOutShape, isSliceContinous} from '../../ops/slice_util';
-import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer} from '../../tensor';
-import {BackendValues, DataType, DataValues, NumericDataType, Rank, ShapeMap, TypedArray, upcastType} from '../../types';
-import * as util from '../../util';
-import {getArrayFromDType, inferDtype, now, sizeFromShape} from '../../util';
-import {BackendTimingInfo, DataStorage, EPSILON_FLOAT32, KernelBackend} from '../backend';
-import * as backend_util from '../backend_util';
-import * as complex_util from '../complex_util';
-import {nonMaxSuppressionV3} from '../non_max_suppression_impl';
-import {split} from '../split_shared';
-import {tile} from '../tile_impl';
-import {topkImpl} from '../topk_impl';
-import {whereImpl} from '../where_impl';
-import {assertNotComplex} from './cpu_util';
+import {nonMaxSuppressionV3Impl} from './utils/non_max_suppression_impl';
+import {assertNotComplex} from './utils/tensor_utils';
 
 function mapActivation(
     backend: MathBackendCPU, x: Tensor, activation: Activation,
@@ -3286,7 +3286,7 @@ export class MathBackendCPU extends KernelBackend {
 
     const boxesVals = this.readSync(boxes.dataId) as TypedArray;
     const scoresVals = this.readSync(scores.dataId) as TypedArray;
-    return nonMaxSuppressionV3(
+    return nonMaxSuppressionV3Impl(
         boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   }
 

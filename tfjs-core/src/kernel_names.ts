@@ -19,7 +19,20 @@
 // Unfortunately just enabling PascalCase per file (tslint:enable:
 // allow-pascal-case) doesn't work.
 
-import {NamedTensorInfoMap} from './kernel_registry';
+import {NamedAttrMap, NamedTensorInfoMap} from './kernel_registry';
 
 export const SquaredDifference = 'SquaredDifference';
 export type SquaredDifferenceInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
+
+export const Square = 'Square';
+export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const NonMaxSuppressionV5 = 'NonMaxSuppressionV5';
+export type NonMaxSuppressionV5Inputs =
+    Pick<NamedTensorInfoMap, 'boxes'|'scores'>;
+export interface NonMaxSuppressionV5Attrs extends Pick<NamedAttrMap, ''> {
+  maxOutputSize: number;
+  iouThreshold: number;
+  scoreThreshold: number;
+  softNmsSigma: number;
+}

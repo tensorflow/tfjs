@@ -29,12 +29,13 @@
 import './engine';
 // Register backend-agnostic flags.
 import './flags';
-// backend_cpu.ts and backend_webgl.ts are standalone files and should be
-// explicitly included here.
+
+// Import the CPU baackend (and auto register all kernels)
+import './packages/tfjs-backend-cpu/src/index';
 import './backends/webgl/backend_webgl';
-import './backends/cpu/backend_cpu';
+
 // Import all kernels from cpu.
-import './backends/cpu/register_all_kernels';
+import './packages/tfjs-backend-cpu/src/register_all_kernels';
 // Import all kernels from webgl.
 import './backends/webgl/register_all_kernels';
 

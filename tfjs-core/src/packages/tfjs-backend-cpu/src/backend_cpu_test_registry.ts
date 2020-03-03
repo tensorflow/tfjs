@@ -15,20 +15,10 @@
  * =============================================================================
  */
 
-/**
- * This file is necessary so we register all test environments before we start
- * executing tests.
- */
-import './packages/tfjs-backend-cpu/src/backend_cpu_test_registry';
-import './backends/webgl/backend_webgl_test_registry';
+import {Constraints, registerTestEnv} from '../../../jasmine_util';
 
-import {parseTestEnvFromKarmaFlags, setTestEnvs, TEST_ENVS} from './jasmine_util';
+export const CPU_ENVS: Constraints = {
+  predicate: testEnv => testEnv.backendName === 'cpu'
+};
 
-// tslint:disable-next-line:no-any
-declare let __karma__: any;
-if (typeof __karma__ !== 'undefined') {
-  const testEnv = parseTestEnvFromKarmaFlags(__karma__.config.args, TEST_ENVS);
-  if (testEnv != null) {
-    setTestEnvs([testEnv]);
-  }
-}
+registerTestEnv({name: 'cpu', backendName: 'cpu', isDataSync: true});
