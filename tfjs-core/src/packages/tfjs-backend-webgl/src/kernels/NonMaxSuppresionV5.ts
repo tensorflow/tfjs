@@ -15,12 +15,11 @@
  * =============================================================================
  */
 
+import {nonMaxSuppressionV5Impl} from '../../../../backends/non_max_suppression_impl';
 import {NonMaxSuppressionV5, NonMaxSuppressionV5Attrs, NonMaxSuppressionV5Inputs} from '../../../../kernel_names';
 import {KernelConfig} from '../../../../kernel_registry';
 import {warn} from '../../../../log';
 import {TypedArray} from '../../../../types';
-import {nonMaxSuppressionV5Impl} from '../../../tfjs-backend-cpu/src/shared';
-
 import {MathBackendWebGL} from '../backend_webgl';
 
 export const nonMaxSuppressionV5Config: KernelConfig = {

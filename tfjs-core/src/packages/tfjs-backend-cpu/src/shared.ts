@@ -17,5 +17,3 @@
 
 // This file exports low level functionality intended to be used by other
 // backends. These are not expected to be used by end users of tensorflow.js
-
-export {nonMaxSuppressionV3Impl, nonMaxSuppressionV5Impl} from './utils/non_max_suppression_impl';

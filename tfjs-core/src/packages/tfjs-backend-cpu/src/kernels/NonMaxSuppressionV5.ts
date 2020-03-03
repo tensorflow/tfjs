@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
+import {nonMaxSuppressionV5Impl} from '../../../../backends/non_max_suppression_impl';
 import {NonMaxSuppressionV5, NonMaxSuppressionV5Attrs, NonMaxSuppressionV5Inputs} from '../../../../kernel_names';
 import {KernelConfig} from '../../../../kernel_registry';
 import {TypedArray} from '../../../../types';
 import {MathBackendCPU} from '../backend_cpu';
-import {nonMaxSuppressionV5Impl} from '../utils/non_max_suppression_impl';
 import {assertNotComplex} from '../utils/tensor_utils';
 
 export const nonMaxSuppressionV5Config: KernelConfig = {

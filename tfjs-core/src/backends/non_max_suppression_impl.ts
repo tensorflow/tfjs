@@ -19,11 +19,12 @@
  * Implementation of the NonMaxSuppression kernel shared between webgl and cpu.
  */
 
-import {binaryInsert} from '../../../../backends/array_util';
-import {scalar, tensor1d} from '../../../../ops/tensor_ops';
-import {Tensor1D} from '../../../../tensor';
-import {NamedTensorMap} from '../../../../tensor_types';
-import {TypedArray} from '../../../../types';
+import {scalar, tensor1d} from '../ops/tensor_ops';
+import {Tensor1D} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
+import {TypedArray} from '../types';
+
+import {binaryInsert} from './array_util';
 
 interface Candidate {
   score: number;

@@ -20,6 +20,7 @@ import * as seedrandom from 'seedrandom';
 import {BackendTimingInfo, DataStorage, EPSILON_FLOAT32, KernelBackend} from '../../../backends/backend';
 import * as backend_util from '../../../backends/backend_util';
 import * as complex_util from '../../../backends/complex_util';
+import {nonMaxSuppressionV3Impl} from '../../../backends/non_max_suppression_impl';
 import {split} from '../../../backends/split_shared';
 import {tile} from '../../../backends/tile_impl';
 import {topkImpl} from '../../../backends/topk_impl';
@@ -46,7 +47,6 @@ import {BackendValues, DataType, DataValues, NumericDataType, Rank, ShapeMap, Ty
 import * as util from '../../../util';
 import {getArrayFromDType, inferDtype, now, sizeFromShape} from '../../../util';
 
-import {nonMaxSuppressionV3Impl} from './utils/non_max_suppression_impl';
 import {assertNotComplex} from './utils/tensor_utils';
 
 function mapActivation(
