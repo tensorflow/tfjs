@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
+import {nonMaxSuppressionV3Impl, nonMaxSuppressionV5Impl} from '../backends/non_max_suppression_impl';
 import {ENGINE, ForwardFunc} from '../engine';
-import {nonMaxSuppressionV3Impl, nonMaxSuppressionV5Impl} from '../packages/tfjs-backend-cpu/src/shared';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';

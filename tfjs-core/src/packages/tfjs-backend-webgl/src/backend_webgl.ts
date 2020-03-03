@@ -21,6 +21,7 @@ import './flags_webgl';
 import {DataStorage, EPSILON_FLOAT16, EPSILON_FLOAT32, KernelBackend} from '../../../backends/backend';
 import * as backend_util from '../../../backends/backend_util';
 import {mergeRealAndImagArrays} from '../../../backends/complex_util';
+import {nonMaxSuppressionV3Impl} from '../../../backends/non_max_suppression_impl';
 import {split} from '../../../backends/split_shared';
 import {tile} from '../../../backends/tile_impl';
 import {topkImpl} from '../../../backends/topk_impl';
@@ -49,7 +50,6 @@ import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D
 import {BackendValues, DataType, DataTypeMap, NumericDataType, Rank, RecursiveArray, ShapeMap, sumOutType, TypedArray, upcastType} from '../../../types';
 import * as util from '../../../util';
 import {getArrayFromDType, getTypedArrayFromDType, inferDtype, sizeFromShape} from '../../../util';
-import {nonMaxSuppressionV3Impl} from '../../tfjs-backend-cpu/src/shared';
 
 import {AddNProgram} from './addn_gpu';
 import {AddNPackedProgram} from './addn_packed_gpu';

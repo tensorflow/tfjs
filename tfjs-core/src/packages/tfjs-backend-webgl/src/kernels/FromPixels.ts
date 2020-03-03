@@ -73,8 +73,6 @@ function fromPixels(args: {
   return res;
 }
 
-
-
 export const fromPixelsConfig: KernelConfig = {
   kernelName: FromPixels,
   backendName: 'webgl',

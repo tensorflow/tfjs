@@ -30,14 +30,10 @@ import './engine';
 // Register backend-agnostic flags.
 import './flags';
 
-// Import the CPU baackend (and auto register all kernels)
+// Import the CPU backend (and auto register all kernels)
 import './packages/tfjs-backend-cpu/src/index';
-import './packages/tfjs-backend-webgl/src/backend_webgl';
-
-// Import all kernels from cpu.
-import './packages/tfjs-backend-cpu/src/register_all_kernels';
-// Import all kernels from webgl.
-import './packages/tfjs-backend-webgl/src/register_all_kernels';
+// Import the WebGL backend (and auto register all kernels)
+import './packages/tfjs-backend-webgl/src/index';
 
 // Register all the gradients.
 import './register_all_gradients';

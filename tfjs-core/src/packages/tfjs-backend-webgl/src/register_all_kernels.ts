@@ -18,7 +18,7 @@
 import {registerKernel} from '../../../kernel_registry';
 import {KernelConfig} from '../../../kernel_registry';
 
-import {fromPixelsConfig} from './kernels/fromPixels';
+import {fromPixelsConfig} from './kernels/FromPixels';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppresionV5';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
