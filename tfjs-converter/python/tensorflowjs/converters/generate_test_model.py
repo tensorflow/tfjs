@@ -65,4 +65,4 @@ def main(_):
 
 if __name__ == '__main__':
   args, unparsed = parse_args()
-  tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
+  tf.compat.v1.app.run(main=main, argv=[sys.argv[0]] + unparsed)
