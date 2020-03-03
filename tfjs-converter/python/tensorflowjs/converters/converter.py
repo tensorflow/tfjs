@@ -263,7 +263,7 @@ def dispatch_tensorflowjs_to_keras_saved_model_conversion(
   with tf.Graph().as_default(), tf.compat.v1.Session():
     model = keras_tfjs_loader.load_keras_model(config_json_path)
     tf.keras.models.save_model(
-        model, keras_saved_model_path)
+        model, keras_saved_model_path, save_format='tf')
 
 
 def dispatch_tensorflowjs_to_tensorflowjs_conversion(
