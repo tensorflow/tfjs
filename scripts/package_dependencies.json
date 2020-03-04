@@ -1,5 +1,5 @@
 
 {
-  "tfjs-core": [],
+  "tfjs-core": ["tfjs-backend-cpu"],
   "tfjs-converter": ["tfjs-core"]
 }

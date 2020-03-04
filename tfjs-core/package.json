@@ -53,11 +53,13 @@
   },
   "scripts": {
     "build-ci": "./scripts/enumerate-tests.js --ci && tsc && yarn build-test-snippets",
+
     "prep-cpu-backend": "cd ../tfjs-backend-cpu && yarn",
-    "build": "yarn prep-cpu-backend && node ./scripts/enumerate-tests.js && tsc",
+    "prep": "yarn prep-cpu-backend",
+    "build": "yarn prep && node ./scripts/enumerate-tests.js && tsc",
     "build-npm": "./scripts/build-npm.sh",
     "build:bazel": "bazel build //...",
-    "build-test-snippets": "yarn tsc --project ./scripts/test_snippets/tsconfig.json",
+    "build-test-snippets": "yarn prep && yarn tsc --project ./scripts/test_snippets/tsconfig.json",
     "format-all": "clang-format -i -style=Google --glob=src/**/*.ts",
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
@@ -73,7 +75,7 @@
     "test-async-backends-ci": "node dist/test_async_backends.js",
     "test-integration": "yarn && ./scripts/test-integration.js",
     "test-ci": "./scripts/test-ci.sh",
-    "test-snippets": "ts-node ./scripts/test_snippets/test_snippets.ts"
+    "test-snippets": "yarn prep && ts-node ./scripts/test_snippets/test_snippets.ts"
   },
   "dependencies": {
     "@types/offscreencanvas": "~2019.3.0",
