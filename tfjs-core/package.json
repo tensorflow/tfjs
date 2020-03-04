@@ -53,7 +53,8 @@
   },
   "scripts": {
     "build-ci": "./scripts/enumerate-tests.js --ci && tsc && yarn build-test-snippets",
-    "build": "node ./scripts/enumerate-tests.js && tsc",
+    "prep-cpu-backend": "cd ../tfjs-backend-cpu && yarn",
+    "build": "yarn prep-cpu-backend && node ./scripts/enumerate-tests.js && tsc",
     "build-npm": "./scripts/build-npm.sh",
     "build:bazel": "bazel build //...",
     "build-test-snippets": "yarn tsc --project ./scripts/test_snippets/tsconfig.json",

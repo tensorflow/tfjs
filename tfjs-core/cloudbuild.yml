@@ -13,14 +13,6 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
-# Prepare cpu backend.
-- name: 'node:10'
-  dir: 'tfjs-backend-cpu'
-  id: 'build-tfjs-backend-cpu'
-  entrypoint: 'yarn'
-  args: ['install']
-  waitFor: ['yarn-common']
-
 # Build
 - name: 'node:10'
   dir: 'tfjs-core'
