@@ -13,7 +13,7 @@ const packageJSON = require('../package.json');
 import {version_wasm} from './index';
 
 describe('tfjs-core version consistency', () => {
-  fit('dev-peer match', () => {
+  it('dev-peer match', () => {
     const tfjsCoreDevDepVersion =
         packageJSON.devDependencies['@tensorflow/tfjs-core'];
     const tfjsCorePeerDepVersion =
@@ -21,7 +21,7 @@ describe('tfjs-core version consistency', () => {
     expect(tfjsCoreDevDepVersion).toEqual(tfjsCorePeerDepVersion);
   });
 
-  fit('version.ts matches package version', () => {
+  it('version.ts matches package version', () => {
     // tslint:disable-next-line:no-require-imports
     const expected = require('../package.json').version;
     expect(version_wasm).toBe(expected);
