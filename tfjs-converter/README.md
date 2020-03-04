@@ -56,8 +56,8 @@ __2. Run the converter script provided by the pip package:__
 
 There are two way to trigger the model conversion:
 
-- The conversion wizard: ```tensorflowjs_wizard```
-- Regular conversion script: ```tensorflowjs_converter```
+- The conversion wizard: `tensorflowjs_wizard`
+- Regular conversion script: `tensorflowjs_converter`
 
 To start the conversion wizard:
 ```bash
