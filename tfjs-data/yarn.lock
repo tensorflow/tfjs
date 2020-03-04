@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs-core@1.5.2":
-  version "1.5.2"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.5.2.tgz#df76752cf7c43987df1548fb69820935bd8215d7"
-  integrity sha512-Rj6l8xf0PxrEKctvX3bvxjqhHLaCBQT0ChvqFK6//HBu8A1/ao4SzeVKpXKNnP9Niax+qV3c9U9VcOwwIkCMag==
+"@tensorflow/tfjs-core@1.6.0":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.6.0.tgz#8a871de73995e0efc7ea5660df018402c788d285"
+  integrity sha512-b98jn1pjRuEDVNN6/ZQMFhyYV27ZIsG9CcHSMXq1ohX6ALQQB3mwgrMeC2TEVXFl6/L2vOD8W+txuBRGKHnvpg==
   dependencies:
     "@types/offscreencanvas" "~2019.3.0"
     "@types/seedrandom" "2.4.27"
@@ -14,10 +14,10 @@
     node-fetch "~2.1.2"
     seedrandom "2.4.3"
 
-"@tensorflow/tfjs-layers@1.5.2":
-  version "1.5.2"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-1.5.2.tgz#8d92e8a1462f7be6b6ee9a1e5217ea3a21fbc1f9"
-  integrity sha512-fn2hi5D1sOKGEgiBCuoU/hTHO87znODweGivIn6x2HMtF1EC39QWroYQBWzJyrWWMOUZZ4nOFR6coA0Fkhc+nA==
+"@tensorflow/tfjs-layers@1.6.0":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-1.6.0.tgz#b0376a243cddec54a69ec843b505f3d4750094ce"
+  integrity sha512-Nb6yNJT35vbYK/ZiI7wxLcI9BrvGA7GJ7OL+9/B7Mrsq3gq1A8Pv2ULQhPZOvR0J1zl83AMZAACjuGS+L6nLAA==
 
 "@types/estree@0.0.38":
   version "0.0.38"
