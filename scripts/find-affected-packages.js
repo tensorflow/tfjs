@@ -14,7 +14,8 @@
 // limitations under the License.
 // =============================================================================
 
-const {exec} = require('./test-util');
+const {exec, constructDependencyGraph, computeAffectedPackages} =
+    require('./test-util');
 const shell = require('shelljs');
 const {readdirSync, statSync, writeFileSync} = require('fs');
 const {join} = require('path');
@@ -22,7 +23,7 @@ const fs = require('fs');
 
 const filesWhitelistToTriggerBuild = [
   'cloudbuild.yml', 'package.json', 'tsconfig.json', 'tslint.json',
-  'scripts/diff.js', 'scripts/run-build.sh'
+  'scripts/find-affected-packages.js', 'scripts/run-build.sh'
 ];
 
 const CLONE_PATH = 'clone';
@@ -86,7 +87,7 @@ console.log();  // Break up the console for readability.
 
 let triggeredBuilds = [];
 dirs.forEach(dir => {
-  shell.rm('-f', `${dir}/diff`);
+  shell.rm('-f', `${dir}/run-ci`);
   const diffOutput = diff(`${dir}/`);
   if (diffOutput !== '') {
     console.log(`${dir} has modified files.`);
@@ -97,12 +98,30 @@ dirs.forEach(dir => {
   const shouldDiff = diffOutput !== '' || triggerAllBuilds;
   if (shouldDiff) {
     const diffContents = whitelistDiffOutput.join('\n') + '\n' + diffOutput;
-    writeFileSync(join(dir, 'diff'), diffContents);
+    writeFileSync(join(dir, 'run-ci'), diffContents);
     triggeredBuilds.push(dir);
   }
 });
 
 console.log();  // Break up the console for readability.
+
+// Only add affected packages if not triggering all builds.
+if (!triggerAllBuilds) {
+  console.log('Computing affected packages.');
+  const affectedBuilds = new Set();
+  const dependencyGraph =
+      constructDependencyGraph('scripts/package_dependencies.json');
+  triggeredBuilds.forEach(triggeredBuild => {
+    const affectedPackages =
+        computeAffectedPackages(dependencyGraph, triggeredBuild);
+    affectedPackages.forEach(package => {
+      writeFileSync(join(package, 'run-ci'));
+      affectedBuilds.add(package);
+    });
+  });
+
+  triggeredBuilds.push(Array.from(affectedBuilds));
+}
 
 // Filter the triggered builds to log by whether a cloudbuild.yml file
 // exists for that directory.

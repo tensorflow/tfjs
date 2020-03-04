@@ -22,7 +22,7 @@ function shouldRunIntegration() {
   if (process.env.NIGHTLY === 'true') {
     return true;
   }
-  const diffFile = 'diff';
+  const diffFile = 'run-ci';
   if (!fs.existsSync(diffFile)) {
     return false;
   }

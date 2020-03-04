@@ -104,7 +104,8 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
     h5_path, output_dir=None,
     quantization_dtype=None,
     skip_op_check=False,
-    strip_debug_ops=False):
+    strip_debug_ops=False,
+    weight_shard_size_bytes=1024 * 1024 * 4):
   """
   Convert a keras HDF5-format model to tfjs GraphModel artifacts.
 
@@ -117,6 +118,8 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
       (Default: `None`).
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to allow unsupported debug ops.
+    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
+      The size of each weight file will be <= this value.
   """
 
   if not os.path.exists(h5_path):
@@ -138,7 +141,8 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
       saved_model_tags='serve',
       quantization_dtype=quantization_dtype,
       skip_op_check=skip_op_check,
-      strip_debug_ops=strip_debug_ops)
+      strip_debug_ops=strip_debug_ops,
+      weight_shard_size_bytes=weight_shard_size_bytes)
 
   # Clean up the temporary SavedModel directory.
   shutil.rmtree(temp_savedmodel_dir)
@@ -146,7 +150,8 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
 
 def dispatch_keras_saved_model_to_tensorflowjs_conversion(
     keras_saved_model_path, output_dir, quantization_dtype=None,
-    split_weights_by_layer=False):
+    split_weights_by_layer=False,
+    weight_shard_size_bytes=1024 * 1024 * 4):
   """Converts keras model saved in the SavedModel format to tfjs format.
 
   Note that the SavedModel format exists in keras, but not in
@@ -166,6 +171,8 @@ def dispatch_keras_saved_model_to_tensorflowjs_conversion(
     split_weights_by_layer: Whether to split the weights into separate weight
       groups (corresponding to separate binary weight files) layer by layer
       (Default: `False`).
+    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
+      The size of each weight file will be <= this value.
   """
   with tf.Graph().as_default(), tf.compat.v1.Session():
     model = tf.keras.models.load_model(keras_saved_model_path)
@@ -179,7 +186,8 @@ def dispatch_keras_saved_model_to_tensorflowjs_conversion(
         temp_h5_path,
         output_dir,
         quantization_dtype=quantization_dtype,
-        split_weights_by_layer=split_weights_by_layer)
+        split_weights_by_layer=split_weights_by_layer,
+        weight_shard_size_bytes=weight_shard_size_bytes)
 
     # Delete temporary .h5 file.
     os.remove(temp_h5_path)
@@ -255,7 +263,7 @@ def dispatch_tensorflowjs_to_keras_saved_model_conversion(
   with tf.Graph().as_default(), tf.compat.v1.Session():
     model = keras_tfjs_loader.load_keras_model(config_json_path)
     tf.keras.models.save_model(
-        model, keras_saved_model_path)
+        model, keras_saved_model_path, save_format='tf')
 
 
 def dispatch_tensorflowjs_to_tensorflowjs_conversion(
@@ -321,7 +329,8 @@ def dispatch_tfjs_layers_model_to_tfjs_graph_conversion(
     output_dir_path,
     quantization_dtype=None,
     skip_op_check=False,
-    strip_debug_ops=False):
+    strip_debug_ops=False,
+    weight_shard_size_bytes=1024 * 1024 * 4):
   """Converts a TensorFlow.js Layers Model to TensorFlow.js Graph Model.
 
   This conversion often benefits speed of inference, due to the graph
@@ -336,6 +345,8 @@ def dispatch_tfjs_layers_model_to_tfjs_graph_conversion(
       (Default: `None`).
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to allow unsupported debug ops.
+    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
+      The size of each weight file will be <= this value.
 
   Raises:
     ValueError, if `config_json_path` is not a path to a valid JSON
@@ -369,7 +380,8 @@ def dispatch_tfjs_layers_model_to_tfjs_graph_conversion(
       temp_h5_path, output_dir_path,
       quantization_dtype=quantization_dtype,
       skip_op_check=skip_op_check,
-      strip_debug_ops=strip_debug_ops)
+      strip_debug_ops=strip_debug_ops,
+      weight_shard_size_bytes=weight_shard_size_bytes)
 
   # Clean up temporary HDF5 file.
   os.remove(temp_h5_path)
@@ -507,7 +519,7 @@ def get_arg_parser():
       type=int,
       default=None,
       help='Shard size (in bytes) of the weight files. Currently applicable '
-      'only to output_format=tfjs_layers_model.')
+      'only when output_format is tfjs_layers_model or tfjs_graph_model.')
   parser.add_argument(
       '--output_node_names',
       type=str,
@@ -532,14 +544,6 @@ def convert(arguments):
     raise ValueError(
         'Missing output_path argument. For usage, use the --help flag.')
 
-  weight_shard_size_bytes = 1024 * 1024 * 4
-  if args.weight_shard_size_bytes:
-    if  args.output_format != common.TFJS_LAYERS_MODEL:
-      raise ValueError(
-          'The --weight_shard_size_bytes flag is only supported under '
-          'output_format=tfjs_layers_model.')
-    weight_shard_size_bytes = args.weight_shard_size_bytes
-
   if args.input_path is None:
     raise ValueError(
         'Error: The input_path argument must be set. '
@@ -547,6 +551,21 @@ def convert(arguments):
 
   input_format, output_format = _standardize_input_output_formats(
       args.input_format, args.output_format)
+
+  weight_shard_size_bytes = 1024 * 1024 * 4
+  if args.weight_shard_size_bytes is not None:
+    if (output_format not in
+        (common.TFJS_LAYERS_MODEL, common.TFJS_GRAPH_MODEL)):
+      raise ValueError(
+          'The --weight_shard_size_bytes flag is only supported when '
+          'output_format is tfjs_layers_model or tfjs_graph_model.')
+
+    if not (isinstance(args.weight_shard_size_bytes, int) and
+            args.weight_shard_size_bytes > 0):
+      raise ValueError(
+          'Expected weight_shard_size_bytes to be a positive integer, '
+          'but got %s' % args.weight_shard_size_bytes)
+    weight_shard_size_bytes = args.weight_shard_size_bytes
 
   quantization_dtype = (
       quantization.QUANTIZATION_BYTES_TO_DTYPES[args.quantization_bytes]
@@ -570,20 +589,23 @@ def convert(arguments):
     dispatch_keras_h5_to_tfjs_layers_model_conversion(
         args.input_path, output_dir=args.output_path,
         quantization_dtype=quantization_dtype,
-        split_weights_by_layer=args.split_weights_by_layer)
+        split_weights_by_layer=args.split_weights_by_layer,
+        weight_shard_size_bytes=weight_shard_size_bytes)
   elif (input_format == common.KERAS_MODEL and
         output_format == common.TFJS_GRAPH_MODEL):
     dispatch_keras_h5_to_tfjs_graph_model_conversion(
         args.input_path, output_dir=args.output_path,
         quantization_dtype=quantization_dtype,
         skip_op_check=args.skip_op_check,
-        strip_debug_ops=args.strip_debug_ops)
+        strip_debug_ops=args.strip_debug_ops,
+        weight_shard_size_bytes=weight_shard_size_bytes)
   elif (input_format == common.KERAS_SAVED_MODEL and
         output_format == common.TFJS_LAYERS_MODEL):
     dispatch_keras_saved_model_to_tensorflowjs_conversion(
         args.input_path, args.output_path,
         quantization_dtype=quantization_dtype,
-        split_weights_by_layer=args.split_weights_by_layer)
+        split_weights_by_layer=args.split_weights_by_layer,
+        weight_shard_size_bytes=weight_shard_size_bytes)
   elif (input_format == common.TF_SAVED_MODEL and
         output_format == common.TFJS_GRAPH_MODEL):
     tf_saved_model_conversion_v2.convert_tf_saved_model(
@@ -592,7 +614,8 @@ def convert(arguments):
         saved_model_tags=args.saved_model_tags,
         quantization_dtype=quantization_dtype,
         skip_op_check=args.skip_op_check,
-        strip_debug_ops=args.strip_debug_ops)
+        strip_debug_ops=args.strip_debug_ops,
+        weight_shard_size_bytes=weight_shard_size_bytes)
   elif (input_format == common.TF_HUB_MODEL and
         output_format == common.TFJS_GRAPH_MODEL):
     tf_saved_model_conversion_v2.convert_tf_hub_module(
@@ -601,7 +624,8 @@ def convert(arguments):
         saved_model_tags=args.saved_model_tags,
         quantization_dtype=quantization_dtype,
         skip_op_check=args.skip_op_check,
-        strip_debug_ops=args.strip_debug_ops)
+        strip_debug_ops=args.strip_debug_ops,
+        weight_shard_size_bytes=weight_shard_size_bytes)
   elif (input_format == common.TFJS_LAYERS_MODEL and
         output_format == common.KERAS_MODEL):
     dispatch_tensorflowjs_to_keras_h5_conversion(args.input_path,
@@ -622,14 +646,16 @@ def convert(arguments):
         args.input_path, args.output_path,
         quantization_dtype=_parse_quantization_bytes(args.quantization_bytes),
         skip_op_check=args.skip_op_check,
-        strip_debug_ops=args.strip_debug_ops)
+        strip_debug_ops=args.strip_debug_ops,
+        weight_shard_size_bytes=weight_shard_size_bytes)
   elif (input_format == common.TF_FROZEN_MODEL and
         output_format == common.TFJS_GRAPH_MODEL):
     tf_saved_model_conversion_v2.convert_tf_frozen_model(
         args.input_path, args.output_node_names, args.output_path,
         quantization_dtype=_parse_quantization_bytes(args.quantization_bytes),
         skip_op_check=args.skip_op_check,
-        strip_debug_ops=args.strip_debug_ops)
+        strip_debug_ops=args.strip_debug_ops,
+        weight_shard_size_bytes=weight_shard_size_bytes)
   else:
     raise ValueError(
         'Unsupported input_format - output_format pair: %s - %s' %
