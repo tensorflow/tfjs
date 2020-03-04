@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
+import typescript from '@rollup/plugin-typescript';
 import commonjs from 'rollup-plugin-commonjs';
 import node from 'rollup-plugin-node-resolve';
 import {terser} from 'rollup-plugin-terser';
-import typescript from 'rollup-plugin-typescript2';
 import visualizer from 'rollup-plugin-visualizer';
 
 const PREAMBLE = `/**
@@ -51,10 +51,8 @@ function config({plugins = [], output = {}, external = [], visualize = false}) {
     input: 'src/index.ts',
     plugins: [
       typescript({
-        tsconfigOverride: {compilerOptions: {module: 'ES2015'}},
-        // See https://github.com/ezolenko/rollup-plugin-typescript2/issues/105
-        objectHashIgnoreUnknownHack: visualize ? true : false,
-        clean: visualize ? true : false,
+        include: ['src/**/*.ts', '../tfjs-backend-cpu/src/**/*.ts'],
+        module: 'ES2015',
       }),
       node(),
       // Polyfill require() from dependencies.
