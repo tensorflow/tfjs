@@ -19,7 +19,7 @@ steps:
   id: 'build'
   entrypoint: 'yarn'
   args: ['build-ci']
-  waitFor: ['yarn', 'build-tfjs-backend-cpu']
+  waitFor: ['yarn']
 
 # Run unit tests.
 - name: 'node:10'
