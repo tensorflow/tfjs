@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +14,19 @@
  * limitations under the License.
  * =============================================================================
  */
+// TODO(yassogba) update this gradient to the new convention
+import './ops/square_grad';
 
-import './kernels/all_kernels';
-export {BackendWasm, setWasmPath} from './backend_wasm';
-export {version as version_wasm} from './version';
+// Import Grad Configs here.
+import {squaredDifferenceGradConfig} from './gradients/SquaredDifference_grad';
+import {GradConfig} from './kernel_registry';
+import {registerGradient} from './kernel_registry';
+
+// Export all kernel configs here so that the package can auto register them
+const gradConfigs: GradConfig[] = [
+  squaredDifferenceGradConfig,
+];
+
+for (const gradientConfig of gradConfigs) {
+  registerGradient(gradientConfig);
+}

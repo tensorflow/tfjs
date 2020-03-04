@@ -54,6 +54,35 @@ __1. Install the TensorFlow.js pip package:__
 
 __2. Run the converter script provided by the pip package:__
 
+There are two way to trigger the model conversion:
+
+- The conversion wizard: `tensorflowjs_wizard`
+- Regular conversion script: `tensorflowjs_converter`
+
+To start the conversion wizard:
+```bash
+tensorflowjs_wizard
+```
+
+This tool will walk you through the conversion process and provide you with
+details explanations for each choice you need to make. Behind the scene it calls
+the converter script (`tensorflowjs_converter`) in pip package. This is the
+recommended way to convert a single model.
+
+There is also a dry run mode for the wizard, which will not perform the actual
+conversion but only generate the command for `tensorflowjs_converter` command.
+This generated command can be used in your own shell script.
+
+Here is an screen capture of the wizard in action. ![wizard](./tensorflowjs_wizard.gif)
+```bash
+tensorflowjs_wizard --dryrun
+```
+
+To convert a batch of models or integrate the conversion process into your own
+script, you should use the tensorflowjs_converter script.
+
+## Conversion flags
+
 The converter expects a __TensorFlow SavedModel__, __TensorFlow Hub module__,
 __TensorFlow.js JSON__ format, __Keras HDF5 model__, or __tf.keras SavedModel__
 for input.
@@ -126,6 +155,7 @@ saved a tf.keras model in the SavedModel format.
 |`--signature_name`   | Only applicable to TensorFlow SavedModel and Hub module conversion, signature to load. Defaults to `serving_default` for SavedModel and `default` for Hub module. See https://www.tensorflow.org/hub/common_signatures/.|
 |`--strip_debug_ops`   | Strips out TensorFlow debug operations `Print`, `Assert`, `CheckNumerics`. Defaults to `True`.|
 |`--quantization_bytes`  | How many bytes to optionally quantize/compress the weights to. Valid values are 1 and 2. which will quantize int32 and float32 to 1 or 2 bytes respectively. The default (unquantized) size is 4 bytes.|
+|`--weight_shard_size_bytes` | Shard size (in bytes) of the weight files. Only supported when `output_format` is `tfjs_layers_model` or `tfjs_graph_model`. Default size is 4 MB (4194304 bytes).|
 |<nobr>`--output_node_names`</nobr>| Only applicable to Frozen Model. The names of the output nodes, separated by commas.|
 
 __Note: If you want to convert TensorFlow session bundle, you can install older versions of the tensorflowjs pip package, i.e. `pip install tensorflowjs==0.8.6`.__

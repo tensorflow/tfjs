@@ -13,7 +13,7 @@
     "typescript": "3.5.3"
   },
   "scripts": {
-    "diff": "./scripts/diff.js",
+    "find-affected-packages": "./scripts/find-affected-packages.js",
     "release": "ts-node ./scripts/release.ts",
     "release-notes": "ts-node ./scripts/release_notes/release_notes.ts",
     "test-release-notes": "ts-node ./scripts/release_notes/run_tests.ts"

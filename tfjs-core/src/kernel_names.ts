@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +14,12 @@
  * limitations under the License.
  * =============================================================================
  */
+// Allow UpperCamelCase variable names
+// tslint:disable: variable-name
+// Unfortunately just enabling PascalCase per file (tslint:enable:
+// allow-pascal-case) doesn't work.
 
-import './kernels/all_kernels';
-export {BackendWasm, setWasmPath} from './backend_wasm';
-export {version as version_wasm} from './version';
+import {NamedTensorInfoMap} from './kernel_registry';
+
+export const SquaredDifference = 'SquaredDifference';
+export type SquaredDifferenceInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
