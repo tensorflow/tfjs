@@ -16,7 +16,7 @@ steps:
 # Prepare cpu backend.
 - name: 'node:10'
   dir: 'tfjs-backend-cpu'
-  id: 'yarn'
+  id: 'build-tfjs-backend-cpu'
   entrypoint: 'yarn'
   args: ['install']
   waitFor: ['yarn-common']
