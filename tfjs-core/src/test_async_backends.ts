@@ -24,7 +24,7 @@
 import './index';
 
 import {setTestEnvs} from './jasmine_util';
-import {MathBackendCPU} from './packages/tfjs-backend-cpu/src/backend_cpu';
+import {MathBackendCPU} from '../../tfjs-backend-cpu/src/backend_cpu';
 import {registerBackend} from './globals';
 import {KernelBackend} from './backends/backend';
 import {getKernelsForBackend, registerKernel} from './kernel_registry';

@@ -15,12 +15,12 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../../../engine';
-import * as tf from '../../../index';
-import {describeWithFlags} from '../../../jasmine_util';
-import {tensor2d} from '../../../ops/ops';
-import {expectArraysClose, expectArraysEqual} from '../../../test_util';
-import {decodeString} from '../../../util';
+import {ENGINE} from '../../tfjs-core/src/engine';
+import * as tf from '../../tfjs-core/src/index';
+import {describeWithFlags} from '../../tfjs-core/src/jasmine_util';
+import {tensor2d} from '../../tfjs-core/src/ops/ops';
+import {expectArraysClose, expectArraysEqual} from '../../tfjs-core/src/test_util';
+import {decodeString} from '../../tfjs-core/src/util';
 
 import {MathBackendCPU} from './backend_cpu';
 import {CPU_ENVS} from './backend_cpu_test_registry';

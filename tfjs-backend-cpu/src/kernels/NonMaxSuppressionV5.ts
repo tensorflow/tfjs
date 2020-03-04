@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import {nonMaxSuppressionV5Impl} from '../../../../backends/non_max_suppression_impl';
-import {NonMaxSuppressionV5, NonMaxSuppressionV5Attrs, NonMaxSuppressionV5Inputs} from '../../../../kernel_names';
-import {KernelConfig} from '../../../../kernel_registry';
-import {TypedArray} from '../../../../types';
+import {nonMaxSuppressionV5Impl} from '../../../tfjs-core/src/backends/non_max_suppression_impl';
+import {NonMaxSuppressionV5, NonMaxSuppressionV5Attrs, NonMaxSuppressionV5Inputs} from '../../../tfjs-core/src/kernel_names';
+import {KernelConfig} from '../../../tfjs-core/src/kernel_registry';
+import {TypedArray} from '../../../tfjs-core/src/types';
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../utils/tensor_utils';
 

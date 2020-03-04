@@ -1,0 +1,21 @@
+{
+  "extends": "../tsconfig",
+  "include": [
+    "src/"
+  ],
+  "exclude": [
+    "node_modules/"
+  ],
+  "compilerOptions": {
+    "outDir": "./dist"
+  },
+  "baseUrl": ".",
+  "paths": {
+    "@tfjs-core/*": [
+      "../tfjs-core/src/*"
+    ]
+  },
+  "rootDirs": [
+    "../tfjs-core/src"
+  ]
+}

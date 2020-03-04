@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import {SquaredDifference, SquaredDifferenceInputs} from '../../../../kernel_names';
-import {KernelConfig} from '../../../../kernel_registry';
-import {TypedArray} from '../../../../types';
+import {SquaredDifference, SquaredDifferenceInputs} from '../../../tfjs-core/src/kernel_names';
+import {KernelConfig} from '../../../tfjs-core/src/kernel_registry';
+import {TypedArray} from '../../../tfjs-core/src/types';
 import {MathBackendCPU} from '../backend_cpu';
 import {broadcastedBinaryOp} from '../utils/kernel_utils';
 import {assertNotComplex} from '../utils/tensor_utils';

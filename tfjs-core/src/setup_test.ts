@@ -19,7 +19,7 @@
  * This file is necessary so we register all test environments before we start
  * executing tests.
  */
-import './packages/tfjs-backend-cpu/src/backend_cpu_test_registry';
+import '../../tfjs-backend-cpu/src/backend_cpu_test_registry';
 import './packages/tfjs-backend-webgl/src/backend_webgl_test_registry';
 
 import {parseTestEnvFromKarmaFlags, setTestEnvs, TEST_ENVS} from './jasmine_util';

@@ -15,10 +15,19 @@
  * =============================================================================
  */
 
-import {Constraints, registerTestEnv} from '../../../jasmine_util';
+import {TensorInfo} from '../../../tfjs-core/src/kernel_registry';
+import {assert} from '../../../tfjs-core/src/util';
 
-export const CPU_ENVS: Constraints = {
-  predicate: testEnv => testEnv.backendName === 'cpu'
-};
-
-registerTestEnv({name: 'cpu', backendName: 'cpu', isDataSync: true});
+export function assertNotComplex(
+    tensor: TensorInfo|TensorInfo[], opName: string): void {
+  if (!Array.isArray(tensor)) {
+    tensor = [tensor];
+  }
+  tensor.forEach(t => {
+    if (t != null) {
+      assert(
+          t.dtype !== 'complex64',
+          () => `${opName} does not support complex64 tensors.`);
+    }
+  });
+}

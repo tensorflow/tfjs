@@ -31,7 +31,7 @@ import './engine';
 import './flags';
 
 // Import the CPU backend (and auto register all kernels)
-import './packages/tfjs-backend-cpu/src/index';
+import '../../tfjs-backend-cpu/src/index';
 // Import the WebGL backend (and auto register all kernels)
 import './packages/tfjs-backend-webgl/src/index';
 

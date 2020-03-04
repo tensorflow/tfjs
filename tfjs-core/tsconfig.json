@@ -1,7 +1,7 @@
 {
   "extends": "../tsconfig",
   "include": [
-    "src/"
+    "src/", "../tfjs-backend-cpu/src/"
   ],
   "exclude": [
     "node_modules/"

@@ -21,8 +21,8 @@
 // TODO(yassogba) update these kernels to the new convention
 import './kernels/NonMaxSuppressionV5';
 
-import {registerKernel} from '../../../kernel_registry';
-import {KernelConfig} from '../../../kernel_registry';
+import {KernelConfig} from '../../tfjs-core/src/kernel_registry';
+import {registerKernel} from '../../tfjs-core/src/kernel_registry';
 
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {squareConfig} from './kernels/Square';

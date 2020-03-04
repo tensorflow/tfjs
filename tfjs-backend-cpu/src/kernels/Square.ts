@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {Square, SquareInputs} from '../../../../kernel_names';
-import {KernelConfig} from '../../../../kernel_registry';
+import {Square, SquareInputs} from '../../../tfjs-core/src/kernel_names';
+import {KernelConfig} from '../../../tfjs-core/src/kernel_registry';
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../utils/tensor_utils';
 

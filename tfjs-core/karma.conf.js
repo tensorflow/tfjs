@@ -33,7 +33,11 @@ if (coverageEnabled) {
 
 const devConfig = {
   frameworks: ['jasmine', 'karma-typescript'],
-  files: ['src/setup_test.ts', {pattern: 'src/**/*.ts'}],
+  files: [
+    {pattern: '../tfjs-backend-cpu/src/**/*.ts'},
+    'src/setup_test.ts',
+    {pattern: 'src/**/*.ts'},
+  ],
   exclude: [
     'src/tests.ts',
     'src/worker_node_test.ts',
@@ -41,7 +45,10 @@ const devConfig = {
     'src/test_node.ts',
     'src/test_async_backends.ts',
   ],
-  preprocessors: {'**/*.ts': ['karma-typescript']},
+  preprocessors: {
+    '**/*.ts': ['karma-typescript'],
+    '../tfjs-backend-cpu/src/**/*.ts': ['karma-typescript'],
+  },
   karmaTypescriptConfig,
   reporters: ['dots', 'karma-typescript'],
 };
