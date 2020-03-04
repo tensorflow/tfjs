@@ -22,7 +22,6 @@ import json
 import os
 import shutil
 import tensorflow.compat.v2 as tf
-from tensorflow import keras
 from tensorflow.python.eager import def_function
 from tensorflow.python.ops import variables
 from tensorflow.python.training.tracking import tracking
@@ -53,22 +52,22 @@ class CliTest(unittest.TestCase):
       json.dump(data, model_file)
 
   def _create_hd5_file(self):
-    input_tensor = keras.layers.Input((3,))
-    dense1 = keras.layers.Dense(
+    input_tensor = tf.keras.layers.Input((3,))
+    dense1 = tf.keras.layers.Dense(
         4, use_bias=True, kernel_initializer='ones', bias_initializer='zeros',
         name='MyDense10')(input_tensor)
-    output = keras.layers.Dense(
+    output = tf.keras.layers.Dense(
         2, use_bias=False, kernel_initializer='ones', name='MyDense20')(dense1)
-    model = keras.models.Model(inputs=[input_tensor], outputs=[output])
+    model = tf.keras.models.Model(inputs=[input_tensor], outputs=[output])
     h5_path = os.path.join(self._tmp_dir, HD5_FILE_NAME)
     print(h5_path)
     model.save_weights(h5_path)
 
   def _create_keras_saved_model(self):
-    model = keras.Sequential()
-    model.add(keras.layers.Reshape([2, 3], input_shape=[6]))
-    model.add(keras.layers.LSTM(10))
-    model.add(keras.layers.Dense(1, activation='sigmoid'))
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.Reshape([2, 3], input_shape=[6]))
+    model.add(tf.keras.layers.LSTM(10))
+    model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     tf.keras.models.save_model(model, save_dir)
 
