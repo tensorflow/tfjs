@@ -29,6 +29,7 @@
 #include <vector>
 
 #include "src/cc/backend.h"
+#include "src/cc/prelu_impl.h"
 #include "src/cc/util.h"
 
 #include "src/cc/batchMatMul_impl.h"
@@ -262,6 +263,12 @@ void batchMatMul(const size_t a_id, const size_t* a_shape_ptr,
     slow_batch_matmul(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr,
                       b_shape_len, transpose_a, transpose_b, out_id, output_min,
                       output_max);
+  }
+
+  auto& out_info = backend::get_tensor_info_out(out_id);
+  float* out_buf = out_info.f32_write();
+  if (activation == FusableActivation::PRELU) {
+    prelu(out_buf, out_info.size, prelu_weights_id, out_id);
   }
 }
 }  // namespace wasm
