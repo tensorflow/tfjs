@@ -294,6 +294,14 @@ tfjs_unit_test(
     ],
 )
 
+tfjs_unit_test(
+    name = "FusedBatchMatMul_test",
+    srcs = ["kernels/FusedBatchMatMul_test.cc"],
+    deps = [
+        ":FusedBatchMatMul",
+    ],
+)
+
 tfjs_cc_library(
     name = "ClipByValue",
     srcs = ["kernels/ClipByValue.cc"],
