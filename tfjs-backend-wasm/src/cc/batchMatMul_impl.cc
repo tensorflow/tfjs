@@ -236,10 +236,12 @@ void slow_batch_matmul(const size_t a_id, const size_t* a_shape_ptr,
                     a_buf[b * a_batch + i * a_outer_step + k * a_inner_step] *
                     b_buf[k * b_inner_step + j * b_outer_step + b * b_batch];
               }
-              size_t out_buf_index = b * size + (i * right_dim + j);
+              size_t innermost_dim = i * right_dim + j;
+              size_t out_buf_index = b * size + innermost_dim;
               float current = out_buf[out_buf_index];
-              out_buf[out_buf_index] =
-                  std::max(std::min(current + sum, output_max), output_min);
+              out_buf[out_buf_index] = std::max(
+                  std::min(current + sum + bias_buf[innermost_dim], output_max),
+                  output_min);
             }
           }
         }
