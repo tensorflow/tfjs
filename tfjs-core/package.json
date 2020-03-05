@@ -52,13 +52,13 @@
     "yargs": "~13.2.2"
   },
   "scripts": {
-    "build-ci": "yarn prep && ./scripts/enumerate-tests.js --ci && tsc && yarn build-test-snippets",
+    "build-ci": "yarn prep && yarn build && yarn build-test-snippets",
     "prep-cpu-backend": "cd ../tfjs-backend-cpu && yarn && cd ../tfjs-core",
     "prep": "yarn prep-cpu-backend",
-    "build": "yarn prep && node ./scripts/enumerate-tests.js && tsc",
+    "build": "./scripts/build.sh",
     "build-npm": "./scripts/build-npm.sh",
     "build:bazel": "bazel build //...",
-    "build-test-snippets": "yarn prep && yarn tsc --project ./scripts/test_snippets/tsconfig.json",
+    "build-test-snippets": "yarn tsc --project ./scripts/test_snippets/tsconfig.json",
     "format-all": "clang-format -i -style=Google --glob=src/**/*.ts",
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
