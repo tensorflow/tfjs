@@ -20,8 +20,6 @@
 namespace tfjs {
 namespace wasm {
 
-enum FusableActivation { LINEAR = 0, RELU = 1, RELU6 = 2, PRELU = 3 };
-
 void batchMatMul(const size_t a_id, const size_t* a_shape_ptr,
                  const size_t a_shape_len, const size_t b_id,
                  const size_t* b_shape_ptr, const size_t b_shape_len,

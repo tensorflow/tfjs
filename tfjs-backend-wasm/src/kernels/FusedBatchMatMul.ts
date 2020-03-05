@@ -19,6 +19,8 @@ import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@ten
 
 import {BackendWasm} from '../backend_wasm';
 
+import {FusableActivation} from './types';
+
 interface FusedBatchMatMulInputs extends NamedTensorInfoMap {
   a: TensorInfo;
   b: TensorInfo;
@@ -30,14 +32,6 @@ interface FusedBatchMatMulAttrs extends NamedAttrMap {
   transposeA: boolean;
   transposeB: boolean;
   activation: FusableActivation;
-}
-
-// Must match enum in batchMatMul_impl.h.
-enum FusableActivation {
-  linear = 0,
-  relu = 1,
-  relu6 = 2,
-  prelu = 3
 }
 
 let wasmFusedBatchMatMul: (

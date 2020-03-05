@@ -18,6 +18,7 @@
 
 #include <cstddef>
 
+#include "src/cc/backend.h"
 #include "src/cc/conv2d_impl.h"
 #include "src/cc/kernels/DepthwiseConv2dNative.h"
 

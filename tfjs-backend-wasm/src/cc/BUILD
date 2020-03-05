@@ -317,6 +317,7 @@ tfjs_cc_library(
     srcs = ["kernels/Conv2D.cc"],
     hdrs = ["kernels/Conv2D.h"],
     deps = [
+        ":backend",
         ":conv2d_impl",
     ],
 )
@@ -344,6 +345,7 @@ tfjs_cc_library(
     srcs = ["kernels/DepthwiseConv2dNative.cc"],
     hdrs = ["kernels/DepthwiseConv2dNative.h"],
     deps = [
+        ":backend",
         ":conv2d_impl",
     ],
 )
@@ -416,6 +418,7 @@ tfjs_cc_library(
     srcs = ["kernels/FusedDepthwiseConv2D.cc"],
     hdrs = ["kernels/FusedDepthwiseConv2D.h"],
     deps = [
+        ":backend",
         ":conv2d_impl",
     ],
 )

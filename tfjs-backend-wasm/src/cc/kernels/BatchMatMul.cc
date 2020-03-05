@@ -18,6 +18,7 @@
 
 #include <cstddef>
 
+#include "src/cc/backend.h"
 #include "src/cc/batchMatMul_impl.h"
 #include "src/cc/kernels/BatchMatMul.h"
 

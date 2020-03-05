@@ -19,6 +19,8 @@ import {backend_util, KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo
 
 import {BackendWasm} from '../backend_wasm';
 
+import {FusableActivation} from './types';
+
 interface FusedConv2DInputs extends NamedTensorInfoMap {
   x: TensorInfo;
   filter: TensorInfo;
@@ -59,14 +61,6 @@ function setup(backend: BackendWasm) {
     'number',  // preluActivationWeightsId
     'number',  // outId
   ]);
-}
-
-// Must match enum in conv2d_impl.h.
-enum FusableActivation {
-  linear = 0,
-  relu = 1,
-  relu6 = 2,
-  prelu = 3
 }
 
 function fusedConv2d(args: {
