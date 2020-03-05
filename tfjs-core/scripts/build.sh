@@ -20,4 +20,4 @@ yarn rimraf dist/
 yarn prep
 node ./scripts/enumerate-tests.js && tsc
 cp dist/tfjs-core/src/export_jasmine_util.js dist/jasmine_util.js
-cp package.json dist/
+cp package.json dist/tfjs-core/
