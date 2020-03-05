@@ -9,6 +9,8 @@ src/**/*_test.ts
 integration_tests/
 
 dist/backends/**/*_test.js
+dist/tfjs-backend-cpu/**/*_test.js
+dist/tfjs-backend-webgl/**/*_test.js
 models/
 coverage/
 package/

@@ -55,14 +55,17 @@ const devConfig = {
 
 const browserstackConfig = {
   frameworks: ['browserify', 'jasmine'],
-  files: ['dist/setup_test.js', {pattern: 'dist/**/*_test.js'}],
-  exclude: [
-    'dist/worker_node_test.js',
-    'dist/worker_test.js',
-    'dist/test_node.js',
-    'dist/test_async_backends.js',
+  files: [
+    'dist/tfjs-core/src/setup_test.js',
+    {pattern: 'dist/tfjs-core/src/**/*_test.js'}
   ],
-  preprocessors: {'dist/**/*_test.js': ['browserify']},
+  exclude: [
+    'dist/tfjs-core/src/worker_node_test.js',
+    'dist/tfjs-core/src/worker_test.js',
+    'dist/tfjs-core/src/test_node.js',
+    'dist/tfjs-core/src/test_async_backends.js',
+  ],
+  preprocessors: {'dist/tfjs-core/src/**/*_test.js': ['browserify']},
   browserify: {debug: false},
   reporters: ['dots'],
   singleRun: true,
@@ -72,11 +75,11 @@ const browserstackConfig = {
 const webworkerConfig = {
   ...browserstackConfig,
   files: [
-    'dist/setup_test.js',
-    'dist/worker_test.js',
+    'dist/tfjs-core/src/setup_test.js',
+    'dist/tfjs-core/src/worker_test.js',
     // Serve dist/tf-core.min.js as a static resource, but do not include in the
     // test runner
-    {pattern: 'dist/tf-core.min.js', included: false},
+    {pattern: 'dist/tfjs-core/src/tf-core.min.js', included: false},
   ],
   exclude: [],
   port: 12345
