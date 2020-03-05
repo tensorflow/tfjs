@@ -20,9 +20,11 @@
 namespace tfjs {
 namespace wasm {
 
+enum FusableActivation { LINEAR = 0, RELU = 1, RELU6 = 2, PRELU = 3 };
+
 void batchMatMul();
 
-}
+}  // namespace wasm
 }  // namespace tfjs
 
 #endif  // BATCHMATMUL_IMPL_H_

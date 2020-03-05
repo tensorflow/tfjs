@@ -12,15 +12,26 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef KERNELS_FUSEDBATCHMATMUL_H_
-#define KERNELS_FUSEDBATCHMATMUL_H_
+#ifndef KERNELS_BATCHMATMUL_H_
+#define KERNELS_BATCHMATMUL_H_
+
+#include <cstddef>
+
+#include "src/cc/batchMatMul_impl.h"
 
 namespace tfjs {
 namespace wasm {
 extern "C" {
-void FusedBatchMatMul();
+
+void FusedBatchMatMul(const size_t a_id, const size_t* a_shape_ptr,
+                      const size_t a_shape_len, const size_t b_id,
+                      const size_t* b_shape_ptr, const size_t b_shape_len,
+                      const bool transpose_a, const bool transpose_b,
+                      const FusableActivation activation, const size_t bias_id,
+                      const size_t prelu_weights_id, const size_t out_id);
 }
+
 }  // namespace wasm
 }  // namespace tfjs
 
-#endif  // KERNELS_FUSEDBATCHMATMUL_H_
+#endif  // KERNELS_BATCHMATMUL_H_
