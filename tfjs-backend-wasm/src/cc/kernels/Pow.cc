@@ -25,7 +25,7 @@
 namespace {
 template <class T>
 inline T power(T a, T b) {
-  return pow(a, b);
+  return std::pow(a, b);
 }
 }  // namespace
 

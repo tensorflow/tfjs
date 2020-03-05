@@ -95,6 +95,18 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "batchMatMul_impl",
+    srcs = ["batchMatMul_impl.cc"],
+    hdrs = ["batchMatMul_impl.h"],
+    deps = [
+        ":backend",
+        ":prelu_impl",
+        ":transpose_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "interpolate_bilinear_impl",
     srcs = ["interpolate_bilinear_impl.cc"],
     hdrs = ["interpolate_bilinear_impl.h"],
@@ -155,6 +167,7 @@ tfjs_cc_library(
         ":ArgMax",
         ":AvgPool",
         ":BatchMatMul",
+        ":FusedBatchMatMul",
         ":ClipByValue",
         ":Conv2D",
         ":CropAndResize",
@@ -258,6 +271,18 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":util",
+        ":batchMatMul_impl",
+    ],
+)
+
+tfjs_cc_library(
+    name = "FusedBatchMatMul",
+    srcs = ["kernels/FusedBatchMatMul.cc"],
+    hdrs = ["kernels/FusedBatchMatMul.h"],
+    deps = [
+        ":backend",
+        ":util",
+        ":batchMatMul_impl",
     ],
 )
 
