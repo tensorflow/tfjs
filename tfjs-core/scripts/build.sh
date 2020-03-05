@@ -20,4 +20,5 @@ yarn prep
 node ./scripts/enumerate-tests.js && tsc
 # Copy files to locations external packages expect
 cp dist/tfjs-core/src/export_jasmine_util.js dist/jasmine_util.js
+sed -i.bak 's/tfjs-core/.\/tfjs-core/g' dist/jasmine_util.js
 cp package.json dist/tfjs-core/

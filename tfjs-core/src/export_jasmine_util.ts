@@ -18,8 +18,9 @@
 // As we move tfjs-backend-cpu and tfjs-backend-webgl out of tfjs-core. This
 // file will still allow other packated to import symbols from
 // "from '@tensorflow/tfjs-core/dist/jasmine_util';" irrespective of where
-// jasmine_util actually lives. This is achieved by compying the transpiled
-// version of this file to 'dist' and will be acheived by a task in
-// package.json.
+// jasmine_util actually lives. This is achieved by copying the transpiled
+// version of this file to 'dist' during yarn build
 
-export * from './jasmine_util';
+// Use a path mapping so that when this file is copied the import has the
+// true path. The path will be made relative in the build process.
+export * from 'tfjs-core/src/jasmine_util';
