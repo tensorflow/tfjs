@@ -20,7 +20,7 @@ steps:
   id: 'build-layers'
   entrypoint: 'yarn'
   args: ['build-layers']
-  waitFor: ['yarn-common']
+  waitFor: ['build-core']
 
 # Install data dependencies.
 - name: 'node:10'
@@ -28,7 +28,7 @@ steps:
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
-  waitFor: ['build-core', 'build-layers']
+  waitFor: ['build-layers']
 
 # Run data tests.
 - name: 'node:10'
