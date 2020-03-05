@@ -18,10 +18,14 @@
 
 #include <xnnpack.h>
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <limits>
 #include <map>
+#include <memory>
 #include <tuple>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "src/cc/backend.h"
@@ -34,25 +38,61 @@ const size_t kBlockSize = 48;
 namespace {
 // We use std::tuple as the cache key as it implements the compare operator
 // needed for std::map.
-typedef std::tuple<size_t> OperatorCacheKey;
+typedef std::tuple<size_t, size_t> OperatorCacheKey;
 
 // The operator cache maps the weights id to the xnn_operator_t instantiated for
 // this set of weights.
 std::map<OperatorCacheKey, xnn_operator_t> operator_cache;
 
-void delete_xnn_operator(const size_t weights_id) {
-  xnn_operator_t fully_connected_op = operator_cache.at(weights_id);
-  xnn_delete_operator(fully_connected_op);
-  tfjs::backend::xnn_operator_count--;
+std::unordered_map<size_t, std::vector<OperatorCacheKey>>
+    b_operator_cache_key_map;
 
-  operator_cache.erase(weights_id);
+void erase_from_cache(const size_t tensor_id,
+                      std::unordered_map<size_t, std::vector<OperatorCacheKey>>&
+                          operator_cache_key_map) {
+  auto operator_cache_keys_idx = operator_cache_key_map.find(tensor_id);
+  if (operator_cache_keys_idx != operator_cache_key_map.end()) {
+    std::vector<OperatorCacheKey>& operator_cache_keys =
+        operator_cache_keys_idx->second;
+    for (auto& operator_cache_key : operator_cache_keys) {
+      auto operator_cache_key_idx = operator_cache.find(operator_cache_key);
+      if (operator_cache_key_idx != operator_cache.end()) {
+        auto& cached_op = operator_cache_key_idx->second;
+        xnn_delete_operator(cached_op);
+        tfjs::backend::xnn_operator_count--;
+
+        operator_cache.erase(operator_cache_key);
+      }
+    }
+    operator_cache_key_map.erase(tensor_id);
+  }
+}
+
+void delete_xnn_operators(const size_t weights_id) {
+  erase_from_cache(weights_id, b_operator_cache_key_map);
+}
+
+void associate_tensor_with_key(
+    const size_t tensor_id, const OperatorCacheKey& cache_key,
+    std::unordered_map<size_t, std::vector<OperatorCacheKey>>&
+        operator_cache_key_map) {
+  auto cache_keys_idx = operator_cache_key_map.find(tensor_id);
+  if (cache_keys_idx == operator_cache_key_map.end()) {
+    std::vector<OperatorCacheKey> cache_keys = {cache_key};
+    operator_cache_key_map.emplace(tensor_id, std::move(cache_keys));
+    tfjs::backend::register_disposal_callback(tensor_id, *delete_xnn_operators);
+
+  } else {
+    auto& cache_keys = operator_cache_key_map.at(tensor_id);
+    cache_keys.emplace_back(cache_key);
+  }
 }
 
 void xnn_matmul(const size_t a_id, const size_t* a_shape_ptr,
                 const size_t a_shape_len, const size_t b_id,
                 const size_t* b_shape_ptr, const size_t b_shape_len,
                 const size_t out_id, const float output_min,
-                const float output_max) {
+                const float output_max, const size_t clamp_method) {
   auto& a_info = tfjs::backend::get_tensor_info(a_id);
   auto& b_info = tfjs::backend::get_tensor_info(b_id);
   auto& out_info = tfjs::backend::get_tensor_info_out(out_id);
@@ -63,7 +103,7 @@ void xnn_matmul(const size_t a_id, const size_t* a_shape_ptr,
 
   xnn_operator_t fully_connected_op = nullptr;
 
-  OperatorCacheKey cache_key = {b_id};
+  OperatorCacheKey cache_key = {b_id, clamp_method};
 
   // We assume b is the weights and cache the xnn operator on it.
   auto operator_cache_idx = operator_cache.find(cache_key);
@@ -90,7 +130,7 @@ void xnn_matmul(const size_t a_id, const size_t* a_shape_ptr,
 
     operator_cache.insert({cache_key, fully_connected_op});
 
-    tfjs::backend::register_disposal_callback(b_id, *delete_xnn_operator);
+    associate_tensor_with_key(b_id, cache_key, b_operator_cache_key_map);
 
     tfjs::backend::xnn_operator_count++;
   } else {
@@ -217,7 +257,7 @@ void batchMatMul(const size_t a_id, const size_t* a_shape_ptr,
   if (!transpose_a && !transpose_b && a_shape_ptr[0] == 1 &&
       b_shape_ptr[0] == 1) {
     xnn_matmul(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr, b_shape_len,
-               out_id, output_min, output_max);
+               out_id, output_min, output_max, clamp_method);
   } else {
     slow_batch_matmul(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr,
                       b_shape_len, transpose_a, transpose_b, out_id, output_min,
