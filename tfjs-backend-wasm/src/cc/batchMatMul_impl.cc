@@ -39,7 +39,7 @@ const size_t kBlockSize = 48;
 namespace {
 // We use std::tuple as the cache key as it implements the compare operator
 // needed for std::map.
-typedef std::tuple<size_t, size_t> OperatorCacheKey;
+typedef std::tuple<size_t, size_t, size_t> OperatorCacheKey;
 
 // The operator cache maps the weights id to the xnn_operator_t instantiated for
 // this set of weights.
@@ -47,6 +47,9 @@ std::map<OperatorCacheKey, xnn_operator_t> operator_cache;
 
 std::unordered_map<size_t, std::vector<OperatorCacheKey>>
     b_operator_cache_key_map;
+
+std::unordered_map<size_t, std::vector<OperatorCacheKey>>
+    bias_operator_cache_key_map;
 
 void erase_from_cache(const size_t tensor_id,
                       std::unordered_map<size_t, std::vector<OperatorCacheKey>>&
@@ -92,8 +95,9 @@ void associate_tensor_with_key(
 void xnn_matmul(const size_t a_id, const size_t* a_shape_ptr,
                 const size_t a_shape_len, const size_t b_id,
                 const size_t* b_shape_ptr, const size_t b_shape_len,
-                const size_t out_id, const float output_min,
-                const float output_max, const size_t clamp_method) {
+                const size_t out_id, const size_t bias_id,
+                const float output_min, const float output_max,
+                const size_t clamp_method) {
   auto& a_info = tfjs::backend::get_tensor_info(a_id);
   auto& b_info = tfjs::backend::get_tensor_info(b_id);
   auto& out_info = tfjs::backend::get_tensor_info_out(out_id);
@@ -102,9 +106,14 @@ void xnn_matmul(const size_t a_id, const size_t* a_shape_ptr,
   const float* b_buf = b_info.f32();
   float* out_buf = out_info.f32_write();
 
+  const float* bias_buf = nullptr;
+  if (bias_id != 0) {
+    bias_buf = tfjs::backend::get_tensor_info_out(bias_id).f32();
+  }
+
   xnn_operator_t fully_connected_op = nullptr;
 
-  OperatorCacheKey cache_key = {b_id, clamp_method};
+  OperatorCacheKey cache_key = {b_id, bias_id, clamp_method};
 
   // We assume b is the weights and cache the xnn operator on it.
   auto operator_cache_idx = operator_cache.find(cache_key);
@@ -113,14 +122,13 @@ void xnn_matmul(const size_t a_id, const size_t* a_shape_ptr,
     const size_t output_channels = b_shape_ptr[2];
     const size_t input_stride = input_channels;
     const size_t output_stride = output_channels;
-    const float* bias = nullptr;
 
     // XNNPack expects b to already be transposed. TensorFlow.js doesn't do this
     // automatically so we have to tell XNNPack to do the transposing.
     const uint32_t flags = XNN_FLAG_TRANSPOSE_WEIGHTS;
     xnn_status status = xnn_create_fully_connected_nc_f32(
         input_channels, output_channels, input_stride, output_stride, b_buf,
-        bias, output_min, output_max, flags, &fully_connected_op);
+        bias_buf, output_min, output_max, flags, &fully_connected_op);
     if (status != xnn_status_success) {
       tfjs::util::warn(
           "XNN status for xnn_create_fully_connected_nc_f32 is not successful. "
@@ -132,6 +140,10 @@ void xnn_matmul(const size_t a_id, const size_t* a_shape_ptr,
     operator_cache.insert({cache_key, fully_connected_op});
 
     associate_tensor_with_key(b_id, cache_key, b_operator_cache_key_map);
+    if (bias_id != 0) {
+      associate_tensor_with_key(bias_id, cache_key,
+                                bias_operator_cache_key_map);
+    }
 
     tfjs::backend::xnn_operator_count++;
   } else {
@@ -157,8 +169,8 @@ void slow_batch_matmul(const size_t a_id, const size_t* a_shape_ptr,
                        const size_t a_shape_len, const size_t b_id,
                        const size_t* b_shape_ptr, const size_t b_shape_len,
                        const bool transpose_a, const bool transpose_b,
-                       const size_t out_id, const float output_min,
-                       const float output_max) {
+                       const size_t out_id, const size_t bias_id,
+                       const float output_min, const float output_max) {
   const size_t shared_dim = transpose_a ? a_shape_ptr[1] : a_shape_ptr[2];
   const size_t left_dim = transpose_a ? a_shape_ptr[2] : a_shape_ptr[1];
   const size_t right_dim = transpose_b ? b_shape_ptr[1] : b_shape_ptr[2];
@@ -195,6 +207,11 @@ void slow_batch_matmul(const size_t a_id, const size_t* a_shape_ptr,
   const float* a_buf = a_info.f32();
   const float* b_buf = b_info.f32();
   float* out_buf = out_info.f32_write();
+
+  const float* bias_buf = nullptr;
+  if (bias_id != 0) {
+    bias_buf = tfjs::backend::get_tensor_info_out(bias_id).f32();
+  }
 
   const size_t size = left_dim * right_dim;
 
@@ -258,11 +275,11 @@ void batchMatMul(const size_t a_id, const size_t* a_shape_ptr,
   if (!transpose_a && !transpose_b && a_shape_ptr[0] == 1 &&
       b_shape_ptr[0] == 1) {
     xnn_matmul(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr, b_shape_len,
-               out_id, output_min, output_max, clamp_method);
+               out_id, bias_id, output_min, output_max, clamp_method);
   } else {
     slow_batch_matmul(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr,
-                      b_shape_len, transpose_a, transpose_b, out_id, output_min,
-                      output_max);
+                      b_shape_len, transpose_a, transpose_b, out_id, bias_id,
+                      output_min, output_max);
   }
 
   auto& out_info = backend::get_tensor_info_out(out_id);

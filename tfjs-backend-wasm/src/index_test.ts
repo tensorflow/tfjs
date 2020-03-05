@@ -114,4 +114,20 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     const data = await c.data();
     console.log(data);  // 0, 8, -3, 20
   });
+
+  fit('fused batch mm with bias', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+    const c = tf.tensor1d([1, 1]);
+    const transposeA = false;
+    const transposeB = false;
+
+    const d = tf.fused.matMul(
+        {a, b, transposeA, transposeB, bias: c, activation: 'relu'});
+
+    expect(d.shape).toEqual([2, 2]);
+    const data = await d.data();
+    console.log(data);
+    // expectArraysClose(await d.data(), [1, 9, 0, 21]);
+  });
 });
