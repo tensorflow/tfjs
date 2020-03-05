@@ -114,7 +114,7 @@ function fusedBatchMatMul(args: {
 
   wasmFusedBatchMatMul(
       aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length,
-      transposeA, transposeB, activation, biasId, preluActivationWeightsId,
+      transposeA, transposeB, fusedActivation, biasId, preluActivationWeightsId,
       outId);
 
   return out;

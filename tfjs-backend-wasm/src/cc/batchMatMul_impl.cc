@@ -51,7 +51,8 @@ void delete_xnn_operator(const size_t weights_id) {
 void xnn_matmul(const size_t a_id, const size_t* a_shape_ptr,
                 const size_t a_shape_len, const size_t b_id,
                 const size_t* b_shape_ptr, const size_t b_shape_len,
-                const size_t out_id) {
+                const size_t out_id, const float output_min,
+                const float output_max) {
   auto& a_info = tfjs::backend::get_tensor_info(a_id);
   auto& b_info = tfjs::backend::get_tensor_info(b_id);
   auto& out_info = tfjs::backend::get_tensor_info_out(out_id);
@@ -72,9 +73,6 @@ void xnn_matmul(const size_t a_id, const size_t* a_shape_ptr,
     const size_t input_stride = input_channels;
     const size_t output_stride = output_channels;
     const float* bias = nullptr;
-
-    const float output_min = -std::numeric_limits<float>::infinity();
-    const float output_max = std::numeric_limits<float>::infinity();
 
     // XNNPack expects b to already be transposed. TensorFlow.js doesn't do this
     // automatically so we have to tell XNNPack to do the transposing.
@@ -118,7 +116,8 @@ void slow_batch_matmul(const size_t a_id, const size_t* a_shape_ptr,
                        const size_t a_shape_len, const size_t b_id,
                        const size_t* b_shape_ptr, const size_t b_shape_len,
                        const bool transpose_a, const bool transpose_b,
-                       const size_t out_id) {
+                       const size_t out_id, const float output_min,
+                       const float output_max) {
   const size_t shared_dim = transpose_a ? a_shape_ptr[1] : a_shape_ptr[2];
   const size_t left_dim = transpose_a ? a_shape_ptr[2] : a_shape_ptr[1];
   const size_t right_dim = transpose_b ? b_shape_ptr[1] : b_shape_ptr[2];
@@ -179,7 +178,10 @@ void slow_batch_matmul(const size_t a_id, const size_t* a_shape_ptr,
                     a_buf[b * a_batch + i * a_outer_step + k * a_inner_step] *
                     b_buf[k * b_inner_step + j * b_outer_step + b * b_batch];
               }
-              out_buf[b * size + (i * right_dim + j)] += sum;
+              size_t out_buf_index = b * size + (i * right_dim + j);
+              float current = out_buf[out_buf_index];
+              out_buf[out_buf_index] =
+                  std::max(std::min(current + sum, output_max), output_min);
             }
           }
         }
@@ -197,13 +199,29 @@ void batchMatMul(const size_t a_id, const size_t* a_shape_ptr,
                  const bool transpose_a, const bool transpose_b,
                  const FusableActivation activation, const size_t bias_id,
                  const size_t prelu_weights_id, const size_t out_id) {
+  FusableActivation clamp_method = activation;
+  if (activation == FusableActivation::PRELU) {
+    clamp_method = FusableActivation::LINEAR;
+  }
+
+  float output_min = -std::numeric_limits<float>::infinity();
+  float output_max = std::numeric_limits<float>::infinity();
+
+  if (activation == FusableActivation::RELU) {
+    output_min = 0;
+  } else if (activation == FusableActivation::RELU6) {
+    output_min = 0;
+    output_max = 6;
+  }
+
   if (!transpose_a && !transpose_b && a_shape_ptr[0] == 1 &&
       b_shape_ptr[0] == 1) {
     xnn_matmul(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr, b_shape_len,
-               out_id);
+               out_id, output_min, output_max);
   } else {
     slow_batch_matmul(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr,
-                      b_shape_len, transpose_a, transpose_b, out_id);
+                      b_shape_len, transpose_a, transpose_b, out_id, output_min,
+                      output_max);
   }
 }
 }  // namespace wasm
