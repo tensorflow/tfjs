@@ -28,7 +28,7 @@ const fn2String = (fn: Function): string => {
 const workerTestNode = () => {
   // Web worker scripts in node live relative to the CWD, not to the dir of the
   // file that spawned them.
-  const tf = require('./dist/index.js');
+  const tf = require('./dist/tfjs-core/src/index.js');
   const {parentPort} = require('worker_threads');
   let a = tf.tensor1d([1, 2, 3]);
   const b = tf.tensor1d([3, 2, 1]);
