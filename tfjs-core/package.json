@@ -6,7 +6,7 @@
   "main": "dist/tfjs-core/src/index.js",
   "jsdelivr": "dist/tf-core.min.js",
   "unpkg": "dist/tf-core.min.js",
-  "types": "dist/index.d.ts",
+  "types": "dist/tfjs-core/src/index.d.ts",
   "jsnext:main": "dist/tf-core.esm.js",
   "module": "dist/tf-core.esm.js",
   "miniprogram": "dist/miniprogram",
