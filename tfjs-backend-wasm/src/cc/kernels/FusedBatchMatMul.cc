@@ -19,7 +19,7 @@
 #include <cstddef>
 
 #include "src/cc/backend.h"
-#include "src/cc/batchMatMul_impl.h"
+#include "src/cc/batch_mat_mul_impl.h"
 #include "src/cc/kernels/FusedBatchMatMul.h"
 
 namespace tfjs {

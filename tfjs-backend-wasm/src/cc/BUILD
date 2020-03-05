@@ -95,9 +95,9 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-    name = "batchMatMul_impl",
-    srcs = ["batchMatMul_impl.cc"],
-    hdrs = ["batchMatMul_impl.h"],
+    name = "batch_mat_mul_impl",
+    srcs = ["batch_mat_mul_impl.cc"],
+    hdrs = ["batch_mat_mul_impl.h"],
     deps = [
         ":backend",
         ":prelu_impl",
@@ -271,7 +271,7 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":util",
-        ":batchMatMul_impl",
+        ":batch_mat_mul_impl",
     ],
 )
 
@@ -282,7 +282,7 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":util",
-        ":batchMatMul_impl",
+        ":batch_mat_mul_impl",
     ],
 )
 

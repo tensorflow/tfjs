@@ -32,7 +32,7 @@
 #include "src/cc/prelu_impl.h"
 #include "src/cc/util.h"
 
-#include "src/cc/batchMatMul_impl.h"
+#include "src/cc/batch_mat_mul_impl.h"
 
 const size_t kBlockSize = 48;
 

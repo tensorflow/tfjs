@@ -17,8 +17,6 @@
 
 #include <cstddef>
 
-#include "src/cc/batchMatMul_impl.h"
-
 namespace tfjs {
 namespace wasm {
 extern "C" {
