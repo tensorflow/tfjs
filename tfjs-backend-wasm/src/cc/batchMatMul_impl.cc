@@ -209,8 +209,9 @@ void slow_batch_matmul(const size_t a_id, const size_t* a_shape_ptr,
   float* out_buf = out_info.f32_write();
 
   const float* bias_buf = nullptr;
+  auto& bias_info = tfjs::backend::get_tensor_info_out(bias_id);
   if (bias_id != 0) {
-    bias_buf = tfjs::backend::get_tensor_info_out(bias_id).f32();
+    bias_buf = bias_info.f32();
   }
 
   const size_t size = left_dim * right_dim;
@@ -239,8 +240,12 @@ void slow_batch_matmul(const size_t a_id, const size_t* a_shape_ptr,
               size_t innermost_dim = i * right_dim + j;
               size_t out_buf_index = b * size + innermost_dim;
               float current = out_buf[out_buf_index];
+
+              // Handles 1D broadcasting.
+              size_t bias_index = std::min(innermost_dim, bias_info.size - 1);
+
               out_buf[out_buf_index] = std::max(
-                  std::min(current + sum + bias_buf[innermost_dim], output_max),
+                  std::min(current + sum + bias_buf[bias_index], output_max),
                   output_min);
             }
           }
