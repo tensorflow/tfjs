@@ -14,13 +14,21 @@ steps:
   args: ['build-core-ci']
   waitFor: ['yarn-common']
 
+# Build layers from master.
+- name: 'node:10'
+  dir: 'tfjs-data'
+  id: 'build-layers'
+  entrypoint: 'yarn'
+  args: ['build-layers']
+  waitFor: ['yarn-common']
+
 # Install data dependencies.
 - name: 'node:10'
   dir: 'tfjs-data'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
-  waitFor: ['build-core']
+  waitFor: ['build-core', 'build-layers']
 
 # Run data tests.
 - name: 'node:10'
