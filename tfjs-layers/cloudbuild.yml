@@ -5,13 +5,21 @@ steps:
   id: 'yarn-common'
   args: ['install']
 
+# Build core from master.
+- name: 'node:10'
+  dir: 'tfjs-layers'
+  id: 'build-core'
+  entrypoint: 'yarn'
+  args: ['build-core-ci']
+  waitFor: ['yarn-common']
+
 # Install layers dependencies
 - name: 'node:10'
   dir: 'tfjs-layers'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['prep']
-  waitFor: ['yarn-common']
+  waitFor: ['build-core']
 
 - name: 'node:10'
   dir: 'tfjs-layers'
