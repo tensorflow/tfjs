@@ -43,7 +43,7 @@ steps:
   dir: 'tfjs-converter'
   entrypoint: 'yarn'
   id: 'build'
-  args: ['build']
+  args: ['build-ci']
   waitFor: ['gen-json']
 
 # Run javascript tests.

@@ -54,7 +54,8 @@
     "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
-    "build": "yarn gen-json --test && tsc",
+    "build": "yarn link-core-master && yarn gen-json --test && tsc",
+    "build-ci": "yarn gen-json --test && tsc",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
     "build-npm": "./scripts/build-npm.sh",
