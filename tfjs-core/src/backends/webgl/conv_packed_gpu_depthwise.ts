@@ -90,6 +90,12 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                 if(xR >= 0 && xR < ${xNumRows} && xCOffset >= 0 && xCOffset < ${
                   xNumCols}) {
                   xTexelR${r}C${c} = getX(batch, xR, xCOffset, d1);
+
+                  if(xCOffset + 1 >= ${xNumCols}) {
+                    xTexelR${r}C${c}.z = 0.;
+                    xTexelR${r}C${c}.w = 0.;
+                  }
+
                 } else {
                   xTexelR${r}C${c} = vec4(0.);
                 }
@@ -98,6 +104,12 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                 if(xR >= 0 && xR < ${xNumRows} && xCOffset >= 0 && xCOffset < ${
                   xNumCols}) {
                   vec4 previous = getX(batch, xR, xCOffset, d1);
+
+                  if(xCOffset + 1 >= ${xNumCols}) {
+                    previous.z = 0.;
+                    previous.w = 0.;
+                  }
+
                   xR${r}C${c} = vec4(previous.zw, xTexelR${r}C${c}.xy);
                 } else {
                   xR${r}C${c} = vec4(0, 0, xTexelR${r}C${c}.xy);
