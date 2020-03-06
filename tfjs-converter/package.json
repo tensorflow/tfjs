@@ -15,10 +15,10 @@
   },
   "license": "Apache-2.0",
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "1.6.0"
+    "@tensorflow/tfjs-core": "link:../tfjs-core"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-core": "1.6.0",
+    "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@types/deep-equal": "^1.0.1",
     "@types/jasmine": "~2.8.6",
     "@types/long": "~3.0.32",
@@ -59,8 +59,9 @@
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
+    "link-core-master": "./scripts/link-core-master.js",
     "publish-local": "yarn build-npm && yalc push",
-    "test": "yarn build-core && yarn && yarn gen-json --test && ts-node run_tests.ts",
+    "test": "yarn link-core-master && yarn build-core && yarn && yarn gen-json --test && ts-node run_tests.ts",
     "test-ci": "ts-node run_tests.ts",
     "test-snippets": "ts-node ./scripts/test_snippets.ts",
     "lint": "tslint -p . -t verbose",
