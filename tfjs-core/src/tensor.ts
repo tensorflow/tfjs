@@ -415,6 +415,8 @@ export function setDeprecationWarningFn(fn: (msg: string) => void) {
  */
 export type DataId = object;  // object instead of {} to force non-primitive.
 
+// Declare this namespace to make Tensor class augmentation work in google3.
+export declare namespace Tensor {}
 /**
  * A `tf.Tensor` object represents an immutable, multidimensional array of
  * numbers that has a shape and a data type.
