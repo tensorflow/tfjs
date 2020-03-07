@@ -15,22 +15,27 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo} from '../../kernel_registry';
 
-import {MathBackendWebGL} from './backend_webgl';
-import {SQUARE, UnaryOpProgram} from './unaryop_gpu';
+import {Square, SquareInputs} from '../../../kernel_names';
+import {KernelConfig} from '../../../kernel_registry';
+import {MathBackendCPU} from '../backend_cpu';
+import {assertNotComplex} from '../cpu_util';
 
-interface SquareInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-registerKernel({
-  kernelName: 'Square',
-  backendName: 'webgl',
+export const squareConfig: KernelConfig = {
+  kernelName: Square,
+  backendName: 'cpu',
   kernelFunc: ({inputs, backend}) => {
     const {x} = inputs as SquareInputs;
-    const webglBackend = backend as MathBackendWebGL;
-    const program = new UnaryOpProgram(x.shape, SQUARE);
-    return webglBackend.runWebGLProgram(program, [x], x.dtype);
+    const cpuBackend = backend as MathBackendCPU;
+    assertNotComplex(x, 'square');
+
+    const values = cpuBackend.data.get(x.dataId).values as Float32Array;
+    const newValues = new Float32Array(values.length);
+    for (let i = 0; i < values.length; ++i) {
+      const value = values[i];
+      newValues[i] = value * value;
+    }
+    const dataId = cpuBackend.write(newValues, x.shape, x.dtype);
+    return {dataId, shape: x.shape, dtype: x.dtype};
   }
-});
+}

@@ -18,8 +18,33 @@
 // tslint:disable: variable-name
 // Unfortunately just enabling PascalCase per file (tslint:enable:
 // allow-pascal-case) doesn't work.
-
 import {NamedTensorInfoMap} from './kernel_registry';
+import {PixelData} from './types';
 
 export const SquaredDifference = 'SquaredDifference';
 export type SquaredDifferenceInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
+
+export const Square = 'Square';
+export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const NonMaxSuppressionV5 = 'NonMaxSuppressionV5';
+export type NonMaxSuppressionV5Inputs =
+    Pick<NamedTensorInfoMap, 'boxes'|'scores'>;
+export interface NonMaxSuppressionV5Attrs {
+  maxOutputSize: number;
+  iouThreshold: number;
+  scoreThreshold: number;
+  softNmsSigma: number;
+}
+
+/**
+ * TensorFlow.js-only kernels
+ */
+export const FromPixels = 'FromPixels';
+export interface FromPixelsInputs {
+  pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
+      HTMLVideoElement;
+}
+export interface FromPixelsAttrs {
+  numChannels: number;
+}

@@ -15,32 +15,21 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '../../kernel_registry';
-import {TypedArray} from '../../types';
-import {nonMaxSuppressionV5} from '../non_max_suppression_impl';
+import {NonMaxSuppressionV5, NonMaxSuppressionV5Attrs, NonMaxSuppressionV5Inputs} from '../../../kernel_names';
+import {KernelConfig} from '../../../kernel_registry';
+import {TypedArray} from '../../../types';
+import {nonMaxSuppressionV5} from '../../non_max_suppression_impl';
 
-import {MathBackendCPU} from './backend_cpu';
-import {assertNotComplex} from './cpu_util';
+import {MathBackendCPU} from '../backend_cpu';
+import {assertNotComplex} from '../cpu_util';
 
-interface NonMaxSuppressionWithScoreInputs extends NamedTensorInfoMap {
-  boxes: TensorInfo;
-  scores: TensorInfo;
-}
-
-interface NonMaxSuppressionWithScoreAttrs extends NamedAttrMap {
-  maxOutputSize: number;
-  iouThreshold: number;
-  scoreThreshold: number;
-  softNmsSigma: number;
-}
-
-registerKernel({
-  kernelName: 'NonMaxSuppressionV5',
+export const nonMaxSuppressionV5Config: KernelConfig = {
+  kernelName: NonMaxSuppressionV5,
   backendName: 'cpu',
   kernelFunc: ({inputs, backend, attrs}) => {
-    const {boxes, scores} = inputs as NonMaxSuppressionWithScoreInputs;
+    const {boxes, scores} = inputs as NonMaxSuppressionV5Inputs;
     const {maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma} =
-        attrs as NonMaxSuppressionWithScoreAttrs;
+        attrs as unknown as NonMaxSuppressionV5Attrs;
 
     const cpuBackend = backend as MathBackendCPU;
 
@@ -60,4 +49,4 @@ registerKernel({
 
     return [selectedIndices, selectedScores];
   }
-});
+};
