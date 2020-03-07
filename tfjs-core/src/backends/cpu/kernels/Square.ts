@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-
 import {Square, SquareInputs} from '../../../kernel_names';
 import {KernelConfig} from '../../../kernel_registry';
 import {MathBackendCPU} from '../backend_cpu';
@@ -38,4 +37,4 @@ export const squareConfig: KernelConfig = {
     const dataId = cpuBackend.write(newValues, x.shape, x.dtype);
     return {dataId, shape: x.shape, dtype: x.dtype};
   }
-}
+};

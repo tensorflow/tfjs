@@ -25,7 +25,6 @@ import {TextureUsage} from '../tex_util';
 import {FromPixelsProgram} from './FromPixels_utils/from_pixels_gpu';
 import {FromPixelsPackedProgram} from './FromPixels_utils/from_pixels_packed_gpu';
 
-
 export const fromPixelsConfig: KernelConfig = {
   kernelName: FromPixels,
   backendName: 'webgl',
