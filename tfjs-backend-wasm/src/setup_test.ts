@@ -44,6 +44,7 @@ const TEST_FILTERS: TestFilter[] = [
                                                          // supported yet.
     ]
   },
+  // {include: 'fused matmul'},
   {
     include: 'add ',
     excludes: [
