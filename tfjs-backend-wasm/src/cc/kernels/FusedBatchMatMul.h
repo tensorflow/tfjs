@@ -12,8 +12,8 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef KERNELS_BATCHMATMUL_H_
-#define KERNELS_BATCHMATMUL_H_
+#ifndef KERNELS_FUSEDBATCHMATMUL_H_
+#define KERNELS_FUSEDBATCHMATMUL_H_
 
 #include <cstddef>
 
@@ -32,4 +32,4 @@ void FusedBatchMatMul(const size_t a_id, const size_t* a_shape_ptr,
 }  // namespace wasm
 }  // namespace tfjs
 
-#endif  // KERNELS_BATCHMATMUL_H_
+#endif  // KERNELS_FUSEDBATCHMATMUL_H_
