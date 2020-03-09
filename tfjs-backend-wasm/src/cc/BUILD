@@ -167,7 +167,6 @@ tfjs_cc_library(
         ":ArgMax",
         ":AvgPool",
         ":BatchMatMul",
-        ":FusedBatchMatMul",
         ":ClipByValue",
         ":Conv2D",
         ":CropAndResize",
@@ -175,6 +174,7 @@ tfjs_cc_library(
         ":Div",
         ":Exp",
         ":FloorDiv",
+        ":FusedBatchMatMul",
         ":FusedBatchNorm",
         ":FusedConv2D",
         ":FusedDepthwiseConv2D",
@@ -270,8 +270,8 @@ tfjs_cc_library(
     hdrs = ["kernels/BatchMatMul.h"],
     deps = [
         ":backend",
-        ":util",
         ":batch_mat_mul_impl",
+        ":util",
     ],
 )
 
