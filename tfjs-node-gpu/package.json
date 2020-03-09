@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-node-gpu",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "gypfile": true,
@@ -54,7 +54,7 @@
     "yargs": "^14.2.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "1.6.0",
+    "@tensorflow/tfjs": "1.6.1",
     "@tensorflow/tfjs-core": "1.6.0",
     "adm-zip": "^0.4.11",
     "google-protobuf": "^3.9.2",
