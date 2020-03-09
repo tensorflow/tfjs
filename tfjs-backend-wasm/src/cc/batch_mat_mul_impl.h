@@ -20,12 +20,13 @@
 namespace tfjs {
 namespace wasm {
 
-void batchMatMul(const size_t a_id, const size_t* a_shape_ptr,
-                 const size_t a_shape_len, const size_t b_id,
-                 const size_t* b_shape_ptr, const size_t b_shape_len,
-                 const bool transpose_a, const bool transpose_b,
-                 const FusableActivation activation, const size_t bias_id,
-                 const size_t prelu_weights_id, const size_t out_id);
+void fused_batch_mat_mul(const size_t a_id, const size_t* a_shape_ptr,
+                         const size_t a_shape_len, const size_t b_id,
+                         const size_t* b_shape_ptr, const size_t b_shape_len,
+                         const bool transpose_a, const bool transpose_b,
+                         const FusableActivation activation,
+                         const size_t bias_id, const size_t prelu_weights_id,
+                         const size_t out_id);
 
 }  // namespace wasm
 }  // namespace tfjs
