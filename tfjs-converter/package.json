@@ -54,15 +54,15 @@
     "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
-    "build": "yarn link-core-master && yarn gen-json --test && tsc",
+    "build": "yarn link-master && yarn gen-json --test && tsc",
     "build-ci": "yarn gen-json --test && tsc",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
-    "link-core-master": "../scripts/link-core-master.js",
+    "link-master": "../scripts/link-master.js",
     "publish-local": "yarn build-npm && yalc push",
-    "test": "yarn link-core-master && yarn build-core && yarn && yarn gen-json --test && ts-node run_tests.ts",
+    "test": "yarn link-master && yarn build-core && yarn && yarn gen-json --test && ts-node run_tests.ts",
     "test-ci": "ts-node run_tests.ts",
     "test-snippets": "ts-node ./scripts/test_snippets.ts",
     "lint": "tslint -p . -t verbose",
