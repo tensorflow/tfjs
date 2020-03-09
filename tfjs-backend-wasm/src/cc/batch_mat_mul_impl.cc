@@ -12,10 +12,6 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#endif
-
 #include <xnnpack.h>
 #include <algorithm>
 #include <cmath>
