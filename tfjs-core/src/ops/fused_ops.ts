@@ -248,7 +248,7 @@ function fusedMatMul_<T extends Tensor>({
         save([a3D, b3D, y]);
         return y;
       },
-      inputs, grad, 'FusedBatchMatMul', {transposeA, transposeB, activation},
+      inputs, grad, '_FusedMatMul', {transposeA, transposeB, activation},
       inputsToSave, outputsToSave);
   return res.reshape(outShape) as T;
 }

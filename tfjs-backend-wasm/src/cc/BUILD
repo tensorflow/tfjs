@@ -161,6 +161,7 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "all_kernels",
     deps = [
+        ":_FusedMatMul",
         ":Abs",
         ":Add",
         ":AddN",
@@ -174,7 +175,6 @@ tfjs_cc_library(
         ":Div",
         ":Exp",
         ":FloorDiv",
-        ":FusedBatchMatMul",
         ":FusedBatchNorm",
         ":FusedConv2D",
         ":FusedDepthwiseConv2D",
@@ -276,9 +276,9 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-    name = "FusedBatchMatMul",
-    srcs = ["kernels/FusedBatchMatMul.cc"],
-    hdrs = ["kernels/FusedBatchMatMul.h"],
+    name = "_FusedMatMul",
+    srcs = ["kernels/_FusedMatMul.cc"],
+    hdrs = ["kernels/_FusedMatMul.h"],
     deps = [
         ":backend",
         ":batch_mat_mul_impl",
@@ -294,10 +294,10 @@ tfjs_unit_test(
 )
 
 tfjs_unit_test(
-    name = "FusedBatchMatMul_test",
-    srcs = ["kernels/FusedBatchMatMul_test.cc"],
+    name = "_FusedMatMul_test",
+    srcs = ["kernels/_FusedMatMul_test.cc"],
     deps = [
-        ":FusedBatchMatMul",
+        ":_FusedMatMul",
     ],
 )
 

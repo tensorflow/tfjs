@@ -21,54 +21,53 @@ import {BackendWasm} from '../backend_wasm';
 
 import {FusableActivation} from './types';
 
-interface FusedBatchMatMulInputs extends NamedTensorInfoMap {
+interface FusedMatMulInputs extends NamedTensorInfoMap {
   a: TensorInfo;
   b: TensorInfo;
   bias?: TensorInfo;
   preluActivationWeights?: TensorInfo;
 }
 
-interface FusedBatchMatMulAttrs extends NamedAttrMap {
+interface FusedMatMulAttrs extends NamedAttrMap {
   transposeA: boolean;
   transposeB: boolean;
   activation: FusableActivation;
 }
 
-let wasmFusedBatchMatMul: (
+let wasmFusedMatMul: (
     aId: number, aShape: Uint8Array, aShapeSize: number, bId: number,
     bShape: Uint8Array, bShapeSize: number, transposeA: boolean,
     transposeB: boolean, activation: number, biasId: number,
     preluActivationWeightsId: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmFusedBatchMatMul =
-      backend.wasm.cwrap('FusedBatchMatMul', null /* void */, [
-        'number',  // a_id
-        'array',   // a_shape
-        'number',  // a_shape.length
-        'number',  // b_id
-        'array',   // b_shape
-        'number',  // b_shape.length
-        'number',  // transpose_a
-        'number',  // transpose_b
-        'number',  // activation
-        'number',  // biasId
-        'number',  // preluActivationWeightsId
-        'number'   // out_id
-      ]);
+  wasmFusedMatMul = backend.wasm.cwrap('_FusedMatMul', null /* void */, [
+    'number',  // a_id
+    'array',   // a_shape
+    'number',  // a_shape.length
+    'number',  // b_id
+    'array',   // b_shape
+    'number',  // b_shape.length
+    'number',  // transpose_a
+    'number',  // transpose_b
+    'number',  // activation
+    'number',  // biasId
+    'number',  // preluActivationWeightsId
+    'number'   // out_id
+  ]);
 }
 
-function fusedBatchMatMul(args: {
-  inputs: FusedBatchMatMulInputs,
+function fusedMatMul(args: {
+  inputs: FusedMatMulInputs,
   backend: BackendWasm,
-  attrs: FusedBatchMatMulAttrs
+  attrs: FusedMatMulAttrs
 }) {
   const {inputs, backend, attrs} = args;
   const {a, b, bias, preluActivationWeights} = inputs;
 
   if (a.dtype !== 'float32' || b.dtype !== 'float32') {
     throw new Error(
-        `FusedBatchMatMul for non non-float32 tensors not yet supported.`);
+        `_FusedMatMul for non non-float32 tensors not yet supported.`);
   }
 
   const {transposeA, transposeB, activation} = attrs;
@@ -80,7 +79,7 @@ function fusedBatchMatMul(args: {
     const biasData = backend.dataIdMap.get(bias.dataId);
     if (biasData.shape.length !== 1) {
       throw new Error(
-          `FusedBatchMatMul only supports rank-1 bias but got ` +
+          `_FusedMatMul only supports rank-1 bias but got ` +
           `rank ${biasData.shape.length}.`);
     }
     biasId = biasData.id;
@@ -106,7 +105,7 @@ function fusedBatchMatMul(args: {
   const aShapeBytes = new Uint8Array(new Int32Array(a.shape).buffer);
   const bShapeBytes = new Uint8Array(new Int32Array(b.shape).buffer);
 
-  wasmFusedBatchMatMul(
+  wasmFusedMatMul(
       aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length,
       transposeA, transposeB, fusedActivation, biasId, preluActivationWeightsId,
       outId);
@@ -115,8 +114,8 @@ function fusedBatchMatMul(args: {
 }
 
 registerKernel({
-  kernelName: 'FusedBatchMatMul',
+  kernelName: '_FusedMatMul',
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: fusedBatchMatMul
+  kernelFunc: fusedMatMul
 });

@@ -18,6 +18,7 @@
 // We explicitly import the modular kernels so they get registered in the
 // global registry when we compile the library. A modular build would replace
 // the contents of this file and import only the kernels that are needed.
+import './_FusedMatMul';
 import './Abs';
 import './Add';
 import './AddN';
@@ -37,7 +38,6 @@ import './FloorDiv';
 import './FusedBatchNorm';
 import './FusedConv2D';
 import './FusedDepthwiseConv2D';
-import './FusedBatchMatMul';
 import './Gather';
 import './GatherNd';
 import './Greater';
