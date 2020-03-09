@@ -106,12 +106,21 @@ TEST(FUSEDBATCH_MATMUL, xnn_operator_lfietime) {
                                activation, bias1_id, prelu_weights_id, out_id);
   ASSERT_EQ(3, tfjs::backend::xnn_operator_count);
 
+  // One new xnn_operator should be created for calling FusedBatchMatMul with a
+  // different activation.
+  const FusableActivation activation2 = FusableActivation::RELU;
+  tfjs::wasm::FusedBatchMatMul(a0_id, a_shape_ptr, a_shape.size(), b1_id,
+                               b_shape_ptr, b_shape.size(),
+                               false /* transpose_a */, false /* transpose_b */,
+                               activation2, bias1_id, prelu_weights_id, out_id);
+  ASSERT_EQ(4, tfjs::backend::xnn_operator_count);
+
   // Disposing a's should not remove xnn operators.
   tfjs::wasm::dispose_data(a0_id);
   tfjs::wasm::dispose_data(a1_id);
-  ASSERT_EQ(3, tfjs::backend::xnn_operator_count);
+  ASSERT_EQ(4, tfjs::backend::xnn_operator_count);
 
-  // Disposing the second bias should remove the xnn_operator it's associated
+  // Disposing the second bias should remove the xnn_operators it's associated
   // with.
   tfjs::wasm::dispose_data(bias1_id);
   ASSERT_EQ(2, tfjs::backend::xnn_operator_count);
