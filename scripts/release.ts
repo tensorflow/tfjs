@@ -72,7 +72,7 @@ const UNION_PHASE: Phase = {
 
 const NODE_PHASE: Phase = {
   packages: ['tfjs-node', 'tfjs-node-gpu'],
-  deps: ['tfjs'],
+  deps: ['tfjs', 'tfjs-core'],
   scripts: {'tfjs-node-gpu': {'before-yarn': ['yarn prep-gpu']}}
 };
 

@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "1.6.1",
-    "@tensorflow/tfjs-core": "1.6.0",
+    "@tensorflow/tfjs-core": "1.6.1",
     "adm-zip": "^0.4.11",
     "google-protobuf": "^3.9.2",
     "https-proxy-agent": "^2.2.1",
