@@ -330,10 +330,10 @@ function checkInputData(
         const refDim = shapes[i][j];
         if (refDim != null) {
           if (refDim !== dim) {
-            throw new ValueError(
-                `Error when checking ${exceptionPrefix}: expected ` +
-                `${names[i]} to have shape ${JSON.stringify(shapes[i])} but ` +
-                `got array with shape ${JSON.stringify(array.shape)}.`);
+              throw new ValueError(
+                `${names[i]} is expected to have an input shape of [${shapes[i]}] ` +
+                `but the output of previous_layer has an output shape of ` +
+                `[${array.shape}].`);
           }
         }
       }
