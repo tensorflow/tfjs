@@ -27,7 +27,8 @@ import tempfile
 
 import h5py
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v1 as tf1
+import tensorflow.compat.v2 as tf
 
 from tensorflowjs import quantization
 from tensorflowjs import version
@@ -675,4 +676,4 @@ def main(argv):
 
 
 if __name__ == '__main__':
-  tf.app.run(main=main, argv=[' '.join(sys.argv[1:])])
+  tf1.app.run(main=main, argv=[' '.join(sys.argv[1:])])
