@@ -15,29 +15,21 @@
  * =============================================================================
  */
 
-import {env} from '../../environment';
-import {KernelFunc, registerKernel, TensorInfo} from '../../kernel_registry';
-import {PixelData} from '../../types';
+import {env} from '../../../environment';
+import {FromPixels, FromPixelsAttrs, FromPixelsInputs} from '../../../kernel_names';
+import {KernelFunc, TensorInfo} from '../../../kernel_registry';
+import {KernelConfig} from '../../../kernel_registry';
+import {MathBackendWebGL} from '../backend_webgl';
+import {TextureUsage} from '../tex_util';
 
-import {MathBackendWebGL} from './backend_webgl';
-import {FromPixelsProgram} from './from_pixels_gpu';
-import {FromPixelsPackedProgram} from './from_pixels_packed_gpu';
-import {TextureUsage} from './tex_util';
+import {FromPixelsProgram} from './FromPixels_utils/from_pixels_gpu';
+import {FromPixelsPackedProgram} from './FromPixels_utils/from_pixels_packed_gpu';
 
-interface FromPixelsInputs {
-  pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-      HTMLVideoElement;
-}
-
-interface FromPixelsAttrs {
-  numChannels: number;
-}
-
-registerKernel({
-  kernelName: 'FromPixels',
+export const fromPixelsConfig: KernelConfig = {
+  kernelName: FromPixels,
   backendName: 'webgl',
   kernelFunc: fromPixels as {} as KernelFunc,
-});
+};
 
 let fromPixels2DContext: CanvasRenderingContext2D;
 

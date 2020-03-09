@@ -15,17 +15,13 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo} from '../../kernel_registry';
+import {Square, SquareInputs} from '../../../kernel_names';
+import {KernelConfig} from '../../../kernel_registry';
+import {MathBackendCPU} from '../backend_cpu';
+import {assertNotComplex} from '../cpu_util';
 
-import {MathBackendCPU} from './backend_cpu';
-import {assertNotComplex} from './cpu_util';
-
-interface SquareInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-registerKernel({
-  kernelName: 'Square',
+export const squareConfig: KernelConfig = {
+  kernelName: Square,
   backendName: 'cpu',
   kernelFunc: ({inputs, backend}) => {
     const {x} = inputs as SquareInputs;
@@ -41,4 +37,4 @@ registerKernel({
     const dataId = cpuBackend.write(newValues, x.shape, x.dtype);
     return {dataId, shape: x.shape, dtype: x.dtype};
   }
-});
+};

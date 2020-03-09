@@ -15,9 +15,7 @@
  * =============================================================================
  */
 
-// TODO(yassogba) Import utils directly until we can break the cyclic dependency
 import * as backend_util from '../../../backends/backend_util';
-// TODO(yassogba) export types from core.
 import {DataType, NumericDataType, TypedArray} from '../../../types';
 import * as util from '../../../util';
 
