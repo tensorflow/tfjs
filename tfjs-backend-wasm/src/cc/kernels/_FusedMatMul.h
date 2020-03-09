@@ -12,8 +12,8 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef KERNELS_FUSEDMATMUL_H_
-#define KERNELS_FUSEDMATMUL_H_
+#ifndef KERNELS__FUSEDMATMUL_H_
+#define KERNELS__FUSEDMATMUL_H_
 
 #include <cstddef>
 
@@ -32,4 +32,4 @@ void _FusedMatMul(const size_t a_id, const size_t* a_shape_ptr,
 }  // namespace wasm
 }  // namespace tfjs
 
-#endif  // KERNELS_FUSEDMATMUL_H_
+#endif  // KERNELS__FUSEDMATMUL_H_
