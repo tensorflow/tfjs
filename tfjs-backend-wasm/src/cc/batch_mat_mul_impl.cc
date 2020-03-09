@@ -72,8 +72,9 @@ void erase_from_cache(const size_t tensor_id,
   }
 }
 
-void delete_xnn_operators(const size_t weights_id) {
-  erase_from_cache(weights_id, b_operator_cache_key_map);
+void delete_xnn_operators(const size_t tensor_id) {
+  erase_from_cache(tensor_id, b_operator_cache_key_map);
+  erase_from_cache(tensor_id, bias_operator_cache_key_map);
 }
 
 void associate_tensor_with_key(
