@@ -161,7 +161,6 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "all_kernels",
     deps = [
-        ":_FusedMatMul",
         ":Abs",
         ":Add",
         ":AddN",
@@ -206,6 +205,7 @@ tfjs_cc_library(
         ":Sub",
         ":Tile",
         ":Transpose",
+        ":_FusedMatMul",
     ],
 )
 
