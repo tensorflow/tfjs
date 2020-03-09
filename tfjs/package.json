@@ -50,18 +50,28 @@
     "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "yarn link-master && tsc",
+    "build-ci": "tsc",
+    "build-core": "cd ../tfjs-core && yarn && yarn build",
+    "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
+    "build-layers": "cd ../tfjs-layers && yarn && yarn build",
+    "build-layers-ci": "cd ../tfjs-layers && yarn && yarn build-ci",
+    "build-converter": "cd ../tfjs-converter && yarn && yarn build",
+    "build-converter-ci": "cd ../tfjs-converter && yarn && yarn build-ci",
+    "build-data": "cd ../tfjs-data && yarn && yarn build",
+    "build-data-ci": "cd ../tfjs-data && yarn && yarn build-ci",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
+    "link-master": "../scripts/link-master.js",
     "publish-local": "yarn build-npm && yalc push",
     "lint": "tslint -p . -t verbose",
-    "test": "ts-node ./scripts/release_notes/run_tests.ts && karma start",
+    "test": "yarn link-master && yarn build-core && yarn build-layers && yarn build-converter && yarn build-data && yarn && ts-node ./scripts/release_notes/run_tests.ts && karma start",
     "test-ci": "./scripts/test-ci.sh"
   },
   "dependencies": {
-    "@tensorflow/tfjs-converter": "1.6.0",
-    "@tensorflow/tfjs-core": "1.6.0",
-    "@tensorflow/tfjs-data": "1.6.0",
-    "@tensorflow/tfjs-layers": "1.6.0"
+    "@tensorflow/tfjs-converter": "link:../tfjs-converter",
+    "@tensorflow/tfjs-core": "link:../tfjs-core",
+    "@tensorflow/tfjs-data": "link:../tfjs-data",
+    "@tensorflow/tfjs-layers": "link:../tfjs-layers"
   }
 }

@@ -17,7 +17,7 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
-yarn build
+yarn build-ci
 yarn lint
 yarn karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun
 cd integration_tests
