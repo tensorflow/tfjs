@@ -19,7 +19,7 @@ set -e
 
 rimraf dist/
 yarn
-yarn build
+yarn build-ci
 rollup -c
 
 # Use minified files for miniprogram
