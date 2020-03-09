@@ -12,8 +12,8 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef BATCHMATMUL_IMPL_H_
-#define BATCHMATMUL_IMPL_H_
+#ifndef BATCH_MAT_MUL_IMPL_H_
+#define BATCH_MAT_MUL_IMPL_H_
 
 #include <cstddef>
 
@@ -30,4 +30,4 @@ void batchMatMul(const size_t a_id, const size_t* a_shape_ptr,
 }  // namespace wasm
 }  // namespace tfjs
 
-#endif  // BATCHMATMUL_IMPL_H_
+#endif  // BATCH_MAT_MUL_IMPL_H_
