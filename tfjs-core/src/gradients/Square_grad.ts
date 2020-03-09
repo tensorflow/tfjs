@@ -15,13 +15,14 @@
  * =============================================================================
  */
 
-import {registerGradient} from '../kernel_registry';
+import {Square} from '../kernel_names';
+import {GradConfig} from '../kernel_registry';
 import {Tensor} from '../tensor';
 
-registerGradient({
-  kernelName: 'Square',
+export const squareGradConfig: GradConfig = {
+  kernelName: Square,
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
     const [x] = saved;
     return {x: () => dy.mul(x.toFloat().mul(2))};
   }
-});
+};

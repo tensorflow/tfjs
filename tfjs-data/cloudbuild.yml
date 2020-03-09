@@ -19,7 +19,7 @@ steps:
   dir: 'tfjs-data'
   id: 'build-layers'
   entrypoint: 'yarn'
-  args: ['build-layers']
+  args: ['build-layers-ci']
   waitFor: ['build-core']
 
 # Install data dependencies.
@@ -43,7 +43,7 @@ steps:
   dir: 'tfjs-data'
   entrypoint: 'yarn'
   id: 'build'
-  args: ['build']
+  args: ['build-ci']
   waitFor: ['yarn']
 
 # Run tests in node.
