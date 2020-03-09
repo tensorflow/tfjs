@@ -58,8 +58,8 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     }, 100);
 
     // Silences backend registration warnings.
-    // spyOn(console, 'warn');
-    // spyOn(console, 'log');
+    spyOn(console, 'warn');
+    spyOn(console, 'log');
   });
 
   afterEach(() => {
@@ -91,43 +91,5 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     // Setting the path too late.
     expect(() => setWasmPath('too/late'))
         .toThrowError(/The WASM backend was already initialized. Make sure/);
-  });
-
-  it('pow', async () => {
-    const a = tf.tensor2d([1, -2, -3, 0, 7, 1], [2, 3]);
-    const b = tf.tensor2d([5, 3, 4, 5, 2, -3], [2, 3], 'int32');
-    // const expected = [1, -8, 81, 0, 49, 1];
-    const result = tf.pow(a, b);
-    // const result = tf.div(a, b);
-    const data = await result.data();
-    console.log(Array.from(data));
-  });
-
-  it('fused batch mm', async () => {
-    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
-    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
-    const alpha = tf.tensor2d([0.5, 0.5], [1, 2]);
-
-    const c = tf.fused.matMul(
-        {a, b, activation: 'prelu', preluActivationWeights: alpha});
-    // const c = tf.matMul(a, b);
-    const data = await c.data();
-    console.log(data);  // 0, 8, -3, 20
-  });
-
-  it('fused batch mm with bias', async () => {
-    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
-    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
-    const c = tf.tensor1d([1, 1]);
-    const transposeA = false;
-    const transposeB = false;
-
-    const d = tf.fused.matMul(
-        {a, b, transposeA, transposeB, bias: c, activation: 'relu'});
-
-    expect(d.shape).toEqual([2, 2]);
-    const data = await d.data();
-    console.log(data);
-    // expectArraysClose(await d.data(), [1, 9, 0, 21]);
   });
 });

@@ -281,7 +281,6 @@ tfjs_cc_library(
     hdrs = ["kernels/FusedBatchMatMul.h"],
     deps = [
         ":backend",
-        ":util",
         ":batch_mat_mul_impl",
     ],
 )
