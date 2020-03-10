@@ -56,7 +56,7 @@ if (toMaster) {
   exec(`git clone https://github.com/tensorflow/tfjs ${CLONE_PATH}`);
 } else {
   console.log(`Clone branch ${baseBranch}`);
-  expect(`git clone -b ${baseBranch} https://github.com/tensorflow/tfjs ${
+  exec(`git clone -b ${baseBranch} https://github.com/tensorflow/tfjs ${
       CLONE_PATH}`);
 }
 
