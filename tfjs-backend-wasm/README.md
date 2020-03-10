@@ -30,7 +30,7 @@ tf.setBackend('wasm').then(() => main());
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
 
 <!-- Adds the WASM backend to the global backend registry -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm/dist/tf-backend-wasm.js"></script>
 <script>
 tf.setBackend('wasm').then(() => main());
 </script>

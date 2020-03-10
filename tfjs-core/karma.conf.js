@@ -20,7 +20,7 @@ const karmaTypescriptConfig = {
   // Disable coverage reports and instrumentation by default for tests
   coverageOptions: {instrumentation: false},
   reports: {},
-  bundlerOptions: {sourceMap: true}
+  bundlerOptions: {sourceMap: false}
 };
 
 // Enable coverage reports and instrumentation under KARMA_COVERAGE=1 env
@@ -110,7 +110,7 @@ module.exports = function(config) {
     },
     captureTimeout: 120000,
     reportSlowerThan: 500,
-    browserNoActivityTimeout: 180000,
+    browserNoActivityTimeout: 240000,
     customLaunchers: {
       // For browserstack configs see:
       // https://www.browserstack.com/automate/node

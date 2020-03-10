@@ -6,23 +6,53 @@ steps:
   id: 'yarn-common'
   args: ['install']
 
+# Build core from master.
+- name: 'node:10'
+  dir: 'tfjs-data'
+  id: 'build-core'
+  entrypoint: 'yarn'
+  args: ['build-core-ci']
+  waitFor: ['yarn-common']
+
+# Build layers from master.
+- name: 'node:10'
+  dir: 'tfjs-data'
+  id: 'build-layers'
+  entrypoint: 'yarn'
+  args: ['build-layers-ci']
+  waitFor: ['build-core']
+
 # Install data dependencies.
 - name: 'node:10'
   dir: 'tfjs-data'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
-  waitFor: ['yarn-common']
+  waitFor: ['build-layers']
 
-# Run data tests.
+# Run lint.
+- name: 'node:10'
+  dir: 'tfjs-data'
+  entrypoint: 'yarn'
+  id: 'lint'
+  args: ['lint']
+  waitFor: ['yarn']
+
+# Build the project.
+- name: 'node:10'
+  dir: 'tfjs-data'
+  entrypoint: 'yarn'
+  id: 'build'
+  args: ['build-ci']
+  waitFor: ['yarn']
+
+# Run tests in node.
 - name: 'node:10'
   dir: 'tfjs-data'
   entrypoint: 'yarn'
   id: 'test'
-  args: ['test-ci']
-  waitFor: ['yarn']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
-  secretEnv: ['BROWSERSTACK_KEY']
+  args: ['test']
+  waitFor: ['build']
 
 # Run data snippets tests.
 - name: 'node:10'
@@ -30,12 +60,8 @@ steps:
   entrypoint: 'yarn'
   id: 'test-snippets'
   args: ['test-snippets']
-  waitFor: ['yarn']
+  waitFor: ['build']
 
-secrets:
-- kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
-  secretEnv:
-    BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
 substitutions:

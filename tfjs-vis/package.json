@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-vis",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Utilities for in browser visualization with TensorFlow.js",
   "repository": "https://github.com/tensorflow/tfjs-vis",
   "license": "Apache-2.0",

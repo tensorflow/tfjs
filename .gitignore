@@ -3,6 +3,7 @@
 *.tgz
 *.zip
 */diff
+*/run-ci
 **/*.pyc
 **/bundle.js
 **/*.js.map

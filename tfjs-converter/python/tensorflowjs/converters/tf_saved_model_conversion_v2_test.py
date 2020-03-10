@@ -678,6 +678,34 @@ class ConvertTest(tf.test.TestCase):
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
 
+  def test_convert_saved_model_sharded(self):
+    self._create_saved_model()
+    model_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+
+    # Do initial conversion without sharding.
+    tf_saved_model_conversion_v2.convert_tf_saved_model(model_path, tfjs_path)
+    weight_files = glob.glob(os.path.join(tfjs_path, 'group*.bin'))
+
+    # Get size of weights in bytes after graph optimizations.
+    optimized_total_weight = sum([os.path.getsize(f) for f in weight_files])
+
+    # Due to the shard size, there ought to be 2 shards after conversion.
+    weight_shard_size_bytes = int(optimized_total_weight * 0.8)
+
+    tfjs_path = os.path.join(self._tmp_dir, 'sharded_model')
+    # Convert Saved Model again with shard argument set.
+    tf_saved_model_conversion_v2.convert_tf_saved_model(
+        model_path, tfjs_path,
+        weight_shard_size_bytes=weight_shard_size_bytes)
+
+    weight_files = sorted(glob.glob(os.path.join(tfjs_path, 'group*.bin')))
+    self.assertEqual(len(weight_files), 2)
+    weight_file_sizes = [os.path.getsize(f) for f in weight_files]
+
+    self.assertEqual(sum(weight_file_sizes), optimized_total_weight)
+    self.assertLess(weight_file_sizes[1], weight_file_sizes[0])
+
   def test_optimizer_add_unsupported_op(self):
     self._create_unsupported_saved_model()
     with self.assertRaisesRegexp(  # pylint: disable=deprecated-method
@@ -769,6 +797,35 @@ class ConvertTest(tf.test.TestCase):
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+
+  def test_convert_hub_module_v1_sharded(self):
+    self._create_hub_module()
+    module_path = os.path.join(self._tmp_dir, HUB_MODULE_DIR)
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+
+    # Do initial conversion without sharding.
+    tf_saved_model_conversion_v2.convert_tf_hub_module(module_path, tfjs_path)
+    weight_files = glob.glob(os.path.join(tfjs_path, 'group*.bin'))
+
+    # Get size of weights in bytes after graph optimizations.
+    optimized_total_weight = sum([os.path.getsize(f) for f in weight_files])
+
+    # Due to the shard size, there ought to be 3 shards after conversion.
+    weight_shard_size_bytes = int(optimized_total_weight * 0.4)
+
+    tfjs_path = os.path.join(self._tmp_dir, 'sharded_model')
+    # Convert Hub model again with shard argument set.
+    tf_saved_model_conversion_v2.convert_tf_hub_module(
+        module_path, tfjs_path,
+        weight_shard_size_bytes=weight_shard_size_bytes)
+
+    weight_files = sorted(glob.glob(os.path.join(tfjs_path, 'group*.bin')))
+    self.assertEqual(len(weight_files), 3)
+    weight_file_sizes = [os.path.getsize(f) for f in weight_files]
+
+    self.assertEqual(sum(weight_file_sizes), optimized_total_weight)
+    self.assertEqual(weight_file_sizes[0], weight_file_sizes[1])
+    self.assertLess(weight_file_sizes[2], weight_file_sizes[0])
 
   def test_convert_hub_module_v2(self):
     self._create_saved_model()
