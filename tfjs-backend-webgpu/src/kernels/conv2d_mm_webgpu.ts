@@ -145,11 +145,9 @@ export class Conv2DMMProgram implements WebGPUProgram {
               row / outShape[2],
               row % outShape[2],
               col);
-          if (coordsInBounds(outCoord, outShape)) {
-            ${addBiasSnippet}
-            ${applyActivationSnippet}
-            result[getFlatIndex(outCoord, outShape)] = value;
-          }
+          ${addBiasSnippet}
+          ${applyActivationSnippet}
+          result[getFlatIndex(outCoord, outShape)] = value;
         }
 
         void main() {
