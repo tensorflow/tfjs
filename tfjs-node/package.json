@@ -12,7 +12,7 @@
     "node": ">=8.11.0"
   },
   "scripts": {
-    "build": "yarn link-master && yarn build-core && yarn build-union && tsc && mkdir -p dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js",
+    "build": "yarn link-master && tsc && mkdir -p dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js",
     "build-ci": "tsc && mkdir -p dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
@@ -39,7 +39,7 @@
     "lint": "tslint -p . -t verbose",
     "prep": "cd node_modules/@tensorflow/tfjs-core && yarn && yarn build",
     "publish-local": "yarn prep && yalc push",
-    "test": "yarn link-master && yarn && yarn build-union && ts-node src/run_tests.ts",
+    "test": "yarn link-master && yarn && yarn build-core && yarn build-layers && yarn build-converter && yarn build-data && yarn build-union && ts-node src/run_tests.ts",
     "test-ci": "./scripts/test-ci.sh",
     "test-ts-integration": "./scripts/test-ts-integration.sh",
     "upload-windows-addon": "./scripts/build-and-upload-windows-addon.bat"
