@@ -66,8 +66,13 @@
     "yargs": "^14.2.0"
   },
   "dependencies": {
+<<<<<<< HEAD
     "@tensorflow/tfjs": "1.7.0",
     "@tensorflow/tfjs-core": "1.7.0",
+=======
+    "@tensorflow/tfjs": "link:../tfjs",
+    "@tensorflow/tfjs-core": "link:../tfjs-core",
+>>>>>>> Add the same to node-gpu
     "adm-zip": "^0.4.11",
     "google-protobuf": "^3.9.2",
     "https-proxy-agent": "^2.2.1",
