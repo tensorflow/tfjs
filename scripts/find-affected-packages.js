@@ -34,7 +34,7 @@ const dirs = readdirSync('.').filter(f => {
 
 let commitSha = process.env['COMMIT_SHA'];
 let branchName = process.env['BRANCH_NAME'];
-let baseBranch = process.env['_BASE_BRANCH'];
+let baseBranch = process.env['BASE_BRANCH'];
 // If commit sha or branch name are null we are running this locally and are in
 // a git repository.
 if (commitSha == null) {

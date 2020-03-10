@@ -14,6 +14,7 @@ steps:
   env:
   - 'COMMIT_SHA=$COMMIT_SHA'
   - 'BRANCH_NAME=$BRANCH_NAME'
+  - 'BASE_BRANCH=_BASE_BRANCH'
 
 # Core.
 - name: 'gcr.io/cloud-builders/gcloud'
