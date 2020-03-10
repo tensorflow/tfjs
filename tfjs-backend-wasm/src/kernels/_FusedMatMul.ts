@@ -57,7 +57,7 @@ function setup(backend: BackendWasm) {
   ]);
 }
 
-function fusedMatMul(args: {
+function fusedBatchMatMul(args: {
   inputs: FusedMatMulInputs,
   backend: BackendWasm,
   attrs: FusedMatMulAttrs
@@ -117,5 +117,5 @@ registerKernel({
   kernelName: '_FusedMatMul',
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: fusedMatMul
+  kernelFunc: fusedBatchMatMul
 });
