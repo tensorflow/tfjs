@@ -17,18 +17,16 @@
 // We explicitly import the modular kernels so they get registered in the
 // global registry when we compile the library. A modular build would replace
 // the contents of this file and import only the kernels that are needed.
+import {KernelConfig, registerKernel} from '../../kernel_registry';
 
-// TODO(yassogba) update these kernels to the new convention
-import './non_max_suppression_v5';
-import './square';
-
-import {registerKernel} from '../../kernel_registry';
-import {KernelConfig} from '../../kernel_registry';
-
+import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
+import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
+  nonMaxSuppressionV5Config,
+  squareConfig,
   squaredDifferenceConfig,
 ];
 

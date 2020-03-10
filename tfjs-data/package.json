@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-data",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "TensorFlow Data API in JavaScript",
   "private": false,
   "main": "dist/index.js",
@@ -39,14 +39,17 @@
     "yalc": "^1.0.0-pre.23"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "yarn link-master && tsc",
+    "build-ci": "tsc",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
     "build-layers": "cd ../tfjs-layers && yarn && yarn build",
+    "build-layers-ci": "cd ../tfjs-layers && yarn && yarn build-ci",
     "build-npm": "./scripts/build-npm.sh",
+    "link-master": "../scripts/link-master.js",
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build-npm && yalc push",
-    "test": "yarn build-core && yarn build-layers && yarn && ts-node src/test_node.ts",
+    "test": "yarn link-master && yarn build-core && yarn build-layers && yarn && ts-node src/test_node.ts",
     "test-browsers": "karma start --browsers='Chrome,Firefox'",
     "test-ci": "ts-node src/test_node.ts",
     "test-snippets": "ts-node ./scripts/test_snippets.ts",

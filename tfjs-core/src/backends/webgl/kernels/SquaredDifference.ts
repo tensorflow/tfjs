@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-// TODO(yassogba) import from tfjs-core
 import {env} from '../../../environment';
 import {SquaredDifference, SquaredDifferenceInputs} from '../../../kernel_names';
 import {KernelConfig} from '../../../kernel_registry';
