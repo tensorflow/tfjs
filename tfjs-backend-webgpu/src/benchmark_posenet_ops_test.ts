@@ -30,18 +30,22 @@ describeWebGPU('benchmark-posenet', () => {
           });
 
           let additionalArgs: any = [];
-          if (opName === 'conv2d') {
-            additionalArgs = [1, 'same'];
-          } else if (opName === 'pad') {
-            const paddings = [];
-            for (let i = 0; i < (obj.inputs as any)[0].length; i++) {
-              paddings.push([0, 1]);
+          if (obj.args) {
+            additionalArgs = obj.args;
+          } else {
+            if (opName === 'conv2d') {
+              additionalArgs = [1, 'same'];
+            } else if (opName === 'pad') {
+              const paddings = [];
+              for (let i = 0; i < (obj.inputs as any)[0].length; i++) {
+                paddings.push([0, 1]);
+              }
+              additionalArgs = [paddings];
+            } else if (opName === 'resizeBilinear') {
+              additionalArgs = [[obj.result[1], obj.result[2]]];
+            } else if (opName === 'cast') {
+              additionalArgs = ['float32'];
             }
-            additionalArgs = [paddings];
-          } else if (opName === 'resizeBilinear') {
-            additionalArgs = [[obj.result[1], obj.result[2]]];
-          } else if (opName === 'cast') {
-            additionalArgs = ['float32'];
           }
 
           await benchmarkAndLog(
