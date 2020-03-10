@@ -55,7 +55,7 @@ describe('dynamic', () => {
         const input3 = [tfc.tensor1d([1])];
         const input4 = [tfc.tensor1d([1])];
         const input5 = [tfc.tensor1d([1])];
-        spyOn(tfc.image, 'nonMaxSuppressionAsync').and.callThrough();
+        spyOn(tfc.image, 'nonMaxSuppressionAsync');
         const result =
             executeOp(node, {input1, input2, input3, input4, input5}, context);
         expect(tfc.image.nonMaxSuppressionAsync)
@@ -88,7 +88,7 @@ describe('dynamic', () => {
         const input3 = [tfc.tensor1d([1])];
         const input4 = [tfc.tensor1d([1])];
         const input5 = [tfc.tensor1d([1])];
-        spyOn(tfc.image, 'nonMaxSuppressionAsync').and.callThrough();
+        spyOn(tfc.image, 'nonMaxSuppressionAsync');
         const result =
             executeOp(node, {input1, input2, input3, input4, input5}, context);
         expect(tfc.image.nonMaxSuppressionAsync)
@@ -125,7 +125,7 @@ describe('dynamic', () => {
         const input4 = [tfc.tensor1d([1])];
         const input5 = [tfc.tensor1d([1])];
         const input6 = [tfc.tensor1d([1])];
-        spyOn(tfc.image, 'nonMaxSuppressionWithScoreAsync').and.callThrough();
+        spyOn(tfc.image, 'nonMaxSuppressionWithScoreAsync').and.returnValue({});
         const result = executeOp(
             node, {input1, input2, input3, input4, input5, input6}, context);
         expect(tfc.image.nonMaxSuppressionWithScoreAsync)
@@ -153,7 +153,7 @@ describe('dynamic', () => {
         node.op = 'Where';
         node.inputParams = {'condition': createTensorAttr(0)};
         const input1 = [tfc.scalar(1)];
-        spyOn(tfc, 'whereAsync').and.callThrough();
+        spyOn(tfc, 'whereAsync');
 
         const result = executeOp(node, {input1}, context);
         expect((tfc.whereAsync as jasmine.Spy).calls.mostRecent().args[0].dtype)
@@ -171,6 +171,17 @@ describe('dynamic', () => {
 
         expect(validateParam(node, dynamic.json)).toBeTruthy();
       });
+      it('should not have memory leak', async () => {
+        node.op = 'Where';
+        node.inputParams = {'condition': createTensorAttr(0)};
+        const input1 = [tfc.scalar(1)];
+        spyOn(tfc, 'whereAsync').and.callThrough();
+
+        const prevCount = tfc.memory().numTensors;
+        await executeOp(node, {input1}, context);
+        const afterCount = tfc.memory().numTensors;
+        expect(afterCount).toEqual(prevCount + 1);
+      });
     });
 
     describe('ListDiff', () => {
@@ -180,7 +191,7 @@ describe('dynamic', () => {
         node.inputParams = {'x': createTensorAttr(0), 'y': createTensorAttr(1)};
         const input1 = [tfc.scalar(1)];
         const input2 = [tfc.scalar(1)];
-        spyOn(tfc, 'setdiff1dAsync').and.callThrough();
+        spyOn(tfc, 'setdiff1dAsync');
 
         const result = executeOp(node, {input1, input2}, context);
         expect(tfc.setdiff1dAsync).toHaveBeenCalledWith(input1[0], input2[0]);

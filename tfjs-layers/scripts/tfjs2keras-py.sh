@@ -43,13 +43,13 @@ fi
 
 VENV_DIR="$(mktemp -d)_venv"
 echo "Creating virtualenv at ${VENV_DIR} ..."
-virtualenv "${VENV_DIR}"
+virtualenv -p python3 "${VENV_DIR}"
 source "${VENV_DIR}/bin/activate"
 
 if [[ "${DEV_VERSION}" == "stable" ]]; then
-  pip install -r requirements-stable.txt
+  pip3 install -r requirements-stable.txt
 else
-  pip install -r requirements-dev.txt
+  pip3 install -r requirements-dev.txt
 fi
 
 export TFJS2KERAS_TEST_USING_TF_KERAS="${TFJS2KERAS_TEST_USING_TF_KERAS}"

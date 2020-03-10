@@ -15,8 +15,14 @@
  * =============================================================================
  */
 
-// We explicitly import the modular kernels so they get registered in the
-// global registry when we compile the library. A modular build would replace
-// the contents of this file and import only the kernels that are needed.
-import './square';
-import './non_max_suppression_v5';
+import {Square} from '../kernel_names';
+import {GradConfig} from '../kernel_registry';
+import {Tensor} from '../tensor';
+
+export const squareGradConfig: GradConfig = {
+  kernelName: Square,
+  gradFunc: (dy: Tensor, saved: Tensor[]) => {
+    const [x] = saved;
+    return {x: () => dy.mul(x.toFloat().mul(2))};
+  }
+};

@@ -72,7 +72,7 @@ const UNION_PHASE: Phase = {
 
 const NODE_PHASE: Phase = {
   packages: ['tfjs-node', 'tfjs-node-gpu'],
-  deps: ['tfjs'],
+  deps: ['tfjs', 'tfjs-core'],
   scripts: {'tfjs-node-gpu': {'before-yarn': ['yarn prep-gpu']}}
 };
 
@@ -92,7 +92,7 @@ const REACT_NATIVE_PHASE: Phase = {
 const WEBSITE_PHASE: Phase = {
   repo: 'tfjs-website',
   packages: ['tfjs-website'],
-  deps: ['tfjs', 'tfjs-node', 'tfjs-vis'],
+  deps: ['tfjs', 'tfjs-node', 'tfjs-vis', 'tfjs-react-native'],
   scripts: {'tfjs-website': {'after-yarn': ['yarn build-prod']}},
   leaveVersion: true,
   title: 'Update website to latest dependencies.'

@@ -170,7 +170,7 @@ export function func<T extends TensorContainer>(
  *   return iterator;
  * }
  * const ds = tf.data.generator(makeIterator);
- * ds.forEachAsync(e => console.log(e));
+ * await ds.forEachAsync(e => console.log(e));
  * ```
  *
  * Example of creating a dataset from a generator:
@@ -186,7 +186,7 @@ export function func<T extends TensorContainer>(
  * }
  *
  * const ds = tf.data.generator(dataGenerator);
- * ds.forEachAsync(e => console.log(e));
+ * await ds.forEachAsync(e => console.log(e));
  * ```
  *
  * @param generator A Javascript generator function that returns a JavaScript
