@@ -91,7 +91,6 @@ describeWebGPU('Ops benchmarks', () => {
 
   fit('relu', async () => {
     const a = tf.randomNormal([1, 129, 129, 64]);
-
     await benchmarkAndLog(`relu${getInputInfo([a])}`, () => tf.relu(a));
   });
 
@@ -101,6 +100,18 @@ describeWebGPU('Ops benchmarks', () => {
     await benchmarkAndLog(
         `pad${getInputInfo([a])}`,
         () => tf.pad(a, [[0, 1], [0, 1], [0, 1], [0, 1]]));
+  });
+
+  fit('maxpool', async () => {
+    const y = tf.randomNormal<tf.Rank.R4>([1, 57, 57, 256]);
+    await benchmarkAndLog(
+        `maxPool${getInputInfo([y])}`, () => tf.maxPool(y, 1, 2, 'same'));
+  });
+
+  fit('maxpool', async () => {
+    const z = tf.randomNormal<tf.Rank.R4>([1, 29, 29, 512]);
+    await benchmarkAndLog(
+        `maxPool${getInputInfo([z])}`, () => tf.maxPool(z, 1, 2, 'same'));
   });
 
   fit('maxpool', async () => {

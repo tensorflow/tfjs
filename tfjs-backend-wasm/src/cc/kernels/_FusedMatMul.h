@@ -12,30 +12,24 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef KERNELS_FUSEDDEPTHWISECONV2D_H_
-#define KERNELS_FUSEDDEPTHWISECONV2D_H_
+#ifndef KERNELS__FUSEDMATMUL_H_
+#define KERNELS__FUSEDMATMUL_H_
 
 #include <cstddef>
 
-#include "src/cc/backend.h"
-
 namespace tfjs {
-
 namespace wasm {
 extern "C" {
-void FusedDepthwiseConv2D(
-    const size_t x_id, const size_t batch_size, const size_t input_height,
-    const size_t input_width, const size_t filter_id,
-    const size_t filter_height, const size_t filter_width, const size_t bias_id,
-    size_t pad_top, size_t pad_right, size_t pad_bottom, size_t pad_left,
-    const size_t is_same_pad, const size_t dilation_height,
-    const size_t dilation_width, const size_t stride_height,
-    const size_t stride_width, const size_t input_channels,
-    const size_t output_channels, const FusableActivation activation,
-    const size_t prelu_weights_id, const size_t out_id);
+
+void _FusedMatMul(const size_t a_id, const size_t* a_shape_ptr,
+                  const size_t a_shape_len, const size_t b_id,
+                  const size_t* b_shape_ptr, const size_t b_shape_len,
+                  const bool transpose_a, const bool transpose_b,
+                  const FusableActivation activation, const size_t bias_id,
+                  const size_t prelu_weights_id, const size_t out_id);
 }
 
 }  // namespace wasm
 }  // namespace tfjs
 
-#endif  // KERNELS_FUSEDDEPTHWISECONV2D_H_
+#endif  // KERNELS__FUSEDMATMUL_H_

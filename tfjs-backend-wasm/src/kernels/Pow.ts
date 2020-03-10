@@ -15,19 +15,6 @@
  * =============================================================================
  */
 
-// This enum must align with the enum defined in cc/backend.h.
-export enum CppDType {
-  float32 = 0,
-  int32 = 1,
-  bool = 2,
-  string = 3,
-  complex64 = 4
-}
-
-// Must match enum in cc/fusable_activations.h.
-export enum FusableActivation {
-  linear = 0,
-  relu = 1,
-  relu6 = 2,
-  prelu = 3
-}
+import {registerBinaryKernel} from './binary_kernel';
+const supportsFullBroadcast = false;
+registerBinaryKernel('Pow', supportsFullBroadcast);

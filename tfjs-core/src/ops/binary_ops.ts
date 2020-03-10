@@ -20,7 +20,7 @@ import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
-import {TensorLike, upcastType} from '../types';
+import {TensorLike} from '../types';
 import * as util from '../util';
 import * as broadcast_util from './broadcast_util';
 import {where} from './logical_ops';
@@ -247,14 +247,14 @@ function subStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
  * @param exp The exponent `tf.Tensor` to pow element-wise.
  */
 /** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
-function pow_<T extends Tensor>(base: T|TensorLike, exp: Tensor|TensorLike): T {
-  const $base = convertToTensor(base, 'base', 'pow');
-  const $exp = convertToTensor(exp, 'exp', 'pow');
+function pow_<T extends Tensor>(
+    base: Tensor|TensorLike, exp: Tensor|TensorLike): T {
+  let $base = convertToTensor(base, 'base', 'pow');
+  let $exp = convertToTensor(exp, 'exp', 'pow');
+  [$base, $exp] = makeTypesMatch($base, $exp);
 
   const outShape =
       broadcast_util.assertAndGetBroadcastShape($base.shape, $exp.shape);
-  base = $base.cast(upcastType($base.dtype, $exp.dtype));
-  exp = $exp.cast(upcastType($base.dtype, $exp.dtype));
   const grad = (dy: Tensor, saved: Tensor[]) => {
     const [$base, $exp, y] = saved;
     const derBase = () => {
@@ -276,13 +276,17 @@ function pow_<T extends Tensor>(base: T|TensorLike, exp: Tensor|TensorLike): T {
       }
       return res.reshape($exp.shape);
     };
-    return {$base: derBase, $exp: derExp};
+    return {a: derBase, b: derExp};
   };
+
+  const attrs = {};
+  const inputsToSave = [$base, $exp];
+  const outputsToSave = [true];
   return ENGINE.runKernelFunc((backend, save) => {
     const y = backend.pow($base, $exp);
     save([$base, $exp, y]);
     return y;
-  }, {$base, $exp}, grad) as T;
+  }, {a: $base, b: $exp}, grad, 'Pow', attrs, inputsToSave, outputsToSave) as T;
 }
 
 /**

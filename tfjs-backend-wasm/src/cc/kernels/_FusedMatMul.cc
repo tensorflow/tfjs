@@ -1,4 +1,4 @@
-/* Copyright 2020 Google LLC. All Rights Reserved.
+/* Copyright 2019 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,7 +20,7 @@
 
 #include "src/cc/backend.h"
 #include "src/cc/batch_mat_mul_impl.h"
-#include "src/cc/kernels/BatchMatMul.h"
+#include "src/cc/kernels/_FusedMatMul.h"
 
 namespace tfjs {
 namespace wasm {
@@ -30,14 +30,12 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void BatchMatMul(const size_t a_id, const size_t* a_shape_ptr,
-                 const size_t a_shape_len, const size_t b_id,
-                 const size_t* b_shape_ptr, const size_t b_shape_len,
-                 const bool transpose_a, const bool transpose_b,
-                 const size_t out_id) {
-  const size_t bias_id = 0;
-  const size_t prelu_weights_id = 0;
-  const FusableActivation activation = FusableActivation::LINEAR;
+void _FusedMatMul(const size_t a_id, const size_t* a_shape_ptr,
+                  const size_t a_shape_len, const size_t b_id,
+                  const size_t* b_shape_ptr, const size_t b_shape_len,
+                  const bool transpose_a, const bool transpose_b,
+                  const FusableActivation activation, const size_t bias_id,
+                  const size_t prelu_weights_id, const size_t out_id) {
   tfjs::wasm::fused_batch_mat_mul(
       a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr, b_shape_len,
       transpose_a, transpose_b, activation, bias_id, prelu_weights_id, out_id);
