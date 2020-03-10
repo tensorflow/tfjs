@@ -12,7 +12,7 @@
     "node": ">=8.11.0"
   },
   "scripts": {
-    "build": "yarn link-master && tsc && mkdir -p dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js",
+    "build": "tsc && mkdir -p dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js",
     "build-ci": "tsc && mkdir -p dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
