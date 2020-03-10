@@ -70,7 +70,6 @@ export const ops = [
     'timeMs': 0.8300000000000001
   },
   {
-    // PENDING
     'name': 'Conv2D',
     'result': [1, 65, 65, 64],
     'inputs': [[1, 65, 65, 64], [1, 1, 64, 64]],
@@ -508,6 +507,7 @@ export const ops = [
     'inputs': [[9, 9, 17]],
     'timeMs': 0.028
   },
+  // PENDING
   {
     'name': 'Transpose',
     'result': [17, 81],
