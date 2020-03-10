@@ -34,9 +34,13 @@ import './flags';
 import './backends/webgl/backend_webgl';
 import './backends/cpu/backend_cpu';
 // Import all kernels from cpu.
-import './backends/cpu/all_kernels';
+import './backends/cpu/register_all_kernels';
 // Import all kernels from webgl.
-import './backends/webgl/all_kernels';
+import './backends/webgl/register_all_kernels';
+
+// Register all the gradients.
+import './register_all_gradients';
+
 import './platforms/platform_browser';
 import './platforms/platform_node';
 
@@ -109,3 +113,6 @@ export {KernelBackend, BackendTimingInfo, DataMover, DataStorage} from './backen
 
 import * as ops from './ops/ops';
 setOpHandler(ops);
+
+// Import all op chainers and add type info to Tensor.
+import './public/chained_ops/register_all_chained_ops';

@@ -29,7 +29,6 @@ import tempfile
 import numpy as np
 import tensorflow.compat.v2 as tf
 from tensorflow.compat.v1 import saved_model
-from tensorflow import keras
 from tensorflow.python.eager import def_function
 from tensorflow.python.framework import constant_op
 from tensorflow.python.ops import variables
@@ -51,21 +50,21 @@ def _createKerasModel(layer_name_prefix, h5_path=None):
       in.
 
   Returns:
-    An instance of keras.Model.
+    An instance of tf.keras.Model.
   """
-  input_tensor = keras.layers.Input((3, ))
-  dense1 = keras.layers.Dense(
+  input_tensor = tf.keras.layers.Input((3, ))
+  dense1 = tf.keras.layers.Dense(
       4,
       use_bias=True,
       kernel_initializer='ones',
       bias_initializer='zeros',
       name=layer_name_prefix + '1')(input_tensor)
-  output = keras.layers.Dense(
+  output = tf.keras.layers.Dense(
       2,
       use_bias=False,
       kernel_initializer='ones',
       name=layer_name_prefix + '2')(dense1)
-  model = keras.models.Model(inputs=[input_tensor], outputs=[output])
+  model = tf.keras.models.Model(inputs=[input_tensor], outputs=[output])
   model.compile(optimizer='adam', loss='binary_crossentropy')
   model.predict(tf.ones((1, 3)), steps=1)
 
@@ -520,6 +519,41 @@ class APIAndShellTest(tf.test.TestCase):
     # Check the content of the output directory.
     self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
 
+  def testConvertTFSavedModelIntoShardedWeights(self):
+    output_dir = os.path.join(self._tmp_dir, 'tfjs_model')
+    # Do initial conversion without sharding.
+    process = subprocess.Popen([
+        'tensorflowjs_converter', '--input_format', 'tf_saved_model',
+        '--output_format', 'tfjs_graph_model',
+        self.tf_saved_model_dir, output_dir
+    ])
+    process.communicate()
+    self.assertEqual(0, process.returncode)
+
+    weight_files = glob.glob(os.path.join(output_dir, 'group*.bin'))
+
+    # Get size of weights in bytes after graph optimizations.
+    optimized_total_weight = sum([os.path.getsize(f) for f in weight_files])
+    # Due to the shard size, there ought to be 2 shards after conversion.
+    weight_shard_size_bytes = int(optimized_total_weight * 0.8)
+
+    output_dir = os.path.join(self._tmp_dir, 'sharded_model')
+    # Convert Saved Model again with shard argument set.
+    process = subprocess.Popen([
+        'tensorflowjs_converter', '--input_format', 'tf_saved_model',
+        '--output_format', 'tfjs_graph_model',
+        '--weight_shard_size_bytes', str(weight_shard_size_bytes),
+        self.tf_saved_model_dir, output_dir
+    ])
+    process.communicate()
+    self.assertEqual(0, process.returncode)
+
+    weight_files = sorted(glob.glob(os.path.join(output_dir, 'group*.bin')))
+    self.assertEqual(len(weight_files), 2)
+    weight_file_sizes = [os.path.getsize(f) for f in weight_files]
+    self.assertEqual(sum(weight_file_sizes), optimized_total_weight)
+    self.assertLess(weight_file_sizes[1], weight_file_sizes[0])
+
   def testConvertTFFrozenModelWithCommandLineWorks(self):
     output_dir = os.path.join(self._tmp_dir)
     frozen_file = os.path.join(self.tf_frozen_model_dir, 'frozen.pb')
@@ -582,7 +616,7 @@ class APIAndShellTest(tf.test.TestCase):
     # 4. Load the model back from the new HDF5 file and compare with the
     #    original model.
     with tf.Graph().as_default(), tf.compat.v1.Session():
-      model_2 = keras.models.load_model(new_h5_path)
+      model_2 = tf.keras.models.load_model(new_h5_path)
       model_2_json = model_2.to_json()
       self.assertEqual(model_json, model_2_json)
 
@@ -602,7 +636,7 @@ class APIAndShellTest(tf.test.TestCase):
     process.communicate()
     self.assertEqual(0, process.returncode)
 
-    # 3. Load the tensorflowjs artifacts as a keras.Model instance.
+    # 3. Load the tensorflowjs artifacts as a tf.keras.Model instance.
     with tf.Graph().as_default(), tf.compat.v1.Session():
       model_2 = tfjs.converters.load_keras_model(
           os.path.join(self._tmp_dir, 'model.json'))
@@ -643,28 +677,28 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
     super(ConvertTfKerasSavedModelTest, self).tearDown()
 
   def _createSimpleSequentialModel(self):
-    model = keras.Sequential()
-    model.add(keras.layers.Reshape([2, 3], input_shape=[6]))
-    model.add(keras.layers.LSTM(10))
-    model.add(keras.layers.Dense(1, activation='sigmoid'))
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.Reshape([2, 3], input_shape=[6]))
+    model.add(tf.keras.layers.LSTM(10))
+    model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
     model.compile(optimizer='adam', loss='binary_crossentropy')
     model.predict(tf.ones((1, 6)), steps=1)
     return model
 
   def _createNestedSequentialModel(self):
-    model = keras.Sequential()
-    model.add(keras.layers.Dense(6, input_shape=[10], activation='relu'))
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.Dense(6, input_shape=[10], activation='relu'))
     model.add(self._createSimpleSequentialModel())
     model.compile(optimizer='adam', loss='binary_crossentropy')
     model.predict(tf.ones((1, 10)), steps=1)
     return model
 
   def _createFunctionalModelWithWeights(self):
-    input1 = keras.Input(shape=[8])
-    input2 = keras.Input(shape=[10])
-    y = keras.layers.Concatenate()([input1, input2])
-    y = keras.layers.Dense(4, activation='softmax')(y)
-    model = keras.Model([input1, input2], y)
+    input1 = tf.keras.Input(shape=[8])
+    input2 = tf.keras.Input(shape=[10])
+    y = tf.keras.layers.Concatenate()([input1, input2])
+    y = tf.keras.layers.Dense(4, activation='softmax')(y)
+    model = tf.keras.Model([input1, input2], y)
     model.compile(optimizer='adam', loss='binary_crossentropy')
     model.predict([tf.ones((1, 8)), tf.ones((1, 10))], steps=1)
     return model
@@ -678,7 +712,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       model = self._createNestedSequentialModel()
       y = model.predict(x)
 
-      keras.models.save_model(model, self._tmp_dir)
+      tf.keras.models.save_model(model, self._tmp_dir)
 
       # 2. Convert the keras saved model to tfjs format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
@@ -705,7 +739,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
 
       # 4. Load the model back and assert on the equality of the predict
       #    results.
-      model_prime = keras.models.load_model(new_h5_path)
+      model_prime = tf.keras.models.load_model(new_h5_path)
       new_y = model_prime.predict(x)
       self.assertAllClose(y, new_y)
 
@@ -747,7 +781,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
 
       # 4. Load the model back and assert on the equality of the predict
       #    results.
-      model_prime = keras.models.load_model(new_h5_path)
+      model_prime = tf.keras.models.load_model(new_h5_path)
       new_y = model_prime.predict([x1, x2])
       self.assertAllClose(y, new_y)
 
@@ -833,7 +867,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       # 6. Load the keras model and check the predict() output is close to
       #    before.
-      new_model = keras.models.load_model(new_h5_path)
+      new_model = tf.keras.models.load_model(new_h5_path)
       new_y = new_model.predict(x)
       self.assertAllClose(new_y, y)
 
@@ -880,9 +914,9 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
   def testConvertTfjsLayersModelToTfjsGraphModel(self):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       # 1. Create a model for testing.
-      model = keras.Sequential()
-      model.add(keras.layers.Dense(10, activation='relu', input_shape=[4]))
-      model.add(keras.layers.Dense(1, activation='sigmoid'))
+      model = tf.keras.Sequential()
+      model.add(tf.keras.layers.Dense(10, activation='relu', input_shape=[4]))
+      model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
       model.compile(optimizer='adam', loss='binary_crossentropy')
       model.predict(tf.ones((1, 4)), steps=1)
 
@@ -918,9 +952,9 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
   def testConvertTfjsLayersModelToKerasSavedModel(self):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       # 1. Create a model for testing.
-      model = keras.Sequential()
-      model.add(keras.layers.Dense(10, activation='relu', input_shape=[4]))
-      model.add(keras.layers.Dense(1, activation='sigmoid'))
+      model = tf.keras.Sequential()
+      model.add(tf.keras.layers.Dense(10, activation='relu', input_shape=[4]))
+      model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
       model.compile(optimizer='adam', loss='binary_crossentropy')
       model.predict(tf.ones((1, 4)), steps=1)
 

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,22 +15,17 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo} from '../../kernel_registry';
+import {squaredDifference} from '../../ops/squared_difference';
+import {Tensor} from '../../tensor';
+import {Rank, TensorLike} from '../../types';
 
-import {MathBackendWebGL} from './backend_webgl';
-import {SQUARE, UnaryOpProgram} from './unaryop_gpu';
-
-interface SquareInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    squaredDifference<T extends Tensor>(b: Tensor|TensorLike): T;
+  }
 }
 
-registerKernel({
-  kernelName: 'Square',
-  backendName: 'webgl',
-  kernelFunc: ({inputs, backend}) => {
-    const {x} = inputs as SquareInputs;
-    const webglBackend = backend as MathBackendWebGL;
-    const program = new UnaryOpProgram(x.shape, SQUARE);
-    return webglBackend.runWebGLProgram(program, [x], x.dtype);
-  }
-});
+Tensor.prototype.squaredDifference = function<T extends Tensor>(b: Tensor|
+                                                                TensorLike): T {
+  return squaredDifference(this, b);
+};

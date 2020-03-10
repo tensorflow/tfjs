@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,8 +15,4 @@
  * =============================================================================
  */
 
-// We explicitly import the modular gradients so they get registered in the
-// global registry when we compile the library. A modular build would replace
-// the contents of this file and import only the gradients that are needed.
-
-import './square_grad';
+import './squared_difference';
