@@ -127,6 +127,16 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'fused conv2d',
+    excludes: [
+      'im2row with prelu',                         // Actual != expected.
+      'pointwise with prelu',                      // Actual != expected.
+      'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0',  // conv2dDerInput not yet
+                                                   // implemented
+      'fused matmul with relu6',                   // step not yet implemented
+    ]
+  },
+  {
     include: 'fromPixels',
     excludes: [
       'HTMLVideolement',  // Failed to execute 'getImageData' on
