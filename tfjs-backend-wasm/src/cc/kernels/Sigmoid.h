@@ -22,7 +22,6 @@ namespace wasm {
 extern "C" {
 
 void Sigmoid(const size_t x_id, const size_t out_id);
-
 }
 
 }  // namespace wasm

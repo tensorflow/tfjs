@@ -6,7 +6,7 @@
     "declaration": false,
     "isolatedModules": true,
     "jsx": "react",
-    "lib": ["es6"],
+    "lib": ["es6", "dom"],
     "noEmit": true,
     "strict": true,
     "target": "esnext",

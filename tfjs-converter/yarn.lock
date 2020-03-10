@@ -55,10 +55,10 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@tensorflow/tfjs-core@1.5.1":
-  version "1.5.1"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.5.1.tgz#490209617f744fef660e8f81fe8b858e95b0d10b"
-  integrity sha512-N4fsi8mLsRwRs8UJN2cARB1rYFxyVXkLyZ4wOusiR976BwwZbCwQrTTSIPzPqYT3rwiexEUzm7sM6ZaDl5dpXA==
+"@tensorflow/tfjs-core@1.6.1":
+  version "1.6.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.6.1.tgz#216ae91b0bc6e66e9de9bcd33185b354d7c10991"
+  integrity sha512-BLWWjOUCvFjuX4ezKQKn5LSnkilLT5mshwhE8Qb/ZaHWN0HhTMiYy7vBmQVO7JXEPGaIVh2gzh8bpaJyjlTuyg==
   dependencies:
     "@types/offscreencanvas" "~2019.3.0"
     "@types/seedrandom" "2.4.27"

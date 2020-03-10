@@ -90,6 +90,12 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                 if(xR >= 0 && xR < ${xNumRows} && xCOffset >= 0 && xCOffset < ${
                   xNumCols}) {
                   xTexelR${r}C${c} = getX(batch, xR, xCOffset, d1);
+
+                  // Need to manually clear unused channels in case
+                  // we're reading from recycled texture.
+                  if(xCOffset + 1 >= ${xNumCols}) {
+                    xTexelR${r}C${c}.zw = vec2(0.);
+                  }
                 } else {
                   xTexelR${r}C${c} = vec4(0.);
                 }
@@ -98,6 +104,13 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                 if(xR >= 0 && xR < ${xNumRows} && xCOffset >= 0 && xCOffset < ${
                   xNumCols}) {
                   vec4 previous = getX(batch, xR, xCOffset, d1);
+
+                  // Need to manually clear unused channels in case
+                  // we're reading from recycled texture.
+                  if(xCOffset + 1 >= ${xNumCols}) {
+                    previous.zw = vec2(0.);
+                  }
+
                   xR${r}C${c} = vec4(previous.zw, xTexelR${r}C${c}.xy);
                 } else {
                   xR${r}C${c} = vec4(0, 0, xTexelR${r}C${c}.xy);

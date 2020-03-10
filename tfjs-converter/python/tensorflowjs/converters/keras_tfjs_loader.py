@@ -23,8 +23,7 @@ import os
 import uuid
 
 import six
-import tensorflow as tf
-from tensorflow import keras
+import tensorflow.compat.v2 as tf
 
 from tensorflowjs import read_weights
 from tensorflowjs.converters import keras_h5_conversion
@@ -60,9 +59,9 @@ def _deserialize_keras_model(model_topology_json,
   unique_name_scope = uuid.uuid4().hex if use_unique_name_scope else None
   with tf.compat.v1.name_scope(unique_name_scope):
     if is_tf_keras:
-      model = keras.models.model_from_json(json.dumps(model_topology_json))
+      model = tf.keras.models.model_from_json(json.dumps(model_topology_json))
     else:
-      model = keras.models.model_from_json(json.dumps(model_topology_json))
+      model = tf.keras.models.model_from_json(json.dumps(model_topology_json))
 
   if weight_entries:
     weights_dict = dict()
@@ -174,7 +173,7 @@ def load_keras_model(config_json_path,
       same TensorFlow Graph or Session context. Default: `False`.
 
   Returns:
-    The loaded instance of `keras.Model`.
+    The loaded instance of `tf.keras.Model`.
 
   Raises:
     TypeError, if the format of the JSON content of `config_json_path` has an

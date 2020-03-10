@@ -47,8 +47,9 @@ function notEqual_<T extends Tensor>(
   let $b = convertToTensor(b, 'b', 'notEqual');
   [$a, $b] = makeTypesMatch($a, $b);
   assertAndGetBroadcastShape($a.shape, $b.shape);
-  return ENGINE.runKernelFunc(backend => backend.notEqual($a, $b), {$a, $b}) as
-      T;
+  return ENGINE.runKernelFunc(
+             backend => backend.notEqual($a, $b), {a: $a, b: $b},
+             null /* grad */, 'NotEqual') as T;
 }
 
 /**

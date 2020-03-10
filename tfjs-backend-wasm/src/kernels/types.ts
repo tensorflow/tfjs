@@ -23,3 +23,11 @@ export enum CppDType {
   string = 3,
   complex64 = 4
 }
+
+// Must match enum in cc/fusable_activations.h.
+export enum FusableActivation {
+  linear = 0,
+  relu = 1,
+  relu6 = 2,
+  prelu = 3
+}

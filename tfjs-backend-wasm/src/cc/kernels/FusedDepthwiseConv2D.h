@@ -17,7 +17,7 @@
 
 #include <cstddef>
 
-#include "src/cc/conv2d_impl.h"
+#include "src/cc/backend.h"
 
 namespace tfjs {
 
