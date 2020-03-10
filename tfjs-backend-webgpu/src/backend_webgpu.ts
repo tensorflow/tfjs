@@ -813,7 +813,14 @@ export class WebGPUBackend extends KernelBackend {
       convInfo.strideHeight, convInfo.strideWidth
     ];
 
-    return this.compileAndRun(program, [input, filter], output, dimensions);
+    const inputs: Tensor[] = [input, filter];
+    if (hasBias) {
+      inputs.push(bias);
+    }
+    if (hasPreluActivationWeights) {
+      inputs.push(preluActivationWeights);
+    }
+    return this.compileAndRun(program, inputs, output, dimensions);
   }
 
   private argMinMaxReduce(x: Tensor, axis: number, reduceType: 'min'|'max'):
