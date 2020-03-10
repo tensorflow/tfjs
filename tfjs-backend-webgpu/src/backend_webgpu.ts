@@ -700,17 +700,17 @@ export class WebGPUBackend extends KernelBackend {
 
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
       Tensor4D {
-    if (env().getBool('WEBGPU_CONV_SEPARATE_IM2COL_SHADER') &&
-        x.shape[0] === 1) {
-      return this.conv2dWithIm2Col(x, filter, convInfo);
-    }
-
     if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
         convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
         convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
         (convInfo.padInfo.type === 'SAME' ||
          convInfo.padInfo.type === 'VALID')) {
       return this.conv2dByMatMul(x, filter, convInfo);
+    }
+
+    if (env().getBool('WEBGPU_CONV_SEPARATE_IM2COL_SHADER') &&
+        x.shape[0] === 1) {
+      return this.conv2dWithIm2Col(x, filter, convInfo);
     }
 
     const dataId = this.write(null /*values*/, convInfo.outShape, x.dtype);
