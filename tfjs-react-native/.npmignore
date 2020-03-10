@@ -11,8 +11,6 @@
 cloudbuild.yml
 coverage/
 demo/
-dist/**/*_test.d.ts
-dist/**/*_test.js
 karma.conf.js
 node_modules/
 npm-debug.log
@@ -20,7 +18,6 @@ package-lock.json
 package/
 rollup.config.js
 scripts/
-src/**/*_test.ts
 tsconfig.json
 tslint.json
 yarn-error.log

@@ -53,6 +53,7 @@ import * as webgpu_util from './webgpu_util';
 
 export interface WebGPUMemoryInfo extends backend_util.MemoryInfo {
   numBytesInGPU: number;
+  numBytesAllocatedInGPU: number;
   unreliable: boolean;
 }
 
@@ -162,6 +163,7 @@ export class WebGPUBackend extends KernelBackend {
   memory(): WebGPUMemoryInfo {
     return {
       numBytesInGPU: this.bufferManager.numBytesUsed,
+      numBytesAllocatedInGPU: this.bufferManager.numBytesAllocated,
       unreliable: false
     } as WebGPUMemoryInfo;
   }

@@ -159,12 +159,14 @@ export async function confusionMatrix(
       'x': {
         'field': 'prediction',
         'type': 'ordinal',
+        'title': options.xLabel || 'prediction',
         // Maintain sort order of the axis if labels is passed in
         'scale': {'domain': tickLabels},
       },
       'y': {
         'field': 'label',
         'type': 'ordinal',
+        'title': options.yLabel || 'label',
         // Maintain sort order of the axis if labels is passed in
         'scale': {'domain': tickLabels},
       },
@@ -182,7 +184,7 @@ export async function confusionMatrix(
           'color': {
             'field': 'scaleCount',
             'type': 'quantitative',
-            'scale': {'range': ['#f7fbff', '#4292c6']},
+            'scale': {'range': options.colorMap},
           },
           'tooltip': [
             {'field': 'label', 'type': 'nominal'},
@@ -229,6 +231,12 @@ export async function confusionMatrix(
     });
   }
 
+  const colorMap = typeof options.colorMap === 'string' ?
+      {scheme: options.colorMap} :
+      options.colorMap;
+  //@ts-ignore
+  spec.layer[0].encoding.color.scale.range = colorMap;
+
   await embed(drawArea, spec, embedOpts);
 }
 
@@ -241,6 +249,7 @@ const defaultOpts: ConfusionMatrixOptions = {
   fontSize: 12,
   showTextOverlay: true,
   height: 400,
+  colorMap: ['#f7fbff', '#4292c6'],
 };
 
 interface MatrixEntry {

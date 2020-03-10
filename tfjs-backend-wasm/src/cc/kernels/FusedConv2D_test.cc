@@ -18,7 +18,6 @@
 #include <cstddef>
 
 #include "src/cc/backend.h"
-#include "src/cc/conv2d_impl.h"
 #include "src/cc/kernels/FusedConv2D.h"
 #include "src/cc/util.h"
 
@@ -76,8 +75,7 @@ TEST(FUSEDCONV2D, xnn_operator_lifetime) {
   const size_t input_channels = 1;
   const size_t output_channels = 1;
 
-  const tfjs::wasm::FusableActivation activation =
-      tfjs::wasm::FusableActivation::LINEAR;
+  const FusableActivation activation = FusableActivation::LINEAR;
   const size_t prelu_weights_id = 0;
 
   tfjs::wasm::FusedConv2D(
@@ -173,8 +171,7 @@ TEST(FUSEDCONV2D, xnn_operator_lifetime) {
 
   // One new XNN operator should be created for the next call to conv2d with a
   // different activation.
-  const tfjs::wasm::FusableActivation activation2 =
-      tfjs::wasm::FusableActivation::RELU6;
+  const FusableActivation activation2 = FusableActivation::RELU6;
   tfjs::wasm::FusedConv2D(
       x1_id, batch_size, input_height, input_width, weights1_id, filter_height,
       filter_width, bias1_id, pad_top1, pad_right, pad_bottom1, pad_left,

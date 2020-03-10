@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-core",
-  "version": "1.5.1",
+  "version": "1.6.1",
   "description": "Hardware-accelerated JavaScript library for machine intelligence",
   "private": false,
   "main": "dist/index.js",
@@ -53,7 +53,7 @@
   },
   "scripts": {
     "build-ci": "./scripts/enumerate-tests.js --ci && tsc && yarn build-test-snippets",
-    "build": "./scripts/enumerate-tests.js && tsc",
+    "build": "node ./scripts/enumerate-tests.js && tsc",
     "build-npm": "./scripts/build-npm.sh",
     "build:bazel": "bazel build //...",
     "build-test-snippets": "yarn tsc --project ./scripts/test_snippets/tsconfig.json",

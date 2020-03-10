@@ -18,6 +18,7 @@
 // We explicitly import the modular kernels so they get registered in the
 // global registry when we compile the library. A modular build would replace
 // the contents of this file and import only the kernels that are needed.
+import './_FusedMatMul';
 import './Abs';
 import './Add';
 import './AddN';
@@ -51,9 +52,12 @@ import './MaxPool';
 import './Min';
 import './Minimum';
 import './Mul';
+import './Neg';
 import './NonMaxSuppressionV3';
 import './NonMaxSuppressionV5';
+import './NotEqual';
 import './PadV2';
+import './Pow';
 import './Prelu';
 import './Relu';
 import './Relu6';
@@ -64,6 +68,7 @@ import './ScatterNd';
 import './Sigmoid';
 import './Sin';
 import './Slice';
+import './Softmax';
 import './Square';
 import './Sub';
 import './Sum';

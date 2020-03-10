@@ -22,6 +22,7 @@ export class BufferManager {
   private usedBuffers: Map<string, GPUBuffer[]> = new Map();
 
   public numBytesUsed = 0;
+  public numBytesAllocated = 0;
 
   constructor(private device: GPUDevice) {}
 
@@ -46,6 +47,7 @@ export class BufferManager {
       return newBuffer;
     }
 
+    this.numBytesAllocated += byteSize;
     const newBuffer = this.device.createBuffer({size: byteSize, usage});
     this.usedBuffers.get(key).push(newBuffer);
 
@@ -90,6 +92,8 @@ export class BufferManager {
     this.usedBuffers = new Map();
     this.numUsedBuffers = 0;
     this.numFreeBuffers = 0;
+    this.numBytesUsed = 0;
+    this.numBytesAllocated = 0;
   }
 
   dispose() {
@@ -113,6 +117,8 @@ export class BufferManager {
     this.usedBuffers = null;
     this.numUsedBuffers = 0;
     this.numFreeBuffers = 0;
+    this.numBytesUsed = 0;
+    this.numBytesAllocated = 0;
   }
 }
 

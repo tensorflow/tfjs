@@ -16,10 +16,15 @@
  */
 
 import './platform_react_native';
-import * as tf from '@tensorflow/tfjs-core';
-import {asyncStorageIO} from './async_storage_io';
 
-describe('AsyncStorageIO', () => {
+import * as tf from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
+import {asyncStorageIO} from './async_storage_io';
+import {RN_ENVS} from './test_env_registry';
+
+describeWithFlags('AsyncStorageIO', RN_ENVS, () => {
   // Test data.
   const modelTopology1: {} = {
     'class_name': 'Sequential',

@@ -61,3 +61,7 @@ buck-out/
 
 # CocoaPods
 /ios/Pods/
+
+./android/.settings/org.eclipse.buildship.core.prefs
+./android/app/.classpath
+./android/app/.project

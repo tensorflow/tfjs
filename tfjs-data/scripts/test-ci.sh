@@ -12,5 +12,4 @@ set -e
 # Regular testing.
 yarn build
 yarn lint
-yarn test-node
-yarn run-browserstack
+yarn test

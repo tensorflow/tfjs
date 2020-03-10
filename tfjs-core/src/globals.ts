@@ -239,7 +239,9 @@ export function keep<T extends Tensor>(result: T): T {
  * The result is an object with the following properties:
  *
  * - `wallMs`: Wall execution time.
- * - `kernelMs`: Kernel execution time, ignoring data transfer.
+ * - `kernelMs`: Kernel execution time, ignoring data transfer. If using the
+ * WebGL backend and the query timer extension is not available, this will
+ * return an error object.
  * - On `WebGL` The following additional properties exist:
  *   - `uploadWaitMs`: CPU blocking time on texture uploads.
  *   - `downloadWaitMs`: CPU blocking time on texture downloads (readPixels).

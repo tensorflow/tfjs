@@ -25,7 +25,7 @@ export const EPSILON_FLOAT16 = 1e-4;
 
 // Required information for all backends.
 export interface BackendTimingInfo {
-  kernelMs: number;
+  kernelMs: number|{error: string};
   getExtraProfileInfo?(): string;  // a field for additional timing information
                                    // e.g. packing / unpacking for WebGL backend
 }
@@ -304,6 +304,9 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   }
   expm1<T extends Tensor>(x: T): T {
     return notYetImplemented('expm1');
+  }
+  softmax<T extends Tensor>(x: T, dim: number): T {
+    return notYetImplemented('softmax');
   }
   log<T extends Tensor>(x: T): T {
     return notYetImplemented('log');

@@ -22,8 +22,7 @@ import shutil
 import tempfile
 import unittest
 
-import tensorflow as tf
-from tensorflow.contrib import lookup as contrib_lookup
+import tensorflow.compat.v2 as tf
 from tensorflow.python.eager import def_function
 from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import dtypes
@@ -88,7 +87,7 @@ class ConvertTest(tf.test.TestCase):
 
     graph = tf.Graph()
     with graph.as_default():
-      x = tf.placeholder('float32', [2, 2])
+      x = tf.compat.v1.placeholder('float32', [2, 2])
       w = tf.compat.v1.get_variable('w', shape=[2, 2])
       output = tf.compat.v1.matmul(x, w)
       init_op = w.initializer
@@ -96,18 +95,18 @@ class ConvertTest(tf.test.TestCase):
       # Add a hash table that is not used by the output.
       keys = tf.constant(['key'])
       values = tf.constant([1])
-      initializer = contrib_lookup.KeyValueTensorInitializer(keys, values)
-      table = contrib_lookup.HashTable(initializer, -1)
+      initializer = tf.lookup.KeyValueTensorInitializer(keys, values)
+      table = tf.lookup.StaticHashTable(initializer, -1)
 
       # Create a builder.
       save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
-      builder = tf.compat.v1.saved_model.builder.SavedModelBuilder(save_dir)
+      builder = tf.compat.v1.saved_model.builder.SavedModelBuilder(
+          save_dir)
 
       with tf.compat.v1.Session() as sess:
         # Run the initializer on `w`.
         sess.run(init_op)
-        table.init.run()
-
+        table.lookup(keys)
         builder.add_meta_graph_and_variables(
             sess, [tf.compat.v1.saved_model.tag_constants.SERVING],
             signature_def_map={
@@ -280,20 +279,21 @@ class ConvertTest(tf.test.TestCase):
     saved_model_dir = os.path.join(self._tmp_dir, FROZEN_MODEL_DIR)
     with graph.as_default():
       x = tf.constant([[37.0, -23.0], [1.0, 4.0]])
-      w = tf.Variable(tf.random_uniform([2, 2]))
+      w = tf.Variable(tf.random.uniform([2, 2]))
       y = tf.matmul(x, w)
       tf.nn.softmax(y)
       init_op = w.initializer
 
       # Create a builder
-      builder = tf.saved_model.builder.SavedModelBuilder(saved_model_dir)
+      builder = tf.compat.v1.saved_model.builder.SavedModelBuilder(
+          saved_model_dir)
 
-      with tf.Session() as sess:
+      with tf.compat.v1.Session() as sess:
         # Run the initializer on `w`.
         sess.run(init_op)
 
         builder.add_meta_graph_and_variables(
-            sess, [tf.saved_model.tag_constants.SERVING],
+            sess, [tf.compat.v1.saved_model.tag_constants.SERVING],
             signature_def_map=None,
             assets_collection=None)
 
@@ -311,7 +311,7 @@ class ConvertTest(tf.test.TestCase):
         frozen_file,
         True,
         '',
-        saved_model_tags=tf.saved_model.tag_constants.SERVING,
+        saved_model_tags=tf.compat.v1.saved_model.tag_constants.SERVING,
         input_saved_model_dir=saved_model_dir)
 
   def test_convert_saved_model_v1(self):
@@ -678,6 +678,34 @@ class ConvertTest(tf.test.TestCase):
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
 
+  def test_convert_saved_model_sharded(self):
+    self._create_saved_model()
+    model_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+
+    # Do initial conversion without sharding.
+    tf_saved_model_conversion_v2.convert_tf_saved_model(model_path, tfjs_path)
+    weight_files = glob.glob(os.path.join(tfjs_path, 'group*.bin'))
+
+    # Get size of weights in bytes after graph optimizations.
+    optimized_total_weight = sum([os.path.getsize(f) for f in weight_files])
+
+    # Due to the shard size, there ought to be 2 shards after conversion.
+    weight_shard_size_bytes = int(optimized_total_weight * 0.8)
+
+    tfjs_path = os.path.join(self._tmp_dir, 'sharded_model')
+    # Convert Saved Model again with shard argument set.
+    tf_saved_model_conversion_v2.convert_tf_saved_model(
+        model_path, tfjs_path,
+        weight_shard_size_bytes=weight_shard_size_bytes)
+
+    weight_files = sorted(glob.glob(os.path.join(tfjs_path, 'group*.bin')))
+    self.assertEqual(len(weight_files), 2)
+    weight_file_sizes = [os.path.getsize(f) for f in weight_files]
+
+    self.assertEqual(sum(weight_file_sizes), optimized_total_weight)
+    self.assertLess(weight_file_sizes[1], weight_file_sizes[0])
+
   def test_optimizer_add_unsupported_op(self):
     self._create_unsupported_saved_model()
     with self.assertRaisesRegexp(  # pylint: disable=deprecated-method
@@ -769,6 +797,35 @@ class ConvertTest(tf.test.TestCase):
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+
+  def test_convert_hub_module_v1_sharded(self):
+    self._create_hub_module()
+    module_path = os.path.join(self._tmp_dir, HUB_MODULE_DIR)
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+
+    # Do initial conversion without sharding.
+    tf_saved_model_conversion_v2.convert_tf_hub_module(module_path, tfjs_path)
+    weight_files = glob.glob(os.path.join(tfjs_path, 'group*.bin'))
+
+    # Get size of weights in bytes after graph optimizations.
+    optimized_total_weight = sum([os.path.getsize(f) for f in weight_files])
+
+    # Due to the shard size, there ought to be 3 shards after conversion.
+    weight_shard_size_bytes = int(optimized_total_weight * 0.4)
+
+    tfjs_path = os.path.join(self._tmp_dir, 'sharded_model')
+    # Convert Hub model again with shard argument set.
+    tf_saved_model_conversion_v2.convert_tf_hub_module(
+        module_path, tfjs_path,
+        weight_shard_size_bytes=weight_shard_size_bytes)
+
+    weight_files = sorted(glob.glob(os.path.join(tfjs_path, 'group*.bin')))
+    self.assertEqual(len(weight_files), 3)
+    weight_file_sizes = [os.path.getsize(f) for f in weight_files]
+
+    self.assertEqual(sum(weight_file_sizes), optimized_total_weight)
+    self.assertEqual(weight_file_sizes[0], weight_file_sizes[1])
+    self.assertLess(weight_file_sizes[2], weight_file_sizes[0])
 
   def test_convert_hub_module_v2(self):
     self._create_saved_model()

@@ -239,7 +239,6 @@ export interface OpHandler {
   minimumStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   maximum<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   maximumStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  squaredDifference<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   squaredDifferenceStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   transpose<T extends Tensor>(x: T, perm?: number[]): T;
   logicalNot<T extends Tensor>(x: T): T;
@@ -416,6 +415,8 @@ export function setDeprecationWarningFn(fn: (msg: string) => void) {
  */
 export type DataId = object;  // object instead of {} to force non-primitive.
 
+// Declare this namespace to make Tensor class augmentation work in google3.
+export declare namespace Tensor {}
 /**
  * A `tf.Tensor` object represents an immutable, multidimensional array of
  * numbers that has a shape and a data type.
@@ -993,10 +994,6 @@ export class Tensor<R extends Rank = Rank> {
   modStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.modStrict(this, x);
-  }
-  squaredDifference<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.squaredDifference(this, x);
   }
   squaredDifferenceStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();

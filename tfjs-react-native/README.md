@@ -9,10 +9,6 @@ of tfjs usage, include:
   - IOHandlers to support loading models from asyncStorage and models
     that are compiled into the app bundle.
 
-## Status
-This package is currently an **alpha release**. We welcome react native developers
-to try it and give us feedback.
-
 ## Setting up a React Native app with tfjs-react-native
 
 These instructions **assume that you are generally familiar with [react native](https://facebook.github.io/react-native/) developement**.
@@ -70,12 +66,13 @@ module.exports = {
 ### Step 4: Install TensorFlow.js and tfjs-react-native
 
 - Install @tensorflow/tfjs - `npm install @tensorflow/tfjs`
-- Install @tensorflow/tfjs-react-native - `npm install @tensorflow/tfjs-react-native@alpha`
+- Install @tensorflow/tfjs-react-native - `npm install @tensorflow/tfjs-react-native`
 
 ### Step 5: Install and configure other peerDependencies
 
 - Install and configure [async-storage](https://github.com/react-native-community/async-storage)
 - Install and configure [react-native-fs](https://www.npmjs.com/package/react-native-fs)
+- Install and configure [expo-camera](https://www.npmjs.com/package/expo-camera)
 
 ### Step 6: Test that it is working
 
@@ -126,78 +123,4 @@ The [Webcam demo folder](integration_rn59/components/webcam) has an example of a
 
 ## API Docs
 
-`tfjs-react-native` exports a number of utility functions:
-
-### asyncStorageIO(modelKey: string)
-
-```js
-async function asyncStorageExample() {
-  // Define a model
-  const model = tf.sequential();
-  model.add(tf.layers.dense({units: 5, inputShape: [1]}));
-  model.add(tf.layers.dense({units: 1}));
-  model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
-
-  // Save the model to async storage
-  await model.save(asyncStorageIO('custom-model-test'));
-  // Load the model from async storage
-  await tf.loadLayersModel(asyncStorageIO('custom-model-test'));
-}
-```
-
-The `asyncStorageIO` function returns an io handler that can be used to save and load models
-to and from AsyncStorage.
-
-### bundleResourceIO(modelArchitecture: Object, modelWeights: number)
-
-```js
-const modelJson = require('../path/to/model.json');
-const modelWeights = require('../path/to/model_weights.bin');
-async function bundleResourceIOExample() {
-  const model =
-      await tf.loadLayersModel(bundleResourceIO(modelJson, modelWeights));
-
-  const res = model.predict(tf.randomNormal([1, 28, 28, 1])) as tf.Tensor;
-}
-```
-
-The `bundleResourceIO` function returns an IOHandler that is able to **load** models
-that have been bundled with the app (apk or ipa) at compile time. It takes two
-parameters.
-
-1. modelArchitecture: This is a JavaScript object (and notably not a string). This is
-   because metro will automatically resolve `require`'s for JSON file and return parsed
-   JavaScript objects.
-
-2. modelWeights: This is the numeric id returned by the metro bundler for the binary weights file
-   via `require`. The IOHandler will be able to load the actual data from the bundle package.
-
-`bundleResourceIO` only supports non sharded models at the moment. It also cannot save models. Though you
-can use the asyncStorageIO handler to save to AsyncStorage.
-
-### decodeJpeg(contents: Uint8Array, channels?: 0 | 1 | 3)
-
-```js
-const image = require("path/to/img.jpg");
-const imageAssetPath = Image.resolveAssetSource(image);
-const response = await fetch(imageAssetPath.uri, {}, { isBinary: true });
-const rawImageData = await response.arrayBuffer();
-
-const imageTensor = decodeJpeg(rawImageData);
-```
-
-**returns** a tf.Tensor3D of the decoded image.
-
-Parameters:
-
-1. contents: raw bytes of the image as a Uint8Array
-1. channels: An optional int that indicates whether the image should be loaded as RBG (channels = 3), Grayscale (channels = 1), or autoselected based on the contents of the image (channels = 0). Defaults to 3. Currently only 3 channel RGB images are supported.
-
-### fetch(path: string, init?: RequestInit, options?: tf.io.RequestDetails)
-
-tfjs react native exports a custom fetch function that is able to correctly load binary files into
-`arrayBuffer`'s. The first two parameters are the same as regular [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). The 3rd paramater is an optional custom `options` object, it currently has one option
-
-- options.isBinary: A boolean indicating if this is request for a binary file.
-
-This is needed because the response from `fetch` as currently implemented in React Native does not support the `arrayBuffer()` call.
+[API docs are available here](https://js.tensorflow.org/api_react_native/latest/)
