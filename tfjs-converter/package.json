@@ -2,10 +2,10 @@
   "name": "@tensorflow/tfjs-converter",
   "version": "1.7.0",
   "description": "Tensorflow model converter for javascript",
-  "main": "dist/src/index.js",
+  "main": "dist/index.js",
   "jsnext:main": "dist/tf-converter.esm.js",
   "module": "dist/tf-converter.esm.js",
-  "types": "dist/src/index.d.ts",
+  "types": "dist/index.d.ts",
   "unpkg": "dist/tf-converter.min.js",
   "jsdelivr": "dist/tf-converter.min.js",
   "miniprogram": "dist/miniprogram",
@@ -15,10 +15,10 @@
   },
   "license": "Apache-2.0",
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "1.7.0"
+    "@tensorflow/tfjs-core": "link:../tfjs-core"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-core": "1.7.0",
+    "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@types/deep-equal": "^1.0.1",
     "@types/jasmine": "~2.8.6",
     "@types/long": "~3.0.32",
