@@ -90,7 +90,7 @@
           'number' // out_id
       ]);
   }
-  function fusedMatMul(args) {
+  function fusedBatchMatMul(args) {
       var inputs = args.inputs, backend = args.backend, attrs = args.attrs;
       var a = inputs.a, b = inputs.b, bias = inputs.bias, preluActivationWeights = inputs.preluActivationWeights;
       if (a.dtype !== 'float32' || b.dtype !== 'float32') {
@@ -130,7 +130,7 @@
       kernelName: '_FusedMatMul',
       backendName: 'wasm',
       setupFunc: setup,
-      kernelFunc: fusedMatMul
+      kernelFunc: fusedBatchMatMul
   });
 
   /**
