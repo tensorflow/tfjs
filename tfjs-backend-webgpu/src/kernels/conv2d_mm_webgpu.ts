@@ -61,8 +61,9 @@ export class Conv2DMMProgram implements WebGPUProgram {
     util.assert(
         tileInner % this.workGroupSize[0] === 0 &&
             tileInner % this.workGroupSize[1] === 0,
-        () => `tileInner must be multiple of workgroupsize.x and
-            workgroupsize.y`);
+        () =>
+            // tslint:disable-next-line: max-line-length
+        'tileInner must be multiple of workgroupsize.x and workgroupsize.y');
     const tileSizeA = [tileAOuter, tileInner];
     const tileSizeB = [tileInner, tileBOuter];
     const dimAOuter = this.outputShape[1] * this.outputShape[2];
@@ -92,7 +93,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
             }`;
       } else {
         activationSnippet = `
-              float activation(float x) {
+              float activation(float a) {
                 ${activation}
               }
             `;
@@ -155,6 +156,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
           mm_matMul(dimAOuter, dimInner, dimBOuter);
         }
       `;
-    this.shaderKey = `conv2dmm'${elementsPerThread.join('')}${fitA}${fitB}`;
+    this.shaderKey = `conv2dmm'${elementsPerThread.join('')}${fitA}${fitB}${
+        addBiasSnippet}${activationSnippet}`;
   }
 }
