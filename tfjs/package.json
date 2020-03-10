@@ -50,7 +50,7 @@
     "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
-    "build": "yarn link-master && yarn build-core && yarn build-layers && yarn build-converter && yarn build-data && tsc",
+    "build": "yarn link-master && tsc",
     "build-ci": "tsc",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
