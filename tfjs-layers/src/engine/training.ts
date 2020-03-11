@@ -331,9 +331,9 @@ function checkInputData(
         if (refDim != null) {
           if (refDim !== dim) {
               throw new ValueError(
-                `${names[i]} is expected to have an input shape of [${shapes[i]}] ` +
-                `but the output of previous_layer has an output shape of ` +
-                `[${array.shape}].`);
+                `${names[i]} is expected to have an input shape of ` +
+                ` [${shapes[i]}]  but the output of previous_layer ` +
+                ` has an output shape of [${array.shape}].`);
           }
         }
       }
