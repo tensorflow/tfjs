@@ -1111,8 +1111,7 @@ export declare interface Cropping2DLayerArgs extends LayerArgs {
    * `channels_last` corresponds to inputs with shape
    *   `(batch, ..., channels)`
    *
-   *  `channels_first` corresponds to inputs with shape `(batch, channels,
-   * ...)`.
+   *  `channels_first` corresponds to inputs with shape `(batch, channels, ...)`.
    *
    * Defaults to `channels_last`.
    */
