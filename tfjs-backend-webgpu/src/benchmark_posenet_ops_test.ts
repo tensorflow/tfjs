@@ -26,12 +26,18 @@ describeWebGPU('benchmark-posenet', () => {
 
         fit(opName, async () => {
           const inputs = (obj.inputs as any).map((input: number[]) => {
+            if (typeof input[0] === 'object') {
+              console.log('THIS SHOULD ONLY HAPPEN WITH CONCAT');
+              return (input as any).map((nested: any) => {
+                return tf.randomNormal(nested);
+              });
+            }
             return tf.randomNormal(input);
           });
 
           let additionalArgs: any = [];
-          if (obj.args) {
-            additionalArgs = obj.args;
+          if ((obj as any).args) {
+            additionalArgs = (obj as any).args;
           } else {
             if (opName === 'conv2d') {
               additionalArgs = [1, 'same'];
