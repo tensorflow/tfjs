@@ -2,35 +2,21 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs-converter@1.7.0":
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-1.7.0.tgz#4dcfeffa0bfa4e26e8b64e15a24a6683645945cc"
-  integrity sha512-cFXLDKVEjEtFv/C0wETXpIeJNa25chC6nvFm06dB/ShvrGYZpDsGlWVNiCu4v5/VtrSZEQPZ2QdkpTpURbvAqQ==
+"@tensorflow/tfjs-converter@link:../tfjs-converter":
+  version "0.0.0"
+  uid ""
 
-"@tensorflow/tfjs-core@1.7.0":
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.7.0.tgz#9207c8f2481c52a6a40135a6aaf21a9bb0339bdf"
-  integrity sha512-uwQdiklNjqBnHPeseOdG0sGxrI3+d6lybaKu2+ou3ajVeKdPEwpWbgqA6iHjq1iylnOGkgkbbnQ6r2lwkiIIHw==
-  dependencies:
-    "@types/offscreencanvas" "~2019.3.0"
-    "@types/seedrandom" "2.4.27"
-    "@types/webgl-ext" "0.0.30"
-    "@types/webgl2" "0.0.4"
-    node-fetch "~2.1.2"
-    seedrandom "2.4.3"
+"@tensorflow/tfjs-core@link:../tfjs-core":
+  version "0.0.0"
+  uid ""
 
-"@tensorflow/tfjs-data@1.7.0":
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-1.7.0.tgz#6b5f91e328d1fdd577bc67b1c800197f34ae3f91"
-  integrity sha512-i3pPpCTN76cVArzQ1vby+YFDcxC7APOTW2NGcHr3VxWf9ZCMgjJv/s2z71U8OHoCzw/lTXYue8/l4j4q+D3PMg==
-  dependencies:
-    "@types/node-fetch" "^2.1.2"
-    node-fetch "~2.1.2"
+"@tensorflow/tfjs-data@link:../tfjs-data":
+  version "0.0.0"
+  uid ""
 
-"@tensorflow/tfjs-layers@1.7.0":
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-1.7.0.tgz#7d1f7246ac3f6f23d0923b7d69d7a97a0890a35d"
-  integrity sha512-sRdzuPc2CeLSxctqXdLTckvitSBjsjL8H6MSrvrbOfPEckKdAeNpojB0ayM+76Pc3AsS0/AI6F1R2lT9qoH9/g==
+"@tensorflow/tfjs-layers@link:../tfjs-layers":
+  version "0.0.0"
+  uid ""
 
 "@types/estree@0.0.38":
   version "0.0.38"
