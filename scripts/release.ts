@@ -270,8 +270,7 @@ async function main() {
 
   const packageNames = packages.join(', ');
   const versionNames = newVersions.join(', ');
-  const timestamp = Date.now();
-  const branchName = `b${newVersions.join('-')}_${timestamp}`;
+  const branchName = `b${newVersions.join('-')}_phase${phaseInt}`;
   $(`git checkout -b ${branchName}`);
   $(`git push -u origin ${branchName}`);
   $(`git add .`);
