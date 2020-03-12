@@ -326,7 +326,8 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'rsqrt ',
     excludes: ['gradient']  // Gradient not yet implemented.
   },
-
+  {startsWith: 'zerosLike'},
+  {startsWith: 'onesLike'},
 ];
 
 const customInclude = (testName: string) => {
