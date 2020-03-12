@@ -251,20 +251,20 @@ export function makeBatches(
  *   function is expected to perform the updates to the variables.
  * @param ins List of tensors to be fed to `f`.
  * @param outLabels List of strings, display names of the outputs of `f`.
- * @param batchSize Integer batch size or `== null` if unknown.
- * @param epochs Number of times to iterate over the data.
+ * @param batchSize Integer batch size or `== null` if unknown. Default : 32.
+ * @param epochs Number of times to iterate over the data. Default : 1.
  * @param verbose Verbosity mode: 0, 1, or 2. Default: 1.
  * @param callbacks List of callbacks to be called during training.
  * @param valF Function to call for validation.
  * @param valIns List of tensors to be fed to `valF`.
  * @param shuffle Whether to shuffle the data at the beginning of every
- * epoch.
+ * epoch. Default : true.
  * @param callbackMetrics List of strings, the display names of the metrics
  *   passed to the callbacks. They should be the concatenation of the
  *   display names of the outputs of `f` and the list of display names
  *   of the outputs of `valF`.
  * @param initialEpoch Epoch at which to start training (useful for
- *   resuming a previous training run).
+ *   resuming a previous training run). Default : 0.
  * @param stepsPerEpoch Total number of steps (batches on samples) before
  *   declaring one epoch finished and starting the next epoch. Ignored with
  *   the default value of `undefined` or `null`.
