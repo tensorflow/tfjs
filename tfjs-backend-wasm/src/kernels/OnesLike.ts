@@ -24,8 +24,8 @@ interface OnesLikeInputs extends NamedTensorInfoMap {
 }
 
 function onesLike(args: {inputs: OnesLikeInputs, backend: BackendWasm}) {
-  const {inputs, backend} = args;
-  const out = backend.makeOutput(inputs.x.shape, inputs[0].dtype);
+  const {inputs: {x}, backend} = args;
+  const out = backend.makeOutput(x.shape, x.dtype);
   const outVals = backend.typedArrayFromHeap(out);
   outVals.fill(1);
   return out;

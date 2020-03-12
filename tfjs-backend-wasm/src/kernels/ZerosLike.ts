@@ -24,8 +24,8 @@ interface ZerosLikeInputs extends NamedTensorInfoMap {
 }
 
 function zerosLike(args: {inputs: ZerosLikeInputs, backend: BackendWasm}) {
-  const {inputs, backend} = args;
-  const out = backend.makeOutput(inputs.x.shape, inputs[0].dtype);
+  const {inputs: {x}, backend} = args;
+  const out = backend.makeOutput(x.shape, x.dtype);
   const outVals = backend.typedArrayFromHeap(out);
   outVals.fill(0);
   return out;
