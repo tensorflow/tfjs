@@ -134,6 +134,8 @@ async function main() {
   PHASES.forEach((_, i) => printPhase(i));
   console.log();
 
+  const releaseBranch = await question('Which release branch: ');
+
   const phaseStr = await question('Which phase (leave empty for 0): ');
   const phaseInt = +phaseStr;
   if (phaseInt < 0 || phaseInt >= PHASES.length) {
@@ -161,10 +163,13 @@ async function main() {
   const urlBase = args.git_protocol ? 'git@github.com:' : 'https://github.com/';
 
   if (phase.repo != null) {
+    // Publishing website, another repo.
     $(`git clone ${urlBase}tensorflow/${phase.repo} ${dir} --depth=1`);
     shell.cd(dir);
   } else {
-    $(`git clone ${urlBase}tensorflow/tfjs ${dir} --depth=1`);
+    // Publishing tfjs, clone the release branch.
+    $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${
+        dir} --depth=1`)
     shell.cd(dir);
   }
 
@@ -265,7 +270,8 @@ async function main() {
 
   const packageNames = packages.join(', ');
   const versionNames = newVersions.join(', ');
-  const branchName = `b${newVersions.join('-')}`;
+  const timestamp = Date.now();
+  const branchName = `b${newVersions.join('-')}_${timestamp}`;
   $(`git checkout -b ${branchName}`);
   $(`git push -u origin ${branchName}`);
   $(`git add .`);
@@ -273,7 +279,7 @@ async function main() {
   $(`git push`);
   const title =
       phase.title ? phase.title : `Update ${packageNames} to ${versionNames}.`;
-  $(`hub pull-request --browse --message "${title}" --labels INTERNAL`);
+  $(`hub pull-request -b ${releaseBranch} -m "${title}" -l INTERNAL -o`);
   console.log();
 
   console.log(
