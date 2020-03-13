@@ -18,6 +18,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import glob
 import json
 import os
 import shutil
@@ -446,6 +447,30 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertIsInstance(weights_manifest, list)
     self.assertEqual(1, len(weights_manifest))
     self.assertIn('paths', weights_manifest[0])
+
+  def testSavedModelSucceedsForCustomShardSize(self):
+    model = tf.keras.Sequential([
+        tf.keras.layers.Dense(1, input_shape=[2], activation='relu'),
+        tf.keras.layers.Dense(3, activation='tanh')
+    ])
+
+    weights = model.get_weights()
+    total_weight_bytes = sum(np.size(w) for w in weights) * 4
+
+    # Due to the shard size, there ought to be 4 shards after conversion.
+    weight_shard_size_bytes = int(total_weight_bytes * 0.3)
+
+    # Convert Keras model to tfjs_layers_model format.
+    conversion.save_keras_model(model, self._tmp_dir,
+                                weight_shard_size_bytes=weight_shard_size_bytes)
+
+    weight_files = sorted(glob.glob(os.path.join(self._tmp_dir, 'group*.bin')))
+    self.assertEqual(len(weight_files), 4)
+    weight_file_sizes = [os.path.getsize(f) for f in weight_files]
+    self.assertEqual(sum(weight_file_sizes), total_weight_bytes)
+    self.assertEqual(weight_file_sizes[0], weight_file_sizes[1])
+    self.assertEqual(weight_file_sizes[0], weight_file_sizes[2])
+    self.assertLess(weight_file_sizes[3], weight_file_sizes[0])
 
   def testSavedModelRaisesErrorIfArtifactsDirExistsAsAFile(self):
     artifacts_dir = os.path.join(self._tmp_dir, 'artifacts')
