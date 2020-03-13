@@ -431,7 +431,8 @@ def convert_tf_saved_model(saved_model_dir,
   output_graph = os.path.join(
       output_dir, common.ARTIFACT_MODEL_JSON_FILE_NAME)
 
-  saved_model_tags = saved_model_tags.split(',')
+  if saved_model_tags:
+    saved_model_tags = saved_model_tags.split(',')
   model = load(saved_model_dir, saved_model_tags)
 
   _check_signature_in_model(model, signature_def)
