@@ -128,13 +128,21 @@ function getPatchUpdateVersion(version: string): string {
   return [versionSplit[0], versionSplit[1], +versionSplit[2] + 1].join('.');
 }
 
+function getPatchCoreReleaseVersion(phase: Phase): string {
+  const latestVersion = $('npm view @tensorflow/tfjs-core dist-tags.latest');
+
+  // Assumption: core is always published first in a release cycle. So if phase
+  // is not core, assume core is just published, so latest version is the
+  // release branch.
+  return phase == CORE_PHASE ? getPatchUpdateVersion(latestVersion) :
+                               latestVersion;
+}
+
 async function main() {
   const args = parser.parseArgs();
 
   PHASES.forEach((_, i) => printPhase(i));
   console.log();
-
-  const releaseBranch = await question('Which release branch: ');
 
   const phaseStr = await question('Which phase (leave empty for 0): ');
   const phaseInt = +phaseStr;
@@ -148,6 +156,12 @@ async function main() {
   const phase = PHASES[phaseInt];
   const packages = PHASES[phaseInt].packages;
   const deps = PHASES[phaseInt].deps || [];
+  const patchCoreReleaseBranch = `b${getPatchCoreReleaseVersion(phase)}`;
+
+  const releaseBranchStr = await question(
+      `Which release branch: (leave empty for ${patchCoreReleaseBranch})`);
+  const releaseBranch =
+      releaseBranchStr === '' ? patchCoreReleaseBranch : releaseBranchStr;
 
   const dir = `${TMP_DIR}/${phase.repo == null ? `tfjs` : phase.repo}`;
   mkdirp(TMP_DIR, err => {
@@ -169,7 +183,7 @@ async function main() {
   } else {
     // Publishing tfjs, clone the release branch.
     $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${
-        dir} --depth=1`)
+        dir} --depth=1`);
     shell.cd(dir);
   }
 
