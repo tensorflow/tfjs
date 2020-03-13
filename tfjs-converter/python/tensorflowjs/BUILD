@@ -1,7 +1,5 @@
 package(
-    default_visibility = [
-        "//tensorflowjs:__subpackages__",
-    ],
+  default_visibility = ["//visibility:public"],
 )
 
 licenses(["notice"])  # Apache 2.0
