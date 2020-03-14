@@ -128,6 +128,16 @@ function getPatchUpdateVersion(version: string): string {
   return [versionSplit[0], versionSplit[1], +versionSplit[2] + 1].join('.');
 }
 
+function getPatchCoreReleaseVersion(phase: Phase): string {
+  const latestVersion = $('npm view @tensorflow/tfjs-core dist-tags.latest');
+
+  // Assumption: core is always published first in a release cycle. So if phase
+  // is not core, assume core is just published, so latest version is the
+  // release branch.
+  return phase == CORE_PHASE ? getPatchUpdateVersion(latestVersion) :
+                               latestVersion;
+}
+
 async function main() {
   const args = parser.parseArgs();
 
@@ -146,6 +156,12 @@ async function main() {
   const phase = PHASES[phaseInt];
   const packages = PHASES[phaseInt].packages;
   const deps = PHASES[phaseInt].deps || [];
+  const patchCoreReleaseBranch = `b${getPatchCoreReleaseVersion(phase)}`;
+
+  const releaseBranchStr = await question(
+      `Which release branch: (leave empty for ${patchCoreReleaseBranch})`);
+  const releaseBranch =
+      releaseBranchStr === '' ? patchCoreReleaseBranch : releaseBranchStr;
 
   const dir = `${TMP_DIR}/${phase.repo == null ? `tfjs` : phase.repo}`;
   mkdirp(TMP_DIR, err => {
@@ -161,10 +177,13 @@ async function main() {
   const urlBase = args.git_protocol ? 'git@github.com:' : 'https://github.com/';
 
   if (phase.repo != null) {
+    // Publishing website, another repo.
     $(`git clone ${urlBase}tensorflow/${phase.repo} ${dir} --depth=1`);
     shell.cd(dir);
   } else {
-    $(`git clone ${urlBase}tensorflow/tfjs ${dir} --depth=1`);
+    // Publishing tfjs, clone the release branch.
+    $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${
+        dir} --depth=1`);
     shell.cd(dir);
   }
 
@@ -265,7 +284,7 @@ async function main() {
 
   const packageNames = packages.join(', ');
   const versionNames = newVersions.join(', ');
-  const branchName = `b${newVersions.join('-')}`;
+  const branchName = `b${newVersions.join('-')}_phase${phaseInt}`;
   $(`git checkout -b ${branchName}`);
   $(`git push -u origin ${branchName}`);
   $(`git add .`);
@@ -273,7 +292,7 @@ async function main() {
   $(`git push`);
   const title =
       phase.title ? phase.title : `Update ${packageNames} to ${versionNames}.`;
-  $(`hub pull-request --browse --message "${title}" --labels INTERNAL`);
+  $(`hub pull-request -b ${releaseBranch} -m "${title}" -l INTERNAL -o`);
   console.log();
 
   console.log(
