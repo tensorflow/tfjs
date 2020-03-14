@@ -10,11 +10,7 @@
 set -e
 
 yarn build-addon-from-source
-yarn build-core-ci
-yarn build-layers-ci
-yarn build-converter-ci
-yarn build-data-ci
-yarn build-union-ci
+yarn build-deps-ci
 yarn build-ci
 yarn lint
 yarn test
