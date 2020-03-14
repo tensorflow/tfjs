@@ -129,7 +129,7 @@ if (!triggerAllBuilds) {
     });
   });
 
-  triggeredBuilds.push(Array.from(affectedBuilds));
+  triggeredBuilds.push(...affectedBuilds);
 }
 
 // Filter the triggered builds to log by whether a cloudbuild.yml file
