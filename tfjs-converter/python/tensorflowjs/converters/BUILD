@@ -163,6 +163,7 @@ py_library(
         "//tensorflowjs:version",
         "//tensorflowjs:write_weights",
     ],
+    visibility = ["//visibility:public"],
 )
 
 py_test(
