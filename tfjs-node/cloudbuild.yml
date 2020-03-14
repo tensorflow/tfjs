@@ -11,7 +11,7 @@ steps:
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
-  waitFor: ['build-union']
+  waitFor: ['yarn-common']
 
 # Unit tests.
 - name: 'node:10'
