@@ -10,6 +10,7 @@
 set -e
 
 # Regular testing.
+yarn build-core-ci
 yarn build-ci
 yarn lint
 yarn run-browserstack
