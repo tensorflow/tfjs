@@ -13,7 +13,7 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
-# Run JS tests
+# Run javascript tests
 - name: 'node:10'
   dir: 'tfjs-layers'
   entrypoint: 'yarn'
