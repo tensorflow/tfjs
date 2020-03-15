@@ -6,22 +6,6 @@ steps:
   id: 'yarn-common'
   args: ['install']
 
-# Build core from master.
-- name: 'node:10'
-  dir: 'tfjs-data'
-  id: 'build-core'
-  entrypoint: 'yarn'
-  args: ['build-core-ci']
-  waitFor: ['yarn-common']
-
-# Build layers from master.
-- name: 'node:10'
-  dir: 'tfjs-data'
-  id: 'build-layers'
-  entrypoint: 'yarn'
-  args: ['build-layers-ci']
-  waitFor: ['build-core']
-
 # Install data dependencies.
 - name: 'node:10'
   dir: 'tfjs-data'
@@ -36,14 +20,6 @@ steps:
   entrypoint: 'yarn'
   id: 'lint'
   args: ['lint']
-  waitFor: ['yarn']
-
-# Build the project.
-- name: 'node:10'
-  dir: 'tfjs-data'
-  entrypoint: 'yarn'
-  id: 'build'
-  args: ['build-ci']
   waitFor: ['yarn']
 
 # Run tests in node.

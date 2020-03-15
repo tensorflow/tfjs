@@ -11,8 +11,9 @@ steps:
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['prep']
-  waitFor: ['yarn-common']
+  waitFor: ['build-core']
 
+# Run JS tests
 - name: 'node:10'
   dir: 'tfjs-layers'
   entrypoint: 'yarn'
