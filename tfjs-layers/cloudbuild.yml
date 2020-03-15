@@ -10,7 +10,7 @@ steps:
   dir: 'tfjs-layers'
   entrypoint: 'yarn'
   id: 'yarn'
-  args: ['prep']
+  args: ['install']
   waitFor: ['yarn-common']
 
 # Run JS tests
