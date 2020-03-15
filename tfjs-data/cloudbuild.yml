@@ -14,20 +14,20 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
-# Run lint.
-- name: 'node:10'
-  dir: 'tfjs-data'
-  entrypoint: 'yarn'
-  id: 'lint'
-  args: ['lint']
-  waitFor: ['yarn']
-
 # Run tests in node.
 - name: 'node:10'
   dir: 'tfjs-data'
   entrypoint: 'yarn'
   id: 'test'
   args: ['test']
+  waitFor: ['yarn']
+
+# Run lint.
+- name: 'node:10'
+  dir: 'tfjs-data'
+  entrypoint: 'yarn'
+  id: 'lint'
+  args: ['lint']
   waitFor: ['yarn']
 
 # Run data snippets tests.
