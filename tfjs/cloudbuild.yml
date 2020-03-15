@@ -12,7 +12,7 @@ steps:
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
-  waitFor: ['build-data']
+  waitFor: ['yarn-common']
 
 # Run tfjs tests.
 - name: 'node:10'

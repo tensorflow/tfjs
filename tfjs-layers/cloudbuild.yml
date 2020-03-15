@@ -11,7 +11,7 @@ steps:
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['prep']
-  waitFor: ['build-core']
+  waitFor: ['yarn-common']
 
 # Run JS tests
 - name: 'node:10'
@@ -37,6 +37,7 @@ steps:
   id: 'tfjs2keras-py'
   args: ['-c', './scripts/tfjs2keras-py.sh --stable && ./scripts/tfjs2keras-py.sh --stable --tfkeras']
   waitFor: ['tfjs2keras-js']
+
 - name: 'node:10'
   dir: 'tfjs-layers'
   entrypoint: 'yarn'

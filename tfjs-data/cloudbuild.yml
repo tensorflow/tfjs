@@ -12,7 +12,7 @@ steps:
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
-  waitFor: ['build-layers']
+  waitFor: ['yarn-common']
 
 # Run lint.
 - name: 'node:10'
@@ -28,7 +28,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test'
   args: ['test']
-  waitFor: ['build']
+  waitFor: ['yarn']
 
 # Run data snippets tests.
 - name: 'node:10'
@@ -36,7 +36,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-snippets'
   args: ['test-snippets']
-  waitFor: ['build']
+  waitFor: ['yarn']
 
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
