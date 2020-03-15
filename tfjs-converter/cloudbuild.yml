@@ -23,14 +23,6 @@ steps:
   waitFor: ['yarn']
   env: ['NIGHTLY=$_NIGHTLY']
 
-# Run lint.
-- name: 'node:10'
-  dir: 'tfjs-converter'
-  entrypoint: 'yarn'
-  id: 'lint'
-  args: ['lint']
-  waitFor: ['yarn']
-
 # Run python tests.
 - name: 'gcr.io/google-appengine/python'
   dir: 'tfjs-converter/python'

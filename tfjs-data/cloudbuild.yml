@@ -22,14 +22,6 @@ steps:
   args: ['test']
   waitFor: ['yarn']
 
-# Run lint.
-- name: 'node:10'
-  dir: 'tfjs-data'
-  entrypoint: 'yarn'
-  id: 'lint'
-  args: ['lint']
-  waitFor: ['yarn']
-
 # Run data snippets tests.
 - name: 'node:10'
   dir: 'tfjs-data'
