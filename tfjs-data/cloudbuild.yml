@@ -36,7 +36,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-snippets'
   args: ['test-snippets']
-  waitFor: ['yarn']
+  waitFor: ['test']
 
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
