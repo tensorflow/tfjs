@@ -10,6 +10,7 @@
 set -e
 
 yarn build-addon-from-source
+yarn build-deps-ci
 yarn build-ci
 yarn lint
 yarn test

@@ -5,53 +5,13 @@ steps:
   entrypoint: 'yarn'
   args: ['install']
 
-# Build core from master.
-- name: 'node:10'
-  dir: 'tfjs-node'
-  id: 'build-core'
-  entrypoint: 'yarn'
-  args: ['build-core-ci']
-  waitFor: ['yarn-common']
-
-# Build layers from master.
-- name: 'node:10'
-  dir: 'tfjs-node'
-  id: 'build-layers'
-  entrypoint: 'yarn'
-  args: ['build-layers-ci']
-  waitFor: ['build-core']
-
-# Build converter from master.
-- name: 'node:10'
-  dir: 'tfjs-node'
-  id: 'build-converter'
-  entrypoint: 'yarn'
-  args: ['build-converter-ci']
-  waitFor: ['build-core']
-
-# Build data from master.
-- name: 'node:10'
-  dir: 'tfjs-node'
-  id: 'build-data'
-  entrypoint: 'yarn'
-  args: ['build-data-ci']
-  waitFor: ['build-layers', 'build-converter']
-
-# Build union package from master.
-- name: 'node:10'
-  dir: 'tfjs-node'
-  id: 'build-union'
-  entrypoint: 'yarn'
-  args: ['build-union-ci']
-  waitFor: ['build-data']
-
 # Install tfjs-node dependencies.
 - name: 'node:10'
   dir: 'tfjs-node'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
-  waitFor: ['build-union']
+  waitFor: ['yarn-common']
 
 # Unit tests.
 - name: 'node:10'
