@@ -19,7 +19,7 @@ steps:
   dir: 'tfjs-data'
   entrypoint: 'yarn'
   id: 'test'
-  args: ['test']
+  args: ['test-ci']
   waitFor: ['yarn']
 
 # Run data snippets tests.
