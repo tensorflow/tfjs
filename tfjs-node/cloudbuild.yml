@@ -27,7 +27,7 @@ steps:
   entrypoint: 'yarn'
   id: 'ensure-cpu-gpu-packages-align'
   args: ['ensure-cpu-gpu-packages-align']
-  waitFor: [test']
+  waitFor: ['test']
 
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
