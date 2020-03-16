@@ -59,6 +59,29 @@ below.
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis"></script>
 ```
 
+## API
+
+See https://js.tensorflow.org/api_vis/latest/ for interactive API documentation.
+
+## Sample Usage
+
+```js
+const data = [
+  { index: 0, value: 50 },
+  { index: 1, value: 100 },
+  { index: 2, value: 150 },
+];
+
+// Get a surface
+const surface = tfvis.visor().surface({ name: 'Barchart', tab: 'Charts' });
+
+// Render a barchart on that surface
+tfvis.render.barchart(surface, data, {});
+```
+
+## Issues
+
+Found a bug or have a feature request? Please file an [issue](https://github.com/tensorflow/tfjs/issues/new) on the main [TensorFlow.js repository](https://github.com/tensorflow/tfjs/issues)
 
 ## Building from source
 
@@ -92,26 +115,4 @@ npm run build
 This should produce a `tfjs-vis.umd.min.js` file in the `dist` folder that you can
 use.
 
-## Sample Usage
 
-```js
-const data = [
-  { index: 0, value: 50 },
-  { index: 1, value: 100 },
-  { index: 2, value: 150 },
-];
-
-// Get a surface
-const surface = tfvis.visor().surface({ name: 'Barchart', tab: 'Charts' });
-
-// Render a barchart on that surface
-tfvis.render.barchart(surface, data, {});
-```
-
-## Issues
-
-Found a bug or have a feature request? Please file an [issue](https://github.com/tensorflow/tfjs/issues/new) on the main [TensorFlow.js repository](https://github.com/tensorflow/tfjs/issues)
-
-## API
-
-See https://js.tensorflow.org/api_vis/latest/ for interactive API documentation.
