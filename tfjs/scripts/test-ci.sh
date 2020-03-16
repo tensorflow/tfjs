@@ -17,6 +17,7 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
+yarn
 yarn build-deps
 yarn build-ci
 yarn lint

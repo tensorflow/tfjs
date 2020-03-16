@@ -10,6 +10,7 @@
 set -e
 
 # Regular testing.
+yarn
 yarn build-core-ci
 yarn build-ci
 yarn lint

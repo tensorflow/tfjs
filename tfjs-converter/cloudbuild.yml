@@ -6,21 +6,13 @@ steps:
   id: 'yarn-common'
   args: ['install']
 
-# Install converter dependencies.
-- name: 'node:10'
-  dir: 'tfjs-converter'
-  entrypoint: 'yarn'
-  id: 'yarn'
-  args: ['install']
-  waitFor: ['yarn-common']
-
 # Run javascript tests.
 - name: 'node:10'
   dir: 'tfjs-converter'
   entrypoint: 'yarn'
   id: 'test-js'
   args: ['test-ci']
-  waitFor: ['yarn']
+  waitFor: ['yarn-common']
   env: ['NIGHTLY=$_NIGHTLY']
 
 # Run python tests.
@@ -28,19 +20,19 @@ steps:
   dir: 'tfjs-converter/python'
   entrypoint: 'bash'
   args: ['./build-pip-package.sh', '--test', '/tmp/tfjs-pips']
-  waitFor: ['yarn']
+  waitFor: ['test-js']
 
 - name: 'python:2'
   dir: 'tfjs-converter/python'
   entrypoint: 'bash'
   args: ['./run-python-tests.sh']
-  waitFor: ['yarn']
+  waitFor: ['test-js']
 
 - name: 'python:3.6'
   dir: 'tfjs-converter/python'
   entrypoint: 'bash'
   args: ['./run-python-tests.sh']
-  waitFor: ['yarn']
+  waitFor: ['test-js']
 
 - name: 'node:10'
   dir: 'tfjs-converter'
