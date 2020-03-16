@@ -7,10 +7,29 @@ It's main features are:
 
 * A set of visualizations useful for visualizing model behaviour
 * A set of high level functions for visualizing objects specific to TensorFlow.js
-* A way to organize visualizations of model behaviour that won't interfere with your web application
+* A way to organize visualizations (the visor) of model behaviour that won't interfere with your web application
 
 The library also aims to be flexible and make it easy for you to incorporate
 custom visualizations using tools of your choosing, such as d3, Chart.js or plotly.js.
+
+## Example Screenshots
+
+### Training Metrics
+
+![Training metrics (loss and accuracy) for a model](https://storage.googleapis.com/tfjs-assets/tfjs-vis/tfjs-vis-training.png)
+
+### Model Evauation
+
+![Dataset accuracy metrics in a table and confusion matrix visualization](https://storage.googleapis.com/tfjs-assets/tfjs-vis/tfjs-vis-evaluation.png)
+
+### Model Internals
+
+![Model summary table and histogram of conv2d weights](https://storage.googleapis.com/tfjs-assets/tfjs-vis/tfjs-vis-model-details.png)
+
+### Activations and custom visualizations
+
+![visualization of dataset activations in a conv2d layer and a dense layer](https://storage.googleapis.com/tfjs-assets/tfjs-vis/tfjs-vis-model-internals.png)
+
 
 ## Demos
 
@@ -88,10 +107,6 @@ const surface = tfvis.visor().surface({ name: 'Barchart', tab: 'Charts' });
 // Render a barchart on that surface
 tfvis.render.barchart(surface, data, {});
 ```
-
-This should show something like the following
-
-![visor screenshot with barchart](./docs/visor-usage.png)
 
 ## Issues
 
