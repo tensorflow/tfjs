@@ -37,11 +37,10 @@
     "install": "node scripts/install.js",
     "install-from-source": "yarn clean-deps && yarn && yarn build-addon-from-source",
     "link-local": "yalc link",
-    "link-master": "../scripts/link-master.js",
     "lint": "tslint -p . -t verbose",
     "prep": "cd node_modules/@tensorflow/tfjs-core && yarn && yarn build",
     "publish-local": "yarn prep && yalc push",
-    "test": "yarn link-master && yarn && yarn build-deps && ts-node src/run_tests.ts",
+    "test": "yarn && yarn build-deps && yarn build && ts-node src/run_tests.ts",
     "test-ci": "./scripts/test-ci.sh",
     "test-ts-integration": "./scripts/test-ts-integration.sh",
     "upload-windows-addon": "./scripts/build-and-upload-windows-addon.bat"
