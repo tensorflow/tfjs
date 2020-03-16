@@ -20,19 +20,19 @@ steps:
   dir: 'tfjs-converter/python'
   entrypoint: 'bash'
   args: ['./build-pip-package.sh', '--test', '/tmp/tfjs-pips']
-  waitFor: ['test-js']
+  waitFor: ['yarn-common']
 
 - name: 'python:2'
   dir: 'tfjs-converter/python'
   entrypoint: 'bash'
   args: ['./run-python-tests.sh']
-  waitFor: ['test-js']
+  waitFor: ['yarn-common']
 
 - name: 'python:3.6'
   dir: 'tfjs-converter/python'
   entrypoint: 'bash'
   args: ['./run-python-tests.sh']
-  waitFor: ['test-js']
+  waitFor: ['yarn-common']
 
 - name: 'node:10'
   dir: 'tfjs-converter'

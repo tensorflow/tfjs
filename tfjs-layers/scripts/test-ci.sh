@@ -11,7 +11,7 @@ set -e
 
 # Regular testing.
 yarn
-yarn build-core-ci
+yarn build-deps-ci
 yarn build-ci
 yarn lint
 yarn run-browserstack
