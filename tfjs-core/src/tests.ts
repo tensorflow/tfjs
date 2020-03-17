@@ -105,6 +105,7 @@ import './optimizers/sgd_optimizer_test';
 import './platforms/platform_browser_test';
 import './platforms/platform_node_test';
 import './profiler_test';
+import './public/chained_ops/register_all_chained_ops_test';
 import './serialization_test';
 import './tape_test';
 import './tensor_test';
