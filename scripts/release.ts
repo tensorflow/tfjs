@@ -42,7 +42,7 @@ interface Phase {
   // optional fields: `before-yarn` with scripts to run before `yarn`, and
   // `after-yarn` with scripts to run after yarn is called and before the pull
   // request is sent out.
-  scripts?: { [key: string]: { [key: string]: string[] } };
+  scripts?: {[key: string]: {[key: string]: string[]}};
   // Whether to leave the version of the package alone. Defaults to false
   // (change the version).
   leaveVersion?: boolean;
@@ -80,7 +80,7 @@ const UNION_PHASE: Phase = {
 const NODE_PHASE: Phase = {
   packages: ['tfjs-node', 'tfjs-node-gpu'],
   deps: ['tfjs', 'tfjs-core'],
-  scripts: { 'tfjs-node-gpu': { 'before-yarn': ['yarn prep-gpu'] } }
+  scripts: {'tfjs-node-gpu': {'before-yarn': ['yarn prep-gpu']}}
 };
 
 const WASM_PHASE: Phase = {
@@ -99,7 +99,7 @@ const REACT_NATIVE_PHASE: Phase = {
 const WEBSITE_PHASE: Phase = {
   packages: ['tfjs-website'],
   deps: ['tfjs', 'tfjs-node', 'tfjs-vis', 'tfjs-react-native'],
-  scripts: { 'tfjs-website': { 'after-yarn': ['yarn build-prod'] } },
+  scripts: {'tfjs-website': {'after-yarn': ['yarn build-prod']}},
   leaveVersion: true,
   title: 'Update website to latest dependencies.'
 };
@@ -164,15 +164,6 @@ function getPatchUpdateVersion(version: string): string {
   return [versionSplit[0], versionSplit[1], +versionSplit[2] + 1].join('.');
 }
 
-function getNextPatchVersion(phases: Phase, currentPhaseNumber: number): string {
-  const latestVersion = $(`npm view @tensorflow/${phases[0].packages[0]} dist-tags.latest`);
-
-  // Assumption: Phase0 is always published before the rest of the
-  // phases.
-  return currentPhaseNumber === 0 ? getPatchUpdateVersion(latestVersion) :
-    latestVersion;
-}
-
 async function main() {
   const args = parser.parseArgs();
 
@@ -188,7 +179,7 @@ async function main() {
   console.log(chalk.blue(`Using release unit ${releaseUnitInt}`));
   console.log();
 
-  const { name, phases, repo } = RELEASE_UNITS[releaseUnitInt];
+  const {name, phases, repo} = RELEASE_UNITS[releaseUnitInt];
 
   phases.forEach((_, i) => printPhase(phases, i));
   console.log();
@@ -371,7 +362,7 @@ async function main() {
  * @returns stdout returned by the executed bash script.
  */
 function $(cmd: string) {
-  const result = shell.exec(cmd, { silent: true });
+  const result = shell.exec(cmd, {silent: true});
   if (result.code > 0) {
     console.log('$', cmd);
     console.log(result.stderr);
@@ -381,7 +372,7 @@ function $(cmd: string) {
 }
 
 const rl =
-  readline.createInterface({ input: process.stdin, output: process.stdout });
+  readline.createInterface({input: process.stdin, output: process.stdout});
 
 async function question(questionStr: string): Promise<string> {
   console.log(chalk.bold(questionStr));
