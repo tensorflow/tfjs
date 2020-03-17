@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,5 +15,18 @@
  * =============================================================================
  */
 
-import './squared_difference';
-import './broadcast_to';
+import {BroadcastTo, BroadCastToAttrs} from '../kernel_names';
+import {GradConfig, NamedAttrMap} from '../kernel_registry';
+import {Tensor} from '../tensor';
+
+export const broadcastToGradConfig: GradConfig = {
+  kernelName: BroadcastTo,
+  gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
+    const broadCastToAttrs: BroadCastToAttrs =
+        attrs as unknown as BroadCastToAttrs;
+    const axes =
+        broadCastToAttrs.reps.map((n, i) => n > 1 ? i : -1).filter(i => i >= 0);
+    const keepDims = true;
+    return {x: () => dy.sum(axes, keepDims)};
+  }
+};

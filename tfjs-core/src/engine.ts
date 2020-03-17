@@ -17,9 +17,9 @@
 
 import {BackendTimingInfo, DataMover, KernelBackend} from './backends/backend';
 import {Environment, setEnvironmentGlobal} from './environment';
-import {getGradient, getKernel, getKernelsForBackend, NamedAttrMap, TensorInfo} from './kernel_registry';
+import {getGradient, getKernel, getKernelsForBackend, GradFunc, NamedAttrMap, TensorInfo} from './kernel_registry';
 import {Profiler} from './profiler';
-import {backpropagateGradients, getFilteredNodesXToY, NamedGradientMap, TapeNode} from './tape';
+import {backpropagateGradients, getFilteredNodesXToY, TapeNode} from './tape';
 import {DataId, setTensorTracker, Tensor, TensorTracker, Variable} from './tensor';
 import {GradSaveFunc, NamedTensorMap, NamedVariableMap, TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';
@@ -465,7 +465,7 @@ export class Engine implements TensorTracker, DataMover {
     const inputs = {x};
     const grad = (dy: Tensor) => ({x: () => dy.toFloat()});
     const saved: Tensor[] = [];
-    this.addTapeNode(this.state.activeScope.name, inputs, [y], grad, saved);
+    this.addTapeNode(this.state.activeScope.name, inputs, [y], grad, saved, {});
     return y;
   }
 
@@ -534,7 +534,8 @@ export class Engine implements TensorTracker, DataMover {
    */
   runKernelFunc<T extends Tensor|Tensor[], I extends NamedTensorMap>(
       forwardFunc: ForwardFunc<T>, inputs: I,
-      backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () => I[P]},
+      backwardsFunc?:
+          (dy: T, saved: Tensor[]|TensorInfo[]) => {[P in keyof I]: () => I[P]},
       kernelName?: string, attrs?: NamedAttrMap, inputsToSave: Tensor[] = [],
       outputsToSave: boolean[] = []): T {
     let outputs: Tensor[];
@@ -604,7 +605,8 @@ export class Engine implements TensorTracker, DataMover {
         });
 
     if (isTapeOn) {
-      this.addTapeNode(kernelName, inputs, outputs, backwardsFunc, saved);
+      this.addTapeNode(
+          kernelName, inputs, outputs, backwardsFunc, saved, attrs);
     }
 
     if (this.state.profiling) {
@@ -798,8 +800,7 @@ export class Engine implements TensorTracker, DataMover {
 
   private addTapeNode(
       kernelName: string, inputs: NamedTensorMap, outputs: Tensor[],
-      gradientsFunc: (dy: Tensor|Tensor[], saved: Tensor[]) => NamedGradientMap,
-      saved: Tensor[]): void {
+      gradientsFunc: GradFunc, saved: Tensor[], attrs: NamedAttrMap): void {
     const tapeNode: TapeNode =
         {id: this.state.nextTapeNodeId++, kernelName, inputs, outputs, saved};
 
@@ -821,7 +822,7 @@ export class Engine implements TensorTracker, DataMover {
         });
         // Grad functions of ops with single outputs expect a dy, while ops
         // with multiple outputs expect dys (array of dy).
-        return gradientsFunc(dys.length > 1 ? dys : dys[0], saved);
+        return gradientsFunc(dys.length > 1 ? dys : dys[0], saved, attrs);
       };
     }
     this.state.activeTape.push(tapeNode);

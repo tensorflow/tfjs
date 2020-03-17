@@ -37,6 +37,12 @@ export interface NonMaxSuppressionV5Attrs {
   softNmsSigma: number;
 }
 
+export const BroadcastTo = 'BroadcastTo';
+export type BroadcastToInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface BroadCastToAttrs {
+  reps: number[];
+}
+
 /**
  * TensorFlow.js-only kernels
  */
