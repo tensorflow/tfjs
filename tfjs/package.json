@@ -50,7 +50,7 @@
     "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
-    "build": "yarn link-master && yarn build-core && yarn build-layers && yarn build-converter && yarn build-data && tsc",
+    "build": "tsc",
     "build-ci": "tsc",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
@@ -60,12 +60,13 @@
     "build-converter-ci": "cd ../tfjs-converter && yarn && yarn build-ci",
     "build-data": "cd ../tfjs-data && yarn && yarn build",
     "build-data-ci": "cd ../tfjs-data && yarn && yarn build-ci",
+    "build-deps": "yarn build-core && yarn build-layers && yarn build-converter && yarn build-data",
+    "build-deps-ci": "yarn build-core-ci && yarn build-layers-ci && yarn build-converter-ci && yarn build-data-ci",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
-    "link-master": "../scripts/link-master.js",
     "publish-local": "yarn build-npm && yalc push",
     "lint": "tslint -p . -t verbose",
-    "test": "yarn link-master && yarn build-core && yarn build-layers && yarn build-converter && yarn build-data && yarn && ts-node ./scripts/release_notes/run_tests.ts && karma start",
+    "test": "yarn && yarn build-deps && yarn build && ts-node ./scripts/release_notes/run_tests.ts && karma start",
     "test-ci": "./scripts/test-ci.sh"
   },
   "dependencies": {

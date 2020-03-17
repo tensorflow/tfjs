@@ -5,28 +5,13 @@ steps:
   id: 'yarn-common'
   args: ['install']
 
-# Build core from master.
-- name: 'node:10'
-  dir: 'tfjs-layers'
-  id: 'build-core'
-  entrypoint: 'yarn'
-  args: ['build-core-ci']
-  waitFor: ['yarn-common']
-
-# Install layers dependencies
-- name: 'node:10'
-  dir: 'tfjs-layers'
-  entrypoint: 'yarn'
-  id: 'yarn'
-  args: ['prep']
-  waitFor: ['build-core']
-
+# Run javascript tests
 - name: 'node:10'
   dir: 'tfjs-layers'
   entrypoint: 'yarn'
   id: 'test-browser'
   args: ['test-ci']
-  waitFor: ['yarn']
+  waitFor: ['yarn-common']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 
@@ -44,6 +29,7 @@ steps:
   id: 'tfjs2keras-py'
   args: ['-c', './scripts/tfjs2keras-py.sh --stable && ./scripts/tfjs2keras-py.sh --stable --tfkeras']
   waitFor: ['tfjs2keras-js']
+
 - name: 'node:10'
   dir: 'tfjs-layers'
   entrypoint: 'yarn'
