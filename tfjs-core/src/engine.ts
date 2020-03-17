@@ -534,8 +534,7 @@ export class Engine implements TensorTracker, DataMover {
    */
   runKernelFunc<T extends Tensor|Tensor[], I extends NamedTensorMap>(
       forwardFunc: ForwardFunc<T>, inputs: I,
-      backwardsFunc?:
-          (dy: T, saved: Tensor[]|TensorInfo[]) => {[P in keyof I]: () => I[P]},
+      backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () => I[P]},
       kernelName?: string, attrs?: NamedAttrMap, inputsToSave: Tensor[] = [],
       outputsToSave: boolean[] = []): T {
     let outputs: Tensor[];
