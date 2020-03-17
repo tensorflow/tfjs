@@ -47,8 +47,6 @@ describeWebGPU('benchmark-posenet', () => {
                 paddings.push([0, 1]);
               }
               additionalArgs = [paddings];
-            } else if (opName === 'resizeBilinear') {
-              additionalArgs = [[obj.result[1], obj.result[2]]];
             } else if (opName === 'cast') {
               additionalArgs = ['float32'];
             }
@@ -56,10 +54,7 @@ describeWebGPU('benchmark-posenet', () => {
 
           await benchmarkAndLog(
               `${obj.name}_${(obj.inputs as any).join('|')}`, () => {
-                let f = (tf as any)[opName];
-                if (obj.scope) {
-                  f = (tf as any)[obj.scope][opName];
-                }
+                const f = (tf as any)[opName];
                 return f.call(tf, ...inputs.concat(additionalArgs));
               });
         });
