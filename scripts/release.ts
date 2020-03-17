@@ -164,15 +164,6 @@ function getPatchUpdateVersion(version: string): string {
   return [versionSplit[0], versionSplit[1], +versionSplit[2] + 1].join('.');
 }
 
-function getNextPatchVersion(phases: Phase, currentPhaseNumber: number): string {
-  const latestVersion = $(`npm view @tensorflow/${phases[0].packages[0]} dist-tags.latest`);
-
-  // Assumption: Phase0 is always published before the rest of the
-  // phases.
-  return currentPhaseNumber === 0 ? getPatchUpdateVersion(latestVersion) :
-    latestVersion;
-}
-
 async function main() {
   const args = parser.parseArgs();
 
