@@ -181,10 +181,23 @@ async function main() {
     $(`git clone ${urlBase}tensorflow/${phase.repo} ${dir} --depth=1`);
     shell.cd(dir);
   } else {
-    // Publishing tfjs, clone the release branch.
-    $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${
-        dir} --depth=1`);
-    shell.cd(dir);
+    // Publishing tfjs, clone the release branch, if branch doesn't exist,
+    // create it first.
+    const remoteBranchCount = $(`git ls-remote --heads ${
+        urlBase}tensorflow/tfjs ${releaseBranch} | wc -l`);
+
+    if (remoteBranchCount === '0') {
+      console.log(`Remote branch ${
+          releaseBranch} doesn\'t exist. Creating the branch...`);
+      $(`git clone ${urlBase}tensorflow/tfjs ${dir} --depth=1`);
+      shell.cd(dir);
+      $(`git checkout -b ${releaseBranch}`);
+      $(`git push origin ${releaseBranch}`);
+    } else {
+      $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${
+          dir} --depth=1`);
+      shell.cd(dir);
+    }
   }
 
   const newVersions = [];
