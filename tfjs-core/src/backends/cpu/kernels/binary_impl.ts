@@ -35,15 +35,15 @@ export const createBinaryOp = (op: any) =>
         }
       } else {
         for (let i = 0; i < outValues.length; ++i) {
-          const loc = util.indexToLoc(i, outStrides);
+          const loc = util.indexToLoc(i, outShape.length, outStrides);
 
           const aLoc = loc.slice(-aShape.length);
           aBroadcastDims.forEach(d => aLoc[d] = 0);
-          const aIndex = util.locToIndex(aLoc, aStrides);
+          const aIndex = util.locToIndex(aLoc, aShape.length, aStrides);
 
           const bLoc = loc.slice(-bShape.length);
           bBroadcastDims.forEach(d => bLoc[d] = 0);
-          const bIndex = util.locToIndex(bLoc, bStrides);
+          const bIndex = util.locToIndex(bLoc, bShape.length, bStrides);
 
           outValues[i] = op(a[aIndex], b[bIndex]);
         }
