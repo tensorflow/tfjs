@@ -18,114 +18,43 @@
 import * as posenet from '@tensorflow-models/posenet';
 import * as tf from '@tensorflow/tfjs-core';
 
+import {ops as posenetOps} from './benchmark_util/posenetOps';
 import {benchmarkAndLog, describeWebGPU} from './test_util';
 
-const getInputInfo = (inputs: tf.Tensor[]) => {
-  const shapes = inputs.map(input => input.shape);
-  let info = '';
-  for (let i = 0; i < shapes.length; i++) {
-    info += ` [${shapes[i].join(',')}]`;
+const getInputInfo = (obj: any) => {
+  let info = `${obj.name} shapes: ${JSON.stringify(obj.inputs)}`;
+
+  if (obj.args) {
+    info += `, args: ${JSON.stringify(obj.args)}`;
   }
+
   return info;
 };
 
-describeWebGPU('Ops benchmarks', () => {
+describeWebGPU('Posenet benchmarks', () => {
   beforeEach(() => {
     tf.setBackend('webgl');
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 999999999;
   });
 
-  fit('argMax', async () => {
-    const doTest = async (axis: number) => {
-      const a = tf.randomNormal([100, 100, 100]);
+  posenetOps.forEach(obj => {
+    const opName = obj.name;
 
-      await benchmarkAndLog(`argMax axis=${axis}${getInputInfo([a])}`, () => {
-        return tf.argMax(a, axis);
+    fit(opName, async () => {
+      const inputs = (obj.inputs as any).map((input: number[]) => {
+        return tf.randomNormal(input);
       });
-    };
 
-    await doTest(0);
-    tf.setBackend('webgl');
-    await doTest(1);
-    tf.setBackend('webgl');
-    await doTest(2);
-  });
+      let additionalArgs: any = [];
+      if ((obj as any).args) {
+        additionalArgs = (obj as any).args;
+      }
 
-  fit('matMul', async () => {
-    const a = tf.randomNormal([500, 500]);
-    const b = tf.randomNormal([500, 500]);
-
-    await benchmarkAndLog(
-        `matMul${getInputInfo([a, b])}`, () => tf.matMul(a, b));
-  });
-
-  fit('add', async () => {
-    const a = tf.randomNormal([1, 65, 65, 256]);
-    const b = tf.randomNormal([1, 65, 65, 256]);
-
-    await benchmarkAndLog(`add${getInputInfo([a, b])}`, () => tf.add(a, b));
-  });
-
-  fit('add', async () => {
-    const a = tf.randomNormal([1, 129, 129, 64]);
-    const b = tf.randomNormal([64]);
-
-    await benchmarkAndLog(`add${getInputInfo([a, b])}`, () => tf.add(a, b));
-  });
-
-  fit('conv2d', async () => {
-    const a = tf.randomNormal<tf.Rank.R4>([1, 128, 128, 4]);
-    const b = tf.randomNormal<tf.Rank.R4>([25, 25, 4, 4]);
-
-    await benchmarkAndLog(
-        `conv2d${getInputInfo([a, b])}`, () => tf.conv2d(a, b, 1, 'same'));
-  });
-
-  fit('conv2d', async () => {
-    const a = tf.randomNormal<tf.Rank.R4>([1, 263, 263, 3]);
-    const b = tf.randomNormal<tf.Rank.R4>([7, 7, 3, 64]);
-
-    await benchmarkAndLog(
-        `conv2d${getInputInfo([a, b])}`, () => tf.conv2d(a, b, 1, 'same'));
-  });
-
-  fit('relu', async () => {
-    const a = tf.randomNormal([1, 129, 129, 64]);
-    await benchmarkAndLog(`relu${getInputInfo([a])}`, () => tf.relu(a));
-  });
-
-  fit('pad', async () => {
-    const a = tf.randomNormal([1, 129, 129, 64]);
-
-    await benchmarkAndLog(
-        `pad${getInputInfo([a])}`,
-        () => tf.pad(a, [[0, 1], [0, 1], [0, 1], [0, 1]]));
-  });
-
-  fit('maxpool', async () => {
-    const y = tf.randomNormal<tf.Rank.R4>([1, 57, 57, 256]);
-    await benchmarkAndLog(
-        `maxPool${getInputInfo([y])}`, () => tf.maxPool(y, 1, 2, 'same'));
-  });
-
-  fit('maxpool', async () => {
-    const z = tf.randomNormal<tf.Rank.R4>([1, 29, 29, 512]);
-    await benchmarkAndLog(
-        `maxPool${getInputInfo([z])}`, () => tf.maxPool(z, 1, 2, 'same'));
-  });
-
-  fit('maxpool', async () => {
-    const a = tf.randomNormal<tf.Rank.R4>([1, 131, 131, 64]);
-
-    await benchmarkAndLog(
-        `maxPool${getInputInfo([a])}`, () => tf.maxPool(a, 2, 1, 'same'));
-  });
-
-  fit('maxpool', async () => {
-    const a = tf.randomNormal<tf.Rank.R4>([1, 65, 65, 256]);
-
-    await benchmarkAndLog(
-        `maxPool${getInputInfo([a])}`, () => tf.maxPool(a, 2, 1, 'same'));
+      await benchmarkAndLog(getInputInfo(obj), () => {
+        const f = (tf as any)[opName];
+        return f.call(tf, ...inputs.concat(additionalArgs));
+      });
+    });
   });
 
   fit('posenet_resnet', async () => {
@@ -159,8 +88,6 @@ describeWebGPU('Ops benchmarks', () => {
   }, 100000000000000000);
 
   afterAll(() => {
-    console.log('DONE');
-
     function download(filename: string, text: string) {
       const element = document.createElement('a');
       element.setAttribute(
@@ -187,51 +114,4 @@ describeWebGPU('Ops benchmarks', () => {
             dateObj.getFullYear()}.json`,
         JSON.stringify(window.records));
   });
-
-  // fit('depthwiseconv2d', async () => {
-  //   const x = tf.randomNormal<tf.Rank.R4>([1, 128, 128, 1]);
-  //   const w = tf.tensor4d(
-  //       [0.303873, 0.229223, 0.144333, 0.803373],
-  //       [2, 2, 1, 1],
-  //   );
-
-  //   await time(() => tf.depthwiseConv2d(x, w, 1, 'valid'));
-  // });
-
-  // fit('maxPool', async () => {
-  //   const x = tf.randomNormal<tf.Rank.R4>([1, 131, 131, 64]);
-
-  //   await time(() => tf.maxPool(x, 2, 1, 'same'));
-  // });
-
-  // it('concat', async () => {
-  //   const a = tf.randomNormal([500, 500]);
-  //   const b = tf.randomNormal([500, 500]);
-
-  //   await time(() => tf.concat([a, b], 1));
-  // });
-
-  // it('resizeBilinear', async () => {
-  //   const input = tf.randomNormal<tf.Rank.R3>([128, 128, 4]);
-
-  //   await time(() => input.resizeBilinear([256, 256], false));
-  // });
-
-  // it('clip', async () => {
-  //   const a = tf.randomNormal([1, 65, 65, 256]);
-
-  //   await time(() => tf.clipByValue(a, 0.1, 0.9));
-  // });
-
-  // it('prelu', async () => {
-  //   const x = tf.randomNormal([500]);
-  //   const a = tf.randomNormal([500]);
-
-  //   await time(() => tf.prelu(x, a), null, false, 50, 50);
-  // });
-  // it('slice', async () => {
-  //   const a = tf.randomNormal<tf.Rank.R1>([500]);
-
-  //   await time(() => tf.slice1d(a, 2, 498), null, false, 50, 50);
-  // });
 });
