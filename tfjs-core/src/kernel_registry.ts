@@ -59,6 +59,8 @@ export interface KernelConfig {
 /** Config object for registering a gradient in the global registry. */
 export interface GradConfig {
   kernelName: string;
+  inputsToSave?: string[];
+  outputsToSave?: boolean[];
   gradFunc: GradFunc;
 }
 
