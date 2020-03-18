@@ -104,7 +104,7 @@ const WEBSITE_PHASE: Phase = {
   title: 'Update website to latest dependencies.'
 };
 
-const TFJS = {
+const TFJS_RELEASE_UNIT: ReleaseUnit = {
   name: 'tfjs',
   phases: [
     CORE_PHASE, LAYERS_CONVERTER_PHASE, DATA_PHASE, UNION_PHASE, NODE_PHASE,
@@ -112,24 +112,24 @@ const TFJS = {
   ]
 };
 
-const VIS = {
+const VIS_RELEASE_UNIT: ReleaseUnit = {
   name: 'vis',
   phases: [VIS_PHASE]
 };
 
-const REACT_NATIVE = {
+const REACT_NATIVE_RELEASE_UNIT: ReleaseUnit = {
   name: 'react-native',
   phases: [REACT_NATIVE_PHASE]
 };
 
-const WEBSITE = {
+const WEBSITE_RELEASE_UNIT: ReleaseUnit = {
   name: 'website',
   phases: [WEBSITE_PHASE],
   repo: 'tfjs-website'
 };
 
 const RELEASE_UNITS: ReleaseUnit[] = [
-  TFJS, VIS, REACT_NATIVE, WEBSITE
+  TFJS_RELEASE_UNIT, VIS_RELEASE_UNIT, REACT_NATIVE_RELEASE_UNIT, WEBSITE_RELEASE_UNIT
 ];
 
 const TMP_DIR = '/tmp/tfjs-release';
@@ -219,7 +219,8 @@ async function main() {
     // Publishing packages in tfjs.
     if (phaseInt !== 0) {
       // Phase0 should be published and release branch should have been created.
-      const latestVersion = $(`npm view @tensorflow/${phases[0].packages[0]} dist-tags.latest`);
+      const latestVersion =
+        $(`npm view @tensorflow/${phases[0].packages[0]} dist-tags.latest`);
       releaseBranch = `${name}_${latestVersion}`;
       $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${
         dir} --depth=1`);
