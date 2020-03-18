@@ -548,38 +548,6 @@ export function computeStrides(shape: number[]): number[] {
   return strides;
 }
 
-export function locToIndex(locs: number[], strides: number[]): number {
-  const rank = locs.length;
-  if (rank === 0) {
-    return 0;
-  }
-  if (rank === 1) {
-    return locs[0];
-  }
-  let index = locs[rank - 1];
-  for (let i = 0; i < rank - 1; ++i) {
-    index += strides[i] * locs[i];
-  }
-  return index;
-}
-
-export function indexToLoc(index: number, strides: number[]): number[] {
-  const rank = strides.length + 1;
-  if (rank === 0) {
-    return [];
-  }
-  if (rank === 1) {
-    return [index];
-  }
-  const locs = new Array(rank);
-  for (let i = 0; i < locs.length - 1; ++i) {
-    locs[i] = Math.floor(index / strides[i]);
-    index -= locs[i] * strides[i];
-  }
-  locs[locs.length - 1] = index;
-  return locs;
-}
-
 export function toTypedArray(
     a: TensorLike, dtype: DataType, debugMode: boolean): TypedArray {
   if (dtype === 'string') {
