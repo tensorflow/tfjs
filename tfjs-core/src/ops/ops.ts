@@ -16,6 +16,7 @@
  */
 
 // Modularized ops.
+export {broadcastTo} from './broadcast_to';
 export {square} from './square';
 export {squaredDifference} from './squared_difference';
 

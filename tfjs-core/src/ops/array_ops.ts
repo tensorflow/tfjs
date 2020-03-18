@@ -27,62 +27,6 @@ import {MPRandGauss, RandGamma, UniformRandom} from './rand';
 import {zeros, zerosLike} from './tensor_ops';
 
 /**
- * Broadcast an array to a compatible shape NumPy-style.
- *
- * The tensor's shape is compared to the broadcast shape from end to beginning.
- * Ones are prepended to the tensor's shape until is has the same length as
- * the broadcast shape. If input.shape[i]==shape[i], the (i+1)-th axis is
- * already broadcast-compatible. If input.shape[i]==1 and shape[i]==N, then
- * the input tensor is tiled N times along that axis (using tf.tile).
- *
- * @param input The tensor that is to be broadcasted.
- * @param shape The input is to be broadcast to this shape.
- */
-/** @doc {heading: 'Tensors', subheading: 'Transformations'} */
-function broadcastTo_<R extends Rank>(
-    x: Tensor|TensorLike, shape: ShapeMap[R]): Tensor<R> {
-  let input = convertToTensor(x, 'broadcastTo', 'x');
-  const xShape = input.shape;
-
-  if (shape.some(d => !(d > 0) || d % 1 !== 0)) {
-    throw new Error(`broadcastTo(): Invalid broadcast shape [${shape}].`);
-  }
-
-  if (shape.length < input.rank) {
-    throw new Error(`broadcastTo(): shape.length=${shape.length} < input.rank=${
-        input.rank}.`);
-  }
-
-  if (shape.length > input.rank) {
-    const newShape = input.shape.slice();
-    while (newShape.length < shape.length) {
-      newShape.unshift(1);
-    }
-    input = input.reshape(newShape);
-  }
-
-  const reps: number[] = Array.from(shape);
-  for (let i = shape.length - 1; i >= 0; i--) {
-    if (input.shape[i] === shape[i]) {
-      reps[i] = 1;
-    } else if (input.shape[i] !== 1) {
-      throw new Error(
-          `broadcastTo(): [${xShape}] cannot be broadcast to [${shape}].`);
-    }
-  }
-  const axes = reps.map((n, i) => n > 1 ? i : -1).filter(i => i >= 0);
-
-  if (axes.length === 0) {
-    return input.clone() as Tensor<R>;
-  }
-
-  return ENGINE.runKernelFunc(
-             backend => backend.tile(input, reps), {input},
-             (dy: Tensor) =>
-                 ({input: () => dy.sum(axes, /*keepDims=*/true)})) as Tensor<R>;
-}
-
-/**
  * Creates a new tensor with the same values and shape as the specified
  * tensor.
  *
@@ -1186,7 +1130,6 @@ export {
 };
 
 export const batchToSpaceND = op({batchToSpaceND_});
-export const broadcastTo = op({broadcastTo_});
 export const cast = op({cast_});
 export const clone = op({clone_});
 export const cumsum = op({cumsum_});
