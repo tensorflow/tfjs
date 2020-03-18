@@ -40,7 +40,8 @@ export interface NonMaxSuppressionV5Attrs {
 export const BroadcastTo = 'BroadcastTo';
 export type BroadcastToInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface BroadCastToAttrs {
-  reps: number[];
+  shape: number[];
+  inputShape: number[];  // for gradient
 }
 
 /**

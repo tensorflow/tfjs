@@ -61,9 +61,10 @@ function broadcastTo_<R extends Rank>(
     input = input.reshape(newShape);
   }
 
+  const inputShape = input.shape;
   const reps: number[] = Array.from(shape);
   for (let i = shape.length - 1; i >= 0; i--) {
-    if (input.shape[i] === shape[i]) {
+    if (inputShape[i] === shape[i]) {
       reps[i] = 1;
     } else if (input.shape[i] !== 1) {
       throw new Error(
@@ -81,7 +82,7 @@ function broadcastTo_<R extends Rank>(
   const backward = (dy: Tensor) => ({x: () => dy.sum(axes, keepDims)});
 
   const inputs: BroadcastToInputs = {x: input};
-  const attrs: BroadCastToAttrs = {reps};
+  const attrs: BroadCastToAttrs = {shape, inputShape};
 
   return ENGINE.runKernelFunc(
              forward, inputs as unknown as NamedTensorMap, backward,

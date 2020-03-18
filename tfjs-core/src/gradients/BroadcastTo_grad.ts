@@ -24,8 +24,25 @@ export const broadcastToGradConfig: GradConfig = {
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const broadCastToAttrs: BroadCastToAttrs =
         attrs as unknown as BroadCastToAttrs;
-    const axes =
-        broadCastToAttrs.reps.map((n, i) => n > 1 ? i : -1).filter(i => i >= 0);
+
+    const inputShape = broadCastToAttrs.inputShape;
+    const outputShape = broadCastToAttrs.shape;
+
+    const reps: number[] = Array.from(outputShape);
+    for (let i = inputShape.length - 1; i >= 0; i--) {
+      if (inputShape[i] === outputShape[i]) {
+        reps[i] = 1;
+      } else if (inputShape[i] !== 1) {
+        throw new Error(`broadcastTo(): [${
+            inputShape}] cannot be broadcast to [${outputShape}].`);
+      }
+    }
+    const axes: number[] = [];
+    for (let i = 0; i < reps.length; i++) {
+      if (reps[i] > 1) {
+        axes.push(i);
+      }
+    }
     const keepDims = true;
     return {x: () => dy.sum(axes, keepDims)};
   }
