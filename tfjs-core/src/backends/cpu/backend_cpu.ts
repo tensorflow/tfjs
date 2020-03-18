@@ -482,13 +482,13 @@ export class MathBackendCPU extends KernelBackend {
         (aValue, bValue) => aValue * bValue);
   }
 
-  realDivide(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'realDivide');
+  // realDivide(a: Tensor, b: Tensor): Tensor {
+  //   assertNotComplex([a, b], 'realDivide');
 
-    const op = (a: number, b: number) => a / b;
-    const outputDtype = 'float32';
-    return this.broadcastedBinaryOp(a, b, outputDtype, op);
-  }
+  //   const op = (a: number, b: number) => a / b;
+  //   const outputDtype = 'float32';
+  //   return this.broadcastedBinaryOp(a, b, outputDtype, op);
+  // }
 
   floorDiv(a: Tensor, b: Tensor): Tensor {
     assertNotComplex([a, b], 'floorDiv');
