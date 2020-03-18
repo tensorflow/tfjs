@@ -186,66 +186,70 @@ function fusedMatMul_<T extends Tensor>({
 
     let biasGradient = {};
     if (bias != null) {
-      biasGradient = {$bias: () => getFusedBiasGradient($bias, dyActivation)};
+      biasGradient = {bias: () => getFusedBiasGradient($bias, dyActivation)};
     }
 
     if (!transposeA && !transposeB) {
       return Object.assign(
           {
-            $a: () => dyActivation.matMul(b3D as Tensor3D, false, true),
-            $b: () => a3D.matMul(dyActivation, true, false)
+            a: () => dyActivation.matMul(b3D as Tensor3D, false, true),
+            b: () => a3D.matMul(dyActivation, true, false)
           },
           biasGradient);
     } else if (!transposeA && transposeB) {
       return Object.assign(
           {
-            $a: () => dyActivation.matMul(b3D as Tensor3D, false, false),
-            $b: () => dyActivation.matMul(a3D as Tensor3D, true, false)
+            a: () => dyActivation.matMul(b3D as Tensor3D, false, false),
+            b: () => dyActivation.matMul(a3D as Tensor3D, true, false)
           },
           biasGradient);
     } else if (transposeA && !transposeB) {
       return Object.assign(
           {
-            $a: () => b3D.matMul(dyActivation, false, true),
-            $b: () => a3D.matMul(dyActivation, false, false)
+            a: () => b3D.matMul(dyActivation, false, true),
+            b: () => a3D.matMul(dyActivation, false, false)
           },
           biasGradient);
     } else {
       return Object.assign(
           {
-            $a: () => b3D.matMul(dyActivation, true, true),
-            $b: () => dyActivation.matMul(a3D as Tensor3D, true, true)
+            a: () => b3D.matMul(dyActivation, true, true),
+            b: () => dyActivation.matMul(a3D as Tensor3D, true, true)
           },
           biasGradient);
     }
   };
 
-  const inputs: {
-    $a: Tensor,
-    $b: Tensor,
-    $bias?: Tensor,
-    $preluActivationWeights?: Tensor
-  } = {$a: a3D, $b: b3D};
+  const inputs:
+      {a: Tensor, b: Tensor,
+       bias?: Tensor,
+       preluActivationWeights?: Tensor} = {a: a3D, b: b3D};
   if (bias != null) {
-    inputs.$bias = $bias;
+    inputs.bias = $bias;
   }
   if (preluActivationWeights != null) {
-    inputs.$preluActivationWeights = $preluActivationWeights;
+    inputs.preluActivationWeights = $preluActivationWeights;
   }
 
-  const res = ENGINE.runKernelFunc((backend, save) => {
-    const y = backend.fusedBatchMatMul({
-      a: a3D,
-      b: b3D,
-      transposeA,
-      transposeB,
-      bias: $bias,
-      activation,
-      preluActivationWeights: $preluActivationWeights
-    });
-    save([a3D, b3D, y]);
-    return y;
-  }, inputs, grad);
+  const inputsToSave = [a3D, b3D];
+  const outputsToSave = [true];
+
+  const res = ENGINE.runKernelFunc(
+      (backend, save) => {
+        const y = backend.fusedBatchMatMul({
+          a: a3D,
+          b: b3D,
+          transposeA,
+          transposeB,
+          bias: $bias,
+          activation,
+          preluActivationWeights: $preluActivationWeights
+        });
+        save([a3D, b3D, y]);
+        return y;
+      },
+      inputs, grad, '_FusedMatMul', {transposeA, transposeB, activation},
+      inputsToSave, outputsToSave);
   return res.reshape(outShape) as T;
 }
 

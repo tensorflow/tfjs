@@ -8,9 +8,9 @@ emsdk_configure(name = "emsdk")
 
 git_repository(
     name = "xnnpack",
-    commit = "7278a95e3cfae6eac73f363c4fda5db53e1b2a87",
+    commit = "15d1f511d37a8dad1ab7a80cfefd7014accf72ac",
     remote = "https://github.com/google/XNNPACK.git",
-    shallow_since = "1580796377 -0800",
+    shallow_since = "1582560423 -0800",
 )
 
 # The libraries below are transitive dependencies of XNNPACK that we need to
@@ -76,10 +76,10 @@ http_archive(
 http_archive(
     name = "psimd",
     build_file = "@xnnpack//third_party:psimd.BUILD",
-    sha256 = "1fefd66702cb2eb3462b962f33d4fb23d59a55d5889ee6372469d286c4512df4",
-    strip_prefix = "psimd-10b4ffc6ea9e2e11668f86969586f88bc82aaefa",
+    sha256 = "c621f9bb1ff9ab8f0fa4a04f3239d13b345a6e865318d7b464aa80531a1abb2c",
+    strip_prefix = "psimd-88882f601f8179e1987b7e7cf4a8012c9080ad44",
     urls = [
-        "https://github.com/Maratyszcza/psimd/archive/10b4ffc6ea9e2e11668f86969586f88bc82aaefa.tar.gz",
+        "https://github.com/Maratyszcza/psimd/archive/88882f601f8179e1987b7e7cf4a8012c9080ad44.tar.gz",
     ],
 )
 

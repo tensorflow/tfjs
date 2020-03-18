@@ -18,6 +18,7 @@
 // We explicitly import the modular kernels so they get registered in the
 // global registry when we compile the library. A modular build would replace
 // the contents of this file and import only the kernels that are needed.
+import './_FusedMatMul';
 import './Abs';
 import './Add';
 import './AddN';
@@ -28,8 +29,8 @@ import './Cast';
 import './ClipByValue';
 import './Concat';
 import './Conv2D';
-import './CropAndResize';
 import './Cos';
+import './CropAndResize';
 import './DepthwiseConv2dNative';
 import './Div';
 import './Exp';
@@ -41,10 +42,10 @@ import './Gather';
 import './GatherNd';
 import './Greater';
 import './GreaterEqual';
-import './LogicalAnd';
 import './Less';
 import './LessEqual';
 import './Log';
+import './LogicalAnd';
 import './Max';
 import './Maximum';
 import './MaxPool';
@@ -55,7 +56,9 @@ import './Neg';
 import './NonMaxSuppressionV3';
 import './NonMaxSuppressionV5';
 import './NotEqual';
+import './OnesLike';
 import './PadV2';
+import './Pow';
 import './Prelu';
 import './Relu';
 import './Relu6';
@@ -74,3 +77,4 @@ import './Tanh';
 import './Tile';
 import './Transpose';
 import './Unpack';
+import './ZerosLike';

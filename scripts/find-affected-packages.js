@@ -14,7 +14,8 @@
 // limitations under the License.
 // =============================================================================
 
-const {exec} = require('./test-util');
+const {exec, constructDependencyGraph, computeAffectedPackages} =
+    require('./test-util');
 const shell = require('shelljs');
 const {readdirSync, statSync, writeFileSync} = require('fs');
 const {join} = require('path');
@@ -22,7 +23,7 @@ const fs = require('fs');
 
 const filesWhitelistToTriggerBuild = [
   'cloudbuild.yml', 'package.json', 'tsconfig.json', 'tslint.json',
-  'scripts/diff.js', 'scripts/run-build.sh'
+  'scripts/find-affected-packages.js', 'scripts/run-build.sh'
 ];
 
 const CLONE_PATH = 'clone';
@@ -33,6 +34,7 @@ const dirs = readdirSync('.').filter(f => {
 
 let commitSha = process.env['COMMIT_SHA'];
 let branchName = process.env['BRANCH_NAME'];
+let baseBranch = process.env['BASE_BRANCH'];
 // If commit sha or branch name are null we are running this locally and are in
 // a git repository.
 if (commitSha == null) {
@@ -41,12 +43,21 @@ if (commitSha == null) {
 if (branchName == null) {
   branchName = exec(`git rev-parse --abbrev-ref HEAD`).stdout.trim();
 }
+
+// For Nightly build, baseBranch is one of the falsey values. We use master
+// for Nightly build.
+if (!baseBranch) {
+  baseBranch = 'master';
+}
 console.log('commitSha: ', commitSha);
 console.log('branchName: ', branchName);
+console.log('baseBranch: ', baseBranch);
 
 // We cannot do --depth=1 here because we need to check out an old merge base.
 // We cannot do --single-branch here because we need multiple branches.
-exec(`git clone https://github.com/tensorflow/tfjs ${CLONE_PATH}`);
+console.log(`Clone branch ${baseBranch}`);
+exec(`git clone -b ${baseBranch} https://github.com/tensorflow/tfjs ${
+    CLONE_PATH}`);
 
 console.log();  // Break up the console for readability.
 
@@ -61,12 +72,13 @@ const isPullRequestFromFork = res.code !== 0;
 if (!isPullRequestFromFork) {
   console.log('PR is coming from tensorflow/tfjs. Finding the merge base...');
   exec(`git checkout ${branchName}`);
-  const mergeBase = exec(`git merge-base master ${branchName}`).stdout.trim();
+  const mergeBase =
+      exec(`git merge-base ${baseBranch} ${branchName}`).stdout.trim();
   exec(`git fetch origin ${mergeBase}`);
   exec(`git checkout ${mergeBase}`);
   console.log('mergeBase: ', mergeBase);
 } else {
-  console.log('PR is coming from a fork. Diffing against master.');
+  console.log(`PR is going to diff against branch ${baseBranch}.`);
 }
 shell.cd('..');
 console.log();  // Break up the console for readability.
@@ -86,7 +98,7 @@ console.log();  // Break up the console for readability.
 
 let triggeredBuilds = [];
 dirs.forEach(dir => {
-  shell.rm('-f', `${dir}/diff`);
+  shell.rm('-f', `${dir}/run-ci`);
   const diffOutput = diff(`${dir}/`);
   if (diffOutput !== '') {
     console.log(`${dir} has modified files.`);
@@ -97,12 +109,30 @@ dirs.forEach(dir => {
   const shouldDiff = diffOutput !== '' || triggerAllBuilds;
   if (shouldDiff) {
     const diffContents = whitelistDiffOutput.join('\n') + '\n' + diffOutput;
-    writeFileSync(join(dir, 'diff'), diffContents);
+    writeFileSync(join(dir, 'run-ci'), diffContents);
     triggeredBuilds.push(dir);
   }
 });
 
 console.log();  // Break up the console for readability.
+
+// Only add affected packages if not triggering all builds.
+if (!triggerAllBuilds) {
+  console.log('Computing affected packages.');
+  const affectedBuilds = new Set();
+  const dependencyGraph =
+      constructDependencyGraph('scripts/package_dependencies.json');
+  triggeredBuilds.forEach(triggeredBuild => {
+    const affectedPackages =
+        computeAffectedPackages(dependencyGraph, triggeredBuild);
+    affectedPackages.forEach(package => {
+      writeFileSync(join(package, 'run-ci'));
+      affectedBuilds.add(package);
+    });
+  });
+
+  triggeredBuilds.push(...affectedBuilds);
+}
 
 // Filter the triggered builds to log by whether a cloudbuild.yml file
 // exists for that directory.

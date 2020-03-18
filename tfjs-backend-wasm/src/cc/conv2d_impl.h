@@ -17,11 +17,10 @@
 
 #include <cstddef>
 
+#include "src/cc/backend.h"
+
 namespace tfjs {
 namespace wasm {
-
-// Must match enum in FusedConv2D.ts.
-enum FusableActivation { LINEAR = 0, RELU = 1, RELU6 = 2, PRELU = 3 };
 
 void conv2d(const size_t x_id, const size_t batch_size,
             const size_t input_height, const size_t input_width,

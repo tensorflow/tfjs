@@ -1,11 +1,11 @@
 {
   "name": "@tensorflow/tfjs-converter",
-  "version": "1.5.2",
+  "version": "1.7.0",
   "description": "Tensorflow model converter for javascript",
-  "main": "dist/src/index.js",
+  "main": "dist/index.js",
   "jsnext:main": "dist/tf-converter.esm.js",
   "module": "dist/tf-converter.esm.js",
-  "types": "dist/src/index.d.ts",
+  "types": "dist/index.d.ts",
   "unpkg": "dist/tf-converter.min.js",
   "jsdelivr": "dist/tf-converter.min.js",
   "miniprogram": "dist/miniprogram",
@@ -15,10 +15,10 @@
   },
   "license": "Apache-2.0",
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "1.5.2"
+    "@tensorflow/tfjs-core": "link:../tfjs-core"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-core": "1.5.2",
+    "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@types/deep-equal": "^1.0.1",
     "@types/jasmine": "~2.8.6",
     "@types/long": "~3.0.32",
@@ -54,14 +54,18 @@
     "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
-    "build": "yarn gen-json --test && tsc && copyfiles -f src/data/compiled_api.* dist/src/data/",
+    "build": "yarn gen-json --test && tsc",
+    "build-ci": "yarn gen-json --test && tsc",
+    "build-core": "cd ../tfjs-core && yarn && yarn build",
+    "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
+    "build-deps": "yarn build-core",
+    "build-deps-ci": "yarn build-core-ci",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
-    "test": "yarn gen-json --test && karma start",
-    "test-ci": "yarn gen-json --test && yarn build && yarn lint && yarn run-browserstack",
+    "test": "yarn && yarn build-deps && yarn gen-json --test && ts-node run_tests.ts",
+    "test-ci": "yarn && yarn build-deps-ci && yarn build-ci && yarn lint && ts-node run_tests.ts",
     "test-snippets": "ts-node ./scripts/test_snippets.ts",
-    "run-browserstack": "karma start --singleRun --browsers='bs_firefox_mac,bs_chrome_mac' --reporters='dots,karma-typescript,BrowserStack'",
     "lint": "tslint -p . -t verbose",
     "make-version": "sh -c ./scripts/make-version",
     "gen-doc": "ts-node ./scripts/gen_doc.ts",

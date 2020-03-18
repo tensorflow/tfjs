@@ -23,7 +23,6 @@
     "allowUnreachableCode": false
   },
   "include": [
-    "src/",
-    "scripts/"
+    "src/"
   ]
 }

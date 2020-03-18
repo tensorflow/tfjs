@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-node",
-  "version": "1.5.2",
+  "version": "1.7.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "gypfile": true,
@@ -13,6 +13,19 @@
   },
   "scripts": {
     "build": "tsc && mkdir -p dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js",
+    "build-ci": "tsc && mkdir -p dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js",
+    "build-core": "cd ../tfjs-core && yarn && yarn build",
+    "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
+    "build-layers": "cd ../tfjs-layers && yarn && yarn build",
+    "build-layers-ci": "cd ../tfjs-layers && yarn && yarn build-ci",
+    "build-converter": "cd ../tfjs-converter && yarn && yarn build",
+    "build-converter-ci": "cd ../tfjs-converter && yarn && yarn build-ci",
+    "build-data": "cd ../tfjs-data && yarn && yarn build",
+    "build-data-ci": "cd ../tfjs-data && yarn && yarn build-ci",
+    "build-union": "cd ../tfjs && yarn && yarn build",
+    "build-union-ci": "cd ../tfjs && yarn && yarn build-ci",
+    "build-deps": "yarn build-core && yarn build-layers && yarn build-converter && yarn build-data && yarn build-union",
+    "build-deps-ci": "yarn build-core-ci && yarn build-layers-ci && yarn build-converter-ci && yarn build-data-ci && yarn build-union-ci",
     "build-npm": "./scripts/build-npm.sh",
     "build-addon": "./scripts/build-and-upload-addon.sh",
     "build-addon-from-source": "node-pre-gyp install --build-from-source",
@@ -27,12 +40,13 @@
     "lint": "tslint -p . -t verbose",
     "prep": "cd node_modules/@tensorflow/tfjs-core && yarn && yarn build",
     "publish-local": "yarn prep && yalc push",
-    "test": "ts-node src/run_tests.ts",
+    "test": "yarn && yarn build-deps && yarn build && ts-node src/run_tests.ts",
     "test-ci": "./scripts/test-ci.sh",
     "test-ts-integration": "./scripts/test-ts-integration.sh",
     "upload-windows-addon": "./scripts/build-and-upload-windows-addon.bat"
   },
   "devDependencies": {
+    "@tensorflow/tfjs-layers": "link:../tfjs-layers",
     "@types/jasmine": "~2.8.6",
     "@types/node": "^10.5.1",
     "@types/progress": "^2.0.1",
@@ -51,7 +65,8 @@
     "yargs": "^14.2.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "1.5.2",
+    "@tensorflow/tfjs": "link:../tfjs",
+    "@tensorflow/tfjs-core": "link:../tfjs-core",
     "adm-zip": "^0.4.11",
     "google-protobuf": "^3.9.2",
     "https-proxy-agent": "^2.2.1",

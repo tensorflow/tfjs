@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,22 +15,24 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo} from '../../kernel_registry';
+import {KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
 
-import {MathBackendWebGL} from './backend_webgl';
-import {SQUARE, UnaryOpProgram} from './unaryop_gpu';
+import {BackendWasm} from '../backend_wasm';
 
-interface SquareInputs extends NamedTensorInfoMap {
+interface OnesLikeInputs extends NamedTensorInfoMap {
   x: TensorInfo;
 }
 
+function onesLike(args: {inputs: OnesLikeInputs, backend: BackendWasm}) {
+  const {inputs: {x}, backend} = args;
+  const out = backend.makeOutput(x.shape, x.dtype);
+  const outVals = backend.typedArrayFromHeap(out);
+  outVals.fill(1);
+  return out;
+}
+
 registerKernel({
-  kernelName: 'Square',
-  backendName: 'webgl',
-  kernelFunc: ({inputs, backend}) => {
-    const {x} = inputs as SquareInputs;
-    const webglBackend = backend as MathBackendWebGL;
-    const program = new UnaryOpProgram(x.shape, SQUARE);
-    return webglBackend.runWebGLProgram(program, [x], x.dtype);
-  }
+  kernelName: 'OnesLike',
+  backendName: 'wasm',
+  kernelFunc: onesLike as {} as KernelFunc,
 });
