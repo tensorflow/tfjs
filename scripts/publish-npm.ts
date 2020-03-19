@@ -25,10 +25,8 @@
 import * as argparse from 'argparse';
 import chalk from 'chalk';
 import * as mkdirp from 'mkdirp';
-import * as readline from 'readline';
 import * as shell from 'shelljs';
 import {RELEASE_UNITS, question, $, printReleaseUnit} from './release-util';
-import {arrayify} from 'tslint/lib/utils';
 
 const TMP_DIR = '/tmp/tfjs-publish';
 
@@ -99,7 +97,7 @@ async function main() {
   shell.cd(TMP_DIR);
   console.log();
 
-  console.log('~~~ Installing packages ~~~');
+  console.log(chalk.magenta.bold('~~~ Installing packages ~~~'));
   // Yarn in the top-level and in the directory.
   $('yarn');
   shell.cd(pkg);
@@ -107,21 +105,23 @@ async function main() {
   $('yarn');
   console.log();
 
-  console.log('~~~ Build npm ~~~');
+  console.log(chalk.magenta.bold('~~~ Build npm ~~~'));
   $('yarn build-npm for-publish');
   console.log();
 
-  console.log('~~~ Tag version ~~~');
+  console.log(chalk.magenta.bold('~~~ Tag version ~~~'));
   shell.cd('..');
   $(`./scripts/tag-version.js ${pkg}`);
   console.log();
 
-  console.log('~~~ Publishing to npm ~~~');
+  console.log(chalk.magenta.bold('~~~ Publishing to npm ~~~'));
   shell.cd(pkg);
   $('npm publish');
   console.log();
 
-  console.log(chalk.green('Yay! Published a new package to npm.'));
+  console.log('Yay! Published a new package to npm.');
+
+  process.exit(0);
 }
 
 main();
