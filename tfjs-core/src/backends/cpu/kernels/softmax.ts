@@ -55,10 +55,10 @@ registerKernel({
 
     const expandedShape = axis_util.expandShapeToKeepDim(reduceOutShape, axes);
 
-    const [aValues, aShape] =
+    const [aValues,] =
         sub(logits.shape, expandedShape, logitsValues, maxLogit, logits.dtype);
 
-    const b = exp(aValues, new Float32Array(sizeFromShape(aShape)));
+    const b = exp(aValues);
 
     const sumExp =
         sum(b, reduceShape, new Float32Array(sizeFromShape(reduceOutShape)));

@@ -16,8 +16,11 @@
  */
 
 import {TypedArray} from '../../../types';
+import * as util from '../../../util';
 
-export const exp = (x: TypedArray, outValues: TypedArray): TypedArray => {
+export const exp = (x: TypedArray): TypedArray => {
+  const outValues = util.getTypedArrayFromDType('float32', x.length);
+
   for (let i = 0; i < x.length; ++i) {
     outValues[i] = Math.exp(x[i]);
   }

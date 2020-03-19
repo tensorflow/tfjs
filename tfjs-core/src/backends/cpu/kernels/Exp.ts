@@ -15,18 +15,14 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo} from '../../../kernel_registry';
-import {sizeFromShape} from '../../../util';
+import {Exp, ExpInputs} from '../../../kernel_names';
+import {KernelConfig} from '../../../kernel_registry';
 import {MathBackendCPU} from '../backend_cpu';
 
 import {exp} from './exp_impl';
 
-interface ExpInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-registerKernel({
-  kernelName: 'Exp',
+export const expConfig: KernelConfig = {
+  kernelName: Exp,
   backendName: 'cpu',
   kernelFunc: ({inputs, backend}) => {
     const {x} = inputs as ExpInputs;
@@ -34,9 +30,9 @@ registerKernel({
 
     const xVals = cpuBackend.data.get(x.dataId).values as Float32Array;
 
-    const result = exp(xVals, new Float32Array(sizeFromShape(x.shape)));
+    const result = exp(xVals);
 
     const dataId = cpuBackend.write(result, x.shape, x.dtype);
     return {dataId, shape: x.shape, dtype: x.dtype};
   }
-});
+};

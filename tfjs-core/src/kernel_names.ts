@@ -24,6 +24,9 @@ import {PixelData} from './types';
 export const Div = 'Div';
 export type DivInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 
+export const Exp = 'Exp';
+export type ExpInputs = Pick<NamedTensorInfoMap, 'x'>;
+
 export const Max = 'Max';
 export type MaxInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface MaxAttrs {
