@@ -75,10 +75,10 @@ async function main() {
   console.log(chalk.blue(`Publishing package ${pkg}`));
   console.log();
 
-  // Infer release branch name, does not apply to package0.
+  // Infer release branch name from package0, does not apply to package0.
   let releaseBranch = '';
   const latestVersion = pkgInt !== 0 ?
-    $(`npm view @tensorflow/${pkg} dist-tags.latest`) :
+    $(`npm view @tensorflow/${packages[0]} dist-tags.latest`) :
     await question('What is the release version: ');
   releaseBranch = `${name}_${latestVersion}`;
   console.log();
