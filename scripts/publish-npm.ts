@@ -27,20 +27,8 @@ import chalk from 'chalk';
 import * as mkdirp from 'mkdirp';
 import * as readline from 'readline';
 import * as shell from 'shelljs';
-import {question, $} from './release-util';
-
-const PACKAGES = [
-  'tfjs-core',
-  'tfjs-layers',
-  'tfjs-converter',
-  'tfjs-data',
-  'tfjs',
-  'tfjs-node',
-  'tfjs-node-gpu',
-  'tfjs-backend-wasm',
-  'tfjs-vis',
-  'tfjs-react-native'
-];
+import {RELEASE_UNITS, question, $, printReleaseUnit} from './release-util';
+import {arrayify} from 'tslint/lib/utils';
 
 const TMP_DIR = '/tmp/tfjs-publish';
 
@@ -50,8 +38,7 @@ parser.addArgument('--git-protocol', {
   help: 'Use the git protocal rather than the http protocol when cloning repos.'
 });
 
-function printPackage(id: number) {
-  const pkg = PACKAGES[id];
+function printPackage(pkg: string, id: number) {
   console.log(chalk.green(`Package ${id}: `));
   console.log(chalk.blue(pkg));
 }
@@ -59,24 +46,46 @@ function printPackage(id: number) {
 async function main() {
   const args = parser.parseArgs();
 
-  PACKAGES.forEach((_, i) => printPackage(i));
+  RELEASE_UNITS.forEach((_, i) => printReleaseUnit(i));
   console.log();
 
-  const pkgStr = await question('Which package to publish: ');
+  const releaseUnitStr =
+    await question('Which release unit (leave empty for 0): ');
+  const releaseUnitInt = +releaseUnitStr;
+  if (releaseUnitInt < 0 || releaseUnitInt >= RELEASE_UNITS.length) {
+    console.log(chalk.red(`Invalid release unit: ${releaseUnitStr}`));
+    process.exit(1);
+  }
+  console.log(chalk.blue(`Using release unit ${releaseUnitInt}`));
+  console.log();
+
+  const {name, phases, repo} = RELEASE_UNITS[releaseUnitInt];
+
+  const packages = phases.map(phase =>
+    phase.packages).reduce((arr, packages) =>
+      arr.concat(packages), []);
+  packages.forEach((pkg, i) => printPackage(pkg, i));
+  console.log();
+
+  const pkgStr = await question('Which package to publish (leave empty for 0): ');
   const pkgInt = +pkgStr;
-  if (pkgInt < 0 || pkgInt >= PACKAGES.length) {
+  if (pkgInt < 0 || pkgInt >= packages.length) {
     console.log(chalk.red(`Invalid package: ${pkgStr}`));
     process.exit(1);
   }
-  console.log(chalk.blue(`Publishing package ${pkgInt}`));
+  const pkg = packages[pkgInt];
+  console.log(chalk.blue(`Publishing package ${pkg}`));
   console.log();
 
-  const pkg = PACKAGES[pkgInt];
-
-  const branchName = await question('What is the release branch name: ');
+  // Infer release branch name, does not apply to package0.
+  let releaseBranch = '';
+  const latestVersion = pkgInt !== 0 ?
+    $(`npm view @tensorflow/${pkg} dist-tags.latest`) :
+    await question('What is the release version: ');
+  releaseBranch = `${name}_${latestVersion}`;
   console.log();
 
-  console.log(`~~~ Checking out release branch ${branchName} ~~~`);
+  console.log(`~~~ Checking out release branch ${releaseBranch} ~~~`);
   $(`rm -f -r ${TMP_DIR}`);
   mkdirp(TMP_DIR, err => {
     if (err) {
@@ -86,7 +95,7 @@ async function main() {
   });
 
   const urlBase = args.git_protocol ? 'git@github.com:' : 'https://github.com/';
-  $(`git clone -b ${branchName} ${urlBase}tensorflow/tfjs ${TMP_DIR} --depth=1`);
+  $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${TMP_DIR} --depth=1`);
   shell.cd(TMP_DIR);
   console.log();
 
