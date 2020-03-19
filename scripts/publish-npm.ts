@@ -26,7 +26,7 @@ import * as argparse from 'argparse';
 import chalk from 'chalk';
 import * as mkdirp from 'mkdirp';
 import * as shell from 'shelljs';
-import {RELEASE_UNITS, question, $, printReleaseUnit} from './release-util';
+import {RELEASE_UNITS, question, $, printReleaseUnit, printPhase} from './release-util';
 
 const TMP_DIR = '/tmp/tfjs-publish';
 
@@ -35,11 +35,6 @@ parser.addArgument('--git-protocol', {
   action: 'storeTrue',
   help: 'Use the git protocal rather than the http protocol when cloning repos.'
 });
-
-function printPackage(pkg: string, id: number) {
-  console.log(chalk.green(`Package ${id}: `));
-  console.log(chalk.blue(pkg));
-}
 
 async function main() {
   const args = parser.parseArgs();
@@ -59,31 +54,41 @@ async function main() {
 
   const {name, phases, repo} = RELEASE_UNITS[releaseUnitInt];
 
-  const packages = phases.map(phase =>
-    phase.packages).reduce((arr, packages) =>
-      arr.concat(packages), []);
-  packages.forEach((pkg, i) => printPackage(pkg, i));
+  phases.forEach((_, i) => printPhase(phases, i));
   console.log();
 
-  const pkgStr = await question('Which package to publish (leave empty for 0): ');
-  const pkgInt = +pkgStr;
-  if (pkgInt < 0 || pkgInt >= packages.length) {
-    console.log(chalk.red(`Invalid package: ${pkgStr}`));
+  const phaseStr = await question('Which phase (leave empty for 0): ');
+  const phaseInt = +phaseStr;
+  if (phaseInt < 0 || phaseInt >= phases.length) {
+    console.log(chalk.red(`Invalid phase: ${phaseStr}`));
     process.exit(1);
   }
-  const pkg = packages[pkgInt];
-  console.log(chalk.blue(`Publishing package ${pkg}`));
+  console.log(chalk.blue(`Using phase ${phaseInt}`));
   console.log();
 
-  // Infer release branch name from package0, does not apply to package0.
+  // Infer release branch name.
   let releaseBranch = '';
-  const latestVersion = pkgInt !== 0 ?
-    $(`npm view @tensorflow/${packages[0]} dist-tags.latest`) :
-    await question('What is the release version: ');
-  releaseBranch = `${name}_${latestVersion}`;
+
+  // Get a list of branches sorted by timestamp in descending order.
+  const branchesStr =
+    $(`git branch -r --sort=-authordate --format='%(HEAD) %(refname:lstrip=-1)'`);
+  const branches =
+    Array.from(branchesStr.split(/\n/)).map(line => line.toString().trim());
+
+  // Find the first/latest matching branch, e.g. tfjs_1.7.1
+  // It will not match temprary generated branches such as tfjs_1.7.1_phase0.
+  const exp = `^${name}_([^_]+)$`;
+  const regObj = new RegExp(exp);
+  const maybeBranch = branches.find(branch => branch.match(regObj));
+  releaseBranch = await question(`Which branch to publish from
+  (leave empty for ${maybeBranch}): `);
+  if (releaseBranch === '') {
+    releaseBranch = maybeBranch;
+  }
   console.log();
 
-  console.log(`~~~ Checking out release branch ${releaseBranch} ~~~`);
+  console.log(
+    chalk.magenta.bold(`~~~ Checking out release branch ${releaseBranch} ~~~`));
   $(`rm -f -r ${TMP_DIR}`);
   mkdirp(TMP_DIR, err => {
     if (err) {
@@ -95,31 +100,37 @@ async function main() {
   const urlBase = args.git_protocol ? 'git@github.com:' : 'https://github.com/';
   $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${TMP_DIR} --depth=1`);
   shell.cd(TMP_DIR);
-  console.log();
-
-  console.log(chalk.magenta.bold('~~~ Installing packages ~~~'));
   // Yarn in the top-level and in the directory.
   $('yarn');
-  shell.cd(pkg);
-  // Yarn above the other checks to make sure yarn doesn't change the lock file.
-  $('yarn');
   console.log();
 
-  console.log(chalk.magenta.bold('~~~ Build npm ~~~'));
-  $('yarn build-npm for-publish');
-  console.log();
+  const packages = phases[phaseInt].packages;
 
-  console.log(chalk.magenta.bold('~~~ Tag version ~~~'));
-  shell.cd('..');
-  $(`./scripts/tag-version.js ${pkg}`);
-  console.log();
+  for (let i = 0; i < packages.length; i++) {
+    const pkg = packages[i];
+    shell.cd(pkg);
 
-  console.log(chalk.magenta.bold('~~~ Publishing to npm ~~~'));
-  shell.cd(pkg);
-  $('npm publish');
-  console.log();
+    console.log(chalk.magenta.bold(`~~~ Preparing package ${pkg}~~~`));
+    console.log(chalk.magenta('~~~ Installing packages ~~~'));
+    // Yarn above the other checks to make sure yarn doesn't change the lock file.
+    $('yarn');
 
-  console.log('Yay! Published a new package to npm.');
+    console.log(chalk.magenta('~~~ Build npm ~~~'));
+    $('yarn build-npm for-publish');
+
+    console.log(chalk.magenta('~~~ Tag version ~~~'));
+    shell.cd('..');
+    const tagVersion = $(`./scripts/tag-version.js ${pkg}`);
+    console.log(tagVersion);
+
+    console.log(chalk.magenta.bold(`~~~ Publishing ${pkg} to npm ~~~`));
+    shell.cd(pkg);
+    $('npm publish');
+    console.log(`Yay! Published ${pkg} to npm.`);
+
+    shell.cd('..');
+    console.log();
+  }
 
   process.exit(0);
 }

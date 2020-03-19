@@ -32,7 +32,7 @@ import * as fs from 'fs';
 import * as mkdirp from 'mkdirp';
 import * as readline from 'readline';
 import * as shell from 'shelljs';
-import {RELEASE_UNITS, Phase, $, question, printReleaseUnit} from './release-util';
+import {RELEASE_UNITS, Phase, $, question, printReleaseUnit, printPhase} from './release-util';
 
 const TMP_DIR = '/tmp/tfjs-release';
 
@@ -42,15 +42,6 @@ parser.addArgument('--git-protocol', {
   action: 'storeTrue',
   help: 'Use the git protocal rather than the http protocol when cloning repos.'
 });
-
-function printPhase(phases: Phase[], phaseId: number) {
-  const phase = phases[phaseId];
-  console.log(chalk.green(`Phase ${phaseId}:`));
-  console.log(`  packages: ${chalk.blue(phase.packages.join(', '))}`);
-  if (phase.deps != null) {
-    console.log(`   deps: ${phase.deps.join(', ')}`);
-  }
-}
 
 // Computes the default updated version (does a patch version update).
 function getPatchUpdateVersion(version: string): string {

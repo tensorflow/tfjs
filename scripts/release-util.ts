@@ -131,3 +131,12 @@ export function printReleaseUnit(id: number) {
   console.log(` packages: ${chalk.blue(releaseUnit.phases.map(
     phase => phase.packages.join(', ')).join(', '))}`);
 }
+
+export function printPhase(phases: Phase[], phaseId: number) {
+  const phase = phases[phaseId];
+  console.log(chalk.green(`Phase ${phaseId}:`));
+  console.log(`  packages: ${chalk.blue(phase.packages.join(', '))}`);
+  if (phase.deps != null) {
+    console.log(`   deps: ${phase.deps.join(', ')}`);
+  }
+}
