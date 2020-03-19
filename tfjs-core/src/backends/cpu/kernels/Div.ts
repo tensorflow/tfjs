@@ -15,17 +15,11 @@
  * =============================================================================
  */
 
-// import {registerBinaryKernel} from './binary_kernel';
-// registerBinaryKernel('Div', div);
-
 import {Div, DivInputs} from '../../../kernel_names';
 import {KernelConfig} from '../../../kernel_registry';
-import * as broadcast_util from '../../../ops/broadcast_util';
 import {TypedArray} from '../../../types';
-import {sizeFromShape} from '../../../util';
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
-// import {broadcastedBinaryOp} from '../utils/kernel_utils';
 
 import {div} from './div_impl';
 
@@ -40,22 +34,10 @@ export const divConfig: KernelConfig = {
     const aVals = cpuBackend.data.get(a.dataId).values as TypedArray;
     const bVals = cpuBackend.data.get(b.dataId).values as TypedArray;
 
-    // const [resultData, resultShape] = broadcastedBinaryOp(
-    //     a.shape, b.shape, aVals, bVals, a.dtype, (aVal, bVal) => {
-    //       const diff = aVal - bVal;
-    //       return diff * diff;
-    //     });
+    const [resultData, resultShape] =
+        div(a.shape, b.shape, aVals, bVals, a.dtype);
 
-    const outShape =
-        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    const outValues = new Float32Array(sizeFromShape(outShape));
-
-    const result = div(aVals, a.shape, bVals, b.shape, outValues, outShape);
-
-    const dataId = cpuBackend.write(result, outShape, a.dtype);
-    return {dataId, shape: outShape, dtype: a.dtype};
-
-    // const dataId = cpuBackend.write(resultData, resultShape, a.dtype);
-    // return {dataId, shape: resultShape, dtype: a.dtype};
+    const dataId = cpuBackend.write(resultData, resultShape, a.dtype);
+    return {dataId, shape: resultShape, dtype: a.dtype};
   }
 };

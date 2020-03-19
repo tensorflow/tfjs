@@ -56,30 +56,17 @@ registerKernel({
 
     const expandedShape = axis_util.expandShapeToKeepDim(reduceOutShape, axes);
 
-    console.log('MAX LOGIT');
-    console.log(maxLogit);
+    const [aValues, aShape] =
+        sub(logits.shape, expandedShape, logitsValues, maxLogit, logits.dtype);
 
-    const a =
-        sub(logitsValues, logits.shape, maxLogit, expandedShape,
-            new Float32Array(sizeFromShape(logits.shape)), logits.shape);
-
-    console.log('subtract');
-    console.log(a);
-
-    const b = exp(a, new Float32Array(sizeFromShape(logits.shape)));
-    console.log('exp');
-    console.log(b);
+    const b = exp(aValues, new Float32Array(sizeFromShape(aShape)));
 
     const sumExp =
         sum(b, reduceShape, new Float32Array(sizeFromShape(reduceOutShape)));
-    console.log('sumexp');
-    console.log(sumExp);
 
-    const out =
-        div(b, logits.shape, sumExp, expandedShape,
-            new Float32Array(sizeFromShape(logits.shape)), logits.shape);
-
-    const dataId = cpuBackend.write(out, logits.shape, logits.dtype);
-    return {dataId, shape: logits.shape, dtype: logits.dtype};
+    const [resultData, resultShape] =
+        div(logits.shape, reduceShape, b, sumExp, logits.dtype);
+    const dataId = cpuBackend.write(resultData, resultShape, logits.dtype);
+    return {dataId, shape: resultShape, dtype: logits.dtype};
   }
 });
