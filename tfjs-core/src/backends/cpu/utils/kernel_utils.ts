@@ -16,9 +16,40 @@
  */
 
 import * as backend_util from '../../../backends/backend_util';
-
+import {KernelConfig, NamedTensorInfoMap, TensorInfo} from '../../../kernel_registry';
 import {DataType, NumericDataType, TypedArray} from '../../../types';
 import * as util from '../../../util';
+import {MathBackendCPU} from '../backend_cpu';
+import {assertNotComplex} from '../cpu_util';
+
+interface BinaryInputs extends NamedTensorInfoMap {
+  a: TensorInfo;
+  b: TensorInfo;
+}
+
+export const createBinaryKernelConfig =
+    (name: string,
+     op: (
+         aShape: number[], bShape: number[], aVals: TypedArray,
+         bVals: TypedArray, dtype: DataType) => [TypedArray, number[]]):
+        KernelConfig => ({
+          kernelName: name,
+          backendName: 'cpu',
+          kernelFunc: ({inputs, backend}) => {
+            const {a, b} = inputs as BinaryInputs;
+            const cpuBackend = backend as MathBackendCPU;
+            assertNotComplex([a, b], name);
+
+            const aVals = cpuBackend.data.get(a.dataId).values as TypedArray;
+            const bVals = cpuBackend.data.get(b.dataId).values as TypedArray;
+
+            const [resultData, resultShape] =
+                op(a.shape, b.shape, aVals, bVals, a.dtype);
+
+            const dataId = cpuBackend.write(resultData, resultShape, a.dtype);
+            return {dataId, shape: resultShape, dtype: a.dtype};
+          }
+        });
 
 export const createBinaryOp = (op: (a: number, b: number) => number) =>
     (aShape: number[], bShape: number[], aVals: TypedArray, bVals: TypedArray,

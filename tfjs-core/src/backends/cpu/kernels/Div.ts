@@ -15,29 +15,8 @@
  * =============================================================================
  */
 
-import {Div, DivInputs} from '../../../kernel_names';
-import {KernelConfig} from '../../../kernel_registry';
-import {TypedArray} from '../../../types';
-import {MathBackendCPU} from '../backend_cpu';
-import {assertNotComplex} from '../cpu_util';
+import {Div} from '../../../kernel_names';
+import {createBinaryKernelConfig} from '../utils/kernel_utils';
 
 import {div} from './div_impl';
-
-export const divConfig: KernelConfig = {
-  kernelName: Div,
-  backendName: 'cpu',
-  kernelFunc: ({inputs, backend}) => {
-    const {a, b} = inputs as DivInputs;
-    const cpuBackend = backend as MathBackendCPU;
-    assertNotComplex([a, b], Div);
-
-    const aVals = cpuBackend.data.get(a.dataId).values as TypedArray;
-    const bVals = cpuBackend.data.get(b.dataId).values as TypedArray;
-
-    const [resultData, resultShape] =
-        div(a.shape, b.shape, aVals, bVals, a.dtype);
-
-    const dataId = cpuBackend.write(resultData, resultShape, a.dtype);
-    return {dataId, shape: resultShape, dtype: a.dtype};
-  }
-};
+export const divConfig = createBinaryKernelConfig(Div, div);

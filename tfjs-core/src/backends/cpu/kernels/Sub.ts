@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-import {registerBinaryKernel} from './binary_kernel';
+import {Sub} from '../../../kernel_names';
+import {createBinaryKernelConfig} from '../utils/kernel_utils';
+
 import {sub} from './sub_impl';
 
-registerBinaryKernel('Sub', sub);
+export const subConfig = createBinaryKernelConfig(Sub, sub);

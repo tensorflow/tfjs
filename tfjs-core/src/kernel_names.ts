@@ -22,7 +22,6 @@ import {NamedTensorInfoMap} from './kernel_registry';
 import {PixelData} from './types';
 
 export const Div = 'Div';
-export type DivInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 
 export const Exp = 'Exp';
 export type ExpInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -34,10 +33,11 @@ export interface MaxAttrs {
 }
 
 export const SquaredDifference = 'SquaredDifference';
-export type SquaredDifferenceInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 
 export const Square = 'Square';
 export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const Sub = 'Sub';
 
 export const NonMaxSuppressionV5 = 'NonMaxSuppressionV5';
 export type NonMaxSuppressionV5Inputs =

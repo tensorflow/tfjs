@@ -15,33 +15,14 @@
  * =============================================================================
  */
 
-import {SquaredDifference, SquaredDifferenceInputs} from '../../../kernel_names';
-import {KernelConfig} from '../../../kernel_registry';
-import {TypedArray} from '../../../types';
-import {MathBackendCPU} from '../backend_cpu';
-import {assertNotComplex} from '../cpu_util';
+import {SquaredDifference} from '../../../kernel_names';
 import {createBinaryOp} from '../utils/kernel_utils';
+import {createBinaryKernelConfig} from '../utils/kernel_utils';
 
 const squaredDifferenceImpl = createBinaryOp((aVal, bVal) => {
   const diff = aVal - bVal;
   return diff * diff;
 });
 
-export const squaredDifferenceConfig: KernelConfig = {
-  kernelName: SquaredDifference,
-  backendName: 'cpu',
-  kernelFunc: ({inputs, backend}) => {
-    const {a, b} = inputs as SquaredDifferenceInputs;
-    const cpuBackend = backend as MathBackendCPU;
-    assertNotComplex([a, b], SquaredDifference);
-
-    const aVals = cpuBackend.data.get(a.dataId).values as TypedArray;
-    const bVals = cpuBackend.data.get(b.dataId).values as TypedArray;
-
-    const [resultData, resultShape] =
-        squaredDifferenceImpl(a.shape, b.shape, aVals, bVals, a.dtype);
-
-    const dataId = cpuBackend.write(resultData, resultShape, a.dtype);
-    return {dataId, shape: resultShape, dtype: a.dtype};
-  }
-};
+export const squaredDifferenceConfig =
+    createBinaryKernelConfig(SquaredDifference, squaredDifferenceImpl);
