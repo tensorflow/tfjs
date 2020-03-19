@@ -59,6 +59,10 @@ function getPatchUpdateVersion(version: string): string {
   return [versionSplit[0], versionSplit[1], +versionSplit[2] + 1].join('.');
 }
 
+function publishTFJS(repo: string): boolean {
+  return repo == null;
+}
+
 async function main() {
   const args = parser.parseArgs();
 
@@ -92,7 +96,7 @@ async function main() {
   const packages = phases[phaseInt].packages;
   const deps = phases[phaseInt].deps || [];
 
-  const dir = `${TMP_DIR}/${repo == null ? `tfjs` : repo}`;
+  const dir = `${TMP_DIR}/${publishTFJS(repo) ? `tfjs` : repo}`;
   mkdirp(TMP_DIR, err => {
     if (err) {
       console.log('Error creating temp dir', TMP_DIR);
@@ -103,6 +107,15 @@ async function main() {
   $(`rm -f -r ${dir}`);
   $(`mkdir ${dir}`);
 
+  const dirMaster = `${TMP_DIR}/${publishTFJS(repo) ? `tfjs_master` : repo}`;
+
+  // Only generate a second folder for master branch if publish tfjs.
+  if (publishTFJS(repo)) {
+    $(`rm -f -r ${dirMaster}/*`);
+    $(`rm -f -r ${dirMaster}`);
+    $(`mkdir ${dirMaster}`);
+  }
+
   const urlBase = args.git_protocol ? 'git@github.com:' : 'https://github.com/';
   let releaseBranch = '';
 
@@ -112,16 +125,23 @@ async function main() {
     shell.cd(dir);
   } else {
     // Publishing packages in tfjs.
+    // For monorepo, need to update both release branch and master branch.
+    // Master branch will have a simpler update, just bump version and
+    // update version.ts. Release branch also have to update dependencies.
+    $(`git clone -b master ${urlBase}tensorflow/tfjs ${dirMaster} --depth=1`);
+
     if (phaseInt !== 0) {
       // Phase0 should be published and release branch should have been created.
       const latestVersion =
         $(`npm view @tensorflow/${phases[0].packages[0]} dist-tags.latest`);
       releaseBranch = `${name}_${latestVersion}`;
+
       $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${
         dir} --depth=1`);
       shell.cd(dir);
     } else {
-      // Phase0 needs user input of the release version to create release branch.
+      // Phase0 needs user input of the release version to create release
+      // branch.
       $(`git clone ${urlBase}tensorflow/tfjs ${dir} --depth=1`);
       shell.cd(dir);
     }
@@ -130,7 +150,7 @@ async function main() {
   const newVersions = [];
   for (let i = 0; i < packages.length; i++) {
     const packageName = packages[i];
-    if (repo == null) {
+    if (publishTFJS(repo)) {
       shell.cd(packageName);
     }
 
@@ -138,9 +158,9 @@ async function main() {
       deps.map(dep => $(`npm view @tensorflow/${dep} dist-tags.latest`));
 
     // Update the version.
-    const packageJsonPath = repo == null ?
+    const packageJsonPath = publishTFJS(repo) ?
       `${dir}/${packageName}/package.json` :
-      `${dir}/package.json`
+      `${dir}/package.json`;
     let pkg = `${fs.readFileSync(packageJsonPath)}`;
     const parsedPkg = JSON.parse(`${pkg}`);
 
@@ -159,7 +179,8 @@ async function main() {
 
     if (releaseBranch === '') {
       releaseBranch = `${name}_${newVersion}`;
-      console.log(`~~~ Creating new release branch ${releaseBranch}~~~`);
+      console.log(chalk.magenta.bold(
+        `~~~ Creating new release branch ${releaseBranch} ~~~`));
       $(`git checkout -b ${releaseBranch}`);
       $(`git push origin ${releaseBranch}`);
     }
@@ -220,18 +241,35 @@ async function main() {
       phase.scripts[packageName]['after-yarn'] != null) {
       phase.scripts[packageName]['after-yarn'].forEach(script => $(script));
     }
-    if (repo == null) {
+    if (publishTFJS(repo)) {
       shell.cd('..');
     }
     if (!phase.leaveVersion) {
       $(`./scripts/make-version.js ${packageName}`);
     }
     newVersions.push(newVersion);
+
+    // For master branch, only update package.json version.
+    if (publishTFJS(repo)) {
+      shell.cd(dirMaster);
+
+      const packageJsonPathMaster = `${dirMaster}/${packageName}/package.json`;
+      fs.writeFileSync(packageJsonPathMaster, pkg);
+
+      if (!phase.leaveVersion) {
+        $(`./scripts/make-version.js ${packageName}`);
+      }
+
+      shell.cd(dir);
+    }
   }
 
   const packageNames = packages.join(', ');
   const versionNames = newVersions.join(', ');
-  const branchName = `b${newVersions.join('-')}_phase${phaseInt}`;
+  const branchName = `${releaseBranch}_phase${phaseInt}`;
+
+  console.log(chalk.magenta.bold(
+    '~~~ Creating PR to update release branch ~~~'));
   $(`git checkout -b ${branchName}`);
   $(`git push -u origin ${branchName}`);
   $(`git add .`);
@@ -241,6 +279,24 @@ async function main() {
     phase.title ? phase.title : `Update ${packageNames} to ${versionNames}.`;
   $(`hub pull-request -b ${releaseBranch} -m "${title}" -l INTERNAL -o`);
   console.log();
+
+  if (publishTFJS(repo)) {
+    console.log(chalk.magenta.bold(
+      '~~~ Creating PR to update master branch ~~~'));
+    console.log(chalk.blue(`You should NOT merge this PR before the PR for
+      release branch is merged.`));
+    const branchNameMaster = `${branchName}_master`;
+    shell.cd(dirMaster);
+    $(`git checkout -b ${branchNameMaster}`);
+    $(`git push -u origin ${branchNameMaster}`);
+    $(`git add .`);
+    $(`git commit -a -m "Update ${packageNames} to ${versionNames}."`);
+    $(`git push`);
+    const title =
+      phase.title ? phase.title : `Update ${packageNames} to ${versionNames}.`;
+    $(`hub pull-request -m "${title}" -l INTERNAL -o`);
+    console.log();
+  }
 
   console.log(
     `Done. FYI, this script does not publish to NPM. ` +
