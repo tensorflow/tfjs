@@ -21,6 +21,7 @@ import {Tensor} from '../tensor';
 
 export const squareGradConfig: GradConfig = {
   kernelName: Square,
+  inputsToSave: ['x'],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
     const [x] = saved;
     return {x: () => dy.mul(x.toFloat().mul(2))};
