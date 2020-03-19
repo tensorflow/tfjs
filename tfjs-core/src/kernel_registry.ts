@@ -94,7 +94,7 @@ export function getKernel(
     return kernelRegistry.get(key);
   } else {
     // Check for a backend agnostic kernel
-    const backendAgnosticKey = makeKey(kernelName, '');
+    const backendAgnosticKey = makeKey(kernelName, BACKEND_AGNOSTIC);
     return kernelRegistry.get(backendAgnosticKey);
   }
 }
