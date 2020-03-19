@@ -58,6 +58,26 @@ export function computeDispatch(
   ];
 }
 
+export function computeWorkPerThreadForMatMul(
+    layout: {x: number[], y?: number[], z?: number[]},
+    outputShape: number[],
+    workGroupSize: [number, number, number],
+    workPerThread: number): number {
+  const dispatch = computeDispatch(layout, outputShape, workGroupSize,
+      [workPerThread, workPerThread, 1]);
+  // Set workPerThread to 1 when dispatch number equals to 1, as there maybe
+  // some idled work items in this work group.
+  // For example, if A = 4 x 1024, B = 1024 x 4, workPerThread = 4,
+  // workGroupSize is [16, 16, 1], then there will be only 1 thread running
+  // during the computation, thread parallel number is 1.
+  // If we change workPerThread to 1, then 16 threads will execute computation
+  // and thread parallel number up to 16.
+  if (arrayProduct(dispatch) === 1) {
+    return 1;
+  }
+  return workPerThread;
+}
+
 export function computeWorkGroupSizeForConv2d(
     layout: {x: number[], y?: number[], z?: number[]},
     outputShape: number[]): [number, number, number] {

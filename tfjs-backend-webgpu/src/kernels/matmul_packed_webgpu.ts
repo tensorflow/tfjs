@@ -16,7 +16,7 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
-import {computeDispatch, tilesFitEvenlyIntoShape} from '../webgpu_util';
+import {computeDispatch, computeWorkPerThreadForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {matMulHeader} from './matmul_webgpu';
 import {WebGPUProgram} from './webgpu_program';
@@ -136,6 +136,13 @@ export class MatMulPackedProgram implements WebGPUProgram {
     const bShape = transposeB ? [outputShape[0], dimBOuter, dimInner] :
                                 [outputShape[0], dimInner, dimBOuter];
     this.outputShape = outputShape;
+    this.dispatchLayout = {x: [2], y: [1], z: [0]};
+    workPerThread = computeWorkPerThreadForMatMul(
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        workPerThread);
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        [workPerThread, workPerThread, 1]);
     this.workPerThread = workPerThread;
     const tileAOuter = this.workGroupSize[1] * workPerThread;
     const tileBOuter = this.workGroupSize[0] * workPerThread;
@@ -173,10 +180,6 @@ export class MatMulPackedProgram implements WebGPUProgram {
             B[col * dimInner + row] : 0`;
     }
 
-    this.dispatchLayout = {x: [2], y: [1], z: [0]};
-    this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [workPerThread, workPerThread, 1]);
     this.userCode = `
       int dimAOuter = ${transposeA === true ? `aShape[2]` : `aShape[1]`};
       int dimInner = ${transposeA === true ? `aShape[1]` : `aShape[2]`};
