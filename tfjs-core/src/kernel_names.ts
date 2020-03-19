@@ -24,6 +24,12 @@ import {PixelData} from './types';
 export const Div = 'Div';
 export type DivInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 
+export const Max = 'Max';
+export type MaxInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface MaxAttrs {
+  axes: number[];
+}
+
 export const SquaredDifference = 'SquaredDifference';
 export type SquaredDifferenceInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 

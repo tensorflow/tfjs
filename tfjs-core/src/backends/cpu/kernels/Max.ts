@@ -15,27 +15,21 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '../../../kernel_registry';
+import {Max, MaxAttrs, MaxInputs} from '../../../kernel_names';
+import {KernelConfig} from '../../../kernel_registry';
 import * as axis_util from '../../../ops/axis_util';
 import {sizeFromShape} from '../../../util';
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
+
 import {max} from './max_impl';
 
-interface MaxInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-interface MaxAttrs extends NamedAttrMap {
-  axes: number[];
-}
-
-registerKernel({
-  kernelName: 'Max',
+export const maxConfig: KernelConfig = {
+  kernelName: Max,
   backendName: 'cpu',
   kernelFunc: ({inputs, attrs, backend}) => {
     const {x} = inputs as MaxInputs;
-    const {axes} = attrs as MaxAttrs;
+    const {axes} = attrs as {} as MaxAttrs;
     const cpuBackend = backend as MathBackendCPU;
 
     assertNotComplex(x, 'max');
@@ -46,10 +40,9 @@ registerKernel({
         axis_util.computeOutAndReduceShapes(x.shape, axes);
 
     const xVals = cpuBackend.data.get(x.dataId).values as Float32Array;
-    const outValues = new Float32Array(sizeFromShape(outShape));
-    const result = max(xVals, reduceShape, outValues);
+    const result = max(xVals, sizeFromShape(reduceShape), outShape, x.dtype);
 
     const dataId = cpuBackend.write(result, outShape, x.dtype);
     return {dataId, shape: outShape, dtype: x.dtype};
   }
-});
+};
