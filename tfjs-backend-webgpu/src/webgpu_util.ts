@@ -58,6 +58,19 @@ export function computeDispatch(
   ];
 }
 
+export function computeWorkPerThreadForMatMul(
+    layout: {x: number[], y?: number[], z?: number[]},
+    outputShape: number[],
+    workGroupSize: [number, number, number],
+    workPerThread: number): number {
+  const dispatch = computeDispatch(layout, outputShape, workGroupSize,
+      [workPerThread, workPerThread, 1]);
+  if (arrayProduct(dispatch) === 1) {
+    return 1;
+  }
+  return workPerThread;
+}
+
 export function computeWorkGroupSizeForConv2d(
     layout: {x: number[], y?: number[], z?: number[]},
     outputShape: number[]): [number, number, number] {
