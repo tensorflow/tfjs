@@ -15,6 +15,6 @@
  * =============================================================================
  */
 
-import {createBinaryOp} from './binary_impl';
+import {createBinaryOp} from '../utils/kernel_utils';
 
 export const sub = createBinaryOp((a: number, b: number) => a - b);

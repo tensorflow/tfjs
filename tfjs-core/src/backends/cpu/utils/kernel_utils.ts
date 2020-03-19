@@ -16,50 +16,50 @@
  */
 
 import * as backend_util from '../../../backends/backend_util';
+
 import {DataType, NumericDataType, TypedArray} from '../../../types';
 import * as util from '../../../util';
 
-export function broadcastedBinaryOp(
-    aShape: number[], bShape: number[], aVals: TypedArray, bVals: TypedArray,
-    dtype: DataType,
-    op: (a: number, b: number) => number): [TypedArray, number[]] {
-  const newShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
+export const createBinaryOp = (op: (a: number, b: number) => number) =>
+    (aShape: number[], bShape: number[], aVals: TypedArray, bVals: TypedArray,
+     dtype: DataType): [TypedArray, number[]] => {
+      const newShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
 
-  const resultRank = newShape.length;
-  const resultStrides = util.computeStrides(newShape);
-  const resultSize = util.sizeFromShape(newShape);
+      const resultRank = newShape.length;
+      const resultStrides = util.computeStrides(newShape);
+      const resultSize = util.sizeFromShape(newShape);
 
-  const result =
-      util.getTypedArrayFromDType(dtype as NumericDataType, resultSize);
+      const result =
+          util.getTypedArrayFromDType(dtype as NumericDataType, resultSize);
 
-  const aRank = aShape.length;
-  const bRank = bShape.length;
+      const aRank = aShape.length;
+      const bRank = bShape.length;
 
-  const aStrides = util.computeStrides(aShape);
-  const bStrides = util.computeStrides(bShape);
+      const aStrides = util.computeStrides(aShape);
+      const bStrides = util.computeStrides(bShape);
 
-  const aBroadcastDims = backend_util.getBroadcastDims(aShape, newShape);
-  const bBroadcastDims = backend_util.getBroadcastDims(bShape, newShape);
+      const aBroadcastDims = backend_util.getBroadcastDims(aShape, newShape);
+      const bBroadcastDims = backend_util.getBroadcastDims(bShape, newShape);
 
-  if (aBroadcastDims.length + bBroadcastDims.length === 0) {
-    for (let i = 0; i < result.length; ++i) {
-      result[i] = op(aVals[i % aVals.length], bVals[i % bVals.length]);
-    }
-  } else {
-    for (let i = 0; i < result.length; ++i) {
-      const loc = util.indexToLoc(i, resultRank, resultStrides);
+      if (aBroadcastDims.length + bBroadcastDims.length === 0) {
+        for (let i = 0; i < result.length; ++i) {
+          result[i] = op(aVals[i % aVals.length], bVals[i % bVals.length]);
+        }
+      } else {
+        for (let i = 0; i < result.length; ++i) {
+          const loc = util.indexToLoc(i, resultRank, resultStrides);
 
-      const aLoc = loc.slice(-aRank);
-      aBroadcastDims.forEach(d => aLoc[d] = 0);
-      const aIndex = util.locToIndex(aLoc, aRank, aStrides);
+          const aLoc = loc.slice(-aRank);
+          aBroadcastDims.forEach(d => aLoc[d] = 0);
+          const aIndex = util.locToIndex(aLoc, aRank, aStrides);
 
-      const bLoc = loc.slice(-bRank);
-      bBroadcastDims.forEach(d => bLoc[d] = 0);
-      const bIndex = util.locToIndex(bLoc, bRank, bStrides);
+          const bLoc = loc.slice(-bRank);
+          bBroadcastDims.forEach(d => bLoc[d] = 0);
+          const bIndex = util.locToIndex(bLoc, bRank, bStrides);
 
-      result[i] = op(aVals[aIndex], bVals[bIndex]);
-    }
-  }
+          result[i] = op(aVals[aIndex], bVals[bIndex]);
+        }
+      }
 
-  return [result, newShape];
-}
+      return [result, newShape];
+    };
