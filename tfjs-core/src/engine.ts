@@ -575,8 +575,10 @@ export class Engine implements TensorTracker, DataMover {
           let tensorsToSave =
               this.getTensorsForGradient(kernelName, inputs, outTensors);
           if (tensorsToSave == null) {
-            // Fallback for WASM kernels that use inputsToSave and outputsToSave
-            // directly.
+            // Fallback for ops that call runKernelFunc and pass in
+            // inputsToSave and outputsToSave. Currently this is the set of ops
+            // with kernel support in the WASM backend. Once those ops and
+            // respective gradients are modularised we can remove this path.
             if (outputsToSave == null) {
               outputsToSave = [];
             }
@@ -661,9 +663,9 @@ export class Engine implements TensorTracker, DataMover {
    */
   private getTensorsForGradient(
       kernelName: string, inputs: NamedTensorMap,
-      outputs: Tensor[]): Tensor[]|undefined {
+      outputs: Tensor[]): Tensor[]|null {
     const gradConfig = getGradient(kernelName);
-    if (gradConfig) {
+    if (gradConfig != null) {
       const inputsToSave: string[] = gradConfig.inputsToSave || [];
       const outputsToSave: boolean[] = gradConfig.outputsToSave || [];
 
@@ -673,9 +675,9 @@ export class Engine implements TensorTracker, DataMover {
           outputs.filter((_, i) => outputsToSave[i]);
       return inputTensorsToSave.concat(outputTensorsToSave);
     }
-    // TODO(yassogba) throw exception here once all inputsToSave/outputsToSave
-    // are removed
-    return undefined;
+    // TODO(yassogba) throw exception here once all runkernelFunc calls with
+    // inputsToSave/outputsToSave are removed
+    return null;
   }
 
   /**
