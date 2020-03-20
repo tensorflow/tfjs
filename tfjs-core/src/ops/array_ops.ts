@@ -101,48 +101,6 @@ function eye_(
 }
 
 /**
- * Creates a `tf.Tensor` with values drawn from a multinomial distribution.
- *
- * ```js
- * const probs = tf.tensor([.75, .25]);
- * tf.multinomial(probs, 3).print();
- * ```
- *
- * @param logits 1D array with unnormalized log-probabilities, or
- *     2D array of shape `[batchSize, numOutcomes]`. See the `normalized`
- *     parameter.
- * @param numSamples Number of samples to draw for each row slice.
- * @param seed The seed number.
- * @param normalized Whether the provided `logits` are normalized true
- *     probabilities (sum to 1). Defaults to false.
- * @return 1D array of shape `[numSamples]`, or 2D array of shape
- *     `[batchSize, numSamples]`, depending on the rank of the input.
- */
-/** @doc {heading: 'Tensors', subheading: 'Random'} */
-function multinomial_(
-    logits: Tensor1D|Tensor2D|TensorLike, numSamples: number, seed?: number,
-    normalized = false): Tensor1D|Tensor2D {
-  const $logits = convertToTensor(logits, 'logits', 'multinomial');
-  const numOutcomes = $logits.size;
-  const origRank = $logits.rank;
-  if (numOutcomes < 2) {
-    throw new Error(
-        `Error in multinomial: you need at least 2 outcomes, but got ` +
-        `${numOutcomes}.`);
-  }
-  if (origRank > 2) {
-    throw new Error(`Rank of probabilities must be 1 or 2, but is ${origRank}`);
-  }
-  seed = seed || Math.random();
-  const logits2D = origRank === 1 ? $logits.as2D(1, -1) : $logits as Tensor2D;
-  const res = ENGINE.runKernelFunc(
-      backend => backend.multinomial(logits2D, normalized, numSamples, seed),
-      {logits2D});
-
-  return origRank === 1 ? res.as1D() : res;
-}
-
-/**
  * Creates a one-hot `tf.Tensor`. The locations represented by `indices` take
  * value `onValue` (defaults to 1), while all other locations take value
  * `offValue` (defaults to 0). If `indices` is rank `R`, the output has rank
@@ -975,7 +933,6 @@ export const cumsum = op({cumsum_});
 export const depthToSpace = op({depthToSpace_});
 export const expandDims = op({expandDims_});
 export const eye = op({eye_});
-export const multinomial = op({multinomial_});
 export const oneHot = op({oneHot_});
 export const pad = op({pad_});
 export const pad1d = op({pad1d_});

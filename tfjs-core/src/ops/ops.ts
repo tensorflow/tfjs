@@ -17,6 +17,7 @@
 
 // Modularized ops.
 export {broadcastTo} from './broadcast_to';
+export {multinomial} from './multinomial';
 export {rand} from './rand';
 export {randomGamma} from './random_gamma';
 export {randomNormal} from './random_normal';
