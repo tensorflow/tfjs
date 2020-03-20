@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '../../../kernel_registry';
+import {Softmax, SoftmaxAttrs, SoftmaxInputs} from '../../../kernel_names';
+import {KernelConfig} from '../../../kernel_registry';
 import * as axis_util from '../../../ops/axis_util';
 import {parseAxisParam, sizeFromShape} from '../../../util';
 import {MathBackendCPU} from '../backend_cpu';
@@ -27,20 +28,12 @@ import {max} from './Max';
 import {sub} from './Sub';
 import {sum} from './Sum';
 
-interface SoftmaxInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-interface SoftmaxAttrs extends NamedAttrMap {
-  dim: number;
-}
-
-registerKernel({
-  kernelName: 'Softmax',
+export const softmaxConfig: KernelConfig = {
+  kernelName: Softmax,
   backendName: 'cpu',
   kernelFunc: ({inputs, attrs, backend}) => {
     const {logits} = inputs as SoftmaxInputs;
-    const {dim} = attrs as SoftmaxAttrs;
+    const {dim} = attrs as {} as SoftmaxAttrs;
     const cpuBackend = backend as MathBackendCPU;
     assertNotComplex(logits, 'softmax');
 
@@ -68,4 +61,4 @@ registerKernel({
     const dataId = cpuBackend.write(resultData, resultShape, logits.dtype);
     return {dataId, shape: resultShape, dtype: logits.dtype};
   }
-});
+};

@@ -2701,7 +2701,6 @@ export class MathBackendWebGL extends KernelBackend {
       // Array is already on GPU. No-op.
       return;
     }
-    console.log('UPLOAD TO GPU');
     const shouldTimeProgram = this.activeTimers != null;
     let start: number;
     if (shouldTimeProgram) {

@@ -522,7 +522,6 @@ export class Engine implements TensorTracker, DataMover {
     const dataIdsLeaked =
         numDataIdsAfter - numDataIdsBefore - numOutputDataIds - numMoves;
 
-    console.log(numDataIdsAfter, numDataIdsBefore, numOutputDataIds, numMoves);
     if (dataIdsLeaked > 0) {
       throw new Error(
           `Backend '${this.backendName}' has an internal memory leak ` +
@@ -568,13 +567,10 @@ export class Engine implements TensorTracker, DataMover {
     let out: TensorInfo|TensorInfo[];
     if (kernel != null) {
       kernelFunc = () => {
-        console.log('STARTING TO TRACK');
         const numDataIdsBefore = this.backend.numDataIds();
         out = kernel.kernelFunc({inputs, attrs, backend: this.backend});
         const outInfos = Array.isArray(out) ? out : [out];
         if (this.shouldCheckForMemLeaks()) {
-          console.log('CHECK KERNEL', numDataIdsBefore);
-          console.log(outInfos);
           this.checkKernelForMemLeak(kernelName, numDataIdsBefore, outInfos);
         }
         const outTensors = outInfos.map(

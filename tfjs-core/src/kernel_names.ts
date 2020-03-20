@@ -34,6 +34,12 @@ export interface MaxAttrs {
   axes: number[];
 }
 
+export const Softmax = 'Softmax';
+export type SoftmaxInputs = Pick<NamedTensorInfoMap, 'logits'>;
+export interface SoftmaxAttrs {
+  dim: number;
+}
+
 export const SquaredDifference = 'SquaredDifference';
 
 export const Square = 'Square';

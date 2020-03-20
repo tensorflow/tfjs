@@ -37,5 +37,11 @@ export const reduce =
         return output;
       }
 
-      return reduce(output, reduceShape, dtype, outInfo, backend);
+      const [newBatchSize, newInSize] = output.shape;
+      const newWindowSize = computeOptimalWindowSize(newInSize);
+      const newOutShape = [newBatchSize, Math.ceil(newInSize / newWindowSize)];
+
+      const newOutInfo = backend.makeTensorInfo(newOutShape, output.dtype);
+
+      return reduce(output, reduceShape, dtype, newOutInfo, backend);
     };

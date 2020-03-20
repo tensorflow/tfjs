@@ -22,11 +22,14 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 describeWithFlags('softmax', WEBGL_ENVS, () => {
-  it('regular test', async () => {
+  fit('regular test', async () => {
     console.log('TESTINGGGG');
     const y = tf.softmax(tf.tensor1d([2, 1, 3]));
 
-    expectArraysClose(await y.data(), [0.24472847, 0.09003057, 0.66524095]);
+    const data = await y.data();
+    console.log(Array.from(data));
+
+    // expectArraysClose(await y.data(), [0.24472847, 0.09003057, 0.66524095]);
     // expectArraysClose(await y.sum().data(), 1);
     // const x = tf.tensor1d([1, 2, 3]);
     // x.softmax().print();

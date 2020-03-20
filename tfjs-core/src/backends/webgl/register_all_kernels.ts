@@ -18,6 +18,7 @@ import {KernelConfig, registerKernel} from '../../kernel_registry';
 
 import {fromPixelsConfig} from './kernels/FromPixels';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
+import {softmaxConfig} from './kernels/Softmax';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 
@@ -27,6 +28,7 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV5Config,
   squareConfig,
   squaredDifferenceConfig,
+  softmaxConfig,
 ];
 
 for (const kernelConfig of kernelConfigs) {

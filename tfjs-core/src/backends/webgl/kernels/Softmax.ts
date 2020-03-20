@@ -15,33 +15,26 @@
  * =============================================================================
  */
 
-import {backend_util} from '../../..';
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '../../../kernel_registry';
+import {Softmax, SoftmaxAttrs, SoftmaxInputs} from '../../../kernel_names';
+// import {backend_util} from '../../..';
+import {KernelConfig} from '../../../kernel_registry';
 import * as axis_util from '../../../ops/axis_util';
 // import {parseAxisParam, sizeFromShape} from '../../../util';
 import {parseAxisParam} from '../../../util';
 import {MathBackendWebGL} from '../backend_webgl';
 
-import {divImpl} from './Div';
-import {expImpl} from './Exp';
+// import {divImpl} from './Div';
+// import {expImpl} from './Exp';
 import {maxImpl} from './Max';
-import {subImpl} from './Sub';
-import {sumImpl} from './Sum';
+// import {subImpl} from './Sub';
+// import {sumImpl} from './Sum';
 
-interface SoftmaxInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-interface SoftmaxAttrs extends NamedAttrMap {
-  dim: number;
-}
-
-registerKernel({
-  kernelName: 'Softmax',
+export const softmaxConfig: KernelConfig = {
+  kernelName: Softmax,
   backendName: 'webgl',
   kernelFunc: ({inputs, attrs, backend}) => {
     const {logits} = inputs as SoftmaxInputs;
-    const {dim} = attrs as SoftmaxAttrs;
+    const {dim} = attrs as {} as SoftmaxAttrs;
     const webglBackend = backend as MathBackendWebGL;
 
     const axes = parseAxisParam([dim], logits.shape);
@@ -54,26 +47,29 @@ registerKernel({
     const max =
         maxImpl(logits, reduceShape, outShape, maxOutTensorInfo, webglBackend);
 
-    const subtracted = subImpl(logits, max, webglBackend);
-    const exponentiated = expImpl(subtracted, webglBackend);
+    // const subtracted = subImpl(logits, max, webglBackend);
+    // const exponentiated = expImpl(subtracted, webglBackend);
 
-    const sumOutTensorInfo =
-        webglBackend.makeTensorInfo(outShape, logits.dtype);
-    const summed = sumImpl(
-        exponentiated, reduceShape, outShape, sumOutTensorInfo, webglBackend);
+    // const sumOutTensorInfo =
+    //     webglBackend.makeTensorInfo(outShape, logits.dtype);
+    // const summed = sumImpl(
+    //     exponentiated, reduceShape, outShape, sumOutTensorInfo,
+    //     webglBackend);
 
-    const divOutTensorInfo = webglBackend.makeTensorInfo(
-        backend_util.assertAndGetBroadcastShape(
-            exponentiated.shape, summed.shape),
-        exponentiated.dtype);
+    // const divOutTensorInfo = webglBackend.makeTensorInfo(
+    //     backend_util.assertAndGetBroadcastShape(
+    //         exponentiated.shape, summed.shape),
+    //     exponentiated.dtype);
 
-    const out = divImpl(exponentiated, summed, divOutTensorInfo, webglBackend);
+    // const out = divImpl(exponentiated, summed, divOutTensorInfo,
+    // webglBackend);
 
-    webglBackend.disposeData(max.dataId);
-    webglBackend.disposeData(subtracted.dataId);
-    webglBackend.disposeData(exponentiated.dataId);
-    webglBackend.disposeData(summed.dataId);
+    // webglBackend.disposeData(max.dataId);
+    // webglBackend.disposeData(subtracted.dataId);
+    // webglBackend.disposeData(exponentiated.dataId);
+    // webglBackend.disposeData(summed.dataId);
 
-    return {dataId: out.dataId, shape: out.shape, dtype: out.dtype};
+    // return {dataId: out.dataId, shape: out.shape, dtype: out.dtype};
+    return {dataId: max.dataId, shape: max.shape, dtype: max.dtype};
   }
-});
+};
