@@ -23,7 +23,7 @@ import * as util from '../util';
 import {getAxesPermutation, getInnerMostAxes} from './axis_util';
 import {concat} from './concat_split';
 import {op} from './operation';
-import {MPRandGauss, RandGamma, UniformRandom} from './rand';
+import {UniformRandom} from './rand';
 import {zeros, zerosLike} from './tensor_ops';
 
 /**
@@ -99,104 +99,6 @@ function eye_(
           `batchShapes, but received ${(batchShape as any).length}D.`);
     }
   }
-}
-
-/**
- * Creates a `tf.Tensor` with values sampled from a normal distribution.
- *
- * ```js
- * tf.randomNormal([2, 2]).print();
- * ```
- *
- * @param shape An array of integers defining the output tensor shape.
- * @param mean The mean of the normal distribution.
- * @param stdDev The standard deviation of the normal distribution.
- * @param dtype The data type of the output.
- * @param seed The seed for the random number generator.
- */
-/** @doc {heading: 'Tensors', subheading: 'Random'} */
-function randomNormal_<R extends Rank>(
-    shape: ShapeMap[R], mean = 0, stdDev = 1, dtype?: 'float32'|'int32',
-    seed?: number): Tensor<R> {
-  if (dtype != null && (dtype as DataType) === 'bool') {
-    throw new Error(`Unsupported data type ${dtype}`);
-  }
-  const randGauss =
-      new MPRandGauss(mean, stdDev, dtype, false /* truncated */, seed);
-  const res = buffer(shape, dtype);
-  for (let i = 0; i < res.values.length; i++) {
-    res.values[i] = randGauss.nextValue();
-  }
-  return res.toTensor();
-}
-
-/**
- * Creates a `tf.Tensor` with values sampled from a truncated normal
- * distribution.
- *
- * ```js
- * tf.truncatedNormal([2, 2]).print();
- * ```
- *
- * The generated values follow a normal distribution with specified mean and
- * standard deviation, except that values whose magnitude is more than 2
- * standard deviations from the mean are dropped and re-picked.
- *
- * @param shape An array of integers defining the output tensor shape.
- * @param mean The mean of the normal distribution.
- * @param stdDev The standard deviation of the normal distribution.
- * @param dtype The data type of the output tensor.
- * @param seed The seed for the random number generator.
- */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
-function truncatedNormal_<R extends Rank>(
-    shape: ShapeMap[R], mean = 0, stdDev = 1, dtype?: 'float32'|'int32',
-    seed?: number): Tensor<R> {
-  if (dtype != null && (dtype as DataType) === 'bool') {
-    throw new Error(`Unsupported data type ${dtype}`);
-  }
-  const randGauss =
-      new MPRandGauss(mean, stdDev, dtype, true /* truncated */, seed);
-  const res = buffer(shape, dtype);
-  for (let i = 0; i < res.values.length; i++) {
-    res.values[i] = randGauss.nextValue();
-  }
-  return res.toTensor();
-}
-
-/**
- * Creates a `tf.Tensor` with values sampled from a gamma distribution.
- *
- * ```js
- * tf.randomGamma([2, 2], 1).print();
- * ```
- *
- * @param shape An array of integers defining the output tensor shape.
- * @param alpha The shape parameter of the gamma distribution.
- * @param beta The inverse scale parameter of the gamma distribution. Defaults
- *     to 1.
- * @param dtype The data type of the output. Defaults to float32.
- * @param seed The seed for the random number generator.
- */
-/** @doc {heading: 'Tensors', subheading: 'Random'} */
-function randomGamma_<R extends Rank>(
-    shape: ShapeMap[R], alpha: number, beta = 1,
-    dtype: 'float32'|'int32' = 'float32', seed?: number): Tensor<R> {
-  if (beta == null) {
-    beta = 1;
-  }
-  if (dtype == null) {
-    dtype = 'float32';
-  }
-  if (dtype !== 'float32' && dtype !== 'int32') {
-    throw new Error(`Unsupported data type ${dtype}`);
-  }
-  const rgamma = new RandGamma(alpha, beta, dtype, seed);
-  const res = buffer(shape, dtype);
-  for (let i = 0; i < res.values.length; i++) {
-    res.values[i] = rgamma.nextValue();
-  }
-  return res.toTensor();
 }
 
 /**
@@ -1144,14 +1046,11 @@ export const pad2d = op({pad2d_});
 export const pad3d = op({pad3d_});
 export const pad4d = op({pad4d_});
 export const rand = op({rand_});
-export const randomNormal = op({randomNormal_});
-export const randomGamma = op({randomGamma_});
 export const randomUniform = op({randomUniform_});
 export const reshape = op({reshape_});
 export const spaceToBatchND = op({spaceToBatchND_});
 export const squeeze = op({squeeze_});
 export const stack = op({stack_});
 export const tile = op({tile_});
-export const truncatedNormal = op({truncatedNormal_});
 export const unstack = op({unstack_});
 export const setdiff1dAsync = setdiff1dAsync_;

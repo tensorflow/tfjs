@@ -17,8 +17,11 @@
 
 // Modularized ops.
 export {broadcastTo} from './broadcast_to';
+export {randomGamma} from './random_gamma';
+export {randomNormal} from './random_normal';
 export {square} from './square';
 export {squaredDifference} from './squared_difference';
+export {truncatedNormal} from './truncated_normal';
 
 export * from './batchnorm';
 export * from './boolean_mask';
