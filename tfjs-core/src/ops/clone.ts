@@ -16,7 +16,8 @@
  */
 
 import {ENGINE} from '../engine';
-import {BACKEND_AGNOSTIC, GradConfig, KernelConfig, NamedTensorInfoMap, registerGradient, registerKernel} from '../kernel_registry';
+import {Identity} from '../kernel_names';
+
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -38,33 +39,16 @@ import {op} from './operation';
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function clone_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'clone', null);
-  return ENGINE.runKernel(Clone, {x: $x}, {}) as T;
+
+  const der = (dy: T) => {
+    return {x: () => dy.toFloat()};
+  };
+  const forward = () =>
+      ENGINE.makeTensorFromDataId($x.dataId, $x.shape, $x.dtype) as T;
+
+  // Note this op is called tf.identity in python. Hence the kernel name used
+  // here.
+  return ENGINE.runKernelFunc(forward, {x: $x}, der, Identity);
 }
 
 export const clone = op({clone_});
-
-/**
- * Clone is generally not expected to be implemented by backends.
- */
-
-// tslint:disable-next-line: variable-name
-const Clone = 'Clone';
-type CloneInputs = Pick<NamedTensorInfoMap, 'x'>;
-const cloneKernelConfig: KernelConfig = {
-  kernelName: Clone,
-  backendName: BACKEND_AGNOSTIC,  // this is a backend agnostic kernel
-  kernelFunc: ({inputs}) => {
-    const {x} = inputs as CloneInputs;
-    return ENGINE.makeTensorFromDataId(x.dataId, x.shape, x.dtype);
-  }
-};
-
-const cloneGradientConfig: GradConfig = {
-  kernelName: Clone,
-  gradFunc: (dy: Tensor) => {
-    return {x: () => dy.toFloat()};
-  }
-};
-
-registerKernel(cloneKernelConfig);
-registerGradient(cloneGradientConfig);

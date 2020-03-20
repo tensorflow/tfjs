@@ -19,8 +19,6 @@ import {NamedGradientMap} from './tape';
 import {Tensor} from './tensor';
 import {DataType, RecursiveArray} from './types';
 
-// String used to register backend agnostic kernels.
-export const BACKEND_AGNOSTIC = '';
 const kernelRegistry: Map<string, KernelConfig> = new Map();
 const gradRegistry: Map<string, GradConfig> = new Map();
 
@@ -90,13 +88,7 @@ export interface NamedAttrMap {
 export function getKernel(
     kernelName: string, backendName: string): KernelConfig {
   const key = makeKey(kernelName, backendName);
-  if (kernelRegistry.has(key)) {
-    return kernelRegistry.get(key);
-  } else {
-    // Check for a backend agnostic kernel
-    const backendAgnosticKey = makeKey(kernelName, BACKEND_AGNOSTIC);
-    return kernelRegistry.get(backendAgnosticKey);
-  }
+  return kernelRegistry.get(key);
 }
 
 /**
