@@ -61,7 +61,7 @@ registerKernel({
     const b = exp(aValues);
 
     const sumExp =
-        sum(b, reduceShape, new Float32Array(sizeFromShape(reduceOutShape)));
+        sum(b, sizeFromShape(reduceShape), reduceOutShape, logits.dtype);
 
     const [resultData, resultShape] =
         div(logits.shape, reduceShape, b, sumExp, logits.dtype);

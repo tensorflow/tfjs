@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '../../../kernel_registry';
+import {Sum, SumAttrs, SumInputs} from '../../../kernel_names';
+import {KernelConfig} from '../../../kernel_registry';
 import * as axis_util from '../../../ops/axis_util';
 import {upcastType} from '../../../types';
 import {sizeFromShape} from '../../../util';
@@ -24,20 +25,12 @@ import {assertNotComplex} from '../cpu_util';
 
 import {sum} from './sum_impl';
 
-interface SumInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-interface SumAttrs extends NamedAttrMap {
-  axes: number[];
-}
-
-registerKernel({
-  kernelName: 'Sum',
+export const sumConfig: KernelConfig = {
+  kernelName: Sum,
   backendName: 'cpu',
   kernelFunc: ({inputs, attrs, backend}) => {
     const {x} = inputs as SumInputs;
-    const {axes} = attrs as SumAttrs;
+    const {axes} = attrs as {} as SumAttrs;
     const cpuBackend = backend as MathBackendCPU;
 
     assertNotComplex(x, 'sum');
@@ -49,10 +42,9 @@ registerKernel({
     const resultDtype = upcastType(x.dtype, 'int32');
 
     const xVals = cpuBackend.data.get(x.dataId).values as Float32Array;
-    const result =
-        sum(xVals, reduceShape, new Float32Array(sizeFromShape(outShape)));
+    const result = sum(xVals, sizeFromShape(reduceShape), outShape, x.dtype);
 
     const dataId = cpuBackend.write(result, outShape, resultDtype);
     return {dataId, shape: outShape, dtype: resultDtype};
   }
-});
+};

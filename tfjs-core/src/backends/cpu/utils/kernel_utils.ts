@@ -16,16 +16,12 @@
  */
 
 import * as backend_util from '../../../backends/backend_util';
-import {KernelConfig, NamedTensorInfoMap, TensorInfo} from '../../../kernel_registry';
+import {BinaryInputs} from '../../../kernel_names';
+import {KernelConfig} from '../../../kernel_registry';
 import {DataType, NumericDataType, TypedArray} from '../../../types';
 import * as util from '../../../util';
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
-
-interface BinaryInputs extends NamedTensorInfoMap {
-  a: TensorInfo;
-  b: TensorInfo;
-}
 
 export const createBinaryKernelConfig =
     (name: string,

@@ -15,13 +15,14 @@
  * =============================================================================
  */
 
-import {TypedArray} from '../../../types';
-import {sizeFromShape} from '../../../util';
+import {DataType, NumericDataType, TypedArray} from '../../../types';
+import * as util from '../../../util';
 
 export const sum =
-    (x: TypedArray, reduceShape: number[], outValues: TypedArray):
+    (x: TypedArray, reduceSize: number, outShape: number[], dtype: DataType):
         TypedArray => {
-          const reduceSize = sizeFromShape(reduceShape);
+          const outValues = util.getTypedArrayFromDType(
+              dtype as NumericDataType, util.sizeFromShape(outShape));
 
           for (let i = 0; i < x.length; ++i) {
             const offset = i * reduceSize;

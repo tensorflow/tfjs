@@ -21,6 +21,8 @@
 import {NamedTensorInfoMap} from './kernel_registry';
 import {PixelData} from './types';
 
+export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
+
 export const Div = 'Div';
 
 export const Exp = 'Exp';
@@ -38,6 +40,12 @@ export const Square = 'Square';
 export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
 
 export const Sub = 'Sub';
+
+export const Sum = 'Sum';
+export type SumInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface SumAttrs {
+  axes: number[];
+}
 
 export const NonMaxSuppressionV5 = 'NonMaxSuppressionV5';
 export type NonMaxSuppressionV5Inputs =
