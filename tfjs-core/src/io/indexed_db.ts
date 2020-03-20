@@ -53,7 +53,7 @@ function getIndexedDBFactory(): IDBFactory {
     //   Maybe point to a doc page on the web and/or automatically determine
     //   the available IOHandlers and print them in the error message.
     throw new Error(
-        'Failed to obtain IndexedDB factory because the current environment' +
+        'Failed to obtain IndexedDB factory because the current environment ' +
         'is not a web browser.');
   }
   // tslint:disable-next-line:no-any
