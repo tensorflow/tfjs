@@ -37,9 +37,8 @@ export const divImpl =
         program = new BinaryOpPackedProgram(
             binaryop_packed_gpu.DIV, a.shape, b.shape, true);
       }
-      const output = backend.runWebGLProgram(
-          program, [a, b], 'float32', null /* custom setup */,
-          false /* prevent eager unpacking of output */, outTensorInfo);
+      const output =
+          backend.runWebGLProgram(program, [a, b], 'float32', outTensorInfo);
       return output;
     };
 

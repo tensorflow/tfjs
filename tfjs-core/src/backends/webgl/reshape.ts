@@ -42,8 +42,8 @@ const packedReshape =
       const program = new ReshapePackedProgram(afterShapeAs3D, input3DShape);
       const preventEagerUnpackingOfOutput = true;
       const output = backend.runWebGLProgram(
-          program, [input3D], input.dtype, null /* customSetup */,
-          preventEagerUnpackingOfOutput);
+          program, [input3D], input.dtype, null /* out info */,
+          null /* customSetup */, preventEagerUnpackingOfOutput);
       return {dataId: output.dataId, shape: afterShape, dtype: output.dtype};
     };
 
