@@ -34,7 +34,7 @@ interface SumAttrs extends NamedAttrMap {
 
 export const sumImpl =
     (x: TensorInfo, reduceShape: number[], outShape: number[],
-     backend: MathBackendWebGL): TensorInfo => {
+     outInfo: TensorInfo, backend: MathBackendWebGL): TensorInfo => {
       const inSize = sizeFromShape(reduceShape);
       const xSize = sizeFromShape(x.shape);
       const batchSize = xSize / inSize;
@@ -42,8 +42,8 @@ export const sumImpl =
       x = reshape(x, [batchSize, inSize], backend);
 
       return reshape(
-          reduce(x, reduceShape, sumOutType(x.dtype), backend), outShape,
-          backend);
+          reduce(x, reduceShape, sumOutType(x.dtype), outInfo, backend),
+          outShape, backend);
     };
 
 registerKernel({
@@ -59,7 +59,8 @@ registerKernel({
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
 
-    const out = sumImpl(x, reduceShape, outShape, webglBackend);
+    const outTensorInfo = webglBackend.makeTensorInfo(outShape, x.dtype);
+    const out = sumImpl(x, reduceShape, outShape, outTensorInfo, webglBackend);
 
     webglBackend.disposeData(x);
 

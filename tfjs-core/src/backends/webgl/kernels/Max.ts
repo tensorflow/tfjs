@@ -32,7 +32,7 @@ interface MaxAttrs extends NamedAttrMap {
 
 export const maxImpl =
     (x: TensorInfo, reduceShape: number[], outShape: number[],
-     backend: MathBackendWebGL): TensorInfo => {
+     outInfo: TensorInfo, backend: MathBackendWebGL): TensorInfo => {
       const inSize = sizeFromShape(reduceShape);
       const xSize = sizeFromShape(x.shape);
       const batchSize = xSize / inSize;
@@ -40,7 +40,7 @@ export const maxImpl =
       x = reshape(x, [batchSize, inSize], backend);
 
       return reshape(
-          reduce(x, reduceShape, x.dtype, backend), outShape, backend);
+          reduce(x, reduceShape, x.dtype, outInfo, backend), outShape, backend);
     };
 
 registerKernel({
@@ -56,7 +56,9 @@ registerKernel({
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
 
-    const out = maxImpl(x, reduceShape, outShape, webglBackend);
+    const outTensorInfo = webglBackend.makeTensorInfo(outShape, x.dtype);
+
+    const out = maxImpl(x, reduceShape, outShape, outTensorInfo, webglBackend);
 
     return {dataId: out.dataId, shape: outShape, dtype: x.dtype};
   }

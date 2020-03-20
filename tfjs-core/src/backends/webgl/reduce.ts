@@ -23,13 +23,13 @@ import {MathBackendWebGL} from './backend_webgl';
 import {ReduceProgram} from './reduce_gpu';
 
 export const reduce =
-    (x: TensorInfo, reduceShape: number[], dtype: DataType,
+    (x: TensorInfo, reduceShape: number[], dtype: DataType, outInfo: TensorInfo,
      backend: MathBackendWebGL): TensorInfo => {
       const [batchSize, inSize] = x.shape;
       const windowSize = computeOptimalWindowSize(inSize);
       const reduceInfo = {windowSize, inSize, batchSize};
       const program = new ReduceProgram(reduceInfo, 'sum');
-      const output = backend.runWebGLProgram(program, [x], dtype);
+      const output = backend.runWebGLProgram(program, [x], dtype, outInfo);
 
       backend.disposeData(x.dataId);
 
@@ -37,5 +37,5 @@ export const reduce =
         return output;
       }
 
-      return reduce(output, reduceShape, dtype, backend);
+      return reduce(output, reduceShape, dtype, outInfo, backend);
     };

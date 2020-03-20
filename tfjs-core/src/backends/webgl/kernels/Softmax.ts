@@ -49,12 +49,18 @@ registerKernel({
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(logits.shape, axes);
 
-    const max = maxImpl(logits, reduceShape, outShape, webglBackend);
+    const maxOutTensorInfo =
+        webglBackend.makeTensorInfo(outShape, logits.dtype);
+    const max =
+        maxImpl(logits, reduceShape, outShape, maxOutTensorInfo, webglBackend);
 
     const subtracted = subImpl(logits, max, webglBackend);
     const exponentiated = expImpl(subtracted, webglBackend);
 
-    const summed = sumImpl(exponentiated, reduceShape, outShape, webglBackend);
+    const sumOutTensorInfo =
+        webglBackend.makeTensorInfo(outShape, logits.dtype);
+    const summed = sumImpl(
+        exponentiated, reduceShape, outShape, sumOutTensorInfo, webglBackend);
 
     const divOutTensorInfo = webglBackend.makeTensorInfo(
         backend_util.assertAndGetBroadcastShape(
