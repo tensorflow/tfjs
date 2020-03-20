@@ -16,44 +16,39 @@
  */
 
 import {Tensor} from '../tensor';
-import {Rank, ShapeMap} from '../types';
+import {DataType, Rank, ShapeMap} from '../types';
 
 import {buffer} from './array_ops';
 import {op} from './operation';
-import {RandGamma} from './rand_util';
+import {UniformRandom} from './rand_util';
 
 /**
- * Creates a `tf.Tensor` with values sampled from a gamma distribution.
+ * Creates a `tf.Tensor` with values sampled from a uniform distribution.
+ *
+ * The generated values follow a uniform distribution in the range [minval,
+ * maxval). The lower bound minval is included in the range, while the upper
+ * bound maxval is excluded.
  *
  * ```js
- * tf.randomGamma([2, 2], 1).print();
+ * tf.randomUniform([2, 2]).print();
  * ```
  *
  * @param shape An array of integers defining the output tensor shape.
- * @param alpha The shape parameter of the gamma distribution.
- * @param beta The inverse scale parameter of the gamma distribution. Defaults
- *     to 1.
- * @param dtype The data type of the output. Defaults to float32.
- * @param seed The seed for the random number generator.
+ * @param minval The lower bound on the range of random values to generate.
+ *   Defaults to 0.
+ * @param maxval The upper bound on the range of random values to generate.
+ *   Defaults to 1.
+ * @param dtype The data type of the output tensor. Defaults to 'float32'.
  */
 /** @doc {heading: 'Tensors', subheading: 'Random'} */
-function randomGamma_<R extends Rank>(
-    shape: ShapeMap[R], alpha: number, beta = 1,
-    dtype: 'float32'|'int32' = 'float32', seed?: number): Tensor<R> {
-  if (beta == null) {
-    beta = 1;
-  }
-  if (dtype == null) {
-    dtype = 'float32';
-  }
-  if (dtype !== 'float32' && dtype !== 'int32') {
-    throw new Error(`Unsupported data type ${dtype}`);
-  }
-  const rgamma = new RandGamma(alpha, beta, dtype, seed);
+function randomUniform_<R extends Rank>(
+    shape: ShapeMap[R], minval = 0, maxval = 1, dtype: DataType = 'float32',
+    seed?: number|string): Tensor<R> {
   const res = buffer(shape, dtype);
+  const random = new UniformRandom(minval, maxval, null, seed);
   for (let i = 0; i < res.values.length; i++) {
-    res.values[i] = rgamma.nextValue();
+    res.values[i] = random.nextValue();
   }
   return res.toTensor();
 }
-export const randomGamma = op({randomGamma_});
+export const randomUniform = op({randomUniform_});

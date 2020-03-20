@@ -20,7 +20,7 @@ import {DataType, Rank, ShapeMap} from '../types';
 
 import {buffer} from './array_ops';
 import {op} from './operation';
-import {MPRandGauss} from './rand';
+import {MPRandGauss} from './rand_util';
 
 /**
  * Creates a `tf.Tensor` with values sampled from a normal distribution.

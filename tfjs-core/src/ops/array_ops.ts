@@ -23,7 +23,6 @@ import * as util from '../util';
 import {getAxesPermutation, getInnerMostAxes} from './axis_util';
 import {concat} from './concat_split';
 import {op} from './operation';
-import {UniformRandom} from './rand';
 import {zeros, zerosLike} from './tensor_ops';
 
 /**
@@ -99,67 +98,6 @@ function eye_(
           `batchShapes, but received ${(batchShape as any).length}D.`);
     }
   }
-}
-
-/**
- * Creates a `tf.Tensor` with values sampled from a uniform distribution.
- *
- * The generated values follow a uniform distribution in the range [minval,
- * maxval). The lower bound minval is included in the range, while the upper
- * bound maxval is excluded.
- *
- * ```js
- * tf.randomUniform([2, 2]).print();
- * ```
- *
- * @param shape An array of integers defining the output tensor shape.
- * @param minval The lower bound on the range of random values to generate.
- *   Defaults to 0.
- * @param maxval The upper bound on the range of random values to generate.
- *   Defaults to 1.
- * @param dtype The data type of the output tensor. Defaults to 'float32'.
- */
-/** @doc {heading: 'Tensors', subheading: 'Random'} */
-function randomUniform_<R extends Rank>(
-    shape: ShapeMap[R], minval = 0, maxval = 1, dtype: DataType = 'float32',
-    seed?: number|string): Tensor<R> {
-  const res = buffer(shape, dtype);
-  const random = new UniformRandom(minval, maxval, null, seed);
-  for (let i = 0; i < res.values.length; i++) {
-    res.values[i] = random.nextValue();
-  }
-  return res.toTensor();
-}
-
-/**
- * Creates a `tf.Tensor` with values sampled from a random number generator
- * function defined by the user.
- *
- * @param shape An array of integers defining the output tensor shape.
- * @param randFunction A random number generator function which is called
- * for each element in the output tensor.
- * @param dtype The data type of the output tensor. Defaults to 'float32'.
- */
-function rand_<R extends Rank>(
-    shape: ShapeMap[R], randFunction: () => number,
-    dtype?: DataType): Tensor<R> {
-  const size = util.sizeFromShape(shape);
-
-  let values = null;
-  if (dtype == null || dtype === 'float32') {
-    values = new Float32Array(size);
-  } else if (dtype === 'int32') {
-    values = new Int32Array(size);
-  } else if (dtype === 'bool') {
-    values = new Uint8Array(size);
-  } else {
-    throw new Error(`Unknown data type ${dtype}`);
-  }
-
-  for (let i = 0; i < size; i++) {
-    values[i] = randFunction();
-  }
-  return ENGINE.makeTensor(values, shape, dtype) as Tensor<R>;
 }
 
 /**
@@ -1002,7 +940,7 @@ async function setdiff1dAsync_(
  * zeros.
  */
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
-function buffer<R extends Rank, D extends DataType = 'float32'>(
+export function buffer<R extends Rank, D extends DataType = 'float32'>(
     shape: ShapeMap[R], dtype: D = 'float32' as D,
     values?: DataTypeMap[D]): TensorBuffer<R, D> {
   dtype = dtype || 'float32' as D;
@@ -1027,8 +965,7 @@ function print<T extends Tensor>(x: T, verbose = false): void {
 }
 
 export {
-  buffer,  // Not wrapped in op() since no tensors.
-  print    // Not wrapped in op() since no need to increase stack trace.
+  print  // Not wrapped in op() since no need to increase stack trace.
 };
 
 export const batchToSpaceND = op({batchToSpaceND_});
@@ -1045,8 +982,6 @@ export const pad1d = op({pad1d_});
 export const pad2d = op({pad2d_});
 export const pad3d = op({pad3d_});
 export const pad4d = op({pad4d_});
-export const rand = op({rand_});
-export const randomUniform = op({randomUniform_});
 export const reshape = op({reshape_});
 export const spaceToBatchND = op({spaceToBatchND_});
 export const squeeze = op({squeeze_});
