@@ -17,9 +17,19 @@
 
 import {Exp, ExpInputs} from '../../../kernel_names';
 import {KernelConfig} from '../../../kernel_registry';
+import {TypedArray} from '../../../types';
+import * as util from '../../../util';
 import {MathBackendCPU} from '../backend_cpu';
 
-import {exp} from './exp_impl';
+export const exp = (x: TypedArray): TypedArray => {
+  const outValues = util.getTypedArrayFromDType('float32', x.length);
+
+  for (let i = 0; i < x.length; ++i) {
+    outValues[i] = Math.exp(x[i]);
+  }
+
+  return outValues;
+};
 
 export const expConfig: KernelConfig = {
   kernelName: Exp,

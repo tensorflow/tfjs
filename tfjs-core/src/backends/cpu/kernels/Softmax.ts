@@ -22,10 +22,10 @@ import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 
 import {div} from './Div';
-import {exp} from './exp_impl';
-import {max} from './max_impl';
-import {sub} from './sub_impl';
-import {sum} from './sum_impl';
+import {exp} from './Exp';
+import {max} from './Max';
+import {sub} from './Sub';
+import {sum} from './Sum';
 
 interface SoftmaxInputs extends NamedTensorInfoMap {
   x: TensorInfo;

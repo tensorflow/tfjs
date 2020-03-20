@@ -17,7 +17,8 @@
 
 import {Sub} from '../../../kernel_names';
 import {createBinaryKernelConfig} from '../utils/kernel_utils';
+import {createBinaryOp} from '../utils/kernel_utils';
 
-import {sub} from './sub_impl';
+export const sub = createBinaryOp((a: number, b: number) => a - b);
 
 export const subConfig = createBinaryKernelConfig(Sub, sub);
