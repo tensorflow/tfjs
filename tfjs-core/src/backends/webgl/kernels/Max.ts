@@ -17,6 +17,7 @@
 
 import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '../../../kernel_registry';
 import * as axis_util from '../../../ops/axis_util';
+import {reduceOutShapeFromInShape} from '../../../ops/reduce_util';
 import {sizeFromShape} from '../../../util';
 import {MathBackendWebGL} from '../backend_webgl';
 import {reduce} from '../reduce';
@@ -56,7 +57,8 @@ registerKernel({
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
 
-    const outTensorInfo = webglBackend.makeTensorInfo(outShape, x.dtype);
+    const outTensorInfo = webglBackend.makeTensorInfo(
+        reduceOutShapeFromInShape(x.shape, reduceShape), x.dtype);
 
     const out = maxImpl(x, reduceShape, outShape, outTensorInfo, webglBackend);
 

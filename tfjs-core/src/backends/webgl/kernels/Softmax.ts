@@ -19,6 +19,7 @@ import {Softmax, SoftmaxAttrs, SoftmaxInputs} from '../../../kernel_names';
 // import {backend_util} from '../../..';
 import {KernelConfig} from '../../../kernel_registry';
 import * as axis_util from '../../../ops/axis_util';
+import {reduceOutShapeFromInShape} from '../../../ops/reduce_util';
 // import {parseAxisParam, sizeFromShape} from '../../../util';
 import {parseAxisParam} from '../../../util';
 import {MathBackendWebGL} from '../backend_webgl';
@@ -26,6 +27,7 @@ import {MathBackendWebGL} from '../backend_webgl';
 // import {divImpl} from './Div';
 // import {expImpl} from './Exp';
 import {maxImpl} from './Max';
+
 // import {subImpl} from './Sub';
 // import {sumImpl} from './Sum';
 
@@ -42,8 +44,10 @@ export const softmaxConfig: KernelConfig = {
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(logits.shape, axes);
 
+    const maxOutShape = reduceOutShapeFromInShape(logits.shape, reduceShape);
+
     const maxOutTensorInfo =
-        webglBackend.makeTensorInfo(outShape, logits.dtype);
+        webglBackend.makeTensorInfo(maxOutShape, logits.dtype);
     const max =
         maxImpl(logits, reduceShape, outShape, maxOutTensorInfo, webglBackend);
 
