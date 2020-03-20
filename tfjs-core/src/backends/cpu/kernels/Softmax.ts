@@ -21,7 +21,7 @@ import {parseAxisParam, sizeFromShape} from '../../../util';
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 
-import {div} from './div_impl';
+import {div} from './Div';
 import {exp} from './exp_impl';
 import {max} from './max_impl';
 import {sub} from './sub_impl';

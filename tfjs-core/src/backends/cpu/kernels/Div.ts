@@ -17,6 +17,7 @@
 
 import {Div} from '../../../kernel_names';
 import {createBinaryKernelConfig} from '../utils/kernel_utils';
+import {createBinaryOp} from '../utils/kernel_utils';
 
-import {div} from './div_impl';
+export const div = createBinaryOp((a: number, b: number) => a / b);
 export const divConfig = createBinaryKernelConfig(Div, div);
