@@ -1372,17 +1372,17 @@ export class MathBackendWebGL extends KernelBackend {
     return this.reduce(a2D, 'any', a2D.dtype).reshape(outShape);
   }
 
-  realDivide(a: Tensor, b: Tensor): Tensor {
-    const op = binaryop_gpu.DIV;
-    const outputDtype = 'float32';
-    if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-      const checkOutOfBounds = true;
-      return this.packedBinaryOp(
-          a, b, binaryop_packed_gpu.DIV, outputDtype, checkOutOfBounds);
-    }
-    const program = new BinaryOpProgram(op, a.shape, b.shape);
-    return this.compileAndRun<Tensor>(program, [a, b], outputDtype);
-  }
+  // realDivide(a: Tensor, b: Tensor): Tensor {
+  //   const op = binaryop_gpu.DIV;
+  //   const outputDtype = 'float32';
+  //   if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
+  //     const checkOutOfBounds = true;
+  //     return this.packedBinaryOp(
+  //         a, b, binaryop_packed_gpu.DIV, outputDtype, checkOutOfBounds);
+  //   }
+  //   const program = new BinaryOpProgram(op, a.shape, b.shape);
+  //   return this.compileAndRun<Tensor>(program, [a, b], outputDtype);
+  // }
 
   floorDiv(a: Tensor, b: Tensor): Tensor {
     const op = binaryop_gpu.INT_DIV;
@@ -2487,8 +2487,11 @@ export class MathBackendWebGL extends KernelBackend {
   runWebGLProgram(
       program: GPGPUProgram, inputs: TensorInfo[], outputDtype: DataType,
       customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => void,
-      preventEagerUnpackingOfOutput = false): TensorInfo {
-    const output = this.makeTensorInfo(program.outputShape, outputDtype);
+      preventEagerUnpackingOfOutput = false, output?: TensorInfo): TensorInfo {
+    if (output == null) {
+      output = this.makeTensorInfo(program.outputShape, outputDtype);
+    }
+
     const outData = this.texData.get(output.dataId);
     if (program.packedOutput) {
       outData.isPacked = true;

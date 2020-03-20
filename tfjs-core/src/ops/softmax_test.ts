@@ -15,14 +15,14 @@
  * =============================================================================
  */
 
-// import {WEBGL_ENVS} from '../backends/webgl/backend_webgl_test_registry';
-import {CPU_ENVS} from '../backends/cpu/backend_cpu_test_registry';
+import {WEBGL_ENVS} from '../backends/webgl/backend_webgl_test_registry';
+// import {CPU_ENVS} from '../backends/cpu/backend_cpu_test_registry';
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
-describeWithFlags('softmax', CPU_ENVS, () => {
-  fit('regular test', async () => {
+describeWithFlags('softmax', WEBGL_ENVS, () => {
+  it('regular test', async () => {
     console.log('TESTINGGGG');
     const y = tf.softmax(tf.tensor1d([2, 1, 3]));
 

@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {backend_util} from '../../..';
 import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '../../../kernel_registry';
 import * as axis_util from '../../../ops/axis_util';
 // import {parseAxisParam, sizeFromShape} from '../../../util';
@@ -55,7 +56,12 @@ registerKernel({
 
     const summed = sumImpl(exponentiated, reduceShape, outShape, webglBackend);
 
-    const out = divImpl(exponentiated, summed, webglBackend);
+    const divOutTensorInfo = webglBackend.makeTensorInfo(
+        backend_util.assertAndGetBroadcastShape(
+            exponentiated.shape, summed.shape),
+        exponentiated.dtype);
+
+    const out = divImpl(exponentiated, summed, divOutTensorInfo, webglBackend);
 
     webglBackend.disposeData(max.dataId);
     webglBackend.disposeData(subtracted.dataId);

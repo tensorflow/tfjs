@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {backend_util} from '../../..';
 import {env} from '../../../environment';
 import {NamedTensorInfoMap, registerKernel, TensorInfo} from '../../../kernel_registry';
 import {MathBackendWebGL} from '../backend_webgl';
@@ -29,13 +30,16 @@ interface DivInputs extends NamedTensorInfoMap {
 }
 
 export const divImpl =
-    (a: TensorInfo, b: TensorInfo, backend: MathBackendWebGL): TensorInfo => {
+    (a: TensorInfo, b: TensorInfo, outTensorInfo: TensorInfo,
+     backend: MathBackendWebGL): TensorInfo => {
       let program = new BinaryOpProgram(binaryop_gpu.DIV, a.shape, b.shape);
       if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
         program = new BinaryOpPackedProgram(
             binaryop_packed_gpu.DIV, a.shape, b.shape, true);
       }
-      const output = backend.runWebGLProgram(program, [a, b], 'float32');
+      const output = backend.runWebGLProgram(
+          program, [a, b], 'float32', null /* custom setup */,
+          false /* prevent eager unpacking of output */, outTensorInfo);
       return output;
     };
 
@@ -45,7 +49,11 @@ registerKernel({
   kernelFunc: ({inputs, backend}) => {
     const {a, b} = inputs as DivInputs;
     const webglBackend = backend as MathBackendWebGL;
-    const out = divImpl(a, b, webglBackend);
+
+    const outShape = backend_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    const outTensorInfo = webglBackend.makeTensorInfo(outShape, a.dtype);
+
+    const out = divImpl(a, b, outTensorInfo, webglBackend);
 
     return {dataId: out.dataId, shape: out.shape, dtype: out.dtype};
   }
