@@ -19,7 +19,7 @@
  * Inputs of size above this threshold will be parallelized by calling multiple
  * shader programs.
  */
-import {nearestDivisor} from '../util';
+import {nearestDivisor, sizeFromShape} from '../util';
 
 export const PARALLELIZE_THRESHOLD = 30;
 
@@ -34,4 +34,14 @@ export function computeOptimalWindowSize(inSize: number): number {
     return inSize;
   }
   return nearestDivisor(inSize, Math.floor(Math.sqrt(inSize)));
+}
+
+export function reduceOutShapeFromInShape(
+    xShape: number[], reduceShape: number[]): number[] {
+  const xSize = sizeFromShape(xShape);
+  const inSize = sizeFromShape(reduceShape);
+  const batchSize = xSize / inSize;
+  const windowSize = computeOptimalWindowSize(inSize);
+  const outSize = Math.ceil(inSize / windowSize);
+  return [batchSize, outSize];
 }
