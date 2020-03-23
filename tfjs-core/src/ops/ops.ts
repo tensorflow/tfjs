@@ -17,6 +17,7 @@
 
 // Modularized ops.
 export {broadcastTo} from './broadcast_to';
+export {clone} from './clone';
 export {div} from './div';
 export {divNoNan} from './divNoNan';
 export {multinomial} from './multinomial';

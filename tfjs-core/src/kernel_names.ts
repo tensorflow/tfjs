@@ -49,6 +49,9 @@ export interface BroadCastToAttrs {
   inputShape: number[];  // for gradient
 }
 
+export const Identity = 'Identity';
+export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
+
 /**
  * TensorFlow.js-only kernels
  */
