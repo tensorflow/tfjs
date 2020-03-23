@@ -15,11 +15,14 @@
  * =============================================================================
  */
 
-import {util} from '..';
-import {ENGINE} from '../engine';
+import {ENGINE, ForwardFunc} from '../engine';
+import {Tile, TileAttrs, TileInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {DataType, TensorLike} from '../types';
+import * as util from '../util';
 
 import {op} from './operation';
 import {zerosLike} from './tensor_ops';
@@ -55,6 +58,7 @@ function tile_<T extends Tensor>(x: T|TensorLike, reps: number[]): T {
       $x.rank === reps.length,
       () => `Error in transpose: rank of input ${$x.rank} ` +
           `must match length of reps ${reps}.`);
+
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
     const derX = () => {
@@ -107,13 +111,20 @@ function tile_<T extends Tensor>(x: T|TensorLike, reps: number[]): T {
     };
     return {x: derX};
   };
-  const inputsToSave = [$x];
-  const attrs = {reps};
-  return ENGINE.runKernelFunc((backend, save) => {
+
+  const forward: ForwardFunc<T> = (backend, save) => {
     const res = backend.tile($x, reps);
     save([$x]);
     return res;
-  }, {x: $x}, grad, 'Tile', attrs, inputsToSave);
+  };
+
+  const inputsToSave = [$x];
+  const inputs: TileInputs = {x: $x};
+  const attrs: TileAttrs = {reps};
+
+  return ENGINE.runKernelFunc(
+      forward, inputs as unknown as NamedTensorMap, grad, Tile,
+      attrs as unknown as NamedAttrMap, inputsToSave);
 }
 
 export const tile = op({tile_});

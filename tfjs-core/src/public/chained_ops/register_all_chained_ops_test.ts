@@ -23,10 +23,7 @@ import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
 // (And kerma will always load the chain augmentor files). But this gives us
 // flexibility to change in future.
 
-const CHAINED_OPS = [
-  'square',
-  'broadcastTo',
-];
+const CHAINED_OPS = ['square', 'broadcastTo', 'tile'];
 
 describeWithFlags('chained ops', ALL_ENVS, () => {
   it('all chained ops should exist on tensor ', async () => {
