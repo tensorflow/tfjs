@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util} from '../../..';
+import {assertAndGetBroadcastShape} from '../../../../src/ops/broadcast_util';
 import {env} from '../../../environment';
 import {BinaryInputs, Div} from '../../../kernel_names';
 import {KernelConfig, TensorInfo} from '../../../kernel_registry';
@@ -45,7 +45,7 @@ export const divConfig: KernelConfig = {
 
     const webglBackend = backend as MathBackendWebGL;
 
-    const outShape = backend_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    const outShape = assertAndGetBroadcastShape(a.shape, b.shape);
     const outTensorInfo = webglBackend.makeTensorInfo(outShape, a.dtype);
 
     const out = divImpl(a, b, outTensorInfo, webglBackend);

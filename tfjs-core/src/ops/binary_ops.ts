@@ -23,7 +23,6 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 import * as broadcast_util from './broadcast_util';
-import {where} from './logical_ops';
 import {op} from './operation';
 import {scalar, zerosLike} from './tensor_ops';
 import {neg} from './unary_ops';
@@ -376,49 +375,6 @@ function mulStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
   const $b = convertToTensor(b, 'b', 'mul');
   util.assertShapesMatch($a.shape, $b.shape, 'Error in multiplyStrict: ');
   return $a.mul($b);
-}
-
-/**
- * Divides two `tf.Tensor`s element-wise, A / B. Supports broadcasting. Return 0
- * if denominator is 0.
- *
- * We also expose `tf.divStrict` which has the same signature as this op and
- * asserts that `a` and `b` are the same shape (does not broadcast).
- *
- * ```js
- * const a = tf.tensor1d([1, 4, 9, 16]);
- * const b = tf.tensor1d([1, 2, 3, 4]);
- * const c = tf.tensor1d([0, 0, 0, 0]);
- *
- * a.divNoNan(b).print();  // or tf.divNoNan(a, b)
- * a.divNoNan(c).print();  // or tf.divNoNan(a, c)
- * ```
- *
- * ```js
- * // Broadcast div a with b.
- * const a = tf.tensor1d([2, 4, 6, 8]);
- * const b = tf.scalar(2);
- * const c = tf.scalar(0);
- *
- * a.divNoNan(b).print();  // or tf.divNoNan(a, b)
- * a.divNoNan(c).print();  // or tf.divNoNan(a, c)
- * ```
- *
- * @param a The first tensor as the numerator.
- * @param b The second tensor as the denominator. Must have the same dtype as
- * `a`.
- */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
-function divNoNan_<T extends Tensor>(
-    a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'div');
-  let $b = convertToTensor(b, 'b', 'div');
-  [$a, $b] = makeTypesMatch($a, $b);
-
-  const divResult = $a.div($b);
-  const zeros = zerosLike(divResult);
-  const bEqualsZero = $b.equal(zeros);
-  return where(bEqualsZero, zeros, divResult) as T;
 }
 
 /**
@@ -776,7 +732,6 @@ export const add = op({add_});
 export const addN = op({addN_});
 export const addStrict = op({addStrict_});
 export const atan2 = op({atan2_});
-export const divNoNan = op({divNoNan_});
 export const divStrict = op({divStrict_});
 export const floorDiv = op({floorDiv_});
 export const maximum = op({maximum_});
