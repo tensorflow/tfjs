@@ -16,7 +16,7 @@
  */
 
 import {ENGINE, ForwardFunc} from '../engine';
-import {BinaryInputs, Div} from '../kernel_names';
+import {Div, DivInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {makeTypesMatch} from '../tensor_util';
@@ -26,6 +26,7 @@ import {TensorLike} from '../types';
 import {floorDiv} from './binary_ops';
 import * as broadcast_util from './broadcast_util';
 import {op} from './operation';
+
 
 /**
  * Divides two `tf.Tensor`s element-wise, A / B. Supports broadcasting.
@@ -92,7 +93,7 @@ function div_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
     return res;
   };
 
-  const inputs: BinaryInputs = {a: $a, b: $b};
+  const inputs: DivInputs = {a: $a, b: $b};
   const attrs = {};
   const inputsToSave = [$a, $b];
   const outputsToSave: boolean[] = [];

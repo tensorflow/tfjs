@@ -16,7 +16,7 @@
  */
 
 import {env} from '../../../environment';
-import {BinaryInputs, Div} from '../../../kernel_names';
+import {Div, DivInputs} from '../../../kernel_names';
 import {KernelConfig, TensorInfo} from '../../../kernel_registry';
 import {assertAndGetBroadcastShape} from '../../backend_util';
 import {MathBackendWebGL} from '../backend_webgl';
@@ -41,7 +41,7 @@ export const divConfig: KernelConfig = {
   kernelName: Div,
   backendName: 'webgl',
   kernelFunc: ({inputs, backend}) => {
-    const {a, b} = inputs as BinaryInputs;
+    const {a, b} = inputs as DivInputs;
 
     const webglBackend = backend as MathBackendWebGL;
 
