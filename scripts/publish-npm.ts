@@ -125,7 +125,7 @@ async function main() {
 
     console.log(chalk.magenta.bold(`~~~ Publishing ${pkg} to npm ~~~`));
     shell.cd(pkg);
-    $('npm publish');
+    $('YARN_REGISTRY="https://registry.npmjs.org/" yarn publish');
     console.log(`Yay! Published ${pkg} to npm.`);
 
     shell.cd('..');
