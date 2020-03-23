@@ -18,15 +18,12 @@
 import {ENGINE, ForwardFunc} from '../engine';
 import {OneHot, OneHotAttrs, OneHotInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor1D, Tensor2D} from '../tensor';
+import {Tensor, Tensor1D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
 import {op} from './operation';
-import {zeros} from './tensor_ops';
-
-
 
 /**
  * Creates a one-hot `tf.Tensor`. The locations represented by `indices` take
@@ -55,18 +52,17 @@ function oneHot_(
   let $indices = convertToTensor(indices, 'indices', 'oneHot', 'int32');
   const outShape = [...$indices.shape, depth];
   $indices = $indices.flatten();
-  const grad = (dy: Tensor2D) => {
-    return {indices: () => zeros($indices.shape, 'float32')};
-  };
 
-  const forward: ForwardFunc<T> = backend =>
-      backend.oneHot($indices as Tensor1D, depth, onValue, offValue);
+  const forward: ForwardFunc<Tensor> = (backend, save) => {
+    save([$indices]);
+    return backend.oneHot($indices as Tensor1D, depth, onValue, offValue);
+  };
 
   const inputs: OneHotInputs = {indices: $indices};
   const attrs: OneHotAttrs = {depth, onValue, offValue};
 
   const result = ENGINE.runKernelFunc(
-      forward, inputs as unknown as NamedTensorMap, grad, OneHot,
+      forward, inputs as unknown as NamedTensorMap, null /* grad */, OneHot,
       attrs as unknown as NamedAttrMap);
   return result.reshape(outShape);
 }

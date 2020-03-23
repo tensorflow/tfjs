@@ -19,6 +19,7 @@
 export {broadcastTo} from './broadcast_to';
 export {clone} from './clone';
 export {multinomial} from './multinomial';
+export {oneHot} from './one_hot';
 export {rand} from './rand';
 export {randomGamma} from './random_gamma';
 export {randomNormal} from './random_normal';
