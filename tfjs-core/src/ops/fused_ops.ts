@@ -231,25 +231,19 @@ function fusedMatMul_<T extends Tensor>({
     inputs.preluActivationWeights = $preluActivationWeights;
   }
 
-  const inputsToSave = [a3D, b3D];
-  const outputsToSave = [true];
-
-  const res = ENGINE.runKernelFunc(
-      (backend, save) => {
-        const y = backend.fusedBatchMatMul({
-          a: a3D,
-          b: b3D,
-          transposeA,
-          transposeB,
-          bias: $bias,
-          activation,
-          preluActivationWeights: $preluActivationWeights
-        });
-        save([a3D, b3D, y]);
-        return y;
-      },
-      inputs, grad, '_FusedMatMul', {transposeA, transposeB, activation},
-      inputsToSave, outputsToSave);
+  const res = ENGINE.runKernelFunc((backend, save) => {
+    const y = backend.fusedBatchMatMul({
+      a: a3D,
+      b: b3D,
+      transposeA,
+      transposeB,
+      bias: $bias,
+      activation,
+      preluActivationWeights: $preluActivationWeights
+    });
+    save([a3D, b3D, y]);
+    return y;
+  }, inputs, grad, '_FusedMatMul', {transposeA, transposeB, activation});
   return res.reshape(outShape) as T;
 }
 
@@ -437,23 +431,18 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
     inputs.preluActivationWeights = $preluActivationWeights;
   }
 
-  const inputsToSave = [$filter, x4D];
-  const outputsToSave = [true];  // Save the only output.
-  const res = ENGINE.runKernelFunc(
-      (backend, save) => {
-        const res = backend.fusedConv2d({
-          input: x4D,
-          filter: $filter,
-          convInfo,
-          bias: $bias,
-          activation,
-          preluActivationWeights: $preluActivationWeights
-        });
-        save([$filter, x4D, res]);
-        return res;
-      },
-      inputs, grad, 'FusedConv2D', {convInfo, activation}, inputsToSave,
-      outputsToSave);
+  const res = ENGINE.runKernelFunc((backend, save) => {
+    const res = backend.fusedConv2d({
+      input: x4D,
+      filter: $filter,
+      convInfo,
+      bias: $bias,
+      activation,
+      preluActivationWeights: $preluActivationWeights
+    });
+    save([$filter, x4D, res]);
+    return res;
+  }, inputs, grad, 'FusedConv2D', {convInfo, activation});
 
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
@@ -641,23 +630,18 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
     inputs.preluActivationWeights = $preluActivationWeights;
   }
 
-  const inputsToSave = [$filter, x4D];
-  const outputsToSave = [true];
-  const res = ENGINE.runKernelFunc(
-      (backend, save) => {
-        const res = backend.fusedDepthwiseConv2D({
-          input: x4D,
-          filter: $filter,
-          convInfo,
-          bias: $bias,
-          activation,
-          preluActivationWeights: $preluActivationWeights
-        });
-        save([$filter, x4D, res]);
-        return res;
-      },
-      inputs, grad, 'FusedDepthwiseConv2D', {convInfo, activation},
-      inputsToSave, outputsToSave);
+  const res = ENGINE.runKernelFunc((backend, save) => {
+    const res = backend.fusedDepthwiseConv2D({
+      input: x4D,
+      filter: $filter,
+      convInfo,
+      bias: $bias,
+      activation,
+      preluActivationWeights: $preluActivationWeights
+    });
+    save([$filter, x4D, res]);
+    return res;
+  }, inputs, grad, 'FusedDepthwiseConv2D', {convInfo, activation});
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   }

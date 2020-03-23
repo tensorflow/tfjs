@@ -35,12 +35,10 @@ import {op} from './operation';
 function square_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'square');
   const attrs = {};
-  const inputsToSave = [$x];
-  const outputsToSave: boolean[] = [];
   return ENGINE.runKernelFunc((backend, save) => {
     save([$x]);
     return backend.square($x);
-  }, {x: $x}, null /* grad */, 'Square', attrs, inputsToSave, outputsToSave);
+  }, {x: $x}, null /* grad */, 'Square', attrs);
 }
 
 export const square = op({square_});

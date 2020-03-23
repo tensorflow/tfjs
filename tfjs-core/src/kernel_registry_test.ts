@@ -198,8 +198,7 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
     });
 
     const gradFunc = tf.grad(
-        x => tf.engine().runKernel(
-                 kernelName, {x}, {} /* attrs */, [x] /* inputsToSave */) as
+        x => tf.engine().runKernel(kernelName, {x}, {} /* attrs */) as
             tf.Tensor);
     const dx = gradFunc(x);
     expect(kernelWasCalled).toBe(true);
@@ -269,11 +268,9 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
     });
 
     const gradFunc = tf.grad(
-        x => tf.engine().runKernel(
-                 kernelName, {x}, {} /* attrs */, [x] /* inputsToSave */) as
+        x => tf.engine().runKernel(kernelName, {x}, {} /* attrs */) as
             tf.Tensor);
-    expect(() => gradFunc(x))
-        .toThrowError(/gradient function not found for MyKernel/);
+    expect(() => gradFunc(x)).toThrowError();
 
     tf.unregisterKernel(kernelName, tf.getBackend());
   });

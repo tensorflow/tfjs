@@ -476,23 +476,16 @@ export class Engine implements TensorTracker, DataMover {
    * @param inputs A map of input names to tensors.
    * @param attrs A map of attribute names to their values. An attribute is a
    *     primitive (non-tensor) input to the kernel.
-   * @param inputsToSave A list of tensors, inputs to save for the backprop
-   *     computation.
-   * @param outputsToSave A list of booleans, specifying which output to save
-   *     for the backprop computation. These are booleans since the output
-   * tensors are not visible to the user.
    */
-  runKernel(
-      kernelName: string, inputs: NamedTensorMap, attrs: NamedAttrMap,
-      inputsToSave?: Tensor[], outputsToSave?: boolean[]): Tensor|Tensor[] {
+  runKernel(kernelName: string, inputs: NamedTensorMap, attrs: NamedAttrMap):
+      Tensor|Tensor[] {
     const forwardFunc: null = null;
     const backwardsFunc: null = null;
     // Call runKernel as a stop-gap until we modularize all kernels.
     // Once we modularize all kernels, we will remove the existing
     // `runKernelFunc`.
     return this.runKernelFunc(
-        forwardFunc, inputs, backwardsFunc, kernelName, attrs, inputsToSave,
-        outputsToSave);
+        forwardFunc, inputs, backwardsFunc, kernelName, attrs);
   }
 
   private shouldCheckForMemLeaks(): boolean {
@@ -535,8 +528,7 @@ export class Engine implements TensorTracker, DataMover {
   runKernelFunc<T extends Tensor|Tensor[], I extends NamedTensorMap>(
       forwardFunc: ForwardFunc<T>, inputs: I,
       backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () => I[P]},
-      kernelName?: string, attrs?: NamedAttrMap, inputsToSave?: Tensor[],
-      outputsToSave?: boolean[]): T {
+      kernelName?: string, attrs?: NamedAttrMap): T {
     let outputs: Tensor[];
     let saved: Tensor[] = [];
     const isTapeOn = this.isTapeOn();
@@ -572,24 +564,14 @@ export class Engine implements TensorTracker, DataMover {
         // cause a mem leak since we would never run backprop, which disposes
         // the kept tensors.
         if (isTapeOn) {
-          let tensorsToSave =
+          const tensorsToSave =
               this.getTensorsForGradient(kernelName, inputs, outTensors);
-          if (tensorsToSave == null) {
-            // Fallback for ops that call runKernelFunc and pass in
-            // inputsToSave and outputsToSave. Currently this is the set of ops
-            // with kernel support in the WASM backend. Once those ops and
-            // respective gradients are modularised we can remove this path.
-            if (outputsToSave == null) {
-              outputsToSave = [];
-            }
-            const outsToSave = outTensors.filter((_, i) => outputsToSave[i]);
-            tensorsToSave = (inputsToSave || []).slice().concat(outsToSave);
-          }
           saved = this.saveTensorsForBackwardMode(tensorsToSave);
         }
         return outTensors;
       };
     } else {
+      // TODO lookup modular gradient here as well.
       const saveFunc: GradSaveFunc = (tensors) => {
         // Do not save unless we are recording to the tape. Otherwise it would
         // cause a mem leak since we would never run backprop, which disposes
@@ -662,8 +644,7 @@ export class Engine implements TensorTracker, DataMover {
    * @param outputs an array of output tensors from forward mode of kernel.
    */
   private getTensorsForGradient(
-      kernelName: string, inputs: NamedTensorMap,
-      outputs: Tensor[]): Tensor[]|null {
+      kernelName: string, inputs: NamedTensorMap, outputs: Tensor[]): Tensor[] {
     const gradConfig = getGradient(kernelName);
     if (gradConfig != null) {
       const inputsToSave: string[] = gradConfig.inputsToSave || [];
@@ -674,10 +655,10 @@ export class Engine implements TensorTracker, DataMover {
       const outputTensorsToSave: Tensor[] =
           outputs.filter((_, i) => outputsToSave[i]);
       return inputTensorsToSave.concat(outputTensorsToSave);
+    } else {
+      throw new Error(
+          `Modular gradient not defined for modular kernel "${kernelName}"`);
     }
-    // TODO(yassogba) throw exception here once all runkernelFunc calls with
-    // inputsToSave/outputsToSave are removed
-    return null;
   }
 
   /**

@@ -56,9 +56,6 @@ function softmax_<T extends Tensor>(logits: T|TensorLike, dim = -1): T {
         `Logits was rank ${$logits.rank} and dim was ${dim}`);
   }
 
-  const inputsToSave: Tensor[] = [];
-  const outputsToSave = [true];
-
   return ENGINE.runKernelFunc(
       (backend, save) => {
         const y = backend.softmax($logits, dim);
@@ -75,7 +72,7 @@ function softmax_<T extends Tensor>(logits: T|TensorLike, dim = -1): T {
           logits: () => dyTimesY.sub(dyTimesY.sum([dim], keepDims).mul(y))
         };
       },
-      'Softmax', {dim}, inputsToSave, outputsToSave);
+      'Softmax', {dim});
 }
 
 /**

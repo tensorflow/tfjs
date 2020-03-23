@@ -289,13 +289,12 @@ function tile_<T extends Tensor>(x: T|TensorLike, reps: number[]): T {
     };
     return {x: derX};
   };
-  const inputsToSave = [$x];
   const attrs = {reps};
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.tile($x, reps);
     save([$x]);
     return res;
-  }, {x: $x}, grad, 'Tile', attrs, inputsToSave);
+  }, {x: $x}, grad, 'Tile', attrs);
 }
 
 /**

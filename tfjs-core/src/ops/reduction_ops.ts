@@ -330,13 +330,11 @@ function min_<T extends Tensor>(
   const grad = (dy: T, saved: Tensor[]) =>
       gradForMinAndMax(dy, saved[1], saved[0], origAxes, permutedAxes);
 
-  const inputsToSave = [$x];
-  const outputsToSave: boolean[] = [true];
   let res = ENGINE.runKernelFunc((backend, save) => {
     const y = backend.min($x, axes);
     save([xOrig, y]);
     return y as T;
-  }, {x: $x}, grad, 'Min', {axes}, inputsToSave, outputsToSave);
+  }, {x: $x}, grad, 'Min', {axes});
   if (keepDims) {
     const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
     res = res.reshape(newShape) as T;
@@ -388,13 +386,11 @@ function max_<T extends Tensor>(
   const grad = (dy: T, saved: Tensor[]) =>
       gradForMinAndMax(dy, saved[1], saved[0], origAxes, permutedAxes);
 
-  const inputsToSave = [$x];
-  const outputsToSave: boolean[] = [true];
   let res = ENGINE.runKernelFunc((backend, save) => {
     const y = backend.max($x, axes);
     save([xOrig, y]);
     return y;
-  }, {x: $x}, grad, 'Max', {axes}, inputsToSave, outputsToSave);
+  }, {x: $x}, grad, 'Max', {axes});
   if (keepDims) {
     const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
     res = res.reshape(newShape) as T;
@@ -489,12 +485,11 @@ function argMax_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
     return {x: () => zerosLike($x)};
   };
   const attrs = {axis: axes[0]};
-  const inputsToSave = [$x];
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.argMax($x, axes[0]);
     save([$x]);
     return res;
-  }, {x: $x}, grad, 'ArgMax', attrs, inputsToSave) as T;
+  }, {x: $x}, grad, 'ArgMax', attrs) as T;
 }
 
 /**

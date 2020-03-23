@@ -77,11 +77,9 @@ function squaredDifference_<T extends Tensor>(
   const inputs: SquaredDifferenceInputs = {a: $a, b: $b};
   const attrs = {};
 
-  const inputsToSave = [$a, $b];
-  const outputToSave: boolean[] = [];
   return ENGINE.runKernelFunc(
              forward, inputs as unknown as NamedTensorMap, der,
-             SquaredDifference, attrs, inputsToSave, outputToSave) as T;
+             SquaredDifference, attrs) as T;
 }
 
 export const squaredDifference = op({squaredDifference_});

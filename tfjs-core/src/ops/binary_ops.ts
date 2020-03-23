@@ -280,13 +280,11 @@ function pow_<T extends Tensor>(
   };
 
   const attrs = {};
-  const inputsToSave = [$base, $exp];
-  const outputsToSave = [true];
   return ENGINE.runKernelFunc((backend, save) => {
     const y = backend.pow($base, $exp);
     save([$base, $exp, y]);
     return y;
-  }, {a: $base, b: $exp}, grad, 'Pow', attrs, inputsToSave, outputsToSave) as T;
+  }, {a: $base, b: $exp}, grad, 'Pow', attrs) as T;
 }
 
 /**
