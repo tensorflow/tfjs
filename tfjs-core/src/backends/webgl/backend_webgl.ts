@@ -2431,8 +2431,8 @@ export class MathBackendWebGL extends KernelBackend {
     const program = new PackProgram(input.shape);
     const preventEagerUnpackingOutput = true;
     return this.runWebGLProgram(
-        program, [input], input.dtype, null /* out info */,
-        null /* customSetup */, preventEagerUnpackingOutput);
+        program, [input], input.dtype, null /* customSetup */,
+        preventEagerUnpackingOutput);
   }
 
   private packedReshape(input: TensorInfo, afterShape: number[]): TensorInfo {
@@ -2452,8 +2452,8 @@ export class MathBackendWebGL extends KernelBackend {
     const program = new ReshapePackedProgram(afterShapeAs3D, input3DShape);
     const preventEagerUnpackingOfOutput = true;
     const output = this.runWebGLProgram(
-        program, [input3D], input.dtype, null /* out info */,
-        null /* customSetup */, preventEagerUnpackingOfOutput);
+        program, [input3D], input.dtype, null /* customSetup */,
+        preventEagerUnpackingOfOutput);
     return {dataId: output.dataId, shape: afterShape, dtype: output.dtype};
   }
 
@@ -2471,19 +2471,15 @@ export class MathBackendWebGL extends KernelBackend {
     const preventEagerUnpackingOfOutput = true;
     const out = this.runWebGLProgram(
         program, [{shape: shapeAs3D, dtype, dataId}], dtype,
-        null /* out info */, null /* customSetup */,
-        preventEagerUnpackingOfOutput);
+        null /* customSetup */, preventEagerUnpackingOfOutput);
     return {dtype, shape, dataId: out.dataId};
   }
 
   runWebGLProgram(
       program: GPGPUProgram, inputs: TensorInfo[], outputDtype: DataType,
-      output?: TensorInfo,
       customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => void,
       preventEagerUnpackingOfOutput = false): TensorInfo {
-    if (output == null) {
-      output = this.makeTensorInfo(program.outputShape, outputDtype);
-    }
+    const output = this.makeTensorInfo(program.outputShape, outputDtype);
     const outData = this.texData.get(output.dataId);
     if (program.packedOutput) {
       outData.isPacked = true;
@@ -2610,7 +2606,7 @@ export class MathBackendWebGL extends KernelBackend {
       preventEagerUnpackingOfOutput = false): K {
     outputDtype = outputDtype || inputs[0].dtype;
     const outInfo = this.runWebGLProgram(
-        program, inputs, outputDtype, null /* out info */, customSetup,
+        program, inputs, outputDtype, customSetup,
         preventEagerUnpackingOfOutput);
     return ENGINE.makeTensorFromDataId(
                outInfo.dataId, outInfo.shape, outInfo.dtype) as {} as K;
@@ -2736,8 +2732,7 @@ export class MathBackendWebGL extends KernelBackend {
       // WEBGL_PACK.
       const preventEagerUnpacking = true;
       const encodedOutputTarget = this.runWebGLProgram(
-          program, [tempDenseInputHandle], dtype, null /* out info */,
-          null /* custom setup */, preventEagerUnpacking);
+          program, [tempDenseInputHandle], dtype, null, preventEagerUnpacking);
 
       // Have the original texture assume the identity of the encoded output.
       const outputTexData = this.texData.get(encodedOutputTarget.dataId);
