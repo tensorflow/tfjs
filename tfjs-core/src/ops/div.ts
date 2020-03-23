@@ -95,12 +95,9 @@ function div_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
 
   const inputs: DivInputs = {a: $a, b: $b};
   const attrs = {};
-  const inputsToSave = [$a, $b];
-  const outputsToSave: boolean[] = [];
 
   return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, der, Div, attrs,
-             inputsToSave, outputsToSave) as T;
+             forward, inputs as {} as NamedTensorMap, der, Div, attrs) as T;
 }
 
 export const div = op({div_});
