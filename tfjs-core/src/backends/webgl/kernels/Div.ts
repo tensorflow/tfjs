@@ -18,7 +18,6 @@
 import {env} from '../../../environment';
 import {Div, DivInputs} from '../../../kernel_names';
 import {KernelConfig, TensorInfo} from '../../../kernel_registry';
-import {assertAndGetBroadcastShape} from '../../backend_util';
 import {MathBackendWebGL} from '../backend_webgl';
 import * as binaryop_gpu from '../binaryop_gpu';
 import {BinaryOpProgram} from '../binaryop_gpu';
@@ -26,14 +25,13 @@ import * as binaryop_packed_gpu from '../binaryop_packed_gpu';
 import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
 
 export const divImpl =
-    (a: TensorInfo, b: TensorInfo, out: TensorInfo,
-     backend: MathBackendWebGL): TensorInfo => {
+    (a: TensorInfo, b: TensorInfo, backend: MathBackendWebGL): TensorInfo => {
       let program = new BinaryOpProgram(binaryop_gpu.DIV, a.shape, b.shape);
       if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
         program = new BinaryOpPackedProgram(
             binaryop_packed_gpu.DIV, a.shape, b.shape, true);
       }
-      const output = backend.runWebGLProgram(program, [a, b], 'float32', out);
+      const output = backend.runWebGLProgram(program, [a, b], 'float32');
       return output;
     };
 
@@ -45,10 +43,7 @@ export const divConfig: KernelConfig = {
 
     const webglBackend = backend as MathBackendWebGL;
 
-    const outShape = assertAndGetBroadcastShape(a.shape, b.shape);
-    const outTensorInfo = webglBackend.makeTensorInfo(outShape, a.dtype);
-
-    const out = divImpl(a, b, outTensorInfo, webglBackend);
+    const out = divImpl(a, b, webglBackend);
 
     return {dataId: out.dataId, shape: out.shape, dtype: out.dtype};
   }
