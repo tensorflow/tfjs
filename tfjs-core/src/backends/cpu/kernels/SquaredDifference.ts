@@ -16,10 +16,10 @@
  */
 
 import {SquaredDifference} from '../../../kernel_names';
-import {createBinaryKernel} from '../utils/kernel_utils';
+import {createBinaryKernelImpl} from '../utils/kernel_utils';
 import {createBinaryKernelConfig} from '../utils/kernel_utils';
 
-const squaredDifferenceImpl = createBinaryKernel((aVal, bVal) => {
+const squaredDifferenceImpl = createBinaryKernelImpl((aVal, bVal) => {
   const diff = aVal - bVal;
   return diff * diff;
 });

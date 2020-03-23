@@ -49,7 +49,7 @@ export function createBinaryKernelConfig(
   };
 }
 
-export function createBinaryKernel(op: (a: number, b: number) => number) {
+export function createBinaryKernelImpl(op: (a: number, b: number) => number) {
   return (aShape: number[], bShape: number[], aVals: TypedArray,
           bVals: TypedArray, dtype: DataType): [TypedArray, number[]] => {
     const newShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);

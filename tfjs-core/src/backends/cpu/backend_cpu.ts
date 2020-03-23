@@ -386,6 +386,8 @@ export class MathBackendCPU extends KernelBackend {
     const b = this.exp(a);
     const sumExp = this.sum(b, axes).reshape(expandedShape);
 
+    // TODO(annxingyuan): Call divImpl rather than op as part of softmax kernel
+    // modularization.
     return div(b, sumExp);
   }
 
