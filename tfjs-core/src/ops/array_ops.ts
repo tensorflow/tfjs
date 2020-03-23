@@ -23,7 +23,7 @@ import * as util from '../util';
 import {getAxesPermutation, getInnerMostAxes} from './axis_util';
 import {concat} from './concat_split';
 import {op} from './operation';
-import {zeros, zerosLike} from './tensor_ops';
+import {zerosLike} from './tensor_ops';
 
 /**
  * Create an identity matrix.
@@ -75,43 +75,6 @@ function eye_(
           `batchShapes, but received ${(batchShape as any).length}D.`);
     }
   }
-}
-
-/**
- * Creates a one-hot `tf.Tensor`. The locations represented by `indices` take
- * value `onValue` (defaults to 1), while all other locations take value
- * `offValue` (defaults to 0). If `indices` is rank `R`, the output has rank
- * `R+1` with the last axis of size `depth`.
- *
- * ```js
- * tf.oneHot(tf.tensor1d([0, 1], 'int32'), 3).print();
- * ```
- *
- * @param indices `tf.Tensor` of indices with dtype `int32`.
- * @param depth The depth of the one hot dimension.
- * @param onValue A number used to fill in the output when the index matches
- * the location.
- * @param offValue A number used to fill in the output when the index does
- *     not match the location.
- */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
-function oneHot_(
-    indices: Tensor|TensorLike, depth: number, onValue = 1,
-    offValue = 0): Tensor {
-  if (depth < 2) {
-    throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
-  }
-  let $indices = convertToTensor(indices, 'indices', 'oneHot', 'int32');
-  const outShape = [...$indices.shape, depth];
-  $indices = $indices.flatten();
-
-  const grad = (dy: Tensor2D) => {
-    return {$indices: () => zeros($indices.shape, 'float32')};
-  };
-  const result = ENGINE.runKernelFunc(
-      backend => backend.oneHot($indices as Tensor1D, depth, onValue, offValue),
-      {$indices}, grad);
-  return result.reshape(outShape);
 }
 
 /**
@@ -909,7 +872,6 @@ export const cumsum = op({cumsum_});
 export const depthToSpace = op({depthToSpace_});
 export const expandDims = op({expandDims_});
 export const eye = op({eye_});
-export const oneHot = op({oneHot_});
 export const pad = op({pad_});
 export const pad1d = op({pad1d_});
 export const pad2d = op({pad2d_});
