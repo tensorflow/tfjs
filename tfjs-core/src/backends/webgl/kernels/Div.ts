@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import {assertAndGetBroadcastShape} from '../../../../src/ops/broadcast_util';
 import {env} from '../../../environment';
 import {BinaryInputs, Div} from '../../../kernel_names';
 import {KernelConfig, TensorInfo} from '../../../kernel_registry';
+import {assertAndGetBroadcastShape} from '../../backend_util';
 import {MathBackendWebGL} from '../backend_webgl';
 import * as binaryop_gpu from '../binaryop_gpu';
 import {BinaryOpProgram} from '../binaryop_gpu';
