@@ -56,4 +56,5 @@ function randomGamma_<R extends Rank>(
   }
   return res.toTensor();
 }
+
 export const randomGamma = op({randomGamma_});

@@ -20,6 +20,7 @@ import {Tensor1D, Tensor2D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {op} from './operation';
+
 /**
  * Creates a `tf.Tensor` with values drawn from a multinomial distribution.
  *
@@ -60,4 +61,5 @@ function multinomial_(
       {logits2D});
   return origRank === 1 ? res.as1D() : res;
 }
+
 export const multinomial = op({multinomial_});

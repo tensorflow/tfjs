@@ -51,4 +51,5 @@ function randomUniform_<R extends Rank>(
   }
   return res.toTensor();
 }
+
 export const randomUniform = op({randomUniform_});
