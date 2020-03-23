@@ -26,29 +26,6 @@ import {op} from './operation';
 import {zeros, zerosLike} from './tensor_ops';
 
 /**
- * Creates a new tensor with the same values and shape as the specified
- * tensor.
- *
- * ```js
- * const x = tf.tensor([1, 2]);
- *
- * x.clone().print();
- * ```
- *
- * @param x The tensor to clone.
- */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
-function clone_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'clone', null);
-  const der = (dy: T) => {
-    return {$x: () => dy.toFloat()};
-  };
-  return ENGINE.runKernelFunc(
-      () => ENGINE.makeTensorFromDataId($x.dataId, $x.shape, $x.dtype) as T,
-      {$x}, der);
-}
-
-/**
  * Create an identity matrix.
  *
  * @param numRows Number of rows.
@@ -928,7 +905,6 @@ export {
 
 export const batchToSpaceND = op({batchToSpaceND_});
 export const cast = op({cast_});
-export const clone = op({clone_});
 export const cumsum = op({cumsum_});
 export const depthToSpace = op({depthToSpace_});
 export const expandDims = op({expandDims_});
