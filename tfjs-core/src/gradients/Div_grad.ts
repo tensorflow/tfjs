@@ -18,31 +18,32 @@
 import {Div} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import * as broadcast_util from '../ops/broadcast_util';
+import {div} from '../ops/div';
 import {Tensor} from '../tensor';
 
 export const divGradConfig: GradConfig = {
   kernelName: Div,
   inputsToSave: ['a', 'b'],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
-    const [$a, $b] = saved;
+    const [a, b] = saved;
     const outShape =
-        broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
+        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     const derA = () => {
-      const res = dy.div($b.toFloat());
-      const reduceAxes = broadcast_util.getReductionAxes($a.shape, outShape);
+      const res = div(dy, b.toFloat());
+      const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
       if (reduceAxes.length > 0) {
-        return res.sum(reduceAxes).reshape($a.shape);
+        return res.sum(reduceAxes).reshape(a.shape);
       }
       return res;
     };
     const derB = () => {
-      let res = dy.mul($a.toFloat());
-      const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
+      let res = dy.mul(a.toFloat());
+      const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
       if (reduceAxes.length > 0) {
-        res = res.sum(reduceAxes).reshape($b.shape);
+        res = res.sum(reduceAxes).reshape(b.shape);
       }
-      const tmp = $b.square();
-      return res.div(tmp.toFloat()).neg();
+      const tmp = b.square();
+      return div(res, tmp.toFloat()).neg();
     };
     return {a: derA, b: derB};
   }

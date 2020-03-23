@@ -24,16 +24,16 @@ import {BinaryOpProgram} from '../binaryop_gpu';
 import * as binaryop_packed_gpu from '../binaryop_packed_gpu';
 import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
 
-export const divImpl =
-    (a: TensorInfo, b: TensorInfo, backend: MathBackendWebGL): TensorInfo => {
-      let program = new BinaryOpProgram(binaryop_gpu.DIV, a.shape, b.shape);
-      if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-        program = new BinaryOpPackedProgram(
-            binaryop_packed_gpu.DIV, a.shape, b.shape, true);
-      }
-      const output = backend.runWebGLProgram(program, [a, b], 'float32');
-      return output;
-    };
+export function divImpl(
+    a: TensorInfo, b: TensorInfo, backend: MathBackendWebGL): TensorInfo {
+  let program = new BinaryOpProgram(binaryop_gpu.DIV, a.shape, b.shape);
+  if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
+    program = new BinaryOpPackedProgram(
+        binaryop_packed_gpu.DIV, a.shape, b.shape, true);
+  }
+  const output = backend.runWebGLProgram(program, [a, b], 'float32');
+  return output;
+}
 
 export const divConfig: KernelConfig = {
   kernelName: Div,
