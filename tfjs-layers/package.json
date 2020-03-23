@@ -48,6 +48,7 @@
     "format": "./tools/clang_format_ts.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
+    "publish-npm": "npm publish",
     "test": "yarn && yarn build-deps && karma start",
     "test-ci": "./scripts/test-ci.sh",
     "test-snippets": "ts-node ./scripts/test_snippets.ts",
