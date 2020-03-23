@@ -656,8 +656,7 @@ export class Engine implements TensorTracker, DataMover {
           outputs.filter((_, i) => outputsToSave[i]);
       return inputTensorsToSave.concat(outputTensorsToSave);
     } else {
-      throw new Error(
-          `Modular gradient not defined for modular kernel "${kernelName}"`);
+      throw new Error(`gradient function not found for ${kernelName}`);
     }
   }
 
