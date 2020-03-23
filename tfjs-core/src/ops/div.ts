@@ -27,7 +27,6 @@ import {floorDiv} from './binary_ops';
 import * as broadcast_util from './broadcast_util';
 import {op} from './operation';
 
-
 /**
  * Divides two `tf.Tensor`s element-wise, A / B. Supports broadcasting.
  *
