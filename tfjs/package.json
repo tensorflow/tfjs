@@ -65,6 +65,7 @@
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
+    "publish-npm": "npm publish",
     "lint": "tslint -p . -t verbose",
     "test": "yarn && yarn build-deps && yarn build && ts-node ./scripts/release_notes/run_tests.ts && karma start",
     "test-ci": "./scripts/test-ci.sh"
