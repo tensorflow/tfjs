@@ -14,6 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
+import {broadcastToGradConfig} from './gradients/BroadcastTo_grad';
+import {identityGradConfig} from './gradients/Identity_grad';
 import {squareGradConfig} from './gradients/Square_grad';
 import {squaredDifferenceGradConfig} from './gradients/SquaredDifference_grad';
 import {GradConfig} from './kernel_registry';
@@ -23,6 +25,8 @@ import {registerGradient} from './kernel_registry';
 const gradConfigs: GradConfig[] = [
   squareGradConfig,
   squaredDifferenceGradConfig,
+  broadcastToGradConfig,
+  identityGradConfig,
 ];
 
 for (const gradientConfig of gradConfigs) {

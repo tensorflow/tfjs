@@ -43,22 +43,21 @@ if (commitSha == null) {
 if (branchName == null) {
   branchName = exec(`git rev-parse --abbrev-ref HEAD`).stdout.trim();
 }
+
+// For Nightly build, baseBranch is one of the falsey values. We use master
+// for Nightly build.
+if (!baseBranch) {
+  baseBranch = 'master';
+}
 console.log('commitSha: ', commitSha);
 console.log('branchName: ', branchName);
 console.log('baseBranch: ', baseBranch);
 
-const toMaster = baseBranch == 'master';
-
-if (toMaster) {
-  console.log('Clone branch master.');
-  // We cannot do --depth=1 here because we need to check out an old merge base.
-  // We cannot do --single-branch here because we need multiple branches.
-  exec(`git clone https://github.com/tensorflow/tfjs ${CLONE_PATH}`);
-} else {
-  console.log(`Clone branch ${baseBranch}`);
-  exec(`git clone -b ${baseBranch} https://github.com/tensorflow/tfjs ${
-      CLONE_PATH}`);
-}
+// We cannot do --depth=1 here because we need to check out an old merge base.
+// We cannot do --single-branch here because we need multiple branches.
+console.log(`Clone branch ${baseBranch}`);
+exec(`git clone -b ${baseBranch} https://github.com/tensorflow/tfjs ${
+    CLONE_PATH}`);
 
 console.log();  // Break up the console for readability.
 
@@ -68,19 +67,16 @@ shell.cd(CLONE_PATH);
 const res = shell.exec(`git checkout ${commitSha}`, {silent: true});
 const isPullRequestFromFork = res.code !== 0;
 
-if (toMaster) {
-  // Only checkout the merge base if the pull requests comes from a
-  // tensorflow/tfjs branch. Otherwise clone master and diff against master.
-  if (!isPullRequestFromFork) {
-    console.log('PR is coming from tensorflow/tfjs. Finding the merge base...');
-    exec(`git checkout ${branchName}`);
-    const mergeBase = exec(`git merge-base master ${branchName}`).stdout.trim();
-    exec(`git fetch origin ${mergeBase}`);
-    exec(`git checkout ${mergeBase}`);
-    console.log('mergeBase: ', mergeBase);
-  } else {
-    console.log('PR is coming from a fork. Diffing against master.');
-  }
+// Only checkout the merge base if the pull requests comes from a
+// tensorflow/tfjs branch. Otherwise clone master and diff against master.
+if (!isPullRequestFromFork) {
+  console.log('PR is coming from tensorflow/tfjs. Finding the merge base...');
+  exec(`git checkout ${branchName}`);
+  const mergeBase =
+      exec(`git merge-base ${baseBranch} ${branchName}`).stdout.trim();
+  exec(`git fetch origin ${mergeBase}`);
+  exec(`git checkout ${mergeBase}`);
+  console.log('mergeBase: ', mergeBase);
 } else {
   console.log(`PR is going to diff against branch ${baseBranch}.`);
 }
@@ -135,7 +131,7 @@ if (!triggerAllBuilds) {
     });
   });
 
-  triggeredBuilds.push(Array.from(affectedBuilds));
+  triggeredBuilds.push(...affectedBuilds);
 }
 
 // Filter the triggered builds to log by whether a cloudbuild.yml file

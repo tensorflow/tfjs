@@ -15,5 +15,24 @@
  * =============================================================================
  */
 
-import './squared_difference';
-import './broadcast_to';
+import {KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+
+import {BackendWasm} from '../backend_wasm';
+
+interface OnesLikeInputs extends NamedTensorInfoMap {
+  x: TensorInfo;
+}
+
+function onesLike(args: {inputs: OnesLikeInputs, backend: BackendWasm}) {
+  const {inputs: {x}, backend} = args;
+  const out = backend.makeOutput(x.shape, x.dtype);
+  const outVals = backend.typedArrayFromHeap(out);
+  outVals.fill(1);
+  return out;
+}
+
+registerKernel({
+  kernelName: 'OnesLike',
+  backendName: 'wasm',
+  kernelFunc: onesLike as {} as KernelFunc,
+});

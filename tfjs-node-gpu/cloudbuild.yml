@@ -13,61 +13,13 @@ steps:
   args: ['install']
   waitFor: ['prep-gpu']
 
-# Build core from master.
-- name: 'node:10'
-  dir: 'tfjs-node-gpu'
-  id: 'build-core'
-  entrypoint: 'yarn'
-  args: ['build-core-ci']
-  waitFor: ['yarn-common']
-
-# Build layers from master.
-- name: 'node:10'
-  dir: 'tfjs-node-gpu'
-  id: 'build-layers'
-  entrypoint: 'yarn'
-  args: ['build-layers-ci']
-  waitFor: ['build-core']
-
-# Build converter from master.
-- name: 'node:10'
-  dir: 'tfjs-node-gpu'
-  id: 'build-converter'
-  entrypoint: 'yarn'
-  args: ['build-converter-ci']
-  waitFor: ['build-core']
-
-# Build data from master.
-- name: 'node:10'
-  dir: 'tfjs-node-gpu'
-  id: 'build-data'
-  entrypoint: 'yarn'
-  args: ['build-data-ci']
-  waitFor: ['build-layers', 'build-converter']
-
-# Build union package from master.
-- name: 'node:10'
-  dir: 'tfjs-node-gpu'
-  id: 'build-union'
-  entrypoint: 'yarn'
-  args: ['build-union-ci']
-  waitFor: ['build-data']
-
-# Install tfjs-node dependencies.
-- name: 'node:10'
-  dir: 'tfjs-node-gpu'
-  entrypoint: 'yarn'
-  id: 'yarn'
-  args: ['install']
-  waitFor: ['build-union']
-
 # Unit tests.
 - name: 'node:10'
   dir: 'tfjs-node-gpu'
   entrypoint: 'yarn'
   id: 'test'
   args: ['test-ci']
-  waitFor: ['yarn']
+  waitFor: ['yarn-common']
 
 # Integration test.
 - name: 'node:10'
@@ -75,7 +27,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-ts-integration'
   args: ['test-ts-integration']
-  waitFor: ['yarn', 'test']
+  waitFor: ['test']
 
 # CPU / GPU package alignment.
 - name: 'node:10'
@@ -83,7 +35,7 @@ steps:
   entrypoint: 'yarn'
   id: 'ensure-cpu-gpu-packages-align'
   args: ['ensure-cpu-gpu-packages-align']
-  waitFor: ['yarn', 'test']
+  waitFor: ['test']
 
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'

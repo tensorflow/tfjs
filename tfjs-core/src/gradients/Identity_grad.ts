@@ -15,5 +15,13 @@
  * =============================================================================
  */
 
-import './squared_difference';
-import './broadcast_to';
+import {Identity} from '../kernel_names';
+import {GradConfig} from '../kernel_registry';
+import {Tensor} from '../tensor';
+
+export const identityGradConfig: GradConfig = {
+  kernelName: Identity,
+  gradFunc: (dy: Tensor) => {
+    return {x: () => dy.toFloat()};
+  }
+};

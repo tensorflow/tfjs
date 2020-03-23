@@ -15,5 +15,24 @@
  * =============================================================================
  */
 
-import './squared_difference';
-import './broadcast_to';
+import {KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+
+import {BackendWasm} from '../backend_wasm';
+
+interface ZerosLikeInputs extends NamedTensorInfoMap {
+  x: TensorInfo;
+}
+
+function zerosLike(args: {inputs: ZerosLikeInputs, backend: BackendWasm}) {
+  const {inputs: {x}, backend} = args;
+  const out = backend.makeOutput(x.shape, x.dtype);
+  const outVals = backend.typedArrayFromHeap(out);
+  outVals.fill(0);
+  return out;
+}
+
+registerKernel({
+  kernelName: 'ZerosLike',
+  backendName: 'wasm',
+  kernelFunc: zerosLike as {} as KernelFunc,
+});

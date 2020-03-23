@@ -24,29 +24,29 @@ echo '######################'
 echo 'Nightly build or version.ts was modified.'
 echo 'Testing layers/converter/node/data against tfjs-core@master.'
 echo '######################'
-yarn build && yarn build-test-snippets && yarn yalc publish
+yarn build && yarn build-test-snippets
 
 echo 'Testing layers'
 cd ../tfjs-layers
-yarn && yarn link-local '@tensorflow/tfjs-core'
+yarn
 yarn test-ci
 LAYERS_EXIT_CODE=$?
 
 echo 'Testing node'
 cd ../tfjs-node
-yarn && yarn link-local '@tensorflow/tfjs-core'
+yarn
 yarn test-ci
 NODE_EXIT_CODE=$?
 
 echo 'Testing converter'
 cd ../tfjs-converter
-yarn && yarn link-local '@tensorflow/tfjs-core'
+yarn
 yarn test-ci
 CONVERTER_EXIT_CODE=$?
 
 echo 'Testing data'
 cd ../tfjs-data
-yarn && yarn link-local '@tensorflow/tfjs-core'
+yarn
 yarn test-ci
 DATA_EXIT_CODE=$?
 

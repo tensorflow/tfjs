@@ -37,6 +37,16 @@ export interface NonMaxSuppressionV5Attrs {
   softNmsSigma: number;
 }
 
+export const BroadcastTo = 'BroadcastTo';
+export type BroadcastToInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface BroadCastToAttrs {
+  shape: number[];
+  inputShape: number[];  // for gradient
+}
+
+export const Identity = 'Identity';
+export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
+
 /**
  * TensorFlow.js-only kernels
  */
