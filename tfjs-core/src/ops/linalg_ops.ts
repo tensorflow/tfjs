@@ -35,7 +35,6 @@ import {op} from './operation';
 import {sum} from './reduction_ops';
 import {range, scalar, tensor2d, zeros} from './tensor_ops';
 
-
 /**
  * Copy a tensor setting everything outside a central band in each innermost
  * matrix to zero.
