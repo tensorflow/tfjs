@@ -23,70 +23,73 @@ import * as util from '../../../util';
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 
-export const createBinaryKernelConfig =
-    (name: string,
-     op: (
-         aShape: number[], bShape: number[], aVals: TypedArray,
-         bVals: TypedArray, dtype: DataType) => [TypedArray, number[]]):
-        KernelConfig => ({
-          kernelName: name,
-          backendName: 'cpu',
-          kernelFunc: ({inputs, backend}) => {
-            const {a, b} = inputs as BinaryInputs;
-            const cpuBackend = backend as MathBackendCPU;
-            assertNotComplex([a, b], name);
+export function createBinaryKernelConfig(
+    name: string,
+    op: (
+        aShape: number[], bShape: number[], aVals: TypedArray,
+        bVals: TypedArray,
+        dtype: DataType) => [TypedArray, number[]]): KernelConfig {
+  return {
+    kernelName: name,
+    backendName: 'cpu',
+    kernelFunc: ({inputs, backend}) => {
+      const {a, b} = inputs as BinaryInputs;
+      const cpuBackend = backend as MathBackendCPU;
+      assertNotComplex([a, b], name);
 
-            const aVals = cpuBackend.data.get(a.dataId).values as TypedArray;
-            const bVals = cpuBackend.data.get(b.dataId).values as TypedArray;
+      const aVals = cpuBackend.data.get(a.dataId).values as TypedArray;
+      const bVals = cpuBackend.data.get(b.dataId).values as TypedArray;
 
-            const [resultData, resultShape] =
-                op(a.shape, b.shape, aVals, bVals, a.dtype);
+      const [resultData, resultShape] =
+          op(a.shape, b.shape, aVals, bVals, a.dtype);
 
-            const dataId = cpuBackend.write(resultData, resultShape, a.dtype);
-            return {dataId, shape: resultShape, dtype: a.dtype};
-          }
-        });
+      const dataId = cpuBackend.write(resultData, resultShape, a.dtype);
+      return {dataId, shape: resultShape, dtype: a.dtype};
+    }
+  };
+}
 
-export const createBinaryKernel = (op: (a: number, b: number) => number) =>
-    (aShape: number[], bShape: number[], aVals: TypedArray, bVals: TypedArray,
-     dtype: DataType): [TypedArray, number[]] => {
-      const newShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
+export function createBinaryKernel(op: (a: number, b: number) => number) {
+  return (aShape: number[], bShape: number[], aVals: TypedArray,
+          bVals: TypedArray, dtype: DataType): [TypedArray, number[]] => {
+    const newShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
 
-      const resultRank = newShape.length;
-      const resultStrides = util.computeStrides(newShape);
-      const resultSize = util.sizeFromShape(newShape);
+    const resultRank = newShape.length;
+    const resultStrides = util.computeStrides(newShape);
+    const resultSize = util.sizeFromShape(newShape);
 
-      const result =
-          util.getTypedArrayFromDType(dtype as NumericDataType, resultSize);
+    const result =
+        util.getTypedArrayFromDType(dtype as NumericDataType, resultSize);
 
-      const aRank = aShape.length;
-      const bRank = bShape.length;
+    const aRank = aShape.length;
+    const bRank = bShape.length;
 
-      const aStrides = util.computeStrides(aShape);
-      const bStrides = util.computeStrides(bShape);
+    const aStrides = util.computeStrides(aShape);
+    const bStrides = util.computeStrides(bShape);
 
-      const aBroadcastDims = backend_util.getBroadcastDims(aShape, newShape);
-      const bBroadcastDims = backend_util.getBroadcastDims(bShape, newShape);
+    const aBroadcastDims = backend_util.getBroadcastDims(aShape, newShape);
+    const bBroadcastDims = backend_util.getBroadcastDims(bShape, newShape);
 
-      if (aBroadcastDims.length + bBroadcastDims.length === 0) {
-        for (let i = 0; i < result.length; ++i) {
-          result[i] = op(aVals[i % aVals.length], bVals[i % bVals.length]);
-        }
-      } else {
-        for (let i = 0; i < result.length; ++i) {
-          const loc = util.indexToLoc(i, resultRank, resultStrides);
-
-          const aLoc = loc.slice(-aRank);
-          aBroadcastDims.forEach(d => aLoc[d] = 0);
-          const aIndex = util.locToIndex(aLoc, aRank, aStrides);
-
-          const bLoc = loc.slice(-bRank);
-          bBroadcastDims.forEach(d => bLoc[d] = 0);
-          const bIndex = util.locToIndex(bLoc, bRank, bStrides);
-
-          result[i] = op(aVals[aIndex], bVals[bIndex]);
-        }
+    if (aBroadcastDims.length + bBroadcastDims.length === 0) {
+      for (let i = 0; i < result.length; ++i) {
+        result[i] = op(aVals[i % aVals.length], bVals[i % bVals.length]);
       }
+    } else {
+      for (let i = 0; i < result.length; ++i) {
+        const loc = util.indexToLoc(i, resultRank, resultStrides);
 
-      return [result, newShape];
-    };
+        const aLoc = loc.slice(-aRank);
+        aBroadcastDims.forEach(d => aLoc[d] = 0);
+        const aIndex = util.locToIndex(aLoc, aRank, aStrides);
+
+        const bLoc = loc.slice(-bRank);
+        bBroadcastDims.forEach(d => bLoc[d] = 0);
+        const bIndex = util.locToIndex(bLoc, bRank, bStrides);
+
+        result[i] = op(aVals[aIndex], bVals[bIndex]);
+      }
+    }
+
+    return [result, newShape];
+  };
+}
