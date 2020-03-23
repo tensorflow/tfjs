@@ -379,71 +379,6 @@ function mulStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
 }
 
 /**
- * Divides two `tf.Tensor`s element-wise, A / B. Supports broadcasting.
- *
- * We also expose `tf.divStrict` which has the same signature as this op and
- * asserts that `a` and `b` are the same shape (does not broadcast).
- *
- * ```js
- * const a = tf.tensor1d([1, 4, 9, 16]);
- * const b = tf.tensor1d([1, 2, 3, 4]);
- *
- * a.div(b).print();  // or tf.div(a, b)
- * ```
- *
- * ```js
- * // Broadcast div a with b.
- * const a = tf.tensor1d([2, 4, 6, 8]);
- * const b = tf.scalar(2);
- *
- * a.div(b).print();  // or tf.div(a, b)
- * ```
- *
- * @param a The first tensor as the numerator.
- * @param b The second tensor as the denominator. Must have the same dtype as
- * `a`.
- */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
-function div_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'div');
-  let $b = convertToTensor(b, 'b', 'div');
-  [$a, $b] = makeTypesMatch($a, $b);
-
-  if ($a.dtype === 'int32' && $b.dtype === 'int32') {
-    return floorDiv($a, $b);
-  }
-
-  const outShape =
-      broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
-  const der = (dy: Tensor, saved: Tensor[]) => {
-    const [$a, $b] = saved;
-    const derA = () => {
-      const res = dy.div($b.toFloat());
-      const reduceAxes = broadcast_util.getReductionAxes($a.shape, outShape);
-      if (reduceAxes.length > 0) {
-        return res.sum(reduceAxes).reshape($a.shape);
-      }
-      return res;
-    };
-    const derB = () => {
-      let res = dy.mul($a.toFloat());
-      const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
-      if (reduceAxes.length > 0) {
-        res = res.sum(reduceAxes).reshape($b.shape);
-      }
-      const tmp = $b.square();
-      return res.div(tmp.toFloat()).neg();
-    };
-    return {a: derA, b: derB};
-  };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.realDivide($a, $b);
-    save([$a, $b]);
-    return res;
-  }, {a: $a, b: $b}, der, 'Div') as T;
-}
-
-/**
  * Divides two `tf.Tensor`s element-wise, A / B. Supports broadcasting. Return 0
  * if denominator is 0.
  *
@@ -480,7 +415,7 @@ function divNoNan_<T extends Tensor>(
   let $b = convertToTensor(b, 'b', 'div');
   [$a, $b] = makeTypesMatch($a, $b);
 
-  const divResult = div($a, $b);
+  const divResult = $a.div($b);
   const zeros = zerosLike(divResult);
   const bEqualsZero = $b.equal(zeros);
   return where(bEqualsZero, zeros, divResult) as T;
@@ -841,7 +776,6 @@ export const add = op({add_});
 export const addN = op({addN_});
 export const addStrict = op({addStrict_});
 export const atan2 = op({atan2_});
-export const div = op({div_});
 export const divNoNan = op({divNoNan_});
 export const divStrict = op({divStrict_});
 export const floorDiv = op({floorDiv_});
