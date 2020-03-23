@@ -19,7 +19,6 @@ import * as seedrandom from 'seedrandom';
 
 import {ENGINE} from '../../engine';
 import {env} from '../../environment';
-
 import {warn} from '../../log';
 import * as array_ops_util from '../../ops/array_ops_util';
 import * as axis_util from '../../ops/axis_util';
@@ -27,6 +26,7 @@ import * as broadcast_util from '../../ops/broadcast_util';
 import {complex, imag, real} from '../../ops/complex_ops';
 import * as concat_util from '../../ops/concat_util';
 import {Conv2DInfo, Conv3DInfo} from '../../ops/conv_util';
+import {div} from '../../ops/div';
 import * as erf_util from '../../ops/erf_util';
 import {Activation, FusedBatchMatMulConfig, FusedConv2DConfig} from '../../ops/fused_util';
 import * as gather_nd_util from '../../ops/gather_nd_util';
@@ -47,6 +47,7 @@ import {split} from '../split_shared';
 import {tile} from '../tile_impl';
 import {topkImpl} from '../topk_impl';
 import {whereImpl} from '../where_impl';
+
 import {assertNotComplex} from './cpu_util';
 
 function mapActivation(
@@ -385,7 +386,7 @@ export class MathBackendCPU extends KernelBackend {
     const b = this.exp(a);
     const sumExp = this.sum(b, axes).reshape(expandedShape);
 
-    return b.div(sumExp);
+    return div(b, sumExp);
   }
 
   subtract(a: Tensor, b: Tensor): Tensor {

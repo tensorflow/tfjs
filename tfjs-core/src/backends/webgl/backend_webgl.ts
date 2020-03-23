@@ -30,6 +30,7 @@ import * as axis_util from '../../ops/axis_util';
 import {complex, imag, real} from '../../ops/complex_ops';
 import {computeOutShape} from '../../ops/concat_util';
 import {Conv2DInfo, Conv3DInfo} from '../../ops/conv_util';
+import {div} from '../../ops/div';
 import {Activation, FusedBatchMatMulConfig, FusedConv2DConfig} from '../../ops/fused_util';
 import * as gather_nd_util from '../../ops/gather_nd_util';
 import * as reduce_util from '../../ops/reduce_util';
@@ -1585,7 +1586,7 @@ export class MathBackendWebGL extends KernelBackend {
     const b = this.exp(a);
     const sumExp = this.sum(b, axes).reshape(expandedShape);
 
-    return b.div(sumExp);
+    return div(b, sumExp);
   }
 
   log<T extends Tensor>(x: T): T {
