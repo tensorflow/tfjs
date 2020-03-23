@@ -17,4 +17,4 @@
 
 import './squared_difference';
 import './broadcast_to';
-import './one_hot';
+import './tile';
