@@ -16,7 +16,7 @@
  */
 
 import {ENGINE, ForwardFunc} from '../engine';
-import {SquaredDifference, SquaredDifferenceInputs} from '../kernel_names';
+import {BinaryInputs, SquaredDifference} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {makeTypesMatch} from '../tensor_util';
@@ -26,6 +26,7 @@ import {TensorLike} from '../types';
 import {assertAndGetBroadcastShape} from './broadcast_util';
 import {op} from './operation';
 import {scalar} from './tensor_ops';
+
 
 /**
  * Returns (a - b) * (a - b) element-wise.
@@ -74,7 +75,7 @@ function squaredDifference_<T extends Tensor>(
     return res;
   };
 
-  const inputs: SquaredDifferenceInputs = {a: $a, b: $b};
+  const inputs: BinaryInputs = {a: $a, b: $b};
   const attrs = {};
 
   const inputsToSave = [$a, $b];

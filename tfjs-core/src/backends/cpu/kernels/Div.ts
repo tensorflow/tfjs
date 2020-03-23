@@ -15,14 +15,9 @@
  * =============================================================================
  */
 
-import {SquaredDifference} from '../../../kernel_names';
-import {createBinaryOp} from '../utils/kernel_utils';
+import {Div} from '../../../kernel_names';
 import {createBinaryKernelConfig} from '../utils/kernel_utils';
+import {createBinaryOp} from '../utils/kernel_utils';
 
-const squaredDifferenceImpl = createBinaryOp((aVal, bVal) => {
-  const diff = aVal - bVal;
-  return diff * diff;
-});
-
-export const squaredDifferenceConfig =
-    createBinaryKernelConfig(SquaredDifference, squaredDifferenceImpl);
+export const div = createBinaryOp((a: number, b: number) => a / b);
+export const divConfig = createBinaryKernelConfig(Div, div);

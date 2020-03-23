@@ -385,7 +385,7 @@ export class MathBackendCPU extends KernelBackend {
     const b = this.exp(a);
     const sumExp = this.sum(b, axes).reshape(expandedShape);
 
-    return this.realDivide(b, sumExp) as T;
+    return b.div(sumExp);
   }
 
   subtract(a: Tensor, b: Tensor): Tensor {
@@ -491,14 +491,6 @@ export class MathBackendCPU extends KernelBackend {
     return this.broadcastedBinaryOp(
         a, b, upcastType(a.dtype, b.dtype),
         (aValue, bValue) => aValue * bValue);
-  }
-
-  realDivide(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'realDivide');
-
-    const op = (a: number, b: number) => a / b;
-    const outputDtype = 'float32';
-    return this.broadcastedBinaryOp(a, b, outputDtype, op);
   }
 
   floorDiv(a: Tensor, b: Tensor): Tensor {
