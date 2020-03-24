@@ -17,7 +17,13 @@
 
 import {Div} from '../../../kernel_names';
 import {createBinaryKernelConfig} from '../utils/kernel_utils';
+<<<<<<< HEAD
 import {createBinaryOp} from '../utils/kernel_utils';
 
 export const div = createBinaryOp((a: number, b: number) => a / b);
+=======
+import {createBinaryKernelImpl} from '../utils/kernel_utils';
+
+export const div = createBinaryKernelImpl((a: number, b: number) => a / b);
+>>>>>>> modularize_div
 export const divConfig = createBinaryKernelConfig(Div, div);

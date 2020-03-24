@@ -16,7 +16,7 @@
  */
 
 import {ENGINE, ForwardFunc} from '../engine';
-import {BinaryInputs, Div} from '../kernel_names';
+import {Div, DivInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {makeTypesMatch} from '../tensor_util';
@@ -92,14 +92,11 @@ function div_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
     return res;
   };
 
-  const inputs: BinaryInputs = {a: $a, b: $b};
+  const inputs: DivInputs = {a: $a, b: $b};
   const attrs = {};
-  const inputsToSave = [$a, $b];
-  const outputsToSave: boolean[] = [];
 
   return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, der, Div, attrs,
-             inputsToSave, outputsToSave) as T;
+             forward, inputs as {} as NamedTensorMap, der, Div, attrs) as T;
 }
 
 export const div = op({div_});

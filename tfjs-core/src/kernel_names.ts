@@ -24,23 +24,10 @@ import {PixelData} from './types';
 export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 
 export const Div = 'Div';
-
-export const Exp = 'Exp';
-export type ExpInputs = Pick<NamedTensorInfoMap, 'x'>;
-
-export const Max = 'Max';
-export type MaxInputs = Pick<NamedTensorInfoMap, 'x'>;
-export interface MaxAttrs {
-  axes: number[];
-}
-
-export const Softmax = 'Softmax';
-export type SoftmaxInputs = Pick<NamedTensorInfoMap, 'logits'>;
-export interface SoftmaxAttrs {
-  dim: number;
-}
+export type DivInputs = BinaryInputs;
 
 export const SquaredDifference = 'SquaredDifference';
+export type SquaredDifferenceInputs = BinaryInputs;
 
 export const Square = 'Square';
 export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -69,6 +56,9 @@ export interface BroadCastToAttrs {
   shape: number[];
   inputShape: number[];  // for gradient
 }
+
+export const Identity = 'Identity';
+export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
 
 /**
  * TensorFlow.js-only kernels
