@@ -186,6 +186,7 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
 
     tf.registerGradient({
       kernelName,
+      inputsToSave: ['x'],
       gradFunc: (dy: tf.Tensor, saved) => {
         // Make sure saved input (x) was passed to the gradient function.
         expect(saved[0].dataId).toEqual(x.dataId);
@@ -209,6 +210,53 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
     tf.unregisterKernel(kernelName, tf.getBackend());
     tf.unregisterGradient(kernelName);
   });
+
+  it('register a kernel with gradient that specifies outputsToSave and call it',
+     async () => {
+       let kernelWasCalled = false;
+       let gradientWasCalled = false;
+       const kernelName = 'MyKernel';
+
+       const forwardReturnDataId = {};
+       tf.registerKernel({
+         kernelName,
+         backendName: tf.getBackend(),
+         kernelFunc: () => {
+           kernelWasCalled = true;
+           return {
+             dtype: 'float32',
+             shape: [3, 3],
+             dataId: forwardReturnDataId
+           };
+         }
+       });
+
+       tf.registerGradient({
+         kernelName,
+         outputsToSave: [true],
+         gradFunc: (dy: tf.Tensor, saved) => {
+           // Make sure saved output was passed to the gradient function.
+           expect(saved[0].dataId).toEqual(forwardReturnDataId);
+           // Make sure dy matches the shape of the output.
+           expect(dy.shape).toEqual([3, 3]);
+           gradientWasCalled = true;
+           return {x: () => tf.fill([2, 2], 3)};
+         },
+       });
+
+       const gradFunc = tf.grad(
+           x => tf.engine().runKernel(
+                    kernelName, {x}, {} /* attrs */
+                    ) as tf.Tensor);
+       const x = tf.zeros([2, 2]);
+       const dx = gradFunc(x);
+       expect(kernelWasCalled).toBe(true);
+       expect(gradientWasCalled).toBe(true);
+       expect(dx.dtype).toBe('float32');
+       expect(dx.shape).toEqual([2, 2]);
+       tf.unregisterKernel(kernelName, tf.getBackend());
+       tf.unregisterGradient(kernelName);
+     });
 
   it('errors when running non-existent gradient', () => {
     const kernelName = 'MyKernel';

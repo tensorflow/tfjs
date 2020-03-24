@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,8 +15,17 @@
  * =============================================================================
  */
 
-// We explicitly import the modular gradients so they get registered in the
-// global registry when we compile the library. A modular build would replace
-// the contents of this file and import only the gradients that are needed.
+import {broadcastTo} from '../../ops/broadcast_to';
+import {Tensor} from '../../tensor';
+import {Rank, ShapeMap} from '../../types';
 
-import './square_grad';
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    broadcastTo<R extends Rank>(shape: ShapeMap[R]): Tensor<R>;
+  }
+}
+
+Tensor.prototype.broadcastTo = function<R extends Rank>(shape: ShapeMap[R]):
+    Tensor<R> {
+  return broadcastTo(this, shape);
+};

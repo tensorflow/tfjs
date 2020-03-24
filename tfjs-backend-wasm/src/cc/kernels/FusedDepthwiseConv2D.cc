@@ -20,6 +20,7 @@
 
 #include "src/cc/kernels/FusedDepthwiseConv2D.h"
 
+#include "src/cc/backend.h"
 #include "src/cc/conv2d_impl.h"
 
 namespace tfjs {

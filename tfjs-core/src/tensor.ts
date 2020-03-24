@@ -180,10 +180,6 @@ export interface OpHandler {
       x: Tensor, axis: number, exclusive: boolean, reverse: boolean): T;
   squeeze<T extends Tensor>(x: Tensor, axis?: number[]): T;
   clone<T extends Tensor>(x: T): T;
-  oneHot(
-      x: Tensor|TensorLike, depth: number, onValue?: number,
-      offValue?: number): Tensor;
-  tile<T extends Tensor>(x: T, reps: number[]): T;
   gather<T extends Tensor>(x: T, indices: Tensor|TensorLike, axis: number): T;
   matMul<T extends Tensor>(
       a: T, b: T|TensorLike, transposeA: boolean, transposeB: boolean): T;
@@ -239,7 +235,6 @@ export interface OpHandler {
   minimumStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   maximum<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   maximumStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  squaredDifference<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   squaredDifferenceStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   transpose<T extends Tensor>(x: T, perm?: number[]): T;
   logicalNot<T extends Tensor>(x: T): T;
@@ -416,6 +411,8 @@ export function setDeprecationWarningFn(fn: (msg: string) => void) {
  */
 export type DataId = object;  // object instead of {} to force non-primitive.
 
+// Declare this namespace to make Tensor class augmentation work in google3.
+export declare namespace Tensor {}
 /**
  * A `tf.Tensor` object represents an immutable, multidimensional array of
  * numbers that has a shape and a data type.
@@ -766,12 +763,6 @@ export class Tensor<R extends Rank = Rank> {
     return opHandler.clone(this);
   }
 
-  oneHot(this: Tensor, depth: number, onValue?: number, offValue?: number):
-      Tensor {
-    this.throwIfDisposed();
-    return opHandler.oneHot(this, depth, onValue, offValue);
-  }
-
   /**
    * Returns a human-readable description of the tensor. Useful for logging.
    */
@@ -783,11 +774,6 @@ export class Tensor<R extends Rank = Rank> {
 
   // Below is chain API that is not exposed to docs to avoid repetition. To
   // expose a method, move it above this comment and add @doc and jsdoc.
-
-  tile<T extends this>(this: T, reps: number[]): T {
-    this.throwIfDisposed();
-    return opHandler.tile(this, reps);
-  }
 
   gather<T extends this>(this: T, indices: Tensor|TensorLike, axis = 0): T {
     this.throwIfDisposed();
@@ -993,10 +979,6 @@ export class Tensor<R extends Rank = Rank> {
   modStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.modStrict(this, x);
-  }
-  squaredDifference<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.squaredDifference(this, x);
   }
   squaredDifferenceStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();

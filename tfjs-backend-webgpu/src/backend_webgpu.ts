@@ -36,6 +36,7 @@ import {FillProgram} from './kernels/fill_webgpu';
 import {Im2ColProgram} from './kernels/im2col_webgpu';
 import {MatMulPackedProgram} from './kernels/matmul_packed_webgpu';
 import {MatMulProgram} from './kernels/matmul_webgpu';
+import {MaxPoolWithFilterSizeEqualsOneProgram} from './kernels/maxpool_filtersizeone_webgpu';
 import {MaxPoolProgram} from './kernels/maxpool_webgpu';
 import {PadProgram} from './kernels/pad_webgpu';
 import {ReduceProgram} from './kernels/reduce_webgpu';
@@ -559,7 +560,12 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   maxPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
-    const program = new MaxPoolProgram(convInfo);
+    let program: MaxPoolProgram|MaxPoolWithFilterSizeEqualsOneProgram;
+    if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1) {
+      program = new MaxPoolWithFilterSizeEqualsOneProgram(convInfo);
+    } else {
+      program = new MaxPoolProgram(convInfo);
+    }
 
     const output = this.makeOutputArray(program.outputShape, x.dtype);
 
@@ -694,17 +700,17 @@ export class WebGPUBackend extends KernelBackend {
 
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
       Tensor4D {
-    if (env().getBool('WEBGPU_CONV_SEPARATE_IM2COL_SHADER') &&
-        x.shape[0] === 1) {
-      return this.conv2dWithIm2Col(x, filter, convInfo);
-    }
-
     if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
         convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
         convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
         (convInfo.padInfo.type === 'SAME' ||
          convInfo.padInfo.type === 'VALID')) {
       return this.conv2dByMatMul(x, filter, convInfo);
+    }
+
+    if (env().getBool('WEBGPU_CONV_SEPARATE_IM2COL_SHADER') &&
+        x.shape[0] === 1) {
+      return this.conv2dWithIm2Col(x, filter, convInfo);
     }
 
     const dataId = this.write(null /*values*/, convInfo.outShape, x.dtype);
@@ -807,7 +813,14 @@ export class WebGPUBackend extends KernelBackend {
       convInfo.strideHeight, convInfo.strideWidth
     ];
 
-    return this.compileAndRun(program, [input, filter], output, dimensions);
+    const inputs: Tensor[] = [input, filter];
+    if (hasBias) {
+      inputs.push(bias);
+    }
+    if (hasPreluActivationWeights) {
+      inputs.push(preluActivationWeights);
+    }
+    return this.compileAndRun(program, inputs, output, dimensions);
   }
 
   private argMinMaxReduce(x: Tensor, axis: number, reduceType: 'min'|'max'):

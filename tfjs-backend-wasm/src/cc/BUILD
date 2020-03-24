@@ -95,6 +95,18 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "batch_mat_mul_impl",
+    srcs = ["batch_mat_mul_impl.cc"],
+    hdrs = ["batch_mat_mul_impl.h"],
+    deps = [
+        ":backend",
+        ":prelu_impl",
+        ":transpose_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "interpolate_bilinear_impl",
     srcs = ["interpolate_bilinear_impl.cc"],
     hdrs = ["interpolate_bilinear_impl.h"],
@@ -182,6 +194,7 @@ tfjs_cc_library(
         ":NonMaxSuppressionV5",
         ":NotEqual",
         ":PadV2",
+        ":Pow",
         ":Prelu",
         ":Relu",
         ":Relu6",
@@ -192,6 +205,7 @@ tfjs_cc_library(
         ":Sub",
         ":Tile",
         ":Transpose",
+        ":_FusedMatMul",
     ],
 )
 
@@ -256,7 +270,18 @@ tfjs_cc_library(
     hdrs = ["kernels/BatchMatMul.h"],
     deps = [
         ":backend",
+        ":batch_mat_mul_impl",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "_FusedMatMul",
+    srcs = ["kernels/_FusedMatMul.cc"],
+    hdrs = ["kernels/_FusedMatMul.h"],
+    deps = [
+        ":backend",
+        ":batch_mat_mul_impl",
     ],
 )
 
@@ -265,6 +290,14 @@ tfjs_unit_test(
     srcs = ["kernels/BatchMatMul_test.cc"],
     deps = [
         ":BatchMatMul",
+    ],
+)
+
+tfjs_unit_test(
+    name = "_FusedMatMul_test",
+    srcs = ["kernels/_FusedMatMul_test.cc"],
+    deps = [
+        ":_FusedMatMul",
     ],
 )
 
@@ -291,6 +324,7 @@ tfjs_cc_library(
     srcs = ["kernels/Conv2D.cc"],
     hdrs = ["kernels/Conv2D.h"],
     deps = [
+        ":backend",
         ":conv2d_impl",
     ],
 )
@@ -318,6 +352,7 @@ tfjs_cc_library(
     srcs = ["kernels/DepthwiseConv2dNative.cc"],
     hdrs = ["kernels/DepthwiseConv2dNative.h"],
     deps = [
+        ":backend",
         ":conv2d_impl",
     ],
 )
@@ -390,6 +425,7 @@ tfjs_cc_library(
     srcs = ["kernels/FusedDepthwiseConv2D.cc"],
     hdrs = ["kernels/FusedDepthwiseConv2D.h"],
     deps = [
+        ":backend",
         ":conv2d_impl",
     ],
 )
@@ -589,6 +625,16 @@ tfjs_cc_library(
     srcs = ["kernels/PadV2.cc"],
     deps = [
         ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Pow",
+    srcs = ["kernels/Pow.cc"],
+    deps = [
+        ":backend",
+        ":binary",
         ":util",
     ],
 )
