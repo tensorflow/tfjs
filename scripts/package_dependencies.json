@@ -3,5 +3,6 @@
   "tfjs-core": [],
   "tfjs-converter": ["tfjs-core"],
   "tfjs-layers": ["tfjs-core"],
-  "tfjs-data": ["tfjs-core", "tfjs-layers"]
+  "tfjs-data": ["tfjs-core", "tfjs-layers"],
+  "tfjs-backend-wasm": ["tfjs-core"]
 }
