@@ -26,8 +26,7 @@ import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
-  nonMaxSuppressionV5Config, squareConfig, squaredDifferenceConfig, maxConfig,
-  nonMaxSuppressionV5Config, squareConfig, squaredDifferenceConfig
+  nonMaxSuppressionV5Config, squareConfig, squaredDifferenceConfig, maxConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {
