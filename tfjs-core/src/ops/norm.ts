@@ -15,14 +15,17 @@
  * =============================================================================
  */
 
+import {ENGINE} from '../engine';
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {parseAxisParam} from '../util';
 
 import * as axis_util from './axis_util';
+import {div} from './binary_ops';
+import {where} from './logical_ops';
 import {op} from './operation';
-import {scalar} from './tensor_ops';
+import {ones} from './tensor_ops';
 
 /**
  * Computes the norm of scalar, vectors, and matrices.
@@ -43,7 +46,7 @@ import {scalar} from './tensor_ops';
  *  | ord        | norm for matrices         | norm for vectors
  *  |------------|---------------------------|---------------------
  *  |'euclidean' |Frobenius norm             |2-norm
- *  |'fro'       |Frobenius norm	           |
+ *  |'fro'       |Frobenius norm             |
  *  |Infinity    |max(sum(abs(x), axis=1))   |max(abs(x))
  *  |-Infinity   |min(sum(abs(x), axis=1))   |min(abs(x))
  *  |1           |max(sum(abs(x), axis=0))   |sum(abs(x))
@@ -86,6 +89,18 @@ function normImpl(
     return normImpl(x.reshape([-1]), p, axis);
   }
 
+  const froNorm = () => {
+    const xAbs = x.abs(),
+          xMax = ENGINE.tidy(() => {
+            const xMax = xAbs.max(axis, /*keepDims=*/true),
+                  one  = ones(xMax.shape);
+            return where( xMax.equal(0), one, xMax );
+          }); // <- div. by largest absolute value prevents under- & overflow
+
+    const  unscaled = div(xAbs,xMax).square().sum(axis).sqrt();
+    return unscaled.mul( xMax.reshape(unscaled.shape) );
+  };
+
   // vector
   if (x.rank === 1 || typeof axis === 'number' ||
       Array.isArray(axis) && axis.length === 1) {
@@ -100,7 +115,7 @@ function normImpl(
     }
     if (p === 'euclidean' || p === 2) {
       // norm(x, 2) = sum(abs(xi) ^ 2) ^ 1/2
-      return x.abs().pow(scalar(2, 'int32')).sum(axis).sqrt();
+      return froNorm();
     }
 
     throw new Error(`Error in norm: invalid ord value: ${p}`);
@@ -119,7 +134,7 @@ function normImpl(
     }
     if (p === 'fro' || p === 'euclidean') {
       // norm(x) = sqrt(sum(pow(x, 2)))
-      return x.square().sum(axis).sqrt();
+      return froNorm();
     }
 
     throw new Error(`Error in norm: invalid ord value: ${p}`);
