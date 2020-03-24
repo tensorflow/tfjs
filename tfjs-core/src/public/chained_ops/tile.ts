@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,16 @@
  * =============================================================================
  */
 
-import './squared_difference';
-import './broadcast_to';
-import './tile';
-import './one_hot';
+import {tile} from '../../ops/tile';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
+
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    tile<T extends Tensor>(b: number[]): T;
+  }
+}
+
+Tensor.prototype.tile = function<T extends Tensor>(reps: number[]): T {
+  return tile(this, reps) as T;
+};
