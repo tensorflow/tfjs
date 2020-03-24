@@ -44,6 +44,14 @@ export interface BroadCastToAttrs {
   inputShape: number[];  // for gradient
 }
 
+export const OneHot = 'OneHot';
+export type OneHotInputs = Pick<NamedTensorInfoMap, 'indices'>;
+export interface OneHotAttrs {
+  depth: number;
+  onValue: number;
+  offValue: number;
+}
+
 export const Identity = 'Identity';
 export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
 

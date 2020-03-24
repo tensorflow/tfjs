@@ -15,6 +15,16 @@
  * =============================================================================
  */
 
-import './squared_difference';
-import './broadcast_to';
-import './one_hot';
+import {OneHot} from '../kernel_names';
+import {GradConfig} from '../kernel_registry';
+import {zeros} from '../ops/tensor_ops';
+import {Tensor} from '../tensor';
+
+export const oneHotGradConfig: GradConfig = {
+  kernelName: OneHot,
+  inputsToSave: ['indices'],
+  gradFunc: (dy: Tensor, saved: Tensor[]) => {
+    const indices = saved[0];
+    return {indices: () => zeros(indices.shape, 'float32')};
+  }
+};
