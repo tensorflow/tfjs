@@ -21,7 +21,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-cc'
   args: ['test-cc']
-  waitFor: ['build']
+  waitFor: ['test-wasm']
 
 # Check bundle size.
 - name: 'node:10'
@@ -29,7 +29,7 @@ steps:
   id: 'test-bundle-size'
   entrypoint: 'yarn'
   args: ['test-bundle-size']
-  waitFor: ['build']
+  waitFor: ['test-wasm']
 
 # Lint bazel files.
 - name: 'node:10'
@@ -37,7 +37,7 @@ steps:
   id: 'buildifier'
   entrypoint: 'yarn'
   args: ['buildifier-ci']
-  waitFor: ['yarn']
+  waitFor: ['test-wasm']
 
 # General configuration
 secrets:
