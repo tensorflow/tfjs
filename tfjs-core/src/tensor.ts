@@ -217,7 +217,6 @@ export interface OpHandler {
   mean<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean):
       T;
   min<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
-  max<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
   argMin<T extends Tensor>(x: Tensor, axis: number): T;
   argMax<T extends Tensor>(x: Tensor, axis: number): T;
   add<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
@@ -897,10 +896,6 @@ export class Tensor<R extends Rank = Rank> {
   min<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
     this.throwIfDisposed();
     return opHandler.min(this, axis, keepDims);
-  }
-  max<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
-    this.throwIfDisposed();
-    return opHandler.max(this, axis, keepDims);
   }
   argMin<T extends Tensor>(axis: number = null): T {
     this.throwIfDisposed();

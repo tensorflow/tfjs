@@ -26,6 +26,7 @@ import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
 const CHAINED_OPS = [
   'square',
   'broadcastTo',
+  'max',
 ];
 
 describeWithFlags('chained ops', ALL_ENVS, () => {
