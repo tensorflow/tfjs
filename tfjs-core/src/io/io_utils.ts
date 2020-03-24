@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -339,4 +339,22 @@ export function getModelArtifactsInfoForJSON(modelArtifacts: ModelArtifacts):
         0 :
         modelArtifacts.weightData.byteLength,
   };
+}
+
+/**
+ * Make Base64 string URL safe by replacing `+` with `-` and `/` with `_`.
+ *
+ * @param str Base64 string to make URL safe.
+ */
+export function urlSafeBase64(str: string): string {
+  return str.replace(/\+/g, '-').replace(/\//g, '_');
+}
+
+/**
+ * Revert Base64 URL safe changes by replacing `-` with `+` and `_` with `/`.
+ *
+ * @param str URL safe Base string to revert changes.
+ */
+export function urlUnsafeBase64(str: string): string {
+  return str.replace(/-/g, '+').replace(/_/g, '/');
 }

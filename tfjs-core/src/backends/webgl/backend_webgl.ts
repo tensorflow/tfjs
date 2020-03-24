@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,7 +38,7 @@ import * as segment_util from '../../ops/segment_util';
 import * as slice_util from '../../ops/slice_util';
 import {softmax} from '../../ops/softmax';
 import {range, scalar, tensor} from '../../ops/tensor_ops';
-import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../../tensor';
+import {DataId, Scalar, StringTensor, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../../tensor';
 import {BackendValues, DataType, DataTypeMap, NumericDataType, Rank, RecursiveArray, ShapeMap, sumOutType, TypedArray, upcastType} from '../../types';
 import * as util from '../../util';
 import {getArrayFromDType, getTypedArrayFromDType, inferDtype, sizeFromShape} from '../../util';
@@ -47,6 +47,7 @@ import * as backend_util from '../backend_util';
 import {mergeRealAndImagArrays} from '../complex_util';
 import {nonMaxSuppressionV3} from '../non_max_suppression_impl';
 import {split} from '../split_shared';
+import {decodeBase64Impl, encodeBase64Impl} from '../string_shared';
 import {tile} from '../tile_impl';
 import {topkImpl} from '../topk_impl';
 import {whereImpl} from '../where_impl';
@@ -2301,6 +2302,17 @@ export class MathBackendWebGL extends KernelBackend {
 
   split<T extends Tensor>(x: T, sizeSplits: number[], axis: number): T[] {
     return split(x, sizeSplits, axis);
+  }
+
+  encodeBase64<T extends StringTensor>(str: StringTensor|Tensor, pad = false):
+      T {
+    const sVals = this.readSync(str.dataId) as Uint8Array[];
+    return encodeBase64Impl(sVals, str.shape, pad);
+  }
+
+  decodeBase64<T extends StringTensor>(str: StringTensor|Tensor): T {
+    const sVals = this.readSync(str.dataId) as Uint8Array[];
+    return decodeBase64Impl(sVals, str.shape);
   }
 
   scatterND<R extends Rank>(

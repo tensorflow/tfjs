@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +24,8 @@ import {FusedBatchMatMulConfig, FusedConv2DConfig} from '@tensorflow/tfjs-core/d
 import {isArray, isNullOrUndefined} from 'util';
 
 import {Int64Scalar} from './int64_tensors';
+// tslint:disable-next-line: no-imports-from-dist
+import { StringTensor } from '@tensorflow/tfjs-core/dist/tensor';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
 type TensorData = {
@@ -1749,6 +1751,20 @@ export class NodeJSKernelBackend extends KernelBackend {
       scalar(start, 'float32'), scalar(stop, 'float32'), scalar(num, 'int32')
     ];
     return this.executeSingleOutput('LinSpace', opAttrs, inputs) as Tensor1D;
+  }
+
+  encodeBase64<T extends StringTensor>(str: StringTensor|Tensor, pad = false):
+      T {
+    const opAttrs =
+        [{name: 'pad', type: this.binding.TF_ATTR_BOOL, value: pad}];
+    return this.executeSingleOutput('EncodeBase64', opAttrs, [str as Tensor]) as
+        T;
+  }
+
+  decodeBase64<T extends StringTensor>(str: StringTensor|Tensor): T {
+    const opAttrs: TFEOpAttr[] = [];
+    return this.executeSingleOutput('DecodeBase64', opAttrs, [str as Tensor]) as
+        T;
   }
 
   decodeJpeg(

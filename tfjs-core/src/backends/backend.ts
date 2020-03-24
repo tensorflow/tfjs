@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,7 @@
 
 import {Conv2DInfo, Conv3DInfo} from '../ops/conv_util';
 import {FusedBatchMatMulConfig, FusedConv2DConfig} from '../ops/fused_util';
-import {Backend, DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../tensor';
+import {Backend, DataId, Scalar, StringTensor, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../tensor';
 import {BackendValues, DataType, Rank, ShapeMap} from '../types';
 
 export const EPSILON_FLOAT32 = 1e-7;
@@ -658,6 +658,15 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
 
   dispose(): void {
     return notYetImplemented('dispose');
+  }
+
+  encodeBase64<T extends StringTensor>(str: StringTensor|Tensor, pad = false):
+      T {
+    throw new Error('Not yet implemented');
+  }
+
+  decodeBase64<T extends StringTensor>(str: StringTensor|Tensor): T {
+    throw new Error('Not yet implemented');
   }
 }
 

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -62,6 +62,7 @@ export * from './gather_nd';
 export * from './diag';
 export * from './dropout';
 export * from './signal_ops';
+export * from './string_ops';
 export * from './in_top_k';
 
 export {op} from './operation';
