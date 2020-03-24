@@ -69,7 +69,7 @@ function max_<T extends Tensor>(
   const grad = (dy: T, saved: Tensor[]) =>
       gradForMinAndMax(dy, saved[1], saved[0], origAxes, permutedAxes);
 
-  const inputsToSave = [$x];
+  const inputsToSave = [xOrig];
   const outputsToSave: boolean[] = [true];
   let res = ENGINE.runKernelFunc((backend, save) => {
     const y = backend.max($x, axes);
