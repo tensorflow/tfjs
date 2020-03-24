@@ -23,7 +23,6 @@ import * as util from '../util';
 import {getAxesPermutation, getInnerMostAxes} from './axis_util';
 import {concat} from './concat_split';
 import {op} from './operation';
-import {zeros} from './tensor_ops';
 
 /**
  * Reshapes a `tf.Tensor` to a given shape.
@@ -726,7 +725,6 @@ export const cast = op({cast_});
 export const cumsum = op({cumsum_});
 export const depthToSpace = op({depthToSpace_});
 export const expandDims = op({expandDims_});
-export const oneHot = op({oneHot_});
 export const pad = op({pad_});
 export const pad1d = op({pad1d_});
 export const pad2d = op({pad2d_});

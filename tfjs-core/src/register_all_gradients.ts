@@ -26,7 +26,7 @@ import {registerGradient} from './kernel_registry';
 // Export all kernel configs here so that the package can auto register them
 const gradConfigs: GradConfig[] = [
   squareGradConfig, squaredDifferenceGradConfig, broadcastToGradConfig,
-  identityGradConfig, tileGradConfig
+  identityGradConfig, tileGradConfig, oneHotGradConfig
 ];
 
 for (const gradientConfig of gradConfigs) {
