@@ -20,13 +20,16 @@ export {broadcastTo} from './broadcast_to';
 export {clone} from './clone';
 export {div} from './div';
 export {divNoNan} from './divNoNan';
+export {eye} from './eye';
 export {multinomial} from './multinomial';
+export {oneHot} from './one_hot';
 export {rand} from './rand';
 export {randomGamma} from './random_gamma';
 export {randomNormal} from './random_normal';
 export {randomUniform} from './random_uniform';
 export {square} from './square';
 export {squaredDifference} from './squared_difference';
+export {tile} from './tile';
 export {truncatedNormal} from './truncated_normal';
 
 export * from './batchnorm';

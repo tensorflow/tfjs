@@ -20,7 +20,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {oneHot} from './array_ops';
+import {oneHot} from './one_hot';
 import {op} from './operation';
 
 /**

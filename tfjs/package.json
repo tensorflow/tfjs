@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs",
-  "version": "1.7.0",
+  "version": "0.0.0",
   "description": "An open-source machine learning framework.",
   "private": false,
   "main": "dist/index",
@@ -65,6 +65,7 @@
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
+    "publish-npm": "npm publish",
     "lint": "tslint -p . -t verbose",
     "test": "yarn && yarn build-deps && yarn build && ts-node ./scripts/release_notes/run_tests.ts && karma start",
     "test-ci": "./scripts/test-ci.sh"
