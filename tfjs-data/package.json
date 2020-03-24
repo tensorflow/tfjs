@@ -50,6 +50,7 @@
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build-npm && yalc push",
+    "publish-npm": "npm publish",
     "test": "yarn && yarn build-deps && ts-node src/test_node.ts",
     "test-browsers": "karma start --browsers='Chrome,Firefox'",
     "test-ci": "yarn && yarn build-deps-ci && yarn build-ci && yarn lint && ts-node src/test_node.ts",
