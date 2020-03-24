@@ -16,23 +16,35 @@
  */
 
 import {env} from '../../../environment';
-import {BinaryInputs, SquaredDifference} from '../../../kernel_names';
-import {KernelConfig} from '../../../kernel_registry';
+import {Div, DivInputs} from '../../../kernel_names';
+import {KernelConfig, TensorInfo} from '../../../kernel_registry';
 import {MathBackendWebGL} from '../backend_webgl';
+import * as binaryop_gpu from '../binaryop_gpu';
 import {BinaryOpProgram} from '../binaryop_gpu';
+import * as binaryop_packed_gpu from '../binaryop_packed_gpu';
 import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
 
-export const squaredDifferenceConfig: KernelConfig = {
-  kernelName: SquaredDifference,
+export function divImpl(
+    a: TensorInfo, b: TensorInfo, backend: MathBackendWebGL): TensorInfo {
+  let program = new BinaryOpProgram(binaryop_gpu.DIV, a.shape, b.shape);
+  if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
+    program = new BinaryOpPackedProgram(
+        binaryop_packed_gpu.DIV, a.shape, b.shape, true);
+  }
+  const output = backend.runWebGLProgram(program, [a, b], 'float32');
+  return output;
+}
+
+export const divConfig: KernelConfig = {
+  kernelName: Div,
   backendName: 'webgl',
   kernelFunc: ({inputs, backend}) => {
-    const {a, b} = inputs as BinaryInputs;
-    const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
-    const webGLBackend = backend as MathBackendWebGL;
+    const {a, b} = inputs as DivInputs;
 
-    const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
-        new BinaryOpPackedProgram(SQUARED_DIFFERENCE, a.shape, b.shape) :
-        new BinaryOpProgram(SQUARED_DIFFERENCE, a.shape, b.shape);
-    return webGLBackend.compileAndRun(program, [a, b]);
+    const webglBackend = backend as MathBackendWebGL;
+
+    const out = divImpl(a, b, webglBackend);
+
+    return {dataId: out.dataId, shape: out.shape, dtype: out.dtype};
   }
 };

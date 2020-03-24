@@ -19,15 +19,16 @@
 // the contents of this file and import only the kernels that are needed.
 import {KernelConfig, registerKernel} from '../../kernel_registry';
 
+import {divConfig} from './kernels/Div';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
+import {softmaxConfig} from './kernels/Softmax';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
-  nonMaxSuppressionV5Config,
-  squareConfig,
-  squaredDifferenceConfig,
+  nonMaxSuppressionV5Config, squareConfig, squaredDifferenceConfig, divConfig,
+  softmaxConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {

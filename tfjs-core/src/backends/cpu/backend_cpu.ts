@@ -19,7 +19,6 @@ import * as seedrandom from 'seedrandom';
 
 import {ENGINE} from '../../engine';
 import {env} from '../../environment';
-
 import {warn} from '../../log';
 import * as array_ops_util from '../../ops/array_ops_util';
 import * as axis_util from '../../ops/axis_util';
@@ -27,6 +26,7 @@ import * as broadcast_util from '../../ops/broadcast_util';
 import {complex, imag, real} from '../../ops/complex_ops';
 import * as concat_util from '../../ops/concat_util';
 import {Conv2DInfo, Conv3DInfo} from '../../ops/conv_util';
+import {div} from '../../ops/div';
 import * as erf_util from '../../ops/erf_util';
 import {Activation, FusedBatchMatMulConfig, FusedConv2DConfig} from '../../ops/fused_util';
 import * as gather_nd_util from '../../ops/gather_nd_util';
@@ -47,6 +47,7 @@ import {split} from '../split_shared';
 import {tile} from '../tile_impl';
 import {topkImpl} from '../topk_impl';
 import {whereImpl} from '../where_impl';
+
 import {assertNotComplex} from './cpu_util';
 
 function mapActivation(
@@ -377,17 +378,6 @@ export class MathBackendCPU extends KernelBackend {
     return result.toTensor() as T;
   }
 
-  softmax<T extends Tensor>(logits: T, dim: number): T {
-    const axes = util.parseAxisParam([dim], logits.shape);
-    const maxLogit = this.max(logits, axes);
-    const expandedShape = axis_util.expandShapeToKeepDim(maxLogit.shape, axes);
-    const a = this.subtract(logits, maxLogit.reshape(expandedShape));
-    const b = this.exp(a);
-    const sumExp = this.sum(b, axes).reshape(expandedShape);
-
-    return this.realDivide(b, sumExp) as T;
-  }
-
   subtract(a: Tensor, b: Tensor): Tensor {
     if (a.dtype === 'complex64' || b.dtype === 'complex64') {
       return this.broadcastedBinaryComplexOp(
@@ -491,14 +481,6 @@ export class MathBackendCPU extends KernelBackend {
     return this.broadcastedBinaryOp(
         a, b, upcastType(a.dtype, b.dtype),
         (aValue, bValue) => aValue * bValue);
-  }
-
-  realDivide(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'realDivide');
-
-    const op = (a: number, b: number) => a / b;
-    const outputDtype = 'float32';
-    return this.broadcastedBinaryOp(a, b, outputDtype, op);
   }
 
   floorDiv(a: Tensor, b: Tensor): Tensor {

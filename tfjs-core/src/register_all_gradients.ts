@@ -15,6 +15,7 @@
  * =============================================================================
  */
 import {broadcastToGradConfig} from './gradients/BroadcastTo_grad';
+import {divGradConfig} from './gradients/Div_grad';
 import {identityGradConfig} from './gradients/Identity_grad';
 import {squareGradConfig} from './gradients/Square_grad';
 import {squaredDifferenceGradConfig} from './gradients/SquaredDifference_grad';
@@ -25,6 +26,7 @@ import {registerGradient} from './kernel_registry';
 const gradConfigs: GradConfig[] = [
   squareGradConfig,
   squaredDifferenceGradConfig,
+  divGradConfig,
   broadcastToGradConfig,
   identityGradConfig,
 ];
