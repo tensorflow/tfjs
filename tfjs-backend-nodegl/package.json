@@ -12,7 +12,7 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "@tensorflow/tfjs-core": "1.2.2",
+    "@tensorflow/tfjs-core": "~1.7.0",
     "node-gles": "^0.0.13"
   },
   "devDependencies": {
