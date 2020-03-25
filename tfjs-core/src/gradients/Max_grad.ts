@@ -25,6 +25,7 @@ import * as util from '../util';
 export const maxGradConfig: GradConfig = {
   kernelName: Max,
   inputsToSave: ['x'],
+  outputsToSave: [true],
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const maxAttrs: MaxAttrs = attrs as {} as MaxAttrs;
     const {axes} = maxAttrs;
