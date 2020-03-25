@@ -15,21 +15,6 @@
  * =============================================================================
  */
 
-import {Div, DivInputs} from '../../../kernel_names';
-import {KernelConfig} from '../../../kernel_registry';
-import {MathBackendWebGL} from '../backend_webgl';
-import {divImpl} from './Div_impl';
+import {createBinaryKernelImpl} from '../utils/kernel_utils';
 
-export const divConfig: KernelConfig = {
-  kernelName: Div,
-  backendName: 'webgl',
-  kernelFunc: ({inputs, backend}) => {
-    const {a, b} = inputs as DivInputs;
-
-    const webglBackend = backend as MathBackendWebGL;
-
-    const out = divImpl(a, b, webglBackend);
-
-    return {dataId: out.dataId, shape: out.shape, dtype: out.dtype};
-  }
-};
+export const divImpl = createBinaryKernelImpl((a: number, b: number) => a / b);
