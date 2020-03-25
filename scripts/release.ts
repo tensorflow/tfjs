@@ -108,9 +108,9 @@ async function main() {
     // Publishing packages in tfjs.
     if (phaseInt !== 0) {
       // Phase0 should be published and release branch should have been created.
-      const latestVersion =
+      const firstPackageLatestVersion =
         $(`npm view @tensorflow/${phases[0].packages[0]} dist-tags.latest`);
-      releaseBranch = `${name}_${latestVersion}`;
+      releaseBranch = `${name}_${firstPackageLatestVersion}`;
 
       $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${
         dir} --depth=1`);
@@ -139,12 +139,14 @@ async function main() {
       `${dir}/package.json`;
     let pkg = `${fs.readFileSync(packageJsonPath)}`;
     const parsedPkg = JSON.parse(`${pkg}`);
+    const latestVersion =
+      $(`npm view @tensorflow/${packageName} dist-tags.latest`);
 
     console.log(chalk.magenta.bold(
-      `~~~ Processing ${packageName} (${parsedPkg.version}) ~~~`));
+      `~~~ Processing ${packageName} (${latestVersion}) ~~~`));
 
-    const patchUpdateVersion = getPatchUpdateVersion(parsedPkg.version);
-    let newVersion = parsedPkg.version;
+    const patchUpdateVersion = getPatchUpdateVersion(latestVersion);
+    let newVersion = latestVersion;
     if (!phase.leaveVersion) {
       newVersion = await question(
         `New version (leave empty for ${patchUpdateVersion}): `);
