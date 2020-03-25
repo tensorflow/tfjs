@@ -16,6 +16,8 @@
  */
 
 import './flags_webgpu';
+import './register_all_kernels';
+
 import * as tf from '@tensorflow/tfjs-core';
 import glslangInit from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
