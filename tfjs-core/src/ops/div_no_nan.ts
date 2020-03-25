@@ -58,6 +58,7 @@ import {zerosLike} from './tensor_ops';
 /** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function divNoNan_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
+  // TODO: Make this into its own kernel.
   let $a = convertToTensor(a, 'a', 'div');
   let $b = convertToTensor(b, 'b', 'div');
   [$a, $b] = makeTypesMatch($a, $b);
