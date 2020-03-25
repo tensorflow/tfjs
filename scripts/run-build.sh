@@ -17,6 +17,6 @@
 set -e
 
 DIR=$1
-if test -f "$DIR/run-ci"; then
+if [[ -f "$DIR/run-ci" || "$NIGHTLY" = true ]]; then
   gcloud builds submit . --config=$DIR/cloudbuild.yml
 fi
