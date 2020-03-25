@@ -23,8 +23,8 @@ import {MathBackendWebGL} from '../backend_webgl';
 import {ReduceProgram} from '../reduce_gpu';
 
 export function reduce(
-    x: TensorInfo, reduceShape: number[], dtype: DataType,
-    reductionType: ReduceTypes, backend: MathBackendWebGL): TensorInfo {
+    x: TensorInfo, dtype: DataType, reductionType: ReduceTypes,
+    backend: MathBackendWebGL): TensorInfo {
   const [batchSize, inSize] = x.shape;
   const windowSize = computeOptimalWindowSize(inSize);
   const reduceInfo = {windowSize, inSize, batchSize};
@@ -35,5 +35,5 @@ export function reduce(
     return output;
   }
 
-  return reduce(output, reduceShape, dtype, reductionType, backend);
+  return reduce(output, dtype, reductionType, backend);
 }
