@@ -18,28 +18,11 @@
 import {maxImpl as cpuMax} from '../../../backends/cpu/kernels/Max_impl';
 import {Max, MaxAttrs, MaxInputs} from '../../../kernel_names';
 import {KernelConfig} from '../../../kernel_registry';
-import {TensorInfo} from '../../../kernel_registry';
 import * as axis_util from '../../../ops/axis_util';
 import {TypedArray} from '../../../types';
 import * as util from '../../../util';
-import {sizeFromShape} from '../../../util';
 import {MathBackendWebGL} from '../backend_webgl';
-import {reduce} from '../kernel_utils/reduce';
-import {reshape} from '../kernel_utils/reshape';
-
-export const maxImpl =
-    (x: TensorInfo, reduceShape: number[], outShape: number[],
-     backend: MathBackendWebGL): TensorInfo => {
-      const inSize = sizeFromShape(reduceShape);
-      const xSize = sizeFromShape(x.shape);
-      const batchSize = xSize / inSize;
-
-      return reshape(
-          reduce(
-              reshape(x, [batchSize, inSize], backend), reduceShape, x.dtype,
-              'max', backend),
-          outShape, backend);
-    };
+import {maxImpl} from './Max_impl';
 
 export const maxConfig: KernelConfig = {
   kernelName: Max,
