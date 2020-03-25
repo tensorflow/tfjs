@@ -22,6 +22,7 @@ steps:
   id: 'tfjs-core'
   args: ['./scripts/run-build.sh', 'tfjs-core']
   waitFor: ['find-affected-packages']
+  env: ['NIGHTLY=$_NIGHTLY']
 
 # Converter.
 - name: 'gcr.io/cloud-builders/gcloud'
