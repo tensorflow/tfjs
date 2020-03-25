@@ -139,12 +139,16 @@ async function main() {
       `${dir}/package.json`;
     let pkg = `${fs.readFileSync(packageJsonPath)}`;
     const parsedPkg = JSON.parse(`${pkg}`);
+    // We can't use parsedPkg.version because it is set to 0.0.0. npm is
+    // the only source of truth of the latest version.
+    const parsedPkgVersion =
+      $(`npm view @tensorflow/${packageName} dist-tags.latest`);
 
     console.log(chalk.magenta.bold(
-      `~~~ Processing ${packageName} (${parsedPkg.version}) ~~~`));
+      `~~~ Processing ${packageName} (${parsedPkgVersion}) ~~~`));
 
-    const patchUpdateVersion = getPatchUpdateVersion(parsedPkg.version);
-    let newVersion = parsedPkg.version;
+    const patchUpdateVersion = getPatchUpdateVersion(parsedPkgVersion);
+    let newVersion = parsedPkgVersion;
     if (!phase.leaveVersion) {
       newVersion = await question(
         `New version (leave empty for ${patchUpdateVersion}): `);
@@ -162,7 +166,7 @@ async function main() {
     }
 
     pkg = `${pkg}`.replace(
-      `"version": "${parsedPkg.version}"`, `"version": "${newVersion}"`);
+      `"version": "0.0.0"`, `"version": "${newVersion}"`);
 
     if (deps != null) {
       for (let j = 0; j < deps.length; j++) {
