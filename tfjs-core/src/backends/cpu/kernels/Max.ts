@@ -18,30 +18,11 @@
 import {Max, MaxAttrs, MaxInputs} from '../../../kernel_names';
 import {KernelConfig} from '../../../kernel_registry';
 import * as axis_util from '../../../ops/axis_util';
-import {DataType, NumericDataType, TypedArray} from '../../../types';
+import {TypedArray} from '../../../types';
 import * as util from '../../../util';
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
-
-export function maxImpl(
-    aVals: TypedArray, reduceSize: number, outShape: number[],
-    dtype: DataType): TypedArray {
-  const vals = util.getTypedArrayFromDType(
-      dtype as NumericDataType, util.sizeFromShape(outShape));
-
-  for (let i = 0; i < vals.length; ++i) {
-    const offset = i * reduceSize;
-    let max = aVals[offset];
-    for (let j = 0; j < reduceSize; ++j) {
-      const value = aVals[offset + j];
-      if (value > max) {
-        max = value;
-      }
-    }
-    vals[i] = max;
-  }
-  return vals;
-}
+import {maxImpl} from './Max_impl';
 
 export const maxConfig: KernelConfig = {
   kernelName: Max,
