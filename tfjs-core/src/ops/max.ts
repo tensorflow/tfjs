@@ -23,6 +23,7 @@ import * as util from '../util';
 
 import * as axis_util from './axis_util';
 import {op} from './operation';
+import {transpose} from './transpose';
 
 /**
  * Computes the maximum of elements across dimensions of a `tf.Tensor`.
@@ -60,7 +61,7 @@ function max_<T extends Tensor>(
   let axes = origAxes;
   const permutedAxes = axis_util.getAxesPermutation(axes, $x.rank);
   if (permutedAxes != null) {
-    $x = $x.transpose(permutedAxes);
+    $x = transpose($x, permutedAxes);
     axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
   }
 
