@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,8 +15,17 @@
  * =============================================================================
  */
 
-import './squared_difference';
-import './broadcast_to';
-import './max';
-import './tile';
-import './one_hot';
+import {oneHot} from '../../ops/one_hot';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
+
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    oneHot(depth: number, onValue: number, offValue: number): Tensor;
+  }
+}
+
+Tensor.prototype.oneHot = function(
+    depth: number, onValue = 1, offValue = 0): Tensor {
+  return oneHot(this, depth, onValue, offValue);
+};

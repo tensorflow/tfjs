@@ -23,96 +23,6 @@ import * as util from '../util';
 import {getAxesPermutation, getInnerMostAxes} from './axis_util';
 import {concat} from './concat_split';
 import {op} from './operation';
-import {zeros, zerosLike} from './tensor_ops';
-
-/**
- * Create an identity matrix.
- *
- * @param numRows Number of rows.
- * @param numColumns Number of columns. Defaults to `numRows`.
- * @param batchShape If provided, will add the batch shape to the beginning
- *   of the shape of the returned `tf.Tensor` by repeating the identity
- *   matrix.
- * @param dtype Data type.
- * @returns Identity matrix of the specified size and data type, possibly
- *   with batch repetition if `batchShape` is specified.
- */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
-function eye_(
-    numRows: number, numColumns?: number,
-    batchShape?:
-        [
-          number
-        ]|[number,
-           number]|[number, number, number]|[number, number, number, number],
-    dtype: DataType = 'float32'): Tensor2D {
-  if (numColumns == null) {
-    numColumns = numRows;
-  }
-  const buff = buffer([numRows, numColumns], dtype);
-  const n = numRows <= numColumns ? numRows : numColumns;
-  for (let i = 0; i < n; ++i) {
-    buff.set(1, i, i);
-  }
-  const out = buff.toTensor().as2D(numRows, numColumns);
-  if (batchShape == null) {
-    return out;
-  } else {
-    if (batchShape.length === 1) {
-      return tile(expandDims(out, 0), [batchShape[0], 1, 1]);
-    } else if (batchShape.length === 2) {
-      return tile(
-          expandDims(expandDims(out, 0), 0),
-          [batchShape[0], batchShape[1], 1, 1]);
-    } else if (batchShape.length === 3) {
-      return tile(
-          expandDims(expandDims(expandDims(out, 0), 0), 0),
-          [batchShape[0], batchShape[1], batchShape[2], 1, 1]);
-    } else {
-      throw new Error(
-          `eye() currently supports only 1D and 2D ` +
-          // tslint:disable-next-line:no-any
-          `batchShapes, but received ${(batchShape as any).length}D.`);
-    }
-  }
-}
-
-/**
- * Creates a one-hot `tf.Tensor`. The locations represented by `indices` take
- * value `onValue` (defaults to 1), while all other locations take value
- * `offValue` (defaults to 0). If `indices` is rank `R`, the output has rank
- * `R+1` with the last axis of size `depth`.
- *
- * ```js
- * tf.oneHot(tf.tensor1d([0, 1], 'int32'), 3).print();
- * ```
- *
- * @param indices `tf.Tensor` of indices with dtype `int32`.
- * @param depth The depth of the one hot dimension.
- * @param onValue A number used to fill in the output when the index matches
- * the location.
- * @param offValue A number used to fill in the output when the index does
- *     not match the location.
- */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
-function oneHot_(
-    indices: Tensor|TensorLike, depth: number, onValue = 1,
-    offValue = 0): Tensor {
-  if (depth < 2) {
-    throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
-  }
-  let $indices = convertToTensor(indices, 'indices', 'oneHot', 'int32');
-  const outShape = [...$indices.shape, depth];
-  $indices = $indices.flatten();
-
-  const grad = (dy: Tensor2D) => {
-    return {$indices: () => zeros($indices.shape, 'float32')};
-  };
-  const result = ENGINE.runKernelFunc(
-      backend => backend.oneHot($indices as Tensor1D, depth, onValue, offValue),
-      {$indices}, grad);
-  return result.reshape(outShape);
-}
 
 /**
  * Reshapes a `tf.Tensor` to a given shape.
@@ -203,99 +113,6 @@ function cast_<T extends Tensor>(x: T|TensorLike, dtype: DataType): T {
   const attrs = {dtype};
   return ENGINE.runKernelFunc(
       backend => backend.cast($x, dtype), {x: $x}, grad, 'Cast', attrs);
-}
-
-/**
- * Construct a tensor by repeating it the number of times given by reps.
- *
- * This operation creates a new tensor by replicating `input` `reps`
- * times. The output tensor's i'th dimension has `input.shape[i] *
- * reps[i]` elements, and the values of `input` are replicated
- * `reps[i]` times along the i'th dimension. For example, tiling
- * `[a, b, c, d]` by `[2]` produces `[a, b, c, d, a, b, c, d]`.
- *
- * ```js
- * const a = tf.tensor1d([1, 2]);
- *
- * a.tile([2]).print();    // or a.tile([2])
- * ```
- *
- * ```js
- * const a = tf.tensor2d([1, 2, 3, 4], [2, 2]);
- *
- * a.tile([1, 2]).print();  // or a.tile([1, 2])
- * ```
- * @param x The tensor to tile.
- * @param reps Determines the number of replications per dimension.
- */
-/** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
-function tile_<T extends Tensor>(x: T|TensorLike, reps: number[]): T {
-  const parseAs: DataType = null;
-  const $x = convertToTensor(x, 'x', 'tile', parseAs);
-
-  util.assert(
-      $x.rank === reps.length,
-      () => `Error in transpose: rank of input ${$x.rank} ` +
-          `must match length of reps ${reps}.`);
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [$x] = saved;
-    const derX = () => {
-      let xGrad = zerosLike($x);
-      // TODO(cais): Maybe reduce memory footprint by avoiding repeated
-      // slicing.
-      if ($x.rank === 1) {
-        for (let i = 0; i < reps[0]; ++i) {
-          xGrad = xGrad.add(dy.slice([i * $x.shape[0]], [$x.shape[0]]));
-        }
-      } else if ($x.rank === 2) {
-        for (let i = 0; i < reps[0]; ++i) {
-          for (let j = 0; j < reps[1]; ++j) {
-            xGrad = xGrad.add(dy.slice(
-                [i * $x.shape[0], j * $x.shape[1]],
-                [$x.shape[0], $x.shape[1]]));
-          }
-        }
-      } else if ($x.rank === 3) {
-        for (let i = 0; i < reps[0]; ++i) {
-          for (let j = 0; j < reps[1]; ++j) {
-            for (let k = 0; k < reps[2]; ++k) {
-              xGrad = xGrad.add(dy.slice(
-                  [i * $x.shape[0], j * $x.shape[1], k * $x.shape[2]],
-                  [$x.shape[0], $x.shape[1], $x.shape[2]]));
-            }
-          }
-        }
-      } else if ($x.rank === 4) {
-        for (let i = 0; i < reps[0]; ++i) {
-          for (let j = 0; j < reps[1]; ++j) {
-            for (let k = 0; k < reps[2]; ++k) {
-              for (let l = 0; l < reps[3]; ++l) {
-                xGrad = xGrad.add(dy.slice(
-                    [
-                      i * $x.shape[0], j * $x.shape[1], k * $x.shape[2],
-                      l * $x.shape[3]
-                    ],
-                    [$x.shape[0], $x.shape[1], $x.shape[2], $x.shape[3]]));
-              }
-            }
-          }
-        }
-      } else {
-        throw new Error(
-            `Gradient for tile operation is not implemented for rank-` +
-            `${$x.rank} tensors yet.`);
-      }
-      return xGrad as T;
-    };
-    return {x: derX};
-  };
-  const inputsToSave = [$x];
-  const attrs = {reps};
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.tile($x, reps);
-    save([$x]);
-    return res;
-  }, {x: $x}, grad, 'Tile', attrs, inputsToSave);
 }
 
 /**
@@ -908,8 +725,6 @@ export const cast = op({cast_});
 export const cumsum = op({cumsum_});
 export const depthToSpace = op({depthToSpace_});
 export const expandDims = op({expandDims_});
-export const eye = op({eye_});
-export const oneHot = op({oneHot_});
 export const pad = op({pad_});
 export const pad1d = op({pad1d_});
 export const pad2d = op({pad2d_});
@@ -919,6 +734,5 @@ export const reshape = op({reshape_});
 export const spaceToBatchND = op({spaceToBatchND_});
 export const squeeze = op({squeeze_});
 export const stack = op({stack_});
-export const tile = op({tile_});
 export const unstack = op({unstack_});
 export const setdiff1dAsync = setdiff1dAsync_;
