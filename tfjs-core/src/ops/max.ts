@@ -23,7 +23,6 @@ import * as util from '../util';
 
 import * as axis_util from './axis_util';
 import {op} from './operation';
-import {gradForMinAndMax} from './reduction_ops';
 
 /**
  * Computes the maximum of elements across dimensions of a `tf.Tensor`.
@@ -56,7 +55,6 @@ import {gradForMinAndMax} from './reduction_ops';
 function max_<T extends Tensor>(
     x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
   let $x = convertToTensor(x, 'x', 'max');
-  const xOrig = $x;
 
   const origAxes = util.parseAxisParam(axis, $x.shape);
   let axes = origAxes;
@@ -66,16 +64,11 @@ function max_<T extends Tensor>(
     axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
   }
 
-  const grad = (dy: T, saved: Tensor[]) =>
-      gradForMinAndMax(dy, saved[1], saved[0], origAxes, permutedAxes);
-
-  const inputsToSave = [xOrig];
-  const outputsToSave: boolean[] = [true];
   let res = ENGINE.runKernelFunc((backend, save) => {
     const y = backend.max($x, axes);
-    save([xOrig, y]);
+    save([$x, y]);
     return y;
-  }, {x: $x}, grad, 'Max', {axes}, inputsToSave, outputsToSave);
+  }, {x: $x}, null /* gradient */, 'Max', {axes});
   if (keepDims) {
     const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
     res = res.reshape(newShape) as T;
