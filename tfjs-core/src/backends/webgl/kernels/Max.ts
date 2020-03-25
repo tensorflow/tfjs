@@ -15,10 +15,13 @@
  * =============================================================================
  */
 
+import {maxImpl as cpuMax} from '../../../backends/cpu/kernels/Max_impl';
 import {Max, MaxAttrs, MaxInputs} from '../../../kernel_names';
 import {KernelConfig} from '../../../kernel_registry';
 import {TensorInfo} from '../../../kernel_registry';
 import * as axis_util from '../../../ops/axis_util';
+import {TypedArray} from '../../../types';
+import * as util from '../../../util';
 import {sizeFromShape} from '../../../util';
 import {MathBackendWebGL} from '../backend_webgl';
 import {reduce} from '../kernel_utils/reduce';
@@ -51,7 +54,19 @@ export const maxConfig: KernelConfig = {
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
 
-    const out = maxImpl(x, reduceShape, outShape, webglBackend);
+    let out;
+    if (webglBackend.shouldExecuteOnCPU([x])) {
+      const xTexData = webglBackend.texData.get(x.dataId);
+      const values = xTexData.values as TypedArray;
+      const outValues =
+          cpuMax(values, util.sizeFromShape(reduceShape), outShape, x.dtype);
+
+      out = webglBackend.makeTensorInfo(outShape, x.dtype);
+      const outData = webglBackend.texData.get(out.dataId);
+      outData.values = outValues;
+    } else {
+      out = maxImpl(x, reduceShape, outShape, webglBackend);
+    }
 
     return {dataId: out.dataId, shape: outShape, dtype: x.dtype};
   }

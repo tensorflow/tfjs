@@ -653,8 +653,9 @@ export class MathBackendWebGL extends KernelBackend {
   TODO(https://github.com/tensorflow/tfjs/issues/872): Develop a more
   sustainable strategy for optimizing backend execution of ops.
    */
-  private shouldExecuteOnCPU(
-      inputs: Tensor[], sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
+  shouldExecuteOnCPU(
+      inputs: Tensor[]|TensorInfo[],
+      sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
     return this.getCPUBackend() != null &&
         inputs.every(
             input => this.texData.get(input.dataId).texture == null &&
