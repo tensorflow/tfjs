@@ -28,8 +28,6 @@ export const divConfig: KernelConfig = {
 
     const webglBackend = backend as MathBackendWebGL;
 
-    const out = divImpl(a, b, webglBackend);
-
-    return {dataId: out.dataId, shape: out.shape, dtype: out.dtype};
+    return divImpl(a, b, webglBackend);
   }
 };
