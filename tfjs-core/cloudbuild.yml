@@ -30,6 +30,7 @@ steps:
   waitFor: ['build']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
+  env: ['NIGHTLY=$_NIGHTLY']
 
 # Run unit tests in react native.
 - name: 'node:10'
