@@ -51,6 +51,6 @@ export const maxConfig: KernelConfig = {
       out = maxImpl(x, reduceShape, outShape, webglBackend);
     }
 
-    return {dataId: out.dataId, shape: outShape, dtype: x.dtype};
+    return out;
   }
 };
