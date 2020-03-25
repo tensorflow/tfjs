@@ -20,6 +20,8 @@ yarn lint
 # Test in node (headless environment).
 yarn test-node-ci
 
+if [ "$NIGHTLY" = true ]
+then
 # Run the first karma separately so it can download the BrowserStack binary
 # without conflicting with others.
 yarn run-browserstack --browsers=bs_safari_mac,bs_ios_11 --testEnv webgl1 --flags '{"WEBGL_CPU_FORWARD": false, "WEBGL_SIZE_UPLOAD_UNIFORM": 0}'
@@ -38,3 +40,6 @@ yarn rollup -c --ci
 # Safari doesn't have offscreen canvas so test cpu in a webworker.
 # Chrome has offscreen canvas, so test webgl in a webworker.
 yarn test-webworker --browsers=bs_safari_mac,bs_chrome_mac
+else
+yarn run-browserstack --browsers=bs_chrome_mac
+fi
