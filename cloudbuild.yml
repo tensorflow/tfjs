@@ -101,16 +101,6 @@ steps:
   waitFor: ['find-affected-packages']
   env: ['NIGHTLY=$_NIGHTLY']
 
-# Integration tests
-- name: 'node:10'
-  dir: 'tfjs-core'
-  id: 'test-integration'
-  entrypoint: 'yarn'
-  args: ['test-integration']
-  waitFor: ['find-affected-packages']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
-  secretEnv: ['BROWSERSTACK_KEY']
-
 # Release notes test
 - name: 'node:10'
   id: 'test-monorepo'
