@@ -17,7 +17,6 @@
 
 import {TensorInfo} from '../../../kernel_registry';
 import {webgl_util} from '../../../webgl';
-import * as backend_util from '../../backend_util';
 import {MathBackendWebGL} from '../backend_webgl';
 import {ReshapePackedProgram} from '../reshape_packed_gpu';
 
@@ -54,5 +53,5 @@ export function reshape(
     return packedReshape(x, afterShape, backend);
   }
 
-  return backend_util.reshapeTensor(x as any, afterShape);
+  return {dataId: x.dataId, shape: afterShape, dtype: x.dtype};
 }
