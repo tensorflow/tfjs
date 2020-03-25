@@ -18,6 +18,8 @@
 // Modularized ops.
 export {broadcastTo} from './broadcast_to';
 export {clone} from './clone';
+export {div} from './div';
+export {divNoNan} from './div_no_nan';
 export {eye} from './eye';
 export {multinomial} from './multinomial';
 export {oneHot} from './one_hot';

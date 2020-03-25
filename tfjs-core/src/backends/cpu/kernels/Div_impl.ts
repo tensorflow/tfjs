@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,9 +15,6 @@
  * =============================================================================
  */
 
-import './broadcast_to';
-import './div';
-import './div_no_nan';
-import './squared_difference';
-import './tile';
-import './one_hot';
+import {createBinaryKernelImpl} from '../utils/kernel_utils';
+
+export const divImpl = createBinaryKernelImpl((a: number, b: number) => a / b);

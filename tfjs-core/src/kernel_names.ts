@@ -21,8 +21,13 @@
 import {NamedTensorInfoMap} from './kernel_registry';
 import {PixelData} from './types';
 
+export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
+
+export const Div = 'Div';
+export type DivInputs = BinaryInputs;
+
 export const SquaredDifference = 'SquaredDifference';
-export type SquaredDifferenceInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
+export type SquaredDifferenceInputs = BinaryInputs;
 
 export const Square = 'Square';
 export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
