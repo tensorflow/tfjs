@@ -66,6 +66,13 @@ export interface TileAttrs {
   reps: number[];
 }
 
+export const PadV2 = 'PadV2';
+export type PadV2Inputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface PadV2Attrs {
+  paddings: Array<[number, number]>;
+  constantValue: number;
+}
+
 /**
  * TensorFlow.js-only kernels
  */
