@@ -164,7 +164,7 @@ async function main() {
     }
 
     pkg = `${pkg}`.replace(
-      `"version": "${parsedPkg.version}"`, `"version": "${newVersion}"`);
+      `"version": "0.0.0"`, `"version": "${newVersion}"`);
 
     if (deps != null) {
       for (let j = 0; j < deps.length; j++) {
