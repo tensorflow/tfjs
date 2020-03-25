@@ -16,7 +16,7 @@
  */
 
 import {env} from '../../../environment';
-import {SquaredDifference, SquaredDifferenceInputs} from '../../../kernel_names';
+import {BinaryInputs, SquaredDifference} from '../../../kernel_names';
 import {KernelConfig} from '../../../kernel_registry';
 import {MathBackendWebGL} from '../backend_webgl';
 import {BinaryOpProgram} from '../binaryop_gpu';
@@ -26,7 +26,7 @@ export const squaredDifferenceConfig: KernelConfig = {
   kernelName: SquaredDifference,
   backendName: 'webgl',
   kernelFunc: ({inputs, backend}) => {
-    const {a, b} = inputs as SquaredDifferenceInputs;
+    const {a, b} = inputs as BinaryInputs;
     const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
     const webGLBackend = backend as MathBackendWebGL;
 

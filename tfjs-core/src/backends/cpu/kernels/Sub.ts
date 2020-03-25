@@ -14,23 +14,11 @@
  * limitations under the License.
  * =============================================================================
  */
-import {KernelConfig, registerKernel} from '../../kernel_registry';
 
-import {fromPixelsConfig} from './kernels/FromPixels';
-import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
-import {softmaxConfig} from './kernels/Softmax';
-import {squareConfig} from './kernels/Square';
-import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {Sub} from '../../../kernel_names';
+import {createBinaryKernelConfig} from '../utils/kernel_utils';
+import {createBinaryOp} from '../utils/kernel_utils';
 
-// List all kernel configs here
-const kernelConfigs: KernelConfig[] = [
-  fromPixelsConfig,
-  nonMaxSuppressionV5Config,
-  squareConfig,
-  squaredDifferenceConfig,
-  softmaxConfig,
-];
+export const sub = createBinaryOp((a: number, b: number) => a - b);
 
-for (const kernelConfig of kernelConfigs) {
-  registerKernel(kernelConfig);
-}
+export const subConfig = createBinaryKernelConfig(Sub, sub);

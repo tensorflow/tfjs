@@ -1330,18 +1330,18 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [a, b]);
   }
 
-  max(x: Tensor, axes: number[]): Tensor {
-    if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.max(x, axes);
-    }
+  // max(x: Tensor, axes: number[]): Tensor {
+  //   if (this.shouldExecuteOnCPU([x])) {
+  //     return this.cpuBackend.max(x, axes);
+  //   }
 
-    axis_util.assertAxesAreInnerMostDims('max', axes, x.rank);
-    const [outShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(x.shape, axes);
-    const inSize = util.sizeFromShape(reduceShape);
-    const a2D = x.as2D(-1, inSize);
-    return this.reduce(a2D, 'max', a2D.dtype).reshape(outShape);
-  }
+  //   axis_util.assertAxesAreInnerMostDims('max', axes, x.rank);
+  //   const [outShape, reduceShape] =
+  //       axis_util.computeOutAndReduceShapes(x.shape, axes);
+  //   const inSize = util.sizeFromShape(reduceShape);
+  //   const a2D = x.as2D(-1, inSize);
+  //   return this.reduce(a2D, 'max', a2D.dtype).reshape(outShape);
+  // }
 
   maximum(a: Tensor, b: Tensor): Tensor {
     if (this.shouldExecuteOnCPU([a, b])) {
@@ -1372,17 +1372,17 @@ export class MathBackendWebGL extends KernelBackend {
     return this.reduce(a2D, 'any', a2D.dtype).reshape(outShape);
   }
 
-  realDivide(a: Tensor, b: Tensor): Tensor {
-    const op = binaryop_gpu.DIV;
-    const outputDtype = 'float32';
-    if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-      const checkOutOfBounds = true;
-      return this.packedBinaryOp(
-          a, b, binaryop_packed_gpu.DIV, outputDtype, checkOutOfBounds);
-    }
-    const program = new BinaryOpProgram(op, a.shape, b.shape);
-    return this.compileAndRun<Tensor>(program, [a, b], outputDtype);
-  }
+  // realDivide(a: Tensor, b: Tensor): Tensor {
+  //   const op = binaryop_gpu.DIV;
+  //   const outputDtype = 'float32';
+  //   if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
+  //     const checkOutOfBounds = true;
+  //     return this.packedBinaryOp(
+  //         a, b, binaryop_packed_gpu.DIV, outputDtype, checkOutOfBounds);
+  //   }
+  //   const program = new BinaryOpProgram(op, a.shape, b.shape);
+  //   return this.compileAndRun<Tensor>(program, [a, b], outputDtype);
+  // }
 
   floorDiv(a: Tensor, b: Tensor): Tensor {
     const op = binaryop_gpu.INT_DIV;
@@ -1589,16 +1589,16 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  softmax<T extends Tensor>(logits: T, dim: number): T {
-    const axes = util.parseAxisParam([dim], logits.shape);
-    const maxLogit = this.max(logits, axes);
-    const expandedShape = axis_util.expandShapeToKeepDim(maxLogit.shape, axes);
-    const a = this.subtract(logits, maxLogit.reshape(expandedShape));
-    const b = this.exp(a);
-    const sumExp = this.sum(b, axes).reshape(expandedShape);
+  // softmax<T extends Tensor>(logits: T, dim: number): T {
+  //   const axes = util.parseAxisParam([dim], logits.shape);
+  //   const maxLogit = this.max(logits, axes);
+  //   const expandedShape = axis_util.expandShapeToKeepDim(maxLogit.shape,
+  //   axes); const a = this.subtract(logits, maxLogit.reshape(expandedShape));
+  //   const b = this.exp(a);
+  //   const sumExp = this.sum(b, axes).reshape(expandedShape);
 
-    return this.realDivide(b, sumExp) as T;
-  }
+  //   return this.realDivide(b, sumExp) as T;
+  // }
 
   log<T extends Tensor>(x: T): T {
     if (this.shouldExecuteOnCPU([x])) {
@@ -2440,8 +2440,8 @@ export class MathBackendWebGL extends KernelBackend {
     const program = new PackProgram(input.shape);
     const preventEagerUnpackingOutput = true;
     return this.runWebGLProgram(
-        program, [input], input.dtype, null /* customSetup */,
-        preventEagerUnpackingOutput);
+        program, [input], input.dtype, null /* out info */,
+        null /* customSetup */, preventEagerUnpackingOutput);
   }
 
   private packedReshape(input: TensorInfo, afterShape: number[]): TensorInfo {
@@ -2461,8 +2461,8 @@ export class MathBackendWebGL extends KernelBackend {
     const program = new ReshapePackedProgram(afterShapeAs3D, input3DShape);
     const preventEagerUnpackingOfOutput = true;
     const output = this.runWebGLProgram(
-        program, [input3D], input.dtype, null /* customSetup */,
-        preventEagerUnpackingOfOutput);
+        program, [input3D], input.dtype, null /* out info */,
+        null /* customSetup */, preventEagerUnpackingOfOutput);
     return {dataId: output.dataId, shape: afterShape, dtype: output.dtype};
   }
 
@@ -2480,15 +2480,20 @@ export class MathBackendWebGL extends KernelBackend {
     const preventEagerUnpackingOfOutput = true;
     const out = this.runWebGLProgram(
         program, [{shape: shapeAs3D, dtype, dataId}], dtype,
-        null /* customSetup */, preventEagerUnpackingOfOutput);
+        null /* out info */, null /* customSetup */,
+        preventEagerUnpackingOfOutput);
     return {dtype, shape, dataId: out.dataId};
   }
 
   runWebGLProgram(
       program: GPGPUProgram, inputs: TensorInfo[], outputDtype: DataType,
+      output?: TensorInfo,
       customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => void,
       preventEagerUnpackingOfOutput = false): TensorInfo {
-    const output = this.makeTensorInfo(program.outputShape, outputDtype);
+    if (output == null) {
+      output = this.makeTensorInfo(program.outputShape, outputDtype);
+    }
+
     const outData = this.texData.get(output.dataId);
     if (program.packedOutput) {
       outData.isPacked = true;
@@ -2615,7 +2620,7 @@ export class MathBackendWebGL extends KernelBackend {
       preventEagerUnpackingOfOutput = false): K {
     outputDtype = outputDtype || inputs[0].dtype;
     const outInfo = this.runWebGLProgram(
-        program, inputs, outputDtype, customSetup,
+        program, inputs, outputDtype, null /* out info */, customSetup,
         preventEagerUnpackingOfOutput);
     return ENGINE.makeTensorFromDataId(
                outInfo.dataId, outInfo.shape, outInfo.dtype) as {} as K;
@@ -2741,7 +2746,8 @@ export class MathBackendWebGL extends KernelBackend {
       // WEBGL_PACK.
       const preventEagerUnpacking = true;
       const encodedOutputTarget = this.runWebGLProgram(
-          program, [tempDenseInputHandle], dtype, null, preventEagerUnpacking);
+          program, [tempDenseInputHandle], dtype, null /* out info */, null,
+          preventEagerUnpacking);
 
       // Have the original texture assume the identity of the encoded output.
       const outputTexData = this.texData.get(encodedOutputTarget.dataId);
@@ -2777,7 +2783,7 @@ export class MathBackendWebGL extends KernelBackend {
     return texData.values as TypedArray;
   }
 
-  private acquireTexture(
+  acquireTexture(
       texShape: [number, number], texType: TextureUsage, dtype: DataType,
       isPacked: boolean): WebGLTexture {
     this.numBytesInGPU += this.computeBytes(texShape, dtype);

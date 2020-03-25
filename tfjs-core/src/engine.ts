@@ -521,6 +521,7 @@ export class Engine implements TensorTracker, DataMover {
         this.state.numDataMovesStack[this.state.numDataMovesStack.length - 1];
     const dataIdsLeaked =
         numDataIdsAfter - numDataIdsBefore - numOutputDataIds - numMoves;
+
     if (dataIdsLeaked > 0) {
       throw new Error(
           `Backend '${this.backendName}' has an internal memory leak ` +
