@@ -17,6 +17,7 @@
 import {KernelConfig, registerKernel} from '../../kernel_registry';
 
 import {fromPixelsConfig} from './kernels/FromPixels';
+import {maxConfig} from './kernels/Max';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
@@ -24,6 +25,7 @@ import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
   fromPixelsConfig,
+  maxConfig,
   nonMaxSuppressionV5Config,
   squareConfig,
   squaredDifferenceConfig,

@@ -32,6 +32,7 @@ import {computeOutShape} from '../../ops/concat_util';
 import {Conv2DInfo, Conv3DInfo} from '../../ops/conv_util';
 import {Activation, FusedBatchMatMulConfig, FusedConv2DConfig} from '../../ops/fused_util';
 import * as gather_nd_util from '../../ops/gather_nd_util';
+import {max} from '../../ops/max';
 import * as reduce_util from '../../ops/reduce_util';
 import * as scatter_nd_util from '../../ops/scatter_nd_util';
 import * as segment_util from '../../ops/segment_util';
@@ -1330,19 +1331,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [a, b]);
   }
 
-  max(x: Tensor, axes: number[]): Tensor {
-    if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.max(x, axes);
-    }
-
-    axis_util.assertAxesAreInnerMostDims('max', axes, x.rank);
-    const [outShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(x.shape, axes);
-    const inSize = util.sizeFromShape(reduceShape);
-    const a2D = x.as2D(-1, inSize);
-    return this.reduce(a2D, 'max', a2D.dtype).reshape(outShape);
-  }
-
   maximum(a: Tensor, b: Tensor): Tensor {
     if (this.shouldExecuteOnCPU([a, b])) {
       return this.cpuBackend.maximum(a, b);
@@ -1591,7 +1579,9 @@ export class MathBackendWebGL extends KernelBackend {
 
   softmax<T extends Tensor>(logits: T, dim: number): T {
     const axes = util.parseAxisParam([dim], logits.shape);
-    const maxLogit = this.max(logits, axes);
+    // TODO(annxingyuan): Call maxImpl rather than op as part of softmax kernel
+    // modularization.
+    const maxLogit = max(logits, axes);
     const expandedShape = axis_util.expandShapeToKeepDim(maxLogit.shape, axes);
     const a = this.subtract(logits, maxLogit.reshape(expandedShape));
     const b = this.exp(a);

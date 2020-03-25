@@ -29,6 +29,8 @@ export interface ReduceInfo {
   inSize: number;
 }
 
+export type ReduceTypes = 'all'|'any'|'max'|'min'|'sum'|'prod';
+
 export function computeOptimalWindowSize(inSize: number): number {
   if (inSize <= PARALLELIZE_THRESHOLD) {
     return inSize;

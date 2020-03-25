@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ReduceInfo} from '../../ops/reduce_util';
+import {ReduceInfo, ReduceTypes} from '../../ops/reduce_util';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class ReduceProgram implements GPGPUProgram {
@@ -23,9 +23,7 @@ export class ReduceProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
 
-  constructor(
-      reduceInfo: ReduceInfo,
-      reduceType: 'all'|'any'|'max'|'min'|'sum'|'prod') {
+  constructor(reduceInfo: ReduceInfo, reduceType: ReduceTypes) {
     const windowSize = reduceInfo.windowSize;
     const batchSize = reduceInfo.batchSize;
     const inSize = reduceInfo.inSize;
