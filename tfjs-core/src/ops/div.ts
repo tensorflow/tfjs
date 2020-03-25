@@ -24,7 +24,6 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
 import {floorDiv} from './binary_ops';
-import * as broadcast_util from './broadcast_util';
 import {op} from './operation';
 
 /**
@@ -62,30 +61,6 @@ function div_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
     return floorDiv($a, $b);
   }
 
-  const outShape =
-      broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
-  const der = (dy: Tensor, saved: Tensor[]) => {
-    const [$a, $b] = saved;
-    const derA = () => {
-      const res = dy.div($b.toFloat());
-      const reduceAxes = broadcast_util.getReductionAxes($a.shape, outShape);
-      if (reduceAxes.length > 0) {
-        return res.sum(reduceAxes).reshape($a.shape);
-      }
-      return res;
-    };
-    const derB = () => {
-      let res = dy.mul($a.toFloat());
-      const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
-      if (reduceAxes.length > 0) {
-        res = res.sum(reduceAxes).reshape($b.shape);
-      }
-      const tmp = $b.square();
-      return res.div(tmp.toFloat()).neg();
-    };
-    return {a: derA, b: derB};
-  };
-
   const forward: ForwardFunc<Tensor> = (backend, save) => {
     const res = backend.realDivide($a, $b);
     save([$a, $b]);
@@ -96,7 +71,8 @@ function div_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   const attrs = {};
 
   return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, der, Div, attrs) as T;
+             forward, inputs as {} as NamedTensorMap, null /* gradient */, Div,
+             attrs) as T;
 }
 
 export const div = op({div_});
