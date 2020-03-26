@@ -21,8 +21,13 @@
 import {NamedTensorInfoMap} from './kernel_registry';
 import {PixelData} from './types';
 
+export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
+
+export const Div = 'Div';
+export type DivInputs = BinaryInputs;
+
 export const SquaredDifference = 'SquaredDifference';
-export type SquaredDifferenceInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
+export type SquaredDifferenceInputs = BinaryInputs;
 
 export const Square = 'Square';
 export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -44,8 +49,29 @@ export interface BroadCastToAttrs {
   inputShape: number[];  // for gradient
 }
 
+export const OneHot = 'OneHot';
+export type OneHotInputs = Pick<NamedTensorInfoMap, 'indices'>;
+export interface OneHotAttrs {
+  depth: number;
+  onValue: number;
+  offValue: number;
+}
+
 export const Identity = 'Identity';
 export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const Tile = 'Tile';
+export type TileInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface TileAttrs {
+  reps: number[];
+}
+
+export const PadV2 = 'PadV2';
+export type PadV2Inputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface PadV2Attrs {
+  paddings: Array<[number, number]>;
+  constantValue: number;
+}
 
 /**
  * TensorFlow.js-only kernels
