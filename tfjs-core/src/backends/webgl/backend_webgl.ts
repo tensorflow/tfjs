@@ -126,8 +126,6 @@ import * as tex_util from './tex_util';
 import {TextureData, TextureUsage} from './tex_util';
 import {TextureManager} from './texture_manager';
 import {TileProgram} from './tile_gpu';
-import {TransposeProgram} from './transpose_gpu';
-import {TransposePackedProgram} from './transpose_packed_gpu';
 import * as unary_op from './unaryop_gpu';
 import {UnaryOpProgram} from './unaryop_gpu';
 import * as unary_packed_op from './unaryop_packed_gpu';

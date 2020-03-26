@@ -21,10 +21,10 @@ import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    transpose<T extends Tensor>(perm: number[]): T;
+    transpose<T extends Tensor>(perm?: number[]): T;
   }
 }
 
-Tensor.prototype.transpose = function<T extends Tensor>(perm: number[]): T {
+Tensor.prototype.transpose = function<T extends Tensor>(perm?: number[]): T {
   return transpose(this, perm) as T;
 };
