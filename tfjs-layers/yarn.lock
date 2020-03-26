@@ -2,9 +2,17 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs-core@link:../tfjs-core":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-core@1.7.1":
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.7.1.tgz#145c3c70de0e0aef11ff7e9cadf7b3fa81ce13e2"
+  integrity sha512-aMbvvhgBFLGsV1uBFPlPvuv6OAjA8BzjyLDWHoss5Tgaj6S6PPt8xE5ea8+cUKqz5qNVGYmj03qR5S7SmJ3qnw==
+  dependencies:
+    "@types/offscreencanvas" "~2019.3.0"
+    "@types/seedrandom" "2.4.27"
+    "@types/webgl-ext" "0.0.30"
+    "@types/webgl2" "0.0.4"
+    node-fetch "~2.1.2"
+    seedrandom "2.4.3"
 
 "@types/estree@0.0.38":
   version "0.0.38"
