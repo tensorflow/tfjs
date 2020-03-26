@@ -30,7 +30,7 @@ http_archive(
         "https://github.com/google/benchmark/archive/master.zip"
     ],
     strip_prefix = "benchmark-master",
-    build_file = "@//third_party:benchmark.BUILD",
+    build_file = "@xnnpack//third_party:benchmark.BUILD",
 )
 
 # FP16 library, used for half-precision conversions
@@ -41,7 +41,7 @@ http_archive(
     urls = [
         "https://github.com/Maratyszcza/FP16/archive/ba1d31f5eed2eb4a69e4dea3870a68c7c95f998f.tar.gz",
     ],
-    build_file = "@//third_party:FP16.BUILD",
+    build_file = "@xnnpack//third_party:FP16.BUILD",
 )
 
 # FXdiv library, used for repeated integer division by the same factor
@@ -52,7 +52,7 @@ http_archive(
     urls = [
         "https://github.com/Maratyszcza/FXdiv/archive/f8c5354679ec2597792bc70a9e06eff50c508b9a.tar.gz",
     ],
-    build_file = "@//third_party:FXdiv.BUILD",
+    build_file = "@xnnpack//third_party:FXdiv.BUILD",
 )
 
 # pthreadpool library, used for parallelization
@@ -63,7 +63,7 @@ http_archive(
     urls = [
         "https://github.com/Maratyszcza/pthreadpool/archive/ebd50d0cfa3664d454ffdf246fcd228c3b370a11.tar.gz",
     ],
-    build_file = "@//third_party:pthreadpool.BUILD",
+    build_file = "@xnnpack//third_party:pthreadpool.BUILD",
 )
 
 # clog library, used for logging
@@ -74,7 +74,7 @@ http_archive(
     urls = [
         "https://github.com/pytorch/cpuinfo/archive/d5e37adf1406cf899d7d9ec1d317c47506ccb970.tar.gz",
     ],
-    build_file = "@//third_party:clog.BUILD",
+    build_file = "@xnnpack//third_party:clog.BUILD",
 )
 
 # cpuinfo library, used for detecting processor characteristics
@@ -85,8 +85,8 @@ http_archive(
     urls = [
         "https://github.com/pytorch/cpuinfo/archive/d6c0f915ee737f961915c9d17f1679b6777af207.tar.gz",
     ],
-    build_file = "@//third_party:cpuinfo.BUILD",
-    patches = ["@//third_party:cpuinfo.patch"],
+    build_file = "@xnnpack//third_party:cpuinfo.BUILD",
+    patches = ["@xnnpack//third_party:cpuinfo.patch"],
 )
 
 # psimd library, used for fallback 128-bit SIMD micro-kernels
@@ -97,7 +97,7 @@ http_archive(
     urls = [
         "https://github.com/Maratyszcza/psimd/archive/88882f601f8179e1987b7e7cf4a8012c9080ad44.tar.gz",
     ],
-    build_file = "@//third_party:psimd.BUILD",
+    build_file = "@xnnpack//third_party:psimd.BUILD",
 )
 
 git_repository(

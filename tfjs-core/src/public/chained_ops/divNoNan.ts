@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {divNoNan} from '../../ops/divNoNan';
+import {divNoNan} from '../../ops/div_no_nan';
 import {Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
