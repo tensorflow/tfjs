@@ -14,11 +14,23 @@
  * limitations under the License.
  * =============================================================================
  */
+import {Tensor2D} from '../tensor';
+import {TensorLike} from '../types';
+import {assert} from '../util';
+import {op} from './operation';
+import {pad} from './pad';
 
-import './broadcast_to';
-import './div';
-import './div_no_nan';
-import './squared_difference';
-import './tile';
-import './one_hot';
-import './pad';
+/**
+ * Pads a `tf.Tensor2D` with a given value and paddings. See `pad` for details.
+ */
+function pad2d_(
+    x: Tensor2D|TensorLike, paddings: [[number, number], [number, number]],
+    constantValue = 0): Tensor2D {
+  assert(
+      paddings.length === 2 && paddings[0].length === 2 &&
+          paddings[1].length === 2,
+      () => 'Invalid number of paddings. Must be length of 2 each.');
+  return pad(x, paddings, constantValue);
+}
+
+export const pad2d = op({pad2d_});

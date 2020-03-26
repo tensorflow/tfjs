@@ -24,7 +24,7 @@ import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
 // flexibility to change in future.
 
 const CHAINED_OPS =
-    ['square', 'broadcastTo', 'tile', 'oneHot', 'div', 'divNoNan'];
+    ['square', 'broadcastTo', 'tile', 'oneHot', 'div', 'divNoNan', 'pad'];
 
 describeWithFlags('chained ops', ALL_ENVS, () => {
   it('all chained ops should exist on tensor ', async () => {
