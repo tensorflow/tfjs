@@ -24,6 +24,7 @@ export function transposeImpl(
   const xSize = util.sizeFromShape(xShape);
   const xRank = xShape.length;
   const xStrides = util.computeStrides(xShape);
+  const newStrides = util.computeStrides(newShape);
 
   const result = util.getTypedArrayFromDType(
       dtype as NumericDataType, util.sizeFromShape(newShape));
@@ -37,7 +38,7 @@ export function transposeImpl(
       newLoc[i] = loc[perm[i]];
     }
 
-    const newIndex = util.locToIndex(newLoc, xRank, xStrides);
+    const newIndex = util.locToIndex(newLoc, xRank, newStrides);
     result[newIndex] = xVals[i];
   }
   return result;
