@@ -21,13 +21,15 @@ import {oneHotGradConfig} from './gradients/OneHot_grad';
 import {squareGradConfig} from './gradients/Square_grad';
 import {squaredDifferenceGradConfig} from './gradients/SquaredDifference_grad';
 import {tileGradConfig} from './gradients/Tile_grad';
+import {transposeGradConfig} from './gradients/Transpose_grad';
 import {GradConfig} from './kernel_registry';
 import {registerGradient} from './kernel_registry';
 
 // Export all kernel configs here so that the package can auto register them
 const gradConfigs: GradConfig[] = [
   divGradConfig, squareGradConfig, squaredDifferenceGradConfig,
-  broadcastToGradConfig, identityGradConfig, tileGradConfig, oneHotGradConfig
+  broadcastToGradConfig, identityGradConfig, tileGradConfig, oneHotGradConfig,
+  transposeGradConfig
 ];
 
 for (const gradientConfig of gradConfigs) {

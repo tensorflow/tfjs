@@ -21,3 +21,4 @@ import './div_no_nan';
 import './squared_difference';
 import './tile';
 import './one_hot';
+import './transpose';

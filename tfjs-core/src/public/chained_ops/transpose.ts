@@ -14,25 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
-import {KernelConfig, registerKernel} from '../../kernel_registry';
 
-import {divConfig} from './kernels/Div';
-import {fromPixelsConfig} from './kernels/FromPixels';
-import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
-import {squareConfig} from './kernels/Square';
-import {squaredDifferenceConfig} from './kernels/SquaredDifference';
-import {transposeConfig} from './kernels/Transpose';
+import {transpose} from '../../ops/transpose';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
 
-// List all kernel configs here
-const kernelConfigs: KernelConfig[] = [
-  fromPixelsConfig,
-  divConfig,
-  nonMaxSuppressionV5Config,
-  squareConfig,
-  squaredDifferenceConfig,
-  transposeConfig,
-];
-
-for (const kernelConfig of kernelConfigs) {
-  registerKernel(kernelConfig);
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    transpose<T extends Tensor>(perm: number[]): T;
+  }
 }
+
+Tensor.prototype.transpose = function<T extends Tensor>(perm: number[]): T {
+  return transpose(this, perm) as T;
+};

@@ -32,6 +32,12 @@ export type SquaredDifferenceInputs = BinaryInputs;
 export const Square = 'Square';
 export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
 
+export const Transpose = 'Transpose';
+export type TransposeInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface TransposeAttrs {
+  perm: number[];
+}
+
 export const NonMaxSuppressionV5 = 'NonMaxSuppressionV5';
 export type NonMaxSuppressionV5Inputs =
     Pick<NamedTensorInfoMap, 'boxes'|'scores'>;
