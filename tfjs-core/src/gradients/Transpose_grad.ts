@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import * as axis_util from '../../src/ops/axis_util';
-import {transpose} from '../../src/ops/transpose';
 import {Transpose, TransposeAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
+import * as axis_util from '../ops/axis_util';
+import {transpose} from '../ops/transpose';
 import {Tensor} from '../tensor';
 
 export const transposeGradConfig: GradConfig = {
