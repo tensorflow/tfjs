@@ -1010,7 +1010,21 @@ export class MathBackendCPU extends KernelBackend {
   }
 
   exp<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'exp');
+    if (x.dtype === 'complex64') {
+      const realValues = this.readSync(ops.real(x).dataId) as TypedArray;
+      const imagValues = this.readSync(ops.imag(x).dataId) as TypedArray;
+      const newReals = new Float32Array(realValues.length);
+      const newImags = new Float32Array(realValues.length);
+      let scalar = 0;
+      for (let i = 0; i < realValues.length; ++i) {
+        scalar = Math.exp(realValues[i]);
+        newReals[i] = scalar * Math.cos(imagValues[i]);
+        newImags[i] = scalar * Math.sin(imagValues[i]);
+      }
+      return this.complex(
+          this.makeOutput(newReals, x.shape, 'float32'),
+          this.makeOutput(newImags, x.shape, 'float32'));
+    }
 
     const values = this.readSync(x.dataId) as TypedArray;
     const newValues = new Float32Array(values.length);

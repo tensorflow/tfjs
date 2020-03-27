@@ -1769,6 +1769,16 @@ describeWithFlags('exp', ALL_ENVS, () => {
     expectArraysClose(await r.data(), [Math.exp(1), Math.exp(2), 1]);
   });
 
+  it('exp for complex tensor', async () => {
+    const real = tf.tensor1d([1, 2, 0]);
+    const imag = tf.tensor1d([4, -6, 0]);
+    const r = tf.exp(tf.complex(real, imag));
+    expectArraysClose(await r.data(),
+      [Math.exp(1)*Math.cos(4), Math.exp(1)*Math.sin(4),
+        Math.exp(2)*Math.cos(-6), Math.exp(2)*Math.sin(-6),
+        1, 0]);
+  });
+
   it('exp propagates NaNs', async () => {
     const a = tf.tensor1d([1, NaN, 0]);
     const r = tf.exp(a);

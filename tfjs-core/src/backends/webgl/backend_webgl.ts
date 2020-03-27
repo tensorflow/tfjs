@@ -127,6 +127,8 @@ import {TextureManager} from './texture_manager';
 import {TileProgram} from './tile_gpu';
 import {TransposeProgram} from './transpose_gpu';
 import {TransposePackedProgram} from './transpose_packed_gpu';
+import * as unaryop_complex_gpu from './unaryop_complex_gpu';
+import {UnaryOpComplexProgram} from './unaryop_complex_gpu';
 import * as unary_op from './unaryop_gpu';
 import {UnaryOpProgram} from './unaryop_gpu';
 import * as unary_packed_op from './unaryop_packed_gpu';
@@ -1553,6 +1555,26 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   exp<T extends Tensor>(x: T): T {
+    if (x.dtype === 'complex64') {
+      const xData = this.texData.get(x.dataId);
+
+      const realProgram = new UnaryOpComplexProgram(
+          x.shape, unaryop_complex_gpu.COMPLEX_EXP.REAL);
+      const imagProgram = new UnaryOpComplexProgram(
+          x.shape, unaryop_complex_gpu.COMPLEX_EXP.IMAG);
+
+      const inputs = [
+        this.makeComplexComponentTensorInfo(x, xData.complexTensors.real),
+        this.makeComplexComponentTensorInfo(x, xData.complexTensors.imag)
+      ];
+      const real = this.compileAndRun<Tensor>(realProgram, inputs);
+      const imag = this.compileAndRun<Tensor>(imagProgram, inputs);
+      const complex = this.complex(real, imag);
+      real.dispose();
+      imag.dispose();
+      return complex as T;
+    }
+
     if (this.shouldExecuteOnCPU([x])) {
       return this.cpuBackend.exp(x);
     }
