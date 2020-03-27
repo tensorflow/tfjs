@@ -31,15 +31,22 @@ export const maxConfig: KernelConfig = {
     const {x} = inputs as MaxInputs;
     const {reductionIndices} = attrs as {} as MaxAttrs;
     const webglBackend = backend as MathBackendWebGL;
+    console.log('max webgl kernel func', x, reductionIndices);
 
-    axis_util.assertAxesAreInnerMostDims(
-        'max', reductionIndices, x.shape.length);
+    const origAxes = util.parseAxisParam(reductionIndices, x.shape);
+    let axes = origAxes;
+    const permutedAxes = axis_util.getAxesPermutation(axes, x.shape.length);
+    if (permutedAxes != null) {
+      console.log('TRANSPOSE');
+    }
 
+    axis_util.assertAxesAreInnerMostDims('max', axes, x.shape.length);
     const [outShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(x.shape, reductionIndices);
+        axis_util.computeOutAndReduceShapes(x.shape, axes);
 
     let out;
     if (webglBackend.shouldExecuteOnCPU([x])) {
+      console.log('running on the cpu instead');
       const xTexData = webglBackend.texData.get(x.dataId);
       const values = xTexData.values as TypedArray;
       const outValues =

@@ -31,12 +31,19 @@ export const maxConfig: KernelConfig = {
     const {x} = inputs as MaxInputs;
     const {reductionIndices} = attrs as {} as MaxAttrs;
     const cpuBackend = backend as MathBackendCPU;
+    console.log('max cpu kernel func', x, reductionIndices);
+
+    const origAxes = util.parseAxisParam(reductionIndices, x.shape);
+    let axes = origAxes;
+    const permutedAxes = axis_util.getAxesPermutation(axes, x.shape.length);
+    if (permutedAxes != null) {
+      console.log('TRANSPOSE');
+    }
 
     assertNotComplex(x, 'max');
-    axis_util.assertAxesAreInnerMostDims(
-        'max', reductionIndices, x.shape.length);
+    axis_util.assertAxesAreInnerMostDims('max', axes, x.shape.length);
     const [outShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(x.shape, reductionIndices);
+        axis_util.computeOutAndReduceShapes(x.shape, axes);
 
     const reduceSize = util.sizeFromShape(reduceShape);
 

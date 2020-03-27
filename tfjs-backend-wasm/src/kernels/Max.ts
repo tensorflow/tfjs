@@ -41,10 +41,16 @@ function max(args: {backend: BackendWasm, inputs: MaxInputs, attrs: MaxAttrs}):
   const {x} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
 
-  backend_util.assertAxesAreInnerMostDims(
-      'max', reductionIndices, x.shape.length);
+  const origAxes = util.parseAxisParam(reductionIndices, x.shape);
+  let axes = origAxes;
+  const permutedAxes = backend_util.getAxesPermutation(axes, x.shape.length);
+  if (permutedAxes != null) {
+    console.log('TRANSPOSE');
+  }
+
+  backend_util.assertAxesAreInnerMostDims('max', axes, x.shape.length);
   const [outShape, reduceShape] =
-      backend_util.computeOutAndReduceShapes(x.shape, reductionIndices);
+      backend_util.computeOutAndReduceShapes(x.shape, axes);
   const reduceSize = util.sizeFromShape(reduceShape);
 
   const out = backend.makeOutput(outShape, x.dtype);
