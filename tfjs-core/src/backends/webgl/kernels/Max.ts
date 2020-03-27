@@ -29,13 +29,14 @@ export const maxConfig: KernelConfig = {
   backendName: 'webgl',
   kernelFunc: ({inputs, attrs, backend}) => {
     const {x} = inputs as MaxInputs;
-    const {axes} = attrs as {} as MaxAttrs;
+    const {reductionIndices} = attrs as {} as MaxAttrs;
     const webglBackend = backend as MathBackendWebGL;
 
-    axis_util.assertAxesAreInnerMostDims('max', axes, x.shape.length);
+    axis_util.assertAxesAreInnerMostDims(
+        'max', reductionIndices, x.shape.length);
 
     const [outShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(x.shape, axes);
+        axis_util.computeOutAndReduceShapes(x.shape, reductionIndices);
 
     let out;
     if (webglBackend.shouldExecuteOnCPU([x])) {

@@ -28,10 +28,10 @@ export const maxGradConfig: GradConfig = {
   outputsToSave: [true],
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const maxAttrs: MaxAttrs = attrs as {} as MaxAttrs;
-    const {axes} = maxAttrs;
+    const {reductionIndices} = maxAttrs;
     const [x, y] = saved;
-    const origAxes = util.parseAxisParam(axes, x.shape);
-    const permutedAxes = axis_util.getAxesPermutation(axes, x.rank);
+    const origAxes = util.parseAxisParam(reductionIndices, x.shape);
+    const permutedAxes = axis_util.getAxesPermutation(reductionIndices, x.rank);
     return gradForMinAndMax(dy, y, x, origAxes, permutedAxes);
   }
 };

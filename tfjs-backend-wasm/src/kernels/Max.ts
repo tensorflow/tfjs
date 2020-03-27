@@ -24,7 +24,7 @@ interface MaxInputs extends NamedTensorInfoMap {
 }
 
 interface MaxAttrs extends NamedAttrMap {
-  axes: number[];
+  reductionIndices: number[];
 }
 
 let wasmMax: (xId: number, reduceSize: number, outId: number) => void;
@@ -37,13 +37,14 @@ function setup(backend: BackendWasm): void {
 function max(args: {backend: BackendWasm, inputs: MaxInputs, attrs: MaxAttrs}):
     TensorInfo {
   const {backend, inputs, attrs} = args;
-  const {axes} = attrs;
+  const {reductionIndices} = attrs;
   const {x} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
 
-  backend_util.assertAxesAreInnerMostDims('max', axes, x.shape.length);
+  backend_util.assertAxesAreInnerMostDims(
+      'max', reductionIndices, x.shape.length);
   const [outShape, reduceShape] =
-      backend_util.computeOutAndReduceShapes(x.shape, axes);
+      backend_util.computeOutAndReduceShapes(x.shape, reductionIndices);
   const reduceSize = util.sizeFromShape(reduceShape);
 
   const out = backend.makeOutput(outShape, x.dtype);

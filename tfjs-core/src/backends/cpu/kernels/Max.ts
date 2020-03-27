@@ -29,13 +29,14 @@ export const maxConfig: KernelConfig = {
   backendName: 'cpu',
   kernelFunc: ({inputs, attrs, backend}) => {
     const {x} = inputs as MaxInputs;
-    const {axes} = attrs as {} as MaxAttrs;
+    const {reductionIndices} = attrs as {} as MaxAttrs;
     const cpuBackend = backend as MathBackendCPU;
 
     assertNotComplex(x, 'max');
-    axis_util.assertAxesAreInnerMostDims('max', axes, x.shape.length);
+    axis_util.assertAxesAreInnerMostDims(
+        'max', reductionIndices, x.shape.length);
     const [outShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(x.shape, axes);
+        axis_util.computeOutAndReduceShapes(x.shape, reductionIndices);
 
     const reduceSize = util.sizeFromShape(reduceShape);
 
