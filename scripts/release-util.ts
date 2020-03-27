@@ -52,7 +52,7 @@ export const UNION_PHASE: Phase = {
 // the test to tf.layers.
 export const NODE_PHASE: Phase = {
   packages: ['tfjs-node', 'tfjs-node-gpu'],
-  deps: ['tfjs', 'tfjs-core'],
+  deps: ['tfjs', 'tfjs-core', 'tfjs-layers'],
   scripts: {'tfjs-node-gpu': {'before-yarn': ['yarn prep-gpu']}}
 };
 
