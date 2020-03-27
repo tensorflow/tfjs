@@ -17,7 +17,6 @@
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 import {divConfig} from './kernels/Div';
 import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
-
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {squareConfig} from './kernels/Square';
