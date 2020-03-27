@@ -23,6 +23,7 @@ import * as util from '../../../util';
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 import {maxImpl} from './Max_impl';
+import {transposeImpl} from './Transpose_impl';
 
 export const maxConfig: KernelConfig = {
   kernelName: Max,
@@ -31,24 +32,28 @@ export const maxConfig: KernelConfig = {
     const {x} = inputs as MaxInputs;
     const {reductionIndices} = attrs as {} as MaxAttrs;
     const cpuBackend = backend as MathBackendCPU;
+    const xRank = x.shape.length;
     console.log('max cpu kernel func', x, reductionIndices);
 
     const origAxes = util.parseAxisParam(reductionIndices, x.shape);
     let axes = origAxes;
-    const permutedAxes = axis_util.getAxesPermutation(axes, x.shape.length);
+    const permutedAxes = axis_util.getAxesPermutation(axes, xRank);
     if (permutedAxes != null) {
       console.log('TRANSPOSE');
+      const vals = cpuBackend.data.get(x.dataId).values as TypedArray;
+      const xTVals = transposeImpl(vals, x.shape, x.dtype, permutedAxes);
+      axes = axis_util.getInnerMostAxes(axes.length, xRank);
     }
 
     assertNotComplex(x, 'max');
-    axis_util.assertAxesAreInnerMostDims('max', axes, x.shape.length);
+    axis_util.assertAxesAreInnerMostDims('max', axes, xRank);
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
 
     const reduceSize = util.sizeFromShape(reduceShape);
 
-    const aVals = cpuBackend.data.get(x.dataId).values as TypedArray;
-    const result = maxImpl(aVals, reduceSize, outShape, x.dtype);
+    const xVals = cpuBackend.data.get(x.dataId).values as TypedArray;
+    const result = maxImpl(xVals, reduceSize, outShape, x.dtype);
 
     const dataId = cpuBackend.write(result, outShape, x.dtype);
     return {dataId, shape: outShape, dtype: x.dtype};
