@@ -28,9 +28,8 @@ steps:
   entrypoint: 'yarn'
   args: ['test-ci']
   waitFor: ['build']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
-  env: ['NIGHTLY=$_NIGHTLY']
 
 # Run unit tests in react native.
 - name: 'node:10'
