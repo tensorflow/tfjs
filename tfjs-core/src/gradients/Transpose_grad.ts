@@ -14,25 +14,19 @@
  * limitations under the License.
  * =============================================================================
  */
-import {KernelConfig, registerKernel} from '../../kernel_registry';
 
-import {divConfig} from './kernels/Div';
-import {fromPixelsConfig} from './kernels/FromPixels';
-import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
-import {squareConfig} from './kernels/Square';
-import {squaredDifferenceConfig} from './kernels/SquaredDifference';
-import {transposeConfig} from './kernels/Transpose';
+import {Transpose, TransposeAttrs} from '../kernel_names';
+import {GradConfig, NamedAttrMap} from '../kernel_registry';
+import * as axis_util from '../ops/axis_util';
+import {transpose} from '../ops/transpose';
+import {Tensor} from '../tensor';
 
-// List all kernel configs here
-const kernelConfigs: KernelConfig[] = [
-  fromPixelsConfig,
-  divConfig,
-  nonMaxSuppressionV5Config,
-  squareConfig,
-  squaredDifferenceConfig,
-  transposeConfig,
-];
-
-for (const kernelConfig of kernelConfigs) {
-  registerKernel(kernelConfig);
-}
+export const transposeGradConfig: GradConfig = {
+  kernelName: Transpose,
+  gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
+    const transposeAttrs: TransposeAttrs = attrs as {} as TransposeAttrs;
+    const {perm} = transposeAttrs;
+    const undoPerm = axis_util.getUndoAxesPermutation(perm);
+    return {x: () => transpose(dy, undoPerm)};
+  }
+};
