@@ -25,6 +25,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.transpose = function<T extends Tensor>(perm?: number[]): T {
-  return transpose(this, perm) as T;
+Tensor.prototype.transpose = function<T extends Tensor>(
+    this: T, perm?: number[]): T {
+  return transpose(this, perm);
 };
