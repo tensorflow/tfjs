@@ -145,7 +145,13 @@ const TEST_FILTERS: TestFilter[] = [
                           // 'CanvasRenderingContext2D': The source width is 0
     ]
   },
-  {include: 'nonMaxSuppression', excludes: []},
+  {
+    include: 'nonMaxSuppression',
+    excludes: [
+      'works with other operators, div'  // TODO(xing.xu@intel.com):
+                                         // https://github.com/tensorflow/tfjs/issues/2976.
+    ]
+  },
   {
     include: 'argmax',
     excludes: [
