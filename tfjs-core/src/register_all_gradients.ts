@@ -18,6 +18,7 @@ import {broadcastToGradConfig} from './gradients/BroadcastTo_grad';
 import {divGradConfig} from './gradients/Div_grad';
 import {identityGradConfig} from './gradients/Identity_grad';
 import {oneHotGradConfig} from './gradients/OneHot_grad';
+import {padV2GradConfig} from './gradients/PadV2_grad';
 import {squareGradConfig} from './gradients/Square_grad';
 import {squaredDifferenceGradConfig} from './gradients/SquaredDifference_grad';
 import {tileGradConfig} from './gradients/Tile_grad';
@@ -29,7 +30,7 @@ import {registerGradient} from './kernel_registry';
 const gradConfigs: GradConfig[] = [
   divGradConfig, squareGradConfig, squaredDifferenceGradConfig,
   broadcastToGradConfig, identityGradConfig, tileGradConfig, oneHotGradConfig,
-  transposeGradConfig
+  transposeGradConfig, padV2GradConfig
 ];
 
 for (const gradientConfig of gradConfigs) {
