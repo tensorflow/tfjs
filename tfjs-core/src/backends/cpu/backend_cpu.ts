@@ -19,7 +19,6 @@ import * as seedrandom from 'seedrandom';
 
 import {ENGINE} from '../../engine';
 import {env} from '../../environment';
-
 import {warn} from '../../log';
 import * as array_ops_util from '../../ops/array_ops_util';
 import * as axis_util from '../../ops/axis_util';
@@ -27,6 +26,7 @@ import * as broadcast_util from '../../ops/broadcast_util';
 import {complex, imag, real} from '../../ops/complex_ops';
 import * as concat_util from '../../ops/concat_util';
 import {Conv2DInfo, Conv3DInfo} from '../../ops/conv_util';
+import {div} from '../../ops/div';
 import * as erf_util from '../../ops/erf_util';
 import {Activation, FusedBatchMatMulConfig, FusedConv2DConfig} from '../../ops/fused_util';
 import * as gather_nd_util from '../../ops/gather_nd_util';
@@ -36,6 +36,7 @@ import {buffer, scalar, tensor, tensor4d} from '../../ops/ops';
 import * as scatter_nd_util from '../../ops/scatter_nd_util';
 import * as selu_util from '../../ops/selu_util';
 import {computeFlatOffset, computeOutShape, isSliceContinous} from '../../ops/slice_util';
+import {transpose} from '../../ops/transpose';
 import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer} from '../../tensor';
 import {BackendValues, DataType, DataValues, NumericDataType, Rank, ShapeMap, TypedArray, upcastType} from '../../types';
 import * as util from '../../util';
@@ -48,6 +49,7 @@ import {split} from '../split_shared';
 import {tile} from '../tile_impl';
 import {topkImpl} from '../topk_impl';
 import {whereImpl} from '../where_impl';
+
 import {assertNotComplex} from './cpu_util';
 
 function mapActivation(
@@ -388,7 +390,9 @@ export class MathBackendCPU extends KernelBackend {
     const b = this.exp(a);
     const sumExp = this.sum(b, axes).reshape(expandedShape);
 
-    return this.realDivide(b, sumExp) as T;
+    // TODO(annxingyuan): Call divImpl rather than op as part of softmax kernel
+    // modularization.
+    return div(b, sumExp);
   }
 
   subtract(a: Tensor, b: Tensor): Tensor {
@@ -494,14 +498,6 @@ export class MathBackendCPU extends KernelBackend {
     return this.broadcastedBinaryOp(
         a, b, upcastType(a.dtype, b.dtype),
         (aValue, bValue) => aValue * bValue);
-  }
-
-  realDivide(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'realDivide');
-
-    const op = (a: number, b: number) => a / b;
-    const outputDtype = 'float32';
-    return this.broadcastedBinaryOp(a, b, outputDtype, op);
   }
 
   floorDiv(a: Tensor, b: Tensor): Tensor {
@@ -2094,32 +2090,6 @@ export class MathBackendCPU extends KernelBackend {
     return buffer.toTensor() as T;
   }
 
-  transpose<T extends Tensor>(x: T, perm: number[]): T {
-    assertNotComplex(x, 'transpose');
-
-    const newShape: number[] = new Array(x.rank);
-    for (let i = 0; i < newShape.length; i++) {
-      newShape[i] = x.shape[perm[i]];
-    }
-    const values = this.readSync(x.dataId) as TypedArray;
-    const result = buffer(newShape, x.dtype);
-
-    const xBuf = this.bufferSync(x);
-    for (let i = 0; i < x.size; ++i) {
-      const loc = xBuf.indexToLoc(i);
-
-      // Permute location.
-      const newLoc: number[] = new Array(loc.length);
-      for (let i = 0; i < newLoc.length; i++) {
-        newLoc[i] = loc[perm[i]];
-      }
-
-      const newIndex = result.locToIndex(newLoc);
-      result.values[newIndex] = values[i];
-    }
-    return result.toTensor() as T;
-  }
-
   gather<T extends Tensor>(x: T, indices: Tensor1D, axis: number): T {
     assertNotComplex([x, indices], 'gather');
 
@@ -2157,8 +2127,7 @@ export class MathBackendCPU extends KernelBackend {
     const sliceSize =
         array_ops_util.getSliceSize(reshapedPermuted, crops, blockShape.length);
 
-    return x.reshape(reshaped)
-               .transpose(permuted)
+    return transpose(x.reshape(reshaped), permuted)
                .reshape(reshapedPermuted)
                .slice(sliceBeginCoords, sliceSize) as T;
   }
@@ -2184,8 +2153,9 @@ export class MathBackendCPU extends KernelBackend {
     const flattenShape = array_ops_util.getReshapedPermuted(
         paddedX.shape, blockShape, prod, false);
 
-    return paddedX.reshape(reshapedPaddedShape)
-               .transpose(permutedReshapedPaddedPermutation)
+    return transpose(
+               paddedX.reshape(reshapedPaddedShape),
+               permutedReshapedPaddedPermutation)
                .reshape(flattenShape) as T;
   }
 

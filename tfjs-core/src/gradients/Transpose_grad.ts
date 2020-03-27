@@ -15,14 +15,18 @@
  * =============================================================================
  */
 
-import {SquaredDifference} from '../../../kernel_names';
-import {createBinaryKernelImpl} from '../utils/kernel_utils';
-import {createBinaryKernelConfig} from '../utils/kernel_utils';
+import {Transpose, TransposeAttrs} from '../kernel_names';
+import {GradConfig, NamedAttrMap} from '../kernel_registry';
+import * as axis_util from '../ops/axis_util';
+import {transpose} from '../ops/transpose';
+import {Tensor} from '../tensor';
 
-const squaredDifferenceImpl = createBinaryKernelImpl((aVal, bVal) => {
-  const diff = aVal - bVal;
-  return diff * diff;
-});
-
-export const squaredDifferenceConfig =
-    createBinaryKernelConfig(SquaredDifference, squaredDifferenceImpl);
+export const transposeGradConfig: GradConfig = {
+  kernelName: Transpose,
+  gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
+    const transposeAttrs: TransposeAttrs = attrs as {} as TransposeAttrs;
+    const {perm} = transposeAttrs;
+    const undoPerm = axis_util.getUndoAxesPermutation(perm);
+    return {x: () => transpose(dy, undoPerm)};
+  }
+};

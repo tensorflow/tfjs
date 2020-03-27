@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,12 +15,16 @@
  * =============================================================================
  */
 
-import './broadcast_to';
-import './max';
-import './div';
-import './div_no_nan';
-import './squared_difference';
-import './tile';
-import './one_hot';
-import './transpose';
-import './pad';
+import {env} from '../../../environment';
+import {TensorInfo} from '../../../kernel_registry';
+import {MathBackendWebGL} from '../backend_webgl';
+import {TransposeProgram} from '../transpose_gpu';
+import {TransposePackedProgram} from '../transpose_packed_gpu';
+
+export function transposeImpl(
+    x: TensorInfo, perm: number[], backend: MathBackendWebGL): TensorInfo {
+  const program = env().getBool('WEBGL_PACK_ARRAY_OPERATIONS') ?
+      new TransposePackedProgram(x.shape, perm) :
+      new TransposeProgram(x.shape, perm);
+  return backend.runWebGLProgram(program, [x], x.dtype);
+}

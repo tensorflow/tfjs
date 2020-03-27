@@ -16,7 +16,7 @@
  */
 
 import {ENGINE} from '../engine';
-import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer} from '../tensor';
+import {Tensor, Tensor4D, TensorBuffer} from '../tensor';
 import {convertToTensor, convertToTensorArray} from '../tensor_util_env';
 import {DataType, DataTypeMap, Rank, ShapeMap, TensorLike, TensorLike4D} from '../types';
 import * as util from '../util';
@@ -113,106 +113,6 @@ function cast_<T extends Tensor>(x: T|TensorLike, dtype: DataType): T {
   const attrs = {dtype};
   return ENGINE.runKernelFunc(
       backend => backend.cast($x, dtype), {x: $x}, grad, 'Cast', attrs);
-}
-
-/**
- * Pads a `tf.Tensor1D` with a given value and paddings. See `pad` for details.
- */
-function pad1d_(
-    x: Tensor1D|TensorLike, paddings: [number, number],
-    constantValue = 0): Tensor1D {
-  util.assert(
-      paddings.length === 2,
-      () => 'Invalid number of paddings. Must be length of 2.');
-  return pad(x, [paddings], constantValue);
-}
-
-/**
- * Pads a `tf.Tensor2D` with a given value and paddings. See `pad` for details.
- */
-function pad2d_(
-    x: Tensor2D|TensorLike, paddings: [[number, number], [number, number]],
-    constantValue = 0): Tensor2D {
-  util.assert(
-      paddings.length === 2 && paddings[0].length === 2 &&
-          paddings[1].length === 2,
-      () => 'Invalid number of paddings. Must be length of 2 each.');
-  return pad(x, paddings, constantValue);
-}
-
-/**
- * Pads a `tf.Tensor3D` with a given value and paddings. See `pad` for details.
- */
-function pad3d_(
-    x: Tensor3D|TensorLike,
-    paddings: [[number, number], [number, number], [number, number]],
-    constantValue = 0): Tensor3D {
-  util.assert(
-      paddings.length === 3 && paddings[0].length === 2 &&
-          paddings[1].length === 2 && paddings[2].length === 2,
-      () => 'Invalid number of paddings. Must be length of 2 each.');
-  return pad(x, paddings, constantValue);
-}
-
-/**
- * Pads a `tf.Tensor4D` with a given value and paddings. See `pad` for details.
- */
-function pad4d_(
-    x: Tensor4D|TensorLike,
-    paddings:
-        [
-          [number, number], [number, number], [number, number], [number, number]
-        ],
-    constantValue = 0): Tensor4D {
-  util.assert(
-      paddings.length === 4 && paddings[0].length === 2 &&
-          paddings[1].length === 2 && paddings[2].length === 2 &&
-          paddings[3].length === 2,
-      () => 'Invalid number of paddings. Must be length of 2 each.');
-  return pad(x, paddings, constantValue);
-}
-
-/**
- * Pads a `tf.Tensor` with a given value and paddings.
- *
- * This operation currently only implements the `CONSTANT` mode.
- *
- * Also available are stricter rank-specific methods with the same signature
- * as this method that assert that `paddings` is of given length.
- *   - `tf.pad1d`
- *   - `tf.pad2d`
- *   - `tf.pad3d`
- *   - `tf.pad4d`
- *
- * ```js
- * const x = tf.tensor1d([1, 2, 3, 4]);
- * x.pad([[1, 2]]).print();
- * ```
- * @param x The tensor to pad.
- * @param paddings An array of length `R` (the rank of the tensor), where
- * each element is a length-2 tuple of ints `[padBefore, padAfter]`,
- * specifying how much to pad along each dimension of the tensor.
- * @param constantValue The pad value to use. Defaults to 0.
- */
-/** @doc {heading: 'Tensors', subheading: 'Transformations'} */
-function pad_<T extends Tensor>(
-    x: T|TensorLike, paddings: Array<[number, number]>, constantValue = 0): T {
-  const $x = convertToTensor(x, 'x', 'pad');
-
-  if ($x.rank === 0) {
-    throw new Error('pad(scalar) is not defined. Pass non-scalar to pad');
-  }
-
-  const grad = (dy: T) => {
-    // Pad introduces values around the original tensor, so the gradient
-    // slices the original shape out of the gradient.
-    const begin = paddings.map(p => p[0]);
-    return {x: () => dy.slice(begin, $x.shape)};
-  };
-  const attrs = {paddings, constantValue};
-  return ENGINE.runKernelFunc(
-      backend => backend.pad($x, paddings, constantValue), {x: $x}, grad,
-      'PadV2', attrs);
 }
 
 /**
@@ -725,11 +625,6 @@ export const cast = op({cast_});
 export const cumsum = op({cumsum_});
 export const depthToSpace = op({depthToSpace_});
 export const expandDims = op({expandDims_});
-export const pad = op({pad_});
-export const pad1d = op({pad1d_});
-export const pad2d = op({pad2d_});
-export const pad3d = op({pad3d_});
-export const pad4d = op({pad4d_});
 export const reshape = op({reshape_});
 export const spaceToBatchND = op({spaceToBatchND_});
 export const squeeze = op({squeeze_});

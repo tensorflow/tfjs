@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,12 +15,19 @@
  * =============================================================================
  */
 
-import './broadcast_to';
-import './max';
-import './div';
-import './div_no_nan';
-import './squared_difference';
-import './tile';
-import './one_hot';
-import './transpose';
-import './pad';
+import {Div, DivInputs} from '../../../kernel_names';
+import {KernelConfig} from '../../../kernel_registry';
+import {MathBackendWebGL} from '../backend_webgl';
+import {divImpl} from './Div_impl';
+
+export const divConfig: KernelConfig = {
+  kernelName: Div,
+  backendName: 'webgl',
+  kernelFunc: ({inputs, backend}) => {
+    const {a, b} = inputs as DivInputs;
+
+    const webglBackend = backend as MathBackendWebGL;
+
+    return divImpl(a, b, webglBackend);
+  }
+};

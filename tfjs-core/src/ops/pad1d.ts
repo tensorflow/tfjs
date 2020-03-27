@@ -14,13 +14,22 @@
  * limitations under the License.
  * =============================================================================
  */
+import {Tensor1D} from '../tensor';
+import {TensorLike} from '../types';
+import {assert} from '../util';
+import {op} from './operation';
+import {pad} from './pad';
 
-import './broadcast_to';
-import './max';
-import './div';
-import './div_no_nan';
-import './squared_difference';
-import './tile';
-import './one_hot';
-import './transpose';
-import './pad';
+/**
+ * Pads a `tf.Tensor1D` with a given value and paddings. See `pad` for details.
+ */
+function pad1d_(
+    x: Tensor1D|TensorLike, paddings: [number, number],
+    constantValue = 0): Tensor1D {
+  assert(
+      paddings.length === 2,
+      () => 'Invalid number of paddings. Must be length of 2.');
+  return pad(x, [paddings], constantValue);
+}
+
+export const pad1d = op({pad1d_});
