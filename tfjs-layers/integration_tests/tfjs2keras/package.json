@@ -5,9 +5,9 @@
   "private": false,
   "license": "Apache-2.0 AND MIT",
   "devDependencies": {
-    "@tensorflow/tfjs-core": "1.6.0",
-    "@tensorflow/tfjs-layers": "1.6.0",
-    "@tensorflow/tfjs-node": "1.6.0",
+    "@tensorflow/tfjs-core": "1.7.1",
+    "@tensorflow/tfjs-layers": "1.7.1",
+    "@tensorflow/tfjs-node": "1.7.1",
     "clang-format": "~1.2.2"
   },
   "scripts": {
