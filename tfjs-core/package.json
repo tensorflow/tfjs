@@ -79,7 +79,7 @@
     "@types/offscreencanvas": "~2019.3.0",
     "@types/seedrandom": "2.4.27",
     "@types/webgl-ext": "0.0.30",
-    "@types/webgl2": "0.0.4",
+    "@types/webgl2": "0.0.5",
     "node-fetch": "~2.1.2",
     "seedrandom": "2.4.3"
   },
