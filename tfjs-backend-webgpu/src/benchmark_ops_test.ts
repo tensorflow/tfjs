@@ -89,14 +89,6 @@ describeWebGPU('Ops benchmarks', () => {
         `conv2d${getInputInfo([a, b])}`, () => tf.conv2d(a, b, 1, 'same'));
   });
 
-  fit('conv2d', async () => {
-    const a = tf.randomNormal<tf.Rank.R4>([1, 29, 29, 129]);
-    const b = tf.randomNormal<tf.Rank.R4>([3, 3, 128, 128]);
-
-    await benchmarkAndLog(
-        `conv2d${getInputInfo([a, b])}`, () => tf.conv2d(a, b, 1, 'same'));
-  });
-
   fit('relu', async () => {
     const a = tf.randomNormal([1, 129, 129, 64]);
     await benchmarkAndLog(`relu${getInputInfo([a])}`, () => tf.relu(a));
@@ -156,7 +148,7 @@ describeWebGPU('Ops benchmarks', () => {
     await benchmarkAndLog('posenet_resnet', async () => {
       const pose = await posenetModel.estimateSinglePose(image);
       return pose;
-    }, null, false, 10, 10);
+    }, null, false, 10, 1);
   }, 100000000000000000);
 
   fit('posenet_mobilenet', async () => {
@@ -171,7 +163,7 @@ describeWebGPU('Ops benchmarks', () => {
     await benchmarkAndLog('posenet_mobilenet', async () => {
       const pose = await posenetModel.estimateSinglePose(image);
       return pose;
-    }, null, false, 10, 10);
+    }, null, false, 10, 1);
   }, 100000000000000000);
 
   afterAll(() => {

@@ -98,6 +98,7 @@ export async function benchmark(
     mean: fmt(mean),
     min: fmt(min),
     numTrials: trials,
+    numReps: reps,
     backend: tf.getBackend()
   };
   window.records.push(record);
