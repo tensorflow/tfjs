@@ -180,10 +180,6 @@ export interface OpHandler {
       x: Tensor, axis: number, exclusive: boolean, reverse: boolean): T;
   squeeze<T extends Tensor>(x: Tensor, axis?: number[]): T;
   clone<T extends Tensor>(x: T): T;
-  oneHot(
-      x: Tensor|TensorLike, depth: number, onValue?: number,
-      offValue?: number): Tensor;
-  tile<T extends Tensor>(x: T, reps: number[]): T;
   gather<T extends Tensor>(x: T, indices: Tensor|TensorLike, axis: number): T;
   matMul<T extends Tensor>(
       a: T, b: T|TensorLike, transposeA: boolean, transposeB: boolean): T;
@@ -199,8 +195,6 @@ export interface OpHandler {
   concat<T extends Tensor>(tensors: Array<T|TensorLike>, axis: number): T;
   stack<T extends Tensor>(tensors: Array<T|TensorLike>, axis: number): Tensor;
   unstack<T extends Tensor>(value: T, axis: number): Tensor[];
-  pad<T extends Tensor>(
-      x: T, paddings: Array<[number, number]>, constantValue: number): T;
   batchNorm<R extends Rank>(
       x: Tensor<R>, mean: Tensor<R>|Tensor1D|TensorLike,
       variance: Tensor<R>|Tensor1D|TensorLike,
@@ -229,8 +223,6 @@ export interface OpHandler {
   powStrict<T extends Tensor>(base: T, exp: Tensor|TensorLike): T;
   mul<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   mulStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  div<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
-  divNoNan<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   floorDiv<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   divStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   mod<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
@@ -240,7 +232,6 @@ export interface OpHandler {
   maximum<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   maximumStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   squaredDifferenceStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  transpose<T extends Tensor>(x: T, perm?: number[]): T;
   logicalNot<T extends Tensor>(x: T): T;
   logicalAnd<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   logicalOr<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
@@ -767,12 +758,6 @@ export class Tensor<R extends Rank = Rank> {
     return opHandler.clone(this);
   }
 
-  oneHot(this: Tensor, depth: number, onValue?: number, offValue?: number):
-      Tensor {
-    this.throwIfDisposed();
-    return opHandler.oneHot(this, depth, onValue, offValue);
-  }
-
   /**
    * Returns a human-readable description of the tensor. Useful for logging.
    */
@@ -784,11 +769,6 @@ export class Tensor<R extends Rank = Rank> {
 
   // Below is chain API that is not exposed to docs to avoid repetition. To
   // expose a method, move it above this comment and add @doc and jsdoc.
-
-  tile<T extends this>(this: T, reps: number[]): T {
-    this.throwIfDisposed();
-    return opHandler.tile(this, reps);
-  }
 
   gather<T extends this>(this: T, indices: Tensor|TensorLike, axis = 0): T {
     this.throwIfDisposed();
@@ -836,10 +816,6 @@ export class Tensor<R extends Rank = Rank> {
   }
   unstack(axis = 0): Tensor[] {
     return opHandler.unstack(this, axis);
-  }
-  pad<T extends Tensor>(
-      this: T, paddings: Array<[number, number]>, constantValue = 0): T {
-    return opHandler.pad(this, paddings, constantValue);
   }
   /**
    * @deprecated Use `tf.batchNorm` instead, and note the positional argument
@@ -955,14 +931,6 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.mulStrict(this, x);
   }
-  div<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.div(this, x);
-  }
-  divNoNan<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.divNoNan(this, x);
-  }
   floorDiv<T extends Tensor>(x: Tensor|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.floorDiv(this, x);
@@ -998,10 +966,6 @@ export class Tensor<R extends Rank = Rank> {
   squaredDifferenceStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.squaredDifferenceStrict(this, x);
-  }
-  transpose<T extends Tensor>(this: T, perm?: number[]): T {
-    this.throwIfDisposed();
-    return opHandler.transpose(this, perm);
   }
 
   // Compare ops.

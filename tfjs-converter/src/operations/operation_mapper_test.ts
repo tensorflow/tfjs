@@ -90,7 +90,8 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
       op: 'Const',
       attr: {dtype: {type: tensorflow.DataType.DT_INT32}, value: {i: 1}}
     },
-    {name: 'Fill', op: 'Fill', input: ['Shape', 'Value'], attr: {}}, {
+    {name: 'Fill', op: 'Fill', input: ['Shape', 'Value'], attr: {}},
+    {
       name: 'Conv2D',
       op: 'Conv2D',
       input: ['image_placeholder', 'Const'],
@@ -135,12 +136,19 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
       input: ['image_placeholder'],
       attr: {num_split: {i: 3} as tensorflow.IAttrValue}
     },
-    {name: 'LogicalNot', op: 'LogicalNot', input: ['image_placeholder']}, {
+    {name: 'LogicalNot', op: 'LogicalNot', input: ['image_placeholder']},
+    {
       name: 'FusedBatchNorm',
       op: 'FusedBatchNorm',
       input: ['image_placeholder'],
       attr: {epsilon: {f: 0.0001} as tensorflow.IAttrValue}
-    }
+    },
+    {
+      name: 'Cast2',
+      op: 'Cast',
+      input: ['BiasAdd'],
+      attr: {DstT: {type: tensorflow.DataType.DT_UINT8}}
+    },
   ],
   versions: {producer: 1.0}
 };
@@ -194,7 +202,8 @@ describe('operationMapper without signature', () => {
 
       it('should find the graph output nodes', () => {
         expect(convertedGraph.outputs.map(node => node.name)).toEqual([
-          'Fill', 'Squeeze', 'Squeeze2', 'Split', 'LogicalNot', 'FusedBatchNorm'
+          'Fill', 'Squeeze', 'Squeeze2', 'Split', 'LogicalNot',
+          'FusedBatchNorm', 'Cast2'
         ]);
       });
 
@@ -208,7 +217,7 @@ describe('operationMapper without signature', () => {
         expect(Object.keys(convertedGraph.nodes)).toEqual([
           'image_placeholder', 'Const', 'Shape', 'Value', 'Fill', 'Conv2D',
           'BiasAdd', 'Cast', 'Squeeze', 'Squeeze2', 'Split', 'LogicalNot',
-          'FusedBatchNorm'
+          'FusedBatchNorm', 'Cast2'
         ]);
       });
     });
@@ -305,7 +314,7 @@ describe('operationMapper with signature', () => {
         expect(Object.keys(convertedGraph.nodes)).toEqual([
           'image_placeholder', 'Const', 'Shape', 'Value', 'Fill', 'Conv2D',
           'BiasAdd', 'Cast', 'Squeeze', 'Squeeze2', 'Split', 'LogicalNot',
-          'FusedBatchNorm'
+          'FusedBatchNorm', 'Cast2'
         ]);
       });
     });
@@ -361,6 +370,10 @@ describe('operationMapper with signature', () => {
       });
       it('should map params with int64 dtype', () => {
         expect(convertedGraph.nodes['Cast'].attrParams['dtype'].value)
+            .toEqual('int32');
+      });
+      it('should map params with uint8 dtype', () => {
+        expect(convertedGraph.nodes['Cast2'].attrParams['dtype'].value)
             .toEqual('int32');
       });
     });
