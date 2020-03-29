@@ -37,7 +37,7 @@ window.records = [];
 // allows the cost of endTrial() to be amortized across the many iterations.
 export async function benchmark(
     name: string, doRep: (r: number) => any, endTrial?: () => Promise<void>,
-    disposeAfterEachTrial = false, trials = 50, reps = 1) {
+    disposeAfterEachTrial = false, trials = 20, reps = 20) {
   const times = [];
 
   let toDispose: tf.Tensor[] = [];
@@ -86,6 +86,8 @@ export async function benchmark(
     }
   }
 
+  dispose();
+
   const mean = times.reduce((a, b) => a + b, 0) / trials;
   const min = Math.min(...times);
   const fmt = (n: number) => n.toFixed(3);
@@ -105,7 +107,7 @@ export async function benchmark(
 
 export async function benchmarkAndLog(
     name: string, doRep: (r: number) => any, endTrial?: () => Promise<void>,
-    disposeAfterEachTrial = false, trials = 50, reps = 1) {
+    disposeAfterEachTrial = false, trials = 20, reps = 20) {
   await benchmark(name, doRep, endTrial, disposeAfterEachTrial, trials, reps);
   tf.setBackend('webgpu');
   await benchmark(name, doRep, endTrial, disposeAfterEachTrial, trials, reps);
