@@ -125,7 +125,9 @@ async function main() {
 
     console.log(chalk.magenta.bold(`~~~ Publishing ${pkg} to npm ~~~`));
     shell.cd(pkg);
-    $('YARN_REGISTRY="https://registry.npmjs.org/" yarn publish');
+    const otp =
+      await question(`Enter one-time password from your authenticator: `);
+    $(`NPM_CONFIG_REGISTRY="https://registry.npmjs.org/" npm publish --otp=${otp}`);
     console.log(`Yay! Published ${pkg} to npm.`);
 
     shell.cd('..');

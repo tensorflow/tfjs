@@ -30,6 +30,7 @@ import * as axis_util from '../../ops/axis_util';
 import {complex, imag, real} from '../../ops/complex_ops';
 import {computeOutShape} from '../../ops/concat_util';
 import {Conv2DInfo, Conv3DInfo} from '../../ops/conv_util';
+import {div} from '../../ops/div';
 import {Activation, FusedBatchMatMulConfig, FusedConv2DConfig} from '../../ops/fused_util';
 import * as gather_nd_util from '../../ops/gather_nd_util';
 import * as reduce_util from '../../ops/reduce_util';
@@ -38,6 +39,7 @@ import * as segment_util from '../../ops/segment_util';
 import * as slice_util from '../../ops/slice_util';
 import {softmax} from '../../ops/softmax';
 import {range, scalar, tensor} from '../../ops/tensor_ops';
+import {transpose} from '../../ops/transpose';
 import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../../tensor';
 import {BackendValues, DataType, DataTypeMap, NumericDataType, Rank, RecursiveArray, ShapeMap, sumOutType, TypedArray, upcastType} from '../../types';
 import * as util from '../../util';
@@ -124,8 +126,6 @@ import * as tex_util from './tex_util';
 import {TextureData, TextureUsage} from './tex_util';
 import {TextureManager} from './texture_manager';
 import {TileProgram} from './tile_gpu';
-import {TransposeProgram} from './transpose_gpu';
-import {TransposePackedProgram} from './transpose_packed_gpu';
 import * as unary_op from './unaryop_gpu';
 import {UnaryOpProgram} from './unaryop_gpu';
 import * as unary_packed_op from './unaryop_packed_gpu';
@@ -652,12 +652,13 @@ export class MathBackendWebGL extends KernelBackend {
   TODO(https://github.com/tensorflow/tfjs/issues/872): Develop a more
   sustainable strategy for optimizing backend execution of ops.
    */
-  private shouldExecuteOnCPU(
-      inputs: Tensor[], sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
+  shouldExecuteOnCPU(
+      inputs: TensorInfo[],
+      sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
     return this.getCPUBackend() != null &&
         inputs.every(
             input => this.texData.get(input.dataId).texture == null &&
-                input.size < sizeThreshold);
+                util.sizeFromShape(input.shape) < sizeThreshold);
   }
 
   getGPGPUContext(): GPGPUContext {
@@ -820,10 +821,10 @@ export class MathBackendWebGL extends KernelBackend {
     if ((outerShapeA === 1 || outerShapeB === 1) &&
         sharedDim > MATMUL_SHARED_DIM_THRESHOLD) {
       if (transposeA) {
-        a = a.transpose([0, 2, 1]);
+        a = transpose(a, [0, 2, 1]);
       }
       if (transposeB) {
-        b = b.transpose([0, 2, 1]);
+        b = transpose(b, [0, 2, 1]);
       }
 
       const a3D = outerShapeB === 1 ? a : a.as3D(batch, sharedDim, 1);
@@ -968,16 +969,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  transpose<T extends Tensor>(x: T, perm: number[]): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.transpose(x, perm);
-    }
-    const program = env().getBool('WEBGL_PACK_ARRAY_OPERATIONS') ?
-        new TransposePackedProgram(x.shape, perm) :
-        new TransposeProgram(x.shape, perm);
-    return this.compileAndRun(program, [x]);
-  }
-
   gather<T extends Tensor>(x: T, indices: Tensor1D, axis: number): T {
     if (this.shouldExecuteOnCPU([x, indices])) {
       return this.cpuBackend.gather(x, indices, axis);
@@ -1004,8 +995,7 @@ export class MathBackendWebGL extends KernelBackend {
     const sliceSize =
         array_ops_util.getSliceSize(reshapedPermuted, crops, blockShape.length);
 
-    return x.reshape(reshaped)
-               .transpose(permuted)
+    return transpose(x.reshape(reshaped), permuted)
                .reshape(reshapedPermuted)
                .slice(sliceBeginCoords, sliceSize) as T;
   }
@@ -1036,8 +1026,9 @@ export class MathBackendWebGL extends KernelBackend {
     const flattenShape = array_ops_util.getReshapedPermuted(
         paddedX.shape, blockShape, prod, false);
 
-    return paddedX.reshape(reshapedPaddedShape)
-               .transpose(permutedReshapedPaddedPermutation)
+    return transpose(
+               paddedX.reshape(reshapedPaddedShape),
+               permutedReshapedPaddedPermutation)
                .reshape(flattenShape) as T;
   }
 
@@ -1126,7 +1117,7 @@ export class MathBackendWebGL extends KernelBackend {
     const permutation = axis_util.getAxesPermutation([axis], x.rank);
     let permutedX = x;
     if (permutation != null) {
-      permutedX = x.transpose(permutation);
+      permutedX = transpose(x, permutation);
       axis = axis_util.getInnerMostAxes(1, x.rank)[0];
     }
 
@@ -1140,7 +1131,7 @@ export class MathBackendWebGL extends KernelBackend {
                 a2D, 'unsortedSegmentSum', segmentIds, outputDType, numSegments)
             .reshape(outShape);
     if (permutation != null) {
-      result = result.transpose(axis_util.getUndoAxesPermutation(permutation));
+      result = transpose(result, axis_util.getUndoAxesPermutation(permutation));
     }
     return result;
   }
@@ -1372,18 +1363,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.reduce(a2D, 'any', a2D.dtype).reshape(outShape);
   }
 
-  realDivide(a: Tensor, b: Tensor): Tensor {
-    const op = binaryop_gpu.DIV;
-    const outputDtype = 'float32';
-    if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-      const checkOutOfBounds = true;
-      return this.packedBinaryOp(
-          a, b, binaryop_packed_gpu.DIV, outputDtype, checkOutOfBounds);
-    }
-    const program = new BinaryOpProgram(op, a.shape, b.shape);
-    return this.compileAndRun<Tensor>(program, [a, b], outputDtype);
-  }
-
   floorDiv(a: Tensor, b: Tensor): Tensor {
     const op = binaryop_gpu.INT_DIV;
     const outputDtype = 'int32';
@@ -1597,7 +1576,9 @@ export class MathBackendWebGL extends KernelBackend {
     const b = this.exp(a);
     const sumExp = this.sum(b, axes).reshape(expandedShape);
 
-    return this.realDivide(b, sumExp) as T;
+    // TODO(annxingyuan): Call divImpl rather than op as part of softmax kernel
+    // modularization.
+    return div(b, sumExp);
   }
 
   log<T extends Tensor>(x: T): T {

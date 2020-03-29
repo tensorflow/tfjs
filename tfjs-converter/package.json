@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-converter",
-  "version": "1.7.0",
+  "version": "0.0.0",
   "description": "Tensorflow model converter for javascript",
   "main": "dist/index.js",
   "jsnext:main": "dist/tf-converter.esm.js",
@@ -63,6 +63,7 @@
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
+    "publish-npm": "npm publish",
     "test": "yarn && yarn build-deps && yarn gen-json --test && ts-node run_tests.ts",
     "test-ci": "yarn && yarn build-deps-ci && yarn build-ci && yarn lint && ts-node run_tests.ts",
     "test-snippets": "ts-node ./scripts/test_snippets.ts",
