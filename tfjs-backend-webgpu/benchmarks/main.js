@@ -43,8 +43,8 @@ while (daysElapsed / interval > MAX_NUM_LOGS) {
   interval += 1;
 }
 
-for (let i = daysElapsed; i >= 0; i -= interval) {
-  const current = startDate.clone().add(i, 'days');
+for(let i=0; i<=daysElapsed; i+= interval) {
+  const current = endDate.clone().subtract(i, 'days');
   files.unshift(`${current.format('MM_DD_YYYY')}`);
   dateFormats.unshift(current.format('M/DD'));
 }
