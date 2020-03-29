@@ -29,19 +29,23 @@ const strokes = {
   'webgl_mean': '0'
 };
 
-const MAX_NUM_LOGS = 50;
-// const START_LOGGING_DATE = '2019-08-16';
-const START_LOGGING_DATE = '2019-11-16';
-const startDate = moment(START_LOGGING_DATE, 'YYYY-MM-DD');
 const endDate = moment();
 const files = [];
 let dateFormats = [];
-const daysElapsed = endDate.diff(startDate, 'd');
-let interval = 1;
 
-while (daysElapsed / interval > MAX_NUM_LOGS) {
-  interval += 1;
-}
+// const MAX_NUM_LOGS = 50;
+// const START_LOGGING_DATE = '2019-08-16';
+// const START_LOGGING_DATE = '2019-11-16';
+// const startDate = moment(START_LOGGING_DATE, 'YYYY-MM-DD');
+// const daysElapsed = endDate.diff(startDate, 'd');
+// let interval = 1;
+
+// while (daysElapsed / interval > MAX_NUM_LOGS) {
+//   interval += 1;
+// }
+
+const interval = 2; // days
+const daysElapsed = 50;
 
 for(let i=0; i<=daysElapsed; i+= interval) {
   const current = endDate.clone().subtract(i, 'days');
@@ -75,7 +79,6 @@ Promise
       dateFormats = dateFormats.filter((d, i) => responses[i] != null);
 
       const processedResponses = [];
-
       const state = {'activeTarget': 0, 'activeTest': 0};
 
       for (let i = 0; i < responses.length; i++) {
@@ -86,7 +89,7 @@ Promise
 
         for (let idx = 0; idx < response.length; idx++) {
           const {backend, min, mean} = response[idx];
-          let name = response[idx]['name'];
+          let name = response[idx]['name'].replace(/ /g, '_');
           if(name === 'posenet') { // Merge posenet and posenet_resnet records.
             name = 'posenet_resnet';
           }
@@ -148,7 +151,12 @@ Promise
           panel.classList.add('is-active');
         }
 
-        target.tests.filter(test => test.entries.length > 1)
+        target.tests.filter(test => test.entries.length > 1).sort((a, b) => {
+          if (a.name < b.name) {
+            return -1;
+          }
+          return 1;
+        })
             .forEach((test, i) => {
               const params = test.entries.reduce((acc, curr) => {
                 curr.params.forEach(param => {
@@ -198,7 +206,7 @@ Promise
                 <div class='y-max'>${max}ms</div>
                 <div class='y-min'>${min}ms</div>
               </div>
-              <svg data-index=${i} class='graph' width='${
+              <svg data-index=${test.name} class='graph' width='${
                       chartWidth}' height='${chartHeight}'>${
                       Object.keys(params).map(
                           (param, i) => `<path stroke-dasharray='${
@@ -248,10 +256,9 @@ Promise
 
         document.addEventListener('mousemove', e => {  // handle hovering
           if (e.target.classList.contains('graph')) {
-            state.activeTest = +e.target.getAttribute('data-index');
+            state.activeTest = e.target.getAttribute('data-index');
 
-            const entries =
-                data[state.activeTarget].tests[state.activeTest].entries;
+            const entries = data[state.activeTarget].tests.find(d => d.name === state.activeTest).entries;
 
             const left = e.clientX - graphOffsetLeft;
             const entryIndex = Math.max(
