@@ -50,4 +50,4 @@ ENV.registerFlag('WEBGPU_CONV_SEPARATE_IM2COL_SHADER', () => false);
  * Whether we use low power GPU. Otherwise, a high performance GPU will be
  * requested.
  */
-ENV.registerFlag('WEBGPU_USE_LOW_POWER_GPU', () => false);
+ENV.registerFlag('WEBGPU_USE_LOW_POWER_GPU', () => true);
