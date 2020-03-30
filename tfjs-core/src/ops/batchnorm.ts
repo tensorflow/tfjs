@@ -103,9 +103,8 @@ function batchNorm_<R extends Rank>(
 
   const forward: ForwardFunc<Tensor> = (backend, save) => {
     const res = backend.batchNormalization(
-        x4D, batchnormReshape4D($mean), batchnormReshape4D($variance),
-        varianceEpsilon, batchnormReshape4D($scale),
-        batchnormReshape4D($offset));
+        x4D, as1DOr4D($mean), as1DOr4D($variance), varianceEpsilon,
+        as1DOr4D($scale), as1DOr4D($offset));
     save([$x, $mean, $variance, $scale]);
     return res;
   };
@@ -122,7 +121,7 @@ function batchNorm_<R extends Rank>(
   return res.reshape($x.shape);
 }
 
-function batchnormReshape4D(x: Tensor): Tensor4D|Tensor1D {
+function as1DOr4D(x: Tensor): Tensor4D|Tensor1D {
   if (x == null) {
     return null;
   }
