@@ -82,6 +82,12 @@ export interface OneHotAttrs {
   offValue: number;
 }
 
+export const Gather = 'Gather';
+export type GatherInputs = Pick<NamedTensorInfoMap, 'x'|'indices'>;
+export interface GatherAttrs {
+  axis: number;
+}
+
 export const Identity = 'Identity';
 export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
 

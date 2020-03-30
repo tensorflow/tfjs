@@ -14,16 +14,21 @@
  * limitations under the License.
  * =============================================================================
  */
-import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
-import {gatherConfig} from './kernels/Gather';
-import {squareConfig} from './kernels/Square';
-import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {Gather, GatherAttrs, GatherInputs, KernelConfig, Tensor1D} from '@tensorflow/tfjs-core';
+import {MathBackendWebGL} from '../backend_webgl';
+import {GatherProgram} from '../gather_gpu';
 
-// List all kernel configs here
-const kernelConfigs: KernelConfig[] =
-    [squareConfig, squaredDifferenceConfig, gatherConfig];
-
-for (const kernelConfig of kernelConfigs) {
-  registerKernel(kernelConfig);
-}
+export const gatherConfig: KernelConfig = {
+  kernelName: Gather,
+  backendName: 'webgl',
+  kernelFunc: ({inputs, attrs, backend}) => {
+    const {x, indices} = inputs as GatherInputs;
+    const {axis} = attrs as unknown as GatherAttrs;
+    const webglBackend = backend as MathBackendWebGL;
+    const program =
+        new GatherProgram(x.shape, (indices as Tensor1D).size, axis);
+    return webglBackend.runWebGLProgram(
+        program, [x, (indices as Tensor1D).flatten()], x.dtype);
+  }
+};
