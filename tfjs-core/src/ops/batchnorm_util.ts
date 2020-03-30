@@ -14,13 +14,11 @@
  * limitations under the License.
  * =============================================================================
  */
+import {deprecationWarn} from '../globals';
 
-import './broadcast_to';
-import './div';
-import './div_no_nan';
-import './squared_difference';
-import './tile';
-import './one_hot';
-import './transpose';
-import './pad';
-import './batchnorm';
+export function warnDeprecation() {
+  deprecationWarn(
+    'tf.batchNormalization() is going away. ' +
+    'Use tf.batchNorm() instead, and note the positional argument change ' +
+    'of scale, offset, and varianceEpsilon');
+}
