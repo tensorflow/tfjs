@@ -21,22 +21,22 @@ import {convertToTensor} from '../tensor_util_env';
 import {Rank, ShapeMap, TensorLike} from '../types';
 import * as util from '../util';
 
+import {warnDeprecation} from './batchnorm_util';
 import {getReductionAxes} from './broadcast_util';
 import {op} from './operation';
 import {scalar} from './tensor_ops';
 import {tile} from './tile';
 import {rsqrt} from './unary_ops';
-import {warnDeprecation} from './batchnorm_util';
 
 /**
  * @deprecated Please use `tf.batchNorm` instead and note the positional
  *     argument change of scale, offset, and varianceEpsilon.
  */
 function batchNormalization_<R extends Rank>(
-  x: Tensor<R> | TensorLike, mean: Tensor<R> | Tensor1D | TensorLike,
-  variance: Tensor<R> | Tensor1D | TensorLike, varianceEpsilon = .001,
-  scale?: Tensor<R> | Tensor1D | TensorLike,
-  offset?: Tensor<R> | Tensor1D | TensorLike): Tensor<R> {
+    x: Tensor<R>|TensorLike, mean: Tensor<R>|Tensor1D|TensorLike,
+    variance: Tensor<R>|Tensor1D|TensorLike, varianceEpsilon = .001,
+    scale?: Tensor<R>|Tensor1D|TensorLike,
+    offset?: Tensor<R>|Tensor1D|TensorLike): Tensor<R> {
   warnDeprecation();
   return batchNorm_(x, mean, variance, offset, scale, varianceEpsilon);
 }
@@ -67,38 +67,38 @@ function batchNormalization_<R extends Rank>(
  */
 /** @doc {heading: 'Operations', subheading: 'Normalization'} */
 function batchNorm_<R extends Rank>(
-  x: Tensor<R> | TensorLike, mean: Tensor<R> | Tensor1D | TensorLike,
-  variance: Tensor<R> | Tensor1D | TensorLike,
-  offset?: Tensor<R> | Tensor1D | TensorLike,
-  scale?: Tensor<R> | Tensor1D | TensorLike,
-  varianceEpsilon?: number): Tensor<R> {
+    x: Tensor<R>|TensorLike, mean: Tensor<R>|Tensor1D|TensorLike,
+    variance: Tensor<R>|Tensor1D|TensorLike,
+    offset?: Tensor<R>|Tensor1D|TensorLike,
+    scale?: Tensor<R>|Tensor1D|TensorLike,
+    varianceEpsilon?: number): Tensor<R> {
   if (varianceEpsilon == null) {
     varianceEpsilon = 0.001;
   }
   const $x = convertToTensor(x, 'x', 'batchNorm');
   const $mean = convertToTensor(mean, 'mean', 'batchNorm');
   const $variance = convertToTensor(variance, 'variance', 'batchNorm');
-  let $scale: Tensor<R> | Tensor1D;
+  let $scale: Tensor<R>|Tensor1D;
   if (scale != null) {
     $scale = convertToTensor(scale, 'scale', 'batchNorm');
   }
-  let $offset: Tensor<R> | Tensor1D;
+  let $offset: Tensor<R>|Tensor1D;
   if (offset != null) {
     $offset = convertToTensor(offset, 'offset', 'batchNorm');
   }
 
   util.assert(
-    $mean.rank === $variance.rank,
-    () => 'Batch normalization gradient requires mean and variance to have ' +
-      'equal ranks.');
+      $mean.rank === $variance.rank,
+      () => 'Batch normalization gradient requires mean and variance to have ' +
+          'equal ranks.');
   util.assert(
-    $offset == null || $mean.rank === $offset.rank,
-    () => 'Batch normalization gradient requires mean and offset to have ' +
-      'equal ranks.');
+      $offset == null || $mean.rank === $offset.rank,
+      () => 'Batch normalization gradient requires mean and offset to have ' +
+          'equal ranks.');
   util.assert(
-    $scale == null || $mean.rank === $scale.rank,
-    () => 'Batch normalization gradient requires mean and scale to have ' +
-      'equal ranks.');
+      $scale == null || $mean.rank === $scale.rank,
+      () => 'Batch normalization gradient requires mean and scale to have ' +
+          'equal ranks.');
 
   let x4D: Tensor4D;
   if ($x.rank === 0 || $x.rank === 1) {
@@ -113,7 +113,7 @@ function batchNorm_<R extends Rank>(
 
   const der = (dy: Tensor, saved: Tensor[]) => {
     type Saved = [
-      Tensor<R>, Tensor<R> | Tensor1D, Tensor<R> | Tensor1D, Tensor<R> | Tensor1D
+      Tensor<R>, Tensor<R>| Tensor1D, Tensor<R>| Tensor1D, Tensor<R>| Tensor1D
     ];
     const [$x, $mean, $variance, $scale] = saved as Saved;
     const scaleValue = $scale == null ? scalar(1) : $scale;
@@ -130,16 +130,16 @@ function batchNorm_<R extends Rank>(
     const dyTimesScaleValue = dy.mul(scaleValue);
     const oneOverSqrtVariance = rsqrt($variance.add(scalar(varianceEpsilon)));
     const minusHalfRCube = oneOverSqrtVariance.mul(oneOverSqrtVariance)
-      .mul(oneOverSqrtVariance)
-      .mul(scalar(-0.5));
+                               .mul(oneOverSqrtVariance)
+                               .mul(scalar(-0.5));
 
     const derX = () => {
       if ($mean.rank === 1) {
         return dy
-          .mul(tile(
-            oneOverSqrtVariance.as4D(1, 1, 1, $mean.shape[0]), tileShape))
-          .mul(scaleValue)
-          .reshape($x.shape);
+            .mul(tile(
+                oneOverSqrtVariance.as4D(1, 1, 1, $mean.shape[0]), tileShape))
+            .mul(scaleValue)
+            .reshape($x.shape);
       } else {
         return dy.mul(oneOverSqrtVariance).mul(scaleValue).reshape($x.shape);
       }
@@ -185,20 +185,20 @@ function batchNorm_<R extends Rank>(
   const inputsToSave = [$x, $mean, $variance, $scale];
 
   const res = ENGINE.runKernelFunc(
-    (backend, save) => {
-      const res = backend.batchNormalization(
-        x4D, batchnormReshape4D($mean), batchnormReshape4D($variance),
-        varianceEpsilon, batchnormReshape4D($scale),
-        batchnormReshape4D($offset));
-      save([$x, $mean, $variance, $scale]);
-      return res;
-    },
-    {x: $x, mean: $mean, variance: $variance, scale: $scale, offset: $offset},
-    der, 'BatchNormalization', {varianceEpsilon}, inputsToSave);
+      (backend, save) => {
+        const res = backend.batchNormalization(
+            x4D, batchnormReshape4D($mean), batchnormReshape4D($variance),
+            varianceEpsilon, batchnormReshape4D($scale),
+            batchnormReshape4D($offset));
+        save([$x, $mean, $variance, $scale]);
+        return res;
+      },
+      {x: $x, mean: $mean, variance: $variance, scale: $scale, offset: $offset},
+      der, 'BatchNormalization', {varianceEpsilon}, inputsToSave);
   return res.reshape($x.shape);
 }
 
-function batchnormReshape4D(x: Tensor): Tensor4D | Tensor1D {
+function batchnormReshape4D(x: Tensor): Tensor4D|Tensor1D {
   if (x == null) {
     return null;
   }
