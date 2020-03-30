@@ -90,7 +90,6 @@ import {EncodeMatrixPackedProgram} from './encode_matrix_packed_gpu';
 import * as fft_gpu from './fft_gpu';
 import {FFTProgram} from './fft_gpu';
 import {FillProgram} from './fill_gpu';
-import {GatherProgram} from './gather_gpu';
 import {GatherNDProgram} from './gather_nd_gpu';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
@@ -967,14 +966,6 @@ export class MathBackendWebGL extends KernelBackend {
         new PadPackedProgram(x.shape, paddings, constantValue) :
         new PadProgram(x.shape, paddings, constantValue);
     return this.compileAndRun(program, [x]);
-  }
-
-  gather<T extends Tensor>(x: T, indices: Tensor1D, axis: number): T {
-    if (this.shouldExecuteOnCPU([x, indices])) {
-      return this.cpuBackend.gather(x, indices, axis);
-    }
-    const program = new GatherProgram(x.shape, indices.size, axis);
-    return this.compileAndRun(program, [x, indices]);
   }
 
   batchToSpaceND<T extends Tensor>(

@@ -21,7 +21,6 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assert, isInt, parseAxisParam} from '../util';
 import {expandDims} from './array_ops';
-import {getUndoAxesPermutation} from './axis_util';
 import {maximum} from './binary_ops';
 import {greaterEqual} from './compare';
 import {logicalAnd, where} from './logical_ops';
@@ -95,65 +94,15 @@ function gather_<T extends Tensor>(
   axis = parseAxisParam(axis, $x.shape)[0];
   const shapeInfo = collectGatherOpShapeInfo($x, $indices, axis);
 
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [$indices] = saved;
-    const derX = () => {
-      const paramsShape = $x.shape;
-      const indicesSize = $indices.size;
-
-      const outerShape = paramsShape.slice(0, axis);
-      const outerDims = outerShape.length;
-      const innerShape = paramsShape.slice(axis, paramsShape.length).slice(1);
-      const innerDims = innerShape.length;
-
-      const outerAxesIndices = arrayRange(0, outerDims);
-      const innerAxesIndices =
-          arrayRange(outerDims + 1, outerDims + 1 + innerDims);
-
-      const valuesShape = arrayConcat([outerShape, [indicesSize], innerShape]);
-
-      const values = dy.reshape(valuesShape);
-      const reshapedIndices = $indices.reshape([indicesSize]);
-
-      const transposeDims =
-          arrayConcat([[outerDims], outerAxesIndices, innerAxesIndices]);
-      const valuesTranspose = values.transpose(transposeDims);
-      let paramsGrad = unsortedSegmentSum(
-          valuesTranspose, reshapedIndices as Tensor1D, $x.shape[axis]);
-
-      const invertTransposeDims = getUndoAxesPermutation(transposeDims);
-      paramsGrad = paramsGrad.transpose(invertTransposeDims);
-
-      return paramsGrad as T;
-    };
-    return {x: derX, indices: () => $indices};
-  };
+  const attrs = {axis};
   return (ENGINE.runKernelFunc(
               (backend, save) => {
                 const res = backend.gather($x, $indices.flatten(), axis);
-                save([$indices]);
+                save([$x, $indices]);
                 return res;
               },
-              {x: $x, indices: $indices}, grad, 'Gather', {axis}))
+              {x: $x, indices: $indices}, null /*grad*/, 'Gather', attrs))
              .reshape(shapeInfo.outputShape) as T;
-}
-
-function arrayRange(start: number, stop: number): number[] {
-  const result = [];
-  for (let i = start; i < stop; ++i) {
-    result.push(i);
-  }
-  return result;
-}
-
-function arrayConcat(arrays: number[][]): number[] {
-  const result = [];
-  for (let i = 0; i < arrays.length; ++i) {
-    for (let j = 0; j < arrays[i].length; ++j) {
-      result.push(arrays[i][j]);
-    }
-  }
-  return result;
 }
 
 function gatherDropNegatives<T extends Tensor>(x: T, indices: Tensor1D) {

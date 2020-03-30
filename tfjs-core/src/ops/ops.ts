@@ -38,6 +38,7 @@ export {rand} from './rand';
 export {randomGamma} from './random_gamma';
 export {randomNormal} from './random_normal';
 export {randomUniform} from './random_uniform';
+export {gather} from './segment_ops';
 export {square} from './square';
 export {squaredDifference} from './squared_difference';
 export {sub} from './sub';
