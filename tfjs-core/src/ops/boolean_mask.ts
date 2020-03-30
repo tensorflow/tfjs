@@ -19,9 +19,8 @@ import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
-
+import {gather} from './gather';
 import {whereAsync} from './logical_ops';
-import {gather} from './segment_ops';
 
 /**
  * Apply boolean mask to tensor.

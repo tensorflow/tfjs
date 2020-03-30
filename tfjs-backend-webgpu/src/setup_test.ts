@@ -210,6 +210,14 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'gather',
+    excludes: [
+      'bool (gather)',  // Actual != expected.
+      'gradient',       // unsortedSegmentSum not yet implemented.
+      'gatherND',       // gatherND not yet implemented.
+    ]
+  },
+  {
     include: 'maxPool',
     excludes: [
       'maxPoolBackprop',   // Not yet implemented.
