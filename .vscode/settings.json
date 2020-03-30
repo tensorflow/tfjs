@@ -18,8 +18,7 @@
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
   "[typescript]": {
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "xaver.clang-format"
+    "editor.formatOnSave": true
   },
   "[javascript]": {
     "editor.formatOnSave": true
