@@ -54,7 +54,6 @@ steps:
   id: 'tfjs'
   args: ['./scripts/run-build.sh', 'tfjs']
   waitFor: ['find-affected-packages']
-  env: ['NIGHTLY=$_NIGHTLY']
 
 # Vis.
 - name: 'gcr.io/cloud-builders/gcloud'
