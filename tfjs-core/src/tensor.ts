@@ -195,8 +195,6 @@ export interface OpHandler {
   concat<T extends Tensor>(tensors: Array<T|TensorLike>, axis: number): T;
   stack<T extends Tensor>(tensors: Array<T|TensorLike>, axis: number): Tensor;
   unstack<T extends Tensor>(value: T, axis: number): Tensor[];
-  pad<T extends Tensor>(
-      x: T, paddings: Array<[number, number]>, constantValue: number): T;
   batchNorm<R extends Rank>(
       x: Tensor<R>, mean: Tensor<R>|Tensor1D|TensorLike,
       variance: Tensor<R>|Tensor1D|TensorLike,
@@ -234,7 +232,6 @@ export interface OpHandler {
   maximum<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   maximumStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   squaredDifferenceStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  transpose<T extends Tensor>(x: T, perm?: number[]): T;
   logicalNot<T extends Tensor>(x: T): T;
   logicalAnd<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   logicalOr<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
@@ -820,10 +817,6 @@ export class Tensor<R extends Rank = Rank> {
   unstack(axis = 0): Tensor[] {
     return opHandler.unstack(this, axis);
   }
-  pad<T extends Tensor>(
-      this: T, paddings: Array<[number, number]>, constantValue = 0): T {
-    return opHandler.pad(this, paddings, constantValue);
-  }
   /**
    * @deprecated Use `tf.batchNorm` instead, and note the positional argument
    *     change of scale, offset, and varianceEpsilon.
@@ -973,10 +966,6 @@ export class Tensor<R extends Rank = Rank> {
   squaredDifferenceStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.squaredDifferenceStrict(this, x);
-  }
-  transpose<T extends Tensor>(this: T, perm?: number[]): T {
-    this.throwIfDisposed();
-    return opHandler.transpose(this, perm);
   }
 
   // Compare ops.

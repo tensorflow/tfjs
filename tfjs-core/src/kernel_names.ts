@@ -32,6 +32,12 @@ export type SquaredDifferenceInputs = BinaryInputs;
 export const Square = 'Square';
 export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
 
+export const Transpose = 'Transpose';
+export type TransposeInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface TransposeAttrs {
+  perm: number[];
+}
+
 export const NonMaxSuppressionV5 = 'NonMaxSuppressionV5';
 export type NonMaxSuppressionV5Inputs =
     Pick<NamedTensorInfoMap, 'boxes'|'scores'>;
@@ -64,6 +70,13 @@ export const Tile = 'Tile';
 export type TileInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface TileAttrs {
   reps: number[];
+}
+
+export const PadV2 = 'PadV2';
+export type PadV2Inputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface PadV2Attrs {
+  paddings: Array<[number, number]>;
+  constantValue: number;
 }
 
 /**

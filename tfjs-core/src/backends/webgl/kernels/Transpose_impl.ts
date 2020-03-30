@@ -14,25 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
-import {KernelConfig, registerKernel} from '../../kernel_registry';
 
-import {divConfig} from './kernels/Div';
-import {fromPixelsConfig} from './kernels/FromPixels';
-import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
-import {squareConfig} from './kernels/Square';
-import {squaredDifferenceConfig} from './kernels/SquaredDifference';
-import {transposeConfig} from './kernels/Transpose';
+import {env} from '../../../environment';
+import {TensorInfo} from '../../../kernel_registry';
+import {MathBackendWebGL} from '../backend_webgl';
+import {TransposeProgram} from '../transpose_gpu';
+import {TransposePackedProgram} from '../transpose_packed_gpu';
 
-// List all kernel configs here
-const kernelConfigs: KernelConfig[] = [
-  fromPixelsConfig,
-  divConfig,
-  nonMaxSuppressionV5Config,
-  squareConfig,
-  squaredDifferenceConfig,
-  transposeConfig,
-];
-
-for (const kernelConfig of kernelConfigs) {
-  registerKernel(kernelConfig);
+export function transposeImpl(
+    x: TensorInfo, perm: number[], backend: MathBackendWebGL): TensorInfo {
+  const program = env().getBool('WEBGL_PACK_ARRAY_OPERATIONS') ?
+      new TransposePackedProgram(x.shape, perm) :
+      new TransposeProgram(x.shape, perm);
+  return backend.runWebGLProgram(program, [x], x.dtype);
 }
