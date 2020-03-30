@@ -21,6 +21,13 @@
 import {NamedTensorInfoMap} from './kernel_registry';
 import {PixelData} from './types';
 
+export const BatchNormalization = 'BatchNormalization';
+export type BatchNormalizationInputs =
+    Pick<NamedTensorInfoMap, 'x'|'scale'|'offset'|'mean'|'variance'>;
+export interface BatchNormalizationAttrs {
+  varianceEpsilon: number;
+}
+
 export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 
 export const Div = 'Div';
