@@ -47,7 +47,6 @@
     "upload-windows-addon": "./scripts/build-and-upload-windows-addon.bat"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-layers": "link:../tfjs-layers",
     "@types/jasmine": "~2.8.6",
     "@types/node": "^10.5.1",
     "@types/progress": "^2.0.1",
@@ -67,7 +66,6 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "link:../tfjs",
-    "@tensorflow/tfjs-core": "link:../tfjs-core",
     "adm-zip": "^0.4.11",
     "google-protobuf": "^3.9.2",
     "https-proxy-agent": "^2.2.1",
