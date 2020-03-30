@@ -15,19 +15,20 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../../engine';
-import * as tf from '../../index';
-import {describeWithFlags} from '../../jasmine_util';
-import {tensor2d} from '../../ops/ops';
-import {expectArraysClose, expectArraysEqual} from '../../test_util';
-import {decodeString} from '../../util';
+import * as tf from '@tensorflow/tfjs-core';
+import {engine, util} from '@tensorflow/tfjs-core';
+
+// tslint:disable-next-line: no-imports-from-dist
+import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+// tslint:disable-next-line: no-imports-from-dist
+import {expectArraysClose, expectArraysEqual} from '@tensorflow/tfjs-core/dist/test_util';
 
 import {MathBackendCPU} from './backend_cpu';
 import {CPU_ENVS} from './backend_cpu_test_registry';
 
 /** Private test util for decoding array of strings in utf-8. */
 function decodeStrings(bytes: Uint8Array[]): string[] {
-  return bytes.map(b => decodeString(b));
+  return bytes.map(b => util.decodeString(b));
 }
 
 describeWithFlags('backendCPU', CPU_ENVS, () => {
@@ -37,7 +38,7 @@ describeWithFlags('backendCPU', CPU_ENVS, () => {
   });
 
   it('register string tensor with values', () => {
-    const t = ENGINE.makeTensor(['a', 'b', 'c'], [3], 'string');
+    const t = engine().makeTensor(['a', 'b', 'c'], [3], 'string');
     expectArraysEqual(
         decodeStrings(backend.readSync(t.dataId) as Uint8Array[]),
         ['a', 'b', 'c']);
@@ -63,8 +64,8 @@ describeWithFlags('depthToSpace', CPU_ENVS, () => {
 
 describeWithFlags('gatherND CPU', CPU_ENVS, () => {
   it('should throw error when index out of range', () => {
-    const indices = tensor2d([0, 2, 99], [3, 1], 'int32');
-    const input = tensor2d(
+    const indices = tf.tensor2d([0, 2, 99], [3, 1], 'int32');
+    const input = tf.tensor2d(
         [100, 101, 102, 777, 778, 779, 10000, 10001, 10002], [3, 3], 'float32');
     expect(() => tf.gatherND(input, indices)).toThrow();
   });

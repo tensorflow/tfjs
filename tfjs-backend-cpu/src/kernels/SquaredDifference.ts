@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,19 +15,14 @@
  * =============================================================================
  */
 
-/**
- * This file is necessary so we register all test environments before we start
- * executing tests.
- */
-import './backends/webgl/backend_webgl_test_registry';
+import {SquaredDifference} from '@tensorflow/tfjs-core';
+import {createBinaryKernelImpl} from '../utils/kernel_utils';
+import {createBinaryKernelConfig} from '../utils/kernel_utils';
 
-import {parseTestEnvFromKarmaFlags, setTestEnvs, TEST_ENVS} from './jasmine_util';
+const squaredDifferenceImpl = createBinaryKernelImpl((aVal, bVal) => {
+  const diff = aVal - bVal;
+  return diff * diff;
+});
 
-// tslint:disable-next-line:no-any
-declare let __karma__: any;
-if (typeof __karma__ !== 'undefined') {
-  const testEnv = parseTestEnvFromKarmaFlags(__karma__.config.args, TEST_ENVS);
-  if (testEnv != null) {
-    setTestEnvs([testEnv]);
-  }
-}
+export const squaredDifferenceConfig =
+    createBinaryKernelConfig(SquaredDifference, squaredDifferenceImpl);

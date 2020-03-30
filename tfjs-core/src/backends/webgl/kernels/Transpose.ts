@@ -16,11 +16,12 @@
  */
 
 import {TypedArray} from '../../../../src/types';
-import {transposeImpl as cpuTranspose} from '../../../backends/cpu/kernels/Transpose_impl';
 import {Transpose, TransposeAttrs, TransposeInputs} from '../../../kernel_names';
 import {KernelConfig, TensorInfo} from '../../../kernel_registry';
 import {MathBackendWebGL} from '../backend_webgl';
+
 import {transposeImpl} from './Transpose_impl';
+import {transposeImplCPU as cpuTranspose} from './Transpose_impl';
 
 export const transposeConfig: KernelConfig = {
   kernelName: Transpose,

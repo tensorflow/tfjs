@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import {Transpose, TransposeAttrs, TransposeInputs} from '../../../kernel_names';
-import {KernelConfig} from '../../../kernel_registry';
-import {TypedArray} from '../../../types';
+import {KernelConfig, TypedArray} from '@tensorflow/tfjs-core';
+
+import {Transpose, TransposeAttrs, TransposeInputs} from '@tensorflow/tfjs-core';
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 

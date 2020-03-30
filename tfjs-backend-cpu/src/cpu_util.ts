@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,8 +15,18 @@
  * =============================================================================
  */
 
-import {Div} from '../../../kernel_names';
-import {createBinaryKernelConfig} from '../utils/kernel_utils';
-import {divImpl} from './Div_impl';
+import {TensorInfo, util} from '@tensorflow/tfjs-core';
 
-export const divConfig = createBinaryKernelConfig(Div, divImpl);
+export function assertNotComplex(
+    tensor: TensorInfo|TensorInfo[], opName: string): void {
+  if (!Array.isArray(tensor)) {
+    tensor = [tensor];
+  }
+  tensor.forEach(t => {
+    if (t != null) {
+      util.assert(
+          t.dtype !== 'complex64',
+          () => `${opName} does not support complex64 tensors.`);
+    }
+  });
+}

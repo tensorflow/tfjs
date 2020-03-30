@@ -377,15 +377,15 @@ export class Engine implements TensorTracker, DataMover {
         `failed.`);
   }
 
-  moveData(destBackend: KernelBackend, dataId: DataId) {
+  moveData(backend: KernelBackend, dataId: DataId) {
     const info = this.state.tensorInfo.get(dataId);
     const srcBackend = info.backend;
     const values = this.readSync(dataId);
     // Delete the tensor from the old backend and move it to the new
     // backend.
     srcBackend.disposeData(dataId);
-    info.backend = destBackend;
-    destBackend.move(dataId, values, info.shape, info.dtype);
+    info.backend = backend;
+    backend.move(dataId, values, info.shape, info.dtype);
     if (this.shouldCheckForMemLeaks()) {
       // Track the number of moves during a kernel execution to correctly
       // detect memory leaks.
