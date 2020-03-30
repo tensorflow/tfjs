@@ -37,4 +37,4 @@ Tensor.prototype.batchNorm = function <R extends Rank>(
   scale?: Tensor<R> | Tensor1D | TensorLike,
   varianceEpsilon?: number): Tensor<R> {
   return batchNorm(this, mean, variance, offset, scale, varianceEpsilon);
-}
+};

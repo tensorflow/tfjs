@@ -36,7 +36,8 @@ import {warnDeprecation} from './batchnorm_util';
 function batchNorm4d_(
   x: Tensor4D | TensorLike, mean: Tensor4D | Tensor1D | TensorLike,
   variance: Tensor4D | Tensor1D | TensorLike,
-  offset?: Tensor4D | Tensor1D | TensorLike, scale?: Tensor4D | Tensor1D | TensorLike,
+  offset?: Tensor4D | Tensor1D | TensorLike,
+  scale?: Tensor4D | Tensor1D | TensorLike,
   varianceEpsilon?: number): Tensor4D {
   const $x = convertToTensor(x, 'x', 'batchNorm');
   const $mean = convertToTensor(mean, 'mean', 'batchNorm');
