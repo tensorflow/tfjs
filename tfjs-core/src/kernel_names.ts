@@ -18,8 +18,16 @@
 // tslint:disable: variable-name
 // Unfortunately just enabling PascalCase per file (tslint:enable:
 // allow-pascal-case) doesn't work.
-import {NamedTensorInfoMap} from './kernel_registry';
+import {NamedTensorInfoMap, TensorInfo} from './kernel_registry';
 import {PixelData} from './types';
+
+export const AddN = 'AddN';
+export type AddNInputs = TensorInfo[];
+
+export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
+
+export const Div = 'Div';
+export type DivInputs = BinaryInputs;
 
 export const FusedBatchNorm = 'FusedBatchNorm';
 export type FusedBatchNormInputs =
@@ -27,11 +35,6 @@ export type FusedBatchNormInputs =
 export interface FusedBatchNormAttrs {
   varianceEpsilon: number;
 }
-
-export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
-
-export const Div = 'Div';
-export type DivInputs = BinaryInputs;
 
 export const SquaredDifference = 'SquaredDifference';
 export type SquaredDifferenceInputs = BinaryInputs;

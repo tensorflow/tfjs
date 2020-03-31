@@ -16,10 +16,11 @@
  */
 
 // Modularized ops.
-export {batchNormalization, batchNorm} from './batchnorm';
-export {batchNormalization2d, batchNorm2d} from './batchnorm2d';
-export {batchNormalization3d, batchNorm3d} from './batchnorm3d';
-export {batchNormalization4d, batchNorm4d} from './batchnorm4d';
+export {addN} from './add_n';
+export {batchNorm, batchNormalization} from './batchnorm';
+export {batchNorm2d, batchNormalization2d} from './batchnorm2d';
+export {batchNorm3d, batchNormalization3d} from './batchnorm3d';
+export {batchNorm4d, batchNormalization4d} from './batchnorm4d';
 export {broadcastTo} from './broadcast_to';
 export {clone} from './clone';
 export {div} from './div';
