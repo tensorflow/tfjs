@@ -18,11 +18,14 @@
 // tslint:disable: variable-name
 // Unfortunately just enabling PascalCase per file (tslint:enable:
 // allow-pascal-case) doesn't work.
-import {NamedTensorInfoMap} from './kernel_registry';
+import {NamedTensorInfoMap, TensorInfo} from './kernel_registry';
 import {PixelData} from './types';
 
 export const Add = 'Add';
 export type AddInputs = BinaryInputs;
+
+export const AddN = 'AddN';
+export type AddNInputs = TensorInfo[];
 
 export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 

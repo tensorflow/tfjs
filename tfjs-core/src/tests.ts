@@ -38,6 +38,7 @@ import './io/weights_loader_test';
 import './jasmine_util_test';
 import './kernel_registry_test';
 import './ops/add_test';
+import './ops/add_n_test';
 import './ops/arithmetic_test';
 import './ops/array_ops_test';
 import './ops/axis_util_test';
