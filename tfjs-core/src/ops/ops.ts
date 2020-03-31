@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,10 +16,11 @@
  */
 
 // Modularized ops.
-export {batchNormalization, batchNorm} from './batchnorm';
-export {batchNormalization2d, batchNorm2d} from './batchnorm2d';
-export {batchNormalization3d, batchNorm3d} from './batchnorm3d';
-export {batchNormalization4d, batchNorm4d} from './batchnorm4d';
+export {add} from './add';
+export {batchNorm, batchNormalization} from './batchnorm';
+export {batchNorm2d, batchNormalization2d} from './batchnorm2d';
+export {batchNorm3d, batchNormalization3d} from './batchnorm3d';
+export {batchNorm4d, batchNormalization4d} from './batchnorm4d';
 export {broadcastTo} from './broadcast_to';
 export {clone} from './clone';
 export {div} from './div';

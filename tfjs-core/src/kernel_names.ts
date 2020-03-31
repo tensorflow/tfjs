@@ -21,17 +21,20 @@
 import {NamedTensorInfoMap} from './kernel_registry';
 import {PixelData} from './types';
 
+export const Add = 'Add';
+export type AddInputs = BinaryInputs;
+
+export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
+
+export const Div = 'Div';
+export type DivInputs = BinaryInputs;
+
 export const FusedBatchNorm = 'FusedBatchNorm';
 export type FusedBatchNormInputs =
     Pick<NamedTensorInfoMap, 'x'|'scale'|'offset'|'mean'|'variance'>;
 export interface FusedBatchNormAttrs {
   varianceEpsilon: number;
 }
-
-export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
-
-export const Div = 'Div';
-export type DivInputs = BinaryInputs;
 
 export const SquaredDifference = 'SquaredDifference';
 export type SquaredDifferenceInputs = BinaryInputs;
