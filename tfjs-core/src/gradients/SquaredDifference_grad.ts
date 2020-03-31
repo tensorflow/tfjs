@@ -23,6 +23,7 @@ import {Tensor} from '../tensor';
 
 export const squaredDifferenceGradConfig: GradConfig = {
   kernelName: SquaredDifference,
+  inputsToSave: ['a', 'b'],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
     const [a, b] = saved;
     const two = scalar(2);

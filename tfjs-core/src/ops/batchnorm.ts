@@ -22,10 +22,10 @@ import {convertToTensor} from '../tensor_util_env';
 import {Rank, ShapeMap, TensorLike} from '../types';
 import * as util from '../util';
 
-import {tile} from './array_ops';
 import {getReductionAxes} from './broadcast_util';
 import {op} from './operation';
 import {scalar} from './tensor_ops';
+import {tile} from './tile';
 import {rsqrt} from './unary_ops';
 
 /**

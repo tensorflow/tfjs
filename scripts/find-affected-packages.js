@@ -43,8 +43,10 @@ if (commitSha == null) {
 if (branchName == null) {
   branchName = exec(`git rev-parse --abbrev-ref HEAD`).stdout.trim();
 }
-if (baseBranch == null) {
-  // For Nightly build, baseBranch is null. We use master for Nightly build.
+
+// For Nightly build, baseBranch is one of the falsey values. We use master
+// for Nightly build.
+if (!baseBranch) {
   baseBranch = 'master';
 }
 console.log('commitSha: ', commitSha);
@@ -129,7 +131,7 @@ if (!triggerAllBuilds) {
     });
   });
 
-  triggeredBuilds.push(Array.from(affectedBuilds));
+  triggeredBuilds.push(...affectedBuilds);
 }
 
 // Filter the triggered builds to log by whether a cloudbuild.yml file

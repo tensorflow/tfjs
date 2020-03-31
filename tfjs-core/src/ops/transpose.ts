@@ -20,7 +20,6 @@ import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
-import * as axis_util from './axis_util';
 import {op} from './operation';
 
 /**
@@ -62,13 +61,10 @@ function transpose_<T extends Tensor>(x: T|TensorLike, perm?: number[]): T {
     return $x.clone();
   }
 
-  const der = (dy: T) => {
-    const undoPerm = axis_util.getUndoAxesPermutation(perm);
-    return {x: () => dy.transpose(undoPerm)};
-  };
   const attrs = {perm};
   return ENGINE.runKernelFunc(
-      backend => backend.transpose($x, perm), {x: $x}, der, 'Transpose', attrs);
+      backend => backend.transpose($x, perm), {x: $x}, null /* gradient */,
+      'Transpose', attrs);
 }
 
 export const transpose = op({transpose_});

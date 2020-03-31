@@ -602,8 +602,9 @@ describeMathCPUAndGPU('Orthogonal Initializer', () => {
     const w = init.apply([2, 4], 'float32') as Tensor2D;
     expect(w.shape).toEqual([2, 4]);
     expect(w.dtype).toEqual('float32');
+    const wT: Tensor2D = w.transpose();
     // Assert that columns of w are orthogonal.
-    expectTensorsClose(w.matMul(w.transpose()), eye(2));
+    expectTensorsClose(w.matMul(wT), eye(2));
   });
 
   it('64x64', () => {
@@ -616,7 +617,8 @@ describeMathCPUAndGPU('Orthogonal Initializer', () => {
     expect(w.shape).toEqual([n, n]);
     expect(w.dtype).toEqual('float32');
     // Assert that columns of w are orthogonal.
-    expectTensorsClose(w.matMul(w.transpose()), eye(n));
+    const wT: Tensor2D = w.transpose();
+    expectTensorsClose(w.matMul(wT), eye(n));
   });
   it('Does not leak', () => {
     const init = getInitializer('Orthogonal');
