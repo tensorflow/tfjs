@@ -21,6 +21,7 @@ import {Tensor} from '../tensor';
 
 export const addGradConfig: GradConfig = {
   kernelName: Add,
+  inputsToSave: ['a', 'b'],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
     const [a, b] = saved;
     const outShape =
@@ -45,4 +46,4 @@ export const addGradConfig: GradConfig = {
 
     return {a: derA, b: derB};
   }
-}
+};
