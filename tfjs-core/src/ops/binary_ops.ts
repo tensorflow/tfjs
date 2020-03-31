@@ -29,7 +29,6 @@ import {op} from './operation';
 import {scalar, zerosLike} from './tensor_ops';
 import {neg} from './unary_ops';
 
-
 /**
  * Adds a list of `tf.Tensor`s element-wise, each with the same shape and dtype.
  *

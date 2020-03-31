@@ -53,7 +53,11 @@ function add_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   let $b = convertToTensor(b, 'b', 'add');
   [$a, $b] = makeTypesMatch($a, $b);
 
-  const forward: ForwardFunc<Tensor> = backend => backend.add($a, $b);
+  const forward: ForwardFunc<Tensor> = (backend, save) => {
+    const res = backend.add($a, $b);
+    save([$a, $b]);
+    return res;
+  };
 
   const inputs: AddInputs = {a: $a, b: $b};
 
