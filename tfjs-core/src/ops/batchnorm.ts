@@ -16,7 +16,7 @@
  */
 
 import {ENGINE, ForwardFunc} from '../engine';
-import {BatchNormalizationAttrs, BatchNormalizationInputs} from '../kernel_names';
+import {FusedBatchNormAttrs, FusedBatchNormInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor1D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -99,24 +99,26 @@ function batchNorm_<R extends Rank>(
       () => 'Batch normalization gradient requires mean and scale to have ' +
           'equal ranks.');
 
-  const x4D: Tensor4D = xAs4D($x);
-
   const forward: ForwardFunc<Tensor> = (backend, save) => {
+    const x4D: Tensor4D = xAs4D($x);
+
     const res = backend.batchNormalization(
         x4D, as1DOr4D($mean), as1DOr4D($variance), varianceEpsilon,
         as1DOr4D($scale), as1DOr4D($offset));
+
     save([$x, $mean, $variance, $scale]);
+
     return res;
   };
 
-  const inputs: BatchNormalizationInputs =
+  const inputs: FusedBatchNormInputs =
       {x: $x, scale: $scale, offset: $offset, mean: $mean, variance: $variance};
 
-  const attrs: BatchNormalizationAttrs = {varianceEpsilon};
+  const attrs: FusedBatchNormAttrs = {varianceEpsilon};
 
   const res = ENGINE.runKernelFunc(
       forward, inputs as {} as NamedTensorMap, null /* gradient */,
-      'BatchNormalization', attrs as {} as NamedAttrMap);
+      'FusedBatchNorm', attrs as {} as NamedAttrMap);
 
   return res.reshape($x.shape);
 }
@@ -137,5 +139,6 @@ function as1DOr4D(x: Tensor): Tensor4D|Tensor1D {
   return x as Tensor4D;
 }
 
+// todo(yassogba): Remove batchNormalization since it is deprecated.
 export const batchNormalization = op({batchNormalization_});
 export const batchNorm = op({batchNorm_});

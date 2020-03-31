@@ -14,23 +14,25 @@
  * limitations under the License.
  * =============================================================================
  */
-import {BatchNormalization, BatchNormalizationAttrs} from '../kernel_names';
+import {FusedBatchNorm, FusedBatchNormAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
 import {xAs4D} from '../ops/batchnorm_util';
 import {getReductionAxes} from '../ops/broadcast_util';
+import {add, mul, reshape, sub} from '../ops/ops';
+import {sum} from '../ops/reduction_ops';
 import {scalar} from '../ops/tensor_ops';
 import {tile} from '../ops/tile';
 import {rsqrt} from '../ops/unary_ops';
 import {Tensor, Tensor4D} from '../tensor';
 import {Rank, ShapeMap} from '../types';
 
-export const batchNormalizationGradConfig: GradConfig = {
-  kernelName: BatchNormalization,
+export const fusedBatchNormGradConfig: GradConfig = {
+  kernelName: FusedBatchNorm,
   inputsToSave: ['x', 'mean', 'variance', 'scale'],
   gradFunc: <R extends Rank>(
       dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
-    const batchNormalizationAttrs: BatchNormalizationAttrs =
-        attrs as {} as BatchNormalizationAttrs;
+    const batchNormalizationAttrs: FusedBatchNormAttrs =
+        attrs as {} as FusedBatchNormAttrs;
     const {varianceEpsilon} = batchNormalizationAttrs;
     const [x, mean, variance, scale] = saved;
 
@@ -46,52 +48,57 @@ export const batchNormalizationGradConfig: GradConfig = {
       tileShape.push(1);
     }
 
-    const xMinusMean = x.sub(mean);
-    const dyTimesScaleValue = dy.mul(scaleValue);
-    const oneOverSqrtVariance = rsqrt(variance.add(scalar(varianceEpsilon)));
-    const minusHalfRCube = oneOverSqrtVariance.mul(oneOverSqrtVariance)
-                               .mul(oneOverSqrtVariance)
-                               .mul(scalar(-0.5));
+    const xMinusMean = sub(x, mean);
+    const dyTimesScaleValue = mul(dy, scaleValue);
+    const oneOverSqrtVariance = rsqrt(add(variance, scalar(varianceEpsilon)));
+    const minusHalfRCube = mul(
+        mul(mul(oneOverSqrtVariance, oneOverSqrtVariance), oneOverSqrtVariance),
+        scalar(-0.5));
 
     const derX = () => {
       if (mean.rank === 1) {
-        return dy
-            .mul(tile(
-                oneOverSqrtVariance.as4D(1, 1, 1, mean.shape[0]), tileShape))
-            .mul(scaleValue)
-            .reshape(x.shape);
+        return reshape(
+            mul(mul(dy,
+                    tile(
+                        oneOverSqrtVariance.as4D(1, 1, 1, mean.shape[0]),
+                        tileShape)),
+                scaleValue),
+            x.shape);
       } else {
-        return dy.mul(oneOverSqrtVariance).mul(scaleValue).reshape(x.shape);
+        return reshape(mul(mul(dy, oneOverSqrtVariance), scaleValue), x.shape);
       }
     };
     const derMean = () => {
-      let meanDer = oneOverSqrtVariance.mul(scalar(-1)).mul(dyTimesScaleValue);
+      let meanDer =
+          mul(mul(oneOverSqrtVariance, scalar(-1)), dyTimesScaleValue);
       if (mean.rank === 1) {
-        meanDer = meanDer.sum(reductionAxes);
+        meanDer = sum(meanDer, reductionAxes);
       }
-      return meanDer.reshape(mean.shape as ShapeMap[R]);
+      return reshape(meanDer, mean.shape as ShapeMap[R]);
     };
     const derVariance = () => {
-      let varianceDer = minusHalfRCube.mul(xMinusMean).mul(dyTimesScaleValue);
+      let varianceDer = mul(mul(minusHalfRCube, xMinusMean), dyTimesScaleValue);
+
       if (mean.rank === 1) {
-        varianceDer = varianceDer.sum(reductionAxes);
+        varianceDer = sum(varianceDer, reductionAxes);
       }
-      return varianceDer.reshape(mean.shape as ShapeMap[R]);
+      return reshape(varianceDer, mean.shape as ShapeMap[R]);
     };
     const derScale = () => {
-      const xMinusMean2TimesRsqrt = xMinusMean.mul(oneOverSqrtVariance);
-      let scaleDer = dy.mul(xMinusMean2TimesRsqrt);
+      const xMinusMean2TimesRsqrt = mul(xMinusMean, oneOverSqrtVariance);
+
+      let scaleDer = mul(dy, xMinusMean2TimesRsqrt);
       if (mean.rank === 1) {
-        scaleDer = scaleDer.sum(reductionAxes);
+        scaleDer = sum(scaleDer, reductionAxes);
       }
-      return scaleDer.reshape(mean.shape as ShapeMap[R]);
+      return reshape(scaleDer, mean.shape as ShapeMap[R]);
     };
     const derOffset = () => {
       let offsetDer = dy;
       if (mean.rank === 1) {
-        offsetDer = offsetDer.sum(reductionAxes);
+        offsetDer = sum(offsetDer, reductionAxes);
       }
-      return offsetDer.reshape(mean.shape as ShapeMap[R]);
+      return reshape(offsetDer, mean.shape as ShapeMap[R]);
     };
     return {
       x: derX,

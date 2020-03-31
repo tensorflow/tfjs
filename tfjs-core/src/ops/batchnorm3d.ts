@@ -19,9 +19,10 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {op} from './operation';
 import {batchNorm} from './batchnorm';
 import {warnDeprecation} from './batchnorm_util';
+import {op} from './operation';
+
 /**
  * Batch normalization, strictly for 3D. For the more relaxed version, see
  * `tf.batchNorm`.
@@ -34,45 +35,44 @@ import {warnDeprecation} from './batchnorm_util';
  * @param varianceEpsilon A small float number to avoid dividing by 0.
  */
 function batchNorm3d_(
-  x: Tensor3D | TensorLike, mean: Tensor3D | Tensor1D | TensorLike,
-  variance: Tensor3D | Tensor1D | TensorLike,
-  offset?: Tensor3D | Tensor1D | TensorLike,
-  scale?: Tensor3D | Tensor1D | TensorLike,
-  varianceEpsilon?: number): Tensor3D {
+    x: Tensor3D|TensorLike, mean: Tensor3D|Tensor1D|TensorLike,
+    variance: Tensor3D|Tensor1D|TensorLike,
+    offset?: Tensor3D|Tensor1D|TensorLike, scale?: Tensor3D|Tensor1D|TensorLike,
+    varianceEpsilon?: number): Tensor3D {
   const $x = convertToTensor(x, 'x', 'batchNorm');
   const $mean = convertToTensor(mean, 'mean', 'batchNorm');
   const $variance = convertToTensor(variance, 'variance', 'batchNorm');
-  let $scale: Tensor3D | Tensor1D;
+  let $scale: Tensor3D|Tensor1D;
   if (scale != null) {
     $scale = convertToTensor(scale, 'scale', 'batchNorm');
   }
-  let $offset: Tensor3D | Tensor1D;
+  let $offset: Tensor3D|Tensor1D;
   if (offset != null) {
     $offset = convertToTensor(offset, 'offset', 'batchNorm');
   }
   util.assert(
-    $x.rank === 3,
-    () => `Error in batchNorm3D: x must be rank 3 but got rank ` +
-      `${$x.rank}.`);
+      $x.rank === 3,
+      () => `Error in batchNorm3D: x must be rank 3 but got rank ` +
+          `${$x.rank}.`);
   util.assert(
-    $mean.rank === 3 || $mean.rank === 1,
-    () => `Error in batchNorm3D: mean must be rank 3 or rank 1 but ` +
-      `got rank ${$mean.rank}.`);
+      $mean.rank === 3 || $mean.rank === 1,
+      () => `Error in batchNorm3D: mean must be rank 3 or rank 1 but ` +
+          `got rank ${$mean.rank}.`);
   util.assert(
-    $variance.rank === 3 || $variance.rank === 1,
-    () => `Error in batchNorm3D: variance must be rank 3 or rank 1 ` +
-      `but got rank ${$variance.rank}.`);
+      $variance.rank === 3 || $variance.rank === 1,
+      () => `Error in batchNorm3D: variance must be rank 3 or rank 1 ` +
+          `but got rank ${$variance.rank}.`);
   if ($scale != null) {
     util.assert(
-      $scale.rank === 3 || $scale.rank === 1,
-      () => `Error in batchNorm3D: scale must be rank 3 or rank 1 ` +
-        `but got rank ${$scale.rank}.`);
+        $scale.rank === 3 || $scale.rank === 1,
+        () => `Error in batchNorm3D: scale must be rank 3 or rank 1 ` +
+            `but got rank ${$scale.rank}.`);
   }
   if ($offset != null) {
     util.assert(
-      $offset.rank === 3 || $offset.rank === 1,
-      () => `Error in batchNorm3D: offset must be rank 3 or rank 1 ` +
-        `but got rank ${$offset.rank}.`);
+        $offset.rank === 3 || $offset.rank === 1,
+        () => `Error in batchNorm3D: offset must be rank 3 or rank 1 ` +
+            `but got rank ${$offset.rank}.`);
   }
 
   return batchNorm($x, $mean, $variance, $offset, $scale, varianceEpsilon);
@@ -83,13 +83,14 @@ function batchNorm3d_(
  *     argument change of scale, offset, and varianceEpsilon.
  */
 function batchNormalization3d_(
-  x: Tensor3D | TensorLike, mean: Tensor3D | Tensor1D | TensorLike,
-  variance: Tensor3D | Tensor1D | TensorLike, varianceEpsilon = .001,
-  scale?: Tensor3D | Tensor1D | TensorLike,
-  offset?: Tensor3D | Tensor1D | TensorLike): Tensor3D {
+    x: Tensor3D|TensorLike, mean: Tensor3D|Tensor1D|TensorLike,
+    variance: Tensor3D|Tensor1D|TensorLike, varianceEpsilon = .001,
+    scale?: Tensor3D|Tensor1D|TensorLike,
+    offset?: Tensor3D|Tensor1D|TensorLike): Tensor3D {
   warnDeprecation();
   return batchNorm3d_(x, mean, variance, offset, scale, varianceEpsilon);
 }
 
+// todo(yassogba): Remove batchNormalization3d since it is deprecated.
 export const batchNormalization3d = op({batchNormalization3d_});
 export const batchNorm3d = op({batchNorm3d_});

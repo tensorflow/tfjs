@@ -21,10 +21,10 @@
 import {NamedTensorInfoMap} from './kernel_registry';
 import {PixelData} from './types';
 
-export const BatchNormalization = 'BatchNormalization';
-export type BatchNormalizationInputs =
+export const FusedBatchNorm = 'FusedBatchNorm';
+export type FusedBatchNormInputs =
     Pick<NamedTensorInfoMap, 'x'|'scale'|'offset'|'mean'|'variance'>;
-export interface BatchNormalizationAttrs {
+export interface FusedBatchNormAttrs {
   varianceEpsilon: number;
 }
 
