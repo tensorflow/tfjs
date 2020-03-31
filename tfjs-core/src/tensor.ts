@@ -214,7 +214,6 @@ export interface OpHandler {
   max<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
   argMin<T extends Tensor>(x: Tensor, axis: number): T;
   argMax<T extends Tensor>(x: Tensor, axis: number): T;
-  add<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   addStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   atan2<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   sub<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
@@ -894,11 +893,6 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   // Binary ops.
-
-  add<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.add(this, x);
-  }
   addStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.addStrict(this, x);

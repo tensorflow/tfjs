@@ -21,6 +21,9 @@
 import {NamedTensorInfoMap} from './kernel_registry';
 import {PixelData} from './types';
 
+export const Add = 'Add';
+export type AddInputs = BinaryInputs;
+
 export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 
 export const Div = 'Div';
