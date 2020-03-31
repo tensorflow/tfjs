@@ -22,10 +22,13 @@ import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
+
+import {add} from './add';
 import * as broadcast_util from './broadcast_util';
 import {op} from './operation';
 import {scalar, zerosLike} from './tensor_ops';
 import {neg} from './unary_ops';
+
 
 /**
  * Adds a list of `tf.Tensor`s element-wise, each with the same shape and dtype.
