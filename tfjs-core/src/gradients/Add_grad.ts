@@ -1,5 +1,3 @@
-import {Add} from '../kernel_names';
-import {GradConfig} from '../kernel_registry';
 /**
  * @license
  * Copyright 2020 Google Inc. All Rights Reserved.
@@ -16,6 +14,8 @@ import {GradConfig} from '../kernel_registry';
  * limitations under the License.
  * =============================================================================
  */
+import {Add} from '../kernel_names';
+import {GradConfig} from '../kernel_registry';
 import * as broadcast_util from '../ops/broadcast_util';
 import {Tensor} from '../tensor';
 
