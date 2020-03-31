@@ -90,3 +90,13 @@ export interface FromPixelsInputs {
 export interface FromPixelsAttrs {
   numChannels: number;
 }
+
+export const MaxPoolWithArgmax = 'MaxPoolWithArgmax';
+export type MaxPoolWithArgmaxInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface MaxPoolWithArgmaxAttrs {
+  filterSize: [number, number]|number;
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  dataFormat: 'NDHWC'|'NCDHW';
+  includeBatchInIndex: boolean;
+}

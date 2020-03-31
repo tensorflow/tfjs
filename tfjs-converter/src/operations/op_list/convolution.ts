@@ -55,6 +55,24 @@ export const json: OpMapper[] = [
     ]
   },
   {
+    'tfOpName': 'MaxPoolWithArgmax',
+    'category': 'convolution',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'strides', 'name': 'strides', 'type': 'number[]'},
+      {'tfName': 'padding', 'name': 'pad', 'type': 'string'},
+      {'tfName': 'data_format', 'name': 'dataFormat', 'type': 'string'},
+      {'tfName': 'ksize', 'name': 'kernelSize', 'type': 'number[]'}, {
+        'tfName': 'include_batch_in_index',
+        'name': 'includeBatchInIndex',
+        'type': 'bool'
+      },
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
+    ]
+  },
+  {
     'tfOpName': 'AvgPool3D',
     'category': 'convolution',
     'inputs': [
