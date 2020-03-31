@@ -17,7 +17,6 @@
 
 import {ENGINE} from '../engine';
 import {Tensor} from '../tensor';
-import {NamedTensorMap} from '../tensor_types';
 import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -80,55 +79,6 @@ function add_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   };
   return ENGINE.runKernelFunc(
              backend => backend.add($a, $b), {a: $a, b: $b}, der, 'Add') as T;
-}
-
-/**
- * Adds a list of `tf.Tensor`s element-wise, each with the same shape and dtype.
- *
- * ```js
- * const a = tf.tensor1d([1, 2]);
- * const b = tf.tensor1d([3, 4]);
- * const c = tf.tensor1d([5, 6]);
- *
- * tf.addN([a, b, c]).print();
- * ```
- * @param tensors A list of tensors with the same shape and dtype.
- */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
-function addN_<T extends Tensor>(tensors: Array<T|TensorLike>): T {
-  util.assert(
-      Array.isArray(tensors),
-      () => 'The argument passed to tf.addN() must be a list of tensors');
-  util.assert(
-      tensors.length >= 1,
-      () => `Must pass at least one tensor to tf.addN(), but got ` +
-          `${tensors.length}`);
-  const $tensors =
-      tensors.map((t, i) => convertToTensor(t, `tensors${i}`, 'addN'));
-  const firstTensor = $tensors[0];
-  $tensors.forEach(t => {
-    if (t.dtype !== firstTensor.dtype) {
-      throw new Error(
-          'All tensors passed to tf.addN() must have the same dtype');
-    }
-  });
-  $tensors.forEach(t => {
-    if (!util.arraysEqual(t.shape, firstTensor.shape)) {
-      throw new Error(
-          'All tensors passed to tf.addN() must have the same shape');
-    }
-  });
-
-  const der = (dy: T) => {
-    const ders: {[key: string]: () => Tensor} = {};
-    $tensors.forEach((t, i) => {
-      ders[i] = () => dy.clone();
-    });
-    return ders;
-  };
-  const inputs: NamedTensorMap = $tensors as {} as NamedTensorMap;
-  return ENGINE.runKernelFunc(
-      backend => backend.addN($tensors), inputs, der, 'AddN');
 }
 
 /**
@@ -729,7 +679,6 @@ function atan2_<T extends Tensor>(
 }
 
 export const add = op({add_});
-export const addN = op({addN_});
 export const addStrict = op({addStrict_});
 export const atan2 = op({atan2_});
 export const divStrict = op({divStrict_});
