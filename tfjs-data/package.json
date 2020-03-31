@@ -53,7 +53,7 @@
     "publish-npm": "npm publish",
     "test": "yarn && yarn build-deps && ts-node src/test_node.ts",
     "test-browsers": "karma start --browsers='Chrome,Firefox'",
-    "test-ci": "yarn build-deps-ci && yarn && yarn build-ci && yarn lint && ts-node src/test_node.ts",
+    "test-ci": "yarn && yarn build-deps-ci && yarn build-ci && yarn lint && ts-node src/test_node.ts",
     "test-snippets": "ts-node ./scripts/test_snippets.ts",
     "lint": "tslint -p . -t verbose"
   },
