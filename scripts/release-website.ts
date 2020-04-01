@@ -17,11 +17,8 @@
  */
 
 /**
- * This script creates pull requests to make releases for all the TensorFlow.js
- * packages. The release process is split up into multiple phases. Each
- * phase will update the version of a package and the dependency versions and
- * send a pull request. Once the pull request is merged, you must publish the
- * packages manually from the individual packages.
+ * This script creates pull requests to make release for tfjs website. Once the
+ * pull request is merged, you must deploy the website.
  *
  * This script requires hub to be installed: https://hub.github.com/
  */

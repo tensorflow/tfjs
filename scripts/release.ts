@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,10 +45,6 @@ function getPatchUpdateVersion(version: string): string {
   const versionSplit = version.split('.');
 
   return [versionSplit[0], versionSplit[1], +versionSplit[2] + 1].join('.');
-}
-
-function publishTFJS(repo: string): boolean {
-  return repo == null;
 }
 
 async function main() {
