@@ -32,19 +32,19 @@ interface BatchNormAttrs extends NamedAttrMap {
 }
 
 let wasmBatchNorm: (
-    xId: number, meanId: number, varianceId: number, offsetId: number,
-    scaleId: number, varianceEpsilon: number, outId: number) => void;
+  xId: number, meanId: number, varianceId: number, offsetId: number,
+  scaleId: number, varianceEpsilon: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmBatchNorm = backend.wasm.cwrap(
-      'FusedBatchNorm', null /* void */,
-      ['number', 'number', 'number', 'number', 'number', 'number', 'number']);
+    'FusedBatchNorm', null /* void */,
+    ['number', 'number', 'number', 'number', 'number', 'number', 'number']);
 }
 
 function fusedBatchNorm(
-    args:
-        {backend: BackendWasm, inputs: BatchNormInputs, attrs: BatchNormAttrs}):
-    TensorInfo {
+  args:
+    {backend: BackendWasm, inputs: BatchNormInputs, attrs: BatchNormAttrs}):
+  TensorInfo {
   const {backend, inputs, attrs} = args;
   const {varianceEpsilon} = attrs;
   const {x, mean, variance, offset, scale} = inputs;
@@ -63,12 +63,12 @@ function fusedBatchNorm(
   const outId = backend.dataIdMap.get(out.dataId).id;
 
   wasmBatchNorm(
-      xId, meanId, varianceId, offsetId, scaleId, varianceEpsilon, outId);
+    xId, meanId, varianceId, offsetId, scaleId, varianceEpsilon, outId);
   return out;
 }
 
 registerKernel({
-  kernelName: 'BatchNormalization',
+  kernelName: 'FusedBatchNorm',
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: fusedBatchNorm
