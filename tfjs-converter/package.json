@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@tensorflow/tfjs-core": "link:../tfjs-core",
-    "@tensorflow/tfjs-cpu": "link:../tfjs-backend-cpu",
+    "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
     "@types/deep-equal": "^1.0.1",
     "@types/jasmine": "~2.8.6",
     "@types/long": "~3.0.32",
