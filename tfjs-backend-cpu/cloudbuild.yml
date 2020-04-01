@@ -28,6 +28,8 @@ steps:
   id: 'test-backend-cpu'
   args: ['test-ci']
   waitFor: ['build-core']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+  secretEnv: ['BROWSERSTACK_KEY']
 
 # General configuration
 secrets:
