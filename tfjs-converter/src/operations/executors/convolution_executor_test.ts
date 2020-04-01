@@ -212,18 +212,18 @@ describe('convolution', () => {
 
     describe('MaxPoolWithArgmax', () => {
       it('should call tfc.maxPoolWithArgmax', () => {
-        spyOn(tfc, 'maxPoolWithArgmax');
-        node.op = 'maxPoolWithArgmax';
-        node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 2, 1]);
+        spyOn(tfc, 'maxPoolWithArgmax').and.returnValue({});
+        node.op = 'MaxPoolWithArgmax';
+        node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.attrParams['pad'] = createStrAttr('same');
-        node.attrParams['kernelSize'] = createNumericArrayAttr([1, 2, 2, 2, 1]);
+        node.attrParams['kernelSize'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.attrParams['dataFormat'] = createStrAttr('NDHWC');
         node.attrParams['includeBatchInIndex'] = createBoolAttr(true);
         executeOp(node, {input}, context);
 
         expect(tfc.maxPoolWithArgmax)
             .toHaveBeenCalledWith(
-                input[0], [2, 2, 2], [2, 2, 2], 'NDHWC', 'same', true);
+                input[0], [2, 2], [2, 2], 'NDHWC', 'same', true);
       });
     });
 

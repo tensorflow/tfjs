@@ -164,7 +164,6 @@ export const executeOp: InternalOpExecutor = (node: Node,
           dataFormat as 'NDHWC' | 'NCDHW',
           [dilations[1], dilations[2], dilations[3]])];
     }
-
     case 'AvgPool': {
       const stride =
           getParamValue('strides', node, tensorMap, context) as number[];
@@ -178,7 +177,6 @@ export const executeOp: InternalOpExecutor = (node: Node,
           [kernelSize[1], kernelSize[2]], [stride[1], stride[2]],
           pad as 'valid' | 'same')];
     }
-
     case 'MaxPool': {
       const stride =
           getParamValue('strides', node, tensorMap, context) as number[];
