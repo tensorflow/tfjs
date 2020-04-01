@@ -31,6 +31,19 @@ import './kernels/all_kernels';
 const binary = require('node-pre-gyp');
 const bindingPath =
     binary.find(path.resolve(path.join(__dirname, '/../package.json')));
+
+// Check if the node native addon module exists.
+// tslint:disable-next-line:no-require-imports
+const fs = require('fs');
+if(!fs.existsSync(bindingPath)) {
+  throw new Error(`The Node.js native addon module (tfjs_binding.node) can not `
+    + `be found at path: ` + bindingPath
+    + `. \nPlease run command `
+    + `'npm rebuild @tensorflow/tfjs-node build-addon-from-source' to rebuild `
+    + `the native addon module. \nIf you have problem with building the addon `
+    + `module, please check https://github.com/tensorflow/tfjs/blob/master`
+    + `/tfjs-node/WINDOWS_TROUBLESHOOTING.md or file an issue.`);
+}
 // tslint:disable-next-line:no-require-imports
 const bindings = require(bindingPath);
 
