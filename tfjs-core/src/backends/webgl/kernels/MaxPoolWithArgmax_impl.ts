@@ -30,7 +30,7 @@ export function maxPoolWithArgmaxImpl(
   let program = new Pool2DProgram(convInfo, 'max', false);
   const poolOutput = backend.runWebGLProgram(program, [x], 'float32');
 
-  program = new Pool2DProgram(convInfo, 'max', true, true);
+  program = new Pool2DProgram(convInfo, 'max', true, true, includeBatchInIndex);
   const indexOutput = backend.runWebGLProgram(program, [x], 'float32');
   return [poolOutput, indexOutput];
 }

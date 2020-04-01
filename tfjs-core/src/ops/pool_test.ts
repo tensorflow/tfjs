@@ -1503,6 +1503,18 @@ describeWithFlags('maxPoolWithArgmax', ALL_ENVS, () => {
     expect(result.shape).toEqual([2, 1, 1, 1]);
     expectArraysClose(await result.data(), [4, 8]);
     expect(indexes.shape).toEqual([2, 1, 1, 1]);
+    expectArraysClose(await indexes.data(), [3, 3]);
+  });
+
+  it('x=[2,2,2,1] f=[2,2,2] s=1 p=valid includeBatchInIndex=true', async () => {
+    const x = tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2, 1]);
+
+    const {result, indexes} =
+        tf.maxPoolWithArgmax(x, 2, 1, 'NDHWC', 'valid', true);
+
+    expect(result.shape).toEqual([2, 1, 1, 1]);
+    expectArraysClose(await result.data(), [4, 8]);
+    expect(indexes.shape).toEqual([2, 1, 1, 1]);
     expectArraysClose(await indexes.data(), [3, 7]);
   });
 
@@ -1538,9 +1550,19 @@ describeWithFlags('maxPoolWithArgmax', ALL_ENVS, () => {
     expect(result.shape).toEqual([2, 2, 2, 1]);
     expectArraysClose(await result.data(), [5, 6, 9, 9, 5, 6, 8, 9]);
     expect(indexes.shape).toEqual([2, 2, 2, 1]);
-    expectArraysClose(await indexes.data(), [4, 5, 7, 7, 13, 14, 16, 17]);
+    expectArraysClose(await indexes.data(), [4, 5, 7, 7, 4, 5, 7, 8]);
   });
 
+  it('x=[2,3,3,1] f=[2,2] s=1 includeBatchInIndex=true', async () => {
+    const x = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 9, 8, 1, 2, 3, 4, 5, 6, 7, 8, 9], [2, 3, 3, 1]);
+
+    const {result, indexes} = tf.maxPoolWithArgmax(x, 2, 1, 'NDHWC', 0, true);
+    expect(result.shape).toEqual([2, 2, 2, 1]);
+    expectArraysClose(await result.data(), [5, 6, 9, 9, 5, 6, 8, 9]);
+    expect(indexes.shape).toEqual([2, 2, 2, 1]);
+    expectArraysClose(await indexes.data(), [4, 5, 7, 7, 13, 14, 16, 17]);
+  });
   it('[x=[1,3,3,1] f=[2,2] s=1 ignores NaNs', async () => {
     const x = tf.tensor4d([1, 2, 3, 4, 5, 6, 7, NaN, 9], [1, 3, 3, 1]);
 

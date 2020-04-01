@@ -41,7 +41,7 @@ export const maxPoolWithArgmaxConfig: KernelConfig = {
         x.shape as [number, number, number, number], filterSize, strides,
         [1, 1], pad, undefined, dataFormatInternal);
     const [pooled, indexes] = maxPoolWithArgmaxImpl(
-        values, x.shape, x.dtype, includeBatchInIndex, convInfo);
+        values, x.shape, x.dtype, includeBatchInIndex, convInfo, cpuBackend);
 
     const pooledDataId =
         cpuBackend.write(pooled as Float32Array, convInfo.outShape, x.dtype);

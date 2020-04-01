@@ -26,7 +26,7 @@ export class Pool2DProgram implements GPGPUProgram {
 
   constructor(
       convInfo: Conv2DInfo, poolType: 'max'|'avg', computePositions: boolean,
-      flattenPositions = false) {
+      flattenPositions = false, includeBatchInIndex = false) {
     if (poolType === 'avg' && computePositions) {
       throw new Error('Cannot compute positions for average pool.');
     }
@@ -101,8 +101,11 @@ export class Pool2DProgram implements GPGPUProgram {
                 minMaxValueFound = 1.0;
                 minMaxPosition = ${
           flattenPositions ?
-              `((batch  * ${convInfo.inHeight} + xR) * ${
-                  convInfo.inWidth} + xC) * ${convInfo.inChannels} + d` :
+              (includeBatchInIndex ?
+                   `((batch  * ${convInfo.inHeight} + xR) * ${
+                       convInfo.inWidth} + xC) * ${convInfo.inChannels} + d` :
+                   `(xR * ${convInfo.inWidth} + xC) * ${
+                       convInfo.inChannels} + d`) :
               `wR * ${effectiveFilterWidth} + wC`};
               }
             }
@@ -227,7 +230,7 @@ export class Pool3DProgram implements GPGPUProgram {
 
   constructor(
       convInfo: Conv3DInfo, poolType: 'max'|'avg', computePositions: boolean,
-      flattenPositions = false) {
+      flattenPositions = false, includeBatchInIndex = false) {
     if (poolType === 'avg' && computePositions) {
       throw new Error('Cannot compute positions for average pool.');
     }
@@ -315,9 +318,12 @@ export class Pool3DProgram implements GPGPUProgram {
                   minMaxValueFound = 1.0;
                   minMaxPosition = ${
           flattenPositions ?
-              `(((batch * ${convInfo.inDepth} + xD) * ${
-                  convInfo.inHeight} + xR) * ${convInfo.inWidth} + xC) * ${
-                  convInfo.inChannels} + ch` :
+              (includeBatchInIndex ?
+                   `(((batch * ${convInfo.inDepth} + xD) * ${
+                       convInfo.inHeight} + xR) * ${convInfo.inWidth} + xC) * ${
+                       convInfo.inChannels} + ch` :
+                   `((xD * ${convInfo.inHeight} + xR) * ${
+                       convInfo.inWidth} + xC) * ${convInfo.inChannels} + ch`) :
               `wD * ${effectiveFilterHeight} * ${effectiveFilterWidth} +
                       wR * ${effectiveFilterWidth} + wC`};
                 }

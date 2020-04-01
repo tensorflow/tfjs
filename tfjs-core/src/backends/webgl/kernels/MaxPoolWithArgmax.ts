@@ -15,10 +15,8 @@
  * =============================================================================
  */
 
-import {TypedArray} from '../../../../src/types';
-import {maxPoolWithArgmaxImpl as cpuMaxPoolwithArgmax} from '../../../backends/cpu/kernels/MaxPoolWithArgmax_impl';
 import {MaxPoolWithArgmax, MaxPoolWithArgmaxAttrs, MaxPoolWithArgmaxInputs} from '../../../kernel_names';
-import {KernelConfig, TensorInfo} from '../../../kernel_registry';
+import {KernelConfig} from '../../../kernel_registry';
 import * as conv_util from '../../../ops/conv_util';
 import * as util from '../../../util';
 import {MathBackendWebGL} from '../backend_webgl';
@@ -50,23 +48,8 @@ export const maxPoolWithArgmaxConfig: KernelConfig = {
         x.shape as [number, number, number, number], filterSize, strides,
         dilations, pad, undefined, dataFormatInternal);
 
-    let result: TensorInfo;
-    let indexes: TensorInfo;
-    if (webglBackend.shouldExecuteOnCPU([x])) {
-      const xTexData = webglBackend.texData.get(x.dataId);
-      const values = xTexData.values as TypedArray;
-      const [resultData, indexesData] = cpuMaxPoolwithArgmax(
-          values, x.shape, x.dtype, includeBatchInIndex, convInfo);
-      result = webglBackend.makeTensorInfo(convInfo.outShape, x.dtype);
-      const outResultData = webglBackend.texData.get(result.dataId);
-      outResultData.values = resultData as TypedArray;
-      indexes = webglBackend.makeTensorInfo(convInfo.outShape, x.dtype);
-      const outIndexesData = webglBackend.texData.get(indexes.dataId);
-      outIndexesData.values = indexesData as TypedArray;
-    } else {
-      [result, indexes] =
-          maxPoolWithArgmaxImpl(x, includeBatchInIndex, convInfo, webglBackend);
-    }
+    const [result, indexes] =
+        maxPoolWithArgmaxImpl(x, includeBatchInIndex, convInfo, webglBackend);
     return [result, indexes];
   }
 };
