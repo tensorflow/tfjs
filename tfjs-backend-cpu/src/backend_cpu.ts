@@ -69,7 +69,7 @@ export class MathBackendCPU extends KernelBackend {
 
   constructor() {
     super();
-    // this.data = new DataStorage(this, engine());
+    this.data = new DataStorage(this, engine());
   }
 
   write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
@@ -3383,8 +3383,9 @@ export class MathBackendCPU extends KernelBackend {
         () => `Only NHWC dataFormat supported on CPU for depthToSpace. Got ${
             dataFormat}`);
     util.assert(
-        blockSize > 1, () => `blockSize should be > 1 for depthToSpace, but was:
-            ${blockSize}`);
+        blockSize > 1,
+        () =>
+            `blockSize should be > 1 for depthToSpace, but was: ${blockSize}`);
 
     const batchSize = x.shape[0];
     const inputHeight = x.shape[1];

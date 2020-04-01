@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,10 +16,14 @@
  */
 
 // tslint:disable-next-line: no-imports-from-dist
-import {Constraints, registerTestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {Constraints, setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 export const CPU_ENVS: Constraints = {
   predicate: testEnv => testEnv.backendName === 'cpu'
 };
 
-registerTestEnv({name: 'cpu', backendName: 'cpu', isDataSync: true});
+setTestEnvs([{name: 'cpu', backendName: 'cpu', isDataSync: true}]);
+
+// Import and run all the tests from core.
+// tslint:disable-next-line:no-imports-from-dist
+import '@tensorflow/tfjs-core/dist/tests';
