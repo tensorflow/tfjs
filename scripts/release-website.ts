@@ -60,7 +60,7 @@ export async function releaseWebsite(args: any) {
         `~~~ Processing ${packageName} (${latestVersion}) ~~~`));
 
     pkg = await updateDependency(deps, pkg, parsedPkg);
-    console.log(pkg);
+
     fs.writeFileSync(packageJsonPath, pkg);
 
     prepareReleaseBuild(phase, packageName);

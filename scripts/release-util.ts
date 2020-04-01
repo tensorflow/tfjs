@@ -163,7 +163,7 @@ export function makeReleaseDir(dir: string) {
 
 export async function updateDependency(
     deps: string[], pkg: string, parsedPkg: any): Promise<string> {
-  console.log(chalk.magenta.bold(`~~~ Update dependencies' versions ~~~`));
+  console.log(chalk.magenta.bold(`~~~ Update dependency versions ~~~`));
 
   if (deps != null) {
     const depsLatestVersion: string[] =
@@ -216,12 +216,16 @@ export async function updateDependency(
 
 export function prepareReleaseBuild(phase: Phase, packageName: string) {
   console.log(chalk.magenta.bold(`~~~ Prepare release build ~~~`));
-
+  console.log(chalk.bold('Prepare before-yarn'));
   if (phase.scripts != null && phase.scripts[packageName] != null &&
       phase.scripts[packageName]['before-yarn'] != null) {
     phase.scripts[packageName]['before-yarn'].forEach(script => $(script));
   }
+
+  console.log(chalk.bold('yarn'));
   $(`yarn`);
+
+  console.log(chalk.bold('Prepare after-yarn'));
   if (phase.scripts != null && phase.scripts[packageName] != null &&
       phase.scripts[packageName]['after-yarn'] != null) {
     phase.scripts[packageName]['after-yarn'].forEach(script => $(script));
@@ -235,7 +239,7 @@ export function createPR(
   $(`git checkout -b ${devBranchName}`);
   $(`git push -u origin ${devBranchName}`);
   $(`git add .`);
-  $(`git commit -a -m ${message}`);
+  $(`git commit -a -m "${message}"`);
   $(`git push`);
 
   $(`hub pull-request -b ${releaseBranch} -m "${message}" -l INTERNAL -o`);
