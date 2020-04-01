@@ -31,24 +31,6 @@ const karmaTypescriptConfig = {
   }
 };
 
-const devConfig = {
-  frameworks: ['jasmine', 'karma-typescript'],
-  files: ['src/setup_test.ts', {pattern: 'src/**/*.ts'}],
-  preprocessors: {'**/*.ts': ['karma-typescript']},
-  karmaTypescriptConfig,
-  reporters: ['dots', 'karma-typescript'],
-};
-
-// const browserstackConfig = {
-//   frameworks: ['browserify', 'jasmine'],
-//   files: ['dist/setup_test.js', {pattern: 'dist/**/*_test.js'}],
-//   preprocessors: {'dist/**/*_test.js': ['browserify']},
-//   browserify: {debug: false},
-//   reporters: ['dots'],
-//   singleRun: true,
-//   hostname: 'bs-local.com',
-// };
-
 
 
 module.exports = function(config) {
@@ -64,20 +46,20 @@ module.exports = function(config) {
     exclude.push(config.excludeTest);
   }
 
-  let extraConfig = null;
-  if (config.browserstack) {
-    extraConfig = devConfig;
-  } else {
-    extraConfig = devConfig;
-  }
-
   config.set({
-    ...extraConfig,
-    exclude,
+    frameworks: ['jasmine', 'karma-typescript'],
+    files: [
+      'src/setup_test.ts',
+      {pattern: 'src/**/*.ts'},
+    ],
+    preprocessors: {'**/*.ts': ['karma-typescript']},
     karmaTypescriptConfig,
+    reporters: ['dots', 'karma-typescript'],
+    exclude,
     colors: true,
     autoWatch: false,
     browsers: ['Chrome'],
+    singleRun: true,
     client: {jasmine: {random: false}, args: args},
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
