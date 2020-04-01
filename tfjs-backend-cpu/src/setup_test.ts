@@ -16,12 +16,7 @@
  */
 
 // tslint:disable-next-line: no-imports-from-dist
-import {Constraints, setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
-
-export const CPU_ENVS: Constraints = {
-  predicate: testEnv => testEnv.backendName === 'cpu'
-};
-
+import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
 setTestEnvs([{name: 'cpu', backendName: 'cpu', isDataSync: true}]);
 
 // Import and run all the tests from core.

@@ -24,7 +24,7 @@ import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import {expectArraysClose, expectArraysEqual} from '@tensorflow/tfjs-core/dist/test_util';
 
 import {MathBackendCPU} from './backend_cpu';
-import {CPU_ENVS} from './backend_cpu_test_registry';
+import {CPU_ENVS} from './backend_cpu_test_envs';
 
 /** Private test util for decoding array of strings in utf-8. */
 function decodeStrings(bytes: Uint8Array[]): string[] {

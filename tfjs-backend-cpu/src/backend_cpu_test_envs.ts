@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-import {registerBackend} from '@tensorflow/tfjs-core';
-import {MathBackendCPU} from './backend_cpu';
-registerBackend('cpu', () => new MathBackendCPU(), 1 /* priority */);
-// import './register_all_kernels';
+// tslint:disable-next-line: no-imports-from-dist
+import {Constraints} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
+export const CPU_ENVS: Constraints = {
+  predicate: testEnv => testEnv.backendName === 'cpu'
+};
