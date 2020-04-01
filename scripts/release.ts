@@ -29,11 +29,9 @@
 import * as argparse from 'argparse';
 import chalk from 'chalk';
 import * as fs from 'fs';
-import * as mkdirp from 'mkdirp';
 import * as shell from 'shelljs';
-import {RELEASE_UNITS, Phase, $, question, printReleaseUnit, printPhase} from './release-util';
-
-const TMP_DIR = '/tmp/tfjs-release';
+import {RELEASE_UNITS, WEBSITE_RELEASE_UNIT, TMP_DIR, $, question, printReleaseUnit, printPhase, makeReleaseDir, updateDependency, prepareReleaseBuild, createPR} from './release-util';
+import {releaseWebsite} from './release-website';
 
 const parser = new argparse.ArgumentParser();
 
@@ -59,7 +57,8 @@ async function main() {
   RELEASE_UNITS.forEach((_, i) => printReleaseUnit(i));
   console.log();
 
-  const releaseUnitStr = await question('Which release unit (leave empty for 0): ');
+  const releaseUnitStr =
+      await question('Which release unit (leave empty for 0): ');
   const releaseUnitInt = +releaseUnitStr;
   if (releaseUnitInt < 0 || releaseUnitInt >= RELEASE_UNITS.length) {
     console.log(chalk.red(`Invalid release unit: ${releaseUnitStr}`));
@@ -68,7 +67,8 @@ async function main() {
   console.log(chalk.blue(`Using release unit ${releaseUnitInt}`));
   console.log();
 
-  const {name, phases, repo} = RELEASE_UNITS[releaseUnitInt];
+  const releaseUnit = RELEASE_UNITS[releaseUnitInt];
+  const {name, phases, repo} = releaseUnit;
 
   phases.forEach((_, i) => printPhase(phases, i));
   console.log();
@@ -86,170 +86,98 @@ async function main() {
   const packages = phases[phaseInt].packages;
   const deps = phases[phaseInt].deps || [];
 
-  const dir = `${TMP_DIR}/${publishTFJS(repo) ? `tfjs` : repo}`;
-  mkdirp(TMP_DIR, err => {
-    if (err) {
-      console.log('Error creating temp dir', TMP_DIR);
-      process.exit(1);
-    }
-  });
-  $(`rm -f -r ${dir}/*`);
-  $(`rm -f -r ${dir}`);
-  $(`mkdir ${dir}`);
+  if (releaseUnit === WEBSITE_RELEASE_UNIT) {
+    await releaseWebsite(args);
+
+    console.log(
+        'Done. Please remember to deploy the website once you merged the PR.');
+
+    process.exit(0);
+  }
+
+  // Release packages in tfjs repo.
+  const dir = `${TMP_DIR}/tfjs`;
+  makeReleaseDir(dir);
 
   const urlBase = args.git_protocol ? 'git@github.com:' : 'https://github.com/';
   let releaseBranch = '';
 
-  if (repo != null) {
-    // Publishing website, another repo.
-    $(`git clone ${urlBase}tensorflow/${repo} ${dir} --depth=1`);
+  if (phaseInt !== 0) {
+    // Phase0 should be published and release branch should have been created.
+    const firstPackageLatestVersion =
+        $(`npm view @tensorflow/${phases[0].packages[0]} dist-tags.latest`);
+    releaseBranch = `${name}_${firstPackageLatestVersion}`;
+
+    $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${
+        dir} --depth=1`);
     shell.cd(dir);
   } else {
-    // Publishing packages in tfjs.
-    if (phaseInt !== 0) {
-      // Phase0 should be published and release branch should have been created.
-      const firstPackageLatestVersion =
-        $(`npm view @tensorflow/${phases[0].packages[0]} dist-tags.latest`);
-      releaseBranch = `${name}_${firstPackageLatestVersion}`;
-
-      $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${
-        dir} --depth=1`);
-      shell.cd(dir);
-    } else {
-      // Phase0 needs user input of the release version to create release
-      // branch.
-      $(`git clone ${urlBase}tensorflow/tfjs ${dir} --depth=1`);
-      shell.cd(dir);
-    }
+    // Phase0 needs user input of the release version to create release
+    // branch.
+    $(`git clone ${urlBase}tensorflow/tfjs ${dir} --depth=1`);
+    shell.cd(dir);
   }
 
   const newVersions = [];
   for (let i = 0; i < packages.length; i++) {
     const packageName = packages[i];
-    if (publishTFJS(repo)) {
-      shell.cd(packageName);
-    }
-
-    const depsLatestVersion: string[] =
-      deps.map(dep => $(`npm view @tensorflow/${dep} dist-tags.latest`));
+    shell.cd(packageName);
 
     // Update the version.
-    const packageJsonPath = publishTFJS(repo) ?
-      `${dir}/${packageName}/package.json` :
-      `${dir}/package.json`;
+    const packageJsonPath = `${dir}/${packageName}/package.json`;
     let pkg = `${fs.readFileSync(packageJsonPath)}`;
     const parsedPkg = JSON.parse(`${pkg}`);
     const latestVersion =
-      $(`npm view @tensorflow/${packageName} dist-tags.latest`);
+        $(`npm view @tensorflow/${packageName} dist-tags.latest`);
 
     console.log(chalk.magenta.bold(
-      `~~~ Processing ${packageName} (${latestVersion}) ~~~`));
+        `~~~ Processing ${packageName} (${latestVersion}) ~~~`));
 
     const patchUpdateVersion = getPatchUpdateVersion(latestVersion);
     let newVersion = latestVersion;
-    if (!phase.leaveVersion) {
-      newVersion = await question(
-        `New version (leave empty for ${patchUpdateVersion}): `);
-      if (newVersion === '') {
-        newVersion = patchUpdateVersion;
-      }
+    newVersion =
+        await question(`New version (leave empty for ${patchUpdateVersion}): `);
+    if (newVersion === '') {
+      newVersion = patchUpdateVersion;
     }
 
     if (releaseBranch === '') {
       releaseBranch = `${name}_${newVersion}`;
       console.log(chalk.magenta.bold(
-        `~~~ Creating new release branch ${releaseBranch} ~~~`));
+          `~~~ Creating new release branch ${releaseBranch} ~~~`));
       $(`git checkout -b ${releaseBranch}`);
       $(`git push origin ${releaseBranch}`);
     }
 
     pkg = `${pkg}`.replace(
-      `"version": "${parsedPkg.version}"`, `"version": "${newVersion}"`);
+        `"version": "${parsedPkg.version}"`, `"version": "${newVersion}"`);
 
-    if (deps != null) {
-      for (let j = 0; j < deps.length; j++) {
-        const dep = deps[j];
-
-        let version = '';
-        const depNpmName = `@tensorflow/${dep}`;
-        if (parsedPkg['dependencies'] != null &&
-          parsedPkg['dependencies'][depNpmName] != null) {
-          version = parsedPkg['dependencies'][depNpmName];
-        } else if (
-          parsedPkg['peerDependencies'] != null &&
-          parsedPkg['peerDependencies'][depNpmName] != null) {
-          version = parsedPkg['peerDependencies'][depNpmName];
-        } else if (
-          parsedPkg['devDependencies'] != null &&
-          parsedPkg['devDependencies'][depNpmName] != null) {
-          version = parsedPkg['devDependencies'][depNpmName];
-        }
-        if (version == null) {
-          throw new Error(`No dependency found for ${dep}.`);
-        }
-
-        let relaxedVersionPrefix = '';
-        if (version.startsWith('~') || version.startsWith('^')) {
-          relaxedVersionPrefix = version.substr(0, 1);
-        }
-        const depVersionLatest = relaxedVersionPrefix + depsLatestVersion[j];
-
-        let depVersion = await question(
-          `Updated version for ` +
-          `${dep} (current is ${version}, leave empty for latest ${
-          depVersionLatest}): `);
-        if (depVersion === '') {
-          depVersion = depVersionLatest;
-        }
-        console.log(chalk.blue(`Using version ${depVersion}`));
-
-        pkg = `${pkg}`.replace(
-          new RegExp(`"${depNpmName}": "${version}"`, 'g'),
-          `"${depNpmName}": "${depVersion}"`);
-      }
-    }
+    pkg = await updateDependency(deps, pkg, parsedPkg);
 
     fs.writeFileSync(packageJsonPath, pkg);
-    if (phase.scripts != null && phase.scripts[packageName] != null &&
-      phase.scripts[packageName]['before-yarn'] != null) {
-      phase.scripts[packageName]['before-yarn'].forEach(script => $(script));
-    }
-    $(`yarn`);
-    if (phase.scripts != null && phase.scripts[packageName] != null &&
-      phase.scripts[packageName]['after-yarn'] != null) {
-      phase.scripts[packageName]['after-yarn'].forEach(script => $(script));
-    }
-    if (publishTFJS(repo)) {
-      shell.cd('..');
-    }
-    if (!phase.leaveVersion) {
-      $(`./scripts/make-version.js ${packageName}`);
-    }
+
+    prepareReleaseBuild(phase, packageName);
+
+    shell.cd('..');
+
+    $(`./scripts/make-version.js ${packageName}`);
+
     newVersions.push(newVersion);
   }
 
   const packageNames = packages.join(', ');
   const versionNames = newVersions.join(', ');
-  const branchName = `${releaseBranch}_phase${phaseInt}`;
+  const devBranchName = `${releaseBranch}_phase${phaseInt}`;
 
-  console.log(chalk.magenta.bold(
-    '~~~ Creating PR to update release branch ~~~'));
-  $(`git checkout -b ${branchName}`);
-  $(`git push -u origin ${branchName}`);
-  $(`git add .`);
-  $(`git commit -a -m "Update ${packageNames} to ${versionNames}."`);
-  $(`git push`);
-  const title =
-    phase.title ? phase.title : `Update ${packageNames} to ${versionNames}.`;
-  $(`hub pull-request -b ${releaseBranch} -m "${title}" -l INTERNAL -o`);
-  console.log();
+  const message = `Update ${packageNames} to ${versionNames}.`;
+  createPR(devBranchName, releaseBranch, message);
 
   console.log(
-    `Done. FYI, this script does not publish to NPM. ` +
-    `Please publish by running yarn publish-npm ` +
-    `from each repo after you merge the PR.` +
-    `Please remeber to update the website once you have released ` +
-    'a new package version');
+      `Done. FYI, this script does not publish to NPM. ` +
+      `Please publish by running yarn publish-npm ` +
+      `from each repo after you merge the PR.` +
+      `Please remeber to update the website once you have released ` +
+      'a new package version');
 
   process.exit(0);
 }
