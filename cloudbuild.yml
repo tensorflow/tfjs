@@ -30,6 +30,7 @@ steps:
   id: 'tfjs-converter'
   args: ['./scripts/run-build.sh', 'tfjs-converter']
   waitFor: ['find-affected-packages']
+  env: ['NIGHTLY=$_NIGHTLY']
 
 # Data.
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -37,6 +38,7 @@ steps:
   id: 'tfjs-data'
   args: ['./scripts/run-build.sh', 'tfjs-data']
   waitFor: ['find-affected-packages']
+  env: ['NIGHTLY=$_NIGHTLY']
 
 # Layers.
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -44,6 +46,7 @@ steps:
   id: 'tfjs-layers'
   args: ['./scripts/run-build.sh', 'tfjs-layers']
   waitFor: ['find-affected-packages']
+  env: ['NIGHTLY=$_NIGHTLY']
 
 # Union.
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -72,6 +75,7 @@ steps:
   id: 'tfjs-backend-wasm'
   args: ['./scripts/run-build.sh', 'tfjs-backend-wasm']
   waitFor: ['find-affected-packages']
+  env: ['NIGHTLY=$_NIGHTLY']
 
 # React Native.
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -86,6 +90,7 @@ steps:
   id: 'tfjs-node'
   args: ['./scripts/run-build.sh', 'tfjs-node']
   waitFor: ['find-affected-packages']
+  env: ['NIGHTLY=$_NIGHTLY']
 
 # Node GPU.
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -93,6 +98,7 @@ steps:
   id: 'tfjs-node-gpu'
   args: ['./scripts/run-build.sh', 'tfjs-node-gpu']
   waitFor: ['find-affected-packages']
+  env: ['NIGHTLY=$_NIGHTLY']
 
 # Integration tests
 - name: 'node:10'

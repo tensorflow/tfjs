@@ -14,25 +14,18 @@
  * limitations under the License.
  * =============================================================================
  */
-import {KernelConfig, registerKernel} from '../../kernel_registry';
 
-import {divConfig} from './kernels/Div';
-import {fromPixelsConfig} from './kernels/FromPixels';
-import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
-import {squareConfig} from './kernels/Square';
-import {squaredDifferenceConfig} from './kernels/SquaredDifference';
-import {transposeConfig} from './kernels/Transpose';
+import {KernelConfig, Square, SquareInputs, Tensor} from '@tensorflow/tfjs-core';
+import {WebGPUBackend} from '../backend_webgpu';
+import {SQUARE, UnaryOpProgram} from './unary_op_webgpu';
 
-// List all kernel configs here
-const kernelConfigs: KernelConfig[] = [
-  fromPixelsConfig,
-  divConfig,
-  nonMaxSuppressionV5Config,
-  squareConfig,
-  squaredDifferenceConfig,
-  transposeConfig,
-];
-
-for (const kernelConfig of kernelConfigs) {
-  registerKernel(kernelConfig);
-}
+export const squareConfig: KernelConfig = {
+  kernelName: Square,
+  backendName: 'webgpu',
+  kernelFunc: ({inputs, backend}) => {
+    const {x} = inputs as SquareInputs;
+    const webGPUBackend = backend as WebGPUBackend;
+    const program = new UnaryOpProgram(x.shape, SQUARE);
+    return webGPUBackend.compileAndRun(program, [x as Tensor]);
+  }
+};

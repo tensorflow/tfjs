@@ -35,6 +35,7 @@ import {buffer, scalar, tensor, tensor4d} from '../../ops/ops';
 import * as scatter_nd_util from '../../ops/scatter_nd_util';
 import * as selu_util from '../../ops/selu_util';
 import {computeFlatOffset, computeOutShape, isSliceContinous} from '../../ops/slice_util';
+import {transpose} from '../../ops/transpose';
 import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer} from '../../tensor';
 import {BackendValues, DataType, DataValues, NumericDataType, Rank, ShapeMap, TypedArray, upcastType} from '../../types';
 import * as util from '../../util';
@@ -2111,32 +2112,6 @@ export class MathBackendCPU extends KernelBackend {
     return buffer.toTensor() as T;
   }
 
-  transpose<T extends Tensor>(x: T, perm: number[]): T {
-    assertNotComplex(x, 'transpose');
-
-    const newShape: number[] = new Array(x.rank);
-    for (let i = 0; i < newShape.length; i++) {
-      newShape[i] = x.shape[perm[i]];
-    }
-    const values = this.readSync(x.dataId) as TypedArray;
-    const result = buffer(newShape, x.dtype);
-
-    const xBuf = this.bufferSync(x);
-    for (let i = 0; i < x.size; ++i) {
-      const loc = xBuf.indexToLoc(i);
-
-      // Permute location.
-      const newLoc: number[] = new Array(loc.length);
-      for (let i = 0; i < newLoc.length; i++) {
-        newLoc[i] = loc[perm[i]];
-      }
-
-      const newIndex = result.locToIndex(newLoc);
-      result.values[newIndex] = values[i];
-    }
-    return result.toTensor() as T;
-  }
-
   gather<T extends Tensor>(x: T, indices: Tensor1D, axis: number): T {
     assertNotComplex([x, indices], 'gather');
 
@@ -2174,8 +2149,7 @@ export class MathBackendCPU extends KernelBackend {
     const sliceSize =
         array_ops_util.getSliceSize(reshapedPermuted, crops, blockShape.length);
 
-    return x.reshape(reshaped)
-               .transpose(permuted)
+    return transpose(x.reshape(reshaped), permuted)
                .reshape(reshapedPermuted)
                .slice(sliceBeginCoords, sliceSize) as T;
   }
@@ -2201,8 +2175,9 @@ export class MathBackendCPU extends KernelBackend {
     const flattenShape = array_ops_util.getReshapedPermuted(
         paddedX.shape, blockShape, prod, false);
 
-    return paddedX.reshape(reshapedPaddedShape)
-               .transpose(permutedReshapedPaddedPermutation)
+    return transpose(
+               paddedX.reshape(reshapedPaddedShape),
+               permutedReshapedPaddedPermutation)
                .reshape(flattenShape) as T;
   }
 
