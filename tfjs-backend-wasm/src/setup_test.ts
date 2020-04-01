@@ -77,7 +77,7 @@ const TEST_FILTERS: TestFilter[] = [
       'maxPool3d',          // Not yet implemented.
       'maxPool3dBackprop',  // Not yet implemented.
       'ignores NaNs'        // Actual != expected.
-      'maxPoolWithArgmax',  // Not yet implemented.
+      'maxPoolWithArgmax'   // Not yet implemented.
 
     ]
   },

@@ -212,7 +212,7 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'maxPoolBackprop',   // Not yet implemented.
       'maxPool3d',         // Not yet implemented.
-      'maxPoolWithArgmax', // Not yet implemented.
+      'maxPoolWithArgmax'  // Not yet implemented.
     ]
   },
   {
