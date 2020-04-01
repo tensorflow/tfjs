@@ -21,11 +21,35 @@ const karmaTypescriptConfig = {
   coverageOptions: {instrumentation: false},
   reports: {},
   bundlerOptions: {
+    sourceMap: true,
+    // Ignore the import of the `worker_threads` package used in a core test
+    // meant to run in node.
+    exclude: ['worker_threads'],
     // worker_node_test in tfjs-core contains a conditional require statement
     // that confuses the bundler of karma-typescript.
     ignore: ['./worker_node_test']
   }
 };
+
+const devConfig = {
+  frameworks: ['jasmine', 'karma-typescript'],
+  files: ['src/setup_test.ts', {pattern: 'src/**/*.ts'}],
+  preprocessors: {'**/*.ts': ['karma-typescript']},
+  karmaTypescriptConfig,
+  reporters: ['dots', 'karma-typescript'],
+};
+
+// const browserstackConfig = {
+//   frameworks: ['browserify', 'jasmine'],
+//   files: ['dist/setup_test.js', {pattern: 'dist/**/*_test.js'}],
+//   preprocessors: {'dist/**/*_test.js': ['browserify']},
+//   browserify: {debug: false},
+//   reporters: ['dots'],
+//   singleRun: true,
+//   hostname: 'bs-local.com',
+// };
+
+
 
 module.exports = function(config) {
   const args = [];
@@ -40,22 +64,75 @@ module.exports = function(config) {
     exclude.push(config.excludeTest);
   }
 
+  let extraConfig = null;
+  if (config.browserstack) {
+    extraConfig = devConfig;
+  } else {
+    extraConfig = devConfig;
+  }
+
   config.set({
-    basePath: '',
-    frameworks: ['jasmine', 'karma-typescript'],
-    files: [
-      'src/setup_test.ts',       // Setup the environment for the tests.
-      {pattern: 'src/**/*.ts'},  // Import all tests.
-    ],
+    ...extraConfig,
     exclude,
-    preprocessors: {'**/*.ts': ['karma-typescript']},
     karmaTypescriptConfig,
-    reporters: ['progress', 'karma-typescript'],
-    port: 9876,
     colors: true,
     autoWatch: false,
     browsers: ['Chrome'],
-    singleRun: true,
-    client: {jasmine: {random: false}, args: args}
+    client: {jasmine: {random: false}, args: args},
+    browserStack: {
+      username: process.env.BROWSERSTACK_USERNAME,
+      accessKey: process.env.BROWSERSTACK_KEY
+    },
+    captureTimeout: 120000,
+    reportSlowerThan: 500,
+    browserNoActivityTimeout: 240000,
+    customLaunchers: {
+      // For browserstack configs see:
+      // https://www.browserstack.com/automate/node
+      bs_chrome_mac: {
+        base: 'BrowserStack',
+        browser: 'chrome',
+        browser_version: 'latest',
+        os: 'OS X',
+        os_version: 'High Sierra'
+      },
+      bs_firefox_mac: {
+        base: 'BrowserStack',
+        browser: 'firefox',
+        browser_version: 'latest',
+        os: 'OS X',
+        os_version: 'High Sierra'
+      },
+      bs_safari_mac: {
+        base: 'BrowserStack',
+        browser: 'safari',
+        browser_version: 'latest',
+        os: 'OS X',
+        os_version: 'High Sierra'
+      },
+      bs_ios_11: {
+        base: 'BrowserStack',
+        device: 'iPhone X',
+        os: 'iOS',
+        os_version: '11.0',
+        real_mobile: true
+      },
+      bs_android_9: {
+        base: 'BrowserStack',
+        device: 'Google Pixel 3 XL',
+        os: 'android',
+        os_version: '9.0',
+        real_mobile: true
+      },
+      win_10_chrome: {
+        base: 'BrowserStack',
+        browser: 'chrome',
+        // Latest Chrome on Windows has WebGL problems:
+        // https://github.com/tensorflow/tfjs/issues/2272
+        browser_version: '77.0',
+        os: 'Windows',
+        os_version: '10'
+      },
+    },
   })
 }

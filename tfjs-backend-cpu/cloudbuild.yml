@@ -1,0 +1,39 @@
+steps:
+# Install common dependencies.
+- name: 'node:10'
+  id: 'yarn-common'
+  entrypoint: 'yarn'
+  args: ['install']
+
+# Install webgpu dependencies.
+- name: 'node:10'
+  dir: 'tfjs-backend-cpu'
+  id: 'yarn'
+  entrypoint: 'yarn'
+  args: ['install']
+  waitFor: ['yarn-common']
+
+# Build core from master.
+- name: 'node:10'
+  dir: 'tfjs-backend-cpu'
+  id: 'build-core'
+  entrypoint: 'yarn'
+  args: ['build-core']
+  waitFor: ['yarn-common']
+
+# Run tests.
+- name: 'node:10'
+  dir: 'tfjs-backend-cpu'
+  entrypoint: 'yarn'
+  id: 'test-backend-cpu'
+  args: ['test-ci']
+  waitFor: ['build-core']
+
+# General configuration
+timeout: 1800s
+logsBucket: 'gs://tfjs-build-logs'
+substitutions:
+  _NIGHTLY: ''
+options:
+  logStreamingOption: 'STREAM_ON'
+  substitution_option: 'ALLOW_LOOSE'
