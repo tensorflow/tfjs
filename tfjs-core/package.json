@@ -21,6 +21,7 @@
   "devDependencies": {
     "@bazel/bazel": "^0.24.0",
     "@bazel/typescript": "^0.27.8",
+    "@tensorflow/tfjs-cpu": "link:../tfjs-backend-cpu",
     "@types/jasmine": "~3.0.0",
     "@types/node": "~9.6.0",
     "@types/node-fetch": "~2.1.2",
@@ -55,6 +56,7 @@
     "build-ci": "./scripts/enumerate-tests.js --ci && tsc && yarn build-test-snippets",
     "build": "node ./scripts/enumerate-tests.js && tsc",
     "build-npm": "./scripts/build-npm.sh",
+    "build-cpu-backend": "cd ../tfjs-backend-cpu && yarn && yarn build",
     "build:bazel": "bazel build //...",
     "build-test-snippets": "yarn tsc --project ./scripts/test_snippets/tsconfig.json",
     "format-all": "clang-format -i -style=Google --glob=src/**/*.ts",
@@ -73,7 +75,7 @@
     "test-async-backends-ci": "node dist/test_async_backends.js",
     "test-integration": "yarn && ./scripts/test-integration.js",
     "test-ci": "./scripts/test-ci.sh",
-    "test-snippets": "ts-node ./scripts/test_snippets/test_snippets.ts"
+    "test-snippets": "yarn build-cpu-backend && ts-node ./scripts/test_snippets/test_snippets.ts"
   },
   "dependencies": {
     "@types/offscreencanvas": "~2019.3.0",

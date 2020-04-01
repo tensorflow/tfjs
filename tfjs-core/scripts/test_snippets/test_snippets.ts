@@ -15,7 +15,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as tf from '../../src/index';
+import * as tf from '../../dist/index';
+import '@tensorflow/tfjs-cpu';
 import {parseAndEvaluateSnippets} from './util';
 
 parseAndEvaluateSnippets(tf);
