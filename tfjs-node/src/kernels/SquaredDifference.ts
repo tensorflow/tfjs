@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
+import {KernelConfig, registerKernel} from '@tensorflow/tfjs';
 import {createTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
 export const squaredDifferenceConfig: KernelConfig = {
