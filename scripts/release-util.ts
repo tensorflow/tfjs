@@ -46,12 +46,9 @@ export const UNION_PHASE: Phase = {
   deps: ['tfjs-core', 'tfjs-layers', 'tfjs-converter', 'tfjs-data']
 };
 
-// We added tfjs-core and tfjs-layers because Node has unit tests that directly
-// use tf.core and tf.layers to test serialization of models. Consider moving
-// the test to tf.layers.
 export const NODE_PHASE: Phase = {
   packages: ['tfjs-node', 'tfjs-node-gpu'],
-  deps: ['tfjs', 'tfjs-core', 'tfjs-layers'],
+  deps: ['tfjs', 'tfjs-core'],
   scripts: {'tfjs-node-gpu': {'before-yarn': ['yarn prep-gpu']}}
 };
 
