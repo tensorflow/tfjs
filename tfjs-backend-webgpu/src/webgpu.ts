@@ -15,23 +15,7 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs';
-
-import {createTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
-
-interface SoftmaxInputs extends NamedTensorInfoMap {
-  logits: TensorInfo;
-}
-
-registerKernel({
-  kernelName: 'Softmax',
-  backendName: 'tensorflow',
-  kernelFunc: ({inputs, backend}) => {
-    const {logits} = inputs as SoftmaxInputs;
-    const opAttrs = [createTypeOpAttr('T', logits.dtype)];
-
-    const nodeBackend = backend as NodeJSKernelBackend;
-
-    return nodeBackend.executeSingleOutput('Softmax', opAttrs, [logits]);
-  }
-});
+import * as webgpu_util from './webgpu_util';
+export {WebGPUBackend} from './backend_webgpu';
+export {WebGPUProgram} from './kernels/webgpu_program';
+export {webgpu_util};

@@ -15,23 +15,17 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs';
+import {KernelConfig, Square, SquareInputs, Tensor} from '@tensorflow/tfjs-core';
+import {WebGPUBackend} from '../backend_webgpu';
+import {SQUARE, UnaryOpProgram} from './unary_op_webgpu';
 
-import {createTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
-
-interface SoftmaxInputs extends NamedTensorInfoMap {
-  logits: TensorInfo;
-}
-
-registerKernel({
-  kernelName: 'Softmax',
-  backendName: 'tensorflow',
+export const squareConfig: KernelConfig = {
+  kernelName: Square,
+  backendName: 'webgpu',
   kernelFunc: ({inputs, backend}) => {
-    const {logits} = inputs as SoftmaxInputs;
-    const opAttrs = [createTypeOpAttr('T', logits.dtype)];
-
-    const nodeBackend = backend as NodeJSKernelBackend;
-
-    return nodeBackend.executeSingleOutput('Softmax', opAttrs, [logits]);
+    const {x} = inputs as SquareInputs;
+    const webGPUBackend = backend as WebGPUBackend;
+    const program = new UnaryOpProgram(x.shape, SQUARE);
+    return webGPUBackend.compileAndRun(program, [x as Tensor]);
   }
-});
+};

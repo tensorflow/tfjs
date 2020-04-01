@@ -15,13 +15,12 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
-import * as tfl from '@tensorflow/tfjs-layers';
+import * as tf from '@tensorflow/tfjs';
 
 import * as tfn from '../index';
 
 // We still need node-fetch so that we can mock the core
-// tfc.env().platform.fetch call and return a valid response.
+// tf.env().platform.fetch call and return a valid response.
 // tslint:disable-next-line:no-require-imports
 const fetch = require('node-fetch');
 
@@ -68,7 +67,7 @@ describe('nodeHTTPRequest-load', () => {
     [filename: string]: string|Float32Array|Int32Array|ArrayBuffer|Uint8Array|
     Uint16Array
   }) => {
-    spyOn(tfc.env().platform, 'fetch')
+    spyOn(tf.env().platform, 'fetch')
         .and.callFake((path: string, init: RequestInit) => {
           return new Promise((resolve, reject) => {
             let contentType = '';
@@ -100,7 +99,7 @@ describe('nodeHTTPRequest-load', () => {
   });
 
   it('Load through NodeHTTPRequest object', async () => {
-    const weightManifest1: tfc.io.WeightsManifestConfig = [{
+    const weightManifest1: tf.io.WeightsManifestConfig = [{
       paths: ['weightfile0'],
       weights: [
         {
@@ -137,7 +136,7 @@ describe('nodeHTTPRequest-load', () => {
   });
 
   it('Load through registered handler', async () => {
-    const weightManifest1: tfc.io.WeightsManifestConfig = [{
+    const weightManifest1: tf.io.WeightsManifestConfig = [{
       paths: ['weightfile0'],
       weights: [
         {
@@ -159,7 +158,7 @@ describe('nodeHTTPRequest-load', () => {
       'https://localhost/weightfile0': floatData,
     });
 
-    const model = await tfl.loadLayersModel('https://localhost/model.json');
+    const model = await tf.loadLayersModel('https://localhost/model.json');
     expect(model.inputs.length).toEqual(1);
     expect(model.inputs[0].shape).toEqual([null, 3]);
     expect(model.outputs.length).toEqual(1);

@@ -112,6 +112,11 @@ async function main() {
 
     console.log(chalk.magenta.bold(`~~~ Preparing package ${pkg}~~~`));
     console.log(chalk.magenta('~~~ Installing packages ~~~'));
+    // tfjs-node-gpu needs to get some files from tfjs-node.
+    if (pkg === "tfjs-node-gpu") {
+      $('yarn prep-gpu');
+    }
+
     // Yarn above the other checks to make sure yarn doesn't change the lock file.
     $('yarn');
 
