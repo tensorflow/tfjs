@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {Tensor} from '@tensorflow/tfjs';
-import {Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
+import {Tensor, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs';
 import {ensureTensorflowBackend, nodeBackend} from './nodejs_kernel_backend';
 
 export enum ImageType {
