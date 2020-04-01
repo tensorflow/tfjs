@@ -15,11 +15,19 @@
  * =============================================================================
  */
 
-import './broadcast_to';
-import './div';
-import './div_no_nan';
-import './squared_difference';
-import './tile';
-import './one_hot';
-import './transpose';
-import './pad';
+import {PadV2, PadV2Attrs} from '../kernel_names';
+import {GradConfig, NamedAttrMap} from '../kernel_registry';
+import {Tensor} from '../tensor';
+
+export const padV2GradConfig: GradConfig = {
+  kernelName: PadV2,
+  inputsToSave: ['x'],
+  gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
+    // Pad introduces values around the original tensor, so the gradient
+    // slices the original shape out of the gradient.
+    const x = saved[0];
+    const {paddings} = attrs as unknown as PadV2Attrs;
+    const begin = paddings.map(p => p[0]);
+    return {x: () => dy.slice(begin, x.shape)};
+  }
+};

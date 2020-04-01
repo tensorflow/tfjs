@@ -18,5 +18,6 @@ set -e
 
 DIR=$1
 if [[ -f "$DIR/run-ci" || "$NIGHTLY" = true ]]; then
-  gcloud builds submit . --config=$DIR/cloudbuild.yml
+  gcloud builds submit . --config=$DIR/cloudbuild.yml \
+    --substitutions _NIGHTLY=$NIGHTLY
 fi

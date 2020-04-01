@@ -14,25 +14,19 @@
  * limitations under the License.
  * =============================================================================
  */
-import {KernelConfig, registerKernel} from '../../kernel_registry';
 
-import {divConfig} from './kernels/Div';
-import {fromPixelsConfig} from './kernels/FromPixels';
-import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
-import {squareConfig} from './kernels/Square';
-import {squaredDifferenceConfig} from './kernels/SquaredDifference';
-import {transposeConfig} from './kernels/Transpose';
+import {KernelConfig, SquaredDifference, SquaredDifferenceInputs, Tensor} from '@tensorflow/tfjs-core';
+import {WebGPUBackend} from '../backend_webgpu';
+import {BinaryOpProgram, SQUARED_DIFFERENCE} from './binary_op_webgpu';
 
-// List all kernel configs here
-const kernelConfigs: KernelConfig[] = [
-  fromPixelsConfig,
-  divConfig,
-  nonMaxSuppressionV5Config,
-  squareConfig,
-  squaredDifferenceConfig,
-  transposeConfig,
-];
+export const squaredDifferenceConfig: KernelConfig = {
+  kernelName: SquaredDifference,
+  backendName: 'webgpu',
+  kernelFunc: ({inputs, backend}) => {
+    const {a, b} = inputs as SquaredDifferenceInputs;
+    const webGPUBackend = backend as WebGPUBackend;
 
-for (const kernelConfig of kernelConfigs) {
-  registerKernel(kernelConfig);
-}
+    const program = new BinaryOpProgram(SQUARED_DIFFERENCE, a.shape, b.shape);
+    return webGPUBackend.compileAndRun(program, [a as Tensor, b as Tensor]);
+  }
+};

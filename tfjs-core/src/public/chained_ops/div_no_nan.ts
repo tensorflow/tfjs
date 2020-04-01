@@ -14,25 +14,18 @@
  * limitations under the License.
  * =============================================================================
  */
-import {KernelConfig, registerKernel} from '../../kernel_registry';
 
-import {divConfig} from './kernels/Div';
-import {fromPixelsConfig} from './kernels/FromPixels';
-import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
-import {squareConfig} from './kernels/Square';
-import {squaredDifferenceConfig} from './kernels/SquaredDifference';
-import {transposeConfig} from './kernels/Transpose';
+import {divNoNan} from '../../ops/div_no_nan';
+import {Tensor} from '../../tensor';
+import {Rank, TensorLike} from '../../types';
 
-// List all kernel configs here
-const kernelConfigs: KernelConfig[] = [
-  fromPixelsConfig,
-  divConfig,
-  nonMaxSuppressionV5Config,
-  squareConfig,
-  squaredDifferenceConfig,
-  transposeConfig,
-];
-
-for (const kernelConfig of kernelConfigs) {
-  registerKernel(kernelConfig);
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    divNoNan<T extends Tensor>(b: Tensor|TensorLike): T;
+  }
 }
+
+Tensor.prototype.divNoNan = function<T extends Tensor>(b: Tensor|
+                                                       TensorLike): T {
+  return divNoNan(this, b);
+};

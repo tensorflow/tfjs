@@ -249,6 +249,16 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {include: 'subtract ', excludes: []},
   {
+    include: 'square',
+    excludes: [
+      'int32 and int32',  // Fail due to shader key is not
+                          // unique:https://github.com/tensorflow/tfjs/issues/2669.
+      'upcasts when dtypes dont match',  // Upcasts not supported.
+      '5D',                              // Rank 5 is not yet implemented.
+      '6D',                              // Rank 6 is not yet implemented.
+    ]
+  },
+  {
     include: 'slice ',
     excludes: [
       'square a sliced texture',                 // abs not yet implemented.

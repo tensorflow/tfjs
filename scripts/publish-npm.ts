@@ -112,6 +112,11 @@ async function main() {
 
     console.log(chalk.magenta.bold(`~~~ Preparing package ${pkg}~~~`));
     console.log(chalk.magenta('~~~ Installing packages ~~~'));
+    // tfjs-node-gpu needs to get some files from tfjs-node.
+    if (pkg === "tfjs-node-gpu") {
+      $('yarn prep-gpu');
+    }
+
     // Yarn above the other checks to make sure yarn doesn't change the lock file.
     $('yarn');
 
@@ -125,7 +130,9 @@ async function main() {
 
     console.log(chalk.magenta.bold(`~~~ Publishing ${pkg} to npm ~~~`));
     shell.cd(pkg);
-    $('YARN_REGISTRY="https://registry.npmjs.org/" yarn npm-publish');
+    const otp =
+      await question(`Enter one-time password from your authenticator: `);
+    $(`NPM_CONFIG_REGISTRY="https://registry.npmjs.org/" npm publish --otp=${otp}`);
     console.log(`Yay! Published ${pkg} to npm.`);
 
     shell.cd('..');
