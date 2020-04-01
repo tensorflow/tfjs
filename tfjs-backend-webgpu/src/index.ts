@@ -16,10 +16,13 @@
  */
 
 import './flags_webgpu';
+import './register_all_kernels';
+
 import * as tf from '@tensorflow/tfjs-core';
 import glslangInit from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {WebGPUBackend} from './backend_webgpu';
+import * as webgpu from './webgpu';
 
 tf.registerBackend('webgpu', async () => {
   const glslang = await glslangInit();
@@ -33,3 +36,5 @@ tf.registerBackend('webgpu', async () => {
   const device = await adapter.requestDevice({});
   return new WebGPUBackend(device, glslang);
 }, 3 /*priority*/);
+
+export {webgpu};

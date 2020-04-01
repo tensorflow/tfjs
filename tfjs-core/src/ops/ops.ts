@@ -16,6 +16,10 @@
  */
 
 // Modularized ops.
+export {batchNormalization, batchNorm} from './batchnorm';
+export {batchNormalization2d, batchNorm2d} from './batchnorm2d';
+export {batchNormalization3d, batchNorm3d} from './batchnorm3d';
+export {batchNormalization4d, batchNorm4d} from './batchnorm4d';
 export {broadcastTo} from './broadcast_to';
 export {clone} from './clone';
 export {div} from './div';
@@ -37,7 +41,6 @@ export {squaredDifference} from './squared_difference';
 export {tile} from './tile';
 export {truncatedNormal} from './truncated_normal';
 
-export * from './batchnorm';
 export * from './boolean_mask';
 export * from './complex_ops';
 export * from './concat_split';

@@ -15,23 +15,18 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs';
+import {KernelConfig, SquaredDifference, SquaredDifferenceInputs, Tensor} from '@tensorflow/tfjs-core';
+import {WebGPUBackend} from '../backend_webgpu';
+import {BinaryOpProgram, SQUARED_DIFFERENCE} from './binary_op_webgpu';
 
-import {createTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
-
-interface SoftmaxInputs extends NamedTensorInfoMap {
-  logits: TensorInfo;
-}
-
-registerKernel({
-  kernelName: 'Softmax',
-  backendName: 'tensorflow',
+export const squaredDifferenceConfig: KernelConfig = {
+  kernelName: SquaredDifference,
+  backendName: 'webgpu',
   kernelFunc: ({inputs, backend}) => {
-    const {logits} = inputs as SoftmaxInputs;
-    const opAttrs = [createTypeOpAttr('T', logits.dtype)];
+    const {a, b} = inputs as SquaredDifferenceInputs;
+    const webGPUBackend = backend as WebGPUBackend;
 
-    const nodeBackend = backend as NodeJSKernelBackend;
-
-    return nodeBackend.executeSingleOutput('Softmax', opAttrs, [logits]);
+    const program = new BinaryOpProgram(SQUARED_DIFFERENCE, a.shape, b.shape);
+    return webGPUBackend.compileAndRun(program, [a as Tensor, b as Tensor]);
   }
-});
+};

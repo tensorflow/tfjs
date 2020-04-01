@@ -14,24 +14,15 @@
  * limitations under the License.
  * =============================================================================
  */
+import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs';
+import {squareConfig} from './kernels/Square';
+import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 
-import {createTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
+// List all kernel configs here
+const kernelConfigs: KernelConfig[] =
+    [squareConfig, squaredDifferenceConfig];
 
-interface SoftmaxInputs extends NamedTensorInfoMap {
-  logits: TensorInfo;
+for (const kernelConfig of kernelConfigs) {
+  registerKernel(kernelConfig);
 }
-
-registerKernel({
-  kernelName: 'Softmax',
-  backendName: 'tensorflow',
-  kernelFunc: ({inputs, backend}) => {
-    const {logits} = inputs as SoftmaxInputs;
-    const opAttrs = [createTypeOpAttr('T', logits.dtype)];
-
-    const nodeBackend = backend as NodeJSKernelBackend;
-
-    return nodeBackend.executeSingleOutput('Softmax', opAttrs, [logits]);
-  }
-});
