@@ -21,7 +21,7 @@ import {Tensor} from '../tensor';
 
 export const addNGradConfig: GradConfig = {
   kernelName: AddN,
-  inputsToSave: [],
+  saveAllInputs: true,
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
     const ders: {[key: string]: () => Tensor} = {};
     saved.forEach((_, i) => {
