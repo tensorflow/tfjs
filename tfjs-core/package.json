@@ -21,7 +21,7 @@
   "devDependencies": {
     "@bazel/bazel": "^0.24.0",
     "@bazel/typescript": "^0.27.8",
-    "@tensorflow/tfjs-cpu": "link:../tfjs-backend-cpu",
+    "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
     "@types/jasmine": "~3.0.0",
     "@types/node": "~9.6.0",
     "@types/node-fetch": "~2.1.2",
