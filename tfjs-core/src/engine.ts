@@ -671,12 +671,13 @@ export class Engine implements TensorTracker, DataMover {
 
       let inputTensorsToSave: Tensor[];
       if (!inputsToSave) {
+        // If the array is undefined, no inputs will be saved.
         inputTensorsToSave = [];
       } else if (inputsToSave.length === 0) {
-        // An empty inputsToSave array will result in save all the inputs.
+        // If the array is empty, all the inputs will be saved.
         inputTensorsToSave = Object.keys(inputs).map((key) => inputs[key]);
       } else {
-        // A non-empty inputsToSave array will only save specified inputs.
+        // If the array is not empty, only the specified inputs will be saved.
         inputTensorsToSave = inputsToSave.map((inputName) => inputs[inputName]);
       }
 
