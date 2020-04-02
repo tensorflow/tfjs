@@ -53,9 +53,10 @@
     "yargs": "~13.2.2"
   },
   "scripts": {
-    "build-ci": "./scripts/enumerate-tests.js --ci && tsc && yarn build-test-snippets",
+    "build-ci": "yarn build-deps-ci && ./scripts/enumerate-tests.js --ci && tsc && yarn build-test-snippets",
     "build": "node ./scripts/enumerate-tests.js && tsc",
     "build-npm": "./scripts/build-npm.sh",
+    "build-deps-ci": "yarn build-cpu-backend",
     "build-cpu-backend": "cd ../tfjs-backend-cpu && yarn && yarn build-ci",
     "build:bazel": "bazel build //...",
     "build-test-snippets": "yarn tsc --project ./scripts/test_snippets/tsconfig.json",
