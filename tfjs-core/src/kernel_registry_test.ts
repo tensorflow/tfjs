@@ -258,6 +258,105 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
        tf.unregisterGradient(kernelName);
      });
 
+  it('register a kernel with array inputs and saveAllInputs true', async () => {
+    let kernelWasCalled = false;
+    let gradientWasCalled = false;
+    const kernelName = 'MyKernel';
+    const x = [tf.zeros([2, 2]), tf.zeros([2, 2])];
+
+    const forwardReturnDataId = {};
+    tf.registerKernel({
+      kernelName,
+      backendName: tf.getBackend(),
+      kernelFunc: () => {
+        kernelWasCalled = true;
+        return {dtype: 'float32', shape: [3, 3], dataId: forwardReturnDataId};
+      }
+    });
+
+    tf.registerGradient({
+      kernelName,
+      saveAllInputs: true,
+      gradFunc: (dy: tf.Tensor, saved) => {
+        // Make sure saved input (x) was passed to the gradient function.
+        const [$x0, $x1] = x;
+        expect(saved.length).toEqual(x.length);
+        expect($x0.dataId).toEqual(x[0].dataId);
+        expect($x1.dataId).toEqual(x[1].dataId);
+        gradientWasCalled = true;
+        return {0: () => tf.fill([2, 2], 3), 1: () => tf.fill([2, 2], 3)};
+      }
+    });
+
+    // Inputs as array.
+    const z = (...x: tf.Tensor[]) =>
+        tf.engine().runKernel(
+            kernelName, x as {} as tf.NamedTensorMap, {} /* attrs */) as
+        tf.Tensor;
+    const gradFunc = tf.grads(z);
+    const dx = gradFunc(x);
+    expect(kernelWasCalled).toBe(true);
+    expect(gradientWasCalled).toBe(true);
+    expect(dx.length).toEqual(2);
+    expect(dx[0].dtype).toBe('float32');
+    expect(dx[0].shape).toEqual([2, 2]);
+    expect(dx[1].dtype).toBe('float32');
+    expect(dx[1].shape).toEqual([2, 2]);
+    expectArraysClose(await dx[0].data(), [3, 3, 3, 3]);
+    expectArraysClose(await dx[1].data(), [3, 3, 3, 3]);
+    tf.unregisterKernel(kernelName, tf.getBackend());
+    tf.unregisterGradient(kernelName);
+  });
+
+  it('register a kernel with map inputs and saveAllInputs true', async () => {
+    let kernelWasCalled = false;
+    let gradientWasCalled = false;
+    const kernelName = 'MyKernel';
+    const x0 = tf.zeros([2, 2]);
+    const x1 = tf.zeros([2, 2]);
+
+    const forwardReturnDataId = {};
+    tf.registerKernel({
+      kernelName,
+      backendName: tf.getBackend(),
+      kernelFunc: () => {
+        kernelWasCalled = true;
+        return {dtype: 'float32', shape: [3, 3], dataId: forwardReturnDataId};
+      }
+    });
+
+    tf.registerGradient({
+      kernelName,
+      saveAllInputs: true,
+      gradFunc: (dy: tf.Tensor, saved) => {
+        // Make sure saved input (x) was passed to the gradient function.
+        const [$x0, $x1] = saved;
+        expect($x0.dataId).toEqual(x0.dataId);
+        expect($x1.dataId).toEqual(x1.dataId);
+        gradientWasCalled = true;
+        return {x0: () => tf.fill([2, 2], 3), x1: () => tf.fill([2, 2], 3)};
+      }
+    });
+
+    // Inputs as map.
+    const z = (x0: tf.Tensor, x1: tf.Tensor) =>
+        tf.engine().runKernel(kernelName, {x0, x1}, {} /* attrs */) as
+        tf.Tensor;
+    const gradFunc = tf.grads(z);
+    const dx = gradFunc([x0, x1]);
+    expect(kernelWasCalled).toBe(true);
+    expect(gradientWasCalled).toBe(true);
+    expect(dx.length).toEqual(2);
+    expect(dx[0].dtype).toBe('float32');
+    expect(dx[0].shape).toEqual([2, 2]);
+    expect(dx[1].dtype).toBe('float32');
+    expect(dx[1].shape).toEqual([2, 2]);
+    // expectArraysClose(await dx[0].data(), [3, 3, 3, 3]);
+    // expectArraysClose(await dx[1].data(), [3, 3, 3, 3]);
+    tf.unregisterKernel(kernelName, tf.getBackend());
+    tf.unregisterGradient(kernelName);
+  });
+
   it('errors when running non-existent gradient', () => {
     const kernelName = 'MyKernel';
     const x = tf.zeros([2, 2]);
