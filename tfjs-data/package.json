@@ -48,7 +48,7 @@
     "build-backend-cpu": "cd ../tfjs-backend-cpu && yarn && yarn build",
     "build-layers-ci": "cd ../tfjs-layers && yarn && yarn build-ci",
     "build-deps": "yarn build-core && yarn build-layers && yarn build-backend-cpu",
-    "build-deps-ci": "yarn build-core-ci && yarn build-layers-ci",
+    "build-deps-ci": "yarn build-core-ci && yarn build-layers-ci && yarn build-backend-cpu",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build-npm && yalc push",
