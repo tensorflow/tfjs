@@ -33,7 +33,11 @@ if (coverageEnabled) {
 module.exports = function(config) {
   config.set({
     frameworks: ['jasmine', 'karma-typescript'],
-    files: [{pattern: 'src/**/*.ts'}],
+    files: [
+      // Setup the environment for the tests.
+      'src/setup_test.ts',
+      {pattern: 'src/**/*.ts'},
+    ],
     preprocessors: {
       '**/*.ts': ['karma-typescript'],
     },
