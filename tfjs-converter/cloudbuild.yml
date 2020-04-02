@@ -21,7 +21,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-js'
   args: ['test-ci']
-  waitFor: ['yarn-common']
+  waitFor: ['yarn']
   env: ['NIGHTLY=$_NIGHTLY']
 
 # Run python tests.
