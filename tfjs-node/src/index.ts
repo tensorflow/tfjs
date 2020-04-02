@@ -37,7 +37,7 @@ const bindingPath =
 const fs = require('fs');
 if(!fs.existsSync(bindingPath)) {
   throw new Error(`The Node.js native addon module (tfjs_binding.node) can not `
-    + `be found at path: ` + bindingPath
+    + `be found at path: ` + String(bindingPath)
     + `. \nPlease run command `
     + `'npm rebuild @tensorflow/tfjs-node build-addon-from-source' to rebuild `
     + `the native addon module. \nIf you have problem with building the addon `
