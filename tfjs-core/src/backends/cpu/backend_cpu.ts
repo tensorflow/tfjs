@@ -50,6 +50,7 @@ import {topkImpl} from '../topk_impl';
 import {whereImpl} from '../where_impl';
 
 import {assertNotComplex} from './cpu_util';
+import {maxPoolPositions, pool} from './pool_utils';
 
 function mapActivation(
     backend: MathBackendCPU, x: Tensor, activation: Activation,
@@ -2181,142 +2182,11 @@ export class MathBackendCPU extends KernelBackend {
                .reshape(flattenShape) as T;
   }
 
-  pool(
-      xValues: TypedArray, xShape: number[], dtype: DataType, strides: number[],
-      convInfo: Conv2DInfo, poolType: 'max'|'avg') {
-    const strideHeight = convInfo.strideHeight;
-    const strideWidth = convInfo.strideWidth;
-    const dilationHeight = convInfo.dilationHeight;
-    const dilationWidth = convInfo.dilationWidth;
-    const effectiveFilterHeight = convInfo.effectiveFilterHeight;
-    const effectiveFilterWidth = convInfo.effectiveFilterWidth;
-    const padTop = convInfo.padInfo.top;
-    const padLeft = convInfo.padInfo.left;
-
-    const initialValue =
-        (poolType === 'max' ? Number.NEGATIVE_INFINITY :
-                              Number.POSITIVE_INFINITY);
-
-    const output = ops.buffer(convInfo.outShape, dtype);
-    const outputVals = output.values;
-
-    const outputBatchStrides =
-        convInfo.outShape[1] * convInfo.outShape[2] * convInfo.outShape[3];
-    const outputRowStrides = convInfo.outShape[2] * convInfo.outShape[3];
-    const outputColStrides = convInfo.outShape[3];
-
-    for (let b = 0; b < convInfo.batchSize; ++b) {
-      const outputBatchOffset = b * outputBatchStrides;
-      const inputBatchOffset = b * strides[0];
-      for (let d = 0; d < convInfo.inChannels; ++d) {
-        for (let yR = 0; yR < convInfo.outHeight; ++yR) {
-          const xRCorner = yR * strideHeight - padTop;
-          const xRMin = Math.max(0, xRCorner);
-          const xRMax =
-              Math.min(convInfo.inHeight, effectiveFilterHeight + xRCorner);
-          const outputRowOffset = outputBatchOffset + yR * outputRowStrides;
-          for (let yC = 0; yC < convInfo.outWidth; ++yC) {
-            const xCCorner = yC * strideWidth - padLeft;
-            const xCMin = Math.max(0, xCCorner);
-            const xCMax =
-                Math.min(convInfo.inWidth, effectiveFilterWidth + xCCorner);
-            let minMaxValue = initialValue;
-            let avgValue = 0;
-            let count = 0;
-            for (let xR = xRMin; xR < xRMax; xR += dilationHeight) {
-              const xROffset = inputBatchOffset + xR * strides[1];
-              for (let xC = xCMin; xC < xCMax; xC += dilationWidth) {
-                const xCOffset = xROffset + xC * strides[2];
-                const pixel = xValues[xCOffset + d];
-                if ((poolType === 'max' && pixel > minMaxValue)) {
-                  minMaxValue = pixel;
-                } else if (poolType === 'avg') {
-                  avgValue += pixel;
-                  count++;
-                }
-              }
-              if (isNaN(minMaxValue)) {
-                break;
-              }
-            }
-            const outputOffset = outputRowOffset + yC * outputColStrides + d;
-            outputVals[outputOffset] =
-                poolType === 'avg' ? avgValue / count : minMaxValue;
-          }
-        }
-      }
-    }
-    return output;
-  }
-
   maxPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     assertNotComplex(x, 'maxPool');
     const xValues = this.readSync(x.dataId) as TypedArray;
-    return this.pool(xValues, x.shape, x.dtype, x.strides, convInfo, 'max')
+    return pool(xValues, x.shape, x.dtype, x.strides, convInfo, 'max')
                .toTensor() as Tensor4D;
-  }
-
-  maxPoolPositions(
-      xValues: TypedArray, xShape: number[], dtype: DataType,
-      convInfo: Conv2DInfo, flattenPositions = false,
-      includeBatchInIndex = false) {
-    const maxPositions = ops.buffer(convInfo.outShape, 'int32');
-    const strideHeight = convInfo.strideHeight;
-    const strideWidth = convInfo.strideWidth;
-    const dilationHeight = convInfo.dilationHeight;
-    const dilationWidth = convInfo.dilationWidth;
-    const effectiveFilterHeight = convInfo.effectiveFilterHeight;
-    const effectiveFilterWidth = convInfo.effectiveFilterWidth;
-    const padTop = convInfo.padInfo.top;
-    const padLeft = convInfo.padInfo.left;
-
-    const xBuf = buffer(xShape, dtype, xValues);
-    for (let b = 0; b < convInfo.batchSize; ++b) {
-      for (let d = 0; d < convInfo.inChannels; ++d) {
-        for (let yR = 0; yR < convInfo.outHeight; ++yR) {
-          const xRCorner = yR * strideHeight - padTop;
-          let xRMin = xRCorner;
-          while (xRMin < 0) {
-            xRMin += dilationHeight;
-          }
-          // const xRMin = Math.max(0, xRCorner);
-          const xRMax =
-              Math.min(convInfo.inHeight, effectiveFilterHeight + xRCorner);
-          for (let yC = 0; yC < convInfo.outWidth; ++yC) {
-            const xCCorner = yC * strideWidth - padLeft;
-            let xCMin = xCCorner;
-            while (xCMin < 0) {
-              xCMin += dilationWidth;
-            }
-            const xCMax =
-                Math.min(convInfo.inWidth, effectiveFilterWidth + xCCorner);
-            let maxValue = Number.NEGATIVE_INFINITY;
-            let maxPosition = -1;
-
-            for (let xR = xRMin; xR < xRMax; xR += dilationHeight) {
-              const wR = xR - xRCorner;
-              for (let xC = xCMin; xC < xCMax; xC += dilationWidth) {
-                const wC = xC - xCCorner;
-                const pixel = xBuf.get(b, xR, xC, d);
-                if (pixel > maxValue) {
-                  maxValue = pixel as number;
-                  maxPosition = flattenPositions ?
-                      (includeBatchInIndex ?
-                           ((b * convInfo.inHeight + xR) * convInfo.inWidth +
-                            xC) * convInfo.inChannels +
-                               d :
-                           (xR * convInfo.inWidth + xC) * convInfo.inChannels +
-                               d) :
-                      wR * effectiveFilterWidth + wC;
-                }
-              }
-            }
-            maxPositions.set(maxPosition, b, yR, yC, d);
-          }
-        }
-      }
-    }
-    return maxPositions;
   }
 
   maxPoolBackprop(dy: Tensor4D, x: Tensor4D, y: Tensor4D, convInfo: Conv2DInfo):
@@ -2326,7 +2196,7 @@ export class MathBackendCPU extends KernelBackend {
     const xValues = this.readSync(x.dataId) as TypedArray;
     const maxPosBuf = buffer(
         convInfo.outShape, x.dtype,
-        this.maxPoolPositions(xValues, x.shape, x.dtype, convInfo).values);
+        maxPoolPositions(xValues, x.shape, x.dtype, convInfo).values);
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
     const dilationHeight = convInfo.dilationHeight;
@@ -2794,7 +2664,7 @@ export class MathBackendCPU extends KernelBackend {
     assertNotComplex(x, 'avgPool');
     assertNotComplex(x, 'maxPool');
     const xValues = this.readSync(x.dataId) as TypedArray;
-    return this.pool(xValues, x.shape, x.dtype, x.strides, convInfo, 'avg')
+    return pool(xValues, x.shape, x.dtype, x.strides, convInfo, 'avg')
                .toTensor()
                .toFloat() as Tensor4D;
   }

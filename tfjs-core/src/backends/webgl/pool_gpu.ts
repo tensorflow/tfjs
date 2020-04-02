@@ -44,6 +44,10 @@ export class Pool2DProgram implements GPGPUProgram {
     this.outputShape = convInfo.outShape;
 
     const isAvgPool = poolType === 'avg';
+    const batchFlattenPositionStr = `((batch  * ${convInfo.inHeight} + xR) * ${
+        convInfo.inWidth} + xC) * ${convInfo.inChannels} + d`;
+    const flattenPositionStr =
+        `(xR * ${convInfo.inWidth} + xC) * ${convInfo.inChannels} + d`;
 
     let initializationValue = '0.0';
     if (!isAvgPool) {
@@ -100,13 +104,9 @@ export class Pool2DProgram implements GPGPUProgram {
                 minMaxValue = value;
                 minMaxValueFound = 1.0;
                 minMaxPosition = ${
-          flattenPositions ?
-              (includeBatchInIndex ?
-                   `((batch  * ${convInfo.inHeight} + xR) * ${
-                       convInfo.inWidth} + xC) * ${convInfo.inChannels} + d` :
-                   `(xR * ${convInfo.inWidth} + xC) * ${
-                       convInfo.inChannels} + d`) :
-              `wR * ${effectiveFilterWidth} + wC`};
+          flattenPositions ? (includeBatchInIndex ? batchFlattenPositionStr :
+                                                    flattenPositionStr) :
+                             `wR * ${effectiveFilterWidth} + wC`};
               }
             }
           }

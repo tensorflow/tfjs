@@ -23,10 +23,6 @@ import {Pool2DProgram} from '../pool_gpu';
 export function maxPoolWithArgmaxImpl(
     x: TensorInfo, includeBatchInIndex: boolean, convInfo: conv_util.Conv2DInfo,
     backend: MathBackendWebGL): TensorInfo[] {
-  // if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
-  //     util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
-  //   return backend.copy(x);
-  // }
   let program = new Pool2DProgram(convInfo, 'max', false);
   const poolOutput = backend.runWebGLProgram(program, [x], 'float32');
 

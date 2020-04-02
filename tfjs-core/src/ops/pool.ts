@@ -917,11 +917,11 @@ function maxPool3dBackprop<T extends Tensor4D|Tensor5D>(
 /** @doc {heading: 'Operations', subheading: 'Convolution'} */
 function maxPoolWithArgmax_<T extends Tensor4D>(
     x: T|TensorLike, filterSize: [number, number]|number,
-    strides: [number, number]|number, dataFormat: 'NDHWC'|'NCDHW' = 'NDHWC',
+    strides: [number, number]|number,
     pad: 'valid'|'same'|number, includeBatchInIndex = false): NamedTensorMap {
   const $x = convertToTensor(x, 'x', 'maxPoolWithArgmax');
 
-  const attrs = {filterSize, strides, pad, dataFormat, includeBatchInIndex};
+  const attrs = {filterSize, strides, pad, includeBatchInIndex};
 
   const result =
       ENGINE.runKernel('MaxPoolWithArgmax', {x: $x}, attrs) as Tensor[];

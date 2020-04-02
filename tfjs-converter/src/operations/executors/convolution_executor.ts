@@ -196,15 +196,12 @@ export const executeOp: InternalOpExecutor = (node: Node,
       const pad = getParamValue('pad', node, tensorMap, context);
       const kernelSize =
           getParamValue('kernelSize', node, tensorMap, context) as number[];
-      const dataFormat =
-          getParamValue('dataFormat', node, tensorMap, context) as 'NDHWC' |
-          'NCDHW';
       const includeBatchInIndex =
           getParamValue('includeBatchInIndex', node, tensorMap, context) as
           boolean;
       const {result, indexes} = tfc.maxPoolWithArgmax(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor4D,
-          [kernelSize[1], kernelSize[2]], [stride[1], stride[2]], dataFormat,
+          [kernelSize[1], kernelSize[2]], [stride[1], stride[2]],
           pad as 'valid' | 'same', includeBatchInIndex);
       return [result, indexes];
     }

@@ -28,11 +28,9 @@ export const maxPoolWithArgmaxConfig: KernelConfig = {
   backendName: 'webgl',
   kernelFunc: ({inputs, attrs, backend}) => {
     const {x} = inputs as MaxPoolWithArgmaxInputs;
-    const {filterSize, strides, pad, dataFormat, includeBatchInIndex} =
+    const {filterSize, strides, pad, includeBatchInIndex} =
         attrs as {} as MaxPoolWithArgmaxAttrs;
     const webglBackend = backend as MathBackendWebGL;
-    const dataFormatInternal =
-        dataFormat === 'NDHWC' ? 'channelsLast' : 'channelsFirst';
 
     util.assert(
         x.shape.length === 4,
@@ -46,7 +44,7 @@ export const maxPoolWithArgmaxConfig: KernelConfig = {
 
     const convInfo = conv_util.computePool2DInfo(
         x.shape as [number, number, number, number], filterSize, strides,
-        dilations, pad, undefined, dataFormatInternal);
+        dilations, pad);
 
     const [result, indexes] =
         maxPoolWithArgmaxImpl(x, includeBatchInIndex, convInfo, webglBackend);

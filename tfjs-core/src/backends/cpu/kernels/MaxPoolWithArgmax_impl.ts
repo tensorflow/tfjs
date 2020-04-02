@@ -17,16 +17,13 @@
 import {Conv2DInfo} from '../../../ops/conv_util';
 import {DataType, TypedArray} from '../../../types';
 import {computeStrides} from '../../../util';
-import {MathBackendCPU} from '../backend_cpu';
-
+import {maxPoolPositions, pool} from '../pool_utils';
 export function maxPoolWithArgmaxImpl(
     xValues: TypedArray, xShape: number[], dtype: DataType,
-    includeBatchInIndex: boolean, convInfo: Conv2DInfo,
-    backend: MathBackendCPU) {
+    includeBatchInIndex: boolean, convInfo: Conv2DInfo) {
   const strides = computeStrides(xShape);
-  const maxPools =
-      backend.pool(xValues, xShape, dtype, strides, convInfo, 'max');
-  const maxPositions = backend.maxPoolPositions(
+  const maxPools = pool(xValues, xShape, dtype, strides, convInfo, 'max');
+  const maxPositions = maxPoolPositions(
       xValues, xShape, dtype, convInfo, true, includeBatchInIndex);
 
   return [maxPools.values, maxPositions.values];

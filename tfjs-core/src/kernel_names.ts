@@ -104,6 +104,5 @@ export interface MaxPoolWithArgmaxAttrs {
   filterSize: [number, number]|number;
   strides: [number, number]|number;
   pad: 'valid'|'same'|number;
-  dataFormat: 'NDHWC'|'NCDHW';
   includeBatchInIndex: boolean;
 }

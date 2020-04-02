@@ -63,7 +63,6 @@ export const json: OpMapper[] = [
     'attrs': [
       {'tfName': 'strides', 'name': 'strides', 'type': 'number[]'},
       {'tfName': 'padding', 'name': 'pad', 'type': 'string'},
-      {'tfName': 'data_format', 'name': 'dataFormat', 'type': 'string'},
       {'tfName': 'ksize', 'name': 'kernelSize', 'type': 'number[]'}, {
         'tfName': 'include_batch_in_index',
         'name': 'includeBatchInIndex',

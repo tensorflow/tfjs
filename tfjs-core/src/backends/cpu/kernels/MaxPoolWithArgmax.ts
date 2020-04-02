@@ -29,19 +29,17 @@ export const maxPoolWithArgmaxConfig: KernelConfig = {
   backendName: 'cpu',
   kernelFunc: ({inputs, attrs, backend}) => {
     const {x} = inputs as MaxPoolWithArgmaxInputs;
-    const {filterSize, strides, pad, dataFormat, includeBatchInIndex} =
+    const {filterSize, strides, pad, includeBatchInIndex} =
         attrs as {} as MaxPoolWithArgmaxAttrs;
     const cpuBackend = backend as MathBackendCPU;
-    const dataFormatInternal =
-        dataFormat === 'NDHWC' ? 'channelsLast' : 'channelsFirst';
     assertNotComplex(x, 'MaxPoolWithArgmax');
 
     const values = cpuBackend.data.get(x.dataId).values as TypedArray;
     const convInfo = conv_util.computePool2DInfo(
         x.shape as [number, number, number, number], filterSize, strides,
-        [1, 1], pad, undefined, dataFormatInternal);
+        [1, 1], pad);
     const [pooled, indexes] = maxPoolWithArgmaxImpl(
-        values, x.shape, x.dtype, includeBatchInIndex, convInfo, cpuBackend);
+        values, x.shape, x.dtype, includeBatchInIndex, convInfo);
 
     const pooledDataId =
         cpuBackend.write(pooled as Float32Array, convInfo.outShape, x.dtype);
