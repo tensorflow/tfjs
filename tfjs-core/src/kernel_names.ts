@@ -21,6 +21,13 @@
 import {NamedTensorInfoMap} from './kernel_registry';
 import {PixelData} from './types';
 
+export const FusedBatchNorm = 'FusedBatchNorm';
+export type FusedBatchNormInputs =
+    Pick<NamedTensorInfoMap, 'x'|'scale'|'offset'|'mean'|'variance'>;
+export interface FusedBatchNormAttrs {
+  varianceEpsilon: number;
+}
+
 export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 
 export const Div = 'Div';
@@ -89,4 +96,13 @@ export interface FromPixelsInputs {
 }
 export interface FromPixelsAttrs {
   numChannels: number;
+}
+
+export const MaxPoolWithArgmax = 'MaxPoolWithArgmax';
+export type MaxPoolWithArgmaxInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface MaxPoolWithArgmaxAttrs {
+  filterSize: [number, number]|number;
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  includeBatchInIndex: boolean;
 }

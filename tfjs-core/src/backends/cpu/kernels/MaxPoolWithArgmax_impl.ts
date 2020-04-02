@@ -14,24 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
+import {Conv2DInfo} from '../../../ops/conv_util';
+import {DataType, TypedArray} from '../../../types';
+import {computeStrides} from '../../../util';
+import {maxPoolPositions, pool} from '../pool_utils';
+export function maxPoolWithArgmaxImpl(
+    xValues: TypedArray, xShape: number[], dtype: DataType,
+    includeBatchInIndex: boolean, convInfo: Conv2DInfo) {
+  const strides = computeStrides(xShape);
+  const maxPools = pool(xValues, xShape, dtype, strides, convInfo, 'max');
+  const maxPositions = maxPoolPositions(
+      xValues, xShape, dtype, convInfo, true, includeBatchInIndex);
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs';
-
-import {createTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
-
-interface SoftmaxInputs extends NamedTensorInfoMap {
-  logits: TensorInfo;
+  return [maxPools.values, maxPositions.values];
 }
-
-registerKernel({
-  kernelName: 'Softmax',
-  backendName: 'tensorflow',
-  kernelFunc: ({inputs, backend}) => {
-    const {logits} = inputs as SoftmaxInputs;
-    const opAttrs = [createTypeOpAttr('T', logits.dtype)];
-
-    const nodeBackend = backend as NodeJSKernelBackend;
-
-    return nodeBackend.executeSingleOutput('Softmax', opAttrs, [logits]);
-  }
-});

@@ -25,7 +25,7 @@ import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
 
 const CHAINED_OPS = [
   'square', 'broadcastTo', 'tile', 'oneHot', 'div', 'divNoNan', 'transpose',
-  'pad'
+  'pad', 'batchNorm'
 ];
 
 describeWithFlags('chained ops', ALL_ENVS, () => {
@@ -34,7 +34,7 @@ describeWithFlags('chained ops', ALL_ENVS, () => {
     for (const opName of CHAINED_OPS) {
       //@ts-ignore
       expect(typeof tensor[opName])
-          .toBe('function', `${opName} chained op not found`);
+        .toBe('function', `${opName} chained op not found`);
     }
   });
 });
