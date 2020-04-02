@@ -6,6 +6,15 @@ steps:
   id: 'yarn-common'
   args: ['install']
 
+# Install tfjs-converter dependencies
+- name: 'node:10'
+  dir: 'tfjs-converter'
+  entrypoint: 'yarn'
+  id: 'yarn'
+  args: ['install']
+  waitFor: ['yarn-common']
+  env: ['NIGHTLY=$_NIGHTLY']
+
 # Run javascript tests.
 - name: 'node:10'
   dir: 'tfjs-converter'
