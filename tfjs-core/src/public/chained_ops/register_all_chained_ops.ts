@@ -23,3 +23,4 @@ import './tile';
 import './one_hot';
 import './transpose';
 import './pad';
+import './batchnorm';

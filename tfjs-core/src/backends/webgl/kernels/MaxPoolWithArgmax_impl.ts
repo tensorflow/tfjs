@@ -15,23 +15,18 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs';
+import {TensorInfo} from '../../../kernel_registry';
+import * as conv_util from '../../../ops/conv_util';
+import {MathBackendWebGL} from '../backend_webgl';
+import {Pool2DProgram} from '../pool_gpu';
 
-import {createTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
+export function maxPoolWithArgmaxImpl(
+    x: TensorInfo, includeBatchInIndex: boolean, convInfo: conv_util.Conv2DInfo,
+    backend: MathBackendWebGL): TensorInfo[] {
+  let program = new Pool2DProgram(convInfo, 'max', false);
+  const poolOutput = backend.runWebGLProgram(program, [x], 'float32');
 
-interface SoftmaxInputs extends NamedTensorInfoMap {
-  logits: TensorInfo;
+  program = new Pool2DProgram(convInfo, 'max', true, true, includeBatchInIndex);
+  const indexOutput = backend.runWebGLProgram(program, [x], 'float32');
+  return [poolOutput, indexOutput];
 }
-
-registerKernel({
-  kernelName: 'Softmax',
-  backendName: 'tensorflow',
-  kernelFunc: ({inputs, backend}) => {
-    const {logits} = inputs as SoftmaxInputs;
-    const opAttrs = [createTypeOpAttr('T', logits.dtype)];
-
-    const nodeBackend = backend as NodeJSKernelBackend;
-
-    return nodeBackend.executeSingleOutput('Softmax', opAttrs, [logits]);
-  }
-});

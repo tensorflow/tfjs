@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {io} from '@tensorflow/tfjs-core';
+import {io} from '@tensorflow/tfjs';
 
 /**
  * Factory function for HTTP IO Handler in Node.js.
