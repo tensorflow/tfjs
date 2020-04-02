@@ -24,13 +24,8 @@ import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
 // flexibility to change in future.
 
 const CHAINED_OPS = [
-<<<<<<< HEAD
-  'square', 'broadcastTo', 'tile', 'oneHot', 'div', 'divNoNan', 'transpose',
-  'pad', 'batchNorm'
-=======
-  'add', 'broadcastTo', 'div', 'divNoNan', 'oneHot', 'pad', 'square', 'tile',
-  'transpose'
->>>>>>> [core]Modularize add.
+  'add', 'batchNorm', 'broadcastTo', 'div', 'divNoNan', 'oneHot', 'pad',
+  'square', 'tile', 'transpose'
 ];
 
 describeWithFlags('chained ops', ALL_ENVS, () => {
@@ -39,7 +34,7 @@ describeWithFlags('chained ops', ALL_ENVS, () => {
     for (const opName of CHAINED_OPS) {
       //@ts-ignore
       expect(typeof tensor[opName])
-        .toBe('function', `${opName} chained op not found`);
+          .toBe('function', `${opName} chained op not found`);
     }
   });
 });
