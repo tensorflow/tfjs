@@ -16,9 +16,22 @@
  */
 
 // tslint:disable-next-line: no-imports-from-dist
-import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {setTestEnvs, setupTestFilters, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
 setTestEnvs([{name: 'cpu', backendName: 'cpu', isDataSync: true}]);
 
-// Import and run all the tests from core.
+const TEST_FILTERS: TestFilter[] = [];
+const customInclude = (testName: string) => {
+  // Exclude webworker test
+  if (testName.includes('computation in worker')) {
+    return false;
+  }
+  // Include all other tests.
+  return true;
+};
+
+setupTestFilters(TEST_FILTERS, customInclude);
+
+// Import and run tests from core.
 // tslint:disable-next-line:no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/tests';
