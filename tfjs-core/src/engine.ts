@@ -666,11 +666,20 @@ export class Engine implements TensorTracker, DataMover {
       outputs: Tensor[]): Tensor[]|null {
     const gradConfig = getGradient(kernelName);
     if (gradConfig != null) {
-      const inputsToSave: string[] = gradConfig.inputsToSave || [];
+      const inputsToSave: string[] = gradConfig.inputsToSave;
       const outputsToSave: boolean[] = gradConfig.outputsToSave || [];
 
-      const inputTensorsToSave: Tensor[] =
-          inputsToSave.map((inputName) => inputs[inputName]);
+      let inputTensorsToSave: Tensor[];
+      if (!inputsToSave) {
+        inputTensorsToSave = [];
+      } else if (inputsToSave.length === 0) {
+        // An empty inputsToSave array will result in save all the inputs.
+        inputTensorsToSave = Object.keys(inputs).map((key) => inputs[key]);
+      } else {
+        // A non-empty inputsToSave array will only save specified inputs.
+        inputTensorsToSave = inputsToSave.map((inputName) => inputs[inputName]);
+      }
+
       const outputTensorsToSave: Tensor[] =
           outputs.filter((_, i) => outputsToSave[i]);
       return inputTensorsToSave.concat(outputTensorsToSave);

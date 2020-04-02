@@ -59,6 +59,9 @@ export interface KernelConfig {
 /** Config object for registering a gradient in the global registry. */
 export interface GradConfig {
   kernelName: string;
+  // If the array is empty, all the inputs will be saved.
+  // If the array is not empty, only the specified inputs will be saved.
+  // If the array is undefined, no inputs will be saved.
   inputsToSave?: string[];
   outputsToSave?: boolean[];
   gradFunc: GradFunc;
