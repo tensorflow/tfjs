@@ -223,7 +223,7 @@ describe('convolution', () => {
 
         expect(tfc.maxPoolWithArgmax)
             .toHaveBeenCalledWith(
-                input[0], [2, 2], [2, 2], 'NDHWC', 'same', true);
+                input[0], [2, 2], [2, 2], 'same', true);
       });
     });
 

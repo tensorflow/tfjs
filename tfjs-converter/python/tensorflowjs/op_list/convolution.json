@@ -101,11 +101,6 @@
         "type": "string"
       },
       {
-        "tfName": "data_format",
-        "name": "dataFormat",
-        "type": "string"
-      },
-      {
         "tfName": "ksize",
         "name": "kernelSize",
         "type": "number[]"
