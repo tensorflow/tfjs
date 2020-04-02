@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-layers",
-  "version": "1.7.0",
+  "version": "0.0.0",
   "description": "TensorFlow layers API in JavaScript",
   "license": "Apache-2.0 AND MIT",
   "private": false,
@@ -48,6 +48,7 @@
     "format": "./tools/clang_format_ts.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
+    "publish-npm": "npm publish",
     "test": "yarn && yarn build-deps && karma start",
     "test-ci": "./scripts/test-ci.sh",
     "test-snippets": "ts-node ./scripts/test_snippets.ts",

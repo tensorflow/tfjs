@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import * as tf from '@tensorflow/tfjs';
 
 /**
  * Convert an ArrayBuffer to a Buffer.
@@ -52,7 +52,7 @@ export function toArrayBuffer(buf: Buffer|Buffer[]): ArrayBuffer {
   }
 }
 
-// TODO(cais): Use explicit tfc.io.ModelArtifactsInfo return type below once it
+// TODO(cais): Use explicit tf.io.ModelArtifactsInfo return type below once it
 // is available.
 /**
  * Populate ModelArtifactsInfo fields for a model with JSON topology.
@@ -60,7 +60,7 @@ export function toArrayBuffer(buf: Buffer|Buffer[]): ArrayBuffer {
  * @returns A ModelArtifactsInfo object.
  */
 export function getModelArtifactsInfoForJSON(
-    modelArtifacts: tfc.io.ModelArtifacts) {
+    modelArtifacts: tf.io.ModelArtifacts) {
   if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
     throw new Error('Expected JSON model topology, received ArrayBuffer.');
   }
