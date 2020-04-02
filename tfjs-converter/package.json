@@ -61,7 +61,7 @@
     "build-backend-cpu": "cd ../tfjs-backend-cpu && yarn && yarn build",
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
     "build-deps": "yarn build-core && yarn build-backend-cpu",
-    "build-deps-ci": "yarn build-core-ci",
+    "build-deps-ci": "yarn build-core-ci && yarn build-backend-cpu",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
