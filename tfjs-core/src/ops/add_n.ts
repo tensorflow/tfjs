@@ -64,21 +64,14 @@ function addN_<T extends Tensor>(tensors: Array<T|TensorLike>): T {
     }
   });
 
-  const der = (dy: T) => {
-    const ders: {[key: string]: () => Tensor} = {};
-    $tensors.forEach((t, i) => {
-      ders[i] = () => dy.clone();
-    });
-    return ders;
-  };
-
   const forward: ForwardFunc<Tensor> = (backend, save) =>
       backend.addN($tensors);
 
   const inputs: AddNInputs = $tensors;
 
   return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, der, 'AddN') as T;
+             forward, inputs as {} as NamedTensorMap, null /* grad */,
+             'AddN') as T;
 }
 
 export const addN = op({addN_});
