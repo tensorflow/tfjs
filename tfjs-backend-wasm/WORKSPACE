@@ -16,23 +16,6 @@ git_repository(
 # The libraries below are transitive dependencies of XNNPACK that we need to
 # explicitly enumerate here. See https://docs.bazel.build/versions/master/external.html#transitive-dependencies
 
-# Google Test framework, used by most unit-tests.
-http_archive(
-     name = "com_google_googletest",
-     urls = ["https://github.com/google/googletest/archive/master.zip"],
-     strip_prefix = "googletest-master",
-)
-
-# Google Benchmark library, used in micro-benchmarks.
-http_archive(
-    name = "com_google_benchmark",
-    urls = [
-        "https://github.com/google/benchmark/archive/master.zip"
-    ],
-    strip_prefix = "benchmark-master",
-    build_file = "@xnnpack//third_party:benchmark.BUILD",
-)
-
 # FP16 library, used for half-precision conversions
 http_archive(
     name = "FP16",
