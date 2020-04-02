@@ -35,7 +35,7 @@ module.exports = function(config) {
     frameworks: ['jasmine', 'karma-typescript'],
     files: [
       // Setup the environment for the tests.
-      'src/setup_test.ts',
+      'src/setup_tests.ts',
       {pattern: 'src/**/*.ts'},
     ],
     preprocessors: {
