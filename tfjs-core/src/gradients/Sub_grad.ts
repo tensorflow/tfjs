@@ -14,22 +14,36 @@
  * limitations under the License.
  * =============================================================================
  */
-
-import {SquaredDifference} from '../kernel_names';
+import {Sub} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {mul} from '../ops/binary_ops';
-import {sub} from '../ops/sub';
-import {scalar} from '../ops/tensor_ops';
+import * as broadcast_util from '../ops/broadcast_util';
 import {Tensor} from '../tensor';
 
-export const squaredDifferenceGradConfig: GradConfig = {
-  kernelName: SquaredDifference,
+export const subGradConfig: GradConfig = {
+  kernelName: Sub,
   inputsToSave: ['a', 'b'],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
     const [a, b] = saved;
-    const two = scalar(2);
-    const derA = () => mul(dy, mul(two, sub(a, b)));
-    const derB = () => mul(dy, mul(two, sub(b, a)));
+    const outShape =
+        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+
+    const derA = () => {
+      let res = dy;
+      const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
+      if (reduceAxes.length > 0) {
+        res = res.sum(reduceAxes);
+      }
+      return res.reshape(a.shape);
+    };
+    const derB = () => {
+      let res = dy;
+      const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
+      if (reduceAxes.length > 0) {
+        res = res.sum(reduceAxes);
+      }
+      return res.neg().reshape(b.shape);
+    };
+
     return {a: derA, b: derB};
   }
 };

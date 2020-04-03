@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {ENGINE, ForwardFunc} from '../engine';
-import {AddNInputs} from '../kernel_names';
+import {AddN, AddNInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
@@ -23,6 +23,7 @@ import {TensorLike} from '../types';
 import * as util from '../util';
 
 import {op} from './operation';
+
 
 /**
  * Adds a list of `tf.Tensor`s element-wise, each with the same shape and dtype.
@@ -70,8 +71,8 @@ function addN_<T extends Tensor>(tensors: Array<T|TensorLike>): T {
   const inputs: AddNInputs = $tensors;
 
   return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */,
-             'AddN') as T;
+             forward, inputs as {} as NamedTensorMap, null /* grad */, AddN) as
+      T;
 }
 
 export const addN = op({addN_});
