@@ -25,8 +25,6 @@ const split = kernel_impls.split;
 const tile = kernel_impls.tile;
 const topkImpl = kernel_impls.topkImpl;
 const whereImpl = kernel_impls.whereImpl;
-// tslint:disable-next-line: no-imports-from-dist
-import {EPSILON_FLOAT32} from '@tensorflow/tfjs-core/dist/backends/backend';
 import * as seedrandom from 'seedrandom';
 import {assertNotComplex} from './cpu_util';
 
@@ -3524,9 +3522,10 @@ export class MathBackendCPU extends KernelBackend {
   floatPrecision(): 16|32 {
     return 32;
   }
+
   /** Returns the smallest representable number.  */
   epsilon(): number {
-    return EPSILON_FLOAT32;
+    return super.epsilon();
   }
 
   cropAndResize(
