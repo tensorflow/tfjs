@@ -170,8 +170,9 @@ async function main() {
 
   console.log(
       `Done. FYI, this script does not publish to NPM. ` +
-      `Please publish by running yarn publish-npm ` +
-      `from each repo after you merge the PR.` +
+      `Please publish by running  ` +
+      `YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm ` +
+      `after you merge the PR.` +
       `Please remeber to update the website once you have released ` +
       'a new package version');
 
