@@ -120,10 +120,6 @@
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-1.7.2.tgz#b76e73042e999e1ea755869c1764503e43cf60f5"
   integrity sha512-hfaEmENp+5V4lJ/+Y5PuwK52lD49qNsE82BaPREEbIUuk607B+fLCJW/AssdZf2uR/mKDejQTcURrNnPK1jlqA==
 
-"@tensorflow/tfjs-layers@link:../tfjs-layers":
-  version "0.0.0"
-  uid ""
-
 "@tensorflow/tfjs@1.7.2":
   version "1.7.2"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-1.7.2.tgz#25a152246017c996948bde18f5a2cac16995e232"
