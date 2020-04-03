@@ -65,8 +65,15 @@ const NODE_REPO: Repo = {
   identifier: 'tfjs-node'
 };
 
-async function askUserForVersions(validVersions: string[], packageName: string):
-    Promise<{startVersion: string, endVersion: string}> {
+const WASM_REPO: Repo = {
+  name: 'Wasm',
+  identifier: 'tfjs-backend-wasm'
+}
+
+async function
+askUserForVersions(validVersions: string[], packageName: string): Promise<{
+  startVersion: string, endVersion: string
+}> {
   const YELLOW_TERMINAL_COLOR = '\x1b[33m%s\x1b[0m';
   const RED_TERMINAL_COLOR = '\x1b[31m%s\x1b[0m';
 
@@ -127,6 +134,15 @@ async function main() {
   NODE_REPO.startCommit = $(`git rev-list -n 1 ${
       getTagName(NODE_REPO.identifier, NODE_REPO.startVersion)}`);
 
+  // Clone the Wasm repo eagerly so we can query the tags.
+  const validWasmVersions = getTaggedVersions('tfjs-backend-wasm');
+  const wasmVersions =
+      await askUserForVersions(validWasmVersions, WASM_REPO.identifier);
+  WASM_REPO.startVersion = wasmVersions.startVersion;
+  WASM_REPO.endVersion = wasmVersions.endVersion;
+  WASM_REPO.startCommit = $(`git rev-list -n 1 ${
+      getTagName(WASM_REPO.identifier, WASM_REPO.startVersion)}`);
+
   // Get all the commits of the union package between the versions.
   const unionCommits =
       $(`git log --pretty=format:"%H" ` +
@@ -168,7 +184,7 @@ async function main() {
   const repoCommits: RepoCommits[] = [];
 
   // Clone all of the dependencies into the tmp directory.
-  [...UNION_DEPENDENCIES, NODE_REPO].forEach(repo => {
+  [...UNION_DEPENDENCIES, NODE_REPO, WASM_REPO].forEach(repo => {
     console.log(
         `${repo.name}: ${repo.startVersion}` +
         ` =====> ${repo.endVersion}`);
