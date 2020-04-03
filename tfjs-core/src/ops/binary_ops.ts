@@ -22,65 +22,12 @@ import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
+
+import {add} from './add';
 import * as broadcast_util from './broadcast_util';
 import {op} from './operation';
 import {scalar, zerosLike} from './tensor_ops';
 import {neg} from './unary_ops';
-
-/**
- * Adds two `tf.Tensor`s element-wise, A + B. Supports broadcasting.
- *
- * We also expose `tf.addStrict` which has the same signature as this op and
- * asserts that `a` and `b` are the same shape (does not broadcast).
- *
- * ```js
- * const a = tf.tensor1d([1, 2, 3, 4]);
- * const b = tf.tensor1d([10, 20, 30, 40]);
- *
- * a.add(b).print();  // or tf.add(a, b)
- * ```
- *
- * ```js
- * // Broadcast add a with b.
- * const a = tf.scalar(5);
- * const b = tf.tensor1d([10, 20, 30, 40]);
- *
- * a.add(b).print();  // or tf.add(a, b)
- * ```
- * @param a The first `tf.Tensor` to add.
- * @param b The second `tf.Tensor` to add. Must have the same type as `a`.
- */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
-function add_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'add');
-  let $b = convertToTensor(b, 'b', 'add');
-  [$a, $b] = makeTypesMatch($a, $b);
-
-  const outShape =
-      broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
-
-  const der = (dy: Tensor) => {
-    const derA = () => {
-      let res = dy;
-      const reduceAxes = broadcast_util.getReductionAxes($a.shape, outShape);
-      if (reduceAxes.length > 0) {
-        res = res.sum(reduceAxes);
-      }
-      return res.reshape($a.shape);
-    };
-    const derB = () => {
-      let res = dy;
-      const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
-      if (reduceAxes.length > 0) {
-        res = res.sum(reduceAxes);
-      }
-      return res.reshape($b.shape);
-    };
-    return {a: derA, b: derB};
-  };
-  return ENGINE.runKernelFunc(
-             backend => backend.add($a, $b), {a: $a, b: $b}, der, 'Add') as T;
-}
 
 /**
  * Adds a list of `tf.Tensor`s element-wise, each with the same shape and dtype.
@@ -728,7 +675,6 @@ function atan2_<T extends Tensor>(
   }, {$a, $b}, der) as T;
 }
 
-export const add = op({add_});
 export const addN = op({addN_});
 export const addStrict = op({addStrict_});
 export const atan2 = op({atan2_});
