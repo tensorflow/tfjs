@@ -452,75 +452,75 @@ describeWithFlags('disposeVariables', ALL_ENVS, () => {
  * concrete backend to exist. This test will work for any backend, but currently
  * this is the simplest backend to test against.
  */
-// describeWithFlags(
-//     'Switching cpu backends',
-//     {predicate: testEnv => testEnv.backendName === 'cpu'}, () => {
-//       beforeEach(() => {
-//         tf.registerBackend('cpu1', tf.findBackendFactory('cpu'));
-//         tf.registerBackend('cpu2', tf.findBackendFactory('cpu'));
-//       });
+describeWithFlags(
+    'Switching cpu backends',
+    {predicate: testEnv => testEnv.backendName === 'cpu'}, () => {
+      beforeEach(() => {
+        tf.registerBackend('cpu1', tf.findBackendFactory('cpu'));
+        tf.registerBackend('cpu2', tf.findBackendFactory('cpu'));
+      });
 
-//       afterEach(() => {
-//         tf.removeBackend('cpu1');
-//         tf.removeBackend('cpu2');
-//       });
+      afterEach(() => {
+        tf.removeBackend('cpu1');
+        tf.removeBackend('cpu2');
+      });
 
-//       it('Move data from cpu1 to cpu2 backend', async () => {
-//         tf.setBackend('cpu1');
-//         // This scalar lives in cpu1.
-//         const a = tf.scalar(5);
+      it('Move data from cpu1 to cpu2 backend', async () => {
+        tf.setBackend('cpu1');
+        // This scalar lives in cpu1.
+        const a = tf.scalar(5);
 
-//         tf.setBackend('cpu2');
-//         // This scalar lives in cpu2.
-//         const b = tf.scalar(3);
+        tf.setBackend('cpu2');
+        // This scalar lives in cpu2.
+        const b = tf.scalar(3);
 
-//         expect(tf.memory().numDataBuffers).toBe(2);
-//         expect(tf.memory().numTensors).toBe(2);
-//         expect(tf.memory().numBytes).toBe(8);
+        expect(tf.memory().numDataBuffers).toBe(2);
+        expect(tf.memory().numTensors).toBe(2);
+        expect(tf.memory().numBytes).toBe(8);
 
-//         // Make sure you can read both tensors.
-//         expectArraysClose(await a.data(), [5]);
-//         expectArraysClose(await b.data(), [3]);
+        // Make sure you can read both tensors.
+        expectArraysClose(await a.data(), [5]);
+        expectArraysClose(await b.data(), [3]);
 
-//         // Switch back to cpu1.
-//         tf.setBackend('cpu1');
-//         // Again make sure you can read both tensors.
-//         expectArraysClose(await a.data(), [5]);
-//         expectArraysClose(await b.data(), [3]);
+        // Switch back to cpu1.
+        tf.setBackend('cpu1');
+        // Again make sure you can read both tensors.
+        expectArraysClose(await a.data(), [5]);
+        expectArraysClose(await b.data(), [3]);
 
-//         tf.dispose([a, b]);
+        tf.dispose([a, b]);
 
-//         expect(tf.memory().numDataBuffers).toBe(0);
-//         expect(tf.memory().numTensors).toBe(0);
-//         expect(tf.memory().numBytes).toBe(0);
-//       });
+        expect(tf.memory().numDataBuffers).toBe(0);
+        expect(tf.memory().numTensors).toBe(0);
+        expect(tf.memory().numBytes).toBe(0);
+      });
 
-//       it('can execute op with data from mixed backends', async () => {
-//         tf.setBackend('cpu1');
-//         // This scalar lives in cpu1.
-//         const a = tf.scalar(5);
+      it('can execute op with data from mixed backends', async () => {
+        tf.setBackend('cpu1');
+        // This scalar lives in cpu1.
+        const a = tf.scalar(5);
 
-//         tf.setBackend('cpu2');
-//         // This scalar lives in cpu2.
-//         const b = tf.scalar(3);
+        tf.setBackend('cpu2');
+        // This scalar lives in cpu2.
+        const b = tf.scalar(3);
 
-//         // Verify that ops can execute with mixed backend data.
-//         ENGINE.startScope();
-//         tf.setBackend('cpu1');
-//         expectArraysClose(await tf.add(a, b).data(), [8]);
+        // Verify that ops can execute with mixed backend data.
+        ENGINE.startScope();
+        tf.setBackend('cpu1');
+        expectArraysClose(await tf.add(a, b).data(), [8]);
 
-//         tf.setBackend('cpu2');
-//         expectArraysClose(await tf.add(a, b).data(), [8]);
-//         ENGINE.endScope();
-//         expect(tf.memory().numTensors).toBe(2);
-//         expect(tf.memory().numDataBuffers).toBe(2);
+        tf.setBackend('cpu2');
+        expectArraysClose(await tf.add(a, b).data(), [8]);
+        ENGINE.endScope();
+        expect(tf.memory().numTensors).toBe(2);
+        expect(tf.memory().numDataBuffers).toBe(2);
 
-//         tf.dispose([a, b]);
+        tf.dispose([a, b]);
 
-//         expect(tf.memory().numTensors).toBe(0);
-//         expect(tf.memory().numDataBuffers).toBe(0);
-//       });
-//     });
+        expect(tf.memory().numTensors).toBe(0);
+        expect(tf.memory().numDataBuffers).toBe(0);
+      });
+    });
 
 /**
  * The following unit test is a special integration-style test that assumes
@@ -531,94 +531,94 @@ describeWithFlags('disposeVariables', ALL_ENVS, () => {
  * have coverage for when these backends are enabled and ensure they work with
  * the engine.
  */
-// describeWithFlags(
-//     'Switching WebGL + CPU backends', {
-//       predicate: testEnv => testEnv.backendName === 'webgl' &&
-//           ENGINE.backendNames().indexOf('webgl') !== -1 &&
-//           ENGINE.backendNames().indexOf('cpu') !== -1
-//     },
-//     () => {
-//       beforeEach(() => {
-//         tf.registerBackend('webgl1', tf.findBackendFactory('webgl'));
-//         tf.registerBackend('webgl2', tf.findBackendFactory('webgl'));
-//         tf.registerBackend('cpu1', tf.findBackendFactory('cpu'));
-//       });
+describeWithFlags(
+    'Switching WebGL + CPU backends', {
+      predicate: testEnv => testEnv.backendName === 'webgl' &&
+          ENGINE.backendNames().indexOf('webgl') !== -1 &&
+          ENGINE.backendNames().indexOf('cpu') !== -1
+    },
+    () => {
+      beforeEach(() => {
+        tf.registerBackend('webgl1', tf.findBackendFactory('webgl'));
+        tf.registerBackend('webgl2', tf.findBackendFactory('webgl'));
+        tf.registerBackend('cpu1', tf.findBackendFactory('cpu'));
+      });
 
-//       afterEach(() => {
-//         tf.removeBackend('webgl1');
-//         tf.removeBackend('webgl2');
-//         tf.removeBackend('cpu1');
-//       });
+      afterEach(() => {
+        tf.removeBackend('webgl1');
+        tf.removeBackend('webgl2');
+        tf.removeBackend('cpu1');
+      });
 
-//       it('can execute op with data from mixed backends', async () => {
-//         tf.setBackend('webgl1');
-//         const a = tf.scalar(5);
+      it('can execute op with data from mixed backends', async () => {
+        tf.setBackend('webgl1');
+        const a = tf.scalar(5);
 
-//         tf.setBackend('webgl2');
-//         const b = tf.scalar(3);
+        tf.setBackend('webgl2');
+        const b = tf.scalar(3);
 
-//         tf.setBackend('cpu1');
-//         const c = tf.scalar(2);
+        tf.setBackend('cpu1');
+        const c = tf.scalar(2);
 
-//         // Verify that ops can execute with mixed backend data.
-//         ENGINE.startScope();
-//         tf.setBackend('webgl1');
-//         expectArraysClose(await tf.addN([a, b, c]).data(), [10]);
+        // Verify that ops can execute with mixed backend data.
+        ENGINE.startScope();
+        tf.setBackend('webgl1');
+        expectArraysClose(await tf.addN([a, b, c]).data(), [10]);
 
-//         tf.setBackend('webgl2');
-//         expectArraysClose(await tf.addN([a, b, c]).data(), [10]);
+        tf.setBackend('webgl2');
+        expectArraysClose(await tf.addN([a, b, c]).data(), [10]);
 
-//         tf.setBackend('cpu1');
-//         expectArraysClose(await tf.addN([a, b, c]).data(), [10]);
-//         ENGINE.endScope();
+        tf.setBackend('cpu1');
+        expectArraysClose(await tf.addN([a, b, c]).data(), [10]);
+        ENGINE.endScope();
 
-//         expect(tf.memory().numTensors).toBe(3);
-//         expect(tf.memory().numDataBuffers).toBe(3);
+        expect(tf.memory().numTensors).toBe(3);
+        expect(tf.memory().numDataBuffers).toBe(3);
 
-//         tf.dispose([a, b, c]);
+        tf.dispose([a, b, c]);
 
-//         expect(tf.memory().numTensors).toBe(0);
-//         expect(tf.memory().numDataBuffers).toBe(0);
-//       });
+        expect(tf.memory().numTensors).toBe(0);
+        expect(tf.memory().numDataBuffers).toBe(0);
+      });
 
-//       it('fromPixels with mixed backends works', async () => {
-//         tf.setBackend('webgl1');
-//         const a = tf.browser.fromPixels(
-//             new ImageData(new Uint8ClampedArray([1, 2, 3, 4]), 1, 1));
+      it('fromPixels with mixed backends works', async () => {
+        tf.setBackend('webgl1');
+        const a = tf.browser.fromPixels(
+            new ImageData(new Uint8ClampedArray([1, 2, 3, 4]), 1, 1));
 
-//         tf.setBackend('webgl2');
-//         const b = tf.browser.fromPixels(
-//             new ImageData(new Uint8ClampedArray([5, 6, 7, 8]), 1, 1));
+        tf.setBackend('webgl2');
+        const b = tf.browser.fromPixels(
+            new ImageData(new Uint8ClampedArray([5, 6, 7, 8]), 1, 1));
 
-//         expectArraysClose(await tf.add(a, b).data(), [6, 8, 10]);
-//       });
+        expectArraysClose(await tf.add(a, b).data(), [6, 8, 10]);
+      });
 
-//       it('single tidy multiple backends', () => {
-//         const kernelFunc = tf.getKernel('Square', 'webgl').kernelFunc;
-//         tf.registerKernel(
-//             {kernelName: 'Square', backendName: 'webgl1', kernelFunc});
-//         tf.registerKernel(
-//             {kernelName: 'Square', backendName: 'webgl2', kernelFunc});
+      it('single tidy multiple backends', () => {
+        const kernelFunc = tf.getKernel('Square', 'webgl').kernelFunc;
+        tf.registerKernel(
+            {kernelName: 'Square', backendName: 'webgl1', kernelFunc});
+        tf.registerKernel(
+            {kernelName: 'Square', backendName: 'webgl2', kernelFunc});
 
-//         expect(tf.memory().numTensors).toBe(0);
+        expect(tf.memory().numTensors).toBe(0);
 
-//         tf.tidy(() => {
-//           tf.setBackend('webgl1');
-//           const a = tf.scalar(1);
-//           a.square();  // Uploads to GPU.
+        tf.tidy(() => {
+          tf.setBackend('webgl1');
+          const a = tf.scalar(1);
+          a.square();  // Uploads to GPU.
 
-//           tf.setBackend('webgl2');
-//           const b = tf.scalar(1);
-//           b.square();  // Uploads to GPU.
+          tf.setBackend('webgl2');
+          const b = tf.scalar(1);
+          b.square();  // Uploads to GPU.
 
-//           expect(tf.memory().numTensors).toBe(4);
-//         });
-//         expect(tf.memory().numTensors).toBe(0);
+          expect(tf.memory().numTensors).toBe(4);
+        });
+        expect(tf.memory().numTensors).toBe(0);
 
-//         tf.unregisterKernel('Square', 'webgl1');
-//         tf.unregisterKernel('Square', 'webgl2');
-//       });
-//     });
+        tf.unregisterKernel('Square', 'webgl1');
+        tf.unregisterKernel('Square', 'webgl2');
+      });
+    });
 
 interface TestStorage extends KernelBackend {
   id: number;
