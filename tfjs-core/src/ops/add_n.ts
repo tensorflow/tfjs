@@ -24,7 +24,6 @@ import * as util from '../util';
 
 import {op} from './operation';
 
-
 /**
  * Adds a list of `tf.Tensor`s element-wise, each with the same shape and dtype.
  *
