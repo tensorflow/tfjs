@@ -71,7 +71,6 @@
     "test-node-ci": "node dist/test_node.js",
     "test-async-backends": "rimraf dist/ && tsc && node dist/test_async_backends.js",
     "test-async-backends-ci": "node dist/test_async_backends.js",
-    "test-integration": "yarn && ./scripts/test-integration.js",
     "test-ci": "./scripts/test-ci.sh",
     "test-snippets": "ts-node ./scripts/test_snippets/test_snippets.ts"
   },
