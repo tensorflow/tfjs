@@ -23,12 +23,10 @@
     "@rollup/plugin-typescript": "^3.0.0",
     "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@types/jasmine": "~3.0.0",
-    "browserify": "~16.2.3",
     "clang-format": "~1.2.4",
     "jasmine": "~3.1.0",
     "jasmine-core": "~3.1.0",
     "karma": "~4.4.1",
-    "karma-browserify": "~6.0.0",
     "karma-browserstack-launcher": "~1.4.0",
     "karma-chrome-launcher": "~2.2.0",
     "karma-jasmine": "~1.1.0",
@@ -43,7 +41,6 @@
     "tslint": "~5.11.0",
     "tslint-no-circular-imports": "~0.5.0",
     "typescript": "3.5.3",
-    "watchify": "~3.11.1",
     "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
@@ -57,9 +54,6 @@
     "lint": "tslint -p . -t verbose",
     "test": "karma start",
     "run-browserstack": "karma start --browserstack",
-    "test-async-backends": "rimraf dist/ && tsc && node dist/test_async_backends.js",
-    "test-async-backends-ci": "node dist/test_async_backends.js",
-    "test-integration": "yarn && ./scripts/test-integration.js",
     "test-ci": "./scripts/test-ci.sh"
   },
   "dependencies": {

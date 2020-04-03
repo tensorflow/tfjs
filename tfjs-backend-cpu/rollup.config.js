@@ -55,9 +55,6 @@ function config({plugins = [], output = {}, external = [], visualize = false}) {
       typescript({
         include: ['src/**/*.ts'],
         module: 'ES2015',
-        // See https://github.com/ezolenko/rollup-plugin-typescript2/issues/105
-        // objectHashIgnoreUnknownHack: visualize ? true : false,
-        // clean: visualize ? true : false,
       }),
       resolve(),
       // Polyfill require() from dependencies.
