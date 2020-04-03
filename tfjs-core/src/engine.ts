@@ -671,11 +671,20 @@ export class Engine implements TensorTracker, DataMover {
 
       // If saveAllInputs is true, all inputs will be saved. Otherwise, inputs
       // specified in inputsToSave will be saved.
-      const inputTensorsToSave: Tensor[] = gradConfig.saveAllInputs ?
-          Object.keys(inputs).map((key) => inputs[key]) :
-          inputsToSave.map((inputName) => inputs[inputName]);
+      let inputTensorsToSave: Tensor[];
+      if (gradConfig.saveAllInputs) {
+        util.assert(
+            Array.isArray(inputs),
+            () => 'saveAllInputs is true, expected inputs to be an array.');
+
+        inputTensorsToSave = Object.keys(inputs).map((key) => inputs[key]);
+      } else {
+        inputTensorsToSave = inputsToSave.map((inputName) => inputs[inputName]);
+      }
+
       const outputTensorsToSave: Tensor[] =
           outputs.filter((_, i) => outputsToSave[i]);
+
       return inputTensorsToSave.concat(outputTensorsToSave);
     }
     // TODO(yassogba) throw exception here once all runkernelFunc calls with
