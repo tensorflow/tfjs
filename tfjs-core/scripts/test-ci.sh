@@ -42,5 +42,4 @@ then
   yarn test-webworker --browsers=bs_safari_mac,bs_chrome_mac
 else
   yarn run-browserstack --browsers=bs_chrome_mac
-  yarn run-browserstack --browsers=bs_firefox_mac
 fi
