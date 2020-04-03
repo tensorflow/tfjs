@@ -14,13 +14,46 @@
  * limitations under the License.
  * =============================================================================
  */
-
 import {NamedGradientMap} from './tape';
 import {Tensor} from './tensor';
 import {DataType, RecursiveArray} from './types';
 
-const kernelRegistry: Map<string, KernelConfig> = new Map();
-const gradRegistry: Map<string, GradConfig> = new Map();
+// The alternative to this is having Engine own the kernel and gradient
+// registries and continue to be the one true singleton. Or we make a
+// cleaner utility for creating true global singletons.
+function getGlobalNamespace(): {
+  _tfkernelRegistry: Map<string, KernelConfig>,
+  _tfgradRegistry: Map<string, GradConfig>
+} {
+  // tslint:disable-next-line:no-any
+  let ns: any;
+  if (typeof (window) !== 'undefined') {
+    ns = window;
+  } else if (typeof (global) !== 'undefined') {
+    ns = global;
+  } else if (typeof (process) !== 'undefined') {
+    ns = process;
+  } else if (typeof (self) !== 'undefined') {
+    ns = self;
+  } else {
+    throw new Error('Could not find a global object');
+  }
+  return ns;
+}
+
+const global = getGlobalNamespace();
+let kernelRegistry: Map<string, KernelConfig>;
+if (global._tfkernelRegistry == null) {
+  global._tfkernelRegistry = new Map();
+}
+kernelRegistry = global._tfkernelRegistry;
+
+let gradRegistry: Map<string, GradConfig>;
+
+if (global._tfgradRegistry == null) {
+  global._tfgradRegistry = new Map();
+}
+gradRegistry = global._tfgradRegistry;
 
 export type DataId = object;
 
@@ -132,9 +165,13 @@ export function registerKernel(config: KernelConfig) {
   const {kernelName, backendName} = config;
   const key = makeKey(kernelName, backendName);
   if (kernelRegistry.has(key)) {
-    throw new Error(
+    console.warn(
         `The kernel '${kernelName}' for backend ` +
         `'${backendName}' is already registered`);
+    // TODO(yassogba) make this an error again once WebGL is moved from core.
+    // throw new Error(
+    // `The kernel '${kernelName}' for backend ` +
+    // `'${backendName}' is already registered`);
   }
   kernelRegistry.set(key, config);
 }

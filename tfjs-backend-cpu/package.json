@@ -48,7 +48,7 @@
   },
   "scripts": {
     "build-ci": "tsc",
-    "build": "rimraf dist/ && tsc",
+    "build": "tsc",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
