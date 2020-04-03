@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import commonjs from 'rollup-plugin-commonjs';
-import node from 'rollup-plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import resolve from '@rollup/plugin-node-resolve';
+import typescript from '@rollup/plugin-typescript';
 import {terser} from 'rollup-plugin-terser';
-import typescript from 'rollup-plugin-typescript2';
 import visualizer from 'rollup-plugin-visualizer';
 
 const PREAMBLE = `/**
@@ -44,6 +44,8 @@ function config({plugins = [], output = {}, external = [], visualize = false}) {
     plugins.push(visualizer({
       sourcemap: true,
       filename,
+      template: 'sunburst',
+      gzipSize: true,
     }));
     console.log(`Will output a bundle visualization in ${filename}`);
   }
@@ -51,12 +53,13 @@ function config({plugins = [], output = {}, external = [], visualize = false}) {
     input: 'src/index.ts',
     plugins: [
       typescript({
-        tsconfigOverride: {compilerOptions: {module: 'ES2015'}},
+        include: ['src/**/*.ts'],
+        module: 'ES2015',
         // See https://github.com/ezolenko/rollup-plugin-typescript2/issues/105
-        objectHashIgnoreUnknownHack: visualize ? true : false,
-        clean: visualize ? true : false,
+        // objectHashIgnoreUnknownHack: visualize ? true : false,
+        // clean: visualize ? true : false,
       }),
-      node(),
+      resolve(),
       // Polyfill require() from dependencies.
       commonjs({
         ignore: ['crypto'],
@@ -70,10 +73,13 @@ function config({plugins = [], output = {}, external = [], visualize = false}) {
     output: {
       banner: PREAMBLE,
       sourcemap: true,
-      globals: {'@tensorflow/tfjs-core': 'tf'},
+      globals: {
+        '@tensorflow/tfjs-core': 'tf',
+        'seedrandom': 'seedrandom',
+      },
       ...output,
     },
-    external: ['crypto', '@tensorflow/tfjs-core'],
+    external: ['crypto', '@tensorflow/tfjs-core', 'seedrandom'],
     onwarn: warning => {
       let {code} = warning;
       if (code === 'CIRCULAR_DEPENDENCY' || code === 'CIRCULAR' ||
