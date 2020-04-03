@@ -17,6 +17,7 @@
 
 import {BackendTimingInfo, DataMover, KernelBackend} from './backends/backend';
 import {Environment, setEnvironmentGlobal} from './environment';
+import {getGlobalNamespace} from './global_util';
 import {getGradient, getKernel, getKernelsForBackend, GradFunc, NamedAttrMap, TensorInfo} from './kernel_registry';
 import {Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, TapeNode} from './tape';
@@ -1127,29 +1128,8 @@ function ones(shape: number[]): Tensor {
   return ENGINE.makeTensor(values, shape, 'float32');
 }
 
-let GLOBAL: {_tfengine: Engine};
-function getGlobalNamespace(): {_tfengine: Engine} {
-  if (GLOBAL == null) {
-    // tslint:disable-next-line:no-any
-    let ns: any;
-    if (typeof (window) !== 'undefined') {
-      ns = window;
-    } else if (typeof (global) !== 'undefined') {
-      ns = global;
-    } else if (typeof (process) !== 'undefined') {
-      ns = process;
-    } else if (typeof (self) !== 'undefined') {
-      ns = self;
-    } else {
-      throw new Error('Could not find a global object');
-    }
-    GLOBAL = ns;
-  }
-  return GLOBAL;
-}
-
 function getOrMakeEngine(): Engine {
-  const ns = getGlobalNamespace();
+  const ns = getGlobalNamespace() as {} as {_tfengine: Engine};
   if (ns._tfengine == null) {
     const environment = new Environment(ns);
     ns._tfengine = new Engine(environment);

@@ -14,46 +14,15 @@
  * limitations under the License.
  * =============================================================================
  */
+import {getGlobal} from './global_util';
 import {NamedGradientMap} from './tape';
 import {Tensor} from './tensor';
 import {DataType, RecursiveArray} from './types';
 
-// The alternative to this is having Engine own the kernel and gradient
-// registries and continue to be the one true singleton. Or we make a
-// cleaner utility for creating true global singletons.
-function getGlobalNamespace(): {
-  _tfkernelRegistry: Map<string, KernelConfig>,
-  _tfgradRegistry: Map<string, GradConfig>
-} {
-  // tslint:disable-next-line:no-any
-  let ns: any;
-  if (typeof (window) !== 'undefined') {
-    ns = window;
-  } else if (typeof (global) !== 'undefined') {
-    ns = global;
-  } else if (typeof (process) !== 'undefined') {
-    ns = process;
-  } else if (typeof (self) !== 'undefined') {
-    ns = self;
-  } else {
-    throw new Error('Could not find a global object');
-  }
-  return ns;
-}
-
-const global = getGlobalNamespace();
-let kernelRegistry: Map<string, KernelConfig>;
-if (global._tfkernelRegistry == null) {
-  global._tfkernelRegistry = new Map();
-}
-kernelRegistry = global._tfkernelRegistry;
-
-let gradRegistry: Map<string, GradConfig>;
-
-if (global._tfgradRegistry == null) {
-  global._tfgradRegistry = new Map();
-}
-gradRegistry = global._tfgradRegistry;
+const kernelRegistry =
+    getGlobal('kernelRegistry', () => new Map<string, KernelConfig>());
+const gradRegistry =
+    getGlobal('gradRegistry', () => new Map<string, GradConfig>());
 
 export type DataId = object;
 
