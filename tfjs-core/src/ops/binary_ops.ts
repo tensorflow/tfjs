@@ -29,21 +29,6 @@ import {scalar, zerosLike} from './tensor_ops';
 import {neg} from './unary_ops';
 
 /**
- * Adds two `tf.Tensor`s element-wise, A + B.
- *
- * Inputs must be the same shape. For broadcasting support, use add() instead.
- *
- * @param a The first Tensor to add element-wise.
- * @param b The second Tensor to add element-wise.
- */
-function addStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
-  const $a = convertToTensor(a, 'a', 'addStrict');
-  const $b = convertToTensor(b, 'b', 'addStrict');
-  util.assertShapesMatch($a.shape, $b.shape, 'Error in addStrict: ');
-  return $a.add($b);
-}
-
-/**
  * Subtracts two `tf.Tensor`s element-wise, A - B. Supports broadcasting.
  *
  * We also expose `tf.subStrict` which has the same signature as this op and
@@ -625,7 +610,6 @@ function atan2_<T extends Tensor>(
   }, {$a, $b}, der) as T;
 }
 
-export const addStrict = op({addStrict_});
 export const atan2 = op({atan2_});
 export const divStrict = op({divStrict_});
 export const floorDiv = op({floorDiv_});

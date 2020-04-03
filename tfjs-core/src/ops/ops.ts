@@ -18,6 +18,7 @@
 // Modularized ops.
 export {add} from './add';
 export {addN} from './add_n';
+export {addStrict} from './add_strict';
 export {batchNorm, batchNormalization} from './batchnorm';
 export {batchNorm2d, batchNormalization2d} from './batchnorm2d';
 export {batchNorm3d, batchNormalization3d} from './batchnorm3d';

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,14 +14,18 @@
  * limitations under the License.
  * =============================================================================
  */
-import './add';
-import './add_strict';
-import './broadcast_to';
-import './div';
-import './div_no_nan';
-import './squared_difference';
-import './tile';
-import './one_hot';
-import './transpose';
-import './pad';
-import './batchnorm';
+import {addStrict} from '../../ops/add_strict';
+import {Tensor} from '../../tensor';
+import {Rank, TensorLike} from '../../types';
+
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    addStrict<T extends Tensor>(b: Tensor|TensorLike): T;
+  }
+}
+
+Tensor.prototype.addStrict = function<T extends Tensor>(b: Tensor|
+                                                        TensorLike): T {
+  this.throwIfDisposed();
+  return addStrict(this, b) as T;
+};

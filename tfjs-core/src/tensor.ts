@@ -208,7 +208,6 @@ export interface OpHandler {
   max<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
   argMin<T extends Tensor>(x: Tensor, axis: number): T;
   argMax<T extends Tensor>(x: Tensor, axis: number): T;
-  addStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   atan2<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   sub<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   subStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
@@ -644,7 +643,7 @@ export class Tensor<R extends Rank = Rank> {
     return this.isDisposedInternal;
   }
 
-  private throwIfDisposed() {
+  throwIfDisposed() {
     if (this.isDisposed) {
       throw new Error(`Tensor is disposed.`);
     }
@@ -876,10 +875,6 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   // Binary ops.
-  addStrict<T extends this>(this: T, x: T|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.addStrict(this, x);
-  }
   atan2<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.atan2(this, x);
