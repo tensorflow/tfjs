@@ -331,19 +331,21 @@ function qr2d(x: Tensor2D, fullMatrices = false): [Tensor2D, Tensor2D] {
         // -- R := HR, Q := QH.
         const rjEndAll = r.slice([j, 0], [m - j, n]);
         const tauTimesW: Tensor2D = tau.mul(w);
+        const wT: Tensor2D = w.transpose();
         if (j === 0) {
-          r = rjEndAll.sub(tauTimesW.matMul(w.transpose().matMul(rjEndAll)));
+          r = rjEndAll.sub(tauTimesW.matMul(wT.matMul(rjEndAll)));
         } else {
           const rTimesTau: Tensor2D =
-              rjEndAll.sub(tauTimesW.matMul(w.transpose().matMul(rjEndAll)));
+              rjEndAll.sub(tauTimesW.matMul(wT.matMul(rjEndAll)));
           r = r.slice([0, 0], [j, n]).concat(rTimesTau, 0);
         }
+        const tawTimesWT: Tensor2D = tauTimesW.transpose();
         const qAllJEnd = q.slice([0, j], [m, q.shape[1] - j]);
         if (j === 0) {
-          q = qAllJEnd.sub(qAllJEnd.matMul(w).matMul(tauTimesW.transpose()));
+          q = qAllJEnd.sub(qAllJEnd.matMul(w).matMul(tawTimesWT));
         } else {
           const qTimesTau: Tensor2D =
-              qAllJEnd.sub(qAllJEnd.matMul(w).matMul(tauTimesW.transpose()));
+              qAllJEnd.sub(qAllJEnd.matMul(w).matMul(tawTimesWT));
           q = q.slice([0, 0], [m, j]).concat(qTimesTau, 1);
         }
         return [w, r, q];

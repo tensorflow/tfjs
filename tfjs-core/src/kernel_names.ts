@@ -18,19 +18,38 @@
 // tslint:disable: variable-name
 // Unfortunately just enabling PascalCase per file (tslint:enable:
 // allow-pascal-case) doesn't work.
-import {NamedTensorInfoMap} from './kernel_registry';
+import {NamedTensorInfoMap, TensorInfo} from './kernel_registry';
 import {PixelData} from './types';
+
+export const Add = 'Add';
+export type AddInputs = BinaryInputs;
+
+export const AddN = 'AddN';
+export type AddNInputs = TensorInfo[];
 
 export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 
 export const Div = 'Div';
 export type DivInputs = BinaryInputs;
 
+export const FusedBatchNorm = 'FusedBatchNorm';
+export type FusedBatchNormInputs =
+    Pick<NamedTensorInfoMap, 'x'|'scale'|'offset'|'mean'|'variance'>;
+export interface FusedBatchNormAttrs {
+  varianceEpsilon: number;
+}
+
 export const SquaredDifference = 'SquaredDifference';
 export type SquaredDifferenceInputs = BinaryInputs;
 
 export const Square = 'Square';
 export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const Transpose = 'Transpose';
+export type TransposeInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface TransposeAttrs {
+  perm: number[];
+}
 
 export const NonMaxSuppressionV5 = 'NonMaxSuppressionV5';
 export type NonMaxSuppressionV5Inputs =
@@ -83,4 +102,13 @@ export interface FromPixelsInputs {
 }
 export interface FromPixelsAttrs {
   numChannels: number;
+}
+
+export const MaxPoolWithArgmax = 'MaxPoolWithArgmax';
+export type MaxPoolWithArgmaxInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface MaxPoolWithArgmaxAttrs {
+  filterSize: [number, number]|number;
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  includeBatchInIndex: boolean;
 }
