@@ -60,6 +60,9 @@ export interface KernelConfig {
 export interface GradConfig {
   kernelName: string;
   inputsToSave?: string[];
+  // When saveAllInputs is true, all inputs will be saved. Only use this flag
+  // if inputs is an array of Tensors.
+  saveAllInputs?: boolean;
   outputsToSave?: boolean[];
   gradFunc: GradFunc;
 }

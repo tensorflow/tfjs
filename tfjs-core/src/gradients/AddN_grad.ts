@@ -14,13 +14,19 @@
  * limitations under the License.
  * =============================================================================
  */
-import './add';
-import './broadcast_to';
-import './div';
-import './div_no_nan';
-import './squared_difference';
-import './tile';
-import './one_hot';
-import './transpose';
-import './pad';
-import './batchnorm';
+
+import {AddN} from '../kernel_names';
+import {GradConfig} from '../kernel_registry';
+import {Tensor} from '../tensor';
+
+export const addNGradConfig: GradConfig = {
+  kernelName: AddN,
+  saveAllInputs: true,
+  gradFunc: (dy: Tensor, saved: Tensor[]) => {
+    const ders: {[key: string]: () => Tensor} = {};
+    saved.forEach((_, i) => {
+      ders[i] = () => dy.clone();
+    });
+    return ders;
+  }
+};
