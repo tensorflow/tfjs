@@ -232,6 +232,8 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
       const cameraTexture = await this.createCameraTexture();
       await detectGLCapabilities(gl);
 
+      // landscapeMode is only for ios.
+      const landscapeMode = this.props.landscape && Platform.OS === 'ios';
       // Optionally set up a render loop that just displays the camera texture
       // to the GLView.
       const autorender =
@@ -254,9 +256,8 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
         resizeDepth,
         cameraTextureHeight,
         cameraTextureWidth,
-        landscape,
       } = this.props;
-      console.log('landscape', landscape)
+
       //
       //  Set up a generator function that yields tensors representing the
       // camera on demand.
@@ -282,7 +283,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
             cameraTexture,
             textureDims,
             targetDims,
-            { landscape }
+            { landscape: landscapeMode }
           );
           yield imageTensor;
         }
@@ -305,7 +306,8 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
     ) {
       const renderFunc = () => {
         const { cameraLayout } = this.state;
-        const { landscape } = this.props;
+        // landscapeMode is only for ios.
+       const landscapeMode = this.props.landscape && Platform.OS === 'ios';
         const width = PixelRatio.getPixelSizeForLayoutSize(cameraLayout.width);
         const height = PixelRatio.getPixelSizeForLayoutSize(
           cameraLayout.height
@@ -315,7 +317,13 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
         const flipHorizontal =
           Platform.OS === 'ios' && isFrontCamera ? false : true;
 
-        renderToGLView(gl, cameraTexture, { width, height }, flipHorizontal, landscape);
+        renderToGLView(
+          gl,
+          cameraTexture,
+          { width, height },
+          flipHorizontal,
+          landscapeMode
+        );
       };
 
       return renderFunc.bind(this);

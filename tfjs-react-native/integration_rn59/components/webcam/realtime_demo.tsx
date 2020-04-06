@@ -257,8 +257,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
         };
       }
 
-    const landscapeMode = this.state.orientation === 'landscape'
-      && Platform.OS === 'ios';
+    const landscapeMode = this.state.orientation === 'landscape';
 
     const camView = <View style={styles.cameraContainer}>
       <TensorCamera
