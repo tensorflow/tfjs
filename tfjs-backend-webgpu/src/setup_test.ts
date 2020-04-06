@@ -353,7 +353,18 @@ const TEST_FILTERS: TestFilter[] = [
       'MultipleBoxes-DifferentBoxes',  // TimeOut
     ]
   },
-  {include: 'deprecated batchNormalization', excludes: []}
+  {
+    include: 'batchNorm',
+    excludes: [
+      'gradient',
+    ]
+  },
+  {
+    include: 'rsqrt',
+    excludes: [
+      'gradient',
+    ]
+  }
 ];
 
 const customInclude = (testName: string) => {

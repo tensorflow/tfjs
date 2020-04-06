@@ -14,17 +14,18 @@
  * limitations under the License.
  * =============================================================================
  */
-import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
-import {batchNromConfig} from './kernels/BatchNormal';
-import {rsqrtConfig} from './kernels/Rsqrt';
-import {squareConfig} from './kernels/Square';
-import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {KernelConfig, Rsqrt, RsqrtInputs, Tensor} from '@tensorflow/tfjs-core';
+import {WebGPUBackend} from '../backend_webgpu';
+import {RSQRT, UnaryOpProgram} from './unary_op_webgpu';
 
-// List all kernel configs here
-const kernelConfigs: KernelConfig[] =
-    [squareConfig, squaredDifferenceConfig, rsqrtConfig, batchNromConfig];
-
-for (const kernelConfig of kernelConfigs) {
-  registerKernel(kernelConfig);
-}
+export const rsqrtConfig: KernelConfig = {
+  kernelName: Rsqrt,
+  backendName: 'webgpu',
+  kernelFunc: ({inputs, backend}) => {
+    const {x} = inputs as RsqrtInputs;
+    const webGPUBackend = backend as WebGPUBackend;
+    const program = new UnaryOpProgram(x.shape, RSQRT);
+    return webGPUBackend.compileAndRun(program, [x as Tensor]);
+  }
+};

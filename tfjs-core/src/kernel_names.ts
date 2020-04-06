@@ -45,6 +45,9 @@ export type SquaredDifferenceInputs = BinaryInputs;
 export const Square = 'Square';
 export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
 
+export const Rsqrt = 'Rsqrt';
+export type RsqrtInputs = Pick<NamedTensorInfoMap, 'x'>;
+
 export const Transpose = 'Transpose';
 export type TransposeInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface TransposeAttrs {

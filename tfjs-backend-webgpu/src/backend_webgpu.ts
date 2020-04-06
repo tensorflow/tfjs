@@ -24,7 +24,6 @@ import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
 import {ArgMinMaxProgram} from './kernels/argminmax_webgpu';
-import {BatchNormProgram} from './kernels/batchnorm_webgpu';
 import * as binary_op from './kernels/binary_op_webgpu';
 import {BinaryOpProgram} from './kernels/binary_op_webgpu';
 import {ClipProgram} from './kernels/clip_webgpu';
@@ -551,30 +550,6 @@ export class WebGPUBackend extends KernelBackend {
             input =>
                 this.tensorMap.get(input.dataId).bufferInfo.buffer == null &&
                 input.size < sizeThreshold);
-  }
-
-  batchNormalization(
-      x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
-      varianceEpsilon: number, scale?: Tensor4D|Tensor1D,
-      offset?: Tensor4D|Tensor1D): Tensor4D {
-    const inputs = [x, mean, variance];
-
-    let offsetShape = null;
-    if (offset != null) {
-      offsetShape = offset.shape;
-      inputs.push(offset);
-    }
-
-    let scaleShape = null;
-    if (scale != null) {
-      scaleShape = scale.shape;
-      inputs.push(scale);
-    }
-
-    const batchNormProgram = new BatchNormProgram(
-        x.shape, mean.shape, variance.shape, offsetShape, scaleShape,
-        varianceEpsilon);
-    return this.compileAndRun(batchNormProgram, inputs);
   }
 
   pad<T extends Tensor>(
