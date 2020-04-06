@@ -40,6 +40,7 @@ export {randomNormal} from './random_normal';
 export {randomUniform} from './random_uniform';
 export {square} from './square';
 export {squaredDifference} from './squared_difference';
+export {sub} from './sub';
 export {tile} from './tile';
 export {truncatedNormal} from './truncated_normal';
 
