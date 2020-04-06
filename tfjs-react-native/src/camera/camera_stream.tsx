@@ -40,6 +40,7 @@ interface Props {
   resizeHeight: number;
   resizeDepth: number;
   autorender: boolean;
+  landscape: boolean;
   onReady: (
     images: IterableIterator<tf.Tensor3D>,
     updateCameraPreview: () => void,
@@ -253,8 +254,9 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
         resizeDepth,
         cameraTextureHeight,
         cameraTextureWidth,
+        landscape,
       } = this.props;
-
+      console.log('landscape', landscape)
       //
       //  Set up a generator function that yields tensors representing the
       // camera on demand.
@@ -279,7 +281,8 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
             gl,
             cameraTexture,
             textureDims,
-            targetDims
+            targetDims,
+            { landscape }
           );
           yield imageTensor;
         }
@@ -302,16 +305,17 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
     ) {
       const renderFunc = () => {
         const { cameraLayout } = this.state;
+        const { landscape } = this.props;
         const width = PixelRatio.getPixelSizeForLayoutSize(cameraLayout.width);
         const height = PixelRatio.getPixelSizeForLayoutSize(
           cameraLayout.height
         );
-        const isFrontCamera = 
+        const isFrontCamera =
           this.camera.props.type === Camera.Constants.Type.front;
-        const flipHorizontal = 
+        const flipHorizontal =
           Platform.OS === 'ios' && isFrontCamera ? false : true;
 
-        renderToGLView(gl, cameraTexture, { width, height }, flipHorizontal);
+        renderToGLView(gl, cameraTexture, { width, height }, flipHorizontal, landscape);
       };
 
       return renderFunc.bind(this);
@@ -336,6 +340,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
         resizeDepth: null,
         autorender: null,
         onReady: null,
+        landscape: null,
       };
       const tensorCameraPropKeys = Object.keys(tensorCameraPropMap);
 
@@ -355,7 +360,10 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
       } : this.onCameraLayout;
 
       cameraProps.onLayout = onlayout;
-
+      cameraProps.style = {
+        ...cameraProps.style,
+        opacity: 0
+      }
       const cameraComp = (
         //@ts-ignore see https://github.com/microsoft/TypeScript/issues/30650
         <CameraComponent

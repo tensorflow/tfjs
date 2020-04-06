@@ -32,6 +32,7 @@ interface Size {
 interface FromTextureOptions {
   alignCorners?: boolean;
   interpolation?: 'nearest_neighbor'|'bilinear';
+  landscape?: boolean;
 }
 
 const glCapabilities = {
@@ -178,6 +179,7 @@ export function fromTexture(
       options.alignCorners != null ? options.alignCorners : false;
   const interpolation =
       options.interpolation != null ? options.interpolation : 'bilinear';
+  const landscape = options.landscape != null ? options.landscape : false;
 
   tf.util.assert(
       interpolation === 'bilinear' || interpolation === 'nearest_neighbor',
@@ -185,7 +187,8 @@ export function fromTexture(
           ' "bilinear" or "nearest_neighbor"');
 
   const resizedTexture = runResizeProgram(
-      gl, texture, sourceDims, targetShape, alignCorners, interpolation);
+      gl, texture, sourceDims, targetShape, alignCorners, interpolation,
+      landscape);
   const downloadedTextureData =
       downloadTextureData(gl, resizedTexture, targetShape);
 
@@ -223,10 +226,10 @@ export function fromTexture(
 /** @doc {heading: 'Media', subheading: 'Camera'} */
 export function renderToGLView(
     gl: WebGL2RenderingContext, texture: WebGLTexture, size: Size,
-    flipHorizontal = true) {
+    flipHorizontal = true, landscape = false) {
   size = {
     width: Math.floor(size.width),
     height: Math.floor(size.height),
   };
-  drawTexture(gl, texture, size, flipHorizontal);
+  drawTexture(gl, texture, size, flipHorizontal, landscape);
 }

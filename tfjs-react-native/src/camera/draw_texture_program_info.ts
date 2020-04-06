@@ -15,8 +15,11 @@
  * =============================================================================
  */
 
-export function vertexShaderSource(flipHorizontal: boolean) {
+export function vertexShaderSource(
+    flipHorizontal: boolean, landscape: boolean) {
   const horizontalScale = flipHorizontal ? -1 : 1;
+  const rotateAngle = landscape ? -(Math.PI / 2.) : '0.';
+
   return `#version 300 es
 precision highp float;
 
@@ -25,10 +28,20 @@ in vec2 texCoords;
 
 out vec2 uv;
 
+vec2 rotate(vec2 uvCoods, vec2 pivot, float rotation) {
+  float cosa = cos(rotation);
+  float sina = sin(rotation);
+  uvCoods -= pivot;
+  return vec2(
+      cosa * uvCoods.x - sina * uvCoods.y,
+      cosa * uvCoods.y + sina * uvCoods.x
+  ) + pivot;
+}
+
 void main() {
   // Invert geometry to match the image orientation from the camera.
   gl_Position = vec4(position * vec2(${horizontalScale}., -1.), 0, 1);
-  uv = texCoords;
+  uv = rotate(texCoords, vec2(0.5), ${rotateAngle});
 }`;
 }
 

@@ -16,7 +16,7 @@
  */
 
 import React from 'react';
-import {ActivityIndicator, Button, StyleSheet, View, Platform } from 'react-native';
+import { ActivityIndicator, Button, StyleSheet, View, Platform, Dimensions } from 'react-native';
 import Svg, { Circle, Rect, G, Line} from 'react-native-svg';
 
 import * as Permissions from 'expo-permissions';
@@ -43,6 +43,7 @@ interface ScreenState {
   faceDetector?: any;
   faces?: blazeface.NormalizedFace[];
   modelName: string;
+  orientation?: 'portrait' | 'landscape';
 }
 
 const inputTensorWidth = 152;
@@ -138,7 +139,20 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
       isLoading: false,
       faceDetector: blazefaceModel,
       posenetModel,
+      orientation: this.isPortrait() ? 'portrait' : 'landscape',
     });
+
+    Dimensions.addEventListener('change', () => {
+      this.setState({
+        orientation: this.isPortrait() ? 'portrait' : 'landscape',
+      });
+    });
+  }
+
+  isPortrait() {
+    const dim = Dimensions.get('screen');
+
+    return dim.height >= dim.width;
   }
 
   renderPose() {
@@ -243,6 +257,9 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
         };
       }
 
+    const landscapeMode = this.state.orientation === 'landscape'
+      && Platform.OS === 'ios';
+
     const camView = <View style={styles.cameraContainer}>
       <TensorCamera
         // Standard Camera props
@@ -257,6 +274,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
         resizeDepth={3}
         onReady={this.handleImageTensorReady}
         autorender={AUTORENDER}
+        landscape={landscapeMode}
       />
       <View style={styles.modelResults}>
         {modelName === 'posenet' ? this.renderPose() : this.renderFaces()}
