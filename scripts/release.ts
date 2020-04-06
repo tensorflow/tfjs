@@ -163,15 +163,16 @@ async function main() {
 
   const packageNames = packages.join(', ');
   const versionNames = newVersions.join(', ');
-  const devBranchName = `${releaseBranch}_phase${phaseInt}`;
+  const devBranchName = `dev_${releaseBranch}_phase${phaseInt}`;
 
   const message = `Update ${packageNames} to ${versionNames}.`;
   createPR(devBranchName, releaseBranch, message);
 
   console.log(
       `Done. FYI, this script does not publish to NPM. ` +
-      `Please publish by running yarn publish-npm ` +
-      `from each repo after you merge the PR.` +
+      `Please publish by running  ` +
+      `YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm ` +
+      `after you merge the PR.` +
       `Please remeber to update the website once you have released ` +
       'a new package version');
 
