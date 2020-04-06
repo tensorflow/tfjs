@@ -240,8 +240,8 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
   }
 
   render() {
-    const {isLoading, modelName} = this.state;
-
+    const {isLoading, modelName, orientation} = this.state;
+    const landscape = orientation === 'landscape';
     // TODO File issue to be able get this from expo.
     // Caller will still need to account for orientation/phone rotation changes
     let textureDims: { width: number; height: number; };
@@ -257,25 +257,26 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
         };
       }
 
-    const landscapeMode = this.state.orientation === 'landscape';
+    const styleWidth = landscape ? 800/2 : 600/2;
+    const styleHeight = landscape ? 600/2 : 800/2;
 
     const camView = <View style={styles.cameraContainer}>
       <TensorCamera
         // Standard Camera props
-        style={styles.camera}
+        style={[styles.camera, {width: styleWidth, height: styleHeight}]}
         type={this.state.cameraType}
         zoom={0}
         // tensor related props
-        cameraTextureHeight={textureDims.height}
-        cameraTextureWidth={textureDims.width}
-        resizeHeight={inputTensorHeight}
-        resizeWidth={inputTensorWidth}
+        cameraTextureHeight={landscape ? textureDims.width : textureDims.height}
+        cameraTextureWidth={landscape ? textureDims.width : textureDims.height}
+        resizeHeight={landscape ? inputTensorWidth : inputTensorHeight}
+        resizeWidth={landscape ? inputTensorHeight: inputTensorWidth}
         resizeDepth={3}
         onReady={this.handleImageTensorReady}
         autorender={AUTORENDER}
-        landscape={landscapeMode}
+        rotation={landscape ? 270 : 0}
       />
-      <View style={styles.modelResults}>
+      <View style={[styles.modelResults, {width: styleWidth, height: styleHeight}]}>
         {modelName === 'posenet' ? this.renderPose() : this.renderFaces()}
       </View>
     </View>;
@@ -305,7 +306,7 @@ const styles = StyleSheet.create({
     zIndex: 200,
   },
   sectionContainer: {
-    marginTop: 32,
+    marginTop: 16,
     paddingHorizontal: 24,
   },
   cameraContainer: {
@@ -320,9 +321,7 @@ const styles = StyleSheet.create({
   camera : {
     position:'absolute',
     left: 50,
-    top: 100,
-    width: 600/2,
-    height: 800/2,
+    top: 10,
     zIndex: 1,
     borderWidth: 1,
     borderColor: 'black',
@@ -331,9 +330,7 @@ const styles = StyleSheet.create({
   modelResults: {
     position:'absolute',
     left: 50,
-    top: 100,
-    width: 600/2,
-    height: 800/2,
+    top: 10,
     zIndex: 20,
     borderWidth: 1,
     borderColor: 'black',
