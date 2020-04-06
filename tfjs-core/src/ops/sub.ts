@@ -23,6 +23,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
 import {op} from './operation';
+
 /**
  * Subtracts two `tf.Tensor`s element-wise, A - B. Supports broadcasting.
  *

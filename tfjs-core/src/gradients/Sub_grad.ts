@@ -16,7 +16,10 @@
  */
 import {Sub} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
+import {reshape} from '../ops/array_ops';
 import * as broadcast_util from '../ops/broadcast_util';
+import {sum} from '../ops/reduction_ops';
+import {neg} from '../ops/unary_ops';
 import {Tensor} from '../tensor';
 
 export const subGradConfig: GradConfig = {
@@ -31,17 +34,17 @@ export const subGradConfig: GradConfig = {
       let res = dy;
       const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
       if (reduceAxes.length > 0) {
-        res = res.sum(reduceAxes);
+        res = sum(res, reduceAxes);
       }
-      return res.reshape(a.shape);
+      return reshape(res, a.shape);
     };
     const derB = () => {
       let res = dy;
       const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
       if (reduceAxes.length > 0) {
-        res = res.sum(reduceAxes);
+        res = sum(res, reduceAxes);
       }
-      return res.neg().reshape(b.shape);
+      return reshape(neg(res), b.shape);
     };
 
     return {a: derA, b: derB};
