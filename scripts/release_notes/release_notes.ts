@@ -125,13 +125,13 @@ async function main() {
   const versions = getTaggedVersions('tfjs');
   const {startVersion, endVersion} = await askUserForVersions(versions, 'tfjs');
 
-  // Clone the Node.js repo eagerly so we can query the tags.
+  // Get Node start version and end version.
   NODE_REPO.startVersion = startVersion;
   NODE_REPO.endVersion = endVersion;
   NODE_REPO.startCommit = $(`git rev-list -n 1 ${
       getTagName(NODE_REPO.identifier, NODE_REPO.startVersion)}`);
 
-  // Clone the Wasm repo eagerly so we can query the tags.
+  // Get WASM start version and end version.
   WASM_REPO.startVersion = startVersion;
   WASM_REPO.endVersion = endVersion;
   WASM_REPO.startCommit = $(`git rev-list -n 1 ${
@@ -159,20 +159,15 @@ async function main() {
     // Find the version of the dependency from the package.json from the
     // earliest union tag.
     const npm = '@tensorflow/' + repo.identifier;
-    const repoStartVersion = startVersion;
-    const repoEndVersion = endVersion;
-
-    const dir = `${repo.name}`;
 
     repo.startCommit =
-        $(repoStartVersion != null ?
-              `git rev-list -n 1 ` +
-                  getTagName(repo.identifier, repoStartVersion) :
+        $(startVersion != null ?
+              `git rev-list -n 1 ` + getTagName(repo.identifier, startVersion) :
               // Get the first commit if there are no tags yet.
               `git rev-list --max-parents=0 HEAD`);
 
-    repo.startVersion = repoStartVersion != null ? repoStartVersion : null;
-    repo.endVersion = repoEndVersion;
+    repo.startVersion = startVersion != null ? startVersion : null;
+    repo.endVersion = endVersion;
   });
 
   const repoCommits: RepoCommits[] = [];
