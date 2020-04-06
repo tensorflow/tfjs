@@ -368,10 +368,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
       } : this.onCameraLayout;
 
       cameraProps.onLayout = onlayout;
-      cameraProps.style = {
-        ...cameraProps.style,
-        opacity: 0
-      }
+
       const cameraComp = (
         //@ts-ignore see https://github.com/microsoft/TypeScript/issues/30650
         <CameraComponent
