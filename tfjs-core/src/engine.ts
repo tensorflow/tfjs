@@ -17,9 +17,9 @@
 
 import {BackendTimingInfo, DataMover, KernelBackend} from './backends/backend';
 import {Environment, setEnvironmentGlobal} from './environment';
-import {getGradient, getKernel, getKernelsForBackend, NamedAttrMap, TensorInfo} from './kernel_registry';
+import {getGradient, getKernel, getKernelsForBackend, GradFunc, NamedAttrMap, TensorInfo} from './kernel_registry';
 import {Profiler} from './profiler';
-import {backpropagateGradients, getFilteredNodesXToY, NamedGradientMap, TapeNode} from './tape';
+import {backpropagateGradients, getFilteredNodesXToY, TapeNode} from './tape';
 import {DataId, setTensorTracker, Tensor, TensorTracker, Variable} from './tensor';
 import {GradSaveFunc, NamedTensorMap, NamedVariableMap, TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';
@@ -465,7 +465,7 @@ export class Engine implements TensorTracker, DataMover {
     const inputs = {x};
     const grad = (dy: Tensor) => ({x: () => dy.toFloat()});
     const saved: Tensor[] = [];
-    this.addTapeNode(this.state.activeScope.name, inputs, [y], grad, saved);
+    this.addTapeNode(this.state.activeScope.name, inputs, [y], grad, saved, {});
     return y;
   }
 
@@ -535,8 +535,8 @@ export class Engine implements TensorTracker, DataMover {
   runKernelFunc<T extends Tensor|Tensor[], I extends NamedTensorMap>(
       forwardFunc: ForwardFunc<T>, inputs: I,
       backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () => I[P]},
-      kernelName?: string, attrs?: NamedAttrMap, inputsToSave: Tensor[] = [],
-      outputsToSave: boolean[] = []): T {
+      kernelName?: string, attrs?: NamedAttrMap, inputsToSave?: Tensor[],
+      outputsToSave?: boolean[]): T {
     let outputs: Tensor[];
     let saved: Tensor[] = [];
     const isTapeOn = this.isTapeOn();
@@ -544,15 +544,6 @@ export class Engine implements TensorTracker, DataMover {
       kernelName =
           this.state.activeScope != null ? this.state.activeScope.name : '';
     }
-    const saveFunc: GradSaveFunc = (tensors) => {
-      // Do not save unless we are recording to the tape. Otherwise it would
-      // cause a mem leak since we would never run backprop, which disposes
-      // the kept tensors.
-      if (!isTapeOn) {
-        return;
-      }
-      saved = tensors.map(tensor => this.keep(this.clone(tensor)));
-    };
 
     const startingBytecount = this.state.numBytes;
     const startingNumTensors = this.state.numTensors;
@@ -575,12 +566,40 @@ export class Engine implements TensorTracker, DataMover {
         const outTensors = outInfos.map(
             ({dataId, shape, dtype}) =>
                 this.makeTensorFromDataId(dataId, shape, dtype));
-        const outsToSave = outTensors.filter((_, i) => outputsToSave[i]);
+
         // Save the inputs and outputs.
-        saveFunc((inputsToSave || []).slice().concat(outsToSave));
+        // Do not save unless we are recording to the tape. Otherwise it would
+        // cause a mem leak since we would never run backprop, which disposes
+        // the kept tensors.
+        if (isTapeOn) {
+          let tensorsToSave =
+              this.getTensorsForGradient(kernelName, inputs, outTensors);
+          if (tensorsToSave == null) {
+            // Fallback for ops that call runKernelFunc and pass in
+            // inputsToSave and outputsToSave. Currently this is the set of ops
+            // with kernel support in the WASM backend. Once those ops and
+            // respective gradients are modularised we can remove this path.
+            if (outputsToSave == null) {
+              outputsToSave = [];
+            }
+            const outsToSave = outTensors.filter((_, i) => outputsToSave[i]);
+            tensorsToSave = (inputsToSave || []).slice().concat(outsToSave);
+          }
+          saved = this.saveTensorsForBackwardMode(tensorsToSave);
+        }
         return outTensors;
       };
     } else {
+      const saveFunc: GradSaveFunc = (tensors) => {
+        // Do not save unless we are recording to the tape. Otherwise it would
+        // cause a mem leak since we would never run backprop, which disposes
+        // the kept tensors.
+        if (!isTapeOn) {
+          return;
+        }
+        saved = tensors.map(tensor => this.keep(this.clone(tensor)));
+      };
+
       kernelFunc = () => {
         const numDataIdsBefore = this.backend.numDataIds();
         out = this.tidy(() => forwardFunc(this.backend, saveFunc));
@@ -604,7 +623,8 @@ export class Engine implements TensorTracker, DataMover {
         });
 
     if (isTapeOn) {
-      this.addTapeNode(kernelName, inputs, outputs, backwardsFunc, saved);
+      this.addTapeNode(
+          kernelName, inputs, outputs, backwardsFunc, saved, attrs);
     }
 
     if (this.state.profiling) {
@@ -619,6 +639,57 @@ export class Engine implements TensorTracker, DataMover {
       });
     }
     return (Array.isArray(out) ? outputs : outputs[0]) as T;
+  }
+
+  /**
+   * Saves tensors used in forward mode for use in backward mode.
+   *
+   * @param tensors the list of tensors to save.
+   */
+  private saveTensorsForBackwardMode(tensors: Tensor[]): Tensor[] {
+    const saved = tensors.map(tensor => this.keep(this.clone(tensor)));
+    return saved;
+  }
+
+  /**
+   * Returns a list of tensors to save for a given gradient calculation.
+   *
+   * Returns undefined if their is no registered gradient for this kernel in the
+   * gradient registry.
+   *
+   * @param kernelName name of kernel to look up gradient for.
+   * @param inputs a map of input tensors.
+   * @param outputs an array of output tensors from forward mode of kernel.
+   */
+  private getTensorsForGradient(
+      kernelName: string, inputs: NamedTensorMap,
+      outputs: Tensor[]): Tensor[]|null {
+    const gradConfig = getGradient(kernelName);
+    if (gradConfig != null) {
+      const inputsToSave: string[] = gradConfig.inputsToSave || [];
+      const outputsToSave: boolean[] = gradConfig.outputsToSave || [];
+
+      // If saveAllInputs is true, all inputs will be saved. Otherwise, inputs
+      // specified in inputsToSave will be saved.
+      let inputTensorsToSave: Tensor[];
+      if (gradConfig.saveAllInputs) {
+        util.assert(
+            Array.isArray(inputs),
+            () => 'saveAllInputs is true, expected inputs to be an array.');
+
+        inputTensorsToSave = Object.keys(inputs).map((key) => inputs[key]);
+      } else {
+        inputTensorsToSave = inputsToSave.map((inputName) => inputs[inputName]);
+      }
+
+      const outputTensorsToSave: Tensor[] =
+          outputs.filter((_, i) => outputsToSave[i]);
+
+      return inputTensorsToSave.concat(outputTensorsToSave);
+    }
+    // TODO(yassogba) throw exception here once all runkernelFunc calls with
+    // inputsToSave/outputsToSave are removed
+    return null;
   }
 
   /**
@@ -798,8 +869,7 @@ export class Engine implements TensorTracker, DataMover {
 
   private addTapeNode(
       kernelName: string, inputs: NamedTensorMap, outputs: Tensor[],
-      gradientsFunc: (dy: Tensor|Tensor[], saved: Tensor[]) => NamedGradientMap,
-      saved: Tensor[]): void {
+      gradientsFunc: GradFunc, saved: Tensor[], attrs: NamedAttrMap): void {
     const tapeNode: TapeNode =
         {id: this.state.nextTapeNodeId++, kernelName, inputs, outputs, saved};
 
@@ -821,7 +891,7 @@ export class Engine implements TensorTracker, DataMover {
         });
         // Grad functions of ops with single outputs expect a dy, while ops
         // with multiple outputs expect dys (array of dy).
-        return gradientsFunc(dys.length > 1 ? dys : dys[0], saved);
+        return gradientsFunc(dys.length > 1 ? dys : dys[0], saved, attrs);
       };
     }
     this.state.activeTape.push(tapeNode);

@@ -56,7 +56,7 @@ export class OperationMapper {
       evaluation, logical, image, graph, matrices, normalization, reduction,
       sliceJoin, spectral, transformation
     ];
-    const mappersJson: OpMapper[] = [].concat.apply([], ops.map(op => op.json));
+    const mappersJson: OpMapper[] = [].concat(...ops.map(op => op.json));
 
     this.opMappers = mappersJson.reduce<{[key: string]: OpMapper}>(
         (map, mapper: OpMapper) => {
@@ -352,6 +352,8 @@ export function parseDtypeParam(value: string|tensorflow.DataType): DataType {
       return 'float32';
     case tensorflow.DataType.DT_INT32:
     case tensorflow.DataType.DT_INT64:
+    case tensorflow.DataType.DT_INT8:
+    case tensorflow.DataType.DT_UINT8:
       return 'int32';
     case tensorflow.DataType.DT_BOOL:
       return 'bool';

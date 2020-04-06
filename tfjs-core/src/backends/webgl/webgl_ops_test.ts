@@ -438,8 +438,9 @@ describeWithFlags('gramSchmidt-non-tiny', WEBGL_ENVS, () => {
     // can complete in the timeout limit of the unit test.
     const xs: Tensor2D = tf.randomUniform([8, 16]);
     const y = tf.linalg.gramSchmidt(xs) as Tensor2D;
+    const yTransposed: Tensor2D = y.transpose();
     expectArraysClose(
-        await y.matMul(y.transpose()).data(), await tf.eye(8).data());
+        await y.matMul(yTransposed).data(), await tf.eye(8).data());
   });
 });
 

@@ -34,6 +34,16 @@ const TEST_FILTERS: TestFilter[] = [
       'Tensor2D float32 -> bool', 'Tensor2D int32 -> bool'
     ]
   },
+  {include: 'softmax'},
+  {
+    include: 'pow',
+    excludes: [
+      'gradient',  // zerosLike not defined yet.
+      'broadcasting same rank Tensors different shape',  // Broadcasting along
+                                                         // inner dims not
+                                                         // supported yet.
+    ]
+  },
   {
     include: 'add ',
     excludes: [
@@ -52,11 +62,12 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'relu',
     excludes: [
-      'derivative',         // Not yet implemented.
-      'gradient',           // Not yet implemented.
-      'valueAndGradients',  // Not yet implemented.
-      'fused matmul',       // Not yet implemented.
-      'broadcasted bias',   // Not yet implemented.
+      'derivative',               // Not yet implemented.
+      'gradient',                 // Not yet implemented.
+      'valueAndGradients',        // Not yet implemented.
+      'broadcasted bias',         // Not yet implemented.
+      'fused A x B with 2d bias'  // Fused matMul with 2D bias not yet
+                                  // supported.
     ]
   },
   {
@@ -65,7 +76,9 @@ const TEST_FILTERS: TestFilter[] = [
       'maxPoolBackprop',    // Not yet implemented.
       'maxPool3d',          // Not yet implemented.
       'maxPool3dBackprop',  // Not yet implemented.
-      'ignores NaNs'        // Actual != expected.
+      'ignores NaNs',       // Actual != expected.
+      'maxPoolWithArgmax'   // Not yet implemented.
+
     ]
   },
   {include: 'cropAndResize'},
@@ -78,12 +91,15 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'matmul ',
     excludes: [
-      'valueAndGradients',       // Gradients not defined yet
-      'gradient',                // Gradients not defined yet
-      'fused matmul',            // Fused kernels aren't ready yet
-      'zero in its shape',       // Zero in shapes aren't supported yet
-      'matmul followed by mul',  // mul not supported yet
-      'upcasts',                 // Upcasting not supported yet.
+      'valueAndGradients',         // Gradients not defined yet
+      'gradient',                  // Gradients not defined yet
+      'zero in its shape',         // Zero in shapes aren't supported yet
+      'matmul followed by mul',    // mul not supported yet
+      'upcasts',                   // Upcasting not supported yet.
+      'fused A x B with elu',      // Fused matMul with elu activation not yet
+                                   // supported.
+      'fused A x B with 2d bias',  // Fused matMul with 2D bias not yet
+                                   // supported.
     ]
   },
   {
@@ -312,7 +328,16 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'rsqrt ',
     excludes: ['gradient']  // Gradient not yet implemented.
   },
-
+  {
+    startsWith: 'zerosLike',
+    // Complex numbers not supported yet.
+    excludes: ['complex'],
+  },
+  {
+    startsWith: 'onesLike',
+    // Complex numbers not supported yet.
+    excludes: ['complex'],
+  },
 ];
 
 const customInclude = (testName: string) => {

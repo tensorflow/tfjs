@@ -20,7 +20,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {oneHot} from './array_ops';
+import {oneHot} from './one_hot';
 import {op} from './operation';
 
 /**
@@ -84,7 +84,8 @@ export function confusionMatrix_(
   const oneHotLabels = oneHot($labels.asType('int32'), numClasses) as Tensor2D;
   const oneHotPredictions =
       oneHot($predictions.asType('int32'), numClasses) as Tensor2D;
-  return oneHotLabels.transpose().matMul(oneHotPredictions).asType('int32');
+  const oneHotLabelsT: Tensor2D = oneHotLabels.transpose();
+  return oneHotLabelsT.matMul(oneHotPredictions).asType('int32');
 }
 
 export const confusionMatrix = op({confusionMatrix_});

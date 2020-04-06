@@ -38,6 +38,7 @@ const MODEL_METADATA_SUFFIX = 'model_metadata';
  */
 export function purgeLocalStorageArtifacts(): string[] {
   if (!env().getBool('IS_BROWSER') ||
+      typeof window === 'undefined' ||
       typeof window.localStorage === 'undefined') {
     throw new Error(
         'purgeLocalStorageModels() cannot proceed because local storage is ' +
@@ -119,7 +120,8 @@ export class BrowserLocalStorage implements IOHandler {
 
   constructor(modelPath: string) {
     if (!env().getBool('IS_BROWSER') ||
-        typeof window.localStorage === 'undefined') {
+          typeof window === 'undefined' ||
+          typeof window.localStorage === 'undefined') {
       // TODO(cais): Add more info about what IOHandler subtypes are
       // available.
       //   Maybe point to a doc page on the web and/or automatically determine
@@ -307,6 +309,7 @@ export class BrowserLocalStorageManager implements ModelStoreManager {
         env().getBool('IS_BROWSER'),
         () => 'Current environment is not a web browser');
     assert(
+        typeof window === 'undefined' ||
         typeof window.localStorage !== 'undefined',
         () => 'Current browser does not appear to support localStorage');
     this.LS = window.localStorage;

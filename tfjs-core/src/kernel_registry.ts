@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {NamedGradientMap} from './tape';
 import {Tensor} from './tensor';
 import {DataType, RecursiveArray} from './types';
 
@@ -37,8 +38,9 @@ export type KernelFunc = (params: {
 }) => TensorInfo|TensorInfo[];
 
 /** The function to run when computing a gradient during backprop. */
-export type GradFunc = (dy: Tensor|Tensor[], saved: Tensor[]) =>
-    ({[inputName: string]: () => Tensor});
+export type GradFunc =
+    (dy: Tensor|Tensor[], saved: Tensor[], attrs: NamedAttrMap) =>
+        NamedGradientMap;
 
 /** Function that gets called after the backend initializes. */
 export type KernelSetupFunc = (backend: {}) => void;
@@ -57,6 +59,11 @@ export interface KernelConfig {
 /** Config object for registering a gradient in the global registry. */
 export interface GradConfig {
   kernelName: string;
+  inputsToSave?: string[];
+  // When saveAllInputs is true, all inputs will be saved. Only use this flag
+  // if inputs is an array of Tensors.
+  saveAllInputs?: boolean;
+  outputsToSave?: boolean[];
   gradFunc: GradFunc;
 }
 

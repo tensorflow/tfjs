@@ -27,8 +27,7 @@ import tempfile
 import unittest
 
 import numpy as np
-import tensorflow as tf
-from tensorflow import keras
+import tensorflow.compat.v2 as tf
 
 from tensorflowjs.converters import keras_h5_conversion
 from tensorflowjs.converters import keras_tfjs_loader
@@ -47,12 +46,12 @@ class LoadKerasModelTest(tf.test.TestCase):
     super(LoadKerasModelTest, self).tearDown()
 
   def _saveKerasModelForTest(self, path):
-    model = keras.Sequential()
-    model.add(keras.layers.Dense(
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.Dense(
         2, input_shape=[12], bias_initializer='random_normal', name='dense'))
-    model.add(keras.layers.Dense(
+    model.add(tf.keras.layers.Dense(
         8, bias_initializer='random_normal', name='foo/dense'))
-    model.add(keras.layers.Dense(
+    model.add(tf.keras.layers.Dense(
         4, bias_initializer='random_normal', name='foo/bar/dense'))
     keras_h5_conversion.save_keras_model(model, path)
     return model
@@ -311,12 +310,12 @@ class LoadKerasModelTest(tf.test.TestCase):
 
   def testLoadNestedKerasModel(self):
     with tf.Graph().as_default(), tf.compat.v1.Session():
-      inner_model = keras.Sequential([
-          keras.layers.Dense(4, input_shape=[3], activation='relu'),
-          keras.layers.Dense(3, activation='tanh')])
-      outer_model = keras.Sequential()
+      inner_model = tf.keras.Sequential([
+          tf.keras.layers.Dense(4, input_shape=[3], activation='relu'),
+          tf.keras.layers.Dense(3, activation='tanh')])
+      outer_model = tf.keras.Sequential()
       outer_model.add(inner_model)
-      outer_model.add(keras.layers.Dense(1, activation='sigmoid'))
+      outer_model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
 
       x = np.ones([1, 3], dtype=np.float32)
       predict_out = outer_model.predict(x)
@@ -331,12 +330,12 @@ class LoadKerasModelTest(tf.test.TestCase):
 
   def testLoadNestedTfKerasModel(self):
     with tf.Graph().as_default(), tf.compat.v1.Session():
-      inner_model = keras.Sequential([
-          keras.layers.Dense(4, input_shape=[3], activation='relu'),
-          keras.layers.Dense(3, activation='tanh')])
-      outer_model = keras.Sequential()
+      inner_model = tf.keras.Sequential([
+          tf.keras.layers.Dense(4, input_shape=[3], activation='relu'),
+          tf.keras.layers.Dense(3, activation='tanh')])
+      outer_model = tf.keras.Sequential()
       outer_model.add(inner_model)
-      outer_model.add(keras.layers.Dense(1, activation='sigmoid'))
+      outer_model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
       outer_model.compile(loss='binary_crossentropy', optimizer='sgd')
 
       x = np.ones([1, 3], dtype=np.float32)
@@ -389,18 +388,18 @@ class LoadKerasModelTest(tf.test.TestCase):
 
   def testLoadFunctionalKerasModel(self):
     with tf.Graph().as_default(), tf.compat.v1.Session():
-      input1 = keras.Input([4])
-      x1 = keras.layers.Dense(2, activation='relu')(input1)
-      x1 = keras.layers.BatchNormalization()(x1)
+      input1 = tf.keras.Input([4])
+      x1 = tf.keras.layers.Dense(2, activation='relu')(input1)
+      x1 = tf.keras.layers.BatchNormalization()(x1)
 
-      input2 = keras.Input([10])
-      x2 = keras.layers.Dense(5, activation='relu')(input2)
-      x2 = keras.layers.BatchNormalization()(x2)
+      input2 = tf.keras.Input([10])
+      x2 = tf.keras.layers.Dense(5, activation='relu')(input2)
+      x2 = tf.keras.layers.BatchNormalization()(x2)
 
-      y = keras.layers.Concatenate()([x1, x2])
-      y = keras.layers.Dense(1, activation='sigmoid')(y)
+      y = tf.keras.layers.Concatenate()([x1, x2])
+      y = tf.keras.layers.Dense(1, activation='sigmoid')(y)
 
-      model = keras.Model([input1, input2], y)
+      model = tf.keras.Model([input1, input2], y)
       model.compile(loss='binary_crossentropy', optimizer='sgd')
 
       input1_val = np.ones([1, 4])
@@ -418,18 +417,18 @@ class LoadKerasModelTest(tf.test.TestCase):
 
   def testLoadFunctionalTfKerasModel(self):
     with tf.Graph().as_default(), tf.compat.v1.Session():
-      input1 = keras.Input([4])
-      x1 = keras.layers.Dense(2, activation='relu')(input1)
-      x1 = keras.layers.BatchNormalization()(x1)
+      input1 = tf.keras.Input([4])
+      x1 = tf.keras.layers.Dense(2, activation='relu')(input1)
+      x1 = tf.keras.layers.BatchNormalization()(x1)
 
-      input2 = keras.Input([10])
-      x2 = keras.layers.Dense(5, activation='relu')(input2)
-      x2 = keras.layers.BatchNormalization()(x2)
+      input2 = tf.keras.Input([10])
+      x2 = tf.keras.layers.Dense(5, activation='relu')(input2)
+      x2 = tf.keras.layers.BatchNormalization()(x2)
 
-      y = keras.layers.Concatenate()([x1, x2])
-      y = keras.layers.Dense(1, activation='sigmoid')(y)
+      y = tf.keras.layers.Concatenate()([x1, x2])
+      y = tf.keras.layers.Dense(1, activation='sigmoid')(y)
 
-      model = keras.Model([input1, input2], y)
+      model = tf.keras.Model([input1, input2], y)
       model.compile(loss='binary_crossentropy', optimizer='sgd')
 
       input1_val = np.ones([1, 4])

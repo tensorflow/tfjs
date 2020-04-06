@@ -19,7 +19,6 @@ import * as seedrandom from 'seedrandom';
 
 import {ENGINE} from '../../engine';
 import {env} from '../../environment';
-
 import {warn} from '../../log';
 import * as array_ops_util from '../../ops/array_ops_util';
 import * as axis_util from '../../ops/axis_util';
@@ -27,6 +26,7 @@ import * as broadcast_util from '../../ops/broadcast_util';
 import {complex, imag, real} from '../../ops/complex_ops';
 import * as concat_util from '../../ops/concat_util';
 import {Conv2DInfo, Conv3DInfo} from '../../ops/conv_util';
+import {div} from '../../ops/div';
 import * as erf_util from '../../ops/erf_util';
 import {Activation, FusedBatchMatMulConfig, FusedConv2DConfig} from '../../ops/fused_util';
 import * as gather_nd_util from '../../ops/gather_nd_util';
@@ -35,6 +35,7 @@ import {buffer, scalar, tensor, tensor4d} from '../../ops/ops';
 import * as scatter_nd_util from '../../ops/scatter_nd_util';
 import * as selu_util from '../../ops/selu_util';
 import {computeFlatOffset, computeOutShape, isSliceContinous} from '../../ops/slice_util';
+import {transpose} from '../../ops/transpose';
 import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer} from '../../tensor';
 import {BackendValues, DataType, DataValues, NumericDataType, Rank, ShapeMap, TypedArray, upcastType} from '../../types';
 import * as util from '../../util';
@@ -47,7 +48,9 @@ import {split} from '../split_shared';
 import {tile} from '../tile_impl';
 import {topkImpl} from '../topk_impl';
 import {whereImpl} from '../where_impl';
+
 import {assertNotComplex} from './cpu_util';
+import {maxPoolPositions, pool} from './pool_utils';
 
 function mapActivation(
     backend: MathBackendCPU, x: Tensor, activation: Activation,
@@ -377,6 +380,19 @@ export class MathBackendCPU extends KernelBackend {
     return result.toTensor() as T;
   }
 
+  softmax<T extends Tensor>(logits: T, dim: number): T {
+    const axes = util.parseAxisParam([dim], logits.shape);
+    const maxLogit = this.max(logits, axes);
+    const expandedShape = axis_util.expandShapeToKeepDim(maxLogit.shape, axes);
+    const a = this.subtract(logits, maxLogit.reshape(expandedShape));
+    const b = this.exp(a);
+    const sumExp = this.sum(b, axes).reshape(expandedShape);
+
+    // TODO(annxingyuan): Call divImpl rather than op as part of softmax kernel
+    // modularization.
+    return div(b, sumExp);
+  }
+
   subtract(a: Tensor, b: Tensor): Tensor {
     if (a.dtype === 'complex64' || b.dtype === 'complex64') {
       return this.broadcastedBinaryComplexOp(
@@ -480,14 +496,6 @@ export class MathBackendCPU extends KernelBackend {
     return this.broadcastedBinaryOp(
         a, b, upcastType(a.dtype, b.dtype),
         (aValue, bValue) => aValue * bValue);
-  }
-
-  realDivide(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'realDivide');
-
-    const op = (a: number, b: number) => a / b;
-    const outputDtype = 'float32';
-    return this.broadcastedBinaryOp(a, b, outputDtype, op);
   }
 
   floorDiv(a: Tensor, b: Tensor): Tensor {
@@ -2105,32 +2113,6 @@ export class MathBackendCPU extends KernelBackend {
     return buffer.toTensor() as T;
   }
 
-  transpose<T extends Tensor>(x: T, perm: number[]): T {
-    assertNotComplex(x, 'transpose');
-
-    const newShape: number[] = new Array(x.rank);
-    for (let i = 0; i < newShape.length; i++) {
-      newShape[i] = x.shape[perm[i]];
-    }
-    const values = this.readSync(x.dataId) as TypedArray;
-    const result = buffer(newShape, x.dtype);
-
-    const xBuf = this.bufferSync(x);
-    for (let i = 0; i < x.size; ++i) {
-      const loc = xBuf.indexToLoc(i);
-
-      // Permute location.
-      const newLoc: number[] = new Array(loc.length);
-      for (let i = 0; i < newLoc.length; i++) {
-        newLoc[i] = loc[perm[i]];
-      }
-
-      const newIndex = result.locToIndex(newLoc);
-      result.values[newIndex] = values[i];
-    }
-    return result.toTensor() as T;
-  }
-
   gather<T extends Tensor>(x: T, indices: Tensor1D, axis: number): T {
     assertNotComplex([x, indices], 'gather');
 
@@ -2168,8 +2150,7 @@ export class MathBackendCPU extends KernelBackend {
     const sliceSize =
         array_ops_util.getSliceSize(reshapedPermuted, crops, blockShape.length);
 
-    return x.reshape(reshaped)
-               .transpose(permuted)
+    return transpose(x.reshape(reshaped), permuted)
                .reshape(reshapedPermuted)
                .slice(sliceBeginCoords, sliceSize) as T;
   }
@@ -2195,143 +2176,27 @@ export class MathBackendCPU extends KernelBackend {
     const flattenShape = array_ops_util.getReshapedPermuted(
         paddedX.shape, blockShape, prod, false);
 
-    return paddedX.reshape(reshapedPaddedShape)
-               .transpose(permutedReshapedPaddedPermutation)
+    return transpose(
+               paddedX.reshape(reshapedPaddedShape),
+               permutedReshapedPaddedPermutation)
                .reshape(flattenShape) as T;
   }
 
-  private pool(x: Tensor4D, convInfo: Conv2DInfo, poolType: 'max'|'avg'):
-      Tensor4D {
-    assertNotComplex(x, 'pool');
-
-    const strideHeight = convInfo.strideHeight;
-    const strideWidth = convInfo.strideWidth;
-    const dilationHeight = convInfo.dilationHeight;
-    const dilationWidth = convInfo.dilationWidth;
-    const effectiveFilterHeight = convInfo.effectiveFilterHeight;
-    const effectiveFilterWidth = convInfo.effectiveFilterWidth;
-    const padTop = convInfo.padInfo.top;
-    const padLeft = convInfo.padInfo.left;
-
-    const initialValue =
-        (poolType === 'max' ? Number.NEGATIVE_INFINITY :
-                              Number.POSITIVE_INFINITY);
-
-    const xValues = this.readSync(x.dataId) as TypedArray;
-    const output = ops.buffer(convInfo.outShape, x.dtype);
-    const outputVals = output.values;
-
-    const outputBatchStrides =
-        convInfo.outShape[1] * convInfo.outShape[2] * convInfo.outShape[3];
-    const outputRowStrides = convInfo.outShape[2] * convInfo.outShape[3];
-    const outputColStrides = convInfo.outShape[3];
-
-    for (let b = 0; b < convInfo.batchSize; ++b) {
-      const outputBatchOffset = b * outputBatchStrides;
-      const inputBatchOffset = b * x.strides[0];
-      for (let d = 0; d < convInfo.inChannels; ++d) {
-        for (let yR = 0; yR < convInfo.outHeight; ++yR) {
-          const xRCorner = yR * strideHeight - padTop;
-          const xRMin = Math.max(0, xRCorner);
-          const xRMax =
-              Math.min(convInfo.inHeight, effectiveFilterHeight + xRCorner);
-          const outputRowOffset = outputBatchOffset + yR * outputRowStrides;
-          for (let yC = 0; yC < convInfo.outWidth; ++yC) {
-            const xCCorner = yC * strideWidth - padLeft;
-            const xCMin = Math.max(0, xCCorner);
-            const xCMax =
-                Math.min(convInfo.inWidth, effectiveFilterWidth + xCCorner);
-            let minMaxValue = initialValue;
-            let avgValue = 0;
-            let count = 0;
-            for (let xR = xRMin; xR < xRMax; xR += dilationHeight) {
-              const xROffset = inputBatchOffset + xR * x.strides[1];
-              for (let xC = xCMin; xC < xCMax; xC += dilationWidth) {
-                const xCOffset = xROffset + xC * x.strides[2];
-                const pixel = xValues[xCOffset + d];
-                if ((poolType === 'max' && pixel > minMaxValue)) {
-                  minMaxValue = pixel;
-                } else if (poolType === 'avg') {
-                  avgValue += pixel;
-                  count++;
-                }
-              }
-              if (isNaN(minMaxValue)) {
-                break;
-              }
-            }
-            const outputOffset = outputRowOffset + yC * outputColStrides + d;
-            outputVals[outputOffset] =
-                poolType === 'avg' ? avgValue / count : minMaxValue;
-          }
-        }
-      }
-    }
-    return output.toTensor() as Tensor4D;
-  }
-
   maxPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
-    return this.pool(x, convInfo, 'max');
-  }
-
-  private maxPoolPositions(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
-    const maxPositions = ops.buffer(convInfo.outShape, 'int32');
-    const strideHeight = convInfo.strideHeight;
-    const strideWidth = convInfo.strideWidth;
-    const dilationHeight = convInfo.dilationHeight;
-    const dilationWidth = convInfo.dilationWidth;
-    const effectiveFilterHeight = convInfo.effectiveFilterHeight;
-    const effectiveFilterWidth = convInfo.effectiveFilterWidth;
-    const padTop = convInfo.padInfo.top;
-    const padLeft = convInfo.padInfo.left;
-
-    const xBuf = this.bufferSync(x);
-    for (let b = 0; b < convInfo.batchSize; ++b) {
-      for (let d = 0; d < convInfo.inChannels; ++d) {
-        for (let yR = 0; yR < convInfo.outHeight; ++yR) {
-          const xRCorner = yR * strideHeight - padTop;
-          let xRMin = xRCorner;
-          while (xRMin < 0) {
-            xRMin += dilationHeight;
-          }
-          // const xRMin = Math.max(0, xRCorner);
-          const xRMax =
-              Math.min(convInfo.inHeight, effectiveFilterHeight + xRCorner);
-          for (let yC = 0; yC < convInfo.outWidth; ++yC) {
-            const xCCorner = yC * strideWidth - padLeft;
-            let xCMin = xCCorner;
-            while (xCMin < 0) {
-              xCMin += dilationWidth;
-            }
-            const xCMax =
-                Math.min(convInfo.inWidth, effectiveFilterWidth + xCCorner);
-            let maxValue = Number.NEGATIVE_INFINITY;
-            let maxPosition = -1;
-
-            for (let xR = xRMin; xR < xRMax; xR += dilationHeight) {
-              const wR = xR - xRCorner;
-              for (let xC = xCMin; xC < xCMax; xC += dilationWidth) {
-                const wC = xC - xCCorner;
-                const pixel = xBuf.get(b, xR, xC, d);
-                if (pixel > maxValue) {
-                  maxValue = pixel;
-                  maxPosition = wR * effectiveFilterWidth + wC;
-                }
-              }
-            }
-            maxPositions.set(maxPosition, b, yR, yC, d);
-          }
-        }
-      }
-    }
-    return maxPositions.toTensor() as Tensor4D;
+    assertNotComplex(x, 'maxPool');
+    const xValues = this.readSync(x.dataId) as TypedArray;
+    return pool(xValues, x.shape, x.dtype, x.strides, convInfo, 'max')
+               .toTensor() as Tensor4D;
   }
 
   maxPoolBackprop(dy: Tensor4D, x: Tensor4D, y: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
     assertNotComplex([x, y], 'maxPoolBackprop');
 
-    const maxPositions = this.maxPoolPositions(x, convInfo);
+    const xValues = this.readSync(x.dataId) as TypedArray;
+    const maxPosBuf = buffer(
+        convInfo.outShape, x.dtype,
+        maxPoolPositions(xValues, x.shape, x.dtype, convInfo).values);
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
     const dilationHeight = convInfo.dilationHeight;
@@ -2342,7 +2207,6 @@ export class MathBackendCPU extends KernelBackend {
     const padTop = effectiveFilterHeight - 1 - convInfo.padInfo.top;
     const dx = ops.buffer<Rank.R4>(x.shape, 'float32');
 
-    const maxPosBuf = this.bufferSync(maxPositions);
     const dyBuf = this.bufferSync(dy);
 
     for (let b = 0; b < convInfo.batchSize; ++b) {
@@ -2366,7 +2230,7 @@ export class MathBackendCPU extends KernelBackend {
                   continue;
                 }
                 const maxPos = effectiveFilterHeight * effectiveFilterWidth -
-                    1 - maxPosBuf.get(b, dyR, dyC, d);
+                    1 - (maxPosBuf.get(b, dyR, dyC, d) as number);
                 const curPos = wR * effectiveFilterWidth + wC;
 
                 const mask = maxPos === curPos ? 1 : 0;
@@ -2798,8 +2662,11 @@ export class MathBackendCPU extends KernelBackend {
 
   avgPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     assertNotComplex(x, 'avgPool');
-
-    return this.pool(x, convInfo, 'avg').toFloat();
+    assertNotComplex(x, 'maxPool');
+    const xValues = this.readSync(x.dataId) as TypedArray;
+    return pool(xValues, x.shape, x.dtype, x.strides, convInfo, 'avg')
+               .toTensor()
+               .toFloat() as Tensor4D;
   }
 
   resizeBilinear(

@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {Tensor} from '@tensorflow/tfjs';
-import {Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
+import {Tensor, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs';
 import {ensureTensorflowBackend, nodeBackend} from './nodejs_kernel_backend';
 
 export enum ImageType {
@@ -31,7 +30,7 @@ export enum ImageType {
  *
  * @param contents The JPEG-encoded image in an Uint8Array.
  * @param channels An optional int. Defaults to 0. Accepted values are
- *     0: use the number of channels in the PNG-encoded image.
+ *     0: use the number of channels in the JPEG-encoded image.
  *     1: output a grayscale image.
  *     3: output an RGB image.
  * @param ratio An optional int. Defaults to 1. Downscaling ratio. It is used
@@ -73,7 +72,7 @@ export function decodeJpeg(
 /**
  * Decode a PNG-encoded image to a 3D Tensor of dtype `int32`.
  *
- * @param contents The BMP-encoded image in an Uint8Array.
+ * @param contents The PNG-encoded image in an Uint8Array.
  * @param channels An optional int. Defaults to 0. Accepted values are
  *      0: use the number of channels in the PNG-encoded image.
  *      1: output a grayscale image.
@@ -153,7 +152,7 @@ export function decodeGif(contents: Uint8Array): Tensor4D {
  * @returns A Tensor with dtype `int32` and a 3- or 4-dimensional shape,
  *     depending on the file type. For gif file the returned Tensor shape is
  *     [num_frames, height, width, 3], and for jpeg/png/bmp the returned Tensor
- *     shape is []height, width, channels]
+ *     shape is [height, width, channels]
  */
 /**
  * @doc {heading: 'Operations', subheading: 'Images', namespace: 'node'}
@@ -301,6 +300,7 @@ export function getImageType(content: Uint8Array): string {
     return ImageType.BMP;
   } else {
     throw new Error(
-        'Expected image (JPEG, PNG, or GIF), but got unsupported image type');
+        'Expected image (BMP, JPEG, PNG, or GIF), but got unsupported ' +
+        'image type');
   }
 }

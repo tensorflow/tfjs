@@ -45,7 +45,7 @@ export class GraphExecutor {
   set weightMap(weightMap: NamedTensorsMap) {
     const weightIds = Object.keys(weightMap).map(
         key => weightMap[key].map(tensor => tensor.id));
-    this.weightIds = [].concat.apply([], weightIds);
+    this.weightIds = [].concat(...weightIds);
     this._weightMap = weightMap;
   }
 
