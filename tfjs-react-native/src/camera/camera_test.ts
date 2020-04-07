@@ -401,6 +401,82 @@ describeWithFlags('fromTexture:nearestNeighbor', RN_ENVS, () => {
     expectArraysEqual(await output.data(), await expected.data());
     expectArraysEqual(output.shape, expected.shape);
   });
+
+  it('rotates the texture by 360 degree, and nothing changes', async () => {
+    const output = fromTexture(
+        gl,
+        texture,
+        {
+          height: inShape[0],
+          width: inShape[1],
+          depth: inShape[2],
+        },
+        {
+          height: inShape[0],
+          width: inShape[1],
+          depth: inShape[2],
+        },
+        {
+          alignCorners: false,
+          interpolation: 'nearest_neighbor',
+          rotation: 360,
+        },
+    );
+
+    expectArraysEqual(await output.data(), await input.data());
+    expectArraysEqual(output.shape, input.shape);
+  });
+
+  it('same size, rotates the texture by 90 degree', async () => {
+    const output = fromTexture(
+        gl,
+        texture,
+        {
+          height: inShape[0],
+          width: inShape[1],
+          depth: inShape[2],
+        },
+        {
+          height: inShape[0],
+          width: inShape[1],
+          depth: inShape[2],
+        },
+        {
+          alignCorners: false,
+          interpolation: 'nearest_neighbor',
+          rotation: 90,
+        },
+    );
+    output.print();
+
+    expectArraysEqual(await output.data(), [
+      [
+        [170, 171, 172, 255],
+        [130, 131, 132, 255],
+        [90, 91, 92, 255],
+        [50, 51, 52, 255],
+      ],
+      [
+        [180, 181, 182, 255],
+        [140, 141, 142, 255],
+        [100, 101, 102, 255],
+        [60, 61, 62, 255],
+      ],
+      [
+        [190, 191, 192, 255],
+        [150, 151, 152, 255],
+        [110, 111, 112, 255],
+        [70, 71, 72, 255],
+      ],
+      [
+        [200, 201, 202, 255],
+        [160, 161, 162, 255],
+        [120, 121, 122, 255],
+        [80, 81, 82, 255],
+      ]
+    ]);
+    expectArraysEqual(output.shape, input.shape);
+  });
 });
 
 describeWithFlags('fromTexture:bilinear', RN_ENVS, () => {
@@ -694,5 +770,81 @@ describeWithFlags('fromTexture:bilinear', RN_ENVS, () => {
     );
     expectArraysEqual(await output.data(), await expected.data());
     expectArraysEqual(output.shape, expected.shape);
+  });
+
+  it('same size, rotates the texture by 360 degree, no-op', async () => {
+    const output = fromTexture(
+        gl,
+        texture,
+        {
+          height: inShape[0],
+          width: inShape[1],
+          depth: inShape[2],
+        },
+        {
+          height: inShape[0],
+          width: inShape[1],
+          depth: inShape[2],
+        },
+        {
+          alignCorners: false,
+          interpolation: 'bilinear',
+          rotation: 360,
+        },
+    );
+
+    expectArraysEqual(await output.data(), await input.data());
+    expectArraysEqual(output.shape, input.shape);
+  });
+
+  it('same size, rotates the texture by 90 degree', async () => {
+    const output = fromTexture(
+        gl,
+        texture,
+        {
+          height: inShape[0],
+          width: inShape[1],
+          depth: inShape[2],
+        },
+        {
+          height: inShape[0],
+          width: inShape[1],
+          depth: inShape[2],
+        },
+        {
+          alignCorners: false,
+          interpolation: 'bilinear',
+          rotation: 90,
+        },
+    );
+    output.print();
+
+    expectArraysEqual(await output.data(), [
+      [
+        [170, 171, 172, 255],
+        [130, 131, 132, 255],
+        [90, 91, 92, 255],
+        [50, 51, 52, 255],
+      ],
+      [
+        [180, 181, 182, 255],
+        [140, 141, 142, 255],
+        [100, 101, 102, 255],
+        [60, 61, 62, 255],
+      ],
+      [
+        [190, 191, 192, 255],
+        [150, 151, 152, 255],
+        [110, 111, 112, 255],
+        [70, 71, 72, 255],
+      ],
+      [
+        [200, 201, 202, 255],
+        [160, 161, 162, 255],
+        [120, 121, 122, 255],
+        [80, 81, 82, 255],
+      ]
+    ]);
+    expectArraysEqual(output.shape, input.shape);
   });
 });
