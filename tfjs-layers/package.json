@@ -43,6 +43,7 @@
     "build-ci": "tsc",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-backend-cpu": "cd ../tfjs-backend-cpu && yarn && yarn build",
+    "build-backend-cpu-ci": "cd ../tfjs-backend-cpu && yarn && yarn build-ci",
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
     "build-deps": "yarn build-core && yarn build-backend-cpu",
     "build-deps-ci": "yarn build-core-ci && yarn build-backend-cpu",

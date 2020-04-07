@@ -17,7 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 import {engine, env} from '@tensorflow/tfjs-core';
-import {array_ops_util, axis_util, backend_util, broadcast_util, complex_util, concat_util, conv_util, erf_util, fused_util, gather_nd_util, log_util, scatter_nd_util, selu_util, slice_util, util} from '@tensorflow/tfjs-core';
+import {backend_util, slice_util, util} from '@tensorflow/tfjs-core';
 import {BackendTimingInfo, DataStorage, DataType, DataValues, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 import {kernel_impls} from '@tensorflow/tfjs-core';
 const nonMaxSuppressionV3 = kernel_impls.nonMaxSuppressionV3;
@@ -31,7 +31,7 @@ import {assertNotComplex} from './cpu_util';
 interface DataId {}
 
 function mapActivation(
-    backend: MathBackendCPU, x: Tensor, activation: fused_util.Activation,
+    backend: MathBackendCPU, x: Tensor, activation: backend_util.Activation,
     preluActivationWeights?: Tensor): Tensor {
   if (activation === 'linear') {
     return backend.linear(x);
@@ -75,7 +75,7 @@ export class MathBackendCPU extends KernelBackend {
     if (this.firstUse) {
       this.firstUse = false;
       if (env().get('IS_NODE')) {
-        log_util.warn(
+        backend_util.warn(
             '\n============================\n' +
             'Hi there 👋. Looks like you are running TensorFlow.js in ' +
             'Node.js. To speed things up dramatically, install our node ' +
@@ -113,7 +113,7 @@ export class MathBackendCPU extends KernelBackend {
           this.readSync(complexTensors.real.dataId) as Float32Array;
       const imagValues =
           this.readSync(complexTensors.imag.dataId) as Float32Array;
-      return complex_util.mergeRealAndImagArrays(realValues, imagValues);
+      return backend_util.mergeRealAndImagArrays(realValues, imagValues);
     }
     return this.data.get(dataId).values;
   }
@@ -295,7 +295,7 @@ export class MathBackendCPU extends KernelBackend {
       return t.as2D(-1, innerSize);
     });
     const outShape =
-        concat_util.computeOutShape(tensors2D.map(t => t.shape), 1 /* axis
+      backend_util.computeOutShape(tensors2D.map(t => t.shape), 1 /* axis
         */);
     const values =
         tf.buffer(outShape as [number, number], tensors[0].dtype as 'float32')
@@ -322,7 +322,7 @@ export class MathBackendCPU extends KernelBackend {
       });
     }
     const finalOutShape =
-        concat_util.computeOutShape(tensors.map(t => t.shape), axis);
+        backend_util.computeOutShape(tensors.map(t => t.shape), axis);
     return tf.tensor(values, finalOutShape, tensors[0].dtype);
   }
 
@@ -364,7 +364,8 @@ export class MathBackendCPU extends KernelBackend {
   softmax<T extends Tensor>(logits: T, dim: number): T {
     const axes = util.parseAxisParam([dim], logits.shape);
     const maxLogit = this.max(logits, axes);
-    const expandedShape = axis_util.expandShapeToKeepDim(maxLogit.shape, axes);
+    const expandedShape =
+        backend_util.expandShapeToKeepDim(maxLogit.shape, axes);
     const a = this.subtract(logits, maxLogit.reshape(expandedShape));
     const b = this.exp(a);
     const sumExp = this.sum(b, axes).reshape(expandedShape);
@@ -449,7 +450,7 @@ export class MathBackendCPU extends KernelBackend {
 
   fusedBatchMatMul(
       {a, b, transposeA, transposeB, bias, activation, preluActivationWeights}:
-          fused_util.FusedBatchMatMulConfig): Tensor3D {
+          backend_util.FusedBatchMatMulConfig): Tensor3D {
     let result = this.batchMatMul(a, b, transposeA, transposeB);
     if (bias) {
       result = this.add(result, bias) as Tensor3D;
@@ -490,9 +491,9 @@ export class MathBackendCPU extends KernelBackend {
   sum(x: Tensor, axes: number[]): Tensor {
     assertNotComplex(x, 'sum');
 
-    axis_util.assertAxesAreInnerMostDims('sum', axes, x.rank);
+    backend_util.assertAxesAreInnerMostDims('sum', axes, x.rank);
     const [outShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(x.shape, axes);
+        backend_util.computeOutAndReduceShapes(x.shape, axes);
     const resultDtype = upcastType(x.dtype, 'int32');
     const result = tf.zeros(outShape, resultDtype);
     const reduceSize = util.sizeFromShape(reduceShape);
@@ -514,7 +515,7 @@ export class MathBackendCPU extends KernelBackend {
     assertNotComplex(x, 'sum');
 
     const [outShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(x.shape, axes);
+        backend_util.computeOutAndReduceShapes(x.shape, axes);
     const resultDtype = upcastType(x.dtype, 'int32');
     const result = tf.zeros(outShape, resultDtype);
     const reduceSize = util.sizeFromShape(reduceShape);
@@ -559,9 +560,9 @@ export class MathBackendCPU extends KernelBackend {
     assertNotComplex(x, 'argMin');
 
     const axes = [axis];
-    axis_util.assertAxesAreInnerMostDims('argMin', axes, x.rank);
+    backend_util.assertAxesAreInnerMostDims('argMin', axes, x.rank);
     const [outShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(x.shape, axes);
+        backend_util.computeOutAndReduceShapes(x.shape, axes);
     const result = tf.zeros(outShape, 'int32');
     const reduceSize = util.sizeFromShape(reduceShape);
     const vals = this.readSync(result.dataId) as TypedArray;
@@ -587,9 +588,9 @@ export class MathBackendCPU extends KernelBackend {
     assertNotComplex(x, 'argMax');
 
     const axes = [axis];
-    axis_util.assertAxesAreInnerMostDims('argMax', axes, x.rank);
+    backend_util.assertAxesAreInnerMostDims('argMax', axes, x.rank);
     const [outShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(x.shape, axes);
+        backend_util.computeOutAndReduceShapes(x.shape, axes);
     const result = tf.zeros(outShape, 'int32');
     const reduceSize = util.sizeFromShape(reduceShape);
     const vals = this.readSync(result.dataId) as TypedArray;
@@ -762,9 +763,9 @@ export class MathBackendCPU extends KernelBackend {
   min(x: Tensor, axes: number[]): Tensor {
     assertNotComplex(x, 'min');
 
-    axis_util.assertAxesAreInnerMostDims('min', axes, x.rank);
+    backend_util.assertAxesAreInnerMostDims('min', axes, x.rank);
     const [outShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(x.shape, axes);
+        backend_util.computeOutAndReduceShapes(x.shape, axes);
     const result = tf.zeros(outShape, x.dtype);
     const reduceSize = util.sizeFromShape(reduceShape);
     const vals = this.readSync(result.dataId) as TypedArray;
@@ -807,9 +808,9 @@ export class MathBackendCPU extends KernelBackend {
   max(x: Tensor, axes: number[]): Tensor {
     assertNotComplex(x, 'max');
 
-    axis_util.assertAxesAreInnerMostDims('max', axes, x.rank);
+    backend_util.assertAxesAreInnerMostDims('max', axes, x.rank);
     const [outShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(x.shape, axes);
+        backend_util.computeOutAndReduceShapes(x.shape, axes);
     const result = tf.zeros(outShape, x.dtype);
     const reduceSize = util.sizeFromShape(reduceShape);
     const vals = this.readSync(result.dataId) as TypedArray;
@@ -839,9 +840,9 @@ export class MathBackendCPU extends KernelBackend {
   all(x: Tensor, axes: number[]): Tensor {
     assertNotComplex(x, 'all');
 
-    axis_util.assertAxesAreInnerMostDims('all', axes, x.rank);
+    backend_util.assertAxesAreInnerMostDims('all', axes, x.rank);
     const [outShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(x.shape, axes);
+        backend_util.computeOutAndReduceShapes(x.shape, axes);
     const result = tf.zeros(outShape, x.dtype);
     const reduceSize = util.sizeFromShape(reduceShape);
     const vals = this.readSync(result.dataId) as TypedArray;
@@ -862,9 +863,9 @@ export class MathBackendCPU extends KernelBackend {
   any(x: Tensor, axes: number[]): Tensor {
     assertNotComplex(x, 'any');
 
-    axis_util.assertAxesAreInnerMostDims('any', axes, x.rank);
+    backend_util.assertAxesAreInnerMostDims('any', axes, x.rank);
     const [outShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(x.shape, axes);
+        backend_util.computeOutAndReduceShapes(x.shape, axes);
     const result = tf.zeros(outShape, x.dtype);
     const reduceSize = util.sizeFromShape(reduceShape);
     const vals = this.readSync(result.dataId) as TypedArray;
@@ -1147,8 +1148,8 @@ export class MathBackendCPU extends KernelBackend {
 
     // Stable and Attracting Fixed Point (0, 1) for Normalized Weights.
     // see: https://arxiv.org/abs/1706.02515
-    const scaleAlpha = selu_util.SELU_SCALEALPHA;
-    const scale = selu_util.SELU_SCALE;
+    const scaleAlpha = backend_util.SELU_SCALEALPHA;
+    const scale = backend_util.SELU_SCALE;
 
     const resultValues = new Float32Array(x.size);
     const values = this.readSync(x.dataId) as TypedArray;
@@ -1402,12 +1403,12 @@ export class MathBackendCPU extends KernelBackend {
 
     const resultValues = new Float32Array(x.size);
     const values = this.readSync(x.dataId) as TypedArray;
-    const p = erf_util.ERF_P;
-    const a1 = erf_util.ERF_A1;
-    const a2 = erf_util.ERF_A2;
-    const a3 = erf_util.ERF_A3;
-    const a4 = erf_util.ERF_A4;
-    const a5 = erf_util.ERF_A5;
+    const p = backend_util.ERF_P;
+    const a1 = backend_util.ERF_A1;
+    const a2 = backend_util.ERF_A2;
+    const a3 = backend_util.ERF_A3;
+    const a4 = backend_util.ERF_A4;
+    const a5 = backend_util.ERF_A5;
     for (let i = 0; i < values.length; ++i) {
       const sign = Math.sign(values[i]);
       const v = Math.abs(values[i]);
@@ -1438,7 +1439,7 @@ export class MathBackendCPU extends KernelBackend {
 
   fusedConv2d(
       {input, filter, convInfo, bias, activation, preluActivationWeights}:
-          fused_util.FusedConv2DConfig): Tensor4D {
+          backend_util.FusedConv2DConfig): Tensor4D {
     let result = this.conv2d(input, filter, convInfo);
 
     if (bias) {
@@ -1452,7 +1453,7 @@ export class MathBackendCPU extends KernelBackend {
     return result;
   }
 
-  conv2d(x: Tensor4D, filter: Tensor4D, convInfo: conv_util.Conv2DInfo):
+  conv2d(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
       Tensor4D {
     assertNotComplex([x, filter], 'conv2d');
 
@@ -1519,7 +1520,7 @@ export class MathBackendCPU extends KernelBackend {
     return y.toTensor() as Tensor4D;
   }
 
-  conv3d(x: Tensor5D, filter: Tensor5D, convInfo: conv_util.Conv3DInfo):
+  conv3d(x: Tensor5D, filter: Tensor5D, convInfo: backend_util.Conv3DInfo):
       Tensor5D {
     const filterDepth = convInfo.filterDepth;
     const filterHeight = convInfo.filterHeight;
@@ -1590,7 +1591,7 @@ export class MathBackendCPU extends KernelBackend {
 
   conv2dDerInput(
       dy: Tensor4D, filter: Tensor4D,
-      convInfo: conv_util.Conv2DInfo): Tensor4D {
+      convInfo: backend_util.Conv2DInfo): Tensor4D {
     assertNotComplex([dy, filter], 'conv2dDerInput');
 
     const dx = tf.buffer<Rank.R4>(convInfo.inShape, 'float32');
@@ -1669,7 +1670,7 @@ export class MathBackendCPU extends KernelBackend {
 
   conv3dDerInput(
       dy: Tensor5D, filter: Tensor5D,
-      convInfo: conv_util.Conv3DInfo): Tensor5D {
+      convInfo: backend_util.Conv3DInfo): Tensor5D {
     const dx = tf.buffer<Rank.R5>(convInfo.inShape, 'float32');
     const dxValues = dx.values;
     const [dxS0, dxS1, dxS2, dxS3] = dx.strides;
@@ -1753,7 +1754,7 @@ export class MathBackendCPU extends KernelBackend {
     return dx.toTensor();
   }
 
-  conv2dDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: conv_util.Conv2DInfo):
+  conv2dDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: backend_util.Conv2DInfo):
       Tensor4D {
     assertNotComplex([x, dy], 'conv2dDerFilter');
 
@@ -1805,7 +1806,7 @@ export class MathBackendCPU extends KernelBackend {
     return dW.toTensor();
   }
 
-  conv3dDerFilter(x: Tensor5D, dy: Tensor5D, convInfo: conv_util.Conv3DInfo):
+  conv3dDerFilter(x: Tensor5D, dy: Tensor5D, convInfo: backend_util.Conv3DInfo):
       Tensor5D {
     const strideDepth = convInfo.strideDepth;
     const strideHeight = convInfo.strideHeight;
@@ -1887,7 +1888,7 @@ export class MathBackendCPU extends KernelBackend {
 
   fusedDepthwiseConv2D(
       {input, filter, convInfo, bias, activation, preluActivationWeights}:
-          fused_util.FusedConv2DConfig): Tensor4D {
+          backend_util.FusedConv2DConfig): Tensor4D {
     let result = this.depthwiseConv2D(input, filter, convInfo);
 
     if (bias) {
@@ -1902,7 +1903,8 @@ export class MathBackendCPU extends KernelBackend {
   }
 
   depthwiseConv2D(
-      x: Tensor4D, filter: Tensor4D, convInfo: conv_util.Conv2DInfo): Tensor4D {
+      x: Tensor4D, filter: Tensor4D,
+      convInfo: backend_util.Conv2DInfo): Tensor4D {
     assertNotComplex([x, filter], 'depthwiseConv2D');
 
     const filterHeight = convInfo.filterHeight;
@@ -1961,7 +1963,7 @@ export class MathBackendCPU extends KernelBackend {
 
   depthwiseConv2DDerInput(
       dy: Tensor4D, filter: Tensor4D,
-      convInfo: conv_util.Conv2DInfo): Tensor4D {
+      convInfo: backend_util.Conv2DInfo): Tensor4D {
     assertNotComplex([dy, filter], 'depthwiseConv2DDerInput');
 
     const dx = tf.buffer<Rank.R4>(convInfo.inShape, 'float32');
@@ -2029,7 +2031,7 @@ export class MathBackendCPU extends KernelBackend {
   }
 
   depthwiseConv2DDerFilter(
-      x: Tensor4D, dy: Tensor4D, convInfo: conv_util.Conv2DInfo): Tensor4D {
+      x: Tensor4D, dy: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
     assertNotComplex([x, dy], 'depthwiseConv2DDerFilter');
 
     const strideHeight = convInfo.strideHeight;
@@ -2128,15 +2130,15 @@ export class MathBackendCPU extends KernelBackend {
 
     const prod = blockShape.reduce((a, b) => a * b);
 
-    const reshaped = array_ops_util.getReshaped(x.shape, blockShape, prod);
+    const reshaped = backend_util.getReshaped(x.shape, blockShape, prod);
     const permuted =
-        array_ops_util.getPermuted(reshaped.length, blockShape.length);
+        backend_util.getPermuted(reshaped.length, blockShape.length);
     const reshapedPermuted =
-        array_ops_util.getReshapedPermuted(x.shape, blockShape, prod);
+        backend_util.getReshapedPermuted(x.shape, blockShape, prod);
     const sliceBeginCoords =
-        array_ops_util.getSliceBeginCoords(crops, blockShape.length);
+        backend_util.getSliceBeginCoords(crops, blockShape.length);
     const sliceSize =
-        array_ops_util.getSliceSize(reshapedPermuted, crops, blockShape.length);
+        backend_util.getSliceSize(reshapedPermuted, crops, blockShape.length);
 
     return tf.transpose(x.reshape(reshaped), permuted)
                .reshape(reshapedPermuted)
@@ -2158,10 +2160,10 @@ export class MathBackendCPU extends KernelBackend {
     const paddedX = x.pad(completePaddings);
 
     const reshapedPaddedShape =
-        array_ops_util.getReshaped(paddedX.shape, blockShape, prod, false);
-    const permutedReshapedPaddedPermutation = array_ops_util.getPermuted(
+        backend_util.getReshaped(paddedX.shape, blockShape, prod, false);
+    const permutedReshapedPaddedPermutation = backend_util.getPermuted(
         reshapedPaddedShape.length, blockShape.length, false);
-    const flattenShape = array_ops_util.getReshapedPermuted(
+    const flattenShape = backend_util.getReshapedPermuted(
         paddedX.shape, blockShape, prod, false);
 
     return tf.transpose(
@@ -2171,7 +2173,7 @@ export class MathBackendCPU extends KernelBackend {
   }
 
   private pool(
-      x: Tensor4D, convInfo: conv_util.Conv2DInfo,
+      x: Tensor4D, convInfo: backend_util.Conv2DInfo,
       poolType: 'max'|'avg'): Tensor4D {
     assertNotComplex(x, 'pool');
 
@@ -2241,11 +2243,11 @@ export class MathBackendCPU extends KernelBackend {
     return output.toTensor() as Tensor4D;
   }
 
-  maxPool(x: Tensor4D, convInfo: conv_util.Conv2DInfo): Tensor4D {
+  maxPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
     return this.pool(x, convInfo, 'max');
   }
 
-  private maxPoolPositions(x: Tensor4D, convInfo: conv_util.Conv2DInfo):
+  private maxPoolPositions(x: Tensor4D, convInfo: backend_util.Conv2DInfo):
       Tensor4D {
     const maxPositions = tf.buffer(convInfo.outShape, 'int32');
     const strideHeight = convInfo.strideHeight;
@@ -2301,7 +2303,7 @@ export class MathBackendCPU extends KernelBackend {
 
   maxPoolBackprop(
       dy: Tensor4D, x: Tensor4D, y: Tensor4D,
-      convInfo: conv_util.Conv2DInfo): Tensor4D {
+      convInfo: backend_util.Conv2DInfo): Tensor4D {
     assertNotComplex([x, y], 'maxPoolBackprop');
 
     const maxPositions = this.maxPoolPositions(x, convInfo);
@@ -2359,7 +2361,7 @@ export class MathBackendCPU extends KernelBackend {
     return dx.toTensor();
   }
 
-  avgPoolBackprop(dy: Tensor4D, x: Tensor4D, convInfo: conv_util.Conv2DInfo):
+  avgPoolBackprop(dy: Tensor4D, x: Tensor4D, convInfo: backend_util.Conv2DInfo):
       Tensor4D {
     assertNotComplex([dy, x], 'avgPoolBackprop');
 
@@ -2413,7 +2415,7 @@ export class MathBackendCPU extends KernelBackend {
   }
 
   private pool3d(
-      x: Tensor5D, convInfo: conv_util.Conv3DInfo,
+      x: Tensor5D, convInfo: backend_util.Conv3DInfo,
       poolType: 'max'|'avg'): Tensor5D {
     assertNotComplex(x, 'pool3d');
 
@@ -2520,14 +2522,14 @@ export class MathBackendCPU extends KernelBackend {
     return output.toTensor() as Tensor5D;
   }
 
-  avgPool3d(x: Tensor5D, convInfo: conv_util.Conv3DInfo): Tensor5D {
+  avgPool3d(x: Tensor5D, convInfo: backend_util.Conv3DInfo): Tensor5D {
     assertNotComplex(x, 'avgPool3d');
 
     return this.pool3d(x, convInfo, 'avg').toFloat();
   }
 
-  avgPool3dBackprop(dy: Tensor5D, x: Tensor5D, convInfo: conv_util.Conv3DInfo):
-      Tensor5D {
+  avgPool3dBackprop(
+      dy: Tensor5D, x: Tensor5D, convInfo: backend_util.Conv3DInfo): Tensor5D {
     assertNotComplex([dy, x], 'avgPool3dBackprop');
 
     const strideDepth = convInfo.strideDepth;
@@ -2600,13 +2602,13 @@ export class MathBackendCPU extends KernelBackend {
     return dx.toTensor();
   }
 
-  maxPool3d(x: Tensor5D, convInfo: conv_util.Conv3DInfo): Tensor5D {
+  maxPool3d(x: Tensor5D, convInfo: backend_util.Conv3DInfo): Tensor5D {
     assertNotComplex(x, 'maxPool3d');
 
     return this.pool3d(x, convInfo, 'max').toFloat();
   }
 
-  private maxPool3dPositions(x: Tensor5D, convInfo: conv_util.Conv3DInfo):
+  private maxPool3dPositions(x: Tensor5D, convInfo: backend_util.Conv3DInfo):
       Tensor5D {
     const maxPositions = tf.buffer(convInfo.outShape, 'int32');
     const strideDepth = convInfo.strideDepth;
@@ -2685,7 +2687,7 @@ export class MathBackendCPU extends KernelBackend {
 
   maxPool3dBackprop(
       dy: Tensor5D, x: Tensor5D, y: Tensor5D,
-      convInfo: conv_util.Conv3DInfo): Tensor5D {
+      convInfo: backend_util.Conv3DInfo): Tensor5D {
     assertNotComplex([x, y], 'maxPool3dBackprop');
 
     const maxPositions = this.maxPool3dPositions(x, convInfo);
@@ -2774,7 +2776,7 @@ export class MathBackendCPU extends KernelBackend {
     return backend_util.reshapeTensor(x, shape);
   }
 
-  avgPool(x: Tensor4D, convInfo: conv_util.Conv2DInfo): Tensor4D {
+  avgPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
     assertNotComplex(x, 'avgPool');
 
     return this.pool(x, convInfo, 'avg').toFloat();
@@ -3287,7 +3289,7 @@ export class MathBackendCPU extends KernelBackend {
       const res =
           this.readSync(this.fftImpl(input, inverse).dataId) as Float32Array;
       for (let d = 0; d < innerDim; d++) {
-        const c = complex_util.getComplexWithIndex(res, d);
+        const c = backend_util.getComplexWithIndex(res, d);
         realResult.values[b * innerDim + d] = c.real;
         imagResult.values[b * innerDim + d] = c.imag;
       }
@@ -3314,7 +3316,7 @@ export class MathBackendCPU extends KernelBackend {
       const data = this.readSync(x.dataId) as TypedArray;
       const rawOutput =
           this.fourierTransformByMatmul(data, n, inverse) as Float32Array;
-      const output = complex_util.splitRealAndImagArrays(rawOutput);
+      const output = backend_util.splitRealAndImagArrays(rawOutput);
       return tf.complex(output.real, output.imag).as2D(x.shape[0], x.shape[1]);
     }
   }
@@ -3330,16 +3332,16 @@ export class MathBackendCPU extends KernelBackend {
     }
     const data = this.readSync(input.dataId) as TypedArray as Float32Array;
     const half = size / 2;
-    const evenComplex = complex_util.complexWithEvenIndex(data);
+    const evenComplex = backend_util.complexWithEvenIndex(data);
     let evenTensor = tf.complex(evenComplex.real, evenComplex.imag).as1D();
-    const oddComplex = complex_util.complexWithOddIndex(data);
+    const oddComplex = backend_util.complexWithOddIndex(data);
     let oddTensor = tf.complex(oddComplex.real, oddComplex.imag).as1D();
 
     // Recursive call for half part of original input.
     evenTensor = this.fftRadix2(evenTensor, half, inverse);
     oddTensor = this.fftRadix2(oddTensor, half, inverse);
 
-    const e = complex_util.exponents(size, inverse);
+    const e = backend_util.exponents(size, inverse);
     const exponent = tf.complex(e.real, e.imag).mul(oddTensor);
 
     const addPart = evenTensor.add(exponent);
@@ -3360,8 +3362,8 @@ export class MathBackendCPU extends KernelBackend {
       let real = 0.0;
       let imag = 0.0;
       for (let c = 0; c < size; c++) {
-        const e = complex_util.exponent(r * c, size, inverse);
-        const term = complex_util.getComplexWithIndex(data as Float32Array, c);
+        const e = backend_util.exponent(r * c, size, inverse);
+        const term = backend_util.getComplexWithIndex(data as Float32Array, c);
         real += term.real * e.real - term.imag * e.imag;
         imag += term.real * e.imag + term.imag * e.real;
       }
@@ -3369,7 +3371,7 @@ export class MathBackendCPU extends KernelBackend {
         real /= size;
         imag /= size;
       }
-      complex_util.assignToTypedArray(ret, real, imag, r);
+      backend_util.assignToTypedArray(ret, real, imag, r);
     }
     return ret;
   }
@@ -3423,13 +3425,12 @@ export class MathBackendCPU extends KernelBackend {
   private broadcastedBinaryOp(
       a: Tensor, b: Tensor, dtype: DataType,
       op: (a: number, b: number) => number): Tensor {
-    const newShape =
-        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    const newShape = backend_util.assertAndGetBroadcastShape(a.shape, b.shape);
     const result = tf.buffer(newShape, dtype);
     const aVals = this.readSync(a.dataId) as TypedArray;
     const bVals = this.readSync(b.dataId) as TypedArray;
-    const aBroadcastDims = broadcast_util.getBroadcastDims(a.shape, newShape);
-    const bBroadcastDims = broadcast_util.getBroadcastDims(b.shape, newShape);
+    const aBroadcastDims = backend_util.getBroadcastDims(a.shape, newShape);
+    const bBroadcastDims = backend_util.getBroadcastDims(b.shape, newShape);
 
     const resVals = result.values;
     if (aBroadcastDims.length + bBroadcastDims.length === 0) {
@@ -3461,15 +3462,14 @@ export class MathBackendCPU extends KernelBackend {
       op:
           (aReal: number, aImag: number, bReal: number,
            bImag: number) => {real: number, imag: number}): Tensor {
-    const newShape =
-        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    const newShape = backend_util.assertAndGetBroadcastShape(a.shape, b.shape);
     const realResult = tf.buffer(newShape, 'float32');
     const imagResult = tf.buffer(newShape, 'float32');
 
     const aVals = this.readSync(a.dataId) as TypedArray;
     const bVals = this.readSync(b.dataId) as TypedArray;
-    const aBroadcastDims = broadcast_util.getBroadcastDims(a.shape, newShape);
-    const bBroadcastDims = broadcast_util.getBroadcastDims(b.shape, newShape);
+    const aBroadcastDims = backend_util.getBroadcastDims(a.shape, newShape);
+    const bBroadcastDims = backend_util.getBroadcastDims(b.shape, newShape);
 
     const realVals = realResult.values;
     const imagVals = imagResult.values;
@@ -3669,8 +3669,7 @@ export class MathBackendCPU extends KernelBackend {
       sparseIndices: Tensor, sparseValues: Tensor, outputShape: ShapeMap[R],
       defaultValue: Scalar): Tensor<R> {
     const {sliceRank, numUpdates, sliceSize, strides, outputSize} =
-        scatter_nd_util.calculateShapes(
-            sparseValues, sparseIndices, outputShape);
+        backend_util.calculateShapes(sparseValues, sparseIndices, outputShape);
     const sumDupeIndices = false;
     return this.scatter(
         sparseIndices, sparseValues, outputShape, outputSize, sliceSize,
@@ -3682,7 +3681,7 @@ export class MathBackendCPU extends KernelBackend {
     const sliceRank = indicesShape[indicesShape.length - 1];
 
     const [resultShape, numSlices, sliceSize, strides] =
-        gather_nd_util.prepareAndValidate(x, indices);
+        backend_util.prepareAndValidate(x, indices);
     if (numSlices === 0) {
       return tf.tensor([], resultShape, x.dtype);
     }
@@ -3714,7 +3713,7 @@ export class MathBackendCPU extends KernelBackend {
   scatterND<R extends Rank>(
       indices: Tensor, updates: Tensor, shape: ShapeMap[R]): Tensor<R> {
     const {sliceRank, numUpdates, sliceSize, strides, outputSize} =
-        scatter_nd_util.calculateShapes(updates, indices, shape);
+        backend_util.calculateShapes(updates, indices, shape);
     const defaultValue = tf.scalar(0);
     const sumDupeIndices = true;
     return this.scatter(

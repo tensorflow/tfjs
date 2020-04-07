@@ -18,7 +18,7 @@ steps:
   dir: 'tfjs-backend-cpu'
   id: 'build-core'
   entrypoint: 'yarn'
-  args: ['build-core']
+  args: ['build-core-ci']
   waitFor: ['yarn-common']
 
 # Run tests.

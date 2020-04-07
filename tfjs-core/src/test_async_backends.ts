@@ -21,6 +21,8 @@
  * our exported test files.
  */
 
+// Use require here to workaround this being a circular dependency.
+// This should only be done in tests.
 // tslint:disable-next-line: no-require-imports
 require('@tensorflow/tfjs-backend-cpu');
 import './index';
@@ -41,8 +43,6 @@ const asyncBackend = new AsyncCPUBackend();
 
 // backend is cast as any so that we can access methods through bracket
 // notation.
-// tslint:disable-next-line:no-any
-// const backend: any = new MathBackendCPU();
 const backend: KernelBackend = engine().findBackend('cpu');
 const proxyBackend = new Proxy(asyncBackend, {
   get(target, name, receiver) {

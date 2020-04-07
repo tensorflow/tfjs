@@ -88,18 +88,7 @@ export {nextFrame} from './browser_util';
 
 // Second level exports.
 import * as backend_util from './backends/backend_util';
-import * as complex_util from './backends/complex_util';
-import * as broadcast_util from './ops/broadcast_util';
-import * as axis_util from './ops/axis_util';
-import * as concat_util from './ops/concat_util';
-import * as array_ops_util from './ops/array_ops_util';
-import * as gather_nd_util from './ops/gather_nd_util';
-import * as scatter_nd_util from './ops/scatter_nd_util';
-import * as selu_util from './ops/selu_util';
-import * as fused_util from './ops/fused_util';
-import * as erf_util from './ops/erf_util';
-import * as conv_util from './ops/conv_util';
-import * as log_util from './log';
+
 export {
   browser,
   io,
@@ -108,23 +97,11 @@ export {
   test_util,
   util,
   backend_util,
-  complex_util,
   webgl,
   tensor_util,
   slice_util,
   gather_util,
-  scatter_util,
-  broadcast_util,
-  axis_util,
-  concat_util,
-  array_ops_util,
-  gather_nd_util,
-  selu_util,
-  scatter_nd_util,
-  fused_util,
-  erf_util,
-  conv_util,
-  log_util,
+  scatter_util
 };
 
 import * as kernel_impls from './backends/kernel_impls';
@@ -135,7 +112,7 @@ export {KernelBackend, BackendTimingInfo, DataMover, DataStorage} from './backen
 import * as ops from './ops/ops';
 setOpHandler(ops);
 
-// Export all kernel names / info
+// Export all kernel names / info.
 export * from './kernel_names';
 
 // Import all op chainers and add type info to Tensor.

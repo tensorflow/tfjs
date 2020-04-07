@@ -16,22 +16,19 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {engine, util} from '@tensorflow/tfjs-core';
-
+import {engine, test_util, util} from '@tensorflow/tfjs-core';
+const {expectArraysClose, expectArraysEqual} = test_util;
 // tslint:disable-next-line: no-imports-from-dist
-import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
-// tslint:disable-next-line: no-imports-from-dist
-import {expectArraysClose, expectArraysEqual} from '@tensorflow/tfjs-core/dist/test_util';
+import {describeWithFlags, ALL_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {MathBackendCPU} from './backend_cpu';
-import {CPU_ENVS} from './backend_cpu_test_envs';
 
 /** Private test util for decoding array of strings in utf-8. */
 function decodeStrings(bytes: Uint8Array[]): string[] {
   return bytes.map(b => util.decodeString(b));
 }
 
-describeWithFlags('backendCPU', CPU_ENVS, () => {
+describeWithFlags('backendCPU', ALL_ENVS, () => {
   let backend: MathBackendCPU;
   beforeEach(() => {
     backend = tf.backend() as MathBackendCPU;
@@ -49,7 +46,7 @@ describeWithFlags('backendCPU', CPU_ENVS, () => {
   });
 });
 
-describeWithFlags('depthToSpace', CPU_ENVS, () => {
+describeWithFlags('depthToSpace', ALL_ENVS, () => {
   it('throws when CPU backend used with data format NCHW', () => {
     const t = tf.tensor4d([1, 2, 3, 4], [1, 4, 1, 1]);
     const blockSize = 2;
@@ -62,7 +59,7 @@ describeWithFlags('depthToSpace', CPU_ENVS, () => {
   });
 });
 
-describeWithFlags('gatherND CPU', CPU_ENVS, () => {
+describeWithFlags('gatherND CPU', ALL_ENVS, () => {
   it('should throw error when index out of range', () => {
     const indices = tf.tensor2d([0, 2, 99], [3, 1], 'int32');
     const input = tf.tensor2d(
@@ -71,7 +68,7 @@ describeWithFlags('gatherND CPU', CPU_ENVS, () => {
   });
 });
 
-describeWithFlags('scatterND CPU', CPU_ENVS, () => {
+describeWithFlags('scatterND CPU', ALL_ENVS, () => {
   it('should throw error when index out of range', () => {
     const indices = tf.tensor2d([0, 4, 99], [3, 1], 'int32');
     const updates = tf.tensor2d(
@@ -89,7 +86,7 @@ describeWithFlags('scatterND CPU', CPU_ENVS, () => {
   });
 });
 
-describeWithFlags('sparseToDense CPU', CPU_ENVS, () => {
+describeWithFlags('sparseToDense CPU', ALL_ENVS, () => {
   it('should throw error when index out of range', () => {
     const defaultValue = 2;
     const indices = tf.tensor1d([0, 2, 6], 'int32');
@@ -100,7 +97,7 @@ describeWithFlags('sparseToDense CPU', CPU_ENVS, () => {
   });
 });
 
-describeWithFlags('memory cpu', CPU_ENVS, () => {
+describeWithFlags('memory cpu', ALL_ENVS, () => {
   it('unreliable is true due to auto gc', () => {
     tf.tensor(1);
     const mem = tf.memory();
@@ -136,7 +133,7 @@ describeWithFlags('memory cpu', CPU_ENVS, () => {
   });
 });
 
-describeWithFlags('CPU backend has sync init', CPU_ENVS, () => {
+describeWithFlags('CPU backend has sync init', ALL_ENVS, () => {
   it('can do matmul without waiting for ready', async () => {
     tf.registerBackend('my-cpu', () => {
       return new MathBackendCPU();

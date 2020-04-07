@@ -31,8 +31,6 @@ const karmaTypescriptConfig = {
   }
 };
 
-
-
 module.exports = function(config) {
   const args = [];
   if (config.grep) {

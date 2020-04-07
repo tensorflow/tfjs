@@ -17,7 +17,7 @@
 set -e
 
 yarn lint
-yarn build
+yarn build-ci
 
 if [ "$NIGHTLY" = true ]
 then
@@ -30,11 +30,6 @@ then
   npm-run-all -p -c --aggregate-output \
     "run-browserstack --browsers=bs_android_9" \
     "run-browserstack --browsers=bs_firefox_mac,bs_chrome_mac" \
-    "run-browserstack --browsers=win_10_chrome" \
-
-
-  # Safari doesn't have offscreen canvas so use it to test cpu in a webworker.
-  # yarn test-webworker --browsers=bs_safari_mac
 else
   yarn run-browserstack --browsers=bs_chrome_mac
 fi

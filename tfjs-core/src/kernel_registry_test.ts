@@ -54,25 +54,37 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
         .toThrowError();
   });
 
-  // tslint:disable-next-line: ban
-  xit('errors when registering the same kernel twice', () => {
+  it('errors when registering the same kernel twice', () => {
+    interface TestBackend extends KernelBackend {
+      id: number;
+    }
+    tf.registerBackend('backend1', () => {
+      return {
+        id: 1,
+        dispose: () => null,
+        disposeData: (dataId: {}) => null,
+        numDataIds: () => 0
+      } as TestBackend;
+    });
+
     // TODO(yassogba) restore this once WebGL backend is out of core.
     tf.registerKernel({
       kernelName: 'MyKernel',
-      backendName: tf.getBackend(),
+      backendName: 'backend1',
       kernelFunc: () => {
         return null;
       }
     });
     expect(() => tf.registerKernel({
       kernelName: 'MyKernel',
-      backendName: tf.getBackend(),
+      backendName: 'backend1',
       kernelFunc: () => {
         return null;
       }
     })).toThrowError();
 
-    tf.unregisterKernel('MyKernel', tf.getBackend());
+    tf.unregisterKernel('MyKernel', 'backend1');
+    tf.removeBackend('backend1');
   });
 
   it('register same kernel on two different backends', () => {

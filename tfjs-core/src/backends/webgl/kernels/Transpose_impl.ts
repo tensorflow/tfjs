@@ -31,7 +31,8 @@ export function transposeImpl(
   return backend.runWebGLProgram(program, [x], x.dtype);
 }
 
-// todo(@yassogba) import this from cpu backend once that package is published.
+// todo(@yassogba) import this from cpu backend once webgl and cpu backends are
+// out of core.
 export function transposeImplCPU(
     xVals: TypedArray, xShape: number[], dtype: DataType, perm: number[],
     newShape: number[]): TypedArray {
