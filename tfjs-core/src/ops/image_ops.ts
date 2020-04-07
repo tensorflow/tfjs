@@ -393,7 +393,6 @@ function cropAndResize_(
 
 export const resizeBilinear = op({resizeBilinear_});
 export const resizeNearestNeighbor = op({resizeNearestNeighbor_});
-// export const nonMaxSuppression = op({nonMaxSuppression_});
 export const nonMaxSuppressionAsync = nonMaxSuppressionAsync_;
 export const nonMaxSuppressionWithScore = op({nonMaxSuppressionWithScore_});
 export const nonMaxSuppressionWithScoreAsync = nonMaxSuppressionWithScoreAsync_;
