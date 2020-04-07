@@ -52,7 +52,7 @@
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "publish-npm": "npm publish",
     "lint": "tslint -p . -t verbose",
-    "test": "karma start",
+    "test": "yarn build-core && karma start",
     "run-browserstack": "karma start --browserstack",
     "test-ci": "./scripts/test-ci.sh"
   },
