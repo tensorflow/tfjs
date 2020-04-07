@@ -187,6 +187,7 @@ describeWithFlags('nonMaxSuppression', ALL_ENVS, () => {
       const maxOutputSize = 2;
       const iouThreshold = 0.5;
       const scoreThreshold = 0;
+      await scores.data();
       const indices = tf.image.nonMaxSuppression(
           boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
 
