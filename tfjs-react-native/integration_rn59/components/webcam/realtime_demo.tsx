@@ -278,7 +278,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
         resizeDepth={3}
         onReady={this.handleImageTensorReady}
         autorender={AUTORENDER}
-        rotation={landscape ? 270 : 0}
+        rotation={landscape ? 270 : 0} // or -90 for landscape right
       />
       <View style={[
         styles.modelResults,

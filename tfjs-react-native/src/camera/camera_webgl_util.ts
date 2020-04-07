@@ -23,7 +23,7 @@ import * as drawTextureProgramInfo from './draw_texture_program_info';
 import * as resizeBilinearProgramInfo from './resize_bilinear_program_info';
 import * as resizeNNProgramInfo from './resize_nearest_neigbor_program_info';
 
-export type Rotation = 0|90|180|270|360;
+export type Rotation = 0|90|180|270|360|- 80|- 180|- 270;
 
 interface Dimensions {
   width: number;

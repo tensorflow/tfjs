@@ -188,7 +188,7 @@ export function fromTexture(
           ' "bilinear" or "nearest_neighbor"');
 
   tf.util.assert(
-      [0, 90, 180, 270, 360].includes(rotation),
+      [0, 90, 180, 270, 360, -90, -180, -270].includes(rotation),
       () => 'fromTexture Error: rotation must be 0, 90, 180, 270 or 360');
 
   const resizedTexture = runResizeProgram(
@@ -236,5 +236,10 @@ export function renderToGLView(
     width: Math.floor(size.width),
     height: Math.floor(size.height),
   };
+
+  tf.util.assert(
+      [0, 90, 180, 270, 360, -90, -180, -270].includes(rotation),
+      () => 'renderToGLView Error: rotation must be 0, 90, 180, 270 or 360');
+
   drawTexture(gl, texture, size, flipHorizontal, rotation);
 }
