@@ -17,9 +17,10 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 import {engine, env} from '@tensorflow/tfjs-core';
-import {backend_util, slice_util, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, slice_util, util} from '@tensorflow/tfjs-core';
 import {BackendTimingInfo, DataStorage, DataType, DataValues, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 import {kernel_impls} from '@tensorflow/tfjs-core';
+
 const nonMaxSuppressionV3 = kernel_impls.nonMaxSuppressionV3;
 const split = kernel_impls.split;
 const tile = kernel_impls.tile;
@@ -2173,7 +2174,7 @@ export class MathBackendCPU extends KernelBackend {
                .reshape(flattenShape) as T;
   }
 
-  maxPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
+  maxPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
     assertNotComplex(x, 'maxPool');
     const xValues = this.readSync(x.dataId) as TypedArray;
     return pool(xValues, x.shape, x.dtype, x.strides, convInfo, 'max')

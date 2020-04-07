@@ -14,14 +14,13 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Conv2DInfo} from '../../../ops/conv_util';
-import {DataType, TypedArray} from '../../../types';
-import {computeStrides} from '../../../util';
+import {backend_util, DataType, TypedArray, util} from '@tensorflow/tfjs-core';
+
 import {maxPoolPositions, pool} from '../pool_utils';
 export function maxPoolWithArgmaxImpl(
     xValues: TypedArray, xShape: number[], dtype: DataType,
-    includeBatchInIndex: boolean, convInfo: Conv2DInfo) {
-  const strides = computeStrides(xShape);
+    includeBatchInIndex: boolean, convInfo: backend_util.Conv2DInfo) {
+  const strides = util.computeStrides(xShape);
   const maxPools = pool(xValues, xShape, dtype, strides, convInfo, 'max');
   const maxPositions = maxPoolPositions(
       xValues, xShape, dtype, convInfo, true, includeBatchInIndex);
