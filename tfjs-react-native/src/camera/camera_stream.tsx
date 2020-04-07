@@ -373,7 +373,6 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
         <CameraComponent
           key='camera-with-tensor-camera-view'
           {...(cameraProps)}
-          // style={{opacity: 0}}
           ref={(ref: Camera) => (this.camera = ref)}
         />
       );
