@@ -447,7 +447,6 @@ describeWithFlags('fromTexture:nearestNeighbor', RN_ENVS, () => {
           rotation: 90,
         },
     );
-    output.print();
 
     expectArraysEqual(await output.data(), [
       [
