@@ -26,6 +26,7 @@ import {
 import { Camera } from 'expo-camera';
 import { GLView, ExpoWebGLRenderingContext } from 'expo-gl';
 import { fromTexture, renderToGLView, detectGLCapabilities } from './camera';
+import { Rotation } from './camera_webgl_util';
 
 interface WrappedComponentProps {
   onLayout?: (event: LayoutChangeEvent) => void;
@@ -40,7 +41,7 @@ interface Props {
   resizeHeight: number;
   resizeDepth: number;
   autorender: boolean;
-  landscape: boolean;
+  rotation?: Rotation;
   onReady: (
     images: IterableIterator<tf.Tensor3D>,
     updateCameraPreview: () => void,
@@ -232,8 +233,6 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
       const cameraTexture = await this.createCameraTexture();
       await detectGLCapabilities(gl);
 
-      // landscapeMode is only for ios.
-      const landscapeMode = this.props.landscape && Platform.OS === 'ios';
       // Optionally set up a render loop that just displays the camera texture
       // to the GLView.
       const autorender =
@@ -256,6 +255,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
         resizeDepth,
         cameraTextureHeight,
         cameraTextureWidth,
+        rotation,
       } = this.props;
 
       //
@@ -283,7 +283,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
             cameraTexture,
             textureDims,
             targetDims,
-            { landscape: landscapeMode }
+            { rotation }
           );
           yield imageTensor;
         }
@@ -306,8 +306,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
     ) {
       const renderFunc = () => {
         const { cameraLayout } = this.state;
-        // landscapeMode is only for ios.
-       const landscapeMode = this.props.landscape && Platform.OS === 'ios';
+        const { rotation } = this.props;
         const width = PixelRatio.getPixelSizeForLayoutSize(cameraLayout.width);
         const height = PixelRatio.getPixelSizeForLayoutSize(
           cameraLayout.height
@@ -322,7 +321,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
           cameraTexture,
           { width, height },
           flipHorizontal,
-          landscapeMode
+          rotation
         );
       };
 
@@ -348,7 +347,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
         resizeDepth: null,
         autorender: null,
         onReady: null,
-        landscape: null,
+        rotation: 0,
       };
       const tensorCameraPropKeys = Object.keys(tensorCameraPropMap);
 
@@ -374,6 +373,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
         <CameraComponent
           key='camera-with-tensor-camera-view'
           {...(cameraProps)}
+          // style={{opacity: 0}}
           ref={(ref: Camera) => (this.camera = ref)}
         />
       );

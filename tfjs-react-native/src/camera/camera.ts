@@ -17,7 +17,8 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 
-import {downloadTextureData, drawTexture, runResizeProgram, uploadTextureData} from './camera_webgl_util';
+import {downloadTextureData, drawTexture, Rotation, runResizeProgram, uploadTextureData} from './camera_webgl_util';
+
 interface Dimensions {
   width: number;
   height: number;
@@ -32,7 +33,7 @@ interface Size {
 interface FromTextureOptions {
   alignCorners?: boolean;
   interpolation?: 'nearest_neighbor'|'bilinear';
-  landscape?: boolean;
+  rotation?: Rotation;
 }
 
 const glCapabilities = {
@@ -179,16 +180,20 @@ export function fromTexture(
       options.alignCorners != null ? options.alignCorners : false;
   const interpolation =
       options.interpolation != null ? options.interpolation : 'bilinear';
-  const landscape = options.landscape != null ? options.landscape : false;
+  const rotation = options.rotation != null ? options.rotation : 0;
 
   tf.util.assert(
       interpolation === 'bilinear' || interpolation === 'nearest_neighbor',
       () => 'fromTexture Error: interpolation must be one of' +
           ' "bilinear" or "nearest_neighbor"');
 
+  tf.util.assert(
+      [0, 90, 180, 270, 360].includes(rotation),
+      () => 'fromTexture Error: rotation must be 0, 90, 180, 270 or 360');
+
   const resizedTexture = runResizeProgram(
       gl, texture, sourceDims, targetShape, alignCorners, interpolation,
-      landscape);
+      rotation);
   const downloadedTextureData =
       downloadTextureData(gl, resizedTexture, targetShape);
 
@@ -226,10 +231,10 @@ export function fromTexture(
 /** @doc {heading: 'Media', subheading: 'Camera'} */
 export function renderToGLView(
     gl: WebGL2RenderingContext, texture: WebGLTexture, size: Size,
-    flipHorizontal = true, landscape = false) {
+    flipHorizontal = true, rotation: Rotation) {
   size = {
     width: Math.floor(size.width),
     height: Math.floor(size.height),
   };
-  drawTexture(gl, texture, size, flipHorizontal, landscape);
+  drawTexture(gl, texture, size, flipHorizontal, rotation);
 }

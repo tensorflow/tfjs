@@ -23,8 +23,8 @@ interface Dimensions {
   depth: number;
 }
 
-export function vertexShaderSource(landscape: boolean) {
-  const rotateAngle = landscape ? -(Math.PI / 2.) : '0.';
+export function vertexShaderSource(rotation: number) {
+  const rotateAngle = rotation === 0 ? '0.' : rotation * (Math.PI / 180);
   return `#version 300 es
 precision highp float;
 precision highp int;
@@ -45,6 +45,7 @@ vec2 rotate(vec2 uvCoods, vec2 pivot, float rotation) {
 
 void main() {
   uv = rotate(texCoords, vec2(0.5), ${rotateAngle});
+
   gl_Position = vec4(position, 0, 1);
 }`;
 }

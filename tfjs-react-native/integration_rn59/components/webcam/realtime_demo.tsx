@@ -16,7 +16,7 @@
  */
 
 import React from 'react';
-import { ActivityIndicator, Button, StyleSheet, View, Platform, Dimensions } from 'react-native';
+import { ActivityIndicator, Button, StyleSheet, View, Platform, Dimensions, Text } from 'react-native';
 import Svg, { Circle, Rect, G, Line} from 'react-native-svg';
 
 import * as Permissions from 'expo-permissions';
@@ -44,6 +44,7 @@ interface ScreenState {
   faces?: blazeface.NormalizedFace[];
   modelName: string;
   orientation?: 'portrait' | 'landscape';
+  debug: object;
 }
 
 const inputTensorWidth = 152;
@@ -62,7 +63,8 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
     this.state = {
       isLoading: true,
       cameraType: Camera.Constants.Type.front,
-      modelName: 'posenet',
+      modelName: 'face',
+      debug: {},
     };
     this.handleImageTensorReady = this.handleImageTensorReady.bind(this);
   }
@@ -104,6 +106,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
       } else {
         if (this.state.faceDetector != null) {
           const imageTensor = images.next().value;
+          this.setState({debug: { shape: imageTensor.shape }});
           const returnTensors = false;
           const faces = await this.state.faceDetector.estimateFaces(
             imageTensor, returnTensors);
@@ -242,6 +245,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
   render() {
     const {isLoading, modelName, orientation} = this.state;
     const landscape = orientation === 'landscape';
+
     // TODO File issue to be able get this from expo.
     // Caller will still need to account for orientation/phone rotation changes
     let textureDims: { width: number; height: number; };
@@ -267,16 +271,19 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
         type={this.state.cameraType}
         zoom={0}
         // tensor related props
-        cameraTextureHeight={landscape ? textureDims.width : textureDims.height}
-        cameraTextureWidth={landscape ? textureDims.width : textureDims.height}
-        resizeHeight={landscape ? inputTensorWidth : inputTensorHeight}
-        resizeWidth={landscape ? inputTensorHeight: inputTensorWidth}
+        cameraTextureHeight={textureDims.height}
+        cameraTextureWidth={textureDims.width}
+        resizeHeight={inputTensorHeight}
+        resizeWidth={inputTensorWidth}
         resizeDepth={3}
         onReady={this.handleImageTensorReady}
         autorender={AUTORENDER}
         rotation={landscape ? 270 : 0}
       />
-      <View style={[styles.modelResults, {width: styleWidth, height: styleHeight}]}>
+      <View style={[
+        styles.modelResults,
+        {width: styleWidth, height: styleHeight}
+      ]}>
         {modelName === 'posenet' ? this.renderPose() : this.renderFaces()}
       </View>
     </View>;
@@ -288,6 +295,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
             onPress={this.props.returnToMain}
             title='Back'
           />
+          <Text>{JSON.stringify(this.state.debug)}</Text>
         </View>
         {isLoading ? <View style={[styles.loadingIndicator]}>
           <ActivityIndicator size='large' color='#FF0266' />
