@@ -16,7 +16,7 @@
  */
 import {backend_util, DataType, TypedArray, util} from '@tensorflow/tfjs-core';
 
-import {maxPoolPositions, pool} from '../pool_utils';
+import {maxPoolPositions, pool} from '../utils/pool_utils';
 export function maxPoolWithArgmaxImpl(
     xValues: TypedArray, xShape: number[], dtype: DataType,
     includeBatchInIndex: boolean, convInfo: backend_util.Conv2DInfo) {

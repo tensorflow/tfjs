@@ -28,7 +28,7 @@ const topkImpl = kernel_impls.topkImpl;
 const whereImpl = kernel_impls.whereImpl;
 import * as seedrandom from 'seedrandom';
 import {assertNotComplex} from './cpu_util';
-import {maxPoolPositions, pool} from './pool_utils';
+import {maxPoolPositions, pool} from './utils/pool_utils';
 
 interface DataId {}
 
