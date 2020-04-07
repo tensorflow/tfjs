@@ -24,7 +24,8 @@ cc_binary(
         "-s MODULARIZE=1",
         "-s EXPORT_NAME=WasmBackendModule",
         "-s MALLOC=emmalloc",
-        "-s USE_PTHREADS=1"
+        "-s USE_PTHREADS=1",
+        "-s MAXIMUM_MEMORY=100Mb",
     ],
     deps = [
         ":all_kernels",
