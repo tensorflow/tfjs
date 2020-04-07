@@ -27,5 +27,6 @@ declare module '../../tensor' {
 
 Tensor.prototype.transpose = function<T extends Tensor>(
     this: T, perm?: number[]): T {
+  this.throwIfDisposed();
   return transpose(this, perm);
 };
