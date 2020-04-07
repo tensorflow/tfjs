@@ -25,14 +25,15 @@ import {Tensor, Tensor1D, Tensor2D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assert} from '../util';
+
 import {squeeze, stack, unstack} from './array_ops';
-import {sub} from './binary_ops';
 import {split} from './concat_split';
 import {eye} from './eye';
 import {logicalAnd, where} from './logical_ops';
 import {norm} from './norm';
 import {op} from './operation';
 import {sum} from './reduction_ops';
+import {sub} from './sub';
 import {range, scalar, tensor2d, zeros} from './tensor_ops';
 
 /**
