@@ -183,13 +183,14 @@ describeWithFlags('nonMaxSuppression', ALL_ENVS, () => {
           [6, 4]);
       const a = tf.tensor1d([0, 1, -2, -4, 4, -4]);
       const b = tf.tensor1d([0.15, 0.2, 0.25, 0.5, 0.7, 1.2]);
-      const scores = a.div(b) as tf.Tensor1D;
+      const scores = a.div(b);
       const maxOutputSize = 2;
       const iouThreshold = 0.5;
       const scoreThreshold = 0;
       await scores.data();
       const indices = tf.image.nonMaxSuppression(
-          boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
+          boxes, scores as tf.Tensor1D, maxOutputSize, iouThreshold,
+          scoreThreshold);
 
       expect(indices.shape).toEqual([2]);
       expectArraysEqual(await indices.data(), [4, 1]);
