@@ -17,119 +17,16 @@
 
 import {ENGINE} from '../engine';
 import {Tensor} from '../tensor';
-import {NamedTensorMap} from '../tensor_types';
 import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
+
+import {add} from './add';
 import * as broadcast_util from './broadcast_util';
 import {op} from './operation';
 import {scalar, zerosLike} from './tensor_ops';
 import {neg} from './unary_ops';
-
-/**
- * Adds two `tf.Tensor`s element-wise, A + B. Supports broadcasting.
- *
- * We also expose `tf.addStrict` which has the same signature as this op and
- * asserts that `a` and `b` are the same shape (does not broadcast).
- *
- * ```js
- * const a = tf.tensor1d([1, 2, 3, 4]);
- * const b = tf.tensor1d([10, 20, 30, 40]);
- *
- * a.add(b).print();  // or tf.add(a, b)
- * ```
- *
- * ```js
- * // Broadcast add a with b.
- * const a = tf.scalar(5);
- * const b = tf.tensor1d([10, 20, 30, 40]);
- *
- * a.add(b).print();  // or tf.add(a, b)
- * ```
- * @param a The first `tf.Tensor` to add.
- * @param b The second `tf.Tensor` to add. Must have the same type as `a`.
- */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
-function add_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'add');
-  let $b = convertToTensor(b, 'b', 'add');
-  [$a, $b] = makeTypesMatch($a, $b);
-
-  const outShape =
-      broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
-
-  const der = (dy: Tensor) => {
-    const derA = () => {
-      let res = dy;
-      const reduceAxes = broadcast_util.getReductionAxes($a.shape, outShape);
-      if (reduceAxes.length > 0) {
-        res = res.sum(reduceAxes);
-      }
-      return res.reshape($a.shape);
-    };
-    const derB = () => {
-      let res = dy;
-      const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
-      if (reduceAxes.length > 0) {
-        res = res.sum(reduceAxes);
-      }
-      return res.reshape($b.shape);
-    };
-    return {a: derA, b: derB};
-  };
-  return ENGINE.runKernelFunc(
-             backend => backend.add($a, $b), {a: $a, b: $b}, der, 'Add') as T;
-}
-
-/**
- * Adds a list of `tf.Tensor`s element-wise, each with the same shape and dtype.
- *
- * ```js
- * const a = tf.tensor1d([1, 2]);
- * const b = tf.tensor1d([3, 4]);
- * const c = tf.tensor1d([5, 6]);
- *
- * tf.addN([a, b, c]).print();
- * ```
- * @param tensors A list of tensors with the same shape and dtype.
- */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
-function addN_<T extends Tensor>(tensors: Array<T|TensorLike>): T {
-  util.assert(
-      Array.isArray(tensors),
-      () => 'The argument passed to tf.addN() must be a list of tensors');
-  util.assert(
-      tensors.length >= 1,
-      () => `Must pass at least one tensor to tf.addN(), but got ` +
-          `${tensors.length}`);
-  const $tensors =
-      tensors.map((t, i) => convertToTensor(t, `tensors${i}`, 'addN'));
-  const firstTensor = $tensors[0];
-  $tensors.forEach(t => {
-    if (t.dtype !== firstTensor.dtype) {
-      throw new Error(
-          'All tensors passed to tf.addN() must have the same dtype');
-    }
-  });
-  $tensors.forEach(t => {
-    if (!util.arraysEqual(t.shape, firstTensor.shape)) {
-      throw new Error(
-          'All tensors passed to tf.addN() must have the same shape');
-    }
-  });
-
-  const der = (dy: T) => {
-    const ders: {[key: string]: () => Tensor} = {};
-    $tensors.forEach((t, i) => {
-      ders[i] = () => dy.clone();
-    });
-    return ders;
-  };
-  const inputs: NamedTensorMap = $tensors as {} as NamedTensorMap;
-  return ENGINE.runKernelFunc(
-      backend => backend.addN($tensors), inputs, der, 'AddN');
-}
 
 /**
  * Adds two `tf.Tensor`s element-wise, A + B.
@@ -144,63 +41,6 @@ function addStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
   const $b = convertToTensor(b, 'b', 'addStrict');
   util.assertShapesMatch($a.shape, $b.shape, 'Error in addStrict: ');
   return $a.add($b);
-}
-
-/**
- * Subtracts two `tf.Tensor`s element-wise, A - B. Supports broadcasting.
- *
- * We also expose `tf.subStrict` which has the same signature as this op and
- * asserts that `a` and `b` are the same shape (does not broadcast).
- *
- * ```js
- * const a = tf.tensor1d([10, 20, 30, 40]);
- * const b = tf.tensor1d([1, 2, 3, 4]);
- *
- * a.sub(b).print();  // or tf.sub(a, b)
- * ```
- *
- * ```js
- * // Broadcast subtract a with b.
- * const a = tf.tensor1d([10, 20, 30, 40]);
- * const b = tf.scalar(5);
- *
- * a.sub(b).print();  // or tf.sub(a, b)
- * ```
- * @param a The first `tf.Tensor` to subtract from.
- * @param b The second `tf.Tensor` to be subtracted. Must have the same dtype as
- * `a`.
- */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
-function sub_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'sub');
-  let $b = convertToTensor(b, 'b', 'sub');
-  [$a, $b] = makeTypesMatch($a, $b);
-
-  const outShape =
-      broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
-
-  const der = (dy: Tensor) => {
-    const derA = () => {
-      let res = dy;
-      const reduceAxes = broadcast_util.getReductionAxes($a.shape, outShape);
-      if (reduceAxes.length > 0) {
-        res = res.sum(reduceAxes);
-      }
-      return res.reshape($a.shape);
-    };
-    const derB = () => {
-      let res = dy;
-      const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
-      if (reduceAxes.length > 0) {
-        res = res.sum(reduceAxes);
-      }
-      return res.neg().reshape($b.shape);
-    };
-    return {a: derA, b: derB};
-  };
-  return ENGINE.runKernelFunc(
-             backend => backend.subtract($a, $b), {a: $a, b: $b}, der, 'Sub') as
-      T;
 }
 
 /**
@@ -728,8 +568,6 @@ function atan2_<T extends Tensor>(
   }, {$a, $b}, der) as T;
 }
 
-export const add = op({add_});
-export const addN = op({addN_});
 export const addStrict = op({addStrict_});
 export const atan2 = op({atan2_});
 export const divStrict = op({divStrict_});
@@ -745,5 +583,4 @@ export const mulStrict = op({mulStrict_});
 export const pow = op({pow_});
 export const powStrict = op({powStrict_});
 export const squaredDifferenceStrict = op({squaredDifferenceStrict_});
-export const sub = op({sub_});
 export const subStrict = op({subStrict_});

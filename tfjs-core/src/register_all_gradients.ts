@@ -14,13 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
+import {addGradConfig} from './gradients/Add_grad';
+import {addNGradConfig} from './gradients/AddN_grad';
 import {broadcastToGradConfig} from './gradients/BroadcastTo_grad';
 import {divGradConfig} from './gradients/Div_grad';
+import {fusedBatchNormGradConfig} from './gradients/FusedBatchNorm_grad';
 import {identityGradConfig} from './gradients/Identity_grad';
 import {oneHotGradConfig} from './gradients/OneHot_grad';
 import {padV2GradConfig} from './gradients/PadV2_grad';
 import {squareGradConfig} from './gradients/Square_grad';
 import {squaredDifferenceGradConfig} from './gradients/SquaredDifference_grad';
+import {subGradConfig} from './gradients/Sub_grad';
 import {tileGradConfig} from './gradients/Tile_grad';
 import {transposeGradConfig} from './gradients/Transpose_grad';
 import {GradConfig} from './kernel_registry';
@@ -28,9 +32,10 @@ import {registerGradient} from './kernel_registry';
 
 // Export all kernel configs here so that the package can auto register them
 const gradConfigs: GradConfig[] = [
-  divGradConfig, squareGradConfig, squaredDifferenceGradConfig,
-  broadcastToGradConfig, identityGradConfig, tileGradConfig, oneHotGradConfig,
-  transposeGradConfig, padV2GradConfig
+  addGradConfig, addNGradConfig, broadcastToGradConfig, divGradConfig,
+  fusedBatchNormGradConfig, identityGradConfig, oneHotGradConfig,
+  padV2GradConfig, squareGradConfig, squaredDifferenceGradConfig,
+  tileGradConfig, transposeGradConfig, subGradConfig
 ];
 
 for (const gradientConfig of gradConfigs) {

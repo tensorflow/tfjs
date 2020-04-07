@@ -195,12 +195,6 @@ export interface OpHandler {
   concat<T extends Tensor>(tensors: Array<T|TensorLike>, axis: number): T;
   stack<T extends Tensor>(tensors: Array<T|TensorLike>, axis: number): Tensor;
   unstack<T extends Tensor>(value: T, axis: number): Tensor[];
-  batchNorm<R extends Rank>(
-      x: Tensor<R>, mean: Tensor<R>|Tensor1D|TensorLike,
-      variance: Tensor<R>|Tensor1D|TensorLike,
-      offset?: Tensor<R>|Tensor1D|TensorLike,
-      scale?: Tensor<R>|Tensor1D|TensorLike,
-      varianceEpsilon?: number): Tensor<R>;
   all<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
   any<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
   logSumExp<T extends Tensor>(
@@ -214,10 +208,8 @@ export interface OpHandler {
   max<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
   argMin<T extends Tensor>(x: Tensor, axis: number): T;
   argMax<T extends Tensor>(x: Tensor, axis: number): T;
-  add<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   addStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   atan2<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
-  sub<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   subStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   pow<T extends Tensor>(base: T, exp: Tensor|TensorLike): T;
   powStrict<T extends Tensor>(base: T, exp: Tensor|TensorLike): T;
@@ -651,7 +643,7 @@ export class Tensor<R extends Rank = Rank> {
     return this.isDisposedInternal;
   }
 
-  private throwIfDisposed() {
+  throwIfDisposed() {
     if (this.isDisposed) {
       throw new Error(`Tensor is disposed.`);
     }
@@ -833,17 +825,6 @@ export class Tensor<R extends Rank = Rank> {
     return this.batchNorm(mean, variance, offset, scale, varianceEpsilon);
   }
 
-  batchNorm(
-      mean: Tensor<R>|Tensor1D|TensorLike,
-      variance: Tensor<R>|Tensor1D|TensorLike,
-      offset?: Tensor<R>|Tensor1D|TensorLike,
-      scale?: Tensor<R>|Tensor1D|TensorLike,
-      varianceEpsilon = .001,
-      ): Tensor<R> {
-    this.throwIfDisposed();
-    return opHandler.batchNorm(
-        this, mean, variance, offset, scale, varianceEpsilon);
-  }
   // Reduction ops.
   all<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
     this.throwIfDisposed();
@@ -894,11 +875,6 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   // Binary ops.
-
-  add<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.add(this, x);
-  }
   addStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.addStrict(this, x);
@@ -906,10 +882,6 @@ export class Tensor<R extends Rank = Rank> {
   atan2<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.atan2(this, x);
-  }
-  sub<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.sub(this, x);
   }
   subStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();

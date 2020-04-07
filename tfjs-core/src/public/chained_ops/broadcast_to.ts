@@ -27,5 +27,6 @@ declare module '../../tensor' {
 
 Tensor.prototype.broadcastTo = function<R extends Rank>(shape: ShapeMap[R]):
     Tensor<R> {
+  this.throwIfDisposed();
   return broadcastTo(this, shape);
 };

@@ -18,29 +18,10 @@
     esutils "^2.0.2"
     js-tokens "^4.0.0"
 
-"@bazel/bazel-darwin_x64@0.24.0":
-  version "0.24.0"
-  resolved "https://registry.yarnpkg.com/@bazel/bazel-darwin_x64/-/bazel-darwin_x64-0.24.0.tgz#828ef298d8d542961df388f17b0244f4f4302a74"
-  integrity sha512-xly44vkcD/fauUb7Lm5Lme4qhEZdkuuyBKSVQUHPbYAGDdbj/W8dupI3bZREkJAgG/WrRU+WXUemMj4U8ZcLcw==
-
-"@bazel/bazel-linux_x64@0.24.0":
-  version "0.24.0"
-  resolved "https://registry.yarnpkg.com/@bazel/bazel-linux_x64/-/bazel-linux_x64-0.24.0.tgz#9ef2e7266833ad2221fe4af4ceb6763d2897e3ff"
-  integrity sha512-p5ylPLWnJZDGbaIFBrtD/tp3Su5rMdzeeNJKU24XyiWQTHVZ3OD3I2Fb0ILCgfBjY8AlA7EtCtOI4hYnAuIOtg==
-
-"@bazel/bazel-win32_x64@0.24.0":
-  version "0.24.0"
-  resolved "https://registry.yarnpkg.com/@bazel/bazel-win32_x64/-/bazel-win32_x64-0.24.0.tgz#02d83113a6c6ed99795a3e41bff5631aa141638d"
-  integrity sha512-/bcSEx+GoV/q7H4WM0jazfxTcurSiIIePhRv+d05mxRDcaWwhCO8KzmmZRWH1abW6npvq5tLkbSQi7G7nUBhgg==
-
-"@bazel/bazel@^0.24.0":
-  version "0.24.0"
-  resolved "https://registry.yarnpkg.com/@bazel/bazel/-/bazel-0.24.0.tgz#f4e68e3680ac299858c24c26be3d08d1151e78fc"
-  integrity sha512-/5E55tqH9ogAGF9Dd7RSCJmk7/xdlsPTAhsX3yEsEMs7GLdHlgD3jbeePsKUiHKKr8LXAufjTs2pXQfjrkZRMg==
-  optionalDependencies:
-    "@bazel/bazel-darwin_x64" "0.24.0"
-    "@bazel/bazel-linux_x64" "0.24.0"
-    "@bazel/bazel-win32_x64" "0.24.0"
+"@bazel/bazelisk@^1.3.0":
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/@bazel/bazelisk/-/bazelisk-1.3.0.tgz#dc312dd30ad01e9af86e53b40795ab6e545fa55b"
+  integrity sha512-73H1nq3572tTf+dhDT86aWQN+LCyfxrh05jabqPXp6cpR8soxte3gS5oUqkN36fUe+J2HzNiV4CXZTz4Xytd3Q==
 
 "@bazel/typescript@^0.27.8":
   version "0.27.10"
@@ -487,9 +468,9 @@ better-assert@~1.0.0:
     callsite "1.0.0"
 
 big-integer@^1.6.17:
-  version "1.6.43"
-  resolved "https://registry.yarnpkg.com/big-integer/-/big-integer-1.6.43.tgz#8ac15bf13e93e509500859061233e19d8d0d99d1"
-  integrity sha512-9dULc9jsKmXl0Aeunug8wbF+58n+hQoFjqClN7WeZwGLh0XJUWyJJ9Ee+Ep+Ql/J9fRsTVaeThp8MhiCCrY0Jg==
+  version "1.6.48"
+  resolved "https://registry.yarnpkg.com/big-integer/-/big-integer-1.6.48.tgz#8fd88bd1632cba4a1c8c3e3d7159f08bb95b4b9e"
+  integrity sha512-j51egjPa7/i+RdiRuJbPdJ2FIUYYPhvYLjzoYbcMMm62ooO6F94fETG4MTs46zPAF9Brs04OajboA/qTGuz78w==
 
 binary-extensions@^1.0.0:
   version "1.13.1"
@@ -2124,7 +2105,7 @@ inflight@^1.0.4:
     once "^1.3.0"
     wrappy "1"
 
-inherits@2, inherits@^2.0.1, inherits@^2.0.3, inherits@~2.0.1, inherits@~2.0.3:
+inherits@2, inherits@^2.0.1, inherits@^2.0.3, inherits@~2.0.0, inherits@~2.0.1, inherits@~2.0.3:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.4.tgz#0fa2c64f932917c3433a0ded55363aae37416b7c"
   integrity sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==
@@ -2134,7 +2115,7 @@ inherits@2.0.1:
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.1.tgz#b17d08d326b4423e568eff719f91b0b1cbdf69f1"
   integrity sha1-sX0I0ya0Qj5Wjv9xn5GwscvfafE=
 
-inherits@2.0.3, inherits@~2.0.0:
+inherits@2.0.3:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.3.tgz#633c2c83e3da42a502f52466022480f4208261de"
   integrity sha1-Yzwsg+PaQqUC9SRmAiSA9CCCYd4=
@@ -2946,6 +2927,11 @@ minimist@^1.1.0, minimist@^1.1.1, minimist@^1.1.3, minimist@^1.2.0:
   resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.0.tgz#a35008b20f41383eec1fb914f4cd5df79a264284"
   integrity sha1-o1AIsg9BOD7sH7kU9M1d95omQoQ=
 
+minimist@^1.2.5:
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.5.tgz#67d66014b66a6a8aaa0c083c5fd58df4e4e97602"
+  integrity sha512-FM9nNUYrRBAELZQT3xeZQ7fmMOBg6nWNmJKTcgsJeaLstP/UODVpGsr5OhXhhXg6f+qtJ8uiZ+PUxkDWcgIXLw==
+
 minimist@~0.0.1:
   version "0.0.10"
   resolved "https://registry.yarnpkg.com/minimist/-/minimist-0.0.10.tgz#de3f98543dbf96082be48ad1a0c7cda836301dcf"
@@ -2974,12 +2960,19 @@ mixin-deep@^1.2.0:
     for-in "^1.0.2"
     is-extendable "^1.0.1"
 
-mkdirp@0.5.x, "mkdirp@>=0.5 0", mkdirp@^0.5.0, mkdirp@^0.5.1:
+mkdirp@0.5.x, mkdirp@^0.5.0, mkdirp@^0.5.1:
   version "0.5.1"
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-0.5.1.tgz#30057438eac6cf7f8c4767f38648d6697d75c903"
   integrity sha1-MAV0OOrGz3+MR2fzhkjWaX11yQM=
   dependencies:
     minimist "0.0.8"
+
+"mkdirp@>=0.5 0":
+  version "0.5.5"
+  resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-0.5.5.tgz#d91cefd62d1436ca0f41620e251288d420099def"
+  integrity sha512-NKmAlESf6jMGym1++R0Ra7wvhV+wFW63FaSOFPwRahvea0gMUcGUhVeAg/0BC0wiv9ih5NYPB1Wn1UEI1/L+xQ==
+  dependencies:
+    minimist "^1.2.5"
 
 module-deps@^6.0.0:
   version "6.2.0"
@@ -3892,6 +3885,13 @@ rimraf@^2.6.0, rimraf@^2.6.3:
   version "2.7.1"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.7.1.tgz#35797f13a7fdadc566142c29d4f07ccad483e3ec"
   integrity sha512-uWjbaKIK3T1OSVptzX7Nl6PvQ3qAGtKEtVRjRuazjfL3Bx5eI409VZSqgND+4UNnmzLVdPj9FqFJNPqBZFve4w==
+  dependencies:
+    glob "^7.1.3"
+
+rimraf@^2.6.0, rimraf@^2.6.1, rimraf@~2.6.2:
+  version "2.6.3"
+  resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.6.3.tgz#b2d104fe0d8fb27cf9e0a1cda8262dd3833c6cab"
+  integrity sha512-mwqeW5XsA2qAejG46gYdENaxXjx9onRNCfn7L0duuP4hCuTIi/QO7PDK07KJfp1d+izWPrzEJDcSqBa0OZQriA==
   dependencies:
     glob "^7.1.3"
 
