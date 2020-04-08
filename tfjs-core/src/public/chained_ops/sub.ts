@@ -14,19 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
-
-import {broadcastTo} from '../../ops/broadcast_to';
+import {sub} from '../../ops/sub';
 import {Tensor} from '../../tensor';
-import {Rank, ShapeMap} from '../../types';
+import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    broadcastTo<R extends Rank>(shape: ShapeMap[R]): Tensor<R>;
+    sub<T extends Tensor>(b: Tensor|TensorLike): T;
   }
 }
 
-Tensor.prototype.broadcastTo = function<R extends Rank>(shape: ShapeMap[R]):
-    Tensor<R> {
+Tensor.prototype.sub = function<T extends Tensor>(b: Tensor|TensorLike): T {
   this.throwIfDisposed();
-  return broadcastTo(this, shape);
+  return sub(this, b);
 };

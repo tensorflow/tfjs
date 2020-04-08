@@ -26,5 +26,6 @@ declare module '../../tensor' {
 }
 
 Tensor.prototype.div = function<T extends Tensor>(b: Tensor|TensorLike): T {
+  this.throwIfDisposed();
   return div(this, b);
 };
