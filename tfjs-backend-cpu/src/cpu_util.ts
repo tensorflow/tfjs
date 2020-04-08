@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,19 +15,18 @@
  * =============================================================================
  */
 
-import '@tensorflow/tfjs-backend-cpu';
-// tslint:disable-next-line: no-imports-from-dist
-import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {TensorInfo, util} from '@tensorflow/tfjs-core';
 
-// tslint:disable-next-line:no-require-imports
-const jasmine = require('jasmine');
-
-process.on('unhandledRejection', e => {
-  throw e;
-});
-
-setTestEnvs([{name: 'node', backendName: 'cpu'}]);
-
-const runner = new jasmine();
-runner.loadConfig({spec_files: ['src/**/*_test.ts'], random: false});
-runner.execute();
+export function assertNotComplex(
+    tensor: TensorInfo|TensorInfo[], opName: string): void {
+  if (!Array.isArray(tensor)) {
+    tensor = [tensor];
+  }
+  tensor.forEach(t => {
+    if (t != null) {
+      util.assert(
+          t.dtype !== 'complex64',
+          () => `${opName} does not support complex64 tensors.`);
+    }
+  });
+}

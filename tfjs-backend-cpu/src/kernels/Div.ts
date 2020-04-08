@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Div} from '../../../kernel_names';
+import {Div} from '@tensorflow/tfjs-core';
 import {createBinaryKernelConfig} from '../utils/kernel_utils';
 import {divImpl} from './Div_impl';
 

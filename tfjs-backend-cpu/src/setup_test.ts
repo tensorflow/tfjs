@@ -14,17 +14,24 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Conv2DInfo} from '../../../ops/conv_util';
-import {DataType, TypedArray} from '../../../types';
-import {computeStrides} from '../../../util';
-import {maxPoolPositions, pool} from '../pool_utils';
-export function maxPoolWithArgmaxImpl(
-    xValues: TypedArray, xShape: number[], dtype: DataType,
-    includeBatchInIndex: boolean, convInfo: Conv2DInfo) {
-  const strides = computeStrides(xShape);
-  const maxPools = pool(xValues, xShape, dtype, strides, convInfo, 'max');
-  const maxPositions = maxPoolPositions(
-      xValues, xShape, dtype, convInfo, true, includeBatchInIndex);
 
-  return [maxPools.values, maxPositions.values];
-}
+// tslint:disable-next-line: no-imports-from-dist
+import {setTestEnvs, setupTestFilters, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
+setTestEnvs([{name: 'cpu', backendName: 'cpu', isDataSync: true}]);
+
+const TEST_FILTERS: TestFilter[] = [];
+const customInclude = (testName: string) => {
+  // Exclude webworker test
+  if (testName.includes('computation in worker')) {
+    return false;
+  }
+  // Include all other tests.
+  return true;
+};
+
+setupTestFilters(TEST_FILTERS, customInclude);
+
+// Import and run tests from core.
+// tslint:disable-next-line:no-imports-from-dist
+import '@tensorflow/tfjs-core/dist/tests';

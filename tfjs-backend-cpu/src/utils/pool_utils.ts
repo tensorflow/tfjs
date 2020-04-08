@@ -15,15 +15,12 @@
  * =============================================================================
  */
 
-import {Conv2DInfo} from '../../ops/conv_util';
-import * as ops from '../../ops/ops';
-import {buffer} from '../../ops/ops';
-import {TensorBuffer} from '../../tensor';
-import {DataType, Rank, TypedArray} from '../../types';
+import {backend_util, buffer, DataType, Rank, TensorBuffer, TypedArray} from '@tensorflow/tfjs-core';
 
 export function pool(
     xValues: TypedArray, xShape: number[], dtype: DataType, strides: number[],
-    convInfo: Conv2DInfo, poolType: 'max'|'avg'): TensorBuffer<Rank, DataType> {
+    convInfo: backend_util.Conv2DInfo,
+    poolType: 'max'|'avg'): TensorBuffer<Rank, DataType> {
   const strideHeight = convInfo.strideHeight;
   const strideWidth = convInfo.strideWidth;
   const dilationHeight = convInfo.dilationHeight;
@@ -37,7 +34,7 @@ export function pool(
       (poolType === 'max' ? Number.NEGATIVE_INFINITY :
                             Number.POSITIVE_INFINITY);
 
-  const output = ops.buffer(convInfo.outShape, dtype);
+  const output = buffer(convInfo.outShape, dtype);
   const outputVals = output.values;
 
   const outputBatchStrides =
@@ -91,9 +88,9 @@ export function pool(
 
 export function maxPoolPositions(
     xValues: TypedArray, xShape: number[], dtype: DataType,
-    convInfo: Conv2DInfo, flattenPositions = false,
+    convInfo: backend_util.Conv2DInfo, flattenPositions = false,
     includeBatchInIndex = false): TensorBuffer<Rank, 'int32'> {
-  const maxPositions = ops.buffer(convInfo.outShape, 'int32');
+  const maxPositions = buffer(convInfo.outShape, 'int32');
   const strideHeight = convInfo.strideHeight;
   const strideWidth = convInfo.strideWidth;
   const dilationHeight = convInfo.dilationHeight;

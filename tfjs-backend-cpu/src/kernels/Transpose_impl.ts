@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {DataType, NumericDataType, TypedArray} from '../../../types';
-import * as util from '../../../util';
+import {DataType, NumericDataType, TypedArray} from '@tensorflow/tfjs-core';
+import {util} from '@tensorflow/tfjs-core';
 
 export function transposeImpl(
     xVals: TypedArray, xShape: number[], dtype: DataType, perm: number[],
