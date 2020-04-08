@@ -15,23 +15,22 @@
  * =============================================================================
  */
 
-// Register the CPU backend as a default backend for tests.
-// This is a circular dependency which we only need to run tests.
-// Using require allows tsc to still compile the library.
-// tslint:disable-next-line: no-require-imports
-require('@tensorflow/tfjs-backend-cpu');
+import {env} from '@tensorflow/tfjs-core';
+
+import * as gpgpu_util from './gpgpu_util';
+import * as webgl_util from './webgl_util';
+
+export {MathBackendWebGL, WebGLMemoryInfo, WebGLTimingInfo} from './backend_webgl';
+export {setWebGLContext} from './canvas_util';
+export {GPGPUContext} from './gpgpu_context';
+export {GPGPUProgram} from './gpgpu_math';
+// WebGL specific utils.
+export {gpgpu_util, webgl_util};
 
 /**
- * This file is necessary so we register all test environments before we start
- * executing tests.
+ * Enforce use of half precision textures if available on the platform.
  */
-import {parseTestEnvFromKarmaFlags, setTestEnvs, TEST_ENVS} from './jasmine_util';
-
-// tslint:disable-next-line:no-any
-declare let __karma__: any;
-if (typeof __karma__ !== 'undefined') {
-  const testEnv = parseTestEnvFromKarmaFlags(__karma__.config.args, TEST_ENVS);
-  if (testEnv != null) {
-    setTestEnvs([testEnv]);
-  }
+/** @doc {heading: 'Environment', namespace: 'webgl'} */
+export function forceHalfFloat(): void {
+  env().set('WEBGL_FORCE_F16_TEXTURES', true);
 }

@@ -15,23 +15,19 @@
  * =============================================================================
  */
 
-// Register the CPU backend as a default backend for tests.
-// This is a circular dependency which we only need to run tests.
-// Using require allows tsc to still compile the library.
-// tslint:disable-next-line: no-require-imports
-require('@tensorflow/tfjs-backend-cpu');
+import {Square, SquareInputs} from '@tensorflow/tfjs-core';
+import {KernelConfig} from '@tensorflow/tfjs-core';
 
-/**
- * This file is necessary so we register all test environments before we start
- * executing tests.
- */
-import {parseTestEnvFromKarmaFlags, setTestEnvs, TEST_ENVS} from './jasmine_util';
+import {MathBackendWebGL} from '../backend_webgl';
+import {SQUARE, UnaryOpProgram} from '../unaryop_gpu';
 
-// tslint:disable-next-line:no-any
-declare let __karma__: any;
-if (typeof __karma__ !== 'undefined') {
-  const testEnv = parseTestEnvFromKarmaFlags(__karma__.config.args, TEST_ENVS);
-  if (testEnv != null) {
-    setTestEnvs([testEnv]);
+export const squareConfig: KernelConfig = {
+  kernelName: Square,
+  backendName: 'webgl',
+  kernelFunc: ({inputs, backend}) => {
+    const {x} = inputs as SquareInputs;
+    const webglBackend = backend as MathBackendWebGL;
+    const program = new UnaryOpProgram(x.shape, SQUARE);
+    return webglBackend.runWebGLProgram(program, [x], x.dtype);
   }
-}
+};

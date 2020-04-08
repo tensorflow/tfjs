@@ -1,0 +1,73 @@
+{
+  "name": "@tensorflow/tfjs-backend-webgl",
+  "version": "0.0.0",
+  "description": "Vanilla JavaScript backend for TensorFlow.js",
+  "private": false,
+  "main": "dist/index.js",
+  "jsdelivr": "dist/tf-backend-webgl.min.js",
+  "unpkg": "dist/tf-backend-webgl.min.js",
+  "types": "dist/index.d.ts",
+  "jsnext:main": "dist/tf-backend-webgl.esm.js",
+  "module": "dist/tf-backend-webgl.esm.js",
+  "engines": {
+    "yarn": ">= 1.3.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tensorflow/tfjs.git"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^11.0.2",
+    "@rollup/plugin-node-resolve": "^7.1.1",
+    "@rollup/plugin-typescript": "^3.0.0",
+    "@tensorflow/tfjs-core": "link:../tfjs-core",
+    "@types/jasmine": "~3.0.0",
+    "clang-format": "~1.2.4",
+    "jasmine": "~3.1.0",
+    "jasmine-core": "~3.1.0",
+    "karma": "~4.4.1",
+    "karma-browserstack-launcher": "~1.4.0",
+    "karma-chrome-launcher": "~2.2.0",
+    "karma-jasmine": "~1.1.0",
+    "karma-typescript": "~4.1.1",
+    "npm-run-all": "~4.1.3",
+    "rimraf": "~2.6.2",
+    "rollup": "~2.3.2",
+    "rollup-plugin-terser": "~5.3.0",
+    "rollup-plugin-visualizer": "~3.3.2",
+    "ts-node": "~7.0.0",
+    "tslint": "~5.11.0",
+    "tslint-no-circular-imports": "~0.5.0",
+    "typescript": "3.5.3",
+    "yalc": "~1.0.0-pre.21"
+  },
+  "scripts": {
+    "build-ci": "tsc",
+    "build": "tsc",
+    "build-core": "cd ../tfjs-core && yarn && yarn build",
+    "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
+    "build-npm": "./scripts/build-npm.sh",
+    "link-local": "yalc link",
+    "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
+    "publish-npm": "npm publish",
+    "lint": "tslint -p . -t verbose",
+    "test": "yarn build-core && karma start",
+    "run-browserstack": "karma start --browserstack",
+    "test-ci": "./scripts/test-ci.sh"
+  },
+  "dependencies": {
+    "@types/offscreencanvas": "~2019.3.0",
+    "@types/seedrandom": "2.4.27",
+    "@types/webgl-ext": "0.0.30",
+    "@types/webgl2": "0.0.4",
+    "seedrandom": "2.4.3"
+  },
+  "peerDependencies": {
+    "@tensorflow/tfjs-core": "link:../tfjs-core"
+  },
+  "browser": {
+    "util": false,
+    "crypto": false
+  }
+}

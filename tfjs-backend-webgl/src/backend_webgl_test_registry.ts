@@ -15,23 +15,34 @@
  * =============================================================================
  */
 
-// Register the CPU backend as a default backend for tests.
-// This is a circular dependency which we only need to run tests.
-// Using require allows tsc to still compile the library.
-// tslint:disable-next-line: no-require-imports
-require('@tensorflow/tfjs-backend-cpu');
+// tslint:disable-next-line: no-imports-from-dist
+import {Constraints, registerTestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-/**
- * This file is necessary so we register all test environments before we start
- * executing tests.
- */
-import {parseTestEnvFromKarmaFlags, setTestEnvs, TEST_ENVS} from './jasmine_util';
+export const WEBGL_ENVS: Constraints = {
+  predicate: testEnv => testEnv.backendName === 'webgl'
+};
+export const PACKED_ENVS: Constraints = {
+  flags: {'WEBGL_PACK': true}
+};
 
-// tslint:disable-next-line:no-any
-declare let __karma__: any;
-if (typeof __karma__ !== 'undefined') {
-  const testEnv = parseTestEnvFromKarmaFlags(__karma__.config.args, TEST_ENVS);
-  if (testEnv != null) {
-    setTestEnvs([testEnv]);
-  }
-}
+registerTestEnv({
+  name: 'webgl1',
+  backendName: 'webgl',
+  flags: {
+    'WEBGL_VERSION': 1,
+    'WEBGL_CPU_FORWARD': false,
+    'WEBGL_SIZE_UPLOAD_UNIFORM': 0
+  },
+  isDataSync: true
+});
+
+registerTestEnv({
+  name: 'webgl2',
+  backendName: 'webgl',
+  flags: {
+    'WEBGL_VERSION': 2,
+    'WEBGL_CPU_FORWARD': false,
+    'WEBGL_SIZE_UPLOAD_UNIFORM': 0
+  },
+  isDataSync: true
+});
