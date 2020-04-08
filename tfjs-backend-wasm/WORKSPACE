@@ -10,7 +10,7 @@ git_repository(
     name = "xnnpack",
     commit = "1841b1a240544214c279b9d3b8f91bacc69a206c",
     remote = "https://github.com/google/XNNPACK.git",
-    shallow_since = "1585100697 -0700",
+    shallow_since = "1586291019 -0700",
 )
 
 # The libraries below are transitive dependencies of XNNPACK that we need to
