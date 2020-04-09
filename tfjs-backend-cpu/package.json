@@ -47,13 +47,14 @@
     "build": "tsc",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
+    "build-deps": " yarn build-core && yarn build",
+    "build-deps-ci": "yarn build-core-ci && yarn build-ci",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "publish-npm": "npm publish",
     "lint": "tslint -p . -t verbose",
-    "test": "yarn build-core && karma start",
-    "run-browserstack": "karma start --browserstack",
+    "test": "yarn && yarn build-deps && ts-node run_tests.ts",
     "test-ci": "./scripts/test-ci.sh"
   },
   "dependencies": {
