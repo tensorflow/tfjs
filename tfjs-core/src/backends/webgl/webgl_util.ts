@@ -296,14 +296,23 @@ export function bindCanvasToFramebuffer(
 }
 
 export function bindColorTextureToFramebuffer(
-    gl: WebGLRenderingContext, debug: boolean, texture: WebGLTexture,
+    gl: WebGLRenderingContext, debug: boolean, textures: WebGLTexture[],
     framebuffer: WebGLFramebuffer) {
+  console.log('BIND COLOR TEXTURE TO FRAMEBUFFER');
   callAndCheck(
       gl, debug, () => gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer));
+
   callAndCheck(
       gl, debug,
       () => gl.framebufferTexture2D(
-          gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0));
+          (gl as any).FRAMEBUFFER, (gl as any).COLOR_ATTACHMENT0, gl.TEXTURE_2D,
+          textures[0], 0));
+
+  callAndCheck(
+      gl, debug,
+      () => gl.framebufferTexture2D(
+          (gl as any).FRAMEBUFFER, (gl as any).COLOR_ATTACHMENT1, gl.TEXTURE_2D,
+          textures[1], 0));
 }
 
 export function unbindColorTextureFromFramebuffer(

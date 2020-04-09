@@ -80,7 +80,7 @@ export interface TextureData {
 
   // Optional.
   values?: BackendValues;
-  texture?: WebGLTexture;
+  texture?: WebGLTexture[];
   // For complex numbers, the real and imaginary parts are stored as their own
   // individual tensors, with a parent joining the two with the
   // complexTensors field. When this is defined, texture will be null.

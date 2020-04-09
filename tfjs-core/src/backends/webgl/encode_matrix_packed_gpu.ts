@@ -105,7 +105,9 @@ export class EncodeMatrixPackedProgram implements GPGPUProgram {
 
         ${mainLoop}
 
-        ${glsl.output} = ${output};
+        // ${glsl.output} = ${output};
+        // buf_0 = ${output};
+        buf_1 = ${output};
       }
     `;
   }

@@ -215,7 +215,9 @@ export function runProgram<T extends Tensor, K extends Tensor>(
       gpgpu.gl.uniform1i(varOffsetLoc, input.texData.slice.flatOffset);
     }
 
-    gpgpu.setInputMatrixTexture(input.texData.texture, varLoc, i);
+    gpgpu.setInputMatrixTexture(
+        input.texData.texture[env().getNumber('DEBUG_COLOR_ATTACHMENT_INDEX')],
+        varLoc, i);
   });
 
   if (customSetup != null) {

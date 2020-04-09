@@ -148,56 +148,63 @@ export function bindVertexProgramAttributeStreams(
 }
 
 export function uploadDenseMatrixToTexture(
-    gl: WebGLRenderingContext, debug: boolean, texture: WebGLTexture,
+    gl: WebGLRenderingContext, debug: boolean, textures: WebGLTexture[],
     width: number, height: number, data: TypedArray,
     textureConfig: TextureConfig) {
-  webgl_util.callAndCheck(
-      gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, texture));
+  textures.forEach(texture => {
+    webgl_util.callAndCheck(
+        gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, texture));
 
-  let dataForUpload: TypedArray, texelDataType: number, internalFormat: number;
-  if (data instanceof Uint8Array) {
-    dataForUpload = new Uint8Array(width * height * 4);
-    texelDataType = gl.UNSIGNED_BYTE;
-    internalFormat = gl.RGBA;
-  } else {
-    dataForUpload = new Float32Array(width * height * 4);
-    texelDataType = gl.FLOAT;
-    internalFormat = textureConfig.internalFormatPackedFloat;
-  }
+    let dataForUpload: TypedArray, texelDataType: number,
+        internalFormat: number;
+    if (data instanceof Uint8Array) {
+      dataForUpload = new Uint8Array(width * height * 4);
+      texelDataType = gl.UNSIGNED_BYTE;
+      internalFormat = gl.RGBA;
+    } else {
+      dataForUpload = new Float32Array(width * height * 4);
+      texelDataType = gl.FLOAT;
+      internalFormat = textureConfig.internalFormatPackedFloat;
+    }
 
-  dataForUpload.set(data);
+    dataForUpload.set(data);
 
-  webgl_util.callAndCheck(
-      gl, debug,
-      () => gl.texImage2D(
-          gl.TEXTURE_2D, 0, internalFormat, width, height, 0, gl.RGBA,
-          texelDataType, dataForUpload));
+    webgl_util.callAndCheck(
+        gl, debug,
+        () => gl.texImage2D(
+            gl.TEXTURE_2D, 0, internalFormat, width, height, 0, gl.RGBA,
+            texelDataType, dataForUpload));
 
-  webgl_util.callAndCheck(gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, null));
+    webgl_util.callAndCheck(
+        gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, null));
+  });
 }
 
 export function uploadPixelDataToTexture(
-    gl: WebGLRenderingContext, debug: boolean, texture: WebGLTexture,
+    gl: WebGLRenderingContext, debug: boolean, textures: WebGLTexture[],
     pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
     HTMLVideoElement) {
-  webgl_util.callAndCheck(
-      gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, texture));
-  if ((pixels as PixelData).data instanceof Uint8Array) {
+  textures.forEach(texture => {
     webgl_util.callAndCheck(
-        gl, debug,
-        () => gl.texImage2D(
-            gl.TEXTURE_2D, 0, gl.RGBA, pixels.width, pixels.height, 0, gl.RGBA,
-            gl.UNSIGNED_BYTE, (pixels as PixelData).data));
-  } else {
-    webgl_util.callAndCheck(
-        gl, debug,
-        () => gl.texImage2D(
-            gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
-            pixels as ImageData | HTMLImageElement | HTMLCanvasElement |
-                HTMLVideoElement));
-  }
+        gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, texture));
+    if ((pixels as PixelData).data instanceof Uint8Array) {
+      webgl_util.callAndCheck(
+          gl, debug,
+          () => gl.texImage2D(
+              gl.TEXTURE_2D, 0, gl.RGBA, pixels.width, pixels.height, 0,
+              gl.RGBA, gl.UNSIGNED_BYTE, (pixels as PixelData).data));
+    } else {
+      webgl_util.callAndCheck(
+          gl, debug,
+          () => gl.texImage2D(
+              gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
+              pixels as ImageData | HTMLImageElement | HTMLCanvasElement |
+                  HTMLVideoElement));
+    }
 
-  webgl_util.callAndCheck(gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, null));
+    webgl_util.callAndCheck(
+        gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, null));
+  });
 }
 
 export function createBufferFromOutputTexture(
