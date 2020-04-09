@@ -24,6 +24,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {Rank, TensorLike} from '../types';
 import * as util from '../util';
 
+import {reshape} from './array_ops';
 import {warnDeprecation, xAs4D} from './batchnorm_util';
 import {op} from './operation';
 
@@ -120,7 +121,7 @@ function batchNorm_<R extends Rank>(
       forward, inputs as {} as NamedTensorMap, null /* gradient */,
       FusedBatchNorm, attrs as {} as NamedAttrMap);
 
-  return res.reshape($x.shape);
+  return reshape(res, $x.shape);
 }
 
 function as1DOr4D(x: Tensor): Tensor4D|Tensor1D {

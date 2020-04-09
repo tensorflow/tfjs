@@ -23,6 +23,7 @@ import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
+import {reshape} from './array_ops';
 import {op} from './operation';
 
 /**
@@ -64,7 +65,7 @@ function oneHot_(
   const result = ENGINE.runKernelFunc(
       forward, inputs as unknown as NamedTensorMap, null /* grad */, OneHot,
       attrs as unknown as NamedAttrMap);
-  return result.reshape(outShape);
+  return reshape(result, outShape);
 }
 
 export const oneHot = op({oneHot_});
