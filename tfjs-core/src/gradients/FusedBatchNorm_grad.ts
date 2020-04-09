@@ -16,10 +16,13 @@
  */
 import {FusedBatchNorm, FusedBatchNormAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
+import {add} from '../ops/add';
+import {reshape} from '../ops/array_ops';
 import {xAs4D} from '../ops/batchnorm_util';
+import {mul} from '../ops/binary_ops';
 import {getReductionAxes} from '../ops/broadcast_util';
-import {add, mul, reshape, sub} from '../ops/ops';
 import {sum} from '../ops/reduction_ops';
+import {sub} from '../ops/sub';
 import {scalar} from '../ops/tensor_ops';
 import {tile} from '../ops/tile';
 import {rsqrt} from '../ops/unary_ops';
