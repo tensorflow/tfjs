@@ -25,7 +25,6 @@ import {TensorLike} from '../types';
 
 import {assertAndGetBroadcastShape} from './broadcast_util';
 import {op} from './operation';
-import {scalar} from './tensor_ops';
 
 /**
  * Returns (a - b) * (a - b) element-wise.
