@@ -17,6 +17,7 @@
 
 // tslint:disable-next-line: no-imports-from-dist
 import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import * as fs from 'fs';
 
 // tslint:disable-next-line:no-require-imports
 const jasmineCtor = require('jasmine');
@@ -46,10 +47,13 @@ const env = jasmine.getEnv();
 env.specFilter = spec => {
   for (let i = 0; i < IGNORE_LIST.length; ++i) {
     if (spec.getFullName().indexOf(IGNORE_LIST[i]) > -1) {
+      fs.appendFileSync(
+          'testlog.txt', `${spec.getFullName()}_____skipped.\r\n`);
       return false;
     }
   }
 
+  fs.appendFileSync('testlog.txt', `${spec.getFullName()}.\r\n`);
   return true;
 };
 
