@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line: no-imports-from-dist
-import {setTestEnvs, setupTestFilters, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {parseTestEnvFromKarmaFlags, setTestEnvs, setupTestFilters, TEST_ENVS, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 setTestEnvs([{name: 'webgl', backendName: 'webgl', isDataSync: true}]);
 
@@ -31,6 +31,16 @@ const customInclude = (testName: string) => {
 };
 
 setupTestFilters(TEST_FILTERS, customInclude);
+
+// Allow flags to override test envs
+// tslint:disable-next-line:no-any
+declare let __karma__: any;
+if (typeof __karma__ !== 'undefined') {
+  const testEnv = parseTestEnvFromKarmaFlags(__karma__.config.args, TEST_ENVS);
+  if (testEnv != null) {
+    setTestEnvs([testEnv]);
+  }
+}
 
 // Import and run tests from core.
 // tslint:disable-next-line:no-imports-from-dist
