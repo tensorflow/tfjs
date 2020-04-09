@@ -528,6 +528,23 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
     expect(time.kernelMs > 0);
     expect(time.wallMs >= time.kernelMs);
   });
+
+  it('returns error for kernelMs if query timer extension is unavailable',
+     async () => {
+       const savedQueryReliableValue =
+           tf.env().get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE');
+       tf.env().set('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', false);
+
+       const a = tf.zeros([10, 10]);
+       const time = await tf.backend().time(() => a.sqrt()) as WebGLTimingInfo;
+       expect(time.kernelMs).toEqual({
+         error: 'WebGL query timers are not supported in this environment.'
+       });
+
+       tf.env().set(
+           'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE',
+           savedQueryReliableValue);
+     });
 });
 
 describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
