@@ -6,6 +6,10 @@
   version "0.0.0"
   uid ""
 
+"@tensorflow/tfjs-backend-webgl@link:../tfjs-backend-webgl":
+  version "0.0.0"
+  uid ""
+
 "@tensorflow/tfjs-core@link:../tfjs-core":
   version "0.0.0"
   uid ""
