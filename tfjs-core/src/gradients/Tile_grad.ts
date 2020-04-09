@@ -17,6 +17,7 @@
 
 import {Tile, TileAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
+import {add} from '../ops/add';
 import {zerosLike} from '../ops/tensor_ops';
 import {Tensor} from '../tensor';
 
@@ -33,22 +34,25 @@ export const tileGradConfig: GradConfig = {
       // slicing.
       if (x.rank === 1) {
         for (let i = 0; i < reps[0]; ++i) {
-          xGrad = xGrad.add(dy.slice([i * x.shape[0]], [x.shape[0]]));
+          xGrad = add(xGrad, dy.slice([i * x.shape[0]], [x.shape[0]]));
         }
       } else if (x.rank === 2) {
         for (let i = 0; i < reps[0]; ++i) {
           for (let j = 0; j < reps[1]; ++j) {
-            xGrad = xGrad.add(dy.slice(
-                [i * x.shape[0], j * x.shape[1]], [x.shape[0], x.shape[1]]));
+            xGrad = add(xGrad, dy.slice([i * x.shape[0], j * x.shape[1]], [
+              x.shape[0], x.shape[1]
+            ]));
           }
         }
       } else if (x.rank === 3) {
         for (let i = 0; i < reps[0]; ++i) {
           for (let j = 0; j < reps[1]; ++j) {
             for (let k = 0; k < reps[2]; ++k) {
-              xGrad = xGrad.add(dy.slice(
-                  [i * x.shape[0], j * x.shape[1], k * x.shape[2]],
-                  [x.shape[0], x.shape[1], x.shape[2]]));
+              xGrad =
+                  add(xGrad,
+                      dy.slice(
+                          [i * x.shape[0], j * x.shape[1], k * x.shape[2]],
+                          [x.shape[0], x.shape[1], x.shape[2]]));
             }
           }
         }
@@ -57,12 +61,14 @@ export const tileGradConfig: GradConfig = {
           for (let j = 0; j < reps[1]; ++j) {
             for (let k = 0; k < reps[2]; ++k) {
               for (let l = 0; l < reps[3]; ++l) {
-                xGrad = xGrad.add(dy.slice(
-                    [
-                      i * x.shape[0], j * x.shape[1], k * x.shape[2],
-                      l * x.shape[3]
-                    ],
-                    [x.shape[0], x.shape[1], x.shape[2], x.shape[3]]));
+                xGrad =
+                    add(xGrad,
+                        dy.slice(
+                            [
+                              i * x.shape[0], j * x.shape[1], k * x.shape[2],
+                              l * x.shape[3]
+                            ],
+                            [x.shape[0], x.shape[1], x.shape[2], x.shape[3]]));
               }
             }
           }
