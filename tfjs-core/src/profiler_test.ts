@@ -15,176 +15,144 @@
  * =============================================================================
  */
 
-// import {WEBGL_ENVS} from
-// '../../tfjs-backend-webgl/src/backend_webgl_test_registry';
+import {BackendTimer, BackendTimingInfo} from './backends/backend';
+import * as tf from './index';
+import {describeWithFlags, SYNC_BACKEND_ENVS} from './jasmine_util';
+import {checkComputationForErrors, Logger, Profiler} from './profiler';
+import {Tensor} from './tensor';
+import {TypedArray} from './types';
 
-// import {BackendTimer, BackendTimingInfo} from './backends/backend';
-// import * as tf from './index';
-// import {describeWithFlags, SYNC_BACKEND_ENVS} from './jasmine_util';
-// import {checkComputationForErrors, Logger, Profiler} from './profiler';
-// import {Tensor} from './tensor';
-// import {TypedArray} from './types';
+class TestBackendTimer implements BackendTimer {
+  private counter = 1;
+  constructor(
+      private delayMs: number, private queryTimeMs: number,
+      private extraInfo: string) {}
 
-// class TestBackendTimer implements BackendTimer {
-//   private counter = 1;
-//   constructor(
-//       private delayMs: number, private queryTimeMs: number,
-//       private extraInfo: string) {}
+  async time(query: () => void): Promise<BackendTimingInfo> {
+    query();
+    const kernelMs = await new Promise<number>(
+        resolve => setTimeout(
+            () => resolve(this.queryTimeMs * this.counter++), this.delayMs));
+    return {kernelMs, getExtraProfileInfo: () => this.extraInfo};
+  }
+}
 
-//   async time(query: () => void): Promise<BackendTimingInfo> {
-//     query();
-//     const kernelMs = await new Promise<number>(
-//         resolve => setTimeout(
-//             () => resolve(this.queryTimeMs * this.counter++), this.delayMs));
-//     return {kernelMs, getExtraProfileInfo: () => this.extraInfo};
-//   }
-// }
+class TestLogger extends Logger {
+  logKernelProfile(
+      name: string, result: Tensor, vals: TypedArray, timeMs: number) {}
+}
 
-// class TestLogger extends Logger {
-//   logKernelProfile(
-//       name: string, result: Tensor, vals: TypedArray, timeMs: number) {}
-// }
+describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
+  it('profiles simple function', doneFn => {
+    const delayMs = 5;
+    const queryTimeMs = 10;
+    const inputs = {'x': tf.tensor1d([1])};
+    const extraInfo = '';
+    const timer = new TestBackendTimer(delayMs, queryTimeMs, extraInfo);
+    const logger = new TestLogger();
+    const profiler = new Profiler(timer, logger);
 
-// describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
-//   it('profiles simple function', doneFn => {
-//     const delayMs = 5;
-//     const queryTimeMs = 10;
-//     const inputs = {'x': tf.tensor1d([1])};
-//     const extraInfo = '';
-//     const timer = new TestBackendTimer(delayMs, queryTimeMs, extraInfo);
-//     const logger = new TestLogger();
-//     const profiler = new Profiler(timer, logger);
+    spyOn(timer, 'time').and.callThrough();
+    spyOn(logger, 'logKernelProfile').and.callThrough();
 
-//     spyOn(timer, 'time').and.callThrough();
-//     spyOn(logger, 'logKernelProfile').and.callThrough();
+    const timeSpy = timer.time as jasmine.Spy;
+    const logKernelProfileSpy = logger.logKernelProfile as jasmine.Spy;
 
-//     const timeSpy = timer.time as jasmine.Spy;
-//     const logKernelProfileSpy = logger.logKernelProfile as jasmine.Spy;
+    let kernelCalled = false;
+    const result = 1;
+    const resultScalar = tf.scalar(result);
 
-//     let kernelCalled = false;
-//     const result = 1;
-//     const resultScalar = tf.scalar(result);
+    profiler.profileKernel('MatMul', inputs, () => {
+      kernelCalled = true;
+      return [resultScalar];
+    });
 
-//     profiler.profileKernel('MatMul', inputs, () => {
-//       kernelCalled = true;
-//       return [resultScalar];
-//     });
+    setTimeout(() => {
+      expect(timeSpy.calls.count()).toBe(1);
 
-//     setTimeout(() => {
-//       expect(timeSpy.calls.count()).toBe(1);
+      expect(logKernelProfileSpy.calls.count()).toBe(1);
 
-//       expect(logKernelProfileSpy.calls.count()).toBe(1);
+      expect(logKernelProfileSpy.calls.first().args).toEqual([
+        'MatMul', resultScalar, new Float32Array([result]), queryTimeMs, inputs,
+        extraInfo
+      ]);
 
-//       expect(logKernelProfileSpy.calls.first().args).toEqual([
-//         'MatMul', resultScalar, new Float32Array([result]), queryTimeMs,
-//         inputs, extraInfo
-//       ]);
+      expect(kernelCalled).toBe(true);
+      doneFn();
+    }, delayMs * 2);
+  });
 
-//       expect(kernelCalled).toBe(true);
-//       doneFn();
-//     }, delayMs * 2);
-//   });
+  it('profiles nested kernel', doneFn => {
+    const delayMs = 5;
+    const queryTimeMs = 10;
+    const inputs = {'x': tf.tensor1d([1])};
+    const extraInfo = '';
+    const timer = new TestBackendTimer(delayMs, queryTimeMs, extraInfo);
+    const logger = new TestLogger();
+    const profiler = new Profiler(timer, logger);
 
-//   it('profiles nested kernel', doneFn => {
-//     const delayMs = 5;
-//     const queryTimeMs = 10;
-//     const inputs = {'x': tf.tensor1d([1])};
-//     const extraInfo = '';
-//     const timer = new TestBackendTimer(delayMs, queryTimeMs, extraInfo);
-//     const logger = new TestLogger();
-//     const profiler = new Profiler(timer, logger);
+    spyOn(timer, 'time').and.callThrough();
+    spyOn(logger, 'logKernelProfile').and.callThrough();
+    const timeSpy = timer.time as jasmine.Spy;
+    const logKernelProfileSpy = logger.logKernelProfile as jasmine.Spy;
 
-//     spyOn(timer, 'time').and.callThrough();
-//     spyOn(logger, 'logKernelProfile').and.callThrough();
-//     const timeSpy = timer.time as jasmine.Spy;
-//     const logKernelProfileSpy = logger.logKernelProfile as jasmine.Spy;
+    let matmulKernelCalled = false;
+    let maxKernelCalled = false;
+    const result = 1;
+    const resultScalar = tf.scalar(result);
 
-//     let matmulKernelCalled = false;
-//     let maxKernelCalled = false;
-//     const result = 1;
-//     const resultScalar = tf.scalar(result);
+    profiler.profileKernel('MatMul', inputs, () => {
+      const result = profiler.profileKernel('Max', inputs, () => {
+        maxKernelCalled = true;
+        return [resultScalar];
+      });
+      matmulKernelCalled = true;
+      return result;
+    });
 
-//     profiler.profileKernel('MatMul', inputs, () => {
-//       const result = profiler.profileKernel('Max', inputs, () => {
-//         maxKernelCalled = true;
-//         return [resultScalar];
-//       });
-//       matmulKernelCalled = true;
-//       return result;
-//     });
+    setTimeout(() => {
+      expect(timeSpy.calls.count()).toBe(2);
 
-//     setTimeout(() => {
-//       expect(timeSpy.calls.count()).toBe(2);
+      expect(logKernelProfileSpy.calls.count()).toBe(2);
+      expect(logKernelProfileSpy.calls.first().args).toEqual([
+        'Max', resultScalar, new Float32Array([result]), queryTimeMs, inputs,
+        extraInfo
+      ]);
+      expect(logKernelProfileSpy.calls.argsFor(1)).toEqual([
+        'MatMul', resultScalar, new Float32Array([result]), queryTimeMs * 2,
+        inputs, extraInfo
+      ]);
 
-//       expect(logKernelProfileSpy.calls.count()).toBe(2);
-//       expect(logKernelProfileSpy.calls.first().args).toEqual([
-//         'Max', resultScalar, new Float32Array([result]), queryTimeMs, inputs,
-//         extraInfo
-//       ]);
-//       expect(logKernelProfileSpy.calls.argsFor(1)).toEqual([
-//         'MatMul', resultScalar, new Float32Array([result]), queryTimeMs * 2,
-//         inputs, extraInfo
-//       ]);
+      expect(matmulKernelCalled).toBe(true);
+      expect(maxKernelCalled).toBe(true);
+      doneFn();
+    }, delayMs * 2);
+  });
+});
 
-//       expect(matmulKernelCalled).toBe(true);
-//       expect(maxKernelCalled).toBe(true);
-//       doneFn();
-//     }, delayMs * 2);
-//   });
-// });
+describe('profiler.checkComputationForErrors', () => {
+  beforeAll(() => {
+    // Silence warnings.
+    spyOn(console, 'warn');
+  });
 
-// describeWithFlags('profiling WebGL', WEBGL_ENVS, () => {
-//   it('If query timer extension is unavailable, profiler ' +
-//          'reports an error for kernelMs.',
-//      doneFn => {
-//        const savedQueryReliableValue =
-//            tf.env().get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE');
-//        tf.env().set('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', false);
+  it('Float32Array has NaN', () => {
+    expect(checkComputationForErrors(
+               new Float32Array([1, 2, 3, NaN, 4, 255]), 'float32', 'test'))
+        .toBe(true);
+  });
 
-//        const logger = new TestLogger();
-//        const profiler = new Profiler(tf.backend(), logger);
+  it('Float32Array has Infinity', () => {
+    expect(
+        checkComputationForErrors(
+            new Float32Array([1, 2, 3, Infinity, 4, 255]), 'float32', 'test'))
+        .toBe(true);
+  });
 
-//        spyOn(logger, 'logKernelProfile').and.callThrough();
-//        const logKernelProfileSpy = logger.logKernelProfile as jasmine.Spy;
-
-//        profiler.profileKernel(
-//            'MatMul', {'x': tf.tensor1d([1])}, () => [tf.scalar(1)]);
-
-//        setTimeout(() => {
-//          expect(logKernelProfileSpy.calls.first().args[3]['error'])
-//              .toBeDefined();
-//          tf.env().set(
-//              'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE',
-//              savedQueryReliableValue);
-//          doneFn();
-//        }, 0);
-//      });
-// });
-
-// describe('profiler.checkComputationForErrors', () => {
-//   beforeAll(() => {
-//     // Silence warnings.
-//     spyOn(console, 'warn');
-//   });
-
-//   it('Float32Array has NaN', () => {
-//     expect(checkComputationForErrors(
-//                new Float32Array([1, 2, 3, NaN, 4, 255]), 'float32', 'test'))
-//         .toBe(true);
-//   });
-
-//   it('Float32Array has Infinity', () => {
-//     expect(
-//         checkComputationForErrors(
-//             new Float32Array([1, 2, 3, Infinity, 4, 255]), 'float32',
-//             'test'))
-//         .toBe(true);
-//   });
-
-//   it('Float32Array no NaN', () => {
-//     // Int32 and Bool NaNs should not trigger an error.
-//     expect(checkComputationForErrors(
-//                new Float32Array([1, 2, 3, -1, 4, 255]), 'float32', 'test'))
-//         .toBe(false);
-//   });
-// });
+  it('Float32Array no NaN', () => {
+    // Int32 and Bool NaNs should not trigger an error.
+    expect(checkComputationForErrors(
+               new Float32Array([1, 2, 3, -1, 4, 255]), 'float32', 'test'))
+        .toBe(false);
+  });
+});
