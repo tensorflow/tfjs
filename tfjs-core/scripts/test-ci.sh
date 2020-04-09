@@ -16,6 +16,7 @@
 
 set -e
 
+yarn build-deps-ci
 yarn lint
 # Test in node (headless environment).
 yarn test-node-ci
