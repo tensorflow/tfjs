@@ -52,9 +52,8 @@
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "publish-npm": "npm publish",
     "lint": "tslint -p . -t verbose",
-    "test": "yarn build-core && karma start",
-    "run-browserstack": "karma start --browserstack",
-    "test-ci": "./scripts/test-ci.sh"
+    "test": "yarn build-core && ts-node run_tests.ts",
+    "test-ci": "yarn lint && yarn build-ci && ts-node run_tests.ts"
   },
   "dependencies": {
     "@types/seedrandom": "2.4.27",
