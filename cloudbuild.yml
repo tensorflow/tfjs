@@ -32,6 +32,14 @@ steps:
   waitFor: ['find-affected-packages']
   env: ['NIGHTLY=$_NIGHTLY']
 
+# Webgl backend.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'tfjs-backend-webgl'
+  args: ['./scripts/run-build.sh', 'tfjs-backend-webgl']
+  waitFor: ['find-affected-packages']
+  env: ['NIGHTLY=$_NIGHTLY']
+
 # Converter.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'

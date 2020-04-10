@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,5 +15,19 @@
  * =============================================================================
  */
 
-import '@tensorflow/tfjs-backend-cpu';
-import '@tensorflow/tfjs-backend-webgl';
+import {Div, DivInputs} from '@tensorflow/tfjs-core';
+import {KernelConfig} from '@tensorflow/tfjs-core';
+import {MathBackendWebGL} from '../backend_webgl';
+import {divImpl} from './Div_impl';
+
+export const divConfig: KernelConfig = {
+  kernelName: Div,
+  backendName: 'webgl',
+  kernelFunc: ({inputs, backend}) => {
+    const {a, b} = inputs as DivInputs;
+
+    const webglBackend = backend as MathBackendWebGL;
+
+    return divImpl(a, b, webglBackend);
+  }
+};

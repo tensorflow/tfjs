@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,5 +15,18 @@
  * =============================================================================
  */
 
-import '@tensorflow/tfjs-backend-cpu';
-import '@tensorflow/tfjs-backend-webgl';
+import {KernelConfig, Square, SquareInputs} from '@tensorflow/tfjs-core';
+
+import {MathBackendWebGL} from '../backend_webgl';
+import {SQUARE, UnaryOpProgram} from '../unaryop_gpu';
+
+export const squareConfig: KernelConfig = {
+  kernelName: Square,
+  backendName: 'webgl',
+  kernelFunc: ({inputs, backend}) => {
+    const {x} = inputs as SquareInputs;
+    const webglBackend = backend as MathBackendWebGL;
+    const program = new UnaryOpProgram(x.shape, SQUARE);
+    return webglBackend.runWebGLProgram(program, [x], x.dtype);
+  }
+};

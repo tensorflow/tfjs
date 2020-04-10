@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,20 +15,24 @@
  * =============================================================================
  */
 
-// Register the CPU backend as a default backend for tests.
-// This is a circular dependency which we only need to run tests.
-// Using require allows tsc to still compile the library.
-// tslint:disable-next-line: no-require-imports
-require('@tensorflow/tfjs-backend-cpu');
-/**
- * This file is necessary so we register all test environments before we start
- * executing tests.
- */
-import {parseTestEnvFromKarmaFlags, setTestEnvs, TEST_ENVS} from './jasmine_util';
+// tslint:disable-next-line: no-imports-from-dist
+import {parseTestEnvFromKarmaFlags, setTestEnvs, setupTestFilters, TEST_ENVS, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-// Set up a CPU test env as the default test env
-setTestEnvs([{name: 'cpu', backendName: 'cpu', isDataSync: true}]);
+setTestEnvs([{name: 'webgl', backendName: 'webgl', isDataSync: true}]);
 
+const TEST_FILTERS: TestFilter[] = [];
+const customInclude = (testName: string) => {
+  // Exclude webworker test
+  if (testName.includes('computation in worker')) {
+    return false;
+  }
+  // Include all other tests.
+  return true;
+};
+
+setupTestFilters(TEST_FILTERS, customInclude);
+
+// Allow flags to override test envs
 // tslint:disable-next-line:no-any
 declare let __karma__: any;
 if (typeof __karma__ !== 'undefined') {
@@ -37,3 +41,7 @@ if (typeof __karma__ !== 'undefined') {
     setTestEnvs([testEnv]);
   }
 }
+
+// Import and run tests from core.
+// tslint:disable-next-line:no-imports-from-dist
+import '@tensorflow/tfjs-core/dist/tests';
