@@ -2461,7 +2461,7 @@ karma-jasmine@~1.1.1:
   resolved "https://registry.yarnpkg.com/karma-jasmine/-/karma-jasmine-1.1.2.tgz#394f2b25ffb4a644b9ada6f22d443e2fd08886c3"
   integrity sha1-OU8rJf+0pkS5rabyLUQ+L9CIhsM=
 
-karma-typescript-es6-transform@^5.0.1:
+karma-typescript-es6-transform@^5.0.2:
   version "5.0.2"
   resolved "https://registry.yarnpkg.com/karma-typescript-es6-transform/-/karma-typescript-es6-transform-5.0.2.tgz#c2d722f49fd3e145bbbf7369bb7276db2b9b1a17"
   integrity sha512-5uSn3n03eZtLA2/2WLtvfZ6O/PswomENTdeY9/mbIxsX3DCh2rvl80Lfk2+jELaPPx7gnAfJCaFcP4mWtqvOpA==
@@ -2472,7 +2472,7 @@ karma-typescript-es6-transform@^5.0.1:
     log4js "^6.1.2"
     magic-string "^0.25.7"
 
-karma-typescript@~5.0.1:
+karma-typescript@~5.0.2:
   version "5.0.2"
   resolved "https://registry.yarnpkg.com/karma-typescript/-/karma-typescript-5.0.2.tgz#f5c118b0d7d3ba2711afaebbc48e583f39eae1f6"
   integrity sha512-cq3ETrnYMynLvUt29bqZhKMCHHDcqx0v0SfcsFqQsn/WWbMqXHNZq9dOLVXt6t3PiqfL0SLGq317LSNVmgLtqw==
