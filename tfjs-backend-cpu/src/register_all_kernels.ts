@@ -17,7 +17,7 @@
 // We explicitly import the modular kernels so they get registered in the
 // global registry when we compile the library. A modular build would replace
 // the contents of this file and import only the kernels that are needed.
-import {KernelConfig, registerKernel} from '../../kernel_registry';
+import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
 import {divConfig} from './kernels/Div';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';

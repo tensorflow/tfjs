@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,19 +15,14 @@
  * =============================================================================
  */
 
-import '@tensorflow/tfjs-backend-cpu';
-// tslint:disable-next-line: no-imports-from-dist
-import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {SquaredDifference} from '@tensorflow/tfjs-core';
+import {createBinaryKernelImpl} from '../utils/kernel_utils';
+import {createBinaryKernelConfig} from '../utils/kernel_utils';
 
-// tslint:disable-next-line:no-require-imports
-const jasmine = require('jasmine');
-
-process.on('unhandledRejection', e => {
-  throw e;
+const squaredDifferenceImpl = createBinaryKernelImpl((aVal, bVal) => {
+  const diff = aVal - bVal;
+  return diff * diff;
 });
 
-setTestEnvs([{name: 'node', backendName: 'cpu'}]);
-
-const runner = new jasmine();
-runner.loadConfig({spec_files: ['src/**/*_test.ts'], random: false});
-runner.execute();
+export const squaredDifferenceConfig =
+    createBinaryKernelConfig(SquaredDifference, squaredDifferenceImpl);

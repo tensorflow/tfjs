@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
-import * as backend_util from '../../../backends/backend_util';
-import {BinaryInputs} from '../../../kernel_names';
-import {KernelConfig} from '../../../kernel_registry';
-import {DataType, NumericDataType, TypedArray} from '../../../types';
-import * as util from '../../../util';
+import {BinaryInputs, KernelConfig} from '@tensorflow/tfjs-core';
+import {DataType, NumericDataType, TypedArray} from '@tensorflow/tfjs-core';
+import {backend_util} from '@tensorflow/tfjs-core';
+
+import {util} from '@tensorflow/tfjs-core';
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 

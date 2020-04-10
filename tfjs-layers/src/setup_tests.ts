@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,19 +15,4 @@
  * =============================================================================
  */
 
-import {TensorInfo} from '../../kernel_registry';
-import {assert} from '../../util';
-
-export function assertNotComplex(
-    tensor: TensorInfo|TensorInfo[], opName: string): void {
-  if (!Array.isArray(tensor)) {
-    tensor = [tensor];
-  }
-  tensor.forEach(t => {
-    if (t != null) {
-      assert(
-          t.dtype !== 'complex64',
-          () => `${opName} does not support complex64 tensors.`);
-    }
-  });
-}
+import '@tensorflow/tfjs-backend-cpu';

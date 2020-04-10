@@ -15,10 +15,8 @@
  * =============================================================================
  */
 
-import {MaxPoolWithArgmax, MaxPoolWithArgmaxAttrs, MaxPoolWithArgmaxInputs} from '../../../kernel_names';
-import {KernelConfig} from '../../../kernel_registry';
-import * as conv_util from '../../../ops/conv_util';
-import {TypedArray} from '../../../types';
+import {MaxPoolWithArgmax, MaxPoolWithArgmaxAttrs, MaxPoolWithArgmaxInputs} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, TypedArray} from '@tensorflow/tfjs-core';
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 
@@ -35,7 +33,7 @@ export const maxPoolWithArgmaxConfig: KernelConfig = {
     assertNotComplex(x, 'MaxPoolWithArgmax');
 
     const values = cpuBackend.data.get(x.dataId).values as TypedArray;
-    const convInfo = conv_util.computePool2DInfo(
+    const convInfo = backend_util.computePool2DInfo(
         x.shape as [number, number, number, number], filterSize, strides,
         [1, 1], pad);
     const [pooled, indexes] = maxPoolWithArgmaxImpl(

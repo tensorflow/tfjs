@@ -14,15 +14,16 @@
  * limitations under the License.
  * =============================================================================
  */
+import {backend_util, DataType, TypedArray, util} from '@tensorflow/tfjs-core';
 
-import {SquaredDifference} from '../../../kernel_names';
-import {createBinaryKernelImpl} from '../utils/kernel_utils';
-import {createBinaryKernelConfig} from '../utils/kernel_utils';
+import {maxPoolPositions, pool} from '../utils/pool_utils';
+export function maxPoolWithArgmaxImpl(
+    xValues: TypedArray, xShape: number[], dtype: DataType,
+    includeBatchInIndex: boolean, convInfo: backend_util.Conv2DInfo) {
+  const strides = util.computeStrides(xShape);
+  const maxPools = pool(xValues, xShape, dtype, strides, convInfo, 'max');
+  const maxPositions = maxPoolPositions(
+      xValues, xShape, dtype, convInfo, true, includeBatchInIndex);
 
-const squaredDifferenceImpl = createBinaryKernelImpl((aVal, bVal) => {
-  const diff = aVal - bVal;
-  return diff * diff;
-});
-
-export const squaredDifferenceConfig =
-    createBinaryKernelConfig(SquaredDifference, squaredDifferenceImpl);
+  return [maxPools.values, maxPositions.values];
+}
