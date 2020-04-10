@@ -18,18 +18,4 @@ set -e
 
 yarn lint
 yarn build-ci
-
-if [ "$NIGHTLY" = true ]
-then
-  # Run the first karma separately so it can download the BrowserStack binary
-  # without conflicting with others.
-  yarn run-browserstack --browsers=bs_safari_mac,bs_ios_11
-
-  # Run the rest of the karma tests in parallel. These runs will reuse the
-  # already downloaded binary.
-  npm-run-all -p -c --aggregate-output \
-    "run-browserstack --browsers=bs_android_9" \
-    "run-browserstack --browsers=bs_firefox_mac,bs_chrome_mac" \
-else
-  yarn run-browserstack --browsers=bs_chrome_mac
-fi
+ts-node run_tests.ts

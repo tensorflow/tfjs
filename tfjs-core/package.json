@@ -53,7 +53,7 @@
     "yargs": "~13.2.2"
   },
   "scripts": {
-    "build-ci": "./scripts/enumerate-tests.js --ci && tsc && yarn build-test-snippets",
+    "build-ci": "./scripts/enumerate-tests.js --ci && tsc && yarn build-deps-ci && yarn build-test-snippets",
     "build": "node ./scripts/enumerate-tests.js && tsc",
     "build-npm": "./scripts/build-npm.sh",
     "build-deps": "yarn build-cpu-backend",
