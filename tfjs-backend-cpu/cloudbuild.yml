@@ -27,7 +27,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-backend-cpu'
   args: ['test-ci']
-  waitFor: ['build-core']
+  waitFor: ['build-deps']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
 
