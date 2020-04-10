@@ -48,7 +48,7 @@
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
     "build-deps": "yarn build-core && yarn build",
-    "build-deps-ci": "yarn build-core-ci && yarn build",
+    "build-deps-ci": "yarn build-core-ci && yarn build-ci",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
