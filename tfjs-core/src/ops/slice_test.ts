@@ -523,10 +523,6 @@ describeWithFlags('slice ergonomics', ALL_ENVS, () => {
 });
 
 describeWithFlags('shallow slicing', ALL_ENVS, () => {
-  // beforeAll(() => {
-  //   tf.env().set('WEBGL_CPU_FORWARD', false);
-  // });
-
   it('shallow slice an input that was cast', async () => {
     const a = tf.tensor([[1, 2], [3, 4]], [2, 2], 'int32');
     const b = a.toFloat();

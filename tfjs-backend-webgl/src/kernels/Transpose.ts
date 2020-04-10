@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {Transpose, TransposeAttrs, TransposeInputs} from '@tensorflow/tfjs-core';
-import {KernelConfig, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
+import {KernelConfig, TensorInfo, Transpose, TransposeAttrs, TransposeInputs, TypedArray} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 

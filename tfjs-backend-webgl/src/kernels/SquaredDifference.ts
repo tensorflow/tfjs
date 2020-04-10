@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {SquaredDifference, SquaredDifferenceInputs} from '@tensorflow/tfjs-core';
-import {env, KernelConfig} from '@tensorflow/tfjs-core';
+import {env, KernelConfig, SquaredDifference, SquaredDifferenceInputs} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {BinaryOpProgram} from '../binaryop_gpu';

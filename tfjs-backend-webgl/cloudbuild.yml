@@ -5,7 +5,7 @@ steps:
   entrypoint: 'yarn'
   args: ['install']
 
-# Install webgpu dependencies.
+# Install webgl dependencies.
 - name: 'node:10'
   dir: 'tfjs-backend-webgl'
   id: 'yarn'

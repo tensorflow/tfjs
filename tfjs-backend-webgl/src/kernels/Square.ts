@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {Square, SquareInputs} from '@tensorflow/tfjs-core';
-import {KernelConfig} from '@tensorflow/tfjs-core';
+import {KernelConfig, Square, SquareInputs} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {SQUARE, UnaryOpProgram} from '../unaryop_gpu';
