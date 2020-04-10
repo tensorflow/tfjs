@@ -19,8 +19,7 @@ import {NamedAttrMap} from '../kernel_registry';
 import {GradConfig} from '../kernel_registry';
 import {getUndoAxesPermutation} from '../ops/axis_util';
 import {unsortedSegmentSum} from '../ops/segment_ops';
-import {Tensor1D} from '../tensor';
-import {Tensor} from '../tensor';
+import {Tensor, Tensor1D} from '../tensor';
 
 export const gatherGradConfig: GradConfig = {
   kernelName: Gather,
