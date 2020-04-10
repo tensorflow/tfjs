@@ -54,7 +54,7 @@
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "publish-npm": "npm publish",
     "lint": "tslint -p . -t verbose",
-    "test": "yarn && yarn build-deps && karma start",
+    "test": "yarn && yarn build-deps && ts-node run_tests.ts",
     "test-ci": "yarn lint && yarn build-ci && ts-node run_tests.ts"
   },
   "dependencies": {
