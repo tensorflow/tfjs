@@ -16,8 +16,7 @@
  */
 
 // tslint:disable-next-line: no-imports-from-dist
-import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
-import * as fs from 'fs';
+import {setTestEnvs, setupTestFilters, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 // tslint:disable-next-line:no-require-imports
 const jasmineCtor = require('jasmine');
@@ -31,30 +30,23 @@ process.on('unhandledRejection', e => {
 
 setTestEnvs([{name: 'cpu', backendName: 'cpu', isDataSync: true}]);
 
-const IGNORE_LIST: string[] = [
-  // Exclude webworker tests.
-  'computation in worker'
-];
-
 const coreTests = 'node_modules/@tensorflow/tfjs-core/dist/**/*_test.js';
 const cpuTests = 'src/**/*_test.ts';
 
 const runner = new jasmineCtor();
 runner.loadConfig({spec_files: [coreTests, cpuTests], random: false});
 
-const env = jasmine.getEnv();
-
-env.specFilter = spec => {
-  for (let i = 0; i < IGNORE_LIST.length; ++i) {
-    if (spec.getFullName().indexOf(IGNORE_LIST[i]) > -1) {
-      fs.appendFileSync(
-          'testlog.txt', `${spec.getFullName()}_____skipped.\r\n`);
-      return false;
-    }
+// customInclude takes higher priority then TEST_FILTERS, only when
+// customInclude return false will TEST_FILTERS be considered.
+const TEST_FILTERS: TestFilter[] = [];
+const customInclude = (testName: string) => {
+  // Exclude webworker test
+  if (testName.includes('computation in worker')) {
+    return false;
   }
-
-  fs.appendFileSync('testlog.txt', `${spec.getFullName()}.\r\n`);
+  // Include all other tests.
   return true;
 };
+setupTestFilters(TEST_FILTERS, customInclude);
 
 runner.execute();
