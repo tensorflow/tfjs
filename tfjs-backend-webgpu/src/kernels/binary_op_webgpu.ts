@@ -52,16 +52,38 @@ export class BinaryOpProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [16, 1, 1];
 
   constructor(op: string, aShape: number[], bShape: number[]) {
-    this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
-    const size = util.sizeFromShape(this.outputShape);
+    if (util.arraysEqual(aShape, bShape) &&
+        util.sizeFromShape(aShape) % 16 === 0) {
+      this.outputShape = aShape;
+      this.dispatchLayout = flatDispatchLayout(this.outputShape);
+      this.dispatch = computeDispatch(
+          this.dispatchLayout, this.outputShape, this.workGroupSize);
+      this.userCode = `
+          float binaryOperation(float a, float b) {
+            ${op}
+          }
 
-    this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
-    const type = getCoordsDataType(this.outputShape.length);
+          void main() {
+            int index = int(gl_GlobalInvocationID.x);
 
-    this.userCode = `
+            float a = A[index];
+            float b = B[index];
+            setOutput(index, binaryOperation(a, b));
+          }
+        `;
+      this.shaderKey = `binary2${op}`;
+    } else {
+      this.outputShape =
+          backend_util.assertAndGetBroadcastShape(aShape, bShape);
+      const size = util.sizeFromShape(this.outputShape);
+
+      this.dispatchLayout = flatDispatchLayout(this.outputShape);
+      this.dispatch = computeDispatch(
+          this.dispatchLayout, this.outputShape, this.workGroupSize,
+          [this.workPerThread, 1, 1]);
+      const type = getCoordsDataType(this.outputShape.length);
+
+      this.userCode = `
       float binaryOperation(float a, float b) {
         ${op}
       }
@@ -82,6 +104,7 @@ export class BinaryOpProgram implements WebGPUProgram {
         }
       }
     `;
-    this.shaderKey = `binary${op}${type}${size}`;
+      this.shaderKey = `binary${op}${type}${size}`;
+    }
   }
 }

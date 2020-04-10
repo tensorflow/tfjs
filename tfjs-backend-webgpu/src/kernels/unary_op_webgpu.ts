@@ -43,13 +43,28 @@ export class UnaryOpProgram implements WebGPUProgram {
   constructor(outputShape: number[], op: string) {
     this.outputShape = outputShape;
     const size = util.sizeFromShape(this.outputShape);
-
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
-    const type = getCoordsDataType(this.outputShape.length);
-    this.userCode = `
+    if (size % 16 === 0) {
+      this.dispatch = computeDispatch(
+          this.dispatchLayout, this.outputShape, this.workGroupSize);
+      this.userCode = `
+      float unaryOperation(float a) {
+        ${op}
+      }
+
+      void main() {
+        int index = int(gl_GlobalInvocationID.x);
+        float a = A[index];
+        setOutput(index, unaryOperation(a));
+      }
+    `;
+      this.shaderKey = `unary2${op}`;
+    } else {
+      this.dispatch = computeDispatch(
+          this.dispatchLayout, this.outputShape, this.workGroupSize,
+          [this.workPerThread, 1, 1]);
+      const type = getCoordsDataType(this.outputShape.length);
+      this.userCode = `
       float unaryOperation(float a) {
         ${op}
       }
@@ -69,6 +84,7 @@ export class UnaryOpProgram implements WebGPUProgram {
         }
       }
     `;
-    this.shaderKey = `unary${op}${type}${size}`;
+      this.shaderKey = `unary${op}${type}${size}`;
+    }
   }
 }
