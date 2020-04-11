@@ -25,6 +25,6 @@ export const squareGradConfig: GradConfig = {
   inputsToSave: ['x'],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
     const [x] = saved;
-    return {x: () => mul(dy, x.toFloat().mul(2))};
+    return {x: () => mul(dy, mul(x.toFloat(), 2))};
   }
 };
