@@ -56,16 +56,17 @@ function oneHot_(
 
   const forward: ForwardFunc<Tensor> = (backend, save) => {
     save([$indices]);
-    return backend.oneHot($indices as Tensor1D, depth, onValue, offValue);
+    return reshape(
+        backend.oneHot($indices as Tensor1D, depth, onValue, offValue),
+        outShape);
   };
 
   const inputs: OneHotInputs = {indices: $indices};
   const attrs: OneHotAttrs = {depth, onValue, offValue};
 
-  const result = ENGINE.runKernelFunc(
+  return ENGINE.runKernelFunc(
       forward, inputs as unknown as NamedTensorMap, null /* grad */, OneHot,
       attrs as unknown as NamedAttrMap);
-  return reshape(result, outShape);
 }
 
 export const oneHot = op({oneHot_});
