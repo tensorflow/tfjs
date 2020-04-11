@@ -13,13 +13,20 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
+- name: 'node:10'
+  dir: 'tfjs-core'
+  id: 'build-deps'
+  entrypoint: 'yarn'
+  args: ['build-deps-ci']
+  waitFor: ['yarn']
+
 # Build
 - name: 'node:10'
   dir: 'tfjs-core'
   id: 'build'
   entrypoint: 'yarn'
   args: ['build-ci']
-  waitFor: ['yarn']
+  waitFor: ['build-deps']
 
 # Run unit tests.
 - name: 'node:10'

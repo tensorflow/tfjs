@@ -53,11 +53,11 @@
     "yargs": "~13.2.2"
   },
   "scripts": {
-    "build-ci": "./scripts/enumerate-tests.js --ci && tsc && yarn build-deps-ci && yarn build-test-snippets",
+    "build-ci": "./scripts/enumerate-tests.js --ci && tsc && yarn build-test-snippets",
     "build": "node ./scripts/enumerate-tests.js && tsc",
     "build-npm": "./scripts/build-npm.sh",
-    "build-deps": "yarn build-cpu-backend",
-    "build-deps-ci": "yarn build-cpu-backend-ci",
+    "build-deps": "yarn build && yarn build-cpu-backend",
+    "build-deps-ci": "yarn build-ci && yarn build-cpu-backend-ci",
     "build-cpu-backend": "cd ../tfjs-backend-cpu && yarn && yarn build",
     "build-cpu-backend-ci": "cd ../tfjs-backend-cpu && yarn && yarn build-ci",
     "build:bazel": "bazelisk build //...",
@@ -68,7 +68,7 @@
     "publish-npm": "npm publish",
     "lint": "tslint -p . -t verbose",
     "coverage": "KARMA_COVERAGE=1 karma start --browsers='Chrome' --singleRun",
-    "test": "yarn && yarn build && yarn build-deps && karma start",
+    "test": "yarn && yarn build-deps && karma start",
     "test-webworker": "karma start --worker",
     "run-browserstack": "karma start --browserstack",
     "test-bundle-size": "./scripts/test-bundle-size.js",
