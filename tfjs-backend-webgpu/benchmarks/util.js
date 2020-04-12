@@ -51,3 +51,9 @@ function resize() {
 };
 
 window.addEventListener('resize', resize);
+
+async function getDataForFiles(files) {
+  return Promise.all(files.map(d => fetch(
+    `https://storage.googleapis.com/learnjs-data/webgpu_benchmark_logs/${
+        d}.json`).then(d => d.json()).catch(err => console.log(err))));
+}
