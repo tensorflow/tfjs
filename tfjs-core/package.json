@@ -59,7 +59,7 @@
     "build-deps": "yarn build && yarn build-cpu-backend",
     "build-deps-ci": "yarn build-ci && yarn build-cpu-backend-ci",
     "build-cpu-backend": "cd ../tfjs-backend-cpu && yarn && yarn build",
-    "build-cpu-backend-ci": "cd ../tfjs-backend-cpu && yarn && yarn build-ci",
+    "build-cpu-backend-ci": "cd ../tfjs-backend-cpu && yarn && yarn build-ci && yarn rollup -c --ci",
     "build:bazel": "bazelisk build //...",
     "build-test-snippets": "yarn tsc --project ./scripts/test_snippets/tsconfig.json",
     "format-all": "clang-format -i -style=Google --glob=src/**/*.ts",
