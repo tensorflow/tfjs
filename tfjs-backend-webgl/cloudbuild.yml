@@ -28,7 +28,7 @@ steps:
   id: 'test-backend-webgl'
   args: ['test-ci']
   waitFor: ['build-core']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 
 # General configuration
