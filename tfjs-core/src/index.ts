@@ -69,7 +69,6 @@ export {Reduction} from './ops/loss_ops';
 
 export * from './train';
 export * from './globals';
-export * from './kernel_names';
 export * from './kernel_registry';
 export {customGrad, grad, grads, valueAndGrad, valueAndGrads, variableGrads} from './gradients';
 
