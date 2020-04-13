@@ -55,17 +55,13 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@tensorflow/tfjs-core@1.7.2":
-  version "1.7.2"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-1.7.2.tgz#c7b4ac37a7b8bd7226766ee9bcd930274bf8e019"
-  integrity sha512-2o5jjXLHrMY4f+r7aOfJZbKqrchEYrRk2mhlFD3RgKqtSKUpfv15YLQr4uc0uMbNSwuZbjWwrmaL9yyaBWYSAQ==
-  dependencies:
-    "@types/offscreencanvas" "~2019.3.0"
-    "@types/seedrandom" "2.4.27"
-    "@types/webgl-ext" "0.0.30"
-    "@types/webgl2" "0.0.4"
-    node-fetch "~2.1.2"
-    seedrandom "2.4.3"
+"@tensorflow/tfjs-backend-cpu@link:../tfjs-backend-cpu":
+  version "0.0.0"
+  uid ""
+
+"@tensorflow/tfjs-core@link:../tfjs-core":
+  version "0.0.0"
+  uid ""
 
 "@types/deep-equal@^1.0.1":
   version "1.0.1"

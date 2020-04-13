@@ -28,5 +28,6 @@ declare module '../../tensor' {
 
 Tensor.prototype.pad = function<T extends Tensor>(
     this: T, paddings: Array<[number, number]>, constantValue: number): T {
+  this.throwIfDisposed();
   return pad(this, paddings, constantValue);
 };

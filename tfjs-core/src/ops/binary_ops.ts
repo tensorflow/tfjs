@@ -44,63 +44,6 @@ function addStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
 }
 
 /**
- * Subtracts two `tf.Tensor`s element-wise, A - B. Supports broadcasting.
- *
- * We also expose `tf.subStrict` which has the same signature as this op and
- * asserts that `a` and `b` are the same shape (does not broadcast).
- *
- * ```js
- * const a = tf.tensor1d([10, 20, 30, 40]);
- * const b = tf.tensor1d([1, 2, 3, 4]);
- *
- * a.sub(b).print();  // or tf.sub(a, b)
- * ```
- *
- * ```js
- * // Broadcast subtract a with b.
- * const a = tf.tensor1d([10, 20, 30, 40]);
- * const b = tf.scalar(5);
- *
- * a.sub(b).print();  // or tf.sub(a, b)
- * ```
- * @param a The first `tf.Tensor` to subtract from.
- * @param b The second `tf.Tensor` to be subtracted. Must have the same dtype as
- * `a`.
- */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
-function sub_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'sub');
-  let $b = convertToTensor(b, 'b', 'sub');
-  [$a, $b] = makeTypesMatch($a, $b);
-
-  const outShape =
-      broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
-
-  const der = (dy: Tensor) => {
-    const derA = () => {
-      let res = dy;
-      const reduceAxes = broadcast_util.getReductionAxes($a.shape, outShape);
-      if (reduceAxes.length > 0) {
-        res = res.sum(reduceAxes);
-      }
-      return res.reshape($a.shape);
-    };
-    const derB = () => {
-      let res = dy;
-      const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
-      if (reduceAxes.length > 0) {
-        res = res.sum(reduceAxes);
-      }
-      return res.neg().reshape($b.shape);
-    };
-    return {a: derA, b: derB};
-  };
-  return ENGINE.runKernelFunc(
-             backend => backend.subtract($a, $b), {a: $a, b: $b}, der, 'Sub') as
-      T;
-}
-
-/**
  * Subtracts two `tf.Tensor`s element-wise, A - B. Inputs must
  * be the same shape.
  *
@@ -640,5 +583,4 @@ export const mulStrict = op({mulStrict_});
 export const pow = op({pow_});
 export const powStrict = op({powStrict_});
 export const squaredDifferenceStrict = op({squaredDifferenceStrict_});
-export const sub = op({sub_});
 export const subStrict = op({subStrict_});

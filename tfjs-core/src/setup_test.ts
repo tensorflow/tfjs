@@ -15,14 +15,19 @@
  * =============================================================================
  */
 
+// Register the CPU backend as a default backend for tests.
+// This is a circular dependency which we only need to run tests.
+// Using require allows tsc to still compile the library.
+// tslint:disable-next-line: no-require-imports
+require('@tensorflow/tfjs-backend-cpu');
 /**
  * This file is necessary so we register all test environments before we start
  * executing tests.
  */
-import './backends/cpu/backend_cpu_test_registry';
-import './backends/webgl/backend_webgl_test_registry';
-
 import {parseTestEnvFromKarmaFlags, setTestEnvs, TEST_ENVS} from './jasmine_util';
+
+// Set up a CPU test env as the default test env
+setTestEnvs([{name: 'cpu', backendName: 'cpu', isDataSync: true}]);
 
 // tslint:disable-next-line:no-any
 declare let __karma__: any;
