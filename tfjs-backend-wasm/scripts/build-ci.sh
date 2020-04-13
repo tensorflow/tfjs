@@ -16,8 +16,16 @@
 
 set -e
 
-# Install emsdk
-git clone --depth=1 --single-branch https://github.com/emscripten-core/emsdk.git
+# Install emsdk with up to 1 retry.
+for i in $(seq 0 1)
+do
+  # Wait for 15 seconds then retry.
+  [ $i -gt 0 ] && echo "Retry in 15 seconds, count: $i" && sleep 15
+  # If git clone is successful, $? will hold 0 and execution will break from the
+  # loop.
+  git clone --depth=1 --single-branch https://github.com/emscripten-core/emsdk.git && break
+done
+
 cd emsdk
 # Need to tell emsdk where to write the .emscripten file.
 export HOME='/root'
