@@ -132,32 +132,3 @@ path {
   fill: none;
   stroke-width: 2px;
 }
-
-.time-selection-modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-
-.time-selection-modal .modal-backdrop {
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.75);
-}
-
-.show-modal + .time-selection-modal {
-  display: block;
-}
-
-.modal-contents {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate3d(-50%, -50%, 0);
-  background: white;
-  border: solid 1px #ccc;
-  padding: 20px;
-}

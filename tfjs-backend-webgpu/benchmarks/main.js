@@ -15,258 +15,260 @@
  * =============================================================================
  */
 
-const MOMENT_DISPLAY_FORMAT = 'MM/DD/YYYY';
+const swatches = {
+  'webgpu_min': '#F1523E',
+  'webgpu_mean': '#F1523E',
+  'webgl_min': '#3f51b5',
+  'webgl_mean': '#3f51b5'
+};
+
+const strokes = {
+  'webgpu_min': '2',
+  'webgpu_mean': '0',
+  'webgl_min': '2',
+  'webgl_mean': '0'
+};
+
 const MAX_NUM_LOGS = 50;
 const START_LOGGING_DATE = '2019-08-16';
-const CHART_HEIGHT = 200;
+const startDate = moment(START_LOGGING_DATE, 'YYYY-MM-DD');
+const endDate = moment();
+const files = [];
+let dateFormats = [];
+const daysElapsed = endDate.diff(startDate, 'd');
+let interval = 1;
 
-const containerEl = document.querySelector('#container');
-const CHART_WIDTH = containerEl.offsetWidth;
+while (daysElapsed / interval > MAX_NUM_LOGS) {
+  interval += 1;
+}
 
-let startDate = moment(START_LOGGING_DATE, 'YYYY-MM-DD'), endDate = moment();
+for (let i = 0; i <= daysElapsed; i += interval) {
+  const current = startDate.clone().add(i, 'days');
+  files.push(`${current.format('MM_DD_YYYY')}`);
+  dateFormats.push(current.format('M/DD'));
+}
 
-function getLogFiles(start, end) {
-  const daysElapsed = end.diff(start, 'd');
-  const results = [];
-  const formatted = []
-
-  let interval = 1;
-  while (daysElapsed / interval > MAX_NUM_LOGS) {
-    interval += 1;
+function getSwatchBackground(swatch, stroke) {
+  let background = swatch;
+  if (stroke > 0) {
+    background = `repeating-linear-gradient(
+      to right,
+      ${swatch},
+      ${swatch} 2px,
+      white 2px,
+      white 4px
+    );`;
   }
-
-  for (let i = 0; i <= daysElapsed; i += interval) {
-    const current = start.clone().add(i, 'days');
-    results.push(`${current.format('MM_DD_YYYY')}`);
-    formatted.push(current.format('M/DD'));
-  }
-
-  return {results, formatted};
+  return background;
 }
 
-function templateTimeSelection(start, end) {
-  document.querySelector(".start-date").innerHTML = start.format(MOMENT_DISPLAY_FORMAT);
-  document.querySelector(".end-date").innerHTML = end.format(MOMENT_DISPLAY_FORMAT);
-}
+Promise
+    .all(files.map(
+        d =>
+            fetch(
+                `https://storage.googleapis.com/learnjs-data/webgpu_benchmark_logs/${
+                    d}.json`)
+                .then(d => d.json())
+                .catch(err => console.log(err))))
+    .then(responses => {
+      dateFormats = dateFormats.filter((d, i) => responses[i] != null);
 
-function closeModal() {
-  containerEl.classList.remove("show-modal");
-}
+      const processedResponses = [];
 
-function openModal() {
-  containerEl.classList.add("show-modal");
+      const state = {'activeTarget': 0, 'activeTest': 0};
 
-  document.querySelector(".editable-start-date").value = startDate.format(MOMENT_DISPLAY_FORMAT);
-  document.querySelector(".editable-end-date").value = endDate.format(MOMENT_DISPLAY_FORMAT);
-}
+      for (let i = 0; i < responses.length; i++) {
+        const response = responses[i];
+        if (response == null) continue;
 
-function templateBenchmarksForTimePeriod(start, end) {
-  const logFiles = getLogFiles(start, end);
-  const files = logFiles['results'];
+        const processedResponse = [];
 
-  document.querySelector('.mdl-tabs__tab-bar').innerHTML = '';
-  // remove all panels
-  [].slice.call(document.querySelectorAll('.mdl-tabs__panel')).forEach(el => {
-    el.parentNode.removeChild(el);
-  });
+        for (let idx = 0; idx < response.length; idx++) {
+          const {name, backend, min, mean} = response[idx];
+          let testIndex = processedResponse.map(d => d.name).indexOf(name);
 
-  getDataForFiles(files).then(allResponses => {
-    const responses = [], dateFormats = [];
-    for(let i=0; i<allResponses.length; i++) {
-      if(allResponses[i] != null) {
-        responses.push(allResponses[i]);
-        dateFormats.push(logFiles['formatted'][i]);
-      }
-    }
+          if (testIndex === -1) {
+            processedResponse.push({name: name, params: []});
+            testIndex = processedResponse.length - 1;
+          }
 
-    const processedResponses = [];
-    const state = {'activeTarget': 0, 'activeTest': 0};
-
-    for (let i = 0; i < responses.length; i++) {
-      const response = responses[i];
-      const processedResponse = [];
-
-      for (let idx = 0; idx < response.length; idx++) {
-        const {name, backend, min, mean} = response[idx];
-        let testIndex = processedResponse.map(d => d.name).indexOf(name);
-
-        if (testIndex === -1) {
-          processedResponse.push({name: name, params: []});
-          testIndex = processedResponse.length - 1;
+          processedResponse[testIndex].params.push(
+              {name: `${backend}_min`, ms: min});
+          processedResponse[testIndex].params.push(
+              {name: `${backend}_mean`, ms: mean});
         }
 
-        processedResponse[testIndex].params.push(
-            {name: `${backend}_min`, ms: min});
-        processedResponse[testIndex].params.push(
-            {name: `${backend}_mean`, ms: mean});
+        processedResponses.push(processedResponse);
       }
-      processedResponses.push(processedResponse);
-    }
 
-    const data = [{name: 'canary', tests: []}];
-    const targetIndex = 0; // Hard coded - Canary is the only target for now.
+      const data = [{name: 'canary', tests: []}];
+      // hard coded - only one target for now
+      const targetIndex = 0;
 
-    // populate data
-    for (let i = 0; i < processedResponses.length; i++) {
-      const response = processedResponses[i];
+      // populate data
+      for (let i = 0; i < processedResponses.length; i++) {
+        const response = processedResponses[i];
 
-      for (let idx = 0; idx < response.length; idx++) {
-        const {name, params} = response[idx];
-        let testIndex =
-            data[targetIndex].tests.map(d => d.name).indexOf(name);
+        for (let idx = 0; idx < response.length; idx++) {
+          const {name, params} = response[idx];
+          let testIndex =
+              data[targetIndex].tests.map(d => d.name).indexOf(name);
 
-        if (testIndex === -1) {
-          data[targetIndex].tests.push({name: name, entries: []});
-          testIndex = data[targetIndex].tests.length - 1;
+          if (testIndex === -1) {
+            data[targetIndex].tests.push({name: name, entries: []});
+            testIndex = data[targetIndex].tests.length - 1;
+          }
+
+          const timestamp = dateFormats[i];
+          data[targetIndex].tests[testIndex].entries.push({timestamp, params});
         }
-
-        const timestamp = dateFormats[i];
-        data[targetIndex].tests[testIndex].entries.push({timestamp, params});
       }
-    }
 
-    data.forEach((target, i) => {
-      const name = target.name;
-      const targetDOMID = `${name}-panel`;
+      const chartHeight = 200;
+      const chartWidth = document.querySelector('#container').offsetWidth;
 
-      let tab = document.querySelector(`[href='#${name}']`);
-      if (tab == null) {
-        tab = document.createElement('a');
+      data.forEach((target, i) => {
+        const name = target.name;
+        const tab = document.createElement('a');
         tab.setAttribute('href', '#' + name);
         tab.textContent = name;
         tab.classList.add('mdl-tabs__tab');
-      }
 
-      let panel = document.querySelector(targetDOMID);
-      if(panel == null) {
-        panel = document.createElement('div');
+        const panel = document.createElement('div');
         panel.classList.add('mdl-tabs__panel');
-        panel.id = targetDOMID;
-      }
+        panel.id = `${name}-panel`;
 
-      if (i === 0) {
-        tab.classList.add('is-active');
-        panel.classList.add('is-active');
-      }
+        if (i === 0) {
+          tab.classList.add('is-active');
+          panel.classList.add('is-active');
+        }
 
-      target.tests.filter(test => test.entries.length > 1)
-        .forEach((test, i) => {
-          const params = test.entries.reduce((acc, curr) => {
-            curr.params.forEach(param => {
-              if (acc[param.name] == null) {
-                acc[param.name] = [];
+        target.tests.filter(test => test.entries.length > 1)
+            .forEach((test, i) => {
+              const params = test.entries.reduce((acc, curr) => {
+                curr.params.forEach(param => {
+                  if (typeof acc[param.name] === 'undefined') {
+                    acc[param.name] = [];
+                  }
+
+                  acc[param.name].push({ms: param.ms});
+                });
+
+                return acc;
+              }, {});
+
+              const msArray = test.entries.map(d => d.params.map(p => p.ms))
+                                  .reduce((acc, curr) => acc.concat(curr), []);
+              const max = Math.max(...msArray);
+              // const min = Math.min(...msArray);
+              const min = 0;
+
+              const minWidthOfIncrement = 20;
+              let increment = 1;
+              while ((chartWidth / ((test.entries.length - 1) / increment)) <
+                     minWidthOfIncrement) {
+                increment *= 2;
               }
 
-              acc[param.name].push({ms: param.ms});
-            });
-            return acc;
-          }, {});
-
-          const msArray = test.entries.map(d => d.params.map(p => p.ms))
-                              .reduce((acc, curr) => acc.concat(curr), []);
-          const max = Math.max(...msArray);
-          const min = 0;
-
-          let increment = 1;
-          while ((CHART_WIDTH / ((test.entries.length - 1) / increment)) <
-                  20 /* minimum increment width */) {
-            increment *= 2;
-          }
-
-          const xIncrement = CHART_WIDTH / (test.entries.length - 1);
-          const template =  // template trendlines
-            `<div class='test'>
-              <h4 class='test-name'>${test.name}</h4>
-              <div class='legend'>${Object.keys(params).map(param => {
-                const backgroundColor =
-                getSwatchBackground(swatches[param], strokes[param]);
-                return `<div class='swatch'>
-                  <div class='color' style='background: ${backgroundColor}'></div>
-                  <div class='label'>${param}</div>
-                </div>`;
-              }).join(' ')}</div>
-              <div class='graph-container'>
-                <div style='height:${CHART_HEIGHT}px' class='y-axis-labels'>
-                  <div class='y-max'>${max}ms</div>
-                  <div class='y-min'>${min}ms</div>
-                </div>
-                <svg data-index=${i} class='graph'
-                  width='${CHART_WIDTH}' height='${CHART_HEIGHT}'>
-                  ${Object.keys(params).map((param) =>
-                    `<path stroke-dasharray='${strokes[param]}'
-                        stroke='${swatches[param]}'
-                        d='M${params[param].map((d, i) =>
-                          `${i * xIncrement},
-                          ${CHART_HEIGHT * (1 - ((d.ms - min) / (max - min)))}`)
-                        .join('L')}'></path>`)}
-                </svg>
-                <div class='x-axis-labels'>
-                  ${test.entries.map((d, i) => {
-                    if (i % increment === 0) {
-                      return `<div class='x-label'
-                        style='left:${(i / increment) *
-                          (CHART_WIDTH / ((test.entries.length - 1) / increment))}px'>
-                          ${d.timestamp}</div>`;
-                    }
-                    return '';
-                  }).join(' ')}</div>
-                <div class='detail-panel'>
-                  <div class='line'></div>
-                  <div class='contents'></div>
-                </div>
+              const xIncrement = chartWidth / (test.entries.length - 1);
+              const template =  // template trendlines
+                  `<div class='test'>
+            <h4 class='test-name'>${test.name}</h4>
+            <div class='legend'>${
+                      Object.keys(params)
+                          .map((param, i) => {
+                            return `<div class='swatch'>
+                                <div class='color' style='background:
+                                ${
+                                getSwatchBackground(
+                                    swatches[param],
+                                    strokes
+                                        [param])}'></div> <div class='label'>${
+                                param}</div>
+                              </div>`;
+                          })
+                          .join(' ')}</div>
+            <div class='graph-container'>
+              <div style='height:${chartHeight}px' class='y-axis-labels'>
+                <div class='y-max'>${max}ms</div>
+                <div class='y-min'>${min}ms</div>
               </div>
-            </div>`;
+              <svg data-index=${i} class='graph' width='${
+                      chartWidth}' height='${chartHeight}'>${
+                      Object.keys(params).map(
+                          (param, i) => `<path stroke-dasharray='${
+                              strokes[param]}' stroke='${
+                              swatches[param]}' d='M${
+                              params[param]
+                                  .map(
+                                      (d, i) => `${i * xIncrement},${
+                                          chartHeight *
+                                          (1 - ((d.ms - min) / (max - min)))}`)
+                                  .join('L')}'></path>`)}</svg>
+              <div class='x-axis-labels'>${
+                      test.entries
+                          .map((d, i) => {
+                            if (i % increment === 0) {
+                              return `<div class='x-label' style='left:${
+                                  (i / increment) *
+                                  (chartWidth /
+                                   ((test.entries.length - 1) /
+                                    increment))}px'>${d.timestamp}</div>`;
+                            }
+                            return '';
+                          })
+                          .join(' ')}</div>
+              <div class='detail-panel'>
+                <div class='line'></div>
+                <div class='contents'></div>
+              </div>
+            </div>
+          </div>`;
 
-        panel.innerHTML += template;
-      });
+              panel.innerHTML += template;
+            });
 
-      document.querySelector('.mdl-tabs__tab-bar').appendChild(tab);
-      document.querySelector('.mdl-tabs').appendChild(panel);
+        document.querySelector('.mdl-tabs__tab-bar').appendChild(tab);
+        document.querySelector('.mdl-tabs').appendChild(panel);
 
-      resize();
+        let graphOffsetLeft = 0;
 
-      document.addEventListener('mousemove', e => {  // handle hovering
-        if (e.target.classList.contains('graph')) {
-          state.activeTest = +e.target.getAttribute('data-index');
-
-          const entries =
-            data[state.activeTarget].tests[state.activeTest].entries;
-          const left = e.clientX - graphOffsetLeft;
-          const entryIndex = Math.max(
-              0,
-              Math.min(
-                  entries.length - 1,
-                  Math.floor((left / CHART_WIDTH) * entries.length)));
-
-          const parentNode = e.target.parentNode;
-          parentNode.querySelector('.detail-panel').style.left = left + 'px';
-          parentNode.querySelector('.detail-panel .contents').innerHTML = `${
-            entries[entryIndex].params.map(d =>
-              `<div class='label-wrapper'>
-                <div class='color'
-                  style='background:
-                    ${getSwatchBackground(swatches[d.name], strokes[d.name])}'>
-                </div>
-                <div class='label'>${d.ms}</div>
-              </div>`).join(' ')}`;
+        function resize() {
+          graphOffsetLeft =
+              document.querySelector('.graph-container').offsetLeft;
         }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        document.addEventListener('mousemove', e => {  // handle hovering
+          if (e.target.classList.contains('graph')) {
+            state.activeTest = +e.target.getAttribute('data-index');
+
+            const entries =
+                data[state.activeTarget].tests[state.activeTest].entries;
+
+            const left = e.clientX - graphOffsetLeft;
+            const entryIndex = Math.max(
+                0,
+                Math.min(
+                    entries.length - 1,
+                    Math.floor((left / chartWidth) * entries.length)));
+            const parentNode = e.target.parentNode;
+            parentNode.querySelector('.detail-panel').style.left = left + 'px';
+            parentNode.querySelector('.detail-panel .contents').innerHTML = `${
+                entries[entryIndex]
+                    .params
+                    .map(
+                        (d, i) => {return `<div class='label-wrapper'>
+                          <div class='color' style='background: ${
+                            getSwatchBackground(
+                                swatches[d.name], strokes[d.name])}'></div>
+                          <div class='label'>${d.ms}</div>
+                        </div>`})
+                    .join(' ')}
+            `;
+          }
+        });
       });
     });
-  });
-}
-
-document.querySelector(".time-selection-edit-button").addEventListener('click', openModal);
-
-document.querySelector(".modal-cancel-button").addEventListener("click", closeModal);
-document.querySelector(".modal-submit-button").addEventListener("click", () => {
-  closeModal();
-  startDate = moment(document.querySelector(".editable-start-date").value, MOMENT_DISPLAY_FORMAT);
-  endDate = moment(document.querySelector(".editable-end-date").value, MOMENT_DISPLAY_FORMAT);
-
-  templateTimeSelection(startDate, endDate);
-  templateBenchmarksForTimePeriod(startDate, endDate);
-});
-document.querySelector(".modal-backdrop").addEventListener("click", closeModal);
-
-templateTimeSelection(startDate, endDate);
-templateBenchmarksForTimePeriod(startDate, endDate);
