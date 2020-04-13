@@ -65,6 +65,12 @@ function templateBenchmarksForTimePeriod(start, end) {
   const files = logFiles['results'];
   const dateFormats = logFiles['formatted'];
 
+  document.querySelector('.mdl-tabs__tab-bar').innerHTML = '';
+  // remove all panels
+  [].slice.call(document.querySelectorAll('.mdl-tabs__panel')).forEach(el => {
+    el.parentNode.removeChild(el);
+  });
+
   getDataForFiles(files).then(responses => {
     responses = responses.filter(d => d != null);
 
@@ -116,14 +122,22 @@ function templateBenchmarksForTimePeriod(start, end) {
 
     data.forEach((target, i) => {
       const name = target.name;
-      const tab = document.createElement('a');
-      tab.setAttribute('href', '#' + name);
-      tab.textContent = name;
-      tab.classList.add('mdl-tabs__tab');
+      const targetDOMID = `${name}-panel`;
 
-      const panel = document.createElement('div');
-      panel.classList.add('mdl-tabs__panel');
-      panel.id = `${name}-panel`;
+      let tab = document.querySelector(`[href='#${name}']`);
+      if (tab == null) {
+        tab = document.createElement('a');
+        tab.setAttribute('href', '#' + name);
+        tab.textContent = name;
+        tab.classList.add('mdl-tabs__tab');
+      }
+
+      let panel = document.querySelector(targetDOMID);
+      if(panel == null) {
+        panel = document.createElement('div');
+        panel.classList.add('mdl-tabs__panel');
+        panel.id = targetDOMID;
+      }
 
       if (i === 0) {
         tab.classList.add('is-active');
@@ -240,7 +254,11 @@ templateTimeSelection(startDate, endDate);
 document.querySelector(".time-selection-edit-button").addEventListener('click', openModal);
 
 document.querySelector(".modal-cancel-button").addEventListener("click", closeModal);
-document.querySelector(".modal-submit-button").addEventListener("click", closeModal);
+document.querySelector(".modal-submit-button").addEventListener("click", () => {
+  closeModal();
+  console.log("ABOUT TO START");
+  templateBenchmarksForTimePeriod(startDate, endDate);
+});
 document.querySelector(".modal-backdrop").addEventListener("click", closeModal);
 
 templateBenchmarksForTimePeriod(startDate, endDate);
