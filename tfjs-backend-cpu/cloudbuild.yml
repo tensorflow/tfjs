@@ -13,13 +13,13 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
-# Build core from master.
+# Build dependencies.
 - name: 'node:10'
   dir: 'tfjs-backend-cpu'
-  id: 'build-core'
+  id: 'build-deps'
   entrypoint: 'yarn'
-  args: ['build-core-ci']
-  waitFor: ['yarn-common']
+  args: ['build-deps-ci']
+  waitFor: ['yarn']
 
 # Run tests.
 - name: 'node:10'
@@ -27,7 +27,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-backend-cpu'
   args: ['test-ci']
-  waitFor: ['build-core']
+  waitFor: ['build-deps']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 
