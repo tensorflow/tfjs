@@ -15,10 +15,9 @@
  * =============================================================================
  */
 
+import './backend_webgl_test_registry';
 // tslint:disable-next-line: no-imports-from-dist
 import {parseTestEnvFromKarmaFlags, setTestEnvs, setupTestFilters, TEST_ENVS, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
-
-setTestEnvs([{name: 'webgl', backendName: 'webgl', isDataSync: true}]);
 
 const TEST_FILTERS: TestFilter[] = [];
 const customInclude = (testName: string) => {
