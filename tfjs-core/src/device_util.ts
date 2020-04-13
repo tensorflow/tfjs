@@ -16,6 +16,13 @@
  */
 
 export function isMobile(): boolean {
+  return _isMobile(navigator);
+}
+// tslint:disable-next-line:no-any
+export function _isMobile(navigator: any): boolean {
+  if (typeof navigator === 'undefined' && navigator == null) {
+    return false;
+  }
   // tslint:disable-next-line:no-any
   const a = navigator.userAgent || navigator.vendor || (window as any).opera;
   // tslint:disable-next-line:max-line-length
