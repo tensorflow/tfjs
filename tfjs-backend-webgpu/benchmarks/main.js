@@ -63,7 +63,6 @@ function openModal() {
 function templateBenchmarksForTimePeriod(start, end) {
   const logFiles = getLogFiles(start, end);
   const files = logFiles['results'];
-  const dateFormats = logFiles['formatted'];
 
   document.querySelector('.mdl-tabs__tab-bar').innerHTML = '';
   // remove all panels
@@ -71,8 +70,14 @@ function templateBenchmarksForTimePeriod(start, end) {
     el.parentNode.removeChild(el);
   });
 
-  getDataForFiles(files).then(responses => {
-    responses = responses.filter(d => d != null);
+  getDataForFiles(files).then(allResponses => {
+    const responses = [], dateFormats = [];
+    for(let i=0; i<allResponses.length; i++) {
+      if(allResponses[i] != null) {
+        responses.push(allResponses[i]);
+        dateFormats.push(logFiles['formatted'][i]);
+      }
+    }
 
     const processedResponses = [];
     const state = {'activeTarget': 0, 'activeTest': 0};
@@ -250,15 +255,18 @@ function templateBenchmarksForTimePeriod(start, end) {
   });
 }
 
-templateTimeSelection(startDate, endDate);
 document.querySelector(".time-selection-edit-button").addEventListener('click', openModal);
 
 document.querySelector(".modal-cancel-button").addEventListener("click", closeModal);
 document.querySelector(".modal-submit-button").addEventListener("click", () => {
   closeModal();
-  console.log("ABOUT TO START");
+  startDate = moment(document.querySelector(".editable-start-date").value, MOMENT_DISPLAY_FORMAT);
+  endDate = moment(document.querySelector(".editable-end-date").value, MOMENT_DISPLAY_FORMAT);
+
+  templateTimeSelection(startDate, endDate);
   templateBenchmarksForTimePeriod(startDate, endDate);
 });
 document.querySelector(".modal-backdrop").addEventListener("click", closeModal);
 
+templateTimeSelection(startDate, endDate);
 templateBenchmarksForTimePeriod(startDate, endDate);
