@@ -15,15 +15,17 @@
  * =============================================================================
  */
 
-import {_isMobile, isMobile} from './device_util';
+import * as device_util from './device_util';
 import {describeWithFlags, ALL_ENVS} from './jasmine_util';
 
 describeWithFlags('isMobile', ALL_ENVS, () => {
   it('should not fail when navigator is not set', () => {
-    expect(_isMobile(undefined)).toBeFalsy();
+    spyOn(device_util, 'isNavigatorDefined').and.returnValue(false);
+    expect(device_util.isMobile()).toBeFalsy();
   });
 
   it('should not fail when navigator is set', () => {
-    expect(isMobile()).toBeFalsy();
+    spyOn(device_util, 'isNavigatorDefined').and.returnValue(true);
+    expect(device_util.isMobile()).toBeFalsy();
   });
 });
