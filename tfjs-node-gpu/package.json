@@ -49,6 +49,7 @@
     "upload-windows-addon": "prep-gpu-windows.bat && ./scripts/build-and-upload-windows-addon-gpu.bat"
   },
   "devDependencies": {
+    "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
     "@types/jasmine": "~2.8.6",
     "@types/node": "^10.5.1",
     "@types/progress": "^2.0.1",
