@@ -55,6 +55,10 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
+"@tensorflow/tfjs-backend-cpu@link:../tfjs-backend-cpu":
+  version "0.0.0"
+  uid ""
+
 "@tensorflow/tfjs-core@link:../tfjs-core":
   version "0.0.0"
   uid ""
