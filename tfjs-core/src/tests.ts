@@ -20,6 +20,7 @@
 import './browser_util_test';
 import './buffer_test';
 import './debug_mode_test';
+import './device_util_test';
 import './engine_test';
 import './environment_test';
 import './flags_test';
