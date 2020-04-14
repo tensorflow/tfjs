@@ -98,7 +98,7 @@ h2 {
 
 .detail-panel .contents {
   padding: 0 7px;
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.8);
 }
 
 .detail-panel .label-wrapper {
@@ -159,5 +159,69 @@ path {
   transform: translate3d(-50%, -50%, 0);
   background: white;
   border: solid 1px #ccc;
-  padding: 20px;
+  padding: 35px;
+}
+
+.edit-time-wrapper .range {
+  margin: 30px 0 40px 0;
+}
+
+.edit-time-wrapper .range > * {
+  display: inline-block;
+}
+
+.modal-contents .controls {
+  text-align: right;
+}
+
+.modal-cancel-button {
+  margin-right: 15px;
+}
+
+.edit-time-wrapper input {
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  padding: 5px;
+  margin-right: 10px;
+  width: 100px;
+}
+
+.time-selection-label, .time-selection-edit-button, .time-selection-label > * {
+  display: inline-block
+}
+
+.time-selection {
+  margin: 50px 0 20px 0;
+}
+
+.time-selection-label {
+  font-size: 18px;
+}
+
+.time-selection .start-date,
+.time-selection .end-date {
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.time-selection-edit-button {
+  margin-left: 15px;
+}
+
+.time-selection-edit-button,
+.modal-cancel-button,
+.modal-submit-button {
+  display: inline-block;
+  background: steelblue;
+  padding: 10px 15px;
+  line-height: 1;
+  text-transform: uppercase;
+  color: white;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.edit-time-wrapper {
+  font-size: 16px;
+  line-height: 1.75;
 }

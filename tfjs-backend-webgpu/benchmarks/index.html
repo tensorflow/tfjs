@@ -31,9 +31,9 @@ limitations under the License.
     <h2>Tensorflow.js / WebGPU Benchmarks</h2>
     <div class="time-selection">
       <div class="time-selection-label">
-        <div>Showing benchmarks for:</div>
+        <div class="description">Showing benchmarks for:</div>
         <div class="start-date"></div>
-        <div>to</div>
+        <div class="description">to</div>
         <div class="end-date"></div>
       </div>
       <div class="time-selection-edit-button">Edit</div>
@@ -48,12 +48,17 @@ limitations under the License.
     <div class="modal-contents">
       <div class="edit-time-wrapper">
         <div class="instructions">Enter dates in the format MM/DD/YYYY</div>
-        <input class="editable-start-date" placeholder="format: MM/DD/YYYY" type="text"></input>
-        <div>to</div>
-        <input class="editable-end-date" placeholder="format: MM/DD/YYYY" type="text"></input>
+        <div class="range">
+          <div>Start:</div>
+          <input class="editable-start-date" placeholder="format: MM/DD/YYYY" type="text"></input>
+          <div>End:</div>
+          <input class="editable-end-date" placeholder="format: MM/DD/YYYY" type="text"></input>
+        </div>
       </div>
-      <div class="modal-cancel-button">Cancel</div>
-      <div class="modal-submit-button">Submit</div>
+      <div class="controls">
+        <div class="modal-cancel-button">Cancel</div>
+        <div class="modal-submit-button">Submit</div>
+      </div>
     </div>
   </div>
 
