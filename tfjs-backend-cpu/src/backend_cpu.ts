@@ -3213,8 +3213,8 @@ export class MathBackendCPU extends KernelBackend {
   private fft2dBatch(x: Tensor3D): Tensor3D {
     const [batches, rows, cols] = x.shape;
 
-    const realResult = ops.buffer(x.shape, 'float32');
-    const imagResult = ops.buffer(x.shape, 'float32');
+    const realResult = tf.buffer(x.shape, 'float32');
+    const imagResult = tf.buffer(x.shape, 'float32');
 
     const data = this.readSync(x.dataId) as Float32Array;
     const realResultVals = realResult.values;
@@ -3235,7 +3235,7 @@ export class MathBackendCPU extends KernelBackend {
             let rowImag = 0.0;
             for (let c = 0; c < cols; c++) {
               const complex1 =
-                  complex_util.getComplexWithIndex(data, (b * rows * cols) + j);
+                  backend_util.getComplexWithIndex(data, (b * rows * cols) + j);
               const real1 = complex1.real;
               const imag1 = complex1.imag;
               const theta = -x * c * mulWidth;
@@ -3259,7 +3259,7 @@ export class MathBackendCPU extends KernelBackend {
       }
     }
 
-    const t = ops.complex(realResult.toTensor(), imagResult.toTensor());
+    const t = tf.complex(realResult.toTensor(), imagResult.toTensor());
     return t as Tensor3D;
   }
 

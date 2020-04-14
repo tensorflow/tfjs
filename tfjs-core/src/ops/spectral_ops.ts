@@ -74,12 +74,10 @@ function fft_(input: Tensor): Tensor {
 /**
  * @doc {heading: 'Operations', subheading: 'Spectral', namespace: 'spectral'}
  */
-function fft2d_<T extends Tensor2D|Tensor3D>(input: T): T {
+function fft2d_(input: Tensor2D|Tensor3D): Tensor {
   let input3D = input as Tensor3D;
-  let reshapedTo3D = false;
 
   if (input.rank === 2) {
-    reshapedTo3D = true;
     input3D = input.as3D(1, input.shape[0], input.shape[1]);
   }
 
@@ -92,12 +90,9 @@ function fft2d_<T extends Tensor2D|Tensor3D>(input: T): T {
       () => `The dtype for tf.spectral.fft2d() must be complex64, ` +
           `but got ${input3D.dtype}.`);
 
-  const res = ENGINE.runKernel(backend => backend.fft2d(input3D), {input3D});
+  const ret = ENGINE.runKernelFunc(backend => backend.fft2d(input3D), {input});
 
-  if (reshapedTo3D) {
-    return res.as2D(res.shape[1], res.shape[2]) as T;
-  }
-  return res as T;
+  return ret.reshape(input.shape);
 }
 
 /**
