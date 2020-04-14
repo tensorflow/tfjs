@@ -149,14 +149,16 @@ function templateBenchmarksForTimePeriod(start, end) {
         panel.classList.add('is-active');
       }
 
-      target.tests.filter(test => test.entries.length > 1)
-      .sort((a, b) => {
-        if (a.name < b.name) {
-          return -1;
-        }
-        return 1;
-      })
-        .forEach((test, i) => {
+      target.tests = target.tests
+        .filter(test => test.entries.length > 1)
+        .sort((a, b) => {
+          if (a.name < b.name) {
+            return -1;
+          }
+          return 1;
+        });
+
+      target.tests.forEach((test, i) => {
           const params = test.entries.reduce((acc, curr) => {
             curr.params.forEach(param => {
               if (acc[param.name] == null) {
