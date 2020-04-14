@@ -13,21 +13,37 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
-# Build core from master.
+# Build deps.
 - name: 'node:10'
   dir: 'tfjs-backend-webgl'
-  id: 'build-core'
+  id: 'build-deps'
   entrypoint: 'yarn'
-  args: ['build-core-ci']
+  args: ['build-deps-ci']
   waitFor: ['yarn-common']
+
+# Build.
+- name: 'node:10'
+  dir: 'tfjs-backend-webgl'
+  id: 'build'
+  entrypoint: 'yarn'
+  args: ['build-ci']
+  waitFor: ['yarn', build-deps]
+
+# Lint.
+- name: 'node:10'
+  dir: 'tfjs-backend-webgl'
+  id: 'lint'
+  entrypoint: 'yarn'
+  args: ['lint']
+  waitFor: ['build']
 
 # Run tests.
 - name: 'node:10'
   dir: 'tfjs-backend-webgl'
   entrypoint: 'yarn'
-  id: 'test-backend-webgl'
+  id: 'test'
   args: ['test-ci']
-  waitFor: ['build-core']
+  waitFor: ['lint']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 

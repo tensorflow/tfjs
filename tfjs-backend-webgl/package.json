@@ -47,14 +47,16 @@
     "build": "tsc",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
+    "build-deps": "yarn build-core",
+    "build-deps-ci": "yarn build-core-ci",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "publish-npm": "npm publish",
     "lint": "tslint -p . -t verbose",
-    "test": "yarn build-core && karma start",
-    "run-browserstack": "karma start --browserstack",
-    "test-ci": "./scripts/test-ci.sh"
+    "test": "yarn && yarn build-deps && karma start",
+    "test-ci": "./scripts/test-ci.sh",
+    "run-browserstack": "karma start --browserstack"
   },
   "dependencies": {
     "@types/offscreencanvas": "~2019.3.0",
