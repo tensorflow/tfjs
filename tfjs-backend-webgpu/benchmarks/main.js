@@ -36,9 +36,9 @@ function getLogFiles(start, end) {
   }
 
   for (let i = 0; i <= daysElapsed; i += interval) {
-    const current = start.clone().add(i, 'days');
-    results.push(`${current.format('MM_DD_YYYY')}`);
-    formatted.push(current.format('M/DD'));
+    const current = endDate.clone().subtract(i, 'days');
+    results.unshift(`${current.format('MM_DD_YYYY')}`);
+    formatted.unshift(current.format('M/DD'));
   }
 
   return {results, formatted};
@@ -150,6 +150,12 @@ function templateBenchmarksForTimePeriod(start, end) {
       }
 
       target.tests.filter(test => test.entries.length > 1)
+      .sort((a, b) => {
+        if (a.name < b.name) {
+          return -1;
+        }
+        return 1;
+      })
         .forEach((test, i) => {
           const params = test.entries.reduce((acc, curr) => {
             curr.params.forEach(param => {
@@ -254,6 +260,8 @@ function templateBenchmarksForTimePeriod(start, end) {
     });
   });
 }
+
+document.querySelector(".edit-time-wrapper .instructions").innerHTML = `Enter dates in the format ${MOMENT_DISPLAY_FORMAT}, within the time range ${startDate.format(MOMENT_DISPLAY_FORMAT)} to ${endDate.format(MOMENT_DISPLAY_FORMAT)}.`;
 
 document.querySelector(".time-selection-edit-button").addEventListener('click', openModal);
 
