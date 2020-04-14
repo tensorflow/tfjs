@@ -27,6 +27,5 @@ describeWithFlags('isMobile', ALL_ENVS, () => {
   it('should not fail when navigator is set', () => {
     spyOn(device_util, 'isNavigatorDefined').and.returnValue(true);
     expect(() => device_util.isMobile()).not.toThrow();
-    ;
   });
 });
