@@ -29,17 +29,18 @@ export interface ReleaseUnit {
 }
 
 export const CORE_PHASE: Phase = {
-  packages: ['tfjs-core']
+  packages: ['tfjs-core'],
+  deps: ['tfjs-backend-cpu']
 };
 
 export const LAYERS_CONVERTER_PHASE: Phase = {
   packages: ['tfjs-layers', 'tfjs-converter'],
-  deps: ['tfjs-core']
+  deps: ['tfjs-core', 'tfjs-backend-cpu', 'tfjs-backend-webgl']
 };
 
 export const DATA_PHASE: Phase = {
   packages: ['tfjs-data'],
-  deps: ['tfjs-core', 'tfjs-layers']
+  deps: ['tfjs-core', 'tfjs-layers', 'tfjs-backend-cpu']
 }
 
 export const UNION_PHASE: Phase = {
