@@ -16,6 +16,8 @@
  */
 
 // tslint:disable-next-line: no-imports-from-dist
+import '@tensorflow/tfjs-backend-webgl';
+
 import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 // TODO: Remove and import from tfjs-core once 1.3.2 is released, like so:

@@ -11,7 +11,9 @@
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "publish-npm": "./scripts/publish-npm.sh",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
-    "build": "yarn build-core && rimraf dist/ && tsc",
+    "build-deps": "yarn build-core && yarn build-backend-webgl",
+    "build": "yarn build-deps && rimraf dist/ && tsc",
+    "build-backend-webgl": "cd ../tfjs-backend-webgl && yarn && yarn build",
     "link-local": "yalc link",
     "unlink-local": "yalc remove",
     "lint": "tslint -p . -t verbose",
@@ -22,6 +24,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@tensorflow/tfjs-core": "link:../tfjs-core",
+    "@tensorflow/tfjs-backend-webgl": "link:../tfjs-backend-webgl",
     "@types/jasmine": "~2.5.53",
     "clang-format": "~1.2.2",
     "http-server": "~0.10.0",

@@ -16,6 +16,7 @@
 
 filename=$(date +%m_%d_%Y)
 
+yarn build
 karma start --grep=benchmark --browsers=chrome_webgpu
 
 gsutil cp ~/Downloads/"$filename".json gs://learnjs-data/webgpu_benchmark_logs
