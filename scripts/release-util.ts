@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import * as mkdirp from 'mkdirp';
 import * as readline from 'readline';
 import * as shell from 'shelljs';
 
@@ -28,17 +29,18 @@ export interface ReleaseUnit {
 }
 
 export const CORE_PHASE: Phase = {
-  packages: ['tfjs-core']
+  packages: ['tfjs-core'],
+  deps: ['tfjs-backend-cpu']
 };
 
 export const LAYERS_CONVERTER_PHASE: Phase = {
   packages: ['tfjs-layers', 'tfjs-converter'],
-  deps: ['tfjs-core']
+  deps: ['tfjs-core', 'tfjs-backend-cpu', 'tfjs-backend-webgl']
 };
 
 export const DATA_PHASE: Phase = {
   packages: ['tfjs-data'],
-  deps: ['tfjs-core', 'tfjs-layers']
+  deps: ['tfjs-core', 'tfjs-layers', 'tfjs-backend-cpu']
 }
 
 export const UNION_PHASE: Phase = {
@@ -101,16 +103,19 @@ export const WEBSITE_RELEASE_UNIT: ReleaseUnit = {
 };
 
 export const RELEASE_UNITS: ReleaseUnit[] = [
-  TFJS_RELEASE_UNIT, VIS_RELEASE_UNIT, REACT_NATIVE_RELEASE_UNIT, WEBSITE_RELEASE_UNIT
+  TFJS_RELEASE_UNIT, VIS_RELEASE_UNIT, REACT_NATIVE_RELEASE_UNIT,
+  WEBSITE_RELEASE_UNIT
 ];
 
+export const TMP_DIR = '/tmp/tfjs-release';
+
 const rl =
-  readline.createInterface({input: process.stdin, output: process.stdout});
+    readline.createInterface({input: process.stdin, output: process.stdout});
 
 export async function question(questionStr: string): Promise<string> {
   console.log(chalk.bold(questionStr));
   return new Promise<string>(
-    resolve => rl.question('> ', response => resolve(response)));
+      resolve => rl.question('> ', response => resolve(response)));
 }
 
 /**
@@ -131,8 +136,9 @@ export function $(cmd: string) {
 export function printReleaseUnit(id: number) {
   const releaseUnit = RELEASE_UNITS[id];
   console.log(chalk.green(`Release unit ${id}:`));
-  console.log(` packages: ${chalk.blue(releaseUnit.phases.map(
-    phase => phase.packages.join(', ')).join(', '))}`);
+  console.log(` packages: ${
+      chalk.blue(releaseUnit.phases.map(phase => phase.packages.join(', '))
+                     .join(', '))}`);
 }
 
 export function printPhase(phases: Phase[], phaseId: number) {
@@ -142,4 +148,101 @@ export function printPhase(phases: Phase[], phaseId: number) {
   if (phase.deps != null) {
     console.log(`   deps: ${phase.deps.join(', ')}`);
   }
+}
+
+export function makeReleaseDir(dir: string) {
+  mkdirp(TMP_DIR, err => {
+    if (err) {
+      console.log('Error creating temp dir', TMP_DIR);
+      process.exit(1);
+    }
+  });
+  $(`rm -f -r ${dir}/*`);
+  $(`rm -f -r ${dir}`);
+  $(`mkdir ${dir}`);
+}
+
+export async function updateDependency(
+    deps: string[], pkg: string, parsedPkg: any): Promise<string> {
+  console.log(chalk.magenta.bold(`~~~ Update dependency versions ~~~`));
+
+  if (deps != null) {
+    const depsLatestVersion: string[] =
+        deps.map(dep => $(`npm view @tensorflow/${dep} dist-tags.latest`));
+
+    for (let j = 0; j < deps.length; j++) {
+      const dep = deps[j];
+
+      let version = '';
+      const depNpmName = `@tensorflow/${dep}`;
+      if (parsedPkg['dependencies'] != null &&
+          parsedPkg['dependencies'][depNpmName] != null) {
+        version = parsedPkg['dependencies'][depNpmName];
+      } else if (
+          parsedPkg['peerDependencies'] != null &&
+          parsedPkg['peerDependencies'][depNpmName] != null) {
+        version = parsedPkg['peerDependencies'][depNpmName];
+      } else if (
+          parsedPkg['devDependencies'] != null &&
+          parsedPkg['devDependencies'][depNpmName] != null) {
+        version = parsedPkg['devDependencies'][depNpmName];
+      }
+      if (version == null) {
+        throw new Error(`No dependency found for ${dep}.`);
+      }
+
+      let relaxedVersionPrefix = '';
+      if (version.startsWith('~') || version.startsWith('^')) {
+        relaxedVersionPrefix = version.substr(0, 1);
+      }
+      const depVersionLatest = relaxedVersionPrefix + depsLatestVersion[j];
+
+      let depVersion = await question(
+          `Updated version for ` +
+          `${dep} (current is ${version}, leave empty for latest ${
+              depVersionLatest}): `);
+      if (depVersion === '') {
+        depVersion = depVersionLatest;
+      }
+      console.log(chalk.blue(`Using version ${depVersion}`));
+
+      pkg = `${pkg}`.replace(
+          new RegExp(`"${depNpmName}": "${version}"`, 'g'),
+          `"${depNpmName}": "${depVersion}"`);
+    }
+  }
+
+  return pkg;
+}
+
+export function prepareReleaseBuild(phase: Phase, packageName: string) {
+  console.log(chalk.magenta.bold(`~~~ Prepare release build ~~~`));
+  console.log(chalk.bold('Prepare before-yarn'));
+  if (phase.scripts != null && phase.scripts[packageName] != null &&
+      phase.scripts[packageName]['before-yarn'] != null) {
+    phase.scripts[packageName]['before-yarn'].forEach(script => $(script));
+  }
+
+  console.log(chalk.bold('yarn'));
+  $(`yarn`);
+
+  console.log(chalk.bold('Prepare after-yarn'));
+  if (phase.scripts != null && phase.scripts[packageName] != null &&
+      phase.scripts[packageName]['after-yarn'] != null) {
+    phase.scripts[packageName]['after-yarn'].forEach(script => $(script));
+  }
+}
+
+export function createPR(
+    devBranchName: string, releaseBranch: string, message: string) {
+  console.log(
+      chalk.magenta.bold('~~~ Creating PR to update release branch ~~~'));
+  $(`git checkout -b ${devBranchName}`);
+  $(`git push -u origin ${devBranchName}`);
+  $(`git add .`);
+  $(`git commit -a -m "${message}"`);
+  $(`git push`);
+
+  $(`hub pull-request -b ${releaseBranch} -m "${message}" -l INTERNAL -o`);
+  console.log();
 }

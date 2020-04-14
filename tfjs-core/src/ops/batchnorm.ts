@@ -16,7 +16,7 @@
  */
 
 import {ENGINE, ForwardFunc} from '../engine';
-import {FusedBatchNormAttrs, FusedBatchNormInputs} from '../kernel_names';
+import {FusedBatchNorm, FusedBatchNormAttrs, FusedBatchNormInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor1D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -118,7 +118,7 @@ function batchNorm_<R extends Rank>(
 
   const res = ENGINE.runKernelFunc(
       forward, inputs as {} as NamedTensorMap, null /* gradient */,
-      'FusedBatchNorm', attrs as {} as NamedAttrMap);
+      FusedBatchNorm, attrs as {} as NamedAttrMap);
 
   return res.reshape($x.shape);
 }
