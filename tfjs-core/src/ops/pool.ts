@@ -17,9 +17,11 @@
 
 import {ENGINE} from '../engine';
 import {Tensor, Tensor3D, Tensor4D, Tensor5D} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
+
 import {batchToSpaceND, spaceToBatchND} from './array_ops';
 import * as conv_util from './conv_util';
 import {op} from './operation';
@@ -880,8 +882,56 @@ function maxPool3dBackprop<T extends Tensor4D|Tensor5D>(
   return res as T;
 }
 
+/**
+ * Computes the 2D max pooling of an image with Argmax index.
+ * The indices in argmax are flattened, so that a maximum value at position `[b,
+ * y, x, c]` becomes flattened index: `(y * width + x) * channels + c` if
+ * include_batch_in_index is False; `((b * height + y) * width + x) * channels
+ * +c` if include_batch_in_index is True.
+ *
+ * The indices returned are always in `[0, height) x [0, width)` before
+ * flattening.
+ *
+ * @param x The input tensor, of rank 4 or rank 3 of shape
+ *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is assumed.
+ * @param filterSize The filter size: `[filterHeight, filterWidth]`. If
+ *     `filterSize` is a single number, then `filterHeight == filterWidth`.
+ * @param strides The strides of the pooling: `[strideHeight, strideWidth]`. If
+ *     `strides` is a single number, then `strideHeight == strideWidth`.
+ * @param dataFormat An optional string from: "NDHWC", "NCDHW". Defaults to
+ *     "NDHWC". Specify the data format of the input and output data. With the
+ *     default format "NDHWC", the data is stored in the order of: [batch,
+ *     depth, height, width, channels]. Only "NDHWC" is currently supported.
+ * @param pad The type of padding algorithm.
+ *    - `same` and stride 1: output will be of same size as input,
+ *       regardless of filter size.
+ *    - `valid`: output will be smaller than input if filter is larger
+ *       than 1x1.
+ *    - For more info, see this guide:
+ *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
+ *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ * @param includeBatchIndex Defaults to False. Whether to include batch
+ *    dimension in flattened index of argmax.
+ */
+/** @doc {heading: 'Operations', subheading: 'Convolution'} */
+/** @doc {heading: 'Operations', subheading: 'Convolution'} */
+function maxPoolWithArgmax_<T extends Tensor4D>(
+    x: T|TensorLike, filterSize: [number, number]|number,
+    strides: [number, number]|number,
+    pad: 'valid'|'same'|number, includeBatchInIndex = false): NamedTensorMap {
+  const $x = convertToTensor(x, 'x', 'maxPoolWithArgmax');
+
+  const attrs = {filterSize, strides, pad, includeBatchInIndex};
+
+  const result =
+      ENGINE.runKernel('MaxPoolWithArgmax', {x: $x}, attrs) as Tensor[];
+
+  return {result: result[0], indexes: result[1]};
+}
+
 export const maxPool = op({maxPool_});
 export const avgPool = op({avgPool_});
 export const pool = op({pool_});
 export const maxPool3d = op({maxPool3d_});
 export const avgPool3d = op({avgPool3d_});
+export const maxPoolWithArgmax = op({maxPoolWithArgmax_});

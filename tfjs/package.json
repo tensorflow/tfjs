@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs",
-  "version": "1.5.2",
+  "version": "0.0.0",
   "description": "An open-source machine learning framework.",
   "private": false,
   "main": "dist/index",
@@ -51,17 +51,29 @@
   },
   "scripts": {
     "build": "tsc",
+    "build-ci": "tsc",
+    "build-core": "cd ../tfjs-core && yarn && yarn build",
+    "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
+    "build-layers": "cd ../tfjs-layers && yarn && yarn build",
+    "build-layers-ci": "cd ../tfjs-layers && yarn && yarn build-ci",
+    "build-converter": "cd ../tfjs-converter && yarn && yarn build",
+    "build-converter-ci": "cd ../tfjs-converter && yarn && yarn build-ci",
+    "build-data": "cd ../tfjs-data && yarn && yarn build",
+    "build-data-ci": "cd ../tfjs-data && yarn && yarn build-ci",
+    "build-deps": "yarn build-core && yarn build-layers && yarn build-converter && yarn build-data",
+    "build-deps-ci": "yarn build-core-ci && yarn build-layers-ci && yarn build-converter-ci && yarn build-data-ci",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
+    "publish-npm": "npm publish",
     "lint": "tslint -p . -t verbose",
-    "test": "ts-node ./scripts/release_notes/run_tests.ts && karma start",
+    "test": "yarn && yarn build-deps && yarn build && ts-node ./scripts/release_notes/run_tests.ts && karma start",
     "test-ci": "./scripts/test-ci.sh"
   },
   "dependencies": {
-    "@tensorflow/tfjs-converter": "1.5.2",
-    "@tensorflow/tfjs-core": "1.5.2",
-    "@tensorflow/tfjs-data": "1.5.2",
-    "@tensorflow/tfjs-layers": "1.5.2"
+    "@tensorflow/tfjs-converter": "link:../tfjs-converter",
+    "@tensorflow/tfjs-core": "link:../tfjs-core",
+    "@tensorflow/tfjs-data": "link:../tfjs-data",
+    "@tensorflow/tfjs-layers": "link:../tfjs-layers"
   }
 }

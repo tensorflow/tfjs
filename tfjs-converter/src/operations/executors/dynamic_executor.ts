@@ -19,12 +19,13 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
-import {Node} from '../types';
+import {InternalOpAsyncExecutor, Node} from '../types';
+
 import {getParamValue} from './utils';
 
-export async function executeOp(
+export const executeOp: InternalOpAsyncExecutor = async(
     node: Node, tensorMap: NamedTensorsMap,
-    context: ExecutionContext): Promise<tfc.Tensor[]> {
+    context: ExecutionContext): Promise<tfc.Tensor[]> => {
   switch (node.op) {
     case 'NonMaxSuppressionV5':
     case 'NonMaxSuppressionV3':
@@ -56,9 +57,12 @@ export async function executeOp(
           iouThreshold, scoreThreshold)];
     }
     case 'Where': {
-      return [await tfc.whereAsync(
+      const condition =
           (getParamValue('condition', node, tensorMap, context) as tfc.Tensor)
-              .asType('bool'))];
+              .asType('bool');
+      const result = [await tfc.whereAsync(condition)];
+      condition.dispose();
+      return result;
     }
     case 'ListDiff': {
       return tfc.setdiff1dAsync(
@@ -68,6 +72,6 @@ export async function executeOp(
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }
-}
+};
 
 export const CATEGORY = 'dynamic';

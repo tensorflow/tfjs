@@ -6,54 +6,50 @@ steps:
   id: 'yarn-common'
   args: ['install']
 
-# Install converter dependencies
+# Install tfjs-converter dependencies
 - name: 'node:10'
   dir: 'tfjs-converter'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
   waitFor: ['yarn-common']
+  env: ['NIGHTLY=$_NIGHTLY']
 
-# Run browser tests.
+# Run javascript tests.
 - name: 'node:10'
   dir: 'tfjs-converter'
   entrypoint: 'yarn'
-  id: 'test-browser'
+  id: 'test-js'
   args: ['test-ci']
   waitFor: ['yarn']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
-  secretEnv: ['BROWSERSTACK_KEY']
+  env: ['NIGHTLY=$_NIGHTLY']
 
 # Run python tests.
 - name: 'gcr.io/google-appengine/python'
   dir: 'tfjs-converter/python'
   entrypoint: 'bash'
   args: ['./build-pip-package.sh', '--test', '/tmp/tfjs-pips']
-  waitFor: ['yarn']
+  waitFor: ['yarn-common']
 
 - name: 'python:2'
   dir: 'tfjs-converter/python'
   entrypoint: 'bash'
   args: ['./run-python-tests.sh']
-  waitFor: ['yarn']
+  waitFor: ['yarn-common']
 
 - name: 'python:3.6'
   dir: 'tfjs-converter/python'
   entrypoint: 'bash'
   args: ['./run-python-tests.sh']
-  waitFor: ['yarn']
+  waitFor: ['yarn-common']
 
 - name: 'node:10'
   dir: 'tfjs-converter'
   entrypoint: 'yarn'
   id: 'test-snippets'
   args: ['test-snippets']
-  waitFor: ['yarn']
+  waitFor: ['test-js']
 
-secrets:
-- kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
-  secretEnv:
-    BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
 substitutions:

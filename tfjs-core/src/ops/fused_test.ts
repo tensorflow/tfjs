@@ -20,7 +20,7 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 describeWithFlags('fused matmul', ALL_ENVS, () => {
-  it('A x B', async () => {
+  it('fused A x B', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
 
@@ -30,7 +30,7 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     expectArraysClose(await c.data(), [0, 8, -3, 20]);
   });
 
-  it('A x B with relu', async () => {
+  it('fused A x B with relu', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
     const transposeA = false;
@@ -43,7 +43,7 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     expectArraysClose(await c.data(), [0, 8, 0, 20]);
   });
 
-  it('A x B with elu', async () => {
+  it('fused A x B with elu', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
     const transposeA = false;
@@ -56,7 +56,7 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     expectArraysClose(await c.data(), [0, 8, -0.9502, 20]);
   });
 
-  it('A x B with relu6', async () => {
+  it('fused A x B with relu6', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
     const transposeA = false;
@@ -69,7 +69,7 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     expectArraysClose(await c.data(), [0, 6, 0, 6]);
   });
 
-  it('A x B with prelu', async () => {
+  it('fused A x B with prelu', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
     const alpha = tf.tensor2d([0.5, 0.5], [1, 2]);
@@ -90,7 +90,7 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     expectArraysClose(await c.data(), [0, 8, -1.5, 20]);
   });
 
-  it('A x B with relu transpose', async () => {
+  it('fused A x B with relu transpose', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [2, 3]);
     const transposeA = false;
@@ -103,7 +103,7 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     expectArraysClose(await c.data(), [0, 9, 0, 24]);
   });
 
-  it('A x B with relu and bias', async () => {
+  it('fused A x B with 2d bias and relu', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
     const c = tf.tensor2d([1, 1, 1, 1], [2, 2]);
@@ -117,7 +117,7 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     expectArraysClose(await d.data(), [1, 9, 0, 21]);
   });
 
-  it('A x B with relu and broadcasted bias', async () => {
+  it('fused A x B with relu and broadcasted bias', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
     const c = tf.tensor1d([1, 1]);
@@ -132,7 +132,7 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     expectArraysClose(await d.data(), [1, 9, 0, 21]);
   });
 
-  it('A x B with elu and broadcasted bias', async () => {
+  it('fused A x B with elu and broadcasted bias', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
     const c = tf.tensor1d([1, 1]);
@@ -147,7 +147,7 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     expectArraysClose(await d.data(), [1, 9, -0.8647, 21]);
   });
 
-  it('A x B with relu and broadcasted bias different rank', async () => {
+  it('fused A x B with relu and broadcasted bias different rank', async () => {
     const a = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [2, 2, 3]);
     const b = tf.tensor3d([0, 1, -3, 2, 2, 1, 0, 1, -3, 2, 2, 1], [2, 3, 2]);
     const c = tf.tensor2d([1, 2], [1, 2]);
@@ -162,7 +162,7 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     expectArraysClose(await d.data(), [2, 6, 0, 18, 0, 30, 0, 42]);
   });
 
-  it('A x B with bias only', async () => {
+  it('fused A x B with 2d bias only', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
     const c = tf.tensor2d([1, 1, 1, 1], [2, 2]);
@@ -176,7 +176,7 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     expectArraysClose(await d.data(), [1, 9, -2, 21]);
   });
 
-  it('A x B with relu gradient', async () => {
+  it('fused A x B with relu gradient', async () => {
     const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [2, 3]);
     const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
     const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
@@ -224,7 +224,7 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     expect(fusedDb.shape).toEqual(b.shape);
   });
 
-  it('A x B with relu bias gradient', async () => {
+  it('fused A x B with relu bias gradient', async () => {
     const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [2, 3]);
     const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
     const c = tf.tensor2d([1, 1, 1, 1], [2, 2]);
@@ -252,7 +252,7 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     expectArraysClose(await dc.array(), await fusedDc.array());
   });
 
-  it('A x B with relu bias gradient transpose', async () => {
+  it('fused A x B with relu bias gradient transpose', async () => {
     const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [3, 2]);
     const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
     const c = tf.tensor2d([1, 1, 1, 1], [2, 2]);
@@ -280,7 +280,7 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     expectArraysClose(await dc.array(), await fusedDc.array());
   });
 
-  it('A x B with relu and broadcasted bias gradient', async () => {
+  it('fused A x B with relu and broadcasted bias gradient', async () => {
     const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [2, 3]);
     const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
     const c = tf.tensor2d([[1]]);
@@ -1021,7 +1021,7 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     expectArraysClose(await dbiasFused.array(), await dbias.array());
   });
 
-  it('fused matmul with relu6', async () => {
+  it('fused matmul with relu6 and gradients', async () => {
     const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [2, 3]);
     const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
     const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);

@@ -76,8 +76,7 @@ TEST(FUSEDDEPTHWISECONV2D, xnn_operator_lifetime) {
   const size_t input_channels = 1;
   const size_t output_channels = 1;
 
-  const tfjs::wasm::FusableActivation activation =
-      tfjs::wasm::FusableActivation::LINEAR;
+  const FusableActivation activation = FusableActivation::LINEAR;
 
   tfjs::wasm::FusedDepthwiseConv2D(
       x0_id, batch_size, input_height, input_width, weights0_id, filter_height,
@@ -89,8 +88,7 @@ TEST(FUSEDDEPTHWISECONV2D, xnn_operator_lifetime) {
 
   // One new xnn operator should be created for second call to conv2d with no
   // bias and prelu activation.
-  const tfjs::wasm::FusableActivation prelu_activation =
-      tfjs::wasm::FusableActivation::PRELU;
+  const FusableActivation prelu_activation = FusableActivation::PRELU;
 
   const size_t prelu_weights_id = 8;
   const size_t prelu_size = 8;
@@ -190,8 +188,7 @@ TEST(FUSEDDEPTHWISECONV2D, xnn_operator_lifetime) {
 
   // One new XNN operator should be created for the next call to conv2d with a
   // different activation.
-  const tfjs::wasm::FusableActivation activation2 =
-      tfjs::wasm::FusableActivation::RELU6;
+  const FusableActivation activation2 = FusableActivation::RELU6;
   tfjs::wasm::FusedDepthwiseConv2D(
       x1_id, batch_size, input_height, input_width, weights1_id, filter_height,
       filter_width, bias1_id, pad_top1, pad_right, pad_bottom1, pad_left,

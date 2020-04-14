@@ -14,7 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
+import '@tensorflow/tfjs-backend-cpu';
 import * as tfc from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
 import {parseAndEvaluateSnippets} from '@tensorflow/tfjs-core/dist/scripts/test_snippets/util';
 import * as tfl from '@tensorflow/tfjs-layers';
 

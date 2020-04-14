@@ -27,6 +27,9 @@ enum DType {
   complex64 = 4,
 };
 
+// Must match enum in kernels/types.ts.
+enum FusableActivation { LINEAR = 0, RELU = 1, RELU6 = 2, PRELU = 3 };
+
 // Holds the memory offset and the size of a tensor.
 struct TensorInfo {
   // Pointer to the bytes where the data is allocated.

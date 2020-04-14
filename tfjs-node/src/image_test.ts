@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {memory, setBackend, test_util} from '@tensorflow/tfjs-core';
+import {memory, setBackend, test_util} from '@tensorflow/tfjs';
 import * as fs from 'fs';
 import {promisify} from 'util';
 import {getImageType, ImageType} from './image';
