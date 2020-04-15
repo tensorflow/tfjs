@@ -61,7 +61,7 @@ steps:
   id: 'test-bundle-size'
   entrypoint: 'yarn'
   args: ['test-bundle-size']
-  waitFor: ['yarn']
+  waitFor: ['build']
 
 # Lint bazel files.
 - name: 'node:10'
