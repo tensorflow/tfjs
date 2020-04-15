@@ -33,6 +33,17 @@ export {Activation, FusedConv2DConfig} from '../ops/fused_util';
 export * from '../ops/reduce_util';
 export {BackendValues, TypedArray, upcastType, PixelData} from '../types';
 export {MemoryInfo, TimingInfo} from '../engine';
+export * from '../ops/array_ops_util';
+export * from '../ops/gather_nd_util';
+export * from '../ops/scatter_nd_util';
+export * from '../ops/selu_util';
+export * from '../ops/fused_util';
+export * from '../ops/erf_util';
+export * from '../log';
+export * from '../backends/complex_util';
+
+import * as segment_util from '../ops/segment_util';
+export {segment_util};
 
 export function castTensor<T extends Tensor>(
     x: T, dtype: DataType, backend: KernelBackend): T {

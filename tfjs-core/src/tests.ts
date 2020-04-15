@@ -20,6 +20,7 @@
 import './browser_util_test';
 import './buffer_test';
 import './debug_mode_test';
+import './device_util_test';
 import './engine_test';
 import './environment_test';
 import './flags_test';
@@ -98,6 +99,7 @@ import './ops/softmax_test';
 import './ops/sparse_to_dense_test';
 import './ops/spectral_ops_test';
 import './ops/strided_slice_test';
+import './ops/sub_test';
 import './ops/tile_test';
 import './ops/topk_test';
 import './ops/transpose_test';

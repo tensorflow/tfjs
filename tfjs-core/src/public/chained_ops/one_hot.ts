@@ -27,5 +27,6 @@ declare module '../../tensor' {
 
 Tensor.prototype.oneHot = function(
     depth: number, onValue = 1, offValue = 0): Tensor {
+  this.throwIfDisposed();
   return oneHot(this, depth, onValue, offValue);
 };

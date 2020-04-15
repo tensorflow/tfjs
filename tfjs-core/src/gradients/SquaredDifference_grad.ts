@@ -17,7 +17,8 @@
 
 import {SquaredDifference} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {mul, sub} from '../ops/binary_ops';
+import {mul} from '../ops/binary_ops';
+import {sub} from '../ops/sub';
 import {scalar} from '../ops/tensor_ops';
 import {Tensor} from '../tensor';
 
