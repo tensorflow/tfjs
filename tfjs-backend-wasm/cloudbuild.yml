@@ -6,7 +6,7 @@ steps:
   args: ['install']
 
 # Install packages.
-- name: 'node: 10'
+- name: 'node:10'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'yarn'
