@@ -224,8 +224,8 @@ describe('decode images', () => {
   it('throw error if backend is not tensorflow', async done => {
     try {
       const testBackend = new TestKernelBackend();
-      registerBackend('sync', () => testBackend);
-      setBackend('sync');
+      registerBackend('fake', () => testBackend);
+      setBackend('fake');
 
       const uint8array = await getUint8ArrayFromImage(
           'test_objects/images/image_png_test.png');
@@ -234,7 +234,7 @@ describe('decode images', () => {
     } catch (err) {
       expect(err.message)
           .toBe(
-              'Expect the current backend to be "tensorflow", but got "sync"');
+              'Expect the current backend to be "tensorflow", but got "fake"');
       setBackend('tensorflow');
       done();
     }

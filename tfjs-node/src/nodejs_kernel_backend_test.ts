@@ -78,15 +78,15 @@ describe('Exposes Backend for internal Op execution.', () => {
   it('throw error if backend is not tensorflow', async done => {
     try {
       const testBackend = new TestKernelBackend();
-      tf.registerBackend('sync', () => testBackend);
-      tf.setBackend('sync');
+      tf.registerBackend('fake', () => testBackend);
+      tf.setBackend('fake');
 
       ensureTensorflowBackend();
       done.fail();
     } catch (err) {
       expect(err.message)
           .toBe(
-              'Expect the current backend to be "tensorflow", but got "sync"');
+              'Expect the current backend to be "tensorflow", but got "fake"');
       tf.setBackend('tensorflow');
       done();
     }
