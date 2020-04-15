@@ -19,7 +19,7 @@ steps:
   entrypoint: 'yarn'
   id: 'build-addon'
   args: ['build-addon-from-source']
-  waitFor: ['yarn-common']
+  waitFor: ['yarn']
 
 # Build deps.
 - name: 'node:10'
