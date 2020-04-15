@@ -25,12 +25,11 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {add} from './binary_ops';
+import {add} from './add';
 import * as broadcast_util from './broadcast_util';
 import {conv2d as unfusedConv2d, depthwiseConv2d as unfusedDepthwiseConv2d} from './conv';
 import {Activation, shouldFuse} from './fused_util';
 import {matMul as unfusedMatMul} from './matmul';
-
 import {elu, prelu, relu, relu6} from './relu_ops';
 
 // Returns gradient for fused activation.

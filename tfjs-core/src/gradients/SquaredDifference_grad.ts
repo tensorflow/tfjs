@@ -17,12 +17,14 @@
 
 import {SquaredDifference} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {mul, sub} from '../ops/binary_ops';
+import {mul} from '../ops/binary_ops';
+import {sub} from '../ops/sub';
 import {scalar} from '../ops/tensor_ops';
 import {Tensor} from '../tensor';
 
 export const squaredDifferenceGradConfig: GradConfig = {
   kernelName: SquaredDifference,
+  inputsToSave: ['a', 'b'],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
     const [a, b] = saved;
     const two = scalar(2);

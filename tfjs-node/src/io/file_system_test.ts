@@ -15,9 +15,7 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
-import {test_util} from '@tensorflow/tfjs-core';
-import * as tfl from '@tensorflow/tfjs-layers';
+import * as tf from '@tensorflow/tfjs';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as rimraf from 'rimraf';
@@ -65,7 +63,7 @@ describe('File system IOHandler', () => {
     }],
     'backend': 'tensorflow'
   };
-  const weightSpecs1: tfc.io.WeightsManifestEntry[] = [
+  const weightSpecs1: tf.io.WeightsManifestEntry[] = [
     {
       name: 'dense/kernel',
       shape: [3, 1],
@@ -93,7 +91,7 @@ describe('File system IOHandler', () => {
   it('save succeeds with newly created directory', async done => {
     const t0 = new Date();
     const dir = path.join(testDir, 'save-destination');
-    const handler = tfc.io.getSaveHandlers(`file://${dir}`)[0];
+    const handler = tf.io.getSaveHandlers(`file://${dir}`)[0];
     handler
         .save({
           modelTopology: modelTopology1,
@@ -128,7 +126,7 @@ describe('File system IOHandler', () => {
     const dir = path.join(testDir, 'save-destination');
     // Create a file at the locatin.
     await writeFile(dir, 'foo');
-    const handler = tfc.io.getSaveHandlers(`file://${dir}`)[0];
+    const handler = tf.io.getSaveHandlers(`file://${dir}`)[0];
     handler
         .save({
           modelTopology: modelTopology1,
@@ -145,7 +143,7 @@ describe('File system IOHandler', () => {
   });
 
   it('save-load round trip: one weight file', done => {
-    const handler1 = tfc.io.getSaveHandlers(`file://${testDir}`)[0];
+    const handler1 = tf.io.getSaveHandlers(`file://${testDir}`)[0];
     handler1
         .save({
           modelTopology: modelTopology1,
@@ -154,7 +152,7 @@ describe('File system IOHandler', () => {
         })
         .then(saveResult => {
           const modelJSONPath = path.join(testDir, 'model.json');
-          const handler2 = tfc.io.getLoadHandlers(`file://${modelJSONPath}`)[0];
+          const handler2 = tf.io.getLoadHandlers(`file://${modelJSONPath}`)[0];
           handler2.load()
               .then(modelArtifacts => {
                 expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
@@ -170,7 +168,7 @@ describe('File system IOHandler', () => {
 
   describe('load json model', () => {
     it('load: two weight files', async done => {
-      const weightsManifest: tfc.io.WeightsManifestConfig = [
+      const weightsManifest: tf.io.WeightsManifestConfig = [
         {
           paths: ['weights.1.bin'],
           weights: [{
@@ -209,7 +207,7 @@ describe('File system IOHandler', () => {
 
       // Load the artifacts consisting of a model.json and two binary weight
       // files.
-      const handler = tfc.io.getLoadHandlers(`file://${modelJSONPath}`)[0];
+      const handler = tf.io.getLoadHandlers(`file://${modelJSONPath}`)[0];
       handler.load()
           .then(modelArtifacts => {
             expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
@@ -225,7 +223,7 @@ describe('File system IOHandler', () => {
                 dtype: 'float32',
               }
             ]);
-            test_util.expectArraysClose(
+            tf.test_util.expectArraysClose(
                 new Float32Array(modelArtifacts.weightData),
                 new Float32Array([-1.1, -3.3, -3.3, -7.7]));
             done();
@@ -235,7 +233,7 @@ describe('File system IOHandler', () => {
 
     it('loading from nonexistent model.json path fails', done => {
       const handler =
-          tfc.io.getLoadHandlers(`file://${testDir}/foo/model.json`)[0];
+          tf.io.getLoadHandlers(`file://${testDir}/foo/model.json`)[0];
       handler.load()
           .then(getModelArtifactsInfoForJSON => {
             done.fail(
@@ -250,7 +248,7 @@ describe('File system IOHandler', () => {
     });
 
     it('loading from missing weights path fails', async done => {
-      const weightsManifest: tfc.io.WeightsManifestConfig = [
+      const weightsManifest: tf.io.WeightsManifestConfig = [
         {
           paths: ['weights.1.bin'],
           weights: [{
@@ -286,7 +284,7 @@ describe('File system IOHandler', () => {
 
       // Load the artifacts consisting of a model.json and two binary weight
       // files.
-      const handler = tfc.io.getLoadHandlers(`file://${modelJSONPath}`)[0];
+      const handler = tf.io.getLoadHandlers(`file://${modelJSONPath}`)[0];
       handler.load()
           .then(modelArtifacts => {
             done.fail(
@@ -303,7 +301,7 @@ describe('File system IOHandler', () => {
 
   describe('load binary model', () => {
     it('load: two weight files', async done => {
-      const weightsManifest: tfc.io.WeightsManifestConfig = [
+      const weightsManifest: tf.io.WeightsManifestConfig = [
         {
           paths: ['weights.1.bin'],
           weights: [{
@@ -348,7 +346,7 @@ describe('File system IOHandler', () => {
           new NodeFileSystem([`${modelPath}`, `${modelManifestJSONPath}`]);
       handler.load()
           .then(modelArtifacts => {
-            test_util.expectArraysClose(
+            tf.test_util.expectArraysClose(
                 new Uint8Array(modelArtifacts.modelTopology as ArrayBuffer),
                 new Uint8Array(modelData));
             expect(modelArtifacts.weightSpecs).toEqual([
@@ -363,7 +361,7 @@ describe('File system IOHandler', () => {
                 dtype: 'float32',
               }
             ]);
-            test_util.expectArraysClose(
+            tf.test_util.expectArraysClose(
                 new Float32Array(modelArtifacts.weightData),
                 new Float32Array([-1.1, -3.3, -3.3, -7.7]));
             done();
@@ -394,7 +392,7 @@ describe('File system IOHandler', () => {
     });
 
     it('loading from missing weights path fails', async done => {
-      const weightsManifest: tfc.io.WeightsManifestConfig = [
+      const weightsManifest: tf.io.WeightsManifestConfig = [
         {
           paths: ['weights.1.bin'],
           weights: [{
@@ -454,21 +452,21 @@ describe('File system IOHandler', () => {
   });
 
   it('Save and load model with loss and optimizer', async () => {
-    const model = tfl.sequential();
-    model.add(tfl.layers.dense(
+    const model = tf.sequential();
+    model.add(tf.layers.dense(
         {units: 1, kernelInitializer: 'zeros', inputShape: [1]}));
     model.compile(
-        {loss: 'meanSquaredError', optimizer: tfc.train.adam(2.5e-2)});
+        {loss: 'meanSquaredError', optimizer: tf.train.adam(2.5e-2)});
 
-    const xs = tfc.tensor2d([1, 2, 3, 4], [4, 1]);
-    const ys = tfc.tensor2d([-1, -3, -5, -7], [4, 1]);
+    const xs = tf.tensor2d([1, 2, 3, 4], [4, 1]);
+    const ys = tf.tensor2d([-1, -3, -5, -7], [4, 1]);
     await model.fit(xs, ys, {epochs: 2, shuffle: false, verbose: 0});
 
     const saveURL = `file://${testDir}`;
     const loadURL = `file://${testDir}/model.json`;
 
     await model.save(saveURL, {includeOptimizer: true});
-    const model2 = await tfl.loadLayersModel(loadURL);
+    const model2 = await tf.loadLayersModel(loadURL);
     const optimizerConfig = model2.optimizer.getConfig();
     expect(model2.optimizer.getClassName()).toEqual('Adam');
     expect(optimizerConfig['learningRate']).toEqual(2.5e-2);
@@ -484,8 +482,8 @@ describe('File system IOHandler', () => {
   });
 
   it('Save and load model with user-defined metadata', async () => {
-    const model = tfl.sequential();
-    model.add(tfl.layers.dense({units: 3, inputShape: [4]}));
+    const model = tf.sequential();
+    model.add(tf.layers.dense({units: 3, inputShape: [4]}));
     model.setUserDefinedMetadata(
         {'outputLabels': ['Label1', 'Label2', 'Label3']});
 
@@ -493,7 +491,7 @@ describe('File system IOHandler', () => {
     const loadURL = `file://${testDir}/model.json`;
 
     await model.save(saveURL);
-    const model2 = await tfl.loadLayersModel(loadURL);
+    const model2 = await tf.loadLayersModel(loadURL);
     expect(model2.getUserDefinedMetadata()).toEqual({
       'outputLabels': ['Label1', 'Label2', 'Label3']
     });

@@ -78,14 +78,12 @@ function broadcastTo_<R extends Rank>(
   }
 
   const forward = (backend: KernelBackend) => backend.tile(input, reps);
-  const keepDims = true;
-  const backward = (dy: Tensor) => ({x: () => dy.sum(axes, keepDims)});
 
   const inputs: BroadcastToInputs = {x: input};
   const attrs: BroadCastToAttrs = {shape, inputShape};
 
   return ENGINE.runKernelFunc(
-             forward, inputs as unknown as NamedTensorMap, backward,
+             forward, inputs as unknown as NamedTensorMap, null /* grad */,
              BroadcastTo, attrs as unknown as NamedAttrMap) as Tensor<R>;
 }
 

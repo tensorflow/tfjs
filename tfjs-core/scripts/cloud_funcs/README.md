@@ -12,7 +12,7 @@ gcloud functions deploy nightly \
 ```
 
 If a build was triggered by nightly, there is a substitution variable `_NIGHTLY=true`.
-You can forward the substitution as the `NIGHTLY` environment variable so the scripts can use it, by specifying `env: ['NIGHTLY=$_NIGHTLY']` in `cloudbuild.yml`. E.g. `test-integration` uses the `NIGHTLY` bit to always run on nightly.
+You can forward the substitution as the `NIGHTLY` environment variable so the scripts can use it, by specifying `env: ['NIGHTLY=$_NIGHTLY']` in `cloudbuild.yml`.
 
 ### `send_email`
 Sends an email and a chat message with the nightly build status. Every build sends a message to the `cloud-builds` topic with its build information. The `send_email` function is subscribed to that topic and ignores all builds (e.g. builds triggered by pull requests) **except** for the nightly build and sends an email to an internal mailing list with its build status around 3:10am.

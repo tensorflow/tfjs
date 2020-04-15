@@ -171,7 +171,9 @@ export async function toPixels(
   let $img = convertToTensor(img, 'img', 'toPixels');
   if (!(img instanceof Tensor)) {
     // Assume int32 if user passed a native array.
-    $img = $img.toInt();
+    const originalImgTensor = $img;
+    $img = originalImgTensor.toInt();
+    originalImgTensor.dispose();
   }
   if ($img.rank !== 2 && $img.rank !== 3) {
     throw new Error(
