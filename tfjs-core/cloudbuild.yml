@@ -13,6 +13,7 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
+# Build deps.
 - name: 'node:10'
   dir: 'tfjs-core'
   id: 'build-deps'
@@ -20,7 +21,7 @@ steps:
   args: ['build-deps-ci']
   waitFor: ['yarn']
 
-# Build
+# Build.
 - name: 'node:10'
   dir: 'tfjs-core'
   id: 'build'
@@ -28,13 +29,21 @@ steps:
   args: ['build-ci']
   waitFor: ['build-deps']
 
+# Lint.
+- name: 'node:10'
+  dir: 'tfjs-core'
+  id: 'lint'
+  entrypoint: 'yarn'
+  args: ['lint']
+  waitFor: ['build']
+
 # Run unit tests.
 - name: 'node:10'
   dir: 'tfjs-core'
   id: 'test'
   entrypoint: 'yarn'
   args: ['test-ci']
-  waitFor: ['build']
+  waitFor: ['lint']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 
