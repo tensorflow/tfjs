@@ -17,6 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
+import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -41,6 +42,29 @@ export class BatchNormProgram implements WebGPUProgram {
     this.dispatchLayout = {x: [1, 2], y: [0], z: [3]};
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
+    const dim = this.outputShape.length;
+    const coordsDataType = getCoordsDataType(dim);
+    let setOutput =
+        'setOutput(coords[0], coords[1], coords[2], coords[3], value);';
+    switch (dim) {
+      case 2:
+        this.dispatchLayout = {x: [1], y: [0], z: []};
+        setOutput = 'setOutput(coords[0], coords[1], value);';
+        break;
+      case 3:
+        this.dispatchLayout = {x: [1, 2], y: [0], z: []};
+        setOutput = 'setOutput(coords[0], coords[1], coords[2], value);';
+        break;
+      case 4:
+        this.dispatchLayout = {x: [1, 2], y: [0], z: [3]};
+        setOutput =
+            'setOutput(coords[0], coords[1], coords[2], coords[3],value);';
+        break;
+      default:
+        this.dispatchLayout = {x: [1, 2], y: [0], z: [3]};
+        setOutput =
+            'setOutput(coords[0], coords[1], coords[2], coords[3],value);';
+    }
 
     let offsetSnippet = '0.0';
     if (offsetShape != null) {
@@ -57,13 +81,13 @@ export class BatchNormProgram implements WebGPUProgram {
     }
 
     this.userCode = `
-      void writeResult(ivec4 coords,float value) {
+      void writeResult(${coordsDataType} coords,float value) {
         if (coordsInBounds(coords, outShape)) {
-          setOutput(coords[0], coords[1], coords[2], coords[3], value);
+          ${setOutput}
         }
       }
       void main() {
-        ivec4 coords = getOutputCoords();
+        ${coordsDataType} coords = getOutputCoords();
         float x = getXAtOutCoords();
         float mean = getMeanAtOutCoords();
         float variance = getVarianceAtOutCoords();

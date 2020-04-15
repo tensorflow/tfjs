@@ -29,7 +29,6 @@ export const ELU = `return (a >= 0.0) ? a : (exp(a) - 1.0);`;
 export const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
 export const ABS = `return abs(a);`;
 export const SQUARE = `return a * a;`;
-export const RSQRT = `return inversesqrt(a);`;
 
 export class UnaryOpProgram implements WebGPUProgram {
   outputShape: number[];
