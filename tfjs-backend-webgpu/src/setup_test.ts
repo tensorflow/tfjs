@@ -358,12 +358,6 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'gradient',
     ]
-  },
-  {
-    include: 'rsqrt',
-    excludes: [
-      'gradient',
-    ]
   }
 ];
 

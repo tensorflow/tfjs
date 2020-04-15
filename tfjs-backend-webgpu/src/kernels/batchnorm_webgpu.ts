@@ -40,8 +40,6 @@ export class BatchNormProgram implements WebGPUProgram {
     backend_util.assertAndGetBroadcastShape(xShape, varianceShape);
     this.outputShape = xShape;
     this.dispatchLayout = {x: [1, 2], y: [0], z: [3]};
-    this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
     const dim = this.outputShape.length;
     const coordsDataType = getCoordsDataType(dim);
     let setOutput =
@@ -65,6 +63,8 @@ export class BatchNormProgram implements WebGPUProgram {
         setOutput =
             'setOutput(coords[0], coords[1], coords[2], coords[3],value);';
     }
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     let offsetSnippet = '0.0';
     if (offsetShape != null) {
