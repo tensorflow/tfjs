@@ -27,7 +27,7 @@
     "build-union": "cd ../tfjs && yarn && yarn build",
     "build-union-ci": "cd ../tfjs && yarn && yarn build-ci",
     "build-deps": "yarn build-core && yarn build-backend-cpu && yarn build-layers && yarn build-converter && yarn build-data && yarn build-union",
-    "build-deps-ci": "yarn build-core-ci && build-backend-cpu-ci && yarn build-layers-ci && yarn build-converter-ci && yarn build-data-ci && yarn build-union-ci",
+    "build-deps-ci": "yarn build-core-ci && yarn build-backend-cpu-ci && yarn build-layers-ci && yarn build-converter-ci && yarn build-data-ci && yarn build-union-ci",
     "build-npm": "./scripts/build-npm.sh",
     "build-addon": "./scripts/build-and-upload-addon.sh",
     "build-addon-from-source": "node-pre-gyp install --build-from-source",
