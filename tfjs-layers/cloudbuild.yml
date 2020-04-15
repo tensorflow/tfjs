@@ -53,7 +53,7 @@ steps:
   entrypoint: 'yarn'
   id: 'tfjs2keras-js'
   args: ['tfjs2keras-js']
-  waitFor: ['lint']
+  waitFor: ['test-browser']
 
 - name: 'python:2'
   dir: 'tfjs-layers'
@@ -67,7 +67,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-snippets'
   args: ['test-snippets']
-  waitFor: ['tfjs2keras-py']
+  waitFor: ['build']
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
   secretEnv:
