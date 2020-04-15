@@ -14,10 +14,12 @@
  * limitations under the License.
  * =============================================================================
  */
-import '@tensorflow/tfjs-backend-cpu';
-import {memory, setBackend, test_util} from '@tensorflow/tfjs';
+import {memory, registerBackend, setBackend, test_util} from '@tensorflow/tfjs';
+// tslint:disable-next-line: no-imports-from-dist
+import {TestKernelBackend} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import * as fs from 'fs';
 import {promisify} from 'util';
+
 import {getImageType, ImageType} from './image';
 import * as tf from './index';
 
@@ -221,14 +223,18 @@ describe('decode images', () => {
 
   it('throw error if backend is not tensorflow', async done => {
     try {
-      setBackend('cpu');
+      const testBackend = new TestKernelBackend();
+      registerBackend('sync', () => testBackend);
+      setBackend('sync');
+
       const uint8array = await getUint8ArrayFromImage(
           'test_objects/images/image_png_test.png');
       tf.node.decodeImage(uint8array);
       done.fail();
     } catch (err) {
       expect(err.message)
-          .toBe('Expect the current backend to be "tensorflow", but got "cpu"');
+          .toBe(
+              'Expect the current backend to be "tensorflow", but got "sync"');
       setBackend('tensorflow');
       done();
     }
