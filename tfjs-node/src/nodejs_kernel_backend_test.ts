@@ -16,6 +16,9 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
+// tslint:disable-next-line: no-imports-from-dist
+import {TestKernelBackend} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
 import {createTensorsTypeOpAttr, createTypeOpAttr, ensureTensorflowBackend, getTFDType, nodeBackend, NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 describe('delayed upload', () => {
@@ -74,12 +77,16 @@ describe('Exposes Backend for internal Op execution.', () => {
 
   it('throw error if backend is not tensorflow', async done => {
     try {
-      tf.setBackend('cpu');
+      const testBackend = new TestKernelBackend();
+      tf.registerBackend('fake', () => testBackend);
+      tf.setBackend('fake');
+
       ensureTensorflowBackend();
       done.fail();
     } catch (err) {
       expect(err.message)
-          .toBe('Expect the current backend to be "tensorflow", but got "cpu"');
+          .toBe(
+              'Expect the current backend to be "tensorflow", but got "fake"');
       tf.setBackend('tensorflow');
       done();
     }
