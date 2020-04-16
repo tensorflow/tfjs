@@ -51,7 +51,7 @@ steps:
   entrypoint: 'yarn'
   id: 'lint'
   args: ['lint']
-  waitFor: ['build']
+  waitFor: ['yarn', 'build-deps']
 
 # Unit tests.
 - name: 'node:10'

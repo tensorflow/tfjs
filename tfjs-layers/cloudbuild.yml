@@ -35,7 +35,7 @@ steps:
   entrypoint: 'yarn'
   id: 'lint'
   args: ['lint']
-  waitFor: ['build']
+  waitFor: ['yarn', 'build-deps']
 
 # Run javascript tests
 - name: 'node:10'

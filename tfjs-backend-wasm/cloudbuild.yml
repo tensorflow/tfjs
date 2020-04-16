@@ -35,7 +35,7 @@ steps:
   entrypoint: 'yarn'
   id: 'lint'
   args: ['lint']
-  waitFor: ['build']
+  waitFor: ['yarn', 'build-deps']
 
 # Run JS tests.
 - name: 'node:10'
@@ -69,7 +69,7 @@ steps:
   id: 'buildifier'
   entrypoint: 'yarn'
   args: ['buildifier-ci']
-  waitFor: ['build']
+  waitFor: ['yarn']
 
 # General configuration
 secrets:
