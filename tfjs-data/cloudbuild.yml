@@ -44,7 +44,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test'
   args: ['test-ci']
-  waitFor: ['lint']
+  waitFor: ['yarn', 'build-deps', 'lint']
 
 # Run data snippets tests.
 - name: 'node:10'

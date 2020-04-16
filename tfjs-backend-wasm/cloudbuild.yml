@@ -43,7 +43,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-wasm'
   args: ['test-ci']
-  waitFor: ['build', 'lint']
+  waitFor: ['yarn', 'build-deps', 'build', 'lint']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
 

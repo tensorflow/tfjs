@@ -59,7 +59,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test'
   args: ['test-ci']
-  waitFor: ['lint']
+  waitFor: ['yarn', 'build-deps', 'lint']
 
 # Integration test.
 - name: 'node:10'
