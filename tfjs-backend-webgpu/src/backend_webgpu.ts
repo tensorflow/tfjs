@@ -401,7 +401,7 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
-  private compileAndRun<
+  public compileAndRun<
       K extends {dtype: DataType, size: number, dataId: {}, shape: number[]}>(
       program: webgpu_program.WebGPUProgram, inputs: Tensor[], output?: Tensor,
       programUniforms?: number[]): K {
