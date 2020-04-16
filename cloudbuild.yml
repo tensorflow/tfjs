@@ -22,6 +22,23 @@ steps:
   id: 'tfjs-core'
   args: ['./scripts/run-build.sh', 'tfjs-core']
   waitFor: ['find-affected-packages']
+  env: ['NIGHTLY=$_NIGHTLY']
+
+# CPU backend.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'tfjs-backend-cpu'
+  args: ['./scripts/run-build.sh', 'tfjs-backend-cpu']
+  waitFor: ['find-affected-packages']
+  env: ['NIGHTLY=$_NIGHTLY']
+
+# Webgl backend.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'tfjs-backend-webgl'
+  args: ['./scripts/run-build.sh', 'tfjs-backend-webgl']
+  waitFor: ['find-affected-packages']
+  env: ['NIGHTLY=$_NIGHTLY']
 
 # Converter.
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -29,6 +46,7 @@ steps:
   id: 'tfjs-converter'
   args: ['./scripts/run-build.sh', 'tfjs-converter']
   waitFor: ['find-affected-packages']
+  env: ['NIGHTLY=$_NIGHTLY']
 
 # Data.
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -36,6 +54,7 @@ steps:
   id: 'tfjs-data'
   args: ['./scripts/run-build.sh', 'tfjs-data']
   waitFor: ['find-affected-packages']
+  env: ['NIGHTLY=$_NIGHTLY']
 
 # Layers.
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -43,6 +62,7 @@ steps:
   id: 'tfjs-layers'
   args: ['./scripts/run-build.sh', 'tfjs-layers']
   waitFor: ['find-affected-packages']
+  env: ['NIGHTLY=$_NIGHTLY']
 
 # Union.
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -71,6 +91,7 @@ steps:
   id: 'tfjs-backend-wasm'
   args: ['./scripts/run-build.sh', 'tfjs-backend-wasm']
   waitFor: ['find-affected-packages']
+  env: ['NIGHTLY=$_NIGHTLY']
 
 # React Native.
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -85,6 +106,7 @@ steps:
   id: 'tfjs-node'
   args: ['./scripts/run-build.sh', 'tfjs-node']
   waitFor: ['find-affected-packages']
+  env: ['NIGHTLY=$_NIGHTLY']
 
 # Node GPU.
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -92,16 +114,7 @@ steps:
   id: 'tfjs-node-gpu'
   args: ['./scripts/run-build.sh', 'tfjs-node-gpu']
   waitFor: ['find-affected-packages']
-
-# Integration tests
-- name: 'node:10'
-  dir: 'tfjs-core'
-  id: 'test-integration'
-  entrypoint: 'yarn'
-  args: ['test-integration']
-  waitFor: ['find-affected-packages']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
-  secretEnv: ['BROWSERSTACK_KEY']
+  env: ['NIGHTLY=$_NIGHTLY']
 
 # Release notes test
 - name: 'node:10'
@@ -111,10 +124,6 @@ steps:
   waitFor: ['yarn']
 
 # General settings.
-secrets:
-- kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
-  secretEnv:
-    BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
 timeout: 3600s
 logsBucket: 'gs://tfjs-build-logs'
 options:

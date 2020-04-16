@@ -14,12 +14,15 @@
  * limitations under the License.
  * =============================================================================
  */
-
+import {getGlobal} from './global_util';
+import {NamedGradientMap} from './tape';
 import {Tensor} from './tensor';
 import {DataType, RecursiveArray} from './types';
 
-const kernelRegistry: Map<string, KernelConfig> = new Map();
-const gradRegistry: Map<string, GradConfig> = new Map();
+const kernelRegistry =
+    getGlobal('kernelRegistry', () => new Map<string, KernelConfig>());
+const gradRegistry =
+    getGlobal('gradRegistry', () => new Map<string, GradConfig>());
 
 export type DataId = object;
 
@@ -37,8 +40,9 @@ export type KernelFunc = (params: {
 }) => TensorInfo|TensorInfo[];
 
 /** The function to run when computing a gradient during backprop. */
-export type GradFunc = (dy: Tensor|Tensor[], saved: Tensor[]) =>
-    ({[inputName: string]: () => Tensor});
+export type GradFunc =
+    (dy: Tensor|Tensor[], saved: Tensor[], attrs: NamedAttrMap) =>
+        NamedGradientMap;
 
 /** Function that gets called after the backend initializes. */
 export type KernelSetupFunc = (backend: {}) => void;
@@ -57,6 +61,11 @@ export interface KernelConfig {
 /** Config object for registering a gradient in the global registry. */
 export interface GradConfig {
   kernelName: string;
+  inputsToSave?: string[];
+  // When saveAllInputs is true, all inputs will be saved. Only use this flag
+  // if inputs is an array of Tensors.
+  saveAllInputs?: boolean;
+  outputsToSave?: boolean[];
   gradFunc: GradFunc;
 }
 
@@ -128,9 +137,13 @@ export function registerKernel(config: KernelConfig) {
   const {kernelName, backendName} = config;
   const key = makeKey(kernelName, backendName);
   if (kernelRegistry.has(key)) {
-    throw new Error(
+    console.warn(
         `The kernel '${kernelName}' for backend ` +
         `'${backendName}' is already registered`);
+    // TODO(yassogba) make this an error again once WebGL is moved from core.
+    // throw new Error(
+    // `The kernel '${kernelName}' for backend ` +
+    // `'${backendName}' is already registered`);
   }
   kernelRegistry.set(key, config);
 }

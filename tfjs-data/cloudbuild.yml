@@ -6,53 +6,45 @@ steps:
   id: 'yarn-common'
   args: ['install']
 
-# Build core from master.
-- name: 'node:10'
-  dir: 'tfjs-data'
-  id: 'build-core'
-  entrypoint: 'yarn'
-  args: ['build-core-ci']
-  waitFor: ['yarn-common']
-
-# Build layers from master.
-- name: 'node:10'
-  dir: 'tfjs-data'
-  id: 'build-layers'
-  entrypoint: 'yarn'
-  args: ['build-layers-ci']
-  waitFor: ['build-core']
-
-# Install data dependencies.
+# Install packages.
 - name: 'node:10'
   dir: 'tfjs-data'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
-  waitFor: ['build-layers']
+  waitFor: ['yarn-common']
 
-# Run lint.
+# Build deps.
 - name: 'node:10'
   dir: 'tfjs-data'
   entrypoint: 'yarn'
-  id: 'lint'
-  args: ['lint']
-  waitFor: ['yarn']
+  id: 'build-deps'
+  args: ['build-deps-ci']
+  waitFor: ['yarn-common']
 
-# Build the project.
+# Build.
 - name: 'node:10'
   dir: 'tfjs-data'
   entrypoint: 'yarn'
   id: 'build'
   args: ['build-ci']
-  waitFor: ['yarn']
+  waitFor: ['yarn', 'build-deps']
+
+# Lint.
+- name: 'node:10'
+  dir: 'tfjs-data'
+  entrypoint: 'yarn'
+  id: 'lint'
+  args: ['lint']
+  waitFor: ['yarn', 'build-deps']
 
 # Run tests in node.
 - name: 'node:10'
   dir: 'tfjs-data'
   entrypoint: 'yarn'
   id: 'test'
-  args: ['test']
-  waitFor: ['build']
+  args: ['test-ci']
+  waitFor: ['yarn', 'build-deps', 'lint']
 
 # Run data snippets tests.
 - name: 'node:10'

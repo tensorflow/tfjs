@@ -14,5 +14,14 @@
  * limitations under the License.
  * =============================================================================
  */
-
+import './add';
+import './batchnorm';
+import './broadcast_to';
+import './div';
+import './div_no_nan';
+import './one_hot';
+import './pad';
 import './squared_difference';
+import './sub';
+import './tile';
+import './transpose';

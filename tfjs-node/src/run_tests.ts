@@ -35,8 +35,12 @@ process.on('unhandledRejection', e => {
   throw e;
 });
 
-jasmine_util.setTestEnvs(
-    [{name: 'test-tensorflow', backendName: 'tensorflow', flags: {}}]);
+jasmine_util.setTestEnvs([{
+  name: 'test-tensorflow',
+  backendName: 'tensorflow',
+  flags: {},
+  isDataSync: true
+}]);
 
 const IGNORE_LIST: string[] = [
   // Always ignore version tests:
@@ -73,7 +77,8 @@ const IGNORE_LIST: string[] = [
   'conv2d test-tensorflow {} x=[2,2,2] f=[2,2,2,1] s=1 d=1 p=same NCHW',
   'conv2d test-tensorflow {} x=[2,1,2,2] f=[2,2,1,1] s=1 d=1 p=same NCHW',
   'conv2d test-tensorflow {} gradient x=[1,1,3,3] f=[2,2,1,1] s=1 p=0 NCHW',
-  'conv2d test-tensorflow {} gradient x=[2,1,3,3] f=[2,2,1,1] s=1 p=0 NCHW'
+  'conv2d test-tensorflow {} gradient x=[2,1,3,3] f=[2,2,1,1] s=1 p=0 NCHW',
+  'maxPoolWithArgmax'
 ];
 
 if (process.platform === 'win32') {
@@ -89,11 +94,11 @@ if (process.platform === 'win32') {
       'maxPool test-tensorflow {} [x=[3,3,1] f=[2,2] s=1 ignores NaNs');
 }
 
-const coreTests = 'node_modules/@tensorflow/tfjs-core/dist/**/*_test.js';
-const nodeTests = 'src/**/*_test.ts';
-
 const runner = new jasmineCtor();
-runner.loadConfig({spec_files: [coreTests, nodeTests], random: false});
+runner.loadConfig({spec_files: ['src/**/*_test.ts'], random: false});
+// Also import tests from core.
+// tslint:disable-next-line: no-imports-from-dist
+import '@tensorflow/tfjs-core/dist/tests';
 
 if (process.env.JASMINE_SEED) {
   runner.seed(process.env.JASMINE_SEED);

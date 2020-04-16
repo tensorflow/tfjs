@@ -20,9 +20,9 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {randomUniform} from './array_ops';
 import {getNoiseShape} from './dropout_util';
 import {op} from './operation';
+import {randomUniform} from './random_uniform';
 
 /**
  * Computes dropout.

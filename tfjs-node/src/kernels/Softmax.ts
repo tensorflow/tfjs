@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs';
 
 import {createTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 

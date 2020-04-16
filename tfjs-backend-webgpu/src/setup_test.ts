@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import '@tensorflow/tfjs-backend-webgl';
+
 // tslint:disable-next-line: no-imports-from-dist
 import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
@@ -210,8 +212,9 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'maxPool',
     excludes: [
-      'maxPoolBackprop',  // Not yet implemented.
-      'maxPool3d',        // Not yet implemented.
+      'maxPoolBackprop',   // Not yet implemented.
+      'maxPool3d',         // Not yet implemented.
+      'maxPoolWithArgmax'  // Not yet implemented.
     ]
   },
   {
@@ -248,6 +251,16 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {include: 'subtract ', excludes: []},
+  {
+    include: 'square',
+    excludes: [
+      'int32 and int32',  // Fail due to shader key is not
+                          // unique:https://github.com/tensorflow/tfjs/issues/2669.
+      'upcasts when dtypes dont match',  // Upcasts not supported.
+      '5D',                              // Rank 5 is not yet implemented.
+      '6D',                              // Rank 6 is not yet implemented.
+    ]
+  },
   {
     include: 'slice ',
     excludes: [
