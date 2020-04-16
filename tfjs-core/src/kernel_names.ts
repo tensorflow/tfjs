@@ -29,6 +29,12 @@ export type AddNInputs = TensorInfo[];
 
 export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 
+export const Concat = 'Concat';
+export type ConcatInputs = TensorInfo[];
+export interface ConcatAttrs {
+  axis: number;
+}
+
 export const Div = 'Div';
 export type DivInputs = BinaryInputs;
 
