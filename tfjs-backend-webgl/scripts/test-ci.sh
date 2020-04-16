@@ -16,9 +16,6 @@
 
 set -e
 
-yarn lint
-yarn build-ci
-
 if [ "$NIGHTLY" = true ]
 then
   # Run the first karma separately so it can download the BrowserStack binary

@@ -69,6 +69,7 @@
     "lint": "tslint -p . -t verbose",
     "coverage": "KARMA_COVERAGE=1 karma start --browsers='Chrome' --singleRun",
     "test": "yarn && yarn build-deps && karma start",
+    "test-ci": "./scripts/test-ci.sh",
     "test-webworker": "karma start --worker",
     "run-browserstack": "karma start --browserstack",
     "test-bundle-size": "./scripts/test-bundle-size.js",
@@ -76,7 +77,6 @@
     "test-node-ci": "node dist/test_node.js",
     "test-async-backends": "rimraf dist/ && tsc && node dist/test_async_backends.js",
     "test-async-backends-ci": "node dist/test_async_backends.js",
-    "test-ci": "./scripts/test-ci.sh",
     "test-snippets": "yarn build && yarn build-cpu-backend && ts-node ./scripts/test_snippets/test_snippets.ts"
   },
   "dependencies": {
