@@ -151,7 +151,7 @@ function templateBenchmarksForTimePeriod(start, end) {
 
       target.tests = target.tests
         .filter(test => test.entries.length > 1)
-        .sort((a, b) => a.localeCompare(b));
+        .sort((a, b) => a.name.localeCompare(b.name));
 
       target.tests.forEach((test, i) => {
           const params = test.entries.reduce((acc, curr) => {
