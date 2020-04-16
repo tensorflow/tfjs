@@ -48,11 +48,7 @@ function templateBenchmarksForTimePeriod(start, end) {
   const logFiles = getLogFiles(start, end);
   const files = logFiles['results'];
 
-  tabsContainer.innerHTML = '';
-  // remove all panels
-  [].slice.call(document.querySelectorAll('.mdl-tabs__panel')).forEach(el => {
-    el.parentNode.removeChild(el);
-  });
+  clearDisplay();
 
   getDataForFiles(files).then(allResponses => {
     const responses = [], dateFormats = [];
@@ -64,7 +60,6 @@ function templateBenchmarksForTimePeriod(start, end) {
     }
 
     const processedResponses = [];
-
     for (let i = 0; i < responses.length; i++) {
       const response = responses[i];
       const processedResponse = [];

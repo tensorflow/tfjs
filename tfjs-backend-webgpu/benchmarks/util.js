@@ -68,3 +68,11 @@ function openModal(start, end) {
   startDateInput.value = start.format(MOMENT_DISPLAY_FORMAT);
   endDateInput.value = end.format(MOMENT_DISPLAY_FORMAT);
 }
+
+function clearDisplay() {
+  tabsContainer.innerHTML = '';
+  // remove all panels
+  [].slice.call(document.querySelectorAll('.mdl-tabs__panel')).forEach(el => {
+    el.parentNode.removeChild(el);
+  });
+}
