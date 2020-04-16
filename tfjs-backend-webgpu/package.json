@@ -10,10 +10,10 @@
   "scripts": {
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "publish-npm": "./scripts/publish-npm.sh",
+    "build-backend-webgl": "cd ../tfjs-backend-webgl && yarn && yarn build",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-deps": "yarn build-core && yarn build-backend-webgl",
     "build": "yarn build-deps && rimraf dist/ && tsc",
-    "build-backend-webgl": "cd ../tfjs-backend-webgl && yarn && yarn build",
     "link-local": "yalc link",
     "unlink-local": "yalc remove",
     "lint": "tslint -p . -t verbose",

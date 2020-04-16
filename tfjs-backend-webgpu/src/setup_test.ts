@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import '@tensorflow/tfjs-backend-webgl';
+
 // tslint:disable-next-line: no-imports-from-dist
 import '@tensorflow/tfjs-backend-webgl';
 
