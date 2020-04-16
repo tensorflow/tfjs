@@ -1159,6 +1159,20 @@ describeWithFlags('toPixels no canvas', ALL_ENVS, () => {
     const expected = new Uint8ClampedArray([10, 10, 10, 255, 20, 20, 20, 255]);
     expect(data).toEqual(expected);
   });
+
+  it('does not leak memory', async () => {
+    const x = tf.tensor2d([[.1], [.2]], [2, 1]);
+    const startNumTensors = tf.memory().numTensors;
+    await tf.browser.toPixels(x);
+    expect(tf.memory().numTensors).toEqual(startNumTensors);
+  });
+
+  it('does not leak memory given a tensor-like object', async () => {
+    const x = [[10], [20]];  // 2x1;
+    const startNumTensors = tf.memory().numTensors;
+    await tf.browser.toPixels(x);
+    expect(tf.memory().numTensors).toEqual(startNumTensors);
+  });
 });
 
 describeWithFlags('clone', ALL_ENVS, () => {
