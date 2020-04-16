@@ -30,7 +30,6 @@ const strokes = {
 };
 
 const TARGETS = ['canary'];
-
 const MOMENT_DISPLAY_FORMAT = 'MM/DD/YYYY';
 const MAX_NUM_LOGS = 50;
 const START_LOGGING_DATE = '2019-08-16';
