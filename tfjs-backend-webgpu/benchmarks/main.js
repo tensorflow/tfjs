@@ -15,50 +15,19 @@
  * =============================================================================
  */
 
-const MOMENT_DISPLAY_FORMAT = 'MM/DD/YYYY';
-const MAX_NUM_LOGS = 50;
-const START_LOGGING_DATE = '2019-08-16';
-const CHART_HEIGHT = 200;
-
 const containerEl = document.querySelector('#container');
 const CHART_WIDTH = containerEl.offsetWidth;
 
 let startDate = moment(START_LOGGING_DATE, 'YYYY-MM-DD'), endDate = moment();
 
-function getLogFiles(start, end) {
-  const daysElapsed = end.diff(start, 'd');
-  const results = [];
-  const formatted = []
+let graphOffsetLeft = 0;
 
-  let interval = 1;
-  while (daysElapsed / interval > MAX_NUM_LOGS) {
-    interval += 1;
-  }
+function resize() {
+  graphOffsetLeft =
+      document.querySelector('.graph-container').offsetLeft;
+};
 
-  for (let i = 0; i <= daysElapsed; i += interval) {
-    const current = endDate.clone().subtract(i, 'days');
-    results.unshift(`${current.format('MM_DD_YYYY')}`);
-    formatted.unshift(current.format('M/DD'));
-  }
-
-  return {results, formatted};
-}
-
-function templateTimeSelection(start, end) {
-  document.querySelector(".start-date").innerHTML = start.format(MOMENT_DISPLAY_FORMAT);
-  document.querySelector(".end-date").innerHTML = end.format(MOMENT_DISPLAY_FORMAT);
-}
-
-function closeModal() {
-  containerEl.classList.remove("show-modal");
-}
-
-function openModal() {
-  containerEl.classList.add("show-modal");
-
-  document.querySelector(".editable-start-date").value = startDate.format(MOMENT_DISPLAY_FORMAT);
-  document.querySelector(".editable-end-date").value = endDate.format(MOMENT_DISPLAY_FORMAT);
-}
+window.addEventListener('resize', resize);
 
 function templateBenchmarksForTimePeriod(start, end) {
   const logFiles = getLogFiles(start, end);
@@ -103,7 +72,10 @@ function templateBenchmarksForTimePeriod(start, end) {
       processedResponses.push(processedResponse);
     }
 
-    const data = [{name: 'canary', tests: []}];
+    const data = TARGETS.map(name => ({
+      name,
+      tests: []
+    }));
     const targetIndex = 0; // Hard coded - Canary is the only target for now.
 
     // populate data
@@ -260,7 +232,7 @@ function templateBenchmarksForTimePeriod(start, end) {
 
 document.querySelector(".edit-time-wrapper .instructions").innerHTML = `Enter dates in the format <span>${MOMENT_DISPLAY_FORMAT}</span>, within the time range <span>${startDate.format(MOMENT_DISPLAY_FORMAT)}</span> to <span>${endDate.format(MOMENT_DISPLAY_FORMAT)}</span>.`;
 
-document.querySelector(".time-selection-edit-button").addEventListener('click', openModal);
+document.querySelector(".time-selection-edit-button").addEventListener('click', () => openModal(startDate, endDate));
 
 document.querySelector(".modal-cancel-button").addEventListener("click", closeModal);
 document.querySelector(".modal-submit-button").addEventListener("click", () => {

@@ -15,20 +15,6 @@
  * =============================================================================
  */
 
-const swatches = {
-  'webgpu_min': '#F1523E',
-  'webgpu_mean': '#F1523E',
-  'webgl_min': '#3f51b5',
-  'webgl_mean': '#3f51b5'
-};
-
-const strokes = {
-  'webgpu_min': '2',
-  'webgpu_mean': '0',
-  'webgl_min': '2',
-  'webgl_mean': '0'
-};
-
 function getSwatchBackground(swatch, stroke) {
   let background = swatch;
   if (stroke > 0) {
@@ -43,17 +29,43 @@ function getSwatchBackground(swatch, stroke) {
   return background;
 }
 
-let graphOffsetLeft = 0;
+function getLogFiles(start, end) {
+  const daysElapsed = end.diff(start, 'd');
+  const results = [];
+  const formatted = []
 
-function resize() {
-  graphOffsetLeft =
-      document.querySelector('.graph-container').offsetLeft;
-};
+  let interval = 1;
+  while (daysElapsed / interval > MAX_NUM_LOGS) {
+    interval += 1;
+  }
 
-window.addEventListener('resize', resize);
+  for (let i = 0; i <= daysElapsed; i += interval) {
+    const current = endDate.clone().subtract(i, 'days');
+    results.unshift(`${current.format('MM_DD_YYYY')}`);
+    formatted.unshift(current.format('M/DD'));
+  }
+
+  return {results, formatted};
+}
 
 async function getDataForFiles(files) {
   return Promise.all(files.map(d => fetch(
     `https://storage.googleapis.com/learnjs-data/webgpu_benchmark_logs/${
         d}.json`).then(d => d.json()).catch(err => console.log(err))));
+}
+
+function templateTimeSelection(start, end) {
+  document.querySelector(".start-date").innerHTML = start.format(MOMENT_DISPLAY_FORMAT);
+  document.querySelector(".end-date").innerHTML = end.format(MOMENT_DISPLAY_FORMAT);
+}
+
+function closeModal() {
+  containerEl.classList.remove("show-modal");
+}
+
+function openModal(start, end) {
+  containerEl.classList.add("show-modal");
+
+  document.querySelector(".editable-start-date").value = start.format(MOMENT_DISPLAY_FORMAT);
+  document.querySelector(".editable-end-date").value = end.format(MOMENT_DISPLAY_FORMAT);
 }
