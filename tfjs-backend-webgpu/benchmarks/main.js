@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,16 +15,29 @@
  * =============================================================================
  */
 
-const containerEl = document.querySelector('#container');
-const CHART_WIDTH = containerEl.offsetWidth;
+// Create handles to DOM elements.
+const container = document.querySelector('#container');
+const tabsContainer = document.querySelector('.mdl-tabs__tab-bar');
+const tabs = document.querySelector('.mdl-tabs');
+const timeSelectionInstructions =
+    document.querySelector('.edit-time-wrapper .instructions');
+const editTimeButton = document.querySelector('.time-selection-edit-button');
+const cancelEditTimeButton = document.querySelector('.modal-cancel-button');
+const submitEditTimeButton = document.querySelector('.modal-submit-button');
+const startDateEl = document.querySelector('.start-date');
+const endDateEl = document.querySelector('.end-date');
+const startDateInput = document.querySelector('.editable-start-date');
+const endDateInput = document.querySelector('.editable-end-date');
+const modalBackdrop = document.querySelector('.modal-backdrop');
+
+const CHART_WIDTH = container.offsetWidth;
 
 let startDate = moment(START_LOGGING_DATE, 'YYYY-MM-DD'), endDate = moment();
 
 let graphOffsetLeft = 0;
 
 function resize() {
-  graphOffsetLeft =
-      document.querySelector('.graph-container').offsetLeft;
+  graphOffsetLeft = document.querySelector('.graph-container').offsetLeft;
 };
 
 window.addEventListener('resize', resize);
@@ -33,7 +46,7 @@ function templateBenchmarksForTimePeriod(start, end) {
   const logFiles = getLogFiles(start, end);
   const files = logFiles['results'];
 
-  document.querySelector('.mdl-tabs__tab-bar').innerHTML = '';
+  tabsContainer.innerHTML = '';
   // remove all panels
   [].slice.call(document.querySelectorAll('.mdl-tabs__panel')).forEach(el => {
     el.parentNode.removeChild(el);
@@ -41,8 +54,8 @@ function templateBenchmarksForTimePeriod(start, end) {
 
   getDataForFiles(files).then(allResponses => {
     const responses = [], dateFormats = [];
-    for(let i=0; i<allResponses.length; i++) {
-      if(allResponses[i] != null) {
+    for (let i = 0; i < allResponses.length; i++) {
+      if (allResponses[i] != null) {
         responses.push(allResponses[i]);
         dateFormats.push(logFiles['formatted'][i]);
       }
@@ -72,11 +85,8 @@ function templateBenchmarksForTimePeriod(start, end) {
       processedResponses.push(processedResponse);
     }
 
-    const data = TARGETS.map(name => ({
-      name,
-      tests: []
-    }));
-    const targetIndex = 0; // Hard coded - Canary is the only target for now.
+    const data = TARGETS.map(name => ({name, tests: []}));
+    const targetIndex = 0;  // Hard coded - Canary is the only target for now.
 
     // populate data
     for (let i = 0; i < processedResponses.length; i++) {
@@ -84,8 +94,7 @@ function templateBenchmarksForTimePeriod(start, end) {
 
       for (let idx = 0; idx < response.length; idx++) {
         const {name, params} = response[idx];
-        let testIndex =
-            data[targetIndex].tests.map(d => d.name).indexOf(name);
+        let testIndex = data[targetIndex].tests.map(d => d.name).indexOf(name);
 
         if (testIndex === -1) {
           data[targetIndex].tests.push({name: name, entries: []});
@@ -110,7 +119,7 @@ function templateBenchmarksForTimePeriod(start, end) {
       }
 
       let panel = document.querySelector(targetDOMID);
-      if(panel == null) {
+      if (panel == null) {
         panel = document.createElement('div');
         panel.classList.add('mdl-tabs__panel');
         panel.id = targetDOMID;
@@ -121,45 +130,48 @@ function templateBenchmarksForTimePeriod(start, end) {
         panel.classList.add('is-active');
       }
 
-      target.tests = target.tests
-        .filter(test => test.entries.length > 1)
-        .sort((a, b) => a.name.localeCompare(b.name));
+      target.tests = target.tests.filter(test => test.entries.length > 1)
+                         .sort((a, b) => a.name.localeCompare(b.name));
 
       target.tests.forEach((test, i) => {
-          const params = test.entries.reduce((acc, curr) => {
-            curr.params.forEach(param => {
-              if (acc[param.name] == null) {
-                acc[param.name] = [];
-              }
+        const params = test.entries.reduce((acc, curr) => {
+          curr.params.forEach(param => {
+            if (acc[param.name] == null) {
+              acc[param.name] = [];
+            }
 
-              acc[param.name].push({ms: param.ms});
-            });
-            return acc;
-          }, {});
+            acc[param.name].push({ms: param.ms});
+          });
+          return acc;
+        }, {});
 
-          const msArray = test.entries.map(d => d.params.map(p => p.ms))
-                              .reduce((acc, curr) => acc.concat(curr), []);
-          const max = Math.max(...msArray);
-          const min = 0;
+        const msArray = test.entries.map(d => d.params.map(p => p.ms))
+                            .reduce((acc, curr) => acc.concat(curr), []);
+        const max = Math.max(...msArray);
+        const min = 0;
 
-          let increment = 1;
-          while ((CHART_WIDTH / ((test.entries.length - 1) / increment)) <
-                  20 /* minimum increment width */) {
-            increment *= 2;
-          }
+        let increment = 1;
+        while ((CHART_WIDTH / ((test.entries.length - 1) / increment)) <
+               20 /* minimum increment width */) {
+          increment *= 2;
+        }
 
-          const xIncrement = CHART_WIDTH / (test.entries.length - 1);
-          const template =  // template trendlines
+        const xIncrement = CHART_WIDTH / (test.entries.length - 1);
+        const template =  // template trendlines
             `<div class='test'>
               <h4 class='test-name'>${test.name}</h4>
-              <div class='legend'>${Object.keys(params).map(param => {
-                const backgroundColor =
-                getSwatchBackground(swatches[param], strokes[param]);
-                return `<div class='swatch'>
-                  <div class='color' style='background: ${backgroundColor}'></div>
+              <div class='legend'>${
+                Object.keys(params)
+                    .map(param => {
+                      const backgroundColor =
+                          getSwatchBackground(swatches[param], strokes[param]);
+                      return `<div class='swatch'>
+                  <div class='color' style='background: ${
+                          backgroundColor}'></div>
                   <div class='label'>${param}</div>
                 </div>`;
-              }).join(' ')}</div>
+                    })
+                    .join(' ')}</div>
               <div class='graph-container'>
                 <div style='height:${CHART_HEIGHT}px' class='y-axis-labels'>
                   <div class='y-max'>${max}ms</div>
@@ -167,24 +179,31 @@ function templateBenchmarksForTimePeriod(start, end) {
                 </div>
                 <svg data-index=${i} class='graph'
                   width='${CHART_WIDTH}' height='${CHART_HEIGHT}'>
-                  ${Object.keys(params).map((param) =>
-                    `<path stroke-dasharray='${strokes[param]}'
+                  ${
+                Object.keys(params).map(
+                    (param) => `<path stroke-dasharray='${strokes[param]}'
                         stroke='${swatches[param]}'
-                        d='M${params[param].map((d, i) =>
-                          `${i * xIncrement},
+                        d='M${
+                        params[param]
+                            .map((d, i) => `${i * xIncrement},
                           ${CHART_HEIGHT * (1 - ((d.ms - min) / (max - min)))}`)
-                        .join('L')}'></path>`)}
+                            .join('L')}'></path>`)}
                 </svg>
                 <div class='x-axis-labels'>
-                  ${test.entries.map((d, i) => {
-                    if (i % increment === 0) {
-                      return `<div class='x-label'
-                        style='left:${(i / increment) *
-                          (CHART_WIDTH / ((test.entries.length - 1) / increment))}px'>
+                  ${
+                test.entries
+                    .map((d, i) => {
+                      if (i % increment === 0) {
+                        return `<div class='x-label'
+                        style='left:${
+                            (i / increment) *
+                            (CHART_WIDTH /
+                             ((test.entries.length - 1) / increment))}px'>
                           ${d.timestamp}</div>`;
-                    }
-                    return '';
-                  }).join(' ')}</div>
+                      }
+                      return '';
+                    })
+                    .join(' ')}</div>
                 <div class='detail-panel'>
                   <div class='line'></div>
                   <div class='contents'></div>
@@ -195,8 +214,8 @@ function templateBenchmarksForTimePeriod(start, end) {
         panel.innerHTML += template;
       });
 
-      document.querySelector('.mdl-tabs__tab-bar').appendChild(tab);
-      document.querySelector('.mdl-tabs').appendChild(panel);
+      tabsContainer.appendChild(tab);
+      tabs.appendChild(panel);
 
       resize();
 
@@ -205,7 +224,7 @@ function templateBenchmarksForTimePeriod(start, end) {
           state.activeTest = +e.target.getAttribute('data-index');
 
           const entries =
-            data[state.activeTarget].tests[state.activeTest].entries;
+              data[state.activeTarget].tests[state.activeTest].entries;
           const left = e.clientX - graphOffsetLeft;
           const entryIndex = Math.max(
               0,
@@ -215,9 +234,11 @@ function templateBenchmarksForTimePeriod(start, end) {
 
           const parentNode = e.target.parentNode;
           parentNode.querySelector('.detail-panel').style.left = left + 'px';
-          parentNode.querySelector('.detail-panel .contents').innerHTML = `${
-            entries[entryIndex].params.map(d =>
-              `<div class='label-wrapper'>
+          parentNode.querySelector('.detail-panel .contents').innerHTML =
+              `${
+                  entries[entryIndex]
+                      .params
+                      .map(d => `<div class='label-wrapper'>
                 <div class='color'
                   style='background:
                     ${getSwatchBackground(swatches[d.name], strokes[d.name])}'>
@@ -230,20 +251,23 @@ function templateBenchmarksForTimePeriod(start, end) {
   });
 }
 
-document.querySelector(".edit-time-wrapper .instructions").innerHTML = `Enter dates in the format <span>${MOMENT_DISPLAY_FORMAT}</span>, within the time range <span>${startDate.format(MOMENT_DISPLAY_FORMAT)}</span> to <span>${endDate.format(MOMENT_DISPLAY_FORMAT)}</span>.`;
+timeSelectionInstructions.innerHTML = `Enter dates in the format <span>${
+    MOMENT_DISPLAY_FORMAT}</span>, within the time range <span>${
+    startDate.format(MOMENT_DISPLAY_FORMAT)}</span> to <span>${
+    endDate.format(MOMENT_DISPLAY_FORMAT)}</span>.`;
 
-document.querySelector(".time-selection-edit-button").addEventListener('click', () => openModal(startDate, endDate));
+editTimeButton.addEventListener('click', () => openModal(startDate, endDate));
 
-document.querySelector(".modal-cancel-button").addEventListener("click", closeModal);
-document.querySelector(".modal-submit-button").addEventListener("click", () => {
+cancelEditTimeButton.addEventListener('click', closeModal);
+submitEditTimeButton.addEventListener('click', () => {
   closeModal();
-  startDate = moment(document.querySelector(".editable-start-date").value, MOMENT_DISPLAY_FORMAT);
-  endDate = moment(document.querySelector(".editable-end-date").value, MOMENT_DISPLAY_FORMAT);
+  startDate = moment(startDateInput.value, MOMENT_DISPLAY_FORMAT);
+  endDate = moment(endDateInput.value, MOMENT_DISPLAY_FORMAT);
 
   templateTimeSelection(startDate, endDate);
   templateBenchmarksForTimePeriod(startDate, endDate);
 });
-document.querySelector(".modal-backdrop").addEventListener("click", closeModal);
+modalBackdrop.addEventListener('click', closeModal);
 
 templateTimeSelection(startDate, endDate);
 templateBenchmarksForTimePeriod(startDate, endDate);

@@ -55,17 +55,16 @@ async function getDataForFiles(files) {
 }
 
 function templateTimeSelection(start, end) {
-  document.querySelector(".start-date").innerHTML = start.format(MOMENT_DISPLAY_FORMAT);
-  document.querySelector(".end-date").innerHTML = end.format(MOMENT_DISPLAY_FORMAT);
+  startDateEl.innerHTML = start.format(MOMENT_DISPLAY_FORMAT);
+  endDateEl.innerHTML = end.format(MOMENT_DISPLAY_FORMAT);
 }
 
 function closeModal() {
-  containerEl.classList.remove("show-modal");
+  container.classList.remove("show-modal");
 }
 
 function openModal(start, end) {
-  containerEl.classList.add("show-modal");
-
-  document.querySelector(".editable-start-date").value = start.format(MOMENT_DISPLAY_FORMAT);
-  document.querySelector(".editable-end-date").value = end.format(MOMENT_DISPLAY_FORMAT);
+  container.classList.add("show-modal");
+  startDateInput.value = start.format(MOMENT_DISPLAY_FORMAT);
+  endDateInput.value = end.format(MOMENT_DISPLAY_FORMAT);
 }
