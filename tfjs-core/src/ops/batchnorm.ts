@@ -109,9 +109,6 @@ function batchNorm_<R extends Rank>(
 
     save([$x, $mean, $variance, $scale]);
 
-    // console.log(`FORWARD FUNC res shape: ${res.shape}`);
-
-    // return res;
     return reshape(res, $x.shape);
   };
 
@@ -120,15 +117,9 @@ function batchNorm_<R extends Rank>(
 
   const attrs: FusedBatchNormAttrs = {varianceEpsilon};
 
-  const res = ENGINE.runKernelFunc(
-                  forward, inputs as {} as NamedTensorMap, null /* gradient */,
-                  FusedBatchNorm, attrs as {} as NamedAttrMap) as Tensor<R>;
-
-  const z = reshape(res, $x.shape);
-
-  console.log(`RUNKERNEL res shape: ${res.shape}, reshape shape is ${z.shape}`);
-
-  return res;
+  return ENGINE.runKernelFunc(
+             forward, inputs as {} as NamedTensorMap, null /* gradient */,
+             FusedBatchNorm, attrs as {} as NamedAttrMap) as Tensor<R>;
 }
 
 function as1DOr4D(x: Tensor): Tensor4D|Tensor1D {
