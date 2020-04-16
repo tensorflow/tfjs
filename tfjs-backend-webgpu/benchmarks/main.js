@@ -258,7 +258,7 @@ function templateBenchmarksForTimePeriod(start, end) {
   });
 }
 
-document.querySelector(".edit-time-wrapper .instructions").innerHTML = `Enter dates in the format ${MOMENT_DISPLAY_FORMAT}, within the time range ${startDate.format(MOMENT_DISPLAY_FORMAT)} to ${endDate.format(MOMENT_DISPLAY_FORMAT)}.`;
+document.querySelector(".edit-time-wrapper .instructions").innerHTML = `Enter dates in the format <span>${MOMENT_DISPLAY_FORMAT}</span>, within the time range <span>${startDate.format(MOMENT_DISPLAY_FORMAT)}</span> to <span>${endDate.format(MOMENT_DISPLAY_FORMAT)}</span>.`;
 
 document.querySelector(".time-selection-edit-button").addEventListener('click', openModal);
 

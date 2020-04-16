@@ -208,6 +208,11 @@ path {
   margin-left: 15px;
 }
 
+.instructions span {
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
 .time-selection-edit-button,
 .modal-cancel-button,
 .modal-submit-button {
