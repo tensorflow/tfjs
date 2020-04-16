@@ -419,7 +419,6 @@ describeWithFlags('batchNorm3D', ALL_ENVS, () => {
     const varianceEpsilon = .001;
 
     const dy = tf.tensor3d([1, 1, 1, 1], [2, 1, 2]);
-    console.log(`TEST dy shape is: ${dy.shape}`);
     const gradX = tf.grad(
         (x: tf.Tensor3D) => tf.batchNorm3d(
             x, mean, variance, offset, scale, varianceEpsilon))(x, dy);

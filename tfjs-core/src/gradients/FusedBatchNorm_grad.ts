@@ -34,14 +34,13 @@ export const fusedBatchNormGradConfig: GradConfig = {
   inputsToSave: ['x', 'mean', 'variance', 'scale'],
   gradFunc: <R extends Rank>(
       dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
-    console.log(`GRADIENT DY SHAPE: ${dy.shape}`);
-    const dyr = xAs4D(dy);
     const batchNormalizationAttrs: FusedBatchNormAttrs =
         attrs as {} as FusedBatchNormAttrs;
     const {varianceEpsilon} = batchNormalizationAttrs;
     const [x, mean, variance, scale] = saved;
 
     const x4D: Tensor4D = xAs4D(x);
+    const dy4D = xAs4D(dy);
 
     const scaleValue = scale == null ? scalar(1) : scale;
     const reductionAxes = getReductionAxes(mean.shape, x4D.shape);
@@ -54,7 +53,7 @@ export const fusedBatchNormGradConfig: GradConfig = {
     }
 
     const xMinusMean = sub(x, mean);
-    const dyTimesScaleValue = mul(dyr, scaleValue);
+    const dyTimesScaleValue = mul(dy4D, scaleValue);
     const oneOverSqrtVariance = rsqrt(add(variance, scalar(varianceEpsilon)));
     const minusHalfRCube = mul(
         mul(mul(oneOverSqrtVariance, oneOverSqrtVariance), oneOverSqrtVariance),
@@ -63,14 +62,15 @@ export const fusedBatchNormGradConfig: GradConfig = {
     const derX = () => {
       if (mean.rank === 1) {
         return reshape(
-            mul(mul(dyr,
+            mul(mul(dy4D,
                     tile(
                         oneOverSqrtVariance.as4D(1, 1, 1, mean.shape[0]),
                         tileShape)),
                 scaleValue),
             x.shape);
       } else {
-        return reshape(mul(mul(dyr, oneOverSqrtVariance), scaleValue), x.shape);
+        return reshape(
+            mul(mul(dy4D, oneOverSqrtVariance), scaleValue), x.shape);
       }
     };
     const derMean = () => {
@@ -92,19 +92,20 @@ export const fusedBatchNormGradConfig: GradConfig = {
     const derScale = () => {
       const xMinusMean2TimesRsqrt = mul(xMinusMean, oneOverSqrtVariance);
 
-      let scaleDer = mul(dyr, xMinusMean2TimesRsqrt);
+      let scaleDer = mul(dy4D, xMinusMean2TimesRsqrt);
       if (mean.rank === 1) {
         scaleDer = sum(scaleDer, reductionAxes);
       }
       return reshape(scaleDer, mean.shape as ShapeMap[R]);
     };
     const derOffset = () => {
-      let offsetDer = dyr;
+      let offsetDer = dy4D;
       if (mean.rank === 1) {
         offsetDer = sum(offsetDer, reductionAxes);
       }
       return reshape(offsetDer, mean.shape as ShapeMap[R]);
     };
+
     return {
       x: derX,
       mean: derMean,
