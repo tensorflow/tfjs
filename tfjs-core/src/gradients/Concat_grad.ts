@@ -15,13 +15,18 @@
  * =============================================================================
  */
 import {Concat} from '../kernel_names';
-import {GradConfig} from '../kernel_registry';
+import {GradConfig, NamedAttrMap} from '../kernel_registry';
+import {split} from '../ops/split';
 import {Tensor} from '../tensor';
 
 export const concatGradConfig: GradConfig = {
   kernelName: Concat,
   saveAllInputs: true,
-  gradFunc: (dy: Tensor, saved: Tensor[]) => {
-
+  gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
+    const shapes = saved.map(t => t.shape);
+    const axis = attrs['axis'] as number;
+    const sizeSplits = shapes.map(s => s[axis]);
+    const derTensors = split(dy, sizeSplits, axis);
+    return derTensors.map(t => () => t) as {};
   }
-}
+};
