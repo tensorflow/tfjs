@@ -162,16 +162,14 @@ document.addEventListener(
         const parentNode = e.target.parentNode;
         parentNode.querySelector('.detail-panel').style.left = left + 'px';
         parentNode.querySelector('.detail-panel .contents').innerHTML =
-            `${
-                entries[entryIndex]
-                    .params
-                    .map(d => `<div class='label-wrapper'>
-            <div class='color'
-              style='background:
-                ${getSwatchBackground(swatches[d.name], strokes[d.name])}'>
-            </div>
-            <div class='label'>${d.ms}</div>
-          </div>`).join(' ')}`;
+          `${entries[entryIndex].params.map(d =>
+            `<div class='label-wrapper'>
+              <div class='color'
+                style='background:
+                  ${getSwatchBackground(SWATCHES[d.name], STROKES[d.name])}'>
+              </div>
+              <div class='label'>${d.ms}</div>
+            </div>`).join(' ')}`;
       }
     });
 

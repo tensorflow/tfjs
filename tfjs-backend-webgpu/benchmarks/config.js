@@ -15,14 +15,14 @@
  * =============================================================================
  */
 
-const swatches = {
+const SWATCHES = {
   'webgpu_min': '#F1523E',
   'webgpu_mean': '#F1523E',
   'webgl_min': '#3f51b5',
   'webgl_mean': '#3f51b5'
 };
 
-const strokes = {
+const STROKES = {
   'webgpu_min': '2',
   'webgpu_mean': '0',
   'webgl_min': '2',

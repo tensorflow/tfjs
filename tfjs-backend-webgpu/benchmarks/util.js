@@ -118,7 +118,7 @@ function getTrendlinesHTML(test, params, max, increment, xIncrement, i) {
     <h4 class='test-name'>${test.name}</h4>
     <div class='legend'>${Object.keys(params).map(param => {
       const backgroundColor =
-          getSwatchBackground(swatches[param], strokes[param]);
+          getSwatchBackground(SWATCHES[param], STROKES[param]);
       return `<div class='swatch'>
         <div class='color' style='background: ${backgroundColor}'></div>
         <div class='label'>${param}</div>
@@ -131,8 +131,8 @@ function getTrendlinesHTML(test, params, max, increment, xIncrement, i) {
       <svg data-index=${i} class='graph'
         width='${CHART_WIDTH}' height='${CHART_HEIGHT}'>
         ${Object.keys(params).map((param) =>
-          `<path stroke-dasharray='${strokes[param]}'
-              stroke='${swatches[param]}'
+          `<path stroke-dasharray='${STROKES[param]}'
+              stroke='${SWATCHES[param]}'
               d='M${params[param].map((d, i) =>
                 `${i * xIncrement}, ${CHART_HEIGHT * (1 - (d.ms / max))}`)
                     .join('L')}'></path>`)}
