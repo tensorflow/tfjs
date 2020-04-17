@@ -12,9 +12,9 @@
   "unpkg": "dist/tf-layers.min.js",
   "miniprogram": "dist/miniprogram",
   "devDependencies": {
-    "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
     "@tensorflow/tfjs-backend-webgl": "link:../tfjs-backend-webgl",
+    "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@types/jasmine": "~2.5.53",
     "clang-format": "~1.2.2",
     "http-server": "~0.10.0",
