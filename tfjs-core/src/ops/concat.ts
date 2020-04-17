@@ -15,21 +15,17 @@
  * =============================================================================
  */
 import {ENGINE, ForwardFunc} from '../engine';
-import {Add, AddInputs, Concat, ConcatAttrs, ConcatInputs} from '../kernel_names';
+import {Concat, ConcatAttrs, ConcatInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
-import {makeTypesMatch} from '../tensor_util';
-import {convertToTensor, convertToTensorArray} from '../tensor_util_env';
+import {convertToTensorArray} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assert, parseAxisParam, sizeFromShape} from '../util';
 
-import {split} from './concat_split';
 import {assertParamsConsistent, computeOutShape} from './concat_util';
 import {op} from './operation';
 import {tensor} from './tensor_ops';
-
-
 
 /**
  * Concatenates a list of `tf.Tensor`s along a given axis.
@@ -96,8 +92,11 @@ function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
   const shapes = $tensors.map(t => t.shape);
   assertParamsConsistent(shapes, axis);
 
-  const forward: ForwardFunc<Tensor> = (backend, _) =>
-      backend.concat($tensors, axis);
+  const forward: ForwardFunc<Tensor> = (backend, save) => {
+    const res = backend.concat($tensors, axis);
+    save($tensors);
+    return res;
+  };
 
   const inputs: ConcatInputs = $tensors;
   const attr: ConcatAttrs = {axis};

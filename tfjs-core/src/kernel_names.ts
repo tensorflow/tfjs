@@ -104,6 +104,13 @@ export interface PadV2Attrs {
   constantValue: number;
 }
 
+export const SplitV = 'SplitV';
+export type SplitVInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface SplitVAttrs {
+  numOrSizeSplits: number[]|number;
+  axis: number;
+}
+
 /**
  * TensorFlow.js-only kernels
  */

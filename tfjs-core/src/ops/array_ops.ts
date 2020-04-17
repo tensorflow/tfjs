@@ -21,7 +21,7 @@ import {convertToTensor, convertToTensorArray} from '../tensor_util_env';
 import {DataType, DataTypeMap, Rank, ShapeMap, TensorLike, TensorLike4D} from '../types';
 import * as util from '../util';
 import {getAxesPermutation, getInnerMostAxes} from './axis_util';
-import {concat} from './concat_split';
+import {concat} from './concat';
 import {op} from './operation';
 
 /**

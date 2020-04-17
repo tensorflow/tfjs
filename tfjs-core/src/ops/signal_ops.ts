@@ -19,7 +19,7 @@ import {op} from '../ops/operation';
 import {Tensor, Tensor1D} from '../tensor';
 
 import {mul} from './binary_ops';
-import {concat} from './concat_split';
+import {concat} from './concat';
 import {slice} from './slice';
 import {rfft} from './spectral_ops';
 import {fill, tensor1d, tensor2d} from './tensor_ops';
@@ -88,9 +88,9 @@ function frame_(
   if (padEnd) {
     while (start < signal.size) {
       const padLen = (start + frameLength) - signal.size;
-      const pad = concat(
-          [slice(signal, start, frameLength - padLen),
-           fill([padLen], padValue)]);
+      const pad = concat([
+        slice(signal, start, frameLength - padLen), fill([padLen], padValue)
+      ]);
       output.push(pad);
       start += frameStep;
     }
@@ -131,8 +131,8 @@ function stft_(
   const windowedSignal = mul(framedSignal, windowFn(frameLength));
   const output: Tensor[] = [];
   for (let i = 0; i < framedSignal.shape[0]; i++) {
-    output.push(rfft(windowedSignal.slice([i, 0], [1, frameLength]),
-      fftLength));
+    output.push(
+        rfft(windowedSignal.slice([i, 0], [1, frameLength]), fftLength));
   }
   return concat(output);
 }
