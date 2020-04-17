@@ -67,9 +67,10 @@ const webworkerConfig = {
   files: [
     'dist/setup_test.js',
     'dist/worker_test.js',
-    // Serve dist/tf-core.min.js as a static resource, but do not include in the
-    // test runner
+    // Serve dist/tf-core.min.js and tf-backend-cpu.min.js as a static resource,
+    // but do not include in the test runner
     {pattern: 'dist/tf-core.min.js', included: false},
+    {pattern: 'dist/tf-backend-cpu.min.js', included: false},
   ],
   exclude: [],
   port: 12345
@@ -108,9 +109,11 @@ module.exports = function(config) {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY
     },
-    captureTimeout: 120000,
+    captureTimeout: 3e5,
     reportSlowerThan: 500,
-    browserNoActivityTimeout: 240000,
+    browserNoActivityTimeout: 3e5,
+    browserDisconnectTimeout: 3e5,
+    browserDisconnectTolerance: 3,
     customLaunchers: {
       // For browserstack configs see:
       // https://www.browserstack.com/automate/node
