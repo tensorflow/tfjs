@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-backend-webgpu",
-  "version": "0.0.1-alpha.3",
+  "version": "0.0.1-alpha.4",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "jsnext:main": "dist/tf-webgpu.esm.js",
