@@ -34,7 +34,7 @@ function getLogFiles(start, end) {
   const results = [];
   const formatted = []
 
-  let interval = 1;
+      let interval = 1;
   while (daysElapsed / interval > MAX_NUM_LOGS) {
     interval += 1;
   }
@@ -49,9 +49,13 @@ function getLogFiles(start, end) {
 }
 
 async function getDataForFiles(files) {
-  return Promise.all(files.map(d => fetch(
-    `https://storage.googleapis.com/learnjs-data/webgpu_benchmark_logs/${
-        d}.json`).then(d => d.json()).catch(err => console.log(err))));
+  return Promise.all(files.map(
+      d =>
+          fetch(
+              `https://storage.googleapis.com/learnjs-data/webgpu_benchmark_logs/${
+                  d}.json`)
+              .then(d => d.json())
+              .catch(err => console.log(err))));
 }
 
 function templateTimeSelection(start, end) {
@@ -60,11 +64,11 @@ function templateTimeSelection(start, end) {
 }
 
 function closeModal() {
-  container.classList.remove("show-modal");
+  container.classList.remove('show-modal');
 }
 
 function openModal(start, end) {
-  container.classList.add("show-modal");
+  container.classList.add('show-modal');
   startDateInput.value = start.format(MOMENT_DISPLAY_FORMAT);
   endDateInput.value = end.format(MOMENT_DISPLAY_FORMAT);
 }
@@ -79,7 +83,7 @@ function clearDisplay() {
 
 function getOrCreateTab(name) {
   let tab = document.querySelector(`[href='#${name}']`);
-  if(tab == null) {
+  if (tab == null) {
     tab = document.createElement('a');
     tab.setAttribute('href', '#' + name);
     tab.textContent = name;
@@ -96,4 +100,69 @@ function getOrCreatePanel(id) {
     panel.id = id;
   }
   return panel;
+}
+
+function flatten(arr) {
+  return arr.reduce((acc, curr) => acc.concat(curr), []);
+}
+
+function getIncrementForWidth(width, length, minWidth) {
+  let increment = 1;
+  while ((width / ((length - 1) / increment)) < minWidth) {
+    increment *= 2;
+  }
+  return increment;
+}
+
+function getTrendlinesHTML(test, params, max, increment, xIncrement, i) {
+  return `<div class='test'>
+  <h4 class='test-name'>${test.name}</h4>
+  <div class='legend'>${
+      Object.keys(params)
+          .map(param => {
+            const backgroundColor =
+                getSwatchBackground(swatches[param], strokes[param]);
+            return `<div class='swatch'>
+      <div class='color' style='background: ${backgroundColor}'></div>
+      <div class='label'>${param}</div>
+    </div>`;
+          })
+          .join(' ')}</div>
+  <div class='graph-container'>
+    <div style='height:${CHART_HEIGHT}px' class='y-axis-labels'>
+      <div class='y-max'>${max}ms</div>
+      <div class='y-min'>0ms</div>
+    </div>
+    <svg data-index=${i} class='graph'
+      width='${CHART_WIDTH}' height='${CHART_HEIGHT}'>
+      ${
+      Object.keys(params).map(
+          (param) => `<path stroke-dasharray='${strokes[param]}'
+            stroke='${swatches[param]}'
+            d='M${
+              params[param]
+                  .map((d, i) => `${i * xIncrement},
+              ${CHART_HEIGHT * (1 - (d.ms / max))}`)
+                  .join('L')}'></path>`)}
+    </svg>
+    <div class='x-axis-labels'>
+      ${
+      test.entries
+          .map((d, i) => {
+            if (i % increment === 0) {
+              return `<div class='x-label'
+            style='left:${
+                  (i / increment) *
+                  (CHART_WIDTH / ((test.entries.length - 1) / increment))}px'>
+              ${d.timestamp}</div>`;
+            }
+            return '';
+          })
+          .join(' ')}</div>
+    <div class='detail-panel'>
+      <div class='line'></div>
+      <div class='contents'></div>
+    </div>
+  </div>
+</div>`;
 }

@@ -36,7 +36,10 @@ let startDate = moment(START_LOGGING_DATE, 'YYYY-MM-DD'), endDate = moment();
 
 let graphOffsetLeft = 0, data = [];
 
-const state = {'activeTarget': 0, 'activeTest': 0};
+const state = {
+  'activeTarget': 0,
+  'activeTest': 0
+};
 
 function resize() {
   graphOffsetLeft = document.querySelector('.graph-container').offsetLeft;
@@ -117,7 +120,7 @@ function templateBenchmarksForTimePeriod(start, end) {
         const params = {};
         test.entries.forEach(entry => {
           entry.params.forEach(({name, ms}) => {
-            if(params[name] == null) {
+            if (params[name] == null) {
               params[name] = [];
             }
 
@@ -125,73 +128,13 @@ function templateBenchmarksForTimePeriod(start, end) {
           });
         });
 
-        const msArray = test.entries.map(d => d.params.map(p => p.ms))
-                            .reduce((acc, curr) => acc.concat(curr), []);
+        const msArray = flatten(test.entries.map(d => d.params.map(p => p.ms)));
         const max = Math.max(...msArray);
-        const min = 0;
-
-        let increment = 1;
-        while ((CHART_WIDTH / ((test.entries.length - 1) / increment)) <
-               20 /* minimum increment width */) {
-          increment *= 2;
-        }
-
+        const increment = getIncrementForWidth(
+            CHART_WIDTH, test.entries.length, 20 /* minimum increment width */);
         const xIncrement = CHART_WIDTH / (test.entries.length - 1);
-        const template =  // template trendlines
-            `<div class='test'>
-              <h4 class='test-name'>${test.name}</h4>
-              <div class='legend'>${
-                Object.keys(params)
-                    .map(param => {
-                      const backgroundColor =
-                          getSwatchBackground(swatches[param], strokes[param]);
-                      return `<div class='swatch'>
-                  <div class='color' style='background: ${
-                          backgroundColor}'></div>
-                  <div class='label'>${param}</div>
-                </div>`;
-                    })
-                    .join(' ')}</div>
-              <div class='graph-container'>
-                <div style='height:${CHART_HEIGHT}px' class='y-axis-labels'>
-                  <div class='y-max'>${max}ms</div>
-                  <div class='y-min'>${min}ms</div>
-                </div>
-                <svg data-index=${i} class='graph'
-                  width='${CHART_WIDTH}' height='${CHART_HEIGHT}'>
-                  ${
-                Object.keys(params).map(
-                    (param) => `<path stroke-dasharray='${strokes[param]}'
-                        stroke='${swatches[param]}'
-                        d='M${
-                        params[param]
-                            .map((d, i) => `${i * xIncrement},
-                          ${CHART_HEIGHT * (1 - ((d.ms - min) / (max - min)))}`)
-                            .join('L')}'></path>`)}
-                </svg>
-                <div class='x-axis-labels'>
-                  ${
-                test.entries
-                    .map((d, i) => {
-                      if (i % increment === 0) {
-                        return `<div class='x-label'
-                        style='left:${
-                            (i / increment) *
-                            (CHART_WIDTH /
-                             ((test.entries.length - 1) / increment))}px'>
-                          ${d.timestamp}</div>`;
-                      }
-                      return '';
-                    })
-                    .join(' ')}</div>
-                <div class='detail-panel'>
-                  <div class='line'></div>
-                  <div class='contents'></div>
-                </div>
-              </div>
-            </div>`;
-
-        panel.innerHTML += template;
+        panel.innerHTML +=
+            getTrendlinesHTML(test, params, max, increment, xIncrement, i);
       });
 
       tabsContainer.appendChild(tab);
@@ -202,31 +145,35 @@ function templateBenchmarksForTimePeriod(start, end) {
   });
 }
 
-document.addEventListener('mousemove', e => {
-  if (e.target.classList.contains('graph')) {
-    state.activeTest = +e.target.getAttribute('data-index');
+document.addEventListener(
+    'mousemove', e => {
+      if (e.target.classList.contains('graph')) {
+        state.activeTest = +e.target.getAttribute('data-index');
 
-    const entries = data[state.activeTarget].tests[state.activeTest].entries;
-    const left = e.clientX - graphOffsetLeft;
-    const entryIndex = Math.max(
-        0,
-        Math.min(
-          entries.length - 1,
-          Math.floor((left / CHART_WIDTH) * entries.length)));
+        const entries =
+            data[state.activeTarget].tests[state.activeTest].entries;
+        const left = e.clientX - graphOffsetLeft;
+        const entryIndex = Math.max(
+            0,
+            Math.min(
+                entries.length - 1,
+                Math.floor((left / CHART_WIDTH) * entries.length)));
 
-    const parentNode = e.target.parentNode;
-    parentNode.querySelector('.detail-panel').style.left = left + 'px';
-    parentNode.querySelector('.detail-panel .contents').innerHTML =
-        `${entries[entryIndex].params.map(d =>
-          `<div class='label-wrapper'>
+        const parentNode = e.target.parentNode;
+        parentNode.querySelector('.detail-panel').style.left = left + 'px';
+        parentNode.querySelector('.detail-panel .contents').innerHTML =
+            `${
+                entries[entryIndex]
+                    .params
+                    .map(d => `<div class='label-wrapper'>
             <div class='color'
               style='background:
                 ${getSwatchBackground(swatches[d.name], strokes[d.name])}'>
             </div>
             <div class='label'>${d.ms}</div>
           </div>`).join(' ')}`;
-  }
-});
+      }
+    });
 
 timeSelectionInstructions.innerHTML = `Enter dates in the format <span>${
     MOMENT_DISPLAY_FORMAT}</span>, within the time range <span>${
