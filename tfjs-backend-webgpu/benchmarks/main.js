@@ -31,20 +31,19 @@ const endDateInput = document.querySelector('.editable-end-date');
 const modalBackdrop = document.querySelector('.modal-backdrop');
 
 const CHART_WIDTH = container.offsetWidth;
-
-let startDate = moment(START_LOGGING_DATE, 'YYYY-MM-DD'), endDate = moment();
-
-let graphOffsetLeft = 0, data = [];
-
 const state = {
   'activeTarget': 0,
   'activeTest': 0
 };
 
+let startDate = moment(START_LOGGING_DATE, 'YYYY-MM-DD'),
+  endDate = moment(),
+  graphOffsetLeft = 0,
+  data = [];
+
 function resize() {
   graphOffsetLeft = document.querySelector('.graph-container').offsetLeft;
 };
-
 window.addEventListener('resize', resize);
 
 function templateBenchmarksForTimePeriod(start, end) {
@@ -145,33 +144,32 @@ function templateBenchmarksForTimePeriod(start, end) {
   });
 }
 
-document.addEventListener(
-    'mousemove', e => {
-      if (e.target.classList.contains('graph')) {
-        state.activeTest = +e.target.getAttribute('data-index');
+document.addEventListener('mousemove', e => {
+  if (e.target.classList.contains('graph')) {
+    state.activeTest = +e.target.getAttribute('data-index');
 
-        const entries =
-            data[state.activeTarget].tests[state.activeTest].entries;
-        const left = e.clientX - graphOffsetLeft;
-        const entryIndex = Math.max(
-            0,
-            Math.min(
-                entries.length - 1,
-                Math.floor((left / CHART_WIDTH) * entries.length)));
+    const entries =
+        data[state.activeTarget].tests[state.activeTest].entries;
+    const left = e.clientX - graphOffsetLeft;
+    const entryIndex = Math.max(
+        0,
+        Math.min(
+            entries.length - 1,
+            Math.floor((left / CHART_WIDTH) * entries.length)));
 
-        const parentNode = e.target.parentNode;
-        parentNode.querySelector('.detail-panel').style.left = left + 'px';
-        parentNode.querySelector('.detail-panel .contents').innerHTML =
-          `${entries[entryIndex].params.map(d =>
-            `<div class='label-wrapper'>
-              <div class='color'
-                style='background:
-                  ${getSwatchBackground(SWATCHES[d.name], STROKES[d.name])}'>
-              </div>
-              <div class='label'>${d.ms}</div>
-            </div>`).join(' ')}`;
-      }
-    });
+    const parentNode = e.target.parentNode;
+    parentNode.querySelector('.detail-panel').style.left = left + 'px';
+    parentNode.querySelector('.detail-panel .contents').innerHTML =
+      `${entries[entryIndex].params.map(d =>
+        `<div class='label-wrapper'>
+          <div class='color'
+            style='background:
+              ${getSwatchBackground(SWATCHES[d.name], STROKES[d.name])}'>
+          </div>
+          <div class='label'>${d.ms}</div>
+        </div>`).join(' ')}`;
+  }
+});
 
 timeSelectionInstructions.innerHTML = `Enter dates in the format <span>${
     MOMENT_DISPLAY_FORMAT}</span>, within the time range <span>${
