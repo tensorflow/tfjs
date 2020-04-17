@@ -14,19 +14,23 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Concat} from '../kernel_names';
-import {GradConfig, NamedAttrMap} from '../kernel_registry';
-import {split} from '../ops/split';
-import {Tensor} from '../tensor';
+import {Tensor4D} from '../tensor';
+import {TensorLike} from '../types';
 
-export const concatGradConfig: GradConfig = {
-  kernelName: Concat,
-  saveAllInputs: true,
-  gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
-    const shapes = saved.map(t => t.shape);
-    const axis = attrs['axis'] as number;
-    const sizeSplits = shapes.map(s => s[axis]);
-    const derTensors = split(dy, sizeSplits, axis);
-    return derTensors.map(t => () => t) as {};
-  }
-};
+import {concat} from './concat';
+import {op} from './operation';
+
+/**
+ * Concatenates a list of `tf.Tensor4D`s along an axis.
+ * See `concat` for details.
+ *
+ * @param tensors A list of `tf.Tensor`s to concatenate.
+ * @param axis The axis to concate along.
+ * @return The concatenated array.
+ */
+function concat4d_(
+    tensors: Array<Tensor4D|TensorLike>, axis: number): Tensor4D {
+  return concat(tensors, axis);
+}
+
+export const concat4d = op({concat4d_});

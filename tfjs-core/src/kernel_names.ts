@@ -45,6 +45,12 @@ export interface FusedBatchNormAttrs {
   varianceEpsilon: number;
 }
 
+export const SplitV = 'SplitV';
+export type SplitVInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface SplitVAttrs {
+  axis: number;
+}
+
 export const SquaredDifference = 'SquaredDifference';
 export type SquaredDifferenceInputs = BinaryInputs;
 

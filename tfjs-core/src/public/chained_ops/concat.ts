@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,19 +14,21 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Concat} from '../kernel_names';
-import {GradConfig, NamedAttrMap} from '../kernel_registry';
-import {split} from '../ops/split';
-import {Tensor} from '../tensor';
+import {concat} from '../../ops/concat';
+import {Tensor} from '../../tensor';
+import {Rank, TensorLike} from '../../types';
 
-export const concatGradConfig: GradConfig = {
-  kernelName: Concat,
-  saveAllInputs: true,
-  gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
-    const shapes = saved.map(t => t.shape);
-    const axis = attrs['axis'] as number;
-    const sizeSplits = shapes.map(s => s[axis]);
-    const derTensors = split(dy, sizeSplits, axis);
-    return derTensors.map(t => () => t) as {};
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    concat<T extends Tensor>(tensors: T|Array<T|TensorLike>, axis?: number): T;
   }
+}
+
+Tensor.prototype.concat = function<T extends Tensor>(
+    x: T|Array<T|TensorLike>, axis?: number): T {
+  this.throwIfDisposed();
+  if (x instanceof Tensor) {
+    x = [x];
+  }
+  return concat([this, ...x], axis) as T;
 };

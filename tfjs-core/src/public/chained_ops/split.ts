@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,19 +14,19 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Concat} from '../kernel_names';
-import {GradConfig, NamedAttrMap} from '../kernel_registry';
-import {split} from '../ops/split';
-import {Tensor} from '../tensor';
+import {split} from '../../ops/split';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
 
-export const concatGradConfig: GradConfig = {
-  kernelName: Concat,
-  saveAllInputs: true,
-  gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
-    const shapes = saved.map(t => t.shape);
-    const axis = attrs['axis'] as number;
-    const sizeSplits = shapes.map(s => s[axis]);
-    const derTensors = split(dy, sizeSplits, axis);
-    return derTensors.map(t => () => t) as {};
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    split<T extends Tensor>(numOrSizeSplits: number[]|number, axis?: number):
+        T[];
   }
+}
+
+Tensor.prototype.split = function<T extends Tensor>(
+    numOrSizeSplits: number[]|number, axis?: number): T[] {
+  this.throwIfDisposed();
+  return split(this, numOrSizeSplits, axis);
 };
