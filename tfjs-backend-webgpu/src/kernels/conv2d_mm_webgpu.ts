@@ -87,22 +87,24 @@ export class Conv2DMMProgram implements WebGPUProgram {
     let activationSnippet = '', applyActivationSnippet = '';
     if (activation) {
       if (hasPreluActivationWeights) {
-        activationSnippet = `float activation(float a) {
-              float b = getPreluActivationWeightsAtOutCoords();
+        activationSnippet = `float activation(float a, int col) {
+              float b = getPreluActivationWeightsAtOutCoords(ivec4(0,0,0,col));
               ${activation}
             }`;
       } else {
         activationSnippet = `
-              float activation(float a) {
+              float activation(float a, int col) {
                 ${activation}
               }
             `;
       }
 
-      applyActivationSnippet = `value = activation(value);`;
+      applyActivationSnippet = `value = activation(value, col);`;
     }
 
-    const addBiasSnippet = addBias ? 'value += getBiasAtOutCoords();' : '';
+    const addBiasSnippet = addBias ?
+        'ivec4 coords = getOutputCoords(); value += getBiasAtOutCoords(ivec4(0,0,0,col));' :
+        '';
     if (addBias) {
       this.variableNames.push('bias');
     }
