@@ -76,3 +76,24 @@ function clearDisplay() {
     el.parentNode.removeChild(el);
   });
 }
+
+function getOrCreateTab(name) {
+  let tab = document.querySelector(`[href='#${name}']`);
+  if(tab == null) {
+    tab = document.createElement('a');
+    tab.setAttribute('href', '#' + name);
+    tab.textContent = name;
+    tab.classList.add('mdl-tabs__tab');
+  }
+  return tab;
+}
+
+function getOrCreatePanel(id) {
+  let panel = document.querySelector(id);
+  if (panel == null) {
+    panel = document.createElement('div');
+    panel.classList.add('mdl-tabs__panel');
+    panel.id = id;
+  }
+  return panel;
+}

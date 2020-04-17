@@ -103,24 +103,8 @@ function templateBenchmarksForTimePeriod(start, end) {
     }
 
     data.forEach((target, i) => {
-      const name = target.name;
-      const targetDOMID = `${name}-panel`;
-
-      let tab = document.querySelector(`[href='#${name}']`);
-      if (tab == null) {
-        tab = document.createElement('a');
-        tab.setAttribute('href', '#' + name);
-        tab.textContent = name;
-        tab.classList.add('mdl-tabs__tab');
-      }
-
-      let panel = document.querySelector(targetDOMID);
-      if (panel == null) {
-        panel = document.createElement('div');
-        panel.classList.add('mdl-tabs__panel');
-        panel.id = targetDOMID;
-      }
-
+      const tab = getOrCreateTab(target.name);
+      const panel = getOrCreatePanel(`${name}-panel`);
       if (i === 0) {
         tab.classList.add('is-active');
         panel.classList.add('is-active');
@@ -130,16 +114,16 @@ function templateBenchmarksForTimePeriod(start, end) {
                          .sort((a, b) => a.name.localeCompare(b.name));
 
       target.tests.forEach((test, i) => {
-        const params = test.entries.reduce((acc, curr) => {
-          curr.params.forEach(param => {
-            if (acc[param.name] == null) {
-              acc[param.name] = [];
+        const params = {};
+        test.entries.forEach(entry => {
+          entry.params.forEach(({name, ms}) => {
+            if(params[name] == null) {
+              params[name] = [];
             }
 
-            acc[param.name].push({ms: param.ms});
+            params[name].push({ms})
           });
-          return acc;
-        }, {});
+        });
 
         const msArray = test.entries.map(d => d.params.map(p => p.ms))
                             .reduce((acc, curr) => acc.concat(curr), []);
