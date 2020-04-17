@@ -32,9 +32,8 @@ function getSwatchBackground(swatch, stroke) {
 function getLogFiles(start, end) {
   const daysElapsed = end.diff(start, 'd');
   const results = [];
-  const formatted = []
-
-      let interval = 1;
+  const formatted = [];
+  let interval = 1;
   while (daysElapsed / interval > MAX_NUM_LOGS) {
     interval += 1;
   }
@@ -116,53 +115,42 @@ function getIncrementForWidth(width, length, minWidth) {
 
 function getTrendlinesHTML(test, params, max, increment, xIncrement, i) {
   return `<div class='test'>
-  <h4 class='test-name'>${test.name}</h4>
-  <div class='legend'>${
-      Object.keys(params)
-          .map(param => {
-            const backgroundColor =
-                getSwatchBackground(swatches[param], strokes[param]);
-            return `<div class='swatch'>
-      <div class='color' style='background: ${backgroundColor}'></div>
-      <div class='label'>${param}</div>
-    </div>`;
-          })
-          .join(' ')}</div>
-  <div class='graph-container'>
-    <div style='height:${CHART_HEIGHT}px' class='y-axis-labels'>
-      <div class='y-max'>${max}ms</div>
-      <div class='y-min'>0ms</div>
+    <h4 class='test-name'>${test.name}</h4>
+    <div class='legend'>${Object.keys(params).map(param => {
+      const backgroundColor =
+          getSwatchBackground(swatches[param], strokes[param]);
+      return `<div class='swatch'>
+        <div class='color' style='background: ${backgroundColor}'></div>
+        <div class='label'>${param}</div>
+      </div>`;}).join(' ')}</div>
+    <div class='graph-container'>
+      <div style='height:${CHART_HEIGHT}px' class='y-axis-labels'>
+        <div class='y-max'>${max}ms</div>
+        <div class='y-min'>0ms</div>
+      </div>
+      <svg data-index=${i} class='graph'
+        width='${CHART_WIDTH}' height='${CHART_HEIGHT}'>
+        ${Object.keys(params).map((param) =>
+          `<path stroke-dasharray='${strokes[param]}'
+              stroke='${swatches[param]}'
+              d='M${params[param].map((d, i) =>
+                `${i * xIncrement}, ${CHART_HEIGHT * (1 - (d.ms / max))}`)
+                    .join('L')}'></path>`)}
+      </svg>
+      <div class='x-axis-labels'>
+        ${test.entries.map((d, i) => {
+          if (i % increment === 0) {
+            const left = (i / increment) *
+              (CHART_WIDTH / ((test.entries.length - 1) / increment));
+            return `<div class='x-label' style='left:${left}px'>
+                ${d.timestamp}</div>`;
+          }
+          return '';
+        }).join(' ')}</div>
+      <div class='detail-panel'>
+        <div class='line'></div>
+        <div class='contents'></div>
+      </div>
     </div>
-    <svg data-index=${i} class='graph'
-      width='${CHART_WIDTH}' height='${CHART_HEIGHT}'>
-      ${
-      Object.keys(params).map(
-          (param) => `<path stroke-dasharray='${strokes[param]}'
-            stroke='${swatches[param]}'
-            d='M${
-              params[param]
-                  .map((d, i) => `${i * xIncrement},
-              ${CHART_HEIGHT * (1 - (d.ms / max))}`)
-                  .join('L')}'></path>`)}
-    </svg>
-    <div class='x-axis-labels'>
-      ${
-      test.entries
-          .map((d, i) => {
-            if (i % increment === 0) {
-              return `<div class='x-label'
-            style='left:${
-                  (i / increment) *
-                  (CHART_WIDTH / ((test.entries.length - 1) / increment))}px'>
-              ${d.timestamp}</div>`;
-            }
-            return '';
-          })
-          .join(' ')}</div>
-    <div class='detail-panel'>
-      <div class='line'></div>
-      <div class='contents'></div>
-    </div>
-  </div>
-</div>`;
+  </div>`;
 }
