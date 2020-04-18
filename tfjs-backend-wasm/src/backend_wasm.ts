@@ -175,12 +175,28 @@ registerBackend('wasm', async () => {
   return new BackendWasm(wasm);
 }, WASM_PRIORITY);
 
+function createInstantiateWasmFunc(path: string) {
+  return (imports: any, callback: any) => {
+    util.fetch(path, {credentials: 'same-origin'}).then((response) => {
+      if (!response['ok']) {
+        imports.env.a(`failed to load wasm binary file at '${path}'`);
+      }
+      response.arrayBuffer().then(binary => {
+        WebAssembly.instantiate(binary, imports).then(output => {
+          callback(output.instance);
+        });
+      });
+    });
+    return {};
+  };
+}
+
 /**
  * Initializes the wasm module and creates the js <--> wasm bridge.
  *
  * NOTE: We wrap the wasm module in a object with property 'wasm' instead of
- * returning Promise<BackendWasmModule> to avoid freezing Chrome (last tested in
- * Chrome 76).
+ * returning Promise<BackendWasmModule> to avoid freezing Chrome (last tested
+ * in Chrome 76).
  */
 export async function init(): Promise<{wasm: BackendWasmModule}> {
   return new Promise((resolve, reject) => {
@@ -192,6 +208,9 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
         }
         return prefix + path;
       };
+      if (customFetch) {
+        factoryConfig.instantiateWasm = createInstantiateWasmFunc(wasmPath);
+      }
     }
     const wasm = wasmFactory(factoryConfig);
     const voidReturnType: string = null;
@@ -220,7 +239,8 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
         return;
       }
       if (initAborted) {
-        // Emscripten calls `onAbort` twice, resulting in double error messages.
+        // Emscripten calls `onAbort` twice, resulting in double error
+        // messages.
         return;
       }
       initAborted = true;
@@ -248,24 +268,30 @@ function typedArrayFromBuffer(
 
 let wasmPath: string = null;
 let initAborted = false;
-
+let customFetch = false;
 /**
  * Sets the path to the `.wasm` file which will be fetched when the wasm
  * backend is initialized. See
  * https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/README.md#using-bundlers
  * for more details.
+ * @param path wasm file path or url
+ * @param usePlatformFetch optional boolean to use platform fetch to download
+ *     the wasm file
  */
 /** @doc {heading: 'Environment', namespace: 'wasm'} */
-export function setWasmPath(path: string): void {
+export function setWasmPath(path: string, usePlatformFetch?: boolean): void {
   if (initAborted) {
     throw new Error(
         'The WASM backend was already initialized. Make sure you call ' +
         '`setWasmPath()` before you call `tf.setBackend()` or `tf.ready()`');
   }
   wasmPath = path;
+  customFetch = !!usePlatformFetch;
 }
 
 /** Used in unit tests. */
 export function resetWasmPath(): void {
   wasmPath = null;
+  customFetch = false;
+  initAborted = false;
 }
