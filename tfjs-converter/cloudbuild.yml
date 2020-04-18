@@ -6,14 +6,37 @@ steps:
   id: 'yarn-common'
   args: ['install']
 
-# Install tfjs-converter dependencies
+# Install tfjs-converter dependencies.
 - name: 'node:10'
   dir: 'tfjs-converter'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
   waitFor: ['yarn-common']
-  env: ['NIGHTLY=$_NIGHTLY']
+
+# Build deps.
+- name: 'node:10'
+  dir: 'tfjs-converter'
+  entrypoint: 'yarn'
+  id: 'build-deps'
+  args: ['build-deps-ci']
+  waitFor: ['yarn-common']
+
+# Build.
+- name: 'node:10'
+  dir: 'tfjs-converter'
+  entrypoint: 'yarn'
+  id: 'build'
+  args: ['build-ci']
+  waitFor: ['yarn', 'build-deps']
+
+# Lint.
+- name: 'node:10'
+  dir: 'tfjs-converter'
+  entrypoint: 'yarn'
+  id: 'lint'
+  args: ['lint']
+  waitFor: ['yarn', 'build-deps']
 
 # Run javascript tests.
 - name: 'node:10'
@@ -21,7 +44,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-js'
   args: ['test-ci']
-  waitFor: ['yarn']
+  waitFor: ['yarn', 'build-deps', 'lint']
   env: ['NIGHTLY=$_NIGHTLY']
 
 # Run python tests.
@@ -48,7 +71,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-snippets'
   args: ['test-snippets']
-  waitFor: ['test-js']
+  waitFor: ['build']
 
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'

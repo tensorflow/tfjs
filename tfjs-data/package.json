@@ -12,9 +12,9 @@
   "miniprogram": "dist/miniprogram",
   "license": "Apache-2.0",
   "devDependencies": {
+    "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
     "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@tensorflow/tfjs-layers": "link:../tfjs-layers",
-    "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
     "@types/jasmine": "~2.5.53",
     "@types/seedrandom": "^2.4.27",
     "@types/utf8": "~2.1.6",
@@ -56,7 +56,7 @@
     "publish-npm": "npm publish",
     "test": "yarn && yarn build-deps && ts-node src/test_node.ts",
     "test-browsers": "karma start --browsers='Chrome,Firefox'",
-    "test-ci": "yarn && yarn build-deps-ci && yarn build-ci && yarn lint && ts-node src/test_node.ts",
+    "test-ci": "ts-node src/test_node.ts",
     "test-snippets": "ts-node ./scripts/test_snippets.ts",
     "lint": "tslint -p . -t verbose"
   },

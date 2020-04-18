@@ -18,8 +18,8 @@
     "@tensorflow/tfjs-core": "link:../tfjs-core"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
+    "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@types/deep-equal": "^1.0.1",
     "@types/jasmine": "~2.8.6",
     "@types/long": "~3.0.32",
@@ -68,7 +68,7 @@
     "publish-local": "yarn build-npm && yalc push",
     "publish-npm": "npm publish",
     "test": "yarn && yarn build-deps && yarn gen-json --test && ts-node run_tests.ts",
-    "test-ci": "yarn && yarn build-deps-ci && yarn build-ci && yarn lint && ts-node run_tests.ts",
+    "test-ci": "ts-node run_tests.ts",
     "test-snippets": "ts-node ./scripts/test_snippets.ts",
     "lint": "tslint -p . -t verbose",
     "make-version": "sh -c ./scripts/make-version",
