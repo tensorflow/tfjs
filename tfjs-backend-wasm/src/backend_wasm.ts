@@ -176,6 +176,7 @@ registerBackend('wasm', async () => {
 }, WASM_PRIORITY);
 
 function createInstantiateWasmFunc(path: string) {
+  // tslint:disable-next-line:no-any
   return (imports: any, callback: any) => {
     util.fetch(path, {credentials: 'same-origin'}).then((response) => {
       if (!response['ok']) {
