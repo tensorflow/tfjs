@@ -5,13 +5,45 @@ steps:
   entrypoint: 'yarn'
   args: ['install']
 
-# Run tests in browser.
+# Install packages.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  entrypoint: 'yarn'
+  id: 'yarn'
+  args: ['install']
+  waitFor: ['yarn-common']
+
+# Install build-deps.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  entrypoint: 'yarn'
+  id: 'build-deps'
+  args: ['build-deps-ci']
+  waitFor: ['yarn-common']
+
+# Build.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  entrypoint: 'yarn'
+  id: 'build'
+  args: ['build-ci']
+  waitFor: ['yarn', 'build-deps']
+
+# Lint.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  entrypoint: 'yarn'
+  id: 'lint'
+  args: ['lint']
+  waitFor: ['yarn', 'build-deps']
+
+# Run JS tests.
 - name: 'node:10'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'test-wasm'
   args: ['test-ci']
-  waitFor: ['yarn-common']
+  waitFor: ['yarn', 'build-deps', 'build', 'lint']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
 
@@ -21,7 +53,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-cc'
   args: ['test-cc']
-  waitFor: ['test-wasm']
+  waitFor: ['build']
 
 # Check bundle size.
 - name: 'node:10'
@@ -29,7 +61,7 @@ steps:
   id: 'test-bundle-size'
   entrypoint: 'yarn'
   args: ['test-bundle-size']
-  waitFor: ['test-wasm']
+  waitFor: ['build']
 
 # Lint bazel files.
 - name: 'node:10'
@@ -37,7 +69,7 @@ steps:
   id: 'buildifier'
   entrypoint: 'yarn'
   args: ['buildifier-ci']
-  waitFor: ['test-wasm']
+  waitFor: ['yarn']
 
 # General configuration
 secrets:

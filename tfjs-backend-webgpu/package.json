@@ -10,17 +10,20 @@
   "scripts": {
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "publish-npm": "./scripts/publish-npm.sh",
+    "build-backend-webgl": "cd ../tfjs-backend-webgl && yarn && yarn build",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
-    "build": "yarn build-core && rimraf dist/ && tsc",
+    "build-deps": "yarn build-core && yarn build-backend-webgl",
+    "build": "yarn build-deps && rimraf dist/ && tsc",
     "link-local": "yalc link",
     "unlink-local": "yalc remove",
     "lint": "tslint -p . -t verbose",
     "test": "karma start --browsers=chrome_webgpu --excludeTest='src/benchmark_ops_test.ts'",
     "test-ci": "./scripts/test-ci.sh",
-    "benchmark": "karma start --grep=benchmark --browsers=chrome_webgpu"
+    "benchmark": "yarn build && karma start --grep=benchmark --browsers=chrome_webgpu"
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "@tensorflow/tfjs-backend-webgl": "link:../tfjs-backend-webgl",
     "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@types/jasmine": "~2.5.53",
     "clang-format": "~1.2.2",
