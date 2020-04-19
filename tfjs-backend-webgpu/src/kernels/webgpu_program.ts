@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, Tensor} from '@tensorflow/tfjs-core';
+import {DataType, Rank, ShapeMap, Tensor} from '@tensorflow/tfjs-core';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import * as shader_preprocessor from '../shader_preprocessor';
@@ -121,11 +121,10 @@ export const compileProgram =
       return {bindGroupLayout, pipeline};
     };
 
-// TODO: Consider uploading shape info as vec4s regardless of rank to reduce
-// recompilation.
-export function makeShaderKey(program: WebGPUProgram, ranks: number[]): string {
+export function makeShaderKey<R extends Rank>(program: WebGPUProgram,
+    shapes: Array<ShapeMap[R]>, types: string[]): string {
   const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
-      ranks.join(',') +
+      shapes.join(',') + types.join(',') + program.variableNames.join(',') +
       (program.shaderKey ? program.shaderKey : program.userCode);
   return key;
 }
