@@ -457,8 +457,6 @@ export class WebGPUBackend extends KernelBackend {
     const uniformData = new Int32Array(dimUniforms);
     const uniforms = this.makeUniforms(uniformData);
 
-    const key =
-        webgpu_program.makeShaderKey(program, bufferShapes.map(d => d.length));
     const inputsData = inputs.map((input: Tensor, i: number) => {
       this.uploadToGPU(input.dataId);
 
@@ -471,6 +469,9 @@ export class WebGPUBackend extends KernelBackend {
       };
     });
     this.uploadToGPU(output.dataId);
+    const bufferTypes = inputsData.map(d => d.dtype).concat(output.dtype);
+    const key =
+        webgpu_program.makeShaderKey(program, bufferShapes, bufferTypes);
     const {bindGroupLayout, pipeline} = this.getAndSavePipeline(key, () => {
       return webgpu_program.compileProgram(
           this.glslang, this.device, program, inputsData, output, uniforms);
@@ -726,14 +727,7 @@ export class WebGPUBackend extends KernelBackend {
       program = new Conv2DMMProgram(convInfo, workPerThread);
     }
 
-    const pad = convInfo.padInfo.type === 'VALID' ?
-        [0, 0] :
-        convInfo.padInfo.type === 'SAME' ?
-        [
-          -Math.floor((convInfo.filterShape[0] - 1) / 2),
-          -Math.floor((convInfo.filterShape[1] - 1) / 2)
-        ] :
-        [convInfo.padInfo.top, convInfo.padInfo.left];
+    const pad = [convInfo.padInfo.top, convInfo.padInfo.left];
 
     const dimensions = [
       convInfo.filterHeight, convInfo.filterWidth, ...pad,
@@ -799,18 +793,12 @@ export class WebGPUBackend extends KernelBackend {
           hasPreluActivationWeights);
     }
 
-    const pad = convInfo.padInfo.type === 'VALID' ?
-        [0, 0] :
-        convInfo.padInfo.type === 'SAME' ?
-        [
-          -Math.floor((convInfo.filterShape[0] - 1) / 2),
-          -Math.floor((convInfo.filterShape[1] - 1) / 2)
-        ] :
-        [convInfo.padInfo.top, convInfo.padInfo.left];
+    const pad = [convInfo.padInfo.top, convInfo.padInfo.left];
 
     const dimensions = [
       convInfo.filterHeight, convInfo.filterWidth, ...pad,
-      convInfo.strideHeight, convInfo.strideWidth
+      convInfo.strideHeight, convInfo.strideWidth,
+      convInfo.dilationHeight, convInfo.dilationWidth
     ];
 
     const inputs: Tensor[] = [input, filter];
