@@ -44,24 +44,13 @@ export class BatchNormProgram implements WebGPUProgram {
     const coordsDataType = getCoordsDataType(dim);
     let setOutput =
         'setOutput(coords[0], coords[1], coords[2], coords[3], value);';
-    switch (dim) {
-      case 2:
-        this.dispatchLayout = {x: [1], y: [0], z: []};
-        setOutput = 'setOutput(coords[0], coords[1], value);';
-        break;
-      case 3:
-        this.dispatchLayout = {x: [1, 2], y: [0], z: []};
-        setOutput = 'setOutput(coords[0], coords[1], coords[2], value);';
-        break;
-      case 4:
-        this.dispatchLayout = {x: [1, 2], y: [0], z: [3]};
-        setOutput =
-            'setOutput(coords[0], coords[1], coords[2], coords[3],value);';
-        break;
-      default:
-        this.dispatchLayout = {x: [1, 2], y: [0], z: [3]};
-        setOutput =
-            'setOutput(coords[0], coords[1], coords[2], coords[3],value);';
+    if (dim === 2) {
+      this.dispatchLayout = {x: [1], y: [0], z: []};
+      setOutput = 'setOutput(coords[0], coords[1], value);';
+    }
+    if (dim === 3) {
+      this.dispatchLayout = {x: [1, 2], y: [0], z: []};
+      setOutput = 'setOutput(coords[0], coords[1], coords[2], value);';
     }
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
