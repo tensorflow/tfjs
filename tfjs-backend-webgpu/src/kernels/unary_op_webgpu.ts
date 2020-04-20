@@ -38,13 +38,15 @@ export class UnaryOpProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A'];
   workPerThread = 4;
-  workGroupSize: [number, number, number] = [16, 1, 1];
+  workGroupSize: [number, number, number];
 
   constructor(outputShape: number[], op: string) {
+    const workGroupSizeX = 16;
+    this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = outputShape;
     const size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    if (size % 16 === 0) {
+    if (size % workGroupSizeX === 0) {
       this.dispatch = computeDispatch(
           this.dispatchLayout, this.outputShape, this.workGroupSize);
       this.userCode = `

@@ -49,13 +49,15 @@ export class BinaryOpProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
   workPerThread = 4;
-  workGroupSize: [number, number, number] = [16, 1, 1];
+  workGroupSize: [number, number, number];
 
   constructor(op: string, aShape: number[], bShape: number[]) {
-    if (util.arraysEqual(aShape, bShape) &&
-        util.sizeFromShape(aShape) % 16 === 0) {
-      this.outputShape = aShape;
-      this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    const workGroupSizeX = 16;
+    this.workGroupSize = [workGroupSizeX, 1, 1];
+    this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    const size = util.sizeFromShape(this.outputShape);
+    if (util.arraysEqual(aShape, bShape) && size % workGroupSizeX === 0) {
       this.dispatch = computeDispatch(
           this.dispatchLayout, this.outputShape, this.workGroupSize);
       this.userCode = `
@@ -73,11 +75,6 @@ export class BinaryOpProgram implements WebGPUProgram {
         `;
       this.shaderKey = `binary2${op}`;
     } else {
-      this.outputShape =
-          backend_util.assertAndGetBroadcastShape(aShape, bShape);
-      const size = util.sizeFromShape(this.outputShape);
-
-      this.dispatchLayout = flatDispatchLayout(this.outputShape);
       this.dispatch = computeDispatch(
           this.dispatchLayout, this.outputShape, this.workGroupSize,
           [this.workPerThread, 1, 1]);
