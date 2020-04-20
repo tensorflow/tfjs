@@ -19,6 +19,7 @@ import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 import {divConfig} from './kernels/Div';
 import {fromPixelsConfig} from './kernels/FromPixels';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
+import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
@@ -26,8 +27,9 @@ import {transposeConfig} from './kernels/Transpose';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
-  fromPixelsConfig, divConfig, nonMaxSuppressionV5Config, squareConfig,
-  squaredDifferenceConfig, transposeConfig, maxPoolWithArgmaxConfig
+  fromPixelsConfig, divConfig, nonMaxSuppressionV3Config,
+  nonMaxSuppressionV5Config, squareConfig, squaredDifferenceConfig,
+  transposeConfig, maxPoolWithArgmaxConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {
