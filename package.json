@@ -17,6 +17,6 @@
     "release": "ts-node ./scripts/release.ts",
     "publish-npm": "ts-node ./scripts/publish-npm.ts",
     "release-notes": "ts-node ./scripts/release_notes/release_notes.ts",
-    "test-release-notes": "ts-node ./scripts/release_notes/run_tests.ts"
+    "test-release-notes": "ts-node -P tsconfig.test.json ./scripts/release_notes/run_tests.ts"
   }
 }
