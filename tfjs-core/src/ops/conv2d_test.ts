@@ -318,6 +318,63 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
         await result.data(), [58.0, 78.0, 98.0, 118.0, 138.0, 158.0]);
   });
 
+  it('x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=1 p=same', async () => {
+    const inputDepth = 16;
+    const xSize = 8;
+    const inputShape: [number, number, number, number] =
+        [1, xSize, xSize, inputDepth];
+    const outputDepth = 1;
+    const fSize = 3;
+    const pad = 'same';
+    const stride: [number, number] = [2, 2];
+
+    const inputs = generateCaseInputs(
+        1 * xSize * xSize * inputDepth, fSize * fSize * inputDepth);
+    const x = tf.tensor4d(inputs.input, inputShape);
+    const w =
+        tf.tensor4d(inputs.filter, [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.conv2d(x, w, stride, pad);
+    expect(result.shape).toEqual([1, 4, 4, 1]);
+    expectArraysClose(await result.data(), new Float32Array([
+                        2209560, 2543640, 2877720, 1890576, 4882200, 5216280,
+                        5550360, 3475728, 7554840, 7888920, 8223000, 5060880,
+                        4153744, 4302736, 4451728, 2551904
+                      ]));
+  });
+
+  it('x=[1,8,8,3] f=[3,3,3,4] s=[2,2] d=1 p=same', async () => {
+    const inputDepth = 3;
+    const xSize = 8;
+    const inputShape: [number, number, number, number] =
+        [1, xSize, xSize, inputDepth];
+    const outputDepth = 4;
+    const fSize = 3;
+    const pad = 'same';
+    const stride: [number, number] = [2, 2];
+
+    const inputs = generateCaseInputs(
+        1 * xSize * xSize * inputDepth,
+        fSize * fSize * inputDepth * outputDepth);
+    const x = tf.tensor4d(inputs.input, inputShape);
+    const w =
+        tf.tensor4d(inputs.filter, [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.conv2d(x, w, stride, pad);
+    expect(result.shape).toEqual([1, 4, 4, 4]);
+    expectArraysClose(
+        await result.data(), new Float32Array([
+          57771,  58554,  59337,  60120,  66357,  67302,  68247,  69192,
+          74943,  76050,  77157,  78264,  49071,  49890,  50709,  51528,
+          126459, 128538, 130617, 132696, 135045, 137286, 139527, 141768,
+          143631, 146034, 148437, 150840, 89679,  91362,  93045,  94728,
+          195147, 198522, 201897, 205272, 203733, 207270, 210807, 214344,
+          212319, 216018, 219717, 223416, 130287, 132834, 135381, 137928,
+          105798, 108696, 111594, 114492, 109578, 112584, 115590, 118596,
+          113358, 116472, 119586, 122700, 64502,  66632,  68762,  70892
+        ]));
+  });
+
   it('throws when x is not rank 3', () => {
     const inputDepth = 1;
     const outputDepth = 1;

@@ -18,6 +18,19 @@
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
+function generateCaseInputs(totalSizeTensor: number, totalSizeFilter: number) {
+  const inp = new Array(totalSizeTensor);
+  const filt = new Array(totalSizeFilter);
+
+  for (let i = 0; i < totalSizeTensor; i++) {
+    inp[i] = i + 1;
+  }
+  for (let i = 0; i < totalSizeFilter; i++) {
+    filt[i] = i + 1;
+  }
+
+  return {input: inp, filter: filt};
+}
 
 describeWithFlags('fused matmul', ALL_ENVS, () => {
   it('fused A x B', async () => {
@@ -592,6 +605,40 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
 
     expectArraysClose(await result.data(), expected);
   });
+
+  it('relu with stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=1 p=same',
+     async () => {
+       const inputDepth = 16;
+       const xSize = 8;
+       const inputShape: [number, number, number, number] =
+           [1, xSize, xSize, inputDepth];
+       const outputDepth = 1;
+       const fSize = 3;
+       const pad = 'same';
+       const stride: [number, number] = [2, 2];
+
+       const inputs = generateCaseInputs(
+           1 * xSize * xSize * inputDepth, fSize * fSize * inputDepth);
+       const x = tf.tensor4d(inputs.input, inputShape);
+       const w =
+           tf.tensor4d(inputs.filter, [fSize, fSize, inputDepth, outputDepth]);
+
+       const result = tf.fused.conv2d({
+         x,
+         filter: w,
+         strides: stride,
+         pad,
+         dataFormat: 'NHWC',
+         dilations: [1, 1],
+         activation: 'relu'
+       });
+       expect(result.shape).toEqual([1, 4, 4, 1]);
+       expectArraysClose(await result.data(), new Float32Array([
+                           2209560, 2543640, 2877720, 1890576, 4882200, 5216280,
+                           5550360, 3475728, 7554840, 7888920, 8223000, 5060880,
+                           4153744, 4302736, 4451728, 2551904
+                         ]));
+     });
 
   it('basic with bias', async () => {
     const inputDepth = 2;
