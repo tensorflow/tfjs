@@ -16,7 +16,7 @@
 
 set -e
 
-yarn bazel build -c opt //src/cc:tfjs-backend-wasm.js --config=wasm --copt="-pthread" --linkopt="-s USE_PTHREADS=1"
+yarn bazel build -c opt //src/cc:tfjs-backend-wasm.js --config=wasm --copt="-pthread"
 # The typescript code and karma config expect the output of emscripten to be in
 # wasm-out/ so we copy the bazel output there.
 cp -f bazel-bin/src/cc/tfjs-backend-wasm.js \
