@@ -240,12 +240,16 @@ void slow_batch_matmul(const size_t a_id, const size_t* a_shape_ptr,
               size_t out_buf_index = b * size + innermost_dim;
               float current = out_buf[out_buf_index];
 
-              // Handles 1D broadcasting.
-              size_t bias_index = std::min(innermost_dim, bias_buf_size - 1);
+              float bias_val = 0;
+              if (bias_id != 0) {
+                // Handles 1D broadcasting.
+                size_t bias_index = std::min(innermost_dim, bias_buf_size - 1);
+
+                bias_val = bias_buf[bias_index];
+              }
 
               out_buf[out_buf_index] = std::max(
-                  std::min(current + sum + bias_buf[bias_index], output_max),
-                  output_min);
+                  std::min(current + sum + bias_val, output_max), output_min);
             }
           }
         }
