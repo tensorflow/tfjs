@@ -87,7 +87,8 @@ optional `usePlatformFetch` to true:
 
 ```ts
 import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
-setWasmPath(yourCustomPath, true); // or tf.wasm.setWasmPath when using <script> tags.
+const usePlatformFetch = true;
+setWasmPath(yourCustomPath, usePlatformFetch); // or tf.wasm.setWasmPath when using <script> tags.
 tf.setBackend('wasm').then(() => {...});
 ```
 ## Benchmarks
