@@ -131,7 +131,7 @@ describeWebGPU('Ops benchmarks', () => {
     const b = tf.randomNormal([2048, 16]);
 
     await time(() => tf.matMul(a, b));
-  })
+  });
 
   it('add', async () => {
     const a = tf.randomNormal([1, 65, 65, 256]);
