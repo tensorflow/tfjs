@@ -16,7 +16,7 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
-import {computeDispatch, computeWorkPerThreadForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
+import {computeDispatch, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {matMulHeader} from './matmul_webgpu';
 import {WebGPUProgram} from './webgpu_program';
@@ -137,12 +137,20 @@ export class MatMulPackedProgram implements WebGPUProgram {
                                 [outputShape[0], dimInner, dimBOuter];
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
-    workPerThread = computeWorkPerThreadForMatMul(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        workPerThread);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [workPerThread, workPerThread, 1]);
+    // If dispaching number is one, it means only one work group is running.
+    // For modern GPUs, it supports multiple work groups running in parallel.
+    // So there may be some idle hardware threads.
+    // In this case, we prefer to reduce the work per thread and improve the
+    // thread utilization
+    if (this.dispatch) == [1, 1, 1]) {
+      workPerThread = 1;
+      this.dispatch = computeDispatch(
+          this.dispatchLayout, this.outputShape, this.workGroupSize,
+          [workPerThread, workPerThread, 1]);
+    }
     this.workPerThread = workPerThread;
     const tileAOuter = this.workGroupSize[1] * workPerThread;
     const tileBOuter = this.workGroupSize[0] * workPerThread;
