@@ -42,7 +42,7 @@
     "publish-local": "yarn prep && yalc push",
     "publish-npm": "npm publish",
     "test": "yarn && yarn build-deps && yarn build && ts-node src/run_tests.ts",
-    "test-ci": "./scripts/test-ci.sh",
+    "test-ci": "ts-node src/run_tests.ts",
     "test-ts-integration": "./scripts/test-ts-integration.sh",
     "upload-windows-addon": "./scripts/build-and-upload-windows-addon.bat"
   },
