@@ -19,7 +19,7 @@ steps:
   id: 'build-deps'
   entrypoint: 'yarn'
   args: ['build-deps-ci']
-  waitFor: ['yarn-common']
+  waitFor: ['yarn']
 
 # Run tests.
 - name: 'node:10'
