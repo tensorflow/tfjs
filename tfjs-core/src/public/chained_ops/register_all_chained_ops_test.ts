@@ -24,8 +24,9 @@ import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
 // flexibility to change in future.
 
 const CHAINED_OPS = [
-  'add', 'batchNorm', 'broadcastTo', 'div', 'divNoNan', 'oneHot', 'notEqual',
-  'pad', 'square', 'sub', 'tile', 'transpose'
+  'add', 'batchNorm', 'broadcastTo', 'conv1d', 'conv2d', 'conv2dTranspose',
+  'depthwiseConv2d', 'div', 'divNoNan', 'notEqual', 'oneHot', 'pad',
+  'separableConv2d', 'square', 'sub', 'tile', 'transpose'
 ];
 
 describeWithFlags('chained ops', ALL_ENVS, () => {

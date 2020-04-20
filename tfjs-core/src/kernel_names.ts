@@ -39,6 +39,58 @@ export interface FusedBatchNormAttrs {
   varianceEpsilon: number;
 }
 
+export const Conv2D = 'Conv2D';
+export type Conv2DInputs = Pick<NamedTensorInfoMap, 'x'|'filter'>;
+export interface Conv2DAttrs {
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  dataFormat: 'NHWC'|'NCHW';
+  dilations: [number, number]|number;
+  dimRoundingMode?: 'floor'|'round'|'ceil';
+}
+
+export const Conv2DBackpropFilter = 'Conv2DBackpropFilter';
+export type Conv2DBackpropFilterInputs = Pick<NamedTensorInfoMap, 'x'|'dy'>;
+
+export const Conv2DBackpropInput = 'Conv2DBackpropInput';
+export type Conv2DBackpropInputInputs = Pick<NamedTensorInfoMap, 'dy'|'filter'>;
+
+export const DepthwiseConv2dNative = 'DepthwiseConv2dNative';
+export type DepthwiseConv2dNativeInputs =
+    Pick<NamedTensorInfoMap, 'x'|'filter'>;
+export interface DepthwiseConv2dNativeAttrs {
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  dataFormat: 'NHWC'|'NCHW';
+  dilations: [number, number]|number;
+  dimRoundingMode?: 'floor'|'round'|'ceil';
+}
+
+export const DepthwiseConv2dNativeBackpropFilter =
+    'DepthwiseConv2dNativeBackpropFilter';
+export type DepthwiseConv2dNativeBackpropFilterInputs =
+    Pick<NamedTensorInfoMap, 'x'|'dy'>;
+
+export const DepthwiseConv2dNativeBackpropInput =
+    'DepthwiseConv2dNativeBackpropInput';
+export type DepthwiseConv2dNativeBackpropInputInputs =
+    Pick<NamedTensorInfoMap, 'dy'>;
+
+export const Conv3D = 'Conv3D';
+export type Conv3DInputs = Pick<NamedTensorInfoMap, 'x'|'filter'>;
+export interface Conv3DAttrs {
+  strides: [number, number, number]|number;
+  pad: 'valid'|'same';
+  dataFormat: 'NDHWC'|'NCDHW';
+  dilations: [number, number, number]|number;
+}
+
+export const Conv3DBackpropFilter = 'Conv3DBackpropFilter';
+export type Conv3DBackpropFilterInputs = Pick<NamedTensorInfoMap, 'x'|'y'>;
+
+export const Conv3DBackpropInput = 'Conv3DBackpropInput';
+export type Conv3DBackpropInputInputs = Pick<NamedTensorInfoMap, 'dy'>;
+
 export const NotEqual = 'NotEqual';
 export type NotEqualInputs = BinaryInputs;
 

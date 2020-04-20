@@ -1442,7 +1442,7 @@ export class MathBackendCPU extends KernelBackend {
   fusedConv2d(
       {input, filter, convInfo, bias, activation, preluActivationWeights}:
           backend_util.FusedConv2DConfig): Tensor4D {
-    let result = this.conv2d(input, filter, convInfo);
+    let result = this.conv2D(input, filter, convInfo);
 
     if (bias) {
       result = this.add(result, bias) as Tensor4D;
@@ -1455,7 +1455,7 @@ export class MathBackendCPU extends KernelBackend {
     return result;
   }
 
-  conv2d(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
+  conv2D(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
       Tensor4D {
     assertNotComplex([x, filter], 'conv2d');
 
@@ -1522,7 +1522,7 @@ export class MathBackendCPU extends KernelBackend {
     return y.toTensor() as Tensor4D;
   }
 
-  conv3d(x: Tensor5D, filter: Tensor5D, convInfo: backend_util.Conv3DInfo):
+  conv3D(x: Tensor5D, filter: Tensor5D, convInfo: backend_util.Conv3DInfo):
       Tensor5D {
     const filterDepth = convInfo.filterDepth;
     const filterHeight = convInfo.filterHeight;
@@ -1591,7 +1591,7 @@ export class MathBackendCPU extends KernelBackend {
     return y.toTensor();
   }
 
-  conv2dDerInput(
+  conv2DBackpropInput(
       dy: Tensor4D, filter: Tensor4D,
       convInfo: backend_util.Conv2DInfo): Tensor4D {
     assertNotComplex([dy, filter], 'conv2dDerInput');
@@ -1670,7 +1670,7 @@ export class MathBackendCPU extends KernelBackend {
     return dx.toTensor();
   }
 
-  conv3dDerInput(
+  conv3DBackpropInput(
       dy: Tensor5D, filter: Tensor5D,
       convInfo: backend_util.Conv3DInfo): Tensor5D {
     const dx = tf.buffer<Rank.R5>(convInfo.inShape, 'float32');
@@ -1756,8 +1756,8 @@ export class MathBackendCPU extends KernelBackend {
     return dx.toTensor();
   }
 
-  conv2dDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: backend_util.Conv2DInfo):
-      Tensor4D {
+  conv2DBackpropFilter(
+      x: Tensor4D, dy: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
     assertNotComplex([x, dy], 'conv2dDerFilter');
 
     const strideHeight = convInfo.strideHeight;
@@ -1808,8 +1808,8 @@ export class MathBackendCPU extends KernelBackend {
     return dW.toTensor();
   }
 
-  conv3dDerFilter(x: Tensor5D, dy: Tensor5D, convInfo: backend_util.Conv3DInfo):
-      Tensor5D {
+  conv3DBackpropFilter(
+      x: Tensor5D, dy: Tensor5D, convInfo: backend_util.Conv3DInfo): Tensor5D {
     const strideDepth = convInfo.strideDepth;
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
@@ -1891,7 +1891,7 @@ export class MathBackendCPU extends KernelBackend {
   fusedDepthwiseConv2D(
       {input, filter, convInfo, bias, activation, preluActivationWeights}:
           backend_util.FusedConv2DConfig): Tensor4D {
-    let result = this.depthwiseConv2D(input, filter, convInfo);
+    let result = this.depthwiseConv2dNative(input, filter, convInfo);
 
     if (bias) {
       result = this.add(result, bias) as Tensor4D;
@@ -1904,7 +1904,7 @@ export class MathBackendCPU extends KernelBackend {
     return result;
   }
 
-  depthwiseConv2D(
+  depthwiseConv2dNative(
       x: Tensor4D, filter: Tensor4D,
       convInfo: backend_util.Conv2DInfo): Tensor4D {
     assertNotComplex([x, filter], 'depthwiseConv2D');
@@ -1963,7 +1963,7 @@ export class MathBackendCPU extends KernelBackend {
     return y.toTensor() as Tensor4D;
   }
 
-  depthwiseConv2DDerInput(
+  depthwiseConv2dNativeBackpropInput(
       dy: Tensor4D, filter: Tensor4D,
       convInfo: backend_util.Conv2DInfo): Tensor4D {
     assertNotComplex([dy, filter], 'depthwiseConv2DDerInput');
@@ -2032,7 +2032,7 @@ export class MathBackendCPU extends KernelBackend {
     return dx.toTensor();
   }
 
-  depthwiseConv2DDerFilter(
+  depthwiseConv2dNativeBackpropFilter(
       x: Tensor4D, dy: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
     assertNotComplex([x, dy], 'depthwiseConv2DDerFilter');
 
