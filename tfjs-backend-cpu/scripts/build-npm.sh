@@ -20,6 +20,6 @@ yarn rimraf dist/
 yarn
 
 yarn build
-yarn rollup -c --visualize
+yarn rollup -c --visualize --npm
 
 echo "Stored standalone library at dist/tf-backend-cpu(.min).js"

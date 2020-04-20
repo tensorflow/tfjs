@@ -1,16 +1,16 @@
 {
   "compilerOptions": {
-    "module": "ES2015",
+    "module": "commonjs",
     "moduleResolution": "node",
+    "allowJs": true,
     "noImplicitAny": true,
     "sourceMap": true,
     "removeComments": false,
     "preserveConstEnums": true,
-    "allowSyntheticDefaultImports": true,
-    "declaration": true,
-    "target": "es2017",
+    "declaration": false,
+    "target": "es5",
     "lib": [
-      "es2017",
+      "es2015",
       "dom"
     ],
     "outDir": "./dist",
@@ -26,7 +26,5 @@
   "include": [
     "src/"
   ],
-  "exclude": [
-    "node_modules/"
-  ]
+  "exclude": ["node_modules/"]
 }

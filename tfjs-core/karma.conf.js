@@ -17,6 +17,7 @@
 
 const karmaTypescriptConfig = {
   tsconfig: 'tsconfig.json',
+  compilerOptions: {module: 'commonjs', target: 'ES2015'},
   // Disable coverage reports and instrumentation by default for tests
   coverageOptions: {instrumentation: false},
   reports: {},
