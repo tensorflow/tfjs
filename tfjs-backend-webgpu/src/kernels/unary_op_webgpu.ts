@@ -37,7 +37,7 @@ export class UnaryOpProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A'];
-  workPerThread = 4;
+  workPerThread: number;
   workGroupSize: [number, number, number];
 
   constructor(outputShape: number[], op: string) {
@@ -46,9 +46,12 @@ export class UnaryOpProgram implements WebGPUProgram {
     this.outputShape = outputShape;
     const size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    if (size % workGroupSizeX === 0) {
-      this.dispatch = computeDispatch(
-          this.dispatchLayout, this.outputShape, this.workGroupSize);
+    const fit = size % workGroupSizeX === 0;
+    this.workPerThread = fit ? 1 : 4;
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        [this.workPerThread, 1, 1]);
+    if (fit) {
       this.userCode = `
       float unaryOperation(float a) {
         ${op}
@@ -59,12 +62,9 @@ export class UnaryOpProgram implements WebGPUProgram {
         float a = A[index];
         setOutput(index, unaryOperation(a));
       }
-    `;
+      `;
       this.shaderKey = `unary2${op}`;
     } else {
-      this.dispatch = computeDispatch(
-          this.dispatchLayout, this.outputShape, this.workGroupSize,
-          [this.workPerThread, 1, 1]);
       const type = getCoordsDataType(this.outputShape.length);
       this.userCode = `
       float unaryOperation(float a) {
@@ -85,7 +85,7 @@ export class UnaryOpProgram implements WebGPUProgram {
           }
         }
       }
-    `;
+      `;
       this.shaderKey = `unary${op}${type}${size}`;
     }
   }

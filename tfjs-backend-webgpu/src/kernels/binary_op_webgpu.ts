@@ -48,7 +48,7 @@ export class BinaryOpProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
-  workPerThread = 4;
+  workPerThread: number;
   workGroupSize: [number, number, number];
 
   constructor(op: string, aShape: number[], bShape: number[]) {
@@ -57,9 +57,12 @@ export class BinaryOpProgram implements WebGPUProgram {
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     const size = util.sizeFromShape(this.outputShape);
-    if (util.arraysEqual(aShape, bShape) && size % workGroupSizeX === 0) {
-      this.dispatch = computeDispatch(
-          this.dispatchLayout, this.outputShape, this.workGroupSize);
+    const fit = util.arraysEqual(aShape, bShape) && size % workGroupSizeX === 0;
+    this.workPerThread = fit ? 1 : 4;
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        [this.workPerThread, 1, 1]);
+    if (fit) {
       this.userCode = `
           float binaryOperation(float a, float b) {
             ${op}
@@ -75,9 +78,6 @@ export class BinaryOpProgram implements WebGPUProgram {
         `;
       this.shaderKey = `binary2${op}`;
     } else {
-      this.dispatch = computeDispatch(
-          this.dispatchLayout, this.outputShape, this.workGroupSize,
-          [this.workPerThread, 1, 1]);
       const type = getCoordsDataType(this.outputShape.length);
 
       this.userCode = `
@@ -100,7 +100,7 @@ export class BinaryOpProgram implements WebGPUProgram {
           }
         }
       }
-    `;
+      `;
       this.shaderKey = `binary${op}${type}${size}`;
     }
   }
