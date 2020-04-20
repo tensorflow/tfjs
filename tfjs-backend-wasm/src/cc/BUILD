@@ -10,9 +10,6 @@ KERNELS_WITH_KEEPALIVE = glob(
 cc_binary(
     name = "tfjs-backend-wasm.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
-    copts = [
-      "-pthread"
-    ],
     linkopts = [
         "-s ALLOW_MEMORY_GROWTH=1",
         "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
@@ -26,6 +23,7 @@ cc_binary(
         "-s MALLOC=emmalloc",
         "-s USE_PTHREADS=1",
         "-s MAXIMUM_MEMORY=1Gb",
+        "-s ASSERTIONS=1",
     ],
     deps = [
         ":all_kernels",
