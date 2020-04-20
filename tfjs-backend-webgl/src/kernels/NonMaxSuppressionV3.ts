@@ -15,19 +15,14 @@
  * =============================================================================
  */
 
-import {NonMaxSuppressionV3, NonMaxSuppressionV3Attrs, NonMaxSuppressionV3Inputs} from '../../../kernel_names';
-import {KernelConfig} from '../../../kernel_registry';
-import {warn} from '../../../log';
-import {TypedArray} from '../../../types';
-import {nonMaxSuppressionV3} from '../../non_max_suppression_impl';
-
+import {backend_util, kernel_impls, KernelConfig, NonMaxSuppressionV3, NonMaxSuppressionV3Attrs, NonMaxSuppressionV3Inputs, TypedArray} from '@tensorflow/tfjs-core';
 import {MathBackendWebGL} from '../backend_webgl';
 
 export const nonMaxSuppressionV3Config: KernelConfig = {
   kernelName: NonMaxSuppressionV3,
   backendName: 'webgl',
   kernelFunc: ({inputs, backend, attrs}) => {
-    warn(
+    backend_util.warn(
         'tf.nonMaxSuppression() in webgl locks the UI thread. ' +
         'Call tf.nonMaxSuppressionAsync() instead');
 
@@ -44,7 +39,7 @@ export const nonMaxSuppressionV3Config: KernelConfig = {
     const iouThresholdVal = iouThreshold;
     const scoreThresholdVal = scoreThreshold;
 
-    return nonMaxSuppressionV3(
+    return kernel_impls.nonMaxSuppressionV3(
         boxesVals, scoresVals, maxOutputSizeVal, iouThresholdVal,
         scoreThresholdVal);
   }
