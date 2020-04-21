@@ -22,6 +22,7 @@ cc_binary(
         "-s EXPORT_NAME=WasmBackendModule",
         "-s MALLOC=emmalloc",
         "-s USE_PTHREADS=1",
+        "-s PTHREAD_POOL_SIZE=10",
         "-s MAXIMUM_MEMORY=1Gb",
         "-s ASSERTIONS=1",
     ],
