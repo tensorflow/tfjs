@@ -17,11 +17,16 @@
  */
 
 /**
- * This script creates pull requests to make releases for all the TensorFlow.js
- * packages. The release process is split up into multiple phases. Each
- * phase will update the version of a package and the dependency versions and
- * send a pull request. Once the pull request is merged, you must publish the
- * packages manually from the individual packages.
+ * This script should only be used for hot fix 1.7.x.
+ * Steps for hot fix 1.7.x.
+ * 1. Create a new release branch from the latest 1.7.x release branch. For
+ * example, if the latest release branch is tfjs_1.7.2, create a new release
+ * branch tfjs_1.7.3 from the latest commit in tfjs_1.7.2.
+ *
+ * 2. Fix the bug. Get PR approved and merged.
+ *
+ * 3. Use this script to prepare the release packages, starting from phase0.
+ * You should still follow all the steps for release and publish.
  *
  * This script requires hub to be installed: https://hub.github.com/
  */
@@ -108,9 +113,27 @@ async function main() {
         dir} --depth=1`);
     shell.cd(dir);
   } else {
-    // Phase0 needs user input of the release version to create release
-    // branch.
-    $(`git clone ${urlBase}tensorflow/tfjs ${dir} --depth=1`);
+    // Phase0 needs user input of the release branch.
+    // Get a list of branches sorted by timestamp in descending order.
+    const branchesStr = $(
+        `git branch -r --sort=-authordate --format='%(HEAD) %(refname:lstrip=-1)'`);
+    const branches =
+        Array.from(branchesStr.split(/\n/)).map(line => line.toString().trim());
+
+    // Find the latest matching branch, e.g. tfjs_1.7.1
+    // It will not match temprary generated branches such as tfjs_1.7.1_phase0.
+    const exp = '^' + name + '_([^_]+)$';
+    const regObj = new RegExp(exp);
+    const maybeBranch = branches.find(branch => branch.match(regObj));
+    releaseBranch = await question(`Which branch to publish from
+(leave empty for ${maybeBranch}): `);
+    if (releaseBranch === '') {
+      releaseBranch = maybeBranch;
+    }
+    console.log();
+
+    $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${
+        dir} --depth=1`);
     shell.cd(dir);
   }
 
@@ -137,6 +160,7 @@ async function main() {
       newVersion = patchUpdateVersion;
     }
 
+    // This condition should not happen.
     if (releaseBranch === '') {
       releaseBranch = `${name}_${newVersion}`;
       console.log(chalk.magenta.bold(
