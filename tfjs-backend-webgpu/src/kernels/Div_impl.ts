@@ -14,16 +14,15 @@
  * limitations under the License.
  * =============================================================================
  */
-import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
-import {divConfig} from './kernels/Div';
-import {squareConfig} from './kernels/Square';
-import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {TensorInfo, Tensor} from '@tensorflow/tfjs-core';
+import {WebGPUBackend} from '../backend_webgpu';
+import * as binary_op_webgpu from './binary_op_webgpu';
+import {BinaryOpProgram} from './binary_op_webgpu';
 
-// List all kernel configs here
-const kernelConfigs: KernelConfig[] =
-    [divConfig, squareConfig, squaredDifferenceConfig];
-
-for (const kernelConfig of kernelConfigs) {
-  registerKernel(kernelConfig);
+export function divImpl(
+    a: TensorInfo, b: TensorInfo, backend: WebGPUBackend): TensorInfo {
+  const program = new BinaryOpProgram(binary_op_webgpu.DIV, a.shape, b.shape);
+  const output = backend.compileAndRun(program, [a as Tensor, b as Tensor]);
+  return output;
 }
