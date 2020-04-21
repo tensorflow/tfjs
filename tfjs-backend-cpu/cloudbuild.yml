@@ -5,7 +5,7 @@ steps:
   entrypoint: 'yarn'
   args: ['install']
 
-# Install webgpu dependencies.
+# Install packages.
 - name: 'node:10'
   dir: 'tfjs-backend-cpu'
   id: 'yarn'
@@ -19,7 +19,23 @@ steps:
   id: 'build-deps'
   entrypoint: 'yarn'
   args: ['build-deps-ci']
-  waitFor: ['yarn']
+  waitFor: ['yarn-common']
+
+# Build.
+- name: 'node:10'
+  dir: 'tfjs-backend-cpu'
+  id: 'build'
+  entrypoint: 'yarn'
+  args: ['build-ci']
+  waitFor: ['yarn', 'build-deps']
+
+# Lint.
+- name: 'node:10'
+  dir: 'tfjs-backend-cpu'
+  id: 'lint'
+  entrypoint: 'yarn'
+  args: ['lint']
+  waitFor: ['yarn', 'build-deps']
 
 # Run tests.
 - name: 'node:10'
@@ -27,7 +43,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-backend-cpu'
   args: ['test-ci']
-  waitFor: ['build-deps']
+  waitFor: ['yarn', 'build-deps', 'lint']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 

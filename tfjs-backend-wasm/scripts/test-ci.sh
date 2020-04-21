@@ -10,9 +10,5 @@
 set -e
 
 # Regular testing.
-yarn
-yarn build-deps-ci
-yarn build-ci
-yarn lint
 yarn test-node
 yarn test-browser-ci
