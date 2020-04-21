@@ -21,6 +21,7 @@ yarn bazel build -c opt //src/cc:tfjs-backend-wasm.js --config=wasm --copt="-pth
 # wasm-out/ so we copy the bazel output there.
 cp -f bazel-bin/src/cc/tfjs-backend-wasm.js \
       bazel-bin/src/cc/tfjs-backend-wasm.wasm \
+      bazel-bin/src/cc/tfjs-backend-wasm.worker.js \
       wasm-out/
 
 mkdir -p dist
