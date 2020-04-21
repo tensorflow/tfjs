@@ -105,7 +105,8 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
         x4D.shape, $filter.shape, strides, dilations, pad, dimRoundingMode,
         false, $dataFormat);
     const res = backend.conv2D(x4D, $filter, convInfo);
-    save([$filter, x4D]);
+
+    save([x4D, $filter]);
 
     return res;
   };
