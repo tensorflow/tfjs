@@ -47,6 +47,7 @@ const devConfig = {
 };
 
 const browserstackConfig = {
+  ...devConfig,
   reporters: ['dots', 'karma-typescript'],
   singleRun: true
 };
@@ -56,8 +57,8 @@ const webworkerConfig = {
   files: [
     'setup_test.ts',
     'worker_test.ts',
-    // Serve dist/tf-core.min.js and tf-backend-cpu.min.js as a static resource,
-    // but do not include in the test runner
+    // Serve dist/tf-core.min.js and tf-backend-cpu.min.js as a static
+    // resource, but do not include in the test runner
     {pattern: 'dist/tf-core.min.js', included: false},
     {pattern: 'dist/tf-backend-cpu.min.js', included: false},
   ],
@@ -79,7 +80,6 @@ module.exports = function(config) {
   if (config.flags) {
     args.push('--flags', config.flags);
   }
-
 
   let extraConfig = null;
 
