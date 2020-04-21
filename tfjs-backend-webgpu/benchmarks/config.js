@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,15 +14,23 @@
  * limitations under the License.
  * =============================================================================
  */
-import './add';
-import './batchnorm';
-import './broadcast_to';
-import './div';
-import './div_no_nan';
-import './one_hot';
-import './not_equal';
-import './pad';
-import './squared_difference';
-import './sub';
-import './tile';
-import './transpose';
+
+const SWATCHES = {
+  'webgpu_min': '#F1523E',
+  'webgpu_mean': '#F1523E',
+  'webgl_min': '#3f51b5',
+  'webgl_mean': '#3f51b5'
+};
+
+const STROKES = {
+  'webgpu_min': '2',
+  'webgpu_mean': '0',
+  'webgl_min': '2',
+  'webgl_mean': '0'
+};
+
+const TARGETS = ['canary'];
+const MOMENT_DISPLAY_FORMAT = 'MM/DD/YYYY';
+const MAX_NUM_LOGS = 50;
+const START_LOGGING_DATE = '2019-08-16';
+const CHART_HEIGHT = 200;

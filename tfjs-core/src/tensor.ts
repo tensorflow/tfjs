@@ -230,7 +230,6 @@ export interface OpHandler {
   logicalXor<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   where<T extends Tensor>(condition: Tensor|TensorLike, a: T, b: T|TensorLike):
       T;
-  notEqual<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   notEqualStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   less<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   lessStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
@@ -941,11 +940,6 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   // Compare ops.
-
-  notEqual<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.notEqual(this, x);
-  }
   notEqualStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.notEqualStrict(this, x);
