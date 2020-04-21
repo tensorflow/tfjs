@@ -5,55 +5,47 @@ steps:
   entrypoint: 'yarn'
   args: ['install']
 
-# Install wasm dependencies.
+# Install packages.
 - name: 'node:10'
   dir: 'tfjs-backend-wasm'
-  id: 'yarn'
   entrypoint: 'yarn'
+  id: 'yarn'
   args: ['install']
   waitFor: ['yarn-common']
 
-# Build core from master.
+# Install build-deps.
 - name: 'node:10'
   dir: 'tfjs-backend-wasm'
-  id: 'build-core'
   entrypoint: 'yarn'
-  args: ['build-core']
+  id: 'build-deps'
+  args: ['build-deps-ci']
   waitFor: ['yarn-common']
 
-# Run lint.
-- name: 'node:10'
-  dir: 'tfjs-backend-wasm'
-  entrypoint: 'yarn'
-  id: 'lint'
-  args: ['lint']
-  waitFor: ['build-core']
-
-# Build the project.
+# Build.
 - name: 'node:10'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'build'
   args: ['build-ci']
-  waitFor: ['build-core']
+  waitFor: ['yarn', 'build-deps']
 
-# Run tests in browser.
+# Lint.
+- name: 'node:10'
+  dir: 'tfjs-backend-wasm'
+  entrypoint: 'yarn'
+  id: 'lint'
+  args: ['lint']
+  waitFor: ['yarn', 'build-deps']
+
+# Run JS tests.
 - name: 'node:10'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'test-wasm'
-  args: ['test-browser-ci']
-  waitFor: ['build']
+  args: ['test-ci']
+  waitFor: ['yarn', 'build-deps', 'build', 'lint']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
-
-# Run tests in node.
-- name: 'node:10'
-  dir: 'tfjs-backend-wasm'
-  entrypoint: 'yarn'
-  id: 'test-node'
-  args: ['test-node']
-  waitFor: ['build']
 
 # Run C++ tests.
 - name: 'node:10'

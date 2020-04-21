@@ -29,6 +29,8 @@ const fn2workerURL = (fn: Function): string => {
 const workerTest = () => {
   //@ts-ignore
   importScripts('http://bs-local.com:12345/base/dist/tf-core.min.js');
+  //@ts-ignore
+  importScripts('http://bs-local.com:12345/base/dist/tf-backend-cpu.min.js');
   let a = tf.tensor1d([1, 2, 3]);
   const b = tf.tensor1d([3, 2, 1]);
   a = a.add(b);
