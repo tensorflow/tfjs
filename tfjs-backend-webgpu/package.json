@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-backend-webgpu",
-  "version": "0.0.1-alpha.3",
+  "version": "0.0.1-alpha.4",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "jsnext:main": "dist/tf-webgpu.esm.js",
@@ -14,6 +14,7 @@
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-deps": "yarn build-core && yarn build-backend-webgl",
     "build": "yarn build-deps && rimraf dist/ && tsc",
+    "build-npm": "yarn build && rollup -c",
     "link-local": "yalc link",
     "unlink-local": "yalc remove",
     "lint": "tslint -p . -t verbose",
@@ -23,8 +24,8 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@tensorflow/tfjs-backend-webgl": "link:../tfjs-backend-webgl",
+    "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@types/jasmine": "~2.5.53",
     "clang-format": "~1.2.2",
     "http-server": "~0.10.0",

@@ -129,8 +129,8 @@ export class Conv2DMMProgram implements WebGPUProgram {
 
           ivec4 coord = ivec4(
               batch,
-              pad[0] + outRow * stride[0] + dilation[0] * WRow,
-              pad[1] + outCol * stride[1] + dilation[1] * WCol,
+              outRow * stride[0] + dilation[0] * WRow - pad[0],
+              outCol * stride[1] + dilation[1] * WCol - pad[1],
               c % xShape[3]);
           return ${sampleA};
         }
