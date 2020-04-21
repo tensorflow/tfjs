@@ -55,7 +55,7 @@
     "publish-npm": "npm publish",
     "lint": "tslint -p . -t verbose",
     "test": "yarn && yarn build-deps && ts-node run_tests.ts",
-    "test-ci": "yarn lint && yarn build-ci && ts-node run_tests.ts"
+    "test-ci": "ts-node run_tests.ts"
   },
   "dependencies": {
     "@types/seedrandom": "2.4.27",
