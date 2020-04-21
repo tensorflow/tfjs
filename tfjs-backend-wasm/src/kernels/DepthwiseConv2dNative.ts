@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, DepthwiseConv2dNativeAttrs, KernelFunc, NamedTensorInfoMap, registerKernel, Tensor4D, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -60,14 +60,18 @@ function setup(backend: BackendWasm) {
 function depthwiseConv2d(args: {
   inputs: DepthwiseConv2DInputs,
   backend: BackendWasm,
-  attrs: backend_util.Conv2DInfo
+  attrs: DepthwiseConv2dNativeAttrs
 }) {
   const {inputs, attrs, backend} = args;
-  const convInfo = attrs;
 
   const {x, filter} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
   const filterId = backend.dataIdMap.get(filter.dataId).id;
+
+  const {strides, dilations, pad, dimRoundingMode} = attrs;
+  const convInfo = backend_util.computeConv2DInfo(
+      (x as Tensor4D).shape, (filter as Tensor4D).shape, strides, dilations,
+      pad, dimRoundingMode, true /* depthwise */);
 
   const filterHeight = convInfo.filterHeight;
   const filterWidth = convInfo.filterWidth;
