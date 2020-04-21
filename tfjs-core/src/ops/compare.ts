@@ -26,33 +26,6 @@ import {op} from './operation';
 import {zerosLike} from './tensor_ops';
 
 /**
- * Returns the truth value of (a != b) element-wise. Supports broadcasting.
- *
- * We also expose `tf.notEqualStrict` which has the same signature as this op
- * and asserts that `a` and `b` are the same shape (does not broadcast).
- *
- * ```js
- * const a = tf.tensor1d([1, 2, 3]);
- * const b = tf.tensor1d([0, 2, 3]);
- *
- * a.notEqual(b).print();
- * ```
- * @param a The first input tensor.
- * @param b The second input tensor. Must have the same dtype as `a`.
- */
-/** @doc {heading: 'Operations', subheading: 'Logical'} */
-function notEqual_<T extends Tensor>(
-    a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'notEqual');
-  let $b = convertToTensor(b, 'b', 'notEqual');
-  [$a, $b] = makeTypesMatch($a, $b);
-  assertAndGetBroadcastShape($a.shape, $b.shape);
-  return ENGINE.runKernelFunc(
-             backend => backend.notEqual($a, $b), {a: $a, b: $b},
-             null /* grad */, 'NotEqual') as T;
-}
-
-/**
  * Strict version of `tf.notEqual` that forces `a` and `b` to be of the same
  * shape.
  *
@@ -273,5 +246,4 @@ export const less = op({less_});
 export const lessEqual = op({lessEqual_});
 export const lessEqualStrict = op({lessEqualStrict_});
 export const lessStrict = op({lessStrict_});
-export const notEqual = op({notEqual_});
 export const notEqualStrict = op({notEqualStrict_});

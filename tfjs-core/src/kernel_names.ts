@@ -39,6 +39,9 @@ export interface FusedBatchNormAttrs {
   varianceEpsilon: number;
 }
 
+export const NotEqual = 'NotEqual';
+export type NotEqualInputs = BinaryInputs;
+
 export const SquaredDifference = 'SquaredDifference';
 export type SquaredDifferenceInputs = BinaryInputs;
 
