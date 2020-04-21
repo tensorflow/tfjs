@@ -47,7 +47,7 @@ const devConfig = {
 };
 
 const browserstackConfig = {
-  reporters: ['dots'],
+  reporters: ['dots', 'karma-typescript'],
   singleRun: true
 };
 
