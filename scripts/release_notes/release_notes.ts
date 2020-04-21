@@ -65,8 +65,15 @@ const NODE_REPO: Repo = {
   identifier: 'tfjs-node'
 };
 
-async function askUserForVersions(validVersions: string[], packageName: string):
-    Promise<{startVersion: string, endVersion: string}> {
+const WASM_REPO: Repo = {
+  name: 'Wasm',
+  identifier: 'tfjs-backend-wasm'
+}
+
+async function
+askUserForVersions(validVersions: string[], packageName: string): Promise<{
+  startVersion: string, endVersion: string
+}> {
   const YELLOW_TERMINAL_COLOR = '\x1b[33m%s\x1b[0m';
   const RED_TERMINAL_COLOR = '\x1b[31m%s\x1b[0m';
 
@@ -118,14 +125,17 @@ async function main() {
   const versions = getTaggedVersions('tfjs');
   const {startVersion, endVersion} = await askUserForVersions(versions, 'tfjs');
 
-  // Clone the Node.js repo eagerly so we can query the tags.
-  const validNodeVersions = getTaggedVersions('tfjs-node');
-  const nodeVersions =
-      await askUserForVersions(validNodeVersions, NODE_REPO.identifier);
-  NODE_REPO.startVersion = nodeVersions.startVersion;
-  NODE_REPO.endVersion = nodeVersions.endVersion;
+  // Get Node start version and end version.
+  NODE_REPO.startVersion = startVersion;
+  NODE_REPO.endVersion = endVersion;
   NODE_REPO.startCommit = $(`git rev-list -n 1 ${
       getTagName(NODE_REPO.identifier, NODE_REPO.startVersion)}`);
+
+  // Get WASM start version and end version.
+  WASM_REPO.startVersion = startVersion;
+  WASM_REPO.endVersion = endVersion;
+  WASM_REPO.startCommit = $(`git rev-list -n 1 ${
+      getTagName(WASM_REPO.identifier, WASM_REPO.startVersion)}`);
 
   // Get all the commits of the union package between the versions.
   const unionCommits =
@@ -149,26 +159,21 @@ async function main() {
     // Find the version of the dependency from the package.json from the
     // earliest union tag.
     const npm = '@tensorflow/' + repo.identifier;
-    const repoStartVersion = earliestUnionPackageJson.dependencies[npm];
-    const repoEndVersion = latestUnionPackageJson.dependencies[npm];
-
-    const dir = `${repo.name}`;
 
     repo.startCommit =
-        $(repoStartVersion != null ?
-              `git rev-list -n 1 ` +
-                  getTagName(repo.identifier, repoStartVersion) :
+        $(startVersion != null ?
+              `git rev-list -n 1 ` + getTagName(repo.identifier, startVersion) :
               // Get the first commit if there are no tags yet.
               `git rev-list --max-parents=0 HEAD`);
 
-    repo.startVersion = repoStartVersion != null ? repoStartVersion : null;
-    repo.endVersion = repoEndVersion;
+    repo.startVersion = startVersion != null ? startVersion : null;
+    repo.endVersion = endVersion;
   });
 
   const repoCommits: RepoCommits[] = [];
 
   // Clone all of the dependencies into the tmp directory.
-  [...UNION_DEPENDENCIES, NODE_REPO].forEach(repo => {
+  [...UNION_DEPENDENCIES, NODE_REPO, WASM_REPO].forEach(repo => {
     console.log(
         `${repo.name}: ${repo.startVersion}` +
         ` =====> ${repo.endVersion}`);
