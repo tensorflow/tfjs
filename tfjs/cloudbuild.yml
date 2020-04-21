@@ -6,13 +6,21 @@ steps:
   entrypoint: 'yarn'
   args: ['install']
 
+# Install common dependencies.
+- name: 'node:10'
+  dir: 'tfjs'
+  id: 'yarn'
+  entrypoint: 'yarn'
+  args: ['install']
+  waitFor: ['yarn-common']
+
 # Run tfjs tests.
 - name: 'node:10'
   dir: 'tfjs'
   entrypoint: 'yarn'
   id: 'test'
   args: ['test-ci']
-  waitFor: ['yarn-common']
+  waitFor: ['yarn']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY', 'FIREBASE_KEY']
 
