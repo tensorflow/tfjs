@@ -362,7 +362,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   fusedConv2d(
       {input, filter, convInfo, bias, activation, preluActivationWeights}:
           FusedConv2DConfig): Tensor4D {
-    let result = this.conv2d(input, filter, convInfo);
+    let result = this.conv2D(input, filter, convInfo);
     if (bias != null) {
       result = this.add(result, bias) as Tensor4D;
     }
@@ -967,7 +967,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   fusedDepthwiseConv2D(
       {input, filter, convInfo, bias, activation, preluActivationWeights}:
           FusedConv2DConfig): Tensor4D {
-    let result = this.depthwiseConv2D(input, filter, convInfo);
+    let result = this.depthwiseConv2dNative(input, filter, convInfo);
     if (bias != null) {
       result = this.add(result, bias) as Tensor4D;
     }
