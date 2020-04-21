@@ -48,8 +48,7 @@ const devConfig = {
 
 const browserstackConfig = {
   reporters: ['dots'],
-  singleRun: true,
-  hostname: 'bs-local.com',
+  singleRun: true
 };
 
 const webworkerConfig = {
@@ -63,6 +62,7 @@ const webworkerConfig = {
     {pattern: 'dist/tf-backend-cpu.min.js', included: false},
   ],
   exclude: [],
+  hostname: 'bs-local.com',
   port: 12345
 };
 
