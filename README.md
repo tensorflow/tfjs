@@ -167,6 +167,6 @@ We support porting pre-trained models from:
 - [Tutorials](https://js.tensorflow.org/tutorials)
 - [API reference](https://js.tensorflow.org/api/latest/)
 - [Discussion mailing list](https://groups.google.com/a/tensorflow.org/forum/#!forum/tfjs)
-- [TensorFlow.js Blog](https://blog.tensorflow.org/search?label=TensorFlow.js&max-results=20)
+- [TensorFlow.js Blog](https://blog.tensorflow.org/search?label=TensorFlow.js)
 
 Thanks, <a href="https://www.browserstack.com/">BrowserStack</a>, for providing testing support.
