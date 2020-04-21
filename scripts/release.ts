@@ -187,7 +187,7 @@ async function main() {
 
   const packageNames = packages.join(', ');
   const versionNames = newVersions.join(', ');
-  const devBranchName = `${releaseBranch}_phase${phaseInt}`;
+  const devBranchName = `dev_${releaseBranch}_phase${phaseInt}`;
 
   const message = `Update ${packageNames} to ${versionNames}.`;
   createPR(devBranchName, releaseBranch, message);

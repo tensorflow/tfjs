@@ -43,7 +43,7 @@ async function main() {
   console.log();
 
   const releaseUnitStr =
-    await question('Which release unit (leave empty for 0): ');
+      await question('Which release unit (leave empty for 0): ');
   const releaseUnitInt = +releaseUnitStr;
   if (releaseUnitInt < 0 || releaseUnitInt >= RELEASE_UNITS.length) {
     console.log(chalk.red(`Invalid release unit: ${releaseUnitStr}`));
@@ -70,14 +70,14 @@ async function main() {
   let releaseBranch = '';
 
   // Get a list of branches sorted by timestamp in descending order.
-  const branchesStr =
-    $(`git branch -r --sort=-authordate --format='%(HEAD) %(refname:lstrip=-1)'`);
+  const branchesStr = $(
+      `git branch -r --sort=-authordate --format='%(HEAD) %(refname:lstrip=-1)'`);
   const branches =
-    Array.from(branchesStr.split(/\n/)).map(line => line.toString().trim());
+      Array.from(branchesStr.split(/\n/)).map(line => line.toString().trim());
 
   // Find the latest matching branch, e.g. tfjs_1.7.1
   // It will not match temprary generated branches such as tfjs_1.7.1_phase0.
-  const exp = "^" + name + "_([^_]+)$";
+  const exp = '^' + name + '_([^_]+)$';
   const regObj = new RegExp(exp);
   const maybeBranch = branches.find(branch => branch.match(regObj));
   releaseBranch = await question(`Which branch to publish from
@@ -87,8 +87,8 @@ async function main() {
   }
   console.log();
 
-  console.log(
-    chalk.magenta.bold(`~~~ Checking out release branch ${releaseBranch} ~~~`));
+  console.log(chalk.magenta.bold(
+      `~~~ Checking out release branch ${releaseBranch} ~~~`));
   $(`rm -f -r ${TMP_DIR}`);
   mkdirp(TMP_DIR, err => {
     if (err) {
@@ -98,7 +98,8 @@ async function main() {
   });
 
   const urlBase = args.git_protocol ? 'git@github.com:' : 'https://github.com/';
-  $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${TMP_DIR} --depth=1`);
+  $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${
+      TMP_DIR} --depth=1`);
   shell.cd(TMP_DIR);
   // Yarn in the top-level and in the directory.
   $('yarn');
@@ -113,15 +114,32 @@ async function main() {
     console.log(chalk.magenta.bold(`~~~ Preparing package ${pkg}~~~`));
     console.log(chalk.magenta('~~~ Installing packages ~~~'));
     // tfjs-node-gpu needs to get some files from tfjs-node.
-    if (pkg === "tfjs-node-gpu") {
+    if (pkg === 'tfjs-node-gpu') {
       $('yarn prep-gpu');
     }
 
-    // Yarn above the other checks to make sure yarn doesn't change the lock file.
+    // tfjs-backend-wasm needs emsdk to build.
+    if (pkg === 'tfjs-backend-wasm') {
+      shell.cd('..');
+      $('git clone https://github.com/emscripten-core/emsdk.git');
+      shell.cd('./emsdk');
+      $('./emsdk install 1.39.1');
+      $('./emsdk activate 1.39.1');
+      shell.cd('..');
+      shell.cd(pkg);
+    }
+
+    // Yarn above the other checks to make sure yarn doesn't change the lock
+    // file.
     $('yarn');
 
     console.log(chalk.magenta('~~~ Build npm ~~~'));
-    $('yarn build-npm for-publish');
+    if (pkg === 'tfjs-backend-wasm') {
+      // tfjs-backend-wasm needs emsdk env variables to build.
+      $('source ../emsdk/emsdk_env.sh && yarn build-npm for-publish');
+    } else {
+      $('yarn build-npm for-publish');
+    }
 
     console.log(chalk.magenta('~~~ Tag version ~~~'));
     shell.cd('..');
@@ -131,8 +149,8 @@ async function main() {
     console.log(chalk.magenta.bold(`~~~ Publishing ${pkg} to npm ~~~`));
     shell.cd(pkg);
     const otp =
-      await question(`Enter one-time password from your authenticator: `);
-    $(`NPM_CONFIG_REGISTRY="https://registry.npmjs.org/" npm publish --otp=${otp}`);
+        await question(`Enter one-time password from your authenticator: `);
+    $(`npm publish --otp=${otp}`);
     console.log(`Yay! Published ${pkg} to npm.`);
 
     shell.cd('..');
