@@ -43,8 +43,7 @@ describe('DEBUG', () => {
 });
 
 // TODO (yassogba) figure out why this spy is not working / fix this test.
-// tslint:disable-next-line: ban
-xdescribe('IS_BROWSER', () => {
+describe('IS_BROWSER', () => {
   let isBrowser: boolean;
   beforeEach(() => {
     tf.env().reset();
@@ -52,12 +51,14 @@ xdescribe('IS_BROWSER', () => {
   });
   afterAll(() => tf.env().reset());
 
-  it('isBrowser: true', () => {
+  // tslint:disable-next-line: ban
+  xit('isBrowser: true', () => {
     isBrowser = true;
     expect(tf.env().getBool('IS_BROWSER')).toBe(true);
   });
 
-  it('isBrowser: false', () => {
+  // tslint:disable-next-line: ban
+  xit('isBrowser: false', () => {
     isBrowser = false;
     expect(tf.env().getBool('IS_BROWSER')).toBe(false);
   });
