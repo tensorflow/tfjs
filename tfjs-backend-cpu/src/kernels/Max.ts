@@ -56,6 +56,8 @@ export const maxConfig: KernelConfig = {
     const reduceSize = util.sizeFromShape(reduceShape);
 
     const result = maxImpl(xVals, reduceSize, outShape, x.dtype);
+    console.log('RESULT');
+    console.log(reduceSize, outShape);
     console.log(result);
 
     const dataId = cpuBackend.write(result, outShape, x.dtype);
