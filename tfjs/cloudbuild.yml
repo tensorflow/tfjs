@@ -6,7 +6,7 @@ steps:
   entrypoint: 'yarn'
   args: ['install']
 
-# Install common dependencies.
+# Install dependencies.
 - name: 'node:10'
   dir: 'tfjs'
   id: 'yarn'

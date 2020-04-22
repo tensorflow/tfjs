@@ -55,8 +55,10 @@
     "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
-    "build": "yarn gen-json --test && tsc",
-    "build-ci": "yarn gen-json --test && tsc",
+    "build": "yarn gen-json --test && tsc && yarn bundle",
+    "build-ci": "yarn gen-json --test && tsc && yarn bundle-ci",
+    "bundle": "rollup -c",
+    "bundle-ci": "rollup -c --ci",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-backend-cpu": "cd ../tfjs-backend-cpu && yarn && yarn build",
     "build-backend-cpu-ci": "cd ../tfjs-backend-cpu && yarn && yarn build-ci",
