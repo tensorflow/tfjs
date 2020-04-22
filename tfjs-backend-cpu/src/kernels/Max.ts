@@ -56,6 +56,7 @@ export const maxConfig: KernelConfig = {
 
     const result = maxImpl(xVals, reduceSize, outShape, x.dtype);
     console.log('RESULT');
+    console.log('x shape', x.shape, axes);
     console.log(reduceShape);
     console.log(reduceSize, outShape);
     console.log(result);
