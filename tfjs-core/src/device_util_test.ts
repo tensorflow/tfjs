@@ -20,12 +20,12 @@ import {ALL_ENVS, describeWithFlags} from './jasmine_util';
 
 describeWithFlags('isMobile', ALL_ENVS, () => {
   it('should not fail when navigator is not set', () => {
-    spyOn(device_util, 'isNavigatorDefined').and.returnValue(false);
+    device_util.setIsNavigatorDefined(false);
     expect(device_util.isMobile()).toBeFalsy();
   });
 
   it('should not fail when navigator is set', () => {
-    spyOn(device_util, 'isNavigatorDefined').and.returnValue(true);
+    device_util.setIsNavigatorDefined(true);
     expect(() => device_util.isMobile()).not.toThrow();
   });
 });

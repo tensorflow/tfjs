@@ -1,4 +1,5 @@
 /**
+import { isNavigatorDefined } from './device_util';
  * @license
  * Copyright 2017 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,12 +17,18 @@
  */
 
 // tslint:disable-next-line:no-any
-export function isNavigatorDefined(): boolean {
+export function _isNavigatorDefined(): boolean {
   return typeof navigator !== 'undefined' && navigator != null;
 }
 
+let isNavigatorDefined = _isNavigatorDefined();
+
+export function setIsNavigatorDefined(flag: boolean) {
+  isNavigatorDefined = flag;
+}
+
 export function isMobile(): boolean {
-  if (isNavigatorDefined()) {
+  if (isNavigatorDefined) {
     // tslint:disable-next-line:no-any
     const a = navigator.userAgent || navigator.vendor || (window as any).opera;
     // tslint:disable-next-line:max-line-length
