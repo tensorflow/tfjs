@@ -42,8 +42,10 @@
     "yalc": "^1.0.0-pre.23"
   },
   "scripts": {
-    "build": "tsc",
-    "build-ci": "tsc",
+    "build": "tsc && yarn bundle",
+    "build-ci": "tsc && yarn bundle-ci",
+    "bundle": "rollup -c",
+    "bundle-ci": "rollup -c --ci",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
     "build-layers": "cd ../tfjs-layers && yarn && yarn build",
