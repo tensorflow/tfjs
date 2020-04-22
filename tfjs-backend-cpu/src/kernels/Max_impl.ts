@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, NumericDataType, TypedArray} from '../../../types';
-import * as util from '../../../util';
+import {DataType, NumericDataType, TypedArray, util} from '@tensorflow/tfjs-core';
 
 export function maxImpl(
     aVals: TypedArray, reduceSize: number, outShape: number[],

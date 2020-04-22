@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
-import {Max, MaxAttrs, MaxInputs} from '../../../kernel_names';
-import {KernelConfig} from '../../../kernel_registry';
-import * as axis_util from '../../../ops/axis_util';
-import {TypedArray} from '../../../types';
-import * as util from '../../../util';
+import {Max, MaxAttrs, MaxInputs} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig} from '@tensorflow/tfjs-core';
+import {TypedArray, util} from '@tensorflow/tfjs-core';
+
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
+
 import {maxImpl} from './Max_impl';
 import {transposeImpl} from './Transpose_impl';
 
@@ -37,22 +37,21 @@ export const maxConfig: KernelConfig = {
 
     const origAxes = util.parseAxisParam(reductionIndices, x.shape);
     let axes = origAxes;
-    const permutedAxes = axis_util.getAxesPermutation(axes, xRank);
+    const permutedAxes = backend_util.getAxesPermutation(axes, xRank);
+    let xVals = cpuBackend.data.get(x.dataId).values as TypedArray;
     if (permutedAxes != null) {
       console.log('TRANSPOSE');
-      const vals = cpuBackend.data.get(x.dataId).values as TypedArray;
-      const xTVals = transposeImpl(vals, x.shape, x.dtype, permutedAxes);
-      axes = axis_util.getInnerMostAxes(axes.length, xRank);
+      xVals = transposeImpl(xVals, x.shape, x.dtype, permutedAxes);
+      axes = backend_util.getInnerMostAxes(axes.length, xRank);
     }
 
     assertNotComplex(x, 'max');
-    axis_util.assertAxesAreInnerMostDims('max', axes, xRank);
+    backend_util.assertAxesAreInnerMostDims('max', axes, xRank);
     const [outShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(x.shape, axes);
+        backend_util.computeOutAndReduceShapes(x.shape, axes);
 
     const reduceSize = util.sizeFromShape(reduceShape);
 
-    const xVals = cpuBackend.data.get(x.dataId).values as TypedArray;
     const result = maxImpl(xVals, reduceSize, outShape, x.dtype);
 
     const dataId = cpuBackend.write(result, outShape, x.dtype);

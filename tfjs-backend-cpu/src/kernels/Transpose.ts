@@ -41,7 +41,7 @@ export const transposeConfig: KernelConfig = {
     }
 
     const values = cpuBackend.data.get(x.dataId).values as TypedArray;
-    const result = transposeImpl(values, x.shape, x.dtype, perm, newShape);
+    const result = transposeImpl(values, x.shape, x.dtype, perm);
 
     const dataId = cpuBackend.write(result, newShape, x.dtype);
     return {dataId, shape: newShape, dtype: x.dtype};
