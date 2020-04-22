@@ -272,6 +272,8 @@ function mean_<T extends Tensor>(
  */
 export function gradForMinAndMax<T extends Tensor>(
     dy: T, y: T, xOrig: Tensor, origAxes: number[], permutedAxes: number[]) {
+  console.log('orig axes', origAxes);
+  console.log(permutedAxes);
   if (y.rank < xOrig.rank) {
     y = y.reshape(axis_util.expandShapeToKeepDim(y.shape, origAxes)) as T;
   }

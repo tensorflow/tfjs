@@ -27,11 +27,19 @@ export const maxGradConfig: GradConfig = {
   inputsToSave: ['x'],
   outputsToSave: [true],
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
+    console.log('GRAD FUNC');
     const maxAttrs: MaxAttrs = attrs as {} as MaxAttrs;
     const {reductionIndices} = maxAttrs;
     const [x, y] = saved;
+    console.log('max attrs');
+    console.log(maxAttrs);
+    console.log('reduction indices');
+    console.log(reductionIndices);
+    console.log('x shape', x.shape);
     const origAxes = util.parseAxisParam(reductionIndices, x.shape);
+    console.log('orig axes', origAxes);
     const permutedAxes = axis_util.getAxesPermutation(reductionIndices, x.rank);
+    console.log('permuted axes', permutedAxes);
     return gradForMinAndMax(dy, y, x, origAxes, permutedAxes);
   }
 };

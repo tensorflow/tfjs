@@ -320,7 +320,7 @@ describeWithFlags('max', ALL_ENVS, () => {
     expectArraysClose(await gradients.data(), [-1]);
   });
 
-  it('max gradient: 1D, ties', async () => {
+  fit('max gradient: 1D, ties', async () => {
     const x = tf.tensor1d([1, 3, 7, 7]);
     const dy = tf.scalar(-1);
     const gradients = tf.grad(v => tf.max(v))(x, dy);
