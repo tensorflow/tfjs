@@ -19,13 +19,7 @@ import * as device_util from './device_util';
 import {ALL_ENVS, describeWithFlags} from './jasmine_util';
 
 describeWithFlags('isMobile', ALL_ENVS, () => {
-  it('should not fail when navigator is not set', () => {
-    spyOn(device_util, 'isNavigatorDefined').and.returnValue(false);
-    expect(device_util.isMobile()).toBeFalsy();
-  });
-
   it('should not fail when navigator is set', () => {
-    spyOn(device_util, 'isNavigatorDefined').and.returnValue(true);
     expect(() => device_util.isMobile()).not.toThrow();
   });
 });
