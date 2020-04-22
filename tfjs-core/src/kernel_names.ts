@@ -78,7 +78,7 @@ export interface Conv2dDerAttrs {
   padInfo: PadInfo;
   inShape: [number, number, number, number];
   outShape: [number, number, number, number];
-  filterShape: [number, number, number, number]
+  filterShape: [number, number, number, number];
 }
 
 export const Conv2dDerFilter = 'conv2dDerFilter';

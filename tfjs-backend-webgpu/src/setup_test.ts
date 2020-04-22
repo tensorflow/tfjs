@@ -134,12 +134,9 @@ const TEST_FILTERS: TestFilter[] = [
       'im2row with prelu',        // Actual != expected.
       'pointwise with prelu',     // Actual != expected.
       'fused matmul with relu6',  // step not yet implemented.
-      'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0 with bias and relu',  // step
-                                                                      // not yet
-                                                                      // implemented.
-      'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0 with bias and elu',  // elu not
-                                                                     // yet
-                                                                     // implemented
+      // elu not implemented.
+      'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0 with bias and relu',
+      'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0 with bias and elu',
     ]
   },
   {
