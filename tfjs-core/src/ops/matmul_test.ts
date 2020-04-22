@@ -15,7 +15,14 @@
  * =============================================================================
  */
 
-import {MATMUL_SHARED_DIM_THRESHOLD} from '../backends/webgl/backend_webgl';
+// Empirically determined minimal shared dimension in matmul before we forward
+// to a.mul(b).sum() in order to take advantage of GPU parallelism. See
+// https://github.com/tensorflow/tfjs-core/pull/1379 for benchmarks.
+// Copied from webgl backend.
+// TODO(yassogba, annyuan) copy tests over to webgl backend that want to
+// explicitly test this threshold.
+export const MATMUL_SHARED_DIM_THRESHOLD = 1000;
+
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose, expectArraysEqual} from '../test_util';

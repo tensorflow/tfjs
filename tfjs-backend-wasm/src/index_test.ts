@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {registerBackend, removeBackend, test_util} from '@tensorflow/tfjs-core';
+import {registerBackend, removeBackend, test_util, util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line:no-imports-from-dist
 import {ALL_ENVS, BROWSER_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
@@ -78,6 +78,35 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     expect(await tf.setBackend('wasm-test')).toBe(false);
     expect(wasmPath).toBe('invalid/path');
   });
+
+  it('backend init works when the path is valid and use platform fetch',
+     async () => {
+       const usePlatformFetch = true;
+       const validPath = '/base/wasm-out/tfjs-backend-wasm.wasm';
+       setWasmPath(validPath, usePlatformFetch);
+       let wasmPath: string;
+       const realFetch = util.fetch;
+       spyOn(util, 'fetch').and.callFake((path: string) => {
+         wasmPath = path;
+         return realFetch(path);
+       });
+       expect(await tf.setBackend('wasm-test')).toBe(true);
+       expect(wasmPath).toBe(validPath);
+     });
+
+  it('backend init fails when the path is invalid and use platform fetch',
+     async () => {
+       const usePlatformFetch = true;
+       setWasmPath('invalid/path', usePlatformFetch);
+       let wasmPath: string;
+       const realFetch = util.fetch;
+       spyOn(util, 'fetch').and.callFake((path: string) => {
+         wasmPath = path;
+         return realFetch(path);
+       });
+       expect(await tf.setBackend('wasm-test')).toBe(false);
+       expect(wasmPath).toBe('invalid/path');
+     });
 
   it('backend init succeeds with default path', async () => {
     expect(await tf.setBackend('wasm-test')).toBe(true);

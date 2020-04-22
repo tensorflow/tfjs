@@ -24,6 +24,22 @@ steps:
   waitFor: ['find-affected-packages']
   env: ['NIGHTLY=$_NIGHTLY']
 
+# CPU backend.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'tfjs-backend-cpu'
+  args: ['./scripts/run-build.sh', 'tfjs-backend-cpu']
+  waitFor: ['find-affected-packages']
+  env: ['NIGHTLY=$_NIGHTLY']
+
+# Webgl backend.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'tfjs-backend-webgl'
+  args: ['./scripts/run-build.sh', 'tfjs-backend-webgl']
+  waitFor: ['find-affected-packages']
+  env: ['NIGHTLY=$_NIGHTLY']
+
 # Converter.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
@@ -54,7 +70,6 @@ steps:
   id: 'tfjs'
   args: ['./scripts/run-build.sh', 'tfjs']
   waitFor: ['find-affected-packages']
-  env: ['NIGHTLY=$_NIGHTLY']
 
 # Vis.
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -101,16 +116,6 @@ steps:
   waitFor: ['find-affected-packages']
   env: ['NIGHTLY=$_NIGHTLY']
 
-# Integration tests
-- name: 'node:10'
-  dir: 'tfjs-core'
-  id: 'test-integration'
-  entrypoint: 'yarn'
-  args: ['test-integration']
-  waitFor: ['find-affected-packages']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
-  secretEnv: ['BROWSERSTACK_KEY']
-
 # Release notes test
 - name: 'node:10'
   id: 'test-monorepo'
@@ -119,10 +124,6 @@ steps:
   waitFor: ['yarn']
 
 # General settings.
-secrets:
-- kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
-  secretEnv:
-    BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
 timeout: 3600s
 logsBucket: 'gs://tfjs-build-logs'
 options:

@@ -17,6 +17,7 @@
 
 import {BroadcastTo, BroadCastToAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
+import {sum} from '../ops/reduction_ops';
 import {Tensor} from '../tensor';
 
 export const broadcastToGradConfig: GradConfig = {
@@ -43,7 +44,7 @@ export const broadcastToGradConfig: GradConfig = {
         axes.push(i);
       }
     }
-    const keepDims = true;
-    return {x: () => dy.sum(axes, keepDims)};
+
+    return {x: () => sum(dy, axes, true /* keepDims */)};
   }
 };

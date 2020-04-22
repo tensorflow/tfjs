@@ -82,6 +82,15 @@ setWasmPath(yourCustomPath); // or tf.wasm.setWasmPath when using <script> tags.
 tf.setBackend('wasm').then(() => {...});
 ```
 
+If you are using platform that does not support fetch directly, please set the
+optional `usePlatformFetch` to true:
+
+```ts
+import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
+const usePlatformFetch = true;
+setWasmPath(yourCustomPath, usePlatformFetch); // or tf.wasm.setWasmPath when using <script> tags.
+tf.setBackend('wasm').then(() => {...});
+```
 ## Benchmarks
 
 The benchmarks below show inference times (ms) for two different edge-friendly

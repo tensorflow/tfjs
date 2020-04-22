@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,12 @@
  */
 
 // Modularized ops.
+export {add} from './add';
+export {addN} from './add_n';
+export {batchNorm, batchNormalization} from './batchnorm';
+export {batchNorm2d, batchNormalization2d} from './batchnorm2d';
+export {batchNorm3d, batchNormalization3d} from './batchnorm3d';
+export {batchNorm4d, batchNormalization4d} from './batchnorm4d';
 export {broadcastTo} from './broadcast_to';
 export {clone} from './clone';
 export {div} from './div';
@@ -23,6 +29,7 @@ export {divNoNan} from './div_no_nan';
 export {eye} from './eye';
 export {max} from './max';
 export {multinomial} from './multinomial';
+export {notEqual} from './not_equal';
 export {oneHot} from './one_hot';
 export {pad} from './pad';
 export {pad1d} from './pad1d';
@@ -35,10 +42,10 @@ export {randomNormal} from './random_normal';
 export {randomUniform} from './random_uniform';
 export {square} from './square';
 export {squaredDifference} from './squared_difference';
+export {sub} from './sub';
 export {tile} from './tile';
 export {truncatedNormal} from './truncated_normal';
 
-export * from './batchnorm';
 export * from './boolean_mask';
 export * from './complex_ops';
 export * from './concat_split';

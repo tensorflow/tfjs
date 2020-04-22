@@ -286,21 +286,3 @@ function skewness(values: TypedArray|number[]) {
   }
   return (1 / n) * sum3 / Math.pow((1 / (n - 1)) * sum2, 3 / 2);
 }
-
-export interface RandomBase {
-  nextValue(): number;
-}
-
-export interface RandomGamma {
-  nextValue(): number;
-}
-
-export interface RandNormalDataTypes {
-  float32: Float32Array;
-  int32: Int32Array;
-}
-
-export interface RandGammaDataTypes {
-  float32: Float32Array;
-  int32: Int32Array;
-}

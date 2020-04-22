@@ -12,12 +12,12 @@ py_library(
     name = "tensorflowjs",
     srcs = ["__init__.py"],
     srcs_version = "PY2AND3",
+    visibility = ["//visibility:public"],
     deps = [
         ":quantization",
         ":version",
-        "//tensorflowjs/converters:converter"
+        "//tensorflowjs/converters:converter",
     ],
-    visibility = ["//visibility:public"],
 )
 
 py_library(
@@ -72,6 +72,7 @@ py_library(
         ":quantization",
         ":read_weights",
         "//tensorflowjs:expect_numpy_installed",
+        "//tensorflowjs:expect_tensorflow_installed",
     ],
 )
 
@@ -115,6 +116,7 @@ py_test(
     deps = [
         ":write_weights",
         "//tensorflowjs:expect_numpy_installed",
+        "//tensorflowjs:expect_tensorflow_installed",
     ],
 )
 
@@ -126,14 +128,15 @@ py_test(
         ":read_weights",
         ":write_weights",
         "//tensorflowjs:expect_numpy_installed",
+        "//tensorflowjs:expect_tensorflow_installed",
     ],
 )
 
 py_test(
     name = "resource_loader_test",
     srcs = ["resource_loader_test.py"],
-    srcs_version = "PY2AND3",
     data = [":op_list_jsons"],
+    srcs_version = "PY2AND3",
     deps = [
         ":resource_loader",
     ],

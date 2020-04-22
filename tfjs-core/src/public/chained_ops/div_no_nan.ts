@@ -27,5 +27,6 @@ declare module '../../tensor' {
 
 Tensor.prototype.divNoNan = function<T extends Tensor>(b: Tensor|
                                                        TensorLike): T {
+  this.throwIfDisposed();
   return divNoNan(this, b);
 };

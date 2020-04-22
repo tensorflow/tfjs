@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
-import {backend_util, BackendTimingInfo, DataId, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, Tensor5D, TensorInfo, tidy, util} from '@tensorflow/tfjs-core';
+import * as tf from '@tensorflow/tfjs';
+import {backend_util, BackendTimingInfo, DataId, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, Tensor5D, TensorInfo, tidy, util} from '@tensorflow/tfjs';
 // tslint:disable-next-line: no-imports-from-dist
 import {EPSILON_FLOAT32} from '@tensorflow/tfjs-core/dist/backends/backend';
 // tslint:disable-next-line: no-imports-from-dist
@@ -37,14 +37,14 @@ export class NodeJSKernelBackend extends KernelBackend {
   binding: TFJSBinding;
   isGPUPackage: boolean;
   isUsingGpuDevice: boolean;
-  private tensorMap: tfc.DataStorage<TensorData>;
+  private tensorMap: tf.DataStorage<TensorData>;
 
   constructor(binding: TFJSBinding, packageName: string) {
     super();
     this.binding = binding;
     this.isGPUPackage = packageName === '@tensorflow/tfjs-node-gpu';
     this.isUsingGpuDevice = this.binding.isUsingGpuDevice();
-    this.tensorMap = new tfc.DataStorage<TensorData>(this, tfc.engine());
+    this.tensorMap = new tf.DataStorage<TensorData>(this, tf.engine());
   }
 
   private getDTypeInteger(dtype: DataType): number {
@@ -109,7 +109,7 @@ export class NodeJSKernelBackend extends KernelBackend {
       default:
         throw new Error(`Unknown dtype enum ${metadata.dtype}`);
     }
-    return tfc.engine().makeTensorFromDataId(newId, metadata.shape, dtype);
+    return tf.engine().makeTensorFromDataId(newId, metadata.shape, dtype);
   }
 
   // Prepares Tensor instances for Op execution.
@@ -1971,11 +1971,11 @@ export class NodeJSKernelBackend extends KernelBackend {
 
 /** Returns an instance of the Node.js backend. */
 export function nodeBackend(): NodeJSKernelBackend {
-  return tfc.findBackend('tensorflow') as NodeJSKernelBackend;
+  return tf.findBackend('tensorflow') as NodeJSKernelBackend;
 }
 
 /** Returns the TF dtype for a given DataType. */
-export function getTFDType(dataType: tfc.DataType): number {
+export function getTFDType(dataType: tf.DataType): number {
   const binding = nodeBackend().binding;
   switch (dataType) {
     case 'float32':
@@ -2006,7 +2006,7 @@ export function getTFDType(dataType: tfc.DataType): number {
  * @deprecated Please use createTensorsTypeOpAttr() going forward.
  */
 export function createTypeOpAttr(
-    attrName: string, dtype: tfc.DataType): TFEOpAttr {
+    attrName: string, dtype: tf.DataType): TFEOpAttr {
   return {
     name: attrName,
     type: nodeBackend().binding.TF_ATTR_TYPE,
@@ -2019,7 +2019,7 @@ export function createTypeOpAttr(
  * Tensors.
  */
 export function createTensorsTypeOpAttr(
-    attrName: string, tensors: tfc.Tensor|tfc.Tensor[]) {
+    attrName: string, tensors: tf.Tensor|tf.Tensor[]) {
   if (isNullOrUndefined(tensors)) {
     throw new Error('Invalid input tensors value.');
   }
@@ -2031,7 +2031,7 @@ export function createTensorsTypeOpAttr(
 }
 
 /** Returns the dtype number for a single or list of input Tensors. */
-function getTFDTypeForInputs(tensors: tfc.Tensor|tfc.Tensor[]): number {
+function getTFDTypeForInputs(tensors: tf.Tensor|tf.Tensor[]): number {
   if (isNullOrUndefined(tensors)) {
     throw new Error('Invalid input tensors value.');
   }
@@ -2046,8 +2046,8 @@ function getTFDTypeForInputs(tensors: tfc.Tensor|tfc.Tensor[]): number {
 }
 
 export function ensureTensorflowBackend() {
-  tfc.util.assert(
-      tfc.getBackend() === 'tensorflow',
+  tf.util.assert(
+      tf.getBackend() === 'tensorflow',
       () => `Expect the current backend to be "tensorflow", but got "${
-          tfc.getBackend()}"`);
+          tf.getBackend()}"`);
 }

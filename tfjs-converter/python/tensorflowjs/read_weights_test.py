@@ -20,17 +20,17 @@ from __future__ import print_function
 
 import os
 import shutil
-import unittest
 
 import tempfile
 
 import numpy as np
+import tensorflow as tf
 
 from tensorflowjs import read_weights
 from tensorflowjs import write_weights
 
 
-class ReadWeightsTest(unittest.TestCase):
+class ReadWeightsTest(tf.test.TestCase):
   def setUp(self):
     self._tmp_dir = tempfile.mkdtemp()
     super(ReadWeightsTest, self).setUp()
@@ -342,4 +342,4 @@ class ReadWeightsTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-  unittest.main()
+  tf.test.main()
