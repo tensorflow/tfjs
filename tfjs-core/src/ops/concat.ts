@@ -68,6 +68,7 @@ import {tensor} from './tensor_ops';
 /** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
 function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
   assert(tensors.length >= 1, () => 'Pass at least one tensor to concat');
+
   let $tensors = convertToTensorArray(tensors, 'tensors', 'concat');
   if ($tensors[0].dtype === 'complex64') {
     $tensors.forEach(tensor => {

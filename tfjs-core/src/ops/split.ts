@@ -83,7 +83,7 @@ function split_<T extends Tensor>(
       backend.split($x, splitSizes, axis) as {} as T;
 
   const inputs: SplitVInputs = {x: $x};
-  const attr: SplitVAttrs = {axis};
+  const attr: SplitVAttrs = {numOrSizeSplits, axis};
 
   return ENGINE.runKernelFunc(
              forward, inputs as {} as NamedTensorMap, null /* grad */, SplitV,

@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {SplitV} from '../kernel_names';
+import {SplitV, SplitVAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
 import {concat} from '../ops/concat';
 import {Tensor} from '../tensor';
@@ -22,7 +22,7 @@ import {Tensor} from '../tensor';
 export const splitVGradConfig: GradConfig = {
   kernelName: SplitV,
   gradFunc: (dy: Tensor[], saved: Tensor[], attrs: NamedAttrMap) => {
-    const axis = attrs['axis'] as number;
+    const {axis} = attrs as {} as SplitVAttrs;
 
     return {x: () => concat(dy, axis)};
   }
