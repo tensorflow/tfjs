@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,15 +14,18 @@
  * limitations under the License.
  * =============================================================================
  */
-import './add';
-import './batchnorm';
-import './broadcast_to';
-import './div';
-import './div_no_nan';
-import './one_hot';
-import './not_equal';
-import './pad';
-import './squared_difference';
-import './sub';
-import './tile';
-import './transpose';
+import {notEqual} from '../../ops/not_equal';
+import {Tensor} from '../../tensor';
+import {Rank, TensorLike} from '../../types';
+
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    notEqual<T extends Tensor>(b: Tensor|TensorLike): T;
+  }
+}
+
+Tensor.prototype.notEqual = function<T extends Tensor>(b: Tensor|
+                                                       TensorLike): T {
+  this.throwIfDisposed();
+  return notEqual(this, b);
+};
