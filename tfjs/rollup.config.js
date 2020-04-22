@@ -122,12 +122,21 @@ module.exports = cmdOptions => {
       file: `dist/${fileName}.node.js`,
       freeze: false
     },
-    tsCompilerOptions: {target: 'es5', module: 'commonjs'}
+    tsCompilerOptions: {target: 'es5'},
+    external: [
+      '@tensorflow/tfjs-core',
+      '@tensorflow/tfjs-layers',
+      '@tensorflow/tfjs-converter',
+      '@tensorflow/tfjs-data',
+      '@tensorflow/tfjs-backend-cpu',
+      '@tensorflow/tfjs-backend-webgl',
+    ]
   }));
 
   if (cmdOptions.ci || cmdOptions.npm) {
     // Browser default minified (ES5)
     bundles.push(config({
+      entry: 'src/index_with_polyfills.ts',
       plugins: [babelPlugin, terserPlugin],
       output: {
         format: browserFormat,
@@ -144,6 +153,7 @@ module.exports = cmdOptions => {
   if (cmdOptions.npm) {
     // Browser default unminified (ES5)
     bundles.push(config({
+      entry: 'src/index_with_polyfills.ts',
       plugins: [babelPlugin],
       output: {
         format: browserFormat,

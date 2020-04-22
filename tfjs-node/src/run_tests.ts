@@ -90,7 +90,7 @@ if (process.platform === 'win32') {
       'maxPool test-tensorflow {} [x=[3,3,1] f=[2,2] s=1 ignores NaNs');
 }
 
-const coreTests = 'node_modules/@tensorflow/tfjs-core/dist/**/*_test.js';
+const coreTests = 'node_modules/@tensorflow/tfjs-core/dist/**/tests.js';
 const nodeTests = 'src/**/*_test.ts';
 
 const runner = new jasmineCtor();
