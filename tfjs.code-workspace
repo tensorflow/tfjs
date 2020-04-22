@@ -9,6 +9,42 @@
       "path": "tfjs-core"
     },
     {
+      "name": "Converter",
+      "path": "tfjs-converter"
+    },
+    {
+      "name": "Layers",
+      "path": "tfjs-layers"
+    },
+    {
+      "name": "Data",
+      "path": "tfjs-data"
+    },
+    {
+      "name": "Union",
+      "path": "tfjs"
+    },
+    {
+      "name": "AutoML",
+      "path": "tfjs-automl"
+    },
+    {
+      "name": "Cpu",
+      "path": "tfjs-backend-cpu"
+    },
+    {
+      "name": "Webgl",
+      "path": "tfjs-backend-webgl"
+    },
+    {
+      "name": "Node",
+      "path": "tfjs-node"
+    },
+    {
+      "name": "NodeGpu",
+      "path": "tfjs-node-gpu"
+    },
+    {
       "name": "Wasm",
       "path": "tfjs-backend-wasm"
     },
@@ -23,6 +59,10 @@
     {
       "name": "WebGPU",
       "path": "tfjs-backend-webgpu"
+    },
+    {
+      "name": "Vis",
+      "path": "tfjs-vis"
     }
   ],
   "settings": {
