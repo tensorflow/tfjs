@@ -90,6 +90,14 @@
     lodash "^4.17.13"
     to-fast-properties "^2.0.0"
 
+"@tensorflow/tfjs-backend-cpu@link:../tfjs-backend-cpu":
+  version "0.0.0"
+  uid ""
+
+"@tensorflow/tfjs-backend-webgl@link:../tfjs-backend-webgl":
+  version "0.0.0"
+  uid ""
+
 "@tensorflow/tfjs-converter@link:../tfjs-converter":
   version "0.0.0"
   uid ""
@@ -496,6 +504,11 @@ convert-source-map@^1.6.0:
   integrity sha512-eFu7XigvxdZ1ETfbgPBohgyQ/Z++C0eEhTor0qRwBw9unw+L0/6V8wkSuGgzdThkiS5lSpdptOQPD8Ak40a+7A==
   dependencies:
     safe-buffer "~5.1.1"
+
+core-js@3:
+  version "3.6.5"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.6.5.tgz#7395dc273af37fb2e50e9bd3d9fe841285231d1a"
+  integrity sha512-vZVEEwZoIsI+vPEuoF9Iqf5H7/M3eeQqWlQnYa8FSKKePuYTf5MWnxb5SDAzCa60b3JBRS5g9b+Dq7b1y/RCrA==
 
 core-util-is@1.0.2, core-util-is@~1.0.0:
   version "1.0.2"
@@ -1741,6 +1754,11 @@ readable-stream@^2.0.6:
     safe-buffer "~5.1.1"
     string_decoder "~1.1.1"
     util-deprecate "~1.0.1"
+
+regenerator-runtime@^0.13.5:
+  version "0.13.5"
+  resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.13.5.tgz#d878a1d094b4306d10b9096484b33ebd55e26697"
+  integrity sha512-ZS5w8CpKFinUzOwW3c83oPeVXoNsrLsaCoLtJvAClH135j/R77RuymhiSErhm2lKcwSCIpmvIWSbDkIfAqKQlA==
 
 release-zalgo@^1.0.0:
   version "1.0.0"

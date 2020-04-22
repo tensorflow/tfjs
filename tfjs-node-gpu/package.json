@@ -43,7 +43,7 @@
     "prep-gpu-windows": "./prep-gpu-windows.bat",
     "publish-local": "yarn prep && yalc push",
     "publish-npm": "npm publish",
-    "test": "yarn && yarn build-deps && yarn build && ts-node src/run_tests.ts",
+    "test": "yarn && yarn build-deps && yarn build && ts-node -P tsconfig.test.json src/run_tests.ts",
     "test-ci": "./scripts/test-ci.sh",
     "test-ts-integration": "./scripts/test-ts-integration.sh",
     "upload-windows-addon": "prep-gpu-windows.bat && ./scripts/build-and-upload-windows-addon-gpu.bat"
