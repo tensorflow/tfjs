@@ -29,6 +29,13 @@ export type AddNInputs = TensorInfo[];
 
 export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 
+export const BroadcastTo = 'BroadcastTo';
+export type BroadcastToInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface BroadCastToAttrs {
+  shape: number[];
+  inputShape: number[];  // for gradient
+}
+
 export const Concat = 'Concat';
 export type ConcatInputs = TensorInfo[];
 export interface ConcatAttrs {
@@ -45,23 +52,20 @@ export interface FusedBatchNormAttrs {
   varianceEpsilon: number;
 }
 
+export const Identity = 'Identity';
+export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const MaxPoolWithArgmax = 'MaxPoolWithArgmax';
+export type MaxPoolWithArgmaxInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface MaxPoolWithArgmaxAttrs {
+  filterSize: [number, number]|number;
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  includeBatchInIndex: boolean;
+}
+
 export const NotEqual = 'NotEqual';
 export type NotEqualInputs = BinaryInputs;
-
-export const SquaredDifference = 'SquaredDifference';
-export type SquaredDifferenceInputs = BinaryInputs;
-
-export const Square = 'Square';
-export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
-
-export const Sub = 'Sub';
-export type SubInputs = BinaryInputs;
-
-export const Transpose = 'Transpose';
-export type TransposeInputs = Pick<NamedTensorInfoMap, 'x'>;
-export interface TransposeAttrs {
-  perm: number[];
-}
 
 export const NonMaxSuppressionV5 = 'NonMaxSuppressionV5';
 export type NonMaxSuppressionV5Inputs =
@@ -73,28 +77,12 @@ export interface NonMaxSuppressionV5Attrs {
   softNmsSigma: number;
 }
 
-export const BroadcastTo = 'BroadcastTo';
-export type BroadcastToInputs = Pick<NamedTensorInfoMap, 'x'>;
-export interface BroadCastToAttrs {
-  shape: number[];
-  inputShape: number[];  // for gradient
-}
-
 export const OneHot = 'OneHot';
 export type OneHotInputs = Pick<NamedTensorInfoMap, 'indices'>;
 export interface OneHotAttrs {
   depth: number;
   onValue: number;
   offValue: number;
-}
-
-export const Identity = 'Identity';
-export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
-
-export const Tile = 'Tile';
-export type TileInputs = Pick<NamedTensorInfoMap, 'x'>;
-export interface TileAttrs {
-  reps: number[];
 }
 
 export const PadV2 = 'PadV2';
@@ -111,6 +99,27 @@ export interface SplitVAttrs {
   axis: number;
 }
 
+export const SquaredDifference = 'SquaredDifference';
+export type SquaredDifferenceInputs = BinaryInputs;
+
+export const Square = 'Square';
+export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const Sub = 'Sub';
+export type SubInputs = BinaryInputs;
+
+export const Tile = 'Tile';
+export type TileInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface TileAttrs {
+  reps: number[];
+}
+
+export const Transpose = 'Transpose';
+export type TransposeInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface TransposeAttrs {
+  perm: number[];
+}
+
 /**
  * TensorFlow.js-only kernels
  */
@@ -121,13 +130,4 @@ export interface FromPixelsInputs {
 }
 export interface FromPixelsAttrs {
   numChannels: number;
-}
-
-export const MaxPoolWithArgmax = 'MaxPoolWithArgmax';
-export type MaxPoolWithArgmaxInputs = Pick<NamedTensorInfoMap, 'x'>;
-export interface MaxPoolWithArgmaxAttrs {
-  filterSize: [number, number]|number;
-  strides: [number, number]|number;
-  pad: 'valid'|'same'|number;
-  includeBatchInIndex: boolean;
 }
