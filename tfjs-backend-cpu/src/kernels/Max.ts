@@ -41,8 +41,11 @@ export const maxConfig: KernelConfig = {
     let xVals = cpuBackend.data.get(x.dataId).values as TypedArray;
     if (permutedAxes != null) {
       console.log('TRANSPOSE');
+      console.log(permutedAxes);
       xVals = transposeImpl(xVals, x.shape, x.dtype, permutedAxes);
       axes = backend_util.getInnerMostAxes(axes.length, xRank);
+      console.log(axes);
+      console.log(xVals);
     }
 
     assertNotComplex(x, 'max');
@@ -53,6 +56,7 @@ export const maxConfig: KernelConfig = {
     const reduceSize = util.sizeFromShape(reduceShape);
 
     const result = maxImpl(xVals, reduceSize, outShape, x.dtype);
+    console.log(result);
 
     const dataId = cpuBackend.write(result, outShape, x.dtype);
     return {dataId, shape: outShape, dtype: x.dtype};
