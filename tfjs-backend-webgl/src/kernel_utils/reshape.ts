@@ -15,25 +15,26 @@
  * =============================================================================
  */
 
-import {TensorInfo} from '../../../kernel_registry';
-import {webgl_util} from '../../../webgl';
+import {TensorInfo} from '@tensorflow/tfjs-core';
+
 import {MathBackendWebGL} from '../backend_webgl';
 import {ReshapePackedProgram} from '../reshape_packed_gpu';
+import {getBatchDim, getRowsCols, isReshapeFree} from '../webgl_util';
 
 function packedReshape(
     input: TensorInfo, afterShape: number[],
     backend: MathBackendWebGL): TensorInfo {
-  const input3DShape = [
-    webgl_util.getBatchDim(input.shape), ...webgl_util.getRowsCols(input.shape)
-  ] as [number, number, number];
+  const input3DShape =
+      [getBatchDim(input.shape),
+       ...getRowsCols(input.shape)] as [number, number, number];
   const input3D: TensorInfo = {
     dtype: input.dtype,
     shape: input3DShape,
     dataId: input.dataId
   };
-  const afterShapeAs3D = [
-    webgl_util.getBatchDim(afterShape), ...webgl_util.getRowsCols(afterShape)
-  ] as [number, number, number];
+  const afterShapeAs3D =
+      [getBatchDim(afterShape),
+       ...getRowsCols(afterShape)] as [number, number, number];
 
   const program = new ReshapePackedProgram(afterShapeAs3D, input3DShape);
   const preventEagerUnpackingOfOutput = true;
@@ -47,9 +48,9 @@ export function reshape(
     x: TensorInfo, afterShape: number[],
     backend: MathBackendWebGL): TensorInfo {
   const xTexData = backend.texData.get(x.dataId);
-  if (xTexData.isPacked && !webgl_util.isReshapeFree(x.shape, afterShape) &&
+  if (xTexData.isPacked && !isReshapeFree(x.shape, afterShape) &&
       !(xTexData.texture !== null &&
-        webgl_util.isReshapeFree(xTexData.shape, afterShape))) {
+        isReshapeFree(xTexData.shape, afterShape))) {
     return packedReshape(x, afterShape, backend);
   }
 

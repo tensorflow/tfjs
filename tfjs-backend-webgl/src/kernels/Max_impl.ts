@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {TensorInfo} from '../../../kernel_registry';
-import {sizeFromShape} from '../../../util';
+import {DataType, NumericDataType, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+
 import {MathBackendWebGL} from '../backend_webgl';
 import {reduce} from '../kernel_utils/reduce';
 import {reshape} from '../kernel_utils/reshape';
@@ -24,8 +24,8 @@ import {reshape} from '../kernel_utils/reshape';
 export const maxImpl =
     (x: TensorInfo, reduceShape: number[], outShape: number[],
      backend: MathBackendWebGL): TensorInfo => {
-      const inSize = sizeFromShape(reduceShape);
-      const xSize = sizeFromShape(x.shape);
+      const inSize = util.sizeFromShape(reduceShape);
+      const xSize = util.sizeFromShape(x.shape);
       const batchSize = xSize / inSize;
 
       return reshape(
@@ -34,3 +34,24 @@ export const maxImpl =
               backend),
           outShape, backend);
     };
+
+// todo(@annxingyuan) import this from cpu backend.
+export function maxImplCPU(
+    aVals: TypedArray, reduceSize: number, outShape: number[],
+    dtype: DataType): TypedArray {
+  const vals = util.getTypedArrayFromDType(
+      dtype as NumericDataType, util.sizeFromShape(outShape));
+
+  for (let i = 0; i < vals.length; ++i) {
+    const offset = i * reduceSize;
+    let max = aVals[offset];
+    for (let j = 0; j < reduceSize; ++j) {
+      const value = aVals[offset + j];
+      if (value > max) {
+        max = value;
+      }
+    }
+    vals[i] = max;
+  }
+  return vals;
+}

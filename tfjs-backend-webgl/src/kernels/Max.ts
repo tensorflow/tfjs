@@ -15,14 +15,12 @@
  * =============================================================================
  */
 
-import {maxImpl as cpuMax} from '../../../backends/cpu/kernels/Max_impl';
-import {Max, MaxAttrs, MaxInputs} from '../../../kernel_names';
-import {KernelConfig} from '../../../kernel_registry';
-import * as axis_util from '../../../ops/axis_util';
-import {TypedArray} from '../../../types';
-import * as util from '../../../util';
+import {Max, MaxAttrs, MaxInputs} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, TypedArray, util} from '@tensorflow/tfjs-core';
+
 import {MathBackendWebGL} from '../backend_webgl';
-import {maxImpl} from './Max_impl';
+
+import {maxImpl, maxImplCPU} from './Max_impl';
 
 export const maxConfig: KernelConfig = {
   kernelName: Max,
@@ -35,22 +33,22 @@ export const maxConfig: KernelConfig = {
 
     const origAxes = util.parseAxisParam(reductionIndices, x.shape);
     let axes = origAxes;
-    const permutedAxes = axis_util.getAxesPermutation(axes, x.shape.length);
+    const permutedAxes = backend_util.getAxesPermutation(axes, x.shape.length);
     if (permutedAxes != null) {
       console.log('TRANSPOSE');
     }
 
-    axis_util.assertAxesAreInnerMostDims('max', axes, x.shape.length);
+    backend_util.assertAxesAreInnerMostDims('max', axes, x.shape.length);
     const [outShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(x.shape, axes);
+        backend_util.computeOutAndReduceShapes(x.shape, axes);
 
     let out;
     if (webglBackend.shouldExecuteOnCPU([x])) {
       console.log('running on the cpu instead');
       const xTexData = webglBackend.texData.get(x.dataId);
       const values = xTexData.values as TypedArray;
-      const outValues =
-          cpuMax(values, util.sizeFromShape(reduceShape), outShape, x.dtype);
+      const outValues = maxImplCPU(
+          values, util.sizeFromShape(reduceShape), outShape, x.dtype);
 
       out = webglBackend.makeTensorInfo(outShape, x.dtype);
       const outData = webglBackend.texData.get(out.dataId);

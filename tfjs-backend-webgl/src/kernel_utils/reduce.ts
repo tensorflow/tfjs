@@ -15,18 +15,16 @@
  * =============================================================================
  */
 
-import {TensorInfo} from '../../../kernel_registry';
-import {computeOptimalWindowSize, ReduceTypes} from '../../../ops/reduce_util';
-import {DataType} from '../../../types';
+import {backend_util, DataType, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {ReduceProgram} from '../reduce_gpu';
 
 export function reduce(
-    x: TensorInfo, dtype: DataType, reductionType: ReduceTypes,
+    x: TensorInfo, dtype: DataType, reductionType: backend_util.ReduceTypes,
     backend: MathBackendWebGL): TensorInfo {
   const [batchSize, inSize] = x.shape;
-  const windowSize = computeOptimalWindowSize(inSize);
+  const windowSize = backend_util.computeOptimalWindowSize(inSize);
   const reduceInfo = {windowSize, inSize, batchSize};
   const program = new ReduceProgram(reduceInfo, reductionType);
   const output = backend.runWebGLProgram(program, [x], dtype);
