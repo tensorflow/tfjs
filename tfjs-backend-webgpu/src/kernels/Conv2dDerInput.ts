@@ -19,7 +19,7 @@ import {backend_util, Conv2dDerAttrs, Conv2dDerInput, Conv2dDerInputInputs, engi
 
 import {WebGPUBackend} from '../backend_webgpu';
 
-import {Conv2DDerInputProgram} from './conv_backprop_webgpu';
+import {Conv2DDerInputProgram} from './conv_derinput_webgpu';
 
 export const conv2dDerInputConfig: KernelConfig = {
   kernelName: Conv2dDerInput,

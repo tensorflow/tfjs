@@ -19,7 +19,7 @@ import {backend_util, Conv2dDerAttrs, Conv2dDerFilter, Conv2dDerFilterInputs, en
 
 import {WebGPUBackend} from '../backend_webgpu';
 
-import {Conv2DDerFilterProgram} from './conv_backprop_webgpu';
+import {Conv2DDerFilterProgram} from './conv_derfilter_webgpu';
 
 export const conv2dDerFilterConfig: KernelConfig = {
   kernelName: Conv2dDerFilter,
