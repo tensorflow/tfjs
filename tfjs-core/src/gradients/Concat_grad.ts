@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Concat} from '../kernel_names';
+import {Concat, ConcatAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
 import {split} from '../ops/split';
 import {Tensor} from '../tensor';
@@ -24,7 +24,7 @@ export const concatGradConfig: GradConfig = {
   saveAllInputs: true,
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const shapes = saved.map(t => t.shape);
-    const axis = attrs['axis'] as number;
+    const {axis} = attrs as {} as ConcatAttrs;
     const sizeSplits = shapes.map(s => s[axis]);
     const derTensors = split(dy, sizeSplits, axis);
     return derTensors.map(t => () => t) as {};
