@@ -90,6 +90,14 @@
     lodash "^4.17.13"
     to-fast-properties "^2.0.0"
 
+"@tensorflow/tfjs-backend-cpu@link:../tfjs-backend-cpu":
+  version "0.0.0"
+  uid ""
+
+"@tensorflow/tfjs-backend-webgl@link:../tfjs-backend-webgl":
+  version "0.0.0"
+  uid ""
+
 "@tensorflow/tfjs-converter@link:../tfjs-converter":
   version "0.0.0"
   uid ""

@@ -4,7 +4,7 @@
   "description": "An open-source machine learning framework.",
   "private": false,
   "main": "dist/tf.node.js",
-  "jsnext:main": "dist/index.js",
+  "browser": "dist/tf.min.js",
   "module": "dist/index.js",
   "jsdelivr": "dist/tf.min.js",
   "unpkg": "dist/tf.min.js",
@@ -39,6 +39,7 @@
     "npm-run-all": "~4.1.3",
     "rimraf": "~2.6.2",
     "rollup": "~2.3.2",
+    "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-terser": "~5.3.0",
     "rollup-plugin-visualizer": "~3.3.2",
     "shelljs": "~0.8.1",
@@ -49,8 +50,10 @@
     "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
-    "build": "tsc",
-    "build-ci": "tsc",
+    "build": "tsc && yarn bundle",
+    "build-ci": "tsc && yarn bundle-ci",
+    "bundle": "rollup -c",
+    "bundle-ci": "rollup -c --ci",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
     "build-layers": "cd ../tfjs-layers && yarn && yarn build",
@@ -74,11 +77,13 @@
     "test-ci": "./scripts/test-ci.sh"
   },
   "dependencies": {
+    "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
+    "@tensorflow/tfjs-backend-webgl": "link:../tfjs-backend-webgl",
     "@tensorflow/tfjs-converter": "link:../tfjs-converter",
     "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@tensorflow/tfjs-data": "link:../tfjs-data",
     "@tensorflow/tfjs-layers": "link:../tfjs-layers",
-    "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
-    "@tensorflow/tfjs-backend-webgl": "link:../tfjs-backend-webgl"
+    "core-js": "3",
+    "regenerator-runtime": "^0.13.5"
   }
 }

@@ -5,13 +5,21 @@ steps:
   entrypoint: 'yarn'
   args: ['install']
 
+# Install dependencies.
+- name: 'node:10'
+  dir: 'tfjs-node'
+  id: 'yarn'
+  entrypoint: 'yarn'
+  args: ['install']
+  waitFor: ['yarn-common']
+
 # Unit tests.
 - name: 'node:10'
   dir: 'tfjs-node'
   entrypoint: 'yarn'
   id: 'test'
   args: ['test-ci']
-  waitFor: ['yarn-common']
+  waitFor: ['yarn']
 
 # Integration test.
 - name: 'node:10'

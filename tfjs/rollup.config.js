@@ -18,6 +18,7 @@
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
+import babel from 'rollup-plugin-babel';
 import {terser} from 'rollup-plugin-terser';
 import visualizer from 'rollup-plugin-visualizer';
 
@@ -43,7 +44,8 @@ function config({
   output = {},
   external = [],
   visualize = false,
-  tsCompilerOptions = {}
+  tsCompilerOptions = {},
+  entry = 'src/index.ts'
 }) {
   if (visualize) {
     const filename = output.file + '.html';
@@ -58,19 +60,14 @@ function config({
   const tsoptions = Object.assign({}, defaultTsOptions, tsCompilerOptions);
 
   return {
-    input: 'src/index.ts',
+    input: entry,
     plugins: [
       typescript(tsoptions),
-      resolve(),
-      // Polyfill require() from dependencies.
+      resolve({dedupe: ['seedrandom']}),
       commonjs({
         ignore: ['crypto'],
         include: 'node_modules/**',
-        namedExports: {
-          './node_modules/seedrandom/index.js': ['alea'],
-          // './node_modules/@tensorflow/tfjs-core/seedrandom/index.js':
-          // ['alea']
-        },
+        namedExports: {'node_modules/seedrandom/index.js': ['alea']},
       }),
       ...plugins,
     ],
@@ -100,6 +97,16 @@ function config({
 module.exports = cmdOptions => {
   const bundles = [];
 
+  const babelPlugin = babel({
+    babelrc: false,
+    presets: [
+      // ensure we get es5 by adding IE 11 as a target
+      [
+        '@babel/env',
+        {modules: false, useBuiltIns: 'entry', corejs: 3, targets: {'ie': '11'}}
+      ]
+    ]
+  });
   const terserPlugin = terser({output: {preamble: PREAMBLE, comments: false}});
   const name = 'tf';
   const extend = true;
@@ -115,13 +122,13 @@ module.exports = cmdOptions => {
       file: `dist/${fileName}.node.js`,
       freeze: false
     },
-    tsCompilerOptions: {target: 'es5'}
+    tsCompilerOptions: {target: 'es5', module: 'commonjs'}
   }));
 
   if (cmdOptions.ci || cmdOptions.npm) {
     // Browser default minified (ES5)
     bundles.push(config({
-      plugins: [terserPlugin],
+      plugins: [babelPlugin, terserPlugin],
       output: {
         format: browserFormat,
         name,
@@ -137,6 +144,7 @@ module.exports = cmdOptions => {
   if (cmdOptions.npm) {
     // Browser default unminified (ES5)
     bundles.push(config({
+      plugins: [babelPlugin],
       output: {
         format: browserFormat,
         name,
