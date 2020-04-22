@@ -39,14 +39,13 @@ export const maxConfig: KernelConfig = {
     let axes = origAxes;
     const permutedAxes = backend_util.getAxesPermutation(axes, xRank);
     let xVals = cpuBackend.data.get(x.dataId).values as TypedArray;
+    console.log('permuted axes', permutedAxes);
     if (permutedAxes != null) {
-      console.log('TRANSPOSE');
-      console.log(permutedAxes);
       xVals = transposeImpl(xVals, x.shape, x.dtype, permutedAxes);
       axes = backend_util.getInnerMostAxes(axes.length, xRank);
-      console.log(axes);
-      console.log(xVals);
     }
+    console.log('axes', axes);
+    console.log('x', xVals);
 
     assertNotComplex(x, 'max');
     backend_util.assertAxesAreInnerMostDims('max', axes, xRank);
@@ -57,6 +56,7 @@ export const maxConfig: KernelConfig = {
 
     const result = maxImpl(xVals, reduceSize, outShape, x.dtype);
     console.log('RESULT');
+    console.log(reduceShape);
     console.log(reduceSize, outShape);
     console.log(result);
 
