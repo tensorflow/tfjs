@@ -16,7 +16,7 @@
  */
 
 import {ENGINE} from '../engine';
-import {Conv2dDerFilter, Conv2dDerFilterAttrs, Conv2dDerFilterInputs, Conv2dDerInput, Conv2dDerInputAttrs, Conv2dDerInputInputs} from '../kernel_names';
+import {Conv2dDerAttrs, Conv2dDerFilter, Conv2dDerFilterInputs, Conv2dDerInput, Conv2dDerInputInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -310,7 +310,7 @@ function conv2dDerInput_<T extends Tensor3D|Tensor4D>(
       xShape4D, filter.shape, strides, dilations, pad, dimRoundingMode, false,
       $dataFormat);
 
-  const attrs: Conv2dDerInputAttrs = {
+  const attrs: Conv2dDerAttrs = {
     batchSize: convInfo.batchSize,
     inHeight: convInfo.inHeight,
     inWidth: convInfo.inWidth,
@@ -417,7 +417,7 @@ function conv2dDerFilter_<T extends Tensor3D|Tensor4D>(
       x4D.shape, filterShape, strides, dilations, pad, dimRoundingMode, false,
       $dataFormat);
 
-  const attrs: Conv2dDerFilterAttrs = {
+  const attrs: Conv2dDerAttrs = {
     batchSize: convInfo.batchSize,
     inHeight: convInfo.inHeight,
     inWidth: convInfo.inWidth,

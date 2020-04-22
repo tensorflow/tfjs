@@ -15,8 +15,10 @@
  * =============================================================================
  */
 
-import {backend_util, Conv2dDerFilter, Conv2dDerFilterAttrs, Conv2dDerFilterInputs, engine, KernelConfig, Tensor} from '@tensorflow/tfjs-core';
+import {backend_util, Conv2dDerAttrs, Conv2dDerFilter, Conv2dDerFilterInputs, engine, KernelConfig, Tensor} from '@tensorflow/tfjs-core';
+
 import {WebGPUBackend} from '../backend_webgpu';
+
 import {Conv2DDerFilterProgram} from './conv_backprop_webgpu';
 
 export const conv2dDerFilterConfig: KernelConfig = {
@@ -45,7 +47,7 @@ export const conv2dDerFilterConfig: KernelConfig = {
       inShape,
       outShape,
       filterShape
-    } = attrs as {} as Conv2dDerFilterAttrs;
+    } = attrs as {} as Conv2dDerAttrs;
 
     const convInfo: backend_util.Conv2DInfo = {
       batchSize,
