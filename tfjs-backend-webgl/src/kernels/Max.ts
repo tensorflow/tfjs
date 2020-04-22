@@ -21,24 +21,28 @@ import {backend_util, KernelConfig, TypedArray, util} from '@tensorflow/tfjs-cor
 import {MathBackendWebGL} from '../backend_webgl';
 
 import {maxImpl, maxImplCPU} from './Max_impl';
+import {transposeImpl} from './Transpose_impl';
 
 export const maxConfig: KernelConfig = {
   kernelName: Max,
   backendName: 'webgl',
   kernelFunc: ({inputs, attrs, backend}) => {
-    const {x} = inputs as MaxInputs;
+    let {x} = inputs as MaxInputs;
     const {reductionIndices} = attrs as {} as MaxAttrs;
     const webglBackend = backend as MathBackendWebGL;
     console.log('max webgl kernel func', x, reductionIndices);
 
+    const xRank = x.shape.length;
+
     const origAxes = util.parseAxisParam(reductionIndices, x.shape);
     let axes = origAxes;
-    const permutedAxes = backend_util.getAxesPermutation(axes, x.shape.length);
+    const permutedAxes = backend_util.getAxesPermutation(axes, xRank);
     if (permutedAxes != null) {
-      console.log('TRANSPOSE');
+      x = transposeImpl(x, permutedAxes, webglBackend);
+      axes = backend_util.getInnerMostAxes(axes.length, xRank);
     }
 
-    backend_util.assertAxesAreInnerMostDims('max', axes, x.shape.length);
+    backend_util.assertAxesAreInnerMostDims('max', axes, xRank);
     const [outShape, reduceShape] =
         backend_util.computeOutAndReduceShapes(x.shape, axes);
 
