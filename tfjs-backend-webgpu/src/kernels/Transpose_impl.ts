@@ -14,16 +14,14 @@
  * limitations under the License.
  * =============================================================================
  */
-import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
-import {squareConfig} from './kernels/Square';
-import {squaredDifferenceConfig} from './kernels/SquaredDifference';
-import {transposeConfig} from './kernels/Transpose';
+import {TensorInfo, Tensor} from '@tensorflow/tfjs-core';
 
-// List all kernel configs here
-const kernelConfigs: KernelConfig[] =
-    [squareConfig, squaredDifferenceConfig, transposeConfig];
+import {WebGPUBackend} from '../backend_webgpu';
+import {TransposeProgram} from './transpose_webgpu';
 
-for (const kernelConfig of kernelConfigs) {
-  registerKernel(kernelConfig);
+export function transposeImpl(
+    x: TensorInfo, perm: number[], backend: WebGPUBackend): TensorInfo {
+  const program = new TransposeProgram(x.shape, perm);
+  return backend.compileAndRun(program, [x as Tensor]);
 }
