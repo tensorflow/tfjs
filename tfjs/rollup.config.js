@@ -102,11 +102,17 @@ module.exports = cmdOptions => {
     presets: [
       // ensure we get es5 by adding IE 11 as a target
       [
-        '@babel/env',
-        {modules: false, useBuiltIns: 'entry', corejs: 3, targets: {'ie': '11'}}
+        '@babel/env', {
+          modules: false,
+          useBuiltIns: 'entry',
+          corejs: 3,
+          targets: {'ie': '11'},
+          loose: true
+        }
       ]
     ]
   });
+
   const terserPlugin = terser({output: {preamble: PREAMBLE, comments: false}});
   const name = 'tf';
   const extend = true;
@@ -185,7 +191,8 @@ module.exports = cmdOptions => {
         extend,
         file: `dist/${fileName}.es2017.min.js`
       },
-      tsCompilerOptions: {target: 'es2017'}
+      tsCompilerOptions: {target: 'es2017'},
+      visualize: cmdOptions.visualize
     }));
   }
 
