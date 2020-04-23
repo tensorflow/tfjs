@@ -160,7 +160,6 @@ export function backpropagateGradients(
     const inputGradients = node.gradient(dys);
 
     for (const inputName in node.inputs) {
-      console.log('looping over inputs in node inputs', inputName);
       if (!(inputName in inputGradients)) {
         throw new Error(
             `Cannot backprop through input ${inputName}. ` +
@@ -169,7 +168,6 @@ export function backpropagateGradients(
 
       // Call the gradient function.
       const dx = tidy(() => inputGradients[inputName]());
-      console.log('just called the gradient function');
 
       if (dx.dtype !== 'float32') {
         throw new Error(
@@ -178,7 +176,6 @@ export function backpropagateGradients(
             `${inputName} must have 'float32' dtype, but has '${dx.dtype}'`);
       }
       const x = node.inputs[inputName];
-      console.log(dx.shape, x.shape);
       if (!util.arraysEqual(dx.shape, x.shape)) {
         throw new Error(
             `Error in gradient for op ${
@@ -186,7 +183,6 @@ export function backpropagateGradients(
             `'${inputName}' has shape '${dx.shape}', which does not match ` +
             `the shape of the input '${x.shape}'`);
       }
-      console.log('got past errors');
 
       if (tensorAccumulatedGradientMap[x.id] == null) {
         tensorAccumulatedGradientMap[x.id] = dx;

@@ -345,7 +345,7 @@ describeWithFlags('max', ALL_ENVS, () => {
     expect(gradients.shape).toEqual([2, 3]);
   });
 
-  fit('max gradient: 2D, axes=0, keepDims=false', async () => {
+  it('max gradient: 2D, axes=0, keepDims=false', async () => {
     const x = tf.tensor2d([[0, 20, 10], [-10, -30, 20]]);
     const dy = tf.tensor1d([-1, -1, -1]);
     const axis = 0;
