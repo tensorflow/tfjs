@@ -1482,7 +1482,7 @@ describeWithFlags('norm', ALL_ENVS, () => {
     expectArraysEqual(await norm.data(), NaN);
   });
 
-  it('axis=null in 2D array norm', async () => {
+  fit('axis=null in 2D array norm', async () => {
     const a = tf.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
     const norm = tf.norm(a, Infinity);
 
