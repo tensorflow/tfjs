@@ -272,6 +272,7 @@ function mean_<T extends Tensor>(
  */
 export function gradForMinAndMax<T extends Tensor>(
     dy: T, y: T, xOrig: Tensor, origAxes: number[], permutedAxes: number[]) {
+  console.log('GRAD FRO MIN AND MAX');
   console.log('orig axes', origAxes);
   console.log(permutedAxes);
   if (y.rank < xOrig.rank) {
@@ -282,8 +283,11 @@ export function gradForMinAndMax<T extends Tensor>(
   }
   return {
     x: () => {
+      console.log('INVOKING');
       const dx = dy.mul(xOrig.equal(y).cast(dy.dtype));
-      return permutedAxes == null ? dx : dx.transpose(permutedAxes);
+      const out = permutedAxes == null ? dx : dx.transpose(permutedAxes);
+      console.log('out', out.shape);
+      return out;
     }
   };
 }

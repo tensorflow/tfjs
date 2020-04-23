@@ -40,6 +40,7 @@ export const maxConfig: KernelConfig = {
     const permutedAxes = backend_util.getAxesPermutation(axes, xRank);
     let xVals = cpuBackend.data.get(x.dataId).values as TypedArray;
     if (permutedAxes != null) {
+      console.log('TARNSPOSING');
       xVals = transposeImpl(xVals, xShape, x.dtype, permutedAxes);
       axes = backend_util.getInnerMostAxes(axes.length, xRank);
 

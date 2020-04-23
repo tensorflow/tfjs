@@ -895,6 +895,11 @@ export class Engine implements TensorTracker, DataMover {
         return gradientsFunc(dys.length > 1 ? dys : dys[0], saved, attrs);
       };
     }
+    console.log('PUSHING TO TAPE');
+    for (const input in inputs) {
+      console.log(input);
+      console.log(inputs[input].shape);
+    }
     this.state.activeTape.push(tapeNode);
   }
 

@@ -43,6 +43,7 @@ export type NamedGradientMap = {
  */
 export function getFilteredNodesXToY(
     tape: TapeNode[], xs: Tensor[], y: Tensor): TapeNode[] {
+  console.log('GETTING NODES FROM X TO Y');
   // Forward pass to compute all the nodes and Tensors that are transitively a
   // function of x.
   const tensorsFromX: {[tensorId: number]: boolean} = {};
@@ -131,9 +132,11 @@ export function getFilteredNodesXToY(
 export function backpropagateGradients(
     tensorAccumulatedGradientMap: {[tensorId: number]: Tensor},
     filteredTape: TapeNode[], tidy: (f: Function) => Tensor) {
+  console.log('BACKPROPPING');
   // Walk the tape backward and keep a map of Tensor to its gradient.
   for (let i = filteredTape.length - 1; i >= 0; i--) {
     const node = filteredTape[i];
+    console.log('tape node', node.kernelName);
 
     const dys: Tensor[] = [];
     node.outputs.forEach(o => {
@@ -157,6 +160,7 @@ export function backpropagateGradients(
     const inputGradients = node.gradient(dys);
 
     for (const inputName in node.inputs) {
+      console.log('looping over inputs in node inputs', inputName);
       if (!(inputName in inputGradients)) {
         throw new Error(
             `Cannot backprop through input ${inputName}. ` +
@@ -165,6 +169,8 @@ export function backpropagateGradients(
 
       // Call the gradient function.
       const dx = tidy(() => inputGradients[inputName]());
+      console.log('just called the gradient function');
+
       if (dx.dtype !== 'float32') {
         throw new Error(
             `Error in gradient for op ${
@@ -172,6 +178,7 @@ export function backpropagateGradients(
             `${inputName} must have 'float32' dtype, but has '${dx.dtype}'`);
       }
       const x = node.inputs[inputName];
+      console.log(dx.shape, x.shape);
       if (!util.arraysEqual(dx.shape, x.shape)) {
         throw new Error(
             `Error in gradient for op ${
@@ -179,6 +186,7 @@ export function backpropagateGradients(
             `'${inputName}' has shape '${dx.shape}', which does not match ` +
             `the shape of the input '${x.shape}'`);
       }
+      console.log('got past errors');
 
       if (tensorAccumulatedGradientMap[x.id] == null) {
         tensorAccumulatedGradientMap[x.id] = dx;
