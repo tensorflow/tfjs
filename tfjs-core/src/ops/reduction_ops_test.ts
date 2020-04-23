@@ -1482,7 +1482,7 @@ describeWithFlags('norm', ALL_ENVS, () => {
     expectArraysEqual(await norm.data(), NaN);
   });
 
-  fit('axis=null in 2D array norm', async () => {
+  it('axis=null in 2D array norm', async () => {
     const a = tf.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
     const norm = tf.norm(a, Infinity);
 
@@ -1500,7 +1500,7 @@ describeWithFlags('norm', ALL_ENVS, () => {
     expectArraysClose(await norm.data(), [3]);
   });
 
-  it('axis=0 in 2D array norm', async () => {
+  fit('axis=0 in 2D array norm', async () => {
     const a = tf.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
     const norm = tf.norm(a, Infinity, [0]);
 
@@ -1599,7 +1599,7 @@ describeWithFlags('norm', ALL_ENVS, () => {
     expectArraysClose(await norm.data(), [3]);
   });
 
-  it('axis=0,1 in 4D array norm', async () => {
+  fit('axis=0,1 in 4D array norm', async () => {
     const a = tf.tensor4d(
         [
           1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1,
@@ -1613,7 +1613,7 @@ describeWithFlags('norm', ALL_ENVS, () => {
     expectArraysClose(await norm.data(), [4, 3, 4, 3]);
   });
 
-  it('axis=0,1 in 4D array norm', async () => {
+  fit('axis=0,1 in 4D array norm', async () => {
     const a = tf.tensor4d(
         [
           1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1,

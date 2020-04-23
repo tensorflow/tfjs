@@ -38,6 +38,7 @@ export const maxConfig: KernelConfig = {
     let axes = origAxes;
     const permutedAxes = backend_util.getAxesPermutation(axes, xRank);
     if (permutedAxes != null) {
+      console.log('TRANSPOSE IN WEBGL MAX');
       x = transposeImpl(x, permutedAxes, webglBackend);
       axes = backend_util.getInnerMostAxes(axes.length, xRank);
     }

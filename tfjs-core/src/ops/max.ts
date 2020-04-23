@@ -64,6 +64,7 @@ function max_<T extends Tensor>(
   const origAxes = util.parseAxisParam(axis, $x.shape);
 
   const forward = (backend: KernelBackend, save: GradSaveFunc) => {
+    console.log('running forward func');
     let axes = origAxes;
     const permutedAxes = axis_util.getAxesPermutation(axes, $x.rank);
     if (permutedAxes != null) {
