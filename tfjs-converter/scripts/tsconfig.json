@@ -1,7 +1,6 @@
 {
-  "extends": "../tsconfig",
+  "extends": "../tsconfig.test",
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es5"
+    "module": "commonjs"
   }
 }
