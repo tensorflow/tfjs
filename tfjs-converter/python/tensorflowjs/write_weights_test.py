@@ -16,16 +16,16 @@
 
 import os
 import shutil
-import unittest
 
 import numpy as np
+import tensorflow as tf
 
 from tensorflowjs import write_weights
 
 TMP_DIR = '/tmp/write_weights_test/'
 
 
-class TestWriteWeights(unittest.TestCase):
+class TestWriteWeights(tf.test.TestCase):
   def setUp(self):
     if not os.path.isdir(TMP_DIR):
       os.makedirs(TMP_DIR)
@@ -751,4 +751,4 @@ class TestWriteWeights(unittest.TestCase):
 
 
 if __name__ == '__main__':
-  unittest.main()
+  tf.test.main()

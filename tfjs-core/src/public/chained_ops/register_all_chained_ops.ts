@@ -20,6 +20,7 @@ import './broadcast_to';
 import './div';
 import './div_no_nan';
 import './one_hot';
+import './not_equal';
 import './pad';
 import './squared_difference';
 import './sub';

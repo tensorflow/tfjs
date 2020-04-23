@@ -20,6 +20,7 @@
 import './browser_util_test';
 import './buffer_test';
 import './debug_mode_test';
+import './device_util_test';
 import './engine_test';
 import './environment_test';
 import './flags_test';
@@ -77,6 +78,7 @@ import './ops/lstm_test';
 import './ops/matmul_test';
 import './ops/moving_average_test';
 import './ops/multinomial_test';
+import './ops/not_equal_test';
 import './ops/one_hot_test';
 import './ops/operation_test';
 import './ops/pad_test';

@@ -16,6 +16,7 @@
  * =============================================================================
  */
 import * as tf from '../../src/index';
+import '@tensorflow/tfjs-backend-cpu';
 import {parseAndEvaluateSnippets} from './util';
 
 parseAndEvaluateSnippets(tf);
