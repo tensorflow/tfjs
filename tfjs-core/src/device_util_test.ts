@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,15 +14,12 @@
  * limitations under the License.
  * =============================================================================
  */
-import './add';
-import './batchnorm';
-import './broadcast_to';
-import './div';
-import './div_no_nan';
-import './one_hot';
-import './not_equal';
-import './pad';
-import './squared_difference';
-import './sub';
-import './tile';
-import './transpose';
+
+import * as device_util from './device_util';
+import {ALL_ENVS, describeWithFlags} from './jasmine_util';
+
+describeWithFlags('isMobile', ALL_ENVS, () => {
+  it('should not fail when navigator is set', () => {
+    expect(() => device_util.isMobile()).not.toThrow();
+  });
+});

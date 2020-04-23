@@ -24,7 +24,6 @@ import json
 import os
 import shutil
 import tempfile
-import unittest
 
 import numpy as np
 import tensorflow.compat.v2 as tf
@@ -446,4 +445,4 @@ class LoadKerasModelTest(tf.test.TestCase):
 
 
 if __name__ == '__main__':
-  unittest.main()
+  tf.test.main()

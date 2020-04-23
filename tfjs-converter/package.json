@@ -70,7 +70,7 @@
     "publish-local": "yarn build-npm && yalc push",
     "publish-npm": "npm publish",
     "test": "yarn && yarn build-deps && yarn gen-json --test && ts-node -P tsconfig.test.json run_tests.ts",
-    "test-ci": "yarn && yarn build-deps-ci && yarn build-ci && yarn lint && ts-node -P tsconfig.test.json run_tests.ts",
+    "test-ci": "ts-node -P tsconfig.test.json run_tests.ts",
     "test-snippets": "ts-node -s ./scripts/test_snippets.ts",
     "lint": "tslint -p . -t verbose",
     "make-version": "sh -c ./scripts/make-version",
