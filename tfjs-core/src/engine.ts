@@ -466,6 +466,7 @@ export class Engine implements TensorTracker, DataMover {
     const inputs = {x};
     const grad = (dy: Tensor) => ({x: () => dy.toFloat()});
     const saved: Tensor[] = [];
+    console.log('ADDING TO TAPE IN CLONE');
     this.addTapeNode(this.state.activeScope.name, inputs, [y], grad, saved, {});
     return y;
   }
@@ -538,6 +539,11 @@ export class Engine implements TensorTracker, DataMover {
       backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () => I[P]},
       kernelName?: string, attrs?: NamedAttrMap, inputsToSave?: Tensor[],
       outputsToSave?: boolean[]): T {
+    console.log('RUN KERNEL FUNC', kernelName);
+    for (const input in inputs) {
+      console.log(input);
+      console.log(inputs[input].shape);
+    }
     let outputs: Tensor[];
     let saved: Tensor[] = [];
     const isTapeOn = this.isTapeOn();
@@ -624,6 +630,7 @@ export class Engine implements TensorTracker, DataMover {
         });
 
     if (isTapeOn) {
+      console.log('ADDING TO TAPE NODE WITHIN RUNKERNELFUNC');
       this.addTapeNode(
           kernelName, inputs, outputs, backwardsFunc, saved, attrs);
     }
@@ -871,6 +878,11 @@ export class Engine implements TensorTracker, DataMover {
   private addTapeNode(
       kernelName: string, inputs: NamedTensorMap, outputs: Tensor[],
       gradientsFunc: GradFunc, saved: Tensor[], attrs: NamedAttrMap): void {
+    console.log('PUSHING TO TAPE', kernelName);
+    for (const input in inputs) {
+      console.log(input);
+      console.log(inputs[input].shape);
+    }
     const tapeNode: TapeNode =
         {id: this.state.nextTapeNodeId++, kernelName, inputs, outputs, saved};
 
@@ -894,11 +906,6 @@ export class Engine implements TensorTracker, DataMover {
         // with multiple outputs expect dys (array of dy).
         return gradientsFunc(dys.length > 1 ? dys : dys[0], saved, attrs);
       };
-    }
-    console.log('PUSHING TO TAPE');
-    for (const input in inputs) {
-      console.log(input);
-      console.log(inputs[input].shape);
     }
     this.state.activeTape.push(tapeNode);
   }
