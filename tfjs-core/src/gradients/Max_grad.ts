@@ -37,8 +37,11 @@ export const maxGradConfig: GradConfig = {
     const maxGrad = gradForMinAndMax(dy, y, x, origAxes, permutedAxes);
     return {
       x: () => {
-        const out = maxGrad['x']();
-        return transpose(out);
+        let out = maxGrad['x']();
+        if (permutedAxes != null) {
+          out = transpose(out);
+        }
+        return out;
       }
     };
   }
