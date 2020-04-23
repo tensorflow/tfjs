@@ -3,20 +3,20 @@
     "@octokit/rest": "15.2.6",
     "@types/jasmine": "2.8.7",
     "@types/node": "^12.7.5",
-    "jasmine": "3.1.0",
     "argparse": "^1.0.10",
     "chalk": "~2.4.2",
     "clang-format": "~1.2.4",
+    "jasmine": "3.1.0",
     "shelljs": "~0.8.3",
-    "ts-node": "~4.1.0",
+    "ts-node": "~8.8.2",
     "tslint": "~5.20.0",
     "typescript": "3.5.3"
   },
   "scripts": {
     "find-affected-packages": "./scripts/find-affected-packages.js",
-    "release": "ts-node ./scripts/release.ts",
-    "publish-npm": "ts-node ./scripts/publish-npm.ts",
-    "release-notes": "ts-node ./scripts/release_notes/release_notes.ts",
+    "release": "ts-node -s ./scripts/release.ts",
+    "publish-npm": "ts-node -s ./scripts/publish-npm.ts",
+    "release-notes": "ts-node -s ./scripts/release_notes/release_notes.ts",
     "test-release-notes": "ts-node -P tsconfig.test.json ./scripts/release_notes/run_tests.ts"
   }
 }
