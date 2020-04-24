@@ -19,6 +19,7 @@ import math
 import os
 
 import numpy as np
+import tensorflow as tf
 
 from tensorflowjs import quantization
 from tensorflowjs import read_weights
@@ -133,7 +134,7 @@ def write_weights(
 
   if write_manifest:
     manifest_path = os.path.join(write_dir, 'weights_manifest.json')
-    with open(manifest_path, 'wb') as f:
+    with tf.io.gfile.GFile(manifest_path, 'wb') as f:
       f.write(json.dumps(manifest).encode())
 
   return manifest
@@ -291,7 +292,7 @@ def _shard_group_bytes_to_disk(
     filepath = os.path.join(write_dir, filename)
 
     # Write the shard to disk.
-    with open(filepath, 'wb') as f:
+    with tf.io.gfile.GFile(filepath, 'wb') as f:
       f.write(shard)
 
   return filenames
