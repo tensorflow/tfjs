@@ -56,7 +56,7 @@ module.exports = function(config) {
     ],
     exclude: ['src/test_node.ts'],
     preprocessors: {
-      'wasm-out/**/*.js': ['karma-typescript'],
+      'wasm-out/tfjs-backend-wasm.js': ['karma-typescript'],
       '**/*.ts': ['karma-typescript']
     },
     karmaTypescriptConfig,
