@@ -14,12 +14,18 @@
  * limitations under the License.
  * =============================================================================
  */
+import {notEqual} from '../../ops/not_equal';
+import {Tensor} from '../../tensor';
+import {Rank, TensorLike} from '../../types';
 
-import * as device_util from './device_util';
-import {ALL_ENVS, describeWithFlags} from './jasmine_util';
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    notEqual<T extends Tensor>(b: Tensor|TensorLike): T;
+  }
+}
 
-describeWithFlags('isMobile', ALL_ENVS, () => {
-  it('should not fail when navigator is set', () => {
-    expect(() => device_util.isMobile()).not.toThrow();
-  });
-});
+Tensor.prototype.notEqual = function<T extends Tensor>(b: Tensor|
+                                                       TensorLike): T {
+  this.throwIfDisposed();
+  return notEqual(this, b);
+};
