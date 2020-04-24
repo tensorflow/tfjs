@@ -328,6 +328,8 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     const pad = 'same';
     const stride: [number, number] = [2, 2];
 
+    // TODO(annxingyuan): Make this test work with large inputs using
+    // generateCaseInputs https://github.com/tensorflow/tfjs/issues/3143
     const inputData = [];
     for (let i = 0; i < xSize * xSize * inputDepth; i++) {
       inputData.push(i % 5);
