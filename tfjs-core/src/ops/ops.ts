@@ -28,6 +28,7 @@ export {div} from './div';
 export {divNoNan} from './div_no_nan';
 export {eye} from './eye';
 export {multinomial} from './multinomial';
+export {notEqual} from './not_equal';
 export {oneHot} from './one_hot';
 export {pad} from './pad';
 export {pad1d} from './pad1d';
