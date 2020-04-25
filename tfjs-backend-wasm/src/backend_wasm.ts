@@ -17,8 +17,8 @@
 
 import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
 
-import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
-import wasmFactory from '../wasm-out/tfjs-backend-wasm.js';
+import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm.js';
+import WasmBackendModule from '../wasm-out/tfjs-backend-wasm.js';
 
 const WASM_PRIORITY = 2;
 
@@ -216,7 +216,7 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
         factoryConfig.instantiateWasm = createInstantiateWasmFunc(wasmPath);
       }
     }
-    const wasm = wasmFactory(factoryConfig);
+    const wasm = WasmBackendModule(factoryConfig);
     const voidReturnType: string = null;
     // Using the tfjs namespace to avoid conflict with emscripten's API.
     wasm.tfjs = {

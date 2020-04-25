@@ -55,10 +55,10 @@ function config({plugins = [], output = {}}) {
     output: {
       banner: PREAMBLE,
       sourcemap: true,
-      globals: {'@tensorflow/tfjs-core': 'tf', 'fs': 'fs', 'path': 'path'},
+      globals: {'@tensorflow/tfjs-core': 'tf', 'fs': 'fs', 'path': 'path', '../wasm-out/tfjs-backend-wasm.js': 'WasmBackendModule'},
       ...output,
     },
-    external: ['crypto', '@tensorflow/tfjs-core', 'fs', 'path'],
+    external: ['crypto', '@tensorflow/tfjs-core', 'fs', 'path', '../wasm-out/tfjs-backend-wasm.js'],
     onwarn: warning => {
       let {code} = warning;
       if (code === 'CIRCULAR_DEPENDENCY' || code === 'CIRCULAR' ||

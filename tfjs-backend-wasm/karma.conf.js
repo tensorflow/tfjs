@@ -30,7 +30,7 @@ const karmaTypescriptConfig = {
   // Disable coverage reports and instrumentation by default for tests
   coverageOptions: {instrumentation: false},
   reports: {},
-  include: ['src/', 'wasm-out/']
+  include: ['src/']
 };
 
 module.exports = function(config) {
@@ -56,7 +56,7 @@ module.exports = function(config) {
     ],
     exclude: ['src/test_node.ts'],
     preprocessors: {
-      'wasm-out/tfjs-backend-wasm.js': ['karma-typescript'],
+      // 'wasm-out/tfjs-backend-wasm.js': ['karma-typescript'],
       '**/*.ts': ['karma-typescript']
     },
     karmaTypescriptConfig,

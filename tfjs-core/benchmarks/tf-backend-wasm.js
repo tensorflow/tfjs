@@ -3818,6 +3818,7 @@
             return hasPrefix(filename, fileURIPrefix)
           }
           var wasmBinaryFile = "tfjs-backend-wasm.wasm";
+          console.log("INITIALIZE WASM BINARY FILE");
           if (!isDataURI(wasmBinaryFile)) {
             wasmBinaryFile = locateFile(wasmBinaryFile);
           }
@@ -3896,15 +3897,19 @@
 
             function instantiateAsync() {
               if (!wasmBinary && typeof WebAssembly.instantiateStreaming === "function" && !isDataURI(wasmBinaryFile) && !isFileURI(wasmBinaryFile) && typeof fetch === "function") {
+                console.log("INSTANTIATE ASYNC");
+                console.log(wasmBinaryFile);
                 fetch(wasmBinaryFile, {
                   credentials: "same-origin"
                 }).then(function (response) {
-                  var result = WebAssembly.instantiateStreaming(response, info);
-                  return result.then(receiveInstantiatedSource, function (reason) {
-                    err("wasm streaming compile failed: " + reason);
-                    err("falling back to ArrayBuffer instantiation");
-                    instantiateArrayBuffer(receiveInstantiatedSource);
-                  })
+                  response.arrayBuffer().then(resp => {
+                    var result = WebAssembly.instantiate(resp, info);
+                    return result.then(receiveInstantiatedSource, function (reason) {
+                      err("wasm streaming compile failed: " + reason);
+                      err("falling back to ArrayBuffer instantiation");
+                      instantiateArrayBuffer(receiveInstantiatedSource);
+                    })
+                  });
                 });
               } else {
                 return instantiateArrayBuffer(receiveInstantiatedSource)
@@ -6423,6 +6428,8 @@
           if (wasmPath != null) {
             factoryConfig.locateFile = function (path, prefix) {
               if (path.endsWith('.wasm')) {
+                console.log("ASKIGN FOR THE WASM BINARY");
+                console.log(wasmPath);
                 return wasmPath;
               }
               return prefix + path;

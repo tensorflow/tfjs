@@ -34,19 +34,26 @@ Module["instantiateWasm"] = function (info, receiveInstance) {
 this.onmessage = function (e) {
   try {
     if (e.data.cmd === "load") {
+      console.log("LOADING YAY");
+      console.log(e.data.urlOrBlob);
       Module["DYNAMIC_BASE"] = e.data.DYNAMIC_BASE;
       Module["DYNAMICTOP_PTR"] = e.data.DYNAMICTOP_PTR;
       Module["wasmModule"] = e.data.wasmModule;
       Module["wasmMemory"] = e.data.wasmMemory;
       Module["buffer"] = Module["wasmMemory"].buffer;
       Module["ENVIRONMENT_IS_PTHREAD"] = true;
+      console.log("ABOUT TO LOAD");
       if (typeof e.data.urlOrBlob === "string") {
+        console.log("IMPORT SCRIPTS?");
         importScripts(e.data.urlOrBlob)
+        console.log("done importing");
       } else {
         var objectUrl = URL.createObjectURL(e.data.urlOrBlob);
         importScripts(objectUrl);
         URL.revokeObjectURL(objectUrl)
       }
+      console.log("WORKER HAS INSTANTIATED");
+      console.log(WasmBackendModule);
       Module = WasmBackendModule(Module);
       postMessage({
         "cmd": "loaded"
@@ -136,6 +143,8 @@ if (typeof process === "object" && typeof process.versions === "object" && typeo
     eval.call(null, x)
   }
   importScripts = function (f) {
+    console.log('WORKER IMPORT SCRIPTS');
+    console.log(f);
     globalEval(nodeRead(f))
   };
   postMessage = function (msg) {
