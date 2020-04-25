@@ -328,18 +328,25 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     const pad = 'same';
     const stride: [number, number] = [2, 2];
 
-    const inputs = generateCaseInputs(
-        1 * xSize * xSize * inputDepth, fSize * fSize * inputDepth);
-    const x = tf.tensor4d(inputs.input, inputShape);
-    const w =
-        tf.tensor4d(inputs.filter, [fSize, fSize, inputDepth, outputDepth]);
+    // TODO(annxingyuan): Make this test work with large inputs using
+    // generateCaseInputs https://github.com/tensorflow/tfjs/issues/3143
+    const inputData = [];
+    for (let i = 0; i < xSize * xSize * inputDepth; i++) {
+      inputData.push(i % 5);
+    }
 
+    const wData = [];
+    for (let i = 0; i < fSize * fSize * inputDepth * outputDepth; i++) {
+      wData.push(i % 5);
+    }
+
+    const x = tf.tensor4d(inputData, inputShape);
+    const w = tf.tensor4d(wData, [fSize, fSize, inputDepth, outputDepth]);
     const result = tf.conv2d(x, w, stride, pad);
     expect(result.shape).toEqual([1, 4, 4, 1]);
     expectArraysClose(await result.data(), new Float32Array([
-                        2209560, 2543640, 2877720, 1890576, 4882200, 5216280,
-                        5550360, 3475728, 7554840, 7888920, 8223000, 5060880,
-                        4153744, 4302736, 4451728, 2551904
+                        854, 431, 568, 382, 580, 427, 854, 288, 431, 568, 580,
+                        289, 285, 570, 285, 258
                       ]));
   });
 
