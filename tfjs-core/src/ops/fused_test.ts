@@ -650,48 +650,6 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
                          ]));
      });
 
-  it('relu stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=4 p=same', async () => {
-    const inputDepth = 16;
-    const xSize = 8;
-    const inputShape: [number, number, number, number] =
-        [1, xSize, xSize, inputDepth];
-    const outputDepth = 4;
-    const fSize = 3;
-    const pad = 'same';
-    const stride: [number, number] = [2, 2];
-
-    const inputs = generateCaseInputs(
-        1 * xSize * xSize * inputDepth,
-        fSize * fSize * inputDepth * outputDepth);
-    const x = tf.tensor4d(inputs.input, inputShape);
-    const w =
-        tf.tensor4d(inputs.filter, [fSize, fSize, inputDepth, outputDepth]);
-
-    const result = tf.fused.conv2d({
-      x,
-      filter: w,
-      strides: stride,
-      pad,
-      dataFormat: 'NHWC',
-      dilations: [1, 1],
-      activation: 'relu'
-    });
-    expect(result.shape).toEqual([1, 4, 4, 4]);
-    expectArraysClose(
-        await result.data(), new Float32Array([
-          8772360,  8794320,  8816280,  8838240,  10094856, 10121424, 10147992,
-          10174560, 11417352, 11448528, 11479704, 11510880, 7493040,  7516128,
-          7539216,  7562304,  19352324, 19411152, 19469980, 19528800, 20674820,
-          20738256, 20801692, 20865120, 21997312, 22065360, 22133408, 22201440,
-          13759920, 13807584, 13855248, 13902912, 29932280, 30027984, 30123688,
-          30219360, 31254776, 31355088, 31455400, 31555680, 32577272, 32682192,
-          32787112, 32892000, 20026796, 20099040, 20171284, 20243520, 16368304,
-          16450528, 16532752, 16614976, 16955056, 17040352, 17125648, 17210944,
-          17541808, 17630176, 17718544, 17806912, 10026272, 10086720, 10147168,
-          10207616
-        ]));
-  });
-
   it('relu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=4 p=same',
      async () => {
        const inputDepth = 16;
@@ -737,57 +695,6 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
              10026273, 10086724, 10147170, 10207619
            ]));
      });
-
-  it('relu stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=8 p=same', async () => {
-    const inputDepth = 16;
-    const xSize = 8;
-    const inputShape: [number, number, number, number] =
-        [1, xSize, xSize, inputDepth];
-    const outputDepth = 8;
-    const fSize = 3;
-    const pad = 'same';
-    const stride: [number, number] = [2, 2];
-
-    const inputs = generateCaseInputs(
-        1 * xSize * xSize * inputDepth,
-        fSize * fSize * inputDepth * outputDepth);
-    const x = tf.tensor4d(inputs.input, inputShape);
-    const w =
-        tf.tensor4d(inputs.filter, [fSize, fSize, inputDepth, outputDepth]);
-
-    const result = tf.fused.conv2d({
-      x,
-      filter: w,
-      strides: stride,
-      pad,
-      dataFormat: 'NHWC',
-      dilations: [1, 1],
-      activation: 'relu'
-    });
-    expect(result.shape).toEqual([1, 4, 4, 8]);
-    expectArraysClose(
-        await result.data(), new Float32Array([
-          17522760, 17544720, 17566680, 17588640, 17610600, 17632560, 17654520,
-          17676480, 20163140, 20189712, 20216284, 20242848, 20269412, 20295984,
-          20322556, 20349120, 22803520, 22834704, 22865888, 22897056, 22928224,
-          22959408, 22990592, 23021760, 14962992, 14986080, 15009168, 15032256,
-          15055344, 15078432, 15101520, 15124608, 38645816, 38704648, 38763500,
-          38822304, 38881108, 38939960, 38998792, 39057600, 41286200, 41349640,
-          41413100, 41476512, 41539924, 41603384, 41666824, 41730240, 43926584,
-          43994624, 44062700, 44130720, 44198740, 44266816, 44334864, 44402880,
-          27472168, 27519840, 27567512, 27615168, 27662824, 27710496, 27758168,
-          27805824, 59768880, 59864560, 59960308, 60055968, 60151628, 60247376,
-          60343056, 60438720, 62409256, 62509552, 62609908, 62710176, 62810444,
-          62910800, 63011096, 63111360, 65049640, 65154544, 65259508, 65364384,
-          65469260, 65574224, 65679128, 65784000, 39981352, 40053592, 40125852,
-          40198080, 40270308, 40342568, 40414808, 40487040, 32654372, 32736608,
-          32818844, 32901056, 32983268, 33065504, 33147740, 33229952, 33824804,
-          33910112, 33995420, 34080704, 34165988, 34251296, 34336604, 34421888,
-          34995236, 35083616, 35171996, 35260352, 35348708, 35437088, 35525464,
-          35613824, 19992096, 20052544, 20112992, 20173440, 20233888, 20294336,
-          20354784, 20415232
-        ]));
-  });
 
   it('relu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=8 p=same',
      async () => {
