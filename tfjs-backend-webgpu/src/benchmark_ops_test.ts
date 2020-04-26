@@ -73,6 +73,14 @@ describeWebGPU('Ops benchmarks', () => {
     await benchmarkAndLog(`add${getInputInfo([a, b])}`, () => tf.add(a, b));
   });
 
+  fit('matMul - dispatch 1', async () => {
+    const a = tf.randomNormal([16, 2048]);
+    const b = tf.randomNormal([2048, 16]);
+
+    await benchmarkAndLog(
+        `matMulDispatch1${getInputInfo([a, b])}`, () => tf.matMul(a, b));
+  });
+
   fit('conv2d', async () => {
     const a = tf.randomNormal<tf.Rank.R4>([1, 263, 263, 3]);
     const b = tf.randomNormal<tf.Rank.R4>([7, 7, 3, 64]);
