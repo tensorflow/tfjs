@@ -650,52 +650,6 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
                          ]));
      });
 
-  it('relu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=4 p=same',
-     async () => {
-       const inputDepth = 16;
-       const xSize = 8;
-       const inputShape: [number, number, number, number] =
-           [1, xSize, xSize, inputDepth];
-       const outputDepth = 4;
-       const fSize = 3;
-       const pad = 'same';
-       const stride: [number, number] = [2, 2];
-
-       const inputs = generateCaseInputs(
-           1 * xSize * xSize * inputDepth,
-           fSize * fSize * inputDepth * outputDepth);
-       const x = tf.tensor4d(inputs.input, inputShape);
-       const w =
-           tf.tensor4d(inputs.filter, [fSize, fSize, inputDepth, outputDepth]);
-       const bias = tf.tensor1d([1, 4, 2, 3]);
-
-       const result = tf.fused.conv2d({
-         x,
-         filter: w,
-         strides: stride,
-         pad,
-         dataFormat: 'NHWC',
-         dilations: [1, 1],
-         activation: 'relu',
-         bias
-       });
-       expect(result.shape).toEqual([1, 4, 4, 4]);
-       expectArraysClose(
-           await result.data(), new Float32Array([
-             8772361,  8794324,  8816282,  8838243,  10094857, 10121428,
-             10147994, 10174563, 11417353, 11448532, 11479706, 11510883,
-             7493041,  7516132,  7539218,  7562307,  19352324, 19411156,
-             19469982, 19528804, 20674820, 20738260, 20801694, 20865124,
-             21997312, 22065364, 22133410, 22201444, 13759921, 13807588,
-             13855250, 13902915, 29932280, 30027988, 30123690, 30219364,
-             31254776, 31355092, 31455402, 31555684, 32577272, 32682196,
-             32787114, 32892004, 20026796, 20099044, 20171286, 20243524,
-             16368305, 16450532, 16532754, 16614979, 16955056, 17040356,
-             17125650, 17210948, 17541808, 17630180, 17718546, 17806916,
-             10026273, 10086724, 10147170, 10207619
-           ]));
-     });
-
   it('relu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=8 p=same',
      async () => {
        const inputDepth = 16;
@@ -749,67 +703,6 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
              35172000, 35260356, 35348716, 35437096, 35525468, 35613832,
              19992096, 20052548, 20112994, 20173444, 20233896, 20294342,
              20354788, 20415240
-           ]));
-     });
-
-  it('prelu stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=8 p=same',
-     async () => {
-       const inputDepth = 16;
-       const xSize = 8;
-       const inputShape: [number, number, number, number] =
-           [1, xSize, xSize, inputDepth];
-       const outputDepth = 8;
-       const fSize = 3;
-       const pad = 'same';
-       const stride: [number, number] = [2, 2];
-
-       const inputs = generateCaseInputsPrelu(
-           1 * xSize * xSize * inputDepth,
-           fSize * fSize * inputDepth * outputDepth);
-       const x = tf.tensor4d(inputs.input, inputShape);
-       const w =
-           tf.tensor4d(inputs.filter, [fSize, fSize, inputDepth, outputDepth]);
-       const preluActivationWeights = tf.tensor1d([1, 2, 3, 4, 5, 6, 7, 8]);
-
-       const result = tf.fused.conv2d({
-         x,
-         filter: w,
-         strides: stride,
-         pad,
-         dataFormat: 'NHWC',
-         dilations: [1, 1],
-         activation: 'prelu',
-         preluActivationWeights
-       });
-       expect(result.shape).toEqual([1, 4, 4, 8]);
-       expectArraysClose(
-           await result.data(), new Float32Array([
-             -24805912,  -49715616,  -74729112,  -99846528,  -125067800,
-             -150392736, -175821472, -201354240, -22165524,  -44425632,
-             -66780324,  -89229696,  -111773696, -134412192, -157145264,
-             -179973120, -19525136,  -39135648,  -58831536,  -78612864,
-             -98479600,  -118431648, -138469072, -158592000, -10104240,
-             -20260800,  -30469680,  -40730880,  -51044400,  -61410240,
-             -71828400,  -82298880,  -3682824,   -7395744,   -11138760,
-             -14911872,  -18715080,  -22548384,  -26411784,  -30305280,
-             -1042440,   -2105760,   -3189960,   -4295040,   -5421000,
-             -6567840,   -7735560,   -8924160,   1597944,    1592112,
-             1586280,    1580448,    1574616,    1568784,    1562952,
-             1557120,    2404944,    2403360,    2401776,    2400192,
-             2398608,    2397024,    2395440,    2393856,    17440248,
-             17462064,   17483880,   17505696,   17527512,   17549328,
-             17571144,   17592960,   20080628,   20107056,   20133484,
-             20159904,   20186324,   20212752,   20239180,   20265600,
-             22721008,   22752048,   22783088,   22814112,   22845136,
-             22876176,   22907216,   22938240,   14914128,   14937120,
-             14960112,   14983104,   15006096,   15029088,   15052080,
-             15075072,   13890896,   13923872,   13956848,   13989824,
-             14022800,   14055776,   14088752,   14121728,   15061328,
-             15097376,   15133424,   15169472,   15205520,   15241568,
-             15277616,   15313664,   16231760,   16270880,   16310000,
-             16349120,   16388240,   16427360,   16466480,   16505600,
-             9584352,    9611968,    9639584,    9667200,    9694816,
-             9722432,    9750048,    9777664
            ]));
      });
 
