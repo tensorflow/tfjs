@@ -16,4 +16,4 @@
  */
 
 // Shared kernel impls for use in other backends.
-export {transposeImpl as transposeImpl} from './kernels/Transpose_impl';
+export {transposeImpl} from './kernels/Transpose_impl';
