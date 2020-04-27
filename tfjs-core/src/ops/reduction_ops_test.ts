@@ -1599,7 +1599,7 @@ describeWithFlags('norm', ALL_ENVS, () => {
     expectArraysClose(await norm.data(), [3]);
   });
 
-  fit('axis=0,1 in 4D array norm', async () => {
+  it('axis=0,1 in 4D array norm', async () => {
     const a = tf.tensor4d(
         [
           1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1,
@@ -1613,7 +1613,7 @@ describeWithFlags('norm', ALL_ENVS, () => {
     expectArraysClose(await norm.data(), [4, 3, 4, 3]);
   });
 
-  fit('axis=0,1 in 4D array norm', async () => {
+  it('axis=0,1 in 4D array norm', async () => {
     const a = tf.tensor4d(
         [
           1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1,

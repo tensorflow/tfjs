@@ -27,30 +27,30 @@ export const maxConfig: KernelConfig = {
   kernelName: Max,
   backendName: 'webgl',
   kernelFunc: ({inputs, attrs, backend}) => {
-    let {x} = inputs as MaxInputs;
+    const {x} = inputs as MaxInputs;
     const {reductionIndices} = attrs as {} as MaxAttrs;
     const webglBackend = backend as MathBackendWebGL;
-    console.log('max webgl kernel func', x, reductionIndices);
 
     const xRank = x.shape.length;
 
     const origAxes = util.parseAxisParam(reductionIndices, x.shape);
     let axes = origAxes;
     const permutedAxes = backend_util.getAxesPermutation(axes, xRank);
-    if (permutedAxes != null) {
-      console.log('TRANSPOSE IN WEBGL MAX');
-      x = transposeImpl(x, permutedAxes, webglBackend);
+    const maxInputIsTransposed = permutedAxes != null;
+
+    let maxInput = x;
+    if (maxInputIsTransposed) {
+      maxInput = transposeImpl(x, permutedAxes, webglBackend);
       axes = backend_util.getInnerMostAxes(axes.length, xRank);
     }
 
     backend_util.assertAxesAreInnerMostDims('max', axes, xRank);
     const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
+        backend_util.computeOutAndReduceShapes(maxInput.shape, axes);
 
     let out;
     if (webglBackend.shouldExecuteOnCPU([x])) {
-      console.log('running on the cpu instead');
-      const xTexData = webglBackend.texData.get(x.dataId);
+      const xTexData = webglBackend.texData.get(maxInput.dataId);
       const values = xTexData.values as TypedArray;
       const outValues = maxImplCPU(
           values, util.sizeFromShape(reduceShape), outShape, x.dtype);
@@ -59,7 +59,11 @@ export const maxConfig: KernelConfig = {
       const outData = webglBackend.texData.get(out.dataId);
       outData.values = outValues;
     } else {
-      out = maxImpl(x, reduceShape, outShape, webglBackend);
+      out = maxImpl(maxInput, reduceShape, outShape, webglBackend);
+    }
+
+    if (maxInputIsTransposed) {
+      webglBackend.disposeData(maxInput.dataId);
     }
 
     return out;
