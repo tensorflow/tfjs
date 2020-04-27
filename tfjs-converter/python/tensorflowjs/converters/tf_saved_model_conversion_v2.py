@@ -45,9 +45,6 @@ from tensorflowjs.converters import fuse_depthwise_conv2d
 from tensorflowjs.converters import graph_rewrite_util
 from tensorflowjs import resource_loader
 
-# enable eager execution for v2 APIs
-tf.compat.v1.enable_eager_execution()
-
 CLEARED_TENSOR_FIELDS = (
     'tensor_content', 'half_val', 'float_val', 'double_val', 'int_val',
     'string_val', 'scomplex_val', 'int64_val', 'bool_val',
