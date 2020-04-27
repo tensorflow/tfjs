@@ -23,5 +23,6 @@ yarn benchmark-cloud
 # Reinstall the following line once https://github.com/tensorflow/tfjs/pull/1663
 # is resolved.
 # yarn benchmark --layers --tfjs-node
-yarn validate-converter --tfjs-node
-cd ../../
+# TODO(lina) update this to work against head.
+# yarn validate-converter --tfjs-node
+# cd ../../

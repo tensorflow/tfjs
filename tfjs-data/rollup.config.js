@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
-import commonjs from 'rollup-plugin-commonjs';
-import node from 'rollup-plugin-node-resolve';
-import typescript from 'rollup-plugin-typescript2';
-import uglify from 'rollup-plugin-uglify';
+import commonjs from '@rollup/plugin-commonjs';
+import resolve from '@rollup/plugin-node-resolve';
+import typescript from '@rollup/plugin-typescript';
+import {terser} from 'rollup-plugin-terser';
+import visualizer from 'rollup-plugin-visualizer';
 
 const PREAMBLE = `/**
  * @license
@@ -37,30 +38,30 @@ const PREAMBLE = `/**
  * =============================================================================
  */`;
 
-function minify() {
-  return uglify({
-    output: {
-      preamble: PREAMBLE
-    }
-  });
-}
-
 function config({
   plugins = [],
   output = {},
-  external = []
+  external = [],
+  visualize = false,
+  tsCompilerOptions = {}
 }) {
+  if (visualize) {
+    const filename = output.file + '.html';
+    plugins.push(visualizer(
+        {sourcemap: true, filename, template: 'sunburst', gzipSize: true}));
+    console.log(`Will output a bundle visualization in ${filename}`);
+  }
+
+  const defaultTsOptions = {
+    include: ['src/**/*.ts'],
+    module: 'ES2015',
+  };
+  const tsoptions = Object.assign({}, defaultTsOptions, tsCompilerOptions);
+
   return {
     input: 'src/index.ts',
     plugins: [
-      typescript({
-        tsconfigOverride: {
-          compilerOptions: {
-            module: 'ES2015'
-          }
-        }
-      }),
-      node(),
+      typescript(tsoptions), resolve(),
       // Polyfill require() from dependencies.
       commonjs({
         ignore: ['crypto', 'node-fetch'],
@@ -93,29 +94,79 @@ function config({
   };
 }
 
-export default [
-  config({
+module.exports = cmdOptions => {
+  const bundles = [];
+
+  const terserPlugin = terser({output: {preamble: PREAMBLE, comments: false}});
+  const name = 'tf.data';
+  const extend = true;
+  const browserFormat = 'umd';
+  const fileName = 'tf-data';
+
+  // Node
+  bundles.push(config({
     output: {
-      format: 'umd',
-      name: 'tf.data',
-      extend: true,
-      file: 'dist/tf-data.js'
-    }
-  }),
-  config({
-    plugins: [minify()],
-    output: {
-      format: 'umd',
-      name: 'tf.data',
-      extend: true,
-      file: 'dist/tf-data.min.js'
-    }
-  }),
-  config({
-    plugins: [minify()],
-    output: {
-      format: 'es',
-      file: 'dist/tf-data.esm.js'
-    }
-  })
-];
+      format: 'cjs',
+      name,
+      extend,
+      file: `dist/${fileName}.node.js`,
+      freeze: false
+    },
+    tsCompilerOptions: {target: 'es5'}
+  }));
+
+  if (cmdOptions.ci || cmdOptions.npm) {
+    // Browser default minified (ES5)
+    bundles.push(config({
+      plugins: [terserPlugin],
+      output: {
+        format: browserFormat,
+        name,
+        extend,
+        file: `dist/${fileName}.min.js`,
+        freeze: false
+      },
+      tsCompilerOptions: {target: 'es5'},
+      visualize: cmdOptions.visualize
+    }));
+  }
+
+  if (cmdOptions.npm) {
+    // Browser default unminified (ES5)
+    bundles.push(config({
+      output: {
+        format: browserFormat,
+        name,
+        extend,
+        file: `dist/${fileName}.js`,
+        freeze: false
+      },
+      tsCompilerOptions: {target: 'es5'}
+    }));
+
+    // Browser ES2017
+    bundles.push(config({
+      output: {
+        format: browserFormat,
+        name,
+        extend,
+        file: `dist/${fileName}.es2017.js`
+      },
+      tsCompilerOptions: {target: 'es2017'}
+    }));
+
+    // Browser ES2017 minified
+    bundles.push(config({
+      plugins: [terserPlugin],
+      output: {
+        format: browserFormat,
+        name,
+        extend,
+        file: `dist/${fileName}.es2017.min.js`
+      },
+      tsCompilerOptions: {target: 'es2017'}
+    }));
+  }
+
+  return bundles;
+};
