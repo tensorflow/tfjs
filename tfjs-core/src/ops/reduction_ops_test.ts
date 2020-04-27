@@ -1500,7 +1500,7 @@ describeWithFlags('norm', ALL_ENVS, () => {
     expectArraysClose(await norm.data(), [3]);
   });
 
-  fit('axis=0 in 2D array norm', async () => {
+  it('axis=0 in 2D array norm', async () => {
     const a = tf.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
     const norm = tf.norm(a, Infinity, [0]);
 
