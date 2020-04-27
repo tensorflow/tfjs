@@ -310,7 +310,6 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   readSync(dataId: DataId): BackendValues {
-    console.log('READSYNC');
     const texData = this.texData.get(dataId);
     const {values, dtype, complexTensors, slice, shape, isPacked} = texData;
     if (slice != null) {
@@ -344,7 +343,6 @@ export class MathBackendWebGL extends KernelBackend {
       const imagValues = complexTensors.imag.dataSync() as Float32Array;
       result = mergeRealAndImagArrays(realValues, imagValues);
     } else {
-      console.log('GET VALUES FROM TEX');
       result = this.getValuesFromTexture(dataId);
     }
 
@@ -417,10 +415,8 @@ export class MathBackendWebGL extends KernelBackend {
       vals = mergeRealAndImagArrays(
           realValues as Float32Array, imagValues as Float32Array);
     } else if (buffer == null) {
-      console.log('GET VALUES FROM TEXTURE');
       vals = this.getValuesFromTexture(dataId);
     } else {
-      console.log('download f32');
       const size = util.sizeFromShape(shape);
       vals = this.gpgpu.downloadFloat32MatrixFromBuffer(buffer, size);
     }
@@ -464,7 +460,6 @@ export class MathBackendWebGL extends KernelBackend {
     const {shape, dtype, isPacked} = this.texData.get(dataId);
     const size = util.sizeFromShape(shape);
     if (env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
-      console.log('RUN DOWNLOAD MATRIX FROM PACKED TEXTURE');
       const tmpTarget = this.decode(dataId);
       const tmpData = this.texData.get(tmpTarget.dataId);
       const vals =
@@ -2572,12 +2567,10 @@ export class MathBackendWebGL extends KernelBackend {
         savedInput.shape = targetShape;
       }
 
-      console.log('UPLOAD INPUT TO GPU');
       this.uploadToGPU(input.dataId);
       return {shape: input.shape, texData, isUniform: false};
     });
 
-    console.log('UPLOAD OUTPUT TO GPU');
     this.uploadToGPU(output.dataId);
     const outputData:
         TensorData = {shape: output.shape, texData: outData, isUniform: false};
@@ -2592,7 +2585,6 @@ export class MathBackendWebGL extends KernelBackend {
       query = this.startTimer();
     }
 
-    console.log('RUN ACTUAL PROGRAM');
     gpgpu_math.runProgram(
         this.gpgpu, binary, inputsData, outputData, customSetup);
 
@@ -2617,8 +2609,6 @@ export class MathBackendWebGL extends KernelBackend {
       program: GPGPUProgram, inputs: TensorInfo[], outputDtype?: DataType,
       customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => void,
       preventEagerUnpackingOfOutput = false): K {
-    console.log('COMPILEANDRUN');
-    console.log(program.constructor.name);
     outputDtype = outputDtype || inputs[0].dtype;
     const outInfo = this.runWebGLProgram(
         program, inputs, outputDtype, customSetup,

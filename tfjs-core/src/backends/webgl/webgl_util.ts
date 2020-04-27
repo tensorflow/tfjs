@@ -298,7 +298,6 @@ export function bindCanvasToFramebuffer(
 export function bindColorTextureToFramebuffer(
     gl: WebGLRenderingContext, debug: boolean, textures: WebGLTexture[],
     framebuffer: WebGLFramebuffer) {
-  console.log('BIND COLOR TEXTURE TO FRAMEBUFFER');
   callAndCheck(
       gl, debug, () => gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer));
 
