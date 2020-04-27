@@ -45,9 +45,8 @@
     "prep": "cd node_modules/@tensorflow/tfjs-core && yarn && yarn build",
     "publish-local": "yarn prep && yalc push",
     "publish-npm": "npm publish",
-    "test": "ts-node -P tsconfig.test.json src/run_tests.ts",
+    "test": "yarn && yarn build-deps && yarn build && ts-node -P tsconfig.test.json src/run_tests.ts",
     "test-ci": "ts-node -P tsconfig.test.json src/run_tests.ts",
-    "test-ts-integration": "./scripts/test-ts-integration.sh",
     "upload-windows-addon": "./scripts/build-and-upload-windows-addon.bat"
   },
   "devDependencies": {
