@@ -58,8 +58,8 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     }, 100);
 
     // Silences backend registration warnings.
-    // spyOn(console, 'warn');
-    // spyOn(console, 'log');
+    spyOn(console, 'warn');
+    spyOn(console, 'log');
   });
 
   afterEach(() => {
@@ -120,12 +120,5 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     // Setting the path too late.
     expect(() => setWasmPath('too/late'))
         .toThrowError(/The WASM backend was already initialized. Make sure/);
-  });
-
-  fit('max', async () => {
-    const a = tf.tensor1d([3, -1, 0, 100, -7, 2]);
-    const r = tf.max(a);
-    const data = await r.data();
-    console.log(data);
   });
 });
