@@ -37,19 +37,36 @@ export class UnaryOpProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A'];
-  workPerThread = 4;
-  workGroupSize: [number, number, number] = [16, 1, 1];
+  workPerThread: number;
+  workGroupSize: [number, number, number];
 
   constructor(outputShape: number[], op: string) {
+    const workGroupSizeX = 16;
+    this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = outputShape;
     const size = util.sizeFromShape(this.outputShape);
-
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    const fit = size % workGroupSizeX === 0;
+    this.workPerThread = fit ? 1 : 4;
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
-    const type = getCoordsDataType(this.outputShape.length);
-    this.userCode = `
+    if (fit) {
+      this.userCode = `
+      float unaryOperation(float a) {
+        ${op}
+      }
+
+      void main() {
+        int index = int(gl_GlobalInvocationID.x);
+        float a = A[index];
+        setOutput(index, unaryOperation(a));
+      }
+      `;
+      this.shaderKey = `unary2${op}`;
+    } else {
+      const type = getCoordsDataType(this.outputShape.length);
+      this.userCode = `
       float unaryOperation(float a) {
         ${op}
       }
@@ -68,7 +85,8 @@ export class UnaryOpProgram implements WebGPUProgram {
           }
         }
       }
-    `;
-    this.shaderKey = `unary${op}${type}${size}`;
+      `;
+      this.shaderKey = `unary${op}${type}${size}`;
+    }
   }
 }
