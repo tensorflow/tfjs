@@ -71,13 +71,12 @@ steps:
   args: ['./scripts/run-build.sh', 'tfjs']
   waitFor: ['find-affected-packages']
 
-# TODO(yassogba) re-enable after big merge
 # Vis.
-# - name: 'gcr.io/cloud-builders/gcloud'
-#   entrypoint: 'bash'
-#   id: 'tfjs-vis'
-#   args: ['./scripts/run-build.sh', 'tfjs-vis']
-#   waitFor: ['find-affected-packages']
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'tfjs-vis'
+  args: ['./scripts/run-build.sh', 'tfjs-vis']
+  waitFor: ['find-affected-packages']
 
 # WebGPU.
 - name: 'gcr.io/cloud-builders/gcloud'
