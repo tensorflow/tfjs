@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, NumericDataType, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {reduce} from '../kernel_utils/reduce';
@@ -34,24 +34,3 @@ export const maxImpl =
               backend),
           outShape, backend);
     };
-
-// todo(@annxingyuan) import this from cpu backend.
-export function maxImplCPU(
-    aVals: TypedArray, reduceSize: number, outShape: number[],
-    dtype: DataType): TypedArray {
-  const vals = util.getTypedArrayFromDType(
-      dtype as NumericDataType, util.sizeFromShape(outShape));
-
-  for (let i = 0; i < vals.length; ++i) {
-    const offset = i * reduceSize;
-    let max = aVals[offset];
-    for (let j = 0; j < reduceSize; ++j) {
-      const value = aVals[offset + j];
-      if (value > max) {
-        max = value;
-      }
-    }
-    vals[i] = max;
-  }
-  return vals;
-}
