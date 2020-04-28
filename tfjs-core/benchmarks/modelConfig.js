@@ -72,6 +72,21 @@ const sentences = [
 ];
 
 const benchmarks = {
+  'custom_forward': {
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      // Setup code for the forward pass. Only gets called once.
+      const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+      const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+
+      return () => {
+        // Forward pass.
+        return tf.matMul(a, b);
+      }
+    }
+  },
   'mobilenet_v2': {
     load: async () => {
       const url =
