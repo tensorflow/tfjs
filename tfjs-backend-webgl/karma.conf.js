@@ -16,18 +16,27 @@
  */
 
 const karmaTypescriptConfig = {
-  tsconfig: 'tsconfig.json',
+  tsconfig: 'tsconfig.test.json',
   // Disable coverage reports and instrumentation by default for tests
   coverageOptions: {instrumentation: false},
   reports: {},
   bundlerOptions: {
-    sourceMap: true,
     // Ignore the import of the `worker_threads` package used in a core test
     // meant to run in node.
     exclude: ['worker_threads'],
     // worker_node_test in tfjs-core contains a conditional require statement
     // that confuses the bundler of karma-typescript.
-    ignore: ['./worker_node_test']
+    ignore: ['./worker_node_test'],
+    // Process any non es5 code through karma-typescript-es6-transform (babel)
+    acornOptions: {ecmaVersion: 8},
+    transforms: [
+      require('karma-typescript-es6-transform')({
+        presets: [
+          // ensure we get es5 by adding IE 11 as a target
+          ['@babel/env', {'targets': {'ie': '11'}, 'loose': true}]
+        ]
+      }),
+    ]
   }
 };
 
@@ -50,6 +59,7 @@ module.exports = function(config) {
   config.set({
     frameworks: ['jasmine', 'karma-typescript'],
     files: [
+      {pattern: './node_modules/@babel/polyfill/dist/polyfill.js'},
       'src/setup_test.ts',
       {pattern: 'src/**/*.ts'},
     ],

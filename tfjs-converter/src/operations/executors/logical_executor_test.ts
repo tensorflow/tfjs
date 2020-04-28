@@ -76,5 +76,18 @@ describe('logical', () => {
         expect(tfc.where).toHaveBeenCalledWith(input3[0], input1[0], input2[0]);
       });
     });
+
+    describe('SelectV2', () => {
+      it('should call tfc.where', () => {
+        spyOn(tfc, 'where');
+        node.op = 'SelectV2';
+        node.inputNames = ['input1', 'input2', 'input3'];
+        node.inputParams.condition = createTensorAttr(2);
+        const input3 = [tfc.scalar(1)];
+        executeOp(node, {input1, input2, input3}, context);
+
+        expect(tfc.where).toHaveBeenCalledWith(input3[0], input1[0], input2[0]);
+      });
+    });
   });
 });

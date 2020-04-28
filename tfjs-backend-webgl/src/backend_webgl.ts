@@ -110,7 +110,6 @@ import {UnaryOpPackedProgram} from './unaryop_packed_gpu';
 import {UnpackProgram} from './unpack_gpu';
 import * as webgl_util from './webgl_util';
 import {BackendValues} from '@tensorflow/tfjs-core';
-import {warn} from 'console';
 
 export const EPSILON_FLOAT32 = 1e-7;
 export const EPSILON_FLOAT16 = 1e-4;
@@ -1266,7 +1265,7 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   where(condition: Tensor): Tensor2D {
-    warn(
+    backend_util.warn(
         'tf.where() in webgl locks the UI thread. ' +
         'Call tf.whereAsync() instead');
     const condVals = condition.dataSync();
@@ -2226,7 +2225,7 @@ export class MathBackendWebGL extends KernelBackend {
   nonMaxSuppression(
       boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
       iouThreshold: number, scoreThreshold: number): Tensor1D {
-    warn(
+    backend_util.warn(
         'tf.nonMaxSuppression() in webgl locks the UI thread. ' +
         'Call tf.nonMaxSuppressionAsync() instead');
     const boxesVals = boxes.dataSync();
