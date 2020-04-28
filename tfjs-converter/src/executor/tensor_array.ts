@@ -67,9 +67,9 @@ export class TensorArray {
       throw new Error(`TensorArray ${this.name} has already been closed.`);
     }
 
-    if (index < 0 || index >= this.tensors.length) {
+    if (index < 0 || index >= this.size()) {
       throw new Error(`Tried to read from index ${index}, but array size is: ${
-          this.tensors.length}`);
+          this.size()}`);
     }
 
     const tensorWithState = this.tensors[index];
@@ -182,6 +182,8 @@ export class TensorArray {
       for (let i = 0; i < this.size(); i++) {
         indices.push(i);
       }
+    } else {
+      indices = indices.slice(0, this.size());
     }
 
     if (indices.length === 0) {

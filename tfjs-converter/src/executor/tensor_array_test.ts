@@ -145,6 +145,11 @@ describe('TensorArray', () => {
       expect(gathered.shape).toEqual([2, 1, 1]);
       test_util.expectArraysClose(await gathered.data(), [2, 1]);
     });
+    it('should return when indices longer than available tensors', async () => {
+      const gathered = tensorArray.gather([1, 0, 2, 3]);
+      expect(gathered.shape).toEqual([2, 1, 1]);
+      test_util.expectArraysClose(await gathered.data(), [2, 1]);
+    });
     it('should fail if dtype is not matched', () => {
       expect(() => tensorArray.gather([0, 1], 'float32')).toThrow();
     });
