@@ -14,17 +14,16 @@
  * limitations under the License.
  * =============================================================================
  */
-import './add';
-import './batchnorm';
-import './broadcast_to';
-import './concat';
-import './div';
-import './div_no_nan';
-import './one_hot';
-import './not_equal';
-import './pad';
-import './split';
-import './squared_difference';
-import './sub';
-import './tile';
-import './transpose';
+import {SplitV, SplitVAttrs} from '../kernel_names';
+import {GradConfig, NamedAttrMap} from '../kernel_registry';
+import {concat} from '../ops/concat';
+import {Tensor} from '../tensor';
+
+export const splitVGradConfig: GradConfig = {
+  kernelName: SplitV,
+  gradFunc: (dy: Tensor[], saved: Tensor[], attrs: NamedAttrMap) => {
+    const {axis} = attrs as {} as SplitVAttrs;
+
+    return {x: () => concat(dy, axis)};
+  }
+};
