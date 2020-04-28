@@ -63,24 +63,26 @@ function split_<T extends Tensor>(
     x: Tensor|TensorLike, numOrSizeSplits: number[]|number, axis = 0): T[] {
   const $x = convertToTensor(x, 'x', 'split');
 
-  axis = parseAxisParam(axis, $x.shape)[0];
+  const $axis = parseAxisParam(axis, $x.shape)[0];
   let splitSizes: number[];
 
   if (typeof (numOrSizeSplits) === 'number') {
     assert(
-        $x.shape[axis] % numOrSizeSplits === 0,
+        $x.shape[$axis] % numOrSizeSplits === 0,
         () => 'Number of splits must evenly divide the axis.');
     splitSizes =
-        new Array(numOrSizeSplits).fill($x.shape[axis] / numOrSizeSplits);
+        new Array(numOrSizeSplits).fill($x.shape[$axis] / numOrSizeSplits);
   } else {
     assert(
-        $x.shape[axis] === numOrSizeSplits.reduce((a, b) => a + b),
+        $x.shape[$axis] === numOrSizeSplits.reduce((a, b) => a + b),
         () => 'The sum of sizes must match the size of the axis dimension.');
     splitSizes = numOrSizeSplits;
   }
 
-  const forward: ForwardFunc<Tensor> = (backend, _) =>
-      backend.split($x, splitSizes, axis) as {} as T;
+  const forward: ForwardFunc<Tensor> = (backend, _) => {
+    const $axis = parseAxisParam(axis, $x.shape)[0];
+    return backend.split($x, splitSizes, $axis) as {} as T;
+  };
 
   const inputs: SplitVInputs = {x: $x};
   const attr: SplitVAttrs = {numOrSizeSplits, axis};

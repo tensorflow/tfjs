@@ -79,8 +79,8 @@ function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
     });
   }
 
-  axis = parseAxisParam(axis, $tensors[0].shape)[0];
-  const outShape = computeOutShape($tensors.map(t => t.shape), axis);
+  const $axis = parseAxisParam(axis, $tensors[0].shape)[0];
+  const outShape = computeOutShape($tensors.map(t => t.shape), $axis);
   if (sizeFromShape(outShape) === 0) {
     return tensor([], outShape) as T;
   }
@@ -91,10 +91,11 @@ function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
   }
 
   const shapes = $tensors.map(t => t.shape);
-  assertParamsConsistent(shapes, axis);
+  assertParamsConsistent(shapes, $axis);
 
   const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.concat($tensors, axis);
+    const $axis = parseAxisParam(axis, $tensors[0].shape)[0];
+    const res = backend.concat($tensors, $axis);
     save($tensors);
     return res;
   };
