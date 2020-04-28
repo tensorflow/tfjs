@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line: no-imports-from-dist
 import {Max, MaxAttrs, MaxInputs} from '@tensorflow/tfjs-core';
 import {backend_util, KernelConfig, TypedArray, util} from '@tensorflow/tfjs-core';
 
