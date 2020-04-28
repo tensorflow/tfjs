@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "description": "Vanilla JavaScript backend for TensorFlow.js",
   "private": false,
-  "type": "module",
   "main": "dist/tf-backend-cpu.node.js",
   "jsdelivr": "dist/tf-backend-cpu.min.js",
   "unpkg": "dist/tf-backend-cpu.min.js",
