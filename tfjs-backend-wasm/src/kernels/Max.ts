@@ -24,7 +24,7 @@ interface MaxInputs extends NamedTensorInfoMap {
 }
 
 interface MaxAttrs extends NamedAttrMap {
-  reductionIndices: number[];
+  axes: number[];
 }
 
 let wasmMax: (xId: number, reduceSize: number, outId: number) => void;
@@ -37,16 +37,9 @@ function setup(backend: BackendWasm): void {
 function max(args: {backend: BackendWasm, inputs: MaxInputs, attrs: MaxAttrs}):
     TensorInfo {
   const {backend, inputs, attrs} = args;
-  const {reductionIndices} = attrs;
+  const {axes} = attrs;
   const {x} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
-
-  const origAxes = util.parseAxisParam(reductionIndices, x.shape);
-  let axes = origAxes;
-  const permutedAxes = backend_util.getAxesPermutation(axes, x.shape.length);
-  if (permutedAxes != null) {
-    console.log('TRANSPOSE');
-  }
 
   backend_util.assertAxesAreInnerMostDims('max', axes, x.shape.length);
   const [outShape, reduceShape] =
