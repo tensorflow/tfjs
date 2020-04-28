@@ -124,6 +124,18 @@ export const json: OpMapper[] = [
       {'start': 1, 'name': 'a', 'type': 'tensor'},
       {'start': 2, 'name': 'b', 'type': 'tensor'},
     ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
+    ]
+  },
+  {
+    'tfOpName': 'SelectV2',
+    'category': 'logical',
+    'inputs': [
+      {'start': 0, 'name': 'condition', 'type': 'tensor'},
+      {'start': 1, 'name': 'a', 'type': 'tensor'},
+      {'start': 2, 'name': 'b', 'type': 'tensor'},
+    ],
     'attrs': [{
       'tfName': 'T',
       'name': 'dtype',
