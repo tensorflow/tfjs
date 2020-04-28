@@ -15,13 +15,14 @@
  * =============================================================================
  */
 
+// tslint:disable-next-line: no-imports-from-dist
 import {Max, MaxAttrs, MaxInputs} from '@tensorflow/tfjs-core';
 import {backend_util, KernelConfig, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 
-import {maxImpl, maxImplCPU} from './Max_impl';
-import {transposeImpl} from './Transpose_impl';
+import {maxImpl} from './Max_impl';
+import {transposeImpl, transposeImplCPU} from './Transpose_impl';
 
 export const maxConfig: KernelConfig = {
   kernelName: Max,
@@ -52,8 +53,8 @@ export const maxConfig: KernelConfig = {
     if (webglBackend.shouldExecuteOnCPU([x])) {
       const xTexData = webglBackend.texData.get(maxInput.dataId);
       const values = xTexData.values as TypedArray;
-      const outValues = maxImplCPU(
-          values, util.sizeFromShape(reduceShape), outShape, x.dtype);
+      const outValues =
+          transposeImplCPU(values, x.shape, x.dtype, permutedAxes);
 
       out = webglBackend.makeTensorInfo(outShape, x.dtype);
       const outData = webglBackend.texData.get(out.dataId);

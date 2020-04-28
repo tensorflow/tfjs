@@ -41,7 +41,7 @@ export const transposeConfig: KernelConfig = {
     if (webglBackend.shouldExecuteOnCPU([x])) {
       const xTexData = webglBackend.texData.get(x.dataId);
       const values = xTexData.values as TypedArray;
-      const outValues = cpuTranspose(values, x.shape, x.dtype, perm, newShape);
+      const outValues = cpuTranspose(values, x.shape, x.dtype, perm);
 
       out = webglBackend.makeTensorInfo(newShape, x.dtype);
       const outData = webglBackend.texData.get(out.dataId);
