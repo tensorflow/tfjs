@@ -21,7 +21,7 @@ yarn
 
 yarn build
 yarn build-test-snippets
-yarn rollup -c --visualize
+yarn rollup -c --visualize --npm
 
 # Use minified files for miniprogram
 mkdir dist/miniprogram

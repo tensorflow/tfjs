@@ -55,7 +55,7 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
   });
 
   // tslint:disable-next-line: ban
-  xit('errors when registering the same kernel twice', () => {
+  it('errors when registering the same kernel twice', () => {
     interface TestBackend extends KernelBackend {
       id: number;
     }
@@ -68,7 +68,6 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
       } as TestBackend;
     });
 
-    // TODO(yassogba) restore this once WebGL backend is out of core.
     tf.registerKernel({
       kernelName: 'MyKernel',
       backendName: 'backend1',

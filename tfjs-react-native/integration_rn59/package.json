@@ -5,7 +5,7 @@
   "scripts": {
     "start": "react-native start --reset-cache",
     "lint": "tslint -p . -t verbose",
-    "prep-tests": "ts-node scripts/prep_tests.ts",
+    "prep-tests": "ts-node -s scripts/prep_tests.ts",
     "start-metro": "npx react-native start --reset-cache --verbose",
     "test-integration": "wdio wdio.conf.js",
     "test-ci": "./scripts/test-ci.sh",
@@ -49,7 +49,7 @@
     "jest": "^24.8.0",
     "metro-react-native-babel-preset": "^0.55.0",
     "react-test-renderer": "16.8.3",
-    "ts-node": "~4.1.0",
+    "ts-node": "~8.8.2",
     "tslint": "~5.11.0",
     "tslint-no-circular-imports": "^0.5.0",
     "typescript": "3.5.3",

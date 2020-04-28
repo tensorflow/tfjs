@@ -16,7 +16,7 @@
  */
 
 const karmaTypescriptConfig = {
-  tsconfig: 'tsconfig.json',
+  tsconfig: 'tsconfig.test.json',
   // Disable coverage reports and instrumentation by default for tests
   coverageOptions: {instrumentation: false},
   reports: {},
@@ -47,32 +47,23 @@ const devConfig = {
 };
 
 const browserstackConfig = {
-  frameworks: ['browserify', 'jasmine'],
-  files: ['dist/setup_test.js', {pattern: 'dist/**/*_test.js'}],
-  exclude: [
-    'dist/worker_node_test.js',
-    'dist/worker_test.js',
-    'dist/test_node.js',
-    'dist/test_async_backends.js',
-  ],
-  preprocessors: {'dist/**/*_test.js': ['browserify']},
-  browserify: {debug: false},
-  reporters: ['dots'],
-  singleRun: true,
-  hostname: 'bs-local.com',
+  ...devConfig,
+  reporters: ['dots', 'karma-typescript'],
+  singleRun: true
 };
 
 const webworkerConfig = {
   ...browserstackConfig,
   files: [
-    'dist/setup_test.js',
-    'dist/worker_test.js',
-    // Serve dist/tf-core.min.js and tf-backend-cpu.min.js as a static resource,
-    // but do not include in the test runner
+    'setup_test.ts',
+    'worker_test.ts',
+    // Serve dist/tf-core.min.js and tf-backend-cpu.min.js as a static
+    // resource, but do not include in the test runner
     {pattern: 'dist/tf-core.min.js', included: false},
     {pattern: 'dist/tf-backend-cpu.min.js', included: false},
   ],
   exclude: [],
+  hostname: 'bs-local.com',
   port: 12345
 };
 
@@ -89,7 +80,6 @@ module.exports = function(config) {
   if (config.flags) {
     args.push('--flags', config.flags);
   }
-
 
   let extraConfig = null;
 
