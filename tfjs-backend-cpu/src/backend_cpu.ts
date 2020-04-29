@@ -18,7 +18,7 @@
 import * as tf from '@tensorflow/tfjs-core';
 import {engine, env} from '@tensorflow/tfjs-core';
 import {backend_util, buffer, slice_util, util} from '@tensorflow/tfjs-core';
-import {BackendTimingInfo, DataStorage, DataType, DataValues, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, TypedArray, upcastType} from '@tensorflow/tfjs-core';
+import {BackendTimingInfo, DataStorage, DataType, DataValues, KernelBackend, max, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 import {kernel_impls} from '@tensorflow/tfjs-core';
 
 const nonMaxSuppressionV3 = kernel_impls.nonMaxSuppressionV3;
@@ -367,7 +367,7 @@ export class MathBackendCPU extends KernelBackend {
     const axes = util.parseAxisParam([dim], logits.shape);
     // TODO(annxingyuan): Call maxImpl rather than op as part of softmax kernel
     // modularization.
-    const maxLogit = tf.max(logits, axes);
+    const maxLogit = max(logits, axes);
     const expandedShape =
         backend_util.expandShapeToKeepDim(maxLogit.shape, axes);
     const a = this.subtract(logits, maxLogit.reshape(expandedShape));
