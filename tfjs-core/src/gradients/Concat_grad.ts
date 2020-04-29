@@ -14,18 +14,21 @@
  * limitations under the License.
  * =============================================================================
  */
-import './add';
-import './batchnorm';
-import './broadcast_to';
-import './max';
-import './concat';
-import './div';
-import './div_no_nan';
-import './one_hot';
-import './not_equal';
-import './pad';
-import './split';
-import './squared_difference';
-import './sub';
-import './tile';
-import './transpose';
+import {Concat, ConcatAttrs} from '../kernel_names';
+import {GradConfig, NamedAttrMap} from '../kernel_registry';
+import {split} from '../ops/split';
+import {Tensor} from '../tensor';
+import {parseAxisParam} from '../util';
+
+export const concatGradConfig: GradConfig = {
+  kernelName: Concat,
+  saveAllInputs: true,
+  gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
+    const shapes = saved.map(t => t.shape);
+    const {axis} = attrs as {} as ConcatAttrs;
+    const $axis = parseAxisParam(axis, saved[0].shape)[0];
+    const sizeSplits = shapes.map(s => s[$axis]);
+    const derTensors = split(dy, sizeSplits, $axis);
+    return derTensors.map(t => () => t) as {};
+  }
+};

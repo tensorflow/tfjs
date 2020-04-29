@@ -189,10 +189,7 @@ export interface OpHandler {
       keepDims: boolean): Tensor;
   slice<R extends Rank, T extends Tensor<R>>(
       x: T, begin: number|number[], size?: number|number[]): T;
-  split<T extends Tensor>(
-      x: T, numOrSizeSplits: number[]|number, axis?: number): T[];
   reverse<T extends Tensor>(x: T, axis?: number|number[]): T;
-  concat<T extends Tensor>(tensors: Array<T|TensorLike>, axis: number): T;
   stack<T extends Tensor>(tensors: Array<T|TensorLike>, axis: number): Tensor;
   unstack<T extends Tensor>(value: T, axis: number): Tensor[];
   all<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
@@ -788,18 +785,6 @@ export class Tensor<R extends Rank = Rank> {
   reverse<T extends Tensor>(this: T, axis?: number|number[]): T {
     this.throwIfDisposed();
     return opHandler.reverse(this, axis);
-  }
-  concat<T extends Tensor>(this: T, x: T|Array<T|TensorLike>, axis = 0): T {
-    this.throwIfDisposed();
-    if (x instanceof Tensor) {
-      x = [x];
-    }
-    return opHandler.concat([this, ...x], axis);
-  }
-  split<T extends Tensor>(this: T, numOrSizeSplits: number[]|number, axis = 0):
-      T[] {
-    this.throwIfDisposed();
-    return opHandler.split(this, numOrSizeSplits, axis);
   }
   stack(x: Tensor, axis = 0): Tensor {
     return opHandler.stack([this, x], axis);

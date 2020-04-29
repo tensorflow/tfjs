@@ -27,12 +27,12 @@ import {TensorLike} from '../types';
 import {assert} from '../util';
 
 import {squeeze, stack, unstack} from './array_ops';
-import {split} from './concat_split';
 import {eye} from './eye';
 import {logicalAnd, where} from './logical_ops';
 import {norm} from './norm';
 import {op} from './operation';
 import {sum} from './reduction_ops';
+import {split} from './split';
 import {sub} from './sub';
 import {range, scalar, tensor2d, zeros} from './tensor_ops';
 

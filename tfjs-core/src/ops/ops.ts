@@ -24,6 +24,11 @@ export {batchNorm3d, batchNormalization3d} from './batchnorm3d';
 export {batchNorm4d, batchNormalization4d} from './batchnorm4d';
 export {broadcastTo} from './broadcast_to';
 export {clone} from './clone';
+export {concat} from './concat';
+export {concat1d} from './concat_1d';
+export {concat2d} from './concat_2d';
+export {concat3d} from './concat_3d';
+export {concat4d} from './concat_4d';
 export {div} from './div';
 export {divNoNan} from './div_no_nan';
 export {eye} from './eye';
@@ -40,6 +45,7 @@ export {rand} from './rand';
 export {randomGamma} from './random_gamma';
 export {randomNormal} from './random_normal';
 export {randomUniform} from './random_uniform';
+export {split} from './split';
 export {square} from './square';
 export {squaredDifference} from './squared_difference';
 export {sub} from './sub';
@@ -48,7 +54,6 @@ export {truncatedNormal} from './truncated_normal';
 
 export * from './boolean_mask';
 export * from './complex_ops';
-export * from './concat_split';
 // Selectively exporting to avoid exposing gradient ops.
 export {conv1d, conv2d, conv3d, depthwiseConv2d, separableConv2d, conv2dTranspose, conv3dTranspose} from './conv';
 export * from './matmul';

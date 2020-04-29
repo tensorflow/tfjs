@@ -17,12 +17,14 @@
 import {addGradConfig} from './gradients/Add_grad';
 import {addNGradConfig} from './gradients/AddN_grad';
 import {broadcastToGradConfig} from './gradients/BroadcastTo_grad';
+import {concatGradConfig} from './gradients/Concat_grad';
 import {divGradConfig} from './gradients/Div_grad';
 import {fusedBatchNormGradConfig} from './gradients/FusedBatchNorm_grad';
 import {identityGradConfig} from './gradients/Identity_grad';
 import {maxGradConfig} from './gradients/Max_grad';
 import {oneHotGradConfig} from './gradients/OneHot_grad';
 import {padV2GradConfig} from './gradients/PadV2_grad';
+import {splitVGradConfig} from './gradients/SplitV_grad';
 import {squareGradConfig} from './gradients/Square_grad';
 import {squaredDifferenceGradConfig} from './gradients/SquaredDifference_grad';
 import {subGradConfig} from './gradients/Sub_grad';
@@ -33,10 +35,11 @@ import {registerGradient} from './kernel_registry';
 
 // Export all kernel configs here so that the package can auto register them
 const gradConfigs: GradConfig[] = [
-  maxGradConfig, addGradConfig, addNGradConfig, broadcastToGradConfig,
+  addGradConfig, addNGradConfig, broadcastToGradConfig, concatGradConfig,
   divGradConfig, fusedBatchNormGradConfig, identityGradConfig, oneHotGradConfig,
-  padV2GradConfig, squareGradConfig, squaredDifferenceGradConfig,
-  tileGradConfig, transposeGradConfig, subGradConfig
+  padV2GradConfig, splitVGradConfig, squareGradConfig,
+  squaredDifferenceGradConfig, tileGradConfig, transposeGradConfig,
+  subGradConfig, maxGradConfig
 ];
 
 for (const gradientConfig of gradConfigs) {

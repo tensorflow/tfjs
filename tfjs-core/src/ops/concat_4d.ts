@@ -14,18 +14,23 @@
  * limitations under the License.
  * =============================================================================
  */
-import './add';
-import './batchnorm';
-import './broadcast_to';
-import './max';
-import './concat';
-import './div';
-import './div_no_nan';
-import './one_hot';
-import './not_equal';
-import './pad';
-import './split';
-import './squared_difference';
-import './sub';
-import './tile';
-import './transpose';
+import {Tensor4D} from '../tensor';
+import {TensorLike} from '../types';
+
+import {concat} from './concat';
+import {op} from './operation';
+
+/**
+ * Concatenates a list of `tf.Tensor4D`s along an axis.
+ * See `concat` for details.
+ *
+ * @param tensors A list of `tf.Tensor`s to concatenate.
+ * @param axis The axis to concate along.
+ * @return The concatenated array.
+ */
+function concat4d_(
+    tensors: Array<Tensor4D|TensorLike>, axis: number): Tensor4D {
+  return concat(tensors, axis);
+}
+
+export const concat4d = op({concat4d_});
