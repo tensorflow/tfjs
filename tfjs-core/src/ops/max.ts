@@ -57,9 +57,6 @@ import {transpose} from './transpose';
 /** @doc {heading: 'Operations', subheading: 'Reduction'} */
 function max_<T extends Tensor>(
     x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
-  console.log('max op');
-  console.log(x);
-  console.log(axis);
   let $x = convertToTensor(x, 'x', 'max');
   const origAxes = util.parseAxisParam(axis, $x.shape);
 

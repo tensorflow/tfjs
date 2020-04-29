@@ -19,14 +19,9 @@ import {DataType, NumericDataType, TypedArray} from '@tensorflow/tfjs-core';
 import {util} from '@tensorflow/tfjs-core';
 
 export function transposeImpl(
-    xVals: TypedArray, xShape: number[], dtype: DataType,
-    perm: number[]): TypedArray {
+    xVals: TypedArray, xShape: number[], dtype: DataType, perm: number[],
+    newShape: number[]): TypedArray {
   const xRank = xShape.length;
-  const newShape: number[] = new Array(xRank);
-  for (let i = 0; i < newShape.length; i++) {
-    newShape[i] = xShape[perm[i]];
-  }
-
   const xSize = util.sizeFromShape(xShape);
   const xStrides = util.computeStrides(xShape);
   const newStrides = util.computeStrides(newShape);

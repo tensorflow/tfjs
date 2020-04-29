@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {shared as cpuSharedImpls} from '@tensorflow/tfjs-backend-cpu';
 import {Max, MaxAttrs, MaxInputs} from '@tensorflow/tfjs-core';
 import {backend_util, KernelConfig, TypedArray, util} from '@tensorflow/tfjs-core';
 
@@ -37,10 +38,28 @@ export const maxConfig: KernelConfig = {
     let axes = origAxes;
     const permutedAxes = backend_util.getAxesPermutation(axes, xRank);
     const maxInputIsTransposed = permutedAxes != null;
+    const shouldExecuteOnCPU = webglBackend.shouldExecuteOnCPU([x]);
 
     let maxInput = x;
     if (maxInputIsTransposed) {
-      maxInput = transposeImpl(x, permutedAxes, webglBackend);
+      if (shouldExecuteOnCPU) {
+        const xTexData = webglBackend.texData.get(maxInput.dataId);
+        const values = xTexData.values as TypedArray;
+
+        const newShape: number[] = new Array(xRank);
+        for (let i = 0; i < newShape.length; i++) {
+          newShape[i] = x.shape[permutedAxes[i]];
+        }
+        const maxInputValues =
+            transposeImplCPU(values, x.shape, x.dtype, permutedAxes, newShape);
+
+        maxInput = webglBackend.makeTensorInfo(newShape, x.dtype);
+        const maxInputData = webglBackend.texData.get(maxInput.dataId);
+        maxInputData.values = maxInputValues;
+      } else {
+        maxInput = transposeImpl(x, permutedAxes, webglBackend);
+      }
+
       axes = backend_util.getInnerMostAxes(axes.length, xRank);
     }
 
@@ -49,11 +68,12 @@ export const maxConfig: KernelConfig = {
         backend_util.computeOutAndReduceShapes(maxInput.shape, axes);
 
     let out;
-    if (webglBackend.shouldExecuteOnCPU([x])) {
+    if (shouldExecuteOnCPU) {
       const xTexData = webglBackend.texData.get(maxInput.dataId);
       const values = xTexData.values as TypedArray;
-      const outValues =
-          transposeImplCPU(values, x.shape, x.dtype, permutedAxes);
+
+      const outValues = cpuSharedImpls.maxImpl(
+          values, util.sizeFromShape(reduceShape), outShape, x.dtype);
 
       out = webglBackend.makeTensorInfo(outShape, x.dtype);
       const outData = webglBackend.texData.get(out.dataId);

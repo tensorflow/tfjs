@@ -40,13 +40,13 @@ export const maxConfig: KernelConfig = {
     const permutedAxes = backend_util.getAxesPermutation(axes, xRank);
     let xVals = cpuBackend.data.get(x.dataId).values as TypedArray;
     if (permutedAxes != null) {
-      xVals = transposeImpl(xVals, xShape, x.dtype, permutedAxes);
-      axes = backend_util.getInnerMostAxes(axes.length, xRank);
-
       const newShape: number[] = new Array(xRank);
       for (let i = 0; i < newShape.length; i++) {
         newShape[i] = xShape[permutedAxes[i]];
       }
+
+      xVals = transposeImpl(xVals, xShape, x.dtype, permutedAxes, newShape);
+      axes = backend_util.getInnerMostAxes(axes.length, xRank);
 
       xShape = newShape;
     }
