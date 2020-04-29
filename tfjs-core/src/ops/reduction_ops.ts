@@ -27,7 +27,6 @@ import {op} from './operation';
 import {gradForMinAndMax} from './reduction_ops_util';
 import {ones, scalar, zerosLike} from './tensor_ops';
 
-
 /**
  * Computes the log(sum(exp(elements across the reduction dimensions)).
  *
