@@ -19,5 +19,6 @@ import {registerBackend} from '@tensorflow/tfjs-core';
 import {MathBackendCPU} from './backend_cpu';
 registerBackend('cpu', () => new MathBackendCPU(), 1 /* priority */);
 import './register_all_kernels';
+import * as shared from './shared';
 
-export {MathBackendCPU};
+export {MathBackendCPU, shared};
