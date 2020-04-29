@@ -24,6 +24,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {Rank, TensorLike} from '../types';
 import * as util from '../util';
 
+import {reshape} from './array_ops';
 import {warnDeprecation, xAs4D} from './batchnorm_util';
 import {op} from './operation';
 
@@ -99,20 +100,23 @@ function batchNorm_<R extends Rank>(
       () => 'Batch normalization gradient requires mean and scale to have ' +
           'equal ranks.');
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const x4D: Tensor4D = xAs4D($x);
+  const x4D: Tensor4D = xAs4D($x);
 
-    const res = backend.batchNormalization(
+  const forward: ForwardFunc<Tensor> = (backend, save) => {
+    save([x4D, $mean, $variance, $scale]);
+
+    return backend.batchNormalization(
         x4D, as1DOr4D($mean), as1DOr4D($variance), varianceEpsilon,
         as1DOr4D($scale), as1DOr4D($offset));
-
-    save([$x, $mean, $variance, $scale]);
-
-    return res;
   };
 
-  const inputs: FusedBatchNormInputs =
-      {x: $x, scale: $scale, offset: $offset, mean: $mean, variance: $variance};
+  const inputs: FusedBatchNormInputs = {
+    x: x4D,
+    scale: $scale,
+    offset: $offset,
+    mean: $mean,
+    variance: $variance
+  };
 
   const attrs: FusedBatchNormAttrs = {varianceEpsilon};
 
@@ -120,7 +124,7 @@ function batchNorm_<R extends Rank>(
       forward, inputs as {} as NamedTensorMap, null /* gradient */,
       FusedBatchNorm, attrs as {} as NamedAttrMap);
 
-  return res.reshape($x.shape);
+  return reshape(res, $x.shape);
 }
 
 function as1DOr4D(x: Tensor): Tensor4D|Tensor1D {

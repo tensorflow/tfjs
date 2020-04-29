@@ -17,6 +17,8 @@
 
 import {Div} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
+import {reshape} from '../ops/array_ops';
+import {mul} from '../ops/binary_ops';
 import * as broadcast_util from '../ops/broadcast_util';
 import {div} from '../ops/div';
 import {sum} from '../ops/reduction_ops';
@@ -40,10 +42,10 @@ export const divGradConfig: GradConfig = {
       return res;
     };
     const derB = () => {
-      let res = dy.mul(a.toFloat());
+      let res = mul(dy, a.toFloat());
       const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
       if (reduceAxes.length > 0) {
-        res = sum(res, reduceAxes).reshape(b.shape);
+        res = reshape(sum(res, reduceAxes), b.shape);
       }
       const tmp = square(b);
       return neg(div(res, tmp.toFloat()));

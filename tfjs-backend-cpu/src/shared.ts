@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,11 +15,5 @@
  * =============================================================================
  */
 
-Error.stackTraceLimit = Infinity;
-
-import * as tf from '@tensorflow/tfjs-node-gpu';
-
-const a = tf.tensor2d([1, 2, 3, 4], [2, 2], 'float32');
-const b = tf.tensor2d([5, 6, 7, 8], [2, 2], 'float32');
-const c = a.matMul(b);
-console.log(c.dataSync());
+// Shared kernel impls for use in other backends.
+export {transposeImpl} from './kernels/Transpose_impl';

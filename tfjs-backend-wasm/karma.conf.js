@@ -16,7 +16,7 @@
  */
 
 const karmaTypescriptConfig = {
-  tsconfig: 'tsconfig.json',
+  tsconfig: 'tsconfig.test.json',
   compilerOptions: {allowJs: true, declaration: false},
   bundlerOptions: {
     sourceMap: true,
@@ -25,7 +25,16 @@ const karmaTypescriptConfig = {
     exclude: ['worker_threads', 'perf_hooks'],
     // worker_node_test in tfjs-core contains a conditional require statement
     // that confuses the bundler of karma-typescript.
-    ignore: ['./worker_node_test']
+    ignore: ['./worker_node_test'],
+    acornOptions: {ecmaVersion: 8},
+    transforms: [
+      require('karma-typescript-es6-transform')({
+        presets: [
+          // ensure we get es5 by adding IE 11 as a target
+          ['@babel/env', {'targets': {'ie': '11'}, 'loose': true}]
+        ]
+      }),
+    ]
   },
   // Disable coverage reports and instrumentation by default for tests
   coverageOptions: {instrumentation: false},
@@ -45,6 +54,7 @@ module.exports = function(config) {
     basePath: '',
     frameworks: ['jasmine', 'karma-typescript'],
     files: [
+      {pattern: './node_modules/@babel/polyfill/dist/polyfill.js'},
       // Setup the environment for the tests.
       'src/setup_test.ts',
       // Serve the wasm file as a static resource.
