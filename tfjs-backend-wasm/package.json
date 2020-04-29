@@ -26,7 +26,8 @@
     "test-node": "ts-node -P tsconfig.test.json src/test_node.ts",
     "test-bundle-size": "./scripts/test-bundle-size.js",
     "test-cc": "bazel test //src/cc:cc_tests --test_output=all",
-    "test-browser-ci": "karma start --singleRun --browsers=bs_chrome_mac"
+    "test-browser-ci": "karma start --singleRun --browsers=bs_chrome_mac",
+    "test-standalone": "./scripts/test-standalone.sh"
   },
   "browser": {
     "fs": false,
