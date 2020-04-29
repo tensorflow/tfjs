@@ -21,9 +21,12 @@ import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
+
 import * as axis_util from './axis_util';
 import {op} from './operation';
+import {gradForMinAndMax} from './reduction_ops_util';
 import {ones, scalar, zerosLike} from './tensor_ops';
+
 
 /**
  * Computes the log(sum(exp(elements across the reduction dimensions)).
@@ -265,25 +268,6 @@ function mean_<T extends Tensor>(
   });
 
   return customOp($x) as T;
-}
-
-/**
- * Gradient helper function for the min and max operations.
- */
-export function gradForMinAndMax<T extends Tensor>(
-    dy: T, y: T, xOrig: Tensor, origAxes: number[], permutedAxes: number[]) {
-  if (y.rank < xOrig.rank) {
-    y = y.reshape(axis_util.expandShapeToKeepDim(y.shape, origAxes)) as T;
-  }
-  if (dy.rank < xOrig.rank) {
-    dy = dy.reshape(axis_util.expandShapeToKeepDim(dy.shape, origAxes)) as T;
-  }
-  return {
-    x: () => {
-      const dx = dy.mul(xOrig.equal(y).cast(dy.dtype));
-      return permutedAxes == null ? dx : dx.transpose(permutedAxes);
-    }
-  };
 }
 
 /**
