@@ -27,14 +27,6 @@ export const transposeGradConfig: GradConfig = {
     const transposeAttrs: TransposeAttrs = attrs as {} as TransposeAttrs;
     const {perm} = transposeAttrs;
     const undoPerm = axis_util.getUndoAxesPermutation(perm);
-    return {
-      x: () => {
-        console.log('IN TRANSPOSE GRADIENT');
-        console.log(dy.shape);
-        const out = transpose(dy, undoPerm);
-        console.log(out.shape);
-        return out;
-      }
-    };
+    return {x: () => transpose(dy, undoPerm)};
   }
 };

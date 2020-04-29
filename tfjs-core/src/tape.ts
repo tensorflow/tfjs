@@ -165,7 +165,6 @@ export function backpropagateGradients(
 
       // Call the gradient function.
       const dx = tidy(() => inputGradients[inputName]());
-
       if (dx.dtype !== 'float32') {
         throw new Error(
             `Error in gradient for op ${

@@ -28,7 +28,6 @@ export const maxGradConfig: GradConfig = {
   inputsToSave: ['x'],
   outputsToSave: [true],
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
-    console.log('MAX GRAD FUNC');
     const maxAttrs: MaxAttrs = attrs as {} as MaxAttrs;
     const {reductionIndices} = maxAttrs;
     const [x, y] = saved;
