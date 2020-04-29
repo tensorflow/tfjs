@@ -16,14 +16,16 @@
  */
 import {FusedBatchNorm, FusedBatchNormAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
-import {xAs4D} from '../ops/batchnorm_util';
+import {add} from '../ops/add';
+import {reshape} from '../ops/array_ops';
+import {mul} from '../ops/binary_ops';
 import {getReductionAxes} from '../ops/broadcast_util';
-import {add, mul, reshape, sub} from '../ops/ops';
 import {sum} from '../ops/reduction_ops';
+import {sub} from '../ops/sub';
 import {scalar} from '../ops/tensor_ops';
 import {tile} from '../ops/tile';
 import {rsqrt} from '../ops/unary_ops';
-import {Tensor, Tensor4D} from '../tensor';
+import {Tensor} from '../tensor';
 import {Rank, ShapeMap} from '../types';
 
 export const fusedBatchNormGradConfig: GradConfig = {
@@ -31,19 +33,15 @@ export const fusedBatchNormGradConfig: GradConfig = {
   inputsToSave: ['x', 'mean', 'variance', 'scale'],
   gradFunc: <R extends Rank>(
       dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
-    const batchNormalizationAttrs: FusedBatchNormAttrs =
-        attrs as {} as FusedBatchNormAttrs;
-    const {varianceEpsilon} = batchNormalizationAttrs;
+    const {varianceEpsilon} = attrs as {} as FusedBatchNormAttrs;
     const [x, mean, variance, scale] = saved;
 
-    const x4D: Tensor4D = xAs4D(x);
-
     const scaleValue = scale == null ? scalar(1) : scale;
-    const reductionAxes = getReductionAxes(mean.shape, x4D.shape);
+    const reductionAxes = getReductionAxes(mean.shape, x.shape);
     const tileShape: number[] = [];
     if (mean.rank === 1) {
-      for (let i = 0; i < x4D.shape.length - 1; ++i) {
-        tileShape.push(x4D.shape[i]);
+      for (let i = 0; i < x.shape.length - 1; ++i) {
+        tileShape.push(x.shape[i]);
       }
       tileShape.push(1);
     }
@@ -100,6 +98,7 @@ export const fusedBatchNormGradConfig: GradConfig = {
       }
       return reshape(offsetDer, mean.shape as ShapeMap[R]);
     };
+
     return {
       x: derX,
       mean: derMean,

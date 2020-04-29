@@ -14,24 +14,19 @@
  * limitations under the License.
  * =============================================================================
  */
+import {split} from '../../ops/split';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
 
-// tslint:disable-next-line: no-imports-from-dist
-import {setTestEnvs, setupTestFilters, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
-
-setTestEnvs([{name: 'cpu', backendName: 'cpu', isDataSync: true}]);
-
-const TEST_FILTERS: TestFilter[] = [];
-const customInclude = (testName: string) => {
-  // Exclude webworker test
-  if (testName.includes('computation in worker')) {
-    return false;
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    split<T extends Tensor>(numOrSizeSplits: number[]|number, axis?: number):
+        T[];
   }
-  // Include all other tests.
-  return true;
+}
+
+Tensor.prototype.split = function<T extends Tensor>(
+    numOrSizeSplits: number[]|number, axis?: number): T[] {
+  this.throwIfDisposed();
+  return split(this, numOrSizeSplits, axis);
 };
-
-setupTestFilters(TEST_FILTERS, customInclude);
-
-// Import and run tests from core.
-// tslint:disable-next-line:no-imports-from-dist
-import '@tensorflow/tfjs-core/dist/tests';

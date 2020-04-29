@@ -24,9 +24,9 @@ import {InternalOpExecutor, Node} from '../types';
 import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor = (node: Node,
-                                            tensorMap: NamedTensorsMap,
-                                            context: ExecutionContext):
-                                               tfc.Tensor[] => {
+                                              tensorMap: NamedTensorsMap,
+                                              context: ExecutionContext):
+                                                 tfc.Tensor[] => {
   switch (node.op) {
     case 'Equal': {
       return [tfc.equal(
@@ -72,7 +72,8 @@ export const executeOp: InternalOpExecutor = (node: Node,
           getParamValue('a', node, tensorMap, context) as tfc.Tensor,
           getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
     }
-    case 'Select': {
+    case 'Select':
+    case 'SelectV2': {
       return [tfc.where(
           getParamValue('condition', node, tensorMap, context) as tfc.Tensor,
           getParamValue('a', node, tensorMap, context) as tfc.Tensor,

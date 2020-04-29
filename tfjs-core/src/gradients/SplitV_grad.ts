@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,19 +14,16 @@
  * limitations under the License.
  * =============================================================================
  */
+import {SplitV, SplitVAttrs} from '../kernel_names';
+import {GradConfig, NamedAttrMap} from '../kernel_registry';
+import {concat} from '../ops/concat';
+import {Tensor} from '../tensor';
 
-Error.stackTraceLimit = Infinity;
+export const splitVGradConfig: GradConfig = {
+  kernelName: SplitV,
+  gradFunc: (dy: Tensor[], saved: Tensor[], attrs: NamedAttrMap) => {
+    const {axis} = attrs as {} as SplitVAttrs;
 
-import * as tf from '@tensorflow/tfjs-node';
-
-const a = tf.tensor2d([1, 2, 3, 4], [2, 2], 'float32');
-const b = tf.tensor2d([5, 6, 7, 8], [2, 2], 'float32');
-const c = a.matMul(b);
-console.log(c.dataSync());
-
-async function loadModel() {
-  const model = await tf.node.loadSavedModel(
-      '../../test_objects/times_three_float', ['serve'], 'serving_default');
-  model.dispose();
-}
-loadModel();
+    return {x: () => concat(dy, axis)};
+  }
+};

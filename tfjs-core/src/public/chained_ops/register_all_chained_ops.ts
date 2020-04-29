@@ -17,11 +17,13 @@
 import './add';
 import './batchnorm';
 import './broadcast_to';
+import './concat';
 import './div';
 import './div_no_nan';
 import './one_hot';
 import './not_equal';
 import './pad';
+import './split';
 import './squared_difference';
 import './sub';
 import './tile';
