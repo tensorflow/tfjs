@@ -77,24 +77,35 @@ const benchmarks = {
       return {};
     },
     predictFunc: () => {
-      tf.ENV.set('WEBGL_PACK', false);
-
       // FC, 3 LSTMs and a RNN.
-      const num_frames = 200 * 10;
-      const num_lf = 505;
-      const units = 128;
-      const rnn_out_units = 48;
+      let num_frames = 200 * 10;
+      let num_lf = 505;
+      let units = 128;
+      let rnn_out_units = 48;
+      let lstm_units = 3;
+
+      const use_toy = true;
+
+      if (use_toy) {
+        num_frames = 50;
+        num_lf = 50;
+        units = 32;
+        rnn_out_units = 12;
+        lstm_units = 1;
+      }
+
       // FC (128 outputs) | LSTM (units=128, proj=64) | LSTM (units=128, proj=64) | RNN (output=48)
       layer1 = tf.layers.timeDistributed({
         layer: tf.layers.dense({units}),
         inputShape: [num_frames, num_lf],
       });
-      cells = [
-        tf.layers.lstm({units, returnSequences: true}),
-        tf.layers.lstm({units, returnSequences: true}),
-        tf.layers.lstm({units, returnSequences: true}),
-        tf.layers.simpleRNN({units: rnn_out_units, returnSequences: true})
-      ]
+
+      cells = [];
+      for(let i=0; i<lstm_units; i++) {
+        cells.push(tf.layers.lstm({units, returnSequences: true}));
+      }
+      cells.push(tf.layers.simpleRNN({units: rnn_out_units, returnSequences: true}));
+
       return () => {
         output = layer1.apply(tf.randomUniform([1, num_frames, num_lf]));
         for (i = 0; i < cells.length; i++) {

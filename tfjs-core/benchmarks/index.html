@@ -82,8 +82,8 @@ limitations under the License.
       run: (v) => {
         runBenchmark();
       },
-      backend: 'webgl',
-      kernelTiming: 'individual',
+      backend: 'wasm',
+      kernelTiming: 'aggregate',
     };
 
     const modalDiv = document.getElementById('modal-msg');
@@ -279,19 +279,23 @@ limitations under the License.
         kernels.forEach(k => {
           const kernelName = k.scopes[0];
           if (kernelTotalTime[kernelName] == null) {
-            kernelTotalTime[kernelName] = 0;
+            kernelTotalTime[kernelName] = {
+              invocations: 0,
+              time: 0
+            };
           }
-          kernelTotalTime[kernelName] += k.time;
+          kernelTotalTime[kernelName]['invocations'] += 1;
+          kernelTotalTime[kernelName]['time'] += k.time;
         });
 
         const result = Object.keys(kernelTotalTime)
-            .map(k => [k, kernelTotalTime[k]])
+            .map(k => [k, kernelTotalTime[k]['time'], kernelTotalTime[k]['invocations']])
             .sort((a, b) => b[1] - a[1]);
         result.forEach(r => {
           const nameSpan = document.createElement('span');
           nameSpan.setAttribute('title', r[0]);
           nameSpan.textContent = r[0];
-          appendRow(tbody, nameSpan, r[1].toFixed(2));
+          appendRow(tbody, nameSpan, `${r[1].toFixed(2)} (${r[2]})`);
         });
       }
     }
