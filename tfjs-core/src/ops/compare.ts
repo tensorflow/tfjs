@@ -42,34 +42,6 @@ function notEqualStrict_<T extends Tensor>(
 }
 
 /**
- * Returns the truth value of (a < b) element-wise. Supports broadcasting.
- *
- * We also expose `tf.lessStrict` which has the same signature as this op and
- * asserts that `a` and `b` are the same shape (does not broadcast).
- *
- * ```js
- * const a = tf.tensor1d([1, 2, 3]);
- * const b = tf.tensor1d([2, 2, 2]);
- *
- * a.less(b).print();
- * ```
- * @param a The first input tensor.
- * @param b The second input tensor. Must have the same dtype as `a`.
- */
-/** @doc {heading: 'Operations', subheading: 'Logical'} */
-function less_<T extends Tensor>(
-    a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'less');
-  let $b = convertToTensor(b, 'b', 'less');
-  [$a, $b] = makeTypesMatch($a, $b);
-  assertAndGetBroadcastShape($a.shape, $b.shape);
-
-  return ENGINE.runKernelFunc(
-             backend => backend.less($a, $b), {a: $a, b: $b}, null /* grad */,
-             'Less') as T;
-}
-
-/**
  * Strict version of `tf.less` that forces `a` and `b` to be of the same
  * shape.
  *
@@ -242,7 +214,6 @@ export const greater = op({greater_});
 export const greaterEqual = op({greaterEqual_});
 export const greaterEqualStrict = op({greaterEqualStrict_});
 export const greaterStrict = op({greaterStrict_});
-export const less = op({less_});
 export const lessEqual = op({lessEqual_});
 export const lessEqualStrict = op({lessEqualStrict_});
 export const lessStrict = op({lessStrict_});
