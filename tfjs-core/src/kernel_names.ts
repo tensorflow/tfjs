@@ -45,6 +45,9 @@ export interface ConcatAttrs {
 export const Div = 'Div';
 export type DivInputs = BinaryInputs;
 
+export const Equal = 'Equal';
+export type EqualInputs = BinaryInputs;
+
 export const FusedBatchNorm = 'FusedBatchNorm';
 export type FusedBatchNormInputs =
     Pick<NamedTensorInfoMap, 'x'|'scale'|'offset'|'mean'|'variance'>;

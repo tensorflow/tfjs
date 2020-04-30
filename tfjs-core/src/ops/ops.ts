@@ -31,6 +31,7 @@ export {concat3d} from './concat_3d';
 export {concat4d} from './concat_4d';
 export {div} from './div';
 export {divNoNan} from './div_no_nan';
+export {equal} from './equal';
 export {eye} from './eye';
 export {multinomial} from './multinomial';
 export {notEqual} from './not_equal';

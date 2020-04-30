@@ -84,33 +84,6 @@ function lessStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
   return $a.less($b);
 }
 
-/**
- * Returns the truth value of (a == b) element-wise. Supports broadcasting.
- *
- * We also expose `tf.equalStrict` which has the same signature as this op
- * and asserts that `a` and `b` are the same shape (does not broadcast).
- *
- * ```js
- * const a = tf.tensor1d([1, 2, 3]);
- * const b = tf.tensor1d([2, 2, 2]);
- *
- * a.equal(b).print();
- * ```
- *
- * @param a The first input tensor.
- * @param b The second input tensor. Must have the same dtype as `a`.
- */
-/** @doc {heading: 'Operations', subheading: 'Logical'} */
-function equal_<T extends Tensor>(
-    a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'equal');
-  let $b = convertToTensor(b, 'b', 'equal');
-  [$a, $b] = makeTypesMatch($a, $b);
-  assertAndGetBroadcastShape($a.shape, $b.shape);
-
-  return ENGINE.runKernelFunc(backend => backend.equal($a, $b), {$a, $b}) as T;
-}
-
 function equalStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
   const $a = convertToTensor(a, 'a', 'equalStrict');
   const $b = convertToTensor(b, 'b', 'equalStrict');
@@ -236,7 +209,6 @@ function greaterEqualStrict_<T extends Tensor>(
   return $a.greaterEqual($b);
 }
 
-export const equal = op({equal_});
 export const equalStrict = op({equalStrict_});
 export const greater = op({greater_});
 export const greaterEqual = op({greaterEqual_});
