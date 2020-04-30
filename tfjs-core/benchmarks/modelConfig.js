@@ -77,15 +77,28 @@ const benchmarks = {
       return {};
     },
     predictFunc: () => {
-      // Setup code for the forward pass. Only gets called once.
-      const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
-      const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
-
+      // FC, 3 LSTMs and a RNN.
+      const num_frames = 200 * 10;
+      const num_lf = 505;
+      // FC (128 outputs) | LSTM (units=128, proj=64) | LSTM (units=128, proj=64) | RNN (output=48)
+      layer1 = tf.layers.timeDistributed({
+        layer: tf.layers.dense({units:128}),
+        inputShape: [num_frames, num_lf],
+      });
+      cells = [
+        tf.layers.lstm({units:128, returnSequences: true}),
+        tf.layers.lstm({units:128, returnSequences: true}),
+        tf.layers.lstm({units:128, returnSequences: true}),
+        tf.layers.simpleRNN({units: 48, returnSequences: true})
+      ]
       return () => {
-        // Forward pass.
-        return tf.matMul(a, b);
+        output = layer1.apply(tf.randomUniform([1, num_frames, num_lf]));
+        for (i = 0; i < 4; i++) {
+            output = cells[i].apply(output);
+        }
+        return output;
       }
-    }
+   }
   },
   'mobilenet_v2': {
     load: async () => {
