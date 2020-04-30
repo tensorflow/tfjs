@@ -3415,7 +3415,7 @@
               const accumulatedGradientMap = {};
               accumulatedGradientMap[y.id] = (dy == null) ? ones(y.shape) : dy;
               // Backprop gradients through the filtered nodes.
-              backpropagateGradients(accumulatedGradientMap, filteredTape, 
+              backpropagateGradients(accumulatedGradientMap, filteredTape,
               // Pass the tidy function to avoid circular dep with `tape.ts`.
               f => this.tidy(f));
               const grads = xs.map(x => accumulatedGradientMap[x.id]);
@@ -5829,7 +5829,7 @@
           splitSizes = numOrSizeSplits;
       }
       const der = (dy) => ({ $x: () => concat(dy, axis) });
-      return ENGINE.runKernelFunc(backend => backend.split($x, splitSizes, axis), { $x }, der);
+      return ENGINE.runKernelFunc(backend => backend.split($x, splitSizes, axis), { x: $x }, der, 'SplitV', {numOrSizeSplits, axis});
   }
   const concat = op({ concat_ });
   const concat1d = op({ concat1d_ });
@@ -13298,10 +13298,10 @@
   // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   // copies of the Software, and to permit persons to whom the Software is
   // furnished to do so, subject to the following conditions:
-  // 
+  //
   // The above copyright notice and this permission notice shall be included in
   // all copies or substantial portions of the Software.
-  // 
+  //
   // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
