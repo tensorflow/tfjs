@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,17 +14,19 @@
  * limitations under the License.
  * =============================================================================
  */
-import './add';
-import './batchnorm';
-import './broadcast_to';
-import './concat';
-import './div';
-import './div_no_nan';
-import './one_hot';
-import './not_equal';
-import './pad';
-import './split';
-import './squared_difference';
-import './sub';
-import './tile';
-import './transpose';
+import {split} from '../../ops/split';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
+
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    split<T extends Tensor>(numOrSizeSplits: number[]|number, axis?: number):
+        T[];
+  }
+}
+
+Tensor.prototype.split = function<T extends Tensor>(
+    numOrSizeSplits: number[]|number, axis?: number): T[] {
+  this.throwIfDisposed();
+  return split(this, numOrSizeSplits, axis);
+};
