@@ -1957,17 +1957,6 @@
           this.throwIfDisposed();
           return opHandler.reverse(this, axis);
       }
-      concat(x, axis = 0) {
-          this.throwIfDisposed();
-          if (x instanceof Tensor) {
-              x = [x];
-          }
-          return opHandler.concat([this, ...x], axis);
-      }
-      split(numOrSizeSplits, axis = 0) {
-          this.throwIfDisposed();
-          return opHandler.split(this, numOrSizeSplits, axis);
-      }
       stack(x, axis = 0) {
           return opHandler.stack([this, x], axis);
       }
@@ -3415,7 +3404,7 @@
               const accumulatedGradientMap = {};
               accumulatedGradientMap[y.id] = (dy == null) ? ones(y.shape) : dy;
               // Backprop gradients through the filtered nodes.
-              backpropagateGradients(accumulatedGradientMap, filteredTape,
+              backpropagateGradients(accumulatedGradientMap, filteredTape, 
               // Pass the tidy function to avoid circular dep with `tape.ts`.
               f => this.tidy(f));
               const grads = xs.map(x => accumulatedGradientMap[x.id]);
@@ -3638,24 +3627,26 @@
 
   const Add = 'Add';
   const AddN = 'AddN';
+  const BroadcastTo = 'BroadcastTo';
+  const Concat = 'Concat';
   const Div = 'Div';
   const FusedBatchNorm = 'FusedBatchNorm';
+  const Identity = 'Identity';
+  const MaxPoolWithArgmax = 'MaxPoolWithArgmax';
   const NotEqual = 'NotEqual';
+  const NonMaxSuppressionV5 = 'NonMaxSuppressionV5';
+  const OneHot = 'OneHot';
+  const PadV2 = 'PadV2';
+  const SplitV = 'SplitV';
   const SquaredDifference = 'SquaredDifference';
   const Square = 'Square';
   const Sub = 'Sub';
-  const Transpose = 'Transpose';
-  const NonMaxSuppressionV5 = 'NonMaxSuppressionV5';
-  const BroadcastTo = 'BroadcastTo';
-  const OneHot = 'OneHot';
-  const Identity = 'Identity';
   const Tile = 'Tile';
-  const PadV2 = 'PadV2';
+  const Transpose = 'Transpose';
   /**
    * TensorFlow.js-only kernels
    */
   const FromPixels = 'FromPixels';
-  const MaxPoolWithArgmax = 'MaxPoolWithArgmax';
 
   /**
    * @license
@@ -5568,6 +5559,106 @@
 
   /**
    * @license
+   * Copyright 2020 Google Inc. All Rights Reserved.
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   * http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   * =============================================================================
+   */
+  /**
+   * Splits a `tf.Tensor` into sub tensors.
+   *
+   * If `numOrSizeSplits` is a number, splits `x` along dimension `axis`
+   * into `numOrSizeSplits` smaller tensors.
+   * Requires that `numOrSizeSplits` evenly divides `x.shape[axis]`.
+   *
+   * If `numOrSizeSplits` is a number array, splits `x` into
+   * `numOrSizeSplits.length` pieces. The shape of the `i`-th piece has the
+   * same size as `x` except along dimension `axis` where the size is
+   * `numOrSizeSplits[i]`.
+   *
+   * ```js
+   * const x = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+   * const [a, b] = tf.split(x, 2, 1);
+   * a.print();
+   * b.print();
+   *
+   * const [c, d, e] = tf.split(x, [1, 2, 1], 1);
+   * c.print();
+   * d.print();
+   * e.print();
+   * ```
+   *
+   * @param x The input tensor to split.
+   * @param numOrSizeSplits Either an integer indicating the number of
+   * splits along the axis or an array of integers containing the sizes of
+   * each output tensor along the axis. If a number then it must evenly divide
+   * `x.shape[axis]`; otherwise the sum of sizes must match `x.shape[axis]`.
+   * @param axis The dimension along which to split. Defaults to 0 (the first
+   * dim).
+   */
+  /** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
+  function split_(x, numOrSizeSplits, axis = 0) {
+      const $x = convertToTensor(x, 'x', 'split');
+      const $axis = parseAxisParam(axis, $x.shape)[0];
+      let splitSizes;
+      if (typeof (numOrSizeSplits) === 'number') {
+          assert($x.shape[$axis] % numOrSizeSplits === 0, () => 'Number of splits must evenly divide the axis.');
+          splitSizes =
+              new Array(numOrSizeSplits).fill($x.shape[$axis] / numOrSizeSplits);
+      }
+      else {
+          assert($x.shape[$axis] === numOrSizeSplits.reduce((a, b) => a + b), () => 'The sum of sizes must match the size of the axis dimension.');
+          splitSizes = numOrSizeSplits;
+      }
+      const forward = (backend, _) => {
+          return backend.split($x, splitSizes, $axis);
+      };
+      const inputs = { x: $x };
+      const attr = { numOrSizeSplits, axis };
+      return ENGINE.runKernelFunc(forward, inputs, null /* grad */, SplitV, attr);
+  }
+  const split = op({ split_ });
+
+  /**
+   * @license
+   * Copyright 2020 Google Inc. All Rights Reserved.
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   * http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   * =============================================================================
+   */
+  const concatGradConfig = {
+      kernelName: Concat,
+      saveAllInputs: true,
+      gradFunc: (dy, saved, attrs) => {
+          const shapes = saved.map(t => t.shape);
+          const { axis } = attrs;
+          const $axis = parseAxisParam(axis, saved[0].shape)[0];
+          const sizeSplits = shapes.map(s => s[$axis]);
+          const derTensors = split(dy, sizeSplits, $axis);
+          return derTensors.map(t => () => t);
+      }
+  };
+
+  /**
+   * @license
    * Copyright 2017 Google Inc. All Rights Reserved.
    * Licensed under the Apache License, Version 2.0 (the "License");
    * you may not use this file except in compliance with the License.
@@ -5608,7 +5699,7 @@
 
   /**
    * @license
-   * Copyright 2018 Google Inc. All Rights Reserved.
+   * Copyright 2020 Google Inc. All Rights Reserved.
    * Licensed under the Apache License, Version 2.0 (the "License");
    * you may not use this file except in compliance with the License.
    * You may obtain a copy of the License at
@@ -5622,95 +5713,6 @@
    * limitations under the License.
    * =============================================================================
    */
-  /**
-   * Concatenates a list of`tf.Tensor1D`s along an axis. See `concat` for details.
-   *
-   * For example, if:
-   * A: shape(3) = |r1, g1, b1|
-   * B: shape(2) = |r2, g2|
-   * C = tf.concat1d([A, B]) == |r1, g1, b1, r2, g2|
-   *
-   * @param tensors A list of`tf.Tensor`s to concatenate.
-   * @return The concatenated array.
-   */
-  function concat1d_(tensors) {
-      return concat(tensors, 0 /* axis */);
-  }
-  /**
-   * Concatenates a list of`tf.Tensor2D`s along an axis. See `concat` for details.
-   *
-   * For example, if:
-   * A: shape(2, 3) = | r1, g1, b1 |
-   *                  | r2, g2, b2 |
-   *
-   * B: shape(2, 3) = | r3, g3, b3 |
-   *                  | r4, g4, b4 |
-   *
-   * C = tf.concat2d([A, B], axis)
-   *
-   * if axis = 0:
-   * C: shape(4, 3) = | r1, g1, b1 |
-   *                  | r2, g2, b2 |
-   *                  | r3, g3, b3 |
-   *                  | r4, g4, b4 |
-   *
-   * if axis = 1:
-   * C = shape(2, 6) = | r1, g1, b1, r3, g3, b3 |
-   *                   | r2, g2, b2, r4, g4, b4 |
-   *
-   *
-   * @param tensors A list of `tf.Tensor`s to concatenate.
-   * @param axis The axis to concatenate along.
-   * @return The concatenated array.
-   */
-  function concat2d_(tensors, axis) {
-      return concat(tensors, axis);
-  }
-  /**
-   * Concatenates a list of `tf.Tensor3D`s along an axis.
-   * See `concat` for details.
-   *
-   * For example, if:
-   * A: shape(2, 1, 3) = | r1, g1, b1 |
-   *                     | r2, g2, b2 |
-   *
-   * B: shape(2, 1, 3) = | r3, g3, b3 |
-   *                     | r4, g4, b4 |
-   *
-   * C = tf.concat3d([A, B], axis)
-   *
-   * if axis = 0:
-   * C: shape(4, 1, 3) = | r1, g1, b1 |
-   *                     | r2, g2, b2 |
-   *                     | r3, g3, b3 |
-   *                     | r4, g4, b4 |
-   *
-   * if axis = 1:
-   * C: shape(2, 2, 3) = | r1, g1, b1, r3, g3, b3 |
-   *                     | r2, g2, b2, r4, g4, b4 |
-   *
-   * if axis = 2:
-   * C = shape(2, 1, 6) = | r1, g1, b1, r3, g3, b3 |
-   *                      | r2, g2, b2, r4, g4, b4 |
-   *
-   * @param tensors A list of`tf.Tensor`s to concatenate.
-   * @param axis The axis to concate along.
-   * @return The concatenated array.
-   */
-  function concat3d_(tensors, axis) {
-      return concat(tensors, axis);
-  }
-  /**
-   * Concatenates a list of `tf.Tensor4D`s along an axis.
-   * See `concat` for details.
-   *
-   * @param tensors A list of `tf.Tensor`s to concatenate.
-   * @param axis The axis to concate along.
-   * @return The concatenated array.
-   */
-  function concat4d_(tensors, axis) {
-      return concat(tensors, axis);
-  }
   /**
    * Concatenates a list of `tf.Tensor`s along a given axis.
    *
@@ -5761,8 +5763,8 @@
               }
           });
       }
-      axis = parseAxisParam(axis, $tensors[0].shape)[0];
-      const outShape = computeOutShape($tensors.map(t => t.shape), axis);
+      const $axis = parseAxisParam(axis, $tensors[0].shape)[0];
+      const outShape = computeOutShape($tensors.map(t => t.shape), $axis);
       if (sizeFromShape(outShape) === 0) {
           return tensor([], outShape);
       }
@@ -5772,71 +5774,18 @@
           return $tensors[0];
       }
       const shapes = $tensors.map(t => t.shape);
-      assertParamsConsistent(shapes, axis);
-      const der = (dy) => {
-          const sizeSplits = shapes.map(s => s[axis]);
-          const derTensors = split(dy, sizeSplits, axis);
-          return derTensors.map(t => () => t);
+      assertParamsConsistent(shapes, $axis);
+      const forward = (backend, save) => {
+          const $axis = parseAxisParam(axis, $tensors[0].shape)[0];
+          const res = backend.concat($tensors, $axis);
+          save($tensors);
+          return res;
       };
       const inputs = $tensors;
       const attr = { axis };
-      return ENGINE.runKernelFunc(backend => backend.concat($tensors, axis), inputs, der, 'Concat', attr);
-  }
-  /**
-   * Splits a `tf.Tensor` into sub tensors.
-   *
-   * If `numOrSizeSplits` is a number, splits `x` along dimension `axis`
-   * into `numOrSizeSplits` smaller tensors.
-   * Requires that `numOrSizeSplits` evenly divides `x.shape[axis]`.
-   *
-   * If `numOrSizeSplits` is a number array, splits `x` into
-   * `numOrSizeSplits.length` pieces. The shape of the `i`-th piece has the
-   * same size as `x` except along dimension `axis` where the size is
-   * `numOrSizeSplits[i]`.
-   *
-   * ```js
-   * const x = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
-   * const [a, b] = tf.split(x, 2, 1);
-   * a.print();
-   * b.print();
-   *
-   * const [c, d, e] = tf.split(x, [1, 2, 1], 1);
-   * c.print();
-   * d.print();
-   * e.print();
-   * ```
-   *
-   * @param x The input tensor to split.
-   * @param numOrSizeSplits Either an integer indicating the number of
-   * splits along the axis or an array of integers containing the sizes of
-   * each output tensor along the axis. If a number then it must evenly divide
-   * `x.shape[axis]`; otherwise the sum of sizes must match `x.shape[axis]`.
-   * @param axis The dimension along which to split. Defaults to 0 (the first
-   * dim).
-   */
-  /** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
-  function split_(x, numOrSizeSplits, axis = 0) {
-      const $x = convertToTensor(x, 'x', 'split');
-      axis = parseAxisParam(axis, $x.shape)[0];
-      let splitSizes;
-      if (typeof (numOrSizeSplits) === 'number') {
-          assert($x.shape[axis] % numOrSizeSplits === 0, () => 'Number of splits must evenly divide the axis.');
-          splitSizes =
-              new Array(numOrSizeSplits).fill($x.shape[axis] / numOrSizeSplits);
-      }
-      else {
-          assert($x.shape[axis] === numOrSizeSplits.reduce((a, b) => a + b), () => 'The sum of sizes must match the size of the axis dimension.');
-          splitSizes = numOrSizeSplits;
-      }
-      const der = (dy) => ({ $x: () => concat(dy, axis) });
-      return ENGINE.runKernelFunc(backend => backend.split($x, splitSizes, axis), { x: $x }, der, 'SplitV', {numOrSizeSplits, axis});
+      return ENGINE.runKernelFunc(forward, inputs, null /* grad */, Concat, attr);
   }
   const concat = op({ concat_ });
-  const concat1d = op({ concat1d_ });
-  const concat2d = op({ concat2d_ });
-  const concat3d = op({ concat3d_ });
-  const concat4d = op({ concat4d_ });
-  const split = op({ split_ });
 
   /**
    * @license
@@ -6688,13 +6637,13 @@
       const $x = convertToTensor(x, 'x', 'sqrt');
       const grad = (dy, saved) => {
           const [$x] = saved;
-          return { $x: () => dy.div($x.toFloat().sqrt().mul(2)) };
+          return { x: () => dy.div($x.toFloat().sqrt().mul(2)) };
       };
       return ENGINE.runKernelFunc((backend, save) => {
           const res = backend.sqrt($x);
           save([$x]);
           return res;
-      }, { $x }, grad);
+      }, { x: $x }, grad, 'Sqrt', {});
   }
   /**
    * Computes reciprocal of square root of the input `tf.Tensor` element-wise:
@@ -8194,6 +8143,30 @@
 
   /**
    * @license
+   * Copyright 2020 Google Inc. All Rights Reserved.
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   * http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   * =============================================================================
+   */
+  const splitVGradConfig = {
+      kernelName: SplitV,
+      gradFunc: (dy, saved, attrs) => {
+          const { axis } = attrs;
+          return { x: () => concat(dy, axis) };
+      }
+  };
+
+  /**
+   * @license
    * Copyright 2019 Google Inc. All Rights Reserved.
    * Licensed under the Apache License, Version 2.0 (the "License");
    * you may not use this file except in compliance with the License.
@@ -8811,10 +8784,11 @@
    */
   // Export all kernel configs here so that the package can auto register them
   const gradConfigs = [
-      addGradConfig, addNGradConfig, broadcastToGradConfig, divGradConfig,
-      fusedBatchNormGradConfig, identityGradConfig, oneHotGradConfig,
-      padV2GradConfig, squareGradConfig, squaredDifferenceGradConfig,
-      tileGradConfig, transposeGradConfig, subGradConfig
+      addGradConfig, addNGradConfig, broadcastToGradConfig, concatGradConfig,
+      divGradConfig, fusedBatchNormGradConfig, identityGradConfig, oneHotGradConfig,
+      padV2GradConfig, splitVGradConfig, squareGradConfig,
+      squaredDifferenceGradConfig, tileGradConfig, transposeGradConfig,
+      subGradConfig
   ];
   for (const gradientConfig of gradConfigs) {
       registerGradient(gradientConfig);
@@ -12357,7 +12331,11 @@
               throw new Error('All tensors passed to tf.addN() must have the same shape');
           }
       });
-      const forward = (backend, save) => backend.addN($tensors);
+      const forward = (backend, save) => {
+          const res = backend.addN($tensors);
+          save($tensors);
+          return res;
+      };
       const inputs = $tensors;
       return ENGINE.runKernelFunc(forward, inputs, null /* grad */, AddN);
   }
@@ -12765,6 +12743,103 @@
       return ENGINE.runKernelFunc(forward, inputs, null /* grad */, BroadcastTo, attrs);
   }
   const broadcastTo = op({ broadcastTo_ });
+
+  /**
+   * Concatenates a list of`tf.Tensor1D`s along an axis. See `concat` for details.
+   *
+   * For example, if:
+   * A: shape(3) = |r1, g1, b1|
+   * B: shape(2) = |r2, g2|
+   * C = tf.concat1d([A, B]) == |r1, g1, b1, r2, g2|
+   *
+   * @param tensors A list of`tf.Tensor`s to concatenate.
+   * @return The concatenated array.
+   */
+  function concat1d_(tensors) {
+      return concat(tensors, 0 /* axis */);
+  }
+  const concat1d = op({ concat1d_ });
+
+  /**
+   * Concatenates a list of`tf.Tensor2D`s along an axis. See `concat` for details.
+   *
+   * For example, if:
+   * A: shape(2, 3) = | r1, g1, b1 |
+   *                  | r2, g2, b2 |
+   *
+   * B: shape(2, 3) = | r3, g3, b3 |
+   *                  | r4, g4, b4 |
+   *
+   * C = tf.concat2d([A, B], axis)
+   *
+   * if axis = 0:
+   * C: shape(4, 3) = | r1, g1, b1 |
+   *                  | r2, g2, b2 |
+   *                  | r3, g3, b3 |
+   *                  | r4, g4, b4 |
+   *
+   * if axis = 1:
+   * C = shape(2, 6) = | r1, g1, b1, r3, g3, b3 |
+   *                   | r2, g2, b2, r4, g4, b4 |
+   *
+   *
+   * @param tensors A list of `tf.Tensor`s to concatenate.
+   * @param axis The axis to concatenate along.
+   * @return The concatenated array.
+   */
+  function concat2d_(tensors, axis) {
+      return concat(tensors, axis);
+  }
+  const concat2d = op({ concat2d_ });
+
+  /**
+   * Concatenates a list of `tf.Tensor3D`s along an axis.
+   * See `concat` for details.
+   *
+   * For example, if:
+   * A: shape(2, 1, 3) = | r1, g1, b1 |
+   *                     | r2, g2, b2 |
+   *
+   * B: shape(2, 1, 3) = | r3, g3, b3 |
+   *                     | r4, g4, b4 |
+   *
+   * C = tf.concat3d([A, B], axis)
+   *
+   * if axis = 0:
+   * C: shape(4, 1, 3) = | r1, g1, b1 |
+   *                     | r2, g2, b2 |
+   *                     | r3, g3, b3 |
+   *                     | r4, g4, b4 |
+   *
+   * if axis = 1:
+   * C: shape(2, 2, 3) = | r1, g1, b1, r3, g3, b3 |
+   *                     | r2, g2, b2, r4, g4, b4 |
+   *
+   * if axis = 2:
+   * C = shape(2, 1, 6) = | r1, g1, b1, r3, g3, b3 |
+   *                      | r2, g2, b2, r4, g4, b4 |
+   *
+   * @param tensors A list of`tf.Tensor`s to concatenate.
+   * @param axis The axis to concate along.
+   * @return The concatenated array.
+   */
+  function concat3d_(tensors, axis) {
+      return concat(tensors, axis);
+  }
+  const concat3d = op({ concat3d_ });
+
+  /**
+   * Concatenates a list of `tf.Tensor4D`s along an axis.
+   * See `concat` for details.
+   *
+   * @param tensors A list of `tf.Tensor`s to concatenate.
+   * @param axis The axis to concate along.
+   * @return The concatenated array.
+   */
+  function concat4d_(tensors, axis) {
+      return concat(tensors, axis);
+  }
+  const concat4d = op({ concat4d_ });
 
   /**
    * @license
@@ -13298,10 +13373,10 @@
   // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   // copies of the Software, and to permit persons to whom the Software is
   // furnished to do so, subject to the following conditions:
-  //
+  // 
   // The above copyright notice and this permission notice shall be included in
   // all copies or substantial portions of the Software.
-  //
+  // 
   // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -18577,8 +18652,9 @@
       if (padEnd) {
           while (start < signal.size) {
               const padLen = (start + frameLength) - signal.size;
-              const pad = concat([slice(signal, start, frameLength - padLen),
-                  fill([padLen], padValue)]);
+              const pad = concat([
+                  slice(signal, start, frameLength - padLen), fill([padLen], padValue)
+              ]);
               output.push(pad);
               start += frameStep;
           }
@@ -20481,6 +20557,11 @@
     batchNormalization4d: batchNormalization4d,
     broadcastTo: broadcastTo,
     clone: clone,
+    concat: concat,
+    concat1d: concat1d,
+    concat2d: concat2d,
+    concat3d: concat3d,
+    concat4d: concat4d,
     div: div,
     divNoNan: divNoNan,
     eye: eye,
@@ -20496,6 +20577,7 @@
     randomGamma: randomGamma,
     randomNormal: randomNormal,
     randomUniform: randomUniform,
+    split: split,
     square: square,
     squaredDifference: squaredDifference,
     sub: sub,
@@ -20513,12 +20595,6 @@
     complex: complex,
     real: real,
     imag: imag,
-    concat: concat,
-    concat1d: concat1d,
-    concat2d: concat2d,
-    concat3d: concat3d,
-    concat4d: concat4d,
-    split: split,
     matMul: matMul,
     dot: dot,
     outerProduct: outerProduct,
@@ -23003,6 +23079,30 @@
    * limitations under the License.
    * =============================================================================
    */
+  Tensor.prototype.concat = function (x, axis) {
+      this.throwIfDisposed();
+      if (x instanceof Tensor) {
+          x = [x];
+      }
+      return concat([this, ...x], axis);
+  };
+
+  /**
+   * @license
+   * Copyright 2020 Google LLC. All Rights Reserved.
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   * http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   * =============================================================================
+   */
   Tensor.prototype.div = function (b) {
       this.throwIfDisposed();
       return div(this, b);
@@ -23090,6 +23190,27 @@
   Tensor.prototype.pad = function (paddings, constantValue) {
       this.throwIfDisposed();
       return pad(this, paddings, constantValue);
+  };
+
+  /**
+   * @license
+   * Copyright 2020 Google LLC. All Rights Reserved.
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   * http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   * =============================================================================
+   */
+  Tensor.prototype.split = function (numOrSizeSplits, axis) {
+      this.throwIfDisposed();
+      return split(this, numOrSizeSplits, axis);
   };
 
   /**
@@ -23201,6 +23322,7 @@
   exports.Add = Add;
   exports.AddN = AddN;
   exports.BroadcastTo = BroadcastTo;
+  exports.Concat = Concat;
   exports.DataStorage = DataStorage;
   exports.Div = Div;
   exports.Environment = Environment;
@@ -23217,6 +23339,7 @@
   exports.PadV2 = PadV2;
   exports.RMSPropOptimizer = RMSPropOptimizer;
   exports.SGDOptimizer = SGDOptimizer;
+  exports.SplitV = SplitV;
   exports.Square = Square;
   exports.SquaredDifference = SquaredDifference;
   exports.Sub = Sub;
