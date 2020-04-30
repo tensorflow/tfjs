@@ -32,6 +32,7 @@ export {concat4d} from './concat_4d';
 export {div} from './div';
 export {divNoNan} from './div_no_nan';
 export {eye} from './eye';
+export {greaterEqual} from './greater_equal';
 export {multinomial} from './multinomial';
 export {notEqual} from './not_equal';
 export {oneHot} from './one_hot';
