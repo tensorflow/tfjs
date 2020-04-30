@@ -82,6 +82,12 @@ limitations under the License.
       run: (v) => {
         runBenchmark();
       },
+      warmUp: (v) => {
+        warmUp();
+      },
+      runOnce: () => {
+        runOnce();
+      },
       backend: 'wasm',
       kernelTiming: 'aggregate',
     };
@@ -353,6 +359,31 @@ limitations under the License.
       console.log = oldLog;
     }
 
+    async function warmUp() {
+      const benchmark = benchmarks[state.benchmark];
+      await setupTable();
+      await loadAndRecordTime(benchmark);
+      await warmUpAndRecordTime();
+    }
+
+    async function runOnce() {
+      const start = performance.now();
+      let res = predict(model);
+      if (res instanceof Promise) {
+        res = await res;
+      }
+
+      if (res instanceof tf.Tensor) {
+        const tmp = res;
+        res = await res.data();
+        tmp.dispose();
+      }
+
+      const elapsed = performance.now() - start;
+      await showMsg(null);
+      appendRow(timeTable, 'One run', printTime(elapsed));
+    }
+
     async function runBenchmark() {
       const benchmark = benchmarks[state.benchmark];
       await setupTable();
@@ -384,6 +415,8 @@ limitations under the License.
       });
       gui.add(state, 'kernelTiming', ['aggregate', 'individual']);
       gui.add(state, 'run');
+      gui.add(state, 'warmUp');
+      gui.add(state, 'runOnce');
 
       showVersions();
       await showEnvironment();

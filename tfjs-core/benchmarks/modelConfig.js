@@ -84,7 +84,7 @@ const benchmarks = {
       let rnn_out_units = 48;
       let lstm_units = 3;
 
-      const use_toy = true;
+      const use_toy = false;
 
       if (use_toy) {
         num_frames = 50;

@@ -2519,7 +2519,7 @@
    *     B.inboundNodes
    */
   class Node {
-      constructor(args, 
+      constructor(args,
       // TODO(michaelterry): Define actual type for this.
       callArgs) {
           this.callArgs = callArgs;
@@ -4857,7 +4857,7 @@
    *   It will be called on each line of the summary. You can provide a custom
    *   function in order to capture the string summary. Defaults to `console.log`.
    */
-  function printSummary(model, lineLength, positions, 
+  function printSummary(model, lineLength, positions,
   // tslint:disable-next-line:no-any
   printFn = console.log) {
       const sequentialLike = isModelSequentialLike(model);
@@ -4956,7 +4956,7 @@
       }
       return sequentialLike;
   }
-  function printRow(fields, positions, 
+  function printRow(fields, positions,
   // tslint:disable-next-line:no-any
   printFn = console.log) {
       let line = '';
@@ -4975,7 +4975,7 @@
    *
    * @param layer: Layer instance to print.
    */
-  function printLayerSummary(layer, positions, 
+  function printLayerSummary(layer, positions,
   // tslint:disable-next-line:no-any
   printFn) {
       let outputShape;
@@ -4993,7 +4993,7 @@
   /**
    * Prints a summary for a single Layer, with connectivity information.
    */
-  function printLayerSummaryWithConnections(layer, positions, relevantNodes, 
+  function printLayerSummaryWithConnections(layer, positions, relevantNodes,
   // tslint:disable-next-line:no-any
   printFn) {
       let outputShape;
