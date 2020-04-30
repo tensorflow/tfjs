@@ -76,13 +76,13 @@ limitations under the License.
     'use strict';
 
     const state = {
-      numRuns: 10,
+      numRuns: 20,
       benchmark: 'custom_forward',
       run: (v) => {
         runBenchmark();
       },
-      backend: 'wasm',
-      kernelTiming: 'aggregate',
+      backend: 'webgl',
+      kernelTiming: 'individual',
     };
 
     const modalDiv = document.getElementById('modal-msg');
