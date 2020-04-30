@@ -71,6 +71,7 @@ import './Sin';
 import './Slice';
 import './Softmax';
 import './Split';
+import './Sqrt';
 import './Square';
 import './Sub';
 import './Sum';
