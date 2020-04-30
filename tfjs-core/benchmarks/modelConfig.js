@@ -78,22 +78,23 @@ const benchmarks = {
     },
     predictFunc: () => {
       // FC, 3 LSTMs and a RNN.
-      const num_frames = 200 * 10;
-      const num_lf = 505;
+      const num_frames = 100 * 5;
+      const num_lf = 200;
+      const outputs = 64;
       // FC (128 outputs) | LSTM (units=128, proj=64) | LSTM (units=128, proj=64) | RNN (output=48)
       layer1 = tf.layers.timeDistributed({
-        layer: tf.layers.dense({units:128}),
+        layer: tf.layers.dense({units:outputs}),
         inputShape: [num_frames, num_lf],
       });
       cells = [
-        tf.layers.lstm({units:128, returnSequences: true}),
-        tf.layers.lstm({units:128, returnSequences: true}),
-        tf.layers.lstm({units:128, returnSequences: true}),
-        tf.layers.simpleRNN({units: 48, returnSequences: true})
+        // tf.layers.lstm({units:outputs, returnSequences: true}),
+        // tf.layers.lstm({units:outputs, returnSequences: true}),
+        tf.layers.lstm({units:outputs, returnSequences: true}),
+        tf.layers.simpleRNN({units: 24, returnSequences: true})
       ]
       return () => {
         output = layer1.apply(tf.randomUniform([1, num_frames, num_lf]));
-        for (i = 0; i < 4; i++) {
+        for (i = 0; i < cells.length; i++) {
             output = cells[i].apply(output);
         }
         return output;

@@ -57,8 +57,12 @@ limitations under the License.
       <tbody></tbody>
     </table>
   </div>
-  <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js"></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js"></script>
+  <!-- <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js"></script> -->
+  <script src="tf-core.es2017.js"></script>
+  <script src="tf-backend-cpu.es2017.js"></script>
+  <script src="tf-backend-webgl.es2017.js"></script>
+  <!-- <script src="https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js"></script> -->
+  <script src="tf-layers.es2017.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-backend-wasm@latest/dist/tf-backend-wasm.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-automl@latest/dist/tf-automl.js"></script>
@@ -72,7 +76,7 @@ limitations under the License.
     'use strict';
 
     const state = {
-      numRuns: 50,
+      numRuns: 10,
       benchmark: 'custom_forward',
       run: (v) => {
         runBenchmark();
@@ -351,7 +355,7 @@ limitations under the License.
       await warmUpAndRecordTime();
       await showMsg('Waiting for GC');
       await sleep(1000);
-      await profileMemory();
+      // await profileMemory();
       await sleep(200);
       await measureAveragePredictTime();
       await sleep(200);
