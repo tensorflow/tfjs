@@ -15,10 +15,12 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel} from '@tensorflow/tfjs-core';
+import {NamedAttrMap, NamedTensorInfoMap, registerKernel, util} from '@tensorflow/tfjs-core';
 import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+
+import {slice} from './Slice';
 
 interface SplitInputs extends NamedTensorInfoMap {
   x: TensorInfo;
@@ -32,9 +34,25 @@ interface SplitAttrs extends NamedAttrMap {
 export function split(
     args: {inputs: SplitInputs, attrs: SplitAttrs, backend: BackendWasm}) {
   const {inputs: {x}, attrs: {numOrSizeSplits, axis}, backend} = args;
-  const out = backend.makeOutput(x.shape, x.dtype);
-  console.log(numOrSizeSplits, axis);
-  return out;
+
+  const $axis = util.parseAxisParam(axis, x.shape)[0];
+
+  let splitSizes: number[];
+  if (typeof (numOrSizeSplits) === 'number') {
+    splitSizes =
+        new Array(numOrSizeSplits).fill(x.shape[$axis] / numOrSizeSplits);
+  } else {
+    splitSizes = numOrSizeSplits;
+  }
+
+  const begin = new Array(x.shape.length).fill(0);
+  const size = x.shape.slice();
+  return splitSizes.map(s => {
+    size[$axis] = s;
+    const xSlice = slice({inputs: {x}, attrs: {begin, size}, backend});
+    begin[$axis] += s;
+    return xSlice;
+  });
 }
 
 registerKernel({kernelName: 'SplitV', backendName: 'wasm', kernelFunc: split});
