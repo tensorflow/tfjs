@@ -69,8 +69,11 @@ function depthwiseConv2d(args: {
   const filterId = backend.dataIdMap.get(filter.dataId).id;
 
   const {strides, dilations, pad, dimRoundingMode} = attrs;
+
+  const $dilations = dilations == null ? [1, 1] : dilations;
+
   const convInfo = backend_util.computeConv2DInfo(
-      (x as Tensor4D).shape, (filter as Tensor4D).shape, strides, dilations,
+      (x as Tensor4D).shape, (filter as Tensor4D).shape, strides, $dilations,
       pad, dimRoundingMode, true /* depthwise */);
 
   const filterHeight = convInfo.filterHeight;
