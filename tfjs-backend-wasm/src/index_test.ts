@@ -58,8 +58,8 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     }, 100);
 
     // Silences backend registration warnings.
-    spyOn(console, 'warn');
-    spyOn(console, 'log');
+    // spyOn(console, 'warn');
+    // spyOn(console, 'log');
   });
 
   afterEach(() => {
@@ -120,5 +120,31 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     // Setting the path too late.
     expect(() => setWasmPath('too/late'))
         .toThrowError(/The WASM backend was already initialized. Make sure/);
+  });
+
+  fit('split by number', async () => {
+    const x = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+    const res = tf.split(x, 2, 1);
+    expect(res.length).toEqual(2);
+    expect(res[0].shape).toEqual([2, 2]);
+    const res0data = await res[0].data();
+    console.log(Array.from(res0data));
+    // expectArraysClose(await res[0].data(), [1, 2, 5, 6]);
+    expect(res[1].shape).toEqual([2, 2]);
+    const res1data = await res[1].data();
+    console.log(Array.from(res1data));
+    // expectArraysClose(await res[1].data(), [3, 4, 7, 8]);
+  });
+
+  it('split by sizes', async () => {
+    const x = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+    const res = tf.split(x, [1, 2, 1], 1);
+    expect(res.length).toEqual(3);
+    expect(res[0].shape).toEqual([2, 1]);
+    // expectArraysClose(await res[0].data(), [1, 5]);
+    expect(res[1].shape).toEqual([2, 2]);
+    // expectArraysClose(await res[1].data(), [2, 3, 6, 7]);
+    expect(res[2].shape).toEqual([2, 1]);
+    // expectArraysClose(await res[2].data(), [4, 8]);
   });
 });

@@ -70,6 +70,7 @@ import './Sigmoid';
 import './Sin';
 import './Slice';
 import './Softmax';
+import './Split';
 import './Square';
 import './Sub';
 import './Sum';
