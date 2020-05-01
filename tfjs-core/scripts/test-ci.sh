@@ -31,6 +31,7 @@ then
     "run-browserstack --browsers=bs_firefox_mac,bs_safari_mac,bs_ios_11,bs_android_9 --flags '{\"HAS_WEBGL\": false}' --testEnv cpu"
 
   ### The next section tests TF.js in a webworker using the CPU backend.
+  echo "Start webworker test."
   # Make a dist/tf-core.min.js file to be imported by the web worker.
   yarn rollup -c --ci
   # copy the cpu backend bundle somewhere the test can access it
