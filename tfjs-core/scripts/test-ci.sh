@@ -23,14 +23,15 @@ if [ "$NIGHTLY" = true ]
 then
   # Run the first karma separately so it can download the BrowserStack binary
   # without conflicting with others.
-  yarn run-browserstack --browsers=bs_firefox_mac,bs_chrome_mac
+  yarn run-browserstack --browsers=bs_chrome_mac
 
   # Run the rest of the karma tests in parallel. These runs will reuse the
   # already downloaded binary.
   npm-run-all -p -c --aggregate-output \
-    "run-browserstack --browsers=bs_safari_mac,bs_ios_11,bs_android_9 --flags '{\"HAS_WEBGL\": false}' --testEnv cpu"
+    "run-browserstack --browsers=bs_firefox_mac,bs_safari_mac,bs_ios_11,bs_android_9 --flags '{\"HAS_WEBGL\": false}' --testEnv cpu"
 
   ### The next section tests TF.js in a webworker using the CPU backend.
+  echo "Start webworker test."
   # Make a dist/tf-core.min.js file to be imported by the web worker.
   yarn rollup -c --ci
   # copy the cpu backend bundle somewhere the test can access it
