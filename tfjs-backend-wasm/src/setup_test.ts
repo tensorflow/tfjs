@@ -224,6 +224,7 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'transpose',
     excludes: ['oneHot']  // oneHot not yet implemented.
   },
+  {include: 'split'},
   {include: 'pad ', excludes: ['complex', 'zerosLike']},
   {include: 'clip', excludes: ['gradient']},
   {include: 'addN'},

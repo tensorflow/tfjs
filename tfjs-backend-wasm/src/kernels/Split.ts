@@ -49,7 +49,8 @@ export function split(
   const size = x.shape.slice();
   return splitSizes.map(s => {
     size[$axis] = s;
-    const xSlice = slice({inputs: {x}, attrs: {begin, size}, backend});
+    const xSlice =
+        slice({inputs: {x}, attrs: {begin, size: [...size]}, backend});
     begin[$axis] += s;
     return xSlice;
   });
