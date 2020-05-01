@@ -22,3 +22,6 @@ import './register_all_kernels';
 
 export {MathBackendCPU};
 export {version as version_cpu} from './version';
+
+import * as shared from './shared';
+export {shared};
