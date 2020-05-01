@@ -71,6 +71,7 @@ import './ops/gather_nd_test';
 import './ops/greater_test';
 import './ops/image_ops_test';
 import './ops/in_top_k_test';
+import './ops/less_test';
 import './ops/linalg_ops_test';
 import './ops/logical_ops_test';
 import './ops/loss_ops_test';
