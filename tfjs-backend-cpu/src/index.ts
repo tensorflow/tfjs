@@ -21,3 +21,4 @@ registerBackend('cpu', () => new MathBackendCPU(), 1 /* priority */);
 import './register_all_kernels';
 
 export {MathBackendCPU};
+export {version as version_cpu} from './version';

@@ -17,6 +17,7 @@
 
 import {device_util, registerBackend} from '@tensorflow/tfjs-core';
 import {MathBackendWebGL} from './backend_webgl';
+export {version as version_webgl} from './version';
 export {MathBackendWebGL};
 
 if (device_util.isBrowser()) {
