@@ -48,7 +48,7 @@ function setup(backend: BackendWasm) {
   ]);
 }
 
-function batchMatMul(args: {
+export function batchMatMul(args: {
   inputs: BatchMatMulInputs,
   backend: BackendWasm,
   attrs: BatchMatMulAttrs
