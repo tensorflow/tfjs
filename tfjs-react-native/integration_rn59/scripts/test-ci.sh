@@ -21,19 +21,15 @@ yarn lint
 
 # Default is to run tests against the packages specified dependencies. We can
 # optionally copy a built version of tfjs-core from the current checkout
-if [ "$1" == "use-core-build" ]; then
-  # Assume core has been built recently, just link it in. Use cp and not
-  # yalc to avoid symlinks
-  echo "Use existing core build"
-  cd ../../tfjs-core && cp -rf dist ../tfjs-react-native/integration_rn59/node_modules/@tensorflow/tfjs-core && cd ../tfjs-react-native/integration_rn59
-elif [ "$1" == "build-head" ]; then
-  # Build head and link it in.
-  echo "Build head from core"
-  cd ../../tfjs-core && yarn && yarn build-ci && cp -rf dist ../tfjs-react-native/integration_rn59/node_modules/@tensorflow/tfjs-core && cd ../tfjs-react-native/integration_rn59
+if [ "$1" == "against-head" ]; then
+  # Copy in fresh builds of all packages
+  echo "Copying all deps from from HEAD"
+  yarn copydeps
+else
+  # Copy just the built tfjs-react-native
+  echo "Copying tfjs-react-native from HEAD"
+  yarn && yarn copyrn
 fi
-
-# build tfjs-react-native from head
-cd ../ && yarn && yarn build && cp -rf dist ./integration_rn59/node_modules/@tensorflow/tfjs-react-native && cd integration_rn59
 
 yarn prep-tests
 

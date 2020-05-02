@@ -1,6 +1,6 @@
 {
   "name": "integration_rn59",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "start": "react-native start --reset-cache",
@@ -10,15 +10,18 @@
     "test-integration": "wdio wdio.conf.js",
     "test-ci": "./scripts/test-ci.sh",
     "postinstall": "npm run prep-tests",
+    "copydeps": "yarn copyrn && yarn copycore && yarn copycpu && yarn copywebgl",
     "copyrn": "\\cp -rf ../dist node_modules/@tensorflow/tfjs-react-native",
-    "copycore": "\\cp -rf ../../tfjs-core/dist node_modules/@tensorflow/tfjs-core"
+    "copycore": "\\cp -rf ../../tfjs-core/dist node_modules/@tensorflow/tfjs-core",
+    "copycpu": "\\cp -rf ../../tfjs-backend-cpu/dist node_modules/@tensorflow/tfjs-backend-cpu",
+    "copywebgl": "\\cp -rf ../../tfjs-backend-webgl/dist node_modules/@tensorflow/tfjs-backend-webgl"
   },
   "dependencies": {
     "@react-native-community/async-storage": "^1.6.1",
     "@tensorflow-models/blazeface": "^0.0.2",
     "@tensorflow-models/mobilenet": "^2.0.4",
     "@tensorflow-models/posenet": "^2.2.1",
-    "@tensorflow/tfjs": "~1.5.1",
+    "@tensorflow/tfjs": "2.0.0-rc.2.1",
     "@tensorflow/tfjs-react-native": "0.2.3",
     "expo-camera": "^7.0.0",
     "expo-gl": "^7.0.0",

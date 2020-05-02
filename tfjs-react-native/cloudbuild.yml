@@ -13,13 +13,39 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
-# Run unit tests against latest source
+# Build deps.
+- name: 'node:10'
+  dir: 'tfjs-core'
+  id: 'build-deps'
+  entrypoint: 'yarn'
+  args: ['build-deps-ci']
+  waitFor: ['yarn']
+
+# Build tfjs-react-native.
+- name: 'node:10'
+  dir: 'tfjs-core'
+  id: 'build'
+  entrypoint: 'yarn'
+  args: ['build-ci']
+  waitFor: ['build-deps-ci']
+
+# Run unit tests in react native. Tests against HEAD
+- name: 'node:10'
+  dir: 'tfjs-react-native/integration_rn59'
+  id: 'react-native-from-core'
+  entrypoint: 'yarn'
+  args: ['test-ci', 'against-head']
+  waitFor: ['build']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+  secretEnv: ['BROWSERSTACK_KEY']
+
+# Run unit tests against deps from NPM (not including tfjs-react-native itselg)
 - name: 'node:10'
   dir: 'tfjs-react-native/integration_rn59'
   id: 'react-native-against-published-core'
   entrypoint: 'yarn'
   args: ['test-ci']
-  waitFor: ['yarn']
+  waitFor: ['build-ci']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']
 
