@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {GPGPUContext, MathBackendWebGL, setWebGLContext} from '@tensorflow/tfjs-backend-webgl';
 import * as tf from '@tensorflow/tfjs-core';
 import {Platform} from '@tensorflow/tfjs-core';
 import {Buffer} from 'buffer';
@@ -230,9 +231,9 @@ function registerWebGLBackend() {
       glContext.clientWaitSync = shimClientWaitSync.bind(glContext);
 
       // Set the WebGLContext before flag evaluation
-      tf.webgl.setWebGLContext(2, glContext);
-      const context = new tf.webgl.GPGPUContext();
-      const backend = new tf.webgl.MathBackendWebGL(context);
+      setWebGLContext(2, glContext);
+      const context = new GPGPUContext();
+      const backend = new MathBackendWebGL(context);
 
       return backend;
     }, PRIORITY);
