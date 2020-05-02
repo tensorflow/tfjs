@@ -27,7 +27,7 @@ steps:
   id: 'build'
   entrypoint: 'yarn'
   args: ['build-ci']
-  waitFor: ['build-deps-ci']
+  waitFor: ['build-deps']
 
 # Run unit tests in react native. Tests against HEAD
 - name: 'node:10'
