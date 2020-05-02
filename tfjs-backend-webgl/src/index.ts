@@ -18,9 +18,15 @@
 import {device_util, registerBackend} from '@tensorflow/tfjs-core';
 import {MathBackendWebGL} from './backend_webgl';
 export {version as version_webgl} from './version';
-export {MathBackendWebGL};
 
 if (device_util.isBrowser()) {
   registerBackend('webgl', () => new MathBackendWebGL(), 2 /* priority */);
 }
 import './register_all_kernels';
+
+// Export webgl utilities
+export * from './webgl';
+
+// Export forceHalfFlost under webgl namespace for the union bundle.
+import {forceHalfFloat} from './webgl';
+export const webgl = {forceHalfFloat};
