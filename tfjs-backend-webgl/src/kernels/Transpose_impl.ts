@@ -15,14 +15,12 @@
  * =============================================================================
  */
 
-import {shared} from '@tensorflow/tfjs-backend-cpu';
 import {env, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
+import {transposeImplCPU} from '../kernel_utils/shared';
 import {TransposeProgram} from '../transpose_gpu';
 import {TransposePackedProgram} from '../transpose_packed_gpu';
-
-const transposeImplCPU = shared.transposeImpl;
 
 export function transposeImpl(
     x: TensorInfo, perm: number[], backend: MathBackendWebGL): TensorInfo {

@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
-import {shared as cpuSharedImpls} from '@tensorflow/tfjs-backend-cpu';
 import {Max, MaxAttrs, MaxInputs} from '@tensorflow/tfjs-core';
 import {backend_util, KernelConfig, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
+import {maxImplCPU} from '../kernel_utils/shared';
 
 import {maxImpl} from './Max_impl';
 import {transposeImpl, transposeImplCPU} from './Transpose_impl';
@@ -72,7 +72,7 @@ export const maxConfig: KernelConfig = {
       const xTexData = webglBackend.texData.get(maxInput.dataId);
       const values = xTexData.values as TypedArray;
 
-      const outValues = cpuSharedImpls.maxImpl(
+      const outValues = maxImplCPU(
           values, util.sizeFromShape(reduceShape), outShape, x.dtype);
 
       out = webglBackend.makeTensorInfo(outShape, x.dtype);

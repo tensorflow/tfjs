@@ -15,20 +15,8 @@
  * =============================================================================
  */
 
-import {TensorInfo, util} from '@tensorflow/tfjs-core';
+import {shared} from '@tensorflow/tfjs-backend-cpu';
 
-import {MathBackendWebGL} from '../backend_webgl';
-import {reduce} from '../kernel_utils/reduce';
-import {reshape} from '../kernel_utils/reshape';
+const {maxImpl: maxImplCPU, transposeImpl: transposeImplCPU} = shared;
 
-export function maxImpl(
-    x: TensorInfo, reduceShape: number[], outShape: number[],
-    backend: MathBackendWebGL): TensorInfo {
-  const inSize = util.sizeFromShape(reduceShape);
-  const xSize = util.sizeFromShape(x.shape);
-  const batchSize = xSize / inSize;
-
-  return reshape(
-      reduce(reshape(x, [batchSize, inSize], backend), x.dtype, 'max', backend),
-      outShape, backend);
-};
+export {maxImplCPU, transposeImplCPU};
