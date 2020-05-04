@@ -27,5 +27,6 @@ declare module '../../tensor' {
 
 Tensor.prototype.max = function<T extends Tensor>(
     axis?: number|number[], keepDims?: boolean): T {
+  this.throwIfDisposed();
   return max(this, axis, keepDims);
 };
