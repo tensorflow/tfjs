@@ -19,7 +19,7 @@ steps:
   id: 'build'
   entrypoint: 'yarn'
   args: ['build-ci']
-  waitFor: ['build-deps']
+  waitFor: ['yarn']
 
 # Run unit tests in react native. Tests against version published on NPM.
 # Restore once next 2.x RC is out.
