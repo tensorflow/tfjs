@@ -24,7 +24,7 @@ import {GradSaveFunc, NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
-
+import {reshape} from './array_ops';
 import * as axis_util from './axis_util';
 import {op} from './operation';
 import {transpose} from './transpose';
@@ -73,6 +73,10 @@ function max_<T extends Tensor>(
 
         const y = backend.max($x, axes);
         save([$x, y]);
+
+        if (keepDims) {
+          return reshape(y, axis_util.expandShapeToKeepDim(y.shape, origAxes));
+        }
         return y;
       };
   const inputs: MaxInputs = {x: $x};
