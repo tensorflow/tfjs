@@ -83,7 +83,7 @@ export interface NonMaxSuppressionV5Attrs {
 export const Max = 'Max';
 export type MaxInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface MaxAttrs {
-  reductionIndices: number[];
+  reductionIndices: number|number[];
 }
 
 export const OneHot = 'OneHot';

@@ -17,9 +17,10 @@
 
 import {KernelBackend} from '../backends/backend';
 import {ENGINE, ForwardFunc} from '../engine';
-import {Max} from '../kernel_names';
+import {Max, MaxAttrs, MaxInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
-import {GradSaveFunc} from '../tensor_types';
+import {GradSaveFunc, NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
@@ -28,6 +29,7 @@ import {reshape} from './array_ops';
 import * as axis_util from './axis_util';
 import {op} from './operation';
 import {transpose} from './transpose';
+
 
 /**
  * Computes the maximum of elements across dimensions of a `tf.Tensor`.
@@ -75,9 +77,12 @@ function max_<T extends Tensor>(
         save([$x, y]);
         return y;
       };
+  const inputs: MaxInputs = {x: $x};
+  const attrs: MaxAttrs = {reductionIndices: axis};
 
   let res = ENGINE.runKernelFunc(
-      forward, {x: $x}, null /* gradient */, Max, {reductionIndices: axis});
+      forward, inputs as {} as NamedTensorMap, null /* gradient */, Max,
+      attrs as {} as NamedAttrMap);
   if (keepDims) {
     const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
     res = reshape(res, newShape) as T;
