@@ -32,7 +32,7 @@ steps:
 # Run unit tests in react native. Tests against HEAD
 - name: 'node:10'
   dir: 'tfjs-react-native/integration_rn59'
-  id: 'react-native-from-core'
+  id: 'test-ci'
   entrypoint: 'yarn'
   args: ['test-ci', 'against-head']
   waitFor: ['build']
@@ -40,7 +40,7 @@ steps:
   secretEnv: ['BROWSERSTACK_KEY']
 
 # Run unit tests against deps from NPM (not including tfjs-react-native itselg)
-# Temp disable
+# Temp disable. This should probably move to nightly.
 # - name: 'node:10'
 #   dir: 'tfjs-react-native/integration_rn59'
 #   id: 'react-native-against-published-core'
