@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line: no-imports-from-dist
-import {transposeImpl as transposeImplCPU} from '@tensorflow/tfjs-backend-cpu/dist/shared';
+import {shared} from '@tensorflow/tfjs-backend-cpu';
 import {env, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
@@ -31,4 +30,4 @@ export function transposeImpl(
   return backend.runWebGLProgram(program, [x], x.dtype);
 }
 
-export {transposeImplCPU};
+export const transposeImplCPU = shared.transposeImpl;

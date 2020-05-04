@@ -137,7 +137,7 @@ export function registerKernel(config: KernelConfig) {
   const {kernelName, backendName} = config;
   const key = makeKey(kernelName, backendName);
   if (kernelRegistry.has(key)) {
-    throw new Error(
+    console.warn(
         `The kernel '${kernelName}' for backend ` +
         `'${backendName}' is already registered`);
   }

@@ -64,7 +64,7 @@ async function main() {
   console.log();
 
   const releaseUnit = RELEASE_UNITS[releaseUnitInt];
-  const {name, phases, repo} = releaseUnit;
+  const {name, phases} = releaseUnit;
 
   phases.forEach((_, i) => printPhase(phases, i));
   console.log();
