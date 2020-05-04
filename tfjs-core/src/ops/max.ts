@@ -16,13 +16,15 @@
  */
 
 import {KernelBackend} from '../backends/backend';
-import {ENGINE} from '../engine';
+import {ENGINE, ForwardFunc} from '../engine';
+import {Max} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {GradSaveFunc} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
+import {reshape} from './array_ops';
 import * as axis_util from './axis_util';
 import {op} from './operation';
 import {transpose} from './transpose';
@@ -60,24 +62,25 @@ function max_<T extends Tensor>(
   let $x = convertToTensor(x, 'x', 'max');
   const origAxes = util.parseAxisParam(axis, $x.shape);
 
-  const forward = (backend: KernelBackend, save: GradSaveFunc) => {
-    let axes = origAxes;
-    const permutedAxes = axis_util.getAxesPermutation(axes, $x.rank);
-    if (permutedAxes != null) {
-      $x = transpose($x, permutedAxes);
-      axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
-    }
+  const forward: ForwardFunc<Tensor> =
+      (backend: KernelBackend, save: GradSaveFunc) => {
+        let axes = origAxes;
+        const permutedAxes = axis_util.getAxesPermutation(axes, $x.rank);
+        if (permutedAxes != null) {
+          $x = transpose($x, permutedAxes);
+          axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
+        }
 
-    const y = backend.max($x, axes);
-    save([$x, y]);
-    return y;
-  };
+        const y = backend.max($x, axes);
+        save([$x, y]);
+        return y;
+      };
 
   let res = ENGINE.runKernelFunc(
-      forward, {x: $x}, null /* gradient */, 'Max', {reductionIndices: axis});
+      forward, {x: $x}, null /* gradient */, Max, {reductionIndices: axis});
   if (keepDims) {
     const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
-    res = res.reshape(newShape) as T;
+    res = reshape(res, newShape) as T;
   }
   return res as T;
 }
