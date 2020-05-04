@@ -17,6 +17,8 @@
 
 import {Tensor} from '../tensor';
 
+// TODO(annxingyuan): Use this helper in WASM Split kernel once intermediate
+// kernels have been modularized in WebGL and CPU.
 /** Shared implementation of the split kernel across WebGL and CPU. */
 export function split<T extends Tensor>(
     x: T, sizeSplits: number[], axis: number): T[] {

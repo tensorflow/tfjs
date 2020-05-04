@@ -16,6 +16,7 @@
  */
 
 import {NamedAttrMap, NamedTensorInfoMap, registerKernel, util} from '@tensorflow/tfjs-core';
+
 import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
@@ -48,9 +49,10 @@ export function split(
   const begin = new Array(x.shape.length).fill(0);
   const size = x.shape.slice();
   return splitSizes.map(s => {
-    size[$axis] = s;
+    const xSliceSize = [...size];
+    xSliceSize[$axis] = s;
     const xSlice =
-        slice({inputs: {x}, attrs: {begin, size: [...size]}, backend});
+        slice({inputs: {x}, attrs: {begin, size: xSliceSize}, backend});
     begin[$axis] += s;
     return xSlice;
   });
