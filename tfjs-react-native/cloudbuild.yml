@@ -40,14 +40,15 @@ steps:
   secretEnv: ['BROWSERSTACK_KEY']
 
 # Run unit tests against deps from NPM (not including tfjs-react-native itselg)
-- name: 'node:10'
-  dir: 'tfjs-react-native/integration_rn59'
-  id: 'react-native-against-published-core'
-  entrypoint: 'yarn'
-  args: ['test-ci']
-  waitFor: ['build']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
-  secretEnv: ['BROWSERSTACK_KEY']
+# Temp disable
+# - name: 'node:10'
+#   dir: 'tfjs-react-native/integration_rn59'
+#   id: 'react-native-against-published-core'
+#   entrypoint: 'yarn'
+#   args: ['test-ci']
+#   waitFor: ['build']
+#   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+#   secretEnv: ['BROWSERSTACK_KEY']
 
 # General configuration
 secrets:
