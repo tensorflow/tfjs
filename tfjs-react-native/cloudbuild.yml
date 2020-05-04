@@ -15,7 +15,7 @@ steps:
 
 # Build deps.
 - name: 'node:10'
-  dir: 'tfjs-core'
+  dir: 'tfjs-react-native'
   id: 'build-deps'
   entrypoint: 'yarn'
   args: ['build-deps-ci']
@@ -23,7 +23,7 @@ steps:
 
 # Build tfjs-react-native.
 - name: 'node:10'
-  dir: 'tfjs-core'
+  dir: 'tfjs-react-native'
   id: 'build'
   entrypoint: 'yarn'
   args: ['build-ci']
