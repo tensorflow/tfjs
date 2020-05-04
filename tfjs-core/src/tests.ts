@@ -65,6 +65,7 @@ import './ops/conv_util_test';
 import './ops/diag_test';
 import './ops/dropout_test';
 import './ops/dropout_util_test';
+import './ops/equal_test';
 import './ops/eye_test';
 import './ops/fused_test';
 import './ops/gather_nd_test';
