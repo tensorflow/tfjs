@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,19 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
-import './add';
-import './batchnorm';
-import './broadcast_to';
-import './concat';
-import './div';
-import './div_no_nan';
-import './greater';
-import './less';
-import './one_hot';
-import './not_equal';
-import './pad';
-import './split';
-import './squared_difference';
-import './sub';
-import './tile';
-import './transpose';
+import {less} from '../../ops/less';
+import {Tensor} from '../../tensor';
+import {Rank, TensorLike} from '../../types';
+
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    less<T extends Tensor>(b: Tensor|TensorLike): T;
+  }
+}
+
+Tensor.prototype.less = function<T extends Tensor>(b: Tensor|TensorLike): T {
+  this.throwIfDisposed();
+  return less(this, b);
+};
