@@ -24,6 +24,8 @@ then
   # Run the first karma separately so it can download the BrowserStack binary
   # without conflicting with others.
   yarn run-browserstack --browsers=bs_chrome_mac
+  echo "Test iPhone X."
+  yarn run-browserstack --browsers=bs_ios_11 --flags '{"HAS_WEBGL": false}' --testEnv cpu
 
   # TODO(lina128): Add back bs_ios_11 once browserstack issue is resolved.
   yarn run-browserstack --browsers=bs_firefox_mac,bs_safari_mac,bs_android_9 --flags '{"HAS_WEBGL": false}' --testEnv cpu
