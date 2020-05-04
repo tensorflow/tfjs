@@ -13,14 +13,6 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
-# Build deps.
-- name: 'node:10'
-  dir: 'tfjs-react-native'
-  id: 'build-deps'
-  entrypoint: 'yarn'
-  args: ['build-deps-ci']
-  waitFor: ['yarn']
-
 # Build tfjs-react-native.
 - name: 'node:10'
   dir: 'tfjs-react-native'
