@@ -40,6 +40,24 @@ const karmaTypescriptConfig = {
   }
 };
 
+const devConfig = {
+  frameworks: ['jasmine', 'karma-typescript'],
+  files: [
+    {pattern: './node_modules/@babel/polyfill/dist/polyfill.js'},
+    'src/setup_test.ts',
+    {pattern: 'src/**/*.ts'},
+  ],
+  preprocessors: {'**/*.ts': ['karma-typescript']},
+  karmaTypescriptConfig,
+  reporters: ['dots', 'karma-typescript']
+};
+
+const browserstackConfig = {
+  ...devConfig,
+  hostname: 'bs-local.com',
+  singleRun: true
+};
+
 module.exports = function(config) {
   const args = [];
   if (config.testEnv) {
@@ -51,34 +69,34 @@ module.exports = function(config) {
   if (config.flags) {
     args.push('--flags', config.flags);
   }
+
+  let extraConfig = null;
+
+  if (config.browserstack) {
+    extraConfig = browserstackConfig;
+  } else {
+    extraConfig = devConfig;
+  }
+
   let exclude = [];
   if (config.excludeTest != null) {
     exclude.push(config.excludeTest);
   }
 
   config.set({
-    frameworks: ['jasmine', 'karma-typescript'],
-    files: [
-      {pattern: './node_modules/@babel/polyfill/dist/polyfill.js'},
-      'src/setup_test.ts',
-      {pattern: 'src/**/*.ts'},
-    ],
-    preprocessors: {'**/*.ts': ['karma-typescript']},
-    karmaTypescriptConfig,
-    reporters: ['dots', 'karma-typescript'],
+    ...extraConfig,
     exclude,
-    colors: true,
-    autoWatch: false,
     browsers: ['Chrome'],
-    singleRun: true,
-    client: {jasmine: {random: false}, args: args},
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY
     },
-    captureTimeout: 120000,
+    captureTimeout: 3e5,
     reportSlowerThan: 500,
-    browserNoActivityTimeout: 240000,
+    browserNoActivityTimeout: 3e5,
+    browserDisconnectTimeout: 3e5,
+    browserDisconnectTolerance: 0,
+    browserSocketTimeout: 1.2e5,
     customLaunchers: {
       // For browserstack configs see:
       // https://www.browserstack.com/automate/node
@@ -127,5 +145,6 @@ module.exports = function(config) {
         os_version: '10'
       },
     },
+    client: {jasmine: {random: false}, args: args}
   })
 }

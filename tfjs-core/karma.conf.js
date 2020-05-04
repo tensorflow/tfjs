@@ -43,12 +43,12 @@ const devConfig = {
   ],
   preprocessors: {'**/*.ts': ['karma-typescript']},
   karmaTypescriptConfig,
-  reporters: ['dots', 'karma-typescript'],
+  reporters: ['dots', 'karma-typescript']
 };
 
 const browserstackConfig = {
   ...devConfig,
-  reporters: ['dots', 'karma-typescript'],
+  hostname: 'bs-local.com',
   singleRun: true
 };
 
