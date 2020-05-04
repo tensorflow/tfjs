@@ -330,6 +330,10 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: ['gradient']  // Gradient not yet implemented.
   },
   {
+    startsWith: 'sqrt ',
+    excludes: ['gradient']  // Gradient not yet implemented.
+  },
+  {
     startsWith: 'zerosLike',
     // Complex numbers not supported yet.
     excludes: ['complex'],
