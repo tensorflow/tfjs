@@ -20,7 +20,8 @@ if [ "$NIGHTLY" = true ]
 then
   # Run the first karma separately so it can download the BrowserStack binary
   # without conflicting with others.
-  yarn run-browserstack --browsers=bs_safari_mac,bs_ios_11 --testEnv webgl1 --flags '{"WEBGL_CPU_FORWARD": false, "WEBGL_SIZE_UPLOAD_UNIFORM": 0}'
+  # TODO(lina128): Add back bs_ios_11 once browserstack issue is resolved.
+  yarn run-browserstack --browsers=bs_safari_mac --testEnv webgl1 --flags '{"WEBGL_CPU_FORWARD": false, "WEBGL_SIZE_UPLOAD_UNIFORM": 0}'
 
   # Run the rest of the karma tests in parallel. These runs will reuse the
   # already downloaded binary.
