@@ -20,8 +20,10 @@ import {backend_util, DataType, TensorInfo} from '@tensorflow/tfjs-core';
 import {MathBackendWebGL} from '../backend_webgl';
 import {ReduceProgram} from '../reduce_gpu';
 
+type ReduceTypes = 'all'|'any'|'max'|'min'|'sum'|'prod';
+
 export function reduce(
-    x: TensorInfo, dtype: DataType, reductionType: backend_util.ReduceTypes,
+    x: TensorInfo, dtype: DataType, reductionType: ReduceTypes,
     backend: MathBackendWebGL): TensorInfo {
   const [batchSize, inSize] = x.shape;
   const windowSize = backend_util.computeOptimalWindowSize(inSize);
