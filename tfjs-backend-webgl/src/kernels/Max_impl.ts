@@ -31,4 +31,4 @@ export function maxImpl(
   return reshape(
       reduce(reshape(x, [batchSize, inSize], backend), x.dtype, 'max', backend),
       outShape, backend);
-};
+}
