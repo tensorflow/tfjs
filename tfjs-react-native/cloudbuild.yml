@@ -29,21 +29,11 @@ steps:
   args: ['build-ci']
   waitFor: ['build-deps']
 
-# Run unit tests in react native. Tests against HEAD
-- name: 'node:10'
-  dir: 'tfjs-react-native/integration_rn59'
-  id: 'test-ci'
-  entrypoint: 'yarn'
-  args: ['test-ci', 'against-head']
-  waitFor: ['build']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
-  secretEnv: ['BROWSERSTACK_KEY']
-
-# Run unit tests against deps from NPM (not including tfjs-react-native itselg)
-# Temp disable. This should probably move to nightly.
+# Run unit tests in react native. Tests against version published on NPM.
+# Restore once next 2.x RC is out.
 # - name: 'node:10'
 #   dir: 'tfjs-react-native/integration_rn59'
-#   id: 'react-native-against-published-core'
+#   id: 'test-ci'
 #   entrypoint: 'yarn'
 #   args: ['test-ci']
 #   waitFor: ['build']

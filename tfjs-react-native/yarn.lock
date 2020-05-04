@@ -35,17 +35,37 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
-"@tensorflow/tfjs-backend-cpu@link:../tfjs-backend-cpu":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-backend-cpu@2.0.0-rc.1":
+  version "2.0.0-rc.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-cpu/-/tfjs-backend-cpu-2.0.0-rc.1.tgz#13b68c820148ea3198ff52099f34d259158bf2ee"
+  integrity sha512-1ur6W11Dj/PiHa7WxfzF4CXYzgxP9uLzBMJJF6P3/qiZiRpjse8l+rYQun9i/kKzfO/vJzaSlNSBRCtrYuloJg==
+  dependencies:
+    "@types/seedrandom" "2.4.27"
+    seedrandom "2.4.3"
 
-"@tensorflow/tfjs-backend-webgl@link:../tfjs-backend-webgl":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-backend-webgl@2.0.0-rc.1":
+  version "2.0.0-rc.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-webgl/-/tfjs-backend-webgl-2.0.0-rc.1.tgz#4b0962d63493178c5c7d79e36c26be476fcb7bd6"
+  integrity sha512-3DbDljKQ8Akev1GkGJ05dvlrig55S/2x1klFXdSns0eLssgTpoA7aU5x8LLZPZJ3f13VhheXL3Cey2uhbQMprg==
+  dependencies:
+    "@tensorflow/tfjs-backend-cpu" "2.0.0-rc.1"
+    "@types/offscreencanvas" "~2019.3.0"
+    "@types/seedrandom" "2.4.27"
+    "@types/webgl-ext" "0.0.30"
+    "@types/webgl2" "0.0.4"
+    seedrandom "2.4.3"
 
-"@tensorflow/tfjs-core@link:../tfjs-core":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-core@2.0.0-rc.1":
+  version "2.0.0-rc.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-2.0.0-rc.1.tgz#578b4b6d6375fe62b92cb4240d0b6fb54ea7ffd0"
+  integrity sha512-h/QS5LfW53Y8XGCRqUYos/fD/eKXM3GkShDuYJoTgG/rJProofW5LAYQCk+a8F1hGmEHZPIM6ti/5p9ii5Nr2Q==
+  dependencies:
+    "@types/offscreencanvas" "~2019.3.0"
+    "@types/seedrandom" "2.4.27"
+    "@types/webgl-ext" "0.0.30"
+    "@types/webgl2" "0.0.4"
+    node-fetch "~2.1.2"
+    seedrandom "2.4.3"
 
 "@types/base64-js@^1.2.5":
   version "1.2.5"

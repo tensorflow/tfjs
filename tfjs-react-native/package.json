@@ -33,9 +33,9 @@
   },
   "devDependencies": {
     "@react-native-community/async-storage": "^1.4.2",
-    "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
-    "@tensorflow/tfjs-backend-webgl": "link:../tfjs-backend-webgl",
-    "@tensorflow/tfjs-core": "link:../tfjs-core",
+    "@tensorflow/tfjs-backend-cpu": "2.0.0-rc.1",
+    "@tensorflow/tfjs-backend-webgl": "2.0.0-rc.1",
+    "@tensorflow/tfjs-core": "2.0.0-rc.1",
     "@types/base64-js": "^1.2.5",
     "@types/jasmine": "~3.3.0",
     "@types/react-native": "0.60.2",
