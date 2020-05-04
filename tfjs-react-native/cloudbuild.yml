@@ -14,12 +14,13 @@ steps:
   waitFor: ['yarn-common']
 
 # Build tfjs-react-native.
-- name: 'node:10'
-  dir: 'tfjs-react-native'
-  id: 'build'
-  entrypoint: 'yarn'
-  args: ['build-ci']
-  waitFor: ['yarn']
+# Restore once next 2.x RC is out.
+# - name: 'node:10'
+#   dir: 'tfjs-react-native'
+#   id: 'build'
+#   entrypoint: 'yarn'
+#   args: ['build-ci']
+#   waitFor: ['yarn']
 
 # Run unit tests in react native. Tests against version published on NPM.
 # Restore once next 2.x RC is out.
