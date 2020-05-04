@@ -101,12 +101,6 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
           `(${x4D.shape[3]}) must match the inChannels dimension in ` +
           `filter ${$filter.shape[2]}.`);
 
-  util.assert(
-      conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
-      () =>
-          'Error in depthwiseConv2d: Either strides or dilations must be 1. ' +
-          `Got strides ${strides} and dilations '${dilations}'`);
-
   if (dimRoundingMode != null) {
     util.assert(
         util.isInt(pad as number),
@@ -118,6 +112,12 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
     if (dilations == null) {
       dilations = [1, 1];
     }
+
+    util.assert(
+        conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
+        () => 'Error in depthwiseConv2d: Either strides or dilations must be ' +
+            `1. Got strides ${strides} and dilations '${dilations}'`);
+
     const convInfo = conv_util.computeConv2DInfo(
         x4D.shape, $filter.shape, strides, dilations, pad, dimRoundingMode,
         true /* depthwise */);
