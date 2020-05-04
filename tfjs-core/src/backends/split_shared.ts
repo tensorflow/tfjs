@@ -25,8 +25,9 @@ export function split<T extends Tensor>(
   const begin = new Array(x.rank).fill(0);
   const size = x.shape.slice();
   return sizeSplits.map(s => {
-    size[axis] = s;
-    const slice = x.slice(begin, size);
+    const sliceSize = [...size];
+    sliceSize[axis] = s;
+    const slice = x.slice(begin, sliceSize);
     begin[axis] += s;
     return slice;
   });
