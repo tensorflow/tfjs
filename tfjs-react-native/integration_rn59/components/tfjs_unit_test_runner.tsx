@@ -102,6 +102,10 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
           // directly in this package.
           return false;
         }
+        if(name.match('isMobile')) {
+          // Browser specific mobile test
+          return false;
+        }
         return true;
       }
      });
