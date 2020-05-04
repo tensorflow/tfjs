@@ -68,6 +68,7 @@ import './ops/dropout_util_test';
 import './ops/eye_test';
 import './ops/fused_test';
 import './ops/gather_nd_test';
+import './ops/greater_test';
 import './ops/image_ops_test';
 import './ops/in_top_k_test';
 import './ops/linalg_ops_test';
