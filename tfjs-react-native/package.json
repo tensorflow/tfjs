@@ -19,7 +19,7 @@
     "build-npm": "yarn build",
     "build-deps": "yarn build-core && yarn build-backend-cpu && yarn build-backend-webgl",
     "build-deps-ci": "yarn build-core-ci && yarn build-backend-cpu-ci && yarn build-backend-webgl-ci",
-    "build-core": "cd ../tfjs-core && yarn && yarn build",
+    "build-core": "cd ../tfjs-core && yarn install && yarn build",
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
     "build-backend-cpu": "cd ../tfjs-backend-cpu && yarn && yarn build",
     "build-backend-cpu-ci": "cd ../tfjs-backend-cpu && yarn && yarn build-ci",
