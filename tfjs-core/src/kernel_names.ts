@@ -84,6 +84,7 @@ export const Max = 'Max';
 export type MaxInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface MaxAttrs {
   reductionIndices: number|number[];
+  keepDims: boolean;
 }
 
 export const OneHot = 'OneHot';

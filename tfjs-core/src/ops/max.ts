@@ -78,16 +78,11 @@ function max_<T extends Tensor>(
         return y;
       };
   const inputs: MaxInputs = {x: $x};
-  const attrs: MaxAttrs = {reductionIndices: axis};
+  const attrs: MaxAttrs = {reductionIndices: axis, keepDims};
 
-  let res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* gradient */, Max,
-      attrs as {} as NamedAttrMap);
-  if (keepDims) {
-    const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
-    res = reshape(res, newShape) as T;
-  }
-  return res as T;
+  return ENGINE.runKernelFunc(
+             forward, inputs as {} as NamedTensorMap, null /* gradient */, Max,
+             attrs as {} as NamedAttrMap) as T;
 }
 
 export const max = op({max_});
