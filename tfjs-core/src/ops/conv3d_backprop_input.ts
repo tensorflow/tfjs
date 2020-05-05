@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {ENGINE, ForwardFunc} from '../engine';
-import {Conv3DBackpropInput, Conv3DBackpropInputAttrs, Conv3DBackpropInputInputs} from '../kernel_names';
+import {Conv3DBackpropInputAttrs, Conv3DBackpropInputInputs, Conv3DBackpropInputV2} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor4D, Tensor5D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -101,7 +101,7 @@ function conv3DBackpropInput_<T extends Tensor4D|Tensor5D>(
   const attrs: Conv3DBackpropInputAttrs = {pad};
 
   const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null, Conv3DBackpropInput,
+      forward, inputs as {} as NamedTensorMap, null, Conv3DBackpropInputV2,
       attrs as {} as NamedAttrMap);
 
   if (reshapedTo5D) {
