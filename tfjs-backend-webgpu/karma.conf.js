@@ -22,7 +22,12 @@ const karmaTypescriptConfig = {
   reports: {},
   bundlerOptions: {
     transforms: [
-      require('karma-typescript-es6-transform')()
+      require('karma-typescript-es6-transform')({
+        presets: [
+          // ensure we get es5 by adding IE 11 as a target
+          ['@babel/env', {'targets': {'ie': '11'}, 'loose': true}]
+        ]
+      })
     ],
     // worker_node_test in tfjs-core contains a conditional require statement
     // that confuses the bundler of karma-typescript.
@@ -33,6 +38,7 @@ const karmaTypescriptConfig = {
 const devConfig = {
   frameworks: ['jasmine', 'karma-typescript'],
   files: [
+    {pattern: './node_modules/@babel/polyfill/dist/polyfill.js'},
     'src/setup_test.ts',
     {pattern: 'src/**/*.ts', type: "module"},
   ],
@@ -55,7 +61,6 @@ module.exports = function(config) {
   }
 
   config.set({
-    basePath: '',
     ...devConfig,
     exclude,
     browserNoActivityTimeout: 3000000,
@@ -63,7 +68,7 @@ module.exports = function(config) {
     colors: true,
     autoWatch: false,
     browsers: ['Chrome', 'chrome_webgpu'],
-    singleRun: true,
+    singleRun: false,
     customLaunchers: {
       chrome_webgpu: {
         base: 'Chrome',
