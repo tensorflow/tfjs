@@ -23,7 +23,7 @@ export const greaterEqualGradConfig: GradConfig = {
   kernelName: GreaterEqual,
   inputsToSave: ['a', 'b'],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
-    const [$a, $b] = saved;
-    return {a: () => zerosLike($a), b: () => zerosLike($b)};
+    const [a, b] = saved;
+    return {a: () => zerosLike(a), b: () => zerosLike(b)};
   }
 };
