@@ -35,6 +35,7 @@ export {equal} from './equal';
 export {eye} from './eye';
 export {greater} from './greater';
 export {less} from './less';
+export {lessEqual} from './less_equal';
 export {multinomial} from './multinomial';
 export {notEqual} from './not_equal';
 export {oneHot} from './one_hot';
