@@ -22,6 +22,7 @@ import './conv1d';
 import './conv2d';
 import './conv2d_transpose';
 import './depthwise_conv2d';
+import './depthwise_conv2d';
 import './div';
 import './div_no_nan';
 import './equal';
