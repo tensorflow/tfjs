@@ -28,6 +28,9 @@ declare module '../../tensor' {
   }
 }
 
+/**
+ * @deprecated Use `depthwiseConv2d` instead.
+ */
 Tensor.prototype.depthwiseConv2D = function<T extends Tensor3D|Tensor4D>(
     filter: Tensor4D|TensorLike4D, strides: [number, number]|number,
     pad: 'valid'|'same'|number, dataFormat?: 'NHWC'|'NCHW',
