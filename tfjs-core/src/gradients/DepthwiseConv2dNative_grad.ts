@@ -35,7 +35,7 @@ export const depthwiseConv2dNativeGradConfig: GradConfig = {
             `greater than 1 are not yet supported. Got dilations ` +
             `'${dilations}'`);
 
-    const [x4D, $filter] = saved;
+    const [x4D, $filter] = saved as [Tensor4D, Tensor4D];
 
     util.assert(
         x4D.rank === 4,
@@ -53,9 +53,9 @@ export const depthwiseConv2dNativeGradConfig: GradConfig = {
 
     util.assert(
         conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
-        () =>
-            'Error in gradient of depthwiseConv2d: Either strides or dilations must be ' +
-            `1. Got strides ${strides} and dilations '${dilations}'`);
+        () => 'Error in gradient of depthwiseConv2d: Either strides or ' +
+            `dilations must be  1. Got strides ${strides} and dilations ` +
+            `'${dilations}'.`);
 
     if (dimRoundingMode != null) {
       util.assert(
@@ -66,14 +66,14 @@ export const depthwiseConv2dNativeGradConfig: GradConfig = {
     }
 
     const convInfo = conv_util.computeConv2DInfo(
-        (x4D as Tensor4D).shape, ($filter as Tensor4D).shape, strides,
-        dilations, pad, dimRoundingMode, true /* depthwise */);
+        x4D.shape, $filter.shape, strides, dilations, pad, dimRoundingMode,
+        true /* depthwise */);
 
     return {
-      x: () => depthwiseConv2dNativeBackpropInput(
-          (x4D as Tensor4D).shape, dy, $filter as Tensor4D, convInfo),
-      filter: () => depthwiseConv2dNativeBackpropFilter(
-          x4D as Tensor4D, dy, ($filter as Tensor4D).shape, convInfo),
+      x: () =>
+          depthwiseConv2dNativeBackpropInput(x4D.shape, dy, $filter, convInfo),
+      filter: () =>
+          depthwiseConv2dNativeBackpropFilter(x4D, dy, $filter.shape, convInfo),
     };
   }
 };

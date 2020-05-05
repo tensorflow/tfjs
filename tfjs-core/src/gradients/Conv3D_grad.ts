@@ -25,7 +25,7 @@ import * as util from '../util';
 
 export const conv3DGradConfig: GradConfig = {
   kernelName: Conv3D,
-  inputsToSave: ['filter', 'x'],
+  inputsToSave: ['x', 'filter'],
   gradFunc: (dy: Tensor5D, saved: Tensor[], attrs: NamedAttrMap) => {
     const {dilations, strides, pad} = attrs as {} as Conv3DAttrs;
     util.assert(
@@ -33,7 +33,9 @@ export const conv3DGradConfig: GradConfig = {
         () =>
             'Error in gradient of conv3D: dilation rates greater than 1 are ' +
             `not yet supported in gradients. Got dilations '${dilations}'`);
+
     const [x5D, $filter] = saved;
+
     return {
       x: () => conv3DBackpropInput(
           (x5D as Tensor5D).shape, dy, $filter as Tensor5D, strides, pad),
