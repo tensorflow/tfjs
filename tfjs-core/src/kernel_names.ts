@@ -54,6 +54,12 @@ export interface Conv2DAttrs {
 
 export const Conv2DBackpropFilter = 'Conv2DBackpropFilter';
 export type Conv2DBackpropFilterInputs = Pick<NamedTensorInfoMap, 'x'|'dy'>;
+export interface Conv2DBackpropFilterAttrs {
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  dataFormat: 'NHWC'|'NCHW';
+  dimRoundingMode?: 'floor'|'round'|'ceil';
+}
 
 export const Conv2DBackpropInput = 'Conv2DBackpropInput';
 export type Conv2DBackpropInputInputs = Pick<NamedTensorInfoMap, 'dy'|'filter'>;
@@ -76,8 +82,16 @@ export interface Conv3DAttrs {
 export const Conv3DBackpropFilter = 'Conv3DBackpropFilter';
 export type Conv3DBackpropFilterInputs = Pick<NamedTensorInfoMap, 'x'|'y'>;
 
+export interface Conv3DBackpropFilterAttrs {
+  strides: [number, number, number]|number;
+  pad: 'valid'|'same';
+}
+
 export const Conv3DBackpropInput = 'Conv3DBackpropInput';
 export type Conv3DBackpropInputInputs = Pick<NamedTensorInfoMap, 'dy'>;
+export interface Conv3DBackpropInputAttrs {
+  pad: 'valid'|'same';
+}
 
 export const DepthwiseConv2dNative = 'DepthwiseConv2dNative';
 export type DepthwiseConv2dNativeInputs =

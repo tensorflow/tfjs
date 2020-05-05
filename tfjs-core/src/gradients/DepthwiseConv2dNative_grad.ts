@@ -29,11 +29,13 @@ export const depthwiseConv2dNativeGradConfig: GradConfig = {
     const {dilations, strides, pad, dimRoundingMode} =
         attrs as {} as DepthwiseConv2dNativeAttrs;
 
+    const $dilations = dilations == null ? [1, 1] : dilations;
+
     util.assert(
-        conv_util.tupleValuesAreOne(dilations),
+        conv_util.tupleValuesAreOne($dilations),
         () => 'Error in gradient of depthwiseConv2dNative: dilation rates ' +
             `greater than 1 are not yet supported. Got dilations ` +
-            `'${dilations}'`);
+            `'${$dilations}'`);
 
     const [x4D, $filter] = saved as [Tensor4D, Tensor4D];
 
@@ -52,10 +54,10 @@ export const depthwiseConv2dNativeGradConfig: GradConfig = {
             `in filter ${$filter.shape[2]}.`);
 
     util.assert(
-        conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
+        conv_util.eitherStridesOrDilationsAreOne(strides, $dilations),
         () => 'Error in gradient of depthwiseConv2d: Either strides or ' +
             `dilations must be  1. Got strides ${strides} and dilations ` +
-            `'${dilations}'.`);
+            `'${$dilations}'.`);
 
     if (dimRoundingMode != null) {
       util.assert(
@@ -66,7 +68,8 @@ export const depthwiseConv2dNativeGradConfig: GradConfig = {
     }
 
     const convInfo = conv_util.computeConv2DInfo(
-        x4D.shape, $filter.shape, strides, dilations, pad, dimRoundingMode,
+        x4D.shape, $filter.shape, strides,
+        $dilations as number | [number, number], pad, dimRoundingMode,
         true /* depthwise */);
 
     return {

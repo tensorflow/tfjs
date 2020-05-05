@@ -23,6 +23,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
+import {reshape} from './array_ops';
 import * as conv_util from './conv_util';
 import {op} from './operation';
 
@@ -84,7 +85,7 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
   let reshapedTo4D = false;
   if ($x.rank === 3) {
     reshapedTo4D = true;
-    x4D = $x.as4D(1, $x.shape[0], $x.shape[1], $x.shape[2]);
+    x4D = reshape($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
   }
   util.assert(
       x4D.rank === 4,
@@ -100,10 +101,6 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
           `(${x4D.shape[3]}) must match the inChannels dimension in ` +
           `filter ${$filter.shape[2]}.`);
 
-  if (dilations == null) {
-    dilations = [1, 1];
-  }
-
   util.assert(
       conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
       () =>
@@ -118,10 +115,13 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
   }
 
   const forward: ForwardFunc<Tensor> = (backend, save) => {
+    if (dilations == null) {
+      dilations = [1, 1];
+    }
     const convInfo = conv_util.computeConv2DInfo(
         x4D.shape, $filter.shape, strides, dilations, pad, dimRoundingMode,
         true /* depthwise */);
-    const res = backend.depthwiseConv2dNative(x4D, $filter, convInfo);
+    const res = backend.depthwiseConv2D(x4D, $filter, convInfo);
     save([x4D, $filter]);
     return res;
   };
@@ -135,7 +135,7 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
       DepthwiseConv2dNative, attrs as {} as NamedAttrMap);
 
   if (reshapedTo4D) {
-    return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
+    return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
   }
   return res as T;
 }
