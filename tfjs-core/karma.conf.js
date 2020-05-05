@@ -55,8 +55,8 @@ const browserstackConfig = {
 const webworkerConfig = {
   ...browserstackConfig,
   files: [
-    'dist/setup_test.ts',
-    'dist/worker_test.ts',
+    'dist/setup_test.js',
+    'dist/worker_test.js',
     // Serve dist/tf-core.min.js and tf-backend-cpu.min.js as a static
     // resource, but do not include in the test runner
     {pattern: 'dist/tf-core.min.js', included: false},
