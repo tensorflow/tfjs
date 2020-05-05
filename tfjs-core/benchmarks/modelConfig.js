@@ -72,6 +72,36 @@ const sentences = [
 ];
 
 const benchmarks = {
+  'custom_forward': {
+    load: async() => {
+      return {};
+    },
+    predictFunc: () => {
+      // FC, 3 LSTMs and a RNN.
+      const num_frames = 200 * 10;
+      const num_lf = 505;
+      const units = 128;
+      const rnn_out_units = 48;
+      // FC (128 outputs) | LSTM (units=128, proj=64) | LSTM (units=128, proj=64) | RNN (output=48)
+      layer1 = tf.layers.timeDistributed({
+        layer: tf.layers.dense({units}),
+        inputShape: [num_frames, num_lf],
+      });
+      cells = [
+        tf.layers.lstm({units, returnSequences: true}),
+        tf.layers.lstm({units, returnSequences: true}),
+        tf.layers.lstm({units, returnSequences: true}),
+        tf.layers.simpleRNN({units: rnn_out_units, returnSequences: true})
+      ]
+      return () => {
+        output = layer1.apply(tf.randomUniform([1, num_frames, num_lf]));
+        for (i = 0; i < cells.length; i++) {
+            output = cells[i].apply(output);
+        }
+        return output;
+      }
+    }
+  },
   'mobilenet_v2': {
     load: async () => {
       const url =
