@@ -1971,7 +1971,7 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, inputs);
   }
 
-  conv2D(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
+  conv2d(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
       Tensor4D {
     if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
         convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
@@ -1987,15 +1987,15 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x, filter]);
   }
 
-  conv2DBackpropInput(
+  conv2dDerInput(
       dy: Tensor4D, filter: Tensor4D,
       convInfo: backend_util.Conv2DInfo): Tensor4D {
     const program = new Conv2DDerInputProgram(convInfo);
     return this.compileAndRun(program, [dy, filter]);
   }
 
-  conv2DBackpropFilter(
-      x: Tensor4D, dy: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
+  conv2dDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: backend_util.Conv2DInfo):
+      Tensor4D {
     const program = new Conv2DDerFilterProgram(convInfo);
     return this.compileAndRun(program, [x, dy]);
   }
@@ -2032,7 +2032,7 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, inputs);
   }
 
-  depthwiseConv2dNative(
+  depthwiseConv2D(
       x: Tensor4D, filter: Tensor4D,
       convInfo: backend_util.Conv2DInfo): Tensor4D {
     let program: DepthwiseConv2DProgram|DepthwiseConvPacked2DProgram;
@@ -2047,34 +2047,34 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x, filter]);
   }
 
-  depthwiseConv2dNativeBackpropInput(
+  depthwiseConv2DDerInput(
       dy: Tensor4D, filter: Tensor4D,
       convInfo: backend_util.Conv2DInfo): Tensor4D {
     const program = new DepthwiseConv2DDerInputProgram(convInfo);
     return this.compileAndRun(program, [dy, filter]);
   }
 
-  depthwiseConv2dNativeBackpropFilter(
+  depthwiseConv2DDerFilter(
       x: Tensor4D, dy: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
     const program = new DepthwiseConv2DDerFilterProgram(convInfo);
     return this.compileAndRun(program, [x, dy]);
   }
 
-  conv3D(x: Tensor5D, filter: Tensor5D, convInfo: backend_util.Conv3DInfo):
+  conv3d(x: Tensor5D, filter: Tensor5D, convInfo: backend_util.Conv3DInfo):
       Tensor5D {
     const program = new Conv3DProgram(convInfo);
     return this.compileAndRun(program, [x, filter]);
   }
 
-  conv3DBackpropInput(
+  conv3dDerInput(
       dy: Tensor5D, filter: Tensor5D,
       convInfo: backend_util.Conv3DInfo): Tensor5D {
     const program = new Conv3DDerInputProgram(convInfo);
     return this.compileAndRun(program, [dy, filter]);
   }
 
-  conv3DBackpropFilter(
-      x: Tensor5D, dy: Tensor5D, convInfo: backend_util.Conv3DInfo): Tensor5D {
+  conv3dDerFilter(x: Tensor5D, dy: Tensor5D, convInfo: backend_util.Conv3DInfo):
+      Tensor5D {
     const program = new Conv3DDerFilterProgram(convInfo);
     return this.compileAndRun(program, [x, dy]);
   }

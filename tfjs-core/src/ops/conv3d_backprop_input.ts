@@ -15,11 +15,13 @@
  * =============================================================================
  */
 import {ENGINE, ForwardFunc} from '../engine';
-import {Conv3DBackpropInput, Conv3DBackpropInputInputs} from '../kernel_names';
+import {Conv3DBackpropInput, Conv3DBackpropInputAttrs, Conv3DBackpropInputInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor4D, Tensor5D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import * as util from '../util';
 
+import {reshape} from './array_ops';
 import * as conv_util from './conv_util';
 import {op} from './operation';
 
@@ -57,7 +59,7 @@ function conv3DBackpropInput_<T extends Tensor4D|Tensor5D>(
   let reshapedTo5D = false;
   if (dy.rank === 4) {
     reshapedTo5D = true;
-    dy5D = dy.as5D(1, dy.shape[0], dy.shape[1], dy.shape[2], dy.shape[3]);
+    dy5D = reshape(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2], dy.shape[3]]);
     xShape5D = [1, xShape[0], xShape[1], xShape[2], xShape[3]];
   }
 
@@ -85,21 +87,26 @@ function conv3DBackpropInput_<T extends Tensor4D|Tensor5D>(
       () => `Error in conv3dDerInput: depth of output (${outDepth}) must ` +
           `match output depth for filter ${filter.shape[4]}.`);
 
-  const dilations = 1;
+  const forward: ForwardFunc<Tensor> = backend => {
+    const dilations = 1;
 
-  const convInfo = conv_util.computeConv3DInfo(
-      xShape5D, filter.shape, strides, dilations, pad);
+    const convInfo = conv_util.computeConv3DInfo(
+        xShape5D, filter.shape, strides, dilations, pad);
 
-  const forward: ForwardFunc<Tensor> = backend =>
-      backend.conv3DBackpropInput(dy5D, filter, convInfo);
+    return backend.conv3dDerInput(dy5D, filter, convInfo);
+  };
 
   const inputs: Conv3DBackpropInputInputs = {dy: dy5D};
 
+  const attrs: Conv3DBackpropInputAttrs = {pad};
+
   const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null, Conv3DBackpropInput);
+      forward, inputs as {} as NamedTensorMap, null, Conv3DBackpropInput,
+      attrs as {} as NamedAttrMap);
 
   if (reshapedTo5D) {
-    return res.as4D(res.shape[1], res.shape[2], res.shape[3], res.shape[4]) as
+    return reshape(
+               res, [res.shape[1], res.shape[2], res.shape[3], res.shape[4]]) as
         T;
   }
   return res as T;

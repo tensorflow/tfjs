@@ -15,11 +15,13 @@
  * =============================================================================
  */
 import {ENGINE, ForwardFunc} from '../engine';
-import {Conv3DBackpropFilterInputs} from '../kernel_names';
+import {Conv3DBackpropFilter, Conv3DBackpropFilterAttrs, Conv3DBackpropFilterInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor4D, Tensor5D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import * as util from '../util';
 
+import {reshape} from './array_ops';
 import * as conv_util from './conv_util';
 import {op} from './operation';
 
@@ -44,11 +46,11 @@ function conv3DBackpropFilter_<T extends Tensor4D|Tensor5D>(
     strides: [number, number, number]|number, pad: 'valid'|'same'): Tensor5D {
   let x5D = x as Tensor5D;
   if (x.rank === 4) {
-    x5D = x.as5D(1, x.shape[0], x.shape[1], x.shape[2], x.shape[3]);
+    x5D = reshape(x, [1, x.shape[0], x.shape[1], x.shape[2], x.shape[3]]);
   }
   let dy5D = dy as Tensor5D;
   if (dy5D.rank === 4) {
-    dy5D = dy.as5D(1, dy.shape[0], dy.shape[1], dy.shape[2], dy.shape[3]);
+    dy5D = reshape(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2], dy.shape[3]]);
   }
   util.assert(
       x5D.rank === 5,
@@ -71,18 +73,22 @@ function conv3DBackpropFilter_<T extends Tensor4D|Tensor5D>(
       () => `Error in conv3dDerFilter: depth of dy (${dy5D.shape[4]}) must ` +
           `match output depth for filter (${filterShape[4]}).`);
 
-  const dilations = 1;
+  const forward: ForwardFunc<Tensor> = backend => {
+    const dilations = 1;
 
-  const convInfo = conv_util.computeConv3DInfo(
-      x5D.shape, filterShape, strides, dilations, pad);
+    const convInfo = conv_util.computeConv3DInfo(
+        x5D.shape, filterShape, strides, dilations, pad);
 
-  const forward: ForwardFunc<Tensor> = backend =>
-      backend.conv3DBackpropFilter(x5D, dy5D, convInfo);
+    return backend.conv3dDerFilter(x5D, dy5D, convInfo);
+  };
 
   const inputs: Conv3DBackpropFilterInputs = {x: x5D, y: dy5D};
 
-  return ENGINE.runKernelFunc(forward, inputs as {} as NamedTensorMap) as
-      Tensor5D;
+  const attrs: Conv3DBackpropFilterAttrs = {strides, pad};
+
+  return ENGINE.runKernelFunc(
+             forward, inputs as {} as NamedTensorMap, null,
+             Conv3DBackpropFilter, attrs as {} as NamedAttrMap) as Tensor5D;
 }
 
 export const conv3DBackpropFilter = op({conv3DBackpropFilter_});

@@ -424,15 +424,14 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
     return notYetImplemented('fusedConv2d');
   }
 
-  conv2D(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
+  conv2d(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     return notYetImplemented('conv2d');
   }
-  conv2DBackpropInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
+  conv2dDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
     return notYetImplemented('conv2dDerInput');
   }
-  conv2DBackpropFilter(x: Tensor4D, dY: Tensor4D, convInfo: Conv2DInfo):
-      Tensor4D {
+  conv2dDerFilter(x: Tensor4D, dY: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     return notYetImplemented('conv2dDerFilter');
   }
 
@@ -442,27 +441,26 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
     return notYetImplemented('fusedDepthwiseConv2D');
   }
 
-  depthwiseConv2dNative(
-      input: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
+  depthwiseConv2D(input: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
+      Tensor4D {
     return notYetImplemented('depthwiseConv2D');
   }
-  depthwiseConv2dNativeBackpropInput(
-      dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
+  depthwiseConv2DDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
+      Tensor4D {
     return notYetImplemented('depthwiseConv2DDerInput');
   }
-  depthwiseConv2dNativeBackpropFilter(
-      x: Tensor4D, dY: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
+  depthwiseConv2DDerFilter(x: Tensor4D, dY: Tensor4D, convInfo: Conv2DInfo):
+      Tensor4D {
     return notYetImplemented('depthwiseConv2DDerFilter');
   }
-  conv3D(x: Tensor5D, filter: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
+  conv3d(x: Tensor5D, filter: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
     return notYetImplemented('conv3d');
   }
-  conv3DBackpropInput(dy: Tensor5D, filter: Tensor5D, convInfo: Conv3DInfo):
+  conv3dDerInput(dy: Tensor5D, filter: Tensor5D, convInfo: Conv3DInfo):
       Tensor5D {
     return notYetImplemented('conv3dDerInput');
   }
-  conv3DBackpropFilter(x: Tensor5D, dY: Tensor5D, convInfo: Conv3DInfo):
-      Tensor5D {
+  conv3dDerFilter(x: Tensor5D, dY: Tensor5D, convInfo: Conv3DInfo): Tensor5D {
     return notYetImplemented('conv3dDerFilter');
   }
   maxPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
