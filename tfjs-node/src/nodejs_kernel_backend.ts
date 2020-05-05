@@ -831,7 +831,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.select(nans, x, stepNoNans) as T;
   }
 
-  conv2d(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
+  conv2D(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
       Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
@@ -857,7 +857,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('Conv2D', opAttrs, [x, filter]) as Tensor4D;
   }
 
-  conv2dDerInput(
+  conv2DBackpropInput(
       dy: Tensor4D, filter: Tensor4D,
       convInfo: backend_util.Conv2DInfo): Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
@@ -886,8 +886,8 @@ export class NodeJSKernelBackend extends KernelBackend {
         Tensor4D;
   }
 
-  conv2dDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: backend_util.Conv2DInfo):
-      Tensor4D {
+  conv2DBackpropFilter(
+      x: Tensor4D, dy: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
           `TF Backend supports only 'valid' and 'same' padding ` +
@@ -914,7 +914,7 @@ export class NodeJSKernelBackend extends KernelBackend {
         Tensor4D;
   }
 
-  depthwiseConv2DDerInput(
+  depthwiseConv2dNativeBackpropInput(
       dy: Tensor4D, filter: Tensor4D,
       convInfo: backend_util.Conv2DInfo): Tensor4D {
     const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
@@ -938,7 +938,7 @@ export class NodeJSKernelBackend extends KernelBackend {
                [inputSizes, filter, dy]) as Tensor4D;
   }
 
-  depthwiseConv2DDerFilter(
+  depthwiseConv2dNativeBackpropFilter(
       x: Tensor4D, dY: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
     const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
     const padding = convInfo.padInfo.type;
@@ -973,7 +973,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     return result;
   }
 
-  depthwiseConv2D(
+  depthwiseConv2dNative(
       input: Tensor4D, filter: Tensor4D,
       convInfo: backend_util.Conv2DInfo): Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
@@ -999,7 +999,7 @@ export class NodeJSKernelBackend extends KernelBackend {
                'DepthwiseConv2dNative', opAttrs, [input, filter]) as Tensor4D;
   }
 
-  conv3d(
+  conv3D(
       x: Tensor<Rank.R5>, filter: Tensor<Rank.R5>,
       convInfo: backend_util.Conv3DInfo): Tensor<Rank.R5> {
     const strides = [
@@ -1029,7 +1029,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('Conv3D', opAttrs, [x, filter]) as Tensor5D;
   }
 
-  conv3dDerInput(
+  conv3DBackpropInput(
       dy: Tensor<Rank.R5>, filter: Tensor<Rank.R5>,
       convInfo: backend_util.Conv3DInfo): Tensor<Rank.R5> {
     const strides = [
@@ -1062,7 +1062,7 @@ export class NodeJSKernelBackend extends KernelBackend {
         Tensor5D;
   }
 
-  conv3dDerFilter(
+  conv3DBackpropFilter(
       x: Tensor<Rank.R5>, dY: Tensor<Rank.R5>,
       convInfo: backend_util.Conv3DInfo): Tensor<Rank.R5> {
     const strides = [
