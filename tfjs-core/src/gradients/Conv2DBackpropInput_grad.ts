@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Conv2DAttrs, Conv2DBackpropInput} from '../kernel_names';
+import {Conv2DBackpropInput, Conv2DBackpropInputAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
 import {conv2d} from '../ops/conv2d';
 import {conv2DBackpropFilter} from '../ops/conv2d_backprop_filter';
@@ -22,14 +22,17 @@ import {Tensor, Tensor4D} from '../tensor';
 
 export const conv2DBackpropInputGradConfig: GradConfig = {
   kernelName: Conv2DBackpropInput,
-  inputsToSave: ['filter', 'dy'],
+  inputsToSave: ['dy', 'filter'],
   gradFunc: (ddx: Tensor4D, saved: Tensor[], attrs: NamedAttrMap) => {
-    const [filter, dy] = saved as [Tensor4D, Tensor4D];
-    const {strides, pad, dataFormat, dilations, dimRoundingMode} =
-        attrs as {} as Conv2DAttrs;
+    const [dy, filter] = saved as [Tensor4D, Tensor4D];
+
+    const {strides, pad, dataFormat, dimRoundingMode} =
+        attrs as {} as Conv2DBackpropInputAttrs;
+
     return {
       dy: () => conv2d(
-          ddx, filter, strides, pad, dataFormat, dilations, dimRoundingMode),
+          ddx, filter, strides, pad, dataFormat, 1 /* dilations */,
+          dimRoundingMode),
       filter: () => conv2DBackpropFilter(
           ddx, dy, filter.shape, strides, pad, dataFormat, dimRoundingMode)
     };

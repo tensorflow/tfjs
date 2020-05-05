@@ -15,7 +15,8 @@
  * =============================================================================
  */
 import {ENGINE, ForwardFunc} from '../engine';
-import {Conv2DBackpropInputInputs} from '../kernel_names';
+import {Conv2DBackpropInput, Conv2DBackpropInputAttrs, Conv2DBackpropInputInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor3D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import * as util from '../util';
@@ -97,23 +98,29 @@ function conv2DBackpropInput_<T extends Tensor3D|Tensor4D>(
             `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
   }
 
-  const dilations = 1;
-
-  const $dataFormat = conv_util.convertConv2DDataFormat(dataFormat);
-  const convInfo = conv_util.computeConv2DInfo(
-      xShape4D, filter.shape, strides, dilations, pad, dimRoundingMode, false,
-      $dataFormat);
-
   const forward: ForwardFunc<Tensor> = (backend, save) => {
+    const dilations = 1;
+
+    const $dataFormat = conv_util.convertConv2DDataFormat(dataFormat);
+    const convInfo = conv_util.computeConv2DInfo(
+        xShape4D, filter.shape, strides, dilations, pad, dimRoundingMode, false,
+        $dataFormat);
+
     const res = backend.conv2DBackpropInput(dy4D, filter, convInfo);
-    save([filter, dy4D]);
+
+    save([dy4D, filter]);
+
     return res;
   };
 
   const inputs: Conv2DBackpropInputInputs = {dy: dy4D, filter};
 
+  const attrs:
+      Conv2DBackpropInputAttrs = {strides, pad, dataFormat, dimRoundingMode};
+
   const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */);
+      forward, inputs as {} as NamedTensorMap, null /* grad */,
+      Conv2DBackpropInput, attrs as {} as NamedAttrMap);
 
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
