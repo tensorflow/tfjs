@@ -232,7 +232,6 @@ export interface OpHandler {
   equalStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   lessEqualStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   greaterStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  greaterEqual<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   greaterEqualStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   neg<T extends Tensor>(x: T): T;
   ceil<T extends Tensor>(x: T): T;
@@ -940,10 +939,6 @@ export class Tensor<R extends Rank = Rank> {
   greaterStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.greaterStrict(this, x);
-  }
-  greaterEqual<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.greaterEqual(this, x);
   }
   greaterEqualStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();

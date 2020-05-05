@@ -34,6 +34,7 @@ export {divNoNan} from './div_no_nan';
 export {equal} from './equal';
 export {eye} from './eye';
 export {greater} from './greater';
+export {greaterEqual} from './greater_equal';
 export {less} from './less';
 export {lessEqual} from './less_equal';
 export {multinomial} from './multinomial';

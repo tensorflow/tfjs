@@ -58,6 +58,9 @@ export interface FusedBatchNormAttrs {
 export const Greater = 'Greater';
 export type GreaterInputs = BinaryInputs;
 
+export const GreaterEqual = 'GreaterEqual';
+export type GreaterEqualInputs = BinaryInputs;
+
 export const Identity = 'Identity';
 export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
 
