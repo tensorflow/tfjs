@@ -27,7 +27,7 @@ then
   npm-run-all -p -c --aggregate-output \
     "run-browserstack --browsers=bs_firefox_mac,bs_chrome_mac" \
     "run-browserstack --browsers=bs_chrome_mac,win_10_chrome,bs_android_9 --testEnv webgl2 --flags '{\"WEBGL_CPU_FORWARD\": false, \"WEBGL_SIZE_UPLOAD_UNIFORM\": 0}'" \
-    "run-browserstack --browsers=bs_chrome_mac --testEnv webgl2 --flags '{\"WEBGL_PACK\": false}'" \
+    "run-browserstack --browsers=bs_chrome_mac --testEnv webgl2 --flags '{\"WEBGL_PACK\": false}'"
 else
   yarn run-browserstack --browsers=bs_chrome_mac
 fi
