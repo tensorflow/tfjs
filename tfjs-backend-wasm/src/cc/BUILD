@@ -11,7 +11,6 @@ cc_binary(
     name = "tfjs-backend-wasm.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
     linkopts = [
-        "-s ALLOW_MEMORY_GROWTH=1",
         "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
         "-s DISABLE_EXCEPTION_CATCHING=1",
         "-s FILESYSTEM=0",
@@ -22,7 +21,8 @@ cc_binary(
         "-s EXPORT_NAME=WasmBackendModule",
         "-s MALLOC=emmalloc",
         "-s USE_PTHREADS=1",
-        "-s PTHREAD_POOL_SIZE=10",
+        "-s PTHREAD_POOL_SIZE=8",
+        "-s INITIAL_MEMORY=1Gb",
         "-s MAXIMUM_MEMORY=1Gb",
         "-s ASSERTIONS=1",
     ],
