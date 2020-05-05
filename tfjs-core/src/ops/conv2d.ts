@@ -23,6 +23,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
+import {reshape} from './array_ops';
 import * as conv_util from './conv_util';
 import {op} from './operation';
 
@@ -72,7 +73,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
 
   if ($x.rank === 3) {
     reshapedTo4D = true;
-    x4D = $x.as4D(1, $x.shape[0], $x.shape[1], $x.shape[2]);
+    x4D = reshape($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
   }
 
   util.assert(
@@ -104,7 +105,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
     const convInfo = conv_util.computeConv2DInfo(
         x4D.shape, $filter.shape, strides, dilations, pad, dimRoundingMode,
         false, $dataFormat);
-    const res = backend.conv2D(x4D, $filter, convInfo);
+    const res = backend.conv2d(x4D, $filter, convInfo);
 
     save([x4D, $filter]);
 
@@ -120,7 +121,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
       attrs as {} as NamedAttrMap);
 
   if (reshapedTo4D) {
-    return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
+    return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
   }
   return res as T;
 }

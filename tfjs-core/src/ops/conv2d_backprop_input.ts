@@ -21,6 +21,7 @@ import {Tensor, Tensor3D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import * as util from '../util';
 
+import {reshape} from './array_ops';
 import * as conv_util from './conv_util';
 import {op} from './operation';
 
@@ -64,7 +65,7 @@ function conv2DBackpropInput_<T extends Tensor3D|Tensor4D>(
   let reshapedTo4D = false;
   if (dy.rank === 3) {
     reshapedTo4D = true;
-    dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
+    dy4D = reshape(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2]]);
     xShape4D = [1, xShape[0], xShape[1], xShape[2]];
   }
 
@@ -106,7 +107,7 @@ function conv2DBackpropInput_<T extends Tensor3D|Tensor4D>(
         xShape4D, filter.shape, strides, dilations, pad, dimRoundingMode, false,
         $dataFormat);
 
-    const res = backend.conv2DBackpropInput(dy4D, filter, convInfo);
+    const res = backend.conv2dDerInput(dy4D, filter, convInfo);
 
     save([dy4D, filter]);
 
@@ -123,7 +124,7 @@ function conv2DBackpropInput_<T extends Tensor3D|Tensor4D>(
       Conv2DBackpropInput, attrs as {} as NamedAttrMap);
 
   if (reshapedTo4D) {
-    return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
+    return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
   }
   return res as T;
 }

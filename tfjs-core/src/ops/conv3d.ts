@@ -23,6 +23,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
+import {reshape} from './array_ops';
 import * as conv_util from './conv_util';
 import {eitherStridesOrDilationsAreOne} from './conv_util';
 import {op} from './operation';
@@ -72,7 +73,7 @@ function conv3d_<T extends Tensor4D|Tensor5D>(
 
   if ($x.rank === 4) {
     reshapedTo5D = true;
-    x5D = $x.as5D(1, $x.shape[0], $x.shape[1], $x.shape[2], $x.shape[3]);
+    x5D = reshape($x, [1, $x.shape[0], $x.shape[1], $x.shape[2], $x.shape[3]]);
   }
   util.assert(
       x5D.rank === 5,
@@ -94,11 +95,10 @@ function conv3d_<T extends Tensor4D|Tensor5D>(
       () => `Error in conv3d: got dataFormat of ${
           dataFormat} but only NDHWC is currently supported.`);
 
-  const convInfo = conv_util.computeConv3DInfo(
-      x5D.shape, $filter.shape, strides, dilations, pad);
-
   const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.conv3D(x5D, $filter, convInfo);
+    const convInfo = conv_util.computeConv3DInfo(
+        x5D.shape, $filter.shape, strides, dilations, pad);
+    const res = backend.conv3d(x5D, $filter, convInfo);
 
     save([x5D, $filter]);
 
