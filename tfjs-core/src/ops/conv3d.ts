@@ -15,7 +15,8 @@
  * =============================================================================
  */
 import {ENGINE, ForwardFunc} from '../engine';
-import {Conv3D, Conv3DInputs} from '../kernel_names';
+import {Conv3D, Conv3DAttrs, Conv3DInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor4D, Tensor5D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
@@ -98,14 +99,19 @@ function conv3d_<T extends Tensor4D|Tensor5D>(
 
   const forward: ForwardFunc<Tensor> = (backend, save) => {
     const res = backend.conv3D(x5D, $filter, convInfo);
+
     save([x5D, $filter]);
+
     return res;
   };
 
   const inputs: Conv3DInputs = {x: x5D, filter: $filter};
 
+  const attrs: Conv3DAttrs = {strides, pad, dataFormat, dilations};
+
   const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */, Conv3D);
+      forward, inputs as {} as NamedTensorMap, null /* grad */, Conv3D,
+      attrs as {} as NamedAttrMap);
 
   if (reshapedTo5D) {
     return res.as4D(res.shape[1], res.shape[2], res.shape[3], res.shape[4]) as

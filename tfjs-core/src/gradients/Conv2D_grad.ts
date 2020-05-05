@@ -24,9 +24,9 @@ import * as util from '../util';
 
 export const conv2DGradConfig: GradConfig = {
   kernelName: Conv2D,
-  inputsToSave: ['filter', 'x'],
+  inputsToSave: ['x', 'filter'],
   gradFunc: (dy: Tensor4D, saved: Tensor[], attrs: NamedAttrMap) => {
-    const [$filter, x4D] = saved as [Tensor4D, Tensor4D];
+    const [x4D, $filter] = saved as [Tensor4D, Tensor4D];
     const {dilations, strides, pad, dataFormat} = attrs as {} as Conv2DAttrs;
 
     util.assert(
