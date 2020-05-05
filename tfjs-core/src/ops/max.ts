@@ -60,10 +60,9 @@ import {transpose} from './transpose';
 function max_<T extends Tensor>(
     x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
   let $x = convertToTensor(x, 'x', 'max');
-  const origAxes = util.parseAxisParam(axis, $x.shape);
-
   const forward: ForwardFunc<Tensor> =
       (backend: KernelBackend, save: GradSaveFunc) => {
+        const origAxes = util.parseAxisParam(axis, $x.shape);
         let axes = origAxes;
         const permutedAxes = axis_util.getAxesPermutation(axes, $x.rank);
         if (permutedAxes != null) {
