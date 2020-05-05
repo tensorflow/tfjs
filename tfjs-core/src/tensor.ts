@@ -189,10 +189,7 @@ export interface OpHandler {
       keepDims: boolean): Tensor;
   slice<R extends Rank, T extends Tensor<R>>(
       x: T, begin: number|number[], size?: number|number[]): T;
-  split<T extends Tensor>(
-      x: T, numOrSizeSplits: number[]|number, axis?: number): T[];
   reverse<T extends Tensor>(x: T, axis?: number|number[]): T;
-  concat<T extends Tensor>(tensors: Array<T|TensorLike>, axis: number): T;
   stack<T extends Tensor>(tensors: Array<T|TensorLike>, axis: number): Tensor;
   unstack<T extends Tensor>(value: T, axis: number): Tensor[];
   all<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
@@ -231,15 +228,10 @@ export interface OpHandler {
   where<T extends Tensor>(condition: Tensor|TensorLike, a: T, b: T|TensorLike):
       T;
   notEqualStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  less<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   lessStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  equal<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   equalStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  lessEqual<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   lessEqualStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  greater<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   greaterStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  greaterEqual<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   greaterEqualStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   neg<T extends Tensor>(x: T): T;
   ceil<T extends Tensor>(x: T): T;
@@ -790,18 +782,6 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.reverse(this, axis);
   }
-  concat<T extends Tensor>(this: T, x: T|Array<T|TensorLike>, axis = 0): T {
-    this.throwIfDisposed();
-    if (x instanceof Tensor) {
-      x = [x];
-    }
-    return opHandler.concat([this, ...x], axis);
-  }
-  split<T extends Tensor>(this: T, numOrSizeSplits: number[]|number, axis = 0):
-      T[] {
-    this.throwIfDisposed();
-    return opHandler.split(this, numOrSizeSplits, axis);
-  }
   stack(x: Tensor, axis = 0): Tensor {
     return opHandler.stack([this, x], axis);
   }
@@ -944,41 +924,21 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.notEqualStrict(this, x);
   }
-  less<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.less(this, x);
-  }
   lessStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.lessStrict(this, x);
-  }
-  equal<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.equal(this, x);
   }
   equalStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.equalStrict(this, x);
   }
-  lessEqual<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.lessEqual(this, x);
-  }
   lessEqualStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.lessEqualStrict(this, x);
   }
-  greater<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.greater(this, x);
-  }
   greaterStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.greaterStrict(this, x);
-  }
-  greaterEqual<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.greaterEqual(this, x);
   }
   greaterEqualStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();

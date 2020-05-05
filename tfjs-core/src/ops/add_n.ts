@@ -64,8 +64,11 @@ function addN_<T extends Tensor>(tensors: Array<T|TensorLike>): T {
     }
   });
 
-  const forward: ForwardFunc<Tensor> = (backend, save) =>
-      backend.addN($tensors);
+  const forward: ForwardFunc<Tensor> = (backend, save) => {
+    const res = backend.addN($tensors);
+    save($tensors);
+    return res;
+  };
 
   const inputs: AddNInputs = $tensors;
 
