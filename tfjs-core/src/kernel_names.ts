@@ -64,6 +64,9 @@ export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
 export const Less = 'Less';
 export type LessInputs = BinaryInputs;
 
+export const LessEqual = 'LessEqual';
+export type LessEqualInputs = BinaryInputs;
+
 export const MaxPoolWithArgmax = 'MaxPoolWithArgmax';
 export type MaxPoolWithArgmaxInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface MaxPoolWithArgmaxAttrs {
