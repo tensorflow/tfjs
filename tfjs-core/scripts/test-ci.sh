@@ -31,7 +31,8 @@ then
   echo "Start webworker test."
   # Make a dist/tf-core.min.js file to be imported by the web worker.
   yarn rollup -c --ci
-  # copy the cpu backend bundle somewhere the test can access it
+  # copy core & cpu backend bundle somewhere the test can access it
+  cp -v ../tfjs-backend-cpu/dist/tf-core.min.js dist/
   cp -v ../tfjs-backend-cpu/dist/tf-backend-cpu.min.js dist/
   yarn test-webworker --browsers=bs_safari_mac,bs_chrome_mac
 else
