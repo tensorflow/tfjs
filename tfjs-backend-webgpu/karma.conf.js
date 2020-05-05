@@ -16,7 +16,7 @@
  */
 
 const karmaTypescriptConfig = {
-  tsconfig: 'tsconfig.json',
+  tsconfig: 'tsconfig.test.json',
   // Disable coverage reports and instrumentation by default for tests
   coverageOptions: {instrumentation: false},
   reports: {},
@@ -28,6 +28,17 @@ const karmaTypescriptConfig = {
     // that confuses the bundler of karma-typescript.
     ignore: ['./worker_node_test']
   }
+};
+
+const devConfig = {
+  frameworks: ['jasmine', 'karma-typescript'],
+  files: [
+    'src/setup_test.ts',
+    {pattern: 'src/**/*.ts', type: "module"},
+  ],
+  preprocessors: {'src/**/*.ts': ['karma-typescript']},
+  karmaTypescriptConfig,
+  reporters: ['dots', 'karma-typescript']
 };
 
 module.exports = function(config) {
@@ -45,15 +56,8 @@ module.exports = function(config) {
 
   config.set({
     basePath: '',
-    frameworks: ['jasmine', 'karma-typescript'],
-    files: [
-      'src/setup_test.ts',       // Setup the environment for the tests.
-      {pattern: 'src/**/*.ts'},  // Import all tests.
-    ],
+    ...devConfig,
     exclude,
-    preprocessors: {'**/*.ts': ['karma-typescript']},
-    karmaTypescriptConfig,
-    reporters: ['progress', 'karma-typescript'],
     port: 9876,
     colors: true,
     autoWatch: false,
