@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,14 +14,16 @@
  * limitations under the License.
  * =============================================================================
  */
+import {GreaterEqual} from '../kernel_names';
+import {GradConfig} from '../kernel_registry';
+import {zerosLike} from '../ops/tensor_ops';
+import {Tensor} from '../tensor';
 
-import {registerBackend} from '@tensorflow/tfjs-core';
-import {MathBackendCPU} from './backend_cpu';
-registerBackend('cpu', () => new MathBackendCPU(), 1 /* priority */);
-import './register_all_kernels';
-
-export {MathBackendCPU};
-export {version as version_cpu} from './version';
-
-import * as shared from './shared';
-export {shared};
+export const greaterEqualGradConfig: GradConfig = {
+  kernelName: GreaterEqual,
+  inputsToSave: ['a', 'b'],
+  gradFunc: (dy: Tensor, saved: Tensor[]) => {
+    const [a, b] = saved;
+    return {a: () => zerosLike(a), b: () => zerosLike(b)};
+  }
+};

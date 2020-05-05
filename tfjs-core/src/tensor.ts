@@ -227,14 +227,10 @@ export interface OpHandler {
   where<T extends Tensor>(condition: Tensor|TensorLike, a: T, b: T|TensorLike):
       T;
   notEqualStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  less<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   lessStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  equal<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   equalStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  lessEqual<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   lessEqualStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   greaterStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  greaterEqual<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   greaterEqualStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   neg<T extends Tensor>(x: T): T;
   ceil<T extends Tensor>(x: T): T;
@@ -923,25 +919,13 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.notEqualStrict(this, x);
   }
-  less<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.less(this, x);
-  }
   lessStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.lessStrict(this, x);
   }
-  equal<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.equal(this, x);
-  }
   equalStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.equalStrict(this, x);
-  }
-  lessEqual<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.lessEqual(this, x);
   }
   lessEqualStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
@@ -950,10 +934,6 @@ export class Tensor<R extends Rank = Rank> {
   greaterStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.greaterStrict(this, x);
-  }
-  greaterEqual<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.greaterEqual(this, x);
   }
   greaterEqualStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();

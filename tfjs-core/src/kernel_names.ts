@@ -45,6 +45,9 @@ export interface ConcatAttrs {
 export const Div = 'Div';
 export type DivInputs = BinaryInputs;
 
+export const Equal = 'Equal';
+export type EqualInputs = BinaryInputs;
+
 export const FusedBatchNorm = 'FusedBatchNorm';
 export type FusedBatchNormInputs =
     Pick<NamedTensorInfoMap, 'x'|'scale'|'offset'|'mean'|'variance'>;
@@ -55,8 +58,17 @@ export interface FusedBatchNormAttrs {
 export const Greater = 'Greater';
 export type GreaterInputs = BinaryInputs;
 
+export const GreaterEqual = 'GreaterEqual';
+export type GreaterEqualInputs = BinaryInputs;
+
 export const Identity = 'Identity';
 export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const Less = 'Less';
+export type LessInputs = BinaryInputs;
+
+export const LessEqual = 'LessEqual';
+export type LessEqualInputs = BinaryInputs;
 
 export const MaxPoolWithArgmax = 'MaxPoolWithArgmax';
 export type MaxPoolWithArgmaxInputs = Pick<NamedTensorInfoMap, 'x'>;

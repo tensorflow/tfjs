@@ -13,21 +13,31 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
-# Run unit tests against latest source
-- name: 'node:10'
-  dir: 'tfjs-react-native/integration_rn59'
-  id: 'react-native-against-published-core'
-  entrypoint: 'yarn'
-  args: ['test-ci']
-  waitFor: ['yarn']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
-  secretEnv: ['BROWSERSTACK_KEY']
+# Build tfjs-react-native.
+# Restore once next 2.x RC is out.
+# - name: 'node:10'
+#   dir: 'tfjs-react-native'
+#   id: 'build'
+#   entrypoint: 'yarn'
+#   args: ['build-ci']
+#   waitFor: ['yarn']
+
+# Run unit tests in react native. Tests against version published on NPM.
+# Restore once next 2.x RC is out.
+# - name: 'node:10'
+#   dir: 'tfjs-react-native/integration_rn59'
+#   id: 'test-ci'
+#   entrypoint: 'yarn'
+#   args: ['test-ci']
+#   waitFor: ['build']
+#   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+#   secretEnv: ['BROWSERSTACK_KEY']
 
 # General configuration
-secrets:
-- kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
-  secretEnv:
-    BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
+# secrets:
+# - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
+#   secretEnv:
+#     BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
 substitutions:

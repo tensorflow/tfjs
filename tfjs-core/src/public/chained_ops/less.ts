@@ -14,14 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
+import {less} from '../../ops/less';
+import {Tensor} from '../../tensor';
+import {Rank, TensorLike} from '../../types';
 
-import {registerBackend} from '@tensorflow/tfjs-core';
-import {MathBackendCPU} from './backend_cpu';
-registerBackend('cpu', () => new MathBackendCPU(), 1 /* priority */);
-import './register_all_kernels';
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    less<T extends Tensor>(b: Tensor|TensorLike): T;
+  }
+}
 
-export {MathBackendCPU};
-export {version as version_cpu} from './version';
-
-import * as shared from './shared';
-export {shared};
+Tensor.prototype.less = function<T extends Tensor>(b: Tensor|TensorLike): T {
+  this.throwIfDisposed();
+  return less(this, b);
+};
