@@ -14,22 +14,16 @@
  * limitations under the License.
  * =============================================================================
  */
-import './add';
-import './batchnorm';
-import './broadcast_to';
-import './concat';
-import './div';
-import './div_no_nan';
-import './equal';
-import './greater';
-import './greater_equal';
-import './less';
-import './less_equal';
-import './one_hot';
-import './not_equal';
-import './pad';
-import './split';
-import './squared_difference';
-import './sub';
-import './tile';
-import './transpose';
+import {GreaterEqual} from '../kernel_names';
+import {GradConfig} from '../kernel_registry';
+import {zerosLike} from '../ops/tensor_ops';
+import {Tensor} from '../tensor';
+
+export const greaterEqualGradConfig: GradConfig = {
+  kernelName: GreaterEqual,
+  inputsToSave: ['a', 'b'],
+  gradFunc: (dy: Tensor, saved: Tensor[]) => {
+    const [$a, $b] = saved;
+    return {a: () => zerosLike($a), b: () => zerosLike($b)};
+  }
+};
