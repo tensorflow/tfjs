@@ -37,21 +37,21 @@ export const depthwiseConv2dNativeGradConfig: GradConfig = {
             `greater than 1 are not yet supported. Got dilations ` +
             `'${$dilations}'`);
 
-    const [x4D, $filter] = saved as [Tensor4D, Tensor4D];
+    const [x, filter] = saved as [Tensor4D, Tensor4D];
 
     util.assert(
-        x4D.rank === 4,
+        x.rank === 4,
         () => `Error in gradient of depthwiseConv2dNative: input must be ` +
-            `rank 4, but got rank ${x4D.rank}.`);
+            `rank 4, but got rank ${x.rank}.`);
     util.assert(
-        $filter.rank === 4,
+        filter.rank === 4,
         () => `Error in gradient of depthwiseConv2dNative: filter must be ` +
-            `rank 4, but got rank ${$filter.rank}.`);
+            `rank 4, but got rank ${filter.rank}.`);
     util.assert(
-        x4D.shape[3] === $filter.shape[2],
+        x.shape[3] === filter.shape[2],
         () => `Error in gradient of depthwiseConv2d: number of input ` +
-            `channels (${x4D.shape[3]}) must match the inChannels dimension ` +
-            `in filter ${$filter.shape[2]}.`);
+            `channels (${x.shape[3]}) must match the inChannels dimension ` +
+            `in filter ${filter.shape[2]}.`);
 
     util.assert(
         conv_util.eitherStridesOrDilationsAreOne(strides, $dilations),
@@ -68,15 +68,14 @@ export const depthwiseConv2dNativeGradConfig: GradConfig = {
     }
 
     const convInfo = conv_util.computeConv2DInfo(
-        x4D.shape, $filter.shape, strides,
-        $dilations as number | [number, number], pad, dimRoundingMode,
-        true /* depthwise */);
+        x.shape, filter.shape, strides, $dilations as number | [number, number],
+        pad, dimRoundingMode, true /* depthwise */);
 
     return {
       x: () =>
-          depthwiseConv2dNativeBackpropInput(x4D.shape, dy, $filter, convInfo),
+          depthwiseConv2dNativeBackpropInput(x.shape, dy, filter, convInfo),
       filter: () =>
-          depthwiseConv2dNativeBackpropFilter(x4D, dy, $filter.shape, convInfo),
+          depthwiseConv2dNativeBackpropFilter(x, dy, filter.shape, convInfo),
     };
   }
 };

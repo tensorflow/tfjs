@@ -79,7 +79,7 @@ export interface Conv3DAttrs {
   dilations: [number, number, number]|number;
 }
 
-export const Conv3DBackpropFilter = 'Conv3DBackpropFilter';
+export const Conv3DBackpropFilterV2 = 'Conv3DBackpropFilterV2';
 export type Conv3DBackpropFilterInputs = Pick<NamedTensorInfoMap, 'x'|'y'>;
 
 export interface Conv3DBackpropFilterAttrs {
@@ -87,7 +87,7 @@ export interface Conv3DBackpropFilterAttrs {
   pad: 'valid'|'same';
 }
 
-export const Conv3DBackpropInput = 'Conv3DBackpropInput';
+export const Conv3DBackpropInputV2 = 'Conv3DBackpropInputV2';
 export type Conv3DBackpropInputInputs = Pick<NamedTensorInfoMap, 'dy'>;
 export interface Conv3DBackpropInputAttrs {
   pad: 'valid'|'same';

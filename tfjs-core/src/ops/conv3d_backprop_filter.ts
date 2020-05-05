@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {ENGINE, ForwardFunc} from '../engine';
-import {Conv3DBackpropFilter, Conv3DBackpropFilterAttrs, Conv3DBackpropFilterInputs} from '../kernel_names';
+import {Conv3DBackpropFilterAttrs, Conv3DBackpropFilterInputs, Conv3DBackpropFilterV2} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor4D, Tensor5D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -88,7 +88,7 @@ function conv3DBackpropFilter_<T extends Tensor4D|Tensor5D>(
 
   return ENGINE.runKernelFunc(
              forward, inputs as {} as NamedTensorMap, null,
-             Conv3DBackpropFilter, attrs as {} as NamedAttrMap) as Tensor5D;
+             Conv3DBackpropFilterV2, attrs as {} as NamedAttrMap) as Tensor5D;
 }
 
 export const conv3DBackpropFilter = op({conv3DBackpropFilter_});
