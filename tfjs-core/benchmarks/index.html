@@ -77,7 +77,7 @@ limitations under the License.
     'use strict';
 
     const state = {
-      numRuns: 20,
+      numRuns: 2,
       benchmark: 'custom_forward',
       run: (v) => {
         runBenchmark();
@@ -227,8 +227,9 @@ limitations under the License.
           res = await res.data();
           tmp.dispose();
         }
-
-        times.push(performance.now() - start);
+        const dur = performance.now() - start;
+        console.log(dur);
+        times.push(dur);
         const memInfo = tf.memory();
         const leakedTensors = memInfo.numTensors - tensorsBefore;
         numLeakedTensors.push(leakedTensors);
@@ -279,19 +280,20 @@ limitations under the License.
         kernels.forEach(k => {
           const kernelName = k.scopes[0];
           if (kernelTotalTime[kernelName] == null) {
-            kernelTotalTime[kernelName] = 0;
+            kernelTotalTime[kernelName] = {time: 0, count: 0};
           }
-          kernelTotalTime[kernelName] += k.time;
+          kernelTotalTime[kernelName]['time'] += k.time;
+          kernelTotalTime[kernelName]['count'] += 1;
         });
 
         const result = Object.keys(kernelTotalTime)
-            .map(k => [k, kernelTotalTime[k]])
+            .map(k => [k, kernelTotalTime[k]['time'], kernelTotalTime[k]['count']])
             .sort((a, b) => b[1] - a[1]);
         result.forEach(r => {
           const nameSpan = document.createElement('span');
           nameSpan.setAttribute('title', r[0]);
           nameSpan.textContent = r[0];
-          appendRow(tbody, nameSpan, r[1].toFixed(2));
+          appendRow(tbody, nameSpan, `${r[1].toFixed(2)} (${r[2]})`);
         });
       }
     }
