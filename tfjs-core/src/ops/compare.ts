@@ -14,14 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
-
-import {ENGINE} from '../engine';
 import {Tensor} from '../tensor';
-import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assertShapesMatch} from '../util';
-import {assertAndGetBroadcastShape} from './broadcast_util';
 import {op} from './operation';
 
 /**
