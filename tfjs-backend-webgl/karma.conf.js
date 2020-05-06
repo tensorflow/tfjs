@@ -89,7 +89,7 @@ module.exports = function(config) {
     browsers: ['Chrome'],
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
-      accessKey: process.env.BROWSERSTACK_ACCESS_KEY
+      accessKey: process.env.BROWSERSTACK_KEY
     },
     captureTimeout: 3e5,
     reportSlowerThan: 500,
