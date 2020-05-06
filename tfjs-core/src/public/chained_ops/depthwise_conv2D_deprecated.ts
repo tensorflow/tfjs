@@ -14,6 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
+import {deprecationWarn} from '../../globals';
 import {depthwiseConv2d} from '../../ops/depthwise_conv2d';
 import {Tensor, Tensor3D, Tensor4D} from '../../tensor';
 import {Rank, TensorLike4D} from '../../types';
@@ -36,6 +37,7 @@ Tensor.prototype.depthwiseConv2D = function<T extends Tensor3D|Tensor4D>(
     pad: 'valid'|'same'|number, dataFormat?: 'NHWC'|'NCHW',
     dilations?: [number, number]|number,
     dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+  deprecationWarn('depthwiseConv2D is deprecated, use depthwiseConv2d instead');
   this.throwIfDisposed();
   return depthwiseConv2d(
              this, filter, strides, pad, dataFormat, dilations,
