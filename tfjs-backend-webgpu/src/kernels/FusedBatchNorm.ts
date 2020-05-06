@@ -21,7 +21,7 @@ import {WebGPUBackend} from '../backend_webgpu';
 
 import {BatchNormProgram} from './batchnorm_webgpu';
 
-export const fusedBatchNromConfig: KernelConfig = {
+export const fusedBatchNormConfig: KernelConfig = {
   kernelName: FusedBatchNorm,
   backendName: 'webgpu',
   kernelFunc: ({inputs, attrs, backend}) => {
