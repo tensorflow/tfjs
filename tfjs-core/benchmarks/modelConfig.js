@@ -72,6 +72,19 @@ const sentences = [
 ];
 
 const benchmarks = {
+  'matMul': {
+    load: async() => {
+      return {};
+    },
+    predictFunc: () => {
+      const a = tf.randomNormal([500, 500]);
+      const b = tf.randomNormal([500, 500]);
+      return () => {
+        const c = tf.matMul(a, b)
+        return c;
+      }
+    }
+  },
   'custom_forward': {
     load: async() => {
       return {};
