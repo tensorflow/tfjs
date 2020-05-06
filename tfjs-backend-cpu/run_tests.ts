@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+// Register the backend.
+import './src/index';
 // tslint:disable-next-line: no-imports-from-dist
 import {setTestEnvs, setupTestFilters, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
@@ -30,11 +32,11 @@ process.on('unhandledRejection', e => {
 
 setTestEnvs([{name: 'cpu', backendName: 'cpu', isDataSync: true}]);
 
-const coreTests = 'node_modules/@tensorflow/tfjs-core/dist/**/*_test.js';
+const coreTests = 'node_modules/@tensorflow/tfjs-core/dist/tests.js';
 const cpuTests = 'src/**/*_test.ts';
 
 const runner = new jasmineCtor();
-runner.loadConfig({spec_files: [coreTests, cpuTests], random: false});
+runner.loadConfig({spec_files: [cpuTests, coreTests], random: false});
 
 // customInclude takes higher priority then TEST_FILTERS, only when
 // customInclude return false will TEST_FILTERS be considered.

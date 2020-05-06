@@ -29,8 +29,24 @@ export type AddNInputs = TensorInfo[];
 
 export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 
+export const BroadcastTo = 'BroadcastTo';
+export type BroadcastToInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface BroadCastToAttrs {
+  shape: number[];
+  inputShape: number[];  // for gradient
+}
+
+export const Concat = 'Concat';
+export type ConcatInputs = TensorInfo[];
+export interface ConcatAttrs {
+  axis: number;
+}
+
 export const Div = 'Div';
 export type DivInputs = BinaryInputs;
+
+export const Equal = 'Equal';
+export type EqualInputs = BinaryInputs;
 
 export const FusedBatchNorm = 'FusedBatchNorm';
 export type FusedBatchNormInputs =
@@ -39,20 +55,32 @@ export interface FusedBatchNormAttrs {
   varianceEpsilon: number;
 }
 
-export const SquaredDifference = 'SquaredDifference';
-export type SquaredDifferenceInputs = BinaryInputs;
+export const Greater = 'Greater';
+export type GreaterInputs = BinaryInputs;
 
-export const Square = 'Square';
-export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
+export const GreaterEqual = 'GreaterEqual';
+export type GreaterEqualInputs = BinaryInputs;
 
-export const Sub = 'Sub';
-export type SubInputs = BinaryInputs;
+export const Identity = 'Identity';
+export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
 
-export const Transpose = 'Transpose';
-export type TransposeInputs = Pick<NamedTensorInfoMap, 'x'>;
-export interface TransposeAttrs {
-  perm: number[];
+export const Less = 'Less';
+export type LessInputs = BinaryInputs;
+
+export const LessEqual = 'LessEqual';
+export type LessEqualInputs = BinaryInputs;
+
+export const MaxPoolWithArgmax = 'MaxPoolWithArgmax';
+export type MaxPoolWithArgmaxInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface MaxPoolWithArgmaxAttrs {
+  filterSize: [number, number]|number;
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  includeBatchInIndex: boolean;
 }
+
+export const NotEqual = 'NotEqual';
+export type NotEqualInputs = BinaryInputs;
 
 export const NonMaxSuppressionV5 = 'NonMaxSuppressionV5';
 export type NonMaxSuppressionV5Inputs =
@@ -64,13 +92,6 @@ export interface NonMaxSuppressionV5Attrs {
   softNmsSigma: number;
 }
 
-export const BroadcastTo = 'BroadcastTo';
-export type BroadcastToInputs = Pick<NamedTensorInfoMap, 'x'>;
-export interface BroadCastToAttrs {
-  shape: number[];
-  inputShape: number[];  // for gradient
-}
-
 export const OneHot = 'OneHot';
 export type OneHotInputs = Pick<NamedTensorInfoMap, 'indices'>;
 export interface OneHotAttrs {
@@ -79,8 +100,28 @@ export interface OneHotAttrs {
   offValue: number;
 }
 
-export const Identity = 'Identity';
-export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
+export const PadV2 = 'PadV2';
+export type PadV2Inputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface PadV2Attrs {
+  paddings: Array<[number, number]>;
+  constantValue: number;
+}
+
+export const SplitV = 'SplitV';
+export type SplitVInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface SplitVAttrs {
+  numOrSizeSplits: number[]|number;
+  axis: number;
+}
+
+export const SquaredDifference = 'SquaredDifference';
+export type SquaredDifferenceInputs = BinaryInputs;
+
+export const Square = 'Square';
+export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const Sub = 'Sub';
+export type SubInputs = BinaryInputs;
 
 export const Tile = 'Tile';
 export type TileInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -88,11 +129,10 @@ export interface TileAttrs {
   reps: number[];
 }
 
-export const PadV2 = 'PadV2';
-export type PadV2Inputs = Pick<NamedTensorInfoMap, 'x'>;
-export interface PadV2Attrs {
-  paddings: Array<[number, number]>;
-  constantValue: number;
+export const Transpose = 'Transpose';
+export type TransposeInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface TransposeAttrs {
+  perm: number[];
 }
 
 /**
@@ -105,13 +145,4 @@ export interface FromPixelsInputs {
 }
 export interface FromPixelsAttrs {
   numChannels: number;
-}
-
-export const MaxPoolWithArgmax = 'MaxPoolWithArgmax';
-export type MaxPoolWithArgmaxInputs = Pick<NamedTensorInfoMap, 'x'>;
-export interface MaxPoolWithArgmaxAttrs {
-  filterSize: [number, number]|number;
-  strides: [number, number]|number;
-  pad: 'valid'|'same'|number;
-  includeBatchInIndex: boolean;
 }

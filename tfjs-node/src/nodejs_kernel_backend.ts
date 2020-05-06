@@ -17,10 +17,6 @@
 
 import * as tf from '@tensorflow/tfjs';
 import {backend_util, BackendTimingInfo, DataId, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, Tensor5D, TensorInfo, tidy, util} from '@tensorflow/tfjs';
-// tslint:disable-next-line: no-imports-from-dist
-import {EPSILON_FLOAT32} from '@tensorflow/tfjs-core/dist/backends/backend';
-// tslint:disable-next-line: no-imports-from-dist
-import {FusedBatchMatMulConfig, FusedConv2DConfig} from '@tensorflow/tfjs-core/dist/ops/fused_util';
 import {isArray, isNullOrUndefined} from 'util';
 
 import {Int64Scalar} from './int64_tensors';
@@ -155,7 +151,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   epsilon(): number {
-    return EPSILON_FLOAT32;
+    return super.epsilon();
   }
 
   /**
@@ -361,7 +357,7 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   fusedConv2d(
       {input, filter, convInfo, bias, activation, preluActivationWeights}:
-          FusedConv2DConfig): Tensor4D {
+          backend_util.FusedConv2DConfig): Tensor4D {
     let result = this.conv2d(input, filter, convInfo);
     if (bias != null) {
       result = this.add(result, bias) as Tensor4D;
@@ -374,7 +370,7 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   fusedBatchMatMul(
       {a, b, transposeA, transposeB, bias, activation, preluActivationWeights}:
-          FusedBatchMatMulConfig): Tensor3D {
+          backend_util.FusedBatchMatMulConfig): Tensor3D {
     // Core TensorFlow does not have a fused BatchMatMul op. Combine calls to
     // achieve the same results:
     let result = this.batchMatMul(a, b, transposeA, transposeB);
@@ -966,7 +962,7 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   fusedDepthwiseConv2D(
       {input, filter, convInfo, bias, activation, preluActivationWeights}:
-          FusedConv2DConfig): Tensor4D {
+          backend_util.FusedConv2DConfig): Tensor4D {
     let result = this.depthwiseConv2D(input, filter, convInfo);
     if (bias != null) {
       result = this.add(result, bias) as Tensor4D;

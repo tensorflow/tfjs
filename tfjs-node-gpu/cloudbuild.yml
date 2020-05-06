@@ -61,14 +61,6 @@ steps:
   args: ['test-ci']
   waitFor: ['yarn', 'build-deps', 'lint']
 
-# Integration test.
-- name: 'node:10'
-  dir: 'tfjs-node-gpu'
-  entrypoint: 'yarn'
-  id: 'test-ts-integration'
-  args: ['test-ts-integration']
-  waitFor: ['test']
-
 # CPU / GPU package alignment.
 - name: 'node:10'
   dir: 'tfjs-node-gpu'

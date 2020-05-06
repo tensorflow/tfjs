@@ -23,6 +23,7 @@ import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
+import {reshape} from './array_ops';
 import {op} from './operation';
 
 /**
@@ -55,16 +56,17 @@ function oneHot_(
 
   const forward: ForwardFunc<Tensor> = (backend, save) => {
     save([$indices]);
-    return backend.oneHot($indices as Tensor1D, depth, onValue, offValue);
+    return reshape(
+        backend.oneHot($indices as Tensor1D, depth, onValue, offValue),
+        outShape);
   };
 
   const inputs: OneHotInputs = {indices: $indices};
   const attrs: OneHotAttrs = {depth, onValue, offValue};
 
-  const result = ENGINE.runKernelFunc(
+  return ENGINE.runKernelFunc(
       forward, inputs as unknown as NamedTensorMap, null /* grad */, OneHot,
       attrs as unknown as NamedAttrMap);
-  return result.reshape(outShape);
 }
 
 export const oneHot = op({oneHot_});

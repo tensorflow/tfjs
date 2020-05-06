@@ -27,6 +27,7 @@ from tensorflow.core.framework import node_def_pb2
 from tensorflow.core.protobuf import config_pb2
 from tensorflow.core.protobuf import device_properties_pb2
 from tensorflow.core.protobuf import meta_graph_pb2
+from tensorflow.python.eager import context
 from tensorflow.python.framework import convert_to_constants
 from tensorflow.python.grappler import cluster as gcluster
 from tensorflow.python.grappler import tf_optimizer
@@ -43,9 +44,6 @@ from tensorflowjs.converters import fuse_prelu
 from tensorflowjs.converters import fuse_depthwise_conv2d
 from tensorflowjs.converters import graph_rewrite_util
 from tensorflowjs import resource_loader
-
-# enable eager execution for v2 APIs
-tf.compat.v1.enable_eager_execution()
 
 CLEARED_TENSOR_FIELDS = (
     'tensor_content', 'half_val', 'float_val', 'double_val', 'int_val',
@@ -285,7 +283,7 @@ def write_artifacts(topology,
   assert isinstance(weights_manifest, list)
   model_json[common.ARTIFACT_WEIGHTS_MANIFEST_KEY] = weights_manifest
 
-  with open(output_graph, 'wt') as f:
+  with tf.io.gfile.GFile(output_graph, 'w') as f:
     json.dump(model_json, f)
 
 def _remove_unused_control_flow_inputs(input_graph_def):
@@ -426,14 +424,17 @@ def convert_tf_saved_model(saved_model_dir,
   if signature_def is None:
     signature_def = 'serving_default'
 
-  if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
+  if not tf.io.gfile.exists(output_dir):
+    tf.io.gfile.makedirs(output_dir)
   output_graph = os.path.join(
       output_dir, common.ARTIFACT_MODEL_JSON_FILE_NAME)
 
   if saved_model_tags:
     saved_model_tags = saved_model_tags.split(',')
-  model = load(saved_model_dir, saved_model_tags)
+  model = None
+  # Ensure any graphs created in eager mode are able to run.
+  with context.eager_mode():
+    model = load(saved_model_dir, saved_model_tags)
 
   _check_signature_in_model(model, signature_def)
 

@@ -14,24 +14,18 @@
  * limitations under the License.
  * =============================================================================
  */
+import {notEqual} from '../../ops/not_equal';
+import {Tensor} from '../../tensor';
+import {Rank, TensorLike} from '../../types';
 
-// tslint:disable-next-line: no-imports-from-dist
-import {setTestEnvs, setupTestFilters, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
-
-setTestEnvs([{name: 'cpu', backendName: 'cpu', isDataSync: true}]);
-
-const TEST_FILTERS: TestFilter[] = [];
-const customInclude = (testName: string) => {
-  // Exclude webworker test
-  if (testName.includes('computation in worker')) {
-    return false;
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    notEqual<T extends Tensor>(b: Tensor|TensorLike): T;
   }
-  // Include all other tests.
-  return true;
+}
+
+Tensor.prototype.notEqual = function<T extends Tensor>(b: Tensor|
+                                                       TensorLike): T {
+  this.throwIfDisposed();
+  return notEqual(this, b);
 };
-
-setupTestFilters(TEST_FILTERS, customInclude);
-
-// Import and run tests from core.
-// tslint:disable-next-line:no-imports-from-dist
-import '@tensorflow/tfjs-core/dist/tests';
