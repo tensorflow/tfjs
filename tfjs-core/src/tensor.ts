@@ -297,8 +297,6 @@ export interface OpHandler {
       input: T, windowShape: [number, number]|number, poolingType: 'avg'|'max',
       padding: 'valid'|'same'|number, diationRate?: [number, number]|number,
       strides?: [number, number]|number): T;
-  localResponseNormalization<T extends Tensor3D|Tensor4D>(
-      x: T, depthRadius: number, bias: number, alpha: number, beta: number): T;
   unsortedSegmentSum<T extends Tensor>(
       x: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T;
   batchToSpaceND<T extends Tensor>(
@@ -1153,11 +1151,6 @@ export class Tensor<R extends Rank = Rank> {
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
     (this as Tensor).throwIfDisposed();
     return opHandler.maxPool(this, filterSize, strides, pad, dimRoundingMode);
-  }
-  localResponseNormalization<T extends Tensor3D|Tensor4D>(
-      this: T, radius = 5, bias = 1, alpha = 1, beta = 0.5): T {
-    return opHandler.localResponseNormalization(
-        this, radius, bias, alpha, beta);
   }
   pool<T extends Tensor3D|Tensor4D>(
       this: T, windowShape: [number, number]|number, poolingType: 'max'|'avg',
