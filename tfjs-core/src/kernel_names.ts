@@ -114,6 +114,9 @@ export const DepthwiseConv2dNativeBackpropInput =
 export type DepthwiseConv2dNativeBackpropInputInputs =
     Pick<NamedTensorInfoMap, 'dy'>;
 
+export const Diag = 'Diag';
+export type DiagInputs = Pick<NamedTensorInfoMap, 'x'>;
+
 export const Div = 'Div';
 export type DivInputs = BinaryInputs;
 
