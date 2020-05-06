@@ -27,8 +27,13 @@ export function maxImpl(
   const inSize = util.sizeFromShape(reduceShape);
   const xSize = util.sizeFromShape(x.shape);
   const batchSize = xSize / inSize;
+  const reshapedInput = reshape(x, [batchSize, inSize], backend);
+  const reduced = reduce(reshapedInput, x.dtype, 'max', backend);
 
-  return reshape(
-      reduce(reshape(x, [batchSize, inSize], backend), x.dtype, 'max', backend),
-      outShape, backend);
+  if (reshapedInput.dataId !== x.dataId) {
+    // dispose the output of the packed reshape.
+    backend.disposeData(reshapedInput.dataId);
+  }
+
+  return reshape(reduced, outShape, backend);
 }
