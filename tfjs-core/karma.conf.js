@@ -55,22 +55,27 @@ const browserstackConfig = {
 const webworkerConfig = {
   ...browserstackConfig,
   files: [
-    {pattern: 'dist/setup_test.js', type: 'module'},
-    {pattern: 'dist/worker_test.js', type: 'module'},
+    {pattern: 'src/setup_test.ts'},
+    {pattern: 'src/worker_test.ts'},
+    // Include src files for core, except for the tests
+    {pattern: 'src/**/!(*_test).ts'},
     // Serve dist/tf-core.min.js and tf-backend-cpu.min.js as a static
     // resource, but do not include in the test runner
-    {pattern: 'dist/tf-core.min.js', included: false},
-    {pattern: 'dist/tf-backend-cpu.min.js', included: false},
+    {pattern: 'dist/tf-core.min.js', included: false, served: true},
+    {pattern: 'dist/tf-backend-cpu.min.js', included: false, served: true},
   ],
-  exclude: [],
-  hostname: 'bs-local.com',
+  exclude: [
+    'src/tests.ts',
+    'src/test_node.ts',
+    'src/test_async_backends.ts',
+  ],
   port: 12345
 };
 
 module.exports = function(config) {
   const args = [];
-  // If no test environment is set unit tests will run against all registered
-  // test environments.
+  // If no test environment is set unit tests will run against all
+  // registered test environments.
   if (config.testEnv) {
     args.push('--testEnv', config.testEnv);
   }
