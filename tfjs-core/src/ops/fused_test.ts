@@ -644,13 +644,10 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
          activation: 'relu'
        });
        expect(result.shape).toEqual([1, 4, 4, 1]);
-       expectArraysClose(
-           await result.data(), new Float32Array([
-             0, 0, 0, 0, 0, 0, 0.0022320011630654335, 0.002256002277135849,
-             0.016055995598435402, 0.01836000196635723, 0.020663997158408165,
-             0.014543991535902023, 0.01876799948513508, 0.020303994417190552,
-             0.02184000052511692, 0.01507200300693512
-           ]));
+       expectArraysClose(await result.data(), new Float32Array([
+                           854, 431, 568, 382, 580, 427, 854, 288, 431, 568,
+                           580, 289, 285, 570, 285, 258
+                         ]));
      });
 
   it('relu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=8 p=same',
