@@ -81,10 +81,19 @@ function config({
       },
       ...output,
     },
-    external: [
-      'crypto', '@tensorflow/tfjs-core', '@tensorflow/tfjs-backend-cpu',
-      'seedrandom'
-    ],
+    treeshake: {
+      moduleSideEffects: (id) => {
+        if (id.match('tfjs-backend-cpu')) {
+          // When bundling webgl backend treat cpu backend as being pure so that
+          // it can be properly tree shaken.
+          // TODO (yassogba) remove once
+          // https://github.com/tensorflow/tfjs/issues/3224 is complete
+          return false;
+        }
+        return true;
+      },
+    },
+    external: ['crypto', '@tensorflow/tfjs-core', 'seedrandom', ...external],
     onwarn: warning => {
       let {code} = warning;
       if (code === 'CIRCULAR_DEPENDENCY' || code === 'CIRCULAR' ||
@@ -114,7 +123,8 @@ module.exports = cmdOptions => {
       file: `dist/${fileName}.node.js`,
       freeze: false
     },
-    tsCompilerOptions: {target: 'es5'}
+    tsCompilerOptions: {target: 'es5'},
+    external: ['@tensorflow/tfjs-backend-cpu']
   }));
 
   if (cmdOptions.ci || cmdOptions.npm) {
@@ -166,7 +176,8 @@ module.exports = cmdOptions => {
         extend,
         file: `dist/${fileName}.es2017.min.js`
       },
-      tsCompilerOptions: {target: 'es2017'}
+      tsCompilerOptions: {target: 'es2017'},
+      visualize: cmdOptions.visualize
     }));
   }
 
