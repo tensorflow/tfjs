@@ -182,6 +182,7 @@ tfjs_cc_library(
         ":Greater",
         ":GreaterEqual",
         ":Less",
+        ":LSTM",
         ":LessEqual",
         ":Max",
         ":MaxPool",
@@ -722,6 +723,16 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "LSTM",
+    srcs = ["kernels/LSTM.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":binary",
     ],
 )
 

@@ -33,12 +33,15 @@ interface LSTMInputs extends NamedTensorInfoMap {
   h: TensorInfo;
 }
 
-// let wasmFunc: () => void;
+let wasmFunc: (
+    iId: number, jId: number, cId: number, forgetBiasId: number, fId: number,
+    oId: number, newCId: number, newHId: number) => void;
 
 function setup(backend: BackendWasm): void {
-  // wasmFunc = backend.wasm.cwrap('LSTM', null /* void */, [
-
-  // ]);
+  wasmFunc = backend.wasm.cwrap('LSTM', null /* void */, [
+    'number', 'number', 'number', 'number', 'number', 'number', 'number',
+    'number'
+  ]);
 }
 
 function lstm(args: {backend: BackendWasm, inputs: LSTMInputs, attrs: {}}):
@@ -47,11 +50,11 @@ function lstm(args: {backend: BackendWasm, inputs: LSTMInputs, attrs: {}}):
   const {backend, inputs: {forgetBias, lstmKernel, lstmBias, data, c, h}} =
       args;
   const forgetBiasId = backend.dataIdMap.get(forgetBias.dataId).id;
-  const lstmKernelId = backend.dataIdMap.get(lstmKernel.dataId).id;
-  const lstmBiasId = backend.dataIdMap.get(lstmBias.dataId).id;
-  const dataId = backend.dataIdMap.get(data.dataId).id;
+  // const lstmKernelId = backend.dataIdMap.get(lstmKernel.dataId).id;
+  // const lstmBiasId = backend.dataIdMap.get(lstmBias.dataId).id;
+  // const dataId = backend.dataIdMap.get(data.dataId).id;
   const cId = backend.dataIdMap.get(c.dataId).id;
-  const hId = backend.dataIdMap.get(h.dataId).id;
+  // const hId = backend.dataIdMap.get(h.dataId).id;
 
   const combined = concat({inputs: [data, h], attrs: {axis: 1}, backend});
   const weighted = batchMatMul({
@@ -73,24 +76,33 @@ function lstm(args: {backend: BackendWasm, inputs: LSTMInputs, attrs: {}}):
 
   const i = slice(
       {inputs: {x: res}, attrs: {begin: [0, 0], size: sliceSize}, backend});
+  const iId = backend.dataIdMap.get(i.dataId).id;
   const j = slice({
     inputs: {x: res},
     attrs: {begin: [0, sliceCols], size: sliceSize},
     backend
   });
+  const jId = backend.dataIdMap.get(j.dataId).id;
   const f = slice({
     inputs: {x: res},
     attrs: {begin: [0, sliceCols * 2], size: sliceSize},
     backend
   });
+  const fId = backend.dataIdMap.get(f.dataId).id;
   const o = slice({
     inputs: {x: res},
     attrs: {begin: [0, sliceCols * 3], size: sliceSize},
     backend
   });
+  const oId = backend.dataIdMap.get(o.dataId).id;
 
-  const newC = backend.makeOutput();
-  const newH = backend.makeOutput();
+  const newC = backend.makeOutput(i.shape, i.dtype);
+  const newCId = backend.dataIdMap.get(newC.dataId).id;
+  const newH = backend.makeOutput(newC.shape, newC.dtype);
+  const newHId = backend.dataIdMap.get(newH.dataId).id;
+
+  wasmFunc(iId, jId, cId, forgetBiasId, fId, oId, newCId, newHId);
+
   return [newC, newH];
 }
 

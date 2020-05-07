@@ -121,4 +121,23 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     expect(() => setWasmPath('too/late'))
         .toThrowError(/The WASM backend was already initialized. Make sure/);
   });
+
+  fit('basicLSTMCell with batch=2', async () => {
+    const lstmKernel: tf.Tensor2D = tf.randomNormal([3, 4]);
+    const lstmBias: tf.Tensor1D = tf.randomNormal([4]);
+    const forgetBias = tf.scalar(1.0);
+
+    const data: tf.Tensor2D = tf.randomNormal([1, 2]);
+    const batchedData = tf.concat2d([data, data], 0);  // 2x2
+    const c: tf.Tensor2D = tf.randomNormal([1, 1]);
+    const batchedC = tf.concat2d([c, c], 0);  // 2x1
+    const h: tf.Tensor2D = tf.randomNormal([1, 1]);
+    const batchedH = tf.concat2d([h, h], 0);  // 2x1
+    const [newC, newH] = tf.basicLSTMCell(
+        forgetBias, lstmKernel, lstmBias, batchedData, batchedC, batchedH);
+    const newCVals = await newC.array();
+    const newHVals = await newH.array();
+    expect(newCVals[0][0]).toEqual(newCVals[1][0]);
+    expect(newHVals[0][0]).toEqual(newHVals[1][0]);
+  });
 });
