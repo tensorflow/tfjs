@@ -14,7 +14,8 @@
     "build-backend-cpu": "cd ../tfjs-backend-cpu && yarn && yarn build",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-deps": "yarn build-core && yarn build-backend-cpu && yarn build-backend-webgl",
-    "build": "yarn build-deps && rimraf dist/ && tsc",
+    "build": "yarn build-deps && rimraf dist/ && tsc && yarn bundle",
+    "bundle": "rollup -c",
     "build-npm": "yarn build && rollup -c",
     "link-local": "yalc link",
     "unlink-local": "yalc remove",
@@ -29,8 +30,8 @@
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
-    "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@tensorflow/tfjs-backend-webgl": "link:../tfjs-backend-webgl",
+    "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@types/jasmine": "~3.0.0",
     "clang-format": "~1.2.4",
     "jasmine": "~3.1.0",
@@ -55,7 +56,8 @@
   },
   "dependencies": {
     "@webgpu/glslang": "0.0.12",
-    "@webgpu/types": "0.0.18"
+    "@webgpu/types": "0.0.18",
+    "rollup-plugin-commonjs": "^10.1.0"
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "link:../tfjs-core"
