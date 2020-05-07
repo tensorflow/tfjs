@@ -81,7 +81,10 @@ function config({
       },
       ...output,
     },
-    external: ['crypto', '@tensorflow/tfjs-core', 'seedrandom'],
+    external: [
+      'crypto', '@tensorflow/tfjs-core', '@tensorflow/tfjs-backend-cpu',
+      'seedrandom'
+    ],
     onwarn: warning => {
       let {code} = warning;
       if (code === 'CIRCULAR_DEPENDENCY' || code === 'CIRCULAR' ||
