@@ -25,8 +25,7 @@ then
   # without conflicting with others.
   yarn run-browserstack --browsers=bs_chrome_mac
 
-  # TODO(lina128): Add back bs_ios_11 once browserstack issue is resolved.
-  yarn run-browserstack --browsers=bs_firefox_mac,bs_safari_mac,bs_android_9 --flags '{"HAS_WEBGL": false}' --testEnv cpu
+  yarn run-browserstack --browsers=bs_firefox_mac,bs_safari_mac,bs_ios_11,bs_android_9 --flags '{"HAS_WEBGL": false}' --testEnv cpu
 
   ### The next section tests TF.js in a webworker using the CPU backend.
   echo "Start webworker test."

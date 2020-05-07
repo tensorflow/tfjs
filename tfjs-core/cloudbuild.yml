@@ -47,17 +47,6 @@ steps:
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 
-# Run unit tests in react native.
-# TODO(yassogba) restore this once tfjs-backend-webgl is on npm.
-# - name: 'node:10'
-#   dir: 'tfjs-react-native/integration_rn59'
-#   id: 'react-native-from-core'
-#   entrypoint: 'yarn'
-#   args: ['test-ci', 'use-core-build']
-#   waitFor: ['build']
-#   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
-#   secretEnv: ['BROWSERSTACK_KEY']
-
 # bundle size check
 - name: 'node:10'
   dir: 'tfjs-core'

@@ -54,8 +54,12 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
         .toThrowError();
   });
 
+  // TODO (yassogba) double registration happens now because a backend might be
+  // imported more than once (e.g. by a top level package and a dependent
+  // package). We may want to remove this test long-term but skip it for
+  // now.
   // tslint:disable-next-line: ban
-  it('errors when registering the same kernel twice', () => {
+  xit('errors when registering the same kernel twice', () => {
     interface TestBackend extends KernelBackend {
       id: number;
     }
