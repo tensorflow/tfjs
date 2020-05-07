@@ -181,9 +181,6 @@ export interface OpHandler {
   squeeze<T extends Tensor>(x: Tensor, axis?: number[]): T;
   clone<T extends Tensor>(x: T): T;
   gather<T extends Tensor>(x: T, indices: Tensor|TensorLike, axis: number): T;
-  matMul<T extends Tensor>(
-      a: T, b: T|TensorLike, transposeA: boolean, transposeB: boolean): T;
-  dot(t1: Tensor, t2: Tensor|TensorLike): Tensor;
   norm(
       x: Tensor, ord: number|'euclidean'|'fro', axis: number|number[],
       keepDims: boolean): Tensor;
@@ -732,16 +729,6 @@ export class Tensor<R extends Rank = Rank> {
   gather<T extends this>(this: T, indices: Tensor|TensorLike, axis = 0): T {
     this.throwIfDisposed();
     return opHandler.gather(this, indices, axis);
-  }
-
-  matMul<T extends Tensor>(
-      this: T, b: T|TensorLike, transposeA = false, transposeB = false): T {
-    this.throwIfDisposed();
-    return opHandler.matMul(this, b, transposeA, transposeB);
-  }
-  dot(b: Tensor|TensorLike): Tensor {
-    this.throwIfDisposed();
-    return opHandler.dot(this, b);
   }
   norm(
       ord: number|'euclidean'|'fro' = 'euclidean', axis: number|number[] = null,

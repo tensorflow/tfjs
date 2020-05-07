@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,30 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
-import './add';
-import './batchnorm';
-import './broadcast_to';
-import './concat';
-import './conv1d';
-import './conv2d';
-import './conv2d_transpose';
-import './depthwise_conv2d';
-import './depthwise_conv2D_deprecated';
-import './div';
-import './div_no_nan';
-import './dot';
-import './equal';
-import './greater';
-import './greater_equal';
-import './less';
-import './less_equal';
-import './mat_mul';
-import './one_hot';
-import './not_equal';
-import './pad';
-import './separable_conv2d';
-import './split';
-import './squared_difference';
-import './sub';
-import './tile';
-import './transpose';
+import {dot} from '../../ops/dot';
+import {Tensor} from '../../tensor';
+import {Rank, TensorLike} from '../../types';
+
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    dot<T extends Tensor>(b: Tensor|TensorLike): Tensor;
+  }
+}
+
+Tensor.prototype.dot = function<T extends Tensor>(b: T|TensorLike): Tensor {
+  this.throwIfDisposed();
+  return dot(this, b);
+};
