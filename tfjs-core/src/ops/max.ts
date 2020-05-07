@@ -59,19 +59,24 @@ import {transpose} from './transpose';
 /** @doc {heading: 'Operations', subheading: 'Reduction'} */
 function max_<T extends Tensor>(
     x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
-  let $x = convertToTensor(x, 'x', 'max');
+  const $x = convertToTensor(x, 'x', 'max');
   const forward: ForwardFunc<Tensor> =
       (backend: KernelBackend, save: GradSaveFunc) => {
         const origAxes = util.parseAxisParam(axis, $x.shape);
         let axes = origAxes;
         const permutedAxes = axis_util.getAxesPermutation(axes, $x.rank);
+        let maxInput = $x;
         if (permutedAxes != null) {
-          $x = transpose($x, permutedAxes);
-          axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
+          maxInput = transpose($x, permutedAxes);
+          axes = axis_util.getInnerMostAxes(axes.length, maxInput.rank);
         }
 
-        const y = backend.max($x, axes);
+        const y = backend.max(maxInput, axes);
         save([$x, y]);
+
+        if (permutedAxes != null) {
+          backend.disposeData(maxInput.dataId);
+        }
 
         if (keepDims) {
           return reshape(y, axis_util.expandShapeToKeepDim(y.shape, origAxes));
