@@ -20,9 +20,7 @@ import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
-
 import {op} from './operation';
-import {div, mul} from './ops';
 import {scalar, zerosLike} from './tensor_ops';
 
 /**
@@ -218,7 +216,7 @@ function exp_<T extends Tensor>(x: T|TensorLike): T {
 
   const bck = (dy: T, saved: Tensor[]) => {
     // tslint:disable-next-line: no-unnecessary-type-assertion
-    return {x: () => mul(dy, saved[0]) as T};
+    return {x: () => dy.mul(saved[0]) as T};
   };
   const attrs = {};
   const inputsToSave: Tensor[] = [];
@@ -627,7 +625,7 @@ function asin_<T extends Tensor>(x: T|TensorLike): T {
     const [$x] = saved;
     return {
       // tslint:disable-next-line: no-unnecessary-type-assertion
-      $x: () => div(dy, scalar(1).sub($x.toFloat().square()).sqrt()) as T
+      $x: () => dy.div(scalar(1).sub($x.toFloat().square()).sqrt()) as T
     };
   };
   return ENGINE.runKernelFunc((backend, save) => {
