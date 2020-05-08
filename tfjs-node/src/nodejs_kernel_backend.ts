@@ -618,7 +618,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     const axesTensor = tensor1d(axes, 'int32');
     const out = this.executeSingleOutput(
         'Max', this.createReductionOpAttrs(x), [x, axesTensor]);
-    this.disposeData(axesTensor.dataId);
     return out;
   }
 

@@ -364,8 +364,7 @@ describeWithFlags('max', ALL_ENVS, () => {
     expect(gradients.shape).toEqual([2, 3]);
   });
 
-  // tslint:disable-next-line: ban
-  fit('max gradient: 2D, axes=0, keepDims=true', async () => {
+  it('max gradient: 2D, axes=0, keepDims=true', async () => {
     console.log('RUNNING PROBLEM TEST');
     const x = tf.tensor2d([[0, 20, 10], [-10, -30, 20]]);
     const dy = tf.tensor2d([[-1, -1, -1]]);

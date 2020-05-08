@@ -90,24 +90,21 @@ function max_<T extends Tensor>(
         numDataIds = backend.numDataIds();
         console.log('num data ids after dispose', numDataIds);
 
-        let output = y;
-
-        if (keepDims) {
-          console.log('RESHAPE');
-          output =
-              reshape(y, axis_util.expandShapeToKeepDim(y.shape, origAxes));
-        }
-
-        numDataIds = backend.numDataIds();
-        console.log('num data ids after reshape', numDataIds);
-        return output;
+        return y;
       };
   const inputs: MaxInputs = {x: $x};
   const attrs: MaxAttrs = {reductionIndices: axis, keepDims};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* gradient */, Max,
-             attrs as {} as NamedAttrMap) as T;
+  const res = ENGINE.runKernelFunc(
+                  forward, inputs as {} as NamedTensorMap, null /* gradient */,
+                  Max, attrs as {} as NamedAttrMap) as T;
+  if (keepDims) {
+    return reshape(
+               res,
+               axis_util.expandShapeToKeepDim(
+                   res.shape, util.parseAxisParam(axis, $x.shape))) as T;
+  }
+  return res;
 }
 
 export const max = op({max_});

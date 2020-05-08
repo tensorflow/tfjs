@@ -19,7 +19,6 @@ import {Max, MaxAttrs, MaxInputs} from '@tensorflow/tfjs-core';
 import {backend_util, KernelConfig, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import {reshape} from '../kernel_utils/reshape';
 import {maxImplCPU} from '../kernel_utils/shared';
 
 import {maxImpl} from './Max_impl';
@@ -30,7 +29,7 @@ export const maxConfig: KernelConfig = {
   backendName: 'webgl',
   kernelFunc: ({inputs, attrs, backend}) => {
     const {x} = inputs as MaxInputs;
-    const {reductionIndices, keepDims} = attrs as {} as MaxAttrs;
+    const {reductionIndices} = attrs as {} as MaxAttrs;
     const webglBackend = backend as MathBackendWebGL;
 
     const xRank = x.shape.length;
@@ -81,11 +80,6 @@ export const maxConfig: KernelConfig = {
       outData.values = outValues;
     } else {
       out = maxImpl(maxInput, reduceShape, maxOutShape, webglBackend);
-    }
-
-    if (keepDims) {
-      const outShape = backend_util.expandShapeToKeepDim(maxOutShape, origAxes);
-      out = reshape(out, outShape, webglBackend);
     }
 
     if (maxInputIsTransposed) {
