@@ -15,6 +15,24 @@
  * =============================================================================
  */
 
-// Shared kernel impls for use in other backends.
-export {maxImpl} from './kernels/Max_impl';
-export {transposeImpl} from './kernels/Transpose_impl';
+import {Tensor} from '../tensor';
+import * as axis_util from './axis_util';
+
+/**
+ * Gradient helper function for the min and max operations.
+ */
+export function gradForMinAndMax<T extends Tensor>(
+    dy: T, y: T, xOrig: Tensor, origAxes: number[], permutedAxes: number[]) {
+  if (y.rank < xOrig.rank) {
+    y = y.reshape(axis_util.expandShapeToKeepDim(y.shape, origAxes)) as T;
+  }
+  if (dy.rank < xOrig.rank) {
+    dy = dy.reshape(axis_util.expandShapeToKeepDim(dy.shape, origAxes)) as T;
+  }
+  return {
+    x: () => {
+      const dx = dy.mul(xOrig.equal(y).cast(dy.dtype));
+      return permutedAxes == null ? dx : dx.transpose(permutedAxes);
+    }
+  };
+}

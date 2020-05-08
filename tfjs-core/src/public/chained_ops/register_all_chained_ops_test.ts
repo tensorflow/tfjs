@@ -20,7 +20,7 @@ import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
 
 // Testing for presence of chained op in this file will allow us to more easily
 // customize when we want this test to run. Currently it will run be default
-// (And kerma will always load the chain augmentor files). But this gives us
+// (And karma will always load the chain augmentor files). But this gives us
 // flexibility to change in future.
 
 const CHAINED_OPS = [
@@ -43,6 +43,7 @@ const CHAINED_OPS = [
   'notEqual',
   'oneHot',
   'pad',
+  'max',
   'separableConv2d',
   'split',
   'square',
