@@ -56,8 +56,7 @@
   },
   "dependencies": {
     "@webgpu/glslang": "0.0.12",
-    "@webgpu/types": "0.0.18",
-    "rollup-plugin-commonjs": "^10.1.0"
+    "@webgpu/types": "0.0.18"
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "link:../tfjs-core"
