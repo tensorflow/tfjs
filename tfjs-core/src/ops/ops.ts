@@ -43,6 +43,7 @@ export {greater} from './greater';
 export {greaterEqual} from './greater_equal';
 export {less} from './less';
 export {lessEqual} from './less_equal';
+export {max} from './max';
 export {multinomial} from './multinomial';
 export {notEqual} from './not_equal';
 export {oneHot} from './one_hot';

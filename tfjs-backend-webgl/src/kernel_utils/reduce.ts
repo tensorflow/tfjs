@@ -15,19 +15,25 @@
  * =============================================================================
  */
 
-import {env, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, DataType, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import {transposeImplCPU} from '../kernel_utils/shared';
-import {TransposeProgram} from '../transpose_gpu';
-import {TransposePackedProgram} from '../transpose_packed_gpu';
+import {ReduceProgram} from '../reduce_gpu';
 
-export function transposeImpl(
-    x: TensorInfo, perm: number[], backend: MathBackendWebGL): TensorInfo {
-  const program = env().getBool('WEBGL_PACK_ARRAY_OPERATIONS') ?
-      new TransposePackedProgram(x.shape, perm) :
-      new TransposeProgram(x.shape, perm);
-  return backend.runWebGLProgram(program, [x], x.dtype);
+type ReduceTypes = 'all'|'any'|'max'|'min'|'sum'|'prod';
+
+export function reduce(
+    x: TensorInfo, dtype: DataType, reductionType: ReduceTypes,
+    backend: MathBackendWebGL): TensorInfo {
+  const [batchSize, inSize] = x.shape;
+  const windowSize = backend_util.computeOptimalWindowSize(inSize);
+  const reduceInfo = {windowSize, inSize, batchSize};
+  const program = new ReduceProgram(reduceInfo, reductionType);
+  const output = backend.runWebGLProgram(program, [x], dtype);
+
+  if (output.shape[1] === 1) {
+    return output;
+  }
+
+  return reduce(output, dtype, reductionType, backend);
 }
-
-export {transposeImplCPU};
