@@ -1488,10 +1488,10 @@ export class NodeJSKernelBackend extends KernelBackend {
                'ResizeNearestNeighborGrad', opAttrs, [dy, size]) as Tensor4D;
   }
 
-  batchNormalization(
-      x: Tensor4D, mean: Tensor1D|Tensor4D, variance: Tensor1D|Tensor4D,
-      varianceEpsilon: number, scale?: Tensor1D|Tensor4D,
-      offset?: Tensor1D|Tensor4D): Tensor4D {
+  batchNorm(
+      x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
+      offset?: Tensor4D|Tensor1D, scale?: Tensor4D|Tensor1D,
+      varianceEpsilon?: number): Tensor4D {
     if (mean.rank > 1) {
       // Fused batch norm doesn't work with high-dim mean/var/scale/offset.
       let inv = rsqrt(variance.add(scalar(varianceEpsilon)));

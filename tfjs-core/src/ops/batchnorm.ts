@@ -92,9 +92,9 @@ function batchNorm_<R extends Rank>(
   const forward: ForwardFunc<Tensor> = (backend, save) => {
     save([x4D, $mean, $variance, $scale]);
 
-    return backend.batchNormalization(
-        x4D, as1DOr4D($mean), as1DOr4D($variance), varianceEpsilon,
-        as1DOr4D($scale), as1DOr4D($offset));
+    return backend.batchNorm(
+        x4D, as1DOr4D($mean), as1DOr4D($variance), as1DOr4D($offset),
+        as1DOr4D($scale), varianceEpsilon);
   };
 
   const inputs: FusedBatchNormInputs = {
