@@ -19,7 +19,7 @@ import * as tf from '@tensorflow/tfjs';
 // tslint:disable-next-line: no-imports-from-dist
 import {TestKernelBackend} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-import {createTensorsTypeOpAttr, createTypeOpAttr, ensureTensorflowBackend, getTFDType, nodeBackend, NodeJSKernelBackend} from './nodejs_kernel_backend';
+import {createTensorsTypeOpAttr, ensureTensorflowBackend, getTFDType, nodeBackend, NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 describe('delayed upload', () => {
   it('should handle data before op execution', async () => {
@@ -114,14 +114,14 @@ describe('createTypeOpAttr()', () => {
   const binding = nodeBackend().binding;
 
   it('Creates a valid type attribute', () => {
-    const attr = createTypeOpAttr('foo', 'float32');
+    const attr = createTensorsTypeOpAttr('foo', 'float32');
     expect(attr.name).toBe('foo');
     expect(attr.type).toBe(binding.TF_ATTR_TYPE);
     expect(attr.value).toBe(binding.TF_FLOAT);
   });
 
   it('handles unknown dtypes', () => {
-    expect(() => createTypeOpAttr('foo', null)).toThrowError();
+    expect(() => createTensorsTypeOpAttr('foo', null)).toThrowError();
   });
 });
 
