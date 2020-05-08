@@ -48,7 +48,7 @@
     "publish-local": "yarn prep && yalc push",
     "publish-npm": "npm publish",
     "test": "yarn && yarn build-deps && yarn build && ts-node -P tsconfig.test.json src/run_tests.ts",
-    "test-ci": "ts-node -P tsconfig.test.json src/run_tests.ts",
+    "test-ci": "ts-node --skip-ignore -P tsconfig.test.json src/run_tests.ts",
     "upload-windows-addon": "prep-gpu-windows.bat && ./scripts/build-and-upload-windows-addon-gpu.bat"
   },
   "devDependencies": {
