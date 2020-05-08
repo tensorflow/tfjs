@@ -16,7 +16,7 @@
  */
 
 import {tensorToString} from './tensor_format';
-import {ArrayMap, BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, SingleValueMap, TensorLike, TensorLike1D, TensorLike3D, TensorLike4D, TypedArray} from './types';
+import {ArrayMap, BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, SingleValueMap, TensorLike, TensorLike1D, TypedArray} from './types';
 import * as util from './util';
 import {computeStrides, toNestedArray} from './util';
 
@@ -285,30 +285,6 @@ export interface OpHandler {
     resizeNearestNeighbor<T extends Tensor3D|Tensor4D>(
         images: T, size: [number, number], alignCorners: boolean): T;
   };
-  conv1d<T extends Tensor2D|Tensor3D>(
-      x: T, filter: Tensor3D|TensorLike3D, stride: number,
-      pad: 'valid'|'same'|number, dataFormat: 'NWC'|'NCW', dilation: number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T;
-  conv2d<T extends Tensor3D|Tensor4D>(
-      x: T, filter: Tensor4D|TensorLike4D, strides: [number, number]|number,
-      pad: 'valid'|'same'|number, dataFormat: 'NHWC'|'NCHW',
-      dilations: [number, number]|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T;
-  conv2dTranspose<T extends Tensor3D|Tensor4D>(
-      x: T, filter: Tensor4D|TensorLike4D,
-      outputShape: [number, number, number, number]|[number, number, number],
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T;
-  depthwiseConv2d<T extends Tensor3D|Tensor4D>(
-      x: T, filter: Tensor4D|TensorLike4D, strides: [number, number]|number,
-      pad: 'valid'|'same'|number, dataFormat: 'NHWC'|'NCHW',
-      dilations: [number, number]|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T;
-  separableConv2d<T extends Tensor3D|Tensor4D>(
-      x: T|TensorLike, depthwiseFilter: Tensor4D|TensorLike4D,
-      pointwiseFilter: Tensor4D|TensorLike, strides: [number, number]|number,
-      pad: 'valid'|'same', dilation: [number, number]|number,
-      dataFormat: 'NHWC'|'NCHW'): T;
   maxPool<T extends Tensor3D|Tensor4D>(
       x: T, filterSize: [number, number]|number,
       strides: [number, number]|number, pad: 'valid'|'same'|number,
@@ -1161,54 +1137,6 @@ export class Tensor<R extends Rank = Rank> {
     (this as Tensor).throwIfDisposed();
     return opHandler.image.resizeNearestNeighbor(
         this, newShape2D, alignCorners);
-  }
-
-  // Convolutions.
-  conv1d<T extends Tensor2D|Tensor3D>(
-      this: T, filter: Tensor3D|TensorLike3D, stride: number,
-      pad: 'valid'|'same'|number, dataFormat: 'NWC'|'NCW' = 'NWC', dilation = 1,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.conv1d(
-        this, filter, stride, pad, dataFormat, dilation, dimRoundingMode);
-  }
-  conv2d<T extends Tensor3D|Tensor4D>(
-      this: T, filter: Tensor4D|TensorLike4D, strides: [number, number]|number,
-      pad: 'valid'|'same'|number, dataFormat: 'NHWC'|'NCHW' = 'NHWC',
-      dilations: [number, number]|number = [1, 1],
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.conv2d(
-        this, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
-  }
-  conv2dTranspose<T extends Tensor3D|Tensor4D>(
-      this: T, filter: Tensor4D|TensorLike4D,
-      outputShape: [number, number, number, number]|[number, number, number],
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.conv2dTranspose(
-        this, filter, outputShape, strides, pad, dimRoundingMode);
-  }
-  depthwiseConv2D<T extends Tensor3D|Tensor4D>(
-      this: T, filter: Tensor4D|TensorLike4D, strides: [number, number]|number,
-      pad: 'valid'|'same'|number, dataFormat: 'NHWC'|'NCHW' = 'NHWC',
-      dilations: [number, number]|number = [1, 1],
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.depthwiseConv2d(
-        this, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
-  }
-
-  separableConv2d<T extends Tensor3D|Tensor4D>(
-      this: T|TensorLike, depthwiseFilter: Tensor4D|TensorLike4D,
-      pointwiseFilter: Tensor4D|TensorLike, strides: [number, number]|number,
-      pad: 'valid'|'same', dilation: [number, number]|number = [1, 1],
-      dataFormat: 'NHWC'|'NCHW' = 'NHWC'): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.separableConv2d(
-        this, depthwiseFilter, pointwiseFilter, strides, pad, dilation,
-        dataFormat);
   }
 
   // Pooling.
