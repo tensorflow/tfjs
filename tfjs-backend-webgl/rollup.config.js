@@ -81,18 +81,6 @@ function config({
       },
       ...output,
     },
-    treeshake: {
-      moduleSideEffects: (id) => {
-        if (id.match('tfjs-backend-cpu')) {
-          // When bundling webgl backend treat cpu backend as being pure so that
-          // it can be properly tree shaken.
-          // TODO (yassogba) remove once
-          // https://github.com/tensorflow/tfjs/issues/3224 is complete
-          return false;
-        }
-        return true;
-      },
-    },
     external: ['crypto', '@tensorflow/tfjs-core', 'seedrandom', ...external],
     onwarn: warning => {
       let {code} = warning;
