@@ -20,8 +20,6 @@ import {Max, MaxAttrs, MaxInputs} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
-import {reshape} from './Reshape';
-
 let wasmMax: (xId: number, reduceSize: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
@@ -31,7 +29,7 @@ function setup(backend: BackendWasm): void {
 
 function max(args: {backend: BackendWasm, inputs: {}, attrs: {}}): TensorInfo {
   const {backend, inputs, attrs} = args;
-  const {reductionIndices, keepDims} = attrs as MaxAttrs;
+  const {reductionIndices} = attrs as MaxAttrs;
   const {x} = inputs as MaxInputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
 
@@ -51,13 +49,6 @@ function max(args: {backend: BackendWasm, inputs: {}, attrs: {}}): TensorInfo {
 
   wasmMax(xId, reduceSize, outId);
 
-  if (keepDims) {
-    return reshape({
-      inputs: {x: out},
-      attrs: {shape: backend_util.expandShapeToKeepDim(out.shape, origAxes)},
-      backend
-    });
-  }
   return out;
 }
 
