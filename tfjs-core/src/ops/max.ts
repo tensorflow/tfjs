@@ -62,33 +62,21 @@ function max_<T extends Tensor>(
   const $x = convertToTensor(x, 'x', 'max');
   const forward: ForwardFunc<Tensor> =
       (backend: KernelBackend, save: GradSaveFunc) => {
-        let numDataIds = backend.numDataIds();
-        console.log('--------------- MAX KERNEL');
-        console.log('start num data ids:', numDataIds);
         const origAxes = util.parseAxisParam(axis, $x.shape);
         let axes = origAxes;
         const permutedAxes = axis_util.getAxesPermutation(axes, $x.rank);
         let maxInput = $x;
         if (permutedAxes != null) {
-          console.log('TRANSPOSE');
           maxInput = transpose($x, permutedAxes);
           axes = axis_util.getInnerMostAxes(axes.length, maxInput.rank);
         }
 
-        numDataIds = backend.numDataIds();
-        console.log('num data ids after transpose', numDataIds);
-
         const y = backend.max(maxInput, axes);
-        numDataIds = backend.numDataIds();
-        console.log('num data ids after max', numDataIds);
         save([$x, y]);
 
         if (permutedAxes != null) {
           backend.disposeData(maxInput.dataId);
         }
-
-        numDataIds = backend.numDataIds();
-        console.log('num data ids after dispose', numDataIds);
 
         return y;
       };

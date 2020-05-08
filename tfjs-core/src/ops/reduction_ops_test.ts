@@ -365,7 +365,6 @@ describeWithFlags('max', ALL_ENVS, () => {
   });
 
   it('max gradient: 2D, axes=0, keepDims=true', async () => {
-    console.log('RUNNING PROBLEM TEST');
     const x = tf.tensor2d([[0, 20, 10], [-10, -30, 20]]);
     const dy = tf.tensor2d([[-1, -1, -1]]);
     const axis = 0;
@@ -373,7 +372,6 @@ describeWithFlags('max', ALL_ENVS, () => {
     const gradients = tf.grad(v => tf.max(v, axis, keepDims))(x, dy);
     expectArraysClose(await gradients.data(), [-1, -1, 0, 0, 0, -1]);
     expect(gradients.shape).toEqual([2, 3]);
-    console.log('END RUNNING PROBLEM TEST');
   });
 
   it('max gradient: 3D, axes=[1, 2], keepDims=false', async () => {
