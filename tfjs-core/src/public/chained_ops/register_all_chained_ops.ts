@@ -17,6 +17,7 @@
 import './add';
 import './batchnorm';
 import './broadcast_to';
+import './max';
 import './concat';
 import './conv1d';
 import './conv2d';

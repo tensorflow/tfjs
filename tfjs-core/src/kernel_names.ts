@@ -167,6 +167,13 @@ export interface NonMaxSuppressionV5Attrs {
   softNmsSigma: number;
 }
 
+export const Max = 'Max';
+export type MaxInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface MaxAttrs {
+  reductionIndices: number|number[];
+  keepDims: boolean;
+}
+
 export const OneHot = 'OneHot';
 export type OneHotInputs = Pick<NamedTensorInfoMap, 'indices'>;
 export interface OneHotAttrs {

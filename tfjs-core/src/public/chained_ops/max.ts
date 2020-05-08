@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,18 @@
  * =============================================================================
  */
 
-// Shared kernel impls for use in other backends.
-export {maxImpl} from './kernels/Max_impl';
-export {transposeImpl} from './kernels/Transpose_impl';
+import {max} from '../../ops/max';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
+
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    max<T extends Tensor>(axis?: number|number[], keepDims?: boolean): T;
+  }
+}
+
+Tensor.prototype.max = function<T extends Tensor>(
+    axis?: number|number[], keepDims?: boolean): T {
+  this.throwIfDisposed();
+  return max(this, axis, keepDims);
+};

@@ -20,6 +20,7 @@
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
 import {divConfig} from './kernels/Div';
+import {maxConfig} from './kernels/Max';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {squareConfig} from './kernels/Square';
@@ -29,7 +30,7 @@ import {transposeConfig} from './kernels/Transpose';
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV5Config, squareConfig, squaredDifferenceConfig, divConfig,
-  transposeConfig, maxPoolWithArgmaxConfig
+  transposeConfig, maxPoolWithArgmaxConfig, maxConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {
