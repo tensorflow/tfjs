@@ -155,9 +155,11 @@ export class MatMulPackedProgram implements WebGPUProgram {
     const tileAOuter = this.workGroupSize[1] * workPerThread;
     const tileBOuter = this.workGroupSize[0] * workPerThread;
     const tileInner = tileAOuter > tileBOuter ? tileAOuter : tileBOuter;
-    util.assert(tileInner % this.workGroupSize[0] === 0 &&
-                tileInner % this.workGroupSize[1] === 0,
-                () => 'tileInner must be multiple of workgroupsize.x and workgroupsize.y');
+    util.assert(
+        tileInner % this.workGroupSize[0] === 0 &&
+            tileInner % this.workGroupSize[1] === 0,
+        () => `tileInner must be multiple of workgroupsize.x ` +
+            `and workgroupsize.y`);
     const tileSizeA = [tileAOuter, tileInner];
     const tileSizeB = [tileInner, tileBOuter];
     const fitA = tilesFitEvenlyIntoShape(tileSizeA, aShape.slice(1));
