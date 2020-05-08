@@ -16,6 +16,7 @@
  */
 
 import {ENGINE} from '../engine';
+import {deprecationWarn} from '../globals';
 import {Tensor} from '../tensor';
 import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
@@ -29,6 +30,7 @@ import {scalar, zerosLike} from './tensor_ops';
 import {neg} from './unary_ops';
 
 /**
+ * @deprecated
  * Adds two `tf.Tensor`s element-wise, A + B.
  *
  * Inputs must be the same shape. For broadcasting support, use add() instead.
@@ -37,6 +39,9 @@ import {neg} from './unary_ops';
  * @param b The second Tensor to add element-wise.
  */
 function addStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
+  deprecationWarn(
+      'strict variants of ops have been deprecated ' +
+      'and will be removed in future');
   const $a = convertToTensor(a, 'a', 'addStrict');
   const $b = convertToTensor(b, 'b', 'addStrict');
   util.assertShapesMatch($a.shape, $b.shape, 'Error in addStrict: ');
@@ -44,6 +49,7 @@ function addStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
 }
 
 /**
+ * @deprecated
  * Subtracts two `tf.Tensor`s element-wise, A - B. Inputs must
  * be the same shape.
  *
@@ -53,6 +59,10 @@ function addStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
  * @param b The second Tensor to subtract element-wise.
  */
 function subStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
+  deprecationWarn(
+      'strict variants of ops have been deprecated ' +
+      'and will be removed in future');
+
   const $a = convertToTensor(a, 'a', 'subStrict');
   const $b = convertToTensor(b, 'b', 'subStrict');
   util.assertShapesMatch($a.shape, $b.shape, 'Error in subStrict: ');
@@ -129,6 +139,7 @@ function pow_<T extends Tensor>(
 }
 
 /**
+ * @deprecated
  * Computes the power of one `tf.Tensor` to another. Inputs must
  * be the same shape.
  *
@@ -138,6 +149,10 @@ function pow_<T extends Tensor>(
  * @param exp The exponent tensor to pow element-wise.
  */
 function powStrict_<T extends Tensor>(base: T, exp: Tensor): T {
+  deprecationWarn(
+      'strict variants of ops have been deprecated ' +
+      'and will be removed in future');
+
   util.assertShapesMatch(base.shape, exp.shape, 'Error in powStrict: ');
   return base.pow(exp);
 }
@@ -202,6 +217,7 @@ function mul_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
 }
 
 /**
+ * @deprecated
  * Multiplies two `tf.Tensor`s element-wise, A * B.
  *
  * Inputs must be the same shape. For broadcasting support, use `tf.mul`.
@@ -211,6 +227,10 @@ function mul_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
  *    dtype as `a`.
  */
 function mulStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
+  deprecationWarn(
+      'strict variants of ops have been deprecated ' +
+      'and will be removed in future');
+
   const $a = convertToTensor(a, 'a', 'mul');
   const $b = convertToTensor(b, 'b', 'mul');
   util.assertShapesMatch($a.shape, $b.shape, 'Error in multiplyStrict: ');
@@ -279,6 +299,7 @@ function floorDiv_<T extends Tensor>(
 }
 
 /**
+ * @deprecated
  * Divides two `tf.Tensor`s element-wise, A / B. Inputs must
  * be the same shape.
  *
@@ -286,6 +307,10 @@ function floorDiv_<T extends Tensor>(
  * @param b The second tensor as the denominator for element-wise division.
  */
 function divStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
+  deprecationWarn(
+      'strict variants of ops have been deprecated ' +
+      'and will be removed in future');
+
   const $a = convertToTensor(a, 'a', 'div');
   const $b = convertToTensor(b, 'b', 'div');
   util.assertShapesMatch($a.shape, $b.shape, 'Error in divideStrict: ');
@@ -353,6 +378,7 @@ function mod_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
 }
 
 /**
+ * @deprecated
  * Returns the mod of a and b (`a < b ? a : b`) element-wise. Inputs must
  * be the same shape. For broadcasting support, use mod().
  *
@@ -360,6 +386,10 @@ function mod_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
  * @param b The second tensor. Must have the same dtype as `a`.
  */
 function modStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
+  deprecationWarn(
+      'strict variants of ops have been deprecated ' +
+      'and will be removed in future');
+
   const $a = convertToTensor(a, 'a', 'modStrict');
   const $b = convertToTensor(b, 'b', 'modStrict');
   util.assertShapesMatch($a.shape, $b.shape, 'Error in modStrict: ');
@@ -418,6 +448,7 @@ function minimum_<T extends Tensor>(
 }
 
 /**
+ * @deprecated
  * Returns the min of a and b (`a < b ? a : b`) element-wise. Inputs must
  * be the same shape. For broadcasting support, use minimum().
  *
@@ -425,6 +456,10 @@ function minimum_<T extends Tensor>(
  * @param b The second tensor. Must have the same dtype as `a`.
  */
 function minimumStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
+  deprecationWarn(
+      'strict variants of ops have been deprecated ' +
+      'and will be removed in future');
+
   const $a = convertToTensor(a, 'a', 'minimumStrict');
   const $b = convertToTensor(b, 'b', 'minimumStrict');
   util.assertShapesMatch($a.shape, $b.shape, 'Error in minimumStrict: ');
@@ -483,6 +518,7 @@ function maximum_<T extends Tensor>(
 }
 
 /**
+ * @deprecated
  * Returns the max of a and b (`a > b ? a : b`) element-wise. Inputs must
  * be the same shape. For broadcasting support, use maximum().
  *
@@ -490,6 +526,10 @@ function maximum_<T extends Tensor>(
  * @param b The second tensor. Must have the same dtype as `a`.
  */
 function maximumStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
+  deprecationWarn(
+      'strict variants of ops have been deprecated ' +
+      'and will be removed in future');
+
   const $a = convertToTensor(a, 'a', 'maximumStrict');
   const $b = convertToTensor(b, 'b', 'maximumStrict');
   util.assertShapesMatch($a.shape, $b.shape, 'Error in maximumStrict: ');
@@ -497,6 +537,7 @@ function maximumStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
 }
 
 /**
+ * @deprecated
  * Returns (a - b) * (a - b) element-wise.
  *
  * Inputs must be the same shape. For broadcasting support, use
@@ -507,6 +548,9 @@ function maximumStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
  */
 function squaredDifferenceStrict_<T extends Tensor>(
     a: T|TensorLike, b: T|TensorLike): T {
+  deprecationWarn(
+      'strict variants of ops have been deprecated ' +
+      'and will be removed in future');
   const $a = convertToTensor(a, 'a', 'squaredDifferenceStrict');
   const $b = convertToTensor(b, 'b', 'squaredDifferenceStrict');
   util.assertShapesMatch(
