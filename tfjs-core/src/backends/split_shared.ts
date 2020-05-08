@@ -17,14 +17,18 @@
 
 import {Tensor} from '../tensor';
 
+// TODO(annxingyuan): Use this helper in WASM Split kernel once intermediate
+// kernels have been modularized in WebGL and CPU
+// https://github.com/tensorflow/tfjs/issues/2822.
 /** Shared implementation of the split kernel across WebGL and CPU. */
 export function split<T extends Tensor>(
     x: T, sizeSplits: number[], axis: number): T[] {
   const begin = new Array(x.rank).fill(0);
   const size = x.shape.slice();
   return sizeSplits.map(s => {
-    size[axis] = s;
-    const slice = x.slice(begin, size);
+    const sliceSize = [...size];
+    sliceSize[axis] = s;
+    const slice = x.slice(begin, sliceSize);
     begin[axis] += s;
     return slice;
   });
