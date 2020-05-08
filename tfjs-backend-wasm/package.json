@@ -23,7 +23,7 @@
     "lint": "tslint -p . -t verbose && yarn cpplint",
     "test": "yarn && yarn build-deps && yarn build && karma start",
     "test-ci": "./scripts/test-ci.sh",
-    "test-node": "ts-node -P tsconfig.test.json src/test_node.ts",
+    "test-node": "ts-node --skip-ignore -P tsconfig.test.json src/test_node.ts",
     "test-bundle-size": "./scripts/test-bundle-size.js",
     "test-cc": "bazel test //src/cc:cc_tests --test_output=all",
     "test-browser-ci": "karma start --singleRun --browsers=bs_chrome_mac"

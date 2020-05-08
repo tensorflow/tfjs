@@ -26,7 +26,8 @@ export function assertNotComplex(
     if (t != null) {
       util.assert(
           t.dtype !== 'complex64',
-          () => `${opName} does not support complex64 tensors.`);
+          () => `${
+              opName} does not support complex64 tensors in the CPU backend.`);
     }
   });
 }

@@ -19,7 +19,7 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {complex, DataId, div, engine, env, imag, MemoryInfo, range, real, RecursiveArray, scalar, softmax, tensor, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
+import {complex, DataId, div, engine, env, imag, max, MemoryInfo, range, real, RecursiveArray, scalar, softmax, tensor, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
 import {backend_util, buffer, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
 import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 
@@ -1304,19 +1304,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [a, b]);
   }
 
-  max(x: Tensor, axes: number[]): Tensor {
-    if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.max(x, axes);
-    }
-
-    backend_util.assertAxesAreInnerMostDims('max', axes, x.rank);
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const inSize = util.sizeFromShape(reduceShape);
-    const a2D = x.as2D(-1, inSize);
-    return this.reduce(a2D, 'max', a2D.dtype).reshape(outShape);
-  }
-
   maximum(a: Tensor, b: Tensor): Tensor {
     if (this.shouldExecuteOnCPU([a, b])) {
       return this.cpuBackend.maximum(a, b);
@@ -1553,7 +1540,9 @@ export class MathBackendWebGL extends KernelBackend {
 
   softmax<T extends Tensor>(logits: T, dim: number): T {
     const axes = util.parseAxisParam([dim], logits.shape);
-    const maxLogit = this.max(logits, axes);
+    // TODO(annxingyuan): Call maxImpl rather than op as part of softmax kernel
+    // modularization.
+    const maxLogit = max(logits, axes);
     const expandedShape =
         backend_util.expandShapeToKeepDim(maxLogit.shape, axes);
     const a = this.subtract(logits, maxLogit.reshape(expandedShape));

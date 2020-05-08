@@ -15,6 +15,24 @@
  * =============================================================================
  */
 
-// Shared kernel impls for use in other backends.
-export {maxImpl} from './kernels/Max_impl';
-export {transposeImpl} from './kernels/Transpose_impl';
+import {DataType, NumericDataType, TypedArray, util} from '@tensorflow/tfjs-core';
+
+export function maxImpl(
+    aVals: TypedArray, reduceSize: number, outShape: number[],
+    dtype: DataType): TypedArray {
+  const vals = util.getTypedArrayFromDType(
+      dtype as NumericDataType, util.sizeFromShape(outShape));
+
+  for (let i = 0; i < vals.length; ++i) {
+    const offset = i * reduceSize;
+    let max = aVals[offset];
+    for (let j = 0; j < reduceSize; ++j) {
+      const value = aVals[offset + j];
+      if (value > max) {
+        max = value;
+      }
+    }
+    vals[i] = max;
+  }
+  return vals;
+}
