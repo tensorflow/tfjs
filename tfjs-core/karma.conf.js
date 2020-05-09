@@ -43,34 +43,39 @@ const devConfig = {
   ],
   preprocessors: {'**/*.ts': ['karma-typescript']},
   karmaTypescriptConfig,
-  reporters: ['dots', 'karma-typescript'],
+  reporters: ['dots', 'karma-typescript']
 };
 
 const browserstackConfig = {
   ...devConfig,
-  reporters: ['dots', 'karma-typescript'],
+  hostname: 'bs-local.com',
   singleRun: true
 };
 
 const webworkerConfig = {
   ...browserstackConfig,
   files: [
-    'setup_test.ts',
-    'worker_test.ts',
+    {pattern: 'src/setup_test.ts'},
+    {pattern: 'src/worker_test.ts'},
+    // Include src files for core, except for the tests
+    {pattern: 'src/**/!(*_test).ts'},
     // Serve dist/tf-core.min.js and tf-backend-cpu.min.js as a static
     // resource, but do not include in the test runner
-    {pattern: 'dist/tf-core.min.js', included: false},
-    {pattern: 'dist/tf-backend-cpu.min.js', included: false},
+    {pattern: 'dist/tf-core.min.js', included: false, served: true},
+    {pattern: 'dist/tf-backend-cpu.min.js', included: false, served: true},
   ],
-  exclude: [],
-  hostname: 'bs-local.com',
+  exclude: [
+    'src/tests.ts',
+    'src/test_node.ts',
+    'src/test_async_backends.ts',
+  ],
   port: 12345
 };
 
 module.exports = function(config) {
   const args = [];
-  // If no test environment is set unit tests will run against all registered
-  // test environments.
+  // If no test environment is set unit tests will run against all
+  // registered test environments.
   if (config.testEnv) {
     args.push('--testEnv', config.testEnv);
   }
@@ -103,7 +108,8 @@ module.exports = function(config) {
     reportSlowerThan: 500,
     browserNoActivityTimeout: 3e5,
     browserDisconnectTimeout: 3e5,
-    browserDisconnectTolerance: 3,
+    browserDisconnectTolerance: 0,
+    browserSocketTimeout: 1.2e5,
     customLaunchers: {
       // For browserstack configs see:
       // https://www.browserstack.com/automate/node
@@ -131,7 +137,7 @@ module.exports = function(config) {
       bs_ios_11: {
         base: 'BrowserStack',
         device: 'iPhone X',
-        os: 'iOS',
+        os: 'ios',
         os_version: '11.0',
         real_mobile: true
       },

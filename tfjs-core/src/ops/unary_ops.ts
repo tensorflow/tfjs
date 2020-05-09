@@ -325,13 +325,13 @@ function sqrt_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => dy.div($x.toFloat().sqrt().mul(2))} as {$x: () => T};
+    return {x: () => dy.div($x.toFloat().sqrt().mul(2))} as {x: () => T};
   };
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.sqrt($x);
     save([$x]);
     return res;
-  }, {$x}, grad);
+  }, {x: $x}, grad, 'Sqrt', {});
 }
 
 /**
