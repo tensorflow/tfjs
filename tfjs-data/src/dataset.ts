@@ -17,16 +17,17 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {TensorLike} from '@tensorflow/tfjs-core';
+import {TensorContainer, TensorLike} from '@tensorflow/tfjs-core';
 import * as seedrandom from 'seedrandom';
+
 import {iteratorFromConcatenated, iteratorFromFunction, iteratorFromItems, iteratorFromZipped, LazyIterator, ZipMismatchMode} from './iterators/lazy_iterator';
-import {Container, DataElement} from './types';
+import {Container} from './types';
 import {canTensorify, deepMapAndAwaitAll, DeepMapResult, isIterable} from './util/deep_map';
 
 /**
  * A nested structure of Datasets, used as the input to zip().
  */
-export type DatasetContainer = Container<Dataset<DataElement>>;
+export type DatasetContainer = Container<Dataset<TensorContainer>>;
 
 // TODO(soergel): consider vectorized operations within the pipeline.
 
@@ -239,14 +240,6 @@ export abstract class Dataset<T extends tf.TensorContainer> {
   /** @doc {heading: 'Data', subheading: 'Classes'} */
   async forEachAsync(f: (input: T) => void): Promise<void> {
     return (await this.iterator()).forEachAsync(f);
-  }
-
-  /** @deprecated Please use `dataset.forEachAsync()` instead. */
-  async forEach(f: (input: T) => void): Promise<void> {
-    tf.deprecationWarn(
-        'dataset.forEach() is deprecated and will be removed. ' +
-        'Please use dataset.forEachAsync() instead');
-    return this.forEachAsync(f);
   }
 
   /**
