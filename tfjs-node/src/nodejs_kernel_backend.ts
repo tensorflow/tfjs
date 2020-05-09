@@ -2035,8 +2035,8 @@ export function createTensorsTypeOpAttr(
     type: nodeBackend().binding.TF_ATTR_TYPE,
     value:
         (tensorsOrDtype instanceof tf.Tensor || Array.isArray(tensorsOrDtype)) ?
-        getTFDTypeForInputs(tensorsOrDtype as tf.Tensor | tf.Tensor[]) :
-        getTFDType(tensorsOrDtype as tf.DataType)
+        getTFDTypeForInputs(tensorsOrDtype) :
+        getTFDType(tensorsOrDtype)
   };
 }
 
