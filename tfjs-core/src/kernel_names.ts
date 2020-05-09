@@ -145,6 +145,15 @@ export type LessInputs = BinaryInputs;
 export const LessEqual = 'LessEqual';
 export type LessEqualInputs = BinaryInputs;
 
+export const LRN = 'LRN';
+export type LRNInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface LRNAttrs {
+  depthRadius: number;
+  bias: number;
+  alpha: number;
+  beta: number;
+}
+
 export const MaxPoolWithArgmax = 'MaxPoolWithArgmax';
 export type MaxPoolWithArgmaxInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface MaxPoolWithArgmaxAttrs {

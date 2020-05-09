@@ -40,6 +40,7 @@ const CHAINED_OPS = [
   'greaterEqual',
   'less',
   'lessEqual',
+  'localResponseNormalization',
   'notEqual',
   'oneHot',
   'pad',
