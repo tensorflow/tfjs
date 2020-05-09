@@ -161,6 +161,8 @@ export interface LRNAttrs {
   beta: number;
 }
 
+export const LRNBackprop = 'LRNBackprop';
+
 export const MaxPoolWithArgmax = 'MaxPoolWithArgmax';
 export type MaxPoolWithArgmaxInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface MaxPoolWithArgmaxAttrs {

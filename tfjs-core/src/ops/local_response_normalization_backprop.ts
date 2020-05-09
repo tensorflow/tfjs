@@ -14,22 +14,20 @@
  * limitations under the License.
  * =============================================================================
  */
-import {LRN, LRNAttrs} from '../kernel_names';
-import {GradConfig, NamedAttrMap} from '../kernel_registry';
-import {localResponseNormalizationBackprop} from '../ops/local_response_normalization_backprop';
+
+import {ENGINE, ForwardFunc} from '../engine';
+import {LRNBackprop} from '../kernel_names';
 import {Tensor, Tensor4D} from '../tensor';
 
-export const lrnGradConfig: GradConfig = {
-  kernelName: LRN,
-  inputsToSave: ['x'],
-  outputsToSave: [true],
-  gradFunc: (dy: Tensor4D, saved: Tensor[], attrs: NamedAttrMap) => {
-    const [x, y] = saved as [Tensor4D, Tensor4D];
-    const {depthRadius, bias, alpha, beta} = attrs as {} as LRNAttrs;
+import {op} from './operation';
 
-    return {
-      x: () => localResponseNormalizationBackprop(
-          x, y, dy, depthRadius, bias, alpha, beta)
-    };
-  }
-};
+function localResponseNormalizationBackprop_<T extends Tensor4D>(
+    x: T, y: T, dy: T, depthRadius = 5, bias = 1, alpha = 1, beta = 0.5): T {
+  const forward: ForwardFunc<Tensor> = backend =>
+      backend.LRNGrad(dy, x, y, depthRadius, bias, alpha, beta);
+
+  return ENGINE.runKernelFunc(forward, {}, null /* grad */, LRNBackprop) as T;
+}
+
+export const localResponseNormalizationBackprop =
+    op({localResponseNormalizationBackprop_});
