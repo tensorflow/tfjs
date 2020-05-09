@@ -601,16 +601,16 @@ describeAllEnvs('Dataset', () => {
     expect(tf.memory().numTensors).toEqual(100);
   });
 
-  it('forEach does not leak Tensors', async () => {
+  it('forEachAsync does not leak Tensors', async () => {
     const ds = new TestDataset();
     let count = 0;
     await ds.forEachAsync(element => {
       count++;
       return {};
     });
-    // forEach traversed the entire dataset of 100 elements.
+    // forEachAsync traversed the entire dataset of 100 elements.
     expect(count).toEqual(100);
-    // forEach consumed all of the input Tensors.
+    // forEachAsync consumed all of the input Tensors.
     expect(tf.memory().numTensors).toEqual(0);
   });
 
