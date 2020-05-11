@@ -647,10 +647,12 @@
   }
   function conv2d(args) {
       const { inputs, attrs, backend } = args;
-      const convInfo = attrs;
       const { x, filter } = inputs;
       const xId = backend.dataIdMap.get(x.dataId).id;
       const filterId = backend.dataIdMap.get(filter.dataId).id;
+      const { strides, dilations, pad, dimRoundingMode, dataFormat } = attrs;
+      const $dataFormat = tfjsCore.backend_util.convertConv2DDataFormat(dataFormat);
+      const convInfo = tfjsCore.backend_util.computeConv2DInfo(x.shape, filter.shape, strides, dilations, pad, dimRoundingMode, false, $dataFormat);
       const filterHeight = convInfo.filterHeight;
       const filterWidth = convInfo.filterWidth;
       const padTop = convInfo.padInfo.top;
@@ -811,10 +813,12 @@
   }
   function depthwiseConv2d(args) {
       const { inputs, attrs, backend } = args;
-      const convInfo = attrs;
       const { x, filter } = inputs;
       const xId = backend.dataIdMap.get(x.dataId).id;
       const filterId = backend.dataIdMap.get(filter.dataId).id;
+      const { strides, dilations, pad, dimRoundingMode } = attrs;
+      const $dilations = dilations == null ? [1, 1] : dilations;
+      const convInfo = tfjsCore.backend_util.computeConv2DInfo(x.shape, filter.shape, strides, $dilations, pad, dimRoundingMode, true /* depthwise */);
       const filterHeight = convInfo.filterHeight;
       const filterWidth = convInfo.filterWidth;
       const padTop = convInfo.padInfo.top;
@@ -1398,11 +1402,12 @@
   }
   function max(args) {
       const { backend, inputs, attrs } = args;
-      const { axes } = attrs;
+      const { reductionIndices } = attrs;
       const { x } = inputs;
       const xId = backend.dataIdMap.get(x.dataId).id;
-      tfjsCore.backend_util.assertAxesAreInnerMostDims('max', axes, x.shape.length);
-      const [outShape, reduceShape] = tfjsCore.backend_util.computeOutAndReduceShapes(x.shape, axes);
+      const origAxes = tfjsCore.util.parseAxisParam(reductionIndices, x.shape);
+      tfjsCore.backend_util.assertAxesAreInnerMostDims('max', origAxes, x.shape.length);
+      const [outShape, reduceShape] = tfjsCore.backend_util.computeOutAndReduceShapes(x.shape, origAxes);
       const reduceSize = tfjsCore.util.sizeFromShape(reduceShape);
       const out = backend.makeOutput(outShape, x.dtype);
       if (tfjsCore.util.sizeFromShape(x.shape) === 0) {
@@ -1412,12 +1417,7 @@
       wasmMax(xId, reduceSize, outId);
       return out;
   }
-  tfjsCore.registerKernel({
-      kernelName: 'Max',
-      backendName: 'wasm',
-      setupFunc: setup$d,
-      kernelFunc: max
-  });
+  tfjsCore.registerKernel({ kernelName: tfjsCore.Max, backendName: 'wasm', setupFunc: setup$d, kernelFunc: max });
 
   /**
    * @license
@@ -2308,7 +2308,9 @@
    * =============================================================================
    */
   function split(args) {
-      const { inputs: { x }, attrs: { numOrSizeSplits, axis }, backend } = args;
+      const { inputs, attrs, backend } = args;
+      const { x } = inputs;
+      const { numOrSizeSplits, axis } = attrs;
       const $axis = tfjsCore.util.parseAxisParam(axis, x.shape)[0];
       let splitSizes;
       if (typeof (numOrSizeSplits) === 'number') {
@@ -2328,7 +2330,7 @@
           return xSlice;
       });
   }
-  tfjsCore.registerKernel({ kernelName: 'SplitV', backendName: 'wasm', kernelFunc: split });
+  tfjsCore.registerKernel({ kernelName: tfjsCore.SplitV, backendName: 'wasm', kernelFunc: split });
 
   /**
    * @license
@@ -2678,6 +2680,7 @@
    * limitations under the License.
    * =============================================================================
    */
+  const threadWorker = require('../wasm-out/tfjs-backend-wasm.worker.js');
   const WASM_PRIORITY = 2;
   class BackendWasm extends tfjsCore.KernelBackend {
       constructor(wasm) {
@@ -2814,14 +2817,27 @@
    * in Chrome 76).
    */
   async function init() {
+      console.log('INITIALIZING');
+      // ts-lint:disable-next-line:no-any
+      window.threadWorker = threadWorker;
+      console.log(threadWorker);
       return new Promise((resolve, reject) => {
           const factoryConfig = {};
+          const locateFile = (path, prefix) => {
+              if (path.endsWith('.worker.js')) {
+                  const response = 'var threadInfoStruct=0;var selfThreadId=0;var parentThreadId=0;var Module={};function assert(condition,text){if(!condition)abort("Assertion failed: "+text)}function threadPrintErr(){var text=Array.prototype.slice.call(arguments).join(" ");console.error(text)}function threadAlert(){var text=Array.prototype.slice.call(arguments).join(" ");postMessage({cmd:"alert",text:text,threadId:selfThreadId})}var out=function(){throw"out() is not defined in worker.js."};var err=threadPrintErr;this.alert=threadAlert;Module["instantiateWasm"]=function(info,receiveInstance){var instance=new WebAssembly.Instance(Module["wasmModule"],info);Module["wasmModule"]=null;receiveInstance(instance);return instance.exports};this.onmessage=function(e){try{if(e.data.cmd==="load"){Module["DYNAMIC_BASE"]=e.data.DYNAMIC_BASE;Module["DYNAMICTOP_PTR"]=e.data.DYNAMICTOP_PTR;Module["wasmModule"]=e.data.wasmModule;Module["wasmMemory"]=e.data.wasmMemory;Module["buffer"]=Module["wasmMemory"].buffer;Module["ENVIRONMENT_IS_PTHREAD"]=true;if(typeof e.data.urlOrBlob==="string"){importScripts(e.data.urlOrBlob)}else{var objectUrl=URL.createObjectURL(e.data.urlOrBlob);importScripts(objectUrl);URL.revokeObjectURL(objectUrl)}Module=WasmBackendModule(Module);postMessage({"cmd":"loaded"})}else if(e.data.cmd==="objectTransfer"){Module["PThread"].receiveObjectTransfer(e.data)}else if(e.data.cmd==="run"){Module["__performance_now_clock_drift"]=performance.now()-e.data.time;threadInfoStruct=e.data.threadInfoStruct;Module["__register_pthread_ptr"](threadInfoStruct,0,0);selfThreadId=e.data.selfThreadId;parentThreadId=e.data.parentThreadId;var max=e.data.stackBase;var top=e.data.stackBase+e.data.stackSize;assert(threadInfoStruct);assert(selfThreadId);assert(parentThreadId);assert(top!=0);assert(max!=0);assert(top>max);Module["establishStackSpace"](top,max);Module["_emscripten_tls_init"]();Module["writeStackCookie"]();Module["PThread"].receiveObjectTransfer(e.data);Module["PThread"].setThreadStatus(Module["_pthread_self"](),1);try{var result=Module["dynCall_ii"](e.data.start_routine,e.data.arg);Module["checkStackCookie"]();if(!Module["getNoExitRuntime"]())Module["PThread"].threadExit(result)}catch(ex){if(ex==="Canceled!"){Module["PThread"].threadCancel()}else if(ex!="unwind"){Atomics.store(Module["HEAPU32"],threadInfoStruct+4>>2,ex instanceof Module["ExitStatus"]?ex.status:-2);Atomics.store(Module["HEAPU32"],threadInfoStruct+0>>2,1);if(typeof Module["_emscripten_futex_wake"]!=="function"){err("Thread Initialisation failed.");throw ex}Module["_emscripten_futex_wake"](threadInfoStruct+0,2147483647);if(!(ex instanceof Module["ExitStatus"]))throw ex}else{err("Pthread 0x"+threadInfoStruct.toString(16)+" completed its pthread main entry point with an unwind, keeping the pthread worker alive for asynchronous operation.")}}}else if(e.data.cmd==="cancel"){if(threadInfoStruct){Module["PThread"].threadCancel()}}else if(e.data.target==="setimmediate"){}else if(e.data.cmd==="processThreadQueue"){if(threadInfoStruct){Module["_emscripten_current_thread_process_queued_calls"]()}}else{err("worker.js received unknown command "+e.data.cmd);err(e.data)}}catch(ex){err("worker.js onmessage() captured an uncaught exception: "+ex);if(ex.stack)err(ex.stack);throw ex}};if(typeof process==="object"&&typeof process.versions==="object"&&typeof process.versions.node==="string"){self={location:{href:__filename}};var onmessage=this.onmessage;var nodeWorkerThreads=require("worker_threads");Worker=nodeWorkerThreads.Worker;var parentPort=nodeWorkerThreads.parentPort;parentPort.on("message",function(data){onmessage({data:data})});var nodeFS=require("fs");var nodeRead=function(filename){return nodeFS.readFileSync(filename,"utf8")};function globalEval(x){global.require=require;global.Module=Module;eval.call(null,x)}importScripts=function(f){globalEval(nodeRead(f))};postMessage=function(msg){parentPort.postMessage(msg)};if(typeof performance==="undefined"){performance={now:function(){return Date.now()}}}}';
+                  const blob = new Blob([response], { type: 'application/javascript' });
+                  return URL.createObjectURL(blob);
+              }
+              return prefix + path;
+          };
+          factoryConfig.locateFile = locateFile;
           if (wasmPath != null) {
               factoryConfig.locateFile = (path, prefix) => {
                   if (path.endsWith('.wasm')) {
                       return wasmPath;
                   }
-                  return prefix + path;
+                  return locateFile(path, prefix);
               };
               // use wasm instantiateWasm override when system fetch is not available.
               // For detail references
