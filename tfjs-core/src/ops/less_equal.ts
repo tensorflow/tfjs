@@ -28,9 +28,6 @@ import {op} from './operation';
 /**
  * Returns the truth value of (a <= b) element-wise. Supports broadcasting.
  *
- * We also expose `tf.lessEqualStrict` which has the same signature as this op
- * and asserts that `a` and `b` are the same shape (does not broadcast).
- *
  * ```js
  * const a = tf.tensor1d([1, 2, 3]);
  * const b = tf.tensor1d([2, 2, 2]);

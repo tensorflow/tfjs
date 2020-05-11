@@ -825,6 +825,9 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   // Binary ops.
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   addStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.addStrict(this, x);
@@ -833,6 +836,9 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.atan2(this, x);
   }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   subStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.subStrict(this, x);
@@ -841,6 +847,9 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.pow(this, exp);
   }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   powStrict(exp: Tensor|TensorLike): Tensor<R> {
     this.throwIfDisposed();
     return opHandler.powStrict(this, exp);
@@ -849,6 +858,9 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.mul(this, x);
   }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   mulStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.mulStrict(this, x);
@@ -857,6 +869,9 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.floorDiv(this, x);
   }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   divStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.divStrict(this, x);
@@ -865,6 +880,9 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.minimum(this, x);
   }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   minimumStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.minimumStrict(this, x);
@@ -873,6 +891,9 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.maximum(this, x);
   }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   maximumStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.maximumStrict(this, x);
@@ -881,36 +902,60 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.mod(this, x);
   }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   modStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.modStrict(this, x);
   }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   squaredDifferenceStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.squaredDifferenceStrict(this, x);
   }
 
   // Compare ops.
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   notEqualStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.notEqualStrict(this, x);
   }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   lessStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.lessStrict(this, x);
   }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   equalStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.equalStrict(this, x);
   }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   lessEqualStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.lessEqualStrict(this, x);
   }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   greaterStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.greaterStrict(this, x);
   }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   greaterEqualStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.greaterEqualStrict(this, x);
