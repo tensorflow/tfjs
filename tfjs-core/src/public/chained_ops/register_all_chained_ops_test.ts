@@ -41,6 +41,7 @@ const CHAINED_OPS = [
   'greaterEqual',
   'less',
   'lessEqual',
+  'localResponseNormalization',
   'matMul',
   'notEqual',
   'oneHot',

@@ -27,6 +27,7 @@ import {divGradConfig} from './gradients/Div_grad';
 import {fusedBatchNormGradConfig} from './gradients/FusedBatchNorm_grad';
 import {greaterEqualGradConfig} from './gradients/GreaterEqual_grad';
 import {identityGradConfig} from './gradients/Identity_grad';
+import {lrnGradConfig} from './gradients/LRN_grad';
 import {maxGradConfig} from './gradients/Max_grad';
 import {oneHotGradConfig} from './gradients/OneHot_grad';
 import {padV2GradConfig} from './gradients/PadV2_grad';
@@ -54,6 +55,7 @@ const gradConfigs: GradConfig[] = [
   fusedBatchNormGradConfig,
   greaterEqualGradConfig,
   identityGradConfig,
+  lrnGradConfig,
   oneHotGradConfig,
   padV2GradConfig,
   splitVGradConfig,

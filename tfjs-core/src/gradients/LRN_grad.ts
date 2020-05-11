@@ -14,32 +14,24 @@
  * limitations under the License.
  * =============================================================================
  */
-import './add';
-import './batchnorm';
-import './broadcast_to';
-import './max';
-import './concat';
-import './conv1d';
-import './conv2d';
-import './conv2d_transpose';
-import './depthwise_conv2d';
-import './depthwise_conv2D_deprecated';
-import './div';
-import './div_no_nan';
-import './dot';
-import './equal';
-import './greater';
-import './greater_equal';
-import './less';
-import './less_equal';
-import './local_response_normalization';
-import './mat_mul';
-import './one_hot';
-import './not_equal';
-import './pad';
-import './separable_conv2d';
-import './split';
-import './squared_difference';
-import './sub';
-import './tile';
-import './transpose';
+import {ENGINE} from '../engine';
+import {LRN, LRNAttrs} from '../kernel_names';
+import {GradConfig, NamedAttrMap} from '../kernel_registry';
+import {Tensor, Tensor4D} from '../tensor';
+
+export const lrnGradConfig: GradConfig = {
+  kernelName: LRN,
+  inputsToSave: ['x'],
+  outputsToSave: [true],
+  gradFunc: (dy: Tensor4D, saved: Tensor[], attrs: NamedAttrMap) => {
+    const [x, y] = saved;
+    const {depthRadius, bias, alpha, beta} = attrs as {} as LRNAttrs;
+
+    return {
+      x: () => ENGINE.runKernelFunc(
+          backend => backend.LRNGrad(
+              dy, x as Tensor4D, y as Tensor4D, depthRadius, bias, alpha, beta),
+          {})
+    };
+  }
+};
