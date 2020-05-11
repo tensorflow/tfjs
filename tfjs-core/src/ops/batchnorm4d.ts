@@ -20,7 +20,6 @@ import {TensorLike} from '../types';
 import * as util from '../util';
 
 import {batchNorm} from './batchnorm';
-import {warnDeprecation} from './batchnorm_util';
 import {op} from './operation';
 
 /**
@@ -77,19 +76,4 @@ function batchNorm4d_(
   return batchNorm($x, $mean, $variance, $offset, $scale, varianceEpsilon);
 }
 
-/**
- * @deprecated Please use `tf.batchNorm4d` instead and note the positional
- *     argument change of scale, offset, and varianceEpsilon.
- */
-function batchNormalization4d_(
-    x: Tensor4D|TensorLike, mean: Tensor4D|Tensor1D|TensorLike,
-    variance: Tensor4D|Tensor1D|TensorLike, varianceEpsilon = .001,
-    scale?: Tensor4D|Tensor1D|TensorLike,
-    offset?: Tensor4D|Tensor1D|TensorLike): Tensor4D {
-  warnDeprecation();
-  return batchNorm4d_(x, mean, variance, offset, scale, varianceEpsilon);
-}
-
-// todo(yassogba): Remove batchNormalization4d since it is deprecated.
-export const batchNormalization4d = op({batchNormalization4d_});
 export const batchNorm4d = op({batchNorm4d_});

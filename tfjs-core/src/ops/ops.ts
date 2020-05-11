@@ -18,10 +18,10 @@
 // Modularized ops.
 export {add} from './add';
 export {addN} from './add_n';
-export {batchNorm, batchNormalization} from './batchnorm';
-export {batchNorm2d, batchNormalization2d} from './batchnorm2d';
-export {batchNorm3d, batchNormalization3d} from './batchnorm3d';
-export {batchNorm4d, batchNormalization4d} from './batchnorm4d';
+export {batchNorm} from './batchnorm';
+export {batchNorm2d} from './batchnorm2d';
+export {batchNorm3d} from './batchnorm3d';
+export {batchNorm4d} from './batchnorm4d';
 export {broadcastTo} from './broadcast_to';
 export {clone} from './clone';
 export {concat} from './concat';

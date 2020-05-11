@@ -748,22 +748,6 @@ export class Tensor<R extends Rank = Rank> {
   unstack(axis = 0): Tensor[] {
     return opHandler.unstack(this, axis);
   }
-  /**
-   * @deprecated Use `tf.batchNorm` instead, and note the positional argument
-   *     change of scale, offset, and varianceEpsilon.
-   */
-  batchNormalization(
-      mean: Tensor<R>|Tensor1D|TensorLike,
-      variance: Tensor<R>|Tensor1D|TensorLike, varianceEpsilon = .001,
-      scale?: Tensor<R>|Tensor1D|TensorLike,
-      offset?: Tensor<R>|Tensor1D|TensorLike): Tensor<R> {
-    deprecationWarningFn(
-        'tf.batchNormalization() is going away. ' +
-        'Use tf.batchNorm() instead, and note the positional argument change ' +
-        'of scale, offset, and varianceEpsilon');
-    return this.batchNorm(mean, variance, offset, scale, varianceEpsilon);
-  }
-
   // Reduction ops.
   all<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
     this.throwIfDisposed();
