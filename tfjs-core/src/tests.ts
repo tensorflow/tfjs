@@ -80,7 +80,7 @@ import './ops/logical_ops_test';
 import './ops/loss_ops_test';
 import './ops/lrn_test';
 import './ops/lstm_test';
-import './ops/matmul_test';
+import './ops/mat_mul_test';
 import './ops/moving_average_test';
 import './ops/multinomial_test';
 import './ops/not_equal_test';

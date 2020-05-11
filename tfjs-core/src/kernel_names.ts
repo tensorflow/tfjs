@@ -27,6 +27,13 @@ export type AddInputs = BinaryInputs;
 export const AddN = 'AddN';
 export type AddNInputs = TensorInfo[];
 
+export const BatchMatMul = 'BatchMatMul';
+export type BatchMatMulInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
+export interface BatchMatMulAttrs {
+  transposeA: boolean;
+  transposeB: boolean;
+}
+
 export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 
 export const BroadcastTo = 'BroadcastTo';
@@ -113,6 +120,9 @@ export const DepthwiseConv2dNativeBackpropInput =
     'DepthwiseConv2dNativeBackpropInput';
 export type DepthwiseConv2dNativeBackpropInputInputs =
     Pick<NamedTensorInfoMap, 'dy'>;
+
+export const Diag = 'Diag';
+export type DiagInputs = Pick<NamedTensorInfoMap, 'x'>;
 
 export const Div = 'Div';
 export type DivInputs = BinaryInputs;

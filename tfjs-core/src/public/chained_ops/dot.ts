@@ -14,13 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
+import {dot} from '../../ops/dot';
+import {Tensor} from '../../tensor';
+import {Rank, TensorLike} from '../../types';
 
-import {registerBackend} from '@tensorflow/tfjs-core';
-import {MathBackendCPU} from './base';
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    dot<T extends Tensor>(b: Tensor|TensorLike): Tensor;
+  }
+}
 
-// Side effects for default initialization of MathBackendCPU
-registerBackend('cpu', () => new MathBackendCPU(), 1 /* priority */);
-import './register_all_kernels';
-
-// All exports from this package should be in base.
-export * from './base';
+Tensor.prototype.dot = function<T extends Tensor>(b: T|TensorLike): Tensor {
+  this.throwIfDisposed();
+  return dot(this, b);
+};

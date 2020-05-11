@@ -14,31 +14,13 @@
  * limitations under the License.
  * =============================================================================
  */
-import './add';
-import './batchnorm';
-import './broadcast_to';
-import './max';
-import './concat';
-import './conv1d';
-import './conv2d';
-import './conv2d_transpose';
-import './depthwise_conv2d';
-import './depthwise_conv2D_deprecated';
-import './div';
-import './div_no_nan';
-import './dot';
-import './equal';
-import './greater';
-import './greater_equal';
-import './less';
-import './less_equal';
-import './mat_mul';
-import './one_hot';
-import './not_equal';
-import './pad';
-import './separable_conv2d';
-import './split';
-import './squared_difference';
-import './sub';
-import './tile';
-import './transpose';
+
+/*
+ * base.ts contains all the exports from tfjs-backend-cpu
+ * that do not trigger side effects.
+ */
+import * as shared from './shared';
+
+export {MathBackendCPU} from './backend_cpu';
+export {version as version_cpu} from './version';
+export {shared};
