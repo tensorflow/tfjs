@@ -28,7 +28,7 @@ interface ReshapeAttrs extends NamedAttrMap {
   shape: number[];
 }
 
-function reshape(
+export function reshape(
     args: {inputs: ReshapeInputs, attrs: ReshapeAttrs, backend: BackendWasm}) {
   const {inputs: {x}, attrs: {shape}} = args;
   return {dataId: x.dataId, shape, dtype: x.dtype};

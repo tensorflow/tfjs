@@ -15,6 +15,12 @@
  * =============================================================================
  */
 
-// Shared kernel impls for use in other backends.
-export {maxImpl} from './kernels/Max_impl';
-export {transposeImpl} from './kernels/Transpose_impl';
+/*
+ * base.ts contains all the exports from tfjs-backend-cpu
+ * that do not trigger side effects.
+ */
+import * as shared from './shared';
+
+export {MathBackendCPU} from './backend_cpu';
+export {version as version_cpu} from './version';
+export {shared};

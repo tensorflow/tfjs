@@ -114,6 +114,9 @@ export const DepthwiseConv2dNativeBackpropInput =
 export type DepthwiseConv2dNativeBackpropInputInputs =
     Pick<NamedTensorInfoMap, 'dy'>;
 
+export const Diag = 'Diag';
+export type DiagInputs = Pick<NamedTensorInfoMap, 'x'>;
+
 export const Div = 'Div';
 export type DivInputs = BinaryInputs;
 
@@ -162,6 +165,13 @@ export interface NonMaxSuppressionV5Attrs {
   iouThreshold: number;
   scoreThreshold: number;
   softNmsSigma: number;
+}
+
+export const Max = 'Max';
+export type MaxInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface MaxAttrs {
+  reductionIndices: number|number[];
+  keepDims: boolean;
 }
 
 export const OneHot = 'OneHot';
