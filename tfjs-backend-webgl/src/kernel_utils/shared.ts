@@ -15,7 +15,10 @@
  * =============================================================================
  */
 
-import {shared} from '@tensorflow/tfjs-backend-cpu';
+// Import shared functionality from tfjs-backend-cpu without triggering
+// side effects.
+// tslint:disable-next-line: no-imports-from-dist
+import {shared} from '@tensorflow/tfjs-backend-cpu/dist/base';
 
 const {maxImpl: maxImplCPU, transposeImpl: transposeImplCPU} = shared;
 
