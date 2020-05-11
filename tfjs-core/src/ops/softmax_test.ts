@@ -109,7 +109,7 @@ describeWithFlags('softmax', ALL_ENVS, () => {
     const dx = tf.grad((x) => x.softmax())(x, dy);
 
     const axis = -1;
-    const totalSum: tf.Tensor1D = tf.sum(tf.mulStrict(dy, y), axis);
+    const totalSum: tf.Tensor1D = tf.sum(tf.mul(dy, y), axis);
 
     const dyVals = await dy.array();
     const sumVals = await totalSum.array();

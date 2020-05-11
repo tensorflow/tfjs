@@ -926,9 +926,9 @@ function batchDot(x: Tensor, y: Tensor, axes: number|[number, number]): Tensor {
     let out: Tensor;
     if (x.shape.length === 2 && y.shape.length === 2) {
       if (axesArray[0] === axesArray[1]) {
-        out = x.mulStrict(y).sum(axesArray[0]);
+        out = x.mul(y).sum(axesArray[0]);
       } else {
-        out = x.transpose([1, 0]).mulStrict(y).sum(axesArray[1]);
+        out = x.transpose([1, 0]).mul(y).sum(axesArray[1]);
       }
     } else {
       const adjX = axesArray[0] !== x.shape.length - 1;
