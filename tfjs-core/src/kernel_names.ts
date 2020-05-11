@@ -162,6 +162,13 @@ export interface LRNAttrs {
 }
 
 export const LRNBackprop = 'LRNBackprop';
+export type LRNBackpropInputs = Pick<NamedTensorInfoMap, 'x'|'y'|'dy'>;
+export interface LRNBackpropAttrs {
+  depthRadius: number;
+  bias: number;
+  alpha: number;
+  beta: number;
+}
 
 export const MaxPoolWithArgmax = 'MaxPoolWithArgmax';
 export type MaxPoolWithArgmaxInputs = Pick<NamedTensorInfoMap, 'x'>;
