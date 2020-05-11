@@ -16,8 +16,11 @@
  */
 
 import {registerBackend} from '@tensorflow/tfjs-core';
-import {MathBackendCPU} from './backend_cpu';
+import {MathBackendCPU} from './base';
+
+// Side effects for default initialization of MathBackendCPU
 registerBackend('cpu', () => new MathBackendCPU(), 1 /* priority */);
 import './register_all_kernels';
 
-export {MathBackendCPU};
+// All exports from this package should be in base.
+export * from './base';

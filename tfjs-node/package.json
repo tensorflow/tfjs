@@ -29,7 +29,7 @@
     "build-backend-webgl": "cd ../tfjs-backend-webgl && yarn && yarn build",
     "build-backend-webgl-ci": "cd ../tfjs-backend-webgl && yarn && yarn build-ci",
     "build-deps": "yarn build-core && yarn build-layers && yarn build-converter && yarn build-data && yarn build-union && yarn build-backend-cpu && yarn build-backend-webgl",
-    "build-deps-ci": "yarn build-core-ci && yarn build-layers-ci && yarn build-converter-ci && yarn build-data-ci && yarn build-union-ci && yarn build-backend-cpu-ci && yarn build-backend-webgl-ci",
+    "build-deps-ci": "yarn build-core-ci && yarn build-backend-cpu-ci && yarn build-backend-webgl-ci && yarn build-layers-ci && yarn build-converter-ci && yarn build-data-ci && yarn build-union-ci",
     "build-npm": "./scripts/build-npm.sh",
     "build-addon": "./scripts/build-and-upload-addon.sh",
     "build-addon-from-source": "node-pre-gyp install --build-from-source",
@@ -46,7 +46,7 @@
     "publish-local": "yarn prep && yalc push",
     "publish-npm": "npm publish",
     "test": "yarn && yarn build-deps && yarn build && ts-node -P tsconfig.test.json src/run_tests.ts",
-    "test-ci": "ts-node -P tsconfig.test.json src/run_tests.ts",
+    "test-ci": "ts-node --skip-ignore -P tsconfig.test.json src/run_tests.ts",
     "upload-windows-addon": "./scripts/build-and-upload-windows-addon.bat"
   },
   "devDependencies": {
@@ -86,7 +86,8 @@
     "napi_versions": [
       3,
       4,
-      5
+      5,
+      6
     ]
   }
 }

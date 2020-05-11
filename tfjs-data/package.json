@@ -60,7 +60,7 @@
     "publish-npm": "npm publish",
     "test": "yarn && yarn build-deps && ts-node --project tsconfig.test.json src/test_node.ts",
     "test-browsers": "karma start --browsers='Chrome,Firefox'",
-    "test-ci": "ts-node -P tsconfig.test.json src/test_node.ts",
+    "test-ci": "ts-node --skip-ignore -P tsconfig.test.json src/test_node.ts",
     "test-snippets": "ts-node --project tsconfig.test.json ./scripts/test_snippets.ts",
     "lint": "tslint -p . -t verbose"
   },

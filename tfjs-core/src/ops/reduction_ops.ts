@@ -21,8 +21,10 @@ import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
+
 import * as axis_util from './axis_util';
 import {op} from './operation';
+import {gradForMinAndMax} from './reduction_ops_util';
 import {ones, scalar, zerosLike} from './tensor_ops';
 
 /**
@@ -268,25 +270,6 @@ function mean_<T extends Tensor>(
 }
 
 /**
- * Gradient helper function for the min and max operations.
- */
-function gradForMinAndMax<T extends Tensor>(
-    dy: T, y: T, xOrig: Tensor, origAxes: number[], permutedAxes: number[]) {
-  if (y.rank < xOrig.rank) {
-    y = y.reshape(axis_util.expandShapeToKeepDim(y.shape, origAxes)) as T;
-  }
-  if (dy.rank < xOrig.rank) {
-    dy = dy.reshape(axis_util.expandShapeToKeepDim(dy.shape, origAxes)) as T;
-  }
-  return {
-    x: () => {
-      const dx = dy.mul(xOrig.equal(y).cast(dy.dtype));
-      return permutedAxes == null ? dx : dx.transpose(permutedAxes);
-    }
-  };
-}
-
-/**
  * Computes the minimum value from the input.
  *
  * Reduces the input along the dimensions given in `axes`. Unless `keepDims`
@@ -342,64 +325,6 @@ function min_<T extends Tensor>(
     res = res.reshape(newShape) as T;
   }
   return res;
-}
-
-/**
- * Computes the maximum of elements across dimensions of a `tf.Tensor`.
- *
- * Reduces the input along the dimensions given in `axes`. Unless `keepDims`
- * is true, the rank of the `tf.Tensor` is reduced by 1 for each entry in
- * `axes`. If `keepDims` is true, the reduced dimensions are retained with
- * length 1. If `axes` has no entries, all dimensions are reduced, and an
- * `tf.Tensor` with a single element is returned.
- *
- * ```js
- * const x = tf.tensor1d([1, 2, 3]);
- *
- * x.max().print();  // or tf.max(x)
- * ```
- *
- * ```js
- * const x = tf.tensor2d([1, 2, 3, 4], [2, 2]);
- *
- * const axis = 1;
- * x.max(axis).print();  // or tf.max(x, axis)
- * ```
- *
- * @param x The input tensor.
- * @param axis The dimension(s) to reduce. By default it reduces
- *     all dimensions.
- * @param keepDims If true, retains reduced dimensions with size 1.
- */
-/** @doc {heading: 'Operations', subheading: 'Reduction'} */
-function max_<T extends Tensor>(
-    x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
-  let $x = convertToTensor(x, 'x', 'max');
-  const xOrig = $x;
-
-  const origAxes = util.parseAxisParam(axis, $x.shape);
-  let axes = origAxes;
-  const permutedAxes = axis_util.getAxesPermutation(axes, $x.rank);
-  if (permutedAxes != null) {
-    $x = $x.transpose(permutedAxes);
-    axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
-  }
-
-  const grad = (dy: T, saved: Tensor[]) =>
-      gradForMinAndMax(dy, saved[1], saved[0], origAxes, permutedAxes);
-
-  const inputsToSave = [$x];
-  const outputsToSave: boolean[] = [true];
-  let res = ENGINE.runKernelFunc((backend, save) => {
-    const y = backend.max($x, axes);
-    save([xOrig, y]);
-    return y;
-  }, {x: $x}, grad, 'Max', {axes}, inputsToSave, outputsToSave);
-  if (keepDims) {
-    const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
-    res = res.reshape(newShape) as T;
-  }
-  return res as T;
 }
 
 /**
@@ -625,7 +550,6 @@ export const any = op({any_});
 export const argMax = op({argMax_});
 export const argMin = op({argMin_});
 export const logSumExp = op({logSumExp_});
-export const max = op({max_});
 export const mean = op({mean_});
 export const min = op({min_});
 export const moments = op({moments_});

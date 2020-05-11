@@ -15,11 +15,10 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line: no-imports-from-dist
-import {transposeImpl as transposeImplCPU} from '@tensorflow/tfjs-backend-cpu/dist/shared';
 import {env, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
+import {transposeImplCPU} from '../kernel_utils/shared';
 import {TransposeProgram} from '../transpose_gpu';
 import {TransposePackedProgram} from '../transpose_packed_gpu';
 

@@ -15,19 +15,38 @@
  * =============================================================================
  */
 
-import commonjs from 'rollup-plugin-commonjs';
-import node from 'rollup-plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import resolve from '@rollup/plugin-node-resolve';
+import typescript from '@rollup/plugin-typescript';
 import {terser} from 'rollup-plugin-terser';
-import typescript from 'rollup-plugin-typescript2';
+import visualizer from 'rollup-plugin-visualizer';
 
 const PREAMBLE = ``;
 
-function config({plugins = [], output = {}, external = []}) {
+function config({
+  plugins = [],
+  output = {},
+  external = [],
+  visualize = false,
+  tsCompilerOptions = {}
+}) {
+  if (visualize) {
+    const filename = output.file + '.html';
+    plugins.push(visualizer(
+        {sourcemap: true, filename, template: 'sunburst', gzipSize: true}));
+    console.log(`Will output a bundle visualization in ${filename}`);
+  }
+
+  const defaultTsOptions = {
+    include: ['src/**/*.ts'],
+    module: 'ES2015',
+  };
+  const tsoptions = Object.assign({}, defaultTsOptions, tsCompilerOptions);
+
   return {
     input: 'src/index.ts',
     plugins: [
-      typescript({tsconfigOverride: {compilerOptions: {module: 'ES2015'}}}),
-      node(),
+      typescript(tsoptions), resolve(),
       // Polyfill require() from dependencies.
       commonjs({
         ignore: ['crypto'],
@@ -53,35 +72,57 @@ function config({plugins = [], output = {}, external = []}) {
   };
 }
 
-module.exports = cmdOptions => [
-    // tf-webgpu.js
-    config({
-      output: {
-        format: 'umd',
-        name: 'tf',
-        extend: true,
-        file: 'dist/tf-webgpu.js',
-      }
-    }),
+module.exports = cmdOptions => {
+  const bundles = [];
+  const name = 'tf';
+  const extend = true;
+  const browserFormat = 'umd';
+  const fileName = 'tf-webgpu';
 
-    // tf-webgpu.min.js
-    config({
-      plugins: [terser({output: {preamble: PREAMBLE}})],
-      output: {
-        format: 'umd',
-        name: 'tf',
-        extend: true,
-        file: 'dist/tf-webgpu.min.js',
-      },
-      visualize: cmdOptions.visualize
-    }),
+  // Browser default unminified
+  bundles.push(config({
+    output: {
+      format: browserFormat,
+      name,
+      extend,
+      file: `dist/${fileName}.js`,
+    }
+  }));
 
-    // tf-webgpu.esm.js
-    config({
-      plugins: [terser({output: {preamble: PREAMBLE}})],
-      output: {
-        format: 'es',
-        file: 'dist/tf-webgpu.esm.js',
-      }
-    }),
-];
+  // Browser default minified
+  bundles.push(config({
+    plugins: [terser({output: {preamble: PREAMBLE}})],
+    output: {
+      format: browserFormat,
+      name,
+      extend,
+      file: `dist/${fileName}.min.js`,
+    },
+    visualize: cmdOptions.visualize
+  }));
+
+  // Browser ES2017
+  bundles.push(config({
+    output: {
+      format: browserFormat,
+      name,
+      extend,
+      file: `dist/${fileName}.es2017.js`,
+    },
+    tsCompilerOptions: {target: 'es2017'}
+  }));
+
+  // Browser ES2017 minified
+  bundles.push(config({
+    plugins: [terser({output: {preamble: PREAMBLE}})],
+    output: {
+      format: browserFormat,
+      name,
+      extend,
+      file: `dist/${fileName}.es2017.min.js`,
+    },
+    tsCompilerOptions: {target: 'es2017'}
+  }));
+
+  return bundles;
+};
