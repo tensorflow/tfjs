@@ -27,6 +27,13 @@ export type AddInputs = BinaryInputs;
 export const AddN = 'AddN';
 export type AddNInputs = TensorInfo[];
 
+export const BatchMatMul = 'BatchMatMul';
+export type BatchMatMulInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
+export interface BatchMatMulAttrs {
+  transposeA: boolean;
+  transposeB: boolean;
+}
+
 export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 
 export const BroadcastTo = 'BroadcastTo';
