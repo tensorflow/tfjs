@@ -23,7 +23,7 @@ interface ConcatAttrs extends NamedAttrMap {
   axis: number;
 }
 
-function concat(
+export function concat(
     args: {inputs: TensorInfo[], backend: BackendWasm, attrs: ConcatAttrs}) {
   const {inputs, backend, attrs: {axis}} = args;
   const outShape = backend_util.computeOutShape(inputs.map(t => t.shape), axis);

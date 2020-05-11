@@ -15,9 +15,11 @@
  * =============================================================================
  */
 
+import {ENGINE} from '../engine';
 import {Scalar, Tensor1D, Tensor2D} from '../tensor';
 import {convertToTensor, convertToTensorArray} from '../tensor_util_env';
 import {TensorLike} from '../types';
+
 import {op} from './operation';
 
 /**
@@ -95,23 +97,35 @@ function basicLSTMCell_(
   const $c = convertToTensor(c, 'c', 'basicLSTMCell');
   const $h = convertToTensor(h, 'h', 'basicLSTMCell');
 
-  const combined = $data.concat($h, 1);
-  const weighted = combined.matMul($lstmKernel);
-  const res: Tensor2D = weighted.add($lstmBias);
-
   // i = input_gate, j = new_input, f = forget_gate, o = output_gate
-  const batchSize = res.shape[0];
-  const sliceCols = res.shape[1] / 4;
-  const sliceSize: [number, number] = [batchSize, sliceCols];
-  const i = res.slice([0, 0], sliceSize);
-  const j = res.slice([0, sliceCols], sliceSize);
-  const f = res.slice([0, sliceCols * 2], sliceSize);
-  const o = res.slice([0, sliceCols * 3], sliceSize);
+  return ENGINE.runKernelFunc(
+      () => {
+        const combined = $data.concat($h, 1);
+        const weighted = combined.matMul($lstmKernel);
+        const res: Tensor2D = weighted.add($lstmBias);
 
-  const newC = i.sigmoid().mulStrict(j.tanh()).addStrict(
-      $c.mulStrict($forgetBias.add(f).sigmoid() as Tensor2D));
-  const newH = newC.tanh().mulStrict(o.sigmoid());
-  return [newC, newH];
+        const batchSize = res.shape[0];
+        const sliceCols = res.shape[1] / 4;
+        const sliceSize: [number, number] = [batchSize, sliceCols];
+
+        const i = res.slice([0, 0], sliceSize);
+        const j = res.slice([0, sliceCols], sliceSize);
+        const f = res.slice([0, sliceCols * 2], sliceSize);
+        const o = res.slice([0, sliceCols * 3], sliceSize);
+
+        const newC = i.sigmoid().mulStrict(j.tanh()).addStrict(
+            $c.mulStrict($forgetBias.add(f).sigmoid() as Tensor2D));
+        const newH = newC.tanh().mulStrict(o.sigmoid());
+        return [newC, newH];
+      },
+      {
+        forgetBias: $forgetBias,
+        lstmKernel: $lstmKernel,
+        data: $data,
+        c: $c,
+        h: $h
+      },
+      null /* gradient */, 'LSTM', {});
 }
 
 export const basicLSTMCell = op({basicLSTMCell_});

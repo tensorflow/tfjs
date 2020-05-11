@@ -20,26 +20,9 @@ import {backend_util, DataType, NamedTensorInfoMap, registerKernel, TensorInfo, 
 import {BackendWasm} from '../backend_wasm';
 import {CppDType} from './types';
 
-export function registerBinaryKernel(
-    kernelName: string, supportsFullBroadcast: boolean, dtype?: DataType) {
-  let wasmFunc:
-      (aId: number, aShape: Uint8Array, aShapeLen: number, bId: number,
-       bShape: Uint8Array, bShapeLen: number, dtype: number, outId: number) =>
-          void;
-
-  function setupFunc(backend: BackendWasm): void {
-    wasmFunc = backend.wasm.cwrap(kernelName, null /* void */, [
-      'number',  // a_id,
-      'array',   // a_shape
-      'number',  // a_shape.length
-      'number',  // b_id
-      'array',   // b_shape
-      'number',  // b_shape.length
-      'number',  // dtype
-      'number'   // out_id
-    ]);
-  }
-
+export function generateKernelFunc(
+    kernelName: string, dtype: DataType, supportsFullBroadcast: boolean,
+    wasmFuncWrapper: any) {
   function kernelFunc(args: {backend: BackendWasm, inputs: BinaryInputs}):
       TensorInfo {
     const {backend, inputs} = args;
@@ -59,7 +42,7 @@ export function registerBinaryKernel(
     const aShapeBytes = new Uint8Array(new Int32Array(a.shape).buffer);
     const bShapeBytes = new Uint8Array(new Int32Array(b.shape).buffer);
     const outId = backend.dataIdMap.get(out.dataId).id;
-    const kernelFunc = () => wasmFunc(
+    const kernelFunc = () => wasmFuncWrapper.wasmFunc(
         aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length,
         CppDType[a.dtype], outId);
 
@@ -81,6 +64,33 @@ export function registerBinaryKernel(
           `supported for ${kernelName}.`);
     }
   }
+  return kernelFunc;
+}
+
+export function registerBinaryKernel(
+    kernelName: string, supportsFullBroadcast: boolean, dtype?: DataType) {
+  const wasmFuncWrapper = {
+    wasmFunc:
+        (aId: number, aShape: Uint8Array, aShapeLen: number, bId: number,
+         bShape: Uint8Array, bShapeLen: number, dtype: number, outId: number):
+            any => {}
+  };
+
+  function setupFunc(backend: BackendWasm): void {
+    wasmFuncWrapper.wasmFunc = backend.wasm.cwrap(kernelName, null /* void */, [
+      'number',  // a_id,
+      'array',   // a_shape
+      'number',  // a_shape.length
+      'number',  // b_id
+      'array',   // b_shape
+      'number',  // b_shape.length
+      'number',  // dtype
+      'number'   // out_id
+    ]);
+  }
+
+  const kernelFunc = generateKernelFunc(
+      kernelName, dtype, supportsFullBroadcast, wasmFuncWrapper);
 
   registerKernel({kernelName, backendName: 'wasm', setupFunc, kernelFunc});
 }

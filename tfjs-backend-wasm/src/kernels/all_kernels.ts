@@ -45,6 +45,7 @@ import './GreaterEqual';
 import './Less';
 import './LessEqual';
 import './Log';
+import './LSTM';
 import './LogicalAnd';
 import './Max';
 import './Maximum';

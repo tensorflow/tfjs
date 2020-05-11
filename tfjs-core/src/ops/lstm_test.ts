@@ -68,7 +68,7 @@ describeWithFlags('lstm', ALL_ENVS, () => {
     expectArraysClose(await output[1][1].data(), [0.5745711922645569]);
   });
 
-  it('basicLSTMCell with batch=2', async () => {
+  fit('basicLSTMCell with batch=2', async () => {
     const lstmKernel = tf.randomNormal<Rank.R2>([3, 4]);
     const lstmBias = tf.randomNormal<Rank.R1>([4]);
     const forgetBias = tf.scalar(1.0);
