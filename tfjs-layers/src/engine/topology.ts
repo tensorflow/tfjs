@@ -451,7 +451,7 @@ export abstract class Layer extends serialization.Serializable {
   // during model loading.
   private fastWeightInitDuringBuild: boolean;
 
-  constructor(args: LayerArgs) {
+  constructor(args: LayerArgs = {}) {
     super();
     this.id = _nextLayerID++;
 
