@@ -224,7 +224,8 @@ limitations under the License.
 
         if (res instanceof tf.Tensor) {
           const tmp = res;
-          res = await res.data();
+          res.dataSync();
+          // res = await res.data();
           tmp.dispose();
         }
         const dur = performance.now() - start;
