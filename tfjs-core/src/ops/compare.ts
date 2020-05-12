@@ -14,13 +14,16 @@
  * limitations under the License.
  * =============================================================================
  */
+import {deprecationWarn} from '../globals';
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assertShapesMatch} from '../util';
+
 import {op} from './operation';
 
 /**
+ * @deprecated
  * Strict version of `tf.notEqual` that forces `a` and `b` to be of the same
  * shape.
  *
@@ -30,6 +33,9 @@ import {op} from './operation';
  */
 function notEqualStrict_<T extends Tensor>(
     a: T|TensorLike, b: T|TensorLike): T {
+  deprecationWarn(
+      'strict variants of ops have been deprecated ' +
+      'and will be removed in future');
   const $a = convertToTensor(a, 'a', 'notEqualStrict');
   const $b = convertToTensor(b, 'b', 'notEqualStrict');
   assertShapesMatch($a.shape, $b.shape, 'Error in notEqualStrict: ');
@@ -37,6 +43,7 @@ function notEqualStrict_<T extends Tensor>(
 }
 
 /**
+ * @deprecated
  * Strict version of `tf.less` that forces `a` and `b` to be of the same
  * shape.
  *
@@ -45,6 +52,9 @@ function notEqualStrict_<T extends Tensor>(
  *     `a`.
  */
 function lessStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
+  deprecationWarn(
+      'strict variants of ops have been deprecated ' +
+      'and will be removed in future');
   const $a = convertToTensor(a, 'a', 'lessStrict');
   const $b = convertToTensor(b, 'b', 'lessStrict');
   assertShapesMatch($a.shape, $b.shape, 'Error in lessStrict: ');
@@ -52,6 +62,9 @@ function lessStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
 }
 
 function equalStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
+  deprecationWarn(
+      'strict variants of ops have been deprecated ' +
+      'and will be removed in future');
   const $a = convertToTensor(a, 'a', 'equalStrict');
   const $b = convertToTensor(b, 'b', 'equalStrict');
   assertShapesMatch($a.shape, $b.shape, 'Error in equalStrict: ');
@@ -60,6 +73,9 @@ function equalStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
 
 function lessEqualStrict_<T extends Tensor>(
     a: T|TensorLike, b: T|TensorLike): T {
+  deprecationWarn(
+      'strict variants of ops have been deprecated ' +
+      'and will be removed in future');
   const $a = convertToTensor(a, 'a', 'lessEqualStrict');
   const $b = convertToTensor(b, 'b', 'lessEqualStrict');
   assertShapesMatch($a.shape, $b.shape, 'Error in lessEqualStrict: ');
@@ -67,6 +83,9 @@ function lessEqualStrict_<T extends Tensor>(
 }
 
 function greaterStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
+  deprecationWarn(
+      'strict variants of ops have been deprecated ' +
+      'and will be removed in future');
   const $a = convertToTensor(a, 'a', 'greaterStrict');
   const $b = convertToTensor(b, 'b', 'greaterStrict');
   assertShapesMatch($a.shape, $b.shape, 'Error in greaterStrict: ');
@@ -75,6 +94,9 @@ function greaterStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
 
 function greaterEqualStrict_<T extends Tensor>(
     a: T|TensorLike, b: T|TensorLike): T {
+  deprecationWarn(
+      'strict variants of ops have been deprecated ' +
+      'and will be removed in future');
   const $a = convertToTensor(a, 'a', 'greaterEqualStrict');
   const $b = convertToTensor(b, 'b', 'greaterEqualStrict');
   assertShapesMatch($a.shape, $b.shape, 'Error in greaterEqualStrict: ');

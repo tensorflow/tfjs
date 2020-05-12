@@ -2936,10 +2936,10 @@ export class MathBackendCPU extends KernelBackend {
     return tf.tensor4d(output, x.shape, x.dtype);
   }
 
-  batchNormalization(
+  batchNorm(
       x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
-      varianceEpsilon: number, scale?: Tensor4D|Tensor1D,
-      offset?: Tensor4D|Tensor1D): Tensor4D {
+      offset?: Tensor4D|Tensor1D, scale?: Tensor4D|Tensor1D,
+      varianceEpsilon?: number): Tensor4D {
     assertNotComplex([x, mean, variance, scale, offset], 'batchNorm');
 
     const xVals = this.readSync(x.dataId) as TypedArray;
