@@ -2680,7 +2680,6 @@
    * limitations under the License.
    * =============================================================================
    */
-  const threadWorker = require('../wasm-out/tfjs-backend-wasm.worker.js');
   const WASM_PRIORITY = 2;
   class BackendWasm extends tfjsCore.KernelBackend {
       constructor(wasm) {
@@ -2817,10 +2816,6 @@
    * in Chrome 76).
    */
   async function init() {
-      console.log('INITIALIZING');
-      // ts-lint:disable-next-line:no-any
-      window.threadWorker = threadWorker;
-      console.log(threadWorker);
       return new Promise((resolve, reject) => {
           const factoryConfig = {};
           const locateFile = (path, prefix) => {
