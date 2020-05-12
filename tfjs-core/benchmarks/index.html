@@ -228,7 +228,6 @@ limitations under the License.
           tmp.dispose();
         }
         const dur = performance.now() - start;
-        console.log(dur);
         times.push(dur);
         const memInfo = tf.memory();
         const leakedTensors = memInfo.numTensors - tensorsBefore;

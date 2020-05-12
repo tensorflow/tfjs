@@ -122,8 +122,14 @@ const benchmarks = {
       return tf.loadGraphModel(url);
     },
     predictFunc: () => {
-      const zeros = tf.zeros([1, 224, 224, 3]);
-      return model => model.predict(zeros);
+      const inputShape = [1, 224, 224, 3];
+      const inputData = [];
+      for(let i=0; i<224*224*3; i++) {
+        inputData.push(Math.random());
+      }
+      const input = tf.tensor4d(inputData, inputShape);
+
+      return model => model.predict(input);
     }
   },
   'mesh_128': {
