@@ -13,25 +13,33 @@ of tfjs usage, include:
 
 These instructions **assume that you are generally familiar with [react native](https://facebook.github.io/react-native/) developement**.
 
+## Expo compatibility
+
+Some parts of tfjs-react-native are not compatible with _managed expo app_. You must use the bare workflow (or just plain react native) if you want to use this functionality.
+
+The following functionality is not compatbile with managed expo app:
+ - Loading local models using bundleResourceIO. You can instead load models from a webserver.
+
 ### Step 1. Create your react native app.
 
-You can use the [React Native CLI](https://facebook.github.io/react-native/docs/getting-started) or [Expo](https://expo.io/). This library relies on a couple of dependencies from the Expo project so it may be convenient to use expo but is not mandatory.
+You can use the [React Native CLI](https://facebook.github.io/react-native/docs/getting-started) or [Expo](https://expo.io/).
 
 On macOS (to develop iOS applications) You will also need to use CocoaPods to install these dependencies.
 
-### Step 2: Install expo related libraries
+### Step 2: Install dependencies
 
-Depending on which workflow you used to set up your app you will need to install different dependencies.
+Note that if you are using in a managed expo app the install instructions may be different.
 
-- React Native CLI App
-  - Install and configure [react-native-unimodules](https://github.com/unimodules/react-native-unimodules)
+  - Install and configure [react-native-unimodules](https://github.com/unimodules/react-native-unimodules) (can be skipped if in an expo app)
   - Install and configure [expo-gl-cpp](https://github.com/expo/expo/tree/master/packages/expo-gl-cpp) and [expo-gl](https://github.com/expo/expo/tree/master/packages/expo-gl)
-- Expo Bare App
-  - Install and configure [expo-gl-cpp](https://github.com/expo/expo/tree/master/packages/expo-gl-cpp) and [expo-gl](https://github.com/expo/expo/tree/master/packages/expo-gl)
-- Expo Managed App
   - Install and configure [expo-gl](https://github.com/expo/expo/tree/master/packages/expo-gl)
+  - Install and configure [expo-gl-cpp](https://github.com/expo/expo/tree/master/packages/expo-gl-cpp) and [expo-gl](https://github.com/expo/expo/tree/master/packages/expo-gl)
+  - Install and configure [expo-camera](https://www.npmjs.com/package/expo-camera)
+  - Install and configure [async-storage](https://github.com/react-native-community/async-storage)
+  - Install and configure [react-native-fs](https://www.npmjs.com/package/react-native-fs)
+  - **Install @tensorflow/tfjs** - `npm install @tensorflow/tfjs`
+  - **Install @tensorflow/tfjs-react-native** - `npm install @tensorflow/tfjs-react-native`
 
-> If you are in a _managed_ expo application these libraries should be present and you should be able to skip this step.
 
 > After this point, if you are using Xcode to build for ios, you should use a ‘.workspace’ file instead of the ‘.xcodeproj’
 
@@ -63,18 +71,7 @@ module.exports = {
 };
 ```
 
-### Step 4: Install TensorFlow.js and tfjs-react-native
-
-- Install @tensorflow/tfjs - `npm install @tensorflow/tfjs`
-- Install @tensorflow/tfjs-react-native - `npm install @tensorflow/tfjs-react-native`
-
-### Step 5: Install and configure other peerDependencies
-
-- Install and configure [async-storage](https://github.com/react-native-community/async-storage)
-- Install and configure [react-native-fs](https://www.npmjs.com/package/react-native-fs)
-- Install and configure [expo-camera](https://www.npmjs.com/package/expo-camera)
-
-### Step 6: Test that it is working
+### Step 3: Test that it is working
 
 Before using tfjs in a react native app, you need to call `tf.ready()` and wait for it to complete. This is an **async function** so you might want to do this in a `componentDidMount` or before the app is rendered.
 
