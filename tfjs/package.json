@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs",
-  "version": "0.0.0",
+  "version": "2.0.0-rc.4",
   "description": "An open-source machine learning framework.",
   "private": false,
   "main": "dist/tf.node.js",
@@ -76,12 +76,12 @@
     "test-ci": "./scripts/test-ci.sh"
   },
   "dependencies": {
-    "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
-    "@tensorflow/tfjs-backend-webgl": "link:../tfjs-backend-webgl",
-    "@tensorflow/tfjs-converter": "link:../tfjs-converter",
-    "@tensorflow/tfjs-core": "link:../tfjs-core",
-    "@tensorflow/tfjs-data": "link:../tfjs-data",
-    "@tensorflow/tfjs-layers": "link:../tfjs-layers",
+    "@tensorflow/tfjs-backend-cpu": "2.0.0-rc.4",
+    "@tensorflow/tfjs-backend-webgl": "2.0.0-rc.4",
+    "@tensorflow/tfjs-converter": "2.0.0-rc.4",
+    "@tensorflow/tfjs-core": "2.0.0-rc.4",
+    "@tensorflow/tfjs-data": "2.0.0-rc.4",
+    "@tensorflow/tfjs-layers": "2.0.0-rc.4",
     "core-js": "3",
     "regenerator-runtime": "^0.13.5"
   }
