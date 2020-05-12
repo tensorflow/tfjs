@@ -229,6 +229,7 @@ limitations under the License.
         }
         const dur = performance.now() - start;
         times.push(dur);
+        console.log(dur);
         const memInfo = tf.memory();
         const leakedTensors = memInfo.numTensors - tensorsBefore;
         numLeakedTensors.push(leakedTensors);

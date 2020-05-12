@@ -68,7 +68,17 @@ function depthwiseConv2d(args: {
   const xId = backend.dataIdMap.get(x.dataId).id;
   const filterId = backend.dataIdMap.get(filter.dataId).id;
 
-  const {strides, dilations, pad, dimRoundingMode} = attrs;
+  let {strides, dilations, pad} = attrs;
+
+  strides = strides == null ?
+      [(attrs as any).strideWidth, (attrs as any).strideHeight] :
+      strides;
+  pad = pad == null ? ((attrs as any).padInfo.type.toLowerCase()) : pad;
+  dilations = dilations == null ?
+      [(attrs as any).dilationWidth, (attrs as any).dilationHeight] :
+      dilations;
+
+  const dimRoundingMode = attrs['dimRoundingMode'];
 
   const $dilations = dilations == null ? [1, 1] : dilations;
 
