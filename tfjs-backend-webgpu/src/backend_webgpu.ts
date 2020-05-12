@@ -44,8 +44,6 @@ import {ResizeBilinearProgram} from './kernels/resize_bilinear_webgpu';
 import {SelectProgram} from './kernels/select_webgpu';
 import {SliceProgram} from './kernels/slice_webgpu';
 import {StridedSliceProgram} from './kernels/strided_slice_webgpu';
-import {TransposeSharedProgram} from './kernels/transpose_shared_webgpu';
-import {TransposeProgram} from './kernels/transpose_webgpu';
 import * as unary_op from './kernels/unary_op_webgpu';
 import {UnaryOpProgram} from './kernels/unary_op_webgpu';
 import * as webgpu_program from './kernels/webgpu_program';
@@ -100,6 +98,7 @@ export class WebGPUBackend extends KernelBackend {
   queue: GPUQueue;
   glslang: Glslang;
   commandQueue: GPUCommandEncoder[];
+  cpuBackend: KernelBackend;
 
   private commandQueueOwnedIds = new WeakSet<DataId>();
   private binaryCache: {[key: string]: WebGPUBinary};
@@ -116,7 +115,6 @@ export class WebGPUBackend extends KernelBackend {
   private activeTimers: TimerNode[];
   private uploadWaitMs = 0;
   private downloadWaitMs = 0;
-  private cpuBackend: KernelBackend;
 
   constructor(device: GPUDevice, glslang: Glslang) {
     super();
@@ -544,7 +542,7 @@ export class WebGPUBackend extends KernelBackend {
     return this.cpuBackend;
   }
 
-  private shouldExecuteOnCPU(
+  shouldExecuteOnCPU(
       inputs: Tensor[], sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
     return this.getCPUBackend() != null &&
         inputs.every(
@@ -1032,18 +1030,6 @@ export class WebGPUBackend extends KernelBackend {
 
   cast<T extends Tensor>(x: T, dtype: DataType): T {
     return backend_util.castTensor(x, dtype, this);
-  }
-
-  transpose<T extends Tensor>(x: T, perm: number[]): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.transpose(x, perm);
-    }
-    if (x.shape.length === 2 && util.arraysEqual(perm, [1, 0])) {
-      const program = new TransposeSharedProgram(x.shape, perm);
-      return this.compileAndRun(program, [x]);
-    }
-    const program = new TransposeProgram(x.shape, perm);
-    return this.compileAndRun(program, [x]);
   }
 
   batchMatMul(
