@@ -27,6 +27,13 @@ export type AddInputs = BinaryInputs;
 export const AddN = 'AddN';
 export type AddNInputs = TensorInfo[];
 
+export const BatchMatMul = 'BatchMatMul';
+export type BatchMatMulInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
+export interface BatchMatMulAttrs {
+  transposeA: boolean;
+  transposeB: boolean;
+}
+
 export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 
 export const BroadcastTo = 'BroadcastTo';
@@ -144,6 +151,24 @@ export type LessInputs = BinaryInputs;
 
 export const LessEqual = 'LessEqual';
 export type LessEqualInputs = BinaryInputs;
+
+export const LRN = 'LRN';
+export type LRNInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface LRNAttrs {
+  depthRadius: number;
+  bias: number;
+  alpha: number;
+  beta: number;
+}
+
+export const LRNBackprop = 'LRNBackprop';
+export type LRNBackpropInputs = Pick<NamedTensorInfoMap, 'x'|'y'|'dy'>;
+export interface LRNBackpropAttrs {
+  depthRadius: number;
+  bias: number;
+  alpha: number;
+  beta: number;
+}
 
 export const MaxPoolWithArgmax = 'MaxPoolWithArgmax';
 export type MaxPoolWithArgmaxInputs = Pick<NamedTensorInfoMap, 'x'>;

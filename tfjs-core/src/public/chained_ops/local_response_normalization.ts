@@ -14,24 +14,19 @@
  * limitations under the License.
  * =============================================================================
  */
+import {localResponseNormalization} from '../../ops/local_response_normalization';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs';
-
-import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
-
-interface SoftmaxInputs extends NamedTensorInfoMap {
-  logits: TensorInfo;
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    localResponseNormalization<T extends Tensor>(
+        depthRadius?: number, bias?: number, alpha?: number, beta?: number): T;
+  }
 }
 
-registerKernel({
-  kernelName: 'Softmax',
-  backendName: 'tensorflow',
-  kernelFunc: ({inputs, backend}) => {
-    const {logits} = inputs as SoftmaxInputs;
-    const opAttrs = [createTensorsTypeOpAttr('T', logits.dtype)];
-
-    const nodeBackend = backend as NodeJSKernelBackend;
-
-    return nodeBackend.executeSingleOutput('Softmax', opAttrs, [logits]);
-  }
-});
+Tensor.prototype.localResponseNormalization = function<T extends Tensor>(
+    depthRadius?: number, bias?: number, alpha?: number, beta?: number): T {
+  this.throwIfDisposed();
+  return localResponseNormalization(this, depthRadius, bias, alpha, beta) as T;
+};
