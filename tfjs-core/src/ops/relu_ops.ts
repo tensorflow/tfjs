@@ -19,7 +19,7 @@ import {ENGINE} from '../engine';
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
-import {maximum} from './binary_ops';
+import {maximum, mul} from './binary_ops';
 import {getReductionAxes} from './broadcast_util';
 import {where} from './logical_ops';
 import {op} from './operation';
@@ -46,7 +46,8 @@ function relu_<T extends Tensor>(x: T|TensorLike): T {
   }
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {x: () => dy.mulStrict($x.step().toFloat() as T)};
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    return {x: () => mul(dy, $x.step().toFloat()) as T};
   };
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.relu($x);
@@ -76,7 +77,8 @@ function relu6_<T extends Tensor>(x: T|TensorLike): T {
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
     const mask = $x.lessEqual(6).mul($x.step());
-    return {x: () => dy.mulStrict(mask.toFloat() as T)};
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    return {x: () => mul(dy, mask.toFloat()) as T};
   };
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.relu6($x);

@@ -213,11 +213,10 @@ export function rnn(
           const stepMask = perStepMasks[t];
           const negStepMask = tfc.onesLike(stepMask).sub(stepMask);
           // TODO(cais): Would tfc.where() be better for performance?
-          const output = stepOutputs[0].mul(stepMask).addStrict(
-              states[0].mul(negStepMask));
+          const output =
+              stepOutputs[0].mul(stepMask).add(states[0].mul(negStepMask));
           const newStates = states.map((state, i) => {
-            return stepOutputs[1][i].mul(stepMask).addStrict(
-                state.mul(negStepMask));
+            return stepOutputs[1][i].mul(stepMask).add(state.mul(negStepMask));
           });
           return {output, newStates};
         });

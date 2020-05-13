@@ -25,21 +25,8 @@ import {Rank, TensorLike} from '../types';
 import * as util from '../util';
 
 import {reshape} from './array_ops';
-import {warnDeprecation, xAs4D} from './batchnorm_util';
+import {xAs4D} from './batchnorm_util';
 import {op} from './operation';
-
-/**
- * @deprecated Please use `tf.batchNorm` instead and note the positional
- *     argument change of scale, offset, and varianceEpsilon.
- */
-function batchNormalization_<R extends Rank>(
-    x: Tensor<R>|TensorLike, mean: Tensor<R>|Tensor1D|TensorLike,
-    variance: Tensor<R>|Tensor1D|TensorLike, varianceEpsilon = .001,
-    scale?: Tensor<R>|Tensor1D|TensorLike,
-    offset?: Tensor<R>|Tensor1D|TensorLike): Tensor<R> {
-  warnDeprecation();
-  return batchNorm_(x, mean, variance, offset, scale, varianceEpsilon);
-}
 
 /**
  * Batch normalization.
@@ -105,9 +92,9 @@ function batchNorm_<R extends Rank>(
   const forward: ForwardFunc<Tensor> = (backend, save) => {
     save([x4D, $mean, $variance, $scale]);
 
-    return backend.batchNormalization(
-        x4D, as1DOr4D($mean), as1DOr4D($variance), varianceEpsilon,
-        as1DOr4D($scale), as1DOr4D($offset));
+    return backend.batchNorm(
+        x4D, as1DOr4D($mean), as1DOr4D($variance), as1DOr4D($offset),
+        as1DOr4D($scale), varianceEpsilon);
   };
 
   const inputs: FusedBatchNormInputs = {
@@ -143,6 +130,4 @@ function as1DOr4D(x: Tensor): Tensor4D|Tensor1D {
   return x as Tensor4D;
 }
 
-// todo(yassogba): Remove batchNormalization since it is deprecated.
-export const batchNormalization = op({batchNormalization_});
 export const batchNorm = op({batchNorm_});

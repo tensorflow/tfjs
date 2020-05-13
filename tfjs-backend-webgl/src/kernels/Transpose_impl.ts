@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import {shared} from '@tensorflow/tfjs-backend-cpu';
 import {env, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
+import {transposeImplCPU} from '../kernel_utils/shared';
 import {TransposeProgram} from '../transpose_gpu';
 import {TransposePackedProgram} from '../transpose_packed_gpu';
 
@@ -30,4 +30,4 @@ export function transposeImpl(
   return backend.runWebGLProgram(program, [x], x.dtype);
 }
 
-export const transposeImplCPU = shared.transposeImpl;
+export {transposeImplCPU};

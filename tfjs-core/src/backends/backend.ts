@@ -556,11 +556,11 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
     return notYetImplemented('resizeNearestNeighborBackprop');
   }
 
-  batchNormalization(
+  batchNorm(
       x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
-      varianceEpsilon: number, scale?: Tensor4D|Tensor1D,
-      offset?: Tensor4D|Tensor1D): Tensor4D {
-    return notYetImplemented('batchNormalization');
+      offset?: Tensor4D|Tensor1D, scale?: Tensor4D|Tensor1D,
+      varianceEpsilon?: number): Tensor4D {
+    return notYetImplemented('batchNorm');
   }
 
   localResponseNormalization4D(

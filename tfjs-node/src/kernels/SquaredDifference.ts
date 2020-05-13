@@ -16,7 +16,7 @@
  */
 
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs';
-import {createTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
+import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
 export const squaredDifferenceConfig: KernelConfig = {
   // TODO import this kernelName from core once exported.
@@ -25,7 +25,7 @@ export const squaredDifferenceConfig: KernelConfig = {
   kernelFunc: ({inputs, backend}) => {
     const {a, b} = inputs;
 
-    const opAttrs = [createTypeOpAttr('T', a.dtype)];
+    const opAttrs = [createTensorsTypeOpAttr('T', a.dtype)];
     const nodeBackend = backend as NodeJSKernelBackend;
 
     return nodeBackend.executeSingleOutput(

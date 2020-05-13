@@ -17,7 +17,7 @@
 
 import {NamedAttrMap, NamedTensorInfoMap, registerKernel, scalar, Tensor1D, Tensor2D, TensorInfo} from '@tensorflow/tfjs';
 
-import {createTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
+import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
 interface NonMaxSuppressionWithScoreInputs extends NamedTensorInfoMap {
   boxes: TensorInfo;
@@ -43,7 +43,7 @@ registerKernel({
     const iouThresholdTensor = scalar(iouThreshold);
     const scoreThresholdTensor = scalar(scoreThreshold);
     const softNmsSigmaTensor = scalar(softNmsSigma);
-    const opAttrs = [createTypeOpAttr('T', boxes.dtype)];
+    const opAttrs = [createTensorsTypeOpAttr('T', boxes.dtype)];
 
     const nodeBackend = backend as NodeJSKernelBackend;
 

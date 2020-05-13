@@ -17,7 +17,7 @@
 
 import {NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs';
 
-import {createTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
+import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
 interface SoftmaxInputs extends NamedTensorInfoMap {
   logits: TensorInfo;
@@ -28,7 +28,7 @@ registerKernel({
   backendName: 'tensorflow',
   kernelFunc: ({inputs, backend}) => {
     const {logits} = inputs as SoftmaxInputs;
-    const opAttrs = [createTypeOpAttr('T', logits.dtype)];
+    const opAttrs = [createTensorsTypeOpAttr('T', logits.dtype)];
 
     const nodeBackend = backend as NodeJSKernelBackend;
 
