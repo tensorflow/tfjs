@@ -933,10 +933,6 @@ export class WebGPUBackend extends KernelBackend {
     return this.binaryOp(a, b, binary_op.MUL);
   }
 
-  realDivide(a: Tensor, b: Tensor): Tensor {
-    return this.binaryOp(a, b, binary_op.DIV);
-  }
-
   floorDiv(a: Tensor, b: Tensor): Tensor {
     return this.binaryOp(a, b, binary_op.INT_DIV);
   }
