@@ -30,10 +30,6 @@ import {op} from './operation';
  * Returns (a - b) * (a - b) element-wise.
  * Supports broadcasting.
  *
- * We also expose `tf.squaredDifferenceStrict` which has the same signature as
- * this op and asserts that `a` and `b` are the same shape (does not
- * broadcast).
- *
  * ```js
  * const a = tf.tensor1d([1, 4, 3, 16]);
  * const b = tf.tensor1d([1, 2, 9, 4]);

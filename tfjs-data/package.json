@@ -61,7 +61,7 @@
     "test": "yarn && yarn build-deps && ts-node --project tsconfig.test.json src/test_node.ts",
     "test-browsers": "karma start --browsers='Chrome,Firefox'",
     "test-ci": "ts-node --skip-ignore -P tsconfig.test.json src/test_node.ts",
-    "test-snippets": "ts-node --project tsconfig.test.json ./scripts/test_snippets.ts",
+    "test-snippets": "ts-node --skip-ignore --project tsconfig.test.json ./scripts/test_snippets.ts",
     "lint": "tslint -p . -t verbose"
   },
   "peerDependencies": {

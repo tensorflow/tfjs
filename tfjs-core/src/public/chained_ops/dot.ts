@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,20 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Tensor, Tensor4D} from '../tensor';
-import {Rank} from '../types';
+import {dot} from '../../ops/dot';
+import {Tensor} from '../../tensor';
+import {Rank, TensorLike} from '../../types';
 
-export function xAs4D<R extends Rank>(x: Tensor<R>) {
-  let x4D: Tensor4D;
-  if (x.rank === 0 || x.rank === 1) {
-    x4D = x.as4D(1, 1, 1, x.size);
-  } else if (x.rank === 2) {
-    x4D = x.as4D(1, 1, x.shape[0], x.shape[1]);
-  } else if (x.rank === 3) {
-    x4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
-  } else {
-    x4D = x as Tensor4D;
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    dot<T extends Tensor>(b: Tensor|TensorLike): Tensor;
   }
-
-  return x4D;
 }
+
+Tensor.prototype.dot = function<T extends Tensor>(b: T|TensorLike): Tensor {
+  this.throwIfDisposed();
+  return dot(this, b);
+};
