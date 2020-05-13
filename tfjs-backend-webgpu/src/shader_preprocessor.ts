@@ -143,6 +143,10 @@ const SHADER_PREFIX = `#version 450
         all(lessThan(coord, shape));
   }
 
+  bool coordsInBounds(ivec3 coord, ivec3 shape) {
+    return all(greaterThanEqual(coord, ivec3(0))) &&
+        all(lessThan(coord, shape));
+
   bool coordsInBounds(ivec2 coord, ivec2 shape) {
     return all(greaterThanEqual(coord, ivec2(0))) &&
         all(lessThan(coord, shape));
