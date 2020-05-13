@@ -140,10 +140,6 @@ export function registerKernel(config: KernelConfig) {
     console.warn(
         `The kernel '${kernelName}' for backend ` +
         `'${backendName}' is already registered`);
-    // TODO(yassogba) make this an error again once WebGL is moved from core.
-    // throw new Error(
-    // `The kernel '${kernelName}' for backend ` +
-    // `'${backendName}' is already registered`);
   }
   kernelRegistry.set(key, config);
 }

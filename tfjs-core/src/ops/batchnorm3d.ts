@@ -20,7 +20,6 @@ import {TensorLike} from '../types';
 import * as util from '../util';
 
 import {batchNorm} from './batchnorm';
-import {warnDeprecation} from './batchnorm_util';
 import {op} from './operation';
 
 /**
@@ -78,19 +77,4 @@ function batchNorm3d_(
   return batchNorm($x, $mean, $variance, $offset, $scale, varianceEpsilon);
 }
 
-/**
- * @deprecated Please use `tf.batchNorm3d` instead and note the positional
- *     argument change of scale, offset, and varianceEpsilon.
- */
-function batchNormalization3d_(
-    x: Tensor3D|TensorLike, mean: Tensor3D|Tensor1D|TensorLike,
-    variance: Tensor3D|Tensor1D|TensorLike, varianceEpsilon = .001,
-    scale?: Tensor3D|Tensor1D|TensorLike,
-    offset?: Tensor3D|Tensor1D|TensorLike): Tensor3D {
-  warnDeprecation();
-  return batchNorm3d_(x, mean, variance, offset, scale, varianceEpsilon);
-}
-
-// todo(yassogba): Remove batchNormalization3d since it is deprecated.
-export const batchNormalization3d = op({batchNormalization3d_});
 export const batchNorm3d = op({batchNorm3d_});

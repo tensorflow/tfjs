@@ -15,14 +15,14 @@
  * =============================================================================
  */
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
-
 import {divConfig} from './kernels/Div';
+import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] =
-    [divConfig, squareConfig, squaredDifferenceConfig];
+    [divConfig, squareConfig, squaredDifferenceConfig, fusedBatchNormConfig];
 
 for (const kernelConfig of kernelConfigs) {
   registerKernel(kernelConfig);

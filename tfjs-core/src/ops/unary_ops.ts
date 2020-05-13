@@ -20,7 +20,6 @@ import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
-
 import {op} from './operation';
 import {scalar, zerosLike} from './tensor_ops';
 
@@ -216,7 +215,8 @@ function exp_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'exp');
 
   const bck = (dy: T, saved: Tensor[]) => {
-    return {x: () => dy.mulStrict(saved[0] as T)};
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    return {x: () => dy.mul(saved[0]) as T};
   };
   const attrs = {};
   const inputsToSave: Tensor[] = [];
@@ -325,13 +325,13 @@ function sqrt_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => dy.div($x.toFloat().sqrt().mul(2))} as {$x: () => T};
+    return {x: () => dy.div($x.toFloat().sqrt().mul(2))} as {x: () => T};
   };
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.sqrt($x);
     save([$x]);
     return res;
-  }, {$x}, grad);
+  }, {x: $x}, grad, 'Sqrt', {});
 }
 
 /**
@@ -624,7 +624,8 @@ function asin_<T extends Tensor>(x: T|TensorLike): T {
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
     return {
-      $x: () => dy.divStrict(scalar(1).sub($x.toFloat().square()).sqrt() as T)
+      // tslint:disable-next-line: no-unnecessary-type-assertion
+      $x: () => dy.div(scalar(1).sub($x.toFloat().square()).sqrt()) as T
     };
   };
   return ENGINE.runKernelFunc((backend, save) => {
@@ -651,8 +652,13 @@ function acos_<T extends Tensor>(x: T|TensorLike): T {
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
     return {
-      $x: () =>
-          dy.divStrict(scalar(1).sub($x.toFloat().square()).sqrt() as T).neg()
+      $x: () => {
+        const a = $x.toFloat().square();
+        const b = scalar(1).sub(a).sqrt();
+        // tslint:disable-next-line: no-unnecessary-type-assertion
+        return (dy.div(b) as T).neg();
+      }
+
     };
   };
   return ENGINE.runKernelFunc((backend, save) => {
@@ -703,7 +709,8 @@ function sinh_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => $x.toFloat().cosh().mulStrict(dy) as T};
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    return {$x: () => $x.toFloat().cosh().mul(dy) as T};
   };
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.sinh($x);
@@ -728,7 +735,8 @@ function cosh_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => $x.toFloat().sinh().mulStrict(dy) as T};
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    return {$x: () => $x.toFloat().sinh().mul(dy) as T};
   };
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.cosh($x);
@@ -753,7 +761,8 @@ function tanh_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [y] = saved;
-    return {x: () => scalar(1).sub(y.square()).mulStrict(dy) as T};
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    return {x: () => scalar(1).sub(y.square()).mul(dy) as T};
   };
   const outputsToSave = [true];
   return ENGINE.runKernelFunc(
@@ -784,7 +793,11 @@ function asinh_<T extends Tensor>(x: T|TensorLike): T {
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
     return {
-      $x: () => dy.divStrict(scalar(1).add($x.toFloat().square()).sqrt() as T)
+      $x: () => {
+        const a = scalar(1).add($x.toFloat().square()).sqrt();
+        // tslint:disable-next-line: no-unnecessary-type-assertion
+        return dy.div(a) as T;
+      }
     };
   };
   return ENGINE.runKernelFunc((backend, save) => {
@@ -811,7 +824,13 @@ function acosh_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => dy.divStrict($x.toFloat().square().sub(1).sqrt() as T)};
+    return {
+      $x: () => {
+        const a = $x.toFloat().square().sub(1).sqrt();
+        // tslint:disable-next-line: no-unnecessary-type-assertion
+        return dy.div(a) as T;
+      }
+    };
   };
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.acosh($x);

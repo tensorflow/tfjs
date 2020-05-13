@@ -23,7 +23,7 @@
     "lint": "tslint -p . -t verbose && yarn cpplint",
     "test": "yarn && yarn build-deps && yarn build && karma start",
     "test-ci": "./scripts/test-ci.sh",
-    "test-node": "ts-node src/test_node.ts",
+    "test-node": "ts-node --skip-ignore -P tsconfig.test.json src/test_node.ts",
     "test-bundle-size": "./scripts/test-bundle-size.js",
     "test-cc": "bazel test //src/cc:cc_tests --test_output=all",
     "test-browser-ci": "karma start --singleRun --browsers=bs_chrome_mac"
@@ -39,6 +39,7 @@
     "@types/emscripten": "~0.0.34"
   },
   "devDependencies": {
+    "@babel/polyfill": "^7.8.7",
     "@bazel/bazel": "^0.28.0",
     "@bazel/buildifier": "0.29.0",
     "@tensorflow/tfjs-core": "link:../tfjs-core",
@@ -52,13 +53,14 @@
     "karma-firefox-launcher": "~1.1.0",
     "karma-jasmine": "~1.1.1",
     "karma-typescript": "~4.0.0",
+    "karma-typescript-es6-transform": "^5.0.2",
     "rimraf": "~2.6.2",
     "rollup": "~1.26.3",
     "rollup-plugin-commonjs": "~10.1.0",
     "rollup-plugin-node-resolve": "~5.2.0",
     "rollup-plugin-terser": "~5.1.3",
     "rollup-plugin-typescript2": "~0.25.2",
-    "ts-node": "~8.5.4",
+    "ts-node": "~8.8.2",
     "tslint": "~5.20.0",
     "tslint-no-circular-imports": "~0.7.0",
     "typescript": "3.5.3",

@@ -16,19 +16,46 @@
  */
 
 const karmaTypescriptConfig = {
-  tsconfig: 'tsconfig.json',
+  tsconfig: 'tsconfig.test.json',
   // Disable coverage reports and instrumentation by default for tests
   coverageOptions: {instrumentation: false},
   reports: {},
   bundlerOptions: {
-    sourceMap: true,
     // Ignore the import of the `worker_threads` package used in a core test
     // meant to run in node.
     exclude: ['worker_threads'],
     // worker_node_test in tfjs-core contains a conditional require statement
     // that confuses the bundler of karma-typescript.
-    ignore: ['./worker_node_test']
+    ignore: ['./worker_node_test'],
+    // Process any non es5 code through karma-typescript-es6-transform (babel)
+    acornOptions: {ecmaVersion: 8},
+    transforms: [
+      require('karma-typescript-es6-transform')({
+        presets: [
+          // ensure we get es5 by adding IE 11 as a target
+          ['@babel/env', {'targets': {'ie': '11'}, 'loose': true}]
+        ]
+      }),
+    ]
   }
+};
+
+const devConfig = {
+  frameworks: ['jasmine', 'karma-typescript'],
+  files: [
+    {pattern: './node_modules/@babel/polyfill/dist/polyfill.js'},
+    'src/setup_test.ts',
+    {pattern: 'src/**/*.ts'},
+  ],
+  preprocessors: {'**/*.ts': ['karma-typescript']},
+  karmaTypescriptConfig,
+  reporters: ['dots', 'karma-typescript']
+};
+
+const browserstackConfig = {
+  ...devConfig,
+  hostname: 'bs-local.com',
+  singleRun: true
 };
 
 module.exports = function(config) {
@@ -42,33 +69,34 @@ module.exports = function(config) {
   if (config.flags) {
     args.push('--flags', config.flags);
   }
+
+  let extraConfig = null;
+
+  if (config.browserstack) {
+    extraConfig = browserstackConfig;
+  } else {
+    extraConfig = devConfig;
+  }
+
   let exclude = [];
   if (config.excludeTest != null) {
     exclude.push(config.excludeTest);
   }
 
   config.set({
-    frameworks: ['jasmine', 'karma-typescript'],
-    files: [
-      'src/setup_test.ts',
-      {pattern: 'src/**/*.ts'},
-    ],
-    preprocessors: {'**/*.ts': ['karma-typescript']},
-    karmaTypescriptConfig,
-    reporters: ['dots', 'karma-typescript'],
+    ...extraConfig,
     exclude,
-    colors: true,
-    autoWatch: false,
     browsers: ['Chrome'],
-    singleRun: true,
-    client: {jasmine: {random: false}, args: args},
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY
     },
-    captureTimeout: 120000,
+    captureTimeout: 3e5,
     reportSlowerThan: 500,
-    browserNoActivityTimeout: 240000,
+    browserNoActivityTimeout: 3e5,
+    browserDisconnectTimeout: 3e5,
+    browserDisconnectTolerance: 0,
+    browserSocketTimeout: 1.2e5,
     customLaunchers: {
       // For browserstack configs see:
       // https://www.browserstack.com/automate/node
@@ -117,5 +145,6 @@ module.exports = function(config) {
         os_version: '10'
       },
     },
+    client: {jasmine: {random: false}, args: args}
   })
 }

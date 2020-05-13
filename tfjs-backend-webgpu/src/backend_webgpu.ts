@@ -797,8 +797,8 @@ export class WebGPUBackend extends KernelBackend {
 
     const dimensions = [
       convInfo.filterHeight, convInfo.filterWidth, ...pad,
-      convInfo.strideHeight, convInfo.strideWidth,
-      convInfo.dilationHeight, convInfo.dilationWidth
+      convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationHeight,
+      convInfo.dilationWidth
     ];
 
     const inputs: Tensor[] = [input, filter];
