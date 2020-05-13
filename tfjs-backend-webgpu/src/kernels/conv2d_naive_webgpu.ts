@@ -51,7 +51,7 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
                 }`;
       } else {
         activationSnippet = `
-                  float activation(float x) {
+                  float activation(float a) {
                     ${activation}
                   }
                 `;
