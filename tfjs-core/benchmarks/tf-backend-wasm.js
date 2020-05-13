@@ -650,22 +650,8 @@
       const { x, filter } = inputs;
       const xId = backend.dataIdMap.get(x.dataId).id;
       const filterId = backend.dataIdMap.get(filter.dataId).id;
-      let { strides, dilations, pad } = attrs;
-      const { dimRoundingMode, dataFormat } = attrs;
-      strides = strides == null ?
-          [attrs.strideWidth, attrs.strideHeight] :
-          strides;
-      pad = pad == null ? (attrs.padInfo.type.toLowerCase()) : pad;
-      dilations = dilations == null ?
-          [attrs.dilationWidth, attrs.dilationHeight] :
-          dilations;
-      let $dataFormat = '';
-      if (dataFormat === 'NHWC' || dataFormat === 'NCHW') {
-          $dataFormat = tfjsCore.backend_util.convertConv2DDataFormat(dataFormat);
-      }
-      else {
-          $dataFormat = dataFormat;
-      }
+      const { strides, dilations, pad, dimRoundingMode, dataFormat } = attrs;
+      const $dataFormat = tfjsCore.backend_util.convertConv2DDataFormat(dataFormat);
       const convInfo = tfjsCore.backend_util.computeConv2DInfo(x.shape, filter.shape, strides, dilations, pad, dimRoundingMode, false, $dataFormat);
       const filterHeight = convInfo.filterHeight;
       const filterWidth = convInfo.filterWidth;
@@ -830,15 +816,7 @@
       const { x, filter } = inputs;
       const xId = backend.dataIdMap.get(x.dataId).id;
       const filterId = backend.dataIdMap.get(filter.dataId).id;
-      let { strides, dilations, pad } = attrs;
-      strides = strides == null ?
-          [attrs.strideWidth, attrs.strideHeight] :
-          strides;
-      pad = pad == null ? (attrs.padInfo.type.toLowerCase()) : pad;
-      dilations = dilations == null ?
-          [attrs.dilationWidth, attrs.dilationHeight] :
-          dilations;
-      const dimRoundingMode = attrs['dimRoundingMode'];
+      const { strides, dilations, pad, dimRoundingMode } = attrs;
       const $dilations = dilations == null ? [1, 1] : dilations;
       const convInfo = tfjsCore.backend_util.computeConv2DInfo(x.shape, filter.shape, strides, $dilations, pad, dimRoundingMode, true /* depthwise */);
       const filterHeight = convInfo.filterHeight;
