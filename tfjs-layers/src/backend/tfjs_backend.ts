@@ -531,7 +531,7 @@ export function gather(
  * @return element-wise x^2
  */
 export function square(x: Tensor): Tensor {
-  return tfc.mulStrict(x, x);
+  return tfc.mul(x, x);
 }
 
 /**

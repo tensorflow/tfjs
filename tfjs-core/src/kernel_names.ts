@@ -27,6 +27,13 @@ export type AddInputs = BinaryInputs;
 export const AddN = 'AddN';
 export type AddNInputs = TensorInfo[];
 
+export const BatchMatMul = 'BatchMatMul';
+export type BatchMatMulInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
+export interface BatchMatMulAttrs {
+  transposeA: boolean;
+  transposeB: boolean;
+}
+
 export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 
 export const BroadcastTo = 'BroadcastTo';
@@ -41,6 +48,81 @@ export type ConcatInputs = TensorInfo[];
 export interface ConcatAttrs {
   axis: number;
 }
+
+export const Conv2D = 'Conv2D';
+export type Conv2DInputs = Pick<NamedTensorInfoMap, 'x'|'filter'>;
+export interface Conv2DAttrs {
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  dataFormat: 'NHWC'|'NCHW';
+  dilations: [number, number]|number;
+  dimRoundingMode?: 'floor'|'round'|'ceil';
+}
+
+export const Conv2DBackpropFilter = 'Conv2DBackpropFilter';
+export type Conv2DBackpropFilterInputs = Pick<NamedTensorInfoMap, 'x'|'dy'>;
+export interface Conv2DBackpropFilterAttrs {
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  dataFormat: 'NHWC'|'NCHW';
+  dimRoundingMode?: 'floor'|'round'|'ceil';
+}
+
+export const Conv2DBackpropInput = 'Conv2DBackpropInput';
+export type Conv2DBackpropInputInputs = Pick<NamedTensorInfoMap, 'dy'|'filter'>;
+export interface Conv2DBackpropInputAttrs {
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  dataFormat: 'NHWC'|'NCHW';
+  dimRoundingMode?: 'floor'|'round'|'ceil';
+}
+
+export const Conv3D = 'Conv3D';
+export type Conv3DInputs = Pick<NamedTensorInfoMap, 'x'|'filter'>;
+export interface Conv3DAttrs {
+  strides: [number, number, number]|number;
+  pad: 'valid'|'same';
+  dataFormat: 'NDHWC'|'NCDHW';
+  dilations: [number, number, number]|number;
+}
+
+export const Conv3DBackpropFilterV2 = 'Conv3DBackpropFilterV2';
+export type Conv3DBackpropFilterInputs = Pick<NamedTensorInfoMap, 'x'|'y'>;
+
+export interface Conv3DBackpropFilterAttrs {
+  strides: [number, number, number]|number;
+  pad: 'valid'|'same';
+}
+
+export const Conv3DBackpropInputV2 = 'Conv3DBackpropInputV2';
+export type Conv3DBackpropInputInputs = Pick<NamedTensorInfoMap, 'dy'>;
+export interface Conv3DBackpropInputAttrs {
+  pad: 'valid'|'same';
+}
+
+export const DepthwiseConv2dNative = 'DepthwiseConv2dNative';
+export type DepthwiseConv2dNativeInputs =
+    Pick<NamedTensorInfoMap, 'x'|'filter'>;
+export interface DepthwiseConv2dNativeAttrs {
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  dataFormat: 'NHWC'|'NCHW';
+  dilations: [number, number]|number;
+  dimRoundingMode?: 'floor'|'round'|'ceil';
+}
+
+export const DepthwiseConv2dNativeBackpropFilter =
+    'DepthwiseConv2dNativeBackpropFilter';
+export type DepthwiseConv2dNativeBackpropFilterInputs =
+    Pick<NamedTensorInfoMap, 'x'|'dy'>;
+
+export const DepthwiseConv2dNativeBackpropInput =
+    'DepthwiseConv2dNativeBackpropInput';
+export type DepthwiseConv2dNativeBackpropInputInputs =
+    Pick<NamedTensorInfoMap, 'dy'>;
+
+export const Diag = 'Diag';
+export type DiagInputs = Pick<NamedTensorInfoMap, 'x'>;
 
 export const Div = 'Div';
 export type DivInputs = BinaryInputs;
@@ -70,6 +152,24 @@ export type LessInputs = BinaryInputs;
 export const LessEqual = 'LessEqual';
 export type LessEqualInputs = BinaryInputs;
 
+export const LRN = 'LRN';
+export type LRNInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface LRNAttrs {
+  depthRadius: number;
+  bias: number;
+  alpha: number;
+  beta: number;
+}
+
+export const LRNBackprop = 'LRNBackprop';
+export type LRNBackpropInputs = Pick<NamedTensorInfoMap, 'x'|'y'|'dy'>;
+export interface LRNBackpropAttrs {
+  depthRadius: number;
+  bias: number;
+  alpha: number;
+  beta: number;
+}
+
 export const MaxPoolWithArgmax = 'MaxPoolWithArgmax';
 export type MaxPoolWithArgmaxInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface MaxPoolWithArgmaxAttrs {
@@ -90,6 +190,13 @@ export interface NonMaxSuppressionV5Attrs {
   iouThreshold: number;
   scoreThreshold: number;
   softNmsSigma: number;
+}
+
+export const Max = 'Max';
+export type MaxInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface MaxAttrs {
+  reductionIndices: number|number[];
+  keepDims: boolean;
 }
 
 export const OneHot = 'OneHot';

@@ -195,7 +195,7 @@ export interface TensorBoardCallbackArgs {
 }
 
 /**
- * Callback for logging to TensorBoard durnig training.
+ * Callback for logging to TensorBoard during training.
  *
  * Users are expected to access this class through the `tensorBoardCallback()`
  * factory method instead.
@@ -269,7 +269,7 @@ export class TensorBoardCallback extends CustomCallback {
 }
 
 /**
- * Callback for logging to TensorBoard durnig training.
+ * Callback for logging to TensorBoard during training.
  *
  * Writes the loss and metric values (if any) to the specified log directory
  * (`logdir`) which can be ingested and visualized by TensorBoard.

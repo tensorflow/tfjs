@@ -80,7 +80,6 @@ function split_<T extends Tensor>(
   }
 
   const forward: ForwardFunc<Tensor> = (backend, _) => {
-    const $axis = parseAxisParam(axis, $x.shape)[0];
     return backend.split($x, splitSizes, $axis) as {} as T;
   };
 

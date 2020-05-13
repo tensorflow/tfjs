@@ -81,10 +81,7 @@ function config({
       },
       ...output,
     },
-    external: [
-      'crypto', '@tensorflow/tfjs-core', '@tensorflow/tfjs-backend-cpu',
-      'seedrandom'
-    ],
+    external: ['crypto', '@tensorflow/tfjs-core', 'seedrandom', ...external],
     onwarn: warning => {
       let {code} = warning;
       if (code === 'CIRCULAR_DEPENDENCY' || code === 'CIRCULAR' ||
@@ -114,7 +111,8 @@ module.exports = cmdOptions => {
       file: `dist/${fileName}.node.js`,
       freeze: false
     },
-    tsCompilerOptions: {target: 'es5'}
+    tsCompilerOptions: {target: 'es5'},
+    external: ['@tensorflow/tfjs-backend-cpu']
   }));
 
   if (cmdOptions.ci || cmdOptions.npm) {
@@ -166,7 +164,8 @@ module.exports = cmdOptions => {
         extend,
         file: `dist/${fileName}.es2017.min.js`
       },
-      tsCompilerOptions: {target: 'es2017'}
+      tsCompilerOptions: {target: 'es2017'},
+      visualize: cmdOptions.visualize
     }));
   }
 
