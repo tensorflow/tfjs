@@ -25,6 +25,7 @@ import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
 
 const CHAINED_OPS = [
   'add',
+  'avgPool',
   'batchNorm',
   'broadcastTo',
   'concat',
@@ -43,10 +44,12 @@ const CHAINED_OPS = [
   'lessEqual',
   'localResponseNormalization',
   'matMul',
+  'max',
+  'maxPool',
   'notEqual',
   'oneHot',
   'pad',
-  'max',
+  'pool',
   'separableConv2d',
   'split',
   'square',

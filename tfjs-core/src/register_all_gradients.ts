@@ -16,6 +16,8 @@
  */
 import {addGradConfig} from './gradients/Add_grad';
 import {addNGradConfig} from './gradients/AddN_grad';
+import {avgPool3DGradConfig} from './gradients/AvgPool3D_grad';
+import {avgPoolGradConfig} from './gradients/AvgPool_grad';
 import {batchMatMulGradConfig} from './gradients/BatchMatMul_grad';
 import {broadcastToGradConfig} from './gradients/BroadcastTo_grad';
 import {concatGradConfig} from './gradients/Concat_grad';
@@ -29,6 +31,8 @@ import {greaterEqualGradConfig} from './gradients/GreaterEqual_grad';
 import {identityGradConfig} from './gradients/Identity_grad';
 import {lrnGradConfig} from './gradients/LRN_grad';
 import {maxGradConfig} from './gradients/Max_grad';
+import {maxPool3DGradConfig} from './gradients/MaxPool3D_grad';
+import {maxPoolGradConfig} from './gradients/MaxPool_grad';
 import {oneHotGradConfig} from './gradients/OneHot_grad';
 import {padV2GradConfig} from './gradients/PadV2_grad';
 import {splitVGradConfig} from './gradients/SplitV_grad';
@@ -44,6 +48,8 @@ import {registerGradient} from './kernel_registry';
 const gradConfigs: GradConfig[] = [
   addGradConfig,
   addNGradConfig,
+  avgPoolGradConfig,
+  avgPool3DGradConfig,
   batchMatMulGradConfig,
   broadcastToGradConfig,
   concatGradConfig,
@@ -56,10 +62,12 @@ const gradConfigs: GradConfig[] = [
   greaterEqualGradConfig,
   identityGradConfig,
   lrnGradConfig,
+  maxGradConfig,
+  maxPoolGradConfig,
+  maxPool3DGradConfig,
   oneHotGradConfig,
   padV2GradConfig,
   splitVGradConfig,
-  maxGradConfig,
   squareGradConfig,
   squaredDifferenceGradConfig,
   tileGradConfig,
