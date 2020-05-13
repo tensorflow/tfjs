@@ -9,6 +9,7 @@
   "types": "dist/index.d.ts",
   "jsnext:main": "dist/index.js",
   "module": "dist/index.js",
+  "miniprogram": "dist/miniprogram",
   "engines": {
     "yarn": ">= 1.3.2"
   },
