@@ -118,7 +118,7 @@ export class GraphModel implements InferenceModel {
     }
     const artifacts = await this.handler.load();
 
-    return this.loadSync(artifacts)
+    return this.loadSync(artifacts);
   }
 
   /**
