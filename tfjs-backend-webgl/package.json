@@ -9,6 +9,7 @@
   "types": "dist/index.d.ts",
   "jsnext:main": "dist/index.js",
   "module": "dist/index.js",
+  "miniprogram": "dist/miniprogram",
   "engines": {
     "yarn": ">= 1.3.2"
   },
@@ -19,7 +20,6 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@babel/polyfill": "^7.8.7",
-    "@open-wc/karma-esm": "^2.13.23",
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",

@@ -24,7 +24,6 @@ rimraf lib/
 # Build and upload pre-built addon
 yarn build-addon $1
 
-yarn prep
 tsc --sourceMap false
 # Manual copy src/proto/api_pb.js until both allowJs and declaration are
 # supported in tsconfig: https://github.com/microsoft/TypeScript/pull/32372

@@ -52,7 +52,7 @@ async function main() {
   console.log(chalk.blue(`Using release unit ${releaseUnitInt}`));
   console.log();
 
-  const {name, phases, repo} = RELEASE_UNITS[releaseUnitInt];
+  const {name, phases} = RELEASE_UNITS[releaseUnitInt];
 
   phases.forEach((_, i) => printPhase(phases, i));
   console.log();
@@ -150,7 +150,7 @@ async function main() {
     shell.cd(pkg);
     const otp =
         await question(`Enter one-time password from your authenticator: `);
-    $(`npm publish --otp=${otp}`);
+    $(`YARN_REGISTRY="https://registry.npmjs.org/" npm publish --otp=${otp}`);
     console.log(`Yay! Published ${pkg} to npm.`);
 
     shell.cd('..');

@@ -16,11 +16,19 @@
  */
 import {addGradConfig} from './gradients/Add_grad';
 import {addNGradConfig} from './gradients/AddN_grad';
+import {batchMatMulGradConfig} from './gradients/BatchMatMul_grad';
 import {broadcastToGradConfig} from './gradients/BroadcastTo_grad';
 import {concatGradConfig} from './gradients/Concat_grad';
+import {conv2DGradConfig} from './gradients/Conv2D_grad';
+import {conv2DBackpropInputGradConfig} from './gradients/Conv2DBackpropInput_grad';
+import {conv3DGradConfig} from './gradients/Conv3D_grad';
+import {depthwiseConv2dNativeGradConfig} from './gradients/DepthwiseConv2dNative_grad';
 import {divGradConfig} from './gradients/Div_grad';
 import {fusedBatchNormGradConfig} from './gradients/FusedBatchNorm_grad';
+import {greaterEqualGradConfig} from './gradients/GreaterEqual_grad';
 import {identityGradConfig} from './gradients/Identity_grad';
+import {lrnGradConfig} from './gradients/LRN_grad';
+import {maxGradConfig} from './gradients/Max_grad';
 import {oneHotGradConfig} from './gradients/OneHot_grad';
 import {padV2GradConfig} from './gradients/PadV2_grad';
 import {splitVGradConfig} from './gradients/SplitV_grad';
@@ -34,10 +42,28 @@ import {registerGradient} from './kernel_registry';
 
 // Export all kernel configs here so that the package can auto register them
 const gradConfigs: GradConfig[] = [
-  addGradConfig, addNGradConfig, broadcastToGradConfig, concatGradConfig,
-  divGradConfig, fusedBatchNormGradConfig, identityGradConfig, oneHotGradConfig,
-  padV2GradConfig, splitVGradConfig, squareGradConfig,
-  squaredDifferenceGradConfig, tileGradConfig, transposeGradConfig,
+  addGradConfig,
+  addNGradConfig,
+  batchMatMulGradConfig,
+  broadcastToGradConfig,
+  concatGradConfig,
+  conv2DGradConfig,
+  conv2DBackpropInputGradConfig,
+  conv3DGradConfig,
+  depthwiseConv2dNativeGradConfig,
+  divGradConfig,
+  fusedBatchNormGradConfig,
+  greaterEqualGradConfig,
+  identityGradConfig,
+  lrnGradConfig,
+  oneHotGradConfig,
+  padV2GradConfig,
+  splitVGradConfig,
+  maxGradConfig,
+  squareGradConfig,
+  squaredDifferenceGradConfig,
+  tileGradConfig,
+  transposeGradConfig,
   subGradConfig
 ];
 

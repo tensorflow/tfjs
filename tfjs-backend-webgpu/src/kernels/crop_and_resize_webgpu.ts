@@ -124,7 +124,8 @@ export class CropAndResizeProgram implements WebGPUProgram {
           // Compute the coordinators of nearest neighbor point.
           ivec2 sourceNearestCR = ivec2(floor(
             sourceFracIndexCR + vec2(0.5,0.5)));
-          float newValue = getImage(bInd, sourceNearestCR.y, sourceNearestCR.x, d);
+          float newValue = getImage(
+            bInd, sourceNearestCR.y, sourceNearestCR.x, d);
           writeResult(coords,newValue);
         }
       }

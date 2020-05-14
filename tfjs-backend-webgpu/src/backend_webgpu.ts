@@ -19,7 +19,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, slice_util, sumOutType, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, slice_util, sumOutType, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorInfo, TimingInfo, util} from '@tensorflow/tfjs-core';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
@@ -64,7 +64,7 @@ type BufferInfo = {
   buffer?: GPUBuffer
 };
 
-type TensorInfo = {
+type TensorBufferInfo = {
   values: backend_util.BackendValues,
   dtype: DataType,
   bufferInfo: BufferInfo
@@ -105,7 +105,7 @@ export class WebGPUBackend extends KernelBackend {
   private binaryCache: {[key: string]: WebGPUBinary};
   private fromPixels2DContext: CanvasRenderingContext2D;
   private bufferManager: BufferManager;
-  private tensorMap: DataStorage<TensorInfo>;
+  private tensorMap: DataStorage<TensorBufferInfo>;
 
   private tensorDisposalQueue: DataId[] = [];
   private uniformDisposalQueue: BufferInfo[] = [];
@@ -229,7 +229,7 @@ export class WebGPUBackend extends KernelBackend {
     return this.tensorMap.get(dataId).bufferInfo.buffer;
   }
 
-  private async getBufferData(info: TensorInfo):
+  private async getBufferData(info: TensorBufferInfo):
       Promise<backend_util.BackendValues> {
     if (info.values != null) {
       // Data is on the CPU.
@@ -355,7 +355,7 @@ export class WebGPUBackend extends KernelBackend {
     return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;
   }
 
-  private tensorToBinding(tensor?: Tensor): webgpu_program.BindingInfo {
+  private tensorToBinding(tensor?: TensorInfo): webgpu_program.BindingInfo {
     if (!tensor) {
       return null;
     }
@@ -365,7 +365,8 @@ export class WebGPUBackend extends KernelBackend {
     return {
       resource: {
         offset: 0,
-        size: tensor.size * util.bytesPerElement(tensor.dtype),
+        size: util.sizeFromShape(tensor.shape) *
+            util.bytesPerElement(tensor.dtype),
         buffer: tensorData.bufferInfo.buffer
       }
     };
@@ -401,10 +402,9 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
-  public compileAndRun<
-      K extends {dtype: DataType, size: number, dataId: {}, shape: number[]}>(
-      program: webgpu_program.WebGPUProgram, inputs: Tensor[], output?: Tensor,
-      programUniforms?: number[]): K {
+  public compileAndRun<K extends TensorInfo>(
+      program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
+      output?: TensorInfo, programUniforms?: number[]): K {
     if (output == null) {
       output = this.makeOutputArray(program.outputShape, inputs[0].dtype);
     }
@@ -797,8 +797,8 @@ export class WebGPUBackend extends KernelBackend {
 
     const dimensions = [
       convInfo.filterHeight, convInfo.filterWidth, ...pad,
-      convInfo.strideHeight, convInfo.strideWidth,
-      convInfo.dilationHeight, convInfo.dilationWidth
+      convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationHeight,
+      convInfo.dilationWidth
     ];
 
     const inputs: Tensor[] = [input, filter];
@@ -931,10 +931,6 @@ export class WebGPUBackend extends KernelBackend {
       return this.cpuBackend.multiply(a, b);
     }
     return this.binaryOp(a, b, binary_op.MUL);
-  }
-
-  realDivide(a: Tensor, b: Tensor): Tensor {
-    return this.binaryOp(a, b, binary_op.DIV);
   }
 
   floorDiv(a: Tensor, b: Tensor): Tensor {

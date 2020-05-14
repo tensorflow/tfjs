@@ -15,9 +15,11 @@
  * =============================================================================
  */
 
+import {webgl_util} from '@tensorflow/tfjs-backend-webgl';
 import * as tf from '@tensorflow/tfjs-core';
 
 import {getDebugMode} from '../platform_react_native';
+
 import * as drawTextureProgramInfo from './draw_texture_program_info';
 import * as resizeBilinearProgramInfo from './resize_bilinear_program_info';
 import * as resizeNNProgramInfo from './resize_nearest_neigbor_program_info';
@@ -68,22 +70,22 @@ export function downloadTextureData(
 
   const debugMode = getDebugMode();
 
-  tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
+  webgl_util.callAndCheck(gl, debugMode, () => {
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
   });
 
-  tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
+  webgl_util.callAndCheck(gl, debugMode, () => {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
   });
 
-  tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
+  webgl_util.callAndCheck(gl, debugMode, () => {
     const level = 0;
     gl.framebufferTexture2D(
         gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, level);
   });
 
-  tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
+  webgl_util.callAndCheck(gl, debugMode, () => {
     const format = depth === 3 ? gl.RGB : gl.RGBA;
     const x = 0;
     const y = 0;
@@ -91,7 +93,7 @@ export function downloadTextureData(
   });
 
   // Unbind framebuffer
-  tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
+  webgl_util.callAndCheck(gl, debugMode, () => {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   });
   return pixels;
@@ -134,7 +136,7 @@ export function uploadTextureData(
   const border = 0;
   const type = gl.UNSIGNED_BYTE;
 
-  tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
+  webgl_util.callAndCheck(gl, debugMode, () => {
     gl.texImage2D(
         gl.TEXTURE_2D, level, internalFormat, targetTextureWidth,
         targetTextureHeight, border, format, type, imageData);
@@ -187,7 +189,7 @@ export function runResizeProgram(
       resizeProgram(gl, inputDims, outputDims, alignCorners, interpolation);
   gl.useProgram(program);
   // Set up geometry
-  tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
+  webgl_util.callAndCheck(gl, debugMode, () => {
     gl.bindVertexArray(vao);
   });
 
@@ -233,7 +235,7 @@ export function runResizeProgram(
     const border = 0;
     const type = gl.UNSIGNED_BYTE;
 
-    tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
+    webgl_util.callAndCheck(gl, debugMode, () => {
       gl.texImage2D(
           gl.TEXTURE_2D, level, internalFormat, targetTextureWidth,
           targetTextureHeight, border, format, type, null);
@@ -383,7 +385,7 @@ function createProgramObjects(
   gl.bindVertexArray(vao);
 
   // Set up geometry
-  tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
+  webgl_util.callAndCheck(gl, debugMode, () => {
     const positionAttrib = gl.getAttribLocation(program, 'position');
     const vertsCoordsBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertsCoordsBuffer);
@@ -393,7 +395,7 @@ function createProgramObjects(
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
   });
 
-  tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
+  webgl_util.callAndCheck(gl, debugMode, () => {
     const texCoordsAttrib = gl.getAttribLocation(program, 'texCoords');
     const texCoordsBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, texCoordsBuffer);
@@ -404,7 +406,7 @@ function createProgramObjects(
   });
 
   const uniformLocations = new Map<string, WebGLUniformLocation>();
-  tf.webgl.webgl_util.callAndCheck(gl, debugMode, () => {
+  webgl_util.callAndCheck(gl, debugMode, () => {
     const inputTextureLoc = gl.getUniformLocation(program, 'inputTexture');
     uniformLocations.set('inputTexture', inputTextureLoc);
   });

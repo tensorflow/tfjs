@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,11 +15,16 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../engine';
+import {ENGINE, ForwardFunc} from '../engine';
+import {LRN, LRNAttrs, LRNInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
+
+import {reshape} from './array_ops';
 import {op} from './operation';
 
 /**
@@ -52,24 +57,26 @@ function localResponseNormalization_<T extends Tensor3D|Tensor4D>(
   let reshapedTo4D = false;
   if ($x.rank === 3) {
     reshapedTo4D = true;
-    x4D = $x.as4D(1, $x.shape[0], $x.shape[1], $x.shape[2]);
+    x4D = reshape($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
   }
-  const backward = (dy: Tensor4D, saved: Tensor[]) => {
-    const [x4D, y] = saved;
-    return {
-      x4D: () => ENGINE.runKernelFunc(
-          backend => backend.LRNGrad(
-              dy, x4D as Tensor4D, y as Tensor4D, depthRadius, bias, alpha,
-              beta),
-          {})
-    };
-  };
-  const res = ENGINE.runKernelFunc((backend, save) => {
+
+  const forward: ForwardFunc<Tensor> = (backend, save) => {
     const y = backend.localResponseNormalization4D(
         x4D, depthRadius, bias, alpha, beta);
+
     save([x4D, y]);
+
     return y;
-  }, {x4D}, backward);
+  };
+
+  const inputs: LRNInputs = {x: x4D};
+
+  const attrs: LRNAttrs = {depthRadius, bias, alpha, beta};
+
+  const res = ENGINE.runKernelFunc(
+      forward, inputs as {} as NamedTensorMap, null /* grad */, LRN,
+      attrs as {} as NamedAttrMap);
+
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   } else {

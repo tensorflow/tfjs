@@ -65,7 +65,7 @@ function config({
       typescript(tsoptions),
       resolve({dedupe: ['seedrandom']}),
       commonjs({
-        ignore: ['crypto'],
+        ignore: ['crypto', 'fs', 'node-fetch', 'string_decoder', 'util'],
         include: 'node_modules/**',
         namedExports: {'node_modules/seedrandom/index.js': ['alea']},
       }),

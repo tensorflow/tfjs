@@ -21,8 +21,8 @@ import {util} from '@tensorflow/tfjs-core';
 export function transposeImpl(
     xVals: TypedArray, xShape: number[], dtype: DataType, perm: number[],
     newShape: number[]): TypedArray {
-  const xSize = util.sizeFromShape(xShape);
   const xRank = xShape.length;
+  const xSize = util.sizeFromShape(xShape);
   const xStrides = util.computeStrides(xShape);
   const newStrides = util.computeStrides(newShape);
 
