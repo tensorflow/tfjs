@@ -16,9 +16,11 @@
  */
 
 import {ENGINE} from '../engine';
+import {NonMaxSuppressionV3} from '../kernel_names';
 import {Tensor1D, Tensor2D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
+
 import {nonMaxSuppSanityCheck} from './nonmax_util';
 import {op} from './operation';
 
@@ -39,7 +41,7 @@ function nonMaxSuppression_(
   return ENGINE.runKernelFunc(
       b => b.nonMaxSuppression(
           $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold),
-      {boxes: $boxes, scores: $scores}, null /* grad */, 'NonMaxSuppressionV3',
+      {boxes: $boxes, scores: $scores}, null /* grad */, NonMaxSuppressionV3,
       attrs);
 }
 

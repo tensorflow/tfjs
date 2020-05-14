@@ -191,7 +191,6 @@ export interface NonMaxSuppressionV3Attrs {
   scoreThreshold: number;
 }
 
-
 export const NonMaxSuppressionV5 = 'NonMaxSuppressionV5';
 export type NonMaxSuppressionV5Inputs =
     Pick<NamedTensorInfoMap, 'boxes'|'scores'>;
