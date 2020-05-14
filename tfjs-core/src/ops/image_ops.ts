@@ -22,9 +22,10 @@ import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
+import {nonMaxSuppSanityCheck} from './nonmax_util';
 
 import {op} from './operation';
-export {nonMaxSuppression} from './NonMaxSuppression';
+export {nonMaxSuppression} from './non_max_suppression';
 
 /**
  * Bilinear resize a batch of 3D images to a new shape.
@@ -276,48 +277,6 @@ async function nonMaxSuppressionWithScoreAsync_(
     $scores.dispose();
   }
   return res;
-}
-
-function nonMaxSuppSanityCheck(
-    boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
-    iouThreshold: number, scoreThreshold: number, softNmsSigma?: number): {
-  maxOutputSize: number,
-  iouThreshold: number,
-  scoreThreshold: number,
-  softNmsSigma: number
-} {
-  if (iouThreshold == null) {
-    iouThreshold = 0.5;
-  }
-  if (scoreThreshold == null) {
-    scoreThreshold = Number.NEGATIVE_INFINITY;
-  }
-  if (softNmsSigma == null) {
-    softNmsSigma = 0.0;
-  }
-
-  const numBoxes = boxes.shape[0];
-  maxOutputSize = Math.min(maxOutputSize, numBoxes);
-
-  util.assert(
-      0 <= iouThreshold && iouThreshold <= 1,
-      () => `iouThreshold must be in [0, 1], but was '${iouThreshold}'`);
-  util.assert(
-      boxes.rank === 2,
-      () => `boxes must be a 2D tensor, but was of rank '${boxes.rank}'`);
-  util.assert(
-      boxes.shape[1] === 4,
-      () =>
-          `boxes must have 4 columns, but 2nd dimension was ${boxes.shape[1]}`);
-  util.assert(scores.rank === 1, () => 'scores must be a 1D tensor');
-  util.assert(
-      scores.shape[0] === numBoxes,
-      () => `scores has incompatible shape with boxes. Expected ${numBoxes}, ` +
-          `but was ${scores.shape[0]}`);
-  util.assert(
-      0 <= softNmsSigma && softNmsSigma <= 1,
-      () => `softNmsSigma must be in [0, 1], but was '${softNmsSigma}'`);
-  return {maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma};
 }
 
 /**
