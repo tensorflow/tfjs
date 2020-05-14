@@ -22,10 +22,10 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {spaceToBatchND} from './array_ops';
 import {batchToSpaceND} from './batch_to_space_nd';
 import * as conv_util from './conv_util';
 import {op} from './operation';
+import {spaceToBatchND} from './space_to_batch_nd';
 
 /**
  * Computes the 2D max pooling of an image.

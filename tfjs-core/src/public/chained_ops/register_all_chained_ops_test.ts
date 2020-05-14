@@ -49,6 +49,7 @@ const CHAINED_OPS = [
   'pad',
   'max',
   'separableConv2d',
+  'spaceToBatchND',
   'split',
   'square',
   'sub',

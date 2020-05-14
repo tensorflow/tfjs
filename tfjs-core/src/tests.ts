@@ -103,6 +103,7 @@ import './ops/signal_ops_test';
 import './ops/slice_test';
 import './ops/slice_util_test';
 import './ops/softmax_test';
+import './ops/space_to_batch_nd_test';
 import './ops/sparse_to_dense_test';
 import './ops/spectral_ops_test';
 import './ops/strided_slice_test';

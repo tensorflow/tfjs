@@ -41,6 +41,7 @@ import './pad';
 import './separable_conv2d';
 import './split';
 import './squared_difference';
+import './space_to_batch_nd';
 import './sub';
 import './tile';
 import './transpose';
