@@ -43,6 +43,7 @@ import './ops/add_test';
 import './ops/arithmetic_test';
 import './ops/array_ops_test';
 import './ops/axis_util_test';
+import './ops/batch_to_space_nd_test';
 import './ops/batchnorm_test';
 import './ops/binary_ops_test';
 import './ops/boolean_mask_test';

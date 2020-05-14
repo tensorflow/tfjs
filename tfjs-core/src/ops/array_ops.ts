@@ -237,7 +237,7 @@ function spaceToBatchND_<T extends Tensor>(
           blockShape.toString()}`);
 
   const grad = (dy: T) => {
-    return {$x: () => dy.batchToSpaceND(blockShape, paddings)};
+    return {$x: () => dy.batchToSpaceND(blockShape, paddings) as T};
   };
 
   return ENGINE.runKernelFunc(
