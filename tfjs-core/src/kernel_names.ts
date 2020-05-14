@@ -34,6 +34,13 @@ export interface BatchMatMulAttrs {
   transposeB: boolean;
 }
 
+export const BatchToSpaceND = 'BatchToSpaceND';
+export type BatchToSpaceNDInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface BatchToSpaceNDAttrs {
+  blockShape: number[];
+  crops: number[][];
+}
+
 export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 
 export const BroadcastTo = 'BroadcastTo';

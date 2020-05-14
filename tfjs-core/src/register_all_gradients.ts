@@ -17,6 +17,7 @@
 import {addGradConfig} from './gradients/Add_grad';
 import {addNGradConfig} from './gradients/AddN_grad';
 import {batchMatMulGradConfig} from './gradients/BatchMatMul_grad';
+import {batchToSpaceNDGradConfig} from './gradients/BatchToSpaceND_grad';
 import {broadcastToGradConfig} from './gradients/BroadcastTo_grad';
 import {concatGradConfig} from './gradients/Concat_grad';
 import {conv2DGradConfig} from './gradients/Conv2D_grad';
@@ -45,6 +46,7 @@ const gradConfigs: GradConfig[] = [
   addGradConfig,
   addNGradConfig,
   batchMatMulGradConfig,
+  batchToSpaceNDGradConfig,
   broadcastToGradConfig,
   concatGradConfig,
   conv2DGradConfig,
