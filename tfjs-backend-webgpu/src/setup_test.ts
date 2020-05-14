@@ -356,6 +356,12 @@ const TEST_FILTERS: TestFilter[] = [
                           // reason
       'MultipleBoxes-DifferentBoxes',  // TimeOut
     ]
+  },
+  {
+    include: 'batchNorm',
+    excludes: [
+      'gradient',
+    ]
   }
 ];
 

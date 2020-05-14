@@ -62,7 +62,7 @@
     "publish-npm": "npm publish",
     "test": "yarn && yarn build-deps && karma start",
     "test-ci": "./scripts/test-ci.sh",
-    "test-snippets": "ts-node -s ./scripts/test_snippets.ts",
+    "test-snippets": "ts-node --skip-ignore -s ./scripts/test_snippets.ts",
     "tfjs2keras": "yarn tfjs2keras-js && yarn tfjs2keras-py --stable && yarn tfjs2keras-py --stable --tfkeras && yarn tfjs2keras-py --dev --tfkeras",
     "tfjs2keras-js": "./scripts/tfjs2keras-js.sh",
     "tfjs2keras-py": "./scripts/tfjs2keras-py.sh",
