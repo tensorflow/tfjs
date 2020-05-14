@@ -103,9 +103,8 @@ function spaceToBatchND_<T extends Tensor>(
           paddings.toString()} must be divisible by blockShapes ${
           blockShape.toString()}`);
 
-  const forward: ForwardFunc<T> = backend => {
-    return backend.spaceToBatchND($x, blockShape, paddings);
-  };
+  const forward: ForwardFunc<T> = backend =>
+      backend.spaceToBatchND($x, blockShape, paddings);
 
   const inputs: SpaceToBatchNDInputs = {x: $x};
   const attrs: SpaceToBatchNDAttrs = {blockShape, paddings};
