@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import {backend_util, KernelConfig, NonMaxSuppressionV3, NonMaxSuppressionV3Attrs, NonMaxSuppressionV3Inputs} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, NonMaxSuppressionV3, NonMaxSuppressionV3Attrs, NonMaxSuppressionV3Inputs, TypedArray} from '@tensorflow/tfjs-core';
 import {WebGPUBackend} from '../backend_webgpu';
-export type TypedArray = Float32Array|Int32Array|Uint8Array;
+
 export const nonMaxSuppressionV3Config: KernelConfig = {
   kernelName: NonMaxSuppressionV3,
   backendName: 'webgpu',
