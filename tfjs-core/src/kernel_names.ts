@@ -221,6 +221,13 @@ export interface PadV2Attrs {
   constantValue: number;
 }
 
+export const SpaceToBatchND = 'SpaceToBatchND';
+export type SpaceToBatchNDInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface SpaceToBatchNDAttrs {
+  blockShape: number[];
+  paddings: number[][];
+}
+
 export const SplitV = 'SplitV';
 export type SplitVInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface SplitVAttrs {
