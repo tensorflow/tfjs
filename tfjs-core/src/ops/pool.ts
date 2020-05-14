@@ -22,7 +22,8 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {batchToSpaceND, spaceToBatchND} from './array_ops';
+import {spaceToBatchND} from './array_ops';
+import {batchToSpaceND} from './batch_to_space_nd';
 import * as conv_util from './conv_util';
 import {op} from './operation';
 
@@ -917,8 +918,8 @@ function maxPool3dBackprop<T extends Tensor4D|Tensor5D>(
 /** @doc {heading: 'Operations', subheading: 'Convolution'} */
 function maxPoolWithArgmax_<T extends Tensor4D>(
     x: T|TensorLike, filterSize: [number, number]|number,
-    strides: [number, number]|number,
-    pad: 'valid'|'same'|number, includeBatchInIndex = false): NamedTensorMap {
+    strides: [number, number]|number, pad: 'valid'|'same'|number,
+    includeBatchInIndex = false): NamedTensorMap {
   const $x = convertToTensor(x, 'x', 'maxPoolWithArgmax');
 
   const attrs = {filterSize, strides, pad, includeBatchInIndex};

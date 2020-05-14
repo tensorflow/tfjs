@@ -543,7 +543,6 @@ export {
   print  // Not wrapped in op() since no need to increase stack trace.
 };
 
-export const batchToSpaceND = op({batchToSpaceND_});
 export const cast = op({cast_});
 export const cumsum = op({cumsum_});
 export const depthToSpace = op({depthToSpace_});

@@ -15,11 +15,16 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../engine';
-import {Tensor, Tensor4D, TensorBuffer} from '../tensor';
-import {convertToTensor, convertToTensorArray} from '../tensor_util_env';
+import {ENGINE, ForwardFunc} from '../engine';
+import {BatchToSpaceND, BatchToSpaceNDAttrs, BatchToSpaceNDInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
+import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
+import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
+
+import {op} from './operation';
 
 /**
  * This operation reshapes the "batch" dimension 0 into `M + 1` dimensions of
@@ -90,10 +95,16 @@ function batchToSpaceND_<T extends Tensor>(
                 $x.shape[0]} but is not divisible by the product of ` +
           `the elements of blockShape ${blockShape.join(' * ')} === ${prod}`);
 
-  const grad = (dy: T) => {
-    return {$x: () => dy.spaceToBatchND(blockShape, crops)};
+  const forward: ForwardFunc<T> = backend => {
+    return backend.batchToSpaceND($x, blockShape, crops);
   };
 
+  const inputs: BatchToSpaceNDInputs = {x: $x};
+  const attrs: BatchToSpaceNDAttrs = {blockShape, crops};
+
   return ENGINE.runKernelFunc(
-      backend => backend.batchToSpaceND($x, blockShape, crops), {$x}, grad);
+      forward, inputs as {} as NamedTensorMap, null /* gradient */,
+      BatchToSpaceND, attrs as {} as NamedAttrMap);
 }
+
+export const batchToSpaceND = op({batchToSpaceND_});

@@ -14,33 +14,18 @@
  * limitations under the License.
  * =============================================================================
  */
-import './add';
-import './batchnorm';
-import './broadcast_to';
-import './batch_to_space_nd';
-import './max';
-import './concat';
-import './conv1d';
-import './conv2d';
-import './conv2d_transpose';
-import './depthwise_conv2d';
-import './depthwise_conv2D_deprecated';
-import './div';
-import './div_no_nan';
-import './dot';
-import './equal';
-import './greater';
-import './greater_equal';
-import './less';
-import './less_equal';
-import './local_response_normalization';
-import './mat_mul';
-import './one_hot';
-import './not_equal';
-import './pad';
-import './separable_conv2d';
-import './split';
-import './squared_difference';
-import './sub';
-import './tile';
-import './transpose';
+
+import {BatchToSpaceND, BatchToSpaceNDAttrs} from '../kernel_names';
+import {GradConfig, NamedAttrMap} from '../kernel_registry';
+import {spaceToBatchND} from '../ops/array_ops';
+import {Tensor} from '../tensor';
+
+export const batchToSpaceNDGradConfig: GradConfig = {
+  kernelName: BatchToSpaceND,
+  gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
+    const batchToSpaceNDAttrs: BatchToSpaceNDAttrs =
+        attrs as {} as BatchToSpaceNDAttrs;
+    const {blockShape, crops} = batchToSpaceNDAttrs;
+    return {x: () => spaceToBatchND(dy, blockShape, crops)};
+  }
+};

@@ -295,8 +295,6 @@ export interface OpHandler {
       strides?: [number, number]|number): T;
   unsortedSegmentSum<T extends Tensor>(
       x: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T;
-  batchToSpaceND<T extends Tensor>(
-      x: T, blockShape: number[], crops: number[][]): T;
   spaceToBatchND<T extends Tensor>(
       x: T, blockShape: number[], paddings: number[][]): T;
   topk<T extends Tensor>(x: T, k: number, sorted: boolean):
@@ -1182,12 +1180,6 @@ export class Tensor<R extends Rank = Rank> {
       this: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T {
     this.throwIfDisposed();
     return opHandler.unsortedSegmentSum(this, segmentIds, numSegments);
-  }
-
-  batchToSpaceND<T extends Tensor>(
-      this: T, blockShape: number[], crops: number[][]): T {
-    this.throwIfDisposed();
-    return opHandler.batchToSpaceND(this, blockShape, crops);
   }
 
   spaceToBatchND<T extends Tensor>(

@@ -26,6 +26,7 @@ import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
 const CHAINED_OPS = [
   'add',
   'batchNorm',
+  'batchToSpaceND',
   'broadcastTo',
   'concat',
   'conv1d',
