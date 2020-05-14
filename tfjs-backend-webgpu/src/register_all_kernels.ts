@@ -27,7 +27,8 @@ const kernelConfigs: KernelConfig[] = [
   divConfig,
   squareConfig,
   squaredDifferenceConfig,
-  fusedBatchNormConfig，nonMaxSuppressionV3Config,
+  fusedBatchNormConfig,
+  nonMaxSuppressionV3Config,
   nonMaxSuppressionV5Config,
 ];
 

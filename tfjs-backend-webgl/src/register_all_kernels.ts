@@ -28,9 +28,9 @@ import {transposeConfig} from './kernels/Transpose';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
-  maxConfig, fromPixelsConfig, divConfig,
-  nonMaxSuppressionV3Config，nonMaxSuppressionV5Config, squareConfig,
-  squaredDifferenceConfig, transposeConfig, maxPoolWithArgmaxConfig
+  maxConfig, fromPixelsConfig, divConfig, nonMaxSuppressionV3Config,
+  nonMaxSuppressionV5Config, squareConfig, squaredDifferenceConfig,
+  transposeConfig, maxPoolWithArgmaxConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {
