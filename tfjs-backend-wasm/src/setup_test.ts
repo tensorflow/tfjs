@@ -118,6 +118,10 @@ const TEST_FILTERS: TestFilter[] = [
                            // supported.
       'gradient',          // Gradients not defined yet.
       'NCHW',              // xnn pack does not support channels first.
+      // Issue: https://github.com/tensorflow/tfjs/issues/3104.
+      // Actual != expected.
+      'relu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=8 p=same',
+      'prelu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=8 p=same',
     ]
   },
   {
