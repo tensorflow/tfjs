@@ -107,6 +107,13 @@ export interface Conv3DBackpropInputAttrs {
   pad: 'valid'|'same';
 }
 
+export const DepthToSpace = 'DepthToSpace';
+export type DepthToSpaceInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface DepthToSpaceAttrs {
+  blockSize: number;
+  dataFormat: 'NHWC'|'NCHW';
+}
+
 export const DepthwiseConv2dNative = 'DepthwiseConv2dNative';
 export type DepthwiseConv2dNativeInputs =
     Pick<NamedTensorInfoMap, 'x'|'filter'>;
