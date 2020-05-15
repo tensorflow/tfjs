@@ -22,4 +22,9 @@ yarn
 yarn build
 yarn rollup -c --visualize --npm
 
+# Use minified files for miniprogram
+mkdir dist/miniprogram
+cp dist/tf-backend-webgl.min.js dist/miniprogram/index.js
+cp dist/tf-backend-webgl.min.js.map dist/miniprogram/index.js.map
+
 echo "Stored standalone library at dist/tf-backend-webgl(.min).js"

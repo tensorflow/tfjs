@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,16 +14,16 @@
  * limitations under the License.
  * =============================================================================
  */
-import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
-import {divConfig} from './kernels/Div';
-import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
-import {squareConfig} from './kernels/Square';
-import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 
-// List all kernel configs here
-const kernelConfigs: KernelConfig[] =
-    [divConfig, squareConfig, squaredDifferenceConfig, fusedBatchNormConfig];
+import {SpaceToBatchND, SpaceToBatchNDAttrs} from '../kernel_names';
+import {GradConfig, NamedAttrMap} from '../kernel_registry';
+import {batchToSpaceND} from '../ops/batch_to_space_nd';
+import {Tensor} from '../tensor';
 
-for (const kernelConfig of kernelConfigs) {
-  registerKernel(kernelConfig);
-}
+export const spaceToBatchNDGradConfig: GradConfig = {
+  kernelName: SpaceToBatchND,
+  gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
+    const {blockShape, paddings} = attrs as {} as SpaceToBatchNDAttrs;
+    return {x: () => batchToSpaceND(dy, blockShape, paddings)};
+  }
+};
