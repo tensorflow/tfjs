@@ -6,11 +6,14 @@
     "allowJs": true,
     "noImplicitAny": true,
     "sourceMap": true,
-    "removeComments": true,
+    "removeComments": false,
     "preserveConstEnums": true,
     "declaration": false,
-    "target": "es2017",
-    "lib": ["es2015", "dom"],
+    "target": "es5",
+    "lib": [
+      "es2015",
+      "dom"
+    ],
     "outDir": "./dist",
     "noUnusedLocals": true,
     "noImplicitReturns": true,
@@ -24,6 +27,8 @@
   },
   "include": [
     "*.ts",
+    "src/",
     "models/*.ts"
   ],
+  "exclude": ["node_modules/"]
 }

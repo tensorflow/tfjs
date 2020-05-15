@@ -16,7 +16,20 @@
  */
 
 const karmaTypescriptConfig = {
-  tsconfig: 'tsconfig.json'
+  tsconfig: 'tsconfig.test.json',
+  // Disable coverage reports and instrumentation by default for tests
+  coverageOptions: {instrumentation: false},
+  reports: {},
+  bundlerOptions: {
+    transforms: [
+      require('karma-typescript-es6-transform')({
+        presets: [
+          // ensure we get es5 by adding IE 11 as a target
+          ['@babel/env', {'targets': {'ie': '11'}, 'loose': true}]
+        ]
+      })
+    ],
+  }
 };
 
 module.exports = function(config) {
@@ -49,7 +62,7 @@ module.exports = function(config) {
     },
     karmaTypescriptConfig,
     reporters: ['progress', 'karma-typescript'],
-    browsers: ['Chrome'],
+    browsers: ['Chrome', 'chrome_webgpu'],
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY
@@ -58,8 +71,13 @@ module.exports = function(config) {
     browserDisconnectTimeout : 10000000,
     browserDisconnectTolerance : 10,
     reportSlowerThan: 500,
+    singleRun: false,
     browserNoActivityTimeout: 10000000,
     customLaunchers: {
+      chrome_webgpu: {
+        base: 'Chrome',
+        flags: ['--enable-unsafe-webgpu'],
+      },
       bs_chrome_mac: {
         base: 'BrowserStack',
         browser: 'chrome',
