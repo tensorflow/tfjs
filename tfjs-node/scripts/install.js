@@ -91,6 +91,10 @@ function getPlatformLibtensorflowUri() {
     return customTFLibUri;
   }
 
+  if (platfomr === 'linux' && os.arch() === 'arm') {
+    return 'https://storage.googleapis.com/tf-builds/libtensorflow_r1_14_linux_arm.tar.gz';
+  }
+
   if (ALL_SUPPORTED_COMBINATION.indexOf(system) === -1) {
     throw new Error(`Unsupported system: ${libType}-${platform}-${os.arch()}`);
   }
