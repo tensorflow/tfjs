@@ -17,6 +17,7 @@
 import './add';
 import './batchnorm';
 import './broadcast_to';
+import './batch_to_space_nd';
 import './max';
 import './concat';
 import './conv1d';
@@ -40,6 +41,7 @@ import './pad';
 import './separable_conv2d';
 import './split';
 import './squared_difference';
+import './space_to_batch_nd';
 import './sub';
 import './tile';
 import './transpose';
