@@ -261,6 +261,7 @@ def fold_batch_norms(input_graph_def):
     result_graph_def.node.extend([new_node])
 
   result_graph_def.node.extend(new_ops)
+  result_graph_def.library.CopyFrom(input_graph_def.library)
   result_graph_def.versions.CopyFrom(input_graph_def.versions)
   return result_graph_def
 
