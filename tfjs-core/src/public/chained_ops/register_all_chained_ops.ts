@@ -23,6 +23,7 @@ import './concat';
 import './conv1d';
 import './conv2d';
 import './conv2d_transpose';
+import './depth_to_space';
 import './depthwise_conv2d';
 import './depthwise_conv2D_deprecated';
 import './div';

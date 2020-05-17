@@ -3100,67 +3100,6 @@ describeWithFlags('batchToSpaceND X spaceToBatchND', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags('depthToSpace', ALL_ENVS, () => {
-  it('tensor4d, input shape=[1, 1, 1, 4], blockSize=2, format=NHWC',
-     async () => {
-       const t = tf.tensor4d([[[[1, 2, 3, 4]]]]);
-       const blockSize = 2;
-       const dataFormat = 'NHWC';
-
-       const res = tf.depthToSpace(t, blockSize, dataFormat);
-       expect(res.shape).toEqual([1, 2, 2, 1]);
-       expectArraysClose(await res.data(), [1, 2, 3, 4]);
-     });
-
-  it('tensor4d, input shape=[1, 1, 1, 12], blockSize=2, format=NHWC',
-     async () => {
-       const t = tf.tensor4d([[[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]]]]);
-       const blockSize = 2;
-       const dataFormat = 'NHWC';
-
-       const res = tf.depthToSpace(t, blockSize, dataFormat);
-       expect(res.shape).toEqual([1, 2, 2, 3]);
-       expectArraysClose(
-           await res.data(), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
-     });
-
-  it('tensor4d, input shape=[1, 2, 2, 4], blockSize=2, format=NHWC',
-     async () => {
-       const t = tf.tensor4d([
-         [[[1, 2, 3, 4], [5, 6, 7, 8]], [[9, 10, 11, 12], [13, 14, 15, 16]]]
-       ]);
-       const blockSize = 2;
-       const dataFormat = 'NHWC';
-
-       const res = tf.depthToSpace(t, blockSize, dataFormat);
-       expect(res.shape).toEqual([1, 4, 4, 1]);
-       expectArraysClose(
-           await res.data(),
-           [1, 2, 5, 6, 3, 4, 7, 8, 9, 10, 13, 14, 11, 12, 15, 16]);
-     });
-
-  it('throws when depth not divisible by blockSize * blockSize', () => {
-    const t = tf.tensor4d([1, 2, 3, 4], [1, 1, 1, 4]);
-    const blockSize = 3;
-
-    expect(() => tf.depthToSpace(t, blockSize))
-        .toThrowError(`Dimension size must be evenly divisible by ${
-            blockSize * blockSize} but is ${
-            t.shape[3]} for depthToSpace with input shape ${t.shape}`);
-  });
-});
-
-describeWithFlags('depthToSpace', BROWSER_ENVS, () => {
-  it('throws when blocksize < 2', () => {
-    const t = tf.tensor4d([1, 2, 3, 4], [1, 1, 1, 4]);
-    const blockSize = 1;
-
-    expect(() => tf.depthToSpace(t, blockSize))
-        .toThrowError(
-            `blockSize should be > 1 for depthToSpace, but was: ${blockSize}`);
-  });
-});
-
 describeWithFlags('setdiff1dAsync', ALL_ENVS, () => {
   it('1d int32 tensor', async () => {
     const x = tf.tensor1d([1, 2, 3, 4], 'int32');

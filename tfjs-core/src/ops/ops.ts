@@ -35,6 +35,7 @@ export {conv2d} from './conv2d';
 export {conv2dTranspose} from './conv2d_transpose';
 export {conv3d} from './conv3d';
 export {conv3dTranspose} from './conv3d_transpose';
+export {depthToSpace} from './depth_to_space';
 export {depthwiseConv2d} from './depthwise_conv2d';
 export {diag} from './diag';
 export {div} from './div';
