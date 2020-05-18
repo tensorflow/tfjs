@@ -24,21 +24,14 @@ if [[ "$NIGHTLY" = true ]]; then
     TAGS="${TAGS},#REGRESSION"
 fi
 
-# Layers integration tests run in layers-related PR builds.
-if [[ -f "../tfjs-layers/run-ci" ]]; then
-   TAGS="${TAGS},#LAYERS"
-fi
-
-# Additional setup for layers-related tests.
-if [[ "$TAGS" == *"#LAYERS"* || "$TAGS" == *"#REGRESSION"*  ]]; then
+# Additional setup for regression tests.
+if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
     # Generate canonical layers models and inputs.
     ./scripts/tfjs2keras-js.sh
     # Load equivalent keras models and generate outputs.
     # TODO(linazhao): Investigate why --dev --tfkeras fail.
     ./scripts/tfjs2keras-py.sh --stable
 fi
-# create_save_predict_test will test each model and backend permutation and
-# validate against keras outputs.
 
 # Start a simple local server to serve the models, inputs and outputs files.
 # So that browsers can access these files.

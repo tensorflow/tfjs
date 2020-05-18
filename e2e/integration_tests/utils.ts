@@ -19,13 +19,11 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 /** Smoke tests run in PR and nightly builds. */
 export const SMOKE = '#SMOKE';
-/** Layers tests run in layers-related PR builds. */
-export const LAYERS = '#LAYERS';
 /** Regression tests run in nightly builds. */
 export const REGRESSION = '#REGRESSION';
 
 /** Testing tags. */
-export const TAGS = [SMOKE, LAYERS, REGRESSION];
+export const TAGS = [SMOKE, REGRESSION];
 
 /** Testing backends. */
 export const BACKENDS = ['cpu', 'webgl'];
