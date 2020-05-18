@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, Rank, ShapeMap, Tensor} from '@tensorflow/tfjs-core';
+import {DataType, Rank, ShapeMap, TensorInfo} from '@tensorflow/tfjs-core';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import * as shader_preprocessor from '../shader_preprocessor';
@@ -70,8 +70,8 @@ export const makeBindGroup =
     };
 
 const makeBindGroupLayout =
-    (device: GPUDevice, inputs: shader_preprocessor.InputInfo[], output: Tensor,
-     uniforms?: BindingInfo): GPUBindGroupLayout => {
+    (device: GPUDevice, inputs: shader_preprocessor.InputInfo[],
+     output: TensorInfo, uniforms?: BindingInfo): GPUBindGroupLayout => {
       const bindings =
           Array(1 + inputs.length)
               .fill(
@@ -98,7 +98,7 @@ const makeBindGroupLayout =
 
 export const compileProgram =
     (glslang: Glslang, device: GPUDevice, program: WebGPUProgram,
-     inputsData: shader_preprocessor.InputInfo[], output: Tensor,
+     inputsData: shader_preprocessor.InputInfo[], output: TensorInfo,
      uniforms?: BindingInfo): WebGPUBinary => {
       const outputData = {dtype: output.dtype, shape: output.shape};
 
@@ -121,8 +121,9 @@ export const compileProgram =
       return {bindGroupLayout, pipeline};
     };
 
-export function makeShaderKey<R extends Rank>(program: WebGPUProgram,
-    shapes: Array<ShapeMap[R]>, types: string[]): string {
+export function makeShaderKey<R extends Rank>(
+    program: WebGPUProgram, shapes: Array<ShapeMap[R]>,
+    types: string[]): string {
   const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
       shapes.join(',') + types.join(',') + program.variableNames.join(',') +
       (program.shaderKey ? program.shaderKey : program.userCode);

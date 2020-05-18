@@ -14,16 +14,19 @@
  * limitations under the License.
  * =============================================================================
  */
-import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
-import {divConfig} from './kernels/Div';
-import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
-import {squareConfig} from './kernels/Square';
-import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {depthToSpace} from '../../ops/depth_to_space';
+import {Tensor, Tensor4D} from '../../tensor';
+import {Rank} from '../../types';
 
-// List all kernel configs here
-const kernelConfigs: KernelConfig[] =
-    [divConfig, squareConfig, squaredDifferenceConfig, fusedBatchNormConfig];
-
-for (const kernelConfig of kernelConfigs) {
-  registerKernel(kernelConfig);
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    depthToSpace<T extends Tensor4D>(
+        blockSize: number, dataFormat: 'NHWC'|'NCHW'): T;
+  }
 }
+
+Tensor.prototype.depthToSpace = function<T extends Tensor4D>(
+    blockSize: number, dataFormat: 'NHWC'|'NCHW'): T {
+  this.throwIfDisposed();
+  return depthToSpace(this, blockSize, dataFormat) as T;
+};
