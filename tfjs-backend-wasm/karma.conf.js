@@ -74,8 +74,6 @@ module.exports = function(config) {
     proxies: {
       '/base/node_modules/karma-typescript/dist/client/tfjs-backend-wasm.wasm':
           '/base/wasm-out/tfjs-backend-wasm.wasm',
-      '/base/node_modules/karma-typescript/dist/client/tfjs-backend-wasm.worker.js':
-          '/base/wasm-out/tfjs-backend-wasm.worker.js',
     },
     reporters: ['dots', 'karma-typescript'],
     port: 9876,
