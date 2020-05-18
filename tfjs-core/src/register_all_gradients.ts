@@ -17,6 +17,7 @@
 import {addGradConfig} from './gradients/Add_grad';
 import {addNGradConfig} from './gradients/AddN_grad';
 import {batchMatMulGradConfig} from './gradients/BatchMatMul_grad';
+import {batchToSpaceNDGradConfig} from './gradients/BatchToSpaceND_grad';
 import {broadcastToGradConfig} from './gradients/BroadcastTo_grad';
 import {concatGradConfig} from './gradients/Concat_grad';
 import {conv2DGradConfig} from './gradients/Conv2D_grad';
@@ -31,6 +32,7 @@ import {lrnGradConfig} from './gradients/LRN_grad';
 import {maxGradConfig} from './gradients/Max_grad';
 import {oneHotGradConfig} from './gradients/OneHot_grad';
 import {padV2GradConfig} from './gradients/PadV2_grad';
+import {spaceToBatchNDGradConfig} from './gradients/SpaceToBatchND_grad';
 import {splitVGradConfig} from './gradients/SplitV_grad';
 import {squareGradConfig} from './gradients/Square_grad';
 import {squaredDifferenceGradConfig} from './gradients/SquaredDifference_grad';
@@ -42,28 +44,18 @@ import {registerGradient} from './kernel_registry';
 
 // Export all kernel configs here so that the package can auto register them
 const gradConfigs: GradConfig[] = [
-  addGradConfig,
-  addNGradConfig,
-  batchMatMulGradConfig,
-  broadcastToGradConfig,
-  concatGradConfig,
-  conv2DGradConfig,
-  conv2DBackpropInputGradConfig,
-  conv3DGradConfig,
-  depthwiseConv2dNativeGradConfig,
-  divGradConfig,
-  fusedBatchNormGradConfig,
-  greaterEqualGradConfig,
-  identityGradConfig,
-  lrnGradConfig,
-  oneHotGradConfig,
-  padV2GradConfig,
-  splitVGradConfig,
-  maxGradConfig,
-  squareGradConfig,
-  squaredDifferenceGradConfig,
-  tileGradConfig,
-  transposeGradConfig,
+  addGradConfig,          addNGradConfig,
+  batchMatMulGradConfig,  batchToSpaceNDGradConfig,
+  broadcastToGradConfig,  concatGradConfig,
+  conv2DGradConfig,       conv2DBackpropInputGradConfig,
+  conv3DGradConfig,       depthwiseConv2dNativeGradConfig,
+  divGradConfig,          fusedBatchNormGradConfig,
+  greaterEqualGradConfig, identityGradConfig,
+  lrnGradConfig,          oneHotGradConfig,
+  padV2GradConfig,        splitVGradConfig,
+  maxGradConfig,          spaceToBatchNDGradConfig,
+  squareGradConfig,       squaredDifferenceGradConfig,
+  tileGradConfig,         transposeGradConfig,
   subGradConfig
 ];
 
