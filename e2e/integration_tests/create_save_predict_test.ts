@@ -28,6 +28,7 @@ import {BACKENDS, createInputTensors, LAYERS, LOCAL_SERVER, MODELS, REGRESSION} 
  *
  *  This file test below things:
  *  - Load layers models using Layers api.
+ *  - Load inputs.
  *  - Make inference using each backends, and validate the results with Keras.
  */
 describe(`${REGRESSION} ${LAYERS} create_save_predict`, () => {
