@@ -89,8 +89,7 @@ export class GraphModel implements InferenceModel {
     } else if (this.loadOptions.requestInit != null) {
       this.handler = io.browserHTTPRequest(path as string, this.loadOptions);
     } else {
-      const handlers =
-          io.getLoadHandlers(path as string, this.loadOptions.onProgress);
+      const handlers = io.getLoadHandlers(path as string, this.loadOptions);
       if (handlers.length === 0) {
         // For backward compatibility: if no load handler can be found,
         // assume it is a relative http path.
