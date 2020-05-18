@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# Copyright 2020 Google LLC. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+
+set -e
+
+# Smoke tests run in PR and nightly builds.
+TAGS="#SMOKE"
+
+# Regression tests run in nightly builds.
+if [[ "$NIGHTLY" = true ]]; then
+    TAGS="${TAGS},#REGRESSION"
+fi
+
+# Layers integration tests run in layers-related PR builds.
+if [[ -f "../tfjs-layers/run-ci" ]]; then
+   TAGS="${TAGS},#LAYERS"
+fi
+
+# Additional setup for layers-related tests.
+if [[ "$TAGS" == *"#LAYERS"* || "$TAGS" == *"#REGRESSION"*  ]]; then
+    # Generate canonical layers models and inputs.
+    ./scripts/tfjs2keras-js.sh
+    # Load equivalent keras models and generate outputs.
+    # TODO(linazhao): Investigate why --dev --tfkeras fail.
+    ./scripts/tfjs2keras-py.sh --stable
+fi
+# create_save_predict_test will test each model and backend permutation and
+# validate against keras outputs.
+
+# Start a simple local server to serve the models, inputs and outputs files.
+# So that browsers can access these files.
+if [[ -d "integration_tests/test_data" ]]; then
+  cd integration_tests/test_data
+  yarn http-server &
+fi
+
+if [ "$NIGHTLY" = true ]; then
+  yarn run-browserstack --browsers=bs_chrome_mac --tags $TAGS
+  yarn run-browserstack --browsers=bs_safari_mac,bs_firefox_mac,win_10_chrome,bs_ios_11,bs_android_9 --tags $TAGS
+else
+  yarn run-browserstack --browsers=bs_chrome_mac --tags $TAGS
+fi
