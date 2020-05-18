@@ -47,7 +47,6 @@
     "clean": "rm -rf yalc.lock .yalc/ node_modules/ tfjs-*",
     "link-local": "yalc link",
     "lint": "tslint -p . -t verbose",
-    "test": "karma start",
     "run-browserstack": "karma start --singleRun --reporters='dots,karma-typescript,BrowserStack' --firebaseKey $FIREBASE_KEY --hostname='bs-local.com'"
   },
   "license": "Apache-2.0",
