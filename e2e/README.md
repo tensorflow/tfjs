@@ -12,10 +12,11 @@ yarn test
 yarn test --tags #SMOKE,#LAYERS
 ```
 Supported tags:
-- #SMOKE: Smoke tests should be light weight. Run in PR and nightly builds.
+- #SMOKE: Smoke tests should be light weight. Run in every PR and nightly
+    builds.
 
-- #REGRESSION: Regression tests compare results compare results across backends,
-    previous builds, with other platform, etc. Run in nightly builds.
+- #REGRESSION: Regression tests compare results across backends, previous
+    builds, with other platform, etc. Run in nightly builds.
 
 - #LAYERS: Layers tests run in layers-related PR builds.
 
