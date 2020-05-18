@@ -15,11 +15,10 @@
  * =============================================================================
  */
 
-import { IOHandler } from './types';
-import { LoadOptions } from './io';
+import {IOHandler, LoadOptions} from './types';
 
-export type IORouter = (url: string | string[], loadOptions?: LoadOptions) =>
-  IOHandler;
+export type IORouter = (url: string|string[], loadOptions?: LoadOptions) =>
+    IOHandler;
 
 export class IORouterRegistry {
   // Singleton instance.
@@ -68,7 +67,7 @@ export class IORouterRegistry {
    * `save` method defined. If no match is found, `null`.
    * @throws Error, if more than one match is found.
    */
-  static getSaveHandlers(url: string | string[]): IOHandler[] {
+  static getSaveHandlers(url: string|string[]): IOHandler[] {
     return IORouterRegistry.getHandlers(url, 'save');
   }
 
@@ -80,18 +79,18 @@ export class IORouterRegistry {
    * @returns All valid handlers for `url`, given the currently registered
    *   handler routers.
    */
-  static getLoadHandlers(url: string | string[], loadOptions?: LoadOptions):
-    IOHandler[] {
+  static getLoadHandlers(url: string|string[], loadOptions?: LoadOptions):
+      IOHandler[] {
     return IORouterRegistry.getHandlers(url, 'load', loadOptions);
   }
 
   private static getHandlers(
-    url: string | string[], handlerType: 'save' | 'load',
-    loadOptions?: LoadOptions): IOHandler[] {
+      url: string|string[], handlerType: 'save'|'load',
+      loadOptions?: LoadOptions): IOHandler[] {
     const validHandlers: IOHandler[] = [];
     const routers = handlerType === 'load' ?
-      IORouterRegistry.getInstance().loadRouters :
-      IORouterRegistry.getInstance().saveRouters;
+        IORouterRegistry.getInstance().loadRouters :
+        IORouterRegistry.getInstance().saveRouters;
     routers.forEach(router => {
       const handler = router(url, loadOptions);
       if (handler !== null) {
@@ -103,10 +102,11 @@ export class IORouterRegistry {
 }
 
 export const registerSaveRouter = (loudRouter: IORouter) =>
-  IORouterRegistry.registerSaveRouter(loudRouter);
+    IORouterRegistry.registerSaveRouter(loudRouter);
 export const registerLoadRouter = (loudRouter: IORouter) =>
-  IORouterRegistry.registerLoadRouter(loudRouter);
-export const getSaveHandlers = (url: string | string[]) =>
-  IORouterRegistry.getSaveHandlers(url);
-export const getLoadHandlers = (url: string | string[], loadOptions?: LoadOptions) =>
-  IORouterRegistry.getLoadHandlers(url, loadOptions);
+    IORouterRegistry.registerLoadRouter(loudRouter);
+export const getSaveHandlers = (url: string|string[]) =>
+    IORouterRegistry.getSaveHandlers(url);
+export const getLoadHandlers =
+    (url: string|string[], loadOptions?: LoadOptions) =>
+        IORouterRegistry.getLoadHandlers(url, loadOptions);

@@ -19,10 +19,9 @@ import * as tf from '../index';
 import {BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
 
 import {BrowserIndexedDB, browserIndexedDB} from './indexed_db';
-import {LoadOptions} from './io';
 import {BrowserLocalStorage, browserLocalStorage} from './local_storage';
 import {IORouterRegistry} from './router_registry';
-import {IOHandler, LoadHandler, SaveHandler} from './types';
+import {IOHandler, LoadHandler, LoadOptions, SaveHandler} from './types';
 
 describeWithFlags('IORouterRegistry', BROWSER_ENVS, () => {
   const localStorageRouter = (url: string) => {
