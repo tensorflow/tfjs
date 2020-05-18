@@ -14,16 +14,19 @@
  * limitations under the License.
  * =============================================================================
  */
-import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
-import {divConfig} from './kernels/Div';
-import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
-import {squareConfig} from './kernels/Square';
-import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {batchToSpaceND} from '../../ops/batch_to_space_nd';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
 
-// List all kernel configs here
-const kernelConfigs: KernelConfig[] =
-    [divConfig, squareConfig, squaredDifferenceConfig, fusedBatchNormConfig];
-
-for (const kernelConfig of kernelConfigs) {
-  registerKernel(kernelConfig);
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    batchToSpaceND<R extends Rank>(blockShape: number[], crops: number[][]):
+        Tensor<R>;
+  }
 }
+
+Tensor.prototype.batchToSpaceND = function<R extends Rank>(
+    blockShape: number[], crops: number[][]): Tensor<R> {
+  this.throwIfDisposed();
+  return batchToSpaceND(this, blockShape, crops);
+};
