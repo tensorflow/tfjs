@@ -7,15 +7,24 @@ To run the tests in local:
 yarn test
 ```
 
-Filter tests by tag:
+##Filter tests by tag:
 ```js
 yarn test --tags #SMOKE,#LAYERS
 ```
-Supported tags: #SMOKE, #REGRESSION, #LAYERS
+Supported tags:
+- #SMOKE: Smoke tests should be light weight. Run in PR and nightly builds.
+
+- #REGRESSION: Regression tests compare results compare results across backends,
+    previous builds, with other platform, etc. Run in nightly builds.
+
+- #LAYERS: Layers tests run in layers-related PR builds.
 
 To add new tag: Extend the TAGS list in integration_tests/util
 
-Filter tests by grep:
+**Note:** When creating new test, prefer add at least one tag to the test
+description. Otherwise, the test will only run when no --tags is specified.
+
+##Filter tests by grep:
 ```js
 yarn test --grep cpu
 ```

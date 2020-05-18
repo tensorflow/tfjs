@@ -21,7 +21,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 export const SMOKE = '#SMOKE';
 /** Layers tests run in layers-related PR builds. */
 export const LAYERS = '#LAYERS';
-/** Layers tests run in layers-related PR builds. */
+/** Regression tests run in nightly builds. */
 export const REGRESSION = '#REGRESSION';
 
 /** Testing tags. */
