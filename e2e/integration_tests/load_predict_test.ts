@@ -32,6 +32,13 @@ const USE_MODEL_PATH =
     // tslint:disable-next-line:max-line-length
     'https://storage.googleapis.com/tfjs-models/savedmodel/universal_sentence_encoder/model.json';
 
+/**
+ *  This file is the test suites for CUJ: load->predict.
+ *
+ *  This file test below things:
+ *  - Load layers or graph model.
+ *  - Make inference using each backends.
+ */
 describe(`${SMOKE} load_predict`, () => {
   describe('layers_model', () => {
     let model: tfl.LayersModel;

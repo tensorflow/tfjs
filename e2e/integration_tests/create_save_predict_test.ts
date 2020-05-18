@@ -23,6 +23,13 @@ import * as tfl from '@tensorflow/tfjs-layers';
 
 import {BACKENDS, createInputTensors, LAYERS, LOCAL_SERVER, MODELS, REGRESSION} from './utils';
 
+/**
+ *  This file is 3/3 of the test suites for CUJ: create->save->predict.
+ *
+ *  This file test below things:
+ *  - Load layers models using Layers api.
+ *  - Make inference using each backends, and validate the results with Keras.
+ */
 describe(`${REGRESSION} ${LAYERS} create_save_predict`, () => {
   MODELS.forEach(model => {
     describe(`${model}.`, () => {
