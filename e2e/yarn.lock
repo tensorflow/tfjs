@@ -351,7 +351,7 @@
     through2 "^3.0.0"
     xdg-basedir "^4.0.0"
 
-"@google-cloud/storage@^5.0.0":
+"@google-cloud/storage@~5.0.0":
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/@google-cloud/storage/-/storage-5.0.0.tgz#a2fb3c7919570dbc49c413bddbe02023fee69954"
   integrity sha512-fmrXOnmoHwoUDQIXDfLE7BG/U8SUIb/c1a6m+S41KKj8gb3Ncwpci6b9aAZzryfN4OyL0BhdNBz/6SJq7TjliA==
