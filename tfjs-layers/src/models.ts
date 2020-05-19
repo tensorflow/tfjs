@@ -239,7 +239,7 @@ export async function loadLayersModelInternal(
     options = {};
   }
   if (typeof pathOrIOHandler === 'string') {
-    const handlers = io.getLoadHandlers(pathOrIOHandler, options.onProgress);
+    const handlers = io.getLoadHandlers(pathOrIOHandler, options);
     if (handlers.length === 0) {
       // For backward compatibility: if no load handler can be found,
       // assume it is a relative http path.

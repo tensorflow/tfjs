@@ -32,6 +32,7 @@ const CHAINED_OPS = [
   'conv1d',
   'conv2d',
   'conv2dTranspose',
+  'depthToSpace',
   'depthwiseConv2d',
   'depthwiseConv2D',
   'div',
