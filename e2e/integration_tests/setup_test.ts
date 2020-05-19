@@ -14,11 +14,12 @@
  * limitations under the License.
  * =============================================================================
  */
-
 import '@tensorflow/tfjs-backend-cpu';
 import '@tensorflow/tfjs-backend-webgl';
 
-import {TAGS} from './utils';
+import * as firebase from 'firebase';
+
+import {FIREBASE_CONFIG, TAGS} from './constants';
 
 // tslint:disable-next-line:no-any
 declare let __karma__: any;
@@ -26,16 +27,34 @@ if (typeof __karma__ !== 'undefined') {
   const args = __karma__.config.args;
 
   let tags;
+  let firebaseKey = '';
 
   args.forEach((arg: string, i: number) => {
     if (arg === '--tags') {
       tags = parseTags(args[i + 1]);
     }
+
+    if (arg === '--firebaseKey') {
+      firebaseKey = args[i + 1];
+    }
   });
 
   setupTestFilters(tags);
+
+  if (firebaseKey) {
+    const firebaseConfig = {...FIREBASE_CONFIG, apiKey: firebaseKey};
+    firebase.initializeApp(firebaseConfig);
+    try {
+      firebase.auth();
+    } catch (e) {
+      throw new Error(`Firebase auth failed with error: ${e}`);
+    }
+  }
 }
 
+/**
+ * Given a string separated with comma, validate and return tags as an array.
+ */
 function parseTags(tagsInput: string): string[] {
   if (!tagsInput || tagsInput === '') {
     throw new Error(
@@ -59,17 +78,17 @@ function parseTags(tagsInput: string): string[] {
   return $tags;
 }
 
+/**
+ * Filter method for Jasmine tests. If tags are passed, only tests with those
+ * tags in the description will run. If no tags are provided, all tests will
+ * run.
+ */
 function setupTestFilters(tags: string[]) {
   const env = jasmine.getEnv();
 
   // Account for --grep flag passed to karma by saving the existing specFilter.
   const grepFilter = env.specFilter;
 
-  /**
-   * Filter method that returns boolean, if a given test should run or be
-   * ignored based on its tags in its name. If no tags are provided from
-   * karma invocation, all tests will run.
-   */
   // tslint:disable-next-line: no-any
   env.specFilter = (spec: any) => {
     // Filter out tests if the --grep flag is passed.

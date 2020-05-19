@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import {ApplicationConfig} from './firebase_types';
 
 /** Smoke tests run in PR and nightly builds. */
 export const SMOKE = '#SMOKE';
@@ -37,20 +37,16 @@ export const MODELS = [
 /** Local server address for testing browser to access local files. */
 export const LOCAL_SERVER = 'http://127.0.0.1:8080';
 
-/**
- * Create a list of input tensors.
- * @param inputsData An array with each element being the value to create a
- *    tensor.
- * @param inputsShapes An array with each element being the shape to create a
- *    tensor.
- */
-export function createInputTensors(
-    inputsData: tfc.TypedArray[], inputsShapes: number[][]) {
-  const xs = [];
-  for (let i = 0; i < inputsData.length; i++) {
-    const input = tfc.tensor(inputsData[i], inputsShapes[i]);
-    xs.push(input);
-  }
+/** Default Firebase config. Used to construct config with apiKey substitute. */
+export const FIREBASE_CONFIG: ApplicationConfig = {
+  apiKey: '',
+  authDomain: 'jstensorflow.firebaseapp.com',
+  databaseURL: 'https://jstensorflow-integration.firebaseio.com/',
+  projectId: 'jstensorflow',
+  storageBucket: 'jstensorflow.appspot.com',
+  messagingSenderId: '433613381222'
+};
 
-  return xs;
-}
+export const testEnv = {
+  localTest: true
+};

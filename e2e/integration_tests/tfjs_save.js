@@ -20,10 +20,22 @@ const tfl = require('@tensorflow/tfjs-layers');
 const tfjsNode = require('@tensorflow/tfjs-node');
 const fs = require('fs');
 const join = require('path').join;
+const firebaseAdmin = require('firebase-admin');
 
 process.on('unhandledRejection', ex => {
   throw ex;
 });
+
+const firebaseConfig = {
+  apiKey: process.env.FIREBASE_KEY,
+  authDomain: 'jstensorflow.firebaseapp.com',
+  databaseURL: 'https://jstensorflow-integration.firebaseio.com/',
+  projectId: 'jstensorflow',
+  storageBucket: 'jstensorflow.appspot.com',
+  messagingSenderId: '433613381222'
+};
+firebaseAdmin.initializeApp(firebaseConfig);
+const storageRef = firebaseAdmin.storage().ref();
 
 /**
  * Generate random input(s), get predict() output(s), and save them along with
@@ -32,14 +44,24 @@ process.on('unhandledRejection', ex => {
  * @param model The `tf.LayersModel` instance in question. It may have one or
  * more inputs and one or more outputs. It is assumed that for each input, only
  *   the first dimension (i.e., the batch dimension) is undetermined.
- * @param exportPathprefix The path prefix to which the model, the input and
+ * @param modelName The path prefix to which the model, the input and
  *   output tensors will be saved
  * @param inputIntegerMax (Optional) Maximum integer value for the input
  *   tensors. Used for models that take integer tensors as inputs.
  */
-async function saveModelAndRandomInputs(
-    model, exportPathprefix, inputIntegerMax) {
-  await model.save(tfjsNode.io.fileSystem(`${exportPathprefix}`));
+async function saveModelAndRandomInputs(model, modelName, inputIntegerMax) {
+  await model.save(tfjsNode.io.fileSystem(`${modelName}`));
+
+  const modelFile = fs.readFileSync(`${modelName}/model.json`);
+  const weightsFile = fs.readFileSync(`${modelName}/weights.bin`);
+
+  const testingRef = storageRef.child('tfjs-testing');
+  const modelRef = testingRef.child(`${modelName}.model.json`);
+  const weightsRef = testingRef.child(`${modelName}.weights.bin`);
+
+  await modelRef.put(modelFile);
+  await weightsRef.put(weightsFile);
+
   tfc.setBackend('cpu');
   const xs = [];
   const xsData = [];
@@ -60,9 +82,17 @@ async function saveModelAndRandomInputs(
     xsData.push(Array.from(xTensor.dataSync()));
     xsShapes.push(xTensor.shape);
   }
-  fs.writeFileSync(exportPathprefix + '.xs-data.json', JSON.stringify(xsData));
-  fs.writeFileSync(
-      exportPathprefix + '.xs-shapes.json', JSON.stringify(xsShapes));
+
+  fs.writeFileSync(modelName + '.xs-data.json', JSON.stringify(xsData));
+  fs.writeFileSync(modelName + '.xs-shapes.json', JSON.stringify(xsShapes));
+  const xsDataFile = fs.readFileSync(`${modelName}/model.json`);
+  const xsShapesFile = fs.readFileSync(`${modelName}/weights.bin`);
+
+  const xsDataRef = testingRef.child(`${modelName}.xs-data.json`);
+  const xsShapesRef = testingRef.child(`${modelName}.xs-shapes.bin`);
+
+  await xsDataRef.put(xsDataFile);
+  await xsShapesRef.put(xsShapesFile);
 }
 
 // Multi-layer perceptron (MLP).

@@ -22,7 +22,7 @@ import * as tfconverter from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
 import * as tfl from '@tensorflow/tfjs-layers';
 
-import {BACKENDS, SMOKE} from './utils';
+import {BACKENDS, SMOKE} from './constants';
 
 const MOBILENET_MODEL_PATH =
     // tslint:disable-next-line:max-line-length

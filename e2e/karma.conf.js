@@ -49,6 +49,9 @@ module.exports = function(config) {
   if (config.tags) {
     args.push('--tags', config.tags);
   }
+  if (config.firebaseKey) {
+    args.push('--firebaseKey', config.firebase);
+  }
 
   let extraConfig = null;
 

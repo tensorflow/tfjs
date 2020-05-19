@@ -33,16 +33,9 @@ if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
     ./scripts/tfjs2keras-py.sh --stable
 fi
 
-# Start a simple local server to serve the models, inputs and outputs files.
-# So that browsers can access these files.
-if [[ -d "integration_tests/test_data" ]]; then
-  cd integration_tests/test_data
-  yarn http-server &
-fi
-
 if [ "$NIGHTLY" = true ]; then
-  yarn run-browserstack --browsers=bs_chrome_mac --tags $TAGS
-  yarn run-browserstack --browsers=bs_safari_mac,bs_firefox_mac,win_10_chrome,bs_ios_11,bs_android_9 --tags $TAGS
+  yarn run-browserstack --browsers=bs_chrome_mac --tags $TAGS --firebaseKey $FIREBASE_KEY
+  yarn run-browserstack --browsers=bs_safari_mac,bs_firefox_mac,win_10_chrome,bs_ios_11,bs_android_9 --tags $TAGS --firebaseKey $FIREBASE_KEY
 else
-  yarn run-browserstack --browsers=bs_chrome_mac --tags $TAGS
+  yarn run-browserstack --browsers=bs_chrome_mac --tags $TAGS --firebaseKey $FIREBASE_KEY
 fi

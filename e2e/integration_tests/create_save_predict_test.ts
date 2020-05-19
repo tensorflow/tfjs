@@ -21,7 +21,8 @@ import '@tensorflow/tfjs-backend-webgl';
 import * as tfc from '@tensorflow/tfjs-core';
 import * as tfl from '@tensorflow/tfjs-layers';
 
-import {BACKENDS, createInputTensors, LOCAL_SERVER, MODELS, REGRESSION} from './utils';
+import {BACKENDS, LOCAL_SERVER, MODELS, REGRESSION} from './constants';
+import {createInputTensors} from './test_util';
 
 /**
  *  This file is 3/3 of the test suites for CUJ: create->save->predict.

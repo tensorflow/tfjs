@@ -22,6 +22,8 @@
     "aws-sdk": "^2.498.0",
     "clang-format": "~1.2.4",
     "detect-browser": "~4.2.0",
+    "firebase": "~7.14.4",
+    "firebase-admin": "~8.12.1",
     "http-server": "^0.12.3",
     "jasmine": "~3.1.0",
     "jasmine-core": "~3.1.0",
@@ -68,5 +70,8 @@
   "license": "Apache-2.0",
   "engines": {
     "yarn": ">= 1.0.0"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "^5.0.0"
   }
 }
