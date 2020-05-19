@@ -17,9 +17,7 @@
 import '@tensorflow/tfjs-backend-cpu';
 import '@tensorflow/tfjs-backend-webgl';
 
-import * as firebase from 'firebase';
-
-import {FIREBASE_CONFIG, TAGS} from './constants';
+import {TAGS} from './constants';
 
 // tslint:disable-next-line:no-any
 declare let __karma__: any;
@@ -27,29 +25,14 @@ if (typeof __karma__ !== 'undefined') {
   const args = __karma__.config.args;
 
   let tags;
-  let firebaseKey = '';
 
   args.forEach((arg: string, i: number) => {
     if (arg === '--tags') {
       tags = parseTags(args[i + 1]);
     }
-
-    if (arg === '--firebaseKey') {
-      firebaseKey = args[i + 1];
-    }
   });
 
   setupTestFilters(tags);
-
-  if (firebaseKey) {
-    const firebaseConfig = {...FIREBASE_CONFIG, apiKey: firebaseKey};
-    firebase.initializeApp(firebaseConfig);
-    try {
-      firebase.auth();
-    } catch (e) {
-      throw new Error(`Firebase auth failed with error: ${e}`);
-    }
-  }
 }
 
 /**

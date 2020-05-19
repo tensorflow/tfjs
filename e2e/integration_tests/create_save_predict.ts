@@ -21,7 +21,7 @@ import '@tensorflow/tfjs-backend-webgl';
 import * as tfc from '@tensorflow/tfjs-core';
 import * as tfl from '@tensorflow/tfjs-layers';
 
-import {BACKENDS, LOCAL_SERVER, MODELS, REGRESSION} from './constants';
+import {BACKENDS, KARMA_SERVER, MODELS, REGRESSION} from './constants';
 import {createInputTensors} from './test_util';
 
 /**
@@ -43,13 +43,13 @@ describe(`${REGRESSION} create_save_predict`, () => {
       beforeAll(async () => {
         [inputsData, inputsShapes, kerasOutputData, kerasOutputShapes] =
             await Promise.all([
-              await fetch(`${LOCAL_SERVER}/${model}.xs-data.json`)
+              await fetch(`${KARMA_SERVER}/${model}.xs-data.json`)
                   .then(response => response.json()),
-              await fetch(`${LOCAL_SERVER}/${model}.xs-shapes.json`)
+              await fetch(`${KARMA_SERVER}/${model}.xs-shapes.json`)
                   .then(response => response.json()),
-              await fetch(`${LOCAL_SERVER}/${model}.ys-data.json`)
+              await fetch(`${KARMA_SERVER}/${model}.ys-data.json`)
                   .then(response => response.json()),
-              await fetch(`${LOCAL_SERVER}/${model}.ys-shapes.json`)
+              await fetch(`${KARMA_SERVER}/${model}.ys-shapes.json`)
                   .then(response => response.json())
             ]);
       });
@@ -57,7 +57,7 @@ describe(`${REGRESSION} create_save_predict`, () => {
       BACKENDS.forEach(backend => {
         it(`${model} with ${backend}.`, async () => {
           const $model =
-              await tfl.loadLayersModel(`${LOCAL_SERVER}/${model}/model.json`);
+              await tfl.loadLayersModel(`${KARMA_SERVER}/${model}/model.json`);
 
           const xs = createInputTensors(inputsData, inputsShapes);
 

@@ -98,9 +98,9 @@ describe(`${SMOKE} load_predict`, () => {
     });
 
     BACKENDS.forEach(backend => {
-      it(`predict with ${backend}.`, () => {
+      it(`predict with ${backend}.`, async () => {
         tfc.setBackend(backend);
-        model.executeAsync({indices, values});
+        await model.executeAsync({indices, values});
       });
     });
   });
