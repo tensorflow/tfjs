@@ -15,8 +15,6 @@
  * =============================================================================
  */
 
-import {ApplicationConfig} from './firebase_types';
-
 /** Smoke tests run in PR and nightly builds. */
 export const SMOKE = '#SMOKE';
 /** Regression tests run in nightly builds. */
@@ -35,18 +33,4 @@ export const MODELS = [
 ];
 
 /** Local server address for testing browser to access local files. */
-export const LOCAL_SERVER = 'http://127.0.0.1:8080';
-
-/** Default Firebase config. Used to construct config with apiKey substitute. */
-export const FIREBASE_CONFIG: ApplicationConfig = {
-  apiKey: '',
-  authDomain: 'jstensorflow.firebaseapp.com',
-  databaseURL: 'https://jstensorflow-integration.firebaseio.com/',
-  projectId: 'jstensorflow',
-  storageBucket: 'jstensorflow.appspot.com',
-  messagingSenderId: '433613381222'
-};
-
-export const testEnv = {
-  localTest: true
-};
+export const KARMA_SERVER = './base/integration_tests/test_data';

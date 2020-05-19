@@ -30,12 +30,12 @@ if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
     ./scripts/tfjs2keras-js.sh
     # Load equivalent keras models and generate outputs.
     # TODO(linazhao): Investigate why --dev --tfkeras fail.
-    #./scripts/tfjs2keras-py.sh --stable
+    ./scripts/tfjs2keras-py.sh --stable
 fi
 
-# if [ "$NIGHTLY" = true ]; then
-#   yarn run-browserstack --browsers=bs_chrome_mac --tags $TAGS --firebaseKey $FIREBASE_KEY
-#   yarn run-browserstack --browsers=bs_safari_mac,bs_firefox_mac,win_10_chrome,bs_ios_11,bs_android_9 --tags $TAGS --firebaseKey $FIREBASE_KEY
-# else
-#   yarn run-browserstack --browsers=bs_chrome_mac --tags $TAGS --firebaseKey $FIREBASE_KEY
-# fi
+if [ "$NIGHTLY" = true ]; then
+  yarn run-browserstack --browsers=bs_chrome_mac --tags $TAGS --firebaseKey $FIREBASE_KEY
+  yarn run-browserstack --browsers=bs_safari_mac,bs_firefox_mac,win_10_chrome,bs_ios_11,bs_android_9 --tags $TAGS --firebaseKey $FIREBASE_KEY
+else
+  yarn run-browserstack --browsers=bs_chrome_mac --tags $TAGS --firebaseKey $FIREBASE_KEY
+fi

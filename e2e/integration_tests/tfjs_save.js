@@ -20,13 +20,10 @@ const tfl = require('@tensorflow/tfjs-layers');
 const tfjsNode = require('@tensorflow/tfjs-node');
 const fs = require('fs');
 const join = require('path').join;
-const {Storage} = require('@google-cloud/storage');
 
 process.on('unhandledRejection', ex => {
   throw ex;
 });
-
-const storage = new Storage();
 
 /**
  * Generate random input(s), get predict() output(s), and save them along with
@@ -44,17 +41,6 @@ async function saveModelAndRandomInputs(
     model, exportPathprefix, inputIntegerMax) {
   await model.save(tfjsNode.io.fileSystem(exportPathprefix));
 
-  fs.renameSync(
-      `${exportPathprefix}/model.json`, `${exportPathprefix}.model.json`);
-  fs.renameSync(
-      `${exportPathprefix}/weights.bin`, `${exportPathprefix}.weights.bin`);
-
-  await storage.bucket('tfjs-integration')
-      .upload(`${exportPathprefix}.model.json`);
-  await storage.bucket('tfjs-integration')
-      .upload(`${exportPathprefix}.weights.bin`);
-
-  tfc.setBackend('cpu');
   const xs = [];
   const xsData = [];
   const xsShapes = [];
