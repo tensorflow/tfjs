@@ -101,6 +101,21 @@ describe('GraphExecutor', () => {
       outputs: [outputNode],
       weights: [constNode],
       placeholders: [inputNode],
+      functions: {
+        while_body: {
+          inputs: [inputNode],
+          nodes: {
+            'input': inputNode,
+            'const': constNode,
+            'intermediate': intermediateNode,
+            'output': outputNode
+          },
+          outputs: [outputNode],
+          weights: [constNode],
+          placeholders: [inputNode],
+          signature: SIGNATURE
+        }
+      },
       signature: SIGNATURE
     };
     inputNode.children.push(intermediateNode);
@@ -136,6 +151,10 @@ describe('GraphExecutor', () => {
         expect(executor.outputs).toEqual([
           {name: 'output', shape: [1, 1], dtype: 'int32'}
         ]);
+      });
+
+      it('should expose functions', () => {
+        expect(executor.functions).toEqual({while_body: SIGNATURE});
       });
     });
 

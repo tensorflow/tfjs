@@ -136,7 +136,23 @@ export class OperationMapper {
       inputs = placeholders;
     }
 
-    return {nodes, inputs, outputs, weights, placeholders, signature};
+    let functions = {};
+    if (graph.library != null) {
+      functions = graph.library.function.reduce((functions, func) => {
+        functions[func.signature.name] = this.mapFunction(func);
+        return functions;
+      }, {} as {[key: string]: Graph});
+    }
+
+    return {
+      nodes,
+      inputs,
+      outputs,
+      weights,
+      placeholders,
+      signature,
+      functions
+    };
   }
 
   private mapSignatureEntries(entries: {[k: string]: tensorflow.ITensorInfo}) {
@@ -294,6 +310,94 @@ export class OperationMapper {
           }, {});
     }
     return newNode;
+  }
+
+  // map the TFunctionDef to TFJS graph object
+  private mapFunction(functionDef: tensorflow.IFunctionDef): Graph {
+    const tfNodes = functionDef.nodeDef;
+    const placeholders: Node[] = [];
+    const weights: Node[] = [];
+    const nodes = tfNodes.reduce<{[key: string]: Node}>((map, node) => {
+      map[node.name] = this.mapNode(node);
+      if (node.op === 'Const') {
+        weights.push(map[node.name]);
+      }
+      return map;
+    }, {});
+
+    const inputs: Node[] = [];
+    const outputs: Node[] = [];
+
+
+    functionDef.signature.inputArg.forEach(arg => {
+      const [nodeName, ] = getNodeNameAndIndex(arg.name);
+      const node: Node = {
+        name: nodeName,
+        op: 'Placeholder',
+        inputs: [],
+        inputNames: [],
+        category: 'graph',
+        inputParams: {},
+        attrParams: {dtype: {value: parseDtypeParam(arg.type), type: 'dtype'}},
+        children: []
+      };
+      node.signatureKey = arg.name;
+      inputs.push(node);
+      nodes[nodeName] = node;
+    });
+
+    const allNodes = Object.keys(nodes);
+    allNodes.forEach(key => {
+      const node = nodes[key];
+      node.inputNames.forEach(name => {
+        const [nodeName, ] = getNodeNameAndIndex(name);
+        node.inputs.push(nodes[nodeName]);
+        nodes[nodeName].children.push(node);
+      });
+    });
+
+    const returnNodeMap = functionDef.ret;
+
+    Object.keys(returnNodeMap).forEach(key => {
+      const [nodeName, ] = getNodeNameAndIndex(returnNodeMap[key]);
+      const node = nodes[nodeName];
+      if (node != null) {
+        node.signatureKey = key;
+        outputs.push(node);
+      }
+    });
+
+    const signature = this.mapArgsToSignature(functionDef);
+    return {nodes, inputs, outputs, weights, placeholders, signature};
+  }
+
+  private mapArgsToSignature(functionDef: tensorflow.IFunctionDef):
+      tensorflow.ISignatureDef {
+    return {
+      methodName: functionDef.signature.name,
+      inputs: functionDef.signature.inputArg.reduce(
+          (map, arg) => {
+            map[arg.name] = this.mapArgToTensorInfo(arg);
+            return map;
+          },
+          {} as {[key: string]: tensorflow.ITensorInfo}),
+      outputs: functionDef.signature.outputArg.reduce(
+          (map, arg) => {
+            map[arg.name] = this.mapArgToTensorInfo(arg, functionDef.ret);
+            return map;
+          },
+          {} as {[key: string]: tensorflow.ITensorInfo}),
+    };
+  }
+
+  private mapArgToTensorInfo(
+      arg: tensorflow.OpDef.IArgDef,
+      nameMap?: {[key: string]: string}): tensorflow.ITensorInfo {
+    let name = arg.name;
+    if (nameMap != null) {
+      name = nameMap[name];
+    }
+    return {name, dtype: arg.type};
   }
 }
 

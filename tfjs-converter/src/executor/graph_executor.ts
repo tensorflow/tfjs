@@ -39,6 +39,8 @@ export class GraphExecutor {
   private _inputs: Node[];
   private _outputs: Node[];
   private SEPERATOR = ',';
+  private _functions: {[key: string]: Graph} = {};
+  private functionExecutorMap: {[key: string]: GraphExecutor} = {};
   get weightMap(): NamedTensorsMap {
     return this._weightMap;
   }
@@ -85,10 +87,25 @@ export class GraphExecutor {
     return this._outputs.map(node => node.signatureKey || node.name);
   }
 
+  get functions(): {[key: string]: ISignatureDef} {
+    return Object.keys(this._functions).reduce((map, key) => {
+      map[key] = this._functions[key].signature;
+      return map;
+    }, {} as {[key: string]: ISignatureDef});
+  }
+
   constructor(private graph: Graph) {
     this._outputs = graph.outputs;
     this._inputs = graph.inputs;
     this._signature = graph.signature;
+    this._functions = graph.functions;
+    // create sub-graph executors
+    if (graph.functions != null) {
+      Object.keys(graph.functions).forEach(name => {
+        this.functionExecutorMap[name] =
+            new GraphExecutor(graph.functions[name]);
+      });
+    }
   }
 
   private getCompilationKey(inputs: Node[], outputs: Node[]): string {
