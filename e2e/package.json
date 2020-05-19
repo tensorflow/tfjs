@@ -8,6 +8,7 @@
     "url": "https://github.com/tensorflow/tfjs"
   },
   "devDependencies": {
+    "@google-cloud/storage": "~5.0.0",
     "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@tensorflow/tfjs-converter": "link:../tfjs-converter",
     "@tensorflow/tfjs-layers": "link:../tfjs-layers",
@@ -70,8 +71,5 @@
   "license": "Apache-2.0",
   "engines": {
     "yarn": ">= 1.0.0"
-  },
-  "dependencies": {
-    "@google-cloud/storage": "^5.0.0"
   }
 }
