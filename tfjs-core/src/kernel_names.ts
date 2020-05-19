@@ -27,6 +27,20 @@ export type AddInputs = BinaryInputs;
 export const AddN = 'AddN';
 export type AddNInputs = TensorInfo[];
 
+export const BatchMatMul = 'BatchMatMul';
+export type BatchMatMulInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
+export interface BatchMatMulAttrs {
+  transposeA: boolean;
+  transposeB: boolean;
+}
+
+export const BatchToSpaceND = 'BatchToSpaceND';
+export type BatchToSpaceNDInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface BatchToSpaceNDAttrs {
+  blockShape: number[];
+  crops: number[][];
+}
+
 export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 
 export const BroadcastTo = 'BroadcastTo';
@@ -93,6 +107,13 @@ export interface Conv3DBackpropInputAttrs {
   pad: 'valid'|'same';
 }
 
+export const DepthToSpace = 'DepthToSpace';
+export type DepthToSpaceInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface DepthToSpaceAttrs {
+  blockSize: number;
+  dataFormat: 'NHWC'|'NCHW';
+}
+
 export const DepthwiseConv2dNative = 'DepthwiseConv2dNative';
 export type DepthwiseConv2dNativeInputs =
     Pick<NamedTensorInfoMap, 'x'|'filter'>;
@@ -145,6 +166,24 @@ export type LessInputs = BinaryInputs;
 export const LessEqual = 'LessEqual';
 export type LessEqualInputs = BinaryInputs;
 
+export const LRN = 'LRN';
+export type LRNInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface LRNAttrs {
+  depthRadius: number;
+  bias: number;
+  alpha: number;
+  beta: number;
+}
+
+export const LRNBackprop = 'LRNBackprop';
+export type LRNBackpropInputs = Pick<NamedTensorInfoMap, 'x'|'y'|'dy'>;
+export interface LRNBackpropAttrs {
+  depthRadius: number;
+  bias: number;
+  alpha: number;
+  beta: number;
+}
+
 export const MaxPoolWithArgmax = 'MaxPoolWithArgmax';
 export type MaxPoolWithArgmaxInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface MaxPoolWithArgmaxAttrs {
@@ -187,6 +226,13 @@ export type PadV2Inputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface PadV2Attrs {
   paddings: Array<[number, number]>;
   constantValue: number;
+}
+
+export const SpaceToBatchND = 'SpaceToBatchND';
+export type SpaceToBatchNDInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface SpaceToBatchNDAttrs {
+  blockShape: number[];
+  paddings: number[][];
 }
 
 export const SplitV = 'SplitV';

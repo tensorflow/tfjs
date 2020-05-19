@@ -295,6 +295,7 @@ def _remove_unused_control_flow_inputs(input_graph_def):
     new_node = node_def_pb2.NodeDef()
     new_node.CopyFrom(node)
     result_graph_def.node.extend([new_node])
+  result_graph_def.library.CopyFrom(input_graph_def.library)
   result_graph_def.versions.CopyFrom(input_graph_def.versions)
   return result_graph_def
 

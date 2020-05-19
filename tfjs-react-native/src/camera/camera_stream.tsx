@@ -121,7 +121,7 @@ const DEFAULT_RESIZE_DEPTH = 3;
  *       // updatePreview();
  *       // gl.endFrameEXP();
  *
- *       requestAnimation(loop);
+ *       requestAnimationFrame(loop);
  *     }
  *     loop();
  *   }
