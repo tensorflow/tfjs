@@ -7,6 +7,13 @@ To run the tests in local:
 yarn test
 ```
 
+For tests that need to access `integration_tests/test_data`, start a local
+server in the test_data folder:
+```
+cd integration_tests/test_data
+yarn http-server
+```
+
 ##Filter tests by tag:
 ```js
 yarn test --tags #SMOKE,#REGRESSION
