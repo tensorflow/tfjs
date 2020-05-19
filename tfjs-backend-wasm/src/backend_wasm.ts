@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
-import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, env, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm.js';
-import WasmBackendModule from '../wasm-out/tfjs-backend-wasm.js';
+
+declare const WasmBackendModule: Function;
 
 // @ts-ignore
 import {wasmWorkerContents} from '../wasm-out/tfjs-backend-wasm.worker.js';
@@ -195,6 +196,10 @@ function createInstantiateWasmFunc(path: string) {
   };
 }
 
+function fetchText(path: string) {
+  return fetch(path).then(response => response.text());
+}
+
 /**
  * Initializes the wasm module and creates the js <--> wasm bridge.
  *
@@ -203,6 +208,8 @@ function createInstantiateWasmFunc(path: string) {
  * in Chrome 76).
  */
 export async function init(): Promise<{wasm: BackendWasmModule}> {
+  const emscriptenContents = await fetchText('./tfjs-backend-wasm.js');
+  env().global.eval(emscriptenContents);
   return new Promise((resolve, reject) => {
     const factoryConfig: WasmFactoryConfig = {};
 
@@ -234,6 +241,8 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
     const wasm = WasmBackendModule(factoryConfig);
     const voidReturnType: string = null;
     // Using the tfjs namespace to avoid conflict with emscripten's API.
+    wasm.mainScriptUrlOrBlob =
+        new Blob([emscriptenContents], {type: 'text/javascript'});
     wasm.tfjs = {
       init: wasm.cwrap('init', null, []),
       registerTensor: wasm.cwrap(

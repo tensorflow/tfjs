@@ -15,12 +15,10 @@
  * =============================================================================
  */
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@tensorflow/tfjs-core'), require('../wasm-out/tfjs-backend-wasm.js')) :
-  typeof define === 'function' && define.amd ? define(['exports', '@tensorflow/tfjs-core', '../wasm-out/tfjs-backend-wasm.js'], factory) :
-  (global = global || self, factory((global.tf = global.tf || {}, global.tf.wasm = global.tf.wasm || {}), global.tf, global.WasmBackendModule));
-}(this, (function (exports, tfjsCore, WasmBackendModule) { 'use strict';
-
-  WasmBackendModule = WasmBackendModule && WasmBackendModule.hasOwnProperty('default') ? WasmBackendModule['default'] : WasmBackendModule;
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@tensorflow/tfjs-core')) :
+  typeof define === 'function' && define.amd ? define(['exports', '@tensorflow/tfjs-core'], factory) :
+  (global = global || self, factory((global.tf = global.tf || {}, global.tf.wasm = global.tf.wasm || {}), global.tf));
+}(this, (function (exports, tfjsCore) { 'use strict';
 
   /**
    * @license
@@ -2810,6 +2808,9 @@
           return {};
       };
   }
+  function fetchText(path) {
+      return fetch(path).then(response => response.text());
+  }
   /**
    * Initializes the wasm module and creates the js <--> wasm bridge.
    *
@@ -2818,6 +2819,8 @@
    * in Chrome 76).
    */
   async function init() {
+      const emscriptenContents = await fetchText('./tfjs-backend-wasm.js');
+      tfjsCore.env().global.eval(emscriptenContents);
       return new Promise((resolve, reject) => {
           const factoryConfig = {};
           const locateFile = (path, prefix) => {
@@ -2846,6 +2849,8 @@
           const wasm = WasmBackendModule(factoryConfig);
           const voidReturnType = null;
           // Using the tfjs namespace to avoid conflict with emscripten's API.
+          wasm.mainScriptUrlOrBlob =
+              new Blob([emscriptenContents], { type: 'text/javascript' });
           wasm.tfjs = {
               init: wasm.cwrap('init', null, []),
               registerTensor: wasm.cwrap('register_tensor', null, [

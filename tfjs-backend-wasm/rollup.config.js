@@ -55,7 +55,7 @@ function config({plugins = [], output = {}}) {
     output: {
       banner: PREAMBLE,
       sourcemap: true,
-      globals: {'@tensorflow/tfjs-core': 'tf', 'fs': 'fs', 'path': 'path', '../wasm-out/tfjs-backend-wasm.js': 'WasmBackendModule'},
+      globals: {'@tensorflow/tfjs-core': 'tf', 'fs': 'fs', 'path': 'path'},
       ...output,
     },
     external: ['crypto', '@tensorflow/tfjs-core', 'fs', 'path', '../wasm-out/tfjs-backend-wasm.js'],
