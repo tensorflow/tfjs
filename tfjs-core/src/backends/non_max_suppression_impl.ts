@@ -37,10 +37,12 @@ export function nonMaxSuppressionV3(
     iouThreshold: number, scoreThreshold: number): Tensor1D {
   const dummySoftNmsSigma = 0.0;
 
-  return nonMaxSuppressionImpl_(
-             boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
-             dummySoftNmsSigma)
-             .selectedIndices as Tensor1D;
+  const result = nonMaxSuppressionImpl_(
+      boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
+      dummySoftNmsSigma);
+  result.selectedScores.dispose();
+  result.numValidOutputs.dispose();
+  return result.selectedIndices as Tensor1D;
 }
 
 export function nonMaxSuppressionV5(

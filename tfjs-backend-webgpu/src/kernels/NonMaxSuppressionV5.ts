@@ -14,25 +14,24 @@
  * limitations under the License.
  * =============================================================================
  */
+import {backend_util, KernelConfig, NonMaxSuppressionV5, NonMaxSuppressionV5Attrs, NonMaxSuppressionV5Inputs} from '@tensorflow/tfjs-core';
 
-import {backend_util, kernel_impls, KernelConfig, TypedArray} from '@tensorflow/tfjs-core';
-import {NonMaxSuppressionV5, NonMaxSuppressionV5Attrs, NonMaxSuppressionV5Inputs} from '@tensorflow/tfjs-core';
-const nonMaxSuppressionV5 = kernel_impls.nonMaxSuppressionV5;
-import {MathBackendWebGL} from '../backend_webgl';
+import {WebGPUBackend} from '../backend_webgpu';
+export type TypedArray = Float32Array|Int32Array|Uint8Array;
 
 export const nonMaxSuppressionV5Config: KernelConfig = {
   kernelName: NonMaxSuppressionV5,
-  backendName: 'webgl',
+  backendName: 'webgpu',
   kernelFunc: ({inputs, backend, attrs}) => {
-    backend_util.warn(
-        'tf.nonMaxSuppression() in webgl locks the UI thread. ' +
+    console.warn(
+        'tf.nonMaxSuppression() in webgpu locks the UI thread. ' +
         'Call tf.nonMaxSuppressionAsync() instead');
 
     const {boxes, scores} = inputs as NonMaxSuppressionV5Inputs;
     const {maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma} =
         attrs as unknown as NonMaxSuppressionV5Attrs;
 
-    const gpuBackend = backend as MathBackendWebGL;
+    const gpuBackend = backend as WebGPUBackend;
 
     const boxesVals = gpuBackend.readSync(boxes.dataId) as TypedArray;
     const scoresVals = gpuBackend.readSync(scores.dataId) as TypedArray;
@@ -42,7 +41,7 @@ export const nonMaxSuppressionV5Config: KernelConfig = {
     const scoreThresholdVal = scoreThreshold;
     const softNmsSigmaVal = softNmsSigma;
 
-    const {selectedIndices, selectedScores} = nonMaxSuppressionV5(
+    const {selectedIndices, selectedScores} = backend_util.nonMaxSuppressionV5(
         boxesVals, scoresVals, maxOutputSizeVal, iouThresholdVal,
         scoreThresholdVal, softNmsSigmaVal);
 

@@ -17,12 +17,20 @@
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 import {divConfig} from './kernels/Div';
 import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
+import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
+import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 
 // List all kernel configs here
-const kernelConfigs: KernelConfig[] =
-    [divConfig, squareConfig, squaredDifferenceConfig, fusedBatchNormConfig];
+const kernelConfigs: KernelConfig[] = [
+  divConfig,
+  squareConfig,
+  squaredDifferenceConfig,
+  fusedBatchNormConfig,
+  nonMaxSuppressionV3Config,
+  nonMaxSuppressionV5Config,
+];
 
 for (const kernelConfig of kernelConfigs) {
   registerKernel(kernelConfig);
