@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {AsyncStorageStatic} from '@react-native-community/async-storage';
 import {io} from '@tensorflow/tfjs-core';
 import {fromByteArray, toByteArray} from 'base64-js';
 
@@ -60,23 +59,43 @@ function getModelArtifactsInfoForJSON(modelArtifacts: io.ModelArtifacts):
   };
 }
 
+interface StorageProviderInterface {
+  getItemAsync(key: string): Promise<string>;
+  setItemAsync(key: string, value: string): Promise<unknown>;
+  removeItemAsync(key: string): Promise<unknown>;
+}
+
+class RNCAsyncStorage implements StorageProviderInterface{
+  // tslint:disable-next-line:no-any
+  protected storage: any;
+  constructor() {
+    this.storage =
+        // tslint:disable-next-line:no-require-imports
+        require('@react-native-community/async-storage').default;
+
+  }
+  getItemAsync(key: string): Promise<string> {
+    return this.storage.getItem(key);
+  }
+  setItemAsync(key: string, value:string): Promise<unknown> {
+    return this.storage.setItemAsync(key);
+  }
+  removeItemAsync(key: string): Promise<unknown> {
+    return this.storage.removeItemAsync(key);
+  }
+}
+
 class AsyncStorageHandler implements io.IOHandler {
   protected readonly keys: StorageKeys;
-  protected asyncStorage: AsyncStorageStatic;
+  protected asyncStorage: StorageProviderInterface = new RNCAsyncStorage();
 
-  constructor(protected readonly modelPath: string) {
+  constructor(
+      protected readonly modelPath: string
+  ) {
     if (modelPath == null || !modelPath) {
       throw new Error('modelPath must not be null, undefined or empty.');
     }
     this.keys = getModelKeys(this.modelPath);
-
-    // We import this dynamically because it binds to a native library that
-    // needs to be installed by the user if they use this handler. We don't
-    // want users who are not using AsyncStorage to have to install this
-    // library.
-    this.asyncStorage =
-        // tslint:disable-next-line:no-require-imports
-        require('@react-native-community/async-storage').default;
   }
 
   /**
@@ -99,19 +118,20 @@ class AsyncStorageHandler implements io.IOHandler {
       const {weightData, ...modelArtifactsWithoutWeights} = modelArtifacts;
 
       try {
-        this.asyncStorage.setItem(
+        await this.asyncStorage.setItemAsync(
             this.keys.info, JSON.stringify(modelArtifactsInfo));
-        this.asyncStorage.setItem(
+        await this.asyncStorage.setItemAsync(
             this.keys.modelArtifactsWithoutWeights,
             JSON.stringify(modelArtifactsWithoutWeights));
-        this.asyncStorage.setItem(
+        await this.asyncStorage.setItemAsync(
             this.keys.weightData, fromByteArray(new Uint8Array(weightData)));
         return {modelArtifactsInfo};
       } catch (err) {
         // If saving failed, clean up all items saved so far.
-        this.asyncStorage.removeItem(this.keys.info);
-        this.asyncStorage.removeItem(this.keys.weightData);
-        this.asyncStorage.removeItem(this.keys.modelArtifactsWithoutWeights);
+        await this.asyncStorage.removeItemAsync(this.keys.info);
+        await this.asyncStorage.removeItemAsync(this.keys.weightData);
+        await this.asyncStorage.removeItemAsync(
+            this.keys.modelArtifactsWithoutWeights);
 
         throw new Error(
             `Failed to save model '${this.modelPath}' to AsyncStorage.
@@ -129,8 +149,9 @@ class AsyncStorageHandler implements io.IOHandler {
    * @returns The loaded model (if loading succeeds).
    */
   async load(): Promise<io.ModelArtifacts> {
-    const info = JSON.parse(await this.asyncStorage.getItem(this.keys.info)) as
-        io.ModelArtifactsInfo;
+    const info = JSON.parse(
+        await this.asyncStorage.getItemAsync(this.keys.info)
+    ) as io.ModelArtifactsInfo;
     if (info == null) {
       throw new Error(
           `In local storage, there is no model with name '${this.modelPath}'`);
@@ -143,12 +164,12 @@ class AsyncStorageHandler implements io.IOHandler {
     }
 
     const modelArtifacts: io.ModelArtifacts =
-        JSON.parse(await this.asyncStorage.getItem(
+        JSON.parse(await this.asyncStorage.getItemAsync(
             this.keys.modelArtifactsWithoutWeights));
 
     // Load weight data.
     const weightDataBase64 =
-        await this.asyncStorage.getItem(this.keys.weightData);
+        await this.asyncStorage.getItemAsync(this.keys.weightData);
     if (weightDataBase64 == null) {
       throw new Error(
           `In local storage, the binary weight values of model ` +
