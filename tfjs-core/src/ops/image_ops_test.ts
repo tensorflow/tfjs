@@ -175,6 +175,8 @@ describeWithFlags('nonMaxSuppression', ALL_ENVS, () => {
     });
 
     it('works with other operators, div', async () => {
+      // This test ensures that asynchronous backends work with NMS, which
+      // requires inputs to reside on the CPU.
       const boxes = tf.tensor2d(
           [
             0, 0,  1, 1,  0, 0.1,  1, 1.1,  0, -0.1, 1, 0.9,
