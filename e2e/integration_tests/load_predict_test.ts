@@ -57,8 +57,8 @@ describe(`${SMOKE} load_predict`, () => {
     });
 
     BACKENDS.forEach(backend => {
-      it(`predict with ${backend}.`, () => {
-        tfc.setBackend(backend);
+      it(`predict with ${backend}.`, async () => {
+        await tfc.setBackend(backend);
         model.predict(inputs);
       });
     });
@@ -99,7 +99,7 @@ describe(`${SMOKE} load_predict`, () => {
 
     BACKENDS.forEach(backend => {
       it(`predict with ${backend}.`, async () => {
-        tfc.setBackend(backend);
+        await tfc.setBackend(backend);
         await model.executeAsync({indices, values});
       });
     });
