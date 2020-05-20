@@ -61,7 +61,7 @@ describe(`${REGRESSION} create_save_predict`, () => {
 
           const xs = createInputTensors(inputsData, inputsShapes);
 
-          tfc.setBackend(backend);
+          await tfc.setBackend(backend);
 
           const result = $model.predict(xs);
 
