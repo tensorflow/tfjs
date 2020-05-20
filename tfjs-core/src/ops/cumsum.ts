@@ -20,14 +20,12 @@ import {ENGINE, ForwardFunc} from '../engine';
 import {Cumsum, CumsumAttrs, CumsumInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
-import {NamedTensorMap} from '../tensor_types';
+import {GradSaveFunc, NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
 import {getAxesPermutation, getInnerMostAxes} from './axis_util';
 import {op} from './operation';
-
-
 
 /**
  * Computes the cumulative sum of a `tf.Tensor` along `axis`.
@@ -55,21 +53,23 @@ function cumsum_<T extends Tensor>(
     x: Tensor|TensorLike, axis = 0, exclusive = false, reverse = false): T {
   const $x = convertToTensor(x, 'x', 'cumsum');
 
-  const forward: ForwardFunc<Tensor> = (backend: KernelBackend) => {
-    axis = axis | 0;
-    const permutation = getAxesPermutation([axis], $x.rank);
-    let permutedX = $x;
-    if (permutation != null) {
-      permutedX = $x.transpose(permutation);
-    }
-    const permutedAxis = getInnerMostAxes(1, $x.rank)[0];
-    let value = backend.cumsum(permutedX, permutedAxis, exclusive, reverse);
+  const forward: ForwardFunc<Tensor> =
+      (backend: KernelBackend, save: GradSaveFunc) => {
+        axis = axis | 0;
+        const permutation = getAxesPermutation([axis], $x.rank);
+        let permutedX = $x;
+        if (permutation != null) {
+          permutedX = $x.transpose(permutation);
+        }
+        const permutedAxis = getInnerMostAxes(1, $x.rank)[0];
+        let value = backend.cumsum(permutedX, permutedAxis, exclusive, reverse);
+        save([$x]);
 
-    if (permutation != null) {
-      value = value.transpose(permutation);
-    }
-    return value;
-  };
+        if (permutation != null) {
+          value = value.transpose(permutation);
+        }
+        return value;
+      };
 
   const inputs: CumsumInputs = {x: $x};
   const attrs: CumsumAttrs = {axis, exclusive, reverse};
