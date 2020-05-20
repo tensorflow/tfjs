@@ -23,6 +23,7 @@ import {concatGradConfig} from './gradients/Concat_grad';
 import {conv2DGradConfig} from './gradients/Conv2D_grad';
 import {conv2DBackpropInputGradConfig} from './gradients/Conv2DBackpropInput_grad';
 import {conv3DGradConfig} from './gradients/Conv3D_grad';
+import {cumsumGradConfig} from './gradients/Cumsum_grad';
 import {depthwiseConv2dNativeGradConfig} from './gradients/DepthwiseConv2dNative_grad';
 import {divGradConfig} from './gradients/Div_grad';
 import {fusedBatchNormGradConfig} from './gradients/FusedBatchNorm_grad';
@@ -44,18 +45,31 @@ import {registerGradient} from './kernel_registry';
 
 // Export all kernel configs here so that the package can auto register them
 const gradConfigs: GradConfig[] = [
-  addGradConfig,          addNGradConfig,
-  batchMatMulGradConfig,  batchToSpaceNDGradConfig,
-  broadcastToGradConfig,  concatGradConfig,
-  conv2DGradConfig,       conv2DBackpropInputGradConfig,
-  conv3DGradConfig,       depthwiseConv2dNativeGradConfig,
-  divGradConfig,          fusedBatchNormGradConfig,
-  greaterEqualGradConfig, identityGradConfig,
-  lrnGradConfig,          oneHotGradConfig,
-  padV2GradConfig,        splitVGradConfig,
-  maxGradConfig,          spaceToBatchNDGradConfig,
-  squareGradConfig,       squaredDifferenceGradConfig,
-  tileGradConfig,         transposeGradConfig,
+  addGradConfig,
+  addNGradConfig,
+  batchMatMulGradConfig,
+  batchToSpaceNDGradConfig,
+  broadcastToGradConfig,
+  concatGradConfig,
+  conv2DGradConfig,
+  conv2DBackpropInputGradConfig,
+  conv3DGradConfig,
+  cumsumGradConfig,
+  depthwiseConv2dNativeGradConfig,
+  divGradConfig,
+  fusedBatchNormGradConfig,
+  greaterEqualGradConfig,
+  identityGradConfig,
+  lrnGradConfig,
+  oneHotGradConfig,
+  padV2GradConfig,
+  splitVGradConfig,
+  maxGradConfig,
+  spaceToBatchNDGradConfig,
+  squareGradConfig,
+  squaredDifferenceGradConfig,
+  tileGradConfig,
+  transposeGradConfig,
   subGradConfig
 ];
 

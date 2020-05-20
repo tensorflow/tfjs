@@ -31,6 +31,7 @@ const CHAINED_OPS = [
   'concat',
   'conv1d',
   'conv2d',
+  'cumsum',
   'conv2dTranspose',
   'depthToSpace',
   'depthwiseConv2d',

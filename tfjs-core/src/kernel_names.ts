@@ -107,6 +107,14 @@ export interface Conv3DBackpropInputAttrs {
   pad: 'valid'|'same';
 }
 
+export const Cumsum = 'Cumsum';
+export type CumsumInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface CumsumAttrs {
+  axis: number;
+  exclusive: boolean;
+  reverse: boolean;
+}
+
 export const DepthToSpace = 'DepthToSpace';
 export type DepthToSpaceInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface DepthToSpaceAttrs {
