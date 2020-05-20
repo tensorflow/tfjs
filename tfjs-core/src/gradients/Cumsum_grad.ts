@@ -22,6 +22,7 @@ import {Tensor} from '../tensor';
 
 export const cumsumGradConfig: GradConfig = {
   kernelName: Cumsum,
+  inputsToSave: ['x'],
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const [x] = saved;
     const cumsumAttrs: CumsumAttrs = attrs as {} as CumsumAttrs;

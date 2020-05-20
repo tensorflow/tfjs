@@ -49,7 +49,7 @@ describeWithFlags('cumsum', ALL_ENVS, () => {
     expectArraysClose(await res.data(), [9, 7, 4, 0]);
   });
 
-  it('gradient: 1D', async () => {
+  fit('gradient: 1D', async () => {
     const a = tf.tensor1d([1, 2, 3]);
     const dy = tf.tensor1d([4, 5, 6]);
     const da = tf.grad(x => tf.cumsum(x))(a, dy);
