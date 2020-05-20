@@ -26,6 +26,7 @@ import {TensorLike} from '../types';
 
 import {getAxesPermutation, getInnerMostAxes} from './axis_util';
 import {op} from './operation';
+import {transpose} from './transpose';
 
 /**
  * Computes the cumulative sum of a `tf.Tensor` along `axis`.
@@ -59,14 +60,14 @@ function cumsum_<T extends Tensor>(
         const permutation = getAxesPermutation([axis], $x.rank);
         let permutedX = $x;
         if (permutation != null) {
-          permutedX = $x.transpose(permutation);
+          permutedX = transpose($x, permutation);
         }
         const permutedAxis = getInnerMostAxes(1, $x.rank)[0];
         let value = backend.cumsum(permutedX, permutedAxis, exclusive, reverse);
         save([$x]);
 
         if (permutation != null) {
-          value = value.transpose(permutation);
+          value = transpose(value, permutation);
         }
         return value;
       };
