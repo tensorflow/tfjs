@@ -60,7 +60,7 @@ export interface WebGPUMemoryInfo extends backend_util.MemoryInfo {
 
 type BufferInfo = {
   byteSize: number,
-  usage: GPUBufferUsage,
+  usage: GPUBufferUsageFlags,
   buffer?: GPUBuffer
 };
 
@@ -174,7 +174,7 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   private acquireBuffer(
-      byteSize: number, usage: GPUBufferUsage = DEFAULT_GPUBUFFER_USAGE) {
+      byteSize: number, usage: GPUBufferUsageFlags = DEFAULT_GPUBUFFER_USAGE) {
     return this.bufferManager.acquireBuffer(byteSize, usage);
   }
 

@@ -65,7 +65,7 @@ export const makeBindGroup =
       }
       return device.createBindGroup({
         layout: bindGroupLayout,
-        bindings: bindings.map((b, i) => ({binding: i, resource: b.resource})),
+        entries: bindings.map((b, i) => ({binding: i, resource: b.resource})),
       });
     };
 
@@ -92,7 +92,7 @@ const makeBindGroupLayout =
         });
       }
       return device.createBindGroupLayout({
-        bindings: bindings.map((b, i) => ({binding: i, ...b})),
+        entries: bindings.map((b, i) => ({binding: i, ...b})),
       });
     };
 
