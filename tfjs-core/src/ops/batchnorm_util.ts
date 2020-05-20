@@ -14,16 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import {deprecationWarn} from '../globals';
 import {Tensor, Tensor4D} from '../tensor';
 import {Rank} from '../types';
-
-export function warnDeprecation(): void {
-  deprecationWarn(
-      'tf.batchNormalization() is going away. ' +
-      'Use tf.batchNorm() instead, and note the positional argument change ' +
-      'of scale, offset, and varianceEpsilon');
-}
 
 export function xAs4D<R extends Rank>(x: Tensor<R>) {
   let x4D: Tensor4D;

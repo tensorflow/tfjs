@@ -181,9 +181,6 @@ export interface OpHandler {
   squeeze<T extends Tensor>(x: Tensor, axis?: number[]): T;
   clone<T extends Tensor>(x: T): T;
   gather<T extends Tensor>(x: T, indices: Tensor|TensorLike, axis: number): T;
-  matMul<T extends Tensor>(
-      a: T, b: T|TensorLike, transposeA: boolean, transposeB: boolean): T;
-  dot(t1: Tensor, t2: Tensor|TensorLike): Tensor;
   norm(
       x: Tensor, ord: number|'euclidean'|'fro', axis: number|number[],
       keepDims: boolean): Tensor;
@@ -296,21 +293,14 @@ export interface OpHandler {
       input: T, windowShape: [number, number]|number, poolingType: 'avg'|'max',
       padding: 'valid'|'same'|number, diationRate?: [number, number]|number,
       strides?: [number, number]|number): T;
-  localResponseNormalization<T extends Tensor3D|Tensor4D>(
-      x: T, depthRadius: number, bias: number, alpha: number, beta: number): T;
   unsortedSegmentSum<T extends Tensor>(
       x: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T;
-  batchToSpaceND<T extends Tensor>(
-      x: T, blockShape: number[], crops: number[][]): T;
-  spaceToBatchND<T extends Tensor>(
-      x: T, blockShape: number[], paddings: number[][]): T;
   topk<T extends Tensor>(x: T, k: number, sorted: boolean):
       {values: T, indices: T};
   stridedSlice(
       x: Tensor, begin: number[], end: number[], strides: number[],
       beginMask: number, endMask: number, ellipsisMask: number,
       newAxisMask: number, shrinkAxisMask: number): Tensor;
-  depthToSpace(x: Tensor4D, blockSize: number, dataFormat: string): Tensor4D;
   spectral: {
     fft(x: Tensor): Tensor; ifft(x: Tensor): Tensor; rfft(x: Tensor): Tensor;
     irfft(x: Tensor): Tensor
@@ -732,16 +722,6 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.gather(this, indices, axis);
   }
-
-  matMul<T extends Tensor>(
-      this: T, b: T|TensorLike, transposeA = false, transposeB = false): T {
-    this.throwIfDisposed();
-    return opHandler.matMul(this, b, transposeA, transposeB);
-  }
-  dot(b: Tensor|TensorLike): Tensor {
-    this.throwIfDisposed();
-    return opHandler.dot(this, b);
-  }
   norm(
       ord: number|'euclidean'|'fro' = 'euclidean', axis: number|number[] = null,
       keepDims = false): Tensor {
@@ -763,22 +743,6 @@ export class Tensor<R extends Rank = Rank> {
   unstack(axis = 0): Tensor[] {
     return opHandler.unstack(this, axis);
   }
-  /**
-   * @deprecated Use `tf.batchNorm` instead, and note the positional argument
-   *     change of scale, offset, and varianceEpsilon.
-   */
-  batchNormalization(
-      mean: Tensor<R>|Tensor1D|TensorLike,
-      variance: Tensor<R>|Tensor1D|TensorLike, varianceEpsilon = .001,
-      scale?: Tensor<R>|Tensor1D|TensorLike,
-      offset?: Tensor<R>|Tensor1D|TensorLike): Tensor<R> {
-    deprecationWarningFn(
-        'tf.batchNormalization() is going away. ' +
-        'Use tf.batchNorm() instead, and note the positional argument change ' +
-        'of scale, offset, and varianceEpsilon');
-    return this.batchNorm(mean, variance, offset, scale, varianceEpsilon);
-  }
-
   // Reduction ops.
   all<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
     this.throwIfDisposed();
@@ -1194,11 +1158,6 @@ export class Tensor<R extends Rank = Rank> {
     (this as Tensor).throwIfDisposed();
     return opHandler.maxPool(this, filterSize, strides, pad, dimRoundingMode);
   }
-  localResponseNormalization<T extends Tensor3D|Tensor4D>(
-      this: T, radius = 5, bias = 1, alpha = 1, beta = 0.5): T {
-    return opHandler.localResponseNormalization(
-        this, radius, bias, alpha, beta);
-  }
   pool<T extends Tensor3D|Tensor4D>(
       this: T, windowShape: [number, number]|number, poolingType: 'max'|'avg',
       padding: 'valid'|'same'|number, dilationRate?: [number, number]|number,
@@ -1220,18 +1179,6 @@ export class Tensor<R extends Rank = Rank> {
     return opHandler.unsortedSegmentSum(this, segmentIds, numSegments);
   }
 
-  batchToSpaceND<T extends Tensor>(
-      this: T, blockShape: number[], crops: number[][]): T {
-    this.throwIfDisposed();
-    return opHandler.batchToSpaceND(this, blockShape, crops);
-  }
-
-  spaceToBatchND<T extends Tensor>(
-      this: T, blockShape: number[], paddings: number[][]): T {
-    this.throwIfDisposed();
-    return opHandler.spaceToBatchND(this, blockShape, paddings);
-  }
-
   topk<T extends Tensor>(this: T, k = 1, sorted = true):
       {values: T, indices: T} {
     this.throwIfDisposed();
@@ -1246,12 +1193,6 @@ export class Tensor<R extends Rank = Rank> {
     return opHandler.stridedSlice(
         this, begin, end, strides, beginMask, endMask, ellipsisMask,
         newAxisMask, shrinkAxisMask);
-  }
-
-  depthToSpace(this: Tensor4D, blockSize: number, dataFormat: 'NHWC'|'NCHW'):
-      Tensor4D {
-    this.throwIfDisposed();
-    return opHandler.depthToSpace(this, blockSize, dataFormat);
   }
 
   fft(this: Tensor): Tensor {

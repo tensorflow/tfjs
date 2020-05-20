@@ -24,7 +24,6 @@ import {backend_util, buffer, kernel_impls, slice_util, util} from '@tensorflow/
 import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 
 const {segment_util} = backend_util;
-const nonMaxSuppressionV3 = kernel_impls.nonMaxSuppressionV3;
 const split = kernel_impls.split;
 const tile = kernel_impls.tile;
 const topkImpl = kernel_impls.topkImpl;
@@ -883,10 +882,10 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [a, b], a.dtype);
   }
 
-  batchNormalization(
+  batchNorm(
       x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
-      varianceEpsilon: number, scale?: Tensor4D|Tensor1D,
-      offset?: Tensor4D|Tensor1D): Tensor4D {
+      offset?: Tensor4D|Tensor1D, scale?: Tensor4D|Tensor1D,
+      varianceEpsilon?: number): Tensor4D {
     const inputs = [x, mean, variance];
 
     let offsetShape = null;
@@ -2220,18 +2219,6 @@ export class MathBackendWebGL extends KernelBackend {
   diag(x: Tensor): Tensor {
     const program = new DiagProgram(x.size);
     return this.compileAndRun(program, [x]);
-  }
-
-  nonMaxSuppression(
-      boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
-      iouThreshold: number, scoreThreshold: number): Tensor1D {
-    backend_util.warn(
-        'tf.nonMaxSuppression() in webgl locks the UI thread. ' +
-        'Call tf.nonMaxSuppressionAsync() instead');
-    const boxesVals = boxes.dataSync();
-    const scoresVals = scores.dataSync();
-    return nonMaxSuppressionV3(
-        boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   }
 
   cropAndResize(

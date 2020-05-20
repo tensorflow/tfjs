@@ -218,6 +218,15 @@ describe('loadGraphModel', () => {
     }
     expect(errorMsg).toMatch(/modelUrl in loadGraphModel\(\) cannot be null/);
   });
+
+  it('Pass a fetchFunc', async () => {
+    const fetchFunc = () => {};
+    spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+      CUSTOM_HTTP_MODEL_LOADER
+    ]);
+    await loadGraphModel(MODEL_URL, {fetchFunc});
+    expect(tfc.io.getLoadHandlers).toHaveBeenCalledWith(MODEL_URL, {fetchFunc});
+  });
 });
 
 describe('Model', () => {
