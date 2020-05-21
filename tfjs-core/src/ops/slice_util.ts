@@ -62,6 +62,50 @@ export function computeOutShape(
   return size;
 }
 
+export function stridesWithEllidedDims(
+    strides: number[], ellipsisInsertionIndex: number,
+    numEllidedAxes: number): number[] {
+  const newStrides = [...strides];
+  for (let i = 0; i < numEllidedAxes; i++) {
+    newStrides.splice(
+        ellipsisInsertionIndex, 0 /* num elements to delete */,
+        1 /* element to add */);
+    newStrides.pop();
+  }
+  return newStrides;
+}
+
+// Inserts full dimension selection into start indices.
+export function startIndicesWithEllidedDims(
+    startIndices: number[], ellipsisInsertionIndex: number,
+    numEllidedAxes: number): number[] {
+  const newIndices = [...startIndices];
+  for (let i = 0; i < numEllidedAxes; i++) {
+    newIndices.splice(
+        ellipsisInsertionIndex, 0 /* num elements to delete */,
+        0 /* element to add */);
+    newIndices.pop();
+  }
+  return newIndices;
+}
+
+export function stopIndicesWithEllidedDims(
+    stopIndices: number[], ellipsisInsertionIndex: number,
+    numEllidedAxes: number, inputShape: number[]): number[] {
+  const newIndices = [...stopIndices];
+  for (let i = 0; i < numEllidedAxes; i++) {
+    newIndices.splice(
+        ellipsisInsertionIndex + i, 0 /* num elements to delete */,
+        Number.MAX_SAFE_INTEGER /* element to add */);
+    newIndices.pop();  // remove last null element from the array
+  }
+
+  for (let i = 0; i < newIndices.length; i++) {
+    newIndices[i] = util.clamp(0, newIndices[i], inputShape[i]);
+  }
+  return newIndices;
+}
+
 export function stridesForAxis(
     strides: number[], axis: number, ellipsisMask: number): number {
   let stride = strides[axis];
@@ -103,45 +147,6 @@ export function startForAxis(
   start = util.clamp(0, start, axisSize - 1);
 
   return start;
-}
-
-export function stridesWithEllidedDims(
-    strides: number[], ellipsisInsertionIndex: number,
-    numEllidedAxes: number): number[] {
-  const newStrides = [...strides];
-  for (let i = 0; i < numEllidedAxes; i++) {
-    newStrides.splice(ellipsisInsertionIndex, 0, 1);
-    newStrides.pop();
-  }
-  return newStrides;
-}
-
-export function startIndicesWithEllidedDims(
-    startIndices: number[], ellipsisInsertionIndex: number,
-    numEllidedAxes: number): number[] {
-  const newIndices = [...startIndices];
-  for (let i = 0; i < numEllidedAxes; i++) {
-    newIndices.splice(ellipsisInsertionIndex, 0, 0);
-    newIndices.pop();
-  }
-  return newIndices;
-}
-
-export function stopIndicesWithEllidedDims(
-    stopIndices: number[], ellipsisInsertionIndex: number,
-    numEllidedAxes: number, inputShape: number[]): number[] {
-  const newIndices = [...stopIndices];
-  for (let i = 0; i < numEllidedAxes; i++) {
-    newIndices.splice(
-        ellipsisInsertionIndex + i, 0 /* number to delete */,
-        Number.MAX_SAFE_INTEGER /* element to add */);
-    newIndices.pop();  // remove last null element from the array
-  }
-
-  for (let i = 0; i < newIndices.length; i++) {
-    newIndices[i] = util.clamp(0, newIndices[i], inputShape[i]);
-  }
-  return newIndices;
 }
 
 export function stopForAxis(
