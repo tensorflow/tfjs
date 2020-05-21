@@ -62,11 +62,9 @@ function parseTags(tagsInput: string): string[] {
 }
 
 /**
- * Filter method for Jasmine tests. If tags are passed, only tests with those
- * tags in the description will run. If no tags are provided, all tests will
- * run.
+ * Run Jasmine tests only for whitelisted tags.
  */
-function setupTestFilters(tags: string[]) {
+function setupTestFilters(tags: string[] = []) {
   const env = jasmine.getEnv();
 
   // Account for --grep flag passed to karma by saving the existing specFilter.
@@ -77,11 +75,6 @@ function setupTestFilters(tags: string[]) {
     // Filter out tests if the --grep flag is passed.
     if (!grepFilter(spec)) {
       return false;
-    }
-
-    // Test everything.
-    if (tags == null) {
-      return true;
     }
 
     const name = spec.getFullName();
