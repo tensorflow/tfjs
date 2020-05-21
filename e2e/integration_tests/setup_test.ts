@@ -22,7 +22,7 @@ import {TAGS} from './constants';
 // tslint:disable-next-line:no-any
 declare let __karma__: any;
 if (typeof __karma__ !== 'undefined') {
-  const args = __karma__.config.args;
+  const args = __karma__.config.args || [];
 
   let tags;
 

@@ -40,12 +40,17 @@ describe(`${SMOKE} load_predict`, () => {
     let model: tfl.LayersModel;
     let inputs: tfc.Tensor;
 
+    const expected = [
+      -0.003578941337764263, 0.0028922036290168762, -0.002957976423203945,
+      0.00955402385443449
+    ];
+
     beforeAll(async () => {
       model = await tfl.loadLayersModel(getModelUrl('layers_model'));
     });
 
     beforeEach(() => {
-      inputs = tfc.zeros([1, 40, 40, 3]);
+      inputs = tfc.tensor([86, 11, 62, 40, 36, 75, 82, 94, 67, 75], [1, 10]);
     });
 
     afterEach(() => {
@@ -55,7 +60,8 @@ describe(`${SMOKE} load_predict`, () => {
     BACKENDS.forEach(backend => {
       it(`predict with ${backend}.`, async () => {
         await tfc.setBackend(backend);
-        model.predict(inputs);
+        const result = model.predict(inputs) as tfc.Tensor;
+        tfc.test_util.expectArraysClose(await result.data(), expected);
       });
     });
   });
@@ -63,6 +69,11 @@ describe(`${SMOKE} load_predict`, () => {
   describe('graph_model', () => {
     let model: tfconverter.GraphModel;
     let a: tfc.Tensor;
+
+    const expected = [
+      0.7567615509033203, -0.18349379301071167, 0.7567615509033203,
+      -0.18349379301071167
+    ];
 
     beforeAll(async () => {
       model = await tfconverter.loadGraphModel(getModelUrl('graph_model'));
@@ -79,7 +90,8 @@ describe(`${SMOKE} load_predict`, () => {
     BACKENDS.forEach(backend => {
       it(`predict with ${backend}.`, async () => {
         await tfc.setBackend(backend);
-        await model.executeAsync(a);
+        const result = await model.executeAsync(a) as tfc.Tensor;
+        tfc.test_util.expectArraysClose(await result.data(), expected);
       });
     });
   });
