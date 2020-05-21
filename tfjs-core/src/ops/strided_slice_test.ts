@@ -20,6 +20,24 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 describeWithFlags('stridedSlice', ALL_ENVS, () => {
+  fit('testing', async () => {
+    const test = tf.tensor2d([
+      [1, 2, 3, 4, 5],
+      [2, 3, 4, 5, 6],
+      [3, 4, 5, 6, 7],
+      [4, 5, 6, 7, 8],
+      [5, 6, 7, 8, 9],
+      [6, 7, 8, 9, 10],
+      [7, 8, 9, 10, 11],
+      [8, 8, 9, 10, 11],
+      [9, 8, 9, 10, 11],
+      [10, 8, 9, 10, 11],
+    ]);
+    const result = test.stridedSlice([0, 4], [0, 5], [1, 1], 0, 0, 1);
+    const data = await result.data();
+    console.log(Array.from(data));
+    console.log(result.shape);
+  });
   it('stridedSlice with first axis being new', async () => {
     // Python slice code: t[tf.newaxis,0:3]
     const t = tf.tensor1d([0, 1, 2, 3]);

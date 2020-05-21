@@ -64,14 +64,14 @@ export function computeOutShape(
 
 export function startForAxis(
     beginMask: number, startIndices: number[], strides: number[],
-    inputShape: number[], axis: number): number {
+    inputShape: number[], axis: number, fullAxis: number): number {
   // Begin with the specified index
   let start = startIndices[axis];
   const stride = strides[axis] || 1;
 
-  // Check the axis bit from right of beginMask or the begin index is not set
+  // Check the axis bit from right of masked axes, or the begin index is not set
   // for the axis.
-  if (beginMask & 1 << axis || start == null) {
+  if (beginMask & 1 << axis || fullAxis & 1 << axis || start == null) {
     if (stride > 0) {
       // Forward iteration - use the first element. These values will get
       // clamped below (Note: We could have set them to 0 and axis_size-1, but
@@ -97,14 +97,14 @@ export function startForAxis(
 
 export function stopForAxis(
     endMask: number, stopIndices: number[], strides: number[],
-    inputShape: number[], axis: number): number {
+    inputShape: number[], axis: number, fullAxis: number): number {
   // Begin with the specified index
   let stop = stopIndices[axis];
   const stride = strides[axis] || 1;
 
-  // Check the axis bit from right of endMask or if the stop index is not set
-  // for this axis.
-  if (endMask & (1 << axis) || stop == null) {
+  // Check the axis bit from right of masked axes, or if the stop index is not
+  // set for this axis.
+  if (endMask & (1 << axis) || fullAxis & (1 << axis) || stop == null) {
     if (stride > 0) {
       // Forward iteration - use the last element. These values will get
       // clamped below

@@ -63,9 +63,12 @@ function stridedSlice_(
   if (strides == null) {
     strides = new Array(begin.length);
   }
-  if (ellipsisMask !== 0) {
-    throw new Error('ellipsis mask is not yet supported');
+
+  const ellipsisAxes = maskToAxes(ellipsisMask);
+  if (ellipsisAxes.length > 1) {
+    throw new Error('Multiple ellipses in slice is not allowed.');
   }
+
   let $x = convertToTensor(x, 'x', 'stridedSlice');
 
   // Expand the dims of x based on the newAxisMask.
@@ -80,8 +83,10 @@ function stridedSlice_(
 
   // Normalize the start, end and strides.
   for (let axis = 0; axis < $x.rank; axis++) {
-    begin[axis] = startForAxis(beginMask, begin, strides, $x.shape, axis);
-    end[axis] = stopForAxis(endMask, end, strides, $x.shape, axis);
+    begin[axis] = startForAxis(
+        beginMask, begin, strides, $x.shape, axis, ellipsisAxes[0]);
+    end[axis] =
+        stopForAxis(endMask, end, strides, $x.shape, axis, ellipsisAxes[0]);
     strides[axis] = strides[axis] || 1;
   }
 
