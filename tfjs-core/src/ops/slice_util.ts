@@ -62,6 +62,21 @@ export function computeOutShape(
   return size;
 }
 
+function getFullAxisFromEllipsisAxes(ellipsisAxes: number[]): number {
+  return ellipsisAxes.length ? ellipsisAxes[0] : 0;
+}
+
+export function stridesForAxis(
+    strides: number[], axis: number, ellipsisAxes: number[]): number {
+  const fullAxis = getFullAxisFromEllipsisAxes(ellipsisAxes);
+  let stride = strides[axis];
+  if (fullAxis & (1 << axis) || stride == null) {
+    stride = 1;
+  }
+
+  return stride;
+}
+
 export function startForAxis(
     beginMask: number, startIndices: number[], strides: number[],
     inputShape: number[], axis: number, ellipsisAxes: number[]): number {
@@ -69,7 +84,7 @@ export function startForAxis(
   let start = startIndices[axis];
   const stride = strides[axis] || 1;
 
-  const fullAxis = ellipsisAxes.length ? ellipsisAxes[0] : 0;
+  const fullAxis = getFullAxisFromEllipsisAxes(ellipsisAxes);
 
   // Check the axis bit from right of masked axes, or the begin index is not set
   // for the axis.
@@ -104,7 +119,7 @@ export function stopForAxis(
   let stop = stopIndices[axis];
   const stride = strides[axis] || 1;
 
-  const fullAxis = ellipsisAxes.length ? ellipsisAxes[0] : 0;
+  const fullAxis = getFullAxisFromEllipsisAxes(ellipsisAxes);
 
   // Check the axis bit from right of masked axes, or if the stop index is not
   // set for this axis.

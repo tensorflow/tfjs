@@ -22,7 +22,7 @@ import {TensorLike} from '../types';
 
 import {op} from './operation';
 import {slice} from './slice';
-import {computeOutShape, maskToAxes, startForAxis, stopForAxis} from './slice_util';
+import {computeOutShape, maskToAxes, startForAxis, stopForAxis, stridesForAxis} from './slice_util';
 
 /**
  * Extracts a strided slice of a tensor.
@@ -87,7 +87,7 @@ function stridedSlice_(
         startForAxis(beginMask, begin, strides, $x.shape, axis, ellipsisAxes);
     end[axis] =
         stopForAxis(endMask, end, strides, $x.shape, axis, ellipsisAxes);
-    strides[axis] = strides[axis] || 1;
+    strides[axis] = stridesForAxis(strides, axis, ellipsisAxes);
   }
 
   const shrinkAxes = maskToAxes(shrinkAxisMask);

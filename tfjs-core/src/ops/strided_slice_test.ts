@@ -45,6 +45,11 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     expectArraysClose(await output.data(), [5, 6, 7, 8, 9, 10, 11, 11, 11, 11]);
   });
 
+  // fit('with ellipsisMask=1 and the start / end / strides must be normalized',
+  //     async () => {
+
+  //     });
+
   it('stridedSlice with first axis being new', async () => {
     // Python slice code: t[tf.newaxis,0:3]
     const t = tf.tensor1d([0, 1, 2, 3]);
