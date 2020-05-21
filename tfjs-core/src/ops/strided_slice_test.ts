@@ -20,8 +20,8 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 describeWithFlags('stridedSlice', ALL_ENVS, () => {
-  fit('testing', async () => {
-    const test = tf.tensor2d([
+  fit('with ellipsisMask=1', async () => {
+    const t = tf.tensor2d([
       [1, 2, 3, 4, 5],
       [2, 3, 4, 5, 6],
       [3, 4, 5, 6, 7],
@@ -33,11 +33,18 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
       [9, 8, 9, 10, 11],
       [10, 8, 9, 10, 11],
     ]);
-    const result = test.stridedSlice([0, 4], [0, 5], [1, 1], 0, 0, 1);
-    const data = await result.data();
-    console.log(Array.from(data));
-    console.log(result.shape);
+    const begin = [0, 4];
+    const end = [0, 5];
+    const strides = [1, 1];
+    const beginMask = 0;
+    const endMask = 0;
+    const ellipsisMask = 1;
+    const output =
+        t.stridedSlice(begin, end, strides, beginMask, endMask, ellipsisMask);
+    expect(output.shape).toEqual([10, 1]);
+    expectArraysClose(await output.data(), [5, 6, 7, 8, 9, 10, 11, 11, 11, 11]);
   });
+
   it('stridedSlice with first axis being new', async () => {
     // Python slice code: t[tf.newaxis,0:3]
     const t = tf.tensor1d([0, 1, 2, 3]);
@@ -85,11 +92,6 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
         t, begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask,
         shrinkAxisMask);
     expect(output.shape).toEqual([1, 1, 1, 3]);
-  });
-
-  it('stridedSlice should fail if ellipsis mask is set', () => {
-    const tensor = tf.tensor1d([0, 1, 2, 3]);
-    expect(() => tf.stridedSlice(tensor, [0], [3], [2], 0, 0, 1)).toThrow();
   });
 
   it('stridedSlice should support 1d tensor', async () => {

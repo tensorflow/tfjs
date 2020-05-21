@@ -64,10 +64,12 @@ export function computeOutShape(
 
 export function startForAxis(
     beginMask: number, startIndices: number[], strides: number[],
-    inputShape: number[], axis: number, fullAxis: number): number {
+    inputShape: number[], axis: number, ellipsisAxes: number[]): number {
   // Begin with the specified index
   let start = startIndices[axis];
   const stride = strides[axis] || 1;
+
+  const fullAxis = ellipsisAxes.length ? ellipsisAxes[0] : 0;
 
   // Check the axis bit from right of masked axes, or the begin index is not set
   // for the axis.
@@ -97,10 +99,12 @@ export function startForAxis(
 
 export function stopForAxis(
     endMask: number, stopIndices: number[], strides: number[],
-    inputShape: number[], axis: number, fullAxis: number): number {
+    inputShape: number[], axis: number, ellipsisAxes: number[]): number {
   // Begin with the specified index
   let stop = stopIndices[axis];
   const stride = strides[axis] || 1;
+
+  const fullAxis = ellipsisAxes.length ? ellipsisAxes[0] : 0;
 
   // Check the axis bit from right of masked axes, or if the stop index is not
   // set for this axis.

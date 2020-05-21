@@ -83,10 +83,10 @@ function stridedSlice_(
 
   // Normalize the start, end and strides.
   for (let axis = 0; axis < $x.rank; axis++) {
-    begin[axis] = startForAxis(
-        beginMask, begin, strides, $x.shape, axis, ellipsisAxes[0]);
+    begin[axis] =
+        startForAxis(beginMask, begin, strides, $x.shape, axis, ellipsisAxes);
     end[axis] =
-        stopForAxis(endMask, end, strides, $x.shape, axis, ellipsisAxes[0]);
+        stopForAxis(endMask, end, strides, $x.shape, axis, ellipsisAxes);
     strides[axis] = strides[axis] || 1;
   }
 
