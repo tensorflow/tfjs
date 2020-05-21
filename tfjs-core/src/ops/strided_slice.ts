@@ -22,7 +22,9 @@ import {TensorLike} from '../types';
 
 import {op} from './operation';
 import {slice} from './slice';
-import {computeOutShape, maskToAxes, startForAxis, stopForAxis, stridesForAxis} from './slice_util';
+import {computeOutShape, maskToAxes, startForAxis, startIndicesWithEllidedDims, stopForAxis, stopIndicesWithEllidedDims, stridesForAxis, stridesWithEllidedDims} from './slice_util';
+
+
 
 /**
  * Extracts a strided slice of a tensor.
@@ -68,9 +70,9 @@ function stridedSlice_(
   if (ellipsisAxes.length > 1) {
     throw new Error('Multiple ellipses in slice is not allowed.');
   }
-  console.log('eLLIPSIS AXES', ellipsisAxes, ellipsisMask);
 
   let $x = convertToTensor(x, 'x', 'stridedSlice');
+  const ellidedAxesCount = $x.rank - begin.length;
 
   // Expand the dims of x based on the newAxisMask.
   const expandAxes = maskToAxes(newAxisMask);
@@ -81,9 +83,6 @@ function stridedSlice_(
     newShape.splice(axis, 0, 1);
   });
   $x = $x.reshape(newShape);
-  console.log('BEFORE NORMALIZATION', begin, end);
-
-  const ellidedAxesCount = $x.rank - begin.length;
 
   // Normalize the start, end and strides.
   for (let axis = 0; axis < $x.rank; axis++) {
@@ -94,46 +93,14 @@ function stridedSlice_(
     strides[axis] = stridesForAxis(strides, axis, ellipsisMask);
   }
 
-  // we could perform a shift here???
-
-  // change startForAxis/stopForAxis to return null if there is no entry in the
-  // original begin / end
-
-  // if there is ellipsis, expand the axes to fill out the ellipsis at that
-  // position
-
-  // if there is no ellipsis, insert 0/max for the nulls instead (and move
-  // clamping logic here as well)
-
-  // on second thought, i think ellipsis insertion should probably be done
-  // before normalization and after newAxisMask. NO IT SHOULD NOT. it should
-  // happen after normalization so ellipsisMask / beginMask / endMask can
-  // function as normal.
-
   if (ellipsisAxes.length && ellidedAxesCount > 0) {
     const fullIndex = ellipsisAxes[0];
 
-    for (let i = 0; i < ellidedAxesCount; i++) {
-      begin.splice(fullIndex, 0 /* number to delete */, 0 /* element to add */);
-      begin.pop();  // remove last null element from the array
-    }
-
-    for (let i = 0; i < ellidedAxesCount; i++) {
-      end.splice(
-          fullIndex, 0 /* number to delete */,
-          Number.MAX_SAFE_INTEGER /* element to add */);
-      end.pop();  // remove last null element from the array
-    }
+    begin = startIndicesWithEllidedDims(begin, fullIndex, ellidedAxesCount);
+    end =
+        stopIndicesWithEllidedDims(end, fullIndex, ellidedAxesCount, $x.shape);
+    strides = stridesWithEllidedDims(strides, fullIndex, ellidedAxesCount);
   }
-
-  for (let i = 0; i < end.length; i++) {
-    end[i] = Math.min(end[i], $x.shape[i]);
-  }
-
-  console.log('DONE NORMALIZING');
-  console.log(begin);
-  console.log(end);
-  console.log(strides);
 
   const shrinkAxes = maskToAxes(shrinkAxisMask);
   // Adjust the ends based on the shrink mask.
