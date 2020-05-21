@@ -68,6 +68,7 @@ function stridedSlice_(
   if (ellipsisAxes.length > 1) {
     throw new Error('Multiple ellipses in slice is not allowed.');
   }
+  console.log('eLLIPSIS AXES', ellipsisAxes, ellipsisMask);
 
   let $x = convertToTensor(x, 'x', 'stridedSlice');
 
@@ -80,15 +81,59 @@ function stridedSlice_(
     newShape.splice(axis, 0, 1);
   });
   $x = $x.reshape(newShape);
+  console.log('BEFORE NORMALIZATION', begin, end);
+
+  const ellidedAxesCount = $x.rank - begin.length;
 
   // Normalize the start, end and strides.
   for (let axis = 0; axis < $x.rank; axis++) {
     begin[axis] =
-        startForAxis(beginMask, begin, strides, $x.shape, axis, ellipsisAxes);
+        startForAxis(beginMask, begin, strides, $x.shape, axis, ellipsisMask);
     end[axis] =
-        stopForAxis(endMask, end, strides, $x.shape, axis, ellipsisAxes);
-    strides[axis] = stridesForAxis(strides, axis, ellipsisAxes);
+        stopForAxis(endMask, end, strides, $x.shape, axis, ellipsisMask);
+    strides[axis] = stridesForAxis(strides, axis, ellipsisMask);
   }
+
+  // we could perform a shift here???
+
+  // change startForAxis/stopForAxis to return null if there is no entry in the
+  // original begin / end
+
+  // if there is ellipsis, expand the axes to fill out the ellipsis at that
+  // position
+
+  // if there is no ellipsis, insert 0/max for the nulls instead (and move
+  // clamping logic here as well)
+
+  // on second thought, i think ellipsis insertion should probably be done
+  // before normalization and after newAxisMask. NO IT SHOULD NOT. it should
+  // happen after normalization so ellipsisMask / beginMask / endMask can
+  // function as normal.
+
+  if (ellipsisAxes.length && ellidedAxesCount > 0) {
+    const fullIndex = ellipsisAxes[0];
+
+    for (let i = 0; i < ellidedAxesCount; i++) {
+      begin.splice(fullIndex, 0 /* number to delete */, 0 /* element to add */);
+      begin.pop();  // remove last null element from the array
+    }
+
+    for (let i = 0; i < ellidedAxesCount; i++) {
+      end.splice(
+          fullIndex, 0 /* number to delete */,
+          Number.MAX_SAFE_INTEGER /* element to add */);
+      end.pop();  // remove last null element from the array
+    }
+  }
+
+  for (let i = 0; i < end.length; i++) {
+    end[i] = Math.min(end[i], $x.shape[i]);
+  }
+
+  console.log('DONE NORMALIZING');
+  console.log(begin);
+  console.log(end);
+  console.log(strides);
 
   const shrinkAxes = maskToAxes(shrinkAxisMask);
   // Adjust the ends based on the shrink mask.

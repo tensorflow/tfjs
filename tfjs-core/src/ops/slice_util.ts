@@ -62,15 +62,10 @@ export function computeOutShape(
   return size;
 }
 
-function getFullAxisFromEllipsisAxes(ellipsisAxes: number[]): number {
-  return ellipsisAxes.length ? ellipsisAxes[0] : 0;
-}
-
 export function stridesForAxis(
-    strides: number[], axis: number, ellipsisAxes: number[]): number {
-  const fullAxis = getFullAxisFromEllipsisAxes(ellipsisAxes);
+    strides: number[], axis: number, ellipsisMask: number): number {
   let stride = strides[axis];
-  if (fullAxis & (1 << axis) || stride == null) {
+  if (ellipsisMask & (1 << axis) || stride == null) {
     stride = 1;
   }
 
@@ -79,16 +74,14 @@ export function stridesForAxis(
 
 export function startForAxis(
     beginMask: number, startIndices: number[], strides: number[],
-    inputShape: number[], axis: number, ellipsisAxes: number[]): number {
+    inputShape: number[], axis: number, ellipsisMask: number): number {
   // Begin with the specified index
   let start = startIndices[axis];
   const stride = strides[axis] || 1;
 
-  const fullAxis = getFullAxisFromEllipsisAxes(ellipsisAxes);
-
   // Check the axis bit from right of masked axes, or the begin index is not set
   // for the axis.
-  if (beginMask & 1 << axis || fullAxis & 1 << axis || start == null) {
+  if (beginMask & 1 << axis || ellipsisMask & 1 << axis || start == null) {
     if (stride > 0) {
       // Forward iteration - use the first element. These values will get
       // clamped below (Note: We could have set them to 0 and axis_size-1, but
@@ -114,16 +107,14 @@ export function startForAxis(
 
 export function stopForAxis(
     endMask: number, stopIndices: number[], strides: number[],
-    inputShape: number[], axis: number, ellipsisAxes: number[]): number {
+    inputShape: number[], axis: number, ellipsisMask: number): number {
   // Begin with the specified index
   let stop = stopIndices[axis];
   const stride = strides[axis] || 1;
 
-  const fullAxis = getFullAxisFromEllipsisAxes(ellipsisAxes);
-
   // Check the axis bit from right of masked axes, or if the stop index is not
   // set for this axis.
-  if (endMask & (1 << axis) || fullAxis & (1 << axis) || stop == null) {
+  if (endMask & (1 << axis) || ellipsisMask & (1 << axis) || stop == null) {
     if (stride > 0) {
       // Forward iteration - use the last element. These values will get
       // clamped below
