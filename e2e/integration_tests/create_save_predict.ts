@@ -24,6 +24,9 @@ import * as tfl from '@tensorflow/tfjs-layers';
 import {BACKENDS, KARMA_SERVER, MODELS, REGRESSION} from './constants';
 import {createInputTensors} from './test_util';
 
+/** Directory that stores the model. */
+const DATA_URL = 'create_save_predict_data';
+
 /**
  *  This file is 3/3 of the test suites for CUJ: create->save->predict.
  *
@@ -43,21 +46,21 @@ describe(`${REGRESSION} create_save_predict`, () => {
       beforeAll(async () => {
         [inputsData, inputsShapes, kerasOutputData, kerasOutputShapes] =
             await Promise.all([
-              await fetch(`${KARMA_SERVER}/${model}.xs-data.json`)
+              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-data.json`)
                   .then(response => response.json()),
-              await fetch(`${KARMA_SERVER}/${model}.xs-shapes.json`)
+              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-shapes.json`)
                   .then(response => response.json()),
-              await fetch(`${KARMA_SERVER}/${model}.ys-data.json`)
+              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-data.json`)
                   .then(response => response.json()),
-              await fetch(`${KARMA_SERVER}/${model}.ys-shapes.json`)
+              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-shapes.json`)
                   .then(response => response.json())
             ]);
       });
 
       BACKENDS.forEach(backend => {
         it(`${model} with ${backend}.`, async () => {
-          const $model =
-              await tfl.loadLayersModel(`${KARMA_SERVER}/${model}/model.json`);
+          const $model = await tfl.loadLayersModel(
+              `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
 
           const xs = createInputTensors(inputsData, inputsShapes);
 

@@ -26,7 +26,7 @@ const devConfig = {
     'integration_tests/setup_test.ts',
     {pattern: 'integration_tests/**/*.ts'},
     {
-      pattern: 'integration_tests/test_data/**/*',
+      pattern: 'integration_tests/*_data/**/*',
       watched: true,
       included: false,
       served: true,

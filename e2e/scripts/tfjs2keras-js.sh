@@ -9,7 +9,7 @@
 
 set -e
 
-TEST_DATA="integration_tests/test_data/"
+TEST_DATA="integration_tests/create_save_predict_data/"
 
 rm -rf "$TEST_DATA"
 mkdir "$TEST_DATA"

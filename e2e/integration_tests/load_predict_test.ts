@@ -22,15 +22,11 @@ import * as tfconverter from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
 import * as tfl from '@tensorflow/tfjs-layers';
 
-import {BACKENDS, SMOKE} from './constants';
+import {BACKENDS, KARMA_SERVER, SMOKE} from './constants';
 
-const MOBILENET_MODEL_PATH =
-    // tslint:disable-next-line:max-line-length
-    'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_1.0_224/model.json';
-
-const USE_MODEL_PATH =
-    // tslint:disable-next-line:max-line-length
-    'https://storage.googleapis.com/tfjs-models/savedmodel/universal_sentence_encoder/model.json';
+function getModelUrl(modelType: string) {
+  return `${KARMA_SERVER}/load_predict_data/${modelType}/model.json`;
+}
 
 /**
  *  This file is the test suites for CUJ: load->predict.
@@ -45,11 +41,11 @@ describe(`${SMOKE} load_predict`, () => {
     let inputs: tfc.Tensor;
 
     beforeAll(async () => {
-      model = await tfl.loadLayersModel(MOBILENET_MODEL_PATH);
+      model = await tfl.loadLayersModel(getModelUrl('layers_model'));
     });
 
     beforeEach(() => {
-      inputs = tfc.zeros([1, 224, 224, 3]);
+      inputs = tfc.zeros([1, 40, 40, 3]);
     });
 
     afterEach(() => {
@@ -66,41 +62,24 @@ describe(`${SMOKE} load_predict`, () => {
 
   describe('graph_model', () => {
     let model: tfconverter.GraphModel;
-    let indices: tfc.Tensor;
-    let values: tfc.Tensor;
+    let a: tfc.Tensor;
 
     beforeAll(async () => {
-      model = await tfconverter.loadGraphModel(USE_MODEL_PATH);
+      model = await tfconverter.loadGraphModel(getModelUrl('graph_model'));
     });
 
     beforeEach(() => {
-      indices = tfc.tensor2d(
-          [
-            0,  0, 0,  1, 0, 2, 0, 3, 0, 4, 1, 0, 1, 1, 1, 2, 1, 3, 1, 4, 1,
-            5,  2, 0,  2, 1, 2, 2, 2, 3, 2, 4, 3, 0, 3, 1, 3, 2, 3, 3, 3, 4,
-            4,  0, 4,  1, 4, 2, 4, 3, 4, 4, 4, 5, 4, 6, 4, 7, 4, 8, 4, 9, 4,
-            10, 4, 11, 5, 0, 5, 1, 5, 2, 5, 3, 5, 4, 5, 5, 5, 6, 5, 7
-          ],
-          [41, 2], 'int32');
-      values = tfc.tensor1d(
-          [
-            16,   60,  69,   825, 6,    819, 2704, 2901, 903, 318, 6,
-            728,  446, 31,   19,  54,   379, 18,   37,   735, 54,  829,
-            5459, 11,  221,  8,   373,  7,   9,    969,  7,   468, 6,
-            184,  621, 7582, 949, 1803, 18,  1977, 6
-          ],
-          'int32');
+      a = tfc.tensor2d([1, 1, 1, 1], [2, 2], 'float32');
     });
 
     afterEach(() => {
-      indices.dispose();
-      values.dispose();
+      a.dispose();
     });
 
     BACKENDS.forEach(backend => {
       it(`predict with ${backend}.`, async () => {
         await tfc.setBackend(backend);
-        await model.executeAsync({indices, values});
+        await model.executeAsync(a);
       });
     });
   });

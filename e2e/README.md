@@ -7,20 +7,14 @@ To run the tests in local:
 yarn test
 ```
 
-For tests that need to access `integration_tests/test_data`, start a local
-server in the test_data folder:
-```
-cd integration_tests/test_data
-yarn http-server
-```
-
 ##Filter tests by tag:
 ```js
 yarn test --tags #SMOKE,#REGRESSION
 ```
 Supported tags:
 - #SMOKE: Smoke tests should be light weight. Run in every PR and nightly
-    builds.
+    builds. Criteria for smoke test is that the test should run fast and only
+    test critical CUJ.
 
 - #REGRESSION: Regression tests compare results across backends, previous
     builds, with other platform, etc. Run in nightly builds.

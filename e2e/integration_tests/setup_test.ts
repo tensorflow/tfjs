@@ -80,7 +80,7 @@ function setupTestFilters(tags: string[]) {
     }
 
     // Test everything.
-    if (!tags) {
+    if (tags == null) {
       return true;
     }
 

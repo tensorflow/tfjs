@@ -32,5 +32,5 @@ export const MODELS = [
   'time_distributed_lstm', 'one_dimensional', 'functional_merge'
 ];
 
-/** Local server address for testing browser to access local files. */
-export const KARMA_SERVER = './base/integration_tests/test_data';
+/** Karma server directory serving local files. */
+export const KARMA_SERVER = './base/integration_tests';
