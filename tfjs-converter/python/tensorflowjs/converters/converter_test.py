@@ -564,7 +564,8 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       # Convert the keras SavedModel to tfjs format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
       converter.dispatch_keras_saved_model_to_tensorflowjs_conversion(
-          self._tmp_dir, tfjs_output_dir, quantization_dtype=np.uint16)
+          self._tmp_dir, tfjs_output_dir,
+          quantization_dtype_map={'uint16': '*'})
 
       # Verify the size of the weight file.
       weight_path = glob.glob(os.path.join(tfjs_output_dir, 'group*-*'))[0]
@@ -688,7 +689,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       sharded_model_path = os.path.join(self._tmp_dir, 'sharded_model')
       converter.dispatch_tensorflowjs_to_tensorflowjs_conversion(
           os.path.join(tfjs_output_dir, 'model.json'), sharded_model_path,
-          quantization_dtype=np.uint16,
+          quantization_dtype_map={'uint16': '*'},
           weight_shard_size_bytes=weight_shard_size_bytes)
 
       # Check the number of quantized files and their sizes.
@@ -723,7 +724,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       sharded_model_path = os.path.join(self._tmp_dir, 'sharded_model')
       converter.dispatch_tensorflowjs_to_tensorflowjs_conversion(
           os.path.join(tfjs_output_dir, 'model.json'), sharded_model_path,
-          quantization_dtype=np.uint8,
+          quantization_dtype_map={'uint8': '*'},
           weight_shard_size_bytes=weight_shard_size_bytes)
 
       # Check the number of quantized files and their sizes.
