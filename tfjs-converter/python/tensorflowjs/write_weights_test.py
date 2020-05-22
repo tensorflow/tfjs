@@ -717,7 +717,11 @@ class TestWriteWeights(tf.test.TestCase):
     ]
 
     manifest = write_weights.write_weights(
-        groups, TMP_DIR, shard_size_bytes=1024, quantization_dtype=np.uint8)
+        groups, TMP_DIR, shard_size_bytes=1024,
+        quantization_dtype_map={
+            'float16': 'weight1',
+            'uint8': 'weight3'
+        })
 
     self.assertTrue(
         os.path.isfile(os.path.join(TMP_DIR, 'weights_manifest.json')),
@@ -731,7 +735,8 @@ class TestWriteWeights(tf.test.TestCase):
                 'shape': [3],
                 'dtype': 'float32',
                 'quantization': {
-                    'min': 1.0, 'scale': 2/255.0, 'dtype': 'uint8'
+                    'original_dtype': 'float32',
+                    'dtype': 'float16'
                 }
             }, {
                 'name': 'weight2',
@@ -742,7 +747,10 @@ class TestWriteWeights(tf.test.TestCase):
                 'shape': [2],
                 'dtype': 'float32',
                 'quantization': {
-                    'min': 6.0, 'scale': 1/255.0, 'dtype': 'uint8'
+                    'min': 6.0,
+                    'scale': 1/255.0,
+                    'original_dtype': 'float32',
+                    'dtype': 'uint8'
                 }
             }, {
                 'name': 'weight4',
@@ -754,19 +762,19 @@ class TestWriteWeights(tf.test.TestCase):
     weights_path = os.path.join(TMP_DIR, 'group1-shard1of1.bin')
     with open(weights_path, 'rb') as f:
       weight_bytes = f.read()
-      self.assertEqual(len(weight_bytes), 22)
-      w1 = np.frombuffer(weight_bytes[:3], 'uint8')
-      np.testing.assert_array_equal(w1, np.array([0, 127, 255], 'uint8'))
+      self.assertEqual(len(weight_bytes), 25)
+      w1 = np.frombuffer(weight_bytes[:6], 'float16')
+      np.testing.assert_array_equal(w1, np.array([1, 2, 3], 'float16'))
 
-      w2 = np.frombuffer(weight_bytes[3:11], 'int32')
+      w2 = np.frombuffer(weight_bytes[6:14], 'int32')
       np.testing.assert_array_equal(w2, np.array([4, 5], 'int32'))
 
-      w3 = np.frombuffer(weight_bytes[11:13], 'uint8')
+      w3 = np.frombuffer(weight_bytes[14:16], 'uint8')
       np.testing.assert_array_equal(w3, np.array([0, 255], 'uint8'))
 
-      size = np.frombuffer(weight_bytes[13:17], 'uint32')[0]
+      size = np.frombuffer(weight_bytes[16:20], 'uint32')[0]
       self.assertEqual(size, 5)  # 5 ascii letters.
-      w4 = weight_bytes[17:].decode('utf-8')
+      w4 = weight_bytes[20:].decode('utf-8')
       self.assertEqual(w4, u'hello')
 
 
