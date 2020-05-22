@@ -462,20 +462,36 @@ def run(dryrun):
                                     common.TFJS_GRAPH_MODEL))
       },
       {
-          'type': 'list',
-          'name': common.QUANTIZATION_BYTES,
+          'type': 'confirm',
           'message': 'Do you want to compress the model? '
                      '(this will decrease the model precision.)',
-          'choices': [{
-              'name': 'No compression (Higher accuracy)',
-              'value': None
-          }, {
-              'name': '2x compression (Accuracy/size trade-off)',
-              'value': 2
-          }, {
-              'name': '4x compression (Smaller size)',
-              'value': 1
-          }]
+          'name': 'quantize',
+          'default': False
+      },
+      {
+          'type': 'input',
+          'name': common.QUANTIZATION_TYPE_FLOAT16,
+          'message': 'Please enter the layers to apply float16 quantization '
+                     '(2x smaller, minimal accuracy tradeoff).\n'
+                     'Supports wildcard expansion with *, e.g., conv/*/weights',
+          'default': '*',
+          'when': lambda answers: value_in_list(answers, 'quantize', (True))
+      },
+      {
+          'type': 'input',
+          'name': common.QUANTIZATION_TYPE_UINT16,
+          'message': 'Please enter the layers to apply affine 2-byte integer '
+                     'quantization (2x smaller, accuracy tradeoff).\n'
+                     'Supports wildcard expansion with *, e.g., conv/*/weights',
+          'when': lambda answers: value_in_list(answers, 'quantize', (True))
+      },
+      {
+          'type': 'input',
+          'name': common.QUANTIZATION_TYPE_UINT8,
+          'message': 'Please enter the layers to apply affine 1-byte integer '
+                     'quantization (4x smaller, accuracy tradeoff).\n'
+                     'Supports wildcard expansion with *, e.g., conv/*/weights',
+          'when': lambda answers: value_in_list(answers, 'quantize', (True))
       },
       {
           'type': 'input',

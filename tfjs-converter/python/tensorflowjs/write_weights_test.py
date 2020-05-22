@@ -697,7 +697,8 @@ class TestWriteWeights(tf.test.TestCase):
     ]
 
     manifest = write_weights.write_weights(
-        groups, TMP_DIR, shard_size_bytes=1024, quantization_dtype=np.uint8)
+        groups, TMP_DIR, shard_size_bytes=1024,
+        quantization_dtype_map={'uint8': '*'})
 
     self.assertTrue(
         os.path.isfile(os.path.join(TMP_DIR, 'weights_manifest.json')),
@@ -711,7 +712,10 @@ class TestWriteWeights(tf.test.TestCase):
                 'shape': [3],
                 'dtype': 'float32',
                 'quantization': {
-                    'min': 1.0, 'scale': 2/255.0, 'dtype': 'uint8'
+                    'min': 1.0,
+                    'scale': 2/255.0,
+                    'original_dtype': 'float32',
+                    'dtype': 'uint8'
                 }
             }, {
                 'name': 'weight2',
@@ -722,7 +726,10 @@ class TestWriteWeights(tf.test.TestCase):
                 'shape': [2],
                 'dtype': 'float32',
                 'quantization': {
-                    'min': 6.0, 'scale': 1/255.0, 'dtype': 'uint8'
+                    'min': 6.0,
+                    'scale': 1/255.0,
+                    'original_dtype': 'float32',
+                    'dtype': 'uint8'
                 }
             }, {
                 'name': 'weight4',

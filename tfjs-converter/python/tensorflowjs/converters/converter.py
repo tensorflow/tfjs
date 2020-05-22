@@ -26,7 +26,6 @@ import sys
 import tempfile
 
 import h5py
-import numpy as np
 import tensorflow.compat.v1 as tf1
 import tensorflow.compat.v2 as tf
 
@@ -39,7 +38,7 @@ from tensorflowjs.converters import tf_saved_model_conversion_v2
 
 
 def dispatch_keras_h5_to_tfjs_layers_model_conversion(
-    h5_path, output_dir=None, quantization_dtype=None,
+    h5_path, output_dir=None, quantization_dtype_map=None,
     split_weights_by_layer=False,
     weight_shard_size_bytes=1024 * 1024 * 4):
   """Converts a Keras HDF5 saved-model file to TensorFlow.js format.
@@ -56,8 +55,8 @@ def dispatch_keras_h5_to_tfjs_layers_model_conversion(
     output_dir: Output directory to which the TensorFlow.js-format model JSON
       file and weights files will be written. If the directory does not exist,
       it will be created.
-    quantization_dtype: The quantized data type to store the weights in
-      (Default: `None`).
+    quantization_dtype_map: A mapping from dtype (`uint8`, `uint16`, `float16`)
+      to weights. The weight mapping supports wildcard substitution.
     split_weights_by_layer: Whether to split the weights into separate weight
       groups (corresponding to separate binary weight files) layer by layer
       (Default: `False`).
@@ -94,7 +93,7 @@ def dispatch_keras_h5_to_tfjs_layers_model_conversion(
     if not os.path.isdir(output_dir):
       os.makedirs(output_dir)
     conversion.write_artifacts(
-        model_json, groups, output_dir, quantization_dtype,
+        model_json, groups, output_dir, quantization_dtype_map,
         weight_shard_size_bytes=weight_shard_size_bytes)
 
   return model_json, groups
@@ -102,7 +101,7 @@ def dispatch_keras_h5_to_tfjs_layers_model_conversion(
 
 def dispatch_keras_h5_to_tfjs_graph_model_conversion(
     h5_path, output_dir=None,
-    quantization_dtype=None,
+    quantization_dtype_map=None,
     skip_op_check=False,
     strip_debug_ops=False,
     weight_shard_size_bytes=1024 * 1024 * 4):
@@ -114,8 +113,8 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
       keras or tf.keras.
     output_dir: The destination to which the tfjs GraphModel artifacts will be
       written.
-    quantization_dtype: The quantized data type to store the weights in
-      (Default: `None`).
+    quantization_dtype_map: A mapping from dtype (`uint8`, `uint16`, `float16`)
+      to weights. The weight mapping supports wildcard substitution.
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to allow unsupported debug ops.
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
@@ -139,7 +138,7 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
       temp_savedmodel_dir, output_dir,
       signature_def='serving_default',
       saved_model_tags='serve',
-      quantization_dtype=quantization_dtype,
+      quantization_dtype_map=quantization_dtype_map,
       skip_op_check=skip_op_check,
       strip_debug_ops=strip_debug_ops,
       weight_shard_size_bytes=weight_shard_size_bytes)
@@ -149,7 +148,7 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
 
 
 def dispatch_keras_saved_model_to_tensorflowjs_conversion(
-    keras_saved_model_path, output_dir, quantization_dtype=None,
+    keras_saved_model_path, output_dir, quantization_dtype_map=None,
     split_weights_by_layer=False,
     weight_shard_size_bytes=1024 * 1024 * 4):
   """Converts keras model saved in the SavedModel format to tfjs format.
@@ -166,8 +165,8 @@ def dispatch_keras_saved_model_to_tensorflowjs_conversion(
     output_dir: Output directory to which the TensorFlow.js-format model JSON
       file and weights files will be written. If the directory does not exist,
       it will be created.
-    quantization_dtype: The quantized data type to store the weights in
-      (Default: `None`).
+    quantization_dtype_map: A mapping from dtype (`uint8`, `uint16`, `float16`)
+      to weights. The weight mapping supports wildcard substitution.
     split_weights_by_layer: Whether to split the weights into separate weight
       groups (corresponding to separate binary weight files) layer by layer
       (Default: `False`).
@@ -185,7 +184,7 @@ def dispatch_keras_saved_model_to_tensorflowjs_conversion(
     dispatch_keras_h5_to_tfjs_layers_model_conversion(
         temp_h5_path,
         output_dir,
-        quantization_dtype=quantization_dtype,
+        quantization_dtype_map=quantization_dtype_map,
         split_weights_by_layer=split_weights_by_layer,
         weight_shard_size_bytes=weight_shard_size_bytes)
 
@@ -269,7 +268,7 @@ def dispatch_tensorflowjs_to_keras_saved_model_conversion(
 def dispatch_tensorflowjs_to_tensorflowjs_conversion(
     config_json_path,
     output_dir_path,
-    quantization_dtype=None,
+    quantization_dtype_map=None,
     weight_shard_size_bytes=1024 * 1024 * 4):
   """Converts a Keras Model from tensorflowjs format to H5.
 
@@ -278,8 +277,8 @@ def dispatch_tensorflowjs_to_tensorflowjs_conversion(
       topology and weights manifest, in tensorflowjs format.
     output_dir_path: Path to output directory in which the result of the
       conversion will be saved.
-    quantization_dtype: The quantized data type to store the weights in
-      (Default: `None`).
+    quantization_dtype_map: A mapping from dtype (`uint8`, `uint16`, `float16`)
+      to weights. The weight mapping supports wildcard substitution.
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
 
@@ -316,7 +315,7 @@ def dispatch_tensorflowjs_to_tensorflowjs_conversion(
   with tf.Graph().as_default(), tf.compat.v1.Session():
     dispatch_keras_h5_to_tfjs_layers_model_conversion(
         temp_h5_path, output_dir_path,
-        quantization_dtype=quantization_dtype,
+        quantization_dtype_map=quantization_dtype_map,
         weight_shard_size_bytes=weight_shard_size_bytes)
     # TODO(cais): Support weight quantization.
 
@@ -327,7 +326,7 @@ def dispatch_tensorflowjs_to_tensorflowjs_conversion(
 def dispatch_tfjs_layers_model_to_tfjs_graph_conversion(
     config_json_path,
     output_dir_path,
-    quantization_dtype=None,
+    quantization_dtype_map=None,
     skip_op_check=False,
     strip_debug_ops=False,
     weight_shard_size_bytes=1024 * 1024 * 4):
@@ -341,8 +340,8 @@ def dispatch_tfjs_layers_model_to_tfjs_graph_conversion(
       topology and weights manifest, in tensorflowjs format.
     output_dir_path: Path to output directory in which the result of the
       conversion will be saved.
-    quantization_dtype: The quantized data type to store the weights in
-      (Default: `None`).
+    quantization_dtype_map: A mapping from dtype (`uint8`, `uint16`, `float16`)
+      to weights. The weight mapping supports wildcard substitution.
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to allow unsupported debug ops.
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
@@ -378,7 +377,7 @@ def dispatch_tfjs_layers_model_to_tfjs_graph_conversion(
   model.save(temp_h5_path)
   dispatch_keras_h5_to_tfjs_graph_model_conversion(
       temp_h5_path, output_dir_path,
-      quantization_dtype=quantization_dtype,
+      quantization_dtype_map=quantization_dtype_map,
       skip_op_check=skip_op_check,
       strip_debug_ops=strip_debug_ops,
       weight_shard_size_bytes=weight_shard_size_bytes)
@@ -414,16 +413,20 @@ def _standardize_input_output_formats(input_format, output_format):
 
   return (input_format, output_format)
 
+def _parse_quantization_dtype_map(float16, uint8, uint16):
+  quantization_dtype_map = {}
 
-def _parse_quantization_bytes(quantization_bytes):
-  if quantization_bytes is None:
-    return None
-  elif quantization_bytes == 1:
-    return np.uint8
-  elif quantization_bytes == 2:
-    return np.uint16
-  else:
-    raise ValueError('Unsupported quantization bytes: %s' % quantization_bytes)
+  if float16 is not None:
+    quantization_dtype_map[quantization.QUANTIZATION_DTYPE_FLOAT16] = \
+      float16.split(',')
+  if uint8 is not None:
+    quantization_dtype_map[quantization.QUANTIZATION_DTYPE_UINT8] = \
+      uint8.split(',')
+  if uint16 is not None:
+    quantization_dtype_map[quantization.QUANTIZATION_DTYPE_UINT16] = \
+      uint16.split(',')
+
+  return quantization_dtype_map
 
 def get_arg_parser():
   """
@@ -487,12 +490,32 @@ def get_arg_parser():
       'format. Defaults to "serve". Applicable only if input format is '
       '"tf_saved_model".')
   parser.add_argument(
-      '--%s' % common.QUANTIZATION_BYTES,
-      type=int,
-      choices=set(quantization.QUANTIZATION_BYTES_TO_DTYPES.keys()),
-      help='How many bytes to optionally quantize/compress the weights to. 1- '
-      'and 2-byte quantizaton is supported. The default (unquantized) size is '
-      '4 bytes.')
+      '--%s' % common.QUANTIZATION_TYPE_FLOAT16,
+      type=str,
+      default=None,
+      const="*",
+      nargs='?',
+      help='Comma separated list of node names to apply foat16 quantization. '
+      'You can use the wildcard symbol (*) to apply quantization to '
+      'multiple nodes. (e.g., conv/*/weights)')
+  parser.add_argument(
+      '--%s' % common.QUANTIZATION_TYPE_UINT8,
+      type=str,
+      default=None,
+      const="*",
+      nargs='?',
+      help='Comma separated list of node names to apply 1 byte affine integer '
+      'quantization. You can use the wildcard symbol (*) to apply quantization '
+      'to multiple nodes. (e.g., conv/*/weights)')
+  parser.add_argument(
+      '--%s' % common.QUANTIZATION_TYPE_UINT16,
+      type=str,
+      default=None,
+      const="*",
+      nargs='?',
+      help='Comma separated list of node names to apply affine integer '
+      'quantization. You can use the wildcard symbol (*) to apply quantization '
+      'to multiple nodes. (e.g., conv/*/weights)')
   parser.add_argument(
       '--%s' % common.SPLIT_WEIGHTS_BY_LAYER,
       action='store_true',
@@ -567,9 +590,11 @@ def convert(arguments):
           'but got %s' % args.weight_shard_size_bytes)
     weight_shard_size_bytes = args.weight_shard_size_bytes
 
-  quantization_dtype = (
-      quantization.QUANTIZATION_BYTES_TO_DTYPES[args.quantization_bytes]
-      if args.quantization_bytes else None)
+  quantization_dtype_map = _parse_quantization_dtype_map(
+      args.quantize_float16,
+      args.quantize_uint8,
+      args.quantize_uint16
+  )
 
   if (not args.output_node_names and input_format == common.TF_FROZEN_MODEL):
     raise ValueError(
@@ -588,14 +613,14 @@ def convert(arguments):
       output_format == common.TFJS_LAYERS_MODEL):
     dispatch_keras_h5_to_tfjs_layers_model_conversion(
         args.input_path, output_dir=args.output_path,
-        quantization_dtype=quantization_dtype,
+        quantization_dtype_map=quantization_dtype_map,
         split_weights_by_layer=args.split_weights_by_layer,
         weight_shard_size_bytes=weight_shard_size_bytes)
   elif (input_format == common.KERAS_MODEL and
         output_format == common.TFJS_GRAPH_MODEL):
     dispatch_keras_h5_to_tfjs_graph_model_conversion(
         args.input_path, output_dir=args.output_path,
-        quantization_dtype=quantization_dtype,
+        quantization_dtype_map=quantization_dtype_map,
         skip_op_check=args.skip_op_check,
         strip_debug_ops=args.strip_debug_ops,
         weight_shard_size_bytes=weight_shard_size_bytes)
@@ -603,7 +628,7 @@ def convert(arguments):
         output_format == common.TFJS_LAYERS_MODEL):
     dispatch_keras_saved_model_to_tensorflowjs_conversion(
         args.input_path, args.output_path,
-        quantization_dtype=quantization_dtype,
+        quantization_dtype_map=quantization_dtype_map,
         split_weights_by_layer=args.split_weights_by_layer,
         weight_shard_size_bytes=weight_shard_size_bytes)
   elif (input_format == common.TF_SAVED_MODEL and
@@ -612,7 +637,7 @@ def convert(arguments):
         args.input_path, args.output_path,
         signature_def=args.signature_name,
         saved_model_tags=args.saved_model_tags,
-        quantization_dtype=quantization_dtype,
+        quantization_dtype_map=quantization_dtype_map,
         skip_op_check=args.skip_op_check,
         strip_debug_ops=args.strip_debug_ops,
         weight_shard_size_bytes=weight_shard_size_bytes)
@@ -622,7 +647,7 @@ def convert(arguments):
         args.input_path, args.output_path,
         signature=args.signature_name,
         saved_model_tags=args.saved_model_tags,
-        quantization_dtype=quantization_dtype,
+        quantization_dtype_map=quantization_dtype_map,
         skip_op_check=args.skip_op_check,
         strip_debug_ops=args.strip_debug_ops,
         weight_shard_size_bytes=weight_shard_size_bytes)
@@ -638,13 +663,13 @@ def convert(arguments):
         output_format == common.TFJS_LAYERS_MODEL):
     dispatch_tensorflowjs_to_tensorflowjs_conversion(
         args.input_path, args.output_path,
-        quantization_dtype=_parse_quantization_bytes(args.quantization_bytes),
+        quantization_dtype_map=quantization_dtype_map,
         weight_shard_size_bytes=weight_shard_size_bytes)
   elif (input_format == common.TFJS_LAYERS_MODEL and
         output_format == common.TFJS_GRAPH_MODEL):
     dispatch_tfjs_layers_model_to_tfjs_graph_conversion(
         args.input_path, args.output_path,
-        quantization_dtype=_parse_quantization_bytes(args.quantization_bytes),
+        quantization_dtype_map=quantization_dtype_map,
         skip_op_check=args.skip_op_check,
         strip_debug_ops=args.strip_debug_ops,
         weight_shard_size_bytes=weight_shard_size_bytes)
@@ -652,7 +677,7 @@ def convert(arguments):
         output_format == common.TFJS_GRAPH_MODEL):
     tf_saved_model_conversion_v2.convert_tf_frozen_model(
         args.input_path, args.output_node_names, args.output_path,
-        quantization_dtype=_parse_quantization_bytes(args.quantization_bytes),
+        quantization_dtype_map=quantization_dtype_map,
         skip_op_check=args.skip_op_check,
         strip_debug_ops=args.strip_debug_ops,
         weight_shard_size_bytes=weight_shard_size_bytes)

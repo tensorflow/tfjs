@@ -28,7 +28,10 @@ class TestQuantizationUtil(unittest.TestCase):
       self, range_min, range_max, data_dtype, quantization_dtype,
       expected_scale):
     d = np.arange(range_min, range_max + 1, dtype=data_dtype)
-    q, s, m = quantization.quantize_weights(d, quantization_dtype)
+    q, metadata = quantization.quantize_weights(d, quantization_dtype)
+    assert 'scale' in metadata and 'min' in metadata
+    s = metadata['scale']
+    m = metadata['min']
     self.assertAlmostEqual(s, expected_scale)
     self.assertEqual(q.dtype, quantization_dtype)
 
@@ -43,7 +46,10 @@ class TestQuantizationUtil(unittest.TestCase):
 
   def testAllEqual(self):
     d = np.ones(5, dtype=np.float32)
-    q, s, m = quantization.quantize_weights(d, np.uint8)
+    q, metadata = quantization.quantize_weights(d, np.uint8)
+    assert 'scale' in metadata and 'min' in metadata
+    s = metadata['scale']
+    m = metadata['min']
     self.assertEqual(s, 1.0)
     self.assertEqual(q.dtype, np.uint8)
 

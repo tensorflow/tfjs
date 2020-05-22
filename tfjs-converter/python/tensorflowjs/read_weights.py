@@ -24,7 +24,9 @@ import os
 import numpy as np
 from tensorflowjs import quantization
 
-_INPUT_DTYPES = [np.float32, np.int32, np.uint8, np.uint16, np.object]
+_INPUT_DTYPES = [
+    np.float16, np.float32, np.int32, np.uint8, np.uint16, np.object
+]
 
 # Number of bytes used to encode the length of a string in a string tensor.
 STRING_LENGTH_NUM_BYTES = 4
@@ -188,7 +190,7 @@ def decode_weights(weights_manifest, data_buffers, flatten=False):
       else:
         value = _deserialize_numeric_array(data_buffer, offset, dtype, shape)
         offset += dtype.itemsize * value.size
-      if quant_info:
+      if quant_info and dtype in [np.uint8, np.uint16]:
         value = quantization.dequantize_weights(
             value, quant_info['scale'], quant_info['min'],
             np.dtype(weight['dtype']))

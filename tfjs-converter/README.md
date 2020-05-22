@@ -154,7 +154,9 @@ saved a tf.keras model in the SavedModel format.
 |<nobr>`--saved_model_tags`</nobr> | Only applicable to SavedModel conversion. Tags of the MetaGraphDef to load, in comma separated format. Defaults to `serve`.|
 |`--signature_name`   | Only applicable to TensorFlow SavedModel and Hub module conversion, signature to load. Defaults to `serving_default` for SavedModel and `default` for Hub module. See https://www.tensorflow.org/hub/common_signatures/.|
 |`--strip_debug_ops`   | Strips out TensorFlow debug operations `Print`, `Assert`, `CheckNumerics`. Defaults to `True`.|
-|`--quantization_bytes`  | How many bytes to optionally quantize/compress the weights to. Valid values are 1 and 2. which will quantize int32 and float32 to 1 or 2 bytes respectively. The default (unquantized) size is 4 bytes.|
+|`--quantize_float16`  | Comma separated list of node names to apply foat16 quantization. You can use the wildcard symbol (*) to apply quantization to multiple nodes. (e.g., conv/*/weights) |
+|`--quantize_uint8`  | Comma separated list of node names to apply 1 byte affine integer quantization. You can use the wildcard symbol (*) to apply quantization to multiple nodes. (e.g., conv/*/weights) |
+|`--quantize_uint16`  | Comma separated list of node names to apply affine integer quantization. You can use the wildcard symbol (*) to apply quantization to multiple nodes. (e.g., conv/*/weights) |
 |`--weight_shard_size_bytes` | Shard size (in bytes) of the weight files. Only supported when `output_format` is `tfjs_layers_model` or `tfjs_graph_model`. Default size is 4 MB (4194304 bytes).|
 |<nobr>`--output_node_names`</nobr>| Only applicable to Frozen Model. The names of the output nodes, separated by commas.|
 
@@ -216,7 +218,7 @@ purposes:
    tensorflowjs_converter \
       --input_format tfjs_layers_model \
       --output_format tfjs_layers_model \
-      --quantization_bytes 2 \
+      --quantize_uint16 \
       original_model/model.json
       quantized_model/
    ```
@@ -380,17 +382,32 @@ browser to cache them automatically. If the model architecture is less than 4MB
 
 __4. Can I quantize the weights over the wire?__
 
-Yes, you can use the --quantization_bytes option to compress int32/float32 to 1
-or 2 bytes. Here is
-an example of 8-bit quantization:
+Yes, you can use the --quantize_{float16, uint8, uint16} flags to compress
+weights with 1 byte integer quantization (`uint8`) or 2 byte integer
+(`uint16`)/float (`float16`) quantization.
+Quantizing to float16 may provide better accuracy over
+2 byte affine integer scaling (`uint16`). 1-byte affine quantization,
+i.e., `uint8` provides a 4x size reduction at the cost of accuracy.
+For example, we can quantize our MobileNet model using float16 quantization:
 
 ```
-tensorflowjs_converter \
+tensorflowjs_converter
+    --quantize_float16 \
     --input_format=tf_hub \
-    --quantization_bytes=1
     'https://tfhub.dev/google/imagenet/mobilenet_v1_100_224/classification/1' \
     /mobilenet/web_model
 ```
+
+You can also quantize specific weights as well as weight groupings using
+a wildcard replacement. For example,
+```
+tensorflowjs_converter
+    --quantize_float16="conv/*/weights"
+```
+which will quantize all weights that match the pattern conv/*/weights.
+This will exclude biases and any weights that don't begin with conv/.
+This can be a powerful tool to reduce model size while trying to maximize
+performance.
 
 __5. Why is the predict() method for inference so much slower on the first call than the subsequent calls?__
 

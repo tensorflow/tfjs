@@ -897,7 +897,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       process = subprocess.Popen([
           'tensorflowjs_converter', '--input_format', 'tfjs_layers_model',
           '--output_format', 'tfjs_layers_model',
-          '--quantization_bytes', '2',
+          '--quantize_uint16', '*',
           os.path.join(tfjs_output_dir, 'model.json'), sharded_model_dir
       ])
       process.communicate()
