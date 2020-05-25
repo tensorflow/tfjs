@@ -135,12 +135,17 @@ export function decodeWeights(
           new Uint8Array(byteBuffer) :
           new Uint16Array(byteBuffer);
       if (dtype === 'float32') {
-        values = Float32Array.from(
-            quantizedArray, v => v * quantization.scale + quantization.min);
+        values = new Float32Array(quantizedArray.length);
+        for (let i = 0; i < quantizedArray.length; i++) {
+          const v = quantizedArray[i];
+          values[i] = v * quantization.scale + quantization.min;
+        }
       } else if (dtype === 'int32') {
-        values = Int32Array.from(
-            quantizedArray,
-            v => Math.round(v * quantization.scale + quantization.min));
+        values = new Int32Array(quantizedArray.length);
+        for (let i = 0; i < quantizedArray.length; i++) {
+          const v = quantizedArray[i];
+          values[i] = v * quantization.scale + quantization.min;
+        }
       } else {
         throw new Error(`Unsupported dtype in weight '${name}': ${dtype}`);
       }
