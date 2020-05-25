@@ -49,6 +49,7 @@ interface ProgramParams {
   workGroupSize?: [number, number, number];
   variableNames: string[];
   uniforms?: string;
+  noUniform?: boolean;
   userCode: string;
 }
 
@@ -94,6 +95,13 @@ export function makeShader(
 
   if (program.uniforms) {
     uniformDeclaration += program.uniforms;
+  }
+
+  if (program.noUniform) {
+    const sources =
+        [SHADER_PREFIX, prefixSnippets.join('\n'), program.userCode];
+    const source = sources.join('\n');
+    return source;
   }
 
   prefixSnippets.push(`
