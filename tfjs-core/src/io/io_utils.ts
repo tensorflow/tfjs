@@ -144,7 +144,7 @@ export function decodeWeights(
         values = new Int32Array(quantizedArray.length);
         for (let i = 0; i < quantizedArray.length; i++) {
           const v = quantizedArray[i];
-          values[i] = v * quantization.scale + quantization.min;
+          values[i] = Math.round(v * quantization.scale + quantization.min);
         }
       } else {
         throw new Error(`Unsupported dtype in weight '${name}': ${dtype}`);
