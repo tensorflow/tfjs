@@ -34,6 +34,13 @@ export interface BatchMatMulAttrs {
   transposeB: boolean;
 }
 
+export const BatchToSpaceND = 'BatchToSpaceND';
+export type BatchToSpaceNDInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface BatchToSpaceNDAttrs {
+  blockShape: number[];
+  crops: number[][];
+}
+
 export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 
 export const BroadcastTo = 'BroadcastTo';
@@ -98,6 +105,13 @@ export const Conv3DBackpropInputV2 = 'Conv3DBackpropInputV2';
 export type Conv3DBackpropInputInputs = Pick<NamedTensorInfoMap, 'dy'>;
 export interface Conv3DBackpropInputAttrs {
   pad: 'valid'|'same';
+}
+
+export const DepthToSpace = 'DepthToSpace';
+export type DepthToSpaceInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface DepthToSpaceAttrs {
+  blockSize: number;
+  dataFormat: 'NHWC'|'NCHW';
 }
 
 export const DepthwiseConv2dNative = 'DepthwiseConv2dNative';
@@ -182,6 +196,15 @@ export interface MaxPoolWithArgmaxAttrs {
 export const NotEqual = 'NotEqual';
 export type NotEqualInputs = BinaryInputs;
 
+export const NonMaxSuppressionV3 = 'NonMaxSuppressionV3';
+export type NonMaxSuppressionV3Inputs =
+    Pick<NamedTensorInfoMap, 'boxes'|'scores'>;
+export interface NonMaxSuppressionV3Attrs {
+  maxOutputSize: number;
+  iouThreshold: number;
+  scoreThreshold: number;
+}
+
 export const NonMaxSuppressionV5 = 'NonMaxSuppressionV5';
 export type NonMaxSuppressionV5Inputs =
     Pick<NamedTensorInfoMap, 'boxes'|'scores'>;
@@ -212,6 +235,13 @@ export type PadV2Inputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface PadV2Attrs {
   paddings: Array<[number, number]>;
   constantValue: number;
+}
+
+export const SpaceToBatchND = 'SpaceToBatchND';
+export type SpaceToBatchNDInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface SpaceToBatchNDAttrs {
+  blockShape: number[];
+  paddings: number[][];
 }
 
 export const SplitV = 'SplitV';

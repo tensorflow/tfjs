@@ -295,17 +295,12 @@ export interface OpHandler {
       strides?: [number, number]|number): T;
   unsortedSegmentSum<T extends Tensor>(
       x: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T;
-  batchToSpaceND<T extends Tensor>(
-      x: T, blockShape: number[], crops: number[][]): T;
-  spaceToBatchND<T extends Tensor>(
-      x: T, blockShape: number[], paddings: number[][]): T;
   topk<T extends Tensor>(x: T, k: number, sorted: boolean):
       {values: T, indices: T};
   stridedSlice(
       x: Tensor, begin: number[], end: number[], strides: number[],
       beginMask: number, endMask: number, ellipsisMask: number,
       newAxisMask: number, shrinkAxisMask: number): Tensor;
-  depthToSpace(x: Tensor4D, blockSize: number, dataFormat: string): Tensor4D;
   spectral: {
     fft(x: Tensor): Tensor; ifft(x: Tensor): Tensor; rfft(x: Tensor): Tensor;
     irfft(x: Tensor): Tensor
@@ -1184,18 +1179,6 @@ export class Tensor<R extends Rank = Rank> {
     return opHandler.unsortedSegmentSum(this, segmentIds, numSegments);
   }
 
-  batchToSpaceND<T extends Tensor>(
-      this: T, blockShape: number[], crops: number[][]): T {
-    this.throwIfDisposed();
-    return opHandler.batchToSpaceND(this, blockShape, crops);
-  }
-
-  spaceToBatchND<T extends Tensor>(
-      this: T, blockShape: number[], paddings: number[][]): T {
-    this.throwIfDisposed();
-    return opHandler.spaceToBatchND(this, blockShape, paddings);
-  }
-
   topk<T extends Tensor>(this: T, k = 1, sorted = true):
       {values: T, indices: T} {
     this.throwIfDisposed();
@@ -1210,12 +1193,6 @@ export class Tensor<R extends Rank = Rank> {
     return opHandler.stridedSlice(
         this, begin, end, strides, beginMask, endMask, ellipsisMask,
         newAxisMask, shrinkAxisMask);
-  }
-
-  depthToSpace(this: Tensor4D, blockSize: number, dataFormat: 'NHWC'|'NCHW'):
-      Tensor4D {
-    this.throwIfDisposed();
-    return opHandler.depthToSpace(this, blockSize, dataFormat);
   }
 
   fft(this: Tensor): Tensor {

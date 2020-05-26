@@ -31,6 +31,8 @@ export * from '../ops/concat_util';
 export * from '../ops/conv_util';
 export {Activation, FusedConv2DConfig} from '../ops/fused_util';
 export * from '../ops/reduce_util';
+export {nonMaxSuppressionV3, nonMaxSuppressionV5} from './non_max_suppression_impl';
+
 export {BackendValues, TypedArray, upcastType, PixelData} from '../types';
 export {MemoryInfo, TimingInfo} from '../engine';
 export * from '../ops/array_ops_util';

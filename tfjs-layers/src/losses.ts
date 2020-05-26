@@ -133,7 +133,7 @@ export function categoricalCrossentropy(
  *   a tensor of logits.
  */
 export function sparseCategoricalCrossentropy(
-    target: Tensor, output: Tensor): Tensor {
+    target: Tensor, output: Tensor, fromLogits = false): Tensor {
   return tidy(() => {
     const flatTarget = tfc.floor(K.flatten(target)).toInt() as Tensor1D;
     output = tfc.clipByValue(output, epsilon(), 1 - epsilon());
@@ -141,7 +141,6 @@ export function sparseCategoricalCrossentropy(
     const oneHotTarget =
         tfc.oneHot(flatTarget, outputShape[outputShape.length - 1])
             .reshape(outputShape);
-    const fromLogits = false;
     return categoricalCrossentropy(oneHotTarget, output, fromLogits);
   });
 }
