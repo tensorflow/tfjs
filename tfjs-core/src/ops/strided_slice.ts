@@ -24,8 +24,6 @@ import {op} from './operation';
 import {slice} from './slice';
 import {computeOutShape, maskToAxes, startForAxis, startIndicesWithEllidedDims, stopForAxis, stopIndicesWithEllidedDims, stridesForAxis, stridesWithEllidedDims} from './slice_util';
 
-
-
 /**
  * Extracts a strided slice of a tensor.
  *
@@ -69,6 +67,16 @@ function stridedSlice_(
   const ellipsisAxes = maskToAxes(ellipsisMask);
   if (ellipsisAxes.length > 1) {
     throw new Error('Multiple ellipses in slice is not allowed.');
+  }
+
+  if (ellipsisMask !== 0 && newAxisMask !== 0) {
+    throw new Error(
+        'Using both ellipsisMask and newAxisMask is not yet supported.');
+  }
+
+  if (ellipsisMask !== 0 && shrinkAxisMask !== 0) {
+    throw new Error(
+        'Using both ellipsisMask and shrinkAxisMask is not yet supported.');
   }
 
   let $x = convertToTensor(x, 'x', 'stridedSlice');

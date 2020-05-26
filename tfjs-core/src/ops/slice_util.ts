@@ -111,7 +111,7 @@ export function stopIndicesWithEllidedDims(
       newIndices[ellipsisInsertionIndex] = Number.MAX_SAFE_INTEGER;
     } else {
       newIndices.splice(
-          ellipsisInsertionIndex + i, 0 /* num elements to delete */,
+          ellipsisInsertionIndex, 0 /* num elements to delete */,
           Number.MAX_SAFE_INTEGER /* element to add */);
       newIndices.pop();  // remove last element from the array
     }

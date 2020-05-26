@@ -20,7 +20,7 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 describeWithFlags('stridedSlice', ALL_ENVS, () => {
-  fit('with ellipsisMask=1', async () => {
+  it('with ellipsisMask=1', async () => {
     const t = tf.tensor2d([
       [1, 2, 3, 4, 5],
       [2, 3, 4, 5, 6],
@@ -45,7 +45,7 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     expectArraysClose(await output.data(), [5, 6, 7, 8, 9, 10, 11, 11, 11, 11]);
   });
 
-  fit('with ellipsisMask=1 and start / end normalization', async () => {
+  it('with ellipsisMask=1 and start / end normalization', async () => {
     const t = tf.tensor3d([
       [[1, 1, 1], [2, 2, 2]], [[3, 3, 3], [4, 4, 4]], [[5, 5, 5], [6, 6, 6]]
     ]);
@@ -62,7 +62,7 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     expectArraysClose(await output.data(), [1, 2, 3, 4, 5, 6]);
   });
 
-  fit('with ellipsisMask=2', async () => {
+  it('with ellipsisMask=2', async () => {
     const t = tf.tensor3d([
       [[1, 1, 1], [2, 2, 2]], [[3, 3, 3], [4, 4, 4]], [[5, 5, 5], [6, 6, 6]]
     ]);
@@ -78,7 +78,7 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     expectArraysClose(await output.data(), [3, 3, 3, 4, 4, 4]);
   });
 
-  fit('with ellipsisMask=2 and start / end normalization', async () => {
+  it('with ellipsisMask=2 and start / end normalization', async () => {
     const t = tf.tensor4d([
       [[[1, 1], [1, 1], [1, 1]], [[2, 2], [2, 2], [2, 2]]],
 
@@ -98,6 +98,16 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     expect(output.shape).toEqual([1, 2, 3, 1]);
     expectArraysClose(await output.data(), [3, 3, 3, 4, 4, 4]);
   });
+
+  it('stridedSlice should fail if ellipsis mask is set and newAxisMask or ' +
+         'shrinkAxisMask are also set',
+     async () => {
+       const tensor = tf.tensor1d([0, 1, 2, 3]);
+       expect(() => tf.stridedSlice(tensor, [0], [3], [2], 0, 0, 1, 1))
+           .toThrow();
+       expect(() => tf.stridedSlice(tensor, [0], [3], [2], 0, 0, 1, 0, 1))
+           .toThrow();
+     });
 
   it('stridedSlice with first axis being new', async () => {
     // Python slice code: t[tf.newaxis,0:3]
