@@ -20,7 +20,7 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 describeWithFlags('stridedSlice', ALL_ENVS, () => {
-  it('with ellipsisMask=1', async () => {
+  fit('with ellipsisMask=1', async () => {
     const t = tf.tensor2d([
       [1, 2, 3, 4, 5],
       [2, 3, 4, 5, 6],
@@ -45,25 +45,24 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     expectArraysClose(await output.data(), [5, 6, 7, 8, 9, 10, 11, 11, 11, 11]);
   });
 
-  it('with ellipsisMask=1 and where start / end must be normalized',
-     async () => {
-       const t = tf.tensor3d([
-         [[1, 1, 1], [2, 2, 2]], [[3, 3, 3], [4, 4, 4]], [[5, 5, 5], [6, 6, 6]]
-       ]);
-       const begin = [1, 0];
-       const end = [2, 1];
-       const strides = [1, 1];
-       const beginMask = 0;
-       const endMask = 0;
-       const ellipsisMask = 1;
+  fit('with ellipsisMask=1 and start / end normalization', async () => {
+    const t = tf.tensor3d([
+      [[1, 1, 1], [2, 2, 2]], [[3, 3, 3], [4, 4, 4]], [[5, 5, 5], [6, 6, 6]]
+    ]);
+    const begin = [1, 0];
+    const end = [2, 1];
+    const strides = [1, 1];
+    const beginMask = 0;
+    const endMask = 0;
+    const ellipsisMask = 1;
 
-       const output = tf.stridedSlice(
-           t, begin, end, strides, beginMask, endMask, ellipsisMask);
-       expect(output.shape).toEqual([3, 2, 1]);
-       expectArraysClose(await output.data(), [1, 2, 3, 4, 5, 6]);
-     });
+    const output = tf.stridedSlice(
+        t, begin, end, strides, beginMask, endMask, ellipsisMask);
+    expect(output.shape).toEqual([3, 2, 1]);
+    expectArraysClose(await output.data(), [1, 2, 3, 4, 5, 6]);
+  });
 
-  it('with ellipsisMask=2', async () => {
+  fit('with ellipsisMask=2', async () => {
     const t = tf.tensor3d([
       [[1, 1, 1], [2, 2, 2]], [[3, 3, 3], [4, 4, 4]], [[5, 5, 5], [6, 6, 6]]
     ]);
@@ -76,6 +75,27 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     const output = tf.stridedSlice(
         t, begin, end, strides, beginMask, endMask, ellipsisMask);
     expect(output.shape).toEqual([1, 2, 3]);
+    expectArraysClose(await output.data(), [3, 3, 3, 4, 4, 4]);
+  });
+
+  fit('with ellipsisMask=2 and start / end normalization', async () => {
+    const t = tf.tensor4d([
+      [[[1, 1], [1, 1], [1, 1]], [[2, 2], [2, 2], [2, 2]]],
+
+      [[[3, 3], [3, 3], [3, 3]], [[4, 4], [4, 4], [4, 4]]],
+
+      [[[5, 5], [5, 5], [5, 5]], [[6, 6], [6, 6], [6, 6]]]
+    ]);
+
+    const begin = [1, 0, 0];
+    const end = [2, 1, 1];
+    const strides = [1, 1, 1];
+    const beginMask = 0;
+    const endMask = 0;
+    const ellipsisMask = 2;
+    const output = tf.stridedSlice(
+        t, begin, end, strides, beginMask, endMask, ellipsisMask);
+    expect(output.shape).toEqual([1, 2, 3, 1]);
     expectArraysClose(await output.data(), [3, 3, 3, 4, 4, 4]);
   });
 

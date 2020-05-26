@@ -72,7 +72,7 @@ function stridedSlice_(
   }
 
   let $x = convertToTensor(x, 'x', 'stridedSlice');
-  const ellidedAxesCount = $x.rank - begin.length;
+  const numInterpolatedAxes = $x.rank - begin.length;
 
   // Expand the dims of x based on the newAxisMask.
   const expandAxes = maskToAxes(newAxisMask);
@@ -93,13 +93,16 @@ function stridedSlice_(
     strides[axis] = stridesForAxis(strides, axis, ellipsisMask);
   }
 
-  if (ellipsisAxes.length && ellidedAxesCount > 0) {
+  if (ellipsisAxes.length && numInterpolatedAxes > 0) {
     const fullIndex = ellipsisAxes[0];
 
-    begin = startIndicesWithEllidedDims(begin, fullIndex, ellidedAxesCount);
-    end =
-        stopIndicesWithEllidedDims(end, fullIndex, ellidedAxesCount, $x.shape);
-    strides = stridesWithEllidedDims(strides, fullIndex, ellidedAxesCount);
+    // The ellipsis applies to the masked index as well as any dimensions that
+    // were interpolated as full selection.
+    const numEllidedAxes = numInterpolatedAxes + 1;
+
+    begin = startIndicesWithEllidedDims(begin, fullIndex, numEllidedAxes);
+    end = stopIndicesWithEllidedDims(end, fullIndex, numEllidedAxes, $x.shape);
+    strides = stridesWithEllidedDims(strides, fullIndex, numEllidedAxes);
   }
 
   const shrinkAxes = maskToAxes(shrinkAxisMask);

@@ -67,10 +67,14 @@ export function stridesWithEllidedDims(
     numEllidedAxes: number): number[] {
   const newStrides = [...strides];
   for (let i = 0; i < numEllidedAxes; i++) {
-    newStrides.splice(
-        ellipsisInsertionIndex, 0 /* num elements to delete */,
-        1 /* element to add */);
-    newStrides.pop();
+    if (i === 0) {
+      newStrides[ellipsisInsertionIndex] = 1;
+    } else {
+      newStrides.splice(
+          ellipsisInsertionIndex, 0 /* num elements to delete */,
+          1 /* element to add */);
+      newStrides.pop();
+    }
   }
   return newStrides;
 }
@@ -81,10 +85,14 @@ export function startIndicesWithEllidedDims(
     numEllidedAxes: number): number[] {
   const newIndices = [...startIndices];
   for (let i = 0; i < numEllidedAxes; i++) {
-    newIndices.splice(
-        ellipsisInsertionIndex, 0 /* num elements to delete */,
-        0 /* element to add */);
-    newIndices.pop();
+    if (i === 0) {
+      newIndices[ellipsisInsertionIndex] = 0;
+    } else {
+      newIndices.splice(
+          ellipsisInsertionIndex, 0 /* num elements to delete */,
+          0 /* element to add */);
+      newIndices.pop();
+    }
   }
   return newIndices;
 }
@@ -94,11 +102,17 @@ export function stopIndicesWithEllidedDims(
     numEllidedAxes: number, inputShape: number[]): number[] {
   const newIndices = [...stopIndices];
   for (let i = 0; i < numEllidedAxes; i++) {
-    newIndices.splice(
-        ellipsisInsertionIndex + i, 0 /* num elements to delete */,
-        Number.MAX_SAFE_INTEGER /* element to add */);
-    newIndices.pop();  // remove last null element from the array
+    if (i === 0) {
+      newIndices[ellipsisInsertionIndex] = Number.MAX_SAFE_INTEGER;
+    } else {
+      newIndices.splice(
+          ellipsisInsertionIndex + i, 0 /* num elements to delete */,
+          Number.MAX_SAFE_INTEGER /* element to add */);
+      newIndices.pop();  // remove last null element from the array
+    }
   }
+
+  console.log('STOP INDICES WITH ELIDED DIMS', JSON.stringify(newIndices));
 
   for (let i = 0; i < newIndices.length; i++) {
     newIndices[i] = util.clamp(0, newIndices[i], inputShape[i]);
