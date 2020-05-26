@@ -52,16 +52,21 @@ export class BinaryOpProgram implements WebGPUProgram {
   workGroupSize: [number, number, number];
 
   constructor(op: string, aShape: number[], bShape: number[]) {
-    const workGroupSizeX = 16;
+    // This is an experimental value when using shared memory.
+    const workGroupSizeX = 512;
     this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     const size = util.sizeFromShape(this.outputShape);
     const fit = util.arraysEqual(aShape, bShape) && size % workGroupSizeX === 0;
-    this.workPerThread = fit ? 1 : 4;
+    this.workPerThread = fit ? 1 : 2;
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
+    const useSharedMemoryWithA =
+        aShape.length === 1 && bShape.length > 1 && aShape[0] < 2048;
+    const useSharedMemoryWithB =
+        bShape.length === 1 && aShape.length > 1 && bShape[0] < 2048;
     if (fit) {
       this.userCode = `
           float binaryOperation(float a, float b) {
@@ -77,6 +82,49 @@ export class BinaryOpProgram implements WebGPUProgram {
           }
         `;
       this.shaderKey = `binary2${op}`;
+    } else if (useSharedMemoryWithA || useSharedMemoryWithB) {
+      const type = getCoordsDataType(this.outputShape.length);
+      const sharedMemerySize = useSharedMemoryWithB ? bShape[0] : aShape[0];
+      const sharedIndexSnippet = sharedMemerySize > 1 ?
+          `            int sharedIndex =  coords[${
+              this.outputShape.length - 1}];` :
+          `            int sharedIndex =  0;`;
+      const accessDataSnippet = useSharedMemoryWithB ?
+          `            float a = getAAtOutCoords(coords);
+                       float b = sharedBuf[sharedIndex];` :
+          `            float a = sharedBuf[sharedIndex];
+                       float b = getBAtOutCoords(coords);
+      `;
+      this.userCode = `
+      float binaryOperation(float a, float b) {
+        ${op}
+      }
+
+      shared float sharedBuf[${sharedMemerySize}];
+      void main() {
+        int index = int(gl_GlobalInvocationID.x);
+        int localIndex = int(gl_LocalInvocationIndex);
+        while(localIndex < ${sharedMemerySize})
+        {
+          sharedBuf[localIndex] = ${
+          useSharedMemoryWithB ? 'B' : 'A'}[localIndex];
+          localIndex += int(gl_WorkGroupSize.x);
+        }
+        barrier();
+
+        for(int i = 0; i < ${this.workPerThread}; i++) {
+          int flatIndex = index * ${this.workPerThread} + i;
+
+          if(flatIndex < ${size}) {
+            ${type} coords = getCoordsFromFlatIndex(flatIndex);
+
+            ${sharedIndexSnippet}
+            ${accessDataSnippet}
+            setOutput(flatIndex, binaryOperation(a, b));
+          }
+        }
+      }
+      `;
     } else {
       const type = getCoordsDataType(this.outputShape.length);
 
