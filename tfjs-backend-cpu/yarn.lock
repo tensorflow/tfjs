@@ -60,9 +60,17 @@
   dependencies:
     estree-walker "^1.0.1"
 
-"@tensorflow/tfjs-core@link:../tfjs-core":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-core@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-2.0.0.tgz#c18e963d0332255dc37d6ff58fa0076402ae00d0"
+  integrity sha512-GB02Lyjp7NLKbjCOW6S3Vx2CkkUwtJFt8fY7Zaoyy/ANB4Iw8eiHJV0308CClrFfjA+UKU3TrO+bOQfeCJaEUw==
+  dependencies:
+    "@types/offscreencanvas" "~2019.3.0"
+    "@types/seedrandom" "2.4.27"
+    "@types/webgl-ext" "0.0.30"
+    "@types/webgl2" "0.0.4"
+    node-fetch "~2.1.2"
+    seedrandom "2.4.3"
 
 "@types/color-name@^1.1.1":
   version "1.1.1"
