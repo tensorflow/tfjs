@@ -46,9 +46,7 @@ import {op} from './operation';
  */
 function avgPoolBackprop_<T extends Tensor3D|Tensor4D>(
     dy: T|TensorLike, input: T|TensorLike, filterSize: [number, number]|number,
-    strides: [number, number]|number,
-    dilations: [number, number]|number = [1, 1],
-    pad: 'valid'|'same'|number): T {
+    strides: [number, number]|number, pad: 'valid'|'same'|number): T {
   const $dy = convertToTensor(dy, 'dy', 'avgPoolBackprop');
   const $input = convertToTensor(input, 'input', 'avgPoolBackprop');
 
@@ -56,12 +54,6 @@ function avgPoolBackprop_<T extends Tensor3D|Tensor4D>(
       $input.rank === $dy.rank,
       () => `Rank of input (${$input.rank}) does not match rank of dy (${
           $dy.rank})`);
-
-  util.assert(
-      conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
-      () =>
-          'Error in avgPoolBackprop: Either strides or dilations must be 1. ' +
-          `Got strides ${strides} and dilations '${dilations}'`);
 
   let input4D = $input as Tensor4D;
   let dy4D = $dy as Tensor4D;
@@ -85,14 +77,14 @@ function avgPoolBackprop_<T extends Tensor3D|Tensor4D>(
 
   const forward: ForwardFunc<Tensor> = backend => {
     const convInfo = conv_util.computePool2DInfo(
-        input4D.shape, filterSize, strides, dilations, pad);
+        input4D.shape, filterSize, strides, 1 /* dilations */, pad);
 
     return backend.avgPoolBackprop(dy4D, input4D, convInfo);
   };
 
   const inputs: AvgPoolBackpropInputs = {dy: dy4D, input: input4D};
 
-  const attrs: AvgPoolBackpropAttrs = {filterSize, strides, dilations, pad};
+  const attrs: AvgPoolBackpropAttrs = {filterSize, strides, pad};
 
   const res = ENGINE.runKernelFunc(
       forward, inputs as {} as NamedTensorMap, null, AvgPoolBackprop,

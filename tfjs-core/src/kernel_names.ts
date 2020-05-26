@@ -32,7 +32,6 @@ export type AvgPoolInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface AvgPoolAttrs {
   filterSize: [number, number]|number;
   strides: [number, number]|number;
-  dilations: [number, number]|number;
   pad: 'valid'|'same'|number;
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
@@ -42,7 +41,6 @@ export type AvgPoolBackpropInputs = Pick<NamedTensorInfoMap, 'dy'|'input'>;
 export interface AvgPoolBackpropAttrs {
   filterSize: [number, number]|number;
   strides: [number, number]|number;
-  dilations: [number, number]|number;
   pad: 'valid'|'same'|number;
 }
 
@@ -229,7 +227,6 @@ export type MaxPoolInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface MaxPoolAttrs {
   filterSize: [number, number]|number;
   strides: [number, number]|number;
-  dilations: [number, number]|number;
   pad: 'valid'|'same'|number;
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
@@ -240,7 +237,6 @@ export type MaxPoolBackpropInputs =
 export interface MaxPoolBackpropAttrs {
   filterSize: [number, number]|number;
   strides: [number, number]|number;
-  dilations: [number, number]|number;
   pad: 'valid'|'same'|number;
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }

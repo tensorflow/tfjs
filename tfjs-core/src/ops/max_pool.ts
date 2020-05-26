@@ -56,10 +56,10 @@ import {op} from './operation';
  */
 function maxPool_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, filterSize: [number, number]|number,
-    strides: [number, number]|number,
-    dilations: [number, number]|number = [1, 1], pad: 'valid'|'same'|number,
+    strides: [number, number]|number, pad: 'valid'|'same'|number,
     dimRoundingMode?: 'floor'|'round'|'ceil'): T {
   const $x = convertToTensor(x, 'x', 'maxPool');
+  const dilations = 1;
 
   let x4D = $x as Tensor4D;
   let reshapedTo4D = false;
@@ -92,7 +92,8 @@ function maxPool_<T extends Tensor3D|Tensor4D>(
 
   const forward: ForwardFunc<Tensor> = (backend, save) => {
     const convInfo = conv_util.computePool2DInfo(
-        x4D.shape, filterSize, strides, dilations, pad, dimRoundingMode);
+        x4D.shape, filterSize, strides, 1 /* dilations */, pad,
+        dimRoundingMode);
     const y = backend.maxPool(x4D, convInfo);
     save([x4D, y]);
     return y;
@@ -100,8 +101,7 @@ function maxPool_<T extends Tensor3D|Tensor4D>(
 
   const inputs: MaxPoolInputs = {x: x4D};
 
-  const attrs:
-      MaxPoolAttrs = {filterSize, strides, dilations, pad, dimRoundingMode};
+  const attrs: MaxPoolAttrs = {filterSize, strides, pad, dimRoundingMode};
 
   const res = ENGINE.runKernelFunc(
       forward, inputs as {} as NamedTensorMap, null /* grad */, MaxPool,
@@ -113,11 +113,4 @@ function maxPool_<T extends Tensor3D|Tensor4D>(
   return res as T;
 }
 
-function maxPoolWrapper_<T extends Tensor3D|Tensor4D>(
-    x: T|TensorLike, filterSize: [number, number]|number,
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
-    dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-  return maxPool_(x, filterSize, strides, 1, pad, dimRoundingMode);
-}
-
-export const maxPool = op({maxPoolWrapper_});
+export const maxPool = op({maxPool_});

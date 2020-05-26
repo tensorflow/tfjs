@@ -16,6 +16,7 @@
  */
 
 import {ENGINE, ForwardFunc} from '../engine';
+import {deprecationWarn} from '../globals';
 import {AvgPool3D, AvgPool3DAttrs, AvgPool3DInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor4D, Tensor5D} from '../tensor';
@@ -62,7 +63,8 @@ import {op} from './operation';
  *     "NDHWC". Specify the data format of the input and output data. With the
  *     default format "NDHWC", the data is stored in the order of: [batch,
  *     depth, height, width, channels]. Only "NDHWC" is currently supported.
- * @param dilations The dilation rates:
+ * @param dilations Deprecated, this field will be gone in v3.0.0.
+ *     The dilation rates:
  *     `[dilationDepth, dilationHeight, dilationWidth]`
  *     in which we sample input values across the depth, height and width
  *     dimensions in dilated pooling.
@@ -79,6 +81,10 @@ function avgPool3d_<T extends Tensor4D|Tensor5D>(
     dilations?: [number, number, number]|number): T {
   if (dilations == null) {
     dilations = [1, 1, 1];
+  } else {
+    deprecationWarn(
+        'dilations is deprecated, this field will be gone in ' +
+        'v3.0.0.');
   }
 
   const $x = convertToTensor(x, 'x', 'avgPool3d', 'float32');

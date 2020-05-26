@@ -51,8 +51,7 @@ import {op} from './operation';
 function maxPoolBackprop_(
     dy: Tensor4D|TensorLike, input: Tensor4D|TensorLike,
     output: Tensor4D|TensorLike, filterSize: [number, number]|number,
-    strides: [number, number]|number,
-    dilations: [number, number]|number = [1, 1], pad: 'valid'|'same'|number,
+    strides: [number, number]|number, pad: 'valid'|'same'|number,
     dimRoundingMode?: 'floor'|'round'|'ceil'): Tensor4D {
   const $dy = convertToTensor(dy, 'dy', 'maxPoolBackprop');
   const $input = convertToTensor(input, 'input', 'maxPoolBackprop');
@@ -62,12 +61,6 @@ function maxPoolBackprop_(
       $input.rank === $dy.rank,
       () => `Rank of input (${$input.rank}) does not match rank of dy ` +
           `(${$dy.rank})`);
-
-  util.assert(
-      conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
-      () =>
-          'Error in maxPoolBackProp: Either strides or dilations must be 1. ' +
-          `Got strides ${strides} and dilations '${dilations}'`);
 
   util.assert(
       $dy.rank === 4,
@@ -86,7 +79,8 @@ function maxPoolBackprop_(
 
   const forward: ForwardFunc<Tensor> = backend => {
     const convInfo = conv_util.computePool2DInfo(
-        $input.shape, filterSize, strides, dilations, pad, dimRoundingMode);
+        $input.shape, filterSize, strides, 1 /* dilations */, pad,
+        dimRoundingMode);
 
     return backend.maxPoolBackprop($dy, $input, $output, convInfo);
   };
@@ -94,8 +88,8 @@ function maxPoolBackprop_(
   const inputs:
       MaxPoolBackpropInputs = {dy: $dy, input: $input, output: $output};
 
-  const attrs: MaxPoolBackpropAttrs =
-      {filterSize, strides, dilations, pad, dimRoundingMode};
+  const attrs:
+      MaxPoolBackpropAttrs = {filterSize, strides, pad, dimRoundingMode};
 
   return ENGINE.runKernelFunc(
              forward, inputs as {} as NamedTensorMap, null, MaxPoolBackprop,

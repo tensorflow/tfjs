@@ -37,11 +37,6 @@ import {op} from './operation';
  *     `filterSize` is a single number, then `filterHeight == filterWidth`.
  * @param strides The strides of the pooling: `[strideHeight, strideWidth]`. If
  *     `strides` is a single number, then `strideHeight == strideWidth`.
- * @param dilations The dilation rates: `[dilationHeight, dilationWidth]`
- *     in which we sample input values across the height and width dimensions
- *     in dilated pooling. Defaults to `[1, 1]`. If `dilations` is a single
- *     number, then `dilationHeight == dilationWidth`. If it is greater than
- *     1, then all values of `strides` must be 1.
  * @param pad The type of padding algorithm:
  *    - `same` and stride 1: output will be of same size as input,
  *       regardless of filter size.
@@ -56,10 +51,11 @@ import {op} from './operation';
  */
 function avgPool_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, filterSize: [number, number]|number,
-    strides: [number, number]|number,
-    dilations: [number, number]|number = [1, 1], pad: 'valid'|'same'|number,
+    strides: [number, number]|number, pad: 'valid'|'same'|number,
     dimRoundingMode?: 'floor'|'round'|'ceil'): T {
   const $x = convertToTensor(x, 'x', 'avgPool', 'float32');
+  const dilations = 1;
+
   util.assert(
       conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
       () => 'Error in avgPool: Either strides or dilations must be 1. ' +
@@ -92,14 +88,18 @@ function avgPool_<T extends Tensor3D|Tensor4D>(
   }
 
   const forward: ForwardFunc<Tensor> = (backend, save) => {
+    const convInfo = conv_util.computePool2DInfo(
+        x4D.shape, filterSize, strides, 1 /* dilations */, pad,
+        dimRoundingMode);
+
     save([x4D]);
+
     return backend.avgPool(x4D, convInfo);
   };
 
   const inputs: AvgPoolInputs = {x: x4D};
 
-  const attrs:
-      AvgPoolAttrs = {filterSize, strides, dilations, pad, dimRoundingMode};
+  const attrs: AvgPoolAttrs = {filterSize, strides, pad, dimRoundingMode};
 
   let res = ENGINE.runKernelFunc(
       forward, inputs as {} as NamedTensorMap, null /* grad */, AvgPool,
@@ -114,11 +114,4 @@ function avgPool_<T extends Tensor3D|Tensor4D>(
   return res as T;
 }
 
-function avgPoolWrapper_<T extends Tensor3D|Tensor4D>(
-    x: T|TensorLike, filterSize: [number, number]|number,
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
-    dimRoundingMode?: 'floor'|'round'|'ceil') {
-  return avgPool_(x, filterSize, strides, 1, pad, dimRoundingMode);
-}
-
-export const avgPool = op({avgPoolWrapper_});
+export const avgPool = op({avgPool_});

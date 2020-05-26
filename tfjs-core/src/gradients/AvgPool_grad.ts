@@ -25,10 +25,9 @@ export const avgPoolGradConfig: GradConfig = {
   inputsToSave: ['x'],
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const [x] = saved as [Tensor4D];
-    const {filterSize, strides, dilations, pad} = attrs as {} as AvgPoolAttrs;
+    const {filterSize, strides, pad} = attrs as {} as AvgPoolAttrs;
     return {
-      x: () => avgPoolBackprop(
-          dy as Tensor4D, x, filterSize, strides, dilations, pad)
+      x: () => avgPoolBackprop(dy as Tensor4D, x, filterSize, strides, pad)
     };
   }
 };

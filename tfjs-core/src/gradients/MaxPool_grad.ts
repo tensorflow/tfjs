@@ -26,11 +26,10 @@ export const maxPoolGradConfig: GradConfig = {
   outputsToSave: [true],
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const [x, y] = saved as [Tensor4D, Tensor4D];
-    const {filterSize, strides, dilations, pad} = attrs as {} as MaxPoolAttrs;
+    const {filterSize, strides, pad} = attrs as {} as MaxPoolAttrs;
 
     return {
-      x: () => maxPoolBackprop(
-          dy as Tensor4D, x, y, filterSize, strides, dilations, pad)
+      x: () => maxPoolBackprop(dy as Tensor4D, x, y, filterSize, strides, pad)
     };
   }
 };

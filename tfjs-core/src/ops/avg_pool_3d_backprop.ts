@@ -44,8 +44,8 @@ import {op} from './operation';
  * @param strides The strides of the pooling:
  *     `[strideDepth, strideHeight, strideWidth]`. If
  *     `strides` is a single number, then `strideHeight == strideWidth`.
- * @param dilations The dilation rates:
- *     `[dilationDepth, dilationHeight, dilationWidth]`
+ * @param dilations Deprecated, this field will be gone in v3.0.0. The dilation
+ *     rates: `[dilationDepth, dilationHeight, dilationWidth]`
  *     in which we sample input values across the depth, height and width
  *     dimensions in dilated pooling.
  *     Defaults to `[1, 1, 1]`. If `dilations` is a single number,
