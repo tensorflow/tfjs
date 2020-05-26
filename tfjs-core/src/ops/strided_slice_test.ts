@@ -45,7 +45,7 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     expectArraysClose(await output.data(), [5, 6, 7, 8, 9, 10, 11, 11, 11, 11]);
   });
 
-  it('with ellipsisMask=1 and where start / end / strides must be normalized',
+  it('with ellipsisMask=1 and where start / end must be normalized',
      async () => {
        const t = tf.tensor3d([
          [[1, 1, 1], [2, 2, 2]], [[3, 3, 3], [4, 4, 4]], [[5, 5, 5], [6, 6, 6]]
@@ -62,6 +62,22 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
        expect(output.shape).toEqual([3, 2, 1]);
        expectArraysClose(await output.data(), [1, 2, 3, 4, 5, 6]);
      });
+
+  it('with ellipsisMask=2', async () => {
+    const t = tf.tensor3d([
+      [[1, 1, 1], [2, 2, 2]], [[3, 3, 3], [4, 4, 4]], [[5, 5, 5], [6, 6, 6]]
+    ]);
+    const begin = [1, 0, 0];
+    const end = [2, 1, 3];
+    const strides = [1, 1, 1];
+    const beginMask = 0;
+    const endMask = 0;
+    const ellipsisMask = 2;
+    const output = tf.stridedSlice(
+        t, begin, end, strides, beginMask, endMask, ellipsisMask);
+    expect(output.shape).toEqual([1, 2, 3]);
+    expectArraysClose(await output.data(), [3, 3, 3, 4, 4, 4]);
+  });
 
   it('stridedSlice with first axis being new', async () => {
     // Python slice code: t[tf.newaxis,0:3]
