@@ -281,18 +281,6 @@ export interface OpHandler {
     resizeNearestNeighbor<T extends Tensor3D|Tensor4D>(
         images: T, size: [number, number], alignCorners: boolean): T;
   };
-  maxPool<T extends Tensor3D|Tensor4D>(
-      x: T, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T;
-  avgPool<T extends Tensor3D|Tensor4D>(
-      x: T, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T;
-  pool<T extends Tensor3D|Tensor4D>(
-      input: T, windowShape: [number, number]|number, poolingType: 'avg'|'max',
-      padding: 'valid'|'same'|number, diationRate?: [number, number]|number,
-      strides?: [number, number]|number): T;
   unsortedSegmentSum<T extends Tensor>(
       x: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T;
   topk<T extends Tensor>(x: T, k: number, sorted: boolean):
@@ -1144,29 +1132,6 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   // Pooling.
-  avgPool<T extends Tensor3D|Tensor4D>(
-      this: T, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.avgPool(this, filterSize, strides, pad, dimRoundingMode);
-  }
-  maxPool<T extends Tensor3D|Tensor4D>(
-      this: T, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.maxPool(this, filterSize, strides, pad, dimRoundingMode);
-  }
-  pool<T extends Tensor3D|Tensor4D>(
-      this: T, windowShape: [number, number]|number, poolingType: 'max'|'avg',
-      padding: 'valid'|'same'|number, dilationRate?: [number, number]|number,
-      strides?: [number, number]|number): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.pool(
-        this, windowShape, poolingType, padding, dilationRate, strides);
-  }
-
   variable(trainable = true, name?: string, dtype?: DataType): Variable<R> {
     this.throwIfDisposed();
     return trackerFn().makeVariable(this, trainable, name, dtype) as
