@@ -17,7 +17,7 @@
 set -e
 
 DIR=$1
-if [[ -f "$DIR/run-ci" || "$NIGHTLY" = true ]]; then
+if [[ -f "$DIR/run-ci" || "$NIGHTLY" = true || $DIR == "e2e" ]]; then
   gcloud builds submit . --config=$DIR/cloudbuild.yml \
     --substitutions _NIGHTLY=$NIGHTLY
 fi
