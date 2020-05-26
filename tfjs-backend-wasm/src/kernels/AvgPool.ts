@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {AvgPoolAttrs, backend_util, KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -49,16 +49,16 @@ function setup(backend: BackendWasm) {
   ]);
 }
 
-function avgPool(args: {
-  inputs: AvgPoolInputs,
-  backend: BackendWasm,
-  attrs: backend_util.Conv2DInfo
-}) {
+function avgPool(
+    args: {inputs: AvgPoolInputs, backend: BackendWasm, attrs: AvgPoolAttrs}) {
   const {inputs, attrs, backend} = args;
-  const convInfo = attrs;
 
   const {x} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
+
+  const {filterSize, strides, pad, dimRoundingMode} = attrs;
+  const convInfo = backend_util.computePool2DInfo(
+      x.shape, filterSize, strides, 1 /* dilations */, pad, dimRoundingMode);
 
   const filterHeight = convInfo.filterHeight;
   const filterWidth = convInfo.filterWidth;
