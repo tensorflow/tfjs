@@ -123,6 +123,14 @@ steps:
   args: ['test-release-notes']
   waitFor: ['yarn']
 
+# E2E test
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'e2e'
+  args: ['./scripts/run-build.sh', 'e2e']
+  waitFor: ['find-affected-packages']
+  env: ['NIGHTLY=$_NIGHTLY']
+
 # General settings.
 timeout: 3600s
 logsBucket: 'gs://tfjs-build-logs'

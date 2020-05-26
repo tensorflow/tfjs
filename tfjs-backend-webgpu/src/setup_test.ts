@@ -145,6 +145,7 @@ const TEST_FILTERS: TestFilter[] = [
                           // 'CanvasRenderingContext2D': The source width is 0
     ]
   },
+  {include: 'nonMaxSuppression', excludes: []},
   {
     include: 'argmax',
     excludes: [
@@ -353,6 +354,12 @@ const TEST_FILTERS: TestFilter[] = [
       '2x2to3x3-NoCrop',  // The operation failed for an operation-specific
                           // reason
       'MultipleBoxes-DifferentBoxes',  // TimeOut
+    ]
+  },
+  {
+    include: 'batchNorm',
+    excludes: [
+      'gradient',
     ]
   }
 ];

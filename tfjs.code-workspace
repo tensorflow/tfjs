@@ -5,28 +5,16 @@
       "path": "."
     },
     {
-      "name": "Core",
-      "path": "tfjs-core"
-    },
-    {
-      "name": "Converter",
-      "path": "tfjs-converter"
-    },
-    {
-      "name": "Layers",
-      "path": "tfjs-layers"
-    },
-    {
-      "name": "Data",
-      "path": "tfjs-data"
-    },
-    {
       "name": "Union",
       "path": "tfjs"
     },
     {
-      "name": "AutoML",
-      "path": "tfjs-automl"
+      "name": "E2E",
+      "path": "e2e"
+    },
+    {
+      "name": "Core",
+      "path": "tfjs-core"
     },
     {
       "name": "Cpu",
@@ -53,16 +41,32 @@
       "path": "tfjs-backend-nodegl"
     },
     {
-      "name": "ReactNative",
-      "path": "tfjs-react-native"
-    },
-    {
       "name": "WebGPU",
       "path": "tfjs-backend-webgpu"
     },
     {
+      "name": "Converter",
+      "path": "tfjs-converter"
+    },
+    {
+      "name": "Layers",
+      "path": "tfjs-layers"
+    },
+    {
+      "name": "Data",
+      "path": "tfjs-data"
+    },
+    {
+      "name": "ReactNative",
+      "path": "tfjs-react-native"
+    },
+    {
       "name": "Vis",
       "path": "tfjs-vis"
+    },
+    {
+      "name": "AutoML",
+      "path": "tfjs-automl"
     }
   ],
   "settings": {

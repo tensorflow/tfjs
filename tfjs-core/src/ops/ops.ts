@@ -18,6 +18,7 @@
 // Modularized ops.
 export {add} from './add';
 export {addN} from './add_n';
+export {batchToSpaceND} from './batch_to_space_nd';
 export {batchNorm} from './batchnorm';
 export {batchNorm2d} from './batchnorm2d';
 export {batchNorm3d} from './batchnorm3d';
@@ -34,6 +35,7 @@ export {conv2d} from './conv2d';
 export {conv2dTranspose} from './conv2d_transpose';
 export {conv3d} from './conv3d';
 export {conv3dTranspose} from './conv3d_transpose';
+export {depthToSpace} from './depth_to_space';
 export {depthwiseConv2d} from './depthwise_conv2d';
 export {diag} from './diag';
 export {div} from './div';
@@ -62,6 +64,7 @@ export {randomGamma} from './random_gamma';
 export {randomNormal} from './random_normal';
 export {randomUniform} from './random_uniform';
 export {separableConv2d} from './separable_conv2d';
+export {spaceToBatchND} from './space_to_batch_nd';
 export {split} from './split';
 export {square} from './square';
 export {squaredDifference} from './squared_difference';

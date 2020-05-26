@@ -142,6 +142,8 @@ class BundleResourceHandler implements io.IOHandler {
  * loading models that have been statically bundled (at compile time)
  * with an app.
  *
+ * This IOHandler is not compatible with managed expo apps.
+ *
  * ```js
  *  const modelJson = require('../path/to/model.json');
  *  const modelWeights = require('../path/to/model_weights.bin');
