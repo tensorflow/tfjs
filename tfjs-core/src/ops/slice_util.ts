@@ -62,6 +62,8 @@ export function computeOutShape(
   return size;
 }
 
+// Creates full selection at the ellided dimensions. If the dimension matches
+// the ellipsis mask, override the current stride value. Otherwise, insert.
 export function stridesWithEllidedDims(
     strides: number[], ellipsisInsertionIndex: number,
     numEllidedAxes: number): number[] {
@@ -73,13 +75,14 @@ export function stridesWithEllidedDims(
       newStrides.splice(
           ellipsisInsertionIndex, 0 /* num elements to delete */,
           1 /* element to add */);
-      newStrides.pop();
+      newStrides.pop();  // remove last element from the array
     }
   }
   return newStrides;
 }
 
-// Inserts full dimension selection into start indices.
+// Creates full selection at the ellided dimensions. If the dimension matches
+// the ellipsis mask, override the current start value. Otherwise, insert.
 export function startIndicesWithEllidedDims(
     startIndices: number[], ellipsisInsertionIndex: number,
     numEllidedAxes: number): number[] {
@@ -91,12 +94,14 @@ export function startIndicesWithEllidedDims(
       newIndices.splice(
           ellipsisInsertionIndex, 0 /* num elements to delete */,
           0 /* element to add */);
-      newIndices.pop();
+      newIndices.pop();  // remove last element from the array
     }
   }
   return newIndices;
 }
 
+// Creates full selection at the ellided dimensions. If the dimension matches
+// the ellipsis mask, override the current stop value. Otherwise, insert.
 export function stopIndicesWithEllidedDims(
     stopIndices: number[], ellipsisInsertionIndex: number,
     numEllidedAxes: number, inputShape: number[]): number[] {
@@ -108,11 +113,9 @@ export function stopIndicesWithEllidedDims(
       newIndices.splice(
           ellipsisInsertionIndex + i, 0 /* num elements to delete */,
           Number.MAX_SAFE_INTEGER /* element to add */);
-      newIndices.pop();  // remove last null element from the array
+      newIndices.pop();  // remove last element from the array
     }
   }
-
-  console.log('STOP INDICES WITH ELIDED DIMS', JSON.stringify(newIndices));
 
   for (let i = 0; i < newIndices.length; i++) {
     newIndices[i] = util.clamp(0, newIndices[i], inputShape[i]);
