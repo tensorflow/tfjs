@@ -75,7 +75,7 @@ export function stridesWithEllidedDims(
       newStrides.splice(
           ellipsisInsertionIndex, 0 /* num elements to delete */,
           1 /* element to add */);
-      newStrides.pop();  // remove last element from the array
+      newStrides.pop();
     }
   }
   return newStrides;
@@ -94,7 +94,7 @@ export function startIndicesWithEllidedDims(
       newIndices.splice(
           ellipsisInsertionIndex, 0 /* num elements to delete */,
           0 /* element to add */);
-      newIndices.pop();  // remove last element from the array
+      newIndices.pop();
     }
   }
   return newIndices;
@@ -113,7 +113,7 @@ export function stopIndicesWithEllidedDims(
       newIndices.splice(
           ellipsisInsertionIndex, 0 /* num elements to delete */,
           Number.MAX_SAFE_INTEGER /* element to add */);
-      newIndices.pop();  // remove last element from the array
+      newIndices.pop();
     }
   }
 
