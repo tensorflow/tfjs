@@ -69,6 +69,7 @@ export {rand} from './rand';
 export {randomGamma} from './random_gamma';
 export {randomNormal} from './random_normal';
 export {randomUniform} from './random_uniform';
+export {relu} from './relu';
 export {separableConv2d} from './separable_conv2d';
 export {spaceToBatchND} from './space_to_batch_nd';
 export {split} from './split';

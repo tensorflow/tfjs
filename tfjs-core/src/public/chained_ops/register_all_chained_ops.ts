@@ -42,6 +42,7 @@ import './not_equal';
 import './one_hot';
 import './pad';
 import './pool';
+import './relu';
 import './separable_conv2d';
 import './split';
 import './squared_difference';

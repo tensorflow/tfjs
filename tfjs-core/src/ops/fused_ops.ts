@@ -34,7 +34,8 @@ import {depthwiseConv2dNativeBackpropFilter} from './depthwise_conv2d_native_bac
 import {depthwiseConv2dNativeBackpropInput} from './depthwise_conv2d_native_backprop_input';
 import {Activation, shouldFuse} from './fused_util';
 import {matMul as unfusedMatMul} from './mat_mul';
-import {elu, prelu, relu, relu6} from './relu_ops';
+import {relu} from './relu';
+import {elu, prelu, relu6} from './relu_ops';
 
 // Returns gradient for fused activation.
 const getFusedDyActivation =
