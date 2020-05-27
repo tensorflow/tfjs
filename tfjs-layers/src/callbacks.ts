@@ -13,8 +13,8 @@
 import {BaseCallback} from './base_callbacks';
 import {Container} from './engine/container';
 import {LayersModel} from './engine/training';
-import {NotImplementedError} from './errors';
 import {Logs, resolveScalarsInLogs} from './logs';
+import {Tensor} from '@tensorflow/tfjs-core';
 
 export abstract class Callback extends BaseCallback {
   /** Instance of `keras.models.Model`. Reference of the model being trained. */
@@ -80,8 +80,6 @@ export interface EarlyStoppingCallbackArgs {
    * Whether to restore model weights from the epoch with the best value
    * of the monitored quantity. If `False`, the model weights obtained at the
    * at the last step of training are used.
-   *
-   * **`True` is not supported yet.**
    */
   restoreBestWeights?: boolean;
 }
@@ -105,6 +103,8 @@ export class EarlyStopping extends Callback {
   protected readonly baseline: number;
   protected readonly verbose: number;
   protected readonly mode: 'auto'|'min'|'max';
+  protected readonly restoreBestWeights : boolean;
+  protected bestWeights : Tensor[];
 
   protected monitorFunc: (currVal: number, prevVal: number) => boolean;
 
@@ -117,10 +117,6 @@ export class EarlyStopping extends Callback {
     if (args == null) {
       args = {};
     }
-    if (args.restoreBestWeights) {
-      throw new NotImplementedError(
-          'restoreBestWeights = True is not implemented in EarlyStopping yet.');
-    }
 
     this.monitor = args.monitor || 'val_loss';
     this.minDelta = Math.abs(args.minDelta || 0);
@@ -128,6 +124,8 @@ export class EarlyStopping extends Callback {
     this.verbose = args.verbose || 0;
     this.mode = args.mode || 'auto';
     this.baseline = args.baseline;
+    this.restoreBestWeights = args.restoreBestWeights || false;
+    this.bestWeights = [];
 
     if (['auto', 'min', 'max'].indexOf(this.mode) === -1) {
       console.warn(
@@ -174,14 +172,21 @@ export class EarlyStopping extends Callback {
     if (this.monitorFunc(current - this.minDelta, this.best)) {
       this.best = current;
       this.wait = 0;
-      // TODO(cais): Logic for restoreBestWeights.
+      if (this.restoreBestWeights) {
+        this.bestWeights = this.model.getWeights();
+      }
     } else {
       this.wait++;
       if (this.wait >= this.patience) {
         this.stoppedEpoch = epoch;
         this.model.stopTraining = true;
+        if (this.restoreBestWeights) {
+          if (this.verbose > 0) {
+            console.log('Restoring model weights from the end of the best epoch.');
+          }
+          this.model.setWeights(this.bestWeights);
+        }
       }
-      // TODO(cais): Logic for restoreBestWeights.
     }
   }
 
