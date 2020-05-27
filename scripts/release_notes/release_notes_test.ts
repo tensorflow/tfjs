@@ -25,10 +25,28 @@ const fakeCommitContributors: {[key: string]: string;} = {
   'sha3': 'fakecontributor3'
 };
 
+const missingAuthorLoginFake = {
+  name: 'example',
+  email: 'example@example.com'
+};
+
+
 const fakeOctokit: OctokitGetCommit = {
   repos: {
     getCommit: (config: {owner: string, repo: string, sha: string}) => {
-      return {data: {author: {login: fakeCommitContributors[config.sha]}}};
+      return {
+        data: {
+          author: {
+            login: fakeCommitContributors[config.sha],
+          },
+          commit: {
+            author: {
+              name: missingAuthorLoginFake.name,
+              email: missingAuthorLoginFake.email
+            }
+          }
+        }
+      };
     }
   }
 };

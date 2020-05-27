@@ -1,6 +1,6 @@
 {
   "devDependencies": {
-    "@octokit/rest": "15.2.6",
+    "@octokit/rest": "15.17.0",
     "@types/argparse": "^1.0.38",
     "@types/jasmine": "2.8.7",
     "@types/node": "^12.7.5",
