@@ -15,6 +15,7 @@
  * =============================================================================
  */
 import './add';
+import './avg_pool';
 import './batchnorm';
 import './broadcast_to';
 import './batch_to_space_nd';
@@ -36,9 +37,11 @@ import './less';
 import './less_equal';
 import './local_response_normalization';
 import './mat_mul';
-import './one_hot';
+import './max_pool';
 import './not_equal';
+import './one_hot';
 import './pad';
+import './pool';
 import './separable_conv2d';
 import './split';
 import './squared_difference';
