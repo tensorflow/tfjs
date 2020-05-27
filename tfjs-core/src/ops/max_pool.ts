@@ -82,20 +82,20 @@ function maxPool_<T extends Tensor3D|Tensor4D>(
             `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
   }
 
-  const convInfo = conv_util.computePool2DInfo(
-      x4D.shape, filterSize, strides, dilations, pad, dimRoundingMode);
-
-  if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
-      util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
-    return $x.clone();
-  }
-
   const forward: ForwardFunc<Tensor> = (backend, save) => {
     const convInfo = conv_util.computePool2DInfo(
         x4D.shape, filterSize, strides, 1 /* dilations */, pad,
         dimRoundingMode);
+
     const y = backend.maxPool(x4D, convInfo);
+
     save([x4D, y]);
+
+    if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
+        util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
+      return x4D.clone();
+    }
+
     return y;
   };
 
