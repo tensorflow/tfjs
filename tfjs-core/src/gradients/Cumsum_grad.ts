@@ -18,6 +18,8 @@
 import {Cumsum, CumsumAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
 import {getAxesPermutation} from '../ops/axis_util';
+import {cumsum} from '../ops/cumsum';
+import {transpose} from '../ops/transpose';
 import {Tensor} from '../tensor';
 
 export const cumsumGradConfig: GradConfig = {
@@ -25,17 +27,16 @@ export const cumsumGradConfig: GradConfig = {
   inputsToSave: ['x'],
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const [x] = saved;
-    const cumsumAttrs: CumsumAttrs = attrs as {} as CumsumAttrs;
-    const {axis, exclusive, reverse} = cumsumAttrs;
+    const {axis, exclusive, reverse}: CumsumAttrs = attrs as {} as CumsumAttrs;
 
     return {
       x: () => {
         const permutation = getAxesPermutation([axis], x.rank);
 
-        let out = dy.cumsum(axis, exclusive, !reverse);
+        let out = cumsum(dy, axis, exclusive, !reverse);
 
         if (permutation != null) {
-          out = out.transpose(permutation);
+          out = transpose(out, permutation);
         }
 
         return out;
