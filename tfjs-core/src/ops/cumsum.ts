@@ -56,7 +56,6 @@ function cumsum_<T extends Tensor>(
 
   const forward: ForwardFunc<Tensor> =
       (backend: KernelBackend, save: GradSaveFunc) => {
-        axis = axis | 0;
         const permutation = getAxesPermutation([axis], $x.rank);
         let permutedX = $x;
         if (permutation != null) {
