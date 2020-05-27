@@ -15,14 +15,9 @@
  * =============================================================================
  */
 
-import {backend_util, KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, KernelFunc, MaxPoolAttrs, MaxPoolInputs, registerKernel, Tensor4D} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
-
-interface MaxPoolInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-  filter: TensorInfo;
-}
 
 let wasmMaxPool: (
     xId: number, batchSize: number, inputHeight: number, inputWidth: number,
@@ -53,16 +48,16 @@ function setup(backend: BackendWasm) {
   ]);
 }
 
-function maxPool(args: {
-  inputs: MaxPoolInputs,
-  backend: BackendWasm,
-  attrs: backend_util.Conv2DInfo
-}) {
+function maxPool(
+    args: {inputs: MaxPoolInputs, backend: BackendWasm, attrs: MaxPoolAttrs}) {
   const {inputs, attrs, backend} = args;
-  const convInfo = attrs;
 
-  const {x} = inputs;
+  const x = inputs.x as Tensor4D;
   const xId = backend.dataIdMap.get(x.dataId).id;
+
+  const {filterSize, strides, pad, dimRoundingMode} = attrs;
+  const convInfo = backend_util.computePool2DInfo(
+      x.shape, filterSize, strides, 1 /* dilations */, pad, dimRoundingMode);
 
   const filterHeight = convInfo.filterHeight;
   const filterWidth = convInfo.filterWidth;
