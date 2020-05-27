@@ -48,6 +48,21 @@ describeWithFlags('wasm read/write', ALL_ENVS, () => {
     // This should fail in case of a memory leak.
     expect(memOffset1).toBe(memOffset2);
   });
+
+  it('allocates buffers with byteOffsets', async () => {
+    const data = [-0.5, 0.5, 3.14];
+    const buffer = new ArrayBuffer(32);
+    const view = new Float32Array(buffer, 8, data.length);
+
+    // Write values to buffer.
+    for (let i = 0; i < data.length; ++i) {
+      view[i] = data[i];
+    }
+
+    const t = tf.tensor(view);
+    // Tensor values should match.
+    test_util.expectArraysClose(await t.data(), view);
+  });
 });
 
 describeWithFlags('wasm init', BROWSER_ENVS, () => {
