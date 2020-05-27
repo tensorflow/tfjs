@@ -62,13 +62,13 @@ export function computeOutShape(
   return size;
 }
 
-// Creates full selection at the ellided dimensions. If the dimension matches
+// Creates full selection at the elided dimensions. If the dimension matches
 // the ellipsis mask, override the current stride value. Otherwise, insert.
-export function stridesWithEllidedDims(
+export function stridesWithElidedDims(
     strides: number[], ellipsisInsertionIndex: number,
-    numEllidedAxes: number): number[] {
+    numElidedAxes: number): number[] {
   const newStrides = [...strides];
-  for (let i = 0; i < numEllidedAxes; i++) {
+  for (let i = 0; i < numElidedAxes; i++) {
     if (i === 0) {
       newStrides[ellipsisInsertionIndex] = 1;
     } else {
@@ -81,13 +81,13 @@ export function stridesWithEllidedDims(
   return newStrides;
 }
 
-// Creates full selection at the ellided dimensions. If the dimension matches
+// Creates full selection at the elided dimensions. If the dimension matches
 // the ellipsis mask, override the current start value. Otherwise, insert.
-export function startIndicesWithEllidedDims(
+export function startIndicesWithElidedDims(
     startIndices: number[], ellipsisInsertionIndex: number,
-    numEllidedAxes: number): number[] {
+    numElidedAxes: number): number[] {
   const newIndices = [...startIndices];
-  for (let i = 0; i < numEllidedAxes; i++) {
+  for (let i = 0; i < numElidedAxes; i++) {
     if (i === 0) {
       newIndices[ellipsisInsertionIndex] = 0;
     } else {
@@ -100,13 +100,13 @@ export function startIndicesWithEllidedDims(
   return newIndices;
 }
 
-// Creates full selection at the ellided dimensions. If the dimension matches
+// Creates full selection at the elided dimensions. If the dimension matches
 // the ellipsis mask, override the current stop value. Otherwise, insert.
-export function stopIndicesWithEllidedDims(
+export function stopIndicesWithElidedDims(
     stopIndices: number[], ellipsisInsertionIndex: number,
-    numEllidedAxes: number, inputShape: number[]): number[] {
+    numElidedAxes: number, inputShape: number[]): number[] {
   const newIndices = [...stopIndices];
-  for (let i = 0; i < numEllidedAxes; i++) {
+  for (let i = 0; i < numElidedAxes; i++) {
     if (i === 0) {
       newIndices[ellipsisInsertionIndex] = Number.MAX_SAFE_INTEGER;
     } else {

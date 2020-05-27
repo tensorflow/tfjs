@@ -22,7 +22,7 @@ import {TensorLike} from '../types';
 
 import {op} from './operation';
 import {slice} from './slice';
-import {computeOutShape, maskToAxes, startForAxis, startIndicesWithEllidedDims, stopForAxis, stopIndicesWithEllidedDims, stridesForAxis, stridesWithEllidedDims} from './slice_util';
+import {computeOutShape, maskToAxes, startForAxis, startIndicesWithElidedDims, stopForAxis, stopIndicesWithElidedDims, stridesForAxis, stridesWithElidedDims} from './slice_util';
 
 /**
  * Extracts a strided slice of a tensor.
@@ -106,11 +106,11 @@ function stridedSlice_(
 
     // The ellipsis applies to the masked index as well as any dimensions that
     // were interpolated as full selection.
-    const numEllidedAxes = numInterpolatedAxes + 1;
+    const numElidedAxes = numInterpolatedAxes + 1;
 
-    begin = startIndicesWithEllidedDims(begin, fullIndex, numEllidedAxes);
-    end = stopIndicesWithEllidedDims(end, fullIndex, numEllidedAxes, $x.shape);
-    strides = stridesWithEllidedDims(strides, fullIndex, numEllidedAxes);
+    begin = startIndicesWithElidedDims(begin, fullIndex, numElidedAxes);
+    end = stopIndicesWithElidedDims(end, fullIndex, numElidedAxes, $x.shape);
+    strides = stridesWithElidedDims(strides, fullIndex, numElidedAxes);
   }
 
   const shrinkAxes = maskToAxes(shrinkAxisMask);
