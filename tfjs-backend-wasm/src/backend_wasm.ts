@@ -84,7 +84,8 @@ export class BackendWasm extends KernelBackend {
     if (values != null) {
       this.wasm.HEAPU8.set(
           new Uint8Array(
-              (values as backend_util.TypedArray).buffer, 0, numBytes),
+              (values as backend_util.TypedArray).buffer,
+              (values as backend_util.TypedArray).byteOffset, numBytes),
           memoryOffset);
     }
   }
