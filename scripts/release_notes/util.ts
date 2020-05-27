@@ -21,7 +21,7 @@ import * as readline from 'readline';
 
 const GOOGLERS_WITH_GMAIL = [
   'dsmilkov', 'kainino0x', 'davidsoergel', 'pyu10055', 'nkreeger', 'tafsiri',
-  'annxingyuan'
+  'annxingyuan', 'Kangyi Zhang'
 ];
 
 const rl =
@@ -74,7 +74,15 @@ export interface OctokitGetCommit {
   repos: {
     getCommit:
         (config: {owner: string, repo: string, sha: string}) => {
-          data: {author: {login: string}}
+          data: {
+            commit: {
+              author: {
+                name: string,
+                email: string,
+              }
+            },
+            author: {login: string},
+          }
         }
   };
 }
@@ -111,9 +119,16 @@ export async function getReleaseNotesDraft(
     const repoCommit = repoCommits[i];
 
     const getUsernameForCommit = async (sha: string) => {
-      const result = await octokit.repos.getCommit(
-          {owner: 'tensorflow', repo: 'tfjs', sha});
-      return result.data.author.login;
+      let result;
+      try {
+        result = await octokit.repos.getCommit(
+            {owner: 'tensorflow', repo: 'tfjs', sha});
+        return result.data.author.login;
+      } catch (e) {
+        console.log(`Error fetching username for commit ${sha}`);
+        console.log(`Using ${result.data.commit.author.name}`);
+        return result.data.commit.author.name;
+      }
     };
 
     const tagEntries: {[tag: string]: string[]} = {};
