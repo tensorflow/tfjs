@@ -8,6 +8,13 @@ emsdk_configure(name = "emsdk")
 
 git_repository(
     name = "xnnpack",
+    commit = "15d1f511d37a8dad1ab7a80cfefd7014accf72ac",
+    remote = "https://github.com/google/XNNPACK.git",
+    shallow_since = "1582560423 -0800",
+)
+
+git_repository(
+    name = "xnnpack-threaded",
     commit = "1841b1a240544214c279b9d3b8f91bacc69a206c",
     remote = "https://github.com/google/XNNPACK.git",
     shallow_since = "1586291019 -0700",
@@ -40,8 +47,19 @@ http_archive(
 
 # pthreadpool library, used for parallelization
 http_archive(
-    name = "pthreadpool",
+    name = "pthreadpool-unthreaded",
     build_file = "@xnnpack//third_party:pthreadpool.BUILD",
+    sha256 = "c2328fdf9e48ac9b928953bcbc442eb14402d393e4cfae0541581a3d39efca9d",
+    strip_prefix = "pthreadpool-0e275fe56094626349c55a524ea8b71a85daa64b",
+    urls = [
+        "https://github.com/Maratyszcza/pthreadpool/archive/0e275fe56094626349c55a524ea8b71a85daa64b.tar.gz",
+    ],
+)
+
+# pthreadpool library, used for parallelization
+http_archive(
+    name = "pthreadpool",
+    build_file = "@xnnpack-threaded//third_party:pthreadpool.BUILD",
     sha256 = "91c7b00c16c60c96f23d1966d524879c0f6044caf4bc5e9fc06518dda643e07e",
     strip_prefix = "pthreadpool-76042155a8b1e189c8f141429fd72219472c32e1",
     urls = [

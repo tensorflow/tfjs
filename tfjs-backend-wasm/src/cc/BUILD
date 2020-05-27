@@ -21,6 +21,27 @@ cc_binary(
         "-s MODULARIZE=1",
         "-s EXPORT_NAME=WasmBackendModule",
         "-s MALLOC=emmalloc",
+    ],
+    deps = [
+        ":all_kernels",
+        ":backend",
+    ],
+)
+
+cc_binary(
+    name = "tfjs-backend-wasm-threaded.js",
+    srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
+    linkopts = [
+        "-s ALLOW_MEMORY_GROWTH=1",
+        "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
+        "-s DISABLE_EXCEPTION_CATCHING=1",
+        "-s FILESYSTEM=0",
+        "-s EXIT_RUNTIME=0",
+        "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
+        "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
+        "-s MODULARIZE=1",
+        "-s EXPORT_NAME=WasmBackendModule",
+        "-s MALLOC=emmalloc",
         "-s USE_PTHREADS=1",
         "-s PTHREAD_POOL_SIZE=4",
         "-s ASSERTIONS=1",
@@ -30,7 +51,7 @@ cc_binary(
     ],
     deps = [
         ":all_kernels",
-        ":backend",
+        ":backend_threaded",
     ],
 )
 
@@ -48,6 +69,17 @@ tfjs_cc_library(
         ":check_macros",
         ":util",
         "@xnnpack//:xnnpack_operators_nhwc_f32",
+    ],
+)
+
+tfjs_cc_library(
+    name = "backend_threaded",
+    srcs = ["backend.cc"],
+    hdrs = ["backend.h"],
+    deps = [
+        ":check_macros",
+        ":util",
+        "@xnnpack-threaded//:xnnpack_operators_nhwc_f32",
     ],
 )
 

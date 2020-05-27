@@ -16,12 +16,13 @@
 
 set -e
 
-yarn bazel build -c opt //src/cc:tfjs-backend-wasm.js --config=wasm --copt="-pthread"
+# yarn bazel build -c opt //src/cc:tfjs-backend-wasm.js --config=wasm
+yarn bazel build -c opt //src/cc:tfjs-backend-wasm-threaded.js --config=wasm --copt="-pthread"
 # The typescript code and karma config expect the output of emscripten to be in
 # wasm-out/ so we copy the bazel output there.
-cp -f bazel-bin/src/cc/tfjs-backend-wasm.js \
-      bazel-bin/src/cc/tfjs-backend-wasm.wasm \
-      bazel-bin/src/cc/tfjs-backend-wasm.worker.js \
+cp -f bazel-bin/src/cc/tfjs-backend-wasm-threaded.js \
+      bazel-bin/src/cc/tfjs-backend-wasm-threaded.worker.js \
+      bazel-bin/src/cc/tfjs-backend-wasm-threaded.wasm \
       wasm-out/
 
 mkdir -p dist
