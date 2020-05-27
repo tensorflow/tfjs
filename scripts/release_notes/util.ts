@@ -21,7 +21,7 @@ import * as readline from 'readline';
 
 const GOOGLERS_WITH_GMAIL = [
   'dsmilkov', 'kainino0x', 'davidsoergel', 'pyu10055', 'nkreeger', 'tafsiri',
-  'annxingyuan', 'Kangyi Zhang'
+  'annxingyuan', 'Kangyi Zhang', 'lina128'
 ];
 
 const rl =
