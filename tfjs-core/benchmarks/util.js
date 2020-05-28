@@ -26,16 +26,14 @@ async function getPredictionData(prediction) {
   return output;
 }
 
+const epsilon = 1e-3;
 function arraysClose(n1, n2) {
-  const epsilon = 1e-3;
-
   if (n1 === n2) {
     return true;
   }
   if (n1 == null || n2 == null) {
     return false;
   }
-
   if (n1.length !== n2.length) {
     return false;
   }
