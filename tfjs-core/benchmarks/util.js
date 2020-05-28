@@ -15,6 +15,38 @@
  * =============================================================================
  */
 
+async function getPredictionData(prediction) {
+  let output = prediction;
+  if (output instanceof Promise) {
+    output = await output;
+  }
+  if (output instanceof tf.Tensor) {
+    output = await output.data();
+  }
+  return output;
+}
+
+function arraysClose(n1, n2) {
+  const epsilon = 1e-3;
+
+  if (n1 === n2) {
+    return true;
+  }
+  if (n1 == null || n2 == null) {
+    return false;
+  }
+
+  if (n1.length !== n2.length) {
+    return false;
+  }
+  for (let i = 0; i < n1.length; i++) {
+    if (Math.abs(n1[i] - n2[i]) > epsilon) {
+      return false;
+    }
+  }
+  return true;
+}
+
 function printTime(elapsed) {
   return elapsed.toFixed(1) + ' ms';
 }
