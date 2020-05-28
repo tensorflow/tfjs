@@ -409,12 +409,9 @@ export class WebGPUBackend extends KernelBackend {
       output = this.makeOutputArray(program.outputShape, inputs[0].dtype);
     }
 
+    let dimUniforms: number[] = [];
     const bufferShapes = inputs.concat(output).map(d => d.shape);
-    let uniformDataLength;
-    let uniforms: webgpu_program.BindingInfo;
-    if (!program.noUniform) {
-      let dimUniforms: number[] = [];
-
+    if (program.needsShapesUniforms) {
       let currentOffset = 0;
       bufferShapes.forEach((d, i) => {
         // Uniforms.
@@ -454,16 +451,22 @@ export class WebGPUBackend extends KernelBackend {
         dimUniforms.push(...d);
         currentOffset += d.length + padding;
       });
+    }
 
-      // TODO: handle padding of program-specific uniforms
-      if (programUniforms) {
-        dimUniforms = dimUniforms.concat(programUniforms);
-      }
+    // TODO: handle padding of program-specific uniforms
+    if (programUniforms) {
+      dimUniforms = dimUniforms.concat(programUniforms);
+    }
 
+    let uniformDataLength;
+    let uniforms: webgpu_program.BindingInfo;
+    const hasUniforms = program.needsShapesUniforms || program.uniforms;
+    if (hasUniforms) {
       const uniformData = new Int32Array(dimUniforms);
       uniformDataLength = uniformData.byteLength;
       uniforms = this.makeUniforms(uniformData);
     }
+
     const inputsData = inputs.map((input: Tensor, i: number) => {
       this.uploadToGPU(input.dataId);
 
@@ -509,7 +512,7 @@ export class WebGPUBackend extends KernelBackend {
     });
     this.commandQueueOwnedIds.add(output.dataId);
 
-    if (!program.noUniform) {
+    if (hasUniforms) {
       const uniformInfo = {
         byteSize: uniformDataLength,
         usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,

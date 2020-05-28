@@ -39,7 +39,7 @@ export class UnaryOpProgram implements WebGPUProgram {
   variableNames = ['A'];
   workPerThread: number;
   workGroupSize: [number, number, number];
-  noUniform = false;
+  needsShapesUniforms = true;
 
   constructor(outputShape: number[], op: string) {
     const workGroupSizeX = 16;
@@ -53,7 +53,7 @@ export class UnaryOpProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
     if (fit) {
-      this.noUniform = true;
+      this.needsShapesUniforms = false;
       this.userCode = `
       float unaryOperation(float a) {
         ${op}

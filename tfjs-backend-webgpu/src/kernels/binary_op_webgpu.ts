@@ -50,7 +50,7 @@ export class BinaryOpProgram implements WebGPUProgram {
   variableNames = ['A', 'B'];
   workPerThread: number;
   workGroupSize: [number, number, number];
-  noUniform = false;
+  needsShapesUniforms = true;
 
   constructor(op: string, aShape: number[], bShape: number[]) {
     const workGroupSizeX = 16;
@@ -64,7 +64,7 @@ export class BinaryOpProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
     if (fit) {
-      this.noUniform = true;
+      this.needsShapesUniforms = false;
       this.userCode = `
           float binaryOperation(float a, float b) {
             ${op}

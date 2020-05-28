@@ -31,6 +31,7 @@ export class TransposeProgram implements WebGPUProgram {
   rank: number;
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
+  needsShapesUniforms = true;
 
   constructor(aShape: number[], newDim: number[]) {
     const outputShape: number[] = new Array(aShape.length);

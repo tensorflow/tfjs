@@ -49,7 +49,7 @@ interface ProgramParams {
   workGroupSize?: [number, number, number];
   variableNames: string[];
   uniforms?: string;
-  noUniform?: boolean;
+  needsShapesUniforms?: boolean;
   userCode: string;
 }
 
@@ -79,10 +79,7 @@ export function makeShader(
     };
   `);
 
-  let uniformDeclaration = '';
   program.variableNames.forEach((x, i) => {
-    uniformDeclaration += `${getCoordsDataType(inputInfo[i].shape.length)} ${
-        x.charAt(0).toLowerCase() + x.slice(1)}Shape; `;
     prefixSnippets.push(`
       layout(std430, set = 0, binding = ${1 + i}) readonly buffer ssb${x} {
         ${mapToGlslTypes(inputInfo[i].dtype)} ${x}[];
@@ -90,14 +87,21 @@ export function makeShader(
     `);
   });
 
-  uniformDeclaration +=
-      `${getCoordsDataType(outputData.shape.length)} outShape; `;
+  let uniformDeclaration = '';
+  if (program.needsShapesUniforms) {
+    program.variableNames.forEach((x, i) => {
+      uniformDeclaration += `${getCoordsDataType(inputInfo[i].shape.length)} ${
+          x.charAt(0).toLowerCase() + x.slice(1)}Shape; `;
+    });
+    uniformDeclaration +=
+        `${getCoordsDataType(outputData.shape.length)} outShape; `;
+  }
 
   if (program.uniforms) {
     uniformDeclaration += program.uniforms;
   }
 
-  if (program.noUniform) {
+  if (!(program.uniforms || program.needsShapesUniforms)) {
     const sources =
         [SHADER_PREFIX, prefixSnippets.join('\n'), program.userCode];
     const source = sources.join('\n');

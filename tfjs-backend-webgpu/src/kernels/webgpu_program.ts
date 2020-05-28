@@ -33,7 +33,8 @@ export interface WebGPUProgram {
   dispatch: [number, number, number];
   variableNames: string[];
   uniforms?: string;
-  noUniform?: boolean;
+  // Indicate whether shapes data are needed.
+  needsShapesUniforms: boolean;
   // Size of register cache in one dimension (assumes square cache).
   // Each thread writes to workPerThread * workPerThread locations in the output
   // buffer.
