@@ -20,7 +20,7 @@ import {Tensor, TensorBuffer} from '../tensor';
 import {convertToTensor, convertToTensorArray} from '../tensor_util_env';
 import {DataType, DataTypeMap, Rank, ShapeMap, TensorLike} from '../types';
 import * as util from '../util';
-import {getAxesPermutation, getInnerMostAxes} from './axis_util';
+
 import {concat} from './concat';
 import {op} from './operation';
 
@@ -191,54 +191,6 @@ function unstack_(x: Tensor|TensorLike, axis = 0): Tensor[] {
 }
 
 /**
- * Computes the cumulative sum of a `tf.Tensor` along `axis`.
- *
- * ```js
- * const x = tf.tensor([1, 2, 3, 4]);
- * x.cumsum().print();
- * ```
- * ```js
- * const x = tf.tensor([[1, 2], [3, 4]]);
- * x.cumsum().print();
- * ```
- *
- * @param x The input tensor to be summed.
- * @param axis The axis along which to sum. Optional. Defaults to 0.
- * @param exclusive Whether to perform exclusive cumulative sum. Optional.
- *     Defaults to false. If set to true then the sum of each tensor entry
- *     does not include its own value, but only the values previous to it
- *     along the specified axis.
- * @param reverse Whether to sum in the opposite direction. Optional.
- *     Defaults to false.
- */
-/** @doc {heading: 'Operations', subheading: 'Scan'} */
-function cumsum_<T extends Tensor>(
-    x: Tensor|TensorLike, axis = 0, exclusive = false, reverse = false): T {
-  const $x = convertToTensor(x, 'x', 'cumsum');
-
-  axis = axis | 0;
-  const permutation = getAxesPermutation([axis], $x.rank);
-  let permutedX = $x;
-  if (permutation != null) {
-    permutedX = $x.transpose(permutation);
-  }
-  const permutedAxis = getInnerMostAxes(1, $x.rank)[0];
-
-  const grad = (dy: T) => {
-    return {permutedX: () => dy.cumsum(axis, exclusive, !reverse)};
-  };
-  let value = ENGINE.runKernelFunc(
-                  backend => backend.cumsum(
-                      permutedX, permutedAxis, exclusive, reverse),
-                  {permutedX}, grad) as T;
-
-  if (permutation != null) {
-    value = value.transpose(permutation);
-  }
-  return value;
-}
-
-/**
  * Returns a `tf.Tensor` that has expanded rank, by inserting a dimension
  * into the tensor's shape.
  *
@@ -392,7 +344,6 @@ export {
 };
 
 export const cast = op({cast_});
-export const cumsum = op({cumsum_});
 export const expandDims = op({expandDims_});
 export const reshape = op({reshape_});
 export const squeeze = op({squeeze_});

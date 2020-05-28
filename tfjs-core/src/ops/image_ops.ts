@@ -22,8 +22,10 @@ import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
+import {nonMaxSuppSanityCheck} from './nonmax_util';
 
 import {op} from './operation';
+export {nonMaxSuppression} from './non_max_suppression';
 
 /**
  * Bilinear resize a batch of 3D images to a new shape.
@@ -161,27 +163,6 @@ function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
  * @return A 1D tensor with the selected box indices.
  */
 /** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
-function nonMaxSuppression_(
-    boxes: Tensor2D|TensorLike, scores: Tensor1D|TensorLike,
-    maxOutputSize: number, iouThreshold = 0.5,
-    scoreThreshold = Number.NEGATIVE_INFINITY): Tensor1D {
-  const $boxes = convertToTensor(boxes, 'boxes', 'nonMaxSuppression');
-  const $scores = convertToTensor(scores, 'scores', 'nonMaxSuppression');
-
-  const inputs = nonMaxSuppSanityCheck(
-      $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold);
-  maxOutputSize = inputs.maxOutputSize;
-  iouThreshold = inputs.iouThreshold;
-  scoreThreshold = inputs.scoreThreshold;
-
-  const attrs = {maxOutputSize, iouThreshold, scoreThreshold};
-  return ENGINE.runKernelFunc(
-      b => b.nonMaxSuppression(
-          $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold),
-      {boxes: $boxes, scores: $scores}, null /* grad */, 'NonMaxSuppressionV3',
-      attrs);
-}
-
 /** This is the async version of `nonMaxSuppression` */
 async function nonMaxSuppressionAsync_(
     boxes: Tensor2D|TensorLike, scores: Tensor1D|TensorLike,
@@ -298,48 +279,6 @@ async function nonMaxSuppressionWithScoreAsync_(
   return res;
 }
 
-function nonMaxSuppSanityCheck(
-    boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
-    iouThreshold: number, scoreThreshold: number, softNmsSigma?: number): {
-  maxOutputSize: number,
-  iouThreshold: number,
-  scoreThreshold: number,
-  softNmsSigma: number
-} {
-  if (iouThreshold == null) {
-    iouThreshold = 0.5;
-  }
-  if (scoreThreshold == null) {
-    scoreThreshold = Number.NEGATIVE_INFINITY;
-  }
-  if (softNmsSigma == null) {
-    softNmsSigma = 0.0;
-  }
-
-  const numBoxes = boxes.shape[0];
-  maxOutputSize = Math.min(maxOutputSize, numBoxes);
-
-  util.assert(
-      0 <= iouThreshold && iouThreshold <= 1,
-      () => `iouThreshold must be in [0, 1], but was '${iouThreshold}'`);
-  util.assert(
-      boxes.rank === 2,
-      () => `boxes must be a 2D tensor, but was of rank '${boxes.rank}'`);
-  util.assert(
-      boxes.shape[1] === 4,
-      () =>
-          `boxes must have 4 columns, but 2nd dimension was ${boxes.shape[1]}`);
-  util.assert(scores.rank === 1, () => 'scores must be a 1D tensor');
-  util.assert(
-      scores.shape[0] === numBoxes,
-      () => `scores has incompatible shape with boxes. Expected ${numBoxes}, ` +
-          `but was ${scores.shape[0]}`);
-  util.assert(
-      0 <= softNmsSigma && softNmsSigma <= 1,
-      () => `softNmsSigma must be in [0, 1], but was '${softNmsSigma}'`);
-  return {maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma};
-}
-
 /**
  * Extracts crops from the input image tensor and resizes them using bilinear
  * sampling or nearest neighbor sampling (possibly with aspect ratio change)
@@ -413,7 +352,6 @@ function cropAndResize_(
 
 export const resizeBilinear = op({resizeBilinear_});
 export const resizeNearestNeighbor = op({resizeNearestNeighbor_});
-export const nonMaxSuppression = op({nonMaxSuppression_});
 export const nonMaxSuppressionAsync = nonMaxSuppressionAsync_;
 export const nonMaxSuppressionWithScore = op({nonMaxSuppressionWithScore_});
 export const nonMaxSuppressionWithScoreAsync = nonMaxSuppressionWithScoreAsync_;

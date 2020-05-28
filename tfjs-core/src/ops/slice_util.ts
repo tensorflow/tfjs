@@ -62,16 +62,87 @@ export function computeOutShape(
   return size;
 }
 
+// Creates full selection at the elided dimensions. If the dimension matches
+// the ellipsis mask, override the current stride value. Otherwise, insert.
+export function stridesWithElidedDims(
+    strides: number[], ellipsisInsertionIndex: number,
+    numElidedAxes: number): number[] {
+  const newStrides = [...strides];
+  for (let i = 0; i < numElidedAxes; i++) {
+    if (i === 0) {
+      newStrides[ellipsisInsertionIndex] = 1;
+    } else {
+      newStrides.splice(
+          ellipsisInsertionIndex, 0 /* num elements to delete */,
+          1 /* element to add */);
+      newStrides.pop();
+    }
+  }
+  return newStrides;
+}
+
+// Creates full selection at the elided dimensions. If the dimension matches
+// the ellipsis mask, override the current start value. Otherwise, insert.
+export function startIndicesWithElidedDims(
+    startIndices: number[], ellipsisInsertionIndex: number,
+    numElidedAxes: number): number[] {
+  const newIndices = [...startIndices];
+  for (let i = 0; i < numElidedAxes; i++) {
+    if (i === 0) {
+      newIndices[ellipsisInsertionIndex] = 0;
+    } else {
+      newIndices.splice(
+          ellipsisInsertionIndex, 0 /* num elements to delete */,
+          0 /* element to add */);
+      newIndices.pop();
+    }
+  }
+  return newIndices;
+}
+
+// Creates full selection at the elided dimensions. If the dimension matches
+// the ellipsis mask, override the current stop value. Otherwise, insert.
+export function stopIndicesWithElidedDims(
+    stopIndices: number[], ellipsisInsertionIndex: number,
+    numElidedAxes: number, inputShape: number[]): number[] {
+  const newIndices = [...stopIndices];
+  for (let i = 0; i < numElidedAxes; i++) {
+    if (i === 0) {
+      newIndices[ellipsisInsertionIndex] = Number.MAX_SAFE_INTEGER;
+    } else {
+      newIndices.splice(
+          ellipsisInsertionIndex, 0 /* num elements to delete */,
+          Number.MAX_SAFE_INTEGER /* element to add */);
+      newIndices.pop();
+    }
+  }
+
+  for (let i = 0; i < newIndices.length; i++) {
+    newIndices[i] = util.clamp(0, newIndices[i], inputShape[i]);
+  }
+  return newIndices;
+}
+
+export function stridesForAxis(
+    strides: number[], axis: number, ellipsisMask: number): number {
+  let stride = strides[axis];
+  if (ellipsisMask & (1 << axis) || stride == null) {
+    stride = 1;
+  }
+
+  return stride;
+}
+
 export function startForAxis(
     beginMask: number, startIndices: number[], strides: number[],
-    inputShape: number[], axis: number): number {
+    inputShape: number[], axis: number, ellipsisMask: number): number {
   // Begin with the specified index
   let start = startIndices[axis];
   const stride = strides[axis] || 1;
 
-  // Check the axis bit from right of beginMask or the begin index is not set
+  // Check the axis bit from right of masked axes, or the begin index is not set
   // for the axis.
-  if (beginMask & 1 << axis || start == null) {
+  if (beginMask & 1 << axis || ellipsisMask & 1 << axis || start == null) {
     if (stride > 0) {
       // Forward iteration - use the first element. These values will get
       // clamped below (Note: We could have set them to 0 and axis_size-1, but
@@ -97,14 +168,14 @@ export function startForAxis(
 
 export function stopForAxis(
     endMask: number, stopIndices: number[], strides: number[],
-    inputShape: number[], axis: number): number {
+    inputShape: number[], axis: number, ellipsisMask: number): number {
   // Begin with the specified index
   let stop = stopIndices[axis];
   const stride = strides[axis] || 1;
 
-  // Check the axis bit from right of endMask or if the stop index is not set
-  // for this axis.
-  if (endMask & (1 << axis) || stop == null) {
+  // Check the axis bit from right of masked axes, or if the stop index is not
+  // set for this axis.
+  if (endMask & (1 << axis) || ellipsisMask & (1 << axis) || stop == null) {
     if (stride > 0) {
       // Forward iteration - use the last element. These values will get
       // clamped below
