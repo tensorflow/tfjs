@@ -33,6 +33,7 @@ export class MaxPoolProgram implements WebGPUProgram {
   // workPerThead for different output shapes.
   workGroupSize: [number, number, number] = [4, 4, 1];
   workPerThread = 16;
+  needsShapesUniforms = true;
 
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.outShape;
