@@ -87,14 +87,16 @@ function maxPool_<T extends Tensor3D|Tensor4D>(
         x4D.shape, filterSize, strides, 1 /* dilations */, pad,
         dimRoundingMode);
 
-    const y = backend.maxPool(x4D, convInfo);
-
-    save([x4D, y]);
+    let y;
 
     if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
         util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
-      return x4D.clone();
+      y = x4D.clone();
+    } else {
+      y = backend.maxPool(x4D, convInfo);
     }
+
+    save([x4D, y]);
 
     return y;
   };
