@@ -14,8 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
+import './flags_wasm';
 
-import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, env, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
 import wasmFactory from '../wasm-out/tfjs-backend-wasm.js';
@@ -193,14 +194,6 @@ function createInstantiateWasmFunc(path: string) {
   };
 }
 
-// From: https://github.com/GoogleChromeLabs/wasm-feature-detect
-async function isSimdSupported() {
-  return WebAssembly.validate(new Uint8Array([
-    0, 97, 115, 109, 1, 0, 0, 0, 1,  4, 1,   96, 0,  0, 3,
-    2, 1,  0,   10,  9, 1, 7, 0, 65, 0, 253, 15, 26, 11
-  ]));
-}
-
 /**
  * Initializes the wasm module and creates the js <--> wasm bridge.
  *
@@ -209,7 +202,7 @@ async function isSimdSupported() {
  * in Chrome 76).
  */
 export async function init(): Promise<{wasm: BackendWasmModule}> {
-  const simdSupported = await isSimdSupported();
+  const simdSupported = await env().getAsync('WASM_HAS_SIMD_SUPPORT');
 
   return new Promise((resolve, reject) => {
     const factoryConfig: WasmFactoryConfig = {};
