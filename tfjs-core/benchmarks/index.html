@@ -80,7 +80,7 @@ limitations under the License.
         runBenchmark();
       },
       testCorrectness: async () => {
-        await loadModel();
+        await loadModelAndRecordTime();
         tf.setBackend('cpu');
         const referencePrediction = predict(model);
         const referenceData = await getPredictionData(referencePrediction);
@@ -90,7 +90,7 @@ limitations under the License.
         const predictionData = await getPredictionData(prediction);
 
         const match = arraysClose(referenceData, predictionData);
-        appendRow(timeTable, `Prediction matches CPU: ${match}`);
+        appendRow(timeTable, `Prediction matches CPU: `, match);
       },
       backend: 'wasm',
       kernelTiming: 'aggregate',
@@ -175,13 +175,16 @@ limitations under the License.
 
       const elapsed = performance.now() - start;
       await showMsg(null);
+      appendRow(timeTable, `<b> Benchmark:</b> ${state.benchmark} `,
+        `<b> Runs:</b> ${state.numRuns} `);
       appendRow(timeTable, '1st inference', printTime(elapsed));
     }
 
-    async function loadModel() {
+    async function loadModelAndRecordTime() {
+      const start = performance.now();
       const benchmark = benchmarks[state.benchmark];
       await showMsg('Loading the model');
-      const start = performance.now();
+
       if (benchmark.model == null) {
         model = await benchmark.load();
         benchmark.model = model;
@@ -189,16 +192,8 @@ limitations under the License.
         model = benchmark.model;
       }
       predict = benchmark.predictFunc();
-      await showMsg(null);
-    }
-
-    async function loadAndRecordTime() {
       const elapsed = performance.now() - start;
       await showMsg(null);
-
-      appendRow(timeTable, `<b> Benchmark:</b> ${state.benchmark} `,
-        `<b> Runs:</b> ${state.numRuns} `);
-
       appendRow(timeTable, 'Model load', printTime(elapsed));
     }
 
@@ -364,8 +359,7 @@ limitations under the License.
     }
 
     async function runBenchmark() {
-      await loadModel();
-      await loadAndRecordTime();
+      await loadModelAndRecordTime();
       await warmUpAndRecordTime();
       await showMsg('Waiting for GC');
       await sleep(1000);
