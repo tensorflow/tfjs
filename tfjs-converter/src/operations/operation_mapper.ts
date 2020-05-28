@@ -298,6 +298,15 @@ export class OperationMapper {
                       param.defaultValue as DataType[]);
                 }
                 break;
+              case 'func':
+                value = getFuncParam(
+                    node.attr, param.tfName, param.defaultValue as string);
+                if (value === undefined && !!param.tfDeprecatedName) {
+                  value = getFuncParam(
+                      node.attr, param.tfDeprecatedName,
+                      param.defaultValue as string);
+                }
+                break;
               case 'tensor':
               case 'tensors':
                 break;
@@ -328,7 +337,6 @@ export class OperationMapper {
     const inputs: Node[] = [];
     const outputs: Node[] = [];
 
-
     functionDef.signature.inputArg.forEach(arg => {
       const [nodeName, ] = getNodeNameAndIndex(arg.name);
       const node: Node = {
@@ -358,11 +366,10 @@ export class OperationMapper {
 
     const returnNodeMap = functionDef.ret;
 
-    Object.keys(returnNodeMap).forEach(key => {
-      const [nodeName, ] = getNodeNameAndIndex(returnNodeMap[key]);
+    functionDef.signature.outputArg.forEach(output => {
+      const [nodeName, ] = getNodeNameAndIndex(returnNodeMap[output.name]);
       const node = nodes[nodeName];
       if (node != null) {
-        node.signatureKey = key;
         outputs.push(node);
       }
     });
@@ -470,6 +477,16 @@ export function parseDtypeParam(value: string|tensorflow.DataType): DataType {
       // since these nodes might not be used by the actual subgraph execution.
       return null;
   }
+}
+
+export function getFuncParam(
+    attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
+    def: string): string {
+  const param = attrs[name];
+  if (param && param.func) {
+    return param.func.name;
+  }
+  return def;
 }
 
 export function getDtypeParam(

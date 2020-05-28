@@ -364,6 +364,257 @@ describe('GraphExecutor', () => {
           expect(tfc.memory().numTensors).toEqual(numTensors + 1);
         });
       });
+
+      describe('controlFlowV2_if', () => {
+        beforeEach(() => {
+          inputNode = {
+            inputNames: [],
+            inputs: [],
+            children: [],
+            name: 'input',
+            op: 'Placeholder',
+            category: 'graph',
+            attrParams: {},
+            inputParams: {}
+          };
+          const inputNode2: Node = {
+            inputNames: [],
+            inputs: [],
+            children: [],
+            name: 'x',
+            op: 'Placeholder',
+            category: 'graph',
+            attrParams: {},
+            inputParams: {}
+          };
+          const inputNode3: Node = {
+            inputNames: [],
+            inputs: [],
+            children: [],
+            name: 'y',
+            op: 'Placeholder',
+            category: 'graph',
+            attrParams: {},
+            inputParams: {}
+          };
+          outputNode = {
+            inputNames: ['input', 'x', 'y'],
+            inputs: [inputNode, inputNode2, inputNode3],
+            children: [],
+            name: 'output',
+            op: 'StatelessIf',
+            category: 'control',
+            attrParams: {
+              'thenBranch': {'value': 'trueFunc', 'type': 'func'},
+              'elseBranch': {'value': 'falseFunc', 'type': 'func'}
+            },
+            inputParams: {
+              'cond': {'type': 'tensor', 'inputIndexStart': 0},
+              'args': {
+                'type': 'tensors',
+                'inputIndexStart': 1,
+                'inputIndexEnd': 0
+              }
+            }
+          };
+          inputNode.children.push(outputNode);
+          inputNode2.children.push(outputNode);
+          inputNode3.children.push(outputNode);
+          const xNode: Node = {
+            inputNames: [],
+            inputs: [],
+            children: [],
+            name: 'x',
+            op: 'Placeholder',
+            category: 'graph',
+            attrParams: {},
+            inputParams: {}
+          };
+          const yNode: Node = {
+            inputNames: [],
+            inputs: [],
+            children: [],
+            name: 'y',
+            op: 'Placeholder',
+            category: 'graph',
+            attrParams: {},
+            inputParams: {}
+          };
+          const trueFuncGraph: Graph = {
+            inputs: [xNode, yNode],
+            nodes: {'x': xNode, 'y': yNode},
+            outputs: [xNode],
+            weights: [],
+            placeholders: [xNode, yNode],
+          };
+          const falseFuncGraph: Graph = {
+            inputs: [xNode, yNode],
+            nodes: {'x': xNode, 'y': yNode},
+            outputs: [yNode],
+            weights: [],
+            placeholders: [xNode, yNode],
+          };
+          graphWithControlFlow = {
+            inputs: [inputNode, inputNode2, inputNode3],
+            nodes: {
+              'input': inputNode,
+              'x': inputNode2,
+              'y': inputNode3,
+              'output': outputNode
+            },
+            outputs: [outputNode],
+            weights: [],
+            placeholders: [inputNode, inputNode2, inputNode3],
+            functions: {trueFunc: trueFuncGraph, falseFunc: falseFuncGraph}
+          };
+
+          executor = new GraphExecutor(graphWithControlFlow);
+        });
+
+        it('should execute control flow v2 graph', async () => {
+          const condTensor = tfc.scalar(true, 'bool');
+          const condTensor2 = tfc.scalar(false, 'bool');
+          const trueTensor = tfc.scalar(1, 'int32');
+          const falseTensor = tfc.scalar(0, 'int32');
+
+          let result = await executor.executeAsync(
+              {input: condTensor, x: trueTensor, y: falseTensor}, ['output']);
+          tfc.test_util.expectArraysClose(await result[0].data(), 1);
+          result = await executor.executeAsync(
+              {input: condTensor2, x: trueTensor, y: falseTensor}, ['output']);
+          tfc.test_util.expectArraysClose(await result[0].data(), 0);
+        });
+        it('should not have mem leak', async () => {
+          const condTensor = tfc.scalar(true, 'bool');
+          const trueTensor = tfc.scalar(1, 'int32');
+          const falseTensor = tfc.scalar(0, 'int32');
+          const numTensors: number = tfc.memory().numTensors;
+
+          await executor.executeAsync(
+              {input: condTensor, x: trueTensor, y: falseTensor}, ['output']);
+          expect(tfc.memory().numTensors).toEqual(numTensors);
+        });
+      });
+
+      describe('controlFlowV2_while', () => {
+        beforeEach(() => {
+          const inputNode2: Node = {
+            inputNames: [],
+            inputs: [],
+            children: [],
+            name: 'x',
+            op: 'Placeholder',
+            category: 'graph',
+            attrParams: {},
+            inputParams: {}
+          };
+          const inputNode3: Node = {
+            inputNames: [],
+            inputs: [],
+            children: [],
+            name: 'y',
+            op: 'Placeholder',
+            category: 'graph',
+            attrParams: {},
+            inputParams: {}
+          };
+          outputNode = {
+            inputNames: ['x', 'y'],
+            inputs: [inputNode2, inputNode3],
+            children: [],
+            name: 'output',
+            op: 'StatelessWhile',
+            category: 'control',
+            attrParams: {
+              'cond': {'value': 'condFunc', 'type': 'func'},
+              'body': {'value': 'bodyFunc', 'type': 'func'}
+            },
+            inputParams: {
+              'args': {
+                'type': 'tensors',
+                'inputIndexStart': 0,
+                'inputIndexEnd': 0
+              }
+            }
+          };
+          inputNode2.children.push(outputNode);
+          inputNode3.children.push(outputNode);
+          const xNode: Node = {
+            inputNames: [],
+            inputs: [],
+            children: [],
+            name: 'x',
+            op: 'Placeholder',
+            category: 'graph',
+            attrParams: {},
+            inputParams: {}
+          };
+          const yNode: Node = {
+            inputNames: [],
+            inputs: [],
+            children: [],
+            name: 'y',
+            op: 'Placeholder',
+            category: 'graph',
+            attrParams: {},
+            inputParams: {}
+          };
+          const addNode: Node = {
+            inputNames: ['x', 'y'],
+            inputs: [xNode, yNode],
+            children: [],
+            name: 'add',
+            op: 'Add',
+            category: 'arithmetic',
+            inputParams: {'a': createTensorAttr(0), 'b': createTensorAttr(1)},
+            attrParams: {}
+          };
+          xNode.children.push(addNode);
+          yNode.children.push(addNode);
+          const bodyFunc: Graph = {
+            inputs: [xNode, yNode],
+            nodes: {'x': xNode, 'y': yNode, add: addNode},
+            outputs: [addNode, yNode],
+            weights: [],
+            placeholders: [xNode, yNode],
+          };
+          const condFunc: Graph = {
+            inputs: [xNode, yNode],
+            nodes: {'x': xNode, 'y': yNode},
+            outputs: [xNode],
+            weights: [],
+            placeholders: [xNode, yNode],
+          };
+          graphWithControlFlow = {
+            inputs: [inputNode2, inputNode3],
+            nodes: {'x': inputNode2, 'y': inputNode3, 'output': outputNode},
+            outputs: [outputNode],
+            weights: [],
+            placeholders: [inputNode2, inputNode3],
+            functions: {condFunc, bodyFunc}
+          };
+
+          executor = new GraphExecutor(graphWithControlFlow);
+        });
+
+        it('should execute control flow v2 graph', async () => {
+          const trueTensor = tfc.scalar(-1, 'int32');
+          const falseTensor = tfc.scalar(1, 'int32');
+
+          const result = await executor.executeAsync(
+              {x: trueTensor, y: falseTensor}, ['output']);
+          tfc.test_util.expectArraysClose(await result[0].data(), 0);
+        });
+        it('should not have mem leak', async () => {
+          const trueTensor = tfc.scalar(-1, 'int32');
+          const falseTensor = tfc.scalar(1, 'int32');
+          const numTensors: number = tfc.memory().numTensors;
+
+          await executor.executeAsync(
+              {x: trueTensor, y: falseTensor}, ['output']);
+          expect(tfc.memory().numTensors).toEqual(numTensors + 1);
+        });
+      });
     });
   });
 });
