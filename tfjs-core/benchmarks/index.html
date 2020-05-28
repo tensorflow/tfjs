@@ -81,6 +81,8 @@ limitations under the License.
       },
       testCorrectness: async () => {
         await loadModelAndRecordTime();
+        await showMsg('Testing correctness');
+
         tf.setBackend('cpu');
         const referencePrediction = predict(model);
         const referenceData = await getPredictionData(referencePrediction);
@@ -89,6 +91,7 @@ limitations under the License.
         const prediction = predict(model);
         const predictionData = await getPredictionData(prediction);
 
+        await showMsg(null);
         const match = arraysClose(referenceData, predictionData);
         appendRow(timeTable, `Prediction matches CPU: `, match);
       },
