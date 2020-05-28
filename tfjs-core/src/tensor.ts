@@ -176,8 +176,6 @@ export interface OpHandler {
   print<T extends Tensor>(x: T, verbose: boolean): void;
   reshape<R2 extends Rank>(x: Tensor, shape: ShapeMap[R2]): Tensor<R2>;
   expandDims<R2 extends Rank>(x: Tensor, axis: number): Tensor<R2>;
-  cumsum<T extends Tensor>(
-      x: Tensor, axis: number, exclusive: boolean, reverse: boolean): T;
   squeeze<T extends Tensor>(x: Tensor, axis?: number[]): T;
   clone<T extends Tensor>(x: T): T;
   gather<T extends Tensor>(x: T, indices: Tensor|TensorLike, axis: number): T;
@@ -655,22 +653,6 @@ export class Tensor<R extends Rank = Rank> {
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   expandDims<R2 extends Rank>(axis = 0): Tensor<R2> {
     return opHandler.expandDims(this, axis);
-  }
-
-  /**
-   * Returns the cumulative sum of the `tf.Tensor` along `axis`.
-   *
-   * @param axis The axis along which to sum. Optional. Defaults to 0.
-   * @param exclusive Whether to perform exclusive cumulative sum. Defaults to
-   *    false. If set to true then the sum of each tensor entry does not
-   * include its own value, but only the values previous to it along the
-   * specified axis.
-   * @param reverse Whether to sum in the opposite direction. Defaults to
-   *    false.
-   */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
-  cumsum<T extends Tensor>(axis = 0, exclusive = false, reverse = false): T {
-    return opHandler.cumsum(this, axis, exclusive, reverse);
   }
 
   /**
