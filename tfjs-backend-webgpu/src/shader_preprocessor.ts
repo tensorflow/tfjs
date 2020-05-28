@@ -49,7 +49,7 @@ interface ProgramParams {
   workGroupSize?: [number, number, number];
   variableNames: string[];
   uniforms?: string;
-  needsShapesUniforms?: boolean;
+  needsShapesUniforms: boolean;
   userCode: string;
 }
 
