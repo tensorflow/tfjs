@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,37 +15,37 @@
  * =============================================================================
  */
 
+/**
+ * This file is 2/2 of the test suites for CUJ: convert->predict.
+ *
+ * This file does below things:
+ *  - Load graph models using Converter api.
+ *  - Load inputs.
+ *  - Make inference using each backends, and validate the results against TF
+ *    results.
+ */
+
 import '@tensorflow/tfjs-backend-cpu';
 import '@tensorflow/tfjs-backend-webgl';
 
+import * as tfconverter from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
-import * as tfl from '@tensorflow/tfjs-layers';
 
-import {BACKENDS, KARMA_SERVER, LAYERS_MODELS, REGRESSION} from './constants';
+import {BACKENDS, GRAPH_MODELS, KARMA_SERVER, REGRESSION} from './constants';
 import {createInputTensors} from './test_util';
 
-/** Directory that stores the model. */
-const DATA_URL = 'create_save_predict_data';
+const DATA_URL = 'convert_predict_data';
 
-/**
- *  This file is 3/3 of the test suites for CUJ: create->save->predict.
- *
- *  This file test below things:
- *  - Load layers models using Layers api.
- *  - Load inputs.
- *  - Make inference using each backends, and validate the results against
- *    Keras results.
- */
-describe(`${REGRESSION} create_save_predict`, () => {
-  LAYERS_MODELS.forEach(model => {
+describe(`${REGRESSION} convert_predict`, () => {
+  GRAPH_MODELS.forEach(model => {
     describe(`${model}`, () => {
       let inputsData: tfc.TypedArray[];
       let inputsShapes: number[][];
-      let kerasOutputData: tfc.TypedArray[];
-      let kerasOutputShapes: number[][];
+      let tfOutputData: tfc.TypedArray[];
+      let tfOutputShapes: number[][];
 
       beforeAll(async () => {
-        [inputsData, inputsShapes, kerasOutputData, kerasOutputShapes] =
+        [inputsData, inputsShapes, tfOutputData, tfOutputShapes] =
             await Promise.all([
               fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-data.json`)
                   .then(response => response.json()),
@@ -60,23 +60,23 @@ describe(`${REGRESSION} create_save_predict`, () => {
 
       BACKENDS.forEach(backend => {
         it(`with ${backend}.`, async () => {
-          const $model = await tfl.loadLayersModel(
+          const $model = await tfconverter.loadGraphModel(
               `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
 
           const xs = createInputTensors(inputsData, inputsShapes);
 
           await tfc.setBackend(backend);
 
-          const result = $model.predict(xs);
+          const result = await $model.executeAsync(xs);
 
           const ys =
               ($model.outputs.length === 1 ? [result] : result) as tfc.Tensor[];
 
-          // Validate outputs with keras results.
+          // Validate outputs with tf results.
           for (let i = 0; i < ys.length; i++) {
             const y = ys[i];
-            expect(y.shape).toEqual(kerasOutputShapes[i]);
-            tfc.test_util.expectArraysClose(await y.data(), kerasOutputData[i]);
+            expect(y.shape).toEqual(tfOutputShapes[i]);
+            tfc.test_util.expectArraysClose(await y.data(), tfOutputData[i]);
           }
 
           // Dispose all tensors;

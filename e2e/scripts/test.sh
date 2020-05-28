@@ -14,12 +14,17 @@
 # limitations under the License.
 # =============================================================================
 
+# This script is used for local testing. Set environment variable TAGS to
+# filter tests. If no TAGS is specified, the script will the TAGS to #SMOKE.
+# Multiple tags are allowed, separate by comma.
+
 set -e
 
-# Smoke tests run in PR and nightly builds.
-TAGS="#SMOKE"
+if [[ -z "$TAGS" ]]; then
+  echo "Env variable TAGS is not found, set TAGS='#SMOKE'"
+  TAGS="#SMOKE"
+fi
 
-# Regression tests run in nightly builds.
 if [[ "$NIGHTLY" = true ]]; then
     TAGS="${TAGS},#REGRESSION"
 fi
@@ -49,9 +54,6 @@ if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
   cd ..
 fi
 
-if [ "$NIGHTLY" = true ]; then
-  yarn run-browserstack --browsers=bs_chrome_mac --tags $TAGS
-  yarn run-browserstack --browsers=bs_safari_mac,bs_firefox_mac,win_10_chrome,bs_ios_11,bs_android_9 --tags $TAGS
-else
-  yarn run-browserstack --browsers=bs_chrome_mac --tags $TAGS
-fi
+echo "Karma tests."
+karma start --tags $TAGS
+
