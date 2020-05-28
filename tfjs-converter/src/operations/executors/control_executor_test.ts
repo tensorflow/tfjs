@@ -18,8 +18,8 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {scalar, tensor1d, tensor2d} from '@tensorflow/tfjs-core';
 import {test_util} from '@tensorflow/tfjs-core';
 
-import {GraphExecutor} from '../../../dist/executor/graph_executor';
 import {ExecutionContext} from '../../executor/execution_context';
+import {GraphExecutor} from '../../executor/graph_executor';
 import {TensorArray} from '../../executor/tensor_array';
 import * as control from '../op_list/control';
 import {Graph, Node} from '../types';
