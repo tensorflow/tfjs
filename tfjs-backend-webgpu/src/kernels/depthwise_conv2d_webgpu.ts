@@ -28,6 +28,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride, dilation, inDims;';
   workGroupSize: [number, number, number] = [4, 8, 4];
+  needsShapesUniforms = true;
 
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.outShape;
