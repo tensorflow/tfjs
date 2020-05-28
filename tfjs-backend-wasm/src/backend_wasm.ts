@@ -232,7 +232,6 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
       disposeData: wasm.cwrap('dispose_data', voidReturnType, ['number']),
       dispose: wasm.cwrap('dispose', voidReturnType, []),
     };
-
     let initialized = false;
     wasm.onRuntimeInitialized = () => {
       initialized = true;
