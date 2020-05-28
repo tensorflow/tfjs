@@ -218,24 +218,27 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
       }
     }
     const wasm = wasmFactory(factoryConfig);
-    const voidReturnType: string = null;
-    // Using the tfjs namespace to avoid conflict with emscripten's API.
-    wasm.tfjs = {
-      init: wasm.cwrap('init', null, []),
-      registerTensor: wasm.cwrap(
-          'register_tensor', null,
-          [
-            'number',  // id
-            'number',  // size
-            'number',  // memoryOffset
-          ]),
-      disposeData: wasm.cwrap('dispose_data', voidReturnType, ['number']),
-      dispose: wasm.cwrap('dispose', voidReturnType, []),
-    };
+
     let initialized = false;
     wasm.onRuntimeInitialized = () => {
       initialized = true;
       initAborted = false;
+
+      const voidReturnType: string = null;
+      // Using the tfjs namespace to avoid conflict with emscripten's API.
+      wasm.tfjs = {
+        init: wasm.cwrap('init', null, []),
+        registerTensor: wasm.cwrap(
+            'register_tensor', null,
+            [
+              'number',  // id
+              'number',  // size
+              'number',  // memoryOffset
+            ]),
+        disposeData: wasm.cwrap('dispose_data', voidReturnType, ['number']),
+        dispose: wasm.cwrap('dispose', voidReturnType, []),
+      };
+
       resolve({wasm});
     };
     wasm.onAbort = () => {
