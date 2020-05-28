@@ -137,7 +137,7 @@ export class OperationMapper {
     }
 
     let functions = {};
-    if (graph.library != null) {
+    if (graph.library != null && graph.library.function != null) {
       functions = graph.library.function.reduce((functions, func) => {
         functions[func.signature.name] = this.mapFunction(func);
         return functions;
