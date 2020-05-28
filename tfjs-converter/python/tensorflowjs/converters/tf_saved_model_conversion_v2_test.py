@@ -681,13 +681,11 @@ class ConvertTest(tf.test.TestCase):
   def test_convert_saved_model_with_control_flow_v2(self):
     self._create_saved_model_with_control_flow()
 
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     tf_saved_model_conversion_v2.convert_tf_saved_model(
-        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
-        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
-        control_flow_v2=True
+        tfjs_path, tfjs_path, control_flow_v2=True
     )
 
-    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     # Check model.json and weights manifest.
     with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
       model_json = json.load(f)

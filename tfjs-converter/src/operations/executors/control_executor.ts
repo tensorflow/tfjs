@@ -39,7 +39,7 @@ export const executeOp: InternalOpAsyncExecutor = async(
       const args =
           getParamValue('args', node, tensorMap, context) as tfc.Tensor[];
       const condValue = await cond.data();
-      if (condValue[0] === 1) {
+      if (condValue[0]) {
         return context.functionMap[thenFunc].executeFunctionAsync(args);
       } else {
         return context.functionMap[elseFunc].executeFunctionAsync(args);

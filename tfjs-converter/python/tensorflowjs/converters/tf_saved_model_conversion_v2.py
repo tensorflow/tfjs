@@ -197,7 +197,8 @@ def optimize_graph(graph, signature_def, output_graph,
 
 
 def extract_const_nodes(nodes):
-  """Takes a list of nodes and extract the weights.
+  """Takes a list of nodes and extract the weights. Return weight manifest
+  object.
 
   Args:
     nodes: list of tf.NodeDef TensorFlow NodeDef proto object.
