@@ -39,8 +39,6 @@ if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
   python create_save_predict.py
 
   echo "Create saved models and convert."
-  rm -rf "convert_predict_data/"
-  mkdir "convert_predict_data/"
   python convert_predict.py
 
   # Cleanup python env.

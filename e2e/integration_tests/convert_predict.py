@@ -258,6 +258,11 @@ def _create_saved_model_with_prelu(save_dir):
                          "dtype": "float32"}}}
 
 def main():
+  # Create the directory to store model and data.
+  if os.path.exists(_tmp_dir) and os.path.isdir(_tmp_dir):
+    shutil.rmtree(_tmp_dir)
+  os.mkdir(_tmp_dir)
+
   _save_and_convert_model(_create_saved_model_v1, 'saved_model_v1')
   _save_and_convert_model(_create_saved_model_v2, 'saved_model_v2')
   _save_and_convert_model(_create_saved_model_v2_with_control_flow,
