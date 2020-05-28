@@ -127,6 +127,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
   workPerThread: number;
   variableNames = ['A', 'B'];
   workGroupSize: [number, number, number] = [16, 16, 1];
+  needsShapesUniforms = true;
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],

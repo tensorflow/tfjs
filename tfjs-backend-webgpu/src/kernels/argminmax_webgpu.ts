@@ -31,6 +31,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   workGroupSize: [number, number, number];
   variableNames = ['x'];
   uniforms = 'int axis;';
+  needsShapesUniforms = true;
 
   constructor(inputShape: number[], axis: number, reduceType: 'min'|'max') {
     const axes = [axis];
