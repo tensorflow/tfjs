@@ -1,2 +1,2 @@
 -r requirements.txt
-pylint==2.0
+pylint==2.3.0

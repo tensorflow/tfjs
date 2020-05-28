@@ -701,14 +701,14 @@ class ConvertTest(tf.test.TestCase):
     weights_manifest = model_json['weightsManifest']
     self.assertCountEqual(weights_manifest[0]['paths'],
                           ['group1-shard1of1.bin'])
+    self.assertIn('weights', weights_manifest[0])
+
     add_y_weight = None
     for weight in weights_manifest[0]['weights']:
       if weight['name'] == 'add/y':
         add_y_weight = weight
 
     self.assertIsNot(add_y_weight, None)
-
-    self.assertIn('weights', weights_manifest[0])
 
     nodes = model_json['modelTopology']['node']
 
