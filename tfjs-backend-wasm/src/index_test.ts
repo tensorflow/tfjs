@@ -18,7 +18,9 @@
 import * as tf from '@tensorflow/tfjs-core';
 import {registerBackend, removeBackend, test_util, util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line:no-imports-from-dist
-import {ALL_ENVS, BROWSER_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {BROWSER_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+// import {ALL_ENVS, BROWSER_ENVS, describeWithFlags} from
+// '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {init, resetWasmPath} from './backend_wasm';
 import {BackendWasm, setWasmPath} from './index';
@@ -28,7 +30,7 @@ import {BackendWasm, setWasmPath} from './index';
  * 'wasm' so that they are always included in the test runner. See
  * `env.specFilter` in `setup_test.ts` for details.
  */
-describeWithFlags('wasm read/write', ALL_ENVS, () => {
+describeWithFlags('wasm read/write', BROWSER_ENVS, () => {
   it('write and read values', async () => {
     const x = tf.tensor1d([1, 2, 3]);
     test_util.expectArraysClose([1, 2, 3], await x.data());
@@ -73,8 +75,8 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     }, 100);
 
     // Silences backend registration warnings.
-    spyOn(console, 'warn');
-    spyOn(console, 'log');
+    // spyOn(console, 'warn');
+    // spyOn(console, 'log');
   });
 
   afterEach(() => {
@@ -135,5 +137,14 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     // Setting the path too late.
     expect(() => setWasmPath('too/late'))
         .toThrowError(/The WASM backend was already initialized. Make sure/);
+  });
+
+  fit('testing', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+
+    const c = tf.matMul(a, b);
+    const data = await c.data();
+    console.log(data);
   });
 });
