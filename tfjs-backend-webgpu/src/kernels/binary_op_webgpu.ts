@@ -63,10 +63,14 @@ export class BinaryOpProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
+
+    // TODO(jiajia.qin@intel.com): More tuning on this. Maybe split the shared
+    // memory shader into a new class.
     const useSharedMemoryWithA =
         aShape.length === 1 && bShape.length > 1 && aShape[0] < 2048;
     const useSharedMemoryWithB =
         bShape.length === 1 && aShape.length > 1 && bShape[0] < 2048;
+
     if (fit) {
       this.userCode = `
           float binaryOperation(float a, float b) {
@@ -84,15 +88,13 @@ export class BinaryOpProgram implements WebGPUProgram {
       this.shaderKey = `binary2${op}`;
     } else if (useSharedMemoryWithA || useSharedMemoryWithB) {
       const type = getCoordsDataType(this.outputShape.length);
-      const sharedMemerySize = useSharedMemoryWithB ? bShape[0] : aShape[0];
-      const sharedIndexSnippet = sharedMemerySize > 1 ?
-          `            int sharedIndex =  coords[${
-              this.outputShape.length - 1}];` :
-          `            int sharedIndex =  0;`;
+      const sharedMemorySize = useSharedMemoryWithB ? bShape[0] : aShape[0];
+      const sharedIndexSnippet =
+          sharedMemorySize > 1 ? `coords[${this.outputShape.length - 1}]` : '0';
       const accessDataSnippet = useSharedMemoryWithB ?
           `            float a = getAAtOutCoords(coords);
-                       float b = sharedBuf[sharedIndex];` :
-          `            float a = sharedBuf[sharedIndex];
+                       float b = sharedBuf[${sharedIndexSnippet}];` :
+          `            float a = sharedBuf[${sharedIndexSnippet}];
                        float b = getBAtOutCoords(coords);
       `;
       this.userCode = `
@@ -100,11 +102,15 @@ export class BinaryOpProgram implements WebGPUProgram {
         ${op}
       }
 
-      shared float sharedBuf[${sharedMemerySize}];
+      shared float sharedBuf[${sharedMemorySize}];
       void main() {
         int index = int(gl_GlobalInvocationID.x);
         int localIndex = int(gl_LocalInvocationIndex);
-        while(localIndex < ${sharedMemerySize})
+
+        // Fill in the shared memory buffer. Here we need a loop to make sure
+        // that all data in A|B are uploaded when |sharedMemorySize| is larger
+        // than work group size.
+        while(localIndex < ${sharedMemorySize})
         {
           sharedBuf[localIndex] = ${
           useSharedMemoryWithB ? 'B' : 'A'}[localIndex];
@@ -118,7 +124,6 @@ export class BinaryOpProgram implements WebGPUProgram {
           if(flatIndex < ${size}) {
             ${type} coords = getCoordsFromFlatIndex(flatIndex);
 
-            ${sharedIndexSnippet}
             ${accessDataSnippet}
             setOutput(flatIndex, binaryOperation(a, b));
           }
