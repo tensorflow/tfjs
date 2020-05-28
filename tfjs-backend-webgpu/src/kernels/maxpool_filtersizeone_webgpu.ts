@@ -30,6 +30,7 @@ export class MaxPoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
   variableNames = ['x'];
   uniforms = 'ivec2 pad, stride, dilation, convDims, filterDims;';
   workGroupSize: [number, number, number] = [4, 4, 4];
+  needsShapesUniforms = true;
 
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.outShape;

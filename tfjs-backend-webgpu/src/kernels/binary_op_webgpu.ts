@@ -50,6 +50,7 @@ export class BinaryOpProgram implements WebGPUProgram {
   variableNames = ['A', 'B'];
   workPerThread: number;
   workGroupSize: [number, number, number];
+  needsShapesUniforms = true;
 
   constructor(op: string, aShape: number[], bShape: number[]) {
     // This is an experimental value when using shared memory.
@@ -72,6 +73,7 @@ export class BinaryOpProgram implements WebGPUProgram {
         bShape.length === 1 && aShape.length > 1 && bShape[0] < 2048;
 
     if (fit) {
+      this.needsShapesUniforms = false;
       this.userCode = `
           float binaryOperation(float a, float b) {
             ${op}
@@ -82,7 +84,7 @@ export class BinaryOpProgram implements WebGPUProgram {
 
             float a = A[index];
             float b = B[index];
-            setOutput(index, binaryOperation(a, b));
+            result[index] = binaryOperation(a, b);
           }
         `;
       this.shaderKey = `binary2${op}`;
