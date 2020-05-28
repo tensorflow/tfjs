@@ -193,6 +193,14 @@ function createInstantiateWasmFunc(path: string) {
   };
 }
 
+// From: https://github.com/GoogleChromeLabs/wasm-feature-detect
+async function isSimdSupported() {
+  return WebAssembly.validate(new Uint8Array([
+    0, 97, 115, 109, 1, 0, 0, 0, 1,  4, 1,   96, 0,  0, 3,
+    2, 1,  0,   10,  9, 1, 7, 0, 65, 0, 253, 15, 26, 11
+  ]));
+}
+
 /**
  * Initializes the wasm module and creates the js <--> wasm bridge.
  *
@@ -201,11 +209,14 @@ function createInstantiateWasmFunc(path: string) {
  * in Chrome 76).
  */
 export async function init(): Promise<{wasm: BackendWasmModule}> {
+  const simdSupported = await isSimdSupported();
+
   return new Promise((resolve, reject) => {
     const factoryConfig: WasmFactoryConfig = {};
     if (wasmPath != null) {
       factoryConfig.locateFile = (path, prefix) => {
         if (path.endsWith('.wasm')) {
+          console.log('SETTING WASM BINARY LOCATION.', simdSupported);
           return wasmPath;
         }
         return prefix + path;
