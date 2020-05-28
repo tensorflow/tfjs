@@ -76,6 +76,7 @@ export class MatMulProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
   workGroupSize: [number, number, number] = [16, 16, 1];  // Must be square.
+  needsShapesUniforms = true;
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
