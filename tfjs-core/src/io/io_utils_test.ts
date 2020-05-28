@@ -23,7 +23,7 @@ import {expectArraysEqual} from '../test_util';
 import {expectArraysClose} from '../test_util';
 import {encodeString} from '../util';
 
-import {arrayBufferToBase64String, base64StringToArrayBuffer, basename, concatenateArrayBuffers, concatenateTypedArrays, stringByteLength} from './io_utils';
+import {arrayBufferToBase64String, base64StringToArrayBuffer, basename, concatenateArrayBuffers, concatenateTypedArrays, stringByteLength, getFloat16Decoder} from './io_utils';
 import {WeightsManifestEntry} from './types';
 
 describe('concatenateTypedArrays', () => {
@@ -521,6 +521,22 @@ describeWithFlags('decodeWeights', {}, () => {
     expect(weight1.shape).toEqual([3]);
     expect(weight1.dtype).toEqual('int32');
   });
+  it('support quantization float16 weights', async () => {
+    const manifestSpecs: WeightsManifestEntry[] = [
+      {
+        name: 'weight0',
+        dtype: 'float32',
+        shape: [3],
+        quantization: { dtype: 'float16' },
+      },
+    ];
+    const data = new Uint16Array([13312, 14336, 14848]);
+    const decoded = tf.io.decodeWeights(data.buffer, manifestSpecs);
+    const weight0 = decoded['weight0'];
+    expectArraysClose(await weight0.data(), [0.25, 0.5, 0.75]);
+    expect(weight0.shape).toEqual([3]);
+    expect(weight0.dtype).toEqual('float32');
+  });
 });
 
 describe('stringByteLength', () => {
@@ -608,5 +624,49 @@ describe('basename', () => {
     expect(basename('/foo/bar/baz')).toEqual('baz');
     expect(basename('foo/bar/baz/')).toEqual('baz');
     expect(basename('foo/bar/baz//')).toEqual('baz');
+  });
+});
+
+describe('float16', () => {
+  it('decodes NaN to float32 NaN', () => {
+    const decoder = getFloat16Decoder();
+    const float16NaN = 0x00007e00;
+    const buffer = new Uint16Array([float16NaN]);
+    const f32 = decoder(buffer);
+    expectArraysEqual(f32, [NaN]);
+  });
+
+  it('decodes ±Infinity to float32 ±Infinity', () => {
+    const decoder = getFloat16Decoder();
+    const positiveInfinity = 0x00007c00;
+    const negativeInfinity = 0xfffffc00;
+    const buffer = new Uint16Array([positiveInfinity, negativeInfinity]);
+    const f32 = decoder(buffer);
+    expectArraysEqual(f32, [Infinity, -Infinity]);
+  });
+
+  it('decodes ±0 to float32 ±0', () => {
+    const decoder = getFloat16Decoder();
+    const positiveZero = 0x00000000;
+    const negativeZero = 0xffff8000;
+    const buffer = new Uint16Array([positiveZero, negativeZero]);
+    const f32 = decoder(buffer);
+    expectArraysClose(f32, [0.0, -0.0]);
+  });
+
+  it('decodes -Infinity on underflow', () => {
+    const decoder = getFloat16Decoder();
+    const minVal = 0x00000000;
+    const buffer = new Uint16Array([minVal - 1]);
+    const f32 = decoder(buffer);
+    expectArraysEqual(f32, [-Infinity]);
+  });
+
+  it('decodes +Infinity on overflow', () => {
+    const decoder = getFloat16Decoder();
+    const maxVal = 0x00007bff;
+    const buffer = new Uint16Array([maxVal + 1]);
+    const f32 = decoder(buffer);
+    expectArraysEqual(f32, [Infinity]);
   });
 });
