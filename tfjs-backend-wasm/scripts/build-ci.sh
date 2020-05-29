@@ -29,13 +29,14 @@ do
   [ $i -gt 0 ] && echo "Retry in 15 seconds, count: $i" && sleep 15
   # If install is successful, $? will hold 0 and execution will break from the
   # loop.
-  ./emsdk install 1.39.12 && break
+  ./emsdk install 1.39.13 && break
 done
 
-./emsdk activate 1.39.12
+./emsdk activate 1.39.13
 source ./emsdk_env.sh
 cd ..
 
+yarn clean
 yarn tsc
 
 ./scripts/build-wasm.sh
