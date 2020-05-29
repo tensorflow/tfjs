@@ -128,7 +128,10 @@ export function getNodesInTopologicalOrder(
   return orderedNodes;
 }
 
-const CONTROL_FLOW_OPS = ['Switch', 'Merge', 'Enter', 'Exit', 'NextIteration'];
+const CONTROL_FLOW_OPS = [
+  'Switch', 'Merge', 'Enter', 'Exit', 'NextIteration', 'StatelessIf',
+  'StatelessWhile'
+];
 const DYNAMIC_SHAPE_OPS = [
   'NonMaxSuppressionV2', 'NonMaxSuppressionV3', 'NonMaxSuppressionV5', 'Where'
 ];

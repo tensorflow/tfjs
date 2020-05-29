@@ -30,6 +30,7 @@ export class ReduceProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number];
   variableNames = ['x'];
+  needsShapesUniforms = true;
 
   constructor(reduceInfo: ReduceInfo, reduceType: 'max'|'min'|'sum') {
     const inputShape = [reduceInfo.batchSize, reduceInfo.inSize];
