@@ -29,12 +29,41 @@ limitations under the License.
 <body>
   <div id="container">
     <h2>Tensorflow.js / WebGPU Benchmarks</h2>
+    <div class="time-selection">
+      <div class="time-selection-label">
+        <div class="description">Showing benchmarks for:</div>
+        <div class="start-date"></div>
+        <div class="description">to</div>
+        <div class="end-date"></div>
+      </div>
+      <div class="time-selection-edit-button">Edit</div>
+    </div>
     <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
       <div class="mdl-tabs__tab-bar">
       </div>
     </div>
   </div>
+  <div class="time-selection-modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-contents">
+      <div class="edit-time-wrapper">
+        <div class="instructions"></div>
+        <div class="range">
+          <div>Start:</div>
+          <input class="editable-start-date" placeholder="format: MM/DD/YYYY" type="text"></input>
+          <div>End:</div>
+          <input class="editable-end-date" placeholder="format: MM/DD/YYYY" type="text"></input>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="modal-cancel-button">Cancel</div>
+        <div class="modal-submit-button">Submit</div>
+      </div>
+    </div>
+  </div>
 
+  <script src="./config.js"></script>
+  <script src="./util.js"></script>
   <script src="./main.js"></script>
 </body>
 

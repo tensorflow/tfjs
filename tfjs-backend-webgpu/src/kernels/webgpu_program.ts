@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, Tensor} from '@tensorflow/tfjs-core';
+import {DataType, Rank, ShapeMap, TensorInfo} from '@tensorflow/tfjs-core';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import * as shader_preprocessor from '../shader_preprocessor';
@@ -33,6 +33,8 @@ export interface WebGPUProgram {
   dispatch: [number, number, number];
   variableNames: string[];
   uniforms?: string;
+  // Indicate whether shapes data are needed.
+  needsShapesUniforms: boolean;
   // Size of register cache in one dimension (assumes square cache).
   // Each thread writes to workPerThread * workPerThread locations in the output
   // buffer.
@@ -70,8 +72,8 @@ export const makeBindGroup =
     };
 
 const makeBindGroupLayout =
-    (device: GPUDevice, inputs: shader_preprocessor.InputInfo[], output: Tensor,
-     uniforms?: BindingInfo): GPUBindGroupLayout => {
+    (device: GPUDevice, inputs: shader_preprocessor.InputInfo[],
+     output: TensorInfo, uniforms?: BindingInfo): GPUBindGroupLayout => {
       const bindings =
           Array(1 + inputs.length)
               .fill(
@@ -98,7 +100,7 @@ const makeBindGroupLayout =
 
 export const compileProgram =
     (glslang: Glslang, device: GPUDevice, program: WebGPUProgram,
-     inputsData: shader_preprocessor.InputInfo[], output: Tensor,
+     inputsData: shader_preprocessor.InputInfo[], output: TensorInfo,
      uniforms?: BindingInfo): WebGPUBinary => {
       const outputData = {dtype: output.dtype, shape: output.shape};
 
@@ -121,11 +123,11 @@ export const compileProgram =
       return {bindGroupLayout, pipeline};
     };
 
-// TODO: Consider uploading shape info as vec4s regardless of rank to reduce
-// recompilation.
-export function makeShaderKey(program: WebGPUProgram, ranks: number[]): string {
+export function makeShaderKey<R extends Rank>(
+    program: WebGPUProgram, shapes: Array<ShapeMap[R]>,
+    types: string[]): string {
   const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
-      ranks.join(',') +
+      shapes.join(',') + types.join(',') + program.variableNames.join(',') +
       (program.shaderKey ? program.shaderKey : program.userCode);
   return key;
 }

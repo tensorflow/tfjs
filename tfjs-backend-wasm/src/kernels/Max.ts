@@ -15,17 +15,10 @@
  * =============================================================================
  */
 
-import {backend_util, NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {Max, MaxAttrs, MaxInputs} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
-
-interface MaxInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-interface MaxAttrs extends NamedAttrMap {
-  axes: number[];
-}
 
 let wasmMax: (xId: number, reduceSize: number, outId: number) => void;
 
@@ -34,16 +27,17 @@ function setup(backend: BackendWasm): void {
       backend.wasm.cwrap('Max', null /*void*/, ['number, number, number']);
 }
 
-function max(args: {backend: BackendWasm, inputs: MaxInputs, attrs: MaxAttrs}):
-    TensorInfo {
+function max(args: {backend: BackendWasm, inputs: {}, attrs: {}}): TensorInfo {
   const {backend, inputs, attrs} = args;
-  const {axes} = attrs;
-  const {x} = inputs;
+  const {reductionIndices} = attrs as MaxAttrs;
+  const {x} = inputs as MaxInputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
 
-  backend_util.assertAxesAreInnerMostDims('max', axes, x.shape.length);
+  const origAxes = util.parseAxisParam(reductionIndices, x.shape);
+
+  backend_util.assertAxesAreInnerMostDims('max', origAxes, x.shape.length);
   const [outShape, reduceShape] =
-      backend_util.computeOutAndReduceShapes(x.shape, axes);
+      backend_util.computeOutAndReduceShapes(x.shape, origAxes);
   const reduceSize = util.sizeFromShape(reduceShape);
 
   const out = backend.makeOutput(outShape, x.dtype);
@@ -54,12 +48,9 @@ function max(args: {backend: BackendWasm, inputs: MaxInputs, attrs: MaxAttrs}):
   const outId = backend.dataIdMap.get(out.dataId).id;
 
   wasmMax(xId, reduceSize, outId);
+
   return out;
 }
 
-registerKernel({
-  kernelName: 'Max',
-  backendName: 'wasm',
-  setupFunc: setup,
-  kernelFunc: max
-});
+registerKernel(
+    {kernelName: Max, backendName: 'wasm', setupFunc: setup, kernelFunc: max});

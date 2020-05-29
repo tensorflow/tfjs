@@ -1,22 +1,26 @@
 {
   "devDependencies": {
-    "@octokit/rest": "15.2.6",
+    "@octokit/rest": "15.17.0",
+    "@types/argparse": "^1.0.38",
     "@types/jasmine": "2.8.7",
     "@types/node": "^12.7.5",
+    "@types/mkdirp": "^0.5.2",
+    "@types/shelljs": "^0.8.7",
     "argparse": "^1.0.10",
     "chalk": "~2.4.2",
     "clang-format": "~1.2.4",
     "jasmine": "3.1.0",
     "shelljs": "~0.8.3",
-    "ts-node": "~4.1.0",
+    "mkdirp": "~0.5.1",
+    "ts-node": "~8.8.2",
     "tslint": "~5.20.0",
     "typescript": "3.5.3"
   },
   "scripts": {
     "find-affected-packages": "./scripts/find-affected-packages.js",
-    "release": "ts-node ./scripts/release.ts",
-    "publish-npm": "ts-node ./scripts/publish-npm.ts",
-    "release-notes": "ts-node ./scripts/release_notes/release_notes.ts",
-    "test-release-notes": "ts-node ./scripts/release_notes/run_tests.ts"
+    "release": "ts-node -s ./scripts/release.ts",
+    "publish-npm": "ts-node -s ./scripts/publish-npm.ts",
+    "release-notes": "ts-node -s ./scripts/release_notes/release_notes.ts",
+    "test-release-notes": "ts-node -s ./scripts/release_notes/run_tests.ts"
   }
 }

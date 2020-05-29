@@ -27,12 +27,12 @@ import {TensorLike} from '../types';
 import {assert} from '../util';
 
 import {squeeze, stack, unstack} from './array_ops';
-import {split} from './concat_split';
 import {eye} from './eye';
 import {logicalAnd, where} from './logical_ops';
 import {norm} from './norm';
 import {op} from './operation';
 import {sum} from './reduction_ops';
+import {split} from './split';
 import {sub} from './sub';
 import {range, scalar, tensor2d, zeros} from './tensor_ops';
 
@@ -193,7 +193,7 @@ function gramSchmidt_(xs: Tensor1D[]|Tensor2D): Tensor1D[]|Tensor2D {
       let x = xs1d[i];
       if (i > 0) {
         for (let j = 0; j < i; ++j) {
-          const proj = sum(ys[j].mulStrict(x)).mul(ys[j]);
+          const proj = sum(ys[j].mul(x)).mul(ys[j]);
           x = x.sub(proj);
         }
       }

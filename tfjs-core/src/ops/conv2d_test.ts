@@ -318,6 +318,75 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
         await result.data(), [58.0, 78.0, 98.0, 118.0, 138.0, 158.0]);
   });
 
+  it('x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=1 p=same', async () => {
+    const inputDepth = 16;
+    const xSize = 8;
+    const inputShape: [number, number, number, number] =
+        [1, xSize, xSize, inputDepth];
+    const outputDepth = 1;
+    const fSize = 3;
+    const pad = 'same';
+    const stride: [number, number] = [2, 2];
+
+    // TODO(annxingyuan): Make this test work with large inputs using
+    // generateCaseInputs https://github.com/tensorflow/tfjs/issues/3143
+    const inputData = [];
+    for (let i = 0; i < xSize * xSize * inputDepth; i++) {
+      inputData.push(i % 5);
+    }
+
+    const wData = [];
+    for (let i = 0; i < fSize * fSize * inputDepth * outputDepth; i++) {
+      wData.push(i % 5);
+    }
+
+    const x = tf.tensor4d(inputData, inputShape);
+    const w = tf.tensor4d(wData, [fSize, fSize, inputDepth, outputDepth]);
+    const result = tf.conv2d(x, w, stride, pad);
+    expect(result.shape).toEqual([1, 4, 4, 1]);
+    expectArraysClose(await result.data(), new Float32Array([
+                        854, 431, 568, 382, 580, 427, 854, 288, 431, 568, 580,
+                        289, 285, 570, 285, 258
+                      ]));
+  });
+
+  it('x=[1,8,8,3] f=[3,3,3,4] s=[2,2] d=1 p=same', async () => {
+    const inputDepth = 3;
+    const xSize = 8;
+    const inputShape: [number, number, number, number] =
+        [1, xSize, xSize, inputDepth];
+    const outputDepth = 4;
+    const fSize = 3;
+    const pad = 'same';
+    const stride: [number, number] = [2, 2];
+
+    // TODO(annxingyuan): Make this test work with large inputs using
+    // generateCaseInputs https://github.com/tensorflow/tfjs/issues/3143
+    const inputData = [];
+    for (let i = 0; i < xSize * xSize * inputDepth; i++) {
+      inputData.push(i % 5);
+    }
+
+    const wData = [];
+    for (let i = 0; i < fSize * fSize * inputDepth * outputDepth; i++) {
+      wData.push(i % 5);
+    }
+
+    const x = tf.tensor4d(inputData, inputShape);
+    const w = tf.tensor4d(wData, [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.conv2d(x, w, stride, pad);
+    expect(result.shape).toEqual([1, 4, 4, 4]);
+    expectArraysClose(
+        await result.data(), new Float32Array([
+          104, 125, 126, 102, 133, 126, 104, 57,  137, 102, 57,  112, 64,
+          40,  76,  92,  116, 53,  110, 142, 50,  104, 133, 137, 104, 125,
+          126, 102, 83,  88,  78,  33,  133, 126, 104, 57,  137, 102, 57,
+          112, 116, 53,  110, 142, 37,  76,  100, 99,  33,  68,  83,  88,
+          70,  83,  76,  64,  92,  88,  64,  40,  51,  44,  27,  50
+        ]));
+  });
+
   it('throws when x is not rank 3', () => {
     const inputDepth = 1;
     const outputDepth = 1;

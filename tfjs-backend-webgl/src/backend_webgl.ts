@@ -19,12 +19,11 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {complex, DataId, div, engine, env, imag, MemoryInfo, range, real, RecursiveArray, scalar, softmax, tensor, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
+import {complex, DataId, div, engine, env, imag, max, MemoryInfo, range, real, RecursiveArray, scalar, softmax, tensor, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
 import {backend_util, buffer, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
 import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 
 const {segment_util} = backend_util;
-const nonMaxSuppressionV3 = kernel_impls.nonMaxSuppressionV3;
 const split = kernel_impls.split;
 const tile = kernel_impls.tile;
 const topkImpl = kernel_impls.topkImpl;
@@ -110,7 +109,6 @@ import {UnaryOpPackedProgram} from './unaryop_packed_gpu';
 import {UnpackProgram} from './unpack_gpu';
 import * as webgl_util from './webgl_util';
 import {BackendValues} from '@tensorflow/tfjs-core';
-import {warn} from 'console';
 
 export const EPSILON_FLOAT32 = 1e-7;
 export const EPSILON_FLOAT16 = 1e-4;
@@ -884,10 +882,10 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [a, b], a.dtype);
   }
 
-  batchNormalization(
+  batchNorm(
       x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
-      varianceEpsilon: number, scale?: Tensor4D|Tensor1D,
-      offset?: Tensor4D|Tensor1D): Tensor4D {
+      offset?: Tensor4D|Tensor1D, scale?: Tensor4D|Tensor1D,
+      varianceEpsilon?: number): Tensor4D {
     const inputs = [x, mean, variance];
 
     let offsetShape = null;
@@ -1266,7 +1264,7 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   where(condition: Tensor): Tensor2D {
-    warn(
+    backend_util.warn(
         'tf.where() in webgl locks the UI thread. ' +
         'Call tf.whereAsync() instead');
     const condVals = condition.dataSync();
@@ -1303,19 +1301,6 @@ export class MathBackendWebGL extends KernelBackend {
         new BinaryOpPackedProgram(binaryop_packed_gpu.MOD, a.shape, b.shape) :
         new BinaryOpProgram(binaryop_gpu.MOD, a.shape, b.shape);
     return this.compileAndRun(program, [a, b]);
-  }
-
-  max(x: Tensor, axes: number[]): Tensor {
-    if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.max(x, axes);
-    }
-
-    backend_util.assertAxesAreInnerMostDims('max', axes, x.rank);
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const inSize = util.sizeFromShape(reduceShape);
-    const a2D = x.as2D(-1, inSize);
-    return this.reduce(a2D, 'max', a2D.dtype).reshape(outShape);
   }
 
   maximum(a: Tensor, b: Tensor): Tensor {
@@ -1554,7 +1539,9 @@ export class MathBackendWebGL extends KernelBackend {
 
   softmax<T extends Tensor>(logits: T, dim: number): T {
     const axes = util.parseAxisParam([dim], logits.shape);
-    const maxLogit = this.max(logits, axes);
+    // TODO(annxingyuan): Call maxImpl rather than op as part of softmax kernel
+    // modularization.
+    const maxLogit = max(logits, axes);
     const expandedShape =
         backend_util.expandShapeToKeepDim(maxLogit.shape, axes);
     const a = this.subtract(logits, maxLogit.reshape(expandedShape));
@@ -2232,18 +2219,6 @@ export class MathBackendWebGL extends KernelBackend {
   diag(x: Tensor): Tensor {
     const program = new DiagProgram(x.size);
     return this.compileAndRun(program, [x]);
-  }
-
-  nonMaxSuppression(
-      boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
-      iouThreshold: number, scoreThreshold: number): Tensor1D {
-    warn(
-        'tf.nonMaxSuppression() in webgl locks the UI thread. ' +
-        'Call tf.nonMaxSuppressionAsync() instead');
-    const boxesVals = boxes.dataSync();
-    const scoresVals = scores.dataSync();
-    return nonMaxSuppressionV3(
-        boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   }
 
   cropAndResize(

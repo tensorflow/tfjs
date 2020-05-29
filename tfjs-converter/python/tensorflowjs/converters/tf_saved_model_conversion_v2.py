@@ -27,6 +27,7 @@ from tensorflow.core.framework import node_def_pb2
 from tensorflow.core.protobuf import config_pb2
 from tensorflow.core.protobuf import device_properties_pb2
 from tensorflow.core.protobuf import meta_graph_pb2
+from tensorflow.python.eager import context
 from tensorflow.python.framework import convert_to_constants
 from tensorflow.python.grappler import cluster as gcluster
 from tensorflow.python.grappler import tf_optimizer
@@ -43,9 +44,6 @@ from tensorflowjs.converters import fuse_prelu
 from tensorflowjs.converters import fuse_depthwise_conv2d
 from tensorflowjs.converters import graph_rewrite_util
 from tensorflowjs import resource_loader
-
-# enable eager execution for v2 APIs
-tf.compat.v1.enable_eager_execution()
 
 CLEARED_TENSOR_FIELDS = (
     'tensor_content', 'half_val', 'float_val', 'double_val', 'int_val',
@@ -198,6 +196,36 @@ def optimize_graph(graph, signature_def, output_graph,
   return optimize_graph
 
 
+def extract_const_nodes(nodes):
+  """Takes a list of nodes and extract the weights. Return weight manifest
+  object.
+
+  Args:
+    nodes: list of tf.NodeDef TensorFlow NodeDef proto object.
+  """
+  constants = [node for node in nodes if node.op == 'Const']
+  const_inputs = {}
+  # removed the conditional inputs for constants
+  for const in constants:
+    const_inputs[const.name] = const.input[:]
+    del const.input[:]
+
+  const_manifest = []
+
+  for const in constants:
+    const_manifest.append({
+        'name': const.name,
+        'data': graph_rewrite_util.values_from_const(const)
+    })
+    # Restore the conditional inputs
+    const.input[:] = const_inputs[const.name]
+
+    # Remove the binary array from tensor and save it to the external file.
+    for field_name in CLEARED_TENSOR_FIELDS:
+      const.attr["value"].tensor.ClearField(field_name)
+
+  return const_manifest
+
 def extract_weights(graph_def,
                     output_graph,
                     tf_version,
@@ -216,29 +244,16 @@ def extract_weights(graph_def,
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
   """
-  constants = [node for node in graph_def.node if node.op == 'Const']
-  const_inputs = {}
-  # removed the conditional inputs for constants
-  for const in constants:
-    const_inputs[const.name] = const.input[:]
-    del const.input[:]
+  global_manifest = extract_const_nodes(graph_def.node)
+
+  function_manifests = [x for func in graph_def.library.function
+                        for x in extract_const_nodes(func.node_def)]
 
   print('Writing weight file ' + output_graph + '...')
-  const_manifest = []
 
-  for const in constants:
-    const_manifest.append({
-        'name': const.name,
-        'data': graph_rewrite_util.values_from_const(const)
-    })
-    # Restore the conditional inputs
-    const.input[:] = const_inputs[const.name]
-
-    # Remove the binary array from tensor and save it to the external file.
-    for field_name in CLEARED_TENSOR_FIELDS:
-      const.attr["value"].tensor.ClearField(field_name)
-
-  write_artifacts(MessageToDict(graph_def), [const_manifest], output_graph,
+  write_artifacts(MessageToDict(graph_def),
+                  [global_manifest + function_manifests],
+                  output_graph,
                   tf_version, signature_def,
                   quantization_dtype=quantization_dtype,
                   weight_shard_size_bytes=weight_shard_size_bytes)
@@ -285,7 +300,7 @@ def write_artifacts(topology,
   assert isinstance(weights_manifest, list)
   model_json[common.ARTIFACT_WEIGHTS_MANIFEST_KEY] = weights_manifest
 
-  with open(output_graph, 'wt') as f:
+  with tf.io.gfile.GFile(output_graph, 'w') as f:
     json.dump(model_json, f)
 
 def _remove_unused_control_flow_inputs(input_graph_def):
@@ -297,6 +312,7 @@ def _remove_unused_control_flow_inputs(input_graph_def):
     new_node = node_def_pb2.NodeDef()
     new_node.CopyFrom(node)
     result_graph_def.node.extend([new_node])
+  result_graph_def.library.CopyFrom(input_graph_def.library)
   result_graph_def.versions.CopyFrom(input_graph_def.versions)
   return result_graph_def
 
@@ -322,9 +338,9 @@ def _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
 
       return frozen_graph
 
-def _freeze_saved_model_v2(concrete_func):
+def _freeze_saved_model_v2(concrete_func, control_flow_v2=False):
   return convert_to_constants.convert_variables_to_constants_v2(
-      concrete_func).graph
+      concrete_func, lower_control_flow=not control_flow_v2).graph
 
 
 def _build_signature_def(frozen_graph, input_nodes, output_nodes):
@@ -400,7 +416,8 @@ def convert_tf_saved_model(saved_model_dir,
                            quantization_dtype=None,
                            skip_op_check=False,
                            strip_debug_ops=False,
-                           weight_shard_size_bytes=1024 * 1024 * 4):
+                           weight_shard_size_bytes=1024 * 1024 * 4,
+                           control_flow_v2=False):
   """Freeze the SavedModel and check the model compatibility with Tensorflow.js.
 
   Optimize and convert the model to Tensorflow.js format, when the model passes
@@ -422,18 +439,22 @@ def convert_tf_saved_model(saved_model_dir,
     strip_debug_ops: Bool whether to strip debug ops.
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
+    control_flow_v2: Bool whether to enable control flow v2 ops.
   """
   if signature_def is None:
     signature_def = 'serving_default'
 
-  if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
+  if not tf.io.gfile.exists(output_dir):
+    tf.io.gfile.makedirs(output_dir)
   output_graph = os.path.join(
       output_dir, common.ARTIFACT_MODEL_JSON_FILE_NAME)
 
   if saved_model_tags:
     saved_model_tags = saved_model_tags.split(',')
-  model = load(saved_model_dir, saved_model_tags)
+  model = None
+  # Ensure any graphs created in eager mode are able to run.
+  with context.eager_mode():
+    model = load(saved_model_dir, saved_model_tags)
 
   _check_signature_in_model(model, signature_def)
 
@@ -446,7 +467,7 @@ def convert_tf_saved_model(saved_model_dir,
   # way. Try to freeze the graph using V2 utils. If that fails, freeze the
   # graph using V1 utils.
   try:
-    frozen_graph = _freeze_saved_model_v2(concrete_func)
+    frozen_graph = _freeze_saved_model_v2(concrete_func, control_flow_v2)
   except BaseException:
     frozen_graph = _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
                                           output_node_names)
@@ -577,7 +598,8 @@ def convert_tf_hub_module(module_handle, output_dir,
                           signature='default', saved_model_tags='serve',
                           quantization_dtype=None, skip_op_check=False,
                           strip_debug_ops=False,
-                          weight_shard_size_bytes=1024 * 1024 * 4):
+                          weight_shard_size_bytes=1024 * 1024 * 4,
+                          control_flow_v2=False):
   """Conversion for TF Hub modules V1 and V2.
 
   See convert_tf_hub_module and convert_tf_saved_model.
@@ -594,6 +616,7 @@ def convert_tf_hub_module(module_handle, output_dir,
     strip_debug_ops: Bool whether to strip debug ops.
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
+    control_flow_v2: Bool whether to enable control flow v2 ops.
   """
   module_path = hub.resolve(module_handle)
   # TODO(vbardiovskyg): We can remove this v1 code path once loading of all v1
@@ -615,4 +638,5 @@ def convert_tf_hub_module(module_handle, output_dir,
                            quantization_dtype=quantization_dtype,
                            skip_op_check=skip_op_check,
                            strip_debug_ops=strip_debug_ops,
-                           weight_shard_size_bytes=weight_shard_size_bytes)
+                           weight_shard_size_bytes=weight_shard_size_bytes,
+                           control_flow_v2=control_flow_v2)

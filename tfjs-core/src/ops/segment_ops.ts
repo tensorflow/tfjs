@@ -23,7 +23,7 @@ import {assert, isInt, parseAxisParam} from '../util';
 import {expandDims} from './array_ops';
 import {getUndoAxesPermutation} from './axis_util';
 import {maximum} from './binary_ops';
-import {greaterEqual} from './compare';
+import {greaterEqual} from './greater_equal';
 import {logicalAnd, where} from './logical_ops';
 import {op} from './operation';
 import {collectGatherOpShapeInfo} from './segment_util';

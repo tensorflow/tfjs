@@ -19,6 +19,21 @@ import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
+function generateCaseInputs(totalSizeTensor: number, totalSizeFilter: number) {
+  const inp = new Array(totalSizeTensor);
+  const filt = new Array(totalSizeFilter);
+
+  for (let i = 0; i < totalSizeTensor; i++) {
+    inp[i] = i * 0.001 - totalSizeTensor * 0.001 / 2;
+  }
+  for (let i = 0; i < totalSizeFilter; i++) {
+    const sign = i % 2 === 0 ? -1 : 1;
+    filt[i] = i * 0.001 * sign;
+  }
+
+  return {input: inp, filter: filt};
+}
+
 describeWithFlags('fused matmul', ALL_ENVS, () => {
   it('fused A x B', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
@@ -592,6 +607,289 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
 
     expectArraysClose(await result.data(), expected);
   });
+
+  it('relu with stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=1 p=same',
+     async () => {
+       const inputDepth = 16;
+       const xSize = 8;
+       const inputShape: [number, number, number, number] =
+           [1, xSize, xSize, inputDepth];
+       const outputDepth = 1;
+       const fSize = 3;
+       const pad = 'same';
+       const stride: [number, number] = [2, 2];
+
+       // TODO(annxingyuan): Make this test work with large inputs
+       // https://github.com/tensorflow/tfjs/issues/3143
+       const inputData = [];
+       for (let i = 0; i < xSize * xSize * inputDepth; i++) {
+         inputData.push(i % 5);
+       }
+
+       const wData = [];
+       for (let i = 0; i < fSize * fSize * inputDepth * outputDepth; i++) {
+         wData.push(i % 5);
+       }
+
+       const x = tf.tensor4d(inputData, inputShape);
+       const w = tf.tensor4d(wData, [fSize, fSize, inputDepth, outputDepth]);
+
+       const result = tf.fused.conv2d({
+         x,
+         filter: w,
+         strides: stride,
+         pad,
+         dataFormat: 'NHWC',
+         dilations: [1, 1],
+         activation: 'relu'
+       });
+       expect(result.shape).toEqual([1, 4, 4, 1]);
+       expectArraysClose(await result.data(), new Float32Array([
+                           854, 431, 568, 382, 580, 427, 854, 288, 431, 568,
+                           580, 289, 285, 570, 285, 258
+                         ]));
+     });
+
+  it('relu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=8 p=same',
+     async () => {
+       const inputDepth = 16;
+       const xSize = 8;
+       const inputShape: [number, number, number, number] =
+           [1, xSize, xSize, inputDepth];
+       const outputDepth = 8;
+       const fSize = 3;
+       const pad = 'same';
+       const stride: [number, number] = [2, 2];
+
+       const inputs = generateCaseInputs(
+           1 * xSize * xSize * inputDepth,
+           fSize * fSize * inputDepth * outputDepth);
+       const x = tf.tensor4d(inputs.input, inputShape);
+       const w =
+           tf.tensor4d(inputs.filter, [fSize, fSize, inputDepth, outputDepth]);
+       const bias = tf.tensor1d([1, 4, 2, 3, 9, 6, 5, 8]);
+       const result = tf.fused.conv2d({
+         x,
+         filter: w,
+         strides: stride,
+         pad,
+         dataFormat: 'NHWC',
+         dilations: [1, 1],
+         activation: 'relu',
+         bias
+       });
+       expect(result.shape).toEqual([1, 4, 4, 8]);
+       expectArraysClose(await result.data(), new Float32Array([
+                           25.75398063659668,
+                           0,
+                           26.857805252075195,
+                           0,
+                           33.961631774902344,
+                           0,
+                           30.065458297729492,
+                           0,
+                           23.118206024169922,
+                           0,
+                           24.212820053100586,
+                           0,
+                           31.307422637939453,
+                           0,
+                           27.402034759521484,
+                           0,
+                           20.482431411743164,
+                           0,
+                           21.567821502685547,
+                           0,
+                           28.653217315673828,
+                           0,
+                           24.73861312866211,
+                           0,
+                           11.078080177307129,
+                           0,
+                           12.130399703979492,
+                           0,
+                           19.182720184326172,
+                           0,
+                           15.235037803649902,
+                           0,
+                           4.6677775382995605,
+                           0.31717729568481445,
+                           5.697869777679443,
+                           0,
+                           12.727968215942383,
+                           2.2569849491119385,
+                           8.758066177368164,
+                           4.226885795593262,
+                           2.0319995880126953,
+                           2.9575586318969727,
+                           3.052880048751831,
+                           1.9366796016693115,
+                           10.073760032653809,
+                           4.915799617767334,
+                           6.094639778137207,
+                           6.89492130279541,
+                           0,
+                           5.5979437828063965,
+                           0.4078875780105591,
+                           4.586280822753906,
+                           7.419551849365234,
+                           7.5746169090271,
+                           3.43121600151062,
+                           9.562952041625977,
+                           0,
+                           6.404943943023682,
+                           0,
+                           5.401776313781738,
+                           6.5998077392578125,
+                           8.398608207702637,
+                           2.602976083755493,
+                           10.395440101623535,
+                           0,
+                           21.440250396728516,
+                           0,
+                           20.483882904052734,
+                           0,
+                           23.527509689331055,
+                           0,
+                           25.571144104003906,
+                           0,
+                           24.080629348754883,
+                           0,
+                           23.133480072021484,
+                           0,
+                           26.186328887939453,
+                           0,
+                           28.239177703857422,
+                           0,
+                           26.721012115478516,
+                           0,
+                           25.783079147338867,
+                           0,
+                           28.84514808654785,
+                           0,
+                           30.907209396362305,
+                           0,
+                           18.914127349853516,
+                           0,
+                           17.960111618041992,
+                           0,
+                           21.006093978881836,
+                           0,
+                           23.052082061767578,
+                           0,
+                           17.89089584350586,
+                           0,
+                           16.95684814453125,
+                           0,
+                           20.022798538208008,
+                           0,
+                           22.088754653930664,
+                           0,
+                           19.06132698059082,
+                           0,
+                           18.133424758911133,
+                           0,
+                           21.205520629882812,
+                           0,
+                           23.27761459350586,
+                           0,
+                           20.23175811767578,
+                           0,
+                           19.309999465942383,
+                           0,
+                           22.388240814208984,
+                           0,
+                           24.46647834777832,
+                           0,
+                           13.584352493286133,
+                           0,
+                           12.6395845413208,
+                           0,
+                           15.694815635681152,
+                           0,
+                           17.750045776367188
+                         ]));
+     });
+
+  it('prelu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=8 p=same',
+     async () => {
+       const inputDepth = 16;
+       const xSize = 8;
+       const inputShape: [number, number, number, number] =
+           [1, xSize, xSize, inputDepth];
+       const outputDepth = 8;
+       const fSize = 3;
+       const pad = 'same';
+       const stride: [number, number] = [2, 2];
+
+       const inputs = generateCaseInputs(
+           1 * xSize * xSize * inputDepth,
+           fSize * fSize * inputDepth * outputDepth);
+       const x = tf.tensor4d(inputs.input, inputShape);
+       const w =
+           tf.tensor4d(inputs.filter, [fSize, fSize, inputDepth, outputDepth]);
+       const bias = tf.tensor1d([1, 4, 2, 3, 9, 6, 5, 8]);
+       const preluActivationWeights = tf.tensor1d([1, 2, 3, 4, 5, 6, 7, 8]);
+
+       const result = tf.fused.conv2d({
+         x,
+         filter: w,
+         strides: stride,
+         pad,
+         dataFormat: 'NHWC',
+         dilations: [1, 1],
+         activation: 'prelu',
+         preluActivationWeights,
+         bias
+       });
+       expect(result.shape).toEqual([1, 4, 4, 8]);
+       expectArraysClose(
+           await result.data(), new Float32Array([
+             25.75398063659668,   -41.61178970336914,  26.857805252075195,
+             -87.63885498046875,  33.961631774902344,  -114.0812759399414,
+             30.065458297729492,  -136.93893432617188, 23.118206024169922,
+             -36.33102035522461,  24.212820053100586,  -77.04048156738281,
+             31.307422637939453,  -98.12835693359375,  27.402034759521484,
+             -115.5947265625,     20.482431411743164,  -31.050262451171875,
+             21.567821502685547,  -66.44209289550781,  28.653217315673828,
+             -82.17544555664062,  24.73861312866211,   -94.25041198730469,
+             11.078080177307129,  -12.208478927612305, 12.130399703979492,
+             -28.626232147216797, 19.182720184326172,  -25.253299713134766,
+             15.235037803649902,  -18.08960723876953,  4.6677775382995605,
+             0.31717729568481445, 5.697869777679443,   -2.8516759872436523,
+             12.727968215942383,  2.2569849491119385,  8.758066177368164,
+             4.226885795593262,   2.0319995880126953,  2.9575586318969727,
+             3.052880048751831,   1.9366796016693115,  10.073760032653809,
+             4.915799617767334,   6.094639778137207,   6.89492130279541,
+             -0.6037763357162476, 5.5979437828063965,  0.4078875780105591,
+             4.586280822753906,   7.419551849365234,   7.5746169090271,
+             3.43121600151062,    9.562952041625977,   -1.4065279960632324,
+             6.404943943023682,   -1.2100803852081299, 5.401776313781738,
+             6.5998077392578125,  8.398608207702637,   2.602976083755493,
+             10.395440101623535,  -16.418434143066406, 21.440250396728516,
+             -46.38618850708008,  20.483882904052734,  -42.52848815917969,
+             23.527509689331055,  -87.84530639648438,  25.571144104003906,
+             -19.054208755493164, 24.080629348754883,  -54.32115936279297,
+             23.133480072021484,  -55.79951477050781,  26.186328887939453,
+             -106.48924255371094, 28.239177703857422,  -21.689987182617188,
+             26.721012115478516,  -62.25614929199219,  25.783079147338867,
+             -69.070556640625,    28.84514808654785,   -125.13325500488281,
+             30.907209396362305,  -13.891133308410645, 18.914127349853516,
+             -38.81135940551758,  17.960111618041992,  -29.915504455566406,
+             21.006093978881836,  -70.20361328125,     23.052082061767578,
+             -12.857919692993164, 17.89089584350586,   -35.771610260009766,
+             16.95684814453125,   -24.949115753173828, 20.022798538208008,
+             -63.39042282104492,  22.088754653930664,  -14.02528190612793,
+             19.06132698059082,   -39.2921257019043,   18.133424758911133,
+             -30.847349166870117, 21.205520629882812,  -71.69097137451172,
+             23.27761459350586,   -15.192638397216797, 20.23175811767578,
+             -42.8126335144043,   19.309999465942383,  -36.74560546875,
+             22.388240814208984,  -79.99152374267578,  24.46647834777832,
+             -8.556736946105957,  13.584352493286133,  -22.835901260375977,
+             12.6395845413208,    -3.336000442504883,  15.694815635681152,
+             -33.0570182800293,   17.750045776367188
+           ]));
+     });
 
   it('basic with bias', async () => {
     const inputDepth = 2;

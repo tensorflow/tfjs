@@ -47,21 +47,6 @@ steps:
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 
-# Run python tests
-- name: 'node:10'
-  dir: 'tfjs-layers'
-  entrypoint: 'yarn'
-  id: 'tfjs2keras-js'
-  args: ['tfjs2keras-js']
-  waitFor: ['test-browser']
-
-- name: 'python:2'
-  dir: 'tfjs-layers'
-  entrypoint: 'bash'
-  id: 'tfjs2keras-py'
-  args: ['-c', './scripts/tfjs2keras-py.sh --stable && ./scripts/tfjs2keras-py.sh --stable --tfkeras']
-  waitFor: ['tfjs2keras-js']
-
 - name: 'node:10'
   dir: 'tfjs-layers'
   entrypoint: 'yarn'

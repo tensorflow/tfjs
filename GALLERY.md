@@ -6,6 +6,7 @@ Please reach out to us if you'd like to put your project on the list.
 
 ## Demos & Applications
 
+- [Touch The Dot](http://touch-the-dot.herokuapp.com/) - A game created using PoseNet which the player must hit the colored dots with the correct hand and gain as many points as possible (A webcam is a must). [library](https://github.com/OmriGM/body-pose-beat-game) by [Omri Grossman](http://github.com/OmriGM)
 - [Object Tracking JS](https://cp4ms.csb.app/) - Track any object as it moves through a video with no training required. [library](https://github.com/cloud-annotations/object-tracking-js) by [Nick Bourdakos](http://github.com/bourdakos1)
 - [NSFW JS](https://nsfwjs.com/) - Client-side indecent content checker. [library](https://github.com/infinitered/nsfwjs) and [blogpost](https://shift.infinite.red/avoid-nightmares-nsfw-js-ab7b176978b1) by [Gant Laborde](http://gantlaborde.com/)
 - [Honkling](https://castorini.github.io/honkling/) - An in-browser keyword spotting system by Jaejun Lee, Raphael Tang, Jimmy Lin

@@ -108,9 +108,9 @@ function basicLSTMCell_(
   const f = res.slice([0, sliceCols * 2], sliceSize);
   const o = res.slice([0, sliceCols * 3], sliceSize);
 
-  const newC = i.sigmoid().mulStrict(j.tanh()).addStrict(
-      $c.mulStrict($forgetBias.add(f).sigmoid() as Tensor2D));
-  const newH = newC.tanh().mulStrict(o.sigmoid());
+  const newC: Tensor2D = i.sigmoid().mul(j.tanh()).add(
+      $c.mul($forgetBias.add(f).sigmoid() as Tensor2D));
+  const newH: Tensor2D = newC.tanh().mul(o.sigmoid());
   return [newC, newH];
 }
 

@@ -30,6 +30,7 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride, dilation;';
   workGroupSize: [number, number, number] = [4, 8, 4];
+  needsShapesUniforms = true;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
@@ -51,7 +52,7 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
                 }`;
       } else {
         activationSnippet = `
-                  float activation(float x) {
+                  float activation(float a) {
                     ${activation}
                   }
                 `;
