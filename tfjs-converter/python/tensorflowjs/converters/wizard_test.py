@@ -187,9 +187,11 @@ class CliTest(unittest.TestCase):
                'weight_shard_size_bytes': '4194304',
                'skip_op_check': False,
                'strip_debug_ops': True,
+               'control_flow_v2': True,
                'output_path': 'tmp/web_model'}
 
-    self.assertEqual(['--input_format=tf_saved_model',
+    self.assertEqual(['--control_flow_v2=True',
+                      '--input_format=tf_saved_model',
                       '--quantization_bytes=2', '--saved_model_tags=test',
                       '--signature_name=test_default', '--strip_debug_ops=True',
                       '--weight_shard_size_bytes=4194304',
@@ -206,9 +208,11 @@ class CliTest(unittest.TestCase):
                'quantization_bytes': 1,
                'skip_op_check': True,
                'strip_debug_ops': False,
+               'control_flow_v2': False,
                'output_path': 'tmp/web_model'}
 
-    self.assertEqual(['--input_format=tf_keras_saved_model',
+    self.assertEqual(['--control_flow_v2=False',
+                      '--input_format=tf_keras_saved_model',
                       '--output_format=tfjs_layers_model',
                       '--quantization_bytes=1', '--saved_model_tags=test',
                       '--signature_name=test_default', '--skip_op_check',
