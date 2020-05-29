@@ -23,16 +23,15 @@ cd emsdk
 export HOME='/root'
 
 # Install emsdk with up to 1 retry.
-# for i in $(seq 0 1)
-# do
-#   # Wait for 15 seconds then retry.
-#   [ $i -gt 0 ] && echo "Retry in 15 seconds, count: $i" && sleep 15
-#   # If install is successful, $? will hold 0 and execution will break from the
-#   # loop.
-#   ./emsdk install 1.39.13 && break
-# done
+for i in $(seq 0 1)
+do
+  # Wait for 15 seconds then retry.
+  [ $i -gt 0 ] && echo "Retry in 15 seconds, count: $i" && sleep 15
+  # If install is successful, $? will hold 0 and execution will break from the
+  # loop.
+  ./emsdk install 1.39.13 && break
+done
 
-./emsdk install 1.39.13
 ./emsdk activate 1.39.13
 source ./emsdk_env.sh
 cd ..
