@@ -137,11 +137,35 @@
                 this.set(flagName, flagValue);
             }
         };
+        Environment.prototype.getAsync = function (flagName) {
+            return __awaiter(this, void 0, void 0, function () {
+                var _a, _b;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0:
+                            if (flagName in this.flags) {
+                                return [2 /*return*/, this.flags[flagName]];
+                            }
+                            _a = this.flags;
+                            _b = flagName;
+                            return [4 /*yield*/, this.evaluateFlag(flagName)];
+                        case 1:
+                            _a[_b] = _c.sent();
+                            return [2 /*return*/, this.flags[flagName]];
+                    }
+                });
+            });
+        };
         Environment.prototype.get = function (flagName) {
             if (flagName in this.flags) {
                 return this.flags[flagName];
             }
-            this.flags[flagName] = this.evaluateFlag(flagName);
+            var flagValue = this.evaluateFlag(flagName);
+            if (flagValue instanceof Promise) {
+                throw new Error("Flag " + flagName + " cannot be synchronously evaluated. " +
+                    "Please use getAsync() instead.");
+            }
+            this.flags[flagName] = flagValue;
             return this.flags[flagName];
         };
         Environment.prototype.getNumber = function (flagName) {
@@ -16603,12 +16627,15 @@
         }
         var forward = function (backend, save) {
             var convInfo = computePool2DInfo(x4D.shape, filterSize, strides, 1 /* dilations */, pad, dimRoundingMode);
-            var y = backend.maxPool(x4D, convInfo);
-            save([x4D, y]);
+            var y;
             if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
                 arraysEqual(convInfo.inShape, convInfo.outShape)) {
-                return x4D.clone();
+                y = x4D.clone();
             }
+            else {
+                y = backend.maxPool(x4D, convInfo);
+            }
+            save([x4D, y]);
             return y;
         };
         var inputs = { x: x4D };
