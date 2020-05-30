@@ -62,3 +62,5 @@ if [[ "${DEV_VERSION}" == "stable" ]]; then
 else
   pip3 install -r requirements-dev.txt
 fi
+
+pip3 install -e ../../tfjs-converter/python

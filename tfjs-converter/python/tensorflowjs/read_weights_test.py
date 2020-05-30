@@ -45,8 +45,7 @@ class ReadWeightsTest(tf.test.TestCase):
         [{
             'name': 'weight1',
             'data': np.array([1, 2, 3], 'float32')
-        },
-        {
+        }, {
             'name': 'weight2',
             'data': np.array([1 + 1j, 2 + 2j, 3 + 3j])
         }]

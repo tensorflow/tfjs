@@ -32,6 +32,7 @@
 #   --test-nightly: Test the pip packages by installing it (inside virtualenv)
 #           and running test_pip_package.py and test_pip_nightly_package.py
 #           against the install.
+#   --build: Create the pip packages.
 #   --upload:         Upload the py2 and py3 wheels to prod PyPI.
 #   --upload-to-test: Upload the py2 and py3 wheels to test PyPI, mutually
 #                     exclusive with --upload.
@@ -62,7 +63,7 @@ set -e
 function print_usage() {
   echo "Usage:"
   echo "  build-pip-packages.sh \\"
-  echo "      [--test] [--test-nightly] [--upload] [--upload-to-test] [--confirm-upload] <OUTPUT_DIR>"
+  echo "      [--test] [--test-nightly] [--build] [--upload] [--upload-to-test] [--confirm-upload] <OUTPUT_DIR>"
   echo
 }
 
@@ -78,6 +79,7 @@ RUN_TEST_NIGHTLY=0
 UPLOAD_TO_PROD_PYPI=0
 UPLOAD_TO_TEST_PYPI=0
 CONFIRM_UPLOAD=0
+BUILD=0
 DEST_DIR=""
 while true; do
   if [[ "$1" == "--test" ]]; then
@@ -90,6 +92,8 @@ while true; do
     UPLOAD_TO_TEST_PYPI=1
   elif [[ "$1" == "--confirm-upload" ]]; then
     CONFIRM_UPLOAD=1
+  elif [[ "$1" == "--build" ]]; then
+    BUILD=1
   elif [[ "$1" != --* ]]; then
     DEST_DIR="$1"
   else

@@ -60,12 +60,13 @@ describe(`${REGRESSION} convert_predict`, () => {
 
       BACKENDS.forEach(backend => {
         it(`with ${backend}.`, async () => {
+          await tfc.setBackend(backend);
+
+          console.log(model);
           const $model = await tfconverter.loadGraphModel(
               `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
 
           const xs = createInputTensors(inputsData, inputsShapes);
-
-          await tfc.setBackend(backend);
 
           const result = await $model.executeAsync(xs);
 
