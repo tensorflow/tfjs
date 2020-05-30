@@ -7,11 +7,5 @@
 # https://opensource.org/licenses/MIT.
 # =============================================================================
 
-set -e
-
-TEST_DATA="integration_tests/create_save_predict_data/"
-
-rm -rf "$TEST_DATA"
-mkdir "$TEST_DATA"
-
-node integration_tests/tfjs_save.js "$TEST_DATA"
+# Clean up virtualenv directory.
+rm -rf "${VENV_DIR}"
