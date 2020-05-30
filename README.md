@@ -60,6 +60,8 @@ If you care about bundle size, you can import those packages individually.
 
 If you are looking for Node.js support, check out the [TensorFlow.js Node directory](/tfjs-node).
 
+> [Performance benchmark](https://tensorflow.github.io/tfjs/e2e/benchmarks/) is incoming.
+
 ## Examples
 
 Check out our
