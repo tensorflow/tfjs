@@ -33,6 +33,8 @@ export interface WebGPUProgram {
   dispatch: [number, number, number];
   variableNames: string[];
   uniforms?: string;
+  // Indicate whether shapes data are needed.
+  needsShapesUniforms: boolean;
   // Size of register cache in one dimension (assumes square cache).
   // Each thread writes to workPerThread * workPerThread locations in the output
   // buffer.
@@ -65,7 +67,7 @@ export const makeBindGroup =
       }
       return device.createBindGroup({
         layout: bindGroupLayout,
-        bindings: bindings.map((b, i) => ({binding: i, resource: b.resource})),
+        entries: bindings.map((b, i) => ({binding: i, resource: b.resource})),
       });
     };
 
@@ -92,7 +94,7 @@ const makeBindGroupLayout =
         });
       }
       return device.createBindGroupLayout({
-        bindings: bindings.map((b, i) => ({binding: i, ...b})),
+        entries: bindings.map((b, i) => ({binding: i, ...b})),
       });
     };
 

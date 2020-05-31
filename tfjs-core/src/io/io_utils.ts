@@ -289,6 +289,10 @@ export function base64StringToArrayBuffer(str: string): ArrayBuffer {
  * @returns Result of concatenating `buffers` in order.
  */
 export function concatenateArrayBuffers(buffers: ArrayBuffer[]): ArrayBuffer {
+  if (buffers.length === 1) {
+    return buffers[0];
+  }
+
   let totalByteLength = 0;
   buffers.forEach((buffer: ArrayBuffer) => {
     totalByteLength += buffer.byteLength;

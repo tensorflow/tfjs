@@ -26,6 +26,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['Image', 'Boxes', 'BoxInd'];
   workGroupSize: [number, number, number] = [4, 4, 4];
+  needsShapesUniforms = true;
 
   constructor(
       imageShape: [number, number, number, number], boxShape: [number, number],

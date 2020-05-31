@@ -105,7 +105,8 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
     quantization_dtype=None,
     skip_op_check=False,
     strip_debug_ops=False,
-    weight_shard_size_bytes=1024 * 1024 * 4):
+    weight_shard_size_bytes=1024 * 1024 * 4,
+    control_flow_v2=False):
   """
   Convert a keras HDF5-format model to tfjs GraphModel artifacts.
 
@@ -142,7 +143,8 @@ def dispatch_keras_h5_to_tfjs_graph_model_conversion(
       quantization_dtype=quantization_dtype,
       skip_op_check=skip_op_check,
       strip_debug_ops=strip_debug_ops,
-      weight_shard_size_bytes=weight_shard_size_bytes)
+      weight_shard_size_bytes=weight_shard_size_bytes,
+      control_flow_v2=control_flow_v2)
 
   # Clean up the temporary SavedModel directory.
   shutil.rmtree(temp_savedmodel_dir)
@@ -526,6 +528,11 @@ def get_arg_parser():
       help='The names of the output nodes, separated by commas. E.g., '
       '"logits,activations". Applicable only if input format is '
       '"tf_frozen_model".')
+  parser.add_argument(
+      '--%s' % common.CONTROL_FLOW_V2,
+      type=str,
+      help='Enable control flow v2 ops, this would improve inference '
+      'performance on models with branches or loops.')
   return parser
 
 def convert(arguments):
@@ -582,6 +589,12 @@ def convert(arguments):
         '"tf_hub" input format, but the current input format is '
         '"%s".' % input_format)
 
+  if (args.control_flow_v2 and output_format != common.TFJS_GRAPH_MODEL):
+    raise ValueError(
+        'The --control_flow_v2 flag is applicable only to "tfjs_graph_model" '
+        'as output format, but the current  output format '
+        'is "%s"' % input_format, output_format)
+
   # TODO(cais, piyu): More conversion logics can be added as additional
   #   branches below.
   if (input_format == common.KERAS_MODEL and
@@ -598,7 +611,8 @@ def convert(arguments):
         quantization_dtype=quantization_dtype,
         skip_op_check=args.skip_op_check,
         strip_debug_ops=args.strip_debug_ops,
-        weight_shard_size_bytes=weight_shard_size_bytes)
+        weight_shard_size_bytes=weight_shard_size_bytes,
+        control_flow_v2=args.control_flow_v2)
   elif (input_format == common.KERAS_SAVED_MODEL and
         output_format == common.TFJS_LAYERS_MODEL):
     dispatch_keras_saved_model_to_tensorflowjs_conversion(
@@ -615,7 +629,8 @@ def convert(arguments):
         quantization_dtype=quantization_dtype,
         skip_op_check=args.skip_op_check,
         strip_debug_ops=args.strip_debug_ops,
-        weight_shard_size_bytes=weight_shard_size_bytes)
+        weight_shard_size_bytes=weight_shard_size_bytes,
+        control_flow_v2=args.control_flow_v2)
   elif (input_format == common.TF_HUB_MODEL and
         output_format == common.TFJS_GRAPH_MODEL):
     tf_saved_model_conversion_v2.convert_tf_hub_module(
@@ -625,7 +640,8 @@ def convert(arguments):
         quantization_dtype=quantization_dtype,
         skip_op_check=args.skip_op_check,
         strip_debug_ops=args.strip_debug_ops,
-        weight_shard_size_bytes=weight_shard_size_bytes)
+        weight_shard_size_bytes=weight_shard_size_bytes,
+        control_flow_v2=args.control_flow_v2)
   elif (input_format == common.TFJS_LAYERS_MODEL and
         output_format == common.KERAS_MODEL):
     dispatch_tensorflowjs_to_keras_h5_conversion(args.input_path,
