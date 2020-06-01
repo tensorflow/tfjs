@@ -523,6 +523,16 @@ def run(dryrun):
           'when': lambda answers: value_in_list(answers, common.INPUT_FORMAT,
                                                 (common.TF_SAVED_MODEL,
                                                  common.TF_HUB_MODEL))
+      },
+      {
+          'type': 'confirm',
+          'name': common.CONTROL_FLOW_V2,
+          'message': 'Do you want to enable Control Flow V2 ops? \n'
+                     'This will improve branch and loop execution performance.',
+          'default': True,
+          'when': lambda answers: value_in_list(answers, common.INPUT_FORMAT,
+                                                (common.TF_SAVED_MODEL,
+                                                 common.TF_HUB_MODEL))
       }
   ]
   params = PyInquirer.prompt(questions, format_params, style=prompt_style)
