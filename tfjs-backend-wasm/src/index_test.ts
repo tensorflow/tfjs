@@ -114,7 +114,7 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
        const usePlatformFetch = true;
        setWasmPath('invalid/path', usePlatformFetch);
        let wasmPath: string;
-       spyOn(util, 'fetch').and.callFake((path: string) => {
+       spyOn(tf.env().platform, 'fetch').and.callFake((path: string) => {
          wasmPath = path;
 
          return new Promise((resolve, reject) => {
