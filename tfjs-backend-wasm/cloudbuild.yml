@@ -55,6 +55,8 @@ steps:
   args: ['test-cc']
   waitFor: ['build']
 
+# TODO(https://github.com/tensorflow/tfjs/pull/3343): reenable
+# once https://github.com/tensorflow/tfjs/pull/3342 is merged.
 # Check bundle size.
 # - name: 'node:10'
 #   dir: 'tfjs-backend-wasm'

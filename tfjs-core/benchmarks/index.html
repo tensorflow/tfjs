@@ -92,7 +92,7 @@ limitations under the License.
         const predictionData = await getPredictionData(prediction);
 
         await showMsg(null);
-        const match = arraysClose(referenceData, predictionData);
+        const match = tf.test_util.expectArraysClose(referenceData, predictionData);
         appendRow(timeTable, `Prediction matches CPU: `, match);
       },
       backend: 'wasm',
@@ -184,10 +184,10 @@ limitations under the License.
     }
 
     async function loadModelAndRecordTime() {
-      const start = performance.now();
       const benchmark = benchmarks[state.benchmark];
       await showMsg('Loading the model');
 
+      const start = performance.now();
       if (benchmark.model == null) {
         model = await benchmark.load();
         benchmark.model = model;

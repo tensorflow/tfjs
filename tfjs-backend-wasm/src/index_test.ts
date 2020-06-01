@@ -110,19 +110,20 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
      });
 
   // Disabling this test because it intermittently times out on CI.
-  // it('backend init fails when the path is invalid and use platform fetch',
-  //    async () => {
-  //      const usePlatformFetch = true;
-  //      setWasmPath('invalid/path', usePlatformFetch);
-  //      let wasmPath: string;
-  //      const realFetch = util.fetch;
-  //      spyOn(util, 'fetch').and.callFake((path: string) => {
-  //        wasmPath = path;
-  //        return realFetch(path);
-  //      });
-  //      expect(await tf.setBackend('wasm-test')).toBe(false);
-  //      expect(wasmPath).toBe('invalid/path');
-  //    });
+  // tslint:disable-next-line: ban
+  xit('backend init fails when the path is invalid and use platform fetch',
+      async () => {
+        const usePlatformFetch = true;
+        setWasmPath('invalid/path', usePlatformFetch);
+        let wasmPath: string;
+        const realFetch = util.fetch;
+        spyOn(util, 'fetch').and.callFake((path: string) => {
+          wasmPath = path;
+          return realFetch(path);
+        });
+        expect(await tf.setBackend('wasm-test')).toBe(false);
+        expect(wasmPath).toBe('invalid/path');
+      });
 
   it('backend init succeeds with default path', async () => {
     expect(await tf.setBackend('wasm-test')).toBe(true);
