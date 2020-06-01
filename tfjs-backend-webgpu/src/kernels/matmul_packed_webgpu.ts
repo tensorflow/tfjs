@@ -146,7 +146,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
     // So there may be some idle hardware threads.
     // In this case, we prefer to reduce the work per thread and improve the
     // thread utilization
-    if (this.dispatch === [1, 1, 1]) {
+    if (util.arraysEqual(this.dispatch, [1, 1, 1])) {
       workPerThread = 1;
       this.dispatch = computeDispatch(
           this.dispatchLayout, this.outputShape, this.workGroupSize,

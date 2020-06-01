@@ -27,9 +27,14 @@ export const TAGS = [SMOKE, REGRESSION];
 export const BACKENDS = ['cpu', 'webgl'];
 
 /** Testing models for CUJ: create -> save -> predict. */
-export const MODELS = [
+export const LAYERS_MODELS = [
   'mlp', 'cnn', 'depthwise_cnn', 'simple_rnn', 'gru', 'bidirectional_lstm',
   'time_distributed_lstm', 'one_dimensional', 'functional_merge'
+];
+
+export const GRAPH_MODELS = [
+  'saved_model_v1', 'saved_model_v2', 'saved_model_v2_with_control_flow',
+  'saved_model_with_conv2d', 'saved_model_with_prelu'
 ];
 
 /** Karma server directory serving local files. */
