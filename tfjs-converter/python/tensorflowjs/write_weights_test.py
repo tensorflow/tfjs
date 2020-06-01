@@ -278,6 +278,37 @@ class TestWriteWeights(tf.test.TestCase):
     string = weight_bytes[4:14].decode('utf-8')
     self.assertEqual(string, u'helloworld')
 
+  def test_1_group_1_weight_complex(self):
+    groups = [
+        [{
+            'name': 'weight1',
+            'data': np.array([1 + 1j, 2 + 2j, 3 + 3j], 'complex')
+        }]
+    ]
+
+    manifest = write_weights.write_weights(
+        groups, TMP_DIR, shard_size_bytes=6 * 4)
+
+    self.assertTrue(
+        os.path.isfile(os.path.join(TMP_DIR, 'weights_manifest.json')),
+        'weights_manifest.json does not exist')
+
+    self.assertEqual(
+        manifest,
+        [{
+            'paths': ['group1-shard1of1.bin'],
+            'weights': [{
+                'name': 'weight1',
+                'shape': [3],
+                'dtype': 'complex64'
+            }]
+        }])
+
+    weights_path = os.path.join(TMP_DIR, 'group1-shard1of1.bin')
+    weight1 = np.fromfile(weights_path, 'complex64')
+    np.testing.assert_array_equal(
+        weight1, np.array([1 + 1j, 2 + 2j, 3 + 3j], 'complex64'))
+
   def test_1_group_3_weights_packed_multi_dtype(self):
     # Each string tensor uses different encoding.
     groups = [
@@ -648,17 +679,6 @@ class TestWriteWeights(tf.test.TestCase):
         [{
             'name': 'weight1',
             'nodata': np.array([1, 2, 3], 'float32')
-        }]
-    ]
-
-    with self.assertRaises(Exception):
-      write_weights.write_weights(groups, TMP_DIR)
-
-  def test_bad_numpy_array_dtype_throws(self):
-    groups = [
-        [{
-            'name': 'weight1',
-            'data': np.array([1, 2, 3], 'complex')
         }]
     ]
 

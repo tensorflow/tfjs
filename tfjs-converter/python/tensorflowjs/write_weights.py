@@ -24,10 +24,12 @@ import tensorflow as tf
 from tensorflowjs import quantization
 from tensorflowjs import read_weights
 
-_OUTPUT_DTYPES = [np.float32, np.int32, np.uint8, np.uint16, np.bool, np.object]
+_OUTPUT_DTYPES = [np.float32, np.int32, np.complex64,
+                  np.uint8, np.uint16, np.bool, np.object]
 _AUTO_DTYPE_CONVERSION = {
     np.dtype(np.float64): np.float32,
-    np.dtype(np.int64): np.int32}
+    np.dtype(np.int64): np.int32,
+    np.dtype(np.complex128): np.complex64}
 
 def write_weights(
     weight_groups, write_dir, shard_size_bytes=1024 * 1024 * 4,
