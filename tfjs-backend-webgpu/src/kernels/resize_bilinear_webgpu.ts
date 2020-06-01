@@ -27,6 +27,7 @@ export class ResizeBilinearProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x'];
   workGroupSize: [number, number, number] = [4, 4, 4];
+  needsShapesUniforms = true;
 
   constructor(
       inputShape: [number, number, number, number], newHeight: number,

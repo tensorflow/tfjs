@@ -3,6 +3,12 @@
 TensorFlow.js is an open-source hardware-accelerated JavaScript library for
 training and deploying machine learning models.
 
+> :warning: We recently released **TensorFlow.js 2.0**. If you have been using TensorFlow.js
+> via a script tag without specifying a version and see an error saying no backends
+> are found, then you should read our [release notes](https://github.com/tensorflow/tfjs/releases/tag/tfjs-v2.0.0)
+> for instructions on how to upgrade.
+
+
 **Develop ML in the Browser** <br/>
 Use flexible and intuitive APIs to build models from scratch using the low-level
 JavaScript linear algebra library or the high-level layers API.
@@ -43,9 +49,11 @@ APIs:
 
 
 Backends/Platforms:
-- [TensorFlow.js Node](/tfjs-node), Node backend via TensorFlow C++
-- [TensorFlow.js WASM](/tfjs-backend-wasm), WebAssembly backend
-- [TensorFlow.js React Native](/tfjs-react-native), Support for React Native.
+- [TensorFlow.js CPU Backend](/tfjs-backend-cpu), Node backend via TensorFlow C++.
+- [TensorFlow.js WebGL Bakend](/tfjs-backend-webgl), Node backend via TensorFlow C++.
+- [TensorFlow.js Node](/tfjs-node), Node backend via TensorFlow C++.
+- [TensorFlow.js WASM](/tfjs-backend-wasm), WebAssembly backend.
+- [TensorFlow.js React Native](/tfjs-react-native), React Native backend/platform adapter.
 - [TensorFlow.js WebGPU](/tfjs-backend-webgpu), WebGPU backend.
 
 If you care about bundle size, you can import those packages individually.

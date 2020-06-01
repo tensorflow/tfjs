@@ -29,6 +29,7 @@ export class StridedSliceProgram implements WebGPUProgram {
   // TODO(xing.xu): Increase the workPerThread.
   workPerThread = 1;
   workGroupSize: [number, number, number] = [16, 1, 1];
+  needsShapesUniforms = true;
 
   constructor(begin: number[], strides: number[], destSize: number[]) {
     this.outputShape = destSize;

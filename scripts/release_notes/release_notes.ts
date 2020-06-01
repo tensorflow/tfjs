@@ -32,18 +32,10 @@
  * https://github.com/settings/tokens
  *
  * Usage:
- *   # Release notes for all commits after tfjs union version 0.9.0.
- *   yarn release-notes --startVersion 0.9.0 --out ./draft_notes.md
- *
- *   # Release notes for all commits after version 0.9.0 up to and including
- *   # version 0.10.0.
- *   yarn release-notes --startVersion 0.9.0 --endVersion 0.10.3 \
- *       --out ./draft_notes.md
+ *   yarn release-notes
  */
 
-import * as commander from 'commander';
 import * as mkdirp from 'mkdirp';
-import * as readline from 'readline';
 import * as fs from 'fs';
 import * as util from './util';
 import {$, Commit, Repo, RepoCommits} from './util';
@@ -137,29 +129,10 @@ async function main() {
   WASM_REPO.startCommit = $(`git rev-list -n 1 ${
       getTagName(WASM_REPO.identifier, WASM_REPO.startVersion)}`);
 
-  // Get all the commits of the union package between the versions.
-  const unionCommits =
-      $(`git log --pretty=format:"%H" ` +
-        `${getTagName('tfjs', startVersion)}..` +
-        `${getTagName('tfjs', endVersion)}`);
-
-  const commitLines = unionCommits.trim().split('\n');
-
-  // Read the union package.json from the earliest commit so we can find the
-  // dependencies.
-  const earliestCommit = commitLines[commitLines.length - 1];
-  const earliestUnionPackageJson =
-      JSON.parse($(`git show ${earliestCommit}:tfjs/package.json`));
-  const latestCommit = commitLines[0];
-  const latestUnionPackageJson =
-      JSON.parse($(`git show ${latestCommit}:tfjs/package.json`));
-
   // Populate start and end for each of the union dependencies.
   UNION_DEPENDENCIES.forEach(repo => {
     // Find the version of the dependency from the package.json from the
     // earliest union tag.
-    const npm = '@tensorflow/' + repo.identifier;
-
     repo.startCommit =
         $(startVersion != null ?
               `git rev-list -n 1 ` + getTagName(repo.identifier, startVersion) :

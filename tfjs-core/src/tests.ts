@@ -65,6 +65,7 @@ import './ops/conv2d_transpose_test';
 import './ops/conv3d_test';
 import './ops/conv3d_transpose_test';
 import './ops/conv_util_test';
+import './ops/cumsum_test';
 import './ops/depth_to_space_test';
 import './ops/diag_test';
 import './ops/dropout_test';
