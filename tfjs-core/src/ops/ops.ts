@@ -66,6 +66,7 @@ export {pad2d} from './pad2d';
 export {pad3d} from './pad3d';
 export {pad4d} from './pad4d';
 export {pool} from './pool';
+export {pow} from './pow';
 export {rand} from './rand';
 export {randomGamma} from './random_gamma';
 export {randomNormal} from './random_normal';

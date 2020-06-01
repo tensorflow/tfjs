@@ -327,6 +327,9 @@ export interface PadV2Attrs {
 export const Pool = 'Pool';
 export type PoolInputs = Pick<NamedTensorInfoMap, 'input'>;
 
+export const Pow = 'Pow';
+export type PowInputs = Pick<NamedTensorInfoMap, 'base'|'exp'>;
+
 export const SpaceToBatchND = 'SpaceToBatchND';
 export type SpaceToBatchNDInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface SpaceToBatchNDAttrs {

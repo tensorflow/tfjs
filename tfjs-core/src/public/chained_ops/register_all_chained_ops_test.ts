@@ -53,6 +53,7 @@ const CHAINED_OPS = [
   'oneHot',
   'pad',
   'pool',
+  'pow',
   'separableConv2d',
   'spaceToBatchND',
   'split',

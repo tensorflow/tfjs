@@ -202,7 +202,6 @@ export interface OpHandler {
   addStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   atan2<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   subStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  pow<T extends Tensor>(base: T, exp: Tensor|TensorLike): T;
   powStrict<T extends Tensor>(base: T, exp: Tensor|TensorLike): T;
   mul<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   mulStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
@@ -776,10 +775,6 @@ export class Tensor<R extends Rank = Rank> {
   subStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.subStrict(this, x);
-  }
-  pow<T extends Tensor>(this: T, exp: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.pow(this, exp);
   }
   /**
    * @deprecated strict variants of ops have been deprecated
