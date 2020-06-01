@@ -134,9 +134,12 @@ async function main() {
     $('yarn');
 
     console.log(chalk.magenta('~~~ Build npm ~~~'));
+
     if (pkg === 'tfjs-backend-wasm') {
       // tfjs-backend-wasm needs emsdk env variables to build.
       $('source ../emsdk/emsdk_env.sh && yarn build-npm for-publish');
+    } else if (pkg === 'tfjs-react-native') {
+      $('yarn build-npm');
     } else {
       $('yarn build-npm for-publish');
     }
