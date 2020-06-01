@@ -60,8 +60,6 @@ If you care about bundle size, you can import those packages individually.
 
 If you are looking for Node.js support, check out the [TensorFlow.js Node directory](/tfjs-node).
 
-> [Performance benchmark](https://tensorflow.github.io/tfjs/e2e/benchmarks/) is incoming.
-
 ## Examples
 
 Check out our
@@ -76,6 +74,10 @@ Be sure to check out [the gallery](GALLERY.md) of all projects related to Tensor
 
 Be sure to also check out our [models repository](https://github.com/tensorflow/tfjs-models) where we host pre-trained models
 on NPM.
+
+## Benchmarks
+
+[Benchmark tool](https://tensorflow.github.io/tfjs/e2e/benchmarks/). Use this webpage tool to test the performance related metrics (speed, memory, power, etc) of TensorFlow.js models on your local device with CPU, WebGL or WASM backend.
 
 ## Getting started
 
