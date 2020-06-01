@@ -100,13 +100,13 @@ function getNodeNameWithContextId(name: string, contextId?: string): string {
 }
 
 export function parseNodeName(name: string): [string, number] {
-  const index = name.lastIndexOf(':');
-  if (index === -1) {
+  const parts = name.split(':');
+  if (parts.length === 1) {
     return [name, 0];
   }
 
-  const nodeName = name.substring(0, index);
-  return [nodeName, Number(name.substring(index + 1))];
+  const nodeName = parts[0];
+  return [nodeName, Number(parts[parts.length - 1])];
 }
 
 export function split(arr: number[], size: number) {

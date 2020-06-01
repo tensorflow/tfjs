@@ -32,6 +32,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride, dilation;';
   workGroupSize: [number, number, number];
+  needsShapesUniforms = true;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, workPerThread: number, addBias = false,
@@ -102,10 +103,9 @@ export class Conv2DMMProgram implements WebGPUProgram {
       applyActivationSnippet = `value = activation(value, outCoord);`;
     }
 
-    const addBiasSnippet = addBias ?
-        'ivec4 coords = getOutputCoords(); ' + 
-        'value += getBiasAtOutCoords(outCoord);' :
-        '';
+    const addBiasSnippet = addBias ? 'ivec4 coords = getOutputCoords(); ' +
+            'value += getBiasAtOutCoords(outCoord);' :
+                                     '';
     if (addBias) {
       this.variableNames.push('bias');
     }

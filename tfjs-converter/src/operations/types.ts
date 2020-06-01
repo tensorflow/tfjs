@@ -21,7 +21,7 @@ import {NamedTensorsMap} from '../data/types';
 import {ExecutionContext} from '../executor/execution_context';
 
 export type ParamType = 'number'|'string'|'string[]'|'number[]'|'bool'|'bool[]'|
-    'shape'|'shape[]'|'tensor'|'tensors'|'dtype'|'dtype[]';
+    'shape'|'shape[]'|'tensor'|'tensors'|'dtype'|'dtype[]'|'func';
 export type Category =
     'arithmetic'|'basic_math'|'control'|'convolution'|'custom'|'dynamic'|
     'evaluation'|'image'|'creation'|'graph'|'logical'|'matrices'|
@@ -111,6 +111,7 @@ export declare interface Graph {
   outputs: Node[];
   weights: Node[];
   signature?: tensorflow.ISignatureDef;
+  functions?: {[key: string]: Graph};
 }
 
 export type ValueType = string|string[]|number|number[]|number[][]|boolean|

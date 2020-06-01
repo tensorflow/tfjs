@@ -30,6 +30,7 @@ export class BatchNormProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames: string[];
   workGroupSize: [4, 4, 4];
+  needsShapesUniforms = true;
 
   constructor(
       xShape: number[], meanShape: number[], varianceShape: number[],
