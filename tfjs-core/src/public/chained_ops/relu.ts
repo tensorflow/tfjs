@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,26 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
+import {relu} from '../../ops/relu';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
 
-function printTime(elapsed) {
-  return elapsed.toFixed(1) + ' ms';
-}
-
-function printMemory(bytes) {
-  if (bytes < 1024) {
-    return bytes + ' B';
-  } else if (bytes < 1024 * 1024) {
-    return (bytes / 1024).toFixed(2) + ' KB';
-  } else {
-    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    relu<T extends Tensor>(): T;
   }
 }
 
-function sleep(timeMs) {
-  return new Promise(resolve => setTimeout(resolve, timeMs));
-}
-
-function queryTimerIsEnabled() {
-  return _tfengine.ENV.getNumber(
-             'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0;
-}
+Tensor.prototype.relu = function<T extends Tensor>(this: T): T {
+  this.throwIfDisposed();
+  return relu(this);
+};

@@ -19,7 +19,8 @@ limitations under the License.
   <title>TensorFlow.js Model Benchmark</title>
   <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
   <link href="./main.css" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.2/dat.gui.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+  <link rel="shortcut icon" href="https://www.gstatic.com/devrel-devsite/prod/vf4ca28c48392b1412e7b030290622a0dd55b62dec1202c59f119b1e23227c988/tensorflow/images/favicon.png">
 </head>
 
 <body>
@@ -58,6 +59,8 @@ limitations under the License.
     </table>
   </div>
   <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-backend-cpu@latest/dist/tf-backend-cpu.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-backend-webgl@latest/dist/tf-backend-webgl.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-backend-wasm@latest/dist/tf-backend-wasm.js"></script>
@@ -76,6 +79,22 @@ limitations under the License.
       benchmark: 'mobilenet_v2',
       run: (v) => {
         runBenchmark();
+      },
+      testCorrectness: async () => {
+        await loadModelAndRecordTime();
+        await showMsg('Testing correctness');
+
+        tf.setBackend('cpu');
+        const referencePrediction = predict(model);
+        const referenceData = await getPredictionData(referencePrediction);
+
+        await tf.setBackend(state.backend);
+        const prediction = predict(model);
+        const predictionData = await getPredictionData(prediction);
+
+        await showMsg(null);
+        const match = tf.test_util.expectArraysClose(referenceData, predictionData);
+        appendRow(timeTable, `Prediction matches CPU: `, match);
       },
       backend: 'wasm',
       kernelTiming: 'aggregate',
@@ -160,11 +179,15 @@ limitations under the License.
 
       const elapsed = performance.now() - start;
       await showMsg(null);
+      appendRow(timeTable, `<b> Benchmark:</b> ${state.benchmark} `,
+        `<b> Runs:</b> ${state.numRuns} `);
       appendRow(timeTable, '1st inference', printTime(elapsed));
     }
 
-    async function loadAndRecordTime(benchmark) {
+    async function loadModelAndRecordTime() {
+      const benchmark = benchmarks[state.benchmark];
       await showMsg('Loading the model');
+
       const start = performance.now();
       if (benchmark.model == null) {
         model = await benchmark.load();
@@ -173,13 +196,8 @@ limitations under the License.
         model = benchmark.model;
       }
       predict = benchmark.predictFunc();
-
       const elapsed = performance.now() - start;
       await showMsg(null);
-
-      appendRow(timeTable, `<b> Benchmark:</b> ${state.benchmark} `,
-        `<b> Runs:</b> ${state.numRuns} `);
-
       appendRow(timeTable, 'Model load', printTime(elapsed));
     }
 
@@ -345,9 +363,7 @@ limitations under the License.
     }
 
     async function runBenchmark() {
-      const benchmark = benchmarks[state.benchmark];
-      await setupTable();
-      await loadAndRecordTime(benchmark);
+      await loadModelAndRecordTime();
       await warmUpAndRecordTime();
       await showMsg('Waiting for GC');
       await sleep(1000);
@@ -375,9 +391,11 @@ limitations under the License.
       });
       gui.add(state, 'kernelTiming', ['aggregate', 'individual']);
       gui.add(state, 'run');
+      gui.add(state, 'testCorrectness').name('test correctness');
 
       showVersions();
       await showEnvironment();
+      await setupTable();
     }
 
     onPageLoad();

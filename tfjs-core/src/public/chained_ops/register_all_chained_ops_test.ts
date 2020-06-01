@@ -54,6 +54,7 @@ const CHAINED_OPS = [
   'pad',
   'pool',
   'pow',
+  'relu',
   'separableConv2d',
   'spaceToBatchND',
   'split',
