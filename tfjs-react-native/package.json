@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-react-native",
-  "version": "0.2.3",
+  "version": "0.0.0",
   "description": "TensorFlow.js platform implementation for React Native",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -33,9 +33,9 @@
   },
   "devDependencies": {
     "@react-native-community/async-storage": "^1.4.2",
-    "@tensorflow/tfjs-backend-cpu": "2.0.0-rc.3",
-    "@tensorflow/tfjs-backend-webgl": "2.0.0-rc.3",
-    "@tensorflow/tfjs-core": "2.0.0-rc.3",
+    "@tensorflow/tfjs-backend-cpu": "~2.0.0",
+    "@tensorflow/tfjs-backend-webgl": "~2.0.0",
+    "@tensorflow/tfjs-core": "~2.0.0",
     "@types/base64-js": "^1.2.5",
     "@types/jasmine": "~3.3.0",
     "@types/react-native": "0.60.2",
@@ -64,7 +64,7 @@
   },
   "peerDependencies": {
     "@react-native-community/async-storage": "^1.4.2",
-    "@tensorflow/tfjs-backend-webgl": "2.0.0-rc.3",
+    "@tensorflow/tfjs-backend-webgl": "~2.0.0",
     "expo-asset": "^7.0.0",
     "expo-camera": "^7.0.0",
     "expo-gl": "^7.0.0",

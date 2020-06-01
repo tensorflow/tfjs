@@ -123,8 +123,8 @@ async function main() {
       shell.cd('..');
       $('git clone https://github.com/emscripten-core/emsdk.git');
       shell.cd('./emsdk');
-      $('./emsdk install 1.39.1');
-      $('./emsdk activate 1.39.1');
+      $('./emsdk install 1.39.13');
+      $('./emsdk activate 1.39.13');
       shell.cd('..');
       shell.cd(pkg);
     }
@@ -134,9 +134,12 @@ async function main() {
     $('yarn');
 
     console.log(chalk.magenta('~~~ Build npm ~~~'));
+
     if (pkg === 'tfjs-backend-wasm') {
       // tfjs-backend-wasm needs emsdk env variables to build.
       $('source ../emsdk/emsdk_env.sh && yarn build-npm for-publish');
+    } else if (pkg === 'tfjs-react-native') {
+      $('yarn build-npm');
     } else {
       $('yarn build-npm for-publish');
     }
