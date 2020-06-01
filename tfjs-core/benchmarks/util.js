@@ -15,6 +15,17 @@
  * =============================================================================
  */
 
+async function getPredictionData(prediction) {
+  let output = prediction;
+  if (output instanceof Promise) {
+    output = await output;
+  }
+  if (output instanceof tf.Tensor) {
+    output = await output.data();
+  }
+  return output;
+}
+
 function printTime(elapsed) {
   return elapsed.toFixed(1) + ' ms';
 }

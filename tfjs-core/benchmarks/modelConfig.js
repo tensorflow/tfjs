@@ -79,8 +79,8 @@ const benchmarks = {
       return tf.loadGraphModel(url);
     },
     predictFunc: () => {
-      const zeros = tf.zeros([1, 224, 224, 3]);
-      return model => model.predict(zeros);
+      const input = tf.randomNormal([1, 224, 224, 3]);
+      return model => model.predict(input);
     }
   },
   'mesh_128': {
