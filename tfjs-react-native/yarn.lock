@@ -35,30 +35,30 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
-"@tensorflow/tfjs-backend-cpu@2.0.0-rc.3":
-  version "2.0.0-rc.3"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-cpu/-/tfjs-backend-cpu-2.0.0-rc.3.tgz#cadcc99a366c13e9c346f78b23ceff8375cfc46b"
-  integrity sha512-qwg0GmfVRPaF4bMrzpWV2fcTnvU5f6UxsOySgso+3id3KbQmh89XZGtSLUJL4iw8P6HIxNiR++KJkygmQFWhDA==
+"@tensorflow/tfjs-backend-cpu@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-cpu/-/tfjs-backend-cpu-2.0.0.tgz#26d3ed8a6d814e751adc22e6036e40ed8940b5ac"
+  integrity sha512-eYj8CBjL8v2gHaYdS7JN1swi9kQYOHenMYBkf4khhW83ViZwpPmISyYzun8fy2gBlv28Y7juMmXHSncSDWfI1Q==
   dependencies:
     "@types/seedrandom" "2.4.27"
     seedrandom "2.4.3"
 
-"@tensorflow/tfjs-backend-webgl@2.0.0-rc.3":
-  version "2.0.0-rc.3"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-webgl/-/tfjs-backend-webgl-2.0.0-rc.3.tgz#6bf36de6be2a7fecec17d1bce57daa233722685c"
-  integrity sha512-iWsuQ5M21lHulLwkAF1KilzCvXT1WCumCYcdYrBzKNT9Ghi0YoNbcoT8s1RRli2jhgy/YqBLLaRFXy9s0kJb0A==
+"@tensorflow/tfjs-backend-webgl@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-webgl/-/tfjs-backend-webgl-2.0.0.tgz#8f53ca3598ff922ee6ad28daf0ccc8089981d105"
+  integrity sha512-Y76LYbq8Z0Nquh2Fk+ToxhbjmLxBGX7vBLeGXi1TwvWJOBgfqroFNk2R6vspaZNd4wKfUMM+CWayPFUHcLCsWg==
   dependencies:
-    "@tensorflow/tfjs-backend-cpu" "2.0.0-rc.3"
+    "@tensorflow/tfjs-backend-cpu" "2.0.0"
     "@types/offscreencanvas" "~2019.3.0"
     "@types/seedrandom" "2.4.27"
     "@types/webgl-ext" "0.0.30"
     "@types/webgl2" "0.0.4"
     seedrandom "2.4.3"
 
-"@tensorflow/tfjs-core@2.0.0-rc.3":
-  version "2.0.0-rc.3"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-2.0.0-rc.3.tgz#a665a1a4106c6bc802762c4a4f022d4971908cd2"
-  integrity sha512-EvsGWWwoDX3lD7YujlMlv9DRCKAEZevzWjO5cE8vJnZkVToQ3B5l5fsUH2eGoe/+6FHUPr2HfkwU/492/sfOiQ==
+"@tensorflow/tfjs-core@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-2.0.0.tgz#c18e963d0332255dc37d6ff58fa0076402ae00d0"
+  integrity sha512-GB02Lyjp7NLKbjCOW6S3Vx2CkkUwtJFt8fY7Zaoyy/ANB4Iw8eiHJV0308CClrFfjA+UKU3TrO+bOQfeCJaEUw==
   dependencies:
     "@types/offscreencanvas" "~2019.3.0"
     "@types/seedrandom" "2.4.27"
