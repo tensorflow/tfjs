@@ -73,17 +73,17 @@ function config({plugins = [], output = {}}) {
 module.exports = cmdOptions => {
   const bundles = [];
 
-  if (!cmdOptions.ci) {
-    // tf-backend-wasm.js
-    bundles.push(config({
-      output: {
-        format: 'umd',
-        name: 'tf.wasm',
-        extend: true,
-        file: 'dist/tf-backend-wasm.js',
-      }
-    }));
-  }
+  // if (!cmdOptions.ci) {
+  //   // tf-backend-wasm.js
+  //   bundles.push(config({
+  //     output: {
+  //       format: 'umd',
+  //       name: 'tf.wasm',
+  //       extend: true,
+  //       file: 'dist/tf-backend-wasm.js',
+  //     }
+  //   }));
+  // }
 
   // tf-backend-wasm.min.js
   bundles.push(config({
@@ -96,15 +96,15 @@ module.exports = cmdOptions => {
     },
   }));
 
-  if (!cmdOptions.ci) {
-    // tf-backend-wasm.esm.js
-    bundles.push(config({
-      plugins: [terser({output: {preamble: PREAMBLE, comments: false}})],
-      output: {
-        format: 'es',
-        file: 'dist/tf-backend-wasm.esm.js',
-      }
-    }));
-  }
+  // if (!cmdOptions.ci) {
+  //   // tf-backend-wasm.esm.js
+  //   bundles.push(config({
+  //     plugins: [terser({output: {preamble: PREAMBLE, comments: false}})],
+  //     output: {
+  //       format: 'es',
+  //       file: 'dist/tf-backend-wasm.esm.js',
+  //     }
+  //   }));
+  // }
   return bundles;
 };
