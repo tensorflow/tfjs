@@ -330,7 +330,6 @@ describeWithFlags('encodeWeights', ALL_ENVS, () => {
     ]);
   });
 
-
   it('Complex64 tensors', async () => {
     const tensors: NamedTensorMap = {
       x1: tf.complex([1, 2], [1, 2]),
