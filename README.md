@@ -75,6 +75,10 @@ Be sure to check out [the gallery](GALLERY.md) of all projects related to Tensor
 Be sure to also check out our [models repository](https://github.com/tensorflow/tfjs-models) where we host pre-trained models
 on NPM.
 
+## Benchmarks
+
+[Benchmark tool](https://tensorflow.github.io/tfjs/e2e/benchmarks/). Use this webpage tool to test the performance related metrics (speed, memory, power, etc) of TensorFlow.js models on your local device with CPU, WebGL or WASM backend.
+
 ## Getting started
 
 There are two main ways to get TensorFlow.js in your JavaScript project:
