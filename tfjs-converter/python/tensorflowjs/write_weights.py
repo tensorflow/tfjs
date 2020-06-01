@@ -368,7 +368,6 @@ def _assert_valid_weight_entry(entry):
 
 
   if not (data.dtype in _OUTPUT_DTYPES or data.dtype in _AUTO_DTYPE_CONVERSION):
-    print(_OUTPUT_DTYPES)
     raise ValueError('Error dumping weight ' + name + ', dtype ' +
                      data.dtype.name + ' not supported.')
 
