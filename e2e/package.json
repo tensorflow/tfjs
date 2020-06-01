@@ -59,7 +59,7 @@
     "build-deps-ci": "yarn build-core-ci && yarn build-backend-cpu-ci && yarn build-backend-webgl-ci && yarn build-layers-ci && yarn build-converter-ci && yarn build-data-ci && yarn build-union-ci && yarn build-node-ci",
     "lint": "tslint -p . -t verbose",
     "run-browserstack": "karma start --browserstack",
-    "test": "karma start",
+    "test": "./scripts/test.sh",
     "test-ci": "./scripts/test-ci.sh"
   },
   "license": "Apache-2.0",
