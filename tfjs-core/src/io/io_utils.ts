@@ -177,7 +177,7 @@ export function decodeWeights(
         values = new Float32Array(byteBuffer);
         const real = new Float32Array(values.length / 2);
         const image = new Float32Array(values.length / 2);
-        for (let i = 0; i < values.length / 2; i++) {
+        for (let i = 0; i < real.length; i++) {
           real[i] = values[i * 2];
           image[i] = values[i * 2 + 1];
         }

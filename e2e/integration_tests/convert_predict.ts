@@ -62,7 +62,6 @@ describe(`${REGRESSION} convert_predict`, () => {
         it(`with ${backend}.`, async () => {
           await tfc.setBackend(backend);
 
-          console.log(model);
           const $model = await tfconverter.loadGraphModel(
               `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
 
