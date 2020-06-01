@@ -55,10 +55,10 @@ function pow_<T extends Tensor>(
     base: Tensor|TensorLike, exp: Tensor|TensorLike): T {
   let $base = convertToTensor(base, 'base', 'pow');
   let $exp = convertToTensor(exp, 'exp', 'pow');
+  [$base, $exp] = makeTypesMatch($base, $exp);
 
   const inputs: PowInputs = {base: $base, exp: $exp};
   const forward: ForwardFunc<Tensor> = (backend, save) => {
-    [$base, $exp] = makeTypesMatch($base, $exp);
     const y = backend.pow($base, $exp);
     save([$base, $exp, y]);
     return y;
