@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tf from '../index';
+import {complex} from '../index';
 
 import {tensor} from '../ops/tensor_ops';
 import {NamedTensor, NamedTensorMap} from '../tensor_types';
@@ -183,7 +183,7 @@ export function decodeWeights(
         }
         const realTensor = tensor(real, shape, 'float32');
         const imageTensor = tensor(image, shape, 'float32');
-        out[name] = tf.complex(realTensor, imageTensor);
+        out[name] = complex(realTensor, imageTensor);
       } else {
         throw new Error(`Unsupported dtype in weight '${name}': ${dtype}`);
       }
