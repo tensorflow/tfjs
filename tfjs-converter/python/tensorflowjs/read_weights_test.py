@@ -45,6 +45,9 @@ class ReadWeightsTest(tf.test.TestCase):
         [{
             'name': 'weight1',
             'data': np.array([1, 2, 3], 'float32')
+        }, {
+            'name': 'weight2',
+            'data': np.array([1 + 1j, 2 + 2j, 3 + 3j])
         }]
     ]
 
@@ -53,11 +56,13 @@ class ReadWeightsTest(tf.test.TestCase):
     # Read the weights using `read_weights`.
     read_output = read_weights.read_weights(manifest, self._tmp_dir)
     self.assertEqual(1, len(read_output))
-    self.assertEqual(1, len(read_output[0]))
+    self.assertEqual(2, len(read_output[0]))
     self.assertEqual('weight1', read_output[0][0]['name'])
     self.assertTrue(
         np.allclose(groups[0][0]['data'], read_output[0][0]['data']))
-
+    self.assertEqual('weight2', read_output[0][1]['name'])
+    self.assertTrue(
+        np.allclose(groups[0][1]['data'], read_output[0][1]['data']))
   def testReadOneGroupString(self):
     groups = [
         [{

@@ -330,6 +330,39 @@ describeWithFlags('encodeWeights', ALL_ENVS, () => {
     ]);
   });
 
+  it('Complex64 tensors', async () => {
+    const tensors: NamedTensorMap = {
+      x1: tf.complex([1, 2], [1, 2]),
+      x2: tf.complex(1, 2),
+      x3: tf.complex([[1]], [[2]]),
+    };
+    const dataAndSpecs = await tf.io.encodeWeights(tensors);
+    const data = dataAndSpecs.data;
+    const specs = dataAndSpecs.specs;
+    expect(data.byteLength).toEqual(8 * 4);
+    expect(new Float32Array(data, 0, 4)).toEqual(new Float32Array([
+      1, 1, 2, 2
+    ]));
+    expect(new Float32Array(data, 16, 2)).toEqual(new Float32Array([1, 2]));
+    expect(new Float32Array(data, 24, 2)).toEqual(new Float32Array([1, 2]));
+    expect(specs).toEqual([
+      {
+        name: 'x1',
+        dtype: 'complex64',
+        shape: [2],
+      },
+      {
+        name: 'x2',
+        dtype: 'complex64',
+        shape: [],
+      },
+      {
+        name: 'x3',
+        dtype: 'complex64',
+        shape: [1, 1],
+      }
+    ]);
+  });
   it('String tensors', async () => {
     const tensors: NamedTensorMap = {
       x1: tensor2d([['a', 'bc'], ['def', 'g']], [2, 2]),
@@ -396,16 +429,20 @@ describeWithFlags('encodeWeights', ALL_ENVS, () => {
       x1: tensor2d([[10, 20], [30, 40]], [2, 2], 'int32'),
       x2: scalar(13.37, 'float32'),
       x3: tensor1d([true, false, false, true], 'bool'),
+      x4: tf.complex([1, 1], [2, 2])
     };
     const dataAndSpecs = await tf.io.encodeWeights(tensors);
     const data = dataAndSpecs.data;
     const specs = dataAndSpecs.specs;
-    expect(data.byteLength).toEqual(4 * 4 + 4 * 1 + 1 * 4);
+    expect(data.byteLength).toEqual(4 * 4 + 4 * 1 + 1 * 4 + 4 * 4);
     expect(new Int32Array(data, 0, 4)).toEqual(new Int32Array([
       10, 20, 30, 40
     ]));
     expect(new Float32Array(data, 16, 1)).toEqual(new Float32Array([13.37]));
     expect(new Uint8Array(data, 20, 4)).toEqual(new Uint8Array([1, 0, 0, 1]));
+    expect(new Float32Array(data, 24, 4)).toEqual(new Float32Array([
+      1, 2, 1, 2
+    ]));
     expect(specs).toEqual([
       {
         name: 'x1',
@@ -421,6 +458,11 @@ describeWithFlags('encodeWeights', ALL_ENVS, () => {
         name: 'x3',
         dtype: 'bool',
         shape: [4],
+      },
+      {
+        name: 'x4',
+        dtype: 'complex64',
+        shape: [2],
       }
     ]);
   });
@@ -436,12 +478,13 @@ describeWithFlags('decodeWeights', {}, () => {
       x5: tensor1d([''], 'string'),  // Empty string.
       x6: scalar('hello'),           // Single string.
       y1: tensor2d([-10, -20, -30], [3, 1], 'float32'),
+      y2: tf.complex([1, 1], [2, 2])
     };
     const dataAndSpecs = await tf.io.encodeWeights(tensors);
     const data = dataAndSpecs.data;
     const specs = dataAndSpecs.specs;
     const decoded = tf.io.decodeWeights(data, specs);
-    expect(Object.keys(decoded).length).toEqual(7);
+    expect(Object.keys(decoded).length).toEqual(8);
     expectArraysEqual(await decoded['x1'].data(), await tensors['x1'].data());
     expectArraysEqual(await decoded['x2'].data(), await tensors['x2'].data());
     expectArraysEqual(await decoded['x3'].data(), await tensors['x3'].data());
@@ -449,6 +492,7 @@ describeWithFlags('decodeWeights', {}, () => {
     expectArraysEqual(await decoded['x5'].data(), await tensors['x5'].data());
     expectArraysEqual(await decoded['x6'].data(), await tensors['x6'].data());
     expectArraysEqual(await decoded['y1'].data(), await tensors['y1'].data());
+    expectArraysEqual(await decoded['y2'].data(), await tensors['y2'].data());
   });
 
   it('Unsupported dtype raises Error', () => {
