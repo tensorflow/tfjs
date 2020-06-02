@@ -30,6 +30,7 @@ export class ClipProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workPerThread = 1;
   workGroupSize: [number, number, number] = [64, 1, 1];
+  needsShapesUniforms = true;
 
   constructor(outputShape: number[], minVal: number, maxVal: number) {
     this.outputShape = outputShape;

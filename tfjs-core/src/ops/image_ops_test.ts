@@ -174,27 +174,30 @@ describeWithFlags('nonMaxSuppression', ALL_ENVS, () => {
       expectArraysEqual(await indices.data(), [1, 0]);
     });
 
-    it('works with other operators, div', async () => {
-      const boxes = tf.tensor2d(
-          [
-            0, 0,  1, 1,  0, 0.1,  1, 1.1,  0, -0.1, 1, 0.9,
-            0, 10, 1, 11, 0, 10.1, 1, 11.1, 0, 100,  1, 101
-          ],
-          [6, 4]);
-      const a = tf.tensor1d([0, 1, -2, -4, 4, -4]);
-      const b = tf.tensor1d([0.15, 0.2, 0.25, 0.5, 0.7, 1.2]);
-      const scores = a.div(b);
-      const maxOutputSize = 2;
-      const iouThreshold = 0.5;
-      const scoreThreshold = 0;
-      await scores.data();
-      const indices = tf.image.nonMaxSuppression(
-          boxes, scores as tf.Tensor1D, maxOutputSize, iouThreshold,
-          scoreThreshold);
+    it('works when inputs are not explicitly initialized on the CPU',
+       async () => {
+         // This test ensures that asynchronous backends work with NMS, which
+         // requires inputs to reside on the CPU.
+         const boxes = tf.tensor2d(
+             [
+               0, 0,  1, 1,  0, 0.1,  1, 1.1,  0, -0.1, 1, 0.9,
+               0, 10, 1, 11, 0, 10.1, 1, 11.1, 0, 100,  1, 101
+             ],
+             [6, 4]);
+         const a = tf.tensor1d([0, 1, -2, -4, 4, -4]);
+         const b = tf.tensor1d([0.15, 0.2, 0.25, 0.5, 0.7, 1.2]);
+         const scores = a.div(b);
+         const maxOutputSize = 2;
+         const iouThreshold = 0.5;
+         const scoreThreshold = 0;
+         await scores.data();
+         const indices = tf.image.nonMaxSuppression(
+             boxes, scores as tf.Tensor1D, maxOutputSize, iouThreshold,
+             scoreThreshold);
 
-      expect(indices.shape).toEqual([2]);
-      expectArraysEqual(await indices.data(), [4, 1]);
-    });
+         expect(indices.shape).toEqual([2]);
+         expectArraysEqual(await indices.data(), [4, 1]);
+       });
   });
 
   describe('NonMaxSuppressionWithScore', () => {

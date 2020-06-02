@@ -176,8 +176,6 @@ export interface OpHandler {
   print<T extends Tensor>(x: T, verbose: boolean): void;
   reshape<R2 extends Rank>(x: Tensor, shape: ShapeMap[R2]): Tensor<R2>;
   expandDims<R2 extends Rank>(x: Tensor, axis: number): Tensor<R2>;
-  cumsum<T extends Tensor>(
-      x: Tensor, axis: number, exclusive: boolean, reverse: boolean): T;
   squeeze<T extends Tensor>(x: Tensor, axis?: number[]): T;
   clone<T extends Tensor>(x: T): T;
   gather<T extends Tensor>(x: T, indices: Tensor|TensorLike, axis: number): T;
@@ -267,7 +265,6 @@ export interface OpHandler {
   atanh<T extends Tensor>(x: T): T;
   erf<T extends Tensor>(x: T): T;
   step<T extends Tensor>(x: T, alpha: number): T;
-  relu<T extends Tensor>(x: T): T;
   relu6<T extends Tensor>(x: T): T;
   elu<T extends Tensor>(x: T): T;
   selu<T extends Tensor>(x: T): T;
@@ -281,18 +278,6 @@ export interface OpHandler {
     resizeNearestNeighbor<T extends Tensor3D|Tensor4D>(
         images: T, size: [number, number], alignCorners: boolean): T;
   };
-  maxPool<T extends Tensor3D|Tensor4D>(
-      x: T, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T;
-  avgPool<T extends Tensor3D|Tensor4D>(
-      x: T, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T;
-  pool<T extends Tensor3D|Tensor4D>(
-      input: T, windowShape: [number, number]|number, poolingType: 'avg'|'max',
-      padding: 'valid'|'same'|number, diationRate?: [number, number]|number,
-      strides?: [number, number]|number): T;
   unsortedSegmentSum<T extends Tensor>(
       x: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T;
   topk<T extends Tensor>(x: T, k: number, sorted: boolean):
@@ -670,22 +655,6 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
-   * Returns the cumulative sum of the `tf.Tensor` along `axis`.
-   *
-   * @param axis The axis along which to sum. Optional. Defaults to 0.
-   * @param exclusive Whether to perform exclusive cumulative sum. Defaults to
-   *    false. If set to true then the sum of each tensor entry does not
-   * include its own value, but only the values previous to it along the
-   * specified axis.
-   * @param reverse Whether to sum in the opposite direction. Defaults to
-   *    false.
-   */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
-  cumsum<T extends Tensor>(axis = 0, exclusive = false, reverse = false): T {
-    return opHandler.cumsum(this, axis, exclusive, reverse);
-  }
-
-  /**
    * Returns a `tf.Tensor` with dimensions of size 1 removed from the shape.
    * See `tf.squeeze` for more details.
    *
@@ -1016,10 +985,6 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.clipByValue(this, min, max);
   }
-  relu<T extends Tensor>(this: T): T {
-    this.throwIfDisposed();
-    return opHandler.relu(this);
-  }
   relu6<T extends Tensor>(this: T): T {
     this.throwIfDisposed();
     return opHandler.relu6(this);
@@ -1144,29 +1109,6 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   // Pooling.
-  avgPool<T extends Tensor3D|Tensor4D>(
-      this: T, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.avgPool(this, filterSize, strides, pad, dimRoundingMode);
-  }
-  maxPool<T extends Tensor3D|Tensor4D>(
-      this: T, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.maxPool(this, filterSize, strides, pad, dimRoundingMode);
-  }
-  pool<T extends Tensor3D|Tensor4D>(
-      this: T, windowShape: [number, number]|number, poolingType: 'max'|'avg',
-      padding: 'valid'|'same'|number, dilationRate?: [number, number]|number,
-      strides?: [number, number]|number): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.pool(
-        this, windowShape, poolingType, padding, dilationRate, strides);
-  }
-
   variable(trainable = true, name?: string, dtype?: DataType): Variable<R> {
     this.throwIfDisposed();
     return trackerFn().makeVariable(this, trainable, name, dtype) as

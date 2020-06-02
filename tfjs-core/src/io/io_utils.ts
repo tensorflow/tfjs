@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import {complex} from '../ops/complex_ops';
+
 import {tensor} from '../ops/tensor_ops';
 import {NamedTensor, NamedTensorMap} from '../tensor_types';
 import {TypedArray} from '../types';
@@ -57,7 +59,7 @@ export async function encodeWeights(
     const name = names[i];
     const t = Array.isArray(tensors) ? tensors[i].tensor : tensors[name];
     if (t.dtype !== 'float32' && t.dtype !== 'int32' && t.dtype !== 'bool' &&
-        t.dtype !== 'string') {
+        t.dtype !== 'string' && t.dtype !== 'complex64') {
       throw new Error(`Unsupported dtype in weight '${name}': ${t.dtype}`);
     }
     const spec: WeightsManifestEntry = {name, shape: t.shape, dtype: t.dtype};
@@ -135,12 +137,17 @@ export function decodeWeights(
           new Uint8Array(byteBuffer) :
           new Uint16Array(byteBuffer);
       if (dtype === 'float32') {
-        values = Float32Array.from(
-            quantizedArray, v => v * quantization.scale + quantization.min);
+        values = new Float32Array(quantizedArray.length);
+        for (let i = 0; i < quantizedArray.length; i++) {
+          const v = quantizedArray[i];
+          values[i] = v * quantization.scale + quantization.min;
+        }
       } else if (dtype === 'int32') {
-        values = Int32Array.from(
-            quantizedArray,
-            v => Math.round(v * quantization.scale + quantization.min));
+        values = new Int32Array(quantizedArray.length);
+        for (let i = 0; i < quantizedArray.length; i++) {
+          const v = quantizedArray[i];
+          values[i] = Math.round(v * quantization.scale + quantization.min);
+        }
       } else {
         throw new Error(`Unsupported dtype in weight '${name}': ${dtype}`);
       }
@@ -166,13 +173,25 @@ export function decodeWeights(
         values = new Int32Array(byteBuffer);
       } else if (dtype === 'bool') {
         values = new Uint8Array(byteBuffer);
+      } else if (dtype === 'complex64') {
+        values = new Float32Array(byteBuffer);
+        const real = new Float32Array(values.length / 2);
+        const image = new Float32Array(values.length / 2);
+        for (let i = 0; i < real.length; i++) {
+          real[i] = values[i * 2];
+          image[i] = values[i * 2 + 1];
+        }
+        const realTensor = tensor(real, shape, 'float32');
+        const imageTensor = tensor(image, shape, 'float32');
+        out[name] = complex(realTensor, imageTensor);
       } else {
         throw new Error(`Unsupported dtype in weight '${name}': ${dtype}`);
       }
       offset += size * dtypeFactor;
     }
-
-    out[name] = tensor(values, shape, dtype);
+    if (dtype !== 'complex64') {
+      out[name] = tensor(values, shape, dtype);
+    }
   }
   return out;
 }
@@ -284,6 +303,10 @@ export function base64StringToArrayBuffer(str: string): ArrayBuffer {
  * @returns Result of concatenating `buffers` in order.
  */
 export function concatenateArrayBuffers(buffers: ArrayBuffer[]): ArrayBuffer {
+  if (buffers.length === 1) {
+    return buffers[0];
+  }
+
   let totalByteLength = 0;
   buffers.forEach((buffer: ArrayBuffer) => {
     totalByteLength += buffer.byteLength;

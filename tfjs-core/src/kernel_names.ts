@@ -27,6 +27,44 @@ export type AddInputs = BinaryInputs;
 export const AddN = 'AddN';
 export type AddNInputs = TensorInfo[];
 
+export const AvgPool = 'AvgPool';
+export type AvgPoolInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface AvgPoolAttrs {
+  filterSize: [number, number]|number;
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  dimRoundingMode?: 'floor'|'round'|'ceil';
+}
+
+export const AvgPoolBackprop = 'AvgPoolBackprop';
+export type AvgPoolBackpropInputs = Pick<NamedTensorInfoMap, 'dy'|'input'>;
+export interface AvgPoolBackpropAttrs {
+  filterSize: [number, number]|number;
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number;
+}
+
+export const AvgPool3D = 'AvgPool3D';
+export type AvgPool3DInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface AvgPool3DAttrs {
+  filterSize: [number, number, number]|number;
+  strides: [number, number, number]|number;
+  pad: 'valid'|'same'|number;
+  dimRoundingMode?: 'floor'|'round'|'ceil';
+  dataFormat: 'NDHWC'|'NCDHW';
+  dilations?: [number, number, number]|number;
+}
+
+export const AvgPool3DBackprop = 'AvgPool3DBackprop';
+export type AvgPool3DBackpropInputs = Pick<NamedTensorInfoMap, 'dy'|'input'>;
+export interface AvgPool3DBackpropAttrs {
+  filterSize: [number, number, number]|number;
+  strides: [number, number, number]|number;
+  pad: 'valid'|'same'|number;
+  dilations: [number, number, number]|number;
+  dimRoundingMode?: 'floor'|'round'|'ceil';
+}
+
 export const BatchMatMul = 'BatchMatMul';
 export type BatchMatMulInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 export interface BatchMatMulAttrs {
@@ -107,6 +145,14 @@ export interface Conv3DBackpropInputAttrs {
   pad: 'valid'|'same';
 }
 
+export const Cumsum = 'Cumsum';
+export type CumsumInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface CumsumAttrs {
+  axis: number;
+  exclusive: boolean;
+  reverse: boolean;
+}
+
 export const DepthToSpace = 'DepthToSpace';
 export type DepthToSpaceInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface DepthToSpaceAttrs {
@@ -184,6 +230,47 @@ export interface LRNBackpropAttrs {
   beta: number;
 }
 
+export const MaxPool = 'MaxPool';
+export type MaxPoolInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface MaxPoolAttrs {
+  filterSize: [number, number]|number;
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  dimRoundingMode?: 'floor'|'round'|'ceil';
+}
+
+export const MaxPoolBackprop = 'MaxPoolBackprop';
+export type MaxPoolBackpropInputs =
+    Pick<NamedTensorInfoMap, 'dy'|'input'|'output'>;
+export interface MaxPoolBackpropAttrs {
+  filterSize: [number, number]|number;
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  dimRoundingMode?: 'floor'|'round'|'ceil';
+}
+
+export const MaxPool3D = 'MaxPool3D';
+export type MaxPool3DInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface MaxPool3DAttrs {
+  filterSize: [number, number, number]|number;
+  strides: [number, number, number]|number;
+  pad: 'valid'|'same'|number;
+  dataFormat: 'NDHWC'|'NCDHW';
+  dilations?: [number, number, number]|number;
+  dimRoundingMode?: 'floor'|'round'|'ceil';
+}
+
+export const MaxPool3DBackprop = 'MaxPool3DBackprop';
+export type MaxPool3DBackpropInputs =
+    Pick<NamedTensorInfoMap, 'dy'|'input'|'output'>;
+export interface MaxPool3DBackpropAttrs {
+  filterSize: [number, number, number]|number;
+  strides: [number, number, number]|number;
+  pad: 'valid'|'same'|number;
+  dilations?: [number, number, number]|number;
+  dimRoundingMode?: 'floor'|'round'|'ceil';
+}
+
 export const MaxPoolWithArgmax = 'MaxPoolWithArgmax';
 export type MaxPoolWithArgmaxInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface MaxPoolWithArgmaxAttrs {
@@ -236,6 +323,12 @@ export interface PadV2Attrs {
   paddings: Array<[number, number]>;
   constantValue: number;
 }
+
+export const Pool = 'Pool';
+export type PoolInputs = Pick<NamedTensorInfoMap, 'input'>;
+
+export const Relu = 'Relu';
+export type ReluInputs = Pick<NamedTensorInfoMap, 'x'>;
 
 export const SpaceToBatchND = 'SpaceToBatchND';
 export type SpaceToBatchNDInputs = Pick<NamedTensorInfoMap, 'x'>;

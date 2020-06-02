@@ -82,7 +82,8 @@ export const VIS_PHASE: Phase = {
 };
 
 export const REACT_NATIVE_PHASE: Phase = {
-  packages: ['tfjs-react-native']
+  packages: ['tfjs-react-native'],
+  deps: ['tfjs-core', 'tfjs-backend-cpu', 'tfjs-backend-webgl']
 };
 
 export const WEBSITE_PHASE: Phase = {

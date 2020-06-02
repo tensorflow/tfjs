@@ -15,6 +15,7 @@
  * =============================================================================
  */
 import './add';
+import './avg_pool';
 import './batchnorm';
 import './broadcast_to';
 import './batch_to_space_nd';
@@ -23,6 +24,7 @@ import './concat';
 import './conv1d';
 import './conv2d';
 import './conv2d_transpose';
+import './cumsum';
 import './depth_to_space';
 import './depthwise_conv2d';
 import './depthwise_conv2D_deprecated';
@@ -36,9 +38,12 @@ import './less';
 import './less_equal';
 import './local_response_normalization';
 import './mat_mul';
-import './one_hot';
+import './max_pool';
 import './not_equal';
+import './one_hot';
 import './pad';
+import './pool';
+import './relu';
 import './separable_conv2d';
 import './split';
 import './squared_difference';
