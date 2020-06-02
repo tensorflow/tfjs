@@ -606,13 +606,23 @@ export abstract class Container extends Layer {
 
     const weightValueTuples: Array<[LayerVariable, Tensor]> = [];
     for (const name in weights) {
-      if (nameToWeight[name] != null) {
-        weightValueTuples.push([nameToWeight[name], weights[name]]);
+      // TF 2.2.0 added cell name to the weight name in the format of
+      // layer_name/cell_name/weight_name, we need to remove
+      // the inner cell name.
+      let validatedName = name;
+      if (nameToWeight[name] == null) {
+        const tokens = name.split('/');
+        const shortenNameArray =
+            tokens.slice(0, -2).concat([tokens[tokens.length - 1]]);
+        validatedName = shortenNameArray.join('/');
+      }
+      if (nameToWeight[validatedName] != null) {
+        weightValueTuples.push([nameToWeight[validatedName], weights[name]]);
       } else if (strict) {
         throw new ValueError(
             `Provided weight data has no target variable: ${name}`);
       }
-      delete nameToWeight[name];
+      delete nameToWeight[validatedName];
     }
 
     if (strict) {
