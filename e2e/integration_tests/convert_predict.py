@@ -70,27 +70,32 @@ def _save_and_convert_model(model_fn, model_path, control_flow_v2=False):
 
   xs_data = [x['value'] for x in xs]
   xs_shape = [x['shape'] for x in xs]
+  xs_dtype = [x['dtype'] for x in xs]
 
   xs_shape_path = os.path.join(_tmp_dir, model_path + '.xs-shapes.json')
   xs_data_path = os.path.join(_tmp_dir, model_path + '.xs-data.json')
+  xs_dtype_path = os.path.join(_tmp_dir, model_path + '.xs-dtype.json')
   with open(xs_data_path, 'w') as f:
     f.write(json.dumps(xs_data))
   with open(xs_shape_path, 'w') as f:
     f.write(json.dumps(xs_shape))
-
+  with open(xs_dtype_path, 'w') as f:
+    f.write(json.dumps(xs_dtype))
   # Write outputs to file.
   ys = model_info['outputs'].values()
 
   ys_data = [y['value'] for y in ys]
   ys_shape = [y['shape'] for y in ys]
-
+  ys_dtype = [y['dtype'] for y in ys]
   ys_data_path = os.path.join(_tmp_dir, model_path + '.ys-data.json')
   ys_shape_path = os.path.join(_tmp_dir, model_path + '.ys-shapes.json')
+  ys_dtype_path = os.path.join(_tmp_dir, model_path + '.ys-dtype.json')
   with open(ys_data_path, 'w') as f:
     f.write(json.dumps(ys_data))
   with open(ys_shape_path, 'w') as f:
     f.write(json.dumps(ys_shape))
-
+  with open(ys_dtype_path, 'w') as f:
+    f.write(json.dumps(ys_dtype))
   artifacts_dir = os.path.join(_tmp_dir, model_path)
 
   # Convert and store model to file.
@@ -289,32 +294,35 @@ def _create_saved_model_v2_with_control_flow_v2(save_dir):
   """
   class CustomModule(tf.Module):
 
-      def __init__(self):
-          super(CustomModule, self).__init__()
+    def __init__(self):
+        super(CustomModule, self).__init__()
 
-      @tf.function(input_signature=[
-          tf.TensorSpec([], tf.float32), tf.TensorSpec([], tf.float32)])
-      def control_flow(self, x, y):
-          while x < y:
-            if y > 0:
-              x = x + y
-            else:
-              x = x + 2
-          return x
+    @tf.function(input_signature=[tf.TensorSpec([], tf.int32),
+                                  tf.TensorSpec([], tf.int32),
+                                  tf.TensorSpec([], tf.int32)])
+    def control_flow(self, x, y, z):
+        while x < z:
+            while x < y:
+                if z > 0 and y > 0:
+                    x = x + y + z
+                else:
+                    x += 2
+        return x
 
 
   module = CustomModule()
-  print(module.control_flow(1, 2))
+  print(module.control_flow(1, 2, 10))
   tf.saved_model.save(module, save_dir,
                       signatures=module.control_flow)
 
   return {
       "async": False,
       "inputs": {
-          "x": {"value": [-1.], "shape": [], "dtype": 'float32'},
-          "y": {"value": [2.], "shape": [], "dtype": 'float32'}},
+          "x": {"value": [1.], "shape": [], "dtype": 'int32'},
+          "y": {"value": [2.], "shape": [], "dtype": 'int32'},
+          "z": {"value": [10.], "shape": [], "dtype": 'int32'}},
       "outputs": {
-          "Identity:0": {"value": [3.], "shape": [], "dtype": "float32"}}}
+          "Identity:0": {"value": [13.], "shape": [], "dtype": "int32"}}}
 
 def main():
   # Create the directory to store model and data.

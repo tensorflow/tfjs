@@ -35,29 +35,32 @@ interface NodeWithContexts {
 export class GraphExecutor implements FunctionExecutor {
   private compiledMap: Map<string, Node[]> = new Map();
   private _weightMap: NamedTensorsMap = {};
-  private weightIds: number[];
+  private _weightIds: number[];
   private _signature: ISignatureDef;
   private _inputs: Node[];
   private _outputs: Node[];
   private SEPERATOR = ',';
   private _functions: {[key: string]: Graph} = {};
-  private functionExecutorMap: {[key: string]: FunctionExecutor} = {};
-  get weightMap(): NamedTensorsMap {
-    return this._weightMap;
-  }
-  set weightMap(weightMap: NamedTensorsMap) {
-    this.setWeightMap(weightMap);
+  private _functionExecutorMap: {[key: string]: FunctionExecutor} = {};
+
+  get weightIds(): number[] {
+    return this.parent ? this.parent.weightIds : this._weightIds;
   }
 
-  setWeightMap(weightMap: NamedTensorsMap) {
+  get functionExecutorMap(): {[key: string]: FunctionExecutor} {
+    return this.parent ? this.parent.functionExecutorMap :
+                         this._functionExecutorMap;
+  }
+
+  get weightMap(): NamedTensorsMap {
+    return this.parent ? this.parent.weightMap : this._weightMap;
+  }
+
+  set weightMap(weightMap: NamedTensorsMap) {
     const weightIds = Object.keys(weightMap).map(
         key => weightMap[key].map(tensor => tensor.id));
-    this.weightIds = [].concat(...weightIds);
+    this._weightIds = [].concat(...weightIds);
     this._weightMap = weightMap;
-    Object.keys(this.functionExecutorMap).forEach(key => {
-      const executor = this.functionExecutorMap[key];
-      executor.setWeightMap(weightMap);
-    });
   }
 
   get inputs(): TensorInfo[] {
@@ -93,7 +96,10 @@ export class GraphExecutor implements FunctionExecutor {
   }
 
   get outputNodes(): string[] {
-    return this._outputs.map(node => node.signatureKey || node.name);
+    return this._outputs.map((node) => {
+      const name = node.signatureKey || node.name;
+      return node.defaultOutput ? (`${name}:${node.defaultOutput}`) : name;
+    });
   }
 
   get functions(): {[key: string]: ISignatureDef} {
@@ -103,7 +109,7 @@ export class GraphExecutor implements FunctionExecutor {
     }, {} as {[key: string]: ISignatureDef});
   }
 
-  constructor(private graph: Graph) {
+  constructor(private graph: Graph, private parent?: GraphExecutor) {
     this._outputs = graph.outputs;
     this._inputs = graph.inputs;
     this._signature = graph.signature;
@@ -111,8 +117,8 @@ export class GraphExecutor implements FunctionExecutor {
     // create sub-graph executors
     if (graph.functions != null) {
       Object.keys(graph.functions).forEach(name => {
-        this.functionExecutorMap[name] =
-            new GraphExecutor(graph.functions[name]);
+        this._functionExecutorMap[name] =
+            new GraphExecutor(graph.functions[name], this);
       });
     }
   }
@@ -181,7 +187,7 @@ export class GraphExecutor implements FunctionExecutor {
     const tensorArrayMap: TensorArrayMap = {};
     return tidy(() => {
       const context = new ExecutionContext(
-          this._weightMap, tensorArrayMap, this.functionExecutorMap);
+          this.weightMap, tensorArrayMap, this.functionExecutorMap);
       const tensorsMap: NamedTensorsMap = {...this.weightMap};
       Object.keys(inputs).forEach(name => {
         const [nodeName, index] = parseNodeName(name);
@@ -281,7 +287,7 @@ export class GraphExecutor implements FunctionExecutor {
     this.checkOutputs(outputs);
     const tensorArrayMap: TensorArrayMap = {};
     const context = new ExecutionContext(
-        this._weightMap, tensorArrayMap, this.functionExecutorMap);
+        this.weightMap, tensorArrayMap, this.functionExecutorMap);
     // Graph with control flow op requires runtime evaluation of the execution
     // order, while without control flow the execution order is pre-determined
     // in the compile method.
@@ -308,9 +314,10 @@ export class GraphExecutor implements FunctionExecutor {
 
   async executeFunctionAsync(inputs: Tensor[]): Promise<Tensor[]> {
     const mappedInputs = inputs.reduce((map, tensor, index) => {
-      map[this.inputNodes[index]] = tensor;
+      map[this.inputs[index].name] = tensor;
       return map;
     }, {} as NamedTensorMap);
+
     return this.executeAsync(mappedInputs, this.outputNodes, true);
   }
   /**
