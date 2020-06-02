@@ -73,8 +73,8 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     }, 100);
 
     // Silences backend registration warnings.
-    // spyOn(console, 'warn');
-    // spyOn(console, 'log');
+    spyOn(console, 'warn');
+    spyOn(console, 'log');
   });
 
   afterEach(() => {
@@ -137,14 +137,5 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     // Setting the path too late.
     expect(() => setWasmPath('too/late'))
         .toThrowError(/The WASM backend was already initialized. Make sure/);
-  });
-
-  fit('where', async () => {
-    const c = tf.tensor1d([1, 0, 1, 0], 'bool');
-    const a = tf.tensor1d([10, 10, 10, 10]);
-    const b = tf.tensor1d([20, 20, 20, 20]);
-    const data = await tf.where(c, a, b).data();
-    console.log(data);
-    // expectArraysClose(await tf.where(c, a, b).data(), [10, 20, 10, 20]);
   });
 });
