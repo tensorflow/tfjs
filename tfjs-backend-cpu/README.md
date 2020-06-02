@@ -10,7 +10,7 @@ Note: this backend is included by default in `@tensorflow/tfjs`.
 
 ```js
 // Import @tensorflow/tfjs-core
-import * as tf from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs-core';
 // Adds the CPU backend to the global backend registry.
 import '@tensorflow/tfjs-backend-cpu';
 ```
