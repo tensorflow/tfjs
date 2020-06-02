@@ -81,6 +81,7 @@ def _deserialize_keras_model(model_topology_json,
 
     # Prepare list of weight values for calling set_weights().
     weights_list = []
+
     for name in weight_names:
       if name in weights_dict:
         weights_list.append(weights_dict[name])

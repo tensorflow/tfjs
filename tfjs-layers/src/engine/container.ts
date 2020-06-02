@@ -606,6 +606,9 @@ export abstract class Container extends Layer {
 
     const weightValueTuples: Array<[LayerVariable, Tensor]> = [];
     for (const name in weights) {
+      // TF 2.2.0 added cell name to the weight name in the format of
+      // layer_name/cell_name/weight_name, we need to remove
+      // the inner cell name.
       let validatedName = name;
       if (nameToWeight[name] == null) {
         const tokens = name.split('/');
