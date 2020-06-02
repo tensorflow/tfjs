@@ -45,7 +45,7 @@ void SelectV2(const int condition_id, const int t_id, const int e_id,
 
   for (size_t i = 0; i < values_size; ++i) {
     for (size_t j = 0; j < offset; ++j) {
-      if (condition_buf[i] == 1) {
+      if (condition_buf[i]) {
         *out_buf = t_buf[i];
       } else {
         *out_buf = e_buf[i];
