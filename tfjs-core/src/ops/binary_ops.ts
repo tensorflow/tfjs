@@ -326,8 +326,6 @@ function modStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
   return $a.mod($b);
 }
 
-
-
 /**
  * @deprecated
  * Returns the min of a and b (`a < b ? a : b`) element-wise. Inputs must
