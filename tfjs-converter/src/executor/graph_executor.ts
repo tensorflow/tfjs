@@ -109,6 +109,14 @@ export class GraphExecutor implements FunctionExecutor {
     }, {} as {[key: string]: ISignatureDef});
   }
 
+  /**
+   *
+   * @param graph Graph the model or function graph to be executed.
+   * @param parent When building function exector you need to set the parent
+   * executor. Since the weights and function executor maps are set at parant
+   * level, that function executor can access the function maps and weight maps
+   * through the parent.
+   */
   constructor(private graph: Graph, private parent?: GraphExecutor) {
     this._outputs = graph.outputs;
     this._inputs = graph.inputs;
