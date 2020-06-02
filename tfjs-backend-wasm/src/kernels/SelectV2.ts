@@ -15,18 +15,20 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, SelectV2, SelectV2Inputs} from '@tensorflow/tfjs-core';
+import {NamedTensorInfoMap, registerKernel, SelectV2, SelectV2Inputs, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
 let wasmSelect: (
-    conditionId: number, tId: number, eId: number, outId: number) => void;
+    conditionId: number, tId: number, eId: number, offset: number,
+    outId: number) => void;
 
 function setup(backend: BackendWasm) {
   wasmSelect = backend.wasm.cwrap(SelectV2, null, [
     'number',  // conditionId
     'number',  // tId
     'number',  // eId
+    'number',  // offset
     'number',  // outId
   ]);
 }
@@ -41,7 +43,14 @@ function select(args: {inputs: NamedTensorInfoMap, backend: BackendWasm}) {
   const out = backend.makeOutput(t.shape, t.dtype);
   const outId = backend.dataIdMap.get(out.dataId).id;
 
-  wasmSelect(conditionId, tId, eId, outId);
+  const cRank = condition.shape.length;
+  const tRank = t.shape.length;
+
+  const offset = cRank === 0 || cRank > 1 || tRank === 1 ?
+      1 :
+      util.sizeFromShape(t.shape.slice(1));
+
+  wasmSelect(conditionId, tId, eId, offset, outId);
   return out;
 }
 
