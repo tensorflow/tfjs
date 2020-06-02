@@ -62,3 +62,6 @@ if [[ "${DEV_VERSION}" == "stable" ]]; then
 else
   pip3 install -r requirements-dev.txt
 fi
+
+echo "Loading tensorflowjs pip from source ...."
+pip3 install -e ../../tfjs-converter/python

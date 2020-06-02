@@ -1,3 +1,2 @@
 keras==2.3.1
-tensorflow==1.15.0
-tensorflowjs==1.7.4
+-r ../../tfjs-converter/python/requirements.txt
