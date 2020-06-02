@@ -14,3 +14,40 @@
  * limitations under the License.
  * =============================================================================
  */
+
+import {NamedTensorInfoMap, registerKernel, SelectV2, SelectV2Inputs} from '@tensorflow/tfjs-core';
+
+import {BackendWasm} from '../backend_wasm';
+
+let wasmSelect: (
+    conditionId: number, tId: number, eId: number, outId: number) => void;
+
+function setup(backend: BackendWasm) {
+  wasmSelect = backend.wasm.cwrap(SelectV2, null, [
+    'number',  // conditionId
+    'number',  // tId
+    'number',  // eId
+    'number',  // outId
+  ]);
+}
+
+function select(args: {inputs: NamedTensorInfoMap, backend: BackendWasm}) {
+  const {inputs, backend} = args;
+  const {condition, t, e} = inputs as {} as SelectV2Inputs;
+
+  const conditionId = backend.dataIdMap.get(condition.dataId).id;
+  const tId = backend.dataIdMap.get(t.dataId).id;
+  const eId = backend.dataIdMap.get(e.dataId).id;
+  const out = backend.makeOutput(t.shape, t.dtype);
+  const outId = backend.dataIdMap.get(out.dataId).id;
+
+  wasmSelect(conditionId, tId, eId, outId);
+  return out;
+}
+
+registerKernel({
+  kernelName: SelectV2,
+  backendName: 'wasm',
+  kernelFunc: select,
+  setupFunc: setup
+});

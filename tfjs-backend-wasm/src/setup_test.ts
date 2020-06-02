@@ -337,6 +337,7 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'sqrt ',
     excludes: ['gradient']  // Gradient not yet implemented.
   },
+  {startsWith: 'where'},
   {
     startsWith: 'zerosLike',
     // Complex numbers not supported yet.
