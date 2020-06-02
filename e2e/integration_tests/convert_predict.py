@@ -103,7 +103,7 @@ def _save_and_convert_model(model_fn, model_path, control_flow_v2=False):
   if control_flow_v2:
     args = args + ['--control_flow_v2', 'True']
 
-  print(args)
+  print(args, tmp_saved_model_dir, artifacts_dir)
   subprocess.check_output(args +[tmp_saved_model_dir, artifacts_dir])
 
 def _create_saved_model_v1(save_dir):
@@ -296,7 +296,10 @@ def _create_saved_model_v2_with_control_flow_v2(save_dir):
           tf.TensorSpec([], tf.float32), tf.TensorSpec([], tf.float32)])
       def control_flow(self, x, y):
           while x < y:
-                  x = x + 2
+            if y > 0:
+              x = x + y
+            else:
+              x = x + 2
           return x
 
 
