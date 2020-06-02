@@ -20,7 +20,6 @@
 #include <math.h>
 
 #include "src/cc/backend.h"
-#include "src/cc/unary.h"
 
 namespace tfjs {
 namespace wasm {
@@ -30,7 +29,8 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void SelectV2(const int x_id, const int out_id) {}
+void SelectV2(const int condition_id, const int t_id, const int e_id,
+              const int out_id) {}
 
 }  // extern "C"
 }  // namespace wasm
