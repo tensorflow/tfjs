@@ -25,7 +25,7 @@
     "test-ci": "./scripts/test-ci.sh",
     "test-node": "ts-node --skip-ignore -P tsconfig.test.json src/test_node.ts",
     "test-bundle-size": "./scripts/test-bundle-size.js",
-    "test-cc": "rimraf dist/ && bazel clean --expunge && bazel test //src/cc:cc_tests --test_output=all",
+    "test-cc": "bazel test //src/cc:cc_tests --test_output=all",
     "test-browser-ci": "karma start --singleRun --browsers=bs_chrome_mac"
   },
   "browser": {
