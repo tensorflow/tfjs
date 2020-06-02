@@ -57,7 +57,7 @@ function pow_<T extends Tensor>(
   let $exp = convertToTensor(exp, 'exp', 'pow');
   [$base, $exp] = makeTypesMatch($base, $exp);
 
-  const inputs: PowInputs = {base: $base, exp: $exp};
+  const inputs: PowInputs = {a: $base, b: $exp};
   const forward: ForwardFunc<Tensor> = (backend, save) => {
     const y = backend.pow($base, $exp);
     save([$base, $exp, y]);

@@ -30,10 +30,12 @@ import {Tensor} from '../tensor';
 
 export const powGradConfig: GradConfig = {
   kernelName: Pow,
-  inputsToSave: ['base', 'exp'],
+  inputsToSave: ['a', 'b'],
   outputsToSave: [true],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
-    const [base, exp, y] = saved;
+    const [a, b, y] = saved;
+    const base = a;
+    const exp = b;
     const outShape =
         broadcast_util.assertAndGetBroadcastShape(base.shape, exp.shape);
 
@@ -56,6 +58,6 @@ export const powGradConfig: GradConfig = {
       }
       return reshape(res, exp.shape);
     };
-    return {base: derBase, exp: derExp};
+    return {a: derBase, b: derExp};
   }
 };

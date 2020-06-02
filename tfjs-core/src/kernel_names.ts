@@ -328,7 +328,7 @@ export const Pool = 'Pool';
 export type PoolInputs = Pick<NamedTensorInfoMap, 'input'>;
 
 export const Pow = 'Pow';
-export type PowInputs = Pick<NamedTensorInfoMap, 'base'|'exp'>;
+export type PowInputs = BinaryInputs;
 
 export const Relu = 'Relu';
 export type ReluInputs = Pick<NamedTensorInfoMap, 'x'>;
