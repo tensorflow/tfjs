@@ -20,6 +20,7 @@ import './batchnorm';
 import './broadcast_to';
 import './batch_to_space_nd';
 import './max';
+import './maximum';
 import './concat';
 import './conv1d';
 import './conv2d';

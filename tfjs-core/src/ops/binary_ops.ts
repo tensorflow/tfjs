@@ -397,57 +397,6 @@ function minimumStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
 }
 
 /**
- * Returns the max of a and b (`a > b ? a : b`) element-wise.
- * Supports broadcasting.
- *
- * We also expose `tf.maximumStrict` which has the same signature as this op and
- * asserts that `a` and `b` are the same shape (does not broadcast).
- *
- * ```js
- * const a = tf.tensor1d([1, 4, 3, 16]);
- * const b = tf.tensor1d([1, 2, 9, 4]);
- *
- * a.maximum(b).print();  // or tf.maximum(a, b)
- * ```
- *
- * ```js
- * // Broadcast maximum a with b.
- * const a = tf.tensor1d([2, 4, 6, 8]);
- * const b = tf.scalar(5);
- *
- * a.maximum(b).print();  // or tf.maximum(a, b)
- * ```
- *
- * @param a The first tensor.
- * @param b The second tensor. Must have the same type as `a`.
- */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
-function maximum_<T extends Tensor>(
-    a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'maximum');
-  let $b = convertToTensor(b, 'b', 'maximum');
-  [$a, $b] = makeTypesMatch($a, $b);
-
-  if ($a.dtype === 'bool') {
-    $a = $a.toInt();
-    $b = $b.toInt();
-  }
-
-  broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
-  const der = (dy: Tensor, saved: Tensor[]) => {
-    const [$a, $b] = saved;
-    const derA = () => dy.mul($a.greaterEqual($b).toFloat());
-    const derB = () => dy.mul($a.less($b).toFloat());
-    return {a: derA, b: derB};
-  };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.maximum($a, $b);
-    save([$a, $b]);
-    return res;
-  }, {a: $a, b: $b}, der, 'Maximum') as T;
-}
-
-/**
  * @deprecated
  * Returns the max of a and b (`a > b ? a : b`) element-wise. Inputs must
  * be the same shape. For broadcasting support, use maximum().
@@ -546,7 +495,6 @@ export const addStrict = op({addStrict_});
 export const atan2 = op({atan2_});
 export const divStrict = op({divStrict_});
 export const floorDiv = op({floorDiv_});
-export const maximum = op({maximum_});
 export const maximumStrict = op({maximumStrict_});
 export const minimum = op({minimum_});
 export const minimumStrict = op({minimumStrict_});

@@ -48,6 +48,7 @@ const CHAINED_OPS = [
   'localResponseNormalization',
   'matMul',
   'max',
+  'maximum',
   'maxPool',
   'notEqual',
   'oneHot',
