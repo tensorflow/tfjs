@@ -89,7 +89,7 @@ def _deserialize_keras_model(model_topology_json,
         # layer_name/cell_name/weight_name, we need to remove
         # the inner cell name.
         tokens = name.split('/')
-        shorten_name = '/'.join(name[0:-2] + [name[-1]])
+        shorten_name = '/'.join(tokens[0:-2] + [tokens[-1]])
         weights_list.append(weights_dict[shorten_name])
 
     model.set_weights(weights_list)
