@@ -36,7 +36,7 @@ void SelectV2(const int condition_id, const int t_id, const int e_id,
   auto& e_info = backend::get_tensor_info(e_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
 
-  const float* condition_buf = condition_info.f32();
+  const bool* condition_buf = condition_info.b();
   const float* t_buf = t_info.f32();
   const float* e_buf = e_info.f32();
   float* out_buf = out_info.f32_write();
