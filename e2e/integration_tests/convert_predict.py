@@ -282,7 +282,7 @@ def _create_saved_model_v2_complex64(save_dir):
           "Identity:0": {"value": [4, 2], "shape": [1], "dtype": "complex64"}}}
 
 def _create_saved_model_v2_with_control_flow_v2(save_dir):
-  """Test a TF V2 model with complex dtype.
+  """Test a TF V2 model with control flow v2.
 
   Args:
     save_dir: directory name of where the saved model will be stored.
