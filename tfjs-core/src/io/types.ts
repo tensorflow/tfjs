@@ -26,6 +26,7 @@ export const DTYPE_VALUE_SIZE_MAP: {[dtype: string]: number} = {
   'uint16': 2,
   'uint8': 1,
   'bool': 1,
+  'complex64': 8
 };
 
 /**
@@ -85,7 +86,7 @@ export declare interface WeightsManifestEntry {
   /**
    * Data type of the weight.
    */
-  dtype: 'float32'|'int32'|'bool'|'string';
+  dtype: 'float32'|'int32'|'bool'|'string'|'complex64';
 
   /**
    * Type of the weight.
