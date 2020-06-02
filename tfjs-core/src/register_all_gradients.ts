@@ -37,6 +37,7 @@ import {maxPool3DGradConfig} from './gradients/MaxPool3D_grad';
 import {maxPoolGradConfig} from './gradients/MaxPool_grad';
 import {oneHotGradConfig} from './gradients/OneHot_grad';
 import {padV2GradConfig} from './gradients/PadV2_grad';
+import {powGradConfig} from './gradients/Pow_grad';
 import {reluGradConfig} from './gradients/Relu_grad';
 import {spaceToBatchNDGradConfig} from './gradients/SpaceToBatchND_grad';
 import {splitVGradConfig} from './gradients/SplitV_grad';
@@ -78,6 +79,7 @@ const gradConfigs: GradConfig[] = [
   maxPool3DGradConfig,
   oneHotGradConfig,
   padV2GradConfig,
+  powGradConfig,
   reluGradConfig,
   spaceToBatchNDGradConfig,
   splitVGradConfig,
