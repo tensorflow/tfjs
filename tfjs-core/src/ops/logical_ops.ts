@@ -17,13 +17,18 @@
 
 import {whereImpl} from '../backends/where_impl';
 import {ENGINE} from '../engine';
+import {SelectV2, SelectV2Inputs} from '../kernel_names';
 import {Tensor, Tensor2D} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assert, assertShapesMatch} from '../util';
+
 import {assertAndGetBroadcastShape} from './broadcast_util';
 import {op} from './operation';
 import {zerosLike} from './tensor_ops';
+
+
 
 /**
  * Returns the truth value of `NOT x` element-wise.
@@ -157,17 +162,18 @@ function where_<T extends Tensor>(
   const grad = (dy: T, saved: Tensor[]) => {
     const [$condition] = saved;
     return {
-      $condition: () => zerosLike($condition).toFloat(),
-      $a: () => dy.mul($condition.cast(dy.dtype)),
-      $b: () => dy.mul($condition.logicalNot().cast(dy.dtype))
-    } as {$a: () => T, $b: () => T, $condition: () => T};
+      condition: () => zerosLike($condition).toFloat(),
+      t: () => dy.mul($condition.cast(dy.dtype)),
+      e: () => dy.mul($condition.logicalNot().cast(dy.dtype))
+    } as {t: () => T, e: () => T, condition: () => T};
   };
 
+  const inputs: SelectV2Inputs = {condition: $condition, t: $a, e: $b};
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.select($condition, $a, $b);
     save([$condition]);
     return res;
-  }, {$condition, $a, $b}, grad) as T;
+  }, inputs as unknown as NamedTensorMap, grad, SelectV2) as T;
 }
 
 /**

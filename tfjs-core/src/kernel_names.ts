@@ -333,6 +333,9 @@ export type PowInputs = BinaryInputs;
 export const Relu = 'Relu';
 export type ReluInputs = Pick<NamedTensorInfoMap, 'x'>;
 
+export const SelectV2 = 'SelectV2';
+export type SelectV2Inputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
+
 export const SpaceToBatchND = 'SpaceToBatchND';
 export type SpaceToBatchNDInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface SpaceToBatchNDAttrs {
