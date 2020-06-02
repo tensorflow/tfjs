@@ -28,8 +28,6 @@ import {assertAndGetBroadcastShape} from './broadcast_util';
 import {op} from './operation';
 import {zerosLike} from './tensor_ops';
 
-
-
 /**
  * Returns the truth value of `NOT x` element-wise.
  *
