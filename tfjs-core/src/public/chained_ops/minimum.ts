@@ -14,17 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
-import {maximum} from '../../ops/maximum';
+import {minimum} from '../../ops/minimum';
 import {Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    maximum<T extends Tensor>(b: Tensor|TensorLike): T;
+    minimum<T extends Tensor>(b: Tensor|TensorLike): T;
   }
 }
 
-Tensor.prototype.maximum = function<T extends Tensor>(b: Tensor|TensorLike): T {
+Tensor.prototype.minimum = function<T extends Tensor>(b: Tensor|TensorLike): T {
   this.throwIfDisposed();
-  return maximum(this, b);
+  return minimum(this, b);
 };

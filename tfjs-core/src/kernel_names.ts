@@ -290,6 +290,9 @@ export interface MaxPoolWithArgmaxAttrs {
   includeBatchInIndex: boolean;
 }
 
+export const Minimum = 'Minimum';
+export type MinimumInputs = BinaryInputs;
+
 export const NotEqual = 'NotEqual';
 export type NotEqualInputs = BinaryInputs;
 
