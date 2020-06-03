@@ -2868,7 +2868,8 @@
    */
   async function init() {
       const simdSupported = await tfjsCore.env().getAsync('WASM_HAS_SIMD_SUPPORT');
-      const factoryConfig = {};
+      return new Promise((resolve, reject) => {
+          const factoryConfig = {};
           if (wasmPath != null) {
               factoryConfig.locateFile = (path, prefix) => {
                   if (path.endsWith('.wasm')) {
@@ -2884,31 +2885,28 @@
                   factoryConfig.instantiateWasm = createInstantiateWasmFunc(wasmPath);
               }
           }
-          const wasm = await tfjsBackendWasm(factoryConfig);
-      return new Promise((resolve, reject) => {
-
+          const wasm = tfjsBackendWasm(factoryConfig);
           const voidReturnType = null;
 
           let initialized = false;
           console.log("lol");
           console.log(wasm);
-          // Using the tfjs namespace to avoid conflict with emscripten's API.
-          wasm.tfjs = {
-            init: wasm.cwrap('init', null, []),
-            registerTensor: wasm.cwrap('register_tensor', null, [
-                'number',
-                'number',
-                'number',
-            ]),
-            disposeData: wasm.cwrap('dispose_data', voidReturnType, ['number']),
-            dispose: wasm.cwrap('dispose', voidReturnType, []),
-          };
           wasm.onRuntimeInitialized = () => {
             console.log("RESOLVING");
               initialized = true;
               initAborted = false;
 
-
+              // Using the tfjs namespace to avoid conflict with emscripten's API.
+              wasm.tfjs = {
+                init: wasm.cwrap('init', null, []),
+                registerTensor: wasm.cwrap('register_tensor', null, [
+                    'number',
+                    'number',
+                    'number',
+                ]),
+                disposeData: wasm.cwrap('dispose_data', voidReturnType, ['number']),
+                dispose: wasm.cwrap('dispose', voidReturnType, []),
+              };
 
               resolve({ wasm });
           };
@@ -2927,7 +2925,6 @@
                   'bundled js file. For more details see https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/README.md#using-bundlers';
               reject({ message: rejectMsg });
           };
-          wasm.onRuntimeInitialized();
       });
   }
   function typedArrayFromBuffer(buffer, dtype) {
