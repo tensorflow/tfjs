@@ -64,7 +64,8 @@ limitations under the License.
   <!-- <script src="https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js"></script> -->
   <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js"></script>
   <!-- <script src="https://unpkg.com/@tensorflow/tfjs-backend-wasm@latest/dist/tf-backend-wasm.js"></script> -->
-  <script src="./tf-backend-wasm.js"></script>
+  <!-- <script src="./tf-backend-wasm.js"></script> -->
+  <script src="https://storage.googleapis.com/learnjs-data/wasm_threaded/tf-backend-wasm.js?1"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-automl@latest/dist/tf-automl.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2"></script>
@@ -74,6 +75,8 @@ limitations under the License.
   <script src="./util.js"></script>
   <script>
     'use strict';
+
+    tf.wasm.setWasmPath('https://storage.googleapis.com/learnjs-data/wasm_threaded/tfjs-backend-wasm-threaded.wasm')
 
     const state = {
       numRuns: 15,

@@ -2819,7 +2819,7 @@
    * in Chrome 76).
    */
   async function init() {
-      const emscriptenContents = await fetchText('./tfjs-backend-wasm.js');
+      const emscriptenContents = await fetchText('https://storage.googleapis.com/learnjs-data/wasm_threaded/tfjs-backend-wasm.js');
       tfjsCore.env().global.eval(emscriptenContents);
       return new Promise((resolve, reject) => {
           const factoryConfig = {};
