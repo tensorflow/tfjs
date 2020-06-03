@@ -24,7 +24,7 @@ function fill(args: {attrs: FillAttrs, backend: BackendWasm}) {
   const {attrs: {shape, value, dtype}, backend} = args;
   const out = backend.makeOutput(shape, dtype);
   const outVals = backend.typedArrayFromHeap(out);
-  outVals.fill(value);
+  outVals.fill(value as number);
   return out;
 }
 
