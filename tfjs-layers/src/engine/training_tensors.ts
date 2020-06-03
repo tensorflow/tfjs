@@ -33,10 +33,7 @@ export interface ModelFitArgs {
   batchSize?: number;
 
   /**
-   * The number of times to iterate over the training data arrays.
-   * Note that when used with `initialEpoch`, epochs is the index of the
-   * "final epoch". The model is not trained for a number of iterations
-   * given by epochs, but merely until the epoch of index epochs is reached.
+   * Integer number of times to iterate over the training data arrays.
    */
   epochs?: number;
 
@@ -121,7 +118,9 @@ export interface ModelFitArgs {
 
   /**
    * Epoch at which to start training (useful for resuming a previous training
-   * run).
+   * run). When this is used, `epochs` is the index of the "final epoch".
+   * The model is not trained for a number of iterations given by `epochs`,
+   * but merely until the epoch of index `epochs` is reached.
    */
   initialEpoch?: number;
 
