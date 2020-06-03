@@ -20,9 +20,10 @@ import {Tensor, Tensor1D} from '../tensor';
 
 import {mul} from './binary_ops';
 import {concat} from './concat';
+import {fill} from './fill';
 import {slice} from './slice';
 import {rfft} from './spectral_ops';
-import {fill, tensor1d, tensor2d} from './tensor_ops';
+import {tensor1d, tensor2d} from './tensor_ops';
 
 /**
  * Generate a Hann window.

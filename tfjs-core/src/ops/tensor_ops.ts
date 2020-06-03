@@ -17,8 +17,6 @@
 
 import {ENGINE} from '../engine';
 import {env} from '../environment';
-import {Fill, FillAttrs} from '../kernel_names';
-import {NamedAttrMap} from '../kernel_registry';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, Tensor6D, Variable} from '../tensor';
 import {convertToTensor, inferShape} from '../tensor_util_env';
 import {TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TensorLike5D, TensorLike6D, TypedArray} from '../types';
@@ -456,28 +454,6 @@ function zeros<R extends Rank>(
 }
 
 /**
- * Creates a `tf.Tensor` filled with a scalar value.
- *
- * ```js
- * tf.fill([2, 2], 4).print();
- * ```
- *
- * @param shape An array of integers defining the output tensor shape.
- * @param value The scalar value to fill the tensor with.
- * @param dtype The type of an element in the resulting tensor. Defaults to
- * 'float'.
- */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
-function fill<R extends Rank>(
-    shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
-  const attrs: FillAttrs = {shape, value, dtype};
-
-  return ENGINE.runKernelFunc(
-      backend => backend.fill(shape, value, dtype), {}, null, Fill,
-      attrs as {} as NamedAttrMap);
-}
-
-/**
  * Creates a `tf.Tensor` with all elements set to 1 with the same shape as the
  * given tensor.
  *
@@ -589,7 +565,6 @@ function range(
 }
 
 export {
-  fill,
   linspace,
   ones,
   range,
