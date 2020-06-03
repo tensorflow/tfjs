@@ -14,10 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
+import {pow} from '../../ops/pow';
+import {Tensor} from '../../tensor';
+import {Rank, TensorLike} from '../../types';
 
-import {Tensor} from '@tensorflow/tfjs-core';
-import {NamedTensorsMap} from '../data/types';
-export interface FunctionExecutor {
-  executeFunctionAsync(inputs: Tensor[]): Promise<Tensor[]>;
-  weightMap: NamedTensorsMap;
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    pow<T extends Tensor>(exp: Tensor|TensorLike): T;
+  }
 }
+
+Tensor.prototype.pow = function<T extends Tensor>(exp: Tensor|TensorLike): T {
+  this.throwIfDisposed();
+  return pow(this, exp);
+};

@@ -246,8 +246,13 @@ def extract_weights(graph_def,
   """
   global_manifest = extract_const_nodes(graph_def.node)
 
-  function_manifests = [x for func in graph_def.library.function
-                        for x in extract_const_nodes(func.node_def)]
+  function_manifests = []
+  for func in graph_def.library.function:
+    nodes = graph_rewrite_util.rename_constants(
+        func.node_def, func.signature.name)
+    del func.node_def[:]
+    func.node_def.extend(nodes)
+    function_manifests += extract_const_nodes(func.node_def)
 
   print('Writing weight file ' + output_graph + '...')
 

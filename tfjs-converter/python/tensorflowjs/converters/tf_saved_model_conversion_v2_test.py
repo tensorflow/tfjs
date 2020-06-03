@@ -703,10 +703,11 @@ class ConvertTest(tf.test.TestCase):
 
     add_y_weight = None
     for weight in weights_manifest[0]['weights']:
-      if weight['name'] == 'add/y':
+      if 'add/y' in weight['name']:
         add_y_weight = weight
 
     self.assertIsNot(add_y_weight, None)
+    self.assertFalse(add_y_weight['name'].startswith('add/y'))
 
     nodes = model_json['modelTopology']['node']
 
