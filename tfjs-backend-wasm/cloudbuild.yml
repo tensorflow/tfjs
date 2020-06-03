@@ -1,12 +1,12 @@
 steps:
 # Install common dependencies.
-- name: 'node:12'
+- name: 'node:14'
   id: 'yarn-common'
   entrypoint: 'yarn'
   args: ['install']
 
 # Install packages.
-- name: 'node:12'
+- name: 'node:14'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'yarn'
@@ -14,7 +14,7 @@ steps:
   waitFor: ['yarn-common']
 
 # Install build-deps.
-- name: 'node:12'
+- name: 'node:14'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'build-deps'
@@ -22,7 +22,7 @@ steps:
   waitFor: ['yarn-common']
 
 # Build.
-- name: 'node:12'
+- name: 'node:14'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'build'
@@ -30,7 +30,7 @@ steps:
   waitFor: ['yarn', 'build-deps']
 
 # Lint.
-- name: 'node:12'
+- name: 'node:14'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'lint'
@@ -38,7 +38,7 @@ steps:
   waitFor: ['yarn', 'build-deps']
 
 # Run JS tests.
-- name: 'node:12'
+- name: 'node:14'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'test-wasm'
@@ -48,7 +48,7 @@ steps:
   secretEnv: ['BROWSERSTACK_KEY']
 
 # Run C++ tests.
-- name: 'node:12'
+- name: 'node:14'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'test-cc'
@@ -56,7 +56,7 @@ steps:
   waitFor: ['build']
 
 # Check bundle size.
-- name: 'node:12'
+- name: 'node:14'
   dir: 'tfjs-backend-wasm'
   id: 'test-bundle-size'
   entrypoint: 'yarn'
@@ -64,7 +64,7 @@ steps:
   waitFor: ['yarn', 'build-deps', 'build']
 
 # Lint bazel files.
-- name: 'node:12'
+- name: 'node:14'
   dir: 'tfjs-backend-wasm'
   id: 'buildifier'
   entrypoint: 'yarn'
