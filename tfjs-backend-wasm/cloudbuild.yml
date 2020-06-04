@@ -48,11 +48,11 @@ steps:
   secretEnv: ['BROWSERSTACK_KEY']
 
 # Run C++ tests.
-- name: 'node:12'
+- name: 'gcc:10'
   dir: 'tfjs-backend-wasm'
-  entrypoint: 'yarn'
+  entrypoint: 'bash'
   id: 'test-cc'
-  args: ['test-cc']
+  args: ['bazel test //src/cc:cc_tests --test_output=all']
   waitFor: ['build']
 
 # Check bundle size.
