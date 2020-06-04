@@ -16,6 +16,8 @@
 
 set -e
 
+apt install gcc-9
+
 git clone --depth=1 --single-branch https://github.com/emscripten-core/emsdk.git
 
 cd emsdk
