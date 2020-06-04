@@ -197,6 +197,9 @@ export interface FusedBatchNormAttrs {
   varianceEpsilon: number;
 }
 
+export const GatherND = 'GatherND';
+export type GatherNDInputs = Pick<NamedTensorInfoMap, 'params'|'indices'>;
+
 export const Greater = 'Greater';
 export type GreaterInputs = BinaryInputs;
 
