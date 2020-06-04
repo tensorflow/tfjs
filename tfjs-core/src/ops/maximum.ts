@@ -23,9 +23,9 @@ import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
+import {cast} from './array_ops';
 import {assertAndGetBroadcastShape} from './broadcast_util';
 import {op} from './operation';
-import {cast} from './ops';
 
 /**
  * Returns the max of a and b (`a > b ? a : b`) element-wise.
