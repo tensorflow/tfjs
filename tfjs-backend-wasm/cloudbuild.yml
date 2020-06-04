@@ -56,12 +56,12 @@ steps:
 #   waitFor: ['build']
 
 # Check bundle size.
-- name: 'node:12'
-  dir: 'tfjs-backend-wasm'
-  id: 'test-bundle-size'
-  entrypoint: 'yarn'
-  args: ['test-bundle-size']
-  waitFor: ['build']
+# - name: 'node:12'
+#   dir: 'tfjs-backend-wasm'
+#   id: 'test-bundle-size'
+#   entrypoint: 'yarn'
+#   args: ['test-bundle-size']
+#   waitFor: ['build']
 
 # Lint bazel files.
 - name: 'node:12'
