@@ -659,7 +659,7 @@ describeMathCPU('Layer', () => {
   describe('apply() passed 1+ Tensors', () => {
     it('returns new values for output if the same as the input.', () => {
       const anArray = ones([1]);
-      // Test with both an Tensor and an array of Tensors.
+      // Test with both a Tensor and an array of Tensors.
       for (const inputs of [anArray, [anArray, anArray]]) {
         const layer = new LayerForTest();
         const result = layer.apply(inputs) as Tensor | Tensor[];
