@@ -147,6 +147,12 @@ export const json: OpMapper[] = [
         'type': 'string',
         'defaultValue': 'NHWC'
       },
+      {
+        'tfName': 'explicit_paddings',
+        'name': 'explicitPaddings',
+        'type': 'number[]',
+        'defaultValue': []
+      },
       {'tfName': 'dilations', 'name': 'dilations', 'type': 'number[]'}
     ]
   },
@@ -211,12 +217,19 @@ export const json: OpMapper[] = [
     ],
     'attrs': [
       {'tfName': 'strides', 'name': 'strides', 'type': 'number[]'},
-      {'tfName': 'padding', 'name': 'pad', 'type': 'string'}, {
+      {'tfName': 'padding', 'name': 'pad', 'type': 'string'},
+      {
         'tfName': 'data_format',
         'name': 'dataFormat',
         'type': 'string',
         'notSupported': true
-      }
+      },
+      {
+        'tfName': 'explicit_paddings',
+        'name': 'explicitPaddings',
+        'type': 'number[]',
+        'defaultValue': []
+      },
     ]
   },
   {
@@ -233,6 +246,12 @@ export const json: OpMapper[] = [
         'name': 'dataFormat',
         'type': 'string',
         'defaultValue': 'NHWC'
+      },
+      {
+        'tfName': 'explicit_paddings',
+        'name': 'explicitPaddings',
+        'type': 'number[]',
+        'defaultValue': []
       },
       {'tfName': 'dilations', 'name': 'dilations', 'type': 'number[]'}
     ]
@@ -251,6 +270,12 @@ export const json: OpMapper[] = [
         'name': 'dataFormat',
         'type': 'string',
         'defaultValue': 'NHWC'
+      },
+      {
+        'tfName': 'explicit_paddings',
+        'name': 'explicitPaddings',
+        'type': 'number[]',
+        'defaultValue': []
       },
       {'tfName': 'dilations', 'name': 'dilations', 'type': 'number[]'}
     ]
