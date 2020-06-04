@@ -107,7 +107,6 @@ export class GraphModel implements InferenceModel {
    * Loads the model and weight files, construct the in memory weight map and
    * compile the inference graph.
    */
-
   async load(): Promise<boolean> {
     this.findIOHandler();
     if (this.handler.load == null) {
@@ -123,8 +122,8 @@ export class GraphModel implements InferenceModel {
   /**
    * Synchronously construct the in memory weight map and
    * compile the inference graph.
-   @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true} 
    */
+  /** @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true} */
   loadSync(artifacts:io.ModelArtifacts) {
     this.artifacts = artifacts;
     const graph = this.artifacts.modelTopology as tensorflow.IGraphDef;
