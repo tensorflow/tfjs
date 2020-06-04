@@ -96,5 +96,17 @@ export const json: OpMapper[] = [
       {'start': 1, 'name': 'axis', 'type': 'number[]'},
     ],
     'attrs': [{'tfName': 'keep_dims', 'name': 'keepDims', 'type': 'bool'}]
+  },
+  {
+    'tfOpName': 'Cumsum',
+    'category': 'reduction',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+      {'start': 1, 'name': 'axis', 'type': 'number'},
+    ],
+    'attrs': [
+      {'tfName': 'exclusive', 'name': 'exclusive', 'type': 'bool'},
+      {'tfName': 'reverse', 'name': 'reverse', 'type': 'bool'}
+    ]
   }
 ];
