@@ -17,14 +17,16 @@
 
 import {ENGINE} from '../engine';
 import {env} from '../environment';
-
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, Tensor6D, Variable} from '../tensor';
 import {convertToTensor, inferShape} from '../tensor_util_env';
 import {TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TensorLike5D, TensorLike6D, TypedArray} from '../types';
 import {DataType, Rank, ShapeMap} from '../types';
 import {assert, assertNonNegativeIntegerDimensions, assertNonNull, flatten, inferDtype, isTypedArray, makeOnesTypedArray, makeZerosTypedArray, sizeFromShape, toTypedArray} from '../util';
-import {complex, imag, real} from './complex_ops';
+
+import {complex} from './complex';
+import {imag} from './imag';
 import {op} from './operation';
+import {real} from './real';
 
 /**
  * Creates a `tf.Tensor` with the provided values, shape and dtype.

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {complex} from '../ops/complex_ops';
+import {complex} from '../ops/complex';
 
 import {tensor} from '../ops/tensor_ops';
 import {NamedTensor, NamedTensorMap} from '../tensor_types';

@@ -19,5 +19,5 @@ import {Tensor} from '@tensorflow/tfjs-core';
 import {NamedTensorsMap} from '../data/types';
 export interface FunctionExecutor {
   executeFunctionAsync(inputs: Tensor[]): Promise<Tensor[]>;
-  setWeightMap(weightMap: NamedTensorsMap): void;
+  weightMap: NamedTensorsMap;
 }
