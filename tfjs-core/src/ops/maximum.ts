@@ -25,6 +25,7 @@ import {TensorLike} from '../types';
 
 import {assertAndGetBroadcastShape} from './broadcast_util';
 import {op} from './operation';
+import {cast} from './ops';
 
 /**
  * Returns the max of a and b (`a > b ? a : b`) element-wise.
@@ -59,8 +60,8 @@ function maximum_<T extends Tensor>(
   [$a, $b] = makeTypesMatch($a, $b);
 
   if ($a.dtype === 'bool') {
-    $a = $a.toInt();
-    $b = $b.toInt();
+    $a = cast($a, 'int32');
+    $b = cast($b, 'int32');
   }
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
