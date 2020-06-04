@@ -32,6 +32,7 @@
     "@rollup/plugin-typescript": "^3.0.0",
     "@tensorflow/tfjs-backend-webgl": "link:../tfjs-backend-webgl",
     "@tensorflow/tfjs-core": "link:../tfjs-core",
+    "@tensorflow/tfjs-converter": "1.7.1",
     "@types/jasmine": "~3.0.0",
     "clang-format": "~1.2.4",
     "jasmine": "~3.1.0",

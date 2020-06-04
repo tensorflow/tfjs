@@ -41,19 +41,25 @@ describe(`${REGRESSION} convert_predict`, () => {
     describe(`${model}`, () => {
       let inputsData: tfc.TypedArray[];
       let inputsShapes: number[][];
+      let inputsDtypes: tfc.DataType[];
       let tfOutputData: tfc.TypedArray[];
       let tfOutputShapes: number[][];
-
+      let tfOutputDtypes: tfc.DataType[];
       beforeAll(async () => {
-        [inputsData, inputsShapes, tfOutputData, tfOutputShapes] =
+        [inputsData, inputsShapes, inputsDtypes, tfOutputData, tfOutputShapes,
+         tfOutputDtypes] =
             await Promise.all([
               fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-data.json`)
                   .then(response => response.json()),
               fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-shapes.json`)
                   .then(response => response.json()),
+              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-dtype.json`)
+                  .then(response => response.json()),
               fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-data.json`)
                   .then(response => response.json()),
               fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-shapes.json`)
+                  .then(response => response.json()),
+              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-dtype.json`)
                   .then(response => response.json())
             ]);
       });
@@ -65,7 +71,7 @@ describe(`${REGRESSION} convert_predict`, () => {
           const $model = await tfconverter.loadGraphModel(
               `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
 
-          const xs = createInputTensors(inputsData, inputsShapes);
+          const xs = createInputTensors(inputsData, inputsShapes, inputsDtypes);
 
           const result = await $model.executeAsync(xs);
 
@@ -76,6 +82,7 @@ describe(`${REGRESSION} convert_predict`, () => {
           for (let i = 0; i < ys.length; i++) {
             const y = ys[i];
             expect(y.shape).toEqual(tfOutputShapes[i]);
+            expect(y.dtype).toEqual(tfOutputDtypes[i]);
             tfc.test_util.expectArraysClose(await y.data(), tfOutputData[i]);
           }
 

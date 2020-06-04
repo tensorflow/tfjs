@@ -88,6 +88,9 @@ export interface BroadCastToAttrs {
   inputShape: number[];  // for gradient
 }
 
+export const Complex = 'Complex';
+export type ComplexInputs = Pick<NamedTensorInfoMap, 'real'|'imag'>;
+
 export const Concat = 'Concat';
 export type ConcatInputs = TensorInfo[];
 export interface ConcatAttrs {
@@ -205,6 +208,9 @@ export type GreaterEqualInputs = BinaryInputs;
 
 export const Identity = 'Identity';
 export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const Imag = 'Imag';
+export type ImagInputs = Pick<NamedTensorInfoMap, 'input'>;
 
 export const Less = 'Less';
 export type LessInputs = BinaryInputs;
@@ -335,6 +341,9 @@ export type PoolInputs = Pick<NamedTensorInfoMap, 'input'>;
 
 export const Pow = 'Pow';
 export type PowInputs = BinaryInputs;
+
+export const Real = 'Real';
+export type RealInputs = Pick<NamedTensorInfoMap, 'input'>;
 
 export const Relu = 'Relu';
 export type ReluInputs = Pick<NamedTensorInfoMap, 'x'>;

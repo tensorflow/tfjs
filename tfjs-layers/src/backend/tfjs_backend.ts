@@ -113,7 +113,7 @@ export function repeat(x: Tensor, n: number): Tensor {
 }
 
 /**
- * Flatten an Tensor into 1D.
+ * Flatten a Tensor into 1D.
  * @param x Input tensor.
  * @return The result of the flattening `x`.
  */
