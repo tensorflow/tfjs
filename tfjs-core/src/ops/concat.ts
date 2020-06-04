@@ -94,7 +94,6 @@ function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
   assertParamsConsistent(shapes, $axis);
 
   const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const $axis = parseAxisParam(axis, $tensors[0].shape)[0];
     const res = backend.concat($tensors, $axis);
     save($tensors);
     return res;
