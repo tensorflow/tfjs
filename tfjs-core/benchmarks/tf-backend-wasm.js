@@ -2869,11 +2869,14 @@
   async function init() {
       const simdSupported = await tfjsCore.env().getAsync('WASM_HAS_SIMD_SUPPORT');
       const factoryConfig = {};
-          if (wasmPath != null) {
+          // if (wasmPath != null) {
               factoryConfig.locateFile = (path, prefix) => {
                   if (path.endsWith('.wasm')) {
                       console.log('SETTING WASM BINARY LOCATION.', simdSupported);
-                      return wasmPath;
+                      if(simdSupported) {
+                        return './tfjs-backend-wasm-simd.wasm';
+                      }
+                      return './tfjs-backend-wasm.wasm';
                   }
                   return prefix + path;
               };
@@ -2883,7 +2886,7 @@
               if (customFetch) {
                   factoryConfig.instantiateWasm = createInstantiateWasmFunc(wasmPath);
               }
-          }
+          // }
           const wasm = await tfjsBackendWasm(factoryConfig);
       return new Promise((resolve, reject) => {
 
