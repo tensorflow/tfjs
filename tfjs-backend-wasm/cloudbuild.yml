@@ -48,12 +48,12 @@ steps:
   secretEnv: ['BROWSERSTACK_KEY']
 
 # Run C++ tests.
-- name: 'node:12'
-  dir: 'tfjs-backend-wasm'
-  entrypoint: 'yarn'
-  id: 'test-cc'
-  args: ['test-cc']
-  waitFor: ['build']
+# - name: 'node:12'
+#   dir: 'tfjs-backend-wasm'
+#   entrypoint: 'yarn'
+#   id: 'test-cc'
+#   args: ['test-cc']
+#   waitFor: ['build']
 
 # Check bundle size.
 - name: 'node:12'
