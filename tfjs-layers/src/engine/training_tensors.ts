@@ -33,10 +33,7 @@ export interface ModelFitArgs {
   batchSize?: number;
 
   /**
-   * The number of times to iterate over the training data arrays.
-   * Note that when used with `initialEpoch`, epochs is the index of the
-   * "final epoch". The model is not trained for a number of iterations
-   * given by epochs, but merely until the epoch of index epochs is reached.
+   * Integer number of times to iterate over the training data arrays.
    */
   epochs?: number;
 
@@ -121,7 +118,9 @@ export interface ModelFitArgs {
 
   /**
    * Epoch at which to start training (useful for resuming a previous training
-   * run).
+   * run). When this is used, `epochs` is the index of the "final epoch".
+   * The model is not trained for a number of iterations given by `epochs`,
+   * but merely until the epoch of index `epochs` is reached.
    */
   initialEpoch?: number;
 
@@ -168,7 +167,7 @@ export function checkBatchSize(batchSize: number) {
 }
 
 /**
- * Slice an Tensor or an Array of Tensors, by start and stop indices.
+ * Slice a Tensor or an Array of Tensors, by start and stop indices.
  *
  * Porting Note: The `_slice_arrays` function in PyKeras is covered by this
  *   function and `sliceArraysByIndices()` together.
@@ -192,7 +191,7 @@ export function sliceArrays(
 }
 
 /**
- * Slice an Tensor or an Array of Tensors, by random-order indices.
+ * Slice a Tensor or an Array of Tensors, by random-order indices.
  *
  * Porting Note: The `_slice_arrays` function in PyKeras is covered by this
  *   function and `sliceArrays()` together.
@@ -476,7 +475,7 @@ export async function fitTensors(
         args.validationSplit != null && args.validationSplit > 0 &&
         args.validationSplit < 1) {
       doValidation = true;
-      // Porting Note: In tfjs-layers, inputs[0] is always an Tensor.
+      // Porting Note: In tfjs-layers, inputs[0] is always a Tensor.
       const splitAt =
           Math.floor(inputs[0].shape[0] * (1 - args.validationSplit));
       const originalBatchSize = inputs[0].shape[0];
