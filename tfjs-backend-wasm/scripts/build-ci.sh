@@ -16,7 +16,8 @@
 
 set -e
 
-apt install gcc-9
+add-apt-repository ppa:ubuntu-toolchain-r/test
+apt-get install gcc-9
 
 git clone --depth=1 --single-branch https://github.com/emscripten-core/emsdk.git
 
