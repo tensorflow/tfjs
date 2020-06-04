@@ -153,5 +153,17 @@ describe('transformation', () => {
         expect(tfc.depthToSpace).toHaveBeenCalledWith(input1[0], 1, 'NHWC');
       });
     });
+    describe('BroadcastTo', () => {
+      it('should call tfc.broadcastTo', () => {
+        spyOn(tfc, 'broadcastTo');
+        node.op = 'BroadcastTo';
+        node.inputParams.shape = createNumericArrayAttrFromIndex(1);
+        node.inputNames = ['input1', 'input2'];
+
+        executeOp(node, {input1, input2}, context);
+
+        expect(tfc.broadcastTo).toHaveBeenCalledWith(input1[0], [1, 1]);
+      });
+    });
   });
 });
