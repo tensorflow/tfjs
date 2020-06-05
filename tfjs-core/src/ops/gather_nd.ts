@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {ENGINE, ForwardFunc} from '../engine';
-import {GatherND, GatherNDInputs} from '../kernel_names';
+import {GatherNd, GatherNdInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
@@ -67,10 +67,10 @@ function gatherND_(x: Tensor|TensorLike, indices: Tensor|TensorLike): Tensor {
     return backend.gatherND($x, $indices);
   };
 
-  const inputs: GatherNDInputs = {params: $x, indices: $indices};
+  const inputs: GatherNdInputs = {params: $x, indices: $indices};
 
   return ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* gradient */, GatherND);
+      forward, inputs as {} as NamedTensorMap, null /* gradient */, GatherNd);
 }
 
 export const gatherND = op({gatherND_});
