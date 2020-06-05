@@ -457,24 +457,6 @@ function zeros<R extends Rank>(
 }
 
 /**
- * Creates a `tf.Tensor` filled with a scalar value.
- *
- * ```js
- * tf.fill([2, 2], 4).print();
- * ```
- *
- * @param shape An array of integers defining the output tensor shape.
- * @param value The scalar value to fill the tensor with.
- * @param dtype The type of an element in the resulting tensor. Defaults to
- * 'float'.
- */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
-function fill<R extends Rank>(
-    shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
-  return ENGINE.runKernelFunc(backend => backend.fill(shape, value, dtype), {});
-}
-
-/**
  * Creates a `tf.Tensor` with all elements set to 1 with the same shape as the
  * given tensor.
  *
@@ -586,7 +568,6 @@ function range(
 }
 
 export {
-  fill,
   linspace,
   ones,
   range,
