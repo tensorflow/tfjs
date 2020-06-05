@@ -88,6 +88,9 @@ export interface BroadCastToAttrs {
   inputShape: number[];  // for gradient
 }
 
+export const Complex = 'Complex';
+export type ComplexInputs = Pick<NamedTensorInfoMap, 'real'|'imag'>;
+
 export const Concat = 'Concat';
 export type ConcatInputs = TensorInfo[];
 export interface ConcatAttrs {
@@ -206,6 +209,9 @@ export type GreaterEqualInputs = BinaryInputs;
 export const Identity = 'Identity';
 export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
 
+export const Imag = 'Imag';
+export type ImagInputs = Pick<NamedTensorInfoMap, 'input'>;
+
 export const Less = 'Less';
 export type LessInputs = BinaryInputs;
 
@@ -229,6 +235,16 @@ export interface LRNBackpropAttrs {
   alpha: number;
   beta: number;
 }
+
+export const Max = 'Max';
+export type MaxInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface MaxAttrs {
+  reductionIndices: number|number[];
+  keepDims: boolean;
+}
+
+export const Maximum = 'Maximum';
+export type MaximumInputs = BinaryInputs;
 
 export const MaxPool = 'MaxPool';
 export type MaxPoolInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -280,6 +296,9 @@ export interface MaxPoolWithArgmaxAttrs {
   includeBatchInIndex: boolean;
 }
 
+export const Minimum = 'Minimum';
+export type MinimumInputs = BinaryInputs;
+
 export const NotEqual = 'NotEqual';
 export type NotEqualInputs = BinaryInputs;
 
@@ -302,13 +321,6 @@ export interface NonMaxSuppressionV5Attrs {
   softNmsSigma: number;
 }
 
-export const Max = 'Max';
-export type MaxInputs = Pick<NamedTensorInfoMap, 'x'>;
-export interface MaxAttrs {
-  reductionIndices: number|number[];
-  keepDims: boolean;
-}
-
 export const OneHot = 'OneHot';
 export type OneHotInputs = Pick<NamedTensorInfoMap, 'indices'>;
 export interface OneHotAttrs {
@@ -329,6 +341,9 @@ export type PoolInputs = Pick<NamedTensorInfoMap, 'input'>;
 
 export const Pow = 'Pow';
 export type PowInputs = BinaryInputs;
+
+export const Real = 'Real';
+export type RealInputs = Pick<NamedTensorInfoMap, 'input'>;
 
 export const Relu = 'Relu';
 export type ReluInputs = Pick<NamedTensorInfoMap, 'x'>;
