@@ -44,13 +44,6 @@ export interface AvgPoolBackpropAttrs {
   pad: 'valid'|'same'|number;
 }
 
-export const Fill = 'Fill';
-export interface FillAttrs {
-  shape: number[];
-  value: number|string;
-  dtype: DataType;
-}
-
 export const AvgPool3D = 'AvgPool3D';
 export type AvgPool3DInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface AvgPool3DAttrs {
@@ -199,6 +192,13 @@ export type DivInputs = BinaryInputs;
 
 export const Equal = 'Equal';
 export type EqualInputs = BinaryInputs;
+
+export const Fill = 'Fill';
+export interface FillAttrs {
+  shape: number[];
+  value: number|string;
+  dtype: DataType;
+}
 
 export const FusedBatchNorm = 'FusedBatchNorm';
 export type FusedBatchNormInputs =
