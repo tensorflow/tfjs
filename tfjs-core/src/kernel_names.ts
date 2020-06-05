@@ -19,7 +19,7 @@
 // Unfortunately just enabling PascalCase per file (tslint:enable:
 // allow-pascal-case) doesn't work.
 import {NamedTensorInfoMap, TensorInfo} from './kernel_registry';
-import {PixelData} from './types';
+import {DataType, PixelData} from './types';
 
 export const Add = 'Add';
 export type AddInputs = BinaryInputs;
@@ -42,6 +42,13 @@ export interface AvgPoolBackpropAttrs {
   filterSize: [number, number]|number;
   strides: [number, number]|number;
   pad: 'valid'|'same'|number;
+}
+
+export const Fill = 'Fill';
+export interface FillAttrs {
+  shape: number[];
+  value: number|string;
+  dtype: DataType;
 }
 
 export const AvgPool3D = 'AvgPool3D';
