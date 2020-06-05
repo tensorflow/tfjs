@@ -207,6 +207,9 @@ export interface FusedBatchNormAttrs {
   varianceEpsilon: number;
 }
 
+export const GatherNd = 'GatherNd';
+export type GatherNdInputs = Pick<NamedTensorInfoMap, 'params'|'indices'>;
+
 export const Greater = 'Greater';
 export type GreaterInputs = BinaryInputs;
 
@@ -242,6 +245,16 @@ export interface LRNBackpropAttrs {
   alpha: number;
   beta: number;
 }
+
+export const Max = 'Max';
+export type MaxInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface MaxAttrs {
+  reductionIndices: number|number[];
+  keepDims: boolean;
+}
+
+export const Maximum = 'Maximum';
+export type MaximumInputs = BinaryInputs;
 
 export const MaxPool = 'MaxPool';
 export type MaxPoolInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -293,6 +306,9 @@ export interface MaxPoolWithArgmaxAttrs {
   includeBatchInIndex: boolean;
 }
 
+export const Minimum = 'Minimum';
+export type MinimumInputs = BinaryInputs;
+
 export const NotEqual = 'NotEqual';
 export type NotEqualInputs = BinaryInputs;
 
@@ -313,13 +329,6 @@ export interface NonMaxSuppressionV5Attrs {
   iouThreshold: number;
   scoreThreshold: number;
   softNmsSigma: number;
-}
-
-export const Max = 'Max';
-export type MaxInputs = Pick<NamedTensorInfoMap, 'x'>;
-export interface MaxAttrs {
-  reductionIndices: number|number[];
-  keepDims: boolean;
 }
 
 export const OneHot = 'OneHot';

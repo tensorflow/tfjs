@@ -33,8 +33,10 @@ import {greaterEqualGradConfig} from './gradients/GreaterEqual_grad';
 import {identityGradConfig} from './gradients/Identity_grad';
 import {lrnGradConfig} from './gradients/LRN_grad';
 import {maxGradConfig} from './gradients/Max_grad';
+import {maximumGradConfig} from './gradients/Maximum_grad';
 import {maxPool3DGradConfig} from './gradients/MaxPool3D_grad';
 import {maxPoolGradConfig} from './gradients/MaxPool_grad';
+import {minimumGradConfig} from './gradients/Minimum_grad';
 import {oneHotGradConfig} from './gradients/OneHot_grad';
 import {padV2GradConfig} from './gradients/PadV2_grad';
 import {powGradConfig} from './gradients/Pow_grad';
@@ -75,8 +77,10 @@ const gradConfigs: GradConfig[] = [
   maxGradConfig,
   spaceToBatchNDGradConfig,
   maxGradConfig,
+  maximumGradConfig,
   maxPoolGradConfig,
   maxPool3DGradConfig,
+  minimumGradConfig,
   oneHotGradConfig,
   padV2GradConfig,
   powGradConfig,
