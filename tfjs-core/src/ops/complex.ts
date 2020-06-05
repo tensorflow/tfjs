@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,11 +14,14 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE} from '../engine';
+import {ENGINE, ForwardFunc} from '../engine';
+import {Complex, ComplexInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
+
 import {op} from './operation';
 
 /**
@@ -48,49 +51,13 @@ function complex_<T extends Tensor>(real: T|TensorLike, imag: T|TensorLike): T {
       `real and imag shapes, ${$real.shape} and ${$imag.shape}, ` +
           `must match in call to tf.complex().`);
 
+  const forward: ForwardFunc<Tensor> = (backend) => {
+    return backend.complex($real, $imag);
+  };
+  const inputs: ComplexInputs = {real: $real, imag: $imag};
   return ENGINE.runKernelFunc(
-      backend => backend.complex($real, $imag), {$real, $imag});
-}
-
-/**
- * Returns the real part of a complex (or real) tensor.
- *
- * Given a tensor input, this operation returns a tensor of type float that is
- * the real part of each element in input considered as a complex number.
- *
- * If the input is real, it simply makes a clone.
- *
- * ```js
- * const x = tf.complex([-2.25, 3.25], [4.75, 5.75]);
- * tf.real(x).print();
- * ```
- */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
-function real_<T extends Tensor>(input: T|TensorLike): T {
-  const $input = convertToTensor(input, 'input', 'real');
-
-  return ENGINE.runKernelFunc(backend => backend.real($input), {$input});
-}
-
-/**
- * Returns the imaginary part of a complex (or real) tensor.
- *
- * Given a tensor input, this operation returns a tensor of type float that is
- * the imaginary part of each element in input considered as a complex number.
- * If input is real, a tensor of all zeros is returned.
- *
- * ```js
- * const x = tf.complex([-2.25, 3.25], [4.75, 5.75]);
- * tf.imag(x).print();
- * ```
- */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
-function imag_<T extends Tensor>(input: T|TensorLike): T {
-  const $input = convertToTensor(input, 'input', 'imag');
-
-  return ENGINE.runKernelFunc(backend => backend.imag($input), {$input});
+             forward, inputs as {} as NamedTensorMap, null /* gradient */,
+             Complex) as T;
 }
 
 export const complex = op({complex_});
-export const real = op({real_});
-export const imag = op({imag_});

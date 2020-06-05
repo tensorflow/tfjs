@@ -87,8 +87,7 @@ def main():
   _load_predict_save('cnn')
   _load_predict_save('depthwise_cnn')
   _load_predict_save('simple_rnn')
-  #(TODO: piyu) Enable this test once gru weight shape bug is fixed.
-  #_load_predict_save('gru')
+  _load_predict_save('gru')
   _load_predict_save('bidirectional_lstm')
   _load_predict_save('time_distributed_lstm')
   _load_predict_save('one_dimensional')

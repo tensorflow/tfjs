@@ -326,14 +326,16 @@ export class OperationMapper {
     const tfNodes = functionDef.nodeDef;
     const placeholders: Node[] = [];
     const weights: Node[] = [];
-    const nodes = tfNodes.reduce<{[key: string]: Node}>((map, node) => {
-      map[node.name] = this.mapNode(node);
-      if (node.op === 'Const') {
-        weights.push(map[node.name]);
-      }
-      return map;
-    }, {});
-
+    let nodes: {[key: string]: Node} = {};
+    if (tfNodes != null) {
+      nodes = tfNodes.reduce<{[key: string]: Node}>((map, node) => {
+        map[node.name] = this.mapNode(node);
+        if (node.op === 'Const') {
+          weights.push(map[node.name]);
+        }
+        return map;
+      }, {});
+    }
     const inputs: Node[] = [];
     const outputs: Node[] = [];
 
@@ -367,9 +369,10 @@ export class OperationMapper {
     const returnNodeMap = functionDef.ret;
 
     functionDef.signature.outputArg.forEach(output => {
-      const [nodeName, ] = getNodeNameAndIndex(returnNodeMap[output.name]);
+      const [nodeName, index] = getNodeNameAndIndex(returnNodeMap[output.name]);
       const node = nodes[nodeName];
       if (node != null) {
+        node.defaultOutput = index;
         outputs.push(node);
       }
     });
