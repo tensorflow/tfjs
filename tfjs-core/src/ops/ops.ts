@@ -47,6 +47,7 @@ export {divNoNan} from './div_no_nan';
 export {dot} from './dot';
 export {equal} from './equal';
 export {eye} from './eye';
+export {fill} from './fill';
 export {greater} from './greater';
 export {greaterEqual} from './greater_equal';
 export {imag} from './imag';
