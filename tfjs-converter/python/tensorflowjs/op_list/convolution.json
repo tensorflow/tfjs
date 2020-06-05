@@ -288,6 +288,12 @@
         "defaultValue": "NHWC"
       },
       {
+        "tfName": "explicit_paddings",
+        "name": "explicitPaddings",
+        "type": "number[]",
+        "defaultValue": []
+      },
+      {
         "tfName": "dilations",
         "name": "dilations",
         "type": "number[]"
@@ -416,6 +422,12 @@
         "name": "dataFormat",
         "type": "string",
         "notSupported": true
+      },
+      {
+        "tfName": "explicit_paddings",
+        "name": "explicitPaddings",
+        "type": "number[]",
+        "defaultValue": []
       }
     ]
   },
@@ -450,6 +462,12 @@
         "name": "dataFormat",
         "type": "string",
         "defaultValue": "NHWC"
+      },
+      {
+        "tfName": "explicit_paddings",
+        "name": "explicitPaddings",
+        "type": "number[]",
+        "defaultValue": []
       },
       {
         "tfName": "dilations",
@@ -489,6 +507,12 @@
         "name": "dataFormat",
         "type": "string",
         "defaultValue": "NHWC"
+      },
+      {
+        "tfName": "explicit_paddings",
+        "name": "explicitPaddings",
+        "type": "number[]",
+        "defaultValue": []
       },
       {
         "tfName": "dilations",

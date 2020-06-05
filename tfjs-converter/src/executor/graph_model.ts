@@ -114,7 +114,18 @@ export class GraphModel implements InferenceModel {
           'Cannot proceed with model loading because the IOHandler provided ' +
           'does not have the `load` method implemented.');
     }
-    this.artifacts = await this.handler.load();
+    const artifacts = await this.handler.load();
+
+    return this.loadSync(artifacts);
+  }
+
+  /**
+   * Synchronously construct the in memory weight map and
+   * compile the inference graph.
+   */
+  /** @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true} */
+  loadSync(artifacts:io.ModelArtifacts) {
+    this.artifacts = artifacts;
     const graph = this.artifacts.modelTopology as tensorflow.IGraphDef;
     let signature = {};
     if (this.artifacts.userDefinedMetadata != null) {
