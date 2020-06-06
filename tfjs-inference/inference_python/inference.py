@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Read weights stored in TensorFlow.js-format binary files."""
+"""Example showing how to use tfjs binary in python code."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -22,7 +22,7 @@ import subprocess
 
 
 def predict(binary_path, model_path, inputs_dir, outputs_dir):
-  """Load weight values according to a TensorFlow.js weights manifest.
+  """Use tfjs binary to make inference and store output in file.
 
   Args:
     binary_path: Path to the nodejs binary. The path can be an absolute path
