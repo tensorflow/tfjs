@@ -28,7 +28,6 @@ import tensorflow as tf
 
 import inference
 
-curr_dir = os.path.dirname(os.path.realpath(__file__))
 
 class InferenceTest(tf.test.TestCase):
 
