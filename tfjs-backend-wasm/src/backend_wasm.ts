@@ -202,14 +202,11 @@ function createInstantiateWasmFunc(path: string) {
  * in Chrome 76).
  */
 export async function init(): Promise<{wasm: BackendWasmModule}> {
-  const simdSupported = await env().getAsync('WASM_HAS_SIMD_SUPPORT');
-
   return new Promise((resolve, reject) => {
     const factoryConfig: WasmFactoryConfig = {};
     if (wasmPath != null) {
       factoryConfig.locateFile = (path, prefix) => {
         if (path.endsWith('.wasm')) {
-          console.log('SETTING WASM BINARY LOCATION.', simdSupported);
           return wasmPath;
         }
         return prefix + path;
