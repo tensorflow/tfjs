@@ -21,7 +21,7 @@ import '@tensorflow/tfjs-backend-webgl';
 import * as tfc from '@tensorflow/tfjs-core';
 import * as tfl from '@tensorflow/tfjs-layers';
 
-import {BACKENDS, KARMA_SERVER, MODELS, REGRESSION} from './constants';
+import {BACKENDS, KARMA_SERVER, LAYERS_MODELS, REGRESSION} from './constants';
 import {createInputTensors} from './test_util';
 
 /** Directory that stores the model. */
@@ -33,11 +33,12 @@ const DATA_URL = 'create_save_predict_data';
  *  This file test below things:
  *  - Load layers models using Layers api.
  *  - Load inputs.
- *  - Make inference using each backends, and validate the results with Keras.
+ *  - Make inference using each backends, and validate the results against
+ *    Keras results.
  */
 describe(`${REGRESSION} create_save_predict`, () => {
-  MODELS.forEach(model => {
-    describe(`${model}.`, () => {
+  LAYERS_MODELS.forEach(model => {
+    describe(`${model}`, () => {
       let inputsData: tfc.TypedArray[];
       let inputsShapes: number[][];
       let kerasOutputData: tfc.TypedArray[];
@@ -58,7 +59,7 @@ describe(`${REGRESSION} create_save_predict`, () => {
       });
 
       BACKENDS.forEach(backend => {
-        it(`${model} with ${backend}.`, async () => {
+        it(`with ${backend}.`, async () => {
           const $model = await tfl.loadLayersModel(
               `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
 

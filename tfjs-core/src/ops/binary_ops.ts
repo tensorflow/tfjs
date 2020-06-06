@@ -26,7 +26,6 @@ import * as util from '../util';
 import {add} from './add';
 import * as broadcast_util from './broadcast_util';
 import {op} from './operation';
-import {scalar, zerosLike} from './tensor_ops';
 import {neg} from './unary_ops';
 
 /**
@@ -67,75 +66,6 @@ function subStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
   const $b = convertToTensor(b, 'b', 'subStrict');
   util.assertShapesMatch($a.shape, $b.shape, 'Error in subStrict: ');
   return $a.sub($b);
-}
-
-/**
- * Computes the power of one `tf.Tensor` to another. Supports broadcasting.
- *
- * Given a `tf.Tensor` x and a `tf.Tensor` y, this operation computes x^y for
- * corresponding elements in x and y. The result's dtype will be the upcasted
- * type of the `base` and `exp` dtypes.
- *
- * ```js
- * const a = tf.tensor([[2, 3], [4, 5]])
- * const b = tf.tensor([[1, 2], [3, 0]]).toInt();
- *
- * a.pow(b).print();  // or tf.pow(a, b)
- * ```
- *
- * ```js
- * const a = tf.tensor([[1, 2], [3, 4]])
- * const b = tf.tensor(2).toInt();
- *
- * a.pow(b).print();  // or tf.pow(a, b)
- * ```
- * We also expose `powStrict` which has the same signature as this op and
- * asserts that `base` and `exp` are the same shape (does not broadcast).
- *
- * @param base The base `tf.Tensor` to pow element-wise.
- * @param exp The exponent `tf.Tensor` to pow element-wise.
- */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
-function pow_<T extends Tensor>(
-    base: Tensor|TensorLike, exp: Tensor|TensorLike): T {
-  let $base = convertToTensor(base, 'base', 'pow');
-  let $exp = convertToTensor(exp, 'exp', 'pow');
-  [$base, $exp] = makeTypesMatch($base, $exp);
-
-  const outShape =
-      broadcast_util.assertAndGetBroadcastShape($base.shape, $exp.shape);
-  const grad = (dy: Tensor, saved: Tensor[]) => {
-    const [$base, $exp, y] = saved;
-    const derBase = () => {
-      const expFloat = $exp.toFloat();
-      let res = dy.mul(expFloat.mul($base.pow(expFloat.sub(scalar(1)))));
-      const reduceAxes = broadcast_util.getReductionAxes($base.shape, outShape);
-      if (reduceAxes.length > 0) {
-        res = res.sum(reduceAxes);
-      }
-      return res.reshape($base.shape) as T;
-    };
-    const derExp = () => {
-      const condition = $base.greater(0);
-      const logBase = $base.log().where(condition, zerosLike($base));
-      let res = dy.mul(y.mul(logBase));
-      const reduceAxes = broadcast_util.getReductionAxes($exp.shape, outShape);
-      if (reduceAxes.length > 0) {
-        res = res.sum(reduceAxes);
-      }
-      return res.reshape($exp.shape);
-    };
-    return {a: derBase, b: derExp};
-  };
-
-  const attrs = {};
-  const inputsToSave = [$base, $exp];
-  const outputsToSave = [true];
-  return ENGINE.runKernelFunc((backend, save) => {
-    const y = backend.pow($base, $exp);
-    save([$base, $exp, y]);
-    return y;
-  }, {a: $base, b: $exp}, grad, 'Pow', attrs, inputsToSave, outputsToSave) as T;
 }
 
 /**
@@ -397,57 +327,6 @@ function modStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
 }
 
 /**
- * Returns the min of a and b (`a < b ? a : b`) element-wise.
- * Supports broadcasting.
- *
- * We also expose `minimumStrict` which has the same signature as this op and
- * asserts that `a` and `b` are the same shape (does not broadcast).
- *
- * ```js
- * const a = tf.tensor1d([1, 4, 3, 16]);
- * const b = tf.tensor1d([1, 2, 9, 4]);
- *
- * a.minimum(b).print();  // or tf.minimum(a, b)
- * ```
- *
- * ```js
- * // Broadcast minimum a with b.
- * const a = tf.tensor1d([2, 4, 6, 8]);
- * const b = tf.scalar(5);
- *
- * a.minimum(b).print();  // or tf.minimum(a, b)
- * ```
- *
- * @param a The first tensor.
- * @param b The second tensor. Must have the same type as `a`.
- */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
-function minimum_<T extends Tensor>(
-    a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'minimum');
-  let $b = convertToTensor(b, 'b', 'minimum');
-  [$a, $b] = makeTypesMatch($a, $b);
-
-  if ($a.dtype === 'bool') {
-    $a = $a.toInt();
-    $b = $b.toInt();
-  }
-
-  broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
-  const der = (dy: Tensor, saved: Tensor[]) => {
-    const [$a, $b] = saved;
-    const derA = () => dy.mul($a.lessEqual($b).toFloat());
-    const derB = () => dy.mul($a.greater($b).toFloat());
-    return {a: derA, b: derB};
-  };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.minimum($a, $b);
-    save([$a, $b]);
-    return res;
-  }, {a: $a, b: $b}, der, 'Minimum') as T;
-}
-
-/**
  * @deprecated
  * Returns the min of a and b (`a < b ? a : b`) element-wise. Inputs must
  * be the same shape. For broadcasting support, use minimum().
@@ -464,57 +343,6 @@ function minimumStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
   const $b = convertToTensor(b, 'b', 'minimumStrict');
   util.assertShapesMatch($a.shape, $b.shape, 'Error in minimumStrict: ');
   return $a.minimum($b);
-}
-
-/**
- * Returns the max of a and b (`a > b ? a : b`) element-wise.
- * Supports broadcasting.
- *
- * We also expose `tf.maximumStrict` which has the same signature as this op and
- * asserts that `a` and `b` are the same shape (does not broadcast).
- *
- * ```js
- * const a = tf.tensor1d([1, 4, 3, 16]);
- * const b = tf.tensor1d([1, 2, 9, 4]);
- *
- * a.maximum(b).print();  // or tf.maximum(a, b)
- * ```
- *
- * ```js
- * // Broadcast maximum a with b.
- * const a = tf.tensor1d([2, 4, 6, 8]);
- * const b = tf.scalar(5);
- *
- * a.maximum(b).print();  // or tf.maximum(a, b)
- * ```
- *
- * @param a The first tensor.
- * @param b The second tensor. Must have the same type as `a`.
- */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
-function maximum_<T extends Tensor>(
-    a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'maximum');
-  let $b = convertToTensor(b, 'b', 'maximum');
-  [$a, $b] = makeTypesMatch($a, $b);
-
-  if ($a.dtype === 'bool') {
-    $a = $a.toInt();
-    $b = $b.toInt();
-  }
-
-  broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
-  const der = (dy: Tensor, saved: Tensor[]) => {
-    const [$a, $b] = saved;
-    const derA = () => dy.mul($a.greaterEqual($b).toFloat());
-    const derB = () => dy.mul($a.less($b).toFloat());
-    return {a: derA, b: derB};
-  };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.maximum($a, $b);
-    save([$a, $b]);
-    return res;
-  }, {a: $a, b: $b}, der, 'Maximum') as T;
 }
 
 /**
@@ -616,15 +444,12 @@ export const addStrict = op({addStrict_});
 export const atan2 = op({atan2_});
 export const divStrict = op({divStrict_});
 export const floorDiv = op({floorDiv_});
-export const maximum = op({maximum_});
 export const maximumStrict = op({maximumStrict_});
-export const minimum = op({minimum_});
 export const minimumStrict = op({minimumStrict_});
 export const mod = op({mod_});
 export const modStrict = op({modStrict_});
 export const mul = op({mul_});
 export const mulStrict = op({mulStrict_});
-export const pow = op({pow_});
 export const powStrict = op({powStrict_});
 export const squaredDifferenceStrict = op({squaredDifferenceStrict_});
 export const subStrict = op({subStrict_});

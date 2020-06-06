@@ -805,6 +805,11 @@
   version "0.0.0"
   uid ""
 
+"@tensorflow/tfjs-converter@1.7.1":
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-1.7.1.tgz#b96abbb1b38e96088709386cc21f4902809cabbf"
+  integrity sha512-CTQmTWAM+VqjxX1Qw9RhVrl32e1ITH2oVuWs/KgxXyyGNE9BLFQxFJhxQz/BPbxHFoIqZUK8RZiFrQudabx/lw==
+
 "@tensorflow/tfjs-core@link:../tfjs-core":
   version "0.0.0"
   uid ""
@@ -861,10 +866,10 @@
   resolved "https://registry.yarnpkg.com/@webgpu/glslang/-/glslang-0.0.12.tgz#ee40e8d38c31436508147feaf0f646fde9bb4da6"
   integrity sha512-GfEVo1GUxNfXjO4Z7I06XXYJA45N6sHoKqI5Ptf3vafnPowq2C1woCqVe7frsClMfBB2yLn1vJss2oWl5EdTig==
 
-"@webgpu/types@0.0.18":
-  version "0.0.18"
-  resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.0.18.tgz#cd9082c36566ee81d384e6d0baf7ca6260294646"
-  integrity sha512-Y8rD+RIczm2gQhpIEJJTE9IRtTVNmOLal74MzdBrc23CM1v+AxRrH65w7Evs0FXpLvITodjirURIZTOIG4mUkw==
+"@webgpu/types@0.0.24":
+  version "0.0.24"
+  resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.0.24.tgz#c1952a0f09416b90df10b7abea069a00e4be4452"
+  integrity sha512-g3axpnE8h42vzcl9Zi8jBjht9ts4Y2E8AI0DTktwsRh4yiIg+OmVjn49Kp/5atsAmsbAGNtROgrOj/lyxkftsA==
 
 accepts@~1.3.4:
   version "1.3.5"

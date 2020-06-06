@@ -20,6 +20,7 @@ limitations under the License.
   <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
   <link href="./main.css" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+  <link rel="shortcut icon" href="https://www.gstatic.com/devrel-devsite/prod/vf4ca28c48392b1412e7b030290622a0dd55b62dec1202c59f119b1e23227c988/tensorflow/images/favicon.png">
 </head>
 
 <body>
@@ -92,7 +93,7 @@ limitations under the License.
         const predictionData = await getPredictionData(prediction);
 
         await showMsg(null);
-        const match = arraysClose(referenceData, predictionData);
+        const match = tf.test_util.expectArraysClose(referenceData, predictionData);
         appendRow(timeTable, `Prediction matches CPU: `, match);
       },
       backend: 'wasm',
@@ -184,10 +185,10 @@ limitations under the License.
     }
 
     async function loadModelAndRecordTime() {
-      const start = performance.now();
       const benchmark = benchmarks[state.benchmark];
       await showMsg('Loading the model');
 
+      const start = performance.now();
       if (benchmark.model == null) {
         model = await benchmark.load();
         benchmark.model = model;

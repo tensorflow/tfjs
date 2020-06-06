@@ -20,7 +20,7 @@ import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
 
 import {executeOp} from './reduction_executor';
-import {createBoolAttr, createNumberAttr, createTensorAttr} from './test_helper';
+import {createBoolAttr, createNumberAttr, createNumberAttrFromIndex, createTensorAttr} from './test_helper';
 
 describe('reduction', () => {
   let node: Node;
@@ -67,6 +67,20 @@ describe('reduction', () => {
         executeOp(node, {input1}, context);
 
         expect(tfc.argMin).toHaveBeenCalledWith(input1[0], 1);
+      });
+      describe('Cumsum', () => {
+        it('should call tfc.cumsum', () => {
+          spyOn(tfc, 'cumsum');
+          node.op = 'Cumsum';
+          node.attrParams.exclusive = createBoolAttr(true);
+          node.attrParams.reverse = createBoolAttr(false);
+          node.inputNames = ['input1', 'input2'];
+          node.inputParams.axis = createNumberAttrFromIndex(1);
+          const input2 = [tfc.scalar(2)];
+          executeOp(node, {input1, input2}, context);
+
+          expect(tfc.cumsum).toHaveBeenCalledWith(input1[0], 2, true, false);
+        });
       });
     });
   });

@@ -29,6 +29,45 @@ export const executeOp: InternalOpAsyncExecutor = async(
     node: Node, tensorMap: NamedTensorsMap,
     context: ExecutionContext): Promise<tfc.Tensor[]> => {
   switch (node.op) {
+    case 'If':
+    case 'StatelessIf': {
+      const thenFunc =
+          getParamValue('thenBranch', node, tensorMap, context) as string;
+      const elseFunc =
+          getParamValue('elseBranch', node, tensorMap, context) as string;
+      const cond =
+          getParamValue('cond', node, tensorMap, context) as tfc.Tensor;
+      const args =
+          getParamValue('args', node, tensorMap, context) as tfc.Tensor[];
+      const condValue = await cond.data();
+      if (condValue[0]) {
+        return context.functionMap[thenFunc].executeFunctionAsync(args);
+      } else {
+        return context.functionMap[elseFunc].executeFunctionAsync(args);
+      }
+    }
+    case 'While':
+    case 'StatelessWhile': {
+      const bodyFunc =
+          getParamValue('body', node, tensorMap, context) as string;
+      const condFunc =
+          getParamValue('cond', node, tensorMap, context) as string;
+      const args =
+          getParamValue('args', node, tensorMap, context) as tfc.Tensor[];
+      const condTensor =
+          (await context.functionMap[condFunc].executeFunctionAsync(args))[0];
+      let condValue = await condTensor.data();
+      let result: tfc.Tensor[] = args;
+      while (condValue[0]) {
+        result =
+            await context.functionMap[bodyFunc].executeFunctionAsync(result);
+        const condTensor =
+            (await context.functionMap[condFunc].executeFunctionAsync(
+                result))[0];
+        condValue = await condTensor.data();
+      }
+      return result;
+    }
     case 'LoopCond':
       return [
         (getParamValue('pred', node, tensorMap, context) as tfc.Tensor).clone()

@@ -19,42 +19,14 @@ import {ENGINE} from '../engine';
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
-import {maximum, mul} from './binary_ops';
+
+import {mul} from './binary_ops';
 import {getReductionAxes} from './broadcast_util';
 import {where} from './logical_ops';
+import {maximum} from './maximum';
 import {op} from './operation';
 import {SELU_SCALE, SELU_SCALEALPHA} from './selu_util';
 import {scalar, zerosLike} from './tensor_ops';
-
-/**
- * Computes rectified linear element-wise: `max(x, 0)`.
- *
- * ```js
- * const x = tf.tensor1d([-1, 2, -3, 4]);
- *
- * x.relu().print();  // or tf.relu(x)
- * ```
- * @param x The input tensor. If the dtype is `bool`, the output dtype will be
- *     `int32'.
- */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
-function relu_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'relu');
-
-  if ($x.dtype === 'bool') {
-    return $x.toInt();
-  }
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [$x] = saved;
-    // tslint:disable-next-line: no-unnecessary-type-assertion
-    return {x: () => mul(dy, $x.step().toFloat()) as T};
-  };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.relu($x);
-    save([$x]);
-    return res;
-  }, {x: $x}, grad, 'Relu');
-}
 
 /**
  * Computes rectified linear 6 element-wise: `min(max(x, 0), 6)`.
@@ -221,6 +193,5 @@ function prelu_<T extends Tensor>(x: T|TensorLike, alpha: T|TensorLike): T {
 export const elu = op({elu_});
 export const leakyRelu = op({leakyRelu_});
 export const prelu = op({prelu_});
-export const relu = op({relu_});
 export const relu6 = op({relu6_});
 export const selu = op({selu_});

@@ -26,11 +26,25 @@ fi
 
 # Additional setup for regression tests.
 if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
-    # Generate canonical layers models and inputs.
-    ./scripts/tfjs2keras-js.sh
-    # Load equivalent keras models and generate outputs.
-    # TODO(linazhao): Investigate why --dev --tfkeras fail.
-    ./scripts/tfjs2keras-py.sh --stable
+  # Generate canonical layers models and inputs.
+  ./scripts/create_save_predict.sh
+
+  cd integration_tests
+
+  # Setup python env.
+  # TODO(linazhao): Investigate why --dev --tfkeras fail.
+  source ../scripts/setup-py-env.sh --stable
+
+  echo "Load equivalent keras models and generate outputs."
+  python create_save_predict.py
+
+  echo "Create saved models and convert."
+  python convert_predict.py
+
+  # Cleanup python env.
+  source ../scripts/cleanup-py-env.sh
+
+  cd ..
 fi
 
 if [ "$NIGHTLY" = true ]; then

@@ -34,8 +34,7 @@ export const json: OpMapper[] = [
   {
     'tfOpName': 'Merge',
     'category': 'control',
-    'inputs':
-        [{'start': 0, 'end': 0, 'name': 'tensors', 'type': 'tensors'}]
+    'inputs': [{'start': 0, 'end': 0, 'name': 'tensors', 'type': 'tensors'}]
   },
   {
     'tfOpName': 'Enter',
@@ -179,5 +178,51 @@ export const json: OpMapper[] = [
     'tfOpName': 'TensorArrayCloseV3',
     'category': 'control',
     'inputs': [{'start': 0, 'name': 'tensorArrayId', 'type': 'number'}]
+  },
+  {
+    'tfOpName': 'StatelessIf',
+    'category': 'control',
+    'inputs': [
+      {'start': 0, 'name': 'cond', 'type': 'tensor'},
+      {'start': 1, 'end': 0, 'name': 'args', 'type': 'tensors'}
+    ],
+    'attrs': [
+      {'tfName': 'then_branch', 'name': 'thenBranch', 'type': 'func'},
+      {'tfName': 'else_branch', 'name': 'elseBranch', 'type': 'func'}
+    ]
+  },
+  {
+    'tfOpName': 'If',
+    'category': 'control',
+    'inputs': [
+      {'start': 0, 'name': 'cond', 'type': 'tensor'},
+      {'start': 1, 'end': 0, 'name': 'args', 'type': 'tensors'}
+    ],
+    'attrs': [
+      {'tfName': 'then_branch', 'name': 'thenBranch', 'type': 'func'},
+      {'tfName': 'else_branch', 'name': 'elseBranch', 'type': 'func'}
+    ]
+  },
+  {
+    'tfOpName': 'StatelessWhile',
+    'category': 'control',
+    'inputs': [
+      {'start': 0, 'end': 0, 'name': 'args', 'type': 'tensors'},
+    ],
+    'attrs': [
+      {'tfName': 'cond', 'name': 'cond', 'type': 'func'},
+      {'tfName': 'body', 'name': 'body', 'type': 'func'}
+    ]
+  },
+  {
+    'tfOpName': 'While',
+    'category': 'control',
+    'inputs': [
+      {'start': 0, 'end': 0, 'name': 'args', 'type': 'tensors'},
+    ],
+    'attrs': [
+      {'tfName': 'cond', 'name': 'cond', 'type': 'func'},
+      {'tfName': 'body', 'name': 'body', 'type': 'func'}
+    ]
   }
 ];

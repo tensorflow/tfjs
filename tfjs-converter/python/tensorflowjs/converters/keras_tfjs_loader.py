@@ -80,7 +80,19 @@ def _deserialize_keras_model(model_topology_json,
             else keras_h5_conversion.normalize_weight_name(w.name))
 
     # Prepare list of weight values for calling set_weights().
-    weights_list = [weights_dict[name] for name in weight_names]
+    weights_list = []
+
+    for name in weight_names:
+      if name in weights_dict:
+        weights_list.append(weights_dict[name])
+      else:
+        # TF 2.2.0 added cell name to the weight name in the format of
+        # layer_name/cell_name/weight_name, we need to remove
+        # the inner cell name.
+        tokens = name.split('/')
+        shorten_name = '/'.join(tokens[0:-2] + [tokens[-1]])
+        weights_list.append(weights_dict[shorten_name])
+
     model.set_weights(weights_list)
 
   return model

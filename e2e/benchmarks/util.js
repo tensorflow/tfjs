@@ -26,25 +26,6 @@ async function getPredictionData(prediction) {
   return output;
 }
 
-const epsilon = 1e-3;
-function arraysClose(n1, n2) {
-  if (n1 === n2) {
-    return true;
-  }
-  if (n1 == null || n2 == null) {
-    return false;
-  }
-  if (n1.length !== n2.length) {
-    return false;
-  }
-  for (let i = 0; i < n1.length; i++) {
-    if (Math.abs(n1[i] - n2[i]) > epsilon) {
-      return false;
-    }
-  }
-  return true;
-}
-
 function printTime(elapsed) {
   return elapsed.toFixed(1) + ' ms';
 }

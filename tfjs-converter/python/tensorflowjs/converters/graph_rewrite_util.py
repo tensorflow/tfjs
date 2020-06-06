@@ -103,3 +103,28 @@ def cleanup_graph_def(input_graph_def, nodes_to_skip, inputs_to_remove):
   result_graph_def.library.CopyFrom(input_graph_def.library)
   result_graph_def.versions.CopyFrom(input_graph_def.versions)
   return result_graph_def
+
+def rename_constants(node_list, prefix):
+  """Update all constants name by adding a prefix.
+
+  Args:
+    node_list: NodeDef list to update.
+    prefix: string to add to the constant name.
+  Returns:
+    NodeDef list that has been updated.
+
+  """
+  nodes = []
+  constant_names = [node.name for node in node_list if node.op == 'Const']
+  for node in node_list:
+    new_node = node_def_pb2.NodeDef()
+    new_node.CopyFrom(node)
+    nodes.append(new_node)
+    if node.op == 'Const':
+      new_node.name = prefix + '/' + node.name
+    else:
+      for i, input_node in enumerate(new_node.input):
+        for name in constant_names:
+          if input_node.startswith(name):
+            new_node.input[i] = prefix + '/' + input_node
+  return nodes

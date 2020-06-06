@@ -16,10 +16,13 @@
  */
 
 import {ENGINE} from '../engine';
-import {complex, imag, real} from '../ops/complex_ops';
+import {complex} from '../ops/complex';
+import {imag} from '../ops/imag';
 import {op} from '../ops/operation';
+import {real} from '../ops/real';
 import {Tensor, Tensor2D} from '../tensor';
 import {assert} from '../util';
+
 import {scalar, zeros} from './tensor_ops';
 
 /**

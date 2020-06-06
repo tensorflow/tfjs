@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2019 Google LLC
+# Copyright 2020 Google LLC
 #
 # Use of this source code is governed by an MIT-style
 # license that can be found in the LICENSE file or at
@@ -9,13 +9,9 @@
 
 set -e
 
-TEST_DATA="test-data/"
+TEST_DATA="integration_tests/create_save_predict_data/"
 
-yarn link
-cd integration_tests/tfjs2keras/
-yarn
-yarn link @tensorflow/tfjs-layers
 rm -rf "$TEST_DATA"
 mkdir "$TEST_DATA"
-node tfjs_save.js "$TEST_DATA"
-cd ../..
+
+node integration_tests/create_save_predict.js "$TEST_DATA"

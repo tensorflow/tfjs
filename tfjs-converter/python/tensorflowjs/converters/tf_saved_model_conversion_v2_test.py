@@ -429,19 +429,19 @@ class ConvertTest(tf.test.TestCase):
 
       nodes = model_json['modelTopology']['node']
 
-      fusedOp = None
+      fused_op = None
       for node in nodes:
         self.assertNotIn('BatchNorm', node['op'])
         self.assertNotIn('Relu', node['op'])
         self.assertNotIn('BiasAdd', node['op'])
         if node['op'] == '_FusedConv2D':
-          fusedOp = node
-      self.assertIsNot(fusedOp, None)
+          fused_op = node
+      self.assertIsNot(fused_op, None)
       self.assertEqual(
-          base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][0]),
+          base64.b64decode(fused_op['attr']['fused_ops']['list']['s'][0]),
           b'BiasAdd')
       self.assertEqual(
-          base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][1]),
+          base64.b64decode(fused_op['attr']['fused_ops']['list']['s'][1]),
           b'Relu')
 
       # Check meta-data in the artifact JSON.
@@ -474,21 +474,21 @@ class ConvertTest(tf.test.TestCase):
     self.assertIsNot(signature['outputs'], None)
 
     nodes = model_json['modelTopology']['node']
-    fusedOp = None
+    fused_op = None
     for node in nodes:
       self.assertNotEqual(node['op'], 'MatMul')
       self.assertNotIn('Relu', node['op'])
       self.assertNotIn('BiasAdd', node['op'])
       if node['op'] == graph_rewrite_util.FUSED_MATMUL:
-        fusedOp = node
-    self.assertIsNot(fusedOp, None)
-    self.assertIsNot(fusedOp['attr']['transpose_a'], None)
-    self.assertIsNot(fusedOp['attr']['transpose_b'], None)
+        fused_op = node
+    self.assertIsNot(fused_op, None)
+    self.assertIsNot(fused_op['attr']['transpose_a'], None)
+    self.assertIsNot(fused_op['attr']['transpose_b'], None)
     self.assertEqual(
-        base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][0]),
+        base64.b64decode(fused_op['attr']['fused_ops']['list']['s'][0]),
         b'BiasAdd')
     self.assertEqual(
-        base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][1]),
+        base64.b64decode(fused_op['attr']['fused_ops']['list']['s'][1]),
         b'Relu')
 
     # Check meta-data in the artifact JSON.
@@ -522,21 +522,21 @@ class ConvertTest(tf.test.TestCase):
 
     nodes = model_json['modelTopology']['node']
 
-    fusedOp = None
+    fused_op = None
     for node in nodes:
       self.assertNotIn('BatchNorm', node['op'])
       self.assertNotIn('Relu', node['op'])
       self.assertNotIn('BiasAdd', node['op'])
       if node['op'] == graph_rewrite_util.FUSED_DEPTHWISE_CONV2D:
-        fusedOp = node
-    self.assertIsNot(fusedOp, None)
-    self.assertIsNot(fusedOp['attr']['dilations'], None)
-    self.assertIsNot(fusedOp['attr']['strides'], None)
+        fused_op = node
+    self.assertIsNot(fused_op, None)
+    self.assertIsNot(fused_op['attr']['dilations'], None)
+    self.assertIsNot(fused_op['attr']['strides'], None)
     self.assertEqual(
-        base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][0]),
+        base64.b64decode(fused_op['attr']['fused_ops']['list']['s'][0]),
         b'BiasAdd')
     self.assertEqual(
-        base64.b64decode(fusedOp['attr']['fused_ops']['list']['s'][1]),
+        base64.b64decode(fused_op['attr']['fused_ops']['list']['s'][1]),
         b'Relu')
 
     # Check meta-data in the artifact JSON.
@@ -667,6 +667,57 @@ class ConvertTest(tf.test.TestCase):
                           ['group1-shard1of1.bin'])
     self.assertIn('weights', weights_manifest[0])
 
+    # Check meta-data in the artifact JSON.
+    self.assertEqual(model_json['format'], 'graph-model')
+    self.assertEqual(
+        model_json['convertedBy'],
+        'TensorFlow.js Converter v%s' % version.version)
+    self.assertEqual(model_json['generatedBy'],
+                     tf.__version__)
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+
+  def test_convert_saved_model_with_control_flow_v2(self):
+    self._create_saved_model_with_control_flow()
+
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    tf_saved_model_conversion_v2.convert_tf_saved_model(
+        tfjs_path, tfjs_path, control_flow_v2=True
+    )
+
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertTrue(model_json['modelTopology'])
+    self.assertIsNot(model_json['modelTopology']['versions'], None)
+    signature = model_json['userDefinedMetadata']['signature']
+    self.assertIsNot(signature, None)
+    self.assertIsNot(signature['inputs'], None)
+    self.assertIsNot(signature['outputs'], None)
+
+    weights_manifest = model_json['weightsManifest']
+    self.assertCountEqual(weights_manifest[0]['paths'],
+                          ['group1-shard1of1.bin'])
+    self.assertIn('weights', weights_manifest[0])
+
+    add_y_weight = None
+    for weight in weights_manifest[0]['weights']:
+      if 'add/y' in weight['name']:
+        add_y_weight = weight
+
+    self.assertIsNot(add_y_weight, None)
+    self.assertFalse(add_y_weight['name'].startswith('add/y'))
+
+    nodes = model_json['modelTopology']['node']
+
+    while_op = None
+    for node in nodes:
+      self.assertNotIn('Merge', node['op'])
+      self.assertNotIn('Switch', node['op'])
+      if node['op'] == 'StatelessWhile':
+        while_op = node
+    self.assertIsNot(while_op, None)
     # Check meta-data in the artifact JSON.
     self.assertEqual(model_json['format'], 'graph-model')
     self.assertEqual(

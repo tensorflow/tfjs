@@ -338,6 +338,13 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: ['gradient']  // Gradient not yet implemented.
   },
   {
+    startsWith: 'where ',
+    excludes: [
+      '1D condition with higher rank a and b',  // Fill not yet implemented.
+      'gradient'                                // Gradient not yet implemented.
+    ]
+  },
+  {
     startsWith: 'zerosLike',
     // Complex numbers not supported yet.
     excludes: ['complex'],

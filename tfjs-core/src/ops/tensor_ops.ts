@@ -17,14 +17,16 @@
 
 import {ENGINE} from '../engine';
 import {env} from '../environment';
-
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, Tensor6D, Variable} from '../tensor';
 import {convertToTensor, inferShape} from '../tensor_util_env';
 import {TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TensorLike5D, TensorLike6D, TypedArray} from '../types';
 import {DataType, Rank, ShapeMap} from '../types';
 import {assert, assertNonNegativeIntegerDimensions, assertNonNull, flatten, inferDtype, isTypedArray, makeOnesTypedArray, makeZerosTypedArray, sizeFromShape, toTypedArray} from '../util';
-import {complex, imag, real} from './complex_ops';
+
+import {complex} from './complex';
+import {imag} from './imag';
 import {op} from './operation';
+import {real} from './real';
 
 /**
  * Creates a `tf.Tensor` with the provided values, shape and dtype.
@@ -455,24 +457,6 @@ function zeros<R extends Rank>(
 }
 
 /**
- * Creates a `tf.Tensor` filled with a scalar value.
- *
- * ```js
- * tf.fill([2, 2], 4).print();
- * ```
- *
- * @param shape An array of integers defining the output tensor shape.
- * @param value The scalar value to fill the tensor with.
- * @param dtype The type of an element in the resulting tensor. Defaults to
- * 'float'.
- */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
-function fill<R extends Rank>(
-    shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
-  return ENGINE.runKernelFunc(backend => backend.fill(shape, value, dtype), {});
-}
-
-/**
  * Creates a `tf.Tensor` with all elements set to 1 with the same shape as the
  * given tensor.
  *
@@ -584,7 +568,6 @@ function range(
 }
 
 export {
-  fill,
   linspace,
   ones,
   range,
