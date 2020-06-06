@@ -116,7 +116,7 @@ export class FileHandler implements tf.io.IOHandler {
  * @param buf A Buffer or an Array of Buffers.
  * @return An ArrayBuffer.
  */
-export function toArrayBuffer(buf: Buffer|Buffer[]): ArrayBuffer {
+function toArrayBuffer(buf: Buffer|Buffer[]): ArrayBuffer {
   if (Array.isArray(buf)) {
     // An Array of Buffers.
     let totalLength = 0;
