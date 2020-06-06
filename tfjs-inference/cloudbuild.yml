@@ -7,14 +7,6 @@ steps:
   id: 'yarn'
   args: ['install']
 
-# Build binaries.
-- name: 'node:10'
-  dir: 'tfjs-inference'
-  entrypoint: 'yarn'
-  id: 'build-binary'
-  args: ['build-binary']
-  waitFor: ['yarn']
-
 # JS Test.
 - name: 'node:10'
   dir: 'tfjs-inference'
@@ -22,6 +14,14 @@ steps:
   id: 'test'
   args: ['test-ci']
   waitFor: ['yarn']
+
+# Build binaries.
+- name: 'node:10'
+  dir: 'tfjs-inference'
+  entrypoint: 'yarn'
+  id: 'build-binary'
+  args: ['build-binary']
+  waitFor: ['test']
 
 # Python Test.
 - name: 'node:10'
