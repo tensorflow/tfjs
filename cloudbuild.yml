@@ -132,7 +132,7 @@ steps:
   env: ['NIGHTLY=$_NIGHTLY']
 
 # Inference API
-- name: 'gcr.io/cloud-builds/gcloud'
+- name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
   id: 'tfjs-inference'
   args: ['scripts/run-build.sh', 'tfjs-inference']
