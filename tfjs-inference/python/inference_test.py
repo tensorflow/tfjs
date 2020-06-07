@@ -14,6 +14,7 @@
 """Tests for tfjs-inference binary."""
 
 # To test the binary, you need to manually run `yarn build-binary` first.
+# This test only supports running in Linux.
 
 from __future__ import absolute_import
 from __future__ import division
@@ -27,7 +28,6 @@ import shutil
 import tensorflow as tf
 
 import inference
-
 
 class InferenceTest(tf.test.TestCase):
 

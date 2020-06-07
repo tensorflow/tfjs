@@ -7,7 +7,7 @@
 # https://opensource.org/licenses/MIT.
 # =============================================================================
 
-cd inference_python/
+cd python/
 
 # Install python env.
 if [[ -z "$(which pip3)" ]]; then
@@ -32,3 +32,5 @@ python inference_test.py
 
 # Clean up virtualenv directory.
 rm -rf "${VENV_DIR}"
+
+cd ..
