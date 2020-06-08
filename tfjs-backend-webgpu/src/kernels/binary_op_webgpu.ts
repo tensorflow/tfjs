@@ -40,6 +40,13 @@ export const INT_DIV = `
 `;
 
 export const PRELU = `return (a < 0.) ? b * a : a;`;
+const CHECK_NAN_SNIPPET = `
+  if (isnan(a)) return a;
+  if (isnan(b)) return b;
+`;
+export const MAX = CHECK_NAN_SNIPPET + `
+  return max(a, b);
+`;
 
 export class BinaryOpProgram implements WebGPUProgram {
   outputShape: number[];

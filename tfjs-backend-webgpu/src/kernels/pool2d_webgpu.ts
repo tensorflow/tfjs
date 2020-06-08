@@ -21,7 +21,7 @@ import {computeDispatch} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
-export class MaxPoolProgram implements WebGPUProgram {
+export class Pool2DProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
   userCode: string;
@@ -35,7 +35,7 @@ export class MaxPoolProgram implements WebGPUProgram {
   workPerThread = 16;
   needsShapesUniforms = true;
 
-  constructor(convInfo: backend_util.Conv2DInfo) {
+  constructor(convInfo: backend_util.Conv2DInfo, poolType: 'max'|'avg') {
     this.outputShape = convInfo.outShape;
 
     this.dispatchLayout = {x: [0, 1], y: [2], z: [3]};
@@ -43,6 +43,13 @@ export class MaxPoolProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [1, 1, this.workPerThread]);
+
+    let updateSnippet = `resultValue[i] = max(value, resultValue[i]);`;
+    if (poolType === 'avg')
+      updateSnippet = `resultValue[i] += value; count[i] += 1.0;`;
+
+    let returnValue = `resultValue[i]`;
+    if (poolType === 'avg') returnValue = `resultValue[i] / count[i]`;
 
     this.userCode = `
       float getValue(int batch, int xR, int xC, int d) {
@@ -60,10 +67,12 @@ export class MaxPoolProgram implements WebGPUProgram {
           int xRCorner = xRCCorner.x;
           int xCCorner = xRCCorner.y;
 
-          float minMaxValue[${this.workPerThread}];
+          float resultValue[${this.workPerThread}];
+          float count[${this.workPerThread}];
           for (int i = 0; i < ${this.workPerThread}; i++)
           {
-            minMaxValue[i] = 0.0;
+            resultValue[i] = 0.0;
+            count[i] = 0.0;
           }
 
           for (int wR = 0; wR < filterDims.y; wR += dilation.y) {
@@ -81,7 +90,7 @@ export class MaxPoolProgram implements WebGPUProgram {
                 if (d < outShape[3])
                 {
                   float value = getValue(batch, xR, xC, d);
-                  minMaxValue[i] = max(value, minMaxValue[i]);
+                  ${updateSnippet}
                 }
                 else
                 {
@@ -95,7 +104,7 @@ export class MaxPoolProgram implements WebGPUProgram {
             int d = coords[3] * ${this.workPerThread} + i;
             if (d < outShape[3])
             {
-              setOutput(batch, coords[1], coords[2], d, minMaxValue[i]);
+              setOutput(batch, coords[1], coords[2], d, ${returnValue});
             }
             else
             {
@@ -105,6 +114,6 @@ export class MaxPoolProgram implements WebGPUProgram {
         }
       }
     `;
-    this.shaderKey = `maxpool${this.workPerThread}`;
+    this.shaderKey = `pool2d${poolType}${this.workPerThread}`;
   }
 }
