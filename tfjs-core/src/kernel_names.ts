@@ -196,6 +196,9 @@ export type DivInputs = BinaryInputs;
 export const Equal = 'Equal';
 export type EqualInputs = BinaryInputs;
 
+export const FloorDiv = 'FloorDiv';
+export type FloorDivInputs = BinaryInputs;
+
 export const Fill = 'Fill';
 export interface FillAttrs {
   shape: number[];

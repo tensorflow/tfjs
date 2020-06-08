@@ -166,67 +166,6 @@ function mulStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
 }
 
 /**
- * Divides two `tf.Tensor`s element-wise, A / B. Supports broadcasting.
- * The result is rounded with floor function.
- *
- *
- * ```js
- * const a = tf.tensor1d([1, 4, 9, 16]);
- * const b = tf.tensor1d([1, 2, 3, 4]);
- *
- * a.floorDiv(b).print();  // or tf.div(a, b)
- * ```
- *
- * ```js
- * // Broadcast div a with b.
- * const a = tf.tensor1d([2, 4, 6, 8]);
- * const b = tf.scalar(2);
- *
- * a.floorDiv(b).print();  // or tf.floorDiv(a, b)
- * ```
- *
- * @param a The first tensor as the numerator.
- * @param b The second tensor as the denominator. Must have the same dtype as
- * `a`.
- */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
-function floorDiv_<T extends Tensor>(
-    a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'floorDiv');
-  let $b = convertToTensor(b, 'b', 'floorDiv');
-  [$a, $b] = makeTypesMatch($a, $b);
-
-  const outShape =
-      broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
-  const der = (dy: Tensor, saved: Tensor[]) => {
-    const [$a, $b] = saved;
-    const derA = () => {
-      const res = dy.div($b.toFloat());
-      const reduceAxes = broadcast_util.getReductionAxes($a.shape, outShape);
-      if (reduceAxes.length > 0) {
-        return res.sum(reduceAxes).reshape($a.shape);
-      }
-      return res;
-    };
-    const derB = () => {
-      let res = dy.mul($a.toFloat());
-      const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
-      if (reduceAxes.length > 0) {
-        res = res.sum(reduceAxes).reshape($b.shape);
-      }
-      const tmp = $b.square();
-      return res.div(tmp.toFloat()).neg();
-    };
-    return {a: derA, b: derB};
-  };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.floorDiv($a, $b);
-    save([$a, $b]);
-    return res;
-  }, {a: $a, b: $b}, der, 'FloorDiv') as T;
-}
-
-/**
  * @deprecated
  * Divides two `tf.Tensor`s element-wise, A / B. Inputs must
  * be the same shape.
@@ -386,7 +325,6 @@ function squaredDifferenceStrict_<T extends Tensor>(
 
 export const addStrict = op({addStrict_});
 export const divStrict = op({divStrict_});
-export const floorDiv = op({floorDiv_});
 export const maximumStrict = op({maximumStrict_});
 export const minimumStrict = op({minimumStrict_});
 export const mod = op({mod_});

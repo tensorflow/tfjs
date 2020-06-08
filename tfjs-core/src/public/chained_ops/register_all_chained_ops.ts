@@ -32,6 +32,7 @@ import './div';
 import './div_no_nan';
 import './dot';
 import './equal';
+import './floorDiv';
 import './greater';
 import './greater_equal';
 import './less';

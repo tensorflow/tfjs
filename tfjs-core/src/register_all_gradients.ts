@@ -29,6 +29,7 @@ import {conv3DGradConfig} from './gradients/Conv3D_grad';
 import {cumsumGradConfig} from './gradients/Cumsum_grad';
 import {depthwiseConv2dNativeGradConfig} from './gradients/DepthwiseConv2dNative_grad';
 import {divGradConfig} from './gradients/Div_grad';
+import {floorDivGradConfig} from './gradients/FloorDiv_grad';
 import {fusedBatchNormGradConfig} from './gradients/FusedBatchNorm_grad';
 import {greaterEqualGradConfig} from './gradients/GreaterEqual_grad';
 import {identityGradConfig} from './gradients/Identity_grad';
@@ -69,6 +70,7 @@ const gradConfigs: GradConfig[] = [
   cumsumGradConfig,
   depthwiseConv2dNativeGradConfig,
   divGradConfig,
+  floorDivGradConfig,
   fusedBatchNormGradConfig,
   greaterEqualGradConfig,
   identityGradConfig,

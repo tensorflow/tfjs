@@ -42,6 +42,7 @@ const CHAINED_OPS = [
   'divNoNan',
   'dot',
   'equal',
+  'floorDiv',
   'greater',
   'greaterEqual',
   'less',
