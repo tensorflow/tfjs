@@ -301,28 +301,27 @@ def _create_saved_model_v2_with_control_flow_v2(save_dir):
                                   tf.TensorSpec([], tf.int32),
                                   tf.TensorSpec([], tf.int32)])
     def control_flow(self, x, y, z):
-        while x < z:
-            while x < y:
-                if z > 0 and y > 0:
-                    x = x + y + z
-                else:
-                    x += 2
+        while x < y:
+            if y > 0:
+                x = x + z
+            else:
+                x += 2
         return x
 
 
   module = CustomModule()
-  print(module.control_flow(1, 2, 10))
+  print(module.control_flow(1, 5, 1))
   tf.saved_model.save(module, save_dir,
                       signatures=module.control_flow)
 
   return {
       "async": False,
       "inputs": {
-          "x": {"value": [1.], "shape": [], "dtype": 'int32'},
-          "y": {"value": [2.], "shape": [], "dtype": 'int32'},
-          "z": {"value": [10.], "shape": [], "dtype": 'int32'}},
+          "x": {"value": [1], "shape": [], "dtype": 'int32'},
+          "y": {"value": [5], "shape": [], "dtype": 'int32'},
+          "z": {"value": [1], "shape": [], "dtype": 'int32'}},
       "outputs": {
-          "Identity:0": {"value": [13.], "shape": [], "dtype": "int32"}}}
+          "Identity:0": {"value": [5], "shape": [], "dtype": "int32"}}}
 
 def main():
   # Create the directory to store model and data.
