@@ -200,6 +200,7 @@ tfjs_cc_library(
         ":Relu6",
         ":ResizeBilinear",
         ":ScatterNd",
+        ":SelectV2",
         ":Sigmoid",
         ":Softmax",
         ":Sub",
@@ -699,6 +700,15 @@ tfjs_unit_test(
 tfjs_cc_library(
     name = "ScatterNd",
     srcs = ["kernels/ScatterNd.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SelectV2",
+    srcs = ["kernels/SelectV2.cc"],
     deps = [
         ":backend",
         ":util",
