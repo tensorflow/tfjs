@@ -25,7 +25,6 @@ import {slice} from './slice';
 import {rfft} from './spectral_ops';
 import {tensor1d, tensor2d} from './tensor_ops';
 
-
 /**
  * Generate a Hann window.
  *

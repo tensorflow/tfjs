@@ -28,7 +28,6 @@ import {op} from './operation';
 import {SELU_SCALE, SELU_SCALEALPHA} from './selu_util';
 import {scalar, zerosLike} from './tensor_ops';
 
-
 /**
  * Computes rectified linear 6 element-wise: `min(max(x, 0), 6)`.
  *
