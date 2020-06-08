@@ -39,9 +39,9 @@ export const atan2GradConfig: GradConfig = {
       let res = mul(dy, div(b, d));
       const reduceAxes = getReductionAxes(a.shape, outShape);
       if (reduceAxes.length > 0) {
-        res = res.sum(reduceAxes);
+        res = sum(res, reduceAxes);
       }
-      return res.reshape(a.shape);
+      return reshape(res, a.shape);
     };
     const derB = () => {
       const d = add(square(a), square(b));
