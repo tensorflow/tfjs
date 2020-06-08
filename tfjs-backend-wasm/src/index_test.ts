@@ -138,4 +138,9 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     expect(() => setWasmPath('too/late'))
         .toThrowError(/The WASM backend was already initialized. Make sure/);
   });
+
+  fit('max with t',
+      async () => {
+
+      });
 });

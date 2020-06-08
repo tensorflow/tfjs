@@ -33,15 +33,30 @@ function max(args: {backend: BackendWasm, inputs: {}, attrs: {}}): TensorInfo {
   const {x} = inputs as MaxInputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
 
-  const origAxes = util.parseAxisParam(reductionIndices, x.shape);
+  const xRank = x.shape.length;
+  const origShape = x.shape;
+  let xShape = origShape;
 
-  backend_util.assertAxesAreInnerMostDims('max', origAxes, x.shape.length);
+  const origAxes = util.parseAxisParam(reductionIndices, xShape);
+  let axes = origAxes;
+  const permutedAxes = backend_util.getAxesPermutation(axes, xRank);
+  if (permutedAxes != null) {
+    const newShape: number[] = new Array(xRank);
+    for (let i = 0; i < newShape.length; i++) {
+      newShape[i] = xShape[permutedAxes[i]];
+    }
+
+    axes = backend_util.getInnerMostAxes(axes.length, xRank);
+    xShape = newShape;
+  }
+
+  backend_util.assertAxesAreInnerMostDims('max', axes, xRank);
   const [outShape, reduceShape] =
-      backend_util.computeOutAndReduceShapes(x.shape, origAxes);
+      backend_util.computeOutAndReduceShapes(xShape, axes);
   const reduceSize = util.sizeFromShape(reduceShape);
 
   const out = backend.makeOutput(outShape, x.dtype);
-  if (util.sizeFromShape(x.shape) === 0) {
+  if (util.sizeFromShape(xShape) === 0) {
     return out;
   }
 
