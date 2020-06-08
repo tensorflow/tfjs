@@ -202,7 +202,6 @@ export interface OpHandler {
   addStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   subStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   powStrict<T extends Tensor>(base: T, exp: Tensor|TensorLike): T;
-  mul<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   mulStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   divStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   modStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
@@ -772,10 +771,6 @@ export class Tensor<R extends Rank = Rank> {
   powStrict(exp: Tensor|TensorLike): Tensor<R> {
     this.throwIfDisposed();
     return opHandler.powStrict(this, exp);
-  }
-  mul<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.mul(this, x);
   }
   /**
    * @deprecated strict variants of ops have been deprecated

@@ -318,6 +318,9 @@ export type MinimumInputs = BinaryInputs;
 export const Mod = 'Mod';
 export type ModInputs = BinaryInputs;
 
+export const Multiply = 'Multiply';
+export type MultiplyInputs = BinaryInputs;
+
 export const NotEqual = 'NotEqual';
 export type NotEqualInputs = BinaryInputs;
 

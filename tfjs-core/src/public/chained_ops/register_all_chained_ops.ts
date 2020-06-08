@@ -44,6 +44,7 @@ import './max_pool';
 import './maximum';
 import './minimum';
 import './mod';
+import './mul';
 import './not_equal';
 import './one_hot';
 import './pad';

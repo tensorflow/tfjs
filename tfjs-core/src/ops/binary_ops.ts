@@ -15,15 +15,11 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../engine';
 import {deprecationWarn} from '../globals';
 import {Tensor} from '../tensor';
-import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
-
-import * as broadcast_util from './broadcast_util';
 import {op} from './operation';
 
 /**
@@ -86,65 +82,6 @@ function powStrict_<T extends Tensor>(base: T, exp: Tensor): T {
 }
 
 /**
- * Multiplies two `tf.Tensor`s element-wise, A * B. Supports broadcasting.
- *
- * We also expose `tf.mulStrict` which has the same signature as this op and
- * asserts that `a` and `b` are the same shape (does not broadcast).
- *
- * ```js
- * const a = tf.tensor1d([1, 2, 3, 4]);
- * const b = tf.tensor1d([2, 3, 4, 5]);
- *
- * a.mul(b).print();  // or tf.mul(a, b)
- * ```
- *
- * ```js
- * // Broadcast mul a with b.
- * const a = tf.tensor1d([1, 2, 3, 4]);
- * const b = tf.scalar(5);
- *
- * a.mul(b).print();  // or tf.mul(a, b)
- * ```
- * @param a The first tensor to multiply.
- * @param b The second tensor to multiply. Must have the same dtype as `a`.
- */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
-function mul_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'mul');
-  let $b = convertToTensor(b, 'b', 'mul');
-  [$a, $b] = makeTypesMatch($a, $b);
-
-  const outShape =
-      broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
-
-  const der = (dy: Tensor, saved: Tensor[]) => {
-    const [$a, $b] = saved;
-    const derA = () => {
-      const res = dy.mul($b.toFloat());
-      const reduceAxes = broadcast_util.getReductionAxes($a.shape, outShape);
-      if (reduceAxes.length > 0) {
-        return res.sum(reduceAxes).reshape($a.shape);
-      }
-      return res;
-    };
-    const derB = () => {
-      const res = dy.mul($a.toFloat());
-      const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
-      if (reduceAxes.length > 0) {
-        return res.sum(reduceAxes).reshape($b.shape);
-      }
-      return res;
-    };
-    return {a: derA, b: derB};
-  };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.multiply($a, $b);
-    save([$a, $b]);
-    return res;
-  }, {a: $a, b: $b}, der, 'Mul') as T;
-}
-
-/**
  * @deprecated
  * Multiplies two `tf.Tensor`s element-wise, A * B.
  *
@@ -183,8 +120,6 @@ function divStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
   util.assertShapesMatch($a.shape, $b.shape, 'Error in divideStrict: ');
   return $a.div($b);
 }
-
-
 
 /**
  * @deprecated
@@ -274,5 +209,3 @@ export const mulStrict = op({mulStrict_});
 export const powStrict = op({powStrict_});
 export const squaredDifferenceStrict = op({squaredDifferenceStrict_});
 export const subStrict = op({subStrict_});
-
-export const mul = op({mul_});
