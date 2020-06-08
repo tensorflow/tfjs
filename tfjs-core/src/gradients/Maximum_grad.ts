@@ -18,9 +18,9 @@
 import {Maximum} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import {cast} from '../ops/array_ops';
-import {mul} from '../ops/binary_ops';
 import {greaterEqual} from '../ops/greater_equal';
 import {less} from '../ops/less';
+import {mul} from '../ops/mul';
 import {Tensor} from '../tensor';
 
 export const maximumGradConfig: GradConfig = {

@@ -15,40 +15,34 @@
  * =============================================================================
  */
 
-import {Div} from '../kernel_names';
+import {Multiply} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {reshape} from '../ops/array_ops';
-import * as broadcast_util from '../ops/broadcast_util';
-import {div} from '../ops/div';
-import {mul} from '../ops/mul';
-import {sum} from '../ops/reduction_ops';
-import {square} from '../ops/square';
-import {neg} from '../ops/unary_ops';
+import {assertAndGetBroadcastShape, getReductionAxes} from '../ops/broadcast_util';
 import {Tensor} from '../tensor';
 
-export const divGradConfig: GradConfig = {
-  kernelName: Div,
+export const multiplyGradConfig: GradConfig = {
+  kernelName: Multiply,
   inputsToSave: ['a', 'b'],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
     const [a, b] = saved;
-    const outShape =
-        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    const outShape = assertAndGetBroadcastShape(a.shape, b.shape);
+
+    const [$a, $b] = saved;
     const derA = () => {
-      const res = div(dy, b.toFloat());
-      const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
+      const res = dy.mul($b.toFloat());
+      const reduceAxes = getReductionAxes($a.shape, outShape);
       if (reduceAxes.length > 0) {
-        return sum(res, reduceAxes).reshape(a.shape);
+        return res.sum(reduceAxes).reshape($a.shape);
       }
       return res;
     };
     const derB = () => {
-      let res = mul(dy, a.toFloat());
-      const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
+      const res = dy.mul($a.toFloat());
+      const reduceAxes = getReductionAxes($b.shape, outShape);
       if (reduceAxes.length > 0) {
-        res = reshape(sum(res, reduceAxes), b.shape);
+        return res.sum(reduceAxes).reshape($b.shape);
       }
-      const tmp = square(b);
-      return neg(div(res, tmp.toFloat()));
+      return res;
     };
     return {a: derA, b: derB};
   }

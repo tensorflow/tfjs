@@ -20,13 +20,14 @@ import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
-import {mul} from './binary_ops';
 import {getReductionAxes} from './broadcast_util';
 import {where} from './logical_ops';
 import {maximum} from './maximum';
+import {mul} from './mul';
 import {op} from './operation';
 import {SELU_SCALE, SELU_SCALEALPHA} from './selu_util';
 import {scalar, zerosLike} from './tensor_ops';
+
 
 /**
  * Computes rectified linear 6 element-wise: `min(max(x, 0), 6)`.
