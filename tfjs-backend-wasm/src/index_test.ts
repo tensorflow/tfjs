@@ -138,4 +138,13 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     expect(() => setWasmPath('too/late'))
         .toThrowError(/The WASM backend was already initialized. Make sure/);
   });
+
+  it('evaluating async flag works', async () => {
+    const hasSimdSupport = await tf.env().getAsync('WASM_HAS_SIMD_SUPPORT');
+    expect(typeof hasSimdSupport).toBe('boolean');
+  });
+
+  it('evaluating async flag synchronously fails', async () => {
+    expect(() => tf.env().get('WASM_HAS_SIMD_SUPPORT')).toThrow();
+  });
 });
