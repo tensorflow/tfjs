@@ -24,7 +24,6 @@ import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
 import {ArgMinMaxProgram} from './kernels/argminmax_webgpu';
-import {BinaryOpSharedProgram} from './kernels/binary_op_shared_webgpu';
 import {BinaryOpProgram} from './kernels/binary_op_webgpu';
 import * as binary_op from './kernels/binary_ops';
 import {ClipProgram} from './kernels/clip_webgpu';
@@ -596,18 +595,7 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   private binaryOp(a: Tensor, b: Tensor, op: string): Tensor {
-    let program: BinaryOpProgram|BinaryOpSharedProgram;
-    const useSharedMemoryWithA =
-        a.shape.length === 1 && b.shape.length > 1 && a.shape[0] < 2048;
-    const useSharedMemoryWithB =
-        b.shape.length === 1 && a.shape.length > 1 && b.shape[0] < 2048;
-    if (useSharedMemoryWithA || useSharedMemoryWithB) {
-      program =
-          new BinaryOpSharedProgram(op, a.shape, b.shape, useSharedMemoryWithB);
-    } else {
-      program = new BinaryOpProgram(op, a.shape, b.shape);
-    }
-
+    const program = binary_op.getBinaryProgram(op, a.shape, b.shape);
     const dtype = backend_util.upcastType(a.dtype, b.dtype);
     const dataId = this.write(null /*values*/, program.outputShape, dtype);
     const output =

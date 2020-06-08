@@ -22,25 +22,6 @@ import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
-export const MUL = 'return a * b;';
-export const ADD = 'return a + b;';
-export const SUB = 'return a - b;';
-export const DIV = 'return a / b;';
-export const GREATER = 'return float(a > b);';
-export const GREATER_EQUAL = 'return float(a >= b);';
-export const LESS = `return float(a < b);`;
-export const LESS_EQUAL = `return float(a <= b);`;
-export const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
-
-export const INT_DIV = `
-  float s = sign(a) * sign(b);
-  int ia = int(round(a));
-  int ib = int(round(b));
-  return float(idiv(ia, ib, s));
-`;
-
-export const PRELU = `return (a < 0.) ? b * a : a;`;
-
 export class BinaryOpProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;

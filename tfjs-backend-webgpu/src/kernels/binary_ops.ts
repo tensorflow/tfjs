@@ -15,6 +15,9 @@
  * =============================================================================
  */
 
+import {BinaryOpSharedProgram} from './binary_op_shared_webgpu';
+import {BinaryOpProgram} from './binary_op_webgpu';
+
 export const MUL = 'return a * b;';
 export const ADD = 'return a + b;';
 export const SUB = 'return a - b;';
@@ -33,3 +36,16 @@ export const INT_DIV = `
 `;
 
 export const PRELU = `return (a < 0.) ? b * a : a;`;
+
+export function getBinaryProgram(op: string, aShape: number[], bShape: number[])
+{
+  const useSharedMemoryWithA =
+      aShape.length === 1 && bShape.length > 1 && aShape[0] < 2048;
+  const useSharedMemoryWithB =
+      bShape.length === 1 && aShape.length > 1 && bShape[0] < 2048;
+  if (useSharedMemoryWithA || useSharedMemoryWithB) {
+    return new BinaryOpSharedProgram(op, aShape, bShape, useSharedMemoryWithB);
+  } else {
+    return new BinaryOpProgram(op, aShape, bShape);
+  }
+}
