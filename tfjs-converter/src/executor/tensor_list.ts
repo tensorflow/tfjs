@@ -191,18 +191,19 @@ export class TensorList {
   /**
    * Return selected values in the TensorList as a packed Tensor. All of
    * selected values must have been written and their shapes must all match.
-   * @param indices
-   * @param dtype
-   * @param shape
+   * @param indices indices of tensors to gather
+   * @param elementDtype output tensor dtype
+   * @param elementShape output tensor element shape
    */
-  gather(indices: number[], elementDtype: DataType, shape: number[]): Tensor {
+  gather(indices: number[], elementDtype: DataType, elementShape: number[]):
+      Tensor {
     if (elementDtype !== this.elementDtype) {
       throw new Error(`Invalid data types; op elements ${
           elementDtype}, but list elements ${this.elementDtype}`);
     }
 
     assertShapesMatchAllowUndefinedSize(
-        this.elementShape, shape, 'TensorList shape mismatch: ');
+        this.elementShape, elementShape, 'TensorList shape mismatch: ');
 
     indices = indices.slice(0, this.size());
 
@@ -211,29 +212,31 @@ export class TensorList {
     }
 
     return tidy(() => {
-      const tensors = indices.map(i => this.tensors[i].reshape(shape));
+      const tensors = indices.map(i => this.tensors[i].reshape(elementShape));
       return stack(tensors, 0);
     });
   }
 
   /**
    * Return the values in the TensorList as a concatenated Tensor.
+   * @param elementDtype output tensor dtype
+   * @param elementShape output tensor element shape
    */
-  concat(dtype: DataType, shape: number[]): Tensor {
-    if (!!dtype && dtype !== this.elementDtype) {
+  concat(elementDtype: DataType, elementShape: number[]): Tensor {
+    if (!!elementDtype && elementDtype !== this.elementDtype) {
       throw new Error(`TensorList dtype is ${
-          this.elementDtype} but concat requested dtype ${dtype}`);
+          this.elementDtype} but concat requested dtype ${elementDtype}`);
     }
 
     assertShapesMatchAllowUndefinedSize(
-        this.elementShape, shape, 'TensorList shape mismatch: ');
+        this.elementShape, elementShape, 'TensorList shape mismatch: ');
 
     if (this.size() === 0) {
       return tensor([], [0].concat(this.elementShape));
     }
 
     return tidy(() => {
-      const tensors = this.tensors.map(t => t.reshape(shape));
+      const tensors = this.tensors.map(t => t.reshape(elementShape));
       return concat(tensors, 0);
     });
   }
@@ -241,10 +244,10 @@ export class TensorList {
 
 /**
  * Creates a TensorList which, when stacked, has the value of tensor.
- * @param tensor
- * @param shape
+ * @param tensor from tensor
+ * @param elementShape output tensor element shape
  */
-export function fromTensor(tensor: Tensor, shape: number[]) {
+export function fromTensor(tensor: Tensor, elementShape: number[]) {
   const dtype = tensor.dtype;
   if (tensor.shape.length < 1) {
     throw new Error(
@@ -253,14 +256,14 @@ export function fromTensor(tensor: Tensor, shape: number[]) {
 
   const outputShape = tensor.shape.slice(1);
   assertShapesMatchAllowUndefinedSize(
-      outputShape, shape, 'TensorList shape mismatch: ');
+      outputShape, elementShape, 'TensorList shape mismatch: ');
 
   const tensorList: Tensor[] = [];
   for (let i = 0; i < tensor.shape[0]; ++i) {
     const tmp = tensor.slice(i, i + 1).reshape(outputShape);
     tensorList.push(tmp);
   }
-  return new TensorList(tensorList, shape, dtype);
+  return new TensorList(tensorList, elementShape, dtype);
 }
 
 /**
@@ -280,6 +283,8 @@ export function reserve(
  * @param indices nummber[] values in [0, max_value). If the
  *    TensorList is not dynamic, max_value=size().
  * @param tensor Tensor input tensor.
+ * @param elementShape the shape of the future elements of the list
+ * @param numElements the number of elements to scatter
  */
 export function scatter(
     tensor: Tensor, indices: number[], elementShape: number[],
@@ -309,6 +314,7 @@ export function scatter(
  * @param length number[] with the lengths to use when splitting value along
  *    its first dimension.
  * @param tensor Tensor, the tensor to split.
+ * @param elementShape the shape of the future elements of the list
  */
 export function split(
     tensor: Tensor, length: number[], elementShape: number[]) {
