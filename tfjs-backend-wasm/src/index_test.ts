@@ -145,6 +145,8 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
   });
 
   it('evaluating async flag synchronously fails', async () => {
-    expect(() => tf.env().get('WASM_HAS_SIMD_SUPPORT')).toThrow();
+    expect(() => tf.env().get('WASM_HAS_SIMD_SUPPORT'))
+        .toThrowError(
+            /WASM_HAS_SIMD_SUPPORT cannot be synchronously evaluated./);
   });
 });
