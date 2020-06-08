@@ -19,6 +19,7 @@ import {backend_util, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-c
 import {Max, MaxAttrs, MaxInputs} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+import {transpose} from './Transpose';
 
 let wasmMax: (xId: number, reduceSize: number, outId: number) => void;
 
@@ -33,9 +34,9 @@ function max(args: {backend: BackendWasm, inputs: {}, attrs: {}}): TensorInfo {
   const {x} = inputs as MaxInputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
 
+  let xShape = x.shape;
   const xRank = x.shape.length;
-  const origShape = x.shape;
-  let xShape = origShape;
+  const xVals = backend.typedArrayFromHeap(x);
 
   const origAxes = util.parseAxisParam(reductionIndices, xShape);
   let axes = origAxes;
@@ -47,6 +48,11 @@ function max(args: {backend: BackendWasm, inputs: {}, attrs: {}}): TensorInfo {
     }
 
     axes = backend_util.getInnerMostAxes(axes.length, xRank);
+    const xTransposed =
+        transpose({inputs: {x}, attrs: {perm: permutedAxes}, backend});
+    const xTransposedVals = backend.typedArrayFromHeap(xTransposed);
+    xVals.set(xTransposedVals, 0);
+
     xShape = newShape;
   }
 

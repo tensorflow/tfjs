@@ -73,8 +73,8 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     }, 100);
 
     // Silences backend registration warnings.
-    spyOn(console, 'warn');
-    spyOn(console, 'log');
+    // spyOn(console, 'warn');
+    // spyOn(console, 'log');
   });
 
   afterEach(() => {
@@ -139,8 +139,13 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
         .toThrowError(/The WASM backend was already initialized. Make sure/);
   });
 
-  fit('max with t',
-      async () => {
+  fit('max with t', async () => {
+    const a = tf.tensor2d([3, -1, 0, 100, -7, 2], [2, 3]);
+    const r = tf.max(a, [0]);
 
-      });
+    expect(r.shape).toEqual([3]);
+    const data = await r.data();
+    console.log(data);
+    // expectArraysClose(await r.data(), [100, -1, 2]);
+  });
 });
