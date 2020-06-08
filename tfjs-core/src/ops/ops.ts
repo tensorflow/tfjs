@@ -18,6 +18,7 @@
 // Modularized ops.
 export {add} from './add';
 export {addN} from './add_n';
+export {atan2} from './atan2';
 export {avgPool} from './avg_pool';
 export {avgPool3d} from './avg_pool_3d';
 export {batchToSpaceND} from './batch_to_space_nd';

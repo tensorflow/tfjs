@@ -200,7 +200,6 @@ export interface OpHandler {
   argMin<T extends Tensor>(x: Tensor, axis: number): T;
   argMax<T extends Tensor>(x: Tensor, axis: number): T;
   addStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  atan2<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   subStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   powStrict<T extends Tensor>(base: T, exp: Tensor|TensorLike): T;
   mul<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
@@ -761,10 +760,6 @@ export class Tensor<R extends Rank = Rank> {
   addStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.addStrict(this, x);
-  }
-  atan2<T extends this>(this: T, x: T|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.atan2(this, x);
   }
   /**
    * @deprecated strict variants of ops have been deprecated

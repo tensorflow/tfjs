@@ -27,6 +27,9 @@ export type AddInputs = BinaryInputs;
 export const AddN = 'AddN';
 export type AddNInputs = TensorInfo[];
 
+export const Atan2 = 'Atan2';
+export type Atan2Inputs = BinaryInputs;
+
 export const AvgPool = 'AvgPool';
 export type AvgPoolInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface AvgPoolAttrs {

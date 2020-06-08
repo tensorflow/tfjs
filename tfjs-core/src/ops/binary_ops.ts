@@ -23,10 +23,8 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {add} from './add';
 import * as broadcast_util from './broadcast_util';
 import {op} from './operation';
-import {neg} from './unary_ops';
 
 /**
  * @deprecated
@@ -386,62 +384,7 @@ function squaredDifferenceStrict_<T extends Tensor>(
   return $a.squaredDifference($b);
 }
 
-/**
- * Computes arctangent of `tf.Tensor`s a / b element-wise: `atan2(a, b)`.
- * Supports broadcasting.
- *
- * ```js
- * const a = tf.tensor1d([1.0, 1.0, -1.0, .7]);
- * const b = tf.tensor1d([2.0, 13.0, 3.5, .21]);
- *
- * tf.atan2(a, b).print()
- * ```
- *
- * @param a The first tensor.
- * @param b The second tensor. Must have the same dtype as `a`.
- *
- */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
-function atan2_<T extends Tensor>(
-    a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'atan2');
-  let $b = convertToTensor(b, 'b', 'atan2');
-  [$a, $b] = makeTypesMatch($a, $b);
-
-  const outShape =
-      broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
-
-  const der = (dy: Tensor, saved: Tensor[]) => {
-    const [$a, $b] = saved;
-    const derA = () => {
-      const d = add($a.square(), $b.square());
-      let res = dy.mul($b.div(d));
-      const reduceAxes = broadcast_util.getReductionAxes($a.shape, outShape);
-      if (reduceAxes.length > 0) {
-        res = res.sum(reduceAxes);
-      }
-      return res.reshape($a.shape);
-    };
-    const derB = () => {
-      const d = add($a.square(), $b.square());
-      let res = neg(dy.mul($a.div(d)));
-      const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
-      if (reduceAxes.length > 0) {
-        res = res.sum(reduceAxes);
-      }
-      return res.reshape($b.shape);
-    };
-    return {$a: derA, $b: derB};
-  };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.atan2($a, $b);
-    save([$a, $b]);
-    return res;
-  }, {$a, $b}, der) as T;
-}
-
 export const addStrict = op({addStrict_});
-export const atan2 = op({atan2_});
 export const divStrict = op({divStrict_});
 export const floorDiv = op({floorDiv_});
 export const maximumStrict = op({maximumStrict_});

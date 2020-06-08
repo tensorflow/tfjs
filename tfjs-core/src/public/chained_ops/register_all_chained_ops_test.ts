@@ -25,6 +25,7 @@ import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
 
 const CHAINED_OPS = [
   'add',
+  'atan2',
   'avgPool',
   'batchNorm',
   'batchToSpaceND',
