@@ -63,6 +63,7 @@ export {maxPool3d} from './max_pool_3d';
 export {maxPoolWithArgmax} from './max_pool_with_argmax';
 export {maximum} from './maximum';
 export {minimum} from './minimum';
+export {mod} from './mod';
 export {multinomial} from './multinomial';
 export {notEqual} from './not_equal';
 export {oneHot} from './one_hot';

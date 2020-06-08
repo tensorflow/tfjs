@@ -53,6 +53,7 @@ const CHAINED_OPS = [
   'maximum',
   'maxPool',
   'minimum',
+  'mod',
   'notEqual',
   'oneHot',
   'pad',

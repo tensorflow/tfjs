@@ -184,65 +184,7 @@ function divStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
   return $a.div($b);
 }
 
-/**
- * Returns the mod of a and b element-wise.
- * `floor(x / y) * y + mod(x, y) = x`
- * Supports broadcasting.
- *
- * We also expose `tf.modStrict` which has the same signature as this op and
- * asserts that `a` and `b` are the same shape (does not broadcast).
- *
- * ```js
- * const a = tf.tensor1d([1, 4, 3, 16]);
- * const b = tf.tensor1d([1, 2, 9, 4]);
- *
- * a.mod(b).print();  // or tf.mod(a, b)
- * ```
- *
- * ```js
- * // Broadcast a mod b.
- * const a = tf.tensor1d([2, 4, 6, 8]);
- * const b = tf.scalar(5);
- *
- * a.mod(b).print();  // or tf.mod(a, b)
- * ```
- *
- * @param a The first tensor.
- * @param b The second tensor. Must have the same type as `a`.
- */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
-function mod_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'mod');
-  let $b = convertToTensor(b, 'b', 'mod');
-  [$a, $b] = makeTypesMatch($a, $b);
 
-  const outShape =
-      broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
-  const der = (dy: Tensor, saved: Tensor[]) => {
-    const [$a, $b] = saved;
-    const derA = () => {
-      const reduceAxes = broadcast_util.getReductionAxes($a.shape, outShape);
-      if (reduceAxes.length > 0) {
-        return dy.sum(reduceAxes).reshape($a.shape);
-      }
-      return dy;
-    };
-    const derB = () => {
-      const res = dy.mul($a.div($b).floor().neg());
-      const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
-      if (reduceAxes.length > 0) {
-        return res.sum(reduceAxes).reshape($b.shape);
-      }
-      return res;
-    };
-    return {$a: derA, $b: derB};
-  };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.mod($a, $b);
-    save([$a, $b]);
-    return res;
-  }, {$a, $b}, der) as T;
-}
 
 /**
  * @deprecated
@@ -327,10 +269,10 @@ export const addStrict = op({addStrict_});
 export const divStrict = op({divStrict_});
 export const maximumStrict = op({maximumStrict_});
 export const minimumStrict = op({minimumStrict_});
-export const mod = op({mod_});
 export const modStrict = op({modStrict_});
-export const mul = op({mul_});
 export const mulStrict = op({mulStrict_});
 export const powStrict = op({powStrict_});
 export const squaredDifferenceStrict = op({squaredDifferenceStrict_});
 export const subStrict = op({subStrict_});
+
+export const mul = op({mul_});
