@@ -17,7 +17,7 @@
 
 import {KernelConfig, SquaredDifference, SquaredDifferenceInputs, Tensor} from '@tensorflow/tfjs-core';
 import {WebGPUBackend} from '../backend_webgpu';
-import {BinaryOpProgram, SQUARED_DIFFERENCE} from './binary_op_webgpu';
+import * as binary_op from './binary_ops';
 
 export const squaredDifferenceConfig: KernelConfig = {
   kernelName: SquaredDifference,
@@ -26,7 +26,8 @@ export const squaredDifferenceConfig: KernelConfig = {
     const {a, b} = inputs as SquaredDifferenceInputs;
     const webGPUBackend = backend as WebGPUBackend;
 
-    const program = new BinaryOpProgram(SQUARED_DIFFERENCE, a.shape, b.shape);
+    const program = binary_op.getBinaryProgram(
+        binary_op.SQUARED_DIFFERENCE, a.shape, b.shape);
     return webGPUBackend.compileAndRun(program, [a as Tensor, b as Tensor]);
   }
 };

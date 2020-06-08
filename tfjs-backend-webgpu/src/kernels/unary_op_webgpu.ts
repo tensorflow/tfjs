@@ -42,13 +42,14 @@ export class UnaryOpProgram implements WebGPUProgram {
   needsShapesUniforms = true;
 
   constructor(outputShape: number[], op: string) {
-    const workGroupSizeX = 16;
+    // TODO(jiajia.qin@intel.com): Heuristically select a good work group size.
+    const workGroupSizeX = 128;
     this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = outputShape;
     const size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     const fit = size % workGroupSizeX === 0;
-    this.workPerThread = fit ? 1 : 4;
+    this.workPerThread = fit ? 1 : 2;
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
