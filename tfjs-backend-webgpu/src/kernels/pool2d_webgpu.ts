@@ -45,11 +45,14 @@ export class Pool2DProgram implements WebGPUProgram {
         [1, 1, this.workPerThread]);
 
     let updateSnippet = `resultValue[i] = max(value, resultValue[i]);`;
-    if (poolType === 'avg')
+    if (poolType === 'avg') {
       updateSnippet = `resultValue[i] += value; count[i] += 1.0;`;
+    }
 
     let returnValue = `resultValue[i]`;
-    if (poolType === 'avg') returnValue = `resultValue[i] / count[i]`;
+    if (poolType === 'avg') {
+      returnValue = `resultValue[i] / count[i]`;
+    }
 
     this.userCode = `
       float getValue(int batch, int xR, int xC, int d) {
