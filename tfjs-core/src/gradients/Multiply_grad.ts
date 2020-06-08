@@ -17,7 +17,10 @@
 
 import {Multiply} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
+import {cast, reshape} from '../ops/array_ops';
 import {assertAndGetBroadcastShape, getReductionAxes} from '../ops/broadcast_util';
+import {mul} from '../ops/mul';
+import {sum} from '../ops/reduction_ops';
 import {Tensor} from '../tensor';
 
 export const multiplyGradConfig: GradConfig = {
@@ -27,20 +30,19 @@ export const multiplyGradConfig: GradConfig = {
     const [a, b] = saved;
     const outShape = assertAndGetBroadcastShape(a.shape, b.shape);
 
-    const [$a, $b] = saved;
     const derA = () => {
-      const res = dy.mul($b.toFloat());
-      const reduceAxes = getReductionAxes($a.shape, outShape);
+      const res = mul(dy, cast(b, 'float32'));
+      const reduceAxes = getReductionAxes(a.shape, outShape);
       if (reduceAxes.length > 0) {
-        return res.sum(reduceAxes).reshape($a.shape);
+        return reshape(sum(res, reduceAxes), a.shape);
       }
       return res;
     };
     const derB = () => {
-      const res = dy.mul($a.toFloat());
-      const reduceAxes = getReductionAxes($b.shape, outShape);
+      const res = mul(dy, cast(a, 'float32'));
+      const reduceAxes = getReductionAxes(b.shape, outShape);
       if (reduceAxes.length > 0) {
-        return res.sum(reduceAxes).reshape($b.shape);
+        return reshape(sum(res, reduceAxes), b.shape);
       }
       return res;
     };

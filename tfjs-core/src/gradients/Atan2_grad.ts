@@ -18,7 +18,12 @@
 import {Atan2} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import {add} from '../ops/add';
+import {reshape} from '../ops/array_ops';
 import {assertAndGetBroadcastShape, getReductionAxes} from '../ops/broadcast_util';
+import {div} from '../ops/div';
+import {mul} from '../ops/mul';
+import {sum} from '../ops/reduction_ops';
+import {square} from '../ops/square';
 import {neg} from '../ops/unary_ops';
 import {Tensor} from '../tensor';
 
@@ -30,8 +35,8 @@ export const atan2GradConfig: GradConfig = {
     const outShape = assertAndGetBroadcastShape(a.shape, b.shape);
 
     const derA = () => {
-      const d = add(a.square(), b.square());
-      let res = dy.mul(b.div(d));
+      const d = add(square(a), square(b));
+      let res = mul(dy, div(b, d));
       const reduceAxes = getReductionAxes(a.shape, outShape);
       if (reduceAxes.length > 0) {
         res = res.sum(reduceAxes);
@@ -39,13 +44,13 @@ export const atan2GradConfig: GradConfig = {
       return res.reshape(a.shape);
     };
     const derB = () => {
-      const d = add(a.square(), b.square());
-      let res = neg(dy.mul(a.div(d)));
+      const d = add(square(a), square(b));
+      let res = neg(mul(dy, div(a, d)));
       const reduceAxes = getReductionAxes(b.shape, outShape);
       if (reduceAxes.length > 0) {
-        res = res.sum(reduceAxes);
+        res = sum(res, reduceAxes);
       }
-      return res.reshape(b.shape);
+      return reshape(res, b.shape);
     };
     return {a: derA, b: derB};
   }

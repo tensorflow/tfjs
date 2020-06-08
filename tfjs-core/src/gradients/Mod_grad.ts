@@ -17,7 +17,12 @@
 
 import {Mod} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
+import {reshape} from '../ops/array_ops';
 import {assertAndGetBroadcastShape, getReductionAxes} from '../ops/broadcast_util';
+import {div} from '../ops/div';
+import {mul} from '../ops/mul';
+import {sum} from '../ops/reduction_ops';
+import {floor, neg} from '../ops/unary_ops';
 import {Tensor} from '../tensor';
 
 export const modGradConfig: GradConfig = {
@@ -30,15 +35,15 @@ export const modGradConfig: GradConfig = {
     const derA = () => {
       const reduceAxes = getReductionAxes(a.shape, outShape);
       if (reduceAxes.length > 0) {
-        return dy.sum(reduceAxes).reshape(a.shape);
+        return reshape(sum(dy, reduceAxes), a.shape);
       }
       return dy;
     };
     const derB = () => {
-      const res = dy.mul(a.div(b).floor().neg());
+      const res = mul(dy, neg(floor(div(a, b))));
       const reduceAxes = getReductionAxes(b.shape, outShape);
       if (reduceAxes.length > 0) {
-        return res.sum(reduceAxes).reshape(b.shape);
+        return reshape(sum(res, reduceAxes), b.shape);
       }
       return res;
     };
