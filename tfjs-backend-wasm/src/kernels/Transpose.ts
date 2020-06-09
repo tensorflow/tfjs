@@ -44,6 +44,16 @@ function setup(backend: BackendWasm) {
   ]);
 }
 
+export function getPermIsNoOp(perm: number[]): boolean {
+  let permIsNoOp = true;
+  for (let i = 0; i < perm.length; i++) {
+    if (perm[i] !== i) {
+      permIsNoOp = false;
+    }
+  }
+  return permIsNoOp;
+}
+
 export function transpose(
     args:
         {inputs: TransposeInputs, backend: BackendWasm, attrs: TransposeAttrs}):
@@ -57,12 +67,7 @@ export function transpose(
     shape: reducedShape,
     dtype: inputs.x.dtype
   };
-  let permIsNoOp = true;
-  for (let i = 0; i < perm.length; i++) {
-    if (perm[i] !== i) {
-      permIsNoOp = false;
-    }
-  }
+  const permIsNoOp = getPermIsNoOp(perm);
   const outShape = computeOutShape(inputs.x.shape, attrs.perm);
   if (permIsNoOp) {
     return {dataId: x.dataId, shape: outShape, dtype: x.dtype};
