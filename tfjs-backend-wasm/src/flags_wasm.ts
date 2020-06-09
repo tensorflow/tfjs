@@ -15,19 +15,16 @@
  * =============================================================================
  */
 
-import {KernelConfig, SquaredDifference, SquaredDifferenceInputs, Tensor} from '@tensorflow/tfjs-core';
-import {WebGPUBackend} from '../backend_webgpu';
-import * as binary_op from './binary_ops';
+import {env} from '@tensorflow/tfjs-core';
 
-export const squaredDifferenceConfig: KernelConfig = {
-  kernelName: SquaredDifference,
-  backendName: 'webgpu',
-  kernelFunc: ({inputs, backend}) => {
-    const {a, b} = inputs as SquaredDifferenceInputs;
-    const webGPUBackend = backend as WebGPUBackend;
+const ENV = env();
 
-    const program = binary_op.getBinaryProgram(
-        binary_op.SQUARED_DIFFERENCE, a.shape, b.shape);
-    return webGPUBackend.compileAndRun(program, [a as Tensor, b as Tensor]);
-  }
-};
+/**
+ * True if SIMD is supported.
+ */
+// From: https://github.com/GoogleChromeLabs/wasm-feature-detect
+ENV.registerFlag(
+    'WASM_HAS_SIMD_SUPPORT', async () => WebAssembly.validate(new Uint8Array([
+      0, 97, 115, 109, 1, 0, 0, 0, 1,  4, 1,   96, 0,  0, 3,
+      2, 1,  0,   10,  9, 1, 7, 0, 65, 0, 253, 15, 26, 11
+    ])));

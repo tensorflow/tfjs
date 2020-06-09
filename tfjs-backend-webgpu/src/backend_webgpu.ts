@@ -19,13 +19,13 @@
 
 import './flags_webgpu';
 
-import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, slice_util, sumOutType, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorInfo, TimingInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataStorage, DataType, div, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, slice_util, sumOutType, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorInfo, TimingInfo, util} from '@tensorflow/tfjs-core';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
 import {ArgMinMaxProgram} from './kernels/argminmax_webgpu';
-import * as binary_op from './kernels/binary_op_webgpu';
 import {BinaryOpProgram} from './kernels/binary_op_webgpu';
+import * as binary_op from './kernels/binary_ops';
 import {ClipProgram} from './kernels/clip_webgpu';
 import {ConcatProgram} from './kernels/concat_webgpu';
 import {Conv2DMMProgram} from './kernels/conv2d_mm_webgpu';
@@ -37,8 +37,8 @@ import {Im2ColProgram} from './kernels/im2col_webgpu';
 import {MatMulPackedProgram} from './kernels/matmul_packed_webgpu';
 import {MatMulProgram} from './kernels/matmul_webgpu';
 import {MaxPoolWithFilterSizeEqualsOneProgram} from './kernels/maxpool_filtersizeone_webgpu';
-import {MaxPoolProgram} from './kernels/maxpool_webgpu';
 import {PadProgram} from './kernels/pad_webgpu';
+import {Pool2DProgram} from './kernels/pool2d_webgpu';
 import {ReduceProgram} from './kernels/reduce_webgpu';
 import {ResizeBilinearProgram} from './kernels/resize_bilinear_webgpu';
 import {SelectProgram} from './kernels/select_webgpu';
@@ -572,12 +572,33 @@ export class WebGPUBackend extends KernelBackend {
     return this.compileAndRun(program, [x], output);
   }
 
-  maxPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
-    let program: MaxPoolProgram|MaxPoolWithFilterSizeEqualsOneProgram;
+  avgPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
+    let program: Pool2DProgram|MaxPoolWithFilterSizeEqualsOneProgram;
     if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1) {
       program = new MaxPoolWithFilterSizeEqualsOneProgram(convInfo);
     } else {
-      program = new MaxPoolProgram(convInfo);
+      program = new Pool2DProgram(convInfo, 'avg');
+    }
+
+    const output = this.makeOutputArray(program.outputShape, x.dtype);
+
+    const dimensions = [
+      convInfo.padInfo.left, convInfo.padInfo.top,      // Padding.
+      convInfo.strideWidth, convInfo.strideHeight,      // Stride.
+      convInfo.dilationWidth, convInfo.dilationHeight,  // Dilation.
+      convInfo.inWidth, convInfo.inHeight,              // Conv dims.
+      convInfo.effectiveFilterWidth,
+      convInfo.effectiveFilterHeight  // Filter dims.
+    ];
+    return this.compileAndRun(program, [x], output, dimensions);
+  }
+
+  maxPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
+    let program: Pool2DProgram|MaxPoolWithFilterSizeEqualsOneProgram;
+    if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1) {
+      program = new MaxPoolWithFilterSizeEqualsOneProgram(convInfo);
+    } else {
+      program = new Pool2DProgram(convInfo, 'max');
     }
 
     const output = this.makeOutputArray(program.outputShape, x.dtype);
@@ -595,9 +616,8 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   private binaryOp(a: Tensor, b: Tensor, op: string): Tensor {
+    const program = binary_op.getBinaryProgram(op, a.shape, b.shape);
     const dtype = backend_util.upcastType(a.dtype, b.dtype);
-    const program = new BinaryOpProgram(op, a.shape, b.shape);
-
     const dataId = this.write(null /*values*/, program.outputShape, dtype);
     const output =
         engine().makeTensorFromDataId(dataId, program.outputShape, dtype, this);
@@ -949,6 +969,54 @@ export class WebGPUBackend extends KernelBackend {
     return this.binaryOp(a, b, binary_op.INT_DIV);
   }
 
+  maximum(a: Tensor, b: Tensor): Tensor {
+    if (this.shouldExecuteOnCPU([a, b])) {
+      return this.cpuBackend.maximum(a, b);
+    }
+    return this.binaryOp(a, b, binary_op.MAX);
+  }
+
+  neg<T extends Tensor>(x: T): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.neg(x);
+    }
+    const program = new UnaryOpProgram(x.shape, unary_op.NEG);
+    return this.compileAndRun(program, [x]);
+  }
+
+  tanh<T extends Tensor>(x: T): T {
+    const program = new UnaryOpProgram(x.shape, unary_op.TANH);
+    return this.compileAndRun(program, [x]);
+  }
+
+  exp<T extends Tensor>(x: T): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.exp(x);
+    }
+    const program = new UnaryOpProgram(x.shape, unary_op.EXP);
+    return this.compileAndRun(program, [x]);
+  }
+
+  softmax<T extends Tensor>(logits: T, dim: number): T {
+    const axes = util.parseAxisParam([dim], logits.shape);
+    const maxLogit = this.max(logits, axes);
+    const expandedShape =
+        backend_util.expandShapeToKeepDim(maxLogit.shape, axes);
+    const a = this.subtract(logits, maxLogit.reshape(expandedShape));
+    const b = this.exp(a);
+    const sumExp = this.sum(b, axes).reshape(expandedShape);
+
+    return div(b, sumExp);
+  }
+
+  log<T extends Tensor>(x: T): T {
+    if (this.shouldExecuteOnCPU([x])) {
+      return this.cpuBackend.log(x);
+    }
+    const program = new UnaryOpProgram(x.shape, unary_op.LOG);
+    return this.compileAndRun(program, [x]);
+  }
+
   sigmoid<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.SIGMOID);
     return this.compileAndRun(program, [x]);
@@ -1052,6 +1120,61 @@ export class WebGPUBackend extends KernelBackend {
     }
     const program = new TransposeProgram(x.shape, perm);
     return this.compileAndRun(program, [x]);
+  }
+
+  batchToSpaceND<T extends Tensor>(
+      x: T, blockShape: number[], crops: number[][]): T {
+    util.assert(
+        x.rank <= 4,
+        () => 'batchToSpaceND for rank > 4 with a WebGPU backend not ' +
+            'implemented yet');
+    const prod = blockShape.reduce((a, b) => a * b);
+
+    const reshaped = backend_util.getReshaped(x.shape, blockShape, prod);
+    const permuted =
+        backend_util.getPermuted(reshaped.length, blockShape.length);
+    const reshapedPermuted =
+        backend_util.getReshapedPermuted(x.shape, blockShape, prod);
+    const sliceBeginCoords =
+        backend_util.getSliceBeginCoords(crops, blockShape.length);
+    const sliceSize =
+        backend_util.getSliceSize(reshapedPermuted, crops, blockShape.length);
+
+    return x.reshape(reshaped)
+               .transpose(permuted)
+               .reshape(reshapedPermuted)
+               .slice(sliceBeginCoords, sliceSize) as T;
+  }
+
+  spaceToBatchND<T extends Tensor>(
+      x: T, blockShape: number[], paddings: Array<[number, number]>): T {
+    util.assert(
+        x.rank <= 4,
+        () => 'spaceToBatchND for rank > 4 with a WebGPU backend not ' +
+            'implemented yet');
+
+    const prod = blockShape.reduce((a, b) => a * b);
+
+    const completePaddings: Array<[number, number]> = [[0, 0]];
+    completePaddings.push(...paddings);
+    for (let i = 1 + blockShape.length; i < x.shape.length; ++i) {
+      completePaddings.push([0, 0]);
+    }
+
+    const paddedX = x.pad(completePaddings);
+
+    const reshapedPaddedShape =
+        backend_util.getReshaped(paddedX.shape, blockShape, prod, false);
+
+    const permutedReshapedPaddedPermutation = backend_util.getPermuted(
+        reshapedPaddedShape.length, blockShape.length, false);
+
+    const flattenShape = backend_util.getReshapedPermuted(
+        paddedX.shape, blockShape, prod, false);
+
+    return paddedX.reshape(reshapedPaddedShape)
+               .transpose(permutedReshapedPaddedPermutation)
+               .reshape(flattenShape) as T;
   }
 
   batchMatMul(

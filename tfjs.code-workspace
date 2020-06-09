@@ -67,6 +67,10 @@
     {
       "name": "AutoML",
       "path": "tfjs-automl"
+    },
+    {
+      "name": "InferenceAPI",
+      "path": "tfjs-inference"
     }
   ],
   "settings": {

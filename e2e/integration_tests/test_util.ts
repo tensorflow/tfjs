@@ -26,14 +26,20 @@ import * as tfc from '@tensorflow/tfjs-core';
  */
 export function createInputTensors(
     inputsData: tfc.TypedArray[], inputsShapes: number[][],
-    inputDtypes?: tfc.DataType[]) {
-  const xs = [];
+    inputDtypes?: tfc.DataType[], inputNames?: string[]): tfc.Tensor[]|
+    tfc.NamedTensorMap {
+  const xs: tfc.Tensor[] = [];
   for (let i = 0; i < inputsData.length; i++) {
     const input = tfc.tensor(
         inputsData[i], inputsShapes[i],
         inputDtypes ? inputDtypes[i] : 'float32');
     xs.push(input);
   }
-
+  if (inputNames) {
+    return inputNames.reduce((map: tfc.NamedTensorMap, name, index) => {
+      map[name] = xs[index];
+      return map;
+    }, {});
+  }
   return xs;
 }
