@@ -25,7 +25,7 @@
  *   ts-node inference.ts -h
  */
 
-import '@tensorflow/tfjs-backend-cpu';
+import '@tensorflow/tfjs-backend-wasm';
 
 import * as tfconv from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
@@ -86,6 +86,8 @@ async function main() {
   });
 
   const options = argParser.argv as {} as Options;
+
+  await tfc.setBackend('wasm');
 
   const model =
       await tfconv.loadGraphModel(new FileHandler(options.model_path));
