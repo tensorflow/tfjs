@@ -196,6 +196,8 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'min ',
     excludes: [
+      '2D, axis=0',  // Permuted axes requires transpose, which is not yet
+                     // implemented.
       'index corresponds to start of a non-initial window',  // argMin not yet
                                                              // implemented.,
       'gradient',     // Gradients not yet implemented
