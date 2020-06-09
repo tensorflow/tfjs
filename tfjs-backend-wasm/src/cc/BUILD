@@ -584,7 +584,7 @@ tfjs_cc_library(
 
 tfjs_cc_library(
     name = "Multiply",
-    srcs = ["kernels/Mul.cc"],
+    srcs = ["kernels/Multiply.cc"],
     deps = [
         ":backend",
         ":binary",

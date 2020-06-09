@@ -37,9 +37,10 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Mul(const size_t a_id, const size_t* a_shape_ptr, const size_t a_shape_len,
-         const size_t b_id, const size_t* b_shape_ptr, const size_t b_shape_len,
-         const DType dtype, const size_t out_id) {
+void Multiply(const size_t a_id, const size_t* a_shape_ptr,
+              const size_t a_shape_len, const size_t b_id,
+              const size_t* b_shape_ptr, const size_t b_shape_len,
+              const DType dtype, const size_t out_id) {
   switch (dtype) {
     case DType::float32:
       binary_xnn_f32(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr,
