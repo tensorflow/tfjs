@@ -41,7 +41,8 @@ function max(args: {backend: BackendWasm, inputs: {}, attrs: {}}): TensorInfo {
   const origAxes = util.parseAxisParam(reductionIndices, xShape);
   let axes = origAxes;
   const permutedAxes = backend_util.getAxesPermutation(axes, xRank);
-  if (permutedAxes != null) {
+  const maxInputIsTransposed = permutedAxes != null;
+  if (maxInputIsTransposed) {
     const newShape: number[] = new Array(xRank);
     for (let i = 0; i < newShape.length; i++) {
       newShape[i] = xShape[permutedAxes[i]];
@@ -52,6 +53,8 @@ function max(args: {backend: BackendWasm, inputs: {}, attrs: {}}): TensorInfo {
         transpose({inputs: {x}, attrs: {perm: permutedAxes}, backend});
     const xTransposedVals = backend.typedArrayFromHeap(xTransposed);
     xVals.set(xTransposedVals, 0);
+
+    backend.disposeData(xTransposed.dataId);
 
     xShape = newShape;
   }
