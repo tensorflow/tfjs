@@ -20,7 +20,7 @@ import {Max, MaxAttrs, MaxInputs} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
-import {getPermIsNoOp, transpose} from './Transpose';
+import {transpose} from './Transpose';
 
 let wasmMax: (xId: number, reduceSize: number, outId: number) => void;
 
@@ -50,15 +50,17 @@ function max(args: {backend: BackendWasm, inputs: {}, attrs: {}}): TensorInfo {
     }
 
     axes = backend_util.getInnerMostAxes(axes.length, xRank);
+    console.log(permutedAxes);
 
-    if (getPermIsNoOp(permutedAxes) === false) {
-      const xTransposed =
-          transpose({inputs: {x}, attrs: {perm: permutedAxes}, backend});
+    const xTransposed =
+        transpose({inputs: {x}, attrs: {perm: permutedAxes}, backend});
+
+    if (backend.dataIdMap.get(xTransposed.dataId).id !== xId) {
+      // If perm is not no-op.
       const xTransposedVals = backend.typedArrayFromHeap(xTransposed);
       xVals.set(xTransposedVals, 0);
       backend.disposeData(xTransposed.dataId);
     }
-
     xShape = newShape;
   }
 
