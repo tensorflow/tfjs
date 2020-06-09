@@ -18,6 +18,8 @@
 // tslint:disable: variable-name
 // Unfortunately just enabling PascalCase per file (tslint:enable:
 // allow-pascal-case) doesn't work.
+import {ExplicitPadding} from '../src/ops/conv_util';
+
 import {NamedTensorInfoMap, TensorInfo} from './kernel_registry';
 import {DataType, PixelData} from './types';
 
@@ -104,7 +106,7 @@ export const Conv2D = 'Conv2D';
 export type Conv2DInputs = Pick<NamedTensorInfoMap, 'x'|'filter'>;
 export interface Conv2DAttrs {
   strides: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
   dataFormat: 'NHWC'|'NCHW';
   dilations: [number, number]|number;
   dimRoundingMode?: 'floor'|'round'|'ceil';
@@ -114,7 +116,7 @@ export const Conv2DBackpropFilter = 'Conv2DBackpropFilter';
 export type Conv2DBackpropFilterInputs = Pick<NamedTensorInfoMap, 'x'|'dy'>;
 export interface Conv2DBackpropFilterAttrs {
   strides: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
   dataFormat: 'NHWC'|'NCHW';
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
@@ -123,7 +125,7 @@ export const Conv2DBackpropInput = 'Conv2DBackpropInput';
 export type Conv2DBackpropInputInputs = Pick<NamedTensorInfoMap, 'dy'|'filter'>;
 export interface Conv2DBackpropInputAttrs {
   strides: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
   dataFormat: 'NHWC'|'NCHW';
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
