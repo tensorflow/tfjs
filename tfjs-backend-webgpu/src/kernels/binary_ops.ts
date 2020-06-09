@@ -36,9 +36,15 @@ export const INT_DIV = `
 `;
 
 export const PRELU = `return (a < 0.) ? b * a : a;`;
-
-export function getBinaryProgram(op: string, aShape: number[], bShape: number[])
-{
+const CHECK_NAN_SNIPPET = `
+  if (isnan(a)) return a;
+  if (isnan(b)) return b;
+`;
+export const MAX = CHECK_NAN_SNIPPET + `
+  return max(a, b);
+`;
+export function getBinaryProgram(
+    op: string, aShape: number[], bShape: number[]) {
   const useSharedMemoryWithA =
       aShape.length === 1 && bShape.length > 1 && aShape[0] < 2048;
   const useSharedMemoryWithB =
