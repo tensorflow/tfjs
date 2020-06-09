@@ -16,7 +16,7 @@
   "devDependencies": {
     "@tensorflow/tfjs-core": "2.0.0",
     "@tensorflow/tfjs-converter": "2.0.0",
-    "@tensorflow/tfjs-backend-wasm": "2.0.0",
+    "@tensorflow/tfjs-backend-cpu": "2.0.0",
     "@types/jasmine": "~3.0.0",
     "@types/rimraf":  "~3.0.0",
     "clang-format": "~1.2.4",
@@ -32,8 +32,7 @@
     "test": "ts-node --skip-ignore -P tsconfig.test.json src/test_node.ts",
     "test-ci": "yarn test",
     "build-binary": "yarn build && pkg dist/index.js --targets=node10-macos-x64,node10-linux-x64,node10-win-x64 --out-path=binaries",
-    "test-python": "./scripts/run_python.sh",
-    "inference": "ts-node --skip-ignore -P tsconfig.test.json src/index.ts"
+    "test-python": "./scripts/run_python.sh"
   },
   "dependencies": {
     "@types/seedrandom": "2.4.27",
