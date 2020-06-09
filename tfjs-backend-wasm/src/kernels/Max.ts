@@ -50,7 +50,6 @@ function max(args: {backend: BackendWasm, inputs: {}, attrs: {}}): TensorInfo {
     }
 
     axes = backend_util.getInnerMostAxes(axes.length, xRank);
-    console.log(permutedAxes);
 
     const xTransposed =
         transpose({inputs: {x}, attrs: {perm: permutedAxes}, backend});
