@@ -66,15 +66,23 @@ def _save_and_convert_model(model_fn, model_path, control_flow_v2=False):
   model_info = model_fn(tmp_saved_model_dir)
 
   # Write inputs to file.
-  xs = model_info['inputs'].values()
+  xs_data = []
+  xs_shape = []
+  xs_dtype = []
+  xs_names = []
+  keys = model_info['inputs'].keys()
+  for key in keys:
+    xs_names.append(key)
+    xs_data.append(model_info['inputs'][key]['value'])
+    xs_shape.append(model_info['inputs'][key]['shape'])
+    xs_dtype.append(model_info['inputs'][key]['dtype'])
 
-  xs_data = [x['value'] for x in xs]
-  xs_shape = [x['shape'] for x in xs]
-  xs_dtype = [x['dtype'] for x in xs]
-
+  xs_name_path = os.path.join(_tmp_dir, model_path + '.xs-name.json')
   xs_shape_path = os.path.join(_tmp_dir, model_path + '.xs-shapes.json')
   xs_data_path = os.path.join(_tmp_dir, model_path + '.xs-data.json')
   xs_dtype_path = os.path.join(_tmp_dir, model_path + '.xs-dtype.json')
+  with open(xs_name_path, 'w') as f:
+    f.write(json.dumps(xs_names))
   with open(xs_data_path, 'w') as f:
     f.write(json.dumps(xs_data))
   with open(xs_shape_path, 'w') as f:
@@ -301,27 +309,32 @@ def _create_saved_model_v2_with_control_flow_v2(save_dir):
                                   tf.TensorSpec([], tf.int32),
                                   tf.TensorSpec([], tf.int32)])
     def control_flow(self, x, y, z):
-        while x < y:
-            if y > 0:
-                x = x + z
-            else:
-                x += 2
+        i = 0
+        while i < z:
+            i += 1
+            j = 0
+            while j < y:
+                j += 1
+                if z > 0:
+                    x += 1
+                else:
+                    x += 2
         return x
 
 
   module = CustomModule()
-  print(module.control_flow(1, 5, 1))
+  print(module.control_flow(0, 2, 10))
   tf.saved_model.save(module, save_dir,
                       signatures=module.control_flow)
 
   return {
       "async": False,
       "inputs": {
-          "x": {"value": [1], "shape": [], "dtype": 'int32'},
-          "y": {"value": [5], "shape": [], "dtype": 'int32'},
-          "z": {"value": [1], "shape": [], "dtype": 'int32'}},
+          "x": {"value": [0], "shape": [], "dtype": 'int32'},
+          "y": {"value": [2], "shape": [], "dtype": 'int32'},
+          "z": {"value": [10], "shape": [], "dtype": 'int32'}},
       "outputs": {
-          "Identity:0": {"value": [5], "shape": [], "dtype": "int32"}}}
+          "Identity:0": {"value": [20], "shape": [], "dtype": "int32"}}}
 
 def main():
   # Create the directory to store model and data.

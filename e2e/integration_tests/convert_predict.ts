@@ -39,6 +39,7 @@ const DATA_URL = 'convert_predict_data';
 describe(`${REGRESSION} convert_predict`, () => {
   GRAPH_MODELS.forEach(model => {
     describe(`${model}`, () => {
+      let inputsNames: string[];
       let inputsData: tfc.TypedArray[];
       let inputsShapes: number[][];
       let inputsDtypes: tfc.DataType[];
@@ -46,9 +47,11 @@ describe(`${REGRESSION} convert_predict`, () => {
       let tfOutputShapes: number[][];
       let tfOutputDtypes: tfc.DataType[];
       beforeAll(async () => {
-        [inputsData, inputsShapes, inputsDtypes, tfOutputData, tfOutputShapes,
-         tfOutputDtypes] =
+        [inputsNames, inputsData, inputsShapes, inputsDtypes, tfOutputData,
+         tfOutputShapes, tfOutputDtypes] =
             await Promise.all([
+              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-name.json`)
+                  .then(response => response.json()),
               fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-data.json`)
                   .then(response => response.json()),
               fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-shapes.json`)
@@ -71,7 +74,9 @@ describe(`${REGRESSION} convert_predict`, () => {
           const $model = await tfconverter.loadGraphModel(
               `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
 
-          const xs = createInputTensors(inputsData, inputsShapes, inputsDtypes);
+          const xs = createInputTensors(
+                         inputsData, inputsShapes, inputsDtypes, inputsNames) as
+              tfc.NamedTensorMap;
 
           const result = await $model.executeAsync(xs);
 
@@ -87,7 +92,7 @@ describe(`${REGRESSION} convert_predict`, () => {
           }
 
           // Dispose all tensors;
-          xs.forEach(tensor => tensor.dispose());
+          Object.keys(xs).forEach(key => xs[key].dispose());
           ys.forEach(tensor => tensor.dispose());
         });
       });
