@@ -52,7 +52,7 @@
     "karma-chrome-launcher": "~2.2.0",
     "karma-firefox-launcher": "~1.1.0",
     "karma-jasmine": "~1.1.1",
-    "karma-typescript": "~4.0.0",
+    "karma-typescript": "~5.0.2",
     "karma-typescript-es6-transform": "^5.0.2",
     "rimraf": "~2.6.2",
     "rollup": "~1.26.3",
