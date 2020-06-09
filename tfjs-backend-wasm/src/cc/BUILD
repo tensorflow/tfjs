@@ -188,7 +188,7 @@ tfjs_cc_library(
         ":Maximum",
         ":Min",
         ":Minimum",
-        ":Mul",
+        ":Multiply",
         ":Neg",
         ":NonMaxSuppressionV3",
         ":NonMaxSuppressionV5",
@@ -583,8 +583,8 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-    name = "Mul",
-    srcs = ["kernels/Mul.cc"],
+    name = "Multiply",
+    srcs = ["kernels/Multiply.cc"],
     deps = [
         ":backend",
         ":binary",
