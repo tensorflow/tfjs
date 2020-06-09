@@ -219,6 +219,16 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'avgPool',
+    excludes: [
+      'x=[2,2,1] f=[2,2] s=1 p=same',  // Pool3D not yet implemented.
+      'gradient',                      // Not yet implemented.
+      'avgPoolBackprop',               // Not yet implemented.
+      'avgPool3d',                     // Not yet implemented.
+      'avgPoolWithArgmax'              // Not yet implemented.
+    ]
+  },
+  {
     include: 'pool',
     excludes: [
       'avg x=[',                          // backend.avgPool not implemented.
@@ -360,6 +370,28 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'batchNorm',
     excludes: [
       'gradient',
+    ]
+  },
+  {
+    include: 'batchToSpaceND',
+    excludes: [
+      'tensor3d', 'tensor4d', 'gradient',
+      'accepts a tensor-like object',  // tensor6d not yet implemented
+    ]
+  },
+  {
+    include: 'spaceToBatchND',
+    excludes: [
+      'tensor4d',
+      'gradient',
+      'accepts a tensor-like object',
+    ]
+  },
+  {
+    include: 'softmax',
+    excludes: [
+      'gradient',
+      'Weighted - Reduction.SUM_BY_NONZERO_WEIGHTS',
     ]
   }
 ];
