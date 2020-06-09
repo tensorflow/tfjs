@@ -151,7 +151,7 @@ export class TensorList {
     }
     if (elementIndex < 0 || elementIndex > this.tensors.length) {
       throw new Error(`Trying to access element ${
-          elementIndex} in a list with ${this.tensors.length} elements.`)
+          elementIndex} in a list with ${this.tensors.length} elements.`);
     }
 
     if (this.tensors[elementIndex] == null) {
@@ -276,7 +276,6 @@ export function reserve(
     elementShape: number[], elementDtype: DataType, numElements: number) {
   return new TensorList([], elementShape, elementDtype, numElements);
 }
-
 
 /**
  * Scatter the values of a Tensor in specific indices of a TensorList.
