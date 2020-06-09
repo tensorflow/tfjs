@@ -138,14 +138,4 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     expect(() => setWasmPath('too/late'))
         .toThrowError(/The WASM backend was already initialized. Make sure/);
   });
-
-  fit('max with t', async () => {
-    const a = tf.tensor2d([3, -1, 0, 100, -7, 2], [2, 3]);
-    const r = tf.max(a, [0]);
-
-    expect(r.shape).toEqual([3]);
-    const data = await r.data();
-    console.log(data);
-    // expectArraysClose(await r.data(), [100, -1, 2]);
-  });
 });
