@@ -18,6 +18,7 @@
 // Modularized ops.
 export {add} from './add';
 export {addN} from './add_n';
+export {atan2} from './atan2';
 export {avgPool} from './avg_pool';
 export {avgPool3d} from './avg_pool_3d';
 export {batchToSpaceND} from './batch_to_space_nd';
@@ -48,6 +49,7 @@ export {dot} from './dot';
 export {equal} from './equal';
 export {eye} from './eye';
 export {fill} from './fill';
+export {floorDiv} from './floorDiv';
 export {greater} from './greater';
 export {greaterEqual} from './greater_equal';
 export {imag} from './imag';
@@ -61,6 +63,8 @@ export {maxPool3d} from './max_pool_3d';
 export {maxPoolWithArgmax} from './max_pool_with_argmax';
 export {maximum} from './maximum';
 export {minimum} from './minimum';
+export {mod} from './mod';
+export {mul} from './mul';
 export {multinomial} from './multinomial';
 export {notEqual} from './not_equal';
 export {oneHot} from './one_hot';

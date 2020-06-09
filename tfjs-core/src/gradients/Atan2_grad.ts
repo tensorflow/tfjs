@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
-import {Div} from '../kernel_names';
+import {Atan2} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
+import {add} from '../ops/add';
 import {reshape} from '../ops/array_ops';
-import * as broadcast_util from '../ops/broadcast_util';
+import {assertAndGetBroadcastShape, getReductionAxes} from '../ops/broadcast_util';
 import {div} from '../ops/div';
 import {mul} from '../ops/mul';
 import {sum} from '../ops/reduction_ops';
@@ -26,29 +27,30 @@ import {square} from '../ops/square';
 import {neg} from '../ops/unary_ops';
 import {Tensor} from '../tensor';
 
-export const divGradConfig: GradConfig = {
-  kernelName: Div,
+export const atan2GradConfig: GradConfig = {
+  kernelName: Atan2,
   inputsToSave: ['a', 'b'],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
     const [a, b] = saved;
-    const outShape =
-        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    const outShape = assertAndGetBroadcastShape(a.shape, b.shape);
+
     const derA = () => {
-      const res = div(dy, b.toFloat());
-      const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
+      const d = add(square(a), square(b));
+      let res = mul(dy, div(b, d));
+      const reduceAxes = getReductionAxes(a.shape, outShape);
       if (reduceAxes.length > 0) {
-        return sum(res, reduceAxes).reshape(a.shape);
+        res = sum(res, reduceAxes);
       }
-      return res;
+      return reshape(res, a.shape);
     };
     const derB = () => {
-      let res = mul(dy, a.toFloat());
-      const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
+      const d = add(square(a), square(b));
+      let res = neg(mul(dy, div(a, d)));
+      const reduceAxes = getReductionAxes(b.shape, outShape);
       if (reduceAxes.length > 0) {
-        res = reshape(sum(res, reduceAxes), b.shape);
+        res = sum(res, reduceAxes);
       }
-      const tmp = square(b);
-      return neg(div(res, tmp.toFloat()));
+      return reshape(res, b.shape);
     };
     return {a: derA, b: derB};
   }

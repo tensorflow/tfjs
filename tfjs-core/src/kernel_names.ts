@@ -27,6 +27,9 @@ export type AddInputs = BinaryInputs;
 export const AddN = 'AddN';
 export type AddNInputs = TensorInfo[];
 
+export const Atan2 = 'Atan2';
+export type Atan2Inputs = BinaryInputs;
+
 export const AvgPool = 'AvgPool';
 export type AvgPoolInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface AvgPoolAttrs {
@@ -193,6 +196,9 @@ export type DivInputs = BinaryInputs;
 export const Equal = 'Equal';
 export type EqualInputs = BinaryInputs;
 
+export const FloorDiv = 'FloorDiv';
+export type FloorDivInputs = BinaryInputs;
+
 export const Fill = 'Fill';
 export interface FillAttrs {
   shape: number[];
@@ -308,6 +314,12 @@ export interface MaxPoolWithArgmaxAttrs {
 
 export const Minimum = 'Minimum';
 export type MinimumInputs = BinaryInputs;
+
+export const Mod = 'Mod';
+export type ModInputs = BinaryInputs;
+
+export const Multiply = 'Multiply';
+export type MultiplyInputs = BinaryInputs;
 
 export const NotEqual = 'NotEqual';
 export type NotEqualInputs = BinaryInputs;

@@ -16,60 +16,53 @@
  */
 
 import {ENGINE, ForwardFunc} from '../engine';
-import {Div, DivInputs} from '../kernel_names';
+import {Multiply, MultiplyInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
-import {floorDiv} from './floorDiv';
 import {op} from './operation';
 
 /**
- * Divides two `tf.Tensor`s element-wise, A / B. Supports broadcasting.
+ * Multiplies two `tf.Tensor`s element-wise, A * B. Supports broadcasting.
+ *
+ * We also expose `tf.mulStrict` which has the same signature as this op and
+ * asserts that `a` and `b` are the same shape (does not broadcast).
  *
  * ```js
- * const a = tf.tensor1d([1, 4, 9, 16]);
- * const b = tf.tensor1d([1, 2, 3, 4]);
+ * const a = tf.tensor1d([1, 2, 3, 4]);
+ * const b = tf.tensor1d([2, 3, 4, 5]);
  *
- * a.div(b).print();  // or tf.div(a, b)
+ * a.mul(b).print();  // or tf.mul(a, b)
  * ```
  *
  * ```js
- * // Broadcast div a with b.
- * const a = tf.tensor1d([2, 4, 6, 8]);
- * const b = tf.scalar(2);
+ * // Broadcast mul a with b.
+ * const a = tf.tensor1d([1, 2, 3, 4]);
+ * const b = tf.scalar(5);
  *
- * a.div(b).print();  // or tf.div(a, b)
+ * a.mul(b).print();  // or tf.mul(a, b)
  * ```
- *
- * @param a The first tensor as the numerator.
- * @param b The second tensor as the denominator. Must have the same dtype as
- * `a`.
+ * @param a The first tensor to multiply.
+ * @param b The second tensor to multiply. Must have the same dtype as `a`.
  */
 /** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
-function div_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'div');
-  let $b = convertToTensor(b, 'b', 'div');
+function mul_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
+  let $a = convertToTensor(a, 'a', 'mul');
+  let $b = convertToTensor(b, 'b', 'mul');
   [$a, $b] = makeTypesMatch($a, $b);
 
-  if ($a.dtype === 'int32' && $b.dtype === 'int32') {
-    return floorDiv($a, $b);
-  }
-
   const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.realDivide($a, $b);
+    const res = backend.multiply($a, $b);
     save([$a, $b]);
     return res;
   };
-
-  const inputs: DivInputs = {a: $a, b: $b};
-  const attrs = {};
+  const inputs: MultiplyInputs = {a: $a, b: $b};
 
   return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* gradient */, Div,
-             attrs) as T;
+             forward, inputs as {} as NamedTensorMap, null /* gradient */,
+             Multiply) as T;
 }
-
-export const div = op({div_});
+export const mul = op({mul_});

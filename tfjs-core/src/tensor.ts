@@ -200,14 +200,10 @@ export interface OpHandler {
   argMin<T extends Tensor>(x: Tensor, axis: number): T;
   argMax<T extends Tensor>(x: Tensor, axis: number): T;
   addStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  atan2<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   subStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   powStrict<T extends Tensor>(base: T, exp: Tensor|TensorLike): T;
-  mul<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   mulStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  floorDiv<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   divStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  mod<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   modStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   minimumStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   maximumStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
@@ -762,10 +758,6 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.addStrict(this, x);
   }
-  atan2<T extends this>(this: T, x: T|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.atan2(this, x);
-  }
   /**
    * @deprecated strict variants of ops have been deprecated
    */
@@ -780,20 +772,12 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.powStrict(this, exp);
   }
-  mul<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.mul(this, x);
-  }
   /**
    * @deprecated strict variants of ops have been deprecated
    */
   mulStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.mulStrict(this, x);
-  }
-  floorDiv<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.floorDiv(this, x);
   }
   /**
    * @deprecated strict variants of ops have been deprecated
@@ -815,10 +799,6 @@ export class Tensor<R extends Rank = Rank> {
   maximumStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.maximumStrict(this, x);
-  }
-  mod<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.mod(this, x);
   }
   /**
    * @deprecated strict variants of ops have been deprecated

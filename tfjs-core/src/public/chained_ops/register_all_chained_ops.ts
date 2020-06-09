@@ -15,6 +15,7 @@
  * =============================================================================
  */
 import './add';
+import './atan2';
 import './avg_pool';
 import './batchnorm';
 import './broadcast_to';
@@ -31,6 +32,7 @@ import './div';
 import './div_no_nan';
 import './dot';
 import './equal';
+import './floorDiv';
 import './greater';
 import './greater_equal';
 import './less';
@@ -41,6 +43,8 @@ import './max';
 import './max_pool';
 import './maximum';
 import './minimum';
+import './mod';
+import './mul';
 import './not_equal';
 import './one_hot';
 import './pad';
