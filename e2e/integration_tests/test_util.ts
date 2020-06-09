@@ -26,7 +26,8 @@ import * as tfc from '@tensorflow/tfjs-core';
  */
 export function createInputTensors(
     inputsData: tfc.TypedArray[], inputsShapes: number[][],
-    inputDtypes?: tfc.DataType[], inputNames?: string[]) {
+    inputDtypes?: tfc.DataType[], inputNames?: string[]): tfc.Tensor[]|
+    tfc.NamedTensorMap {
   const xs: tfc.Tensor[] = [];
   for (let i = 0; i < inputsData.length; i++) {
     const input = tfc.tensor(

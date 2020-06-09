@@ -90,14 +90,23 @@ def _save_and_convert_model(model_fn, model_path, control_flow_v2=False):
   with open(xs_dtype_path, 'w') as f:
     f.write(json.dumps(xs_dtype))
   # Write outputs to file.
-  ys = model_info['outputs'].values()
+  ys_data = []
+  ys_shape = []
+  ys_dtype = []
+  ys_names = []
+  keys = model_info['outputs'].keys()
+  for key in keys:
+    ys_names.append(key)
+    ys_data.append(model_info['outputs'][key]['value'])
+    ys_shape.append(model_info['outputs'][key]['shape'])
+    ys_dtype.append(model_info['outputs'][key]['dtype'])
 
-  ys_data = [y['value'] for y in ys]
-  ys_shape = [y['shape'] for y in ys]
-  ys_dtype = [y['dtype'] for y in ys]
+  ys_name_path = os.path.join(_tmp_dir, model_path + '.ys-name.json')
   ys_data_path = os.path.join(_tmp_dir, model_path + '.ys-data.json')
   ys_shape_path = os.path.join(_tmp_dir, model_path + '.ys-shapes.json')
   ys_dtype_path = os.path.join(_tmp_dir, model_path + '.ys-dtype.json')
+  with open(ys_name_path, 'w') as f:
+    f.write(json.dumps(ys_names))
   with open(ys_data_path, 'w') as f:
     f.write(json.dumps(ys_data))
   with open(ys_shape_path, 'w') as f:

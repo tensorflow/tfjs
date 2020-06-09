@@ -43,12 +43,13 @@ describe(`${REGRESSION} convert_predict`, () => {
       let inputsData: tfc.TypedArray[];
       let inputsShapes: number[][];
       let inputsDtypes: tfc.DataType[];
+      let tfOutputNames: string[];
       let tfOutputData: tfc.TypedArray[];
       let tfOutputShapes: number[][];
       let tfOutputDtypes: tfc.DataType[];
       beforeAll(async () => {
-        [inputsNames, inputsData, inputsShapes, inputsDtypes, tfOutputData,
-         tfOutputShapes, tfOutputDtypes] =
+        [inputsNames, inputsData, inputsShapes, inputsDtypes, tfOutputNames,
+         tfOutputData, tfOutputShapes, tfOutputDtypes] =
             await Promise.all([
               fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-name.json`)
                   .then(response => response.json()),
@@ -57,6 +58,8 @@ describe(`${REGRESSION} convert_predict`, () => {
               fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-shapes.json`)
                   .then(response => response.json()),
               fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-dtype.json`)
+                  .then(response => response.json()),
+              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-name.json`)
                   .then(response => response.json()),
               fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-data.json`)
                   .then(response => response.json()),
@@ -74,11 +77,11 @@ describe(`${REGRESSION} convert_predict`, () => {
           const $model = await tfconverter.loadGraphModel(
               `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
 
-          const xs = createInputTensors(
-                         inputsData, inputsShapes, inputsDtypes, inputsNames) as
-              tfc.NamedTensorMap;
+          const namedInputs = createInputTensors(
+                                  inputsData, inputsShapes, inputsDtypes,
+                                  inputsNames) as tfc.NamedTensorMap;
 
-          const result = await $model.executeAsync(xs);
+          const result = await $model.executeAsync(namedInputs, tfOutputNames);
 
           const ys =
               ($model.outputs.length === 1 ? [result] : result) as tfc.Tensor[];
@@ -92,7 +95,7 @@ describe(`${REGRESSION} convert_predict`, () => {
           }
 
           // Dispose all tensors;
-          Object.keys(xs).forEach(key => xs[key].dispose());
+          Object.keys(namedInputs).forEach(key => namedInputs[key].dispose());
           ys.forEach(tensor => tensor.dispose());
         });
       });
