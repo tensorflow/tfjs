@@ -24,8 +24,8 @@ import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
 import {ArgMinMaxProgram} from './kernels/argminmax_webgpu';
-import * as binary_op from './kernels/binary_op_webgpu';
 import {BinaryOpProgram} from './kernels/binary_op_webgpu';
+import * as binary_op from './kernels/binary_ops';
 import {ClipProgram} from './kernels/clip_webgpu';
 import {ConcatProgram} from './kernels/concat_webgpu';
 import {Conv2DMMProgram} from './kernels/conv2d_mm_webgpu';
@@ -616,9 +616,8 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   private binaryOp(a: Tensor, b: Tensor, op: string): Tensor {
+    const program = binary_op.getBinaryProgram(op, a.shape, b.shape);
     const dtype = backend_util.upcastType(a.dtype, b.dtype);
-    const program = new BinaryOpProgram(op, a.shape, b.shape);
-
     const dataId = this.write(null /*values*/, program.outputShape, dtype);
     const output =
         engine().makeTensorFromDataId(dataId, program.outputShape, dtype, this);
