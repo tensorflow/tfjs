@@ -15,11 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, stack, Tensor, tensor} from '@tensorflow/tfjs-core';
-import {concat} from '@tensorflow/tfjs-core';
-import {unstack} from '@tensorflow/tfjs-core';
-import {tidy} from '@tensorflow/tfjs-core';
-import {slice} from '@tensorflow/tfjs-core';
+import {concat, DataType, slice, stack, Tensor, tensor, tidy, unstack} from '@tensorflow/tfjs-core';
 
 import {assertShapesMatchAllowUndefinedSize} from './tensor_utils';
 
@@ -51,24 +47,24 @@ export class TensorList {
       public tensors: Tensor[], public elementShape: number[],
       public elementDtype: DataType, public maxNumElements = -1) {}
 
-  private _typeName: string;
-
-  get typeName() {
-    return this._typeName;
-  }
-
-  // Get a new TensorList containing a copy of the underlying tensor container.
+  /**
+   * Get a new TensorList containing a copy of the underlying tensor container.
+   */
   copy(): TensorList {
     return new TensorList(
         [...this.tensors], this.elementShape, this.elementDtype);
   }
 
+  /**
+   * The size of the tensors in the tensor list.
+   */
   size() {
     return this.tensors.length;
   }
 
   /**
-   * return a tensor that stacks all element together.
+   * Return a tensor that stacks a list of rank-R tf.Tensors into one rank-(R+1)
+   * tf.Tensor.
    * @param elementShape shape of each tensor
    * @param elementDtype data type of each tensor
    * @param numElements the number of elements to stack
@@ -93,6 +89,11 @@ export class TensorList {
     });
   }
 
+  /**
+   * Pop a tensor from the end of the list.
+   * @param elementShape shape of the tensor
+   * @param elementDtype data type of the tensor
+   */
   popBack(elementShape: number[], elementDtype: DataType): Tensor {
     if (elementDtype !== this.elementDtype) {
       throw new Error(`Invalid data types; op elements ${
@@ -109,6 +110,10 @@ export class TensorList {
     return tensor.reshape(elementShape);
   }
 
+  /**
+   * Push a tensor to the end of the list.
+   * @param tensor Tensor to be pushed.
+   */
   pushBack(tensor: Tensor) {
     if (tensor.dtype !== this.elementDtype) {
       throw new Error(`Invalid data types; op elements ${
@@ -124,6 +129,10 @@ export class TensorList {
     this.tensors.push(tensor);
   }
 
+  /**
+   * Update the size of the list.
+   * @param size the new size of the list.
+   */
   resize(size: number) {
     if (size < 0) {
       throw new Error(
@@ -189,7 +198,7 @@ export class TensorList {
   }
 
   /**
-   * Return selected values in the TensorList as a packed Tensor. All of
+   * Return selected values in the TensorList as a stacked Tensor. All of
    * selected values must have been written and their shapes must all match.
    * @param indices indices of tensors to gather
    * @param elementDtype output tensor dtype
@@ -205,6 +214,8 @@ export class TensorList {
     assertShapesMatchAllowUndefinedSize(
         this.elementShape, elementShape, 'TensorList shape mismatch: ');
 
+    // When indices is greater than the size of the list, indices beyond the
+    // size of the list are ignored.
     indices = indices.slice(0, this.size());
 
     if (indices.length === 0) {
@@ -267,7 +278,7 @@ export function fromTensor(tensor: Tensor, elementShape: number[]) {
 }
 
 /**
- * return a TensorList of the given size with empty elements.
+ * Return a TensorList of the given size with empty elements.
  * @param elementShape the shape of the future elements of the list
  * @param elementDtype the desired type of elements in the list
  * @param numElements the number of elements to reserve
@@ -278,10 +289,9 @@ export function reserve(
 }
 
 /**
- * Scatter the values of a Tensor in specific indices of a TensorList.
- * @param indices nummber[] values in [0, max_value). If the
- *    TensorList is not dynamic, max_value=size().
- * @param tensor Tensor input tensor.
+ * Put tensors at specific indices of a stacked tensor into a TensorList.
+ * @param indices list of indices on how to scatter the tensor.
+ * @param tensor input tensor.
  * @param elementShape the shape of the future elements of the list
  * @param numElements the number of elements to scatter
  */
@@ -309,10 +319,10 @@ export function scatter(
 }
 
 /**
- * Split the values of a Tensor into the TensorArray.
- * @param length number[] with the lengths to use when splitting value along
+ * Split the values of a Tensor into a TensorList.
+ * @param length the lengths to use when splitting value along
  *    its first dimension.
- * @param tensor Tensor, the tensor to split.
+ * @param tensor the tensor to split.
  * @param elementShape the shape of the future elements of the list
  */
 export function split(
