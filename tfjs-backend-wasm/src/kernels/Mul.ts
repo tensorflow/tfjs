@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Multiply} from '@tensorflow/tfjs-core'
+import {Multiply} from '@tensorflow/tfjs-core';
 import {registerBinaryKernel} from './binary_kernel';
 const supportsFullBroadcast = true;
 registerBinaryKernel(Multiply, supportsFullBroadcast);
