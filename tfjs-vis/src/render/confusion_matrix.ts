@@ -134,6 +134,7 @@ export async function confusionMatrix(
     defaultStyle: false,
   };
 
+  //@ts-ignore
   const spec: VisualizationSpec = {
     'width': options.width || getDefaultWidth(drawArea),
     'height': options.height || getDefaultHeight(drawArea),
@@ -197,6 +198,7 @@ export async function confusionMatrix(
   };
 
   if (options.shadeDiagonal === false) {
+    //@ts-ignore
     spec.layer.push(
         {
           // render unfilled rects for the diagonal
@@ -219,6 +221,7 @@ export async function confusionMatrix(
   }
 
   if (options.showTextOverlay) {
+    //@ts-ignore
     spec.layer.push({
       // The text labels
       'mark': {'type': 'text', 'baseline': 'middle'},
