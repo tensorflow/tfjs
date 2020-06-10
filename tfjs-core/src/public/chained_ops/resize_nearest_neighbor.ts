@@ -26,7 +26,10 @@ declare module '../../tensor' {
 }
 
 Tensor.prototype.resizeNearestNeighbor = function<T extends Tensor3D|Tensor4D>(
-    this: T, newShape2D: [number, number], alignCorners: boolean): T {
+    this: T, newShape2D: [number, number],
+    //@ts-ignore even with the default assignment tsc thinks alignCorners has
+    // type 'any'
+    alignCorners = false): T {
   this.throwIfDisposed();
   return resizeNearestNeighbor(this, newShape2D, alignCorners);
 };
