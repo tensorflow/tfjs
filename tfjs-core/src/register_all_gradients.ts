@@ -29,6 +29,7 @@ import {conv3DGradConfig} from './gradients/Conv3D_grad';
 import {cumsumGradConfig} from './gradients/Cumsum_grad';
 import {depthwiseConv2dNativeGradConfig} from './gradients/DepthwiseConv2dNative_grad';
 import {divGradConfig} from './gradients/Div_grad';
+import {eluGradConfig} from './gradients/Elu_grad';
 import {floorDivGradConfig} from './gradients/FloorDiv_grad';
 import {fusedBatchNormGradConfig} from './gradients/FusedBatchNorm_grad';
 import {greaterEqualGradConfig} from './gradients/GreaterEqual_grad';
@@ -44,7 +45,10 @@ import {multiplyGradConfig} from './gradients/Multiply_grad';
 import {oneHotGradConfig} from './gradients/OneHot_grad';
 import {padV2GradConfig} from './gradients/PadV2_grad';
 import {powGradConfig} from './gradients/Pow_grad';
+import {preluGradConfig} from './gradients/Prelu_grad';
+import {relu6GradConfig} from './gradients/Relu6_grad';
 import {reluGradConfig} from './gradients/Relu_grad';
+import {seluGradConfig} from './gradients/Selu_grad';
 import {spaceToBatchNDGradConfig} from './gradients/SpaceToBatchND_grad';
 import {splitVGradConfig} from './gradients/SplitV_grad';
 import {squareGradConfig} from './gradients/Square_grad';
@@ -72,6 +76,7 @@ const gradConfigs: GradConfig[] = [
   cumsumGradConfig,
   depthwiseConv2dNativeGradConfig,
   divGradConfig,
+  eluGradConfig,
   floorDivGradConfig,
   fusedBatchNormGradConfig,
   greaterEqualGradConfig,
@@ -92,7 +97,10 @@ const gradConfigs: GradConfig[] = [
   oneHotGradConfig,
   padV2GradConfig,
   powGradConfig,
+  preluGradConfig,
   reluGradConfig,
+  relu6GradConfig,
+  seluGradConfig,
   spaceToBatchNDGradConfig,
   splitVGradConfig,
   squareGradConfig,
