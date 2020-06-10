@@ -29,6 +29,7 @@ export const executeOp: InternalOpAsyncExecutor = async(
     node: Node, tensorMap: NamedTensorsMap,
     context: ExecutionContext): Promise<tfc.Tensor[]> => {
   switch (node.op) {
+    case 'If':
     case 'StatelessIf': {
       const thenFunc =
           getParamValue('thenBranch', node, tensorMap, context) as string;
@@ -45,6 +46,7 @@ export const executeOp: InternalOpAsyncExecutor = async(
         return context.functionMap[elseFunc].executeFunctionAsync(args);
       }
     }
+    case 'While':
     case 'StatelessWhile': {
       const bodyFunc =
           getParamValue('body', node, tensorMap, context) as string;

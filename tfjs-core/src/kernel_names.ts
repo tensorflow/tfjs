@@ -19,13 +19,16 @@
 // Unfortunately just enabling PascalCase per file (tslint:enable:
 // allow-pascal-case) doesn't work.
 import {NamedTensorInfoMap, TensorInfo} from './kernel_registry';
-import {PixelData} from './types';
+import {DataType, PixelData} from './types';
 
 export const Add = 'Add';
 export type AddInputs = BinaryInputs;
 
 export const AddN = 'AddN';
 export type AddNInputs = TensorInfo[];
+
+export const Atan2 = 'Atan2';
+export type Atan2Inputs = BinaryInputs;
 
 export const AvgPool = 'AvgPool';
 export type AvgPoolInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -87,6 +90,9 @@ export interface BroadCastToAttrs {
   shape: number[];
   inputShape: number[];  // for gradient
 }
+
+export const Complex = 'Complex';
+export type ComplexInputs = Pick<NamedTensorInfoMap, 'real'|'imag'>;
 
 export const Concat = 'Concat';
 export type ConcatInputs = TensorInfo[];
@@ -190,12 +196,25 @@ export type DivInputs = BinaryInputs;
 export const Equal = 'Equal';
 export type EqualInputs = BinaryInputs;
 
+export const FloorDiv = 'FloorDiv';
+export type FloorDivInputs = BinaryInputs;
+
+export const Fill = 'Fill';
+export interface FillAttrs {
+  shape: number[];
+  value: number|string;
+  dtype: DataType;
+}
+
 export const FusedBatchNorm = 'FusedBatchNorm';
 export type FusedBatchNormInputs =
     Pick<NamedTensorInfoMap, 'x'|'scale'|'offset'|'mean'|'variance'>;
 export interface FusedBatchNormAttrs {
   varianceEpsilon: number;
 }
+
+export const GatherNd = 'GatherNd';
+export type GatherNdInputs = Pick<NamedTensorInfoMap, 'params'|'indices'>;
 
 export const Greater = 'Greater';
 export type GreaterInputs = BinaryInputs;
@@ -205,6 +224,9 @@ export type GreaterEqualInputs = BinaryInputs;
 
 export const Identity = 'Identity';
 export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const Imag = 'Imag';
+export type ImagInputs = Pick<NamedTensorInfoMap, 'input'>;
 
 export const Less = 'Less';
 export type LessInputs = BinaryInputs;
@@ -229,6 +251,16 @@ export interface LRNBackpropAttrs {
   alpha: number;
   beta: number;
 }
+
+export const Max = 'Max';
+export type MaxInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface MaxAttrs {
+  reductionIndices: number|number[];
+  keepDims: boolean;
+}
+
+export const Maximum = 'Maximum';
+export type MaximumInputs = BinaryInputs;
 
 export const MaxPool = 'MaxPool';
 export type MaxPoolInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -280,6 +312,15 @@ export interface MaxPoolWithArgmaxAttrs {
   includeBatchInIndex: boolean;
 }
 
+export const Minimum = 'Minimum';
+export type MinimumInputs = BinaryInputs;
+
+export const Mod = 'Mod';
+export type ModInputs = BinaryInputs;
+
+export const Multiply = 'Multiply';
+export type MultiplyInputs = BinaryInputs;
+
 export const NotEqual = 'NotEqual';
 export type NotEqualInputs = BinaryInputs;
 
@@ -300,13 +341,6 @@ export interface NonMaxSuppressionV5Attrs {
   iouThreshold: number;
   scoreThreshold: number;
   softNmsSigma: number;
-}
-
-export const Max = 'Max';
-export type MaxInputs = Pick<NamedTensorInfoMap, 'x'>;
-export interface MaxAttrs {
-  reductionIndices: number|number[];
-  keepDims: boolean;
 }
 
 export const OneHot = 'OneHot';
@@ -330,8 +364,14 @@ export type PoolInputs = Pick<NamedTensorInfoMap, 'input'>;
 export const Pow = 'Pow';
 export type PowInputs = BinaryInputs;
 
+export const Real = 'Real';
+export type RealInputs = Pick<NamedTensorInfoMap, 'input'>;
+
 export const Relu = 'Relu';
 export type ReluInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const SelectV2 = 'SelectV2';
+export type SelectV2Inputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
 
 export const SpaceToBatchND = 'SpaceToBatchND';
 export type SpaceToBatchNDInputs = Pick<NamedTensorInfoMap, 'x'>;

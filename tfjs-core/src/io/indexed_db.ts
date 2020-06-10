@@ -57,7 +57,7 @@ function getIndexedDBFactory(): IDBFactory {
         'is not a web browser.');
   }
   // tslint:disable-next-line:no-any
-  const theWindow: any = window || self;
+  const theWindow: any = typeof window === 'undefined' ? self : window;
   const factory = theWindow.indexedDB || theWindow.mozIndexedDB ||
       theWindow.webkitIndexedDB || theWindow.msIndexedDB ||
       theWindow.shimIndexedDB;

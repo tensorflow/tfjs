@@ -107,3 +107,19 @@ describe('IS_TEST', () => {
     expect(tf.env().getBool('IS_TEST')).toBe(false);
   });
 });
+
+describe('async flags test', () => {
+  const asyncFlagName = 'ASYNC_FLAG';
+  beforeEach(() => tf.env().registerFlag(asyncFlagName, async () => true));
+
+  afterEach(() => tf.env().reset());
+
+  it('evaluating async flag works', async () => {
+    const flagVal = await tf.env().getAsync(asyncFlagName);
+    expect(flagVal).toBe(true);
+  });
+
+  it('evaluating async flag synchronously fails', async () => {
+    expect(() => tf.env().get(asyncFlagName)).toThrow();
+  });
+});

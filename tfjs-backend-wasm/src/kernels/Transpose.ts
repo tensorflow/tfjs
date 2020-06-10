@@ -44,7 +44,7 @@ function setup(backend: BackendWasm) {
   ]);
 }
 
-function transpose(
+export function transpose(
     args:
         {inputs: TransposeInputs, backend: BackendWasm, attrs: TransposeAttrs}):
     TensorInfo {

@@ -15,11 +15,11 @@
  * =============================================================================
  */
 import './add';
+import './atan2';
 import './avg_pool';
 import './batchnorm';
 import './broadcast_to';
 import './batch_to_space_nd';
-import './max';
 import './concat';
 import './conv1d';
 import './conv2d';
@@ -32,13 +32,19 @@ import './div';
 import './div_no_nan';
 import './dot';
 import './equal';
+import './floorDiv';
 import './greater';
 import './greater_equal';
 import './less';
 import './less_equal';
 import './local_response_normalization';
 import './mat_mul';
+import './max';
 import './max_pool';
+import './maximum';
+import './minimum';
+import './mod';
+import './mul';
 import './not_equal';
 import './one_hot';
 import './pad';

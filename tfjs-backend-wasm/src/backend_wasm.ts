@@ -14,6 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
+import './flags_wasm';
 
 import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
 

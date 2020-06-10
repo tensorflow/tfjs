@@ -17,12 +17,11 @@
 
 import {TensorInfo, Tensor} from '@tensorflow/tfjs-core';
 import {WebGPUBackend} from '../backend_webgpu';
-import * as binary_op_webgpu from './binary_op_webgpu';
-import {BinaryOpProgram} from './binary_op_webgpu';
+import * as binary_op from './binary_ops';
 
 export function divImpl(
     a: TensorInfo, b: TensorInfo, backend: WebGPUBackend): TensorInfo {
-  const program = new BinaryOpProgram(binary_op_webgpu.DIV, a.shape, b.shape);
+  const program = binary_op.getBinaryProgram(binary_op.DIV, a.shape, b.shape);
   const output = backend.compileAndRun(program, [a as Tensor, b as Tensor]);
   return output;
 }

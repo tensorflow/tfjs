@@ -63,7 +63,8 @@ describe(`${REGRESSION} create_save_predict`, () => {
           const $model = await tfl.loadLayersModel(
               `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
 
-          const xs = createInputTensors(inputsData, inputsShapes);
+          const xs =
+              createInputTensors(inputsData, inputsShapes) as tfc.Tensor[];
 
           await tfc.setBackend(backend);
 
