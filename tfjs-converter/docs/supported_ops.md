@@ -232,6 +232,7 @@
 |Any|any|
 |ArgMax|argMax|
 |ArgMin|argMin|
+|Cumsum|cumsum|
 |Max|max|
 |Mean|mean|
 |Min|min|
@@ -273,6 +274,7 @@
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
 |BatchToSpaceND|batchToSpaceND|
+|BroadcstTo|broadcastTo|
 |Cast|cast|
 |DepthToSpace|depthToSpace|
 |ExpandDims|expandDims|

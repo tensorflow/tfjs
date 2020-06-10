@@ -34,7 +34,8 @@ export const LAYERS_MODELS = [
 
 export const GRAPH_MODELS = [
   'saved_model_v1', 'saved_model_v2', 'saved_model_v2_with_control_flow',
-  'saved_model_with_conv2d', 'saved_model_with_prelu'
+  'saved_model_with_conv2d', 'saved_model_with_prelu',
+  'saved_model_v2_complex64', 'saved_model_v2_with_control_flow_v2'
 ];
 
 /** Karma server directory serving local files. */

@@ -16,6 +16,7 @@
  */
 import {addGradConfig} from './gradients/Add_grad';
 import {addNGradConfig} from './gradients/AddN_grad';
+import {atan2GradConfig} from './gradients/Atan2_grad';
 import {avgPool3DGradConfig} from './gradients/AvgPool3D_grad';
 import {avgPoolGradConfig} from './gradients/AvgPool_grad';
 import {batchMatMulGradConfig} from './gradients/BatchMatMul_grad';
@@ -28,15 +29,22 @@ import {conv3DGradConfig} from './gradients/Conv3D_grad';
 import {cumsumGradConfig} from './gradients/Cumsum_grad';
 import {depthwiseConv2dNativeGradConfig} from './gradients/DepthwiseConv2dNative_grad';
 import {divGradConfig} from './gradients/Div_grad';
+import {floorDivGradConfig} from './gradients/FloorDiv_grad';
 import {fusedBatchNormGradConfig} from './gradients/FusedBatchNorm_grad';
 import {greaterEqualGradConfig} from './gradients/GreaterEqual_grad';
 import {identityGradConfig} from './gradients/Identity_grad';
 import {lrnGradConfig} from './gradients/LRN_grad';
 import {maxGradConfig} from './gradients/Max_grad';
+import {maximumGradConfig} from './gradients/Maximum_grad';
 import {maxPool3DGradConfig} from './gradients/MaxPool3D_grad';
 import {maxPoolGradConfig} from './gradients/MaxPool_grad';
+import {minimumGradConfig} from './gradients/Minimum_grad';
+import {modGradConfig} from './gradients/Mod_grad';
+import {multiplyGradConfig} from './gradients/Multiply_grad';
 import {oneHotGradConfig} from './gradients/OneHot_grad';
 import {padV2GradConfig} from './gradients/PadV2_grad';
+import {powGradConfig} from './gradients/Pow_grad';
+import {reluGradConfig} from './gradients/Relu_grad';
 import {spaceToBatchNDGradConfig} from './gradients/SpaceToBatchND_grad';
 import {splitVGradConfig} from './gradients/SplitV_grad';
 import {squareGradConfig} from './gradients/Square_grad';
@@ -51,6 +59,7 @@ import {registerGradient} from './kernel_registry';
 const gradConfigs: GradConfig[] = [
   addGradConfig,
   addNGradConfig,
+  atan2GradConfig,
   avgPoolGradConfig,
   avgPool3DGradConfig,
   batchMatMulGradConfig,
@@ -63,6 +72,7 @@ const gradConfigs: GradConfig[] = [
   cumsumGradConfig,
   depthwiseConv2dNativeGradConfig,
   divGradConfig,
+  floorDivGradConfig,
   fusedBatchNormGradConfig,
   greaterEqualGradConfig,
   identityGradConfig,
@@ -73,10 +83,16 @@ const gradConfigs: GradConfig[] = [
   maxGradConfig,
   spaceToBatchNDGradConfig,
   maxGradConfig,
+  maximumGradConfig,
   maxPoolGradConfig,
   maxPool3DGradConfig,
+  minimumGradConfig,
+  modGradConfig,
+  multiplyGradConfig,
   oneHotGradConfig,
   padV2GradConfig,
+  powGradConfig,
+  reluGradConfig,
   spaceToBatchNDGradConfig,
   splitVGradConfig,
   squareGradConfig,

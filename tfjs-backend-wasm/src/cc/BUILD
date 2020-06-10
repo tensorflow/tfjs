@@ -190,7 +190,7 @@ tfjs_cc_library(
         ":Maximum",
         ":Min",
         ":Minimum",
-        ":Mul",
+        ":Multiply",
         ":Neg",
         ":NonMaxSuppressionV3",
         ":NonMaxSuppressionV5",
@@ -202,6 +202,7 @@ tfjs_cc_library(
         ":Relu6",
         ":ResizeBilinear",
         ":ScatterNd",
+        ":SelectV2",
         ":Sigmoid",
         ":Softmax",
         ":Sub",
@@ -584,8 +585,8 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-    name = "Mul",
-    srcs = ["kernels/Mul.cc"],
+    name = "Multiply",
+    srcs = ["kernels/Multiply.cc"],
     deps = [
         ":backend",
         ":binary",
@@ -701,6 +702,15 @@ tfjs_unit_test(
 tfjs_cc_library(
     name = "ScatterNd",
     srcs = ["kernels/ScatterNd.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SelectV2",
+    srcs = ["kernels/SelectV2.cc"],
     deps = [
         ":backend",
         ":util",

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
+import {relu} from '../../ops/relu';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
 
-import {registerBinaryKernel} from './binary_kernel';
-const supportsFullBroadcast = true;
-registerBinaryKernel('Mul', supportsFullBroadcast);
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    relu<T extends Tensor>(): T;
+  }
+}
+
+Tensor.prototype.relu = function<T extends Tensor>(this: T): T {
+  this.throwIfDisposed();
+  return relu(this);
+};

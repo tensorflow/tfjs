@@ -39,35 +39,49 @@ const DATA_URL = 'convert_predict_data';
 describe(`${REGRESSION} convert_predict`, () => {
   GRAPH_MODELS.forEach(model => {
     describe(`${model}`, () => {
+      let inputsNames: string[];
       let inputsData: tfc.TypedArray[];
       let inputsShapes: number[][];
+      let inputsDtypes: tfc.DataType[];
+      let tfOutputNames: string[];
       let tfOutputData: tfc.TypedArray[];
       let tfOutputShapes: number[][];
-
+      let tfOutputDtypes: tfc.DataType[];
       beforeAll(async () => {
-        [inputsData, inputsShapes, tfOutputData, tfOutputShapes] =
+        [inputsNames, inputsData, inputsShapes, inputsDtypes, tfOutputNames,
+         tfOutputData, tfOutputShapes, tfOutputDtypes] =
             await Promise.all([
+              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-name.json`)
+                  .then(response => response.json()),
               fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-data.json`)
                   .then(response => response.json()),
               fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-shapes.json`)
                   .then(response => response.json()),
+              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-dtype.json`)
+                  .then(response => response.json()),
+              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-name.json`)
+                  .then(response => response.json()),
               fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-data.json`)
                   .then(response => response.json()),
               fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-shapes.json`)
+                  .then(response => response.json()),
+              fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.ys-dtype.json`)
                   .then(response => response.json())
             ]);
       });
 
       BACKENDS.forEach(backend => {
         it(`with ${backend}.`, async () => {
+          await tfc.setBackend(backend);
+
           const $model = await tfconverter.loadGraphModel(
               `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
 
-          const xs = createInputTensors(inputsData, inputsShapes);
+          const namedInputs = createInputTensors(
+                                  inputsData, inputsShapes, inputsDtypes,
+                                  inputsNames) as tfc.NamedTensorMap;
 
-          await tfc.setBackend(backend);
-
-          const result = await $model.executeAsync(xs);
+          const result = await $model.executeAsync(namedInputs, tfOutputNames);
 
           const ys =
               ($model.outputs.length === 1 ? [result] : result) as tfc.Tensor[];
@@ -76,11 +90,12 @@ describe(`${REGRESSION} convert_predict`, () => {
           for (let i = 0; i < ys.length; i++) {
             const y = ys[i];
             expect(y.shape).toEqual(tfOutputShapes[i]);
+            expect(y.dtype).toEqual(tfOutputDtypes[i]);
             tfc.test_util.expectArraysClose(await y.data(), tfOutputData[i]);
           }
 
           // Dispose all tensors;
-          xs.forEach(tensor => tensor.dispose());
+          Object.keys(namedInputs).forEach(key => namedInputs[key].dispose());
           ys.forEach(tensor => tensor.dispose());
         });
       });

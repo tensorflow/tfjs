@@ -24,9 +24,9 @@ import {InternalOpExecutor, Node} from '../types';
 import {getParamValue, split} from './utils';
 
 export const executeOp: InternalOpExecutor = (node: Node,
-                                            tensorMap: NamedTensorsMap,
-                                            context: ExecutionContext):
-                                               tfc.Tensor[] => {
+                                              tensorMap: NamedTensorsMap,
+                                              context: ExecutionContext):
+                                                 tfc.Tensor[] => {
   switch (node.op) {
     case 'Cast': {
       return [tfc.cast(
@@ -87,6 +87,11 @@ export const executeOp: InternalOpExecutor = (node: Node,
       return [tfc.depthToSpace(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor4D,
           blockSize, dataFormat)];
+    }
+    case 'BroadcastTo': {
+      return [tfc.broadcastTo(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('shape', node, tensorMap, context) as number[])];
     }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);

@@ -50,7 +50,7 @@ import tensorflowjs as tfjs
 curr_dir = os.path.dirname(os.path.realpath(__file__))
 _tmp_dir = os.path.join(curr_dir, 'convert_predict_data')
 
-def _save_and_convert_model(model_fn, model_path):
+def _save_and_convert_model(model_fn, model_path, control_flow_v2=False):
   """Benchmark a model's fit() and predict() calls; serialize the model.
 
   Args:
@@ -66,41 +66,67 @@ def _save_and_convert_model(model_fn, model_path):
   model_info = model_fn(tmp_saved_model_dir)
 
   # Write inputs to file.
-  xs = model_info['inputs'].values()
+  xs_data = []
+  xs_shape = []
+  xs_dtype = []
+  xs_names = []
+  keys = model_info['inputs'].keys()
+  for key in keys:
+    xs_names.append(key)
+    xs_data.append(model_info['inputs'][key]['value'])
+    xs_shape.append(model_info['inputs'][key]['shape'])
+    xs_dtype.append(model_info['inputs'][key]['dtype'])
 
-  xs_data = [x['value'] for x in xs]
-  xs_shape = [x['shape'] for x in xs]
-
+  xs_name_path = os.path.join(_tmp_dir, model_path + '.xs-name.json')
   xs_shape_path = os.path.join(_tmp_dir, model_path + '.xs-shapes.json')
   xs_data_path = os.path.join(_tmp_dir, model_path + '.xs-data.json')
+  xs_dtype_path = os.path.join(_tmp_dir, model_path + '.xs-dtype.json')
+  with open(xs_name_path, 'w') as f:
+    f.write(json.dumps(xs_names))
   with open(xs_data_path, 'w') as f:
     f.write(json.dumps(xs_data))
   with open(xs_shape_path, 'w') as f:
     f.write(json.dumps(xs_shape))
-
+  with open(xs_dtype_path, 'w') as f:
+    f.write(json.dumps(xs_dtype))
   # Write outputs to file.
-  ys = model_info['outputs'].values()
+  ys_data = []
+  ys_shape = []
+  ys_dtype = []
+  ys_names = []
+  keys = model_info['outputs'].keys()
+  for key in keys:
+    ys_names.append(key)
+    ys_data.append(model_info['outputs'][key]['value'])
+    ys_shape.append(model_info['outputs'][key]['shape'])
+    ys_dtype.append(model_info['outputs'][key]['dtype'])
 
-  ys_data = [y['value'] for y in ys]
-  ys_shape = [y['shape'] for y in ys]
-
+  ys_name_path = os.path.join(_tmp_dir, model_path + '.ys-name.json')
   ys_data_path = os.path.join(_tmp_dir, model_path + '.ys-data.json')
   ys_shape_path = os.path.join(_tmp_dir, model_path + '.ys-shapes.json')
+  ys_dtype_path = os.path.join(_tmp_dir, model_path + '.ys-dtype.json')
+  with open(ys_name_path, 'w') as f:
+    f.write(json.dumps(ys_names))
   with open(ys_data_path, 'w') as f:
     f.write(json.dumps(ys_data))
   with open(ys_shape_path, 'w') as f:
     f.write(json.dumps(ys_shape))
-
+  with open(ys_dtype_path, 'w') as f:
+    f.write(json.dumps(ys_dtype))
   artifacts_dir = os.path.join(_tmp_dir, model_path)
 
   # Convert and store model to file.
-  subprocess.check_output([
+  args = [
       'tensorflowjs_converter',
       '--input_format', 'tf_saved_model',
       '--output_format', 'tfjs_graph_model',
       '--signature_name', 'serving_default',
-      '--saved_model_tags', 'serve',
-      tmp_saved_model_dir, artifacts_dir])
+      '--saved_model_tags', 'serve'];
+  if control_flow_v2:
+    args = args + ['--control_flow_v2', 'True']
+
+  print(args, tmp_saved_model_dir, artifacts_dir)
+  subprocess.check_output(args +[tmp_saved_model_dir, artifacts_dir])
 
 def _create_saved_model_v1(save_dir):
   """Create a TensorFlow V1 SavedModel for testing.
@@ -257,6 +283,68 @@ def _create_saved_model_with_prelu(save_dir):
                          "shape": result.shape,
                          "dtype": "float32"}}}
 
+def _create_saved_model_v2_complex64(save_dir):
+  """Test a TF V2 model with complex dtype.
+
+  Args:
+    save_dir: directory name of where the saved model will be stored.
+  """
+  input_data = constant_op.constant(1., shape=[1])
+  root = tracking.AutoTrackable()
+  root.v1 = variables.Variable(3 + 1j, dtype=tf.complex64)
+  root.f = def_function.function(lambda x: tf.complex(x, x) + root.v1)
+  to_save = root.f.get_concrete_function(input_data)
+
+  save(root, save_dir, to_save)
+  return {
+      "async": False,
+      "inputs": {
+          "x": {"value": [1], "shape": [1], "dtype": 'float32'}},
+      "outputs": {
+          "Identity:0": {"value": [4, 2], "shape": [1], "dtype": "complex64"}}}
+
+def _create_saved_model_v2_with_control_flow_v2(save_dir):
+  """Test a TF V2 model with control flow v2.
+
+  Args:
+    save_dir: directory name of where the saved model will be stored.
+  """
+  class CustomModule(tf.Module):
+
+    def __init__(self):
+        super(CustomModule, self).__init__()
+
+    @tf.function(input_signature=[tf.TensorSpec([], tf.int32),
+                                  tf.TensorSpec([], tf.int32),
+                                  tf.TensorSpec([], tf.int32)])
+    def control_flow(self, x, y, z):
+        i = 0
+        while i < z:
+            i += 1
+            j = 0
+            while j < y:
+                j += 1
+                if z > 0:
+                    x += 1
+                else:
+                    x += 2
+        return x
+
+
+  module = CustomModule()
+  print(module.control_flow(0, 2, 10))
+  tf.saved_model.save(module, save_dir,
+                      signatures=module.control_flow)
+
+  return {
+      "async": False,
+      "inputs": {
+          "x": {"value": [0], "shape": [], "dtype": 'int32'},
+          "y": {"value": [2], "shape": [], "dtype": 'int32'},
+          "z": {"value": [10], "shape": [], "dtype": 'int32'}},
+      "outputs": {
+          "Identity:0": {"value": [20], "shape": [], "dtype": "int32"}}}
+
 def main():
   # Create the directory to store model and data.
   if os.path.exists(_tmp_dir) and os.path.isdir(_tmp_dir):
@@ -265,8 +353,12 @@ def main():
 
   _save_and_convert_model(_create_saved_model_v1, 'saved_model_v1')
   _save_and_convert_model(_create_saved_model_v2, 'saved_model_v2')
+  _save_and_convert_model(_create_saved_model_v2_complex64,
+                          'saved_model_v2_complex64')
   _save_and_convert_model(_create_saved_model_v2_with_control_flow,
       'saved_model_v2_with_control_flow')
+  _save_and_convert_model(_create_saved_model_v2_with_control_flow_v2,
+      'saved_model_v2_with_control_flow_v2', control_flow_v2=True)
   _save_and_convert_model(_create_saved_model_with_conv2d,
       'saved_model_with_conv2d')
   _save_and_convert_model(_create_saved_model_with_prelu,

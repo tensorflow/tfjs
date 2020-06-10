@@ -200,19 +200,12 @@ export interface OpHandler {
   argMin<T extends Tensor>(x: Tensor, axis: number): T;
   argMax<T extends Tensor>(x: Tensor, axis: number): T;
   addStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  atan2<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   subStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  pow<T extends Tensor>(base: T, exp: Tensor|TensorLike): T;
   powStrict<T extends Tensor>(base: T, exp: Tensor|TensorLike): T;
-  mul<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   mulStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  floorDiv<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   divStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  mod<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   modStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  minimum<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   minimumStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  maximum<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   maximumStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   squaredDifferenceStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   logicalNot<T extends Tensor>(x: T): T;
@@ -265,7 +258,6 @@ export interface OpHandler {
   atanh<T extends Tensor>(x: T): T;
   erf<T extends Tensor>(x: T): T;
   step<T extends Tensor>(x: T, alpha: number): T;
-  relu<T extends Tensor>(x: T): T;
   relu6<T extends Tensor>(x: T): T;
   elu<T extends Tensor>(x: T): T;
   selu<T extends Tensor>(x: T): T;
@@ -766,20 +758,12 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.addStrict(this, x);
   }
-  atan2<T extends this>(this: T, x: T|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.atan2(this, x);
-  }
   /**
    * @deprecated strict variants of ops have been deprecated
    */
   subStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.subStrict(this, x);
-  }
-  pow<T extends Tensor>(this: T, exp: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.pow(this, exp);
   }
   /**
    * @deprecated strict variants of ops have been deprecated
@@ -788,20 +772,12 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.powStrict(this, exp);
   }
-  mul<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.mul(this, x);
-  }
   /**
    * @deprecated strict variants of ops have been deprecated
    */
   mulStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.mulStrict(this, x);
-  }
-  floorDiv<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.floorDiv(this, x);
   }
   /**
    * @deprecated strict variants of ops have been deprecated
@@ -810,10 +786,6 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.divStrict(this, x);
   }
-  minimum<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.minimum(this, x);
-  }
   /**
    * @deprecated strict variants of ops have been deprecated
    */
@@ -821,20 +793,12 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.minimumStrict(this, x);
   }
-  maximum<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.maximum(this, x);
-  }
   /**
    * @deprecated strict variants of ops have been deprecated
    */
   maximumStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.maximumStrict(this, x);
-  }
-  mod<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.mod(this, x);
   }
   /**
    * @deprecated strict variants of ops have been deprecated
@@ -985,10 +949,6 @@ export class Tensor<R extends Rank = Rank> {
   clipByValue(min: number, max: number): Tensor<R> {
     this.throwIfDisposed();
     return opHandler.clipByValue(this, min, max);
-  }
-  relu<T extends Tensor>(this: T): T {
-    this.throwIfDisposed();
-    return opHandler.relu(this);
   }
   relu6<T extends Tensor>(this: T): T {
     this.throwIfDisposed();
