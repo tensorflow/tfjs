@@ -45,6 +45,7 @@ import {oneHotGradConfig} from './gradients/OneHot_grad';
 import {padV2GradConfig} from './gradients/PadV2_grad';
 import {powGradConfig} from './gradients/Pow_grad';
 import {reluGradConfig} from './gradients/Relu_grad';
+import {resizeNearestNeighborGradConfig} from './gradients/ResizeNearestNeighbor_grad'
 import {spaceToBatchNDGradConfig} from './gradients/SpaceToBatchND_grad';
 import {splitVGradConfig} from './gradients/SplitV_grad';
 import {squareGradConfig} from './gradients/Square_grad';
@@ -93,6 +94,7 @@ const gradConfigs: GradConfig[] = [
   padV2GradConfig,
   powGradConfig,
   reluGradConfig,
+  resizeNearestNeighborGradConfig,
   spaceToBatchNDGradConfig,
   splitVGradConfig,
   squareGradConfig,

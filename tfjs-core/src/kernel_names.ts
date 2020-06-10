@@ -370,6 +370,17 @@ export type RealInputs = Pick<NamedTensorInfoMap, 'input'>;
 export const Relu = 'Relu';
 export type ReluInputs = Pick<NamedTensorInfoMap, 'x'>;
 
+export const ResizeNearestNeighbor = 'ResizeNearestNeighbor';
+export type ResizeNearestNeighborInputs =
+    Pick<NamedTensorInfoMap, 'images'|'size'>;
+export interface ResizeNearestNeighborAttrs {
+  alignCorners: boolean;
+}
+
+export const ResizeNearestNeighborGrad = 'ResizeNearestNeighbor';
+export type ResizeNearestNeighborGradInputs =
+    Pick<NamedTensorInfoMap, 'images'>;
+
 export const SelectV2 = 'SelectV2';
 export type SelectV2Inputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
 

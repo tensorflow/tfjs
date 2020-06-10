@@ -85,66 +85,7 @@ function resizeBilinear_<T extends Tensor3D|Tensor4D>(
   return res as T;
 }
 
-/**
- * NearestNeighbor resize a batch of 3D images to a new shape.
- *
- * @param images The images, of rank 4 or rank 3, of shape
- *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is assumed.
- * @param size The new shape `[newHeight, newWidth]` to resize the
- *     images to. Each channel is resized individually.
- * @param alignCorners Defaults to False. If true, rescale
- *     input by `(new_height - 1) / (height - 1)`, which exactly aligns the 4
- *     corners of images and resized images. If false, rescale by
- *     `new_height / height`. Treat similarly the width dimension.
- */
-/** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
-function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
-    images: T|TensorLike, size: [number, number], alignCorners = false): T {
-  const $images = convertToTensor(images, 'images', 'resizeNearestNeighbor');
-  util.assert(
-      $images.rank === 3 || $images.rank === 4,
-      () => `Error in resizeNearestNeighbor: x must be rank 3 or 4, but got ` +
-          `rank ${$images.rank}.`);
-  util.assert(
-      size.length === 2,
-      () =>
-          `Error in resizeNearestNeighbor: new shape must 2D, but got shape ` +
-          `${size}.`);
-  util.assert(
-      $images.dtype === 'float32' || $images.dtype === 'int32',
-      () => '`images` must have `int32` or `float32` as dtype');
 
-  let batchImages = $images as Tensor4D;
-  let reshapedTo4D = false;
-  if ($images.rank === 3) {
-    reshapedTo4D = true;
-    batchImages =
-        $images.as4D(1, $images.shape[0], $images.shape[1], $images.shape[2]);
-  }
-  const [newHeight, newWidth] = size;
-
-  const forward: ForwardFunc<Tensor4D> = (backend, save) => {
-    save([batchImages]);
-    return backend.resizeNearestNeighbor(
-        batchImages, newHeight, newWidth, alignCorners);
-  };
-
-  const backward = (dy: Tensor4D, saved: Tensor[]) => {
-    return {
-      batchImages: () => ENGINE.runKernelFunc(
-          backend => backend.resizeNearestNeighborBackprop(
-              dy, saved[0] as Tensor4D, alignCorners),
-          {})
-    };
-  };
-
-  const res = ENGINE.runKernelFunc(forward, {batchImages}, backward);
-
-  if (reshapedTo4D) {
-    return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
-  }
-  return res as T;
-}
 
 /**
  * Performs non maximum suppression of bounding boxes based on
@@ -351,7 +292,6 @@ function cropAndResize_(
 }
 
 export const resizeBilinear = op({resizeBilinear_});
-export const resizeNearestNeighbor = op({resizeNearestNeighbor_});
 export const nonMaxSuppressionAsync = nonMaxSuppressionAsync_;
 export const nonMaxSuppressionWithScore = op({nonMaxSuppressionWithScore_});
 export const nonMaxSuppressionWithScoreAsync = nonMaxSuppressionWithScoreAsync_;

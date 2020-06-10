@@ -51,6 +51,7 @@ import './pad';
 import './pool';
 import './pow';
 import './relu';
+import './resize_nearest_neighbor';
 import './separable_conv2d';
 import './split';
 import './squared_difference';
