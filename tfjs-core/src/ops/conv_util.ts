@@ -17,7 +17,7 @@
 
 import * as util from '../util';
 
-type PadType = 'SAME'|'VALID'|'NUMBER';
+type PadType = 'SAME'|'VALID'|'NUMBER'|'EXPLICIT';
 
 // For NHWC should be in the following form:
 //  [[0, 0], [pad_top,pad_bottom], [pad_left, pad_right], [0, 0]]
@@ -444,7 +444,7 @@ function getPadAndOutInfo(
     const right = pad[2][1];
     const padType = (top === 0 && bottom === 0 && left === 0 && right === 0) ?
         'VALID' :
-        'NUMBER';
+        'EXPLICIT';
     padInfo = {top, bottom, left, right, type: padType};
     outHeight = conditionalRound(
         (inHeight - filterHeight + top + bottom) / strideHeight + 1,
