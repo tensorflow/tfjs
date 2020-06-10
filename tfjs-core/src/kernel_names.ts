@@ -377,7 +377,7 @@ export interface ResizeNearestNeighborAttrs {
   alignCorners: boolean;
 }
 
-export const ResizeNearestNeighborGrad = 'ResizeNearestNeighbor';
+export const ResizeNearestNeighborGrad = 'ResizeNearestNeighborGrad';
 export type ResizeNearestNeighborGradInputs =
     Pick<NamedTensorInfoMap, 'images'>;
 
