@@ -29,10 +29,10 @@ do
   [ $i -gt 0 ] && echo "Retry in 15 seconds, count: $i" && sleep 15
   # If install is successful, $? will hold 0 and execution will break from the
   # loop.
-  ./emsdk install 1.39.13 && break
+  ./emsdk install 1.39.15 && break
 done
 
-./emsdk activate --no-embedded 1.39.13
+./emsdk activate --no-embedded 1.39.15
 source ./emsdk_env.sh
 cd ..
 

@@ -19,6 +19,7 @@ import './flags_wasm';
 import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, env, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
+import wasmFactorySimd from '../wasm-out/tfjs-backend-wasm-simd.js';
 import wasmFactory from '../wasm-out/tfjs-backend-wasm.js';
 
 const WASM_PRIORITY = 2;
@@ -203,25 +204,26 @@ function createInstantiateWasmFunc(path: string) {
  */
 export async function init(): Promise<{wasm: BackendWasmModule}> {
   const simdSupported = await env().getAsync('WASM_HAS_SIMD_SUPPORT');
+  const factoryConfig: WasmFactoryConfig = {};
+  factoryConfig.locateFile = (path, prefix) => {
+    if (wasmPath != null) {
+      if (path.endsWith('.wasm')) {
+        return wasmPath;
+      }
+      return prefix + path;
+    }
+    return `tfjs-backend-wasm${simdSupported ? '-simd' : ''}.wasm`;
+  };
+  // use wasm instantiateWasm override when system fetch is not available.
+  // For detail references
+  // https://github.com/emscripten-core/emscripten/blob/2bca083cbbd5a4133db61fbd74d04f7feecfa907/tests/manual_wasm_instantiate.html#L170
+  if (customFetch) {
+    factoryConfig.instantiateWasm = createInstantiateWasmFunc(wasmPath);
+  }
+  const wasm = simdSupported ? wasmFactorySimd(factoryConfig) :
+                               wasmFactory(factoryConfig);
 
   return new Promise((resolve, reject) => {
-    const factoryConfig: WasmFactoryConfig = {};
-    if (wasmPath != null) {
-      factoryConfig.locateFile = (path, prefix) => {
-        if (path.endsWith('.wasm')) {
-          console.log('SETTING WASM BINARY LOCATION.', simdSupported);
-          return wasmPath;
-        }
-        return prefix + path;
-      };
-      // use wasm instantiateWasm override when system fetch is not available.
-      // For detail references
-      // https://github.com/emscripten-core/emscripten/blob/2bca083cbbd5a4133db61fbd74d04f7feecfa907/tests/manual_wasm_instantiate.html#L170
-      if (customFetch) {
-        factoryConfig.instantiateWasm = createInstantiateWasmFunc(wasmPath);
-      }
-    }
-    const wasm = wasmFactory(factoryConfig);
     const voidReturnType: string = null;
     // Using the tfjs namespace to avoid conflict with emscripten's API.
     wasm.tfjs = {
@@ -258,6 +260,8 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
           'bundled js file. For more details see https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/README.md#using-bundlers';
       reject({message: rejectMsg});
     };
+
+    wasm.onRuntimeInitialized();
   });
 }
 

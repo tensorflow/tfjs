@@ -21,8 +21,28 @@ cc_binary(
         "-s MODULARIZE=1",
         "-s EXPORT_NAME=WasmBackendModule",
         "-s MALLOC=emmalloc",
+    ],
+    deps = [
+        ":all_kernels",
+        ":backend",
+    ],
+)
+
+cc_binary(
+    name = "tfjs-backend-wasm-simd.js",
+    srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
+    linkopts = [
+        "-s ALLOW_MEMORY_GROWTH=1",
+        "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
+        "-s DISABLE_EXCEPTION_CATCHING=1",
+        "-s FILESYSTEM=0",
+        "-s EXIT_RUNTIME=0",
+        "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
+        "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
+        "-s MODULARIZE=1",
+        "-s EXPORT_NAME=WasmBackendModuleSimd",
+        "-s MALLOC=emmalloc",
         "-s SIMD=1",
-        "-s ERROR_ON_UNDEFINED_SYMBOLS=0",
     ],
     deps = [
         ":all_kernels",
