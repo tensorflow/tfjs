@@ -21,7 +21,7 @@ import {expectArraysClose} from '../test_util';
 import {Rank} from '../types';
 
 describeWithFlags('conv1d', ALL_ENVS, () => {
-  fit('explicit padding', async () => {
+  it('conv1d input=2x2x1,d2=1,f=1,s=1,d=1,p=explicit', async () => {
     const inputDepth = 1;
     const inputShape: [number, number, number] = [2, 2, inputDepth];
     const outputDepth = 1;
@@ -40,7 +40,8 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
     expect(result.shape).toEqual([2, 2, 1]);
     expectArraysClose(await result.data(), [3, 6, 9, 12]);
   });
-  fit('conv1d input=2x2x1,d2=1,f=1,s=1,d=1,p=same', async () => {
+
+  it('conv1d input=2x2x1,d2=1,f=1,s=1,d=1,p=same', async () => {
     const inputDepth = 1;
     const inputShape: [number, number, number] = [2, 2, inputDepth];
     const outputDepth = 1;

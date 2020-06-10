@@ -19,6 +19,9 @@ import * as util from '../util';
 
 type PadType = 'SAME'|'VALID'|'NUMBER';
 
+// For NHWC should be in the following form:
+//  [[0, 0], [pad_top,pad_bottom], [pad_left, pad_right], [0, 0]]
+// Reference: https://www.tensorflow.org/api_docs/python/tf/nn/conv2d
 export type ExplicitPadding =
     [[number, number], [number, number], [number, number], [number, number]];
 
