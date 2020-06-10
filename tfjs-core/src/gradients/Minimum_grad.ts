@@ -18,9 +18,9 @@
 import {Minimum} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import {cast} from '../ops/array_ops';
-import {mul} from '../ops/binary_ops';
 import {greater} from '../ops/greater';
 import {lessEqual} from '../ops/less_equal';
+import {mul} from '../ops/mul';
 import {Tensor} from '../tensor';
 
 export const minimumGradConfig: GradConfig = {

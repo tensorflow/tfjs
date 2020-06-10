@@ -52,7 +52,7 @@ import './Maximum';
 import './MaxPool';
 import './Min';
 import './Minimum';
-import './Mul';
+import './Muliply';
 import './Neg';
 import './NonMaxSuppressionV3';
 import './NonMaxSuppressionV5';

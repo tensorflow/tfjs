@@ -16,60 +16,47 @@
  */
 
 import {ENGINE, ForwardFunc} from '../engine';
-import {Div, DivInputs} from '../kernel_names';
+import {Atan2, Atan2Inputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
-import {floorDiv} from './floorDiv';
 import {op} from './operation';
 
 /**
- * Divides two `tf.Tensor`s element-wise, A / B. Supports broadcasting.
+ * Computes arctangent of `tf.Tensor`s a / b element-wise: `atan2(a, b)`.
+ * Supports broadcasting.
  *
  * ```js
- * const a = tf.tensor1d([1, 4, 9, 16]);
- * const b = tf.tensor1d([1, 2, 3, 4]);
+ * const a = tf.tensor1d([1.0, 1.0, -1.0, .7]);
+ * const b = tf.tensor1d([2.0, 13.0, 3.5, .21]);
  *
- * a.div(b).print();  // or tf.div(a, b)
+ * tf.atan2(a, b).print()
  * ```
  *
- * ```js
- * // Broadcast div a with b.
- * const a = tf.tensor1d([2, 4, 6, 8]);
- * const b = tf.scalar(2);
+ * @param a The first tensor.
+ * @param b The second tensor. Must have the same dtype as `a`.
  *
- * a.div(b).print();  // or tf.div(a, b)
- * ```
- *
- * @param a The first tensor as the numerator.
- * @param b The second tensor as the denominator. Must have the same dtype as
- * `a`.
  */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
-function div_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'div');
-  let $b = convertToTensor(b, 'b', 'div');
+/** @doc {heading: 'Operations', subheading: 'Basic math'} */
+function atan2_<T extends Tensor>(
+    a: Tensor|TensorLike, b: Tensor|TensorLike): T {
+  let $a = convertToTensor(a, 'a', 'atan2');
+  let $b = convertToTensor(b, 'b', 'atan2');
   [$a, $b] = makeTypesMatch($a, $b);
 
-  if ($a.dtype === 'int32' && $b.dtype === 'int32') {
-    return floorDiv($a, $b);
-  }
-
   const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.realDivide($a, $b);
+    const res = backend.atan2($a, $b);
     save([$a, $b]);
     return res;
   };
-
-  const inputs: DivInputs = {a: $a, b: $b};
-  const attrs = {};
+  const inputs: Atan2Inputs = {a: $a, b: $b};
 
   return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* gradient */, Div,
-             attrs) as T;
+             forward, inputs as {} as NamedTensorMap, null /* gradient */,
+             Atan2) as T;
 }
 
-export const div = op({div_});
+export const atan2 = op({atan2_});

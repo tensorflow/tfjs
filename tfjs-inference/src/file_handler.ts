@@ -118,19 +118,10 @@ export class FileHandler implements tf.io.IOHandler {
  */
 function toArrayBuffer(buf: Buffer|Buffer[]): ArrayBuffer {
   if (Array.isArray(buf)) {
-    // An Array of Buffers.
-    let totalLength = 0;
-    for (const buffer of buf) {
-      totalLength += buffer.length;
-    }
+    const newBuf = Buffer.concat(buf);
 
-    const ab = new ArrayBuffer(totalLength);
-    const view = new Uint8Array(ab);
-    let pos = 0;
-    for (const buffer of buf) {
-      pos += buffer.copy(view, pos);
-    }
-    return ab;
+    return newBuf.buffer.slice(
+        newBuf.byteOffset, newBuf.byteOffset + newBuf.byteLength);
   } else {
     // A single Buffer. Return a copy of the underlying ArrayBuffer slice.
     return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);

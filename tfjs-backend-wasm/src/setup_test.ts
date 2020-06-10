@@ -196,8 +196,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'min ',
     excludes: [
-      'derivative: 1D tensor with max or min value',  // Clip not yet
-                                                      // implemented.
       '2D, axis=0',  // Permuted axes requires transpose, which is not yet
                      // implemented.
       'index corresponds to start of a non-initial window',  // argMin not yet
@@ -209,10 +207,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'max ',
     excludes: [
-      'derivative: 1D tensor with max or min value',  // Clip not yet
-                                                      // implemented.
-      '2D, axis=0',   // Permuted axes requires transpose, which is not yet
-                      // implemented.
       'gradient',     // Gradients not yet implemented
       'ignores NaNs'  // Doesn't yet ignore NaN
     ]

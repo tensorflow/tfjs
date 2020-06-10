@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,21 +15,16 @@
  * =============================================================================
  */
 
-import {SquaredDifference} from '../kernel_names';
-import {GradConfig} from '../kernel_registry';
-import {mul} from '../ops/mul';
-import {sub} from '../ops/sub';
-import {scalar} from '../ops/tensor_ops';
-import {Tensor} from '../tensor';
+import {env} from '@tensorflow/tfjs-core';
 
-export const squaredDifferenceGradConfig: GradConfig = {
-  kernelName: SquaredDifference,
-  inputsToSave: ['a', 'b'],
-  gradFunc: (dy: Tensor, saved: Tensor[]) => {
-    const [a, b] = saved;
-    const two = scalar(2);
-    const derA = () => mul(dy, mul(two, sub(a, b)));
-    const derB = () => mul(dy, mul(two, sub(b, a)));
-    return {a: derA, b: derB};
-  }
-};
+const ENV = env();
+
+/**
+ * True if SIMD is supported.
+ */
+// From: https://github.com/GoogleChromeLabs/wasm-feature-detect
+ENV.registerFlag(
+    'WASM_HAS_SIMD_SUPPORT', async () => WebAssembly.validate(new Uint8Array([
+      0, 97, 115, 109, 1, 0, 0, 0, 1,  4, 1,   96, 0,  0, 3,
+      2, 1,  0,   10,  9, 1, 7, 0, 65, 0, 253, 15, 26, 11
+    ])));
