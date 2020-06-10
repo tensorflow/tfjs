@@ -58,7 +58,6 @@ http_archive(
     ],
 )
 
-
 # cpuinfo library, used for detecting processor characteristics
 http_archive(
     name = "cpuinfo",

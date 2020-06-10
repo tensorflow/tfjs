@@ -185,10 +185,10 @@ limitations under the License.
     }
 
     async function loadModelAndRecordTime() {
-      const start = performance.now();
       const benchmark = benchmarks[state.benchmark];
       await showMsg('Loading the model');
 
+      const start = performance.now();
       if (benchmark.model == null) {
         model = await benchmark.load();
         benchmark.model = model;
@@ -382,9 +382,7 @@ limitations under the License.
     async function onPageLoad() {
       var gui = new dat.gui.GUI();
 
-      console.log("SETTING BACKEND");
       await tf.setBackend(state.backend);
-      console.log("PAGE LOAD");
 
       gui.add(state, 'numRuns');
       gui.add(state, 'benchmark', Object.keys(benchmarks));
