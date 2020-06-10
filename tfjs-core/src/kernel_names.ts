@@ -371,10 +371,10 @@ export const Relu = 'Relu';
 export type ReluInputs = Pick<NamedTensorInfoMap, 'x'>;
 
 export const ResizeNearestNeighbor = 'ResizeNearestNeighbor';
-export type ResizeNearestNeighborInputs =
-    Pick<NamedTensorInfoMap, 'images'|'size'>;
+export type ResizeNearestNeighborInputs = Pick<NamedTensorInfoMap, 'images'>;
 export interface ResizeNearestNeighborAttrs {
   alignCorners: boolean;
+  size: [number, number];
 }
 
 export const ResizeNearestNeighborGrad = 'ResizeNearestNeighborGrad';
@@ -382,9 +382,10 @@ export type ResizeNearestNeighborGradInputs =
     Pick<NamedTensorInfoMap, 'images'>;
 
 export const ResizeBilinear = 'ResizeBilinear';
-export type ResizeBilinearInputs = Pick<NamedTensorInfoMap, 'images'|'size'>;
+export type ResizeBilinearInputs = Pick<NamedTensorInfoMap, 'images'>;
 export interface ResizeBilinearAttrs {
   alignCorners: boolean;
+  size: [number, number];
 }
 
 export const ResizeBilinearGrad = 'ResizeBilinearGrad';

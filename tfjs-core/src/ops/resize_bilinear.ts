@@ -42,7 +42,7 @@ import {op} from './operation';
 function resizeBilinear_<T extends Tensor3D|Tensor4D>(
     images: T|TensorLike, size: [number, number], alignCorners = false): T {
   const $images = convertToTensor(images, 'images', 'resizeBilinear');
-  const $size = convertToTensor(size, 'size', 'resizeBilinear');
+
   util.assert(
       $images.rank === 3 || $images.rank === 4,
       () => `Error in resizeBilinear: x must be rank 3 or 4, but got ` +
@@ -67,8 +67,8 @@ function resizeBilinear_<T extends Tensor3D|Tensor4D>(
         batchImages, newHeight, newWidth, alignCorners);
   };
 
-  const inputs: ResizeBilinearInputs = {images: batchImages, size: $size};
-  const attrs: ResizeBilinearAttrs = {alignCorners};
+  const inputs: ResizeBilinearInputs = {images: batchImages};
+  const attrs: ResizeBilinearAttrs = {alignCorners, size};
 
   const res = ENGINE.runKernelFunc(
       forward, inputs as {} as NamedTensorMap, null /* gradient */,

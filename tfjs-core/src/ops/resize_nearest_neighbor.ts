@@ -42,7 +42,6 @@ import {op} from './operation';
 function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
     images: T|TensorLike, size: [number, number], alignCorners = false): T {
   const $images = convertToTensor(images, 'images', 'resizeNearestNeighbor');
-  const $size = convertToTensor(size, 'size', 'resizeNearestNeighbor');
 
   util.assert(
       $images.rank === 3 || $images.rank === 4,
@@ -66,9 +65,8 @@ function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
   }
   const [newHeight, newWidth] = size;
 
-  const inputs:
-      ResizeNearestNeighborInputs = {images: batchImages, size: $size};
-  const attrs: ResizeNearestNeighborAttrs = {alignCorners};
+  const inputs: ResizeNearestNeighborInputs = {images: batchImages};
+  const attrs: ResizeNearestNeighborAttrs = {alignCorners, size};
 
   const forward: ForwardFunc<Tensor4D> = (backend, save) => {
     save([batchImages]);
