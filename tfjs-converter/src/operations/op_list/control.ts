@@ -224,5 +224,135 @@ export const json: OpMapper[] = [
       {'tfName': 'cond', 'name': 'cond', 'type': 'func'},
       {'tfName': 'body', 'name': 'body', 'type': 'func'}
     ]
-  }
+  },
+  {
+    'tfOpName': 'TensorListScatter',
+    'category': 'control',
+    'inputs': [
+      {'start': 0, 'name': 'tensor', 'type': 'tensor'},
+      {'start': 1, 'name': 'indices', 'type': 'number[]'},
+      {'start': 2, 'name': 'elementShape', 'type': 'shape'}
+    ],
+    'attrs':
+        [{'tfName': 'element_dtype', 'name': 'elementDType', 'type': 'dtype'}]
+  },
+  {
+    'tfOpName': 'TensorListScatterV2',
+    'category': 'control',
+    'inputs': [
+      {'start': 0, 'name': 'tensor', 'type': 'tensor'},
+      {'start': 1, 'name': 'indices', 'type': 'number[]'},
+      {'start': 2, 'name': 'elementShape', 'type': 'shape'},
+      {'start': 3, 'name': 'numElements', 'type': 'number'},
+    ],
+    'attrs':
+        [{'tfName': 'element_dtype', 'name': 'elementDType', 'type': 'dtype'}]
+  },
+  {
+    'tfOpName': 'TensorListGather',
+    'category': 'control',
+    'inputs': [
+      {'start': 0, 'name': 'tensorListId', 'type': 'number'},
+      {'start': 1, 'name': 'indices', 'type': 'number[]'},
+      {'start': 2, 'name': 'elementShape', 'type': 'shape'},
+    ],
+    'attrs':
+        [{'tfName': 'element_dtype', 'name': 'elementDType', 'type': 'dtype'}]
+  },
+  {
+    'tfOpName': 'TensorListGetItem',
+    'category': 'control',
+    'inputs': [
+      {'start': 0, 'name': 'tensorListId', 'type': 'number'},
+      {'start': 1, 'name': 'index', 'type': 'number'},
+      {'start': 2, 'name': 'elementShape', 'type': 'shape'},
+    ],
+    'attrs':
+        [{'tfName': 'element_dtype', 'name': 'elementDType', 'type': 'dtype'}]
+  },
+  {
+    'tfOpName': 'TensorListSetItem',
+    'category': 'control',
+    'inputs': [
+      {'start': 0, 'name': 'tensorListId', 'type': 'number'},
+      {'start': 1, 'name': 'index', 'type': 'number'},
+      {'start': 2, 'name': 'tensor', 'type': 'tensor'},
+    ],
+    'attrs':
+        [{'tfName': 'element_dtype', 'name': 'elementDType', 'type': 'dtype'}]
+  },
+  {
+    'tfOpName': 'TensorListReserve',
+    'category': 'control',
+    'inputs': [
+      {'start': 0, 'name': 'elementShape', 'type': 'shape'},
+      {'start': 1, 'name': 'numElements', 'type': 'number'},
+    ],
+    'attrs':
+        [{'tfName': 'element_dtype', 'name': 'elementDType', 'type': 'dtype'}]
+  },
+  {
+    'tfOpName': 'TensorListFromTensor',
+    'category': 'control',
+    'inputs': [
+      {'start': 0, 'name': 'tensor', 'type': 'tensor'},
+      {'start': 1, 'name': 'elementShape', 'type': 'shape'}
+    ],
+    'attrs':
+        [{'tfName': 'element_dtype', 'name': 'elementDType', 'type': 'dtype'}]
+  },
+  {
+    'tfOpName': 'TensorListStack',
+    'category': 'control',
+    'inputs': [
+      {'start': 0, 'name': 'tensorListId', 'type': 'number'},
+      {'start': 1, 'name': 'elementShape', 'type': 'shape'},
+    ],
+    'attrs': [
+      {'tfName': 'element_dtype', 'name': 'elementDType', 'type': 'dtype'},
+      {'tfName': 'num_elements', 'name': 'numElements', 'type': 'dtype'}
+    ]
+  },
+  {
+    'tfOpName': 'TensorListSplit',
+    'category': 'control',
+    'inputs': [
+      {'start': 0, 'name': 'tensor', 'type': 'tensor'},
+      {'start': 1, 'name': 'elementShape', 'type': 'shape'},
+      {'start': 2, 'name': 'lengths', 'type': 'number[]'},
+    ],
+    'attrs':
+        [{'tfName': 'element_dtype', 'name': 'elementDType', 'type': 'dtype'}]
+  },
+  {
+    'tfOpName': 'TensorListConcat',
+    'category': 'control',
+    'inputs': [
+      {'start': 0, 'name': 'tensorListId', 'type': 'number'},
+    ],
+    'attrs': [
+      {'tfName': 'element_shape', 'name': 'elementShape', 'type': 'shape'},
+      {'tfName': 'element_dtype', 'name': 'elementDType', 'type': 'dtype'}
+    ]
+  },
+  {
+    'tfOpName': 'TensorListPopBack',
+    'category': 'control',
+    'inputs': [
+      {'start': 0, 'name': 'tensorListId', 'type': 'number'},
+      {'start': 1, 'name': 'elementShape', 'type': 'shape'},
+    ],
+    'attrs':
+        [{'tfName': 'element_dtype', 'name': 'elementDType', 'type': 'dtype'}]
+  },
+  {
+    'tfOpName': 'TensorListPushBack',
+    'category': 'control',
+    'inputs': [
+      {'start': 0, 'name': 'tensorListId', 'type': 'number'},
+      {'start': 1, 'name': 'tensor', 'type': 'tensor'},
+    ],
+    'attrs':
+        [{'tfName': 'element_dtype', 'name': 'elementDType', 'type': 'dtype'}]
+  },
 ];

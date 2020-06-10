@@ -18,7 +18,7 @@
 import {DataType, NamedTensorMap, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 import {ISignatureDef} from '../data/compiled_api';
-import {NamedTensorsMap, TensorArrayMap, TensorInfo} from '../data/types';
+import {NamedTensorsMap, TensorArrayMap, TensorInfo, TensorListMap} from '../data/types';
 import {getNodeNameAndIndex, getParamValue, getTensor, getTensorsForCurrentContenxt, parseNodeName} from '../operations/executors/utils';
 import {executeOp} from '../operations/operation_executor';
 import {Graph, Node} from '../operations/types';
@@ -193,9 +193,11 @@ export class GraphExecutor implements FunctionExecutor {
       this.compiledMap.set(compilationKey, orderedNodes);
     }
     const tensorArrayMap: TensorArrayMap = {};
+    const tensorListMap: TensorListMap = {};
     return tidy(() => {
       const context = new ExecutionContext(
-          this.weightMap, tensorArrayMap, this.functionExecutorMap);
+          this.weightMap, tensorArrayMap, tensorListMap,
+          this.functionExecutorMap);
       const tensorsMap: NamedTensorsMap = {...this.weightMap};
       Object.keys(inputs).forEach(name => {
         const [nodeName, index] = parseNodeName(name);
@@ -284,18 +286,26 @@ export class GraphExecutor implements FunctionExecutor {
    * array.
    * @param disableWarning disable the no dynamic ops warning message, default
    * to false
+   * @param tensorArrayMap glboal TensorArray map by id.
+   * @param tensorListMap glboal TensorList map by id.
+   * @param ignoreIOCheck ignore IO check for function execution.
    */
   async executeAsync(
-      inputs: NamedTensorMap, outputs: string[],
-      disableWarning = false): Promise<Tensor[]> {
-    inputs = this.mapInputs(inputs);
-    this.checkInputs(inputs);
-    this.checkInputShapeAndType(inputs);
-    outputs = this.mapOutputs(outputs);
-    this.checkOutputs(outputs);
-    const tensorArrayMap: TensorArrayMap = {};
+      inputs: NamedTensorMap, outputs: string[], disableWarning = false,
+      tensorArrayMap: TensorArrayMap = {}, tensorListMap: TensorListMap = {},
+      ignoreIOCheck = false): Promise<Tensor[]> {
+    if (!ignoreIOCheck) {
+      inputs = this.mapInputs(inputs);
+      this.checkInputs(inputs);
+      this.checkInputShapeAndType(inputs);
+      outputs = this.mapOutputs(outputs);
+      this.checkOutputs(outputs);
+    }
+
     const context = new ExecutionContext(
-        this.weightMap, tensorArrayMap, this.functionExecutorMap);
+        this.weightMap, tensorArrayMap, tensorListMap,
+        this.functionExecutorMap);
+
     // Graph with control flow op requires runtime evaluation of the execution
     // order, while without control flow the execution order is pre-determined
     // in the compile method.
@@ -320,13 +330,17 @@ export class GraphExecutor implements FunctionExecutor {
     return results;
   }
 
-  async executeFunctionAsync(inputs: Tensor[]): Promise<Tensor[]> {
+  async executeFunctionAsync(
+      inputs: Tensor[], tensorArrayMap: TensorArrayMap,
+      tensorListMap: TensorListMap): Promise<Tensor[]> {
     const mappedInputs = inputs.reduce((map, tensor, index) => {
       map[this.inputs[index].name] = tensor;
       return map;
     }, {} as NamedTensorMap);
 
-    return this.executeAsync(mappedInputs, this.outputNodes, true);
+    return this.executeAsync(
+        mappedInputs, this.outputNodes, true, tensorArrayMap, tensorListMap,
+        true);
   }
   /**
    * When there are control flow nodes in the graph, the graph execution use

@@ -35,6 +35,8 @@ import {assertShapesMatchAllowUndefinedSize} from './tensor_utils';
  */
 
 export class TensorList {
+  private static nextId = 0;
+  readonly id: number;
   /**
    *
    * @param tensors list of tensors
@@ -45,7 +47,9 @@ export class TensorList {
    */
   constructor(
       public tensors: Tensor[], public elementShape: number[],
-      public elementDtype: DataType, public maxNumElements = -1) {}
+      public elementDtype: DataType, public maxNumElements = -1) {
+    this.id = TensorList.nextId++;
+  }
 
   /**
    * Get a new TensorList containing a copy of the underlying tensor container.
@@ -258,20 +262,24 @@ export class TensorList {
  * @param tensor from tensor
  * @param elementShape output tensor element shape
  */
-export function fromTensor(tensor: Tensor, elementShape: number[]) {
+export function fromTensor(
+    tensor: Tensor, elementShape: number[], elementDtype: DataType) {
   const dtype = tensor.dtype;
   if (tensor.shape.length < 1) {
     throw new Error(
         `Tensor must be at least a vector, but saw shape: ${tensor.shape}`);
   }
-
+  if (tensor.dtype !== elementDtype) {
+    throw new Error(`Invalid data types; op elements ${
+        tensor.dtype}, but list elements ${elementDtype}`);
+  }
   const outputShape = tensor.shape.slice(1);
   assertShapesMatchAllowUndefinedSize(
       outputShape, elementShape, 'TensorList shape mismatch: ');
 
   const tensorList: Tensor[] = [];
   for (let i = 0; i < tensor.shape[0]; ++i) {
-    const tmp = tensor.slice(i, i + 1).reshape(outputShape);
+    const tmp = tensor.slice(i, 1).reshape(outputShape);
     tensorList.push(tmp);
   }
   return new TensorList(tensorList, elementShape, dtype);
@@ -297,7 +305,7 @@ export function reserve(
  */
 export function scatter(
     tensor: Tensor, indices: number[], elementShape: number[],
-    numElements: number): TensorList {
+    numElements?: number): TensorList {
   if (indices.length !== tensor.shape[0]) {
     throw new Error(`Expected len(indices) == tensor.shape[0], but saw: ${
         indices.length} vs. ${tensor.shape[0]}`);
@@ -305,7 +313,7 @@ export function scatter(
 
   const maxIndex = Math.max(...indices);
 
-  if (numElements !== -1 && maxIndex >= numElements) {
+  if (numElements != null && numElements !== -1 && maxIndex >= numElements) {
     throw new Error(
         `Max index must be < array size (${maxIndex}  vs. ${numElements})`);
   }
