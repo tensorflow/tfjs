@@ -57,20 +57,21 @@ describeWithFlags('resizeBilinear', ALL_ENVS, () => {
     const output = input.resizeBilinear([4, 3], false);
 
     expectArraysClose(await output.data(), [
-      1.5632453, 2.13817763, 1.44398415, 1.07632685, 0.59306782, -0.36970866,
-      1.59388208, 1.98745549, 1.2917161, 1.54812956, 1.30613375, 1.15276587,
+      1.5632453,  2.13817763, 1.44398415, 1.07632685, 0.59306782, -0.36970866,
+      1.59388208, 1.98745549, 1.2917161,  1.54812956, 1.30613375, 1.15276587,
       1.62451875, 1.83673334, 1.13944793, 2.01993227, 2.01919961, 2.67524052,
-      1.62451875, 1.83673334, 1.13944793, 2.01993227, 2.01919961, 2.67524052]);
+      1.62451875, 1.83673334, 1.13944793, 2.01993227, 2.01919961, 2.67524052
+    ]);
   });
 
   it('works for ints', async () => {
     const input = tf.tensor3d([1, 2, 3, 4, 5], [1, 5, 1], 'int32');
-    const output = input.resizeBilinear([1, 10]);
+    const output = input.resizeBilinear([1, 10], false);
 
     expect(output.shape).toEqual([1, 10, 1]);
     expect(output.dtype).toBe('float32');
     expectArraysClose(
-      await output.data(), [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5]);
+        await output.data(), [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5]);
   });
 
   it('matches tensorflow w/ random numbers alignCorners=false', async () => {

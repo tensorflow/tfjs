@@ -16,7 +16,7 @@
  */
 
 import {ENGINE, ForwardFunc} from '../engine';
-import {ResizeNearestNeighbor, ResizeNearestNeighborAttrs, ResizeNearestNeighborInputs} from '../kernel_names';
+import {ResizeBilinear, ResizeBilinearAttrs, ResizeBilinearInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor3D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -27,7 +27,7 @@ import * as util from '../util';
 import {op} from './operation';
 
 /**
- * NearestNeighbor resize a batch of 3D images to a new shape.
+ * Bilinear resize a batch of 3D images to a new shape.
  *
  * @param images The images, of rank 4 or rank 3, of shape
  *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is assumed.
@@ -39,23 +39,18 @@ import {op} from './operation';
  *     `new_height / height`. Treat similarly the width dimension.
  */
 /** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
-function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
+function resizeBilinear_<T extends Tensor3D|Tensor4D>(
     images: T|TensorLike, size: [number, number], alignCorners = false): T {
-  const $images = convertToTensor(images, 'images', 'resizeNearestNeighbor');
-  const $size = convertToTensor(size, 'size', 'resizeNearestNeighbor');
-
+  const $images = convertToTensor(images, 'images', 'resizeBilinear');
+  const $size = convertToTensor(size, 'size', 'resizeBilinear');
   util.assert(
       $images.rank === 3 || $images.rank === 4,
-      () => `Error in resizeNearestNeighbor: x must be rank 3 or 4, but got ` +
+      () => `Error in resizeBilinear: x must be rank 3 or 4, but got ` +
           `rank ${$images.rank}.`);
   util.assert(
       size.length === 2,
-      () =>
-          `Error in resizeNearestNeighbor: new shape must 2D, but got shape ` +
+      () => `Error in resizeBilinear: new shape must 2D, but got shape ` +
           `${size}.`);
-  util.assert(
-      $images.dtype === 'float32' || $images.dtype === 'int32',
-      () => '`images` must have `int32` or `float32` as dtype');
 
   let batchImages = $images as Tensor4D;
   let reshapedTo4D = false;
@@ -64,21 +59,20 @@ function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
     batchImages =
         $images.as4D(1, $images.shape[0], $images.shape[1], $images.shape[2]);
   }
+
   const [newHeight, newWidth] = size;
-
-  const inputs:
-      ResizeNearestNeighborInputs = {images: batchImages, size: $size};
-  const attrs: ResizeNearestNeighborAttrs = {alignCorners};
-
   const forward: ForwardFunc<Tensor4D> = (backend, save) => {
     save([batchImages]);
-    return backend.resizeNearestNeighbor(
+    return backend.resizeBilinear(
         batchImages, newHeight, newWidth, alignCorners);
   };
 
+  const inputs: ResizeBilinearInputs = {images: batchImages, size: $size};
+  const attrs: ResizeBilinearAttrs = {alignCorners};
+
   const res = ENGINE.runKernelFunc(
       forward, inputs as {} as NamedTensorMap, null /* gradient */,
-      ResizeNearestNeighbor, attrs as {} as NamedAttrMap);
+      ResizeBilinear, attrs as {} as NamedAttrMap);
 
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
@@ -86,4 +80,4 @@ function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
   return res as T;
 }
 
-export const resizeNearestNeighbor = op({resizeNearestNeighbor_});
+export const resizeBilinear = op({resizeBilinear_});

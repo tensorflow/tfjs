@@ -61,6 +61,7 @@ const CHAINED_OPS = [
   'pool',
   'pow',
   'relu',
+  'resizeBilinear',
   'resizeNearestNeighbor',
   'separableConv2d',
   'spaceToBatchND',

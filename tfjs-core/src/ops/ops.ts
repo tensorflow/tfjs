@@ -127,7 +127,8 @@ import * as spectral from './spectral_ops';
 import * as fused from './fused_ops';
 import * as signal from './signal_ops';
 
-import {resizeBilinear, cropAndResize, nonMaxSuppression, nonMaxSuppressionAsync, nonMaxSuppressionWithScore, nonMaxSuppressionWithScoreAsync} from './image_ops';
+import {cropAndResize, nonMaxSuppression, nonMaxSuppressionAsync, nonMaxSuppressionWithScore, nonMaxSuppressionWithScoreAsync} from './image_ops';
+import {resizeBilinear} from './resize_bilinear';
 import {resizeNearestNeighbor} from './resize_nearest_neighbor';
 const image = {
   resizeNearestNeighbor,

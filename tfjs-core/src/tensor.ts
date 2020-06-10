@@ -265,10 +265,6 @@ export interface OpHandler {
   prelu<T extends Tensor>(x: T, alpha: T|TensorLike): T;
   softmax<T extends Tensor>(logits: T, dim: number): T;
   logSoftmax<T extends Tensor>(logits: T, axis: number): T;
-  image: {
-    resizeBilinear<T extends Tensor3D|Tensor4D>(
-        images: T, size: [number, number], alignCorners: boolean): T;
-  };
   unsortedSegmentSum<T extends Tensor>(
       x: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T;
   topk<T extends Tensor>(x: T, k: number, sorted: boolean):
@@ -1056,14 +1052,6 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.logSoftmax(this, axis);
   }
-
-  // Image ops.
-  resizeBilinear<T extends Tensor3D|Tensor4D>(
-      this: T, newShape2D: [number, number], alignCorners = false): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.image.resizeBilinear(this, newShape2D, alignCorners);
-  }
-
   // Pooling.
   variable(trainable = true, name?: string, dtype?: DataType): Variable<R> {
     this.throwIfDisposed();

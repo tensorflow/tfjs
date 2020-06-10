@@ -381,6 +381,15 @@ export const ResizeNearestNeighborGrad = 'ResizeNearestNeighborGrad';
 export type ResizeNearestNeighborGradInputs =
     Pick<NamedTensorInfoMap, 'images'>;
 
+export const ResizeBilinear = 'ResizeBilinear';
+export type ResizeBilinearInputs = Pick<NamedTensorInfoMap, 'images'|'size'>;
+export interface ResizeBilinearAttrs {
+  alignCorners: boolean;
+}
+
+export const ResizeBilinearGrad = 'ResizeBilinearGrad';
+export type ResizeBilinearGradInputs = Pick<NamedTensorInfoMap, 'images'>;
+
 export const SelectV2 = 'SelectV2';
 export type SelectV2Inputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
 
