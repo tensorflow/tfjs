@@ -196,8 +196,8 @@ export type DivInputs = BinaryInputs;
 export const Elu = 'Elu';
 export type EluInputs = Pick<NamedTensorInfoMap, 'x'>;
 
-export const EluBackpropInput = 'EluBackpropInput';
-export type EluBackpropInputInputs = Pick<NamedTensorInfoMap, 'dy'|'y'>;
+export const EluGrad = 'EluGrad';
+export type EluGradInputs = Pick<NamedTensorInfoMap, 'dy'|'y'>;
 
 export const Equal = 'Equal';
 export type EqualInputs = BinaryInputs;

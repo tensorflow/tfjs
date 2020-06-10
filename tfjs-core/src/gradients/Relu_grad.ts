@@ -16,7 +16,9 @@
  */
 import {Relu} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
+import {cast} from '../ops/array_ops';
 import {mul} from '../ops/mul';
+import {step} from '../ops/unary_ops';
 import {Tensor} from '../tensor';
 
 export const reluGradConfig: GradConfig = {
@@ -24,6 +26,6 @@ export const reluGradConfig: GradConfig = {
   inputsToSave: ['x'],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
     const [x] = saved;
-    return {x: () => mul(dy, x.step().toFloat())};
+    return {x: () => mul(dy, cast(step(x), 'float32'))};
   }
 };
