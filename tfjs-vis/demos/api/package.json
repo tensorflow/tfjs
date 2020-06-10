@@ -20,6 +20,6 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "2.0.0",
-    "@tensorflow/tfjs-vis": "link:../../../tfjs-vis"
-  }
+    "@tensorflow/tfjs-vis": "1.4.2-pre.1"
+  }  
 }
