@@ -147,7 +147,7 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  fit('x=[4,2,1] f=[4,2,1,1] s=1 d=1 p=same', async () => {
+  it('x=[4,2,1] f=[4,2,1,1] s=1 d=1 p=same', async () => {
     const inputDepth = 1;
     const outputDepth = 1;
     const pad = 'same';
