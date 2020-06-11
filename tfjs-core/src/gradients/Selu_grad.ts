@@ -17,6 +17,7 @@
 import {Selu} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import {cast} from '../ops/array_ops';
+import {greater} from '../ops/greater';
 import {where} from '../ops/logical_ops';
 import {mul} from '../ops/mul';
 import {SELU_SCALE, SELU_SCALEALPHA} from '../ops/selu_util';
@@ -31,7 +32,7 @@ export const seluGradConfig: GradConfig = {
     const [x] = saved;
     return {
       x: () => {
-        const mask = x.greater(scalar(0));
+        const mask = greater(x, scalar(0));
 
         const scaleAlpha = scalar(SELU_SCALEALPHA);
         const scale = scalar(SELU_SCALE);
