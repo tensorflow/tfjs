@@ -204,23 +204,22 @@ function createInstantiateWasmFunc(path: string) {
  */
 export async function init(): Promise<{wasm: BackendWasmModule}> {
   const simdSupported = await env().getAsync('WASM_HAS_SIMD_SUPPORT');
-  const factoryConfig: WasmFactoryConfig = {};
-  if (wasmPath != null) {
-    factoryConfig.locateFile = (path, prefix) => {
-      if (path.endsWith('.wasm')) {
-        return wasmPath;
-      }
-      return prefix + path;
-    };
-    // use wasm instantiateWasm override when system fetch is not available.
-    // For detail references
-    // https://github.com/emscripten-core/emscripten/blob/2bca083cbbd5a4133db61fbd74d04f7feecfa907/tests/manual_wasm_instantiate.html#L170
-    if (customFetch) {
-      factoryConfig.instantiateWasm = createInstantiateWasmFunc(wasmPath);
-    }
-  }
-
   return new Promise((resolve, reject) => {
+    const factoryConfig: WasmFactoryConfig = {};
+    if (wasmPath != null) {
+      factoryConfig.locateFile = (path, prefix) => {
+        if (path.endsWith('.wasm')) {
+          return wasmPath;
+        }
+        return prefix + path;
+      };
+      // use wasm instantiateWasm override when system fetch is not available.
+      // For detail references
+      // https://github.com/emscripten-core/emscripten/blob/2bca083cbbd5a4133db61fbd74d04f7feecfa907/tests/manual_wasm_instantiate.html#L170
+      if (customFetch) {
+        factoryConfig.instantiateWasm = createInstantiateWasmFunc(wasmPath);
+      }
+    }
     const voidReturnType: string = null;
     const wasm = simdSupported ? wasmFactorySimd(factoryConfig) :
                                  wasmFactory(factoryConfig);
