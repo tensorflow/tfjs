@@ -17,6 +17,7 @@
     "build": "rimraf dist/ && tsc && ./scripts/build-wasm.sh",
     "build-ci": "./scripts/build-ci.sh",
     "build-npm": "./scripts/build-npm.sh",
+    "build-benchmark": "./scripts/test-standalone.sh",
     "buildifier-ci": "./scripts/buildifier-ci.sh",
     "clean": "rimraf dist/ && bazel clean --expunge",
     "cpplint": "./scripts/cpplint.js",
@@ -26,8 +27,7 @@
     "test-node": "ts-node --skip-ignore -P tsconfig.test.json src/test_node.ts",
     "test-bundle-size": "./scripts/test-bundle-size.js",
     "test-cc": "bazel test //src/cc:cc_tests --test_output=all",
-    "test-browser-ci": "karma start --singleRun --browsers=bs_chrome_mac",
-    "test-standalone": "./scripts/test-standalone.sh"
+    "test-browser-ci": "karma start --singleRun --browsers=bs_chrome_mac"
   },
   "browser": {
     "fs": false,
