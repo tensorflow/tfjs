@@ -108,13 +108,13 @@ JS backend, and ~5.3-7.7X slower than the WebGL backend.
 
 <img src="./mobilenet-v2-bench.svg">
 
-| MobileNet inference (ms) | WASM  | WebGL | Plain JS |
-|--------------------------|-------|-------|----------|
-| iPhone X                 | 147.1 | 20.3  | 941.3    |
-| iPhone XS                | 140   | 18.1  | 426.4    |
-| Pixel 3                  | 266.2 | 77.3  | 2345.2   |
-| Desktop Linux            | 91.5  | 17.1  | 1049     |
-| Macbook Pro              | 98.4  | 19.6  | 893.5    |
+| MobileNet inference (ms) | WASM  | WebGL | Plain JS | WASM + SIMD |
+|--------------------------|-------|-------|----------|-------------|
+| iPhone X                 | 147.1 | 20.3  | 941.3    | N/A         |
+| iPhone XS                | 140   | 18.1  | 426.4    | N/A         |
+| Pixel 3                  | 266.2 | 77.3  | 2345.2   | N/A         |
+| Desktop Linux            | 91.5  | 17.1  | 1049     | N/A         |
+| Macbook Pro              | 98.4  | 19.6  | 893.5    | 30.2        |
 
 
 
@@ -127,13 +127,13 @@ the device).
 
 <img src="./face-detector-bench.svg">
 
-| Face Detector inference (ms) | WASM | WebGL | Plain JS |
-|------------------------------|------|-------|----------|
-| iPhone X                     | 22.4 | 13.5  | 318      |
-| iPhone XS                    | 21.4 | 10.5  | 176.9    |
-| Pixel 3                      | 40.7 | 31.8  | 535.2    |
-| Desktop Linux                | 12.6 | 12.7  | 249.5    |
-| Macbook Pro 15 2019          | 13.6 | 22.7  | 209.1    |
+| Face Detector inference (ms) | WASM | WebGL | Plain JS | WASM + SIMD |
+|------------------------------|------|-------|----------|-------------|
+| iPhone X                     | 22.4 | 13.5  | 318      | N/A         |
+| iPhone XS                    | 21.4 | 10.5  | 176.9    | N/A         |
+| Pixel 3                      | 40.7 | 31.8  | 535.2    | N/A         |
+| Desktop Linux                | 12.6 | 12.7  | 249.5    | N/A         |
+| Macbook Pro 15 2019          | 13.6 | 22.7  | 209.1    | 7.9         |
 
 # FAQ
 
