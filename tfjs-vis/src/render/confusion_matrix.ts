@@ -155,6 +155,7 @@ export async function confusionMatrix(
         'titleFontSize': options.fontSize,
       }
     },
+    //@ts-ignore
     'data': {'values': values},
     'encoding': {
       'x': {
@@ -185,6 +186,7 @@ export async function confusionMatrix(
           'color': {
             'field': 'scaleCount',
             'type': 'quantitative',
+            //@ts-ignore
             'scale': {'range': options.colorMap},
           },
           'tooltip': [
