@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,18 +14,18 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Relu} from '../kernel_names';
-import {GradConfig} from '../kernel_registry';
-import {cast} from '../ops/array_ops';
-import {mul} from '../ops/mul';
-import {step} from '../ops/unary_ops';
-import {Tensor} from '../tensor';
+import {leakyRelu} from '../../ops/leaky_relu';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
 
-export const reluGradConfig: GradConfig = {
-  kernelName: Relu,
-  inputsToSave: ['x'],
-  gradFunc: (dy: Tensor, saved: Tensor[]) => {
-    const [x] = saved;
-    return {x: () => mul(dy, cast(step(x), 'float32'))};
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    leakyRelu<T extends Tensor>(alpha: number): T;
   }
+}
+
+Tensor.prototype.leakyRelu = function<T extends Tensor>(
+    this: T, alpha: number): T {
+  this.throwIfDisposed();
+  return leakyRelu(this, alpha);
 };

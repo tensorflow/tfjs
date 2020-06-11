@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,18 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Relu} from '../kernel_names';
-import {GradConfig} from '../kernel_registry';
-import {cast} from '../ops/array_ops';
-import {mul} from '../ops/mul';
-import {step} from '../ops/unary_ops';
-import {Tensor} from '../tensor';
+import {elu} from '../../ops/elu';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
 
-export const reluGradConfig: GradConfig = {
-  kernelName: Relu,
-  inputsToSave: ['x'],
-  gradFunc: (dy: Tensor, saved: Tensor[]) => {
-    const [x] = saved;
-    return {x: () => mul(dy, cast(step(x), 'float32'))};
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    elu<T extends Tensor>(): T;
   }
+}
+
+Tensor.prototype.elu = function<T extends Tensor>(this: T): T {
+  this.throwIfDisposed();
+  return elu(this);
 };
