@@ -18,6 +18,7 @@
 import * as tf from '@tensorflow/tfjs';
 import * as fs from 'fs';
 import {dirname, join, resolve} from 'path';
+import {fileURLToPath} from 'url';
 import {promisify} from 'util';
 
 import {getModelArtifactsInfoForJSON, toArrayBuffer} from './io_utils';
@@ -245,13 +246,13 @@ export const nodeFileSystemRouter = (url: string|string[]) => {
     if (url.every(
             urlElement => urlElement.startsWith(NodeFileSystem.URL_SCHEME))) {
       return new NodeFileSystem(url.map(
-          urlElement => urlElement.slice(NodeFileSystem.URL_SCHEME.length)));
+          urlElement => fileURLToPath(urlElement)));
     } else {
       return null;
     }
   } else {
     if (url.startsWith(NodeFileSystem.URL_SCHEME)) {
-      return new NodeFileSystem(url.slice(NodeFileSystem.URL_SCHEME.length));
+      return new NodeFileSystem(fileURLToPath(url));
     } else {
       return null;
     }
