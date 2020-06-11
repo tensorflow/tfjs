@@ -167,7 +167,7 @@ inference as fast as possible.
 Yes. If you run into issues, please let us know.
 
 ### Do you support SIMD?
-Yes. We take advantage of SIMD wherever it is supported. For users, no additional configuration is needed. If you intend to serve the WASM assets yourself, note that the SIMD-enabled WASM binary is separate from the default binary.
+Yes. We take advantage of SIMD wherever it is supported. If you intend to serve the WASM assets yourself, note that the SIMD-enabled WASM binary is separate from the default binary.
 
 ### Do you support multi-threading?
 Multi-threading support is not a priority for us at this point since it is still
