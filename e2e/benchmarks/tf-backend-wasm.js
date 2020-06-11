@@ -3040,7 +3040,7 @@
                   'bundled js file. For more details see https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/README.md#using-bundlers';
               reject({ message: rejectMsg });
           };
-          wasm.onRuntimeInitialized();
+          // wasm.onRuntimeInitialized();
       });
   }
   function typedArrayFromBuffer(buffer, dtype) {

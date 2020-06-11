@@ -205,15 +205,14 @@ function createInstantiateWasmFunc(path: string) {
 export async function init(): Promise<{wasm: BackendWasmModule}> {
   const simdSupported = await env().getAsync('WASM_HAS_SIMD_SUPPORT');
   const factoryConfig: WasmFactoryConfig = {};
-  factoryConfig.locateFile = (path, prefix) => {
-    if (wasmPath != null) {
+  if (wasmPath != null) {
+    factoryConfig.locateFile = (path, prefix) => {
       if (path.endsWith('.wasm')) {
         return wasmPath;
       }
       return prefix + path;
-    }
-    return `tfjs-backend-wasm${simdSupported ? '-simd' : ''}.wasm`;
-  };
+    };
+  }
   // use wasm instantiateWasm override when system fetch is not available.
   // For detail references
   // https://github.com/emscripten-core/emscripten/blob/2bca083cbbd5a4133db61fbd74d04f7feecfa907/tests/manual_wasm_instantiate.html#L170
@@ -260,8 +259,6 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
           'bundled js file. For more details see https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/README.md#using-bundlers';
       reject({message: rejectMsg});
     };
-
-    wasm.onRuntimeInitialized();
   });
 }
 
