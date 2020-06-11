@@ -5,7 +5,7 @@ steps:
   dir: 'e2e'
   entrypoint: 'bash'
   id: 'verdaccio'
-  args: ['./scripts/start-verdaccio']
+  args: ['./scripts/start-verdaccio.sh']
 
 # Install packages.
 - name: 'node:10'
