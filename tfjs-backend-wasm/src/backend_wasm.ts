@@ -219,11 +219,11 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
   if (customFetch) {
     factoryConfig.instantiateWasm = createInstantiateWasmFunc(wasmPath);
   }
-  const wasm = simdSupported ? wasmFactorySimd(factoryConfig) :
-                               wasmFactory(factoryConfig);
 
   return new Promise((resolve, reject) => {
     const voidReturnType: string = null;
+    const wasm = simdSupported ? wasmFactorySimd(factoryConfig) :
+                                 wasmFactory(factoryConfig);
     // Using the tfjs namespace to avoid conflict with emscripten's API.
     wasm.tfjs = {
       init: wasm.cwrap('init', null, []),

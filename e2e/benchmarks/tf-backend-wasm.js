@@ -2987,27 +2987,24 @@
   async function init() {
       const simdSupported = await tfjsCore.env().getAsync('WASM_HAS_SIMD_SUPPORT');
       const factoryConfig = {};
-      factoryConfig.locateFile = (path, prefix) => {
-          if (wasmPath != null) {
+      if (wasmPath != null) {
+          factoryConfig.locateFile = (path, prefix) => {
               if (path.endsWith('.wasm')) {
-                  console.log('SETTING WASM BINARY LOCATION.', simdSupported);
                   return wasmPath;
               }
               return prefix + path;
-          }
-          return `tfjs-backend-wasm${simdSupported ? '-simd' : ''}.wasm`;
-      };
+          };
+      }
       // use wasm instantiateWasm override when system fetch is not available.
       // For detail references
       // https://github.com/emscripten-core/emscripten/blob/2bca083cbbd5a4133db61fbd74d04f7feecfa907/tests/manual_wasm_instantiate.html#L170
       if (customFetch) {
           factoryConfig.instantiateWasm = createInstantiateWasmFunc(wasmPath);
       }
-      const wasm = simdSupported ? tfjsBackendWasmSimd(factoryConfig) :
-          tfjsBackendWasm(factoryConfig);
-
       return new Promise((resolve, reject) => {
           const voidReturnType = null;
+          const wasm = simdSupported ? tfjsBackendWasmSimd(factoryConfig) :
+              tfjsBackendWasm(factoryConfig);
           // Using the tfjs namespace to avoid conflict with emscripten's API.
           wasm.tfjs = {
               init: wasm.cwrap('init', null, []),
@@ -3040,7 +3037,6 @@
                   'bundled js file. For more details see https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/README.md#using-bundlers';
               reject({ message: rejectMsg });
           };
-          // wasm.onRuntimeInitialized();
       });
   }
   function typedArrayFromBuffer(buffer, dtype) {
