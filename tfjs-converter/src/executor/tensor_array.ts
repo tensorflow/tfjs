@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {concat, DataType, slice, stack, Tensor, tensor, tidy, unstack} from '@tensorflow/tfjs-core';
+import {concat, DataType, keep, scalar, slice, stack, Tensor, tensor, tidy, unstack} from '@tensorflow/tfjs-core';
+
 import {assertShapesMatchAllowUndefinedSize} from './tensor_utils';
 
 export interface TensorWithState {
@@ -33,6 +34,7 @@ export class TensorArray {
   private tensors: TensorWithState[] = [];
   private closed_ = false;
   readonly id: number;
+  readonly idTensor: Tensor;
   constructor(
       public readonly name: string, public readonly dtype: DataType,
       private maxSize: number, private elementShape: number[],
@@ -40,6 +42,8 @@ export class TensorArray {
       public readonly dynamicSize: boolean,
       public readonly clearAfterRead: boolean) {
     this.id = TensorArray.nextId++;
+    this.idTensor = scalar(this.id);
+    keep(this.idTensor);
   }
 
   get closed() {
@@ -53,6 +57,7 @@ export class TensorArray {
     this.tensors.forEach(tensor => tensor.tensor.dispose());
     this.tensors = [];
     this.closed_ = true;
+    this.idTensor.dispose();
   }
 
   size(): number {
@@ -144,6 +149,7 @@ export class TensorArray {
     }
 
     t.tensor = tensor;
+    keep(tensor);
     t.written = true;
 
     this.tensors[index] = t;

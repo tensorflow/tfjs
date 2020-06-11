@@ -222,6 +222,10 @@ export class GraphExecutor implements FunctionExecutor {
               intermediateTensorConsumerCount);
         }
       }
+      // dispose the context for the root executor
+      if (this.parent == null) {
+        context.dispose();
+      }
       return outputs.map(name => getTensor(name, tensorsMap, context));
     });
   }
@@ -288,13 +292,14 @@ export class GraphExecutor implements FunctionExecutor {
    * to false
    * @param tensorArrayMap glboal TensorArray map by id.
    * @param tensorListMap glboal TensorList map by id.
-   * @param ignoreIOCheck ignore IO check for function execution.
+   * @param ignoreIOCheckAndMapping ignore IO check and name mapping for
+   * function execution.
    */
   async executeAsync(
       inputs: NamedTensorMap, outputs: string[], disableWarning = false,
       tensorArrayMap: TensorArrayMap = {}, tensorListMap: TensorListMap = {},
-      ignoreIOCheck = false): Promise<Tensor[]> {
-    if (!ignoreIOCheck) {
+      ignoreIOCheckAndMapping = false): Promise<Tensor[]> {
+    if (!ignoreIOCheckAndMapping) {
       inputs = this.mapInputs(inputs);
       this.checkInputs(inputs);
       this.checkInputShapeAndType(inputs);
@@ -327,6 +332,11 @@ export class GraphExecutor implements FunctionExecutor {
         }
       });
     });
+    // dispose the context for the root executor
+    if (this.parent == null) {
+      context.dispose();
+    }
+
     return results;
   }
 

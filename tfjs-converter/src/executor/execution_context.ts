@@ -174,4 +174,11 @@ export class ExecutionContext {
   getTensorList(id: number): TensorList {
     return this.tensorListMap[id];
   }
+
+  dispose() {
+    Object.values(this.tensorArrayMap)
+        .forEach(tensorArray => tensorArray.clearAndClose());
+    Object.values(this.tensorListMap)
+        .forEach(tensorList => tensorList.clearAndClose());
+  }
 }
