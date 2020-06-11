@@ -150,7 +150,7 @@ performance to the WebGL backend
 
 We are committed to supporting the WASM backend and will continue to improve
 performance. We plan to follow the WebAssembly standard closely and benefit from
-its upcoming features such as SIMD and multi-threading.
+its upcoming features such as multi-threading.
 
 ### How many ops have you implemented?
 See [`all_kernels.ts`](https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/src/kernels/all_kernels.ts)
@@ -167,8 +167,7 @@ inference as fast as possible.
 Yes. If you run into issues, please let us know.
 
 ### Do you support SIMD?
-We are actively working on adding SIMD before we do the official release.
-The switch to SIMD should happen transparently for browsers that support it.
+Yes. We take advantage of SIMD wherever it is supported. For users, no additional configuration is needed. If you intend to serve the WASM assets yourself, note that the SIMD-enabled WASM binary is separate from the default binary.
 
 ### Do you support multi-threading?
 Multi-threading support is not a priority for us at this point since it is still
