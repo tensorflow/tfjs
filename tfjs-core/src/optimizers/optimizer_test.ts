@@ -34,7 +34,8 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
 
     let numTensors = tf.memory().numTensors;
 
-    const f = () => x.square().addStrict(bias);
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    const f = () => x.square().add(bias) as tf.Scalar;
 
     let cost = optimizer.minimize(f, /* returnCost */ true);
 
@@ -83,7 +84,8 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     const strayVariable = tf.scalar(-1).variable();
     const varList = [x, bias];
 
-    const f = () => x.square().addStrict(bias);
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    const f = () => x.square().add(bias) as tf.Scalar;
 
     let cost = optimizer.minimize(f, /* returnCost */ true, varList);
 
@@ -118,7 +120,8 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     tf.scalar(-1).variable();
     const varList: Variable[] = [];
 
-    const f = () => x.square().addStrict(bias);
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    const f = () => x.square().add(bias) as tf.Scalar;
 
     expect(() => optimizer.minimize(f, /* returnCost */ true, varList))
         .toThrowError();
@@ -133,7 +136,8 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     const strayVariable = tf.scalar(-1).variable();
     const varList = [x];
 
-    const f = () => x.square().addStrict(bias);
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    const f = () => x.square().add(bias) as tf.Scalar;
 
     let cost = optimizer.minimize(f, /* returnCost */ true, varList);
 
@@ -166,7 +170,8 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     const bias = tf.scalar(1).variable();
     const strayVariable = tf.scalar(-1).variable();
 
-    const f = () => x.square().addStrict(bias);
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    const f = () => x.square().add(bias) as tf.Scalar;
 
     let cost = optimizer.minimize(f, /* returnCost */ true);
 
@@ -201,7 +206,8 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     tf.scalar(-1).variable();
     const varList = [x];
 
-    const f = () => x.square().addStrict(bias);
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    const f = () => x.square().add(bias) as tf.Scalar;
 
     expect(() => optimizer.minimize(f, /* returnCost */ true, varList))
         .toThrowError();

@@ -27,9 +27,6 @@ import {op} from './operation';
 /**
  * Subtracts two `tf.Tensor`s element-wise, A - B. Supports broadcasting.
  *
- * We also expose `tf.subStrict` which has the same signature as this op and
- * asserts that `a` and `b` are the same shape (does not broadcast).
- *
  * ```js
  * const a = tf.tensor1d([10, 20, 30, 40]);
  * const b = tf.tensor1d([1, 2, 3, 4]);

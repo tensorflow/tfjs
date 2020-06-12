@@ -16,7 +16,10 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-import {createTensorsTypeOpAttr, createTypeOpAttr, ensureTensorflowBackend, getTFDType, nodeBackend, NodeJSKernelBackend} from './nodejs_kernel_backend';
+// tslint:disable-next-line: no-imports-from-dist
+import {TestKernelBackend} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
+import {createTensorsTypeOpAttr, ensureTensorflowBackend, getTFDType, nodeBackend, NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 describe('delayed upload', () => {
   it('should handle data before op execution', async () => {
@@ -74,12 +77,16 @@ describe('Exposes Backend for internal Op execution.', () => {
 
   it('throw error if backend is not tensorflow', async done => {
     try {
-      tf.setBackend('cpu');
+      const testBackend = new TestKernelBackend();
+      tf.registerBackend('fake', () => testBackend);
+      tf.setBackend('fake');
+
       ensureTensorflowBackend();
       done.fail();
     } catch (err) {
       expect(err.message)
-          .toBe('Expect the current backend to be "tensorflow", but got "cpu"');
+          .toBe(
+              'Expect the current backend to be "tensorflow", but got "fake"');
       tf.setBackend('tensorflow');
       done();
     }
@@ -107,14 +114,14 @@ describe('createTypeOpAttr()', () => {
   const binding = nodeBackend().binding;
 
   it('Creates a valid type attribute', () => {
-    const attr = createTypeOpAttr('foo', 'float32');
+    const attr = createTensorsTypeOpAttr('foo', 'float32');
     expect(attr.name).toBe('foo');
     expect(attr.type).toBe(binding.TF_ATTR_TYPE);
     expect(attr.value).toBe(binding.TF_FLOAT);
   });
 
   it('handles unknown dtypes', () => {
-    expect(() => createTypeOpAttr('foo', null)).toThrowError();
+    expect(() => createTensorsTypeOpAttr('foo', null)).toThrowError();
   });
 });
 

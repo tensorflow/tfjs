@@ -20,12 +20,61 @@ import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
 
 // Testing for presence of chained op in this file will allow us to more easily
 // customize when we want this test to run. Currently it will run be default
-// (And kerma will always load the chain augmentor files). But this gives us
+// (And karma will always load the chain augmentor files). But this gives us
 // flexibility to change in future.
 
 const CHAINED_OPS = [
-  'add', 'batchNorm', 'broadcastTo', 'div', 'divNoNan', 'oneHot', 'pad',
-  'square', 'sub', 'tile', 'transpose'
+  'add',
+  'atan2',
+  'avgPool',
+  'batchNorm',
+  'batchToSpaceND',
+  'broadcastTo',
+  'concat',
+  'conv1d',
+  'conv2d',
+  'cumsum',
+  'conv2dTranspose',
+  'depthToSpace',
+  'depthwiseConv2d',
+  'depthwiseConv2D',
+  'div',
+  'divNoNan',
+  'dot',
+  'elu',
+  'equal',
+  'floorDiv',
+  'greater',
+  'greaterEqual',
+  'leakyRelu',
+  'less',
+  'lessEqual',
+  'localResponseNormalization',
+  'matMul',
+  'max',
+  'maximum',
+  'maxPool',
+  'minimum',
+  'mod',
+  'mul',
+  'notEqual',
+  'oneHot',
+  'pad',
+  'pool',
+  'pow',
+  'prelu',
+  'relu',
+  'resizeBilinear',
+  'resizeNearestNeighbor',
+  'relu6',
+  'selu',
+  'separableConv2d',
+  'spaceToBatchND',
+  'split',
+  'square',
+  'sub',
+  'tile',
+  'transpose'
 ];
 
 describeWithFlags('chained ops', ALL_ENVS, () => {

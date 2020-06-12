@@ -24,9 +24,9 @@ import {InternalOpExecutor, Node} from '../types';
 import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor = (node: Node,
-                                            tensorMap: NamedTensorsMap,
-                                            context: ExecutionContext):
-                                               tfc.Tensor[] => {
+                                              tensorMap: NamedTensorsMap,
+                                              context: ExecutionContext):
+                                                 tfc.Tensor[] => {
   switch (node.op) {
     case 'Max': {
       const axis = getParamValue('axis', node, tensorMap, context) as number[];
@@ -93,6 +93,16 @@ export const executeOp: InternalOpExecutor = (node: Node,
       return [tfc.prod(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor, axis,
           keepDims)];
+    }
+    case 'Cumsum': {
+      const axis = getParamValue('axis', node, tensorMap, context) as number;
+      const exclusive =
+          getParamValue('exclusive', node, tensorMap, context) as boolean;
+      const reverse =
+          getParamValue('reverse', node, tensorMap, context) as boolean;
+      return [tfc.cumsum(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor, axis,
+          exclusive, reverse)];
     }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);

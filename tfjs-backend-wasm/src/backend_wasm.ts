@@ -14,10 +14,12 @@
  * limitations under the License.
  * =============================================================================
  */
+import './flags_wasm';
 
-import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, env, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
+import wasmFactorySimd from '../wasm-out/tfjs-backend-wasm-simd.js';
 import wasmFactory from '../wasm-out/tfjs-backend-wasm.js';
 
 const WASM_PRIORITY = 2;
@@ -84,7 +86,8 @@ export class BackendWasm extends KernelBackend {
     if (values != null) {
       this.wasm.HEAPU8.set(
           new Uint8Array(
-              (values as backend_util.TypedArray).buffer, 0, numBytes),
+              (values as backend_util.TypedArray).buffer,
+              (values as backend_util.TypedArray).byteOffset, numBytes),
           memoryOffset);
     }
   }
@@ -175,14 +178,32 @@ registerBackend('wasm', async () => {
   return new BackendWasm(wasm);
 }, WASM_PRIORITY);
 
+function createInstantiateWasmFunc(path: string) {
+  // tslint:disable-next-line:no-any
+  return (imports: any, callback: any) => {
+    util.fetch(path, {credentials: 'same-origin'}).then((response) => {
+      if (!response['ok']) {
+        imports.env.a(`failed to load wasm binary file at '${path}'`);
+      }
+      response.arrayBuffer().then(binary => {
+        WebAssembly.instantiate(binary, imports).then(output => {
+          callback(output.instance);
+        });
+      });
+    });
+    return {};
+  };
+}
+
 /**
  * Initializes the wasm module and creates the js <--> wasm bridge.
  *
  * NOTE: We wrap the wasm module in a object with property 'wasm' instead of
- * returning Promise<BackendWasmModule> to avoid freezing Chrome (last tested in
- * Chrome 76).
+ * returning Promise<BackendWasmModule> to avoid freezing Chrome (last tested
+ * in Chrome 76).
  */
 export async function init(): Promise<{wasm: BackendWasmModule}> {
+  const simdSupported = await env().getAsync('WASM_HAS_SIMD_SUPPORT');
   return new Promise((resolve, reject) => {
     const factoryConfig: WasmFactoryConfig = {};
     if (wasmPath != null) {
@@ -192,8 +213,15 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
         }
         return prefix + path;
       };
+      // use wasm instantiateWasm override when system fetch is not available.
+      // For detail references
+      // https://github.com/emscripten-core/emscripten/blob/2bca083cbbd5a4133db61fbd74d04f7feecfa907/tests/manual_wasm_instantiate.html#L170
+      if (customFetch) {
+        factoryConfig.instantiateWasm = createInstantiateWasmFunc(wasmPath);
+      }
     }
-    const wasm = wasmFactory(factoryConfig);
+    const wasm = simdSupported ? wasmFactorySimd(factoryConfig) :
+                                 wasmFactory(factoryConfig);
     const voidReturnType: string = null;
     // Using the tfjs namespace to avoid conflict with emscripten's API.
     wasm.tfjs = {
@@ -220,7 +248,8 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
         return;
       }
       if (initAborted) {
-        // Emscripten calls `onAbort` twice, resulting in double error messages.
+        // Emscripten calls `onAbort` twice, resulting in double error
+        // messages.
         return;
       }
       initAborted = true;
@@ -248,24 +277,30 @@ function typedArrayFromBuffer(
 
 let wasmPath: string = null;
 let initAborted = false;
-
+let customFetch = false;
 /**
  * Sets the path to the `.wasm` file which will be fetched when the wasm
  * backend is initialized. See
  * https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/README.md#using-bundlers
  * for more details.
+ * @param path wasm file path or url
+ * @param usePlatformFetch optional boolean to use platform fetch to download
+ *     the wasm file, default to false.
  */
 /** @doc {heading: 'Environment', namespace: 'wasm'} */
-export function setWasmPath(path: string): void {
+export function setWasmPath(path: string, usePlatformFetch = false): void {
   if (initAborted) {
     throw new Error(
         'The WASM backend was already initialized. Make sure you call ' +
         '`setWasmPath()` before you call `tf.setBackend()` or `tf.ready()`');
   }
   wasmPath = path;
+  customFetch = usePlatformFetch;
 }
 
 /** Used in unit tests. */
 export function resetWasmPath(): void {
   wasmPath = null;
+  customFetch = false;
+  initAborted = false;
 }

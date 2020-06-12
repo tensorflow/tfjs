@@ -113,7 +113,7 @@ export function repeat(x: Tensor, n: number): Tensor {
 }
 
 /**
- * Flatten an Tensor into 1D.
+ * Flatten a Tensor into 1D.
  * @param x Input tensor.
  * @return The result of the flattening `x`.
  */
@@ -531,7 +531,7 @@ export function gather(
  * @return element-wise x^2
  */
 export function square(x: Tensor): Tensor {
-  return tfc.mulStrict(x, x);
+  return tfc.mul(x, x);
 }
 
 /**

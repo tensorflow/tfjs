@@ -29,6 +29,7 @@ export class Im2ColProgram implements WebGPUProgram {
   rank: number;
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
+  needsShapesUniforms = true;
 
   constructor(
       outputShape: number[], inputShape: number[],

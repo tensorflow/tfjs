@@ -29,7 +29,7 @@ import * as shell from 'shelljs';
 import {$, makeReleaseDir, TMP_DIR, WEBSITE_RELEASE_UNIT, updateDependency, prepareReleaseBuild, createPR} from './release-util';
 
 export async function releaseWebsite(args: any) {
-  const {name, phases, repo} = WEBSITE_RELEASE_UNIT;
+  const {phases, repo} = WEBSITE_RELEASE_UNIT;
   // Website release only has one phase.
   const phase = phases[0];
   const packages = phases[0].packages;

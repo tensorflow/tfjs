@@ -17,7 +17,15 @@
 
 import * as util from '../util';
 
-type PadType = 'SAME'|'VALID'|'NUMBER';
+type PadType = 'SAME'|'VALID'|'NUMBER'|'EXPLICIT';
+
+// For NHWC should be in the following form:
+//  [[0, 0], [pad_top,pad_bottom], [pad_left, pad_right], [0, 0]]
+// For NCHW should be in the following form:
+//  [[0, 0], [0, 0], [pad_top,pad_bottom], [pad_left, pad_right]]
+// Reference: https://www.tensorflow.org/api_docs/python/tf/nn/conv2d
+export type ExplicitPadding =
+    [[number, number], [number, number], [number, number], [number, number]];
 
 export type PadInfo = {
   top: number,
@@ -126,8 +134,8 @@ export function computeConv2DInfo(
     inShape: [number, number, number, number],
     filterShape: [number, number, number, number],
     strides: number|[number, number], dilations: number|[number, number],
-    pad: 'same'|'valid'|number, roundingMode?: 'floor'|'round'|'ceil',
-    depthwise = false,
+    pad: 'same'|'valid'|number|ExplicitPadding,
+    roundingMode?: 'floor'|'round'|'ceil', depthwise = false,
     dataFormat: 'channelsFirst'|'channelsLast' = 'channelsLast'): Conv2DInfo {
   let [batchSize, inHeight, inWidth, inChannels] = [-1, -1, -1, -1];
   if (dataFormat === 'channelsLast') {
@@ -148,7 +156,7 @@ export function computeConv2DInfo(
       getEffectiveFilterSize(filterWidth, dilationWidth);
   const {padInfo, outHeight, outWidth} = getPadAndOutInfo(
       pad, inHeight, inWidth, strideHeight, strideWidth, effectiveFilterHeight,
-      effectiveFilterWidth, roundingMode);
+      effectiveFilterWidth, roundingMode, dataFormat);
 
   const outChannels = depthwise ? filterChannels * inChannels : filterChannels;
 
@@ -399,10 +407,12 @@ function getEffectiveFilterSize(filterSize: number, dilation: number) {
 }
 
 function getPadAndOutInfo(
-    pad: 'same'|'valid'|number, inHeight: number, inWidth: number,
-    strideHeight: number, strideWidth: number, filterHeight: number,
-    filterWidth: number, roundingMode?: 'floor'|'round'|'ceil'):
-    {padInfo: PadInfo, outHeight: number, outWidth: number} {
+    pad: 'same'|'valid'|number|ExplicitPadding, inHeight: number,
+    inWidth: number, strideHeight: number, strideWidth: number,
+    filterHeight: number, filterWidth: number,
+    roundingMode: 'floor'|'round'|'ceil',
+    dataFormat: 'channelsFirst'|
+    'channelsLast'): {padInfo: PadInfo, outHeight: number, outWidth: number} {
   let padInfo: PadInfo;
   let outHeight: number;
   let outWidth: number;
@@ -430,6 +440,20 @@ function getPadAndOutInfo(
     padInfo = {top: 0, bottom: 0, left: 0, right: 0, type: 'VALID'};
     outHeight = Math.ceil((inHeight - filterHeight + 1) / strideHeight);
     outWidth = Math.ceil((inWidth - filterWidth + 1) / strideWidth);
+  } else if (typeof pad === 'object') {
+    const top = dataFormat === 'channelsLast' ? pad[1][0] : pad[2][0];
+    const bottom = dataFormat === 'channelsLast' ? pad[1][1] : pad[2][1];
+    const left = dataFormat === 'channelsLast' ? pad[2][0] : pad[3][0];
+    const right = dataFormat === 'channelsLast' ? pad[2][1] : pad[3][1];
+    const padType = (top === 0 && bottom === 0 && left === 0 && right === 0) ?
+        'VALID' :
+        'EXPLICIT';
+    padInfo = {top, bottom, left, right, type: padType};
+    outHeight = conditionalRound(
+        (inHeight - filterHeight + top + bottom) / strideHeight + 1,
+        roundingMode);
+    outWidth = conditionalRound(
+        (inWidth - filterWidth + left + right) / strideWidth + 1, roundingMode);
   } else {
     throw Error(`Unknown padding parameter: ${pad}`);
   }

@@ -26,5 +26,6 @@ declare module '../../tensor' {
 }
 
 Tensor.prototype.tile = function<T extends Tensor>(reps: number[]): T {
+  this.throwIfDisposed();
   return tile(this, reps) as T;
 };

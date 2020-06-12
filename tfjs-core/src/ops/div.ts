@@ -23,14 +23,11 @@ import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
-import {floorDiv} from './binary_ops';
+import {floorDiv} from './floorDiv';
 import {op} from './operation';
 
 /**
  * Divides two `tf.Tensor`s element-wise, A / B. Supports broadcasting.
- *
- * We also expose `tf.divStrict` which has the same signature as this op and
- * asserts that `a` and `b` are the same shape (does not broadcast).
  *
  * ```js
  * const a = tf.tensor1d([1, 4, 9, 16]);

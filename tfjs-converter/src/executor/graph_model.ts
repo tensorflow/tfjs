@@ -26,8 +26,8 @@ import {GraphExecutor} from './graph_executor';
 export const TFHUB_SEARCH_PARAM = '?tfjs-format=file';
 export const DEFAULT_MODEL_NAME = 'model.json';
 /**
- * A `tf.GraphModel` is a directed, acyclic graph of built from
- * SavedModel GraphDef and allows inference exeuction.
+ * A `tf.GraphModel` is a directed, acyclic graph built from a
+ * SavedModel GraphDef and allows inference execution.
  *
  * A `tf.GraphModel` can only be created by loading from a model converted from
  * a [TensorFlow SavedModel](https://www.tensorflow.org/guide/saved_model) using
@@ -89,8 +89,7 @@ export class GraphModel implements InferenceModel {
     } else if (this.loadOptions.requestInit != null) {
       this.handler = io.browserHTTPRequest(path as string, this.loadOptions);
     } else {
-      const handlers =
-          io.getLoadHandlers(path as string, this.loadOptions.onProgress);
+      const handlers = io.getLoadHandlers(path as string, this.loadOptions);
       if (handlers.length === 0) {
         // For backward compatibility: if no load handler can be found,
         // assume it is a relative http path.
@@ -115,7 +114,18 @@ export class GraphModel implements InferenceModel {
           'Cannot proceed with model loading because the IOHandler provided ' +
           'does not have the `load` method implemented.');
     }
-    this.artifacts = await this.handler.load();
+    const artifacts = await this.handler.load();
+
+    return this.loadSync(artifacts);
+  }
+
+  /**
+   * Synchronously construct the in memory weight map and
+   * compile the inference graph.
+   */
+  /** @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true} */
+  loadSync(artifacts:io.ModelArtifacts) {
+    this.artifacts = artifacts;
     const graph = this.artifacts.modelTopology as tensorflow.IGraphDef;
     let signature = {};
     if (this.artifacts.userDefinedMetadata != null) {

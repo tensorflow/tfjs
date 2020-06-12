@@ -148,8 +148,8 @@ export function sequential(config?: SequentialArgs): Sequential {
  * 1. Models created with the `tf.layers.*`, `tf.sequential`, and
  * `tf.model` APIs of TensorFlow.js and later saved with the
  * `tf.LayersModel.save` method.
- * 2. Models converted from Keras or TensorFlow tf.keras using
- *    the [tensorflowjs_converter](https://github.com/tensorflow/tfjs-converter)
+ * 2. Models converted from Keras or TensorFlow tf.keras using the
+ * [tensorflowjs_converter](https://github.com/tensorflow/tfjs/tree/master/tfjs-converter).
  *
  * This mode is *not* applicable to TensorFlow `SavedModel`s or their converted
  * forms. For those models, use `tf.loadGraphModel`.
@@ -222,7 +222,7 @@ export function sequential(config?: SequentialArgs): Sequential {
  *   - `strict`: Require that the provided weights exactly match those required
  *     by the layers.  Default true.  Passing false means that both extra
  *     weights and missing weights will be silently ignored.
- *   - ｀onProgress｀: A function of the signature `(fraction: number) => void',
+ *   - `onProgress`: A function of the signature `(fraction: number) => void',
  *     that can be used as the progress callback for the model loading.
  * @returns A `Promise` of `tf.LayersModel`, with the topology and weights
  *     loaded.

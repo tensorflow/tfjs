@@ -118,6 +118,10 @@ const TEST_FILTERS: TestFilter[] = [
                            // supported.
       'gradient',          // Gradients not defined yet.
       'NCHW',              // xnn pack does not support channels first.
+      // Issue: https://github.com/tensorflow/tfjs/issues/3104.
+      // Actual != expected.
+      'relu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=8 p=same',
+      'prelu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=8 p=same',
     ]
   },
   {
@@ -192,8 +196,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'min ',
     excludes: [
-      'derivative: 1D tensor with max or min value',  // Clip not yet
-                                                      // implemented.
       '2D, axis=0',  // Permuted axes requires transpose, which is not yet
                      // implemented.
       'index corresponds to start of a non-initial window',  // argMin not yet
@@ -205,10 +207,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'max ',
     excludes: [
-      'derivative: 1D tensor with max or min value',  // Clip not yet
-                                                      // implemented.
-      '2D, axis=0',   // Permuted axes requires transpose, which is not yet
-                      // implemented.
       'gradient',     // Gradients not yet implemented
       'ignores NaNs'  // Doesn't yet ignore NaN
     ]
@@ -224,6 +222,7 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'transpose',
     excludes: ['oneHot']  // oneHot not yet implemented.
   },
+  {include: 'split'},
   {include: 'pad ', excludes: ['complex', 'zerosLike']},
   {include: 'clip', excludes: ['gradient']},
   {include: 'addN'},
@@ -327,6 +326,17 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'rsqrt ',
     excludes: ['gradient']  // Gradient not yet implemented.
+  },
+  {
+    startsWith: 'sqrt ',
+    excludes: ['gradient']  // Gradient not yet implemented.
+  },
+  {
+    startsWith: 'where ',
+    excludes: [
+      '1D condition with higher rank a and b',  // Fill not yet implemented.
+      'gradient'                                // Gradient not yet implemented.
+    ]
   },
   {
     startsWith: 'zerosLike',

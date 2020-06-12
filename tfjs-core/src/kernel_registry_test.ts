@@ -54,23 +54,41 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
         .toThrowError();
   });
 
-  it('errors when registering the same kernel twice', () => {
+  // TODO (yassogba) double registration happens now because a backend might be
+  // imported more than once (e.g. by a top level package and a dependent
+  // package). We may want to remove this test long-term but skip it for
+  // now.
+  // tslint:disable-next-line: ban
+  xit('errors when registering the same kernel twice', () => {
+    interface TestBackend extends KernelBackend {
+      id: number;
+    }
+    tf.registerBackend('backend1', () => {
+      return {
+        id: 1,
+        dispose: () => null,
+        disposeData: (dataId: {}) => null,
+        numDataIds: () => 0
+      } as TestBackend;
+    });
+
     tf.registerKernel({
       kernelName: 'MyKernel',
-      backendName: tf.getBackend(),
+      backendName: 'backend1',
       kernelFunc: () => {
         return null;
       }
     });
     expect(() => tf.registerKernel({
       kernelName: 'MyKernel',
-      backendName: tf.getBackend(),
+      backendName: 'backend1',
       kernelFunc: () => {
         return null;
       }
     })).toThrowError();
 
-    tf.unregisterKernel('MyKernel', tf.getBackend());
+    tf.unregisterKernel('MyKernel', 'backend1');
+    tf.removeBackend('backend1');
   });
 
   it('register same kernel on two different backends', () => {

@@ -16,8 +16,10 @@
  */
 
 import {ENGINE} from '../engine';
-import {getKernel} from '../kernel_registry';
+import {FromPixels, FromPixelsAttrs, FromPixelsInputs} from '../kernel_names';
+import {getKernel, NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor2D, Tensor3D} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {PixelData, TensorLike} from '../types';
 
@@ -101,10 +103,13 @@ function fromPixels_(
   }
   // If the current backend has 'FromPixels' registered, it has a more
   // efficient way of handling pixel uploads, so we call that.
-  const kernel = getKernel('FromPixels', ENGINE.backendName);
+  const kernel = getKernel(FromPixels, ENGINE.backendName);
   if (kernel != null) {
-    return ENGINE.runKernel('FromPixels', {pixels} as {}, {numChannels}) as
-        Tensor3D;
+    const inputs: FromPixelsInputs = {pixels};
+    const attrs: FromPixelsAttrs = {numChannels};
+    return ENGINE.runKernel(
+               FromPixels, inputs as {} as NamedTensorMap,
+               attrs as {} as NamedAttrMap) as Tensor3D;
   }
 
   const [width, height] = isVideo ?
@@ -171,7 +176,9 @@ export async function toPixels(
   let $img = convertToTensor(img, 'img', 'toPixels');
   if (!(img instanceof Tensor)) {
     // Assume int32 if user passed a native array.
-    $img = $img.toInt();
+    const originalImgTensor = $img;
+    $img = originalImgTensor.toInt();
+    originalImgTensor.dispose();
   }
   if ($img.rank !== 2 && $img.rank !== 3) {
     throw new Error(

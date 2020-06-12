@@ -37,10 +37,12 @@ export function nonMaxSuppressionV3(
     iouThreshold: number, scoreThreshold: number): Tensor1D {
   const dummySoftNmsSigma = 0.0;
 
-  return nonMaxSuppressionImpl_(
-             boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
-             dummySoftNmsSigma)
-             .selectedIndices as Tensor1D;
+  const result = nonMaxSuppressionImpl_(
+      boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
+      dummySoftNmsSigma);
+  result.selectedScores.dispose();
+  result.numValidOutputs.dispose();
+  return result.selectedIndices as Tensor1D;
 }
 
 export function nonMaxSuppressionV5(
@@ -69,11 +71,15 @@ function nonMaxSuppressionImpl_(
     returnScoresTensor = false, padToMaxOutputSize = false): NamedTensorMap {
   // The list is sorted in ascending order, so that we can always pop the
   // candidate with the largest score in O(1) time.
-  const candidates =
-      Array.from(scores)
-          .map((score, boxIndex) => ({score, boxIndex, suppressBeginIndex: 0}))
-          .filter(c => c.score > scoreThreshold)
-          .sort(ascendingComparator);
+  const candidates = [];
+
+  for (let i = 0; i < scores.length; i++) {
+    if (scores[i] > scoreThreshold) {
+      candidates.push({ score: scores[i], boxIndex: i, suppressBeginIndex: 0 });
+    }
+  }
+
+  candidates.sort(ascendingComparator);
 
   // If softNmsSigma is 0, the outcome of this algorithm is exactly same as
   // before.

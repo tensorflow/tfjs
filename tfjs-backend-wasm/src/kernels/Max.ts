@@ -15,17 +15,12 @@
  * =============================================================================
  */
 
-import {backend_util, NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {Max, MaxAttrs, MaxInputs} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
-interface MaxInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-interface MaxAttrs extends NamedAttrMap {
-  axes: number[];
-}
+import {transpose} from './Transpose';
 
 let wasmMax: (xId: number, reduceSize: number, outId: number) => void;
 
@@ -34,32 +29,56 @@ function setup(backend: BackendWasm): void {
       backend.wasm.cwrap('Max', null /*void*/, ['number, number, number']);
 }
 
-function max(args: {backend: BackendWasm, inputs: MaxInputs, attrs: MaxAttrs}):
-    TensorInfo {
+function max(args: {backend: BackendWasm, inputs: {}, attrs: {}}): TensorInfo {
   const {backend, inputs, attrs} = args;
-  const {axes} = attrs;
-  const {x} = inputs;
+  const {reductionIndices} = attrs as MaxAttrs;
+  const {x} = inputs as MaxInputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
 
-  backend_util.assertAxesAreInnerMostDims('max', axes, x.shape.length);
+  let xShape = x.shape;
+  const xRank = x.shape.length;
+  const xVals = backend.typedArrayFromHeap(x);
+
+  const origAxes = util.parseAxisParam(reductionIndices, xShape);
+  let axes = origAxes;
+  const permutedAxes = backend_util.getAxesPermutation(axes, xRank);
+  const maxInputIsTransposed = permutedAxes != null;
+  if (maxInputIsTransposed) {
+    const newShape: number[] = new Array(xRank);
+    for (let i = 0; i < newShape.length; i++) {
+      newShape[i] = xShape[permutedAxes[i]];
+    }
+
+    axes = backend_util.getInnerMostAxes(axes.length, xRank);
+
+    const xTransposed =
+        transpose({inputs: {x}, attrs: {perm: permutedAxes}, backend});
+
+    if (backend.dataIdMap.get(xTransposed.dataId).id !== xId) {
+      // If perm is not no-op.
+      const xTransposedVals = backend.typedArrayFromHeap(xTransposed);
+      xVals.set(xTransposedVals, 0);
+      backend.disposeData(xTransposed.dataId);
+    }
+    xShape = newShape;
+  }
+
+  backend_util.assertAxesAreInnerMostDims('max', axes, xRank);
   const [outShape, reduceShape] =
-      backend_util.computeOutAndReduceShapes(x.shape, axes);
+      backend_util.computeOutAndReduceShapes(xShape, axes);
   const reduceSize = util.sizeFromShape(reduceShape);
 
   const out = backend.makeOutput(outShape, x.dtype);
-  if (util.sizeFromShape(x.shape) === 0) {
+  if (util.sizeFromShape(xShape) === 0) {
     return out;
   }
 
   const outId = backend.dataIdMap.get(out.dataId).id;
 
   wasmMax(xId, reduceSize, outId);
+
   return out;
 }
 
-registerKernel({
-  kernelName: 'Max',
-  backendName: 'wasm',
-  setupFunc: setup,
-  kernelFunc: max
-});
+registerKernel(
+    {kernelName: Max, backendName: 'wasm', setupFunc: setup, kernelFunc: max});

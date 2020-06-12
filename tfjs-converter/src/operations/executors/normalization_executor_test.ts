@@ -26,7 +26,7 @@ import {createNumberAttr, createNumericArrayAttrFromIndex, createTensorAttr, val
 describe('normalization', () => {
   let node: Node;
   const input1 = [tfc.scalar(1)];
-  const context = new ExecutionContext({}, {});
+  const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
     node = {
