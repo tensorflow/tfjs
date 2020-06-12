@@ -57,11 +57,14 @@ export const executeOp: InternalOpAsyncExecutor = async(
           getParamValue('cond', node, tensorMap, context) as string;
       const args =
           getParamValue('args', node, tensorMap, context) as tfc.Tensor[];
+
+      // Calculate the condition of the loop
       const condResult =
           (await context.functionMap[condFunc].executeFunctionAsync(
               args, context.tensorArrayMap, context.tensorListMap));
       const argIds = args.map(tensor => tensor.id);
       let condValue = await condResult[0].data();
+      // Dispose the intermediate tensors for condition function
       condResult.forEach(tensor => {
         if (!tensor.kept && argIds.indexOf(tensor.id) === -1) {
           tensor.dispose();
@@ -71,13 +74,15 @@ export const executeOp: InternalOpAsyncExecutor = async(
       let result: tfc.Tensor[] = args;
 
       while (condValue[0]) {
+        // Record the previous result for intermediate tensor tracking
         const origResult = result;
+        // Execution the body of the loop
         result = await context.functionMap[bodyFunc].executeFunctionAsync(
             result, context.tensorArrayMap, context.tensorListMap);
         const resultIds = result.map(tensor => tensor.id);
 
-        // dispose the intermediate tensor that is not global kept, not
-        // input/output of the body function
+        // Dispose the intermediate tensor for body function that is not global
+        // kept, not input/output of the body function
         origResult.forEach(tensor => {
           if (!tensor.kept && argIds.indexOf(tensor.id) === -1 &&
               resultIds.indexOf(tensor.id) === -1) {
@@ -85,10 +90,12 @@ export const executeOp: InternalOpAsyncExecutor = async(
           }
         });
 
+        // Recalcuate the condition of the loop using the latest results.
         const condResult =
             (await context.functionMap[condFunc].executeFunctionAsync(
                 result, context.tensorArrayMap, context.tensorListMap));
         condValue = await condResult[0].data();
+        // Dispose the intermediate tensors for condition function
         condResult.forEach(tensor => {
           if (!tensor.kept && argIds.indexOf(tensor.id) === -1 &&
               resultIds.indexOf(tensor.id) === -1) {
@@ -335,7 +342,7 @@ export const executeOp: InternalOpAsyncExecutor = async(
           getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
       const tensorList = context.getTensorList(id);
       tensorList.pushBack(writeTensor);
-      return [scalar(tensorList.id)];
+      return [tensorList.idTensor];
     }
     case 'TensorListPopBack': {
       const readId =
