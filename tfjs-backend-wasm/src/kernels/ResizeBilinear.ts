@@ -40,39 +40,41 @@ function setup(backend: BackendWasm): void {
   ]);
 }
 
-function resizeBilinear(
-    params: {backend: {}, inputs: NamedTensorInfoMap, attrs: NamedAttrMap}):
-    TensorInfo {
-  const {backend, inputs, attrs} = params;
-  const wasmBackend = backend as BackendWasm;
-  const {images} = inputs as {} as ResizeBilinearInputs;
+function resizeBilinear(args: {
+  backend: BackendWasm,
+  inputs: NamedTensorInfoMap,
+  attrs: NamedAttrMap
+}): TensorInfo {
+  const {backend, inputs, attrs} = args;
+
+  const {images} = inputs as ResizeBilinearInputs;
   const {alignCorners, size} = attrs as {} as ResizeBilinearAttrs;
   const [newHeight, newWidth] = size;
 
   const [batch, oldHeight, oldWidth, numChannels] = images.shape;
   const outShape = [batch, newHeight, newWidth, numChannels];
 
-  let xData = wasmBackend.dataIdMap.get(images.dataId);
+  let xData = backend.dataIdMap.get(images.dataId);
   let castedData;
   if (xData.dtype !== 'float32') {
-    castedData = cast(
-        {backend: wasmBackend, inputs: {x: images}, attrs: {dtype: 'float32'}});
-    xData = wasmBackend.dataIdMap.get(castedData.dataId);
+    castedData =
+        cast({backend, inputs: {x: images}, attrs: {dtype: 'float32'}});
+    xData = backend.dataIdMap.get(castedData.dataId);
   }
   const xId = xData.id;
 
-  const out = wasmBackend.makeOutput(outShape, 'float32');
+  const out = backend.makeOutput(outShape, 'float32');
   if (util.sizeFromShape(images.shape) === 0) {
     return out;
   }
-  const outId = wasmBackend.dataIdMap.get(out.dataId).id;
+  const outId = backend.dataIdMap.get(out.dataId).id;
 
   wasmResizeBilinear(
       xId, batch, oldHeight, oldWidth, numChannels, newHeight, newWidth,
       alignCorners ? 1 : 0, outId);
 
   if (castedData != null) {
-    wasmBackend.disposeData(castedData.dataId);
+    backend.disposeData(castedData.dataId);
   }
 
   return out;
