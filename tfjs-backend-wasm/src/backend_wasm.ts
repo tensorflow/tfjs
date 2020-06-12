@@ -14,10 +14,12 @@
  * limitations under the License.
  * =============================================================================
  */
+import './flags_wasm';
 
-import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, env, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
+import wasmFactorySimd from '../wasm-out/tfjs-backend-wasm-simd.js';
 import wasmFactory from '../wasm-out/tfjs-backend-wasm.js';
 
 const WASM_PRIORITY = 2;
@@ -201,6 +203,7 @@ function createInstantiateWasmFunc(path: string) {
  * in Chrome 76).
  */
 export async function init(): Promise<{wasm: BackendWasmModule}> {
+  const simdSupported = await env().getAsync('WASM_HAS_SIMD_SUPPORT');
   return new Promise((resolve, reject) => {
     const factoryConfig: WasmFactoryConfig = {};
     if (wasmPath != null) {
@@ -217,7 +220,8 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
         factoryConfig.instantiateWasm = createInstantiateWasmFunc(wasmPath);
       }
     }
-    const wasm = wasmFactory(factoryConfig);
+    const wasm = simdSupported ? wasmFactorySimd(factoryConfig) :
+                                 wasmFactory(factoryConfig);
     const voidReturnType: string = null;
     // Using the tfjs namespace to avoid conflict with emscripten's API.
     wasm.tfjs = {

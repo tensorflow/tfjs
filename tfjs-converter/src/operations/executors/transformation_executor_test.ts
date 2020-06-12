@@ -25,7 +25,7 @@ describe('transformation', () => {
   let node: Node;
   const input1 = [tfc.scalar(1)];
   const input2 = [tfc.tensor1d([1, 1])];
-  const context = new ExecutionContext({}, {});
+  const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
     node = {
@@ -151,6 +151,18 @@ describe('transformation', () => {
         executeOp(node, {input1}, context);
 
         expect(tfc.depthToSpace).toHaveBeenCalledWith(input1[0], 1, 'NHWC');
+      });
+    });
+    describe('BroadcastTo', () => {
+      it('should call tfc.broadcastTo', () => {
+        spyOn(tfc, 'broadcastTo');
+        node.op = 'BroadcastTo';
+        node.inputParams.shape = createNumericArrayAttrFromIndex(1);
+        node.inputNames = ['input1', 'input2'];
+
+        executeOp(node, {input1, input2}, context);
+
+        expect(tfc.broadcastTo).toHaveBeenCalledWith(input1[0], [1, 1]);
       });
     });
   });

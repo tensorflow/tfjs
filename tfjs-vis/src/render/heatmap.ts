@@ -161,6 +161,7 @@ export async function heatmap(
       },
       'scale': {'bandPaddingInner': 0, 'bandPaddingOuter': 0},
     },
+    //@ts-ignore
     'data': {'values': values},
     'mark': {'type': 'rect', 'tooltip': true},
     'encoding': {
@@ -228,12 +229,14 @@ export async function heatmap(
   }
 
   if (colorRange !== 'viridis') {
+    //@ts-ignore
     const fill = spec.encoding.fill;
     // @ts-ignore
     fill.scale = {'range': colorRange};
   }
 
   if (options.domain) {
+    //@ts-ignore
     const fill = spec.encoding.fill;
     // @ts-ignore
     if (fill.scale != null) {

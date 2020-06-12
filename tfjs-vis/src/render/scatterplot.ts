@@ -115,6 +115,7 @@ export async function scatterplot(
         'titleFontSize': options.fontSize,
       }
     },
+    //@ts-ignore
     'data': {
       'values': values,
     },

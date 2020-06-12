@@ -66,15 +66,23 @@ def _save_and_convert_model(model_fn, model_path, control_flow_v2=False):
   model_info = model_fn(tmp_saved_model_dir)
 
   # Write inputs to file.
-  xs = model_info['inputs'].values()
+  xs_data = []
+  xs_shape = []
+  xs_dtype = []
+  xs_names = []
+  keys = model_info['inputs'].keys()
+  for key in keys:
+    xs_names.append(key)
+    xs_data.append(model_info['inputs'][key]['value'])
+    xs_shape.append(model_info['inputs'][key]['shape'])
+    xs_dtype.append(model_info['inputs'][key]['dtype'])
 
-  xs_data = [x['value'] for x in xs]
-  xs_shape = [x['shape'] for x in xs]
-  xs_dtype = [x['dtype'] for x in xs]
-
+  xs_name_path = os.path.join(_tmp_dir, model_path + '.xs-name.json')
   xs_shape_path = os.path.join(_tmp_dir, model_path + '.xs-shapes.json')
   xs_data_path = os.path.join(_tmp_dir, model_path + '.xs-data.json')
   xs_dtype_path = os.path.join(_tmp_dir, model_path + '.xs-dtype.json')
+  with open(xs_name_path, 'w') as f:
+    f.write(json.dumps(xs_names))
   with open(xs_data_path, 'w') as f:
     f.write(json.dumps(xs_data))
   with open(xs_shape_path, 'w') as f:
@@ -82,14 +90,23 @@ def _save_and_convert_model(model_fn, model_path, control_flow_v2=False):
   with open(xs_dtype_path, 'w') as f:
     f.write(json.dumps(xs_dtype))
   # Write outputs to file.
-  ys = model_info['outputs'].values()
+  ys_data = []
+  ys_shape = []
+  ys_dtype = []
+  ys_names = []
+  keys = model_info['outputs'].keys()
+  for key in keys:
+    ys_names.append(key)
+    ys_data.append(model_info['outputs'][key]['value'])
+    ys_shape.append(model_info['outputs'][key]['shape'])
+    ys_dtype.append(model_info['outputs'][key]['dtype'])
 
-  ys_data = [y['value'] for y in ys]
-  ys_shape = [y['shape'] for y in ys]
-  ys_dtype = [y['dtype'] for y in ys]
+  ys_name_path = os.path.join(_tmp_dir, model_path + '.ys-name.json')
   ys_data_path = os.path.join(_tmp_dir, model_path + '.ys-data.json')
   ys_shape_path = os.path.join(_tmp_dir, model_path + '.ys-shapes.json')
   ys_dtype_path = os.path.join(_tmp_dir, model_path + '.ys-dtype.json')
+  with open(ys_name_path, 'w') as f:
+    f.write(json.dumps(ys_names))
   with open(ys_data_path, 'w') as f:
     f.write(json.dumps(ys_data))
   with open(ys_shape_path, 'w') as f:
@@ -301,28 +318,59 @@ def _create_saved_model_v2_with_control_flow_v2(save_dir):
                                   tf.TensorSpec([], tf.int32),
                                   tf.TensorSpec([], tf.int32)])
     def control_flow(self, x, y, z):
-        while x < z:
-            while x < y:
-                if z > 0 and y > 0:
-                    x = x + y + z
+        i = 0
+        while i < z:
+            i += 1
+            j = 0
+            while j < y:
+                j += 1
+                if z > 0:
+                    x += 1
                 else:
                     x += 2
         return x
 
 
   module = CustomModule()
-  print(module.control_flow(1, 2, 10))
+  print(module.control_flow(0, 2, 10))
   tf.saved_model.save(module, save_dir,
                       signatures=module.control_flow)
 
   return {
       "async": False,
       "inputs": {
-          "x": {"value": [1.], "shape": [], "dtype": 'int32'},
-          "y": {"value": [2.], "shape": [], "dtype": 'int32'},
-          "z": {"value": [10.], "shape": [], "dtype": 'int32'}},
+          "x": {"value": [0], "shape": [], "dtype": 'int32'},
+          "y": {"value": [2], "shape": [], "dtype": 'int32'},
+          "z": {"value": [10], "shape": [], "dtype": 'int32'}},
       "outputs": {
-          "Identity:0": {"value": [13.], "shape": [], "dtype": "int32"}}}
+          "Identity:0": {"value": [20], "shape": [], "dtype": "int32"}}}
+
+def _create_saved_model_v2_with_tensorlist_ops(save_dir):
+  """Test a TF V2 model with TensorList Ops.
+
+  Args:
+    save_dir: directory name of where the saved model will be stored.
+  """
+  model = tf.keras.Sequential()
+  model.add(tf.keras.layers.Embedding(100, 20, input_shape=[10]))
+  model.add(tf.keras.layers.GRU(4, reset_after=True))
+
+  result = model.predict(tf.ones([1, 10]))
+
+  tf.keras.backend.set_learning_phase(0)
+  tf.saved_model.save(model, save_dir)
+
+  return {
+      "async": False,
+      "inputs": {
+          "embedding_input": {
+            "value": np.ones((1, 10)).tolist(),
+            "shape": [1, 10], "dtype": 'float32'}},
+      "outputs": {
+          "Identity:0": {
+              "value": result.tolist(),
+              "shape": result.shape,
+              "dtype": "float32"}}}
 
 def main():
   # Create the directory to store model and data.
@@ -342,6 +390,7 @@ def main():
       'saved_model_with_conv2d')
   _save_and_convert_model(_create_saved_model_with_prelu,
       'saved_model_with_prelu')
-
+  _save_and_convert_model(_create_saved_model_v2_with_tensorlist_ops,
+      'saved_model_v2_with_tensorlist_ops', control_flow_v2=True)
 if __name__ == '__main__':
   main()

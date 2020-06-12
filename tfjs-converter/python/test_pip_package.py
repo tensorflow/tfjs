@@ -871,7 +871,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       new_y = new_model.predict(x)
       self.assertAllClose(new_y, y)
 
-  def testConvertTfjsLayersModelWithQuantization(self):
+  def testConvertTfjsLayersModelWithLegacyQuantization(self):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       # 1. Saved the model as a SavedModel.
       model = self._createNestedSequentialModel()
@@ -898,6 +898,47 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
           'tensorflowjs_converter', '--input_format', 'tfjs_layers_model',
           '--output_format', 'tfjs_layers_model',
           '--quantization_bytes', '2',
+          os.path.join(tfjs_output_dir, 'model.json'), sharded_model_dir
+      ])
+      process.communicate()
+      self.assertEqual(0, process.returncode)
+
+      # 4. Check the quantized weight file and its size.
+      weight_files = sorted(
+          glob.glob(os.path.join(sharded_model_dir, 'group*.bin')))
+      self.assertEqual(len(weight_files), 1)
+      weight_file_size = os.path.getsize(weight_files[0])
+      # The size of the weight file should reflect the uint16 quantization.
+      self.assertEqual(weight_file_size, total_weight_bytes // 2)
+
+
+  def testConvertTfjsLayersModelWithQuantization(self):
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      # 1. Saved the model as a SavedModel.
+      model = self._createNestedSequentialModel()
+
+      weights = model.get_weights()
+      total_weight_bytes = sum(np.size(w) for w in weights) * 4
+
+      tf.keras.models.save_model(model, self._tmp_dir)
+
+      # 2. Convert the keras saved model to tfjs_layers_model format.
+      tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
+      # Implicit value of --output_format: tfjs_layers_model
+      process = subprocess.Popen([
+          'tensorflowjs_converter', '--input_format', 'keras_saved_model',
+          self._tmp_dir, tfjs_output_dir
+      ])
+      process.communicate()
+      self.assertEqual(0, process.returncode)
+
+      # 3. Convert the tfjs_layers_model to another tfjs_layers_model,
+      #    with uint16 quantization.
+      sharded_model_dir = os.path.join(self._tmp_dir, 'tfjs_sharded')
+      process = subprocess.Popen([
+          'tensorflowjs_converter', '--input_format', 'tfjs_layers_model',
+          '--output_format', 'tfjs_layers_model',
+          '--quantize_uint16', '*',
           os.path.join(tfjs_output_dir, 'model.json'), sharded_model_dir
       ])
       process.communicate()

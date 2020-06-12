@@ -26,7 +26,7 @@ import {createBoolAttr} from './test_helper';
 describe('convolution', () => {
   let node: Node;
   const input = [tfc.scalar(1)];
-  const context = new ExecutionContext({}, {});
+  const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
     node = {
@@ -222,8 +222,7 @@ describe('convolution', () => {
         executeOp(node, {input}, context);
 
         expect(tfc.maxPoolWithArgmax)
-            .toHaveBeenCalledWith(
-                input[0], [2, 2], [2, 2], 'same', true);
+            .toHaveBeenCalledWith(input[0], [2, 2], [2, 2], 'same', true);
       });
     });
 

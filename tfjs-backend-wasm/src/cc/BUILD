@@ -28,6 +28,28 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "tfjs-backend-wasm-simd.js",
+    srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
+    linkopts = [
+        "-s ALLOW_MEMORY_GROWTH=1",
+        "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
+        "-s DISABLE_EXCEPTION_CATCHING=1",
+        "-s FILESYSTEM=0",
+        "-s EXIT_RUNTIME=0",
+        "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
+        "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
+        "-s MODULARIZE=1",
+        "-s EXPORT_NAME=WasmBackendModuleSimd",
+        "-s MALLOC=emmalloc",
+        "-s SIMD=1",
+    ],
+    deps = [
+        ":all_kernels",
+        ":backend",
+    ],
+)
+
 test_suite(
     name = "cc_tests",
 )
@@ -188,7 +210,7 @@ tfjs_cc_library(
         ":Maximum",
         ":Min",
         ":Minimum",
-        ":Mul",
+        ":Multiply",
         ":Neg",
         ":NonMaxSuppressionV3",
         ":NonMaxSuppressionV5",
@@ -200,6 +222,7 @@ tfjs_cc_library(
         ":Relu6",
         ":ResizeBilinear",
         ":ScatterNd",
+        ":SelectV2",
         ":Sigmoid",
         ":Softmax",
         ":Sub",
@@ -582,8 +605,8 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-    name = "Mul",
-    srcs = ["kernels/Mul.cc"],
+    name = "Multiply",
+    srcs = ["kernels/Multiply.cc"],
     deps = [
         ":backend",
         ":binary",
@@ -699,6 +722,15 @@ tfjs_unit_test(
 tfjs_cc_library(
     name = "ScatterNd",
     srcs = ["kernels/ScatterNd.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SelectV2",
+    srcs = ["kernels/SelectV2.cc"],
     deps = [
         ":backend",
         ":util",

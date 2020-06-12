@@ -23,7 +23,7 @@ import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
-import {floorDiv} from './binary_ops';
+import {floorDiv} from './floorDiv';
 import {op} from './operation';
 
 /**

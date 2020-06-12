@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +14,18 @@
  * limitations under the License.
  * =============================================================================
  */
+import {prelu} from '../../ops/prelu';
+import {Tensor} from '../../tensor';
+import {Rank, TensorLike} from '../../types';
 
-import {registerBinaryKernel} from './binary_kernel';
-const supportsFullBroadcast = true;
-registerBinaryKernel('Mul', supportsFullBroadcast);
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    prelu<T extends Tensor>(alpha: T|TensorLike): T;
+  }
+}
+
+Tensor.prototype.prelu = function<T extends Tensor>(
+    this: T, alpha: T|TensorLike): T {
+  this.throwIfDisposed();
+  return prelu(this, alpha);
+};

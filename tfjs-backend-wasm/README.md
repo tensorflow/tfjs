@@ -108,13 +108,13 @@ JS backend, and ~5.3-7.7X slower than the WebGL backend.
 
 <img src="./mobilenet-v2-bench.svg">
 
-| MobileNet inference (ms) | WASM  | WebGL | Plain JS |
-|--------------------------|-------|-------|----------|
-| iPhone X                 | 147.1 | 20.3  | 941.3    |
-| iPhone XS                | 140   | 18.1  | 426.4    |
-| Pixel 3                  | 266.2 | 77.3  | 2345.2   |
-| Desktop Linux            | 91.5  | 17.1  | 1049     |
-| Macbook Pro              | 98.4  | 19.6  | 893.5    |
+| MobileNet inference (ms) | WASM  | WebGL | Plain JS | WASM + SIMD |
+|--------------------------|-------|-------|----------|-------------|
+| iPhone X                 | 147.1 | 20.3  | 941.3    | N/A         |
+| iPhone XS                | 140   | 18.1  | 426.4    | N/A         |
+| Pixel 3                  | 266.2 | 77.3  | 2345.2   | N/A         |
+| Desktop Linux            | 91.5  | 17.1  | 1049     | N/A         |
+| Macbook Pro              | 98.4  | 19.6  | 893.5    | 30.2        |
 
 
 
@@ -127,13 +127,13 @@ the device).
 
 <img src="./face-detector-bench.svg">
 
-| Face Detector inference (ms) | WASM | WebGL | Plain JS |
-|------------------------------|------|-------|----------|
-| iPhone X                     | 22.4 | 13.5  | 318      |
-| iPhone XS                    | 21.4 | 10.5  | 176.9    |
-| Pixel 3                      | 40.7 | 31.8  | 535.2    |
-| Desktop Linux                | 12.6 | 12.7  | 249.5    |
-| Macbook Pro 15 2019          | 13.6 | 22.7  | 209.1    |
+| Face Detector inference (ms) | WASM | WebGL | Plain JS | WASM + SIMD |
+|------------------------------|------|-------|----------|-------------|
+| iPhone X                     | 22.4 | 13.5  | 318      | N/A         |
+| iPhone XS                    | 21.4 | 10.5  | 176.9    | N/A         |
+| Pixel 3                      | 40.7 | 31.8  | 535.2    | N/A         |
+| Desktop Linux                | 12.6 | 12.7  | 249.5    | N/A         |
+| Macbook Pro 15 2019          | 13.6 | 22.7  | 209.1    | 7.9         |
 
 # FAQ
 
@@ -150,7 +150,7 @@ performance to the WebGL backend
 
 We are committed to supporting the WASM backend and will continue to improve
 performance. We plan to follow the WebAssembly standard closely and benefit from
-its upcoming features such as SIMD and multi-threading.
+its upcoming features such as multi-threading.
 
 ### How many ops have you implemented?
 See [`all_kernels.ts`](https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/src/kernels/all_kernels.ts)
@@ -167,8 +167,7 @@ inference as fast as possible.
 Yes. If you run into issues, please let us know.
 
 ### Do you support SIMD?
-We are actively working on adding SIMD before we do the official release.
-The switch to SIMD should happen transparently for browsers that support it.
+Yes. We take advantage of SIMD wherever it is supported. If you intend to serve the WASM assets yourself, note that the SIMD-enabled WASM binary is separate from the default binary.
 
 ### Do you support multi-threading?
 Multi-threading support is not a priority for us at this point since it is still
@@ -182,13 +181,13 @@ We'd love your feedback as we develop this backend! Please file an issue
 
 ## Emscripten installation
 
-Install the Emscripten SDK (version 1.39.13):
+Install the Emscripten SDK (version 1.39.15):
 
 ```sh
 git clone https://github.com/emscripten-core/emsdk.git
 cd emsdk
-./emsdk install 1.39.13
-./emsdk activate 1.39.13
+./emsdk install 1.39.15
+./emsdk activate 1.39.15
 ```
 
 ## Prepare the environment

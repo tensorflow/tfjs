@@ -24,7 +24,7 @@ import tensorflow as tf
 from tensorflowjs import quantization
 from tensorflowjs import read_weights
 
-_OUTPUT_DTYPES = [np.float32, np.int32, np.complex64,
+_OUTPUT_DTYPES = [np.float16, np.float32, np.int32, np.complex64,
                   np.uint8, np.uint16, np.bool, np.object]
 _AUTO_DTYPE_CONVERSION = {
     np.dtype(np.float64): np.float32,
@@ -33,7 +33,7 @@ _AUTO_DTYPE_CONVERSION = {
 
 def write_weights(
     weight_groups, write_dir, shard_size_bytes=1024 * 1024 * 4,
-    write_manifest=True, quantization_dtype=None):
+    write_manifest=True, quantization_dtype_map=None):
   """Writes weights to a binary format on disk for ingestion by JavaScript.
 
     Weights are organized into groups. When writing to disk, the bytes from all
@@ -44,7 +44,7 @@ def write_weights(
     shard size.
 
     Weights are optionally quantized to either 8 or 16 bits for compression,
-    which is enabled via the `quantization_dtype` argument.
+    which is enabled via the `quantization_dtype_map`.
 
     Args:
       weight_groups: An list of groups. Each group is an array of weight
@@ -68,8 +68,9 @@ def write_weights(
         the max file size for caching for all major browsers.
       write_manifest: Whether to write the manifest JSON to disk. Defaults to
         True.
-      quantization_dtype: An optional numpy dtype to quantize weights to for
-        compression. Only np.uint8 and np.uint16 are supported.
+      quantization_dtype_map: (Optional) A mapping from dtype
+        (`uint8`, `uint16`, `float16`) to weights names. The weight mapping
+        supports wildcard substitution.
     Returns:
       The weights manifest JSON dict.
 
@@ -107,7 +108,7 @@ def write_weights(
           'name': 'weight2',
           'shape': [2000, 2000],
           'dtype': 'float32',
-          'quantization': {'min': -2.4, 'scale': 0.08, 'dtype': 'uint8'}
+          'quantization': {'dtype': 'float16'}
         }]
       }]
   """
@@ -120,8 +121,14 @@ def write_weights(
   for group_index, group in enumerate(weight_groups):
     for e in group:
       _auto_convert_weight_entry(e)
-    if quantization_dtype:
-      group = [_quantize_entry(e, quantization_dtype) for e in group]
+    names = [entry['name'] for entry in group]
+    quantization_dtype = quantization.map_layers_to_quantization_dtype(
+        names, quantization_dtype_map)
+
+    group = [
+        _quantize_entry(e, quantization_dtype[e['name']])
+        if e['name'] in quantization_dtype else e for e in group
+    ]
     group_bytes, total_bytes, _ = _stack_group_bytes(group)
 
     shard_filenames = _shard_group_bytes_to_disk(
@@ -154,8 +161,8 @@ def _quantize_entry(entry, quantization_dtype):
 
   Args:
     entry: A weight entries to quantize.
-    quantization_dtype: An numpy dtype to quantize weights to. Only np.uint8 and
-      np.uint16 are supported.
+    quantization_dtype: An numpy dtype to quantize weights to.
+        Only np.uint8, np.uint16, and np.float16 are supported.
 
   Returns:
     A new entry containing the quantized data and additional quantization info,
@@ -168,19 +175,19 @@ def _quantize_entry(entry, quantization_dtype):
           'name': 'weight1',
           'data': np.array([20, 0, 255], 'uint8')
           'quantization': {'min': -0.10196078817, 'scale': 0.00509803940852,
-                           'original_dtype': 'float32'}
+                           'dtype': 'uint8', 'original_dtype': 'float32'}
         }
   """
   data = entry['data']
   # Only float32 tensors are quantized.
   if data.dtype != 'float32':
     return entry
-  quantized_data, scale, min_val = quantization.quantize_weights(
+  quantized_data, metadata = quantization.quantize_weights(
       data, quantization_dtype)
+  metadata.update({'original_dtype': data.dtype.name})
   quantized_entry = entry.copy()
   quantized_entry['data'] = quantized_data
-  quantized_entry['quantization'] = {
-      'min': min_val, 'scale': scale, 'original_dtype': data.dtype.name}
+  quantized_entry['quantization'] = metadata
   return quantized_entry
 
 
@@ -322,11 +329,9 @@ def _get_weights_manifest_for_group(group):
     if dtype == 'object':
       var_manifest['dtype'] = 'string'
     if is_quantized:
-      var_manifest['quantization'] = {
-          'min': entry['quantization']['min'],
-          'scale': entry['quantization']['scale'],
-          'dtype': entry['data'].dtype.name
-      }
+      manifest = {'dtype': entry['data'].dtype.name}
+      manifest.update(entry['quantization'])
+      var_manifest['quantization'] = manifest
     weights_entries.append(var_manifest)
   return weights_entries
 
