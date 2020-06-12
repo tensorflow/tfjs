@@ -60,11 +60,16 @@ export const executeOp: InternalOpAsyncExecutor = async(
       const condResult =
           (await context.functionMap[condFunc].executeFunctionAsync(
               args, context.tensorArrayMap, context.tensorListMap));
+      const argIds = args.map(tensor => tensor.id);
       let condValue = await condResult[0].data();
-      condResult.forEach(tensor => tensor.dispose());
+      condResult.forEach(tensor => {
+        if (!tensor.kept && argIds.indexOf(tensor.id) === -1) {
+          tensor.dispose();
+        }
+      });
 
       let result: tfc.Tensor[] = args;
-      const argIds = args.map(tensor => tensor.id);
+
       while (condValue[0]) {
         const origResult = result;
         result = await context.functionMap[bodyFunc].executeFunctionAsync(
@@ -84,7 +89,12 @@ export const executeOp: InternalOpAsyncExecutor = async(
             (await context.functionMap[condFunc].executeFunctionAsync(
                 result, context.tensorArrayMap, context.tensorListMap));
         condValue = await condResult[0].data();
-        condResult.forEach(tensor => tensor.dispose());
+        condResult.forEach(tensor => {
+          if (!tensor.kept && argIds.indexOf(tensor.id) === -1 &&
+              resultIds.indexOf(tensor.id) === -1) {
+            tensor.dispose();
+          }
+        });
       }
       return result;
     }

@@ -31,8 +31,8 @@ import {createShapeAttrFromIndex} from './test_helper';
 
 describe('control', () => {
   let node: Node;
-  const input1 = [tfc.scalar(1, 'int32')];
-  const input2 = [tfc.scalar(0, 'bool')];
+  let input1: tfc.Tensor[];
+  let input2: tfc.Tensor[];
   const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
@@ -46,6 +46,13 @@ describe('control', () => {
       attrParams: {},
       children: []
     };
+    input1 = [tfc.scalar(1, 'int32')];
+    input2 = [tfc.scalar(0, 'bool')];
+  });
+
+  afterEach(() => {
+    input1[0].dispose();
+    input2[0].dispose();
   });
 
   describe('executeOp', () => {
@@ -441,13 +448,14 @@ describe('control', () => {
         return input2;
       });
       const bodyExecutor = new GraphExecutor(graph);
-      spyOn(bodyExecutor, 'executeFunctionAsync').and.returnValue(input2);
+      const input3 = [tfc.scalar(3, 'int32')];
+      spyOn(bodyExecutor, 'executeFunctionAsync').and.returnValue(input3);
       context.functionMap['bodyFunc'] = bodyExecutor;
       context.functionMap['condFunc'] = condExecutor;
       const result = await executeOp(node, {cond, input1, input2}, context);
 
       test_util.expectArraysEqual(
-          await result[0].array(), await input2[0].array());
+          await result[0].array(), await input3[0].array());
     });
 
     it('should match json def', () => {
@@ -490,13 +498,14 @@ describe('control', () => {
         return input2;
       });
       const bodyExecutor = new GraphExecutor(graph);
-      spyOn(bodyExecutor, 'executeFunctionAsync').and.returnValue(input2);
+      const input3 = [tfc.scalar(3, 'int32')];
+      spyOn(bodyExecutor, 'executeFunctionAsync').and.returnValue(input3);
       context.functionMap['bodyFunc'] = bodyExecutor;
       context.functionMap['condFunc'] = condExecutor;
       const result = await executeOp(node, {cond, input1, input2}, context);
 
       test_util.expectArraysEqual(
-          await result[0].array(), await input2[0].array());
+          await result[0].array(), await input3[0].array());
     });
 
     it('should match json def', () => {

@@ -176,9 +176,12 @@ export class ExecutionContext {
   }
 
   dispose() {
-    Object.values(this.tensorArrayMap)
-        .forEach(tensorArray => tensorArray.clearAndClose());
-    Object.values(this.tensorListMap)
-        .forEach(tensorList => tensorList.clearAndClose());
+    for (const key in this.tensorArrayMap) {
+      this.tensorArrayMap[key].clearAndClose();
+    }
+
+    for (const key in this.tensorListMap) {
+      this.tensorListMap[key].clearAndClose();
+    }
   }
 }

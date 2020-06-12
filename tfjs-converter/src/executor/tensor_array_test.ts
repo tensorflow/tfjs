@@ -54,7 +54,8 @@ describe('TensorArray', () => {
     tensorArray.clearAndClose();
     expect(tensorArray.size()).toBe(0);
     expect(tensorArray.closed).toBeTruthy();
-    expect(memory().numTensors).toEqual(numOfTensors - size);
+    // disposed the tensor in the array and idTensor of the array
+    expect(memory().numTensors).toEqual(numOfTensors - size - 1);
   });
 
   describe('write', () => {
