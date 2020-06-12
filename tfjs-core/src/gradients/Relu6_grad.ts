@@ -14,18 +14,21 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Relu} from '../kernel_names';
+import {Relu6} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import {cast} from '../ops/array_ops';
+import {lessEqual} from '../ops/less_equal';
 import {mul} from '../ops/mul';
 import {step} from '../ops/unary_ops';
 import {Tensor} from '../tensor';
 
-export const reluGradConfig: GradConfig = {
-  kernelName: Relu,
+export const relu6GradConfig: GradConfig = {
+  kernelName: Relu6,
   inputsToSave: ['x'],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
     const [x] = saved;
-    return {x: () => mul(dy, cast(step(x), 'float32'))};
+    const mask = mul(lessEqual(x, 6), step(x));
+
+    return {x: () => mul(dy, cast(mask, 'float32'))};
   }
 };
