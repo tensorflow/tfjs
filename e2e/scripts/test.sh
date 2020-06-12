@@ -37,8 +37,7 @@ if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
   cd integration_tests
 
   # Setup python env.
-  # TODO(linazhao): Investigate why --dev --tfkeras fail.
-  source ../scripts/setup-py-env.sh --stable
+  source ../scripts/setup-py-env.sh --dev
 
   echo "Load equivalent keras models and generate outputs."
   python create_save_predict.py
