@@ -36,11 +36,9 @@ export class TensorArray {
   readonly id: number;
   readonly idTensor: Tensor;
   constructor(
-      public readonly name: string, public readonly dtype: DataType,
-      private maxSize: number, private elementShape: number[],
-      public readonly identicalElementShapes: boolean,
-      public readonly dynamicSize: boolean,
-      public readonly clearAfterRead: boolean) {
+      readonly name: string, readonly dtype: DataType, private maxSize: number,
+      private elementShape: number[], readonly identicalElementShapes: boolean,
+      readonly dynamicSize: boolean, readonly clearAfterRead: boolean) {
     this.id = TensorArray.nextId++;
     this.idTensor = scalar(this.id);
     keep(this.idTensor);
@@ -51,7 +49,7 @@ export class TensorArray {
   }
 
   /**
-   * Close the current TensorArray.
+   * Dispose the tensors and idTensor and mark the TensoryArray as closed.
    */
   clearAndClose() {
     this.tensors.forEach(tensor => tensor.tensor.dispose());
@@ -136,13 +134,13 @@ export class TensorArray {
         `TensorArray ${this.name}: Could not write to TensorArray index ${
             index}.`);
 
-    if (t && t.read) {
+    if (t.read) {
       throw new Error(
           `TensorArray ${this.name}: Could not write to TensorArray index ${
               index}, because it has already been read.`);
     }
 
-    if (t && t.written) {
+    if (t.written) {
       throw new Error(
           `TensorArray ${this.name}: Could not write to TensorArray index ${
               index}, because it has already been written.`);

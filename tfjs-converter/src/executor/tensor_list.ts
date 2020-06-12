@@ -38,6 +38,8 @@ export class TensorList {
   private static nextId = 0;
   readonly id: number;
   readonly idTensor: Tensor;
+  maxNumElements: number;
+
   /**
    *
    * @param tensors list of tensors
@@ -47,11 +49,12 @@ export class TensorList {
    *   meaning that the size of `tensors` is unbounded.
    */
   constructor(
-      public tensors: Tensor[], public elementShape: number[],
-      public elementDtype: DataType, public maxNumElements = -1) {
+      readonly tensors: Tensor[], readonly elementShape: number[],
+      readonly elementDtype: DataType, maxNumElements = -1) {
     tensors.forEach(tensor => keep(tensor));
     this.id = TensorList.nextId++;
     this.idTensor = scalar(this.id);
+    this.maxNumElements = maxNumElements;
     keep(this.idTensor);
   }
 
@@ -64,11 +67,11 @@ export class TensorList {
   }
 
   /**
-   * Clean the current TensorList.
+   * Dispose the tensors and idTensor and clear the tensor list.
    */
   clearAndClose() {
     this.tensors.forEach(tensor => tensor.dispose());
-    this.tensors = [];
+    this.tensors.length = 0;
     this.idTensor.dispose();
   }
   /**
@@ -369,9 +372,7 @@ export function split(
       const previousLength = (i === 0) ? 0 : cumulativeLengths[i - 1];
       const indices = [0, previousLength, 0];
       const sizes = [1, length[i], elementPerRow];
-      const sliced = slice(tensor, indices, sizes);
-      tensors[i] = sliced.reshape(elementShape);
-      sliced.dispose();
+      tensors[i] = slice(tensor, indices, sizes).reshape(elementShape);
     }
     tensor.dispose();
     return tensors;

@@ -45,10 +45,10 @@ export class ExecutionContext {
   private _currentContextIds: string[];
 
   constructor(
-      public readonly weightMap: NamedTensorsMap,
-      public readonly tensorArrayMap: TensorArrayMap,
-      public readonly tensorListMap: TensorListMap,
-      public readonly functionMap: {[key: string]: FunctionExecutor} = {}) {
+      readonly weightMap: NamedTensorsMap = {},
+      readonly tensorArrayMap: TensorArrayMap = {},
+      readonly tensorListMap: TensorListMap = {},
+      readonly functionMap: {[key: string]: FunctionExecutor} = {}) {
     this.generateCurrentContextIds();
   }
 
