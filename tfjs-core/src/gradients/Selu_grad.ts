@@ -14,18 +14,35 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Relu} from '../kernel_names';
+import {Selu} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import {cast} from '../ops/array_ops';
+import {greater} from '../ops/greater';
+import {where} from '../ops/logical_ops';
 import {mul} from '../ops/mul';
-import {step} from '../ops/unary_ops';
+import {SELU_SCALE, SELU_SCALEALPHA} from '../ops/selu_util';
+import {scalar} from '../ops/tensor_ops';
+import {exp} from '../ops/unary_ops';
 import {Tensor} from '../tensor';
 
-export const reluGradConfig: GradConfig = {
-  kernelName: Relu,
+export const seluGradConfig: GradConfig = {
+  kernelName: Selu,
   inputsToSave: ['x'],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
     const [x] = saved;
-    return {x: () => mul(dy, cast(step(x), 'float32'))};
+    return {
+      x: () => {
+        const mask = greater(x, scalar(0));
+
+        const scaleAlpha = scalar(SELU_SCALEALPHA);
+        const scale = scalar(SELU_SCALE);
+
+        const greaterThanZeroDer = mul(dy, scale);
+        const lessEqualZeroDer =
+            mul(mul(dy, scaleAlpha), exp(cast(x, 'float32')));
+
+        return where(mask, greaterThanZeroDer, lessEqualZeroDer);
+      }
+    };
   }
 };
