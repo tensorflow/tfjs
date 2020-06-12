@@ -14,18 +14,34 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Relu} from '../kernel_names';
+import {Prelu} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {cast} from '../ops/array_ops';
+import {reshape} from '../ops/array_ops';
+import {getReductionAxes} from '../ops/broadcast_util';
+import {greater} from '../ops/greater';
+import {where} from '../ops/logical_ops';
 import {mul} from '../ops/mul';
-import {step} from '../ops/unary_ops';
+import {sum} from '../ops/reduction_ops';
+import {zerosLike} from '../ops/tensor_ops';
 import {Tensor} from '../tensor';
 
-export const reluGradConfig: GradConfig = {
-  kernelName: Relu,
-  inputsToSave: ['x'],
+export const preluGradConfig: GradConfig = {
+  kernelName: Prelu,
+  inputsToSave: ['x', 'alpha'],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
-    const [x] = saved;
-    return {x: () => mul(dy, cast(step(x), 'float32'))};
+    const [x, alpha] = saved;
+    const mask = greater(x, 0);
+
+    return {
+      x: () => where(mask, dy, mul(dy, alpha)),
+      alpha: () => {
+        let res = where(mask, zerosLike(dy), mul(dy, x));
+        const reduceAxes = getReductionAxes(alpha.shape, dy.shape);
+        if (reduceAxes.length > 0) {
+          res = sum(res, reduceAxes);
+        }
+        return reshape(res, alpha.shape);
+      }
+    };
   }
 };

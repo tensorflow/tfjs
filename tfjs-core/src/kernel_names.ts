@@ -193,6 +193,12 @@ export type DiagInputs = Pick<NamedTensorInfoMap, 'x'>;
 export const Div = 'Div';
 export type DivInputs = BinaryInputs;
 
+export const Elu = 'Elu';
+export type EluInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const EluGrad = 'EluGrad';
+export type EluGradInputs = Pick<NamedTensorInfoMap, 'dy'|'y'>;
+
 export const Equal = 'Equal';
 export type EqualInputs = BinaryInputs;
 
@@ -364,14 +370,23 @@ export type PoolInputs = Pick<NamedTensorInfoMap, 'input'>;
 export const Pow = 'Pow';
 export type PowInputs = BinaryInputs;
 
+export const Prelu = 'Prelu';
+export type PreluInputs = Pick<NamedTensorInfoMap, 'x'|'alpha'>;
+
 export const Real = 'Real';
 export type RealInputs = Pick<NamedTensorInfoMap, 'input'>;
 
 export const Relu = 'Relu';
 export type ReluInputs = Pick<NamedTensorInfoMap, 'x'>;
 
+export const Relu6 = 'Relu6';
+export type Relu6Inputs = Pick<NamedTensorInfoMap, 'x'>;
+
 export const SelectV2 = 'SelectV2';
 export type SelectV2Inputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
+
+export const Selu = 'Selu';
+export type SeluInputs = Pick<NamedTensorInfoMap, 'x'>;
 
 export const SpaceToBatchND = 'SpaceToBatchND';
 export type SpaceToBatchNDInputs = Pick<NamedTensorInfoMap, 'x'>;
