@@ -76,6 +76,7 @@ describe(`${REGRESSION} convert_predict`, () => {
 
           const $model = await tfconverter.loadGraphModel(
               `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
+          const numTensors = tfc.memory().numTensors;
 
           const namedInputs = createInputTensors(
                                   inputsData, inputsShapes, inputsDtypes,
@@ -97,6 +98,8 @@ describe(`${REGRESSION} convert_predict`, () => {
           // Dispose all tensors;
           Object.keys(namedInputs).forEach(key => namedInputs[key].dispose());
           ys.forEach(tensor => tensor.dispose());
+
+          expect(tfc.memory().numTensors).toEqual(numTensors);
         });
       });
     });

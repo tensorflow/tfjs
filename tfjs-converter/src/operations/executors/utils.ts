@@ -116,3 +116,12 @@ export function split(arr: number[], size: number) {
   }
   return res;
 }
+export function getPadding(
+    node: Node, tensorMap: NamedTensorsMap,
+    context: ExecutionContext): ValueType {
+  let pad = getParamValue('pad', node, tensorMap, context);
+  if (pad === 'explicit') {
+    pad = getParamValue('explicitPaddings', node, tensorMap, context);
+  }
+  return pad;
+}

@@ -130,7 +130,7 @@ export function getNodesInTopologicalOrder(
 
 const CONTROL_FLOW_OPS = [
   'Switch', 'Merge', 'Enter', 'Exit', 'NextIteration', 'StatelessIf',
-  'StatelessWhile'
+  'StatelessWhile', 'if', 'While'
 ];
 const DYNAMIC_SHAPE_OPS = [
   'NonMaxSuppressionV2', 'NonMaxSuppressionV3', 'NonMaxSuppressionV5', 'Where'
