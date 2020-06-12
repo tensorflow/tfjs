@@ -54,7 +54,8 @@ import {op} from './operation';
 /** @doc {heading: 'Operations', subheading: 'Convolution'} */
 function conv1d_<T extends Tensor2D|Tensor3D>(
     x: T|TensorLike, filter: Tensor3D|TensorLike, stride: number,
-    pad: 'valid'|'same'|number, dataFormat: 'NWC'|'NCW' = 'NWC', dilation = 1,
+    pad: 'valid'|'same'|number|conv_util.ExplicitPadding,
+    dataFormat: 'NWC'|'NCW' = 'NWC', dilation = 1,
     dimRoundingMode?: 'floor'|'round'|'ceil'): T {
   const $x = convertToTensor(x, 'x', 'conv1d');
   const $filter = convertToTensor(filter, 'filter', 'conv1d');

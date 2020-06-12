@@ -17,6 +17,7 @@
     "build": "rimraf dist/ && tsc && ./scripts/build-wasm.sh",
     "build-ci": "./scripts/build-ci.sh",
     "build-npm": "./scripts/build-npm.sh",
+    "build-benchmark": "./scripts/build-benchmark.sh",
     "buildifier-ci": "./scripts/buildifier-ci.sh",
     "clean": "rimraf dist/ && bazel clean --expunge",
     "cpplint": "./scripts/cpplint.js",

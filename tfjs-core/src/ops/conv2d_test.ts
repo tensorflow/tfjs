@@ -166,6 +166,26 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     expectArraysClose(resultData, [133, 66, 200, 102, 108, 58, 56, 58]);
   });
 
+  it('x=[4,2,1] f=[4,2,1,1] s=1 d=1 p=explicit', async () => {
+    const inputDepth = 1;
+    const outputDepth = 1;
+    const pad =
+        [[0, 0], [1, 2], [0, 1], [0, 0]] as tf.backend_util.ExplicitPadding;
+    const stride = 1;
+    const dataFormat = 'NHWC';
+    const dilation = 1;
+
+    const x = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [4, 2, inputDepth]);
+    const w =
+        tf.tensor4d([3, 1, 5, 0, 2, 7, 8, 9], [4, 2, inputDepth, outputDepth]);
+
+    const result = tf.conv2d(x, w, stride, pad, dataFormat, dilation);
+
+    const resultData = await result.data();
+    expect(result.shape).toEqual([4, 2, 1]);
+    expectArraysClose(resultData, [133, 66, 200, 102, 108, 58, 56, 58]);
+  });
+
   it('x=[2,2,1] f=[2,2,1,1] s=1 d=1 p=same', async () => {
     const inputDepth = 1;
     const inputShape: [number, number, number] = [2, 2, inputDepth];
@@ -193,6 +213,28 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     const outputDepth = 1;
     const fSize = 2;
     const pad = 'same';
+    const stride = 1;
+    const dataFormat = 'NCHW';
+    const dilation = 1;
+
+    const x = tf.tensor3d([1, 2, 3, 4], inputShape);
+    const w =
+        tf.tensor4d([3, 1, 5, 0], [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.conv2d(x, w, stride, pad, dataFormat, dilation);
+
+    const resultData = await result.data();
+    expect(result.shape).toEqual([1, 2, 2]);
+    expectArraysClose(resultData, [20, 26, 13, 12]);
+  });
+
+  it('x=[1,2,2] f=[2,2,1,1] s=1 d=1 p=explicit NCHW', async () => {
+    const inputDepth = 1;
+    const inputShape: [number, number, number] = [inputDepth, 2, 2];
+    const outputDepth = 1;
+    const fSize = 2;
+    const pad =
+        [[0, 0], [0, 0], [0, 1], [0, 1]] as tf.backend_util.ExplicitPadding;
     const stride = 1;
     const dataFormat = 'NCHW';
     const dilation = 1;

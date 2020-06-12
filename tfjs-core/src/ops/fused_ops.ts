@@ -330,7 +330,7 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
   x: T|TensorLike,
   filter: Tensor4D|TensorLike,
   strides: [number, number]|number,
-  pad: 'valid'|'same'|number,
+  pad: 'valid'|'same'|number|conv_util.ExplicitPadding,
   dataFormat?: 'NHWC'|'NCHW',
   dilations?: [number, number]|number,
   dimRoundingMode?: 'floor'|'round'|'ceil',
