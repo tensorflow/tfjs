@@ -14,18 +14,28 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Relu} from '../kernel_names';
+import {ENGINE, ForwardFunc} from '../engine';
+import {Elu, EluGrad, EluGradInputs} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {cast} from '../ops/array_ops';
-import {mul} from '../ops/mul';
-import {step} from '../ops/unary_ops';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 
-export const reluGradConfig: GradConfig = {
-  kernelName: Relu,
-  inputsToSave: ['x'],
+export const eluGradConfig: GradConfig = {
+  kernelName: Elu,
+  outputsToSave: [true],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
-    const [x] = saved;
-    return {x: () => mul(dy, cast(step(x), 'float32'))};
+    const [y] = saved;
+
+    const backPropKernelFunc: ForwardFunc<Tensor> = (backend) => {
+      return backend.eluDer(dy, y);
+    };
+
+    const inputs: EluGradInputs = {dy, y};
+
+    return {
+      x: () => ENGINE.runKernelFunc(
+          backPropKernelFunc, inputs as {} as NamedTensorMap, null /* grad */,
+          EluGrad)
+    };
   }
 };

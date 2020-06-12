@@ -49,7 +49,8 @@ import {op} from './operation';
  */
 function conv2DBackpropFilter_<T extends Tensor3D|Tensor4D>(
     x: T, dy: T, filterShape: [number, number, number, number],
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
+    strides: [number, number]|number,
+    pad: 'valid'|'same'|number|conv_util.ExplicitPadding,
     dataFormat: 'NHWC'|'NCHW' = 'NHWC',
     dimRoundingMode?: 'floor'|'round'|'ceil'): Tensor4D {
   let x4D = x as Tensor4D;

@@ -18,6 +18,8 @@
 // tslint:disable: variable-name
 // Unfortunately just enabling PascalCase per file (tslint:enable:
 // allow-pascal-case) doesn't work.
+import {ExplicitPadding} from '../src/ops/conv_util';
+
 import {NamedTensorInfoMap, TensorInfo} from './kernel_registry';
 import {DataType, PixelData} from './types';
 
@@ -104,7 +106,7 @@ export const Conv2D = 'Conv2D';
 export type Conv2DInputs = Pick<NamedTensorInfoMap, 'x'|'filter'>;
 export interface Conv2DAttrs {
   strides: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
   dataFormat: 'NHWC'|'NCHW';
   dilations: [number, number]|number;
   dimRoundingMode?: 'floor'|'round'|'ceil';
@@ -114,7 +116,7 @@ export const Conv2DBackpropFilter = 'Conv2DBackpropFilter';
 export type Conv2DBackpropFilterInputs = Pick<NamedTensorInfoMap, 'x'|'dy'>;
 export interface Conv2DBackpropFilterAttrs {
   strides: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
   dataFormat: 'NHWC'|'NCHW';
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
@@ -123,7 +125,7 @@ export const Conv2DBackpropInput = 'Conv2DBackpropInput';
 export type Conv2DBackpropInputInputs = Pick<NamedTensorInfoMap, 'dy'|'filter'>;
 export interface Conv2DBackpropInputAttrs {
   strides: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
   dataFormat: 'NHWC'|'NCHW';
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
@@ -192,6 +194,12 @@ export type DiagInputs = Pick<NamedTensorInfoMap, 'x'>;
 
 export const Div = 'Div';
 export type DivInputs = BinaryInputs;
+
+export const Elu = 'Elu';
+export type EluInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const EluGrad = 'EluGrad';
+export type EluGradInputs = Pick<NamedTensorInfoMap, 'dy'|'y'>;
 
 export const Equal = 'Equal';
 export type EqualInputs = BinaryInputs;
@@ -364,6 +372,9 @@ export type PoolInputs = Pick<NamedTensorInfoMap, 'input'>;
 export const Pow = 'Pow';
 export type PowInputs = BinaryInputs;
 
+export const Prelu = 'Prelu';
+export type PreluInputs = Pick<NamedTensorInfoMap, 'x'|'alpha'>;
+
 export const Real = 'Real';
 export type RealInputs = Pick<NamedTensorInfoMap, 'input'>;
 
@@ -391,8 +402,14 @@ export interface ResizeBilinearAttrs {
 export const ResizeBilinearGrad = 'ResizeBilinearGrad';
 export type ResizeBilinearGradInputs = Pick<NamedTensorInfoMap, 'images'>;
 
+export const Relu6 = 'Relu6';
+export type Relu6Inputs = Pick<NamedTensorInfoMap, 'x'>;
+
 export const SelectV2 = 'SelectV2';
 export type SelectV2Inputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
+
+export const Selu = 'Selu';
+export type SeluInputs = Pick<NamedTensorInfoMap, 'x'>;
 
 export const SpaceToBatchND = 'SpaceToBatchND';
 export type SpaceToBatchNDInputs = Pick<NamedTensorInfoMap, 'x'>;

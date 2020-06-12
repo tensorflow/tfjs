@@ -258,11 +258,6 @@ export interface OpHandler {
   atanh<T extends Tensor>(x: T): T;
   erf<T extends Tensor>(x: T): T;
   step<T extends Tensor>(x: T, alpha: number): T;
-  relu6<T extends Tensor>(x: T): T;
-  elu<T extends Tensor>(x: T): T;
-  selu<T extends Tensor>(x: T): T;
-  leakyRelu<T extends Tensor>(x: T, alpha: number): T;
-  prelu<T extends Tensor>(x: T, alpha: T|TensorLike): T;
   softmax<T extends Tensor>(logits: T, dim: number): T;
   logSoftmax<T extends Tensor>(logits: T, axis: number): T;
   unsortedSegmentSum<T extends Tensor>(
@@ -943,26 +938,6 @@ export class Tensor<R extends Rank = Rank> {
   clipByValue(min: number, max: number): Tensor<R> {
     this.throwIfDisposed();
     return opHandler.clipByValue(this, min, max);
-  }
-  relu6<T extends Tensor>(this: T): T {
-    this.throwIfDisposed();
-    return opHandler.relu6(this);
-  }
-  elu<T extends Tensor>(this: T): T {
-    this.throwIfDisposed();
-    return opHandler.elu(this);
-  }
-  selu<T extends Tensor>(this: T): T {
-    this.throwIfDisposed();
-    return opHandler.selu(this);
-  }
-  leakyRelu(alpha = 0.2): Tensor<R> {
-    this.throwIfDisposed();
-    return opHandler.leakyRelu(this, alpha);
-  }
-  prelu(alpha: Tensor<R>|TensorLike): Tensor<R> {
-    this.throwIfDisposed();
-    return opHandler.prelu(this, alpha);
   }
   sigmoid<T extends Tensor>(this: T): T {
     this.throwIfDisposed();
