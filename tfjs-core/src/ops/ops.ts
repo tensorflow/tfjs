@@ -127,9 +127,21 @@ export {op} from './operation';
 // Second level exports.
 import * as losses from './loss_ops';
 import * as linalg from './linalg_ops';
-import * as image from './image_ops';
 import * as spectral from './spectral_ops';
 import * as fused from './fused_ops';
 import * as signal from './signal_ops';
+
+import {cropAndResize, nonMaxSuppression, nonMaxSuppressionAsync, nonMaxSuppressionWithScore, nonMaxSuppressionWithScoreAsync} from './image_ops';
+import {resizeBilinear} from './resize_bilinear';
+import {resizeNearestNeighbor} from './resize_nearest_neighbor';
+const image = {
+  resizeNearestNeighbor,
+  resizeBilinear,
+  cropAndResize,
+  nonMaxSuppression,
+  nonMaxSuppressionAsync,
+  nonMaxSuppressionWithScore,
+  nonMaxSuppressionWithScoreAsync
+};
 
 export {image, linalg, losses, spectral, fused, signal};

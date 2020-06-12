@@ -54,6 +54,8 @@ import './pool';
 import './pow';
 import './prelu';
 import './relu';
+import './resize_bilinear';
+import './resize_nearest_neighbor';
 import './relu6';
 import './selu';
 import './separable_conv2d';

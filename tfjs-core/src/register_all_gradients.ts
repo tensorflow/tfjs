@@ -48,6 +48,8 @@ import {powGradConfig} from './gradients/Pow_grad';
 import {preluGradConfig} from './gradients/Prelu_grad';
 import {relu6GradConfig} from './gradients/Relu6_grad';
 import {reluGradConfig} from './gradients/Relu_grad';
+import {resizeBilinearGradConfig} from './gradients/ResizeBilinear_grad';
+import {resizeNearestNeighborGradConfig} from './gradients/ResizeNearestNeighbor_grad';
 import {seluGradConfig} from './gradients/Selu_grad';
 import {spaceToBatchNDGradConfig} from './gradients/SpaceToBatchND_grad';
 import {splitVGradConfig} from './gradients/SplitV_grad';
@@ -99,6 +101,8 @@ const gradConfigs: GradConfig[] = [
   powGradConfig,
   preluGradConfig,
   reluGradConfig,
+  resizeBilinearGradConfig,
+  resizeNearestNeighborGradConfig,
   relu6GradConfig,
   seluGradConfig,
   spaceToBatchNDGradConfig,
