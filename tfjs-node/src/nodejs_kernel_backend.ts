@@ -869,13 +869,15 @@ export class NodeJSKernelBackend extends KernelBackend {
       {name: 'dilations', type: this.binding.TF_ATTR_INT, value: dilations},
     ];
     if (padding === 'EXPLICIT') {
+      const padValue = [
+        convInfo.padInfo.top, convInfo.padInfo.bottom, convInfo.padInfo.left,
+        convInfo.padInfo.right
+      ];
       opAttrs.push({
         name: 'explicit_paddings',
         type: this.binding.TF_ATTR_INT,
-        value: [
-          0, 0, convInfo.padInfo.top, convInfo.padInfo.bottom,
-          convInfo.padInfo.left, convInfo.padInfo.right, 0, 0
-        ]
+        value: dataFormat === 'NHWC' ? [0, 0, ...padValue, 0, 0] :
+                                       [0, 0, 0, 0, ...padValue]
       });
     }
     return this.executeSingleOutput('Conv2D', opAttrs, [x, filter]) as Tensor4D;
