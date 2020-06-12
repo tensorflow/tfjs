@@ -18,7 +18,7 @@
 import {DataType, NamedTensorMap, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 import {ISignatureDef} from '../data/compiled_api';
-import {NamedTensorsMap, TensorArrayMap, TensorInfo} from '../data/types';
+import {NamedTensorsMap, TensorArrayMap, TensorInfo, TensorListMap} from '../data/types';
 import {getNodeNameAndIndex, getParamValue, getTensor, getTensorsForCurrentContenxt, parseNodeName} from '../operations/executors/utils';
 import {executeOp} from '../operations/operation_executor';
 import {Graph, Node} from '../operations/types';
@@ -193,9 +193,11 @@ export class GraphExecutor implements FunctionExecutor {
       this.compiledMap.set(compilationKey, orderedNodes);
     }
     const tensorArrayMap: TensorArrayMap = {};
+    const tensorListMap: TensorListMap = {};
     return tidy(() => {
       const context = new ExecutionContext(
-          this.weightMap, tensorArrayMap, this.functionExecutorMap);
+          this.weightMap, tensorArrayMap, tensorListMap,
+          this.functionExecutorMap);
       const tensorsMap: NamedTensorsMap = {...this.weightMap};
       Object.keys(inputs).forEach(name => {
         const [nodeName, index] = parseNodeName(name);
@@ -219,6 +221,10 @@ export class GraphExecutor implements FunctionExecutor {
               node.name, node, tensorsMap, context, tensorsToKeep, outputs,
               intermediateTensorConsumerCount);
         }
+      }
+      // dispose the context for the root executor
+      if (this.parent == null) {
+        context.dispose();
       }
       return outputs.map(name => getTensor(name, tensorsMap, context));
     });
@@ -274,6 +280,7 @@ export class GraphExecutor implements FunctionExecutor {
       }
     });
   }
+
   /**
    * Executes the inference for given input tensors in Async fashion.
    * @param inputs Tensor map for the model inputs, keyed by the input node
@@ -282,25 +289,47 @@ export class GraphExecutor implements FunctionExecutor {
    * are specified, the default outputs of the model would be used. You can
    * inspect intermediate nodes of the model by adding them to the outputs
    * array.
-   * @param disableWarning disable the no dynamic ops warning message, default
-   * to false
    */
-  async executeAsync(
-      inputs: NamedTensorMap, outputs: string[],
-      disableWarning = false): Promise<Tensor[]> {
-    inputs = this.mapInputs(inputs);
-    this.checkInputs(inputs);
-    this.checkInputShapeAndType(inputs);
-    outputs = this.mapOutputs(outputs);
-    this.checkOutputs(outputs);
-    const tensorArrayMap: TensorArrayMap = {};
+  async executeAsync(inputs: NamedTensorMap, outputs: string[]):
+      Promise<Tensor[]> {
+    return this._executeAsync(inputs, outputs);
+  }
+
+  /**
+   * Executes the inference for given input tensors in Async fashion.
+   * @param inputs Tensor map for the model inputs, keyed by the input node
+   * names.
+   * @param outputs output node name from the Tensorflow model, if no outputs
+   * are specified, the default outputs of the model would be used. You can
+   * inspect intermediate nodes of the model by adding them to the outputs
+   * array.
+   * @param isFunctionExecution Flag for executing a function.
+   * @param tensorArrayMap Optional, global TensorArray map by id. Used for
+   * function execution.
+   * @param tensorArrayMap Optinal global TensorList map by id. Used for
+   * function execution.
+   */
+  private async _executeAsync(
+      inputs: NamedTensorMap, outputs: string[], isFunctionExecution = false,
+      tensorArrayMap: TensorArrayMap = {},
+      tensorListMap: TensorListMap = {}): Promise<Tensor[]> {
+    if (!isFunctionExecution) {
+      inputs = this.mapInputs(inputs);
+      this.checkInputs(inputs);
+      this.checkInputShapeAndType(inputs);
+      outputs = this.mapOutputs(outputs);
+      this.checkOutputs(outputs);
+    }
+
     const context = new ExecutionContext(
-        this.weightMap, tensorArrayMap, this.functionExecutorMap);
+        this.weightMap, tensorArrayMap, tensorListMap,
+        this.functionExecutorMap);
+
     // Graph with control flow op requires runtime evaluation of the execution
     // order, while without control flow the execution order is pre-determined
     // in the compile method.
     const tensorMap = await this.executeWithControlFlow(
-        inputs, context, outputs, disableWarning);
+        inputs, context, outputs, isFunctionExecution);
     const results = outputs.map(name => getTensor(name, tensorMap, context));
 
     // dispose all the intermediate tensors
@@ -317,27 +346,35 @@ export class GraphExecutor implements FunctionExecutor {
         }
       });
     });
+    // dispose the context for the root executor
+    if (this.parent == null) {
+      context.dispose();
+    }
+
     return results;
   }
 
-  async executeFunctionAsync(inputs: Tensor[]): Promise<Tensor[]> {
+  async executeFunctionAsync(
+      inputs: Tensor[], tensorArrayMap: TensorArrayMap,
+      tensorListMap: TensorListMap): Promise<Tensor[]> {
     const mappedInputs = inputs.reduce((map, tensor, index) => {
       map[this.inputs[index].name] = tensor;
       return map;
     }, {} as NamedTensorMap);
 
-    return this.executeAsync(mappedInputs, this.outputNodes, true);
+    return this._executeAsync(
+        mappedInputs, this.outputNodes, true, tensorArrayMap, tensorListMap);
   }
   /**
    * When there are control flow nodes in the graph, the graph execution use
    * ExecutionContext to keep track of the frames and loop iterators.
    * @param inputs placeholder tensors for the graph.
    * @param context the execution context object for current execution.
-   * @param disableWarning disable no async op warning
+   * @param isFunctionExecution Flag for executing a function.
    */
   private async executeWithControlFlow(
       inputs: NamedTensorMap, context: ExecutionContext, outputNames: string[],
-      disableWarning: boolean): Promise<NamedTensorsMap> {
+      isFunctionExecution: boolean): Promise<NamedTensorsMap> {
     const names = Object.keys(inputs);
     const inputNodes =
         names.map(name => this.graph.nodes[parseNodeName(name)[0]]);
@@ -366,7 +403,7 @@ export class GraphExecutor implements FunctionExecutor {
           outputNames, intermediateTensorConsumerCount, usedNodes);
       await Promise.all(promises);
     }
-    if (dynamicNode == null && !disableWarning) {
+    if (dynamicNode == null && !isFunctionExecution) {
       console.warn(
           `This model execution did not contain any nodes with control flow ` +
           `or dynamic output shapes. You can use model.execute() instead.`);

@@ -25,7 +25,7 @@ import {createBoolAttr, createNumberAttr, createNumberAttrFromIndex, createTenso
 describe('reduction', () => {
   let node: Node;
   const input1 = [tfc.scalar(1)];
-  const context = new ExecutionContext({}, {});
+  const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
     node = {

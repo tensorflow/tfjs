@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {concat, DataType, slice, stack, Tensor, tensor, tidy, unstack} from '@tensorflow/tfjs-core';
+import {concat, DataType, keep, scalar, slice, stack, Tensor, tensor, tidy, unstack} from '@tensorflow/tfjs-core';
 
 import {assertShapesMatchAllowUndefinedSize} from './tensor_utils';
 
@@ -35,6 +35,11 @@ import {assertShapesMatchAllowUndefinedSize} from './tensor_utils';
  */
 
 export class TensorList {
+  private static nextId = 0;
+  readonly id: number;
+  readonly idTensor: Tensor;
+  maxNumElements: number;
+
   /**
    *
    * @param tensors list of tensors
@@ -44,8 +49,14 @@ export class TensorList {
    *   meaning that the size of `tensors` is unbounded.
    */
   constructor(
-      public tensors: Tensor[], public elementShape: number[],
-      public elementDtype: DataType, public maxNumElements = -1) {}
+      readonly tensors: Tensor[], readonly elementShape: number[],
+      readonly elementDtype: DataType, maxNumElements = -1) {
+    tensors.forEach(tensor => keep(tensor));
+    this.id = TensorList.nextId++;
+    this.idTensor = scalar(this.id);
+    this.maxNumElements = maxNumElements;
+    keep(this.idTensor);
+  }
 
   /**
    * Get a new TensorList containing a copy of the underlying tensor container.
@@ -55,6 +66,14 @@ export class TensorList {
         [...this.tensors], this.elementShape, this.elementDtype);
   }
 
+  /**
+   * Dispose the tensors and idTensor and clear the tensor list.
+   */
+  clearAndClose() {
+    this.tensors.forEach(tensor => tensor.dispose());
+    this.tensors.length = 0;
+    this.idTensor.dispose();
+  }
   /**
    * The size of the tensors in the tensor list.
    */
@@ -126,6 +145,7 @@ export class TensorList {
     if (this.maxNumElements === this.size()) {
       throw new Error(`Trying to push element into a full list.`);
     }
+    keep(tensor);
     this.tensors.push(tensor);
   }
 
@@ -193,7 +213,7 @@ export class TensorList {
 
     assertShapesMatchAllowUndefinedSize(
         this.elementShape, tensor.shape, 'TensorList shape mismatch: ');
-
+    keep(tensor);
     this.tensors[elementIndex] = tensor;
   }
 
@@ -258,21 +278,26 @@ export class TensorList {
  * @param tensor from tensor
  * @param elementShape output tensor element shape
  */
-export function fromTensor(tensor: Tensor, elementShape: number[]) {
+export function fromTensor(
+    tensor: Tensor, elementShape: number[], elementDtype: DataType) {
   const dtype = tensor.dtype;
   if (tensor.shape.length < 1) {
     throw new Error(
         `Tensor must be at least a vector, but saw shape: ${tensor.shape}`);
   }
-
+  if (tensor.dtype !== elementDtype) {
+    throw new Error(`Invalid data types; op elements ${
+        tensor.dtype}, but list elements ${elementDtype}`);
+  }
   const outputShape = tensor.shape.slice(1);
   assertShapesMatchAllowUndefinedSize(
       outputShape, elementShape, 'TensorList shape mismatch: ');
 
   const tensorList: Tensor[] = [];
   for (let i = 0; i < tensor.shape[0]; ++i) {
-    const tmp = tensor.slice(i, i + 1).reshape(outputShape);
-    tensorList.push(tmp);
+    const tmp = tensor.slice(i, 1);
+    tensorList.push(tmp.reshape(outputShape));
+    tmp.dispose();
   }
   return new TensorList(tensorList, elementShape, dtype);
 }
@@ -297,7 +322,7 @@ export function reserve(
  */
 export function scatter(
     tensor: Tensor, indices: number[], elementShape: number[],
-    numElements: number): TensorList {
+    numElements?: number): TensorList {
   if (indices.length !== tensor.shape[0]) {
     throw new Error(`Expected len(indices) == tensor.shape[0], but saw: ${
         indices.length} vs. ${tensor.shape[0]}`);
@@ -305,7 +330,7 @@ export function scatter(
 
   const maxIndex = Math.max(...indices);
 
-  if (numElements !== -1 && maxIndex >= numElements) {
+  if (numElements != null && numElements !== -1 && maxIndex >= numElements) {
     throw new Error(
         `Max index must be < array size (${maxIndex}  vs. ${numElements})`);
   }
@@ -349,6 +374,7 @@ export function split(
       const sizes = [1, length[i], elementPerRow];
       tensors[i] = slice(tensor, indices, sizes).reshape(elementShape);
     }
+    tensor.dispose();
     return tensors;
   });
 

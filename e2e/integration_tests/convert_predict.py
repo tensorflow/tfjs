@@ -345,6 +345,33 @@ def _create_saved_model_v2_with_control_flow_v2(save_dir):
       "outputs": {
           "Identity:0": {"value": [20], "shape": [], "dtype": "int32"}}}
 
+def _create_saved_model_v2_with_tensorlist_ops(save_dir):
+  """Test a TF V2 model with TensorList Ops.
+
+  Args:
+    save_dir: directory name of where the saved model will be stored.
+  """
+  model = tf.keras.Sequential()
+  model.add(tf.keras.layers.Embedding(100, 20, input_shape=[10]))
+  model.add(tf.keras.layers.GRU(4, reset_after=True))
+
+  result = model.predict(tf.ones([1, 10]))
+
+  tf.keras.backend.set_learning_phase(0)
+  tf.saved_model.save(model, save_dir)
+
+  return {
+      "async": False,
+      "inputs": {
+          "embedding_input": {
+            "value": np.ones((1, 10)).tolist(),
+            "shape": [1, 10], "dtype": 'float32'}},
+      "outputs": {
+          "Identity:0": {
+              "value": result.tolist(),
+              "shape": result.shape,
+              "dtype": "float32"}}}
+
 def main():
   # Create the directory to store model and data.
   if os.path.exists(_tmp_dir) and os.path.isdir(_tmp_dir):
@@ -363,6 +390,7 @@ def main():
       'saved_model_with_conv2d')
   _save_and_convert_model(_create_saved_model_with_prelu,
       'saved_model_with_prelu')
-
+  _save_and_convert_model(_create_saved_model_v2_with_tensorlist_ops,
+      'saved_model_v2_with_tensorlist_ops', control_flow_v2=True)
 if __name__ == '__main__':
   main()
