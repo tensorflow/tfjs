@@ -68,6 +68,7 @@ import './ops/conv_util_test';
 import './ops/cumsum_test';
 import './ops/depth_to_space_test';
 import './ops/diag_test';
+import './ops/dilation2d_test';
 import './ops/dropout_test';
 import './ops/dropout_util_test';
 import './ops/elu_test';
