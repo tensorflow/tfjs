@@ -43,6 +43,7 @@ export {cumsum} from './cumsum';
 export {depthToSpace} from './depth_to_space';
 export {depthwiseConv2d} from './depthwise_conv2d';
 export {diag} from './diag';
+export {dilation2d} from './dilation2d';
 export {div} from './div';
 export {divNoNan} from './div_no_nan';
 export {dot} from './dot';
