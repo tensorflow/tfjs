@@ -555,6 +555,7 @@ export class Engine implements TensorTracker, DataMover {
 
     let kernelFunc: () => Tensor[];
     const kernel = getKernel(kernelName, this.backendName);
+
     let out: TensorInfo|TensorInfo[];
     if (kernel != null) {
       kernelFunc = () => {
