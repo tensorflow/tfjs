@@ -31,6 +31,16 @@ limitations under the License.
       <div class="box">
         <pre id="env"></pre>
       </div>
+      <table class="table" id="parameters">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
       <table class="table" id="timings">
         <thead>
           <tr>
@@ -54,6 +64,10 @@ limitations under the License.
     </div>
     <table class="table" id="kernels">
       <thead id="kernels-thead">
+        <tr>
+          <th>Kernel</th>
+          <th>Time(ms)</th>
+        </tr>
       </thead>
       <tbody></tbody>
     </table>
@@ -105,6 +119,7 @@ limitations under the License.
     const envDiv = document.getElementById('env');
     const kernelsTableHead = document.getElementById('kernels-thead');
     const kernelTable = document.querySelector('#kernels tbody');
+    const parameterTable = document.querySelector('#parameters tbody');
 
     let model, predict, chartWidth;
 
@@ -133,9 +148,19 @@ limitations under the License.
         } `;
     }
 
+    function showBenchmarkingParameters() {
+      appendRow(parameterTable, 'benchmark', state.benchmark);
+      appendRow(parameterTable, 'numRuns', state.numRuns);
+      appendRow(parameterTable, 'backend', state.backend);
+      appendRow(parameterTable, 'kernelTiming', state.kernelTiming);
+    }
+
     async function setupTable() {
+      parameterTable.innerHTML = '';
+      timeTable.innerHTML = '';
       kernelsTableHead.innerText = '';
       kernelTable.innerHTML = '';
+      showBenchmarkingParameters();
       await tf.nextFrame();
       const rows = ['<b>Kernel</b>', '<b>Time(ms)</b>'];
       if (state.kernelTiming === 'individual') {
@@ -179,8 +204,6 @@ limitations under the License.
 
       const elapsed = performance.now() - start;
       await showMsg(null);
-      appendRow(timeTable, `<b> Benchmark:</b> ${state.benchmark} `,
-        `<b> Runs:</b> ${state.numRuns} `);
       appendRow(timeTable, '1st inference', printTime(elapsed));
     }
 
@@ -363,6 +386,7 @@ limitations under the License.
     }
 
     async function runBenchmark() {
+      await setupTable();
       await loadModelAndRecordTime();
       await warmUpAndRecordTime();
       await showMsg('Waiting for GC');
@@ -395,7 +419,6 @@ limitations under the License.
 
       showVersions();
       await showEnvironment();
-      await setupTable();
     }
 
     onPageLoad();
