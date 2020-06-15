@@ -53,7 +53,8 @@ import {op} from './operation';
 function conv2DBackpropInput_<T extends Tensor3D|Tensor4D>(
     xShape: [number, number, number, number]|[number, number, number], dy: T,
     filter: Tensor4D, strides: [number, number]|number,
-    pad: 'valid'|'same'|number, dataFormat: 'NHWC'|'NCHW' = 'NHWC',
+    pad: 'valid'|'same'|number|conv_util.ExplicitPadding,
+    dataFormat: 'NHWC'|'NCHW' = 'NHWC',
     dimRoundingMode?: 'floor'|'round'|'ceil'): T {
   util.assert(
       xShape.length === dy.rank,

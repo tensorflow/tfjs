@@ -258,19 +258,8 @@ export interface OpHandler {
   atanh<T extends Tensor>(x: T): T;
   erf<T extends Tensor>(x: T): T;
   step<T extends Tensor>(x: T, alpha: number): T;
-  relu6<T extends Tensor>(x: T): T;
-  elu<T extends Tensor>(x: T): T;
-  selu<T extends Tensor>(x: T): T;
-  leakyRelu<T extends Tensor>(x: T, alpha: number): T;
-  prelu<T extends Tensor>(x: T, alpha: T|TensorLike): T;
   softmax<T extends Tensor>(logits: T, dim: number): T;
   logSoftmax<T extends Tensor>(logits: T, axis: number): T;
-  image: {
-    resizeBilinear<T extends Tensor3D|Tensor4D>(
-        images: T, size: [number, number], alignCorners: boolean): T;
-    resizeNearestNeighbor<T extends Tensor3D|Tensor4D>(
-        images: T, size: [number, number], alignCorners: boolean): T;
-  };
   unsortedSegmentSum<T extends Tensor>(
       x: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T;
   topk<T extends Tensor>(x: T, k: number, sorted: boolean):
@@ -950,26 +939,6 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.clipByValue(this, min, max);
   }
-  relu6<T extends Tensor>(this: T): T {
-    this.throwIfDisposed();
-    return opHandler.relu6(this);
-  }
-  elu<T extends Tensor>(this: T): T {
-    this.throwIfDisposed();
-    return opHandler.elu(this);
-  }
-  selu<T extends Tensor>(this: T): T {
-    this.throwIfDisposed();
-    return opHandler.selu(this);
-  }
-  leakyRelu(alpha = 0.2): Tensor<R> {
-    this.throwIfDisposed();
-    return opHandler.leakyRelu(this, alpha);
-  }
-  prelu(alpha: Tensor<R>|TensorLike): Tensor<R> {
-    this.throwIfDisposed();
-    return opHandler.prelu(this, alpha);
-  }
   sigmoid<T extends Tensor>(this: T): T {
     this.throwIfDisposed();
     return opHandler.sigmoid(this);
@@ -1058,21 +1027,6 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.logSoftmax(this, axis);
   }
-
-  // Image ops.
-  resizeBilinear<T extends Tensor3D|Tensor4D>(
-      this: T, newShape2D: [number, number], alignCorners = false): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.image.resizeBilinear(this, newShape2D, alignCorners);
-  }
-
-  resizeNearestNeighbor<T extends Tensor3D|Tensor4D>(
-      this: T, newShape2D: [number, number], alignCorners = false): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.image.resizeNearestNeighbor(
-        this, newShape2D, alignCorners);
-  }
-
   // Pooling.
   variable(trainable = true, name?: string, dtype?: DataType): Variable<R> {
     this.throwIfDisposed();

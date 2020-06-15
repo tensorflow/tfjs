@@ -227,7 +227,8 @@ describe('TensorList', () => {
       const input = tensor3d([1, 2, 3], [3, 1, 1], 'int32');
       const numTensors: number = memory().numTensors;
       scatter(input, [0, 1, 2], [1, 1], 3);
-      expect(memory().numTensors).toEqual(numTensors + 3);
+      // Three tensors in the list and the idTensor
+      expect(memory().numTensors).toEqual(numTensors + 3 + 1);
     });
   });
 
@@ -249,7 +250,8 @@ describe('TensorList', () => {
           tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [3, 2, 2], 'int32');
       const numTensors: number = memory().numTensors;
       split(input, [1, 1, 1], [2, 2]);
-      expect(memory().numTensors).toEqual(numTensors + 3);
+      // Three tensors in the list and the idTensor
+      expect(memory().numTensors).toEqual(numTensors + 3 + 1);
     });
   });
 });

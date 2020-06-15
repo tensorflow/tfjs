@@ -26,7 +26,7 @@ describe('arithmetic', () => {
   const input1 = [tfc.scalar(1)];
   const input2 = [tfc.scalar(1)];
   const input3 = [tfc.scalar(4)];
-  const context = new ExecutionContext({}, {});
+  const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
     node = {

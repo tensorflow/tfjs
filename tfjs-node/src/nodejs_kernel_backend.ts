@@ -846,7 +846,8 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
       Tensor4D {
-    if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
+    if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME' &&
+        convInfo.padInfo.type !== 'EXPLICIT') {
       throw new Error(
           `TF Backend supports only 'valid' and 'same' padding ` +
           `while padding was ${convInfo.padInfo.type}`);
@@ -867,6 +868,18 @@ export class NodeJSKernelBackend extends KernelBackend {
       {name: 'use_cudnn_on_gpu', type: this.binding.TF_ATTR_BOOL, value: true},
       {name: 'dilations', type: this.binding.TF_ATTR_INT, value: dilations},
     ];
+    if (padding === 'EXPLICIT') {
+      const padValue = [
+        convInfo.padInfo.top, convInfo.padInfo.bottom, convInfo.padInfo.left,
+        convInfo.padInfo.right
+      ];
+      opAttrs.push({
+        name: 'explicit_paddings',
+        type: this.binding.TF_ATTR_INT,
+        value: dataFormat === 'NHWC' ? [0, 0, ...padValue, 0, 0] :
+                                       [0, 0, 0, 0, ...padValue]
+      });
+    }
     return this.executeSingleOutput('Conv2D', opAttrs, [x, filter]) as Tensor4D;
   }
 

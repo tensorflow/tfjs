@@ -46,6 +46,7 @@ export {diag} from './diag';
 export {div} from './div';
 export {divNoNan} from './div_no_nan';
 export {dot} from './dot';
+export {elu} from './elu';
 export {equal} from './equal';
 export {eye} from './eye';
 export {fill} from './fill';
@@ -53,6 +54,7 @@ export {floorDiv} from './floorDiv';
 export {greater} from './greater';
 export {greaterEqual} from './greater_equal';
 export {imag} from './imag';
+export {leakyRelu} from './leaky_relu';
 export {less} from './less';
 export {lessEqual} from './less_equal';
 export {localResponseNormalization} from './local_response_normalization';
@@ -76,12 +78,15 @@ export {pad3d} from './pad3d';
 export {pad4d} from './pad4d';
 export {pool} from './pool';
 export {pow} from './pow';
+export {prelu} from './prelu';
 export {rand} from './rand';
 export {randomGamma} from './random_gamma';
 export {randomNormal} from './random_normal';
 export {randomUniform} from './random_uniform';
 export {real} from './real';
 export {relu} from './relu';
+export {relu6} from './relu6';
+export {selu} from './selu';
 export {separableConv2d} from './separable_conv2d';
 export {spaceToBatchND} from './space_to_batch_nd';
 export {split} from './split';
@@ -98,7 +103,6 @@ export * from './unary_ops';
 export * from './reduction_ops';
 export * from './compare';
 export * from './binary_ops';
-export * from './relu_ops';
 export * from './logical_ops';
 export * from './array_ops';
 export * from './tensor_ops';
@@ -123,9 +127,21 @@ export {op} from './operation';
 // Second level exports.
 import * as losses from './loss_ops';
 import * as linalg from './linalg_ops';
-import * as image from './image_ops';
 import * as spectral from './spectral_ops';
 import * as fused from './fused_ops';
 import * as signal from './signal_ops';
+
+import {cropAndResize, nonMaxSuppression, nonMaxSuppressionAsync, nonMaxSuppressionWithScore, nonMaxSuppressionWithScoreAsync} from './image_ops';
+import {resizeBilinear} from './resize_bilinear';
+import {resizeNearestNeighbor} from './resize_nearest_neighbor';
+const image = {
+  resizeNearestNeighbor,
+  resizeBilinear,
+  cropAndResize,
+  nonMaxSuppression,
+  nonMaxSuppressionAsync,
+  nonMaxSuppressionWithScore,
+  nonMaxSuppressionWithScoreAsync
+};
 
 export {image, linalg, losses, spectral, fused, signal};
