@@ -182,6 +182,9 @@ const benchmarks = {
       }
     }
   },
+  'custom model': {
+
+  },
 };
 
 const imageBucket =

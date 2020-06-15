@@ -112,6 +112,7 @@ limitations under the License.
       },
       backend: 'wasm',
       kernelTiming: 'aggregate',
+      modelURL: '',
     };
 
     const modalDiv = document.getElementById('modal-msg');
@@ -385,7 +386,19 @@ limitations under the License.
       console.log = oldLog;
     }
 
+    function isValidModel() {
+      if(state.benchmark === 'custom model') {
+        const regexp =  /^(https?|localstorage|indexeddb):\/\/.*$/;
+        return regexp.test(state.modelURL);
+      }
+      return true;
+    }
+
     async function runBenchmark() {
+      if(!isValidModel()) {
+        showMsg('Please use a valid URL to the custom model, such as “https://”');
+        return;
+      }
       await setupTable();
       await loadModelAndRecordTime();
       await warmUpAndRecordTime();
@@ -403,17 +416,45 @@ limitations under the License.
       };
     }
 
+    function changeModel(value) {
+      if(value === "custom model") {
+        // TODO: add custom input
+      } else {
+        // TODO: add custom input
+
+      }
+      alert("The new value is " + value);
+    }
+
+    var gui = new dat.gui.GUI();
     async function onPageLoad() {
-      var gui = new dat.gui.GUI();
 
       await tf.setBackend(state.backend);
 
-      gui.add(state, 'numRuns');
-      gui.add(state, 'benchmark', Object.keys(benchmarks));
-      gui.add(state, 'backend', ['wasm', 'webgl', 'cpu']).onChange(backend => {
+      var modelFolder = gui.addFolder('Model');
+      var modelController = null;
+      modelFolder.add(state, 'benchmark', Object.keys(benchmarks)).onChange(model => {
+        if(model === "custom model") {
+          if(modelController === null) {
+            modelController = modelFolder.add(state, 'modelURL').onChange(value => {
+              showMsg(null);
+            });
+          }
+        } else if(modelController != null) {
+          modelFolder.remove(modelController);
+          modelController = null;
+        }
+      });
+      modelFolder.open();
+
+      var parameterFolder = gui.addFolder('Parameters');
+      parameterFolder.add(state, 'numRuns');
+      parameterFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu']).onChange(backend => {
         tf.setBackend(backend);
       });
-      gui.add(state, 'kernelTiming', ['aggregate', 'individual']);
+      parameterFolder.add(state, 'kernelTiming', ['aggregate', 'individual']);
+      parameterFolder.open();
+
       gui.add(state, 'run');
       gui.add(state, 'testCorrectness').name('test correctness');
 
