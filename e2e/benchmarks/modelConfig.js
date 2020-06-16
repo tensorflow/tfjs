@@ -183,7 +183,32 @@ const benchmarks = {
     }
   },
   'custom model': {
-
+    load: async () => {
+      const regexp =  /^https:\/\/tfhub.dev\/.+$/;
+      parameters = {}
+      if(regexp.test(state.modelURL)) {
+        parameters.fromTFHub = true;
+      }
+      return tf.loadGraphModel(state.modelURL, parameters);
+    },
+    predictFunc: () => {
+      return async model => {
+        const inferenceInputs = [];
+        for(const inferenceInput of model.inputs) {
+          const inputShape = inferenceInput.shape;
+          inputShape[0] = 1;
+          if (inputShape.indexOf(null) !== -1) {
+            throw new Error(
+                `It is assumed that the only the first dimension of the tensor ` +
+                `is undetermined, but the assumption is not satisfied for ` +
+                `input shape ${JSON.stringify(inputTensor.shape)}`);
+          }
+          const inputTensor = tf.randomNormal(inputShape);
+          inferenceInputs.push(inputTensor)
+        }
+        return model.predict(inferenceInputs);
+      }
+    }
   },
 };
 

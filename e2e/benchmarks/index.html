@@ -32,9 +32,21 @@ limitations under the License.
         <pre id="env"></pre>
       </div>
       <table class="table" id="parameters">
+        <caption>Benchmark Parameter</caption>
         <thead>
           <tr>
-            <th>Parameter</th>
+            <th>Type</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+      <table class="table" id="modelInputs">
+        <caption>Inference Inputs</caption>
+        <thead>
+          <tr>
+            <th>Type</th>
             <th>Value</th>
           </tr>
         </thead>
@@ -42,6 +54,7 @@ limitations under the License.
         </tbody>
       </table>
       <table class="table" id="timings">
+        <caption>Model statistic</caption>
         <thead>
           <tr>
             <th>Type</th>
@@ -63,9 +76,10 @@ limitations under the License.
       </div>
     </div>
     <table class="table" id="kernels">
+      <caption>Kernel statistic</caption>
       <thead id="kernels-thead">
         <tr>
-          <th>Kernel</th>
+          <th>Type</th>
           <th>Time(ms)</th>
         </tr>
       </thead>
@@ -89,10 +103,12 @@ limitations under the License.
     'use strict';
 
     const state = {
-      numRuns: 50,
+      numRuns: 3,
       benchmark: 'mobilenet_v2',
       run: (v) => {
-        runBenchmark();
+        runBenchmark().catch(async e => {
+          await showMsg(e);
+        });
       },
       testCorrectness: async () => {
         await loadModelAndRecordTime();
@@ -110,9 +126,9 @@ limitations under the License.
         const match = tf.test_util.expectArraysClose(referenceData, predictionData);
         appendRow(timeTable, `Prediction matches CPU: `, match);
       },
-      backend: 'wasm',
+      backend: 'webgl',
       kernelTiming: 'aggregate',
-      modelURL: '',
+      modelURL: 'https://tfhub.dev/google/tfjs-model/imagenet/inception_resnet_v2/classification/1/default/1',
     };
 
     const modalDiv = document.getElementById('modal-msg');
@@ -121,6 +137,7 @@ limitations under the License.
     const kernelsTableHead = document.getElementById('kernels-thead');
     const kernelTable = document.querySelector('#kernels tbody');
     const parameterTable = document.querySelector('#parameters tbody');
+    const modelInputsTable = document.querySelector('#modelInputs tbody');
 
     let model, predict, chartWidth;
 
@@ -151,6 +168,9 @@ limitations under the License.
 
     function showBenchmarkingParameters() {
       appendRow(parameterTable, 'benchmark', state.benchmark);
+      if(state.benchmark === "custom model") {
+        appendRow(parameterTable, 'modelURL', state.modelURL);
+      }
       appendRow(parameterTable, 'numRuns', state.numRuns);
       appendRow(parameterTable, 'backend', state.backend);
       appendRow(parameterTable, 'kernelTiming', state.kernelTiming);
@@ -208,21 +228,40 @@ limitations under the License.
       appendRow(timeTable, '1st inference', printTime(elapsed));
     }
 
+    function showInputs() {
+      for(const [index, modelInputs] of model.inputs.entries()) {
+        const inputShape = modelInputs.shape;
+        inputShape[0] = 1;
+        appendRow(modelInputsTable, 'name', modelInputs.name);
+        appendRow(modelInputsTable, 'shape', inputShape);
+        appendRow(modelInputsTable, 'data type', modelInputs.dtype);
+      }
+    }
+
     async function loadModelAndRecordTime() {
       const benchmark = benchmarks[state.benchmark];
       await showMsg('Loading the model');
 
       const start = performance.now();
-      if (benchmark.model == null) {
-        model = await benchmark.load();
-        benchmark.model = model;
-      } else {
-        model = benchmark.model;
-      }
+      model = await benchmark.load();
+      benchmark.model = model;
+      /*
+        * Benchmark mutiple times and load once
+        * For custom models, we need to check whether URL was changed before reuse
+        *
+
+        if (benchmark.model == null) {
+          model = await benchmark.load();
+          benchmark.model = model;
+        } else {
+          model = benchmark.model;
+        }
+      */
       predict = benchmark.predictFunc();
       const elapsed = performance.now() - start;
       await showMsg(null);
       appendRow(timeTable, 'Model load', printTime(elapsed));
+      showInputs();
     }
 
     const chartHeight = 150;
@@ -386,19 +425,17 @@ limitations under the License.
       console.log = oldLog;
     }
 
-    function isValidModel() {
+    async function checkModelURL() {
       if(state.benchmark === 'custom model') {
-        const regexp =  /^(https?|localstorage|indexeddb):\/\/.*$/;
-        return regexp.test(state.modelURL);
+        const regexp =  /^(https?|localstorage|indexeddb):\/\/.+$/;
+        if(!regexp.test(state.modelURL)) {
+          await Promise.reject("Please use a valid URL to the custom model, such as 'https://'");
+        }
       }
-      return true;
     }
 
     async function runBenchmark() {
-      if(!isValidModel()) {
-        showMsg('Please use a valid URL to the custom model, such as “https://”');
-        return;
-      }
+      await checkModelURL();
       await setupTable();
       await loadModelAndRecordTime();
       await warmUpAndRecordTime();
@@ -416,18 +453,8 @@ limitations under the License.
       };
     }
 
-    function changeModel(value) {
-      if(value === "custom model") {
-        // TODO: add custom input
-      } else {
-        // TODO: add custom input
-
-      }
-      alert("The new value is " + value);
-    }
-
-    var gui = new dat.gui.GUI();
     async function onPageLoad() {
+      var gui = new dat.gui.GUI();
 
       await tf.setBackend(state.backend);
 
