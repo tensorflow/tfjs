@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -72,6 +72,49 @@ export type Conv2DInfo = {
   outShape: [number, number, number, number],
   filterShape: [number, number, number, number]
 };
+
+/**
+ *
+ * @param inputShape Input tensor shape is of the following dimensions:
+ *     `[batch, height, width, inChannels]`.
+ * @param filterShape The filter shape is of the following dimensions:
+ *     `[filterHeight, filterWidth, depth]`.
+ * @param strides The strides of the sliding window for each dimension of the
+ *     input tensor: `[strideHeight, strideWidth]`.
+ *     If `strides` is a single number,
+ *     then `strideHeight == strideWidth`.
+ * @param pad The type of padding algorithm.
+ *    - `same` and stride 1: output will be of same size as input,
+ *       regardless of filter size.
+ *    - `valid`: output will be smaller than input if filter is larger
+ *       than 1*1x1.
+ *    - For more info, see this guide:
+ *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
+ *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ * @param dataFormat The data format of the input and output data.
+ *     Defaults to 'NHWC'.
+ * @param dilations The dilation rates: `[dilationHeight, dilationWidth]`.
+ *     Defaults to `[1, 1]`. If `dilations` is a single number, then
+ *     `dilationHeight == dilationWidth`.
+ */
+export function computeDilation2DInfo(
+    inputShape: [number, number, number, number],
+    filterShape: [number, number, number], strides: number|[number, number],
+    pad: 'same'|'valid'|number, dataFormat: 'NHWC' = 'NHWC',
+    dilations: number|[number, number]) {
+  // `computerConv2DInfo` require filterShape to be in the dimension of:
+  // `[filterHeight, filterWidth, depth, outDepth]`, dilation2d doesn't have
+  // outDepth, it assumes input's depth.
+  // Input shape: [batch, height, width, inChannels]
+  const inputDepth = inputShape[3];
+  const $filterShape =
+      [...filterShape, inputDepth] as [number, number, number, number];
+  const $dataFormat = convertConv2DDataFormat(dataFormat);
+
+  return computeConv2DInfo(
+      inputShape, $filterShape, strides, dilations, pad,
+      null /* roundingMode */, null /* depthWise */, $dataFormat);
+}
 
 export function computePool2DInfo(
     inShape: [number, number, number, number],

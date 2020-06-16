@@ -28,6 +28,7 @@ import {conv2DBackpropInputGradConfig} from './gradients/Conv2DBackpropInput_gra
 import {conv3DGradConfig} from './gradients/Conv3D_grad';
 import {cumsumGradConfig} from './gradients/Cumsum_grad';
 import {depthwiseConv2dNativeGradConfig} from './gradients/DepthwiseConv2dNative_grad';
+import {dilation2dGradConfig} from './gradients/Dilation2D_grad';
 import {divGradConfig} from './gradients/Div_grad';
 import {eluGradConfig} from './gradients/Elu_grad';
 import {floorDivGradConfig} from './gradients/FloorDiv_grad';
@@ -77,6 +78,7 @@ const gradConfigs: GradConfig[] = [
   conv3DGradConfig,
   cumsumGradConfig,
   depthwiseConv2dNativeGradConfig,
+  dilation2dGradConfig,
   divGradConfig,
   eluGradConfig,
   floorDivGradConfig,
