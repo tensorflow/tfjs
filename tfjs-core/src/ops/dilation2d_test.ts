@@ -242,28 +242,6 @@ describeWithFlags('dilation2d', ALL_ENVS, () => {
     expectArraysClose(await dfilter.data(), [0, 0, 0, 1.1]);
   });
 
-  xit('gradient same padding filter 2.', async () => {
-    const inputShape: [number, number, number, number] = [1, 3, 3, 1];
-    const filterShape: [number, number, number] = [2, 2, 1];
-    const x = tf.tensor4d([.1, .2, .3, .4, .5, .6, .7, .8, .9], inputShape);
-    const filter = tf.tensor3d([.4, .3, .1, .2], filterShape);
-    // y is: [.7, .8, .7, 1, 1.1, 1, 1.1, 1.2, 1.3]
-    const dy = tf.tensor4d([.2, .3, .4, .2, .1, .5, 0, .8, .7], inputShape);
-
-    const grads = tf.grads(
-        (x: tf.Tensor4D, filter: tf.Tensor3D) =>
-            x.dilation2d(filter, 1, 'same'));
-
-    const [dx, dfilter] = grads([x, filter], dy);
-
-    expect(dx.shape).toEqual(x.shape);
-    // cpu output is                   [0, 0, 0, 0, .2, 1.2, 0, 1, .8]
-    expectArraysClose(await dx.data(), [0, 0, .4, 0, .2, .8, 0, 1, .8]);
-
-    expect(dfilter.shape).toEqual(filterShape);
-    expectArraysClose(await dfilter.data(), [2.4, 0, 0, .8]);
-  });
-
   it('gradient same padding filter 2 depth 3.', async () => {
     const inputShape: [number, number, number, number] = [1, 3, 3, 3];
     const filterShape: [number, number, number] = [2, 2, 3];
