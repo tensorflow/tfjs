@@ -43,6 +43,7 @@ const CHAINED_OPS = [
   'dot',
   'elu',
   'equal',
+  'expandDims',
   'floorDiv',
   'greater',
   'greaterEqual',
@@ -72,9 +73,11 @@ const CHAINED_OPS = [
   'spaceToBatchND',
   'split',
   'square',
+  'squeeze',
   'sub',
   'tile',
-  'transpose'
+  'transpose',
+  'unstack'
 ];
 
 describeWithFlags('chained ops', ALL_ENVS, () => {
