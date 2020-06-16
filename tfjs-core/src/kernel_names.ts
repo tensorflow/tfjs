@@ -446,6 +446,12 @@ export interface TransposeAttrs {
   perm: number[];
 }
 
+export const Unpack = 'Unpack';
+export type UnpackInputs = Pick<NamedTensorInfoMap, 'value'>;
+export interface UnpackAttrs {
+  axis: number;
+}
+
 /**
  * TensorFlow.js-only kernels
  */
