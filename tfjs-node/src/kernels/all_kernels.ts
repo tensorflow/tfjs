@@ -18,6 +18,9 @@
 // We explicitly import the modular kernels so they get registered in the
 // global registry when we compile the library. A modular build would replace
 // the contents of this file and import only the kernels that are needed.
+import './Dilation2D';
+import './Dilation2DBackpropFilter';
+import './Dilation2DBackpropInput';
 import './non_max_suppression_v5';
 import './Softmax';
 import './SquaredDifference';

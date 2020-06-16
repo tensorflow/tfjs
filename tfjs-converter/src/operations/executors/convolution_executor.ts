@@ -231,6 +231,29 @@ export const executeOp: InternalOpExecutor = (node: Node,
           [stride[1], stride[2], stride[3]], pad as 'valid' | 'same')];
     }
 
+    case 'Dilation2D': {
+      const strides =
+          getParamValue('strides', node, tensorMap, context) as number[];
+      const pad = getParamValue('pad', node, tensorMap, context);
+      const dilations =
+          getParamValue('dilations', node, tensorMap, context) as number[];
+
+      // strides: [1, stride_height, stride_width, 1].
+      const strideHeight = strides[1];
+      const strideWidth = strides[2];
+
+      // dilations: [1, dilation_height, dilation_width, 1].
+      const dilationHeight = dilations[1];
+      const dilationWidth = dilations[2];
+
+      return [tfc.dilation2d(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor3D |
+              tfc.Tensor4D,
+          getParamValue('filter', node, tensorMap, context) as tfc.Tensor3D,
+          [strideHeight, strideWidth], pad as 'valid' | 'same',
+          [dilationHeight, dilationWidth], 'NHWC' /* dataFormat */)];
+    }
+
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }
