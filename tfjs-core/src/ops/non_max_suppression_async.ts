@@ -56,6 +56,9 @@ async function nonMaxSuppressionAsync_(
   const boxesVals = boxesAndScores[0];
   const scoresVals = boxesAndScores[1];
 
+  // We call a cpu based impl directly with the typedarray data  here rather
+  // than a kernel because all kernels are synchronous (and thus cannot await
+  // .data()).
   const res = nonMaxSuppressionV3Impl(
       boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   if ($boxes !== boxes) {
