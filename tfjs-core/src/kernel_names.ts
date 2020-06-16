@@ -201,6 +201,14 @@ export interface Dilation2DAttrs {
   dilations: [number, number]|number;
 }
 
+export const Dilation2DBackpropInput = 'Dilation2DBackpropInput';
+export type Dilation2DBackpropInputInputs =
+    Pick<NamedTensorInfoMap, 'x'|'filter'|'dy'>;
+
+export const Dilation2DBackpropFilter = 'Dilation2DBackpropFilter';
+export type Dilation2DBackpropFilterInputs =
+    Pick<NamedTensorInfoMap, 'x'|'filter'|'dy'>;
+
 export const Div = 'Div';
 export type DivInputs = BinaryInputs;
 
