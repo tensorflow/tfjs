@@ -17,10 +17,10 @@
 import {FusedBatchNorm, FusedBatchNormAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
 import {add} from '../ops/add';
-import {reshape} from '../ops/array_ops';
 import {getReductionAxes} from '../ops/broadcast_util';
 import {mul} from '../ops/mul';
 import {sum} from '../ops/reduction_ops';
+import {reshape} from '../ops/reshape';
 import {sub} from '../ops/sub';
 import {scalar} from '../ops/tensor_ops';
 import {tile} from '../ops/tile';

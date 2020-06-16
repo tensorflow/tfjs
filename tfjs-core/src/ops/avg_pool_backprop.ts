@@ -24,9 +24,9 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {reshape} from './array_ops';
 import * as conv_util from './conv_util';
 import {op} from './operation';
+import {reshape} from './reshape';
 
 /**
  * Computes the backprop of an 2D avg pool.

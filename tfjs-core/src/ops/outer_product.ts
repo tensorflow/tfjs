@@ -19,9 +19,10 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {reshape} from './array_ops';
 import {matMul} from './mat_mul';
 import {op} from './operation';
+import {reshape} from './reshape';
+
 
 /**
  * Computes the outer product of two vectors, `v1` and `v2`.

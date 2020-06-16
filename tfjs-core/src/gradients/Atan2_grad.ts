@@ -18,11 +18,11 @@
 import {Atan2} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import {add} from '../ops/add';
-import {reshape} from '../ops/array_ops';
 import {assertAndGetBroadcastShape, getReductionAxes} from '../ops/broadcast_util';
 import {div} from '../ops/div';
 import {mul} from '../ops/mul';
 import {sum} from '../ops/reduction_ops';
+import {reshape} from '../ops/reshape';
 import {square} from '../ops/square';
 import {neg} from '../ops/unary_ops';
 import {Tensor} from '../tensor';

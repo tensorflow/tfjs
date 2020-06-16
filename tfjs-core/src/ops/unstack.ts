@@ -16,9 +16,9 @@
  */
 
 import {ENGINE} from '../engine';
-import {Tensor, TensorBuffer} from '../tensor';
+import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
-import {DataType, DataTypeMap, Rank, ShapeMap, TensorLike} from '../types';
+import {TensorLike} from '../types';
 import * as util from '../util';
 
 import {op} from './operation';

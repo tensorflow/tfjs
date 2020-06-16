@@ -15,10 +15,9 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../engine';
-import {Tensor, TensorBuffer} from '../tensor';
-import {convertToTensor, convertToTensorArray} from '../tensor_util_env';
-import {DataType, DataTypeMap, Rank, ShapeMap, TensorLike} from '../types';
+import {Tensor} from '../tensor';
+import {convertToTensorArray} from '../tensor_util_env';
+import {TensorLike} from '../types';
 import * as util from '../util';
 
 import {concat} from './concat';
@@ -68,6 +67,12 @@ function stack_<T extends Tensor>(
         () => 'All tensors passed to stack must have matching dtypes');
   });
   const expandedTensors = $tensors.map(t => expandDims(t, axis));
+  // Stack exists in the TensorFlow C++ API
+  // (https://www.tensorflow.org/api_docs/cc/class/tensorflow/ops/stack) but not
+  // in
+  // https://raw.githubusercontent.com/tensorflow/tensorflow/master/tensorflow/core/ops/ops.pbtxt.
+  // Therefore we are treating it like a high-level op rather than
+  // creating a dedicated stack kernel.
   return concat(expandedTensors, axis);
 }
 

@@ -24,10 +24,12 @@ import {GradSaveFunc, NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
-import {reshape} from './array_ops';
+
 import * as axis_util from './axis_util';
 import {op} from './operation';
+import {reshape} from './reshape';
 import {transpose} from './transpose';
+
 
 /**
  * Computes the maximum of elements across dimensions of a `tf.Tensor`.

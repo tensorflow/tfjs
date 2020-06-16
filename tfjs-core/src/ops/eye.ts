@@ -18,7 +18,8 @@
 import {Tensor2D} from '../tensor';
 import {DataType} from '../types';
 
-import {buffer, expandDims} from './array_ops';
+import {buffer} from './array_ops';
+import {expandDims} from './expand_dims';
 import {op} from './operation';
 import {tile} from './tile';
 

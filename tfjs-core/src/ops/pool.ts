@@ -20,13 +20,14 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {reshape} from './array_ops';
 import {avgPool} from './avg_pool';
 import {batchToSpaceND} from './batch_to_space_nd';
 import * as conv_util from './conv_util';
 import {maxPool} from './max_pool';
 import {op} from './operation';
+import {reshape} from './reshape';
 import {spaceToBatchND} from './space_to_batch_nd';
+
 
 /**
  * Performs an N-D pooling operation

@@ -21,14 +21,15 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assert, isInt, parseAxisParam} from '../util';
 
-import {expandDims} from './array_ops';
 import {getUndoAxesPermutation} from './axis_util';
+import {expandDims} from './expand_dims';
 import {greaterEqual} from './greater_equal';
 import {logicalAnd, where} from './logical_ops';
 import {maximum} from './maximum';
 import {op} from './operation';
 import {collectGatherOpShapeInfo} from './segment_util';
 import {ones, scalar, zerosLike} from './tensor_ops';
+
 
 /**
  * Computes the sum along segments of a `tf.Tensor`.

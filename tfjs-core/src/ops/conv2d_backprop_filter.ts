@@ -21,9 +21,9 @@ import {Tensor, Tensor3D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import * as util from '../util';
 
-import {reshape} from './array_ops';
 import * as conv_util from './conv_util';
 import {op} from './operation';
+import {reshape} from './reshape';
 
 /**
  * Computes the derivative of the filter of a 2D convolution.
