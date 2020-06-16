@@ -27,8 +27,6 @@ import * as util from '../util';
 import {reshape} from './array_ops';
 import {op} from './operation';
 
-
-
 /**
  * Computes the grayscale dilation over the input `x`.
  *
@@ -61,9 +59,9 @@ import {op} from './operation';
 /** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function dilation2d_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, filter: Tensor3D|TensorLike,
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
-    dataFormat: 'NHWC' = 'NHWC',
-    dilations: [number, number]|number = [1, 1]): T {
+    strides: [number, number]|number, pad: 'valid'|'same',
+    dilations: [number, number]|number = [1, 1],
+    dataFormat: 'NHWC' = 'NHWC'): T {
   const $x = convertToTensor(x, 'x', 'dilation2d');
   const $filter = convertToTensor(filter, 'filter', 'dilation2d');
 
@@ -88,7 +86,7 @@ function dilation2d_<T extends Tensor3D|Tensor4D>(
       () => `Error in dilation2d: Only NHWC is currently supported, ` +
           `but got dataFormat of ${dataFormat}`);
 
-  const inputs: Dilation2DInputs = {x: $x, filter: $filter};
+  const inputs: Dilation2DInputs = {x: x4D, filter: $filter};
   const attrs: Dilation2DAttrs = {strides, pad, dataFormat, dilations};
 
   const res = ENGINE.runKernel(
