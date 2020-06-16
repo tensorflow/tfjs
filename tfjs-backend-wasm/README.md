@@ -114,6 +114,7 @@ JS backend, and ~5.3-7.7X slower than the WebGL backend.
 | iPhone XS                | 140   | 18.1  | 426.4    | N/A         |
 | Pixel 3                  | 266.2 | 77.3  | 2345.2   | N/A         |
 | Desktop Linux            | 91.5  | 17.1  | 1049     | N/A         |
+| Desktop Windows          | 123.1 | 41.6  | 1117     | 37.2        |
 | Macbook Pro              | 98.4  | 19.6  | 893.5    | 30.2        |
 
 
@@ -133,6 +134,7 @@ the device).
 | iPhone XS                    | 21.4 | 10.5  | 176.9    | N/A         |
 | Pixel 3                      | 40.7 | 31.8  | 535.2    | N/A         |
 | Desktop Linux                | 12.6 | 12.7  | 249.5    | N/A         |
+| Desktop Windows              | 7.5  | 7.1   | 270.9    | 16.2        |
 | Macbook Pro 15 2019          | 13.6 | 22.7  | 209.1    | 7.9         |
 
 # FAQ
