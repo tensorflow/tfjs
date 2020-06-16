@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {nonMaxSuppressionV3} from '../backends/non_max_suppression_impl';
+import {nonMaxSuppressionV3Impl} from '../backends/non_max_suppression_impl';
 import {Tensor1D, Tensor2D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -56,7 +56,7 @@ async function nonMaxSuppressionAsync_(
   const boxesVals = boxesAndScores[0];
   const scoresVals = boxesAndScores[1];
 
-  const res = nonMaxSuppressionV3(
+  const res = nonMaxSuppressionV3Impl(
       boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   if ($boxes !== boxes) {
     $boxes.dispose();

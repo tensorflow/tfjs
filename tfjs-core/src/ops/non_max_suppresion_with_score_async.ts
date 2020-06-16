@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {nonMaxSuppressionV5} from '../backends/non_max_suppression_impl';
+import {nonMaxSuppressionV5Impl} from '../backends/non_max_suppression_impl';
 import {Tensor1D, Tensor2D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
@@ -69,7 +69,7 @@ async function nonMaxSuppressionWithScoreAsync_(
   const boxesVals = boxesAndScores[0];
   const scoresVals = boxesAndScores[1];
 
-  const res = nonMaxSuppressionV5(
+  const res = nonMaxSuppressionV5Impl(
       boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold,
       softNmsSigma);
 
