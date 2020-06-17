@@ -106,9 +106,9 @@ export function computeDilation2DInfo(
   // `[filterHeight, filterWidth, depth, outDepth]`, dilation2d doesn't have
   // outDepth, it assumes input's depth.
   // Input shape: [batch, height, width, inChannels]
-  const inputDepth = inputShape[3];
+  const inputChannels = inputShape[3];
   const $filterShape =
-      [...filterShape, inputDepth] as [number, number, number, number];
+      [...filterShape, inputChannels] as [number, number, number, number];
   const $dataFormat = convertConv2DDataFormat(dataFormat);
 
   return computeConv2DInfo(
