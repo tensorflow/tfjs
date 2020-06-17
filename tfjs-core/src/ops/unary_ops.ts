@@ -439,9 +439,11 @@ function clipByValue_<T extends Tensor>(
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
     return {
+      // tslint:disable-next-line: no-unnecessary-type-assertion
       x: () => dy.where(
-          $x.greaterEqual(clipValueMin).logicalAnd($x.lessEqual(clipValueMax)),
-          zerosLike(dy)),
+                   $x.greaterEqual(clipValueMin)
+                       .logicalAnd($x.lessEqual(clipValueMax)),
+                   zerosLike(dy)) as T,
     };
   };
   const inputsToSave = [$x];
