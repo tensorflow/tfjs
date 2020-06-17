@@ -365,11 +365,6 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'onesLike',
     // Complex numbers not supported yet.
     excludes: ['complex'],
-  },
-  {
-    startsWith: 'dilation2d',
-    // Not implemented yet.
-    excludes: ['dilation2d']
   }
 ];
 
