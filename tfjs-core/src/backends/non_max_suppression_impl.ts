@@ -32,7 +32,7 @@ interface Candidate {
   suppressBeginIndex: number;
 }
 
-export function nonMaxSuppressionV3(
+export function nonMaxSuppressionV3Impl(
     boxes: TypedArray, scores: TypedArray, maxOutputSize: number,
     iouThreshold: number, scoreThreshold: number): Tensor1D {
   const dummySoftNmsSigma = 0.0;
@@ -45,7 +45,7 @@ export function nonMaxSuppressionV3(
   return result.selectedIndices as Tensor1D;
 }
 
-export function nonMaxSuppressionV5(
+export function nonMaxSuppressionV5Impl(
     boxes: TypedArray, scores: TypedArray, maxOutputSize: number,
     iouThreshold: number, scoreThreshold: number,
     softNmsSigma: number): NamedTensorMap {
@@ -75,7 +75,7 @@ function nonMaxSuppressionImpl_(
 
   for (let i = 0; i < scores.length; i++) {
     if (scores[i] > scoreThreshold) {
-      candidates.push({ score: scores[i], boxIndex: i, suppressBeginIndex: 0 });
+      candidates.push({score: scores[i], boxIndex: i, suppressBeginIndex: 0});
     }
   }
 
