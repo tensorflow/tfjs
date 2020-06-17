@@ -1,0 +1,24 @@
+# path to a directory with all packages
+storage: ./storage
+auth:
+  htpasswd:
+    file: ./htpasswd
+
+# a list of other known repositories we can talk to
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+
+# fine-grained control of package access, we set it
+# to allow all users to read and publish all packages.
+packages:
+  '@*/*':
+    access: $all
+    publish: $authenticated
+    proxy: npmjs
+  '**':
+    proxy: npmjs
+
+# log settings
+logs:
+  - {type: stdout, format: pretty, level: http}
