@@ -103,7 +103,7 @@ const benchmarks = {
     load: async () => {
       const url =
           'https://storage.googleapis.com/learnjs-data/face_detector_front/model.json';
-      return tf.loadGraphModel(url, {requestInit: {cache: 'no-store' },});
+      return tf.loadGraphModel(url);
     },
     predictFunc: () => {
       const zeros = tf.zeros([1, 128, 128, 3]);

@@ -253,12 +253,12 @@ limitations under the License.
 
       if ("url" in benchmark || state.benchmark === "custom model") {
         const modelUrl = state.benchmark === "custom model" ? state.modelUrl : benchmark.url;
-        const TfHubUrl =  /^https:\/\/tfhub.dev\/.+$/;
+        const tfHubUrl =  /^https:\/\/tfhub.dev\/.+$/;
         const remoteServerUrl =  /^https?:\/\/.+$/;
         let loadingParameters = {};
         if (remoteServerUrl.test(modelUrl)) {
           loadingParameters.requestInit = {cache: 'no-store' };
-          loadingParameters.fromTFHub = TfHubUrl.test(modelUrl);
+          loadingParameters.fromTFHub = tfHubUrl.test(modelUrl);
         }
 
         state.modelType = null;
@@ -454,8 +454,8 @@ limitations under the License.
 
     async function checkModelUrl() {
       if (state.benchmark === 'custom model') {
-        const regexp =  /^(https?|localstorage|indexeddb):\/\/.+$/;
-        if (!regexp.test(state.modelUrl)) {
+        const supportedSchemes =  /^(https?|localstorage|indexeddb):\/\/.+$/;
+        if (!supportedSchemes.test(state.modelUrl)) {
           throw new Error("Please use a valid URL to the custom model, such as 'https://'");
         }
       }
