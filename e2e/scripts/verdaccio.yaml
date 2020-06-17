@@ -14,9 +14,11 @@ uplinks:
 packages:
   '@*/*':
     access: $all
-    publish: $authenticated
+    publish: $all
     proxy: npmjs
   '**':
+    access: $all
+    publish: $all
     proxy: npmjs
 
 # log settings

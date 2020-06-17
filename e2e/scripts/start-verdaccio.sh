@@ -19,20 +19,31 @@
 # Start in scripts/ even if run from root directory
 cd "$(dirname "$0")"
 
-if [[ "$RELEASE" = true ]]; then
-  # Load functions for working with local NPM registry (Verdaccio)
-  source local-registry.sh
+# Load functions for working with local NPM registry (Verdaccio)
+source local-registry.sh
 
+function cleanup {
+  echo 'Cleaning up.'
+  cd "$root_path"
+  # Restore the original NPM and Yarn registry URLs and stop Verdaccio
+  stopLocalRegistry
+}
+
+# Go to root
+cd ..
+root_path=$PWD
+
+if [[ "$RELEASE" = true ]]; then
   # ****************************************************************************
   # First, publish the monorepo.
   # ****************************************************************************
 
   # Start the local NPM registry
-  startLocalRegistry verdaccio.yaml
+  startLocalRegistry "$root_path"/scripts/verdaccio.yaml
 
   # Publish the monorepo
   publishToLocalRegistry
-fi
 
-# Back to root
-cd ..
+  # Cleanup
+  cleanup
+fi

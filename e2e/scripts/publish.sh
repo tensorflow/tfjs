@@ -32,5 +32,6 @@ if [ -n "$(git status --porcelain)" ]; then
   exit 1;
 fi
 
+echo "publish to verdaccio"
 # Publish to local registry
 # Todo(linazhao): Develop and use a one step for all release script.
