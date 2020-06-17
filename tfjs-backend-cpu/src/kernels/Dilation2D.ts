@@ -63,6 +63,10 @@ export const dilation2dConfig: KernelConfig = {
     const output =
         util.makeZerosNestedTypedArray(outShape, x.dtype) as number[][][][];
 
+    // Upsampling the input by fill in `dilation size - 1` values between each
+    // input value.
+    // This implementation follows the TF c++ implementation:
+    // https://github.com/tensorflow/tensorflow/blob/d9a3a849edc198e90172bc58eb293de457f9d986/tensorflow/core/kernels/dilation_ops.cc
     for (let b = 0; b < batchSize; ++b) {
       for (let hOut = 0; hOut < outHeight; ++hOut) {
         const hBeg = hOut * strideHeight - padInfo.top;

@@ -77,6 +77,11 @@ export const dilation2dBackpropFilterConfig: KernelConfig = {
     const gradients = util.makeZerosNestedTypedArray(
                           filter.shape, filter.dtype) as number[][][];
 
+    // In the case of multiple argmax branches, we only back-propagate along the
+    // last branch, i.e., the one with largest value of `h * filter_cols + w`,
+    // similarly to the max-pooling backward routines.
+    // This implementation follows the TF c++ implementation:
+    // https://github.com/tensorflow/tensorflow/blob/d9a3a849edc198e90172bc58eb293de457f9d986/tensorflow/core/kernels/dilation_ops.cc
     for (let b = 0; b < batchSize; ++b) {
       for (let hOut = 0; hOut < outHeight; ++hOut) {
         const hBeg = hOut * strideHeight - padInfo.top;
