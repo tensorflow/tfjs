@@ -129,14 +129,18 @@ export * from './in_top_k';
 
 export {op} from './operation';
 
-// Second level exports.
 import * as losses from './loss_ops';
 import * as linalg from './linalg_ops';
 import * as spectral from './spectral_ops';
 import * as fused from './fused_ops';
 import * as signal from './signal_ops';
 
-import {cropAndResize, nonMaxSuppression, nonMaxSuppressionAsync, nonMaxSuppressionWithScore, nonMaxSuppressionWithScoreAsync} from './image_ops';
+// Image Ops namespace
+import {cropAndResize} from './image_ops';
+import {nonMaxSuppression} from './non_max_suppression';
+import {nonMaxSuppressionAsync} from './non_max_suppression_async';
+import {nonMaxSuppressionWithScore} from './non_max_suppression_with_score';
+import {nonMaxSuppressionWithScoreAsync} from './non_max_suppresion_with_score_async';
 import {resizeBilinear} from './resize_bilinear';
 import {resizeNearestNeighbor} from './resize_nearest_neighbor';
 const image = {
@@ -149,4 +153,5 @@ const image = {
   nonMaxSuppressionWithScoreAsync
 };
 
+// Second level exports.
 export {image, linalg, losses, spectral, fused, signal};
