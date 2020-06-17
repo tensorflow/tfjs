@@ -24,7 +24,6 @@ import {TensorLike} from '../types';
 import {assert, assertShapesMatch} from '../util';
 
 import {op} from './operation';
-import {zerosLike} from './tensor_ops';
 
 /**
  * Returns the elements, either `a` or `b` depending on the `condition`.
@@ -64,23 +63,12 @@ function where_<T extends Tensor>(
     assertShapesMatch($condition.shape, $b.shape, 'Error in where: ');
   }
 
-  // TODO(julianoks): Return null for condition gradient
-  // when backprop supports it.
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [$condition] = saved;
-    return {
-      condition: () => zerosLike($condition).toFloat(),
-      t: () => dy.mul($condition.cast(dy.dtype)),
-      e: () => dy.mul($condition.logicalNot().cast(dy.dtype))
-    } as {t: () => T, e: () => T, condition: () => T};
-  };
-
   const inputs: SelectV2Inputs = {condition: $condition, t: $a, e: $b};
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.select($condition, $a, $b);
     save([$condition]);
     return res;
-  }, inputs as unknown as NamedTensorMap, grad, SelectV2) as T;
+  }, inputs as unknown as NamedTensorMap, null /* gradient */, SelectV2) as T;
 }
 
 export const where = op({where_});
