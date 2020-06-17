@@ -28,13 +28,14 @@ import {assert} from '../util';
 
 import {squeeze, stack, unstack} from './array_ops';
 import {eye} from './eye';
-import {logicalAnd, where} from './logical_ops';
+import {logicalAnd} from './logical_and';
 import {norm} from './norm';
 import {op} from './operation';
 import {sum} from './reduction_ops';
 import {split} from './split';
 import {sub} from './sub';
 import {range, scalar, tensor2d, zeros} from './tensor_ops';
+import {where} from './where';
 
 /**
  * Copy a tensor setting everything outside a central band in each innermost

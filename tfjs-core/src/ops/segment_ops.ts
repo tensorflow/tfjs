@@ -24,11 +24,12 @@ import {assert, isInt, parseAxisParam} from '../util';
 import {expandDims} from './array_ops';
 import {getUndoAxesPermutation} from './axis_util';
 import {greaterEqual} from './greater_equal';
-import {logicalAnd, where} from './logical_ops';
+import {logicalAnd} from './logical_and';
 import {maximum} from './maximum';
 import {op} from './operation';
 import {collectGatherOpShapeInfo} from './segment_util';
 import {ones, scalar, zerosLike} from './tensor_ops';
+import {where} from './where';
 
 /**
  * Computes the sum along segments of a `tf.Tensor`.
