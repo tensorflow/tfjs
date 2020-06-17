@@ -84,7 +84,7 @@ describeWithFlags('dilation2d', ALL_ENVS, () => {
         await result.data(), [.7, .8, .7, 1, 1.1, 1, 1.1, 1.2, 1.3]);
   });
 
-  it('valid padding non-square window.', async () => {
+  it('valid padding non-square-window.', async () => {
     const inputShape: [number, number, number, number] = [1, 2, 2, 1];
     const filterShape: [number, number, number] = [1, 2, 1];
     const x = tf.tensor4d([.1, .2, .3, .4], inputShape);
