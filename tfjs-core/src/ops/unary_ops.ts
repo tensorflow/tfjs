@@ -440,9 +440,8 @@ function clipByValue_<T extends Tensor>(
     const [$x] = saved;
     return {
       x: () => dy.where(
-                   $x.greaterEqual(clipValueMin)
-                       .logicalAnd($x.lessEqual(clipValueMax)),
-                   zerosLike(dy)) as T,
+          $x.greaterEqual(clipValueMin).logicalAnd($x.lessEqual(clipValueMax)),
+          zerosLike(dy)),
     };
   };
   const inputsToSave = [$x];
