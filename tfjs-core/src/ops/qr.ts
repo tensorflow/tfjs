@@ -25,7 +25,6 @@ import {concat} from './concat';
 import {div} from './div';
 import {eye} from './eye';
 import {greater} from './greater';
-import {where} from './logical_ops';
 import {matMul} from './mat_mul';
 import {mul} from './mul';
 import {norm} from './norm';
@@ -35,6 +34,7 @@ import {sub} from './sub';
 import {tensor2d} from './tensor_ops';
 import {transpose} from './transpose';
 import {neg} from './unary_ops';
+import {where} from './where';
 
 /**
  * Compute QR decomposition of m-by-n matrix using Householder transformation.

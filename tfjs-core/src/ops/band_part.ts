@@ -23,10 +23,11 @@ import {assert} from '../util';
 import {reshape, stack, unstack} from './array_ops';
 import {greaterEqual} from './greater_equal';
 import {lessEqual} from './less_equal';
-import {logicalAnd, where} from './logical_ops';
+import {logicalAnd} from './logical_and';
 import {op} from './operation';
 import {sub} from './sub';
 import {range, scalar, zeros} from './tensor_ops';
+import {where} from './where';
 
 /**
  * Copy a tensor setting everything outside a central band in each innermost
