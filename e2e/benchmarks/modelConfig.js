@@ -192,18 +192,17 @@ const benchmarks = {
         for(const inferenceInput of model.inputs) {
           const inputShape = inferenceInput.shape;
           inputShape[0] = 1;
-          if (inputShape.indexOf(null) !== -1) {
+          if (inputShape.indexOf(null) !== -1 || inputShape.indexOf(-1) !== -1) {
             throw new Error(
                 `It is assumed that the only the first dimension of the tensor ` +
                 `is undetermined, but the assumption is not satisfied for ` +
-                `input shape ${JSON.stringify(inputTensor.shape)}`);
+                `input shape ${JSON.stringify(inferenceInput.shape)}`);
           }
-          const inputTensor = tf.randomNormal(inputShape);
-          inferenceInputs.push(inputTensor)
+          const inputTensor = tf.randomNormal(inputShape, 0, 1, inferenceInput.dtype);
+          inferenceInputs.push(inputTensor);
         }
 
         let res = await model.predict(inferenceInputs);
-
         for(let tensor of inferenceInputs) {
           tensor.dispose();
         }

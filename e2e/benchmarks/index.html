@@ -283,7 +283,7 @@ limitations under the License.
       } else if ("load" in benchmark) {
         model = await benchmark.load();
       } else {
-          await Promise.reject("Didn't find loading methods.");
+          throw new Error("Please provide an 'url' field or a 'load' method for your model.");
       }
 
       predict = benchmark.predictFunc();
@@ -456,7 +456,7 @@ limitations under the License.
       if (state.benchmark === 'custom model') {
         const regexp =  /^(https?|localstorage|indexeddb):\/\/.+$/;
         if (!regexp.test(state.modelUrl)) {
-          await Promise.reject("Please use a valid URL to the custom model, such as 'https://'");
+          throw new Error("Please use a valid URL to the custom model, such as 'https://'");
         }
       }
     }
