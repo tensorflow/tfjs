@@ -134,7 +134,7 @@ the device).
 | iPhone XS                    | 21.4 | 10.5  | 176.9    | N/A         |
 | Pixel 3                      | 40.7 | 31.8  | 535.2    | N/A         |
 | Desktop Linux                | 12.6 | 12.7  | 249.5    | N/A         |
-| Desktop Windows              | 7.5  | 7.1   | 270.9    | 16.2        |
+| Desktop Windows              | 16.2 | 7.1   | 270.9    | 7.5         |
 | Macbook Pro 15 2019          | 13.6 | 22.7  | 209.1    | 7.9         |
 
 # FAQ
