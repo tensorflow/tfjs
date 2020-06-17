@@ -33,6 +33,7 @@ import './Cos';
 import './CropAndResize';
 import './DepthwiseConv2dNative';
 import './Div';
+import './Equal';
 import './Exp';
 import './Fill';
 import './FloorDiv';

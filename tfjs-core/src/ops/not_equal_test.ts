@@ -158,7 +158,7 @@ describeWithFlags('notEqual', ALL_ENVS, () => {
     expect(res.shape).toEqual([2, 3]);
     expectArraysEqual(await res.data(), [1, 0, 1, 0, 1, 1]);
   });
-  it('2D and 2D broadcast each with 1 dim', async () => {
+  it('broadcasting Tensor2D shapes each with 1 dim', async () => {
     const a = tf.tensor2d([1, 2, 5], [1, 3]);
     const b = tf.tensor2d([5, 1], [2, 1]);
     const res = tf.notEqual(a, b);

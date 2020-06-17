@@ -194,6 +194,7 @@ tfjs_cc_library(
         ":CropAndResize",
         ":DepthwiseConv2dNative",
         ":Div",
+        ":Equal",
         ":Exp",
         ":FloorDiv",
         ":FusedBatchNorm",
@@ -393,6 +394,15 @@ tfjs_cc_library(
     srcs = ["kernels/Div.cc"],
     deps = [
         ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Equal",
+    srcs = ["kernels/Equal.cc"],
+    deps = [
         ":binary",
         ":util",
     ],
