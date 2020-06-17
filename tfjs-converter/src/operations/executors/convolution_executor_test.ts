@@ -574,7 +574,6 @@ describe('convolution', () => {
       node.inputParams['filter'] = createTensorAttr(1);
       node.attrParams['strides'] = createNumericArrayAttr([1, 1, 1, 1]);
       node.attrParams['pad'] = createStrAttr('same');
-      node.attrParams['dataFormat'] = createStrAttr('NHWC');
       node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
 
       const input1 = [tfc.scalar(1.0)];
