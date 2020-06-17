@@ -18,7 +18,7 @@
 import {NonMaxSuppressionV5, NonMaxSuppressionV5Attrs, NonMaxSuppressionV5Inputs} from '@tensorflow/tfjs-core';
 import {KernelConfig, TypedArray} from '@tensorflow/tfjs-core';
 import {kernel_impls} from '@tensorflow/tfjs-core';
-const nonMaxSuppressionV5 = kernel_impls.nonMaxSuppressionV5;
+const nonMaxSuppressionV5Impl = kernel_impls.nonMaxSuppressionV5Impl;
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 
@@ -42,7 +42,7 @@ export const nonMaxSuppressionV5Config: KernelConfig = {
     const scoreThresholdVal = scoreThreshold;
     const softNmsSigmaVal = softNmsSigma;
 
-    const {selectedIndices, selectedScores} = nonMaxSuppressionV5(
+    const {selectedIndices, selectedScores} = nonMaxSuppressionV5Impl(
         boxesVals, scoresVals, maxOutputSizeVal, iouThresholdVal,
         scoreThresholdVal, softNmsSigmaVal);
 

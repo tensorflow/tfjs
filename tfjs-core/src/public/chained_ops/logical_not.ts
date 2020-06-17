@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,9 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
+import {logicalNot} from '../../ops/logical_not';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
 
-export {nonMaxSuppressionV3Impl, nonMaxSuppressionV5Impl} from './non_max_suppression_impl';
-export {split} from './split_shared';
-export {tile} from './tile_impl';
-export {topkImpl} from './topk_impl';
-export {whereImpl} from './where_impl';
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    logicalNot<T extends Tensor>(): T;
+  }
+}
+
+Tensor.prototype.logicalNot = function<T extends Tensor>(): T {
+  this.throwIfDisposed();
+  return logicalNot(this) as T;
+};

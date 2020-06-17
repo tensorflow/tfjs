@@ -15,8 +15,19 @@
  * =============================================================================
  */
 
-export {nonMaxSuppressionV3Impl, nonMaxSuppressionV5Impl} from './non_max_suppression_impl';
-export {split} from './split_shared';
-export {tile} from './tile_impl';
-export {topkImpl} from './topk_impl';
-export {whereImpl} from './where_impl';
+import {where} from '../../ops/where';
+import {Tensor} from '../../tensor';
+import {Rank, TensorLike} from '../../types';
+
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    where<T extends Tensor>(condition: Tensor|TensorLike, x: Tensor|TensorLike):
+        T;
+  }
+}
+
+Tensor.prototype.where = function<T extends Tensor>(
+    condition: Tensor|TensorLike, x: Tensor|TensorLike): T {
+  this.throwIfDisposed();
+  return where(condition, this, x) as T;
+};

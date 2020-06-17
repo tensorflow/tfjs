@@ -15,8 +15,6 @@
  * =============================================================================
  */
 
-export {nonMaxSuppressionV3Impl, nonMaxSuppressionV5Impl} from './non_max_suppression_impl';
-export {split} from './split_shared';
-export {tile} from './tile_impl';
-export {topkImpl} from './topk_impl';
-export {whereImpl} from './where_impl';
+import {registerBinaryKernel} from './binary_kernel';
+const supportsFullBroadcast = false;
+registerBinaryKernel('Equal', supportsFullBroadcast, 'bool');
