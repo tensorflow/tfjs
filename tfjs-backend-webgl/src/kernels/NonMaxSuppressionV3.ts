@@ -39,7 +39,7 @@ export const nonMaxSuppressionV3Config: KernelConfig = {
     const iouThresholdVal = iouThreshold;
     const scoreThresholdVal = scoreThreshold;
 
-    return kernel_impls.nonMaxSuppressionV3(
+    return kernel_impls.nonMaxSuppressionV3Impl(
         boxesVals, scoresVals, maxOutputSizeVal, iouThresholdVal,
         scoreThresholdVal);
   }
