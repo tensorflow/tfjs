@@ -17,13 +17,16 @@
 
 import {ENGINE} from '../engine';
 import {Tensor1D, Tensor2D} from '../tensor';
-
 import {assert} from '../util';
+
 import {squeeze, stack} from './array_ops';
+import {div} from './div';
+import {mul} from './mul';
 import {norm} from './norm';
 import {op} from './operation';
 import {sum} from './reduction_ops';
 import {split} from './split';
+import {sub} from './sub';
 
 /**
  * Gram-Schmidt orthogonalization.
@@ -88,11 +91,11 @@ function gramSchmidt_(xs: Tensor1D[]|Tensor2D): Tensor1D[]|Tensor2D {
       let x = xs1d[i];
       if (i > 0) {
         for (let j = 0; j < i; ++j) {
-          const proj = sum(ys[j].mul(x)).mul(ys[j]);
-          x = x.sub(proj);
+          const proj = mul(sum(mul(ys[j], x)), ys[j]);
+          x = sub(x, proj);
         }
       }
-      return x.div(norm(x, 'euclidean'));
+      return div(x, norm(x, 'euclidean'));
     }));
   }
 

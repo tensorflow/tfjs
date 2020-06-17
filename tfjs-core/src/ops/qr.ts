@@ -17,10 +17,24 @@
 import {ENGINE} from '../engine';
 import {dispose} from '../globals';
 import {Tensor, Tensor2D} from '../tensor';
-import {stack, unstack} from './array_ops';
+import {assert} from '../util';
+
+import {reshape, stack, unstack} from './array_ops';
+import {clone} from './clone';
+import {concat} from './concat';
+import {div} from './div';
 import {eye} from './eye';
+import {greater} from './greater';
+import {where} from './logical_ops';
+import {matMul} from './mat_mul';
+import {mul} from './mul';
+import {norm} from './norm';
 import {op} from './operation';
+import {slice} from './slice';
+import {sub} from './sub';
 import {tensor2d} from './tensor_ops';
+import {transpose} from './transpose';
+import {neg} from './unary_ops';
 
 /**
  * Compute QR decomposition of m-by-n matrix using Householder transformation.
@@ -67,11 +81,12 @@ import {tensor2d} from './tensor_ops';
  *       namespace:'linalg'}
  */
 function qr_(x: Tensor, fullMatrices = false): [Tensor, Tensor] {
-  if (x.rank < 2) {
-    throw new Error(
-        `qr() requires input tensor to have a rank >= 2, but got rank ${
-            x.rank}`);
-  } else if (x.rank === 2) {
+  assert(
+      x.rank >= 2,
+      () => `qr() requires input tensor to have a rank >= 2, but got rank ${
+          x.rank}`);
+
+  if (x.rank === 2) {
     return qr2d(x as Tensor2D, fullMatrices);
   } else {
     // Rank > 2.
@@ -81,10 +96,12 @@ function qr_(x: Tensor, fullMatrices = false): [Tensor, Tensor] {
     const outerDimsProd = x.shape.slice(0, x.shape.length - 2)
                               .reduce((value, prev) => value * prev);
     const x2ds = unstack(
-        x.reshape([
-          outerDimsProd, x.shape[x.shape.length - 2],
-          x.shape[x.shape.length - 1]
-        ]),
+        reshape(
+            x,
+            [
+              outerDimsProd, x.shape[x.shape.length - 2],
+              x.shape[x.shape.length - 1]
+            ]),
         0);
     const q2ds: Tensor2D[] = [];
     const r2ds: Tensor2D[] = [];
@@ -93,27 +110,27 @@ function qr_(x: Tensor, fullMatrices = false): [Tensor, Tensor] {
       q2ds.push(q2d);
       r2ds.push(r2d);
     });
-    const q = stack(q2ds, 0).reshape(x.shape);
-    const r = stack(r2ds, 0).reshape(x.shape);
+    const q = reshape(stack(q2ds, 0), x.shape);
+    const r = reshape(stack(r2ds, 0), x.shape);
     return [q, r];
   }
 }
 
 function qr2d(x: Tensor2D, fullMatrices = false): [Tensor2D, Tensor2D] {
   return ENGINE.tidy(() => {
-    if (x.shape.length !== 2) {
-      throw new Error(
-          `qr2d() requires a 2D Tensor, but got a ${x.shape.length}D Tensor.`);
-    }
+    assert(
+        x.shape.length === 2,
+        () => `qr2d() requires a 2D Tensor, but got a ${
+            x.shape.length}D Tensor.`);
 
     const m = x.shape[0];
     const n = x.shape[1];
 
-    let q = eye(m);     // Orthogonal transform so far.
-    let r = x.clone();  // Transformed matrix so far.
+    let q = eye(m);    // Orthogonal transform so far.
+    let r = clone(x);  // Transformed matrix so far.
 
     const one2D = tensor2d([[1]], [1, 1]);
-    let w: Tensor2D = one2D.clone();
+    let w: Tensor2D = clone(one2D);
 
     const iters = m >= n ? n : m;
     for (let j = 0; j < iters; ++j) {
@@ -124,44 +141,47 @@ function qr2d(x: Tensor2D, fullMatrices = false): [Tensor2D, Tensor2D] {
       const qTemp = q;
       [w, r, q] = ENGINE.tidy((): [Tensor2D, Tensor2D, Tensor2D] => {
         // Find H = I - tau * w * w', to put zeros below R(j, j).
-        const rjEnd1 = r.slice([j, j], [m - j, 1]);
-        const normX = rjEnd1.norm();
-        const rjj = r.slice([j, j], [1, 1]);
+        const rjEnd1 = slice(r, [j, j], [m - j, 1]);
+        const normX = norm(rjEnd1);
+        const rjj = slice(r, [j, j], [1, 1]);
 
         // The sign() function returns 0 on 0, which causes division by zero.
-        const s = tensor2d([[-1]]).where(rjj.greater(0), tensor2d([[1]]));
+        const s = where(greater(rjj, 0), tensor2d([[-1]]), tensor2d([[1]]));
 
-        const u1 = rjj.sub(s.mul(normX));
-        const wPre = rjEnd1.div(u1);
+        const u1 = sub(rjj, mul(s, normX));
+        const wPre = div(rjEnd1, u1);
         if (wPre.shape[0] === 1) {
-          w = one2D.clone();
+          w = clone(one2D);
         } else {
-          w = one2D.concat(
-              wPre.slice([1, 0], [wPre.shape[0] - 1, wPre.shape[1]]) as
-                  Tensor2D,
+          w = concat(
+              [
+                one2D,
+                slice(wPre, [1, 0], [wPre.shape[0] - 1, wPre.shape[1]]) as
+                    Tensor2D
+              ],
               0);
         }
-        const tau = s.matMul(u1).div(normX).neg() as Tensor2D;
+        const tau = neg(div(matMul(s, u1), normX)) as Tensor2D;
 
         // -- R := HR, Q := QH.
-        const rjEndAll = r.slice([j, 0], [m - j, n]);
-        const tauTimesW: Tensor2D = tau.mul(w);
-        const wT: Tensor2D = w.transpose();
+        const rjEndAll = slice(r, [j, 0], [m - j, n]);
+        const tauTimesW: Tensor2D = mul(tau, w);
+        const wT: Tensor2D = transpose(w);
         if (j === 0) {
-          r = rjEndAll.sub(tauTimesW.matMul(wT.matMul(rjEndAll)));
+          r = sub(rjEndAll, matMul(tauTimesW, matMul(wT, rjEndAll)));
         } else {
           const rTimesTau: Tensor2D =
-              rjEndAll.sub(tauTimesW.matMul(wT.matMul(rjEndAll)));
-          r = r.slice([0, 0], [j, n]).concat(rTimesTau, 0);
+              sub(rjEndAll, matMul(tauTimesW, matMul(wT, rjEndAll)));
+          r = concat([slice(r, [0, 0], [j, n]), rTimesTau], 0);
         }
-        const tawTimesWT: Tensor2D = tauTimesW.transpose();
-        const qAllJEnd = q.slice([0, j], [m, q.shape[1] - j]);
+        const tawTimesWT: Tensor2D = transpose(tauTimesW);
+        const qAllJEnd = slice(q, [0, j], [m, q.shape[1] - j]);
         if (j === 0) {
-          q = qAllJEnd.sub(qAllJEnd.matMul(w).matMul(tawTimesWT));
+          q = sub(qAllJEnd, matMul(matMul(qAllJEnd, w), tawTimesWT));
         } else {
           const qTimesTau: Tensor2D =
-              qAllJEnd.sub(qAllJEnd.matMul(w).matMul(tawTimesWT));
-          q = q.slice([0, 0], [m, j]).concat(qTimesTau, 1);
+              sub(qAllJEnd, matMul(matMul(qAllJEnd, w), tawTimesWT));
+          q = concat([slice(q, [0, 0], [m, j]), qTimesTau], 1);
         }
         return [w, r, q];
       });
@@ -169,8 +189,8 @@ function qr2d(x: Tensor2D, fullMatrices = false): [Tensor2D, Tensor2D] {
     }
 
     if (!fullMatrices && m > n) {
-      q = q.slice([0, 0], [m, n]);
-      r = r.slice([0, 0], [n, n]);
+      q = slice(q, [0, 0], [m, n]);
+      r = slice(r, [0, 0], [n, n]);
     }
 
     return [q, r];

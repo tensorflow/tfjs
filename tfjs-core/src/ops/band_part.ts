@@ -18,8 +18,9 @@
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
+import {assert} from '../util';
 
-import {stack, unstack} from './array_ops';
+import {reshape, stack, unstack} from './array_ops';
 import {greaterEqual} from './greater_equal';
 import {lessEqual} from './less_equal';
 import {logicalAnd, where} from './logical_ops';
@@ -68,22 +69,21 @@ import {range, scalar, zeros} from './tensor_ops';
  */
 function bandPart_<T extends Tensor>(
     a: T|TensorLike, numLower: number, numUpper: number): T {
-  if (numLower % 1 !== 0) {
-    throw new Error(
-        `bandPart(): numLower must be an integer, got ${numLower}.`);
-  }
-  if (numUpper % 1 !== 0) {
-    throw new Error(
-        `bandPart(): numUpper must be an integer, got ${numUpper}.`);
-  }
+  assert(
+      numLower % 1 === 0,
+      () => `bandPart(): numLower must be an integer, got ${numLower}.`);
+  assert(
+      numUpper % 1 === 0,
+      () => `bandPart(): numUpper must be an integer, got ${numUpper}.`);
 
   const $a = convertToTensor(a, 'a', 'bandPart');
 
-  if ($a.rank < 2) {
-    throw new Error(`bandPart(): Rank must be at least 2, got ${$a.rank}.`);
-  }
+  assert(
+      $a.rank >= 2,
+      () => `bandPart(): Rank must be at least 2, got ${$a.rank}.`);
 
-  const shape = $a.shape, [M, N] = $a.shape.slice(-2);
+  const shape = $a.shape;
+  const [M, N] = $a.shape.slice(-2);
 
   if (!(numLower <= M)) {
     throw new Error(
@@ -103,8 +103,9 @@ function bandPart_<T extends Tensor>(
     numUpper = N;
   }
 
-  const i = range(0, M, 1, 'int32').reshape([-1, 1]),
-        j = range(0, N, 1, 'int32'), ij = sub(i, j);
+  const i = reshape(range(0, M, 1, 'int32'), [-1, 1]);
+  const j = range(0, N, 1, 'int32');
+  const ij = sub(i, j);
 
   const inBand = logicalAnd(
       lessEqual(ij, scalar(+numLower, 'int32')),
@@ -112,9 +113,10 @@ function bandPart_<T extends Tensor>(
 
   const zero = zeros([M, N], $a.dtype);
 
-  return stack(unstack($a.reshape([-1, M, N]))
-                   .map(mat => where(inBand, mat, zero)))
-             .reshape(shape) as T;
+  return reshape(
+             stack(unstack(reshape($a, [-1, M, N]))
+                       .map(mat => where(inBand, mat, zero))),
+             shape) as T;
 }
 
 export const bandPart = op({bandPart_});
