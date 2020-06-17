@@ -130,7 +130,7 @@ limitations under the License.
       backend: 'wasm',
       kernelTiming: 'aggregate',
       modelType: '',
-      modelURL: 'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2',
+      modelUrl: 'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2',
     };
 
     const modalDiv = document.getElementById('modal-msg');
@@ -170,8 +170,8 @@ limitations under the License.
 
     function showBenchmarkingParameters() {
       appendRow(parameterTable, 'benchmark', state.benchmark);
-      if(state.benchmark === "custom model") {
-        appendRow(parameterTable, 'modelURL', state.modelURL);
+      if (state.benchmark === "custom model") {
+        appendRow(parameterTable, 'modelUrl', state.modelUrl);
       }
       appendRow(parameterTable, 'numRuns', state.numRuns);
       appendRow(parameterTable, 'backend', state.backend);
@@ -232,7 +232,7 @@ limitations under the License.
     }
 
     function showInputs() {
-      if("inputs" in model) {
+      if ("inputs" in model) {
         const modelInputs = document.querySelector('#modelInputs');
         modelInputs.style.display="";
         for(const modelInputs of model.inputs) {
@@ -252,28 +252,26 @@ limitations under the License.
       await showMsg('Loading the model');
 
       if ("url" in benchmark || state.benchmark === "custom model") {
-        let start = performance.now();
-
-        const modelURL = state.benchmark === "custom model" ? state.modelURL : benchmark.url;
-        const fromTFHubPrefix =  /^https:\/\/tfhub.dev\/.+$/;
-        const fromRemoteServers =  /^https?:\/\/.+$/;
+        const modelUrl = state.benchmark === "custom model" ? state.modelUrl : benchmark.url;
+        const TfHubUrl =  /^https:\/\/tfhub.dev\/.+$/;
+        const remoteServerUrl =  /^https?:\/\/.+$/;
         let loadingParameters = {};
-        if(fromRemoteServers.test(modelURL)) {
+        if (remoteServerUrl.test(modelUrl)) {
           loadingParameters.requestInit = {cache: 'no-store' };
-          loadingParameters.fromTFHub = fromTFHubPrefix.test(modelURL);
+          loadingParameters.fromTFHub = TfHubUrl.test(modelUrl);
         }
 
         state.modelType = null;
 
-        start = performance.now();
-        model = await tf.loadGraphModel(modelURL, loadingParameters).then(model => {
+        let start = performance.now();
+        model = await tf.loadGraphModel(modelUrl, loadingParameters).then(model => {
           state.modelType = 'GraphModel';
           return model;
         }).catch(e => console.log("loading GraphModel failed."));
 
-        if(!state.modelType) {
+        if (!state.modelType) {
           start = performance.now();
-          model = await tf.loadLayersModel(modelURL, loadingParameters).then(model => {
+          model = await tf.loadLayersModel(modelUrl, loadingParameters).then(model => {
             state.modelType = 'LayersModel';
             return model;
           });
@@ -282,7 +280,7 @@ limitations under the License.
         const elapsed = performance.now() - start;
         appendRow(timeTable, 'Model load', printTime(elapsed));
         appendRow(parameterTable, 'modelType', state.modelType);
-      } else if("load" in benchmark) {
+      } else if ("load" in benchmark) {
         model = await benchmark.load();
       } else {
           await Promise.reject("Didn't find loading methods.");
@@ -454,17 +452,17 @@ limitations under the License.
       console.log = oldLog;
     }
 
-    async function checkModelURL() {
-      if(state.benchmark === 'custom model') {
+    async function checkModelUrl() {
+      if (state.benchmark === 'custom model') {
         const regexp =  /^(https?|localstorage|indexeddb):\/\/.+$/;
-        if(!regexp.test(state.modelURL)) {
+        if (!regexp.test(state.modelUrl)) {
           await Promise.reject("Please use a valid URL to the custom model, such as 'https://'");
         }
       }
     }
 
     async function runBenchmark() {
-      await checkModelURL();
+      await checkModelUrl();
       await setupTable();
       await loadModelAndRecordTime();
       await warmUpAndRecordTime();
@@ -490,13 +488,13 @@ limitations under the License.
       let modelFolder = gui.addFolder('Model');
       let modelController = null;
       modelFolder.add(state, 'benchmark', Object.keys(benchmarks)).onChange(model => {
-        if(model === "custom model") {
-          if(modelController === null) {
-            modelController = modelFolder.add(state, 'modelURL').onChange(value => {
+        if (model === "custom model") {
+          if (modelController === null) {
+            modelController = modelFolder.add(state, 'modelUrl').onChange(value => {
               showMsg(null);
             });
           }
-        } else if(modelController != null) {
+        } else if (modelController != null) {
           modelFolder.remove(modelController);
           modelController = null;
         }
