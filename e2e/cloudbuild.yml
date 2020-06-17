@@ -1,11 +1,19 @@
 steps:
 
+# Setup Verdaccio.
+- name: 'node:10'
+  dir: 'e2e'
+  entrypoint: 'bash'
+  id: 'verdaccio'
+  args: ['./scripts/start-verdaccio.sh']
+
 # Install packages.
 - name: 'node:10'
   dir: 'e2e'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
+  waitFor: ['verdaccio']
 
 # Build deps.
 - name: 'node:10'

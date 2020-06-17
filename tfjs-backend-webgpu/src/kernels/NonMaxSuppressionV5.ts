@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {backend_util, KernelConfig, NonMaxSuppressionV5, NonMaxSuppressionV5Attrs, NonMaxSuppressionV5Inputs} from '@tensorflow/tfjs-core';
+import {kernel_impls, KernelConfig, NonMaxSuppressionV5, NonMaxSuppressionV5Attrs, NonMaxSuppressionV5Inputs} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 export type TypedArray = Float32Array|Int32Array|Uint8Array;
@@ -41,9 +41,10 @@ export const nonMaxSuppressionV5Config: KernelConfig = {
     const scoreThresholdVal = scoreThreshold;
     const softNmsSigmaVal = softNmsSigma;
 
-    const {selectedIndices, selectedScores} = backend_util.nonMaxSuppressionV5(
-        boxesVals, scoresVals, maxOutputSizeVal, iouThresholdVal,
-        scoreThresholdVal, softNmsSigmaVal);
+    const {selectedIndices, selectedScores} =
+        kernel_impls.nonMaxSuppressionV5Impl(
+            boxesVals, scoresVals, maxOutputSizeVal, iouThresholdVal,
+            scoreThresholdVal, softNmsSigmaVal);
 
     return [selectedIndices, selectedScores];
   }
