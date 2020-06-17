@@ -25,12 +25,7 @@ import numpy as np
 import tensorflow as tf
 import tensorflowjs as tfjs
 
-if os.environ['TFJS2KERAS_TEST_USING_TF_KERAS'] == '1':
-  print('Using tensorflow.keras.')
-  from tensorflow import keras
-else:
-  print('Using keras-team/keras.')
-  import keras
+from tensorflow import keras
 
 curr_dir = os.path.dirname(os.path.realpath(__file__))
 _tmp_dir = os.path.join(curr_dir, 'create_save_predict_data')
