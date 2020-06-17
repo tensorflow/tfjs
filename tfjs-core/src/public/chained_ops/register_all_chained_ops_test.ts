@@ -50,6 +50,10 @@ const CHAINED_OPS = [
   'less',
   'lessEqual',
   'localResponseNormalization',
+  'logicalAnd',
+  'logicalNot',
+  'logicalOr',
+  'logicalXor',
   'matMul',
   'max',
   'maximum',
@@ -74,7 +78,8 @@ const CHAINED_OPS = [
   'square',
   'sub',
   'tile',
-  'transpose'
+  'transpose',
+  'where'
 ];
 
 describeWithFlags('chained ops', ALL_ENVS, () => {

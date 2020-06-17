@@ -242,6 +242,15 @@ export type LessInputs = BinaryInputs;
 export const LessEqual = 'LessEqual';
 export type LessEqualInputs = BinaryInputs;
 
+export const LogicalAnd = 'LogicalAnd';
+export type LogicalAndInputs = BinaryInputs;
+
+export const LogicalNot = 'LogicalNot';
+export type LogicalNotInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const LogicalOr = 'LogicalOr';
+export type LogicalOrInputs = BinaryInputs;
+
 export const LRN = 'LRN';
 export type LRNInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface LRNAttrs {

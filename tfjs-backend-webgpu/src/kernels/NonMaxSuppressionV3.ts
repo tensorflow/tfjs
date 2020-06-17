@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, KernelConfig, NonMaxSuppressionV3, NonMaxSuppressionV3Attrs, NonMaxSuppressionV3Inputs, TypedArray} from '@tensorflow/tfjs-core';
+import {kernel_impls, KernelConfig, NonMaxSuppressionV3, NonMaxSuppressionV3Attrs, NonMaxSuppressionV3Inputs, TypedArray} from '@tensorflow/tfjs-core';
 import {WebGPUBackend} from '../backend_webgpu';
 
 export const nonMaxSuppressionV3Config: KernelConfig = {
@@ -34,7 +34,7 @@ export const nonMaxSuppressionV3Config: KernelConfig = {
     const boxesVals = gpuBackend.readSync(boxes.dataId) as TypedArray;
     const scoresVals = gpuBackend.readSync(scores.dataId) as TypedArray;
 
-    return backend_util.nonMaxSuppressionV3(
+    return kernel_impls.nonMaxSuppressionV3Impl(
         boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   }
 };
