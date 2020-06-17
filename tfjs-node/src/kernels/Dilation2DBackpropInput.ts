@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, Dilation2DAttrs, Dilation2DBackpropInput, Dilation2DBackpropInputInputs, KernelConfig, registerKernel} from '@tensorflow/tfjs';
+import {backend_util, Dilation2DAttrs, Dilation2DBackpropInput, Dilation2DBackpropInputInputs, KernelConfig} from '@tensorflow/tfjs';
 
 import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
@@ -51,5 +51,3 @@ export const dilation2dBackpropInputConfig: KernelConfig = {
         Dilation2DBackpropInput, opAttrs, [x, filter, dy]);
   }
 };
-
-registerKernel(dilation2dBackpropInputConfig);
