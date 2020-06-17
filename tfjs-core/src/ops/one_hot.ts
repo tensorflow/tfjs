@@ -18,7 +18,7 @@
 import {ENGINE, ForwardFunc} from '../engine';
 import {OneHot, OneHotAttrs, OneHotInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor1D} from '../tensor';
+import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -50,22 +50,21 @@ function oneHot_(
   if (depth < 2) {
     throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
   }
-  let $indices = convertToTensor(indices, 'indices', 'oneHot', 'int32');
+  const $indices = convertToTensor(indices, 'indices', 'oneHot', 'int32');
   const outShape = [...$indices.shape, depth];
-  $indices = $indices.flatten();
 
   const forward: ForwardFunc<Tensor> = (backend, save) => {
     save([$indices]);
-    return backend.oneHot($indices as Tensor1D, depth, onValue, offValue);
+    return reshape(
+        backend.oneHot($indices.flatten(), depth, onValue, offValue), outShape);
   };
 
   const inputs: OneHotInputs = {indices: $indices};
   const attrs: OneHotAttrs = {depth, onValue, offValue};
 
-  const res = ENGINE.runKernelFunc(
+  return ENGINE.runKernelFunc(
       forward, inputs as unknown as NamedTensorMap, null /* grad */, OneHot,
       attrs as unknown as NamedAttrMap);
-  return reshape(res, outShape);
 }
 
 export const oneHot = op({oneHot_});

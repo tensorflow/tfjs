@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelFunc, OneHotAttrs, OneHotInputs, registerKernel} from '@tensorflow/tfjs-core';
+import {KernelFunc, OneHot, OneHotAttrs, OneHotInputs, registerKernel} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -51,7 +51,7 @@ function oneHot(
 }
 
 registerKernel({
-  kernelName: 'OneHot',
+  kernelName: OneHot,
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: oneHot as {} as KernelFunc,
