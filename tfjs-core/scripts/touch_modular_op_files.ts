@@ -63,6 +63,11 @@ async function main() {
   let command = `touch ${filePath}`;
   execSync(command);
 
+  // create a test file
+  filePath = `./src/ops/${args.op}_test.ts`;
+  command = `touch ${filePath}`;
+  execSync(command);
+
   if (args.chained) {
     filePath = `./src/public/chained_ops/${args.op}.ts`;
     command = `touch ${filePath}`;
