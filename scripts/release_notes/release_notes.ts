@@ -35,7 +35,6 @@
  *   yarn release-notes
  */
 
-// import * as mkdirp from 'mkdirp';
 import * as argparse from 'argparse';
 import * as fs from 'fs';
 import * as util from './util';
