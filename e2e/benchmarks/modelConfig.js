@@ -76,7 +76,7 @@ const benchmarks = {
     load: async () => {
       const url =
           'https://storage.googleapis.com/learnjs-data/mobilenet_v2_100_fused/model.json';
-      return tf.loadGraphModel(url);
+      return tf.loadGraphModel(url, {requestInit: {cache: 'no-store' },});
     },
     predictFunc: () => {
       const input = tf.randomNormal([1, 224, 224, 3]);
@@ -87,7 +87,7 @@ const benchmarks = {
     load: async () => {
       const url =
           'https://storage.googleapis.com/learnjs-data/mesh_128_shift30_fixed_batch/model.json';
-      return tf.loadGraphModel(url);
+      return tf.loadGraphModel(url, {requestInit: {cache: 'no-store' },});
     },
     predictFunc: () => {
       const zeros = tf.zeros([1, 128, 128, 3]);
@@ -100,7 +100,7 @@ const benchmarks = {
     load: async () => {
       const url =
           'https://storage.googleapis.com/learnjs-data/face_detector_front/model.json';
-      return tf.loadGraphModel(url);
+      return tf.loadGraphModel(url, {requestInit: {cache: 'no-store' },});
     },
     predictFunc: () => {
       const zeros = tf.zeros([1, 128, 128, 3]);
@@ -183,14 +183,6 @@ const benchmarks = {
     }
   },
   'custom model': {
-    load: async () => {
-      const regexp =  /^https:\/\/tfhub.dev\/.+$/;
-      parameters = {}
-      if(regexp.test(state.modelURL)) {
-        parameters.fromTFHub = true;
-      }
-      return tf.loadGraphModel(state.modelURL, parameters);
-    },
     predictFunc: () => {
       return async model => {
         const inferenceInputs = [];
@@ -206,7 +198,13 @@ const benchmarks = {
           const inputTensor = tf.randomNormal(inputShape);
           inferenceInputs.push(inputTensor)
         }
-        return model.predict(inferenceInputs);
+
+        let res = await model.predict(inferenceInputs);
+
+        for(let tensor of inferenceInputs) {
+          tensor.dispose();
+        }
+        return res;
       }
     }
   },

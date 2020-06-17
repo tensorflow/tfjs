@@ -42,7 +42,7 @@ limitations under the License.
         <tbody>
         </tbody>
       </table>
-      <table class="table" id="modelInputs">
+      <table class="table" id="modelInputs" style="display: none;">
         <caption>Inputs</caption>
         <thead>
           <tr>
@@ -106,9 +106,10 @@ limitations under the License.
       numRuns: 3,
       benchmark: 'mobilenet_v2',
       run: (v) => {
-        runBenchmark().catch(async e => {
-          await showMsg(e);
-        });
+        runBenchmark()
+        // .catch(async e => {
+        //   await showMsg(e);
+        // });
       },
       testCorrectness: async () => {
         await loadModelAndRecordTime();
@@ -128,7 +129,8 @@ limitations under the License.
       },
       backend: 'webgl',
       kernelTiming: 'aggregate',
-      modelURL: 'https://tfhub.dev/google/tfjs-model/imagenet/inception_resnet_v2/classification/1/default/1',
+      modelType: 'GraphModel',
+      modelURL: 'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2',
     };
 
     const modalDiv = document.getElementById('modal-msg');
@@ -137,7 +139,6 @@ limitations under the License.
     const kernelsTableHead = document.getElementById('kernels-thead');
     const kernelTable = document.querySelector('#kernels tbody');
     const parameterTable = document.querySelector('#parameters tbody');
-    const modelInputsTable = document.querySelector('#modelInputs tbody');
 
     let model, predict, chartWidth;
 
@@ -229,12 +230,20 @@ limitations under the License.
     }
 
     function showInputs() {
-      for(const [index, modelInputs] of model.inputs.entries()) {
-        const inputShape = modelInputs.shape;
-        inputShape[0] = 1;
-        appendRow(modelInputsTable, 'name', modelInputs.name);
-        appendRow(modelInputsTable, 'shape', inputShape);
-        appendRow(modelInputsTable, 'data type', modelInputs.dtype);
+      if("inputs" in model) {
+        const modelInputs = document.querySelector('#modelInputs');
+        const modelInputsTable = document.querySelector('#modelInputs tbody');
+        modelInputsTable.innerHTML = '';
+        modelInputs.style.display="";
+        for(const modelInputs of model.inputs) {
+          const inputShape = modelInputs.shape;
+          inputShape[0] = 1;
+          appendRow(modelInputsTable, 'name', modelInputs.name);
+          appendRow(modelInputsTable, 'shape', inputShape);
+          appendRow(modelInputsTable, 'data type', modelInputs.dtype);
+        }
+      } else {
+        modelInputs.style.display="none";
       }
     }
 
@@ -242,25 +251,39 @@ limitations under the License.
       const benchmark = benchmarks[state.benchmark];
       await showMsg('Loading the model');
 
-      const start = performance.now();
-      model = await benchmark.load();
-      benchmark.model = model;
-      /*
-        * Benchmark mutiple times and load once
-        * For custom models, we need to check whether URL was changed before reuse
-        *
+      let start;
+      if(state.benchmark === "custom model") {
+        const regexp =  /^https:\/\/tfhub.dev\/.+$/;
+        let parameters = {
+          fromTFHub: regexp.test(state.modelURL),
+          requestInit: {cache: 'no-store' },
+        };
 
-        if (benchmark.model == null) {
-          model = await benchmark.load();
-          benchmark.model = model;
-        } else {
-          model = benchmark.model;
+        state.modelType = null;
+
+        start = performance.now();
+        model = await tf.loadGraphModel(state.modelURL, parameters).then(model => {
+          state.modelType = 'GraphModel';
+          return model;
+        }).catch(e => console.log("loading GraphModel failed."));
+
+        if(!state.modelType) {
+          start = performance.now();
+          model = await tf.loadLayersModel(state.modelURL, parameters).then(model => {
+            state.modelType = 'LayersModel';
+            return model;
+          });
         }
-      */
+      } else {
+        start = performance.now();
+        model = await benchmark.load();
+      }
+
       predict = benchmark.predictFunc();
       const elapsed = performance.now() - start;
       await showMsg(null);
       appendRow(timeTable, 'Model load', printTime(elapsed));
+      appendRow(parameterTable, 'modelType', state.modelType);
       showInputs();
     }
 
@@ -458,8 +481,8 @@ limitations under the License.
 
       await tf.setBackend(state.backend);
 
-      var modelFolder = gui.addFolder('Model');
-      var modelController = null;
+      let modelFolder = gui.addFolder('Model');
+      let modelController = null;
       modelFolder.add(state, 'benchmark', Object.keys(benchmarks)).onChange(model => {
         if(model === "custom model") {
           if(modelController === null) {
@@ -474,7 +497,7 @@ limitations under the License.
       });
       modelFolder.open();
 
-      var parameterFolder = gui.addFolder('Parameters');
+      let parameterFolder = gui.addFolder('Parameters');
       parameterFolder.add(state, 'numRuns');
       parameterFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu']).onChange(backend => {
         tf.setBackend(backend);
