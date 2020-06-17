@@ -125,7 +125,6 @@ export * from './in_top_k';
 export {op} from './operation';
 
 import * as losses from './loss_ops';
-import * as linalg from './linalg_ops';
 import * as spectral from './spectral_ops';
 import * as fused from './fused_ops';
 import * as signal from './signal_ops';
@@ -146,6 +145,16 @@ const image = {
   nonMaxSuppressionAsync,
   nonMaxSuppressionWithScore,
   nonMaxSuppressionWithScoreAsync
+};
+
+// linalg namespace
+import {bandPart} from './band_part';
+import {gramSchmidt} from './gram_schmidt';
+import {qr} from './qr';
+const linalg = {
+  bandPart,
+  gramSchmidt,
+  qr
 };
 
 // Second level exports.
