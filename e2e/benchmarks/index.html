@@ -103,13 +103,13 @@ limitations under the License.
     'use strict';
 
     const state = {
-      numRuns: 3,
+      numRuns: 50,
       benchmark: 'mobilenet_v2',
       run: (v) => {
         runBenchmark()
-        // .catch(async e => {
-        //   await showMsg(e);
-        // });
+        .catch(async e => {
+          await showMsg(e);
+        });
       },
       testCorrectness: async () => {
         await loadModelAndRecordTime();
@@ -127,9 +127,9 @@ limitations under the License.
         const match = tf.test_util.expectArraysClose(referenceData, predictionData);
         appendRow(timeTable, `Prediction matches CPU: `, match);
       },
-      backend: 'webgl',
+      backend: 'wasm',
       kernelTiming: 'aggregate',
-      modelType: 'GraphModel',
+      modelType: '',
       modelURL: 'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2',
     };
 
@@ -139,6 +139,7 @@ limitations under the License.
     const kernelsTableHead = document.getElementById('kernels-thead');
     const kernelTable = document.querySelector('#kernels tbody');
     const parameterTable = document.querySelector('#parameters tbody');
+    const modelInputsTable = document.querySelector('#modelInputs tbody');
 
     let model, predict, chartWidth;
 
@@ -178,10 +179,11 @@ limitations under the License.
     }
 
     async function setupTable() {
-      parameterTable.innerHTML = '';
       timeTable.innerHTML = '';
       kernelsTableHead.innerText = '';
       kernelTable.innerHTML = '';
+      parameterTable.innerHTML = '';
+      modelInputsTable.innerHTML = '';
       showBenchmarkingParameters();
       await tf.nextFrame();
       const rows = ['<b>Kernel</b>', '<b>Time(ms)</b>'];
@@ -232,8 +234,6 @@ limitations under the License.
     function showInputs() {
       if("inputs" in model) {
         const modelInputs = document.querySelector('#modelInputs');
-        const modelInputsTable = document.querySelector('#modelInputs tbody');
-        modelInputsTable.innerHTML = '';
         modelInputs.style.display="";
         for(const modelInputs of model.inputs) {
           const inputShape = modelInputs.shape;
@@ -251,39 +251,45 @@ limitations under the License.
       const benchmark = benchmarks[state.benchmark];
       await showMsg('Loading the model');
 
-      let start;
-      if(state.benchmark === "custom model") {
-        const regexp =  /^https:\/\/tfhub.dev\/.+$/;
-        let parameters = {
-          fromTFHub: regexp.test(state.modelURL),
-          requestInit: {cache: 'no-store' },
-        };
+      if ("url" in benchmark || state.benchmark === "custom model") {
+        let start = performance.now();
+
+        const modelURL = state.benchmark === "custom model" ? state.modelURL : benchmark.url;
+        const fromTFHubPrefix =  /^https:\/\/tfhub.dev\/.+$/;
+        const fromRemoteServers =  /^https?:\/\/.+$/;
+        let loadingParameters = {};
+        if(fromRemoteServers.test(modelURL)) {
+          loadingParameters.requestInit = {cache: 'no-store' };
+          loadingParameters.fromTFHub = fromTFHubPrefix.test(modelURL);
+        }
 
         state.modelType = null;
 
         start = performance.now();
-        model = await tf.loadGraphModel(state.modelURL, parameters).then(model => {
+        model = await tf.loadGraphModel(modelURL, loadingParameters).then(model => {
           state.modelType = 'GraphModel';
           return model;
         }).catch(e => console.log("loading GraphModel failed."));
 
         if(!state.modelType) {
           start = performance.now();
-          model = await tf.loadLayersModel(state.modelURL, parameters).then(model => {
+          model = await tf.loadLayersModel(modelURL, loadingParameters).then(model => {
             state.modelType = 'LayersModel';
             return model;
           });
         }
-      } else {
-        start = performance.now();
+
+        const elapsed = performance.now() - start;
+        appendRow(timeTable, 'Model load', printTime(elapsed));
+        appendRow(parameterTable, 'modelType', state.modelType);
+      } else if("load" in benchmark) {
         model = await benchmark.load();
+      } else {
+          await Promise.reject("Didn't find loading methods.");
       }
 
       predict = benchmark.predictFunc();
-      const elapsed = performance.now() - start;
       await showMsg(null);
-      appendRow(timeTable, 'Model load', printTime(elapsed));
-      appendRow(parameterTable, 'modelType', state.modelType);
       showInputs();
     }
 
