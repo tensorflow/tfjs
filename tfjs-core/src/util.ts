@@ -651,7 +651,7 @@ export function makeZerosTypedArray<D extends DataType>(
 export function makeZerosNestedTypedArray<D extends DataType>(
     shape: number[], dtype: D) {
   const size = shape.reduce((prev, curr) => prev * curr, 1);
-  if (dtype == null || dtype === 'float32' || dtype === 'complex64') {
+  if (dtype == null || dtype === 'float32') {
     return toNestedArray(shape, new Float32Array(size));
   } else if (dtype === 'int32') {
     return toNestedArray(shape, new Int32Array(size));
