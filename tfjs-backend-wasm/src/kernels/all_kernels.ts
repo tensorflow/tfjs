@@ -59,6 +59,7 @@ import './Neg';
 import './NonMaxSuppressionV3';
 import './NonMaxSuppressionV5';
 import './NotEqual';
+import './OneHot';
 import './OnesLike';
 import './PadV2';
 import './Pow';
