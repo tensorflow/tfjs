@@ -359,7 +359,6 @@ tfjs_cc_library(
     srcs = ["kernels/Conv2DBackpropInput.cc"],
     deps = [
         ":backend",
-        ":util",
     ],
 )
 
