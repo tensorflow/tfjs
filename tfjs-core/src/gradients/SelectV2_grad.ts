@@ -14,35 +14,26 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Selu} from '../kernel_names';
+
+import {SelectV2} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import {cast} from '../ops/array_ops';
-import {greater} from '../ops/greater';
+import {logicalNot} from '../ops/logical_not';
 import {mul} from '../ops/mul';
-import {SELU_SCALE, SELU_SCALEALPHA} from '../ops/selu_util';
-import {scalar} from '../ops/tensor_ops';
-import {exp} from '../ops/unary_ops';
-import {where} from '../ops/where';
+import {zerosLike} from '../ops/tensor_ops';
 import {Tensor} from '../tensor';
 
-export const seluGradConfig: GradConfig = {
-  kernelName: Selu,
-  inputsToSave: ['x'],
+export const selectV2PoolGradConfig: GradConfig = {
+  kernelName: SelectV2,
+  inputsToSave: ['condition'],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
-    const [x] = saved;
+    const [condition] = saved;
     return {
-      x: () => {
-        const mask = greater(x, scalar(0));
-
-        const scaleAlpha = scalar(SELU_SCALEALPHA);
-        const scale = scalar(SELU_SCALE);
-
-        const greaterThanZeroDer = mul(dy, scale);
-        const lessEqualZeroDer =
-            mul(mul(dy, scaleAlpha), exp(cast(x, 'float32')));
-
-        return where(mask, greaterThanZeroDer, lessEqualZeroDer);
-      }
+      // TODO(julianoks): Return null for condition gradient
+      // when backprop supports it.
+      condition: () => cast(zerosLike(condition), 'float32'),
+      t: () => mul(dy, cast(condition, dy.dtype)),
+      e: () => mul(dy, cast(logicalNot(condition), dy.dtype))
     };
   }
 };

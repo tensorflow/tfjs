@@ -1,5 +1,9 @@
 # Changelog
 
+## We are moving release notes to [GitHub releases feature](https://github.com/tensorflow/tfjs/releases)
+
+This file is now only for historical purposes. For an example see https://github.com/tensorflow/tfjs/releases/tag/tfjs-vis-v1.4.3
+
 ## [1.0.0] 2019-03-06
 Major version upgrade including a number of **breaking changes**.
 

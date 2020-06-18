@@ -194,6 +194,7 @@ tfjs_cc_library(
         ":CropAndResize",
         ":DepthwiseConv2dNative",
         ":Div",
+        ":Equal",
         ":Exp",
         ":FloorDiv",
         ":FusedBatchNorm",
@@ -215,6 +216,7 @@ tfjs_cc_library(
         ":NonMaxSuppressionV3",
         ":NonMaxSuppressionV5",
         ":NotEqual",
+        ":OneHot",
         ":PadV2",
         ":Pow",
         ":Prelu",
@@ -393,6 +395,15 @@ tfjs_cc_library(
     srcs = ["kernels/Div.cc"],
     deps = [
         ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Equal",
+    srcs = ["kernels/Equal.cc"],
+    deps = [
         ":binary",
         ":util",
     ],
@@ -640,6 +651,14 @@ tfjs_cc_library(
         ":backend",
         ":non_max_suppression_impl",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "OneHot",
+    srcs = ["kernels/OneHot.cc"],
+    deps = [
+        ":backend",
     ],
 )
 
