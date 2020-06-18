@@ -65,18 +65,10 @@ function dilation2d_<T extends Tensor3D|Tensor4D>(
   const $x = convertToTensor(x, 'x', 'dilation2d');
   const $filter = convertToTensor(filter, 'filter', 'dilation2d');
 
-  let x4D = $x as Tensor4D;
-  let reshapedTo4D = false;
-
-  if ($x.rank === 3) {
-    x4D = reshape($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
-    reshapedTo4D = true;
-  }
-
   util.assert(
-      x4D.rank === 4,
-      () => `Error in dilation2d: input must be rank 4, but got rank ` +
-          `${x4D.rank}.`);
+      $x.rank === 3 || $x.rank === 4,
+      () => `Error in dilation2d: input must be rank 3 or 4, but got rank ` +
+          `${$x.rank}.`);
   util.assert(
       $filter.rank === 3,
       () => `Error in dilation2d: filter must be rank 3, but got rank ` +
@@ -85,6 +77,14 @@ function dilation2d_<T extends Tensor3D|Tensor4D>(
       dataFormat === 'NHWC',
       () => `Error in dilation2d: Only NHWC is currently supported, ` +
           `but got dataFormat of ${dataFormat}`);
+
+  let x4D = $x as Tensor4D;
+  let reshapedTo4D = false;
+
+  if ($x.rank === 3) {
+    x4D = reshape($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
+    reshapedTo4D = true;
+  }
 
   const inputs: Dilation2DInputs = {x: x4D, filter: $filter};
   const attrs: Dilation2DAttrs = {strides, pad, dataFormat, dilations};
