@@ -18,6 +18,7 @@
 
 #include <cmath>
 #include <cstddef>
+#include <vector>
 #include "src/cc/backend.h"
 
 namespace tfjs {
