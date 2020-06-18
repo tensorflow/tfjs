@@ -25,8 +25,6 @@
 # Start in scripts/ even if run from root directory
 cd "$(dirname "$0")"
 
-set -e
-
 # Exit the script on any command with non 0 return code
 set -e
 
@@ -34,7 +32,7 @@ set -e
 set -x
 
 # Go to root
-cd ..
+cd ../../
 root_path=$PWD
 
 # Yarn in the top-level and in the directory,

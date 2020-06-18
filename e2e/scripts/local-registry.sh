@@ -39,7 +39,3 @@ function stopLocalRegistry {
   npm set registry "$original_npm_registry_url"
   yarn config set registry "$original_yarn_registry_url"
 }
-
-function publishToLocalRegistry {
-  ./scripts/publish-monorepo-ci.sh prerelease --yes --force-publish=* --no-git-tag-version --no-commit-hooks --no-push --exact --dist-tag=latest
-}
