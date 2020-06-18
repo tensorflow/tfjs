@@ -73,8 +73,8 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     }, 100);
 
     // Silences backend registration warnings.
-    // spyOn(console, 'warn');
-    // spyOn(console, 'log');
+    spyOn(console, 'warn');
+    spyOn(console, 'log');
   });
 
   afterEach(() => {
@@ -137,34 +137,5 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     // Setting the path too late.
     expect(() => setWasmPath('too/late'))
         .toThrowError(/The WASM backend was already initialized. Make sure/);
-  });
-
-  fit('gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0', async () => {
-    const inputDepth = 1;
-    const outputDepth = 1;
-    const inputShape: [number, number, number, number] = [2, 3, 3, inputDepth];
-    const filterSize = 2;
-    const strides = 1;
-    const pad = 0;
-
-    const filterShape: [number, number, number, number] =
-        [filterSize, filterSize, inputDepth, outputDepth];
-    const filter = tf.tensor4d([-1, 1, -2, 0.5], filterShape);
-
-    const x = tf.tensor4d(
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9], inputShape);
-    const dy = tf.tensor4d([3, 1, 2, 0, 3, 1, 2, 0], [2, 2, 2, 1]);
-
-    const grads = tf.grads(
-        (x: tf.Tensor4D) => tf.fused.conv2d({x, filter, strides, pad}));
-    const [dx] = grads([x], dy);
-
-    expect(dx.shape).toEqual(x.shape);
-    const dxData = await dx.data();
-    console.log(Array.from(dxData));
-    // expectArraysClose(
-    //     await dx.data(),
-    //     [-3, 2, 1, -8, 1.5, 0.5, -4, 1, 0, -3, 2, 1, -8, 1.5, 0.5, -4, 1,
-    //     0]);
   });
 });
