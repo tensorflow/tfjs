@@ -218,10 +218,8 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient'  // Split is not yet implemented
     ]
   },
-  {
-    include: 'transpose',
-    excludes: ['oneHot']  // oneHot not yet implemented.
-  },
+  {include: 'transpose'},
+  {include: 'oneHot'},
   {include: 'split'},
   {include: 'pad ', excludes: ['complex', 'zerosLike']},
   {include: 'clip', excludes: ['gradient']},

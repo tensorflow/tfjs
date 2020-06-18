@@ -216,6 +216,7 @@ tfjs_cc_library(
         ":NonMaxSuppressionV3",
         ":NonMaxSuppressionV5",
         ":NotEqual",
+        ":OneHot",
         ":PadV2",
         ":Pow",
         ":Prelu",
@@ -650,6 +651,14 @@ tfjs_cc_library(
         ":backend",
         ":non_max_suppression_impl",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "OneHot",
+    srcs = ["kernels/OneHot.cc"],
+    deps = [
+        ":backend",
     ],
 )
 
