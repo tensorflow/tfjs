@@ -15,15 +15,50 @@
  * =============================================================================
  */
 
-import {Conv2DBackpropInput, Conv2DBackpropInputAttrs, Conv2DBackpropInputInputs, NamedAttrMap, NamedTensorInfoMap, registerKernel, scatter_util, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, Conv2DBackpropInput, Conv2DBackpropInputAttrs, Conv2DBackpropInputInputs, NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
-import {CppDType} from './types';
 
-let wasmConv2DBackpropInput: () => void;
+let wasmConv2DBackpropInput: (
+    dyId: number, filterId: number, batchSize: number, filterHeight: number,
+    filterWidth: number, inHeight: number, inWidth: number, inChannels: number,
+    outHeight: number, outWidth: number, outChannels: number,
+    strideHeight: number, strideWidth: number, topPad: number, leftPad: number,
+    fltS0: number, fltS1: number, fltS2: number, xBatchStride: number,
+    xRowStride: number, xColStride: number, xChannelStride: number,
+    yBatchStride: number, yRowStride: number, yColStride: number,
+    yChannelStride: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
-  wasmConv2DBackpropInput = backend.wasm.cwrap(Conv2DBackpropInput, null, []);
+  wasmConv2DBackpropInput = backend.wasm.cwrap(Conv2DBackpropInput, null, [
+    'number',  // dyId
+    'number',  // filterId
+    'number',  // batchSize
+    'number',  // filterHeight
+    'number',  // filterWidth
+    'number',  // inHeight
+    'number',  // inWidth
+    'number',  // inChannels
+    'number',  // outHeight
+    'number',  // outWidth
+    'number',  // outChannels
+    'number',  // strideHeight
+    'number',  // strideWidth
+    'number',  // topPad
+    'number',  // leftPad
+    'number',  // fltS0
+    'number',  // fltS1
+    'number',  // fltS2
+    'number',  // xBatchStride
+    'number',  // xRowStride
+    'number',  // xColStride
+    'number',  // xChannelStride
+    'number',  // yBatchStride
+    'number',  // yRowStride
+    'number',  // yColStride
+    'number',  // yChannelStride
+    'number',  // outId
+  ]);
 }
 
 function conv2DBackpropInput(args: {
@@ -33,10 +68,57 @@ function conv2DBackpropInput(args: {
 }): TensorInfo {
   const {backend, inputs, attrs} = args;
   const {dy, filter} = inputs as Conv2DBackpropInputInputs;
-  const {strides, pad, dataFormat, dimRoundingMode} =
-      attrs as Conv2DBackpropInputAttrs;
+  const {strides, pad, dataFormat, dimRoundingMode, inputShape} =
+      attrs as {} as Conv2DBackpropInputAttrs;
 
-  const out = backend.makeOutput();
+  const dilations = 1;
+
+  const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
+  const convInfo = backend_util.computeConv2DInfo(
+      inputShape, filter.shape as [number, number, number, number], strides,
+      dilations, pad, dimRoundingMode, false, $dataFormat);
+  const {
+    batchSize,
+    filterHeight,
+    filterWidth,
+    inChannels,
+    inHeight,
+    inWidth,
+    outChannels,
+    outHeight,
+    outWidth,
+    strideHeight,
+    strideWidth
+  } = convInfo;
+
+  const topPad = filterHeight - 1 - convInfo.padInfo.top;
+  const leftPad = filterWidth - 1 - convInfo.padInfo.left;
+
+  const isChannelsLast = convInfo.dataFormat === 'channelsLast';
+  const dxStrides = util.computeStrides(convInfo.inShape);
+  const dyStrides = util.computeStrides(dy.shape);
+  const [fltS0, fltS1, fltS2] = util.computeStrides(filter.shape);
+  const xBatchStride = dxStrides[0];
+  const xRowStride = isChannelsLast ? dxStrides[1] : dxStrides[2];
+  const xColStride = isChannelsLast ? dxStrides[2] : 1;
+  const xChannelStride = isChannelsLast ? 1 : dxStrides[1];
+  const yBatchStride = dyStrides[0];
+  const yRowStride = isChannelsLast ? dyStrides[1] : dyStrides[2];
+  const yColStride = isChannelsLast ? dyStrides[2] : 1;
+  const yChannelStride = isChannelsLast ? 1 : dyStrides[1];
+
+  const out = backend.makeOutput(convInfo.inShape, 'float32');
+  const outId = backend.dataIdMap.get(out.dataId).id;
+  const dyId = backend.dataIdMap.get(dy.dataId).id;
+  const filterId = backend.dataIdMap.get(filter.dataId).id;
+
+  wasmConv2DBackpropInput(
+      dyId, filterId, batchSize, filterHeight, filterWidth, inHeight, inWidth,
+      inChannels, outHeight, outWidth, outChannels, strideHeight, strideWidth,
+      topPad, leftPad, fltS0, fltS1, fltS2, xBatchStride, xRowStride,
+      xColStride, xChannelStride, yBatchStride, yRowStride, yColStride,
+      yChannelStride, outId);
+  return out;
 }
 
 registerKernel({

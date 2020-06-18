@@ -128,6 +128,7 @@ export interface Conv2DBackpropInputAttrs {
   pad: 'valid'|'same'|number|ExplicitPadding;
   dataFormat: 'NHWC'|'NCHW';
   dimRoundingMode?: 'floor'|'round'|'ceil';
+  inputShape: [number, number, number, number];
 }
 
 export const Conv3D = 'Conv3D';

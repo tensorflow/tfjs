@@ -16,6 +16,11 @@
 #include <emscripten.h>
 #endif
 
+#include <vector>
+
+#include "src/cc/backend.h"
+#include "src/cc/util.h"
+
 namespace tfjs {
 namespace wasm {
 extern "C" {
@@ -23,7 +28,18 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 
-void Conv2DBackpropInput() {}
+void Conv2DBackpropInput(
+    const size_t dy_id, const size_t filter_id, const size_t batch_size,
+    const size_t filter_height, const size_t filter_width,
+    const size_t in_height, const size_t in_width, const size_t in_channels,
+    const size_t out_height, const size_t out_width, const size_t out_channels,
+    const size_t stride_height, const size_t stride_width, const size_t top_pad,
+    const size_t left_pad, const size_t flt_s0, const size_t flt_s1,
+    const size_t flt_s2, const size_t x_batch_stride, const size_t x_row_stride,
+    const size_t x_col_stride, const size_t x_channel_stride,
+    const size_t y_batch_stride, const size_t y_row_stride,
+    const size_t y_col_stride, const size_t y_channel_stride,
+    const size_t out_id) {}
 }  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs
