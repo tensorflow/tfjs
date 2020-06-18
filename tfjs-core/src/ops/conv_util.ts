@@ -104,7 +104,7 @@ export function computeDilation2DInfo(
     dilations: number|[number, number]) {
   // `computerConv2DInfo` require filterShape to be in the dimension of:
   // `[filterHeight, filterWidth, depth, outDepth]`, dilation2d doesn't have
-  // outDepth, it assumes input's depth.
+  // outDepth, it should have the same depth as the input.
   // Input shape: [batch, height, width, inChannels]
   const inputChannels = inputShape[3];
   const $filterShape =
