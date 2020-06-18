@@ -156,9 +156,8 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     const dy = tf.tensor4d([3, 1, 2, 0, 3, 1, 2, 0], [2, 2, 2, 1]);
 
     const grads = tf.grads(
-        (x: tf.Tensor4D, filter: tf.Tensor4D) =>
-            tf.fused.conv2d({x, filter, strides, pad}));
-    const [dx, dfilter] = grads([x, filter], dy);
+        (x: tf.Tensor4D) => tf.fused.conv2d({x, filter, strides, pad}));
+    const [dx] = grads([x], dy);
 
     expect(dx.shape).toEqual(x.shape);
     const dxData = await dx.data();
@@ -167,10 +166,5 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     //     await dx.data(),
     //     [-3, 2, 1, -8, 1.5, 0.5, -4, 1, 0, -3, 2, 1, -8, 1.5, 0.5, -4, 1,
     //     0]);
-
-    expect(dfilter.shape).toEqual(filterShape);
-    const dfilterData = await dfilter.data();
-    console.log(Array.from(dfilterData));
-    // expectArraysClose(await dfilter.data(), [26, 38, 62, 74]);
   });
 });
