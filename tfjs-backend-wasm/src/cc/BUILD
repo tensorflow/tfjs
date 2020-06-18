@@ -192,6 +192,7 @@ tfjs_cc_library(
         ":ClipByValue",
         ":Conv2D",
         ":CropAndResize",
+        ":Conv2DBackpropInput",
         ":DepthwiseConv2dNative",
         ":Div",
         ":Equal",
@@ -350,6 +351,14 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":conv2d_impl",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Conv2DBackpropInput",
+    srcs = ["kernels/Conv2DBackpropInput.cc"],
+    deps = [
+        ":backend",
     ],
 )
 

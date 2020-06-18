@@ -106,7 +106,6 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'depthwiseConv2D ',
     excludes: [
       'broadcasted bias',  // Broadcasted bias not yet supported.
-      'gradient',          // Gradients not defined yet.
       'NCHW',              // xnn pack does not support channels first.
     ]
   },
@@ -116,7 +115,6 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasted bias',  // Broadcasted bias not yet supported.
       'basic with elu',    // Only fused relu, relu6, prelu activations
                            // supported.
-      'gradient',          // Gradients not defined yet.
       'NCHW',              // xnn pack does not support channels first.
       // Issue: https://github.com/tensorflow/tfjs/issues/3104.
       // Actual != expected.
