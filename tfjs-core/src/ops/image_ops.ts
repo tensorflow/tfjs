@@ -60,17 +60,19 @@ function cropAndResize_(
   extrapolationValue = extrapolationValue || 0;
 
   const numBoxes = $boxes.shape[0];
+  const imageRank = $image.shape.length;
+  const boxesRank = $boxes.shape.length;
 
   util.assert(
-      $image.rank === 4,
+      imageRank === 4,
       () => 'Error in cropAndResize: image must be rank 4,' +
-          `but got rank ${$image.rank}.`);
+          `but got rank ${imageRank}.`);
   util.assert(
-      $boxes.rank === 2 && $boxes.shape[1] === 4,
+      boxesRank === 2 && $boxes.shape[1] === 4,
       () => `Error in cropAndResize: boxes must be have size [${numBoxes},4] ` +
           `but had shape ${$boxes.shape}.`);
   util.assert(
-      $boxInd.rank === 1 && $boxInd.shape[0] === numBoxes,
+      $boxInd.shape.length === 1 && $boxInd.shape[0] === numBoxes,
       () => `Error in cropAndResize: boxInd must be have size [${numBoxes}] ` +
           `but had shape ${$boxes.shape}.`);
   util.assert(
