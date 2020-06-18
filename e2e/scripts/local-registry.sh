@@ -41,6 +41,5 @@ function stopLocalRegistry {
 }
 
 function publishToLocalRegistry {
-  git clean -df
-  ./scripts/publish.sh prerelease --yes --force-publish=* --no-git-tag-version --no-commit-hooks --no-push --exact --dist-tag=latest
+  ./scripts/publish-monorepo-ci.sh prerelease --yes --force-publish=* --no-git-tag-version --no-commit-hooks --no-push --exact --dist-tag=latest
 }

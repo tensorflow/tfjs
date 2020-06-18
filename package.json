@@ -20,6 +20,7 @@
     "find-affected-packages": "./scripts/find-affected-packages.js",
     "release": "ts-node -s ./scripts/release.ts",
     "publish-npm": "ts-node -s ./scripts/publish-npm.ts",
+    "publish-monorepo-ci": "ts-node -s ./scripts/publish-monorepo-ci.ts",
     "release-notes": "ts-node -s ./scripts/release_notes/release_notes.ts",
     "test-release-notes": "ts-node -s ./scripts/release_notes/run_tests.ts"
   }
