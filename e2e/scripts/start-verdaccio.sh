@@ -33,7 +33,7 @@ function cleanup {
 cd ..
 root_path=$PWD
 
-if [[ "$RELEASE" = true ]]; then
+#if [[ "$RELEASE" = true ]]; then
   # ****************************************************************************
   # First, publish the monorepo.
   # ****************************************************************************
@@ -46,4 +46,4 @@ if [[ "$RELEASE" = true ]]; then
 
   # Cleanup
   cleanup
-fi
+#fi
