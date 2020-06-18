@@ -161,6 +161,15 @@ export interface CumsumAttrs {
   reverse: boolean;
 }
 
+export const CropAndResize = 'CropAndResize';
+export type CropAndResizeInputs =
+    Pick<NamedTensorInfoMap, 'image'|'boxes'|'boxInd'>;
+export interface CropAndResizeAttrs {
+  cropSize: [number, number];
+  method: 'bilinear'|'nearest';
+  extrapolationValue: number;
+}
+
 export const DepthToSpace = 'DepthToSpace';
 export type DepthToSpaceInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface DepthToSpaceAttrs {

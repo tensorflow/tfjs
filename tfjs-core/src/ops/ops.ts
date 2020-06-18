@@ -135,7 +135,7 @@ import * as fused from './fused_ops';
 import * as signal from './signal_ops';
 
 // Image Ops namespace
-import {cropAndResize} from './image_ops';
+import {cropAndResize} from './crop_and_resize';
 import {nonMaxSuppression} from './non_max_suppression';
 import {nonMaxSuppressionAsync} from './non_max_suppression_async';
 import {nonMaxSuppressionWithScore} from './non_max_suppression_with_score';
