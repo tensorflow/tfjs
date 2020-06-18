@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, Dilation2D, Dilation2DAttrs, Dilation2DInputs, TypedArray, util} from '@tensorflow/tfjs-core';
-import {KernelConfig} from '@tensorflow/tfjs-core';
+import {backend_util, Dilation2D, Dilation2DAttrs, Dilation2DInputs, KernelConfig, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 
