@@ -51,5 +51,5 @@ fi
 
 yarn build-npm for-publish
 
-npm publish --registry=http://localhost:4873
+yarn publish --registry=http://localhost:4873
 echo 'Yay! Published tfjs-core to npm.'
