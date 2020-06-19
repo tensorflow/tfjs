@@ -32,7 +32,7 @@ function startLocalRegistry {
   yarn config set registry "$custom_registry_url"
 
   # Login so we can publish packages
-  (cd && npx npm-cli-login@0.1.1 -u $NPM_USER -p $NPM_PASSWORD -e $NPM_EMAIL -r "$custom_registry_url" && npm add-user --registry "$custom_registry_url")
+  #(cd && npx npm-cli-login@0.1.1 -u $NPM_USER -p $NPM_PASSWORD -e $NPM_EMAIL -r "$custom_registry_url" && npm add-user --registry "$custom_registry_url")
 }
 
 function stopLocalRegistry {
