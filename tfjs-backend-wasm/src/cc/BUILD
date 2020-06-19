@@ -190,12 +190,14 @@ tfjs_cc_library(
         ":AvgPool",
         ":BatchMatMul",
         ":ClipByValue",
+        ":Complex",
         ":Conv2D",
         ":CropAndResize",
         ":DepthwiseConv2dNative",
         ":Div",
         ":Equal",
         ":Exp",
+        ":FFT",
         ":FloorDiv",
         ":FusedBatchNorm",
         ":FusedConv2D",
@@ -345,6 +347,14 @@ tfjs_unit_test(
 )
 
 tfjs_cc_library(
+    name = "Complex",
+    srcs = ["kernels/Complex.cc"],
+    deps = [
+        ":backend",
+    ],
+)
+
+tfjs_cc_library(
     name = "Conv2D",
     srcs = ["kernels/Conv2D.cc"],
     hdrs = ["kernels/Conv2D.h"],
@@ -415,6 +425,14 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "FFT",
+    srcs = ["kernels/FFT.cc"],
+    deps = [
+        ":backend",
     ],
 )
 

@@ -73,8 +73,8 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     }, 100);
 
     // Silences backend registration warnings.
-    spyOn(console, 'warn');
-    spyOn(console, 'log');
+    // spyOn(console, 'warn');
+    // spyOn(console, 'log');
   });
 
   afterEach(() => {
@@ -137,5 +137,16 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     // Setting the path too late.
     expect(() => setWasmPath('too/late'))
         .toThrowError(/The WASM backend was already initialized. Make sure/);
+  });
+
+  fit('should return the same value as TensorFlow (3 elements)', async () => {
+    const t1Real = tf.tensor1d([1, 2, 3]);
+    const t1Imag = tf.tensor1d([0, 0, 0]);
+    const t1 = tf.complex(t1Real, t1Imag);
+    const data = await tf.spectral.fft(t1).data();
+    console.log(data);
+    // expectArraysClose(
+    //     await tf.spectral.fft(t1).data(),
+    //     [6, 0, -1.5, 0.866025, -1.5, -0.866025]);
   });
 });

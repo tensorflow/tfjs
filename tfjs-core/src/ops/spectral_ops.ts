@@ -16,14 +16,17 @@
  */
 
 import {ENGINE} from '../engine';
+import {FFT, FFTInputs} from '../kernel_names';
 import {complex} from '../ops/complex';
 import {imag} from '../ops/imag';
 import {op} from '../ops/operation';
 import {real} from '../ops/real';
 import {Tensor, Tensor2D} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {assert} from '../util';
 
 import {scalar, zeros} from './tensor_ops';
+
 
 /**
  * Fast Fourier transform.
@@ -54,7 +57,11 @@ function fft_(input: Tensor): Tensor {
   const batch = input.size / innerDimensionSize;
   const input2D = input.as2D(batch, innerDimensionSize);
 
-  const ret = ENGINE.runKernelFunc(backend => backend.fft(input2D), {input});
+  const inputs: FFTInputs = {input};
+
+  const ret = ENGINE.runKernelFunc(
+      backend => backend.fft(input2D), inputs as {} as NamedTensorMap,
+      null /* gradient */, FFT);
 
   return ret.reshape(input.shape);
 }
