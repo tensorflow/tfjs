@@ -27,12 +27,12 @@ function startLocalRegistry {
   # Wait for Verdaccio to boot
   grep -q 'http address' <(tail -f $tmp_registry_log)
 
+  # Login so we can publish packages
+  npx npm-cli-login -u user -p password -e user@example.com -r $custom_registry_url
+
   # Set registry to local registry
   npm set registry "$custom_registry_url"
   yarn config set registry "$custom_registry_url"
-
-  # Login so we can publish packages
-  #(cd && npx npm-cli-login@0.1.1 -u $NPM_USER -p $NPM_PASSWORD -e $NPM_EMAIL -r "$custom_registry_url" && npm add-user --registry "$custom_registry_url")
 }
 
 function stopLocalRegistry {
