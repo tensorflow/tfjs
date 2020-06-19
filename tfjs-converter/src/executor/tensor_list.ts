@@ -35,11 +35,12 @@ import {assertShapesMatchAllowUndefinedSize} from './tensor_utils';
  */
 
 export class TensorList {
-  private static nextId = 0;
-  readonly id: number;
   readonly idTensor: Tensor;
   maxNumElements: number;
 
+  get id() {
+    return this.idTensor.id;
+  }
   /**
    *
    * @param tensors list of tensors
@@ -52,8 +53,7 @@ export class TensorList {
       readonly tensors: Tensor[], readonly elementShape: number[],
       readonly elementDtype: DataType, maxNumElements = -1) {
     tensors.forEach(tensor => keep(tensor));
-    this.id = TensorList.nextId++;
-    this.idTensor = scalar(this.id);
+    this.idTensor = scalar(0);
     this.maxNumElements = maxNumElements;
     keep(this.idTensor);
   }
@@ -101,11 +101,11 @@ export class TensorList {
     }
     assertShapesMatchAllowUndefinedSize(
         elementShape, this.elementShape, 'TensorList shape mismatch: ');
-    return tidy(() => {
-      const reshapedTensors =
-          this.tensors.map(tensor => tensor.reshape(elementShape));
-      return stack(reshapedTensors, 0);
-    });
+    // return tidy(() => {
+    //   const reshapedTensors =
+    //       this.tensors.map(tensor => tensor.reshape(elementShape));
+    return stack(this.tensors, 0);
+    // });
   }
 
   /**
@@ -293,12 +293,7 @@ export function fromTensor(
   assertShapesMatchAllowUndefinedSize(
       outputShape, elementShape, 'TensorList shape mismatch: ');
 
-  const tensorList: Tensor[] = [];
-  for (let i = 0; i < tensor.shape[0]; ++i) {
-    const tmp = tensor.slice(i, 1);
-    tensorList.push(tmp.reshape(outputShape));
-    tmp.dispose();
-  }
+  const tensorList: Tensor[] = tensor.unstack();
   return new TensorList(tensorList, elementShape, dtype);
 }
 
