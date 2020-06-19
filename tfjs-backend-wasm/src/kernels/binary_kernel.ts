@@ -63,7 +63,8 @@ export function registerBinaryKernel(
         aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length,
         CppDType[a.dtype], outId);
 
-    if (supportsFullBroadcast) {
+    // Currently only some float operations support full broadcast.
+    if (supportsFullBroadcast && a.dtype === 'float32') {
       kernelFunc();
       return out;
     }
@@ -78,7 +79,7 @@ export function registerBinaryKernel(
     } else {
       throw new Error(
           `Broadcasting along outer dims is not yet ` +
-          `supported for ${kernelName}.`);
+          `supported for ${a.dtype} ${kernelName}.`);
     }
   }
 

@@ -394,7 +394,6 @@ tfjs_cc_library(
     name = "Div",
     srcs = ["kernels/Div.cc"],
     deps = [
-        ":backend",
         ":binary",
         ":util",
     ],
