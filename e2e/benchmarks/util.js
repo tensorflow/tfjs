@@ -21,7 +21,9 @@ async function getPredictionData(prediction) {
     output = await output;
   }
   if (output instanceof tf.Tensor) {
+    const tmp = output;
     output = await output.data();
+    tmp.dispose();
   }
   return output;
 }

@@ -189,24 +189,30 @@ const benchmarks = {
     predictFunc: () => {
       return async model => {
         const inferenceInputs = [];
-        for(const inferenceInput of model.inputs) {
-          const inputShape = inferenceInput.shape;
-          inputShape[0] = 1;
-          if (inputShape.indexOf(null) !== -1 || inputShape.indexOf(-1) !== -1) {
-            throw new Error(
-                `It is assumed that the only the first dimension of the tensor ` +
-                `is undetermined, but the assumption is not satisfied for ` +
-                `input shape ${JSON.stringify(inferenceInput.shape)}`);
+        for(let inferenceInputIndex = 0; inferenceInputIndex < model.inputs.length; inferenceInputIndex++) {
+          const inferenceInput = model.inputs[inferenceInputIndex];
+          const inputShape = [];
+          for(let dimension = 0; dimension < inferenceInput.shape.length; dimension++) {
+            const shapeValue = inferenceInput.shape[dimension];
+            if(shapeValue != null && shapeValue >= 0) {
+              if (shapeValue == 0) showMsg('Warning: one dimension of an input tensor is zero');
+              inputShape.push(shapeValue);
+            } else {
+              inputShape.push(1);
+            }
           }
           const inputTensor = tf.randomNormal(inputShape, 0, 1, inferenceInput.dtype);
           inferenceInputs.push(inputTensor);
         }
 
-        let res = await model.predict(inferenceInputs);
-        for(let tensor of inferenceInputs) {
-          tensor.dispose();
-        }
-        return res;
+        return model.predict(inferenceInputs).catch(async e => {
+          showMsg('Error: the model prediction method throws an error');
+          throw new Error(e);
+        }).finally(() => {
+          for(let tensorIndex = 0; tensorIndex < inferenceInputs.length; tensorIndex++) {
+            inferenceInputs[tensorIndex].dispose();
+          }
+        });
       }
     }
   },

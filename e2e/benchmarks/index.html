@@ -107,9 +107,6 @@ limitations under the License.
       benchmark: 'mobilenet_v2',
       run: (v) => {
         runBenchmark()
-        .catch(async e => {
-          await showMsg(e);
-        });
       },
       testCorrectness: async () => {
         await loadModelAndRecordTime();
@@ -170,7 +167,7 @@ limitations under the License.
 
     function showBenchmarkingParameters() {
       appendRow(parameterTable, 'benchmark', state.benchmark);
-      if (state.benchmark === "custom model") {
+      if (state.benchmark === 'custom model') {
         appendRow(parameterTable, 'modelUrl', state.modelUrl);
       }
       appendRow(parameterTable, 'numRuns', state.numRuns);
@@ -232,9 +229,9 @@ limitations under the License.
     }
 
     function showInputs() {
-      if ("inputs" in model) {
-        const modelInputs = document.querySelector('#modelInputs');
-        modelInputs.style.display="";
+      const modelInputs = document.getElementById('modelInputs');
+      if (model['inputs'] != null) {
+        modelInputs.style.display='';
         for(const modelInputs of model.inputs) {
           const inputShape = modelInputs.shape;
           inputShape[0] = 1;
@@ -243,7 +240,7 @@ limitations under the License.
           appendRow(modelInputsTable, 'data type', modelInputs.dtype);
         }
       } else {
-        modelInputs.style.display="none";
+        modelInputs.style.display='none';
       }
     }
 
@@ -251,8 +248,8 @@ limitations under the License.
       const benchmark = benchmarks[state.benchmark];
       await showMsg('Loading the model');
 
-      if ("url" in benchmark || state.benchmark === "custom model") {
-        const modelUrl = state.benchmark === "custom model" ? state.modelUrl : benchmark.url;
+      if (benchmark['url'] != null || state.benchmark === 'custom model') {
+        const modelUrl = state.benchmark === 'custom model' ? state.modelUrl : benchmark.url;
         const tfHubUrl =  /^https:\/\/tfhub.dev\/.+$/;
         const remoteServerUrl =  /^https?:\/\/.+$/;
         let loadingParameters = {};
@@ -267,7 +264,7 @@ limitations under the License.
         model = await tf.loadGraphModel(modelUrl, loadingParameters).then(model => {
           state.modelType = 'GraphModel';
           return model;
-        }).catch(e => console.log("loading GraphModel failed."));
+        }).catch(e => console.log('loading GraphModel failed.'));
 
         if (!state.modelType) {
           start = performance.now();
@@ -280,10 +277,12 @@ limitations under the License.
         const elapsed = performance.now() - start;
         appendRow(timeTable, 'Model load', printTime(elapsed));
         appendRow(parameterTable, 'modelType', state.modelType);
-      } else if ("load" in benchmark) {
+      } else if (benchmark['load'] != null) {
         model = await benchmark.load();
       } else {
-          throw new Error("Please provide an 'url' field or a 'load' method for your model.");
+          let error = `Error: Please provide an 'url' field or a 'load' method for your model.`;
+          showMsg(error);
+          throw new Error(error);
       }
 
       predict = benchmark.predictFunc();
@@ -293,8 +292,8 @@ limitations under the License.
 
     const chartHeight = 150;
     function populateTrendline(node, data, forceYMinToZero = false, yFormatter = d => d) {
-      node.querySelector("svg").setAttribute("width", chartWidth);
-      node.querySelector("svg").setAttribute("height", chartHeight);
+      node.querySelector('svg').setAttribute('width', chartWidth);
+      node.querySelector('svg').setAttribute('height', chartHeight);
 
       const yMax = Math.max(...data);
       let yMin = forceYMinToZero ? 0 : Math.min(...data);
@@ -302,17 +301,17 @@ limitations under the License.
         yMin = 0;
       }
 
-      node.querySelector(".yMin").textContent = yFormatter(yMin);
-      node.querySelector(".yMax").textContent = yFormatter(yMax);
+      node.querySelector('.yMin').textContent = yFormatter(yMin);
+      node.querySelector('.yMax').textContent = yFormatter(yMax);
 
       const xIncrement = chartWidth / (data.length - 1);
-      node.querySelector("path")
-        .setAttribute("d", `M${data.map((d, i) => `${i * xIncrement},${chartHeight - ((d - yMin) / (yMax - yMin)) * chartHeight}`).join('L')} `);
+      node.querySelector('path')
+        .setAttribute('d', `M${data.map((d, i) => `${i * xIncrement},${chartHeight - ((d - yMin) / (yMax - yMin)) * chartHeight}`).join('L')} `);
     }
 
     async function measureAveragePredictTime() {
       await showMsg(`Running predict ${state.numRuns} times`);
-      chartWidth = document.querySelector("#perf-trendline-container").getBoundingClientRect().width;
+      chartWidth = document.querySelector('#perf-trendline-container').getBoundingClientRect().width;
 
       const times = [];
       const numLeakedTensors = [];
@@ -338,7 +337,7 @@ limitations under the License.
       }
 
       const forceInferenceTrendYMinToZero = true;
-      populateTrendline(document.querySelector("#perf-trendline-container"), times, forceInferenceTrendYMinToZero, printTime);
+      populateTrendline(document.querySelector('#perf-trendline-container'), times, forceInferenceTrendYMinToZero, printTime);
 
       await showMsg(null);
       const average = times.reduce((acc, curr) => acc + curr, 0) / times.length;
@@ -456,7 +455,9 @@ limitations under the License.
       if (state.benchmark === 'custom model') {
         const supportedSchemes =  /^(https?|localstorage|indexeddb):\/\/.+$/;
         if (!supportedSchemes.test(state.modelUrl)) {
-          throw new Error("Please use a valid URL to the custom model, such as 'https://'");
+          let error = `Error: Please use a valid URL for the custom model, such as 'https://'`;
+          showMsg(error);
+          throw new Error(error);
         }
       }
     }
@@ -488,7 +489,7 @@ limitations under the License.
       let modelFolder = gui.addFolder('Model');
       let modelController = null;
       modelFolder.add(state, 'benchmark', Object.keys(benchmarks)).onChange(model => {
-        if (model === "custom model") {
+        if (model === 'custom model') {
           if (modelController === null) {
             modelController = modelFolder.add(state, 'modelUrl').onChange(value => {
               showMsg(null);
