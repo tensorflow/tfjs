@@ -15,6 +15,7 @@
 import {FFT, FFTInputs, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+// import {CppDType} from './types';
 
 let wasmFFT: () => void;
 
@@ -25,7 +26,7 @@ function setup(backend: BackendWasm): void {
 function fft(args: {backend: BackendWasm, inputs: FFTInputs}): TensorInfo {
   const {backend, inputs} = args;
   const {input} = inputs;
-  const out = backend.makeOutput(input.shape, input.dtype);
+  const out = backend.makeOutput(input.shape, 'complex64');
 
   wasmFFT();
   return out;

@@ -270,6 +270,8 @@ function typedArrayFromBuffer(
       return new Int32Array(buffer);
     case 'bool':
       return new Uint8Array(buffer);
+    case 'complex64':
+      return new Float32Array(buffer);
     default:
       throw new Error(`Unknown dtype ${dtype}`);
   }

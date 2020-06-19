@@ -26,7 +26,7 @@ function fft(args: {backend: BackendWasm, inputs: ComplexInputs}): TensorInfo {
   const {backend, inputs} = args;
   const {real, imag} = inputs;
   console.log(imag);
-  const out = backend.makeOutput(real.shape, real.dtype);
+  const out = backend.makeOutput(real.shape, 'complex64');
 
   wasmFFT();
   return out;
