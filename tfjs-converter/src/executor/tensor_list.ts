@@ -52,7 +52,18 @@ export class TensorList {
   constructor(
       readonly tensors: Tensor[], readonly elementShape: number[],
       readonly elementDtype: DataType, maxNumElements = -1) {
-    tensors.forEach(tensor => keep(tensor));
+    if (tensors != null) {
+      tensors.forEach(tensor => {
+        if (elementDtype !== tensor.dtype) {
+          throw new Error(`Invalid data types; op elements ${
+              elementDtype}, but list elements ${tensor.dtype}`);
+        }
+        assertShapesMatchAllowUndefinedSize(
+            elementShape, tensor.shape, 'TensorList shape mismatch: ');
+
+        keep(tensor);
+      });
+    }
     this.idTensor = scalar(0);
     this.maxNumElements = maxNumElements;
     keep(this.idTensor);
