@@ -30,18 +30,19 @@ export interface TensorWithState {
  * allows reading from the array and writing to the array.
  */
 export class TensorArray {
-  private static nextId = 0;
   private tensors: TensorWithState[] = [];
   private closed_ = false;
-  readonly id: number;
   readonly idTensor: Tensor;
   constructor(
       readonly name: string, readonly dtype: DataType, private maxSize: number,
       private elementShape: number[], readonly identicalElementShapes: boolean,
       readonly dynamicSize: boolean, readonly clearAfterRead: boolean) {
-    this.id = TensorArray.nextId++;
-    this.idTensor = scalar(this.id);
+    this.idTensor = scalar(0);
     keep(this.idTensor);
+  }
+
+  get id() {
+    return this.idTensor.id;
   }
 
   get closed() {
