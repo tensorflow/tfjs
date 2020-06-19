@@ -101,11 +101,11 @@ export class TensorList {
     }
     assertShapesMatchAllowUndefinedSize(
         elementShape, this.elementShape, 'TensorList shape mismatch: ');
-    // return tidy(() => {
-    //   const reshapedTensors =
-    //       this.tensors.map(tensor => tensor.reshape(elementShape));
-    return stack(this.tensors, 0);
-    // });
+    return tidy(() => {
+      const reshapedTensors =
+          this.tensors.map(tensor => tensor.reshape(elementShape));
+      return stack(reshapedTensors, 0);
+    });
   }
 
   /**
