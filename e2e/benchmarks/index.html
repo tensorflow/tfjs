@@ -232,12 +232,11 @@ limitations under the License.
       const modelInputs = document.getElementById('modelInputs');
       if (model['inputs'] != null) {
         modelInputs.style.display='';
-        for(const modelInputs of model.inputs) {
-          const inputShape = modelInputs.shape;
-          inputShape[0] = 1;
+        for (const modelInputs of model.inputs) {
           appendRow(modelInputsTable, 'name', modelInputs.name);
-          appendRow(modelInputsTable, 'shape', inputShape);
+          appendRow(modelInputsTable, 'shape', modelInputs.shape);
           appendRow(modelInputsTable, 'data type', modelInputs.dtype);
+          appendRow(modelInputsTable, '', '');
         }
       } else {
         modelInputs.style.display='none';
@@ -281,7 +280,7 @@ limitations under the License.
         model = await benchmark.load();
       } else {
           let error = `Error: Please provide an 'url' field or a 'load' method for your model.`;
-          showMsg(error);
+          await showMsg(error);
           throw new Error(error);
       }
 
@@ -456,7 +455,7 @@ limitations under the License.
         const supportedSchemes =  /^(https?|localstorage|indexeddb):\/\/.+$/;
         if (!supportedSchemes.test(state.modelUrl)) {
           let error = `Error: Please use a valid URL for the custom model, such as 'https://'`;
-          showMsg(error);
+          await showMsg(error);
           throw new Error(error);
         }
       }
@@ -476,7 +475,7 @@ limitations under the License.
       if (state.backend != 'webgl' || queryTimerIsEnabled()) {
         await profileKernelTime();
       } else {
-        showMsg('Skipping kernel times since query timer extension is not ' +
+        await showMsg('Skipping kernel times since query timer extension is not ' +
           'available. <br/> Use Chrome 70+.');
       };
     }
@@ -492,7 +491,7 @@ limitations under the License.
         if (model === 'custom model') {
           if (modelController === null) {
             modelController = modelFolder.add(state, 'modelUrl').onChange(value => {
-              showMsg(null);
+              await showMsg(null);
             });
           }
         } else if (modelController != null) {

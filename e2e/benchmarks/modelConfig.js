@@ -189,30 +189,35 @@ const benchmarks = {
     predictFunc: () => {
       return async model => {
         const inferenceInputs = [];
-        for(let inferenceInputIndex = 0; inferenceInputIndex < model.inputs.length; inferenceInputIndex++) {
-          const inferenceInput = model.inputs[inferenceInputIndex];
-          const inputShape = [];
-          for(let dimension = 0; dimension < inferenceInput.shape.length; dimension++) {
-            const shapeValue = inferenceInput.shape[dimension];
-            if(shapeValue != null && shapeValue >= 0) {
-              if (shapeValue == 0) showMsg('Warning: one dimension of an input tensor is zero');
-              inputShape.push(shapeValue);
-            } else {
-              inputShape.push(1);
+        try {
+          for (let inferenceInputIndex = 0; inferenceInputIndex < model.inputs.length; inferenceInputIndex++) {
+            const inferenceInput = model.inputs[inferenceInputIndex];
+            const inputShape = [];
+            for (let dimension = 0; dimension < inferenceInput.shape.length; dimension++) {
+              const shapeValue = inferenceInput.shape[dimension];
+              if (shapeValue != null && shapeValue >= 0) {
+                if (shapeValue == 0) {
+                  await showMsg('Warning: one dimension of an input tensor is zero');
+                }
+                inputShape.push(shapeValue);
+              } else {
+                inputShape.push(1);
+              }
             }
+            const inputTensor = tf.randomNormal(inputShape, 0, 1, inferenceInput.dtype);
+            inferenceInputs.push(inputTensor);
           }
-          const inputTensor = tf.randomNormal(inputShape, 0, 1, inferenceInput.dtype);
-          inferenceInputs.push(inputTensor);
-        }
 
-        return model.predict(inferenceInputs).catch(async e => {
-          showMsg('Error: the model prediction method throws an error');
+          return model.predict(inferenceInputs);
+        } catch (e) {
+          await showMsg(e);
           throw new Error(e);
-        }).finally(() => {
-          for(let tensorIndex = 0; tensorIndex < inferenceInputs.length; tensorIndex++) {
+        } finally {
+          for (let tensorIndex = 0; tensorIndex < inferenceInputs.length; tensorIndex++) {
             inferenceInputs[tensorIndex].dispose();
           }
-        });
+        }
+
       }
     }
   },
