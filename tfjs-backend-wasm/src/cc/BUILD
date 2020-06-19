@@ -190,7 +190,6 @@ tfjs_cc_library(
         ":AvgPool",
         ":BatchMatMul",
         ":ClipByValue",
-        ":Complex",
         ":Conv2D",
         ":CropAndResize",
         ":DepthwiseConv2dNative",
@@ -343,14 +342,6 @@ tfjs_unit_test(
     srcs = ["kernels/ClipByValue_test.cc"],
     deps = [
         ":ClipByValue",
-    ],
-)
-
-tfjs_cc_library(
-    name = "Complex",
-    srcs = ["kernels/Complex.cc"],
-    deps = [
-        ":backend",
     ],
 )
 

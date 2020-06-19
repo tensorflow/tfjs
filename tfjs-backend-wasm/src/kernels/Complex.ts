@@ -16,25 +16,16 @@ import {Complex, ComplexInputs, registerKernel, TensorInfo} from '@tensorflow/tf
 
 import {BackendWasm} from '../backend_wasm';
 
-let wasmFFT: () => void;
-
-function setup(backend: BackendWasm): void {
-  wasmFFT = backend.wasm.cwrap(Complex, null, []);
-}
-
-function fft(args: {backend: BackendWasm, inputs: ComplexInputs}): TensorInfo {
+function complex(args: {backend: BackendWasm, inputs: ComplexInputs}):
+    TensorInfo {
   const {backend, inputs} = args;
   const {real, imag} = inputs;
-  console.log(imag);
-  const out = backend.makeOutput(real.shape, 'complex64');
 
-  wasmFFT();
+  const out = backend.makeOutput(real.shape, 'complex64');
+  const outData = backend.dataIdMap.get(out.dataId);
+  outData.complexTensors = {real, imag};
+
   return out;
 }
 
-registerKernel({
-  kernelName: Complex,
-  backendName: 'wasm',
-  setupFunc: setup,
-  kernelFunc: fft
-});
+registerKernel({kernelName: Complex, backendName: 'wasm', kernelFunc: complex});

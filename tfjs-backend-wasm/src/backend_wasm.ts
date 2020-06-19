@@ -31,6 +31,7 @@ interface TensorData {
   dtype: DataType;
   /** Only used for string tensors, storing encoded bytes. */
   stringBytes?: Uint8Array[];
+  complexTensors?: {real: TensorInfo, imag: TensorInfo}
 }
 
 export type DataId = object;  // object instead of {} to force non-primitive.
