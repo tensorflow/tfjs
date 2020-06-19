@@ -16,7 +16,7 @@ import {Complex, ComplexInputs, registerKernel, TensorInfo} from '@tensorflow/tf
 
 import {BackendWasm} from '../backend_wasm';
 
-function complex(args: {backend: BackendWasm, inputs: ComplexInputs}):
+export function complex(args: {backend: BackendWasm, inputs: ComplexInputs}):
     TensorInfo {
   const {backend, inputs} = args;
   const {real, imag} = inputs;

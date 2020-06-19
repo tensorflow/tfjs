@@ -15,20 +15,31 @@
 import {FFT, FFTInputs, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+import {complex} from './Complex';
 // import {CppDType} from './types';
 
-let wasmFFT: () => void;
+let wasmFFT: (inputId: number) => void;
 
 function setup(backend: BackendWasm): void {
-  wasmFFT = backend.wasm.cwrap(FFT, null, []);
+  wasmFFT = backend.wasm.cwrap(FFT, null, ['number']);
 }
 
 function fft(args: {backend: BackendWasm, inputs: FFTInputs}): TensorInfo {
   const {backend, inputs} = args;
   const {input} = inputs;
-  const out = backend.makeOutput(input.shape, 'complex64');
+  const inputData = backend.dataIdMap.get(input.dataId);
+  const realInput = inputData.complexTensors.real;
+  const imagInput = inputData.complexTensors.imag;
 
-  wasmFFT();
+  const real = backend.makeOutput(realInput.shape, realInput.dtype);
+  const imag = backend.makeOutput(imagInput.shape, imagInput.dtype);
+  const realId = backend.dataIdMap.get(real.dataId).id;
+  const imagId = backend.dataIdMap.get(imag.dataId).id;
+
+  wasmFFT(realId);
+  wasmFFT(imagId);
+
+  const out = complex({backend, inputs: {real, imag}});
   return out;
 }
 
