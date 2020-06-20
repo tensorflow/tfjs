@@ -19,6 +19,9 @@
 // the contents of this file and import only the kernels that are needed.
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
+import {dilation2dConfig} from './kernels/Dilation2D';
+import {dilation2dBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
+import {dilation2dBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
 import {divConfig} from './kernels/Div';
 import {maxConfig} from './kernels/Max';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
@@ -29,8 +32,10 @@ import {transposeConfig} from './kernels/Transpose';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
-  nonMaxSuppressionV5Config, squareConfig, squaredDifferenceConfig, divConfig,
-  transposeConfig, maxPoolWithArgmaxConfig, maxConfig
+  dilation2dConfig, dilation2dBackpropInputConfig,
+  dilation2dBackpropFilterConfig, nonMaxSuppressionV5Config, squareConfig,
+  squaredDifferenceConfig, divConfig, transposeConfig, maxPoolWithArgmaxConfig,
+  maxConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {

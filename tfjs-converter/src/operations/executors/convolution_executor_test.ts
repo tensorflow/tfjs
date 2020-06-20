@@ -566,4 +566,26 @@ describe('convolution', () => {
       });
     });
   });
+
+  describe('dilation2d', () => {
+    it('should call tfc.dilation2d', () => {
+      spyOn(tfc, 'dilation2d');
+      node.op = 'Dilation2D';
+      node.inputParams['filter'] = createTensorAttr(1);
+      node.attrParams['strides'] = createNumericArrayAttr([1, 1, 1, 1]);
+      node.attrParams['pad'] = createStrAttr('same');
+      node.attrParams['dataFormat'] = createStrAttr('NHWC');
+      node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
+
+      const input1 = [tfc.scalar(1.0)];
+      const input2 = [tfc.scalar(1.0)];
+      node.inputNames = ['input1', 'input2'];
+
+      executeOp(node, {input1, input2}, context);
+
+      expect(tfc.dilation2d)
+          .toHaveBeenCalledWith(
+              input1[0], input2[0], [1, 1], 'same', [2, 2], 'NHWC');
+    });
+  });
 });

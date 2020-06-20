@@ -38,14 +38,13 @@ const cpuTests = 'src/**/*_test.ts';
 const runner = new jasmineCtor();
 runner.loadConfig({spec_files: [cpuTests, coreTests], random: false});
 
-// customInclude takes higher priority then TEST_FILTERS, only when
-// customInclude return false will TEST_FILTERS be considered.
 const TEST_FILTERS: TestFilter[] = [];
 const customInclude = (testName: string) => {
   // Exclude webworker test
   if (testName.includes('computation in worker')) {
     return false;
   }
+
   // Include all other tests.
   return true;
 };
