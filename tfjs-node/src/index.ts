@@ -71,9 +71,6 @@ tf.registerBackend('tensorflow', () => {
   return new NodeJSKernelBackend(bindings as TFJSBinding, pjson.name);
 }, 3 /* priority */);
 
-// Register kernels.
-import './register_all_kernels';
-
 const success = tf.setBackend('tensorflow');
 if (!success) {
   throw new Error(`Could not initialize TensorFlow backend.`);
