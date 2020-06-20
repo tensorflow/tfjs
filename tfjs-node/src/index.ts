@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-// Import all kernels.
+// Register all kernels.
 import './register_all_kernels';
 
 import * as tf from '@tensorflow/tfjs';
@@ -66,9 +66,11 @@ export * from './node';
 // tslint:disable-next-line:no-require-imports
 const pjson = require('../package.json');
 
+// Side effects for default initialization of Node backend.
 tf.registerBackend('tensorflow', () => {
   return new NodeJSKernelBackend(bindings as TFJSBinding, pjson.name);
 }, 3 /* priority */);
+import './register_all_kernels';
 
 const success = tf.setBackend('tensorflow');
 if (!success) {
