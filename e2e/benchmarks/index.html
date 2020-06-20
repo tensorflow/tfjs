@@ -127,7 +127,7 @@ limitations under the License.
       backend: 'wasm',
       kernelTiming: 'aggregate',
       modelType: '',
-      modelUrl: 'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2',
+      modelUrl: '',
     };
 
     const modalDiv = document.getElementById('modal-msg');
@@ -490,9 +490,10 @@ limitations under the License.
       modelFolder.add(state, 'benchmark', Object.keys(benchmarks)).onChange(model => {
         if (model === 'custom model') {
           if (modelController === null) {
-            modelController = modelFolder.add(state, 'modelUrl').onChange(value => {
+            modelController = modelFolder.add(state, 'modelUrl').onChange(async value => {
               await showMsg(null);
             });
+            modelController.domElement.querySelector('input').placeholder = 'https://';
           }
         } else if (modelController != null) {
           modelFolder.remove(modelController);

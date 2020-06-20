@@ -207,11 +207,14 @@ const benchmarks = {
             const inputTensor = tf.randomNormal(inputShape, 0, 1, inferenceInput.dtype);
             inferenceInputs.push(inputTensor);
           }
-
           return model.predict(inferenceInputs);
         } catch (e) {
-          await showMsg(e);
-          throw new Error(e);
+          if(e.message.indexOf("Please use model.executeAsync() instead.") != -1 && typeof(model.executeAsync) === "function") {
+            return model.executeAsync(inferenceInputs);
+          } else {
+            await showMsg(e);
+            throw new Error(e);
+          }
         } finally {
           for (let tensorIndex = 0; tensorIndex < inferenceInputs.length; tensorIndex++) {
             inferenceInputs[tensorIndex].dispose();
