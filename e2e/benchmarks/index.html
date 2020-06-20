@@ -103,7 +103,7 @@ limitations under the License.
     'use strict';
 
     const state = {
-      numRuns: 50,
+      numRuns: 3,
       benchmark: 'mobilenet_v2',
       run: (v) => {
         runBenchmark()
@@ -124,10 +124,10 @@ limitations under the License.
         const match = tf.test_util.expectArraysClose(referenceData, predictionData);
         appendRow(timeTable, `Prediction matches CPU: `, match);
       },
-      backend: 'wasm',
+      backend: 'webgl',
       kernelTiming: 'aggregate',
       modelType: '',
-      modelUrl: '',
+      modelUrl: 'https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json',
     };
 
     const modalDiv = document.getElementById('modal-msg');
@@ -167,6 +167,7 @@ limitations under the License.
 
     function showBenchmarkingParameters() {
       appendRow(parameterTable, 'benchmark', state.benchmark);
+      appendRow(parameterTable, 'modelType', state.modelType);
       if (state.benchmark === 'custom model') {
         appendRow(parameterTable, 'modelUrl', state.modelUrl);
       }
@@ -181,7 +182,6 @@ limitations under the License.
       kernelTable.innerHTML = '';
       parameterTable.innerHTML = '';
       modelInputsTable.innerHTML = '';
-      showBenchmarkingParameters();
       await tf.nextFrame();
       const rows = ['<b>Kernel</b>', '<b>Time(ms)</b>'];
       if (state.kernelTiming === 'individual') {
@@ -245,47 +245,23 @@ limitations under the License.
 
     async function loadModelAndRecordTime() {
       const benchmark = benchmarks[state.benchmark];
-      await showMsg('Loading the model');
-
-      if (benchmark['url'] != null || state.benchmark === 'custom model') {
-        const modelUrl = state.benchmark === 'custom model' ? state.modelUrl : benchmark.url;
-        const tfHubUrl =  /^https:\/\/tfhub.dev\/.+$/;
-        const remoteServerUrl =  /^https?:\/\/.+$/;
-        let loadingParameters = {};
-        if (remoteServerUrl.test(modelUrl)) {
-          loadingParameters.requestInit = {cache: 'no-store' };
-          loadingParameters.fromTFHub = tfHubUrl.test(modelUrl);
-        }
-
-        state.modelType = null;
-
-        let start = performance.now();
-        model = await tf.loadGraphModel(modelUrl, loadingParameters).then(model => {
-          state.modelType = 'GraphModel';
-          return model;
-        }).catch(e => console.log('loading GraphModel failed.'));
-
-        if (!state.modelType) {
-          start = performance.now();
-          model = await tf.loadLayersModel(modelUrl, loadingParameters).then(model => {
-            state.modelType = 'LayersModel';
-            return model;
-          });
-        }
-
-        const elapsed = performance.now() - start;
-        appendRow(timeTable, 'Model load', printTime(elapsed));
-        appendRow(parameterTable, 'modelType', state.modelType);
-      } else if (benchmark['load'] != null) {
-        model = await benchmark.load();
-      } else {
-          let error = `Error: Please provide an 'url' field or a 'load' method for your model.`;
-          await showMsg(error);
-          throw new Error(error);
+      if (benchmark['load'] == null) {
+        let error = 'Error: Please provide a load method for your model.';
+        await showMsg(error);
+        throw new Error(error);
       }
 
+      await showMsg('Loading the model');
+      let start = performance.now();
+      model = await benchmark.load().catch(async e => {
+        await showMsg(e);
+        throw e;
+      });
       predict = benchmark.predictFunc();
+      const elapsed = performance.now() - start;
+
       await showMsg(null);
+      appendRow(timeTable, 'Model load', printTime(elapsed));
       showInputs();
     }
 
@@ -450,21 +426,10 @@ limitations under the License.
       console.log = oldLog;
     }
 
-    async function checkModelUrl() {
-      if (state.benchmark === 'custom model') {
-        const supportedSchemes =  /^(https?|localstorage|indexeddb):\/\/.+$/;
-        if (!supportedSchemes.test(state.modelUrl)) {
-          let error = `Error: Please use a valid URL for the custom model, such as 'https://'`;
-          await showMsg(error);
-          throw new Error(error);
-        }
-      }
-    }
-
     async function runBenchmark() {
-      await checkModelUrl();
       await setupTable();
       await loadModelAndRecordTime();
+      await showBenchmarkingParameters();
       await warmUpAndRecordTime();
       await showMsg('Waiting for GC');
       await sleep(1000);

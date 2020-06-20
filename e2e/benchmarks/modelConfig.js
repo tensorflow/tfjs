@@ -73,7 +73,6 @@ const sentences = [
 
 const benchmarks = {
   'mobilenet_v2': {
-    url: 'https://storage.googleapis.com/learnjs-data/mobilenet_v2_100_fused/model.json',
     load: async () => {
       const url =
           'https://storage.googleapis.com/learnjs-data/mobilenet_v2_100_fused/model.json';
@@ -85,7 +84,6 @@ const benchmarks = {
     }
   },
   'mesh_128': {
-    url: 'https://storage.googleapis.com/learnjs-data/mesh_128_shift30_fixed_batch/model.json',
     load: async () => {
       const url =
           'https://storage.googleapis.com/learnjs-data/mesh_128_shift30_fixed_batch/model.json';
@@ -99,7 +97,6 @@ const benchmarks = {
     },
   },
   'face_detector': {
-    url: 'https://storage.googleapis.com/learnjs-data/face_detector_front/model.json',
     load: async () => {
       const url =
           'https://storage.googleapis.com/learnjs-data/face_detector_front/model.json';
@@ -186,6 +183,9 @@ const benchmarks = {
     }
   },
   'custom model': {
+    load: async () => {
+      return loadModelByUrl(state.modelUrl);
+    },
     predictFunc: () => {
       return async model => {
         const inferenceInputs = [];
@@ -239,4 +239,36 @@ async function loadImage(imagePath) {
 
   image.src = `${imageBucket}${imagePath}`;
   return promise;
+}
+
+async function checkModelUrl(modelUrl) {
+  const supportedSchemes =  /^(https?|localstorage|indexeddb):\/\/.+$/;
+  return supportedSchemes.test(modelUrl);
+}
+
+async function loadModelByUrl(modelUrl) {
+  let model;
+  const supportedSchemes =  /^(https?|localstorage|indexeddb):\/\/.+$/;
+  if (!supportedSchemes.test(modelUrl)) {
+    throw new Error(`Error: Please use a valid URL for the custom model, such as 'https://'`);
+  }
+
+  const tfHubUrl =  /^https:\/\/tfhub.dev\/.+$/;
+  let loadingParameters = {fromTFHub: tfHubUrl.test(modelUrl)};
+
+  // state.modelType = await parseModelTypeByUrl(modelUrl);
+  state.modelType = '';
+
+  model = await tf.loadGraphModel(modelUrl, loadingParameters).then(model => {
+    state.modelType = 'GraphModel';
+    return model;
+  }).catch(e => console.log('loading GraphModel failed.'));
+
+  if (model == null) {
+    model = await tf.loadLayersModel(modelUrl, loadingParameters).then(model => {
+      state.modelType = 'LayersModel';
+      return model;
+    });
+  }
+  return model;
 }
