@@ -66,9 +66,9 @@ export const executeOp: InternalOpExecutor = (node: Node,
       const end = getParamValue('end', node, tensorMap, context) as number[];
       const strides =
           getParamValue('strides', node, tensorMap, context) as number[];
-      let beginMask =
+      const beginMask =
           getParamValue('beginMask', node, tensorMap, context) as number;
-      let endMask =
+      const endMask =
           getParamValue('endMask', node, tensorMap, context) as number;
       const ellipsisMask =
           getParamValue('ellipsisMask', node, tensorMap, context) as number;
@@ -77,17 +77,13 @@ export const executeOp: InternalOpExecutor = (node: Node,
       const shrinkAxisMask =
           getParamValue('shrinkAxisMask', node, tensorMap, context) as number;
       const tensor = getParamValue('x', node, tensorMap, context) as tfc.Tensor;
-      if (begin.length < tensor.rank) {
-        begin.unshift(0);
-        end.unshift(tensor.shape[0]);
-        if (end[1] === 0) {
-          end[1] = tensor.shape[1];
+      if (begin.length === 1 && tensor.shape.length > 1) {
+        for (let i = 1; i < tensor.shape.length; i++) {
+          begin.push(0);
+          end.push(tensor.shape[i]);
+          strides.push(strides[0]);
         }
-        strides.unshift(1);
-        beginMask *= 2;
-        endMask *= 2;
       }
-
       return [tfc.stridedSlice(
           tensor, begin, end, strides, beginMask, endMask, ellipsisMask,
           newAxisMask, shrinkAxisMask)];
