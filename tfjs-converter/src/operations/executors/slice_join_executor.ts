@@ -132,7 +132,7 @@ export const executeOp: InternalOpExecutor = (node: Node,
       // of dimension is allocated to the last split.
       if (Array.isArray(numOrSizeSplits)) {
         const negIndex = numOrSizeSplits.indexOf(-1);
-        if (negIndex === -1) {
+        if (negIndex !== -1) {
           const total = numOrSizeSplits.reduce((a, b) => b > 0 ? a + b : a);
           numOrSizeSplits[negIndex] = tensor.shape[axis] - total;
         }
