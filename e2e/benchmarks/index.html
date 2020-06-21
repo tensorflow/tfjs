@@ -112,24 +112,34 @@ limitations under the License.
         });
       },
       testCorrectness: async () => {
+        let match, predictionData, referenceData;
         try {
           await loadModelAndRecordTime();
           await showMsg('Testing correctness');
 
           tf.setBackend('cpu');
+          await showMsg('Runing on cpu');
           const referencePrediction = predict(model);
-          const referenceData = await getPredictionData(referencePrediction);
+          referenceData = await getPredictionData(referencePrediction);
 
           await tf.setBackend(state.backend);
+          await showMsg(`Runing on ${state.backend}`);
           const prediction = predict(model);
-          const predictionData = await getPredictionData(prediction);
-
-          await showMsg(null);
-          const match = tf.test_util.expectArraysClose(referenceData, predictionData);
-          appendRow(timeTable, `Prediction matches CPU: `, match);
+          predictionData = await getPredictionData(prediction);
         } catch (e) {
           showMsg("Error: " + e.message);
           throw e;
+        }
+
+        try {
+          await showMsg(null);
+          tf.test_util.expectArraysClose(referenceData, predictionData);
+          match = true;
+        } catch (e) {
+          match = false;
+          throw e;
+        } finally {
+          appendRow(timeTable, `Prediction matches CPU`, match);
         }
       },
       backend: 'webgl',
