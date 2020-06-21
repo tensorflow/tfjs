@@ -215,7 +215,6 @@ const benchmarks = {
           if(e.message.indexOf("Please use model.executeAsync() instead.") != -1 && typeof(model.executeAsync) === "function") {
             return model.executeAsync(inferenceInputs);
           } else {
-            await showMsg(e);
             throw new Error(e);
           }
         } finally {

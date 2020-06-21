@@ -106,23 +106,31 @@ limitations under the License.
       numRuns: 3,
       benchmark: 'mobilenet_v2',
       run: (v) => {
-        runBenchmark()
+        runBenchmark().catch(e => {
+          showMsg("Error: " + e.message);
+          throw e;
+        });
       },
       testCorrectness: async () => {
-        await loadModelAndRecordTime();
-        await showMsg('Testing correctness');
+        try {
+          await loadModelAndRecordTime();
+          await showMsg('Testing correctness');
 
-        tf.setBackend('cpu');
-        const referencePrediction = predict(model);
-        const referenceData = await getPredictionData(referencePrediction);
+          tf.setBackend('cpu');
+          const referencePrediction = predict(model);
+          const referenceData = await getPredictionData(referencePrediction);
 
-        await tf.setBackend(state.backend);
-        const prediction = predict(model);
-        const predictionData = await getPredictionData(prediction);
+          await tf.setBackend(state.backend);
+          const prediction = predict(model);
+          const predictionData = await getPredictionData(prediction);
 
-        await showMsg(null);
-        const match = tf.test_util.expectArraysClose(referenceData, predictionData);
-        appendRow(timeTable, `Prediction matches CPU: `, match);
+          await showMsg(null);
+          const match = tf.test_util.expectArraysClose(referenceData, predictionData);
+          appendRow(timeTable, `Prediction matches CPU: `, match);
+        } catch (e) {
+          showMsg("Error: " + e.message);
+          throw e;
+        }
       },
       backend: 'webgl',
       kernelTiming: 'aggregate',
@@ -246,17 +254,12 @@ limitations under the License.
     async function loadModelAndRecordTime() {
       const benchmark = benchmarks[state.benchmark];
       if (benchmark['load'] == null) {
-        let error = 'Error: Please provide a load method for your model.';
-        await showMsg(error);
-        throw new Error(error);
+        throw new Error(`Please provide a load method for '${state.benchmark}' model`);
       }
 
       await showMsg('Loading the model');
       let start = performance.now();
-      model = await benchmark.load().catch(async e => {
-        await showMsg(e);
-        throw e;
-      });
+      model = await benchmark.load()
       predict = benchmark.predictFunc();
       const elapsed = performance.now() - start;
 
@@ -475,7 +478,7 @@ limitations under the License.
       parameterFolder.add(state, 'kernelTiming', ['aggregate', 'individual']);
       parameterFolder.open();
 
-      gui.add(state, 'run');
+      gui.add(state, 'run').name('run benchmark');
       gui.add(state, 'testCorrectness').name('test correctness');
 
       showVersions();
