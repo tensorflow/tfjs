@@ -175,6 +175,10 @@ limitations under the License.
 
     function showBenchmarkingParameters() {
       appendRow(parameterTable, 'benchmark', state.benchmark);
+      state.modelType =
+          state.modelType ||
+          (model instanceof tf.GraphModel ? 'GraphModel' : undefined) ||
+          (model instanceof tf.LayersModel ? 'LayersModel' : 'Unknown');
       appendRow(parameterTable, 'modelType', state.modelType);
       if (state.benchmark === 'custom model') {
         appendRow(parameterTable, 'modelUrl', state.modelUrl);
@@ -190,6 +194,7 @@ limitations under the License.
       kernelTable.innerHTML = '';
       parameterTable.innerHTML = '';
       modelInputsTable.innerHTML = '';
+      state.modelType = '';
       await tf.nextFrame();
       const rows = ['<b>Kernel</b>', '<b>Time(ms)</b>'];
       if (state.kernelTiming === 'individual') {
