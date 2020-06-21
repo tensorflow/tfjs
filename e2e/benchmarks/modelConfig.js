@@ -15,6 +15,9 @@
  * =============================================================================
  */
 
+const DEFAULT_MODEL_NAME = 'model.json';
+const TFHUB_SEARCH_PARAM = '?tfjs-format=file';
+
 const sentences = [
   'add clem burke in my playlist Pre-Party R&B Jams',
   'Add Live from Aragon Ballroom to Trapeo',
@@ -241,34 +244,80 @@ async function loadImage(imagePath) {
   return promise;
 }
 
-async function checkModelUrl(modelUrl) {
-  const supportedSchemes =  /^(https?|localstorage|indexeddb):\/\/.+$/;
-  return supportedSchemes.test(modelUrl);
+function findIOHandler(path, loadOptions = {}) {
+  let handler;
+  if (path.load != null) {
+    handler = path;
+  } else if (loadOptions.requestInit != null) {
+    handler = tf.io.browserHTTPRequest(path, loadOptions);
+  } else {
+    const handlers = tf.io.getLoadHandlers(path, loadOptions);
+    if (handlers.length === 0) {
+      handlers.push(tf.io.browserHTTPRequest(path, loadOptions));
+    } else if (handlers.length > 1) {
+      throw new Error(
+          `Found more than one (${handlers.length}) load handlers for ` +
+          `URL '${[path]}'`);
+    }
+    handler = handlers[0];
+  }
+  return handler;
 }
 
-async function loadModelByUrl(modelUrl) {
+async function tryAllLoadingMethods(modelHandler, loadOptions = {}) {
   let model;
-  const supportedSchemes =  /^(https?|localstorage|indexeddb):\/\/.+$/;
-  if (!supportedSchemes.test(modelUrl)) {
-    throw new Error(`Error: Please use a valid URL for the custom model, such as 'https://'`);
-  }
-
-  const tfHubUrl =  /^https:\/\/tfhub.dev\/.+$/;
-  let loadingParameters = {fromTFHub: tfHubUrl.test(modelUrl)};
-
-  // state.modelType = await parseModelTypeByUrl(modelUrl);
-  state.modelType = '';
-
-  model = await tf.loadGraphModel(modelUrl, loadingParameters).then(model => {
+  // TODO: download weights once
+  model = await tf.loadGraphModel(modelHandler, loadOptions).then(model => {
     state.modelType = 'GraphModel';
     return model;
-  }).catch(e => console.log('loading GraphModel failed.'));
+  }).catch(e => {});
 
   if (model == null) {
-    model = await tf.loadLayersModel(modelUrl, loadingParameters).then(model => {
+    model = await tf.loadLayersModel(modelHandler, loadOptions).then(model => {
       state.modelType = 'LayersModel';
       return model;
     });
   }
+  return model;
+}
+
+async function loadModelByUrl(modelUrl, loadOptions = {}) {
+  let model, ioHandler, modelType;
+  state.modelType = '';
+
+  const supportedSchemes =  /^(https?|localstorage|indexeddb):\/\/.+$/;
+  if (!supportedSchemes.test(modelUrl)) {
+    throw new Error(`Please use a valid URL, such as 'https://'`);
+  }
+
+  const tfHubUrl =  /^https:\/\/tfhub.dev\/.+$/;
+  if (loadOptions.fromTFHub || tfHubUrl.test(modelUrl)) {
+    if (!modelUrl.endsWith('/')) {
+      modelUrl = modelUrl + '/';
+    }
+    modelUrl = `${modelUrl}${DEFAULT_MODEL_NAME}${TFHUB_SEARCH_PARAM}`;
+  }
+
+  try {
+    ioHandler = findIOHandler(modelUrl, loadOptions);
+    modelType = await ioHandler.load().then(artifacts => artifacts.format);
+  } catch (e) {
+    throw new Error(`Failed to fetch or parse 'model.json' file`);
+  }
+
+  try {
+    if (modelType === 'graph-model') {
+      model = await tf.loadGraphModel(ioHandler, loadOptions);
+      state.modelType = 'GraphModel';
+    } else if (modelType === 'layers-model') {
+      model = await tf.loadLayersModel(ioHandler, loadOptions);
+      state.modelType = 'LayersModel';
+    } else {
+      model = await tryAllLoadingMethods(ioHandler, loadOptions);
+    }
+  } catch (e) {
+    throw new Error('Failed to load the model');
+  }
+
   return model;
 }
