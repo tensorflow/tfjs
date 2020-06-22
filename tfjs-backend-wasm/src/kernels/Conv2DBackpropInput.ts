@@ -76,7 +76,7 @@ function conv2DBackpropInput(args: {
   const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
   const convInfo = backend_util.computeConv2DInfo(
       inputShape, filter.shape as [number, number, number, number], strides,
-      dilations, pad, dimRoundingMode, false, $dataFormat);
+      dilations, pad, dimRoundingMode, false /* depthwise */, $dataFormat);
   const {
     batchSize,
     filterHeight,
