@@ -91,7 +91,7 @@ export const json: OpMapper[] = [
     'tfOpName': 'TensorArrayWriteV3',
     'category': 'control',
     'inputs': [
-      {'start': 0, 'name': 'tensorArrayId', 'type': 'number'},
+      {'start': 0, 'name': 'tensorArrayId', 'type': 'tensor'},
       {'start': 1, 'name': 'index', 'type': 'number'},
       {'start': 2, 'name': 'tensor', 'type': 'tensor'},
       {'start': 3, 'name': 'flowIn', 'type': 'number'},
@@ -104,7 +104,7 @@ export const json: OpMapper[] = [
     'tfOpName': 'TensorArrayReadV3',
     'category': 'control',
     'inputs': [
-      {'start': 0, 'name': 'tensorArrayId', 'type': 'number'},
+      {'start': 0, 'name': 'tensorArrayId', 'type': 'tensor'},
       {'start': 1, 'name': 'index', 'type': 'number'},
       {'start': 2, 'name': 'flowIn', 'type': 'number'},
     ],
@@ -119,7 +119,7 @@ export const json: OpMapper[] = [
     'tfOpName': 'TensorArrayGatherV3',
     'category': 'control',
     'inputs': [
-      {'start': 0, 'name': 'tensorArrayId', 'type': 'number'},
+      {'start': 0, 'name': 'tensorArrayId', 'type': 'tensor'},
       {'start': 1, 'name': 'indices', 'type': 'number[]'},
       {'start': 2, 'name': 'flowIn', 'type': 'number'},
     ],
@@ -132,7 +132,7 @@ export const json: OpMapper[] = [
     'tfOpName': 'TensorArrayScatterV3',
     'category': 'control',
     'inputs': [
-      {'start': 0, 'name': 'tensorArrayId', 'type': 'number'},
+      {'start': 0, 'name': 'tensorArrayId', 'type': 'tensor'},
       {'start': 1, 'name': 'indices', 'type': 'number[]'},
       {'start': 2, 'name': 'tensor', 'type': 'tensor'},
       {'start': 3, 'name': 'flowIn', 'type': 'number'},
@@ -143,7 +143,7 @@ export const json: OpMapper[] = [
     'tfOpName': 'TensorArrayConcatV3',
     'category': 'control',
     'inputs': [
-      {'start': 0, 'name': 'tensorArrayId', 'type': 'number'},
+      {'start': 0, 'name': 'tensorArrayId', 'type': 'tensor'},
       {'start': 1, 'name': 'flowIn', 'type': 'number'},
     ],
     'attrs': [
@@ -159,7 +159,7 @@ export const json: OpMapper[] = [
     'tfOpName': 'TensorArraySplitV3',
     'category': 'control',
     'inputs': [
-      {'start': 0, 'name': 'tensorArrayId', 'type': 'number'},
+      {'start': 0, 'name': 'tensorArrayId', 'type': 'tensor'},
       {'start': 1, 'name': 'tensor', 'type': 'tensor'},
       {'start': 2, 'name': 'lengths', 'type': 'number[]'},
       {'start': 3, 'name': 'flowIn', 'type': 'number'},
@@ -170,14 +170,14 @@ export const json: OpMapper[] = [
     'tfOpName': 'TensorArraySizeV3',
     'category': 'control',
     'inputs': [
-      {'start': 0, 'name': 'tensorArrayId', 'type': 'number'},
+      {'start': 0, 'name': 'tensorArrayId', 'type': 'tensor'},
       {'start': 1, 'name': 'flowIn', 'type': 'number'}
     ]
   },
   {
     'tfOpName': 'TensorArrayCloseV3',
     'category': 'control',
-    'inputs': [{'start': 0, 'name': 'tensorArrayId', 'type': 'number'}]
+    'inputs': [{'start': 0, 'name': 'tensorArrayId', 'type': 'tensor'}]
   },
   {
     'tfOpName': 'StatelessIf',
@@ -252,7 +252,7 @@ export const json: OpMapper[] = [
     'tfOpName': 'TensorListGather',
     'category': 'control',
     'inputs': [
-      {'start': 0, 'name': 'tensorListId', 'type': 'number'},
+      {'start': 0, 'name': 'tensorListId', 'type': 'tensor'},
       {'start': 1, 'name': 'indices', 'type': 'number[]'},
       {'start': 2, 'name': 'elementShape', 'type': 'shape'},
     ],
@@ -263,7 +263,7 @@ export const json: OpMapper[] = [
     'tfOpName': 'TensorListGetItem',
     'category': 'control',
     'inputs': [
-      {'start': 0, 'name': 'tensorListId', 'type': 'number'},
+      {'start': 0, 'name': 'tensorListId', 'type': 'tensor'},
       {'start': 1, 'name': 'index', 'type': 'number'},
       {'start': 2, 'name': 'elementShape', 'type': 'shape'},
     ],
@@ -274,7 +274,7 @@ export const json: OpMapper[] = [
     'tfOpName': 'TensorListSetItem',
     'category': 'control',
     'inputs': [
-      {'start': 0, 'name': 'tensorListId', 'type': 'number'},
+      {'start': 0, 'name': 'tensorListId', 'type': 'tensor'},
       {'start': 1, 'name': 'index', 'type': 'number'},
       {'start': 2, 'name': 'tensor', 'type': 'tensor'},
     ],
@@ -305,7 +305,7 @@ export const json: OpMapper[] = [
     'tfOpName': 'TensorListStack',
     'category': 'control',
     'inputs': [
-      {'start': 0, 'name': 'tensorListId', 'type': 'number'},
+      {'start': 0, 'name': 'tensorListId', 'type': 'tensor'},
       {'start': 1, 'name': 'elementShape', 'type': 'shape'},
     ],
     'attrs': [
@@ -328,7 +328,7 @@ export const json: OpMapper[] = [
     'tfOpName': 'TensorListConcat',
     'category': 'control',
     'inputs': [
-      {'start': 0, 'name': 'tensorListId', 'type': 'number'},
+      {'start': 0, 'name': 'tensorListId', 'type': 'tensor'},
     ],
     'attrs': [
       {'tfName': 'element_shape', 'name': 'elementShape', 'type': 'shape'},
@@ -339,7 +339,7 @@ export const json: OpMapper[] = [
     'tfOpName': 'TensorListPopBack',
     'category': 'control',
     'inputs': [
-      {'start': 0, 'name': 'tensorListId', 'type': 'number'},
+      {'start': 0, 'name': 'tensorListId', 'type': 'tensor'},
       {'start': 1, 'name': 'elementShape', 'type': 'shape'},
     ],
     'attrs':
@@ -349,7 +349,7 @@ export const json: OpMapper[] = [
     'tfOpName': 'TensorListPushBack',
     'category': 'control',
     'inputs': [
-      {'start': 0, 'name': 'tensorListId', 'type': 'number'},
+      {'start': 0, 'name': 'tensorListId', 'type': 'tensor'},
       {'start': 1, 'name': 'tensor', 'type': 'tensor'},
     ],
     'attrs':

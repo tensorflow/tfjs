@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, scalar, Tensor1D, Tensor2D, TensorInfo} from '@tensorflow/tfjs';
+import {KernelConfig, NamedAttrMap, NamedTensorInfoMap, scalar, Tensor1D, Tensor2D, TensorInfo} from '@tensorflow/tfjs';
 
 import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
@@ -32,7 +32,7 @@ interface NonMaxSuppressionWithScoreAttrs extends NamedAttrMap {
 }
 
 // TODO(nsthorat, dsmilkov): Remove dependency on tensors, use dataId.
-registerKernel({
+export const nonMaxSuppressionV5Config: KernelConfig = {
   kernelName: 'NonMaxSuppressionV5',
   backendName: 'tensorflow',
   kernelFunc: ({inputs, backend, attrs}) => {
@@ -64,4 +64,4 @@ registerKernel({
 
     return [selectedIndices, selectedScores];
   }
-});
+};

@@ -185,9 +185,8 @@ describe('control', () => {
         node.attrParams['identicalElementShapes'] = createBoolAttr(true);
         node.inputNames = ['input1'];
 
-        const tensorId =
-            (await executeOp(node, {input1}, context))[0].dataSync()[0];
-        expect(context.getTensorArray(tensorId)).toBeDefined();
+        const tensorId = (await executeOp(node, {input1}, context))[0];
+        expect(context.getTensorArray(tensorId.id)).toBeDefined();
       });
       it('should match json def', () => {
         node.op = 'TensorArrayV3';
@@ -209,11 +208,11 @@ describe('control', () => {
             new TensorArray('', 'int32', 5, [], true, false, true);
         context.addTensorArray(tensorArray);
         node.op = 'TensorArrayWriteV3';
-        node.inputParams['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorArrayId'] = createTensorAttr(0);
         node.inputParams['index'] = createNumberAttrFromIndex(1);
         node.inputParams['tensor'] = createTensorAttr(2);
         node.inputNames = ['input2', 'input3', 'input1'];
-        const input2 = [scalar(tensorArray.id)];
+        const input2 = [tensorArray.idTensor];
         const input3 = [scalar(0)];
         await executeOp(node, {input1, input2, input3}, context);
 
@@ -221,7 +220,7 @@ describe('control', () => {
       });
       it('should match json def', () => {
         node.op = 'TensorArrayWriteV3';
-        node.inputParams['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorArrayId'] = createTensorAttr(0);
         node.inputParams['index'] = createNumberAttrFromIndex(1);
         node.inputParams['tensor'] = createTensorAttr(2);
 
@@ -237,10 +236,10 @@ describe('control', () => {
         tensorArray.write(0, input4);
         context.addTensorArray(tensorArray);
         node.op = 'TensorArrayReadV3';
-        node.inputParams['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorArrayId'] = createTensorAttr(0);
         node.inputParams['index'] = createNumberAttrFromIndex(1);
         node.inputNames = ['input2', 'input3'];
-        const input2 = [scalar(tensorArray.id)];
+        const input2 = [tensorArray.idTensor];
         const input3 = [scalar(0)];
         const read = await executeOp(node, {input1, input2, input3}, context);
 
@@ -249,7 +248,7 @@ describe('control', () => {
       });
       it('should match json def', () => {
         node.op = 'TensorArrayReadV3';
-        node.inputParams['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorArrayId'] = createTensorAttr(0);
         node.inputParams['index'] = createNumberAttrFromIndex(1);
 
         expect(validateParam(node, control.json)).toBeTruthy();
@@ -265,11 +264,11 @@ describe('control', () => {
         tensorArray.writeMany([0, 1], [input4, input5]);
         context.addTensorArray(tensorArray);
         node.op = 'TensorArrayGatherV3';
-        node.inputParams['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorArrayId'] = createTensorAttr(0);
         node.inputParams['indices'] = createNumericArrayAttrFromIndex(1);
         node.attrParams['dtype'] = createDtypeAttr('int32');
         node.inputNames = ['input2', 'input3'];
-        const input2 = [scalar(tensorArray.id)];
+        const input2 = [tensorArray.idTensor];
         const input3 = [tensor1d([0, 1])];
         const gather = await executeOp(node, {input2, input3}, context);
         expect(gather.length).toEqual(1);
@@ -279,7 +278,7 @@ describe('control', () => {
       });
       it('should match json def', () => {
         node.op = 'TensorArrayGatherV3';
-        node.inputParams['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorArrayId'] = createTensorAttr(0);
         node.inputParams['indices'] = createNumericArrayAttrFromIndex(1);
         node.attrParams['dtype'] = createDtypeAttr('int32');
 
@@ -294,11 +293,11 @@ describe('control', () => {
         const input4 = [tensor2d([0, 0, 0, 1, 1, 1], [2, 3], 'int32')];
         context.addTensorArray(tensorArray);
         node.op = 'TensorArrayScatterV3';
-        node.inputParams['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorArrayId'] = createTensorAttr(0);
         node.inputParams['indices'] = createNumericArrayAttrFromIndex(1);
         node.inputParams['tensor'] = createTensorAttr(2);
         node.inputNames = ['input2', 'input3', 'input4'];
-        const input2 = [scalar(tensorArray.id)];
+        const input2 = [tensorArray.idTensor];
         const input3 = [tensor1d([0, 1], 'int32')];
         await executeOp(node, {input2, input3, input4}, context);
 
@@ -307,7 +306,7 @@ describe('control', () => {
 
       it('should match json def', () => {
         node.op = 'TensorArrayScatterV3';
-        node.inputParams['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorArrayId'] = createTensorAttr(0);
         node.inputParams['indices'] = createNumericArrayAttrFromIndex(1);
         node.inputParams['tensor'] = createTensorAttr(2);
 
@@ -322,11 +321,11 @@ describe('control', () => {
         const input4 = [tensor2d([0, 0, 0, 1, 1, 1], [2, 3], 'int32')];
         context.addTensorArray(tensorArray);
         node.op = 'TensorArraySplitV3';
-        node.inputParams['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorArrayId'] = createTensorAttr(0);
         node.inputParams['tensor'] = createTensorAttr(1);
         node.inputParams['lengths'] = createNumericArrayAttrFromIndex(2);
         node.inputNames = ['input2', 'input4', 'input3'];
-        const input2 = [scalar(tensorArray.id)];
+        const input2 = [tensorArray.idTensor];
         const input3 = [tensor1d([1, 1], 'int32')];
         await executeOp(node, {input2, input3, input4}, context);
 
@@ -334,7 +333,7 @@ describe('control', () => {
       });
       it('should match json def', () => {
         node.op = 'TensorArraySplitV3';
-        node.inputParams['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorArrayId'] = createTensorAttr(0);
         node.inputParams['tensor'] = createTensorAttr(1);
         node.inputParams['lengths'] = createNumericArrayAttrFromIndex(2);
 
@@ -351,10 +350,10 @@ describe('control', () => {
         tensorArray.writeMany([0, 1], [input4, input5]);
         context.addTensorArray(tensorArray);
         node.op = 'TensorArrayConcatV3';
-        node.inputParams['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorArrayId'] = createTensorAttr(0);
         node.attrParams['dtype'] = createDtypeAttr('int32');
         node.inputNames = ['input2'];
-        const input2 = [scalar(tensorArray.id)];
+        const input2 = [tensorArray.idTensor];
         const concat = await executeOp(node, {input2}, context);
         expect(concat.length).toEqual(1);
         expect(concat[0].shape).toEqual([6]);
@@ -363,7 +362,7 @@ describe('control', () => {
       });
       it('should match json def', () => {
         node.op = 'TensorArrayConcatV3';
-        node.inputParams['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorArrayId'] = createTensorAttr(0);
         node.attrParams['dtype'] = createDtypeAttr('int32');
 
         expect(validateParam(node, control.json)).toBeTruthy();
@@ -379,9 +378,9 @@ describe('control', () => {
         tensorArray.writeMany([0, 1], [input4, input5]);
         context.addTensorArray(tensorArray);
         node.op = 'TensorArraySizeV3';
-        node.inputParams['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorArrayId'] = createTensorAttr(0);
         node.inputNames = ['input2'];
-        const input2 = [scalar(tensorArray.id)];
+        const input2 = [tensorArray.idTensor];
         const size = await executeOp(node, {input2}, context);
         expect(size.length).toEqual(1);
         expect(size[0].shape).toEqual([]);
@@ -389,7 +388,7 @@ describe('control', () => {
       });
       it('should match json def', () => {
         node.op = 'TensorArraySizeV3';
-        node.inputParams['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorArrayId'] = createTensorAttr(0);
 
         expect(validateParam(node, control.json)).toBeTruthy();
       });
@@ -404,15 +403,15 @@ describe('control', () => {
         tensorArray.writeMany([0, 1], [input4, input5]);
         context.addTensorArray(tensorArray);
         node.op = 'TensorArrayCloseV3';
-        node.inputParams['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorArrayId'] = createTensorAttr(0);
         node.inputNames = ['input2'];
-        const input2 = [scalar(tensorArray.id)];
+        const input2 = [tensorArray.idTensor];
         await executeOp(node, {input2}, context);
         expect(tensorArray.closed).toBeTruthy();
       });
       it('should match json def', () => {
         node.op = 'TensorArrayCloseV3';
-        node.inputParams['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorArrayId'] = createTensorAttr(0);
 
         expect(validateParam(node, control.json)).toBeTruthy();
       });
@@ -675,8 +674,8 @@ describe('control', () => {
       node.inputNames = ['input4', 'input1'];
       const input4 = [tensor1d([10, 10], 'int32')];
       const tensorListId =
-          (await executeOp(node, {input1, input4}, context))[0].dataSync()[0];
-      const tensorList = context.getTensorList(tensorListId);
+          (await executeOp(node, {input1, input4}, context))[0];
+      const tensorList = context.getTensorList(tensorListId.id);
       expect(tensorList.elementDtype).toEqual('int32');
       expect(tensorList.elementShape).toEqual([10, 10]);
       expect(tensorList.maxNumElements).toEqual(1);
@@ -698,11 +697,11 @@ describe('control', () => {
       const tensorList = new TensorList([input4, input5], [3], 'int32', 5);
       context.addTensorList(tensorList);
       node.op = 'TensorListConcat';
-      node.inputParams['tensorListId'] = createNumberAttrFromIndex(0);
+      node.inputParams['tensorListId'] = createTensorAttr(0);
       node.attrParams['elementDType'] = createDtypeAttr('int32');
       node.attrParams['elementShape'] = createTensorShapeAttr([3]);
       node.inputNames = ['input2'];
-      const input2 = [scalar(tensorList.id)];
+      const input2 = [tensorList.idTensor];
       const concat = await executeOp(node, {input2}, context);
       expect(concat.length).toEqual(1);
       expect(concat[0].shape).toEqual([6]);
@@ -711,7 +710,7 @@ describe('control', () => {
     });
     it('should match json def', () => {
       node.op = 'TensorListConcat';
-      node.inputParams['tensorListId'] = createNumberAttrFromIndex(0);
+      node.inputParams['tensorListId'] = createTensorAttr(0);
       node.attrParams['elementDType'] = createDtypeAttr('int32');
       node.attrParams['elementShape'] = createTensorShapeAttr([3]);
 
@@ -728,10 +727,9 @@ describe('control', () => {
         node.inputNames = ['input4', 'input2', 'input3'];
         const input2 = [tensor1d([0, 1], 'int32')];
         const input3 = [tensor1d([3], 'int32')];
-        const tensorListId = (await executeOp(
-            node, {input2, input3, input4},
-            context))[0].dataSync()[0];
-        const tensorList = context.getTensorList(tensorListId);
+        const tensorListId =
+            (await executeOp(node, {input2, input3, input4}, context))[0];
+        const tensorList = context.getTensorList(tensorListId.id);
         expect(tensorList.size()).toEqual(2);
       });
 
@@ -758,9 +756,8 @@ describe('control', () => {
         const input3 = [tensor1d([3], 'int32')];
         const input5 = [tensor1d([2], 'int32')];
         const tensorListId = (await executeOp(
-            node, {input2, input3, input4, input5},
-            context))[0].dataSync()[0];
-        const tensorList = context.getTensorList(tensorListId);
+            node, {input2, input3, input4, input5}, context))[0];
+        const tensorList = context.getTensorList(tensorListId.id);
         expect(tensorList.size()).toEqual(2);
       });
 
@@ -779,12 +776,12 @@ describe('control', () => {
         const tensorList = new TensorList([], [], 'int32', 5);
         context.addTensorList(tensorList);
         node.op = 'TensorListSetItem';
-        node.inputParams['tensorListId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorListId'] = createTensorAttr(0);
         node.inputParams['index'] = createNumberAttrFromIndex(1);
         node.inputParams['tensor'] = createTensorAttr(2);
         node.attrParams['elementDType'] = createDtypeAttr('int32');
         node.inputNames = ['input2', 'input3', 'input1'];
-        const input2 = [scalar(tensorList.id)];
+        const input2 = [tensorList.idTensor];
         const input3 = [scalar(0)];
         await executeOp(node, {input1, input2, input3}, context);
 
@@ -792,7 +789,7 @@ describe('control', () => {
       });
       it('should match json def', () => {
         node.op = 'TensorListSetItem';
-        node.inputParams['tensorListId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorListId'] = createTensorAttr(0);
         node.inputParams['index'] = createNumberAttrFromIndex(1);
         node.inputParams['tensor'] = createTensorAttr(2);
         node.attrParams['elementDType'] = createDtypeAttr('int32');
@@ -808,12 +805,12 @@ describe('control', () => {
         tensorList.setItem(0, input4);
         context.addTensorList(tensorList);
         node.op = 'TensorListGetItem';
-        node.inputParams['tensorListId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorListId'] = createTensorAttr(0);
         node.inputParams['index'] = createNumberAttrFromIndex(1);
         node.inputParams['elementShape'] = createShapeAttrFromIndex(2);
         node.inputNames = ['input2', 'input3', 'input5'];
         node.attrParams['elementDType'] = createDtypeAttr('int32');
-        const input2 = [scalar(tensorList.id)];
+        const input2 = [tensorList.idTensor];
         const input3 = [scalar(0)];
         const input5 = [tensor1d([3], 'int32')];
         const read = await executeOp(node, {input5, input2, input3}, context);
@@ -823,7 +820,7 @@ describe('control', () => {
       });
       it('should match json def', () => {
         node.op = 'TensorListGetItem';
-        node.inputParams['tensorListId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorListId'] = createTensorAttr(0);
         node.inputParams['index'] = createNumberAttrFromIndex(1);
         node.inputParams['elementShape'] = createShapeAttrFromIndex(2);
         node.attrParams['elementDType'] = createDtypeAttr('int32');
@@ -836,18 +833,18 @@ describe('control', () => {
         const tensorList = new TensorList([], [], 'int32', 5);
         context.addTensorList(tensorList);
         node.op = 'TensorListPushBack';
-        node.inputParams['tensorListId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorListId'] = createTensorAttr(0);
         node.inputParams['tensor'] = createTensorAttr(1);
         node.attrParams['elementDType'] = createDtypeAttr('int32');
         node.inputNames = ['input2', 'input1'];
-        const input2 = [scalar(tensorList.id)];
+        const input2 = [tensorList.idTensor];
         await executeOp(node, {input1, input2}, context);
 
         expect(tensorList.size()).toEqual(1);
       });
       it('should match json def', () => {
         node.op = 'TensorListPushBack';
-        node.inputParams['tensorListId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorListId'] = createTensorAttr(0);
         node.inputParams['tensor'] = createTensorAttr(1);
         node.attrParams['elementDType'] = createDtypeAttr('int32');
 
@@ -862,11 +859,11 @@ describe('control', () => {
         tensorList.setItem(0, input4);
         context.addTensorList(tensorList);
         node.op = 'TensorListPopBack';
-        node.inputParams['tensorListId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorListId'] = createTensorAttr(0);
         node.inputParams['elementShape'] = createShapeAttrFromIndex(1);
         node.inputNames = ['input2', 'input5'];
         node.attrParams['elementDType'] = createDtypeAttr('int32');
-        const input2 = [scalar(tensorList.id)];
+        const input2 = [tensorList.idTensor];
         const input5 = [tensor1d([3], 'int32')];
         const read = await executeOp(node, {input5, input2}, context);
 
@@ -875,7 +872,7 @@ describe('control', () => {
       });
       it('should match json def', () => {
         node.op = 'TensorListPopBack';
-        node.inputParams['tensorListId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorListId'] = createTensorAttr(0);
         node.inputParams['elementShape'] = createShapeAttrFromIndex(1);
         node.attrParams['elementDType'] = createDtypeAttr('int32');
 
@@ -889,11 +886,11 @@ describe('control', () => {
         tensorList.setItem(0, input4);
         context.addTensorList(tensorList);
         node.op = 'TensorListStack';
-        node.inputParams['tensorListId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorListId'] = createTensorAttr(0);
         node.inputParams['elementShape'] = createShapeAttrFromIndex(1);
         node.inputNames = ['input2', 'input5'];
         node.attrParams['elementDType'] = createDtypeAttr('int32');
-        const input2 = [scalar(tensorList.id)];
+        const input2 = [tensorList.idTensor];
         const input5 = [tensor1d([3], 'int32')];
         const read = await executeOp(node, {input5, input2}, context);
 
@@ -902,7 +899,7 @@ describe('control', () => {
       });
       it('should match json def', () => {
         node.op = 'TensorListStack';
-        node.inputParams['tensorListId'] = createNumberAttrFromIndex(0);
+        node.inputParams['tensorListId'] = createTensorAttr(0);
         node.inputParams['elementShape'] = createShapeAttrFromIndex(1);
         node.attrParams['elementDType'] = createDtypeAttr('int32');
 
@@ -917,12 +914,12 @@ describe('control', () => {
           tensorList.setItem(1, input6);
           context.addTensorList(tensorList);
           node.op = 'TensorListGather';
-          node.inputParams['tensorListId'] = createNumberAttrFromIndex(0);
+          node.inputParams['tensorListId'] = createTensorAttr(0);
           node.inputParams['indices'] = createNumericArrayAttrFromIndex(1);
           node.inputParams['elementShape'] = createShapeAttrFromIndex(2);
           node.inputNames = ['input2', 'input3', 'input5'];
           node.attrParams['elementDType'] = createDtypeAttr('int32');
-          const input2 = [scalar(tensorList.id)];
+          const input2 = [tensorList.idTensor];
           const input3 = [tensor1d([0, 1], 'int32')];
 
           const input5 = [tensor1d([3], 'int32')];
@@ -934,7 +931,7 @@ describe('control', () => {
         });
         it('should match json def', () => {
           node.op = 'TensorListGather';
-          node.inputParams['tensorListId'] = createNumberAttrFromIndex(0);
+          node.inputParams['tensorListId'] = createTensorAttr(0);
           node.inputParams['indices'] = createNumericArrayAttrFromIndex(1);
           node.inputParams['elementShape'] = createShapeAttrFromIndex(2);
           node.attrParams['elementDType'] = createDtypeAttr('int32');
@@ -956,8 +953,8 @@ describe('control', () => {
         const input2 = [tensor1d([3], 'int32')];
         const input3 = [tensor1d([1, 1], 'int32')];
         const idTensor =
-            await executeOp(node, {input2, input3, input4}, context);
-        const tensorList = context.getTensorList(idTensor[0].dataSync()[0]);
+            (await executeOp(node, {input2, input3, input4}, context))[0];
+        const tensorList = context.getTensorList(idTensor.id);
         expect(tensorList.size()).toEqual(2);
       });
 

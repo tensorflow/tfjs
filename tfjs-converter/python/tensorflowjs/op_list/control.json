@@ -155,7 +155,7 @@
       {
         "start": 0,
         "name": "tensorArrayId",
-        "type": "number"
+        "type": "tensor"
       },
       {
         "start": 1,
@@ -189,7 +189,7 @@
       {
         "start": 0,
         "name": "tensorArrayId",
-        "type": "number"
+        "type": "tensor"
       },
       {
         "start": 1,
@@ -218,7 +218,7 @@
       {
         "start": 0,
         "name": "tensorArrayId",
-        "type": "number"
+        "type": "tensor"
       },
       {
         "start": 1,
@@ -251,7 +251,7 @@
       {
         "start": 0,
         "name": "tensorArrayId",
-        "type": "number"
+        "type": "tensor"
       },
       {
         "start": 1,
@@ -284,7 +284,7 @@
       {
         "start": 0,
         "name": "tensorArrayId",
-        "type": "number"
+        "type": "tensor"
       },
       {
         "start": 1,
@@ -313,7 +313,7 @@
       {
         "start": 0,
         "name": "tensorArrayId",
-        "type": "number"
+        "type": "tensor"
       },
       {
         "start": 1,
@@ -346,7 +346,7 @@
       {
         "start": 0,
         "name": "tensorArrayId",
-        "type": "number"
+        "type": "tensor"
       },
       {
         "start": 1,
@@ -362,7 +362,7 @@
       {
         "start": 0,
         "name": "tensorArrayId",
-        "type": "number"
+        "type": "tensor"
       }
     ]
   },
@@ -540,7 +540,7 @@
       {
         "start": 0,
         "name": "tensorListId",
-        "type": "number"
+        "type": "tensor"
       },
       {
         "start": 1,
@@ -568,7 +568,7 @@
       {
         "start": 0,
         "name": "tensorListId",
-        "type": "number"
+        "type": "tensor"
       },
       {
         "start": 1,
@@ -596,7 +596,7 @@
       {
         "start": 0,
         "name": "tensorListId",
-        "type": "number"
+        "type": "tensor"
       },
       {
         "start": 1,
@@ -670,7 +670,7 @@
       {
         "start": 0,
         "name": "tensorListId",
-        "type": "number"
+        "type": "tensor"
       },
       {
         "start": 1,
@@ -726,7 +726,7 @@
       {
         "start": 0,
         "name": "tensorListId",
-        "type": "number"
+        "type": "tensor"
       }
     ],
     "attrs": [
@@ -749,7 +749,7 @@
       {
         "start": 0,
         "name": "tensorListId",
-        "type": "number"
+        "type": "tensor"
       },
       {
         "start": 1,
@@ -772,7 +772,7 @@
       {
         "start": 0,
         "name": "tensorListId",
-        "type": "number"
+        "type": "tensor"
       },
       {
         "start": 1,
