@@ -194,32 +194,44 @@ const benchmarks = {
         const inferenceInputs = [];
         try {
           for (let inferenceInputIndex = 0; inferenceInputIndex < model.inputs.length; inferenceInputIndex++) {
+            // Construct the input tensor shape
             const inferenceInput = model.inputs[inferenceInputIndex];
             const inputShape = [];
             for (let dimension = 0; dimension < inferenceInput.shape.length; dimension++) {
               const shapeValue = inferenceInput.shape[dimension];
-              if (shapeValue != null && shapeValue >= 0) {
-                if (shapeValue == 0) {
-                  await showMsg('Warning: one dimension of an input tensor is zero');
-                }
+              if (shapeValue == null || shapeValue < 0) {
+                inputShape.push(1);
+              } else if (shapeValue == 0) {
+                await showMsg('Warning: one dimension of an input tensor is zero');
                 inputShape.push(shapeValue);
               } else {
-                inputShape.push(1);
+                inputShape.push(shapeValue);
               }
             }
-            const inputTensor = tf.randomNormal(inputShape, 0, 1, inferenceInput.dtype);
+
+            // Construct the input tensor
+            let inputTensor;
+            if (inferenceInput.dtype == 'float32' || inferenceInput.dtype == 'int32') {
+              inputTensor = tf.randomNormal(inputShape, 0, 1, inferenceInput.dtype);
+            } else {
+              throw new Error(`${inferenceInput.dtype} dtype is not supported`);
+            }
             inferenceInputs.push(inputTensor);
           }
-          return model.predict(inferenceInputs);
+
+          let resultTensor = model.predict(inferenceInputs).catch(() => {
+            throw new Error('Failed to predict');
+          });
+          return resultTensor;
         } catch (e) {
-          if(e.message.indexOf("Please use model.executeAsync() instead.") != -1 && typeof(model.executeAsync) === "function") {
-            return model.executeAsync(inferenceInputs);
-          } else {
-            throw new Error(e);
-          }
+          showMsg('Error: ' + e.message);
+          throw e;
         } finally {
+          // dispose input tensors
           for (let tensorIndex = 0; tensorIndex < inferenceInputs.length; tensorIndex++) {
-            inferenceInputs[tensorIndex].dispose();
+            if (inferenceInputs[tensorIndex] instanceof tf.Tensor) {
+              inferenceInputs[tensorIndex].dispose();
+            }
           }
         }
 
@@ -297,6 +309,7 @@ async function loadModelByUrl(modelUrl, loadOptions = {}) {
     modelUrl = `${modelUrl}${DEFAULT_MODEL_NAME}${TFHUB_SEARCH_PARAM}`;
   }
 
+  // Convert URL to IOHandler and parse the model type
   try {
     ioHandler = findIOHandler(modelUrl, loadOptions);
     modelType = await ioHandler.load().then(artifacts => artifacts.format);
@@ -304,6 +317,7 @@ async function loadModelByUrl(modelUrl, loadOptions = {}) {
     throw new Error(`Failed to fetch or parse 'model.json' file`);
   }
 
+  // load models
   try {
     if (modelType === 'graph-model') {
       model = await tf.loadGraphModel(ioHandler, loadOptions);

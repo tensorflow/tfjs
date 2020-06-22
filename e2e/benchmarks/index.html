@@ -107,7 +107,7 @@ limitations under the License.
       benchmark: 'mobilenet_v2',
       run: (v) => {
         runBenchmark().catch(e => {
-          showMsg("Error: " + e.message);
+          showMsg('Error: ' + e.message);
           throw e;
         });
       },
@@ -130,7 +130,7 @@ limitations under the License.
           const prediction = predict(model);
           predictionData = await getPredictionData(prediction);
         } catch (e) {
-          showMsg("Error: " + e.message);
+          showMsg('Error: ' + e.message);
           throw e;
         }
 
@@ -274,17 +274,18 @@ limitations under the License.
 
     async function showInputs() {
       modelInputsTable.innerHTML = '';
-      const modelInputs = document.getElementById('modelInputs');
+      const modelInputsElement = document.getElementById('modelInputs');
       if (model['inputs'] != null) {
-        modelInputs.style.display='';
-        for (const modelInputs of model.inputs) {
-          appendRow(modelInputsTable, 'name', modelInputs.name);
-          appendRow(modelInputsTable, 'shape', modelInputs.shape);
-          appendRow(modelInputsTable, 'data type', modelInputs.dtype);
+        modelInputsElement.style.display='';
+        for (let modelInputIndex = 0; modelInputIndex < model.inputs.length; modelInputIndex++) {
+          let modelInput = model.inputs[modelInputIndex];
+          appendRow(modelInputsTable, 'name', modelInput.name);
+          appendRow(modelInputsTable, 'shape', modelInput.shape);
+          appendRow(modelInputsTable, 'data type', modelInput.dtype);
           appendRow(modelInputsTable, '', '');
         }
       } else {
-        modelInputs.style.display='none';
+        modelInputsElement.style.display='none';
       }
       await tf.nextFrame();
     }
