@@ -20,7 +20,7 @@ import {complex} from './Complex';
 
 let wasmFFT: (
     inputId: number, imagInputId: number, outerDim: number, innerDim: number,
-    outputId: number) => void;
+    isRealComponent: number, outputId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmFFT = backend.wasm.cwrap(FFT, null, [
@@ -28,6 +28,7 @@ function setup(backend: BackendWasm): void {
     'number',  // imagInputId
     'number',  // outerDim
     'number',  // innerDim
+    'number',  // isRealComponent
     'number',  // outputId
   ]);
 }
@@ -48,8 +49,12 @@ function fft(args: {backend: BackendWasm, inputs: FFTInputs}): TensorInfo {
 
   const [outerDim, innerDim] = input.shape;
 
-  wasmFFT(realInputId, imagInputId, outerDim, innerDim, realId);
-  wasmFFT(realInputId, imagInputId, outerDim, innerDim, imagId);
+  wasmFFT(
+      realInputId, imagInputId, outerDim, innerDim, 1 /* is real component */,
+      realId);
+  wasmFFT(
+      realInputId, imagInputId, outerDim, innerDim,
+      0 /* is not real component */, imagId);
 
   const out = complex({backend, inputs: {real, imag}});
   return out;

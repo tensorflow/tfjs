@@ -29,7 +29,8 @@ EMSCRIPTEN_KEEPALIVE
 #endif
 
 void FFT(const size_t real_input_id, const size_t imag_input_id,
-         const size_t outer_dim, const size_t inner_dim, const size_t out_id) {
+         const size_t outer_dim, const size_t inner_dim,
+         const size_t is_real_component, const size_t out_id) {
   auto& real_input_info = backend::get_tensor_info(real_input_id);
   const float* real_input_buf = real_input_info.f32();
   auto& imag_input_info = backend::get_tensor_info(imag_input_id);
@@ -56,7 +57,11 @@ void FFT(const size_t real_input_id, const size_t imag_input_id,
         float real = real_input_buf[row * inner_dim + col];
         float imag = imag_input_buf[row * inner_dim + col];
 
-        result += real * exp_r - imag * exp_i;
+        if (is_real_component > 0) {
+          result += real * exp_r - imag * exp_i;
+        } else {
+          result += real * exp_i + imag * exp_r;
+        }
       }
 
       *out_buf_ptr = result;
