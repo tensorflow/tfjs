@@ -54,11 +54,9 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
      });
 
   it('with ellipsisMask=1 and start / end normalization', async () => {
-    const t = tf.tensor3d(
-        [
-          [[1, 1, 1], [2, 2, 2]], [[3, 3, 3], [4, 4, 4]], [[5, 5, 5], [6, 6, 6]]
-        ],
-        [3, 2, 3]);
+    const t = tf.tensor3d([
+      [[1, 1, 1], [2, 2, 2]], [[3, 3, 3], [4, 4, 4]], [[5, 5, 5], [6, 6, 6]]
+    ]);
     const begin = [1, 0];
     const end = [2, 1];
     const strides = [1, 1];
