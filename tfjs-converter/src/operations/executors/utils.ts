@@ -17,6 +17,7 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 
+import {toNestedArray} from '../../../../tfjs-core/src/util';
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
 import {Node, ValueType} from '../types';
@@ -40,10 +41,11 @@ export function getParamValue(
 
       return inputs.map(name => getTensor(name, tensorMap, context));
     }
-    const data = Array.prototype.slice.call(
-        getTensor(node.inputNames.slice(start)[0], tensorMap, context)
-            .dataSync());
-    return inputParam.type === 'number' ? data[0] : data;
+    const tensor =
+        getTensor(node.inputNames.slice(start)[0], tensorMap, context);
+    const data = tensor.dataSync();
+    return inputParam.type === 'number' ? data[0] :
+                                          toNestedArray(tensor.shape, data);
   }
   const attrParam = node.attrParams[paramName];
   return attrParam && attrParam.value;
@@ -121,7 +123,16 @@ export function getPadding(
     context: ExecutionContext): ValueType {
   let pad = getParamValue('pad', node, tensorMap, context);
   if (pad === 'explicit') {
+    // This is 1d array, we need to convert it to 2d array
     pad = getParamValue('explicitPaddings', node, tensorMap, context);
+    const explicitPadding: [
+      [number, number], [number, number], [number, number], [number, number]
+    ] = [[0, 0], [0, 0], [0, 0], [0, 0]];
+    for (let i = 0; i < 4; i++) {
+      explicitPadding[i][0] = (pad as number[])[i * 2];
+      explicitPadding[i][1] = (pad as number[])[i * 2 + 1];
+    }
+    return explicitPadding;
   }
   return pad;
 }
