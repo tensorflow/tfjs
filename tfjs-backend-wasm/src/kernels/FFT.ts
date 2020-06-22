@@ -18,10 +18,13 @@ import {BackendWasm} from '../backend_wasm';
 import {complex} from './Complex';
 // import {CppDType} from './types';
 
-let wasmFFT: (inputId: number) => void;
+let wasmFFT: (inputId: number, outputId: number) => void;
 
 function setup(backend: BackendWasm): void {
-  wasmFFT = backend.wasm.cwrap(FFT, null, ['number']);
+  wasmFFT = backend.wasm.cwrap(FFT, null, [
+    'number',  // inputId
+    'number'   // outputId
+  ]);
 }
 
 function fft(args: {backend: BackendWasm, inputs: FFTInputs}): TensorInfo {
@@ -30,14 +33,16 @@ function fft(args: {backend: BackendWasm, inputs: FFTInputs}): TensorInfo {
   const inputData = backend.dataIdMap.get(input.dataId);
   const realInput = inputData.complexTensors.real;
   const imagInput = inputData.complexTensors.imag;
+  const realInputId = backend.dataIdMap.get(realInput.dataId).id;
+  const imagInputId = backend.dataIdMap.get(imagInput.dataId).id;
 
   const real = backend.makeOutput(realInput.shape, realInput.dtype);
   const imag = backend.makeOutput(imagInput.shape, imagInput.dtype);
   const realId = backend.dataIdMap.get(real.dataId).id;
   const imagId = backend.dataIdMap.get(imag.dataId).id;
 
-  wasmFFT(realId);
-  wasmFFT(imagId);
+  wasmFFT(realInputId, realId);
+  wasmFFT(imagInputId, imagId);
 
   const out = complex({backend, inputs: {real, imag}});
   return out;

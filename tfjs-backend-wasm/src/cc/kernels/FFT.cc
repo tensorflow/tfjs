@@ -27,7 +27,17 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 
-void FFT() {}
+void FFT(const size_t input_id, const size_t out_id) {
+  auto& input_info = backend::get_tensor_info(input_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
+  const float* input_buf = input_info.f32();
+  float* out_buf = out_info.f32_write();
+  const size_t input_size = input_info.size;
+
+  for (size_t i = 0; i < input_size; ++i) {
+    out_buf[i] = input_buf[i];
+  }
+}
 }  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs
