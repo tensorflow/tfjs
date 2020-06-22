@@ -16,6 +16,7 @@
 #include <emscripten.h>
 #endif
 
+#include <cmath>
 #include <vector>
 
 #include "src/cc/backend.h"
@@ -27,15 +28,40 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 
-void FFT(const size_t input_id, const size_t out_id) {
-  auto& input_info = backend::get_tensor_info(input_id);
-  auto& out_info = backend::get_tensor_info_out(out_id);
-  const float* input_buf = input_info.f32();
-  float* out_buf = out_info.f32_write();
-  const size_t input_size = input_info.size;
+void FFT(const size_t real_input_id, const size_t imag_input_id,
+         const size_t outer_dim, const size_t inner_dim, const size_t out_id) {
+  auto& real_input_info = backend::get_tensor_info(real_input_id);
+  const float* real_input_buf = real_input_info.f32();
+  auto& imag_input_info = backend::get_tensor_info(imag_input_id);
+  const float* imag_input_buf = imag_input_info.f32();
 
-  for (size_t i = 0; i < input_size; ++i) {
-    out_buf[i] = input_buf[i];
+  auto& out_info = backend::get_tensor_info_out(out_id);
+  float* out_buf_ptr = out_info.f32_write();
+  const size_t input_size = real_input_info.size;
+
+  const float exponent_multiplier = -2.0 * M_PI;
+
+  for (size_t row = 0; row < outer_dim; ++row) {
+    for (size_t col = 0; col < inner_dim; ++col) {
+      float index_ratio = float(col) / float(inner_dim);
+      float exponent_multiplier_times_index_ratio =
+          exponent_multiplier * index_ratio;
+
+      float result = 0.0;
+
+      for (size_t i = 0; i < inner_dim; ++i) {
+        float x = exponent_multiplier_times_index_ratio * float(i);
+        float exp_r = cos(x);
+        float exp_i = sin(x);
+        float real = real_input_buf[row * inner_dim + col];
+        float imag = imag_input_buf[row * inner_dim + col];
+
+        result += real * exp_r - imag * exp_i;
+      }
+
+      *out_buf_ptr = result;
+      out_buf_ptr++;
+    }
   }
 }
 }  // extern "C"

@@ -18,12 +18,17 @@ import {BackendWasm} from '../backend_wasm';
 import {complex} from './Complex';
 // import {CppDType} from './types';
 
-let wasmFFT: (inputId: number, outputId: number) => void;
+let wasmFFT: (
+    inputId: number, imagInputId: number, outerDim: number, innerDim: number,
+    outputId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmFFT = backend.wasm.cwrap(FFT, null, [
     'number',  // inputId
-    'number'   // outputId
+    'number',  // imagInputId
+    'number',  // outerDim
+    'number',  // innerDim
+    'number',  // outputId
   ]);
 }
 
@@ -41,8 +46,10 @@ function fft(args: {backend: BackendWasm, inputs: FFTInputs}): TensorInfo {
   const realId = backend.dataIdMap.get(real.dataId).id;
   const imagId = backend.dataIdMap.get(imag.dataId).id;
 
-  wasmFFT(realInputId, realId);
-  wasmFFT(imagInputId, imagId);
+  const [outerDim, innerDim] = input.shape;
+
+  wasmFFT(realInputId, imagInputId, outerDim, innerDim, realId);
+  wasmFFT(realInputId, imagInputId, outerDim, innerDim, imagId);
 
   const out = complex({backend, inputs: {real, imag}});
   return out;
