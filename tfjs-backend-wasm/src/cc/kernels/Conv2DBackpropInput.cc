@@ -28,6 +28,7 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 
+// Follows the implementation in the TFJS CPU backend.
 void Conv2DBackpropInput(
     const size_t dy_id, const size_t filter_id, const size_t batch_size,
     const size_t filter_height, const size_t filter_width,
