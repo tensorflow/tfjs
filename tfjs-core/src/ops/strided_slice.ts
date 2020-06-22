@@ -92,6 +92,7 @@ function stridedSlice_(
   });
   $x = $x.reshape(newShape);
 
+  // Normalize the start, end and strides.
   if (ellipsisAxes.length && numInterpolatedAxes > 0) {
     const fullIndex = ellipsisAxes[0];
 
@@ -102,13 +103,9 @@ function stridedSlice_(
         beginMask, fullIndex, numElidedAxes, begin, $x.shape);
     end = stopIndicesWithElidedDims(
         endMask, fullIndex, numElidedAxes, end, $x.shape);
-
-    for (let axis = 0; axis < $x.rank; axis++) {
-      strides[axis] = stridesForAxis(strides, axis, ellipsisMask);
-    }
-    strides = stridesWithElidedDims(strides, fullIndex, numElidedAxes);
+    strides =
+        stridesWithElidedDims(strides, fullIndex, numElidedAxes, $x.shape);
   } else {
-    // Normalize the start, end and strides.
     for (let axis = 0; axis < $x.rank; axis++) {
       begin[axis] =
           startForAxis(beginMask, begin, strides, $x.shape, axis, ellipsisMask);

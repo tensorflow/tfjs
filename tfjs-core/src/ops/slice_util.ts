@@ -65,9 +65,12 @@ export function computeOutShape(
 // Creates full selection at the elided dimensions. If the dimension matches
 // the ellipsis mask, override the current stride value. Otherwise, insert.
 export function stridesWithElidedDims(
-    strides: number[], ellipsisInsertionIndex: number,
-    numElidedAxes: number): number[] {
+    strides: number[], ellipsisInsertionIndex: number, numElidedAxes: number,
+    inputShape: number[]): number[] {
   const newStrides = [...strides];
+  for (let i = newStrides.length; i < inputShape.length; i++) {
+    newStrides.push(1);
+  }
   for (let i = 0; i < numElidedAxes; i++) {
     if (i === 0) {
       newStrides[ellipsisInsertionIndex] = 1;
