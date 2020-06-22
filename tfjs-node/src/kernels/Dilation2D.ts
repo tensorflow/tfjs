@@ -24,13 +24,12 @@ export const dilation2dConfig: KernelConfig = {
   backendName: 'tensorflow',
   kernelFunc: ({inputs, backend, attrs}) => {
     const {x, filter} = inputs as Dilation2DInputs;
-    const {strides, pad, dataFormat, dilations} =
-        attrs as {} as Dilation2DAttrs;
+    const {strides, pad, dilations} = attrs as {} as Dilation2DAttrs;
     const {dilationHeight, dilationWidth, padInfo, strideHeight, strideWidth} =
         backend_util.computeDilation2DInfo(
             x.shape as [number, number, number, number],
-            filter.shape as [number, number, number], strides, pad, dataFormat,
-            dilations);
+            filter.shape as [number, number, number], strides, pad,
+            'NHWC' /* dataFormat */, dilations);
     const $strides = [1, strideHeight, strideWidth, 1];
     const $dilations = [1, dilationHeight, dilationWidth, 1];
 

@@ -24,8 +24,7 @@ export const dilation2dConfig: KernelConfig = {
   backendName: 'cpu',
   kernelFunc: ({inputs, backend, attrs}) => {
     const {x, filter} = inputs as Dilation2DInputs;
-    const {strides, pad, dataFormat, dilations} =
-        attrs as {} as Dilation2DAttrs;
+    const {strides, pad, dilations} = attrs as {} as Dilation2DAttrs;
     const cpuBackend = backend as MathBackendCPU;
 
     const $x =
@@ -56,8 +55,8 @@ export const dilation2dConfig: KernelConfig = {
     } =
         backend_util.computeDilation2DInfo(
             x.shape as [number, number, number, number],
-            filter.shape as [number, number, number], strides, pad, dataFormat,
-            dilations);
+            filter.shape as [number, number, number], strides, pad,
+            'NHWC' /* dataFormat */, dilations);
 
     const output =
         util.makeZerosNestedTypedArray(outShape, x.dtype) as number[][][][];

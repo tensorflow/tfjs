@@ -87,7 +87,7 @@ function dilation2d_<T extends Tensor3D|Tensor4D>(
   }
 
   const inputs: Dilation2DInputs = {x: x4D, filter: $filter};
-  const attrs: Dilation2DAttrs = {strides, pad, dataFormat, dilations};
+  const attrs: Dilation2DAttrs = {strides, pad, dilations};
 
   const res = ENGINE.runKernel(
                   Dilation2D, inputs as {} as NamedTensorMap,

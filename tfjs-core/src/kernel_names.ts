@@ -197,7 +197,6 @@ export type Dilation2DInputs = Pick<NamedTensorInfoMap, 'x'|'filter'>;
 export interface Dilation2DAttrs {
   strides: [number, number]|number;
   pad: 'valid'|'same'|number;
-  dataFormat: 'NHWC';
   dilations: [number, number]|number;
 }
 

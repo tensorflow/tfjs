@@ -26,8 +26,7 @@ export const dilation2dBackpropInputConfig: KernelConfig = {
   kernelFunc: ({inputs, backend, attrs}) => {
     const {x, filter, dy} =
         inputs as {x: Tensor4D, filter: Tensor3D, dy: Tensor4D};
-    const {strides, pad, dataFormat, dilations} =
-        attrs as {} as Dilation2DAttrs;
+    const {strides, pad, dilations} = attrs as {} as Dilation2DAttrs;
     const cpuBackend = backend as MathBackendCPU;
 
     const $x =
@@ -58,8 +57,8 @@ export const dilation2dBackpropInputConfig: KernelConfig = {
     } =
         backend_util.computeDilation2DInfo(
             x.shape as [number, number, number, number],
-            filter.shape as [number, number, number], strides, pad, dataFormat,
-            dilations);
+            filter.shape as [number, number, number], strides, pad,
+            'NHWC' /* dataFormat */, dilations);
 
     util.assert(
         dy.rank === outShape.length,
