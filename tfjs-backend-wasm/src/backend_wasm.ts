@@ -98,7 +98,7 @@ export class BackendWasm extends KernelBackend {
   }
 
   readSync(dataId: DataId): backend_util.BackendValues {
-    const {memoryOffset, dtype, shape, stringBytes} =
+    const {memoryOffset, dtype, shape, stringBytes, complexTensors} =
         this.dataIdMap.get(dataId);
     if (dtype === 'string') {
       return stringBytes;
@@ -106,6 +106,13 @@ export class BackendWasm extends KernelBackend {
     const bytes = this.wasm.HEAPU8.slice(
         memoryOffset,
         memoryOffset + util.sizeFromShape(shape) * util.bytesPerElement(dtype));
+    if (dtype === 'complex64') {
+      const realValues =
+          this.readSync(complexTensors.real.dataId) as Float32Array;
+      const imagValues =
+          this.readSync(complexTensors.imag.dataId) as Float32Array;
+      return backend_util.mergeRealAndImagArrays(realValues, imagValues);
+    }
     return typedArrayFromBuffer(bytes.buffer, dtype);
   }
 
