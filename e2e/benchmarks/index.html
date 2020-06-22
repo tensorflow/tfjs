@@ -498,8 +498,10 @@ limitations under the License.
       state.isModelChanged = false;
     }
 
+
     async function onPageLoad() {
-      var gui = new dat.gui.GUI();
+      var gui = new dat.gui.GUI({width: 400});
+      gui.domElement.id = 'gui';
 
       await tf.setBackend(state.backend);
 

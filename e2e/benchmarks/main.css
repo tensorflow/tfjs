@@ -140,3 +140,7 @@ th {
 th:first-child {
   padding-left: 16px;
 }
+
+#gui select {
+  width: 100%
+}
