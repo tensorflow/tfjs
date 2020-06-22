@@ -24,9 +24,9 @@ import {InternalOpExecutor, Node} from '../types';
 import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor = (node: Node,
-                                            tensorMap: NamedTensorsMap,
-                                            context: ExecutionContext):
-                                               tfc.Tensor[] => {
+                                              tensorMap: NamedTensorsMap,
+                                              context: ExecutionContext):
+                                                 tfc.Tensor[] => {
   switch (node.op) {
     case 'ConcatV2':
     case 'Concat': {
@@ -126,9 +126,18 @@ export const executeOp: InternalOpExecutor = (node: Node,
       const numOrSizeSplits =
           getParamValue('numOrSizeSplits', node, tensorMap, context) as number |
           number[];
-      return tfc.split(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor,
-          numOrSizeSplits, axis);
+      const tensor = getParamValue('x', node, tensorMap, context) as tfc.Tensor;
+
+      // Allow the last number of split array to be -1, which indicates the rest
+      // of dimension is allocated to the last split.
+      if (Array.isArray(numOrSizeSplits)) {
+        const negIndex = numOrSizeSplits.indexOf(-1);
+        if (negIndex !== -1) {
+          const total = numOrSizeSplits.reduce((a, b) => b > 0 ? a + b : a);
+          numOrSizeSplits[negIndex] = tensor.shape[axis] - total;
+        }
+      }
+      return tfc.split(tensor, numOrSizeSplits, axis);
     }
     case 'ScatterNd': {
       const indices =
