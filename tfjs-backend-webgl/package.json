@@ -1,7 +1,7 @@
 {
   "name": "@tensorflow/tfjs-backend-webgl",
   "version": "0.0.0",
-  "description": "GPU accelerated WebGL backend for TensorFlow.js",
+  "description": "GPU accelerated WebGL backend for TensorFlow.js.",
   "private": false,
   "main": "dist/tf-backend-webgl.node.js",
   "jsdelivr": "dist/tf-backend-webgl.min.js",
