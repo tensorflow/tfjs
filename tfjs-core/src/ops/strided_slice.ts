@@ -64,9 +64,6 @@ function stridedSlice_(
     strides = new Array(begin.length);
   }
 
-  const originalBegin = begin.slice(0);
-  const originalEnd = end.slice(0);
-
   const ellipsisAxes = maskToAxes(ellipsisMask);
   if (ellipsisAxes.length > 1) {
     throw new Error('Multiple ellipses in slice is not allowed.');
@@ -95,26 +92,30 @@ function stridedSlice_(
   });
   $x = $x.reshape(newShape);
 
-  // Normalize the start, end and strides.
-  for (let axis = 0; axis < $x.rank; axis++) {
-    begin[axis] =
-        startForAxis(beginMask, begin, strides, $x.shape, axis, ellipsisMask);
-    end[axis] =
-        stopForAxis(endMask, end, strides, $x.shape, axis, ellipsisMask);
-    strides[axis] = stridesForAxis(strides, axis, ellipsisMask);
-  }
-
   if (ellipsisAxes.length && numInterpolatedAxes > 0) {
     const fullIndex = ellipsisAxes[0];
 
     // The ellipsis applies to the masked index as well as any dimensions
-    // that were interpolated as full selection.
+    // that are interpolated.
     const numElidedAxes = numInterpolatedAxes + 1;
     begin = startIndicesWithElidedDims(
-        begin, beginMask, fullIndex, numElidedAxes, originalBegin);
+        beginMask, fullIndex, numElidedAxes, begin, $x.shape);
     end = stopIndicesWithElidedDims(
-        end, endMask, fullIndex, numElidedAxes, $x.shape, originalEnd);
+        endMask, fullIndex, numElidedAxes, end, $x.shape);
+
+    for (let axis = 0; axis < $x.rank; axis++) {
+      strides[axis] = stridesForAxis(strides, axis, ellipsisMask);
+    }
     strides = stridesWithElidedDims(strides, fullIndex, numElidedAxes);
+  } else {
+    // Normalize the start, end and strides.
+    for (let axis = 0; axis < $x.rank; axis++) {
+      begin[axis] =
+          startForAxis(beginMask, begin, strides, $x.shape, axis, ellipsisMask);
+      end[axis] =
+          stopForAxis(endMask, end, strides, $x.shape, axis, ellipsisMask);
+      strides[axis] = stridesForAxis(strides, axis, ellipsisMask);
+    }
   }
 
   const shrinkAxes = maskToAxes(shrinkAxisMask);
