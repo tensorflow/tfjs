@@ -64,6 +64,9 @@ function stridedSlice_(
     strides = new Array(begin.length);
   }
 
+  const originalBegin = begin.slice(0);
+  const originalEnd = end.slice(0);
+
   const ellipsisAxes = maskToAxes(ellipsisMask);
   if (ellipsisAxes.length > 1) {
     throw new Error('Multiple ellipses in slice is not allowed.');
@@ -104,12 +107,13 @@ function stridedSlice_(
   if (ellipsisAxes.length && numInterpolatedAxes > 0) {
     const fullIndex = ellipsisAxes[0];
 
-    // The ellipsis applies to the masked index as well as any dimensions that
-    // were interpolated as full selection.
+    // The ellipsis applies to the masked index as well as any dimensions
+    // that were interpolated as full selection.
     const numElidedAxes = numInterpolatedAxes + 1;
-
-    begin = startIndicesWithElidedDims(begin, fullIndex, numElidedAxes);
-    end = stopIndicesWithElidedDims(end, fullIndex, numElidedAxes, $x.shape);
+    begin = startIndicesWithElidedDims(
+        begin, beginMask, fullIndex, numElidedAxes, originalBegin);
+    end = stopIndicesWithElidedDims(
+        end, endMask, fullIndex, numElidedAxes, $x.shape, originalEnd);
     strides = stridesWithElidedDims(strides, fullIndex, numElidedAxes);
   }
 
