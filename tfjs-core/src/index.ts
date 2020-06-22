@@ -65,7 +65,7 @@ export {BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, Pixel
 
 export * from './ops/ops';
 export {LSTMCellFunc} from './ops/lstm';
-export {Reduction} from './ops/loss_ops';
+export {Reduction} from './ops/loss_ops_utils';
 
 export * from './train';
 export * from './globals';
