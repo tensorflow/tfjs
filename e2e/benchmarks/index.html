@@ -113,9 +113,12 @@ limitations under the License.
       },
       testCorrectness: async () => {
         let match, predictionData, referenceData;
+        await cleanUpTable();
         try {
           await loadModelAndRecordTime();
           await showMsg('Testing correctness');
+          await showInputs();
+          await showCorrectnessTestParameters();
 
           tf.setBackend('cpu');
           await showMsg('Runing on cpu');
@@ -140,12 +143,15 @@ limitations under the License.
           throw e;
         } finally {
           appendRow(timeTable, `Prediction matches CPU`, match);
+          appendRow(timeTable, '', '');
         }
+        state.isModelChanged = false;
       },
       backend: 'webgl',
       kernelTiming: 'aggregate',
       modelType: '',
       modelUrl: 'https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json',
+      isModelChanged: false,
     };
 
     const modalDiv = document.getElementById('modal-msg');
@@ -184,6 +190,8 @@ limitations under the License.
     }
 
     function showBenchmarkingParameters() {
+      parameterTable.innerHTML = '';
+      appendRow(parameterTable, 'task', 'Performance Benchmark');
       appendRow(parameterTable, 'benchmark', state.benchmark);
       state.modelType =
           state.modelType ||
@@ -198,14 +206,9 @@ limitations under the License.
       appendRow(parameterTable, 'kernelTiming', state.kernelTiming);
     }
 
-    async function setupTable() {
-      timeTable.innerHTML = '';
+    async function setupKernelTable() {
       kernelsTableHead.innerText = '';
       kernelTable.innerHTML = '';
-      parameterTable.innerHTML = '';
-      modelInputsTable.innerHTML = '';
-      state.modelType = '';
-      await tf.nextFrame();
       const rows = ['<b>Kernel</b>', '<b>Time(ms)</b>'];
       if (state.kernelTiming === 'individual') {
         rows.push('<b>Inputs</b>', '<b>Output</b>');
@@ -214,6 +217,24 @@ limitations under the License.
         }
       }
       appendRow(kernelsTableHead, ...rows);
+
+      await tf.nextFrame();
+    }
+
+    async function showCorrectnessTestParameters() {
+      parameterTable.innerHTML = '';
+      appendRow(parameterTable, 'task', 'Correctness Test');
+      appendRow(parameterTable, 'benchmark', state.benchmark);
+      state.modelType =
+          state.modelType ||
+          (model instanceof tf.GraphModel ? 'GraphModel' : undefined) ||
+          (model instanceof tf.LayersModel ? 'LayersModel' : 'Unknown');
+      appendRow(parameterTable, 'modelType', state.modelType);
+      if (state.benchmark === 'custom model') {
+        appendRow(parameterTable, 'modelUrl', state.modelUrl);
+      }
+      appendRow(parameterTable, 'numRuns', 1);
+      appendRow(parameterTable, 'backend', state.backend);
 
       await tf.nextFrame();
     }
@@ -251,7 +272,8 @@ limitations under the License.
       appendRow(timeTable, '1st inference', printTime(elapsed));
     }
 
-    function showInputs() {
+    async function showInputs() {
+      modelInputsTable.innerHTML = '';
       const modelInputs = document.getElementById('modelInputs');
       if (model['inputs'] != null) {
         modelInputs.style.display='';
@@ -264,6 +286,7 @@ limitations under the License.
       } else {
         modelInputs.style.display='none';
       }
+      await tf.nextFrame();
     }
 
     async function loadModelAndRecordTime() {
@@ -280,7 +303,6 @@ limitations under the License.
 
       await showMsg(null);
       appendRow(timeTable, 'Model load', printTime(elapsed));
-      showInputs();
     }
 
     const chartHeight = 150;
@@ -444,9 +466,21 @@ limitations under the License.
       console.log = oldLog;
     }
 
+    async function cleanUpTable() {
+      if (state.isModelChanged) {
+        timeTable.innerHTML = '';
+        kernelTable.innerHTML = '';
+        modelInputsTable.innerHTML = '';
+      }
+      await tf.nextFrame();
+    }
+
     async function runBenchmark() {
-      await setupTable();
+      state.modelType = '';
+      await cleanUpTable();
+      await setupKernelTable();
       await loadModelAndRecordTime();
+      await showInputs();
       await showBenchmarkingParameters();
       await warmUpAndRecordTime();
       await showMsg('Waiting for GC');
@@ -461,6 +495,7 @@ limitations under the License.
         await showMsg('Skipping kernel times since query timer extension is not ' +
           'available. <br/> Use Chrome 70+.');
       };
+      state.isModelChanged = false;
     }
 
     async function onPageLoad() {
@@ -471,9 +506,11 @@ limitations under the License.
       let modelFolder = gui.addFolder('Model');
       let modelController = null;
       modelFolder.add(state, 'benchmark', Object.keys(benchmarks)).onChange(model => {
+        state.isModelChanged = true;
         if (model === 'custom model') {
           if (modelController === null) {
             modelController = modelFolder.add(state, 'modelUrl').onChange(async value => {
+              state.isModelChanged = true;
               await showMsg(null);
             });
             modelController.domElement.querySelector('input').placeholder = 'https://';
