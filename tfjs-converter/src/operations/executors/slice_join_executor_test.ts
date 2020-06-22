@@ -21,7 +21,7 @@ import * as slice_join from '../op_list/slice_join';
 import {Node} from '../types';
 
 import {executeOp} from './slice_join_executor';
-import {createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, createTensorsAttr, validateParam} from './test_helper';
+import {createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttr, createNumericArrayAttrFromIndex, createTensorAttr, createTensorsAttr, validateParam} from './test_helper';
 
 describe('slice join', () => {
   let node: Node;
@@ -336,6 +336,19 @@ describe('slice join', () => {
         executeOp(node, {input1, input2}, context);
 
         expect(tfc.split).toHaveBeenCalledWith(input2[0], 2, 1);
+      });
+      it('should support -1 split', () => {
+        spyOn(tfc, 'split');
+        node.op = 'Split';
+        node.inputParams.axis = createNumberAttrFromIndex(0);
+        node.inputParams.x = createTensorAttr(1);
+        node.attrParams.numOrSizeSplits = createNumericArrayAttr([1, 1, -1]);
+        node.inputNames = ['input4', 'input3'];
+        const input3 = [tfc.tensor1d([1, 2, 3, 4, 5])];
+        const input4 = [tfc.scalar(0)];
+        executeOp(node, {input3, input4}, context);
+
+        expect(tfc.split).toHaveBeenCalledWith(input3[0], [1, 1, 3], 0);
       });
       it('should match json def for split', () => {
         node.op = 'Split';
