@@ -192,6 +192,22 @@ export type DepthwiseConv2dNativeBackpropInputInputs =
 export const Diag = 'Diag';
 export type DiagInputs = Pick<NamedTensorInfoMap, 'x'>;
 
+export const Dilation2D = 'Dilation2D';
+export type Dilation2DInputs = Pick<NamedTensorInfoMap, 'x'|'filter'>;
+export interface Dilation2DAttrs {
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  dilations: [number, number]|number;
+}
+
+export const Dilation2DBackpropInput = 'Dilation2DBackpropInput';
+export type Dilation2DBackpropInputInputs =
+    Pick<NamedTensorInfoMap, 'x'|'filter'|'dy'>;
+
+export const Dilation2DBackpropFilter = 'Dilation2DBackpropFilter';
+export type Dilation2DBackpropFilterInputs =
+    Pick<NamedTensorInfoMap, 'x'|'filter'|'dy'>;
+
 export const Div = 'Div';
 export type DivInputs = BinaryInputs;
 
