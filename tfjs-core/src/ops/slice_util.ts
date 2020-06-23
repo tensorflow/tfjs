@@ -112,14 +112,7 @@ export function startIndicesWithElidedDims(
 
   for (let axis = 0; axis < newIndices.length; axis++) {
     if (elidedAxes.indexOf(axis) > -1) {
-      if (axis === ellipsisInsertionIndex) {
-        newIndices[ellipsisInsertionIndex] = 0;
-      } else {
-        newIndices.splice(
-            ellipsisInsertionIndex, 0 /* num elements to delete */,
-            0 /* element to add */);
-        newIndices.pop();
-      }
+      newIndices[axis] = 0;
     } else {
       const originalAxis =
           unnormalizeAxis(ellipsisInsertionIndex, numElidedAxes, axis);
@@ -144,14 +137,7 @@ export function stopIndicesWithElidedDims(
 
   for (let axis = 0; axis < newIndices.length; axis++) {
     if (elidedAxes.indexOf(axis) > -1) {
-      if (axis === ellipsisInsertionIndex) {
-        newIndices[ellipsisInsertionIndex] = Number.MAX_SAFE_INTEGER;
-      } else {
-        newIndices.splice(
-            ellipsisInsertionIndex, 0 /* num elements to delete */,
-            Number.MAX_SAFE_INTEGER /* element to add */);
-        newIndices.pop();
-      }
+      newIndices[axis] = Number.MAX_SAFE_INTEGER;
     } else {
       const originalAxis =
           unnormalizeAxis(ellipsisInsertionIndex, numElidedAxes, axis);
