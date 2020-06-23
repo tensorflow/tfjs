@@ -138,29 +138,4 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     expect(() => setWasmPath('too/late'))
         .toThrowError(/The WASM backend was already initialized. Make sure/);
   });
-
-  fit('should return the same value as TensorFlow (3 elements)', async () => {
-    const t1Real = tf.tensor1d([1, 2, 3]);
-    const t1Imag = tf.tensor1d([0, 0, 0]);
-    const t1 = tf.complex(t1Real, t1Imag);
-    const data = await tf.spectral.fft(t1).data();
-
-    // real values: 6, -1.4999995231628418, -1.500000238418579
-    // imag values: 0, 0.8660256862640381, -0.8660249710083008
-    console.log(data);
-    // expectArraysClose(
-    //     await tf.spectral.fft(t1).data(),
-    //     [6, 0, -1.5, 0.866025, -1.5, -0.866025]);
-  });
-
-  fit('should return the same value as TensorFlow (3 elements)', async () => {
-    const t1Real = tf.tensor1d([1, 2, 3]);
-    const t1Imag = tf.tensor1d([0, 0, 0]);
-    const t1 = tf.complex(t1Real, t1Imag);
-    const data = await tf.spectral.ifft(t1).data();
-    console.log(data);
-    // expectArraysClose(await tf.spectral.ifft(t1).data(), [
-    //   2, -3.9736431e-08, -0.49999997, -.28867507, -0.49999994, 2.8867519e-01
-    // ]);
-  });
 });
