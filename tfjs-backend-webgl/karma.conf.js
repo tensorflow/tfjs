@@ -89,7 +89,8 @@ module.exports = function(config) {
     browsers: ['Chrome'],
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
-      accessKey: process.env.BROWSERSTACK_KEY
+      accessKey: process.env.BROWSERSTACK_KEY,
+      timeout: 1800
     },
     captureTimeout: 3e5,
     reportSlowerThan: 500,
@@ -103,7 +104,7 @@ module.exports = function(config) {
       bs_chrome_mac: {
         base: 'BrowserStack',
         browser: 'chrome',
-        browser_version: '79.0',
+        browser_version: 'latest',
         os: 'OS X',
         os_version: 'High Sierra'
       },
