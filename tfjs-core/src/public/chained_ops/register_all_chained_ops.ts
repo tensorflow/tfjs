@@ -28,6 +28,7 @@ import './cumsum';
 import './depth_to_space';
 import './depthwise_conv2d';
 import './depthwise_conv2D_deprecated';
+import './dilation2d';
 import './div';
 import './div_no_nan';
 import './dot';
