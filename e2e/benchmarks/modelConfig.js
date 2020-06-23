@@ -219,7 +219,15 @@ const benchmarks = {
             inferenceInputs.push(inputTensor);
           }
 
-          return model.predict(inferenceInputs);
+          let resultTensor;
+          if (model instanceof tf.GraphModel && model.executeAsync != null) {
+            resultTensor = await model.executeAsync(inferenceInputs);
+          } else if (model.predict != null) {
+            resultTensor = model.predict(inferenceInputs);
+          } else {
+            throw new Error("Predict function was not found");
+          }
+          return resultTensor;
         } catch (e) {
           showMsg('Error: ' + e.message);
           throw e;
