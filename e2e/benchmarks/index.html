@@ -103,7 +103,7 @@ limitations under the License.
     'use strict';
 
     const state = {
-      numRuns: 3,
+      numRuns: 50,
       benchmark: 'mobilenet_v2',
       run: (v) => {
         runBenchmark().catch(e => {
@@ -147,10 +147,10 @@ limitations under the License.
         }
         state.isModelChanged = false;
       },
-      backend: 'webgl',
+      backend: 'wasm',
       kernelTiming: 'aggregate',
       modelType: '',
-      modelUrl: 'https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json',
+      modelUrl: '',
       isModelChanged: false,
     };
 
