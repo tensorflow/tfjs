@@ -17,7 +17,6 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 
-import {toNestedArray} from '../../../../tfjs-core/src/util';
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
 import {Node, ValueType} from '../types';
@@ -44,8 +43,9 @@ export function getParamValue(
     const tensor =
         getTensor(node.inputNames.slice(start)[0], tensorMap, context);
     const data = tensor.dataSync();
-    return inputParam.type === 'number' ? data[0] :
-                                          toNestedArray(tensor.shape, data);
+    return inputParam.type === 'number' ?
+        data[0] :
+        tfc.util.toNestedArray(tensor.shape, data);
   }
   const attrParam = node.attrParams[paramName];
   return attrParam && attrParam.value;
