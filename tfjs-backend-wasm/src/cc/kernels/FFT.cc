@@ -54,8 +54,8 @@ void FFT(const size_t real_input_id, const size_t imag_input_id,
         float x = exponent_multiplier_times_index_ratio * float(i);
         float exp_r = cos(x);
         float exp_i = sin(x);
-        float real = real_input_buf[row * inner_dim + col];
-        float imag = imag_input_buf[row * inner_dim + col];
+        float real = real_input_buf[row * inner_dim + i];
+        float imag = imag_input_buf[row * inner_dim + i];
 
         if (is_real_component > 0) {
           result += real * exp_r - imag * exp_i;

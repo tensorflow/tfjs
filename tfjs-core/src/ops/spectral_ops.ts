@@ -52,16 +52,15 @@ function fft_(input: Tensor): Tensor {
       () => `The dtype for tf.spectral.fft() must be complex64 ` +
           `but got ${input.dtype}.`);
 
-  // Collapse all outer dimensions to a single batch dimension.
-  const innerDimensionSize = input.shape[input.shape.length - 1];
-  const batch = input.size / innerDimensionSize;
-  const input2D = input.as2D(batch, innerDimensionSize);
-
   const inputs: FFTInputs = {input};
 
-  const ret = ENGINE.runKernelFunc(
-      backend => backend.fft(input2D), inputs as {} as NamedTensorMap,
-      null /* gradient */, FFT);
+  const ret = ENGINE.runKernelFunc(backend => {
+    // Collapse all outer dimensions to a single batch dimension.
+    const innerDimensionSize = input.shape[input.shape.length - 1];
+    const batch = input.size / innerDimensionSize;
+    const input2D = input.as2D(batch, innerDimensionSize);
+    return backend.fft(input2D);
+  }, inputs as {} as NamedTensorMap, null /* gradient */, FFT);
 
   return ret.reshape(input.shape);
 }

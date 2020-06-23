@@ -12,10 +12,11 @@
  * limitations under the License.
  * ===========================================================================*/
 
-import {FFT, FFTInputs, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {FFT, FFTInputs, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 import {complex} from './Complex';
+import {reshape} from './Reshape';
 // import {CppDType} from './types';
 
 let wasmFFT: (
@@ -36,7 +37,16 @@ function setup(backend: BackendWasm): void {
 function fft(args: {backend: BackendWasm, inputs: FFTInputs}): TensorInfo {
   const {backend, inputs} = args;
   const {input} = inputs;
-  const inputData = backend.dataIdMap.get(input.dataId);
+
+  const innerDimensionSize = input.shape[input.shape.length - 1];
+  const batch = util.sizeFromShape(input.shape) / innerDimensionSize;
+  const input2D = reshape({
+    inputs: {x: input},
+    attrs: {shape: [batch, innerDimensionSize]},
+    backend
+  });
+
+  const inputData = backend.dataIdMap.get(input2D.dataId);
   const realInput = inputData.complexTensors.real;
   const imagInput = inputData.complexTensors.imag;
   const realInputId = backend.dataIdMap.get(realInput.dataId).id;
@@ -47,7 +57,7 @@ function fft(args: {backend: BackendWasm, inputs: FFTInputs}): TensorInfo {
   const realId = backend.dataIdMap.get(real.dataId).id;
   const imagId = backend.dataIdMap.get(imag.dataId).id;
 
-  const [outerDim, innerDim] = input.shape;
+  const [outerDim, innerDim] = input2D.shape;
 
   wasmFFT(
       realInputId, imagInputId, outerDim, innerDim, 1 /* is real component */,

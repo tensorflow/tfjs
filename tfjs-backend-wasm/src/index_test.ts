@@ -144,6 +144,9 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     const t1Imag = tf.tensor1d([0, 0, 0]);
     const t1 = tf.complex(t1Real, t1Imag);
     const data = await tf.spectral.fft(t1).data();
+
+    // real values: 6, -1.4999995231628418, -1.500000238418579
+    // imag values: 0, 0.8660256862640381, -0.8660249710083008
     console.log(data);
     // expectArraysClose(
     //     await tf.spectral.fft(t1).data(),
