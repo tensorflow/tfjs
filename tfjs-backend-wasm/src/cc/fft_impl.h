@@ -1,4 +1,4 @@
-/* Copyright 2020 Google LLC. All Rights Reserved.
+/* Copyright 2019 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,29 +12,20 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#endif
+#ifndef FFT_IMPL_H_
+#define FFT_IMPL_H_
 
-#include <cmath>
-#include <vector>
+#include <cstddef>
 
 #include "src/cc/backend.h"
-#include "src/cc/fft_impl.h"
 
 namespace tfjs {
 namespace wasm {
-extern "C" {
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif
 
-void FFT(const size_t real_input_id, const size_t imag_input_id,
+void fft(const size_t real_input_id, const size_t imag_input_id,
          const size_t outer_dim, const size_t inner_dim,
-         const size_t is_real_component, const size_t out_id) {
-  tfjs::wasm::fft(real_input_id, imag_input_id, outer_dim, inner_dim,
-                  is_real_component, out_id);
-}
-}  // extern "C"
+         const size_t is_real_component, const size_t out_id);
 }  // namespace wasm
 }  // namespace tfjs
+
+#endif  // FFT_IMPL_H_

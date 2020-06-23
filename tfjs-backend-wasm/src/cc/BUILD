@@ -424,6 +424,16 @@ tfjs_cc_library(
     srcs = ["kernels/FFT.cc"],
     deps = [
         ":backend",
+        ":fft_impl",
+    ],
+)
+
+tfjs_cc_library(
+    name = "fft_impl",
+    srcs = ["fft_impl.cc"],
+    hdrs = ["fft_impl.h"],
+    deps = [
+        ":backend",
     ],
 )
 
