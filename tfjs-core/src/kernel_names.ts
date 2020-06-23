@@ -236,6 +236,9 @@ export type GreaterEqualInputs = BinaryInputs;
 export const Identity = 'Identity';
 export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
 
+export const IFFT = 'IFFT';
+export type IFFTInputs = Pick<NamedTensorInfoMap, 'input'>;
+
 export const Imag = 'Imag';
 export type ImagInputs = Pick<NamedTensorInfoMap, 'input'>;
 

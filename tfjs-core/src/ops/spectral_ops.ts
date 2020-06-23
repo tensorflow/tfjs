@@ -16,7 +16,7 @@
  */
 
 import {ENGINE} from '../engine';
-import {FFT, FFTInputs} from '../kernel_names';
+import {FFT, FFTInputs, IFFT, IFFTInputs} from '../kernel_names';
 import {complex} from '../ops/complex';
 import {imag} from '../ops/imag';
 import {op} from '../ops/operation';
@@ -89,12 +89,15 @@ function ifft_(input: Tensor): Tensor {
       () => `The dtype for tf.spectral.ifft() must be complex64 ` +
           `but got ${input.dtype}.`);
 
-  // Collapse all outer dimensions to a single batch dimension.
-  const innerDimensionSize = input.shape[input.shape.length - 1];
-  const batch = input.size / innerDimensionSize;
-  const input2D = input.as2D(batch, innerDimensionSize);
+  const inputs: IFFTInputs = {input};
 
-  const ret = ENGINE.runKernelFunc(backend => backend.ifft(input2D), {input});
+  const ret = ENGINE.runKernelFunc(backend => {
+    // Collapse all outer dimensions to a single batch dimension.
+    const innerDimensionSize = input.shape[input.shape.length - 1];
+    const batch = input.size / innerDimensionSize;
+    const input2D = input.as2D(batch, innerDimensionSize);
+    return backend.ifft(input2D);
+  }, inputs as {} as NamedTensorMap, null /* gradient */, IFFT);
 
   return ret.reshape(input.shape);
 }
