@@ -38,6 +38,7 @@ const CHAINED_OPS = [
   'depthToSpace',
   'depthwiseConv2d',
   'depthwiseConv2D',
+  'dilation2d',
   'div',
   'divNoNan',
   'dot',
@@ -51,6 +52,10 @@ const CHAINED_OPS = [
   'less',
   'lessEqual',
   'localResponseNormalization',
+  'logicalAnd',
+  'logicalNot',
+  'logicalOr',
+  'logicalXor',
   'matMul',
   'max',
   'maximum',
@@ -77,7 +82,8 @@ const CHAINED_OPS = [
   'sub',
   'tile',
   'transpose',
-  'unstack'
+  'unstack',
+  'where'
 ];
 
 describeWithFlags('chained ops', ALL_ENVS, () => {

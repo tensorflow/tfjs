@@ -128,6 +128,7 @@ export interface Conv2DBackpropInputAttrs {
   pad: 'valid'|'same'|number|ExplicitPadding;
   dataFormat: 'NHWC'|'NCHW';
   dimRoundingMode?: 'floor'|'round'|'ceil';
+  inputShape: [number, number, number, number];
 }
 
 export const Conv3D = 'Conv3D';
@@ -161,6 +162,15 @@ export interface CumsumAttrs {
   reverse: boolean;
 }
 
+export const CropAndResize = 'CropAndResize';
+export type CropAndResizeInputs =
+    Pick<NamedTensorInfoMap, 'image'|'boxes'|'boxInd'>;
+export interface CropAndResizeAttrs {
+  cropSize: [number, number];
+  method: 'bilinear'|'nearest';
+  extrapolationValue: number;
+}
+
 export const DepthToSpace = 'DepthToSpace';
 export type DepthToSpaceInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface DepthToSpaceAttrs {
@@ -191,6 +201,22 @@ export type DepthwiseConv2dNativeBackpropInputInputs =
 
 export const Diag = 'Diag';
 export type DiagInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const Dilation2D = 'Dilation2D';
+export type Dilation2DInputs = Pick<NamedTensorInfoMap, 'x'|'filter'>;
+export interface Dilation2DAttrs {
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  dilations: [number, number]|number;
+}
+
+export const Dilation2DBackpropInput = 'Dilation2DBackpropInput';
+export type Dilation2DBackpropInputInputs =
+    Pick<NamedTensorInfoMap, 'x'|'filter'|'dy'>;
+
+export const Dilation2DBackpropFilter = 'Dilation2DBackpropFilter';
+export type Dilation2DBackpropFilterInputs =
+    Pick<NamedTensorInfoMap, 'x'|'filter'|'dy'>;
 
 export const Div = 'Div';
 export type DivInputs = BinaryInputs;
@@ -241,6 +267,15 @@ export type LessInputs = BinaryInputs;
 
 export const LessEqual = 'LessEqual';
 export type LessEqualInputs = BinaryInputs;
+
+export const LogicalAnd = 'LogicalAnd';
+export type LogicalAndInputs = BinaryInputs;
+
+export const LogicalNot = 'LogicalNot';
+export type LogicalNotInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const LogicalOr = 'LogicalOr';
+export type LogicalOrInputs = BinaryInputs;
 
 export const LRN = 'LRN';
 export type LRNInputs = Pick<NamedTensorInfoMap, 'x'>;

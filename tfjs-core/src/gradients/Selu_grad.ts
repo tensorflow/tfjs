@@ -18,11 +18,11 @@ import {Selu} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import {cast} from '../ops/array_ops';
 import {greater} from '../ops/greater';
-import {where} from '../ops/logical_ops';
 import {mul} from '../ops/mul';
 import {SELU_SCALE, SELU_SCALEALPHA} from '../ops/selu_util';
 import {scalar} from '../ops/tensor_ops';
 import {exp} from '../ops/unary_ops';
+import {where} from '../ops/where';
 import {Tensor} from '../tensor';
 
 export const seluGradConfig: GradConfig = {

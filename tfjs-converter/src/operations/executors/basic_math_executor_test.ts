@@ -86,7 +86,7 @@ describe('basic math', () => {
         node.op = 'Prod';
         node.inputParams['axes'] = createNumericArrayAttrFromIndex(1);
         node.inputNames = ['input1', 'input2'];
-        const input2 = [tfc.scalar(2)];
+        const input2 = [tfc.tensor1d([2])];
         executeOp(node, {input1, input2}, context);
 
         expect(tfc.prod).toHaveBeenCalledWith(input1[0], [2]);

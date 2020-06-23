@@ -43,6 +43,7 @@ export {cumsum} from './cumsum';
 export {depthToSpace} from './depth_to_space';
 export {depthwiseConv2d} from './depthwise_conv2d';
 export {diag} from './diag';
+export {dilation2d} from './dilation2d';
 export {div} from './div';
 export {divNoNan} from './div_no_nan';
 export {dot} from './dot';
@@ -59,6 +60,10 @@ export {leakyRelu} from './leaky_relu';
 export {less} from './less';
 export {lessEqual} from './less_equal';
 export {localResponseNormalization} from './local_response_normalization';
+export {logicalAnd} from './logical_and';
+export {logicalNot} from './logical_not';
+export {logicalOr} from './logical_or';
+export {logicalXor} from './logical_xor';
 export {matMul} from './mat_mul';
 export {max} from './max';
 export {maxPool} from './max_pool';
@@ -100,6 +105,8 @@ export {sub} from './sub';
 export {tile} from './tile';
 export {truncatedNormal} from './truncated_normal';
 export {unstack} from './unstack';
+export {where} from './where';
+export {whereAsync} from './where_async';
 
 export * from './boolean_mask';
 export * from './reverse';
@@ -108,7 +115,6 @@ export * from './unary_ops';
 export * from './reduction_ops';
 export * from './compare';
 export * from './binary_ops';
-export * from './logical_ops';
 export * from './array_ops';
 export * from './tensor_ops';
 export * from './transpose';
@@ -129,14 +135,17 @@ export * from './in_top_k';
 
 export {op} from './operation';
 
-// Second level exports.
 import * as losses from './loss_ops';
-import * as linalg from './linalg_ops';
 import * as spectral from './spectral_ops';
 import * as fused from './fused_ops';
 import * as signal from './signal_ops';
 
-import {cropAndResize, nonMaxSuppression, nonMaxSuppressionAsync, nonMaxSuppressionWithScore, nonMaxSuppressionWithScoreAsync} from './image_ops';
+// Image Ops namespace
+import {cropAndResize} from './crop_and_resize';
+import {nonMaxSuppression} from './non_max_suppression';
+import {nonMaxSuppressionAsync} from './non_max_suppression_async';
+import {nonMaxSuppressionWithScore} from './non_max_suppression_with_score';
+import {nonMaxSuppressionWithScoreAsync} from './non_max_suppresion_with_score_async';
 import {resizeBilinear} from './resize_bilinear';
 import {resizeNearestNeighbor} from './resize_nearest_neighbor';
 const image = {
@@ -149,4 +158,15 @@ const image = {
   nonMaxSuppressionWithScoreAsync
 };
 
+// linalg namespace
+import {bandPart} from './band_part';
+import {gramSchmidt} from './gram_schmidt';
+import {qr} from './qr';
+const linalg = {
+  bandPart,
+  gramSchmidt,
+  qr
+};
+
+// Second level exports.
 export {image, linalg, losses, spectral, fused, signal};

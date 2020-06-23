@@ -205,12 +205,6 @@ export interface OpHandler {
   minimumStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   maximumStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   squaredDifferenceStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  logicalNot<T extends Tensor>(x: T): T;
-  logicalAnd<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
-  logicalOr<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
-  logicalXor<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
-  where<T extends Tensor>(condition: Tensor|TensorLike, a: T, b: T|TensorLike):
-      T;
   notEqualStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   lessStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   equalStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
@@ -815,29 +809,6 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.greaterEqualStrict(this, x);
   }
-
-  // Compare ops.
-  logicalAnd(x: Tensor|TensorLike): Tensor {
-    this.throwIfDisposed();
-    return opHandler.logicalAnd(this, x);
-  }
-  logicalOr(x: Tensor|TensorLike): Tensor {
-    this.throwIfDisposed();
-    return opHandler.logicalOr(this, x);
-  }
-  logicalNot<T extends Tensor>(this: T): T {
-    this.throwIfDisposed();
-    return opHandler.logicalNot(this);
-  }
-  logicalXor(x: Tensor|TensorLike): Tensor {
-    this.throwIfDisposed();
-    return opHandler.logicalXor(this, x);
-  }
-  where(condition: Tensor|TensorLike, x: Tensor|TensorLike): Tensor {
-    this.throwIfDisposed();
-    return opHandler.where(condition, this, x);
-  }
-
   // Unary ops.
   neg<T extends Tensor>(this: T): T {
     this.throwIfDisposed();

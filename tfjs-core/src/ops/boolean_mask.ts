@@ -20,8 +20,8 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {whereAsync} from './logical_ops';
 import {gather} from './segment_ops';
+import {whereAsync} from './where_async';
 
 /**
  * Apply boolean mask to tensor.
