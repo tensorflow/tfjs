@@ -363,7 +363,7 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'onesLike',
     // Complex numbers not supported yet.
     excludes: ['complex'],
-  },
+  }
 ];
 
 const customInclude = (testName: string) => {

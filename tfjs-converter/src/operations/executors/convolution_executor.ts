@@ -21,7 +21,7 @@ import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
 import {InternalOpExecutor, Node} from '../types';
 
-import {getParamValue} from './utils';
+import {getPadding, getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor = (node: Node,
                                               tensorMap: NamedTensorsMap,
@@ -46,7 +46,7 @@ export const executeOp: InternalOpExecutor = (node: Node,
     case 'Conv2D': {
       const stride =
           getParamValue('strides', node, tensorMap, context) as number[];
-      const pad = getParamValue('pad', node, tensorMap, context);
+      const pad = getPadding(node, tensorMap, context);
       const dataFormat =
           (getParamValue('dataFormat', node, tensorMap, context) as string)
               .toUpperCase();
@@ -88,7 +88,7 @@ export const executeOp: InternalOpExecutor = (node: Node,
       }
       const stride =
           getParamValue('strides', node, tensorMap, context) as number[];
-      const pad = getParamValue('pad', node, tensorMap, context);
+      const pad = getPadding(node, tensorMap, context);
       const dataFormat =
           (getParamValue('dataFormat', node, tensorMap, context) as string)
               .toUpperCase();
@@ -121,7 +121,7 @@ export const executeOp: InternalOpExecutor = (node: Node,
           [number, number, number, number];
       const stride =
           getParamValue('strides', node, tensorMap, context) as number[];
-      const pad = getParamValue('pad', node, tensorMap, context);
+      const pad = getPadding(node, tensorMap, context);
       return [tfc.conv2dTranspose(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor3D |
               tfc.Tensor4D,
@@ -132,7 +132,7 @@ export const executeOp: InternalOpExecutor = (node: Node,
     case 'DepthwiseConv2d': {
       const stride =
           getParamValue('strides', node, tensorMap, context) as number[];
-      const pad = getParamValue('pad', node, tensorMap, context);
+      const pad = getPadding(node, tensorMap, context);
       const dilations =
           getParamValue('dilations', node, tensorMap, context) as number[];
       const dataFormat =
@@ -229,6 +229,29 @@ export const executeOp: InternalOpExecutor = (node: Node,
           getParamValue('x', node, tensorMap, context) as tfc.Tensor5D,
           [kernelSize[1], kernelSize[2], kernelSize[3]],
           [stride[1], stride[2], stride[3]], pad as 'valid' | 'same')];
+    }
+
+    case 'Dilation2D': {
+      const strides =
+          getParamValue('strides', node, tensorMap, context) as number[];
+      const pad = getParamValue('pad', node, tensorMap, context);
+      const dilations =
+          getParamValue('dilations', node, tensorMap, context) as number[];
+
+      // strides: [1, stride_height, stride_width, 1].
+      const strideHeight = strides[1];
+      const strideWidth = strides[2];
+
+      // dilations: [1, dilation_height, dilation_width, 1].
+      const dilationHeight = dilations[1];
+      const dilationWidth = dilations[2];
+
+      return [tfc.dilation2d(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor3D |
+              tfc.Tensor4D,
+          getParamValue('filter', node, tensorMap, context) as tfc.Tensor3D,
+          [strideHeight, strideWidth], pad as 'valid' | 'same',
+          [dilationHeight, dilationWidth], 'NHWC' /* dataFormat */)];
     }
 
     default:

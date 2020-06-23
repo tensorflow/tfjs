@@ -21,7 +21,7 @@ import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
 import {InternalOpExecutor, Node} from '../types';
 
-import {getParamValue, split} from './utils';
+import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor = (node: Node,
                                               tensorMap: NamedTensorsMap,
@@ -54,16 +54,15 @@ export const executeOp: InternalOpExecutor = (node: Node,
     case 'Pad': {
       return [tfc.pad(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor,
-          split(
-              getParamValue('padding', node, tensorMap, context) as number[],
-              2) as Array<[number, number]>,
+          getParamValue('padding', node, tensorMap, context) as
+              Array<[number, number]>,
           getParamValue('constantValue', node, tensorMap, context) as number)];
     }
     case 'SpaceToBatchND': {
       const blockShape =
           getParamValue('blockShape', node, tensorMap, context) as number[];
-      const paddings = split(
-          getParamValue('paddings', node, tensorMap, context) as number[], 2);
+      const paddings =
+          getParamValue('paddings', node, tensorMap, context) as number[][];
       return [tfc.spaceToBatchND(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor,
           blockShape, paddings)];
@@ -71,8 +70,8 @@ export const executeOp: InternalOpExecutor = (node: Node,
     case 'BatchToSpaceND': {
       const blockShape =
           getParamValue('blockShape', node, tensorMap, context) as number[];
-      const crops = split(
-          getParamValue('crops', node, tensorMap, context) as number[], 2);
+      const crops =
+          getParamValue('crops', node, tensorMap, context) as number[][];
       return [tfc.batchToSpaceND(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor,
           blockShape, crops)];
