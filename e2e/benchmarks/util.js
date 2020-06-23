@@ -15,15 +15,34 @@
  * =============================================================================
  */
 
-async function getPredictionData(prediction) {
-  let output = prediction;
+async function getPredictionData(output) {
+  async function disposeTensor(tensor) {
+    const data = await tensor.data();
+    tensor.dispose();
+    return data;
+  }
+
   if (output instanceof Promise) {
     output = await output;
   }
+
   if (output instanceof tf.Tensor) {
-    const tmp = output;
-    output = await output.data();
-    tmp.dispose();
+    output = await disposeTensor(output);
+  } else if (Array.isArray(output)) {
+    for (let i = 0; i < output.length; i++) {
+      output[i] = await disposeTensor(output[i]);
+    }
+  } else if (output.constructor === Object) {
+    let namedTensorMap = output;
+    output = [];
+    for (const tensorName in namedTensorMap) {
+      if (typeof tensorName === 'string' && namedTensorMap[tensorName] instanceof tf.Tensor) {
+        const data = await disposeTensor(namedTensorMap[tensorName]);
+        output.push(data);
+      }
+    }
+  } else {
+    throw new Error('The type of predictions is not supported');
   }
   return output;
 }

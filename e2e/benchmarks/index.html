@@ -257,15 +257,7 @@ limitations under the License.
       await showMsg('Warming up');
       const start = performance.now();
       let res = predict(model);
-      if (res instanceof Promise) {
-        res = await res;
-      }
-
-      if (res instanceof tf.Tensor) {
-        const tmp = res;
-        res = await res.data();
-        tmp.dispose();
-      }
+      res = await getPredictionData(res);
 
       const elapsed = performance.now() - start;
       await showMsg(null);
@@ -339,15 +331,7 @@ limitations under the License.
         const start = performance.now();
         const tensorsBefore = tf.memory().numTensors;
         let res = predict(model);
-        if (res instanceof Promise) {
-          res = await res;
-        }
-
-        if (res instanceof tf.Tensor) {
-          const tmp = res;
-          res = await res.data();
-          tmp.dispose();
-        }
+        res = await getPredictionData(res);
 
         times.push(performance.now() - start);
         const memInfo = tf.memory();
@@ -371,15 +355,8 @@ limitations under the License.
       const start = performance.now();
       let res;
       const data = await tf.profile(() => res = predict(model));
-      if (res instanceof Promise) {
-        res = await res;
-      }
+      res = await getPredictionData(res);
 
-      if (res instanceof tf.Tensor) {
-        const tmp = res;
-        res = await res.data();
-        tmp.dispose();
-      }
       const elapsed = performance.now() - start;
       await showMsg(null);
       appendRow(timeTable, 'Peak memory', printMemory(data.peakBytes));
@@ -447,15 +424,7 @@ limitations under the License.
         }
       }
       let res = predict(model);
-      if (res instanceof Promise) {
-        res = await res;
-      }
-
-      if (res instanceof tf.Tensor) {
-        const tmp = res;
-        res = await res.data();
-        tmp.dispose();
-      }
+      res = await getPredictionData(res);
 
       await showMsg(null);
       await sleep(10);
@@ -519,7 +488,8 @@ limitations under the License.
               state.isModelChanged = true;
               await showMsg(null);
             });
-            modelController.domElement.querySelector('input').placeholder = 'https://';
+            modelController.domElement.querySelector('input').placeholder =
+                'https://your-domain.com/model-path/model.json';
           }
         } else if (modelController != null) {
           modelFolder.remove(modelController);
