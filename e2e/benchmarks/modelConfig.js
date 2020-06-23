@@ -219,10 +219,7 @@ const benchmarks = {
             inferenceInputs.push(inputTensor);
           }
 
-          let resultTensor = model.predict(inferenceInputs).catch(() => {
-            throw new Error('Failed to predict');
-          });
-          return resultTensor;
+          return model.predict(inferenceInputs);
         } catch (e) {
           showMsg('Error: ' + e.message);
           throw e;
@@ -234,7 +231,6 @@ const benchmarks = {
             }
           }
         }
-
       }
     }
   },

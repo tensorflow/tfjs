@@ -269,6 +269,7 @@ limitations under the License.
 
       const elapsed = performance.now() - start;
       await showMsg(null);
+      appendRow(timeTable, 'backend', state.backend);
       appendRow(timeTable, '1st inference', printTime(elapsed));
     }
 
@@ -279,8 +280,10 @@ limitations under the License.
         modelInputsElement.style.display='';
         for (let modelInputIndex = 0; modelInputIndex < model.inputs.length; modelInputIndex++) {
           let modelInput = model.inputs[modelInputIndex];
+          if (modelInput.shape == null) continue;
+          const shape = modelInput.shape.map(e => e == null ? -1 : e);
           appendRow(modelInputsTable, 'name', modelInput.name);
-          appendRow(modelInputsTable, 'shape', modelInput.shape);
+          appendRow(modelInputsTable, 'shape', shape);
           appendRow(modelInputsTable, 'data type', modelInput.dtype);
           appendRow(modelInputsTable, '', '');
         }
