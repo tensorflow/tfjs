@@ -205,6 +205,7 @@ tfjs_cc_library(
         ":GatherNd",
         ":Greater",
         ":GreaterEqual",
+        ":IFFT",
         ":Less",
         ":LessEqual",
         ":Max",
@@ -526,6 +527,15 @@ tfjs_cc_library(
         ":backend",
         ":binary",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "IFFT",
+    srcs = ["kernels/IFFT.cc"],
+    deps = [
+        ":backend",
+        ":fft_impl",
     ],
 )
 

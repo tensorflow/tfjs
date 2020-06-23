@@ -46,6 +46,7 @@ import './Gather';
 import './GatherNd';
 import './Greater';
 import './GreaterEqual';
+import './IFFT';
 import './Less';
 import './LessEqual';
 import './Log';

@@ -32,8 +32,9 @@ EMSCRIPTEN_KEEPALIVE
 void FFT(const size_t real_input_id, const size_t imag_input_id,
          const size_t outer_dim, const size_t inner_dim,
          const size_t is_real_component, const size_t out_id) {
+  const bool is_inverse = false;
   tfjs::wasm::fft(real_input_id, imag_input_id, outer_dim, inner_dim,
-                  is_real_component, out_id);
+                  is_real_component, is_inverse, out_id);
 }
 }  // extern "C"
 }  // namespace wasm
