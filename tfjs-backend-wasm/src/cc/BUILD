@@ -191,6 +191,7 @@ tfjs_cc_library(
         ":BatchMatMul",
         ":ClipByValue",
         ":Conv2D",
+        ":Conv2DBackpropInput",
         ":CropAndResize",
         ":DepthwiseConv2dNative",
         ":Div",
@@ -359,6 +360,14 @@ tfjs_unit_test(
     srcs = ["kernels/Conv2D_test.cc"],
     deps = [
         ":Conv2D",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Conv2DBackpropInput",
+    srcs = ["kernels/Conv2DBackpropInput.cc"],
+    deps = [
+        ":backend",
     ],
 )
 
