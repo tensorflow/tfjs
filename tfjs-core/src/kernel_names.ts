@@ -29,6 +29,13 @@ export type AddInputs = BinaryInputs;
 export const AddN = 'AddN';
 export type AddNInputs = TensorInfo[];
 
+export const All = 'All';
+export type AllInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface AllAttrs {
+  axis: number|number[];
+  keepDims: boolean;
+}
+
 export const Atan2 = 'Atan2';
 export type Atan2Inputs = BinaryInputs;
 

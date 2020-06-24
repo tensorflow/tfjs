@@ -15,6 +15,7 @@
  * =============================================================================
  */
 import './add';
+import './all';
 import './atan2';
 import './avg_pool';
 import './batchnorm';
