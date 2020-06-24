@@ -62,6 +62,7 @@ import './relu';
 import './resize_bilinear';
 import './resize_nearest_neighbor';
 import './relu6';
+import './reverse';
 import './selu';
 import './separable_conv2d';
 import './split';
