@@ -16,6 +16,7 @@
  */
 
 import {BinaryOpSharedProgram} from './binary_op_shared_webgpu';
+import {BinaryOpUniformProgram} from './binary_op_uniform_webgpu';
 import {BinaryOpProgram} from './binary_op_webgpu';
 
 export const MUL = 'return a * b;';
@@ -45,11 +46,15 @@ export const MAX = CHECK_NAN_SNIPPET + `
 `;
 export function getBinaryProgram(
     op: string, aShape: number[], bShape: number[]) {
-  const useSharedMemoryWithA =
-      aShape.length === 1 && bShape.length > 1 && aShape[0] < 2048;
-  const useSharedMemoryWithB =
-      bShape.length === 1 && aShape.length > 1 && bShape[0] < 2048;
-  if (useSharedMemoryWithA || useSharedMemoryWithB) {
+  const optimizeA = aShape.length === 1 && bShape.length > 1;
+  const optimizeB = bShape.length === 1 && aShape.length > 1;
+  const useUniformWithA = optimizeA && (aShape[0] <= 4 || aShape[0] === 64);
+  const useUniformWithB = optimizeB && (bShape[0] <= 4 || bShape[0] === 64);
+  const useSharedMemoryWithA = optimizeA && aShape[0] < 2048;
+  const useSharedMemoryWithB = optimizeB && bShape[0] < 2048;
+  if (useUniformWithA || useUniformWithB) {
+    return new BinaryOpUniformProgram(op, aShape, bShape, useUniformWithB);
+  } else if (useSharedMemoryWithA || useSharedMemoryWithB) {
     return new BinaryOpSharedProgram(op, aShape, bShape, useSharedMemoryWithB);
   } else {
     return new BinaryOpProgram(op, aShape, bShape);

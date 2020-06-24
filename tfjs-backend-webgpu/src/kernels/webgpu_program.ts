@@ -32,6 +32,8 @@ export interface WebGPUProgram {
   // dispatch specifies geometry of thread groups - derived from dispatchLayout.
   dispatch: [number, number, number];
   variableNames: string[];
+  variableUniforms?: string[];
+  useVariableUniforms?: boolean[];
   uniforms?: string;
   // Indicate whether shapes data are needed.
   needsShapesUniforms: boolean;
@@ -72,22 +74,40 @@ export const makeBindGroup =
     };
 
 const makeBindGroupLayout =
-    (device: GPUDevice, inputs: shader_preprocessor.InputInfo[],
-     output: TensorInfo, uniforms?: BindingInfo): GPUBindGroupLayout => {
-      const bindings =
-          Array(1 + inputs.length)
-              .fill(
-                  {
-                    visibility: GPUShaderStage.COMPUTE,
-                    type: 'readonly-storage-buffer' as GPUBindingType
-                  },
-                  1);
+    (device: GPUDevice, program: WebGPUProgram): GPUBindGroupLayout => {
+      const bindings = Array(1 + program.variableNames.length);
+      if (program.useVariableUniforms) {
+        program.useVariableUniforms.forEach((x, i) => {
+        if (x)
+        {
+          bindings[1+i] = {
+            visibility: GPUShaderStage.COMPUTE,
+            type: 'uniform-buffer' as GPUBindingType
+          };
+        } else {
+          bindings[1+i] = {
+            visibility: GPUShaderStage.COMPUTE,
+            type: 'readonly-storage-buffer' as GPUBindingType
+          };
+        }
+        });
+      }
+      else
+      {
+        bindings.fill(
+                    {
+                      visibility: GPUShaderStage.COMPUTE,
+                      type: 'readonly-storage-buffer' as GPUBindingType
+                    },
+                    1);
+      }
+
       bindings[0] = {
         visibility: GPUShaderStage.COMPUTE,
         type: 'storage-buffer' as GPUBindingType
       };
 
-      if (uniforms) {
+      if (program.uniforms || program.needsShapesUniforms) {
         bindings.push({
           visibility: GPUShaderStage.COMPUTE,
           type: 'uniform-buffer' as GPUBindingType
@@ -112,7 +132,7 @@ export const compileProgram =
       }
 
       const bindGroupLayout =
-          makeBindGroupLayout(device, inputsData, output, uniforms);
+          makeBindGroupLayout(device, program);
       const layout =
           device.createPipelineLayout({bindGroupLayouts: [bindGroupLayout]});
       const module = device.createShaderModule({code: result.data});

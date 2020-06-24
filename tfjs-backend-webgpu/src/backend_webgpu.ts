@@ -92,8 +92,8 @@ export interface WebGPUTimingInfo extends TimingInfo {
 // off execution to the CPU.
 const CPU_HANDOFF_SIZE_THRESHOLD = 128;
 
-const DEFAULT_GPUBUFFER_USAGE =
-    GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
+const DEFAULT_GPUBUFFER_USAGE = GPUBufferUsage.STORAGE |
+    GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM;
 
 export class WebGPUBackend extends KernelBackend {
   device: GPUDevice;
@@ -467,6 +467,9 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     const inputsData = inputs.map((input: Tensor, i: number) => {
+      const useUniform =
+          program.useVariableUniforms ? program.useVariableUniforms[i] : false;
+
       this.uploadToGPU(input.dataId);
 
       return {
@@ -474,7 +477,8 @@ export class WebGPUBackend extends KernelBackend {
         // of underlying buffer, rather than abstract dtype.
         dtype: this.tensorMap.get(input.dataId).dtype,
         shape: input.shape,
-        name: program.variableNames[i]
+        name: program.variableNames[i],
+        useUniform: useUniform
       };
     });
     this.uploadToGPU(output.dataId);

@@ -48,8 +48,10 @@ interface ProgramParams {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   workGroupSize?: [number, number, number];
   variableNames: string[];
+  variableUniforms?: string[];
   uniforms?: string;
   needsShapesUniforms: boolean;
+  useVariableUniforms?: boolean[];
   userCode: string;
 }
 
@@ -57,6 +59,7 @@ export interface InputInfo {
   dtype: DataType;
   shape: number[];
   name: string;
+  useUniform: boolean;
 }
 
 export function makeShader(
@@ -73,19 +76,40 @@ export function makeShader(
   }
 
   // Output buffer.
+  let binding: number = 0;
   prefixSnippets.push(`
-    layout(std430, set = 0, binding = 0) writeonly buffer ssbOut {
+    layout(std430, set = 0, binding = ${binding++}) writeonly buffer ssbOut {
       ${mapToGlslTypes(outputData.dtype)} result[];
     };
   `);
 
-  program.variableNames.forEach((x, i) => {
-    prefixSnippets.push(`
-      layout(std430, set = 0, binding = ${1 + i}) readonly buffer ssb${x} {
-        ${mapToGlslTypes(inputInfo[i].dtype)} ${x}[];
+  if (program.useVariableUniforms)
+  {
+    program.useVariableUniforms.forEach((x, i) => {
+    if (x)
+    {
+      prefixSnippets.push(`
+layout(std140, set = 0, binding = ${binding++}) uniform variableUniform${i} {
+        ${program.variableUniforms[i]};
       };
-    `);
-  });
+      `);
+    } else {
+      prefixSnippets.push(`layout(std430, set = 0, binding = ${binding++})
+readonly buffer ssb${program.variableNames[i]} {
+        ${mapToGlslTypes(inputInfo[i].dtype)} ${program.variableNames[i]}[];
+      };
+      `);
+    }
+    });
+  }  else {
+    program.variableNames.forEach((x, i) => {
+      prefixSnippets.push(`
+        layout(std430, set = 0, binding = ${binding++}) readonly buffer ssb${x} {
+          ${mapToGlslTypes(inputInfo[i].dtype)} ${x}[];
+        };
+      `);
+    });
+  }
 
   let uniformDeclaration = '';
   if (program.needsShapesUniforms) {
@@ -109,8 +133,7 @@ export function makeShader(
   }
 
   prefixSnippets.push(`
-    layout(std140, set = 0, binding = ${
-      1 + program.variableNames.length}) uniform Uniforms {
+    layout(std140, set = 0, binding = ${binding++}) uniform Uniforms {
       ${uniformDeclaration}
     };
   `);
@@ -219,6 +242,10 @@ function getSetOutputSnippet(outRank: number, outBufferType: DataType): string {
 
 function getInputSamplingSnippet(
     inInfo: InputInfo, outShape: number[]): string {
+  if (inInfo.useUniform)
+  {
+    return '';
+  }
   let res = getSamplerFromInInfo(inInfo);
 
   const inShape = inInfo.shape;
