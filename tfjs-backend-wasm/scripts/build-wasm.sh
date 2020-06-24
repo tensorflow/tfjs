@@ -17,12 +17,12 @@
 set -e
 
 # Default build.
-# yarn bazel build -c opt //src/cc:tfjs-backend-wasm.js --config=wasm
+yarn bazel build -c opt //src/cc:tfjs-backend-wasm.js --config=wasm
 # The typescript code and karma config expect the output of emscripten to be in
 # wasm-out/ so we copy the bazel output there.
-# cp -f bazel-bin/src/cc/tfjs-backend-wasm.js \
-#       bazel-bin/src/cc/tfjs-backend-wasm.wasm \
-#       wasm-out/
+cp -f bazel-bin/src/cc/tfjs-backend-wasm.js \
+      bazel-bin/src/cc/tfjs-backend-wasm.wasm \
+      wasm-out/
 
 # SIMD build.
 yarn bazel build -c opt //src/cc:tfjs-backend-wasm-simd.js --config=wasm --copt="-msimd128"
