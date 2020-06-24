@@ -34,7 +34,7 @@ Expected output:
 $ node run_mobilenet_inference.js dog.jpg
 Platform node has already been set. Overwriting the platform with [object Object].
   - gl.VERSION: OpenGL ES 3.0 (ANGLE 2.1.0.9512a0ef062a)
-  - gl.RENDERER: ANGLE (Intel LLC, Intel(R) Iris(TM) Plus Graphics 640, OpenGL 4.1 core)
+  - gl.RENDERER: ANGLE (Intel Inc., Intel(R) Iris(TM) Plus Graphics 640, OpenGL 4.1 core)
   - Loading model...
   - Mobilenet load: 6450.763924002647ms
   - Coldstarting model...
