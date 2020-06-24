@@ -57,6 +57,7 @@ const CHAINED_OPS = [
   'logicalNot',
   'logicalOr',
   'logicalXor',
+  'logSumExp',
   'matMul',
   'max',
   'maximum',

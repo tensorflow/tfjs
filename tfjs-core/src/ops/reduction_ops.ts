@@ -28,53 +28,6 @@ import {gradForMinAndMax} from './reduction_ops_util';
 import {ones, scalar, zerosLike} from './tensor_ops';
 
 /**
- * Computes the log(sum(exp(elements across the reduction dimensions)).
- *
- * Reduces the input along the dimensions given in `axis`. Unless `keepDims`
- * is true, the rank of the array is reduced by 1 for each entry in `axis`.
- * If `keepDims` is true, the reduced dimensions are retained with length 1.
- * If `axis` has no entries, all dimensions are reduced, and an array with a
- * single element is returned.
- *
- * ```js
- * const x = tf.tensor1d([1, 2, 3]);
- *
- * x.logSumExp().print();  // or tf.logSumExp(x)
- * ```
- *
- * ```js
- * const x = tf.tensor2d([1, 2, 3, 4], [2, 2]);
- *
- * const axis = 1;
- * x.logSumExp(axis).print();  // or tf.logSumExp(a, axis)
- * ```
- * @param x The input tensor.
- * @param axis The dimension(s) to reduce. If null (the default),
- *     reduces all dimensions.
- * @param keepDims If true, retains reduced dimensions with length
- *     of 1. Defaults to false.
- */
-/** @doc {heading: 'Operations', subheading: 'Reduction'} */
-function logSumExp_<T extends Tensor>(
-    x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
-  const $x = convertToTensor(x, 'x', 'logSumExp');
-
-  const axes = util.parseAxisParam(axis, $x.shape);
-  const xMax = $x.max(axes, true /* keepDims */);
-  const a = $x.sub(xMax);
-  const b = a.exp();
-  const c = b.sum(axes);
-  const d = c.log();
-  const res = xMax.reshape(d.shape).add(d);
-
-  if (keepDims) {
-    const newShape = axis_util.expandShapeToKeepDim(res.shape, axes);
-    return res.reshape(newShape) as T;
-  }
-  return res as T;
-}
-
-/**
  * Computes the sum of elements across dimensions of a `tf.Tensor`.
  *
  * Reduces the input along the dimensions given in `axes`. Unless `keepDims`
@@ -452,7 +405,6 @@ function moments_(
 
 export const argMax = op({argMax_});
 export const argMin = op({argMin_});
-export const logSumExp = op({logSumExp_});
 export const mean = op({mean_});
 export const min = op({min_});
 export const moments = op({moments_});

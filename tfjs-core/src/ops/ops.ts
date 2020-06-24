@@ -62,6 +62,7 @@ export {leakyRelu} from './leaky_relu';
 export {less} from './less';
 export {lessEqual} from './less_equal';
 export {localResponseNormalization} from './local_response_normalization';
+export {logSumExp} from './log_sum_exp';
 export {logicalAnd} from './logical_and';
 export {logicalNot} from './logical_not';
 export {logicalOr} from './logical_or';
