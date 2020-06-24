@@ -12,16 +12,13 @@ uplinks:
 # fine-grained control of package access, we set it
 # to allow all users to read and publish all packages.
 packages:
-  '@tensorflow/*':
-    access: $anonymous
-    publish: $anonymous
   '@*/*':
-    access: $anonymous
-    publish: $anonymous
+    access: $all
+    publish: $all
     proxy: npmjs
   '**':
-    access: $anonymous
-    publish: $anonymous
+    access: $all
+    publish: $all
     # if package is not available locally, proxy requests to 'npmjs' registry
     proxy: npmjs
 
