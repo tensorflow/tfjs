@@ -109,6 +109,32 @@ const benchmarks = {
       };
     },
   },
+  'hand_detector': {
+    load: async () => {
+      const url =
+          'https://tfhub.dev/mediapipe/tfjs-model/handdetector/1/default/1';
+      return tf.loadGraphModel(url, {fromTFHub: true});
+    },
+    predictFunc: () => {
+      const zeros = tf.zeros([1, 256, 256, 3]);
+      return model => {
+        return model.predict(zeros);
+      };
+    },
+  },
+  'hand_skeleton': {
+    load: async () => {
+      const url =
+          'https://tfhub.dev/mediapipe/tfjs-model/handskeleton/1/default/1';
+      return tf.loadGraphModel(url, {fromTFHub: true});
+    },
+    predictFunc: () => {
+      const zeros = tf.zeros([1, 256, 256, 3]);
+      return model => {
+        return model.predict(zeros);
+      };
+    },
+  },
   'AutoML Image': {
     load: async () => {
       const url =
