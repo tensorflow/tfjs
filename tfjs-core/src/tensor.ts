@@ -183,7 +183,6 @@ export interface OpHandler {
   slice<R extends Rank, T extends Tensor<R>>(
       x: T, begin: number|number[], size?: number|number[]): T;
   reverse<T extends Tensor>(x: T, axis?: number|number[]): T;
-  stack<T extends Tensor>(tensors: Array<T|TensorLike>, axis: number): Tensor;
   all<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
   any<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
   logSumExp<T extends Tensor>(
@@ -652,9 +651,6 @@ export class Tensor<R extends Rank = Rank> {
   reverse<T extends Tensor>(this: T, axis?: number|number[]): T {
     this.throwIfDisposed();
     return opHandler.reverse(this, axis);
-  }
-  stack(x: Tensor, axis = 0): Tensor {
-    return opHandler.stack([this, x], axis);
   }
   // Reduction ops.
   all<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {

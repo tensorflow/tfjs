@@ -79,6 +79,7 @@ const CHAINED_OPS = [
   'split',
   'square',
   'squeeze',
+  'stack',
   'sub',
   'tile',
   'transpose',

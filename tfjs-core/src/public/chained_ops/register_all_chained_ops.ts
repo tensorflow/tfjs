@@ -69,6 +69,7 @@ import './split';
 import './squared_difference';
 import './squeeze';
 import './space_to_batch_nd';
+import './stack';
 import './sub';
 import './tile';
 import './transpose';
