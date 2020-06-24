@@ -29,6 +29,20 @@ export type AddInputs = BinaryInputs;
 export const AddN = 'AddN';
 export type AddNInputs = TensorInfo[];
 
+export const All = 'All';
+export type AllInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface AllAttrs {
+  axis: number|number[];
+  keepDims: boolean;
+}
+
+export const Any = 'Any';
+export type AnyInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface AnyAttrs {
+  axis: number|number[];
+  keepDims: boolean;
+}
+
 export const Atan2 = 'Atan2';
 export type Atan2Inputs = BinaryInputs;
 
@@ -410,6 +424,13 @@ export type PowInputs = BinaryInputs;
 export const Prelu = 'Prelu';
 export type PreluInputs = Pick<NamedTensorInfoMap, 'x'|'alpha'>;
 
+export const Prod = 'Prod';
+export type ProdInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface ProdAttrs {
+  axis: number|number[];
+  keepDims: boolean;
+}
+
 export const Real = 'Real';
 export type RealInputs = Pick<NamedTensorInfoMap, 'input'>;
 
@@ -439,6 +460,12 @@ export type ResizeBilinearGradInputs = Pick<NamedTensorInfoMap, 'images'>;
 
 export const Relu6 = 'Relu6';
 export type Relu6Inputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const Reverse = 'Reverse';
+export type ReverseInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface ReverseAttrs {
+  dims: number|number[];
+}
 
 export const SelectV2 = 'SelectV2';
 export type SelectV2Inputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;

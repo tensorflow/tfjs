@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,21 +14,19 @@
  * limitations under the License.
  * =============================================================================
  */
+import {logSumExp} from '../../ops/log_sum_exp';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
 
-import * as tf from '../index';
-import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
-import {expectArraysClose} from '../test_util';
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    logSumExp<T extends Tensor>(
+        this: T, axis: number|number[], keepDims?: boolean): T;
+  }
+}
 
-describeWithFlags('reverse', ALL_ENVS, () => {
-  it('throws when passed a non-tensor', () => {
-    expect(() => tf.reverse({} as tf.Tensor))
-        .toThrowError(/Argument 'x' passed to 'reverse' must be a Tensor/);
-  });
-
-  it('accepts a tensor-like object', async () => {
-    const input = [1, 2, 3];
-    const result = tf.reverse(input);
-    expect(result.shape).toEqual([3]);
-    expectArraysClose(await result.data(), [3, 2, 1]);
-  });
-});
+Tensor.prototype.logSumExp = function<T extends Tensor>(
+    this: T, axis: number|number[] = null, keepDims?: boolean): T {
+  this.throwIfDisposed();
+  return logSumExp(this, axis, keepDims);
+};
