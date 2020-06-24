@@ -300,7 +300,7 @@ limitations under the License.
 
       await showMsg('Loading the model');
       let start = performance.now();
-      model = await benchmark.load()
+      model = await benchmark.load();
       predict = benchmark.predictFunc();
       const elapsed = performance.now() - start;
 
