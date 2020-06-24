@@ -22,7 +22,7 @@ import {TensorLike} from '../types';
 import {assertShapesMatch} from '../util';
 
 import {add} from './add';
-import {cast, reshape} from './array_ops';
+import {cast} from './array_ops';
 import {expandShapeToKeepDim} from './axis_util';
 import {computeWeightedLoss} from './compute_weighted_loss';
 import {div} from './div';
@@ -31,6 +31,7 @@ import {Reduction} from './loss_ops_utils';
 import {mul} from './mul';
 import {op} from './operation';
 import {sum} from './reduction_ops';
+import {reshape} from './reshape';
 import {sub} from './sub';
 import {scalar} from './tensor_ops';
 import {exp, neg} from './unary_ops';
