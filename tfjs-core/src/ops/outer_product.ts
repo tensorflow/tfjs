@@ -23,7 +23,6 @@ import {matMul} from './mat_mul';
 import {op} from './operation';
 import {reshape} from './reshape';
 
-
 /**
  * Computes the outer product of two vectors, `v1` and `v2`.
  *

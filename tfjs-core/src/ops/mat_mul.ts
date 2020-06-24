@@ -27,7 +27,6 @@ import * as util from '../util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
-
 /**
  * Computes the dot product of two matrices, A * B. These must be matrices.
  *

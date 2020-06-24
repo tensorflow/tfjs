@@ -31,7 +31,6 @@ import {range, scalar, zeros} from './tensor_ops';
 import {unstack} from './unstack';
 import {where} from './where';
 
-
 /**
  * Copy a tensor setting everything outside a central band in each innermost
  * matrix to zero.

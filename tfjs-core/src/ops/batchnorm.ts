@@ -28,7 +28,6 @@ import {xAs4D} from './batchnorm_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
-
 /**
  * Batch normalization.
  *

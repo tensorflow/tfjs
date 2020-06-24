@@ -28,7 +28,6 @@ import {clone} from './clone';
 import {op} from './operation';
 import {reshape} from './reshape';
 
-
 /**
  * Broadcast an array to a compatible shape NumPy-style.
  *

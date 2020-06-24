@@ -28,7 +28,6 @@ import {op} from './operation';
 import {reshape} from './reshape';
 import {spaceToBatchND} from './space_to_batch_nd';
 
-
 /**
  * Performs an N-D pooling operation
  *

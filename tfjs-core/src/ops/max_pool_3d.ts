@@ -29,7 +29,6 @@ import * as conv_util from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
-
 /**
  * Computes the 3D max pooling.
  *

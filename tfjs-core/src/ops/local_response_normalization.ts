@@ -27,7 +27,6 @@ import * as util from '../util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
-
 /**
  * Normalizes the activation of a local neighborhood across or within
  * channels.

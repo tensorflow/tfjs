@@ -27,7 +27,6 @@ import * as util from '../util';
 
 import {op} from './operation';
 
-
 /**
  * Reshapes a `tf.Tensor` to a given shape.
  *

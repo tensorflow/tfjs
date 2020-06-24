@@ -38,7 +38,6 @@ import {neg} from './unary_ops';
 import {unstack} from './unstack';
 import {where} from './where';
 
-
 /**
  * Compute QR decomposition of m-by-n matrix using Householder transformation.
  *

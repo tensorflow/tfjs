@@ -26,7 +26,6 @@ import {TensorLike} from '../types';
 import {op} from './operation';
 import {reshape} from './reshape';
 
-
 /**
  * Creates a one-hot `tf.Tensor`. The locations represented by `indices` take
  * value `onValue` (defaults to 1), while all other locations take value

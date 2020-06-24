@@ -27,7 +27,6 @@ import * as util from '../util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
-
 /**
  * Computes the grayscale dilation over the input `x`.
  *

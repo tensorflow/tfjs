@@ -27,7 +27,6 @@ import * as conv_util from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
-
 /**
  * Computes a 2D convolution over the input x.
  *

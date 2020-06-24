@@ -24,7 +24,6 @@ import {matMul} from './mat_mul';
 import {op} from './operation';
 import {reshape} from './reshape';
 
-
 /**
  * Computes the dot product of two matrices and/or vectors, `t1` and `t2`.
  *

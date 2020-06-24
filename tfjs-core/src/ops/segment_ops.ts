@@ -31,7 +31,6 @@ import {collectGatherOpShapeInfo} from './segment_util';
 import {ones, scalar, zerosLike} from './tensor_ops';
 import {where} from './where';
 
-
 /**
  * Computes the sum along segments of a `tf.Tensor`.
  *

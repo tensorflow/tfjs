@@ -29,7 +29,6 @@ import {squeeze} from './squeeze';
 import {stack} from './stack';
 import {sub} from './sub';
 
-
 /**
  * Gram-Schmidt orthogonalization.
  *

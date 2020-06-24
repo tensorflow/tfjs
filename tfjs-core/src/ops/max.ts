@@ -30,7 +30,6 @@ import {op} from './operation';
 import {reshape} from './reshape';
 import {transpose} from './transpose';
 
-
 /**
  * Computes the maximum of elements across dimensions of a `tf.Tensor`.
  *
