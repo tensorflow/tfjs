@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,20 +15,24 @@
  * =============================================================================
  */
 
-import * as tf from '../index';
-import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
-import {expectArraysClose} from '../test_util';
+import {Tensor1D} from '../tensor';
+import {convertToTensor} from '../tensor_util_env';
+import {TensorLike} from '../types';
+import * as util from '../util';
+import {op} from './operation';
+import {reverse} from './reverse';
 
-describeWithFlags('reverse', ALL_ENVS, () => {
-  it('throws when passed a non-tensor', () => {
-    expect(() => tf.reverse({} as tf.Tensor))
-        .toThrowError(/Argument 'x' passed to 'reverse' must be a Tensor/);
-  });
+/**
+ * Reverses a `tf.Tensor1D`.
+ *
+ * @param x The input tensor.
+ */
+function reverse1d_(x: Tensor1D|TensorLike): Tensor1D {
+  const $x = convertToTensor(x, 'x', 'reverse');
+  util.assert(
+      $x.rank === 1,
+      () => `Error in reverse1D: x must be rank 1 but got rank ${$x.rank}.`);
+  return reverse($x, 0);
+}
 
-  it('accepts a tensor-like object', async () => {
-    const input = [1, 2, 3];
-    const result = tf.reverse(input);
-    expect(result.shape).toEqual([3]);
-    expectArraysClose(await result.data(), [3, 2, 1]);
-  });
-});
+export const reverse1d = op({reverse1d_});

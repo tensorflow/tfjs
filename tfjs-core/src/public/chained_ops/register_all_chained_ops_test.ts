@@ -72,6 +72,7 @@ const CHAINED_OPS = [
   'resizeBilinear',
   'resizeNearestNeighbor',
   'relu6',
+  'reverse',
   'selu',
   'separableConv2d',
   'spaceToBatchND',
