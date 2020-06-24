@@ -25,6 +25,8 @@ import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
 
 const CHAINED_OPS = [
   'add',
+  'all',
+  'any',
   'atan2',
   'avgPool',
   'batchNorm',
@@ -55,6 +57,7 @@ const CHAINED_OPS = [
   'logicalNot',
   'logicalOr',
   'logicalXor',
+  'logSumExp',
   'matMul',
   'max',
   'maximum',
@@ -68,6 +71,7 @@ const CHAINED_OPS = [
   'pool',
   'pow',
   'prelu',
+  'prod',
   'relu',
   'resizeBilinear',
   'resizeNearestNeighbor',
