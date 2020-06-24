@@ -184,7 +184,6 @@ export interface OpHandler {
       keepDims: boolean): Tensor;
   slice<R extends Rank, T extends Tensor<R>>(
       x: T, begin: number|number[], size?: number|number[]): T;
-  reverse<T extends Tensor>(x: T, axis?: number|number[]): T;
   stack<T extends Tensor>(tensors: Array<T|TensorLike>, axis: number): Tensor;
   unstack<T extends Tensor>(value: T, axis: number): Tensor[];
   all<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
@@ -677,10 +676,6 @@ export class Tensor<R extends Rank = Rank> {
       this: T, begin: number|number[], size?: number|number[]): T {
     this.throwIfDisposed();
     return opHandler.slice(this, begin, size);
-  }
-  reverse<T extends Tensor>(this: T, axis?: number|number[]): T {
-    this.throwIfDisposed();
-    return opHandler.reverse(this, axis);
   }
   stack(x: Tensor, axis = 0): Tensor {
     return opHandler.stack([this, x], axis);

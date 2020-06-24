@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,21 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
+import {Reverse, ReverseAttrs} from '../kernel_names';
+import {GradConfig, NamedAttrMap} from '../kernel_registry';
+import {Tensor} from '../tensor';
+import {parseAxisParam} from '../util';
 
-import * as tf from '../index';
-import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
-import {expectArraysClose} from '../test_util';
+export const reverseGradConfig: GradConfig = {
+  kernelName: Reverse,
+  gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
+    const {dims} = attrs as {} as ReverseAttrs;
+    const axes = parseAxisParam(dims, dy.shape);
 
-describeWithFlags('reverse', ALL_ENVS, () => {
-  it('throws when passed a non-tensor', () => {
-    expect(() => tf.reverse({} as tf.Tensor))
-        .toThrowError(/Argument 'x' passed to 'reverse' must be a Tensor/);
-  });
-
-  it('accepts a tensor-like object', async () => {
-    const input = [1, 2, 3];
-    const result = tf.reverse(input);
-    expect(result.shape).toEqual([3]);
-    expectArraysClose(await result.data(), [3, 2, 1]);
-  });
-});
+    return {x: () => dy.reverse(axes)};
+  }
+};

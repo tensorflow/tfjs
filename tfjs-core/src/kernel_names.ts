@@ -440,6 +440,12 @@ export type ResizeBilinearGradInputs = Pick<NamedTensorInfoMap, 'images'>;
 export const Relu6 = 'Relu6';
 export type Relu6Inputs = Pick<NamedTensorInfoMap, 'x'>;
 
+export const Reverse = 'Reverse';
+export type ReverseInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface ReverseAttrs {
+  dims: number|number[];
+}
+
 export const SelectV2 = 'SelectV2';
 export type SelectV2Inputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
 
