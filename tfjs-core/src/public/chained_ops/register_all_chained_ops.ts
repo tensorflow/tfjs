@@ -15,6 +15,8 @@
  * =============================================================================
  */
 import './add';
+import './all';
+import './any';
 import './atan2';
 import './avg_pool';
 import './batchnorm';
@@ -46,6 +48,7 @@ import './logical_and';
 import './logical_not';
 import './logical_or';
 import './logical_xor';
+import './log_sum_exp';
 import './mat_mul';
 import './max';
 import './max_pool';
@@ -59,10 +62,12 @@ import './pad';
 import './pool';
 import './pow';
 import './prelu';
+import './prod';
 import './relu';
 import './resize_bilinear';
 import './resize_nearest_neighbor';
 import './relu6';
+import './reverse';
 import './selu';
 import './separable_conv2d';
 import './split';

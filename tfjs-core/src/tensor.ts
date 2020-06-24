@@ -182,14 +182,7 @@ export interface OpHandler {
       keepDims: boolean): Tensor;
   slice<R extends Rank, T extends Tensor<R>>(
       x: T, begin: number|number[], size?: number|number[]): T;
-  reverse<T extends Tensor>(x: T, axis?: number|number[]): T;
-  all<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
-  any<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
-  logSumExp<T extends Tensor>(
-      x: Tensor, axis: number|number[], keepDims: boolean): T;
   sum<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
-  prod<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean):
-      T;
   mean<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean):
       T;
   min<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
@@ -648,31 +641,10 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.slice(this, begin, size);
   }
-  reverse<T extends Tensor>(this: T, axis?: number|number[]): T {
-    this.throwIfDisposed();
-    return opHandler.reverse(this, axis);
-  }
   // Reduction ops.
-  all<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
-    this.throwIfDisposed();
-    return opHandler.all(this, axis, keepDims);
-  }
-  any<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
-    this.throwIfDisposed();
-    return opHandler.any(this, axis, keepDims);
-  }
-  logSumExp<T extends Tensor>(axis: number|number[] = null, keepDims = false):
-      T {
-    this.throwIfDisposed();
-    return opHandler.logSumExp(this, axis, keepDims);
-  }
   sum<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
     this.throwIfDisposed();
     return opHandler.sum(this, axis, keepDims);
-  }
-  prod<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
-    this.throwIfDisposed();
-    return opHandler.prod(this, axis, keepDims);
   }
   mean<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
     this.throwIfDisposed();

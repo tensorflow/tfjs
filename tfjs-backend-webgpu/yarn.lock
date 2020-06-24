@@ -805,10 +805,9 @@
   version "0.0.0"
   uid ""
 
-"@tensorflow/tfjs-converter@1.7.1":
-  version "1.7.1"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-1.7.1.tgz#b96abbb1b38e96088709386cc21f4902809cabbf"
-  integrity sha512-CTQmTWAM+VqjxX1Qw9RhVrl32e1ITH2oVuWs/KgxXyyGNE9BLFQxFJhxQz/BPbxHFoIqZUK8RZiFrQudabx/lw==
+"@tensorflow/tfjs-converter@link:../tfjs-converter":
+  version "0.0.0"
+  uid ""
 
 "@tensorflow/tfjs-core@link:../tfjs-core":
   version "0.0.0"

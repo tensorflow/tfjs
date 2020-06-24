@@ -64,8 +64,7 @@ export {GradSaveFunc, NamedTensorMap, TensorContainer, TensorContainerArray, Ten
 export {BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, PixelData, Rank, RecursiveArray, ShapeMap, sumOutType, TensorLike, TypedArray, upcastType} from './types';
 
 export * from './ops/ops';
-export {LSTMCellFunc} from './ops/lstm';
-export {Reduction} from './ops/loss_ops';
+export {Reduction} from './ops/loss_ops_utils';
 
 export * from './train';
 export * from './globals';
