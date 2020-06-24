@@ -15,13 +15,31 @@
  * =============================================================================
  */
 
-async function getPredictionData(prediction) {
-  let output = prediction;
+async function disposeTensor(tensor) {
+  const data = await tensor.data();
+  tensor.dispose();
+  return data;
+}
+
+async function getPredictionData(output) {
   if (output instanceof Promise) {
     output = await output;
   }
+
   if (output instanceof tf.Tensor) {
-    output = await output.data();
+    output = await disposeTensor(output);
+  } else if (Array.isArray(output)) {
+    for (let i = 0; i < output.length; i++) {
+      if (output[i] instanceof tf.Tensor) {
+        output[i] = await disposeTensor(output[i]);
+      }
+    }
+  } else if (output.constructor === Object) {
+    for (const tensorName in output) {
+      if (typeof tensorName === 'string' && output[tensorName] instanceof tf.Tensor) {
+        output[tensorName] = await disposeTensor(output[tensorName]);
+      }
+    }
   }
   return output;
 }
