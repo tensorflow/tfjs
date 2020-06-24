@@ -24,7 +24,6 @@ source local-registry.sh
 
 function cleanup {
   echo 'Cleaning up.'
-  cd "$root_path"
   # Restore the original NPM and Yarn registry URLs and stop Verdaccio
   stopLocalRegistry
 }
@@ -54,22 +53,22 @@ set -x
 
 # Go to e2e root
 cd ..
-root_path=$PWD
+e2e_root_path=$PWD
 
-#if [[ "$RELEASE" = true ]]; then
+if [[ "$RELEASE" = true ]]; then
   # ****************************************************************************
   # First, publish the monorepo.
   # ****************************************************************************
 
   # Start the local NPM registry
-  startLocalRegistry "$root_path"/scripts/verdaccio.yaml
+  startLocalRegistry "$e2e_root_path"/scripts/verdaccio.yaml
 
   # Publish the monorepo
-  "$root_path"/scripts/publish-monorepo-ci.sh
+  "$e2e_root_path"/scripts/publish-monorepo-ci.sh
 
   echo 'Installing package'
   yarn
 
   # Cleanup
   cleanup
-#fi
+fi
