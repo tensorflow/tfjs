@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../engine';
+import {KernelBackend} from '../backends/backend';
+import {ENGINE, ForwardFunc} from '../engine';
 import {Unpack, UnpackAttrs, UnpackInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
@@ -25,7 +26,6 @@ import {TensorLike} from '../types';
 import * as util from '../util';
 
 import {op} from './operation';
-import {stack} from './stack';
 
 /**
  * Unstacks a `tf.Tensor` of rank-`R` into a list of rank-`(R-1)` `tf.Tensor`s.
@@ -50,14 +50,13 @@ function unstack_(x: Tensor|TensorLike, axis = 0): Tensor[] {
   if (axis < 0) {
     axis += $x.shape.length;
   }
-  const grad = (dy: Tensor[]) => {
-    return {value: () => stack(dy, axis)};
-  };
   const inputs: UnpackInputs = {value: $x};
   const attrs: UnpackAttrs = {axis};
+  const forward: ForwardFunc<Tensor[]> = (backend: KernelBackend) =>
+      backend.unstack($x, axis);
   return ENGINE.runKernelFunc(
-      backend => backend.unstack($x, axis), inputs as {} as NamedTensorMap,
-      grad, Unpack, attrs as {} as NamedAttrMap);
+      forward, inputs as {} as NamedTensorMap, null /* grad */, Unpack,
+      attrs as {} as NamedAttrMap);
 }
 
 export const unstack = op({unstack_});

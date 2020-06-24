@@ -61,6 +61,7 @@ import {squaredDifferenceGradConfig} from './gradients/SquaredDifference_grad';
 import {subGradConfig} from './gradients/Sub_grad';
 import {tileGradConfig} from './gradients/Tile_grad';
 import {transposeGradConfig} from './gradients/Transpose_grad';
+import {unpackGradConfig} from './gradients/Unpack_grad';
 import {GradConfig} from './kernel_registry';
 import {registerGradient} from './kernel_registry';
 
@@ -115,9 +116,10 @@ const gradConfigs: GradConfig[] = [
   splitVGradConfig,
   squareGradConfig,
   squaredDifferenceGradConfig,
+  subGradConfig,
   tileGradConfig,
   transposeGradConfig,
-  subGradConfig
+  unpackGradConfig
 ];
 
 for (const gradientConfig of gradConfigs) {
