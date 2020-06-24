@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2020 Google LLC. All Rights Reserved.
+# Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# =============================================================================
+# ==============================================================================
 
 custom_registry_url=http://localhost:4873
 original_npm_registry_url=`npm get registry`
