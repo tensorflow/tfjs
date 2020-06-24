@@ -36,6 +36,13 @@ export interface AllAttrs {
   keepDims: boolean;
 }
 
+export const Any = 'Any';
+export type AnyInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface AnyAttrs {
+  axis: number|number[];
+  keepDims: boolean;
+}
+
 export const Atan2 = 'Atan2';
 export type Atan2Inputs = BinaryInputs;
 

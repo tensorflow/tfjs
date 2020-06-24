@@ -42,6 +42,7 @@ import './ops/absolute_difference_test';
 import './ops/add_n_test';
 import './ops/add_test';
 import './ops/all_test';
+import './ops/any_test';
 import './ops/arithmetic_test';
 import './ops/array_ops_test';
 import './ops/avg_pool_3d_test';

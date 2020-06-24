@@ -423,53 +423,6 @@ function argMax_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
 }
 
 /**
- * Computes the logical or of elements across dimensions of a `tf.Tensor`.
- *
- * Reduces the input along the dimensions given in `axes`. Unless `keepDims`
- * is true, the rank of the `tf.Tensor` is reduced by 1 for each entry in
- * `axes`. If `keepDims` is true, the reduced dimensions are retained with
- * length 1. If `axes` has no entries, all dimensions are reduced, and an
- * `tf.Tensor` with a single element is returned.
- *
- * ```js
- * const x = tf.tensor1d([1, 1, 1], 'bool');
- *
- * x.any().print();  // or tf.any(x)
- * ```
- *
- * ```js
- * const x = tf.tensor2d([1, 1, 0, 0], [2, 2], 'bool');
- *
- * const axis = 1;
- * x.any(axis).print();  // or tf.any(x, axis)
- * ```
- *
- * @param x The input tensor. Must be of dtype bool.
- * @param axis The dimension(s) to reduce. By default it reduces
- *     all dimensions.
- * @param keepDims If true, retains reduced dimensions with size 1.
- */
-/** @doc {heading: 'Operations', subheading: 'Reduction'} */
-function any_<T extends Tensor>(
-    x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
-  let $x = convertToTensor(x, 'x', 'any', 'bool');
-
-  const origAxes = util.parseAxisParam(axis, $x.shape);
-  let axes = origAxes;
-  const permutedAxes = axis_util.getAxesPermutation(axes, $x.rank);
-  if (permutedAxes != null) {
-    $x = $x.transpose(permutedAxes);
-    axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
-  }
-  const res = ENGINE.runKernelFunc(backend => backend.any($x, axes), {$x});
-  if (keepDims) {
-    const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
-    return res.reshape(newShape) as T;
-  }
-  return res as T;
-}
-
-/**
  * Calculates the mean and variance of `x`. The mean and variance are
  * calculated by aggregating the contents of `x` across `axes`. If `x` is
  * 1-D and `axes = [0]` this is just the mean and variance of a vector.
@@ -497,8 +450,6 @@ function moments_(
   return {mean, variance};
 }
 
-// tslint:disable-next-line:variable-name
-export const any = op({any_});
 export const argMax = op({argMax_});
 export const argMin = op({argMin_});
 export const logSumExp = op({logSumExp_});

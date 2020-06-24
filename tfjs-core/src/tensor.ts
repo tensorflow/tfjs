@@ -186,7 +186,6 @@ export interface OpHandler {
       x: T, begin: number|number[], size?: number|number[]): T;
   stack<T extends Tensor>(tensors: Array<T|TensorLike>, axis: number): Tensor;
   unstack<T extends Tensor>(value: T, axis: number): Tensor[];
-  any<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
   logSumExp<T extends Tensor>(
       x: Tensor, axis: number|number[], keepDims: boolean): T;
   sum<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
@@ -683,10 +682,6 @@ export class Tensor<R extends Rank = Rank> {
     return opHandler.unstack(this, axis);
   }
   // Reduction ops.
-  any<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
-    this.throwIfDisposed();
-    return opHandler.any(this, axis, keepDims);
-  }
   logSumExp<T extends Tensor>(axis: number|number[] = null, keepDims = false):
       T {
     this.throwIfDisposed();
