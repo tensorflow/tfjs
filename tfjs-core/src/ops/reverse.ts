@@ -24,6 +24,8 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {parseAxisParam} from '../util';
 
+import {reshape} from './array_ops';
+import {clone} from './clone';
 import {op} from './operation';
 
 /**
@@ -63,10 +65,10 @@ function reverse_<T extends Tensor>(
   const forward: ForwardFunc<Tensor> = (backend) => {
     const axes = parseAxisParam(axis, $x.shape);
     if ($x.rank === 0) {
-      return $x.clone();
+      return clone($x);
     }
     const res = backend.reverse($x, axes);
-    return res.reshapeAs($x);
+    return reshape(res, $x.shape);
   };
 
   const inputs: ReverseInputs = {x: $x};

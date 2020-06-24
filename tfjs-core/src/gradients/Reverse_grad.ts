@@ -16,6 +16,7 @@
  */
 import {Reverse, ReverseAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
+import {reverse} from '../ops/reverse';
 import {Tensor} from '../tensor';
 import {parseAxisParam} from '../util';
 
@@ -24,7 +25,6 @@ export const reverseGradConfig: GradConfig = {
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const {dims} = attrs as {} as ReverseAttrs;
     const axes = parseAxisParam(dims, dy.shape);
-
-    return {x: () => dy.reverse(axes)};
+    return {x: () => reverse(dy, axes)};
   }
 };
