@@ -144,3 +144,11 @@ th:first-child {
 #gui select {
   width: 100%
 }
+
+#gui .dg .property-name {
+  width: 25%;
+}
+
+#gui .dg .c {
+  width: 75%;
+}

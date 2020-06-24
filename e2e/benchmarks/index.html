@@ -50,8 +50,7 @@ limitations under the License.
             <th>Value</th>
           </tr>
         </thead>
-        <tbody>
-        </tbody>
+        <tbody></tbody>
       </table>
       <table class="table" id="timings">
         <caption>Model</caption>
@@ -112,8 +111,16 @@ limitations under the License.
         });
       },
       testCorrectness: async () => {
+        if (state.benchmark === 'custom') {
+          // TODO: seperate input generation from the predict function
+          await showMsg('Testing correctness for custom models is not supported');
+          throw new Error();
+        }
+
         let match, predictionData, referenceData;
         await cleanUpTable();
+
+        // load model and run inference
         try {
           await loadModelAndRecordTime();
           await showMsg('Testing correctness');
@@ -134,6 +141,7 @@ limitations under the License.
           throw e;
         }
 
+        // compare results
         try {
           await showMsg(null);
           tf.test_util.expectArraysClose(referenceData, predictionData);
@@ -142,10 +150,10 @@ limitations under the License.
           match = false;
           throw e;
         } finally {
+          appendRow(timeTable, `backend`, state.backend);
           appendRow(timeTable, `Prediction matches CPU`, match);
           appendRow(timeTable, '', '');
         }
-        state.isModelChanged = false;
       },
       backend: 'wasm',
       kernelTiming: 'aggregate',
@@ -190,15 +198,10 @@ limitations under the License.
     }
 
     function showBenchmarkingParameters() {
-      parameterTable.innerHTML = '';
       appendRow(parameterTable, 'task', 'Performance Benchmark');
       appendRow(parameterTable, 'benchmark', state.benchmark);
-      state.modelType =
-          state.modelType ||
-          (model instanceof tf.GraphModel ? 'GraphModel' : undefined) ||
-          (model instanceof tf.LayersModel ? 'LayersModel' : 'Unknown');
-      appendRow(parameterTable, 'modelType', state.modelType);
-      if (state.benchmark === 'custom model') {
+      appendRow(parameterTable, 'modelType', state.modelType || 'Unknown');
+      if (state.benchmark === 'custom') {
         appendRow(parameterTable, 'modelUrl', state.modelUrl);
       }
       appendRow(parameterTable, 'numRuns', state.numRuns);
@@ -222,15 +225,10 @@ limitations under the License.
     }
 
     async function showCorrectnessTestParameters() {
-      parameterTable.innerHTML = '';
       appendRow(parameterTable, 'task', 'Correctness Test');
       appendRow(parameterTable, 'benchmark', state.benchmark);
-      state.modelType =
-          state.modelType ||
-          (model instanceof tf.GraphModel ? 'GraphModel' : undefined) ||
-          (model instanceof tf.LayersModel ? 'LayersModel' : 'Unknown');
-      appendRow(parameterTable, 'modelType', state.modelType);
-      if (state.benchmark === 'custom model') {
+      appendRow(parameterTable, 'modelType', state.modelType || 'Unknown');
+      if (state.benchmark === 'custom') {
         appendRow(parameterTable, 'modelUrl', state.modelUrl);
       }
       appendRow(parameterTable, 'numRuns', 1);
@@ -257,15 +255,7 @@ limitations under the License.
       await showMsg('Warming up');
       const start = performance.now();
       let res = predict(model);
-      if (res instanceof Promise) {
-        res = await res;
-      }
-
-      if (res instanceof tf.Tensor) {
-        const tmp = res;
-        res = await res.data();
-        tmp.dispose();
-      }
+      res = await getPredictionData(res);
 
       const elapsed = performance.now() - start;
       await showMsg(null);
@@ -274,10 +264,17 @@ limitations under the License.
     }
 
     async function showInputs() {
-      modelInputsTable.innerHTML = '';
+      if (modelInputsTable.innerHTML !== '') {
+        // the input table for the model have been constructed
+        return;
+      }
+
       const modelInputsElement = document.getElementById('modelInputs');
-      if (model['inputs'] != null) {
+      if (model['inputs'] == null) {
+        modelInputsElement.style.display='none';
+      } else {
         modelInputsElement.style.display='';
+        // construct the input table for the new model
         for (let modelInputIndex = 0; modelInputIndex < model.inputs.length; modelInputIndex++) {
           let modelInput = model.inputs[modelInputIndex];
           if (modelInput.shape == null) continue;
@@ -287,14 +284,16 @@ limitations under the License.
           appendRow(modelInputsTable, 'data type', modelInput.dtype);
           appendRow(modelInputsTable, '', '');
         }
-      } else {
-        modelInputsElement.style.display='none';
       }
+
       await tf.nextFrame();
     }
 
     async function loadModelAndRecordTime() {
       const benchmark = benchmarks[state.benchmark];
+      state.modelType = benchmark['type'];
+      state.isModelChanged = false; // used to clean the performance history
+
       if (benchmark['load'] == null) {
         throw new Error(`Please provide a load method for '${state.benchmark}' model`);
       }
@@ -339,15 +338,7 @@ limitations under the License.
         const start = performance.now();
         const tensorsBefore = tf.memory().numTensors;
         let res = predict(model);
-        if (res instanceof Promise) {
-          res = await res;
-        }
-
-        if (res instanceof tf.Tensor) {
-          const tmp = res;
-          res = await res.data();
-          tmp.dispose();
-        }
+        res = await getPredictionData(res);
 
         times.push(performance.now() - start);
         const memInfo = tf.memory();
@@ -371,15 +362,8 @@ limitations under the License.
       const start = performance.now();
       let res;
       const data = await tf.profile(() => res = predict(model));
-      if (res instanceof Promise) {
-        res = await res;
-      }
+      res = await getPredictionData(res);
 
-      if (res instanceof tf.Tensor) {
-        const tmp = res;
-        res = await res.data();
-        tmp.dispose();
-      }
       const elapsed = performance.now() - start;
       await showMsg(null);
       appendRow(timeTable, 'Peak memory', printMemory(data.peakBytes));
@@ -447,15 +431,7 @@ limitations under the License.
         }
       }
       let res = predict(model);
-      if (res instanceof Promise) {
-        res = await res;
-      }
-
-      if (res instanceof tf.Tensor) {
-        const tmp = res;
-        res = await res.data();
-        tmp.dispose();
-      }
+      res = await getPredictionData(res);
 
       await showMsg(null);
       await sleep(10);
@@ -471,6 +447,7 @@ limitations under the License.
     }
 
     async function cleanUpTable() {
+      parameterTable.innerHTML = '';
       if (state.isModelChanged) {
         timeTable.innerHTML = '';
         kernelTable.innerHTML = '';
@@ -480,12 +457,13 @@ limitations under the License.
     }
 
     async function runBenchmark() {
-      state.modelType = '';
       await cleanUpTable();
       await setupKernelTable();
+
       await loadModelAndRecordTime();
       await showInputs();
       await showBenchmarkingParameters();
+
       await warmUpAndRecordTime();
       await showMsg('Waiting for GC');
       await sleep(1000);
@@ -493,13 +471,13 @@ limitations under the License.
       await sleep(200);
       await measureAveragePredictTime();
       await sleep(200);
+
       if (state.backend != 'webgl' || queryTimerIsEnabled()) {
         await profileKernelTime();
       } else {
         await showMsg('Skipping kernel times since query timer extension is not ' +
           'available. <br/> Use Chrome 70+.');
       };
-      state.isModelChanged = false;
     }
 
 
@@ -509,21 +487,23 @@ limitations under the License.
 
       await tf.setBackend(state.backend);
 
-      let modelFolder = gui.addFolder('Model');
-      let modelController = null;
-      modelFolder.add(state, 'benchmark', Object.keys(benchmarks)).onChange(model => {
+      let modelFolder = gui.addFolder('Benchmark');
+      let modelUrlController = null;
+      modelFolder.add(state, 'benchmark', Object.keys(benchmarks)).name('models').onChange(async model => {
+        await showMsg(null);
         state.isModelChanged = true;
-        if (model === 'custom model') {
-          if (modelController === null) {
-            modelController = modelFolder.add(state, 'modelUrl').onChange(async value => {
+        if (model === 'custom') {
+          if (modelUrlController === null) {
+            modelUrlController = modelFolder.add(state, 'modelUrl').onChange(async modelUrl => {
               state.isModelChanged = true;
               await showMsg(null);
             });
-            modelController.domElement.querySelector('input').placeholder = 'https://';
+            modelUrlController.domElement.querySelector('input').placeholder =
+                'https://your-domain.com/model-path/model.json';
           }
-        } else if (modelController != null) {
-          modelFolder.remove(modelController);
-          modelController = null;
+        } else if (modelUrlController != null) {
+          modelFolder.remove(modelUrlController);
+          modelUrlController = null;
         }
       });
       modelFolder.open();
@@ -531,13 +511,14 @@ limitations under the License.
       let parameterFolder = gui.addFolder('Parameters');
       parameterFolder.add(state, 'numRuns');
       parameterFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu']).onChange(backend => {
+        // TODO: Failed to set backend
         tf.setBackend(backend);
       });
       parameterFolder.add(state, 'kernelTiming', ['aggregate', 'individual']);
       parameterFolder.open();
 
-      gui.add(state, 'run').name('run benchmark');
-      gui.add(state, 'testCorrectness').name('test correctness');
+      gui.add(state, 'run').name('Run benchmark');
+      gui.add(state, 'testCorrectness').name('Test correctness');
 
       showVersions();
       await showEnvironment();

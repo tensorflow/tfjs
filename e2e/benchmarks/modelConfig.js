@@ -76,6 +76,7 @@ const sentences = [
 
 const benchmarks = {
   'mobilenet_v2': {
+    type: 'GraphModel',
     load: async () => {
       const url =
           'https://storage.googleapis.com/learnjs-data/mobilenet_v2_100_fused/model.json';
@@ -87,6 +88,7 @@ const benchmarks = {
     }
   },
   'mesh_128': {
+    type: 'GraphModel',
     load: async () => {
       const url =
           'https://storage.googleapis.com/learnjs-data/mesh_128_shift30_fixed_batch/model.json';
@@ -100,6 +102,7 @@ const benchmarks = {
     },
   },
   'face_detector': {
+    type: 'GraphModel',
     load: async () => {
       const url =
           'https://storage.googleapis.com/learnjs-data/face_detector_front/model.json';
@@ -113,6 +116,7 @@ const benchmarks = {
     },
   },
   'AutoML Image': {
+    type: 'GraphModel',
     load: async () => {
       const url =
           'https://storage.googleapis.com/tfjs-testing/tfjs-automl/img_classification/model.json';
@@ -124,6 +128,7 @@ const benchmarks = {
     }
   },
   'AutoML Object': {
+    type: 'GraphModel',
     load: async () => {
       const url =
           'https://storage.googleapis.com/tfjs-testing/tfjs-automl/object_detection/model.json';
@@ -135,6 +140,7 @@ const benchmarks = {
     }
   },
   'USE - batchsize 30': {
+    type: 'GraphModel',
     load: async () => {
       return use.load();
     },
@@ -147,6 +153,7 @@ const benchmarks = {
     }
   },
   'USE - batchsize 1': {
+    type: 'GraphModel',
     load: async () => {
       return use.load();
     },
@@ -162,6 +169,7 @@ const benchmarks = {
     }
   },
   'posenet': {
+    type: 'GraphModel',
     load: async () => {
       const model = await posenet.load();
       model.image = await loadImage('tennis_standing.jpg');
@@ -174,6 +182,7 @@ const benchmarks = {
     }
   },
   'bodypix': {
+    type: 'GraphModel',
     load: async () => {
       const model = await bodyPix.load();
       model.image = await loadImage('tennis_standing.jpg');
@@ -185,7 +194,8 @@ const benchmarks = {
       }
     }
   },
-  'custom model': {
+  'custom': {
+    type: '',
     load: async () => {
       return loadModelByUrl(state.modelUrl);
     },
@@ -194,7 +204,7 @@ const benchmarks = {
         const inferenceInputs = [];
         try {
           for (let inferenceInputIndex = 0; inferenceInputIndex < model.inputs.length; inferenceInputIndex++) {
-            // Construct the input tensor shape
+            // construct the input tensor shape
             const inferenceInput = model.inputs[inferenceInputIndex];
             const inputShape = [];
             for (let dimension = 0; dimension < inferenceInput.shape.length; dimension++) {
@@ -209,7 +219,7 @@ const benchmarks = {
               }
             }
 
-            // Construct the input tensor
+            // construct the input tensor
             let inputTensor;
             if (inferenceInput.dtype == 'float32' || inferenceInput.dtype == 'int32') {
               inputTensor = tf.randomNormal(inputShape, 0, 1, inferenceInput.dtype);
@@ -219,6 +229,7 @@ const benchmarks = {
             inferenceInputs.push(inputTensor);
           }
 
+          // run prediction
           let resultTensor;
           if (model instanceof tf.GraphModel && model.executeAsync != null) {
             resultTensor = await model.executeAsync(inferenceInputs);
@@ -228,9 +239,6 @@ const benchmarks = {
             throw new Error("Predict function was not found");
           }
           return resultTensor;
-        } catch (e) {
-          showMsg('Error: ' + e.message);
-          throw e;
         } finally {
           // dispose input tensors
           for (let tensorIndex = 0; tensorIndex < inferenceInputs.length; tensorIndex++) {
@@ -298,7 +306,6 @@ async function tryAllLoadingMethods(modelHandler, loadOptions = {}) {
 
 async function loadModelByUrl(modelUrl, loadOptions = {}) {
   let model, ioHandler, modelType;
-  state.modelType = '';
 
   const supportedSchemes =  /^(https?|localstorage|indexeddb):\/\/.+$/;
   if (!supportedSchemes.test(modelUrl)) {
