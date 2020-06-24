@@ -135,7 +135,6 @@ export * from './in_top_k';
 
 export {op} from './operation';
 
-import * as losses from './loss_ops';
 import * as spectral from './spectral_ops';
 import * as fused from './fused_ops';
 import * as signal from './signal_ops';
@@ -166,6 +165,28 @@ const linalg = {
   bandPart,
   gramSchmidt,
   qr
+};
+
+// losses namespace;
+import {absoluteDifference} from './absolute_difference';
+import {computeWeightedLoss} from './compute_weighted_loss';
+import {cosineDistance} from './cosine_distance';
+import {hingeLoss} from './hinge_loss';
+import {huberLoss} from './huber_loss';
+import {logLoss} from './log_loss';
+import {meanSquaredError} from './mean_squared_error';
+import {sigmoidCrossEntropy} from './sigmoid_cross_entropy';
+import {softmaxCrossEntropy} from './softmax_cross_entropy';
+const losses = {
+  absoluteDifference,
+  computeWeightedLoss,
+  cosineDistance,
+  hingeLoss,
+  huberLoss,
+  logLoss,
+  meanSquaredError,
+  sigmoidCrossEntropy,
+  softmaxCrossEntropy
 };
 
 // Second level exports.
