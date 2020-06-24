@@ -49,6 +49,7 @@ import {powGradConfig} from './gradients/Pow_grad';
 import {preluGradConfig} from './gradients/Prelu_grad';
 import {relu6GradConfig} from './gradients/Relu6_grad';
 import {reluGradConfig} from './gradients/Relu_grad';
+import {reshapeGradConfig} from './gradients/Reshape_grad';
 import {resizeBilinearGradConfig} from './gradients/ResizeBilinear_grad';
 import {resizeNearestNeighborGradConfig} from './gradients/ResizeNearestNeighbor_grad';
 import {selectV2PoolGradConfig} from './gradients/SelectV2_grad';
@@ -104,6 +105,7 @@ const gradConfigs: GradConfig[] = [
   powGradConfig,
   preluGradConfig,
   reluGradConfig,
+  reshapeGradConfig,
   resizeBilinearGradConfig,
   resizeNearestNeighborGradConfig,
   relu6GradConfig,

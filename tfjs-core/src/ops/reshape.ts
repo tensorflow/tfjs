@@ -15,13 +15,18 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../engine';
+import {KernelBackend} from '../backends/backend';
+import {ENGINE, ForwardFunc} from '../engine';
+import {Reshape, ReshapeAttrs, ReshapeInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
+import {GradSaveFunc, NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {Rank, ShapeMap, TensorLike} from '../types';
 import * as util from '../util';
 
 import {op} from './operation';
+
 
 /**
  * Reshapes a `tf.Tensor` to a given shape.
@@ -56,11 +61,15 @@ function reshape_<R2 extends Rank>(
       $x.size === util.sizeFromShape(shape),
       () => 'new shape and old shape must have the same number of elements.');
 
-  const grad = (dy: Tensor<R2>) => {
-    return {x: () => reshape(dy, $x.shape)};
-  };
-  const attrs = {shape};
+  const inputs: ReshapeInputs = {tensor: $x};
+  const attrs: ReshapeAttrs = {shape};
+  const forward: ForwardFunc<Tensor<R2>> =
+      (backend: KernelBackend, save: GradSaveFunc) => {
+        save([$x]);
+        return backend.reshape($x, shape);
+      };
   return ENGINE.runKernelFunc(
-      backend => backend.reshape($x, shape), {x: $x}, grad, 'Reshape', attrs);
+      forward, inputs as {} as NamedTensorMap, null /* grad */, Reshape,
+      attrs as {} as NamedAttrMap);
 }
 export const reshape = op({reshape_});
