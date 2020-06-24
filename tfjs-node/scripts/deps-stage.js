@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,7 +46,7 @@ if (targetDir != undefined && targetDir.endsWith('"')) {
 // Setup dest binary paths:
 const destLibTensorFlowPath = path.join(targetDir, destLibTensorFlowName);
 const destLibTensorFlowFrameworkPath =
-  path.join(targetDir, destLibTensorFlowFrameworkName);
+    path.join(targetDir, destLibTensorFlowFrameworkName);
 
 /**
  * Symlinks the extracted libtensorflow library to the destination path. If the
@@ -58,9 +58,9 @@ async function symlinkDepsLib() {
   }
   try {
     await symlink(
-      path.relative(
-        path.dirname(destLibTensorFlowPath), depsLibTensorFlowPath),
-      destLibTensorFlowPath);
+        path.relative(
+            path.dirname(destLibTensorFlowPath), depsLibTensorFlowPath),
+        destLibTensorFlowPath);
   } catch (e) {
     console.error(`  * Symlink of ${
         destLibTensorFlowPath} failed, creating a copy on disk.`);
@@ -75,7 +75,7 @@ async function moveDepsLib() {
   await rename(depsLibTensorFlowPath, destLibTensorFlowPath);
   if (os.platform() !== 'win32') {
     await rename(
-      depsLibTensorFlowFrameworkPath, destLibTensorFlowFrameworkPath);
+        depsLibTensorFlowFrameworkPath, destLibTensorFlowFrameworkPath);
   }
 }
 

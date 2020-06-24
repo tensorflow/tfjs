@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,8 +23,7 @@ export class StridedSliceProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
 
-  constructor(
-      begin: number[], strides: number[], size: number[]) {
+  constructor(begin: number[], strides: number[], size: number[]) {
     this.outputShape = size;
     const rank = size.length;
     const inputDtype = getCoordsDataType(size.length);

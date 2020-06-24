@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,7 +35,7 @@ const {
   customAddon
 } = require('./deps-constants.js');
 const resources = require('./resources');
-const { addonName } = require('./get-addon-name.js');
+const {addonName} = require('./get-addon-name.js');
 
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
@@ -43,7 +43,7 @@ const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
 
 const BASE_URI =
-  'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
+    'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
 
 const platform = os.platform();
 // Use windows path
@@ -52,14 +52,14 @@ if (platform === 'win32') {
 }
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
 let system = `${libType}-${PLATFORM_MAPPING[platform]}-` +
-  `${ARCH_MAPPING[os.arch()]}`;
+    `${ARCH_MAPPING[os.arch()]}`;
 let forceDownload = process.argv[3] === undefined ? undefined : process.argv[3];
 
 let packageJsonFile;
 
 function setPackageJsonFile() {
   packageJsonFile =
-    JSON.parse(fs.readFileSync(`${__dirname}/../package.json`).toString());
+      JSON.parse(fs.readFileSync(`${__dirname}/../package.json`).toString());
 }
 
 function updateAddonName() {
@@ -130,27 +130,27 @@ async function downloadLibtensorflow(callback) {
 
   console.warn('* Downloading libtensorflow');
   resources.downloadAndUnpackResource(
-    getPlatformLibtensorflowUri(), depsPath, async () => {
-      if (platform === 'win32') {
-        // Some windows libtensorflow zip files are missing structure and the
-        // eager headers. Check, restructure, and download resources as
-        // needed.
-        if (!await exists(depsLibTensorFlowPath)) {
-          // Verify that tensorflow.dll exists
-          const libtensorflowDll = path.join(depsPath, 'tensorflow.dll');
-          if (!await exists(libtensorflowDll)) {
-            throw new Error('Could not find libtensorflow.dll');
-          }
+      getPlatformLibtensorflowUri(), depsPath, async () => {
+        if (platform === 'win32') {
+          // Some windows libtensorflow zip files are missing structure and the
+          // eager headers. Check, restructure, and download resources as
+          // needed.
+          if (!await exists(depsLibTensorFlowPath)) {
+            // Verify that tensorflow.dll exists
+            const libtensorflowDll = path.join(depsPath, 'tensorflow.dll');
+            if (!await exists(libtensorflowDll)) {
+              throw new Error('Could not find libtensorflow.dll');
+            }
 
-          await ensureDir(depsLibPath);
-          await rename(libtensorflowDll, depsLibTensorFlowPath);
+            await ensureDir(depsLibPath);
+            await rename(libtensorflowDll, depsLibTensorFlowPath);
+          }
         }
-      }
-      // No other work is required on other platforms.
-      if (callback !== undefined) {
-        callback();
-      }
-    });
+        // No other work is required on other platforms.
+        if (callback !== undefined) {
+          callback();
+        }
+      });
 }
 
 /**

@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,16 +35,16 @@ void Maximum(const int a_id, const size_t* a_shape_ptr, const int a_shape_len,
   switch (dtype) {
     case DType::float32:
       binary_f32(a_id, b_id, out_id,
-        [](float a, float b) { return std::max(a, b); });
+                 [](float a, float b) { return std::max(a, b); });
       break;
     case DType::int32:
       binary_i32(a_id, b_id, out_id,
-        [](int a, int b) { return std::max(a, b); });
+                 [](int a, int b) { return std::max(a, b); });
       break;
     default:
       util::warn(
-          "Maximum for tensor ids %d and %d failed. Unsupported dtype %d",
-          a_id, b_id, dtype);
+          "Maximum for tensor ids %d and %d failed. Unsupported dtype %d", a_id,
+          b_id, dtype);
   }
 }
 

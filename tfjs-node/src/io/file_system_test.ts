@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -455,8 +455,7 @@ describe('File system IOHandler', () => {
     const model = tf.sequential();
     model.add(tf.layers.dense(
         {units: 1, kernelInitializer: 'zeros', inputShape: [1]}));
-    model.compile(
-        {loss: 'meanSquaredError', optimizer: tf.train.adam(2.5e-2)});
+    model.compile({loss: 'meanSquaredError', optimizer: tf.train.adam(2.5e-2)});
 
     const xs = tf.tensor2d([1, 2, 3, 4], [4, 1]);
     const ys = tf.tensor2d([-1, -3, -5, -7], [4, 1]);

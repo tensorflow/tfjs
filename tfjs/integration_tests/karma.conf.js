@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,7 +30,7 @@ module.exports = function(config) {
   if (config.nightly) {
     args.push('--nightly');
   }
-  if(config.browsers) {
+  if (config.browsers) {
     args.push('--browsers', config.browsers);
   }
   if (config.hashes) {
@@ -39,9 +39,7 @@ module.exports = function(config) {
 
   config.set({
     frameworks: ['jasmine', 'karma-typescript'],
-    files: [
-      {pattern: '*.ts'}
-    ],
+    files: [{pattern: '*.ts'}],
     include: ['*.ts'],
     exclude: ['./run_node_tests.ts'],
     preprocessors: {
@@ -55,8 +53,8 @@ module.exports = function(config) {
       accessKey: process.env.BROWSERSTACK_KEY
     },
     captureTimeout: 10000000,
-    browserDisconnectTimeout : 10000000,
-    browserDisconnectTolerance : 10,
+    browserDisconnectTimeout: 10000000,
+    browserDisconnectTolerance: 10,
     reportSlowerThan: 500,
     browserNoActivityTimeout: 10000000,
     customLaunchers: {
@@ -89,9 +87,6 @@ module.exports = function(config) {
         real_mobile: true
       }
     },
-    client: {
-      jasmine: {random: false},
-      args: args
-    }
+    client: {jasmine: {random: false}, args: args}
   });
 };

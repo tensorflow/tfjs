@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,10 +16,10 @@
  */
 
 // We import index.ts so that the Node backend gets registered.
-import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
-import * as tf from '@tensorflow/tfjs-core';
-
 import './index';
+
+import * as tf from '@tensorflow/tfjs-core';
+import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 Error.stackTraceLimit = Infinity;
 

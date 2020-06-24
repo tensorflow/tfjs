@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,19 +32,19 @@ interface BatchNormAttrs extends NamedAttrMap {
 }
 
 let wasmBatchNorm: (
-  xId: number, meanId: number, varianceId: number, offsetId: number,
-  scaleId: number, varianceEpsilon: number, outId: number) => void;
+    xId: number, meanId: number, varianceId: number, offsetId: number,
+    scaleId: number, varianceEpsilon: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmBatchNorm = backend.wasm.cwrap(
-    'FusedBatchNorm', null /* void */,
-    ['number', 'number', 'number', 'number', 'number', 'number', 'number']);
+      'FusedBatchNorm', null /* void */,
+      ['number', 'number', 'number', 'number', 'number', 'number', 'number']);
 }
 
 function fusedBatchNorm(
-  args:
-    {backend: BackendWasm, inputs: BatchNormInputs, attrs: BatchNormAttrs}):
-  TensorInfo {
+    args:
+        {backend: BackendWasm, inputs: BatchNormInputs, attrs: BatchNormAttrs}):
+    TensorInfo {
   const {backend, inputs, attrs} = args;
   const {varianceEpsilon} = attrs;
   const {x, mean, variance, offset, scale} = inputs;
@@ -63,7 +63,7 @@ function fusedBatchNorm(
   const outId = backend.dataIdMap.get(out.dataId).id;
 
   wasmBatchNorm(
-    xId, meanId, varianceId, offsetId, scaleId, varianceEpsilon, outId);
+      xId, meanId, varianceId, offsetId, scaleId, varianceEpsilon, outId);
   return out;
 }
 

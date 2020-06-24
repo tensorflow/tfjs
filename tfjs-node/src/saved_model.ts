@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -362,7 +362,7 @@ export class TFSavedModel implements InferenceModel {
  * function. The directory also has a variables directory contains a standard
  * training checkpoint. The directory may also has a assets directory contains
  * files used by the TensorFlow graph, for example text files used to initialize
- * vocabulary tables. These are supported datatypes: float32, int32, complex64, 
+ * vocabulary tables. These are supported datatypes: float32, int32, complex64,
  * string.For more information, see this guide:
  * https://www.tensorflow.org/guide/saved_model.
  *
@@ -435,8 +435,9 @@ function mapTFDtypeToJSDtype(tfDtype: string): DataType {
     case 'DT_STRING':
       return 'string';
     default:
-      throw new Error('Unsupported tensor DataType: ' + tfDtype + 
-           ', try to modify the model in python to convert the datatype' );
+      throw new Error(
+          'Unsupported tensor DataType: ' + tfDtype +
+          ', try to modify the model in python to convert the datatype');
   }
 }
 

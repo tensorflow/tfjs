@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,7 +46,7 @@ export class EncodeMatrixProgram implements GPGPUProgram {
         int offset = imod(flatIndex, 4);
 
         flatIndex = idiv(flatIndex, 4, 1.);
-        
+
         int r = flatIndex / ${width};
         int c = imod(flatIndex, ${width});
         vec2 uv = (vec2(c, r) + halfCR) / vec2(${width}.0, ${height}.0);
