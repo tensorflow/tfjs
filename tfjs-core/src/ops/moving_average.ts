@@ -21,8 +21,12 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
+import {add} from './add';
+import {div} from './div';
+import {mul} from './mul';
 import {op} from './operation';
 import {pow} from './pow';
+import {sub} from './sub';
 import {scalar} from './tensor_ops';
 
 /**
@@ -64,16 +68,16 @@ function movingAverage_<T extends Tensor>(
       util.arraysEqual($v.shape, $x.shape), () => 'Shape mismatch in v and x');
 
   const one = scalar(1);
-  const oneMinusDecay = one.sub($decay);
+  const oneMinusDecay = sub(one, $decay);
 
-  let update = $x.sub($v).mul(oneMinusDecay);
+  let update = mul(sub($x, $v), oneMinusDecay);
   if (zeroDebias) {
     util.assert(
         step != null, () => 'When using zeroDebias: true, step is required.');
     const $step = convertToTensor(step, 'step', 'movingAverage');
-    update = update.div(one.sub(pow($decay, $step)));
+    update = div(update, sub(one, pow($decay, $step)));
   }
-  return $v.add(update);
+  return add($v, update);
 }
 
 export const movingAverage = op({movingAverage_});

@@ -112,6 +112,7 @@
 |Conv2DBackpropInput|conv2dTranspose|
 |DepthwiseConv2d|depthwiseConv2d|
 |DepthwiseConv2dNative|depthwiseConv2d|
+|Dilation2D|dilation2d|
 |MaxPool|maxPool|
 |MaxPool3D|maxPool3d|
 |Not mapped|pool|
