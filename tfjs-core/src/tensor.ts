@@ -187,8 +187,6 @@ export interface OpHandler {
   stack<T extends Tensor>(tensors: Array<T|TensorLike>, axis: number): Tensor;
   unstack<T extends Tensor>(value: T, axis: number): Tensor[];
   sum<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
-  prod<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean):
-      T;
   mean<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean):
       T;
   min<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
@@ -683,10 +681,6 @@ export class Tensor<R extends Rank = Rank> {
   sum<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
     this.throwIfDisposed();
     return opHandler.sum(this, axis, keepDims);
-  }
-  prod<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
-    this.throwIfDisposed();
-    return opHandler.prod(this, axis, keepDims);
   }
   mean<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
     this.throwIfDisposed();

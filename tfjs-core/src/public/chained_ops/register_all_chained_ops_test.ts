@@ -71,6 +71,7 @@ const CHAINED_OPS = [
   'pool',
   'pow',
   'prelu',
+  'prod',
   'relu',
   'resizeBilinear',
   'resizeNearestNeighbor',

@@ -424,6 +424,13 @@ export type PowInputs = BinaryInputs;
 export const Prelu = 'Prelu';
 export type PreluInputs = Pick<NamedTensorInfoMap, 'x'|'alpha'>;
 
+export const Prod = 'Prod';
+export type ProdInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface ProdAttrs {
+  axis: number|number[];
+  keepDims: boolean;
+}
+
 export const Real = 'Real';
 export type RealInputs = Pick<NamedTensorInfoMap, 'input'>;
 

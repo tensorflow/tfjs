@@ -61,6 +61,7 @@ import './pad';
 import './pool';
 import './pow';
 import './prelu';
+import './prod';
 import './relu';
 import './resize_bilinear';
 import './resize_nearest_neighbor';
