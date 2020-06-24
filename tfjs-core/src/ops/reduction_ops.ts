@@ -375,38 +375,9 @@ function argMax_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
   }, {x: $x}, grad, 'ArgMax', attrs, inputsToSave) as T;
 }
 
-/**
- * Calculates the mean and variance of `x`. The mean and variance are
- * calculated by aggregating the contents of `x` across `axes`. If `x` is
- * 1-D and `axes = [0]` this is just the mean and variance of a vector.
- *
- * @param x The input tensor.
- * @param axis The dimension(s) along with to compute mean and
- *     variance. By default it reduces all dimensions.
- * @param keepDims If true, the moments have the same dimensionality as the
- *     input.
- * @return An object with two keys: `mean` and `variance`.
- */
-/** @doc {heading: 'Operations', subheading: 'Normalization'} */
-function moments_(
-    x: Tensor|TensorLike, axis: number|number[] = null,
-    keepDims = false): {mean: Tensor, variance: Tensor} {
-  x = convertToTensor(x, 'x', 'moments');
-  const axes = util.parseAxisParam(axis, x.shape);
-  const mean = x.mean(axes, keepDims);
-  let keepDimsShape = mean.shape;
-  if (!keepDims) {
-    keepDimsShape = axis_util.expandShapeToKeepDim(mean.shape, axes);
-  }
-  const devSquared = x.toFloat().sub(mean.reshape(keepDimsShape)).square();
-  const variance = devSquared.mean(axes, keepDims);
-  return {mean, variance};
-}
-
 export const argMax = op({argMax_});
 export const argMin = op({argMin_});
 export const mean = op({mean_});
 export const min = op({min_});
-export const moments = op({moments_});
 export const sum = op({sum_});
 export const prod = op({prod_});

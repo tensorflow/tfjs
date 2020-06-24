@@ -75,6 +75,7 @@ export {maxPoolWithArgmax} from './max_pool_with_argmax';
 export {maximum} from './maximum';
 export {minimum} from './minimum';
 export {mod} from './mod';
+export {moments} from './moments';
 export {mul} from './mul';
 export {LSTMCellFunc, multiRNNCell} from './multi_rnn_cell';
 export {multinomial} from './multinomial';
