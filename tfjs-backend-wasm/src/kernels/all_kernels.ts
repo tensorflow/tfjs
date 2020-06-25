@@ -84,6 +84,7 @@ import './Softmax';
 import './Split';
 import './Sqrt';
 import './Square';
+import './StridedSlice';
 import './Sub';
 import './Sum';
 import './Tanh';
