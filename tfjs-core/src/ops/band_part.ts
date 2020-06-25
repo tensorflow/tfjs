@@ -20,13 +20,15 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assert} from '../util';
 
-import {reshape, stack, unstack} from './array_ops';
 import {greaterEqual} from './greater_equal';
 import {lessEqual} from './less_equal';
 import {logicalAnd} from './logical_and';
 import {op} from './operation';
+import {reshape} from './reshape';
+import {stack} from './stack';
 import {sub} from './sub';
 import {range, scalar, zeros} from './tensor_ops';
+import {unstack} from './unstack';
 import {where} from './where';
 
 /**

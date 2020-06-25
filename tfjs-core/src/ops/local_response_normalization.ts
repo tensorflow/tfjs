@@ -24,8 +24,8 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {reshape} from './array_ops';
 import {op} from './operation';
+import {reshape} from './reshape';
 
 /**
  * Normalizes the activation of a local neighborhood across or within
