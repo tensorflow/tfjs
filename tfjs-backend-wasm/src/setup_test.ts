@@ -179,10 +179,7 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'gradient',  // Gradient not defined yet.
       'upcasts',   // Cast not supported yet.
-      'broadcasting same rank Tensors different shape',  // Broadcasting along
-                                                         // inner dims not
-                                                         // supported yet.
-      'divNoNan'  // divNoNan not yet implemented.
+      'divNoNan'   // divNoNan not yet implemented.
     ]
   },
   {
@@ -364,7 +361,7 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'onesLike',
     // Complex numbers not supported yet.
     excludes: ['complex'],
-  },
+  }
 ];
 
 const customInclude = (testName: string) => {

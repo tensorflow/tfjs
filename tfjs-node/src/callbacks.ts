@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -121,8 +121,8 @@ export class ProgbarLogger extends CustomCallback {
     });
   }
 
-  private formatLogsAsMetricsContent(
-      logs: Logs, maxMetricsLength?: number): string {
+  private formatLogsAsMetricsContent(logs: Logs, maxMetricsLength?: number):
+      string {
     let metricsContent = '';
     const keys = Object.keys(logs).sort();
     for (const key of keys) {
@@ -160,7 +160,8 @@ const MAX_NUM_DECIMAL_PLACES = 4;
 export function getSuccinctNumberDisplay(x: number): string {
   const decimalPlaces = getDisplayDecimalPlaces(x);
   return decimalPlaces > MAX_NUM_DECIMAL_PLACES ?
-      x.toExponential(BASE_NUM_DIGITS) : x.toFixed(decimalPlaces);
+      x.toExponential(BASE_NUM_DIGITS) :
+      x.toFixed(decimalPlaces);
 }
 
 /**

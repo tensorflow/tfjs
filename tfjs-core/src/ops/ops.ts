@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,9 +18,12 @@
 // Modularized ops.
 export {add} from './add';
 export {addN} from './add_n';
+export {all} from './all';
+export {any} from './any';
 export {atan2} from './atan2';
 export {avgPool} from './avg_pool';
 export {avgPool3d} from './avg_pool_3d';
+export {basicLSTMCell} from './basic_lstm_cell';
 export {batchToSpaceND} from './batch_to_space_nd';
 export {batchNorm} from './batchnorm';
 export {batchNorm2d} from './batchnorm2d';
@@ -43,6 +46,7 @@ export {cumsum} from './cumsum';
 export {depthToSpace} from './depth_to_space';
 export {depthwiseConv2d} from './depthwise_conv2d';
 export {diag} from './diag';
+export {dilation2d} from './dilation2d';
 export {div} from './div';
 export {divNoNan} from './div_no_nan';
 export {dot} from './dot';
@@ -58,6 +62,7 @@ export {leakyRelu} from './leaky_relu';
 export {less} from './less';
 export {lessEqual} from './less_equal';
 export {localResponseNormalization} from './local_response_normalization';
+export {logSumExp} from './log_sum_exp';
 export {logicalAnd} from './logical_and';
 export {logicalNot} from './logical_not';
 export {logicalOr} from './logical_or';
@@ -70,7 +75,9 @@ export {maxPoolWithArgmax} from './max_pool_with_argmax';
 export {maximum} from './maximum';
 export {minimum} from './minimum';
 export {mod} from './mod';
+export {moments} from './moments';
 export {mul} from './mul';
+export {LSTMCellFunc, multiRNNCell} from './multi_rnn_cell';
 export {multinomial} from './multinomial';
 export {notEqual} from './not_equal';
 export {oneHot} from './one_hot';
@@ -83,6 +90,7 @@ export {pad4d} from './pad4d';
 export {pool} from './pool';
 export {pow} from './pow';
 export {prelu} from './prelu';
+export {prod} from './prod';
 export {rand} from './rand';
 export {randomGamma} from './random_gamma';
 export {randomNormal} from './random_normal';
@@ -90,6 +98,11 @@ export {randomUniform} from './random_uniform';
 export {real} from './real';
 export {relu} from './relu';
 export {relu6} from './relu6';
+export {reverse} from './reverse';
+export {reverse1d} from './reverse_1d';
+export {reverse2d} from './reverse_2d';
+export {reverse3d} from './reverse_3d';
+export {reverse4d} from './reverse_4d';
 export {selu} from './selu';
 export {separableConv2d} from './separable_conv2d';
 export {spaceToBatchND} from './space_to_batch_nd';
@@ -103,7 +116,6 @@ export {where} from './where';
 export {whereAsync} from './where_async';
 
 export * from './boolean_mask';
-export * from './reverse';
 export * from './slice';
 export * from './unary_ops';
 export * from './reduction_ops';
@@ -115,7 +127,6 @@ export * from './transpose';
 export * from './softmax';
 export * from './norm';
 export * from './segment_ops';
-export * from './lstm';
 export * from './moving_average';
 export * from './strided_slice';
 export * from './topk';
@@ -129,13 +140,12 @@ export * from './in_top_k';
 
 export {op} from './operation';
 
-import * as losses from './loss_ops';
 import * as spectral from './spectral_ops';
 import * as fused from './fused_ops';
 import * as signal from './signal_ops';
 
 // Image Ops namespace
-import {cropAndResize} from './image_ops';
+import {cropAndResize} from './crop_and_resize';
 import {nonMaxSuppression} from './non_max_suppression';
 import {nonMaxSuppressionAsync} from './non_max_suppression_async';
 import {nonMaxSuppressionWithScore} from './non_max_suppression_with_score';
@@ -160,6 +170,28 @@ const linalg = {
   bandPart,
   gramSchmidt,
   qr
+};
+
+// losses namespace;
+import {absoluteDifference} from './absolute_difference';
+import {computeWeightedLoss} from './compute_weighted_loss';
+import {cosineDistance} from './cosine_distance';
+import {hingeLoss} from './hinge_loss';
+import {huberLoss} from './huber_loss';
+import {logLoss} from './log_loss';
+import {meanSquaredError} from './mean_squared_error';
+import {sigmoidCrossEntropy} from './sigmoid_cross_entropy';
+import {softmaxCrossEntropy} from './softmax_cross_entropy';
+const losses = {
+  absoluteDifference,
+  computeWeightedLoss,
+  cosineDistance,
+  hingeLoss,
+  huberLoss,
+  logLoss,
+  meanSquaredError,
+  sigmoidCrossEntropy,
+  softmaxCrossEntropy
 };
 
 // Second level exports.

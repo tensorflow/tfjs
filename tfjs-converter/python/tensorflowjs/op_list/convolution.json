@@ -627,5 +627,38 @@
         "type": "number[]"
       }
     ]
+  },
+  {
+    "tfOpName": "Dilation2D",
+    "category": "convolution",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "x",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "filter",
+        "type": "tensor"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "strides",
+        "name": "strides",
+        "type": "number[]"
+      },
+      {
+        "tfName": "rates",
+        "name": "dilations",
+        "type": "number[]"
+      },
+      {
+        "tfName": "padding",
+        "name": "pad",
+        "type": "string"
+      }
+    ]
   }
 ]

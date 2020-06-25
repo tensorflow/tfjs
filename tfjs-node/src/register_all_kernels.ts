@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,13 +19,19 @@
 // the contents of this file and import only the kernels that are needed.
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
+import {dilation2dConfig} from './kernels/Dilation2D';
+import {dilation2dBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
+import {dilation2dBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {softmaxConfig} from './kernels/Softmax';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 
 // List all kernel configs here
-const kernelConfigs: KernelConfig[] =
-    [nonMaxSuppressionV5Config, softmaxConfig, squaredDifferenceConfig];
+const kernelConfigs: KernelConfig[] = [
+  dilation2dConfig, dilation2dBackpropInputConfig,
+  dilation2dBackpropFilterConfig, nonMaxSuppressionV5Config, softmaxConfig,
+  squaredDifferenceConfig
+];
 
 for (const kernelConfig of kernelConfigs) {
   registerKernel(kernelConfig);

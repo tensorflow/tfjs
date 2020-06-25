@@ -26,6 +26,11 @@ const customInclude = (testName: string) => {
     if (testName.includes(subStr)) {
       return false;
     }
+
+    // Not implemented yet.
+    if (testName.includes('dilation2d')) {
+      return false;
+    }
   }
   return true;
 };

@@ -191,6 +191,7 @@ tfjs_cc_library(
         ":BatchMatMul",
         ":ClipByValue",
         ":Conv2D",
+        ":Conv2DBackpropInput",
         ":CropAndResize",
         ":DepthwiseConv2dNative",
         ":Div",
@@ -365,6 +366,14 @@ tfjs_unit_test(
 )
 
 tfjs_cc_library(
+    name = "Conv2DBackpropInput",
+    srcs = ["kernels/Conv2DBackpropInput.cc"],
+    deps = [
+        ":backend",
+    ],
+)
+
+tfjs_cc_library(
     name = "CropAndResize",
     srcs = ["kernels/CropAndResize.cc"],
     deps = [
@@ -396,7 +405,6 @@ tfjs_cc_library(
     name = "Div",
     srcs = ["kernels/Div.cc"],
     deps = [
-        ":backend",
         ":binary",
         ":util",
     ],

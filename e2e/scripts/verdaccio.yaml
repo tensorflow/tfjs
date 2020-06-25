@@ -14,9 +14,12 @@ uplinks:
 packages:
   '@*/*':
     access: $all
-    publish: $authenticated
+    publish: $all
     proxy: npmjs
   '**':
+    access: $all
+    publish: $all
+    # if package is not available locally, proxy requests to 'npmjs' registry
     proxy: npmjs
 
 # log settings
