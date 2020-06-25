@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,17 +15,18 @@
  * =============================================================================
  */
 
+// Register all kernels.
+import './register_all_kernels';
+
 import * as tf from '@tensorflow/tfjs';
 import * as path from 'path';
+
 import {ProgbarLogger} from './callbacks';
 import {nodeFileSystemRouter} from './io/file_system';
 import * as nodeIo from './io/index';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 import {TFJSBinding} from './tfjs_binding';
 import * as nodeVersion from './version';
-
-// Import all kernels.
-import './kernels/all_kernels';
 
 // tslint:disable-next-line:no-require-imports
 const binary = require('node-pre-gyp');
@@ -35,14 +36,15 @@ const bindingPath =
 // Check if the node native addon module exists.
 // tslint:disable-next-line:no-require-imports
 const fs = require('fs');
-if(!fs.existsSync(bindingPath)) {
-  throw new Error(`The Node.js native addon module (tfjs_binding.node) can not `
-    + `be found at path: ` + String(bindingPath)
-    + `. \nPlease run command `
-    + `'npm rebuild @tensorflow/tfjs-node build-addon-from-source' to rebuild `
-    + `the native addon module. \nIf you have problem with building the addon `
-    + `module, please check https://github.com/tensorflow/tfjs/blob/master`
-    + `/tfjs-node/WINDOWS_TROUBLESHOOTING.md or file an issue.`);
+if (!fs.existsSync(bindingPath)) {
+  throw new Error(
+      `The Node.js native addon module (tfjs_binding.node) can not ` +
+      `be found at path: ` + String(bindingPath) + `. \nPlease run command ` +
+      `'npm rebuild @tensorflow/tfjs-node build-addon-from-source' to ` +
+      `rebuild the native addon module. \nIf you have problem with building ` +
+      `the addon module, please check ` +
+      `https://github.com/tensorflow/tfjs/blob/master/tfjs-node/` +
+      `WINDOWS_TROUBLESHOOTING.md or file an issue.`);
 }
 // tslint:disable-next-line:no-require-imports
 const bindings = require(bindingPath);
@@ -64,6 +66,7 @@ export * from './node';
 // tslint:disable-next-line:no-require-imports
 const pjson = require('../package.json');
 
+// Side effects for default initialization of Node backend.
 tf.registerBackend('tensorflow', () => {
   return new NodeJSKernelBackend(bindings as TFJSBinding, pjson.name);
 }, 3 /* priority */);

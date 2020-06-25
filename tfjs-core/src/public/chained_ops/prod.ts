@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,10 +14,19 @@
  * limitations under the License.
  * =============================================================================
  */
+import {prod} from '../../ops/prod';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
 
-// We explicitly import the modular kernels so they get registered in the
-// global registry when we compile the library. A modular build would replace
-// the contents of this file and import only the kernels that are needed.
-import './non_max_suppression_v5';
-import './Softmax';
-import './SquaredDifference';
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    prod<T extends Tensor>(this: T, axis: number|number[], keepDims?: boolean):
+        T;
+  }
+}
+
+Tensor.prototype.prod = function<T extends Tensor>(
+    this: T, axis: number|number[] = null, keepDims?: boolean): T {
+  this.throwIfDisposed();
+  return prod(this, axis, keepDims);
+};

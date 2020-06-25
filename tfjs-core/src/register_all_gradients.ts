@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,6 +28,7 @@ import {conv2DBackpropInputGradConfig} from './gradients/Conv2DBackpropInput_gra
 import {conv3DGradConfig} from './gradients/Conv3D_grad';
 import {cumsumGradConfig} from './gradients/Cumsum_grad';
 import {depthwiseConv2dNativeGradConfig} from './gradients/DepthwiseConv2dNative_grad';
+import {dilation2dGradConfig} from './gradients/Dilation2D_grad';
 import {divGradConfig} from './gradients/Div_grad';
 import {eluGradConfig} from './gradients/Elu_grad';
 import {floorDivGradConfig} from './gradients/FloorDiv_grad';
@@ -50,6 +51,7 @@ import {relu6GradConfig} from './gradients/Relu6_grad';
 import {reluGradConfig} from './gradients/Relu_grad';
 import {resizeBilinearGradConfig} from './gradients/ResizeBilinear_grad';
 import {resizeNearestNeighborGradConfig} from './gradients/ResizeNearestNeighbor_grad';
+import {reverseGradConfig} from './gradients/Reverse_grad';
 import {selectV2PoolGradConfig} from './gradients/SelectV2_grad';
 import {seluGradConfig} from './gradients/Selu_grad';
 import {spaceToBatchNDGradConfig} from './gradients/SpaceToBatchND_grad';
@@ -78,6 +80,7 @@ const gradConfigs: GradConfig[] = [
   conv3DGradConfig,
   cumsumGradConfig,
   depthwiseConv2dNativeGradConfig,
+  dilation2dGradConfig,
   divGradConfig,
   eluGradConfig,
   floorDivGradConfig,
@@ -105,6 +108,7 @@ const gradConfigs: GradConfig[] = [
   resizeBilinearGradConfig,
   resizeNearestNeighborGradConfig,
   relu6GradConfig,
+  reverseGradConfig,
   seluGradConfig,
   selectV2PoolGradConfig,
   spaceToBatchNDGradConfig,

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,6 +25,8 @@ import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
 
 const CHAINED_OPS = [
   'add',
+  'all',
+  'any',
   'atan2',
   'avgPool',
   'batchNorm',
@@ -38,6 +40,7 @@ const CHAINED_OPS = [
   'depthToSpace',
   'depthwiseConv2d',
   'depthwiseConv2D',
+  'dilation2d',
   'div',
   'divNoNan',
   'dot',
@@ -54,6 +57,7 @@ const CHAINED_OPS = [
   'logicalNot',
   'logicalOr',
   'logicalXor',
+  'logSumExp',
   'matMul',
   'max',
   'maximum',
@@ -67,10 +71,12 @@ const CHAINED_OPS = [
   'pool',
   'pow',
   'prelu',
+  'prod',
   'relu',
   'resizeBilinear',
   'resizeNearestNeighbor',
   'relu6',
+  'reverse',
   'selu',
   'separableConv2d',
   'spaceToBatchND',

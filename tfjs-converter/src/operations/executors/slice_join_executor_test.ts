@@ -21,7 +21,7 @@ import * as slice_join from '../op_list/slice_join';
 import {Node} from '../types';
 
 import {executeOp} from './slice_join_executor';
-import {createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, createTensorsAttr, validateParam} from './test_helper';
+import {createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttr, createNumericArrayAttrFromIndex, createTensorAttr, createTensorsAttr, validateParam} from './test_helper';
 
 describe('slice join', () => {
   let node: Node;
@@ -181,10 +181,10 @@ describe('slice join', () => {
         spyOn(tfc, 'reverse');
         node.op = 'Reverse';
         node.inputParams.axis = createNumericArrayAttrFromIndex(1);
-        node.inputNames = ['input1', 'input2'];
-        executeOp(node, {input1, input2}, context);
+        node.inputNames = ['input1', 'input4'];
+        executeOp(node, {input1, input4}, context);
 
-        expect(tfc.reverse).toHaveBeenCalledWith(input1[0], [2]);
+        expect(tfc.reverse).toHaveBeenCalledWith(input1[0], [3]);
       });
       it('should match json def for reverse', () => {
         node.op = 'Reverse';
@@ -196,10 +196,10 @@ describe('slice join', () => {
         spyOn(tfc, 'reverse');
         node.op = 'ReverseV2';
         node.inputParams.axis = createNumericArrayAttrFromIndex(1);
-        node.inputNames = ['input1', 'input2'];
-        executeOp(node, {input1, input2}, context);
+        node.inputNames = ['input1', 'input4'];
+        executeOp(node, {input1, input4}, context);
 
-        expect(tfc.reverse).toHaveBeenCalledWith(input1[0], [2]);
+        expect(tfc.reverse).toHaveBeenCalledWith(input1[0], [3]);
       });
       it('should match json def for reverse', () => {
         node.op = 'ReverseV2';
@@ -211,10 +211,10 @@ describe('slice join', () => {
         spyOn(tfc, 'tile');
         node.op = 'Tile';
         node.inputParams.reps = createNumericArrayAttrFromIndex(1);
-        node.inputNames = ['input1', 'input2'];
-        executeOp(node, {input1, input2}, context);
+        node.inputNames = ['input1', 'input4'];
+        executeOp(node, {input1, input4}, context);
 
-        expect(tfc.tile).toHaveBeenCalledWith(input1[0], [2]);
+        expect(tfc.tile).toHaveBeenCalledWith(input1[0], [3]);
       });
       it('should match json def for tile', () => {
         node.op = 'Tile';
@@ -227,9 +227,10 @@ describe('slice join', () => {
         node.op = 'Slice';
         node.inputParams.begin = createNumericArrayAttrFromIndex(1);
         node.inputParams.size = createNumericArrayAttrFromIndex(2);
-        node.inputNames = ['input1', 'input2', 'input3'];
+        const input6 = [tfc.tensor1d([2], 'int32')];
+        node.inputNames = ['input1', 'input6', 'input4'];
 
-        executeOp(node, {input1, input2, input3}, context);
+        executeOp(node, {input1, input6, input4}, context);
 
         expect(tfc.slice).toHaveBeenCalledWith(input1[0], [2], [3]);
       });
@@ -251,8 +252,10 @@ describe('slice join', () => {
         node.attrParams.ellipsisMask = createNumberAttr(1);
         node.attrParams.newAxisMask = createNumberAttr(2);
         node.attrParams.shrinkAxisMask = createNumberAttr(3);
-        node.inputNames = ['input1', 'input2', 'input3', 'input4'];
-        executeOp(node, {input1, input2, input3, input4}, context);
+        node.inputNames = ['input1', 'input6', 'input7', 'input4'];
+        const input6 = [tfc.tensor1d([2], 'int32')];
+        const input7 = [tfc.tensor1d([3], 'int32')];
+        executeOp(node, {input1, input6, input7, input4}, context);
 
         expect(tfc.stridedSlice)
             .toHaveBeenCalledWith(input1[0], [2], [3], [3], 4, 5, 1, 2, 3);
@@ -337,6 +340,19 @@ describe('slice join', () => {
 
         expect(tfc.split).toHaveBeenCalledWith(input2[0], 2, 1);
       });
+      it('should support -1 split', () => {
+        spyOn(tfc, 'split');
+        node.op = 'Split';
+        node.inputParams.axis = createNumberAttrFromIndex(0);
+        node.inputParams.x = createTensorAttr(1);
+        node.attrParams.numOrSizeSplits = createNumericArrayAttr([1, 1, -1]);
+        node.inputNames = ['input4', 'input3'];
+        const input3 = [tfc.tensor1d([1, 2, 3, 4, 5])];
+        const input4 = [tfc.scalar(0)];
+        executeOp(node, {input3, input4}, context);
+
+        expect(tfc.split).toHaveBeenCalledWith(input3[0], [1, 1, 3], 0);
+      });
       it('should match json def for split', () => {
         node.op = 'Split';
         node.inputParams.axis = createNumberAttrFromIndex(0);
@@ -354,7 +370,7 @@ describe('slice join', () => {
         node.inputNames = ['input1', 'input2', 'input3'];
         executeOp(node, {input1, input2, input3}, context);
 
-        expect(tfc.split).toHaveBeenCalledWith(input1[0], [2], 3);
+        expect(tfc.split).toHaveBeenCalledWith(input1[0], 2, 3);
       });
       it('should match json def for split', () => {
         node.op = 'SplitV';
@@ -370,8 +386,8 @@ describe('slice join', () => {
         node.inputParams.indices = createTensorAttr(0);
         node.inputParams.values = createTensorAttr(1);
         node.inputParams.shape = createNumericArrayAttrFromIndex(2);
-        node.inputNames = ['input1', 'input2', 'input3'];
-        executeOp(node, {input1, input2, input3}, context);
+        node.inputNames = ['input1', 'input2', 'input4'];
+        executeOp(node, {input1, input2, input4}, context);
 
         expect(tfc.scatterND).toHaveBeenCalledWith(input1[0], input2[0], [3]);
       });

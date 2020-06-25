@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +16,10 @@
  */
 
 import {ENGINE, ForwardFunc} from '../engine';
+import {CropAndResize, CropAndResizeAttrs, CropAndResizeInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor1D, Tensor2D, Tensor4D} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
@@ -84,13 +87,15 @@ function cropAndResize_(
       method === 'bilinear' || method === 'nearest',
       () => `method must be bilinear or nearest, but was ${method}`);
 
-  const forward: ForwardFunc<Tensor4D> = (backend, save) =>
-      backend.cropAndResize(
-          $image, $boxes, $boxInd, cropSize, method, extrapolationValue);
+  const forward: ForwardFunc<Tensor4D> = (backend) => backend.cropAndResize(
+      $image, $boxes, $boxInd, cropSize, method, extrapolationValue);
 
+  const inputs:
+      CropAndResizeInputs = {image: $image, boxes: $boxes, boxInd: $boxInd};
+  const attrs: CropAndResizeAttrs = {method, extrapolationValue, cropSize};
   const res = ENGINE.runKernelFunc(
-      forward, {images: $image, boxes: $boxes, boxInd: $boxInd}, null /* der */,
-      'CropAndResize', {method, extrapolationValue, cropSize});
+      forward, inputs as {} as NamedTensorMap, null /* grad */, CropAndResize,
+      attrs as {} as NamedAttrMap);
   return res;
 }
 
