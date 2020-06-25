@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -60,9 +60,8 @@ void prelu(const float* x_buf, const size_t x_size, const size_t weights_id,
     const size_t strides = channels;
 
     const uint32_t flags = 0;
-    xnn_status status =
-        xnn_create_prelu_nc_f32(channels, strides, strides, weights_buf,
-                                flags, &prelu_op);
+    xnn_status status = xnn_create_prelu_nc_f32(channels, strides, strides,
+                                                weights_buf, flags, &prelu_op);
     if (status != xnn_status_success) {
       util::warn(
           "XNN status for xnn_create_prelu_nc_f32 is not successful. Got "
