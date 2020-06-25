@@ -20,12 +20,13 @@ import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    stack<T extends Tensor>(x: Tensor, axis?: number): T;
+    stack<T extends Tensor>(x: Tensor|Tensor[], axis?: number): T;
   }
 }
 
 Tensor.prototype.stack = function<T extends Tensor>(
-    x: Tensor, axis?: number): T {
+    x: Tensor|Tensor[], axis?: number): T {
   this.throwIfDisposed();
-  return stack([this, x], axis) as T;
+  const tensorsToBeStacked = x instanceof Tensor ? [this, x] : [this, ...x];
+  return stack(tensorsToBeStacked, axis) as T;
 };

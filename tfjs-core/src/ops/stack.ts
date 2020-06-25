@@ -59,13 +59,11 @@ function stack_<T extends Tensor>(
     util.assertShapesMatch(
         shape, t.shape,
         'All tensors passed to stack must have matching shapes');
-  });
-
-  $tensors.forEach(t => {
     util.assert(
         dtype === t.dtype,
         () => 'All tensors passed to stack must have matching dtypes');
   });
+
   const expandedTensors = $tensors.map(t => expandDims(t, axis));
   // Stack exists in the TensorFlow C++ API
   // (https://www.tensorflow.org/api_docs/cc/class/tensorflow/ops/stack) but not

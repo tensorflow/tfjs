@@ -18,7 +18,7 @@
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
-import * as util from '../util';
+import {squeezeShape} from '../util';
 
 import {op} from './operation';
 import {reshape} from './reshape';
@@ -39,7 +39,7 @@ import {reshape} from './reshape';
 /** @doc {heading: 'Tensors', subheading: 'Transformations'} */
 function squeeze_<T extends Tensor>(x: Tensor|TensorLike, axis?: number[]): T {
   const $x = convertToTensor(x, 'x', 'squeeze');
-  return reshape($x, util.squeezeShape($x.shape, axis).newShape) as T;
+  return reshape($x, squeezeShape($x.shape, axis).newShape) as T;
 }
 
 export const squeeze = op({squeeze_});
