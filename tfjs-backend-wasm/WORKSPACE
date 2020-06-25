@@ -8,9 +8,9 @@ emsdk_configure(name = "emsdk")
 
 git_repository(
     name = "xnnpack",
-    commit = "a833be3158cabb4414daf735ec1f23385cae392e",
+    commit = "8772714a417ed71ff87ccf5014f6bee9d911db21",
     remote = "https://github.com/google/XNNPACK.git",
-    shallow_since = "1592385337 -0700",
+    shallow_since = "1593037483 -0700",
 )
 
 # The libraries below are transitive dependencies of XNNPACK that we need to
