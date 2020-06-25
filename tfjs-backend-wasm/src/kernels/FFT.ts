@@ -17,15 +17,14 @@ import {FFT, FFTInputs, registerKernel, TensorInfo, util} from '@tensorflow/tfjs
 import {BackendWasm} from '../backend_wasm';
 import {complex} from './Complex';
 import {reshape} from './Reshape';
-// import {CppDType} from './types';
 
 let wasmFFT: (
-    inputId: number, imagInputId: number, outerDim: number, innerDim: number,
-    isRealComponent: number, outputId: number) => void;
+    realInputId: number, imagInputId: number, outerDim: number,
+    innerDim: number, isRealComponent: number, outputId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmFFT = backend.wasm.cwrap(FFT, null, [
-    'number',  // inputId
+    'number',  // realInputId
     'number',  // imagInputId
     'number',  // outerDim
     'number',  // innerDim
