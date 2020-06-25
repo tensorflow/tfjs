@@ -35,8 +35,7 @@ function broadcastTo(args: {
       reps[i] = 1;
     } else if (x.shape[i] !== 1) {
       throw new Error(
-          `broadcastTo(): [${x.shape}] cannot be broadcast to [' + shape +
-          '].`);
+          `broadcastTo(): [${x.shape}] cannot be broadcast to [${shape}].`);
     }
   }
 
