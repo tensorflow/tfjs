@@ -49,6 +49,7 @@ import {powGradConfig} from './gradients/Pow_grad';
 import {preluGradConfig} from './gradients/Prelu_grad';
 import {relu6GradConfig} from './gradients/Relu6_grad';
 import {reluGradConfig} from './gradients/Relu_grad';
+import {reshapeGradConfig} from './gradients/Reshape_grad';
 import {resizeBilinearGradConfig} from './gradients/ResizeBilinear_grad';
 import {resizeNearestNeighborGradConfig} from './gradients/ResizeNearestNeighbor_grad';
 import {reverseGradConfig} from './gradients/Reverse_grad';
@@ -61,6 +62,7 @@ import {squaredDifferenceGradConfig} from './gradients/SquaredDifference_grad';
 import {subGradConfig} from './gradients/Sub_grad';
 import {tileGradConfig} from './gradients/Tile_grad';
 import {transposeGradConfig} from './gradients/Transpose_grad';
+import {unpackGradConfig} from './gradients/Unpack_grad';
 import {GradConfig} from './kernel_registry';
 import {registerGradient} from './kernel_registry';
 
@@ -105,6 +107,7 @@ const gradConfigs: GradConfig[] = [
   powGradConfig,
   preluGradConfig,
   reluGradConfig,
+  reshapeGradConfig,
   resizeBilinearGradConfig,
   resizeNearestNeighborGradConfig,
   relu6GradConfig,
@@ -115,9 +118,10 @@ const gradConfigs: GradConfig[] = [
   splitVGradConfig,
   squareGradConfig,
   squaredDifferenceGradConfig,
+  subGradConfig,
   tileGradConfig,
   transposeGradConfig,
-  subGradConfig
+  unpackGradConfig
 ];
 
 for (const gradientConfig of gradConfigs) {

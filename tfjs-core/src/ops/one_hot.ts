@@ -23,8 +23,8 @@ import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
-import {reshape} from './array_ops';
 import {op} from './operation';
+import {reshape} from './reshape';
 
 /**
  * Creates a one-hot `tf.Tensor`. The locations represented by `indices` take

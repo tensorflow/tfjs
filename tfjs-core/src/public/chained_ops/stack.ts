@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +14,19 @@
  * limitations under the License.
  * =============================================================================
  */
+import {stack} from '../../ops/stack';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
 
-import {registerBinaryKernel} from './binary_kernel';
-const supportsFullBroadcast = true;
-registerBinaryKernel('Div', supportsFullBroadcast);
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    stack<T extends Tensor>(x: Tensor|Tensor[], axis?: number): T;
+  }
+}
+
+Tensor.prototype.stack = function<T extends Tensor>(
+    x: Tensor|Tensor[], axis?: number): T {
+  this.throwIfDisposed();
+  const tensorsToBeStacked = x instanceof Tensor ? [this, x] : [this, ...x];
+  return stack(tensorsToBeStacked, axis) as T;
+};

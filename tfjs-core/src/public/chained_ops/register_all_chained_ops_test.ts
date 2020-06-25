@@ -46,6 +46,7 @@ const CHAINED_OPS = [
   'dot',
   'elu',
   'equal',
+  'expandDims',
   'floorDiv',
   'greater',
   'greaterEqual',
@@ -82,9 +83,12 @@ const CHAINED_OPS = [
   'spaceToBatchND',
   'split',
   'square',
+  'squeeze',
+  'stack',
   'sub',
   'tile',
   'transpose',
+  'unstack',
   'where'
 ];
 

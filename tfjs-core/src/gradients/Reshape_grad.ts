@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +14,16 @@
  * limitations under the License.
  * =============================================================================
  */
+import {Reshape} from '../kernel_names';
+import {GradConfig} from '../kernel_registry';
+import {reshape} from '../ops/reshape';
+import {Tensor} from '../tensor';
 
-import {registerBinaryKernel} from './binary_kernel';
-const supportsFullBroadcast = true;
-registerBinaryKernel('Div', supportsFullBroadcast);
+export const reshapeGradConfig: GradConfig = {
+  kernelName: Reshape,
+  inputsToSave: ['tensor'],
+  gradFunc: (dy: Tensor, saved: Tensor[]) => {
+    const [tensor] = saved;
+    return {tensor: () => reshape(dy, tensor.shape)};
+  }
+};

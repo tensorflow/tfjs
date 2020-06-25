@@ -24,9 +24,9 @@ import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {Rank, ShapeMap, TensorLike} from '../types';
 
-import {reshape} from './array_ops';
 import {clone} from './clone';
 import {op} from './operation';
+import {reshape} from './reshape';
 
 /**
  * Broadcast an array to a compatible shape NumPy-style.

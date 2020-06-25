@@ -24,9 +24,9 @@ import {convertToTensor} from '../tensor_util_env';
 import {Rank, TensorLike} from '../types';
 import * as util from '../util';
 
-import {reshape} from './array_ops';
 import {xAs4D} from './batchnorm_util';
 import {op} from './operation';
+import {reshape} from './reshape';
 
 /**
  * Batch normalization.

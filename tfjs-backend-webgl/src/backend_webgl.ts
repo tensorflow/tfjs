@@ -637,7 +637,8 @@ export class MathBackendWebGL extends KernelBackend {
       inputs: TensorInfo[],
       sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
     const cpuBackend = this.getCPUBackend();
-    if (!this.warnedAboutCPUBackend && cpuBackend == null) {
+    if (!this.warnedAboutCPUBackend && cpuBackend == null &&
+        !env().getBool('IS_TEST')) {
       console.warn(
           'Your application contains ops that are small enough to be ' +
           'executed on the CPU backend, however the CPU backend cannot ' +
