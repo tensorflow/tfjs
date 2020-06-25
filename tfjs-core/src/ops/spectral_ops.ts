@@ -27,7 +27,6 @@ import {assert} from '../util';
 
 import {scalar, zeros} from './tensor_ops';
 
-
 /**
  * Fast Fourier transform.
  *
