@@ -218,10 +218,8 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient'  // Split is not yet implemented
     ]
   },
-  {
-    include: 'transpose',
-    excludes: ['oneHot']  // oneHot not yet implemented.
-  },
+  {include: 'transpose'},
+  {include: 'oneHot'},
   {include: 'split'},
   {include: 'pad ', excludes: ['complex', 'zerosLike']},
   {include: 'clip', excludes: ['gradient']},
@@ -248,6 +246,15 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {
     include: 'log ',
+  },
+  {
+    startsWith: 'equal ',
+    excludes: [
+      'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
+                                       // supported yet.
+      'broadcasting Tensor3D shapes',  // Same as above.
+      'broadcasting Tensor4D shapes'   // Same as above.
+    ]
   },
   {
     include: 'greater ',
@@ -287,6 +294,15 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasting Tensor3D shapes',   // Same as above.
       'broadcasting Tensor3D float32',  // Same as above.
       'broadcasting Tensor4D shapes'    // Same as above.
+    ]
+  },
+  {
+    include: 'notEqual',
+    excludes: [
+      'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
+                                       // supported yet.
+      'broadcasting Tensor3D shapes',  // Same as above.
+      'broadcasting Tensor4D shapes'   // Same as above.
     ]
   },
   {
@@ -347,7 +363,7 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'onesLike',
     // Complex numbers not supported yet.
     excludes: ['complex'],
-  },
+  }
 ];
 
 const customInclude = (testName: string) => {

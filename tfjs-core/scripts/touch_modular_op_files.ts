@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -61,6 +61,11 @@ async function main() {
 
   let filePath = `./src/ops/${args.op}.ts`;
   let command = `touch ${filePath}`;
+  execSync(command);
+
+  // create a test file
+  filePath = `./src/ops/${args.op}_test.ts`;
+  command = `touch ${filePath}`;
   execSync(command);
 
   if (args.chained) {

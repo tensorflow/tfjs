@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,11 +24,12 @@ import {assert, isInt, parseAxisParam} from '../util';
 import {expandDims} from './array_ops';
 import {getUndoAxesPermutation} from './axis_util';
 import {greaterEqual} from './greater_equal';
-import {logicalAnd, where} from './logical_ops';
+import {logicalAnd} from './logical_and';
 import {maximum} from './maximum';
 import {op} from './operation';
 import {collectGatherOpShapeInfo} from './segment_util';
 import {ones, scalar, zerosLike} from './tensor_ops';
+import {where} from './where';
 
 /**
  * Computes the sum along segments of a `tf.Tensor`.

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,8 @@
  * =============================================================================
  */
 import './add';
+import './all';
+import './any';
 import './atan2';
 import './avg_pool';
 import './batchnorm';
@@ -28,6 +30,7 @@ import './cumsum';
 import './depth_to_space';
 import './depthwise_conv2d';
 import './depthwise_conv2D_deprecated';
+import './dilation2d';
 import './div';
 import './div_no_nan';
 import './dot';
@@ -40,6 +43,11 @@ import './leaky_relu';
 import './less';
 import './less_equal';
 import './local_response_normalization';
+import './logical_and';
+import './logical_not';
+import './logical_or';
+import './logical_xor';
+import './log_sum_exp';
 import './mat_mul';
 import './max';
 import './max_pool';
@@ -53,10 +61,12 @@ import './pad';
 import './pool';
 import './pow';
 import './prelu';
+import './prod';
 import './relu';
 import './resize_bilinear';
 import './resize_nearest_neighbor';
 import './relu6';
+import './reverse';
 import './selu';
 import './separable_conv2d';
 import './split';
@@ -65,3 +75,4 @@ import './space_to_batch_nd';
 import './sub';
 import './tile';
 import './transpose';
+import './where';

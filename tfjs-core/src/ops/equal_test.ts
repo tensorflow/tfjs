@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -143,7 +143,7 @@ describeWithFlags('equal', ALL_ENVS, () => {
     const b = tf.tensor2d([[0.1, NaN], [1.1, NaN]], [2, 2], 'float32');
     expectArraysClose(await tf.equal(a, b).data(), [0, 0, 1, 0]);
   });
-  it('2D and 2D broadcast each with 1 dim', async () => {
+  it('broadcasting Tensor2D shapes each with 1 dim', async () => {
     const a = tf.tensor2d([1, 2, 5], [1, 3]);
     const b = tf.tensor2d([5, 1], [2, 1]);
     const res = tf.equal(a, b);

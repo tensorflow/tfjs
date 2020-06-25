@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,13 +19,13 @@ import {GradConfig} from '../kernel_registry';
 import {cast, reshape} from '../ops/array_ops';
 import * as broadcast_util from '../ops/broadcast_util';
 import {greater} from '../ops/greater';
-import {where} from '../ops/logical_ops';
 import {mul} from '../ops/mul';
 import {pow} from '../ops/pow';
 import {sum} from '../ops/reduction_ops';
 import {sub} from '../ops/sub';
 import {scalar, zerosLike} from '../ops/tensor_ops';
 import {log} from '../ops/unary_ops';
+import {where} from '../ops/where';
 import {Tensor} from '../tensor';
 
 export const powGradConfig: GradConfig = {

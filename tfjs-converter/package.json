@@ -76,6 +76,7 @@
     "make-version": "sh -c ./scripts/make-version",
     "gen-doc": "ts-node -s ./scripts/gen_doc.ts",
     "gen-json": "ts-node -s ./scripts/gen_json.ts",
+    "model-summary": "ts-node -s ./tools/model_summary.ts",
     "pb2json": "ts-node -s ./tools/pb2json_converter.ts",
     "build-pip-package": "yarn gen-json --test && cd python && ./build-pip-package.sh --test /tmp/tfjs-pips",
     "run-python-tests": "yarn gen-json --test && cd python && ./run-python-tests.sh"

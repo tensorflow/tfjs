@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,7 +31,6 @@ export * from '../ops/concat_util';
 export * from '../ops/conv_util';
 export {Activation, FusedConv2DConfig} from '../ops/fused_util';
 export * from '../ops/reduce_util';
-export {nonMaxSuppressionV3, nonMaxSuppressionV5} from './non_max_suppression_impl';
 
 export {BackendValues, TypedArray, upcastType, PixelData} from '../types';
 export {MemoryInfo, TimingInfo} from '../engine';

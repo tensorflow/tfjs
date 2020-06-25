@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2020 Google LLC. All Rights Reserved.
+# Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# =============================================================================
+# ==============================================================================
 
 set -e
 
@@ -31,9 +31,7 @@ if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
 
   cd integration_tests
 
-  # Setup python env.
-  # TODO(linazhao): Investigate why --dev --tfkeras fail.
-  source ../scripts/setup-py-env.sh --stable
+  source ../scripts/setup-py-env.sh --dev
 
   echo "Load equivalent keras models and generate outputs."
   python create_save_predict.py
