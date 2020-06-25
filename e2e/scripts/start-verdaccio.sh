@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2020 Google LLC. All Rights Reserved.
+# Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,27 +12,63 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# =============================================================================
+# ==============================================================================
 
 # This script is used for starting Verdaccio, a private npm registry.
 
 # Start in scripts/ even if run from root directory
 cd "$(dirname "$0")"
 
-if [[ "$RELEASE" = true ]]; then
-  # Load functions for working with local NPM registry (Verdaccio)
-  source local-registry.sh
+# Load functions for working with local NPM registry (Verdaccio)
+source local-registry.sh
 
+function cleanup {
+  echo 'Cleaning up.'
+  # Restore the original NPM and Yarn registry URLs and stop Verdaccio
+  stopLocalRegistry
+}
+
+# Error messages are redirected to stderr
+function handle_error {
+  echo "$(basename $0): ERROR! An error was encountered executing line $1." 1>&2;
+  cleanup
+  echo 'Exiting with error.' 1>&2;
+  exit 1
+}
+
+function handle_exit {
+  cleanup
+  echo 'Exiting without error.' 1>&2;
+  exit
+}
+
+# Exit the script with a helpful error message when any error is encountered
+trap 'set +x; handle_error $LINENO $BASH_COMMAND' ERR
+
+# Cleanup before exit on any termination signal
+trap 'set +x; handle_exit' SIGQUIT SIGTERM SIGINT SIGKILL SIGHUP
+
+# Echo every command being executed
+set -x
+
+# Go to e2e root
+cd ..
+e2e_root_path=$PWD
+
+if [[ "$RELEASE" = true ]]; then
   # ****************************************************************************
   # First, publish the monorepo.
   # ****************************************************************************
 
   # Start the local NPM registry
-  startLocalRegistry verdaccio.yaml
+  startLocalRegistry "$e2e_root_path"/scripts/verdaccio.yaml
 
   # Publish the monorepo
-  publishToLocalRegistry
-fi
+  "$e2e_root_path"/scripts/publish-monorepo-ci.sh
 
-# Back to root
-cd ..
+  echo 'Installing package'
+  yarn
+
+  # Cleanup
+  cleanup
+fi

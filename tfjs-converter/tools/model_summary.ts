@@ -36,7 +36,9 @@ function summarize(argv: string[]) {
   if (library != null) {
     const functions = library['function'];
     // tslint:disable-next-line: no-any
-    functions.forEach((func: any) => nodes.concat(func['nodeDef']));
+    if (functions != null) {
+      functions.forEach((func: any) => nodes.concat(func['nodeDef']));
+    }
   }
 
   const opCount: {[key: string]: number} = {};
