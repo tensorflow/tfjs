@@ -64,6 +64,7 @@ import './pow';
 import './prelu';
 import './prod';
 import './relu';
+import './reshape';
 import './resize_bilinear';
 import './resize_nearest_neighbor';
 import './relu6';
