@@ -193,6 +193,7 @@ tfjs_cc_library(
         ":Conv2D",
         ":Conv2DBackpropInput",
         ":CropAndResize",
+        ":Cumsum",
         ":DepthwiseConv2dNative",
         ":Div",
         ":Equal",
@@ -333,6 +334,15 @@ tfjs_cc_library(
     name = "ClipByValue",
     srcs = ["kernels/ClipByValue.cc"],
     hdrs = ["kernels/ClipByValue.h"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Cumsum",
+    srcs = ["kernels/Cumsum.cc"],
     deps = [
         ":backend",
         ":util",

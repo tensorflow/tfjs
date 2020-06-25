@@ -33,6 +33,7 @@ import './Complex';
 import './Conv2DBackpropInput';
 import './Cos';
 import './CropAndResize';
+import './Cumsum';
 import './DepthwiseConv2dNative';
 import './Div';
 import './Equal';
