@@ -60,7 +60,7 @@ function reshape_<R extends Rank>(
       $x.size === util.sizeFromShape(shape),
       () => 'new shape and old shape must have the same number of elements.');
 
-  const inputs: ReshapeInputs = {tensor: $x};
+  const inputs: ReshapeInputs = {x: $x};
   const attrs: ReshapeAttrs = {shape};
   const forward: ForwardFunc<Tensor<R>> =
       (backend: KernelBackend, save: GradSaveFunc) => {

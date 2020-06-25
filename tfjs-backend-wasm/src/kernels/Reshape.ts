@@ -25,9 +25,9 @@ export function reshape(args: {
   backend: BackendWasm
 }) {
   const {inputs, attrs} = args;
-  const {tensor} = inputs as {} as ReshapeInputs;
+  const {x} = inputs as {} as ReshapeInputs;
   const {shape} = attrs as {} as ReshapeAttrs;
-  return {dataId: tensor.dataId, shape, dtype: tensor.dtype};
+  return {dataId: x.dataId, shape, dtype: x.dtype};
 }
 
 registerKernel({
