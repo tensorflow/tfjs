@@ -250,7 +250,9 @@ const benchmarks = {
             if (inferenceInput.dtype == 'float32' || inferenceInput.dtype == 'int32') {
               inputTensor = tf.randomNormal(inputShape, 0, 1, inferenceInput.dtype);
             } else {
-              throw new Error(`${inferenceInput.dtype} dtype is not supported`);
+              throw new Error(
+                  `The ${inferenceInput.dtype} dtype  of '${inferenceInput.name}' input ` +
+                  `at model.inputs[${inferenceInputIndex}] is not supported`);
             }
             inferenceInputs.push(inputTensor);
           }
