@@ -16,11 +16,11 @@
  */
 import {Prelu} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {reshape} from '../ops/array_ops';
 import {getReductionAxes} from '../ops/broadcast_util';
 import {greater} from '../ops/greater';
 import {mul} from '../ops/mul';
 import {sum} from '../ops/reduction_ops';
+import {reshape} from '../ops/reshape';
 import {zerosLike} from '../ops/tensor_ops';
 import {where} from '../ops/where';
 import {Tensor} from '../tensor';

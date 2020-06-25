@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,24 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
+import {unstack} from '../../ops/unstack';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, Reshape, ReshapeAttrs, ReshapeInputs} from '@tensorflow/tfjs-core';
-
-import {BackendWasm} from '../backend_wasm';
-
-export function reshape(args: {
-  inputs: NamedTensorInfoMap,
-  attrs: NamedAttrMap,
-  backend: BackendWasm
-}) {
-  const {inputs, attrs} = args;
-  const {tensor} = inputs as {} as ReshapeInputs;
-  const {shape} = attrs as {} as ReshapeAttrs;
-  return {dataId: tensor.dataId, shape, dtype: tensor.dtype};
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    unstack<T extends Tensor>(axis?: number): T[];
+  }
 }
 
-registerKernel({
-  kernelName: Reshape,
-  backendName: 'wasm',
-  kernelFunc: reshape,
-});
+Tensor.prototype.unstack = function<T extends Tensor>(axis?: number): T[] {
+  this.throwIfDisposed();
+  return unstack(this, axis) as T[];
+};

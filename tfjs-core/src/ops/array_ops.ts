@@ -17,72 +17,11 @@
 
 import {ENGINE} from '../engine';
 import {Tensor, TensorBuffer} from '../tensor';
-import {convertToTensor, convertToTensorArray} from '../tensor_util_env';
+import {convertToTensor} from '../tensor_util_env';
 import {DataType, DataTypeMap, Rank, ShapeMap, TensorLike} from '../types';
 import * as util from '../util';
 
-import {concat} from './concat';
 import {op} from './operation';
-
-/**
- * Reshapes a `tf.Tensor` to a given shape.
- *
- * Given an input tensor, returns a new tensor with the same values as the
- * input tensor with shape `shape`.
- *
- * If one component of shape is the special value -1, the size of that
- * dimension is computed so that the total size remains constant. In
- * particular, a shape of [-1] flattens into 1-D. At most one component of
- * shape can be -1.
- *
- * If shape is 1-D or higher, then the operation returns a tensor with shape
- * shape filled with the values of tensor. In this case, the number of
- * elements implied by shape must be the same as the number of elements in
- * tensor.
- *
- * ```js
- * const x = tf.tensor1d([1, 2, 3, 4]);
- * x.reshape([2, 2]).print();
- * ```
- *
- * @param x The input tensor to be reshaped.
- * @param shape An array of integers defining the output tensor shape.
- */
-/** @doc {heading: 'Tensors', subheading: 'Transformations'} */
-function reshape_<R2 extends Rank>(
-    x: Tensor|TensorLike, shape: ShapeMap[R2]): Tensor<R2> {
-  const $x = convertToTensor(x, 'x', 'reshape', null);
-  shape = util.inferFromImplicitShape(shape, $x.size) as ShapeMap[R2];
-  util.assert(
-      $x.size === util.sizeFromShape(shape),
-      () => 'new shape and old shape must have the same number of elements.');
-
-  const grad = (dy: Tensor<R2>) => {
-    return {x: () => dy.reshape($x.shape)};
-  };
-  const attrs = {shape};
-  return ENGINE.runKernelFunc(
-      backend => backend.reshape($x, shape), {x: $x}, grad, 'Reshape', attrs);
-}
-
-/**
- * Removes dimensions of size 1 from the shape of a `tf.Tensor`.
- *
- * ```js
- * const x = tf.tensor([1, 2, 3, 4], [1, 1, 4]);
- * x.squeeze().print();
- * ```
- *
- * @param x The input tensor to be squeezed.
- * @param axis An optional list of numbers. If specified, only
- *     squeezes the dimensions listed. The dimension index starts at 0. It
- * is an error to squeeze a dimension that is not 1.
- */
-/** @doc {heading: 'Tensors', subheading: 'Transformations'} */
-function squeeze_<T extends Tensor>(x: Tensor|TensorLike, axis?: number[]): T {
-  const $x = convertToTensor(x, 'x', 'squeeze');
-  return reshape($x, util.squeezeShape($x.shape, axis).newShape) as T;
-}
 
 /**
  * Casts a `tf.Tensor` to a new dtype.
@@ -113,114 +52,6 @@ function cast_<T extends Tensor>(x: T|TensorLike, dtype: DataType): T {
   const attrs = {dtype};
   return ENGINE.runKernelFunc(
       backend => backend.cast($x, dtype), {x: $x}, grad, 'Cast', attrs);
-}
-
-/**
- * Stacks a list of rank-`R` `tf.Tensor`s into one rank-`(R+1)` `tf.Tensor`.
- *
- * ```js
- * const a = tf.tensor1d([1, 2]);
- * const b = tf.tensor1d([3, 4]);
- * const c = tf.tensor1d([5, 6]);
- * tf.stack([a, b, c]).print();
- * ```
- *
- * @param tensors A list of tensor objects with the same shape and dtype.
- * @param axis The axis to stack along. Defaults to 0 (the first dim).
- */
-/** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
-function stack_<T extends Tensor>(
-    tensors: Array<T|TensorLike>, axis = 0): Tensor {
-  const $tensors = convertToTensorArray(tensors, 'tensors', 'stack');
-
-  util.assert(
-      $tensors.length >= 1, () => 'Pass at least one tensor to tf.stack');
-  if ($tensors.length === 1) {
-    return $tensors[0].expandDims(axis);
-  }
-  const rank = $tensors[0].rank;
-  const shape = $tensors[0].shape;
-  const dtype = $tensors[0].dtype;
-
-  util.assert(axis <= rank, () => 'Axis must be <= rank of the tensor');
-
-  $tensors.forEach(t => {
-    util.assertShapesMatch(
-        shape, t.shape,
-        'All tensors passed to stack must have matching shapes');
-  });
-
-  $tensors.forEach(t => {
-    util.assert(
-        dtype === t.dtype,
-        () => 'All tensors passed to stack must have matching dtypes');
-  });
-  const expandedTensors = $tensors.map(t => t.expandDims(axis));
-  return concat(expandedTensors, axis);
-}
-
-/**
- * Unstacks a `tf.Tensor` of rank-`R` into a list of rank-`(R-1)` `tf.Tensor`s.
- *
- * ```js
- * const a = tf.tensor2d([1, 2, 3, 4], [2, 2]);
- *
- * tf.unstack(a).forEach(tensor => tensor.print());
- * ```
- *
- * @param x A tensor object.
- * @param axis The axis to unstack along. Defaults to 0 (the first dim).
- */
-/** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
-function unstack_(x: Tensor|TensorLike, axis = 0): Tensor[] {
-  axis = axis || 0;
-  const $x = convertToTensor(x, 'x', 'unstack');
-  util.assert(
-      axis >= -$x.shape.length && axis < $x.shape.length,
-      () =>
-          `Axis = ${axis} is not in [-${$x.shape.length}, ${$x.shape.length})`);
-  if (axis < 0) {
-    axis += $x.shape.length;
-  }
-  const grad = (dy: Tensor[]) => {
-    return {x: () => stack(dy, axis)};
-  };
-  const attrs = {axis};
-  return ENGINE.runKernelFunc(
-      backend => backend.unstack($x, axis), {x: $x}, grad, 'Unpack', attrs);
-}
-
-/**
- * Returns a `tf.Tensor` that has expanded rank, by inserting a dimension
- * into the tensor's shape.
- *
- * ```js
- * const x = tf.tensor1d([1, 2, 3, 4]);
- * const axis = 1;
- * x.expandDims(axis).print();
- * ```
- *
- * @param x The input tensor whose dimensions to be expanded.
- * @param axis The dimension index at which to insert shape of `1`. Defaults
- *     to 0 (the first dimension).
- */
-/** @doc {heading: 'Tensors', subheading: 'Transformations'} */
-function expandDims_<R2 extends Rank>(
-    x: Tensor|TensorLike, axis = 0): Tensor<R2> {
-  const parseAs: DataType = null;
-  const $x = convertToTensor(x, 'x', 'expandDims', parseAs);
-
-  util.assert(axis <= $x.rank, () => 'Axis must be <= rank of the tensor');
-  const newShape = $x.shape.slice();
-  if (axis < 0) {
-    // Negative value is counted from the tail of rank.
-    util.assert(
-        -($x.rank + 1) <= axis,
-        () => `Axis must be in the interval [${- ($x.rank + 1)}, ${$x.rank}]`);
-    axis = $x.rank + axis + 1;
-  }
-  newShape.splice(axis, 0, 1);
-  return reshape($x, newShape as ShapeMap[R2]);
 }
 
 /**
@@ -344,9 +175,4 @@ export {
 };
 
 export const cast = op({cast_});
-export const expandDims = op({expandDims_});
-export const reshape = op({reshape_});
-export const squeeze = op({squeeze_});
-export const stack = op({stack_});
-export const unstack = op({unstack_});
 export const setdiff1dAsync = setdiff1dAsync_;
