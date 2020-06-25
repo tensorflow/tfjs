@@ -26,5 +26,5 @@ declare module '../../tensor' {
 
 Tensor.prototype.expandDims = function<T extends Tensor>(axis?: number): T {
   this.throwIfDisposed();
-  return expandDims(this, axis) as T;
+  return expandDims(this, axis);
 };

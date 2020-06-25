@@ -17,7 +17,7 @@
 
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
-import {DataType, Rank, ShapeMap, TensorLike} from '../types';
+import {DataType, TensorLike} from '../types';
 import * as util from '../util';
 
 import {op} from './operation';
@@ -38,8 +38,7 @@ import {reshape} from './reshape';
  *     to 0 (the first dimension).
  */
 /** @doc {heading: 'Tensors', subheading: 'Transformations'} */
-function expandDims_<R2 extends Rank>(
-    x: Tensor|TensorLike, axis = 0): Tensor<R2> {
+function expandDims_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
   const parseAs: DataType = null;
   const $x = convertToTensor(x, 'x', 'expandDims', parseAs);
 
@@ -53,7 +52,7 @@ function expandDims_<R2 extends Rank>(
     axis = $x.rank + axis + 1;
   }
   newShape.splice(axis, 0, 1);
-  return reshape($x, newShape as ShapeMap[R2]);
+  return reshape($x, newShape) as T;
 }
 
 export const expandDims = op({expandDims_});
