@@ -8,9 +8,9 @@ emsdk_configure(name = "emsdk")
 
 git_repository(
     name = "xnnpack",
-    commit = "5d67652eb23c2e94ffeeafd3e82a41745eb3ce41",
+    commit = "8772714a417ed71ff87ccf5014f6bee9d911db21",
     remote = "https://github.com/google/XNNPACK.git",
-    shallow_since = "1591043392 -0700",
+    shallow_since = "1593037483 -0700",
 )
 
 # The libraries below are transitive dependencies of XNNPACK that we need to
@@ -40,10 +40,10 @@ http_archive(
 # pthreadpool library, used for parallelization
 http_archive(
     name = "pthreadpool",
-    sha256 = "af8c518b6ec65dca216143ddf5ef9d2e6b133123f9a47a24841ef447c5d91bd1",
-    strip_prefix = "pthreadpool-6525d8bb736b323eb4df9e4f3afdd3a8458d1a20",
+    sha256 = "03312bd7d8d9e379d685258963ee8820767158b5946cdd00336ff17dae851001",
+    strip_prefix = "pthreadpool-029c88620802e1361ccf41d1970bd5b07fd6b7bb",
     urls = [
-        "https://github.com/Maratyszcza/pthreadpool/archive/6525d8bb736b323eb4df9e4f3afdd3a8458d1a20.zip",
+        "https://github.com/Maratyszcza/pthreadpool/archive/029c88620802e1361ccf41d1970bd5b07fd6b7bb.zip",
     ],
 )
 
@@ -63,10 +63,10 @@ http_archive(
     name = "cpuinfo",
     build_file = "@xnnpack//third_party:cpuinfo.BUILD",
     patches = ["@xnnpack//third_party:cpuinfo.patch"],
-    sha256 = "8ea076bcc4ff73cdff520ece01b776d2a778ced60956f5eb88697a78e22c389d",
-    strip_prefix = "cpuinfo-5cefcd6293e6881754c2c53f99e95b159d2d8aa5",
+    sha256 = "b1f2ee97e46d8917a66bcb47452fc510d511829556c93b83e06841b9b35261a5",
+    strip_prefix = "cpuinfo-6cecd15784fcb6c5c0aa7311c6248879ce2cb8b2",
     urls = [
-        "https://github.com/pytorch/cpuinfo/archive/5cefcd6293e6881754c2c53f99e95b159d2d8aa5.zip",
+        "https://github.com/pytorch/cpuinfo/archive/6cecd15784fcb6c5c0aa7311c6248879ce2cb8b2.zip",
     ],
 )
 
