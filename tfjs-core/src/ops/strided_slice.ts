@@ -130,7 +130,8 @@ function stridedSlice_(
     return slice($x, begin, size).reshape(outShape);
   }
   const res = ENGINE.runKernelFunc(
-      backend => backend.stridedSlice($x, begin, end, strides), {$x});
+      backend => backend.stridedSlice($x, begin, end, strides), {$x}, null,
+      'StridedSlice');
   return res.reshape(outShape);
 }
 
