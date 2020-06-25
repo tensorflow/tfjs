@@ -24,9 +24,9 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {parseAxisParam} from '../util';
 
-import {reshape} from './array_ops';
 import {clone} from './clone';
 import {op} from './operation';
+import {reshape} from './reshape';
 
 /**
  * Reverses a `tf.Tensor` along a specified axis.

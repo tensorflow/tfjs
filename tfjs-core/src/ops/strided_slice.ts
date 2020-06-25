@@ -93,24 +93,26 @@ function stridedSlice_(
   $x = $x.reshape(newShape);
 
   // Normalize the start, end and strides.
-  for (let axis = 0; axis < $x.rank; axis++) {
-    begin[axis] =
-        startForAxis(beginMask, begin, strides, $x.shape, axis, ellipsisMask);
-    end[axis] =
-        stopForAxis(endMask, end, strides, $x.shape, axis, ellipsisMask);
-    strides[axis] = stridesForAxis(strides, axis, ellipsisMask);
-  }
-
   if (ellipsisAxes.length && numInterpolatedAxes > 0) {
     const fullIndex = ellipsisAxes[0];
 
-    // The ellipsis applies to the masked index as well as any dimensions that
-    // were interpolated as full selection.
+    // The ellipsis applies to the masked index as well as any dimensions
+    // that are interpolated.
     const numElidedAxes = numInterpolatedAxes + 1;
-
-    begin = startIndicesWithElidedDims(begin, fullIndex, numElidedAxes);
-    end = stopIndicesWithElidedDims(end, fullIndex, numElidedAxes, $x.shape);
-    strides = stridesWithElidedDims(strides, fullIndex, numElidedAxes);
+    begin = startIndicesWithElidedDims(
+        beginMask, fullIndex, numElidedAxes, begin, $x.shape);
+    end = stopIndicesWithElidedDims(
+        endMask, fullIndex, numElidedAxes, end, $x.shape);
+    strides =
+        stridesWithElidedDims(strides, fullIndex, numElidedAxes, $x.shape);
+  } else {
+    for (let axis = 0; axis < $x.rank; axis++) {
+      begin[axis] =
+          startForAxis(beginMask, begin, strides, $x.shape, axis, ellipsisMask);
+      end[axis] =
+          stopForAxis(endMask, end, strides, $x.shape, axis, ellipsisMask);
+      strides[axis] = stridesForAxis(strides, axis, ellipsisMask);
+    }
   }
 
   const shrinkAxes = maskToAxes(shrinkAxisMask);

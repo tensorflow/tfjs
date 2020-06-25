@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
+import {squeeze} from '../../ops/squeeze';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
 
-import {registerBinaryKernel} from './binary_kernel';
-const supportsFullBroadcast = true;
-registerBinaryKernel('Div', supportsFullBroadcast);
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    squeeze<T extends Tensor>(axis?: number[]): T;
+  }
+}
+
+Tensor.prototype.squeeze = function<T extends Tensor>(axis?: number[]): T {
+  this.throwIfDisposed();
+  return squeeze(this, axis);
+};
