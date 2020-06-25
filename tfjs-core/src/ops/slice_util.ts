@@ -65,9 +65,12 @@ export function computeOutShape(
 // Creates full selection at the elided dimensions. If the dimension matches
 // the ellipsis mask, override the current stride value. Otherwise, insert.
 export function stridesWithElidedDims(
-    strides: number[], ellipsisInsertionIndex: number,
-    numElidedAxes: number): number[] {
+    strides: number[], ellipsisInsertionIndex: number, numElidedAxes: number,
+    inputShape: number[]): number[] {
   const newStrides = [...strides];
+  for (let i = newStrides.length; i < inputShape.length; i++) {
+    newStrides.push(1);
+  }
   for (let i = 0; i < numElidedAxes; i++) {
     if (i === 0) {
       newStrides[ellipsisInsertionIndex] = 1;
@@ -81,20 +84,44 @@ export function stridesWithElidedDims(
   return newStrides;
 }
 
+function unnormalizeAxis(
+    ellipsisInsertionIndex: number, numElidedAxes: number,
+    normalizedAxis: number): number {
+  if (normalizedAxis <= ellipsisInsertionIndex) {
+    return normalizedAxis;
+  }
+
+  return normalizedAxis - (numElidedAxes - 1);
+}
+
+function getElidedAxes(numElidedAxes: number, ellipsisInsertionIndex: number) {
+  const elidedAxes = [];
+  for (let i = 0; i < numElidedAxes; i++) {
+    elidedAxes.push(ellipsisInsertionIndex + i);
+  }
+  return elidedAxes;
+}
+
 // Creates full selection at the elided dimensions. If the dimension matches
 // the ellipsis mask, override the current start value. Otherwise, insert.
 export function startIndicesWithElidedDims(
-    startIndices: number[], ellipsisInsertionIndex: number,
-    numElidedAxes: number): number[] {
-  const newIndices = [...startIndices];
-  for (let i = 0; i < numElidedAxes; i++) {
-    if (i === 0) {
-      newIndices[ellipsisInsertionIndex] = 0;
+    beginMask: number, ellipsisInsertionIndex: number, numElidedAxes: number,
+    originalBegin: number[], inputShape: number[]): number[] {
+  const newIndices = [...inputShape];
+  const elidedAxes = getElidedAxes(numElidedAxes, ellipsisInsertionIndex);
+
+  for (let axis = 0; axis < newIndices.length; axis++) {
+    if (elidedAxes.indexOf(axis) > -1) {
+      newIndices[axis] = 0;
     } else {
-      newIndices.splice(
-          ellipsisInsertionIndex, 0 /* num elements to delete */,
-          0 /* element to add */);
-      newIndices.pop();
+      const originalAxis =
+          unnormalizeAxis(ellipsisInsertionIndex, numElidedAxes, axis);
+      let originalValue = originalBegin[originalAxis];
+      if (beginMask & 1 << originalAxis) {
+        originalValue = 0;
+      }
+
+      newIndices[axis] = originalValue;
     }
   }
   return newIndices;
@@ -103,17 +130,22 @@ export function startIndicesWithElidedDims(
 // Creates full selection at the elided dimensions. If the dimension matches
 // the ellipsis mask, override the current stop value. Otherwise, insert.
 export function stopIndicesWithElidedDims(
-    stopIndices: number[], ellipsisInsertionIndex: number,
-    numElidedAxes: number, inputShape: number[]): number[] {
-  const newIndices = [...stopIndices];
-  for (let i = 0; i < numElidedAxes; i++) {
-    if (i === 0) {
-      newIndices[ellipsisInsertionIndex] = Number.MAX_SAFE_INTEGER;
+    endMask: number, ellipsisInsertionIndex: number, numElidedAxes: number,
+    originalEnd: number[], inputShape: number[]): number[] {
+  const newIndices = [...inputShape];
+  const elidedAxes = getElidedAxes(numElidedAxes, ellipsisInsertionIndex);
+
+  for (let axis = 0; axis < newIndices.length; axis++) {
+    if (elidedAxes.indexOf(axis) > -1) {
+      newIndices[axis] = Number.MAX_SAFE_INTEGER;
     } else {
-      newIndices.splice(
-          ellipsisInsertionIndex, 0 /* num elements to delete */,
-          Number.MAX_SAFE_INTEGER /* element to add */);
-      newIndices.pop();
+      const originalAxis =
+          unnormalizeAxis(ellipsisInsertionIndex, numElidedAxes, axis);
+      let originalValue = originalEnd[originalAxis];
+      if (endMask & 1 << originalAxis) {
+        originalValue = Number.MAX_SAFE_INTEGER;
+      }
+      newIndices[axis] = originalValue;
     }
   }
 
