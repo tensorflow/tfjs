@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -78,8 +78,7 @@ export class NodeFileSystem implements tf.io.IOHandler {
     }
   }
 
-  async save(modelArtifacts: tf.io.ModelArtifacts):
-      Promise<tf.io.SaveResult> {
+  async save(modelArtifacts: tf.io.ModelArtifacts): Promise<tf.io.SaveResult> {
     if (Array.isArray(this.path)) {
       throw new Error('Cannot perform saving to multiple paths.');
     }
