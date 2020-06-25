@@ -121,6 +121,11 @@ export class BackendWasm extends KernelBackend {
     this.wasm._free(data.memoryOffset);
     this.wasm.tfjs.disposeData(data.id);
     this.dataIdMap.delete(dataId);
+
+    if (data.complexTensors) {
+      this.disposeData(data.complexTensors.real.dataId);
+      this.disposeData(data.complexTensors.imag.dataId);
+    }
   }
 
   floatPrecision(): 32 {
