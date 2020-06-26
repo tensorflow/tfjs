@@ -30,9 +30,9 @@ import {logSumExp} from './log_sum_exp';
 import {Reduction} from './loss_ops_utils';
 import {mul} from './mul';
 import {op} from './operation';
-import {sum} from './reduction_ops';
 import {reshape} from './reshape';
 import {sub} from './sub';
+import {sum} from './sum';
 import {scalar} from './tensor_ops';
 import {exp, neg} from './unary_ops';
 

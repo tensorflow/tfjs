@@ -127,7 +127,7 @@ export {whereAsync} from './where_async';
 export * from './boolean_mask';
 export * from './slice';
 export * from './unary_ops';
-export * from './reduction_ops';
+export * from './sum';
 export * from './compare';
 export * from './binary_ops';
 export * from './array_ops';

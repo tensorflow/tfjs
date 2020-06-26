@@ -25,8 +25,8 @@ import {computeOutAndReduceShapes} from './axis_util';
 import {div} from './div';
 import {mul} from './mul';
 import {op} from './operation';
-import {sum} from './reduction_ops';
 import {reshape} from './reshape';
+import {sum} from './sum';
 import {ones, scalar} from './tensor_ops';
 
 /**
