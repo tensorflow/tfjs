@@ -25,6 +25,7 @@ import './AddN';
 import './ArgMax';
 import './AvgPool';
 import './BatchMatMul';
+import './BroadcastTo';
 import './Cast';
 import './ClipByValue';
 import './Concat';
