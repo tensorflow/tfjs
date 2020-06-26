@@ -226,54 +226,6 @@ function min_<T extends Tensor>(
   return res;
 }
 
-/**
- * Returns the indices of the minimum values along an `axis`.
- *
- * The result has the same shape as `input` with the dimension along `axis`
- * removed.
- *
- * ```js
- * const x = tf.tensor1d([1, 2, 3]);
- *
- * x.argMin().print();  // or tf.argMin(x)
- * ```
- *
- * ```js
- * const x = tf.tensor2d([1, 2, 4, 3], [2, 2]);
- *
- * const axis = 1;
- * x.argMin(axis).print();  // or tf.argMin(x, axis)
- * ```
- *
- * @param x The input tensor.
- * @param axis The dimension to reduce. Defaults to 0 (outer-most dimension).
- *
- */
-/** @doc {heading: 'Operations', subheading: 'Reduction'} */
-function argMin_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
-  let $x = convertToTensor(x, 'x', 'argMin');
-
-  if (axis == null) {
-    axis = 0;
-  }
-  let axes = util.parseAxisParam(axis, $x.shape);
-  const permutedAxes = axis_util.getAxesPermutation(axes, $x.rank);
-  if (permutedAxes != null) {
-    $x = $x.transpose(permutedAxes);
-    axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
-  }
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [$x] = saved;
-    return {$x: () => zerosLike($x)};
-  };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.argMin($x, axes[0]);
-    save([$x]);
-    return res;
-  }, {$x}, grad) as T;
-}
-
-export const argMin = op({argMin_});
 export const mean = op({mean_});
 export const min = op({min_});
 export const sum = op({sum_});

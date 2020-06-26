@@ -21,6 +21,7 @@ export {addN} from './add_n';
 export {all} from './all';
 export {any} from './any';
 export {argMax} from './arg_max';
+export {argMin} from './arg_min';
 export {atan2} from './atan2';
 export {avgPool} from './avg_pool';
 export {avgPool3d} from './avg_pool_3d';

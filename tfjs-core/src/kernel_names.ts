@@ -49,6 +49,12 @@ export interface ArgMaxAttrs {
   axis: number;
 }
 
+export const ArgMin = 'ArgMin';
+export type ArgMinInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface ArgMinAttrs {
+  axis: number;
+}
+
 export const Atan2 = 'Atan2';
 export type Atan2Inputs = BinaryInputs;
 
