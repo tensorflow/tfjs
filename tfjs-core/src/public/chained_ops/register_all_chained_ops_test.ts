@@ -27,6 +27,7 @@ const CHAINED_OPS = [
   'add',
   'all',
   'any',
+  'argMax',
   'atan2',
   'avgPool',
   'batchNorm',

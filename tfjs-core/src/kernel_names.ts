@@ -43,6 +43,12 @@ export interface AnyAttrs {
   keepDims: boolean;
 }
 
+export const ArgMax = 'ArgMax';
+export type ArgMaxInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface ArgMaxAttrs {
+  axis: number;
+}
+
 export const Atan2 = 'Atan2';
 export type Atan2Inputs = BinaryInputs;
 

@@ -17,6 +17,7 @@
 import './add';
 import './all';
 import './any';
+import './arg_max';
 import './atan2';
 import './avg_pool';
 import './batchnorm';

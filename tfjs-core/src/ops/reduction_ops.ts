@@ -273,55 +273,6 @@ function argMin_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
   }, {$x}, grad) as T;
 }
 
-/**
- * Returns the indices of the maximum values along an `axis`.
- *
- * The result has the same shape as `input` with the dimension along `axis`
- * removed.
- *
- * ```js
- * const x = tf.tensor1d([1, 2, 3]);
- *
- * x.argMax().print();  // or tf.argMax(x)
- * ```
- *
- * ```js
- * const x = tf.tensor2d([1, 2, 4, 3], [2, 2]);
- *
- * const axis = 1;
- * x.argMax(axis).print();  // or tf.argMax(x, axis)
- * ```
- *
- * @param x The input tensor.
- * @param axis The dimension to reduce. Defaults to 0 (outer-most dimension).
- */
-/** @doc {heading: 'Operations', subheading: 'Reduction'} */
-function argMax_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
-  let $x = convertToTensor(x, 'x', 'argMax');
-
-  if (axis == null) {
-    axis = 0;
-  }
-  let axes = util.parseAxisParam(axis, $x.shape);
-  const permutedAxes = axis_util.getAxesPermutation(axes, $x.rank);
-  if (permutedAxes != null) {
-    $x = $x.transpose(permutedAxes);
-    axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
-  }
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [$x] = saved;
-    return {x: () => zerosLike($x)};
-  };
-  const attrs = {axis: axes[0]};
-  const inputsToSave = [$x];
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.argMax($x, axes[0]);
-    save([$x]);
-    return res;
-  }, {x: $x}, grad, 'ArgMax', attrs, inputsToSave) as T;
-}
-
-export const argMax = op({argMax_});
 export const argMin = op({argMin_});
 export const mean = op({mean_});
 export const min = op({min_});

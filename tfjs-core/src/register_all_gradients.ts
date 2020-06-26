@@ -16,6 +16,7 @@
  */
 import {addGradConfig} from './gradients/Add_grad';
 import {addNGradConfig} from './gradients/AddN_grad';
+import {argMaxGradConfig} from './gradients/ArgMax_grad';
 import {atan2GradConfig} from './gradients/Atan2_grad';
 import {avgPool3DGradConfig} from './gradients/AvgPool3D_grad';
 import {avgPoolGradConfig} from './gradients/AvgPool_grad';
@@ -70,6 +71,7 @@ import {registerGradient} from './kernel_registry';
 const gradConfigs: GradConfig[] = [
   addGradConfig,
   addNGradConfig,
+  argMaxGradConfig,
   atan2GradConfig,
   avgPoolGradConfig,
   avgPool3DGradConfig,

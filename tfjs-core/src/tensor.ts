@@ -187,7 +187,6 @@ export interface OpHandler {
       T;
   min<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
   argMin<T extends Tensor>(x: Tensor, axis: number): T;
-  argMax<T extends Tensor>(x: Tensor, axis: number): T;
   addStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   subStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   powStrict<T extends Tensor>(base: T, exp: Tensor|TensorLike): T;
@@ -657,10 +656,6 @@ export class Tensor<R extends Rank = Rank> {
   argMin<T extends Tensor>(axis: number = null): T {
     this.throwIfDisposed();
     return opHandler.argMin(this, axis);
-  }
-  argMax<T extends Tensor>(axis: number = null): T {
-    this.throwIfDisposed();
-    return opHandler.argMax(this, axis);
   }
 
   // Transformations
