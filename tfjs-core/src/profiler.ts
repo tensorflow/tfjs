@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -77,9 +77,11 @@ export function checkComputationForErrors<D extends DataType>(
 
 export class Logger {
   logKernelProfile(
-      name: string, result: Tensor, vals: TypedArray, timeMs: number,
-      inputs: NamedTensorMap, extraInfo?: string) {
-    const time = util.rightPad(`${timeMs}ms`, 9);
+      name: string, result: Tensor, vals: TypedArray,
+      timeMs: number|{error: string}, inputs: NamedTensorMap,
+      extraInfo?: string) {
+    const time = typeof timeMs === 'number' ? util.rightPad(`${timeMs}ms`, 9) :
+                                              timeMs['error'];
     const paddedName = util.rightPad(name, 25);
     const rank = result.rank;
     const size = result.size;
@@ -87,7 +89,10 @@ export class Logger {
     let inputShapesDescription = '';
 
     for (const name in inputs) {
-      const inputShape = inputs[name].shape;
+      const input = inputs[name];
+      // The input might be a non-tensor (e.g HTMLImageElement), in which case
+      // we claim the output shape as input shape.
+      const inputShape = input.shape || result.shape;
       const inputRank = inputShape.length;
       inputShapesDescription +=
           `${name}: ${inputRank}D ${inputRank > 0 ? inputShape : ''} `;

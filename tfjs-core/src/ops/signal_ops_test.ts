@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -136,8 +136,8 @@ describeWithFlags('frame', ALL_ENVS, () => {
     const frameStep = 3;
     const padEnd = true;
     const padValue = 100;
-    const output = tf.signal.frame(input, frameLength, frameStep,
-      padEnd, padValue);
+    const output =
+        tf.signal.frame(input, frameLength, frameStep, padEnd, padValue);
     expect(output.shape).toEqual([2, 3]);
     expectArraysClose(await output.data(), [1, 2, 3, 4, 5, 100]);
   });
@@ -149,43 +149,32 @@ describeWithFlags('frame', ALL_ENVS, () => {
     const padEnd = true;
     const output = tf.signal.frame(input, frameLength, frameStep, padEnd);
     expect(output.shape).toEqual([5, 4]);
-    expectArraysClose(await output.data(), [
-      1, 2, 3, 4,
-      2, 3, 4, 5,
-      3, 4, 5, 0,
-      4, 5, 0, 0,
-      5, 0, 0, 0
-    ]);
+    expectArraysClose(
+        await output.data(),
+        [1, 2, 3, 4, 2, 3, 4, 5, 3, 4, 5, 0, 4, 5, 0, 0, 5, 0, 0, 0]);
   });
 
   it('Padding all remaining frames with step=1 and given pad-value',
-      async () => {
-    const input = tf.tensor1d([1, 2, 3, 4, 5]);
-    const frameLength = 4;
-    const frameStep = 1;
-    const padEnd = true;
-    const padValue = 42;
-    const output = tf.signal.frame(input, frameLength, frameStep,
-      padEnd, padValue);
-    expect(output.shape).toEqual([5, 4]);
-    expectArraysClose(await output.data(), [
-      1, 2, 3, 4,
-      2, 3, 4, 5,
-      3, 4, 5, 42,
-      4, 5, 42, 42,
-      5, 42, 42, 42
-    ]);
-  });
+     async () => {
+       const input = tf.tensor1d([1, 2, 3, 4, 5]);
+       const frameLength = 4;
+       const frameStep = 1;
+       const padEnd = true;
+       const padValue = 42;
+       const output =
+           tf.signal.frame(input, frameLength, frameStep, padEnd, padValue);
+       expect(output.shape).toEqual([5, 4]);
+       expectArraysClose(
+           await output.data(),
+           [1, 2, 3, 4, 2, 3, 4, 5, 3, 4, 5, 42, 4, 5, 42, 42, 5, 42, 42, 42]);
+     });
 
   it('Padding all remaining frames with step=2', async () => {
     const input = tf.tensor1d([1, 2, 3, 4, 5]);
     const output = tf.signal.frame(input, 4, 2, true);
     expect(output.shape).toEqual([3, 4]);
-    expectArraysClose(await output.data(), [
-      1, 2, 3, 4,
-      3, 4, 5, 0,
-      5, 0, 0, 0
-    ]);
+    expectArraysClose(
+        await output.data(), [1, 2, 3, 4, 3, 4, 5, 0, 5, 0, 0, 0]);
   });
 });
 
@@ -197,9 +186,24 @@ describeWithFlags('stft', ALL_ENVS, () => {
     const output = tf.signal.stft(input, frameLength, frameStep);
     expect(output.shape).toEqual([3, 3]);
     expectArraysClose(await output.data(), [
-      1.0, 0.0, 0.0, -1.0, -1.0, 0.0,
-      1.0, 0.0, 0.0, -1.0, -1.0, 0.0,
-      1.0, 0.0, 0.0, -1.0, -1.0, 0.0,
+      1.0,
+      0.0,
+      0.0,
+      -1.0,
+      -1.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      -1.0,
+      -1.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      -1.0,
+      -1.0,
+      0.0,
     ]);
   });
 
@@ -210,9 +214,8 @@ describeWithFlags('stft', ALL_ENVS, () => {
     const output = tf.signal.stft(input, frameLength, frameStep);
     expect(output.shape).toEqual([3, 3]);
     expectArraysClose(await output.data(), [
-      2.0, 0.0, 0.0, -2.0, -2.0, 0.0,
-      3.0, 0.0, 0.0, -3.0, -3.0, 0.0,
-      4.0, 0.0, 0.0, -4.0, -4.0, 0.0
+      2.0, 0.0, 0.0, -2.0, -2.0, 0.0, 3.0, 0.0, 0.0, -3.0, -3.0, 0.0, 4.0, 0.0,
+      0.0, -4.0, -4.0, 0.0
     ]);
   });
 
@@ -222,10 +225,9 @@ describeWithFlags('stft', ALL_ENVS, () => {
     const frameStep = 2;
     const output = tf.signal.stft(input, frameLength, frameStep);
     expect(output.shape).toEqual([2, 3]);
-    expectArraysClose(await output.data(), [
-      1.0, 0.0, 0.0, -1.0, -1.0, 0.0,
-      1.0, 0.0, 0.0, -1.0, -1.0, 0.0
-    ]);
+    expectArraysClose(
+        await output.data(),
+        [1.0, 0.0, 0.0, -1.0, -1.0, 0.0, 1.0, 0.0, 0.0, -1.0, -1.0, 0.0]);
   });
 
   it('3 fftLength, 5 frameLength, 2 step', async () => {
@@ -235,10 +237,9 @@ describeWithFlags('stft', ALL_ENVS, () => {
     const fftLength = 3;
     const output = tf.signal.stft(input, frameLength, frameStep, fftLength);
     expect(output.shape[0]).toEqual(2);
-    expectArraysClose(await output.data(), [
-      1.5, 0.0, -0.749999, 0.433,
-      1.5, 0.0, -0.749999, 0.433
-    ]);
+    expectArraysClose(
+        await output.data(),
+        [1.5, 0.0, -0.749999, 0.433, 1.5, 0.0, -0.749999, 0.433]);
   });
 
   it('5 length with hann window', async () => {
@@ -248,8 +249,8 @@ describeWithFlags('stft', ALL_ENVS, () => {
     const output = tf.signal.stft(input, frameLength, frameStep);
     expect(output.shape).toEqual([1, 5]);
     expectArraysClose(
-      await output.data(),
-      [2.0, 0.0, 0.0, -1.7071068, -1.0, 0.0, 0.0, 0.29289323, 0.0, 0.0]);
+        await output.data(),
+        [2.0, 0.0, 0.0, -1.7071068, -1.0, 0.0, 0.0, 0.29289323, 0.0, 0.0]);
   });
 
   it('5 length with hann window (sequential)', async () => {
@@ -258,10 +259,10 @@ describeWithFlags('stft', ALL_ENVS, () => {
     const frameStep = 1;
     const output = tf.signal.stft(input, frameLength, frameStep);
     expect(output.shape).toEqual([1, 5]);
-    expectArraysClose(
-      await output.data(),
-      [6.0, 0.0, -0.70710677, -5.1213202, -3.0, 1.0,
-        0.70710677, 0.87867975, 0.0, 0.0]);
+    expectArraysClose(await output.data(), [
+      6.0, 0.0, -0.70710677, -5.1213202, -3.0, 1.0, 0.70710677, 0.87867975, 0.0,
+      0.0
+    ]);
   });
 
   it('3 length with hamming window', async () => {
@@ -269,13 +270,13 @@ describeWithFlags('stft', ALL_ENVS, () => {
     const frameLength = 3;
     const frameStep = 1;
     const fftLength = 3;
-    const output = tf.signal.stft(input, frameLength, frameStep,
-      fftLength, (length) => tf.signal.hammingWindow(length));
+    const output = tf.signal.stft(
+        input, frameLength, frameStep, fftLength,
+        (length) => tf.signal.hammingWindow(length));
     expect(output.shape).toEqual([3, 2]);
     expectArraysClose(await output.data(), [
-      1.16, 0.0, -0.46, -0.79674333,
-      1.16, 0.0, -0.46, -0.79674333,
-      1.16, 0.0, -0.46, -0.79674333
+      1.16, 0.0, -0.46, -0.79674333, 1.16, 0.0, -0.46, -0.79674333, 1.16, 0.0,
+      -0.46, -0.79674333
     ]);
   });
 
@@ -284,13 +285,13 @@ describeWithFlags('stft', ALL_ENVS, () => {
     const frameLength = 3;
     const frameStep = 2;
     const fftLength = 3;
-    const output = tf.signal.stft(input, frameLength, frameStep,
-      fftLength, (length) => tf.signal.hammingWindow(length));
+    const output = tf.signal.stft(
+        input, frameLength, frameStep, fftLength,
+        (length) => tf.signal.hammingWindow(length));
     expect(output.shape).toEqual([2, 2]);
-    expectArraysClose(await output.data(), [
-      1.16, 0.0, -0.46, -0.79674333,
-      1.16, 0.0, -0.46, -0.79674333
-    ]);
+    expectArraysClose(
+        await output.data(),
+        [1.16, 0.0, -0.46, -0.79674333, 1.16, 0.0, -0.46, -0.79674333]);
   });
 
   it('3 fftLength, 5 frameLength, 2 step with hamming window', async () => {
@@ -298,13 +299,13 @@ describeWithFlags('stft', ALL_ENVS, () => {
     const frameLength = 5;
     const frameStep = 1;
     const fftLength = 3;
-    const output = tf.signal.stft(input, frameLength, frameStep,
-      fftLength, (length) => tf.signal.hammingWindow(length));
+    const output = tf.signal.stft(
+        input, frameLength, frameStep, fftLength,
+        (length) => tf.signal.hammingWindow(length));
     expect(output.shape).toEqual([2, 2]);
-    expectArraysClose(await output.data(), [
-      1.619999, 0.0, -0.69, 0.39837,
-      1.619999, 0.0, -0.69, 0.39837
-    ]);
+    expectArraysClose(
+        await output.data(),
+        [1.619999, 0.0, -0.69, 0.39837, 1.619999, 0.0, -0.69, 0.39837]);
   });
 
   it('5 length with hann window (sequential)', async () => {
@@ -312,12 +313,13 @@ describeWithFlags('stft', ALL_ENVS, () => {
     const frameLength = 5;
     const frameStep = 1;
     const fftLength = 5;
-    const output = tf.signal.stft(input, frameLength, frameStep,
-      fftLength, (length) => tf.signal.hammingWindow(length));
+    const output = tf.signal.stft(
+        input, frameLength, frameStep, fftLength,
+        (length) => tf.signal.hammingWindow(length));
     expect(output.shape).toEqual([1, 3]);
     expectArraysClose(
-      await output.data(),
-      [6.72, 0.0, -3.6371822, -1.1404576, 0.4771822, 0.39919350]);
+        await output.data(),
+        [6.72, 0.0, -3.6371822, -1.1404576, 0.4771822, 0.39919350]);
   });
 
   it('3 length without window function', async () => {
@@ -326,14 +328,12 @@ describeWithFlags('stft', ALL_ENVS, () => {
     const frameStep = 1;
     const fftLength = 3;
     const ident = (length: number) => tf.ones([length]).as1D();
-    const output = tf.signal.stft(input, frameLength, frameStep,
-      fftLength, ident);
+    const output =
+        tf.signal.stft(input, frameLength, frameStep, fftLength, ident);
     expect(output.shape).toEqual([3, 2]);
-    expectArraysClose(await output.data(), [
-      3.0, 0.0, 0.0, 0.0,
-      3.0, 0.0, 0.0, 0.0,
-      3.0, 0.0, 0.0, 0.0
-    ]);
+    expectArraysClose(
+        await output.data(),
+        [3.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0]);
   });
 
   it('3 length, 2 step without window function', async () => {
@@ -342,12 +342,10 @@ describeWithFlags('stft', ALL_ENVS, () => {
     const frameStep = 2;
     const fftLength = 3;
     const ident = (length: number) => tf.ones([length]).as1D();
-    const output = tf.signal.stft(input, frameLength, frameStep,
-      fftLength, ident);
+    const output =
+        tf.signal.stft(input, frameLength, frameStep, fftLength, ident);
     expect(output.shape).toEqual([2, 2]);
-    expectArraysClose(await output.data(), [
-      3.0, 0.0, 0.0, 0.0,
-      3.0, 0.0, 0.0, 0.0
-    ]);
+    expectArraysClose(
+        await output.data(), [3.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0]);
   });
 });

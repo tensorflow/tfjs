@@ -13,13 +13,29 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
-# Build
+# Build deps.
+- name: 'node:10'
+  dir: 'tfjs-core'
+  id: 'build-deps'
+  entrypoint: 'yarn'
+  args: ['build-deps-ci']
+  waitFor: ['yarn']
+
+# Build.
 - name: 'node:10'
   dir: 'tfjs-core'
   id: 'build'
   entrypoint: 'yarn'
   args: ['build-ci']
-  waitFor: ['yarn']
+  waitFor: ['yarn', 'build-deps']
+
+# Lint.
+- name: 'node:10'
+  dir: 'tfjs-core'
+  id: 'lint'
+  entrypoint: 'yarn'
+  args: ['lint']
+  waitFor: ['yarn', 'build-deps']
 
 # Run unit tests.
 - name: 'node:10'
@@ -27,18 +43,8 @@ steps:
   id: 'test'
   entrypoint: 'yarn'
   args: ['test-ci']
-  waitFor: ['build']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
-  secretEnv: ['BROWSERSTACK_KEY']
-
-# Run unit tests in react native.
-- name: 'node:10'
-  dir: 'tfjs-react-native/integration_rn59'
-  id: 'react-native-from-core'
-  entrypoint: 'yarn'
-  args: ['test-ci', 'use-core-build']
-  waitFor: ['build']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+  waitFor: ['yarn', 'build-deps', 'lint']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 
 # bundle size check

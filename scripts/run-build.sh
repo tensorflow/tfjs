@@ -17,6 +17,7 @@
 set -e
 
 DIR=$1
-if test -f "$DIR/diff"; then
-  gcloud builds submit . --config=$DIR/cloudbuild.yml
+if [[ -f "$DIR/run-ci" || "$NIGHTLY" = true || $DIR == "e2e" ]]; then
+  gcloud builds submit . --config=$DIR/cloudbuild.yml \
+    --substitutions _NIGHTLY=$NIGHTLY
 fi

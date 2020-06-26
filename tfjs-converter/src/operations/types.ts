@@ -21,7 +21,7 @@ import {NamedTensorsMap} from '../data/types';
 import {ExecutionContext} from '../executor/execution_context';
 
 export type ParamType = 'number'|'string'|'string[]'|'number[]'|'bool'|'bool[]'|
-    'shape'|'shape[]'|'tensor'|'tensors'|'dtype'|'dtype[]';
+    'shape'|'shape[]'|'tensor'|'tensors'|'dtype'|'dtype[]'|'func';
 export type Category =
     'arithmetic'|'basic_math'|'control'|'convolution'|'custom'|'dynamic'|
     'evaluation'|'image'|'creation'|'graph'|'logical'|'matrices'|
@@ -75,18 +75,24 @@ export declare interface AttrParamMapper extends ParamMapper {
 
 export interface InternalOpExecutor {
   (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext): Tensor
-      |Tensor[]|Promise<Tensor|Tensor[]>;
+      |Tensor[];
+}
+
+export interface InternalOpAsyncExecutor {
+  (node: Node, tensorMap: NamedTensorsMap,
+   context: ExecutionContext): Promise<Tensor[]>;
 }
 
 export declare interface OpMapper {
   tfOpName: string;
-  category: Category;
+  category?: Category;
   inputs?: InputParamMapper[];
   attrs?: AttrParamMapper[];
   customExecutor?: OpExecutor;
 }
 
 export declare interface Node {
+  signatureKey?: string;
   name: string;
   op: string;
   category: Category;
@@ -96,6 +102,7 @@ export declare interface Node {
   attrParams: {[key: string]: ParamValue};
   children: Node[];
   rawAttrs?: {[k: string]: tensorflow.IAttrValue};
+  defaultOutput?: number;
 }
 
 export declare interface Graph {
@@ -104,6 +111,8 @@ export declare interface Graph {
   inputs: Node[];
   outputs: Node[];
   weights: Node[];
+  signature?: tensorflow.ISignatureDef;
+  functions?: {[key: string]: Graph};
 }
 
 export type ValueType = string|string[]|number|number[]|number[][]|boolean|

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,11 +14,13 @@
  * limitations under the License.
  * =============================================================================
  */
+import './flags_wasm';
 
-import {backend_util, DataStorage, DataType, engine, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, env, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
 
-import wasmFactory from '../wasm-out/tfjs-backend-wasm';
-import {BackendWasmModule} from '../wasm-out/tfjs-backend-wasm';
+import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
+import wasmFactorySimd from '../wasm-out/tfjs-backend-wasm-simd.js';
+import wasmFactory from '../wasm-out/tfjs-backend-wasm.js';
 
 const WASM_PRIORITY = 2;
 
@@ -34,7 +36,8 @@ interface TensorData {
 export type DataId = object;  // object instead of {} to force non-primitive.
 
 export class BackendWasm extends KernelBackend {
-  private dataIdNextNumber = 0;
+  // 0 is reserved for null data ids.
+  private dataIdNextNumber = 1;
   dataIdMap: DataStorage<TensorData>;
 
   constructor(public wasm: BackendWasmModule) {
@@ -52,6 +55,13 @@ export class BackendWasm extends KernelBackend {
 
   numDataIds(): number {
     return this.dataIdMap.numDataIds();
+  }
+
+  async time(f: () => void): Promise<BackendTimingInfo> {
+    const start = util.now();
+    f();
+    const kernelMs = util.now() - start;
+    return {kernelMs};
   }
 
   move(
@@ -75,7 +85,9 @@ export class BackendWasm extends KernelBackend {
 
     if (values != null) {
       this.wasm.HEAPU8.set(
-          new Uint8Array((values as backend_util.TypedArray).buffer),
+          new Uint8Array(
+              (values as backend_util.TypedArray).buffer,
+              (values as backend_util.TypedArray).byteOffset, numBytes),
           memoryOffset);
     }
   }
@@ -122,8 +134,24 @@ export class BackendWasm extends KernelBackend {
     return {unreliable: false};
   }
 
-  makeOutput(shape: number[], dtype: DataType): TensorInfo {
-    const dataId = this.write(null /* values */, shape, dtype);
+  /**
+   * Make a tensor info for the output of an op. If `memoryOffset` is not
+   * present, this method allocates memory on the WASM heap. If `memoryOffset`
+   * is present, the memory was allocated elsewhere (in c++) and we just record
+   * the pointer where that memory lives.
+   */
+  makeOutput(shape: number[], dtype: DataType, memoryOffset?: number):
+      TensorInfo {
+    let dataId: {};
+    if (memoryOffset == null) {
+      dataId = this.write(null /* values */, shape, dtype);
+    } else {
+      dataId = {};
+      const id = this.dataIdNextNumber++;
+      this.dataIdMap.set(dataId, {id, memoryOffset, shape, dtype});
+      const size = util.sizeFromShape(shape);
+      this.wasm.tfjs.registerTensor(id, size, memoryOffset);
+    }
     return {dataId, shape, dtype};
   }
 
@@ -150,16 +178,50 @@ registerBackend('wasm', async () => {
   return new BackendWasm(wasm);
 }, WASM_PRIORITY);
 
+function createInstantiateWasmFunc(path: string) {
+  // tslint:disable-next-line:no-any
+  return (imports: any, callback: any) => {
+    util.fetch(path, {credentials: 'same-origin'}).then((response) => {
+      if (!response['ok']) {
+        imports.env.a(`failed to load wasm binary file at '${path}'`);
+      }
+      response.arrayBuffer().then(binary => {
+        WebAssembly.instantiate(binary, imports).then(output => {
+          callback(output.instance);
+        });
+      });
+    });
+    return {};
+  };
+}
+
 /**
  * Initializes the wasm module and creates the js <--> wasm bridge.
  *
  * NOTE: We wrap the wasm module in a object with property 'wasm' instead of
- * returning Promise<BackendWasmModule> to avoid freezing Chrome (last tested in
- * Chrome 76).
+ * returning Promise<BackendWasmModule> to avoid freezing Chrome (last tested
+ * in Chrome 76).
  */
-async function init(): Promise<{wasm: BackendWasmModule}> {
-  return new Promise(resolve => {
-    const wasm = wasmFactory();
+export async function init(): Promise<{wasm: BackendWasmModule}> {
+  const simdSupported = await env().getAsync('WASM_HAS_SIMD_SUPPORT');
+  return new Promise((resolve, reject) => {
+    const factoryConfig: WasmFactoryConfig = {};
+    if (wasmPath != null) {
+      factoryConfig.locateFile = (path, prefix) => {
+        if (path.endsWith('.wasm')) {
+          return wasmPath;
+        }
+        return prefix + path;
+      };
+      // use wasm instantiateWasm override when system fetch is not available.
+      // For detail references
+      // https://github.com/emscripten-core/emscripten/blob/2bca083cbbd5a4133db61fbd74d04f7feecfa907/tests/manual_wasm_instantiate.html#L170
+      if (customFetch) {
+        factoryConfig.instantiateWasm = createInstantiateWasmFunc(wasmPath);
+      }
+    }
+    const wasm = simdSupported ? wasmFactorySimd(factoryConfig) :
+                                 wasmFactory(factoryConfig);
     const voidReturnType: string = null;
     // Using the tfjs namespace to avoid conflict with emscripten's API.
     wasm.tfjs = {
@@ -167,14 +229,35 @@ async function init(): Promise<{wasm: BackendWasmModule}> {
       registerTensor: wasm.cwrap(
           'register_tensor', null,
           [
-            'number',  // dataId
+            'number',  // id
             'number',  // size
             'number',  // memoryOffset
           ]),
       disposeData: wasm.cwrap('dispose_data', voidReturnType, ['number']),
       dispose: wasm.cwrap('dispose', voidReturnType, []),
     };
-    wasm.onRuntimeInitialized = () => resolve({wasm});
+    let initialized = false;
+    wasm.onRuntimeInitialized = () => {
+      initialized = true;
+      initAborted = false;
+      resolve({wasm});
+    };
+    wasm.onAbort = () => {
+      if (initialized) {
+        // Emscripten already called console.warn so no need to double log.
+        return;
+      }
+      if (initAborted) {
+        // Emscripten calls `onAbort` twice, resulting in double error
+        // messages.
+        return;
+      }
+      initAborted = true;
+      const rejectMsg =
+          'Make sure the server can serve the `.wasm` file relative to the ' +
+          'bundled js file. For more details see https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/README.md#using-bundlers';
+      reject({message: rejectMsg});
+    };
   });
 }
 
@@ -188,6 +271,36 @@ function typedArrayFromBuffer(
     case 'bool':
       return new Uint8Array(buffer);
     default:
-      throw new Error(`Uknown dtype ${dtype}`);
+      throw new Error(`Unknown dtype ${dtype}`);
   }
+}
+
+let wasmPath: string = null;
+let initAborted = false;
+let customFetch = false;
+/**
+ * Sets the path to the `.wasm` file which will be fetched when the wasm
+ * backend is initialized. See
+ * https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/README.md#using-bundlers
+ * for more details.
+ * @param path wasm file path or url
+ * @param usePlatformFetch optional boolean to use platform fetch to download
+ *     the wasm file, default to false.
+ */
+/** @doc {heading: 'Environment', namespace: 'wasm'} */
+export function setWasmPath(path: string, usePlatformFetch = false): void {
+  if (initAborted) {
+    throw new Error(
+        'The WASM backend was already initialized. Make sure you call ' +
+        '`setWasmPath()` before you call `tf.setBackend()` or `tf.ready()`');
+  }
+  wasmPath = path;
+  customFetch = usePlatformFetch;
+}
+
+/** Used in unit tests. */
+export function resetWasmPath(): void {
+  wasmPath = null;
+  customFetch = false;
+  initAborted = false;
 }

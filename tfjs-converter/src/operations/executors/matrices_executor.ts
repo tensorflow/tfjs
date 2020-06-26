@@ -23,7 +23,7 @@ import {InternalOpExecutor, Node} from '../types';
 
 import {getParamValue} from './utils';
 
-export let executeOp: InternalOpExecutor = (node: Node,
+export const executeOp: InternalOpExecutor = (node: Node,
                                             tensorMap: NamedTensorsMap,
                                             context: ExecutionContext):
                                                tfc.Tensor[] => {
@@ -36,10 +36,45 @@ export let executeOp: InternalOpExecutor = (node: Node,
           getParamValue('b', node, tensorMap, context) as tfc.Tensor2D,
           getParamValue('transposeA', node, tensorMap, context) as boolean,
           getParamValue('transposeB', node, tensorMap, context) as boolean)];
+
     case 'Transpose':
       return [tfc.transpose(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor,
           getParamValue('perm', node, tensorMap, context) as number[])];
+
+    case '_FusedMatMul':
+      const [extraOp, activationFunc] =
+          (getParamValue('fusedOps', node, tensorMap, context) as string[]);
+
+      const isBiasAdd = extraOp === 'biasadd';
+      const isPrelu = activationFunc === 'prelu';
+
+      const numArgs =
+          (getParamValue('numArgs', node, tensorMap, context) as number);
+      if (isBiasAdd) {
+        if (isPrelu && numArgs !== 2) {
+          throw new Error(
+              'Fused MatMul with BiasAdd and Prelu must have two ' +
+              'extra arguments: bias and alpha.');
+        }
+        if (!isPrelu && numArgs !== 1) {
+          throw new Error(
+              'Fused MatMul with BiasAdd must have one extra argument: bias.');
+        }
+      }
+      const [biasArg, preluArg] =
+          getParamValue('args', node, tensorMap, context) as tfc.Tensor[];
+      return [tfc.fused.matMul({
+        a: getParamValue('a', node, tensorMap, context) as tfc.Tensor2D,
+        b: getParamValue('b', node, tensorMap, context) as tfc.Tensor2D,
+        transposeA: getParamValue('transposeA', node, tensorMap, context) as
+            boolean,
+        transposeB: getParamValue('transposeB', node, tensorMap, context) as
+            boolean,
+        bias: biasArg,
+        activation: activationFunc as tfc.fused.Activation,
+        preluActivationWeights: preluArg
+      })];
 
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);

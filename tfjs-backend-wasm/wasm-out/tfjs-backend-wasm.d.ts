@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,16 +17,22 @@
 
 export interface BackendWasmModule extends EmscriptenModule {
   onRuntimeInitialized: () => void;
+  onAbort: (msg: string) => void;
   // Using the tfjs namespace to avoid conflict with emscripten's API.
   tfjs: {
     init(): void,
-    registerTensor(dataId: number, size: number, memoryOffset: number): void,
+    registerTensor(id: number, size: number, memoryOffset: number): void,
     // Disposes the data behind the data bucket.
-    disposeData(dataId: number): void,
+    disposeData(id: number): void,
     // Disposes the backend and all of its associated data.
     dispose(): void,
   }
 }
 
-declare var moduleFactory: () => BackendWasmModule;
+export interface WasmFactoryConfig {
+  locateFile?(path: string, prefix: string): string;
+  instantiateWasm?: Function;
+}
+
+declare var moduleFactory: (settings: WasmFactoryConfig) => BackendWasmModule;
 export default moduleFactory;

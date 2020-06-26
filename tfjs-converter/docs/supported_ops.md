@@ -89,6 +89,17 @@
 |TensorArraySplitV3|tensorArraySplit|
 |TensorArrayV3|tensorArray|
 |TensorArrayWriteV3|tensorArrayWrite|
+|TensorListReserve|TensorListReserve|
+|TensorListSetItem|TensorListSetItem|
+|TensorListGetItem|TensorListGetItem|
+|TensorListScatter|TensorListScatter|
+|TensorListSplit|TensorListSplit|
+|TensorListStack|TensorListStack|
+|TensorArrayGather|TensorArrayGather|
+|TensorArrayConcat|TensorArrayConcat|
+|TensorArrayFromTensor|TensorArrayFromTensor|
+|TensorArrayPushBack|TensorArrayPushBack|
+|TensorArrayPopBack|TensorArrayPopBack|
 
 ## Operations - Convolution
 
@@ -101,6 +112,7 @@
 |Conv2DBackpropInput|conv2dTranspose|
 |DepthwiseConv2d|depthwiseConv2d|
 |DepthwiseConv2dNative|depthwiseConv2d|
+|Dilation2D|dilation2d|
 |MaxPool|maxPool|
 |MaxPool3D|maxPool3d|
 |Not mapped|pool|
@@ -145,6 +157,7 @@
 |ListDiff|setdiff1dAsync|
 |NonMaxSuppressionV2|nonMaxSuppression|
 |NonMaxSuppressionV3|nonMaxSuppression|
+|NonMaxSuppressionV5|nonMaxSuppression|
 |Where|whereAsync|
 
 ## Operations - Evaluation
@@ -231,6 +244,7 @@
 |Any|any|
 |ArgMax|argMax|
 |ArgMin|argMin|
+|Cumsum|cumsum|
 |Max|max|
 |Mean|mean|
 |Min|min|
@@ -272,6 +286,7 @@
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
 |BatchToSpaceND|batchToSpaceND|
+|BroadcstTo|broadcastTo|
 |Cast|cast|
 |DepthToSpace|depthToSpace|
 |ExpandDims|expandDims|

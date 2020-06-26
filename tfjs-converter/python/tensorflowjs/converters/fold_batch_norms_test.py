@@ -19,7 +19,8 @@ import shutil
 import tempfile
 
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v1 as tf1
+import tensorflow.compat.v2 as tf
 from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import importer
@@ -40,7 +41,7 @@ class FoldBatchNormsTest(tf.test.TestCase):
     super(FoldBatchNormsTest, self).tearDown()
 
   def testFoldBatchNorms(self):
-    with tf.compat.v1.Session() as sess:
+    with tf1.Session() as sess:
       inputs = [1, 4, 2, 5, 3, 6, -1, -4, -2, -5, -3, -6]
       input_op = constant_op.constant(
           np.array(inputs), shape=[1, 1, 6, 2], dtype=dtypes.float32)
@@ -71,7 +72,7 @@ class FoldBatchNormsTest(tf.test.TestCase):
       original_result = sess.run(["output:0"])
     optimized_graph_def = fold_batch_norms.fold_batch_norms(
         original_graph_def)
-    with tf.compat.v1.Session() as sess:
+    with tf1.Session() as sess:
       _ = importer.import_graph_def(
           optimized_graph_def, input_map={}, name="optimized")
       optimized_result = sess.run(["optimized/output:0"])
@@ -87,7 +88,7 @@ class FoldBatchNormsTest(tf.test.TestCase):
         ("NHWC", nn_ops.depthwise_conv2d_native),
         ("NCHW", nn_ops.depthwise_conv2d_native)
     ]:
-      with tf.compat.v1.Session() as sess:
+      with tf1.Session() as sess:
         inputs = [1, 4, 2, 5, 3, 6, -1, -4, -2, -5, -3, -6]
         input_op = constant_op.constant(
             np.array(inputs),
@@ -130,7 +131,7 @@ class FoldBatchNormsTest(tf.test.TestCase):
         original_result = sess.run(["output:0"])
       optimized_graph_def = fold_batch_norms.fold_batch_norms(
           original_graph_def)
-    with tf.compat.v1.Session() as sess:
+    with tf1.Session() as sess:
       _ = importer.import_graph_def(
           optimized_graph_def, input_map={}, name="optimized")
       optimized_result = sess.run(["optimized/output:0"])
@@ -147,13 +148,13 @@ class FoldBatchNormsTest(tf.test.TestCase):
         ("NHWC", nn_ops.depthwise_conv2d_native),
         ("NCHW", nn_ops.depthwise_conv2d_native)
     ]:
-      with tf.compat.v1.Session() as sess:
+      with tf1.Session() as sess:
         _generate_fused_batchnorm(data_format, conv2d_func)
         original_graph_def = sess.graph_def
         original_result = sess.run(["output:0"])
       optimized_graph_def = fold_batch_norms.fold_batch_norms(
           original_graph_def)
-    with tf.compat.v1.Session() as sess:
+    with tf1.Session() as sess:
       _ = importer.import_graph_def(
           optimized_graph_def, input_map={}, name="optimized")
       optimized_result = sess.run(["optimized/output:0"])
@@ -161,6 +162,36 @@ class FoldBatchNormsTest(tf.test.TestCase):
       self.assertAllClose(
           original_result, optimized_result, rtol=1e-04, atol=1e-06)
 
+      for node in optimized_graph_def.node:
+        self.assertNotEqual("FusedBatchNormV3", node.op)
+
+
+  def testFoldFusedBatchNormWithBias(self):
+    for data_format, conv2d_func in [
+        ("NHWC", nn_ops.conv2d),
+        ("NHWC", nn_ops.depthwise_conv2d_native),
+    ]:
+      graph = tf1.Graph()
+      with tf1.Session(graph=graph) as sess:
+        count = 1
+        add_bias = True
+        _generate_fused_batchnorm(data_format, conv2d_func, count, add_bias)
+        original_graph_def = sess.graph_def
+        original_result = sess.run(["output:0"])
+      optimized_graph_def = fold_batch_norms.fold_batch_norms(
+          original_graph_def)
+    with tf1.Session() as sess:
+      _ = importer.import_graph_def(
+          optimized_graph_def, input_map={}, name="optimized")
+      optimized_result = sess.run(["optimized/output:0"])
+
+      self.assertAllClose(
+          original_result, optimized_result, rtol=1e-04, atol=1e-06)
+
+      bias_nodes = [
+          node for node in optimized_graph_def.node if node.op == 'BiasAdd'
+      ]
+      self.assertEqual(len(bias_nodes), 1)
       for node in optimized_graph_def.node:
         self.assertNotEqual("FusedBatchNormV3", node.op)
 
@@ -170,13 +201,13 @@ class FoldBatchNormsTest(tf.test.TestCase):
         ("NHWC", nn_ops.depthwise_conv2d_native),
         ("NCHW", nn_ops.depthwise_conv2d_native)
     ]:
-      with tf.compat.v1.Session() as sess:
+      with tf1.Session() as sess:
         _generate_fused_batchnorm(data_format, conv2d_func, 2)
         original_graph_def = sess.graph_def
         original_result = sess.run(["output:0"])
       optimized_graph_def = fold_batch_norms.fold_batch_norms(
           original_graph_def)
-    with tf.compat.v1.Session() as sess:
+    with tf1.Session() as sess:
       _ = importer.import_graph_def(
           optimized_graph_def, input_map={}, name="optimized")
       optimized_result = sess.run(["optimized/output:0"])
@@ -187,7 +218,8 @@ class FoldBatchNormsTest(tf.test.TestCase):
       for node in optimized_graph_def.node:
         self.assertNotEqual("FusedBatchNormV3", node.op)
 
-def _generate_fused_batchnorm(data_format, conv2d_func, count=1):
+def _generate_fused_batchnorm(data_format, conv2d_func, count=1,
+                              add_bias=False):
   inputs = [1, 4, 2, 5, 3, 6, -1, -4, -2, -5, -3, -6]
   input_op = constant_op.constant(
       np.array(inputs),
@@ -217,6 +249,12 @@ def _generate_fused_batchnorm(data_format, conv2d_func, count=1):
         padding="SAME",
         data_format=data_format,
         name="conv_op")
+    if add_bias:
+      out_channels = conv_op.shape[3]
+      bias = constant_op.constant(
+          np.array([1.0]*out_channels),
+          shape=[out_channels], dtype=dtypes.float32)
+      conv_op = nn_ops.bias_add(conv_op, bias)
     gen_nn_ops.fused_batch_norm_v3(
         conv_op,
         gamma_op,

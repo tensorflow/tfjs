@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -609,7 +609,7 @@ export function toNestedArray(shape: number[], a: TypedArray) {
     return [];
   }
   if (size !== a.length) {
-    throw new Error(`[${shape}] does not match the input size.`);
+    throw new Error(`[${shape}] does not match the input size ${a.length}.`);
   }
 
   return createNestedArray(0, shape, a);
@@ -638,6 +638,25 @@ export function makeZerosTypedArray<D extends DataType>(
     return new Int32Array(size) as DataTypeMap[D];
   } else if (dtype === 'bool') {
     return new Uint8Array(size) as DataTypeMap[D];
+  } else {
+    throw new Error(`Unknown data type ${dtype}`);
+  }
+}
+
+/**
+ * Make nested `TypedArray` filled with zeros.
+ * @param shape The shape information for the nested array.
+ * @param dtype dtype of the array element.
+ */
+export function makeZerosNestedTypedArray<D extends DataType>(
+    shape: number[], dtype: D) {
+  const size = shape.reduce((prev, curr) => prev * curr, 1);
+  if (dtype == null || dtype === 'float32') {
+    return toNestedArray(shape, new Float32Array(size));
+  } else if (dtype === 'int32') {
+    return toNestedArray(shape, new Int32Array(size));
+  } else if (dtype === 'bool') {
+    return toNestedArray(shape, new Uint8Array(size));
   } else {
     throw new Error(`Unknown data type ${dtype}`);
   }
@@ -710,4 +729,50 @@ export function encodeString(s: string, encoding = 'utf-8'): Uint8Array {
 export function decodeString(bytes: Uint8Array, encoding = 'utf-8'): string {
   encoding = encoding || 'utf-8';
   return env().platform.decode(bytes, encoding);
+}
+
+/**
+ * Computes flat index for a given location (multidimentionsal index) in a
+ * Tensor/multidimensional array.
+ *
+ * @param locs Location in the tensor.
+ * @param rank Rank of the tensor.
+ * @param strides Tensor strides.
+ */
+export function locToIndex(
+    locs: number[], rank: number, strides: number[]): number {
+  if (rank === 0) {
+    return 0;
+  } else if (rank === 1) {
+    return locs[0];
+  }
+  let index = locs[locs.length - 1];
+  for (let i = 0; i < locs.length - 1; ++i) {
+    index += strides[i] * locs[i];
+  }
+  return index;
+}
+
+/**
+ * Computes the location (multidimensional index) in a tensor/multidimentional
+ * array for a given flat index.
+ *
+ * @param index Index in flat array.
+ * @param rank Rank of tensor.
+ * @param strides Strides of tensor.
+ */
+export function indexToLoc(
+    index: number, rank: number, strides: number[]): number[] {
+  if (rank === 0) {
+    return [];
+  } else if (rank === 1) {
+    return [index];
+  }
+  const locs: number[] = new Array(rank);
+  for (let i = 0; i < locs.length - 1; ++i) {
+    locs[i] = Math.floor(index / strides[i]);
+    index -= locs[i] * strides[i];
+  }
+  locs[locs.length - 1] = index;
+  return locs;
 }

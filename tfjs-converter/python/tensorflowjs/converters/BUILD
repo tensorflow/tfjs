@@ -61,11 +61,18 @@ py_test(
 )
 
 py_library(
+    name = "graph_rewrite_util",
+    srcs = ["graph_rewrite_util.py"],
+    srcs_version = "PY2AND3",
+    deps = ["//tensorflowjs:version"],
+)
+
+py_library(
     name = "fuse_prelu",
     srcs = ["fuse_prelu.py"],
     srcs_version = "PY2AND3",
     deps = [
-        ":common",
+        ":graph_rewrite_util",
         "//tensorflowjs:expect_numpy_installed",
         "//tensorflowjs:expect_tensorflow_installed",
     ],
@@ -88,7 +95,7 @@ py_library(
     srcs = ["fold_batch_norms.py"],
     srcs_version = "PY2AND3",
     deps = [
-        ":common",
+        ":graph_rewrite_util",
         "//tensorflowjs:expect_numpy_installed",
         "//tensorflowjs:expect_tensorflow_installed",
     ],
@@ -105,14 +112,37 @@ py_test(
     ],
 )
 
+py_library(
+    name = "fuse_depthwise_conv2d",
+    srcs = ["fuse_depthwise_conv2d.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":graph_rewrite_util",
+        "//tensorflowjs:expect_numpy_installed",
+        "//tensorflowjs:expect_tensorflow_installed",
+    ],
+)
+
+py_test(
+    name = "fuse_depthwise_conv2d_test",
+    srcs = ["fuse_depthwise_conv2d_test.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":fuse_depthwise_conv2d",
+        ":tf_saved_model_conversion_v2",
+        "//tensorflowjs:expect_numpy_installed",
+        "//tensorflowjs:expect_tensorflow_installed",
+    ],
+)
+
 py_test(
     name = "tf_saved_model_conversion_v2_test",
     srcs = ["tf_saved_model_conversion_v2_test.py"],
     srcs_version = "PY2AND3",
     deps = [
         ":tf_saved_model_conversion_v2",
-        "//tensorflowjs:expect_tensorflow_installed",
         "//tensorflowjs:expect_tensorflow_hub_installed",
+        "//tensorflowjs:expect_tensorflow_installed",
     ],
 )
 
@@ -124,10 +154,11 @@ py_library(
     deps = [
         ":common",
         ":fold_batch_norms",
+        ":fuse_depthwise_conv2d",
         ":fuse_prelu",
         "//tensorflowjs:expect_numpy_installed",
-        "//tensorflowjs:expect_tensorflow_installed",
         "//tensorflowjs:expect_tensorflow_hub_installed",
+        "//tensorflowjs:expect_tensorflow_installed",
         "//tensorflowjs:resource_loader",
         "//tensorflowjs:version",
         "//tensorflowjs:write_weights",
@@ -151,9 +182,24 @@ py_binary(
     deps = [
         ":common",
         ":converter",
-        ":fuse_prelu",
         "//tensorflowjs:expect_h5py_installed",
         "//tensorflowjs:expect_tensorflow_installed",
+    ],
+)
+
+py_library(
+    name = "converter_lib",
+    srcs = ["converter.py"],
+    srcs_version = "PY2AND3",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":common",
+        ":keras_h5_conversion",
+        ":keras_tfjs_loader",
+        ":tf_saved_model_conversion_v2",
+        "//third_party/py/h5py",
+        "//third_party/py/tensorflow",
+        "//third_party/py/tensorflowjs:version",
     ],
 )
 
@@ -161,6 +207,7 @@ py_binary(
     name = "converter",
     srcs = ["converter.py"],
     srcs_version = "PY2AND3",
+    visibility = ["//visibility:public"],
     deps = [
         ":common",
         ":keras_h5_conversion",
@@ -170,17 +217,16 @@ py_binary(
         "//tensorflowjs:expect_tensorflow_installed",
         "//tensorflowjs:version",
     ],
-    visibility = ["//visibility:public"],
 )
 
 py_binary(
     name = "generate_test_model",
-    srcs = ["generate_test_model.py"],
     testonly = True,
+    srcs = ["generate_test_model.py"],
     srcs_version = "PY2AND3",
     deps = [
         "//tensorflowjs:expect_tensorflow_installed",
-    ]
+    ],
 )
 
 py_test(

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,7 @@ import {ALL_ENVS, describeWithFlags, TestKernelBackend} from './jasmine_util';
 import {TensorInfo} from './kernel_registry';
 import {Tensor} from './tensor';
 import {expectArraysClose} from './test_util';
+import {BackendValues, DataType} from './types';
 
 describe('Backend registration', () => {
   beforeAll(() => {
@@ -388,7 +389,7 @@ describeWithFlags('profile', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [1, 2, 3]);
     expect(profile.kernels).toEqual([
       {
-        'name': 'square',
+        'name': 'Square',
         'bytesAdded': 12,
         'totalBytesSnapshot': 24,
         'tensorsAdded': 1,
@@ -397,7 +398,7 @@ describeWithFlags('profile', ALL_ENVS, () => {
         'outputShapes': [[3]]
       },
       {
-        'name': 'square',
+        'name': 'Square',
         'bytesAdded': 12,
         'totalBytesSnapshot': 24,
         'tensorsAdded': 1,
@@ -422,7 +423,7 @@ describeWithFlags('profile', ALL_ENVS, () => {
     expect(profile.newTensors).toBe(2);
     expectArraysClose(await result.data(), [1, 4, 9]);
     expect(profile.kernels).toEqual([{
-      'name': 'square',
+      'name': 'Square',
       'bytesAdded': 12,
       'totalBytesSnapshot': 24,
       'tensorsAdded': 1,
@@ -699,17 +700,31 @@ describeWithFlags('Detects memory leaks in kernels', ALL_ENVS, () => {
 });
 
 // NOTE: This describe is purposefully not a describeWithFlags so that we
-// test tensor allocation where no scopes have been created. The backend
-// here must be set to CPU because we cannot allocate GPU tensors outside
-// a describeWithFlags because the default webgl backend and the test
-// backends share a WebGLContext. When backends get registered, global
-// WebGL state is initialized, which causes the two backends to step on
-// each other and get in a bad state.
+// test tensor allocation where no scopes have been created.
 describe('Memory allocation outside a test scope', () => {
   it('constructing a tensor works', async () => {
-    tf.setBackend('cpu');
+    const backendName = 'test-backend';
+    tf.registerBackend(backendName, () => {
+      let storedValues: BackendValues = null;
+      return {
+        id: 1,
+        floatPrecision: () => 32,
+        write: (values: BackendValues, shape: number[], dtype: DataType) => {
+          const dataId = {};
+          storedValues = values;
+          return dataId;
+        },
+        read: async (dataId: object) => storedValues,
+        dispose: () => null,
+        disposeData: (dataId: {}) => null,
+      } as TestStorage;
+    });
+    tf.setBackend(backendName);
+
     const a = tf.tensor1d([1, 2, 3]);
     expectArraysClose(await a.data(), [1, 2, 3]);
     a.dispose();
+
+    tf.removeBackend(backendName);
   });
 });

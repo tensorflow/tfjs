@@ -21,8 +21,7 @@ import tempfile
 import json
 import os
 import shutil
-import tensorflow as tf
-from tensorflow import keras
+import tensorflow.compat.v2 as tf
 from tensorflow.python.eager import def_function
 from tensorflow.python.ops import variables
 from tensorflow.python.training.tracking import tracking
@@ -53,24 +52,24 @@ class CliTest(unittest.TestCase):
       json.dump(data, model_file)
 
   def _create_hd5_file(self):
-    input_tensor = keras.layers.Input((3,))
-    dense1 = keras.layers.Dense(
+    input_tensor = tf.keras.layers.Input((3,))
+    dense1 = tf.keras.layers.Dense(
         4, use_bias=True, kernel_initializer='ones', bias_initializer='zeros',
         name='MyDense10')(input_tensor)
-    output = keras.layers.Dense(
+    output = tf.keras.layers.Dense(
         2, use_bias=False, kernel_initializer='ones', name='MyDense20')(dense1)
-    model = keras.models.Model(inputs=[input_tensor], outputs=[output])
+    model = tf.keras.models.Model(inputs=[input_tensor], outputs=[output])
     h5_path = os.path.join(self._tmp_dir, HD5_FILE_NAME)
     print(h5_path)
     model.save_weights(h5_path)
 
   def _create_keras_saved_model(self):
-    model = keras.Sequential()
-    model.add(keras.layers.Reshape([2, 3], input_shape=[6]))
-    model.add(keras.layers.LSTM(10))
-    model.add(keras.layers.Dense(1, activation='sigmoid'))
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.Reshape([2, 3], input_shape=[6]))
+    model.add(tf.keras.layers.LSTM(10))
+    model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
-    keras.experimental.export_saved_model(model, save_dir)
+    tf.keras.models.save_model(model, save_dir)
 
   def _create_saved_model(self):
     """Test a basic model with functions to make sure functions are inlined."""
@@ -172,25 +171,32 @@ class CliTest(unittest.TestCase):
   def testAvailableSignatureNames(self):
     self._create_saved_model()
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
-    self.assertEqual(['__saved_model_init_op', 'serving_default'],
-                     [x['value'] for x in wizard.available_signature_names(
-                         {'input_path': save_dir,
-                          'input_format': 'tf_saved_model',
-                          'saved_model_tags': 'serve'})])
+    self.assertEqual(sorted(['__saved_model_init_op', 'serving_default']),
+                     sorted(
+                         [x['value'] for x in wizard.available_signature_names(
+                             {'input_path': save_dir,
+                              'input_format': 'tf_saved_model',
+                              'saved_model_tags': 'serve'})]))
 
   def testGenerateCommandForSavedModel(self):
     options = {'input_format': 'tf_saved_model',
                'input_path': 'tmp/saved_model',
                'saved_model_tags': 'test',
                'signature_name': 'test_default',
-               'quantization_bytes': 2,
+               'quantize_float16': 'conv/*/weights',
+               'weight_shard_size_bytes': '4194304',
                'skip_op_check': False,
                'strip_debug_ops': True,
+               'control_flow_v2': True,
                'output_path': 'tmp/web_model'}
 
-    self.assertEqual(['--input_format=tf_saved_model',
-                      '--quantization_bytes=2', '--saved_model_tags=test',
-                      '--signature_name=test_default', '--strip_debug_ops=True',
+    self.assertEqual(['--control_flow_v2=True',
+                      '--input_format=tf_saved_model',
+                      '--quantize_float16=conv/*/weights',
+                      '--saved_model_tags=test',
+                      '--signature_name=test_default',
+                      '--strip_debug_ops=True',
+                      '--weight_shard_size_bytes=4194304',
                       'tmp/saved_model', 'tmp/web_model'],
                      wizard.generate_arguments(options))
 
@@ -200,26 +206,34 @@ class CliTest(unittest.TestCase):
                'input_path': 'tmp/saved_model',
                'saved_model_tags': 'test',
                'signature_name': 'test_default',
-               'quantization_bytes': 1,
+               'weight_shard_size_bytes': '100',
+               'quantize_float16': 'conv/*/weights',
                'skip_op_check': True,
                'strip_debug_ops': False,
+               'control_flow_v2': False,
                'output_path': 'tmp/web_model'}
 
-    self.assertEqual(['--input_format=tf_keras_saved_model',
+    self.assertEqual(['--control_flow_v2=False',
+                      '--input_format=tf_keras_saved_model',
                       '--output_format=tfjs_layers_model',
-                      '--quantization_bytes=1', '--saved_model_tags=test',
+                      '--quantize_float16=conv/*/weights',
+                      '--saved_model_tags=test',
                       '--signature_name=test_default', '--skip_op_check',
-                      '--strip_debug_ops=False', 'tmp/saved_model',
-                      'tmp/web_model'],
+                      '--strip_debug_ops=False',
+                      '--weight_shard_size_bytes=100',
+                      'tmp/saved_model', 'tmp/web_model'],
                      wizard.generate_arguments(options))
 
   def testGenerateCommandForKerasModel(self):
     options = {'input_format': 'keras',
                'input_path': 'tmp/model.HD5',
-               'quantization_bytes': 1,
+               'weight_shard_size_bytes': '100',
+               'quantize_uint16': 'conv/*/weights',
                'output_path': 'tmp/web_model'}
 
-    self.assertEqual(['--input_format=keras', '--quantization_bytes=1',
+    self.assertEqual(['--input_format=keras',
+                      '--quantize_uint16=conv/*/weights',
+                      '--weight_shard_size_bytes=100',
                       'tmp/model.HD5', 'tmp/web_model'],
                      wizard.generate_arguments(options))
 
@@ -227,12 +241,15 @@ class CliTest(unittest.TestCase):
     options = {'input_format': 'tfjs_layers_model',
                'output_format': 'keras',
                'input_path': 'tmp/model.json',
-               'quantization_bytes': 1,
+               'quantize_uint8': 'conv/*/weights',
+               'weight_shard_size_bytes': '100',
                'output_path': 'tmp/web_model'}
 
     self.assertEqual(['--input_format=tfjs_layers_model',
                       '--output_format=keras',
-                      '--quantization_bytes=1', 'tmp/model.json',
+                      '--quantize_uint8=conv/*/weights',
+                      '--weight_shard_size_bytes=100',
+                      'tmp/model.json',
                       'tmp/web_model'],
                      wizard.generate_arguments(options))
 

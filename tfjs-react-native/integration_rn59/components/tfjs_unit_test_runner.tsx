@@ -91,7 +91,24 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
     extend(global, jasmineInterface);
 
     //@ts-ignore
-    env.configure({ random: false });
+    env.configure({
+      random: false,
+      specFilter: (spec: jasmine.Spec) => {
+        const name = spec.getFullName();
+
+        if(name.match('Backend registration')) {
+          // These tests use spyOn on a module. Skip them until they
+          // can be updated. Coverage for this functionality is tested
+          // directly in this package.
+          return false;
+        }
+        if(name.match('isMobile')) {
+          // Browser specific mobile test
+          return false;
+        }
+        return true;
+      }
+     });
 
     // Custom reporter to collect the test results
     const reactReporter: jasmine.CustomReporter = {
@@ -156,6 +173,9 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
 
     // import tests
     require('@tensorflow/tfjs-core/dist/tests');
+
+    // import tfjs-react-native-tests;
+    require('@tensorflow/tfjs-react-native/dist/tests');
 
     // Start the test runner
     env.execute();

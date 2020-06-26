@@ -15,17 +15,19 @@
  * limitations under the License.
  * =============================================================================
  */
-
 /**
  * This file tests that we don't have any dataSyncs in the unconstrainted tests
  * so that we can run backends that have async init and async data reads against
  * our exported test files.
  */
-import './index';
 
+// Use require here to workaround this being a circular dependency.
+// This should only be done in tests.
+// tslint:disable-next-line: no-require-imports
+require('@tensorflow/tfjs-backend-cpu');
+import './index';
 import {setTestEnvs} from './jasmine_util';
-import {MathBackendCPU} from './backends/cpu/backend_cpu';
-import {registerBackend} from './globals';
+import {registerBackend, engine} from './globals';
 import {KernelBackend} from './backends/backend';
 import {getKernelsForBackend, registerKernel} from './kernel_registry';
 
@@ -41,8 +43,7 @@ const asyncBackend = new AsyncCPUBackend();
 
 // backend is cast as any so that we can access methods through bracket
 // notation.
-// tslint:disable-next-line:no-any
-const backend: any = new MathBackendCPU();
+const backend: KernelBackend = engine().findBackend('cpu');
 const proxyBackend = new Proxy(asyncBackend, {
   get(target, name, receiver) {
     if (name === 'readSync') {
@@ -52,6 +53,7 @@ const proxyBackend = new Proxy(asyncBackend, {
           `.data() in unit tests or if you truly are testing dataSync(), ` +
           `constrain your test with SYNC_BACKEND_ENVS`);
     }
+    //@ts-ignore;
     const origSymbol = backend[name];
     if (typeof origSymbol === 'function') {
       // tslint:disable-next-line:no-any
@@ -70,8 +72,8 @@ const proxyBackendName = 'test-async-cpu';
 // with backends that have async init (e.g. WASM and WebGPU).
 registerBackend(proxyBackendName, async () => proxyBackend);
 
-// All the kernels are registered under the 'cpu' name, so we need to register
-// them also under the proxy backend name.
+// All the kernels are registered under the 'cpu' name, so we need to
+// register them also under the proxy backend name.
 const kernels = getKernelsForBackend('cpu');
 kernels.forEach(({kernelName, kernelFunc, setupFunc}) => {
   registerKernel(

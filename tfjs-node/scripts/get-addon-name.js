@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,29 +20,11 @@ const version = require('../package.json').version;
 
 const platform = os.platform();
 
-const CPU_DARWIN = `CPU-darwin-${version}.tar.gz`;
-const CPU_LINUX = `CPU-linux-${version}.tar.gz`;
-const GPU_LINUX = `GPU-linux-${version}.tar.gz`;
-const CPU_WINDOWS = `CPU-windows-${version}.zip`;
-const GPU_WINDOWS = `GPU-windows-${version}.zip`;
+const {PLATFORM_MAPPING, PLATFORM_EXTENSION} = require('./deps-constants.js');
 
-let addonName;
-
-if (name.includes('gpu')) {
-  if (platform === 'linux') {
-    addonName = GPU_LINUX;
-  } else if (platform === 'win32') {
-    addonName = GPU_WINDOWS;
-  }
-} else {
-  if (platform === 'linux') {
-    addonName = CPU_LINUX;
-  } else if (platform === 'darwin') {
-    addonName = CPU_DARWIN;
-  } else if (platform === 'win32') {
-    addonName = CPU_WINDOWS;
-  }
-}
+const type = name.includes('gpu') ? 'GPU' : 'CPU';
+const addonName = `${type}-${PLATFORM_MAPPING[platform]}-` +
+    `${version}.${PLATFORM_EXTENSION}`;
 
 // Print out the addon tarball name so that it can be used in bash script when
 // uploading the tarball to GCP bucket.

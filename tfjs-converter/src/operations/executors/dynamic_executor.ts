@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,13 +19,15 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
-import {Node} from '../types';
+import {InternalOpAsyncExecutor, Node} from '../types';
+
 import {getParamValue} from './utils';
 
-export async function executeOp(
+export const executeOp: InternalOpAsyncExecutor = async(
     node: Node, tensorMap: NamedTensorsMap,
-    context: ExecutionContext): Promise<tfc.Tensor[]> {
+    context: ExecutionContext): Promise<tfc.Tensor[]> => {
   switch (node.op) {
+    case 'NonMaxSuppressionV5':
     case 'NonMaxSuppressionV3':
     case 'NonMaxSuppressionV2': {
       const boxes =
@@ -38,14 +40,29 @@ export async function executeOp(
           getParamValue('iouThreshold', node, tensorMap, context) as number;
       const scoreThreshold =
           getParamValue('scoreThreshold', node, tensorMap, context) as number;
+
+      if (node.op === 'NonMaxSuppressionV5') {
+        const softNmsSigma =
+            getParamValue('softNmsSigma', node, tensorMap, context) as number;
+
+        const result = await tfc.image.nonMaxSuppressionWithScoreAsync(
+            boxes as tfc.Tensor2D, scores as tfc.Tensor1D, maxOutputSize,
+            iouThreshold, scoreThreshold, softNmsSigma);
+
+        return [result.selectedIndices, result.selectedScores];
+      }
+
       return [await tfc.image.nonMaxSuppressionAsync(
           boxes as tfc.Tensor2D, scores as tfc.Tensor1D, maxOutputSize,
           iouThreshold, scoreThreshold)];
     }
     case 'Where': {
-      return [await tfc.whereAsync(
+      const condition =
           (getParamValue('condition', node, tensorMap, context) as tfc.Tensor)
-              .asType('bool'))];
+              .asType('bool');
+      const result = [await tfc.whereAsync(condition)];
+      condition.dispose();
+      return result;
     }
     case 'ListDiff': {
       return tfc.setdiff1dAsync(
@@ -55,6 +72,6 @@ export async function executeOp(
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }
-}
+};
 
 export const CATEGORY = 'dynamic';

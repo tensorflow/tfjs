@@ -6,6 +6,7 @@
   "main": "index.js",
   "scripts": {
     "watch": "NODE_ENV=development parcel index.html --no-hmr --open --no-autoinstall",
+    "debug": "NODE_ENV=development parcel debug.html --no-hmr --open --no-autoinstall",
     "build": "NODE_ENV=production parcel build index.html --no-minify --public-url ./"
   },
   "author": "",
@@ -18,7 +19,7 @@
     "rimraf": "^2.6.2"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "1.3.1",
-    "@tensorflow/tfjs-vis": "1.3.0"
+    "@tensorflow/tfjs": "2.0.0",
+    "@tensorflow/tfjs-vis": "link:../../../tfjs-vis"
   }
 }

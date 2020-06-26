@@ -93,7 +93,6 @@ export async function localGraphModelRunner() {
   };
 }
 
-
 /**
  * A runner that traines a model.
  */

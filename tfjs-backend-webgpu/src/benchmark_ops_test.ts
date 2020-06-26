@@ -97,7 +97,8 @@ describeWebGPU('Ops benchmarks', () => {
             for (const t of maxes) {
               t.dispose();
             }
-          }, false, 50, n);
+          },
+          false, 50, n);
     };
 
     await doTest(0);
@@ -121,6 +122,13 @@ describeWebGPU('Ops benchmarks', () => {
   it('matMul', async () => {
     const a = tf.randomNormal([500, 500]);
     const b = tf.randomNormal([500, 500]);
+
+    await time(() => tf.matMul(a, b));
+  });
+
+  it('matMul - dispatch 1', async () => {
+    const a = tf.randomNormal([16, 2048]);
+    const b = tf.randomNormal([2048, 16]);
 
     await time(() => tf.matMul(a, b));
   });
@@ -155,10 +163,40 @@ describeWebGPU('Ops benchmarks', () => {
     await time(() => tf.depthwiseConv2d(x, w, 1, 'valid'));
   });
 
+  it('maxPool with filter size = 1', async () => {
+    const y = tf.randomNormal<tf.Rank.R4>([1, 57, 57, 256]);
+    const z = tf.randomNormal<tf.Rank.R4>([1, 29, 29, 512]);
+    await time(() => tf.maxPool(y, 1, 2, 'same'), null, true, 10, 10);
+    await time(() => tf.maxPool(z, 1, 2, 'same'), null, true, 10, 10);
+  });
+
   it('maxPool', async () => {
     const x = tf.randomNormal<tf.Rank.R4>([1, 131, 131, 64]);
 
-    await time(() => tf.maxPool(x, 2, 1, 'same'));
+    await time(() => tf.maxPool(x, 2, 1, 'same'), null, true, 10, 10);
   });
 
+  it('prelu', async () => {
+    const x = tf.randomNormal([500]);
+    const a = tf.randomNormal([500]);
+
+    await time(() => tf.prelu(x, a), null, false, 10, 10);
+  });
+
+  it('slice', async () => {
+    const a = tf.randomNormal<tf.Rank.R1>([500]);
+
+    await time(() => tf.slice1d(a, 2, 498), null, false, 10, 10);
+  });
+
+  it('transpose', async () => {
+    const x = tf.randomNormal([1024, 1024]);
+    await time(() => tf.transpose(x, [1, 0]), null, false, 10, 10);
+  });
+
+  it('stridedSlice', async () => {
+    const a = tf.randomNormal<tf.Rank.R1>([500]);
+
+    await time(() => tf.stridedSlice(a, [0], [500], [2]), null, true, 10, 10);
+  });
 });

@@ -9,75 +9,62 @@ of tfjs usage, include:
   - IOHandlers to support loading models from asyncStorage and models
     that are compiled into the app bundle.
 
-## Status
-This package is currently an **alpha release**. We welcome react native developers
-to try it and give us feedback.
-
 ## Setting up a React Native app with tfjs-react-native
 
-These instructions **assume that you are generally familiar with [react native](https://facebook.github.io/react-native/) developement**.
+These instructions (and this library) **assume that you are generally familiar with [react native](https://facebook.github.io/react-native/) development**.
+
+## Expo compatibility
+
+This library relies on [expo-gl](https://github.com/expo/expo/tree/master/packages/expo-gl) and [expo-gl-cpp](https://github.com/expo/expo/tree/master/packages/expo-gl-cpp). Thus you must use a version of React Native that is supported by Expo.
+
+Some parts of tfjs-react-native are not compatible with _managed expo apps_. You must use the bare workflow (or just plain react native) if you want to use the following functionality:
+ - Loading local models using [bundleResourceIO](https://js.tensorflow.org/api_react_native/latest/#bundleResourceIO). You can instead load models from a webserver.
 
 ### Step 1. Create your react native app.
 
-You can use the [React Native CLI](https://facebook.github.io/react-native/docs/getting-started) or [Expo](https://expo.io/). This library relies on a couple of dependencies from the Expo project so it may be convenient to use expo but is not mandatory.
+You can use the [React Native CLI](https://facebook.github.io/react-native/docs/getting-started) or [Expo](https://expo.io/).
 
 On macOS (to develop iOS applications) You will also need to use CocoaPods to install these dependencies.
 
-### Step 2: Install expo related libraries
+### Step 2: Install dependencies
 
-Depending on which workflow you used to set up your app you will need to install different dependencies.
+Note that if you are using in a managed expo app the install instructions may be different.
 
-- React Native CLI App
-  - Install and configure [react-native-unimodules](https://github.com/unimodules/react-native-unimodules)
+  - Install and configure [react-native-unimodules](https://github.com/unimodules/react-native-unimodules) (can be skipped if in an expo app)
   - Install and configure [expo-gl-cpp](https://github.com/expo/expo/tree/master/packages/expo-gl-cpp) and [expo-gl](https://github.com/expo/expo/tree/master/packages/expo-gl)
-- Expo Bare App
-  - Install and configure [expo-gl-cpp](https://github.com/expo/expo/tree/master/packages/expo-gl-cpp) and [expo-gl](https://github.com/expo/expo/tree/master/packages/expo-gl)
-- Expo Managed App
   - Install and configure [expo-gl](https://github.com/expo/expo/tree/master/packages/expo-gl)
+  - Install and configure [expo-gl-cpp](https://github.com/expo/expo/tree/master/packages/expo-gl-cpp) and [expo-gl](https://github.com/expo/expo/tree/master/packages/expo-gl)
+  - Install and configure [expo-camera](https://www.npmjs.com/package/expo-camera)
+  - Install and configure [async-storage](https://github.com/react-native-community/async-storage)
+  - Install and configure [react-native-fs](https://www.npmjs.com/package/react-native-fs)
+  - **Install @tensorflow/tfjs** - `npm install @tensorflow/tfjs`
+  - **Install @tensorflow/tfjs-react-native** - `npm install @tensorflow/tfjs-react-native`
 
-> If you are in a _managed_ expo application these libraries should be present and you should be able to skip this step.
 
 > After this point, if you are using Xcode to build for ios, you should use a ‘.workspace’ file instead of the ‘.xcodeproj’
 
 ### Step 3: Configure [Metro](https://facebook.github.io/metro/en/)
 
+This step is only needed if you want to use the [bundleResourceIO](https://js.tensorflow.org/api_react_native/latest/#bundleResourceIO) loader.
+
 Edit your `metro.config.js` to look like the following. Changes are noted in
 the comments below.
 
 ```js
-// Change 1 (import the blacklist utility)
-const blacklist = require('metro-config/src/defaults/blacklist');
-
-module.exports = {
-  transformer: {
-    getTransformOptions: async () => ({
-      transform: {
-        experimentalImportSupport: false,
-        inlineRequires: false,
-      },
-    }),
-  },
-  resolver: {
-    // Change 2 (add 'bin' to assetExts)
-    assetExts: ['bin', 'txt', 'jpg'],
-    sourceExts: ['js', 'json', 'ts', 'tsx', 'jsx'],
-    // Change 3 (add platform_node to blacklist)
-    blacklistRE: blacklist([/platform_node/])
-  },
-};
+const { getDefaultConfig } = require('metro-config');
+module.exports = (async () => {
+  const defaultConfig = await getDefaultConfig();
+  const { assetExts } = defaultConfig.resolver;
+  return {
+    resolver: {
+      // Add bin to assetExts
+      assetExts: [...assetExts, 'bin'],
+    }
+  };
+})();
 ```
 
-### Step 4: Install TensorFlow.js and tfjs-react-native
-
-- Install @tensorflow/tfjs - `npm install @tensorflow/tfjs`
-- Install @tensorflow/tfjs-react-native - `npm install @tensorflow/tfjs-react-native@alpha`
-
-### Step 5: Install and configure other peerDependencies
-
-- Install and configure [async-storage](https://github.com/react-native-community/async-storage)
-- Install and configure [react-native-fs](https://www.npmjs.com/package/react-native-fs)
-
-### Step 6: Test that it is working
+### Step 4: Test that it is working
 
 Before using tfjs in a react native app, you need to call `tf.ready()` and wait for it to complete. This is an **async function** so you might want to do this in a `componentDidMount` or before the app is rendered.
 
@@ -110,12 +97,9 @@ export class App extends React.Component {
     //
   }
 }
-
 ```
 
-After gathering feedback in the alpha release we will add an example to the [tensorflow/tfjs-examples](https://github.com/tensorflow/tfjs-examples) repository.
-
-For now you can take a look at [`integration_rn59/App.tsx`](integration_rn59/App.tsx) for an example of what using tfjs-react-native looks like.
+You can take a look at [`integration_rn59/App.tsx`](integration_rn59/App.tsx) for an example of what using tfjs-react-native looks like. In future we will add an example to the [tensorflow/tfjs-examples](https://github.com/tensorflow/tfjs-examples) repository.
 The [Webcam demo folder](integration_rn59/components/webcam) has an example of a style transfer app.
 
 ![style transfer app initial screen](images/rn-styletransfer_1.jpg)
@@ -126,78 +110,18 @@ The [Webcam demo folder](integration_rn59/components/webcam) has an example of a
 
 ## API Docs
 
-`tfjs-react-native` exports a number of utility functions:
+[API docs are available here](https://js.tensorflow.org/api_react_native/latest/)
 
-### asyncStorageIO(modelKey: string)
+## Compatibility with TFJS models
 
-```js
-async function asyncStorageExample() {
-  // Define a model
-  const model = tf.sequential();
-  model.add(tf.layers.dense({units: 5, inputShape: [1]}));
-  model.add(tf.layers.dense({units: 1}));
-  model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+Many [tfjs-models](https://github.com/tensorflow/tfjs-models) use web APIs for rendering or input, these are not generally compatible with React Native, to use them you generally need to **feed a tensor** into the model and do any rendering of the model output with react native components. If there is no API for passing a tensor into a [tfjs-model](https://github.com/tensorflow/tfjs-models), feel free to file a GitHub issue.
 
-  // Save the model to async storage
-  await model.save(asyncStorageIO('custom-model-test'));
-  // Load the model from async storage
-  await tf.loadLayersModel(asyncStorageIO('custom-model-test'));
-}
-```
+## Debugging and reporting errors
 
-The `asyncStorageIO` function returns an io handler that can be used to save and load models
-to and from AsyncStorage.
+When reporting bugs with tfjs-react-native please include the following information:
 
-### bundleResourceIO(modelArchitecture: Object, modelWeights: number)
-
-```js
-const modelJson = require('../path/to/model.json');
-const modelWeights = require('../path/to/model_weights.bin');
-async function bundleResourceIOExample() {
-  const model =
-      await tf.loadLayersModel(bundleResourceIO(modelJson, modelWeights));
-
-  const res = model.predict(tf.randomNormal([1, 28, 28, 1])) as tf.Tensor;
-}
-```
-
-The `bundleResourceIO` function returns an IOHandler that is able to **load** models
-that have been bundled with the app (apk or ipa) at compile time. It takes two
-parameters.
-
-1. modelArchitecture: This is a JavaScript object (and notably not a string). This is
-   because metro will automatically resolve `require`'s for JSON file and return parsed
-   JavaScript objects.
-
-2. modelWeights: This is the numeric id returned by the metro bundler for the binary weights file
-   via `require`. The IOHandler will be able to load the actual data from the bundle package.
-
-`bundleResourceIO` only supports non sharded models at the moment. It also cannot save models. Though you
-can use the asyncStorageIO handler to save to AsyncStorage.
-
-### decodeJpeg(contents: Uint8Array, channels?: 0 | 1 | 3)
-
-```js
-const image = require("path/to/img.jpg");
-const imageAssetPath = Image.resolveAssetSource(image);
-const response = await fetch(imageAssetPath.uri, {}, { isBinary: true });
-const rawImageData = await response.arrayBuffer();
-
-const imageTensor = decodeJpeg(rawImageData);
-```
-
-**returns** a tf.Tensor3D of the decoded image.
-
-Parameters:
-
-1. contents: raw bytes of the image as a Uint8Array
-1. channels: An optional int that indicates whether the image should be loaded as RBG (channels = 3), Grayscale (channels = 1), or autoselected based on the contents of the image (channels = 0). Defaults to 3. Currently only 3 channel RGB images are supported.
-
-### fetch(path: string, init?: RequestInit, options?: tf.io.RequestDetails)
-
-tfjs react native exports a custom fetch function that is able to correctly load binary files into
-`arrayBuffer`'s. The first two parameters are the same as regular [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). The 3rd paramater is an optional custom `options` object, it currently has one option
-
-- options.isBinary: A boolean indicating if this is request for a binary file.
-
-This is needed because the response from `fetch` as currently implemented in React Native does not support the `arrayBuffer()` call.
+  - Is the app created using expo? If so is it a managed or bare app?
+  - Which version of react native and the dependencies in the install instructions above are you using?
+  - What device(s) are you running on? Note that not all simulators support webgl and thus may not work with tfjs-react-native.
+  - What error messages are you seeing? Are there any relevant messages [in the device logs](https://reactnative.dev/docs/debugging#accessing-console-logs)?
+  - How could this bug be reproduced? Is there an example repo we can use to replicate the issue?

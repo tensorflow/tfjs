@@ -23,6 +23,7 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class TransposeProgram implements WebGPUProgram {
   variableNames = ['A'];
+  shaderKey: string;
   outputShape: number[];
   userCode: string;
   dispatchLayout: {x: number[]};
@@ -30,6 +31,7 @@ export class TransposeProgram implements WebGPUProgram {
   rank: number;
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
+  needsShapesUniforms = true;
 
   constructor(aShape: number[], newDim: number[]) {
     const outputShape: number[] = new Array(aShape.length);
@@ -42,8 +44,8 @@ export class TransposeProgram implements WebGPUProgram {
     const size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape,
-        this.workGroupSize, [this.workPerThread, 1 ,1]);
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        [this.workPerThread, 1, 1]);
 
     const switched = getSwitchedCoords(newDim);
 
@@ -61,6 +63,7 @@ export class TransposeProgram implements WebGPUProgram {
         }
       }
     `;
+    this.shaderKey = `tranpose${size}${dtype}${newDim.join(',')}`;
   }
 }
 

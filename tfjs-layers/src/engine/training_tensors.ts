@@ -32,7 +32,9 @@ export interface ModelFitArgs {
    */
   batchSize?: number;
 
-  /** The number of times to iterate over the training data arrays. */
+  /**
+   * Integer number of times to iterate over the training data arrays.
+   */
   epochs?: number;
 
   /**
@@ -116,7 +118,9 @@ export interface ModelFitArgs {
 
   /**
    * Epoch at which to start training (useful for resuming a previous training
-   * run).
+   * run). When this is used, `epochs` is the index of the "final epoch".
+   * The model is not trained for a number of iterations given by `epochs`,
+   * but merely until the epoch of index `epochs` is reached.
    */
   initialEpoch?: number;
 
@@ -163,7 +167,7 @@ export function checkBatchSize(batchSize: number) {
 }
 
 /**
- * Slice an Tensor or an Array of Tensors, by start and stop indices.
+ * Slice a Tensor or an Array of Tensors, by start and stop indices.
  *
  * Porting Note: The `_slice_arrays` function in PyKeras is covered by this
  *   function and `sliceArraysByIndices()` together.
@@ -187,7 +191,7 @@ export function sliceArrays(
 }
 
 /**
- * Slice an Tensor or an Array of Tensors, by random-order indices.
+ * Slice a Tensor or an Array of Tensors, by random-order indices.
  *
  * Porting Note: The `_slice_arrays` function in PyKeras is covered by this
  *   function and `sliceArrays()` together.
@@ -246,20 +250,20 @@ export function makeBatches(
  *   function is expected to perform the updates to the variables.
  * @param ins List of tensors to be fed to `f`.
  * @param outLabels List of strings, display names of the outputs of `f`.
- * @param batchSize Integer batch size or `== null` if unknown.
- * @param epochs Number of times to iterate over the data.
+ * @param batchSize Integer batch size or `== null` if unknown. Default : 32.
+ * @param epochs Number of times to iterate over the data. Default : 1.
  * @param verbose Verbosity mode: 0, 1, or 2. Default: 1.
  * @param callbacks List of callbacks to be called during training.
  * @param valF Function to call for validation.
  * @param valIns List of tensors to be fed to `valF`.
  * @param shuffle Whether to shuffle the data at the beginning of every
- * epoch.
+ * epoch. Default : true.
  * @param callbackMetrics List of strings, the display names of the metrics
  *   passed to the callbacks. They should be the concatenation of the
  *   display names of the outputs of `f` and the list of display names
  *   of the outputs of `valF`.
  * @param initialEpoch Epoch at which to start training (useful for
- *   resuming a previous training run).
+ *   resuming a previous training run). Default : 0.
  * @param stepsPerEpoch Total number of steps (batches on samples) before
  *   declaring one epoch finished and starting the next epoch. Ignored with
  *   the default value of `undefined` or `null`.
@@ -471,7 +475,7 @@ export async function fitTensors(
         args.validationSplit != null && args.validationSplit > 0 &&
         args.validationSplit < 1) {
       doValidation = true;
-      // Porting Note: In tfjs-layers, inputs[0] is always an Tensor.
+      // Porting Note: In tfjs-layers, inputs[0] is always a Tensor.
       const splitAt =
           Math.floor(inputs[0].shape[0] * (1 - args.validationSplit));
       const originalBatchSize = inputs[0].shape[0];

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,7 +29,7 @@ interface SliceAttrs extends NamedAttrMap {
   size: number[];
 }
 
-function slice(
+export function slice(
     args: {inputs: SliceInputs, attrs: SliceAttrs, backend: BackendWasm}) {
   const {inputs: {x}, attrs: {begin, size}, backend} = args;
   const isContinous = slice_util.isSliceContinous(x.shape, begin, size);

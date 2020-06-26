@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,7 +20,9 @@ import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {Rank, TensorLike} from '../types';
 import * as util from '../util';
+
 import {op} from './operation';
+import {pad} from './pad';
 import * as slice_util from './slice_util';
 
 /**
@@ -169,7 +171,7 @@ function slice_<R extends Rank, T extends Tensor<R>>(
     for (let i = 0; i < dy.rank; i++) {
       paddings.push([begin_[i], inputShape[i] - begin_[i] - size_[i]]);
     }
-    return {x: () => dy.pad(paddings)};
+    return {x: () => pad(dy, paddings)};
   };
   const attrs = {begin: begin_, size: size_};
   return ENGINE.runKernelFunc(

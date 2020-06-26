@@ -70,36 +70,58 @@ export function makeMatMulSource(): string {
 
 export class MatMulProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
   workGroupSize: [number, number, number] = [16, 16, 1];  // Must be square.
+  needsShapesUniforms = true;
 
-  constructor(aShape: [number, number, number], outputShape: [
-    number, number, number
-  ]) {
-    const bShape = [outputShape[0], aShape[2], outputShape[2]];
+  constructor(
+      aShape: [number, number, number], outputShape: [number, number, number],
+      transposeA = false, transposeB = false) {
+    const dimInner = transposeA ? aShape[1] : aShape[2];
+    const dimBOuter = outputShape[2];
+    const bShape = transposeB ? [outputShape[0], dimBOuter, dimInner] :
+                                [outputShape[0], dimInner, dimBOuter];
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-
-    const sampleA = tilesFitEvenlyIntoShape(
-                        this.workGroupSize.slice(0, 2), aShape.slice(1)) ?
-        `A[row * dimInner + col]` :
-        `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
-          A[row * dimInner + col] : 0`;
-    const sampleB = tilesFitEvenlyIntoShape(
-                        this.workGroupSize.slice(0, 2), bShape.slice(1)) ?
-        `B[row * dimBOuter + col]` :
-        `coordsInBounds(ivec2(row, col), ivec2(dimInner, dimBOuter)) ?
-          B[row * dimBOuter + col] : 0`;
+    const fitA = tilesFitEvenlyIntoShape(
+        this.workGroupSize.slice(0, 2), aShape.slice(1));
+    let sampleA;
+    if (transposeA === false) {
+      sampleA = fitA ?
+          `A[row * dimInner + col]` :
+          `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
+                A[row * dimInner + col] : 0`;
+    } else {
+      sampleA = fitA ?
+          `A[col * dimAOuter + row]` :
+          `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
+                A[col * dimAOuter + row] : 0`;
+    }
+    const fitB = tilesFitEvenlyIntoShape(
+        this.workGroupSize.slice(0, 2), bShape.slice(1));
+    let sampleB;
+    if (transposeB === false) {
+      sampleB = fitB ?
+          `B[row * dimBOuter + col]` :
+          `coordsInBounds(ivec2(row, col), ivec2(dimInner, dimBOuter)) ?
+                B[row * dimBOuter + col] : 0`;
+    } else {
+      sampleB = fitB ?
+          `B[col * dimInner + row]` :
+          `coordsInBounds(ivec2(row, col), ivec2(dimInner, dimBOuter)) ?
+                B[col * dimInner + row] : 0`;
+    }
 
     this.userCode = `
-      int dimAOuter = aShape[1];
-      int dimInner = aShape[2];
-      int dimBOuter = bShape[2];
+      int dimAOuter = ${transposeA === true ? `aShape[2]` : `aShape[1]`};
+      int dimInner = ${transposeA === true ? `aShape[1]` : `aShape[2]`};
+      int dimBOuter = ${transposeB === true ? `bShape[1]` : `bShape[2]`};
 
       ${makeMatMulSource()}
 
@@ -119,5 +141,6 @@ export class MatMulProgram implements WebGPUProgram {
         mm_matMul(dimAOuter, dimInner, dimBOuter);
       }
     `;
+    this.shaderKey = `matmul${fitA}${fitB}${transposeA}${transposeB}`;
   }
 }

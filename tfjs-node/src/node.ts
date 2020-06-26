@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,7 +21,7 @@
 
 import {tensorBoard} from './callbacks';
 import {decodeBmp, decodeGif, decodeImage, decodeJpeg, decodePng, encodeJpeg, encodePng} from './image';
-import {getMetaGraphsFromSavedModel, loadSavedModel} from './saved_model';
+import {getMetaGraphsFromSavedModel, getNumOfSavedModels, loadSavedModel} from './saved_model';
 import {summaryFileWriter} from './tensorboard';
 
 export const node = {
@@ -35,5 +35,6 @@ export const node = {
   summaryFileWriter,
   tensorBoard,
   getMetaGraphsFromSavedModel,
+  getNumOfSavedModels,
   loadSavedModel
 };

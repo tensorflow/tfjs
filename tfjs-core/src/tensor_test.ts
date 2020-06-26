@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1529,11 +1529,21 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const a = tf.ones([2, 2], 'complex64');
     expectArraysClose(await a.data(), [1, 0, 1, 0, 1, 0, 1, 0]);
   });
+
+  it('can create a tensor where values.size != buffer.size', async () => {
+    const a = new Float32Array([1, 2, 3, 4, 5]);
+    const b = a.subarray(0, 2);
+    const t = tf.tensor1d(b);
+    expect(t.shape).toEqual([2]);
+    expectArraysClose(await t.data(), [1, 2]);
+  });
 });
 
 describeWithFlags('tensor debug mode', ALL_ENVS, () => {
   beforeAll(() => {
-    tf.env().set('DEBUG', true);
+    // Silence debug warnings.
+    spyOn(console, 'warn');
+    tf.enableDebugMode();
   });
 
   it('tf.tensor() from TypedArray + number[] fails due to wrong shape', () => {

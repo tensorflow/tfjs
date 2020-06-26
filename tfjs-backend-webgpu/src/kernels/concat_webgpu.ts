@@ -22,12 +22,14 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class ConcatProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames: string[];
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
+  needsShapesUniforms = true;
 
   constructor(shapes: Array<[number, number]>) {
     this.outputShape =
@@ -36,8 +38,8 @@ export class ConcatProgram implements WebGPUProgram {
     const size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape,
-        this.workGroupSize, [this.workPerThread, 1 ,1]);
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        [this.workPerThread, 1, 1]);
 
     const offsets: number[] = new Array(shapes.length - 1);
     offsets[0] = shapes[0][1];
@@ -76,5 +78,6 @@ export class ConcatProgram implements WebGPUProgram {
         }
       }
     `;
+    this.shaderKey = `concat${size}${offsets.join(',')}`;
   }
 }

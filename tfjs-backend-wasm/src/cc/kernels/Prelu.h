@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,11 +15,13 @@
 #ifndef KERNELS_PRELU_H_
 #define KERNELS_PRELU_H_
 
-namespace tfjs {
+#include <cstddef>
 
+namespace tfjs {
 namespace wasm {
 extern "C" {
-void Prelu(const int x_id, const int weights_id, const int out_id);
+
+void Prelu(const size_t x_id, const size_t weights_id, const size_t out_id);
 }
 
 }  // namespace wasm

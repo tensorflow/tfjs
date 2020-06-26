@@ -1084,7 +1084,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    * model.predict(tf.ones([8, 10]), {batchSize: 4}).print();
    * ```
    *
-   * @param x The input data, as an Tensor, or an `Array` of `tf.Tensor`s if
+   * @param x The input data, as a Tensor, or an `Array` of `tf.Tensor`s if
    *   the model has multiple inputs.
    * @param args A `ModelPredictArgs` object containing optional fields.
    *
@@ -1123,7 +1123,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    * });
    * model.predictOnBatch(tf.ones([8, 10])).print();
    * ```
-   * @param x: Input samples, as an Tensor (for models with exactly one
+   * @param x: Input samples, as a Tensor (for models with exactly one
    *   input) or an array of Tensors (for models with more than one input).
    * @return Tensor(s) of predictions
    */

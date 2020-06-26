@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -901,45 +901,5 @@ describeWithFlags('batchNorm2D', ALL_ENVS, () => {
     const f = () =>
         tf.batchNorm2d(x, mean, variance, ['a', 'b'], scale, varianceEpsilon);
     expect(f).toThrowError(/'offset' passed to 'batchNorm' must be numeric/);
-  });
-});
-
-describeWithFlags('deprecated batchNormalization', ALL_ENVS, () => {
-  it('simple batchnorm2D, 2x2', async () => {
-    const xT = tf.tensor2d([2, 4, 9, 23], [2, 2]);
-    const meanT = tf.tensor1d([1, 2]);
-    const varianceT = tf.tensor1d([2, 3]);
-    const offsetT = tf.tensor1d([3, 4]);
-    const scaleT = tf.tensor1d([4, 5]);
-
-    const varianceEpsilon = .001;
-
-    const result = tf.batchNormalization(
-        xT, meanT, varianceT, varianceEpsilon, scaleT, offsetT);
-
-    const offset = await offsetT.array();
-    const mean = await meanT.array();
-    const variance = await varianceT.array();
-    const scale = await scaleT.array();
-    const x = await xT.array();
-
-    expectArraysClose(await result.data(), [
-      offset[0] +
-          (x[0][0] - mean[0]) * scale[0] /
-              Math.sqrt(variance[0] + varianceEpsilon),
-      offset[1] +
-          (x[0][1] - mean[1]) * scale[1] /
-              Math.sqrt(variance[1] + varianceEpsilon),
-      offset[0] +
-          (x[1][0] - mean[0]) * scale[0] /
-              Math.sqrt(variance[0] + varianceEpsilon),
-      offset[1] +
-          (x[1][1] - mean[1]) * scale[1] /
-              Math.sqrt(variance[1] + varianceEpsilon)
-    ]);
-
-    const result2 = tf.batchNormalization2d(
-        xT, meanT, varianceT, varianceEpsilon, scaleT, offsetT);
-    expectArraysClose(await result.data(), await result2.data());
   });
 });

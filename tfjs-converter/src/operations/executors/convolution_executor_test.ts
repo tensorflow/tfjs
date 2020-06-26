@@ -21,11 +21,12 @@ import {Node} from '../types';
 
 import {executeOp} from './convolution_executor';
 import {createNumberAttr, createNumericArrayAttr, createStrArrayAttr, createStrAttr, createTensorAttr, createTensorsAttr} from './test_helper';
+import {createBoolAttr} from './test_helper';
 
 describe('convolution', () => {
   let node: Node;
   const input = [tfc.scalar(1)];
-  const context = new ExecutionContext({}, {});
+  const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
     node = {
@@ -90,6 +91,28 @@ describe('convolution', () => {
             .toHaveBeenCalledWith(
                 input1[0], input2[0], [2, 2], 'same', 'NHWC', [2, 2]);
       });
+      it('should support explicit padding', () => {
+        spyOn(tfc, 'conv2d');
+        node.op = 'Conv2D';
+        node.inputParams['filter'] = createTensorAttr(1);
+        node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
+        node.attrParams['pad'] = createStrAttr('explicit');
+        node.attrParams['explicitPaddings'] =
+            createNumericArrayAttr([0, 0, 1, 1, 2, 2, 0, 0]);
+        node.attrParams['dataFormat'] = createStrAttr('NHWC');
+        node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
+
+        const input1 = [tfc.scalar(1.0)];
+        const input2 = [tfc.scalar(1.0)];
+        node.inputNames = ['input1', 'input2'];
+
+        executeOp(node, {input1, input2}, context);
+
+        expect(tfc.conv2d)
+            .toHaveBeenCalledWith(
+                input1[0], input2[0], [2, 2], [[0, 0], [1, 1], [2, 2], [0, 0]],
+                'NHWC', [2, 2]);
+      });
     });
     describe('Conv2DBackpropInput', () => {
       it('should call tfc.conv2dTranspose', () => {
@@ -109,6 +132,31 @@ describe('convolution', () => {
         expect(tfc.conv2dTranspose)
             .toHaveBeenCalledWith(
                 input1[0], input2[0], [1, 2, 2, 2], [2, 2], 'same');
+      });
+      it('should support explicit padding', () => {
+        spyOn(tfc, 'conv2dTranspose');
+        node.op = 'Conv2DBackpropInput';
+        node.attrParams['outputShape'] = createNumericArrayAttr([1, 2, 2, 2]);
+        node.inputParams['filter'] = createTensorAttr(1);
+        node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
+        node.attrParams['pad'] = createStrAttr('explicit');
+        node.attrParams['explicitPaddings'] =
+            createNumericArrayAttr([0, 0, 1, 1, 2, 2, 0, 0]);
+
+        const input1 = [tfc.scalar(1.0)];
+        const input2 = [tfc.scalar(1.0)];
+        node.inputNames = ['input1', 'input2'];
+
+        executeOp(node, {input1, input2}, context);
+
+        expect(tfc.conv2dTranspose)
+            .toHaveBeenCalledWith(
+                input1[0],
+                input2[0],
+                [1, 2, 2, 2],
+                [2, 2],
+                [[0, 0], [1, 1], [2, 2], [0, 0]],
+            );
       });
     });
     describe('Conv1D', () => {
@@ -153,6 +201,29 @@ describe('convolution', () => {
         expect(tfc.depthwiseConv2d)
             .toHaveBeenCalledWith(
                 input1[0], input2[0], [2, 2], 'same', 'NHWC', [2, 2]);
+      });
+      it('support explicit padding', () => {
+        spyOn(tfc, 'depthwiseConv2d');
+        node.op = 'DepthwiseConv2d';
+        node.category = 'convolution';
+        node.inputParams['input'] = createTensorAttr(0);
+        node.inputParams['filter'] = createTensorAttr(1);
+        node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
+        node.attrParams['pad'] = createStrAttr('explicit');
+        node.attrParams['explicitPaddings'] =
+            createNumericArrayAttr([0, 0, 1, 1, 2, 2, 0, 0]);
+        node.attrParams['dataFormat'] = createStrAttr('NHWC');
+        node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
+        const input1 = [tfc.scalar(1.0)];
+        const input2 = [tfc.scalar(1.0)];
+        node.inputNames = ['input1', 'input2'];
+
+        executeOp(node, {input1, input2}, context);
+
+        expect(tfc.depthwiseConv2d)
+            .toHaveBeenCalledWith(
+                input1[0], input2[0], [2, 2], [[0, 0], [1, 1], [2, 2], [0, 0]],
+                'NHWC', [2, 2]);
       });
     });
 
@@ -209,6 +280,22 @@ describe('convolution', () => {
       });
     });
 
+    describe('MaxPoolWithArgmax', () => {
+      it('should call tfc.maxPoolWithArgmax', () => {
+        spyOn(tfc, 'maxPoolWithArgmax').and.returnValue({});
+        node.op = 'MaxPoolWithArgmax';
+        node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
+        node.attrParams['pad'] = createStrAttr('same');
+        node.attrParams['kernelSize'] = createNumericArrayAttr([1, 2, 2, 1]);
+        node.attrParams['dataFormat'] = createStrAttr('NDHWC');
+        node.attrParams['includeBatchInIndex'] = createBoolAttr(true);
+        executeOp(node, {input}, context);
+
+        expect(tfc.maxPoolWithArgmax)
+            .toHaveBeenCalledWith(input[0], [2, 2], [2, 2], 'same', true);
+      });
+    });
+
     describe('_FusedConv2d', () => {
       it('with bias and activation func', () => {
         spyOn(tfc.fused, 'conv2d');
@@ -240,7 +327,38 @@ describe('convolution', () => {
           preluActivationWeights: undefined
         });
       });
+      it('should support explicit padding', () => {
+        spyOn(tfc.fused, 'conv2d');
+        node.op = '_FusedConv2D';
+        node.inputParams['filter'] = createTensorAttr(1);
+        node.inputParams['args'] = createTensorsAttr(2, 0);
+        node.attrParams['fusedOps'] = createStrArrayAttr(['biasadd', 'relu']);
+        node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
+        node.attrParams['pad'] = createStrAttr('explicit');
+        node.attrParams['explicitPaddings'] =
+            createNumericArrayAttr([0, 0, 1, 1, 2, 2, 0, 0]);
+        node.attrParams['dataFormat'] = createStrAttr('NHWC');
+        node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
+        node.attrParams['numArgs'] = createNumberAttr(1);
+        const input1 = [tfc.scalar(1.0)];
+        const input2 = [tfc.scalar(2.0)];
+        const input3 = [tfc.scalar(3.0)];
 
+        node.inputNames = ['input1', 'input2', 'input3'];
+        executeOp(node, {input1, input2, input3}, context);
+
+        expect(tfc.fused.conv2d).toHaveBeenCalledWith({
+          x: input1[0],
+          filter: input2[0],
+          strides: [2, 2],
+          pad: [[0, 0], [1, 1], [2, 2], [0, 0]],
+          dataFormat: 'NHWC',
+          dilations: [2, 2],
+          bias: input3[0],
+          activation: 'relu',
+          preluActivationWeights: undefined
+        });
+      });
       it('with bias and prelu activation func', () => {
         spyOn(tfc.fused, 'conv2d');
         node.op = '_FusedConv2D';
@@ -321,6 +439,152 @@ describe('convolution', () => {
         expect(() => executeOp(node, {input1, input2, input3}, context))
             .toThrow();
       });
+    });
+  });
+  describe('FusedDepthwiseConv2d', () => {
+    it('support explicit padding', () => {
+      spyOn(tfc.fused, 'depthwiseConv2d');
+      node.op = 'FusedDepthwiseConv2dNative';
+      node.inputParams['filter'] = createTensorAttr(1);
+      node.inputParams['args'] = createTensorsAttr(2, 0);
+      node.attrParams['fusedOps'] = createStrArrayAttr(['biasadd', 'relu']);
+      node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
+      node.attrParams['pad'] = createStrAttr('explicit');
+      node.attrParams['explicitPaddings'] =
+          createNumericArrayAttr([0, 0, 1, 1, 2, 2, 0, 0]);
+      node.attrParams['dataFormat'] = createStrAttr('NHWC');
+      node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
+      node.attrParams['numArgs'] = createNumberAttr(1);
+      const input1 = [tfc.scalar(1.0)];
+      const input2 = [tfc.scalar(2.0)];
+      const input3 = [tfc.scalar(3.0)];
+
+      node.inputNames = ['input1', 'input2', 'input3'];
+      executeOp(node, {input1, input2, input3}, context);
+
+      expect(tfc.fused.depthwiseConv2d).toHaveBeenCalledWith({
+        x: input1[0],
+        filter: input2[0],
+        strides: [2, 2],
+        pad: [[0, 0], [1, 1], [2, 2], [0, 0]],
+        dataFormat: 'NHWC',
+        dilations: [2, 2],
+        bias: input3[0],
+        activation: 'relu',
+        preluActivationWeights: undefined
+      });
+    });
+    it('with bias and activation func', () => {
+      spyOn(tfc.fused, 'depthwiseConv2d');
+      node.op = 'FusedDepthwiseConv2dNative';
+      node.inputParams['filter'] = createTensorAttr(1);
+      node.inputParams['args'] = createTensorsAttr(2, 0);
+      node.attrParams['fusedOps'] = createStrArrayAttr(['biasadd', 'relu']);
+      node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
+      node.attrParams['pad'] = createStrAttr('same');
+      node.attrParams['dataFormat'] = createStrAttr('NHWC');
+      node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
+      node.attrParams['numArgs'] = createNumberAttr(1);
+      const input1 = [tfc.scalar(1.0)];
+      const input2 = [tfc.scalar(2.0)];
+      const input3 = [tfc.scalar(3.0)];
+
+      node.inputNames = ['input1', 'input2', 'input3'];
+      executeOp(node, {input1, input2, input3}, context);
+
+      expect(tfc.fused.depthwiseConv2d).toHaveBeenCalledWith({
+        x: input1[0],
+        filter: input2[0],
+        strides: [2, 2],
+        pad: 'same',
+        dataFormat: 'NHWC',
+        dilations: [2, 2],
+        bias: input3[0],
+        activation: 'relu',
+        preluActivationWeights: undefined
+      });
+    });
+    it('with bias and prelu activation func', () => {
+      spyOn(tfc.fused, 'depthwiseConv2d');
+      node.op = 'FusedDepthwiseConv2dNative';
+      node.inputParams['filter'] = createTensorAttr(1);
+      node.inputParams['args'] = createTensorsAttr(2, 0);
+      node.attrParams['fusedOps'] = createStrArrayAttr(['biasadd', 'prelu']);
+      node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
+      node.attrParams['pad'] = createStrAttr('same');
+      node.attrParams['dataFormat'] = createStrAttr('NHWC');
+      node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
+      node.attrParams['numArgs'] = createNumberAttr(2);
+      const input1 = [tfc.scalar(1.0)];
+      const input2 = [tfc.scalar(2.0)];
+      const input3 = [tfc.scalar(3.0)];
+      const input4 = [tfc.scalar(4.0)];
+      node.inputNames = ['input1', 'input2', 'input3', 'input4'];
+      executeOp(node, {input1, input2, input3, input4}, context);
+
+      expect(tfc.fused.depthwiseConv2d).toHaveBeenCalledWith({
+        x: input1[0],
+        filter: input2[0],
+        strides: [2, 2],
+        pad: 'same',
+        dataFormat: 'NHWC',
+        dilations: [2, 2],
+        bias: input3[0],
+        activation: 'prelu',
+        preluActivationWeights: input4[0]
+      });
+    });
+
+    it('bias add', () => {
+      spyOn(tfc.fused, 'depthwiseConv2d');
+      node.op = 'FusedDepthwiseConv2dNative';
+      node.inputParams['filter'] = createTensorAttr(1);
+      node.inputParams['args'] = createTensorsAttr(2, 0);
+      node.attrParams['fusedOps'] = createStrArrayAttr(['biasadd']);
+      node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
+      node.attrParams['pad'] = createStrAttr('same');
+      node.attrParams['dataFormat'] = createStrAttr('NHWC');
+      node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
+      node.attrParams['numArgs'] = createNumberAttr(1);
+      const input1 = [tfc.scalar(1.0)];
+      const input2 = [tfc.scalar(2.0)];
+      const input3 = [tfc.scalar(3.0)];
+
+      node.inputNames = ['input1', 'input2', 'input3'];
+      executeOp(node, {input1, input2, input3}, context);
+
+      expect(tfc.fused.depthwiseConv2d).toHaveBeenCalledWith({
+        x: input1[0],
+        filter: input2[0],
+        strides: [2, 2],
+        pad: 'same',
+        dataFormat: 'NHWC',
+        dilations: [2, 2],
+        bias: input3[0],
+        activation: undefined,
+        preluActivationWeights: undefined
+      });
+    });
+  });
+
+  describe('dilation2d', () => {
+    it('should call tfc.dilation2d', () => {
+      spyOn(tfc, 'dilation2d');
+      node.op = 'Dilation2D';
+      node.inputParams['filter'] = createTensorAttr(1);
+      node.attrParams['strides'] = createNumericArrayAttr([1, 1, 1, 1]);
+      node.attrParams['pad'] = createStrAttr('same');
+      node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
+
+      const input1 = [tfc.scalar(1.0)];
+      const input2 = [tfc.scalar(1.0)];
+      node.inputNames = ['input1', 'input2'];
+
+      executeOp(node, {input1, input2}, context);
+
+      expect(tfc.dilation2d)
+          .toHaveBeenCalledWith(
+              input1[0], input2[0], [1, 1], 'same', [2, 2], 'NHWC');
     });
   });
 });

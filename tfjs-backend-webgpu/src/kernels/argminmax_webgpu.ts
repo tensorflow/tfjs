@@ -24,12 +24,14 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class ArgMinMaxProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[], y: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number];
   variableNames = ['x'];
   uniforms = 'int axis;';
+  needsShapesUniforms = true;
 
   constructor(inputShape: number[], axis: number, reduceType: 'min'|'max') {
     const axes = [axis];
@@ -179,5 +181,6 @@ export class ArgMinMaxProgram implements WebGPUProgram {
                                'setOutput(flatOutputIndex, int(bestIndex));'}
       }
     `;
+    this.shaderKey = `ArgMinMax${op}${reduceInSharedMemory}`;
   }
 }

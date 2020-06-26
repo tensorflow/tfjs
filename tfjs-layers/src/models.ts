@@ -239,7 +239,7 @@ export async function loadLayersModelInternal(
     options = {};
   }
   if (typeof pathOrIOHandler === 'string') {
-    const handlers = io.getLoadHandlers(pathOrIOHandler, options.onProgress);
+    const handlers = io.getLoadHandlers(pathOrIOHandler, options);
     if (handlers.length === 0) {
       // For backward compatibility: if no load handler can be found,
       // assume it is a relative http path.
@@ -757,7 +757,7 @@ export class Sequential extends LayersModel {
    * model.predict(tf.ones([2, 10])).print();
    * ```
    *
-   * @param x The input data, as an Tensor, or an `Array` of `tf.Tensor`s if
+   * @param x The input data, as a Tensor, or an `Array` of `tf.Tensor`s if
    *   the model has multiple inputs.
    * @param conifg A `ModelPredictConfig` object containing optional fields.
    *
@@ -780,7 +780,7 @@ export class Sequential extends LayersModel {
   /**
    * Returns predictions for a single batch of samples.
    *
-   * @param x: Input samples, as an Tensor, or list of Tensors (if the model
+   * @param x: Input samples, as a Tensor, or list of Tensors (if the model
    *   has multiple inputs).
    * @return Tensor(s) of predictions
    */

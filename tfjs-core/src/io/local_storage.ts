@@ -38,6 +38,7 @@ const MODEL_METADATA_SUFFIX = 'model_metadata';
  */
 export function purgeLocalStorageArtifacts(): string[] {
   if (!env().getBool('IS_BROWSER') ||
+      typeof window === 'undefined' ||
       typeof window.localStorage === 'undefined') {
     throw new Error(
         'purgeLocalStorageModels() cannot proceed because local storage is ' +
@@ -119,7 +120,8 @@ export class BrowserLocalStorage implements IOHandler {
 
   constructor(modelPath: string) {
     if (!env().getBool('IS_BROWSER') ||
-        typeof window.localStorage === 'undefined') {
+          typeof window === 'undefined' ||
+          typeof window.localStorage === 'undefined') {
       // TODO(cais): Add more info about what IOHandler subtypes are
       // available.
       //   Maybe point to a doc page on the web and/or automatically determine
@@ -168,7 +170,8 @@ export class BrowserLocalStorage implements IOHandler {
         this.LS.setItem(this.keys.modelMetadata, JSON.stringify({
           format: modelArtifacts.format,
           generatedBy: modelArtifacts.generatedBy,
-          convertedBy: modelArtifacts.convertedBy
+          convertedBy: modelArtifacts.convertedBy,
+          userDefinedMetadata: modelArtifacts.userDefinedMetadata
         }));
 
         return {modelArtifactsInfo};
@@ -235,11 +238,11 @@ export class BrowserLocalStorage implements IOHandler {
     // Load meta-data fields.
     const metadataString = this.LS.getItem(this.keys.modelMetadata);
     if (metadataString != null) {
-      const metadata = JSON.parse(metadataString) as
-          {format: string, generatedBy: string, convertedBy: string};
+      const metadata = JSON.parse(metadataString) as ModelArtifacts;
       out.format = metadata['format'];
       out.generatedBy = metadata['generatedBy'];
       out.convertedBy = metadata['convertedBy'];
+      out.userDefinedMetadata = metadata['userDefinedMetadata'];
     }
 
     // Load weight data.
@@ -306,6 +309,7 @@ export class BrowserLocalStorageManager implements ModelStoreManager {
         env().getBool('IS_BROWSER'),
         () => 'Current environment is not a web browser');
     assert(
+        typeof window === 'undefined' ||
         typeof window.localStorage !== 'undefined',
         () => 'Current browser does not appear to support localStorage');
     this.LS = window.localStorage;

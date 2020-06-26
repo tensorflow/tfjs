@@ -173,6 +173,10 @@ export class HTTPRequest implements IOHandler {
     }
     const modelTopology = modelConfig.modelTopology;
     const weightsManifest = modelConfig.weightsManifest;
+    const generatedBy = modelConfig.generatedBy;
+    const convertedBy = modelConfig.convertedBy;
+    const format = modelConfig.format;
+    const userDefinedMetadata = modelConfig.userDefinedMetadata;
 
     // We do not allow both modelTopology and weightsManifest to be missing.
     if (modelTopology == null && weightsManifest == null) {
@@ -188,7 +192,15 @@ export class HTTPRequest implements IOHandler {
       [weightSpecs, weightData] = results;
     }
 
-    return {modelTopology, weightSpecs, weightData};
+    return {
+      modelTopology,
+      weightSpecs,
+      weightData,
+      userDefinedMetadata,
+      generatedBy,
+      convertedBy,
+      format
+    };
   }
 
   private async loadWeights(weightsManifest: WeightsManifestConfig):
@@ -242,8 +254,9 @@ export function isHTTPScheme(url: string): boolean {
 }
 
 export const httpRouter: IORouter =
-    (url: string, onProgress?: OnProgressCallback) => {
-      if (typeof fetch === 'undefined') {
+    (url: string, loadOptions?: LoadOptions) => {
+      if (typeof fetch === 'undefined' &&
+          (loadOptions == null || loadOptions.fetchFunc == null)) {
         // `http` uses `fetch` or `node-fetch`, if one wants to use it in
         // an environment that is not the browser or node they have to setup a
         // global fetch polyfill.
@@ -256,7 +269,7 @@ export const httpRouter: IORouter =
           isHTTP = isHTTPScheme(url);
         }
         if (isHTTP) {
-          return http(url, {onProgress});
+          return http(url, loadOptions);
         }
       }
       return null;
@@ -285,7 +298,7 @@ IORouterRegistry.registerLoadRouter(httpRouter);
  *     tf.layers.dense({units: 1, inputShape: [100], activation: 'sigmoid'}));
  *
  * const saveResult = await model.save(tf.io.http(
- *     'http://model-server:5000/upload', {method: 'PUT'}));
+ *     'http://model-server:5000/upload', {requestInit: {method: 'PUT'}}));
  * console.log(saveResult);
  * ```
  *

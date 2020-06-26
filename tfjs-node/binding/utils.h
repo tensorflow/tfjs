@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -316,7 +316,7 @@ inline std::vector<const char *> splitStringByComma(const std::string &str) {
     std::string token = str.substr(prev, pos - prev);
     if (!token.empty()) {
       char *cstr = new char[str.length() + 1];
-      std::strcpy(cstr, str.c_str());
+      std::strcpy(cstr, token.c_str());
       tokens.push_back(cstr);
     }
     prev = pos + 1;

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,10 +29,22 @@ export * from '../ops/axis_util';
 export * from '../ops/broadcast_util';
 export * from '../ops/concat_util';
 export * from '../ops/conv_util';
-export {Activation} from '../ops/fused_util';
+export {Activation, FusedConv2DConfig} from '../ops/fused_util';
+export * from '../ops/reduce_util';
 
 export {BackendValues, TypedArray, upcastType, PixelData} from '../types';
 export {MemoryInfo, TimingInfo} from '../engine';
+export * from '../ops/array_ops_util';
+export * from '../ops/gather_nd_util';
+export * from '../ops/scatter_nd_util';
+export * from '../ops/selu_util';
+export * from '../ops/fused_util';
+export * from '../ops/erf_util';
+export * from '../log';
+export * from '../backends/complex_util';
+
+import * as segment_util from '../ops/segment_util';
+export {segment_util};
 
 export function castTensor<T extends Tensor>(
     x: T, dtype: DataType, backend: KernelBackend): T {

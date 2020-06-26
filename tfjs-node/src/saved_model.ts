@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -284,9 +284,10 @@ export class TFSavedModel implements InferenceModel {
       let inputTensors: Tensor[] = [];
       if (inputs instanceof Tensor) {
         inputTensors.push(inputs);
-        return this.backend.runSavedModel(
+        const result = this.backend.runSavedModel(
             this.sessionId, inputTensors, Object.values(this.inputNodeNames),
-            Object.values(this.outputNodeNames))[0];
+            Object.values(this.outputNodeNames));
+        return result.length > 1 ? result : result[0];
       } else if (Array.isArray(inputs)) {
         inputTensors = inputs;
         return this.backend.runSavedModel(
@@ -361,7 +362,8 @@ export class TFSavedModel implements InferenceModel {
  * function. The directory also has a variables directory contains a standard
  * training checkpoint. The directory may also has a assets directory contains
  * files used by the TensorFlow graph, for example text files used to initialize
- * vocabulary tables. For more information, see this guide:
+ * vocabulary tables. These are supported datatypes: float32, int32, complex64,
+ * string.For more information, see this guide:
  * https://www.tensorflow.org/guide/saved_model.
  *
  * @param path The path to the SavedModel.
@@ -433,6 +435,14 @@ function mapTFDtypeToJSDtype(tfDtype: string): DataType {
     case 'DT_STRING':
       return 'string';
     default:
-      throw new Error('Unsupported tensor DataType: ' + tfDtype);
+      throw new Error(
+          'Unsupported tensor DataType: ' + tfDtype +
+          ', try to modify the model in python to convert the datatype');
   }
+}
+
+export function getNumOfSavedModels() {
+  ensureTensorflowBackend();
+  const backend = nodeBackend();
+  return backend.getNumOfSavedModels();
 }

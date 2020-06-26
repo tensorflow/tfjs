@@ -19,8 +19,8 @@ set -e
 
 rimraf dist/
 yarn
-yarn build
-rollup -c
+yarn build-ci
+yarn rollup -c --visualize --npm
 
 # Use minified files for miniprogram
 mkdir dist/miniprogram

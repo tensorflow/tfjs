@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,7 @@
 
 import {ENGINE} from '../engine';
 import {dispose, tidy} from '../globals';
-import {fill} from '../ops/ops';
+import {fill} from '../ops/fill';
 import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
 import {NamedTensor, NamedVariableMap} from '../tensor_types';
 
