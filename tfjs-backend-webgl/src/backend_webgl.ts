@@ -1181,8 +1181,23 @@ export class MathBackendWebGL extends KernelBackend {
           `WebGL cumsum shader expects an inner-most axis=${x.rank - 1} ` +
           `but got axis=${axis}`);
     }
-    const program = new CumSumProgram(x.shape, exclusive, reverse);
-    return this.compileAndRun(program, [x]);
+    const size = x.shape[axis];
+    let result = x;
+    // Use cumsum parallel algorithm, ref:
+    // https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda
+    for (let i = 0; i <= Math.ceil(Math.log2(size)) - 1; i++) {
+      const program = new CumSumProgram(x.shape, false, reverse);
+      const customSetup = program.getCustomSetupFunc(i);
+      result = this.compileAndRun(program, [result], result.dtype, customSetup);
+    }
+    // For exclusive cumsum, shift the end result in the direction of sum and
+    // add 0 to the front index.
+    if (exclusive) {
+      const program = new CumSumProgram(x.shape, exclusive, reverse);
+      result = this.compileAndRun(program, [result]);
+    }
+
+    return result;
   }
 
   equal(a: Tensor, b: Tensor): Tensor {
