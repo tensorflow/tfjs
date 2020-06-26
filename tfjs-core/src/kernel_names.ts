@@ -381,6 +381,13 @@ export interface MaxPoolWithArgmaxAttrs {
   includeBatchInIndex: boolean;
 }
 
+export const Min = 'Min';
+export type MinInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface MinAttrs {
+  axis: number|number[];
+  keepDims: boolean;
+}
+
 export const Minimum = 'Minimum';
 export type MinimumInputs = BinaryInputs;
 

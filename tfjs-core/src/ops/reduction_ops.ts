@@ -24,8 +24,7 @@ import * as util from '../util';
 
 import * as axis_util from './axis_util';
 import {op} from './operation';
-import {gradForMinAndMax} from './reduction_ops_util';
-import {ones, scalar, zerosLike} from './tensor_ops';
+import {ones, scalar} from './tensor_ops';
 
 /**
  * Computes the sum of elements across dimensions of a `tf.Tensor`.
@@ -168,64 +167,5 @@ function mean_<T extends Tensor>(
   return customOp($x) as T;
 }
 
-/**
- * Computes the minimum value from the input.
- *
- * Reduces the input along the dimensions given in `axes`. Unless `keepDims`
- * is true, the rank of the array is reduced by 1 for each entry in `axes`.
- * If `keepDims` is true, the reduced dimensions are retained with length 1.
- * If `axes` has no entries, all dimensions are reduced, and an array with a
- * single element is returned.
- *
- * ```js
- * const x = tf.tensor1d([1, 2, 3]);
- *
- * x.min().print();  // or tf.min(x)
- * ```
- *
- * ```js
- * const x = tf.tensor2d([1, 2, 3, 4], [2, 2]);
- *
- * const axis = 1;
- * x.min(axis).print();  // or tf.min(x, axis)
- * ```
- *
- * @param x The input Tensor.
- * @param axis The dimension(s) to reduce. By default it reduces
- *     all dimensions.
- * @param keepDims If true, retains reduced dimensions with size 1.
- */
-/** @doc {heading: 'Operations', subheading: 'Reduction'} */
-function min_<T extends Tensor>(
-    x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
-  let $x = convertToTensor(x, 'x', 'min');
-  const xOrig = $x;
-
-  const origAxes = util.parseAxisParam(axis, $x.shape);
-  let axes = origAxes;
-  const permutedAxes = axis_util.getAxesPermutation(axes, $x.rank);
-  if (permutedAxes != null) {
-    $x = $x.transpose(permutedAxes);
-    axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
-  }
-
-  const grad = (dy: T, saved: Tensor[]) =>
-      gradForMinAndMax(dy, saved[1], saved[0], origAxes, permutedAxes);
-
-  const inputsToSave = [$x];
-  const outputsToSave: boolean[] = [true];
-  let res = ENGINE.runKernelFunc((backend, save) => {
-    const y = backend.min($x, axes);
-    save([xOrig, y]);
-    return y as T;
-  }, {x: $x}, grad, 'Min', {axes}, inputsToSave, outputsToSave);
-  if (keepDims) {
-    const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
-    res = res.reshape(newShape) as T;
-  }
-  return res;
-}
-
 export const mean = op({mean_});
-export const min = op({min_});
 export const sum = op({sum_});

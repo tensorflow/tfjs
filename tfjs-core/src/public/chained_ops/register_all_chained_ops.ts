@@ -55,6 +55,7 @@ import './mat_mul';
 import './max';
 import './max_pool';
 import './maximum';
+import './min';
 import './minimum';
 import './mod';
 import './mul';

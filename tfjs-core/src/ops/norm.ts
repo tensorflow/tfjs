@@ -22,9 +22,10 @@ import {parseAxisParam} from '../util';
 
 import * as axis_util from './axis_util';
 import {max} from './max';
+import {min} from './min';
 import {op} from './operation';
 import {pow} from './pow';
-import {min, sum} from './reduction_ops';
+import {sum} from './reduction_ops';
 import {reshape} from './reshape';
 import {square} from './square';
 import {scalar} from './tensor_ops';
