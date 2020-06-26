@@ -77,6 +77,11 @@ function min_<T extends Tensor>(
           const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
           res = reshape(res, newShape) as T;
         }
+
+        if (permutedAxes != null) {
+          backend.disposeData(minInput.dataId);
+        }
+
         return res;
       };
 
