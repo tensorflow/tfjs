@@ -174,7 +174,6 @@ export interface OpHandler {
       shape: ShapeMap[R], dtype: D,
       values?: DataTypeMap[D]): TensorBuffer<R, D>;
   print<T extends Tensor>(x: T, verbose: boolean): void;
-  reshape<R2 extends Rank>(x: Tensor, shape: ShapeMap[R2]): Tensor<R2>;
   clone<T extends Tensor>(x: T): T;
   gather<T extends Tensor>(x: T, indices: Tensor|TensorLike, axis: number): T;
   norm(
@@ -364,14 +363,14 @@ export class Tensor<R extends Rank = Rank> {
   asScalar(): Scalar {
     this.throwIfDisposed();
     util.assert(this.size === 1, () => 'The array must have only 1 element.');
-    return this.reshape<Rank.R0>([]);
+    return this.reshape([]);
   }
 
   /** Converts a `tf.Tensor` to a `tf.Tensor1D`. */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   as1D(): Tensor1D {
     this.throwIfDisposed();
-    return this.reshape<Rank.R1>([this.size]);
+    return this.reshape([this.size]);
   }
 
   /**
@@ -383,7 +382,7 @@ export class Tensor<R extends Rank = Rank> {
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   as2D(rows: number, columns: number): Tensor2D {
     this.throwIfDisposed();
-    return this.reshape<Rank.R2>([rows, columns]);
+    return this.reshape([rows, columns]);
   }
 
   /**
@@ -396,7 +395,7 @@ export class Tensor<R extends Rank = Rank> {
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   as3D(rows: number, columns: number, depth: number): Tensor3D {
     this.throwIfDisposed();
-    return this.reshape<Rank.R3>([rows, columns, depth]);
+    return this.reshape([rows, columns, depth]);
   }
 
   /**
@@ -410,7 +409,7 @@ export class Tensor<R extends Rank = Rank> {
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   as4D(rows: number, columns: number, depth: number, depth2: number): Tensor4D {
     this.throwIfDisposed();
-    return this.reshape<Rank.R4>([rows, columns, depth, depth2]);
+    return this.reshape([rows, columns, depth, depth2]);
   }
 
   /**
@@ -427,7 +426,7 @@ export class Tensor<R extends Rank = Rank> {
       rows: number, columns: number, depth: number, depth2: number,
       depth3: number): Tensor5D {
     this.throwIfDisposed();
-    return this.reshape<Rank.R5>([rows, columns, depth, depth2, depth3]);
+    return this.reshape([rows, columns, depth, depth2, depth3]);
   }
 
   /**
@@ -585,18 +584,6 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
-   * Reshapes the tensor into the provided shape.
-   * See `tf.reshape` for more details.
-   *
-   * @param newShape An array of integers defining the output tensor shape.
-   */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
-  reshape<R2 extends Rank>(newShape: ShapeMap[R2]): Tensor<R2> {
-    this.throwIfDisposed();
-    return opHandler.reshape(this, newShape);
-  }
-
-  /**
    * Reshapes the tensor into the shape of the provided tensor.
    *
    * @param x The tensor of required shape.
@@ -604,7 +591,7 @@ export class Tensor<R extends Rank = Rank> {
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   reshapeAs<T extends Tensor>(x: T): T {
     this.throwIfDisposed();
-    return this.reshape(x.shape) as T;
+    return this.reshape(x.shape);
   }
 
   /** Returns a copy of the tensor. See `tf.clone` for details. */

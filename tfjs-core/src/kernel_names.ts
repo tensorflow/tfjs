@@ -438,7 +438,7 @@ export const Relu = 'Relu';
 export type ReluInputs = Pick<NamedTensorInfoMap, 'x'>;
 
 export const Reshape = 'Reshape';
-export type ReshapeInputs = Pick<NamedTensorInfoMap, 'tensor'>;
+export type ReshapeInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface ReshapeAttrs {
   shape: number[];
 }
