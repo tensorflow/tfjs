@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -637,7 +637,8 @@ export class MathBackendWebGL extends KernelBackend {
       inputs: TensorInfo[],
       sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
     const cpuBackend = this.getCPUBackend();
-    if (!this.warnedAboutCPUBackend && cpuBackend == null) {
+    if (!this.warnedAboutCPUBackend && cpuBackend == null &&
+        !env().getBool('IS_TEST')) {
       console.warn(
           'Your application contains ops that are small enough to be ' +
           'executed on the CPU backend, however the CPU backend cannot ' +

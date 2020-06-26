@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,11 +21,11 @@ import {TensorLike} from '../types';
 import {parseAxisParam} from '../util';
 
 import {add} from './add';
-import {reshape} from './array_ops';
 import {expandShapeToKeepDim} from './axis_util';
 import {max} from './max';
 import {op} from './operation';
 import {sum} from './reduction_ops';
+import {reshape} from './reshape';
 import {sub} from './sub';
 import {exp, log} from './unary_ops';
 

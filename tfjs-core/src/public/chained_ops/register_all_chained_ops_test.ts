@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,6 +46,7 @@ const CHAINED_OPS = [
   'dot',
   'elu',
   'equal',
+  'expandDims',
   'floorDiv',
   'greater',
   'greaterEqual',
@@ -82,9 +83,12 @@ const CHAINED_OPS = [
   'spaceToBatchND',
   'split',
   'square',
+  'squeeze',
+  'stack',
   'sub',
   'tile',
   'transpose',
+  'unstack',
   'where'
 ];
 

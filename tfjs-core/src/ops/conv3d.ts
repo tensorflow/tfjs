@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,10 +23,10 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {reshape} from './array_ops';
 import * as conv_util from './conv_util';
 import {eitherStridesOrDilationsAreOne} from './conv_util';
 import {op} from './operation';
+import {reshape} from './reshape';
 
 /**
  * Computes a 3D convolution over the input x.

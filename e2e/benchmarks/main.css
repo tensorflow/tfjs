@@ -111,6 +111,11 @@ div[id*='trendline-container'] path {
   border-spacing: 0;
 }
 
+.table caption {
+  font-size: 14px;
+  font-weight: bold;
+}
+
 .table tr {
   border-bottom: 1px solid #ddd;
 }
@@ -134,4 +139,16 @@ th {
 .table td:first-child,
 th:first-child {
   padding-left: 16px;
+}
+
+#gui select {
+  width: 100%
+}
+
+#gui .dg .property-name {
+  width: 25%;
+}
+
+#gui .dg .c {
+  width: 75%;
 }

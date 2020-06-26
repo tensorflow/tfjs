@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -437,6 +437,12 @@ export type RealInputs = Pick<NamedTensorInfoMap, 'input'>;
 export const Relu = 'Relu';
 export type ReluInputs = Pick<NamedTensorInfoMap, 'x'>;
 
+export const Reshape = 'Reshape';
+export type ReshapeInputs = Pick<NamedTensorInfoMap, 'tensor'>;
+export interface ReshapeAttrs {
+  shape: number[];
+}
+
 export const ResizeNearestNeighbor = 'ResizeNearestNeighbor';
 export type ResizeNearestNeighborInputs = Pick<NamedTensorInfoMap, 'images'>;
 export interface ResizeNearestNeighborAttrs {
@@ -506,6 +512,12 @@ export const Transpose = 'Transpose';
 export type TransposeInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface TransposeAttrs {
   perm: number[];
+}
+
+export const Unpack = 'Unpack';
+export type UnpackInputs = Pick<NamedTensorInfoMap, 'value'>;
+export interface UnpackAttrs {
+  axis: number;
 }
 
 /**

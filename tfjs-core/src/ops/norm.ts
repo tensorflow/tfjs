@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,12 +20,12 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {parseAxisParam} from '../util';
 
-import {reshape} from './array_ops';
 import * as axis_util from './axis_util';
 import {max} from './max';
 import {op} from './operation';
 import {pow} from './pow';
 import {min, sum} from './reduction_ops';
+import {reshape} from './reshape';
 import {square} from './square';
 import {scalar} from './tensor_ops';
 import {abs, sqrt} from './unary_ops';

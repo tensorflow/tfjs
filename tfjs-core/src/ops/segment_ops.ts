@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,8 +21,8 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assert, isInt, parseAxisParam} from '../util';
 
-import {expandDims} from './array_ops';
 import {getUndoAxesPermutation} from './axis_util';
+import {expandDims} from './expand_dims';
 import {greaterEqual} from './greater_equal';
 import {logicalAnd} from './logical_and';
 import {maximum} from './maximum';

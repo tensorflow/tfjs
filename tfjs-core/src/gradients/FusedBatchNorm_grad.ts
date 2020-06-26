@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,10 +17,10 @@
 import {FusedBatchNorm, FusedBatchNormAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
 import {add} from '../ops/add';
-import {reshape} from '../ops/array_ops';
 import {getReductionAxes} from '../ops/broadcast_util';
 import {mul} from '../ops/mul';
 import {sum} from '../ops/reduction_ops';
+import {reshape} from '../ops/reshape';
 import {sub} from '../ops/sub';
 import {scalar} from '../ops/tensor_ops';
 import {tile} from '../ops/tile';

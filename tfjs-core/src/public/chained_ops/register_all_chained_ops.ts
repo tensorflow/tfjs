@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,6 +36,7 @@ import './div_no_nan';
 import './dot';
 import './elu';
 import './equal';
+import './expand_dims';
 import './floorDiv';
 import './greater';
 import './greater_equal';
@@ -71,8 +72,11 @@ import './selu';
 import './separable_conv2d';
 import './split';
 import './squared_difference';
+import './squeeze';
 import './space_to_batch_nd';
+import './stack';
 import './sub';
 import './tile';
 import './transpose';
+import './unstack';
 import './where';

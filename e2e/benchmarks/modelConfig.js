@@ -15,6 +15,9 @@
  * =============================================================================
  */
 
+const DEFAULT_MODEL_NAME = 'model.json';
+const TFHUB_SEARCH_PARAM = '?tfjs-format=file';
+
 const sentences = [
   'add clem burke in my playlist Pre-Party R&B Jams',
   'Add Live from Aragon Ballroom to Trapeo',
@@ -73,6 +76,7 @@ const sentences = [
 
 const benchmarks = {
   'mobilenet_v2': {
+    type: 'GraphModel',
     load: async () => {
       const url =
           'https://storage.googleapis.com/learnjs-data/mobilenet_v2_100_fused/model.json';
@@ -84,6 +88,7 @@ const benchmarks = {
     }
   },
   'mesh_128': {
+    type: 'GraphModel',
     load: async () => {
       const url =
           'https://storage.googleapis.com/learnjs-data/mesh_128_shift30_fixed_batch/model.json';
@@ -97,6 +102,7 @@ const benchmarks = {
     },
   },
   'face_detector': {
+    type: 'GraphModel',
     load: async () => {
       const url =
           'https://storage.googleapis.com/learnjs-data/face_detector_front/model.json';
@@ -136,6 +142,7 @@ const benchmarks = {
     },
   },
   'AutoML Image': {
+    type: 'GraphModel',
     load: async () => {
       const url =
           'https://storage.googleapis.com/tfjs-testing/tfjs-automl/img_classification/model.json';
@@ -147,6 +154,7 @@ const benchmarks = {
     }
   },
   'AutoML Object': {
+    type: 'GraphModel',
     load: async () => {
       const url =
           'https://storage.googleapis.com/tfjs-testing/tfjs-automl/object_detection/model.json';
@@ -158,6 +166,7 @@ const benchmarks = {
     }
   },
   'USE - batchsize 30': {
+    type: 'GraphModel',
     load: async () => {
       return use.load();
     },
@@ -165,11 +174,12 @@ const benchmarks = {
       const sentences30 = sentences.slice(0, 30);
       return async model => {
         const res = await model.embed(sentences30);
-        return await res.data();
+        return res;
       }
     }
   },
   'USE - batchsize 1': {
+    type: 'GraphModel',
     load: async () => {
       return use.load();
     },
@@ -178,13 +188,14 @@ const benchmarks = {
 
       return async model => {
         const next = [sentences[(nextIdx % sentences.length)]];
-        const res = await model.embed(next);
         nextIdx += 1;
-        return await res.data();
+        const res = await model.embed(next);
+        return res;
       }
     }
   },
   'posenet': {
+    type: 'GraphModel',
     load: async () => {
       const model = await posenet.load();
       model.image = await loadImage('tennis_standing.jpg');
@@ -197,6 +208,7 @@ const benchmarks = {
     }
   },
   'bodypix': {
+    type: 'GraphModel',
     load: async () => {
       const model = await bodyPix.load();
       model.image = await loadImage('tennis_standing.jpg');
@@ -205,6 +217,62 @@ const benchmarks = {
     predictFunc: () => {
       return async model => {
         return model.segmentPerson(model.image);
+      }
+    }
+  },
+  'custom': {
+    type: '',
+    load: async () => {
+      return loadModelByUrl(state.modelUrl);
+    },
+    predictFunc: () => {
+      return async model => {
+        const inferenceInputs = [];
+        try {
+          for (let inferenceInputIndex = 0; inferenceInputIndex < model.inputs.length; inferenceInputIndex++) {
+            // construct the input tensor shape
+            const inferenceInput = model.inputs[inferenceInputIndex];
+            const inputShape = [];
+            for (let dimension = 0; dimension < inferenceInput.shape.length; dimension++) {
+              const shapeValue = inferenceInput.shape[dimension];
+              if (shapeValue == null || shapeValue < 0) {
+                inputShape.push(1);
+              } else if (shapeValue == 0) {
+                await showMsg('Warning: one dimension of an input tensor is zero');
+                inputShape.push(shapeValue);
+              } else {
+                inputShape.push(shapeValue);
+              }
+            }
+
+            // construct the input tensor
+            let inputTensor;
+            if (inferenceInput.dtype == 'float32' || inferenceInput.dtype == 'int32') {
+              inputTensor = tf.randomNormal(inputShape, 0, 1, inferenceInput.dtype);
+            } else {
+              throw new Error(`${inferenceInput.dtype} dtype is not supported`);
+            }
+            inferenceInputs.push(inputTensor);
+          }
+
+          // run prediction
+          let resultTensor;
+          if (model instanceof tf.GraphModel && model.executeAsync != null) {
+            resultTensor = await model.executeAsync(inferenceInputs);
+          } else if (model.predict != null) {
+            resultTensor = model.predict(inferenceInputs);
+          } else {
+            throw new Error("Predict function was not found");
+          }
+          return resultTensor;
+        } finally {
+          // dispose input tensors
+          for (let tensorIndex = 0; tensorIndex < inferenceInputs.length; tensorIndex++) {
+            if (inferenceInputs[tensorIndex] instanceof tf.Tensor) {
+              inferenceInputs[tensorIndex].dispose();
+            }
+          }
+        }
       }
     }
   },
@@ -223,4 +291,83 @@ async function loadImage(imagePath) {
 
   image.src = `${imageBucket}${imagePath}`;
   return promise;
+}
+
+function findIOHandler(path, loadOptions = {}) {
+  let handler;
+  if (path.load != null) {
+    handler = path;
+  } else if (loadOptions.requestInit != null) {
+    handler = tf.io.browserHTTPRequest(path, loadOptions);
+  } else {
+    const handlers = tf.io.getLoadHandlers(path, loadOptions);
+    if (handlers.length === 0) {
+      handlers.push(tf.io.browserHTTPRequest(path, loadOptions));
+    } else if (handlers.length > 1) {
+      throw new Error(
+          `Found more than one (${handlers.length}) load handlers for ` +
+          `URL '${[path]}'`);
+    }
+    handler = handlers[0];
+  }
+  return handler;
+}
+
+async function tryAllLoadingMethods(modelHandler, loadOptions = {}) {
+  let model;
+  // TODO: download weights once
+  model = await tf.loadGraphModel(modelHandler, loadOptions).then(model => {
+    state.modelType = 'GraphModel';
+    return model;
+  }).catch(e => {});
+
+  if (model == null) {
+    model = await tf.loadLayersModel(modelHandler, loadOptions).then(model => {
+      state.modelType = 'LayersModel';
+      return model;
+    });
+  }
+  return model;
+}
+
+async function loadModelByUrl(modelUrl, loadOptions = {}) {
+  let model, ioHandler, modelType;
+
+  const supportedSchemes =  /^(https?|localstorage|indexeddb):\/\/.+$/;
+  if (!supportedSchemes.test(modelUrl)) {
+    throw new Error(`Please use a valid URL, such as 'https://'`);
+  }
+
+  const tfHubUrl =  /^https:\/\/tfhub.dev\/.+$/;
+  if (loadOptions.fromTFHub || tfHubUrl.test(modelUrl)) {
+    if (!modelUrl.endsWith('/')) {
+      modelUrl = modelUrl + '/';
+    }
+    modelUrl = `${modelUrl}${DEFAULT_MODEL_NAME}${TFHUB_SEARCH_PARAM}`;
+  }
+
+  // Convert URL to IOHandler and parse the model type
+  try {
+    ioHandler = findIOHandler(modelUrl, loadOptions);
+    modelType = await ioHandler.load().then(artifacts => artifacts.format);
+  } catch (e) {
+    throw new Error(`Failed to fetch or parse 'model.json' file`);
+  }
+
+  // load models
+  try {
+    if (modelType === 'graph-model') {
+      model = await tf.loadGraphModel(ioHandler, loadOptions);
+      state.modelType = 'GraphModel';
+    } else if (modelType === 'layers-model') {
+      model = await tf.loadLayersModel(ioHandler, loadOptions);
+      state.modelType = 'LayersModel';
+    } else {
+      model = await tryAllLoadingMethods(ioHandler, loadOptions);
+    }
+  } catch (e) {
+    throw new Error('Failed to load the model');
+  }
+
+  return model;
 }

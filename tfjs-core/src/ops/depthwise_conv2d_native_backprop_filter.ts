@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,9 +19,9 @@ import {DepthwiseConv2dNativeBackpropFilter, DepthwiseConv2dNativeBackpropFilter
 import {Tensor, Tensor3D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 
-import {reshape} from './array_ops';
 import * as conv_util from './conv_util';
 import {op} from './operation';
+import {reshape} from './reshape';
 
 function depthwiseConv2dNativeBackpropFilter_<T extends Tensor3D|Tensor4D>(
     x: T, dy: T, filterShape: [number, number, number, number],

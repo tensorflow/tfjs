@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -52,6 +52,7 @@ export {divNoNan} from './div_no_nan';
 export {dot} from './dot';
 export {elu} from './elu';
 export {equal} from './equal';
+export {expandDims} from './expand_dims';
 export {eye} from './eye';
 export {fill} from './fill';
 export {floorDiv} from './floorDiv';
@@ -98,6 +99,7 @@ export {randomUniform} from './random_uniform';
 export {real} from './real';
 export {relu} from './relu';
 export {relu6} from './relu6';
+export {reshape} from './reshape';
 export {reverse} from './reverse';
 export {reverse1d} from './reverse_1d';
 export {reverse2d} from './reverse_2d';
@@ -109,9 +111,12 @@ export {spaceToBatchND} from './space_to_batch_nd';
 export {split} from './split';
 export {square} from './square';
 export {squaredDifference} from './squared_difference';
+export {squeeze} from './squeeze';
+export {stack} from './stack';
 export {sub} from './sub';
 export {tile} from './tile';
 export {truncatedNormal} from './truncated_normal';
+export {unstack} from './unstack';
 export {where} from './where';
 export {whereAsync} from './where_async';
 

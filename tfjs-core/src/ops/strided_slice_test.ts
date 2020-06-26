@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -44,6 +44,14 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     expect(output.shape).toEqual([10, 1]);
     expectArraysClose(await output.data(), [5, 6, 7, 8, 9, 10, 11, 11, 11, 11]);
   });
+
+  it('with ellipsisMask=1, begin / end masks and start / end normalization',
+     async () => {
+       const t = tf.randomNormal([1, 6, 2006, 4]);
+       const output =
+           tf.stridedSlice(t, [0, 0, 0], [0, 2004, 0], [1, 1, 1], 6, 4, 1);
+       expect(output.shape).toEqual([1, 6, 2004, 4]);
+     });
 
   it('with ellipsisMask=1 and start / end normalization', async () => {
     const t = tf.tensor3d([

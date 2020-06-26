@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -175,8 +175,6 @@ export interface OpHandler {
       values?: DataTypeMap[D]): TensorBuffer<R, D>;
   print<T extends Tensor>(x: T, verbose: boolean): void;
   reshape<R2 extends Rank>(x: Tensor, shape: ShapeMap[R2]): Tensor<R2>;
-  expandDims<R2 extends Rank>(x: Tensor, axis: number): Tensor<R2>;
-  squeeze<T extends Tensor>(x: Tensor, axis?: number[]): T;
   clone<T extends Tensor>(x: T): T;
   gather<T extends Tensor>(x: T, indices: Tensor|TensorLike, axis: number): T;
   norm(
@@ -184,8 +182,6 @@ export interface OpHandler {
       keepDims: boolean): Tensor;
   slice<R extends Rank, T extends Tensor<R>>(
       x: T, begin: number|number[], size?: number|number[]): T;
-  stack<T extends Tensor>(tensors: Array<T|TensorLike>, axis: number): Tensor;
-  unstack<T extends Tensor>(value: T, axis: number): Tensor[];
   sum<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
   mean<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean):
       T;
@@ -611,32 +607,6 @@ export class Tensor<R extends Rank = Rank> {
     return this.reshape(x.shape) as T;
   }
 
-  /**
-   * Returns a `tf.Tensor` that has expanded rank, by inserting a dimension
-   * into the tensor's shape. See `tf.expandDims` for details.
-   *
-   * @param axis The dimension index at which to insert shape of 1. Defaults to
-   *     0 (the first dimension).
-   */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
-  expandDims<R2 extends Rank>(axis = 0): Tensor<R2> {
-    return opHandler.expandDims(this, axis);
-  }
-
-  /**
-   * Returns a `tf.Tensor` with dimensions of size 1 removed from the shape.
-   * See `tf.squeeze` for more details.
-   *
-   * @param axis A list of numbers. If specified, only squeezes the
-   *    dimensions listed. The dimension index starts at 0. It is an error to
-   *    squeeze a dimension that is not 1.
-   */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
-  squeeze<T extends Tensor>(axis?: number[]): T {
-    this.throwIfDisposed();
-    return opHandler.squeeze(this, axis);
-  }
-
   /** Returns a copy of the tensor. See `tf.clone` for details. */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   clone<T extends Tensor>(this: T): T {
@@ -670,12 +640,6 @@ export class Tensor<R extends Rank = Rank> {
       this: T, begin: number|number[], size?: number|number[]): T {
     this.throwIfDisposed();
     return opHandler.slice(this, begin, size);
-  }
-  stack(x: Tensor, axis = 0): Tensor {
-    return opHandler.stack([this, x], axis);
-  }
-  unstack(axis = 0): Tensor[] {
-    return opHandler.unstack(this, axis);
   }
   // Reduction ops.
   sum<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {

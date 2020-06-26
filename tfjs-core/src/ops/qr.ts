@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,6 @@ import {dispose} from '../globals';
 import {Tensor, Tensor2D} from '../tensor';
 import {assert} from '../util';
 
-import {reshape, stack, unstack} from './array_ops';
 import {clone} from './clone';
 import {concat} from './concat';
 import {div} from './div';
@@ -29,11 +28,14 @@ import {matMul} from './mat_mul';
 import {mul} from './mul';
 import {norm} from './norm';
 import {op} from './operation';
+import {reshape} from './reshape';
 import {slice} from './slice';
+import {stack} from './stack';
 import {sub} from './sub';
 import {tensor2d} from './tensor_ops';
 import {transpose} from './transpose';
 import {neg} from './unary_ops';
+import {unstack} from './unstack';
 import {where} from './where';
 
 /**

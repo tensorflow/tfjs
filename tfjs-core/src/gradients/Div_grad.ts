@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,11 +17,11 @@
 
 import {Div} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {reshape} from '../ops/array_ops';
 import * as broadcast_util from '../ops/broadcast_util';
 import {div} from '../ops/div';
 import {mul} from '../ops/mul';
 import {sum} from '../ops/reduction_ops';
+import {reshape} from '../ops/reshape';
 import {square} from '../ops/square';
 import {neg} from '../ops/unary_ops';
 import {Tensor} from '../tensor';

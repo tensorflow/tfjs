@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,13 +20,15 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assert} from '../util';
 
-import {reshape, stack, unstack} from './array_ops';
 import {greaterEqual} from './greater_equal';
 import {lessEqual} from './less_equal';
 import {logicalAnd} from './logical_and';
 import {op} from './operation';
+import {reshape} from './reshape';
+import {stack} from './stack';
 import {sub} from './sub';
 import {range, scalar, zeros} from './tensor_ops';
+import {unstack} from './unstack';
 import {where} from './where';
 
 /**
