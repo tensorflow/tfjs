@@ -22,7 +22,10 @@ export function imag(args: {backend: BackendWasm, inputs: ImagInputs}):
   const {input} = inputs;
 
   const inputData = backend.dataIdMap.get(input.dataId);
-  return inputData.complexTensors.imag;
+  const imagPart = inputData.complexTensors.imag;
+
+  const imagClone = backend.makeOutput(imagPart.shape, imagPart.dtype);
+  return imagClone;
 }
 
 registerKernel({kernelName: Imag, backendName: 'wasm', kernelFunc: imag});

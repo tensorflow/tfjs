@@ -122,10 +122,10 @@ export class BackendWasm extends KernelBackend {
     this.wasm.tfjs.disposeData(data.id);
     this.dataIdMap.delete(dataId);
 
-    if (data.complexTensors) {
-      this.disposeData(data.complexTensors.real.dataId);
-      this.disposeData(data.complexTensors.imag.dataId);
-    }
+    // if (data.complexTensors) {
+    //   this.disposeData(data.complexTensors.real.dataId);
+    //   this.disposeData(data.complexTensors.imag.dataId);
+    // }
   }
 
   floatPrecision(): 32 {
@@ -180,6 +180,8 @@ export class BackendWasm extends KernelBackend {
         return new Int32Array(buffer, memoryOffset, size);
       case 'bool':
         return new Uint8Array(buffer, memoryOffset, size);
+      case 'complex64':
+        return new Float32Array(buffer, memoryOffset, size);
       default:
         throw new Error(`Uknown dtype ${dtype}`);
     }
