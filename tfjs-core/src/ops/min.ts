@@ -27,6 +27,7 @@ import {parseAxisParam} from '../util';
 import * as axis_util from './axis_util';
 import {op} from './operation';
 import {reshape} from './reshape';
+import {transpose} from './transpose';
 
 /**
  * Computes the minimum value from the input.
@@ -67,21 +68,22 @@ function min_<T extends Tensor>(
         const permutedAxes = axis_util.getAxesPermutation(axes, $x.rank);
         let minInput = $x;
         if (permutedAxes != null) {
-          minInput = $x.transpose(permutedAxes);
+          minInput = transpose($x, permutedAxes);
           axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
         }
 
-        let res = backend.min(minInput, axes);
-        save([$x, res]);
-        if (keepDims) {
-          const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
-          res = reshape(res, newShape) as T;
-        }
-
+        const y = backend.min(minInput, axes);
         if (permutedAxes != null) {
           backend.disposeData(minInput.dataId);
         }
 
+        let res = y;
+        if (keepDims) {
+          const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
+          res = reshape(y, newShape) as T;
+          backend.disposeData(y.dataId);
+        }
+        save([$x, res]);
         return res;
       };
 
