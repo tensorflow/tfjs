@@ -20,13 +20,13 @@ import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    mean<T extends Tensor>(this: T, axis: number|number[], keepDims?: boolean):
+    mean<T extends Tensor>(this: T, axis?: number|number[], keepDims?: boolean):
         T;
   }
 }
 
 Tensor.prototype.mean = function<T extends Tensor>(
-    this: T, axis: number|number[] = null, keepDims?: boolean): T {
+    this: T, axis?: number|number[], keepDims?: boolean): T {
   this.throwIfDisposed();
   return mean(this, axis, keepDims);
 };
