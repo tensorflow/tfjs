@@ -65,6 +65,7 @@ const CHAINED_OPS = [
   'max',
   'maximum',
   'maxPool',
+  'mean',
   'min',
   'minimum',
   'mod',

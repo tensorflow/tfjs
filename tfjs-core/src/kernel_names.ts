@@ -381,6 +381,13 @@ export interface MaxPoolWithArgmaxAttrs {
   includeBatchInIndex: boolean;
 }
 
+export const Mean = 'Mean';
+export type MeanInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface MeanAttrs {
+  axis: number|number[];
+  keepDims: boolean;
+}
+
 export const Min = 'Min';
 export type MinInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface MinAttrs {

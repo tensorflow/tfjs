@@ -24,7 +24,7 @@ import * as util from '../util';
 
 import * as axis_util from './axis_util';
 import {op} from './operation';
-import {ones, scalar} from './tensor_ops';
+import {ones} from './tensor_ops';
 
 /**
  * Computes the sum of elements across dimensions of a `tf.Tensor`.
@@ -105,67 +105,4 @@ function sum_<T extends Tensor>(
   return customOp($x) as T;
 }
 
-/**
- * Computes the mean of elements across dimensions of a `tf.Tensor`.
- *
- * Reduces `x` along the dimensions given in `axis`. Unless `keepDims` is
- * true, the rank of the `tf.Tensor` is reduced by 1 for each entry in `axis`.
- * If `keepDims` is true, the reduced dimensions are retained with length 1.
- * If `axis` has no entries, all dimensions are reduced, and a `tf.Tensor` with
- * a single element is returned.
- *
- * ```js
- * const x = tf.tensor1d([1, 2, 3]);
- *
- * x.mean().print();  // or tf.mean(a)
- * ```
- *
- * ```js
- * const x = tf.tensor2d([1, 2, 3, 4], [2, 2]);
- *
- * const axis = 1;
- * x.mean(axis).print();  // or tf.mean(x, axis)
- * ```
- *
- * @param x The input tensor.
- * @param axis The dimension(s) to reduce. By default it reduces
- *     all dimensions.
- * @param keepDims If true, retains reduced dimensions with size 1.
- */
-/** @doc {heading: 'Operations', subheading: 'Reduction'} */
-function mean_<T extends Tensor>(
-    x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
-  const $x = convertToTensor(x, 'x', 'mean');
-
-  const axes = util.parseAxisParam(axis, $x.shape);
-  const shapes = axis_util.computeOutAndReduceShapes($x.shape, axes);
-  const reduceShape = shapes[1];
-  const reduceSize = util.sizeFromShape(reduceShape);
-
-  // Use a custom gradient to bypass 2 gradient backprops since mean is used
-  // extremely often.
-  const customOp = customGrad((x: Tensor) => {
-    const reduceSizeScalar = scalar(reduceSize);
-    // Cast if needed.
-    const xReduce =
-        reduceSizeScalar.dtype === x.dtype ? x : x.cast(reduceSizeScalar.dtype);
-    const res = xReduce.div(reduceSizeScalar);
-    const value = res.sum(axis, keepDims);
-
-    const gradFunc = (dy: Tensor) => {
-      const expandedDyShape = x.shape.slice();
-      axes.forEach(axis => {
-        expandedDyShape[axis] = 1;
-      });
-      const expandedDy = dy.reshape(expandedDyShape);
-      const derX = expandedDy.mul(ones(x.shape, 'float32')).div(reduceSize);
-      return derX;
-    };
-    return {value, gradFunc};
-  });
-
-  return customOp($x) as T;
-}
-
-export const mean = op({mean_});
 export const sum = op({sum_});

@@ -21,10 +21,11 @@ import {TensorLike} from '../types';
 import {cast} from './array_ops';
 import {div} from './div';
 import {Reduction} from './loss_ops_utils';
+import {mean} from './mean';
 import {mul} from './mul';
 import {notEqual} from './not_equal';
 import {op} from './operation';
-import {mean, sum} from './reduction_ops';
+import {sum} from './reduction_ops';
 import {ones, scalar} from './tensor_ops';
 
 /**
