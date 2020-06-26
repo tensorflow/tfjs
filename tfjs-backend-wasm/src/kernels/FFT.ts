@@ -65,6 +65,9 @@ function fft(args: {backend: BackendWasm, inputs: FFTInputs}): TensorInfo {
       realInputId, imagInputId, outerDim, innerDim,
       0 /* is not real component */, imagId);
 
+  backend.disposeData(realInput.dataId);
+  backend.disposeData(imagInput.dataId);
+
   const out = complex({backend, inputs: {real, imag}});
   return out;
 }

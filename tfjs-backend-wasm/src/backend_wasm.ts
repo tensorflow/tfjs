@@ -180,6 +180,8 @@ export class BackendWasm extends KernelBackend {
         return new Int32Array(buffer, memoryOffset, size);
       case 'bool':
         return new Uint8Array(buffer, memoryOffset, size);
+      case 'complex64':
+        return new Float32Array(buffer, memoryOffset, size);
       default:
         throw new Error(`Uknown dtype ${dtype}`);
     }
