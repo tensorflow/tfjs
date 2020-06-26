@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,6 +29,7 @@ export class StridedSliceProgram implements WebGPUProgram {
   // TODO(xing.xu): Increase the workPerThread.
   workPerThread = 1;
   workGroupSize: [number, number, number] = [16, 1, 1];
+  needsShapesUniforms = true;
 
   constructor(begin: number[], strides: number[], destSize: number[]) {
     this.outputShape = destSize;

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,12 +20,76 @@ import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
 
 // Testing for presence of chained op in this file will allow us to more easily
 // customize when we want this test to run. Currently it will run be default
-// (And kerma will always load the chain augmentor files). But this gives us
+// (And karma will always load the chain augmentor files). But this gives us
 // flexibility to change in future.
 
 const CHAINED_OPS = [
-  'add', 'batchNorm', 'broadcastTo', 'div', 'divNoNan', 'oneHot', 'pad',
-  'square', 'sub', 'tile', 'transpose'
+  'add',
+  'all',
+  'any',
+  'atan2',
+  'avgPool',
+  'batchNorm',
+  'batchToSpaceND',
+  'broadcastTo',
+  'concat',
+  'conv1d',
+  'conv2d',
+  'cumsum',
+  'conv2dTranspose',
+  'depthToSpace',
+  'depthwiseConv2d',
+  'depthwiseConv2D',
+  'dilation2d',
+  'div',
+  'divNoNan',
+  'dot',
+  'elu',
+  'equal',
+  'expandDims',
+  'floorDiv',
+  'greater',
+  'greaterEqual',
+  'leakyRelu',
+  'less',
+  'lessEqual',
+  'localResponseNormalization',
+  'logicalAnd',
+  'logicalNot',
+  'logicalOr',
+  'logicalXor',
+  'logSumExp',
+  'matMul',
+  'max',
+  'maximum',
+  'maxPool',
+  'minimum',
+  'mod',
+  'mul',
+  'notEqual',
+  'oneHot',
+  'pad',
+  'pool',
+  'pow',
+  'prelu',
+  'prod',
+  'relu',
+  'resizeBilinear',
+  'resizeNearestNeighbor',
+  'relu6',
+  'reverse',
+  'selu',
+  'separableConv2d',
+  'spaceToBatchND',
+  'split',
+  'square',
+  'squeeze',
+  'stack',
+  'sub',
+  'tile',
+  'transpose',
+  'unstack',
+  'where'
 ];
 
 describeWithFlags('chained ops', ALL_ENVS, () => {

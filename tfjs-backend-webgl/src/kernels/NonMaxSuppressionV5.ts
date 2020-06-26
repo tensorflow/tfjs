@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,7 @@
 
 import {backend_util, kernel_impls, KernelConfig, TypedArray} from '@tensorflow/tfjs-core';
 import {NonMaxSuppressionV5, NonMaxSuppressionV5Attrs, NonMaxSuppressionV5Inputs} from '@tensorflow/tfjs-core';
-const nonMaxSuppressionV5 = kernel_impls.nonMaxSuppressionV5;
+const nonMaxSuppressionV5Impl = kernel_impls.nonMaxSuppressionV5Impl;
 import {MathBackendWebGL} from '../backend_webgl';
 
 export const nonMaxSuppressionV5Config: KernelConfig = {
@@ -42,7 +42,7 @@ export const nonMaxSuppressionV5Config: KernelConfig = {
     const scoreThresholdVal = scoreThreshold;
     const softNmsSigmaVal = softNmsSigma;
 
-    const {selectedIndices, selectedScores} = nonMaxSuppressionV5(
+    const {selectedIndices, selectedScores} = nonMaxSuppressionV5Impl(
         boxesVals, scoresVals, maxOutputSizeVal, iouThresholdVal,
         scoreThresholdVal, softNmsSigmaVal);
 

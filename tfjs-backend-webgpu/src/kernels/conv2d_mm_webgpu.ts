@@ -32,6 +32,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride, dilation;';
   workGroupSize: [number, number, number];
+  needsShapesUniforms = true;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, workPerThread: number, addBias = false,
@@ -87,22 +88,24 @@ export class Conv2DMMProgram implements WebGPUProgram {
     let activationSnippet = '', applyActivationSnippet = '';
     if (activation) {
       if (hasPreluActivationWeights) {
-        activationSnippet = `float activation(float a) {
-              float b = getPreluActivationWeightsAtOutCoords();
+        activationSnippet = `float activation(float a, ivec4 outCoord) {
+              float b = getPreluActivationWeightsAtOutCoords(outCoord);
               ${activation}
             }`;
       } else {
         activationSnippet = `
-              float activation(float a) {
+              float activation(float a, ivec4 outCoord) {
                 ${activation}
               }
             `;
       }
 
-      applyActivationSnippet = `value = activation(value);`;
+      applyActivationSnippet = `value = activation(value, outCoord);`;
     }
 
-    const addBiasSnippet = addBias ? 'value += getBiasAtOutCoords();' : '';
+    const addBiasSnippet = addBias ? 'ivec4 coords = getOutputCoords(); ' +
+            'value += getBiasAtOutCoords(outCoord);' :
+                                     '';
     if (addBias) {
       this.variableNames.push('bias');
     }

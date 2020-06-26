@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1261,5 +1261,16 @@ describeWithFlags('div', ALL_ENVS, () => {
     const c = a.divNoNan(b);
     expect(c.shape).toEqual(a.shape);
     expectArraysClose(await c.data(), [0, 0, 0, 0]);
+  });
+});
+
+describeWithFlags('floorDiv', ALL_ENVS, () => {
+  it('floorDiv', async () => {
+    const a = tf.tensor1d([10, 20, -20, -40], 'int32');
+    const b = tf.tensor1d([10, 12, 8, 5], 'int32');
+    const result = tf.floorDiv(a, b);
+
+    expect(result.shape).toEqual(a.shape);
+    expectArraysClose(await result.data(), [1, 1, -3, -8]);
   });
 });

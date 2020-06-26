@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,8 +27,6 @@ import {op} from './operation';
 /**
  * Adds two `tf.Tensor`s element-wise, A + B. Supports broadcasting.
  *
- * We also expose `tf.addStrict` which has the same signature as this op and
- * asserts that `a` and `b` are the same shape (does not broadcast).
  *
  * ```js
  * const a = tf.tensor1d([1, 2, 3, 4]);

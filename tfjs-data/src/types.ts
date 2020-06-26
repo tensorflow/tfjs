@@ -18,13 +18,6 @@
 
 import {DataType, TensorContainer} from '@tensorflow/tfjs-core';
 
-/**
- * @deprecated Use `TensorContainer` from `@tensorflow/tfjs-core` instead.
- *
- * JSON-like type representing a nested structure of primitives or Tensors.
- */
-export type DataElement = TensorContainer;
-
 // Maybe this should be called 'NestedContainer'-- that's just a bit unwieldy.
 export type Container<T> = ContainerObject<T>|ContainerArray<T>;
 
@@ -60,7 +53,7 @@ export type FileElement = File|Blob|Uint8Array;
 export interface ColumnConfig {
   required?: boolean;
   dtype?: DataType;
-  default?: DataElement;
+  default?: TensorContainer;
   isLabel?: boolean;
 }
 

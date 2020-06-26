@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,16 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import {deprecationWarn} from '../globals';
 import {Tensor, Tensor4D} from '../tensor';
 import {Rank} from '../types';
-
-export function warnDeprecation(): void {
-  deprecationWarn(
-      'tf.batchNormalization() is going away. ' +
-      'Use tf.batchNorm() instead, and note the positional argument change ' +
-      'of scale, offset, and varianceEpsilon');
-}
 
 export function xAs4D<R extends Rank>(x: Tensor<R>) {
   let x4D: Tensor4D;

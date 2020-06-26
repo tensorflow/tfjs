@@ -5,8 +5,32 @@
       "path": "."
     },
     {
+      "name": "Union",
+      "path": "tfjs"
+    },
+    {
+      "name": "E2E",
+      "path": "e2e"
+    },
+    {
       "name": "Core",
       "path": "tfjs-core"
+    },
+    {
+      "name": "Cpu",
+      "path": "tfjs-backend-cpu"
+    },
+    {
+      "name": "Webgl",
+      "path": "tfjs-backend-webgl"
+    },
+    {
+      "name": "Node",
+      "path": "tfjs-node"
+    },
+    {
+      "name": "NodeGpu",
+      "path": "tfjs-node-gpu"
     },
     {
       "name": "Wasm",
@@ -17,12 +41,36 @@
       "path": "tfjs-backend-nodegl"
     },
     {
+      "name": "WebGPU",
+      "path": "tfjs-backend-webgpu"
+    },
+    {
+      "name": "Converter",
+      "path": "tfjs-converter"
+    },
+    {
+      "name": "Layers",
+      "path": "tfjs-layers"
+    },
+    {
+      "name": "Data",
+      "path": "tfjs-data"
+    },
+    {
       "name": "ReactNative",
       "path": "tfjs-react-native"
     },
     {
-      "name": "WebGPU",
-      "path": "tfjs-backend-webgpu"
+      "name": "Vis",
+      "path": "tfjs-vis"
+    },
+    {
+      "name": "AutoML",
+      "path": "tfjs-automl"
+    },
+    {
+      "name": "InferenceAPI",
+      "path": "tfjs-inference"
     }
   ],
   "settings": {

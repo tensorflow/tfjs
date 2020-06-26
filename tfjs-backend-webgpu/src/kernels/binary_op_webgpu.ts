@@ -22,25 +22,6 @@ import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
-export const MUL = 'return a * b;';
-export const ADD = 'return a + b;';
-export const SUB = 'return a - b;';
-export const DIV = 'return a / b;';
-export const GREATER = 'return float(a > b);';
-export const GREATER_EQUAL = 'return float(a >= b);';
-export const LESS = `return float(a < b);`;
-export const LESS_EQUAL = `return float(a <= b);`;
-export const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
-
-export const INT_DIV = `
-  float s = sign(a) * sign(b);
-  int ia = int(round(a));
-  int ib = int(round(b));
-  return float(idiv(ia, ib, s));
-`;
-
-export const PRELU = `return (a < 0.) ? b * a : a;`;
-
 export class BinaryOpProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
@@ -48,20 +29,62 @@ export class BinaryOpProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
-  workPerThread = 4;
-  workGroupSize: [number, number, number] = [16, 1, 1];
+  workPerThread: number;
+  workGroupSize: [number, number, number];
+  needsShapesUniforms = true;
 
   constructor(op: string, aShape: number[], bShape: number[]) {
+    // TODO(jiajia.qin@intel.com): Heuristically select a good work group size.
+    const workGroupSizeX = 128;
+    this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
-    const size = util.sizeFromShape(this.outputShape);
-
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    const size = util.sizeFromShape(this.outputShape);
+    const sizeFit = size % workGroupSizeX === 0;
+    const shapesFit = util.arraysEqual(aShape, bShape) && sizeFit;
+    this.workPerThread = shapesFit || sizeFit ? 1 : 2;
+
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
-    const type = getCoordsDataType(this.outputShape.length);
 
-    this.userCode = `
+    if (shapesFit) {
+      this.needsShapesUniforms = false;
+      this.userCode = `
+          float binaryOperation(float a, float b) {
+            ${op}
+          }
+
+          void main() {
+            int index = int(gl_GlobalInvocationID.x);
+
+            float a = A[index];
+            float b = B[index];
+            result[index] = binaryOperation(a, b);
+          }
+        `;
+      this.shaderKey = `binary2${op}`;
+    } else if (sizeFit) {
+      const type = getCoordsDataType(this.outputShape.length);
+      this.userCode = `
+      float binaryOperation(float a, float b) {
+        ${op}
+      }
+
+      void main() {
+        int index = int(gl_GlobalInvocationID.x);
+
+        ${type} coords = getCoordsFromFlatIndex(index);
+
+        float a = getAAtOutCoords(coords);
+        float b = getBAtOutCoords(coords);
+        setOutput(index, binaryOperation(a, b));
+      }
+      `;
+    } else {
+      const type = getCoordsDataType(this.outputShape.length);
+
+      this.userCode = `
       float binaryOperation(float a, float b) {
         ${op}
       }
@@ -81,7 +104,8 @@ export class BinaryOpProgram implements WebGPUProgram {
           }
         }
       }
-    `;
-    this.shaderKey = `binary${op}${type}${size}`;
+      `;
+      this.shaderKey = `binary${op}${type}${size}`;
+    }
   }
 }

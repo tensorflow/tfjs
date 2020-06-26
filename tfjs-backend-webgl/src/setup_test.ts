@@ -21,14 +21,19 @@ import {parseTestEnvFromKarmaFlags, setTestEnvs, setupTestFilters, TEST_ENVS, Te
 
 const TEST_FILTERS: TestFilter[] = [];
 const customInclude = (testName: string) => {
-  // Exclude webworker test
-  if (testName.includes('computation in worker')) {
-    return false;
+  const toExclude = ['isBrowser: false', 'tensor in worker'];
+  for (const subStr of toExclude) {
+    if (testName.includes(subStr)) {
+      return false;
+    }
+
+    // Not implemented yet.
+    if (testName.includes('dilation2d')) {
+      return false;
+    }
   }
-  // Include all other tests.
   return true;
 };
-
 setupTestFilters(TEST_FILTERS, customInclude);
 
 // Allow flags to override test envs

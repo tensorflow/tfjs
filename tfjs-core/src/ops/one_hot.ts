@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,12 +18,13 @@
 import {ENGINE, ForwardFunc} from '../engine';
 import {OneHot, OneHotAttrs, OneHotInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor1D} from '../tensor';
+import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
 import {op} from './operation';
+import {reshape} from './reshape';
 
 /**
  * Creates a one-hot `tf.Tensor`. The locations represented by `indices` take
@@ -49,22 +50,21 @@ function oneHot_(
   if (depth < 2) {
     throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
   }
-  let $indices = convertToTensor(indices, 'indices', 'oneHot', 'int32');
+  const $indices = convertToTensor(indices, 'indices', 'oneHot', 'int32');
   const outShape = [...$indices.shape, depth];
-  $indices = $indices.flatten();
 
   const forward: ForwardFunc<Tensor> = (backend, save) => {
     save([$indices]);
-    return backend.oneHot($indices as Tensor1D, depth, onValue, offValue);
+    return reshape(
+        backend.oneHot($indices.flatten(), depth, onValue, offValue), outShape);
   };
 
   const inputs: OneHotInputs = {indices: $indices};
   const attrs: OneHotAttrs = {depth, onValue, offValue};
 
-  const result = ENGINE.runKernelFunc(
+  return ENGINE.runKernelFunc(
       forward, inputs as unknown as NamedTensorMap, null /* grad */, OneHot,
       attrs as unknown as NamedAttrMap);
-  return result.reshape(outShape);
 }
 
 export const oneHot = op({oneHot_});

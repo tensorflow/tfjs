@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,7 +18,8 @@
 import {Tensor2D} from '../tensor';
 import {DataType} from '../types';
 
-import {buffer, expandDims} from './array_ops';
+import {buffer} from './array_ops';
+import {expandDims} from './expand_dims';
 import {op} from './operation';
 import {tile} from './tile';
 
@@ -56,15 +57,15 @@ function eye_(
     return out;
   } else {
     if (batchShape.length === 1) {
-      return tile(expandDims(out, 0), [batchShape[0], 1, 1]);
+      return tile(expandDims(out, 0), [batchShape[0], 1, 1]) as Tensor2D;
     } else if (batchShape.length === 2) {
       return tile(
-          expandDims(expandDims(out, 0), 0),
-          [batchShape[0], batchShape[1], 1, 1]);
+                 expandDims(expandDims(out, 0), 0),
+                 [batchShape[0], batchShape[1], 1, 1]) as Tensor2D;
     } else if (batchShape.length === 3) {
-      return tile(
-          expandDims(expandDims(expandDims(out, 0), 0), 0),
-          [batchShape[0], batchShape[1], batchShape[2], 1, 1]);
+      return tile(expandDims(expandDims(expandDims(out, 0), 0), 0), [
+               batchShape[0], batchShape[1], batchShape[2], 1, 1
+             ]) as Tensor2D;
     } else {
       throw new Error(
           `eye() currently supports only 1D and 2D ` +

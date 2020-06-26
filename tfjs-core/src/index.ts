@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -64,8 +64,7 @@ export {GradSaveFunc, NamedTensorMap, TensorContainer, TensorContainerArray, Ten
 export {BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, PixelData, Rank, RecursiveArray, ShapeMap, sumOutType, TensorLike, TypedArray, upcastType} from './types';
 
 export * from './ops/ops';
-export {LSTMCellFunc} from './ops/lstm';
-export {Reduction} from './ops/loss_ops';
+export {Reduction} from './ops/loss_ops_utils';
 
 export * from './train';
 export * from './globals';

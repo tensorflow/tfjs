@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,9 @@ import {Div} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import * as broadcast_util from '../ops/broadcast_util';
 import {div} from '../ops/div';
+import {mul} from '../ops/mul';
 import {sum} from '../ops/reduction_ops';
+import {reshape} from '../ops/reshape';
 import {square} from '../ops/square';
 import {neg} from '../ops/unary_ops';
 import {Tensor} from '../tensor';
@@ -40,10 +42,10 @@ export const divGradConfig: GradConfig = {
       return res;
     };
     const derB = () => {
-      let res = dy.mul(a.toFloat());
+      let res = mul(dy, a.toFloat());
       const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
       if (reduceAxes.length > 0) {
-        res = sum(res, reduceAxes).reshape(b.shape);
+        res = reshape(sum(res, reduceAxes), b.shape);
       }
       const tmp = square(b);
       return neg(div(res, tmp.toFloat()));

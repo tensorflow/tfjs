@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,7 +24,9 @@ import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {Rank, ShapeMap, TensorLike} from '../types';
 
+import {clone} from './clone';
 import {op} from './operation';
+import {reshape} from './reshape';
 
 /**
  * Broadcast an array to a compatible shape NumPy-style.
@@ -58,7 +60,7 @@ function broadcastTo_<R extends Rank>(
     while (newShape.length < shape.length) {
       newShape.unshift(1);
     }
-    input = input.reshape(newShape);
+    input = reshape(input, newShape);
   }
 
   const inputShape = input.shape;
@@ -74,7 +76,7 @@ function broadcastTo_<R extends Rank>(
   const axes = reps.map((n, i) => n > 1 ? i : -1).filter(i => i >= 0);
 
   if (axes.length === 0) {
-    return input.clone() as Tensor<R>;
+    return clone(input) as Tensor<R>;
   }
 
   const forward = (backend: KernelBackend) => backend.tile(input, reps);

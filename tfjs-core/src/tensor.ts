@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +16,7 @@
  */
 
 import {tensorToString} from './tensor_format';
-import {ArrayMap, BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, SingleValueMap, TensorLike, TensorLike1D, TensorLike3D, TensorLike4D, TypedArray} from './types';
+import {ArrayMap, BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, SingleValueMap, TensorLike, TensorLike1D, TypedArray} from './types';
 import * as util from './util';
 import {computeStrides, toNestedArray} from './util';
 
@@ -175,72 +175,33 @@ export interface OpHandler {
       values?: DataTypeMap[D]): TensorBuffer<R, D>;
   print<T extends Tensor>(x: T, verbose: boolean): void;
   reshape<R2 extends Rank>(x: Tensor, shape: ShapeMap[R2]): Tensor<R2>;
-  expandDims<R2 extends Rank>(x: Tensor, axis: number): Tensor<R2>;
-  cumsum<T extends Tensor>(
-      x: Tensor, axis: number, exclusive: boolean, reverse: boolean): T;
-  squeeze<T extends Tensor>(x: Tensor, axis?: number[]): T;
   clone<T extends Tensor>(x: T): T;
   gather<T extends Tensor>(x: T, indices: Tensor|TensorLike, axis: number): T;
-  matMul<T extends Tensor>(
-      a: T, b: T|TensorLike, transposeA: boolean, transposeB: boolean): T;
-  dot(t1: Tensor, t2: Tensor|TensorLike): Tensor;
   norm(
       x: Tensor, ord: number|'euclidean'|'fro', axis: number|number[],
       keepDims: boolean): Tensor;
   slice<R extends Rank, T extends Tensor<R>>(
       x: T, begin: number|number[], size?: number|number[]): T;
-  split<T extends Tensor>(
-      x: T, numOrSizeSplits: number[]|number, axis?: number): T[];
-  reverse<T extends Tensor>(x: T, axis?: number|number[]): T;
-  concat<T extends Tensor>(tensors: Array<T|TensorLike>, axis: number): T;
-  stack<T extends Tensor>(tensors: Array<T|TensorLike>, axis: number): Tensor;
-  unstack<T extends Tensor>(value: T, axis: number): Tensor[];
-  all<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
-  any<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
-  logSumExp<T extends Tensor>(
-      x: Tensor, axis: number|number[], keepDims: boolean): T;
   sum<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
-  prod<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean):
-      T;
   mean<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean):
       T;
   min<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
-  max<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
   argMin<T extends Tensor>(x: Tensor, axis: number): T;
   argMax<T extends Tensor>(x: Tensor, axis: number): T;
   addStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  atan2<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   subStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  pow<T extends Tensor>(base: T, exp: Tensor|TensorLike): T;
   powStrict<T extends Tensor>(base: T, exp: Tensor|TensorLike): T;
-  mul<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   mulStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  floorDiv<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   divStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  mod<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   modStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  minimum<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   minimumStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  maximum<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   maximumStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   squaredDifferenceStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  logicalNot<T extends Tensor>(x: T): T;
-  logicalAnd<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
-  logicalOr<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
-  logicalXor<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
-  where<T extends Tensor>(condition: Tensor|TensorLike, a: T, b: T|TensorLike):
-      T;
-  notEqual<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   notEqualStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  less<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   lessStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  equal<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   equalStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  lessEqual<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   lessEqualStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  greater<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   greaterStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
-  greaterEqual<T extends Tensor>(a: Tensor, b: Tensor|TensorLike): T;
   greaterEqualStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   neg<T extends Tensor>(x: T): T;
   ceil<T extends Tensor>(x: T): T;
@@ -280,71 +241,16 @@ export interface OpHandler {
   atanh<T extends Tensor>(x: T): T;
   erf<T extends Tensor>(x: T): T;
   step<T extends Tensor>(x: T, alpha: number): T;
-  relu<T extends Tensor>(x: T): T;
-  relu6<T extends Tensor>(x: T): T;
-  elu<T extends Tensor>(x: T): T;
-  selu<T extends Tensor>(x: T): T;
-  leakyRelu<T extends Tensor>(x: T, alpha: number): T;
-  prelu<T extends Tensor>(x: T, alpha: T|TensorLike): T;
   softmax<T extends Tensor>(logits: T, dim: number): T;
   logSoftmax<T extends Tensor>(logits: T, axis: number): T;
-  image: {
-    resizeBilinear<T extends Tensor3D|Tensor4D>(
-        images: T, size: [number, number], alignCorners: boolean): T;
-    resizeNearestNeighbor<T extends Tensor3D|Tensor4D>(
-        images: T, size: [number, number], alignCorners: boolean): T;
-  };
-  conv1d<T extends Tensor2D|Tensor3D>(
-      x: T, filter: Tensor3D|TensorLike3D, stride: number,
-      pad: 'valid'|'same'|number, dataFormat: 'NWC'|'NCW', dilation: number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T;
-  conv2d<T extends Tensor3D|Tensor4D>(
-      x: T, filter: Tensor4D|TensorLike4D, strides: [number, number]|number,
-      pad: 'valid'|'same'|number, dataFormat: 'NHWC'|'NCHW',
-      dilations: [number, number]|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T;
-  conv2dTranspose<T extends Tensor3D|Tensor4D>(
-      x: T, filter: Tensor4D|TensorLike4D,
-      outputShape: [number, number, number, number]|[number, number, number],
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T;
-  depthwiseConv2d<T extends Tensor3D|Tensor4D>(
-      x: T, filter: Tensor4D|TensorLike4D, strides: [number, number]|number,
-      pad: 'valid'|'same'|number, dataFormat: 'NHWC'|'NCHW',
-      dilations: [number, number]|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T;
-  separableConv2d<T extends Tensor3D|Tensor4D>(
-      x: T|TensorLike, depthwiseFilter: Tensor4D|TensorLike4D,
-      pointwiseFilter: Tensor4D|TensorLike, strides: [number, number]|number,
-      pad: 'valid'|'same', dilation: [number, number]|number,
-      dataFormat: 'NHWC'|'NCHW'): T;
-  maxPool<T extends Tensor3D|Tensor4D>(
-      x: T, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T;
-  avgPool<T extends Tensor3D|Tensor4D>(
-      x: T, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T;
-  pool<T extends Tensor3D|Tensor4D>(
-      input: T, windowShape: [number, number]|number, poolingType: 'avg'|'max',
-      padding: 'valid'|'same'|number, diationRate?: [number, number]|number,
-      strides?: [number, number]|number): T;
-  localResponseNormalization<T extends Tensor3D|Tensor4D>(
-      x: T, depthRadius: number, bias: number, alpha: number, beta: number): T;
   unsortedSegmentSum<T extends Tensor>(
       x: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T;
-  batchToSpaceND<T extends Tensor>(
-      x: T, blockShape: number[], crops: number[][]): T;
-  spaceToBatchND<T extends Tensor>(
-      x: T, blockShape: number[], paddings: number[][]): T;
   topk<T extends Tensor>(x: T, k: number, sorted: boolean):
       {values: T, indices: T};
   stridedSlice(
       x: Tensor, begin: number[], end: number[], strides: number[],
       beginMask: number, endMask: number, ellipsisMask: number,
       newAxisMask: number, shrinkAxisMask: number): Tensor;
-  depthToSpace(x: Tensor4D, blockSize: number, dataFormat: string): Tensor4D;
   spectral: {
     fft(x: Tensor): Tensor; ifft(x: Tensor): Tensor; rfft(x: Tensor): Tensor;
     irfft(x: Tensor): Tensor
@@ -701,48 +607,6 @@ export class Tensor<R extends Rank = Rank> {
     return this.reshape(x.shape) as T;
   }
 
-  /**
-   * Returns a `tf.Tensor` that has expanded rank, by inserting a dimension
-   * into the tensor's shape. See `tf.expandDims` for details.
-   *
-   * @param axis The dimension index at which to insert shape of 1. Defaults to
-   *     0 (the first dimension).
-   */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
-  expandDims<R2 extends Rank>(axis = 0): Tensor<R2> {
-    return opHandler.expandDims(this, axis);
-  }
-
-  /**
-   * Returns the cumulative sum of the `tf.Tensor` along `axis`.
-   *
-   * @param axis The axis along which to sum. Optional. Defaults to 0.
-   * @param exclusive Whether to perform exclusive cumulative sum. Defaults to
-   *    false. If set to true then the sum of each tensor entry does not
-   * include its own value, but only the values previous to it along the
-   * specified axis.
-   * @param reverse Whether to sum in the opposite direction. Defaults to
-   *    false.
-   */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
-  cumsum<T extends Tensor>(axis = 0, exclusive = false, reverse = false): T {
-    return opHandler.cumsum(this, axis, exclusive, reverse);
-  }
-
-  /**
-   * Returns a `tf.Tensor` with dimensions of size 1 removed from the shape.
-   * See `tf.squeeze` for more details.
-   *
-   * @param axis A list of numbers. If specified, only squeezes the
-   *    dimensions listed. The dimension index starts at 0. It is an error to
-   *    squeeze a dimension that is not 1.
-   */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
-  squeeze<T extends Tensor>(axis?: number[]): T {
-    this.throwIfDisposed();
-    return opHandler.squeeze(this, axis);
-  }
-
   /** Returns a copy of the tensor. See `tf.clone` for details. */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   clone<T extends Tensor>(this: T): T {
@@ -766,16 +630,6 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.gather(this, indices, axis);
   }
-
-  matMul<T extends Tensor>(
-      this: T, b: T|TensorLike, transposeA = false, transposeB = false): T {
-    this.throwIfDisposed();
-    return opHandler.matMul(this, b, transposeA, transposeB);
-  }
-  dot(b: Tensor|TensorLike): Tensor {
-    this.throwIfDisposed();
-    return opHandler.dot(this, b);
-  }
   norm(
       ord: number|'euclidean'|'fro' = 'euclidean', axis: number|number[] = null,
       keepDims = false): Tensor {
@@ -787,65 +641,10 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.slice(this, begin, size);
   }
-  reverse<T extends Tensor>(this: T, axis?: number|number[]): T {
-    this.throwIfDisposed();
-    return opHandler.reverse(this, axis);
-  }
-  concat<T extends Tensor>(this: T, x: T|Array<T|TensorLike>, axis = 0): T {
-    this.throwIfDisposed();
-    if (x instanceof Tensor) {
-      x = [x];
-    }
-    return opHandler.concat([this, ...x], axis);
-  }
-  split<T extends Tensor>(this: T, numOrSizeSplits: number[]|number, axis = 0):
-      T[] {
-    this.throwIfDisposed();
-    return opHandler.split(this, numOrSizeSplits, axis);
-  }
-  stack(x: Tensor, axis = 0): Tensor {
-    return opHandler.stack([this, x], axis);
-  }
-  unstack(axis = 0): Tensor[] {
-    return opHandler.unstack(this, axis);
-  }
-  /**
-   * @deprecated Use `tf.batchNorm` instead, and note the positional argument
-   *     change of scale, offset, and varianceEpsilon.
-   */
-  batchNormalization(
-      mean: Tensor<R>|Tensor1D|TensorLike,
-      variance: Tensor<R>|Tensor1D|TensorLike, varianceEpsilon = .001,
-      scale?: Tensor<R>|Tensor1D|TensorLike,
-      offset?: Tensor<R>|Tensor1D|TensorLike): Tensor<R> {
-    deprecationWarningFn(
-        'tf.batchNormalization() is going away. ' +
-        'Use tf.batchNorm() instead, and note the positional argument change ' +
-        'of scale, offset, and varianceEpsilon');
-    return this.batchNorm(mean, variance, offset, scale, varianceEpsilon);
-  }
-
   // Reduction ops.
-  all<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
-    this.throwIfDisposed();
-    return opHandler.all(this, axis, keepDims);
-  }
-  any<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
-    this.throwIfDisposed();
-    return opHandler.any(this, axis, keepDims);
-  }
-  logSumExp<T extends Tensor>(axis: number|number[] = null, keepDims = false):
-      T {
-    this.throwIfDisposed();
-    return opHandler.logSumExp(this, axis, keepDims);
-  }
   sum<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
     this.throwIfDisposed();
     return opHandler.sum(this, axis, keepDims);
-  }
-  prod<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
-    this.throwIfDisposed();
-    return opHandler.prod(this, axis, keepDims);
   }
   mean<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
     this.throwIfDisposed();
@@ -854,10 +653,6 @@ export class Tensor<R extends Rank = Rank> {
   min<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
     this.throwIfDisposed();
     return opHandler.min(this, axis, keepDims);
-  }
-  max<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
-    this.throwIfDisposed();
-    return opHandler.max(this, axis, keepDims);
   }
   argMin<T extends Tensor>(axis: number = null): T {
     this.throwIfDisposed();
@@ -875,144 +670,113 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   // Binary ops.
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   addStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.addStrict(this, x);
   }
-  atan2<T extends this>(this: T, x: T|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.atan2(this, x);
-  }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   subStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.subStrict(this, x);
   }
-  pow<T extends Tensor>(this: T, exp: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.pow(this, exp);
-  }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   powStrict(exp: Tensor|TensorLike): Tensor<R> {
     this.throwIfDisposed();
     return opHandler.powStrict(this, exp);
   }
-  mul<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.mul(this, x);
-  }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   mulStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.mulStrict(this, x);
   }
-  floorDiv<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.floorDiv(this, x);
-  }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   divStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.divStrict(this, x);
   }
-  minimum<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.minimum(this, x);
-  }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   minimumStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.minimumStrict(this, x);
   }
-  maximum<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.maximum(this, x);
-  }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   maximumStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.maximumStrict(this, x);
   }
-  mod<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.mod(this, x);
-  }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   modStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.modStrict(this, x);
   }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   squaredDifferenceStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.squaredDifferenceStrict(this, x);
   }
 
   // Compare ops.
-
-  notEqual<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.notEqual(this, x);
-  }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   notEqualStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.notEqualStrict(this, x);
   }
-  less<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.less(this, x);
-  }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   lessStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.lessStrict(this, x);
   }
-  equal<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.equal(this, x);
-  }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   equalStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.equalStrict(this, x);
   }
-  lessEqual<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.lessEqual(this, x);
-  }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   lessEqualStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.lessEqualStrict(this, x);
   }
-  greater<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.greater(this, x);
-  }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   greaterStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.greaterStrict(this, x);
   }
-  greaterEqual<T extends Tensor>(x: Tensor|TensorLike): T {
-    this.throwIfDisposed();
-    return opHandler.greaterEqual(this, x);
-  }
+  /**
+   * @deprecated strict variants of ops have been deprecated
+   */
   greaterEqualStrict<T extends this>(this: T, x: T|TensorLike): T {
     this.throwIfDisposed();
     return opHandler.greaterEqualStrict(this, x);
   }
-
-  // Compare ops.
-  logicalAnd(x: Tensor|TensorLike): Tensor {
-    this.throwIfDisposed();
-    return opHandler.logicalAnd(this, x);
-  }
-  logicalOr(x: Tensor|TensorLike): Tensor {
-    this.throwIfDisposed();
-    return opHandler.logicalOr(this, x);
-  }
-  logicalNot<T extends Tensor>(this: T): T {
-    this.throwIfDisposed();
-    return opHandler.logicalNot(this);
-  }
-  logicalXor(x: Tensor|TensorLike): Tensor {
-    this.throwIfDisposed();
-    return opHandler.logicalXor(this, x);
-  }
-  where(condition: Tensor|TensorLike, x: Tensor|TensorLike): Tensor {
-    this.throwIfDisposed();
-    return opHandler.where(condition, this, x);
-  }
-
   // Unary ops.
   neg<T extends Tensor>(this: T): T {
     this.throwIfDisposed();
@@ -1081,30 +845,6 @@ export class Tensor<R extends Rank = Rank> {
   clipByValue(min: number, max: number): Tensor<R> {
     this.throwIfDisposed();
     return opHandler.clipByValue(this, min, max);
-  }
-  relu<T extends Tensor>(this: T): T {
-    this.throwIfDisposed();
-    return opHandler.relu(this);
-  }
-  relu6<T extends Tensor>(this: T): T {
-    this.throwIfDisposed();
-    return opHandler.relu6(this);
-  }
-  elu<T extends Tensor>(this: T): T {
-    this.throwIfDisposed();
-    return opHandler.elu(this);
-  }
-  selu<T extends Tensor>(this: T): T {
-    this.throwIfDisposed();
-    return opHandler.selu(this);
-  }
-  leakyRelu(alpha = 0.2): Tensor<R> {
-    this.throwIfDisposed();
-    return opHandler.leakyRelu(this, alpha);
-  }
-  prelu(alpha: Tensor<R>|TensorLike): Tensor<R> {
-    this.throwIfDisposed();
-    return opHandler.prelu(this, alpha);
   }
   sigmoid<T extends Tensor>(this: T): T {
     this.throwIfDisposed();
@@ -1194,98 +934,7 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return opHandler.logSoftmax(this, axis);
   }
-
-  // Image ops.
-  resizeBilinear<T extends Tensor3D|Tensor4D>(
-      this: T, newShape2D: [number, number], alignCorners = false): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.image.resizeBilinear(this, newShape2D, alignCorners);
-  }
-
-  resizeNearestNeighbor<T extends Tensor3D|Tensor4D>(
-      this: T, newShape2D: [number, number], alignCorners = false): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.image.resizeNearestNeighbor(
-        this, newShape2D, alignCorners);
-  }
-
-  // Convolutions.
-  conv1d<T extends Tensor2D|Tensor3D>(
-      this: T, filter: Tensor3D|TensorLike3D, stride: number,
-      pad: 'valid'|'same'|number, dataFormat: 'NWC'|'NCW' = 'NWC', dilation = 1,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.conv1d(
-        this, filter, stride, pad, dataFormat, dilation, dimRoundingMode);
-  }
-  conv2d<T extends Tensor3D|Tensor4D>(
-      this: T, filter: Tensor4D|TensorLike4D, strides: [number, number]|number,
-      pad: 'valid'|'same'|number, dataFormat: 'NHWC'|'NCHW' = 'NHWC',
-      dilations: [number, number]|number = [1, 1],
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.conv2d(
-        this, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
-  }
-  conv2dTranspose<T extends Tensor3D|Tensor4D>(
-      this: T, filter: Tensor4D|TensorLike4D,
-      outputShape: [number, number, number, number]|[number, number, number],
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.conv2dTranspose(
-        this, filter, outputShape, strides, pad, dimRoundingMode);
-  }
-  depthwiseConv2D<T extends Tensor3D|Tensor4D>(
-      this: T, filter: Tensor4D|TensorLike4D, strides: [number, number]|number,
-      pad: 'valid'|'same'|number, dataFormat: 'NHWC'|'NCHW' = 'NHWC',
-      dilations: [number, number]|number = [1, 1],
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.depthwiseConv2d(
-        this, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
-  }
-
-  separableConv2d<T extends Tensor3D|Tensor4D>(
-      this: T|TensorLike, depthwiseFilter: Tensor4D|TensorLike4D,
-      pointwiseFilter: Tensor4D|TensorLike, strides: [number, number]|number,
-      pad: 'valid'|'same', dilation: [number, number]|number = [1, 1],
-      dataFormat: 'NHWC'|'NCHW' = 'NHWC'): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.separableConv2d(
-        this, depthwiseFilter, pointwiseFilter, strides, pad, dilation,
-        dataFormat);
-  }
-
   // Pooling.
-  avgPool<T extends Tensor3D|Tensor4D>(
-      this: T, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.avgPool(this, filterSize, strides, pad, dimRoundingMode);
-  }
-  maxPool<T extends Tensor3D|Tensor4D>(
-      this: T, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.maxPool(this, filterSize, strides, pad, dimRoundingMode);
-  }
-  localResponseNormalization<T extends Tensor3D|Tensor4D>(
-      this: T, radius = 5, bias = 1, alpha = 1, beta = 0.5): T {
-    return opHandler.localResponseNormalization(
-        this, radius, bias, alpha, beta);
-  }
-  pool<T extends Tensor3D|Tensor4D>(
-      this: T, windowShape: [number, number]|number, poolingType: 'max'|'avg',
-      padding: 'valid'|'same'|number, dilationRate?: [number, number]|number,
-      strides?: [number, number]|number): T {
-    (this as Tensor).throwIfDisposed();
-    return opHandler.pool(
-        this, windowShape, poolingType, padding, dilationRate, strides);
-  }
-
   variable(trainable = true, name?: string, dtype?: DataType): Variable<R> {
     this.throwIfDisposed();
     return trackerFn().makeVariable(this, trainable, name, dtype) as
@@ -1296,18 +945,6 @@ export class Tensor<R extends Rank = Rank> {
       this: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T {
     this.throwIfDisposed();
     return opHandler.unsortedSegmentSum(this, segmentIds, numSegments);
-  }
-
-  batchToSpaceND<T extends Tensor>(
-      this: T, blockShape: number[], crops: number[][]): T {
-    this.throwIfDisposed();
-    return opHandler.batchToSpaceND(this, blockShape, crops);
-  }
-
-  spaceToBatchND<T extends Tensor>(
-      this: T, blockShape: number[], paddings: number[][]): T {
-    this.throwIfDisposed();
-    return opHandler.spaceToBatchND(this, blockShape, paddings);
   }
 
   topk<T extends Tensor>(this: T, k = 1, sorted = true):
@@ -1324,12 +961,6 @@ export class Tensor<R extends Rank = Rank> {
     return opHandler.stridedSlice(
         this, begin, end, strides, beginMask, endMask, ellipsisMask,
         newAxisMask, shrinkAxisMask);
-  }
-
-  depthToSpace(this: Tensor4D, blockSize: number, dataFormat: 'NHWC'|'NCHW'):
-      Tensor4D {
-    this.throwIfDisposed();
-    return opHandler.depthToSpace(this, blockSize, dataFormat);
   }
 
   fft(this: Tensor): Tensor {

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -64,8 +64,11 @@ function addN_<T extends Tensor>(tensors: Array<T|TensorLike>): T {
     }
   });
 
-  const forward: ForwardFunc<Tensor> = (backend, save) =>
-      backend.addN($tensors);
+  const forward: ForwardFunc<Tensor> = (backend, save) => {
+    const res = backend.addN($tensors);
+    save($tensors);
+    return res;
+  };
 
   const inputs: AddNInputs = $tensors;
 

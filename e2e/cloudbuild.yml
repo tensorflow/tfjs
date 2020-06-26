@@ -1,0 +1,46 @@
+steps:
+
+# Setup Verdaccio.
+- name: 'node:10'
+  dir: 'e2e'
+  entrypoint: 'bash'
+  id: 'verdaccio'
+  args: ['./scripts/start-verdaccio.sh']
+
+# Install packages.
+- name: 'node:10'
+  dir: 'e2e'
+  entrypoint: 'yarn'
+  id: 'yarn'
+  args: ['install']
+  waitFor: ['verdaccio']
+
+# Build deps.
+- name: 'node:10'
+  dir: 'e2e'
+  entrypoint: 'yarn'
+  id: 'build-deps'
+  args: ['build-deps-ci']
+  waitFor: ['yarn']
+
+# Test.
+- name: 'node:10'
+  dir: 'e2e'
+  entrypoint: 'yarn'
+  id: 'test'
+  args: ['test-ci']
+  waitFor: ['build-deps']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
+  secretEnv: ['BROWSERSTACK_KEY']
+
+secrets:
+- kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
+  secretEnv:
+    BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
+timeout: 1800s
+logsBucket: 'gs://tfjs-build-logs'
+substitutions:
+  _NIGHTLY: ''
+options:
+  logStreamingOption: 'STREAM_ON'
+  substitution_option: 'ALLOW_LOOSE'

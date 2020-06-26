@@ -32,18 +32,10 @@
  * https://github.com/settings/tokens
  *
  * Usage:
- *   # Release notes for all commits after tfjs union version 0.9.0.
- *   yarn release-notes --startVersion 0.9.0 --out ./draft_notes.md
- *
- *   # Release notes for all commits after version 0.9.0 up to and including
- *   # version 0.10.0.
- *   yarn release-notes --startVersion 0.9.0 --endVersion 0.10.3 \
- *       --out ./draft_notes.md
+ *   yarn release-notes
  */
 
-import * as commander from 'commander';
-import * as mkdirp from 'mkdirp';
-import * as readline from 'readline';
+import * as argparse from 'argparse';
 import * as fs from 'fs';
 import * as util from './util';
 import {$, Commit, Repo, RepoCommits} from './util';
@@ -51,7 +43,6 @@ import {$, Commit, Repo, RepoCommits} from './util';
 const octokit = require('@octokit/rest')();
 
 const OUT_FILE = 'release-notes.md';
-const TMP_DIR = '/tmp/tfjs-release-notes';
 
 const UNION_DEPENDENCIES: Repo[] = [
   {name: 'Core', identifier: 'tfjs-core'},
@@ -70,6 +61,11 @@ const WASM_REPO: Repo = {
   identifier: 'tfjs-backend-wasm'
 }
 
+const VIS_REPO: Repo = {
+  name: 'tfjs-vis',
+  identifier: 'tfjs-vis',
+}
+
 async function
 askUserForVersions(validVersions: string[], packageName: string): Promise<{
   startVersion: string, endVersion: string
@@ -79,14 +75,14 @@ askUserForVersions(validVersions: string[], packageName: string): Promise<{
 
   console.log(YELLOW_TERMINAL_COLOR, packageName + ' versions');
   console.log(validVersions.join(', '));
-  const startVersion = await util.question(`Enter the union start version: `);
+  const startVersion = await util.question(`Enter the start version: `);
   if (validVersions.indexOf(startVersion) === -1) {
     console.log(RED_TERMINAL_COLOR, `Unknown start version: ${startVersion}`);
     process.exit(1);
   }
   const defaultVersion = validVersions[validVersions.length - 1];
   let endVersion = await util.question(
-      `Enter the union end version (leave empty for ${defaultVersion}): `);
+      `Enter the end version (leave empty for ${defaultVersion}): `);
   if (endVersion === '') {
     endVersion = defaultVersion;
   }
@@ -110,17 +106,7 @@ function getTagName(packageName: string, version: string) {
   return packageName + '-v' + version;
 }
 
-async function main() {
-  mkdirp(TMP_DIR, (err) => {
-    if (err) {
-      console.log('Error creating temp dir', TMP_DIR);
-      process.exit(1);
-    }
-  });
-
-  // Remove anything that exists already in the tmp dir.
-  $(`rm -f -r ${TMP_DIR}/*`);
-
+async function generateUnionPackageNotes() {
   // Get union start version and end version.
   const versions = getTaggedVersions('tfjs');
   const {startVersion, endVersion} = await askUserForVersions(versions, 'tfjs');
@@ -137,29 +123,10 @@ async function main() {
   WASM_REPO.startCommit = $(`git rev-list -n 1 ${
       getTagName(WASM_REPO.identifier, WASM_REPO.startVersion)}`);
 
-  // Get all the commits of the union package between the versions.
-  const unionCommits =
-      $(`git log --pretty=format:"%H" ` +
-        `${getTagName('tfjs', startVersion)}..` +
-        `${getTagName('tfjs', endVersion)}`);
-
-  const commitLines = unionCommits.trim().split('\n');
-
-  // Read the union package.json from the earliest commit so we can find the
-  // dependencies.
-  const earliestCommit = commitLines[commitLines.length - 1];
-  const earliestUnionPackageJson =
-      JSON.parse($(`git show ${earliestCommit}:tfjs/package.json`));
-  const latestCommit = commitLines[0];
-  const latestUnionPackageJson =
-      JSON.parse($(`git show ${latestCommit}:tfjs/package.json`));
-
   // Populate start and end for each of the union dependencies.
   UNION_DEPENDENCIES.forEach(repo => {
     // Find the version of the dependency from the package.json from the
     // earliest union tag.
-    const npm = '@tensorflow/' + repo.identifier;
-
     repo.startCommit =
         $(startVersion != null ?
               `git rev-list -n 1 ` + getTagName(repo.identifier, startVersion) :
@@ -169,11 +136,28 @@ async function main() {
     repo.startVersion = startVersion != null ? startVersion : null;
     repo.endVersion = endVersion;
   });
+  await generateNotes([...UNION_DEPENDENCIES, NODE_REPO, WASM_REPO]);
+}
 
+async function generateVisNotes() {
+  // Get union start version and end version.
+  const versions = getTaggedVersions('tfjs-vis');
+  const {startVersion, endVersion} =
+      await askUserForVersions(versions, 'tfjs-vis');
+
+  // Get tfjs-vis start version and end version.
+  VIS_REPO.startVersion = startVersion;
+  VIS_REPO.endVersion = endVersion;
+  VIS_REPO.startCommit = $(`git rev-list -n 1 ${
+      getTagName(VIS_REPO.identifier, VIS_REPO.startVersion)}`);
+
+  await generateNotes([VIS_REPO]);
+}
+
+async function generateNotes(repositories: util.Repo[]) {
   const repoCommits: RepoCommits[] = [];
-
   // Clone all of the dependencies into the tmp directory.
-  [...UNION_DEPENDENCIES, NODE_REPO, WASM_REPO].forEach(repo => {
+  repositories.forEach(repo => {
     console.log(
         `${repo.name}: ${repo.startVersion}` +
         ` =====> ${repo.endVersion}`);
@@ -245,4 +229,20 @@ async function main() {
   // So the script doesn't just hang.
   process.exit(0);
 }
-main();
+
+const parser = new argparse.ArgumentParser();
+
+parser.addArgument('--project', {
+  help:
+      'Which project to generate release notes for. One of union|vis. Defaults to union.',
+  defaultValue: 'union',
+  choices: ['union', 'vis']
+});
+
+const args = parser.parseArgs();
+
+if (args.project === 'union') {
+  generateUnionPackageNotes();
+} else if (args.project === 'vis') {
+  generateVisNotes();
+}

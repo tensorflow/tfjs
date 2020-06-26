@@ -288,6 +288,12 @@
         "defaultValue": "NHWC"
       },
       {
+        "tfName": "explicit_paddings",
+        "name": "explicitPaddings",
+        "type": "number[]",
+        "defaultValue": []
+      },
+      {
         "tfName": "dilations",
         "name": "dilations",
         "type": "number[]"
@@ -416,6 +422,12 @@
         "name": "dataFormat",
         "type": "string",
         "notSupported": true
+      },
+      {
+        "tfName": "explicit_paddings",
+        "name": "explicitPaddings",
+        "type": "number[]",
+        "defaultValue": []
       }
     ]
   },
@@ -450,6 +462,12 @@
         "name": "dataFormat",
         "type": "string",
         "defaultValue": "NHWC"
+      },
+      {
+        "tfName": "explicit_paddings",
+        "name": "explicitPaddings",
+        "type": "number[]",
+        "defaultValue": []
       },
       {
         "tfName": "dilations",
@@ -489,6 +507,12 @@
         "name": "dataFormat",
         "type": "string",
         "defaultValue": "NHWC"
+      },
+      {
+        "tfName": "explicit_paddings",
+        "name": "explicitPaddings",
+        "type": "number[]",
+        "defaultValue": []
       },
       {
         "tfName": "dilations",
@@ -601,6 +625,39 @@
         "tfName": "dilations",
         "name": "dilations",
         "type": "number[]"
+      }
+    ]
+  },
+  {
+    "tfOpName": "Dilation2D",
+    "category": "convolution",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "x",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "filter",
+        "type": "tensor"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "strides",
+        "name": "strides",
+        "type": "number[]"
+      },
+      {
+        "tfName": "rates",
+        "name": "dilations",
+        "type": "number[]"
+      },
+      {
+        "tfName": "padding",
+        "name": "pad",
+        "type": "string"
       }
     ]
   }

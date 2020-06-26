@@ -28,6 +28,28 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "tfjs-backend-wasm-simd.js",
+    srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
+    linkopts = [
+        "-s ALLOW_MEMORY_GROWTH=1",
+        "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
+        "-s DISABLE_EXCEPTION_CATCHING=1",
+        "-s FILESYSTEM=0",
+        "-s EXIT_RUNTIME=0",
+        "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
+        "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
+        "-s MODULARIZE=1",
+        "-s EXPORT_NAME=WasmBackendModuleSimd",
+        "-s MALLOC=emmalloc",
+        "-s SIMD=1",
+    ],
+    deps = [
+        ":all_kernels",
+        ":backend",
+    ],
+)
+
 test_suite(
     name = "cc_tests",
 )
@@ -169,9 +191,11 @@ tfjs_cc_library(
         ":BatchMatMul",
         ":ClipByValue",
         ":Conv2D",
+        ":Conv2DBackpropInput",
         ":CropAndResize",
         ":DepthwiseConv2dNative",
         ":Div",
+        ":Equal",
         ":Exp",
         ":FloorDiv",
         ":FusedBatchNorm",
@@ -188,11 +212,12 @@ tfjs_cc_library(
         ":Maximum",
         ":Min",
         ":Minimum",
-        ":Mul",
+        ":Multiply",
         ":Neg",
         ":NonMaxSuppressionV3",
         ":NonMaxSuppressionV5",
         ":NotEqual",
+        ":OneHot",
         ":PadV2",
         ":Pow",
         ":Prelu",
@@ -200,6 +225,7 @@ tfjs_cc_library(
         ":Relu6",
         ":ResizeBilinear",
         ":ScatterNd",
+        ":SelectV2",
         ":Sigmoid",
         ":Softmax",
         ":Sub",
@@ -338,6 +364,14 @@ tfjs_unit_test(
 )
 
 tfjs_cc_library(
+    name = "Conv2DBackpropInput",
+    srcs = ["kernels/Conv2DBackpropInput.cc"],
+    deps = [
+        ":backend",
+    ],
+)
+
+tfjs_cc_library(
     name = "CropAndResize",
     srcs = ["kernels/CropAndResize.cc"],
     deps = [
@@ -369,7 +403,15 @@ tfjs_cc_library(
     name = "Div",
     srcs = ["kernels/Div.cc"],
     deps = [
-        ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Equal",
+    srcs = ["kernels/Equal.cc"],
+    deps = [
         ":binary",
         ":util",
     ],
@@ -582,8 +624,8 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-    name = "Mul",
-    srcs = ["kernels/Mul.cc"],
+    name = "Multiply",
+    srcs = ["kernels/Multiply.cc"],
     deps = [
         ":backend",
         ":binary",
@@ -617,6 +659,14 @@ tfjs_cc_library(
         ":backend",
         ":non_max_suppression_impl",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "OneHot",
+    srcs = ["kernels/OneHot.cc"],
+    deps = [
+        ":backend",
     ],
 )
 
@@ -699,6 +749,15 @@ tfjs_unit_test(
 tfjs_cc_library(
     name = "ScatterNd",
     srcs = ["kernels/ScatterNd.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SelectV2",
+    srcs = ["kernels/SelectV2.cc"],
     deps = [
         ":backend",
         ":util",

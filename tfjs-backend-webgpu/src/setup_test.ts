@@ -145,6 +145,7 @@ const TEST_FILTERS: TestFilter[] = [
                           // 'CanvasRenderingContext2D': The source width is 0
     ]
   },
+  {include: 'nonMaxSuppression', excludes: []},
   {
     include: 'argmax',
     excludes: [
@@ -215,6 +216,16 @@ const TEST_FILTERS: TestFilter[] = [
       'maxPoolBackprop',   // Not yet implemented.
       'maxPool3d',         // Not yet implemented.
       'maxPoolWithArgmax'  // Not yet implemented.
+    ]
+  },
+  {
+    include: 'avgPool',
+    excludes: [
+      'x=[2,2,1] f=[2,2] s=1 p=same',  // Pool3D not yet implemented.
+      'gradient',                      // Not yet implemented.
+      'avgPoolBackprop',               // Not yet implemented.
+      'avgPool3d',                     // Not yet implemented.
+      'avgPoolWithArgmax'              // Not yet implemented.
     ]
   },
   {
@@ -353,6 +364,34 @@ const TEST_FILTERS: TestFilter[] = [
       '2x2to3x3-NoCrop',  // The operation failed for an operation-specific
                           // reason
       'MultipleBoxes-DifferentBoxes',  // TimeOut
+    ]
+  },
+  {
+    include: 'batchNorm',
+    excludes: [
+      'gradient',
+    ]
+  },
+  {
+    include: 'batchToSpaceND',
+    excludes: [
+      'tensor3d', 'tensor4d', 'gradient',
+      'accepts a tensor-like object',  // tensor6d not yet implemented
+    ]
+  },
+  {
+    include: 'spaceToBatchND',
+    excludes: [
+      'tensor4d',
+      'gradient',
+      'accepts a tensor-like object',
+    ]
+  },
+  {
+    include: 'softmax',
+    excludes: [
+      'gradient',
+      'Weighted - Reduction.SUM_BY_NONZERO_WEIGHTS',
     ]
   }
 ];

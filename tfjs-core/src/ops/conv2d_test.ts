@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -166,6 +166,26 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     expectArraysClose(resultData, [133, 66, 200, 102, 108, 58, 56, 58]);
   });
 
+  it('x=[4,2,1] f=[4,2,1,1] s=1 d=1 p=explicit', async () => {
+    const inputDepth = 1;
+    const outputDepth = 1;
+    const pad =
+        [[0, 0], [1, 2], [0, 1], [0, 0]] as tf.backend_util.ExplicitPadding;
+    const stride = 1;
+    const dataFormat = 'NHWC';
+    const dilation = 1;
+
+    const x = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [4, 2, inputDepth]);
+    const w =
+        tf.tensor4d([3, 1, 5, 0, 2, 7, 8, 9], [4, 2, inputDepth, outputDepth]);
+
+    const result = tf.conv2d(x, w, stride, pad, dataFormat, dilation);
+
+    const resultData = await result.data();
+    expect(result.shape).toEqual([4, 2, 1]);
+    expectArraysClose(resultData, [133, 66, 200, 102, 108, 58, 56, 58]);
+  });
+
   it('x=[2,2,1] f=[2,2,1,1] s=1 d=1 p=same', async () => {
     const inputDepth = 1;
     const inputShape: [number, number, number] = [2, 2, inputDepth];
@@ -193,6 +213,28 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     const outputDepth = 1;
     const fSize = 2;
     const pad = 'same';
+    const stride = 1;
+    const dataFormat = 'NCHW';
+    const dilation = 1;
+
+    const x = tf.tensor3d([1, 2, 3, 4], inputShape);
+    const w =
+        tf.tensor4d([3, 1, 5, 0], [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.conv2d(x, w, stride, pad, dataFormat, dilation);
+
+    const resultData = await result.data();
+    expect(result.shape).toEqual([1, 2, 2]);
+    expectArraysClose(resultData, [20, 26, 13, 12]);
+  });
+
+  it('x=[1,2,2] f=[2,2,1,1] s=1 d=1 p=explicit NCHW', async () => {
+    const inputDepth = 1;
+    const inputShape: [number, number, number] = [inputDepth, 2, 2];
+    const outputDepth = 1;
+    const fSize = 2;
+    const pad =
+        [[0, 0], [0, 0], [0, 1], [0, 1]] as tf.backend_util.ExplicitPadding;
     const stride = 1;
     const dataFormat = 'NCHW';
     const dilation = 1;
@@ -328,18 +370,25 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     const pad = 'same';
     const stride: [number, number] = [2, 2];
 
-    const inputs = generateCaseInputs(
-        1 * xSize * xSize * inputDepth, fSize * fSize * inputDepth);
-    const x = tf.tensor4d(inputs.input, inputShape);
-    const w =
-        tf.tensor4d(inputs.filter, [fSize, fSize, inputDepth, outputDepth]);
+    // TODO(annxingyuan): Make this test work with large inputs using
+    // generateCaseInputs https://github.com/tensorflow/tfjs/issues/3143
+    const inputData = [];
+    for (let i = 0; i < xSize * xSize * inputDepth; i++) {
+      inputData.push(i % 5);
+    }
 
+    const wData = [];
+    for (let i = 0; i < fSize * fSize * inputDepth * outputDepth; i++) {
+      wData.push(i % 5);
+    }
+
+    const x = tf.tensor4d(inputData, inputShape);
+    const w = tf.tensor4d(wData, [fSize, fSize, inputDepth, outputDepth]);
     const result = tf.conv2d(x, w, stride, pad);
     expect(result.shape).toEqual([1, 4, 4, 1]);
     expectArraysClose(await result.data(), new Float32Array([
-                        2209560, 2543640, 2877720, 1890576, 4882200, 5216280,
-                        5550360, 3475728, 7554840, 7888920, 8223000, 5060880,
-                        4153744, 4302736, 4451728, 2551904
+                        854, 431, 568, 382, 580, 427, 854, 288, 431, 568, 580,
+                        289, 285, 570, 285, 258
                       ]));
   });
 
@@ -353,25 +402,30 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     const pad = 'same';
     const stride: [number, number] = [2, 2];
 
-    const inputs = generateCaseInputs(
-        1 * xSize * xSize * inputDepth,
-        fSize * fSize * inputDepth * outputDepth);
-    const x = tf.tensor4d(inputs.input, inputShape);
-    const w =
-        tf.tensor4d(inputs.filter, [fSize, fSize, inputDepth, outputDepth]);
+    // TODO(annxingyuan): Make this test work with large inputs using
+    // generateCaseInputs https://github.com/tensorflow/tfjs/issues/3143
+    const inputData = [];
+    for (let i = 0; i < xSize * xSize * inputDepth; i++) {
+      inputData.push(i % 5);
+    }
+
+    const wData = [];
+    for (let i = 0; i < fSize * fSize * inputDepth * outputDepth; i++) {
+      wData.push(i % 5);
+    }
+
+    const x = tf.tensor4d(inputData, inputShape);
+    const w = tf.tensor4d(wData, [fSize, fSize, inputDepth, outputDepth]);
 
     const result = tf.conv2d(x, w, stride, pad);
     expect(result.shape).toEqual([1, 4, 4, 4]);
     expectArraysClose(
         await result.data(), new Float32Array([
-          57771,  58554,  59337,  60120,  66357,  67302,  68247,  69192,
-          74943,  76050,  77157,  78264,  49071,  49890,  50709,  51528,
-          126459, 128538, 130617, 132696, 135045, 137286, 139527, 141768,
-          143631, 146034, 148437, 150840, 89679,  91362,  93045,  94728,
-          195147, 198522, 201897, 205272, 203733, 207270, 210807, 214344,
-          212319, 216018, 219717, 223416, 130287, 132834, 135381, 137928,
-          105798, 108696, 111594, 114492, 109578, 112584, 115590, 118596,
-          113358, 116472, 119586, 122700, 64502,  66632,  68762,  70892
+          104, 125, 126, 102, 133, 126, 104, 57,  137, 102, 57,  112, 64,
+          40,  76,  92,  116, 53,  110, 142, 50,  104, 133, 137, 104, 125,
+          126, 102, 83,  88,  78,  33,  133, 126, 104, 57,  137, 102, 57,
+          112, 116, 53,  110, 142, 37,  76,  100, 99,  33,  68,  83,  88,
+          70,  83,  76,  64,  92,  88,  64,  40,  51,  44,  27,  50
         ]));
   });
 

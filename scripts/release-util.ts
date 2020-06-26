@@ -30,7 +30,19 @@ export interface ReleaseUnit {
 
 export const CORE_PHASE: Phase = {
   packages: ['tfjs-core'],
-  deps: ['tfjs-backend-cpu']
+  // Do not mark tfjs-backend-cpu as a dependency during releases. As a
+  // devDependency it should keep the link:// path. Once tests have passed in CI
+  // building and releasing core should not depend on the cpu backend
+};
+
+export const CPU_PHASE: Phase = {
+  packages: ['tfjs-backend-cpu'],
+  deps: ['tfjs-core']
+};
+
+export const WEBGL_PHASE: Phase = {
+  packages: ['tfjs-backend-webgl'],
+  deps: ['tfjs-core', 'tfjs-backend-cpu']
 };
 
 export const LAYERS_CONVERTER_PHASE: Phase = {
@@ -45,7 +57,10 @@ export const DATA_PHASE: Phase = {
 
 export const UNION_PHASE: Phase = {
   packages: ['tfjs'],
-  deps: ['tfjs-core', 'tfjs-layers', 'tfjs-converter', 'tfjs-data']
+  deps: [
+    'tfjs-core', 'tfjs-layers', 'tfjs-converter', 'tfjs-data',
+    'tfjs-backend-cpu', 'tfjs-backend-webgl'
+  ]
 };
 
 // We added tfjs-core and tfjs-layers because Node has unit tests that directly
@@ -67,7 +82,8 @@ export const VIS_PHASE: Phase = {
 };
 
 export const REACT_NATIVE_PHASE: Phase = {
-  packages: ['tfjs-react-native']
+  packages: ['tfjs-react-native'],
+  deps: ['tfjs-core', 'tfjs-backend-cpu', 'tfjs-backend-webgl']
 };
 
 export const WEBSITE_PHASE: Phase = {
@@ -81,8 +97,8 @@ export const WEBSITE_PHASE: Phase = {
 export const TFJS_RELEASE_UNIT: ReleaseUnit = {
   name: 'tfjs',
   phases: [
-    CORE_PHASE, LAYERS_CONVERTER_PHASE, DATA_PHASE, UNION_PHASE, NODE_PHASE,
-    WASM_PHASE
+    CORE_PHASE, CPU_PHASE, WEBGL_PHASE, LAYERS_CONVERTER_PHASE, DATA_PHASE,
+    UNION_PHASE, NODE_PHASE, WASM_PHASE
   ]
 };
 

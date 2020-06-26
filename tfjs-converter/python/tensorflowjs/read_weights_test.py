@@ -20,17 +20,17 @@ from __future__ import print_function
 
 import os
 import shutil
-import unittest
 
 import tempfile
 
 import numpy as np
+import tensorflow as tf
 
 from tensorflowjs import read_weights
 from tensorflowjs import write_weights
 
 
-class ReadWeightsTest(unittest.TestCase):
+class ReadWeightsTest(tf.test.TestCase):
   def setUp(self):
     self._tmp_dir = tempfile.mkdtemp()
     super(ReadWeightsTest, self).setUp()
@@ -45,6 +45,9 @@ class ReadWeightsTest(unittest.TestCase):
         [{
             'name': 'weight1',
             'data': np.array([1, 2, 3], 'float32')
+        }, {
+            'name': 'weight2',
+            'data': np.array([1 + 1j, 2 + 2j, 3 + 3j])
         }]
     ]
 
@@ -53,11 +56,13 @@ class ReadWeightsTest(unittest.TestCase):
     # Read the weights using `read_weights`.
     read_output = read_weights.read_weights(manifest, self._tmp_dir)
     self.assertEqual(1, len(read_output))
-    self.assertEqual(1, len(read_output[0]))
+    self.assertEqual(2, len(read_output[0]))
     self.assertEqual('weight1', read_output[0][0]['name'])
     self.assertTrue(
         np.allclose(groups[0][0]['data'], read_output[0][0]['data']))
-
+    self.assertEqual('weight2', read_output[0][1]['name'])
+    self.assertTrue(
+        np.allclose(groups[0][1]['data'], read_output[0][1]['data']))
   def testReadOneGroupString(self):
     groups = [
         [{
@@ -321,7 +326,7 @@ class ReadWeightsTest(unittest.TestCase):
       read_weights.read_weights(groups[0][0], self._tmp_dir)
 
 
-  def testReadQuantizedWeights(self):
+  def testReadAffineQuantizedWeights(self):
     groups = [
         [{
             'name': 'weight1',
@@ -330,16 +335,37 @@ class ReadWeightsTest(unittest.TestCase):
     ]
 
     manifest = write_weights.write_weights(
-        groups, self._tmp_dir, quantization_dtype=np.uint8)
+        groups, self._tmp_dir, quantization_dtype_map={'uint8': '*'})
 
     # Read the weights using `read_weights`.
     read_output = read_weights.read_weights(manifest, self._tmp_dir)
     self.assertEqual(1, len(read_output))
     self.assertEqual(1, len(read_output[0]))
     self.assertEqual('weight1', read_output[0][0]['name'])
+    self.assertEqual(read_output[0][0]['data'].dtype, np.float32)
+    self.assertTrue(
+        np.allclose(groups[0][0]['data'], read_output[0][0]['data']))
+
+  def testReadFloat16QuantizedWeights(self):
+    groups = [
+        [{
+            'name': 'weight1',
+            'data': np.array([0, 1, 2, 3], 'float32')
+        }]
+    ]
+
+    manifest = write_weights.write_weights(
+        groups, self._tmp_dir, quantization_dtype_map={'float16': '*'})
+
+    # Read the weights using `read_weights`.
+    read_output = read_weights.read_weights(manifest, self._tmp_dir)
+    self.assertEqual(1, len(read_output))
+    self.assertEqual(1, len(read_output[0]))
+    self.assertEqual('weight1', read_output[0][0]['name'])
+    self.assertEqual(read_output[0][0]['data'].dtype, np.float32)
     self.assertTrue(
         np.allclose(groups[0][0]['data'], read_output[0][0]['data']))
 
 
 if __name__ == '__main__':
-  unittest.main()
+  tf.test.main()

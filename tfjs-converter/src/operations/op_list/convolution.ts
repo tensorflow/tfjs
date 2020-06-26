@@ -1,8 +1,6 @@
-import {OpMapper} from '../types';
-
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +14,8 @@ import {OpMapper} from '../types';
  * limitations under the License.
  * =============================================================================
  */
+
+import {OpMapper} from '../types';
 
 export const json: OpMapper[] = [
   {
@@ -147,6 +147,12 @@ export const json: OpMapper[] = [
         'type': 'string',
         'defaultValue': 'NHWC'
       },
+      {
+        'tfName': 'explicit_paddings',
+        'name': 'explicitPaddings',
+        'type': 'number[]',
+        'defaultValue': []
+      },
       {'tfName': 'dilations', 'name': 'dilations', 'type': 'number[]'}
     ]
   },
@@ -211,12 +217,19 @@ export const json: OpMapper[] = [
     ],
     'attrs': [
       {'tfName': 'strides', 'name': 'strides', 'type': 'number[]'},
-      {'tfName': 'padding', 'name': 'pad', 'type': 'string'}, {
+      {'tfName': 'padding', 'name': 'pad', 'type': 'string'},
+      {
         'tfName': 'data_format',
         'name': 'dataFormat',
         'type': 'string',
         'notSupported': true
-      }
+      },
+      {
+        'tfName': 'explicit_paddings',
+        'name': 'explicitPaddings',
+        'type': 'number[]',
+        'defaultValue': []
+      },
     ]
   },
   {
@@ -233,6 +246,12 @@ export const json: OpMapper[] = [
         'name': 'dataFormat',
         'type': 'string',
         'defaultValue': 'NHWC'
+      },
+      {
+        'tfName': 'explicit_paddings',
+        'name': 'explicitPaddings',
+        'type': 'number[]',
+        'defaultValue': []
       },
       {'tfName': 'dilations', 'name': 'dilations', 'type': 'number[]'}
     ]
@@ -251,6 +270,12 @@ export const json: OpMapper[] = [
         'name': 'dataFormat',
         'type': 'string',
         'defaultValue': 'NHWC'
+      },
+      {
+        'tfName': 'explicit_paddings',
+        'name': 'explicitPaddings',
+        'type': 'number[]',
+        'defaultValue': []
       },
       {'tfName': 'dilations', 'name': 'dilations', 'type': 'number[]'}
     ]
@@ -304,5 +329,18 @@ export const json: OpMapper[] = [
       },
       {'tfName': 'dilations', 'name': 'dilations', 'type': 'number[]'}
     ],
+  },
+  {
+    'tfOpName': 'Dilation2D',
+    'category': 'convolution',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+      {'start': 1, 'name': 'filter', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'strides', 'name': 'strides', 'type': 'number[]'},
+      {'tfName': 'rates', 'name': 'dilations', 'type': 'number[]'},
+      {'tfName': 'padding', 'name': 'pad', 'type': 'string'}
+    ]
   }
 ];

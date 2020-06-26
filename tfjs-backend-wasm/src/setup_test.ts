@@ -118,6 +118,10 @@ const TEST_FILTERS: TestFilter[] = [
                            // supported.
       'gradient',          // Gradients not defined yet.
       'NCHW',              // xnn pack does not support channels first.
+      // Issue: https://github.com/tensorflow/tfjs/issues/3104.
+      // Actual != expected.
+      'relu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=8 p=same',
+      'prelu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=8 p=same',
     ]
   },
   {
@@ -175,10 +179,7 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'gradient',  // Gradient not defined yet.
       'upcasts',   // Cast not supported yet.
-      'broadcasting same rank Tensors different shape',  // Broadcasting along
-                                                         // inner dims not
-                                                         // supported yet.
-      'divNoNan'  // divNoNan not yet implemented.
+      'divNoNan'   // divNoNan not yet implemented.
     ]
   },
   {
@@ -192,8 +193,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'min ',
     excludes: [
-      'derivative: 1D tensor with max or min value',  // Clip not yet
-                                                      // implemented.
       '2D, axis=0',  // Permuted axes requires transpose, which is not yet
                      // implemented.
       'index corresponds to start of a non-initial window',  // argMin not yet
@@ -205,10 +204,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'max ',
     excludes: [
-      'derivative: 1D tensor with max or min value',  // Clip not yet
-                                                      // implemented.
-      '2D, axis=0',   // Permuted axes requires transpose, which is not yet
-                      // implemented.
       'gradient',     // Gradients not yet implemented
       'ignores NaNs'  // Doesn't yet ignore NaN
     ]
@@ -220,10 +215,9 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient'  // Split is not yet implemented
     ]
   },
-  {
-    include: 'transpose',
-    excludes: ['oneHot']  // oneHot not yet implemented.
-  },
+  {include: 'transpose'},
+  {include: 'oneHot'},
+  {include: 'split'},
   {include: 'pad ', excludes: ['complex', 'zerosLike']},
   {include: 'clip', excludes: ['gradient']},
   {include: 'addN'},
@@ -249,6 +243,15 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {
     include: 'log ',
+  },
+  {
+    startsWith: 'equal ',
+    excludes: [
+      'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
+                                       // supported yet.
+      'broadcasting Tensor3D shapes',  // Same as above.
+      'broadcasting Tensor4D shapes'   // Same as above.
+    ]
   },
   {
     include: 'greater ',
@@ -291,6 +294,15 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'notEqual',
+    excludes: [
+      'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
+                                       // supported yet.
+      'broadcasting Tensor3D shapes',  // Same as above.
+      'broadcasting Tensor4D shapes'   // Same as above.
+    ]
+  },
+  {
     include: 'mean ',
     excludes: [
       'axis=0',  // Reduction not supported along inner dimensions.
@@ -329,6 +341,17 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: ['gradient']  // Gradient not yet implemented.
   },
   {
+    startsWith: 'sqrt ',
+    excludes: ['gradient']  // Gradient not yet implemented.
+  },
+  {
+    startsWith: 'where ',
+    excludes: [
+      '1D condition with higher rank a and b',  // Fill not yet implemented.
+      'gradient'                                // Gradient not yet implemented.
+    ]
+  },
+  {
     startsWith: 'zerosLike',
     // Complex numbers not supported yet.
     excludes: ['complex'],
@@ -337,7 +360,7 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'onesLike',
     // Complex numbers not supported yet.
     excludes: ['complex'],
-  },
+  }
 ];
 
 const customInclude = (testName: string) => {

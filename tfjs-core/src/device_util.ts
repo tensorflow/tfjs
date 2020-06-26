@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,12 +16,12 @@
  */
 
 // tslint:disable-next-line:no-any
-export function isNavigatorDefined(): boolean {
+function _isNavigatorDefined(): boolean {
   return typeof navigator !== 'undefined' && navigator != null;
 }
 
 export function isMobile(): boolean {
-  if (isNavigatorDefined()) {
+  if (_isNavigatorDefined()) {
     // tslint:disable-next-line:no-any
     const a = navigator.userAgent || navigator.vendor || (window as any).opera;
     // tslint:disable-next-line:max-line-length

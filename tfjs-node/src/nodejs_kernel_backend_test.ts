@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,7 @@ import * as tf from '@tensorflow/tfjs';
 // tslint:disable-next-line: no-imports-from-dist
 import {TestKernelBackend} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-import {createTensorsTypeOpAttr, createTypeOpAttr, ensureTensorflowBackend, getTFDType, nodeBackend, NodeJSKernelBackend} from './nodejs_kernel_backend';
+import {createTensorsTypeOpAttr, ensureTensorflowBackend, getTFDType, nodeBackend, NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 describe('delayed upload', () => {
   it('should handle data before op execution', async () => {
@@ -114,14 +114,14 @@ describe('createTypeOpAttr()', () => {
   const binding = nodeBackend().binding;
 
   it('Creates a valid type attribute', () => {
-    const attr = createTypeOpAttr('foo', 'float32');
+    const attr = createTensorsTypeOpAttr('foo', 'float32');
     expect(attr.name).toBe('foo');
     expect(attr.type).toBe(binding.TF_ATTR_TYPE);
     expect(attr.value).toBe(binding.TF_FLOAT);
   });
 
   it('handles unknown dtypes', () => {
-    expect(() => createTypeOpAttr('foo', null)).toThrowError();
+    expect(() => createTensorsTypeOpAttr('foo', null)).toThrowError();
   });
 });
 

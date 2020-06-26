@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,7 @@
 
 import {SquaredDifference} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {mul} from '../ops/binary_ops';
+import {mul} from '../ops/mul';
 import {sub} from '../ops/sub';
 import {scalar} from '../ops/tensor_ops';
 import {Tensor} from '../tensor';

@@ -2,11 +2,12 @@
   "compilerOptions": {
     "module": "commonjs",
     "moduleResolution": "node",
+    "allowJs": true,
     "noImplicitAny": true,
     "sourceMap": true,
     "removeComments": true,
     "preserveConstEnums": true,
-    "declaration": true,
+    "declaration": false,
     "target": "es5",
     "lib": ["es2015", "dom"],
     "outDir": "./dist",

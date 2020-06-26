@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,11 +29,14 @@ import './Cast';
 import './ClipByValue';
 import './Concat';
 import './Conv2D';
+import './Conv2DBackpropInput';
 import './Cos';
 import './CropAndResize';
 import './DepthwiseConv2dNative';
 import './Div';
+import './Equal';
 import './Exp';
+import './Fill';
 import './FloorDiv';
 import './FusedBatchNorm';
 import './FusedConv2D';
@@ -51,11 +54,12 @@ import './Maximum';
 import './MaxPool';
 import './Min';
 import './Minimum';
-import './Mul';
+import './Muliply';
 import './Neg';
 import './NonMaxSuppressionV3';
 import './NonMaxSuppressionV5';
 import './NotEqual';
+import './OneHot';
 import './OnesLike';
 import './PadV2';
 import './Pow';
@@ -65,11 +69,14 @@ import './Relu6';
 import './Reshape';
 import './ResizeBilinear';
 import './Rsqrt';
+import './SelectV2';
 import './ScatterNd';
 import './Sigmoid';
 import './Sin';
 import './Slice';
 import './Softmax';
+import './Split';
+import './Sqrt';
 import './Square';
 import './Sub';
 import './Sum';

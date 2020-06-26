@@ -16,10 +16,21 @@
  */
 
 const karmaTypescriptConfig = {
-  tsconfig: 'tsconfig.json',
+  tsconfig: 'tsconfig.test.json',
   // Disable coverage reports and instrumentation by default for tests
   coverageOptions: {instrumentation: false},
-  reports: {}
+  reports: {},
+  bundlerOptions: {
+    acornOptions: {ecmaVersion: 8},
+    transforms: [
+      require('karma-typescript-es6-transform')({
+        presets: [
+          // ensure we get es5 by adding IE 11 as a target
+          ['@babel/env', {targets: {browsers: ['defaults', 'IE 11']}}]
+        ]
+      }),
+    ]
+  }
 };
 
 // Enable coverage reports and instrumentation under KARMA_COVERAGE=1 env
@@ -34,6 +45,7 @@ module.exports = function(config) {
   config.set({
     frameworks: ['jasmine', 'karma-typescript'],
     files: [
+      {pattern: './node_modules/@babel/polyfill/dist/polyfill.js'},
       // Setup the environment for the tests.
       'src/setup_tests.ts',
       {pattern: 'src/**/*.ts'},

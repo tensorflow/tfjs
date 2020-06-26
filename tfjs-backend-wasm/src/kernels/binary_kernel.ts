@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -63,7 +63,8 @@ export function registerBinaryKernel(
         aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length,
         CppDType[a.dtype], outId);
 
-    if (supportsFullBroadcast) {
+    // Currently only some float operations support full broadcast.
+    if (supportsFullBroadcast && a.dtype === 'float32') {
       kernelFunc();
       return out;
     }
@@ -78,7 +79,7 @@ export function registerBinaryKernel(
     } else {
       throw new Error(
           `Broadcasting along outer dims is not yet ` +
-          `supported for ${kernelName}.`);
+          `supported for ${a.dtype} ${kernelName}.`);
     }
   }
 

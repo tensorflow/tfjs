@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,7 +22,7 @@ import {TensorLike} from '../types';
 
 import {op} from './operation';
 import {slice} from './slice';
-import {computeOutShape, maskToAxes, startForAxis, stopForAxis} from './slice_util';
+import {computeOutShape, maskToAxes, startForAxis, startIndicesWithElidedDims, stopForAxis, stopIndicesWithElidedDims, stridesForAxis, stridesWithElidedDims} from './slice_util';
 
 /**
  * Extracts a strided slice of a tensor.
@@ -63,10 +63,24 @@ function stridedSlice_(
   if (strides == null) {
     strides = new Array(begin.length);
   }
-  if (ellipsisMask !== 0) {
-    throw new Error('ellipsis mask is not yet supported');
+
+  const ellipsisAxes = maskToAxes(ellipsisMask);
+  if (ellipsisAxes.length > 1) {
+    throw new Error('Multiple ellipses in slice is not allowed.');
   }
+
+  if (ellipsisMask !== 0 && newAxisMask !== 0) {
+    throw new Error(
+        'Using both ellipsisMask and newAxisMask is not yet supported.');
+  }
+
+  if (ellipsisMask !== 0 && shrinkAxisMask !== 0) {
+    throw new Error(
+        'Using both ellipsisMask and shrinkAxisMask is not yet supported.');
+  }
+
   let $x = convertToTensor(x, 'x', 'stridedSlice');
+  const numInterpolatedAxes = $x.rank - begin.length;
 
   // Expand the dims of x based on the newAxisMask.
   const expandAxes = maskToAxes(newAxisMask);
@@ -79,10 +93,26 @@ function stridedSlice_(
   $x = $x.reshape(newShape);
 
   // Normalize the start, end and strides.
-  for (let axis = 0; axis < $x.rank; axis++) {
-    begin[axis] = startForAxis(beginMask, begin, strides, $x.shape, axis);
-    end[axis] = stopForAxis(endMask, end, strides, $x.shape, axis);
-    strides[axis] = strides[axis] || 1;
+  if (ellipsisAxes.length && numInterpolatedAxes > 0) {
+    const fullIndex = ellipsisAxes[0];
+
+    // The ellipsis applies to the masked index as well as any dimensions
+    // that are interpolated.
+    const numElidedAxes = numInterpolatedAxes + 1;
+    begin = startIndicesWithElidedDims(
+        beginMask, fullIndex, numElidedAxes, begin, $x.shape);
+    end = stopIndicesWithElidedDims(
+        endMask, fullIndex, numElidedAxes, end, $x.shape);
+    strides =
+        stridesWithElidedDims(strides, fullIndex, numElidedAxes, $x.shape);
+  } else {
+    for (let axis = 0; axis < $x.rank; axis++) {
+      begin[axis] =
+          startForAxis(beginMask, begin, strides, $x.shape, axis, ellipsisMask);
+      end[axis] =
+          stopForAxis(endMask, end, strides, $x.shape, axis, ellipsisMask);
+      strides[axis] = stridesForAxis(strides, axis, ellipsisMask);
+    }
   }
 
   const shrinkAxes = maskToAxes(shrinkAxisMask);
