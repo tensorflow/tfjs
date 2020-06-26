@@ -45,7 +45,8 @@ function setup(backend: BackendWasm) {
   ]);
 }
 
-function pad(args: {inputs: PadInputs, backend: BackendWasm, attrs: PadAttrs}) {
+export function pad(
+    args: {inputs: PadInputs, backend: BackendWasm, attrs: PadAttrs}) {
   const {inputs: {x}, backend, attrs: {paddings, constantValue}} = args;
 
   const outShape = paddings.map(
