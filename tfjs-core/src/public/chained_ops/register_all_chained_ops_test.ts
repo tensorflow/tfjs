@@ -90,6 +90,7 @@ const CHAINED_OPS = [
   'squeeze',
   'stack',
   'sub',
+  'sum',
   'tile',
   'transpose',
   'unstack',

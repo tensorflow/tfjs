@@ -505,6 +505,13 @@ export type SelectV2Inputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
 export const Selu = 'Selu';
 export type SeluInputs = Pick<NamedTensorInfoMap, 'x'>;
 
+export const Sum = 'Sum';
+export type SumInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface SumAttrs {
+  axis: number|number[];
+  keepDims: boolean;
+}
+
 export const SpaceToBatchND = 'SpaceToBatchND';
 export type SpaceToBatchNDInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface SpaceToBatchNDAttrs {

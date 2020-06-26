@@ -80,6 +80,7 @@ import './squeeze';
 import './space_to_batch_nd';
 import './stack';
 import './sub';
+import './sum';
 import './tile';
 import './transpose';
 import './unstack';

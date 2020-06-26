@@ -14,17 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
-
-import {ENGINE} from '../engine';
-import {customGrad} from '../gradients';
+import {ENGINE, ForwardFunc} from '../engine';
+import {Sum, SumAttrs, SumInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
-import * as util from '../util';
+import {parseAxisParam} from '../util';
 
-import * as axis_util from './axis_util';
+import {expandShapeToKeepDim, getAxesPermutation, getInnerMostAxes} from './axis_util';
 import {op} from './operation';
-import {ones} from './tensor_ops';
 
 /**
  * Computes the sum of elements across dimensions of a `tf.Tensor`.
@@ -59,50 +59,34 @@ function sum_<T extends Tensor>(
     x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
   let $x = convertToTensor(x, 'x', 'sum');
 
-  if ($x.dtype === 'bool') {
-    $x = $x.toInt();
-  }
-  const axes = util.parseAxisParam(axis, $x.shape);
-
-  // Use a custom gradient to bypass 2 gradient backprops since sum is used
-  // extremely often.
-  const customOp = customGrad((x: Tensor) => {
-    const permutation = axis_util.getAxesPermutation(axes, x.rank);
-    let reductionAxes = axes;
-    let permutedX = x;
-    if (permutation != null) {
-      permutedX = x.transpose(permutation);
-      reductionAxes = axis_util.getInnerMostAxes(reductionAxes.length, x.rank);
+  const forward: ForwardFunc<Tensor> = (backend, save) => {
+    save([$x]);
+    if ($x.dtype === 'bool') {
+      $x = $x.toInt();
     }
+    const axes = parseAxisParam(axis, $x.shape);
 
-    const gradFunc = (dy: Tensor) => {
-      const expandedDyShape = x.shape.slice();
-      axes.forEach(axis => {
-        expandedDyShape[axis] = 1;
-      });
-      const expandedDy = dy.reshape(expandedDyShape);
-      const derX = expandedDy.mul(ones(x.shape, 'float32'));
-      return derX;
-    };
-
-    const gradInputs = (dy: Tensor) => {
-      return {x: () => gradFunc(dy)};
-    };
-
-    const attrs = {axes: reductionAxes};
-    let value = ENGINE.runKernelFunc(
-        backend => backend.sum(permutedX, reductionAxes), {x: permutedX},
-        gradInputs, 'Sum', attrs);
-
+    const permutation = getAxesPermutation(axes, $x.rank);
+    let reductionAxes = axes;
+    let permutedX = $x;
+    if (permutation != null) {
+      permutedX = $x.transpose(permutation);
+      reductionAxes = getInnerMostAxes(reductionAxes.length, $x.rank);
+    }
+    let value = backend.sum(permutedX, reductionAxes);
     if (keepDims) {
-      const newShape = axis_util.expandShapeToKeepDim(value.shape, axes);
+      const newShape = expandShapeToKeepDim(value.shape, axes);
       value = value.reshape(newShape);
     }
+    return value;
+  };
 
-    return {value, gradFunc};
-  });
+  const inputs: SumInputs = {x: $x};
+  const attrs: SumAttrs = {axis, keepDims};
 
-  return customOp($x) as T;
+  return ENGINE.runKernelFunc(
+             forward, inputs as {} as NamedTensorMap, null /* grad */, Sum,
+             attrs as {} as NamedAttrMap) as T;
 }
 
 export const sum = op({sum_});
