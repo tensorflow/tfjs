@@ -67,7 +67,7 @@ if [[ "$RELEASE" = true ]]; then
   "$e2e_root_path"/scripts/publish-monorepo-ci.sh
 
   echo 'Installing package'
-  yarn
+  #yarn
 
   # Cleanup
   cleanup

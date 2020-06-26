@@ -13,11 +13,11 @@ uplinks:
 # to allow all users to read and publish all packages.
 packages:
   '@*/*':
-    access: $all
+    access: $all, $anonymous
     publish: $all
     proxy: npmjs
   '**':
-    access: $all
+    access: $all, $anonymous
     publish: $all
     # if package is not available locally, proxy requests to 'npmjs' registry
     proxy: npmjs
