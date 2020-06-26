@@ -20,12 +20,12 @@ import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    argMin<T extends Tensor>(this: T, axis?: number): T;
+    argMin<T extends Tensor>(axis?: number): T;
   }
 }
 
-Tensor.prototype.argMin = function<T extends Tensor>(
-    this: T, axis?: number): T {
+Tensor.prototype.argMin = function<T extends Tensor>(axis?: number): T {
   this.throwIfDisposed();
-  return argMin(this, axis);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  return argMin(this, axis) as T;
 };

@@ -20,12 +20,12 @@ import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    argMax<T extends Tensor>(this: T, axis?: number): T;
+    argMax<T extends Tensor>(axis?: number): T;
   }
 }
 
-Tensor.prototype.argMax = function<T extends Tensor>(
-    this: T, axis?: number): T {
+Tensor.prototype.argMax = function<T extends Tensor>(axis?: number): T {
   this.throwIfDisposed();
-  return argMax(this, axis);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  return argMax(this, axis) as T;
 };
