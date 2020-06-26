@@ -256,7 +256,7 @@ function fusedMatMul_<T extends Tensor>({
       },
       inputs, grad, '_FusedMatMul', {transposeA, transposeB, activation},
       inputsToSave, outputsToSave);
-  return res.reshape(outShape) as T;
+  return res.reshape(outShape);
 }
 
 /**

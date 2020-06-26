@@ -19,7 +19,7 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {complex, DataId, div, engine, env, imag, max, MemoryInfo, range, real, RecursiveArray, scalar, softmax, tensor, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
+import {complex, DataId, div, engine, env, imag, max, MemoryInfo, range, real, RecursiveArray, reshape, scalar, softmax, tensor, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
 import {backend_util, buffer, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
 import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 
@@ -637,7 +637,8 @@ export class MathBackendWebGL extends KernelBackend {
       inputs: TensorInfo[],
       sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
     const cpuBackend = this.getCPUBackend();
-    if (!this.warnedAboutCPUBackend && cpuBackend == null) {
+    if (!this.warnedAboutCPUBackend && cpuBackend == null &&
+        !env().getBool('IS_TEST')) {
       console.warn(
           'Your application contains ops that are small enough to be ' +
           'executed on the CPU backend, however the CPU backend cannot ' +
@@ -1019,10 +1020,10 @@ export class MathBackendWebGL extends KernelBackend {
     const flattenShape = backend_util.getReshapedPermuted(
         paddedX.shape, blockShape, prod, false);
 
-    return transpose(
-               paddedX.reshape(reshapedPaddedShape),
-               permutedReshapedPaddedPermutation)
-               .reshape(flattenShape) as T;
+    const paddedXT = transpose(
+        paddedX.reshape(reshapedPaddedShape),
+        permutedReshapedPaddedPermutation);
+    return reshape(paddedXT, flattenShape) as T;
   }
 
   private reduce(

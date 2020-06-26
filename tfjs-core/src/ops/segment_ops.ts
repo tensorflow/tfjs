@@ -21,8 +21,8 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assert, isInt, parseAxisParam} from '../util';
 
-import {expandDims} from './array_ops';
 import {getUndoAxesPermutation} from './axis_util';
+import {expandDims} from './expand_dims';
 import {greaterEqual} from './greater_equal';
 import {logicalAnd} from './logical_and';
 import {maximum} from './maximum';
@@ -137,7 +137,7 @@ function gather_<T extends Tensor>(
                 return res;
               },
               {x: $x, indices: $indices}, grad, 'Gather', {axis}))
-             .reshape(shapeInfo.outputShape) as T;
+      .reshape(shapeInfo.outputShape);
 }
 
 function arrayRange(start: number, stop: number): number[] {

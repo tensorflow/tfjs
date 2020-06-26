@@ -19,13 +19,14 @@ import {ENGINE} from '../engine';
 import {Tensor1D, Tensor2D} from '../tensor';
 import {assert} from '../util';
 
-import {squeeze, stack} from './array_ops';
 import {div} from './div';
 import {mul} from './mul';
 import {norm} from './norm';
 import {op} from './operation';
 import {sum} from './reduction_ops';
 import {split} from './split';
+import {squeeze} from './squeeze';
+import {stack} from './stack';
 import {sub} from './sub';
 
 /**

@@ -94,6 +94,8 @@ def _impl(ctx):
                             "external/emsdk/emsdk/upstream/emscripten/system/lib/libc/musl/arch/emscripten",
                             "-isystem",
                             "external/emsdk/emsdk/upstream/emscripten/system/local/include",
+                            "-isystem",
+                            "external/emsdk/emsdk/upstream/lib/clang/11.0.0/include",
                         ],
                     ),
                 ],

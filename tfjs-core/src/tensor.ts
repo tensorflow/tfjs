@@ -174,9 +174,6 @@ export interface OpHandler {
       shape: ShapeMap[R], dtype: D,
       values?: DataTypeMap[D]): TensorBuffer<R, D>;
   print<T extends Tensor>(x: T, verbose: boolean): void;
-  reshape<R2 extends Rank>(x: Tensor, shape: ShapeMap[R2]): Tensor<R2>;
-  expandDims<R2 extends Rank>(x: Tensor, axis: number): Tensor<R2>;
-  squeeze<T extends Tensor>(x: Tensor, axis?: number[]): T;
   clone<T extends Tensor>(x: T): T;
   gather<T extends Tensor>(x: T, indices: Tensor|TensorLike, axis: number): T;
   norm(
@@ -184,8 +181,6 @@ export interface OpHandler {
       keepDims: boolean): Tensor;
   slice<R extends Rank, T extends Tensor<R>>(
       x: T, begin: number|number[], size?: number|number[]): T;
-  stack<T extends Tensor>(tensors: Array<T|TensorLike>, axis: number): Tensor;
-  unstack<T extends Tensor>(value: T, axis: number): Tensor[];
   sum<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
   mean<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean):
       T;
@@ -368,14 +363,14 @@ export class Tensor<R extends Rank = Rank> {
   asScalar(): Scalar {
     this.throwIfDisposed();
     util.assert(this.size === 1, () => 'The array must have only 1 element.');
-    return this.reshape<Rank.R0>([]);
+    return this.reshape([]);
   }
 
   /** Converts a `tf.Tensor` to a `tf.Tensor1D`. */
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   as1D(): Tensor1D {
     this.throwIfDisposed();
-    return this.reshape<Rank.R1>([this.size]);
+    return this.reshape([this.size]);
   }
 
   /**
@@ -387,7 +382,7 @@ export class Tensor<R extends Rank = Rank> {
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   as2D(rows: number, columns: number): Tensor2D {
     this.throwIfDisposed();
-    return this.reshape<Rank.R2>([rows, columns]);
+    return this.reshape([rows, columns]);
   }
 
   /**
@@ -400,7 +395,7 @@ export class Tensor<R extends Rank = Rank> {
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   as3D(rows: number, columns: number, depth: number): Tensor3D {
     this.throwIfDisposed();
-    return this.reshape<Rank.R3>([rows, columns, depth]);
+    return this.reshape([rows, columns, depth]);
   }
 
   /**
@@ -414,7 +409,7 @@ export class Tensor<R extends Rank = Rank> {
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   as4D(rows: number, columns: number, depth: number, depth2: number): Tensor4D {
     this.throwIfDisposed();
-    return this.reshape<Rank.R4>([rows, columns, depth, depth2]);
+    return this.reshape([rows, columns, depth, depth2]);
   }
 
   /**
@@ -431,7 +426,7 @@ export class Tensor<R extends Rank = Rank> {
       rows: number, columns: number, depth: number, depth2: number,
       depth3: number): Tensor5D {
     this.throwIfDisposed();
-    return this.reshape<Rank.R5>([rows, columns, depth, depth2, depth3]);
+    return this.reshape([rows, columns, depth, depth2, depth3]);
   }
 
   /**
@@ -589,18 +584,6 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
-   * Reshapes the tensor into the provided shape.
-   * See `tf.reshape` for more details.
-   *
-   * @param newShape An array of integers defining the output tensor shape.
-   */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
-  reshape<R2 extends Rank>(newShape: ShapeMap[R2]): Tensor<R2> {
-    this.throwIfDisposed();
-    return opHandler.reshape(this, newShape);
-  }
-
-  /**
    * Reshapes the tensor into the shape of the provided tensor.
    *
    * @param x The tensor of required shape.
@@ -608,33 +591,7 @@ export class Tensor<R extends Rank = Rank> {
   /** @doc {heading: 'Tensors', subheading: 'Classes'} */
   reshapeAs<T extends Tensor>(x: T): T {
     this.throwIfDisposed();
-    return this.reshape(x.shape) as T;
-  }
-
-  /**
-   * Returns a `tf.Tensor` that has expanded rank, by inserting a dimension
-   * into the tensor's shape. See `tf.expandDims` for details.
-   *
-   * @param axis The dimension index at which to insert shape of 1. Defaults to
-   *     0 (the first dimension).
-   */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
-  expandDims<R2 extends Rank>(axis = 0): Tensor<R2> {
-    return opHandler.expandDims(this, axis);
-  }
-
-  /**
-   * Returns a `tf.Tensor` with dimensions of size 1 removed from the shape.
-   * See `tf.squeeze` for more details.
-   *
-   * @param axis A list of numbers. If specified, only squeezes the
-   *    dimensions listed. The dimension index starts at 0. It is an error to
-   *    squeeze a dimension that is not 1.
-   */
-  /** @doc {heading: 'Tensors', subheading: 'Classes'} */
-  squeeze<T extends Tensor>(axis?: number[]): T {
-    this.throwIfDisposed();
-    return opHandler.squeeze(this, axis);
+    return this.reshape(x.shape);
   }
 
   /** Returns a copy of the tensor. See `tf.clone` for details. */
@@ -670,12 +627,6 @@ export class Tensor<R extends Rank = Rank> {
       this: T, begin: number|number[], size?: number|number[]): T {
     this.throwIfDisposed();
     return opHandler.slice(this, begin, size);
-  }
-  stack(x: Tensor, axis = 0): Tensor {
-    return opHandler.stack([this, x], axis);
-  }
-  unstack(axis = 0): Tensor[] {
-    return opHandler.unstack(this, axis);
   }
   // Reduction ops.
   sum<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {

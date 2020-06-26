@@ -1156,7 +1156,7 @@ export abstract class Layer extends serialization.Serializable {
     } else {
       throw new AttributeError(
           `The layer ${this.name} has multiple inbound nodes with different ` +
-          `output shapes. Hence the notion of "outut shape" is ill-defined ` +
+          `output shapes. Hence the notion of "output shape" is ill-defined ` +
           `for the layer.`);
       // TODO(cais): Implement getOutputShapeAt().
     }

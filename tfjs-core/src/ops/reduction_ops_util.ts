@@ -24,10 +24,10 @@ import * as axis_util from './axis_util';
 export function gradForMinAndMax<T extends Tensor>(
     dy: T, y: T, xOrig: Tensor, origAxes: number[], permutedAxes: number[]) {
   if (y.rank < xOrig.rank) {
-    y = y.reshape(axis_util.expandShapeToKeepDim(y.shape, origAxes)) as T;
+    y = y.reshape(axis_util.expandShapeToKeepDim(y.shape, origAxes));
   }
   if (dy.rank < xOrig.rank) {
-    dy = dy.reshape(axis_util.expandShapeToKeepDim(dy.shape, origAxes)) as T;
+    dy = dy.reshape(axis_util.expandShapeToKeepDim(dy.shape, origAxes));
   }
   return {
     x: () => {

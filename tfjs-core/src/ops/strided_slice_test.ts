@@ -45,6 +45,14 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     expectArraysClose(await output.data(), [5, 6, 7, 8, 9, 10, 11, 11, 11, 11]);
   });
 
+  it('with ellipsisMask=1, begin / end masks and start / end normalization',
+     async () => {
+       const t = tf.randomNormal([1, 6, 2006, 4]);
+       const output =
+           tf.stridedSlice(t, [0, 0, 0], [0, 2004, 0], [1, 1, 1], 6, 4, 1);
+       expect(output.shape).toEqual([1, 6, 2004, 4]);
+     });
+
   it('with ellipsisMask=1 and start / end normalization', async () => {
     const t = tf.tensor3d([
       [[1, 1, 1], [2, 2, 2]], [[3, 3, 3], [4, 4, 4]], [[5, 5, 5], [6, 6, 6]]
