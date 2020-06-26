@@ -15,9 +15,11 @@
  * =============================================================================
  */
 
-import {Cumsum, CumsumAttrs, CumsumInputs, NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, Cumsum, CumsumAttrs, CumsumInputs, NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+
+import {transpose} from './Transpose';
 
 let wasmCumsum: (
     xId: number, exclusive: number, reverse: number, finalDim: number,
@@ -42,16 +44,28 @@ function cumsum(args: {
   const {x} = inputs as {} as CumsumInputs;
   const {axis, exclusive, reverse} = attrs as {} as CumsumAttrs;
   const xRank = x.shape.length;
-  if (axis !== xRank - 1) {
+
+  const permutation = backend_util.getAxesPermutation([axis], xRank);
+  let permutedX = x;
+  if (permutation != null) {
+    permutedX = transpose({inputs: {x}, attrs: {perm: permutation}, backend});
+  }
+  const permutedAxis = backend_util.getInnerMostAxes(1, xRank)[0];
+
+  if (permutedAxis !== xRank - 1) {
     throw new Error(
         `WASM cumsum expects an inner-most axis=${xRank - 1} ` +
-        `but got axis=${axis}`);
+        `but got axis=${permutedAxis}`);
   }
-  const out = backend.makeOutput(x.shape, 'int32');
-  const xId = backend.dataIdMap.get(x.dataId).id;
+  let out = backend.makeOutput(permutedX.shape, 'int32');
+  const xId = backend.dataIdMap.get(permutedX.dataId).id;
   const outId = backend.dataIdMap.get(out.dataId).id;
-  const finalDim = x.shape[xRank - 1];
+  const finalDim = permutedX.shape[xRank - 1];
   wasmCumsum(xId, exclusive ? 1 : 0, reverse ? 1 : 0, finalDim, outId);
+
+  if (permutation != null) {
+    out = transpose({inputs: {x: out}, attrs: {perm: permutation}, backend});
+  }
   return out;
 }
 
