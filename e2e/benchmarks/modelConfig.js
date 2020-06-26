@@ -174,7 +174,7 @@ const benchmarks = {
       const sentences30 = sentences.slice(0, 30);
       return async model => {
         const res = await model.embed(sentences30);
-        return await res.data();
+        return res;
       }
     }
   },
@@ -188,9 +188,9 @@ const benchmarks = {
 
       return async model => {
         const next = [sentences[(nextIdx % sentences.length)]];
-        const res = await model.embed(next);
         nextIdx += 1;
-        return await res.data();
+        const res = await model.embed(next);
+        return res;
       }
     }
   },
