@@ -58,22 +58,21 @@ import {reshape} from './reshape';
 /** @doc {heading: 'Operations', subheading: 'Reduction'} */
 function min_<T extends Tensor>(
     x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
-  let $x = convertToTensor(x, 'x', 'min');
+  const $x = convertToTensor(x, 'x', 'min');
 
   const forward: ForwardFunc<Tensor> =
       (backend: KernelBackend, save: GradSaveFunc) => {
-        const xOrig = $x;
-
         const origAxes = parseAxisParam(axis, $x.shape);
         let axes = origAxes;
         const permutedAxes = axis_util.getAxesPermutation(axes, $x.rank);
+        let minInput = $x;
         if (permutedAxes != null) {
-          $x = $x.transpose(permutedAxes);
+          minInput = $x.transpose(permutedAxes);
           axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
         }
 
-        let res = backend.min($x, axes);
-        save([xOrig, res]);
+        let res = backend.min(minInput, axes);
+        save([$x, res]);
         if (keepDims) {
           const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
           res = reshape(res, newShape) as T;
