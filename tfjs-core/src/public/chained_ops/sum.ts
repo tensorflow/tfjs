@@ -27,5 +27,6 @@ declare module '../../tensor' {
 Tensor.prototype.sum = function<T extends Tensor>(
     axis?: number|number[], keepDims?: boolean): T {
   this.throwIfDisposed();
-  return sum(this, axis, keepDims);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  return sum(this, axis, keepDims) as T;
 };
