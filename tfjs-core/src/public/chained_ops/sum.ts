@@ -14,21 +14,18 @@
  * limitations under the License.
  * =============================================================================
  */
-// import {sum} from '../../ops/sum';
-// import {Tensor} from '../../tensor';
-// import {Rank} from '../../types';
+import {sum} from '../../ops/sum';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
 
-// declare module '../../tensor' {
-//   interface Tensor<R extends Rank = Rank> {
-//     sum<T extends Tensor>(this: T, axis?: number|number[], keepDims?:
-//     boolean):
-//         T;
-//   }
-// }
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    sum<T extends Tensor>(axis?: number|number[], keepDims?: boolean): T;
+  }
+}
 
-// Tensor.prototype.sum = function<T extends Tensor>(
-//     //@ts-ignore
-//     this: T, axis: number|number[] = null, keepDims = false): T {
-//   this.throwIfDisposed();
-//   return sum(this, axis, keepDims);
-// };
+Tensor.prototype.sum = function<T extends Tensor>(
+    axis?: number|number[], keepDims?: boolean): T {
+  this.throwIfDisposed();
+  return sum(this, axis, keepDims);
+};
