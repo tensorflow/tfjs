@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,8 +28,9 @@ interface CastAttrs extends NamedAttrMap {
   dtype: DataType;
 }
 
-function cast(
-    args: {inputs: CastInputs, attrs: CastAttrs, backend: BackendWasm}) {
+export function cast(
+    args: {inputs: CastInputs, attrs: CastAttrs, backend: BackendWasm}):
+    TensorInfo {
   const {inputs: {x}, attrs: {dtype}, backend} = args;
   const out = backend.makeOutput(x.shape, dtype);
   const inVals = backend.typedArrayFromHeap(x);

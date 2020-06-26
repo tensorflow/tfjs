@@ -6,6 +6,8 @@ Please reach out to us if you'd like to put your project on the list.
 
 ## Demos & Applications
 
+- [Touch The Dot](http://touch-the-dot.herokuapp.com/) - A game created using PoseNet which the player must hit the colored dots with the correct hand and gain as many points as possible (A webcam is a must). [library](https://github.com/OmriGM/body-pose-beat-game) by [Omri Grossman](http://github.com/OmriGM)
+- [Object Tracking JS](https://cp4ms.csb.app/) - Track any object as it moves through a video with no training required. [library](https://github.com/cloud-annotations/object-tracking-js) by [Nick Bourdakos](http://github.com/bourdakos1)
 - [NSFW JS](https://nsfwjs.com/) - Client-side indecent content checker. [library](https://github.com/infinitered/nsfwjs) and [blogpost](https://shift.infinite.red/avoid-nightmares-nsfw-js-ab7b176978b1) by [Gant Laborde](http://gantlaborde.com/)
 - [Honkling](https://castorini.github.io/honkling/) - An in-browser keyword spotting system by Jaejun Lee, Raphael Tang, Jimmy Lin
 - [TensorSpace.js](https://github.com/tensorspace-team/tensorspace) - A 3D visualization framework for neural networks, featuring interactive and intuitive display of models in the browser. Supports pre-trained models from TensorFlow, Keras, and TensorFlow.js.
@@ -44,6 +46,7 @@ Please reach out to us if you'd like to put your project on the list.
 - [Neuroglancer](https://github.com/google/neuroglancer) - A browser-based app for examining 3D volumetric neuroimaging data.
 - [Chester Radiology Assistant](https://mlmed.org/tools/xray) - A web-based tool for diagnosing chest x-ray images.
 - [Membrane](https://membrane.today) - An interactive audiovisual tone mirror that responds to nose movement, by Ashlin Aronin.
+- [MedSeg](https://www.medseg.ai) - Online interactive segmentation tool for radiological images.
 
 ## Tutorials
 
@@ -56,6 +59,7 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [Basic Tutorial with TensorFlow.js: Linear Regression](https://medium.com/@tristansokol/basic-tutorial-with-tensorflow-js-linear-regression-aa68b16e5b8e) by Tristan Sokol
 
 ## Video tutorials
+- [Beginning Machine Learning with TensorFlow.js](https://academy.infinite.red/p/beginning-machine-learning-with-tensorflow-js)
 - [The Coding Train - TensorFlow.js Introduction](https://www.youtube.com/playlist?list=PLRqwX-V7Uu6YIeVA3dNxbR9PYj4wV31oQ)
 - [The Coding Train - TensorFlow.js Color Classifier](https://www.youtube.com/playlist?list=PLRqwX-V7Uu6bmMRCIoTi72aNWHo7epX4L)
 - [Siraj Raval - TensorFlow.js Explained](https://www.youtube.com/watch?v=Nc8kZABv-KE)
@@ -90,6 +94,8 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [ML5](https://ml5js.org/) - Friendly machine learning for the web
 - [magenta.js](https://magenta.tensorflow.org/js) - Music and Art Generation with Machine Intelligence in the Browser.
 - [Handsfree.js](https://github.com/handsfreejs/handsfree) - A library for adding face-controlled pointers to your site.
+- [Handtrack.js](https://github.com/victordibia/handtrack.js) - A library for real-time hand detection directly in the browser.
 - [face-api.js](https://github.com/justadudewhohacks/face-api.js) - A JavaScript API for face detection and face recognition in the browser.
 - [machinelearn.js](https://github.com/machinelearnjs/machinelearnjs) - A general machine learning library like ScikitLearn directly in the Browser and Node.
 - [TensorFlow.js GPU-accelerated t-SNE](https://github.com/tensorflow/tfjs-tsne) - A linear t-SNE for the web.
+- [Pipcook](https://github.com/alibaba/pipcook) - A front-end algorithm framework to create a ML pipeline based on tfjs-node, which is similar to TFX but in JS.

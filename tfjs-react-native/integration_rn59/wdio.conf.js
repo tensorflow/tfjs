@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,13 +16,14 @@
  */
 
 
-const localIdentifier = `rn_integration_${Date.now()}`;
+const localIdentifier =
+    `rn_integration_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 
 const sharedCapabilities = Object.freeze({
   'browserstack.debug': true,
   'browserstack.local': true,
   'browserstack.networkLogs': true,
-  'browserstack.localIdentifier': localIdentifier
+  'browserstack.localIdentifier': localIdentifier,
 });
 
 

@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,8 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
+
+#include <cstddef>
 
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
@@ -45,25 +47,25 @@ void typed_memset(void* ptr, T value, size_t num) {
 }
 
 template <typename T>
-void pad_4d(const T* x_data, int x_shape[4], int paddings[8], const T pad_value,
-            int out_shape[4], T* out_data) {
-  const int left_b_pad = paddings[0];
-  const int right_b_pad = paddings[1];
-  const int left_h_pad = paddings[2];
-  const int right_h_pad = paddings[3];
-  const int left_w_pad = paddings[4];
-  const int right_w_pad = paddings[5];
-  const int left_d_pad = paddings[6];
-  const int right_d_pad = paddings[7];
+void pad_4d(const T* x_data, size_t x_shape[4], size_t paddings[8],
+            const T pad_value, size_t out_shape[4], T* out_data) {
+  const size_t left_b_pad = paddings[0];
+  const size_t right_b_pad = paddings[1];
+  const size_t left_h_pad = paddings[2];
+  const size_t right_h_pad = paddings[3];
+  const size_t left_w_pad = paddings[4];
+  const size_t right_w_pad = paddings[5];
+  const size_t left_d_pad = paddings[6];
+  const size_t right_d_pad = paddings[7];
 
-  const int batch = x_shape[0];
-  const int height = x_shape[1];
-  const int width = x_shape[2];
-  const int depth = x_shape[3];
+  const size_t batch = x_shape[0];
+  const size_t height = x_shape[1];
+  const size_t width = x_shape[2];
+  const size_t depth = x_shape[3];
 
-  const int out_height = out_shape[1];
-  const int out_width = out_shape[2];
-  const int out_depth = out_shape[3];
+  const size_t out_height = out_shape[1];
+  const size_t out_width = out_shape[2];
+  const size_t out_depth = out_shape[3];
 
   T* out_offset = out_data;
   const T* x_offset = x_data;
@@ -73,18 +75,18 @@ void pad_4d(const T* x_data, int x_shape[4], int paddings[8], const T pad_value,
                     left_b_pad * out_height * out_width * out_depth);
     out_offset += left_b_pad * out_height * out_width * out_depth;
   }
-  for (int b = 0; b < batch; ++b) {
+  for (size_t b = 0; b < batch; ++b) {
     if (left_h_pad != 0) {
       typed_memset<T>(out_offset, pad_value,
                       left_h_pad * out_width * out_depth);
       out_offset += left_h_pad * out_width * out_depth;
     }
-    for (int h = 0; h < height; ++h) {
+    for (size_t h = 0; h < height; ++h) {
       if (left_w_pad != 0) {
         typed_memset<T>(out_offset, pad_value, left_w_pad * out_depth);
         out_offset += left_w_pad * out_depth;
       }
-      for (int w = 0; w < width; ++w) {
+      for (size_t w = 0; w < width; ++w) {
         if (left_d_pad != 0) {
           typed_memset<T>(out_offset, pad_value, left_d_pad);
           out_offset += left_d_pad;
@@ -117,20 +119,20 @@ void pad_4d(const T* x_data, int x_shape[4], int paddings[8], const T pad_value,
 
 // Generic pad implementation for n-dim tensors.
 template <typename T>
-void slow_pad_nd(const T* x_data, const std::vector<int>& x_shape,
-                 const std::vector<int>& paddings, const T pad_value,
+void slow_pad_nd(const T* x_data, const std::vector<size_t>& x_shape,
+                 const std::vector<size_t>& paddings, const T pad_value,
                  T* out_data) {
-  const int rank = x_shape.size();
-  std::vector<int> out_shape(rank);
+  const size_t rank = x_shape.size();
+  std::vector<size_t> out_shape(rank);
   for (size_t i = 0; i < rank; ++i) {
-    const int pad_left = paddings[i * 2];
-    const int pad_right = paddings[i * 2 + 1];
+    const size_t pad_left = paddings[i * 2];
+    const size_t pad_right = paddings[i * 2 + 1];
     out_shape[i] = x_shape[i] + pad_left + pad_right;
   }
   const auto& in_strides = compute_strides(x_shape);
   const auto& out_strides = compute_strides(out_shape);
-  const int in_size = size_from_shape(x_shape);
-  const int out_size = size_from_shape(out_shape);
+  const size_t in_size = size_from_shape(x_shape);
+  const size_t out_size = size_from_shape(out_shape);
 
   typed_memset<T>(out_data, pad_value, out_size);
 
@@ -139,20 +141,20 @@ void slow_pad_nd(const T* x_data, const std::vector<int>& x_shape,
     for (size_t j = 0; j < rank; ++j) {
       out_loc[j] += paddings[j * 2];
     }
-    const int out_offset = loc_to_offset(out_loc, out_strides);
+    const size_t out_offset = loc_to_offset(out_loc, out_strides);
     out_data[out_offset] = x_data[i];
   }
 }
 
 template <typename T>
-void pad(const T* x_data, const std::vector<int>& x_shape,
-         const std::vector<int>& paddings, const T pad_value, T* out_data) {
+void pad(const T* x_data, const std::vector<size_t>& x_shape,
+         const std::vector<size_t>& paddings, const T pad_value, T* out_data) {
   const size_t rank = x_shape.size();
   if (rank <= 4) {
     // Expand the shape to be 4d.
-    int x_shape_4d[4];
-    int paddings_4d[8];
-    int out_shape_4d[4];
+    size_t x_shape_4d[4];
+    size_t paddings_4d[8];
+    size_t out_shape_4d[4];
     const size_t rank_shift = 4 - rank;
     for (size_t i = 0; i < rank_shift; ++i) {
       x_shape_4d[i] = 1;
@@ -163,8 +165,8 @@ void pad(const T* x_data, const std::vector<int>& x_shape,
 
     for (size_t i = 0; i < rank; ++i) {
       size_t j = i + rank_shift;
-      const int pad_left = paddings[i * 2];
-      const int pad_right = paddings[i * 2 + 1];
+      const size_t pad_left = paddings[i * 2];
+      const size_t pad_right = paddings[i * 2 + 1];
       x_shape_4d[j] = x_shape[i];
       out_shape_4d[j] = x_shape[i] + pad_left + pad_right;
       paddings_4d[j * 2] = pad_left;
@@ -186,13 +188,14 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void PadV2(const int x_id, const int* x_shape_ptr, const int x_shape_length,
-           const DType dtype, const int* paddings_ptr, const float pad_value,
-           const int out_id) {
-  auto x_shape = std::vector<int>(x_shape_ptr, x_shape_ptr + x_shape_length);
-  const int paddings_length = x_shape_length * 2;
+void PadV2(const size_t x_id, const size_t* x_shape_ptr,
+           const size_t x_shape_length, const DType dtype,
+           const size_t* paddings_ptr, const float pad_value,
+           const size_t out_id) {
+  auto x_shape = std::vector<size_t>(x_shape_ptr, x_shape_ptr + x_shape_length);
+  const size_t paddings_length = x_shape_length * 2;
   auto paddings =
-      std::vector<int>(paddings_ptr, paddings_ptr + paddings_length);
+      std::vector<size_t>(paddings_ptr, paddings_ptr + paddings_length);
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
   switch (dtype) {
@@ -201,8 +204,8 @@ void PadV2(const int x_id, const int* x_shape_ptr, const int x_shape_length,
                  out_info.f32_write());
       break;
     case DType::int32:
-      pad<int>(x_info.i32(), x_shape, paddings, static_cast<int>(pad_value),
-               out_info.i32_write());
+      pad<int32_t>(x_info.i32(), x_shape, paddings,
+                   static_cast<int32_t>(pad_value), out_info.i32_write());
       break;
     case DType::boolean:
       pad<bool>(x_info.b(), x_shape, paddings, static_cast<bool>(pad_value),

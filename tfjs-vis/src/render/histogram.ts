@@ -74,6 +74,11 @@ export async function histogram(
     renderStats(stats, statsContainer, {fontSize: options.fontSize});
   }
 
+  // If there are no data values return early
+  if (values.length === 0) {
+    return undefined;
+  }
+
   // Now that we have rendered stats we need to remove any NaNs and Infinities
   // before rendering the histogram
   const filtered = [];

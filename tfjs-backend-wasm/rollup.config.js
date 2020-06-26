@@ -37,14 +37,20 @@ const PREAMBLE = `/**
  * =============================================================================
  */`;
 
-function config({plugins = [], output = {}}) {
+function config({plugins = [], output = {}, tsCompilerOptions = {}}) {
+  const defaultTsCompilerOptions = {
+    module: 'ES2015',
+  };
+  const tsOverrideCompilerOptions =
+      Object.assign({}, defaultTsCompilerOptions, tsCompilerOptions);
+
   return {
     input: 'src/index.ts',
     plugins: [
       typescript({
-        tsconfigOverride: {compilerOptions: {module: 'ES2015'}},
+        tsconfigOverride: {compilerOptions: tsOverrideCompilerOptions},
       }),
-      node(),
+      node({preferBuiltins: true}),
       // Polyfill require() from dependencies.
       commonjs({
         ignore: ['crypto', 'node-fetch', 'util'],
@@ -55,10 +61,10 @@ function config({plugins = [], output = {}}) {
     output: {
       banner: PREAMBLE,
       sourcemap: true,
-      globals: {'@tensorflow/tfjs-core': 'tf'},
+      globals: {'@tensorflow/tfjs-core': 'tf', 'fs': 'fs', 'path': 'path'},
       ...output,
     },
-    external: ['crypto', '@tensorflow/tfjs-core'],
+    external: ['crypto', '@tensorflow/tfjs-core', 'fs', 'path'],
     onwarn: warning => {
       let {code} = warning;
       if (code === 'CIRCULAR_DEPENDENCY' || code === 'CIRCULAR' ||
@@ -73,36 +79,53 @@ function config({plugins = [], output = {}}) {
 module.exports = cmdOptions => {
   const bundles = [];
 
+  const terserPlugin = terser({output: {preamble: PREAMBLE, comments: false}});
+  const name = 'tf.wasm';
+  const extend = true;
+  const fileName = 'tf-backend-wasm';
+
+  // Node
+  bundles.push(config({
+    output: {
+      format: 'cjs',
+      name,
+      extend,
+      file: `dist/${fileName}.node.js`,
+      freeze: false
+    },
+    tsCompilerOptions: {target: 'es5'}
+  }));
+
   if (!cmdOptions.ci) {
     // tf-backend-wasm.js
     bundles.push(config({
       output: {
         format: 'umd',
-        name: 'tf',
-        extend: true,
-        file: 'dist/tf-backend-wasm.js',
+        name,
+        extend,
+        file: `dist/${fileName}.js`,
       }
     }));
   }
 
   // tf-backend-wasm.min.js
   bundles.push(config({
-    plugins: [terser({output: {preamble: PREAMBLE}})],
+    plugins: [terserPlugin],
     output: {
       format: 'umd',
-      name: 'tf',
-      extend: true,
-      file: 'dist/tf-backend-wasm.min.js',
+      name,
+      extend,
+      file: `dist/${fileName}.min.js`,
     },
   }));
 
   if (!cmdOptions.ci) {
     // tf-backend-wasm.esm.js
     bundles.push(config({
-      plugins: [terser({output: {preamble: PREAMBLE}})],
+      plugins: [terserPlugin],
       output: {
         format: 'es',
-        file: 'dist/tf-backend-wasm.esm.js',
+        file: `dist/${fileName}.esm.js`,
       }
     }));
   }

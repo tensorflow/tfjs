@@ -259,7 +259,7 @@ def _get_generated_by(topology):
 def write_artifacts(topology,
                     weights,
                     output_dir,
-                    quantization_dtype=None,
+                    quantization_dtype_map=None,
                     weight_shard_size_bytes=1024 * 1024 * 4):
   """Writes weights and topology to the output_dir.
 
@@ -269,8 +269,9 @@ def write_artifacts(topology,
     topology: a JSON dictionary, representing the Keras config.
     weights: an array of weight groups (as defined in tfjs write_weights).
     output_dir: the directory to hold all the contents.
-    quantization_dtype: An optional numpy dtype to quantize weights to for
-      compression. Only np.uint8 and np.uint16 are supported.
+    quantization_dtype_map: (Optional) A mapping from dtype
+      (`uint8`, `uint16`, `float16`) to weights names. The weight mapping
+      supports wildcard substitution.
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
   """
@@ -297,7 +298,7 @@ def write_artifacts(topology,
   model_json[common.ARTIFACT_MODEL_TOPOLOGY_KEY] = topology or None
   weights_manifest = write_weights.write_weights(
       weights, output_dir, write_manifest=False,
-      quantization_dtype=quantization_dtype,
+      quantization_dtype_map=quantization_dtype_map,
       shard_size_bytes=weight_shard_size_bytes)
   assert isinstance(weights_manifest, list)
   model_json[common.ARTIFACT_WEIGHTS_MANIFEST_KEY] = weights_manifest
@@ -308,7 +309,8 @@ def write_artifacts(topology,
     json.dump(model_json, f)
 
 
-def save_keras_model(model, artifacts_dir, quantization_dtype=None):
+def save_keras_model(model, artifacts_dir, quantization_dtype_map=None,
+                     weight_shard_size_bytes=1024 * 1024 * 4):
   r"""Save a Keras model and its weights in TensorFlow.js format.
 
   Args:
@@ -325,8 +327,11 @@ def save_keras_model(model, artifacts_dir, quantization_dtype=None):
         - files containing weight values in groups, with the file name pattern
           group(\d+)-shard(\d+)of(\d+).
       If the directory does not exist, this function will attempt to create it.
-    quantization_dtype: An optional numpy dtype to quantize weights to for
-        compression. Only np.uint8 and np.uint16 are supported.
+    quantization_dtype_map: (Optional) A mapping from dtype
+      (`uint8`, `uint16`, `float16`) to weights names. The weight mapping
+      supports wildcard substitution.
+    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
+      The size of each weight file will be <= this value.
 
   Raises:
     ValueError: If `artifacts_dir` already exists as a file (not a directory).
@@ -341,5 +346,6 @@ def save_keras_model(model, artifacts_dir, quantization_dtype=None):
     os.makedirs(artifacts_dir)
   write_artifacts(
       topology_json, weight_groups, artifacts_dir,
-      quantization_dtype=quantization_dtype)
+      quantization_dtype_map=quantization_dtype_map,
+      weight_shard_size_bytes=weight_shard_size_bytes)
   os.remove(temp_h5_path)

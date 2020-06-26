@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,8 +16,9 @@
  */
 
 import * as firebase from 'firebase/app';
+
 // tslint:disable-next-line:max-line-length
-import {EnvironmentInfo, Task, TaskType, VersionSet, BenchmarkRun} from './types';
+import {BenchmarkRun, EnvironmentInfo, Task, TaskType, VersionSet} from './types';
 
 // tslint:disable-next-line:no-any
 declare let __karma__: any;
@@ -52,11 +53,11 @@ async function initFirebase(): Promise<firebase.firestore.Firestore> {
     // For context: Firebase Firestore has two different client libraries
     // for Node.js and browser.
     // tslint:disable-next-line:no-require-imports
-    const admin = require('firebase-' + 'admin');
+    const admin = require(
+        'firebase-' +
+        'admin');
     if (!firebaseInitialized) {
-      admin.initializeApp({
-        credential: admin.credential.applicationDefault()
-      });
+      admin.initializeApp({credential: admin.credential.applicationDefault()});
       firebaseInitialized = true;
     }
     return admin.firestore();
@@ -91,7 +92,7 @@ export async function addBenchmarkRunsToFirestore(run: BenchmarkRun[]) {
  * @return ID of the newly created doc.
  */
 export async function addEnvironmentInfoToFirestore(
-     environmentInfo: EnvironmentInfo): Promise<string> {
+    environmentInfo: EnvironmentInfo): Promise<string> {
   const db = await initFirebase();
   const collection = db.collection('Environments');
   const doc = await collection.add(environmentInfo);
@@ -104,8 +105,8 @@ export async function addEnvironmentInfoToFirestore(
  * @param environmentInfo Environment information to be added.
  * @return ID of the newly created doc.
  */
-export async function addVersionSetToFirestore(
-    versionSet: VersionSet): Promise<string> {
+export async function addVersionSetToFirestore(versionSet: VersionSet):
+    Promise<string> {
   const db = await initFirebase();
   const collection = db.collection('VersionSets');
   const doc = await collection.add(versionSet);
@@ -122,14 +123,13 @@ export async function addVersionSetToFirestore(
  * @return Task ID from TaskCollection.
  */
 export async function addOrGetTaskId(
-    taskType: TaskType, taskName: string, functionName?: string):
-    Promise<string> {
+    taskType: TaskType, taskName: string,
+    functionName?: string): Promise<string> {
   const db = await initFirebase();
   const collection = db.collection('Tasks');
-  const query = collection
-      .where('taskType', '==', taskType)
-      .where('taskName', '==', taskName)
-      .where('functionName', '==', functionName);
+  const query = collection.where('taskType', '==', taskType)
+                    .where('taskName', '==', taskName)
+                    .where('functionName', '==', functionName);
   const result = await query.get();
   let taskId: string;
   // tslint:disable-next-line:no-any
@@ -139,11 +139,8 @@ export async function addOrGetTaskId(
   });
 
   if (taskId == null) {
-    const doc = await collection.add({
-      taskType,
-      taskName,
-      functionName
-    } as Task);
+    const doc =
+        await collection.add({taskType, taskName, functionName} as Task);
     taskId = doc.id;
   }
   return taskId;

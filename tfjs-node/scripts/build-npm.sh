@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2018 Google Inc. All Rights Reserved.
+# Copyright 2018 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ rimraf lib/
 # Build and upload pre-built addon
 yarn build-addon $1
 
-yarn prep
 tsc --sourceMap false
 # Manual copy src/proto/api_pb.js until both allowJs and declaration are
 # supported in tsconfig: https://github.com/microsoft/TypeScript/pull/32372

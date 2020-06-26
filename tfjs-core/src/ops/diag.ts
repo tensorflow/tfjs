@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,10 +15,14 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../engine';
+import {ENGINE, ForwardFunc} from '../engine';
+import {Diag, DiagInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
+
 import {op} from './operation';
+import {reshape} from './reshape';
 
 /**
  * Returns a diagonal tensor with a given diagonal values.
@@ -43,9 +47,18 @@ import {op} from './operation';
  */
 function diag_(x: Tensor): Tensor {
   const $x = convertToTensor(x, 'x', 'diag').flatten();
-  const outShape = [...x.shape, ...x.shape];
-  return ENGINE.runKernelFunc(backend => backend.diag($x), {$x})
-      .reshape(outShape);
+
+  const forward: ForwardFunc<Tensor> = backend => {
+    const result = backend.diag($x);
+    const outShape = [...x.shape, ...x.shape];
+
+    return reshape(result, outShape);
+  };
+
+  const inputs: DiagInputs = {x: $x};
+
+  return ENGINE.runKernelFunc(
+      forward, inputs as {} as NamedTensorMap, null /* grad */, Diag);
 }
 
 export const diag = op({diag_});

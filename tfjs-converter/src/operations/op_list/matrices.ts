@@ -19,6 +19,42 @@ import {OpMapper} from '../types';
 
 export const json: OpMapper[] = [
   {
+    'tfOpName': '_FusedMatMul',
+    'category': 'matrices',
+    'inputs': [
+      {'start': 0, 'name': 'a', 'type': 'tensor'},
+      {'start': 1, 'name': 'b', 'type': 'tensor'},
+      {'start': 2, end: 0, 'name': 'args', 'type': 'tensors'},
+    ],
+    'attrs': [
+      {'tfName': 'num_args', 'name': 'numArgs', 'type': 'number'}, {
+        'tfName': 'fused_ops',
+        'name': 'fusedOps',
+        'type': 'string[]',
+        'defaultValue': []
+      },
+      {
+        'tfName': 'epsilon',
+        'name': 'epsilon',
+        'type': 'number',
+        'defaultValue': 0.0001
+      },
+      {
+        'tfName': 'transpose_a',
+        'name': 'transposeA',
+        'type': 'bool',
+        'defaultValue': false
+      },
+      {
+        'tfName': 'transpose_b',
+        'name': 'transposeB',
+        'type': 'bool',
+        'defaultValue': false
+      },
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
+    ]
+  },
+  {
     'tfOpName': 'MatMul',
     'category': 'matrices',
     'inputs': [

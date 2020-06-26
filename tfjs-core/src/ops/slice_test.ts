@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -523,10 +523,6 @@ describeWithFlags('slice ergonomics', ALL_ENVS, () => {
 });
 
 describeWithFlags('shallow slicing', ALL_ENVS, () => {
-  beforeAll(() => {
-    tf.env().set('WEBGL_CPU_FORWARD', false);
-  });
-
   it('shallow slice an input that was cast', async () => {
     const a = tf.tensor([[1, 2], [3, 4]], [2, 2], 'int32');
     const b = a.toFloat();

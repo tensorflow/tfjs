@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,8 @@
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
+
 #include "src/cc/backend.h"
 #include "src/cc/kernels/ClipByValue.h"
 
@@ -22,13 +24,13 @@ TEST(ClipByValue, xnn_operator_count) {
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
-  int x0_id = 0;
-  int x1_id = 1;
-  int size = 2;
-  int min = 0;
-  int max = 1;
+  size_t x0_id = 1;
+  size_t x1_id = 2;
+  size_t size = 2;
+  size_t min = 0;
+  size_t max = 1;
   float x_values[2] = {1, 2};
-  int out_id = 3;
+  size_t out_id = 3;
   float out_values[2] = {0, 0};
 
   tfjs::wasm::register_tensor(x0_id, size, x_values);

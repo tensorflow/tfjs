@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,7 +26,7 @@ import {createNumberAttrFromIndex, createTensorAttr, validateParam} from './test
 describe('dynamic', () => {
   let node: Node;
   const input1 = [tfc.tensor1d([1])];
-  const context = new ExecutionContext({}, {});
+  const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
     node = {
@@ -55,7 +55,7 @@ describe('dynamic', () => {
         const input3 = [tfc.tensor1d([1])];
         const input4 = [tfc.tensor1d([1])];
         const input5 = [tfc.tensor1d([1])];
-        spyOn(tfc.image, 'nonMaxSuppressionAsync').and.callThrough();
+        spyOn(tfc.image, 'nonMaxSuppressionAsync');
         const result =
             executeOp(node, {input1, input2, input3, input4, input5}, context);
         expect(tfc.image.nonMaxSuppressionAsync)
@@ -88,7 +88,7 @@ describe('dynamic', () => {
         const input3 = [tfc.tensor1d([1])];
         const input4 = [tfc.tensor1d([1])];
         const input5 = [tfc.tensor1d([1])];
-        spyOn(tfc.image, 'nonMaxSuppressionAsync').and.callThrough();
+        spyOn(tfc.image, 'nonMaxSuppressionAsync');
         const result =
             executeOp(node, {input1, input2, input3, input4, input5}, context);
         expect(tfc.image.nonMaxSuppressionAsync)
@@ -109,12 +109,51 @@ describe('dynamic', () => {
       });
     });
 
+    describe('NonMaxSuppressionV5', () => {
+      it('should return input', () => {
+        node.op = 'NonMaxSuppressionV5';
+        node.inputParams['boxes'] = createTensorAttr(0);
+        node.inputParams['scores'] = createTensorAttr(1);
+        node.inputParams['maxOutputSize'] = createNumberAttrFromIndex(2);
+        node.inputParams['iouThreshold'] = createNumberAttrFromIndex(3);
+        node.inputParams['scoreThreshold'] = createNumberAttrFromIndex(4);
+        node.inputParams['softNmsSigma'] = createNumberAttrFromIndex(5);
+        node.inputNames =
+            ['input1', 'input2', 'input3', 'input4', 'input5', 'input6'];
+        const input2 = [tfc.tensor1d([1])];
+        const input3 = [tfc.tensor1d([1])];
+        const input4 = [tfc.tensor1d([1])];
+        const input5 = [tfc.tensor1d([1])];
+        const input6 = [tfc.tensor1d([1])];
+        spyOn(tfc.image, 'nonMaxSuppressionWithScoreAsync').and.returnValue({});
+        const result = executeOp(
+            node, {input1, input2, input3, input4, input5, input6}, context);
+        expect(tfc.image.nonMaxSuppressionWithScoreAsync)
+            .toHaveBeenCalledWith(input1[0], input2[0], 1, 1, 1, 1);
+        expect(result instanceof Promise).toBeTruthy();
+      });
+      it('should match json def', () => {
+        node.op = 'NonMaxSuppressionV5';
+        node.inputParams['boxes'] = createTensorAttr(0);
+        node.inputParams['scores'] = createTensorAttr(1);
+        node.inputParams['maxOutputSize'] = createNumberAttrFromIndex(2);
+        node.inputParams['iouThreshold'] = createNumberAttrFromIndex(3);
+        node.inputParams['scoreThreshold'] = createNumberAttrFromIndex(4);
+        node.inputParams['softNmsSigma'] = createNumberAttrFromIndex(5);
+        node.inputNames =
+            ['input1', 'input2', 'input3', 'input4', 'input5', 'input6'];
+
+        expect(validateParam(node, dynamic.json, 'NonMaxSuppressionV5'))
+            .toBeTruthy();
+      });
+    });
+
     describe('Where', () => {
       it('should call tfc.whereAsync', async () => {
         node.op = 'Where';
         node.inputParams = {'condition': createTensorAttr(0)};
         const input1 = [tfc.scalar(1)];
-        spyOn(tfc, 'whereAsync').and.callThrough();
+        spyOn(tfc, 'whereAsync');
 
         const result = executeOp(node, {input1}, context);
         expect((tfc.whereAsync as jasmine.Spy).calls.mostRecent().args[0].dtype)
@@ -132,6 +171,17 @@ describe('dynamic', () => {
 
         expect(validateParam(node, dynamic.json)).toBeTruthy();
       });
+      it('should not have memory leak', async () => {
+        node.op = 'Where';
+        node.inputParams = {'condition': createTensorAttr(0)};
+        const input1 = [tfc.scalar(1)];
+        spyOn(tfc, 'whereAsync').and.callThrough();
+
+        const prevCount = tfc.memory().numTensors;
+        await executeOp(node, {input1}, context);
+        const afterCount = tfc.memory().numTensors;
+        expect(afterCount).toEqual(prevCount + 1);
+      });
     });
 
     describe('ListDiff', () => {
@@ -141,7 +191,7 @@ describe('dynamic', () => {
         node.inputParams = {'x': createTensorAttr(0), 'y': createTensorAttr(1)};
         const input1 = [tfc.scalar(1)];
         const input2 = [tfc.scalar(1)];
-        spyOn(tfc, 'setdiff1dAsync').and.callThrough();
+        spyOn(tfc, 'setdiff1dAsync');
 
         const result = executeOp(node, {input1, input2}, context);
         expect(tfc.setdiff1dAsync).toHaveBeenCalledWith(input1[0], input2[0]);

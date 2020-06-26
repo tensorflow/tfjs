@@ -16,7 +16,6 @@
  */
 
 import {ENGINE} from '../engine';
-import {conv2dDerFilter, conv2dDerInput, depthwiseConv2dDerFilter, depthwiseConv2dDerInput} from '../ops/conv';
 import * as conv_util from '../ops/conv_util';
 import {op} from '../ops/operation';
 import {Tensor, Tensor3D, Tensor4D} from '../tensor';
@@ -25,13 +24,20 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {add} from './binary_ops';
+import {add} from './add';
 import * as broadcast_util from './broadcast_util';
-import {conv2d as unfusedConv2d, depthwiseConv2d as unfusedDepthwiseConv2d} from './conv';
+import {conv2d as unfusedConv2d} from './conv2d';
+import {conv2DBackpropFilter} from './conv2d_backprop_filter';
+import {conv2DBackpropInput} from './conv2d_backprop_input';
+import {depthwiseConv2d as unfusedDepthwiseConv2d} from './depthwise_conv2d';
+import {depthwiseConv2dNativeBackpropFilter} from './depthwise_conv2d_native_backprop_filter';
+import {depthwiseConv2dNativeBackpropInput} from './depthwise_conv2d_native_backprop_input';
+import {elu} from './elu';
 import {Activation, shouldFuse} from './fused_util';
-import {matMul as unfusedMatMul} from './matmul';
-
-import {elu, prelu, relu, relu6} from './relu_ops';
+import {matMul as unfusedMatMul} from './mat_mul';
+import {prelu} from './prelu';
+import {relu} from './relu';
+import {relu6} from './relu6';
 
 // Returns gradient for fused activation.
 const getFusedDyActivation =
@@ -95,7 +101,7 @@ const applyActivation =
  * - `activation` Name of activation kernel (defaults to `linear`).
  * - `preluActivationWeights` Tensor of prelu weights.
  */
-function matMul_<T extends Tensor>({
+function fusedMatMul_<T extends Tensor>({
   a,
   b,
   transposeA = false,
@@ -186,66 +192,70 @@ function matMul_<T extends Tensor>({
 
     let biasGradient = {};
     if (bias != null) {
-      biasGradient = {$bias: () => getFusedBiasGradient($bias, dyActivation)};
+      biasGradient = {bias: () => getFusedBiasGradient($bias, dyActivation)};
     }
 
     if (!transposeA && !transposeB) {
       return Object.assign(
           {
-            $a: () => dyActivation.matMul(b3D as Tensor3D, false, true),
-            $b: () => a3D.matMul(dyActivation, true, false)
+            a: () => dyActivation.matMul(b3D as Tensor3D, false, true),
+            b: () => a3D.matMul(dyActivation, true, false)
           },
           biasGradient);
     } else if (!transposeA && transposeB) {
       return Object.assign(
           {
-            $a: () => dyActivation.matMul(b3D as Tensor3D, false, false),
-            $b: () => dyActivation.matMul(a3D as Tensor3D, true, false)
+            a: () => dyActivation.matMul(b3D as Tensor3D, false, false),
+            b: () => dyActivation.matMul(a3D as Tensor3D, true, false)
           },
           biasGradient);
     } else if (transposeA && !transposeB) {
       return Object.assign(
           {
-            $a: () => b3D.matMul(dyActivation, false, true),
-            $b: () => a3D.matMul(dyActivation, false, false)
+            a: () => b3D.matMul(dyActivation, false, true),
+            b: () => a3D.matMul(dyActivation, false, false)
           },
           biasGradient);
     } else {
       return Object.assign(
           {
-            $a: () => b3D.matMul(dyActivation, true, true),
-            $b: () => dyActivation.matMul(a3D as Tensor3D, true, true)
+            a: () => b3D.matMul(dyActivation, true, true),
+            b: () => dyActivation.matMul(a3D as Tensor3D, true, true)
           },
           biasGradient);
     }
   };
 
-  const inputs: {
-    $a: Tensor,
-    $b: Tensor,
-    $bias?: Tensor,
-    $preluActivationWeights?: Tensor
-  } = {$a: a3D, $b: b3D};
+  const inputs:
+      {a: Tensor, b: Tensor,
+       bias?: Tensor,
+       preluActivationWeights?: Tensor} = {a: a3D, b: b3D};
   if (bias != null) {
-    inputs.$bias = $bias;
+    inputs.bias = $bias;
   }
   if (preluActivationWeights != null) {
-    inputs.$preluActivationWeights = $preluActivationWeights;
+    inputs.preluActivationWeights = $preluActivationWeights;
   }
 
-  const res = ENGINE.runKernelFunc((backend, save) => {
-    const y = backend.fusedBatchMatMul({
-      a: a3D,
-      b: b3D,
-      transposeA,
-      transposeB,
-      bias: $bias,
-      activation,
-      preluActivationWeights: $preluActivationWeights
-    });
-    save([a3D, b3D, y]);
-    return y;
-  }, inputs, grad);
+  const inputsToSave = [a3D, b3D];
+  const outputsToSave = [true];
+
+  const res = ENGINE.runKernelFunc(
+      (backend, save) => {
+        const y = backend.fusedBatchMatMul({
+          a: a3D,
+          b: b3D,
+          transposeA,
+          transposeB,
+          bias: $bias,
+          activation,
+          preluActivationWeights: $preluActivationWeights
+        });
+        save([a3D, b3D, y]);
+        return y;
+      },
+      inputs, grad, '_FusedMatMul', {transposeA, transposeB, activation},
+      inputsToSave, outputsToSave);
   return res.reshape(outShape) as T;
 }
 
@@ -305,7 +315,7 @@ function matMul_<T extends Tensor>({
  * @param preluActivationWeights Tensor of prelu weights to be applied as part
  *     of a `prelu` activation, typically the same shape as `x`.
  */
-function conv2d_<T extends Tensor3D|Tensor4D>({
+function fusedConv2d_<T extends Tensor3D|Tensor4D>({
   x,
   filter,
   strides,
@@ -320,7 +330,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
   x: T|TensorLike,
   filter: Tensor4D|TensorLike,
   strides: [number, number]|number,
-  pad: 'valid'|'same'|number,
+  pad: 'valid'|'same'|number|conv_util.ExplicitPadding,
   dataFormat?: 'NHWC'|'NCHW',
   dilations?: [number, number]|number,
   dimRoundingMode?: 'floor'|'round'|'ceil',
@@ -407,15 +417,15 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
 
     let biasGradient = {};
     if (bias != null) {
-      biasGradient = {$bias: () => getFusedBiasGradient($bias, dyActivation)};
+      biasGradient = {bias: () => getFusedBiasGradient($bias, dyActivation)};
     }
 
     return Object.assign(
         {
-          x: () =>
-              conv2dDerInput(x4D.shape, dyActivation, $filter, strides, pad),
-          filter: () =>
-              conv2dDerFilter(x4D, dyActivation, $filter.shape, strides, pad)
+          x: () => conv2DBackpropInput(
+              x4D.shape, dyActivation, $filter, strides, pad),
+          filter: () => conv2DBackpropFilter(
+              x4D, dyActivation, $filter.shape, strides, pad)
         },
         biasGradient);
   };
@@ -508,7 +518,7 @@ function conv2d_<T extends Tensor3D|Tensor4D>({
  * @param preluActivationWeights Tensor of prelu weights to be applied as part
  *     of a `prelu` activation, typically the same shape as `x`.
  */
-function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
+function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   x,
   filter,
   strides,
@@ -603,21 +613,21 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
         () => 'Error in gradient of fused depthwiseConv2d: dilation rates ' +
             `greater than 1 are not yet supported. Got dilations ` +
             `'${dilations}'`);
-    const [x4D, $filter, y] = saved;
+    const [$filter, x4D, y] = saved;
 
     const dyActivation = getFusedDyActivation(dy, y, activation) as Tensor4D;
 
     let biasGradient = {};
     if (bias != null) {
-      biasGradient = {$bias: () => getFusedBiasGradient($bias, dyActivation)};
+      biasGradient = {bias: () => getFusedBiasGradient($bias, dyActivation)};
     }
 
     return Object.assign(
         {
-          x: () => depthwiseConv2dDerInput(
+          x: () => depthwiseConv2dNativeBackpropInput(
               (x4D as Tensor4D).shape, dyActivation, $filter as Tensor4D,
               convInfo),
-          $filter: () => depthwiseConv2dDerFilter(
+          filter: () => depthwiseConv2dNativeBackpropFilter(
               x4D as Tensor4D, dyActivation, ($filter as Tensor4D).shape,
               convInfo),
         },
@@ -626,37 +636,42 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>({
 
   const inputs: {
     x: Tensor,
-    $filter: Tensor,
-    $bias?: Tensor,
-    $preluActivationWeights?: Tensor
-  } = {x: x4D, $filter};
+    filter: Tensor,
+    bias?: Tensor,
+    preluActivationWeights?: Tensor
+  } = {x: x4D, filter: $filter};
   if (bias != null) {
-    inputs.$bias = $bias;
+    inputs.bias = $bias;
   }
   if (preluActivationWeights != null) {
-    inputs.$preluActivationWeights = $preluActivationWeights;
+    inputs.preluActivationWeights = $preluActivationWeights;
   }
 
-  const res = ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.fusedDepthwiseConv2D({
-      input: x4D,
-      filter: $filter,
-      convInfo,
-      bias: $bias,
-      activation,
-      preluActivationWeights: $preluActivationWeights
-    });
-    save([x4D, $filter, res]);
-    return res;
-  }, inputs, grad);
+  const inputsToSave = [$filter, x4D];
+  const outputsToSave = [true];
+  const res = ENGINE.runKernelFunc(
+      (backend, save) => {
+        const res = backend.fusedDepthwiseConv2D({
+          input: x4D,
+          filter: $filter,
+          convInfo,
+          bias: $bias,
+          activation,
+          preluActivationWeights: $preluActivationWeights
+        });
+        save([$filter, x4D, res]);
+        return res;
+      },
+      inputs, grad, 'FusedDepthwiseConv2D', {convInfo, activation},
+      inputsToSave, outputsToSave);
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   }
   return res as T;
 }
 
-export const matMul = op({matMul_});
-export const conv2d = op({conv2d_});
-export const depthwiseConv2d = op({depthwiseConv2d_});
+export const matMul = op({fusedMatMul_});
+export const conv2d = op({fusedConv2d_});
+export const depthwiseConv2d = op({fusedDepthwiseConv2d_});
 
 export {Activation};

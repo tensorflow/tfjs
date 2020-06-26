@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,8 @@
 #include <gtest/gtest.h>
 #include <xnnpack.h>
 
+#include <cstddef>
+
 #include "src/cc/backend.h"
 #include "src/cc/kernels/DepthwiseConv2dNative.h"
 #include "src/cc/util.h"
@@ -24,18 +26,18 @@ TEST(CONV2D, xnn_operator_lifetime) {
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
 
-  const int x0_id = 0;
-  const int x1_id = 1;
-  const int size = 9;
+  const size_t x0_id = 1;
+  const size_t x1_id = 2;
+  const size_t size = 9;
   float x_values[size] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
 
-  const int weights0_id = 2;
-  const int weights1_id = 3;
-  const int weights_size = 8;
+  const size_t weights0_id = 3;
+  const size_t weights1_id = 4;
+  const size_t weights_size = 8;
   float weights_values[weights_size] = {1, 2, 3, 4, 5, 6, 7, 8};
 
-  const int out_id = 4;
-  const int out_size = 36;
+  const size_t out_id = 5;
+  const size_t out_size = 36;
   float out_values[out_size] = {};
 
   tfjs::wasm::register_tensor(x0_id, size, x_values);
@@ -48,22 +50,22 @@ TEST(CONV2D, xnn_operator_lifetime) {
   ASSERT_EQ(0, tfjs::backend::xnn_operator_count);
 
   // One xnn_operator should be created for the first call to depthwiseConv2d.
-  const int batch_size = 1;
-  const int input_height = 4;
-  const int input_width = 2;
-  const int filter_height = 4;
-  const int filter_width = 2;
-  const int pad_top0 = 1;
-  const int pad_right = 0;
-  const int pad_bottom0 = 0;
-  const int pad_left = 0;
+  const size_t batch_size = 1;
+  const size_t input_height = 4;
+  const size_t input_width = 2;
+  const size_t filter_height = 4;
+  const size_t filter_width = 2;
+  const size_t pad_top0 = 1;
+  const size_t pad_right = 0;
+  const size_t pad_bottom0 = 0;
+  const size_t pad_left = 0;
   const bool is_same_pad0 = false;
-  const int dilation_height = 1;
-  const int dilation_width = 1;
-  const int stride_height = 1;
-  const int stride_width = 1;
-  const int input_channels = 1;
-  const int output_channels = 1;
+  const size_t dilation_height = 1;
+  const size_t dilation_width = 1;
+  const size_t stride_height = 1;
+  const size_t stride_width = 1;
+  const size_t input_channels = 1;
+  const size_t output_channels = 1;
   tfjs::wasm::DepthwiseConv2dNative(
       x0_id, batch_size, input_height, input_width, weights0_id, filter_height,
       filter_width, pad_top0, pad_right, pad_bottom0, pad_left, is_same_pad0,
@@ -91,8 +93,8 @@ TEST(CONV2D, xnn_operator_lifetime) {
 
   // One new xnn_operator should be created for the next call to depthwiseConv2d
   // with the same weights but different arguments.
-  const int pad_top1 = 0;
-  const int pad_bottom1 = 1;
+  const size_t pad_top1 = 0;
+  const size_t pad_bottom1 = 1;
   tfjs::wasm::DepthwiseConv2dNative(
       x0_id, batch_size, input_height, input_width, weights0_id, filter_height,
       filter_width, pad_top1, pad_right, pad_bottom1, pad_left, is_same_pad0,

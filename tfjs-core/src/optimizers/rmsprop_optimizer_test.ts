@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -216,5 +216,11 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     const reserialized = tf.RMSPropOptimizer.fromConfig(
         tf.RMSPropOptimizer, originalOpt.getConfig());
     expect(reserialized.getConfig()).toEqual(originalOpt.getConfig());
+  });
+
+  it('must define learning rate', () => {
+    const learningRate: number = undefined;
+    expect(() => tf.train.rmsprop(learningRate))
+        .toThrowError(/learningRate for RMSPropOptimizer must be defined./);
   });
 });

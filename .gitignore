@@ -3,6 +3,7 @@
 *.tgz
 *.zip
 */diff
+*/run-ci
 **/*.pyc
 **/bundle.js
 **/*.js.map
@@ -16,8 +17,7 @@
 /compiled_api.js
 bazel-out/
 bazel-*
-build-tmp-napi-v3/
-build-tmp-napi-v4/
+build-tmp-napi-v*/
 build/
 clone/
 coverage/
@@ -26,6 +26,12 @@ deps/
 dist/
 tfjs-layers/integration_tests/tfjs2keras/test-data/
 tfjs-layers/integration/typescript/yarn.lock
+e2e/integration_tests/create_save_predict_data
+e2e/integration_tests/convert_predict_data
+e2e/scripts/storage
+e2e/scripts/htpasswd
+tfjs-converter/python/tensorflowjs.egg-info
+tfjs-inference/binaries
 
 # Ignore the src, binding, scripts of tfjs-node-gpu since it is copied over when
 # building.

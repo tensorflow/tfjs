@@ -134,6 +134,7 @@ export async function confusionMatrix(
     defaultStyle: false,
   };
 
+  //@ts-ignore
   const spec: VisualizationSpec = {
     'width': options.width || getDefaultWidth(drawArea),
     'height': options.height || getDefaultHeight(drawArea),
@@ -154,17 +155,20 @@ export async function confusionMatrix(
         'titleFontSize': options.fontSize,
       }
     },
+    //@ts-ignore
     'data': {'values': values},
     'encoding': {
       'x': {
         'field': 'prediction',
         'type': 'ordinal',
+        'title': options.xLabel || 'prediction',
         // Maintain sort order of the axis if labels is passed in
         'scale': {'domain': tickLabels},
       },
       'y': {
         'field': 'label',
         'type': 'ordinal',
+        'title': options.yLabel || 'label',
         // Maintain sort order of the axis if labels is passed in
         'scale': {'domain': tickLabels},
       },
@@ -182,7 +186,8 @@ export async function confusionMatrix(
           'color': {
             'field': 'scaleCount',
             'type': 'quantitative',
-            'scale': {'range': ['#f7fbff', '#4292c6']},
+            //@ts-ignore
+            'scale': {'range': options.colorMap},
           },
           'tooltip': [
             {'field': 'label', 'type': 'nominal'},
@@ -195,6 +200,7 @@ export async function confusionMatrix(
   };
 
   if (options.shadeDiagonal === false) {
+    //@ts-ignore
     spec.layer.push(
         {
           // render unfilled rects for the diagonal
@@ -217,6 +223,7 @@ export async function confusionMatrix(
   }
 
   if (options.showTextOverlay) {
+    //@ts-ignore
     spec.layer.push({
       // The text labels
       'mark': {'type': 'text', 'baseline': 'middle'},
@@ -228,6 +235,12 @@ export async function confusionMatrix(
       }
     });
   }
+
+  const colorMap = typeof options.colorMap === 'string' ?
+      {scheme: options.colorMap} :
+      options.colorMap;
+  //@ts-ignore
+  spec.layer[0].encoding.color.scale.range = colorMap;
 
   await embed(drawArea, spec, embedOpts);
 }
@@ -241,6 +254,7 @@ const defaultOpts: ConfusionMatrixOptions = {
   fontSize: 12,
   showTextOverlay: true,
   height: 400,
+  colorMap: ['#f7fbff', '#4292c6'],
 };
 
 interface MatrixEntry {

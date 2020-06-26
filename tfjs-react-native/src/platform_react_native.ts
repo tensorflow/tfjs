@@ -15,11 +15,22 @@
  * =============================================================================
  */
 
+import '@tensorflow/tfjs-backend-cpu';
+import {GPGPUContext, MathBackendWebGL, setWebGLContext} from '@tensorflow/tfjs-backend-webgl';
 import * as tf from '@tensorflow/tfjs-core';
 import {Platform} from '@tensorflow/tfjs-core';
 import {Buffer} from 'buffer';
 import {GLView} from 'expo-gl';
 import {Platform as RNPlatform} from 'react-native';
+
+let debugMode_ = false;
+export function setDebugMode(debugMode: boolean) {
+  debugMode_ = debugMode_;
+}
+
+export function getDebugMode() {
+  return debugMode_;
+}
 
 // See implemetation note on fetch
 // tslint:disable-next-line:max-line-length
@@ -58,10 +69,11 @@ function parseHeaders(rawHeaders: string) {
  * @param path The URL path to make a request to
  * @param init The request init. See init here:
  *     https://developer.mozilla.org/en-US/docs/Web/API/Request/Request
- * @param options A RequestDetails object
- * @param options.isBinary boolean indicating whether this request is for a
+ * @param options A RequestDetails object.
+ *    - __options.isBinary__ boolean indicating whether this request is for a
  *     binary file.
  */
+/** @doc {heading: 'Platform helpers', subheading: 'http'} */
 export async function fetch(
     path: string, init?: RequestInit,
     options?: tf.io.RequestDetails): Promise<Response> {
@@ -220,9 +232,9 @@ function registerWebGLBackend() {
       glContext.clientWaitSync = shimClientWaitSync.bind(glContext);
 
       // Set the WebGLContext before flag evaluation
-      tf.webgl.setWebGLContext(2, glContext);
-      const context = new tf.webgl.GPGPUContext();
-      const backend = new tf.webgl.MathBackendWebGL(context);
+      setWebGLContext(2, glContext);
+      const context = new GPGPUContext();
+      const backend = new MathBackendWebGL(context);
 
       return backend;
     }, PRIORITY);

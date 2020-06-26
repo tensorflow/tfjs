@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,10 +16,11 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/backend.h"
-#include "src/cc/util.h"
+#include <cstddef>
 
-const int kBlockSize = 48;
+#include "src/cc/backend.h"
+#include "src/cc/batch_mat_mul_impl.h"
+#include "src/cc/kernels/BatchMatMul.h"
 
 namespace tfjs {
 namespace wasm {
@@ -29,50 +30,17 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void BatchMatMul(const int a_id, const int b_id, const int shared_dim,
-                 const int left_dim, const int right_dim, const int batch_dim,
-                 const int a_batch, const int a_outer_step,
-                 const int a_inner_step, const int b_batch,
-                 const int b_outer_step, const int b_inner_step,
-                 const int out_id) {
-  auto& a_info = backend::get_tensor_info(a_id);
-  auto& b_info = backend::get_tensor_info(b_id);
-  auto& out_info = backend::get_tensor_info_out(out_id);
-
-  const float* a_buf = a_info.f32();
-  const float* b_buf = b_info.f32();
-  float* out_buf = out_info.f32_write();
-
-  const int size = left_dim * right_dim;
-
-  // Zero out the output buffer because it might have been used before.
-  std::fill(out_buf, out_buf + batch_dim * size, 0);
-
-  for (int b = 0; b < batch_dim; ++b) {
-    for (int i0 = 0; i0 < left_dim; i0 += kBlockSize) {
-      for (int j0 = 0; j0 < right_dim; j0 += kBlockSize) {
-        for (int k0 = 0; k0 < shared_dim; k0 += kBlockSize) {
-          // for when kBlockSize doesn't evenly divide the input
-          const int i_block = std::min(i0 + kBlockSize, left_dim);
-          const int j_block = std::min(j0 + kBlockSize, right_dim);
-          const int k_block = std::min(k0 + kBlockSize, shared_dim);
-
-          for (int i = i0; i < i_block; ++i) {
-            for (int j = j0; j < j_block; ++j) {
-              float sum = 0.0;
-
-              for (int k = k0; k < k_block; ++k) {
-                sum +=
-                    a_buf[b * a_batch + i * a_outer_step + k * a_inner_step] *
-                    b_buf[k * b_inner_step + j * b_outer_step + b * b_batch];
-              }
-              out_buf[b * size + (i * right_dim + j)] += sum;
-            }
-          }
-        }
-      }
-    }
-  }
+void BatchMatMul(const size_t a_id, const size_t* a_shape_ptr,
+                 const size_t a_shape_len, const size_t b_id,
+                 const size_t* b_shape_ptr, const size_t b_shape_len,
+                 const bool transpose_a, const bool transpose_b,
+                 const size_t out_id) {
+  const size_t bias_id = 0;
+  const size_t prelu_weights_id = 0;
+  const FusableActivation activation = FusableActivation::LINEAR;
+  tfjs::wasm::fused_batch_mat_mul(
+      a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr, b_shape_len,
+      transpose_a, transpose_b, activation, bias_id, prelu_weights_id, out_id);
 }
 
 }  // extern "C"

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -44,7 +44,7 @@ function setup(backend: BackendWasm) {
   ]);
 }
 
-function transpose(
+export function transpose(
     args:
         {inputs: TransposeInputs, backend: BackendWasm, attrs: TransposeAttrs}):
     TensorInfo {
@@ -72,6 +72,7 @@ function transpose(
   const outId = backend.dataIdMap.get(out.dataId).id;
   const permBytes = new Uint8Array(new Int32Array(perm).buffer);
   const xShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
+
   wasmTranspose(
       xId, xShapeBytes, x.shape.length, CppDType[x.dtype], outId, permBytes,
       perm.length);

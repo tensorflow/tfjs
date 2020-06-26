@@ -22,10 +22,11 @@ export class BufferManager {
   private usedBuffers: Map<string, GPUBuffer[]> = new Map();
 
   public numBytesUsed = 0;
+  public numBytesAllocated = 0;
 
   constructor(private device: GPUDevice) {}
 
-  acquireBuffer(byteSize: number, usage: GPUBufferUsage) {
+  acquireBuffer(byteSize: number, usage: GPUBufferUsageFlags) {
     const key = getBufferKey(byteSize, usage);
     if (!this.freeBuffers.has(key)) {
       this.freeBuffers.set(key, []);
@@ -46,13 +47,15 @@ export class BufferManager {
       return newBuffer;
     }
 
+    this.numBytesAllocated += byteSize;
     const newBuffer = this.device.createBuffer({size: byteSize, usage});
     this.usedBuffers.get(key).push(newBuffer);
 
     return newBuffer;
   }
 
-  releaseBuffer(buffer: GPUBuffer, byteSize: number, usage: GPUBufferUsage) {
+  releaseBuffer(
+      buffer: GPUBuffer, byteSize: number, usage: GPUBufferUsageFlags) {
     if (this.freeBuffers == null) {
       return;
     }
@@ -90,32 +93,36 @@ export class BufferManager {
     this.usedBuffers = new Map();
     this.numUsedBuffers = 0;
     this.numFreeBuffers = 0;
+    this.numBytesUsed = 0;
+    this.numBytesAllocated = 0;
   }
 
   dispose() {
-    if (this.freeBuffers == null) {
+    if (this.freeBuffers == null && this.usedBuffers == null) {
       return;
     }
 
-    for (const key in this.freeBuffers) {
-      this.freeBuffers.get(key).forEach(buff => {
+    this.freeBuffers.forEach((buffers, key) => {
+      buffers.forEach(buff => {
         buff.destroy();
       });
-    }
+    });
 
-    for (const key in this.usedBuffers) {
-      this.usedBuffers.get(key).forEach(buff => {
+    this.usedBuffers.forEach((buffers, key) => {
+      buffers.forEach(buff => {
         buff.destroy();
       });
-    }
+    });
 
     this.freeBuffers = null;
     this.usedBuffers = null;
     this.numUsedBuffers = 0;
     this.numFreeBuffers = 0;
+    this.numBytesUsed = 0;
+    this.numBytesAllocated = 0;
   }
 }
 
-function getBufferKey(byteSize: number, usage: GPUBufferUsage) {
+function getBufferKey(byteSize: number, usage: GPUBufferUsageFlags) {
   return `${byteSize}_${usage}`;
 }

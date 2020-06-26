@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 
 #include <array>
+#include <cstddef>
 #include <vector>
 
 namespace tfjs {
@@ -24,8 +25,8 @@ namespace util {
 namespace {
 
 TEST(util, offset_2d) {
-  std::array<int, 2> coord = {0, 0};
-  std::array<int, 1> stride = {0};
+  std::array<size_t, 2> coord = {0, 0};
+  std::array<size_t, 1> stride = {0};
   EXPECT_EQ(0, offset(coord[0], coord[1], stride[0]));
 
   coord = {2, 3};
@@ -34,8 +35,8 @@ TEST(util, offset_2d) {
 }
 
 TEST(util, offset_3d) {
-  std::array<int, 3> coord = {0, 0, 0};
-  std::array<int, 2> stride = {0, 0};
+  std::array<size_t, 3> coord = {0, 0, 0};
+  std::array<size_t, 2> stride = {0, 0};
   EXPECT_EQ(0, offset(coord[0], coord[1], coord[2], stride[0], stride[1]));
 
   coord = {3, 5, 7};
@@ -44,8 +45,8 @@ TEST(util, offset_3d) {
 }
 
 TEST(util, offset_4d) {
-  std::array<int, 4> coord = {0, 0, 0, 0};
-  std::array<int, 3> stride = {0, 0, 0};
+  std::array<size_t, 4> coord = {0, 0, 0, 0};
+  std::array<size_t, 3> stride = {0, 0, 0};
   EXPECT_EQ(0, offset(coord[0], coord[1], coord[2], coord[3], stride[0],
                       stride[1], stride[2]));
 
@@ -56,8 +57,8 @@ TEST(util, offset_4d) {
 }
 
 TEST(util, offset_5d) {
-  std::array<int, 5> coord = {0, 0, 0, 0, 0};
-  std::array<int, 4> stride = {0, 0, 0, 0};
+  std::array<size_t, 5> coord = {0, 0, 0, 0, 0};
+  std::array<size_t, 4> stride = {0, 0, 0, 0};
   EXPECT_EQ(0, offset(coord[0], coord[1], coord[2], coord[3], coord[4],
                       stride[0], stride[1], stride[2], stride[3]));
 
@@ -68,7 +69,7 @@ TEST(util, offset_5d) {
 }
 
 TEST(util, size_from_shape) {
-  std::vector<int> shape = {};
+  std::vector<size_t> shape = {};
   EXPECT_EQ(1, size_from_shape(shape));
 
   shape = {3};
@@ -88,8 +89,8 @@ TEST(util, size_from_shape) {
 }
 
 TEST(util, loc_to_offset) {
-  std::vector<int> loc = {};
-  std::vector<int> strides = {};
+  std::vector<size_t> loc = {};
+  std::vector<size_t> strides = {};
   EXPECT_EQ(0, loc_to_offset(loc, strides));
 
   loc = {5};
@@ -110,35 +111,38 @@ TEST(util, loc_to_offset) {
 }
 
 TEST(util, offset_to_loc) {
-  int offset = 5;
-  std::vector<int> strides = {};
-  EXPECT_EQ(std::vector<int>({5}), offset_to_loc(offset, strides));
+  size_t offset = 5;
+  std::vector<size_t> strides = {};
+  EXPECT_EQ(std::vector<size_t>({5}), offset_to_loc(offset, strides));
 
   offset = 26;
   strides = {7};
-  EXPECT_EQ(std::vector<int>({3, 5}), offset_to_loc(offset, strides));
+  EXPECT_EQ(std::vector<size_t>({3, 5}), offset_to_loc(offset, strides));
 
   offset = 51;
   strides = {8, 4};  // shape is [7, 2, 4]
-  EXPECT_EQ(std::vector<int>({6, 0, 3}), offset_to_loc(offset, strides));
+  EXPECT_EQ(std::vector<size_t>({6, 0, 3}), offset_to_loc(offset, strides));
 
   offset = 67;
   strides = {8, 4, 2};  // shape is [9, 2, 2, 2]
-  EXPECT_EQ(std::vector<int>({8, 0, 1, 1}), offset_to_loc(offset, strides));
+  EXPECT_EQ(std::vector<size_t>({8, 0, 1, 1}), offset_to_loc(offset, strides));
 }
 
 TEST(util, compute_strides) {
-  std::vector<int> shape = {5, 7};
-  EXPECT_EQ(std::vector<int>({7}), compute_strides(shape));
+  std::vector<size_t> shape = {5, 7};
+  EXPECT_EQ(std::vector<size_t>({7}), compute_strides(shape));
 
   shape = {3, 5, 7};
-  EXPECT_EQ(std::vector<int>({35, 7}), compute_strides(shape));
+  EXPECT_EQ(std::vector<size_t>({35, 7}), compute_strides(shape));
 
   shape = {3, 5, 7, 9};
-  EXPECT_EQ(std::vector<int>({315, 63, 9}), compute_strides(shape));
+  EXPECT_EQ(std::vector<size_t>({315, 63, 9}), compute_strides(shape));
 
   shape = {2, 3, 5, 7, 9};
-  EXPECT_EQ(std::vector<int>({945, 315, 63, 9}), compute_strides(shape));
+  EXPECT_EQ(std::vector<size_t>({945, 315, 63, 9}), compute_strides(shape));
+
+  shape = {2, 2, 2, 2, 2, 2};
+  EXPECT_EQ(std::vector<size_t>({32, 16, 8, 4, 2}), compute_strides(shape));
 }
 
 }  // namespace

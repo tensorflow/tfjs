@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 #endif
 
 #include <cmath>
+#include <cstddef>
 
 #include "src/cc/backend.h"
 #include "src/cc/unary.h"
@@ -29,7 +30,9 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Abs(const int x_id, const int out_id) { unary(x_id, out_id, std::abs); }
+void Abs(const size_t x_id, const size_t out_id) {
+  unary(x_id, out_id, std::abs);
+}
 
 }  // extern "C"
 }  // namespace wasm

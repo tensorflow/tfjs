@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,15 @@
 
 import * as util from '../util';
 
-type PadType = 'SAME'|'VALID'|'NUMBER';
+type PadType = 'SAME'|'VALID'|'NUMBER'|'EXPLICIT';
+
+// For NHWC should be in the following form:
+//  [[0, 0], [pad_top,pad_bottom], [pad_left, pad_right], [0, 0]]
+// For NCHW should be in the following form:
+//  [[0, 0], [0, 0], [pad_top,pad_bottom], [pad_left, pad_right]]
+// Reference: https://www.tensorflow.org/api_docs/python/tf/nn/conv2d
+export type ExplicitPadding =
+    [[number, number], [number, number], [number, number], [number, number]];
 
 export type PadInfo = {
   top: number,
@@ -64,6 +72,49 @@ export type Conv2DInfo = {
   outShape: [number, number, number, number],
   filterShape: [number, number, number, number]
 };
+
+/**
+ *
+ * @param inputShape Input tensor shape is of the following dimensions:
+ *     `[batch, height, width, inChannels]`.
+ * @param filterShape The filter shape is of the following dimensions:
+ *     `[filterHeight, filterWidth, depth]`.
+ * @param strides The strides of the sliding window for each dimension of the
+ *     input tensor: `[strideHeight, strideWidth]`.
+ *     If `strides` is a single number,
+ *     then `strideHeight == strideWidth`.
+ * @param pad The type of padding algorithm.
+ *    - `same` and stride 1: output will be of same size as input,
+ *       regardless of filter size.
+ *    - `valid`: output will be smaller than input if filter is larger
+ *       than 1*1x1.
+ *    - For more info, see this guide:
+ *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
+ *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ * @param dataFormat The data format of the input and output data.
+ *     Defaults to 'NHWC'.
+ * @param dilations The dilation rates: `[dilationHeight, dilationWidth]`.
+ *     Defaults to `[1, 1]`. If `dilations` is a single number, then
+ *     `dilationHeight == dilationWidth`.
+ */
+export function computeDilation2DInfo(
+    inputShape: [number, number, number, number],
+    filterShape: [number, number, number], strides: number|[number, number],
+    pad: 'same'|'valid'|number, dataFormat: 'NHWC' = 'NHWC',
+    dilations: number|[number, number]) {
+  // `computerConv2DInfo` require filterShape to be in the dimension of:
+  // `[filterHeight, filterWidth, depth, outDepth]`, dilation2d doesn't have
+  // outDepth, it should have the same depth as the input.
+  // Input shape: [batch, height, width, inChannels]
+  const inputChannels = inputShape[3];
+  const $filterShape =
+      [...filterShape, inputChannels] as [number, number, number, number];
+  const $dataFormat = convertConv2DDataFormat(dataFormat);
+
+  return computeConv2DInfo(
+      inputShape, $filterShape, strides, dilations, pad,
+      null /* roundingMode */, null /* depthWise */, $dataFormat);
+}
 
 export function computePool2DInfo(
     inShape: [number, number, number, number],
@@ -126,8 +177,8 @@ export function computeConv2DInfo(
     inShape: [number, number, number, number],
     filterShape: [number, number, number, number],
     strides: number|[number, number], dilations: number|[number, number],
-    pad: 'same'|'valid'|number, roundingMode?: 'floor'|'round'|'ceil',
-    depthwise = false,
+    pad: 'same'|'valid'|number|ExplicitPadding,
+    roundingMode?: 'floor'|'round'|'ceil', depthwise = false,
     dataFormat: 'channelsFirst'|'channelsLast' = 'channelsLast'): Conv2DInfo {
   let [batchSize, inHeight, inWidth, inChannels] = [-1, -1, -1, -1];
   if (dataFormat === 'channelsLast') {
@@ -148,7 +199,7 @@ export function computeConv2DInfo(
       getEffectiveFilterSize(filterWidth, dilationWidth);
   const {padInfo, outHeight, outWidth} = getPadAndOutInfo(
       pad, inHeight, inWidth, strideHeight, strideWidth, effectiveFilterHeight,
-      effectiveFilterWidth, roundingMode);
+      effectiveFilterWidth, roundingMode, dataFormat);
 
   const outChannels = depthwise ? filterChannels * inChannels : filterChannels;
 
@@ -399,10 +450,12 @@ function getEffectiveFilterSize(filterSize: number, dilation: number) {
 }
 
 function getPadAndOutInfo(
-    pad: 'same'|'valid'|number, inHeight: number, inWidth: number,
-    strideHeight: number, strideWidth: number, filterHeight: number,
-    filterWidth: number, roundingMode?: 'floor'|'round'|'ceil'):
-    {padInfo: PadInfo, outHeight: number, outWidth: number} {
+    pad: 'same'|'valid'|number|ExplicitPadding, inHeight: number,
+    inWidth: number, strideHeight: number, strideWidth: number,
+    filterHeight: number, filterWidth: number,
+    roundingMode: 'floor'|'round'|'ceil',
+    dataFormat: 'channelsFirst'|
+    'channelsLast'): {padInfo: PadInfo, outHeight: number, outWidth: number} {
   let padInfo: PadInfo;
   let outHeight: number;
   let outWidth: number;
@@ -430,6 +483,20 @@ function getPadAndOutInfo(
     padInfo = {top: 0, bottom: 0, left: 0, right: 0, type: 'VALID'};
     outHeight = Math.ceil((inHeight - filterHeight + 1) / strideHeight);
     outWidth = Math.ceil((inWidth - filterWidth + 1) / strideWidth);
+  } else if (typeof pad === 'object') {
+    const top = dataFormat === 'channelsLast' ? pad[1][0] : pad[2][0];
+    const bottom = dataFormat === 'channelsLast' ? pad[1][1] : pad[2][1];
+    const left = dataFormat === 'channelsLast' ? pad[2][0] : pad[3][0];
+    const right = dataFormat === 'channelsLast' ? pad[2][1] : pad[3][1];
+    const padType = (top === 0 && bottom === 0 && left === 0 && right === 0) ?
+        'VALID' :
+        'EXPLICIT';
+    padInfo = {top, bottom, left, right, type: padType};
+    outHeight = conditionalRound(
+        (inHeight - filterHeight + top + bottom) / strideHeight + 1,
+        roundingMode);
+    outWidth = conditionalRound(
+        (inWidth - filterWidth + left + right) / strideWidth + 1, roundingMode);
   } else {
     throw Error(`Unknown padding parameter: ${pad}`);
   }

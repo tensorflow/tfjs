@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,7 +20,6 @@ import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
-
 import {op} from './operation';
 import {scalar, zerosLike} from './tensor_ops';
 
@@ -40,9 +39,13 @@ function neg_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'neg');
 
   const grad = (dy: T) => {
-    return {$x: () => dy.neg()};
+    return {x: () => dy.neg()};
   };
-  return ENGINE.runKernelFunc(backend => backend.neg($x), {$x}, grad);
+
+  const attrs = {};
+  const inputsToSave = [$x];
+  return ENGINE.runKernelFunc(
+      backend => backend.neg($x), {x: $x}, grad, 'Neg', attrs, inputsToSave);
 }
 
 /**
@@ -212,13 +215,17 @@ function exp_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'exp');
 
   const bck = (dy: T, saved: Tensor[]) => {
-    return {$x: () => dy.mulStrict(saved[0] as T)};
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    return {x: () => dy.mul(saved[0]) as T};
   };
+  const attrs = {};
+  const inputsToSave: Tensor[] = [];
+  const outputsToSave = [true];
   return ENGINE.runKernelFunc((backend, save) => {
     const y = backend.exp($x);
     save([y]);
     return y;
-  }, {$x}, bck);
+  }, {x: $x}, bck, 'Exp', attrs, inputsToSave, outputsToSave);
 }
 
 /**
@@ -263,13 +270,17 @@ function log_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => dy.div($x.toFloat())} as {$x: () => T};
+    return {x: () => dy.div($x.toFloat())} as {x: () => T};
   };
+
+  const attrs = {};
+  const inputsToSave = [$x];
+
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.log($x);
     save([$x]);
     return res;
-  }, {$x}, grad);
+  }, {x: $x}, grad, 'Log', attrs, inputsToSave);
 }
 
 /**
@@ -314,13 +325,13 @@ function sqrt_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => dy.div($x.toFloat().sqrt().mul(2))} as {$x: () => T};
+    return {x: () => dy.div($x.toFloat().sqrt().mul(2))} as {x: () => T};
   };
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.sqrt($x);
     save([$x]);
     return res;
-  }, {$x}, grad);
+  }, {x: $x}, grad, 'Sqrt', {});
 }
 
 /**
@@ -340,13 +351,14 @@ function rsqrt_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => dy.div($x.pow(1.5).mul(2)).neg() as T};
+    return {x: () => dy.div($x.pow(1.5).mul(2)).neg() as T};
   };
+  const inputsToSave = [$x];
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.rsqrt($x);
     save([$x]);
     return res;
-  }, {$x}, grad);
+  }, {x: $x}, grad, 'Rsqrt', {} /* attrs */, inputsToSave);
 }
 
 /**
@@ -427,6 +439,7 @@ function clipByValue_<T extends Tensor>(
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
     return {
+      // tslint:disable-next-line: no-unnecessary-type-assertion
       x: () => dy.where(
                    $x.greaterEqual(clipValueMin)
                        .logicalAnd($x.lessEqual(clipValueMax)),
@@ -534,13 +547,14 @@ function sin_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => $x.toFloat().cos().mul(dy)} as {$x: () => T};
+    return {x: () => $x.toFloat().cos().mul(dy)} as {x: () => T};
   };
+  const inputsToSave = [$x];
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.sin($x);
     save([$x]);
     return res;
-  }, {$x}, grad);
+  }, {x: $x}, grad, 'Sin', {} /* attrs */, inputsToSave);
 }
 
 /**
@@ -559,13 +573,14 @@ function cos_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => $x.toFloat().sin().neg().mul(dy)} as {$x: () => T};
+    return {x: () => $x.toFloat().sin().neg().mul(dy)} as {x: () => T};
   };
+  const inputsToSave = [$x];
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.cos($x);
     save([$x]);
     return res;
-  }, {$x}, grad);
+  }, {x: $x}, grad, 'Cos', {} /* attrs */, inputsToSave);
 }
 
 /**
@@ -610,7 +625,8 @@ function asin_<T extends Tensor>(x: T|TensorLike): T {
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
     return {
-      $x: () => dy.divStrict(scalar(1).sub($x.toFloat().square()).sqrt() as T)
+      // tslint:disable-next-line: no-unnecessary-type-assertion
+      $x: () => dy.div(scalar(1).sub($x.toFloat().square()).sqrt()) as T
     };
   };
   return ENGINE.runKernelFunc((backend, save) => {
@@ -637,8 +653,13 @@ function acos_<T extends Tensor>(x: T|TensorLike): T {
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
     return {
-      $x: () =>
-          dy.divStrict(scalar(1).sub($x.toFloat().square()).sqrt() as T).neg()
+      $x: () => {
+        const a = $x.toFloat().square();
+        const b = scalar(1).sub(a).sqrt();
+        // tslint:disable-next-line: no-unnecessary-type-assertion
+        return (dy.div(b) as T).neg();
+      }
+
     };
   };
   return ENGINE.runKernelFunc((backend, save) => {
@@ -689,7 +710,8 @@ function sinh_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => $x.toFloat().cosh().mulStrict(dy) as T};
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    return {$x: () => $x.toFloat().cosh().mul(dy) as T};
   };
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.sinh($x);
@@ -714,7 +736,8 @@ function cosh_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => $x.toFloat().sinh().mulStrict(dy) as T};
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    return {$x: () => $x.toFloat().sinh().mul(dy) as T};
   };
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.cosh($x);
@@ -739,13 +762,18 @@ function tanh_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [y] = saved;
-    return {$x: () => scalar(1).sub(y.square()).mulStrict(dy) as T};
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    return {x: () => scalar(1).sub(y.square()).mul(dy) as T};
   };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const y = backend.tanh($x);
-    save([y]);
-    return y;
-  }, {$x}, grad);
+  const outputsToSave = [true];
+  return ENGINE.runKernelFunc(
+      (backend, save) => {
+        const y = backend.tanh($x);
+        save([y]);
+        return y;
+      },
+      {x: $x}, grad, 'Tanh', {} /* attrs */, null /* inputsToSave */,
+      outputsToSave);
 }
 
 /**
@@ -766,7 +794,11 @@ function asinh_<T extends Tensor>(x: T|TensorLike): T {
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
     return {
-      $x: () => dy.divStrict(scalar(1).add($x.toFloat().square()).sqrt() as T)
+      $x: () => {
+        const a = scalar(1).add($x.toFloat().square()).sqrt();
+        // tslint:disable-next-line: no-unnecessary-type-assertion
+        return dy.div(a) as T;
+      }
     };
   };
   return ENGINE.runKernelFunc((backend, save) => {
@@ -793,7 +825,13 @@ function acosh_<T extends Tensor>(x: T|TensorLike): T {
 
   const grad = (dy: T, saved: Tensor[]) => {
     const [$x] = saved;
-    return {$x: () => dy.divStrict($x.toFloat().square().sub(1).sqrt() as T)};
+    return {
+      $x: () => {
+        const a = $x.toFloat().square().sub(1).sqrt();
+        // tslint:disable-next-line: no-unnecessary-type-assertion
+        return dy.div(a) as T;
+      }
+    };
   };
   return ENGINE.runKernelFunc((backend, save) => {
     const res = backend.acosh($x);

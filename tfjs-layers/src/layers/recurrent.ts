@@ -213,11 +213,10 @@ export function rnn(
           const stepMask = perStepMasks[t];
           const negStepMask = tfc.onesLike(stepMask).sub(stepMask);
           // TODO(cais): Would tfc.where() be better for performance?
-          const output = stepOutputs[0].mul(stepMask).addStrict(
-              states[0].mul(negStepMask));
+          const output =
+              stepOutputs[0].mul(stepMask).add(states[0].mul(negStepMask));
           const newStates = states.map((state, i) => {
-            return stepOutputs[1][i].mul(stepMask).addStrict(
-                state.mul(negStepMask));
+            return stepOutputs[1][i].mul(stepMask).add(state.mul(negStepMask));
           });
           return {output, newStates};
         });
@@ -1336,6 +1335,13 @@ export declare interface GRUCellLayerArgs extends SimpleRNNCellLayerArgs {
    * 2, regardless of the actual value of this configuration field.
    */
   implementation?: number;
+
+  /**
+   * GRU convention (whether to apply reset gate after or before matrix
+   * multiplication). false = "before", true = "after" (only false is
+   * supported).
+   */
+  resetAfter?: boolean;
 }
 
 export class GRUCell extends RNNCell {
@@ -1377,7 +1383,10 @@ export class GRUCell extends RNNCell {
 
   constructor(args: GRUCellLayerArgs) {
     super(args);
-
+    if (args.resetAfter) {
+      throw new ValueError(
+          `GRUCell does not support reset_after parameter set to true.`);
+    }
     this.units = args.units;
     assertPositiveInteger(this.units, 'units');
     this.activation = getActivation(
@@ -1526,6 +1535,7 @@ export class GRUCell extends RNNCell {
       dropout: this.dropout,
       recurrentDropout: this.recurrentDropout,
       implementation: this.implementation,
+      resetAfter: false
     };
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
@@ -1677,6 +1687,7 @@ export class GRU extends RNN {
       dropout: this.dropout,
       recurrentDropout: this.recurrentDropout,
       implementation: this.implementation,
+      resetAfter: false
     };
     const baseConfig = super.getConfig();
     delete baseConfig['cell'];

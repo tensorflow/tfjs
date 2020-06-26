@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -262,6 +262,14 @@ describeWithFlags('concat2d', ALL_ENVS, () => {
 });
 
 describeWithFlags('concat3d', ALL_ENVS, () => {
+  it('shapes correct concat axis=-1', async () => {
+    const tensor1 = tf.tensor3d([1, 2, 3], [1, 1, 3]);
+    const tensor2 = tf.tensor3d([4, 5, 6], [1, 1, 3]);
+    const values = tf.concat3d([tensor1, tensor2], -1);
+    expect(values.shape).toEqual([1, 1, 6]);
+    expectArraysClose(await values.data(), [1, 2, 3, 4, 5, 6]);
+  });
+
   it('shapes correct concat axis=0', async () => {
     const tensor1 = tf.tensor3d([1, 2, 3], [1, 1, 3]);
     const tensor2 = tf.tensor3d([4, 5, 6], [1, 1, 3]);

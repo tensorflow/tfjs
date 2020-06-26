@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,6 +40,11 @@ ENV.registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 4);
  * >0: conv2d_mm with matmul_packed with WPT=this
  */
 ENV.registerFlag('WEBGPU_CONV2D_WORK_PER_THREAD', () => 2);
+
+/**
+ * Whether we will run im2col as a separate shader for convolution.
+ */
+ENV.registerFlag('WEBGPU_CONV_SEPARATE_IM2COL_SHADER', () => false);
 
 /**
  * Whether we use low power GPU. Otherwise, a high performance GPU will be

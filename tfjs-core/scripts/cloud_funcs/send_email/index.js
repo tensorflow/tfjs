@@ -24,15 +24,17 @@ const mailgun = new Mailgun({
   domain: config.MAILGUN_DOMAIN,
 });
 
-const TRIGGER_ID = '7423c985-2fd2-40f3-abe7-94d4c353eed0';
+const TRIGGER_ID = '43c56710-ccb3-4db9-b746-603cffbf0c02';
 
 // The main function called by Cloud Functions.
 module.exports.send_email = async event => {
   // Parse the build information.
   const build = JSON.parse(new Buffer(event.data, 'base64').toString());
-  // FYI: you can add 'SUCCESS' to monitor successful builds also.
-  const status = ['FAILURE', 'INTERNAL_ERROR', 'TIMEOUT', 'CANCELLED'];
-  // Email only when the build has failed.
+  // Also added 'SUCCESS' to monitor successful builds.
+  const status = [
+    'SUCCESS', 'FAILURE', 'INTERNAL_ERROR', 'TIMEOUT', 'CANCELLED', 'FAILED'
+  ];
+  // Email only known status.
   if (status.indexOf(build.status) === -1) {
     return;
   }
@@ -51,13 +53,20 @@ module.exports.send_email = async event => {
 };
 
 async function sendChatMsg(build, msg) {
-  const joke = (await (await fetch('https://icanhazdadjoke.com/', {
-                  headers: {'Accept': 'application/json'}
-                })).json())
-                   .joke;
-  const jokeMsg = `Oh no! Failed builds are not fun... So here's a joke ` +
-      `to brighten your day :) -- ${joke}`;
-  const chatMsg = `${msg} <${build.logUrl}|See logs>. ${jokeMsg}`;
+  let chatMsg = `${msg} <${build.logUrl}|See logs>.`;
+
+  const success = build.status === 'SUCCESS';
+
+  if (!success) {
+    const joke = (await (await fetch('https://icanhazdadjoke.com/', {
+                    headers: {'Accept': 'application/json'}
+                  })).json())
+                     .joke;
+    const jokeMsg = `Oh no! Failed builds are not fun... So here's a joke ` +
+        `to brighten your day :) -- ${joke}`;
+    chatMsg = `${chatMsg} ${jokeMsg}`;
+  }
+
   const res = await request(process.env.HANGOUTS_URL, {
     resolveWithFullResponse: true,
     method: 'POST',

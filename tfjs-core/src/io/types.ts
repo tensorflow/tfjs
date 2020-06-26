@@ -22,10 +22,12 @@
  */
 export const DTYPE_VALUE_SIZE_MAP: {[dtype: string]: number} = {
   'float32': 4,
+  'float16': 2,
   'int32': 4,
   'uint16': 2,
   'uint8': 1,
   'bool': 1,
+  'complex64': 8
 };
 
 /**
@@ -85,7 +87,7 @@ export declare interface WeightsManifestEntry {
   /**
    * Data type of the weight.
    */
-  dtype: 'float32'|'int32'|'bool'|'string';
+  dtype: 'float32'|'int32'|'bool'|'string'|'complex64';
 
   /**
    * Type of the weight.
@@ -101,9 +103,9 @@ export declare interface WeightsManifestEntry {
    * Information for dequantization of the weight.
    */
   quantization?: {
-    scale: number,           // The scaling constant to multiply by.
-    min: number,             // The (possibly nudged) minimum weight to add.
-    dtype: 'uint16'|'uint8'  // The dtype of the quantized weights.
+    scale?: number,           // The scaling constant to multiply by.
+    min?: number,             // The (possibly nudged) minimum weight to add.
+    dtype: 'uint16'|'uint8'|'float16'  // The dtype of the quantized weights.
   };
 }
 

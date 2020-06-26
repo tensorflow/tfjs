@@ -18,27 +18,41 @@ import * as fs from 'fs';
 
 function summarize(argv: string[]) {
   if (argv.length < 3) {
-    console.log('Usage: ts-node pb2json.ts model_file');
+    console.log('Usage: yarn model-summary model_file');
     return;
   }
 
   const sourcePath = process.argv[2];
   console.log('reading pb model file: ' + sourcePath);
   const rawdata = fs.readFileSync(sourcePath);
-  const nodes: Array<any> = JSON.parse(rawdata.toString())['modelTopology']['node'];
+  const model = JSON.parse(rawdata.toString());
+  if (model.format !== 'graph-model') {
+    console.log('This tool only supports TFJS Graph models.');
+    return;
+  }
+  // tslint:disable-next-line: no-any
+  const nodes: any[] = model['modelTopology']['node'];
+  const library = model['modelTopology']['library'];
+  if (library != null) {
+    const functions = library['function'];
+    // tslint:disable-next-line: no-any
+    if (functions != null) {
+      functions.forEach((func: any) => nodes.concat(func['nodeDef']));
+    }
+  }
 
   const opCount: {[key: string]: number} = {};
-  for (const opNode of nodes) {
+  nodes.forEach(opNode => {
     let count = 0;
     const op = opNode['op'];
     if (opCount[op]) {
-        count = opCount[op];
-    } 
-    opCount[op] = count + 1; 
-  }
+      count = opCount[op];
+    }
+    opCount[op] = count + 1;
+  });
 
   console.log(opCount);
-  console.log('Total ops = ' + nodes.length);
+  console.log(`Total ops = ${nodes.length}`);
 }
 
 summarize(process.argv);

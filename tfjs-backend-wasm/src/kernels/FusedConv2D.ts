@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,8 @@ import {backend_util, KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo
 
 import {BackendWasm} from '../backend_wasm';
 
+import {FusableActivation} from './types';
+
 interface FusedConv2DInputs extends NamedTensorInfoMap {
   x: TensorInfo;
   filter: TensorInfo;
@@ -31,7 +33,8 @@ let wasmFusedConv2d: (
     padTop: number, padRight: number, padBottom: number, padLeft: number,
     isSamePad: number, dilationHeight: number, dilationWidth: number,
     strideHeight: number, strideWidth: number, inputChannels: number,
-    outputChannels: number, outId: number) => void;
+    outputChannels: number, activation: number,
+    preluActivationWeightsId: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
   wasmFusedConv2d = backend.wasm.cwrap('FusedConv2D', null /* void */, [
@@ -54,6 +57,8 @@ function setup(backend: BackendWasm) {
     'number',  // strideWidth
     'number',  // inputChannels
     'number',  // outputChannels
+    'number',  // activation
+    'number',  // preluActivationWeightsId
     'number',  // outId
   ]);
 }
@@ -66,19 +71,21 @@ function fusedConv2d(args: {
 }) {
   const {inputs, attrs, backend} = args;
   const {convInfo, activation} = attrs;
-  if (activation !== 'linear') {
+  const fusedActivation =
+      FusableActivation[activation as {} as keyof typeof FusableActivation];
+  if (fusedActivation == null) {
     throw new Error(
         `${activation} activation not yet supported for FusedConv2D ` +
         `in the wasm backend.`);
   }
 
-  const {x, filter, bias} = inputs;
+  const {x, filter, bias, preluActivationWeights} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
   const filterId = backend.dataIdMap.get(filter.dataId).id;
 
   const outputChannels = convInfo.outChannels;
 
-  let biasId = -1;
+  let biasId = 0;
   if (bias != null) {
     const biasData = backend.dataIdMap.get(bias.dataId);
     if (biasData.shape.length !== 1) {
@@ -118,11 +125,14 @@ function fusedConv2d(args: {
 
   const out = backend.makeOutput(convInfo.outShape, 'float32');
   const outId = backend.dataIdMap.get(out.dataId).id;
+  const preluActivationWeightsId = preluActivationWeights == null ?
+      0 :
+      backend.dataIdMap.get(preluActivationWeights.dataId).id;
   wasmFusedConv2d(
       xId, batchSize, inHeight, inWidth, filterId, filterHeight, filterWidth,
       biasId, padTop, padRight, padBottom, padLeft, isSamePad, dilationHeight,
       dilationWidth, strideHeight, strideWidth, inputChannels, outputChannels,
-      outId);
+      fusedActivation, preluActivationWeightsId, outId);
   return out;
 }
 

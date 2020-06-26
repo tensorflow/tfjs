@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -109,7 +109,7 @@ describeWithFlags('softmax', ALL_ENVS, () => {
     const dx = tf.grad((x) => x.softmax())(x, dy);
 
     const axis = -1;
-    const totalSum: tf.Tensor1D = tf.sum(tf.mulStrict(dy, y), axis);
+    const totalSum: tf.Tensor1D = tf.sum(tf.mul(dy, y), axis);
 
     const dyVals = await dy.array();
     const sumVals = await totalSum.array();

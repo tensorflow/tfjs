@@ -52,10 +52,19 @@ If you do not have Xcode setup on your machine, please run the following command
 ```sh
 $ xcode-select --install
 ```
+For Mac OS Catalina please follow [this guide](https://github.com/nodejs/node-gyp/blob/master/macOS_Catalina.md#installing-node-gyp-using-the-xcode-command-line-tools-via-manual-download) to install node-gyp.
 
 After that operation completes, re-run `yarn add` or `npm install` for the `@tensorflow/tfjs-node` package.
 
 You only need to include `@tensorflow/tfjs-node` or `@tensorflow/tfjs-node-gpu` in the package.json file, since those packages ship with `@tensorflow/tfjs` already.
+
+#### Rebuild the package on Raspberry Pi
+
+To use this package on Raspberry Pi, you need to rebuild the node native addon with the following command after you installed the package:
+
+```sh
+$ npm rebuild @tensorflow/tfjs-node --build-from-source
+```
 
 ## Using the binding
 
@@ -63,10 +72,10 @@ Before executing any TensorFlow.js code, import the node package:
 
 ```js
 // Load the binding
-import * as tf from '@tensorflow/tfjs-node';
+const tf = require('@tensorflow/tfjs-node');
 
 // Or if running with GPU:
-import * as tf from '@tensorflow/tfjs-node-gpu';
+const tf = require('@tensorflow/tfjs-node-gpu');
 ```
 
 Note: you do not need to add the `@tensorflow/tfjs` package to your dependencies or import it directly.
@@ -108,3 +117,18 @@ cp bazel-bin/tensorflow/tools/lib_package/libtensorflow.tar.gz ~/myproject/node_
 cd path-to-my-project/node_modules/@tensorflow/tfjs-node/deps
 tar -xf libtensorflow.tar.gz
 ```
+
+If you want to publish an addon library with your own libtensorflow binary, you can host the custom libtensorflow binary and optional pre-compiled node addon module on the cloud service you choose, and add a `custom-binary.json` file in `scripts` folder with the following information:
+
+```js
+{
+  "tf-lib": "url-to-download-customized-binary",
+  "addon": {
+    "host": "host-of-pre-compiled-addon",
+    "remote_path": "remote-path-of-pre-compiled-addon",
+    "package_name": "file-name-of-pre-compile-addon"
+  }
+}
+```
+
+The installation scripts will automatically catch this file and use the custom libtensorflow binary and addon. If `addon` is not provided, the installation script will compile addon from source.

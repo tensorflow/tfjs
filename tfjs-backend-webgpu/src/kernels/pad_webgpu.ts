@@ -24,12 +24,14 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class PadProgram implements WebGPUProgram {
   outputShape: number[];
+  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
   workPerThread = 8;
   workGroupSize: [number, number, number] = [16, 1, 1];
+  needsShapesUniforms = true;
 
   constructor(
       xShape: number[], paddings: Array<[number, number]>,
@@ -81,5 +83,7 @@ export class PadProgram implements WebGPUProgram {
         }
       }
     `;
+    this.shaderKey =
+        `pad${startValue}${endValue}${rank}${size}${type}${constantValue}`;
   }
 }

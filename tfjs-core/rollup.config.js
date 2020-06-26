@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import commonjs from 'rollup-plugin-commonjs';
-import node from 'rollup-plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import resolve from '@rollup/plugin-node-resolve';
+import typescript from '@rollup/plugin-typescript';
 import {terser} from 'rollup-plugin-terser';
-import typescript from 'rollup-plugin-typescript2';
 import visualizer from 'rollup-plugin-visualizer';
 
 const PREAMBLE = `/**
@@ -38,25 +38,29 @@ const PREAMBLE = `/**
  * =============================================================================
  */`;
 
-function config({plugins = [], output = {}, external = [], visualize = false}) {
+function config({
+  plugins = [],
+  output = {},
+  external = [],
+  visualize = false,
+  tsCompilerOptions = {}
+}) {
   if (visualize) {
     const filename = output.file + '.html';
-    plugins.push(visualizer({
-      sourcemap: true,
-      filename,
-    }));
+    plugins.push(visualizer({sourcemap: true, filename}));
     console.log(`Will output a bundle visualization in ${filename}`);
   }
+
+  const defaultTsOptions = {
+    include: ['src/**/*.ts'],
+    module: 'ES2015',
+  };
+  const tsoptions = Object.assign({}, defaultTsOptions, tsCompilerOptions);
+
   return {
     input: 'src/index.ts',
     plugins: [
-      typescript({
-        tsconfigOverride: {compilerOptions: {module: 'ES2015'}},
-        // See https://github.com/ezolenko/rollup-plugin-typescript2/issues/105
-        objectHashIgnoreUnknownHack: visualize ? true : false,
-        clean: visualize ? true : false,
-      }),
-      node(),
+      typescript(tsoptions), resolve(),
       // Polyfill require() from dependencies.
       commonjs({
         ignore: ['crypto', 'node-fetch', 'util'],
@@ -87,39 +91,76 @@ function config({plugins = [], output = {}, external = [], visualize = false}) {
 module.exports = cmdOptions => {
   const bundles = [];
 
-  if (!cmdOptions.ci) {
-    // tf-core.js
-    bundles.push(config({
-      output: {
-        format: 'umd',
-        name: 'tf',
-        extend: true,
-        file: 'dist/tf-core.js',
-      }
-    }));
-  }
+  const terserPlugin = terser({output: {preamble: PREAMBLE, comments: false}});
+  const name = 'tf';
+  const extend = true;
+  const browserFormat = 'umd';
+  const fileName = 'tf-core';
 
-  // tf-core.min.js
+  // Node
   bundles.push(config({
-    plugins: [terser({output: {preamble: PREAMBLE}})],
     output: {
-      format: 'umd',
-      name: 'tf',
-      extend: true,
-      file: 'dist/tf-core.min.js',
+      format: 'cjs',
+      name,
+      extend,
+      file: `dist/${fileName}.node.js`,
+      freeze: false
     },
-    visualize: cmdOptions.visualize
+    tsCompilerOptions: {target: 'es5'}
   }));
 
-  if (!cmdOptions.ci) {
-    // tf-core.esm.js
+  if (cmdOptions.ci || cmdOptions.npm) {
+    // Browser default minified (ES5)
     bundles.push(config({
-      plugins: [terser({output: {preamble: PREAMBLE}})],
+      plugins: [terserPlugin],
       output: {
-        format: 'es',
-        file: 'dist/tf-core.esm.js',
-      }
+        format: browserFormat,
+        name,
+        extend,
+        file: `dist/${fileName}.min.js`,
+        freeze: false
+      },
+      tsCompilerOptions: {target: 'es5'},
+      visualize: cmdOptions.visualize
     }));
   }
+
+  if (cmdOptions.npm) {
+    // Browser default unminified (ES5)
+    bundles.push(config({
+      output: {
+        format: browserFormat,
+        name,
+        extend,
+        file: `dist/${fileName}.js`,
+        freeze: false
+      },
+      tsCompilerOptions: {target: 'es5'}
+    }));
+
+    // Browser ES2017
+    bundles.push(config({
+      output: {
+        format: browserFormat,
+        name,
+        extend,
+        file: `dist/${fileName}.es2017.js`
+      },
+      tsCompilerOptions: {target: 'es2017'}
+    }));
+
+    // Browser ES2017 minified
+    bundles.push(config({
+      plugins: [terserPlugin],
+      output: {
+        format: browserFormat,
+        name,
+        extend,
+        file: `dist/${fileName}.es2017.min.js`
+      },
+      tsCompilerOptions: {target: 'es2017'}
+    }));
+  }
+
   return bundles;
 };

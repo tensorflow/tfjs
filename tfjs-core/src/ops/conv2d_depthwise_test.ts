@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -514,7 +514,7 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
         [1, 3, 3, inDepth]);
     const w = [[[[0.303873]], [[0.229223]]], [[[0.144333]], [[0.803373]]]];
 
-    const result = x.depthwiseConv2D(w, stride, pad);
+    const result = x.depthwiseConv2d(w, stride, pad);
     expect(result.shape).toEqual([1, 2, 2, 1]);
 
     const expected = [1.07022, 1.03167, 0.67041, 0.778863];

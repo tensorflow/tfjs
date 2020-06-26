@@ -16,9 +16,13 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {PlatformReactNative} from './platform_react_native';
+// tslint:disable-next-line: no-imports-from-dist
+import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-describe('PlatformReactNative', () => {
+import {PlatformReactNative} from './platform_react_native';
+import {RN_ENVS} from './test_env_registry';
+
+describeWithFlags('PlatformReactNative', RN_ENVS, () => {
   it('tf.util.fetch calls platform.fetch', async () => {
     const platform = new PlatformReactNative();
     tf.setPlatform('rn-test-platform', platform);
