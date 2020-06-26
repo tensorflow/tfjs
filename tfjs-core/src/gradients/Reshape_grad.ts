@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,24 +14,16 @@
  * limitations under the License.
  * =============================================================================
  */
+import {Reshape} from '../kernel_names';
+import {GradConfig} from '../kernel_registry';
+import {reshape} from '../ops/reshape';
+import {Tensor} from '../tensor';
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, Reshape, ReshapeAttrs, ReshapeInputs} from '@tensorflow/tfjs-core';
-
-import {BackendWasm} from '../backend_wasm';
-
-export function reshape(args: {
-  inputs: NamedTensorInfoMap,
-  attrs: NamedAttrMap,
-  backend: BackendWasm
-}) {
-  const {inputs, attrs} = args;
-  const {tensor} = inputs as {} as ReshapeInputs;
-  const {shape} = attrs as {} as ReshapeAttrs;
-  return {dataId: tensor.dataId, shape, dtype: tensor.dtype};
-}
-
-registerKernel({
+export const reshapeGradConfig: GradConfig = {
   kernelName: Reshape,
-  backendName: 'wasm',
-  kernelFunc: reshape,
-});
+  inputsToSave: ['tensor'],
+  gradFunc: (dy: Tensor, saved: Tensor[]) => {
+    const [tensor] = saved;
+    return {tensor: () => reshape(dy, tensor.shape)};
+  }
+};

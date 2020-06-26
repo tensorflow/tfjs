@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,24 +14,16 @@
  * limitations under the License.
  * =============================================================================
  */
+import {Unpack, UnpackAttrs} from '../kernel_names';
+import {GradConfig, NamedAttrMap} from '../kernel_registry';
+import {stack} from '../ops/stack';
+import {Tensor} from '../tensor';
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, Reshape, ReshapeAttrs, ReshapeInputs} from '@tensorflow/tfjs-core';
-
-import {BackendWasm} from '../backend_wasm';
-
-export function reshape(args: {
-  inputs: NamedTensorInfoMap,
-  attrs: NamedAttrMap,
-  backend: BackendWasm
-}) {
-  const {inputs, attrs} = args;
-  const {tensor} = inputs as {} as ReshapeInputs;
-  const {shape} = attrs as {} as ReshapeAttrs;
-  return {dataId: tensor.dataId, shape, dtype: tensor.dtype};
-}
-
-registerKernel({
-  kernelName: Reshape,
-  backendName: 'wasm',
-  kernelFunc: reshape,
-});
+export const unpackGradConfig: GradConfig = {
+  kernelName: Unpack,
+  gradFunc: (dy: Tensor[], saved: Tensor[], attrs: NamedAttrMap) => {
+    const unpackAttrs: UnpackAttrs = attrs as {} as UnpackAttrs;
+    const {axis} = unpackAttrs;
+    return {value: () => stack(dy, axis)};
+  }
+};

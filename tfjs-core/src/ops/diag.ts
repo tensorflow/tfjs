@@ -21,8 +21,8 @@ import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 
-import {reshape} from './array_ops';
 import {op} from './operation';
+import {reshape} from './reshape';
 
 /**
  * Returns a diagonal tensor with a given diagonal values.

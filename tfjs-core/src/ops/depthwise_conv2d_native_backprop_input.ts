@@ -19,9 +19,9 @@ import {DepthwiseConv2dNativeBackpropInput, DepthwiseConv2dNativeBackpropInputIn
 import {Tensor, Tensor3D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 
-import {reshape} from './array_ops';
 import * as conv_util from './conv_util';
 import {op} from './operation';
+import {reshape} from './reshape';
 
 function depthwiseConv2dNativeBackpropInput_<T extends Tensor3D|Tensor4D>(
     xShape: [number, number, number, number]|[number, number, number], dy: T,
