@@ -183,7 +183,6 @@ export interface OpHandler {
   slice<R extends Rank, T extends Tensor<R>>(
       x: T, begin: number|number[], size?: number|number[]): T;
   sum<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
-  argMin<T extends Tensor>(x: Tensor, axis: number): T;
   addStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   subStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   powStrict<T extends Tensor>(base: T, exp: Tensor|TensorLike): T;
@@ -641,10 +640,6 @@ export class Tensor<R extends Rank = Rank> {
   sum<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
     this.throwIfDisposed();
     return opHandler.sum(this, axis, keepDims);
-  }
-  argMin<T extends Tensor>(axis: number = null): T {
-    this.throwIfDisposed();
-    return opHandler.argMin(this, axis);
   }
 
   // Transformations
