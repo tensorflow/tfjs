@@ -20,11 +20,11 @@ import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    argMargMinax<T extends Tensor>(this: T, axis?: number): T;
+    argMin<T extends Tensor>(this: T, axis?: number): T;
   }
 }
 
-Tensor.prototype.argMax = function<T extends Tensor>(
+Tensor.prototype.argMin = function<T extends Tensor>(
     this: T, axis?: number): T {
   this.throwIfDisposed();
   return argMin(this, axis);
