@@ -57,9 +57,23 @@ e2e_root_path=$PWD
 
 if [[ "$RELEASE" = true ]]; then
   # ****************************************************************************
-  # First, publish the monorepo.
+  # First, install emsdk.
   # ****************************************************************************
+  # tfjs-backend-wasm needs emsdk to build. emsdk install needs to be done
+  # before switch to local registry, otherwise some packages installation will
+  # fail.
+  # Todo(linazhao): Remove this once we have a custom docker with emsdk.
+  cd ..
+  git clone https://github.com/emscripten-core/emsdk.git
+  cd emsdk
+  ./emsdk install 1.39.15
+  ./emsdk activate 1.39.15
+  source ./emsdk_env.sh
+  cd $e2e_root_path
 
+  # ****************************************************************************
+  # Second, publish the monorepo.
+  # ****************************************************************************
   # Start the local NPM registry
   startLocalRegistry "$e2e_root_path"/scripts/verdaccio.yaml
 
@@ -67,7 +81,7 @@ if [[ "$RELEASE" = true ]]; then
   "$e2e_root_path"/scripts/publish-monorepo-ci.sh
 
   echo 'Installing package'
-  #yarn
+  # Todo(linazhao): Revise package.json to use the published version.
 
   # Cleanup
   cleanup

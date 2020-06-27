@@ -67,18 +67,6 @@ do
     yarn prep-gpu
   fi
 
-  # tfjs-backend-wasm needs emsdk to build.
-  # if [[ $package == "tfjs-backend-wasm" ]]; then
-  #   cd ..
-  #   git clone https://github.com/emscripten-core/emsdk.git
-  #   cd ./emsdk
-  #   ./emsdk install 1.39.15
-  #   ./emsdk activate 1.39.15
-  #   source ./emsdk_env.sh
-  #   cd ..
-  #   cd $package
-  # fi
-
   # Install dependencies.
   yarn
 
