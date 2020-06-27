@@ -74,6 +74,16 @@ describeWithFlags('min', ALL_ENVS, () => {
     expectArraysClose(await r.data(), [2, -7]);
   });
 
+  it('axis permutation does not change input', async () => {
+    const input = tf.tensor2d([3, -1, 0, 100, -7, 2], [2, 3]);
+    const inputDataBefore = await input.data();
+
+    tf.min(input, [1, 0]);
+
+    const inputDataAfter = await input.data();
+    expectArraysEqual(inputDataBefore, inputDataAfter);
+  });
+
   it('throws when passed a non-tensor', () => {
     expect(() => tf.min({} as tf.Tensor))
         .toThrowError(/Argument 'x' passed to 'min' must be a Tensor/);

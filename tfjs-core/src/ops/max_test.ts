@@ -17,7 +17,7 @@
 
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
-import {expectArraysClose} from '../test_util';
+import {expectArraysClose, expectArraysEqual} from '../test_util';
 
 describeWithFlags('max', ALL_ENVS, () => {
   it('with one element dominating', async () => {
@@ -88,6 +88,16 @@ describeWithFlags('max', ALL_ENVS, () => {
       33, 35, 37, 39, 41, 43, 45, 47, 49, 51, 53, 55, 57, 59, 61, 63
     ];
     expectArraysClose(await r.data(), expectedResult);
+  });
+
+  it('axis permutation does not change input', async () => {
+    const input = tf.tensor2d([3, -1, 0, 100, -7, 2], [2, 3]);
+    const inputDataBefore = await input.data();
+
+    tf.max(input, [1, 0]);
+
+    const inputDataAfter = await input.data();
+    expectArraysEqual(inputDataBefore, inputDataAfter);
   });
 
   it('throws when passed a non-tensor', () => {
