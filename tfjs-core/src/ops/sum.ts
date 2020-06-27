@@ -58,12 +58,12 @@ import {op} from './operation';
 function sum_<T extends Tensor>(
     x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
   let $x = convertToTensor(x, 'x', 'sum');
+  if ($x.dtype === 'bool') {
+    $x = $x.toInt();
+  }
 
   const forward: ForwardFunc<Tensor> = (backend, save) => {
     save([$x]);
-    if ($x.dtype === 'bool') {
-      $x = $x.toInt();
-    }
     const axes = parseAxisParam(axis, $x.shape);
 
     const permutation = getAxesPermutation(axes, $x.rank);

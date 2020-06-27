@@ -40,6 +40,7 @@ function sum(args: {backend: BackendWasm, inputs: SumInputs, attrs: SumAttrs}):
   const {transposed, axes, originalAxes, inputWasTransposed} =
       permuteAxesAndTranspose(x, axis, backend);
 
+  let reductionAxes = axes;
   if (inputWasTransposed) {
     const transposedId = backend.dataIdMap.get(transposed.dataId).id;
     if (transposedId !== xId) {
@@ -47,12 +48,15 @@ function sum(args: {backend: BackendWasm, inputs: SumInputs, attrs: SumAttrs}):
       // once we are done.
       input = transposed;
       inputId = transposedId;
+      reductionAxes = backend_util.getInnerMostAxes(
+          reductionAxes.length, input.shape.length);
     }
   }
 
-  backend_util.assertAxesAreInnerMostDims('sum', axes, input.shape.length);
+  backend_util.assertAxesAreInnerMostDims(
+      'sum', reductionAxes, input.shape.length);
   const [outShape, reduceShape] =
-      backend_util.computeOutAndReduceShapes(input.shape, axes);
+      backend_util.computeOutAndReduceShapes(input.shape, reductionAxes);
   const reduceSize = util.sizeFromShape(reduceShape);
 
   const out = backend.makeOutput(outShape, input.dtype);

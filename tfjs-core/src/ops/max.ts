@@ -75,24 +75,26 @@ function max_<T extends Tensor>(
         const y = backend.max(maxInput, axes);
         save([$x, y]);
 
-        if (permutedAxes != null) {
-          backend.disposeData(maxInput.dataId);
+        if (keepDims) {
+          return reshape(
+                     res,
+                     axis_util.expandShapeToKeepDim(
+                         res.shape, util.parseAxisParam(axis, $x.shape))) as T;
         }
+
+        // if (permutedAxes != null) {
+        //   backend.disposeData(maxInput.dataId);
+        // }
 
         return y;
       };
+
   const inputs: MaxInputs = {x: $x};
   const attrs: MaxAttrs = {reductionIndices: axis, keepDims};
 
   const res = ENGINE.runKernelFunc(
                   forward, inputs as {} as NamedTensorMap, null /* gradient */,
                   Max, attrs as {} as NamedAttrMap) as T;
-  if (keepDims) {
-    return reshape(
-               res,
-               axis_util.expandShapeToKeepDim(
-                   res.shape, util.parseAxisParam(axis, $x.shape))) as T;
-  }
   return res;
 }
 
