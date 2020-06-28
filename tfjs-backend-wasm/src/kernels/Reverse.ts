@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, buffer, NamedAttrMap, NamedTensorInfoMap, registerKernel, Reverse, ReverseAttrs, ReverseInputs, slice_util, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {buffer, NamedAttrMap, NamedTensorInfoMap, registerKernel, Reverse, ReverseAttrs, ReverseInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
