@@ -255,7 +255,7 @@ describe('Model', () => {
         await model.load();
         const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
         const output = model.predict(input);
-        expect((output as tfc.Tensor).dataSync()[0]).toEqual(3);
+        expect(output.dataSync()[0]).toEqual(3);
       });
     });
 
@@ -313,7 +313,7 @@ describe('Model', () => {
         await model.load();
         const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
         const output = model.predict(input);
-        expect((output as tfc.Tensor).dataSync()[0]).toEqual(3);
+        expect(output.dataSync()[0]).toEqual(3);
       });
 
       it('should support signature keys', async () => {
