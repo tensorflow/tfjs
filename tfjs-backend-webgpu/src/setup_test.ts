@@ -135,6 +135,8 @@ const TEST_FILTERS: TestFilter[] = [
       'pointwise with prelu',                      // Actual != expected.
       'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0',  // conv2dDerInput not yet
                                                    // implemented
+      'backProp',                                  // conv2dDerInput not yet
+                                                   // implemented
       'fused matmul with relu6',                   // step not yet implemented
     ]
   },
@@ -270,6 +272,7 @@ const TEST_FILTERS: TestFilter[] = [
       'upcasts when dtypes dont match',  // Upcasts not supported.
       '5D',                              // Rank 5 is not yet implemented.
       '6D',                              // Rank 6 is not yet implemented.
+      'dilation2d'                       // 'dilation2d' not yet implemented.
     ]
   },
   {
@@ -317,6 +320,7 @@ const TEST_FILTERS: TestFilter[] = [
       'frame',  // Slice not yet implemented.
       'grad',   // 'depthwiseConv2DDerFilter' not yet implemented, slice not yet
                 // implemented
+      'dilation2d'  // 'dilation2d' not yet implemented.
     ]
   },
   {
