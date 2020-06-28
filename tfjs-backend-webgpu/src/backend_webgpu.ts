@@ -1173,7 +1173,7 @@ export class WebGPUBackend extends KernelBackend {
 
     return paddedX.reshape(reshapedPaddedShape)
                .transpose(permutedReshapedPaddedPermutation)
-               .reshape(flattenShape) as T;
+               .reshape(flattenShape);
   }
 
   batchMatMul(
