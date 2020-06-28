@@ -76,8 +76,9 @@ export interface InferenceModel {
    * model has single output node, otherwise Tensor[] or NamedTensorMap[] will
    * be returned for model with multiple outputs.
    */
-  predict(inputs: Tensor|Tensor[]|NamedTensorMap, config: ModelPredictConfig):
-      Tensor|Tensor[]|NamedTensorMap;
+  predict(inputs: Tensor, config: ModelPredictConfig): Tensor;
+  predict(inputs: Tensor[], config: ModelPredictConfig): Tensor[];
+  predict(inputs: NamedTensorMap, config: ModelPredictConfig): NamedTensorMap;
 
   /**
    * Single Execute the inference for the input tensors and return activation
