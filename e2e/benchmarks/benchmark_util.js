@@ -1,52 +1,47 @@
 
 
 function generateInput(model) {
+  if (model == null) {
+    throw new Error('The model does not exist');
+  } else if (model.inputs == null) {
+    throw new Error('The model.inputs cannot be found');
+  }
+
   const inferenceInputs = [];
   try {
-    for (let inferenceInputIndex = 0; inferenceInputIndex < model.inputs.length; inferenceInputIndex++) {
-      // construct the input tensor shape
-      const inferenceInput = model.inputs[inferenceInputIndex];
+    model.inputs.forEach(input => {
+      // replace -1 or null in input tensor shape
       const inputShape = [];
-      for (let dimension = 0; dimension < inferenceInput.shape.length; dimension++) {
-        const shapeValue = inferenceInput.shape[dimension];
+      input.shape.forEach(shapeValue => {
         if (shapeValue == null || shapeValue < 0) {
           inputShape.push(1);
         } else if (shapeValue == 0) {
-          await showMsg('Warning: one dimension of an input tensor is zero');
-          inputShape.push(shapeValue);
+          throw new Error(
+              `Warning: In the model.inputs[${inferenceInputIndex}], ` +
+              `'${input.name}', shape[${dimension}] is zero`);
         } else {
           inputShape.push(shapeValue);
         }
-      }
+      });
 
       // construct the input tensor
       let inputTensor;
-      if (inferenceInput.dtype == 'float32' || inferenceInput.dtype == 'int32') {
-        inputTensor = tf.randomNormal(inputShape, 0, 1, inferenceInput.dtype);
+      if (input.dtype == 'float32' || input.dtype == 'int32') {
+        inputTensor = tf.randomNormal(inputShape, 0, 1, input.dtype);
       } else {
         throw new Error(
-            `The ${inferenceInput.dtype} dtype  of '${inferenceInput.name}' input ` +
+            `The ${input.dtype} dtype  of '${input.name}' input ` +
             `at model.inputs[${inferenceInputIndex}] is not supported`);
       }
       inferenceInputs.push(inputTensor);
-    }
-
-    // run prediction
-    let resultTensor;
-    if (model instanceof tf.GraphModel && model.executeAsync != null) {
-      resultTensor = await model.executeAsync(inferenceInputs);
-    } else if (model.predict != null) {
-      resultTensor = model.predict(inferenceInputs);
-    } else {
-      throw new Error("Predict function was not found");
-    }
-    return resultTensor;
-  } finally {
+    });
+  } catch (e) {
     // dispose input tensors
     for (let tensorIndex = 0; tensorIndex < inferenceInputs.length; tensorIndex++) {
       if (inferenceInputs[tensorIndex] instanceof tf.Tensor) {
         inferenceInputs[tensorIndex].dispose();
       }
     }
+    throw e;
   }
 }
