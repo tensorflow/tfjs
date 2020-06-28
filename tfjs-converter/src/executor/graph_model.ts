@@ -248,6 +248,9 @@ export class GraphModel implements InferenceModel {
    * will be returned for model with multiple outputs.
    */
   /** @doc {heading: 'Models', subheading: 'Classes'} */
+  predict(inputs: Tensor, config?: ModelPredictConfig): Tensor;
+  predict(inputs: Tensor[], config?: ModelPredictConfig): Tensor[];
+  predict(inputs: NamedTensorMap, config?: ModelPredictConfig): NamedTensorMap;
   predict(inputs: Tensor|Tensor[]|NamedTensorMap, config?: ModelPredictConfig):
       Tensor|Tensor[]|NamedTensorMap {
     return this.execute(inputs, this.outputNodes);

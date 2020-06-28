@@ -1097,6 +1097,8 @@ export class LayersModel extends Container implements tfc.InferenceModel {
   /**
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
+  predict(x: Tensor, args: ModelPredictArgs): Tensor;
+  predict(x: Tensor[], args: ModelPredictArgs): Tensor[];
   predict(x: Tensor|Tensor[], args: ModelPredictArgs = {}): Tensor|Tensor[] {
     const xsRank2OrHigher = ensureTensorsRank2OrHigher(x);
     checkInputData(
