@@ -7,8 +7,8 @@ function generateInput(model) {
     throw new Error('The model.inputs cannot be found');
   }
 
-  const inferenceInputs = [];
   try {
+    const inferenceInputs = [];
     model.inputs.forEach(input => {
       // replace -1 or null in input tensor shape
       const inputShape = [];
@@ -35,6 +35,7 @@ function generateInput(model) {
       }
       inferenceInputs.push(inputTensor);
     });
+    return inferenceInputs;
   } catch (e) {
     // dispose input tensors
     for (let tensorIndex = 0; tensorIndex < inferenceInputs.length; tensorIndex++) {
