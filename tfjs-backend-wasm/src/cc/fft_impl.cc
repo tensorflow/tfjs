@@ -53,27 +53,27 @@ void fft(const size_t real_input_id, const size_t imag_input_id,
 
       float result = 0.0;
 
-      for (size_t i = 0; i < inner_dim; ++i) {
-        float x = exponent_multiplier_times_index_ratio * float(i);
-        float exp_r = cos(x);
-        float exp_i = sin(x);
-        float real = real_input_buf[row * inner_dim + i];
-        float imag = imag_input_buf[row * inner_dim + i];
+      // for (size_t i = 0; i < inner_dim; ++i) {
+      //   float x = exponent_multiplier_times_index_ratio * float(i);
+      //   float exp_r = cos(x);
+      //   float exp_i = sin(x);
+      //   float real = real_input_buf[row * inner_dim + i];
+      //   float imag = imag_input_buf[row * inner_dim + i];
 
-        float val;
+      //   float val;
 
-        if (is_real_component > 0) {
-          val = real * exp_r - imag * exp_i;
-        } else {
-          val = real * exp_i + imag * exp_r;
-        }
+      //   if (is_real_component > 0) {
+      //     val = real * exp_r - imag * exp_i;
+      //   } else {
+      //     val = real * exp_i + imag * exp_r;
+      //   }
 
-        if (is_inverse) {
-          val = val / float(inner_dim);
-        }
+      //   if (is_inverse) {
+      //     val = val / float(inner_dim);
+      //   }
 
-        result += val;
-      }
+      //   result += val;
+      // }
 
       *out_buf_ptr = result;
       out_buf_ptr++;

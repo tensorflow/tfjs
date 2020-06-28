@@ -133,6 +133,31 @@
       kernelFunc: fusedBatchMatMul
   });
 
+  function reverse(args) {
+    const {inputs, backend, attrs} = args;
+    const {x} = inputs;
+    const {dims} = attrs;
+
+    const axes = tfjsCore.util.parseAxisParam(dims, x.shape);
+
+    const out = backend.makeOutput(x.shape, x.dtype);
+    const xVals = backend.typedArrayFromHeap(x);
+    const outVals = backend.typedArrayFromHeap(out);
+    const outBuf = tfjsCore.buffer(x.shape, x.dtype, outVals);
+
+    for (let i = 0; i < outVals.length; i++) {
+      const outLoc = outBuf.indexToLoc(i);
+      const inLoc = outLoc.slice();
+      axes.forEach(ax => inLoc[ax] = x.shape[ax] - 1 - inLoc[ax]);
+      // let inPos = 0;
+      outBuf.set(xVals[0], ...outLoc);
+    }
+
+    return out;
+  }
+
+  tfjsCore.registerKernel({kernelName: 'Reverse', backendName: 'wasm', kernelFunc: reverse});
+
   /**
    * @license
    * Copyright 2019 Google LLC. All Rights Reserved.
@@ -571,53 +596,6 @@
       return tile({ backend, inputs: { x }, attrs: { reps } });
   }
   tfjsCore.registerKernel({ kernelName: tfjsCore.BroadcastTo, backendName: 'wasm', kernelFunc: broadcastTo });
-
-  function spaceToBatchND(args) {
-    const {inputs, backend, attrs} = args;
-    const {x} = inputs;
-    const {blockShape, paddings} = attrs;
-
-    var prod = blockShape.reduce(function (a, b) { return a * b; });
-    var completePaddings = [[0, 0]];
-    completePaddings.push.apply(completePaddings, paddings);
-    for (var i = 1 + blockShape.length; i < x.shape.length; ++i) {
-        completePaddings.push([0, 0]);
-    }
-
-    var paddedX = pad({inputs: {x}, attrs: {paddings: completePaddings, constantValue: 0}, backend});
-    var reshapedPaddedShape = tfjsCore.backend_util.getReshaped(paddedX.shape, blockShape, prod, false);
-    var permutedReshapedPaddedPermutation = tfjsCore.backend_util.getPermuted(reshapedPaddedShape.length, blockShape.length, false);
-    var flattenShape = tfjsCore.backend_util.getReshapedPermuted(paddedX.shape, blockShape, prod, false);
-
-    console.log(flattenShape, reshapedPaddedShape, permutedReshapedPaddedPermutation);
-    var paddedXReshaped = reshape({inputs: {x: paddedX}, attrs: {shape: reshapedPaddedShape}, backend});
-    console.log("transpose input", paddedXReshaped);
-    var paddedXReshapedT = transpose({inputs: {x: paddedXReshaped}, attrs: {perm: permutedReshapedPaddedPermutation}, backend});
-    return reshape({inputs: {x: paddedXReshapedT}, attrs: {shape: flattenShape}, backend});
-  }
-
-  function batchToSpaceND(args) {
-    const {inputs, backend, attrs} = args;
-    const {x} = inputs;
-    const {blockShape, crops} = attrs;
-
-    var prod = blockShape.reduce(function (a, b) { return a * b; });
-    var reshaped = tfjsCore.backend_util.getReshaped(x.shape, blockShape, prod);
-    var permuted = tfjsCore.backend_util.getPermuted(reshaped.length, blockShape.length);
-    var reshapedPermuted = tfjsCore.backend_util.getReshapedPermuted(x.shape, blockShape, prod);
-    var sliceBeginCoords = tfjsCore.backend_util.getSliceBeginCoords(crops, blockShape.length);
-    var sliceSize = tfjsCore.backend_util.getSliceSize(reshapedPermuted, crops, blockShape.length);
-
-    var xReshaped = reshape({inputs: {x: x}, attrs: {shape: reshaped}, backend});
-    var xReshapedT = transpose({inputs: {x: xReshaped}, attrs: {perm: permuted}, backend});
-    var xReshapedTReshaped = reshape({inputs: {x: xReshapedT}, attrs: {shape: reshapedPermuted}, backend});
-    console.log("batch to space", sliceBeginCoords, sliceSize, xReshapedTReshaped, reshapedPermuted);
-    console.log(xReshaped, xReshapedT);
-    return slice({inputs: {x: xReshapedTReshaped}, attrs: {begin: sliceBeginCoords, size: sliceSize}, backend});
-}
-
-  tfjsCore.registerKernel({ kernelName: 'SpaceToBatchND', backendName: 'wasm', kernelFunc: spaceToBatchND });
-  tfjsCore.registerKernel({ kernelName: 'BatchToSpaceND', backendName: 'wasm', kernelFunc: batchToSpaceND });
 
   /**
    * @license
@@ -1066,7 +1044,7 @@
       const outId = backend.dataIdMap.get(out.dataId).id;
       const permBytes = new Uint8Array(new Int32Array(perm).buffer);
       const xShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
-    //   wasmTranspose(xId, xShapeBytes, x.shape.length, CppDType[x.dtype], outId, permBytes, perm.length);
+      wasmTranspose(xId, xShapeBytes, x.shape.length, CppDType[x.dtype], outId, permBytes, perm.length);
       return out;
   }
   function computeOutShape(inShape, perm) {
@@ -1140,7 +1118,6 @@
       const permutation = tfjsCore.backend_util.getAxesPermutation([axis], xRank);
       let permutedX = x;
       if (permutation != null) {
-          console.log("in permute");
           permutedX = transpose({ inputs: { x }, attrs: { perm: permutation }, backend });
       }
       const permutedAxis = tfjsCore.backend_util.getInnerMostAxes(1, xRank)[0];
@@ -1152,12 +1129,10 @@
       const xId = backend.dataIdMap.get(permutedX.dataId).id;
       const outId = backend.dataIdMap.get(out.dataId).id;
       const finalDim = permutedX.shape[xRank - 1];
-    //   wasmCumsum(xId, exclusive ? 1 : 0, reverse ? 1 : 0, finalDim, outId);
+      // wasmCumsum(xId, exclusive ? 1 : 0, reverse ? 1 : 0, finalDim, outId);
       if (permutation != null) {
-          console.log("out permute");
           out = transpose({ inputs: { x: out }, attrs: { perm: permutation }, backend });
       }
-      console.log(x.shape, out.shape);
       return out;
   }
   tfjsCore.registerKernel({
@@ -1378,7 +1353,6 @@
       backend.disposeData(realInput.dataId);
       backend.disposeData(imagInput.dataId);
       const out = complex({ backend, inputs: { real, imag } });
-      console.log("calling fft");
       return out;
   }
   tfjsCore.registerKernel({ kernelName: 'FFT', backendName: 'wasm', setupFunc: setup$c, kernelFunc: fft });
@@ -2577,12 +2551,12 @@
       const { input } = inputs;
       const inputData = backend.dataIdMap.get(input.dataId);
       if(inputData.complexTensors && inputData.complexTensors.real) {
-          const realPart = inputData.complexTensors.real;
-          return realPart;
-          // const realClone = backend.makeOutput(realPart.shape, realPart.dtype);
-          // return realClone;
-      }
-      return backend.makeOutput(input.shape, 'float32');
+        const realPart = inputData.complexTensors.real;
+        return realPart;
+        // const realClone = backend.makeOutput(realPart.shape, realPart.dtype);
+        // return realClone;
+    }
+    return backend.makeOutput(input.shape, 'float32');
   }
   tfjsCore.registerKernel({ kernelName: tfjsCore.Real, backendName: 'wasm', kernelFunc: real });
 
@@ -2890,7 +2864,7 @@
       const xStrides = tfjsCore.util.computeStrides(x.shape);
       if (isContinous) {
           const flatOffset = tfjsCore.slice_util.computeFlatOffset(begin, xStrides);
-        //   outVals.set(xVals.subarray(flatOffset, flatOffset + tfjsCore.util.sizeFromShape(size)));
+          // outVals.set(xVals.subarray(flatOffset, flatOffset + tfjsCore.util.sizeFromShape(size)));
           return out;
       }
       const rank = x.shape.length;
@@ -3109,7 +3083,6 @@
    */
   function stridedSlice(args) {
       const { inputs: { x }, attrs: { begin, end, strides }, backend } = args;
-      console.log("strided slice", begin, end, strides);
       const outShape = tfjsCore.slice_util.computeOutShape(begin, end, strides);
       const out = backend.makeOutput(outShape, x.dtype);
       const outVals = backend.typedArrayFromHeap(out);
@@ -3260,31 +3233,6 @@
       backendName: 'wasm',
       kernelFunc: unpack,
   });
-
-  function reverse(args) {
-    const {inputs, backend, attrs} = args;
-    const {x} = inputs;
-    const {dims} = attrs;
-
-    const axes = tfjsCore.util.parseAxisParam(dims, x.shape);
-
-    const out = backend.makeOutput(x.shape, x.dtype);
-    const xVals = backend.typedArrayFromHeap(x);
-    const outVals = backend.typedArrayFromHeap(out);
-    const outBuf = tfjsCore.buffer(x.shape, x.dtype, outVals);
-
-    for (let i = 0; i < outVals.length; i++) {
-      const outLoc = outBuf.indexToLoc(i);
-      const inLoc = outLoc.slice();
-      axes.forEach(ax => inLoc[ax] = x.shape[ax] - 1 - inLoc[ax]);
-      // let inPos = 0;
-      outBuf.set(xVals[0], ...outLoc);
-    }
-
-    return out;
-  }
-
-  tfjsCore.registerKernel({kernelName: 'Reverse', backendName: 'wasm', kernelFunc: reverse});
 
   /**
    * @license

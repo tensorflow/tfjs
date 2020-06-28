@@ -104,7 +104,7 @@ limitations under the License.
   <script src="./util.js"></script>
   <script>
     'use strict';
-
+    tf.env().set('WEBGL_PACK', false);
     const state = {
       numRuns: 50,
       benchmark: 'mobilenet_v2',
