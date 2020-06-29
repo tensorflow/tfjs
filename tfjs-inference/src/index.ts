@@ -25,7 +25,6 @@
  *   ts-node inference.ts -h
  */
 
-// import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
 import '@tensorflow/tfjs-backend-wasm'
 import '@tensorflow/tfjs-backend-cpu'
 import * as tfconv from '@tensorflow/tfjs-converter';

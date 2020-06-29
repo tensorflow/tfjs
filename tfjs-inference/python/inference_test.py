@@ -38,7 +38,7 @@ class InferenceTest(tf.test.TestCase):
       test_data_dir = os.path.join('../test_data')
       tmp_dir = tempfile.mkdtemp()
 
-      result = inference.predict(binary_path, model_path, test_data_dir, tmp_dir, backend)
+      inference.predict(binary_path, model_path, test_data_dir, tmp_dir, backend)
 
       with open(os.path.join(tmp_dir, 'data.json'), 'rt') as f:
         ys_values = json.load(f)
