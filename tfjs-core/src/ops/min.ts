@@ -79,10 +79,12 @@ function min_<T extends Tensor>(
 
         let res = y;
         if (keepDims) {
-          const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
-          res = reshape(y, newShape) as T;
+          const expandedShape =
+              axis_util.expandShapeToKeepDim(res.shape, origAxes);
+          res = reshape(y, expandedShape) as T;
           y.dispose();
         }
+
         save([$x, res]);
         return res;
       };
