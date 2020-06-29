@@ -137,7 +137,7 @@ function gather_<T extends Tensor>(
                 return res;
               },
               {x: $x, indices: $indices}, grad, 'Gather', {axis}))
-             .reshape(shapeInfo.outputShape) as T;
+      .reshape(shapeInfo.outputShape);
 }
 
 function arrayRange(start: number, stop: number): number[] {

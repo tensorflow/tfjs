@@ -14,25 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
+import {reshape} from '../../ops/reshape';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
 
-import {Tensor} from '../tensor';
-import * as axis_util from './axis_util';
-
-/**
- * Gradient helper function for the min and max operations.
- */
-export function gradForMinAndMax<T extends Tensor>(
-    dy: T, y: T, xOrig: Tensor, origAxes: number[], permutedAxes: number[]) {
-  if (y.rank < xOrig.rank) {
-    y = y.reshape(axis_util.expandShapeToKeepDim(y.shape, origAxes));
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    reshape<T extends Tensor>(shape: number[]): T;
   }
-  if (dy.rank < xOrig.rank) {
-    dy = dy.reshape(axis_util.expandShapeToKeepDim(dy.shape, origAxes));
-  }
-  return {
-    x: () => {
-      const dx = dy.mul(xOrig.equal(y).cast(dy.dtype));
-      return permutedAxes == null ? dx : dx.transpose(permutedAxes);
-    }
-  };
 }
+
+Tensor.prototype.reshape = function<T extends Tensor>(shape: number[]): T {
+  this.throwIfDisposed();
+  return reshape(this, shape) as T;
+};

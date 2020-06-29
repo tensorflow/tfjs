@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-
+import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
 import {getCoordsDataType} from './shader_compiler';
 
@@ -23,35 +23,51 @@ export class CumSumProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
 
+  // Caching uniform location for speed.
+  index: WebGLUniformLocation;
+
   constructor(shape: number[], exclusive: boolean, reverse: boolean) {
     this.outputShape = shape;
     const rank = shape.length;
-    const finalDim = shape[shape.length - 1];
-    const comparator = reverse ? '<' : '>';
+    const val = exclusive ? '0.0' : `getX(${getCoords(rank, 'coords')})`;
+    const length = shape[shape.length - 1];
+    let condition = '';
+    let idxString = '';
+    // When exclusive is set, the cumsum op becomes roll op that copies the
+    // value from the previous index based on the direction specified by the
+    // reverse flag.
+    if (exclusive) {
+      condition = reverse ? `end != ${length - 1}` : 'end != 0';
+      idxString = reverse ? 'end + 1' : 'end - 1';
+    } else {
+      condition = reverse ? `end + pow2 < ${length}` : 'end >= pow2';
+      idxString = (reverse ? 'end + pow2' : 'end - pow2');
+    }
 
     this.userCode = `
-      int getIndex(int i) {
-        ${reverse ? `return ${finalDim} -i - 1;` : 'return i;'}
-      }
-
+      uniform float index;
       void main() {
         ${getCoordsDataType(rank)} coords = getOutputCoords();
         int end = ${getFinalCoord(rank, 'coords')};
-        float val = 0.0;
-        for (int i = ${finalDim} - 1; i >= 0; i -= 1) {
-          int idx = getIndex(i);
-          if (idx ${comparator} end) {
-            continue;
-          }
-          if (idx == end && ${exclusive}) {
-            continue;
-          }
+        float val = ${val};
+        int pow2 = int(pow(2.0, index));
+        if (${condition}) {
+          int idx = ${idxString};
           ${getFinalCoord(rank, 'coords')} = idx;
           val += getX(${getCoords(rank, 'coords')});
         }
         setOutput(val);
       }
     `;
+  }
+
+  getCustomSetupFunc(index: number) {
+    return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
+      if (this.index == null) {
+        this.index = gpgpu.getUniformLocation(webGLProgram, 'index');
+      }
+      gpgpu.gl.uniform1f(this.index, index);
+    };
   }
 }
 

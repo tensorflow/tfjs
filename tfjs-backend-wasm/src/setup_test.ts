@@ -309,6 +309,7 @@ const TEST_FILTERS: TestFilter[] = [
       'axis=0',  // Reduction not supported along inner dimensions.
     ]
   },
+  {startsWith: 'reverse'},
   {startsWith: 'sum '},
   {
     startsWith: 'logicalAnd ',

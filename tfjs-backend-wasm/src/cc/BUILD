@@ -226,6 +226,7 @@ tfjs_cc_library(
         ":Relu",
         ":Relu6",
         ":ResizeBilinear",
+        ":Reverse",
         ":ScatterNd",
         ":SelectV2",
         ":Sigmoid",
@@ -772,6 +773,15 @@ tfjs_unit_test(
     srcs = ["kernels/ResizeBilinear_test.cc"],
     deps = [
         ":ResizeBilinear",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Reverse",
+    srcs = ["kernels/Reverse.cc"],
+    deps = [
+        ":backend",
+        ":util",
     ],
 )
 
