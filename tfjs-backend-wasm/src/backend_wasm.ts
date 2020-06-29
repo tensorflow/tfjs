@@ -16,7 +16,7 @@
  */
 import './flags_wasm';
 
-import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, env, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, env, KernelBackend, registerBackend, Tensor, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
 import wasmFactorySimd from '../wasm-out/tfjs-backend-wasm-simd.js';
@@ -62,6 +62,10 @@ export class BackendWasm extends KernelBackend {
     f();
     const kernelMs = util.now() - start;
     return {kernelMs};
+  }
+
+  clone(x: TensorInfo): Tensor {
+    return engine().makeTensorFromDataId(x.dataId, x.shape, x.dtype);
   }
 
   move(

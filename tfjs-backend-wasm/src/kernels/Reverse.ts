@@ -46,7 +46,9 @@ export function reverse(args: {
 
   const axes = util.parseAxisParam(dims, x.shape);
 
-  // TODO: ADD CLONE
+  if (x.shape.length === 0) {
+    return backend.clone(x);
+  }
 
   const out = backend.makeOutput(x.shape, x.dtype);
   const xId = backend.dataIdMap.get(x.dataId).id;
