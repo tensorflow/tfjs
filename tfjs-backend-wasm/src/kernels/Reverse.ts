@@ -15,10 +15,25 @@
  * =============================================================================
  */
 
-import {buffer, NamedAttrMap, NamedTensorInfoMap, registerKernel, Reverse, ReverseAttrs, ReverseInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {NamedAttrMap, NamedTensorInfoMap, registerKernel, Reverse, ReverseAttrs, ReverseInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 import {reshape} from './Reshape';
+
+let wasmReverse: (
+    xId: number, axes: Uint8Array, axesLength: number, outShape: Uint8Array,
+    outShapeLength: number, outId: number) => void;
+
+function setup(backend: BackendWasm) {
+  wasmReverse = backend.wasm.cwrap(Reverse, null, [
+    'number',  // x_id
+    'array',   // axes
+    'number',  // axes_length
+    'array',   // out_shape
+    'number',  // out_shape_length
+    'number'   // out_id
+  ]);
+}
 
 export function reverse(args: {
   inputs: NamedTensorInfoMap,
@@ -34,19 +49,22 @@ export function reverse(args: {
   // TODO: ADD CLONE
 
   const out = backend.makeOutput(x.shape, x.dtype);
-  const xVals = backend.typedArrayFromHeap(x);
-  const outVals = backend.typedArrayFromHeap(out);
-  const outBuf = buffer(x.shape, x.dtype, outVals);
+  const xId = backend.dataIdMap.get(x.dataId).id;
+  const outId = backend.dataIdMap.get(out.dataId).id;
 
-  for (let i = 0; i < outVals.length; i++) {
-    const outLoc = outBuf.indexToLoc(i);
-    const inLoc = outLoc.slice();
-    axes.forEach(ax => inLoc[ax] = x.shape[ax] - 1 - inLoc[ax]);
-    // let inPos = 0;
-    outBuf.set(xVals[0], ...outLoc);
-  }
+  const axesBytes = new Uint8Array(new Int32Array(axes).buffer);
+
+  const outShapeBytes = new Uint8Array(new Int32Array(x.shape));
+
+  wasmReverse(
+      xId, axesBytes, axes.length, outShapeBytes, x.shape.length, outId);
 
   return reshape({inputs: {x: out}, attrs: {shape: x.shape}, backend});
 }
 
-registerKernel({kernelName: Reverse, backendName: 'wasm', kernelFunc: reverse});
+registerKernel({
+  kernelName: Reverse,
+  backendName: 'wasm',
+  kernelFunc: reverse,
+  setupFunc: setup
+});

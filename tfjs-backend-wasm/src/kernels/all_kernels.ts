@@ -68,6 +68,7 @@ import './Relu';
 import './Relu6';
 import './Reshape';
 import './ResizeBilinear';
+import './Reverse';
 import './Rsqrt';
 import './SelectV2';
 import './ScatterNd';
