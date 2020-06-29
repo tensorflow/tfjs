@@ -49,10 +49,8 @@ void Reverse(const size_t x_id, const size_t* axes_ptr,
       tfjs::util::compute_strides(out_shape);
 
   for (size_t i = 0; i < x_size; ++i) {
-    const std::vector<size_t> out_loc =
-        tfjs::util::offset_to_loc(i, out_strides);
+    std::vector<size_t> in_loc = tfjs::util::offset_to_loc(i, out_strides);
 
-    std::vector<size_t> in_loc = out_loc;
     for (size_t ax_i = 0; ax_i < axes_length; ++ax_i) {
       size_t ax = axes[ax_i];
       in_loc[ax] = out_shape[ax] - 1 - in_loc[ax];
