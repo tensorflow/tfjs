@@ -1188,13 +1188,17 @@ export class MathBackendWebGL extends KernelBackend {
     for (let i = 0; i <= Math.ceil(Math.log2(size)) - 1; i++) {
       const program = new CumSumProgram(x.shape, false, reverse);
       const customSetup = program.getCustomSetupFunc(i);
+      const prevResult = result;
       result = this.compileAndRun(program, [result], result.dtype, customSetup);
+      prevResult.dispose();
     }
     // For exclusive cumsum, shift the end result in the direction of sum and
     // add 0 to the front index.
     if (exclusive) {
       const program = new CumSumProgram(x.shape, exclusive, reverse);
+      const prevResult = result;
       result = this.compileAndRun(program, [result]);
+      prevResult.dispose();
     }
 
     return result;
