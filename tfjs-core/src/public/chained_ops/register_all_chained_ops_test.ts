@@ -78,6 +78,7 @@ const CHAINED_OPS = [
   'prelu',
   'prod',
   'relu',
+  'reshape',
   'resizeBilinear',
   'resizeNearestNeighbor',
   'relu6',

@@ -31,13 +31,14 @@ function summarize(argv: string[]) {
     return;
   }
   // tslint:disable-next-line: no-any
-  const nodes: any[] = model['modelTopology']['node'];
+  let nodes: any[] = model['modelTopology']['node'];
   const library = model['modelTopology']['library'];
   if (library != null) {
     const functions = library['function'];
+
     // tslint:disable-next-line: no-any
     if (functions != null) {
-      functions.forEach((func: any) => nodes.concat(func['nodeDef']));
+      functions.forEach((func: any) => nodes = nodes.concat(func['nodeDef']));
     }
   }
 
@@ -51,7 +52,8 @@ function summarize(argv: string[]) {
     opCount[op] = count + 1;
   });
 
-  console.log(opCount);
+  const keys = Object.keys(opCount).sort();
+  keys.forEach(key => console.log(`${key}: ${opCount[key]}`));
   console.log(`Total ops = ${nodes.length}`);
 }
 

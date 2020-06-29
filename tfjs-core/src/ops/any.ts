@@ -70,7 +70,7 @@ function any_<T extends Tensor>(
     const res = backend.any($x, axes);
     if (keepDims) {
       const newShape = expandShapeToKeepDim(res.shape, origAxes);
-      return res.reshape(newShape) as T;
+      return res.reshape(newShape);
     }
     return res as T;
   };

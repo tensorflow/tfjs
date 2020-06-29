@@ -52,17 +52,17 @@ import {op} from './operation';
  * @param shape An array of integers defining the output tensor shape.
  */
 /** @doc {heading: 'Tensors', subheading: 'Transformations'} */
-function reshape_<R2 extends Rank>(
-    x: Tensor|TensorLike, shape: ShapeMap[R2]): Tensor<R2> {
+function reshape_<R extends Rank>(
+    x: Tensor|TensorLike, shape: ShapeMap[R]): Tensor<R> {
   const $x = convertToTensor(x, 'x', 'reshape', null);
-  shape = util.inferFromImplicitShape(shape, $x.size) as ShapeMap[R2];
+  shape = util.inferFromImplicitShape(shape, $x.size) as ShapeMap[R];
   util.assert(
       $x.size === util.sizeFromShape(shape),
       () => 'new shape and old shape must have the same number of elements.');
 
-  const inputs: ReshapeInputs = {tensor: $x};
+  const inputs: ReshapeInputs = {x: $x};
   const attrs: ReshapeAttrs = {shape};
-  const forward: ForwardFunc<Tensor<R2>> =
+  const forward: ForwardFunc<Tensor<R>> =
       (backend: KernelBackend, save: GradSaveFunc) => {
         save([$x]);
         return backend.reshape($x, shape);

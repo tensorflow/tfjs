@@ -18,7 +18,7 @@
 import * as tf from '@tensorflow/tfjs-core';
 import {engine, env} from '@tensorflow/tfjs-core';
 import {backend_util, buffer, slice_util, util} from '@tensorflow/tfjs-core';
-import {BackendTimingInfo, DataStorage, DataType, DataValues, KernelBackend, max, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, TypedArray, upcastType} from '@tensorflow/tfjs-core';
+import {BackendTimingInfo, DataStorage, DataType, DataValues, KernelBackend, max, NumericDataType, Rank, reshape, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 import {kernel_impls} from '@tensorflow/tfjs-core';
 
 const nonMaxSuppressionV3Impl = kernel_impls.nonMaxSuppressionV3Impl;
@@ -2145,10 +2145,10 @@ export class MathBackendCPU extends KernelBackend {
     const flattenShape = backend_util.getReshapedPermuted(
         paddedX.shape, blockShape, prod, false);
 
-    return tf.transpose(
-                 paddedX.reshape(reshapedPaddedShape),
-                 permutedReshapedPaddedPermutation)
-               .reshape(flattenShape) as T;
+    const paddedXT = tf.transpose(
+        paddedX.reshape(reshapedPaddedShape),
+        permutedReshapedPaddedPermutation);
+    return reshape(paddedXT, flattenShape) as T;
   }
 
   maxPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {

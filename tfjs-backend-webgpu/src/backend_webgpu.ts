@@ -19,7 +19,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, DataStorage, DataType, div, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, slice_util, sumOutType, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorInfo, TimingInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataStorage, DataType, div, engine, env, KernelBackend, Rank, RecursiveArray, ShapeMap, slice_util, sumOutType, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorInfo, TimingInfo, util} from '@tensorflow/tfjs-core';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
@@ -550,7 +550,7 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     if (this.cpuBackend == null) {
-      this.cpuBackend = findBackend('cpu');
+      this.cpuBackend = engine().findBackend('cpu');
     }
 
     return this.cpuBackend;
@@ -1060,10 +1060,9 @@ export class WebGPUBackend extends KernelBackend {
       extrapolationValue: number): Tensor4D {
     const program = new CropAndResizeProgram(
         image.shape, boxes.shape, cropSize, method, extrapolationValue);
-    const dataId =
-        this.write(null /*values*/, program.outputShape, image.dtype);
+    const dataId = this.write(null /*values*/, program.outputShape, 'float32');
     const output = engine().makeTensorFromDataId(
-        dataId, program.outputShape, image.dtype, this);
+        dataId, program.outputShape, 'float32', this);
     return this.compileAndRun(program, [image, boxes, boxIndex], output);
   }
 
@@ -1174,7 +1173,7 @@ export class WebGPUBackend extends KernelBackend {
 
     return paddedX.reshape(reshapedPaddedShape)
                .transpose(permutedReshapedPaddedPermutation)
-               .reshape(flattenShape) as T;
+               .reshape(flattenShape);
   }
 
   batchMatMul(

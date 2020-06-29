@@ -3,7 +3,7 @@
 __tfjs-vis__ is a small library for _in browser_ visualization intended for use
 with TensorFlow.js.
 
-It's main features are:
+Its main features are:
 
 * A set of visualizations useful for visualizing model behaviour
 * A set of high level functions for visualizing objects specific to TensorFlow.js
