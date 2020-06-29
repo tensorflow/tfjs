@@ -21,9 +21,9 @@ import {Tensor} from '../tensor';
 
 export const reshapeGradConfig: GradConfig = {
   kernelName: Reshape,
-  inputsToSave: ['tensor'],
+  inputsToSave: ['x'],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
-    const [tensor] = saved;
-    return {tensor: () => reshape(dy, tensor.shape)};
+    const [x] = saved;
+    return {x: () => reshape(dy, x.shape)};
   }
 };

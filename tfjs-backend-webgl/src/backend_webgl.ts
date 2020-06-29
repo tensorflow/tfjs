@@ -19,7 +19,7 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {complex, DataId, div, engine, env, imag, max, MemoryInfo, range, real, RecursiveArray, scalar, softmax, tensor, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
+import {complex, DataId, div, engine, env, imag, max, MemoryInfo, range, real, RecursiveArray, reshape, scalar, softmax, tensor, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
 import {backend_util, buffer, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
 import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 
@@ -1020,10 +1020,10 @@ export class MathBackendWebGL extends KernelBackend {
     const flattenShape = backend_util.getReshapedPermuted(
         paddedX.shape, blockShape, prod, false);
 
-    return transpose(
-               paddedX.reshape(reshapedPaddedShape),
-               permutedReshapedPaddedPermutation)
-               .reshape(flattenShape) as T;
+    const paddedXT = transpose(
+        paddedX.reshape(reshapedPaddedShape),
+        permutedReshapedPaddedPermutation);
+    return reshape(paddedXT, flattenShape) as T;
   }
 
   private reduce(
@@ -1181,8 +1181,23 @@ export class MathBackendWebGL extends KernelBackend {
           `WebGL cumsum shader expects an inner-most axis=${x.rank - 1} ` +
           `but got axis=${axis}`);
     }
-    const program = new CumSumProgram(x.shape, exclusive, reverse);
-    return this.compileAndRun(program, [x]);
+    const size = x.shape[axis];
+    let result = x;
+    // Use cumsum parallel algorithm, ref:
+    // https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda
+    for (let i = 0; i <= Math.ceil(Math.log2(size)) - 1; i++) {
+      const program = new CumSumProgram(x.shape, false, reverse);
+      const customSetup = program.getCustomSetupFunc(i);
+      result = this.compileAndRun(program, [result], result.dtype, customSetup);
+    }
+    // For exclusive cumsum, shift the end result in the direction of sum and
+    // add 0 to the front index.
+    if (exclusive) {
+      const program = new CumSumProgram(x.shape, exclusive, reverse);
+      result = this.compileAndRun(program, [result]);
+    }
+
+    return result;
   }
 
   equal(a: Tensor, b: Tensor): Tensor {
