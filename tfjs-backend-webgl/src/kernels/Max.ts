@@ -92,8 +92,6 @@ export const maxConfig: KernelConfig = {
       webglBackend.disposeData(maxInput.dataId);
     }
 
-
-
     return out;
   }
 };
