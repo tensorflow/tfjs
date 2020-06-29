@@ -114,7 +114,7 @@ limitations under the License.
       testCorrectness: async () => {
         if (state.benchmark === 'custom') {
           // TODO: seperate input generation from the predict function
-          await showMsg('Testing correctness for custom models is not supported');
+          await showMsg('Testing correctness for custom models is not supported.');
           throw new Error();
         }
 
@@ -296,7 +296,7 @@ limitations under the License.
       state.isModelChanged = false; // used to clean the performance history
 
       if (benchmark['load'] == null) {
-        throw new Error(`Please provide a load method for '${state.benchmark}' model`);
+        throw new Error(`Please provide a load method for '${state.benchmark}' model.`);
       }
 
       await showMsg('Loading the model');

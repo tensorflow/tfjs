@@ -236,7 +236,7 @@ const benchmarks = {
           } else if (model.predict != null) {
             resultTensor = model.predict(inferenceInput);
           } else {
-            throw new Error("Predict function was not found");
+            throw new Error("Predict function was not found.");
           }
           return resultTensor;
         } finally {
@@ -291,7 +291,7 @@ function findIOHandler(path, loadOptions = {}) {
     } else if (handlers.length > 1) {
       throw new Error(
           `Found more than one (${handlers.length}) load handlers for ` +
-          `URL '${[path]}'`);
+          `URL '${[path]}'.`);
     }
     handler = handlers[0];
   }
@@ -320,7 +320,7 @@ async function loadModelByUrl(modelUrl, loadOptions = {}) {
 
   const supportedSchemes =  /^(https?|localstorage|indexeddb):\/\/.+$/;
   if (!supportedSchemes.test(modelUrl)) {
-    throw new Error(`Please use a valid URL, such as 'https://'`);
+    throw new Error(`Please use a valid URL, such as 'https://'.`);
   }
 
   const tfHubUrl =  /^https:\/\/tfhub.dev\/.+$/;
@@ -336,7 +336,7 @@ async function loadModelByUrl(modelUrl, loadOptions = {}) {
     ioHandler = findIOHandler(modelUrl, loadOptions);
     modelType = await ioHandler.load().then(artifacts => artifacts.format);
   } catch (e) {
-    throw new Error(`Failed to fetch or parse 'model.json' file`);
+    throw new Error(`Failed to fetch or parse 'model.json' file.`);
   }
 
   // load models
@@ -351,7 +351,7 @@ async function loadModelByUrl(modelUrl, loadOptions = {}) {
       model = await tryAllLoadingMethods(ioHandler, loadOptions);
     }
   } catch (e) {
-    throw new Error('Failed to load the model');
+    throw new Error('Failed to load the model.');
   }
 
   return model;
