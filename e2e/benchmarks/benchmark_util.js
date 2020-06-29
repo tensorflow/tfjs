@@ -26,13 +26,9 @@ function generateInput(model) {
   try {
     model.inputs.forEach((inputNode, inputNodeIndex) => {
       // replace -1 or null in input tensor shape
-      const inputShape = inputNode.shape.map((shapeValue, dimension) => {
+      const inputShape = inputNode.shape.map(shapeValue => {
         if (shapeValue == null || shapeValue < 0) {
           return 1;
-        } else if (shapeValue == 0) {
-          throw new Error(
-              `In the model.inputs[${inputNodeIndex}], ` +
-              `'${inputNode.name}', the shape[${dimension}] is zero.`);
         } else {
           return shapeValue;
         }
@@ -40,7 +36,7 @@ function generateInput(model) {
 
       // construct the input tensor
       let inputTensor;
-      if (inputNode.dtype == 'float32' || inputNode.dtype == 'int32') {
+      if (inputNode.dtype === 'float32' || inputNode.dtype === 'int32') {
         inputTensor = tf.randomNormal(inputShape, 0, 1000, inputNode.dtype);
       } else {
         throw new Error(
