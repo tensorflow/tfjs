@@ -80,7 +80,6 @@ if [[ "$RELEASE" = true ]]; then
   # Publish the monorepo
   "$e2e_root_path"/scripts/publish-monorepo-ci.sh
 
-  echo 'Installing package'
   # Todo(linazhao): Revise package.json to use the published version.
 
   # Cleanup
