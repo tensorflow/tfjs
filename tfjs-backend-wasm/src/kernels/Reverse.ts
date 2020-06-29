@@ -18,6 +18,7 @@
 import {buffer, NamedAttrMap, NamedTensorInfoMap, registerKernel, Reverse, ReverseAttrs, ReverseInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+import {reshape} from './Reshape';
 
 export function reverse(args: {
   inputs: NamedTensorInfoMap,
@@ -29,6 +30,8 @@ export function reverse(args: {
   const {dims} = attrs as {} as ReverseAttrs;
 
   const axes = util.parseAxisParam(dims, x.shape);
+
+  // TODO: ADD CLONE
 
   const out = backend.makeOutput(x.shape, x.dtype);
   const xVals = backend.typedArrayFromHeap(x);
@@ -43,7 +46,7 @@ export function reverse(args: {
     outBuf.set(xVals[0], ...outLoc);
   }
 
-  return out;
+  return reshape({inputs: {x: out}, attrs: {shape: x.shape}, backend});
 }
 
 registerKernel({kernelName: Reverse, backendName: 'wasm', kernelFunc: reverse});
