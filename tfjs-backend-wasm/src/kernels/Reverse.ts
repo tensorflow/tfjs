@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ForwardFunc, registerKernel, Reverse, ReverseAttrs, ReverseInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {ForwardFunc, KernelConfig, Reverse, ReverseAttrs, ReverseInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -62,9 +62,9 @@ export function reverse(
   return reshape({inputs: {x: out}, attrs: {shape: x.shape}, backend});
 }
 
-registerKernel({
+export const reverseConfig: KernelConfig = {
   kernelName: Reverse,
   backendName: 'wasm',
   kernelFunc: reverse as ForwardFunc,
   setupFunc: setup
-});
+};
