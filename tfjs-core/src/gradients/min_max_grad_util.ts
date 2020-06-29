@@ -15,7 +15,12 @@
  * =============================================================================
  */
 
+import {cast} from '../ops/array_ops';
 import * as axis_util from '../ops/axis_util';
+import {equal} from '../ops/equal';
+import {mul} from '../ops/mul';
+import {reshape} from '../ops/reshape';
+import {transpose} from '../ops/transpose';
 import {Tensor} from '../tensor';
 
 /**
@@ -24,15 +29,15 @@ import {Tensor} from '../tensor';
 export function gradForMinAndMax<T extends Tensor>(
     dy: T, y: T, xOrig: Tensor, origAxes: number[], permutedAxes: number[]) {
   if (y.rank < xOrig.rank) {
-    y = y.reshape(axis_util.expandShapeToKeepDim(y.shape, origAxes)) as T;
+    y = reshape(y, axis_util.expandShapeToKeepDim(y.shape, origAxes)) as T;
   }
   if (dy.rank < xOrig.rank) {
-    dy = dy.reshape(axis_util.expandShapeToKeepDim(dy.shape, origAxes)) as T;
+    dy = reshape(dy, axis_util.expandShapeToKeepDim(dy.shape, origAxes)) as T;
   }
   return {
     x: () => {
-      const dx = dy.mul(xOrig.equal(y).cast(dy.dtype));
-      return permutedAxes == null ? dx : dx.transpose(permutedAxes);
+      const dx = mul(dy, cast(equal(xOrig, y), dy.dtype));
+      return permutedAxes == null ? dx : transpose(dx, permutedAxes);
     }
   };
 }
