@@ -365,8 +365,7 @@ export class WebGPUBackend extends KernelBackend {
     return {
       resource: {
         offset: 0,
-        size: util.sizeFromShape(tensor.shape) *
-            util.bytesPerElement(tensor.dtype),
+        size: tensorData.bufferInfo.byteSize,
         buffer: tensorData.bufferInfo.buffer
       }
     };
