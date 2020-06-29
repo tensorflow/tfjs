@@ -53,9 +53,7 @@ export function reverse(args: {
   const outId = backend.dataIdMap.get(out.dataId).id;
 
   const axesBytes = new Uint8Array(new Int32Array(axes).buffer);
-  const outShapeBytes = new Uint8Array(new Int32Array(x.shape));
-
-  console.log(axes, x.shape);
+  const outShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
 
   wasmReverse(
       xId, axesBytes, axes.length, outShapeBytes, x.shape.length, outId);
