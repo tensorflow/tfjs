@@ -33,9 +33,6 @@ def predict(binary_path, model_path, inputs_dir, outputs_dir):
       files.
     outputs_dir: Directory to write the outputs files, including data, shape
       and dtype files.
-
-  Returns:
-    stdout from the subprocess.
   """
   model_path_option = '--model_path=' + model_path
   inputs_dir_option = '--inputs_dir=' + inputs_dir
@@ -52,7 +49,7 @@ def predict(binary_path, model_path, inputs_dir, outputs_dir):
       stdout=subprocess.PIPE,
       stderr=subprocess.PIPE)
   stdout, stderr = popen.communicate()
-  if popen.returncode != 0:
+
+  if popen.returncode != 0 or stderr != '':
     raise ValueError('Inference failed with status %d\nstderr:\n%s' %
                      (popen.returncode, stderr))
-  return stdout

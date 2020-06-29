@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Tests for tfjs-inference binary."""
 
 # To test the binary, you need to manually run `yarn build-binary` first.
 # This test only supports running in Linux.
@@ -37,7 +36,8 @@ class InferenceTest(tf.test.TestCase):
     test_data_dir = os.path.join('../test_data')
     tmp_dir = tempfile.mkdtemp()
 
-    inference.predict(binary_path, model_path, test_data_dir, tmp_dir)
+    result = inference.predict(binary_path, model_path, test_data_dir, tmp_dir)
+    print(result)
 
     with open(os.path.join(tmp_dir, 'data.json'), 'rt') as f:
       ys_values = json.load(f)

@@ -17,6 +17,7 @@
     "@tensorflow/tfjs-core": "2.0.0",
     "@tensorflow/tfjs-converter": "2.0.0",
     "@tensorflow/tfjs-backend-cpu": "2.0.0",
+    "@tensorflow/tfjs-backend-wasm": "2.0.1",
     "@types/jasmine": "~3.0.0",
     "@types/rimraf":  "~3.0.0",
     "clang-format": "~1.2.4",
