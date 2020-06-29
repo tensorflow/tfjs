@@ -40,6 +40,9 @@ void Reverse(const size_t x_id, const size_t* axes_ptr,
   auto& x_info = backend::get_tensor_info(x_id);
   const float* x_buf = x_info.f32();
 
+  auto& out_info = backend::get_tensor_info_out(out_id);
+  float* out_buf = out_info.f32_write();
+
   size_t x_size = x_info.size;
 
   const std::vector<size_t> out_strides =
@@ -49,18 +52,14 @@ void Reverse(const size_t x_id, const size_t* axes_ptr,
     const std::vector<size_t> out_loc =
         tfjs::util::offset_to_loc(i, out_strides);
 
-    for (size_t ax_i = 0; ax_i < axes_length; ++ax_i) {
-      size_t ax = axes[ax_i];
-    }
-
-    const std::vector<size_t> in_loc = out_loc;
+    std::vector<size_t> in_loc = out_loc;
     for (size_t ax_i = 0; ax_i < axes_length; ++ax_i) {
       size_t ax = axes[ax_i];
       in_loc[ax] = out_shape[ax] - 1 - in_loc[ax];
     }
 
     const size_t x_position = tfjs::util::loc_to_offset(in_loc, out_strides);
-    out[i] = x_buf[x_position];
+    out_buf[i] = x_buf[x_position];
   }
 }
 
