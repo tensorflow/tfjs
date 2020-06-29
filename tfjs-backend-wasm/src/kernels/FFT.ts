@@ -65,11 +65,11 @@ function fft(args: {backend: BackendWasm, inputs: FFTInputs}): TensorInfo {
       realInputId, imagInputId, outerDim, innerDim,
       0 /* is not real component */, imagId);
 
+  const out = complex({backend, inputs: {real, imag}});
   backend.disposeData(realInput.dataId);
   backend.disposeData(imagInput.dataId);
 
-  const out = complex({backend, inputs: {real, imag}});
-  return out;
+  return reshape({inputs: {x: out}, attrs: {shape: input2D.shape}, backend});
 }
 
 registerKernel(

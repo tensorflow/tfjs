@@ -23,9 +23,7 @@ export function real(args: {backend: BackendWasm, inputs: RealInputs}):
 
   const inputData = backend.dataIdMap.get(input.dataId);
   const realPart = inputData.complexTensors.real;
-
-  const realClone = backend.makeOutput(realPart.shape, realPart.dtype);
-  return realClone;
+  return backend.clone(realPart);
 }
 
 registerKernel({kernelName: Real, backendName: 'wasm', kernelFunc: real});

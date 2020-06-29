@@ -12,7 +12,7 @@
  * limitations under the License.
  * ===========================================================================*/
 
-import {Complex, ComplexInputs, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {Complex, ComplexInputs, engine, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -23,10 +23,10 @@ export function complex(args: {backend: BackendWasm, inputs: ComplexInputs}):
 
   const out = backend.makeOutput(real.shape, 'complex64');
   const outData = backend.dataIdMap.get(out.dataId);
-  // outData.complexTensors = {real, imag};
-  const realClone = backend.makeOutput(real.shape, real.dtype);
-  const imagClone = backend.makeOutput(imag.shape, imag.dtype);
-  outData.complexTensors = {real: realClone, imag: imagClone};
+  outData.complexTensors = {
+    real: engine().keep(backend.clone(real)),
+    imag: engine().keep(backend.clone(imag))
+  };
 
   return out;
 }

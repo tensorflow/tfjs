@@ -188,6 +188,10 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient'  // Gradient is missing.
     ]
   },
+  {
+    include: 'fft',
+    excludes: ['stft']  // Complex support for concat not implemented yet.
+  },
   {include: 'fft'},
   {include: 'slice '},
   {include: 'square '},
