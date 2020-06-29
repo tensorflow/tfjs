@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ForwardFunc, KernelConfig, Reverse, ReverseAttrs, ReverseInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, NamedAttrMap, NamedTensorInfoMap, Reverse, ReverseAttrs, ReverseInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -36,12 +36,14 @@ function setup(backend: BackendWasm) {
   ]);
 }
 
-export function reverse(
-    args: {inputs: ReverseInputs, backend: BackendWasm, attrs: ReverseAttrs}):
-    TensorInfo {
+export function reverse(args: {
+  inputs: NamedTensorInfoMap,
+  backend: BackendWasm,
+  attrs: NamedAttrMap
+}): TensorInfo {
   const {inputs, backend, attrs} = args;
-  const {x} = inputs;
-  const {dims} = attrs;
+  const {x} = inputs as {} as ReverseInputs;
+  const {dims} = attrs as {} as ReverseAttrs;
 
   const axes = util.parseAxisParam(dims, x.shape);
 
@@ -65,6 +67,6 @@ export function reverse(
 export const reverseConfig: KernelConfig = {
   kernelName: Reverse,
   backendName: 'wasm',
-  kernelFunc: reverse as ForwardFunc,
+  kernelFunc: reverse,
   setupFunc: setup
 };
