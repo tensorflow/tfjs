@@ -81,11 +81,6 @@ function max_<T extends Tensor>(
                      axis_util.expandShapeToKeepDim(
                          res.shape, util.parseAxisParam(axis, $x.shape))) as T;
         }
-
-        // if (permutedAxes != null) {
-        //   backend.disposeData(maxInput.dataId);
-        // }
-
         return y;
       };
 

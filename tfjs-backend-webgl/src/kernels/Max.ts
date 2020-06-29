@@ -29,7 +29,7 @@ export const maxConfig: KernelConfig = {
   backendName: 'webgl',
   kernelFunc: ({inputs, attrs, backend}) => {
     const {x} = inputs as MaxInputs;
-    const {reductionIndices} = attrs as {} as MaxAttrs;
+    const {reductionIndices, keepDims} = attrs as {} as MaxAttrs;
     const webglBackend = backend as MathBackendWebGL;
 
     const xRank = x.shape.length;
@@ -67,24 +67,32 @@ export const maxConfig: KernelConfig = {
     const [maxOutShape, reduceShape] =
         backend_util.computeOutAndReduceShapes(maxInput.shape, axes);
 
+    let outShape = maxOutShape;
+    if (keepDims) {
+      // rather than reshape at the end, set the target shape here.
+      outShape = backend_util.expandShapeToKeepDim(maxOutShape, origAxes);
+    }
+
     let out;
     if (shouldExecuteOnCPU) {
       const xTexData = webglBackend.texData.get(maxInput.dataId);
       const values = xTexData.values as TypedArray;
 
       const outValues = maxImplCPU(
-          values, util.sizeFromShape(reduceShape), maxOutShape, x.dtype);
+          values, util.sizeFromShape(reduceShape), outShape, x.dtype);
 
-      out = webglBackend.makeTensorInfo(maxOutShape, x.dtype);
+      out = webglBackend.makeTensorInfo(outShape, x.dtype);
       const outData = webglBackend.texData.get(out.dataId);
       outData.values = outValues;
     } else {
-      out = maxImpl(maxInput, reduceShape, maxOutShape, webglBackend);
+      out = maxImpl(maxInput, reduceShape, outShape, webglBackend);
     }
 
     if (maxInputIsTransposed) {
       webglBackend.disposeData(maxInput.dataId);
     }
+
+
 
     return out;
   }
