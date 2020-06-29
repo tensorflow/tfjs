@@ -227,33 +227,33 @@ const benchmarks = {
     },
     predictFunc: () => {
       return async model => {
-        let inferenceInputs;
+        let inferenceInput;
         try {
-          inferenceInputs = generateInput(model);
+          inferenceInput = generateInput(model);
           let resultTensor;
           if (model instanceof tf.GraphModel && model.executeAsync != null) {
-            resultTensor = await model.executeAsync(inferenceInputs);
+            resultTensor = await model.executeAsync(inferenceInput);
           } else if (model.predict != null) {
-            resultTensor = model.predict(inferenceInputs);
+            resultTensor = model.predict(inferenceInput);
           } else {
             throw new Error("Predict function was not found");
           }
           return resultTensor;
         } finally {
           // dispose input tensors
-          if (inferenceInputs instanceof tf.Tensor) {
-            inferenceInputs.dispose();
-          } else if (Array.isArray(inferenceInputs)) {
-            inferenceInputs.forEach(tensor => {
-              if (tensor instanceof tf.Tensor) {
-                tensor.dispose();
+          if (inferenceInput instanceof tf.Tensor) {
+            inferenceInput.dispose();
+          } else if (Array.isArray(inferenceInput)) {
+            inferenceInput.forEach(inputNode => {
+              if (inputNode instanceof tf.Tensor) {
+                inputNode.dispose();
               }
             });
-          } else if (inferenceInputs != null && typeof inferenceInputs === 'object') {
+          } else if (inferenceInput != null && typeof inferenceInput === 'object') {
             // inferenceInputs is a tensor map
-            for (const property in inferenceInputs) {
-              if (inferenceInputs[property] instanceof tf.Tensor) {
-                inferenceInputs[property].dispose();
+            for (const property in inferenceInput) {
+              if (inferenceInput[property] instanceof tf.Tensor) {
+                inferenceInput[property].dispose();
               }
             }
           }

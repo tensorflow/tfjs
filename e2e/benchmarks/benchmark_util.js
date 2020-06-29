@@ -54,9 +54,9 @@ function generateInput(model) {
     if (model instanceof tf.GraphModel) {
       if (tensorArray.length !== model.inputNodes.length) {
         throw new Error(
-            'The generated input and model.inputNodes are mismatched,' +
+            'The generated input array and model.inputNodes are mismatched,' +
             `the graph model has ${model.inputNodes.length} input nodes, ` +
-            `while the generated input has ${tensorArray.length} input nodes`);
+            `while the generated input array has ${tensorArray.length} nodes`);
       }
       const tensorMap = model.inputNodes.reduce((map, inputName, i) => {
         map[inputName] = tensorArray[i];
