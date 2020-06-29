@@ -18,19 +18,20 @@
 /**
  *  This file is used to load a saved model and perform inference.
  *  Run this script in console:
- *   ts-node inference.ts --model_path=MODEL_PATH -inputs_dir=INPUTS_DIR
- *   -outputs_dir=OUTPUTS_DIR
+ *   ts-node inference.ts --model_path=MODEL_PATH --inputs_dir=INPUTS_DIR
+ *   --outputs_dir=OUTPUTS_DIR
  *
  *  For help, run:
  *   ts-node inference.ts -h
  */
 
-import '@tensorflow/tfjs-backend-wasm';
-
+// import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
+import '@tensorflow/tfjs-backend-wasm'
+import '@tensorflow/tfjs-backend-cpu'
 import * as tfconv from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
 import * as fs from 'fs';
-import {join} from 'path';
+import * as path from 'path';
 import * as yargs from 'yargs';
 
 import {FileHandler} from './file_handler';
@@ -44,6 +45,7 @@ interface Options {
   inputs_data_file: string;
   inputs_shape_file: string;
   inputs_dtype_file: string;
+  backend: string;
 }
 // tslint:enable:enforce-name-casing
 
@@ -82,25 +84,38 @@ async function main() {
       description: 'Filename of the input dtype file.',
       type: 'string',
       default: 'dtype.json'
+    },
+    backend: {
+      description: 'Choose which tfjs backend to use. Supported backends: ' +
+          'cpu|wasm',
+      type: 'string',
+      default: 'cpu'
     }
   });
 
   const options = argParser.argv as {} as Options;
 
-  await tfc.setBackend('wasm');
+  if (options.backend === 'wasm') {
+    await tfc.setBackend('wasm');
+  } else if (options.backend === 'cpu') {
+    await tfc.setBackend('cpu');
+  } else {
+    throw new Error(
+        'Only cpu and wasm backend is supported, but got ' + options.backend);
+  }
 
   const model =
       await tfconv.loadGraphModel(new FileHandler(options.model_path));
 
   // Read in input files.
   const inputsDataString = fs.readFileSync(
-      join(options.inputs_dir, options.inputs_data_file), 'utf8');
+      path.join(options.inputs_dir, options.inputs_data_file), 'utf8');
   const inputsData = JSON.parse(inputsDataString);
   const inputsShapeString = fs.readFileSync(
-      join(options.inputs_dir, options.inputs_shape_file), 'utf8');
+      path.join(options.inputs_dir, options.inputs_shape_file), 'utf8');
   const inputsShape = JSON.parse(inputsShapeString);
   const inputsDtypeString = fs.readFileSync(
-      join(options.inputs_dir, options.inputs_dtype_file), 'utf8');
+      path.join(options.inputs_dir, options.inputs_dtype_file), 'utf8');
   const inputsDtype = JSON.parse(inputsDtypeString);
 
   const xs = createInputTensors(inputsData, inputsShape, inputsDtype);
@@ -124,11 +139,11 @@ async function main() {
   }
 
   fs.writeFileSync(
-      join(options.outputs_dir, 'data.json'), JSON.stringify(ysData));
+      path.join(options.outputs_dir, 'data.json'), JSON.stringify(ysData));
   fs.writeFileSync(
-      join(options.outputs_dir, 'shape.json'), JSON.stringify(ysShape));
+      path.join(options.outputs_dir, 'shape.json'), JSON.stringify(ysShape));
   fs.writeFileSync(
-      join(options.outputs_dir, 'dtype.json'), JSON.stringify(ysDtype));
+      path.join(options.outputs_dir, 'dtype.json'), JSON.stringify(ysDtype));
 }
 
 /**

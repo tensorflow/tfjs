@@ -35,10 +35,10 @@
     "@nodelib/fs.scandir" "2.1.3"
     fastq "^1.6.0"
 
-"@tensorflow/tfjs-backend-cpu@2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-cpu/-/tfjs-backend-cpu-2.0.0.tgz#26d3ed8a6d814e751adc22e6036e40ed8940b5ac"
-  integrity sha512-eYj8CBjL8v2gHaYdS7JN1swi9kQYOHenMYBkf4khhW83ViZwpPmISyYzun8fy2gBlv28Y7juMmXHSncSDWfI1Q==
+"@tensorflow/tfjs-backend-cpu@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-cpu/-/tfjs-backend-cpu-2.0.1.tgz#959a5bbc7f956ff37c4fbced2db75cd299ce76c4"
+  integrity sha512-ZTDdq+O6AgeOrkek42gmPWz2T0r8Y6dBGjEFWkCMLI/5v3KnkodUkHRQOUoIN5hiaPXnBp6425DpwT9CfxxJOg==
   dependencies:
     "@types/seedrandom" "2.4.27"
     seedrandom "2.4.3"
@@ -50,15 +50,15 @@
   dependencies:
     "@types/emscripten" "~0.0.34"
 
-"@tensorflow/tfjs-converter@2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-2.0.0.tgz#6242c618202f04d88fa308d68a2dfcdd81ec020c"
-  integrity sha512-IFjjx2qe7M2UwwYJvCm2+OgpC+kooCWEjC8mOOoFV/o+g9/Q0RMohRDvffiqUuYx5Usi/vbjhlUBccsy/MhE3g==
+"@tensorflow/tfjs-converter@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-2.0.1.tgz#0696455e6b6ed14e6f5f9cd937f8f2015a16569f"
+  integrity sha512-AI4oUZ3Tv8l7fXeuLNJ3/vIp8shMo/VmtBlhIJye8i5FwMqSlZf984q3Jk6ES4lOxUdkmDehILf7uVNQX2Yb/w==
 
-"@tensorflow/tfjs-core@2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-2.0.0.tgz#c18e963d0332255dc37d6ff58fa0076402ae00d0"
-  integrity sha512-GB02Lyjp7NLKbjCOW6S3Vx2CkkUwtJFt8fY7Zaoyy/ANB4Iw8eiHJV0308CClrFfjA+UKU3TrO+bOQfeCJaEUw==
+"@tensorflow/tfjs-core@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-2.0.1.tgz#c64928423028e9e1821f7205367b1ff1f57ae3af"
+  integrity sha512-LCmEXeGFgR3ai+ywGDYBqt4aCOSzEBlVKEflF1gAT22YcQuYh+/X4f58jY3yXfC+cn/FfIJFc2uj8b+D0MNWLQ==
   dependencies:
     "@types/offscreencanvas" "~2019.3.0"
     "@types/seedrandom" "2.4.27"
