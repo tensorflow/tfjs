@@ -44,7 +44,6 @@ root_path=$PWD
 # Yarn in the top-level
 yarn
 
-# Todo(linazhao): publish monorepo
 RELEASE_VERSION=`getReleaseVersion`
 
 if [[ -z ${RELEASE_VERSION} ]]; then
