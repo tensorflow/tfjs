@@ -24,29 +24,28 @@ function generateInput(model) {
 
   const tensorArray = [];
   try {
-    model.inputs.forEach(input => {
+    model.inputs.forEach((inputNode, inputNodeIndex) => {
       // replace -1 or null in input tensor shape
-      const inputShape = [];
-      input.shape.forEach(shapeValue => {
+      const inputShape = inputNode.shape.map((shapeValue, dimension) => {
         if (shapeValue == null || shapeValue < 0) {
-          inputShape.push(1);
+          return 1;
         } else if (shapeValue == 0) {
           throw new Error(
-              `Warning: In the model.inputs[${inferenceInputIndex}], ` +
-              `'${input.name}', shape[${dimension}] is zero`);
+              `In the model.inputs[${inputNodeIndex}], ` +
+              `'${inputNode.name}', shape[${dimension}] is zero`);
         } else {
-          inputShape.push(shapeValue);
+          return shapeValue;
         }
       });
 
       // construct the input tensor
       let inputTensor;
-      if (input.dtype == 'float32' || input.dtype == 'int32') {
-        inputTensor = tf.randomNormal(inputShape, 0, 1, input.dtype);
+      if (inputNode.dtype == 'float32' || inputNode.dtype == 'int32') {
+        inputTensor = tf.randomNormal(inputShape, 0, 1000, inputNode.dtype);
       } else {
         throw new Error(
-            `The ${input.dtype} dtype  of '${input.name}' input ` +
-            `at model.inputs[${inferenceInputIndex}] is not supported`);
+            `The ${inputNode.dtype} dtype  of '${inputNode.name}' input ` +
+            `at model.inputs[${inputNodeIndex}] is not supported`);
       }
       tensorArray.push(inputTensor);
     });
@@ -55,9 +54,9 @@ function generateInput(model) {
     if (model instanceof tf.GraphModel) {
       if (tensorArray.length !== model.inputNodes.length) {
         throw new Error(
-            'model.inputs and model.inputNodes are mismatched,' +
-            `the graph model has ${model.inputNodes.length} input node, ` +
-            `while there are ${tensorArray.length} inputs in model.inputs.`);
+            'The generated input and model.inputNodes are mismatched,' +
+            `the graph model has ${model.inputNodes.length} input nodes, ` +
+            `while the generated input has ${tensorArray.length} input nodes`);
       }
       const tensorMap = model.inputNodes.reduce((map, inputName, i) => {
         map[inputName] = tensorArray[i];
