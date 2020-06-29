@@ -227,16 +227,37 @@ const benchmarks = {
     },
     predictFunc: () => {
       return async model => {
-        const inferenceInputs = generateInput(model);
-        let resultTensor;
-        if (model instanceof tf.GraphModel && model.executeAsync != null) {
-          resultTensor = await model.executeAsync(inferenceInputs);
-        } else if (model.predict != null) {
-          resultTensor = model.predict(inferenceInputs);
-        } else {
-          throw new Error("Predict function was not found");
+        let inferenceInputs;
+        try {
+          inferenceInputs = generateInput(model);
+          let resultTensor;
+          if (model instanceof tf.GraphModel && model.executeAsync != null) {
+            resultTensor = await model.executeAsync(inferenceInputs);
+          } else if (model.predict != null) {
+            resultTensor = model.predict(inferenceInputs);
+          } else {
+            throw new Error("Predict function was not found");
+          }
+          return resultTensor;
+        } finally {
+          // dispose input tensors
+          if (inferenceInputs instanceof tf.Tensor) {
+            inferenceInputs.dispose();
+          } else if (Array.isArray(inferenceInputs)) {
+            inferenceInputs.forEach(tensor => {
+              if (tensor instanceof tf.Tensor) {
+                tensor.dispose();
+              }
+            });
+          } else if (inferenceInputs != null && typeof inferenceInputs === 'object') {
+            // inferenceInputs is a tensor map
+            for (const property in inferenceInputs) {
+              if (inferenceInputs[property] instanceof tf.Tensor) {
+                inferenceInputs[property].dispose();
+              }
+            }
+          }
         }
-        return resultTensor;
       }
     }
   },

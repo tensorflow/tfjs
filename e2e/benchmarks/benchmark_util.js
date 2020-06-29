@@ -7,8 +7,8 @@ function generateInput(model) {
     throw new Error('The model.inputs cannot be found');
   }
 
+  const tensorArray = [];
   try {
-    const inferenceInputs = [];
     model.inputs.forEach(input => {
       // replace -1 or null in input tensor shape
       const inputShape = [];
@@ -33,16 +33,32 @@ function generateInput(model) {
             `The ${input.dtype} dtype  of '${input.name}' input ` +
             `at model.inputs[${inferenceInputIndex}] is not supported`);
       }
-      inferenceInputs.push(inputTensor);
+      tensorArray.push(inputTensor);
     });
-    return inferenceInputs;
+
+    // return tensor map for GraphModel
+    if (model instanceof tf.GraphModel) {
+      if (tensorArray.length !== model.inputNodes.length) {
+        throw new Error(
+            'model.inputs and model.inputNodes are mismatched,' +
+            `the graph model has ${model.inputNodes.length} input node, ` +
+            `while there are ${tensorArray.length} inputs in model.inputs.`);
+      }
+      const tensorMap = model.inputNodes.reduce((map, inputName, i) => {
+        map[inputName] = tensorArray[i];
+        return map;
+      }, {});
+      return tensorMap;
+    }
+
+    return tensorArray;
   } catch (e) {
     // dispose input tensors
-    for (let tensorIndex = 0; tensorIndex < inferenceInputs.length; tensorIndex++) {
-      if (inferenceInputs[tensorIndex] instanceof tf.Tensor) {
-        inferenceInputs[tensorIndex].dispose();
+    tensorArray.forEach(tensor => {
+      if (tensor instanceof tf.Tensor) {
+        tensor.dispose();
       }
-    }
+    });
     throw e;
   }
 }
