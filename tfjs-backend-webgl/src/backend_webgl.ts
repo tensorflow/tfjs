@@ -125,6 +125,8 @@ export interface CPUTimerQuery {
 
 export interface WebGLMemoryInfo extends MemoryInfo {
   numBytesInGPU: number;
+  numBytesInGPUAllocated: number;
+  numBytesInGPUFree: number;
   unreliable: boolean;
 }
 
@@ -527,8 +529,12 @@ export class MathBackendWebGL extends KernelBackend {
     return res;
   }
   memory(): WebGLMemoryInfo {
-    return {unreliable: false, numBytesInGPU: this.numBytesInGPU} as
-        WebGLMemoryInfo;
+    return {
+      unreliable: false,
+      numBytesInGPU: this.numBytesInGPU,
+      numBytesInGPUAllocated: this.textureManager.getNumBytesAllocated(),
+      numBytesInGPUFree: this.textureManager.getNumBytesFree()
+    } as WebGLMemoryInfo;
   }
 
   private startTimer(): WebGLQuery|CPUTimerQuery {

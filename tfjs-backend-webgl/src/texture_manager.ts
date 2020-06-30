@@ -153,6 +153,18 @@ export class TextureManager {
     console.log(
         'Free/Used', `${this.numFreeTextures} / ${this.numUsedTextures}`,
         `(${total})`);
+    const freeRatio = this.numBytesFree / this.numBytesAllocated;
+    console.log(`Bytes allocated: ${this.numBytesAllocated}`);
+    console.log(
+        `Bytes unused: ${this.numBytesFree} (${Math.round(100 * freeRatio)}%)`);
+  }
+
+  getNumBytesAllocated(): number {
+    return this.numBytesAllocated;
+  }
+
+  getNumBytesFree(): number {
+    return this.numBytesFree;
   }
 
   getNumUsedTextures(): number {
