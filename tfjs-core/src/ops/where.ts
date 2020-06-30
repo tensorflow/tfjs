@@ -23,7 +23,9 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assert, assertShapesMatch} from '../util';
 
+import {assertAndGetBroadcastShape} from './broadcast_util';
 import {op} from './operation';
+
 
 /**
  * Returns the elements, either `a` or `b` depending on the `condition`.
@@ -41,7 +43,10 @@ import {op} from './operation';
  * @param condition The input condition. Must be of dtype bool.
  * @param a If `condition` is rank 1, `a` may have a higher rank but
  *     its first dimension must match the size of `condition`.
- * @param b A tensor with the same shape and type as `a`.
+ * @param b A tensor with the same dtype as `a` and with shape that is
+ *     compatible with `a`.
+ * @return A tensor with same detype as `a` and `b`, and shape that is
+ *     broadcastable from `a` and `b`.
  */
 /** @doc {heading: 'Operations', subheading: 'Logical'} */
 function where_<T extends Tensor>(
@@ -50,22 +55,30 @@ function where_<T extends Tensor>(
   const $b = convertToTensor(b, 'b', 'where');
   const $condition = convertToTensor(condition, 'condition', 'where', 'bool');
 
-  assertShapesMatch($a.shape, $b.shape, 'Error in where: ');
+  // find the broadcastable shape for $a and $b
+  const broadcastShape = assertAndGetBroadcastShape($a.shape, $b.shape);
+  const $broadcastedA = $a.broadcastTo(broadcastShape);
+  const $broadcastedB = $b.broadcastTo(broadcastShape);
 
   if ($condition.rank === 1) {
     // If condition rank is 1, then the first dimension must match the size of
     // condition.
     assert(
-        $condition.shape[0] === $a.shape[0],
+        $condition.shape[0] === $broadcastedA.shape[0],
         () => 'The first dimension of `a` must match the size of `condition`.');
   } else {
     // A must have the same shape as condition.
-    assertShapesMatch($condition.shape, $b.shape, 'Error in where: ');
+    assertShapesMatch(
+        $condition.shape, $broadcastedB.shape, 'Error in where: ');
   }
 
-  const inputs: SelectV2Inputs = {condition: $condition, t: $a, e: $b};
+  const inputs: SelectV2Inputs = {
+    condition: $condition,
+    t: $broadcastedA,
+    e: $broadcastedB
+  };
   return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.select($condition, $a, $b);
+    const res = backend.select($condition, $broadcastedA, $broadcastedB);
     save([$condition]);
     return res;
   }, inputs as unknown as NamedTensorMap, null /* gradient */, SelectV2) as T;

@@ -2196,6 +2196,18 @@ describeWithFlags('split', ALL_ENVS, () => {
     expect(res[2].shape).toEqual([2, 1]);
     expectArraysClose(await res[2].data(), [4, 8]);
   });
+  it('should support -1 split', async () => {
+    const x = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+    const res = x.split([1, 1, -1], 1);
+
+    expect(res.length).toEqual(3);
+    expect(res[0].shape).toEqual([2, 1]);
+    expectArraysClose(await res[0].data(), [1, 5]);
+    expect(res[1].shape).toEqual([2, 1]);
+    expectArraysClose(await res[1].data(), [2, 6]);
+    expect(res[2].shape).toEqual([2, 2]);
+    expectArraysClose(await res[2].data(), [3, 4, 7, 8]);
+  });
 
   it('sizes to not sum to axis size throws error', () => {
     const x = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
