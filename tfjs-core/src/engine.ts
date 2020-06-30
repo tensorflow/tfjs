@@ -19,7 +19,6 @@ import {BackendTimingInfo, DataMover, KernelBackend} from './backends/backend';
 import {Environment, setEnvironmentGlobal} from './environment';
 import {getGlobalNamespace} from './global_util';
 import {getGradient, getKernel, getKernelsForBackend, GradFunc, NamedAttrMap, TensorInfo} from './kernel_registry';
-import {cast} from './ops/ops';
 import {Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, TapeNode} from './tape';
 import {DataId, setTensorTracker, Tensor, TensorTracker, Variable} from './tensor';
@@ -744,7 +743,7 @@ export class Engine implements TensorTracker, DataMover {
       dtype?: DataType): Variable {
     name = name || this.nextVariableId().toString();
     if (dtype != null && dtype !== initialValue.dtype) {
-      initialValue = cast(initialValue, dtype);
+      initialValue = initialValue.cast(dtype);
     }
     const v = new Variable(initialValue, trainable, name, this.nextTensorId());
     if (this.state.registeredVariables[v.name] != null) {
