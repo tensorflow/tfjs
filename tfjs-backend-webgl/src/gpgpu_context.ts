@@ -44,7 +44,7 @@ export class GPGPUContext {
   program: WebGLProgram|null = null;
   private disposed = false;
   private disjoint: boolean;
-  private textureConfig: TextureConfig;
+  textureConfig: TextureConfig;
 
   constructor(gl?: WebGLRenderingContext) {
     const glVersion = env().getNumber('WEBGL_VERSION');
