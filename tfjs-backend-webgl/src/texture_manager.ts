@@ -194,6 +194,8 @@ export class TextureManager {
     this.usedTextures = null;
     this.numUsedTextures = 0;
     this.numFreeTextures = 0;
+    this.numBytesAllocated = 0;
+    this.numBytesFree = 0;
   }
 }
 
