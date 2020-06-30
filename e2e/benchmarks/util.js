@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-async function disposeTensor(tensor) {
+async function convertTensorToData(tensor) {
   const data = await tensor.data();
   tensor.dispose();
   return data;
@@ -27,17 +27,17 @@ async function getPredictionData(output) {
   }
 
   if (output instanceof tf.Tensor) {
-    output = await disposeTensor(output);
+    output = await convertTensorToData(output);
   } else if (Array.isArray(output)) {
     for (let i = 0; i < output.length; i++) {
       if (output[i] instanceof tf.Tensor) {
-        output[i] = await disposeTensor(output[i]);
+        output[i] = await convertTensorToData(output[i]);
       }
     }
-  } else if (output.constructor === Object) {
-    for (const tensorName in output) {
-      if (typeof tensorName === 'string' && output[tensorName] instanceof tf.Tensor) {
-        output[tensorName] = await disposeTensor(output[tensorName]);
+  } else if (output != null && typeof output === 'object') {
+    for (const property in output) {
+      if (output[property] instanceof tf.Tensor) {
+        output[property] = await convertTensorToData(output[property]);
       }
     }
   }
