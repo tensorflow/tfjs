@@ -19,6 +19,8 @@
 import {TensorContainer} from '@tensorflow/tfjs-core';
 import {Dataset, datasetFromIteratorFn} from './dataset';
 import {CSVDataset} from './datasets/csv_dataset';
+import {TFRecordDataset} from './datasets/tfrecord_dataset';
+import {TFRecordDataSource} from './sources/tfrecord_data_source';
 import {iteratorFromFunction} from './iterators/lazy_iterator';
 import {MicrophoneIterator} from './iterators/microphone_iterator';
 import {WebcamIterator} from './iterators/webcam_iterator';
@@ -107,6 +109,30 @@ import {CSVConfig, MicrophoneConfig, WebcamConfig} from './types';
 export function csv(
     source: RequestInfo, csvConfig: CSVConfig = {}): CSVDataset {
   return new CSVDataset(new URLDataSource(source), csvConfig);
+}
+
+/**
+ * Create a `TFRecordDataset` by reading and decoding TFRecords file(s) from provided
+ * local path if it's in Node environment.
+ *
+ * ```js
+ * const tfrecordPath = './data.tfrecord';
+ *
+ * async function run() {
+ *   const dataset = await tf.data.TFRecord(tfrecordPath);
+ *   const example = await dataset.take(6);
+ *   for (const item of await example.toArray()) {
+ *     console.log('%j', item);
+ *   }
+ * }
+ *
+ * await run();
+ * ```
+ *
+ * @param source Local file path, eg: `./path to file`. Only works in node environment.
+ */
+export function TFRecord(source: string): TFRecordDataset {
+  return new TFRecordDataset(new TFRecordDataSource(source));
 }
 
 /**

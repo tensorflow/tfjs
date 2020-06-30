@@ -39,7 +39,9 @@
     "tslint": "~5.11.0",
     "tslint-no-circular-imports": "^0.7.0",
     "typescript": "3.5.3",
-    "yalc": "^1.0.0-pre.23"
+    "yalc": "^1.0.0-pre.23",
+    "fast-crc32c": "^2.0.0",
+    "protobufjs": "^6.9.0"
   },
   "scripts": {
     "build": "tsc && yarn bundle",
