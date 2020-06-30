@@ -5,6 +5,7 @@
   "private": false,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": "dist/index.js",
   "engines": {
     "yarn": ">= 1.3.2"
   },
@@ -14,9 +15,10 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@tensorflow/tfjs-core": "2.0.0",
-    "@tensorflow/tfjs-converter": "2.0.0",
-    "@tensorflow/tfjs-backend-cpu": "2.0.0",
+    "@tensorflow/tfjs-core": "2.0.1",
+    "@tensorflow/tfjs-converter": "2.0.1",
+    "@tensorflow/tfjs-backend-cpu": "2.0.1",
+    "@tensorflow/tfjs-backend-wasm": "2.0.1",
     "@types/jasmine": "~3.0.0",
     "@types/rimraf":  "~3.0.0",
     "clang-format": "~1.2.4",
@@ -31,7 +33,7 @@
     "build": "tsc",
     "test": "ts-node --skip-ignore -P tsconfig.test.json src/test_node.ts",
     "test-ci": "yarn test",
-    "build-binary": "yarn build && pkg dist/index.js --targets=node10-macos-x64,node10-linux-x64,node10-win-x64 --out-path=binaries",
+    "build-binary": "yarn build && pkg . --targets=node10-macos-x64,node10-linux-x64,node10-win-x64 --out-path=binaries",
     "test-python": "./scripts/run_python.sh"
   },
   "dependencies": {
@@ -45,5 +47,8 @@
     "@tensorflow/tfjs-core": "2.0.0",
     "@tensorflow/tfjs-converter": "2.0.0",
     "@tensorflow/tfjs-backend-cpu": "2.0.0"
+  },
+  "pkg": {
+    "assets": "node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm"
   }
 }
