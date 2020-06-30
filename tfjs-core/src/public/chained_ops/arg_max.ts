@@ -26,6 +26,5 @@ declare module '../../tensor' {
 
 Tensor.prototype.argMax = function<T extends Tensor>(axis?: number): T {
   this.throwIfDisposed();
-  // tslint:disable-next-line: no-unnecessary-type-assertion
-  return argMax(this, axis) as T;
+  return argMax(this, axis);
 };

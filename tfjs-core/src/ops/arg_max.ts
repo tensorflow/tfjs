@@ -62,8 +62,7 @@ function argMax_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
       $x = $x.transpose(permutedAxes);
       axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
     }
-    const res = backend.argMax($x, axes[0]);
-    return res;
+    return backend.argMax($x, axes[0]);
   };
 
   const inputs: ArgMaxInputs = {x: $x};
