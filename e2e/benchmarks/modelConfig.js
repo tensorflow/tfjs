@@ -227,49 +227,34 @@ const benchmarks = {
     },
     predictFunc: () => {
       return async model => {
-        const inferenceInputs = [];
+        let inferenceInput;
         try {
-          for (let inferenceInputIndex = 0; inferenceInputIndex < model.inputs.length; inferenceInputIndex++) {
-            // construct the input tensor shape
-            const inferenceInput = model.inputs[inferenceInputIndex];
-            const inputShape = [];
-            for (let dimension = 0; dimension < inferenceInput.shape.length; dimension++) {
-              const shapeValue = inferenceInput.shape[dimension];
-              if (shapeValue == null || shapeValue < 0) {
-                inputShape.push(1);
-              } else if (shapeValue == 0) {
-                await showMsg('Warning: one dimension of an input tensor is zero');
-                inputShape.push(shapeValue);
-              } else {
-                inputShape.push(shapeValue);
-              }
-            }
-
-            // construct the input tensor
-            let inputTensor;
-            if (inferenceInput.dtype == 'float32' || inferenceInput.dtype == 'int32') {
-              inputTensor = tf.randomNormal(inputShape, 0, 1, inferenceInput.dtype);
-            } else {
-              throw new Error(`${inferenceInput.dtype} dtype is not supported`);
-            }
-            inferenceInputs.push(inputTensor);
-          }
-
-          // run prediction
+          inferenceInput = generateInput(model);
           let resultTensor;
           if (model instanceof tf.GraphModel && model.executeAsync != null) {
-            resultTensor = await model.executeAsync(inferenceInputs);
+            resultTensor = await model.executeAsync(inferenceInput);
           } else if (model.predict != null) {
-            resultTensor = model.predict(inferenceInputs);
+            resultTensor = model.predict(inferenceInput);
           } else {
-            throw new Error("Predict function was not found");
+            throw new Error("Predict function was not found.");
           }
           return resultTensor;
         } finally {
           // dispose input tensors
-          for (let tensorIndex = 0; tensorIndex < inferenceInputs.length; tensorIndex++) {
-            if (inferenceInputs[tensorIndex] instanceof tf.Tensor) {
-              inferenceInputs[tensorIndex].dispose();
+          if (inferenceInput instanceof tf.Tensor) {
+            inferenceInput.dispose();
+          } else if (Array.isArray(inferenceInput)) {
+            inferenceInput.forEach(inputNode => {
+              if (inputNode instanceof tf.Tensor) {
+                inputNode.dispose();
+              }
+            });
+          } else if (inferenceInput != null && typeof inferenceInput === 'object') {
+            // inferenceInputs is a tensor map
+            for (const property in inferenceInput) {
+              if (inferenceInput[property] instanceof tf.Tensor) {
+                inferenceInput[property].dispose();
+              }
             }
           }
         }
@@ -306,7 +291,7 @@ function findIOHandler(path, loadOptions = {}) {
     } else if (handlers.length > 1) {
       throw new Error(
           `Found more than one (${handlers.length}) load handlers for ` +
-          `URL '${[path]}'`);
+          `URL '${[path]}'.`);
     }
     handler = handlers[0];
   }
@@ -335,7 +320,7 @@ async function loadModelByUrl(modelUrl, loadOptions = {}) {
 
   const supportedSchemes =  /^(https?|localstorage|indexeddb):\/\/.+$/;
   if (!supportedSchemes.test(modelUrl)) {
-    throw new Error(`Please use a valid URL, such as 'https://'`);
+    throw new Error(`Please use a valid URL, such as 'https://'.`);
   }
 
   const tfHubUrl =  /^https:\/\/tfhub.dev\/.+$/;
@@ -351,7 +336,7 @@ async function loadModelByUrl(modelUrl, loadOptions = {}) {
     ioHandler = findIOHandler(modelUrl, loadOptions);
     modelType = await ioHandler.load().then(artifacts => artifacts.format);
   } catch (e) {
-    throw new Error(`Failed to fetch or parse 'model.json' file`);
+    throw new Error(`Failed to fetch or parse 'model.json' file.`);
   }
 
   // load models
@@ -366,7 +351,7 @@ async function loadModelByUrl(modelUrl, loadOptions = {}) {
       model = await tryAllLoadingMethods(ioHandler, loadOptions);
     }
   } catch (e) {
-    throw new Error('Failed to load the model');
+    throw new Error('Failed to load the model.');
   }
 
   return model;
