@@ -73,6 +73,7 @@ function split_<T extends Tensor>(
     splitSizes =
         new Array(numOrSizeSplits).fill($x.shape[$axis] / numOrSizeSplits);
   } else {
+    // TODO(piyu): move the preprocess logic to kernels
     // Allow the last number of split array to be -1, which indicates the rest
     // of dimension is allocated to that split.
     const negIndex = numOrSizeSplits.indexOf(-1);

@@ -26,7 +26,6 @@ import {assert, assertShapesMatch} from '../util';
 import {assertAndGetBroadcastShape} from './broadcast_util';
 import {op} from './operation';
 
-
 /**
  * Returns the elements, either `a` or `b` depending on the `condition`.
  *
@@ -55,6 +54,7 @@ function where_<T extends Tensor>(
   const $b = convertToTensor(b, 'b', 'where');
   const $condition = convertToTensor(condition, 'condition', 'where', 'bool');
 
+  // TODO(piyu): move the preprocess logic to kernels
   // find the broadcastable shape for $a and $b
   const broadcastShape = assertAndGetBroadcastShape($a.shape, $b.shape);
   const $broadcastedA = $a.broadcastTo(broadcastShape);
