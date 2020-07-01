@@ -18,12 +18,13 @@ import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assertShapesMatch} from '../util';
+
 import {computeWeightedLoss} from './compute_weighted_loss';
 import {Reduction} from './loss_ops_utils';
 import {mul} from './mul';
 import {op} from './operation';
-import {sum} from './reduction_ops';
 import {sub} from './sub';
+import {sum} from './sum';
 import {scalar} from './tensor_ops';
 
 /**

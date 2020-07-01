@@ -1,4 +1,3 @@
-
 /**
  * @license
  * Copyright 2020 Google LLC. All Rights Reserved.
@@ -15,9 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-
-// TODO update import path once op is modularized.
-import {argMin} from '../../ops/ops';
+import {argMin} from '../../ops/arg_min';
 import {Tensor} from '../../tensor';
 import {Rank} from '../../types';
 

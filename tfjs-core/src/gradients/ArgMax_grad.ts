@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,24 +15,16 @@
  * =============================================================================
  */
 
+import {ArgMax} from '../kernel_names';
+import {GradConfig} from '../kernel_registry';
+import {zerosLike} from '../ops/tensor_ops';
 import {Tensor} from '../tensor';
-import * as axis_util from './axis_util';
 
-/**
- * Gradient helper function for the min and max operations.
- */
-export function gradForMinAndMax<T extends Tensor>(
-    dy: T, y: T, xOrig: Tensor, origAxes: number[], permutedAxes: number[]) {
-  if (y.rank < xOrig.rank) {
-    y = y.reshape(axis_util.expandShapeToKeepDim(y.shape, origAxes));
+export const argMaxGradConfig: GradConfig = {
+  kernelName: ArgMax,
+  inputsToSave: ['x'],
+  gradFunc: (dy: Tensor, saved: Tensor[]) => {
+    const [x] = saved;
+    return {x: () => zerosLike(x)};
   }
-  if (dy.rank < xOrig.rank) {
-    dy = dy.reshape(axis_util.expandShapeToKeepDim(dy.shape, origAxes));
-  }
-  return {
-    x: () => {
-      const dx = dy.mul(xOrig.equal(y).cast(dy.dtype));
-      return permutedAxes == null ? dx : dx.transpose(permutedAxes);
-    }
-  };
-}
+};

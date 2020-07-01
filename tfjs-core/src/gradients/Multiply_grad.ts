@@ -20,8 +20,8 @@ import {GradConfig} from '../kernel_registry';
 import {cast} from '../ops/array_ops';
 import {assertAndGetBroadcastShape, getReductionAxes} from '../ops/broadcast_util';
 import {mul} from '../ops/mul';
-import {sum} from '../ops/reduction_ops';
 import {reshape} from '../ops/reshape';
+import {sum} from '../ops/sum';
 import {Tensor} from '../tensor';
 
 export const multiplyGradConfig: GradConfig = {

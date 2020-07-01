@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,19 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
-import {any} from '../../ops/any';
-import {Tensor} from '../../tensor';
-import {Rank} from '../../types';
 
-declare module '../../tensor' {
-  interface Tensor<R extends Rank = Rank> {
-    any<T extends Tensor>(this: T, axis?: number|number[], keepDims?: boolean):
-        T;
+import {ArgMin} from '../kernel_names';
+import {GradConfig} from '../kernel_registry';
+import {zerosLike} from '../ops/tensor_ops';
+import {Tensor} from '../tensor';
+
+export const argMinGradConfig: GradConfig = {
+  kernelName: ArgMin,
+  inputsToSave: ['x'],
+  gradFunc: (dy: Tensor, saved: Tensor[]) => {
+    const [x] = saved;
+    return {x: () => zerosLike(x)};
   }
-}
-
-Tensor.prototype.any = function<T extends Tensor>(
-    this: T, axis?: number|number[], keepDims?: boolean): T {
-  this.throwIfDisposed();
-  return any(this, axis, keepDims);
 };

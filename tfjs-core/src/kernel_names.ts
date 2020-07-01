@@ -43,6 +43,18 @@ export interface AnyAttrs {
   keepDims: boolean;
 }
 
+export const ArgMax = 'ArgMax';
+export type ArgMaxInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface ArgMaxAttrs {
+  axis: number;
+}
+
+export const ArgMin = 'ArgMin';
+export type ArgMinInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface ArgMinAttrs {
+  axis: number;
+}
+
 export const Atan2 = 'Atan2';
 export type Atan2Inputs = BinaryInputs;
 
@@ -369,6 +381,20 @@ export interface MaxPoolWithArgmaxAttrs {
   includeBatchInIndex: boolean;
 }
 
+export const Mean = 'Mean';
+export type MeanInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface MeanAttrs {
+  axis: number|number[];
+  keepDims: boolean;
+}
+
+export const Min = 'Min';
+export type MinInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface MinAttrs {
+  axis: number|number[];
+  keepDims: boolean;
+}
+
 export const Minimum = 'Minimum';
 export type MinimumInputs = BinaryInputs;
 
@@ -478,6 +504,13 @@ export type SelectV2Inputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
 
 export const Selu = 'Selu';
 export type SeluInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const Sum = 'Sum';
+export type SumInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface SumAttrs {
+  axis: number|number[];
+  keepDims: boolean;
+}
 
 export const SpaceToBatchND = 'SpaceToBatchND';
 export type SpaceToBatchNDInputs = Pick<NamedTensorInfoMap, 'x'>;

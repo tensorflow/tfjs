@@ -1,4 +1,3 @@
-
 /**
  * @license
  * Copyright 2020 Google LLC. All Rights Reserved.
@@ -16,8 +15,7 @@
  * =============================================================================
  */
 
-// TODO update import path once op is modularized.
-import {min} from '../../ops/ops';
+import {min} from '../../ops/min';
 import {Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
@@ -28,7 +26,7 @@ declare module '../../tensor' {
 }
 
 Tensor.prototype.min = function<T extends Tensor>(
-    axis?: number|number[], keepDims?: boolean) {
+    axis?: number|number[], keepDims?: boolean): T {
   this.throwIfDisposed();
   return min(this, axis, keepDims);
 };

@@ -16,6 +16,8 @@
  */
 import {addGradConfig} from './gradients/Add_grad';
 import {addNGradConfig} from './gradients/AddN_grad';
+import {argMaxGradConfig} from './gradients/ArgMax_grad';
+import {argMinGradConfig} from './gradients/ArgMin_grad';
 import {atan2GradConfig} from './gradients/Atan2_grad';
 import {avgPool3DGradConfig} from './gradients/AvgPool3D_grad';
 import {avgPoolGradConfig} from './gradients/AvgPool_grad';
@@ -40,6 +42,7 @@ import {maxGradConfig} from './gradients/Max_grad';
 import {maximumGradConfig} from './gradients/Maximum_grad';
 import {maxPool3DGradConfig} from './gradients/MaxPool3D_grad';
 import {maxPoolGradConfig} from './gradients/MaxPool_grad';
+import {minGradConfig} from './gradients/Min_grad';
 import {minimumGradConfig} from './gradients/Minimum_grad';
 import {modGradConfig} from './gradients/Mod_grad';
 import {multiplyGradConfig} from './gradients/Multiply_grad';
@@ -60,6 +63,7 @@ import {splitVGradConfig} from './gradients/SplitV_grad';
 import {squareGradConfig} from './gradients/Square_grad';
 import {squaredDifferenceGradConfig} from './gradients/SquaredDifference_grad';
 import {subGradConfig} from './gradients/Sub_grad';
+import {sumGradConfig} from './gradients/Sum_grad';
 import {tileGradConfig} from './gradients/Tile_grad';
 import {transposeGradConfig} from './gradients/Transpose_grad';
 import {unpackGradConfig} from './gradients/Unpack_grad';
@@ -70,6 +74,8 @@ import {registerGradient} from './kernel_registry';
 const gradConfigs: GradConfig[] = [
   addGradConfig,
   addNGradConfig,
+  argMaxGradConfig,
+  argMinGradConfig,
   atan2GradConfig,
   avgPoolGradConfig,
   avgPool3DGradConfig,
@@ -96,6 +102,7 @@ const gradConfigs: GradConfig[] = [
   maxGradConfig,
   spaceToBatchNDGradConfig,
   maxGradConfig,
+  minGradConfig,
   maximumGradConfig,
   maxPoolGradConfig,
   maxPool3DGradConfig,
@@ -119,6 +126,7 @@ const gradConfigs: GradConfig[] = [
   squareGradConfig,
   squaredDifferenceGradConfig,
   subGradConfig,
+  sumGradConfig,
   tileGradConfig,
   transposeGradConfig,
   unpackGradConfig
