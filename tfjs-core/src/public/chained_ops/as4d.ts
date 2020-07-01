@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-// TODO update import path once op is modularized.
-import {reshape} from '../../ops/ops';
+import {reshape} from '../../ops/reshape';
 import {Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
