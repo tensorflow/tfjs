@@ -113,7 +113,7 @@ export function convertToTensor<T extends Tensor>(
   }
   const skipTypedArray = true;
   const values = inferredDtype !== 'string' ?
-      toTypedArray(x, inferredDtype as DataType, env().getBool('DEBUG')) :
+      toTypedArray(x, inferredDtype as DataType) :
       flatten(x as string[], [], skipTypedArray) as string[];
   return ENGINE.makeTensor(values, inferredShape, inferredDtype) as T;
 }

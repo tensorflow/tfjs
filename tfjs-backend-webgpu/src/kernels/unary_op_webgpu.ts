@@ -71,7 +71,7 @@ export class UnaryOpProgram implements WebGPUProgram {
       void main() {
         int index = int(gl_GlobalInvocationID.x);
         float a = A[index];
-        result[index] = unaryOperation(a);
+        setOutput(index, unaryOperation(a));;
       }
       `;
       this.shaderKey = `unary2${op}`;
