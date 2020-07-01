@@ -18,10 +18,11 @@
 import {Max, MaxAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
 import * as axis_util from '../ops/axis_util';
-import {gradForMinAndMax} from '../ops/reduction_ops_util';
 import {transpose} from '../ops/transpose';
 import {Tensor} from '../tensor';
 import * as util from '../util';
+
+import {gradForMinAndMax} from './min_max_grad_util';
 
 export const maxGradConfig: GradConfig = {
   kernelName: Max,

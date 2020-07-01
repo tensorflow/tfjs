@@ -15,12 +15,12 @@
  * =============================================================================
  */
 
-import {backend_util, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, KernelFunc, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
 import {Max, MaxAttrs, MaxInputs} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
-import {transpose} from './Transpose';
+import {permuteAxesAndTranspose} from './kernel_utils';
 
 let wasmMax: (xId: number, reduceSize: number, outId: number) => void;
 
@@ -29,56 +29,57 @@ function setup(backend: BackendWasm): void {
       backend.wasm.cwrap('Max', null /*void*/, ['number, number, number']);
 }
 
-function max(args: {backend: BackendWasm, inputs: {}, attrs: {}}): TensorInfo {
+function max(args: {backend: BackendWasm, inputs: MaxInputs, attrs: MaxAttrs}):
+    TensorInfo {
   const {backend, inputs, attrs} = args;
-  const {reductionIndices} = attrs as MaxAttrs;
-  const {x} = inputs as MaxInputs;
+  const {reductionIndices: axis, keepDims} = attrs;
+  const {x} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
+  let inputId = xId;
+  let input = x;
 
-  let xShape = x.shape;
-  const xRank = x.shape.length;
-  const xVals = backend.typedArrayFromHeap(x);
+  const {transposed, axes, originalAxes, inputWasTransposed} =
+      permuteAxesAndTranspose(x, axis, backend);
 
-  const origAxes = util.parseAxisParam(reductionIndices, xShape);
-  let axes = origAxes;
-  const permutedAxes = backend_util.getAxesPermutation(axes, xRank);
-  const maxInputIsTransposed = permutedAxes != null;
-  if (maxInputIsTransposed) {
-    const newShape: number[] = new Array(xRank);
-    for (let i = 0; i < newShape.length; i++) {
-      newShape[i] = xShape[permutedAxes[i]];
+  if (inputWasTransposed) {
+    const transposedId = backend.dataIdMap.get(transposed.dataId).id;
+    if (transposedId !== xId) {
+      // transpose was not a no-op. We will need to dispose of this
+      // once we are done.
+      input = transposed;
+      inputId = transposedId;
     }
-
-    axes = backend_util.getInnerMostAxes(axes.length, xRank);
-
-    const xTransposed =
-        transpose({inputs: {x}, attrs: {perm: permutedAxes}, backend});
-
-    if (backend.dataIdMap.get(xTransposed.dataId).id !== xId) {
-      // If perm is not no-op.
-      const xTransposedVals = backend.typedArrayFromHeap(xTransposed);
-      xVals.set(xTransposedVals, 0);
-      backend.disposeData(xTransposed.dataId);
-    }
-    xShape = newShape;
   }
 
-  backend_util.assertAxesAreInnerMostDims('max', axes, xRank);
+  const inputRank = input.shape.length;
+  backend_util.assertAxesAreInnerMostDims('max', axes, inputRank);
   const [outShape, reduceShape] =
-      backend_util.computeOutAndReduceShapes(xShape, axes);
+      backend_util.computeOutAndReduceShapes(input.shape, axes);
   const reduceSize = util.sizeFromShape(reduceShape);
 
   const out = backend.makeOutput(outShape, x.dtype);
-  if (util.sizeFromShape(xShape) === 0) {
-    return out;
+  if (util.sizeFromShape(input.shape) !== 0) {
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    wasmMax(inputId, reduceSize, outId);
   }
 
-  const outId = backend.dataIdMap.get(out.dataId).id;
+  if (inputWasTransposed) {
+    // dispose of the transposed tensor.
+    backend.disposeData(transposed.dataId);
+  }
 
-  wasmMax(xId, reduceSize, outId);
+  if (keepDims) {
+    // reshape
+    const newShape = backend_util.expandShapeToKeepDim(out.shape, originalAxes);
+    out.shape = newShape;
+  }
 
   return out;
 }
 
-registerKernel(
-    {kernelName: Max, backendName: 'wasm', setupFunc: setup, kernelFunc: max});
+registerKernel({
+  kernelName: Max,
+  backendName: 'wasm',
+  setupFunc: setup,
+  kernelFunc: max as {} as KernelFunc
+});
