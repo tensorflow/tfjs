@@ -49,6 +49,7 @@ import {TransposeProgram} from './kernels/transpose_webgpu';
 import * as unary_op from './kernels/unary_op_webgpu';
 import {UnaryOpProgram} from './kernels/unary_op_webgpu';
 import * as webgpu_program from './kernels/webgpu_program';
+import {WebGPUBinary} from './kernels/webgpu_program';
 import * as webgpu_util from './webgpu_util';
 
 export interface WebGPUMemoryInfo extends backend_util.MemoryInfo {
@@ -101,7 +102,7 @@ export class WebGPUBackend extends KernelBackend {
   commandQueue: GPUCommandEncoder[];
 
   private commandQueueOwnedIds = new WeakSet<DataId>();
-  private binaryCache: {[key: string]: GPUComputePipeline};
+  private binaryCache: {[key: string]: WebGPUBinary};
   private fromPixels2DContext: CanvasRenderingContext2D;
   private bufferManager: BufferManager;
   private tensorMap: DataStorage<TensorBufferInfo>;
@@ -339,7 +340,8 @@ export class WebGPUBackend extends KernelBackend {
     return res;
   }
 
-  private getAndSavePipeline(key: string, getBinary: () => GPUComputePipeline) {
+  private getAndSavePipeline(
+      key: string, getBinary: () => webgpu_program.WebGPUBinary) {
     if (!(key in this.binaryCache)) {
       this.binaryCache[key] = getBinary();
     }
@@ -479,7 +481,7 @@ export class WebGPUBackend extends KernelBackend {
     const bufferTypes = inputsData.map(d => d.dtype).concat(output.dtype);
     const key =
         webgpu_program.makeShaderKey(program, bufferShapes, bufferTypes);
-    const pipeline = this.getAndSavePipeline(key, () => {
+    const {bindGroupLayout, pipeline} = this.getAndSavePipeline(key, () => {
       return webgpu_program.compileProgram(
           this.glslang, this.device, program, inputsData, output, uniforms);
     });
@@ -492,9 +494,8 @@ export class WebGPUBackend extends KernelBackend {
 
     // Creating bind groups on the fly should never be a bottleneck.
     const bg = webgpu_program.makeBindGroup(
-        this.device, pipeline.getBindGroupLayout(0),
-        inputs.map(t => this.tensorToBinding(t)), this.tensorToBinding(output),
-        uniforms);
+        this.device, bindGroupLayout, inputs.map(t => this.tensorToBinding(t)),
+        this.tensorToBinding(output), uniforms);
 
     const encoder = this.device.createCommandEncoder({});
     const pass = encoder.beginComputePass();
