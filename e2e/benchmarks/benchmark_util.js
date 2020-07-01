@@ -75,14 +75,14 @@ async function profileInferenceTimeForModel(model, input, numRuns = 1) {
     predict = model.predict.bind(model);
   } else {
     throw new Error(
-        'Please pass an instance of tf.GraphModel or ' +
-        'tf.LayersModel as the model.');
+        'Please pass in an instance of tf.GraphModel ' +
+        'or tf.LayersModel as the first parameter.');
   }
   return profileInferenceTime(predict, [input], numRuns);
 }
 
 async function profileInferenceTime(predict, predictArgs = [], numRuns = 1) {
-  if(typeof predict !== 'function') {
+  if (typeof predict !== 'function') {
     throw new Error(
         'The first parameter should be a function, while ' +
         `a(n) ${typeof predict} is found.`);
@@ -94,7 +94,7 @@ async function profileInferenceTime(predict, predictArgs = [], numRuns = 1) {
   const elapsedTimeArray = [];
   for (let i = 0; i < numRuns; i++) {
     let start = performance.now();
-    let res = await predict(...predictArgs);
+    const res = await predict(...predictArgs);
     const inferenceTime = performance.now() - start;
 
     // The values downloading time will be different for different backends.
@@ -115,7 +115,7 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
     valueContainer = await tensorContainer.data();
   } else if (Array.isArray(tensorContainer)) {
     // Start value downloads from all tensors.
-    let valuePromiseContainer = tensorContainer.map(async item => {
+    const valuePromiseContainer = tensorContainer.map(async item => {
       if (item instanceof tf.Tensor) {
         return item.data();
       }

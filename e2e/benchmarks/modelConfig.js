@@ -236,7 +236,7 @@ const benchmarks = {
           } else if (model.predict != null) {
             resultTensor = model.predict(inferenceInput);
           } else {
-            throw new Error("Predict function was not found.");
+            throw new Error('Predict function was not found.');
           }
           return resultTensor;
         } finally {
@@ -249,7 +249,8 @@ const benchmarks = {
                 inputNode.dispose();
               }
             });
-          } else if (inferenceInput != null && typeof inferenceInput === 'object') {
+          } else if (
+              inferenceInput != null && typeof inferenceInput === 'object') {
             // inferenceInputs is a tensor map
             for (const property in inferenceInput) {
               if (inferenceInput[property] instanceof tf.Tensor) {
@@ -258,7 +259,7 @@ const benchmarks = {
             }
           }
         }
-      }
+      };
     }
   },
 };
@@ -301,10 +302,12 @@ function findIOHandler(path, loadOptions = {}) {
 async function tryAllLoadingMethods(modelHandler, loadOptions = {}) {
   let model;
   // TODO: download weights once
-  model = await tf.loadGraphModel(modelHandler, loadOptions).then(model => {
-    state.modelType = 'GraphModel';
-    return model;
-  }).catch(e => {});
+  model = await tf.loadGraphModel(modelHandler, loadOptions)
+              .then(model => {
+                state.modelType = 'GraphModel';
+                return model;
+              })
+              .catch(e => {});
 
   if (model == null) {
     model = await tf.loadLayersModel(modelHandler, loadOptions).then(model => {
@@ -318,12 +321,12 @@ async function tryAllLoadingMethods(modelHandler, loadOptions = {}) {
 async function loadModelByUrl(modelUrl, loadOptions = {}) {
   let model, ioHandler, modelType;
 
-  const supportedSchemes =  /^(https?|localstorage|indexeddb):\/\/.+$/;
+  const supportedSchemes = /^(https?|localstorage|indexeddb):\/\/.+$/;
   if (!supportedSchemes.test(modelUrl)) {
     throw new Error(`Please use a valid URL, such as 'https://'.`);
   }
 
-  const tfHubUrl =  /^https:\/\/tfhub.dev\/.+$/;
+  const tfHubUrl = /^https:\/\/tfhub.dev\/.+$/;
   if (loadOptions.fromTFHub || tfHubUrl.test(modelUrl)) {
     if (!modelUrl.endsWith('/')) {
       modelUrl = modelUrl + '/';
