@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Max, MaxAttrs} from '../kernel_names';
+import {Min, MinAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
 import * as axis_util from '../ops/axis_util';
 import {transpose} from '../ops/transpose';
@@ -24,20 +24,20 @@ import * as util from '../util';
 
 import {gradForMinAndMax} from './min_max_grad_util';
 
-export const maxGradConfig: GradConfig = {
-  kernelName: Max,
+export const minGradConfig: GradConfig = {
+  kernelName: Min,
   inputsToSave: ['x'],
   outputsToSave: [true],
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
-    const maxAttrs: MaxAttrs = attrs as {} as MaxAttrs;
-    const {reductionIndices} = maxAttrs;
+    const minAttrs: MinAttrs = attrs as {} as MinAttrs;
+    const {axis} = minAttrs;
     const [x, y] = saved;
-    const origAxes = util.parseAxisParam(reductionIndices, x.shape);
+    const origAxes = util.parseAxisParam(axis, x.shape);
     const permutedAxes = axis_util.getAxesPermutation(origAxes, x.rank);
-    const maxGrad = gradForMinAndMax(dy, y, x, origAxes, permutedAxes);
+    const minGrad = gradForMinAndMax(dy, y, x, origAxes, permutedAxes);
     return {
       x: () => {
-        let out = maxGrad['x']();
+        let out = minGrad['x']();
         if (permutedAxes != null) {
           out = transpose(out);
         }

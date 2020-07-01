@@ -14,19 +14,18 @@
  * limitations under the License.
  * =============================================================================
  */
-import {any} from '../../ops/any';
+import {argMin} from '../../ops/arg_min';
 import {Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    any<T extends Tensor>(this: T, axis?: number|number[], keepDims?: boolean):
-        T;
+    argMin<T extends Tensor>(axis?: number): T;
   }
 }
 
-Tensor.prototype.any = function<T extends Tensor>(
-    this: T, axis?: number|number[], keepDims?: boolean): T {
+Tensor.prototype.argMin = function<T extends Tensor>(axis?: number): T {
   this.throwIfDisposed();
-  return any(this, axis, keepDims);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  return argMin(this, axis) as T;
 };
