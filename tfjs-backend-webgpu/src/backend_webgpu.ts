@@ -1171,8 +1171,8 @@ export class WebGPUBackend extends KernelBackend {
         paddedX.shape, blockShape, prod, false);
 
     return paddedX.reshape(reshapedPaddedShape)
-               .transpose(permutedReshapedPaddedPermutation)
-               .reshape(flattenShape);
+        .transpose(permutedReshapedPaddedPermutation)
+        .reshape(flattenShape);
   }
 
   batchMatMul(

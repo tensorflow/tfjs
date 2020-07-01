@@ -9,9 +9,13 @@ uplinks:
   npmjs:
     url: https://registry.npmjs.org/
 
-# fine-grained control of package access, we set it
+# Fine-grained control of package access, we set it
 # to allow all users to read and publish all packages.
 packages:
+  '@tensorflow/**':
+    access: $all
+    publish: $all
+    # Don't set proxy to avoid accidentally publishing to npm.
   '@*/*':
     access: $all
     publish: $all
@@ -19,9 +23,9 @@ packages:
   '**':
     access: $all
     publish: $all
-    # if package is not available locally, proxy requests to 'npmjs' registry
+    # If package is not available locally, proxy requests to 'npmjs' registry
     proxy: npmjs
 
-# log settings
+# Log settings.
 logs:
   - {type: stdout, format: pretty, level: http}

@@ -17,8 +17,8 @@
 import {Sub} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import * as broadcast_util from '../ops/broadcast_util';
-import {sum} from '../ops/reduction_ops';
 import {reshape} from '../ops/reshape';
+import {sum} from '../ops/sum';
 import {neg} from '../ops/unary_ops';
 import {Tensor} from '../tensor';
 

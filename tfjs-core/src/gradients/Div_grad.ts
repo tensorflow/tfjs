@@ -20,9 +20,9 @@ import {GradConfig} from '../kernel_registry';
 import * as broadcast_util from '../ops/broadcast_util';
 import {div} from '../ops/div';
 import {mul} from '../ops/mul';
-import {sum} from '../ops/reduction_ops';
 import {reshape} from '../ops/reshape';
 import {square} from '../ops/square';
+import {sum} from '../ops/sum';
 import {neg} from '../ops/unary_ops';
 import {Tensor} from '../tensor';
 
