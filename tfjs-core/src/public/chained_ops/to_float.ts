@@ -26,6 +26,8 @@ declare module '../../tensor' {
   }
 }
 
+/** Casts the array to type `float32` */
+/** @doc {heading: 'Tensors', subheading: 'Classes'} */
 Tensor.prototype.toFloat = function<T extends Tensor>(this: T): T {
   this.throwIfDisposed();
   return cast<T>(this, 'float32');
