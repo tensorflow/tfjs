@@ -14,17 +14,21 @@
  * limitations under the License.
  * =============================================================================
  */
-import {argMin} from '../../ops/arg_min';
+
+// TODO update import path once op is modularized.
+import {gather} from '../../ops/ops';
 import {Tensor} from '../../tensor';
-import {Rank} from '../../types';
+import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    argMin<T extends Tensor>(axis?: number): T;
+    gather<T extends Tensor>(
+        this: T, indices: Tensor|TensorLike, axis?: number): T;
   }
 }
 
-Tensor.prototype.argMin = function<T extends Tensor>(axis: number): T {
+Tensor.prototype.gather = function<T extends Tensor>(
+    this: T, indices: Tensor|TensorLike, axis?: number): T {
   this.throwIfDisposed();
-  return argMin(this, axis);
+  return gather(this, indices, axis);
 };

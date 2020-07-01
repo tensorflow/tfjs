@@ -14,17 +14,28 @@
  * limitations under the License.
  * =============================================================================
  */
-import {argMin} from '../../ops/arg_min';
+
+import {reshape} from '../../ops/reshape';
 import {Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    argMin<T extends Tensor>(axis?: number): T;
+    as3D<T extends Tensor>(rows: number, columns: number, depth: number):
+        Tensor3D;
   }
 }
 
-Tensor.prototype.argMin = function<T extends Tensor>(axis: number): T {
+/**
+ * Converts a `tf.Tensor` to a `tf.Tensor3D`.
+ *
+ * @param rows Number of rows in `tf.Tensor3D`.
+ * @param columns Number of columns in `tf.Tensor3D`.
+ * @param depth Depth of `tf.Tensor3D`.
+ */
+/** @doc {heading: 'Tensors', subheading: 'Classes'} */
+Tensor.prototype.as3D = function<T extends Tensor>(
+    rows: number, columns: number, depth: number): T {
   this.throwIfDisposed();
-  return argMin(this, axis);
+  return reshape(this, [rows, columns, depth]) as T;
 };

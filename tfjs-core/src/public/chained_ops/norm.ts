@@ -14,17 +14,23 @@
  * limitations under the License.
  * =============================================================================
  */
-import {argMin} from '../../ops/arg_min';
+
+// TODO update import path once op is modularized.
+import {norm} from '../../ops/ops';
 import {Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    argMin<T extends Tensor>(axis?: number): T;
+    norm<T extends Tensor>(
+        ord?: number|'euclidean'|'fro', axis?: number|number[],
+        keepDims?: boolean): Tensor;
   }
 }
 
-Tensor.prototype.argMin = function<T extends Tensor>(axis: number): T {
+Tensor.prototype.norm = function<T extends Tensor>(
+    ord?: number|'euclidean'|'fro', axis?: number|number[],
+    keepDims?: boolean) {
   this.throwIfDisposed();
-  return argMin(this, axis);
+  return norm(this, ord, axis, keepDims) as T;
 };

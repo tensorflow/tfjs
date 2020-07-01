@@ -14,17 +14,26 @@
  * limitations under the License.
  * =============================================================================
  */
-import {argMin} from '../../ops/arg_min';
+
+// TODO update import path once op is modularized.
+import {cast} from '../../ops/ops';
 import {Tensor} from '../../tensor';
-import {Rank} from '../../types';
+import {DataType, Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    argMin<T extends Tensor>(axis?: number): T;
+    asType<T extends Tensor>(this: T, dtype: DataType): T;
   }
 }
 
-Tensor.prototype.argMin = function<T extends Tensor>(axis: number): T {
+/**
+ * Casts a `tf.Tensor` to a specified dtype.
+ *
+ * @param dtype Data-type to cast the tensor to.
+ */
+/** @doc {heading: 'Tensors', subheading: 'Classes'} */
+Tensor.prototype.asType = function<T extends Tensor>(
+    this: T, dtype: DataType): T {
   this.throwIfDisposed();
-  return argMin(this, axis);
+  return cast<T>(this, dtype);
 };

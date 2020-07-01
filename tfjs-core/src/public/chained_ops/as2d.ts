@@ -14,17 +14,26 @@
  * limitations under the License.
  * =============================================================================
  */
-import {argMin} from '../../ops/arg_min';
+
+import {reshape} from '../../ops/reshape';
 import {Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    argMin<T extends Tensor>(axis?: number): T;
+    as2D<T extends Tensor>(rows: number, columns: number): Tensor2D;
   }
 }
 
-Tensor.prototype.argMin = function<T extends Tensor>(axis: number): T {
+/**
+ * Converts a `tf.Tensor` to a `tf.Tensor2D`.
+ *
+ * @param rows Number of rows in `tf.Tensor2D`.
+ * @param columns Number of columns in `tf.Tensor2D`.
+ */
+/** @doc {heading: 'Tensors', subheading: 'Classes'} */
+Tensor.prototype.as2D = function<T extends Tensor>(
+    rows: number, columns: number): T {
   this.throwIfDisposed();
-  return argMin(this, axis);
+  return reshape(this, [rows, columns]) as T;
 };

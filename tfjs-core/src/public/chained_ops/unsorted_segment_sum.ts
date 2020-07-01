@@ -14,17 +14,21 @@
  * limitations under the License.
  * =============================================================================
  */
-import {argMin} from '../../ops/arg_min';
-import {Tensor} from '../../tensor';
-import {Rank} from '../../types';
+
+// TODO update import path once op is modularized.
+import {unsortedSegmentSum} from '../../ops/ops';
+import {Tensor, Tensor1D} from '../../tensor';
+import {Rank, TensorLike1D} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    argMin<T extends Tensor>(axis?: number): T;
+    unsortedSegmentSum<T extends Tensor>(
+        this: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T;
   }
 }
 
-Tensor.prototype.argMin = function<T extends Tensor>(axis: number): T {
+Tensor.prototype.unsortedSegmentSum = function<T extends Tensor>(
+    this: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T {
   this.throwIfDisposed();
-  return argMin(this, axis);
+  return unsortedSegmentSum(this, segmentIds, numSegments);
 };

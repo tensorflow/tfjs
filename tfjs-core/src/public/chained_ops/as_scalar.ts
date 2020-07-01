@@ -14,17 +14,22 @@
  * limitations under the License.
  * =============================================================================
  */
-import {argMin} from '../../ops/arg_min';
-import {Tensor} from '../../tensor';
+
+import {reshape} from '../../ops/reshape';
+import {Scalar, Tensor} from '../../tensor';
 import {Rank} from '../../types';
+import {assert} from '../../util';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    argMin<T extends Tensor>(axis?: number): T;
+    asScalar<T extends Tensor>(): Scalar;
   }
 }
 
-Tensor.prototype.argMin = function<T extends Tensor>(axis: number): T {
+/** Converts a size-1 `tf.Tensor` to a `tf.Scalar`. */
+/** @doc {heading: 'Tensors', subheading: 'Classes'} */
+Tensor.prototype.asScalar = function<T extends Tensor>(this: T): Scalar {
   this.throwIfDisposed();
-  return argMin(this, axis);
+  assert(this.size === 1, () => 'The array must have only 1 element.');
+  return reshape(this, []);
 };

@@ -14,17 +14,20 @@
  * limitations under the License.
  * =============================================================================
  */
-import {argMin} from '../../ops/arg_min';
+
+import {topk} from '../../ops/topk';
 import {Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    argMin<T extends Tensor>(axis?: number): T;
+    topk<T extends Tensor>(this: T, k?: number, sorted?: boolean):
+        {values: T, indices: T};
   }
 }
 
-Tensor.prototype.argMin = function<T extends Tensor>(axis: number): T {
+Tensor.prototype.topk = function<T extends Tensor>(
+    this: T, k?: number, sorted?: boolean): {values: T, indices: T} {
   this.throwIfDisposed();
-  return argMin(this, axis);
+  return topk(this, k, sorted) as {values: T, indices: T};
 };

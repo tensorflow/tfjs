@@ -14,17 +14,27 @@
  * limitations under the License.
  * =============================================================================
  */
-import {argMin} from '../../ops/arg_min';
+
+// TODO update import path once op is modularized.
+import {stridedSlice} from '../../ops/ops';
 import {Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    argMin<T extends Tensor>(axis?: number): T;
+    stridedSlice<T extends Tensor>(
+        this: Tensor, begin: number[], end: number[], strides: number[],
+        beginMask?: number, endMask?: number, ellipsisMask?: number,
+        newAxisMask?: number, shrinkAxisMask?: number): Tensor;
   }
 }
 
-Tensor.prototype.argMin = function<T extends Tensor>(axis: number): T {
+Tensor.prototype.stridedSlice = function<T extends Tensor>(
+    this: Tensor, begin: number[], end: number[], strides: number[],
+    beginMask?: number, endMask?: number, ellipsisMask?: number,
+    newAxisMask?: number, shrinkAxisMask?: number): T {
   this.throwIfDisposed();
-  return argMin(this, axis);
+  return stridedSlice(
+             this, begin, end, strides, beginMask, endMask, ellipsisMask,
+             newAxisMask, shrinkAxisMask) as T;
 };

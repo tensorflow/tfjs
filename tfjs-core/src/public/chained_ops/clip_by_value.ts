@@ -14,17 +14,20 @@
  * limitations under the License.
  * =============================================================================
  */
-import {argMin} from '../../ops/arg_min';
+
+// TODO update import path once op is modularized.
+import {clipByValue} from '../../ops/ops';
 import {Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    argMin<T extends Tensor>(axis?: number): T;
+    clipByValue<T extends Tensor>(min: number, max: number): Tensor;
   }
 }
 
-Tensor.prototype.argMin = function<T extends Tensor>(axis: number): T {
+Tensor.prototype.clipByValue = function<T extends Tensor>(
+    min: number, max: number): T {
   this.throwIfDisposed();
-  return argMin(this, axis);
+  return clipByValue(this, min, max) as T;
 };

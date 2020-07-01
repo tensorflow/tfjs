@@ -14,17 +14,24 @@
  * limitations under the License.
  * =============================================================================
  */
-import {argMin} from '../../ops/arg_min';
+
+import {reshape} from '../../ops/reshape';
 import {Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    argMin<T extends Tensor>(axis?: number): T;
+    reshapeAs<T extends Tensor>(x: T): T;
   }
 }
 
-Tensor.prototype.argMin = function<T extends Tensor>(axis: number): T {
+/**
+ * Reshapes the tensor into the shape of the provided tensor.
+ *
+ * @param x The tensor of required shape.
+ */
+/** @doc {heading: 'Tensors', subheading: 'Classes'} */
+Tensor.prototype.reshapeAs = function<T extends Tensor>(x: T): T {
   this.throwIfDisposed();
-  return argMin(this, axis);
+  return reshape(this, x.shape) as T;
 };

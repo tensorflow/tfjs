@@ -14,17 +14,19 @@
  * limitations under the License.
  * =============================================================================
  */
-import {argMin} from '../../ops/arg_min';
+
+// TODO update import path once op is modularized.
+import {cast} from '../../ops/ops';
 import {Tensor} from '../../tensor';
-import {Rank} from '../../types';
+import {DataType, Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    argMin<T extends Tensor>(axis?: number): T;
+    cast<T extends Tensor>(dtype: DataType): T;
   }
 }
 
-Tensor.prototype.argMin = function<T extends Tensor>(axis: number): T {
+Tensor.prototype.cast = function<T extends Tensor>(dtype: DataType): T {
   this.throwIfDisposed();
-  return argMin(this, axis);
+  return cast(this, dtype) as T;
 };

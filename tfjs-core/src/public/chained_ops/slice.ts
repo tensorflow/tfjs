@@ -14,17 +14,21 @@
  * limitations under the License.
  * =============================================================================
  */
-import {argMin} from '../../ops/arg_min';
+
+// TODO update import path once op is modularized.
+import {slice} from '../../ops/ops';
 import {Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    argMin<T extends Tensor>(axis?: number): T;
+    slice<T extends Tensor>(
+        this: T, begin: number|number[], size?: number|number[]): T;
   }
 }
 
-Tensor.prototype.argMin = function<T extends Tensor>(axis: number): T {
+Tensor.prototype.slice = function<T extends Tensor>(
+    this: T, begin: number|number[], size?: number|number[]): T {
   this.throwIfDisposed();
-  return argMin(this, axis);
+  return slice(this, begin, size);
 };

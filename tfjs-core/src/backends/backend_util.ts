@@ -69,7 +69,7 @@ export function castTensor<T extends Tensor>(
     const real = backend.real(x);
     const result = real.cast(dtype);
     real.dispose();
-    return result;
+    return result as T;
   }
   if (dtype === 'int32') {
     return backend.int(x);
