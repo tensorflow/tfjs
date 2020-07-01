@@ -25,7 +25,7 @@ function generateInput(model) {
   const tensorArray = [];
   try {
     model.inputs.forEach((inputNode, inputNodeIndex) => {
-      // replace -1 or null in input tensor shape
+      // Replace -1 or null in input tensor shape.
       const inputShape = inputNode.shape.map(shapeValue => {
         if (shapeValue == null || shapeValue < 0) {
           return 1;
@@ -34,7 +34,7 @@ function generateInput(model) {
         }
       });
 
-      // construct the input tensor
+      // Construct the input tensor.
       let inputTensor;
       if (inputNode.dtype === 'float32' || inputNode.dtype === 'int32') {
         inputTensor = tf.randomNormal(inputShape, 0, 1000, inputNode.dtype);
@@ -46,7 +46,7 @@ function generateInput(model) {
       tensorArray.push(inputTensor);
     });
 
-    // return tensor map for GraphModel
+    // Return tensor map for tf.GraphModel.
     if (model instanceof tf.GraphModel) {
       const tensorMap = model.inputNodes.reduce((map, inputName, i) => {
         map[inputName] = tensorArray[i];
@@ -57,7 +57,7 @@ function generateInput(model) {
 
     return tensorArray;
   } catch (e) {
-    // dispose input tensors
+    // Dispose all input tensors when the input construction is failed.
     tensorArray.forEach(tensor => {
       if (tensor instanceof tf.Tensor) {
         tensor.dispose();
@@ -65,4 +65,78 @@ function generateInput(model) {
     });
     throw e;
   }
+}
+
+async function profileInferenceTimeForModel(model, input, numRuns = 1) {
+  let predict;
+  if (model instanceof tf.GraphModel) {
+    predict = model.executeAsync.bind(model);
+  } else if (model instanceof tf.LayersModel) {
+    predict = model.predict.bind(model);
+  } else {
+    throw new Error(
+        'Please pass an instance of tf.GraphModel or ' +
+        'tf.LayersModel as the model.');
+  }
+  return profileInferenceTime(predict, [input], numRuns);
+}
+
+async function profileInferenceTime(predict, predictArgs = [], numRuns = 1) {
+  if(typeof predict !== 'function') {
+    throw new Error(
+        'The first parameter should be a function, while ' +
+        `a(n) ${typeof predict} is found.`);
+  }
+  if (!Array.isArray(predictArgs)) {
+    predictArgs = [predictArgs];
+  }
+
+  const elapsedTimeArray = [];
+  for (let i = 0; i < numRuns; i++) {
+    let start = performance.now();
+    let res = await predict(...predictArgs);
+    const inferenceTime = performance.now() - start;
+
+    // The values downloading time will be different for different backends.
+    start = performance.now();
+    // The prediction can be tf.Tensor|tf.Tensor[]|{[name: string]: tf.Tensor}.
+    const value = await downloadValuesFromTensorContainer(res);
+    const downloadTime = performance.now() - start;
+
+    tf.dispose(res);
+    elapsedTimeArray.push({inferenceTime, downloadTime});
+  }
+  return elapsedTimeArray;
+}
+
+async function downloadValuesFromTensorContainer(tensorContainer) {
+  let valueContainer;
+  if (tensorContainer instanceof tf.Tensor) {
+    valueContainer = await tensorContainer.data();
+  } else if (Array.isArray(tensorContainer)) {
+    // Start value downloads from all tensors.
+    let valuePromiseContainer = tensorContainer.map(async item => {
+      if (item instanceof tf.Tensor) {
+        return item.data();
+      }
+      return item;
+    });
+    // Wait until all values are downloaded.
+    valueContainer = await Promise.all(valuePromiseContainer);
+  } else if (tensorContainer != null && typeof tensorContainer === 'object') {
+    valueContainer = {};
+    // Start value downloads from all tensors.
+    for (const property in tensorContainer) {
+      if (tensorContainer[property] instanceof tf.Tensor) {
+        valueContainer[property] = tensorContainer[property].data();
+      }
+    }
+    // Wait until all values are downloaded.
+    for (const property in valueContainer) {
+      if (valueContainer[property] instanceof Promise) {
+        valueContainer[property] = await valueContainer[property];
+      }
+    }
+  }
+  return valueContainer;
 }
