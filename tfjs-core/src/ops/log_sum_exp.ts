@@ -24,9 +24,9 @@ import {add} from './add';
 import {expandShapeToKeepDim} from './axis_util';
 import {max} from './max';
 import {op} from './operation';
-import {sum} from './reduction_ops';
 import {reshape} from './reshape';
 import {sub} from './sub';
+import {sum} from './sum';
 import {exp, log} from './unary_ops';
 
 /**

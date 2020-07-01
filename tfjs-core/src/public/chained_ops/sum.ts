@@ -14,19 +14,19 @@
  * limitations under the License.
  * =============================================================================
  */
-import {any} from '../../ops/any';
+import {sum} from '../../ops/sum';
 import {Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    any<T extends Tensor>(this: T, axis?: number|number[], keepDims?: boolean):
-        T;
+    sum<T extends Tensor>(axis?: number|number[], keepDims?: boolean): T;
   }
 }
 
-Tensor.prototype.any = function<T extends Tensor>(
-    this: T, axis?: number|number[], keepDims?: boolean): T {
+Tensor.prototype.sum = function<T extends Tensor>(
+    axis?: number|number[], keepDims?: boolean): T {
   this.throwIfDisposed();
-  return any(this, axis, keepDims);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  return sum(this, axis, keepDims) as T;
 };

@@ -181,12 +181,6 @@ export interface OpHandler {
       keepDims: boolean): Tensor;
   slice<R extends Rank, T extends Tensor<R>>(
       x: T, begin: number|number[], size?: number|number[]): T;
-  sum<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
-  mean<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean):
-      T;
-  min<T extends Tensor>(x: Tensor, axis: number|number[], keepDims: boolean): T;
-  argMin<T extends Tensor>(x: Tensor, axis: number): T;
-  argMax<T extends Tensor>(x: Tensor, axis: number): T;
   addStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   subStrict<T extends Tensor>(a: T, b: T|TensorLike): T;
   powStrict<T extends Tensor>(base: T, exp: Tensor|TensorLike): T;
@@ -627,27 +621,6 @@ export class Tensor<R extends Rank = Rank> {
       this: T, begin: number|number[], size?: number|number[]): T {
     this.throwIfDisposed();
     return opHandler.slice(this, begin, size);
-  }
-  // Reduction ops.
-  sum<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
-    this.throwIfDisposed();
-    return opHandler.sum(this, axis, keepDims);
-  }
-  mean<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
-    this.throwIfDisposed();
-    return opHandler.mean(this, axis, keepDims);
-  }
-  min<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
-    this.throwIfDisposed();
-    return opHandler.min(this, axis, keepDims);
-  }
-  argMin<T extends Tensor>(axis: number = null): T {
-    this.throwIfDisposed();
-    return opHandler.argMin(this, axis);
-  }
-  argMax<T extends Tensor>(axis: number = null): T {
-    this.throwIfDisposed();
-    return opHandler.argMax(this, axis);
   }
 
   // Transformations

@@ -14,19 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
-import {any} from '../../ops/any';
+import {argMax} from '../../ops/arg_max';
 import {Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    any<T extends Tensor>(this: T, axis?: number|number[], keepDims?: boolean):
-        T;
+    argMax<T extends Tensor>(axis?: number): T;
   }
 }
 
-Tensor.prototype.any = function<T extends Tensor>(
-    this: T, axis?: number|number[], keepDims?: boolean): T {
+Tensor.prototype.argMax = function<T extends Tensor>(axis?: number): T {
   this.throwIfDisposed();
-  return any(this, axis, keepDims);
+  return argMax(this, axis);
 };
