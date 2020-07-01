@@ -20,10 +20,9 @@ import {env, util} from '@tensorflow/tfjs-core';
 import {getWebGLContext} from './canvas_util';
 import {getTextureConfig} from './tex_util';
 
-export function callAndCheck<T>(
-    gl: WebGLRenderingContext, debugMode: boolean, func: () => T): T {
+export function callAndCheck<T>(gl: WebGLRenderingContext, func: () => T): T {
   const returnValue = func();
-  if (debugMode) {
+  if (env().getBool('DEBUG')) {
     checkWebGLError(gl);
   }
   return returnValue;
@@ -71,21 +70,19 @@ export function getWebGLErrorMessage(
 }
 
 export function getExtensionOrThrow(
-    gl: WebGLRenderingContext, debug: boolean, extensionName: string): {} {
+    gl: WebGLRenderingContext, extensionName: string): {} {
   return throwIfNull<{}>(
-      gl, debug, () => gl.getExtension(extensionName),
+      gl, () => gl.getExtension(extensionName),
       'Extension "' + extensionName + '" not supported on this browser.');
 }
 
 export function createVertexShader(
-    gl: WebGLRenderingContext, debug: boolean,
-    vertexShaderSource: string): WebGLShader {
+    gl: WebGLRenderingContext, vertexShaderSource: string): WebGLShader {
   const vertexShader: WebGLShader = throwIfNull<WebGLShader>(
-      gl, debug, () => gl.createShader(gl.VERTEX_SHADER),
+      gl, () => gl.createShader(gl.VERTEX_SHADER),
       'Unable to create vertex WebGLShader.');
-  callAndCheck(
-      gl, debug, () => gl.shaderSource(vertexShader, vertexShaderSource));
-  callAndCheck(gl, debug, () => gl.compileShader(vertexShader));
+  callAndCheck(gl, () => gl.shaderSource(vertexShader, vertexShaderSource));
+  callAndCheck(gl, () => gl.compileShader(vertexShader));
   if (gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS) === false) {
     console.log(gl.getShaderInfoLog(vertexShader));
     throw new Error('Failed to compile vertex shader.');
@@ -94,14 +91,12 @@ export function createVertexShader(
 }
 
 export function createFragmentShader(
-    gl: WebGLRenderingContext, debug: boolean,
-    fragmentShaderSource: string): WebGLShader {
+    gl: WebGLRenderingContext, fragmentShaderSource: string): WebGLShader {
   const fragmentShader: WebGLShader = throwIfNull<WebGLShader>(
-      gl, debug, () => gl.createShader(gl.FRAGMENT_SHADER),
+      gl, () => gl.createShader(gl.FRAGMENT_SHADER),
       'Unable to create fragment WebGLShader.');
-  callAndCheck(
-      gl, debug, () => gl.shaderSource(fragmentShader, fragmentShaderSource));
-  callAndCheck(gl, debug, () => gl.compileShader(fragmentShader));
+  callAndCheck(gl, () => gl.shaderSource(fragmentShader, fragmentShaderSource));
+  callAndCheck(gl, () => gl.compileShader(fragmentShader));
   if (gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS) === false) {
     logShaderSourceAndInfoLog(
         fragmentShaderSource, gl.getShaderInfoLog(fragmentShader));
@@ -144,15 +139,13 @@ function logShaderSourceAndInfoLog(
   console.log(afterErrorLines.join('\n'));
 }
 
-export function createProgram(
-    gl: WebGLRenderingContext, debug: boolean): WebGLProgram {
+export function createProgram(gl: WebGLRenderingContext): WebGLProgram {
   return throwIfNull<WebGLProgram>(
-      gl, debug, () => gl.createProgram(), 'Unable to create WebGLProgram.');
+      gl, () => gl.createProgram(), 'Unable to create WebGLProgram.');
 }
 
-export function linkProgram(
-    gl: WebGLRenderingContext, debug: boolean, program: WebGLProgram) {
-  callAndCheck(gl, debug, () => gl.linkProgram(program));
+export function linkProgram(gl: WebGLRenderingContext, program: WebGLProgram) {
+  callAndCheck(gl, () => gl.linkProgram(program));
   if (gl.getProgramParameter(program, gl.LINK_STATUS) === false) {
     console.log(gl.getProgramInfoLog(program));
     throw new Error('Failed to link vertex and fragment shaders.');
@@ -160,8 +153,8 @@ export function linkProgram(
 }
 
 export function validateProgram(
-    gl: WebGLRenderingContext, debug: boolean, program: WebGLProgram) {
-  callAndCheck(gl, debug, () => gl.validateProgram(program));
+    gl: WebGLRenderingContext, program: WebGLProgram) {
+  callAndCheck(gl, () => gl.validateProgram(program));
   if (gl.getProgramParameter(program, gl.VALIDATE_STATUS) === false) {
     console.log(gl.getProgramInfoLog(program));
     throw new Error('Shader program validation failed.');
@@ -169,24 +162,21 @@ export function validateProgram(
 }
 
 export function createStaticVertexBuffer(
-    gl: WebGLRenderingContext, debug: boolean,
-    data: Float32Array): WebGLBuffer {
+    gl: WebGLRenderingContext, data: Float32Array): WebGLBuffer {
   const buffer: WebGLBuffer = throwIfNull<WebGLBuffer>(
-      gl, debug, () => gl.createBuffer(), 'Unable to create WebGLBuffer');
-  callAndCheck(gl, debug, () => gl.bindBuffer(gl.ARRAY_BUFFER, buffer));
-  callAndCheck(
-      gl, debug, () => gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW));
+      gl, () => gl.createBuffer(), 'Unable to create WebGLBuffer');
+  callAndCheck(gl, () => gl.bindBuffer(gl.ARRAY_BUFFER, buffer));
+  callAndCheck(gl, () => gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW));
   return buffer;
 }
 
 export function createStaticIndexBuffer(
-    gl: WebGLRenderingContext, debug: boolean, data: Uint16Array): WebGLBuffer {
+    gl: WebGLRenderingContext, data: Uint16Array): WebGLBuffer {
   const buffer: WebGLBuffer = throwIfNull<WebGLBuffer>(
-      gl, debug, () => gl.createBuffer(), 'Unable to create WebGLBuffer');
-  callAndCheck(gl, debug, () => gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer));
+      gl, () => gl.createBuffer(), 'Unable to create WebGLBuffer');
+  callAndCheck(gl, () => gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer));
   callAndCheck(
-      gl, debug,
-      () => gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, data, gl.STATIC_DRAW));
+      gl, () => gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, data, gl.STATIC_DRAW));
   return buffer;
 }
 
@@ -197,10 +187,9 @@ export function getNumChannels(): number {
   return 4;
 }
 
-export function createTexture(
-    gl: WebGLRenderingContext, debug: boolean): WebGLTexture {
+export function createTexture(gl: WebGLRenderingContext): WebGLTexture {
   return throwIfNull<WebGLTexture>(
-      gl, debug, () => gl.createTexture(), 'Unable to create WebGLTexture.');
+      gl, () => gl.createTexture(), 'Unable to create WebGLTexture.');
 }
 
 export function validateTextureSize(width: number, height: number) {
@@ -218,53 +207,50 @@ export function validateTextureSize(width: number, height: number) {
   }
 }
 
-export function createFramebuffer(
-    gl: WebGLRenderingContext, debug: boolean): WebGLFramebuffer {
+export function createFramebuffer(gl: WebGLRenderingContext): WebGLFramebuffer {
   return throwIfNull<WebGLFramebuffer>(
-      gl, debug, () => gl.createFramebuffer(),
-      'Unable to create WebGLFramebuffer.');
+      gl, () => gl.createFramebuffer(), 'Unable to create WebGLFramebuffer.');
 }
 
 export function bindVertexBufferToProgramAttribute(
-    gl: WebGLRenderingContext, debug: boolean, program: WebGLProgram,
-    attribute: string, buffer: WebGLBuffer, arrayEntriesPerItem: number,
-    itemStrideInBytes: number, itemOffsetInBytes: number): boolean {
+    gl: WebGLRenderingContext, program: WebGLProgram, attribute: string,
+    buffer: WebGLBuffer, arrayEntriesPerItem: number, itemStrideInBytes: number,
+    itemOffsetInBytes: number): boolean {
   const loc = gl.getAttribLocation(program, attribute);
   if (loc === -1) {
     // The GPU compiler decided to strip out this attribute because it's unused,
     // thus no need to bind.
     return false;
   }
-  callAndCheck(gl, debug, () => gl.bindBuffer(gl.ARRAY_BUFFER, buffer));
+  callAndCheck(gl, () => gl.bindBuffer(gl.ARRAY_BUFFER, buffer));
   callAndCheck(
-      gl, debug,
+      gl,
       () => gl.vertexAttribPointer(
           loc, arrayEntriesPerItem, gl.FLOAT, false, itemStrideInBytes,
           itemOffsetInBytes));
-  callAndCheck(gl, debug, () => gl.enableVertexAttribArray(loc));
+  callAndCheck(gl, () => gl.enableVertexAttribArray(loc));
   return true;
 }
 
 export function bindTextureUnit(
-    gl: WebGLRenderingContext, debug: boolean, texture: WebGLTexture,
-    textureUnit: number) {
+    gl: WebGLRenderingContext, texture: WebGLTexture, textureUnit: number) {
   validateTextureUnit(gl, textureUnit);
-  callAndCheck(gl, debug, () => gl.activeTexture(gl.TEXTURE0 + textureUnit));
-  callAndCheck(gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, texture));
+  callAndCheck(gl, () => gl.activeTexture(gl.TEXTURE0 + textureUnit));
+  callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, texture));
 }
 
 export function unbindTextureUnit(
-    gl: WebGLRenderingContext, debug: boolean, textureUnit: number) {
+    gl: WebGLRenderingContext, textureUnit: number) {
   validateTextureUnit(gl, textureUnit);
-  callAndCheck(gl, debug, () => gl.activeTexture(gl.TEXTURE0 + textureUnit));
-  callAndCheck(gl, debug, () => gl.bindTexture(gl.TEXTURE_2D, null));
+  callAndCheck(gl, () => gl.activeTexture(gl.TEXTURE0 + textureUnit));
+  callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, null));
 }
 
 export function getProgramUniformLocationOrThrow(
-    gl: WebGLRenderingContext, debug: boolean, program: WebGLProgram,
+    gl: WebGLRenderingContext, program: WebGLProgram,
     uniformName: string): WebGLUniformLocation {
   return throwIfNull<WebGLUniformLocation>(
-      gl, debug, () => gl.getUniformLocation(program, uniformName),
+      gl, () => gl.getUniformLocation(program, uniformName),
       'uniform "' + uniformName + '" not present in program.');
 }
 
@@ -275,41 +261,33 @@ export function getProgramUniformLocation(
 }
 
 export function bindTextureToProgramUniformSampler(
-    gl: WebGLRenderingContext, debug: boolean, program: WebGLProgram,
-    texture: WebGLTexture, uniformSamplerLocation: WebGLUniformLocation,
-    textureUnit: number) {
-  callAndCheck(
-      gl, debug, () => bindTextureUnit(gl, debug, texture, textureUnit));
-  callAndCheck(
-      gl, debug, () => gl.uniform1i(uniformSamplerLocation, textureUnit));
+    gl: WebGLRenderingContext, texture: WebGLTexture,
+    uniformSamplerLocation: WebGLUniformLocation, textureUnit: number) {
+  callAndCheck(gl, () => bindTextureUnit(gl, texture, textureUnit));
+  callAndCheck(gl, () => gl.uniform1i(uniformSamplerLocation, textureUnit));
 }
 
-export function bindCanvasToFramebuffer(
-    gl: WebGLRenderingContext, debug: boolean) {
-  callAndCheck(gl, debug, () => gl.bindFramebuffer(gl.FRAMEBUFFER, null));
-  callAndCheck(
-      gl, debug, () => gl.viewport(0, 0, gl.canvas.width, gl.canvas.height));
-  callAndCheck(
-      gl, debug, () => gl.scissor(0, 0, gl.canvas.width, gl.canvas.height));
+export function bindCanvasToFramebuffer(gl: WebGLRenderingContext) {
+  callAndCheck(gl, () => gl.bindFramebuffer(gl.FRAMEBUFFER, null));
+  callAndCheck(gl, () => gl.viewport(0, 0, gl.canvas.width, gl.canvas.height));
+  callAndCheck(gl, () => gl.scissor(0, 0, gl.canvas.width, gl.canvas.height));
 }
 
 export function bindColorTextureToFramebuffer(
-    gl: WebGLRenderingContext, debug: boolean, texture: WebGLTexture,
+    gl: WebGLRenderingContext, texture: WebGLTexture,
     framebuffer: WebGLFramebuffer) {
+  callAndCheck(gl, () => gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer));
   callAndCheck(
-      gl, debug, () => gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer));
-  callAndCheck(
-      gl, debug,
+      gl,
       () => gl.framebufferTexture2D(
           gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0));
 }
 
 export function unbindColorTextureFromFramebuffer(
-    gl: WebGLRenderingContext, debug: boolean, framebuffer: WebGLFramebuffer) {
+    gl: WebGLRenderingContext, framebuffer: WebGLFramebuffer) {
+  callAndCheck(gl, () => gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer));
   callAndCheck(
-      gl, debug, () => gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer));
-  callAndCheck(
-      gl, debug,
+      gl,
       () => gl.framebufferTexture2D(
           gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, null, 0));
 }
@@ -339,9 +317,9 @@ export function getFramebufferErrorMessage(
 }
 
 function throwIfNull<T>(
-    gl: WebGLRenderingContext, debug: boolean, returnTOrNull: () => T | null,
+    gl: WebGLRenderingContext, returnTOrNull: () => T | null,
     failureMessage: string): T {
-  const tOrNull: T|null = callAndCheck(gl, debug, () => returnTOrNull());
+  const tOrNull: T|null = callAndCheck(gl, () => returnTOrNull());
   if (tOrNull == null) {
     throw new Error(failureMessage);
   }
