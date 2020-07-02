@@ -499,6 +499,12 @@ export interface ReverseAttrs {
   dims: number|number[];
 }
 
+export const ScatterND = 'ScatterND';
+export type ScatterNDInputs = Pick<NamedTensorInfoMap, 'indices'|'updates'>;
+export interface ScatterNDAttrs {
+  shape: number[];
+}
+
 export const SelectV2 = 'SelectV2';
 export type SelectV2Inputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
 
