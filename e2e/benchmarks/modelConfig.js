@@ -302,20 +302,21 @@ function findIOHandler(path, loadOptions = {}) {
 async function tryAllLoadingMethods(modelHandler, loadOptions = {}) {
   let model;
   // TODO: download weights once
-  model = await tf.loadGraphModel(modelHandler, loadOptions)
-              .then(model => {
-                state.modelType = 'GraphModel';
-                return model;
-              })
-              .catch(e => {});
-
-  if (model == null) {
-    model = await tf.loadLayersModel(modelHandler, loadOptions).then(model => {
-      state.modelType = 'LayersModel';
-      return model;
-    });
+  try {
+    model = await tf.loadGraphModel(modelHandler, loadOptions);
+    state.modelType = 'GraphModel';
+    return model;
+  } catch (e) {
   }
-  return model;
+
+  try {
+    model = await tf.loadLayersModel(modelHandler, loadOptions);
+    state.modelType = 'LayersModel';
+    return model;
+  } catch (e) {
+  }
+
+  throw new Error(`Didn't find a fit loading method for this model.`);
 }
 
 async function loadModelByUrl(modelUrl, loadOptions = {}) {
@@ -337,7 +338,8 @@ async function loadModelByUrl(modelUrl, loadOptions = {}) {
   // Convert URL to IOHandler and parse the model type
   try {
     ioHandler = findIOHandler(modelUrl, loadOptions);
-    modelType = await ioHandler.load().then(artifacts => artifacts.format);
+    const artifacts = await ioHandler.load();
+    modelType = artifacts.format;
   } catch (e) {
     throw new Error(`Failed to fetch or parse 'model.json' file.`);
   }

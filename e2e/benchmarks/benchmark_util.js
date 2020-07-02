@@ -124,19 +124,17 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
     // Wait until all values are downloaded.
     valueContainer = await Promise.all(valuePromiseContainer);
   } else if (tensorContainer != null && typeof tensorContainer === 'object') {
-    valueContainer = {};
+    const valuePromiseContainer = [];
     // Start value downloads from all tensors.
     for (const property in tensorContainer) {
       if (tensorContainer[property] instanceof tf.Tensor) {
-        valueContainer[property] = tensorContainer[property].data();
+        valuePromiseContainer.push(tensorContainer[property].data());
+      } else {
+        valuePromiseContainer.push(tensorContainer[property]);
       }
     }
     // Wait until all values are downloaded.
-    for (const property in valueContainer) {
-      if (valueContainer[property] instanceof Promise) {
-        valueContainer[property] = await valueContainer[property];
-      }
-    }
+    valueContainer = await Promise.all(valuePromiseContainer);
   }
   return valueContainer;
 }
