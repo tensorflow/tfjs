@@ -60,7 +60,7 @@ export class BinaryOpProgram implements WebGPUProgram {
 
             float a = A[index];
             float b = B[index];
-            result[index] = binaryOperation(a, b);
+            setOutput(index, binaryOperation(a, b));
           }
         `;
       this.shaderKey = `binary2${op}`;

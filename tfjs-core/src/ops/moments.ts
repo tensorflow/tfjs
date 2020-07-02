@@ -22,8 +22,8 @@ import {parseAxisParam} from '../util';
 
 import {cast} from './array_ops';
 import {expandShapeToKeepDim} from './axis_util';
+import {mean} from './mean';
 import {op} from './operation';
-import {mean} from './reduction_ops';
 import {reshape} from './reshape';
 import {square} from './square';
 import {sub} from './sub';
