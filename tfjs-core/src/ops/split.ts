@@ -55,6 +55,7 @@ import {op} from './operation';
  * splits along the axis or an array of integers containing the sizes of
  * each output tensor along the axis. If a number then it must evenly divide
  * `x.shape[axis]`; otherwise the sum of sizes must match `x.shape[axis]`.
+ * Can contain one -1 indicating that dimension is to be inferred.
  * @param axis The dimension along which to split. Defaults to 0 (the first
  * dim).
  */
