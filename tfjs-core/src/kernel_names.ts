@@ -273,6 +273,12 @@ export interface FusedBatchNormAttrs {
   varianceEpsilon: number;
 }
 
+export const GatherV2 = 'GatherV2';
+export type GatherV2Inputs = Pick<NamedTensorInfoMap, 'x'|'indices'>;
+export interface GatherV2Attrs {
+  axis: number;
+}
+
 export const GatherNd = 'GatherNd';
 export type GatherNdInputs = Pick<NamedTensorInfoMap, 'params'|'indices'>;
 
@@ -499,9 +505,9 @@ export interface ReverseAttrs {
   dims: number|number[];
 }
 
-export const ScatterND = 'ScatterND';
-export type ScatterNDInputs = Pick<NamedTensorInfoMap, 'indices'|'updates'>;
-export interface ScatterNDAttrs {
+export const ScatterNd = 'ScatterNd';
+export type ScatterNdInputs = Pick<NamedTensorInfoMap, 'indices'|'updates'>;
+export interface ScatterNdAttrs {
   shape: number[];
 }
 

@@ -35,6 +35,7 @@ import {divGradConfig} from './gradients/Div_grad';
 import {eluGradConfig} from './gradients/Elu_grad';
 import {floorDivGradConfig} from './gradients/FloorDiv_grad';
 import {fusedBatchNormGradConfig} from './gradients/FusedBatchNorm_grad';
+import {gatherGradConfig} from './gradients/GatherV2_grad';
 import {greaterEqualGradConfig} from './gradients/GreaterEqual_grad';
 import {identityGradConfig} from './gradients/Identity_grad';
 import {lrnGradConfig} from './gradients/LRN_grad';
@@ -94,6 +95,7 @@ const gradConfigs: GradConfig[] = [
   eluGradConfig,
   floorDivGradConfig,
   fusedBatchNormGradConfig,
+  gatherGradConfig,
   greaterEqualGradConfig,
   identityGradConfig,
   lrnGradConfig,

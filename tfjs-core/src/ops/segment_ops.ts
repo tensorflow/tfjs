@@ -15,16 +15,17 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../engine';
-import {Tensor, Tensor1D} from '../tensor';
+import {ENGINE, ForwardFunc} from '../engine';
+import {GatherV2, GatherV2Attrs, GatherV2Inputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
+import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {parseAxisParam} from '../util';
 
-import {getUndoAxesPermutation} from './axis_util';
 import {op} from './operation';
 import {collectGatherOpShapeInfo} from './segment_util';
-import {unsortedSegmentSum} from './unsorted_segment_sum';
 
 /**
  * Gather slices from tensor `x`'s axis `axis` according to `indices`.
@@ -51,68 +52,23 @@ function gather_<T extends Tensor>(
     x: T|TensorLike, indices: Tensor|TensorLike, axis = 0): T {
   const $x = convertToTensor(x, 'x', 'gather');
   const $indices = convertToTensor(indices, 'indices', 'gather', 'int32');
-  axis = parseAxisParam(axis, $x.shape)[0];
-  const shapeInfo = collectGatherOpShapeInfo($x, $indices, axis);
 
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [$indices] = saved;
-    const derX = () => {
-      const paramsShape = $x.shape;
-      const indicesSize = $indices.size;
+  const inputs: GatherV2Inputs = {x: $x, indices: $indices};
+  const attrs: GatherV2Attrs = {axis};
 
-      const outerShape = paramsShape.slice(0, axis);
-      const outerDims = outerShape.length;
-      const innerShape = paramsShape.slice(axis, paramsShape.length).slice(1);
-      const innerDims = innerShape.length;
+  const forward: ForwardFunc<Tensor> = (backend, save) => {
+    const parsedAxis = parseAxisParam(axis, $x.shape)[0];
+    const shapeInfo = collectGatherOpShapeInfo($x, $indices, parsedAxis);
 
-      const outerAxesIndices = arrayRange(0, outerDims);
-      const innerAxesIndices =
-          arrayRange(outerDims + 1, outerDims + 1 + innerDims);
+    const res = backend.gather($x, $indices.flatten(), parsedAxis);
+    save([$x, $indices]);
 
-      const valuesShape = arrayConcat([outerShape, [indicesSize], innerShape]);
-
-      const values = dy.reshape(valuesShape);
-      const reshapedIndices = $indices.reshape([indicesSize]);
-
-      const transposeDims =
-          arrayConcat([[outerDims], outerAxesIndices, innerAxesIndices]);
-      const valuesTranspose = values.transpose(transposeDims);
-      let paramsGrad = unsortedSegmentSum(
-          valuesTranspose, reshapedIndices as Tensor1D, $x.shape[axis]);
-
-      const invertTransposeDims = getUndoAxesPermutation(transposeDims);
-      paramsGrad = paramsGrad.transpose(invertTransposeDims);
-
-      return paramsGrad as T;
-    };
-    return {x: derX, indices: () => $indices};
+    return res.reshape(shapeInfo.outputShape);
   };
-  return (ENGINE.runKernelFunc(
-              (backend, save) => {
-                const res = backend.gather($x, $indices.flatten(), axis);
-                save([$indices]);
-                return res;
-              },
-              {x: $x, indices: $indices}, grad, 'Gather', {axis}))
-      .reshape(shapeInfo.outputShape);
-}
 
-function arrayRange(start: number, stop: number): number[] {
-  const result = [];
-  for (let i = start; i < stop; ++i) {
-    result.push(i);
-  }
-  return result;
-}
-
-function arrayConcat(arrays: number[][]): number[] {
-  const result = [];
-  for (let i = 0; i < arrays.length; ++i) {
-    for (let j = 0; j < arrays[i].length; ++j) {
-      result.push(arrays[i][j]);
-    }
-  }
-  return result;
+  return ENGINE.runKernelFunc(
+             forward, inputs as {} as NamedTensorMap, null /* grad */, GatherV2,
+             attrs as {} as NamedAttrMap) as T;
 }
 
 export const gather = op({gather_});
