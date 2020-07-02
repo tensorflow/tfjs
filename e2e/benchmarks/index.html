@@ -254,7 +254,8 @@ limitations under the License.
 
     async function warmUpAndRecordTime() {
       await showMsg('Warming up');
-      let elapsedTimeArray = await profileInferenceTime(predict, model, 1);
+      const elapsedTimeArray =
+          await profileInferenceTime(() => predict(model), 1);
       await showMsg(null);
       appendRow(timeTable, 'backend', state.backend);
       appendRow(timeTable, '1st inference', printTime(elapsedTimeArray[0]));
@@ -329,7 +330,7 @@ limitations under the License.
       chartWidth = document.querySelector('#perf-trendline-container').getBoundingClientRect().width;
 
       const tensorsBefore = tf.memory().numTensors;
-      const times = await profileInferenceTime(predict, model, state.numRuns);
+      const times = await profileInferenceTime(() => predict(model), state.numRuns);
       const leakedTensors = tf.memory().numTensors - tensorsBefore;
 
       const forceInferenceTrendYMinToZero = true;
