@@ -97,7 +97,7 @@ describeWithFlags('max', ALL_ENVS, () => {
     tf.max(input, [1, 0]);
 
     const inputDataAfter = await input.data();
-    expectArraysEqual(inputDataBefore, inputDataAfter);
+    expectArraysClose(inputDataBefore, inputDataAfter);
   });
 
   it('throws when passed a non-tensor', () => {
