@@ -67,6 +67,7 @@ import {sumGradConfig} from './gradients/Sum_grad';
 import {tileGradConfig} from './gradients/Tile_grad';
 import {transposeGradConfig} from './gradients/Transpose_grad';
 import {unpackGradConfig} from './gradients/Unpack_grad';
+import {unsortedSegmentSumGradConfig} from './gradients/UnsortedSegmentSum_grad';
 import {GradConfig} from './kernel_registry';
 import {registerGradient} from './kernel_registry';
 
@@ -129,7 +130,8 @@ const gradConfigs: GradConfig[] = [
   sumGradConfig,
   tileGradConfig,
   transposeGradConfig,
-  unpackGradConfig
+  unpackGradConfig,
+  unsortedSegmentSumGradConfig
 ];
 
 for (const gradientConfig of gradConfigs) {

@@ -559,6 +559,13 @@ export interface UnpackAttrs {
   axis: number;
 }
 
+export const UnsortedSegmentSum = 'UnsortedSegmentSum';
+export type UnsortedSegmentSumInputs =
+    Pick<NamedTensorInfoMap, 'x'|'segmentIds'>;
+export interface UnsortedSegmentSumAttrs {
+  numSegments: number;
+}
+
 /**
  * TensorFlow.js-only kernels
  */

@@ -121,6 +121,7 @@ export {sub} from './sub';
 export {sum} from './sum';
 export {tile} from './tile';
 export {truncatedNormal} from './truncated_normal';
+export {unsortedSegmentSum} from './unsorted_segment_sum';
 export {unstack} from './unstack';
 export {where} from './where';
 export {whereAsync} from './where_async';

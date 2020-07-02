@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-// TODO update import path once op is modularized.
-import {unsortedSegmentSum} from '../../ops/ops';
+import {unsortedSegmentSum} from '../../ops/unsorted_segment_sum';
 import {Tensor, Tensor1D} from '../../tensor';
 import {Rank, TensorLike1D} from '../../types';
 
