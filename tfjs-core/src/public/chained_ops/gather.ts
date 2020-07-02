@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-// TODO update import path once op is modularized.
-import {gather} from '../../ops/ops';
+import {gather} from '../../ops/gather';
 import {Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 

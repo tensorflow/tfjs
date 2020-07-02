@@ -18,10 +18,10 @@
 import {UnsortedSegmentSum} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import {expandDims} from '../ops/expand_dims';
+import {gather} from '../ops/gather';
 import {greaterEqual} from '../ops/greater_equal';
 import {logicalAnd} from '../ops/logical_and';
 import {maximum} from '../ops/maximum';
-import {gather} from '../ops/segment_ops';
 import {ones, scalar, zerosLike} from '../ops/tensor_ops';
 import {where} from '../ops/where';
 import {Tensor, Tensor1D} from '../tensor';
