@@ -16,7 +16,7 @@
  */
 
 import {ENGINE, ForwardFunc} from '../engine';
-import {ScatterND, ScatterNDAttrs, ScatterNDInputs} from '../kernel_names';
+import {ScatterNd, ScatterNdAttrs, ScatterNdInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -55,12 +55,12 @@ function scatterND_<R extends Rank>(
     return backend.scatterND($indices, $updates, shape);
   };
 
-  const inputs: ScatterNDInputs = {indices: $indices, updates: $updates};
-  const attrs: ScatterNDAttrs = {shape};
+  const inputs: ScatterNdInputs = {indices: $indices, updates: $updates};
+  const attrs: ScatterNdAttrs = {shape};
 
   return ENGINE.runKernelFunc(
              forward, inputs as {} as NamedTensorMap, null /* grad */,
-             ScatterND, attrs as {} as NamedAttrMap) as Tensor<R>;
+             ScatterNd, attrs as {} as NamedAttrMap) as Tensor<R>;
 }
 
 export const scatterND = op({scatterND_});
