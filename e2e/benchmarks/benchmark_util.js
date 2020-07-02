@@ -93,18 +93,14 @@ async function profileInferenceTime(predict, predictArgs = [], numRuns = 1) {
 
   const elapsedTimeArray = [];
   for (let i = 0; i < numRuns; i++) {
-    let start = performance.now();
+    const start = performance.now();
     const res = await predict(...predictArgs);
-    const inferenceTime = performance.now() - start;
-
-    // The values downloading time will be different for different backends.
-    start = performance.now();
     // The prediction can be tf.Tensor|tf.Tensor[]|{[name: string]: tf.Tensor}.
     const value = await downloadValuesFromTensorContainer(res);
-    const downloadTime = performance.now() - start;
+    const elapsedTime = performance.now() - start;
 
     tf.dispose(res);
-    elapsedTimeArray.push({inferenceTime, downloadTime});
+    elapsedTimeArray.push(elapsedTime);
   }
   return elapsedTimeArray;
 }
