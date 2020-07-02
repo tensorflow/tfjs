@@ -39,7 +39,7 @@ function setup(backend: BackendWasm): void {
   ]);
 }
 
-function gather(
+function gatherV2(
     args: {backend: BackendWasm, inputs: GatherV2Inputs, attrs: GatherV2Attrs}):
     TensorInfo {
   const {backend, inputs, attrs} = args;
@@ -85,5 +85,5 @@ registerKernel({
   kernelName: GatherV2,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: gather as {} as KernelFunc
+  kernelFunc: gatherV2 as {} as KernelFunc
 });
