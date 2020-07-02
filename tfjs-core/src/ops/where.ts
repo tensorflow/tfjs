@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../engine';
+import {ENGINE, ForwardFunc} from '../engine';
 import {SelectV2, SelectV2Inputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -53,17 +53,15 @@ function where_<T extends Tensor>(
   const $a = convertToTensor(a, 'a', 'where');
   const $b = convertToTensor(b, 'b', 'where');
   const $condition = convertToTensor(condition, 'condition', 'where', 'bool');
-
-  if ($condition.rank === 1) {
-    // If condition rank is 1, then the first dimension must match the size of
-    // condition.
-    assert(
-        $condition.shape[0] === $a.shape[0],
-        () => 'The first dimension of `a` must match the size of `condition`.');
-  }
-
-  const inputs: SelectV2Inputs = {condition: $condition, t: $a, e: $b};
-  return ENGINE.runKernelFunc((backend, save) => {
+  const forward: ForwardFunc<Tensor> = (backend, save) => {
+    if ($condition.rank === 1) {
+      // If condition rank is 1, then the first dimension must match the size of
+      // condition.
+      assert(
+          $condition.shape[0] === $a.shape[0],
+          () =>
+              'The first dimension of `a` must match the size of `condition`.');
+    }
     // find the broadcastable shape for $a and $b
     const broadcastShape = assertAndGetBroadcastShape($a.shape, $b.shape);
     const $broadcastedA = $a.broadcastTo(broadcastShape);
@@ -76,7 +74,11 @@ function where_<T extends Tensor>(
     const res = backend.select($condition, $broadcastedA, $broadcastedB);
     save([$condition]);
     return res;
-  }, inputs as unknown as NamedTensorMap, null /* gradient */, SelectV2) as T;
+  };
+  const inputs: SelectV2Inputs = {condition: $condition, t: $a, e: $b};
+  return ENGINE.runKernelFunc(
+             forward, inputs as unknown as NamedTensorMap, null /* gradient */,
+             SelectV2) as T;
 }
 
 export const where = op({where_});

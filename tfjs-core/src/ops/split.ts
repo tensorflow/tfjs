@@ -66,18 +66,16 @@ function split_<T extends Tensor>(
   const $axis = parseAxisParam(axis, $x.shape)[0];
   let splitSizes: number[];
 
-  if (typeof (numOrSizeSplits) === 'number') {
-    assert(
-        $x.shape[$axis] % numOrSizeSplits === 0,
-        () => 'Number of splits must evenly divide the axis.');
-    splitSizes =
-        new Array(numOrSizeSplits).fill($x.shape[$axis] / numOrSizeSplits);
-  }
-
   const forward: ForwardFunc<Tensor> = (backend, _) => {
-    if (typeof (numOrSizeSplits) !== 'number') {
+    if (typeof (numOrSizeSplits) === 'number') {
+      assert(
+          $x.shape[$axis] % numOrSizeSplits === 0,
+          () => 'Number of splits must evenly divide the axis.');
+      splitSizes =
+          new Array(numOrSizeSplits).fill($x.shape[$axis] / numOrSizeSplits);
+    } else {
       // TODO(piyu): move the preprocess logic to kernels
-      // Allow the last number of split array to be -1, which indicates the rest
+      // Allow the number of split array to be -1, which indicates the rest
       // of dimension is allocated to that split.
       const negIndex = numOrSizeSplits.indexOf(-1);
       if (negIndex !== -1) {
@@ -93,7 +91,7 @@ function split_<T extends Tensor>(
   };
 
   const inputs: SplitVInputs = {x: $x};
-  const attr: SplitVAttrs = {numOrSizeSplits, axis};
+  const attr: SplitVAttrs = {numOrSizeSplits, axis: $axis};
 
   return ENGINE.runKernelFunc(
              forward, inputs as {} as NamedTensorMap, null /* grad */, SplitV,
