@@ -241,23 +241,7 @@ const benchmarks = {
           return resultTensor;
         } finally {
           // dispose input tensors
-          if (inferenceInput instanceof tf.Tensor) {
-            inferenceInput.dispose();
-          } else if (Array.isArray(inferenceInput)) {
-            inferenceInput.forEach(inputNode => {
-              if (inputNode instanceof tf.Tensor) {
-                inputNode.dispose();
-              }
-            });
-          } else if (
-              inferenceInput != null && typeof inferenceInput === 'object') {
-            // inferenceInputs is a tensor map
-            for (const property in inferenceInput) {
-              if (inferenceInput[property] instanceof tf.Tensor) {
-                inferenceInput[property].dispose();
-              }
-            }
-          }
+          tf.dispose(inferenceInput);
         }
       };
     }
