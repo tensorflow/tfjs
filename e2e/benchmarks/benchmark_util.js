@@ -15,6 +15,23 @@
  * =============================================================================
  */
 
+/**
+ * Generates a random input for `model`, based on `model.inputs`. For
+ * tf.GraphModel, `NamedTensorMap` input will be returned; otherwise,
+ * `Tensor[]` will be returned.
+ *
+ * ```js
+ * const model = tf.sequential(
+ *    {layers: [tf.layers.dense({units: 1, inputShape: [3]})]});
+ * const input = generateInput(model);
+ * const prediction = await model.predict(input);
+ *
+ * console.log(`Generated input: ${Object.values(input)}`);
+ * console.log(`Prediction for the generated input: ${prediction}`);
+ * ```
+ *
+ * @param model The model object that is used to generated the input.
+ */
 function generateInput(model) {
   if (model == null) {
     throw new Error('The model does not exist.');
@@ -67,6 +84,29 @@ function generateInput(model) {
   }
 }
 
+/**
+ * Executes the predict function for `model` and times the inference process for
+ * `numRuns` rounds. Then returns a promise that resolves with an array of
+ * inference times for each inference process.
+ *
+ * The inference time contains the time spent by both `predict()` and `data()`
+ * called by tensors in the prediction.
+ *
+ * ```js
+ * const modelUrl =
+ *    'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2';
+ * const model = await tf.loadGraphModel(modelUrl, {fromTFHub: true});
+ * const zeros = tf.zeros([1, 224, 224, 3]);
+ * const elapsedTimeArray =
+ *    await profileInferenceTimeForModel(model, zeros, 2);
+ *
+ * console.log(`Elapsed time array: ${elapsedTimeArray}`);
+ * ```
+ *
+ * @param model An instance of tf.GraphModel or tf.LayersModel for timing the
+ *     inference process.
+ * @param numRuns The number of rounds for timing the inference process.
+ */
 async function profileInferenceTimeForModel(model, input, numRuns = 1) {
   let predict;
   if (model instanceof tf.GraphModel) {
@@ -81,6 +121,28 @@ async function profileInferenceTimeForModel(model, input, numRuns = 1) {
   return profileInferenceTime(predict, numRuns);
 }
 
+/**
+ * Executes `predict()` and times the inference process for `numRuns` rounds.
+ * Then returns a promise that resolves with an array of inference time for each
+ * inference process.
+ *
+ * The inference time contains the time spent by both `predict()` and `data()`
+ * called by tensors in the prediction.
+ *
+ * ```js
+ * const modelUrl =
+ *    'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2';
+ * const model = await tf.loadGraphModel(modelUrl, {fromTFHub: true});
+ * const zeros = tf.zeros([1, 224, 224, 3]);
+ * const elapsedTimeArray =
+ *    await profileInferenceTime(() => model.predict(zeros), 2);
+ *
+ * console.log(`Elapsed time array: ${elapsedTimeArray}`);
+ * ```
+ *
+ * @param predict The predict function to execute and time.
+ * @param numRuns The number of rounds for `predict` to execute and time.
+ */
 async function profileInferenceTime(predict, numRuns = 1) {
   if (typeof predict !== 'function') {
     throw new Error(
@@ -102,6 +164,13 @@ async function profileInferenceTime(predict, numRuns = 1) {
   return elapsedTimeArray;
 }
 
+/**
+ * Asynchronously downloads the values in parallel from any `tf.Tensor`s found
+ * within the provided object. Returns a promise of `TypedArray` or
+ * `TypedArray[]` that resolves when the computation has finished.
+ *
+ * @param tensorContainer The container of tensors to be downloaded.
+ */
 async function downloadValuesFromTensorContainer(tensorContainer) {
   let valueContainer;
   if (tensorContainer instanceof tf.Tensor) {
