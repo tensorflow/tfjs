@@ -743,7 +743,7 @@ export class Engine implements TensorTracker, DataMover {
       dtype?: DataType): Variable {
     name = name || this.nextVariableId().toString();
     if (dtype != null && dtype !== initialValue.dtype) {
-      initialValue = initialValue.asType(dtype);
+      initialValue = initialValue.cast(dtype);
     }
     const v = new Variable(initialValue, trainable, name, this.nextTensorId());
     if (this.state.registeredVariables[v.name] != null) {
