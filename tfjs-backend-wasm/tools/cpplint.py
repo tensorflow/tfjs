@@ -3866,7 +3866,7 @@ def CheckTrailingSemicolon(filename, clean_lines, linenum, error):
 
   # Block bodies should not be followed by a semicolon.  Due to C++11
   # brace initialization, there are more places where semicolons are
-  # required than not, so we use a allowlist approach to check these
+  # required than not, so we use an allowlist approach to check these
   # rather than a denylist.  These are the places where "};" should
   # be replaced by just "}":
   # 1. Some flavor of block following closing parenthesis:
@@ -5131,7 +5131,7 @@ def CheckForNonConstReference(filename, clean_lines, linenum,
   if Search(allowlisted_functions, line):
     return
   elif not Search(r'\S+\([^)]*$', line):
-    # Don't see a allowlisted function on this line.  Actually we
+    # Don't see an allowlisted function on this line.  Actually we
     # didn't see any function name on this line, so this is likely a
     # multi-line parameter list.  Try a bit harder to catch this case.
     for i in xrange(2):
