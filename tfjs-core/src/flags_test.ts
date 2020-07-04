@@ -42,6 +42,30 @@ describe('DEBUG', () => {
   });
 });
 
+describe('DEBUG_QUERY', () => {
+  beforeEach(() => {
+    tf.env().reset();
+    spyOn(console, 'warn').and.callFake((msg: string) => {});
+  });
+  afterAll(() => tf.env().reset());
+
+  it('disabled by default', () => {
+    expect(tf.env().getBool('DEBUG_QUERY')).toBe(false);
+  });
+
+  it('warns when enabled', () => {
+    const consoleWarnSpy = console.warn as jasmine.Spy;
+    tf.env().set('DEBUG_QUERY', true);
+    expect(consoleWarnSpy.calls.count()).toBe(1);
+    expect((consoleWarnSpy.calls.first().args[0] as string)
+               .startsWith('Debugging mode is ON. '))
+        .toBe(true);
+
+    expect(tf.env().getBool('DEBUG_QUERY')).toBe(true);
+    expect(consoleWarnSpy.calls.count()).toBe(1);
+  });
+});
+
 // TODO (yassogba) figure out why this spy is not working / fix this test.
 describe('IS_BROWSER', () => {
   let isBrowser: boolean;

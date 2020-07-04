@@ -15,17 +15,29 @@
  * =============================================================================
  */
 
-import {BackendTimer} from './backends/backend';
+import {BackendTimer, BackendTimingInfo} from './backends/backend';
 import {Tensor} from './tensor';
 import {NamedTensorMap} from './tensor_types';
 import {DataType, DataTypeMap, TypedArray} from './types';
 import * as util from './util';
+import {env} from './environment';
 
 export class Profiler {
   constructor(private backendTimer: BackendTimer, private logger?: Logger) {
     if (logger == null) {
       this.logger = new Logger();
     }
+  }
+
+  private logKernelProfile (r: Tensor, vals: TypedArray,kernelName: string,
+    timing: BackendTimingInfo, inputs: NamedTensorMap) {
+    let extraInfo = '';
+    if (timing.getExtraProfileInfo != null) {
+      extraInfo = timing.getExtraProfileInfo();
+    }
+
+    this.logger.logKernelProfile(
+        kernelName, r, vals, timing.kernelMs, inputs, extraInfo);
   }
 
   profileKernel(kernelName: string, inputs: NamedTensorMap, f: () => Tensor[]):
@@ -37,21 +49,21 @@ export class Profiler {
     const timer = this.backendTimer.time(holdResultWrapperFn);
 
     outputs.forEach(r => {
-      // Dangling promise here because we don't want to propagate up
-      // asynchronicity.
-      r.data().then(vals => {
-        checkComputationForErrors(vals, r.dtype, kernelName);
-
+      if (env().getBool('DEBUG_QUERY')) {
         timer.then(timing => {
-          let extraInfo = '';
-          if (timing.getExtraProfileInfo != null) {
-            extraInfo = timing.getExtraProfileInfo();
-          }
-
-          this.logger.logKernelProfile(
-              kernelName, r, vals, timing.kernelMs, inputs, extraInfo);
+          this.logKernelProfile (r, null, kernelName, timing, inputs);
         });
-      });
+      } else {
+        // Dangling promise here because we don't want to propagate up
+        // asynchronicity.
+        r.data().then(vals => {
+          checkComputationForErrors(vals, r.dtype, kernelName);
+
+          timer.then(timing => {
+            this.logKernelProfile (r, vals,  kernelName, timing, inputs);
+          });
+        });
+    }
     });
 
     return outputs;
