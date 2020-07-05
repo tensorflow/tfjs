@@ -225,7 +225,7 @@ def _generate_fused_batchnorm(data_format, conv2d_func, count=1,
       np.array(inputs),
       shape=[1, 1, 6, 2] if data_format == "NHWC" else [1, 2, 1, 6],
       dtype=dtypes.float32)
-  if conv2d_func == nn_ops.conv2d:
+  if conv2d_func == nn_ops.conv2d: # pylint: disable=W0143
     weights = [1, 2, 3, 4, 0.1, 0.2, 0.3, 0.4]
     weights_op = constant_op.constant(
         np.array(weights), shape=[1, 2, 2, 2], dtype=dtypes.float32)
