@@ -92,16 +92,6 @@ describe('spectral', () => {
 
         expect(tfc.irfft).toHaveBeenCalledWith(input1[0]);
       });
-      it('should reshape result for 3d', () => {
-        const result = tfc.tensor2d([2, 2, 2, 2], [2, 2]);
-        const input2 = [tfc.tensor3d([2, 2, 2, 2], [1, 2, 2])];
-        spyOn(tfc, 'irfft').and.returnValue(result);
-        node.op = 'IRFFT';
-        node.inputNames = ['input2'];
-        const output = executeOp(node, {input2}, context) as tfc.Tensor[];
-        expect(output[0].rank).toEqual(3);
-        expect(output[0].shape).toEqual([1, 2, 2]);
-      });
       it('should match json def', () => {
         node.op = 'IRFFT';
 

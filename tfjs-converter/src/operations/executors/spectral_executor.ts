@@ -40,19 +40,8 @@ export const executeOp: InternalOpExecutor =
               getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
         }
         case 'IRFFT': {
-          const x = getParamValue('x', node, tensorMap, context) as tfc.Tensor;
-          let result = tfc.irfft(
-              getParamValue('x', node, tensorMap, context) as tfc.Tensor);
-          // when the input tensor is 3d, tfjs.irfft will treat it as 2d, we
-          // need to reshape the result.
-          if (x.rank === 3 && x.shape[0] !== 0) {
-            const temp = result;
-            const batch = x.shape[0];
-            result = result.reshape(
-                [batch, result.shape[0] / batch, result.shape[1]]);
-            temp.dispose();
-          }
-          return [result];
+          return [tfc.irfft(
+              getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
         }
         default:
           throw TypeError(`Node type ${node.op} is not implemented`);
