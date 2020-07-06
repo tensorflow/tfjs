@@ -34,7 +34,6 @@ export function split(args: {
   const $axis = util.parseAxisParam(axis, x.shape)[0];
 
   const splitSizes = backend_util.prepareSplitSize(x, numOrSizeSplits, axis);
-  console.log(numOrSizeSplits, axis, splitSizes);
   const begin = new Array(x.shape.length).fill(0);
   const size = x.shape.slice();
   return splitSizes.map(s => {
