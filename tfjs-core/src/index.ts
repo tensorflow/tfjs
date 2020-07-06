@@ -71,7 +71,7 @@ export * from './globals';
 export * from './kernel_registry';
 export {customGrad, grad, grads, valueAndGrad, valueAndGrads, variableGrads} from './gradients';
 
-export {TimingInfo, MemoryInfo} from './engine';
+export {TimingInfo, MemoryInfo, ForwardFunc} from './engine';
 export {Environment, env, ENV} from './environment';
 export {Platform} from './platforms/platform';
 
