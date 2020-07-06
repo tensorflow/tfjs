@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelFunc, registerKernel, Rotate, RotateAttrs, RotateInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Rotate, RotateAttrs, RotateInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -69,9 +69,9 @@ export function rotate(
   return out;
 }
 
-registerKernel({
+export const rotateConfig: KernelConfig = {
   kernelName: Rotate,
   backendName: 'wasm',
   kernelFunc: rotate as KernelFunc,
-  setupFunc: setup,
-});
+  setupFunc: setup
+};

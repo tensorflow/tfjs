@@ -20,9 +20,10 @@
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
 import {reverseConfig} from './kernels/Reverse';
+import {rotateConfig} from './kernels/Rotate';
 
 // List all kernel configs here
-const kernelConfigs: KernelConfig[] = [reverseConfig];
+const kernelConfigs: KernelConfig[] = [reverseConfig, rotateConfig];
 
 for (const kernelConfig of kernelConfigs) {
   registerKernel(kernelConfig);
