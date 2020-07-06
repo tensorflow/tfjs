@@ -138,4 +138,16 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     expect(() => setWasmPath('too/late'))
         .toThrowError(/The WASM backend was already initialized. Make sure/);
   });
+
+  fit('3 fftLength, 5 frameLength, 2 step', async () => {
+    const input = tf.tensor1d([1, 1, 1, 1, 1, 1]);
+    const frameLength = 5;
+    const frameStep = 1;
+    const fftLength = 3;
+    const output = tf.signal.stft(input, frameLength, frameStep, fftLength);
+    expect(output.shape[0]).toEqual(2);
+    // expectArraysClose(
+    //     await output.data(),
+    //     [1.5, 0.0, -0.749999, 0.433, 1.5, 0.0, -0.749999, 0.433]);
+  });
 });

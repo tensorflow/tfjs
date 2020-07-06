@@ -74,6 +74,50 @@ const sentences = [
   'what is the forecast for here at tea time',
 ];
 
+const recordAudio = () =>
+  new Promise(async resolve => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mediaRecorder = new MediaRecorder(stream);
+    //mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+    mediaRecorder.setOutputFormat(AudioFormat.ENCODING_PCM_16BIT);
+    mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+    mediaRecorder.setAudioChannels(1);
+    mediaRecorder.setAudioEncodingBitRate(128000);
+    mediaRecorder.setAudioSamplingRate(48000);
+    mediaRecorder.setOutputFile(MainActivity.PATH_TEMP_RECORDING);
+    const audioChunks = [];
+
+    mediaRecorder.addEventListener("dataavailable", event => {
+      audioChunks.push(event.data);
+    });
+
+    const start = () => mediaRecorder.start();
+
+    const stop = () =>
+      new Promise(resolve => {
+        mediaRecorder.addEventListener("stop", () => {
+          const audioBlob = new Blob(audioChunks);
+          const audioUrl = URL.createObjectURL(audioBlob);
+          const audio = new Audio(audioUrl);
+          const play = () => audio.play();
+          resolve({ audioBlob, audioUrl, play });
+          console.log(audioChunks);
+
+        });
+
+        mediaRecorder.stop();
+      });
+
+    resolve({ start, stop });
+  });
+
+  tf.registerOp('Roll', (node) => {
+    const tensors = tf.split(node.inputs[0], 2, 2);
+    const result = tf.concat([tensors[1], tensors[0]], 2);
+    tensors.forEach(tensor => tensor.dispose());
+    return result;
+  });
+
 const benchmarks = {
   'mobilenet_v2': {
     type: 'GraphModel',
@@ -85,6 +129,19 @@ const benchmarks = {
     predictFunc: () => {
       const input = tf.randomNormal([1, 224, 224, 3]);
       return model => model.predict(input);
+    }
+  },
+  'ddsp': {
+    type: 'GraphModel',
+    load: async () => {
+      return tf.loadGraphModel('./model.json');
+    },
+    predictFunc: () => {
+      const audio = tf.zeros([1, 64000], 'float32');
+      const f0_confidence = tf.tensor1d([15000], 'float32');
+      const f0_hz = tf.zeros([15000], 'float32');
+      const loudness_db = tf.zeros([15000], 'float32');
+      return async model => model.executeAsync({ audio, f0_confidence, f0_hz, loudness_db });
     }
   },
   'mesh_128': {

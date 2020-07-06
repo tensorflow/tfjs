@@ -188,6 +188,7 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient'  // Gradient is missing.
     ]
   },
+  {include: 'fft'},
   {include: 'slice '},
   {include: 'square '},
   {
@@ -225,6 +226,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'argmax', excludes: ['gradient']},
   {include: 'exp '},
   {include: 'unstack'},
+  {include: 'broadcastTo'},
   {
     include: 'minimum',
     excludes: [
