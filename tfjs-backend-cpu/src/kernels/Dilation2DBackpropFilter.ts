@@ -113,8 +113,7 @@ export const dilation2dBackpropFilterConfig: KernelConfig = {
     }
 
     const dataId = cpuBackend.write(
-        util.toTypedArray(gradients, x.dtype, false /* debug mode */),
-        filter.shape, filter.dtype);
+        util.toTypedArray(gradients, x.dtype), filter.shape, filter.dtype);
 
     return {dataId, shape: filter.shape, dtype: filter.dtype};
   }

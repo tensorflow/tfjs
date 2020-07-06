@@ -15,24 +15,20 @@
  * =============================================================================
  */
 
-import {Tensor} from '../tensor';
-import * as axis_util from './axis_util';
+// TODO update import path once op is modularized.
+import {unsortedSegmentSum} from '../../ops/ops';
+import {Tensor, Tensor1D} from '../../tensor';
+import {Rank, TensorLike1D} from '../../types';
 
-/**
- * Gradient helper function for the min and max operations.
- */
-export function gradForMinAndMax<T extends Tensor>(
-    dy: T, y: T, xOrig: Tensor, origAxes: number[], permutedAxes: number[]) {
-  if (y.rank < xOrig.rank) {
-    y = y.reshape(axis_util.expandShapeToKeepDim(y.shape, origAxes));
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    unsortedSegmentSum<T extends Tensor>(
+        this: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T;
   }
-  if (dy.rank < xOrig.rank) {
-    dy = dy.reshape(axis_util.expandShapeToKeepDim(dy.shape, origAxes));
-  }
-  return {
-    x: () => {
-      const dx = dy.mul(xOrig.equal(y).cast(dy.dtype));
-      return permutedAxes == null ? dx : dx.transpose(permutedAxes);
-    }
-  };
 }
+
+Tensor.prototype.unsortedSegmentSum = function<T extends Tensor>(
+    this: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T {
+  this.throwIfDisposed();
+  return unsortedSegmentSum(this, segmentIds, numSegments);
+};
