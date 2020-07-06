@@ -15,12 +15,12 @@
  * =============================================================================
  */
 
-import {KernelConfig, TypedArray} from '@tensorflow/tfjs-core';
+import {KernelConfig, NumericDataType, TypedArray} from '@tensorflow/tfjs-core';
 import {Rotate, RotateAttrs, RotateInputs, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 
-export const transposeConfig: KernelConfig = {
+export const rotateConfig: KernelConfig = {
   kernelName: Rotate,
   backendName: 'cpu',
   kernelFunc: ({inputs, attrs, backend}) => {
@@ -29,7 +29,7 @@ export const transposeConfig: KernelConfig = {
     const cpuBackend = backend as MathBackendCPU;
 
     const output = util.getTypedArrayFromDType(
-        image.dtype, util.sizeFromShape(image.shape));
+        image.dtype as NumericDataType, util.sizeFromShape(image.shape));
     const [batch, imageHeight, imageWidth, numChannels] = image.shape;
 
     const centerX =
@@ -76,7 +76,7 @@ export const transposeConfig: KernelConfig = {
 
             const outIdx = batchIdx * imageWidth * imageHeight * numChannels +
                 row * (imageWidth * numChannels) + col * numChannels + channel;
-            output.values[outIdx] = outputValue as number;
+            output[outIdx] = outputValue as number;
           }
         }
       }
