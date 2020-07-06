@@ -197,6 +197,7 @@ tfjs_cc_library(
         ":Div",
         ":Equal",
         ":Exp",
+        ":FFT",
         ":FloorDiv",
         ":FusedBatchNorm",
         ":FusedConv2D",
@@ -205,6 +206,7 @@ tfjs_cc_library(
         ":GatherNd",
         ":Greater",
         ":GreaterEqual",
+        ":IFFT",
         ":Less",
         ":LessEqual",
         ":Max",
@@ -427,6 +429,24 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "FFT",
+    srcs = ["kernels/FFT.cc"],
+    deps = [
+        ":backend",
+        ":fft_impl",
+    ],
+)
+
+tfjs_cc_library(
+    name = "fft_impl",
+    srcs = ["fft_impl.cc"],
+    hdrs = ["fft_impl.h"],
+    deps = [
+        ":backend",
+    ],
+)
+
+tfjs_cc_library(
     name = "FloorDiv",
     srcs = ["kernels/FloorDiv.cc"],
     deps = [
@@ -515,6 +535,15 @@ tfjs_cc_library(
         ":backend",
         ":binary",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "IFFT",
+    srcs = ["kernels/IFFT.cc"],
+    deps = [
+        ":backend",
+        ":fft_impl",
     ],
 )
 

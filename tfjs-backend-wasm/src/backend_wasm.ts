@@ -31,6 +31,7 @@ interface TensorData {
   dtype: DataType;
   /** Only used for string tensors, storing encoded bytes. */
   stringBytes?: Uint8Array[];
+  complexTensors?: {real: TensorInfo, imag: TensorInfo}
 }
 
 export type DataId = object;  // object instead of {} to force non-primitive.
@@ -97,7 +98,7 @@ export class BackendWasm extends KernelBackend {
   }
 
   readSync(dataId: DataId): backend_util.BackendValues {
-    const {memoryOffset, dtype, shape, stringBytes} =
+    const {memoryOffset, dtype, shape, stringBytes, complexTensors} =
         this.dataIdMap.get(dataId);
     if (dtype === 'string') {
       return stringBytes;
@@ -105,6 +106,13 @@ export class BackendWasm extends KernelBackend {
     const bytes = this.wasm.HEAPU8.slice(
         memoryOffset,
         memoryOffset + util.sizeFromShape(shape) * util.bytesPerElement(dtype));
+    if (dtype === 'complex64') {
+      const realValues =
+          this.readSync(complexTensors.real.dataId) as Float32Array;
+      const imagValues =
+          this.readSync(complexTensors.imag.dataId) as Float32Array;
+      return backend_util.mergeRealAndImagArrays(realValues, imagValues);
+    }
     return typedArrayFromBuffer(bytes.buffer, dtype);
   }
 
@@ -113,6 +121,11 @@ export class BackendWasm extends KernelBackend {
     this.wasm._free(data.memoryOffset);
     this.wasm.tfjs.disposeData(data.id);
     this.dataIdMap.delete(dataId);
+
+    if (data.complexTensors) {
+      this.disposeData(data.complexTensors.real.dataId);
+      this.disposeData(data.complexTensors.imag.dataId);
+    }
   }
 
   floatPrecision(): 32 {
@@ -270,6 +283,8 @@ function typedArrayFromBuffer(
       return new Int32Array(buffer);
     case 'bool':
       return new Uint8Array(buffer);
+    case 'complex64':
+      return new Float32Array(buffer);
     default:
       throw new Error(`Unknown dtype ${dtype}`);
   }

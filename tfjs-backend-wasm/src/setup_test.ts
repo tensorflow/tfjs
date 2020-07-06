@@ -188,6 +188,7 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient'  // Gradient is missing.
     ]
   },
+  {include: 'fft'},
   {include: 'slice '},
   {include: 'square '},
   {
