@@ -44,6 +44,7 @@ interface Options {
   inputs_data_file: string;
   inputs_shape_file: string;
   inputs_dtype_file: string;
+  tf_output_signature_file: string;
   backend: string;
 }
 // tslint:enable:enforce-name-casing
@@ -59,13 +60,16 @@ async function main() {
       demandOption: true
     },
     inputs_dir: {
-      description: 'Directory to read the model json files.',
+      description: 'Directory to read the input tensor info and output ' +
+          'signature files.',
       type: 'string',
       demandOption: true
     },
     outputs_dir: {
       description:
-          'Directory to write the output files. Output files include: data.json, shape.json and dtype.json.',
+          'Directory to write the output files. Output files include: ' +
+          'data.json, shape.json and dtype.json. The order of the output ' +
+          'tensors follow the same order as the output signature file.',
       type: 'string',
       demandOption: true
     },
@@ -83,6 +87,11 @@ async function main() {
       description: 'Filename of the input dtype file.',
       type: 'string',
       default: 'dtype.json'
+    },
+    tf_output_signature_file: {
+      description: 'Filename of the outputs signature of the tf model.',
+      type: 'string',
+      default: 'tf_output_signature.json'
     },
     backend: {
       description: 'Choose which tfjs backend to use. Supported backends: ' +
@@ -106,20 +115,26 @@ async function main() {
   const model =
       await tfconv.loadGraphModel(new FileHandler(options.model_path));
 
-  // Read in input files.
+  // Read in input tensor info and output signature, then convert to json.
   const inputsDataString = fs.readFileSync(
       path.join(options.inputs_dir, options.inputs_data_file), 'utf8');
   const inputsData = JSON.parse(inputsDataString);
+
   const inputsShapeString = fs.readFileSync(
       path.join(options.inputs_dir, options.inputs_shape_file), 'utf8');
   const inputsShape = JSON.parse(inputsShapeString);
+
   const inputsDtypeString = fs.readFileSync(
       path.join(options.inputs_dir, options.inputs_dtype_file), 'utf8');
   const inputsDtype = JSON.parse(inputsDtypeString);
 
+  const tfOutputSignatureString = fs.readFileSync(
+      path.join(options.inputs_dir, options.tf_output_signature_file), 'utf8');
+  const outputSignature = JSON.parse(tfOutputSignatureString);
+
   const xs = createInputTensors(inputsData, inputsShape, inputsDtype);
 
-  const result = await model.executeAsync(xs);
+  const result = await model.executeAsync(xs, outputSignature);
 
   // executeAsync can return a single tensor or an
   // array of tensors. We wrap the single tensor in an array so that later
