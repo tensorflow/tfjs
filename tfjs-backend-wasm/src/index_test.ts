@@ -73,8 +73,8 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     }, 100);
 
     // Silences backend registration warnings.
-    spyOn(console, 'warn');
-    spyOn(console, 'log');
+    // spyOn(console, 'warn');
+    // spyOn(console, 'log');
   });
 
   afterEach(() => {
@@ -138,4 +138,29 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     expect(() => setWasmPath('too/late'))
         .toThrowError(/The WASM backend was already initialized. Make sure/);
   });
+
+  // fit('3 fftLength, 5 frameLength, 2 step', async () => {
+  //   const input = tf.tensor1d([1, 1, 1, 1, 1, 1]);
+  //   const frameLength = 5;
+  //   const frameStep = 1;
+  //   const fftLength = 3;
+  //   const output = tf.signal.stft(input, frameLength, frameStep, fftLength);
+  //   expect(output.shape[0]).toEqual(2);
+  //   const data = await output.data();
+  //   console.log(data);
+  //   // expectArraysClose(
+  //   //     await output.data(),
+  //   //     [1.5, 0.0, -0.749999, 0.433, 1.5, 0.0, -0.749999, 0.433]);
+  // });
+
+  // it('test', async () => {
+  //   const t1Real = tf.tensor1d([1, 2, 3]);
+  //   const t1Imag = tf.tensor1d([0, 0, 0]);
+  //   const t1 = tf.complex(t1Real, t1Imag);
+  //   const data = await tf.spectral.fft(t1).data();
+  //   console.log(data);
+  //   // expectArraysClose(
+  //   //     await tf.spectral.fft(t1).data(),
+  //   //     [6, 0, -1.5, 0.866025, -1.5, -0.866025]);
+  // });
 });

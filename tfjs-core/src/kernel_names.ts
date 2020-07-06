@@ -256,6 +256,9 @@ export type EluGradInputs = Pick<NamedTensorInfoMap, 'dy'|'y'>;
 export const Equal = 'Equal';
 export type EqualInputs = BinaryInputs;
 
+export const FFT = 'FFT';
+export type FFTInputs = Pick<NamedTensorInfoMap, 'input'>;
+
 export const FloorDiv = 'FloorDiv';
 export type FloorDivInputs = BinaryInputs;
 
@@ -284,6 +287,9 @@ export type GreaterEqualInputs = BinaryInputs;
 
 export const Identity = 'Identity';
 export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const IFFT = 'IFFT';
+export type IFFTInputs = Pick<NamedTensorInfoMap, 'input'>;
 
 export const Imag = 'Imag';
 export type ImagInputs = Pick<NamedTensorInfoMap, 'input'>;
