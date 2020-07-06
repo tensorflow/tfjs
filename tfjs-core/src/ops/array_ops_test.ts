@@ -2209,6 +2209,11 @@ describeWithFlags('split', ALL_ENVS, () => {
     expectArraysClose(await res[2].data(), [3, 4, 7, 8]);
   });
 
+  it('multiple negative number throws error', () => {
+    const x = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+    const f = () => tf.split(x, [1, -1, -1], 1);
+    expect(f).toThrowError();
+  });
   it('sizes to not sum to axis size throws error', () => {
     const x = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
     const f = () => tf.split(x, [1, 2], 1);

@@ -16,6 +16,7 @@
  */
 
 import {NamedAttrMap, NamedTensorInfoMap, registerKernel, SplitV, SplitVAttrs, SplitVInputs, util} from '@tensorflow/tfjs-core';
+import {backend_util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -32,14 +33,8 @@ export function split(args: {
 
   const $axis = util.parseAxisParam(axis, x.shape)[0];
 
-  let splitSizes: number[];
-  if (typeof (numOrSizeSplits) === 'number') {
-    splitSizes =
-        new Array(numOrSizeSplits).fill(x.shape[$axis] / numOrSizeSplits);
-  } else {
-    splitSizes = numOrSizeSplits;
-  }
-
+  const splitSizes = backend_util.prepareSplitSize(x, numOrSizeSplits, axis);
+  console.log(numOrSizeSplits, axis, splitSizes);
   const begin = new Array(x.shape.length).fill(0);
   const size = x.shape.slice();
   return splitSizes.map(s => {

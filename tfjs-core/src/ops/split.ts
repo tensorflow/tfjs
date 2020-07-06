@@ -21,10 +21,10 @@ import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
-import {assert,} from '../util';
 import {parseAxisParam} from '../util';
 
 import {op} from './operation';
+import {prepareSplitSize} from './split_util';
 
 /**
  * Splits a `tf.Tensor` into sub tensors.
@@ -65,29 +65,9 @@ function split_<T extends Tensor>(
   const $x = convertToTensor(x, 'x', 'split');
 
   const $axis = parseAxisParam(axis, $x.shape)[0];
-  let splitSizes: number[];
 
   const forward: ForwardFunc<Tensor> = (backend, _) => {
-    if (typeof (numOrSizeSplits) === 'number') {
-      assert(
-          $x.shape[$axis] % numOrSizeSplits === 0,
-          () => 'Number of splits must evenly divide the axis.');
-      splitSizes =
-          new Array(numOrSizeSplits).fill($x.shape[$axis] / numOrSizeSplits);
-    } else {
-      // TODO(piyu): move the preprocess logic to kernels
-      // Allow the number of split array to be -1, which indicates the rest
-      // of dimension is allocated to that split.
-      const negIndex = numOrSizeSplits.indexOf(-1);
-      if (negIndex !== -1) {
-        const total = numOrSizeSplits.reduce((a, b) => b > 0 ? a + b : a);
-        numOrSizeSplits[negIndex] = $x.shape[$axis] - total;
-      }
-      assert(
-          $x.shape[$axis] === numOrSizeSplits.reduce((a, b) => a + b),
-          () => 'The sum of sizes must match the size of the axis dimension.');
-      splitSizes = numOrSizeSplits;
-    }
+    const splitSizes = prepareSplitSize($x, numOrSizeSplits, $axis);
     return backend.split($x, splitSizes, $axis) as {} as T;
   };
 
