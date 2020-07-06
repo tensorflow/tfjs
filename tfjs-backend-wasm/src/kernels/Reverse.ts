@@ -19,6 +19,7 @@ import {KernelConfig, KernelFunc, Reverse, ReverseAttrs, ReverseInputs, TensorIn
 
 import {BackendWasm} from '../backend_wasm';
 
+import {identity} from './Identity';
 import {reshape} from './Reshape';
 
 let wasmReverse: (
@@ -46,7 +47,7 @@ export function reverse(
   const axes = util.parseAxisParam(dims, x.shape);
 
   if (x.shape.length === 0) {
-    return backend.clone(x);
+    return identity({inputs: {x}, backend});
   }
 
   const out = backend.makeOutput(x.shape, x.dtype);
