@@ -224,6 +224,7 @@ tfjs_cc_library(
         ":Relu",
         ":Relu6",
         ":ResizeBilinear",
+        ":Rotate",
         ":ScatterNd",
         ":SelectV2",
         ":Sigmoid",
@@ -732,6 +733,15 @@ tfjs_cc_library(
     name = "ResizeBilinear",
     srcs = ["kernels/ResizeBilinear.cc"],
     hdrs = ["kernels/ResizeBilinear.h"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Rotate",
+    srcs = ["kernels/Rotate.cc"],
     deps = [
         ":backend",
         ":util",

@@ -189,6 +189,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {include: 'slice '},
+  {include: 'rotate '},
   {include: 'square '},
   {
     startsWith: 'min ',
