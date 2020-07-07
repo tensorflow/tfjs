@@ -18,12 +18,13 @@
 import {DataType, NamedTensorMap, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 import {ISignatureDef} from '../data/compiled_api';
-import {NamedTensorsMap, TensorArrayMap, TensorInfo, TensorListMap} from '../data/types';
+import {HashTableMap, NamedTensorsMap, TensorArrayMap, TensorInfo, TensorListMap} from '../data/types';
 import {getNodeNameAndIndex, getParamValue, getTensor, getTensorsForCurrentContenxt, parseNodeName} from '../operations/executors/utils';
 import {executeOp} from '../operations/operation_executor';
 import {Graph, Node} from '../operations/types';
 
 import {ExecutionContext, ExecutionContextInfo} from './execution_context';
+import {HashTable} from './hash_table';
 import {getExecutionSubgraph, getNodesInTopologicalOrder, isControlFlow} from './model_analysis';
 import {FunctionExecutor} from './types';
 
@@ -205,9 +206,10 @@ export class GraphExecutor implements FunctionExecutor {
 
     const tensorArrayMap: TensorArrayMap = {};
     const tensorListMap: TensorListMap = {};
+    const hashTableMap: HashTableMap = new Map<Tensor, HashTable>();
     return tidy(() => {
       const context = new ExecutionContext(
-          this.weightMap, tensorArrayMap, tensorListMap,
+          this.weightMap, tensorArrayMap, tensorListMap, hashTableMap,
           this.functionExecutorMap);
       const tensorsMap: NamedTensorsMap = {...this.weightMap};
 
@@ -324,8 +326,9 @@ export class GraphExecutor implements FunctionExecutor {
    */
   private async _executeAsync(
       inputs: NamedTensorMap, outputs: string[], isFunctionExecution = false,
-      tensorArrayMap: TensorArrayMap = {},
-      tensorListMap: TensorListMap = {}): Promise<Tensor[]> {
+      tensorArrayMap: TensorArrayMap = {}, tensorListMap: TensorListMap = {},
+      hashTableMap: HashTableMap = new Map<Tensor, HashTable>()):
+      Promise<Tensor[]> {
     if (!isFunctionExecution) {
       inputs = this.mapInputs(inputs);
       this.checkInputs(inputs);
@@ -335,7 +338,7 @@ export class GraphExecutor implements FunctionExecutor {
     }
 
     const context = new ExecutionContext(
-        this.weightMap, tensorArrayMap, tensorListMap,
+        this.weightMap, tensorArrayMap, tensorListMap, hashTableMap,
         this.functionExecutorMap);
 
     // Graph with control flow op requires runtime evaluation of the execution
