@@ -19,7 +19,6 @@ import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@ten
 
 import {BackendWasm} from '../backend_wasm';
 
-import {identity} from './Identity';
 import {CppDType} from './types';
 
 interface TransposeInputs extends NamedTensorInfoMap {
@@ -54,11 +53,7 @@ export function transpose(
   // Reduce any dimensions with size one. Lower-rank transpose kernel performs
   // better due to simpler memory access pattern.
   const [reducedShape, perm] = removeOneSizeDims(inputs.x.shape, attrs.perm);
-  const x = {
-    dataId: inputs.x.dataId,
-    shape: reducedShape,
-    dtype: inputs.x.dtype
-  };
+
   let permIsNoOp = true;
   for (let i = 0; i < perm.length; i++) {
     if (perm[i] !== i) {
@@ -66,18 +61,27 @@ export function transpose(
     }
   }
   const outShape = computeOutShape(inputs.x.shape, attrs.perm);
-  if (permIsNoOp) {
-    return identity({inputs: {x}, backend});
-  }
+  const x = {
+    dataId: inputs.x.dataId,
+    shape: reducedShape,
+    dtype: inputs.x.dtype
+  };
   const out = backend.makeOutput(outShape, x.dtype);
-  const xId = backend.dataIdMap.get(x.dataId).id;
-  const outId = backend.dataIdMap.get(out.dataId).id;
-  const permBytes = new Uint8Array(new Int32Array(perm).buffer);
-  const xShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
+  if (permIsNoOp) {
+    const inVals = backend.typedArrayFromHeap(inputs.x);
+    const outVals = backend.typedArrayFromHeap(out);
+    outVals.set(inVals);
+  } else {
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    const permBytes = new Uint8Array(new Int32Array(perm).buffer);
+    const xShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
 
-  wasmTranspose(
-      xId, xShapeBytes, x.shape.length, CppDType[x.dtype], outId, permBytes,
-      perm.length);
+    wasmTranspose(
+        xId, xShapeBytes, x.shape.length, CppDType[x.dtype], outId, permBytes,
+        perm.length);
+  }
+
   return out;
 }
 
