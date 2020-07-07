@@ -116,10 +116,6 @@ async function run(filePath: string, ops: string[]) {
     }
   });
 
-  // Save the ops export file
-  // const opsExportFile = project.getSourceFile('src/ops/ops.ts');
-  // await opsExportFile.save();
-
   // Remove the op from the source file and save it
   opExports.forEach(async o => {
     if (ops.length === 0 || ops.indexOf(o.opIdentifier) !== -1) {
