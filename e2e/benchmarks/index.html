@@ -371,13 +371,22 @@ limitations under the License.
     async function profileMemory() {
       await showMsg('Profile memory');
       const start = performance.now();
-      let res;
-      const data = await tf.profile(() => res = predict(model));
-      res = await getPredictionData(res);
+
+      let memoryInfo;
+      if (state.benchmark === 'custom') {
+        const input = generateInput(model);
+        try {
+          memoryInfo = await profileInferenceMemoryForModel(model, input);
+        } finally {
+          tf.dispose(input);
+        }
+      } else {
+        memoryInfo = await profileInferenceMemory(() => predict(model));
+      }
 
       const elapsed = performance.now() - start;
       await showMsg(null);
-      appendRow(timeTable, 'Peak memory', printMemory(data.peakBytes));
+      appendRow(timeTable, 'Peak memory', printMemory(memoryInfo.peakBytes));
       appendRow(timeTable, '2nd inference', printTime(elapsed));
     }
 
