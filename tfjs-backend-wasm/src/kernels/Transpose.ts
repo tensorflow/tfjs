@@ -18,6 +18,8 @@
 import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+
+import {identity} from './Identity';
 import {CppDType} from './types';
 
 interface TransposeInputs extends NamedTensorInfoMap {
@@ -65,7 +67,7 @@ export function transpose(
   }
   const outShape = computeOutShape(inputs.x.shape, attrs.perm);
   if (permIsNoOp) {
-    return {dataId: x.dataId, shape: outShape, dtype: x.dtype};
+    return identity({inputs: {x}, backend});
   }
   const out = backend.makeOutput(outShape, x.dtype);
   const xId = backend.dataIdMap.get(x.dataId).id;
