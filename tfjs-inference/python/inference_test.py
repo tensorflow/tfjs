@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# To test the binary, you need to manually run `yarn build-binary` first.
+# Run `yarn test-python` in the package root directory.
 # This test only supports running in Linux.
 
 from __future__ import absolute_import
