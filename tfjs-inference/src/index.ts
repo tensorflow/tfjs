@@ -90,12 +90,16 @@ async function main() {
       default: 'dtype.json'
     },
     tf_input_name_file: {
-      description: 'Filename of the input name of the tf model.',
+      description: 'Filename of the input name of the tf model. The input ' +
+          'names should match the names defined in the signatureDef of the ' +
+          'model.',
       type: 'string',
       default: 'tf_input_name.json'
     },
     tf_output_name_file: {
-      description: 'Filename of the output name of the tf model.',
+      description: 'Filename of the output name of the tf model. The output ' +
+          'names should match the names defined in the signatureDef of the ' +
+          'model.',
       type: 'string',
       default: 'tf_output_name.json'
     },
