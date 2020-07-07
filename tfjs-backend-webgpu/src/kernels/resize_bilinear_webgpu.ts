@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {getShapeCoords} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -27,7 +28,6 @@ export class ResizeBilinearProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x'];
   workGroupSize: [number, number, number] = [4, 4, 4];
-  needsShapesUniforms = true;
 
   constructor(
       inputShape: [number, number, number, number], newHeight: number,
@@ -45,19 +45,22 @@ export class ResizeBilinearProgram implements WebGPUProgram {
     this.userCode = `
       void main() {
         ivec4 coords = getOutputCoords();
-
-        if (all(lessThan(coords, outShape))) {
+        if (all(lessThan(coords, ${getShapeCoords(this.outputShape)}))) {
           int b = coords[0];
           int d = coords[3];
           ivec2 rc = coords.yz;
 
           vec2 effectiveInSize = vec2(
-            ${adjustHeight ? 'xShape.y - 1.0' : 'xShape.y'},
-            ${adjustWidth ? 'xShape.z - 1.0' : 'xShape.z'});
+            ${adjustHeight ? `${inputShape[1]} - 1.0` : `${inputShape[1]}`},
+            ${adjustWidth ? `${inputShape[2]} - 1.0` : `${inputShape[2]}`});
 
           vec2 effectiveOutSize = vec2(
-            ${adjustHeight ? 'outShape.y - 1.0' : 'outShape.y'},
-            ${adjustWidth ? 'outShape.z - 1.0' : 'outShape.z'});
+            ${
+        adjustHeight ? `${this.outputShape[1]} - 1.0` :
+                       `${this.outputShape[1]}`},
+            ${
+        adjustWidth ? `${this.outputShape[2]} - 1.0` :
+                      `${this.outputShape[2]}`});
 
           vec2 effectiveInputOverOutputRatioRC =
               effectiveInSize / effectiveOutSize;
@@ -68,7 +71,8 @@ export class ResizeBilinearProgram implements WebGPUProgram {
           // Compute the four integer indices.
           ivec2 sourceFloorRC = ivec2(sourceFracIndexRC);
           ivec2 sourceCeilRC = ivec2(
-            min(xShape.yz - 1.0, ceil(sourceFracIndexRC)));
+            min(vec2(${inputShape[1]}, ${
+        inputShape[2]}) - 1.0, ceil(sourceFracIndexRC)));
 
           float topLeft = getX(b, sourceFloorRC.x, sourceFloorRC.y, d);
           float bottomLeft = getX(b, sourceCeilRC.x, sourceFloorRC.y, d);
