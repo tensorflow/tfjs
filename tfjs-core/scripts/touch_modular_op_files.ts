@@ -60,20 +60,23 @@ async function main() {
   console.log('Called touch_modular_op_files with args:', args);
 
   if (args.op != null) {
-    let filePath = `./src/ops/${args.op}.ts`;
-    let command = `touch ${filePath}`;
-    execSync(command);
+    const ops: string[] = args.op.split(',');
+    ops.forEach(op => {
+      let filePath = `./src/ops/${op}.ts`;
+      let command = `touch ${filePath}`;
+      execSync(command);
 
-    // create a test file
-    filePath = `./src/ops/${args.op}_test.ts`;
-    command = `touch ${filePath}`;
-    execSync(command);
-
-    if (args.chained) {
-      filePath = `./src/public/chained_ops/${args.op}.ts`;
+      // create a test file
+      filePath = `./src/ops/${op}_test.ts`;
       command = `touch ${filePath}`;
       execSync(command);
-    }
+
+      if (args.chained) {
+        filePath = `./src/public/chained_ops/${op}.ts`;
+        command = `touch ${filePath}`;
+        execSync(command);
+      }
+    });
   }
 
   if (args.grad) {
