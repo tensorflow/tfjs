@@ -84,6 +84,20 @@ function generateInput(model) {
   }
 }
 
+function wrapPredictFnForModel(model, input) {
+  let predict;
+  if (model instanceof tf.GraphModel) {
+    predict = () => model.executeAsync(input);
+  } else if (model instanceof tf.LayersModel) {
+    predict = () => model.predict(input);
+  } else {
+    throw new Error(
+        'Please pass in an instance of tf.GraphModel ' +
+        'or tf.LayersModel as the first parameter.');
+  }
+  return predict;
+}
+
 /**
  * Executes the predict function for `model` and times the inference process for
  * `numRuns` rounds. Then returns a promise that resolves with an array of
@@ -108,16 +122,7 @@ function generateInput(model) {
  * @param numRuns The number of rounds for timing the inference process.
  */
 async function profileInferenceTimeForModel(model, input, numRuns = 1) {
-  let predict;
-  if (model instanceof tf.GraphModel) {
-    predict = () => model.executeAsync(input);
-  } else if (model instanceof tf.LayersModel) {
-    predict = () => model.predict(input);
-  } else {
-    throw new Error(
-        'Please pass in an instance of tf.GraphModel ' +
-        'or tf.LayersModel as the first parameter.');
-  }
+  const predict = wrapPredictFnForModel(model, input);
   return profileInferenceTime(predict, numRuns);
 }
 
@@ -199,4 +204,25 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
     valueContainer = await Promise.all(valuePromiseContainer);
   }
   return valueContainer;
+}
+
+async function profileInferenceMemoryForModel(model, input, numRuns = 1) {
+  const predict = wrapPredictFnForModel(model, input);
+  return profileInferenceMemory(predict, numRuns);
+}
+
+async function profileInferenceMemory(predict) {
+  if (typeof predict !== 'function') {
+    throw new Error(
+        'The first parameter should be a function, while ' +
+        `a(n) ${typeof predict} is found.`);
+  }
+
+  let res;
+  const memoryInfo = await tf.profile(async () => {
+    res = await predict();
+    await downloadValuesFromTensorContainer(res);
+  });
+  tf.dispose(res);
+  return memoryInfo;
 }
