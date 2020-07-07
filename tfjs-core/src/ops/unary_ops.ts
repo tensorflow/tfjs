@@ -24,94 +24,6 @@ import {op} from './operation';
 import {scalar, zerosLike} from './tensor_ops';
 
 /**
- * Computes `-1 * x` element-wise.
- *
- * ```js
- * const x = tf.tensor2d([1, 2, -2, 0], [2, 2]);
- *
- * x.neg().print();  // or tf.neg(x)
- * ```
- *
- * @param x The input tensor.
- */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
-function neg_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'neg');
-
-  const grad = (dy: T) => {
-    return {x: () => dy.neg()};
-  };
-
-  const attrs = {};
-  const inputsToSave = [$x];
-  return ENGINE.runKernelFunc(
-      backend => backend.neg($x), {x: $x}, grad, 'Neg', attrs, inputsToSave);
-}
-
-/**
- * Computes ceiling of input `tf.Tensor` element-wise: `ceil(x)`
- *
- * ```js
- * const x = tf.tensor1d([.6, 1.1, -3.3]);
- *
- * x.ceil().print();  // or tf.ceil(x)
- * ```
- * @param x The input Tensor.
- */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
-function ceil_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'ceil');
-
-  // TODO(manrajgrover): Return null for gradients when backprop supports it.
-  const grad = (dy: T) => {
-    return {$x: () => zerosLike(dy)};
-  };
-  return ENGINE.runKernelFunc(backend => backend.ceil($x), {$x}, grad);
-}
-
-/**
- * Computes floor of input `tf.Tensor` element-wise: `floor(x)`.
- *
- * ```js
- * const x = tf.tensor1d([.6, 1.1, -3.3]);
- *
- * x.floor().print();  // or tf.floor(x)
- * ```
- * @param x The input tensor.
- */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
-function floor_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'floor');
-
-  // TODO(nsthorat): Let gradients be null for cases where we want to stop
-  // backpropgation.
-  const grad = (dy: T) => {
-    return {$x: () => zerosLike(dy)};
-  };
-  return ENGINE.runKernelFunc(backend => backend.floor($x), {$x}, grad);
-}
-
-/**
- * Returns an element-wise indication of the sign of a number.
- *
- * ```js
- * const x = tf.tensor1d([.6, 1.1, -3.3, NaN, 0]);
- *
- * x.sign().print();  // or tf.sign(x)
- * ```
- * @param x The input Tensor.
- */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
-function sign_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'sign');
-
-  const grad = (dy: T) => {
-    return {$x: () => zerosLike(dy)};
-  };
-  return ENGINE.runKernelFunc(backend => backend.sign($x), {$x}, grad);
-}
-
-/**
  * RReturns which elements of x are NaN.
  *
  * ```js
@@ -932,23 +844,19 @@ export const asin = op({asin_});
 export const asinh = op({asinh_});
 export const atan = op({atan_});
 export const atanh = op({atanh_});
-export const ceil = op({ceil_});
 export const clipByValue = op({clipByValue_});
 export const cos = op({cos_});
 export const cosh = op({cosh_});
 export const erf = op({erf_});
 export const exp = op({exp_});
 export const expm1 = op({expm1_});
-export const floor = op({floor_});
 export const log = op({log_});
 export const log1p = op({log1p_});
 export const logSigmoid = op({logSigmoid_});
-export const neg = op({neg_});
 export const reciprocal = op({reciprocal_});
 export const round = op({round_});
 export const rsqrt = op({rsqrt_});
 export const sigmoid = op({sigmoid_});
-export const sign = op({sign_});
 export const isNaN = op({isNaN_});
 export const isInf = op({isInf_});
 export const isFinite = op({isFinite_});
