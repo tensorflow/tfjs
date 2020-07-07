@@ -84,6 +84,14 @@ function generateInput(model) {
   }
 }
 
+/**
+ * Wrap the model's predict function (`model.predict` for tf.LayersModel
+ * and `model.executeAsync` for tf.GraphModel) with the input.
+ *
+ * @param model An instance of tf.GraphModel or tf.LayersModel for finding and
+ *     wrapping the predict function.
+ * @param input The input tensor container for model inference.
+ */
 function wrapPredictFnForModel(model, input) {
   let predict;
   if (model instanceof tf.GraphModel) {
@@ -99,8 +107,9 @@ function wrapPredictFnForModel(model, input) {
 }
 
 /**
- * Executes the predict function for `model` and times the inference process for
- * `numRuns` rounds. Then returns a promise that resolves with an array of
+ * Executes the predict function for `model` (`model.predict` for tf.LayersModel
+ * and `model.executeAsync` for tf.GraphModel) and times the inference process
+ * for `numRuns` rounds. Then returns a promise that resolves with an array of
  * inference times for each inference process.
  *
  * The inference time contains the time spent by both `predict()` and `data()`
@@ -119,6 +128,7 @@ function wrapPredictFnForModel(model, input) {
  *
  * @param model An instance of tf.GraphModel or tf.LayersModel for timing the
  *     inference process.
+ * @param input The input tensor container for model inference.
  * @param numRuns The number of rounds for timing the inference process.
  */
 async function profileInferenceTimeForModel(model, input, numRuns = 1) {
@@ -206,11 +216,62 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
   return valueContainer;
 }
 
-async function profileInferenceMemoryForModel(model, input, numRuns = 1) {
+/**
+* Executes the predict function for `model` (`model.predict` for tf.LayersModel
+* and `model.executeAsync` for tf.GraphModel) and returns a promise that
+* resolves with information about the memory usage:
+* - `newBytes`: the number of new bytes allocated
+* - `newTensors`: the number of new tensors created
+* - `peakBytes`: the peak number of bytes allocated
+* - `kernels`: an array of objects for each kernel involved that reports
+* their input and output shapes, number of bytes used, and number of new
+* tensors created.
+*
+* ```js
+* const modelUrl =
+*    'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2';
+* const model = await tf.loadGraphModel(modelUrl, {fromTFHub: true});
+* const zeros = tf.zeros([1, 224, 224, 3]);
+* const memoryInfo = await profileInferenceMemoryForModel(model, zeros);
+*
+* console.log(`newBytes: ${memoryInfo.newBytes}`);
+* console.log(`newTensors: ${memoryInfo.newTensors}`);
+* console.log(`peakBytes: ${memoryInfo.peakBytes}`);
+* ```
+*
+* @param model An instance of tf.GraphModel or tf.LayersModel for profiling
+*     memory usage in the inference process.
+* @param input The input tensor container for model inference.
+*/
+async function profileInferenceMemoryForModel(model, input) {
   const predict = wrapPredictFnForModel(model, input);
-  return profileInferenceMemory(predict, numRuns);
+  return profileInferenceMemory(predict);
 }
 
+/**
+ * Executes `predict()` and returns a promise that resolves with information
+ * about the memory usage:
+ * - `newBytes`: the number of new bytes allocated
+ * - `newTensors`: the number of new tensors created
+ * - `peakBytes`: the peak number of bytes allocated
+ * - `kernels`: an array of objects for each kernel involved that reports
+ * their input and output shapes, number of bytes used, and number of new
+ * tensors created.
+ *
+ * ```js
+ * const modelUrl =
+ *    'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2';
+ * const model = await tf.loadGraphModel(modelUrl, {fromTFHub: true});
+ * const zeros = tf.zeros([1, 224, 224, 3]);
+ * const memoryInfo = await profileInferenceMemory(() => model.predict(zeros));
+ *
+ * console.log(`newBytes: ${memoryInfo.newBytes}`);
+ * console.log(`newTensors: ${memoryInfo.newTensors}`);
+ * console.log(`peakBytes: ${memoryInfo.peakBytes}`);
+ * ```
+ *
+ * @param predict The predict function to execute for profiling memory usage.
+ */
 async function profileInferenceMemory(predict) {
   if (typeof predict !== 'function') {
     throw new Error(
