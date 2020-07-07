@@ -100,6 +100,10 @@
 |TensorArrayFromTensor|TensorArrayFromTensor|
 |TensorArrayPushBack|TensorArrayPushBack|
 |TensorArrayPopBack|TensorArrayPopBack|
+|HashTable|hashTable|
+|HashTableV2|hashTableV2|
+|LookupTableFind|lookupTableFind|
+|LookupTableFindV2|lookupTableFindV2|
 
 ## Operations - Convolution
 
