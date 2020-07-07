@@ -41,7 +41,7 @@ import './FloorDiv';
 import './FusedBatchNorm';
 import './FusedConv2D';
 import './FusedDepthwiseConv2D';
-import './Gather';
+import './GatherV2';
 import './GatherNd';
 import './Greater';
 import './GreaterEqual';
