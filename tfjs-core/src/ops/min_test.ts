@@ -17,7 +17,7 @@
 
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
-import {expectArraysClose, expectArraysEqual} from '../test_util';
+import {expectArraysClose} from '../test_util';
 
 describeWithFlags('min', ALL_ENVS, () => {
   it('Tensor1D', async () => {
@@ -27,7 +27,7 @@ describeWithFlags('min', ALL_ENVS, () => {
 
   it('ignores NaNs', async () => {
     const a = tf.tensor1d([3, NaN, 2]);
-    expectArraysEqual(await tf.min(a).data(), 2);
+    expectArraysClose(await tf.min(a).data(), 2);
   });
 
   it('2D', async () => {
@@ -81,7 +81,7 @@ describeWithFlags('min', ALL_ENVS, () => {
     tf.min(input, [1, 0]);
 
     const inputDataAfter = await input.data();
-    expectArraysEqual(inputDataBefore, inputDataAfter);
+    expectArraysClose(inputDataBefore, inputDataAfter);
   });
 
   it('throws when passed a non-tensor', () => {

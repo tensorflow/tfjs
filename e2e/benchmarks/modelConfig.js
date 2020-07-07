@@ -236,29 +236,14 @@ const benchmarks = {
           } else if (model.predict != null) {
             resultTensor = model.predict(inferenceInput);
           } else {
-            throw new Error("Predict function was not found.");
+            throw new Error('Predict function was not found.');
           }
           return resultTensor;
         } finally {
           // dispose input tensors
-          if (inferenceInput instanceof tf.Tensor) {
-            inferenceInput.dispose();
-          } else if (Array.isArray(inferenceInput)) {
-            inferenceInput.forEach(inputNode => {
-              if (inputNode instanceof tf.Tensor) {
-                inputNode.dispose();
-              }
-            });
-          } else if (inferenceInput != null && typeof inferenceInput === 'object') {
-            // inferenceInputs is a tensor map
-            for (const property in inferenceInput) {
-              if (inferenceInput[property] instanceof tf.Tensor) {
-                inferenceInput[property].dispose();
-              }
-            }
-          }
+          tf.dispose(inferenceInput);
         }
-      }
+      };
     }
   },
 };
@@ -301,29 +286,32 @@ function findIOHandler(path, loadOptions = {}) {
 async function tryAllLoadingMethods(modelHandler, loadOptions = {}) {
   let model;
   // TODO: download weights once
-  model = await tf.loadGraphModel(modelHandler, loadOptions).then(model => {
+  try {
+    model = await tf.loadGraphModel(modelHandler, loadOptions);
     state.modelType = 'GraphModel';
     return model;
-  }).catch(e => {});
-
-  if (model == null) {
-    model = await tf.loadLayersModel(modelHandler, loadOptions).then(model => {
-      state.modelType = 'LayersModel';
-      return model;
-    });
+  } catch (e) {
   }
-  return model;
+
+  try {
+    model = await tf.loadLayersModel(modelHandler, loadOptions);
+    state.modelType = 'LayersModel';
+    return model;
+  } catch (e) {
+  }
+
+  throw new Error(`Didn't find a fit loading method for this model.`);
 }
 
 async function loadModelByUrl(modelUrl, loadOptions = {}) {
   let model, ioHandler, modelType;
 
-  const supportedSchemes =  /^(https?|localstorage|indexeddb):\/\/.+$/;
+  const supportedSchemes = /^(https?|localstorage|indexeddb):\/\/.+$/;
   if (!supportedSchemes.test(modelUrl)) {
     throw new Error(`Please use a valid URL, such as 'https://'.`);
   }
 
-  const tfHubUrl =  /^https:\/\/tfhub.dev\/.+$/;
+  const tfHubUrl = /^https:\/\/tfhub.dev\/.+$/;
   if (loadOptions.fromTFHub || tfHubUrl.test(modelUrl)) {
     if (!modelUrl.endsWith('/')) {
       modelUrl = modelUrl + '/';
@@ -334,7 +322,8 @@ async function loadModelByUrl(modelUrl, loadOptions = {}) {
   // Convert URL to IOHandler and parse the model type
   try {
     ioHandler = findIOHandler(modelUrl, loadOptions);
-    modelType = await ioHandler.load().then(artifacts => artifacts.format);
+    const artifacts = await ioHandler.load();
+    modelType = artifacts.format;
   } catch (e) {
     throw new Error(`Failed to fetch or parse 'model.json' file.`);
   }
