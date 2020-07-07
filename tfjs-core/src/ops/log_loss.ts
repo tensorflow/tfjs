@@ -19,14 +19,16 @@ import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assertShapesMatch} from '../util';
+
 import {add} from './add';
 import {computeWeightedLoss} from './compute_weighted_loss';
 import {Reduction} from './loss_ops_utils';
 import {mul} from './mul';
+import {neg} from './neg';
 import {op} from './operation';
 import {sub} from './sub';
 import {scalar} from './tensor_ops';
-import {log, neg} from './unary_ops';
+import {log} from './unary_ops';
 
 /**
  * Computes the log loss between two tensors.

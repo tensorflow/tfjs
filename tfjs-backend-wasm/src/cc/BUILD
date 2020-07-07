@@ -213,7 +213,7 @@ tfjs_cc_library(
         ":Min",
         ":Minimum",
         ":Multiply",
-        ":Neg",
+        ":Negate",
         ":NonMaxSuppressionV3",
         ":NonMaxSuppressionV5",
         ":NotEqual",
@@ -635,8 +635,8 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-    name = "Neg",
-    srcs = ["kernels/Neg.cc"],
+    name = "Negate",
+    srcs = ["kernels/Negate.cc"],
     deps = [
         ":backend",
         ":unary",

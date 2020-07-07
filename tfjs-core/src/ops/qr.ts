@@ -26,6 +26,7 @@ import {eye} from './eye';
 import {greater} from './greater';
 import {matMul} from './mat_mul';
 import {mul} from './mul';
+import {neg} from './neg';
 import {norm} from './norm';
 import {op} from './operation';
 import {reshape} from './reshape';
@@ -34,7 +35,6 @@ import {stack} from './stack';
 import {sub} from './sub';
 import {tensor2d} from './tensor_ops';
 import {transpose} from './transpose';
-import {neg} from './unary_ops';
 import {unstack} from './unstack';
 import {where} from './where';
 
