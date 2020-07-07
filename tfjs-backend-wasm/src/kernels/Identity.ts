@@ -15,19 +15,23 @@
  * =============================================================================
  */
 
-import {unsortedSegmentSum} from '../../ops/unsorted_segment_sum';
-import {Tensor, Tensor1D} from '../../tensor';
-import {Rank, TensorLike1D} from '../../types';
+import {Identity, IdentityInputs, KernelFunc, registerKernel} from '@tensorflow/tfjs-core';
+import {TensorInfo} from '@tensorflow/tfjs-core';
 
-declare module '../../tensor' {
-  interface Tensor<R extends Rank = Rank> {
-    unsortedSegmentSum<T extends Tensor>(
-        this: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T;
-  }
+import {BackendWasm} from '../backend_wasm';
+
+export function identity(args: {inputs: IdentityInputs, backend: BackendWasm}):
+    TensorInfo {
+  const {inputs: {x}, backend} = args;
+  const out = backend.makeOutput(x.shape, x.dtype);
+  const inVals = backend.typedArrayFromHeap(x);
+  const outVals = backend.typedArrayFromHeap(out);
+  outVals.set(inVals);
+  return out;
 }
 
-Tensor.prototype.unsortedSegmentSum = function<T extends Tensor>(
-    this: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T {
-  this.throwIfDisposed();
-  return unsortedSegmentSum(this, segmentIds, numSegments);
-};
+registerKernel({
+  kernelName: Identity,
+  backendName: 'wasm',
+  kernelFunc: identity as {} as KernelFunc,
+});

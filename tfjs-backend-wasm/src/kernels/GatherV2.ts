@@ -15,19 +15,11 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, GatherV2, GatherV2Attrs, GatherV2Inputs, KernelFunc, registerKernel, Tensor, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+
 import {CppDType} from './types';
-
-interface GatherInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-  indices: TensorInfo;
-}
-
-interface GatherAttrs extends NamedAttrMap {
-  axis: number;
-}
 
 let wasmGather:
     (xId: number, dtype: CppDType, xStrides: Uint8Array, stridesSize: number,
@@ -47,8 +39,8 @@ function setup(backend: BackendWasm): void {
   ]);
 }
 
-function gather(
-    args: {backend: BackendWasm, inputs: GatherInputs, attrs: GatherAttrs}):
+function gatherV2(
+    args: {backend: BackendWasm, inputs: GatherV2Inputs, attrs: GatherV2Attrs}):
     TensorInfo {
   const {backend, inputs, attrs} = args;
   const {x, indices} = inputs;
@@ -80,12 +72,18 @@ function gather(
       xId, CppDType[x.dtype], xStridesBytes, stridesSize, indicesId, axis,
       outStridesBytes, outId);
 
+  // reshape
+  const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
+  const shapeInfo = backend_util.segment_util.collectGatherOpShapeInfo(
+      x as Tensor, indices as Tensor, parsedAxis);
+
+  out.shape = shapeInfo.outputShape;
   return out;
 }
 
 registerKernel({
-  kernelName: 'Gather',
+  kernelName: GatherV2,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: gather
+  kernelFunc: gatherV2 as {} as KernelFunc
 });

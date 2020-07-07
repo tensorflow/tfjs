@@ -14,20 +14,16 @@
  * limitations under the License.
  * =============================================================================
  */
+// We explicitly import the modular kernels so they get registered in the
+// global registry when we compile the library. A modular build would replace
+// the contents of this file and import only the kernels that are needed.
+import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
-import {unsortedSegmentSum} from '../../ops/unsorted_segment_sum';
-import {Tensor, Tensor1D} from '../../tensor';
-import {Rank, TensorLike1D} from '../../types';
+import {reverseConfig} from './kernels/Reverse';
 
-declare module '../../tensor' {
-  interface Tensor<R extends Rank = Rank> {
-    unsortedSegmentSum<T extends Tensor>(
-        this: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T;
-  }
+// List all kernel configs here
+const kernelConfigs: KernelConfig[] = [reverseConfig];
+
+for (const kernelConfig of kernelConfigs) {
+  registerKernel(kernelConfig);
 }
-
-Tensor.prototype.unsortedSegmentSum = function<T extends Tensor>(
-    this: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T {
-  this.throwIfDisposed();
-  return unsortedSegmentSum(this, segmentIds, numSegments);
-};

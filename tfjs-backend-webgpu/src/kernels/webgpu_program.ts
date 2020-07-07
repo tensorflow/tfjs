@@ -71,33 +71,6 @@ export const makeBindGroup =
       });
     };
 
-const makeBindGroupLayout =
-    (device: GPUDevice, inputs: shader_preprocessor.InputInfo[],
-     output: TensorInfo, uniforms?: BindingInfo): GPUBindGroupLayout => {
-      const bindings =
-          Array(1 + inputs.length)
-              .fill(
-                  {
-                    visibility: GPUShaderStage.COMPUTE,
-                    type: 'readonly-storage-buffer' as GPUBindingType
-                  },
-                  1);
-      bindings[0] = {
-        visibility: GPUShaderStage.COMPUTE,
-        type: 'storage-buffer' as GPUBindingType
-      };
-
-      if (uniforms) {
-        bindings.push({
-          visibility: GPUShaderStage.COMPUTE,
-          type: 'uniform-buffer' as GPUBindingType
-        });
-      }
-      return device.createBindGroupLayout({
-        entries: bindings.map((b, i) => ({binding: i, ...b})),
-      });
-    };
-
 export const compileProgram =
     (glslang: Glslang, device: GPUDevice, program: WebGPUProgram,
      inputsData: shader_preprocessor.InputInfo[], output: TensorInfo,
@@ -111,13 +84,10 @@ export const compileProgram =
         throw new Error('Shader compilation failed');
       }
 
-      const bindGroupLayout =
-          makeBindGroupLayout(device, inputsData, output, uniforms);
-      const layout =
-          device.createPipelineLayout({bindGroupLayouts: [bindGroupLayout]});
       const module = device.createShaderModule({code: result.data});
       const pipeline = device.createComputePipeline(
-          {layout, computeStage: {module, entryPoint: 'main'}});
+          {computeStage: {module, entryPoint: 'main'}});
+      const bindGroupLayout = pipeline.getBindGroupLayout(0);
 
       result.free();
       return {bindGroupLayout, pipeline};

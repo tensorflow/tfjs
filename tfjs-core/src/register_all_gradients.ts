@@ -37,6 +37,7 @@ import {eluGradConfig} from './gradients/Elu_grad';
 import {floorGradConfig} from './gradients/Floor_grad';
 import {floorDivGradConfig} from './gradients/FloorDiv_grad';
 import {fusedBatchNormGradConfig} from './gradients/FusedBatchNorm_grad';
+import {gatherGradConfig} from './gradients/GatherV2_grad';
 import {greaterEqualGradConfig} from './gradients/GreaterEqual_grad';
 import {identityGradConfig} from './gradients/Identity_grad';
 import {lrnGradConfig} from './gradients/LRN_grad';
@@ -71,6 +72,7 @@ import {sumGradConfig} from './gradients/Sum_grad';
 import {tileGradConfig} from './gradients/Tile_grad';
 import {transposeGradConfig} from './gradients/Transpose_grad';
 import {unpackGradConfig} from './gradients/Unpack_grad';
+import {unsortedSegmentSumGradConfig} from './gradients/UnsortedSegmentSum_grad';
 import {GradConfig} from './kernel_registry';
 import {registerGradient} from './kernel_registry';
 
@@ -99,6 +101,7 @@ const gradConfigs: GradConfig[] = [
   floorDivGradConfig,
   floorGradConfig,
   fusedBatchNormGradConfig,
+  gatherGradConfig,
   greaterEqualGradConfig,
   identityGradConfig,
   lrnGradConfig,
@@ -137,7 +140,8 @@ const gradConfigs: GradConfig[] = [
   sumGradConfig,
   tileGradConfig,
   transposeGradConfig,
-  unpackGradConfig
+  unpackGradConfig,
+  unsortedSegmentSumGradConfig
 ];
 
 for (const gradientConfig of gradConfigs) {
