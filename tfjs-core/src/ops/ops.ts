@@ -205,3 +205,7 @@ const losses = {
 
 // Second level exports.
 export {image, linalg, losses, spectral, fused, signal};
+export {sign} from './sign';
+export {neg} from './neg';
+export {ceil} from './ceil';
+export {floor} from './floor';
