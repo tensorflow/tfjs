@@ -26,7 +26,7 @@ import {parseAxisParam} from '../util';
 
 export const gatherGradConfig: GradConfig = {
   kernelName: GatherV2,
-  inputsToSave: ['x', 'segmentIds'],
+  inputsToSave: ['x', 'indices'],
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const [x, indices] = saved;
     const {axis} = attrs as {} as GatherV2Attrs;
