@@ -17,16 +17,16 @@
 
 /**
  * A helper script to generate empty files typically used in modularizing an op.
- * Takes two params:
+ * params:
  *    --op the name of the op
- *    --kernel the name of the kernel (this is optional)
  *    --chained is this op part of the chained api (optional)
+ *    --grad the name of the kernel(s) to create gradient files for
  *
  * It assumes you run it from tfjs_core.
  *
  * Example
- *  npx ts-node -s scripts/touch_modular_op_files.ts --op "op_name" --kernel \
- *    "KernelName" --chained
+ *  npx ts-node -s scripts/touch_modular_op_files.ts --op op_name --grad \
+ *    KernelName --chained
  *
  * Generates the following files (they will be empty)
  *    tfjs_core/src/ops/op_name.ts
@@ -36,6 +36,9 @@
  *
  *  if --kernel is present
  *    tfjs_core/src/gradients/KernelName_grad.ts
+ *
+ * Example 2 (multiple kernels)
+ *  npx ts-node -s scripts/touch_modular_op_files.ts --grad Kernel1,Kernel2
  */
 
 import * as argparse from 'argparse';
@@ -78,7 +81,10 @@ async function main() {
       return str.charAt(0).toLowerCase() + str.slice(1);
     };
 
-    const gradientFileTemplate = `/**
+    const kernels: string[] = args.grad.split(',');
+
+    kernels.forEach(kernelName => {
+      const gradientFileTemplate = `/**
  * @license
  * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -99,7 +105,7 @@ import {KernelName, KernelNameAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 
-export const ${downcaseFirstChar(args.grad)}GradConfig: GradConfig = {
+export const ${downcaseFirstChar(kernelName)}GradConfig: GradConfig = {
   kernelName: KernelName,
   inputsToSave: [], // UPDATE ME
   outputsToSave: [], // UPDATE ME
@@ -111,8 +117,9 @@ export const ${downcaseFirstChar(args.grad)}GradConfig: GradConfig = {
   }
 };
 `;
-    const filePath = `./src/gradients/${args.grad}_grad.ts`;
-    fs.writeFileSync(filePath, gradientFileTemplate, {flag: 'a'});
+      const filePath = `./src/gradients/${kernelName}_grad.ts`;
+      fs.writeFileSync(filePath, gradientFileTemplate, {flag: 'a'});
+    });
   }
 }
 
