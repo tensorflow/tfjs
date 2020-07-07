@@ -17,9 +17,11 @@
 import * as tfc from '@tensorflow/tfjs-core';
 import {scalar, tensor1d, tensor2d} from '@tensorflow/tfjs-core';
 import {test_util} from '@tensorflow/tfjs-core';
+import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import {GraphExecutor} from '../../executor/graph_executor';
+import {HashTable} from '../../executor/hash_table';
 import {TensorArray} from '../../executor/tensor_array';
 import {TensorList} from '../../executor/tensor_list';
 import * as control from '../op_list/control';
@@ -967,6 +969,83 @@ describe('control', () => {
 
         expect(validateParam(node, control.json)).toBeTruthy();
       });
+    });
+  });
+
+  describe('HashTable', () => {
+    it('should create new tensor on the context', async () => {
+      node.op = 'HashTable';
+      node.attrParams['name'] = createStrAttr('');
+      node.attrParams['sharedName'] = createDtypeAttr('');
+      node.attrParams['useNodeNameSharing'] = createBoolAttr(false);
+      node.attrParams['keyDType'] = createDtypeAttr('string');
+      node.attrParams['valueDType'] = createDtypeAttr('float32');
+
+      const handle = (await executeOp(node, {}, context))[0];
+      expect(context.getHashTable(handle)).toBeDefined();
+    });
+    it('should match json def', () => {
+      node.op = 'HashTable';
+      node.attrParams['sharedName'] = createStrAttr('');
+      node.attrParams['useNodeNameSharing'] = createBoolAttr(false);
+      node.attrParams['keyDType'] = createDtypeAttr('string');
+      node.attrParams['valueDType'] = createDtypeAttr('float32');
+
+      expect(validateParam(node, control.json)).toBeTruthy();
+    });
+  });
+
+  describe('HashTableV2', () => {
+    it('should create new tensor on the context', async () => {
+      node.op = 'HashTableV2';
+      node.attrParams['name'] = createStrAttr('');
+      node.attrParams['sharedName'] = createDtypeAttr('');
+      node.attrParams['useNodeNameSharing'] = createBoolAttr(false);
+      node.attrParams['keyDType'] = createDtypeAttr('string');
+      node.attrParams['valueDType'] = createDtypeAttr('float32');
+
+      const handle = (await executeOp(node, {}, context))[0];
+      expect(context.getHashTable(handle)).toBeDefined();
+    });
+    it('should match json def', () => {
+      node.op = 'HashTableV2';
+      node.attrParams['sharedName'] = createStrAttr('');
+      node.attrParams['useNodeNameSharing'] = createBoolAttr(false);
+      node.attrParams['keyDType'] = createDtypeAttr('string');
+      node.attrParams['valueDType'] = createDtypeAttr('float32');
+
+      expect(validateParam(node, control.json)).toBeTruthy();
+    });
+  });
+
+  describe('LookupTableFindV2', () => {
+    it('should create new tensor on the context', async () => {
+      const hashTable = new HashTable('string', 'float32');
+      const keys = tfc.tensor1d(['a']);
+      const values = tfc.tensor1d([1.0]);
+      hashTable.initialize(keys, values);
+      context.addHashTable(hashTable);
+      const handle = hashTable.handle;
+
+      node.op = 'LookupTableFindV2';
+      node.inputParams['tableHandle'] = createTensorAttr(0);
+      node.inputParams['keys'] = createTensorAttr(1);
+      node.inputParams['defaultValue'] = createTensorAttr(2);
+      node.inputNames = ['input2', 'input3', 'input5'];
+      const input2 = [handle];
+      const input3 = [tfc.tensor1d(['a', 'b'], 'string')];
+      const input5 = [scalar(0)];
+
+      const result = (await executeOp(node, {input2, input3, input5}, context));
+      expectArraysClose(await result[0].data(), [1, 0]);
+    });
+    it('should match json def', () => {
+      node.op = 'LookupTableFindV2';
+      node.inputParams['tableHandle'] = createTensorAttr(0);
+      node.inputParams['keys'] = createTensorAttr(1);
+      node.inputParams['defaultValue'] = createTensorAttr(2);
+
+      expect(validateParam(node, control.json)).toBeTruthy();
     });
   });
 });
