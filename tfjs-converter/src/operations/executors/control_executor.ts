@@ -19,6 +19,7 @@ import {DataType, scalar, Tensor} from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
+import {HashTable} from '../../executor/hash_table';
 import {TensorArray} from '../../executor/tensor_array';
 import {fromTensor, reserve, scatter, split} from '../../executor/tensor_list';
 import {InternalOpAsyncExecutor, Node} from '../types';
@@ -355,6 +356,35 @@ export const executeOp: InternalOpAsyncExecutor = async(
       const tensorList = split(splitTensor, lengths, elementShape);
       context.addTensorList(tensorList);
       return [tensorList.idTensor];
+    }
+    case 'HashTable':
+    case 'HashTableV2': {
+      const keyDType =
+          getParamValue('keyDType', node, tensorMap, context) as tfc.DataType;
+      const valueDType =
+          getParamValue('valueDType', node, tensorMap, context) as tfc.DataType;
+      const sharedName =
+          getParamValue('sharedName', node, tensorMap, context) as string;
+      const useNodeNameSharing =
+          getParamValue('useNodeNameSharing', node, tensorMap, context) as
+          boolean;
+
+      const hashTable = new HashTable(
+          keyDType, valueDType, sharedName, useNodeNameSharing, node.name);
+      context.addHashTable(hashTable);
+      return [hashTable.handle];
+    }
+    case 'LookupTableFind':
+    case 'LookupTableFindV2': {
+      const handle =
+          getParamValue('tableHandle', node, tensorMap, context) as tfc.Tensor;
+      const keys =
+          getParamValue('keys', node, tensorMap, context) as tfc.Tensor;
+      const defaultValue =
+          getParamValue('defaultValue', node, tensorMap, context) as tfc.Tensor;
+
+      const hashTable = context.getHashTable(handle);
+      return [await hashTable.find(keys, defaultValue)];
     }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
