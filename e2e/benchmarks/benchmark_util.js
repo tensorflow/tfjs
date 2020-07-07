@@ -279,11 +279,39 @@ async function profileInferenceMemory(predict) {
         `a(n) ${typeof predict} is found.`);
   }
 
-  let res;
-  const memoryInfo = await tf.profile(async () => {
-    res = await predict();
+  const memoryInfo = await profile(async () => {
+    const res = await predict();
     await downloadValuesFromTensorContainer(res);
+    tf.dispose(res);
   });
-  tf.dispose(res);
   return memoryInfo;
+}
+
+/**
+ * This function is temporarily used and will be deleted after a new release of
+ * tf-core. This function modifies [`tf.profile`](https://github.com/tensorflow/tfjs/blob/95b5f878218ee45c0f8464386ee01d1f96e78297/tfjs-core/src/engine.ts#L848)
+ * in the following points:
+ * - replaces all `this` by `tf.engine()`
+ * - adds `await` in `this.state.activeProfile.result = query();`
+ *
+ * When deleting this method, please change the caller `profileInferenceMemory`.
+ */
+async function profile(query) {
+  const engine = tf.engine();
+  engine.state.profiling = true;
+
+  const startBytes = engine.state.numBytes;
+  const startNumTensors = engine.state.numTensors;
+
+  engine.state.activeProfile.kernels = [];
+  engine.state.activeProfile.result = await query();
+
+  engine.state.profiling = false;
+
+  engine.state.activeProfile.peakBytes = Math.max(
+      ...engine.state.activeProfile.kernels.map(d => d.totalBytesSnapshot));
+  engine.state.activeProfile.newBytes = engine.state.numBytes - startBytes;
+  engine.state.activeProfile.newTensors =
+      engine.state.numTensors - startNumTensors;
+  return engine.state.activeProfile;
 }
