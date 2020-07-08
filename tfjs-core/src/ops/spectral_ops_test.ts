@@ -353,9 +353,11 @@ describeWithFlags('3D IRFFT', ALL_ENVS, () => {
        const t1Real = tf.tensor3d([1, 2, 3, 4, 1, 2, 3, 4], [2, 2, 2]);
        const t1Imag = tf.tensor3d([0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 2]);
        const t1 = tf.complex(t1Real, t1Imag);
+       const result = tf.spectral.irfft(t1);
+       expect(result.shape).toEqual([2, 2, 2]);
+
        expectArraysClose(
-           await tf.spectral.irfft(t1).data(),
-           [1.5, -0.5, 3.5, -0.5, 1.5, -0.5, 3.5, -0.5]);
+           await result.data(), [1.5, -0.5, 3.5, -0.5, 1.5, -0.5, 3.5, -0.5]);
      });
 
   it('should return the same value with TensorFlow (2x2x3 elements)',
@@ -365,7 +367,9 @@ describeWithFlags('3D IRFFT', ALL_ENVS, () => {
        const t1Imag =
            tf.tensor3d([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [2, 2, 3]);
        const t1 = tf.complex(t1Real, t1Imag);
-       expectArraysClose(await tf.spectral.irfft(t1).data(), [
+       const result = tf.spectral.irfft(t1);
+       expect(result.shape).toEqual([2, 2, 4]);
+       expectArraysClose(await result.data(), [
          2, -0.5, 0, -0.5, 5, -0.5, 0, -0.5, 2, -0.5, 0, -0.5, 5, -0.5, 0, -0.5
        ]);
      });
@@ -377,8 +381,10 @@ describeWithFlags('3D IRFFT', ALL_ENVS, () => {
        const t1Imag =
            tf.tensor3d([1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6], [2, 2, 3]);
        const t1 = tf.complex(t1Real, t1Imag);
+       const result = tf.spectral.irfft(t1);
+       expect(result.shape).toEqual([2, 2, 4]);
        expectArraysClose(
-           await tf.spectral.irfft(t1).data(),
+           await result.data(),
            [2, -1.5, 0, 0.5, 5, -3, 0, 2, 2, -1.5, 0, 0.5, 5, -3, 0, 2]);
      });
 });
