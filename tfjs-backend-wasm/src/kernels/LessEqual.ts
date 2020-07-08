@@ -15,6 +15,9 @@
  * =============================================================================
  */
 
-import {registerBinaryKernel} from './binary_kernel';
+import {KernelConfig} from '@tensorflow/tfjs-core';
+
+import {createBinaryKernelConfig} from './binary_kernel';
 const supportsFullBroadcast = false;
-registerBinaryKernel('LessEqual', supportsFullBroadcast, 'bool');
+export const lessEqualConfig: KernelConfig =
+    createBinaryKernelConfig('LessEqual', supportsFullBroadcast, 'bool');

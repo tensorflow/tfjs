@@ -41,6 +41,14 @@ import {floorDivConfig} from './kernels/FloorDiv';
 import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
 import {fusedConv2DConfig} from './kernels/FusedConv2D';
 import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
+import {gatherNdConfig} from './kernels/GatherNd';
+import {gatherV2Config} from './kernels/GatherV2';
+import {greaterConfig} from './kernels/Greater';
+import {greaterEqualConfig} from './kernels/GreaterEqual';
+import {identityConfig} from './kernels/Identity';
+import {lessConfig} from './kernels/Less';
+import {lessEqualConfig} from './kernels/LessEqual';
+import {logConfig} from './kernels/Log';
 import {reverseConfig} from './kernels/Reverse';
 
 // List all kernel configs here
@@ -67,6 +75,14 @@ const kernelConfigs: KernelConfig[] = [
   fusedBatchNormConfig,
   fusedConv2DConfig,
   fusedDepthwiseConv2DConfig,
+  gatherNdConfig,
+  gatherV2Config,
+  greaterConfig,
+  greaterEqualConfig,
+  identityConfig,
+  lessConfig,
+  lessEqualConfig,
+  logConfig,
   reverseConfig
 ];
 
