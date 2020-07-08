@@ -64,15 +64,14 @@ function split_<T extends Tensor>(
     x: Tensor|TensorLike, numOrSizeSplits: number[]|number, axis = 0): T[] {
   const $x = convertToTensor(x, 'x', 'split');
 
-  const $axis = parseAxisParam(axis, $x.shape)[0];
-
   const forward: ForwardFunc<Tensor> = (backend, _) => {
+    const $axis = parseAxisParam(axis, $x.shape)[0];
     const splitSizes = prepareSplitSize($x, numOrSizeSplits, $axis);
     return backend.split($x, splitSizes, $axis) as {} as T;
   };
 
   const inputs: SplitVInputs = {x: $x};
-  const attr: SplitVAttrs = {numOrSizeSplits, axis: $axis};
+  const attr: SplitVAttrs = {numOrSizeSplits, axis};
 
   return ENGINE.runKernelFunc(
              forward, inputs as {} as NamedTensorMap, null /* grad */, SplitV,
