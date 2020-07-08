@@ -31,13 +31,43 @@ import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
 import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
 import {cosConfig} from './kernels/Cos';
+import {cropAndResizeConfig} from './kernels/CropAndResize';
+import {depthwiseConv2DNativeConfig} from './kernels/DepthwiseConv2dNative';
+import {divConfig} from './kernels/Div';
+import {equalConfig} from './kernels/Equal';
+import {expConfig} from './kernels/Exp';
+import {fillConfig} from './kernels/Fill';
+import {floorDivConfig} from './kernels/FloorDiv';
+import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
+import {fusedConv2DConfig} from './kernels/FusedConv2D';
+import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
 import {reverseConfig} from './kernels/Reverse';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
-  addConfig, addNConfig, argMaxConfig, avgPoolConfig, batchMatMulConfig,
-  castConfig, clipByValueConfig, concatConfig, conv2DConfig,
-  conv2DBackpropInputConfig, cosConfig, fusedMatMulConfig, reverseConfig
+  addConfig,
+  addNConfig,
+  argMaxConfig,
+  avgPoolConfig,
+  batchMatMulConfig,
+  castConfig,
+  clipByValueConfig,
+  concatConfig,
+  conv2DConfig,
+  conv2DBackpropInputConfig,
+  cosConfig,
+  cropAndResizeConfig,
+  depthwiseConv2DNativeConfig,
+  divConfig,
+  equalConfig,
+  expConfig,
+  fillConfig,
+  floorDivConfig,
+  fusedMatMulConfig,
+  fusedBatchNormConfig,
+  fusedConv2DConfig,
+  fusedDepthwiseConv2DConfig,
+  reverseConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {
