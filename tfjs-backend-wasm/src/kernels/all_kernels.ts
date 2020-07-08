@@ -56,7 +56,7 @@ import './MaxPool';
 import './Min';
 import './Minimum';
 import './Muliply';
-import './Neg';
+import './Negate';
 import './NonMaxSuppressionV3';
 import './NonMaxSuppressionV5';
 import './NotEqual';

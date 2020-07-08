@@ -15,5 +15,14 @@
  * =============================================================================
  */
 
-import {registerUnaryKernel} from './unary_kernel';
-registerUnaryKernel('Neg');
+import {Floor} from '../kernel_names';
+import {GradConfig} from '../kernel_registry';
+import {zerosLike} from '../ops/tensor_ops';
+import {Tensor} from '../tensor';
+
+export const floorGradConfig: GradConfig = {
+  kernelName: Floor,
+  gradFunc: (dy: Tensor) => {
+    return {x: () => zerosLike(dy)};
+  }
+};
