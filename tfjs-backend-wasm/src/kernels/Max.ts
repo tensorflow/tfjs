@@ -43,12 +43,8 @@ function max(args: {backend: BackendWasm, inputs: MaxInputs, attrs: MaxAttrs}):
 
   if (inputWasTransposed) {
     const transposedId = backend.dataIdMap.get(transposed.dataId).id;
-    if (transposedId !== xId) {
-      // transpose was not a no-op. We will need to dispose of this
-      // once we are done.
-      input = transposed;
-      inputId = transposedId;
-    }
+    input = transposed;
+    inputId = transposedId;
   }
 
   const inputRank = input.shape.length;

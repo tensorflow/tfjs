@@ -21,7 +21,7 @@ const {readdirSync, statSync, writeFileSync} = require('fs');
 const {join} = require('path');
 const fs = require('fs');
 
-const filesWhitelistToTriggerBuild = [
+const filesAllowlistToTriggerBuild = [
   'cloudbuild.yml', 'package.json', 'tsconfig.json', 'tslint.json',
   'scripts/find-affected-packages.js', 'scripts/run-build.sh'
 ];
@@ -84,13 +84,13 @@ shell.cd('..');
 console.log();  // Break up the console for readability.
 
 let triggerAllBuilds = false;
-let whitelistDiffOutput = [];
-filesWhitelistToTriggerBuild.forEach(fileToTriggerBuild => {
+let allowlistDiffOutput = [];
+filesAllowlistToTriggerBuild.forEach(fileToTriggerBuild => {
   const diffOutput = diff(fileToTriggerBuild);
   if (diffOutput !== '') {
     console.log(fileToTriggerBuild, 'has changed. Triggering all builds.');
     triggerAllBuilds = true;
-    whitelistDiffOutput.push(diffOutput);
+    allowlistDiffOutput.push(diffOutput);
   }
 });
 
@@ -108,7 +108,7 @@ dirs.forEach(dir => {
 
   const shouldDiff = diffOutput !== '' || triggerAllBuilds;
   if (shouldDiff) {
-    const diffContents = whitelistDiffOutput.join('\n') + '\n' + diffOutput;
+    const diffContents = allowlistDiffOutput.join('\n') + '\n' + diffOutput;
     writeFileSync(join(dir, 'run-ci'), diffContents);
     triggeredBuilds.push(dir);
   }

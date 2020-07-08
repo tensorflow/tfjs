@@ -20,7 +20,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {gather} from './segment_ops';
+import {gather} from './gather';
 import {whereAsync} from './where_async';
 
 /**

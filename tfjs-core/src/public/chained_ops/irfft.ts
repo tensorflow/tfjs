@@ -15,5 +15,18 @@
  * =============================================================================
  */
 
-import {registerUnaryKernel} from './unary_kernel';
-registerUnaryKernel('Neg');
+// TODO update import path once op is modularized.
+import {irfft} from '../../ops/ops';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
+
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    irfft<T extends Tensor>(this: Tensor): Tensor;
+  }
+}
+
+Tensor.prototype.irfft = function<T extends Tensor>(this: Tensor): T {
+  this.throwIfDisposed();
+  return irfft(this) as T;
+};
