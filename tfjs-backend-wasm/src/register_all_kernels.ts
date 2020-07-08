@@ -58,6 +58,14 @@ import {negateConfig} from './kernels/Negate';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
+import {oneHotConfig} from './kernels/OneHot';
+import {padV2Config} from './kernels/PadV2';
+import {powConfig} from './kernels/Pow';
+import {preluConfig} from './kernels/Prelu';
+import {reluConfig} from './kernels/Relu';
+import {relu6Config} from './kernels/Relu6';
+import {reshapeConfig} from './kernels/Reshape';
+import {resizeBilinearConfig} from './kernels/ResizeBilinear';
 import {reverseConfig} from './kernels/Reverse';
 
 // List all kernel configs here
@@ -101,6 +109,14 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV3Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,
+  oneHotConfig,
+  padV2Config,
+  powConfig,
+  preluConfig,
+  reluConfig,
+  relu6Config,
+  reshapeConfig,
+  resizeBilinearConfig,
   reverseConfig
 ];
 
