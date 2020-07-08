@@ -23,6 +23,15 @@ import {ExplicitPadding} from '../src/ops/conv_util';
 import {NamedTensorInfoMap, TensorInfo} from './kernel_registry';
 import {DataType, PixelData} from './types';
 
+export const Abs = 'Abs';
+export type AbsInputs = UnaryInputs;
+
+export const Acos = 'Acos';
+export type AcosInputs = UnaryInputs;
+
+export const Acosh = 'Acosh';
+export type AcoshInputs = UnaryInputs;
+
 export const Add = 'Add';
 export type AddInputs = BinaryInputs;
 
@@ -54,6 +63,18 @@ export type ArgMinInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface ArgMinAttrs {
   axis: number;
 }
+
+export const Asin = 'Asin';
+export type AsinInputs = UnaryInputs;
+
+export const Asinh = 'Asinh';
+export type AsinhInputs = UnaryInputs;
+
+export const Atan = 'Atan';
+export type AtanInputs = UnaryInputs;
+
+export const Atanh = 'Atanh';
+export type AtanhInputs = UnaryInputs;
 
 export const Atan2 = 'Atan2';
 export type Atan2Inputs = BinaryInputs;

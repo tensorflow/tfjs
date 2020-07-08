@@ -299,35 +299,6 @@ function reciprocal_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes absolute value element-wise: `abs(x)`
- *
- * ```js
- * const x = tf.tensor1d([-1, 2, -3, 4]);
- *
- * x.abs().print();  // or tf.abs(x)
- * ```
- * @param x The input `tf.Tensor`.
- */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
-function abs_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'abs');
-
-  if ($x.dtype === 'complex64') {
-    return ENGINE.runKernelFunc(backend => backend.complexAbs($x), {$x});
-  }
-
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [$x] = saved;
-    return {x: () => dy.mul($x.toFloat().step(-1))} as {x: () => T};
-  };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.abs($x);
-    save([$x]);
-    return res;
-  }, {x: $x}, grad, 'Abs');
-}
-
-/**
  * Clips values element-wise. `max(min(x, clipValueMax), clipValueMin)`
  *
  * ```js
@@ -521,92 +492,6 @@ function tan_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes asin of the input `tf.Tensor` element-wise: `asin(x)`
- *
- * ```js
- * const x = tf.tensor1d([0, 1, -1, .7]);
- *
- * x.asin().print();  // or tf.asin(x)
- * ```
- * @param x The input tensor.
- */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
-function asin_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'asin');
-
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [$x] = saved;
-    return {
-      // tslint:disable-next-line: no-unnecessary-type-assertion
-      $x: () => dy.div(scalar(1).sub($x.toFloat().square()).sqrt()) as T
-    };
-  };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.asin($x);
-    save([$x]);
-    return res;
-  }, {$x}, grad);
-}
-
-/**
- * Computes acos of the input `tf.Tensor` element-wise: `acos(x)`
- *
- * ```js
- * const x = tf.tensor1d([0, 1, -1, .7]);
- *
- * x.acos().print();  // or tf.acos(x)
- * ```
- * @param x The input tensor.
- */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
-function acos_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'acos');
-
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [$x] = saved;
-    return {
-      $x: () => {
-        const a = $x.toFloat().square();
-        const b = scalar(1).sub(a).sqrt();
-        // tslint:disable-next-line: no-unnecessary-type-assertion
-        return (dy.div(b) as T).neg();
-      }
-
-    };
-  };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.acos($x);
-    save([$x]);
-    return res;
-  }, {$x}, grad);
-}
-
-/**
- * Computes atan of the input `tf.Tensor` element-wise: `atan(x)`
- *
- * ```js
- * const x = tf.tensor1d([0, 1, -1, .7]);
- *
- * x.atan().print();  // or tf.atan(x)
- * ```
- * @param x The input tensor.
- */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
-function atan_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'atan');
-
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [$x] = saved;
-    return {$x: () => dy.div($x.toFloat().square().add(1))} as {$x: () => T};
-  };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.atan($x);
-    save([$x]);
-    return res;
-  }, {$x}, grad);
-}
-
-/**
  * Computes hyperbolic sin of the input `tf.Tensor` element-wise: `sinh(x)`
  *
  * ```js
@@ -689,97 +574,6 @@ function tanh_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes inverse hyperbolic sin of the input `tf.Tensor` element-wise:
- * `asinh(x)`
- *
- * ```js
- * const x = tf.tensor1d([0, 1, -1, .7]);
- *
- * x.asinh().print();  // or tf.asinh(x)
- * ```
- * @param x The input tensor.
- */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
-function asinh_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'asinh');
-
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [$x] = saved;
-    return {
-      $x: () => {
-        const a = scalar(1).add($x.toFloat().square()).sqrt();
-        // tslint:disable-next-line: no-unnecessary-type-assertion
-        return dy.div(a) as T;
-      }
-    };
-  };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.asinh($x);
-    save([$x]);
-    return res;
-  }, {$x}, grad);
-}
-
-/**
- * Computes the inverse hyperbolic cos of the input `tf.Tensor` element-wise:
- * `acosh(x)`
- *
- * ```js
- * const x = tf.tensor1d([10, 1, 3, 5.7]);
- *
- * x.acosh().print();  // or tf.acosh(x)
- * ```
- * @param x The input tensor.
- */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
-function acosh_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'acosh');
-
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [$x] = saved;
-    return {
-      $x: () => {
-        const a = $x.toFloat().square().sub(1).sqrt();
-        // tslint:disable-next-line: no-unnecessary-type-assertion
-        return dy.div(a) as T;
-      }
-    };
-  };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.acosh($x);
-    save([$x]);
-    return res;
-  }, {$x}, grad);
-}
-
-/**
- * Computes inverse hyperbolic tan of the input `tf.Tensor` element-wise:
- * `atanh(x)`
- *
- * ```js
- * const x = tf.tensor1d([0, .1, -.1, .7]);
- *
- * x.atanh().print();  // or tf.atanh(x)
- * ```
- * @param x The input tensor.
- */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
-function atanh_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'atanh');
-
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [$x] = saved;
-    return {$x: () => dy.div(scalar(1).sub($x.toFloat().square()))} as
-        {$x: () => T};
-  };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.atanh($x);
-    save([$x]);
-    return res;
-  }, {$x}, grad);
-}
-
-/**
  * Computes gause error function of the input `tf.Tensor` element-wise:
  * `erf(x)`
  *
@@ -837,13 +631,6 @@ function step_<T extends Tensor>(x: T|TensorLike, alpha = 0.0): T {
   return ENGINE.runKernelFunc(backend => backend.step($x, alpha), {$x}, grad);
 }
 
-export const abs = op({abs_});
-export const acos = op({acos_});
-export const acosh = op({acosh_});
-export const asin = op({asin_});
-export const asinh = op({asinh_});
-export const atan = op({atan_});
-export const atanh = op({atanh_});
 export const clipByValue = op({clipByValue_});
 export const cos = op({cos_});
 export const cosh = op({cosh_});

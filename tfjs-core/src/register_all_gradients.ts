@@ -14,11 +14,18 @@
  * limitations under the License.
  * =============================================================================
  */
+import {absGradConfig} from './gradients/Abs_grad';
+import {acosGradConfig} from './gradients/Acos_grad';
+import {acoshGradConfig} from './gradients/Acosh_grad';
 import {addGradConfig} from './gradients/Add_grad';
 import {addNGradConfig} from './gradients/AddN_grad';
 import {argMaxGradConfig} from './gradients/ArgMax_grad';
 import {argMinGradConfig} from './gradients/ArgMin_grad';
+import {asinGradConfig} from './gradients/Asin_grad';
+import {asinhGradConfig} from './gradients/Asinh_grad';
 import {atan2GradConfig} from './gradients/Atan2_grad';
+import {atanGradConfig} from './gradients/Atan_grad';
+import {atanhGradConfig} from './gradients/Atanh_grad';
 import {avgPool3DGradConfig} from './gradients/AvgPool3D_grad';
 import {avgPoolGradConfig} from './gradients/AvgPool_grad';
 import {batchMatMulGradConfig} from './gradients/BatchMatMul_grad';
@@ -78,11 +85,18 @@ import {registerGradient} from './kernel_registry';
 
 // Export all kernel configs here so that the package can auto register them
 const gradConfigs: GradConfig[] = [
+  absGradConfig,
+  acosGradConfig,
+  acoshGradConfig,
   addGradConfig,
   addNGradConfig,
   argMaxGradConfig,
   argMinGradConfig,
+  asinGradConfig,
+  asinhGradConfig,
   atan2GradConfig,
+  atanGradConfig,
+  atanhGradConfig,
   avgPool3DGradConfig,
   avgPoolGradConfig,
   batchMatMulGradConfig,

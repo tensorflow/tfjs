@@ -16,13 +16,20 @@
  */
 
 // Modularized ops.
+export {abs} from './abs';
+export {acos} from './acos';
+export {acosh} from './acosh';
 export {add} from './add';
 export {addN} from './add_n';
 export {all} from './all';
 export {any} from './any';
 export {argMax} from './arg_max';
 export {argMin} from './arg_min';
+export {asin} from './asin';
+export {asinh} from './asinh';
+export {atan} from './atan';
 export {atan2} from './atan2';
+export {atanh} from './atanh';
 export {avgPool} from './avg_pool';
 export {avgPool3d} from './avg_pool_3d';
 export {basicLSTMCell} from './basic_lstm_cell';
