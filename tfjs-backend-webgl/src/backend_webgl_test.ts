@@ -445,17 +445,17 @@ const WEBGL2_ENVS = {
 };
 
 describeWithFlags('computeBytes counts bytes correctly', WEBGL1_ENVS, () => {
-  it('test every physical tex type input to computeBytes',
-     () => {
+  fit('test every physical tex type input to computeBytes',
+      () => {
 
-     });
+      });
 });
 
 describeWithFlags('computeBytes counts bytes correctly', WEBGL2_ENVS, () => {
-  it('test every physical tex type input to computeBytes',
-     () => {
+  fit('test every physical tex type input to computeBytes',
+      () => {
 
-     });
+      });
 });
 
 describeWithFlags('memory webgl', WEBGL_ENVS, () => {
