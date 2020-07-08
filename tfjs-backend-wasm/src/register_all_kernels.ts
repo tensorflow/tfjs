@@ -22,11 +22,23 @@ import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 import {fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {addConfig} from './kernels/Add';
 import {addNConfig} from './kernels/AddN';
+import {argMaxConfig} from './kernels/ArgMax';
+import {avgPoolConfig} from './kernels/AvgPool';
+import {batchMatMulConfig} from './kernels/BatchMatMul';
+import {castConfig} from './kernels/Cast';
+import {clipByValueConfig} from './kernels/ClipByValue';
+import {concatConfig} from './kernels/Concat';
+import {conv2DConfig} from './kernels/Conv2D';
+import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
+import {cosConfig} from './kernels/Cos';
 import {reverseConfig} from './kernels/Reverse';
 
 // List all kernel configs here
-const kernelConfigs: KernelConfig[] =
-    [addConfig, addNConfig, fusedMatMulConfig, reverseConfig];
+const kernelConfigs: KernelConfig[] = [
+  addConfig, addNConfig, argMaxConfig, avgPoolConfig, batchMatMulConfig,
+  castConfig, clipByValueConfig, concatConfig, conv2DConfig,
+  conv2DBackpropInputConfig, cosConfig, fusedMatMulConfig, reverseConfig
+];
 
 for (const kernelConfig of kernelConfigs) {
   registerKernel(kernelConfig);

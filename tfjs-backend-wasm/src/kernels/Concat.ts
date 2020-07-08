@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, KernelFunc, NamedAttrMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, NamedAttrMap, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -54,8 +54,8 @@ function concat(
   return out;
 }
 
-registerKernel({
+export const concatConfig: KernelConfig = {
   kernelName: 'Concat',
   backendName: 'wasm',
   kernelFunc: concat as {} as KernelFunc,
-});
+};

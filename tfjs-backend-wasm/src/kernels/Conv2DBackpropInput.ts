@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, Conv2DBackpropInput, Conv2DBackpropInputAttrs, Conv2DBackpropInputInputs, NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, Conv2DBackpropInput, Conv2DBackpropInputAttrs, Conv2DBackpropInputInputs, KernelConfig, NamedAttrMap, NamedTensorInfoMap, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -121,9 +121,9 @@ function conv2DBackpropInput(args: {
   return out;
 }
 
-registerKernel({
+export const conv2DBackpropInputConfig: KernelConfig = {
   kernelName: Conv2DBackpropInput,
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: conv2DBackpropInput
-});
+};

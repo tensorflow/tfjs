@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, NamedTensorInfoMap, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -23,7 +23,7 @@ interface UnaryInputs extends NamedTensorInfoMap {
   x: TensorInfo;
 }
 
-export function registerUnaryKernel(kernelName: string) {
+export function createUnaryKernelConfig(kernelName: string): KernelConfig {
   let wasmFunc: (xId: number, outId: number) => void;
 
   function setupFunc(backend: BackendWasm): void {
@@ -47,5 +47,5 @@ export function registerUnaryKernel(kernelName: string) {
     return out;
   }
 
-  registerKernel({kernelName, backendName: 'wasm', setupFunc, kernelFunc});
+  return {kernelName, backendName: 'wasm', setupFunc, kernelFunc};
 }
