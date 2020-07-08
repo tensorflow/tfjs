@@ -53,7 +53,9 @@ function where_<T extends Tensor>(
   const $a = convertToTensor(a, 'a', 'where');
   const $b = convertToTensor(b, 'b', 'where');
   const $condition = convertToTensor(condition, 'condition', 'where', 'bool');
-  // find the broadcastable shape for $a and $b
+  // TODO: move this logic to forward function when the broadcastTo op is
+  // implemented in WASM.
+  // Find the broadcastable shape for $a and $b.
   const broadcastShape = assertAndGetBroadcastShape($a.shape, $b.shape);
   const $broadcastedA = $a.broadcastTo(broadcastShape);
   const $broadcastedB = $b.broadcastTo(broadcastShape);
@@ -62,8 +64,7 @@ function where_<T extends Tensor>(
     // condition.
     assert(
         $condition.shape[0] === $a.shape[0],
-        () =>
-            'The first dimension of `a` must match the size of `condition`.');
+        () => 'The first dimension of `a` must match the size of `condition`.');
   }
 
   if ($condition.rank !== 1) {
