@@ -8,6 +8,6 @@
   ],
   "compilerOptions": {
     "outDir": "./dist",
-    "downlevelIteration": true,
+    "downlevelIteration": true
   }
 }
