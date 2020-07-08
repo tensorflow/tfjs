@@ -166,9 +166,9 @@ ENV.registerFlag('WEBGL_SIZE_UPLOAD_UNIFORM', () => {
 });
 
 /**
- * Textures larger than this threshold will be aggressively deleted with
- * gl.deleteMatrixTexture upon disposal, rather than be made available for
- * reuse. This reduces the total memory allocated on the GPU.
+ * Textures with byte size larger than this threshold will be aggressively
+ * deleted with gl.deleteMatrixTexture upon disposal, rather than be made
+ * available for reuse. This reduces the total memory allocated on the GPU.
  *
  * Default value -1 indicates that we will never aggressively delete textures.
  */
