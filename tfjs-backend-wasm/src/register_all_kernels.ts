@@ -54,6 +54,10 @@ import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {minimumConfig} from './kernels/Minimum';
 import {multiplyConfig} from './kernels/Multiply';
+import {negateConfig} from './kernels/Negate';
+import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
+import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
+import {notEqualConfig} from './kernels/NotEqual';
 import {reverseConfig} from './kernels/Reverse';
 
 // List all kernel configs here
@@ -93,6 +97,10 @@ const kernelConfigs: KernelConfig[] = [
   maximumConfig,
   minimumConfig,
   multiplyConfig,
+  negateConfig,
+  nonMaxSuppressionV3Config,
+  nonMaxSuppressionV5Config,
+  notEqualConfig,
   reverseConfig
 ];
 
