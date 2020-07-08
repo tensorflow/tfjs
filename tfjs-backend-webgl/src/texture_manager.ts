@@ -33,22 +33,30 @@ export class TextureManager {
 
   constructor(private gpgpu: GPGPUContext) {}
 
-  computeBytes(
-      shape: [number, number], internalFormat: number,
-      isPacked: boolean): number {
-    if (isPacked) {
-      const [packedWidth, packedHeight] =
-          getPackedMatrixTextureShapeWidthHeight(shape[0], shape[1]);
-      const numPackedElements = packedWidth * packedHeight;
-      return numPackedElements *
-          numBytesForInternalFormat(this.gpgpu.gl, internalFormat);
-    }
-
+  computeBytes(shape: [number, number], internalFormat: number): number {
+    const [packedWidth, packedHeight] =
+        getPackedMatrixTextureShapeWidthHeight(shape[0], shape[1]);
+    const numPackedElements = packedWidth * packedHeight;
     const [width, height] =
         getUnpackedMatrixTextureShapeWidthHeight(shape[0], shape[1]);
     const numElements = width * height;
-    return numElements *
+    const bytesPerElement =
         numBytesForInternalFormat(this.gpgpu.gl, internalFormat);
+    if (internalFormat === this.gpgpu.textureConfig.internalFormatPackedFloat) {
+      return numPackedElements * bytesPerElement;
+    } else if (
+        internalFormat ===
+        this.gpgpu.textureConfig.internalFormatPackedHalfFloat) {
+      return numPackedElements * bytesPerElement;
+    } else if (
+        internalFormat === this.gpgpu.textureConfig.downloadTextureFormat) {
+      return numElements * bytesPerElement;
+    } else if (
+        internalFormat === this.gpgpu.textureConfig.internalFormatHalfFloat) {
+      return numElements * bytesPerElement;
+    }
+    // internalFormatFloat
+    return numElements * bytesPerElement;
   }
 
   acquireTexture(
@@ -70,7 +78,7 @@ export class TextureManager {
     if (this.freeTextures[shapeKey].length > 0) {
       this.numFreeTextures--;
       this.numUsedTextures++;
-      this.numBytesFree -= this.computeBytes(shapeRC, internalFormat, isPacked);
+      this.numBytesFree -= this.computeBytes(shapeRC, internalFormat);
       this.log();
       const newTexture = this.freeTextures[shapeKey].shift();
       this.usedTextures[shapeKey].push(newTexture);
@@ -98,8 +106,7 @@ export class TextureManager {
     this.usedTextures[shapeKey].push(newTexture);
 
     this.numUsedTextures++;
-    this.numBytesAllocated +=
-        this.computeBytes(shapeRC, internalFormat, isPacked);
+    this.numBytesAllocated += this.computeBytes(shapeRC, internalFormat);
     this.log();
 
     return newTexture;
@@ -121,7 +128,7 @@ export class TextureManager {
 
     const internalFormat = getInternalFormatForPhysicalTextureType(
         physicalTexType, this.gpgpu.textureConfig);
-    const texBytes = this.computeBytes(shape, internalFormat, isPacked);
+    const texBytes = this.computeBytes(shape, internalFormat);
     const webglDeleteTextureThreshold =
         env().get('WEBGL_DELETE_TEXTURE_THRESHOLD');
     if (webglDeleteTextureThreshold !== -1 &&
