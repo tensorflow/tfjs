@@ -58,9 +58,10 @@ export function rotate(
   const centerY =
       imageHeight * (typeof center === 'number' ? center : center[1]);
 
+  const fillIsBlack = fillValue === 0;
   const fillValues = typeof fillValue === 'number' ?
-      [fillValue, fillValue, fillValue] :
-      fillValue;
+      [fillValue, fillValue, fillValue, fillIsBlack ? 0 : 255] :
+      [...fillValue, 255];
   const fillBytes = new Uint8Array(new Int32Array(fillValues).buffer);
 
   wasmRotate(
