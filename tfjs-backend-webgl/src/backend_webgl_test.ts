@@ -434,6 +434,30 @@ describeWithFlags('debug on webgl', WEBGL_ENVS, () => {
   });
 });
 
+const WEBGL1_ENVS = {
+  flags: {'WEBGL_VERSION': 1},
+  predicate: WEBGL_ENVS.predicate
+};
+
+const WEBGL2_ENVS = {
+  flags: {'WEBGL_VERSION': 2},
+  predicate: WEBGL_ENVS.predicate
+};
+
+describeWithFlags('computeBytes counts bytes correctly', WEBGL1_ENVS, () => {
+  it('test every physical tex type input to computeBytes',
+     () => {
+
+     });
+});
+
+describeWithFlags('computeBytes counts bytes correctly', WEBGL2_ENVS, () => {
+  it('test every physical tex type input to computeBytes',
+     () => {
+
+     });
+});
+
 describeWithFlags('memory webgl', WEBGL_ENVS, () => {
   it('unreliable is falsy/not present when all tensors are numeric', () => {
     tf.tensor(1);

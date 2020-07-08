@@ -125,7 +125,11 @@ export interface CPUTimerQuery {
 
 export interface WebGLMemoryInfo extends MemoryInfo {
   numBytesInGPU: number;
+  // Tracks the total number of bytes allocated on the GPU, accounting for the
+  // physical texture type.
   numBytesInGPUAllocated: number;
+  // Tracks byte size of textures that were created and then disposed / made
+  // available for recycling.
   numBytesInGPUFree: number;
   unreliable: boolean;
 }
