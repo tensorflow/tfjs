@@ -55,10 +55,12 @@ void Rotate(const size_t image_id, const size_t batch,
           const size_t x = col;
           const size_t y = row;
 
-          size_t coord_x = round(center_x + (x - center_x) * cos_factor -
-                                 (y - center_y) * sin_factor);
-          size_t coord_y = round(center_y + (x - center_x) * sin_factor -
-                                 (y - center_y) * cos_factor);
+          float coord_x_f =
+              (x - center_x) * cos_factor - (y - center_y) * sin_factor;
+          float coord_y_f =
+              (x - center_x) * sin_factor + (y - center_y) * cos_factor;
+          const int coord_x = round(coord_x_f + center_x);
+          const int coord_y = round(coord_y_f + center_y);
 
           float output_value = fill[channel];
           if (coord_x >= 0 && coord_x < image_width && coord_y >= 0 &&
