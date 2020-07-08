@@ -20,6 +20,7 @@ import {Tensor, Tensor1D} from '../tensor';
 
 import {concat} from './concat';
 import {fill} from './fill';
+import {reshape} from './reshape';
 import {slice} from './slice';
 import {tensor2d} from './tensor_ops';
 
@@ -65,6 +66,6 @@ function frame_(
     return tensor2d([], [0, frameLength]);
   }
 
-  return concat(output).as2D(output.length, frameLength);
+  return reshape(concat(output), [output.length, frameLength]);
 }
 export const frame = op({frame_});

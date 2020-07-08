@@ -23,6 +23,7 @@ import {frame} from './frame';
 import {hannWindow} from './hann_window';
 import {mul} from './mul';
 import {enclosingPowerOfTwo} from './signal_ops_util';
+import {slice} from './slice';
 import {rfft} from './spectral_ops';
 
 /**
@@ -54,7 +55,7 @@ function stft_(
   const output: Tensor[] = [];
   for (let i = 0; i < framedSignal.shape[0]; i++) {
     output.push(
-        rfft(windowedSignal.slice([i, 0], [1, frameLength]), fftLength));
+        rfft(slice(windowedSignal, [i, 0], [1, frameLength]), fftLength));
   }
   return concat(output);
 }
