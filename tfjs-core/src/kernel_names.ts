@@ -119,6 +119,9 @@ export interface BroadCastToAttrs {
   inputShape: number[];  // for gradient
 }
 
+export const Ceil = 'Ceil';
+export type CeilInputs = UnaryInputs;
+
 export const Complex = 'Complex';
 export type ComplexInputs = Pick<NamedTensorInfoMap, 'real'|'imag'>;
 
@@ -256,6 +259,9 @@ export type EluGradInputs = Pick<NamedTensorInfoMap, 'dy'|'y'>;
 export const Equal = 'Equal';
 export type EqualInputs = BinaryInputs;
 
+export const Floor = 'Floor';
+export type FloorInputs = UnaryInputs;
+
 export const FloorDiv = 'FloorDiv';
 export type FloorDivInputs = BinaryInputs;
 
@@ -271,6 +277,12 @@ export type FusedBatchNormInputs =
     Pick<NamedTensorInfoMap, 'x'|'scale'|'offset'|'mean'|'variance'>;
 export interface FusedBatchNormAttrs {
   varianceEpsilon: number;
+}
+
+export const GatherV2 = 'GatherV2';
+export type GatherV2Inputs = Pick<NamedTensorInfoMap, 'x'|'indices'>;
+export interface GatherV2Attrs {
+  axis: number;
 }
 
 export const GatherNd = 'GatherNd';
@@ -404,6 +416,9 @@ export type ModInputs = BinaryInputs;
 export const Multiply = 'Multiply';
 export type MultiplyInputs = BinaryInputs;
 
+export const Negate = 'Negate';
+export type NegateInputs = UnaryInputs;
+
 export const NotEqual = 'NotEqual';
 export type NotEqualInputs = BinaryInputs;
 
@@ -499,11 +514,20 @@ export interface ReverseAttrs {
   dims: number|number[];
 }
 
+export const ScatterNd = 'ScatterNd';
+export type ScatterNdInputs = Pick<NamedTensorInfoMap, 'indices'|'updates'>;
+export interface ScatterNdAttrs {
+  shape: number[];
+}
+
 export const SelectV2 = 'SelectV2';
 export type SelectV2Inputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
 
 export const Selu = 'Selu';
 export type SeluInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const Sign = 'Sign';
+export type SignInputs = UnaryInputs;
 
 export const Sum = 'Sum';
 export type SumInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -547,10 +571,19 @@ export interface TransposeAttrs {
   perm: number[];
 }
 
+export type UnaryInputs = Pick<NamedTensorInfoMap, 'x'>;
+
 export const Unpack = 'Unpack';
 export type UnpackInputs = Pick<NamedTensorInfoMap, 'value'>;
 export interface UnpackAttrs {
   axis: number;
+}
+
+export const UnsortedSegmentSum = 'UnsortedSegmentSum';
+export type UnsortedSegmentSumInputs =
+    Pick<NamedTensorInfoMap, 'x'|'segmentIds'>;
+export interface UnsortedSegmentSumAttrs {
+  numSegments: number;
 }
 
 /**

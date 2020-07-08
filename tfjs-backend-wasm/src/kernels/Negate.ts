@@ -15,19 +15,5 @@
  * =============================================================================
  */
 
-import {unsortedSegmentSum} from '../../ops/unsorted_segment_sum';
-import {Tensor, Tensor1D} from '../../tensor';
-import {Rank, TensorLike1D} from '../../types';
-
-declare module '../../tensor' {
-  interface Tensor<R extends Rank = Rank> {
-    unsortedSegmentSum<T extends Tensor>(
-        this: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T;
-  }
-}
-
-Tensor.prototype.unsortedSegmentSum = function<T extends Tensor>(
-    this: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T {
-  this.throwIfDisposed();
-  return unsortedSegmentSum(this, segmentIds, numSegments);
-};
+import {registerUnaryKernel} from './unary_kernel';
+registerUnaryKernel('Negate');

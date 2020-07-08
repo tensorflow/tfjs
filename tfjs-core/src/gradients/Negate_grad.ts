@@ -15,19 +15,14 @@
  * =============================================================================
  */
 
-import {unsortedSegmentSum} from '../../ops/unsorted_segment_sum';
-import {Tensor, Tensor1D} from '../../tensor';
-import {Rank, TensorLike1D} from '../../types';
+import {Negate} from '../kernel_names';
+import {GradConfig} from '../kernel_registry';
+import {neg} from '../ops/neg';
+import {Tensor} from '../tensor';
 
-declare module '../../tensor' {
-  interface Tensor<R extends Rank = Rank> {
-    unsortedSegmentSum<T extends Tensor>(
-        this: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T;
+export const negateGradConfig: GradConfig = {
+  kernelName: Negate,
+  gradFunc: (dy: Tensor) => {
+    return {x: () => neg(dy)};
   }
-}
-
-Tensor.prototype.unsortedSegmentSum = function<T extends Tensor>(
-    this: T, segmentIds: Tensor1D|TensorLike1D, numSegments: number): T {
-  this.throwIfDisposed();
-  return unsortedSegmentSum(this, segmentIds, numSegments);
 };
