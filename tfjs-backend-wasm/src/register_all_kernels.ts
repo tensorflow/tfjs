@@ -49,6 +49,11 @@ import {identityConfig} from './kernels/Identity';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {logConfig} from './kernels/Log';
+import {logicalAndConfig} from './kernels/LogicalAnd';
+import {maxConfig} from './kernels/Max';
+import {maximumConfig} from './kernels/Maximum';
+import {minimumConfig} from './kernels/Minimum';
+import {multiplyConfig} from './kernels/Multiply';
 import {reverseConfig} from './kernels/Reverse';
 
 // List all kernel configs here
@@ -83,6 +88,11 @@ const kernelConfigs: KernelConfig[] = [
   lessConfig,
   lessEqualConfig,
   logConfig,
+  logicalAndConfig,
+  maxConfig,
+  maximumConfig,
+  minimumConfig,
+  multiplyConfig,
   reverseConfig
 ];
 
