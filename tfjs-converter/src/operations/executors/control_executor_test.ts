@@ -972,7 +972,7 @@ describe('control', () => {
   });
 
   describe('HashTable', () => {
-    it('should create new tensor on the context', async () => {
+    it('should create new tensor on the context.', async () => {
       node.op = 'HashTable';
       node.attrParams['name'] = createStrAttr('');
       node.attrParams['sharedName'] = createDtypeAttr('');
@@ -980,12 +980,17 @@ describe('control', () => {
       node.attrParams['keyDType'] = createDtypeAttr('string');
       node.attrParams['valueDType'] = createDtypeAttr('float32');
 
+      const before = tfc.memory().numTensors;
       const handle = (await executeOp(node, {}, context))[0];
+      const after = tfc.memory().numTensors;
+      // 1 handle tensor is created.
+      expect(after).toBe(before + 1);
+
       const hashTable = context.getHashTable(handle);
       expect(hashTable).toBeDefined();
       expect(hashTable.initialized).toEqual(false);
     });
-    it('should match json def', () => {
+    it('should match json def.', () => {
       node.op = 'HashTable';
       node.attrParams['sharedName'] = createStrAttr('');
       node.attrParams['useNodeNameSharing'] = createBoolAttr(false);
@@ -997,7 +1002,7 @@ describe('control', () => {
   });
 
   describe('HashTableV2', () => {
-    it('should create new tensor on the context', async () => {
+    it('should create new tensor on the context.', async () => {
       node.op = 'HashTableV2';
       node.attrParams['name'] = createStrAttr('');
       node.attrParams['sharedName'] = createDtypeAttr('');
@@ -1005,12 +1010,17 @@ describe('control', () => {
       node.attrParams['keyDType'] = createDtypeAttr('string');
       node.attrParams['valueDType'] = createDtypeAttr('float32');
 
+      const before = tfc.memory().numTensors;
       const handle = (await executeOp(node, {}, context))[0];
+      const after = tfc.memory().numTensors;
+      // 1 handle tensor is created.
+      expect(after).toBe(before + 1);
+
       const hashTable = context.getHashTable(handle);
       expect(hashTable).toBeDefined();
       expect(hashTable.initialized).toEqual(false);
     });
-    it('should match json def', () => {
+    it('should match json def.', () => {
       node.op = 'HashTableV2';
       node.attrParams['sharedName'] = createStrAttr('');
       node.attrParams['useNodeNameSharing'] = createBoolAttr(false);
@@ -1022,7 +1032,7 @@ describe('control', () => {
   });
 
   describe('LookupTableFind', () => {
-    it('should create new tensor on the context', async () => {
+    it('should create new tensor on the context.', async () => {
       const hashTable = new HashTable('int32', 'float32');
       const keys = tfc.tensor1d([1], 'int32');
       const values = tfc.tensor1d([5.5]);
@@ -1039,11 +1049,42 @@ describe('control', () => {
       const input3 = [tfc.tensor1d([1, 2], 'int32')];
       const input5 = [scalar(0)];
 
+      const before = tfc.memory().numTensors;
       const result = (await executeOp(node, {input2, input3, input5}, context));
+      const after = tfc.memory().numTensors;
       test_util.expectArraysClose(await result[0].data(), [5.5, 0]);
+      expect(after).toBe(before + 1);
     });
-    it('should match json def', () => {
-      node.op = 'LookupTableFindV2';
+    it('should throw if dtype doesnot match.', async (done) => {
+      const hashTable = new HashTable('int32', 'float32');
+      const keys = tfc.tensor1d([1], 'int32');
+      const values = tfc.tensor1d([5.5]);
+      hashTable.initialize(keys, values);
+      context.addHashTable(hashTable);
+      const handle = hashTable.handle;
+
+      node.op = 'LookupTableFind';
+      node.inputParams['tableHandle'] = createTensorAttr(0);
+      node.inputParams['keys'] = createTensorAttr(1);
+      node.inputParams['defaultValue'] = createTensorAttr(2);
+      node.inputNames = ['input2', 'input3', 'input5'];
+      const input2 = [handle];
+      const input3 = [tfc.tensor1d([1, 2], 'float32')];
+      const input5 = [scalar(0)];
+
+      const before = tfc.memory().numTensors;
+      try {
+        await executeOp(node, {input2, input3, input5}, context);
+        done.fail('Shoudl fail, succeed unexpectedly.');
+      } catch (err) {
+        expect(err).toMatch(/Expect key dtype/);
+      }
+      const after = tfc.memory().numTensors;
+      expect(after).toBe(before + 1);
+      done();
+    });
+    it('should match json def.', () => {
+      node.op = 'LookupTableFind';
       node.inputParams['tableHandle'] = createTensorAttr(0);
       node.inputParams['keys'] = createTensorAttr(1);
       node.inputParams['defaultValue'] = createTensorAttr(2);
@@ -1053,7 +1094,7 @@ describe('control', () => {
   });
 
   describe('LookupTableFindV2', () => {
-    it('should create new tensor on the context', async () => {
+    it('should create new tensor on the context.', async () => {
       const hashTable = new HashTable('int32', 'float32');
       const keys = tfc.tensor1d([1], 'int32');
       const values = tfc.tensor1d([5.5]);
@@ -1070,10 +1111,41 @@ describe('control', () => {
       const input3 = [tfc.tensor1d([1, 2], 'int32')];
       const input5 = [scalar(0)];
 
+      const before = tfc.memory().numTensors;
       const result = (await executeOp(node, {input2, input3, input5}, context));
+      const after = tfc.memory().numTensors;
       test_util.expectArraysClose(await result[0].data(), [5.5, 0]);
+      expect(after).toBe(before + 1);
     });
-    it('should match json def', () => {
+    it('should throw if dtype doesnot match.', async (done) => {
+      const hashTable = new HashTable('int32', 'float32');
+      const keys = tfc.tensor1d([1], 'int32');
+      const values = tfc.tensor1d([5.5]);
+      hashTable.initialize(keys, values);
+      context.addHashTable(hashTable);
+      const handle = hashTable.handle;
+
+      node.op = 'LookupTableFind';
+      node.inputParams['tableHandle'] = createTensorAttr(0);
+      node.inputParams['keys'] = createTensorAttr(1);
+      node.inputParams['defaultValue'] = createTensorAttr(2);
+      node.inputNames = ['input2', 'input3', 'input5'];
+      const input2 = [handle];
+      const input3 = [tfc.tensor1d([1, 2], 'float32')];
+      const input5 = [scalar(0)];
+
+      const before = tfc.memory().numTensors;
+      try {
+        await executeOp(node, {input2, input3, input5}, context);
+        done.fail('Shoudl fail, succeed unexpectedly.');
+      } catch (err) {
+        expect(err).toMatch(/Expect key dtype/);
+      }
+      const after = tfc.memory().numTensors;
+      expect(after).toBe(before + 1);
+      done();
+    });
+    it('should match json def.', () => {
       node.op = 'LookupTableFindV2';
       node.inputParams['tableHandle'] = createTensorAttr(0);
       node.inputParams['keys'] = createTensorAttr(1);
