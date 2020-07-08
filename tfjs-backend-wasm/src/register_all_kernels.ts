@@ -20,10 +20,13 @@
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
 import {fusedMatMulConfig} from './kernels/_FusedMatMul';
+import {addConfig} from './kernels/Add';
+import {addNConfig} from './kernels/AddN';
 import {reverseConfig} from './kernels/Reverse';
 
 // List all kernel configs here
-const kernelConfigs: KernelConfig[] = [fusedMatMulConfig, reverseConfig];
+const kernelConfigs: KernelConfig[] =
+    [addConfig, addNConfig, fusedMatMulConfig, reverseConfig];
 
 for (const kernelConfig of kernelConfigs) {
   registerKernel(kernelConfig);
