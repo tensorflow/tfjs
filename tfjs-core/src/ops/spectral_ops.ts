@@ -179,11 +179,10 @@ function rfft_(input: Tensor, fftLength?: number): Tensor {
 function irfft_(input: Tensor): Tensor {
   const innerDimensionSize = input.shape[input.shape.length - 1];
   const batch = input.size / innerDimensionSize;
-
+  let ret: Tensor;
   if (innerDimensionSize <= 2) {
     const complexInput = input.as2D(batch, innerDimensionSize);
-    const ret = ifft(complexInput);
-    return real(ret);
+    ret = ifft(complexInput);
   } else {
     // The length of unique components of the DFT of a real-valued signal
     // is 2 * (input_len - 1)
@@ -201,9 +200,17 @@ function irfft_(input: Tensor): Tensor {
     const r = realInput.concat(realConjugate, 1);
     const i = imagInput.concat(imagConjugate, 1);
     const complexInput = complex(r, i).as2D(outputShape[0], outputShape[1]);
-    const ret = ifft(complexInput);
-    return real(ret);
+    ret = ifft(complexInput);
   }
+  ret = real(ret);
+  // reshape the result if the input is 3D tensor.
+  if (input.rank === 3 && input.shape[0] !== 0) {
+    const temp = ret;
+    const batch = input.shape[0];
+    ret = ret.reshape([batch, ret.shape[0] / batch, ret.shape[1]]);
+    temp.dispose();
+  }
+  return ret;
 }
 
 export const fft = op({fft_});
