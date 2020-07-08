@@ -164,3 +164,14 @@ ENV.registerFlag('WEBGL_SIZE_UPLOAD_UNIFORM', () => {
   const useUniforms = ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED');
   return useUniforms ? 4 : 0;
 });
+
+/**
+ * Textures larger than this threshold will be aggressively deleted with
+ * gl.deleteMatrixTexture upon disposal, rather than be made available for
+ * reuse. This reduces the total memory allocated on the GPU.
+ *
+ * Default value -1 indicates that we will never aggressively delete textures.
+ */
+ENV.registerFlag('WEBGL_DELETE_TEXTURE_THRESHOLD', () => {
+  return -1;
+});

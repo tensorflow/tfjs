@@ -118,12 +118,24 @@ export class TextureManager {
     if (!(shapeKey in this.freeTextures)) {
       this.freeTextures[shapeKey] = [];
     }
-    this.freeTextures[shapeKey].push(texture);
-    this.numFreeTextures++;
-    this.numUsedTextures--;
+
     const internalFormat = getInternalFormatForPhysicalTextureType(
         physicalTexType, this.gpgpu.textureConfig);
-    this.numBytesFree += this.computeBytes(shape, internalFormat, isPacked);
+    const texBytes = this.computeBytes(shape, internalFormat, isPacked);
+    const webglDeleteTextureThreshold =
+        env().get('WEBGL_DELETE_TEXTURE_THRESHOLD');
+    if (webglDeleteTextureThreshold !== -1 &&
+        texBytes > webglDeleteTextureThreshold) {
+      this.gpgpu.deleteMatrixTexture(texture);
+      this.numBytesAllocated -= texBytes;
+    } else {
+      this.freeTextures[shapeKey].push(texture);
+      this.numFreeTextures++;
+      this.numBytesFree += texBytes;
+    }
+
+    this.numUsedTextures--;
+
     const texList = this.usedTextures[shapeKey];
     const texIndex = texList.indexOf(texture);
     if (texIndex < 0) {
