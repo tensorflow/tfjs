@@ -526,6 +526,13 @@ export type SelectV2Inputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
 export const Selu = 'Selu';
 export type SeluInputs = Pick<NamedTensorInfoMap, 'x'>;
 
+export const Slice = 'Slice';
+export type SliceInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface SliceAttrs {
+  begin: number|number[];
+  size: number|number[];
+}
+
 export const Sign = 'Sign';
 export type SignInputs = UnaryInputs;
 

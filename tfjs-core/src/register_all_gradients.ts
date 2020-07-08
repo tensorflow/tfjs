@@ -63,6 +63,7 @@ import {reverseGradConfig} from './gradients/Reverse_grad';
 import {selectV2PoolGradConfig} from './gradients/SelectV2_grad';
 import {seluGradConfig} from './gradients/Selu_grad';
 import {signGradConfig} from './gradients/Sign_grad';
+import {sliceGradConfig} from './gradients/Slice_grad';
 import {spaceToBatchNDGradConfig} from './gradients/SpaceToBatchND_grad';
 import {splitVGradConfig} from './gradients/SplitV_grad';
 import {squareGradConfig} from './gradients/Square_grad';
@@ -130,6 +131,7 @@ const gradConfigs: GradConfig[] = [
   selectV2PoolGradConfig,
   seluGradConfig,
   signGradConfig,
+  sliceGradConfig,
   spaceToBatchNDGradConfig,
   spaceToBatchNDGradConfig,
   splitVGradConfig,
