@@ -72,6 +72,6 @@ export function rotate(
 export const rotateConfig: KernelConfig = {
   kernelName: Rotate,
   backendName: 'wasm',
-  kernelFunc: rotate as KernelFunc,
+  kernelFunc: rotate as {} as KernelFunc,
   setupFunc: setup
 };
