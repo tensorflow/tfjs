@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {DataType, equal, keep, scalar, stack, Tensor, unstack, util} from '@tensorflow/tfjs-core';
+import {DataType, equal, keep, scalar, stack, Tensor, tidy, unstack, util} from '@tensorflow/tfjs-core';
 
 /**
  * Hashtable contains a set of tensors, which can be accessed by key.
@@ -91,11 +91,16 @@ export class HashTable {
     const result: Tensor[] = [];
     for (let i = 0; i < $keys.length; i++) {
       const key = $keys[i];
-      this.checkKeyAndValueTensor(key, defaultValue);
 
-      const value = await this.findWithDefault(key, defaultValue);
+      try {
+        this.checkKeyAndValueTensor(key, defaultValue);
 
-      result.push(value);
+        const value = await this.findWithDefault(key, defaultValue);
+
+        result.push(value);
+      } finally {
+        key.dispose();
+      }
     }
 
     return stack(result);
@@ -117,27 +122,37 @@ export class HashTable {
   }
 
   private insert(keys: Tensor, values: Tensor) {
-    const $keys = unstack(keys);
-    const $values = unstack(values);
+    tidy(() => {
+      const $keys = unstack(keys);
+      const $values = unstack(values);
 
-    for (let i = 0; i < $keys.length; i++) {
-      const key = $keys[i];
-      const value = $values[i];
+      for (let i = 0; i < $keys.length; i++) {
+        const key = $keys[i];
+        const value = $values[i];
 
-      this.checkKeyAndValueTensor(key, value);
+        this.checkKeyAndValueTensor(key, value);
 
-      if (this.tensorMap.has(key) && this.tensorMap.get(key) !== value) {
-        throw new Error(`HashTable ${this.sharedName} already has key ${key}`);
+        if (this.tensorMap.has(key) && this.tensorMap.get(key) !== value) {
+          throw new Error(
+              `HashTable ${this.sharedName} already has key ${key}`);
+        }
+
+        this.tensorMap.set(key, value);
+
+        keep(key);
+        keep(value);
       }
-
-      this.tensorMap.set(key, value);
-    }
+    });
   }
 
   private async findWithDefault(keyToFind: Tensor, defaultValue: Tensor):
       Promise<Tensor> {
     for (const [key, value] of this.tensorMap) {
-      const $isEqual = (await equal(key, keyToFind).data())[0];
+      const isEqual = equal(key, keyToFind);
+      const $isEqual = (await isEqual.data())[0];
+
+      isEqual.dispose();
+
       if ($isEqual) {
         return value;
       }
