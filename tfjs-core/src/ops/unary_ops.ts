@@ -415,165 +415,6 @@ function softplus_<T extends Tensor>(x: T|TensorLike): T {
 }
 
 /**
- * Computes sin of the input Tensor element-wise: `sin(x)`
- *
- * ```js
- * const x = tf.tensor1d([0, Math.PI / 2, Math.PI * 3 / 4]);
- *
- * x.sin().print();  // or tf.sin(x)
- * ```
- * @param x The input tensor.
- */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
-function sin_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'sin');
-
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [$x] = saved;
-    return {x: () => $x.toFloat().cos().mul(dy)} as {x: () => T};
-  };
-  const inputsToSave = [$x];
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.sin($x);
-    save([$x]);
-    return res;
-  }, {x: $x}, grad, 'Sin', {} /* attrs */, inputsToSave);
-}
-
-/**
- * Computes cos of the input `tf.Tensor` element-wise: `cos(x)`
- *
- * ```js
- * const x = tf.tensor1d([0, Math.PI / 2, Math.PI * 3 / 4]);
- *
- * x.cos().print();  // or tf.cos(x)
- * ```
- * @param x The input tensor.
- */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
-function cos_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'cos');
-
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [$x] = saved;
-    return {x: () => $x.toFloat().sin().neg().mul(dy)} as {x: () => T};
-  };
-  const inputsToSave = [$x];
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.cos($x);
-    save([$x]);
-    return res;
-  }, {x: $x}, grad, 'Cos', {} /* attrs */, inputsToSave);
-}
-
-/**
- * Computes tan of the input `tf.Tensor` element-wise, `tan(x)`
- *
- * ```js
- * const x = tf.tensor1d([0, Math.PI / 2, Math.PI * 3 / 4]);
- *
- * x.tan().print();  // or tf.tan(x)
- * ```
- * @param x The input tensor.
- */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
-function tan_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'tan');
-
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [$x] = saved;
-    return {$x: () => dy.div($x.cos().square())} as {$x: () => T};
-  };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.tan($x);
-    save([$x]);
-    return res;
-  }, {$x}, grad);
-}
-
-/**
- * Computes hyperbolic sin of the input `tf.Tensor` element-wise: `sinh(x)`
- *
- * ```js
- * const x = tf.tensor1d([0, 1, -1, .7]);
- *
- * x.sinh().print();  // or tf.sinh(x)
- * ```
- * @param x The input tensor.
- */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
-function sinh_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'sinh');
-
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [$x] = saved;
-    // tslint:disable-next-line: no-unnecessary-type-assertion
-    return {$x: () => $x.toFloat().cosh().mul(dy) as T};
-  };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.sinh($x);
-    save([$x]);
-    return res;
-  }, {$x}, grad);
-}
-
-/**
- * Computes hyperbolic cos of the input `tf.Tensor` element-wise: `cosh(x)`
- *
- * ```js
- * const x = tf.tensor1d([0, 1, -1, .7]);
- *
- * x.cosh().print();  // or tf.cosh(x)
- * ```
- * @param x The input tensor.
- */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
-function cosh_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'cosh');
-
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [$x] = saved;
-    // tslint:disable-next-line: no-unnecessary-type-assertion
-    return {$x: () => $x.toFloat().sinh().mul(dy) as T};
-  };
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.cosh($x);
-    save([$x]);
-    return res;
-  }, {$x}, grad);
-}
-
-/**
- * Computes hyperbolic tangent of the input `tf.Tensor` element-wise: `tanh(x)`
- *
- * ```js
- * const x = tf.tensor1d([0, 1, -1, 70]);
- *
- * x.tanh().print();  // or tf.tanh(x)
- * ```
- * @param x The input tensor.
- */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
-function tanh_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'tanh');
-
-  const grad = (dy: T, saved: Tensor[]) => {
-    const [y] = saved;
-    // tslint:disable-next-line: no-unnecessary-type-assertion
-    return {x: () => scalar(1).sub(y.square()).mul(dy) as T};
-  };
-  const outputsToSave = [true];
-  return ENGINE.runKernelFunc(
-      (backend, save) => {
-        const y = backend.tanh($x);
-        save([y]);
-        return y;
-      },
-      {x: $x}, grad, 'Tanh', {} /* attrs */, null /* inputsToSave */,
-      outputsToSave);
-}
-
-/**
  * Computes gause error function of the input `tf.Tensor` element-wise:
  * `erf(x)`
  *
@@ -632,8 +473,6 @@ function step_<T extends Tensor>(x: T|TensorLike, alpha = 0.0): T {
 }
 
 export const clipByValue = op({clipByValue_});
-export const cos = op({cos_});
-export const cosh = op({cosh_});
 export const erf = op({erf_});
 export const exp = op({exp_});
 export const expm1 = op({expm1_});
@@ -647,10 +486,6 @@ export const sigmoid = op({sigmoid_});
 export const isNaN = op({isNaN_});
 export const isInf = op({isInf_});
 export const isFinite = op({isFinite_});
-export const sin = op({sin_});
-export const sinh = op({sinh_});
 export const softplus = op({softplus_});
 export const sqrt = op({sqrt_});
 export const step = op({step_});
-export const tan = op({tan_});
-export const tanh = op({tanh_});

@@ -204,6 +204,12 @@ export interface Conv3DBackpropInputAttrs {
   pad: 'valid'|'same';
 }
 
+export const Cos = 'Cos';
+export type CosInputs = UnaryInputs;
+
+export const Cosh = 'Cosh';
+export type CoshInputs = UnaryInputs;
+
 export const Cumsum = 'Cumsum';
 export type CumsumInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface CumsumAttrs {
@@ -547,6 +553,12 @@ export type SelectV2Inputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
 export const Selu = 'Selu';
 export type SeluInputs = Pick<NamedTensorInfoMap, 'x'>;
 
+export const Sin = 'Sin';
+export type SinInputs = UnaryInputs;
+
+export const Sinh = 'Sinh';
+export type SinhInputs = UnaryInputs;
+
 export const Sign = 'Sign';
 export type SignInputs = UnaryInputs;
 
@@ -579,6 +591,12 @@ export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
 
 export const Sub = 'Sub';
 export type SubInputs = BinaryInputs;
+
+export const Tan = 'Tan';
+export type TanInputs = UnaryInputs;
+
+export const Tanh = 'Tanh';
+export type TanhInputs = UnaryInputs;
 
 export const Tile = 'Tile';
 export type TileInputs = Pick<NamedTensorInfoMap, 'x'>;

@@ -26,7 +26,6 @@ import {Reduction} from './loss_ops_utils';
 import {op} from './operation';
 import {sub} from './sub';
 
-
 /**
  * Computes the absolute difference loss between two tensors.
  *

@@ -25,7 +25,8 @@ import {matMul} from './mat_mul';
 import {mul} from './mul';
 import {op} from './operation';
 import {slice} from './slice';
-import {sigmoid, tanh} from './unary_ops';
+import {tanh} from './tanh';
+import {sigmoid} from './unary_ops';
 
 /**
  * Computes the next state and output of a BasicLSTMCell.

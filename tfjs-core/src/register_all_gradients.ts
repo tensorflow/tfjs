@@ -36,6 +36,8 @@ import {concatGradConfig} from './gradients/Concat_grad';
 import {conv2DGradConfig} from './gradients/Conv2D_grad';
 import {conv2DBackpropInputGradConfig} from './gradients/Conv2DBackpropInput_grad';
 import {conv3DGradConfig} from './gradients/Conv3D_grad';
+import {cosGradConfig} from './gradients/Cos_grad';
+import {coshGradConfig} from './gradients/Cosh_grad';
 import {cumsumGradConfig} from './gradients/Cumsum_grad';
 import {depthwiseConv2dNativeGradConfig} from './gradients/DepthwiseConv2dNative_grad';
 import {dilation2dGradConfig} from './gradients/Dilation2D_grad';
@@ -70,12 +72,16 @@ import {reverseGradConfig} from './gradients/Reverse_grad';
 import {selectV2PoolGradConfig} from './gradients/SelectV2_grad';
 import {seluGradConfig} from './gradients/Selu_grad';
 import {signGradConfig} from './gradients/Sign_grad';
+import {sinGradConfig} from './gradients/Sin_grad';
+import {sinhGradConfig} from './gradients/Sinh_grad';
 import {spaceToBatchNDGradConfig} from './gradients/SpaceToBatchND_grad';
 import {splitVGradConfig} from './gradients/SplitV_grad';
 import {squareGradConfig} from './gradients/Square_grad';
 import {squaredDifferenceGradConfig} from './gradients/SquaredDifference_grad';
 import {subGradConfig} from './gradients/Sub_grad';
 import {sumGradConfig} from './gradients/Sum_grad';
+import {tanGradConfig} from './gradients/Tan_grad';
+import {tanhGradConfig} from './gradients/Tanh_grad';
 import {tileGradConfig} from './gradients/Tile_grad';
 import {transposeGradConfig} from './gradients/Transpose_grad';
 import {unpackGradConfig} from './gradients/Unpack_grad';
@@ -107,6 +113,8 @@ const gradConfigs: GradConfig[] = [
   conv2DBackpropInputGradConfig,
   conv2DGradConfig,
   conv3DGradConfig,
+  cosGradConfig,
+  coshGradConfig,
   cumsumGradConfig,
   depthwiseConv2dNativeGradConfig,
   dilation2dGradConfig,
@@ -144,6 +152,8 @@ const gradConfigs: GradConfig[] = [
   selectV2PoolGradConfig,
   seluGradConfig,
   signGradConfig,
+  sinGradConfig,
+  sinhGradConfig,
   spaceToBatchNDGradConfig,
   spaceToBatchNDGradConfig,
   splitVGradConfig,
@@ -152,6 +162,8 @@ const gradConfigs: GradConfig[] = [
   squareGradConfig,
   subGradConfig,
   sumGradConfig,
+  tanGradConfig,
+  tanhGradConfig,
   tileGradConfig,
   transposeGradConfig,
   unpackGradConfig,
