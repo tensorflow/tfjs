@@ -134,8 +134,7 @@ export function memory(): MemoryInfo {
  *
  */
 /** @doc {heading: 'Performance', subheading: 'Profile'} */
-export function profile(
-    f: (() => TensorContainer)|(() => Promise<TensorContainer>)):
+export function profile(f: () => (TensorContainer | Promise<TensorContainer>)):
     Promise<ProfileInfo> {
   return ENGINE.profile(f);
 }
