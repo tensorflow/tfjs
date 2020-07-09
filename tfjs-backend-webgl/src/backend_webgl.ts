@@ -128,8 +128,8 @@ export interface WebGLMemoryInfo extends MemoryInfo {
   // Tracks the total number of bytes allocated on the GPU, accounting for the
   // physical texture type.
   numBytesInGPUAllocated: number;
-  // Tracks byte size of textures that were created and then disposed / made
-  // available for recycling.
+  // Tracks byte size of textures that were created and then made available for
+  // reuse (disposed).
   numBytesInGPUFree: number;
   unreliable: boolean;
 }
