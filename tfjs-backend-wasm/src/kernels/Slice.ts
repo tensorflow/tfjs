@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, buffer, NamedAttrMap, NamedTensorInfoMap, registerKernel, slice_util, Tensor, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, KernelConfig, NamedAttrMap, NamedTensorInfoMap, slice_util, Tensor, util} from '@tensorflow/tfjs-core';
 import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
@@ -135,8 +135,8 @@ function genericSliceSlow(
   }
 }
 
-registerKernel({
+export const sliceConfig: KernelConfig = {
   kernelName: 'Slice',
   backendName: 'wasm',
   kernelFunc: slice,
-});
+};

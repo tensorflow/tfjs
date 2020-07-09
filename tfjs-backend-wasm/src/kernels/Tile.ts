@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel} from '@tensorflow/tfjs-core';
+import {KernelConfig, NamedAttrMap, NamedTensorInfoMap} from '@tensorflow/tfjs-core';
 import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+
 import {CppDType} from './types';
 
 interface TileInputs extends NamedTensorInfoMap {
@@ -66,9 +67,9 @@ function tile(
   return out;
 }
 
-registerKernel({
+export const tileConfig: KernelConfig = {
   kernelName: 'Tile',
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: tile
-});
+};

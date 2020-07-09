@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Identity, IdentityInputs, KernelFunc, registerKernel} from '@tensorflow/tfjs-core';
+import {Identity, IdentityInputs, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
@@ -30,8 +30,8 @@ export function identity(args: {inputs: IdentityInputs, backend: BackendWasm}):
   return out;
 }
 
-registerKernel({
+export const identityConfig: KernelConfig = {
   kernelName: Identity,
   backendName: 'wasm',
   kernelFunc: identity as {} as KernelFunc,
-});
+};

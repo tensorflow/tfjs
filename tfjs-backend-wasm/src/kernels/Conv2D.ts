@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, Conv2DAttrs, KernelFunc, NamedTensorInfoMap, registerKernel, Tensor4D, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, Conv2DAttrs, KernelConfig, KernelFunc, NamedTensorInfoMap, Tensor4D, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -100,9 +100,9 @@ function conv2d(
   return out;
 }
 
-registerKernel({
+export const conv2DConfig: KernelConfig = {
   kernelName: 'Conv2D',
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: conv2d as {} as KernelFunc
-});
+};
