@@ -14,27 +14,39 @@
  * limitations under the License.
  * =============================================================================
  */
+import {absGradConfig} from './gradients/Abs_grad';
+import {acosGradConfig} from './gradients/Acos_grad';
+import {acoshGradConfig} from './gradients/Acosh_grad';
 import {addGradConfig} from './gradients/Add_grad';
 import {addNGradConfig} from './gradients/AddN_grad';
 import {argMaxGradConfig} from './gradients/ArgMax_grad';
 import {argMinGradConfig} from './gradients/ArgMin_grad';
+import {asinGradConfig} from './gradients/Asin_grad';
+import {asinhGradConfig} from './gradients/Asinh_grad';
 import {atan2GradConfig} from './gradients/Atan2_grad';
+import {atanGradConfig} from './gradients/Atan_grad';
+import {atanhGradConfig} from './gradients/Atanh_grad';
 import {avgPool3DGradConfig} from './gradients/AvgPool3D_grad';
 import {avgPoolGradConfig} from './gradients/AvgPool_grad';
 import {batchMatMulGradConfig} from './gradients/BatchMatMul_grad';
 import {batchToSpaceNDGradConfig} from './gradients/BatchToSpaceND_grad';
 import {broadcastToGradConfig} from './gradients/BroadcastTo_grad';
+import {ceilGradConfig} from './gradients/Ceil_grad';
 import {concatGradConfig} from './gradients/Concat_grad';
 import {conv2DGradConfig} from './gradients/Conv2D_grad';
 import {conv2DBackpropInputGradConfig} from './gradients/Conv2DBackpropInput_grad';
 import {conv3DGradConfig} from './gradients/Conv3D_grad';
+import {cosGradConfig} from './gradients/Cos_grad';
+import {coshGradConfig} from './gradients/Cosh_grad';
 import {cumsumGradConfig} from './gradients/Cumsum_grad';
 import {depthwiseConv2dNativeGradConfig} from './gradients/DepthwiseConv2dNative_grad';
 import {dilation2dGradConfig} from './gradients/Dilation2D_grad';
 import {divGradConfig} from './gradients/Div_grad';
 import {eluGradConfig} from './gradients/Elu_grad';
+import {floorGradConfig} from './gradients/Floor_grad';
 import {floorDivGradConfig} from './gradients/FloorDiv_grad';
 import {fusedBatchNormGradConfig} from './gradients/FusedBatchNorm_grad';
+import {gatherGradConfig} from './gradients/GatherV2_grad';
 import {greaterEqualGradConfig} from './gradients/GreaterEqual_grad';
 import {identityGradConfig} from './gradients/Identity_grad';
 import {lrnGradConfig} from './gradients/LRN_grad';
@@ -46,6 +58,7 @@ import {minGradConfig} from './gradients/Min_grad';
 import {minimumGradConfig} from './gradients/Minimum_grad';
 import {modGradConfig} from './gradients/Mod_grad';
 import {multiplyGradConfig} from './gradients/Multiply_grad';
+import {negateGradConfig} from './gradients/Negate_grad';
 import {oneHotGradConfig} from './gradients/OneHot_grad';
 import {padV2GradConfig} from './gradients/PadV2_grad';
 import {powGradConfig} from './gradients/Pow_grad';
@@ -58,78 +71,103 @@ import {resizeNearestNeighborGradConfig} from './gradients/ResizeNearestNeighbor
 import {reverseGradConfig} from './gradients/Reverse_grad';
 import {selectV2PoolGradConfig} from './gradients/SelectV2_grad';
 import {seluGradConfig} from './gradients/Selu_grad';
+import {signGradConfig} from './gradients/Sign_grad';
+import {sinGradConfig} from './gradients/Sin_grad';
+import {sinhGradConfig} from './gradients/Sinh_grad';
 import {spaceToBatchNDGradConfig} from './gradients/SpaceToBatchND_grad';
 import {splitVGradConfig} from './gradients/SplitV_grad';
 import {squareGradConfig} from './gradients/Square_grad';
 import {squaredDifferenceGradConfig} from './gradients/SquaredDifference_grad';
 import {subGradConfig} from './gradients/Sub_grad';
 import {sumGradConfig} from './gradients/Sum_grad';
+import {tanGradConfig} from './gradients/Tan_grad';
+import {tanhGradConfig} from './gradients/Tanh_grad';
 import {tileGradConfig} from './gradients/Tile_grad';
 import {transposeGradConfig} from './gradients/Transpose_grad';
 import {unpackGradConfig} from './gradients/Unpack_grad';
+import {unsortedSegmentSumGradConfig} from './gradients/UnsortedSegmentSum_grad';
 import {GradConfig} from './kernel_registry';
 import {registerGradient} from './kernel_registry';
 
 // Export all kernel configs here so that the package can auto register them
 const gradConfigs: GradConfig[] = [
+  absGradConfig,
+  acosGradConfig,
+  acoshGradConfig,
   addGradConfig,
   addNGradConfig,
   argMaxGradConfig,
   argMinGradConfig,
+  asinGradConfig,
+  asinhGradConfig,
   atan2GradConfig,
-  avgPoolGradConfig,
+  atanGradConfig,
+  atanhGradConfig,
   avgPool3DGradConfig,
+  avgPoolGradConfig,
   batchMatMulGradConfig,
   batchToSpaceNDGradConfig,
   broadcastToGradConfig,
+  ceilGradConfig,
   concatGradConfig,
-  conv2DGradConfig,
   conv2DBackpropInputGradConfig,
+  conv2DGradConfig,
   conv3DGradConfig,
+  cosGradConfig,
+  coshGradConfig,
   cumsumGradConfig,
   depthwiseConv2dNativeGradConfig,
   dilation2dGradConfig,
   divGradConfig,
   eluGradConfig,
   floorDivGradConfig,
+  floorGradConfig,
   fusedBatchNormGradConfig,
+  gatherGradConfig,
   greaterEqualGradConfig,
   identityGradConfig,
   lrnGradConfig,
-  oneHotGradConfig,
-  padV2GradConfig,
-  splitVGradConfig,
   maxGradConfig,
-  spaceToBatchNDGradConfig,
   maxGradConfig,
-  minGradConfig,
   maximumGradConfig,
-  maxPoolGradConfig,
   maxPool3DGradConfig,
+  maxPoolGradConfig,
+  minGradConfig,
   minimumGradConfig,
   modGradConfig,
   multiplyGradConfig,
+  negateGradConfig,
   oneHotGradConfig,
+  oneHotGradConfig,
+  padV2GradConfig,
   padV2GradConfig,
   powGradConfig,
   preluGradConfig,
+  relu6GradConfig,
   reluGradConfig,
   reshapeGradConfig,
   resizeBilinearGradConfig,
   resizeNearestNeighborGradConfig,
-  relu6GradConfig,
   reverseGradConfig,
-  seluGradConfig,
   selectV2PoolGradConfig,
+  seluGradConfig,
+  signGradConfig,
+  sinGradConfig,
+  sinhGradConfig,
+  spaceToBatchNDGradConfig,
   spaceToBatchNDGradConfig,
   splitVGradConfig,
-  squareGradConfig,
+  splitVGradConfig,
   squaredDifferenceGradConfig,
+  squareGradConfig,
   subGradConfig,
   sumGradConfig,
+  tanGradConfig,
+  tanhGradConfig,
   tileGradConfig,
   transposeGradConfig,
-  unpackGradConfig
+  unpackGradConfig,
+  unsortedSegmentSumGradConfig
 ];
 
 for (const gradientConfig of gradConfigs) {

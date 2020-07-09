@@ -17,7 +17,7 @@
 
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
-import {expectArraysClose, expectArraysEqual} from '../test_util';
+import {expectArraysClose} from '../test_util';
 
 describeWithFlags('max', ALL_ENVS, () => {
   it('with one element dominating', async () => {
@@ -97,7 +97,7 @@ describeWithFlags('max', ALL_ENVS, () => {
     tf.max(input, [1, 0]);
 
     const inputDataAfter = await input.data();
-    expectArraysEqual(inputDataBefore, inputDataAfter);
+    expectArraysClose(inputDataBefore, inputDataAfter);
   });
 
   it('throws when passed a non-tensor', () => {

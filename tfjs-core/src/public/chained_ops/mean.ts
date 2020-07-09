@@ -27,6 +27,5 @@ declare module '../../tensor' {
 Tensor.prototype.mean = function<T extends Tensor>(
     axis?: number|number[], keepDims?: boolean): T {
   this.throwIfDisposed();
-  // tslint:disable-next-line: no-unnecessary-type-assertion
-  return mean(this, axis, keepDims) as T;
+  return mean(this, axis, keepDims);
 };

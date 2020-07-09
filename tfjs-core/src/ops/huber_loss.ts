@@ -19,6 +19,8 @@ import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assertShapesMatch} from '../util';
+
+import {abs} from './abs';
 import {add} from './add';
 import {computeWeightedLoss} from './compute_weighted_loss';
 import {Reduction} from './loss_ops_utils';
@@ -28,7 +30,6 @@ import {op} from './operation';
 import {square} from './square';
 import {sub} from './sub';
 import {scalar} from './tensor_ops';
-import {abs} from './unary_ops';
 
 /**
  * Computes the huber loss between two tensors.

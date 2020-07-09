@@ -24,8 +24,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.argMin = function<T extends Tensor>(axis?: number): T {
+Tensor.prototype.argMin = function<T extends Tensor>(axis: number): T {
   this.throwIfDisposed();
-  // tslint:disable-next-line: no-unnecessary-type-assertion
-  return argMin(this, axis) as T;
+  return argMin(this, axis);
 };
