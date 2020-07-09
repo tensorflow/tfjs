@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {AvgPoolAttrs, AvgPoolInputs, backend_util, KernelFunc, registerKernel, Tensor4D} from '@tensorflow/tfjs-core';
+import {AvgPoolAttrs, AvgPoolInputs, backend_util, KernelConfig, KernelFunc, Tensor4D} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -87,9 +87,9 @@ function avgPool(
   return out;
 }
 
-registerKernel({
+export const avgPoolConfig: KernelConfig = {
   kernelName: 'AvgPool',
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: avgPool as {} as KernelFunc
-});
+};

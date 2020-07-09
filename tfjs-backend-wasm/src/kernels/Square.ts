@@ -14,6 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
+import {KernelConfig} from '@tensorflow/tfjs-core';
 
-import {registerUnaryKernel} from './unary_kernel';
-registerUnaryKernel('Square');
+import {createUnaryKernelConfig} from './unary_kernel';
+export const squareConfig: KernelConfig = createUnaryKernelConfig('Square');

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, SelectV2, SelectV2Inputs, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, NamedTensorInfoMap, SelectV2, SelectV2Inputs, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -54,9 +54,9 @@ function select(args: {inputs: NamedTensorInfoMap, backend: BackendWasm}) {
   return out;
 }
 
-registerKernel({
+export const selectV2Config: KernelConfig = {
   kernelName: SelectV2,
   backendName: 'wasm',
   kernelFunc: select,
   setupFunc: setup
-});
+};

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, ResizeBilinear, ResizeBilinearAttrs, ResizeBilinearInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, NamedAttrMap, NamedTensorInfoMap, ResizeBilinear, ResizeBilinearAttrs, ResizeBilinearInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -80,9 +80,9 @@ function resizeBilinear(args: {
   return out;
 }
 
-registerKernel({
+export const resizeBilinearConfig: KernelConfig = {
   kernelName: ResizeBilinear,
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: resizeBilinear
-});
+};
