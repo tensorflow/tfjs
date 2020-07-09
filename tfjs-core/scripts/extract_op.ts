@@ -1,5 +1,4 @@
 import * as argparse from 'argparse';
-import {execSync} from 'child_process';
 import * as path from 'path';
 import {FunctionDeclaration, ImportDeclaration, Project, SourceFile, VariableStatement} from 'ts-morph';
 
@@ -84,12 +83,6 @@ async function moveToNewFile(
   }, {overwrite: true});
   newOpFile.fixUnusedIdentifiers();
   await newOpFile.save();
-
-  // make a test file
-  // create a test file
-  const testFilePath = `src/ops/${args.op}_test.ts`;
-  const command = `touch ${testFilePath}`;
-  execSync(command);
 
   // Add export to ops file.
   const opsExportFile = project.getSourceFile('src/ops/ops.ts');
