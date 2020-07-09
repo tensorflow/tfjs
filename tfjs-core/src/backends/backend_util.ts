@@ -42,6 +42,7 @@ export * from '../ops/fused_util';
 export * from '../ops/erf_util';
 export * from '../log';
 export * from '../backends/complex_util';
+export * from '../ops/split_util';
 
 import * as segment_util from '../ops/segment_util';
 export {segment_util};

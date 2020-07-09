@@ -60,7 +60,7 @@ async function main() {
   console.log('Called touch_modular_op_files with args:', args);
 
   if (args.op != null) {
-    const ops: string[] = args.op.split(',');
+    const ops: string[] = args.op.split(',').filter((o: string) => o != null);
     ops.forEach(op => {
       let filePath = `./src/ops/${op}.ts`;
       let command = `touch ${filePath}`;
@@ -84,7 +84,8 @@ async function main() {
       return str.charAt(0).toLowerCase() + str.slice(1);
     };
 
-    const kernels: string[] = args.grad.split(',');
+    const kernels: string[] =
+        args.grad.split(',').filter((k: string) => k != null);
 
     kernels.forEach(kernelName => {
       const gradientFileTemplate = `/**
@@ -104,12 +105,12 @@ async function main() {
  * =============================================================================
  */
 
-import {KernelName, KernelNameAttrs} from '../kernel_names';
+import {${kernelName}, ${kernelName}Attrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 
 export const ${downcaseFirstChar(kernelName)}GradConfig: GradConfig = {
-  kernelName: KernelName,
+  kernelName: ${kernelName},
   inputsToSave: [], // UPDATE ME
   outputsToSave: [], // UPDATE ME
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
