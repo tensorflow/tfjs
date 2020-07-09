@@ -19,11 +19,12 @@ import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assertShapesMatch} from '../util';
+
+import {abs} from './abs';
 import {computeWeightedLoss} from './compute_weighted_loss';
 import {Reduction} from './loss_ops_utils';
 import {op} from './operation';
 import {sub} from './sub';
-import {abs} from './unary_ops';
 
 /**
  * Computes the absolute difference loss between two tensors.

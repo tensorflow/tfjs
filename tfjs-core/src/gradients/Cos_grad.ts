@@ -15,5 +15,20 @@
  * =============================================================================
  */
 
-import {registerUnaryKernel} from './unary_kernel';
-registerUnaryKernel('Neg');
+import {Cos} from '../kernel_names';
+import {GradConfig} from '../kernel_registry';
+import {cast} from '../ops/array_ops';
+import {mul} from '../ops/mul';
+import {neg} from '../ops/neg';
+import {sin} from '../ops/sin';
+import {Tensor} from '../tensor';
+
+export const cosGradConfig: GradConfig = {
+  kernelName: Cos,
+  inputsToSave: ['x'],
+  gradFunc: (dy: Tensor, saved: Tensor[]) => {
+    const [x] = saved;
+
+    return {x: () => mul(neg(sin(cast(x, 'float32'))), dy)};
+  }
+};

@@ -22,7 +22,7 @@
 #include "src/cc/unary.h"
 
 namespace {
-inline float neg(const float val) { return -val; }
+inline float negate(const float val) { return -val; }
 }  // namespace
 
 namespace tfjs {
@@ -33,7 +33,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Neg(const int x_id, const int out_id) { unary(x_id, out_id, neg); }
+void Negate(const int x_id, const int out_id) { unary(x_id, out_id, negate); }
 
 }  // extern "C"
 }  // namespace wasm

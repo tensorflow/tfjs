@@ -16,13 +16,20 @@
  */
 
 // Modularized ops.
+export {abs} from './abs';
+export {acos} from './acos';
+export {acosh} from './acosh';
 export {add} from './add';
 export {addN} from './add_n';
 export {all} from './all';
 export {any} from './any';
 export {argMax} from './arg_max';
 export {argMin} from './arg_min';
+export {asin} from './asin';
+export {asinh} from './asinh';
+export {atan} from './atan';
 export {atan2} from './atan2';
+export {atanh} from './atanh';
 export {avgPool} from './avg_pool';
 export {avgPool3d} from './avg_pool_3d';
 export {basicLSTMCell} from './basic_lstm_cell';
@@ -32,6 +39,7 @@ export {batchNorm2d} from './batchnorm2d';
 export {batchNorm3d} from './batchnorm3d';
 export {batchNorm4d} from './batchnorm4d';
 export {broadcastTo} from './broadcast_to';
+export {ceil} from './ceil';
 export {clone} from './clone';
 export {complex} from './complex';
 export {concat} from './concat';
@@ -44,6 +52,8 @@ export {conv2d} from './conv2d';
 export {conv2dTranspose} from './conv2d_transpose';
 export {conv3d} from './conv3d';
 export {conv3dTranspose} from './conv3d_transpose';
+export {cos} from './cos';
+export {cosh} from './cosh';
 export {cumsum} from './cumsum';
 export {depthToSpace} from './depth_to_space';
 export {depthwiseConv2d} from './depthwise_conv2d';
@@ -57,7 +67,9 @@ export {equal} from './equal';
 export {expandDims} from './expand_dims';
 export {eye} from './eye';
 export {fill} from './fill';
+export {floor} from './floor';
 export {floorDiv} from './floorDiv';
+export {gather} from './gather';
 export {greater} from './greater';
 export {greaterEqual} from './greater_equal';
 export {imag} from './imag';
@@ -84,6 +96,7 @@ export {moments} from './moments';
 export {mul} from './mul';
 export {LSTMCellFunc, multiRNNCell} from './multi_rnn_cell';
 export {multinomial} from './multinomial';
+export {neg} from './neg';
 export {notEqual} from './not_equal';
 export {oneHot} from './one_hot';
 export {outerProduct} from './outer_product';
@@ -111,6 +124,14 @@ export {reverse3d} from './reverse_3d';
 export {reverse4d} from './reverse_4d';
 export {selu} from './selu';
 export {separableConv2d} from './separable_conv2d';
+export {sign} from './sign';
+export {sin} from './sin';
+export {sinh} from './sinh';
+export {slice} from './slice';
+export {slice1d} from './slice1d';
+export {slice2d} from './slice2d';
+export {slice3d} from './slice3d';
+export {slice4d} from './slice4d';
 export {spaceToBatchND} from './space_to_batch_nd';
 export {split} from './split';
 export {square} from './square';
@@ -119,14 +140,16 @@ export {squeeze} from './squeeze';
 export {stack} from './stack';
 export {sub} from './sub';
 export {sum} from './sum';
+export {tan} from './tan';
+export {tanh} from './tanh';
 export {tile} from './tile';
 export {truncatedNormal} from './truncated_normal';
+export {unsortedSegmentSum} from './unsorted_segment_sum';
 export {unstack} from './unstack';
 export {where} from './where';
 export {whereAsync} from './where_async';
 
 export * from './boolean_mask';
-export * from './slice';
 export * from './unary_ops';
 export * from './compare';
 export * from './binary_ops';
@@ -135,7 +158,6 @@ export * from './tensor_ops';
 export * from './transpose';
 export * from './softmax';
 export * from './norm';
-export * from './segment_ops';
 export * from './moving_average';
 export * from './strided_slice';
 export * from './topk';
@@ -144,14 +166,24 @@ export * from './spectral_ops';
 export * from './sparse_to_dense';
 export * from './gather_nd';
 export * from './dropout';
-export * from './signal_ops';
+export * from './signal_ops_util';
 export * from './in_top_k';
 
 export {op} from './operation';
 
 import * as spectral from './spectral_ops';
 import * as fused from './fused_ops';
-import * as signal from './signal_ops';
+
+import {hammingWindow} from './hamming_window';
+import {hannWindow} from './hann_window';
+import {frame} from './frame';
+import {stft} from './stft';
+const signal = {
+  hammingWindow,
+  hannWindow,
+  frame,
+  stft,
+};
 
 // Image Ops namespace
 import {cropAndResize} from './crop_and_resize';
