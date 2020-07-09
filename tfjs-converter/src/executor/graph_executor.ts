@@ -359,14 +359,16 @@ export class GraphExecutor implements FunctionExecutor {
 
   async executeFunctionAsync(
       inputs: Tensor[], tensorArrayMap: TensorArrayMap,
-      tensorListMap: TensorListMap): Promise<Tensor[]> {
+      tensorListMap: TensorListMap,
+      hashTableMap: HashTableMap): Promise<Tensor[]> {
     const mappedInputs = inputs.reduce((map, tensor, index) => {
       map[this.inputs[index].name] = tensor;
       return map;
     }, {} as NamedTensorMap);
 
     return this._executeAsync(
-        mappedInputs, this.outputNodes, true, tensorArrayMap, tensorListMap);
+        mappedInputs, this.outputNodes, true, tensorArrayMap, tensorListMap,
+        hashTableMap);
   }
   /**
    * When there are control flow nodes in the graph, the graph execution use

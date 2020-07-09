@@ -44,10 +44,12 @@ export const executeOp: InternalOpAsyncExecutor = async(
       const condValue = await cond.data();
       if (condValue[0]) {
         return context.functionMap[thenFunc].executeFunctionAsync(
-            args, context.tensorArrayMap, context.tensorListMap);
+            args, context.tensorArrayMap, context.tensorListMap,
+            context.hashTableMap);
       } else {
         return context.functionMap[elseFunc].executeFunctionAsync(
-            args, context.tensorArrayMap, context.tensorListMap);
+            args, context.tensorArrayMap, context.tensorListMap,
+            context.hashTableMap);
       }
     }
     case 'While':
@@ -62,7 +64,8 @@ export const executeOp: InternalOpAsyncExecutor = async(
       // Calculate the condition of the loop
       const condResult =
           (await context.functionMap[condFunc].executeFunctionAsync(
-              args, context.tensorArrayMap, context.tensorListMap));
+              args, context.tensorArrayMap, context.tensorListMap,
+              context.hashTableMap));
       const argIds = args.map(tensor => tensor.id);
       let condValue = await condResult[0].data();
       // Dispose the intermediate tensors for condition function
@@ -79,7 +82,8 @@ export const executeOp: InternalOpAsyncExecutor = async(
         const origResult = result;
         // Execution the body of the loop
         result = await context.functionMap[bodyFunc].executeFunctionAsync(
-            result, context.tensorArrayMap, context.tensorListMap);
+            result, context.tensorArrayMap, context.tensorListMap,
+            context.hashTableMap);
         const resultIds = result.map(tensor => tensor.id);
 
         // Dispose the intermediate tensor for body function that is not global
@@ -94,7 +98,8 @@ export const executeOp: InternalOpAsyncExecutor = async(
         // Recalcuate the condition of the loop using the latest results.
         const condResult =
             (await context.functionMap[condFunc].executeFunctionAsync(
-                result, context.tensorArrayMap, context.tensorListMap));
+                result, context.tensorArrayMap, context.tensorListMap,
+                context.hashTableMap));
         condValue = await condResult[0].data();
         // Dispose the intermediate tensors for condition function
         condResult.forEach(tensor => {
