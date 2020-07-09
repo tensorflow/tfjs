@@ -158,7 +158,6 @@ import './ops/scatter_nd_test';
 import './ops/selu_test';
 import './ops/sigmoid_cross_entropy_test';
 import './ops/sign_test';
-import './ops/signal_ops_test';
 import './ops/sin_test';
 import './ops/sinh_test';
 import './ops/slice1d_test';
