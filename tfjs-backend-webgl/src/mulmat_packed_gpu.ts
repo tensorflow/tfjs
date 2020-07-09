@@ -90,7 +90,9 @@ export class MatMulPackedProgram implements GPGPUProgram {
 
         ${applyActivationSnippet}
 
-        setOutput(result);
+        setOutput(getMatrixA(rc.x, rc.y, rc.z));
+
+        // setOutput(result);
       }
     `;
   }

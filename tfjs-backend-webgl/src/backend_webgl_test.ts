@@ -613,4 +613,31 @@ describeWithFlags('WebGL backend has sync init', WEBGL_ENVS, () => {
     tf.dispose([a, b, res]);
     tf.removeBackend('my-webgl');
   });
+
+  fit('test', () => {
+    const xData = [];
+    for (let i = 0; i < 13 * 13; i++) {
+      xData.push(i);
+    }
+    const yData = [];
+    for (let i = 0; i < 13 * 13; i++) {
+      yData.push(i);
+    }
+    tf.matMul(tf.tensor2d(xData, [13, 13]), tf.tensor2d(yData, [13, 13]));
+    console.log('============= END SETUP ==============');
+
+    const aData = [];
+    for (let i = 0; i < 6 * 6; i++) {
+      aData.push(i);
+    }
+    const bData = [];
+    for (let i = 0; i < 6 * 6; i++) {
+      bData.push(i);
+    }
+    const a = tf.tensor2d(aData, [6, 6]);
+    const b = tf.tensor2d(bData, [6, 6]);
+    a.print();
+    const c = tf.matMul(a, b);
+    c.print();
+  });
 });
