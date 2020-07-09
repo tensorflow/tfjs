@@ -74,6 +74,7 @@ import {seluGradConfig} from './gradients/Selu_grad';
 import {signGradConfig} from './gradients/Sign_grad';
 import {sinGradConfig} from './gradients/Sin_grad';
 import {sinhGradConfig} from './gradients/Sinh_grad';
+import {sliceGradConfig} from './gradients/Slice_grad';
 import {spaceToBatchNDGradConfig} from './gradients/SpaceToBatchND_grad';
 import {splitVGradConfig} from './gradients/SplitV_grad';
 import {squareGradConfig} from './gradients/Square_grad';
@@ -152,6 +153,7 @@ const gradConfigs: GradConfig[] = [
   selectV2PoolGradConfig,
   seluGradConfig,
   signGradConfig,
+  sliceGradConfig,
   sinGradConfig,
   sinhGradConfig,
   spaceToBatchNDGradConfig,
