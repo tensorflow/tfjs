@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, KernelFunc, registerKernel, Sum, SumAttrs, SumInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, Sum, SumAttrs, SumInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -79,9 +79,9 @@ function sum(args: {backend: BackendWasm, inputs: SumInputs, attrs: SumAttrs}):
   return out;
 }
 
-registerKernel({
+export const sumConfig: KernelConfig = {
   kernelName: Sum,
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: sum as {} as KernelFunc
-});
+};

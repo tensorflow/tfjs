@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, NamedTensorInfoMap, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -46,9 +46,9 @@ function sigmoid(args: {backend: BackendWasm, inputs: SigmoidInputs}):
   return out;
 }
 
-registerKernel({
+export const sigmoidConfig: KernelConfig = {
   kernelName: 'Sigmoid',
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: sigmoid
-});
+};

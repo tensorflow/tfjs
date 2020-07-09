@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, NamedAttrMap, NamedTensorInfoMap, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -59,9 +59,9 @@ function softmax(
   return out;
 }
 
-registerKernel({
+export const softmaxConfig: KernelConfig = {
   kernelName: 'Softmax',
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: softmax
-});
+};

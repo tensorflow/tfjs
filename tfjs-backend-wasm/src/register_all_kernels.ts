@@ -67,6 +67,23 @@ import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
 import {reverseConfig} from './kernels/Reverse';
+import {rsqrtConfig} from './kernels/Rsqrt';
+import {scatterNdConfig} from './kernels/ScatterNd';
+import {selectV2Config} from './kernels/SelectV2';
+import {sigmoidConfig} from './kernels/Sigmoid';
+import {sinConfig} from './kernels/Sin';
+import {sliceConfig} from './kernels/Slice';
+import {softmaxConfig} from './kernels/Softmax';
+import {splitVConfig} from './kernels/Split';
+import {sqrtConfig} from './kernels/Sqrt';
+import {squareConfig} from './kernels/Square';
+import {subConfig} from './kernels/Sub';
+import {sumConfig} from './kernels/Sum';
+import {tanhConfig} from './kernels/Tanh';
+import {tileConfig} from './kernels/Tile';
+import {transposeConfig} from './kernels/Transpose';
+import {unpackConfig} from './kernels/Unpack';
+import {zerosLikeConfig} from './kernels/ZerosLike';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
@@ -117,7 +134,24 @@ const kernelConfigs: KernelConfig[] = [
   relu6Config,
   reshapeConfig,
   resizeBilinearConfig,
-  reverseConfig
+  reverseConfig,
+  rsqrtConfig,
+  scatterNdConfig,
+  selectV2Config,
+  sigmoidConfig,
+  sinConfig,
+  sliceConfig,
+  softmaxConfig,
+  splitVConfig,
+  sqrtConfig,
+  squareConfig,
+  subConfig,
+  sumConfig,
+  tanhConfig,
+  tileConfig,
+  transposeConfig,
+  unpackConfig,
+  zerosLikeConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, SplitV, SplitVAttrs, SplitVInputs, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, NamedAttrMap, NamedTensorInfoMap, SplitV, SplitVAttrs, SplitVInputs, util} from '@tensorflow/tfjs-core';
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
@@ -46,4 +46,8 @@ export function split(args: {
   });
 }
 
-registerKernel({kernelName: SplitV, backendName: 'wasm', kernelFunc: split});
+export const splitVConfig: KernelConfig = {
+  kernelName: SplitV,
+  backendName: 'wasm',
+  kernelFunc: split
+};
