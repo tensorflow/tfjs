@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelFunc, registerKernel} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 import {Fill, FillAttrs} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
@@ -28,8 +28,8 @@ function fill(args: {attrs: FillAttrs, backend: BackendWasm}) {
   return out;
 }
 
-registerKernel({
+export const fillConfig: KernelConfig = {
   kernelName: Fill,
   backendName: 'wasm',
   kernelFunc: fill as {} as KernelFunc,
-});
+};

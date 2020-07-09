@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel} from '@tensorflow/tfjs-core';
+import {KernelConfig, NamedAttrMap, NamedTensorInfoMap} from '@tensorflow/tfjs-core';
 import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
@@ -55,9 +55,9 @@ function clip(args: {
   return out;
 }
 
-registerKernel({
+export const clipByValueConfig: KernelConfig = {
   kernelName: 'ClipByValue',
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: clip
-});
+};

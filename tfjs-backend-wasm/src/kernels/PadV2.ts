@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, NamedAttrMap, NamedTensorInfoMap, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+
 import {CppDType} from './types';
 
 interface PadInputs extends NamedTensorInfoMap {
@@ -62,9 +63,9 @@ function pad(args: {inputs: PadInputs, backend: BackendWasm, attrs: PadAttrs}) {
   return out;
 }
 
-registerKernel({
+export const padV2Config: KernelConfig = {
   kernelName: 'PadV2',
   backendName: 'wasm',
   kernelFunc: pad,
   setupFunc: setup
-});
+};

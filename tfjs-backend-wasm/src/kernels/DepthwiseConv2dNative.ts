@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, DepthwiseConv2dNativeAttrs, KernelFunc, NamedTensorInfoMap, registerKernel, Tensor4D, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, DepthwiseConv2dNativeAttrs, KernelConfig, KernelFunc, NamedTensorInfoMap, Tensor4D, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -107,9 +107,9 @@ function depthwiseConv2d(args: {
   return out;
 }
 
-registerKernel({
+export const depthwiseConv2DNativeConfig: KernelConfig = {
   kernelName: 'DepthwiseConv2dNative',
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: depthwiseConv2d as {} as KernelFunc
-});
+};
