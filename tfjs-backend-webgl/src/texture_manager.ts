@@ -208,7 +208,7 @@ export function computeBytes(
   // UNPACKED_FLOAT16 textures is gl.RGBA). Therefore we pass in `isPacked`
   // explicitly.
   const internalFormat =
-      getInternalFormatForPhysicalTextureType(physicalTexType, textureConfig);
+      internalFormatForPhysicalTexType(physicalTexType, textureConfig);
 
   let numElements: number;
   if (isPacked) {
@@ -226,7 +226,7 @@ export function computeBytes(
   return numElements * bytesPerElement;
 }
 
-function getInternalFormatForPhysicalTextureType(
+function internalFormatForPhysicalTexType(
     physicalTexType: PhysicalTextureType,
     textureConfig: TextureConfig): number {
   if (physicalTexType === PhysicalTextureType.PACKED_2X2_FLOAT32) {
