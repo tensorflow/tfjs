@@ -60,6 +60,7 @@ import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
 import {oneHotConfig} from './kernels/OneHot';
+import {onesLikeConfig} from './kernels/OnesLike';
 import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
@@ -129,6 +130,7 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV5Config,
   notEqualConfig,
   oneHotConfig,
+  onesLikeConfig,
   padV2Config,
   powConfig,
   preluConfig,
