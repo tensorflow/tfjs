@@ -23,6 +23,15 @@ import {ExplicitPadding} from '../src/ops/conv_util';
 import {NamedTensorInfoMap, TensorInfo} from './kernel_registry';
 import {DataType, PixelData} from './types';
 
+export const Abs = 'Abs';
+export type AbsInputs = UnaryInputs;
+
+export const Acos = 'Acos';
+export type AcosInputs = UnaryInputs;
+
+export const Acosh = 'Acosh';
+export type AcoshInputs = UnaryInputs;
+
 export const Add = 'Add';
 export type AddInputs = BinaryInputs;
 
@@ -54,6 +63,18 @@ export type ArgMinInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface ArgMinAttrs {
   axis: number;
 }
+
+export const Asin = 'Asin';
+export type AsinInputs = UnaryInputs;
+
+export const Asinh = 'Asinh';
+export type AsinhInputs = UnaryInputs;
+
+export const Atan = 'Atan';
+export type AtanInputs = UnaryInputs;
+
+export const Atanh = 'Atanh';
+export type AtanhInputs = UnaryInputs;
 
 export const Atan2 = 'Atan2';
 export type Atan2Inputs = BinaryInputs;
@@ -182,6 +203,12 @@ export type Conv3DBackpropInputInputs = Pick<NamedTensorInfoMap, 'dy'>;
 export interface Conv3DBackpropInputAttrs {
   pad: 'valid'|'same';
 }
+
+export const Cos = 'Cos';
+export type CosInputs = UnaryInputs;
+
+export const Cosh = 'Cosh';
+export type CoshInputs = UnaryInputs;
 
 export const Cumsum = 'Cumsum';
 export type CumsumInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -526,6 +553,18 @@ export type SelectV2Inputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
 export const Selu = 'Selu';
 export type SeluInputs = Pick<NamedTensorInfoMap, 'x'>;
 
+export const Slice = 'Slice';
+export type SliceInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface SliceAttrs {
+  begin: number|number[];
+  size: number|number[];
+}
+export const Sin = 'Sin';
+export type SinInputs = UnaryInputs;
+
+export const Sinh = 'Sinh';
+export type SinhInputs = UnaryInputs;
+
 export const Sign = 'Sign';
 export type SignInputs = UnaryInputs;
 
@@ -558,6 +597,12 @@ export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
 
 export const Sub = 'Sub';
 export type SubInputs = BinaryInputs;
+
+export const Tan = 'Tan';
+export type TanInputs = UnaryInputs;
+
+export const Tanh = 'Tanh';
+export type TanhInputs = UnaryInputs;
 
 export const Tile = 'Tile';
 export type TileInputs = Pick<NamedTensorInfoMap, 'x'>;
