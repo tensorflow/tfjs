@@ -24,9 +24,9 @@ import {getPackedMatrixTextureShapeWidthHeight, getUnpackedMatrixTextureShapeWid
 export class TextureManager {
   private numUsedTextures = 0;
   private numFreeTextures = 0;
-  private numBytesAllocated = 0;
-  private numBytesFree = 0;  // How many bytes that have been allocated
-                             // are available for reuse.
+  private _numBytesAllocated = 0;
+  private _numBytesFree = 0;  // How many bytes that have been allocated
+                              // are available for reuse.
   private freeTextures: {[shape: string]: WebGLTexture[]} = {};
   private logEnabled = false;
   private usedTextures: {[shape: string]: WebGLTexture[]} = {};
@@ -53,7 +53,7 @@ export class TextureManager {
     if (this.freeTextures[shapeKey].length > 0) {
       this.numFreeTextures--;
       this.numUsedTextures++;
-      this.numBytesFree -= texBytes;
+      this._numBytesFree -= texBytes;
       this.log();
       const newTexture = this.freeTextures[shapeKey].shift();
       this.usedTextures[shapeKey].push(newTexture);
@@ -80,7 +80,7 @@ export class TextureManager {
     this.usedTextures[shapeKey].push(newTexture);
 
     this.numUsedTextures++;
-    this.numBytesAllocated += texBytes;
+    this._numBytesAllocated += texBytes;
     this.log();
 
     return newTexture;
@@ -106,11 +106,11 @@ export class TextureManager {
     const deleteTexThreshold = env().get('WEBGL_DELETE_TEXTURE_THRESHOLD');
     if (deleteTexThreshold !== -1 && texBytes > deleteTexThreshold) {
       this.gpgpu.deleteMatrixTexture(texture);
-      this.numBytesAllocated -= texBytes;
+      this._numBytesAllocated -= texBytes;
     } else {
       this.freeTextures[shapeKey].push(texture);
       this.numFreeTextures++;
-      this.numBytesFree += texBytes;
+      this._numBytesFree += texBytes;
     }
 
     this.numUsedTextures--;
@@ -134,18 +134,18 @@ export class TextureManager {
     console.log(
         'Free/Used', `${this.numFreeTextures} / ${this.numUsedTextures}`,
         `(${total})`);
-    const freeRatio = this.numBytesFree / this.numBytesAllocated;
-    console.log(`Bytes allocated: ${this.numBytesAllocated}`);
-    console.log(
-        `Bytes unused: ${this.numBytesFree} (${Math.round(100 * freeRatio)}%)`);
+    const freeRatio = this._numBytesFree / this._numBytesAllocated;
+    console.log(`Bytes allocated: ${this._numBytesAllocated}`);
+    console.log(`Bytes unused: ${this._numBytesFree} (${
+        Math.round(100 * freeRatio)}%)`);
   }
 
-  getNumBytesAllocated(): number {
-    return this.numBytesAllocated;
+  get numBytesAllocated(): number {
+    return this._numBytesAllocated;
   }
 
-  getNumBytesFree(): number {
-    return this.numBytesFree;
+  get numBytesFree(): number {
+    return this._numBytesFree;
   }
 
   getNumUsedTextures(): number {
@@ -175,8 +175,8 @@ export class TextureManager {
     this.usedTextures = null;
     this.numUsedTextures = 0;
     this.numFreeTextures = 0;
-    this.numBytesAllocated = 0;
-    this.numBytesFree = 0;
+    this._numBytesAllocated = 0;
+    this._numBytesFree = 0;
   }
 }
 
@@ -229,18 +229,20 @@ export function computeBytes(
 function internalFormatForPhysicalTexType(
     physicalTexType: PhysicalTextureType,
     textureConfig: TextureConfig): number {
-  if (physicalTexType === PhysicalTextureType.PACKED_2X2_FLOAT32) {
-    return getInternalFormatForPackedMatrixTexture(textureConfig);
-  } else if (physicalTexType === PhysicalTextureType.PACKED_2X2_FLOAT16) {
-    return getInternalFormatForFloat16PackedMatrixTexture(textureConfig);
-  } else if (physicalTexType === PhysicalTextureType.UNPACKED_FLOAT32) {
-    return getInternalFormatForFloat32MatrixTexture(textureConfig);
-  } else if (physicalTexType === PhysicalTextureType.UNPACKED_FLOAT16) {
-    return getInternalFormatForFloat16MatrixTexture(textureConfig);
-  } else if (physicalTexType === PhysicalTextureType.PACKED_4X1_UNSIGNED_BYTE) {
-    return getInternalFormatForUnsignedBytesMatrixTexture(textureConfig);
+  switch (physicalTexType) {
+    case PhysicalTextureType.PACKED_2X2_FLOAT32:
+      return getInternalFormatForPackedMatrixTexture(textureConfig);
+    case PhysicalTextureType.PACKED_2X2_FLOAT16:
+      return getInternalFormatForPackedMatrixTexture(textureConfig);
+    case PhysicalTextureType.UNPACKED_FLOAT32:
+      return getInternalFormatForFloat32MatrixTexture(textureConfig);
+    case PhysicalTextureType.UNPACKED_FLOAT16:
+      return getInternalFormatForFloat16MatrixTexture(textureConfig);
+    case PhysicalTextureType.PACKED_4X1_UNSIGNED_BYTE:
+      return getInternalFormatForUnsignedBytesMatrixTexture(textureConfig);
+    default:
+      throw new Error(`Unknown physical texture type ${physicalTexType}`);
   }
-  throw new Error(`Unknown physical texture type ${physicalTexType}`);
 }
 
 function getPhysicalTextureForRendering(isPacked: boolean):

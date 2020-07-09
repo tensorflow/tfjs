@@ -536,8 +536,8 @@ export class MathBackendWebGL extends KernelBackend {
     return {
       unreliable: false,
       numBytesInGPU: this.numBytesInGPU,
-      numBytesInGPUAllocated: this.textureManager.getNumBytesAllocated(),
-      numBytesInGPUFree: this.textureManager.getNumBytesFree()
+      numBytesInGPUAllocated: this.textureManager.numBytesAllocated,
+      numBytesInGPUFree: this.textureManager.numBytesFree
     } as WebGLMemoryInfo;
   }
 
