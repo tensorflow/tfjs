@@ -23,7 +23,10 @@ const {expectArraysClose, expectArraysEqual} = test_util;
 const {decodeString} = util;
 
 import {getBinaryCache, MathBackendWebGL, WebGLMemoryInfo, WebGLTimingInfo} from './backend_webgl';
+import {computeBytes} from './texture_manager';
+import {PhysicalTextureType} from './tex_util';
 import {WEBGL_ENVS} from './backend_webgl_test_registry';
+import {GPGPUContext} from './gpgpu_context';
 
 function decodeStrings(bytes: Uint8Array[]): string[] {
   return bytes.map(b => decodeString(b));
@@ -445,17 +448,73 @@ const WEBGL2_ENVS = {
 };
 
 describeWithFlags('computeBytes counts bytes correctly', WEBGL1_ENVS, () => {
-  fit('test every physical tex type input to computeBytes',
-      () => {
+  it('for all physical texture types', () => {
+    const gpgpu = new GPGPUContext();
 
-      });
+    const shapeRC: [number, number] = [2, 3];
+
+    let bytesForTex = computeBytes(
+        shapeRC, PhysicalTextureType.UNPACKED_FLOAT16, gpgpu.gl,
+        gpgpu.textureConfig, false /* isPacked */);
+    expect(bytesForTex).toBe(96);
+
+    bytesForTex = computeBytes(
+        shapeRC, PhysicalTextureType.UNPACKED_FLOAT32, gpgpu.gl,
+        gpgpu.textureConfig, false /* isPacked */);
+    expect(bytesForTex).toBe(96);
+
+    bytesForTex = computeBytes(
+        shapeRC, PhysicalTextureType.PACKED_4X1_UNSIGNED_BYTE, gpgpu.gl,
+        gpgpu.textureConfig, true /* isPacked */);
+    expect(bytesForTex).toBe(32);
+
+    bytesForTex = computeBytes(
+        shapeRC, PhysicalTextureType.PACKED_2X2_FLOAT32, gpgpu.gl,
+        gpgpu.textureConfig, true /* isPacked */);
+    expect(bytesForTex).toBe(32);
+
+    bytesForTex = computeBytes(
+        shapeRC, PhysicalTextureType.PACKED_2X2_FLOAT16, gpgpu.gl,
+        gpgpu.textureConfig, true /* isPacked */);
+    expect(bytesForTex).toBe(32);
+
+    gpgpu.dispose();
+  });
 });
 
 describeWithFlags('computeBytes counts bytes correctly', WEBGL2_ENVS, () => {
-  fit('test every physical tex type input to computeBytes',
-      () => {
+  it('test every physical tex type input to computeBytes', () => {
+    const gpgpu = new GPGPUContext();
 
-      });
+    const shapeRC: [number, number] = [2, 3];
+
+    let bytesForTex = computeBytes(
+        shapeRC, PhysicalTextureType.UNPACKED_FLOAT16, gpgpu.gl,
+        gpgpu.textureConfig, false /* isPacked */);
+    expect(bytesForTex).toBe(12);
+
+    bytesForTex = computeBytes(
+        shapeRC, PhysicalTextureType.UNPACKED_FLOAT32, gpgpu.gl,
+        gpgpu.textureConfig, false /* isPacked */);
+    expect(bytesForTex).toBe(24);
+
+    bytesForTex = computeBytes(
+        shapeRC, PhysicalTextureType.PACKED_4X1_UNSIGNED_BYTE, gpgpu.gl,
+        gpgpu.textureConfig, true /* isPacked */);
+    expect(bytesForTex).toBe(32);
+
+    bytesForTex = computeBytes(
+        shapeRC, PhysicalTextureType.PACKED_2X2_FLOAT32, gpgpu.gl,
+        gpgpu.textureConfig, true /* isPacked */);
+    expect(bytesForTex).toBe(32);
+
+    bytesForTex = computeBytes(
+        shapeRC, PhysicalTextureType.PACKED_2X2_FLOAT16, gpgpu.gl,
+        gpgpu.textureConfig, true /* isPacked */);
+    expect(bytesForTex).toBe(16);
+
+    gpgpu.dispose();
+  });
 });
 
 describeWithFlags('memory webgl', WEBGL_ENVS, () => {

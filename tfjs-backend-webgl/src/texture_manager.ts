@@ -47,7 +47,8 @@ export class TextureManager {
     }
 
     const texBytes = computeBytes(
-        shapeRC, physicalTexType, this.gpgpu.gl, this.gpgpu.textureConfig);
+        shapeRC, physicalTexType, this.gpgpu.gl, this.gpgpu.textureConfig,
+        isPacked);
 
     if (this.freeTextures[shapeKey].length > 0) {
       this.numFreeTextures--;
@@ -100,7 +101,8 @@ export class TextureManager {
     }
 
     const texBytes = computeBytes(
-        shape, physicalTexType, this.gpgpu.gl, this.gpgpu.textureConfig);
+        shape, physicalTexType, this.gpgpu.gl, this.gpgpu.textureConfig,
+        isPacked);
     const deleteTexThreshold = env().get('WEBGL_DELETE_TEXTURE_THRESHOLD');
     if (deleteTexThreshold !== -1 && texBytes > deleteTexThreshold) {
       this.gpgpu.deleteMatrixTexture(texture);
@@ -190,35 +192,38 @@ function numBytesForInternalFormat(
     return 16;
   } else if (internalFormat === gl.RGBA) {
     return 16;
+  } else if (internalFormat === glany.RGBA16F) {
+    return 8;
   }
   throw new Error(`Unknown internal format ${internalFormat}`);
 }
 
-function computeBytes(
+export function computeBytes(
     shape: [number, number], physicalTexType: PhysicalTextureType,
-    gl: WebGLRenderingContext, textureConfig: TextureConfig): number {
+    gl: WebGLRenderingContext, textureConfig: TextureConfig,
+    isPacked: boolean): number {
+  // It is not possible to infer packed status from the texture type because
+  // depending on the textureConfig, different  texture types may resolve to the
+  // same internal format (e.g. in WebGL1, the internal format for
+  // UNPACKED_FLOAT16 textures is gl.RGBA). Therefore we pass in `isPacked`
+  // explicitly.
   const internalFormat =
       getInternalFormatForPhysicalTextureType(physicalTexType, textureConfig);
 
-  const [packedWidth, packedHeight] =
-      getPackedMatrixTextureShapeWidthHeight(shape[0], shape[1]);
-  const numPackedElements = packedWidth * packedHeight;
-  const [width, height] =
-      getUnpackedMatrixTextureShapeWidthHeight(shape[0], shape[1]);
-  const numElements = width * height;
-  const bytesPerElement = numBytesForInternalFormat(gl, internalFormat);
-  if (internalFormat === textureConfig.internalFormatPackedFloat) {
-    return numPackedElements * bytesPerElement;
-  } else if (internalFormat === textureConfig.internalFormatPackedHalfFloat) {
-    return numPackedElements * bytesPerElement;
-  } else if (internalFormat === textureConfig.downloadTextureFormat) {
-    return numElements * bytesPerElement;
-  } else if (internalFormat === textureConfig.internalFormatHalfFloat) {
-    return numElements * bytesPerElement;
-  } else if (internalFormat === textureConfig.internalFormatFloat) {
-    return numElements * bytesPerElement;
+  let numElements: number;
+  if (isPacked) {
+    const [packedWidth, packedHeight] =
+        getPackedMatrixTextureShapeWidthHeight(shape[0], shape[1]);
+    numElements = packedWidth * packedHeight;
+
+  } else {
+    const [width, height] =
+        getUnpackedMatrixTextureShapeWidthHeight(shape[0], shape[1]);
+    numElements = width * height;
   }
-  throw new Error(`Unknown internal format ${internalFormat}`);
+
+  const bytesPerElement = numBytesForInternalFormat(gl, internalFormat);
+  return numElements * bytesPerElement;
 }
 
 function getInternalFormatForPhysicalTextureType(
