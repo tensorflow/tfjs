@@ -517,6 +517,32 @@ describeWithFlags('computeBytes counts bytes correctly', WEBGL2_ENVS, () => {
   });
 });
 
+describeWithFlags('aggressive texture deletion', WEBGL_ENVS, () => {
+  it('basic', () => {
+    const savedDeleteThreshold =
+        tf.env().get('WEBGL_DELETE_TEXTURE_THRESHOLD') as number;
+    tf.env().set('WEBGL_DELETE_TEXTURE_THRESHOLD', 0);
+
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+
+    tf.matMul(a, b);
+
+    const startNumBytesAllocated =
+        (tf.memory() as WebGLMemoryInfo).numBytesInGPUAllocated;
+
+    a.dispose();
+    b.dispose();
+
+    expect(
+        startNumBytesAllocated -
+        (tf.memory() as WebGLMemoryInfo).numBytesInGPUAllocated)
+        .toBeGreaterThan(0);
+
+    tf.env().set('WEBGL_DELETE_TEXTURE_THRESHOLD', savedDeleteThreshold);
+  });
+});
+
 describeWithFlags('memory webgl', WEBGL_ENVS, () => {
   it('unreliable is falsy/not present when all tensors are numeric', () => {
     tf.tensor(1);
