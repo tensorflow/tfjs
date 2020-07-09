@@ -166,14 +166,24 @@ export * from './spectral_ops';
 export * from './sparse_to_dense';
 export * from './gather_nd';
 export * from './dropout';
-export * from './signal_ops';
+export * from './signal_ops_util';
 export * from './in_top_k';
 
 export {op} from './operation';
 
 import * as spectral from './spectral_ops';
 import * as fused from './fused_ops';
-import * as signal from './signal_ops';
+
+import {hammingWindow} from './hamming_window';
+import {hannWindow} from './hann_window';
+import {frame} from './frame';
+import {stft} from './stft';
+const signal = {
+  hammingWindow,
+  hannWindow,
+  frame,
+  stft,
+};
 
 // Image Ops namespace
 import {cropAndResize} from './crop_and_resize';
