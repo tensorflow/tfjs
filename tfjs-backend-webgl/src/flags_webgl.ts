@@ -44,7 +44,7 @@ ENV.registerFlag(
     'WEBGL_BUFFER_SUPPORTED', () => ENV.get('WEBGL_VERSION') === 2);
 
 /** Whether the WebGL backend will sometimes forward ops to the CPU. */
-ENV.registerFlag('WEBGL_CPU_FORWARD', () => true);
+ENV.registerFlag('WEBGL_CPU_FORWARD', () => false);
 
 /** Whether the WebGL backend will always use f16 textures for rendering. */
 ENV.registerFlag('WEBGL_FORCE_F16_TEXTURES', () => false);

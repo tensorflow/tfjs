@@ -86,6 +86,8 @@ export interface TextureData {
   texShape?: [number, number];
   usage?: TextureUsage;
   isPacked?: boolean;
+  actualRows?: number;
+  actualCols?: number;
 
   // Available when the tensor has been sliced.
   slice?: {

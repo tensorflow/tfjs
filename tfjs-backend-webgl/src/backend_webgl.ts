@@ -587,8 +587,16 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   private releaseGPUData(dataId: DataId): void {
-    const {texture, dtype, texShape, usage, isPacked, slice} =
-        this.texData.get(dataId);
+    const {
+      texture,
+      dtype,
+      texShape,
+      usage,
+      isPacked,
+      slice,
+      actualRows,
+      actualCols
+    } = this.texData.get(dataId);
     const key = slice && slice.origDataId || dataId;
     const refCount = this.dataRefCount.get(key);
     if (refCount > 1) {
@@ -597,7 +605,8 @@ export class MathBackendWebGL extends KernelBackend {
       this.dataRefCount.delete(key);
       if (texture != null) {
         this.numBytesInGPU -= this.computeBytes(texShape, dtype);
-        this.textureManager.releaseTexture(texture, texShape, usage, isPacked);
+        this.textureManager.releaseTexture(
+            texture, texShape, usage, isPacked, actualRows, actualCols);
       }
     }
     const texData = this.texData.get(dataId);
@@ -2742,6 +2751,8 @@ export class MathBackendWebGL extends KernelBackend {
       texData.texShape = outputTexData.texShape;
       texData.isPacked = outputTexData.isPacked;
       texData.usage = outputTexData.usage;
+      texData.actualRows = outputTexData.actualRows;
+      texData.actualCols = outputTexData.actualCols;
 
       this.disposeData(tempDenseInputHandle.dataId);
       this.texData.delete(encodedOutputTarget.dataId);
@@ -2752,8 +2763,12 @@ export class MathBackendWebGL extends KernelBackend {
         this.uploadWaitMs += util.now() - start;
       }
     } else {
-      const newTexture = this.acquireTexture(texShape, usage, dtype, isPacked);
-      texData.texture = newTexture;
+      const annotatedTexture =
+          this.acquireTexture(texShape, usage, dtype, isPacked);
+      // texData.texture = newTexture;
+      texData.texture = annotatedTexture.texture;
+      texData.actualRows = annotatedTexture.rows;
+      texData.actualCols = annotatedTexture.cols;
     }
   }
 
@@ -2772,7 +2787,7 @@ export class MathBackendWebGL extends KernelBackend {
 
   private acquireTexture(
       texShape: [number, number], texType: TextureUsage, dtype: DataType,
-      isPacked: boolean): WebGLTexture {
+      isPacked: boolean): any {
     this.numBytesInGPU += this.computeBytes(texShape, dtype);
     if (!this.warnedAboutMemory &&
         this.numBytesInGPU > this.numMBBeforeWarning * 1024 * 1024) {

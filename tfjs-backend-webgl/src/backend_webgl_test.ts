@@ -616,14 +616,14 @@ describeWithFlags('WebGL backend has sync init', WEBGL_ENVS, () => {
 
   fit('test', () => {
     const xData = [];
-    for (let i = 0; i < 8 * 8; i++) {
+    for (let i = 0; i < 13 * 13; i++) {
       xData.push(i);
     }
     const yData = [];
-    for (let i = 0; i < 8 * 8; i++) {
+    for (let i = 0; i < 13 * 13; i++) {
       yData.push(i);
     }
-    tf.matMul(tf.tensor2d(xData, [8, 8]), tf.tensor2d(yData, [8, 8]));
+    tf.matMul(tf.tensor2d(xData, [13, 13]), tf.tensor2d(yData, [13, 13]));
     console.log('============= END SETUP ==============');
 
     const aData = [];

@@ -70,7 +70,7 @@ export class TextureManager {
 
   acquireTexture(
       shapeRC: [number, number], usage: TextureUsage,
-      isPacked: boolean): WebGLTexture {
+      isPacked: boolean): {texture: WebGLTexture, rows: number, cols: number} {
     const physicalTexType = getPhysicalFromLogicalTextureType(usage, isPacked);
 
     const shapeKey = getKeyFromTextureShape(shapeRC, physicalTexType, isPacked);
@@ -88,7 +88,61 @@ export class TextureManager {
       this.log();
       const newTexture = this.freeTextures[shapeKey].shift();
       this.usedTextures[shapeKey].push(newTexture);
-      return newTexture;
+      // return newTexture;
+      const [rows, cols, ] = shapeKey.split('_');
+
+      return {
+        texture: newTexture,
+        rows: parseInt(rows, 10),
+        cols: parseInt(cols, 10)
+      };
+    }
+
+    const freeTextures =
+        Object.keys(this.freeTextures)
+            .filter(key => this.freeTextures[key].length)
+            .map(key => key.split('_'))
+            .sort((a: string[], b: string[]) => {
+              const aSize = parseInt(a[0], 10) * parseInt(a[1], 10);
+              const bSize = parseInt(b[0], 10) * parseInt(b[1], 10);
+              if (aSize < bSize) {
+                return -1;
+              }
+              return 1;
+            })
+            .map(elements => elements.join('_'));
+
+    let candidate;
+    for (let i = 0; i < freeTextures.length; i++) {
+      const key = freeTextures[i];
+      const [rows, cols, type, candidateIsPacked] = key.split('_');
+      const packedMatches =
+          (candidateIsPacked === 'undefined' && isPacked == null) ||
+          (candidateIsPacked === 'true' && isPacked);
+      if (parseInt(type, 10) === physicalTexType && packedMatches) {
+        if (parseInt(rows, 10) >= shapeRC[0] &&
+            parseInt(cols, 10) >= shapeRC[1]) {
+          candidate = key;
+          break;
+        }
+      }
+    }
+
+    if (candidate) {
+      const [rowsS, colsS, ] = candidate.split('_');
+      const rows = parseInt(rowsS, 10);
+      const cols = parseInt(colsS, 10);
+
+      if ((shapeRC[0] * shapeRC[1]) / (rows * cols) > 0) {
+        console.log('RECYCLING!!!!!');
+        this.numFreeTextures--;
+        this.numUsedTextures++;
+        this.numBytesFree -= this.computeBytes([rows, cols], physicalTexType);
+        this.log();
+        const newTexture = this.freeTextures[candidate].shift();
+        this.usedTextures[candidate].push(newTexture);
+        return {texture: newTexture, rows, cols};
+      }
     }
     this.numUsedTextures++;
     this.numBytesAllocated += this.computeBytes(shapeRC, physicalTexType);
@@ -114,19 +168,29 @@ export class TextureManager {
     }
     this.usedTextures[shapeKey].push(newTexture);
 
-    return newTexture;
+    // return newTexture;
+    const [rows, cols, ] = shapeKey.split('_');
+    return {
+      texture: newTexture,
+      rows: parseInt(rows, 10),
+      cols: parseInt(cols, 10)
+    };
   }
 
   releaseTexture(
       texture: WebGLTexture, shape: [number, number],
-      logicalTexType: TextureUsage, isPacked: boolean): void {
+      logicalTexType: TextureUsage, isPacked: boolean, actualRows: number,
+      actualCols: number): void {
+    // console.log('rELEASE', actualRows, actualCols);
     if (this.freeTextures == null) {
       // Already disposed.
       return;
     }
+    shape = [actualRows, actualCols];
     const physicalTexType =
         getPhysicalFromLogicalTextureType(logicalTexType, isPacked);
     const shapeKey = getKeyFromTextureShape(shape, physicalTexType, isPacked);
+    // console.log('release tex', shapeKey);
     if (!(shapeKey in this.freeTextures)) {
       this.freeTextures[shapeKey] = [];
     }
