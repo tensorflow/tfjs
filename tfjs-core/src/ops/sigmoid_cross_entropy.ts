@@ -20,6 +20,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assertShapesMatch} from '../util';
 
+import {abs} from './abs';
 import {add} from './add';
 import {computeWeightedLoss} from './compute_weighted_loss';
 import {Reduction} from './loss_ops_utils';
@@ -29,7 +30,7 @@ import {op} from './operation';
 import {relu} from './relu';
 import {sub} from './sub';
 import {scalar} from './tensor_ops';
-import {abs, exp, log1p} from './unary_ops';
+import {exp, log1p} from './unary_ops';
 
 function sigmoidCrossEntropyWithLogits_<T extends Tensor, O extends Tensor>(
     labels: T|TensorLike, logits: T|TensorLike): O {
