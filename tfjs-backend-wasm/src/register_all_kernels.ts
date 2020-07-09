@@ -53,6 +53,8 @@ import {logConfig} from './kernels/Log';
 import {logicalAndConfig} from './kernels/LogicalAnd';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
+import {maxPoolConfig} from './kernels/MaxPool';
+import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
 import {multiplyConfig} from './kernels/Multiply';
 import {negateConfig} from './kernels/Negate';
@@ -123,6 +125,8 @@ const kernelConfigs: KernelConfig[] = [
   logicalAndConfig,
   maxConfig,
   maximumConfig,
+  maxPoolConfig,
+  minConfig,
   minimumConfig,
   multiplyConfig,
   negateConfig,
