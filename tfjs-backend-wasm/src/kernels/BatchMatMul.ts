@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, NamedAttrMap, NamedTensorInfoMap, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -82,9 +82,9 @@ function batchMatMul(args: {
   return out;
 }
 
-registerKernel({
+export const batchMatMulConfig: KernelConfig = {
   kernelName: 'BatchMatMul',
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: batchMatMul
-});
+};

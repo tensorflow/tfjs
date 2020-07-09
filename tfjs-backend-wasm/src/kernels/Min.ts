@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, KernelFunc, Min, MinAttrs, MinInputs, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, Min, MinAttrs, MinInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -77,9 +77,9 @@ function min(args: {backend: BackendWasm, inputs: MinInputs, attrs: MinAttrs}):
   return out;
 }
 
-registerKernel({
+export const minConfig: KernelConfig = {
   kernelName: Min,
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: min as {} as KernelFunc
-});
+};

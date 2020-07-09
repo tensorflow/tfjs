@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, NamedTensorInfoMap, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -31,8 +31,8 @@ function zerosLike(args: {inputs: ZerosLikeInputs, backend: BackendWasm}) {
   return out;
 }
 
-registerKernel({
+export const zerosLikeConfig: KernelConfig = {
   kernelName: 'ZerosLike',
   backendName: 'wasm',
   kernelFunc: zerosLike as {} as KernelFunc,
-});
+};

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ArgMax, ArgMaxAttrs, ArgMaxInputs, KernelFunc, registerKernel, util} from '@tensorflow/tfjs-core';
+import {ArgMax, ArgMaxAttrs, ArgMaxInputs, KernelConfig, KernelFunc, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -73,9 +73,9 @@ function argmax(
   return out;
 }
 
-registerKernel({
+export const argMaxConfig: KernelConfig = {
   kernelName: ArgMax,
   backendName: 'wasm',
   kernelFunc: argmax as {} as KernelFunc,
   setupFunc: setup
-});
+};

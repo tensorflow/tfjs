@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, KernelFunc, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 import {Max, MaxAttrs, MaxInputs} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
@@ -73,9 +73,9 @@ function max(args: {backend: BackendWasm, inputs: MaxInputs, attrs: MaxAttrs}):
   return out;
 }
 
-registerKernel({
+export const maxConfig: KernelConfig = {
   kernelName: Max,
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: max as {} as KernelFunc
-});
+};

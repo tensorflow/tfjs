@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, Unpack, UnpackAttrs, UnpackInputs} from '@tensorflow/tfjs-core';
+import {KernelConfig, NamedAttrMap, NamedTensorInfoMap, TensorInfo, Unpack, UnpackAttrs, UnpackInputs} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -49,8 +49,8 @@ function unpack(args: {
   return outs.map(({dataId, dtype}) => ({dataId, dtype, shape: outShape}));
 }
 
-registerKernel({
+export const unpackConfig: KernelConfig = {
   kernelName: Unpack,
   backendName: 'wasm',
   kernelFunc: unpack,
-});
+};
