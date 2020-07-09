@@ -233,7 +233,7 @@ function internalFormatForPhysicalTexType(
     case PhysicalTextureType.PACKED_2X2_FLOAT32:
       return getInternalFormatForPackedMatrixTexture(textureConfig);
     case PhysicalTextureType.PACKED_2X2_FLOAT16:
-      return getInternalFormatForPackedMatrixTexture(textureConfig);
+      return getInternalFormatForFloat16PackedMatrixTexture(textureConfig);
     case PhysicalTextureType.UNPACKED_FLOAT32:
       return getInternalFormatForFloat32MatrixTexture(textureConfig);
     case PhysicalTextureType.UNPACKED_FLOAT16:
