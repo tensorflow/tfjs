@@ -224,8 +224,8 @@ tfjs_cc_library(
         ":Relu",
         ":Relu6",
         ":ResizeBilinear",
-        ":Rotate",
         ":Reverse",
+        ":Rotate",
         ":ScatterNd",
         ":SelectV2",
         ":Sigmoid",
@@ -740,15 +740,6 @@ tfjs_cc_library(
     ],
 )
 
-tfjs_cc_library(
-    name = "Rotate",
-    srcs = ["kernels/Rotate.cc"],
-    deps = [
-        ":backend",
-        ":util",
-    ],
-)
-
 tfjs_unit_test(
     name = "ResizeBilinear_test",
     srcs = ["kernels/ResizeBilinear_test.cc"],
@@ -760,6 +751,15 @@ tfjs_unit_test(
 tfjs_cc_library(
     name = "Reverse",
     srcs = ["kernels/Reverse.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Rotate",
+    srcs = ["kernels/Rotate.cc"],
     deps = [
         ":backend",
         ":util",
