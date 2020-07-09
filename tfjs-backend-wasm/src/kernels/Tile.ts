@@ -44,7 +44,7 @@ function setup(backend: BackendWasm) {
   ]);
 }
 
-function tile(
+export function tile(
     args: {inputs: TileInputs, backend: BackendWasm, attrs: TileAttrs}) {
   const {inputs, backend, attrs} = args;
   const {x} = inputs;

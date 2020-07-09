@@ -225,6 +225,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'argmax', excludes: ['gradient']},
   {include: 'exp '},
   {include: 'unstack'},
+  {include: 'broadcastTo'},
   {
     include: 'minimum',
     excludes: [
