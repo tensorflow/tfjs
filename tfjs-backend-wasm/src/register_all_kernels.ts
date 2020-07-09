@@ -20,6 +20,7 @@
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
 import {fusedMatMulConfig} from './kernels/_FusedMatMul';
+import {absConfig} from './kernels/Abs';
 import {addConfig} from './kernels/Add';
 import {addNConfig} from './kernels/AddN';
 import {argMaxConfig} from './kernels/ArgMax';
@@ -87,6 +88,7 @@ import {zerosLikeConfig} from './kernels/ZerosLike';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
+  absConfig,
   addConfig,
   addNConfig,
   argMaxConfig,
