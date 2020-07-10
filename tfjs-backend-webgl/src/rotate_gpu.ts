@@ -34,10 +34,10 @@ export class RotateProgram implements GPGPUProgram {
     const cosFactor = Math.cos(-radians).toFixed(3);
     this.outputShape = imageShape;
 
-    let [centerX, centerY] =
+    const [centerX, centerY] =
         backend_util.getImageCenter(center, imageHeight, imageWidth);
-    centerX = centerX.toFixed(3);
-    centerY = centerY.toFixed(3);
+    const centerXString = centerX.toFixed(3);
+    const centerYString = centerY.toFixed(3);
 
     let fillSnippet = '';
     if (typeof fillValue === 'number') {
@@ -53,12 +53,12 @@ export class RotateProgram implements GPGPUProgram {
           ivec4 coords = getOutputCoords();
           int x = coords[2];
           int y = coords[1];
-          float coordXFloat = (float(x) - ${centerX}) * ${
-        cosFactor} - (float(y) - ${centerY}) * ${sinFactor};
-          float coordYFloat = (float(x) - ${centerX}) * ${
-        sinFactor} + (float(y) - ${centerY}) * ${cosFactor};
-          int coordX = int(round(coordXFloat + ${centerX}));
-          int coordY = int(round(coordYFloat + ${centerY}));
+          float coordXFloat = (float(x) - ${centerXString}) * ${
+        cosFactor} - (float(y) - ${centerYString}) * ${sinFactor};
+          float coordYFloat = (float(x) - ${centerXString}) * ${
+        sinFactor} + (float(y) - ${centerYString}) * ${cosFactor};
+          int coordX = int(round(coordXFloat + ${centerXString}));
+          int coordY = int(round(coordYFloat + ${centerYString}));
           ${fillSnippet}
           if(coordX >= 0 && coordX < ${imageWidth} && coordY >= 0 && coordY < ${
         imageHeight}) {
