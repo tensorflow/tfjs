@@ -210,7 +210,25 @@ const TUNABLE_FLAGS = {
   WEBGL_RENDER_FLOAT32_CAPABLE: 'boolean',
 };
 
-async function resetEnvFlags(flagConfig) {
+/**
+ * Set environment flags in `TUNABLE_FLAGS` list.
+ *
+ * This is a wrapper function of `tf.env().setFlags()`, and this function adds
+ * flag checking and re-construct environment variables.
+ *
+ * ```js
+ * const flagConfig = {
+ *        WEBGL_PACK: false,
+ *      };
+ * await setEnvFlags(flagConfig);
+ *
+ * console.log(tf.env().getBool('WEBGL_PACK')); // false
+ * console.log(tf.env().getBool('WEBGL_PACK_BINARY_OPERATIONS')); // false
+ * ```
+ *
+ * @param flagConfig An object to store flag-value pairs.
+ */
+async function setEnvFlags(flagConfig) {
   if (flagConfig == null) {
     return;
   } else if (typeof flagConfig !== 'object') {
@@ -259,6 +277,4 @@ async function resetEnvFlags(flagConfig) {
       await tf.setBackend('webgl');
     }
   }
-
-  return true;
 }

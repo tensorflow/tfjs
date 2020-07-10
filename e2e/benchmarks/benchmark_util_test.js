@@ -33,8 +33,8 @@ describe('benchmark_util', function() {
       expect(input[0].shape).toEqual([1, 3]);
     });
   });
-  
-  describe('resetEnvFlags', function() {
+
+  describe('setEnvFlags', function() {
     describe('change nothing', function() {
       let originalFlags = {};
 
@@ -44,7 +44,7 @@ describe('benchmark_util', function() {
       afterAll(() => tf.env().reset());
 
       it('empty config', async function() {
-        await resetEnvFlags();
+        await setEnvFlags();
         expect(tf.env().flags).toEqual(originalFlags);
       });
 
@@ -52,7 +52,7 @@ describe('benchmark_util', function() {
         const flagConfig = {
           IS_BROWSER: false,
         };
-        expectAsync(resetEnvFlags(flagConfig))
+        expectAsync(setEnvFlags(flagConfig))
             .toBeRejectedWithError(
                 Error, /is not a tunable or valid environment flag./);
         expect(tf.env().flags).toEqual(originalFlags);
@@ -62,7 +62,7 @@ describe('benchmark_util', function() {
         const flagConfig = {
           WEBGL_VERSION: false,
         };
-        expectAsync(resetEnvFlags(flagConfig)).toBeRejectedWithError(Error);
+        expectAsync(setEnvFlags(flagConfig)).toBeRejectedWithError(Error);
         expect(tf.env().flags).toEqual(originalFlags);
       });
 
@@ -70,7 +70,7 @@ describe('benchmark_util', function() {
         const flagConfig = {
           WEBGL_PACK: 1,
         };
-        expectAsync(resetEnvFlags(flagConfig)).toBeRejectedWithError(Error);
+        expectAsync(setEnvFlags(flagConfig)).toBeRejectedWithError(Error);
         expect(tf.env().flags).toEqual(originalFlags);
       });
     });
@@ -83,7 +83,7 @@ describe('benchmark_util', function() {
         const flagConfig = {
           WEBGL_VERSION: 1,
         };
-        await resetEnvFlags(flagConfig);
+        await setEnvFlags(flagConfig);
         expect(tf.env().getNumber('WEBGL_VERSION')).toBe(1);
       });
 
@@ -95,12 +95,12 @@ describe('benchmark_util', function() {
           WEBGL_FORCE_F16_TEXTURES: false,
           WEBGL_RENDER_FLOAT32_CAPABLE: false,
         };
-        await resetEnvFlags(flagConfig);
-        expect(tf.env().getNumber('WASM_HAS_SIMD_SUPPORT')).toBe(false);
-        expect(tf.env().getNumber('WEBGL_CPU_FORWARD')).toBe(false);
-        expect(tf.env().getNumber('WEBGL_PACK')).toBe(false);
-        expect(tf.env().getNumber('WEBGL_FORCE_F16_TEXTURES')).toBe(false);
-        expect(tf.env().getNumber('WEBGL_RENDER_FLOAT32_CAPABLE')).toBe(false);
+        await setEnvFlags(flagConfig);
+        expect(tf.env().getBool('WASM_HAS_SIMD_SUPPORT')).toBe(false);
+        expect(tf.env().getBool('WEBGL_CPU_FORWARD')).toBe(false);
+        expect(tf.env().getBool('WEBGL_PACK')).toBe(false);
+        expect(tf.env().getBool('WEBGL_FORCE_F16_TEXTURES')).toBe(false);
+        expect(tf.env().getBool('WEBGL_RENDER_FLOAT32_CAPABLE')).toBe(false);
       });
     });
 
@@ -119,7 +119,7 @@ describe('benchmark_util', function() {
         const flagConfig = {
           WEBGL_VERSION: 2,
         };
-        await resetEnvFlags(flagConfig);
+        await setEnvFlags(flagConfig);
         expect(tf.env().getBool('WEBGL_BUFFER_SUPPORTED')).toBe(true);
       });
 
@@ -131,7 +131,7 @@ describe('benchmark_util', function() {
         const flagConfig = {
           WEBGL_VERSION: 1,
         };
-        await resetEnvFlags(flagConfig);
+        await setEnvFlags(flagConfig);
         expect(tf.env().getBool('WEBGL_BUFFER_SUPPORTED')).toBe(false);
       });
 
@@ -144,7 +144,7 @@ describe('benchmark_util', function() {
         const flagConfig = {
           WEBGL_VERSION: 1,
         };
-        await resetEnvFlags(flagConfig);
+        await setEnvFlags(flagConfig);
         expect(tf.getBackend()).toBe('webgl');
       });
 
@@ -157,7 +157,7 @@ describe('benchmark_util', function() {
         const flagConfig = {
           WASM_HAS_SIMD_SUPPORT: false,
         };
-        await resetEnvFlags(flagConfig);
+        await setEnvFlags(flagConfig);
         expect(tf.env().getBool('WASM_HAS_SIMD_SUPPORT')).toBe(false);
       });
     });
