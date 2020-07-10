@@ -598,6 +598,13 @@ export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
 export const Sub = 'Sub';
 export type SubInputs = BinaryInputs;
 
+export const SparseToDense = 'SparseToDense';
+export type SparseToDenseInputs =
+    Pick<NamedTensorInfoMap, 'sparseIndices'|'sparseValues'|'defaultValue'>;
+export interface SparseToDenseAttrs {
+  outputShape: number[];
+}
+
 export const StridedSlice = 'StridedSlice';
 export type StridedSliceInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface StridedSliceAttrs {

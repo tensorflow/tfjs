@@ -16,11 +16,16 @@
  */
 
 import {ENGINE} from '../engine';
+import {SparseToDense, SparseToDenseAttrs, SparseToDenseInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import * as sparse_to_dense from '../ops/sparse_to_dense_util';
 import {Scalar, Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {Rank, ScalarLike, ShapeMap, TensorLike} from '../types';
+
 import {op} from './operation';
+
 
 /**
  * Converts a sparse representation into a dense tensor.
@@ -72,10 +77,19 @@ function sparseToDense_<R extends Rank>(
   sparse_to_dense.validateInput(
       $sparseIndices, $sparseValues, outputShape, $defaultValue);
 
+  const inputs: SparseToDenseInputs = {
+    sparseIndices: $sparseIndices,
+    sparseValues: $sparseValues,
+    defaultValue: $defaultValue
+  };
+
+  const attrs: SparseToDenseAttrs = {outputShape};
+
   return ENGINE.runKernelFunc(
       backend => backend.sparseToDense(
           $sparseIndices, $sparseValues, outputShape, $defaultValue),
-      {$sparseIndices, $sparseValues, $defaultValue});
+      inputs as {} as NamedTensorMap, null /* grad */, SparseToDense,
+      attrs as {} as NamedAttrMap);
 }
 
 export const sparseToDense = op({sparseToDense_});
