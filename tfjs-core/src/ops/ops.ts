@@ -127,6 +127,11 @@ export {separableConv2d} from './separable_conv2d';
 export {sign} from './sign';
 export {sin} from './sin';
 export {sinh} from './sinh';
+export {slice} from './slice';
+export {slice1d} from './slice1d';
+export {slice2d} from './slice2d';
+export {slice3d} from './slice3d';
+export {slice4d} from './slice4d';
 export {spaceToBatchND} from './space_to_batch_nd';
 export {split} from './split';
 export {square} from './square';
@@ -145,7 +150,6 @@ export {where} from './where';
 export {whereAsync} from './where_async';
 
 export * from './boolean_mask';
-export * from './slice';
 export * from './unary_ops';
 export * from './compare';
 export * from './binary_ops';
@@ -162,14 +166,24 @@ export * from './spectral_ops';
 export * from './sparse_to_dense';
 export * from './gather_nd';
 export * from './dropout';
-export * from './signal_ops';
+export * from './signal_ops_util';
 export * from './in_top_k';
 
 export {op} from './operation';
 
 import * as spectral from './spectral_ops';
 import * as fused from './fused_ops';
-import * as signal from './signal_ops';
+
+import {hammingWindow} from './hamming_window';
+import {hannWindow} from './hann_window';
+import {frame} from './frame';
+import {stft} from './stft';
+const signal = {
+  hammingWindow,
+  hannWindow,
+  frame,
+  stft,
+};
 
 // Image Ops namespace
 import {cropAndResize} from './crop_and_resize';

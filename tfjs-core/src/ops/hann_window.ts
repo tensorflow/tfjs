@@ -15,7 +15,25 @@
  * =============================================================================
  */
 
-import {Multiply} from '@tensorflow/tfjs-core';
-import {registerBinaryKernel} from './binary_kernel';
-const supportsFullBroadcast = true;
-registerBinaryKernel(Multiply, supportsFullBroadcast);
+import {op} from '../ops/operation';
+import {Tensor1D} from '../tensor';
+import {cosineWindow} from './signal_ops_util';
+
+/**
+ * Generate a Hann window.
+ *
+ * See: https://en.wikipedia.org/wiki/Window_function#Hann_and_Hamming_windows
+ *
+ * ```js
+ * tf.signal.hannWindow(10).print();
+ * ```
+ * @param The length of window
+ */
+/**
+ * @doc {heading: 'Operations', subheading: 'Signal', namespace: 'signal'}
+ */
+function hannWindow_(windowLength: number): Tensor1D {
+  return cosineWindow(windowLength, 0.5, 0.5);
+}
+
+export const hannWindow = op({hannWindow_});

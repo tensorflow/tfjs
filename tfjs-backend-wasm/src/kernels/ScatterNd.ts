@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelFunc, registerKernel, scatter_util, ScatterNd, ScatterNdAttrs, ScatterNdInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, scatter_util, ScatterNd, ScatterNdAttrs, ScatterNdInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -72,9 +72,9 @@ function scatterNd(
   return out;
 }
 
-registerKernel({
+export const scatterNdConfig: KernelConfig = {
   kernelName: ScatterNd,
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: scatterNd as {} as KernelFunc
-});
+};

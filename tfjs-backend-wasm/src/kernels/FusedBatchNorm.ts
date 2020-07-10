@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, NamedAttrMap, NamedTensorInfoMap, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -67,9 +67,9 @@ function fusedBatchNorm(
   return out;
 }
 
-registerKernel({
+export const fusedBatchNormConfig: KernelConfig = {
   kernelName: 'FusedBatchNorm',
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: fusedBatchNorm
-});
+};
