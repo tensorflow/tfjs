@@ -200,3 +200,65 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
   }
   return valueContainer;
 }
+
+const TUNABLE_FLAGS = {
+  WEBGL_VERSION: 'number',
+  WASM_HAS_SIMD_SUPPORT: 'boolean',
+  WEBGL_CPU_FORWARD: 'boolean',
+  WEBGL_PACK: 'boolean',
+  WEBGL_FORCE_F16_TEXTURES: 'boolean',
+  WEBGL_RENDER_FLOAT32_CAPABLE: 'boolean',
+};
+
+async function resetEnvFlags(flagConfig) {
+  if (flagConfig == null) {
+    return;
+  } else if (typeof flagConfig !== 'object') {
+    throw new Error(
+        `An object is expected, while a(n) ${typeof flagConfig} is found.`);
+  }
+
+  // Check the validation of flags and values.
+  for (const flag in flagConfig) {
+    // TODO: check whether flag can be set as flagConfig[flag].
+    if (!(flag in TUNABLE_FLAGS)) {
+      throw new Error(`${flag} is not a tunable or valid environment flag.`);
+    }
+    if (typeof flagConfig[flag] !== TUNABLE_FLAGS[flag]) {
+      throw new Error(
+          `${flag} is expected to be a ${TUNABLE_FLAGS[flag]}, while a(n) ` +
+          `${typeof flagConfig[flag]} is found.`);
+    }
+  }
+
+  tf.env().setFlags(flagConfig);
+
+  // `WASM_HAS_SIMD_SUPPORT` and `WEBGL_VERSION` are also evaluated when
+  // initializing backends, not only inferring.
+  // TODO: The following backend rebuild logics can be implemented in `setHook`
+  // when registering these flags.
+  const ENGINE = tf.engine();
+  if ('WASM_HAS_SIMD_SUPPORT' in flagConfig && 'wasm' in ENGINE.registry) {
+    const currentBackend = tf.getBackend();
+    const wasmFactory = tf.findBackendFactory('wasm');
+    tf.removeBackend('wasm');
+    tf.registerBackend('wasm', wasmFactory);
+
+    if (currentBackend === 'wasm') {
+      await tf.setBackend('wasm');
+    }
+  }
+
+  if ('WEBGL_VERSION' in flagConfig && 'webgl' in ENGINE.registry) {
+    const currentBackend = tf.getBackend();
+    const webglFactory = tf.findBackendFactory('webgl');
+    tf.removeBackend('webgl');
+    tf.registerBackend('webgl', webglFactory);
+
+    if (currentBackend === 'webgl') {
+      await tf.setBackend('webgl');
+    }
+  }
+
+  return true;
+}
