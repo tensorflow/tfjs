@@ -342,6 +342,12 @@ export type LogicalNotInputs = Pick<NamedTensorInfoMap, 'x'>;
 export const LogicalOr = 'LogicalOr';
 export type LogicalOrInputs = BinaryInputs;
 
+export const LogSoftmax = 'LogSoftmax';
+export type LogSoftmaxInputs = Pick<NamedTensorInfoMap, 'logits'>;
+export interface LogSoftmaxAttrs {
+  axis: number;
+}
+
 export const LRN = 'LRN';
 export type LRNInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface LRNAttrs {
@@ -587,6 +593,12 @@ export type SplitVInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface SplitVAttrs {
   numOrSizeSplits: number[]|number;
   axis: number;
+}
+
+export const Softmax = 'Softmax';
+export type SoftmaxInputs = Pick<NamedTensorInfoMap, 'logits'>;
+export interface SoftmaxAttrs {
+  dim: number;
 }
 
 export const SquaredDifference = 'SquaredDifference';

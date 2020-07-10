@@ -49,6 +49,7 @@ import {fusedBatchNormGradConfig} from './gradients/FusedBatchNorm_grad';
 import {gatherGradConfig} from './gradients/GatherV2_grad';
 import {greaterEqualGradConfig} from './gradients/GreaterEqual_grad';
 import {identityGradConfig} from './gradients/Identity_grad';
+import {logSoftmaxGradConfig} from './gradients/LogSoftmax_grad';
 import {lrnGradConfig} from './gradients/LRN_grad';
 import {maxGradConfig} from './gradients/Max_grad';
 import {maximumGradConfig} from './gradients/Maximum_grad';
@@ -75,6 +76,7 @@ import {signGradConfig} from './gradients/Sign_grad';
 import {sinGradConfig} from './gradients/Sin_grad';
 import {sinhGradConfig} from './gradients/Sinh_grad';
 import {sliceGradConfig} from './gradients/Slice_grad';
+import {softmaxGradConfig} from './gradients/Softmax_grad';
 import {spaceToBatchNDGradConfig} from './gradients/SpaceToBatchND_grad';
 import {splitVGradConfig} from './gradients/SplitV_grad';
 import {squareGradConfig} from './gradients/Square_grad';
@@ -128,6 +130,7 @@ const gradConfigs: GradConfig[] = [
   greaterEqualGradConfig,
   identityGradConfig,
   lrnGradConfig,
+  logSoftmaxGradConfig,
   maxGradConfig,
   maxGradConfig,
   maximumGradConfig,
@@ -164,6 +167,7 @@ const gradConfigs: GradConfig[] = [
   squareGradConfig,
   subGradConfig,
   sumGradConfig,
+  softmaxGradConfig,
   tanGradConfig,
   tanhGradConfig,
   tileGradConfig,
