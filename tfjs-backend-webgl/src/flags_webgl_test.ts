@@ -356,3 +356,9 @@ describe('WEBGL_SIZE_UPLOAD_UNIFORM', () => {
     expect(tf.env().getNumber('WEBGL_SIZE_UPLOAD_UNIFORM')).toBeGreaterThan(0);
   });
 });
+
+describeWithFlags('WEBGL_DELETE_TEXTURE_THRESHOLD', WEBGL_ENVS, () => {
+  it('should throw an error if given a negative value', () => {
+    expect(() => tf.env().set('WEBGL_DELETE_TEXTURE_THRESHOLD', -2)).toThrow();
+  });
+});
