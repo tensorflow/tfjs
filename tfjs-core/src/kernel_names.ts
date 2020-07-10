@@ -598,6 +598,19 @@ export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
 export const Sub = 'Sub';
 export type SubInputs = BinaryInputs;
 
+export const StridedSlice = 'StridedSlice';
+export type StridedSliceInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface StridedSliceAttrs {
+  begin: number[];
+  end: number[];
+  strides: number[];
+  beginMask: number;
+  endMask: number;
+  ellipsisMask: number;
+  newAxisMask: number;
+  shrinkAxisMask: number;
+}
+
 export const Tan = 'Tan';
 export type TanInputs = UnaryInputs;
 
