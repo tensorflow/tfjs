@@ -31,6 +31,7 @@ import {avgPoolGradConfig} from './gradients/AvgPool_grad';
 import {batchMatMulGradConfig} from './gradients/BatchMatMul_grad';
 import {batchToSpaceNDGradConfig} from './gradients/BatchToSpaceND_grad';
 import {broadcastToGradConfig} from './gradients/BroadcastTo_grad';
+import {castGradConfig} from './gradients/Cast_grad';
 import {ceilGradConfig} from './gradients/Ceil_grad';
 import {concatGradConfig} from './gradients/Concat_grad';
 import {conv2DGradConfig} from './gradients/Conv2D_grad';
@@ -109,6 +110,7 @@ const gradConfigs: GradConfig[] = [
   batchMatMulGradConfig,
   batchToSpaceNDGradConfig,
   broadcastToGradConfig,
+  castGradConfig,
   ceilGradConfig,
   concatGradConfig,
   conv2DBackpropInputGradConfig,

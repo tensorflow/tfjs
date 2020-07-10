@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {cast} from '../ops/array_ops';
 import * as axis_util from '../ops/axis_util';
+import {cast} from '../ops/cast';
 import {equal} from '../ops/equal';
 import {mul} from '../ops/mul';
 import {reshape} from '../ops/reshape';

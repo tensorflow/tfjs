@@ -15,18 +15,13 @@
  * =============================================================================
  */
 
-import {Abs} from '../kernel_names';
+import {Cast} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {cast} from '../ops/cast';
-import {mul} from '../ops/mul';
-import {step} from '../ops/unary_ops';
 import {Tensor} from '../tensor';
 
-export const absGradConfig: GradConfig = {
-  kernelName: Abs,
-  inputsToSave: ['x'],
-  gradFunc: (dy: Tensor, saved: Tensor[]) => {
-    const [x] = saved;
-    return {x: () => mul(dy, step(cast(x, 'float32'), -1))};
+export const castGradConfig: GradConfig = {
+  kernelName: Cast,
+  gradFunc: (dy: Tensor) => {
+    return {x: () => dy.clone()};
   }
 };

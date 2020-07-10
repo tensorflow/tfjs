@@ -140,6 +140,12 @@ export interface BroadCastToAttrs {
   inputShape: number[];  // for gradient
 }
 
+export const Cast = 'Cast';
+export type CastInputs = UnaryInputs;
+export interface CastAttrs {
+  dtype: DataType;
+}
+
 export const Ceil = 'Ceil';
 export type CeilInputs = UnaryInputs;
 

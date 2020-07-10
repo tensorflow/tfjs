@@ -156,6 +156,7 @@ import './ops/reverse_4d_test';
 import './ops/reverse_test';
 import './ops/scatter_nd_test';
 import './ops/selu_test';
+import './ops/setdiff1d_async_test';
 import './ops/sigmoid_cross_entropy_test';
 import './ops/sign_test';
 import './ops/sin_test';

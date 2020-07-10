@@ -20,14 +20,15 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {parseAxisParam, sizeFromShape} from '../util';
 
-import {cast} from './array_ops';
 import {computeOutAndReduceShapes} from './axis_util';
+import {cast} from './cast';
 import {div} from './div';
 import {mul} from './mul';
 import {op} from './operation';
 import {reshape} from './reshape';
 import {sum} from './sum';
 import {ones, scalar} from './tensor_ops';
+
 
 /**
  * Computes the mean of elements across dimensions of a `tf.Tensor`.
