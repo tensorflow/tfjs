@@ -358,7 +358,7 @@ describe('WEBGL_SIZE_UPLOAD_UNIFORM', () => {
 });
 
 describeWithFlags('WEBGL_DELETE_TEXTURE_THRESHOLD', WEBGL_ENVS, () => {
-  fit('should throw an error if given a negative value', () => {
+  it('should throw an error if given a negative value', () => {
     expect(() => tf.env().set('WEBGL_DELETE_TEXTURE_THRESHOLD', -2)).toThrow();
   });
 });
