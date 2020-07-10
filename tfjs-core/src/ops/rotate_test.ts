@@ -24,7 +24,7 @@ describeWithFlags('rotate', BROWSER_ENVS, () => {
       'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QCMRXhpZgAATU0AKgAAAAgABQESAAMAAAABAAEAAAEaAAUAAAABAAAASgEbAAUAAAABAAAAUgEoAAMAAAABAAIAAIdpAAQAAAABAAAAWgAAAAAAAABIAAAAAQAAAEgAAAABAAOgAQADAAAAAQABAACgAgAEAAAAAQAAAAigAwAEAAAAAQAAAAgAAAAA/+0AOFBob3Rvc2hvcCAzLjAAOEJJTQQEAAAAAAAAOEJJTQQlAAAAAAAQ1B2M2Y8AsgTpgAmY7PhCfv/AABEIAAgACAMBIgACEQEDEQH/xAAfAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgv/xAC1EAACAQMDAgQDBQUEBAAAAX0BAgMABBEFEiExQQYTUWEHInEUMoGRoQgjQrHBFVLR8CQzYnKCCQoWFxgZGiUmJygpKjQ1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4eLj5OXm5+jp6vHy8/T19vf4+fr/xAAfAQADAQEBAQEBAQEBAAAAAAAAAQIDBAUGBwgJCgv/xAC1EQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2wBDAAkGBw0HCA0HBw0HBwcHBw0HBwcHDQ8IDQcNFREWFhURExMYHSggGBolGxUTITEhMSk3Ojo6Fx8zODMtNygtLiv/2wBDAQoKCg0NDRUNDRUrGRUZKysrKy0rKy0rKysrKy0rKysrKystKzctKysrKy0rKysrLSsrKysrKzcrLSsrKy0rKyv/3QAEAAH/2gAMAwEAAhEDEQA/AOin1Kxs7JgEVSsZAPU5xWF/wkdp6L+QqlrX/Hm/0P8AKuSqsRk+FlUcmnd+Z4WBzzGulrO+vY//2Q==';
   const size = 8;
 
-  it('basic', async () => {
+  it('should rotate 90 degrees', async () => {
     const img = new Image();
     img.src = imageBase64String;
 
@@ -59,6 +59,48 @@ describeWithFlags('rotate', BROWSER_ENVS, () => {
       127, 255, 218, 210, 103, 255, 247, 201, 81,  255, 250, 177, 64,  255, 0,
       0,   0,   0,   0,   102, 113, 255, 15,  115, 105, 255, 71,  143, 97,  255,
       135, 166, 86,  255, 191, 170, 61,  255, 222, 164, 41,  255, 233, 148, 31,
+      255
+    ];
+
+    expectArraysClose(expected, rotatedPixelsData, 10);
+  });
+
+  it('should rotate negative 90 degrees', async () => {
+    const img = new Image();
+    img.src = imageBase64String;
+
+    await new Promise(resolve => {
+      img.onload = () => resolve(img);
+    });
+
+    img.width = size;
+    img.height = size;
+
+    const pixels = await tf.browser.fromPixels(img, 4);
+    const pixels4D: tf.Tensor4D = pixels.toFloat().expandDims(0);
+
+    const rotatedPixels =
+        tf.image.rotate(pixels4D, -90 * Math.PI / 180).toInt();
+    const rotatedPixelsData = await rotatedPixels.data();
+
+    const expected = [
+      0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+      0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+      0,   0,   230, 133, 18,  255, 233, 148, 31,  255, 222, 164, 41,  255, 191,
+      170, 61,  255, 135, 166, 86,  255, 71,  143, 97,  255, 15,  115, 105, 255,
+      0,   102, 113, 255, 241, 153, 43,  255, 250, 177, 64,  255, 247, 201, 81,
+      255, 218, 210, 103, 255, 162, 206, 127, 255, 98,  181, 135, 255, 39,  150,
+      141, 255, 6,   133, 140, 255, 224, 156, 55,  255, 241, 188, 82,  255, 243,
+      220, 106, 255, 213, 230, 126, 255, 155, 226, 146, 255, 94,  206, 156, 255,
+      37,  177, 164, 255, 3,   158, 162, 255, 212, 157, 75,  255, 230, 193, 104,
+      255, 235, 227, 128, 255, 201, 236, 142, 255, 141, 232, 162, 255, 87,  220,
+      175, 255, 35,  200, 186, 255, 4,   182, 186, 255, 200, 155, 98,  255, 220,
+      190, 128, 255, 225, 228, 151, 255, 191, 239, 165, 255, 130, 235, 179, 255,
+      76,  225, 193, 255, 30,  209, 205, 255, 0,   194, 204, 255, 183, 138, 109,
+      255, 202, 174, 137, 255, 211, 216, 162, 255, 184, 234, 181, 255, 121, 231,
+      192, 255, 64,  219, 201, 255, 19,  203, 211, 255, 0,   189, 209, 255, 171,
+      120, 117, 255, 186, 152, 140, 255, 199, 198, 168, 255, 179, 226, 194, 255,
+      119, 226, 206, 255, 62,  217, 213, 255, 19,  204, 222, 255, 0,   192, 221,
       255
     ];
 
