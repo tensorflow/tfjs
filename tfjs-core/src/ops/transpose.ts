@@ -26,7 +26,6 @@ import * as util from '../util';
 
 import {op} from './operation';
 
-
 /**
  * Transposes the `tf.Tensor`. Permutes the dimensions according to `perm`.
  *
