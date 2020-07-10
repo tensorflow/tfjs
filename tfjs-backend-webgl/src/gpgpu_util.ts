@@ -76,14 +76,25 @@ function createAndConfigureTexture(
   return texture;
 }
 
+export function getInternalFormatForFloat32MatrixTexture(
+    textureConfig: TextureConfig) {
+  return textureConfig.internalFormatFloat;
+}
+
 export function createFloat32MatrixTexture(
     gl: WebGLRenderingContext, rows: number, columns: number,
     textureConfig: TextureConfig): WebGLTexture {
   const [width, height] =
       tex_util.getUnpackedMatrixTextureShapeWidthHeight(rows, columns);
   return createAndConfigureTexture(
-      gl, width, height, textureConfig.internalFormatFloat,
+      gl, width, height,
+      getInternalFormatForFloat32MatrixTexture(textureConfig),
       textureConfig.textureFormatFloat, gl.FLOAT);
+}
+
+export function getInternalFormatForFloat16MatrixTexture(
+    textureConfig: TextureConfig) {
+  return textureConfig.internalFormatHalfFloat;
 }
 
 export function createFloat16MatrixTexture(
@@ -92,8 +103,14 @@ export function createFloat16MatrixTexture(
   const [width, height] =
       tex_util.getUnpackedMatrixTextureShapeWidthHeight(rows, columns);
   return createAndConfigureTexture(
-      gl, width, height, textureConfig.internalFormatHalfFloat,
+      gl, width, height,
+      getInternalFormatForFloat16MatrixTexture(textureConfig),
       textureConfig.textureFormatFloat, textureConfig.textureTypeHalfFloat);
+}
+
+export function getInternalFormatForUnsignedBytesMatrixTexture(
+    textureConfig: TextureConfig) {
+  return textureConfig.downloadTextureFormat;
 }
 
 export function createUnsignedBytesMatrixTexture(
@@ -102,7 +119,14 @@ export function createUnsignedBytesMatrixTexture(
   const [width, height] =
       tex_util.getUnpackedMatrixTextureShapeWidthHeight(rows, columns);
   return createAndConfigureTexture(
-      gl, width, height, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE);
+      gl, width, height,
+      getInternalFormatForUnsignedBytesMatrixTexture(textureConfig), gl.RGBA,
+      gl.UNSIGNED_BYTE);
+}
+
+export function getInternalFormatForPackedMatrixTexture(
+    textureConfig: TextureConfig) {
+  return textureConfig.internalFormatPackedFloat;
 }
 
 export function createPackedMatrixTexture(
@@ -111,8 +135,13 @@ export function createPackedMatrixTexture(
   const [width, height] =
       tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
   return createAndConfigureTexture(
-      gl, width, height, textureConfig.internalFormatPackedFloat, gl.RGBA,
-      gl.FLOAT);
+      gl, width, height, getInternalFormatForPackedMatrixTexture(textureConfig),
+      gl.RGBA, gl.FLOAT);
+}
+
+export function getInternalFormatForFloat16PackedMatrixTexture(
+    textureConfig: TextureConfig) {
+  return textureConfig.internalFormatPackedHalfFloat;
 }
 
 export function createFloat16PackedMatrixTexture(
@@ -121,7 +150,8 @@ export function createFloat16PackedMatrixTexture(
   const [width, height] =
       tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
   return createAndConfigureTexture(
-      gl, width, height, textureConfig.internalFormatPackedHalfFloat, gl.RGBA,
+      gl, width, height,
+      getInternalFormatForFloat16PackedMatrixTexture(textureConfig), gl.RGBA,
       textureConfig.textureTypeHalfFloat);
 }
 
