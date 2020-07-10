@@ -610,6 +610,13 @@ export interface TileAttrs {
   reps: number[];
 }
 
+export const TopK = 'TopK';
+export type TopKInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface TopKAttrs {
+  k: number;
+  sorted: boolean;
+}
+
 export const Transpose = 'Transpose';
 export type TransposeInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface TransposeAttrs {
