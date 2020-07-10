@@ -172,6 +172,15 @@ ENV.registerFlag('WEBGL_SIZE_UPLOAD_UNIFORM', () => {
  *
  * Default value -1 indicates that we will never aggressively delete textures.
  */
-ENV.registerFlag('WEBGL_DELETE_TEXTURE_THRESHOLD', () => {
-  return -1;
-});
+ENV.registerFlag(
+    'WEBGL_DELETE_TEXTURE_THRESHOLD',
+    () => {
+      return -1;
+    },
+    threshold => {
+      if (threshold < 0 && threshold !== -1) {
+        throw new Error(
+            `WEBGL_DELETE_TEXTURE_THRESHOLD must be -1 (indicating never ` +
+            `delete) or at least 0, but got ${threshold}.`);
+      }
+    });
