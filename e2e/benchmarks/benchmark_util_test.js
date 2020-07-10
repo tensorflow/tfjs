@@ -33,7 +33,7 @@ describe('benchmark_util', function() {
       expect(input[0].shape).toEqual([1, 3]);
     });
   });
-
+  
   describe('resetEnvFlags', function() {
     describe('change nothing', function() {
       let originalFlags = {};
