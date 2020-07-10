@@ -16,11 +16,16 @@
  */
 
 import {ENGINE} from '../engine';
+import {Transpose, TransposeAttrs, TransposeInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
+
 import {op} from './operation';
+
 
 /**
  * Transposes the `tf.Tensor`. Permutes the dimensions according to `perm`.
@@ -61,10 +66,12 @@ function transpose_<T extends Tensor>(x: T|TensorLike, perm?: number[]): T {
     return $x.clone();
   }
 
-  const attrs = {perm};
+  const inputs: TransposeInputs = {x: $x};
+  const attrs: TransposeAttrs = {perm};
+
   return ENGINE.runKernelFunc(
-      backend => backend.transpose($x, perm), {x: $x}, null /* gradient */,
-      'Transpose', attrs);
+      backend => backend.transpose($x, perm), inputs as {} as NamedTensorMap,
+      null /* gradient */, Transpose, attrs as {} as NamedAttrMap);
 }
 
 export const transpose = op({transpose_});
