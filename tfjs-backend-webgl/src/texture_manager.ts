@@ -103,8 +103,7 @@ export class TextureManager {
     const texBytes = computeBytes(
         shape, physicalTexType, this.gpgpu.gl, this.gpgpu.textureConfig,
         isPacked);
-    const deleteTexThreshold = env().get('WEBGL_DELETE_TEXTURE_THRESHOLD');
-    if (deleteTexThreshold !== -1 && texBytes > deleteTexThreshold) {
+    if (this._numBytesAllocated > env().get('WEBGL_DELETE_TEXTURE_THRESHOLD')) {
       this.gpgpu.deleteMatrixTexture(texture);
       this._numBytesAllocated -= texBytes;
     } else {
