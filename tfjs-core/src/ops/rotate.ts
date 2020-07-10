@@ -29,15 +29,15 @@ import {op} from './operation';
 /**
  * Rotates the input image tensor.
  *
- *  @param image 4d tensor of shape `[batch, imageHeight, imageWidth, depth]`.
- *  @param radians The amount of rotation.
- *  @param fillValue The value to fill in the empty space leftover
+ * @param image 4d tensor of shape `[batch, imageHeight, imageWidth, depth]`.
+ * @param radians The amount of rotation.
+ * @param fillValue The value to fill in the empty space leftover
  *     after rotation. Can be either a single grayscale value (0-255), or an
- * array of three numbers `[red, green, blue]` specifying the red, green, and
- * blue channels. Defaults to `0` (black).
- *  @param center The center of rotation. Can be either a single value (0-1), or
+ *     array of three numbers `[red, green, blue]` specifying the red, green,
+ *     and blue channels. Defaults to `0` (black).
+ * @param center The center of rotation. Can be either a single value (0-1), or
  *     an array of two numbers `[centerX, centerY]`. Defaults to `0.5` (rotates
- * the image around its center).
+ *     the image around its center).
  */
 /** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
 function rotate_(
