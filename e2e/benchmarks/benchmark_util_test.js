@@ -20,11 +20,11 @@
  * browser.
  */
 
-describe('benchmark_util', function() {
+describe('benchmark_util', () => {
   beforeAll(() => tf.setBackend('cpu'));
 
-  describe('generateInput', function() {
-    it('LayersModel', function() {
+  describe('generateInput', () => {
+    it('LayersModel', () => {
       const model = tf.sequential(
           {layers: [tf.layers.dense({units: 1, inputShape: [3]})]});
       const input = generateInput(model);
@@ -34,8 +34,8 @@ describe('benchmark_util', function() {
     });
   });
 
-  describe('setEnvFlags', function() {
-    describe('change nothing', function() {
+  describe('setEnvFlags', () => {
+    describe('change nothing', () => {
       let originalFlags = {};
 
       beforeEach(() => {
@@ -43,12 +43,12 @@ describe('benchmark_util', function() {
       });
       afterAll(() => tf.env().reset());
 
-      it('empty config', async function() {
+      it('empty config', async () => {
         await setEnvFlags();
         expect(tf.env().flags).toEqual(originalFlags);
       });
 
-      it('untunable flag', async function() {
+      it('untunable flag', async () => {
         const flagConfig = {
           IS_BROWSER: false,
         };
@@ -58,7 +58,7 @@ describe('benchmark_util', function() {
         expect(tf.env().flags).toEqual(originalFlags);
       });
 
-      it('set a number type flag by a boolean value', async function() {
+      it('set a number type flag by a boolean value', async () => {
         const flagConfig = {
           WEBGL_VERSION: false,
         };
@@ -66,7 +66,7 @@ describe('benchmark_util', function() {
         expect(tf.env().flags).toEqual(originalFlags);
       });
 
-      it('set boolean flag by a number', async function() {
+      it('set boolean flag by a number', async () => {
         const flagConfig = {
           WEBGL_PACK: 1,
         };
@@ -75,11 +75,11 @@ describe('benchmark_util', function() {
       });
     });
 
-    describe('reset flags', function() {
+    describe('reset flags', () => {
       beforeEach(() => tf.env().reset());
       afterEach(() => tf.env().reset());
 
-      it('reset number type flags', async function() {
+      it('reset number type flags', async () => {
         const flagConfig = {
           WEBGL_VERSION: 1,
         };
@@ -87,7 +87,7 @@ describe('benchmark_util', function() {
         expect(tf.env().getNumber('WEBGL_VERSION')).toBe(1);
       });
 
-      it('reset boolean flags', async function() {
+      it('reset boolean flags', async () => {
         const flagConfig = {
           WASM_HAS_SIMD_SUPPORT: false,
           WEBGL_CPU_FORWARD: false,
@@ -104,14 +104,14 @@ describe('benchmark_util', function() {
       });
     });
 
-    describe('reset flags related to environment initialization', function() {
+    describe('reset flags related to environment initialization', () => {
       beforeEach(() => tf.engine().reset());
       afterAll(() => {
         tf.engine().reset();
         tf.setBackend('cpu');
       });
 
-      it(`set 'WEBGL_VERSION' to 2`, async function() {
+      it(`set 'WEBGL_VERSION' to 2`, async () => {
         if (!tf.webgl_util.isWebGLVersionEnabled(2)) {
           pending(
               'Please use a browser supporting WebGL 2.0 to run this test.');
@@ -123,7 +123,7 @@ describe('benchmark_util', function() {
         expect(tf.env().getBool('WEBGL_BUFFER_SUPPORTED')).toBe(true);
       });
 
-      it(`set 'WEBGL_VERSION' to 1`, async function() {
+      it(`set 'WEBGL_VERSION' to 1`, async () => {
         if (!tf.webgl_util.isWebGLVersionEnabled(1)) {
           pending(
               'Please use a browser supporting WebGL 1.0 to run this test.');
@@ -135,7 +135,7 @@ describe('benchmark_util', function() {
         expect(tf.env().getBool('WEBGL_BUFFER_SUPPORTED')).toBe(false);
       });
 
-      it(`reset flags when the related backend is active`, async function() {
+      it(`reset flags when the related backend is active`, async () => {
         if (!tf.webgl_util.isWebGLVersionEnabled(1)) {
           pending(
               'Please use a browser supporting WebGL 1.0 to run this test.');
@@ -148,12 +148,14 @@ describe('benchmark_util', function() {
         expect(tf.getBackend()).toBe('webgl');
       });
 
-      it(`reset 'WASM_HAS_SIMD_SUPPORT' as true`, async function() {
-        // TODO: add test for SIMD after SIMD implementation.
-        // const simdSupported = await env().getAsync('WASM_HAS_SIMD_SUPPORT');
-      });
+      it(`reset 'WASM_HAS_SIMD_SUPPORT' as true`,
+         async () => {
+             // TODO: add test for SIMD after SIMD implementation.
+             // const simdSupported = await
+             // env().getAsync('WASM_HAS_SIMD_SUPPORT');
+         });
 
-      it(`reset 'WASM_HAS_SIMD_SUPPORT' as false`, async function() {
+      it(`reset 'WASM_HAS_SIMD_SUPPORT' as false`, async () => {
         const flagConfig = {
           WASM_HAS_SIMD_SUPPORT: false,
         };
