@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, GatherV2, GatherV2Attrs, GatherV2Inputs, KernelFunc, registerKernel, Tensor, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, GatherV2, GatherV2Attrs, GatherV2Inputs, KernelConfig, KernelFunc, Tensor, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -81,9 +81,9 @@ function gatherV2(
   return out;
 }
 
-registerKernel({
+export const gatherV2Config: KernelConfig = {
   kernelName: GatherV2,
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: gatherV2 as {} as KernelFunc
-});
+};

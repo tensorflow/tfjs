@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {gather_util, GatherNd, GatherNdInputs, registerKernel, Tensor, TensorInfo} from '@tensorflow/tfjs-core';
+import {gather_util, GatherNd, GatherNdInputs, KernelConfig, Tensor, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -70,9 +70,9 @@ function gatherNd(args: {backend: BackendWasm, inputs: GatherNdInputs}):
   return out;
 }
 
-registerKernel({
+export const gatherNdConfig: KernelConfig = {
   kernelName: GatherNd,
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: gatherNd
-});
+};

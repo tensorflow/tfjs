@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel} from '@tensorflow/tfjs-core';
+import {KernelConfig, NamedTensorInfoMap} from '@tensorflow/tfjs-core';
 import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
@@ -47,9 +47,9 @@ function prelu(args: {inputs: PreluInputs, backend: BackendWasm}) {
   return out;
 }
 
-registerKernel({
+export const preluConfig: KernelConfig = {
   kernelName: 'Prelu',
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: prelu
-});
+};

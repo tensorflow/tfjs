@@ -15,6 +15,9 @@
  * =============================================================================
  */
 
-import {registerBinaryKernel} from './binary_kernel';
+import {KernelConfig} from '@tensorflow/tfjs-core';
+
+import {createBinaryKernelConfig} from './binary_kernel';
 const supportsFullBroadcast = true;
-registerBinaryKernel('Div', supportsFullBroadcast);
+export const divConfig: KernelConfig =
+    createBinaryKernelConfig('Div', supportsFullBroadcast);
