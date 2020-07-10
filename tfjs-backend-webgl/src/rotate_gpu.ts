@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import {backend_util} from '@tensorflow/tfjs-core';
+
 import {GPGPUProgram} from './gpgpu_math';
 
 export class RotateProgram implements GPGPUProgram {
@@ -32,12 +34,10 @@ export class RotateProgram implements GPGPUProgram {
     const cosFactor = Math.cos(-radians).toFixed(3);
     this.outputShape = imageShape;
 
-    const centerX =
-        (imageWidth * (typeof center === 'number' ? center : center[0]))
-            .toFixed(3);
-    const centerY =
-        (imageHeight * (typeof center === 'number' ? center : center[1]))
-            .toFixed(3);
+    let [centerX, centerY] =
+        backend_util.getImageCenter(center, imageHeight, imageWidth);
+    centerX = centerX.toFixed(3);
+    centerY = centerY.toFixed(3);
 
     let fillSnippet = '';
     if (typeof fillValue === 'number') {

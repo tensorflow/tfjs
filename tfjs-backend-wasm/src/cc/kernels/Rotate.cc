@@ -49,6 +49,8 @@ void Rotate(const size_t image_id, const size_t batch,
   const float cos_factor = cos(-radians);
 
   for (size_t batch_idx = 0; batch_idx < batch; ++batch_idx) {
+    const size_t batch_offset =
+        batch_idx * image_width * image_height * num_channels;
     for (size_t row = 0; row < image_height; ++row) {
       for (size_t col = 0; col < image_width; ++col) {
         for (size_t channel = 0; channel < num_channels; ++channel) {
@@ -63,12 +65,15 @@ void Rotate(const size_t image_id, const size_t batch,
           const int coord_y = round(coord_y_f + center_y);
 
           float output_value = fill[channel];
+          // If the coordinate position falls within the image boundaries...
           if (coord_x >= 0 && coord_x < image_width && coord_y >= 0 &&
               coord_y < image_height) {
-            const size_t image_idx =
-                batch_idx * image_width * image_height * num_channels +
-                coord_y * (image_width * num_channels) +
-                coord_x * num_channels + channel;
+            // set the output to the image value at the coordinate position.
+            const size_t rotated_row_offset =
+                coord_y * (image_width * num_channels);
+            const size_t rotated_col_offset = coord_x * num_channels;
+            const size_t image_idx = batch_offset + rotated_row_offset +
+                                     rotated_col_offset + channel;
             output_value = image_buf[image_idx];
           }
 

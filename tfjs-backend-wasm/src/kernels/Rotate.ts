@@ -16,6 +16,7 @@
  */
 
 import {KernelConfig, KernelFunc, Rotate, RotateAttrs, RotateInputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -53,15 +54,15 @@ export function rotate(
 
   const [batch, imageHeight, imageWidth, numChannels] = image.shape;
 
-  const centerX =
-      imageWidth * (typeof center === 'number' ? center : center[0]);
-  const centerY =
-      imageHeight * (typeof center === 'number' ? center : center[1]);
+  const [centerX, centerY] =
+      backend_util.getImageCenter(center, imageHeight, imageWidth);
 
   const fillIsBlack = fillValue === 0;
+  const fullOpacityValue = 255;
+
   const fillValues = typeof fillValue === 'number' ?
-      [fillValue, fillValue, fillValue, fillIsBlack ? 0 : 255] :
-      [...fillValue, 255];
+      [fillValue, fillValue, fillValue, fillIsBlack ? 0 : fullOpacityValue] :
+      [...fillValue, fullOpacityValue];
   const fillBytes = new Uint8Array(new Int32Array(fillValues).buffer);
 
   wasmRotate(
