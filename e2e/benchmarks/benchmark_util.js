@@ -85,8 +85,31 @@ function generateInput(model) {
 }
 
 /**
- * Executes the predict function for `model` and times the inference process for
- * `numRuns` rounds. Then returns a promise that resolves with an array of
+ * Wrap the model's predict function (`model.predict` for tf.LayersModel
+ * and `model.executeAsync` for tf.GraphModel) with the input.
+ *
+ * @param model An instance of tf.GraphModel or tf.LayersModel for finding and
+ *     wrapping the predict function.
+ * @param input The input tensor container for model inference.
+ */
+function wrapPredictFnForModel(model, input) {
+  let predict;
+  if (model instanceof tf.GraphModel) {
+    predict = () => model.executeAsync(input);
+  } else if (model instanceof tf.LayersModel) {
+    predict = () => model.predict(input);
+  } else {
+    throw new Error(
+        'Please pass in an instance of tf.GraphModel ' +
+        'or tf.LayersModel as the first parameter.');
+  }
+  return predict;
+}
+
+/**
+ * Executes the predict function for `model` (`model.predict` for tf.LayersModel
+ * and `model.executeAsync` for tf.GraphModel) and times the inference process
+ * for `numRuns` rounds. Then returns a promise that resolves with an array of
  * inference times for each inference process.
  *
  * The inference time contains the time spent by both `predict()` and `data()`
@@ -105,19 +128,11 @@ function generateInput(model) {
  *
  * @param model An instance of tf.GraphModel or tf.LayersModel for timing the
  *     inference process.
+ * @param input The input tensor container for model inference.
  * @param numRuns The number of rounds for timing the inference process.
  */
 async function profileInferenceTimeForModel(model, input, numRuns = 1) {
-  let predict;
-  if (model instanceof tf.GraphModel) {
-    predict = () => model.executeAsync(input);
-  } else if (model instanceof tf.LayersModel) {
-    predict = () => model.predict(input);
-  } else {
-    throw new Error(
-        'Please pass in an instance of tf.GraphModel ' +
-        'or tf.LayersModel as the first parameter.');
-  }
+  const predict = wrapPredictFnForModel(model, input);
   return profileInferenceTime(predict, numRuns);
 }
 
@@ -199,4 +214,104 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
     valueContainer = await Promise.all(valuePromiseContainer);
   }
   return valueContainer;
+}
+
+/**
+ * Executes the predict function for `model` (`model.predict` for tf.LayersModel
+ * and `model.executeAsync` for tf.GraphModel) and returns a promise that
+ * resolves with information about the memory usage:
+ * - `newBytes`: the number of new bytes allocated
+ * - `newTensors`: the number of new tensors created
+ * - `peakBytes`: the peak number of bytes allocated
+ * - `kernels`: an array of objects for each kernel involved that reports
+ * their input and output shapes, number of bytes used, and number of new
+ * tensors created.
+ *
+ * ```js
+ * const modelUrl =
+ *    'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2';
+ * const model = await tf.loadGraphModel(modelUrl, {fromTFHub: true});
+ * const zeros = tf.zeros([1, 224, 224, 3]);
+ * const memoryInfo = await profileInferenceMemoryForModel(model, zeros);
+ *
+ * console.log(`newBytes: ${memoryInfo.newBytes}`);
+ * console.log(`newTensors: ${memoryInfo.newTensors}`);
+ * console.log(`peakBytes: ${memoryInfo.peakBytes}`);
+ * ```
+ *
+ * @param model An instance of tf.GraphModel or tf.LayersModel for profiling
+ *     memory usage in the inference process.
+ * @param input The input tensor container for model inference.
+ */
+async function profileInferenceMemoryForModel(model, input) {
+  const predict = wrapPredictFnForModel(model, input);
+  return profileInferenceMemory(predict);
+}
+
+/**
+ * Executes `predict()` and returns a promise that resolves with information
+ * about the memory usage:
+ * - `newBytes`: the number of new bytes allocated
+ * - `newTensors`: the number of new tensors created
+ * - `peakBytes`: the peak number of bytes allocated
+ * - `kernels`: an array of objects for each kernel involved that reports
+ * their input and output shapes, number of bytes used, and number of new
+ * tensors created.
+ *
+ * ```js
+ * const modelUrl =
+ *    'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2';
+ * const model = await tf.loadGraphModel(modelUrl, {fromTFHub: true});
+ * const zeros = tf.zeros([1, 224, 224, 3]);
+ * const memoryInfo = await profileInferenceMemory(() => model.predict(zeros));
+ *
+ * console.log(`newBytes: ${memoryInfo.newBytes}`);
+ * console.log(`newTensors: ${memoryInfo.newTensors}`);
+ * console.log(`peakBytes: ${memoryInfo.peakBytes}`);
+ * ```
+ *
+ * @param predict The predict function to execute for profiling memory usage.
+ */
+async function profileInferenceMemory(predict) {
+  if (typeof predict !== 'function') {
+    throw new Error(
+        'The first parameter should be a function, while ' +
+        `a(n) ${typeof predict} is found.`);
+  }
+
+  const memoryInfo = await profile(async () => {
+    const res = await predict();
+    await downloadValuesFromTensorContainer(res);
+    tf.dispose(res);
+  });
+  return memoryInfo;
+}
+
+/**
+ * This function is temporarily used and will be deleted after a new release of
+ * tf-core. This function modifies [`tf.profile`](https://github.com/tensorflow/tfjs/blob/95b5f878218ee45c0f8464386ee01d1f96e78297/tfjs-core/src/engine.ts#L848)
+ * in the following points:
+ * - replaces all `this` by `tf.engine()`
+ * - adds `await` in `this.state.activeProfile.result = query();`
+ *
+ * When deleting this method, please change the caller `profileInferenceMemory`.
+ */
+async function profile(query) {
+  const engine = tf.engine();
+  engine.state.profiling = true;
+
+  const startBytes = engine.state.numBytes;
+  const startNumTensors = engine.state.numTensors;
+
+  engine.state.activeProfile.kernels = [];
+  engine.state.activeProfile.result = await query();
+
+  engine.state.profiling = false;
+
+  engine.state.activeProfile.peakBytes = Math.max(
+      ...engine.state.activeProfile.kernels.map(d => d.totalBytesSnapshot));
+  engine.state.activeProfile.newBytes = engine.state.numBytes - startBytes;
+  engine.state.activeProfile.newTensors =
+      engine.state.numTensors - startNumTensors;
+  return engine.state.activeProfile;
 }
