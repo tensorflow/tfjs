@@ -340,8 +340,6 @@ limitations under the License.
       await showMsg(`Running predict ${state.numRuns} times`);
       chartWidth = document.querySelector('#perf-trendline-container').getBoundingClientRect().width;
 
-      const tensorsBefore = tf.memory().numTensors;
-
       let times;
       const numRuns = state.numRuns;
       if (state.benchmark === 'custom') {
@@ -355,8 +353,6 @@ limitations under the License.
         times = await profileInferenceTime(() => predict(model), numRuns);
       }
 
-      const leakedTensors = tf.memory().numTensors - tensorsBefore;
-
       const forceInferenceTrendYMinToZero = true;
       populateTrendline(document.querySelector('#perf-trendline-container'), times, forceInferenceTrendYMinToZero, printTime);
 
@@ -365,19 +361,28 @@ limitations under the License.
       const min = Math.min(...times);
       appendRow(timeTable, `Subsequent average(${state.numRuns} runs)`, printTime(average));
       appendRow(timeTable, 'Best time', printTime(min));
-      appendRow(timeTable, 'Leaked tensors', leakedTensors);
     }
 
     async function profileMemory() {
       await showMsg('Profile memory');
       const start = performance.now();
-      let res;
-      const data = await tf.profile(() => res = predict(model));
-      res = await getPredictionData(res);
+
+      let memoryInfo;
+      if (state.benchmark === 'custom') {
+        const input = generateInput(model);
+        try {
+          memoryInfo = await profileInferenceMemoryForModel(model, input);
+        } finally {
+          tf.dispose(input);
+        }
+      } else {
+        memoryInfo = await profileInferenceMemory(() => predict(model));
+      }
 
       const elapsed = performance.now() - start;
       await showMsg(null);
-      appendRow(timeTable, 'Peak memory', printMemory(data.peakBytes));
+      appendRow(timeTable, 'Peak memory', printMemory(memoryInfo.peakBytes));
+      appendRow(timeTable, 'Leaked tensors', memoryInfo.newTensors);
       appendRow(timeTable, '2nd inference', printTime(elapsed));
     }
 

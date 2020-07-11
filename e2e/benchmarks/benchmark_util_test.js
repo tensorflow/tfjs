@@ -34,6 +34,28 @@ describe('benchmark_util', () => {
     });
   });
 
+  describe('Profile Memory', function() {
+    describe('profileInferenceMemory', function() {
+      it('pass in invalid predict', async function() {
+        const predict = {};
+        await expectAsync(profileInferenceMemory(predict)).toBeRejected();
+      });
+
+      it('check tensor leak', async function() {
+        const model = tf.sequential(
+            {layers: [tf.layers.dense({units: 1, inputShape: [3]})]});
+        const input = tf.zeros([1, 3]);
+
+        const tensorsBefore = tf.memory().numTensors;
+        await profileInferenceMemory(() => model.predict(input));
+        expect(tf.memory().numTensors).toEqual(tensorsBefore);
+
+        model.dispose();
+        input.dispose();
+      });
+    });
+  });
+
   describe('setEnvFlags', () => {
     describe('change nothing', () => {
       let originalFlags = {};
