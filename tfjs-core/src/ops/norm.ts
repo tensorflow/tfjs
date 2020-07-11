@@ -27,9 +27,9 @@ import {min} from './min';
 import {op} from './operation';
 import {pow} from './pow';
 import {reshape} from './reshape';
+import {scalar} from './scalar';
 import {square} from './square';
 import {sum} from './sum';
-import {scalar} from './tensor_ops';
 import {sqrt} from './unary_ops';
 
 /**

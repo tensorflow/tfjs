@@ -32,9 +32,9 @@ import {mul} from './mul';
 import {neg} from './neg';
 import {op} from './operation';
 import {reshape} from './reshape';
+import {scalar} from './scalar';
 import {sub} from './sub';
 import {sum} from './sum';
-import {scalar} from './tensor_ops';
 import {exp} from './unary_ops';
 
 /**

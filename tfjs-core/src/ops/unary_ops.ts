@@ -21,7 +21,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 import {op} from './operation';
-import {scalar} from './tensor_ops';
+import {scalar} from './scalar';
 import {zerosLike} from './zeros_like';
 
 /**

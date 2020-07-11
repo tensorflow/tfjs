@@ -21,7 +21,8 @@ import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor1D} from '../tensor';
 import {makeZerosTypedArray} from '../util';
 
-import {tensor1d, zeros} from './tensor_ops';
+import {tensor1d} from './tensor1d';
+import {zeros} from './zeros';
 
 /**
  * Creates a new `tf.Tensor1D` filled with the numbers in the range provided.

@@ -27,9 +27,9 @@ import {Reduction} from './loss_ops_utils';
 import {minimum} from './minimum';
 import {mul} from './mul';
 import {op} from './operation';
+import {scalar} from './scalar';
 import {square} from './square';
 import {sub} from './sub';
-import {scalar} from './tensor_ops';
 
 /**
  * Computes the huber loss between two tensors.

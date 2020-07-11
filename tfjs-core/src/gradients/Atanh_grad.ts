@@ -21,7 +21,7 @@ import {cast} from '../ops/array_ops';
 import {div} from '../ops/div';
 import {square} from '../ops/square';
 import {sub} from '../ops/sub';
-import {scalar} from '../ops/tensor_ops';
+import {scalar} from '../ops/scalar';
 import {Tensor} from '../tensor';
 
 export const atanhGradConfig: GradConfig = {

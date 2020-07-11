@@ -16,28 +16,27 @@
  */
 
 import {ENGINE} from '../engine';
-import {LinSpace, LinSpaceAttrs} from '../kernel_names';
-import {NamedAttrMap} from '../kernel_registry';
-import {Tensor1D} from '../tensor';
+import {Tensor, Variable} from '../tensor';
+import {DataType, Rank} from '../types';
 
 /**
- * Return an evenly spaced sequence of numbers over the given interval.
- *
+ * Creates a new variable with the provided initial value.
  * ```js
- * tf.linspace(0, 9, 10).print();
+ * const x = tf.variable(tf.tensor([1, 2, 3]));
+ * x.assign(tf.tensor([4, 5, 6]));
+ *
+ * x.print();
  * ```
- * @param start The start value of the sequence.
- * @param stop The end value of the sequence.
- * @param num The number of values to generate.
+ *
+ * @param initialValue Initial value for the tensor.
+ * @param trainable If true, optimizers are allowed to update it.
+ * @param name Name of the variable. Defaults to a unique id.
+ * @param dtype If set, initialValue will be converted to the given type.
  */
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
-export function linspace(start: number, stop: number, num: number): Tensor1D {
-  if (num <= 0) {
-    throw new Error('The number of values should be positive.');
-  }
-
-  const attrs: LinSpaceAttrs = {start, stop, num};
-  return ENGINE.runKernelFunc(
-      backend => backend.linspace(start, stop, num), {} /* inputs */,
-      null /* grad */, LinSpace, attrs as {} as NamedAttrMap);
+export function variable<R extends Rank>(
+    initialValue: Tensor<R>, trainable = true, name?: string,
+    dtype?: DataType): Variable<R> {
+  return ENGINE.makeVariable(initialValue, trainable, name, dtype) as
+      Variable<R>;
 }

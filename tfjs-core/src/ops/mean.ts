@@ -24,10 +24,11 @@ import {cast} from './array_ops';
 import {computeOutAndReduceShapes} from './axis_util';
 import {div} from './div';
 import {mul} from './mul';
+import {ones} from './ones';
 import {op} from './operation';
 import {reshape} from './reshape';
+import {scalar} from './scalar';
 import {sum} from './sum';
-import {ones, scalar} from './tensor_ops';
 
 /**
  * Computes the mean of elements across dimensions of a `tf.Tensor`.
