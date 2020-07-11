@@ -333,6 +333,13 @@ export type LessInputs = BinaryInputs;
 export const LessEqual = 'LessEqual';
 export type LessEqualInputs = BinaryInputs;
 
+export const LinSpace = 'LinSpace';
+export interface LinSpaceAttrs {
+  start: number;
+  stop: number;
+  num: number;
+}
+
 export const LogicalAnd = 'LogicalAnd';
 export type LogicalAndInputs = BinaryInputs;
 
@@ -500,6 +507,14 @@ export type ProdInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface ProdAttrs {
   axis: number|number[];
   keepDims: boolean;
+}
+
+export const Range = 'Range';
+export interface RangeAttrs {
+  start: number;
+  stop: number;
+  step: number;
+  dtype: 'float32'|'int32';
 }
 
 export const Real = 'Real';
