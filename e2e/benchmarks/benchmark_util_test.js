@@ -34,14 +34,14 @@ describe('benchmark_util', () => {
     });
   });
 
-  describe('Profile Memory', function() {
-    describe('profileInferenceMemory', function() {
-      it('pass in invalid predict', async function() {
+  describe('Profile Memory', () => {
+    describe('profileInferenceMemory', () => {
+      it('pass in invalid predict', async () => {
         const predict = {};
         await expectAsync(profileInferenceMemory(predict)).toBeRejected();
       });
 
-      it('check tensor leak', async function() {
+      it('check tensor leak', async () => {
         const model = tf.sequential(
             {layers: [tf.layers.dense({units: 1, inputShape: [3]})]});
         const input = tf.zeros([1, 3]);
