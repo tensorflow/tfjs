@@ -468,6 +468,9 @@ export interface NonMaxSuppressionV5Attrs {
   softNmsSigma: number;
 }
 
+export const OnesLike = 'OnesLike';
+export type OnesLikeInputs = UnaryInputs;
+
 export const OneHot = 'OneHot';
 export type OneHotInputs = Pick<NamedTensorInfoMap, 'indices'>;
 export interface OneHotAttrs {
@@ -630,6 +633,9 @@ export type UnsortedSegmentSumInputs =
 export interface UnsortedSegmentSumAttrs {
   numSegments: number;
 }
+
+export const ZerosLike = 'ZerosLike';
+export type ZerosLikeInputs = UnaryInputs;
 
 /**
  * TensorFlow.js-only kernels

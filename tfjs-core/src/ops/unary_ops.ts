@@ -21,7 +21,8 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 import {op} from './operation';
-import {scalar, zerosLike} from './tensor_ops';
+import {scalar} from './tensor_ops';
+import {zerosLike} from './zeros_like';
 
 /**
  * RReturns which elements of x are NaN.

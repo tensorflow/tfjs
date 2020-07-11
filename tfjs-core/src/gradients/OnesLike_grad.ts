@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,16 +15,14 @@
  * =============================================================================
  */
 
-import {ArgMin} from '../kernel_names';
+import {OnesLike} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import {zerosLike} from '../ops/zeros_like';
 import {Tensor} from '../tensor';
 
-export const argMinGradConfig: GradConfig = {
-  kernelName: ArgMin,
-  inputsToSave: ['x'],
-  gradFunc: (dy: Tensor, saved: Tensor[]) => {
-    const [x] = saved;
-    return {x: () => zerosLike(x)};
+export const onesLikeGradConfig: GradConfig = {
+  kernelName: OnesLike,
+  gradFunc: (dy: Tensor) => {
+    return {x: () => zerosLike(dy)};
   }
 };

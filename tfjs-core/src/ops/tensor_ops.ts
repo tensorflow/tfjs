@@ -17,15 +17,12 @@
 
 import {ENGINE} from '../engine';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, Tensor6D, Variable} from '../tensor';
-import {convertToTensor, inferShape} from '../tensor_util_env';
+import {inferShape} from '../tensor_util_env';
 import {TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TensorLike5D, TensorLike6D, TypedArray} from '../types';
 import {DataType, Rank, ShapeMap} from '../types';
 import {assert, assertNonNegativeIntegerDimensions, assertNonNull, flatten, inferDtype, isTypedArray, makeOnesTypedArray, makeZerosTypedArray, sizeFromShape, toTypedArray} from '../util';
 
 import {complex} from './complex';
-import {imag} from './imag';
-import {op} from './operation';
-import {real} from './real';
 
 /**
  * Creates a `tf.Tensor` with the provided values, shape and dtype.
@@ -456,48 +453,6 @@ function zeros<R extends Rank>(
 }
 
 /**
- * Creates a `tf.Tensor` with all elements set to 1 with the same shape as the
- * given tensor.
- *
- * ```js
- * const x = tf.tensor([1, 2]);
- * tf.onesLike(x).print();
- * ```
- * @param x A tensor.
- */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
-function onesLike_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'onesLike');
-  if ($x.dtype === 'complex64') {
-    const r = onesLike(real($x));
-    const i = zerosLike(imag($x));
-    return complex(r, i);
-  }
-  const der = (dy: T, saved: Tensor[]) => ({x: () => zerosLike(dy)});
-  return ENGINE.runKernelFunc(
-             backend => backend.onesLike($x), {x: $x}, der, 'OnesLike') as T;
-}
-
-/**
- * Creates a `tf.Tensor` with all elements set to 0 with the same shape as the
- * given tensor.
- *
- * ```js
- * const x = tf.tensor([1, 2]);
- * tf.zerosLike(x).print();
- * ```
- *
- * @param x The tensor of required shape.
- */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
-function zerosLike_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'zerosLike');
-  const der = (dy: T, saved: Tensor[]) => ({x: () => zerosLike(dy)});
-  return ENGINE.runKernelFunc(
-             backend => backend.zerosLike($x), {x: $x}, der, 'ZerosLike') as T;
-}
-
-/**
  * Return an evenly spaced sequence of numbers over the given interval.
  *
  * ```js
@@ -582,5 +537,16 @@ export {
   zeros
 };
 
-export const onesLike = op({onesLike_});
-export const zerosLike = op({zerosLike_});
+// export const linspace = op(linspace_);
+// export const ones = op(ones_);
+// export const range = op(range_);
+// export const scalar = op(scalar_);
+// export const tensor = op(tensor_);
+// export const tensor1d = op(tensor1d_);
+// export const tensor2d = op(tensor2d_);
+// export const tensor3d = op(tensor3d_);
+// export const tensor4d = op(tensor4d_);
+// export const tensor5d = op(tensor5d_);
+// export const tensor6d = op(tensor6d_);
+// export const variable = op(variable_);
+// export const zeros = op(zeros_);

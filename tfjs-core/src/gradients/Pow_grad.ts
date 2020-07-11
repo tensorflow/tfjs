@@ -24,9 +24,10 @@ import {pow} from '../ops/pow';
 import {reshape} from '../ops/reshape';
 import {sub} from '../ops/sub';
 import {sum} from '../ops/sum';
-import {scalar, zerosLike} from '../ops/tensor_ops';
+import {scalar} from '../ops/tensor_ops';
 import {log} from '../ops/unary_ops';
 import {where} from '../ops/where';
+import {zerosLike} from '../ops/zeros_like';
 import {Tensor} from '../tensor';
 
 export const powGradConfig: GradConfig = {

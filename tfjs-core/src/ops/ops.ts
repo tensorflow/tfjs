@@ -99,6 +99,7 @@ export {multinomial} from './multinomial';
 export {neg} from './neg';
 export {notEqual} from './not_equal';
 export {oneHot} from './one_hot';
+export {onesLike} from './ones_like';
 export {outerProduct} from './outer_product';
 export {pad} from './pad';
 export {pad1d} from './pad1d';
@@ -148,6 +149,7 @@ export {unsortedSegmentSum} from './unsorted_segment_sum';
 export {unstack} from './unstack';
 export {where} from './where';
 export {whereAsync} from './where_async';
+export {zerosLike} from './zeros_like';
 
 export * from './boolean_mask';
 export * from './unary_ops';
