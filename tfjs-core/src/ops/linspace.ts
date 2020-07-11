@@ -33,7 +33,7 @@ import {op} from './operation';
  * @param num The number of values to generate.
  */
 /** @doc {heading: 'Tensors', subheading: 'Creation'} */
-function linspace_(start: number, stop: number, num: number): Tensor1D {
+export function linspace(start: number, stop: number, num: number): Tensor1D {
   if (num <= 0) {
     throw new Error('The number of values should be positive.');
   }
@@ -43,5 +43,3 @@ function linspace_(start: number, stop: number, num: number): Tensor1D {
       backend => backend.linspace(start, stop, num), {} /* inputs */,
       null /* grad */, LinSpace, attrs as {} as NamedAttrMap);
 }
-
-export const linspace = op({linspace_});
