@@ -27,7 +27,6 @@ import {assertAndGetBroadcastShape} from './broadcast_util';
 import {cast} from './cast';
 import {op} from './operation';
 
-
 /**
  * Returns the max of a and b (`a > b ? a : b`) element-wise.
  * Supports broadcasting.

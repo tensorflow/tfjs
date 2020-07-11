@@ -28,7 +28,6 @@ import {reshape} from './reshape';
 import {square} from './square';
 import {sub} from './sub';
 
-
 /**
  * Calculates the mean and variance of `x`. The mean and variance are
  * calculated by aggregating the contents of `x` across `axes`. If `x` is

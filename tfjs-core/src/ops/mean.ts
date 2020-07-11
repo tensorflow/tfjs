@@ -29,7 +29,6 @@ import {reshape} from './reshape';
 import {sum} from './sum';
 import {ones, scalar} from './tensor_ops';
 
-
 /**
  * Computes the mean of elements across dimensions of a `tf.Tensor`.
  *
