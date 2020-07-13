@@ -15,6 +15,7 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
+#include <xnnpack.h>
 
 #include <cstddef>
 
@@ -34,7 +35,8 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 void Square(const size_t x_id, const size_t out_id) {
-  unary(x_id, out_id, square);
+  unary_xnn_f32(x_id, out_id, xnn_create_square_nc_f32,
+                xnn_setup_square_nc_f32);
 }
 
 }  // extern "C"
