@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, Rotate, RotateAttrs, RotateInputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, RotateWithOffset, RotateWithOffsetAttrs, RotateWithOffsetInputs, TensorInfo} from '@tensorflow/tfjs-core';
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
@@ -26,7 +26,7 @@ let wasmRotate: (
     fillBytes: Uint8Array, fillLength: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmRotate = backend.wasm.cwrap(Rotate, null /* void */, [
+  wasmRotate = backend.wasm.cwrap(RotateWithOffset, null /* void */, [
     'number',  // xId
     'number',  // batch
     'number',  // imageHeight
@@ -41,9 +41,11 @@ function setup(backend: BackendWasm) {
   ]);
 }
 
-export function rotate(
-    args: {inputs: RotateInputs, backend: BackendWasm, attrs: RotateAttrs}):
-    TensorInfo {
+export function rotateWithOffset(args: {
+  inputs: RotateWithOffsetInputs,
+  backend: BackendWasm,
+  attrs: RotateWithOffsetAttrs
+}): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {image} = inputs;
   const {radians, fillValue, center} = attrs;
@@ -71,9 +73,9 @@ export function rotate(
   return out;
 }
 
-export const rotateConfig: KernelConfig = {
-  kernelName: Rotate,
+export const rotateWithOffsetConfig: KernelConfig = {
+  kernelName: RotateWithOffset,
   backendName: 'wasm',
-  kernelFunc: rotate as {} as KernelFunc,
+  kernelFunc: rotateWithOffset as {} as KernelFunc,
   setupFunc: setup
 };

@@ -22,7 +22,7 @@ import {maxConfig} from './kernels/Max';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
-import {rotateWithOffsetConfig} from './kernels/Rotate';
+import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {transposeConfig} from './kernels/Transpose';

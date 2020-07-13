@@ -33,11 +33,12 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 
-void Rotate(const size_t image_id, const size_t batch,
-            const size_t image_height, const size_t image_width,
-            const size_t num_channels, const float radians,
-            const float center_x, const float center_y, size_t* fill_ptr,
-            const size_t fill_length, const size_t out_id) {
+void RotateWithOffset(const size_t image_id, const size_t batch,
+                      const size_t image_height, const size_t image_width,
+                      const size_t num_channels, const float radians,
+                      const float center_x, const float center_y,
+                      size_t* fill_ptr, const size_t fill_length,
+                      const size_t out_id) {
   auto fill = std::vector<size_t>(fill_ptr, fill_ptr + fill_length);
   auto& image_info = backend::get_tensor_info(image_id);
   auto& out_info = backend::get_tensor_info_out(out_id);

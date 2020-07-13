@@ -225,7 +225,7 @@ tfjs_cc_library(
         ":Relu6",
         ":ResizeBilinear",
         ":Reverse",
-        ":Rotate",
+        ":RotateWithOffset",
         ":ScatterNd",
         ":SelectV2",
         ":Sigmoid",
@@ -758,8 +758,8 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-    name = "Rotate",
-    srcs = ["kernels/Rotate.cc"],
+    name = "RotateWithOffset",
+    srcs = ["kernels/RotateWithOffset.cc"],
     deps = [
         ":backend",
         ":util",

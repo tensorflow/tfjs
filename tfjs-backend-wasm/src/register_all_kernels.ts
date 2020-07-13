@@ -71,7 +71,7 @@ import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
 import {reverseConfig} from './kernels/Reverse';
-import {rotateConfig} from './kernels/Rotate';
+import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {rsqrtConfig} from './kernels/Rsqrt';
 import {scatterNdConfig} from './kernels/ScatterNd';
 import {selectV2Config} from './kernels/SelectV2';
@@ -144,7 +144,7 @@ const kernelConfigs: KernelConfig[] = [
   reshapeConfig,
   resizeBilinearConfig,
   reverseConfig,
-  rotateConfig,
+  rotateWithOffsetConfig,
   rsqrtConfig,
   scatterNdConfig,
   selectV2Config,
