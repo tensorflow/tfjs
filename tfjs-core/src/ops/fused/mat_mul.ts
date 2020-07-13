@@ -24,8 +24,9 @@ import {TensorLike} from '../../types';
 import * as util from '../../util';
 import {add} from '../add';
 import * as broadcast_util from '../broadcast_util';
-import {Activation, applyActivation, getFusedBiasGradient, getFusedDyActivation, shouldFuse} from '../fused_util';
+import {applyActivation, getFusedBiasGradient, getFusedDyActivation, shouldFuse} from '../fused_util';
 import {matMul as unfusedMatMul} from '../mat_mul';
+import {Activation} from './types';
 
 /**
  * Computes the dot product of two matrices with optional activation and bias.

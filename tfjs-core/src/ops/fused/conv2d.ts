@@ -27,9 +27,10 @@ import {conv2d as unfusedConv2d} from '../conv2d';
 import {conv2DBackpropFilter} from '../conv2d_backprop_filter';
 import {conv2DBackpropInput} from '../conv2d_backprop_input';
 import {applyActivation, getFusedBiasGradient, getFusedDyActivation} from '../fused_util';
-import {Activation, shouldFuse} from '../fused_util';
+import {shouldFuse} from '../fused_util';
 import * as conv_util from '../ops/../conv_util';
 import {op} from '../ops/../operation';
+import {Activation} from './types';
 
 /**
  * Computes a 2D convolution over the input x, optionally fused with adding a

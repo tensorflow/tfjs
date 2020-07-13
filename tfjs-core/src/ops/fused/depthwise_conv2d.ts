@@ -28,7 +28,8 @@ import * as broadcast_util from '../broadcast_util';
 import {depthwiseConv2d as unfusedDepthwiseConv2d} from '../depthwise_conv2d';
 import {depthwiseConv2dNativeBackpropFilter} from '../depthwise_conv2d_native_backprop_filter';
 import {depthwiseConv2dNativeBackpropInput} from '../depthwise_conv2d_native_backprop_input';
-import {Activation, applyActivation, getFusedBiasGradient, getFusedDyActivation, shouldFuse} from '../fused_util';
+import {applyActivation, getFusedBiasGradient, getFusedDyActivation, shouldFuse} from '../fused_util';
+import {Activation} from './types';
 
 /**
  * Computes depthwise 2D convolution, optionally fused with adding a

@@ -15,35 +15,14 @@
  * =============================================================================
  */
 
-import {Tensor, Tensor3D, Tensor4D} from '../tensor';
-import * as broadcast_util from './broadcast_util';
+import {Tensor} from '../tensor';
 
-import {Conv2DInfo} from './conv_util';
+import * as broadcast_util from './broadcast_util';
 import {elu} from './elu';
+import {Activation} from './fused/types';
 import {prelu} from './prelu';
 import {relu} from './relu';
 import {relu6} from './relu6';
-
-export type Activation = 'linear'|'relu'|'prelu'|'elu'|'relu6';
-
-export type FusedBatchMatMulConfig = {
-  a: Tensor3D,
-  b: Tensor3D,
-  transposeA: boolean,
-  transposeB: boolean,
-  bias?: Tensor,
-  activation?: Activation,
-  preluActivationWeights?: Tensor
-};
-
-export type FusedConv2DConfig = {
-  input: Tensor4D,
-  filter: Tensor4D,
-  convInfo: Conv2DInfo,
-  bias?: Tensor,
-  activation?: Activation,
-  preluActivationWeights?: Tensor
-};
 
 // Whether we should call fused ops.
 export const shouldFuse = (gradientDepth: number, activation: Activation) => {
