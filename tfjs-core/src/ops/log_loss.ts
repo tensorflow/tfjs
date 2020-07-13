@@ -22,13 +22,13 @@ import {assertShapesMatch} from '../util';
 
 import {add} from './add';
 import {computeWeightedLoss} from './compute_weighted_loss';
+import {log} from './log';
 import {Reduction} from './loss_ops_utils';
 import {mul} from './mul';
 import {neg} from './neg';
 import {op} from './operation';
 import {scalar} from './scalar';
 import {sub} from './sub';
-import {log} from './unary_ops';
 
 /**
  * Computes the log loss between two tensors.

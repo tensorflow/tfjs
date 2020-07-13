@@ -22,12 +22,13 @@ import {parseAxisParam} from '../util';
 
 import {add} from './add';
 import {expandShapeToKeepDim} from './axis_util';
+import {exp} from './exp';
+import {log} from './log';
 import {max} from './max';
 import {op} from './operation';
 import {reshape} from './reshape';
 import {sub} from './sub';
 import {sum} from './sum';
-import {exp, log} from './unary_ops';
 
 /**
  * Computes the log(sum(exp(elements across the reduction dimensions)).

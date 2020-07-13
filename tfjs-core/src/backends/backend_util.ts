@@ -36,6 +36,7 @@ export * from '../ops/reduce_util';
 
 export {BackendValues, TypedArray, upcastType, PixelData} from '../types';
 export {MemoryInfo, TimingInfo} from '../engine';
+export * from '../ops/rotate_util';
 export * from '../ops/array_ops_util';
 export * from '../ops/gather_nd_util';
 export * from '../ops/scatter_nd_util';

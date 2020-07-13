@@ -18,7 +18,7 @@ import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
-import {cast} from './array_ops';
+import {cast} from './cast';
 import {div} from './div';
 import {Reduction} from './loss_ops_utils';
 import {mean} from './mean';

@@ -16,16 +16,17 @@
  */
 import {Pow} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {cast} from '../ops/array_ops';
 import * as broadcast_util from '../ops/broadcast_util';
+import {cast} from '../ops/cast';
 import {greater} from '../ops/greater';
+import {log} from '../ops/log';
 import {mul} from '../ops/mul';
 import {pow} from '../ops/pow';
 import {reshape} from '../ops/reshape';
 import {scalar} from '../ops/scalar';
 import {sub} from '../ops/sub';
 import {sum} from '../ops/sum';
-import {log} from '../ops/unary_ops';
+import {scalar, zerosLike} from '../ops/tensor_ops';
 import {where} from '../ops/where';
 import {zerosLike} from '../ops/zeros_like';
 import {Tensor} from '../tensor';
