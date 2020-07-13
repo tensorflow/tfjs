@@ -26,6 +26,7 @@ import {cast} from './array_ops';
 import {expandShapeToKeepDim} from './axis_util';
 import {computeWeightedLoss} from './compute_weighted_loss';
 import {div} from './div';
+import {exp} from './exp';
 import {logSumExp} from './log_sum_exp';
 import {Reduction} from './loss_ops_utils';
 import {mul} from './mul';
@@ -35,7 +36,6 @@ import {reshape} from './reshape';
 import {sub} from './sub';
 import {sum} from './sum';
 import {scalar} from './tensor_ops';
-import {exp} from './unary_ops';
 
 /**
  * Computes softmax cross entropy between logits and labels.
