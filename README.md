@@ -50,7 +50,7 @@ APIs:
 
 Backends/Platforms:
 - [TensorFlow.js CPU Backend](/tfjs-backend-cpu), Node backend via TensorFlow C++.
-- [TensorFlow.js WebGL Bakend](/tfjs-backend-webgl), Node backend via TensorFlow C++.
+- [TensorFlow.js WebGL Backend](/tfjs-backend-webgl), Node backend via TensorFlow C++.
 - [TensorFlow.js Node](/tfjs-node), Node backend via TensorFlow C++.
 - [TensorFlow.js WASM](/tfjs-backend-wasm), WebAssembly backend.
 - [TensorFlow.js React Native](/tfjs-react-native), React Native backend/platform adapter.
