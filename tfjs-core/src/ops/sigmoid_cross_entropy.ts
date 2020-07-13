@@ -30,8 +30,8 @@ import {mul} from './mul';
 import {neg} from './neg';
 import {op} from './operation';
 import {relu} from './relu';
+import {scalar} from './scalar';
 import {sub} from './sub';
-import {scalar} from './tensor_ops';
 
 function sigmoidCrossEntropyWithLogits_<T extends Tensor, O extends Tensor>(
     labels: T|TensorLike, logits: T|TensorLike): O {

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,34 +15,32 @@
  * =============================================================================
  */
 
+import {ENGINE} from '../engine';
+import {ZerosLike, ZerosLikeInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
-import {maximum} from './maximum';
-import {mul} from './mul';
 import {op} from './operation';
-import {scalar} from './scalar';
 
 /**
- * Computes leaky rectified linear element-wise.
- *
- * See
- * [http://web.stanford.edu/~awni/papers/relu_hybrid_icml2013_final.pdf](
- *     http://web.stanford.edu/~awni/papers/relu_hybrid_icml2013_final.pdf)
+ * Creates a `tf.Tensor` with all elements set to 0 with the same shape as the
+ * given tensor.
  *
  * ```js
- * const x = tf.tensor1d([-1, 2, -3, 4]);
- *
- * x.leakyRelu(0.1).print();  // or tf.leakyRelu(x, 0.1)
+ * const x = tf.tensor([1, 2]);
+ * tf.zerosLike(x).print();
  * ```
- * @param x The input tensor.
- * @param alpha The scaling factor for negative values, defaults to 0.2.
+ *
+ * @param x The tensor of required shape.
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
-function leakyRelu_<T extends Tensor>(x: T|TensorLike, alpha = 0.2): T {
-  const $x = convertToTensor(x, 'x', 'leakyRelu');
-  return maximum(mul(scalar(alpha), $x), $x);
+/** @doc {heading: 'Tensors', subheading: 'Creation'} */
+function zerosLike_<T extends Tensor>(x: T|TensorLike): T {
+  const $x = convertToTensor(x, 'x', 'zerosLike');
+  const inputs: ZerosLikeInputs = {x: $x};
+  return ENGINE.runKernelFunc(
+             backend => backend.zerosLike($x), inputs as {} as NamedTensorMap,
+             null /* grad */, ZerosLike) as T;
 }
-
-export const leakyRelu = op({leakyRelu_});
+export const zerosLike = op({zerosLike_});

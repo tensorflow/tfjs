@@ -355,6 +355,12 @@ export type LessInputs = BinaryInputs;
 export const LessEqual = 'LessEqual';
 export type LessEqualInputs = BinaryInputs;
 
+export const LinSpace = 'LinSpace';
+export interface LinSpaceAttrs {
+  start: number;
+  stop: number;
+  num: number;
+}
 export const Log = 'Log';
 export type LogInputs = UnaryInputs;
 
@@ -496,6 +502,9 @@ export interface NonMaxSuppressionV5Attrs {
   softNmsSigma: number;
 }
 
+export const OnesLike = 'OnesLike';
+export type OnesLikeInputs = UnaryInputs;
+
 export const OneHot = 'OneHot';
 export type OneHotInputs = Pick<NamedTensorInfoMap, 'indices'>;
 export interface OneHotAttrs {
@@ -525,6 +534,14 @@ export type ProdInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface ProdAttrs {
   axis: number|number[];
   keepDims: boolean;
+}
+
+export const Range = 'Range';
+export interface RangeAttrs {
+  start: number;
+  stop: number;
+  step: number;
+  dtype: 'float32'|'int32';
 }
 
 export const Real = 'Real';
@@ -661,6 +678,9 @@ export type UnsortedSegmentSumInputs =
 export interface UnsortedSegmentSumAttrs {
   numSegments: number;
 }
+
+export const ZerosLike = 'ZerosLike';
+export type ZerosLikeInputs = UnaryInputs;
 
 /**
  * TensorFlow.js-only kernels

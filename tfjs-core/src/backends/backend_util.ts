@@ -16,7 +16,9 @@
  */
 
 import {ENGINE} from '../engine';
-import {scalar, tensor1d, zeros} from '../ops/tensor_ops';
+import {scalar} from '../ops/scalar';
+import {tensor1d} from '../ops/tensor1d';
+import {zeros} from '../ops/zeros';
 import {Tensor} from '../tensor';
 import {Rank} from '../types';
 import {DataType, ShapeMap} from '../types';

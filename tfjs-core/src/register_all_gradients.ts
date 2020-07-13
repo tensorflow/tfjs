@@ -67,6 +67,7 @@ import {modGradConfig} from './gradients/Mod_grad';
 import {multiplyGradConfig} from './gradients/Multiply_grad';
 import {negateGradConfig} from './gradients/Negate_grad';
 import {oneHotGradConfig} from './gradients/OneHot_grad';
+import {onesLikeGradConfig} from './gradients/OnesLike_grad';
 import {padV2GradConfig} from './gradients/PadV2_grad';
 import {powGradConfig} from './gradients/Pow_grad';
 import {preluGradConfig} from './gradients/Prelu_grad';
@@ -95,6 +96,7 @@ import {tileGradConfig} from './gradients/Tile_grad';
 import {transposeGradConfig} from './gradients/Transpose_grad';
 import {unpackGradConfig} from './gradients/Unpack_grad';
 import {unsortedSegmentSumGradConfig} from './gradients/UnsortedSegmentSum_grad';
+import {zerosLikeGradConfig} from './gradients/ZerosLike_grad';
 import {GradConfig} from './kernel_registry';
 import {registerGradient} from './kernel_registry';
 
@@ -154,7 +156,7 @@ const gradConfigs: GradConfig[] = [
   multiplyGradConfig,
   negateGradConfig,
   oneHotGradConfig,
-  oneHotGradConfig,
+  onesLikeGradConfig,
   padV2GradConfig,
   padV2GradConfig,
   powGradConfig,
@@ -185,7 +187,8 @@ const gradConfigs: GradConfig[] = [
   tileGradConfig,
   transposeGradConfig,
   unpackGradConfig,
-  unsortedSegmentSumGradConfig
+  unsortedSegmentSumGradConfig,
+  zerosLikeGradConfig
 ];
 
 for (const gradientConfig of gradConfigs) {

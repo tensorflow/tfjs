@@ -20,8 +20,8 @@ import {cast} from '../ops/cast';
 import {exp} from '../ops/exp';
 import {greater} from '../ops/greater';
 import {mul} from '../ops/mul';
+import {scalar} from '../ops/scalar';
 import {SELU_SCALE, SELU_SCALEALPHA} from '../ops/selu_util';
-import {scalar} from '../ops/tensor_ops';
 import {where} from '../ops/where';
 import {Tensor} from '../tensor';
 

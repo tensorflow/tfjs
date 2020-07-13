@@ -16,7 +16,7 @@
  */
 
 import {Tensor1D} from '../tensor';
-import {tensor1d} from './tensor_ops';
+import {tensor1d} from './tensor1d';
 
 export function enclosingPowerOfTwo(value: number) {
   // Return 2**N for integer N such that 2**N >= value.

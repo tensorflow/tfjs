@@ -22,8 +22,10 @@ import {gather} from '../ops/gather';
 import {greaterEqual} from '../ops/greater_equal';
 import {logicalAnd} from '../ops/logical_and';
 import {maximum} from '../ops/maximum';
-import {ones, scalar, zerosLike} from '../ops/tensor_ops';
+import {ones} from '../ops/ones';
+import {scalar} from '../ops/scalar';
 import {where} from '../ops/where';
+import {zerosLike} from '../ops/zeros_like';
 import {Tensor, Tensor1D} from '../tensor';
 
 export const unsortedSegmentSumGradConfig: GradConfig = {

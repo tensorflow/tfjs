@@ -33,7 +33,7 @@ import {reshape} from './reshape';
 import {slice} from './slice';
 import {stack} from './stack';
 import {sub} from './sub';
-import {tensor2d} from './tensor_ops';
+import {tensor2d} from './tensor2d';
 import {transpose} from './transpose';
 import {unstack} from './unstack';
 import {where} from './where';
