@@ -154,7 +154,7 @@ import './ops/reverse_2d_test';
 import './ops/reverse_3d_test';
 import './ops/reverse_4d_test';
 import './ops/reverse_test';
-import './ops/rotate_test';
+import './ops/rotate_with_offset_test';
 import './ops/scatter_nd_test';
 import './ops/selu_test';
 import './ops/sigmoid_cross_entropy_test';
