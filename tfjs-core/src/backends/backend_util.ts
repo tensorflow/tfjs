@@ -16,7 +16,9 @@
  */
 
 import {ENGINE} from '../engine';
-import {scalar, tensor1d, zeros} from '../ops/tensor_ops';
+import {scalar} from '../ops/scalar';
+import {tensor1d} from '../ops/tensor1d';
+import {zeros} from '../ops/zeros';
 import {Tensor} from '../tensor';
 import {Rank} from '../types';
 import {DataType, ShapeMap} from '../types';
@@ -34,6 +36,7 @@ export * from '../ops/reduce_util';
 
 export {BackendValues, TypedArray, upcastType, PixelData} from '../types';
 export {MemoryInfo, TimingInfo} from '../engine';
+export * from '../ops/rotate_util';
 export * from '../ops/array_ops_util';
 export * from '../ops/gather_nd_util';
 export * from '../ops/scatter_nd_util';

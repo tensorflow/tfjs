@@ -21,8 +21,8 @@ import {greater} from '../ops/greater';
 import {mul} from '../ops/mul';
 import {reshape} from '../ops/reshape';
 import {sum} from '../ops/sum';
-import {zerosLike} from '../ops/tensor_ops';
 import {where} from '../ops/where';
+import {zerosLike} from '../ops/zeros_like';
 import {Tensor} from '../tensor';
 
 export const preluGradConfig: GradConfig = {

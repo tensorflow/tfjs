@@ -39,7 +39,10 @@ export {batchNorm2d} from './batchnorm2d';
 export {batchNorm3d} from './batchnorm3d';
 export {batchNorm4d} from './batchnorm4d';
 export {broadcastTo} from './broadcast_to';
+export {buffer} from './buffer';
+export {cast} from './cast';
 export {ceil} from './ceil';
+export {clipByValue} from './clip_by_value';
 export {clone} from './clone';
 export {complex} from './complex';
 export {concat} from './concat';
@@ -64,7 +67,10 @@ export {divNoNan} from './div_no_nan';
 export {dot} from './dot';
 export {elu} from './elu';
 export {equal} from './equal';
+export {erf} from './erf';
+export {exp} from './exp';
 export {expandDims} from './expand_dims';
+export {expm1} from './expm1';
 export {eye} from './eye';
 export {fill} from './fill';
 export {floor} from './floor';
@@ -76,7 +82,11 @@ export {imag} from './imag';
 export {leakyRelu} from './leaky_relu';
 export {less} from './less';
 export {lessEqual} from './less_equal';
+export {linspace} from './linspace';
 export {localResponseNormalization} from './local_response_normalization';
+export {log} from './log';
+export {log1p} from './log1p';
+export {logSigmoid} from './log_sigmoid';
 export {logSoftmax} from './log_softmax';
 export {logSumExp} from './log_sum_exp';
 export {logicalAnd} from './logical_and';
@@ -100,6 +110,8 @@ export {multinomial} from './multinomial';
 export {neg} from './neg';
 export {notEqual} from './not_equal';
 export {oneHot} from './one_hot';
+export {ones} from './ones';
+export {onesLike} from './ones_like';
 export {outerProduct} from './outer_product';
 export {pad} from './pad';
 export {pad1d} from './pad1d';
@@ -109,12 +121,15 @@ export {pad4d} from './pad4d';
 export {pool} from './pool';
 export {pow} from './pow';
 export {prelu} from './prelu';
+export {print} from './print';
 export {prod} from './prod';
 export {rand} from './rand';
 export {randomGamma} from './random_gamma';
 export {randomNormal} from './random_normal';
 export {randomUniform} from './random_uniform';
+export {range} from './range';
 export {real} from './real';
+export {reciprocal} from './reciprocal';
 export {relu} from './relu';
 export {relu6} from './relu6';
 export {reshape} from './reshape';
@@ -123,8 +138,10 @@ export {reverse1d} from './reverse_1d';
 export {reverse2d} from './reverse_2d';
 export {reverse3d} from './reverse_3d';
 export {reverse4d} from './reverse_4d';
+export {scalar} from './scalar';
 export {selu} from './selu';
 export {separableConv2d} from './separable_conv2d';
+export {setdiff1dAsync} from './setdiff1d_async';
 export {sign} from './sign';
 export {sin} from './sin';
 export {sinh} from './sinh';
@@ -145,20 +162,28 @@ export {sub} from './sub';
 export {sum} from './sum';
 export {tan} from './tan';
 export {tanh} from './tanh';
+export {tensor} from './tensor';
+export {tensor1d} from './tensor1d';
+export {tensor2d} from './tensor2d';
+export {tensor3d} from './tensor3d';
+export {tensor4d} from './tensor4d';
+export {tensor5d} from './tensor5d';
+export {tensor6d} from './tensor6d';
 export {tile} from './tile';
 export {topk} from './topk';
 export {truncatedNormal} from './truncated_normal';
 export {unsortedSegmentSum} from './unsorted_segment_sum';
 export {unstack} from './unstack';
+export {variable} from './variable';
 export {where} from './where';
 export {whereAsync} from './where_async';
+export {zeros} from './zeros';
+export {zerosLike} from './zeros_like';
 
 export * from './boolean_mask';
 export * from './unary_ops';
 export * from './compare';
 export * from './binary_ops';
-export * from './array_ops';
-export * from './tensor_ops';
 export * from './transpose';
 export * from './norm';
 export * from './moving_average';
@@ -188,6 +213,7 @@ const signal = {
 
 // Image Ops namespace
 import {cropAndResize} from './crop_and_resize';
+import {rotateWithOffset} from './rotate_with_offset';
 import {nonMaxSuppression} from './non_max_suppression';
 import {nonMaxSuppressionAsync} from './non_max_suppression_async';
 import {nonMaxSuppressionWithScore} from './non_max_suppression_with_score';
@@ -197,6 +223,7 @@ import {resizeNearestNeighbor} from './resize_nearest_neighbor';
 const image = {
   resizeNearestNeighbor,
   resizeBilinear,
+  rotateWithOffset,
   cropAndResize,
   nonMaxSuppression,
   nonMaxSuppressionAsync,
