@@ -20,8 +20,8 @@ import {GradConfig, NamedAttrMap} from '../kernel_registry';
 import {greaterEqual} from '../ops/greater_equal';
 import {lessEqual} from '../ops/less_equal';
 import {logicalAnd} from '../ops/logical_and';
-import {zerosLike} from '../ops/tensor_ops';
 import {where} from '../ops/where';
+import {zerosLike} from '../ops/zeros_like';
 import {Tensor} from '../tensor';
 
 export const clipByValueGradConfig: GradConfig = {

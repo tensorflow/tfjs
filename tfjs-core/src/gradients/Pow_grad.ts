@@ -26,7 +26,6 @@ import {reshape} from '../ops/reshape';
 import {scalar} from '../ops/scalar';
 import {sub} from '../ops/sub';
 import {sum} from '../ops/sum';
-import {scalar, zerosLike} from '../ops/tensor_ops';
 import {where} from '../ops/where';
 import {zerosLike} from '../ops/zeros_like';
 import {Tensor} from '../tensor';
