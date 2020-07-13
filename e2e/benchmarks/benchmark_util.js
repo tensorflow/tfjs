@@ -319,7 +319,7 @@ async function profile(query) {
   return engine.state.activeProfile;
 }
 
-const TUNABLE_FLAGS = {
+const TUNABLE_FLAG_TYPE_MAP = {
   WEBGL_VERSION: 'number',
   WASM_HAS_SIMD_SUPPORT: 'boolean',
   WEBGL_CPU_FORWARD: 'boolean',
@@ -329,7 +329,7 @@ const TUNABLE_FLAGS = {
 };
 
 /**
- * Set environment flags in `TUNABLE_FLAGS` list.
+ * Set environment flags in `TUNABLE_FLAG_TYPE_MAP`.
  *
  * This is a wrapper function of `tf.env().setFlags()` with a tunable flag list,
  * to constrain flag setting.
@@ -357,13 +357,13 @@ async function setEnvFlags(flagConfig) {
   // Check the validation of flags and values.
   for (const flag in flagConfig) {
     // TODO: check whether flag can be set as flagConfig[flag].
-    if (!(flag in TUNABLE_FLAGS)) {
+    if (!(flag in TUNABLE_FLAG_TYPE_MAP)) {
       throw new Error(`${flag} is not a tunable or valid environment flag.`);
     }
-    if (typeof flagConfig[flag] !== TUNABLE_FLAGS[flag]) {
+    if (typeof flagConfig[flag] !== TUNABLE_FLAG_TYPE_MAP[flag]) {
       throw new Error(
-          `${flag} is expected to be a ${TUNABLE_FLAGS[flag]}, while a(n) ` +
-          `${typeof flagConfig[flag]} is found.`);
+          `${flag} is expected to be a ${TUNABLE_FLAG_TYPE_MAP[flag]}, while ` +
+          `a(n) ${typeof flagConfig[flag]} is found.`);
     }
   }
 
@@ -373,26 +373,35 @@ async function setEnvFlags(flagConfig) {
   // initializing backends, not only inferring.
   // TODO: The following backend rebuild logics can be implemented in `setHook`
   // when registering these flags.
-  const ENGINE = tf.engine();
-  if ('WASM_HAS_SIMD_SUPPORT' in flagConfig && 'wasm' in ENGINE.registry) {
-    const currentBackend = tf.getBackend();
-    const wasmFactory = tf.findBackendFactory('wasm');
-    tf.removeBackend('wasm');
-    tf.registerBackend('wasm', wasmFactory);
-
-    if (currentBackend === 'wasm') {
-      await tf.setBackend('wasm');
-    }
+  if ('WASM_HAS_SIMD_SUPPORT' in flagConfig) {
+    await resetBackend('wasm');
   }
 
-  if ('WEBGL_VERSION' in flagConfig && 'webgl' in ENGINE.registry) {
-    const currentBackend = tf.getBackend();
-    const webglFactory = tf.findBackendFactory('webgl');
-    tf.removeBackend('webgl');
-    tf.registerBackend('webgl', webglFactory);
+  if ('WEBGL_VERSION' in flagConfig) {
+    await resetBackend('webgl');
+  }
+}
 
-    if (currentBackend === 'webgl') {
-      await tf.setBackend('webgl');
-    }
+/**
+ * Reset the target backend.
+ *
+ * @param backendName The name of the backend to be reset.
+ */
+async function resetBackend(backendName) {
+  const ENGINE = tf.engine();
+  if (!(backendName in ENGINE.registryFactory)) {
+    throw new Error(`${backendName} backend is not registed.`);
+  }
+
+  const currentBackend = tf.getBackend();
+
+  if (backendName in ENGINE.registry) {
+    const webglFactory = tf.findBackendFactory(backendName);
+    tf.removeBackend(backendName);
+    tf.registerBackend(backendName, webglFactory);
+  }
+
+  if (currentBackend === backendName) {
+    await tf.setBackend(backendName);
   }
 }

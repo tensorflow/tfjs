@@ -186,4 +186,65 @@ describe('benchmark_util', () => {
       });
     });
   });
+
+  describe('resetBackend', () => {
+    beforeEach(() => tf.setBackend('cpu'));
+    afterAll(() => tf.engine().reset());
+
+    it('reset a backend that is not registed', async () => {
+      expectAsync(resetBackend('invalidBackendName'))
+          .toBeRejectedWithError(
+              Error, 'invalidBackendName backend is not registed.');
+    });
+
+    it('reset a backend that is not generated', async () => {
+      const testCpuBackend = 'testCpuBackend';
+      tf.registerBackend(testCpuBackend, tf.findBackendFactory('cpu'));
+      expect(tf.engine().registry[testCpuBackend]).toBeUndefined();
+      spyOn(tf, 'findBackendFactory');
+      spyOn(tf, 'removeBackend');
+      spyOn(tf, 'registerBackend');
+
+      await resetBackend(testCpuBackend);
+
+      expect(tf.findBackendFactory.calls.count()).toBe(0);
+      expect(tf.removeBackend.calls.count()).toBe(0);
+      expect(tf.registerBackend.calls.count()).toBe(0);
+      tf.removeBackend(testCpuBackend);
+    });
+
+    it('reset a backend that has been generated', async () => {
+      await tf.ready();
+      const currentBackend = tf.getBackend();
+      expect(tf.engine().registry[currentBackend]).toBeDefined();
+      spyOn(tf, 'findBackendFactory');
+      spyOn(tf, 'removeBackend');
+      spyOn(tf, 'registerBackend');
+
+      await resetBackend(currentBackend);
+
+      expect(tf.findBackendFactory.calls.count()).toBe(1);
+      expect(tf.removeBackend.calls.count()).toBe(1);
+      expect(tf.registerBackend.calls.count()).toBe(1);
+    });
+
+    it('reset the active backend', async () => {
+      const currentBackend = tf.getBackend();
+      spyOn(tf, 'setBackend');
+      await resetBackend(currentBackend);
+      expect(tf.setBackend.calls.count()).toBe(1);
+    });
+
+    it('reset an inactive backend', async () => {
+      const testCpuBackend = 'testCpuBackend';
+      tf.registerBackend(testCpuBackend, tf.findBackendFactory('cpu'));
+      expect(tf.getBackend()).not.toBe(testCpuBackend);
+      spyOn(tf, 'setBackend');
+
+      await resetBackend(testCpuBackend);
+
+      expect(tf.setBackend.calls.count()).toBe(0);
+      tf.removeBackend(testCpuBackend);
+    });
+  });
 });
