@@ -16,7 +16,7 @@
  */
 
 import {ENGINE} from '../engine';
-import {Rotate, RotateAttrs, RotateInputs} from '../kernel_names';
+import {RotateWithOffset, RotateWithOffsetAttrs, RotateWithOffsetInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -27,7 +27,7 @@ import * as util from '../util';
 import {op} from './operation';
 
 /**
- * Rotates the input image tensor.
+ * Rotates the input image tensor with an optional offset center of rotation.
  *
  * @param image 4d tensor of shape `[batch, imageHeight, imageWidth, depth]`.
  * @param radians The amount of rotation.
@@ -40,22 +40,23 @@ import {op} from './operation';
  *     the image around its center).
  */
 /** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
-function rotate_(
+function rotateWithOffset_(
     image: Tensor4D|TensorLike, radians: number,
     fillValue: number|[number, number, number] = 0,
     center: number|[number, number] = 0.5): Tensor4D {
-  const $image = convertToTensor(image, 'image', 'rotate', 'float32');
+  const $image = convertToTensor(image, 'image', 'rotateWithOffset', 'float32');
 
   util.assert(
       $image.rank === 4,
-      () => 'Error in rotate: image must be rank 4,' +
+      () => 'Error in rotateWithOffset: image must be rank 4,' +
           `but got rank ${$image.rank}.`);
 
-  const inputs: RotateInputs = {image: $image};
-  const attrs: RotateAttrs = {radians, fillValue, center};
+  const inputs: RotateWithOffsetInputs = {image: $image};
+  const attrs: RotateWithOffsetAttrs = {radians, fillValue, center};
   const res = ENGINE.runKernel(
-      Rotate, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+      RotateWithOffset, inputs as {} as NamedTensorMap,
+      attrs as {} as NamedAttrMap);
   return res as Tensor4D;
 }
 
-export const rotate = op({rotate_});
+export const rotateWithOffset = op({rotateWithOffset_});

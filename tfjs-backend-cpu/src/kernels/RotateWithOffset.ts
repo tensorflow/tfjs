@@ -16,16 +16,16 @@
  */
 
 import {KernelConfig, NumericDataType, TypedArray} from '@tensorflow/tfjs-core';
-import {backend_util, Rotate, RotateAttrs, RotateInputs, util} from '@tensorflow/tfjs-core';
+import {backend_util, RotateWithOffset, RotateWithOffsetAttrs, RotateWithOffsetInputs, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 
-export const rotateConfig: KernelConfig = {
-  kernelName: Rotate,
+export const rotateWithOffsetConfig: KernelConfig = {
+  kernelName: RotateWithOffset,
   backendName: 'cpu',
   kernelFunc: ({inputs, attrs, backend}) => {
-    const {image} = inputs as RotateInputs;
-    const {radians, fillValue, center} = attrs as {} as RotateAttrs;
+    const {image} = inputs as RotateWithOffsetInputs;
+    const {radians, fillValue, center} = attrs as {} as RotateWithOffsetAttrs;
     const cpuBackend = backend as MathBackendCPU;
 
     const output = util.getTypedArrayFromDType(

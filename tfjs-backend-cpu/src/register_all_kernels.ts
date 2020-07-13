@@ -26,7 +26,7 @@ import {divConfig} from './kernels/Div';
 import {maxConfig} from './kernels/Max';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
-import {rotateConfig} from './kernels/Rotate';
+import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {transposeConfig} from './kernels/Transpose';
@@ -35,7 +35,7 @@ import {transposeConfig} from './kernels/Transpose';
 const kernelConfigs: KernelConfig[] = [
   dilation2dConfig, dilation2dBackpropInputConfig,
   dilation2dBackpropFilterConfig, divConfig, maxPoolWithArgmaxConfig, maxConfig,
-  nonMaxSuppressionV5Config, rotateConfig, squareConfig,
+  nonMaxSuppressionV5Config, rotateWithOffsetConfig, squareConfig,
   squaredDifferenceConfig, transposeConfig
 ];
 

@@ -16,17 +16,17 @@
  */
 
 import {KernelConfig, Tensor4D} from '@tensorflow/tfjs-core';
-import {Rotate, RotateAttrs, RotateInputs} from '@tensorflow/tfjs-core';
+import {RotateWithOffset, RotateWithOffsetAttrs, RotateWithOffsetInputs} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {RotateProgram} from '../rotate_gpu';
 
-export const rotateConfig: KernelConfig = {
-  kernelName: Rotate,
+export const rotateWithOffsetConfig: KernelConfig = {
+  kernelName: RotateWithOffset,
   backendName: 'webgl',
   kernelFunc: ({inputs, attrs, backend}) => {
-    const {image} = inputs as RotateInputs;
-    const {radians, fillValue, center} = attrs as {} as RotateAttrs;
+    const {image} = inputs as RotateWithOffsetInputs;
+    const {radians, fillValue, center} = attrs as {} as RotateWithOffsetAttrs;
     const webglBackend = backend as MathBackendWebGL;
 
     const program = new RotateProgram(
