@@ -22,7 +22,7 @@ import {concat} from './concat';
 import {fill} from './fill';
 import {reshape} from './reshape';
 import {slice} from './slice';
-import {tensor2d} from './tensor_ops';
+import {tensor2d} from './tensor2d';
 
 /**
  * Expands input into frames of frameLength.

@@ -17,7 +17,7 @@
 
 /** An implementation of the Where kernel shared between cpu and webgl */
 
-import {buffer} from '../ops/array_ops';
+import {buffer} from '../ops/buffer';
 import {Tensor2D} from '../tensor';
 import {TypedArray} from '../types';
 

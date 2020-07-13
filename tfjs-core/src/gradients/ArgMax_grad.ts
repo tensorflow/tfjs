@@ -17,7 +17,7 @@
 
 import {ArgMax} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {zerosLike} from '../ops/tensor_ops';
+import {zerosLike} from '../ops/zeros_like';
 import {Tensor} from '../tensor';
 
 export const argMaxGradConfig: GradConfig = {

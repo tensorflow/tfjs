@@ -23,9 +23,9 @@ import {computeWeightedLoss} from './compute_weighted_loss';
 import {Reduction} from './loss_ops_utils';
 import {mul} from './mul';
 import {op} from './operation';
+import {scalar} from './scalar';
 import {sub} from './sub';
 import {sum} from './sum';
-import {scalar} from './tensor_ops';
 
 /**
  * Computes the cosine distance loss between two tensors.
