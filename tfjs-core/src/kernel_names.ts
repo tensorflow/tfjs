@@ -21,7 +21,6 @@
 import {ExplicitPadding} from '../src/ops/conv_util';
 
 import {NamedTensorInfoMap, TensorInfo} from './kernel_registry';
-import {Activation} from './ops/fused_util';
 import {DataType, PixelData} from './types';
 
 export const Abs = 'Abs';
@@ -734,36 +733,10 @@ export interface FromPixelsAttrs {
   numChannels: number;
 }
 
-export const _FusedMatMul = '_FusedMatMul';
-export type _FusedMatMulInputs =
-    Pick<NamedTensorInfoMap, 'a'|'b'|'bias'|'preluActivationWeights'>;
-// tslint:disable-next-line: class-name
-export interface _FusedMatMulAttrs {
-  transposeA: number;
-  transposeB: number;
-  activation: Activation;
-}
-
-export const FusedConv2D = 'FusedConv2D';
-export type FusedConv2DInputs =
-    Pick<NamedTensorInfoMap, 'x'|'filter'|'bias'|'preluActivationWeights'>;
-export interface FusedConv2DAttrs {
-  strides: [number, number]|number;
-  pad: 'valid'|'same'|number|ExplicitPadding;
-  dataFormat: 'NHWC'|'NCHW';
-  dilations: [number, number]|number;
-  dimRoundingMode: 'floor'|'round'|'ceil';
-  activation: Activation;
-}
-
-export const FusedDepthwiseConv2D = 'FusedDepthwiseConv2D';
-export type FusedDepthwiseConv2DInputs =
-    Pick<NamedTensorInfoMap, 'x'|'filter'|'bias'|'preluActivationWeights'>;
-export interface FusedDepthwiseConv2DAttrs {
-  strides: [number, number]|number;
-  pad: 'valid'|'same'|number;
-  dataFormat: 'NHWC'|'NCHW';
-  dilations: [number, number]|number;
-  dimRoundingMode: 'floor'|'round'|'ceil';
-  activation: Activation;
+export const RotateWithOffset = 'RotateWithOffset';
+export type RotateWithOffsetInputs = Pick<NamedTensorInfoMap, 'image'>;
+export interface RotateWithOffsetAttrs {
+  radians: number;
+  fillValue: number|[number, number, number];
+  center: number|[number, number];
 }
