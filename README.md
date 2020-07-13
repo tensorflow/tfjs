@@ -49,12 +49,12 @@ APIs:
 
 
 Backends/Platforms:
-- [TensorFlow.js CPU Backend](/tfjs-backend-cpu), Node backend via TensorFlow C++.
-- [TensorFlow.js WebGL Backend](/tfjs-backend-webgl), Node backend via TensorFlow C++.
+- [TensorFlow.js CPU Backend](/tfjs-backend-cpu), JS backend for the browser.
+- [TensorFlow.js WebGL Backend](/tfjs-backend-webgl), WebGL backend for the browser.
+- [TensorFlow.js WASM Backend](/tfjs-backend-wasm), WebAssembly backend for the browser.
+- [TensorFlow.js WebGPU](/tfjs-backend-webgpu), WebGPU backend for the browser.
 - [TensorFlow.js Node](/tfjs-node), Node backend via TensorFlow C++.
-- [TensorFlow.js WASM](/tfjs-backend-wasm), WebAssembly backend.
 - [TensorFlow.js React Native](/tfjs-react-native), React Native backend/platform adapter.
-- [TensorFlow.js WebGPU](/tfjs-backend-webgpu), WebGPU backend.
 
 If you care about bundle size, you can import those packages individually.
 
