@@ -121,6 +121,7 @@ import './ops/local_response_normalization_test';
 import './ops/log1p_test';
 import './ops/log_loss_test';
 import './ops/log_sigmoid_test';
+import './ops/log_softmax_test';
 import './ops/log_sum_exp_test';
 import './ops/log_test';
 import './ops/logical_and_test';

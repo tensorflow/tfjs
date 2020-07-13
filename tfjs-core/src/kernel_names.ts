@@ -376,6 +376,12 @@ export type LogicalNotInputs = Pick<NamedTensorInfoMap, 'x'>;
 export const LogicalOr = 'LogicalOr';
 export type LogicalOrInputs = BinaryInputs;
 
+export const LogSoftmax = 'LogSoftmax';
+export type LogSoftmaxInputs = Pick<NamedTensorInfoMap, 'logits'>;
+export interface LogSoftmaxAttrs {
+  axis: number;
+}
+
 export const LRN = 'LRN';
 export type LRNInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface LRNAttrs {
@@ -637,6 +643,12 @@ export interface SplitVAttrs {
   axis: number;
 }
 
+export const Softmax = 'Softmax';
+export type SoftmaxInputs = Pick<NamedTensorInfoMap, 'logits'>;
+export interface SoftmaxAttrs {
+  dim: number;
+}
+
 export const SquaredDifference = 'SquaredDifference';
 export type SquaredDifferenceInputs = BinaryInputs;
 
@@ -645,6 +657,26 @@ export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
 
 export const Sub = 'Sub';
 export type SubInputs = BinaryInputs;
+
+export const SparseToDense = 'SparseToDense';
+export type SparseToDenseInputs =
+    Pick<NamedTensorInfoMap, 'sparseIndices'|'sparseValues'|'defaultValue'>;
+export interface SparseToDenseAttrs {
+  outputShape: number[];
+}
+
+export const StridedSlice = 'StridedSlice';
+export type StridedSliceInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface StridedSliceAttrs {
+  begin: number[];
+  end: number[];
+  strides: number[];
+  beginMask: number;
+  endMask: number;
+  ellipsisMask: number;
+  newAxisMask: number;
+  shrinkAxisMask: number;
+}
 
 export const Tan = 'Tan';
 export type TanInputs = UnaryInputs;
@@ -656,6 +688,13 @@ export const Tile = 'Tile';
 export type TileInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface TileAttrs {
   reps: number[];
+}
+
+export const TopK = 'TopK';
+export type TopKInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface TopKAttrs {
+  k: number;
+  sorted: boolean;
 }
 
 export const Transpose = 'Transpose';
