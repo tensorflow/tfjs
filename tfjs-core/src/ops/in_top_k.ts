@@ -19,7 +19,7 @@ import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assert, assertShapesMatch, getTypedArrayFromDType} from '../util';
-import {tensor} from './tensor_ops';
+import {tensor} from './tensor';
 
 /**
  * Returns whether the targets are in the top K predictions.

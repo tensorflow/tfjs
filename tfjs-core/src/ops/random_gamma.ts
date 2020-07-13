@@ -18,7 +18,7 @@
 import {Tensor} from '../tensor';
 import {Rank, ShapeMap} from '../types';
 
-import {buffer} from './array_ops';
+import {buffer} from './buffer';
 import {op} from './operation';
 import {RandGamma} from './rand_util';
 

@@ -19,7 +19,8 @@
  * Implementation of the NonMaxSuppression kernel shared between webgl and cpu.
  */
 
-import {scalar, tensor1d} from '../ops/tensor_ops';
+import {scalar} from '../ops/scalar';
+import {tensor1d} from '../ops/tensor1d';
 import {Tensor1D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {TypedArray} from '../types';

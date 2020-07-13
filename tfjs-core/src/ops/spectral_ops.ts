@@ -23,7 +23,8 @@ import {real} from '../ops/real';
 import {Tensor, Tensor2D} from '../tensor';
 import {assert} from '../util';
 
-import {scalar, zeros} from './tensor_ops';
+import {scalar} from './scalar';
+import {zeros} from './zeros';
 
 /**
  * Fast Fourier transform.
