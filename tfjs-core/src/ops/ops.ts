@@ -187,6 +187,7 @@ const signal = {
 
 // Image Ops namespace
 import {cropAndResize} from './crop_and_resize';
+import {rotateWithOffset} from './rotate_with_offset';
 import {nonMaxSuppression} from './non_max_suppression';
 import {nonMaxSuppressionAsync} from './non_max_suppression_async';
 import {nonMaxSuppressionWithScore} from './non_max_suppression_with_score';
@@ -196,6 +197,7 @@ import {resizeNearestNeighbor} from './resize_nearest_neighbor';
 const image = {
   resizeNearestNeighbor,
   resizeBilinear,
+  rotateWithOffset,
   cropAndResize,
   nonMaxSuppression,
   nonMaxSuppressionAsync,
