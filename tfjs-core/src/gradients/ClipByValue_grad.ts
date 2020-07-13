@@ -21,6 +21,7 @@ import {greaterEqual} from '../ops/greater_equal';
 import {lessEqual} from '../ops/less_equal';
 import {logicalAnd} from '../ops/logical_and';
 import {zerosLike} from '../ops/tensor_ops';
+import {where} from '../ops/where';
 import {Tensor} from '../tensor';
 
 export const clipByValueGradConfig: GradConfig = {
@@ -30,8 +31,8 @@ export const clipByValueGradConfig: GradConfig = {
     const [x] = saved;
     const {clipValueMin, clipValueMax} = attrs as {} as ClipByValueAttrs;
     return {
-      // tslint:disable-next-line: no-unnecessary-type-assertion
-      x: () => dy.where(
+      x: () => where(
+          dy,
           logicalAnd(greaterEqual(x, clipValueMin), lessEqual(x, clipValueMax)),
           zerosLike(dy)),
     };

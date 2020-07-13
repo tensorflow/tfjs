@@ -22,7 +22,7 @@ import {BackendWasm} from '../backend_wasm';
 let wasmClip: (xId: number, min: number, max: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmClip = backend.wasm.cwrap('ClipByValue', null /* void */, [
+  wasmClip = backend.wasm.cwrap(ClipByValue, null /* void */, [
     'number',  // x_id
     'number',  // min
     'number',  // max
