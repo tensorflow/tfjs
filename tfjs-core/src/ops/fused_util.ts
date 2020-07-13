@@ -16,8 +16,13 @@
  */
 
 import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import * as broadcast_util from './broadcast_util';
 
 import {Conv2DInfo} from './conv_util';
+import {elu} from './elu';
+import {prelu} from './prelu';
+import {relu} from './relu';
+import {relu6} from './relu6';
 
 export type Activation = 'linear'|'relu'|'prelu'|'elu'|'relu6';
 
@@ -45,3 +50,46 @@ export const shouldFuse = (gradientDepth: number, activation: Activation) => {
   const gradientMode = gradientDepth > 0;
   return !gradientMode || activation === 'linear';
 };
+
+// Returns gradient for fused activation.
+export function getFusedDyActivation(
+    dy: Tensor, y: Tensor, activation: Activation): Tensor {
+  if (activation == null || activation === 'linear') {
+    return dy;
+  }
+  if (activation === 'relu') {
+    return dy.mul(y.step());
+  }
+  throw new Error(
+      `Gradient for activation ${activation} has not been ` +
+      `implemented yet.`);
+}
+
+// Returns gradient for fused bias.
+export function getFusedBiasGradient(
+    bias: Tensor, dyActivation: Tensor): Tensor {
+  let res = dyActivation;
+  const reduceAxes =
+      broadcast_util.getReductionAxes(bias.shape, dyActivation.shape);
+  if (reduceAxes.length > 0) {
+    res = res.sum(reduceAxes);
+  }
+  return res.reshape(bias.shape);
+}
+
+export function applyActivation(
+    x: Tensor, activation: Activation,
+    preluActivationWeights?: Tensor): Tensor {
+  if (activation === 'linear') {
+    return x;
+  } else if (activation === 'relu') {
+    return relu(x);
+  } else if (activation === 'elu') {
+    return elu(x);
+  } else if (activation === 'relu6') {
+    return relu6(x);
+  } else if (activation === 'prelu') {
+    return prelu(x, preluActivationWeights);
+  }
+  throw new Error(`Unknown fused activation ${activation}.`);
+}
