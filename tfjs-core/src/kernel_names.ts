@@ -667,3 +667,11 @@ export interface FromPixelsInputs {
 export interface FromPixelsAttrs {
   numChannels: number;
 }
+
+export const RotateWithOffset = 'RotateWithOffset';
+export type RotateWithOffsetInputs = Pick<NamedTensorInfoMap, 'image'>;
+export interface RotateWithOffsetAttrs {
+  radians: number;
+  fillValue: number|[number, number, number];
+  center: number|[number, number];
+}
