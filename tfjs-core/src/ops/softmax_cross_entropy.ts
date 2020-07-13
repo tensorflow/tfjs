@@ -22,8 +22,8 @@ import {TensorLike} from '../types';
 import {assertShapesMatch} from '../util';
 
 import {add} from './add';
-import {cast} from './array_ops';
 import {expandShapeToKeepDim} from './axis_util';
+import {cast} from './cast';
 import {computeWeightedLoss} from './compute_weighted_loss';
 import {div} from './div';
 import {exp} from './exp';

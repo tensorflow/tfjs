@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,18 +15,20 @@
  * =============================================================================
  */
 
-import {Abs} from '../kernel_names';
-import {GradConfig} from '../kernel_registry';
-import {cast} from '../ops/cast';
-import {mul} from '../ops/mul';
-import {step} from '../ops/unary_ops';
 import {Tensor} from '../tensor';
 
-export const absGradConfig: GradConfig = {
-  kernelName: Abs,
-  inputsToSave: ['x'],
-  gradFunc: (dy: Tensor, saved: Tensor[]) => {
-    const [x] = saved;
-    return {x: () => mul(dy, step(cast(x, 'float32'), -1))};
-  }
-};
+/**
+ * Prints information about the `tf.Tensor` including its data.
+ *
+ * ```js
+ * const verbose = true;
+ * tf.tensor2d([1, 2, 3, 4], [2, 2]).print(verbose);
+ * ```
+ * @param x The tensor to be printed.
+ * @param verbose Whether to print verbose information about the ` Tensor`,
+ * including dtype and size.
+ */
+/** @doc {heading: 'Tensors', subheading: 'Creation'} */
+export function print<T extends Tensor>(x: T, verbose = false): void {
+  console.log(x.toString(verbose));
+}

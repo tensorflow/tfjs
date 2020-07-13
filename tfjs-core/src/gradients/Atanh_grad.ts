@@ -17,7 +17,7 @@
 
 import {Atanh} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {cast} from '../ops/array_ops';
+import {cast} from '../ops/cast';
 import {div} from '../ops/div';
 import {square} from '../ops/square';
 import {sub} from '../ops/sub';

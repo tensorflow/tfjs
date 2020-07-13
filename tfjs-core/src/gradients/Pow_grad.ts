@@ -16,8 +16,8 @@
  */
 import {Pow} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {cast} from '../ops/array_ops';
 import * as broadcast_util from '../ops/broadcast_util';
+import {cast} from '../ops/cast';
 import {greater} from '../ops/greater';
 import {log} from '../ops/log';
 import {mul} from '../ops/mul';

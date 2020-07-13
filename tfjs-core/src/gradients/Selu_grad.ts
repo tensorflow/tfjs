@@ -16,7 +16,7 @@
  */
 import {Selu} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {cast} from '../ops/array_ops';
+import {cast} from '../ops/cast';
 import {exp} from '../ops/exp';
 import {greater} from '../ops/greater';
 import {mul} from '../ops/mul';

@@ -20,8 +20,8 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {parseAxisParam, sizeFromShape} from '../util';
 
-import {cast} from './array_ops';
 import {computeOutAndReduceShapes} from './axis_util';
+import {cast} from './cast';
 import {div} from './div';
 import {mul} from './mul';
 import {op} from './operation';

@@ -17,7 +17,7 @@
 
 import {Sin} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {cast} from '../ops/array_ops';
+import {cast} from '../ops/cast';
 import {cos} from '../ops/cos';
 import {mul} from '../ops/mul';
 import {Tensor} from '../tensor';

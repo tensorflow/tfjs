@@ -17,7 +17,7 @@
 
 import {Cosh} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {cast} from '../ops/array_ops';
+import {cast} from '../ops/cast';
 import {mul} from '../ops/mul';
 import {sinh} from '../ops/sinh';
 import {Tensor} from '../tensor';
