@@ -23,8 +23,8 @@ import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
-import {cast} from './array_ops';
 import {assertAndGetBroadcastShape} from './broadcast_util';
+import {cast} from './cast';
 import {op} from './operation';
 
 /**

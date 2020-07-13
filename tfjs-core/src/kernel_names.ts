@@ -141,8 +141,21 @@ export interface BroadCastToAttrs {
   inputShape: number[];  // for gradient
 }
 
+export const Cast = 'Cast';
+export type CastInputs = UnaryInputs;
+export interface CastAttrs {
+  dtype: DataType;
+}
+
 export const Ceil = 'Ceil';
 export type CeilInputs = UnaryInputs;
+
+export const ClipByValue = 'ClipByValue';
+export type ClipByValueInputs = UnaryInputs;
+export interface ClipByValueAttrs {
+  clipValueMin: number;
+  clipValueMax: number;
+}
 
 export const Complex = 'Complex';
 export type ComplexInputs = Pick<NamedTensorInfoMap, 'real'|'imag'>;
@@ -284,8 +297,17 @@ export type EluInputs = Pick<NamedTensorInfoMap, 'x'>;
 export const EluGrad = 'EluGrad';
 export type EluGradInputs = Pick<NamedTensorInfoMap, 'dy'|'y'>;
 
+export const Erf = 'Erf';
+export type ErfInputs = UnaryInputs;
+
 export const Equal = 'Equal';
 export type EqualInputs = BinaryInputs;
+
+export const Exp = 'Exp';
+export type ExpInputs = UnaryInputs;
+
+export const Expm1 = 'Expm1';
+export type Expm1Inputs = UnaryInputs;
 
 export const Floor = 'Floor';
 export type FloorInputs = UnaryInputs;
@@ -334,6 +356,18 @@ export type LessInputs = BinaryInputs;
 export const LessEqual = 'LessEqual';
 export type LessEqualInputs = BinaryInputs;
 
+export const LinSpace = 'LinSpace';
+export interface LinSpaceAttrs {
+  start: number;
+  stop: number;
+  num: number;
+}
+export const Log = 'Log';
+export type LogInputs = UnaryInputs;
+
+export const Log1p = 'Log1p';
+export type Log1pInputs = UnaryInputs;
+
 export const LogicalAnd = 'LogicalAnd';
 export type LogicalAndInputs = BinaryInputs;
 
@@ -342,6 +376,12 @@ export type LogicalNotInputs = Pick<NamedTensorInfoMap, 'x'>;
 
 export const LogicalOr = 'LogicalOr';
 export type LogicalOrInputs = BinaryInputs;
+
+export const LogSoftmax = 'LogSoftmax';
+export type LogSoftmaxInputs = Pick<NamedTensorInfoMap, 'logits'>;
+export interface LogSoftmaxAttrs {
+  axis: number;
+}
 
 export const LRN = 'LRN';
 export type LRNInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -469,6 +509,9 @@ export interface NonMaxSuppressionV5Attrs {
   softNmsSigma: number;
 }
 
+export const OnesLike = 'OnesLike';
+export type OnesLikeInputs = UnaryInputs;
+
 export const OneHot = 'OneHot';
 export type OneHotInputs = Pick<NamedTensorInfoMap, 'indices'>;
 export interface OneHotAttrs {
@@ -500,8 +543,19 @@ export interface ProdAttrs {
   keepDims: boolean;
 }
 
+export const Range = 'Range';
+export interface RangeAttrs {
+  start: number;
+  stop: number;
+  step: number;
+  dtype: 'float32'|'int32';
+}
+
 export const Real = 'Real';
 export type RealInputs = Pick<NamedTensorInfoMap, 'input'>;
+
+export const Reciprocal = 'Reciprocal';
+export type ReciprocalInputs = UnaryInputs;
 
 export const Relu = 'Relu';
 export type ReluInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -590,6 +644,12 @@ export interface SplitVAttrs {
   axis: number;
 }
 
+export const Softmax = 'Softmax';
+export type SoftmaxInputs = Pick<NamedTensorInfoMap, 'logits'>;
+export interface SoftmaxAttrs {
+  dim: number;
+}
+
 export const SquaredDifference = 'SquaredDifference';
 export type SquaredDifferenceInputs = BinaryInputs;
 
@@ -598,6 +658,26 @@ export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
 
 export const Sub = 'Sub';
 export type SubInputs = BinaryInputs;
+
+export const SparseToDense = 'SparseToDense';
+export type SparseToDenseInputs =
+    Pick<NamedTensorInfoMap, 'sparseIndices'|'sparseValues'|'defaultValue'>;
+export interface SparseToDenseAttrs {
+  outputShape: number[];
+}
+
+export const StridedSlice = 'StridedSlice';
+export type StridedSliceInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface StridedSliceAttrs {
+  begin: number[];
+  end: number[];
+  strides: number[];
+  beginMask: number;
+  endMask: number;
+  ellipsisMask: number;
+  newAxisMask: number;
+  shrinkAxisMask: number;
+}
 
 export const Tan = 'Tan';
 export type TanInputs = UnaryInputs;
@@ -609,6 +689,13 @@ export const Tile = 'Tile';
 export type TileInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface TileAttrs {
   reps: number[];
+}
+
+export const TopK = 'TopK';
+export type TopKInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface TopKAttrs {
+  k: number;
+  sorted: boolean;
 }
 
 export const Transpose = 'Transpose';
@@ -631,6 +718,9 @@ export type UnsortedSegmentSumInputs =
 export interface UnsortedSegmentSumAttrs {
   numSegments: number;
 }
+
+export const ZerosLike = 'ZerosLike';
+export type ZerosLikeInputs = UnaryInputs;
 
 /**
  * TensorFlow.js-only kernels

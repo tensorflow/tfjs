@@ -17,10 +17,10 @@
 
 import {SelectV2} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {cast} from '../ops/array_ops';
+import {cast} from '../ops/cast';
 import {logicalNot} from '../ops/logical_not';
 import {mul} from '../ops/mul';
-import {zerosLike} from '../ops/tensor_ops';
+import {zerosLike} from '../ops/zeros_like';
 import {Tensor} from '../tensor';
 
 export const selectV2PoolGradConfig: GradConfig = {

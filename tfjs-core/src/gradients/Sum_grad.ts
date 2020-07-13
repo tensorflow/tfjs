@@ -18,8 +18,8 @@
 import {Sum, SumAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
 import {mul} from '../ops/mul';
+import {ones} from '../ops/ones';
 import {reshape} from '../ops/reshape';
-import {ones} from '../ops/tensor_ops';
 import {Tensor} from '../tensor';
 import {parseAxisParam} from '../util';
 

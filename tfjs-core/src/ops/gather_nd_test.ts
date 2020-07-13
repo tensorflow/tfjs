@@ -19,7 +19,7 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
 import {gatherND} from './gather_nd';
-import {scalar, tensor1d, tensor2d, tensor3d} from './tensor_ops';
+import {scalar, tensor1d, tensor2d, tensor3d} from './ops';
 
 describeWithFlags('gatherND', ALL_ENVS, () => {
   it('should work for simple slice', async () => {

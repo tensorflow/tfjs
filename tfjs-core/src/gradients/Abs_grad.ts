@@ -17,7 +17,7 @@
 
 import {Abs} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {cast} from '../ops/array_ops';
+import {cast} from '../ops/cast';
 import {mul} from '../ops/mul';
 import {step} from '../ops/unary_ops';
 import {Tensor} from '../tensor';
