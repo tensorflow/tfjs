@@ -149,6 +149,13 @@ export interface CastAttrs {
 export const Ceil = 'Ceil';
 export type CeilInputs = UnaryInputs;
 
+export const ClipByValue = 'ClipByValue';
+export type ClipByValueInputs = UnaryInputs;
+export interface ClipByValueAttrs {
+  clipValueMin: number;
+  clipValueMax: number;
+}
+
 export const Complex = 'Complex';
 export type ComplexInputs = Pick<NamedTensorInfoMap, 'real'|'imag'>;
 
@@ -289,8 +296,17 @@ export type EluInputs = Pick<NamedTensorInfoMap, 'x'>;
 export const EluGrad = 'EluGrad';
 export type EluGradInputs = Pick<NamedTensorInfoMap, 'dy'|'y'>;
 
+export const Erf = 'Erf';
+export type ErfInputs = UnaryInputs;
+
 export const Equal = 'Equal';
 export type EqualInputs = BinaryInputs;
+
+export const Exp = 'Exp';
+export type ExpInputs = UnaryInputs;
+
+export const Expm1 = 'Expm1';
+export type Expm1Inputs = UnaryInputs;
 
 export const Floor = 'Floor';
 export type FloorInputs = UnaryInputs;
@@ -338,6 +354,12 @@ export type LessInputs = BinaryInputs;
 
 export const LessEqual = 'LessEqual';
 export type LessEqualInputs = BinaryInputs;
+
+export const Log = 'Log';
+export type LogInputs = UnaryInputs;
+
+export const Log1p = 'Log1p';
+export type Log1pInputs = UnaryInputs;
 
 export const LogicalAnd = 'LogicalAnd';
 export type LogicalAndInputs = BinaryInputs;
@@ -508,6 +530,9 @@ export interface ProdAttrs {
 export const Real = 'Real';
 export type RealInputs = Pick<NamedTensorInfoMap, 'input'>;
 
+export const Reciprocal = 'Reciprocal';
+export type ReciprocalInputs = UnaryInputs;
+
 export const Relu = 'Relu';
 export type ReluInputs = Pick<NamedTensorInfoMap, 'x'>;
 
@@ -647,4 +672,12 @@ export interface FromPixelsInputs {
 }
 export interface FromPixelsAttrs {
   numChannels: number;
+}
+
+export const RotateWithOffset = 'RotateWithOffset';
+export type RotateWithOffsetInputs = Pick<NamedTensorInfoMap, 'image'>;
+export interface RotateWithOffsetAttrs {
+  radians: number;
+  fillValue: number|[number, number, number];
+  center: number|[number, number];
 }

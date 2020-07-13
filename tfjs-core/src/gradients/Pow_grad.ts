@@ -19,13 +19,13 @@ import {GradConfig} from '../kernel_registry';
 import * as broadcast_util from '../ops/broadcast_util';
 import {cast} from '../ops/cast';
 import {greater} from '../ops/greater';
+import {log} from '../ops/log';
 import {mul} from '../ops/mul';
 import {pow} from '../ops/pow';
 import {reshape} from '../ops/reshape';
 import {sub} from '../ops/sub';
 import {sum} from '../ops/sum';
 import {scalar, zerosLike} from '../ops/tensor_ops';
-import {log} from '../ops/unary_ops';
 import {where} from '../ops/where';
 import {Tensor} from '../tensor';
 

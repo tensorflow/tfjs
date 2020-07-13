@@ -42,6 +42,7 @@ export {broadcastTo} from './broadcast_to';
 export {buffer} from './buffer';
 export {cast} from './cast';
 export {ceil} from './ceil';
+export {clipByValue} from './clip_by_value';
 export {clone} from './clone';
 export {complex} from './complex';
 export {concat} from './concat';
@@ -66,7 +67,10 @@ export {divNoNan} from './div_no_nan';
 export {dot} from './dot';
 export {elu} from './elu';
 export {equal} from './equal';
+export {erf} from './erf';
+export {exp} from './exp';
 export {expandDims} from './expand_dims';
+export {expm1} from './expm1';
 export {eye} from './eye';
 export {fill} from './fill';
 export {floor} from './floor';
@@ -79,6 +83,9 @@ export {leakyRelu} from './leaky_relu';
 export {less} from './less';
 export {lessEqual} from './less_equal';
 export {localResponseNormalization} from './local_response_normalization';
+export {log} from './log';
+export {log1p} from './log1p';
+export {logSigmoid} from './log_sigmoid';
 export {logSumExp} from './log_sum_exp';
 export {logicalAnd} from './logical_and';
 export {logicalNot} from './logical_not';
@@ -117,6 +124,7 @@ export {randomGamma} from './random_gamma';
 export {randomNormal} from './random_normal';
 export {randomUniform} from './random_uniform';
 export {real} from './real';
+export {reciprocal} from './reciprocal';
 export {relu} from './relu';
 export {relu6} from './relu6';
 export {reshape} from './reshape';
@@ -190,6 +198,7 @@ const signal = {
 
 // Image Ops namespace
 import {cropAndResize} from './crop_and_resize';
+import {rotateWithOffset} from './rotate_with_offset';
 import {nonMaxSuppression} from './non_max_suppression';
 import {nonMaxSuppressionAsync} from './non_max_suppression_async';
 import {nonMaxSuppressionWithScore} from './non_max_suppression_with_score';
@@ -199,6 +208,7 @@ import {resizeNearestNeighbor} from './resize_nearest_neighbor';
 const image = {
   resizeNearestNeighbor,
   resizeBilinear,
+  rotateWithOffset,
   cropAndResize,
   nonMaxSuppression,
   nonMaxSuppressionAsync,

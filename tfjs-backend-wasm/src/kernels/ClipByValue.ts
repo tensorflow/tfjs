@@ -15,24 +15,14 @@
  * =============================================================================
  */
 
-import {KernelConfig, NamedAttrMap, NamedTensorInfoMap} from '@tensorflow/tfjs-core';
-import {TensorInfo} from '@tensorflow/tfjs-core';
+import {ClipByValue, ClipByValueAttrs, ClipByValueInputs, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
-
-interface ClipByValueInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-interface ClipByValueAttrs extends NamedAttrMap {
-  min: number;
-  max: number;
-}
 
 let wasmClip: (xId: number, min: number, max: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmClip = backend.wasm.cwrap('ClipByValue', null /* void */, [
+  wasmClip = backend.wasm.cwrap(ClipByValue, null /* void */, [
     'number',  // x_id
     'number',  // min
     'number',  // max
@@ -47,17 +37,17 @@ function clip(args: {
 }) {
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
-  const {min, max} = attrs;
+  const {clipValueMin, clipValueMax} = attrs;
   const xId = backend.dataIdMap.get(x.dataId).id;
   const out = backend.makeOutput(x.shape, 'float32');
   const outId = backend.dataIdMap.get(out.dataId).id;
-  wasmClip(xId, min, max, outId);
+  wasmClip(xId, clipValueMin, clipValueMax, outId);
   return out;
 }
 
 export const clipByValueConfig: KernelConfig = {
-  kernelName: 'ClipByValue',
+  kernelName: ClipByValue,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: clip
+  kernelFunc: clip as {} as KernelFunc
 };
