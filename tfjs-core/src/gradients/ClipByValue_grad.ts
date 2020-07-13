@@ -32,9 +32,8 @@ export const clipByValueGradConfig: GradConfig = {
     const {clipValueMin, clipValueMax} = attrs as {} as ClipByValueAttrs;
     return {
       x: () => where(
-          dy,
           logicalAnd(greaterEqual(x, clipValueMin), lessEqual(x, clipValueMax)),
-          zerosLike(dy)),
+          dy, zerosLike(dy)),
     };
   }
 };
