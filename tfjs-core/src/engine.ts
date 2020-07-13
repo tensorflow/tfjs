@@ -845,14 +845,15 @@ export class Engine implements TensorTracker, DataMover {
     return info;
   }
 
-  async profile(query: () => TensorContainer): Promise<ProfileInfo> {
+  async profile(query: () => (TensorContainer | Promise<TensorContainer>)):
+      Promise<ProfileInfo> {
     this.state.profiling = true;
 
     const startBytes = this.state.numBytes;
     const startNumTensors = this.state.numTensors;
 
     this.state.activeProfile.kernels = [];
-    this.state.activeProfile.result = query();
+    this.state.activeProfile.result = await query();
 
     this.state.profiling = false;
 
