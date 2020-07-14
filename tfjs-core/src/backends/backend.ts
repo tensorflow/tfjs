@@ -16,7 +16,7 @@
  */
 
 import {Conv2DInfo, Conv3DInfo} from '../ops/conv_util';
-import {FusedBatchMatMulConfig, FusedConv2DConfig} from '../ops/fused/types';
+import {FusedBatchMatMulConfig, FusedConv2DConfig} from '../ops/fused_types';
 import {Backend, DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D} from '../tensor';
 import {BackendValues, DataType, Rank, ShapeMap} from '../types';
 

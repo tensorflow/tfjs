@@ -15,22 +15,19 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../../engine';
-import {Tensor, Tensor3D, Tensor4D} from '../../tensor';
-import {makeTypesMatch} from '../../tensor_util';
-import {convertToTensor} from '../../tensor_util_env';
-import {TensorLike} from '../../types';
-import * as util from '../../util';
-import {add} from '../add';
-import * as broadcast_util from '../broadcast_util';
-import {conv2d as unfusedConv2d} from '../conv2d';
-import {conv2DBackpropFilter} from '../conv2d_backprop_filter';
-import {conv2DBackpropInput} from '../conv2d_backprop_input';
-import {applyActivation, getFusedBiasGradient, getFusedDyActivation} from '../fused_util';
-import {shouldFuse} from '../fused_util';
-import * as conv_util from '../ops/../conv_util';
-import {op} from '../ops/../operation';
-import {Activation} from './types';
+import {ENGINE} from '../engine';
+import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import {makeTypesMatch} from '../tensor_util';
+import {convertToTensor} from '../tensor_util_env';
+import {TensorLike} from '../types';
+import * as util from '../util';
+
+import * as broadcast_util from './broadcast_util';
+import * as conv_util from './conv_util';
+import {Activation} from './fused_types';
+import {op} from './operation';
+
+
 
 /**
  * Computes a 2D convolution over the input x, optionally fused with adding a
@@ -168,15 +165,6 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
   preluActivationWeights?: Tensor
 }): T {
   activation = activation || 'linear';
-  if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
-    let result = unfusedConv2d(
-        x, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
-    if (bias != null) {
-      result = add(result, bias);
-    }
-
-    return applyActivation(result, activation, preluActivationWeights) as T;
-  }
 
   const $x = convertToTensor(x, 'x', 'conv2d');
   const $filter = convertToTensor(filter, 'filter', 'conv2d');
@@ -233,32 +221,6 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
         preluActivationWeights, 'prelu weights', 'fused conv2d');
   }
 
-  const grad = (dy: Tensor4D, saved: Tensor[]) => {
-    const [$filter, x4D, y] = saved as [Tensor4D, Tensor4D, Tensor4D];
-
-    const dyActivation = getFusedDyActivation(dy, y, activation) as Tensor4D;
-
-    util.assert(
-        conv_util.tupleValuesAreOne(dilations),
-        () => 'Error in gradient of fused conv2D: ' +
-            `dilation rates greater than 1 ` +
-            `are not yet supported in gradients. Got dilations '${dilations}'`);
-
-    let biasGradient = {};
-    if (bias != null) {
-      biasGradient = {bias: () => getFusedBiasGradient($bias, dyActivation)};
-    }
-
-    return Object.assign(
-        {
-          x: () => conv2DBackpropInput(
-              x4D.shape, dyActivation, $filter, strides, pad),
-          filter: () => conv2DBackpropFilter(
-              x4D, dyActivation, $filter.shape, strides, pad)
-        },
-        biasGradient);
-  };
-
   const inputs: {
     x: Tensor,
     filter: Tensor,
@@ -275,7 +237,7 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
   const inputsToSave = [$filter, x4D];
   const outputsToSave = [true];  // Save the only output.
   const res = ENGINE.runKernelFunc(
-      (backend, save) => {
+      (backend) => {
         const res = backend.fusedConv2d({
           input: x4D,
           filter: $filter,
@@ -284,11 +246,10 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
           activation,
           preluActivationWeights: $preluActivationWeights
         });
-        save([$filter, x4D, res]);
         return res;
       },
-      inputs, grad, 'FusedConv2D', {convInfo, activation}, inputsToSave,
-      outputsToSave);
+      inputs, null /* grad */, 'FusedConv2D', {convInfo, activation},
+      inputsToSave, outputsToSave);
 
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;

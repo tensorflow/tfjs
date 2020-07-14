@@ -15,18 +15,16 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../../engine';
-import {op} from '../../ops/operation';
-import {Tensor, Tensor3D} from '../../tensor';
-import {makeTypesMatch} from '../../tensor_util';
-import {convertToTensor} from '../../tensor_util_env';
-import {TensorLike} from '../../types';
-import * as util from '../../util';
-import {add} from '../add';
-import * as broadcast_util from '../broadcast_util';
-import {applyActivation, getFusedBiasGradient, getFusedDyActivation, shouldFuse} from '../fused_util';
-import {matMul as unfusedMatMul} from '../mat_mul';
-import {Activation} from './types';
+import {ENGINE} from '../engine';
+import {Tensor} from '../tensor';
+import {makeTypesMatch} from '../tensor_util';
+import {convertToTensor} from '../tensor_util_env';
+import {TensorLike} from '../types';
+import * as util from '../util';
+
+import * as broadcast_util from './broadcast_util';
+import {Activation} from './fused_types';
+import {op} from './operation';
 
 /**
  * Computes the dot product of two matrices with optional activation and bias.
@@ -65,15 +63,6 @@ function fusedMatMul_<T extends Tensor>({
   activation?: Activation,
   preluActivationWeights?: Tensor
 }): T {
-  if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
-    let result = unfusedMatMul(a, b, transposeA, transposeB);
-    if (bias != null) {
-      result = add(result, bias);
-    }
-
-    return applyActivation(result, activation, preluActivationWeights) as T;
-  }
-
   let $a = convertToTensor(a, 'a', 'fused matMul');
   let $b = convertToTensor(b, 'b', 'fused matMul');
   [$a, $b] = makeTypesMatch($a, $b);
@@ -133,46 +122,6 @@ function fusedMatMul_<T extends Tensor>({
         preluActivationWeights, 'prelu weights', 'fused matMul');
   }
 
-  const grad = (dy: Tensor3D, saved: Tensor[]) => {
-    const [a3D, b3D, y] = saved;
-    const dyActivation = getFusedDyActivation(dy, y, activation);
-
-    let biasGradient = {};
-    if (bias != null) {
-      biasGradient = {bias: () => getFusedBiasGradient($bias, dyActivation)};
-    }
-
-    if (!transposeA && !transposeB) {
-      return Object.assign(
-          {
-            a: () => dyActivation.matMul(b3D as Tensor3D, false, true),
-            b: () => a3D.matMul(dyActivation, true, false)
-          },
-          biasGradient);
-    } else if (!transposeA && transposeB) {
-      return Object.assign(
-          {
-            a: () => dyActivation.matMul(b3D as Tensor3D, false, false),
-            b: () => dyActivation.matMul(a3D as Tensor3D, true, false)
-          },
-          biasGradient);
-    } else if (transposeA && !transposeB) {
-      return Object.assign(
-          {
-            a: () => b3D.matMul(dyActivation, false, true),
-            b: () => a3D.matMul(dyActivation, false, false)
-          },
-          biasGradient);
-    } else {
-      return Object.assign(
-          {
-            a: () => b3D.matMul(dyActivation, true, true),
-            b: () => dyActivation.matMul(a3D as Tensor3D, true, true)
-          },
-          biasGradient);
-    }
-  };
-
   const inputs:
       {a: Tensor, b: Tensor,
        bias?: Tensor,
@@ -188,7 +137,7 @@ function fusedMatMul_<T extends Tensor>({
   const outputsToSave = [true];
 
   const res = ENGINE.runKernelFunc(
-      (backend, save) => {
+      (backend) => {
         const y = backend.fusedBatchMatMul({
           a: a3D,
           b: b3D,
@@ -198,11 +147,10 @@ function fusedMatMul_<T extends Tensor>({
           activation,
           preluActivationWeights: $preluActivationWeights
         });
-        save([a3D, b3D, y]);
         return y;
       },
-      inputs, grad, '_FusedMatMul', {transposeA, transposeB, activation},
-      inputsToSave, outputsToSave);
+      inputs, null /* grad */, '_FusedMatMul',
+      {transposeA, transposeB, activation}, inputsToSave, outputsToSave);
   return res.reshape(outShape);
 }
 

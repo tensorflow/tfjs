@@ -19,16 +19,10 @@ import {Tensor} from '../tensor';
 
 import * as broadcast_util from './broadcast_util';
 import {elu} from './elu';
-import {Activation} from './fused/types';
+import {Activation} from './fused_types';
 import {prelu} from './prelu';
 import {relu} from './relu';
 import {relu6} from './relu6';
-
-// Whether we should call fused ops.
-export const shouldFuse = (gradientDepth: number, activation: Activation) => {
-  const gradientMode = gradientDepth > 0;
-  return !gradientMode || activation === 'linear';
-};
 
 // Returns gradient for fused activation.
 export function getFusedDyActivation(

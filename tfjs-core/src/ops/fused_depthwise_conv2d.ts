@@ -15,21 +15,17 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../../engine';
-import * as conv_util from '../../ops/conv_util';
-import {op} from '../../ops/operation';
-import {Tensor, Tensor3D, Tensor4D} from '../../tensor';
-import {makeTypesMatch} from '../../tensor_util';
-import {convertToTensor} from '../../tensor_util_env';
-import {TensorLike} from '../../types';
-import * as util from '../../util';
-import {add} from '../add';
-import * as broadcast_util from '../broadcast_util';
-import {depthwiseConv2d as unfusedDepthwiseConv2d} from '../depthwise_conv2d';
-import {depthwiseConv2dNativeBackpropFilter} from '../depthwise_conv2d_native_backprop_filter';
-import {depthwiseConv2dNativeBackpropInput} from '../depthwise_conv2d_native_backprop_input';
-import {applyActivation, getFusedBiasGradient, getFusedDyActivation, shouldFuse} from '../fused_util';
-import {Activation} from './types';
+import {ENGINE} from '../engine';
+import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import {makeTypesMatch} from '../tensor_util';
+import {convertToTensor} from '../tensor_util_env';
+import {TensorLike} from '../types';
+import * as util from '../util';
+
+import * as broadcast_util from './broadcast_util';
+import * as conv_util from './conv_util';
+import {Activation} from './fused_types';
+import {op} from './operation';
 
 /**
  * Computes depthwise 2D convolution, optionally fused with adding a
@@ -104,16 +100,6 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   activation?: Activation,
   preluActivationWeights?: Tensor
 }): T {
-  if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
-    let result = unfusedDepthwiseConv2d(
-        x, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
-    if (bias != null) {
-      result = add(result, bias);
-    }
-
-    return applyActivation(result, activation, preluActivationWeights) as T;
-  }
-
   const $x = convertToTensor(x, 'x', 'depthwiseConv2d');
   const $filter = convertToTensor(filter, 'filter', 'depthwiseConv2d');
 
@@ -170,33 +156,6 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
         preluActivationWeights, 'prelu weights', 'fused depthwiseConv2d');
   }
 
-  const grad = (dy: Tensor4D, saved: Tensor[]) => {
-    util.assert(
-        conv_util.tupleValuesAreOne(dilations),
-        () => 'Error in gradient of fused depthwiseConv2d: dilation rates ' +
-            `greater than 1 are not yet supported. Got dilations ` +
-            `'${dilations}'`);
-    const [$filter, x4D, y] = saved;
-
-    const dyActivation = getFusedDyActivation(dy, y, activation) as Tensor4D;
-
-    let biasGradient = {};
-    if (bias != null) {
-      biasGradient = {bias: () => getFusedBiasGradient($bias, dyActivation)};
-    }
-
-    return Object.assign(
-        {
-          x: () => depthwiseConv2dNativeBackpropInput(
-              (x4D as Tensor4D).shape, dyActivation, $filter as Tensor4D,
-              convInfo),
-          filter: () => depthwiseConv2dNativeBackpropFilter(
-              x4D as Tensor4D, dyActivation, ($filter as Tensor4D).shape,
-              convInfo),
-        },
-        biasGradient);
-  };
-
   const inputs: {
     x: Tensor,
     filter: Tensor,
@@ -213,7 +172,7 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   const inputsToSave = [$filter, x4D];
   const outputsToSave = [true];
   const res = ENGINE.runKernelFunc(
-      (backend, save) => {
+      (backend) => {
         const res = backend.fusedDepthwiseConv2D({
           input: x4D,
           filter: $filter,
@@ -222,10 +181,9 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
           activation,
           preluActivationWeights: $preluActivationWeights
         });
-        save([$filter, x4D, res]);
         return res;
       },
-      inputs, grad, 'FusedDepthwiseConv2D', {convInfo, activation},
+      inputs, null /* grad */, 'FusedDepthwiseConv2D', {convInfo, activation},
       inputsToSave, outputsToSave);
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;

@@ -32,7 +32,7 @@ export * from '../ops/broadcast_util';
 export * from '../ops/concat_util';
 export * from '../ops/conv_util';
 export * from '../ops/fused_util';
-export * from '../ops/fused/types';
+export * from '../ops/fused_types';
 export * from '../ops/reduce_util';
 
 export {BackendValues, TypedArray, upcastType, PixelData} from '../types';
