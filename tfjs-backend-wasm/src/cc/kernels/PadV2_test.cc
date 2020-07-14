@@ -68,7 +68,7 @@ TEST(PADV2, xnn_operator_lifetime) {
 
   // One new xnn_operator should be created for another call to PadV2
   // with a different pad_value.
-  const size_t new_pad_value = 0.5;
+  const float new_pad_value = 0.5;
   tfjs::wasm::PadV2(x0_id, x_shape.data(), x_rank, float32, pre_paddings.data(),
                     post_paddings.data(), new_pad_value, out_id);
   ASSERT_EQ(2, tfjs::backend::xnn_operator_count);
