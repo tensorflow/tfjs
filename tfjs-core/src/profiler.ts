@@ -21,6 +21,15 @@ import {NamedTensorMap} from './tensor_types';
 import {DataType, DataTypeMap, TypedArray} from './types';
 import * as util from './util';
 
+export type KernelProfile = {
+  kernelName: string,
+  result: Tensor,
+  vals: Promise<TypedArray>,
+  inputs: NamedTensorMap,
+  timeMs: Promise<number|{error: string}>,
+  extraInfo: Promise<string>,
+};
+
 export class Profiler {
   constructor(private backendTimer: BackendTimer, private logger?: Logger) {
     if (logger == null) {
@@ -29,32 +38,53 @@ export class Profiler {
   }
 
   profileKernel(kernelName: string, inputs: NamedTensorMap, f: () => Tensor[]):
-      Tensor[] {
+      KernelProfile[] {
     let outputs: Tensor[];
     const holdResultWrapperFn = () => {
       outputs = f();
     };
     const timer = this.backendTimer.time(holdResultWrapperFn);
 
+    const kernelProfiles: KernelProfile[] = [];
+
     outputs.forEach(r => {
       // Dangling promise here because we don't want to propagate up
       // asynchronicity.
-      r.data().then(vals => {
-        checkComputationForErrors(vals, r.dtype, kernelName);
-
-        timer.then(timing => {
-          let extraInfo = '';
-          if (timing.getExtraProfileInfo != null) {
-            extraInfo = timing.getExtraProfileInfo();
-          }
-
-          this.logger.logKernelProfile(
-              kernelName, r, vals, timing.kernelMs, inputs, extraInfo);
-        });
-      });
+      const kernelProfile = {
+        kernelName,
+        result: r,
+        inputs,
+        timeMs: timer.then(timing => timing.kernelMs),
+        extraInfo: timer.then(
+            timing => timing.getExtraProfileInfo() != null ?
+                timing.getExtraProfileInfo() :
+                ''),
+        vals: r.data().then(vals => {
+          checkComputationForErrors(vals, r.dtype, kernelName);
+          return vals;
+        })
+      };
+      kernelProfiles.push(kernelProfile);
     });
 
-    return outputs;
+    return kernelProfiles;
+  }
+
+  logKernelProfile(kernelProfiles: KernelProfile[]): void {
+    if (!Array.isArray(kernelProfiles)) {
+      kernelProfiles = [kernelProfiles];
+    }
+
+    kernelProfiles.forEach(kernelProfile => {
+      const {kernelName, result, vals, timeMs, inputs, extraInfo} =
+          kernelProfile;
+
+      Promise.all([vals, timeMs, extraInfo]).then(valueContainer => {
+        this.logger.logKernelProfile(
+            kernelName, result, valueContainer[0], valueContainer[1], inputs,
+            valueContainer[2]);
+      });
+    });
   }
 }
 
