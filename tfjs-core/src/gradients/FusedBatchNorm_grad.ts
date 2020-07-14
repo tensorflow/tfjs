@@ -20,11 +20,11 @@ import {add} from '../ops/add';
 import {getReductionAxes} from '../ops/broadcast_util';
 import {mul} from '../ops/mul';
 import {reshape} from '../ops/reshape';
+import {rsqrt} from '../ops/rsqrt';
 import {scalar} from '../ops/scalar';
 import {sub} from '../ops/sub';
 import {sum} from '../ops/sum';
 import {tile} from '../ops/tile';
-import {rsqrt} from '../ops/unary_ops';
 import {Tensor} from '../tensor';
 import {Rank, ShapeMap} from '../types';
 

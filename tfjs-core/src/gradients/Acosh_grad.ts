@@ -19,9 +19,9 @@ import {Acosh} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import {cast} from '../ops/cast';
 import {div} from '../ops/div';
+import {sqrt} from '../ops/sqrt';
 import {square} from '../ops/square';
 import {sub} from '../ops/sub';
-import {sqrt} from '../ops/unary_ops';
 import {Tensor} from '../tensor';
 
 export const acoshGradConfig: GradConfig = {

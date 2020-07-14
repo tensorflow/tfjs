@@ -349,6 +349,15 @@ export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
 export const Imag = 'Imag';
 export type ImagInputs = Pick<NamedTensorInfoMap, 'input'>;
 
+export const IsFinite = 'IsFinite';
+export type IsFiniteInputs = UnaryInputs;
+
+export const IsInf = 'IsInf';
+export type IsInfInputs = UnaryInputs;
+
+export const IsNan = 'IsNan';
+export type IsNanInputs = UnaryInputs;
+
 export const Less = 'Less';
 export type LessInputs = BinaryInputs;
 
@@ -595,6 +604,12 @@ export interface ReverseAttrs {
   dims: number|number[];
 }
 
+export const Round = 'Round';
+export type RoundInputs = UnaryInputs;
+
+export const Rsqrt = 'Rsqrt';
+export type RsqrtInputs = UnaryInputs;
+
 export const ScatterNd = 'ScatterNd';
 export type ScatterNdInputs = Pick<NamedTensorInfoMap, 'indices'|'updates'>;
 export interface ScatterNdAttrs {
@@ -621,6 +636,15 @@ export type SinhInputs = UnaryInputs;
 
 export const Sign = 'Sign';
 export type SignInputs = UnaryInputs;
+
+export const Sigmoid = 'Sigmoid';
+export type SigmoidInputs = UnaryInputs;
+
+export const Softplus = 'Softplus';
+export type SoftplusInputs = UnaryInputs;
+
+export const Sqrt = 'Sqrt';
+export type SqrtInputs = UnaryInputs;
 
 export const Sum = 'Sum';
 export type SumInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -724,6 +748,12 @@ export type ZerosLikeInputs = UnaryInputs;
 /**
  * TensorFlow.js-only kernels
  */
+export const Step = 'Step';
+export type StepInputs = UnaryInputs;
+export interface StepAttrs {
+  alpha: number;
+}
+
 export const FromPixels = 'FromPixels';
 export interface FromPixelsInputs {
   pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
