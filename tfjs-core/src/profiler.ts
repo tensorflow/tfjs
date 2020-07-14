@@ -56,7 +56,7 @@ export class Profiler {
         inputs,
         timeMs: timer.then(timing => timing.kernelMs),
         extraInfo: timer.then(
-            timing => timing.getExtraProfileInfo() != null ?
+            timing => timing.getExtraProfileInfo != null ?
                 timing.getExtraProfileInfo() :
                 ''),
         vals: r.data().then(vals => {
