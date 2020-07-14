@@ -16,10 +16,10 @@
  */
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
-import {expectArraysEqual} from '../test_util';
+import {expectArraysClose, expectArraysEqual} from '../test_util';
 
-describeWithFlags('nonMaxSuppressionAsync', ALL_ENVS, () => {
-  it('select from three clusters', async () => {
+describeWithFlags('nonMaxSuppressionWithScore', ALL_ENVS, () => {
+  it('select from three clusters with SoftNMS.', async () => {
     const boxes = tf.tensor2d(
         [
           0, 0,  1, 1,  0, 0.1,  1, 1.1,  0, -0.1, 1, 0.9,
@@ -27,22 +27,19 @@ describeWithFlags('nonMaxSuppressionAsync', ALL_ENVS, () => {
         ],
         [6, 4]);
     const scores = tf.tensor1d([0.9, 0.75, 0.6, 0.95, 0.5, 0.3]);
-    const maxOutputSize = 3;
-    const iouThreshold = 0.5;
+    const maxOutputSize = 6;
+    const iouThreshold = 1.0;
     const scoreThreshold = 0;
-    const indices = await tf.image.nonMaxSuppressionAsync(
-        boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
+    const softNmsSigma = 0.5;
 
-    expect(indices.shape).toEqual([3]);
-    expectArraysEqual(await indices.data(), [3, 0, 5]);
-  });
+    const {selectedIndices, selectedScores} =
+        tf.image.nonMaxSuppressionWithScore(
+            boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
+            softNmsSigma);
 
-  it('accepts a tensor-like object', async () => {
-    const boxes = [[0, 0, 1, 1], [0, 1, 1, 2]];
-    const scores = [1, 2];
-    const indices = await tf.image.nonMaxSuppressionAsync(boxes, scores, 10);
-    expect(indices.shape).toEqual([2]);
-    expect(indices.dtype).toEqual('int32');
-    expectArraysEqual(await indices.data(), [1, 0]);
+    expectArraysEqual(await selectedIndices.data(), [3, 0, 1, 5, 4, 2]);
+
+    expectArraysClose(
+        await selectedScores.data(), [0.95, 0.9, 0.384, 0.3, 0.256, 0.197]);
   });
 });

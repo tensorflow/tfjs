@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelConfig, NonMaxSuppressionV4Attrs, NonMaxSuppressionV4Inputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, NonMaxSuppressionV4Attrs, NonMaxSuppressionV4Inputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -75,5 +75,5 @@ export const nonMaxSuppressionV4Config: KernelConfig = {
   kernelName: 'NonMaxSuppressionV4',
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc,
+  kernelFunc as {} as KernelFunc,
 };

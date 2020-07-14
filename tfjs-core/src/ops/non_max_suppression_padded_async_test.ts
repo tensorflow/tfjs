@@ -18,8 +18,8 @@ import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysEqual} from '../test_util';
 
-describeWithFlags('nonMaxSuppressionAsync', ALL_ENVS, () => {
-  it('select from three clusters', async () => {
+describeWithFlags('nonMaxSuppressionPaddedAsync', ALL_ENVS, () => {
+  it('select from three clusters with pad five.', async () => {
     const boxes = tf.tensor2d(
         [
           0, 0,  1, 1,  0, 0.1,  1, 1.1,  0, -0.1, 1, 0.9,
@@ -27,22 +27,23 @@ describeWithFlags('nonMaxSuppressionAsync', ALL_ENVS, () => {
         ],
         [6, 4]);
     const scores = tf.tensor1d([0.9, 0.75, 0.6, 0.95, 0.5, 0.3]);
-    const maxOutputSize = 3;
+    const maxOutputSize = 5;
     const iouThreshold = 0.5;
-    const scoreThreshold = 0;
-    const indices = await tf.image.nonMaxSuppressionAsync(
-        boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
+    const scoreThreshold = 0.0;
 
-    expect(indices.shape).toEqual([3]);
-    expectArraysEqual(await indices.data(), [3, 0, 5]);
-  });
+    const before = tf.memory().numTensors;
 
-  it('accepts a tensor-like object', async () => {
-    const boxes = [[0, 0, 1, 1], [0, 1, 1, 2]];
-    const scores = [1, 2];
-    const indices = await tf.image.nonMaxSuppressionAsync(boxes, scores, 10);
-    expect(indices.shape).toEqual([2]);
-    expect(indices.dtype).toEqual('int32');
-    expectArraysEqual(await indices.data(), [1, 0]);
+    const {selectedIndices, validOutputs} =
+        await tf.image.nonMaxSuppressionPaddedAsync(
+            boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, true);
+
+    const after = tf.memory().numTensors;
+
+    expectArraysEqual(await selectedIndices.data(), [3, 0, 5, 0, 0]);
+    expectArraysEqual(await validOutputs.data(), 3);
+
+    // The number of tensors should increase by the number of tensors
+    // returned (i.e. selectedIndices and selectedScores).
+    expect(after).toEqual(before + 2);
   });
 });
