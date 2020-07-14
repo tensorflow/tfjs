@@ -30,11 +30,15 @@ describeWithFlags('nonMaxSuppression', ALL_ENVS, () => {
     const maxOutputSize = 3;
     const iouThreshold = 0.5;
     const scoreThreshold = 0;
+
+    const before = tf.memory().numTensors;
     const indices = tf.image.nonMaxSuppression(
         boxes, scores, maxOutputSize, iouThreshold, scoreThreshold);
+    const after = tf.memory().numTensors;
 
     expect(indices.shape).toEqual([3]);
     expectArraysEqual(await indices.data(), [3, 0, 5]);
+    expect(after).toEqual(before + 1);
   });
 
   it('select from three clusters flipped coordinates', async () => {
