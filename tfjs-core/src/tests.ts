@@ -148,6 +148,7 @@ import './ops/multi_rnn_cell_test';
 import './ops/multinomial_test';
 import './ops/neg_test';
 import './ops/non_max_suppression_async_test';
+import './ops/non_max_suppression_padded_test';
 import './ops/non_max_suppression_test';
 import './ops/norm_test';
 import './ops/not_equal_test';

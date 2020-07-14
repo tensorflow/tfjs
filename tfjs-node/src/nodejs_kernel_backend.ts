@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-import {backend_util, BackendTimingInfo, DataId, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, Tensor5D, TensorInfo, tidy, util} from '@tensorflow/tfjs';
+import {backend_util, BackendTimingInfo, DataId, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ScalarLike, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, Tensor5D, TensorInfo, tidy, util} from '@tensorflow/tfjs';
 import {isArray, isNullOrUndefined} from 'util';
 
 import {Int64Scalar} from './int64_tensors';
@@ -2051,6 +2051,15 @@ export function createTensorsTypeOpAttr(
         getTFDTypeForInputs(tensorsOrDtype) :
         getTFDType(tensorsOrDtype)
   };
+}
+
+export function createOpAttr(
+    attrName: string, tensorsOrDtype: tf.Tensor|tf.Tensor[]|tf.DataType,
+    value: ScalarLike): TFEOpAttr {
+  if (isNullOrUndefined(tensorsOrDtype)) {
+    throw new Error('Invalid input tensors value.');
+  }
+  return {name: attrName, type: nodeBackend().binding.TF_BOOL, value};
 }
 
 /** Returns the dtype number for a single or list of input Tensors. */

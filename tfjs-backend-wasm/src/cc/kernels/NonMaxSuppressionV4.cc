@@ -1,4 +1,4 @@
-/* Copyright 2019 Google LLC. All Rights Reserved.
+/* Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,30 +12,37 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef NON_MAX_SUPPRESSION_IMPL_H_
-#define NON_MAX_SUPPRESSION_IMPL_H_
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
+#include <algorithm>
+#include <cmath>
 #include <cstddef>
+#include <cstring>
+#include <memory>
+#include <queue>
 #include <vector>
+
+#include "src/cc/non_max_suppression_impl.h"
 
 namespace tfjs {
 namespace wasm {
+// We use C-style API to interface with Javascript.
+extern "C" {
 
-// Structure to store the result of the kernel. In this case we give js a
-// a pointer in memory where the result is stored and how big it is.
-struct NonMaxSuppressionResult {
-  int32_t* selected_indices;
-  size_t selected_size;
-  float* selected_scores;
-  size_t* valid_outputs;
-};
-
-const NonMaxSuppressionResult* non_max_suppression_impl(
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif
+const NonMaxSuppressionResult* NonMaxSuppressionV4(
     const size_t boxes_id, const size_t scores_id, const size_t max_out_size,
     const float iou_threshold, const float score_threshold,
-    const float soft_nms_sigma, const bool pad_to_max_output_size);
+    const bool pad_to_max_output_size) {
+  return tfjs::wasm::non_max_suppression_impl(
+      boxes_id, scores_id, max_out_size, iou_threshold, score_threshold,
+      0.0 /* soft_nms_sigma */, pad_to_max_output_size);
+}
 
+}  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs
-
-#endif  // NON_MAX_SUPPRESSION_IMPL_H_
