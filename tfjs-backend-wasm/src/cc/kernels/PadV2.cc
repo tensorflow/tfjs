@@ -16,10 +16,25 @@
 #include <emscripten.h>
 #endif
 
+#include <xnnpack.h>
 #include <cstddef>
+#include <map>
+#include <tuple>
+#include <vector>
 
 #include "src/cc/backend.h"
 #include "src/cc/util.h"
+
+namespace {
+// We use std::tuple as the cache key as it implements the compare operator
+// needed for std::map.
+typedef std::tuple<float, uint32_t> OperatorCacheKey;
+
+// The operator cache maps the weights id to the xnn_operator_t instantiated for
+// this set of weights.
+std::map<OperatorCacheKey, xnn_operator_t> operator_cache;
+
+}  // namespace
 
 namespace {
 
@@ -197,10 +212,6 @@ void PadV2(const size_t x_id, const size_t* x_shape_ptr,
            const size_t* pre_paddings_ptr, const size_t* post_paddings_ptr,
            const float pad_value, const size_t out_id) {
   auto x_shape = std::vector<size_t>(x_shape_ptr, x_shape_ptr + x_shape_length);
-  // const size_t paddings_length = x_shape_length * 2;
-  // auto paddings =
-  //     std::vector<size_t>(paddings_ptr, paddings_ptr + paddings_length);
-
   auto pre_paddings =
       std::vector<size_t>(pre_paddings_ptr, pre_paddings_ptr + x_shape_length);
   auto post_paddings = std::vector<size_t>(post_paddings_ptr,
@@ -209,10 +220,46 @@ void PadV2(const size_t x_id, const size_t* x_shape_ptr,
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
   switch (dtype) {
-    case DType::float32:
-      pad<float>(x_info.f32(), x_shape, pre_paddings, post_paddings, pad_value,
-                 out_info.f32_write());
+    case DType::float32: {
+      xnn_operator_t pad_op = nullptr;
+      const uint32_t flags = 0;
+
+      OperatorCacheKey cache_key = {pad_value, flags};
+
+      auto operator_cache_idx = operator_cache.find(cache_key);
+      if (operator_cache_idx == operator_cache.end()) {
+        xnn_status status =
+            xnn_create_constant_pad_nd_x32(&pad_value, flags, &pad_op);
+        if (status != xnn_status_success) {
+          tfjs::util::warn(
+              "XNN status for xnn_create_constant_pad_nd_x32 is not "
+              "successful. Got status %d. Use -c dbg to see XNN logs.",
+              status);
+          return;
+        }
+
+        operator_cache.insert({cache_key, pad_op});
+
+        tfjs::backend::xnn_operator_count++;
+      } else {
+        pad_op = operator_cache_idx->second;
+      }
+
+      xnn_status status = xnn_setup_constant_pad_nd_x32(
+          pad_op, x_shape_length, x_shape_ptr, pre_paddings_ptr,
+          post_paddings_ptr, x_info.f32(), out_info.f32_write(),
+          nullptr /* threadpool */);
+      if (status != xnn_status_success) {
+        tfjs::util::warn(
+            "XNN status for xnn_setup_constant_pad_nd_x32 is not "
+            "successful. Got status %d. Use -c dbg to see XNN logs.",
+            status);
+        return;
+      }
+
+      xnn_run_operator(pad_op, nullptr /* threadpool */);
       break;
+    }
     case DType::int32:
       pad<int32_t>(x_info.i32(), x_shape, pre_paddings, post_paddings,
                    static_cast<int32_t>(pad_value), out_info.i32_write());
