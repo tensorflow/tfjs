@@ -17,14 +17,8 @@
 #endif
 #include <xnnpack.h>
 
-#include <cstddef>
-
 #include "src/cc/backend.h"
 #include "src/cc/unary.h"
-
-namespace {
-inline float square(const float val) { return val * val; }
-}  // namespace
 
 namespace tfjs {
 namespace wasm {
