@@ -498,6 +498,16 @@ export interface NonMaxSuppressionV3Attrs {
   scoreThreshold: number;
 }
 
+export const NonMaxSuppressionV4 = 'NonMaxSuppressionV4';
+export type NonMaxSuppressionV4Inputs =
+    Pick<NamedTensorInfoMap, 'boxes'|'scores'>;
+export interface NonMaxSuppressionV4Attrs {
+  maxOutputSize: number;
+  iouThreshold: number;
+  scoreThreshold: number;
+  padToMaxOutputSize: boolean;
+}
+
 export const NonMaxSuppressionV5 = 'NonMaxSuppressionV5';
 export type NonMaxSuppressionV5Inputs =
     Pick<NamedTensorInfoMap, 'boxes'|'scores'>;
