@@ -14,17 +14,12 @@
  * limitations under the License.
  * =============================================================================
  */
-
-import {ENGINE} from '../engine';
-import {NonMaxSuppressionV4, NonMaxSuppressionV4Attrs, NonMaxSuppressionV4Inputs} from '../kernel_names';
-import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor1D, Tensor2D} from '../tensor';
+import {nonMaxSuppressionV4Impl} from '../backends/non_max_suppression_impl';
+import {Tensor1D, Tensor2D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
-
 import {nonMaxSuppSanityCheck} from './nonmax_util';
-import {op} from './operation';
 
 /**
  * Asynchronously performs non maximum suppression of bounding boxes based on
@@ -48,13 +43,13 @@ import {op} from './operation';
  *       are valid. Valid elements occur first, then padding.
  */
 /** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
-function nonMaxSuppressionPadded_(
+async function nonMaxSuppressionPaddedAsync_(
     boxes: Tensor2D|TensorLike, scores: Tensor1D|TensorLike,
     maxOutputSize: number, iouThreshold = 0.5,
     scoreThreshold = Number.NEGATIVE_INFINITY,
-    padToMaxOutputSize = false): NamedTensorMap {
-  const $boxes = convertToTensor(boxes, 'boxes', 'nonMaxSuppression');
-  const $scores = convertToTensor(scores, 'scores', 'nonMaxSuppression');
+    padToMaxOutputSize = false): Promise<NamedTensorMap> {
+  const $boxes = convertToTensor(boxes, 'boxes', 'nonMaxSuppressionAsync');
+  const $scores = convertToTensor(scores, 'scores', 'nonMaxSuppressionAsync');
 
   const params = nonMaxSuppSanityCheck(
       $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold,
@@ -63,19 +58,23 @@ function nonMaxSuppressionPadded_(
   const $iouThreshold = params.iouThreshold;
   const $scoreThreshold = params.scoreThreshold;
 
-  const inputs: NonMaxSuppressionV4Inputs = {boxes: $boxes, scores: $scores};
-  const attrs: NonMaxSuppressionV4Attrs = {
-    maxOutputSize: $maxOutputSize,
-    iouThreshold: $iouThreshold,
-    scoreThreshold: $scoreThreshold,
-    padToMaxOutputSize
-  };
+  const [boxesVals, scoresVals] =
+      await Promise.all([$boxes.data(), $scores.data()]);
 
-  const result = ENGINE.runKernel(
-                     NonMaxSuppressionV4, inputs as {} as NamedTensorMap,
-                     attrs as {} as NamedAttrMap) as Tensor[];
+  // We call a cpu based impl directly with the typedarray data here rather
+  // than a kernel because all kernels are synchronous (and thus cannot await
+  // .data()).
+  const res = nonMaxSuppressionV4Impl(
+      boxesVals, scoresVals, $maxOutputSize, $iouThreshold, $scoreThreshold,
+      padToMaxOutputSize);
 
-  return {selectedIndices: result[0], validOutputs: result[1]};
+  if ($boxes !== boxes) {
+    $boxes.dispose();
+  }
+  if ($scores !== scores) {
+    $scores.dispose();
+  }
+  return res;
 }
 
-export const nonMaxSuppressionPadded = op({nonMaxSuppressionPadded_});
+export const nonMaxSuppressionPaddedAsync = nonMaxSuppressionPaddedAsync_;

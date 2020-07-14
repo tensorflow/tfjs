@@ -217,8 +217,9 @@ import {rotateWithOffset} from './rotate_with_offset';
 import {nonMaxSuppression} from './non_max_suppression';
 import {nonMaxSuppressionAsync} from './non_max_suppression_async';
 import {nonMaxSuppressionWithScore} from './non_max_suppression_with_score';
-import {nonMaxSuppressionWithScoreAsync} from './non_max_suppresion_with_score_async';
+import {nonMaxSuppressionWithScoreAsync} from './non_max_suppression_with_score_async';
 import {nonMaxSuppressionPadded} from './non_max_suppression_padded';
+import {nonMaxSuppressionPaddedAsync} from './non_max_suppression_padded_async';
 import {resizeBilinear} from './resize_bilinear';
 import {resizeNearestNeighbor} from './resize_nearest_neighbor';
 const image = {
@@ -230,7 +231,8 @@ const image = {
   nonMaxSuppressionAsync,
   nonMaxSuppressionWithScore,
   nonMaxSuppressionWithScoreAsync,
-  nonMaxSuppressionPadded
+  nonMaxSuppressionPadded,
+  nonMaxSuppressionPaddedAsync
 };
 
 // linalg namespace
