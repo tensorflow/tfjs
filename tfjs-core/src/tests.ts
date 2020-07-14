@@ -145,8 +145,6 @@ import './ops/non_max_suppression_async_test';
 import './ops/non_max_suppression_padded_async_test';
 import './ops/non_max_suppression_padded_test';
 import './ops/non_max_suppression_test';
-import './ops/non_max_suppression_with_score_async_test';
-import './ops/non_max_suppression_with_score_test';
 import './ops/norm_test';
 import './ops/not_equal_test';
 import './ops/one_hot_test';
