@@ -15,8 +15,11 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../engine';
+import {ENGINE, ForwardFunc} from '../engine';
+import {_FusedMatMul, _FusedMatMulAttrs, _FusedMatMulInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -122,35 +125,31 @@ function fusedMatMul_<T extends Tensor>({
         preluActivationWeights, 'prelu weights', 'fused matMul');
   }
 
-  const inputs:
-      {a: Tensor, b: Tensor,
-       bias?: Tensor,
-       preluActivationWeights?: Tensor} = {a: a3D, b: b3D};
-  if (bias != null) {
-    inputs.bias = $bias;
-  }
-  if (preluActivationWeights != null) {
-    inputs.preluActivationWeights = $preluActivationWeights;
-  }
+  const forward: ForwardFunc<Tensor> = (backend) => {
+    const y = backend.fusedBatchMatMul({
+      a: a3D,
+      b: b3D,
+      transposeA,
+      transposeB,
+      bias: $bias,
+      activation,
+      preluActivationWeights: $preluActivationWeights
+    });
+    return y;
+  };
 
-  const inputsToSave = [a3D, b3D];
-  const outputsToSave = [true];
+  const inputs: _FusedMatMulInputs = {
+    a: a3D,
+    b: b3D,
+    bias: $bias,
+    preluActivationWeights: $preluActivationWeights
+  };
+  const attrs: _FusedMatMulAttrs = {transposeA, transposeB, activation};
 
   const res = ENGINE.runKernelFunc(
-      (backend) => {
-        const y = backend.fusedBatchMatMul({
-          a: a3D,
-          b: b3D,
-          transposeA,
-          transposeB,
-          bias: $bias,
-          activation,
-          preluActivationWeights: $preluActivationWeights
-        });
-        return y;
-      },
-      inputs, null /* grad */, '_FusedMatMul',
-      {transposeA, transposeB, activation}, inputsToSave, outputsToSave);
+      forward, inputs as {} as NamedTensorMap, null /* grad */, _FusedMatMul,
+      attrs as {} as NamedAttrMap);
+
   return res.reshape(outShape);
 }
 

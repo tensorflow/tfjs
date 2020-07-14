@@ -15,8 +15,11 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../engine';
+import {ENGINE, ForwardFunc} from '../engine';
+import {FusedDepthwiseConv2D, FusedDepthwiseConv2DAttrs, FusedDepthwiseConv2DInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -156,35 +159,31 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
         preluActivationWeights, 'prelu weights', 'fused depthwiseConv2d');
   }
 
-  const inputs: {
-    x: Tensor,
-    filter: Tensor,
-    bias?: Tensor,
-    preluActivationWeights?: Tensor
-  } = {x: x4D, filter: $filter};
-  if (bias != null) {
-    inputs.bias = $bias;
-  }
-  if (preluActivationWeights != null) {
-    inputs.preluActivationWeights = $preluActivationWeights;
-  }
+  const forward: ForwardFunc<Tensor> = (backend) => {
+    const res = backend.fusedDepthwiseConv2D({
+      input: x4D,
+      filter: $filter,
+      convInfo,
+      bias: $bias,
+      activation,
+      preluActivationWeights: $preluActivationWeights
+    });
+    return res;
+  };
 
-  const inputsToSave = [$filter, x4D];
-  const outputsToSave = [true];
+  const inputs: FusedDepthwiseConv2DInputs = {
+    x: x4D,
+    filter: $filter,
+    bias: $bias,
+    preluActivationWeights: $preluActivationWeights
+  };
+  const attrs: FusedDepthwiseConv2DAttrs =
+      {strides, pad, dataFormat, dilations, dimRoundingMode, activation};
+
   const res = ENGINE.runKernelFunc(
-      (backend) => {
-        const res = backend.fusedDepthwiseConv2D({
-          input: x4D,
-          filter: $filter,
-          convInfo,
-          bias: $bias,
-          activation,
-          preluActivationWeights: $preluActivationWeights
-        });
-        return res;
-      },
-      inputs, null /* grad */, 'FusedDepthwiseConv2D', {convInfo, activation},
-      inputsToSave, outputsToSave);
+      forward, inputs as {} as NamedTensorMap, null /* grad */,
+      FusedDepthwiseConv2D, attrs as {} as NamedAttrMap);
+
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   }

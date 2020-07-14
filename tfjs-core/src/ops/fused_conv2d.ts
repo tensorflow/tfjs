@@ -15,8 +15,11 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../engine';
+import {ENGINE, ForwardFunc} from '../engine';
+import {FusedConv2D, FusedConv2DAttrs, FusedConv2DInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -26,8 +29,6 @@ import * as broadcast_util from './broadcast_util';
 import * as conv_util from './conv_util';
 import {Activation} from './fused_types';
 import {op} from './operation';
-
-
 
 /**
  * Computes a 2D convolution over the input x, optionally fused with adding a
@@ -221,35 +222,31 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
         preluActivationWeights, 'prelu weights', 'fused conv2d');
   }
 
-  const inputs: {
-    x: Tensor,
-    filter: Tensor,
-    bias?: Tensor,
-    preluActivationWeights?: Tensor
-  } = {x: x4D, filter: $filter};
-  if (bias != null) {
-    inputs.bias = $bias;
-  }
-  if (preluActivationWeights != null) {
-    inputs.preluActivationWeights = $preluActivationWeights;
-  }
+  const inputs: FusedConv2DInputs = {
+    x: x4D,
+    filter: $filter,
+    bias: $bias,
+    preluActivationWeights: $preluActivationWeights
+  };
 
-  const inputsToSave = [$filter, x4D];
-  const outputsToSave = [true];  // Save the only output.
+  const forward: ForwardFunc<Tensor> = (backend) => {
+    const res = backend.fusedConv2d({
+      input: x4D,
+      filter: $filter,
+      convInfo,
+      bias: $bias,
+      activation,
+      preluActivationWeights: $preluActivationWeights
+    });
+    return res;
+  };
+
+  const attrs: FusedConv2DAttrs =
+      {strides, pad, dataFormat, dilations, dimRoundingMode, activation};
+
   const res = ENGINE.runKernelFunc(
-      (backend) => {
-        const res = backend.fusedConv2d({
-          input: x4D,
-          filter: $filter,
-          convInfo,
-          bias: $bias,
-          activation,
-          preluActivationWeights: $preluActivationWeights
-        });
-        return res;
-      },
-      inputs, null /* grad */, 'FusedConv2D', {convInfo, activation},
-      inputsToSave, outputsToSave);
+      forward, inputs as {} as NamedTensorMap, null /* grad */, FusedConv2D,
+      attrs as {} as NamedAttrMap);
 
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
