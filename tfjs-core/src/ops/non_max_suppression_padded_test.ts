@@ -51,11 +51,14 @@ describeWithFlags('nonMaxSuppressionPadded', ALL_ENVS, () => {
        const iouThreshold = 0.5;
        const scoreThreshold = 0.4;
 
+       const before = tf.memory().numTensors;
        const {selectedIndices, validOutputs} = tf.image.nonMaxSuppressionPadded(
            boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, true);
+       const after = tf.memory().numTensors;
 
        expectArraysEqual(await selectedIndices.data(), [3, 0, 0, 0, 0, 0]);
        expectArraysEqual(await validOutputs.data(), 2);
+       expect(after).toEqual(before + 2);
      });
 
   it('select from three clusters with no padding when pad option is false.',

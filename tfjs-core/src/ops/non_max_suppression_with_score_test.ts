@@ -32,14 +32,18 @@ describeWithFlags('nonMaxSuppressionWithScore', ALL_ENVS, () => {
     const scoreThreshold = 0;
     const softNmsSigma = 0.5;
 
+    const before = tf.memory().numTensors;
     const {selectedIndices, selectedScores} =
         tf.image.nonMaxSuppressionWithScore(
             boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
             softNmsSigma);
+    const after = tf.memory().numTensors;
 
     expectArraysEqual(await selectedIndices.data(), [3, 0, 1, 5, 4, 2]);
 
     expectArraysClose(
         await selectedScores.data(), [0.95, 0.9, 0.384, 0.3, 0.256, 0.197]);
+
+    expect(after).toEqual(before + 2);
   });
 });
