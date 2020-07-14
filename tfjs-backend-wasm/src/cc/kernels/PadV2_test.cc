@@ -41,36 +41,43 @@ TEST(PADV2, xnn_operator_lifetime) {
   ASSERT_EQ(3, tfjs::backend::num_tensors());
   ASSERT_EQ(0, tfjs::backend::xnn_operator_count);
 
-  const std::vector<size_t> x_shape = {1, 2, 3, 4};
-  const std::vector<size_t> pre_paddings = {0, 0, 0, 0};
-  const std::vector<size_t> post_paddings = {0, 0, 0, 0};
-
   const size_t x_rank = 4;
+
+  std::vector<size_t> x_shape = {1, 1, 1, 4};
+  std::vector<size_t> pre_paddings = {0, 0, 0, 0};
+  std::vector<size_t> post_paddings = {0, 0, 0, 0};
+
   const float pad_value = 0.0;
+
+  size_t* x_shape_ptr = x_shape.data();
+  size_t* pre_paddings_ptr = pre_paddings.data();
+  size_t* post_paddings_ptr = post_paddings.data();
+
+  const DType dtype = float32;
 
   // One new xnn_operator should be created for the first call to
   // PadV2.
-  tfjs::wasm::PadV2(x0_id, x_shape.data(), x_rank, float32, pre_paddings.data(),
-                    post_paddings.data(), pad_value, out_id);
+  tfjs::wasm::PadV2(x0_id, x_shape_ptr, x_rank, dtype, pre_paddings_ptr,
+                    post_paddings_ptr, pad_value, out_id);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
 
-  // No new xnn_operators should be created for the second call to
-  // PadV2 with the same arguments.
-  tfjs::wasm::PadV2(x0_id, x_shape.data(), x_rank, float32, pre_paddings.data(),
-                    post_paddings.data(), pad_value, out_id);
+  // // No new xnn_operators should be created for the second call to
+  // // PadV2 with the same arguments.
+  tfjs::wasm::PadV2(x0_id, x_shape_ptr, x_rank, dtype, pre_paddings_ptr,
+                    post_paddings_ptr, pad_value, out_id);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
 
-  // No new xnn_operators should be created for the second call to
-  // PadV2 with a new x id but same arguments.
-  tfjs::wasm::PadV2(x1_id, x_shape.data(), x_rank, float32, pre_paddings.data(),
-                    post_paddings.data(), pad_value, out_id);
+  // // No new xnn_operators should be created for the second call to
+  // // PadV2 with a new x id but same arguments.
+  tfjs::wasm::PadV2(x1_id, x_shape_ptr, x_rank, dtype, pre_paddings_ptr,
+                    post_paddings_ptr, pad_value, out_id);
   ASSERT_EQ(1, tfjs::backend::xnn_operator_count);
 
-  // One new xnn_operator should be created for another call to PadV2
-  // with a different pad_value.
+  // // One new xnn_operator should be created for another call to PadV2
+  // // with a different pad_value.
   const float new_pad_value = 0.5;
-  tfjs::wasm::PadV2(x0_id, x_shape.data(), x_rank, float32, pre_paddings.data(),
-                    post_paddings.data(), new_pad_value, out_id);
+  tfjs::wasm::PadV2(x0_id, x_shape_ptr, x_rank, dtype, pre_paddings_ptr,
+                    post_paddings_ptr, new_pad_value, out_id);
   ASSERT_EQ(2, tfjs::backend::xnn_operator_count);
 
   tfjs::wasm::dispose();
