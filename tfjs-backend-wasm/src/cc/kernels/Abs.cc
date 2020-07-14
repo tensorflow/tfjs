@@ -15,9 +15,7 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
-
-#include <cmath>
-#include <cstddef>
+#include <xnnpack.h>
 
 #include "src/cc/backend.h"
 #include "src/cc/unary.h"
@@ -31,7 +29,7 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 void Abs(const size_t x_id, const size_t out_id) {
-  unary(x_id, out_id, std::abs);
+  unary_xnn_f32(x_id, out_id, xnn_create_abs_nc_f32, xnn_setup_abs_nc_f32);
 }
 
 }  // extern "C"
