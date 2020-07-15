@@ -18,7 +18,9 @@
 
 #include <xnnpack.h>
 #include <cstddef>
+#include <cstring>
 #include <map>
+#include <memory>
 #include <tuple>
 #include <vector>
 
