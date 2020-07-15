@@ -622,6 +622,7 @@ export class Engine implements TensorTracker, DataMover {
           } else {
             kernelProfiles = this.profiler.profileKernel(
                 kernelName, inputs, () => kernelFunc());
+            this.profiler.logKernelProfile(kernelProfiles);
             outputs = kernelProfiles.map(kernelProfile => kernelProfile.result);
           }
         });
@@ -629,10 +630,6 @@ export class Engine implements TensorTracker, DataMover {
     if (isTapeOn) {
       this.addTapeNode(
           kernelName, inputs, outputs, backwardsFunc, saved, attrs);
-    }
-
-    if (this.ENV.getBool('DEBUG')) {
-      this.profiler.logKernelProfile(kernelProfiles);
     }
 
     if (this.state.profiling) {
