@@ -15,15 +15,10 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
-
-#include <cmath>
+#include <xnnpack.h>
 
 #include "src/cc/backend.h"
 #include "src/cc/unary.h"
-
-namespace {
-inline float negate(const float val) { return -val; }
-}  // namespace
 
 namespace tfjs {
 namespace wasm {
@@ -33,7 +28,10 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Negate(const int x_id, const int out_id) { unary(x_id, out_id, negate); }
+void Negate(const int x_id, const int out_id) {
+  unary_xnn_f32(x_id, out_id, xnn_create_negate_nc_f32,
+                xnn_setup_negate_nc_f32);
+}
 
 }  // extern "C"
 }  // namespace wasm

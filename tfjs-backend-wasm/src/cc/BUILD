@@ -172,7 +172,8 @@ tfjs_cc_library(
 
 tfjs_cc_library(
     name = "unary",
-    srcs = ["unary.h"],
+    srcs = ["unary.cc"],
+    hdrs = ["unary.h"],
     deps = [
         ":backend",
     ],
