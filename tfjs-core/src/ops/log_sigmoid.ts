@@ -23,7 +23,8 @@ import {TensorLike} from '../types';
 import {mul} from './mul';
 import {neg} from './neg';
 import {op} from './operation';
-import {sigmoid} from './unary_ops';
+import {sigmoid} from './sigmoid';
+
 /**
  * Computes log sigmoid of the input `tf.Tensor` element-wise:
  * `logSigmoid(x)`. For numerical stability, we use `-tf.softplus(-x)`.

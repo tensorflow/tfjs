@@ -15,21 +15,19 @@
  * =============================================================================
  */
 
-import {Asin} from '../kernel_names';
+import {Rsqrt} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {cast} from '../ops/cast';
 import {div} from '../ops/div';
-import {scalar} from '../ops/scalar';
-import {sqrt} from '../ops/sqrt';
-import {square} from '../ops/square';
-import {sub} from '../ops/sub';
+import {mul} from '../ops/mul';
+import {neg} from '../ops/neg';
+import {pow} from '../ops/pow';
 import {Tensor} from '../tensor';
 
-export const asinGradConfig: GradConfig = {
-  kernelName: Asin,
+export const rsqrtGradConfig: GradConfig = {
+  kernelName: Rsqrt,
   inputsToSave: ['x'],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
     const [x] = saved;
-    return {x: () => div(dy, sqrt(sub(scalar(1), square(cast(x, 'float32')))))};
+    return {x: () => neg(div(dy, mul(pow(x, 1.5), 2)))};
   }
 };

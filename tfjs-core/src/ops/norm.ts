@@ -28,9 +28,9 @@ import {op} from './operation';
 import {pow} from './pow';
 import {reshape} from './reshape';
 import {scalar} from './scalar';
+import {sqrt} from './sqrt';
 import {square} from './square';
 import {sum} from './sum';
-import {sqrt} from './unary_ops';
 
 /**
  * Computes the norm of scalar, vectors, and matrices.
