@@ -308,6 +308,12 @@ export type ExpInputs = UnaryInputs;
 export const Expm1 = 'Expm1';
 export type Expm1Inputs = UnaryInputs;
 
+export const FFT = 'FFT';
+export type FFTInputs = Pick<NamedTensorInfoMap, 'input'>;
+export interface FFTAttrs {
+  dtype: DataType;
+}
+
 export const Floor = 'Floor';
 export type FloorInputs = UnaryInputs;
 
@@ -346,8 +352,23 @@ export type GreaterEqualInputs = BinaryInputs;
 export const Identity = 'Identity';
 export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
 
+export const IFFT = 'IFFT';
+export type IFFTInputs = Pick<NamedTensorInfoMap, 'input'>;
+// tslint:disable-next-line:interface-name
+export interface IFFTAttrs {
+  dtype: DataType;
+}
+
 export const Imag = 'Imag';
 export type ImagInputs = Pick<NamedTensorInfoMap, 'input'>;
+
+export const IRFFT = 'IRFFT';
+export type IRFFTInputs = Pick<NamedTensorInfoMap, 'input'>;
+// tslint:disable-next-line:interface-name
+export interface IRFFTAttrs {
+  dtype: DataType;
+  fftLength: number;
+}
 
 export const Less = 'Less';
 export type LessInputs = BinaryInputs;
@@ -593,6 +614,13 @@ export const Reverse = 'Reverse';
 export type ReverseInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface ReverseAttrs {
   dims: number|number[];
+}
+
+export const RFFT = 'RFFT';
+export type RFFTInputs = Pick<NamedTensorInfoMap, 'input'>;
+export interface RFFTAttrs {
+  dtype: DataType;
+  fftLength: number;
 }
 
 export const ScatterNd = 'ScatterNd';

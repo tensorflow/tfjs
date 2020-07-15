@@ -16,8 +16,11 @@
  */
 
 import {ENGINE} from '../engine';
+import {FFT, FFTAttrs, FFTInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {op} from '../ops/operation';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {assert} from '../util';
 
 /**
@@ -47,11 +50,18 @@ function fft_(input: Tensor): Tensor {
   // Collapse all outer dimensions to a single batch dimension.
   const innerDimensionSize = input.shape[input.shape.length - 1];
   const batch = input.size / innerDimensionSize;
-  const input2D = input.as2D(batch, innerDimensionSize);
 
-  const ret = ENGINE.runKernelFunc(backend => backend.fft(input2D), {input});
+  const inputs: FFTInputs = {input};
+  const attrs: FFTAttrs = {dtype: 'complex64'};
 
-  return ret.reshape(input.shape);
+  return ENGINE.runKernelFunc(
+      backend => {
+        const input2D = input.as2D(batch, innerDimensionSize);
+        const result = backend.fft(input2D);
+        return result.reshape(input.shape);
+      },
+      inputs as {} as NamedTensorMap, null /* gradient */, FFT,
+      attrs as {} as NamedAttrMap);
 }
 
 export const fft = op({fft_});
