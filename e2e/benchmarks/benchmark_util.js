@@ -95,7 +95,14 @@ function generateInput(model) {
 function wrapPredictFnForModel(model, input) {
   let predict;
   if (model instanceof tf.GraphModel) {
-    predict = () => model.executeAsync(input);
+    try {
+      tf.tidy(() => {
+        model.execute(input);
+      });
+      predict = () => model.execute(input);
+    } catch (e) {
+      predict = () => model.executeAsync(input);
+    }
   } else if (model instanceof tf.LayersModel) {
     predict = () => model.predict(input);
   } else {
@@ -289,7 +296,8 @@ async function profileInferenceMemory(predict) {
 
 /**
  * This function is temporarily used and will be deleted after a new release of
- * tf-core. This function modifies [`tf.profile`](https://github.com/tensorflow/tfjs/blob/95b5f878218ee45c0f8464386ee01d1f96e78297/tfjs-core/src/engine.ts#L848)
+ * tf-core. This function modifies
+ * [`tf.profile`](https://github.com/tensorflow/tfjs/blob/95b5f878218ee45c0f8464386ee01d1f96e78297/tfjs-core/src/engine.ts#L848)
  * in the following points:
  * - replaces all `this` by `tf.engine()`
  * - adds `await` in `this.state.activeProfile.result = query();`
