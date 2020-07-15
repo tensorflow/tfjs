@@ -180,9 +180,11 @@ async function profileInferenceTime(predict, numRuns = 1) {
 }
 
 /**
- * Asynchronously downloads the values in parallel from any `tf.Tensor`s found
- * within the provided object. Returns a promise of `TypedArray` or
+ * Downloads the values from the `tensorContainer` from any `tf.Tensor`s found
+ * within the `tensorContainer`. Returns a promise of `TypedArray` or
  * `TypedArray[]` that resolves when the computation has finished.
+ *
+ * The values are asynchronously downloaded in parallel.
  *
  * @param tensorContainer The container of tensors to be downloaded.
  */
@@ -319,6 +321,19 @@ async function profile(query) {
   return engine.state.activeProfile;
 }
 
+/**
+ * This map descripes tunable flags and theior corresponding types.
+ *
+ * The flags (keys) in the map satisfy the following two conditions:
+ * - Is tunable. For example, `IS_BROWSER` and `IS_CHROME` is not tunable,
+ * because they are fixed when running the scripts.
+ * - Does not depend on other flags when registering in `ENV.registerFlag()`.
+ * This rule aims to make the list streamlined, and, since there are
+ * dependencies between flags, only modifying an independent flag without
+ * modifying its dependents may cause inconsistency.
+ * (`WEBGL_RENDER_FLOAT32_CAPABLE` is an exception, because only exposing
+ * `WEBGL_FORCE_F16_TEXTURES` may confuse users.)
+ */
 const TUNABLE_FLAG_TYPE_MAP = {
   WEBGL_VERSION: 'number',
   WASM_HAS_SIMD_SUPPORT: 'boolean',
@@ -329,10 +344,10 @@ const TUNABLE_FLAG_TYPE_MAP = {
 };
 
 /**
- * Set environment flags in `TUNABLE_FLAG_TYPE_MAP`.
+ * Set environment flags for testing.
  *
- * This is a wrapper function of `tf.env().setFlags()` with a tunable flag list,
- * to constrain flag setting.
+ * This is a wrapper function of `tf.env().setFlags()` to constrain users to
+ * only set tunable flags (the keys of `TUNABLE_FLAG_TYPE_MAP`).
  *
  * ```js
  * const flagConfig = {
@@ -396,9 +411,9 @@ async function resetBackend(backendName) {
   const currentBackend = tf.getBackend();
 
   if (backendName in ENGINE.registry) {
-    const webglFactory = tf.findBackendFactory(backendName);
+    const backendFactory = tf.findBackendFactory(backendName);
     tf.removeBackend(backendName);
-    tf.registerBackend(backendName, webglFactory);
+    tf.registerBackend(backendName, backendFactory);
   }
 
   if (currentBackend === backendName) {
