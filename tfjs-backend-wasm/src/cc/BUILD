@@ -172,7 +172,8 @@ tfjs_cc_library(
 
 tfjs_cc_library(
     name = "unary",
-    srcs = ["unary.h"],
+    srcs = ["unary.cc"],
+    hdrs = ["unary.h"],
     deps = [
         ":backend",
     ],
@@ -675,9 +676,18 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "PadV2",
     srcs = ["kernels/PadV2.cc"],
+    hdrs = ["kernels/PadV2.h"],
     deps = [
         ":backend",
         ":util",
+    ],
+)
+
+tfjs_unit_test(
+    name = "PadV2_test",
+    srcs = ["kernels/PadV2_test.cc"],
+    deps = [
+        ":PadV2",
     ],
 )
 

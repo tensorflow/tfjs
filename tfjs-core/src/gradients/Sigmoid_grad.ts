@@ -15,21 +15,19 @@
  * =============================================================================
  */
 
-import {Asin} from '../kernel_names';
+import {Sigmoid} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {cast} from '../ops/cast';
-import {div} from '../ops/div';
+import {mul} from '../ops/mul';
 import {scalar} from '../ops/scalar';
-import {sqrt} from '../ops/sqrt';
-import {square} from '../ops/square';
 import {sub} from '../ops/sub';
 import {Tensor} from '../tensor';
 
-export const asinGradConfig: GradConfig = {
-  kernelName: Asin,
-  inputsToSave: ['x'],
+export const sigmoidGradConfig: GradConfig = {
+  kernelName: Sigmoid,
+  outputsToSave: [true],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
-    const [x] = saved;
-    return {x: () => div(dy, sqrt(sub(scalar(1), square(cast(x, 'float32')))))};
+    const [y] = saved;
+
+    return {x: () => mul(dy, mul(y, sub(scalar(1), y)))};
   }
 };

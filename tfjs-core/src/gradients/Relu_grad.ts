@@ -18,7 +18,7 @@ import {Relu} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import {cast} from '../ops/cast';
 import {mul} from '../ops/mul';
-import {step} from '../ops/unary_ops';
+import {step} from '../ops/step';
 import {Tensor} from '../tensor';
 
 export const reluGradConfig: GradConfig = {
