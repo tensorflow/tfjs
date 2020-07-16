@@ -334,13 +334,13 @@ async function profile(query) {
  * (`WEBGL_RENDER_FLOAT32_CAPABLE` is an exception, because only exposing
  * `WEBGL_FORCE_F16_TEXTURES` may confuse users.)
  */
-const TUNABLE_FLAG_TYPE_MAP = {
-  WEBGL_VERSION: 'number',
-  WASM_HAS_SIMD_SUPPORT: 'boolean',
-  WEBGL_CPU_FORWARD: 'boolean',
-  WEBGL_PACK: 'boolean',
-  WEBGL_FORCE_F16_TEXTURES: 'boolean',
-  WEBGL_RENDER_FLOAT32_CAPABLE: 'boolean',
+const TUNABLE_FLAG_VALUE_RANGE_MAP = {
+  WEBGL_VERSION: [1, 2],
+  WASM_HAS_SIMD_SUPPORT: [true, false],
+  WEBGL_CPU_FORWARD: [true, false],
+  WEBGL_PACK: [true, false],
+  WEBGL_FORCE_F16_TEXTURES: [true, false],
+  WEBGL_RENDER_FLOAT32_CAPABLE: [true, false],
 };
 
 /**
@@ -372,13 +372,14 @@ async function setEnvFlags(flagConfig) {
   // Check the validation of flags and values.
   for (const flag in flagConfig) {
     // TODO: check whether flag can be set as flagConfig[flag].
-    if (!(flag in TUNABLE_FLAG_TYPE_MAP)) {
+    if (!(flag in TUNABLE_FLAG_VALUE_RANGE_MAP)) {
       throw new Error(`${flag} is not a tunable or valid environment flag.`);
     }
-    if (typeof flagConfig[flag] !== TUNABLE_FLAG_TYPE_MAP[flag]) {
+    if (TUNABLE_FLAG_VALUE_RANGE_MAP[flag].indexOf(flagConfig[flag]) === -1) {
       throw new Error(
-          `${flag} is expected to be a ${TUNABLE_FLAG_TYPE_MAP[flag]}, while ` +
-          `a(n) ${typeof flagConfig[flag]} is found.`);
+          `${flag} value is expected to be in the range [${
+              TUNABLE_FLAG_VALUE_RANGE_MAP[flag]}], while ${flagConfig[flag]}` +
+          ' is found.');
     }
   }
 

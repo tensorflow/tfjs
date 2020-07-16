@@ -95,6 +95,16 @@ describe('benchmark_util', () => {
         expectAsync(setEnvFlags(flagConfig)).toBeRejectedWithError(Error);
         expect(tf.env().flags).toEqual(originalFlags);
       });
+
+      it('set flag value out of the range', async () => {
+        const outOfRangeValue =
+            Math.max(...TUNABLE_FLAG_VALUE_RANGE_MAP.WEBGL_VERSION) + 1;
+        const flagConfig = {
+          WEBGL_VERSION: outOfRangeValue,
+        };
+        expectAsync(setEnvFlags(flagConfig)).toBeRejectedWithError(Error);
+        expect(tf.env().flags).toEqual(originalFlags);
+      });
     });
 
     describe('reset flags', () => {
