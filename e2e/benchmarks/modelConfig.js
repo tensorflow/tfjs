@@ -226,24 +226,16 @@ const benchmarks = {
       return loadModelByUrl(state.modelUrl);
     },
     predictFunc: () => {
-      return async model => {
-        let inferenceInput;
+      return async model => tf.tidy(() => {
+        const inferenceInput = generateInput(model);
+        let predict;
         try {
-          inferenceInput = generateInput(model);
-          let resultTensor;
-          if (model instanceof tf.GraphModel && model.executeAsync != null) {
-            resultTensor = await model.executeAsync(inferenceInput);
-          } else if (model.predict != null) {
-            resultTensor = model.predict(inferenceInput);
-          } else {
-            throw new Error('Predict function was not found.');
-          }
-          return resultTensor;
-        } finally {
-          // dispose input tensors
-          tf.dispose(inferenceInput);
+          predict = wrapPredictFnForModel(model, inferenceInput);
+        } catch (e) {
+          throw new Error('Predict function was not found.');
         }
-      };
+        return predict();
+      });
     }
   },
 };
