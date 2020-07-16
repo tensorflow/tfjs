@@ -7,7 +7,7 @@ or [TensorFlow Hub module](https://www.tensorflow.org/hub/)
 into the browser and run inference through
 [TensorFlow.js](https://js.tensorflow.org).
 
-__Note__: _Session bundle and Frozen model formats have been deprecated in TensorFlow.js 1.0. Please use the TensorFlow.js 0.15.x backend to convert these formats, available in
+__Note__: _Session bundle format have been deprecated in TensorFlow.js 1.0. Please use the TensorFlow.js 0.15.x backend to convert these formats, available in
 `tfjs-converter` [0.8.6](https://pypi.org/project/tensorflowjs/0.8.6/)._
 
 A 2-step process to import your model:
