@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {engine, env} from '@tensorflow/tfjs-core';
+import {engine, env, tensor} from '@tensorflow/tfjs-core';
 import {backend_util, buffer, slice_util, util} from '@tensorflow/tfjs-core';
 import {BackendTimingInfo, DataStorage, DataType, DataValues, KernelBackend, max, NumericDataType, Rank, reshape, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 import {kernel_impls} from '@tensorflow/tfjs-core';
@@ -29,6 +29,7 @@ const whereImpl = kernel_impls.whereImpl;
 import * as seedrandom from 'seedrandom';
 import {assertNotComplex} from './cpu_util';
 import {maxPoolPositions, pool} from './utils/pool_utils';
+import {sliceContinuousImpl, sliceImpl} from './kernels/Slice_impl';
 
 interface DataId {}
 
@@ -196,22 +197,15 @@ export class MathBackendCPU extends KernelBackend {
 
     const isContinous = slice_util.isSliceContinous(x.shape, begin, size);
     if (isContinous) {
-      const flatOffset = slice_util.computeFlatOffset(begin, x.strides);
-      const length = util.sizeFromShape(size);
-      const vals = this.readSync(x.dataId) as TypedArray;
-      return tf.tensor(
-                 vals.subarray(flatOffset, flatOffset + length), size,
-                 x.dtype) as T;
+      const vals = this.readSync(x.dataId);
+      const result = sliceContinuousImpl(vals, begin, size, x.dtype, x.strides);
+      return tensor(result, size, x.dtype) as T;
+    } else {
+      const resultBuffer = tf.buffer(size, x.dtype);
+      const xBuf = this.bufferSync(x);
+      sliceImpl(xBuf, begin, resultBuffer);
+      return resultBuffer.toTensor() as T;
     }
-
-    const buffer = tf.buffer(size, x.dtype);
-    const xBuf = this.bufferSync(x);
-    for (let i = 0; i < buffer.size; ++i) {
-      const loc = buffer.indexToLoc(i);
-      const xLoc = loc.map((idx, j) => idx + begin[j]);
-      buffer.values[i] = xBuf.get(...xLoc);
-    }
-    return buffer.toTensor() as T;
   }
 
   stridedSlice<T extends Tensor>(

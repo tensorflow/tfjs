@@ -17,4 +17,5 @@
 
 // Shared kernel impls for use in other backends.
 export {maxImpl} from './kernels/Max_impl';
+export {sliceContinuousImpl, sliceImpl} from './kernels/Slice_impl';
 export {transposeImpl} from './kernels/Transpose_impl';

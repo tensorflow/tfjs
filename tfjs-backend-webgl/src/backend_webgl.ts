@@ -19,9 +19,9 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {complex, DataId, div, engine, env, imag, max, MemoryInfo, range, real, RecursiveArray, reshape, scalar, softmax, tensor, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
-import {backend_util, buffer, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
-import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, complex, DataId, DataStorage, DataType, div, engine, env, imag, kernel_impls, KernelBackend, max, MemoryInfo, NumericDataType, range, Rank, real, RecursiveArray, reshape, scalar, Scalar, ShapeMap, slice_util, softmax, tensor, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, tidy, TimingInfo, transpose, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
+
+import {sliceContinuousImplCPU, sliceImplCPU} from './kernel_utils/shared';
 
 const {segment_util} = backend_util;
 const split = kernel_impls.split;
@@ -109,6 +109,7 @@ import {UnaryOpPackedProgram} from './unaryop_packed_gpu';
 import {UnpackProgram} from './unpack_gpu';
 import * as webgl_util from './webgl_util';
 import {BackendValues} from '@tensorflow/tfjs-core';
+import {DataValues} from '@tensorflow/tfjs-core/src/types';
 
 export const EPSILON_FLOAT32 = 1e-7;
 export const EPSILON_FLOAT16 = 1e-4;
@@ -694,6 +695,22 @@ export class MathBackendWebGL extends KernelBackend {
     if (this.shouldExecuteOnCPU([x])) {
       return this.cpuBackend.slice(x, begin, size);
     }
+
+    if (x.dtype === 'string') {
+      const isContinous = slice_util.isSliceContinous(x.shape, begin, size);
+      if (isContinous) {
+        const vals = this.readSync(x.dataId) as Uint8Array[];
+        const result =
+            sliceContinuousImplCPU(vals, begin, size, x.dtype, x.strides);
+        return tensor(result, size, x.dtype) as T;
+      } else {
+        const resultBuffer = buffer(size, x.dtype);
+        const xBuf = this.bufferSync(x);
+        sliceImplCPU(xBuf, begin, resultBuffer);
+        return resultBuffer.toTensor() as T;
+      }
+    }
+
     // Short-circuit computation if the slice is zero-sized.
     if (util.sizeFromShape(size) === 0) {
       return tensor([], size, x.dtype) as T;
@@ -2791,6 +2808,20 @@ export class MathBackendWebGL extends KernelBackend {
 
   private computeBytes(shape: [number, number], dtype: DataType) {
     return shape[0] * shape[1] * util.bytesPerElement(dtype);
+  }
+
+  private bufferSync<R extends Rank>(t: Tensor<R>): TensorBuffer<R> {
+    const data = this.readSync(t.dataId);
+    let decodedData = data as DataValues;
+    if (t.dtype === 'string') {
+      try {
+        // Decode the bytes into string.
+        decodedData = (data as Uint8Array[]).map(d => util.decodeString(d));
+      } catch {
+        throw new Error('Failed to decode encoded string bytes into utf-8');
+      }
+    }
+    return buffer(t.shape, t.dtype, decodedData) as TensorBuffer<R>;
   }
 }
 

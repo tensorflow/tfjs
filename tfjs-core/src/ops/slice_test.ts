@@ -229,3 +229,50 @@ describeWithFlags('slice6d', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [5]);
   });
 });
+
+describeWithFlags('slice string tensor', ALL_ENVS, () => {
+  it('slices 2x2x2 array into 2x1x1 no size', async () => {
+    const a = tf.tensor3d(
+        ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight'],
+        [2, 2, 2]);
+    const result = a.slice([0, 1, 1]);
+    expect(result.shape).toEqual([2, 1, 1]);
+    expectArraysClose(await result.data(), ['four', 'eight']);
+  });
+
+  it('slices 2x2x2 array into 1x2x2 with scalar begin no size', async () => {
+    const a = tf.tensor3d(
+        ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight'],
+        [2, 2, 2]);
+    const result = a.slice(1);
+    expect(result.shape).toEqual([1, 2, 2]);
+    expectArraysClose(await result.data(), ['five', 'six', 'seven', 'eight']);
+  });
+
+  it('slices 2x2x2 array using 2d size and 2d size', async () => {
+    const a = tf.tensor3d(
+        ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight'],
+        [2, 2, 2]);
+    const result = a.slice([0, 1]);
+    expect(result.shape).toEqual([2, 1, 2]);
+    expectArraysClose(await result.data(), ['three', 'four', 'seven', 'eight']);
+  });
+
+  it('slices 2x2x2 array using negative size', async () => {
+    const a = tf.tensor3d(
+        ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight'],
+        [2, 2, 2]);
+    const result = a.slice([0, 1], [-1, 1]);
+    expect(result.shape).toEqual([2, 1, 2]);
+    expectArraysClose(await result.data(), ['three', 'four', 'seven', 'eight']);
+  });
+
+  it('slices 2x2x2 array using 1d size', async () => {
+    const a = tf.tensor3d(
+        ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight'],
+        [2, 2, 2]);
+    const result = a.slice(0, 1);
+    expect(result.shape).toEqual([1, 2, 2]);
+    expectArraysClose(await result.data(), ['one', 'two', 'three', 'four']);
+  });
+});
