@@ -142,7 +142,7 @@ function getPredictFnForModel(model, input) {
  * @param numRuns The number of rounds for timing the inference process.
  */
 async function profileInferenceTimeForModel(model, input, numRuns = 1) {
-  const predict = wrapPredictFnForModel(model, input);
+  const predict = getPredictFnForModel(model, input);
   return profileInferenceTime(predict, numRuns);
 }
 
@@ -256,7 +256,7 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
  * @param input The input tensor container for model inference.
  */
 async function profileInferenceMemoryForModel(model, input) {
-  const predict = wrapPredictFnForModel(model, input);
+  const predict = getPredictFnForModel(model, input);
   return profileInferenceMemory(predict);
 }
 
