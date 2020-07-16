@@ -92,9 +92,12 @@ function generateInput(model) {
  *     wrapping the predict function.
  * @param input The input tensor container for model inference.
  */
-function wrapPredictFnForModel(model, input) {
+function getPredictFnForModel(model, input) {
   let predict;
   if (model instanceof tf.GraphModel) {
+    // `execute` has better performance than `executeAsync`, but cannot be used
+    // on execution subgraph with dynamic op, so we detect whther `executeAsync`
+    // is necessary for model inference
     try {
       tf.tidy(() => {
         model.execute(input);
