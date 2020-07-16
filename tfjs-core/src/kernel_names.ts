@@ -362,14 +362,6 @@ export interface IFFTAttrs {
 export const Imag = 'Imag';
 export type ImagInputs = Pick<NamedTensorInfoMap, 'input'>;
 
-export const IRFFT = 'IRFFT';
-export type IRFFTInputs = Pick<NamedTensorInfoMap, 'input'>;
-// tslint:disable-next-line:interface-name
-export interface IRFFTAttrs {
-  dtype: DataType;
-  fftLength: number;
-}
-
 export const IsFinite = 'IsFinite';
 export type IsFiniteInputs = UnaryInputs;
 
@@ -623,13 +615,6 @@ export const Reverse = 'Reverse';
 export type ReverseInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface ReverseAttrs {
   dims: number|number[];
-}
-
-export const RFFT = 'RFFT';
-export type RFFTInputs = Pick<NamedTensorInfoMap, 'input'>;
-export interface RFFTAttrs {
-  dtype: DataType;
-  fftLength: number;
 }
 
 export const Round = 'Round';

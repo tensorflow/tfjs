@@ -47,15 +47,15 @@ function fft_(input: Tensor): Tensor {
       () => `The dtype for tf.spectral.fft() must be complex64 ` +
           `but got ${input.dtype}.`);
 
-  // Collapse all outer dimensions to a single batch dimension.
-  const innerDimensionSize = input.shape[input.shape.length - 1];
-  const batch = input.size / innerDimensionSize;
-
   const inputs: FFTInputs = {input};
   const attrs: FFTAttrs = {dtype: 'complex64'};
 
   return ENGINE.runKernelFunc(
       backend => {
+        // Collapse all outer dimensions to a single batch dimension.
+        const innerDimensionSize = input.shape[input.shape.length - 1];
+        const batch = input.size / innerDimensionSize;
+
         const input2D = input.as2D(batch, innerDimensionSize);
         const result = backend.fft(input2D);
         return result.reshape(input.shape);

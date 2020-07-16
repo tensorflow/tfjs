@@ -22,8 +22,13 @@ import {real} from '../ops/real';
 import {Tensor} from '../tensor';
 import {assert} from '../util';
 
+import {concat} from './concat';
 import {fft} from './fft';
+import {reshape} from './reshape';
+import {slice} from './slice';
+import {split} from './split';
 import {zeros} from './zeros';
+import {zerosLike} from './zeros_like';
 
 /**
  * Real value input fast Fourier transform.
@@ -55,22 +60,22 @@ function rfft_(input: Tensor, fftLength?: number): Tensor {
     const begin = input.shape.map(v => 0);
     const size = input.shape.map(v => v);
     size[input.shape.length - 1] = fftLength;
-    adjustedInput = input.slice(begin, size);
+    adjustedInput = slice(input, begin, size);
     innerDimensionSize = fftLength;
   } else if (fftLength != null && fftLength > innerDimensionSize) {
     // Need to pad with zeros
     const zerosShape = input.shape.map(v => v);
     zerosShape[input.shape.length - 1] = fftLength - innerDimensionSize;
-    adjustedInput = input.concat(zeros(zerosShape), input.shape.length - 1);
+    adjustedInput = concat([input, zeros(zerosShape)], input.shape.length - 1);
     innerDimensionSize = fftLength;
   } else {
     adjustedInput = input;
   }
 
   // Complement the input with zero imaginary numbers.
-  const zerosInput = adjustedInput.zerosLike();
+  const zerosInput = zerosLike(adjustedInput);
   const complexInput =
-      complex(adjustedInput, zerosInput).as2D(batch, innerDimensionSize);
+      reshape(complex(adjustedInput, zerosInput), [batch, innerDimensionSize]);
 
   const ret = fft(complexInput);
 
@@ -78,16 +83,18 @@ function rfft_(input: Tensor, fftLength?: number): Tensor {
   const half = Math.floor(innerDimensionSize / 2) + 1;
   const realValues = real(ret);
   const imagValues = imag(ret);
-  const realComplexConjugate = realValues.split(
-      [half, innerDimensionSize - half], realValues.shape.length - 1);
-  const imagComplexConjugate = imagValues.split(
-      [half, innerDimensionSize - half], imagValues.shape.length - 1);
+  const realComplexConjugate = split(
+      realValues, [half, innerDimensionSize - half],
+      realValues.shape.length - 1);
+  const imagComplexConjugate = split(
+      imagValues, [half, innerDimensionSize - half],
+      imagValues.shape.length - 1);
 
   const outputShape = adjustedInput.shape.slice();
   outputShape[adjustedInput.shape.length - 1] = half;
 
-  return complex(realComplexConjugate[0], imagComplexConjugate[0])
-      .reshape(outputShape);
+  return reshape(
+      complex(realComplexConjugate[0], imagComplexConjugate[0]), outputShape);
 }
 
 export const rfft = op({rfft_});
