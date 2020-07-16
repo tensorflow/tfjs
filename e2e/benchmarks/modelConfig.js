@@ -175,7 +175,7 @@ const benchmarks = {
       return async model => {
         const res = await model.embed(sentences30);
         return res;
-      }
+      };
     }
   },
   'USE - batchsize 1': {
@@ -191,7 +191,7 @@ const benchmarks = {
         nextIdx += 1;
         const res = await model.embed(next);
         return res;
-      }
+      };
     }
   },
   'posenet': {
@@ -204,7 +204,7 @@ const benchmarks = {
     predictFunc: () => {
       return async model => {
         return model.estimateSinglePose(model.image);
-      }
+      };
     }
   },
   'bodypix': {
@@ -217,7 +217,7 @@ const benchmarks = {
     predictFunc: () => {
       return async model => {
         return model.segmentPerson(model.image);
-      }
+      };
     }
   },
   'custom': {
@@ -228,12 +228,7 @@ const benchmarks = {
     predictFunc: () => {
       return async model => tf.tidy(() => {
         const inferenceInput = generateInput(model);
-        let predict;
-        try {
-          predict = wrapPredictFnForModel(model, inferenceInput);
-        } catch (e) {
-          throw new Error('Predict function was not found.');
-        }
+        const predict = wrapPredictFnForModel(model, inferenceInput);
         return predict();
       });
     }

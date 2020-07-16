@@ -107,8 +107,8 @@ function wrapPredictFnForModel(model, input) {
     predict = () => model.predict(input);
   } else {
     throw new Error(
-        'Please pass in an instance of tf.GraphModel ' +
-        'or tf.LayersModel as the first parameter.');
+        'Predict function was not found. Please provide a tf.GraphModel or ' +
+        'tf.LayersModel');
   }
   return predict;
 }
