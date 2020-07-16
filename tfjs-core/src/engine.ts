@@ -614,16 +614,16 @@ export class Engine implements TensorTracker, DataMover {
     }
 
     // Stop recording to a tape when running a kernel.
-    let kernelProfiles: KernelProfile[];
+    let kernelProfile: KernelProfile;
     this.scopedRun(
         () => this.state.kernelDepth++, () => this.state.kernelDepth--, () => {
           if (!this.ENV.getBool('DEBUG')) {
             outputs = kernelFunc();
           } else {
-            kernelProfiles = this.profiler.profileKernel(
+            kernelProfile = this.profiler.profileKernel(
                 kernelName, inputs, () => kernelFunc());
-            this.profiler.logKernelProfile(kernelProfiles);
-            outputs = kernelProfiles.map(kernelProfile => kernelProfile.result);
+            this.profiler.logKernelProfile(kernelProfile);
+            outputs = kernelProfile.outputs;
           }
         });
 

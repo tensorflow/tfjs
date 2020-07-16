@@ -43,30 +43,34 @@ class TestLogger extends Logger {
       name: string, result: Tensor, vals: TypedArray, timeMs: number) {}
 }
 
-async function promiseCheckWrapper(
-    acturalValPromise: Promise<{}>, truthVal: {}) {
+function promiseCheckWrapper(acturalValPromise: Promise<{}>, truthVal: {}) {
   return acturalValPromise.then(acturalVal => {
     expect(acturalVal).toEqual(truthVal);
   });
 }
 
-async function checkKernelProfile(acturalVal: KernelProfile, truthVal: {
+function checkKernelProfile(acturalVal: KernelProfile, truthVal: {
   kernelName: string,
-  result: Tensor,
-  vals: TypedArray,
+  outputs: Tensor[],
+  vals: TypedArray[],
   timeMs: number|{error: string},
   inputs: NamedTensorMap,
   extraInfo: string
 }) {
   expect(acturalVal.kernelName).toBe(truthVal.kernelName);
-  expect(acturalVal.result).toBe(truthVal.result);
   expect(acturalVal.inputs).toBe(truthVal.inputs);
+  acturalVal.outputs.forEach((output, index) => {
+    expect(output).toBe(truthVal.outputs[index]);
+  });
 
-  return Promise.all([
-    promiseCheckWrapper(acturalVal.vals, truthVal.vals),
+  const promiseContainer = [
     promiseCheckWrapper(acturalVal.timeMs, truthVal.timeMs),
     promiseCheckWrapper(acturalVal.extraInfo, truthVal.extraInfo),
-  ]);
+  ];
+  acturalVal.vals.forEach((val, index) => {
+    promiseContainer.push(promiseCheckWrapper(val, truthVal.vals[index]));
+  });
+  return Promise.all(promiseContainer);
 }
 
 describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
@@ -88,19 +92,18 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
     const result = 1;
     const resultScalar = tf.scalar(result);
 
-    const kernelProfiles = profiler.profileKernel('MatMul', inputs, () => {
+    const kernelProfile = profiler.profileKernel('MatMul', inputs, () => {
       kernelCalled = true;
       return [resultScalar];
     });
     setTimeout(() => {
       expect(timeSpy.calls.count()).toBe(1);
       expect(kernelCalled).toBe(true);
-      expect(kernelProfiles.length).toBe(1);
 
-      checkKernelProfile(kernelProfiles[0], {
+      checkKernelProfile(kernelProfile, {
         kernelName: 'MatMul',
-        result: resultScalar,
-        vals: new Float32Array([result]),
+        outputs: [resultScalar],
+        vals: [new Float32Array([result])],
         timeMs: queryTimeMs,
         inputs,
         extraInfo,
@@ -126,41 +129,37 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
     const result = 1;
     const resultScalar = tf.scalar(result);
 
-    let innerKernelProfile: KernelProfile[];
+    let innerKernelProfile: KernelProfile;
     const outerKernelProfile = profiler.profileKernel('MatMul', inputs, () => {
       innerKernelProfile = profiler.profileKernel('Max', inputs, () => {
         maxKernelCalled = true;
         return [resultScalar];
       });
       matmulKernelCalled = true;
-      return innerKernelProfile.map(kernelProfile => kernelProfile.result);
+      return innerKernelProfile.outputs;
     });
 
     setTimeout(() => {
       expect(timeSpy.calls.count()).toBe(2);
       expect(matmulKernelCalled).toBe(true);
       expect(maxKernelCalled).toBe(true);
-      expect(innerKernelProfile.length).toBe(1);
-      expect(outerKernelProfile.length).toBe(1);
 
-      const checkInnerKernelProfile =
-          checkKernelProfile(innerKernelProfile[0], {
-            kernelName: 'Max',
-            result: resultScalar,
-            vals: new Float32Array([result]),
-            timeMs: queryTimeMs,
-            inputs,
-            extraInfo
-          });
-      const checkOuterKernelProfile =
-          checkKernelProfile(outerKernelProfile[0], {
-            kernelName: 'MatMul',
-            result: resultScalar,
-            vals: new Float32Array([result]),
-            timeMs: queryTimeMs * 2,
-            inputs,
-            extraInfo
-          });
+      const checkInnerKernelProfile = checkKernelProfile(innerKernelProfile, {
+        kernelName: 'Max',
+        outputs: [resultScalar],
+        vals: [new Float32Array([result])],
+        timeMs: queryTimeMs,
+        inputs,
+        extraInfo
+      });
+      const checkOuterKernelProfile = checkKernelProfile(outerKernelProfile, {
+        kernelName: 'MatMul',
+        outputs: [resultScalar],
+        vals: [new Float32Array([result])],
+        timeMs: queryTimeMs * 2,
+        inputs,
+        extraInfo
+      });
       Promise.all([checkInnerKernelProfile, checkOuterKernelProfile])
           .then(() => doneFn());
     }, delayMs * 2);
