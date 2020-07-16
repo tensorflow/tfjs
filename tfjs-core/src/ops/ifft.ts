@@ -16,8 +16,7 @@
  */
 
 import {ENGINE} from '../engine';
-import {IFFT, IFFTAttrs, IFFTInputs} from '../kernel_names';
-import {NamedAttrMap} from '../kernel_registry';
+import {IFFT, IFFTInputs} from '../kernel_names';
 import {op} from '../ops/operation';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -48,20 +47,16 @@ function ifft_(input: Tensor): Tensor {
           `but got ${input.dtype}.`);
 
   const inputs: IFFTInputs = {input};
-  const attrs: IFFTAttrs = {dtype: 'complex64'};
 
-  return ENGINE.runKernelFunc(
-      backend => {
-        // Collapse all outer dimensions to a single batch dimension.
-        const innerDimensionSize = input.shape[input.shape.length - 1];
-        const batch = input.size / innerDimensionSize;
+  return ENGINE.runKernelFunc(backend => {
+    // Collapse all outer dimensions to a single batch dimension.
+    const innerDimensionSize = input.shape[input.shape.length - 1];
+    const batch = input.size / innerDimensionSize;
 
-        const input2D = input.as2D(batch, innerDimensionSize);
-        const result = backend.ifft(input2D);
-        return result.reshape(input.shape);
-      },
-      inputs as {} as NamedTensorMap, null /* gradient */, IFFT,
-      attrs as {} as NamedAttrMap);
+    const input2D = input.as2D(batch, innerDimensionSize);
+    const result = backend.ifft(input2D);
+    return result.reshape(input.shape);
+  }, inputs as {} as NamedTensorMap, null /* gradient */, IFFT);
 }
 
 export const ifft = op({ifft_});

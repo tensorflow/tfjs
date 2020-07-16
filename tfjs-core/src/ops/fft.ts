@@ -16,8 +16,7 @@
  */
 
 import {ENGINE} from '../engine';
-import {FFT, FFTAttrs, FFTInputs} from '../kernel_names';
-import {NamedAttrMap} from '../kernel_registry';
+import {FFT, FFTInputs} from '../kernel_names';
 import {op} from '../ops/operation';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -48,20 +47,16 @@ function fft_(input: Tensor): Tensor {
           `but got ${input.dtype}.`);
 
   const inputs: FFTInputs = {input};
-  const attrs: FFTAttrs = {dtype: 'complex64'};
 
-  return ENGINE.runKernelFunc(
-      backend => {
-        // Collapse all outer dimensions to a single batch dimension.
-        const innerDimensionSize = input.shape[input.shape.length - 1];
-        const batch = input.size / innerDimensionSize;
+  return ENGINE.runKernelFunc(backend => {
+    // Collapse all outer dimensions to a single batch dimension.
+    const innerDimensionSize = input.shape[input.shape.length - 1];
+    const batch = input.size / innerDimensionSize;
 
-        const input2D = input.as2D(batch, innerDimensionSize);
-        const result = backend.fft(input2D);
-        return result.reshape(input.shape);
-      },
-      inputs as {} as NamedTensorMap, null /* gradient */, FFT,
-      attrs as {} as NamedAttrMap);
+    const input2D = input.as2D(batch, innerDimensionSize);
+    const result = backend.fft(input2D);
+    return result.reshape(input.shape);
+  }, inputs as {} as NamedTensorMap, null /* gradient */, FFT);
 }
 
 export const fft = op({fft_});

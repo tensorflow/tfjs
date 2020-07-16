@@ -310,9 +310,6 @@ export type Expm1Inputs = UnaryInputs;
 
 export const FFT = 'FFT';
 export type FFTInputs = Pick<NamedTensorInfoMap, 'input'>;
-export interface FFTAttrs {
-  dtype: DataType;
-}
 
 export const Floor = 'Floor';
 export type FloorInputs = UnaryInputs;
@@ -354,10 +351,6 @@ export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
 
 export const IFFT = 'IFFT';
 export type IFFTInputs = Pick<NamedTensorInfoMap, 'input'>;
-// tslint:disable-next-line:interface-name
-export interface IFFTAttrs {
-  dtype: DataType;
-}
 
 export const Imag = 'Imag';
 export type ImagInputs = Pick<NamedTensorInfoMap, 'input'>;
