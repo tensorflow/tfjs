@@ -94,8 +94,6 @@ async function main() {
 
       fs.writeFileSync(packageJsonPath, pkg);
 
-      //prepareReleaseBuild(phase, packageName);
-
       shell.cd('..');
 
       // Make version for all packages other than tfjs-node-gpu. Consider
