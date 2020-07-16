@@ -12,27 +12,24 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#endif
-#include <xnnpack.h>
+#ifndef KERNELS_PADV2_H_
+#define KERNELS_PADV2_H_
+
+#include <cstddef>
 
 #include "src/cc/backend.h"
-#include "src/cc/unary.h"
 
 namespace tfjs {
 namespace wasm {
-// We use C-style API to interface with Javascript.
 extern "C" {
 
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif
-void Negate(const int x_id, const int out_id) {
-  unary_xnn_f32(x_id, out_id, xnn_create_negate_nc_f32,
-                xnn_setup_negate_nc_f32);
+void PadV2(const size_t x_id, const size_t* x_shape_ptr,
+           const size_t x_shape_length, const DType dtype,
+           const size_t* pre_paddings_ptr, const size_t* post_paddings_ptr,
+           const float pad_value, const size_t out_id);
 }
 
-}  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs
+
+#endif  // KERNELS_PADV2_H_
