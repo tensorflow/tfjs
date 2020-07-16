@@ -15,21 +15,16 @@
  * =============================================================================
  */
 
-import {Asin} from '../kernel_names';
+import {Round} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {cast} from '../ops/cast';
-import {div} from '../ops/div';
-import {scalar} from '../ops/scalar';
-import {sqrt} from '../ops/sqrt';
-import {square} from '../ops/square';
-import {sub} from '../ops/sub';
+import {zerosLike} from '../ops/zeros_like';
 import {Tensor} from '../tensor';
 
-export const asinGradConfig: GradConfig = {
-  kernelName: Asin,
-  inputsToSave: ['x'],
-  gradFunc: (dy: Tensor, saved: Tensor[]) => {
-    const [x] = saved;
-    return {x: () => div(dy, sqrt(sub(scalar(1), square(cast(x, 'float32')))))};
+export const roundGradConfig: GradConfig = {
+  kernelName: Round,
+  gradFunc: (dy: Tensor) => {
+    // TODO(nsthorat): Let gradients be null for cases where we want to stop
+    // backpropgation.
+    return {x: () => zerosLike(dy)};
   }
 };
