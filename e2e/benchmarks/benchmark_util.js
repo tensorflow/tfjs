@@ -190,9 +190,11 @@ async function profileInferenceTime(predict, numRuns = 1) {
 }
 
 /**
- * Asynchronously downloads the values in parallel from any `tf.Tensor`s found
- * within the provided object. Returns a promise of `TypedArray` or
+ * Downloads the values from the `tensorContainer` from any `tf.Tensor`s found
+ * within the `tensorContainer`. Returns a promise of `TypedArray` or
  * `TypedArray[]` that resolves when the computation has finished.
+ *
+ * The values are asynchronously downloaded in parallel.
  *
  * @param tensorContainer The container of tensors to be downloaded.
  */
@@ -227,9 +229,9 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
 }
 
 /**
- * Executes the predict function for `model` (`model.predict` for tf.LayersModel
- * and `model.executeAsync` for tf.GraphModel) and returns a promise that
- * resolves with information about the memory usage:
+ * Executes the predict function for `model` (`model.predict` for
+ * tf.LayersModel and `model.executeAsync` for tf.GraphModel) and returns a
+ * promise that resolves with information about the memory usage:
  * - `newBytes`: the number of new bytes allocated
  * - `newTensors`: the number of new tensors created
  * - `peakBytes`: the peak number of bytes allocated
@@ -273,7 +275,8 @@ async function profileInferenceMemoryForModel(model, input) {
  *    'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2';
  * const model = await tf.loadGraphModel(modelUrl, {fromTFHub: true});
  * const zeros = tf.zeros([1, 224, 224, 3]);
- * const memoryInfo = await profileInferenceMemory(() => model.predict(zeros));
+ * const memoryInfo = await profileInferenceMemory(() =>
+ * model.predict(zeros));
  *
  * console.log(`newBytes: ${memoryInfo.newBytes}`);
  * console.log(`newTensors: ${memoryInfo.newTensors}`);
@@ -300,12 +303,15 @@ async function profileInferenceMemory(predict) {
 /**
  * This function is temporarily used and will be deleted after a new release of
  * tf-core. This function modifies
+ * This function is temporarily used and will be deleted after a new release
+ * of tf-core. This function modifies
  * [`tf.profile`](https://github.com/tensorflow/tfjs/blob/95b5f878218ee45c0f8464386ee01d1f96e78297/tfjs-core/src/engine.ts#L848)
  * in the following points:
  * - replaces all `this` by `tf.engine()`
  * - adds `await` in `this.state.activeProfile.result = query();`
  *
- * When deleting this method, please change the caller `profileInferenceMemory`.
+ * When deleting this method, please change the caller
+ * `profileInferenceMemory`.
  */
 async function profile(query) {
   const engine = tf.engine();
@@ -325,4 +331,105 @@ async function profile(query) {
   engine.state.activeProfile.newTensors =
       engine.state.numTensors - startNumTensors;
   return engine.state.activeProfile;
+}
+
+/**
+ * This map descripes tunable flags and theior corresponding types.
+ *
+ * The flags (keys) in the map satisfy the following two conditions:
+ * - Is tunable. For example, `IS_BROWSER` and `IS_CHROME` is not tunable,
+ * because they are fixed when running the scripts.
+ * - Does not depend on other flags when registering in `ENV.registerFlag()`.
+ * This rule aims to make the list streamlined, and, since there are
+ * dependencies between flags, only modifying an independent flag without
+ * modifying its dependents may cause inconsistency.
+ * (`WEBGL_RENDER_FLOAT32_CAPABLE` is an exception, because only exposing
+ * `WEBGL_FORCE_F16_TEXTURES` may confuse users.)
+ */
+const TUNABLE_FLAG_VALUE_RANGE_MAP = {
+  WEBGL_VERSION: [1, 2],
+  WASM_HAS_SIMD_SUPPORT: [true, false],
+  WEBGL_CPU_FORWARD: [true, false],
+  WEBGL_PACK: [true, false],
+  WEBGL_FORCE_F16_TEXTURES: [true, false],
+  WEBGL_RENDER_FLOAT32_CAPABLE: [true, false],
+};
+
+/**
+ * Set environment flags for testing.
+ *
+ * This is a wrapper function of `tf.env().setFlags()` to constrain users to
+ * only set tunable flags (the keys of `TUNABLE_FLAG_TYPE_MAP`).
+ *
+ * ```js
+ * const flagConfig = {
+ *        WEBGL_PACK: false,
+ *      };
+ * await setEnvFlags(flagConfig);
+ *
+ * console.log(tf.env().getBool('WEBGL_PACK')); // false
+ * console.log(tf.env().getBool('WEBGL_PACK_BINARY_OPERATIONS')); // false
+ * ```
+ *
+ * @param flagConfig An object to store flag-value pairs.
+ */
+async function setEnvFlags(flagConfig) {
+  if (flagConfig == null) {
+    return;
+  } else if (typeof flagConfig !== 'object') {
+    throw new Error(
+        `An object is expected, while a(n) ${typeof flagConfig} is found.`);
+  }
+
+  // Check the validation of flags and values.
+  for (const flag in flagConfig) {
+    // TODO: check whether flag can be set as flagConfig[flag].
+    if (!(flag in TUNABLE_FLAG_VALUE_RANGE_MAP)) {
+      throw new Error(`${flag} is not a tunable or valid environment flag.`);
+    }
+    if (TUNABLE_FLAG_VALUE_RANGE_MAP[flag].indexOf(flagConfig[flag]) === -1) {
+      throw new Error(
+          `${flag} value is expected to be in the range [${
+              TUNABLE_FLAG_VALUE_RANGE_MAP[flag]}], while ${flagConfig[flag]}` +
+          ' is found.');
+    }
+  }
+
+  tf.env().setFlags(flagConfig);
+
+  // `WASM_HAS_SIMD_SUPPORT` and `WEBGL_VERSION` are also evaluated when
+  // initializing backends, not only inferring.
+  // TODO: The following backend rebuild logics can be implemented in `setHook`
+  // when registering these flags.
+  if ('WASM_HAS_SIMD_SUPPORT' in flagConfig) {
+    await resetBackend('wasm');
+  }
+
+  if ('WEBGL_VERSION' in flagConfig) {
+    await resetBackend('webgl');
+  }
+}
+
+/**
+ * Reset the target backend.
+ *
+ * @param backendName The name of the backend to be reset.
+ */
+async function resetBackend(backendName) {
+  const ENGINE = tf.engine();
+  if (!(backendName in ENGINE.registryFactory)) {
+    throw new Error(`${backendName} backend is not registed.`);
+  }
+
+  const currentBackend = tf.getBackend();
+
+  if (backendName in ENGINE.registry) {
+    const backendFactory = tf.findBackendFactory(backendName);
+    tf.removeBackend(backendName);
+    tf.registerBackend(backendName, backendFactory);
+  }
+
+  if (currentBackend === backendName) {
+    await tf.setBackend(backendName);
+  }
 }
