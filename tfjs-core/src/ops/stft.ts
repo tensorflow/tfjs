@@ -22,9 +22,9 @@ import {concat} from './concat';
 import {frame} from './frame';
 import {hannWindow} from './hann_window';
 import {mul} from './mul';
+import {rfft} from './rfft';
 import {enclosingPowerOfTwo} from './signal_ops_util';
 import {slice} from './slice';
-import {rfft} from './spectral_ops';
 
 /**
  * Computes the Short-time Fourier Transform of signals
