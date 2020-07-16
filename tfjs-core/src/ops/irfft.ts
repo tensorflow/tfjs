@@ -21,8 +21,13 @@ import {op} from '../ops/operation';
 import {real} from '../ops/real';
 import {Tensor, Tensor2D} from '../tensor';
 
+import {concat} from './concat';
 import {ifft} from './ifft';
+import {mul} from './mul';
+import {reshape} from './reshape';
+import {reverse} from './reverse';
 import {scalar} from './scalar';
+import {slice} from './slice';
 
 /**
  * Inversed real value input fast Fourier transform.
@@ -47,25 +52,25 @@ function irfft_(input: Tensor): Tensor {
   const batch = input.size / innerDimensionSize;
   let ret: Tensor;
   if (innerDimensionSize <= 2) {
-    const complexInput = input.as2D(batch, innerDimensionSize);
+    const complexInput = reshape(input, [batch, innerDimensionSize]);
     ret = ifft(complexInput);
   } else {
     // The length of unique components of the DFT of a real-valued signal
     // is 2 * (input_len - 1)
     const outputShape = [batch, 2 * (innerDimensionSize - 1)];
-    const realInput = real(input).as2D(batch, innerDimensionSize);
-    const imagInput = imag(input).as2D(batch, innerDimensionSize);
+    const realInput = reshape(real(input), [batch, innerDimensionSize]);
+    const imagInput = reshape(imag(input), [batch, innerDimensionSize]);
 
     const realConjugate =
-        realInput.slice([0, 1], [batch, innerDimensionSize - 2]).reverse(1);
-    const imagConjugate: Tensor2D =
-        imagInput.slice([0, 1], [batch, innerDimensionSize - 2])
-            .reverse(1)
-            .mul(scalar(-1));
+        reverse(slice(realInput, [0, 1], [batch, innerDimensionSize - 2]), 1);
+    const imagConjugate: Tensor2D = mul(
+        reverse(slice(imagInput, [0, 1], [batch, innerDimensionSize - 2]), 1),
+        scalar(-1));
 
-    const r = realInput.concat(realConjugate, 1);
-    const i = imagInput.concat(imagConjugate, 1);
-    const complexInput = complex(r, i).as2D(outputShape[0], outputShape[1]);
+    const r = concat([realInput, realConjugate], 1);
+    const i = concat([imagInput, imagConjugate], 1);
+    const complexInput =
+        reshape(complex(r, i), [outputShape[0], outputShape[1]]);
     ret = ifft(complexInput);
   }
   ret = real(ret);
@@ -73,7 +78,7 @@ function irfft_(input: Tensor): Tensor {
   if (input.rank === 3 && input.shape[0] !== 0) {
     const temp = ret;
     const batch = input.shape[0];
-    ret = ret.reshape([batch, ret.shape[0] / batch, ret.shape[1]]);
+    ret = reshape(ret, [batch, ret.shape[0] / batch, ret.shape[1]]);
     temp.dispose();
   }
   return ret;
