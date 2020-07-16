@@ -231,6 +231,52 @@ export async function updateDependency(
   return pkg;
 }
 
+// Update package.json dependencies in monorepo. This method is different than
+// `updateDependency`, it does not rely on published versions, instead it uses
+// the monorepo version to update.
+export async function updateMonorepoDependency(
+  deps: string[], pkg: string, parsedPkg: any, monorepoVersion: string):
+  Promise<string> {
+  console.log(chalk.magenta.bold(`~~~ Update dependency versions ~~~`));
+
+  if (deps != null) {
+    for (let j = 0; j < deps.length; j++) {
+      const dep = deps[j];
+
+      // Get the current dependency package version.
+      let version = '';
+      const depNpmName = `@tensorflow/${dep}`;
+      if (parsedPkg['dependencies'] != null &&
+          parsedPkg['dependencies'][depNpmName] != null) {
+        version = parsedPkg['dependencies'][depNpmName];
+      } else if (
+          parsedPkg['peerDependencies'] != null &&
+          parsedPkg['peerDependencies'][depNpmName] != null) {
+        version = parsedPkg['peerDependencies'][depNpmName];
+      } else if (
+          parsedPkg['devDependencies'] != null &&
+          parsedPkg['devDependencies'][depNpmName] != null) {
+        version = parsedPkg['devDependencies'][depNpmName];
+      }
+      if (version == null) {
+        throw new Error(`No dependency found for ${dep}.`);
+      }
+
+      let relaxedVersionPrefix = '';
+      if (version.startsWith('~') || version.startsWith('^')) {
+        relaxedVersionPrefix = version.substr(0, 1);
+      }
+      const versionLatest = relaxedVersionPrefix + monorepoVersion;
+
+      pkg = `${pkg}`.replace(
+          new RegExp(`"${depNpmName}": "${version}"`, 'g'),
+          `"${depNpmName}": "${versionLatest}"`);
+    }
+  }
+
+  return pkg;
+}
+
 export function prepareReleaseBuild(phase: Phase, packageName: string) {
   console.log(chalk.magenta.bold(`~~~ Prepare release build ~~~`));
   console.log(chalk.bold('Prepare before-yarn'));
