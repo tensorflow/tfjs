@@ -231,12 +231,11 @@ export async function updateDependency(
   return pkg;
 }
 
-// Update package.json dependencies in monorepo. This method is different than
-// `updateDependency`, it does not rely on published versions, instead it uses
-// the monorepo version to update.
-export async function updateMonorepoDependency(
-  deps: string[], pkg: string, parsedPkg: any, monorepoVersion: string):
-  Promise<string> {
+// Update package.json dependencies of tfjs packages. This method is different
+// than `updateDependency`, it does not rely on published versions, instead it
+// assumes all the packages have the same version and use that to update.
+export function updateTFJSDependencyVersions(
+    deps: string[], pkg: string, parsedPkg: any, tfjsVersion: string): string {
   console.log(chalk.magenta.bold(`~~~ Update dependency versions ~~~`));
 
   if (deps != null) {
@@ -266,7 +265,7 @@ export async function updateMonorepoDependency(
       if (version.startsWith('~') || version.startsWith('^')) {
         relaxedVersionPrefix = version.substr(0, 1);
       }
-      const versionLatest = relaxedVersionPrefix + monorepoVersion;
+      const versionLatest = relaxedVersionPrefix + tfjsVersion;
 
       pkg = `${pkg}`.replace(
           new RegExp(`"${depNpmName}": "${version}"`, 'g'),
