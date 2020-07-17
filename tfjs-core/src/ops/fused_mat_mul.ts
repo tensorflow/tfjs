@@ -32,6 +32,7 @@ import {Activation} from './fused_types';
 import {applyActivation, getFusedBiasGradient, getFusedDyActivation, shouldFuse} from './fused_util';
 import {matMul as unfusedMatMul} from './mat_mul';
 import {op} from './operation';
+import {reshape} from './reshape';
 
 /**
  * Computes the dot product of two matrices with optional activation and bias.
@@ -144,7 +145,7 @@ function fusedMatMul_<T extends Tensor>({
     // necessarily going to be a 3d tensor due to a reshape done at the end of
     // the customOp.
     const dyActivation =
-        getFusedDyActivation(dy.reshape(y.shape), y, activation);
+        getFusedDyActivation(reshape(dy, y.shape), y, activation);
     let aDer: Tensor;
     let bDer: Tensor;
 
