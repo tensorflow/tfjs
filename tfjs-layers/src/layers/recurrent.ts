@@ -1338,8 +1338,7 @@ export declare interface GRUCellLayerArgs extends SimpleRNNCellLayerArgs {
 
   /**
    * GRU convention (whether to apply reset gate after or before matrix
-   * multiplication). false = "before", true = "after" (only false is
-   * supported).
+   * multiplication). false = "before", true = "after"
    */
   resetAfter?: boolean;
 }
@@ -1351,6 +1350,7 @@ export class GRUCell extends RNNCell {
   readonly activation: Activation;
   readonly recurrentActivation: Activation;
   readonly useBias: boolean;
+  readonly resetAfter: boolean;
 
   readonly kernelInitializer: Initializer;
   readonly recurrentInitializer: Initializer;
@@ -1383,10 +1383,6 @@ export class GRUCell extends RNNCell {
 
   constructor(args: GRUCellLayerArgs) {
     super(args);
-    if (args.resetAfter) {
-      throw new ValueError(
-          `GRUCell does not support reset_after parameter set to true.`);
-    }
     this.units = args.units;
     assertPositiveInteger(this.units, 'units');
     this.activation = getActivation(
@@ -1397,6 +1393,7 @@ export class GRUCell extends RNNCell {
             this.DEFAULT_RECURRENT_ACTIVATION :
             args.recurrentActivation);
     this.useBias = args.useBias == null ? true : args.useBias;
+    this.resetAfter = args.resetAfter == null ? false : args.resetAfter;
 
     this.kernelInitializer = getInitializer(
         args.kernelInitializer || this.DEFAULT_KERNEL_INITIALIZER);
@@ -1438,9 +1435,16 @@ export class GRUCell extends RNNCell {
         this.recurrentInitializer, this.recurrentRegularizer, true,
         this.recurrentConstraint);
     if (this.useBias) {
+      let biasShape: Array<number>;
+      if (!this.resetAfter) {
+        biasShape = [this.units * 3];
+      }
+      else {
+        biasShape = [2, this.units * 3];
+      }
       this.bias = this.addWeight(
-          'bias', [this.units * 3], null, this.biasInitializer,
-          this.biasRegularizer, true, this.biasConstraint);
+        'bias', biasShape, null, this.biasInitializer,
+        this.biasRegularizer, true, this.biasConstraint);
     } else {
       this.bias = null;
     }
@@ -1487,8 +1491,17 @@ export class GRUCell extends RNNCell {
         inputs = tfc.mul(inputs, dpMask[0]);
       }
       let matrixX = K.dot(inputs, this.kernel.read());
+
+      let recurrentBias: Tensor; 
+      let inputBias: Tensor;
       if (this.useBias) {
-        matrixX = K.biasAdd(matrixX, this.bias.read());
+        if (!this.resetAfter) {
+          matrixX = K.biasAdd(matrixX, this.bias.read());
+        }
+        else {
+          [inputBias, recurrentBias] = tfc.unstack(this.bias.read());
+          matrixX = K.biasAdd(matrixX, inputBias);
+        }
       }
       if (0 < this.recurrentDropout && this.recurrentDropout < 1) {
         hTMinus1 = tfc.mul(hTMinus1, recDpMask[0]);
@@ -1501,12 +1514,32 @@ export class GRUCell extends RNNCell {
       const matrixInner = K.dot(hTMinus1, rk1);
 
       const [xZ, xR, xH] = tfc.split(matrixX, 3, matrixX.rank - 1);
-      const [recurrentZ, recurrentR] =
+      let [recurrentZ, recurrentR] =
           tfc.split(matrixInner, 2, matrixInner.rank - 1);
+
+      if (this.useBias && this.resetAfter) {
+        recurrentZ = K.biasAdd(recurrentZ, 
+          recurrentBias.slice([0], [this.units]));
+        recurrentR = K.biasAdd(recurrentR, 
+          recurrentBias.slice([this.units], [this.units]));
+      }
+
       z = this.recurrentActivation.apply(tfc.add(xZ, recurrentZ));
       r = this.recurrentActivation.apply(tfc.add(xR, recurrentR));
 
-      const recurrentH = K.dot(tfc.mul(r, hTMinus1), rk2);
+      let recurrentH: Tensor;
+      if (this.resetAfter){
+        recurrentH = K.dot(hTMinus1, rk2);
+        if (this.useBias) {
+          recurrentH = K.biasAdd(recurrentH, 
+            recurrentBias.slice([this.units*2]));
+        }
+        recurrentH = tfc.mul(r, recurrentH);
+      }
+      else {
+        recurrentH = K.dot(tfc.mul(r, hTMinus1), rk2);
+      }
+      
       hh = this.activation.apply(tfc.add(xH, recurrentH));
 
       const h =
