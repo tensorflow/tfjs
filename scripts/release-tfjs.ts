@@ -27,20 +27,20 @@ import * as argparse from 'argparse';
 import chalk from 'chalk';
 import * as fs from 'fs';
 import * as shell from 'shelljs';
-import {TMP_DIR, $, question, makeReleaseDir, createPR, TFJS_RELEASE_UNIT, updateMonorepoDependency} from './release-util';
+import {TMP_DIR, $, question, makeReleaseDir, createPR, TFJS_RELEASE_UNIT, updateTFJSDependencyVersions} from './release-util';
 
 const parser = new argparse.ArgumentParser();
 
 parser.addArgument('--git-protocol', {
   action: 'storeTrue',
-  help: 'Use the git protocal rather than the http protocol when cloning repos.'
+  help: 'Use the git protocol rather than the http protocol when cloning repos.'
 });
 
 // Computes the default updated version (does a minor version update).
 function getMinorUpdateVersion(version: string): string {
   const versionSplit = version.split('.');
 
-  return [versionSplit[0], +versionSplit[1] + 1, versionSplit[2]].join('.');
+  return [versionSplit[0], +versionSplit[1] + 1, '0'].join('.');
 }
 
 async function main() {
@@ -50,12 +50,11 @@ async function main() {
   makeReleaseDir(dir);
 
   // Guess release version from tfjs-core's latest version, with a minor update.
-  const latestVersion =
-  $(`npm view @tensorflow/tfjs-core dist-tags.latest`);
+  const latestVersion = $(`npm view @tensorflow/tfjs-core dist-tags.latest`);
   const minorUpdateVersion = getMinorUpdateVersion(latestVersion);
   let newVersion = minorUpdateVersion;
   newVersion =
-  await question(`New version (leave empty for ${minorUpdateVersion}): `);
+      await question(`New version (leave empty for ${minorUpdateVersion}): `);
   if (newVersion === '') {
     newVersion = minorUpdateVersion;
   }
@@ -65,7 +64,7 @@ async function main() {
   shell.cd(dir);
   const releaseBranch = `tfjs_${newVersion}`;
   console.log(chalk.magenta.bold(
-    `~~~ Creating new release branch ${releaseBranch} ~~~`));
+      `~~~ Creating new release branch ${releaseBranch} ~~~`));
   $(`git checkout -b ${releaseBranch}`);
   $(`git push origin ${releaseBranch}`);
 
@@ -85,12 +84,11 @@ async function main() {
       let pkg = `${fs.readFileSync(packageJsonPath)}`;
       const parsedPkg = JSON.parse(`${pkg}`);
 
-      console.log(chalk.magenta.bold(
-          `~~~ Processing ${packageName} ~~~`));
+      console.log(chalk.magenta.bold(`~~~ Processing ${packageName} ~~~`));
       pkg = `${pkg}`.replace(
           `"version": "${parsedPkg.version}"`, `"version": "${newVersion}"`);
 
-      pkg = await updateMonorepoDependency(deps, pkg, parsedPkg, newVersion);
+      pkg = updateTFJSDependencyVersions(deps, pkg, parsedPkg, newVersion);
 
       fs.writeFileSync(packageJsonPath, pkg);
 
@@ -104,20 +102,20 @@ async function main() {
     }
   }
 
-  // Use dev prefix to avoid branch being locked, delete the dev branch after
-  // PR gets merged.
+  // Use dev prefix to avoid branch being locked.
   const devBranchName = `dev_${releaseBranch}`;
 
   const message = `Update monorepo to ${newVersion}.`;
   createPR(devBranchName, releaseBranch, message);
 
   console.log(
-      `Done. FYI, this script does not publish to NPM. ` +
-      `Please publish by running  ` +
-      `YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm ` +
-      `after you merge the PR.` +
-      `Please remeber to update the website once you have released ` +
-      'a new package version');
+      'Done. FYI, this script does not publish to NPM. ' +
+      'Please publish by running  ' +
+      'YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm ' +
+      'after you merge the PR.' +
+      'Remember to delete the dev branch once PR is merged.' +
+      'Please remeber to update the website once you have released ' +
+      'a new package version.');
 
   process.exit(0);
 }
