@@ -5,7 +5,7 @@ const BACKEND_FLAGS_MAP = {
   webgl: [
     'WEBGL_VERSION', 'WEBGL_CPU_FORWARD', 'WEBGL_PACK',
     'WEBGL_FORCE_F16_TEXTURES', 'WEBGL_RENDER_FLOAT32_CAPABLE'
-  ],
+  ]
 };
 const TUNABLE_FLAG_NAME_MAP = {
   PROD: 'production mode',
@@ -14,7 +14,7 @@ const TUNABLE_FLAG_NAME_MAP = {
   WEBGL_CPU_FORWARD: 'cpu forward',
   WEBGL_PACK: 'webgl pack',
   WEBGL_FORCE_F16_TEXTURES: 'enforce float16',
-  WEBGL_RENDER_FLOAT32_CAPABLE: 'enable float32',
+  WEBGL_RENDER_FLOAT32_CAPABLE: 'enable float32'
 };
 
 let TUNABLE_FLAG_DEFAULT_VALUE_MAP;
@@ -23,7 +23,7 @@ async function showFlagsSettings(folderController) {
   // The first constroller under the `folderController` is the backend. In
   // addition to backend setting, general flags also apply to all backends.
   const fixedSelectionNum = BACKEND_FLAGS_MAP.general + 1;
-  while (folderController.__controllers.length > 1) {
+  while (folderController.__controllers.length > fixedSelectionNum) {
     folderController.remove(folderController.__controllers[1]);
   }
 
@@ -38,8 +38,10 @@ async function showFlagsSettings(folderController) {
     const flagName = TUNABLE_FLAG_NAME_MAP[flag] || flag;
     const flagDefaultValue = TUNABLE_FLAG_DEFAULT_VALUE_MAP[flag];
 
+    // When flagRegistry has tunable (bool) and range (array) attributes, we can
+    // utilize it here.
     const flagValueRange = getTunableRange(flagDefaultValue);
-    // Will not show setting for untunable flags.
+    // Consider a flag with one option as untunable.
     if (flagValueRange.length < 2) {
       continue;
     }
@@ -59,8 +61,7 @@ async function getFlagDefaultValueMap() {
   await sleep(1);
   TUNABLE_FLAG_DEFAULT_VALUE_MAP = {};
   for (const flag in TUNABLE_FLAG_VALUE_RANGE_MAP) {
-    TUNABLE_FLAG_DEFAULT_VALUE_MAP[flag] =
-        TUNABLE_FLAG_VALUE_RANGE_MAP[flag][0];
+    TUNABLE_FLAG_DEFAULT_VALUE_MAP[flag] = await tf.env().getAsync(flag);
   }
 
   // Populate tunable flags' default values to state.flags.
