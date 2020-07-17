@@ -21,7 +21,7 @@ import * as dynamic from '../op_list/dynamic';
 import {Node} from '../types';
 
 import {executeOp} from './dynamic_executor';
-import {createNumberAttrFromIndex, createTensorAttr, validateParam} from './test_helper';
+import {createBoolAttr, createNumberAttrFromIndex, createTensorAttr, validateParam} from './test_helper';
 
 describe('dynamic', () => {
   let node: Node;
@@ -105,6 +105,43 @@ describe('dynamic', () => {
         node.inputNames = ['input1', 'input2', 'input3', 'input4', 'input5'];
 
         expect(validateParam(node, dynamic.json, 'NonMaxSuppressionV3'))
+            .toBeTruthy();
+      });
+    });
+
+    describe('NonMaxSuppressionV4', () => {
+      it('should return input', () => {
+        node.op = 'NonMaxSuppressionV4';
+        node.inputParams['boxes'] = createTensorAttr(0);
+        node.inputParams['scores'] = createTensorAttr(1);
+        node.inputParams['maxOutputSize'] = createNumberAttrFromIndex(2);
+        node.inputParams['iouThreshold'] = createNumberAttrFromIndex(3);
+        node.inputParams['scoreThreshold'] = createNumberAttrFromIndex(4);
+        node.attrParams['padToMaxOutputSize'] = createBoolAttr(true);
+        node.inputNames = ['input1', 'input2', 'input3', 'input4', 'input5'];
+        const input2 = [tfc.tensor1d([1])];
+        const input3 = [tfc.tensor1d([1])];
+        const input4 = [tfc.tensor1d([1])];
+        const input5 = [tfc.tensor1d([1])];
+        spyOn(tfc.image, 'nonMaxSuppressionPaddedAsync').and.returnValue({});
+        const result =
+            executeOp(node, {input1, input2, input3, input4, input5}, context);
+        expect(tfc.image.nonMaxSuppressionPaddedAsync)
+            .toHaveBeenCalledWith(input1[0], input2[0], 1, 1, 1, 1);
+        expect(result instanceof Promise).toBeTruthy();
+      });
+      it('should match json def', () => {
+        node.op = 'NonMaxSuppressionV4';
+        node.inputParams['boxes'] = createTensorAttr(0);
+        node.inputParams['scores'] = createTensorAttr(1);
+        node.inputParams['maxOutputSize'] = createNumberAttrFromIndex(2);
+        node.inputParams['iouThreshold'] = createNumberAttrFromIndex(3);
+        node.inputParams['scoreThreshold'] = createNumberAttrFromIndex(4);
+        node.inputParams['softNmsSigma'] = createNumberAttrFromIndex(5);
+        node.attrParams['padToMaxOutputSize'] = createBoolAttr(true);
+        node.inputNames = ['input1', 'input2', 'input3', 'input4', 'input5'];
+
+        expect(validateParam(node, dynamic.json, 'NonMaxSuppressionV4'))
             .toBeTruthy();
       });
     });
