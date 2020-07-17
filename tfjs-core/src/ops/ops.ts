@@ -72,13 +72,16 @@ export {exp} from './exp';
 export {expandDims} from './expand_dims';
 export {expm1} from './expm1';
 export {eye} from './eye';
+export {fft} from './fft';
 export {fill} from './fill';
 export {floor} from './floor';
 export {floorDiv} from './floorDiv';
 export {gather} from './gather';
 export {greater} from './greater';
 export {greaterEqual} from './greater_equal';
+export {ifft} from './ifft';
 export {imag} from './imag';
+export {irfft} from './irfft';
 export {isFinite} from './is_finite';
 export {isInf} from './is_inf';
 export {isNaN} from './is_nan';
@@ -141,6 +144,7 @@ export {reverse1d} from './reverse_1d';
 export {reverse2d} from './reverse_2d';
 export {reverse3d} from './reverse_3d';
 export {reverse4d} from './reverse_4d';
+export {rfft} from './rfft';
 export {round} from './round';
 export {rsqrt} from './rsqrt';
 export {scalar} from './scalar';
@@ -196,7 +200,6 @@ export * from './transpose';
 export * from './norm';
 export * from './moving_average';
 export * from './scatter_nd';
-export * from './spectral_ops';
 export * from './sparse_to_dense';
 export * from './gather_nd';
 export * from './dropout';
@@ -205,7 +208,17 @@ export * from './in_top_k';
 
 export {op} from './operation';
 
-import * as spectral from './spectral_ops';
+import {rfft} from './rfft';
+import {fft} from './fft';
+import {ifft} from './ifft';
+import {irfft} from './irfft';
+const spectral = {
+  fft,
+  ifft,
+  rfft,
+  irfft
+};
+
 import * as fused from './fused_ops';
 
 import {hammingWindow} from './hamming_window';
@@ -225,7 +238,9 @@ import {rotateWithOffset} from './rotate_with_offset';
 import {nonMaxSuppression} from './non_max_suppression';
 import {nonMaxSuppressionAsync} from './non_max_suppression_async';
 import {nonMaxSuppressionWithScore} from './non_max_suppression_with_score';
-import {nonMaxSuppressionWithScoreAsync} from './non_max_suppresion_with_score_async';
+import {nonMaxSuppressionWithScoreAsync} from './non_max_suppression_with_score_async';
+import {nonMaxSuppressionPadded} from './non_max_suppression_padded';
+import {nonMaxSuppressionPaddedAsync} from './non_max_suppression_padded_async';
 import {resizeBilinear} from './resize_bilinear';
 import {resizeNearestNeighbor} from './resize_nearest_neighbor';
 const image = {
@@ -236,7 +251,9 @@ const image = {
   nonMaxSuppression,
   nonMaxSuppressionAsync,
   nonMaxSuppressionWithScore,
-  nonMaxSuppressionWithScoreAsync
+  nonMaxSuppressionWithScoreAsync,
+  nonMaxSuppressionPadded,
+  nonMaxSuppressionPaddedAsync
 };
 
 // linalg namespace

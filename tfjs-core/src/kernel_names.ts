@@ -308,6 +308,9 @@ export type ExpInputs = UnaryInputs;
 export const Expm1 = 'Expm1';
 export type Expm1Inputs = UnaryInputs;
 
+export const FFT = 'FFT';
+export type FFTInputs = Pick<NamedTensorInfoMap, 'input'>;
+
 export const Floor = 'Floor';
 export type FloorInputs = UnaryInputs;
 
@@ -345,6 +348,9 @@ export type GreaterEqualInputs = BinaryInputs;
 
 export const Identity = 'Identity';
 export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
+
+export const IFFT = 'IFFT';
+export type IFFTInputs = Pick<NamedTensorInfoMap, 'input'>;
 
 export const Imag = 'Imag';
 export type ImagInputs = Pick<NamedTensorInfoMap, 'input'>;
@@ -505,6 +511,16 @@ export interface NonMaxSuppressionV3Attrs {
   maxOutputSize: number;
   iouThreshold: number;
   scoreThreshold: number;
+}
+
+export const NonMaxSuppressionV4 = 'NonMaxSuppressionV4';
+export type NonMaxSuppressionV4Inputs =
+    Pick<NamedTensorInfoMap, 'boxes'|'scores'>;
+export interface NonMaxSuppressionV4Attrs {
+  maxOutputSize: number;
+  iouThreshold: number;
+  scoreThreshold: number;
+  padToMaxOutputSize: boolean;
 }
 
 export const NonMaxSuppressionV5 = 'NonMaxSuppressionV5';
