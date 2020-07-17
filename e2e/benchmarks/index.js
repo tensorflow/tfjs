@@ -46,19 +46,22 @@ async function showFlagsSettings(folderController) {
       continue;
     }
 
+    let flagController;
     if (typeof state.flags[flag] === 'boolean') {
       // Show checkbox for boolean flags.
-      folderController.add(state.flags, flag).name(flagName);
+      flagController = folderController.add(state.flags, flag);
     } else {
       // Show dropdown for other types of flags.
-      folderController.add(state.flags, flag, flagValueRange).name(flagName);
+      flagController = folderController.add(state.flags, flag, flagValueRange);
     }
+    flagController.name(flagName).onChange(() => {
+      state.isFlagChanged = true;
+    });
   }
 }
 
 async function getFlagDefaultValueMap() {
-  // TODO: query default
-  await sleep(1);
+  // Query flags' default values.
   TUNABLE_FLAG_DEFAULT_VALUE_MAP = {};
   for (const flag in TUNABLE_FLAG_VALUE_RANGE_MAP) {
     TUNABLE_FLAG_DEFAULT_VALUE_MAP[flag] = await tf.env().getAsync(flag);
@@ -68,6 +71,7 @@ async function getFlagDefaultValueMap() {
   for (const flag in TUNABLE_FLAG_DEFAULT_VALUE_MAP) {
     state.flags[flag] = TUNABLE_FLAG_DEFAULT_VALUE_MAP[flag];
   }
+  state.isFlagChanged = false;
 }
 
 function getTunableRange(defaultValue) {

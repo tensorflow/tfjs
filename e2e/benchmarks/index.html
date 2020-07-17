@@ -162,7 +162,8 @@ limitations under the License.
       modelType: '',
       modelUrl: '',
       isModelChanged: false,
-      flags: {}
+      flags: {},
+      isFlagChanged: false
     };
 
     const modalDiv = document.getElementById('modal-msg');
@@ -475,6 +476,10 @@ limitations under the License.
     }
 
     async function runBenchmark() {
+      if (state.isFlagChanged) {
+        await setEnvFlags(state.flags);
+        state.isFlagChanged = false;
+      }
       await cleanUpTable();
       await setupKernelTable();
 
