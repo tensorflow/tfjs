@@ -216,6 +216,7 @@ tfjs_cc_library(
         ":Multiply",
         ":Negate",
         ":NonMaxSuppressionV3",
+        ":NonMaxSuppressionV4",
         ":NonMaxSuppressionV5",
         ":NotEqual",
         ":OneHot",
@@ -648,6 +649,16 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "NonMaxSuppressionV3",
     srcs = ["kernels/NonMaxSuppressionV3.cc"],
+    deps = [
+        ":backend",
+        ":non_max_suppression_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "NonMaxSuppressionV4",
+    srcs = ["kernels/NonMaxSuppressionV4.cc"],
     deps = [
         ":backend",
         ":non_max_suppression_impl",
