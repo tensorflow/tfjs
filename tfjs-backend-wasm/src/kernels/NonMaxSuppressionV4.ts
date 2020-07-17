@@ -28,7 +28,7 @@ let wasmFunc: (
 
 function setup(backend: BackendWasm): void {
   wasmFunc = backend.wasm.cwrap(
-      'NonMaxSuppressionV4',
+      NonMaxSuppressionV4,
       'number',  // Result*
       [
         'number',  // boxesId

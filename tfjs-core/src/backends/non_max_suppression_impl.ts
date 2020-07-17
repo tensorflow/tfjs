@@ -47,15 +47,9 @@ export function nonMaxSuppressionV4Impl(
     iouThreshold: number, scoreThreshold: number,
     padToMaxOutputSize: boolean): NamedTensorMap {
   return nonMaxSuppressionImpl_(
-      boxes,
-      scores,
-      maxOutputSize,
-      iouThreshold,
-      scoreThreshold,
-      0,                  /* softNmsSigma */
-      false,              /* returnScoresTensor */
-      padToMaxOutputSize, /* padToMaxOutputSize */
-      true,
+      boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
+      0 /* softNmsSigma */, false /* returnScoresTensor */,
+      padToMaxOutputSize /* padToMaxOutputSize */, true
       /* returnValidOutputs */);
 }
 
