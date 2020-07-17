@@ -16,18 +16,24 @@
  */
 
 import {ENGINE, ForwardFunc} from '../engine';
+import {customGrad} from '../gradients';
 import {FusedDepthwiseConv2D, FusedDepthwiseConv2DAttrs, FusedDepthwiseConv2DInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor3D, Tensor4D} from '../tensor';
-import {NamedTensorMap} from '../tensor_types';
+import {GradSaveFunc, NamedTensorMap} from '../tensor_types';
 import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
+import {add} from './add';
 import * as broadcast_util from './broadcast_util';
 import * as conv_util from './conv_util';
+import {depthwiseConv2d as unfusedDepthwiseConv2d} from './depthwise_conv2d';
+import {depthwiseConv2dNativeBackpropFilter} from './depthwise_conv2d_native_backprop_filter';
+import {depthwiseConv2dNativeBackpropInput} from './depthwise_conv2d_native_backprop_input';
 import {Activation} from './fused_types';
+import {applyActivation, getFusedBiasGradient, getFusedDyActivation, shouldFuse} from './fused_util';
 import {op} from './operation';
 
 /**
@@ -103,6 +109,16 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   activation?: Activation,
   preluActivationWeights?: Tensor
 }): T {
+  if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
+    let result = unfusedDepthwiseConv2d(
+        x, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
+    if (bias != null) {
+      result = add(result, bias);
+    }
+
+    return applyActivation(result, activation, preluActivationWeights) as T;
+  }
+
   const $x = convertToTensor(x, 'x', 'depthwiseConv2d');
   const $filter = convertToTensor(filter, 'filter', 'depthwiseConv2d');
 
@@ -159,6 +175,29 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
         preluActivationWeights, 'prelu weights', 'fused depthwiseConv2d');
   }
 
+  const grad = (dy: Tensor4D, saved: Tensor[]) => {
+    util.assert(
+        conv_util.tupleValuesAreOne(dilations),
+        () => 'Error in gradient of fused depthwiseConv2d: dilation rates ' +
+            `greater than 1 are not yet supported. Got dilations ` +
+            `'${dilations}'`);
+    const [$filter, x4D, y, bias] = saved;
+
+    const dyActivation = getFusedDyActivation(dy, y, activation) as Tensor4D;
+
+    const xDer = depthwiseConv2dNativeBackpropInput(
+        (x4D as Tensor4D).shape, dyActivation, $filter as Tensor4D, convInfo);
+    const filterDer = depthwiseConv2dNativeBackpropFilter(
+        x4D as Tensor4D, dyActivation, ($filter as Tensor4D).shape, convInfo);
+
+    if (bias != null) {
+      const biasDer = getFusedBiasGradient($bias, dyActivation);
+      return [xDer, filterDer, biasDer];
+    } else {
+      return [xDer, filterDer];
+    }
+  };
+
   const forward: ForwardFunc<Tensor> = (backend) => {
     const res = backend.fusedDepthwiseConv2D({
       input: x4D,
@@ -180,13 +219,41 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   const attrs: FusedDepthwiseConv2DAttrs =
       {strides, pad, dataFormat, dilations, dimRoundingMode, activation};
 
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */,
-      FusedDepthwiseConv2D, attrs as {} as NamedAttrMap);
+  // Depending on the the params passed in we will have different number of
+  // inputs and thus a a different number of elements in the gradient.
+  if (bias == null) {
+    const customOp =
+        customGrad((x4D: Tensor4D, filter: Tensor4D, save: GradSaveFunc) => {
+          let res = ENGINE.runKernelFunc(
+              forward, inputs as {} as NamedTensorMap, null /* grad */,
+              FusedDepthwiseConv2D, attrs as {} as NamedAttrMap);
 
-  if (reshapedTo4D) {
-    return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
+          save([filter, x4D, res]);
+
+          if (reshapedTo4D) {
+            res = res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
+          }
+
+          return {value: res, gradFunc: grad};
+        });
+    return customOp(x4D, $filter) as T;
+  } else {
+    const customOpWithBias = customGrad(
+        (x4D: Tensor4D, filter: Tensor4D, bias: Tensor, save: GradSaveFunc) => {
+          let res = ENGINE.runKernelFunc(
+              forward, inputs as {} as NamedTensorMap, null /* grad */,
+              FusedDepthwiseConv2D, attrs as {} as NamedAttrMap);
+
+          save([filter, x4D, res, bias]);
+
+          if (reshapedTo4D) {
+            res = res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
+          }
+
+          return {value: res, gradFunc: grad};
+        });
+
+    return customOpWithBias(x4D, $filter, $bias) as T;
   }
-  return res as T;
 }
 export const depthwiseConv2d = op({fusedDepthwiseConv2d_});

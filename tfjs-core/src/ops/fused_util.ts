@@ -66,3 +66,9 @@ export function applyActivation(
   }
   throw new Error(`Unknown fused activation ${activation}.`);
 }
+
+// Whether we should call fused ops.
+export const shouldFuse = (gradientDepth: number, activation: Activation) => {
+  const gradientMode = gradientDepth > 0;
+  return !gradientMode || activation === 'linear';
+};

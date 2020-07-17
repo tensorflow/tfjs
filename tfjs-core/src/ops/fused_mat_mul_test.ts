@@ -176,135 +176,158 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     expectArraysClose(await d.data(), [1, 9, -2, 21]);
   });
 
-  // it('fused A x B with relu gradient', async () => {
-  //   const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [2, 3]);
-  //   const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
-  //   const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
-  //   const transposeA = false;
-  //   const transposeB = false;
+  it('fused A x B with relu gradient', async () => {
+    const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [2, 3]);
+    const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
+    const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
+    const transposeA = false;
+    const transposeB = false;
 
-  //   const grads = tf.grads((a, b) => {
-  //     const prod = tf.matMul(a, b, transposeA, transposeB);
-  //     return tf.relu(prod);
-  //   });
+    const grads = tf.grads((a, b) => {
+      const prod = tf.matMul(a, b, transposeA, transposeB);
+      return tf.relu(prod);
+    });
 
-  //   const fusedGrads = tf.grads((a, b) => {
-  //     return tf.fused.matMul(
-  //         {a, b, transposeA, transposeB, bias: null, activation: 'relu'});
-  //   });
+    const fusedGrads = tf.grads((a, b) => {
+      return tf.fused.matMul(
+          {a, b, transposeA, transposeB, bias: null, activation: 'relu'});
+    });
 
-  //   const [da, db] = grads([a, b], dy);
-  //   const [fusedDa, fusedDb] = fusedGrads([a, b], dy);
-  //   expectArraysClose(await da.array(), await fusedDa.array());
-  //   expectArraysClose(await db.data(), await fusedDb.array());
-  // });
+    const [da, db] = grads([a, b], dy);
+    const [fusedDa, fusedDb] = fusedGrads([a, b], dy);
+    expectArraysClose(await da.array(), await fusedDa.array());
+    expectArraysClose(await db.data(), await fusedDb.array());
+  });
 
-  // it('gradient with clones A x B with relu', () => {
-  //   const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [2, 3]);
-  //   const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
-  //   const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
-  //   const transposeA = false;
-  //   const transposeB = false;
+  it('gradient with clones A x B with relu', () => {
+    const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [2, 3]);
+    const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
+    const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
+    const transposeA = false;
+    const transposeB = false;
 
-  //   const fusedGrads = tf.grads((a, b) => {
-  //     return tf.fused
-  //         .matMul({
-  //           a: a.clone(),
-  //           b: b.clone(),
-  //           transposeA,
-  //           transposeB,
-  //           bias: null,
-  //           activation: 'relu'
-  //         })
-  //         .clone();
-  //   });
+    const fusedGrads = tf.grads((a, b) => {
+      return tf.fused
+          .matMul({
+            a: a.clone(),
+            b: b.clone(),
+            transposeA,
+            transposeB,
+            bias: null,
+            activation: 'relu'
+          })
+          .clone();
+    });
 
-  //   const [fusedDa, fusedDb] = fusedGrads([a, b], dy);
-  //   expect(fusedDa.shape).toEqual(a.shape);
-  //   expect(fusedDb.shape).toEqual(b.shape);
-  // });
+    const [fusedDa, fusedDb] = fusedGrads([a, b], dy);
+    expect(fusedDa.shape).toEqual(a.shape);
+    expect(fusedDb.shape).toEqual(b.shape);
+  });
 
-  // it('fused A x B with relu bias gradient', async () => {
-  //   const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [2, 3]);
-  //   const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
-  //   const c = tf.tensor2d([1, 1, 1, 1], [2, 2]);
-  //   const transposeA = false;
-  //   const transposeB = false;
+  it('fused A x B with relu bias gradient', async () => {
+    const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [2, 3]);
+    const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
+    const c = tf.tensor2d([1, 1, 1, 1], [2, 2]);
+    const transposeA = false;
+    const transposeB = false;
 
-  //   const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
+    const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
 
-  //   const grads = tf.grads((a, b, c) => {
-  //     const prod = tf.matMul(a, b, transposeA, transposeB);
-  //     const sum = tf.add(prod, c);
-  //     return tf.relu(sum);
-  //   });
+    const grads = tf.grads((a, b, c) => {
+      const prod = tf.matMul(a, b, transposeA, transposeB);
+      const sum = tf.add(prod, c);
+      return tf.relu(sum);
+    });
 
-  //   const fusedGrads = tf.grads((a, b, c) => {
-  //     return tf.fused.matMul(
-  //         {a, b, transposeA, transposeB, bias: c, activation: 'relu'});
-  //   });
+    const fusedGrads = tf.grads((a, b, c) => {
+      return tf.fused.matMul(
+          {a, b, transposeA, transposeB, bias: c, activation: 'relu'});
+    });
 
-  //   const [da, db, dc] = grads([a, b, c], dy);
-  //   const [fusedDa, fusedDb, fusedDc] = fusedGrads([a, b, c], dy);
+    const [da, db, dc] = grads([a, b, c], dy);
+    const [fusedDa, fusedDb, fusedDc] = fusedGrads([a, b, c], dy);
 
-  //   expectArraysClose(await da.array(), await fusedDa.array());
-  //   expectArraysClose(await db.array(), await fusedDb.array());
-  //   expectArraysClose(await dc.array(), await fusedDc.array());
-  // });
+    expectArraysClose(await da.array(), await fusedDa.array());
+    expectArraysClose(await db.array(), await fusedDb.array());
+    expectArraysClose(await dc.array(), await fusedDc.array());
+  });
 
-  // it('fused A x B with relu bias gradient transpose', async () => {
-  //   const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [3, 2]);
-  //   const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
-  //   const c = tf.tensor2d([1, 1, 1, 1], [2, 2]);
-  //   const transposeA = true;
-  //   const transposeB = false;
+  it('fused A x B with relu bias gradient transpose', async () => {
+    const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [3, 2]);
+    const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
+    const c = tf.tensor2d([1, 1, 1, 1], [2, 2]);
+    const transposeA = true;
+    const transposeB = false;
 
-  //   const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
+    const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
 
-  //   const grads = tf.grads((a, b, c) => {
-  //     const prod = tf.matMul(a, b, transposeA, transposeB);
-  //     const sum = tf.add(prod, c);
-  //     return tf.relu(sum);
-  //   });
+    const grads = tf.grads((a, b, c) => {
+      const prod = tf.matMul(a, b, transposeA, transposeB);
+      const sum = tf.add(prod, c);
+      return tf.relu(sum);
+    });
 
-  //   const fusedGrads = tf.grads((a, b, c) => {
-  //     return tf.fused.matMul(
-  //         {a, b, transposeA, transposeB, bias: c, activation: 'relu'});
-  //   });
+    const fusedGrads = tf.grads((a, b, c) => {
+      return tf.fused.matMul(
+          {a, b, transposeA, transposeB, bias: c, activation: 'relu'});
+    });
 
-  //   const [da, db, dc] = grads([a, b, c], dy);
-  //   const [fusedDa, fusedDb, fusedDc] = fusedGrads([a, b, c], dy);
+    const [da, db, dc] = grads([a, b, c], dy);
+    const [fusedDa, fusedDb, fusedDc] = fusedGrads([a, b, c], dy);
 
-  //   expectArraysClose(await da.array(), await fusedDa.array());
-  //   expectArraysClose(await db.array(), await fusedDb.array());
-  //   expectArraysClose(await dc.array(), await fusedDc.array());
-  // });
+    expectArraysClose(await da.array(), await fusedDa.array());
+    expectArraysClose(await db.array(), await fusedDb.array());
+    expectArraysClose(await dc.array(), await fusedDc.array());
+  });
 
-  // it('fused A x B with relu and broadcasted bias gradient', async () => {
-  //   const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [2, 3]);
-  //   const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
-  //   const c = tf.tensor2d([[1]]);
-  //   const transposeA = false;
-  //   const transposeB = false;
+  it('fused A x B with relu and broadcasted bias gradient', async () => {
+    const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [2, 3]);
+    const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
+    const c = tf.tensor2d([[1]]);
+    const transposeA = false;
+    const transposeB = false;
 
-  //   const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
+    const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
 
-  //   const grads = tf.grads((a, b, c) => {
-  //     const prod = tf.matMul(a, b, transposeA, transposeB);
-  //     const sum = tf.add(prod, c);
-  //     return tf.relu(sum);
-  //   });
+    const grads = tf.grads((a, b, c) => {
+      const prod = tf.matMul(a, b, transposeA, transposeB);
+      const sum = tf.add(prod, c);
+      return tf.relu(sum);
+    });
 
-  //   const fusedGrads = tf.grads((a, b, c) => {
-  //     return tf.fused.matMul(
-  //         {a, b, transposeA, transposeB, bias: c, activation: 'relu'});
-  //   });
+    const fusedGrads = tf.grads((a, b, c) => {
+      return tf.fused.matMul(
+          {a, b, transposeA, transposeB, bias: c, activation: 'relu'});
+    });
 
-  //   const [da, db, dc] = grads([a, b, c], dy);
-  //   const [fusedDa, fusedDb, fusedDc] = fusedGrads([a, b, c], dy);
+    const [da, db, dc] = grads([a, b, c], dy);
+    const [fusedDa, fusedDb, fusedDc] = fusedGrads([a, b, c], dy);
 
-  //   expectArraysClose(await da.array(), await fusedDa.array());
-  //   expectArraysClose(await db.array(), await fusedDb.array());
-  //   expectArraysClose(await dc.array(), await fusedDc.array());
-  // });
+    expectArraysClose(await da.array(), await fusedDa.array());
+    expectArraysClose(await db.array(), await fusedDb.array());
+    expectArraysClose(await dc.array(), await fusedDc.array());
+  });
+
+  it('fused matmul with relu6 and gradients', async () => {
+    const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [2, 3]);
+    const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
+    const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
+    const transposeA = false;
+    const transposeB = false;
+
+    const fusedGrads = tf.grads((a, b) => {
+      return tf.fused.matMul(
+          {a, b, transposeA, transposeB, bias: null, activation: 'relu6'});
+    });
+    const [fusedDa, fusedDb] = fusedGrads([a, b], dy);
+
+    const grads = tf.grads((a, b) => {
+      const prod = tf.matMul(a, b, transposeA, transposeB);
+      return tf.relu6(prod);
+    });
+    const [da, db] = grads([a, b], dy);
+
+    expectArraysClose(await da.array(), await fusedDa.array());
+    expectArraysClose(await db.data(), await fusedDb.array());
+  });
 });

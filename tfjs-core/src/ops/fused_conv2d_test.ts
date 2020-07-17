@@ -656,209 +656,189 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
         await result.data(), [15, 10, 15, 55, 30, 55, 0, 0, 0, 0, 0, 0]);
   });
 
-  // it('backProp input x=[2,3,3,1] f=[2,2,1,1] s=1 p=0', async () => {
-  //   const inputDepth = 1;
-  //   const outputDepth = 1;
-  //   const inputShape: [number, number, number, number] = [2, 3, 3,
-  //   inputDepth]; const filterSize = 2; const strides = 1; const pad = 0;
+  it('backProp input x=[2,3,3,1] f=[2,2,1,1] s=1 p=0', async () => {
+    const inputDepth = 1;
+    const outputDepth = 1;
+    const inputShape: [number, number, number, number] = [2, 3, 3, inputDepth];
+    const filterSize = 2;
+    const strides = 1;
+    const pad = 0;
 
-  //   const filterShape: [number, number, number, number] =
-  //       [filterSize, filterSize, inputDepth, outputDepth];
-  //   const filter = tf.tensor4d([-1, 1, -2, 0.5], filterShape);
+    const filterShape: [number, number, number, number] =
+        [filterSize, filterSize, inputDepth, outputDepth];
+    const filter = tf.tensor4d([-1, 1, -2, 0.5], filterShape);
 
-  //   const x = tf.tensor4d(
-  //       [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9], inputShape);
-  //   const dy = tf.tensor4d([3, 1, 2, 0, 3, 1, 2, 0], [2, 2, 2, 1]);
+    const x = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9], inputShape);
+    const dy = tf.tensor4d([3, 1, 2, 0, 3, 1, 2, 0], [2, 2, 2, 1]);
 
-  //   const grads = tf.grads(
-  //       (x: tf.Tensor4D) => tf.fused.conv2d({x, filter, strides, pad}));
-  //   const [dx] = grads([x], dy);
+    const grads = tf.grads(
+        (x: tf.Tensor4D) => tf.fused.conv2d({x, filter, strides, pad}));
+    const [dx] = grads([x], dy);
 
-  //   expect(dx.shape).toEqual(x.shape);
-  //   expectArraysClose(
-  //       await dx.data(),
-  //       [-3, 2, 1, -8, 1.5, 0.5, -4, 1, 0, -3, 2, 1, -8, 1.5, 0.5, -4, 1,
-  //       0]);
-  // });
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(
+        await dx.data(),
+        [-3, 2, 1, -8, 1.5, 0.5, -4, 1, 0, -3, 2, 1, -8, 1.5, 0.5, -4, 1, 0]);
+  });
 
-  // it('gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0', async () => {
-  //   const inputDepth = 1;
-  //   const outputDepth = 1;
-  //   const inputShape: [number, number, number, number] = [2, 3, 3,
-  //   inputDepth]; const filterSize = 2; const strides = 1; const pad = 0;
+  it('gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0', async () => {
+    const inputDepth = 1;
+    const outputDepth = 1;
+    const inputShape: [number, number, number, number] = [2, 3, 3, inputDepth];
+    const filterSize = 2;
+    const strides = 1;
+    const pad = 0;
 
-  //   const filterShape: [number, number, number, number] =
-  //       [filterSize, filterSize, inputDepth, outputDepth];
-  //   const filter = tf.tensor4d([-1, 1, -2, 0.5], filterShape);
+    const filterShape: [number, number, number, number] =
+        [filterSize, filterSize, inputDepth, outputDepth];
+    const filter = tf.tensor4d([-1, 1, -2, 0.5], filterShape);
 
-  //   const x = tf.tensor4d(
-  //       [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9], inputShape);
-  //   const dy = tf.tensor4d([3, 1, 2, 0, 3, 1, 2, 0], [2, 2, 2, 1]);
+    const x = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9], inputShape);
+    const dy = tf.tensor4d([3, 1, 2, 0, 3, 1, 2, 0], [2, 2, 2, 1]);
 
-  //   const grads = tf.grads(
-  //       (x: tf.Tensor4D, filter: tf.Tensor4D) =>
-  //           tf.fused.conv2d({x, filter, strides, pad}));
-  //   const [dx, dfilter] = grads([x, filter], dy);
+    const grads = tf.grads(
+        (x: tf.Tensor4D, filter: tf.Tensor4D) =>
+            tf.fused.conv2d({x, filter, strides, pad}));
+    const [dx, dfilter] = grads([x, filter], dy);
 
-  //   expect(dx.shape).toEqual(x.shape);
-  //   expectArraysClose(
-  //       await dx.data(),
-  //       [-3, 2, 1, -8, 1.5, 0.5, -4, 1, 0, -3, 2, 1, -8, 1.5, 0.5, -4, 1,
-  //       0]);
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(
+        await dx.data(),
+        [-3, 2, 1, -8, 1.5, 0.5, -4, 1, 0, -3, 2, 1, -8, 1.5, 0.5, -4, 1, 0]);
 
-  //   expect(dfilter.shape).toEqual(filterShape);
-  //   expectArraysClose(await dfilter.data(), [26, 38, 62, 74]);
-  // });
+    expect(dfilter.shape).toEqual(filterShape);
+    expectArraysClose(await dfilter.data(), [26, 38, 62, 74]);
+  });
 
-  // it('gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0 with bias', async () => {
-  //   const inputDepth = 1;
-  //   const outputDepth = 1;
-  //   const inputShape: [number, number, number, number] = [2, 3, 3,
-  //   inputDepth]; const filterSize = 2; const strides = 1; const pad = 0;
+  it('gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0 with bias', async () => {
+    const inputDepth = 1;
+    const outputDepth = 1;
+    const inputShape: [number, number, number, number] = [2, 3, 3, inputDepth];
+    const filterSize = 2;
+    const strides = 1;
+    const pad = 0;
 
-  //   const filterShape: [number, number, number, number] =
-  //       [filterSize, filterSize, inputDepth, outputDepth];
-  //   const filter = tf.tensor4d([-1, 1, -2, 0.5], filterShape);
-  //   const bias = tf.ones([2, 2, 2, 1]);
+    const filterShape: [number, number, number, number] =
+        [filterSize, filterSize, inputDepth, outputDepth];
+    const filter = tf.tensor4d([-1, 1, -2, 0.5], filterShape);
+    const bias = tf.ones([2, 2, 2, 1]);
 
-  //   const x = tf.tensor4d(
-  //       [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9], inputShape);
-  //   const dy = tf.tensor4d([3, 1, 2, 0, 3, 1, 2, 0], [2, 2, 2, 1]);
+    const x = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9], inputShape);
+    const dy = tf.tensor4d([3, 1, 2, 0, 3, 1, 2, 0], [2, 2, 2, 1]);
 
-  //   const fusedGrads =
-  //       tf.grads((x: tf.Tensor4D, w: tf.Tensor4D, b) => tf.fused.conv2d({
-  //         x,
-  //         filter: w,
-  //         strides,
-  //         pad,
-  //         dataFormat: 'NHWC',
-  //         dilations: [1, 1],
-  //         bias: b
-  //       }));
-  //   const [dxFused, dfilterFused, dbiasFused] =
-  //       fusedGrads([x, filter, bias], dy);
+    const fusedGrads =
+        tf.grads((x: tf.Tensor4D, w: tf.Tensor4D, b) => tf.fused.conv2d({
+          x,
+          filter: w,
+          strides,
+          pad,
+          dataFormat: 'NHWC',
+          dilations: [1, 1],
+          bias: b
+        }));
+    const [dxFused, dfilterFused, dbiasFused] =
+        fusedGrads([x, filter, bias], dy);
 
-  //   const grads = tf.grads((x: tf.Tensor4D, filter: tf.Tensor4D, bias) => {
-  //     const conv = tf.conv2d(x, filter, strides, pad);
-  //     const sum = tf.add(conv, bias);
-  //     return sum;
-  //   });
-  //   const [dx, dfilter, dbias] = grads([x, filter, bias], dy);
+    const grads = tf.grads((x: tf.Tensor4D, filter: tf.Tensor4D, bias) => {
+      const conv = tf.conv2d(x, filter, strides, pad);
+      const sum = tf.add(conv, bias);
+      return sum;
+    });
+    const [dx, dfilter, dbias] = grads([x, filter, bias], dy);
 
-  //   expectArraysClose(await dxFused.array(), await dx.array());
-  //   expectArraysClose(await dfilterFused.array(), await dfilter.array());
-  //   expectArraysClose(await dbiasFused.array(), await dbias.array());
-  // });
+    expectArraysClose(await dxFused.array(), await dx.array());
+    expectArraysClose(await dfilterFused.array(), await dfilter.array());
+    expectArraysClose(await dbiasFused.array(), await dbias.array());
+  });
 
-  // it('gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0 with bias and relu',
-  //    async () => {
-  //      const inputDepth = 1;
-  //      const outputDepth = 1;
-  //      const inputShape: [number, number, number, number] =
-  //          [2, 3, 3, inputDepth];
-  //      const filterSize = 2;
-  //      const strides = 1;
-  //      const pad = 0;
+  it('gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0 with bias and relu',
+     async () => {
+       const inputDepth = 1;
+       const outputDepth = 1;
+       const inputShape: [number, number, number, number] =
+           [2, 3, 3, inputDepth];
+       const filterSize = 2;
+       const strides = 1;
+       const pad = 0;
 
-  //      const filterShape: [number, number, number, number] =
-  //          [filterSize, filterSize, inputDepth, outputDepth];
-  //      const filter = tf.tensor4d([-1, 1, -2, 0.5], filterShape);
-  //      const bias = tf.ones([2, 2, 2, 1]);
+       const filterShape: [number, number, number, number] =
+           [filterSize, filterSize, inputDepth, outputDepth];
+       const filter = tf.tensor4d([-1, 1, -2, 0.5], filterShape);
+       const bias = tf.ones([2, 2, 2, 1]);
 
-  //      const x = tf.tensor4d(
-  //          [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-  //          inputShape);
-  //      const dy = tf.tensor4d([3, 1, 2, 0, 3, 1, 2, 0], [2, 2, 2, 1]);
+       const x = tf.tensor4d(
+           [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9], inputShape);
+       const dy = tf.tensor4d([3, 1, 2, 0, 3, 1, 2, 0], [2, 2, 2, 1]);
 
-  //      const fusedGrads =
-  //          tf.grads((x: tf.Tensor4D, w: tf.Tensor4D, b) => tf.fused.conv2d({
-  //            x,
-  //            filter: w,
-  //            strides,
-  //            pad,
-  //            dataFormat: 'NHWC',
-  //            dilations: [1, 1],
-  //            bias: b,
-  //            activation: 'relu'
-  //          }));
-  //      const [dxFused, dfilterFused, dbiasFused] =
-  //          fusedGrads([x, filter, bias], dy);
+       const fusedGrads =
+           tf.grads((x: tf.Tensor4D, w: tf.Tensor4D, b) => tf.fused.conv2d({
+             x,
+             filter: w,
+             strides,
+             pad,
+             dataFormat: 'NHWC',
+             dilations: [1, 1],
+             bias: b,
+             activation: 'relu'
+           }));
+       const [dxFused, dfilterFused, dbiasFused] =
+           fusedGrads([x, filter, bias], dy);
 
-  //      const grads = tf.grads((x: tf.Tensor4D, filter: tf.Tensor4D, bias)
-  //      => {
-  //        const conv = tf.conv2d(x, filter, strides, pad);
-  //        const sum = tf.add(conv, bias);
-  //        return tf.relu(sum);
-  //      });
-  //      const [dx, dfilter, dbias] = grads([x, filter, bias], dy);
+       const grads = tf.grads((x: tf.Tensor4D, filter: tf.Tensor4D, bias) => {
+         const conv = tf.conv2d(x, filter, strides, pad);
+         const sum = tf.add(conv, bias);
+         return tf.relu(sum);
+       });
+       const [dx, dfilter, dbias] = grads([x, filter, bias], dy);
 
-  //      expectArraysClose(await dxFused.array(), await dx.array());
-  //      expectArraysClose(await dfilterFused.array(), await dfilter.array());
-  //      expectArraysClose(await dbiasFused.array(), await dbias.array());
-  //    });
+       expectArraysClose(await dxFused.array(), await dx.array());
+       expectArraysClose(await dfilterFused.array(), await dfilter.array());
+       expectArraysClose(await dbiasFused.array(), await dbias.array());
+     });
 
-  // it('gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0 with bias and elu', async ()
-  // => {
-  //   const inputDepth = 1;
-  //   const outputDepth = 1;
-  //   const inputShape: [number, number, number, number] = [2, 3, 3,
-  //   inputDepth]; const filterSize = 2; const strides = 1; const pad = 0;
+  it('gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0 with bias and elu', async () => {
+    const inputDepth = 1;
+    const outputDepth = 1;
+    const inputShape: [number, number, number, number] = [2, 3, 3, inputDepth];
+    const filterSize = 2;
+    const strides = 1;
+    const pad = 0;
 
-  //   const filterShape: [number, number, number, number] =
-  //       [filterSize, filterSize, inputDepth, outputDepth];
-  //   const filter = tf.tensor4d([-1, 1, -2, 0.5], filterShape);
-  //   const bias = tf.ones([2, 2, 2, 1]);
+    const filterShape: [number, number, number, number] =
+        [filterSize, filterSize, inputDepth, outputDepth];
+    const filter = tf.tensor4d([-1, 1, -2, 0.5], filterShape);
+    const bias = tf.ones([2, 2, 2, 1]);
 
-  //   const x = tf.tensor4d(
-  //       [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9], inputShape);
-  //   const dy = tf.tensor4d([3, 1, 2, 0, 3, 1, 2, 0], [2, 2, 2, 1]);
+    const x = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9], inputShape);
+    const dy = tf.tensor4d([3, 1, 2, 0, 3, 1, 2, 0], [2, 2, 2, 1]);
 
-  //   const fusedGrads =
-  //       tf.grads((x: tf.Tensor4D, w: tf.Tensor4D, b) => tf.fused.conv2d({
-  //         x,
-  //         filter: w,
-  //         strides,
-  //         pad,
-  //         dataFormat: 'NHWC',
-  //         dilations: [1, 1],
-  //         bias: b,
-  //         activation: 'elu'
-  //       }));
-  //   const [dxFused, dfilterFused, dbiasFused] =
-  //       fusedGrads([x, filter, bias], dy);
+    const fusedGrads =
+        tf.grads((x: tf.Tensor4D, w: tf.Tensor4D, b) => tf.fused.conv2d({
+          x,
+          filter: w,
+          strides,
+          pad,
+          dataFormat: 'NHWC',
+          dilations: [1, 1],
+          bias: b,
+          activation: 'elu'
+        }));
+    const [dxFused, dfilterFused, dbiasFused] =
+        fusedGrads([x, filter, bias], dy);
 
-  //   const grads = tf.grads((x: tf.Tensor4D, filter: tf.Tensor4D, bias) => {
-  //     const conv = tf.conv2d(x, filter, strides, pad);
-  //     const sum = tf.add(conv, bias);
-  //     return tf.elu(sum);
-  //   });
-  //   const [dx, dfilter, dbias] = grads([x, filter, bias], dy);
+    const grads = tf.grads((x: tf.Tensor4D, filter: tf.Tensor4D, bias) => {
+      const conv = tf.conv2d(x, filter, strides, pad);
+      const sum = tf.add(conv, bias);
+      return tf.elu(sum);
+    });
+    const [dx, dfilter, dbias] = grads([x, filter, bias], dy);
 
-  //   expectArraysClose(await dxFused.array(), await dx.array());
-  //   expectArraysClose(await dfilterFused.array(), await dfilter.array());
-  //   expectArraysClose(await dbiasFused.array(), await dbias.array());
-  // });
-
-  // it('fused matmul with relu6 and gradients', async () => {
-  //   const a = tf.tensor2d([1, 2, 3, 10, 20, -30], [2, 3]);
-  //   const b = tf.tensor2d([2, 3, 4, -1, 2, 3], [3, 2]);
-  //   const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
-  //   const transposeA = false;
-  //   const transposeB = false;
-
-  //   const fusedGrads = tf.grads((a, b) => {
-  //     return tf.fused.matMul(
-  //         {a, b, transposeA, transposeB, bias: null, activation: 'relu6'});
-  //   });
-  //   const [fusedDa, fusedDb] = fusedGrads([a, b], dy);
-
-  //   const grads = tf.grads((a, b) => {
-  //     const prod = tf.matMul(a, b, transposeA, transposeB);
-  //     return tf.relu6(prod);
-  //   });
-  //   const [da, db] = grads([a, b], dy);
-
-  //   expectArraysClose(await da.array(), await fusedDa.array());
-  //   expectArraysClose(await db.data(), await fusedDb.array());
-  // });
+    expectArraysClose(await dxFused.array(), await dx.array());
+    expectArraysClose(await dfilterFused.array(), await dfilter.array());
+    expectArraysClose(await dbiasFused.array(), await dbias.array());
+  });
 });

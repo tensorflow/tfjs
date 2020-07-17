@@ -16,17 +16,21 @@
  */
 
 import {ENGINE, ForwardFunc} from '../engine';
+import {customGrad} from '../gradients';
 import {_FusedMatMul, _FusedMatMulAttrs, _FusedMatMulInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor} from '../tensor';
-import {NamedTensorMap} from '../tensor_types';
+import {Tensor, Tensor3D} from '../tensor';
+import {GradSaveFunc, NamedTensorMap} from '../tensor_types';
 import {makeTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
+import {add} from './add';
 import * as broadcast_util from './broadcast_util';
 import {Activation} from './fused_types';
+import {applyActivation, getFusedBiasGradient, getFusedDyActivation, shouldFuse} from './fused_util';
+import {matMul as unfusedMatMul} from './mat_mul';
 import {op} from './operation';
 
 /**
@@ -66,6 +70,15 @@ function fusedMatMul_<T extends Tensor>({
   activation?: Activation,
   preluActivationWeights?: Tensor
 }): T {
+  if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
+    let result = unfusedMatMul(a, b, transposeA, transposeB);
+    if (bias != null) {
+      result = add(result, bias);
+    }
+
+    return applyActivation(result, activation, preluActivationWeights) as T;
+  }
+
   let $a = convertToTensor(a, 'a', 'fused matMul');
   let $b = convertToTensor(b, 'b', 'fused matMul');
   [$a, $b] = makeTypesMatch($a, $b);
@@ -125,6 +138,38 @@ function fusedMatMul_<T extends Tensor>({
         preluActivationWeights, 'prelu weights', 'fused matMul');
   }
 
+  const grad = (dy: Tensor3D, saved: Tensor[]) => {
+    const [a3D, b3D, y, bias] = saved;
+    const dyActivation = getFusedDyActivation(dy, y, activation);
+
+    let aDer: Tensor;
+    let bDer: Tensor;
+
+    if (!transposeA && !transposeB) {
+      aDer = dyActivation.matMul(b3D as Tensor3D, false, true);
+      bDer = a3D.matMul(dyActivation, true, false);
+
+    } else if (!transposeA && transposeB) {
+      aDer = dyActivation.matMul(b3D as Tensor3D, false, false);
+      bDer = dyActivation.matMul(a3D as Tensor3D, true, false);
+
+    } else if (transposeA && !transposeB) {
+      aDer = b3D.matMul(dyActivation, false, true);
+      bDer = a3D.matMul(dyActivation, false, false);
+
+    } else {
+      aDer = b3D.matMul(dyActivation, true, true);
+      bDer = dyActivation.matMul(a3D as Tensor3D, true, true);
+    }
+
+    if (bias != null) {
+      const biasDer = getFusedBiasGradient(bias, dyActivation);
+      return [aDer, bDer, biasDer];
+    } else {
+      return [aDer, bDer];
+    }
+  };
+
   const forward: ForwardFunc<Tensor> = (backend) => {
     const y = backend.fusedBatchMatMul({
       a: a3D,
@@ -146,11 +191,34 @@ function fusedMatMul_<T extends Tensor>({
   };
   const attrs: _FusedMatMulAttrs = {transposeA, transposeB, activation};
 
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */, _FusedMatMul,
-      attrs as {} as NamedAttrMap);
+  // Depending on the the params passed in we will have different number of
+  // inputs and thus a a different number of elements in the gradient.
+  if (bias == null) {
+    const customOp =
+        customGrad((a: Tensor3D, b: Tensor3D, save: GradSaveFunc) => {
+          const res = ENGINE.runKernelFunc(
+              forward, inputs as {} as NamedTensorMap, null /* grad */,
+              _FusedMatMul, attrs as {} as NamedAttrMap);
 
-  return res.reshape(outShape);
+          save([a, b, res]);
+
+          return {value: res.reshape(outShape), gradFunc: grad};
+        });
+    return customOp(a3D, b3D) as T;
+  } else {
+    const customOpWithBias = customGrad(
+        (a: Tensor3D, b: Tensor3D, bias: Tensor, save: GradSaveFunc) => {
+          const res = ENGINE.runKernelFunc(
+              forward, inputs as {} as NamedTensorMap, null /* grad */,
+              _FusedMatMul, attrs as {} as NamedAttrMap);
+
+          save([a, b, res, bias]);
+
+          return {value: res.reshape(outShape), gradFunc: grad};
+        });
+
+    return customOpWithBias(a3D, b3D, $bias) as T;
+  }
 }
 
 export const matMul = op({fusedMatMul_});
