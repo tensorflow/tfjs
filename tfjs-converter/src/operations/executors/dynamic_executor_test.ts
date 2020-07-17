@@ -127,7 +127,7 @@ describe('dynamic', () => {
         const result =
             executeOp(node, {input1, input2, input3, input4, input5}, context);
         expect(tfc.image.nonMaxSuppressionPaddedAsync)
-            .toHaveBeenCalledWith(input1[0], input2[0], 1, 1, 1, 1);
+            .toHaveBeenCalledWith(input1[0], input2[0], 1, 1, 1, true);
         expect(result instanceof Promise).toBeTruthy();
       });
       it('should match json def', () => {
@@ -137,7 +137,6 @@ describe('dynamic', () => {
         node.inputParams['maxOutputSize'] = createNumberAttrFromIndex(2);
         node.inputParams['iouThreshold'] = createNumberAttrFromIndex(3);
         node.inputParams['scoreThreshold'] = createNumberAttrFromIndex(4);
-        node.inputParams['softNmsSigma'] = createNumberAttrFromIndex(5);
         node.attrParams['padToMaxOutputSize'] = createBoolAttr(true);
         node.inputNames = ['input1', 'input2', 'input3', 'input4', 'input5'];
 
