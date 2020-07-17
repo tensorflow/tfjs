@@ -103,6 +103,7 @@ export abstract class Optimizer extends Serializable {
    * respect to. If specified, only the trainable variables in varList will have
    * gradients computed with respect to. Defaults to all trainable variables.
    */
+  /** @doc {heading: 'Training', subheading: 'Optimizers'} */
   computeGradients(f: () => Scalar, varList?: Variable[]):
       {value: Scalar, grads: NamedTensorMap} {
     return variableGrads(f, varList);
@@ -113,6 +114,7 @@ export abstract class Optimizer extends Serializable {
    *
    * @param variableGradients A mapping of variable name to its gradient value.
    */
+  /** @doc {heading: 'Training', subheading: 'Optimizers'} */
   abstract applyGradients(variableGradients: NamedTensorMap|
                           NamedTensor[]): void;
 
