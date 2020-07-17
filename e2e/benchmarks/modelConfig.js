@@ -226,11 +226,18 @@ const benchmarks = {
       return loadModelByUrl(state.modelUrl);
     },
     predictFunc: () => {
-      return async model => tf.tidy(() => {
-        const inferenceInput = generateInput(model);
-        const predict = wrapPredictFnForModel(model, inferenceInput);
-        return predict();
-      });
+      return async model => {
+        let inferenceInput;
+        try {
+          inferenceInput = generateInput(model);
+          const predict = wrapPredictFnForModel(model, inferenceInput);
+          const inferenceOutput = await predict();
+          return inferenceOutput;
+        } finally {
+          // dispose input tensors
+          tf.dispose(inferenceInput);
+        }
+      };
     }
   },
 };
