@@ -95,16 +95,16 @@ function generateInput(model) {
 function getPredictFnForModel(model, input) {
   let predict;
   if (model instanceof tf.GraphModel) {
-    // `execute` has better performance than `executeAsync`, but cannot be used
-    // on execution subgraph with dynamic op, so we detect whther `executeAsync`
-    // is necessary for model inference
+    // Because there's no straightforward way to analyze whether a graph has
+    // dynamic op, so we try to use `execute` and, if it fails, we will fall
+    // back to `executeAsync`.
     try {
       tf.tidy(() => {
         model.execute(input);
       });
       predict = () => model.execute(input);
     } catch (e) {
-      predict = () => model.executeAsync(input);
+      predict = async () => await model.executeAsync(input);
     }
   } else if (model instanceof tf.LayersModel) {
     predict = () => model.predict(input);
