@@ -68,11 +68,12 @@ function kernelFunc(args: {
       boxesId, scoresId, maxOutputSize, iouThreshold, scoreThreshold,
       softNmsSigma);
 
-  const {
-    pSelectedIndices,
-    selectedSize,
-    pSelectedScores,
-  } = parseResultStruct(backend, resOffset);
+  const {pSelectedIndices, selectedSize, pSelectedScores, pValidOutputs} =
+      parseResultStruct(backend, resOffset);
+
+  // Since we are not using validOutputs for V5, we have to delete it from the
+  // heap.
+  backend.wasm._free(pValidOutputs);
 
   const selectedIndicesTensor =
       backend.makeOutput([selectedSize], 'int32', pSelectedIndices);

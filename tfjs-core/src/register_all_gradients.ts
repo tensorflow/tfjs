@@ -54,6 +54,9 @@ import {fusedBatchNormGradConfig} from './gradients/FusedBatchNorm_grad';
 import {gatherGradConfig} from './gradients/GatherV2_grad';
 import {greaterEqualGradConfig} from './gradients/GreaterEqual_grad';
 import {identityGradConfig} from './gradients/Identity_grad';
+import {isFiniteGradConfig} from './gradients/IsFinite_grad';
+import {isInfGradConfig} from './gradients/IsInf_grad';
+import {isNanGradConfig} from './gradients/IsNan_grad';
 import {log1pGradConfig} from './gradients/Log1p_grad';
 import {logGradConfig} from './gradients/Log_grad';
 import {logSoftmaxGradConfig} from './gradients/LogSoftmax_grad';
@@ -79,17 +82,23 @@ import {reshapeGradConfig} from './gradients/Reshape_grad';
 import {resizeBilinearGradConfig} from './gradients/ResizeBilinear_grad';
 import {resizeNearestNeighborGradConfig} from './gradients/ResizeNearestNeighbor_grad';
 import {reverseGradConfig} from './gradients/Reverse_grad';
+import {roundGradConfig} from './gradients/Round_grad';
+import {rsqrtGradConfig} from './gradients/Rsqrt_grad';
 import {selectV2PoolGradConfig} from './gradients/SelectV2_grad';
 import {seluGradConfig} from './gradients/Selu_grad';
+import {sigmoidGradConfig} from './gradients/Sigmoid_grad';
 import {signGradConfig} from './gradients/Sign_grad';
 import {sinGradConfig} from './gradients/Sin_grad';
 import {sinhGradConfig} from './gradients/Sinh_grad';
 import {sliceGradConfig} from './gradients/Slice_grad';
 import {softmaxGradConfig} from './gradients/Softmax_grad';
+import {softplusGradConfig} from './gradients/Softplus_grad';
 import {spaceToBatchNDGradConfig} from './gradients/SpaceToBatchND_grad';
 import {splitVGradConfig} from './gradients/SplitV_grad';
+import {sqrtGradConfig} from './gradients/Sqrt_grad';
 import {squareGradConfig} from './gradients/Square_grad';
 import {squaredDifferenceGradConfig} from './gradients/SquaredDifference_grad';
+import {stepGradConfig} from './gradients/Step_grad';
 import {subGradConfig} from './gradients/Sub_grad';
 import {sumGradConfig} from './gradients/Sum_grad';
 import {tanGradConfig} from './gradients/Tan_grad';
@@ -144,10 +153,13 @@ const gradConfigs: GradConfig[] = [
   gatherGradConfig,
   greaterEqualGradConfig,
   identityGradConfig,
+  isFiniteGradConfig,
+  isInfGradConfig,
+  isNanGradConfig,
   log1pGradConfig,
   logGradConfig,
-  lrnGradConfig,
   logSoftmaxGradConfig,
+  lrnGradConfig,
   maxGradConfig,
   maxGradConfig,
   maximumGradConfig,
@@ -171,21 +183,27 @@ const gradConfigs: GradConfig[] = [
   resizeBilinearGradConfig,
   resizeNearestNeighborGradConfig,
   reverseGradConfig,
+  roundGradConfig,
+  rsqrtGradConfig,
   selectV2PoolGradConfig,
   seluGradConfig,
+  sigmoidGradConfig,
   signGradConfig,
   sinGradConfig,
   sinhGradConfig,
   sliceGradConfig,
+  softmaxGradConfig,
+  softplusGradConfig,
   spaceToBatchNDGradConfig,
   spaceToBatchNDGradConfig,
   splitVGradConfig,
   splitVGradConfig,
+  sqrtGradConfig,
   squaredDifferenceGradConfig,
   squareGradConfig,
+  stepGradConfig,
   subGradConfig,
   sumGradConfig,
-  softmaxGradConfig,
   tanGradConfig,
   tanhGradConfig,
   tileGradConfig,
