@@ -479,6 +479,9 @@ limitations under the License.
       if (state.isFlagChanged) {
         await setEnvFlags(state.flags);
         state.isFlagChanged = false;
+        envDiv.innerHTML = '';
+        showVersions();
+        await showEnvironment();
       }
       await cleanUpTable();
       await setupKernelTable();
