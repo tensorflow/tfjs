@@ -59,6 +59,7 @@ import {minimumConfig} from './kernels/Minimum';
 import {multiplyConfig} from './kernels/Multiply';
 import {negateConfig} from './kernels/Negate';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
+import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
 import {oneHotConfig} from './kernels/OneHot';
@@ -132,6 +133,7 @@ const kernelConfigs: KernelConfig[] = [
   multiplyConfig,
   negateConfig,
   nonMaxSuppressionV3Config,
+  nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,
   oneHotConfig,
