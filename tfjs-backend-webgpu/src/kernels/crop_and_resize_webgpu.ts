@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['Image', 'Boxes', 'BoxInd'];
   workGroupSize: [number, number, number] = [4, 4, 4];
+  needsShapesUniforms = true;
 
   constructor(
       imageShape: [number, number, number, number], boxShape: [number, number],
@@ -124,7 +125,8 @@ export class CropAndResizeProgram implements WebGPUProgram {
           // Compute the coordinators of nearest neighbor point.
           ivec2 sourceNearestCR = ivec2(floor(
             sourceFracIndexCR + vec2(0.5,0.5)));
-          float newValue = getImage(bInd, sourceNearestCR.y, sourceNearestCR.x, d);
+          float newValue = getImage(
+            bInd, sourceNearestCR.y, sourceNearestCR.x, d);
           writeResult(coords,newValue);
         }
       }

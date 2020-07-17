@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,9 +20,14 @@ import {assertTypesMatch} from '../tensor_util';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
-import {pow} from './binary_ops';
+
+import {add} from './add';
+import {div} from './div';
+import {mul} from './mul';
 import {op} from './operation';
-import {scalar} from './tensor_ops';
+import {pow} from './pow';
+import {scalar} from './scalar';
+import {sub} from './sub';
 
 /**
  * Compute the moving average of a variable.
@@ -63,16 +68,16 @@ function movingAverage_<T extends Tensor>(
       util.arraysEqual($v.shape, $x.shape), () => 'Shape mismatch in v and x');
 
   const one = scalar(1);
-  const oneMinusDecay = one.sub($decay);
+  const oneMinusDecay = sub(one, $decay);
 
-  let update = $x.sub($v).mul(oneMinusDecay);
+  let update = mul(sub($x, $v), oneMinusDecay);
   if (zeroDebias) {
     util.assert(
         step != null, () => 'When using zeroDebias: true, step is required.');
     const $step = convertToTensor(step, 'step', 'movingAverage');
-    update = update.div(one.sub(pow($decay, $step)));
+    update = div(update, sub(one, pow($decay, $step)));
   }
-  return $v.add(update);
+  return add($v, update);
 }
 
 export const movingAverage = op({movingAverage_});

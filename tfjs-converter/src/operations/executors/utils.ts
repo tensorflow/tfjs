@@ -40,10 +40,12 @@ export function getParamValue(
 
       return inputs.map(name => getTensor(name, tensorMap, context));
     }
-    const data = Array.prototype.slice.call(
-        getTensor(node.inputNames.slice(start)[0], tensorMap, context)
-            .dataSync());
-    return inputParam.type === 'number' ? data[0] : data;
+    const tensor =
+        getTensor(node.inputNames.slice(start)[0], tensorMap, context);
+    const data = tensor.dataSync();
+    return inputParam.type === 'number' ?
+        data[0] :
+        tfc.util.toNestedArray(tensor.shape, data);
   }
   const attrParam = node.attrParams[paramName];
   return attrParam && attrParam.value;
@@ -100,13 +102,13 @@ function getNodeNameWithContextId(name: string, contextId?: string): string {
 }
 
 export function parseNodeName(name: string): [string, number] {
-  const index = name.lastIndexOf(':');
-  if (index === -1) {
+  const parts = name.split(':');
+  if (parts.length === 1) {
     return [name, 0];
   }
 
-  const nodeName = name.substring(0, index);
-  return [nodeName, Number(name.substring(index + 1))];
+  const nodeName = parts[0];
+  return [nodeName, Number(parts[parts.length - 1])];
 }
 
 export function split(arr: number[], size: number) {
@@ -115,4 +117,22 @@ export function split(arr: number[], size: number) {
     res.push(arr.slice(i, i + size));
   }
   return res;
+}
+export function getPadding(
+    node: Node, tensorMap: NamedTensorsMap,
+    context: ExecutionContext): ValueType {
+  let pad = getParamValue('pad', node, tensorMap, context);
+  if (pad === 'explicit') {
+    // This is 1d array, we need to convert it to 2d array
+    pad = getParamValue('explicitPaddings', node, tensorMap, context);
+    const explicitPadding: [
+      [number, number], [number, number], [number, number], [number, number]
+    ] = [[0, 0], [0, 0], [0, 0], [0, 0]];
+    for (let i = 0; i < 4; i++) {
+      explicitPadding[i][0] = (pad as number[])[i * 2];
+      explicitPadding[i][1] = (pad as number[])[i * 2 + 1];
+    }
+    return explicitPadding;
+  }
+  return pad;
 }

@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import '@tensorflow/tfjs-backend-webgl';
+
 // tslint:disable-next-line: no-imports-from-dist
 import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
@@ -133,6 +135,8 @@ const TEST_FILTERS: TestFilter[] = [
       'pointwise with prelu',                      // Actual != expected.
       'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0',  // conv2dDerInput not yet
                                                    // implemented
+      'backProp',                                  // conv2dDerInput not yet
+                                                   // implemented
       'fused matmul with relu6',                   // step not yet implemented
     ]
   },
@@ -143,6 +147,7 @@ const TEST_FILTERS: TestFilter[] = [
                           // 'CanvasRenderingContext2D': The source width is 0
     ]
   },
+  {include: 'nonMaxSuppression', excludes: []},
   {
     include: 'argmax',
     excludes: [
@@ -210,8 +215,19 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'maxPool',
     excludes: [
-      'maxPoolBackprop',  // Not yet implemented.
-      'maxPool3d',        // Not yet implemented.
+      'maxPoolBackprop',   // Not yet implemented.
+      'maxPool3d',         // Not yet implemented.
+      'maxPoolWithArgmax'  // Not yet implemented.
+    ]
+  },
+  {
+    include: 'avgPool',
+    excludes: [
+      'x=[2,2,1] f=[2,2] s=1 p=same',  // Pool3D not yet implemented.
+      'gradient',                      // Not yet implemented.
+      'avgPoolBackprop',               // Not yet implemented.
+      'avgPool3d',                     // Not yet implemented.
+      'avgPoolWithArgmax'              // Not yet implemented.
     ]
   },
   {
@@ -248,6 +264,17 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {include: 'subtract ', excludes: []},
+  {
+    include: 'square',
+    excludes: [
+      'int32 and int32',  // Fail due to shader key is not
+                          // unique:https://github.com/tensorflow/tfjs/issues/2669.
+      'upcasts when dtypes dont match',  // Upcasts not supported.
+      '5D',                              // Rank 5 is not yet implemented.
+      '6D',                              // Rank 6 is not yet implemented.
+      'dilation2d'                       // 'dilation2d' not yet implemented.
+    ]
+  },
   {
     include: 'slice ',
     excludes: [
@@ -293,6 +320,7 @@ const TEST_FILTERS: TestFilter[] = [
       'frame',  // Slice not yet implemented.
       'grad',   // 'depthwiseConv2DDerFilter' not yet implemented, slice not yet
                 // implemented
+      'dilation2d'  // 'dilation2d' not yet implemented.
     ]
   },
   {
@@ -340,6 +368,34 @@ const TEST_FILTERS: TestFilter[] = [
       '2x2to3x3-NoCrop',  // The operation failed for an operation-specific
                           // reason
       'MultipleBoxes-DifferentBoxes',  // TimeOut
+    ]
+  },
+  {
+    include: 'batchNorm',
+    excludes: [
+      'gradient',
+    ]
+  },
+  {
+    include: 'batchToSpaceND',
+    excludes: [
+      'tensor3d', 'tensor4d', 'gradient',
+      'accepts a tensor-like object',  // tensor6d not yet implemented
+    ]
+  },
+  {
+    include: 'spaceToBatchND',
+    excludes: [
+      'tensor4d',
+      'gradient',
+      'accepts a tensor-like object',
+    ]
+  },
+  {
+    include: 'softmax',
+    excludes: [
+      'gradient',
+      'Weighted - Reduction.SUM_BY_NONZERO_WEIGHTS',
     ]
   }
 ];

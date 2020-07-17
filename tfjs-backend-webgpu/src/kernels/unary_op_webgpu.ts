@@ -28,6 +28,15 @@ export const ELU = `return (a >= 0.0) ? a : (exp(a) - 1.0);`;
 
 export const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
 export const ABS = `return abs(a);`;
+export const SQUARE = `return a * a;`;
+export const NEG = `return -a;`;
+export const TANH = `
+  float e2x = exp(-2.0 * abs(a));
+  return sign(a) * (1.0 - e2x) / (1.0 + e2x);
+`;
+export const EXP = `return exp(a);`;
+export const LOG = `if (a < 0.0) return 1.0/0.0;
+  return log(a);`;
 
 export class UnaryOpProgram implements WebGPUProgram {
   outputShape: number[];
@@ -36,19 +45,39 @@ export class UnaryOpProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A'];
-  workPerThread = 4;
-  workGroupSize: [number, number, number] = [16, 1, 1];
+  workPerThread: number;
+  workGroupSize: [number, number, number];
+  needsShapesUniforms = true;
 
   constructor(outputShape: number[], op: string) {
+    // TODO(jiajia.qin@intel.com): Heuristically select a good work group size.
+    const workGroupSizeX = 128;
+    this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = outputShape;
     const size = util.sizeFromShape(this.outputShape);
-
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    const fit = size % workGroupSizeX === 0;
+    this.workPerThread = fit ? 1 : 2;
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
-    const type = getCoordsDataType(this.outputShape.length);
-    this.userCode = `
+    if (fit) {
+      this.needsShapesUniforms = false;
+      this.userCode = `
+      float unaryOperation(float a) {
+        ${op}
+      }
+
+      void main() {
+        int index = int(gl_GlobalInvocationID.x);
+        float a = A[index];
+        setOutput(index, unaryOperation(a));;
+      }
+      `;
+      this.shaderKey = `unary2${op}`;
+    } else {
+      const type = getCoordsDataType(this.outputShape.length);
+      this.userCode = `
       float unaryOperation(float a) {
         ${op}
       }
@@ -67,7 +96,8 @@ export class UnaryOpProgram implements WebGPUProgram {
           }
         }
       }
-    `;
-    this.shaderKey = `unary${op}${type}${size}`;
+      `;
+      this.shaderKey = `unary${op}${type}${size}`;
+    }
   }
 }

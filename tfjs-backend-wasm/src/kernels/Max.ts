@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,17 +15,12 @@
  * =============================================================================
  */
 
-import {backend_util, NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {Max, MaxAttrs, MaxInputs} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
-interface MaxInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-interface MaxAttrs extends NamedAttrMap {
-  axes: number[];
-}
+import {permuteAxesAndTranspose} from './kernel_utils';
 
 let wasmMax: (xId: number, reduceSize: number, outId: number) => void;
 
@@ -37,29 +32,50 @@ function setup(backend: BackendWasm): void {
 function max(args: {backend: BackendWasm, inputs: MaxInputs, attrs: MaxAttrs}):
     TensorInfo {
   const {backend, inputs, attrs} = args;
-  const {axes} = attrs;
+  const {reductionIndices: axis, keepDims} = attrs;
   const {x} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
+  let inputId = xId;
+  let input = x;
 
-  backend_util.assertAxesAreInnerMostDims('max', axes, x.shape.length);
+  const {transposed, axes, originalAxes, inputWasTransposed} =
+      permuteAxesAndTranspose(x, axis, backend);
+
+  if (inputWasTransposed) {
+    const transposedId = backend.dataIdMap.get(transposed.dataId).id;
+    input = transposed;
+    inputId = transposedId;
+  }
+
+  const inputRank = input.shape.length;
+  backend_util.assertAxesAreInnerMostDims('max', axes, inputRank);
   const [outShape, reduceShape] =
-      backend_util.computeOutAndReduceShapes(x.shape, axes);
+      backend_util.computeOutAndReduceShapes(input.shape, axes);
   const reduceSize = util.sizeFromShape(reduceShape);
 
   const out = backend.makeOutput(outShape, x.dtype);
-  if (util.sizeFromShape(x.shape) === 0) {
-    return out;
+  if (util.sizeFromShape(input.shape) !== 0) {
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    wasmMax(inputId, reduceSize, outId);
   }
 
-  const outId = backend.dataIdMap.get(out.dataId).id;
+  if (inputWasTransposed) {
+    // dispose of the transposed tensor.
+    backend.disposeData(transposed.dataId);
+  }
 
-  wasmMax(xId, reduceSize, outId);
+  if (keepDims) {
+    // reshape
+    const newShape = backend_util.expandShapeToKeepDim(out.shape, originalAxes);
+    out.shape = newShape;
+  }
+
   return out;
 }
 
-registerKernel({
-  kernelName: 'Max',
+export const maxConfig: KernelConfig = {
+  kernelName: Max,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: max
-});
+  kernelFunc: max as {} as KernelFunc
+};

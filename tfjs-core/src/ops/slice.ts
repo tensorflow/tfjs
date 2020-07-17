@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,72 +15,16 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../engine';
-import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
+import {ENGINE, ForwardFunc} from '../engine';
+import {Slice, SliceAttrs, SliceInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
+import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {Rank, TensorLike} from '../types';
-import * as util from '../util';
+
 import {op} from './operation';
 import * as slice_util from './slice_util';
-
-/**
- * Extracts a 1D slice from 1D array starting at coordinates `begin` and is
- * of length `size`. See `slice` for details.
- */
-function slice1d_(
-    x: Tensor1D|TensorLike, begin: number, size: number): Tensor1D {
-  const $x = convertToTensor(x, 'x', 'slice1d');
-  util.assert(
-      $x.rank === 1,
-      () =>
-          `slice1d expects a rank-1 tensor, but got a rank-${$x.rank} tensor`);
-  return slice($x, [begin], [size]);
-}
-
-/**
- * Extracts a 2D slice from a 2D array starting at coordinates `begin` and
- * is of size `size`. See `slice` for details.
- */
-function slice2d_(
-    x: Tensor2D|TensorLike, begin: [number, number],
-    size: [number, number]): Tensor2D {
-  const $x = convertToTensor(x, 'x', 'slice2d');
-  util.assert(
-      $x.rank === 2,
-      () =>
-          `slice2d expects a rank-2 tensor, but got a rank-${$x.rank} tensor`);
-  return slice($x, begin, size);
-}
-
-/**
- * Extracts a 3D slice from a 3D array starting at coordinates `begin` and
- * is of size `size`. See `slice` for details.
- */
-function slice3d_(
-    x: Tensor3D|TensorLike, begin: [number, number, number],
-    size: [number, number, number]): Tensor3D {
-  const $x = convertToTensor(x, 'x', 'slice3d');
-  util.assert(
-      $x.rank === 3,
-      () =>
-          `slice3d expects a rank-3 tensor, but got a rank-${$x.rank} tensor`);
-  return slice($x, begin, size);
-}
-
-/**
- * Extracts a 4D slice from a 4D array starting at coordinates `begin` and
- * is of size `size`. See `slice` for details.
- */
-function slice4d_(
-    x: Tensor4D|TensorLike, begin: [number, number, number, number],
-    size: [number, number, number, number]): Tensor4D {
-  const $x = convertToTensor(x, 'x', 'slice4d');
-  util.assert(
-      $x.rank === 4,
-      () =>
-          `slice4d expects a rank-4 tensor, but got a rank-${$x.rank} tensor`);
-  return slice($x, begin, size);
-}
 
 /**
  * Extracts a slice from a `tf.Tensor` starting at coordinates `begin`
@@ -122,63 +66,20 @@ function slice_<R extends Rank, T extends Tensor<R>>(
   if ($x.rank === 0) {
     throw new Error('Slicing scalar is not possible');
   }
-  // The following logic allows for more ergonomic calls.
-  let begin_: number[];
-  if (typeof begin === 'number') {
-    begin_ = [begin, ...new Array($x.rank - 1).fill(0)];
-  } else if (begin.length < $x.rank) {
-    begin_ = begin.concat(new Array($x.rank - begin.length).fill(0));
-  } else {
-    begin_ = begin.slice();
-  }
-  begin_.forEach(d => {
-    util.assert(
-        d !== -1, () => 'slice() does not support negative begin indexing.');
-  });
-  let size_: number[];
-  if (size == null) {
-    size_ = new Array($x.rank).fill(-1);
-  } else if (typeof size === 'number') {
-    size_ = [size, ...new Array($x.rank - 1).fill(-1)];
-  } else if (size.length < $x.rank) {
-    size_ = size.concat(new Array($x.rank - size.length).fill(-1));
-  } else {
-    size_ = size;
-  }
-  size_ = size_.map((d, i) => {
-    if (d >= 0) {
-      return d;
-    } else {
-      util.assert(
-          d === -1,
-          () => `Negative size values should be exactly -1 but got ` +
-              `${d} for the slice() size at index ${i}.`);
-      return $x.shape[i] - begin_[i];
-    }
-  });
+  const [begin_, size_] = slice_util.parseSliceParams($x, begin, size);
   slice_util.assertParamsValid($x, begin_, size_);
-  const inputShape = $x.shape;
-  const grad = (dy: T) => {
-    // Create an Nx2 padding where the first column represents how many
-    // zeros are prepended (at start) for each dimension, and the second
-    // column indicates how many zeros are appended (at end).
 
-    // The number of zeros to append is the shape of the input
-    // elementwise-subtracted by both the begin vector and sizes vector.
-    const paddings: Array<[number, number]> = [];
-    for (let i = 0; i < dy.rank; i++) {
-      paddings.push([begin_[i], inputShape[i] - begin_[i] - size_[i]]);
-    }
-    return {x: () => dy.pad(paddings)};
+  const forward: ForwardFunc<Tensor> = (backend, save) => {
+    save([$x]);
+    return backend.slice($x, begin_, size_);
   };
-  const attrs = {begin: begin_, size: size_};
+
+  const inputs: SliceInputs = {x: $x};
+  const attrs: SliceAttrs = {begin, size};
+
   return ENGINE.runKernelFunc(
-      backend => backend.slice($x, begin_, size_), {x: $x}, grad, 'Slice',
-      attrs);
+             forward, inputs as {} as NamedTensorMap, null /* grad */, Slice,
+             attrs as {} as NamedAttrMap) as T;
 }
 
 export const slice = op({slice_});
-export const slice1d = op({slice1d_});
-export const slice2d = op({slice2d_});
-export const slice3d = op({slice3d_});
-export const slice4d = op({slice4d_});

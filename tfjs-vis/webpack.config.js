@@ -27,6 +27,9 @@ module.exports = {
     libraryTarget: 'umd',
     library: 'tfvis',
   },
+  optimization: {
+    minimize: true,
+  },
   externals: {
     '@tensorflow/tfjs': 'tf',
   }

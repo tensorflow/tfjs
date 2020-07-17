@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, NamedTensorInfoMap, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -46,9 +46,9 @@ function sigmoid(args: {backend: BackendWasm, inputs: SigmoidInputs}):
   return out;
 }
 
-registerKernel({
+export const sigmoidConfig: KernelConfig = {
   kernelName: 'Sigmoid',
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: sigmoid
-});
+};

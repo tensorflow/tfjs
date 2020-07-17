@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -548,15 +548,15 @@ export function computeStrides(shape: number[]): number[] {
   return strides;
 }
 
-export function toTypedArray(
-    a: TensorLike, dtype: DataType, debugMode: boolean): TypedArray {
+export function toTypedArray(a: TensorLike, dtype: DataType): TypedArray {
   if (dtype === 'string') {
     throw new Error('Cannot convert a string[] to a TypedArray');
   }
   if (Array.isArray(a)) {
     a = flatten(a);
   }
-  if (debugMode) {
+
+  if (env().getBool('DEBUG')) {
     checkConversionForErrors(a as number[], dtype);
   }
   if (noConversionNeeded(a, dtype)) {
@@ -609,7 +609,7 @@ export function toNestedArray(shape: number[], a: TypedArray) {
     return [];
   }
   if (size !== a.length) {
-    throw new Error(`[${shape}] does not match the input size.`);
+    throw new Error(`[${shape}] does not match the input size ${a.length}.`);
   }
 
   return createNestedArray(0, shape, a);
@@ -638,6 +638,25 @@ export function makeZerosTypedArray<D extends DataType>(
     return new Int32Array(size) as DataTypeMap[D];
   } else if (dtype === 'bool') {
     return new Uint8Array(size) as DataTypeMap[D];
+  } else {
+    throw new Error(`Unknown data type ${dtype}`);
+  }
+}
+
+/**
+ * Make nested `TypedArray` filled with zeros.
+ * @param shape The shape information for the nested array.
+ * @param dtype dtype of the array element.
+ */
+export function makeZerosNestedTypedArray<D extends DataType>(
+    shape: number[], dtype: D) {
+  const size = shape.reduce((prev, curr) => prev * curr, 1);
+  if (dtype == null || dtype === 'float32') {
+    return toNestedArray(shape, new Float32Array(size));
+  } else if (dtype === 'int32') {
+    return toNestedArray(shape, new Int32Array(size));
+  } else if (dtype === 'bool') {
+    return toNestedArray(shape, new Uint8Array(size));
   } else {
     throw new Error(`Unknown data type ${dtype}`);
   }

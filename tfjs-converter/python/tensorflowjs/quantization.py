@@ -16,10 +16,79 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import fnmatch
 import numpy as np
 
-QUANTIZATION_BYTES_TO_DTYPES = {1: np.uint8, 2: np.uint16}
+QUANTIZATION_DTYPE_FLOAT16 = 'float16'
+QUANTIZATION_DTYPE_UINT8 = 'uint8'
+QUANTIZATION_DTYPE_UINT16 = 'uint16'
 
+QUANTIZATION_BYTES_TO_DTYPES = {1: QUANTIZATION_DTYPE_UINT8,
+                                2: QUANTIZATION_DTYPE_UINT16}
+QUANTIZATION_OPTION_TO_DTYPES = {QUANTIZATION_DTYPE_UINT8: np.uint8,
+                                 QUANTIZATION_DTYPE_UINT16: np.uint16,
+                                 QUANTIZATION_DTYPE_FLOAT16: np.float16}
+
+
+def map_layers_to_quantization_dtype(names, quantization_dtype_map):
+  """Maps node names to their quantization dtypes.
+
+  Given a quantization_dtype_map which maps dtypes `uint8`, `uint16`, `float16`
+  to node patterns, e.g., conv/*/weights we construct a new mapping for each
+  individual node name to its dtype, e.g., conv/1/weight -> `uint8`.
+  A dtype in the map can also be a boolean, signaling a fallthrough dtype.
+  There can only be one fallthrough dtype in the map. A fallthrough dtype
+  will convert all weights that don't match any pattern to the provided dtype.
+
+  Args:
+    names: Array of node names.
+    quantization_dtype_map: A mapping from dtype (`uint8`, `uint16`, `float16`)
+      to weights. The weight mapping supports wildcard substitution.
+
+  Returns:
+    quantization_dtype: A mapping from each node name which matches
+    an entry in quantization_dtype_map to its corresponding dtype.
+
+  Raises:
+    ValueError: - If multiple dtypes match the same node name
+                - If more than one fallthrough is provided
+  """
+  if quantization_dtype_map is None:
+    return {}
+
+  fallthrough = None
+  quantization_dtype = {}
+  for dtype_name, patterns in quantization_dtype_map.items():
+    # Record fallthrough if there is one
+    if isinstance(patterns, bool) and patterns:
+      # Only one fallthrough is supported
+      if fallthrough is not None:
+        raise ValueError(
+            'More than one quantization fallthrough provided, '
+            'exactly one is supported')
+      fallthrough = dtype_name
+      continue
+    if isinstance(patterns, str):
+      patterns = list([patterns])
+
+    # Record matched weights for dtype
+    for pattern in patterns:
+      for match in fnmatch.filter(names, pattern):
+        dtype = QUANTIZATION_OPTION_TO_DTYPES[dtype_name]
+        if match in quantization_dtype and quantization_dtype[match] != dtype:
+          raise ValueError(
+              'Two quantization values %s, %s match the same node %s' %
+              (dtype, quantization_dtype[match], match))
+        quantization_dtype[match] = dtype
+
+  # Catch all remaining names with fallthrough
+  if fallthrough is not None:
+    nameset = set(names)
+    fallthrough_names = nameset - set(quantization_dtype.keys())
+    for name in fallthrough_names:
+      quantization_dtype[name] = QUANTIZATION_OPTION_TO_DTYPES[fallthrough]
+
+  return quantization_dtype
 
 def quantize_weights(data, quantization_dtype):
   """Quantizes the weights by linearly re-scaling across available bits.
@@ -36,43 +105,71 @@ def quantize_weights(data, quantization_dtype):
 
   Args:
     data: A numpy array of dtype 'float32' or 'int32'.
-    quantization_dtype: A numpy dtype to quantize weights to. Only np.uint8 and
-      np.uint16 are supported.
+    quantization_dtype: A numpy dtype to quantize weights to. Only np.float16,
+      np.uint8, and np.uint16 are supported.
 
   Returns:
     quantized_data: The quantized weights as a numpy array with dtype
       `quantization_dtype`.
-    scale: The linearly scaling constant used for quantization.
-    min_val: The minimum value of the linear range.
+    metadata: A dictionary with the corresponding metadata for the quantization
+      type. There is no metadata associated with float16.
+      For affine quantization there are two associated metadata values:
+        scale: The linearly scaling constant used for quantization.
+        min_val: The minimum value of the linear range.
   Raises:
     ValueError: if `quantization_dtype` is not a valid type.
   """
-  if quantization_dtype not in QUANTIZATION_BYTES_TO_DTYPES.values():
+  if quantization_dtype in [np.uint8, np.uint16]:
+    # Compute the min and max for the group.
+    min_val = data.min().astype(np.float64)
+    max_val = data.max().astype(np.float64)
+    if min_val == max_val:
+      # If there is only a single value, we can represent everything as zeros.
+      quantized_data = np.zeros_like(data, dtype=quantization_dtype)
+      scale = 1.0
+    else:
+      # Quantize data.
+      scale, min_val, max_val = _get_affine_quantization_range(
+          min_val, max_val, quantization_dtype)
+      quantized_data = np.round(
+          (data.clip(min_val, max_val) - min_val) / scale).astype(
+              quantization_dtype)
+
+    return quantized_data, {'min': min_val, 'scale': scale}
+  elif quantization_dtype == np.float16:
+    if data.dtype != np.float32:
+      raise ValueError(
+          'Invalid data dtype %r\n'
+          'float16 quantization only supports float32 dtype' % data.dtype)
+    quantized_data = data.astype(np.float16)
+    return quantized_data, {}
+  else:
     raise ValueError('Invalid `quantization_dtype`: %r' % quantization_dtype)
 
-  # Compute the min and max for the group.
-  min_val = data.min().astype(np.float64)
-  max_val = data.max().astype(np.float64)
-  if min_val == max_val:
-    # If there is only a single value, we can represent everything as zeros.
-    quantized_data = np.zeros_like(data, dtype=quantization_dtype)
-    scale = 1.0
+
+
+def dequantize_weights(data, metadata, original_dtype=np.float32):
+  dtype = data.dtype
+
+  if dtype in [np.uint8, np.uint16]:
+    if not ('scale' in metadata and 'min' in metadata):
+      raise ValueError(
+          'Missing metadata min or scale for dtype %s' % dtype.name)
+    scale = metadata['scale']
+    min_val = metadata['min']
+    return np.round(data * scale + min_val).astype(original_dtype)
+  elif dtype == np.float16:
+    if original_dtype != np.float32:
+      raise ValueError(
+          'Invalid data dtype %r\n'
+          'float16 quantization only supports float32 dtype' % data.dtype)
+    return data.astype(original_dtype)
   else:
-    # Quantize data.
-    scale, min_val, max_val = _get_quantization_range(
-        min_val, max_val, quantization_dtype)
-    quantized_data = np.round(
-        (data.clip(min_val, max_val) - min_val) / scale).astype(
-            quantization_dtype)
+    raise ValueError(
+        'Invalid dtype %s for dequantization\n'
+        'Supported dtypes are uint8, uint16, float16' % dtype.name)
 
-  return quantized_data, scale, min_val
-
-
-def dequantize_weights(
-    quantized_data, scale, min_val, original_dtype=np.float32):
-  return np.round(quantized_data * scale + min_val).astype(original_dtype)
-
-def _get_quantization_range(min_val, max_val, quantization_dtype):
+def _get_affine_quantization_range(min_val, max_val, quantization_dtype):
   """Computes quantization range to ensure that zero is represented if covered.
 
   Gymnastics with nudged zero point is to ensure that real zero maps to an
@@ -97,7 +194,7 @@ def _get_quantization_range(min_val, max_val, quantization_dtype):
   Raises:
     ValueError: if `quantization_dtype` is not a valid type.
   """
-  if quantization_dtype not in QUANTIZATION_BYTES_TO_DTYPES.values():
+  if quantization_dtype not in [np.uint8, np.uint16]:
     raise ValueError('Invalid `quantization_dtype`: %r' % quantization_dtype)
 
   quant_max = np.iinfo(quantization_dtype).max

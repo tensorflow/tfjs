@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, KernelFunc, NamedAttrMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, NamedAttrMap, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -25,7 +25,10 @@ interface ConcatAttrs extends NamedAttrMap {
 
 function concat(
     args: {inputs: TensorInfo[], backend: BackendWasm, attrs: ConcatAttrs}) {
-  const {inputs, backend, attrs: {axis}} = args;
+  const {inputs, backend} = args;
+
+  const axis = util.parseAxisParam(args.attrs.axis, inputs[0].shape)[0];
+
   const outShape = backend_util.computeOutShape(inputs.map(t => t.shape), axis);
   const out = backend.makeOutput(outShape, inputs[0].dtype);
 
@@ -51,8 +54,8 @@ function concat(
   return out;
 }
 
-registerKernel({
+export const concatConfig: KernelConfig = {
   kernelName: 'Concat',
   backendName: 'wasm',
   kernelFunc: concat as {} as KernelFunc,
-});
+};

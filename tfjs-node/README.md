@@ -52,6 +52,7 @@ If you do not have Xcode setup on your machine, please run the following command
 ```sh
 $ xcode-select --install
 ```
+For Mac OS Catalina please follow [this guide](https://github.com/nodejs/node-gyp/blob/master/macOS_Catalina.md#installing-node-gyp-using-the-xcode-command-line-tools-via-manual-download) to install node-gyp.
 
 After that operation completes, re-run `yarn add` or `npm install` for the `@tensorflow/tfjs-node` package.
 
@@ -71,10 +72,10 @@ Before executing any TensorFlow.js code, import the node package:
 
 ```js
 // Load the binding
-import * as tf from '@tensorflow/tfjs-node';
+const tf = require('@tensorflow/tfjs-node');
 
 // Or if running with GPU:
-import * as tf from '@tensorflow/tfjs-node-gpu';
+const tf = require('@tensorflow/tfjs-node-gpu');
 ```
 
 Note: you do not need to add the `@tensorflow/tfjs` package to your dependencies or import it directly.

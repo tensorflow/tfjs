@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,13 +15,15 @@
  * =============================================================================
  */
 
-import {backend_util, DataType, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataType, KernelConfig, NamedTensorInfoMap, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+
 import {CppDType} from './types';
 
-export function registerBinaryKernel(
-    kernelName: string, supportsFullBroadcast: boolean, dtype?: DataType) {
+export function createBinaryKernelConfig(
+    kernelName: string, supportsFullBroadcast: boolean,
+    dtype?: DataType): KernelConfig {
   let wasmFunc:
       (aId: number, aShape: Uint8Array, aShapeLen: number, bId: number,
        bShape: Uint8Array, bShapeLen: number, dtype: number, outId: number) =>
@@ -63,7 +65,8 @@ export function registerBinaryKernel(
         aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length,
         CppDType[a.dtype], outId);
 
-    if (supportsFullBroadcast) {
+    // Currently only some float operations support full broadcast.
+    if (supportsFullBroadcast && a.dtype === 'float32') {
       kernelFunc();
       return out;
     }
@@ -78,11 +81,11 @@ export function registerBinaryKernel(
     } else {
       throw new Error(
           `Broadcasting along outer dims is not yet ` +
-          `supported for ${kernelName}.`);
+          `supported for ${a.dtype} ${kernelName}.`);
     }
   }
 
-  registerKernel({kernelName, backendName: 'wasm', setupFunc, kernelFunc});
+  return {kernelName, backendName: 'wasm', setupFunc, kernelFunc};
 }
 
 interface BinaryInputs extends NamedTensorInfoMap {

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 
 import {BroadcastTo, BroadCastToAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
+import {sum} from '../ops/sum';
 import {Tensor} from '../tensor';
 
 export const broadcastToGradConfig: GradConfig = {
@@ -43,7 +44,7 @@ export const broadcastToGradConfig: GradConfig = {
         axes.push(i);
       }
     }
-    const keepDims = true;
-    return {x: () => dy.sum(axes, keepDims)};
+
+    return {x: () => sum(dy, axes, true /* keepDims */)};
   }
 };

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,11 +16,14 @@
  */
 
 import {ENGINE} from '../engine';
+import {Transpose, TransposeAttrs, TransposeInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
-import * as axis_util from './axis_util';
+
 import {op} from './operation';
 
 /**
@@ -62,13 +65,12 @@ function transpose_<T extends Tensor>(x: T|TensorLike, perm?: number[]): T {
     return $x.clone();
   }
 
-  const der = (dy: T) => {
-    const undoPerm = axis_util.getUndoAxesPermutation(perm);
-    return {x: () => dy.transpose(undoPerm)};
-  };
-  const attrs = {perm};
+  const inputs: TransposeInputs = {x: $x};
+  const attrs: TransposeAttrs = {perm};
+
   return ENGINE.runKernelFunc(
-      backend => backend.transpose($x, perm), {x: $x}, der, 'Transpose', attrs);
+      backend => backend.transpose($x, perm), inputs as {} as NamedTensorMap,
+      null /* gradient */, Transpose, attrs as {} as NamedAttrMap);
 }
 
 export const transpose = op({transpose_});

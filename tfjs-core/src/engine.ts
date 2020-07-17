@@ -17,6 +17,7 @@
 
 import {BackendTimingInfo, DataMover, KernelBackend} from './backends/backend';
 import {Environment, setEnvironmentGlobal} from './environment';
+import {getGlobalNamespace} from './global_util';
 import {getGradient, getKernel, getKernelsForBackend, GradFunc, NamedAttrMap, TensorInfo} from './kernel_registry';
 import {Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, TapeNode} from './tape';
@@ -377,15 +378,15 @@ export class Engine implements TensorTracker, DataMover {
         `failed.`);
   }
 
-  moveData(destBackend: KernelBackend, dataId: DataId) {
+  moveData(backend: KernelBackend, dataId: DataId) {
     const info = this.state.tensorInfo.get(dataId);
     const srcBackend = info.backend;
     const values = this.readSync(dataId);
     // Delete the tensor from the old backend and move it to the new
     // backend.
     srcBackend.disposeData(dataId);
-    info.backend = destBackend;
-    destBackend.move(dataId, values, info.shape, info.dtype);
+    info.backend = backend;
+    backend.move(dataId, values, info.shape, info.dtype);
     if (this.shouldCheckForMemLeaks()) {
       // Track the number of moves during a kernel execution to correctly
       // detect memory leaks.
@@ -535,8 +536,8 @@ export class Engine implements TensorTracker, DataMover {
   runKernelFunc<T extends Tensor|Tensor[], I extends NamedTensorMap>(
       forwardFunc: ForwardFunc<T>, inputs: I,
       backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () => I[P]},
-      kernelName?: string, attrs?: NamedAttrMap, inputsToSave: Tensor[] = [],
-      outputsToSave: boolean[] = []): T {
+      kernelName?: string, attrs?: NamedAttrMap, inputsToSave?: Tensor[],
+      outputsToSave?: boolean[]): T {
     let outputs: Tensor[];
     let saved: Tensor[] = [];
     const isTapeOn = this.isTapeOn();
@@ -544,15 +545,6 @@ export class Engine implements TensorTracker, DataMover {
       kernelName =
           this.state.activeScope != null ? this.state.activeScope.name : '';
     }
-    const saveFunc: GradSaveFunc = (tensors) => {
-      // Do not save unless we are recording to the tape. Otherwise it would
-      // cause a mem leak since we would never run backprop, which disposes
-      // the kept tensors.
-      if (!isTapeOn) {
-        return;
-      }
-      saved = tensors.map(tensor => this.keep(this.clone(tensor)));
-    };
 
     const startingBytecount = this.state.numBytes;
     const startingNumTensors = this.state.numTensors;
@@ -575,12 +567,40 @@ export class Engine implements TensorTracker, DataMover {
         const outTensors = outInfos.map(
             ({dataId, shape, dtype}) =>
                 this.makeTensorFromDataId(dataId, shape, dtype));
-        const outsToSave = outTensors.filter((_, i) => outputsToSave[i]);
+
         // Save the inputs and outputs.
-        saveFunc((inputsToSave || []).slice().concat(outsToSave));
+        // Do not save unless we are recording to the tape. Otherwise it would
+        // cause a mem leak since we would never run backprop, which disposes
+        // the kept tensors.
+        if (isTapeOn) {
+          let tensorsToSave =
+              this.getTensorsForGradient(kernelName, inputs, outTensors);
+          if (tensorsToSave == null) {
+            // Fallback for ops that call runKernelFunc and pass in
+            // inputsToSave and outputsToSave. Currently this is the set of ops
+            // with kernel support in the WASM backend. Once those ops and
+            // respective gradients are modularised we can remove this path.
+            if (outputsToSave == null) {
+              outputsToSave = [];
+            }
+            const outsToSave = outTensors.filter((_, i) => outputsToSave[i]);
+            tensorsToSave = (inputsToSave || []).slice().concat(outsToSave);
+          }
+          saved = this.saveTensorsForBackwardMode(tensorsToSave);
+        }
         return outTensors;
       };
     } else {
+      const saveFunc: GradSaveFunc = (tensors) => {
+        // Do not save unless we are recording to the tape. Otherwise it would
+        // cause a mem leak since we would never run backprop, which disposes
+        // the kept tensors.
+        if (!isTapeOn) {
+          return;
+        }
+        saved = tensors.map(tensor => this.keep(this.clone(tensor)));
+      };
+
       kernelFunc = () => {
         const numDataIdsBefore = this.backend.numDataIds();
         out = this.tidy(() => forwardFunc(this.backend, saveFunc));
@@ -620,6 +640,57 @@ export class Engine implements TensorTracker, DataMover {
       });
     }
     return (Array.isArray(out) ? outputs : outputs[0]) as T;
+  }
+
+  /**
+   * Saves tensors used in forward mode for use in backward mode.
+   *
+   * @param tensors the list of tensors to save.
+   */
+  private saveTensorsForBackwardMode(tensors: Tensor[]): Tensor[] {
+    const saved = tensors.map(tensor => this.keep(this.clone(tensor)));
+    return saved;
+  }
+
+  /**
+   * Returns a list of tensors to save for a given gradient calculation.
+   *
+   * Returns undefined if their is no registered gradient for this kernel in the
+   * gradient registry.
+   *
+   * @param kernelName name of kernel to look up gradient for.
+   * @param inputs a map of input tensors.
+   * @param outputs an array of output tensors from forward mode of kernel.
+   */
+  private getTensorsForGradient(
+      kernelName: string, inputs: NamedTensorMap,
+      outputs: Tensor[]): Tensor[]|null {
+    const gradConfig = getGradient(kernelName);
+    if (gradConfig != null) {
+      const inputsToSave: string[] = gradConfig.inputsToSave || [];
+      const outputsToSave: boolean[] = gradConfig.outputsToSave || [];
+
+      // If saveAllInputs is true, all inputs will be saved. Otherwise, inputs
+      // specified in inputsToSave will be saved.
+      let inputTensorsToSave: Tensor[];
+      if (gradConfig.saveAllInputs) {
+        util.assert(
+            Array.isArray(inputs),
+            () => 'saveAllInputs is true, expected inputs to be an array.');
+
+        inputTensorsToSave = Object.keys(inputs).map((key) => inputs[key]);
+      } else {
+        inputTensorsToSave = inputsToSave.map((inputName) => inputs[inputName]);
+      }
+
+      const outputTensorsToSave: Tensor[] =
+          outputs.filter((_, i) => outputsToSave[i]);
+
+      return inputTensorsToSave.concat(outputTensorsToSave);
+    }
+    // TODO(yassogba) throw exception here once all runkernelFunc calls with
+    // inputsToSave/outputsToSave are removed
+    return null;
   }
 
   /**
@@ -672,7 +743,7 @@ export class Engine implements TensorTracker, DataMover {
       dtype?: DataType): Variable {
     name = name || this.nextVariableId().toString();
     if (dtype != null && dtype !== initialValue.dtype) {
-      initialValue = initialValue.asType(dtype);
+      initialValue = initialValue.cast(dtype);
     }
     const v = new Variable(initialValue, trainable, name, this.nextTensorId());
     if (this.state.registeredVariables[v.name] != null) {
@@ -774,14 +845,15 @@ export class Engine implements TensorTracker, DataMover {
     return info;
   }
 
-  async profile(query: () => TensorContainer): Promise<ProfileInfo> {
+  async profile(query: () => (TensorContainer | Promise<TensorContainer>)):
+      Promise<ProfileInfo> {
     this.state.profiling = true;
 
     const startBytes = this.state.numBytes;
     const startNumTensors = this.state.numTensors;
 
     this.state.activeProfile.kernels = [];
-    this.state.activeProfile.result = query();
+    this.state.activeProfile.result = await query();
 
     this.state.profiling = false;
 
@@ -1069,29 +1141,8 @@ function ones(shape: number[]): Tensor {
   return ENGINE.makeTensor(values, shape, 'float32');
 }
 
-let GLOBAL: {_tfengine: Engine};
-function getGlobalNamespace(): {_tfengine: Engine} {
-  if (GLOBAL == null) {
-    // tslint:disable-next-line:no-any
-    let ns: any;
-    if (typeof (window) !== 'undefined') {
-      ns = window;
-    } else if (typeof (global) !== 'undefined') {
-      ns = global;
-    } else if (typeof (process) !== 'undefined') {
-      ns = process;
-    } else if (typeof (self) !== 'undefined') {
-      ns = self;
-    } else {
-      throw new Error('Could not find a global object');
-    }
-    GLOBAL = ns;
-  }
-  return GLOBAL;
-}
-
 function getOrMakeEngine(): Engine {
-  const ns = getGlobalNamespace();
+  const ns = getGlobalNamespace() as {} as {_tfengine: Engine};
   if (ns._tfengine == null) {
     const environment = new Environment(ns);
     ns._tfengine = new Engine(environment);

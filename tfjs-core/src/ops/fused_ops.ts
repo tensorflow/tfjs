@@ -16,7 +16,6 @@
  */
 
 import {ENGINE} from '../engine';
-import {conv2dDerFilter, conv2dDerInput, depthwiseConv2dDerFilter, depthwiseConv2dDerInput} from '../ops/conv';
 import * as conv_util from '../ops/conv_util';
 import {op} from '../ops/operation';
 import {Tensor, Tensor3D, Tensor4D} from '../tensor';
@@ -25,13 +24,20 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {add} from './binary_ops';
+import {add} from './add';
 import * as broadcast_util from './broadcast_util';
-import {conv2d as unfusedConv2d, depthwiseConv2d as unfusedDepthwiseConv2d} from './conv';
+import {conv2d as unfusedConv2d} from './conv2d';
+import {conv2DBackpropFilter} from './conv2d_backprop_filter';
+import {conv2DBackpropInput} from './conv2d_backprop_input';
+import {depthwiseConv2d as unfusedDepthwiseConv2d} from './depthwise_conv2d';
+import {depthwiseConv2dNativeBackpropFilter} from './depthwise_conv2d_native_backprop_filter';
+import {depthwiseConv2dNativeBackpropInput} from './depthwise_conv2d_native_backprop_input';
+import {elu} from './elu';
 import {Activation, shouldFuse} from './fused_util';
-import {matMul as unfusedMatMul} from './matmul';
-
-import {elu, prelu, relu, relu6} from './relu_ops';
+import {matMul as unfusedMatMul} from './mat_mul';
+import {prelu} from './prelu';
+import {relu} from './relu';
+import {relu6} from './relu6';
 
 // Returns gradient for fused activation.
 const getFusedDyActivation =
@@ -250,7 +256,7 @@ function fusedMatMul_<T extends Tensor>({
       },
       inputs, grad, '_FusedMatMul', {transposeA, transposeB, activation},
       inputsToSave, outputsToSave);
-  return res.reshape(outShape) as T;
+  return res.reshape(outShape);
 }
 
 /**
@@ -324,7 +330,7 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
   x: T|TensorLike,
   filter: Tensor4D|TensorLike,
   strides: [number, number]|number,
-  pad: 'valid'|'same'|number,
+  pad: 'valid'|'same'|number|conv_util.ExplicitPadding,
   dataFormat?: 'NHWC'|'NCHW',
   dilations?: [number, number]|number,
   dimRoundingMode?: 'floor'|'round'|'ceil',
@@ -416,10 +422,10 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
 
     return Object.assign(
         {
-          x: () =>
-              conv2dDerInput(x4D.shape, dyActivation, $filter, strides, pad),
-          filter: () =>
-              conv2dDerFilter(x4D, dyActivation, $filter.shape, strides, pad)
+          x: () => conv2DBackpropInput(
+              x4D.shape, dyActivation, $filter, strides, pad),
+          filter: () => conv2DBackpropFilter(
+              x4D, dyActivation, $filter.shape, strides, pad)
         },
         biasGradient);
   };
@@ -618,10 +624,10 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
 
     return Object.assign(
         {
-          x: () => depthwiseConv2dDerInput(
+          x: () => depthwiseConv2dNativeBackpropInput(
               (x4D as Tensor4D).shape, dyActivation, $filter as Tensor4D,
               convInfo),
-          filter: () => depthwiseConv2dDerFilter(
+          filter: () => depthwiseConv2dNativeBackpropFilter(
               x4D as Tensor4D, dyActivation, ($filter as Tensor4D).shape,
               convInfo),
         },

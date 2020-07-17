@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,7 @@ import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
-import {tensor1d, tensor2d} from './tensor_ops';
+import {tensor1d, tensor2d} from './ops';
 
 describeWithFlags('dropout', ALL_ENVS, () => {
   it('x 1d array, rate 0', async () => {

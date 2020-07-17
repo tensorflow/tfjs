@@ -19,7 +19,7 @@ import {deserializeKerasObject, serializeKerasObject} from './utils/generic_util
  * Helper function used by many of the Constraints to find the L2Norms.
  */
 function calcL2Norms(w: Tensor, axis: number): Tensor {
-  return tidy(() => tfc.sqrt(tfc.sum(tfc.mulStrict(w, w), axis, true)));
+  return tidy(() => tfc.sqrt(tfc.sum(tfc.mul(w, w), axis, true)));
 }
 
 /**

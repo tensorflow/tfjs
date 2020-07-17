@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,14 +15,9 @@
  * =============================================================================
  */
 
-import {backend_util, KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {AvgPoolAttrs, AvgPoolInputs, backend_util, KernelConfig, KernelFunc, Tensor4D} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
-
-interface AvgPoolInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-  filter: TensorInfo;
-}
 
 let wasmAvgPool: (
     xId: number, batchSize: number, inputHeight: number, inputWidth: number,
@@ -49,16 +44,16 @@ function setup(backend: BackendWasm) {
   ]);
 }
 
-function avgPool(args: {
-  inputs: AvgPoolInputs,
-  backend: BackendWasm,
-  attrs: backend_util.Conv2DInfo
-}) {
+function avgPool(
+    args: {inputs: AvgPoolInputs, backend: BackendWasm, attrs: AvgPoolAttrs}) {
   const {inputs, attrs, backend} = args;
-  const convInfo = attrs;
 
-  const {x} = inputs;
+  const x = inputs.x as Tensor4D;
   const xId = backend.dataIdMap.get(x.dataId).id;
+
+  const {filterSize, strides, pad, dimRoundingMode} = attrs;
+  const convInfo = backend_util.computePool2DInfo(
+      x.shape, filterSize, strides, 1 /* dilations */, pad, dimRoundingMode);
 
   const filterHeight = convInfo.filterHeight;
   const filterWidth = convInfo.filterWidth;
@@ -92,9 +87,9 @@ function avgPool(args: {
   return out;
 }
 
-registerKernel({
+export const avgPoolConfig: KernelConfig = {
   kernelName: 'AvgPool',
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: avgPool as {} as KernelFunc
-});
+};

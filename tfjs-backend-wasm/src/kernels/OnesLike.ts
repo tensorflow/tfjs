@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, NamedTensorInfoMap, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -31,8 +31,8 @@ function onesLike(args: {inputs: OnesLikeInputs, backend: BackendWasm}) {
   return out;
 }
 
-registerKernel({
+export const onesLikeConfig: KernelConfig = {
   kernelName: 'OnesLike',
   backendName: 'wasm',
   kernelFunc: onesLike as {} as KernelFunc,
-});
+};

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,22 +29,11 @@
 import './engine';
 // Register backend-agnostic flags.
 import './flags';
-// backend_cpu.ts and backend_webgl.ts are standalone files and should be
-// explicitly included here.
-import './backends/webgl/backend_webgl';
-import './backends/cpu/backend_cpu';
-// Import all kernels from cpu.
-import './backends/cpu/register_all_kernels';
-// Import all kernels from webgl.
-import './backends/webgl/register_all_kernels';
-
 // Register all the gradients.
 import './register_all_gradients';
-
 import './platforms/platform_browser';
 import './platforms/platform_node';
 
-import * as backend_util from './backends/backend_util';
 // Serialization.
 import * as io from './io/io';
 import * as math from './math';
@@ -58,7 +47,6 @@ import * as tensor_util from './tensor_util';
 import * as test_util from './test_util';
 import * as util from './util';
 import {version} from './version';
-import * as webgl from './webgl';
 
 export {InferenceModel, MetaGraph, MetaGraphInfo, ModelPredictConfig, ModelTensorInfo, SavedModelTensorInfo, SignatureDef, SignatureDefInfo} from './model_types';
 // Optimizers.
@@ -72,18 +60,17 @@ export {RMSPropOptimizer} from './optimizers/rmsprop_optimizer';
 export {SGDOptimizer} from './optimizers/sgd_optimizer';
 export {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, Variable} from './tensor';
 export {GradSaveFunc, NamedTensorMap, TensorContainer, TensorContainerArray, TensorContainerObject} from './tensor_types';
-export {DataType, DataTypeMap, DataValues, Rank, RecursiveArray, ShapeMap, sumOutType, TensorLike} from './types';
+export {BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, PixelData, Rank, RecursiveArray, ScalarLike, ShapeMap, sumOutType, TensorLike, TypedArray, upcastType} from './types';
 
 export * from './ops/ops';
-export {LSTMCellFunc} from './ops/lstm';
-export {Reduction} from './ops/loss_ops';
+export {Reduction} from './ops/loss_ops_utils';
 
 export * from './train';
 export * from './globals';
 export * from './kernel_registry';
 export {customGrad, grad, grads, valueAndGrad, valueAndGrads, variableGrads} from './gradients';
 
-export {TimingInfo, MemoryInfo} from './engine';
+export {TimingInfo, MemoryInfo, ForwardFunc} from './engine';
 export {Environment, env, ENV} from './environment';
 export {Platform} from './platforms/platform';
 
@@ -93,6 +80,8 @@ export {version as version_core};
 export {nextFrame} from './browser_util';
 
 // Second level exports.
+import * as backend_util from './backends/backend_util';
+import * as device_util from './device_util';
 export {
   browser,
   io,
@@ -101,18 +90,23 @@ export {
   test_util,
   util,
   backend_util,
-  webgl,
   tensor_util,
   slice_util,
   gather_util,
-  scatter_util
+  scatter_util,
+  device_util
 };
 
+import * as kernel_impls from './backends/kernel_impls';
+export {kernel_impls};
 // Backend specific.
 export {KernelBackend, BackendTimingInfo, DataMover, DataStorage} from './backends/backend';
 
 import * as ops from './ops/ops';
 setOpHandler(ops);
+
+// Export all kernel names / info.
+export * from './kernel_names';
 
 // Import all op chainers and add type info to Tensor.
 import './public/chained_ops/register_all_chained_ops';

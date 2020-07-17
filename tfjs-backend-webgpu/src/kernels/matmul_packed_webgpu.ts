@@ -127,6 +127,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
   workPerThread: number;
   variableNames = ['A', 'B'];
   workGroupSize: [number, number, number] = [16, 16, 1];
+  needsShapesUniforms = true;
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
@@ -136,13 +137,30 @@ export class MatMulPackedProgram implements WebGPUProgram {
     const bShape = transposeB ? [outputShape[0], dimBOuter, dimInner] :
                                 [outputShape[0], dimInner, dimBOuter];
     this.outputShape = outputShape;
+    this.dispatchLayout = {x: [2], y: [1], z: [0]};
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        [workPerThread, workPerThread, 1]);
+    // If dispaching number is one, it means only one work group is running.
+    // For modern GPUs, it supports multiple work groups running in parallel.
+    // So there may be some idle hardware threads.
+    // In this case, we prefer to reduce the work per thread and improve the
+    // thread utilization
+    if (util.arraysEqual(this.dispatch, [1, 1, 1])) {
+      workPerThread = 1;
+      this.dispatch = computeDispatch(
+          this.dispatchLayout, this.outputShape, this.workGroupSize,
+          [workPerThread, workPerThread, 1]);
+    }
     this.workPerThread = workPerThread;
     const tileAOuter = this.workGroupSize[1] * workPerThread;
     const tileBOuter = this.workGroupSize[0] * workPerThread;
     const tileInner = tileAOuter > tileBOuter ? tileAOuter : tileBOuter;
-    util.assert(tileInner % this.workGroupSize[0] === 0 &&
-                tileInner % this.workGroupSize[1] === 0,
-                () => 'tileInner must be multiple of workgroupsize.x and workgroupsize.y');
+    util.assert(
+        tileInner % this.workGroupSize[0] === 0 &&
+            tileInner % this.workGroupSize[1] === 0,
+        () => `tileInner must be multiple of workgroupsize.x ` +
+            `and workgroupsize.y`);
     const tileSizeA = [tileAOuter, tileInner];
     const tileSizeB = [tileInner, tileBOuter];
     const fitA = tilesFitEvenlyIntoShape(tileSizeA, aShape.slice(1));
@@ -173,10 +191,6 @@ export class MatMulPackedProgram implements WebGPUProgram {
             B[col * dimInner + row] : 0`;
     }
 
-    this.dispatchLayout = {x: [2], y: [1], z: [0]};
-    this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [workPerThread, workPerThread, 1]);
     this.userCode = `
       int dimAOuter = ${transposeA === true ? `aShape[2]` : `aShape[1]`};
       int dimInner = ${transposeA === true ? `aShape[1]` : `aShape[2]`};

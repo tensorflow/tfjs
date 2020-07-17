@@ -16,25 +16,24 @@
 
 set -e
 
-yarn lint
 # Test in node (headless environment).
 yarn test-node-ci
 
-# Run the first karma separately so it can download the BrowserStack binary
-# without conflicting with others.
-yarn run-browserstack --browsers=bs_safari_mac,bs_ios_11 --testEnv webgl1 --flags '{"WEBGL_CPU_FORWARD": false, "WEBGL_SIZE_UPLOAD_UNIFORM": 0}'
+if [ "$NIGHTLY" = true ]
+then
+  # Run the first karma separately so it can download the BrowserStack binary
+  # without conflicting with others.
+  yarn run-browserstack --browsers=bs_chrome_mac
 
-# Run the rest of the karma tests in parallel. These runs will reuse the
-# already downloaded binary.
-npm-run-all -p -c --aggregate-output \
-  "run-browserstack --browsers=bs_safari_mac,bs_ios_11,bs_android_9 --flags '{\"HAS_WEBGL\": false}' --testEnv cpu" \
-  "run-browserstack --browsers=bs_firefox_mac,bs_chrome_mac" \
-  "run-browserstack --browsers=bs_chrome_mac,win_10_chrome,bs_android_9 --testEnv webgl2 --flags '{\"WEBGL_CPU_FORWARD\": false, \"WEBGL_SIZE_UPLOAD_UNIFORM\": 0}'" \
-  "run-browserstack --browsers=bs_chrome_mac --testEnv webgl2 --flags '{\"WEBGL_PACK\": false}'" \
+  yarn run-browserstack --browsers=bs_firefox_mac,bs_safari_mac,bs_ios_11,bs_android_9 --flags '{"HAS_WEBGL": false}' --testEnv cpu
 
-### The next section tests TF.js in a webworker.
-# Make a dist/tf-core.min.js file to be imported by the web worker.
-yarn rollup -c --ci
-# Safari doesn't have offscreen canvas so test cpu in a webworker.
-# Chrome has offscreen canvas, so test webgl in a webworker.
-yarn test-webworker --browsers=bs_safari_mac,bs_chrome_mac
+  ### The next section tests TF.js in a webworker using the CPU backend.
+  echo "Start webworker test."
+  # Make a dist/tf-core.min.js file to be imported by the web worker.
+  yarn rollup -c --ci
+  # copy the cpu backend bundle somewhere the test can access it
+  cp -v ../tfjs-backend-cpu/dist/tf-backend-cpu.min.js dist/
+  yarn test-webworker --browsers=bs_safari_mac,bs_chrome_mac
+else
+  yarn run-browserstack --browsers=bs_chrome_mac
+fi

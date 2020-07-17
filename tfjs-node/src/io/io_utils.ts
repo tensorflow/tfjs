@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,14 +15,14 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import * as tf from '@tensorflow/tfjs';
 
 /**
  * Convert an ArrayBuffer to a Buffer.
  */
 export function toBuffer(ab: ArrayBuffer): Buffer {
   const view = new Uint8Array(ab);
-  return Buffer.from(view); // copies data
+  return Buffer.from(view);  // copies data
 }
 
 /**
@@ -52,7 +52,7 @@ export function toArrayBuffer(buf: Buffer|Buffer[]): ArrayBuffer {
   }
 }
 
-// TODO(cais): Use explicit tfc.io.ModelArtifactsInfo return type below once it
+// TODO(cais): Use explicit tf.io.ModelArtifactsInfo return type below once it
 // is available.
 /**
  * Populate ModelArtifactsInfo fields for a model with JSON topology.
@@ -60,7 +60,7 @@ export function toArrayBuffer(buf: Buffer|Buffer[]): ArrayBuffer {
  * @returns A ModelArtifactsInfo object.
  */
 export function getModelArtifactsInfoForJSON(
-    modelArtifacts: tfc.io.ModelArtifacts) {
+    modelArtifacts: tf.io.ModelArtifacts) {
   if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
     throw new Error('Expected JSON model topology, received ArrayBuffer.');
   }

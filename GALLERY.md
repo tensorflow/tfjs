@@ -6,6 +6,7 @@ Please reach out to us if you'd like to put your project on the list.
 
 ## Demos & Applications
 
+- [Touch The Dot](http://touch-the-dot.herokuapp.com/) - A game created using PoseNet which the player must hit the colored dots with the correct hand and gain as many points as possible (A webcam is a must). [library](https://github.com/OmriGM/body-pose-beat-game) by [Omri Grossman](http://github.com/OmriGM)
 - [Object Tracking JS](https://cp4ms.csb.app/) - Track any object as it moves through a video with no training required. [library](https://github.com/cloud-annotations/object-tracking-js) by [Nick Bourdakos](http://github.com/bourdakos1)
 - [NSFW JS](https://nsfwjs.com/) - Client-side indecent content checker. [library](https://github.com/infinitered/nsfwjs) and [blogpost](https://shift.infinite.red/avoid-nightmares-nsfw-js-ab7b176978b1) by [Gant Laborde](http://gantlaborde.com/)
 - [Honkling](https://castorini.github.io/honkling/) - An in-browser keyword spotting system by Jaejun Lee, Raphael Tang, Jimmy Lin
@@ -45,6 +46,7 @@ Please reach out to us if you'd like to put your project on the list.
 - [Neuroglancer](https://github.com/google/neuroglancer) - A browser-based app for examining 3D volumetric neuroimaging data.
 - [Chester Radiology Assistant](https://mlmed.org/tools/xray) - A web-based tool for diagnosing chest x-ray images.
 - [Membrane](https://membrane.today) - An interactive audiovisual tone mirror that responds to nose movement, by Ashlin Aronin.
+- [MedSeg](https://www.medseg.ai) - Online interactive segmentation tool for radiological images.
 
 ## Tutorials
 
@@ -79,7 +81,7 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [Introducing TensorFlow.js](https://medium.com/tensorflow/introducing-tensorflow-js-machine-learning-in-javascript-bf3eab376db) by Josh Gordon and Sara Robinson
 - [Solving the Chrome T-Rex Game with Neural Networks, Genetic Algorithms and TensorFlow.js (Chinese: 前端人工智能？TensorFlow.js 学会游戏通关)](https://zhuanlan.zhihu.com/p/35451395) by [@MagicCube](https://github.com/MagicCube)
 - [A look at how we built the Emoji Scavenger Hunt using TensorFlow.js](https://medium.com/tensorflow/a-look-at-how-we-built-the-emoji-scavenger-hunt-using-tensorflow-js-3d760a7ebfe6) by Jacques Bruwer, JK Kafalas, and Shuhei Iitsuka from Google Brand Studio
-
+- [Read a tensorflow demo to get started with machine learning](https://mp.weixin.qq.com/s/sffUvod_KlmvtVI-W3PLEQ) by [EuryChen](https://github.com/netpi) (Chinese: 读懂一个Tensorflow Demo 入门机器学习)
 ## Notebooks
 - [Introduction to TensorFlow.js](https://beta.observablehq.com/@nsthorat/introduction-to-deeplearn-js) by Nikhil Thorat
 - [How to build a Teachable Machine](https://beta.observablehq.com/@nsthorat/how-to-build-a-teachable-machine-with-tensorflow-js) by Nikhil Thorat
@@ -92,8 +94,8 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [ML5](https://ml5js.org/) - Friendly machine learning for the web
 - [magenta.js](https://magenta.tensorflow.org/js) - Music and Art Generation with Machine Intelligence in the Browser.
 - [Handsfree.js](https://github.com/handsfreejs/handsfree) - A library for adding face-controlled pointers to your site.
-- [Handtrack.js] (https://github.com/victordibia/handtrack.js) - A library for real-time hand detection directly in the browser. 
+- [Handtrack.js](https://github.com/victordibia/handtrack.js) - A library for real-time hand detection directly in the browser.
 - [face-api.js](https://github.com/justadudewhohacks/face-api.js) - A JavaScript API for face detection and face recognition in the browser.
 - [machinelearn.js](https://github.com/machinelearnjs/machinelearnjs) - A general machine learning library like ScikitLearn directly in the Browser and Node.
 - [TensorFlow.js GPU-accelerated t-SNE](https://github.com/tensorflow/tfjs-tsne) - A linear t-SNE for the web.
-- [Pipcook](https://github.com/alibaba/pipcook) - A front-end algrithm framework to create a ML pipeline based on tfjs-node, which is similar to TFX but in JS.
+- [Pipcook](https://github.com/alibaba/pipcook) - A front-end algorithm framework to create a ML pipeline based on tfjs-node, which is similar to TFX but in JS.

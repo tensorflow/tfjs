@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +16,6 @@
  */
 
 import {BackendTimer, BackendTimingInfo} from './backends/backend';
-import {WEBGL_ENVS} from './backends/webgl/backend_webgl_test_registry';
 import * as tf from './index';
 import {describeWithFlags, SYNC_BACKEND_ENVS} from './jasmine_util';
 import {checkComputationForErrors, Logger, Profiler} from './profiler';
@@ -129,34 +128,6 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
       doneFn();
     }, delayMs * 2);
   });
-});
-
-describeWithFlags('profiling WebGL', WEBGL_ENVS, () => {
-  it('If query timer extension is unavailable, profiler ' +
-         'reports an error for kernelMs.',
-     doneFn => {
-       const savedQueryReliableValue =
-           tf.env().get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE');
-       tf.env().set('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', false);
-
-       const logger = new TestLogger();
-       const profiler = new Profiler(tf.backend(), logger);
-
-       spyOn(logger, 'logKernelProfile').and.callThrough();
-       const logKernelProfileSpy = logger.logKernelProfile as jasmine.Spy;
-
-       profiler.profileKernel(
-           'MatMul', {'x': tf.tensor1d([1])}, () => [tf.scalar(1)]);
-
-       setTimeout(() => {
-         expect(logKernelProfileSpy.calls.first().args[3]['error'])
-             .toBeDefined();
-         tf.env().set(
-             'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE',
-             savedQueryReliableValue);
-         doneFn();
-       }, 0);
-     });
 });
 
 describe('profiler.checkComputationForErrors', () => {

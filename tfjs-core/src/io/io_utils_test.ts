@@ -23,7 +23,7 @@ import {expectArraysEqual} from '../test_util';
 import {expectArraysClose} from '../test_util';
 import {encodeString} from '../util';
 
-import {arrayBufferToBase64String, base64StringToArrayBuffer, basename, concatenateArrayBuffers, concatenateTypedArrays, stringByteLength} from './io_utils';
+import {arrayBufferToBase64String, base64StringToArrayBuffer, basename, concatenateArrayBuffers, concatenateTypedArrays, stringByteLength, getFloat16Decoder} from './io_utils';
 import {WeightsManifestEntry} from './types';
 
 describe('concatenateTypedArrays', () => {
@@ -330,6 +330,39 @@ describeWithFlags('encodeWeights', ALL_ENVS, () => {
     ]);
   });
 
+  it('Complex64 tensors', async () => {
+    const tensors: NamedTensorMap = {
+      x1: tf.complex([1, 2], [1, 2]),
+      x2: tf.complex(1, 2),
+      x3: tf.complex([[1]], [[2]]),
+    };
+    const dataAndSpecs = await tf.io.encodeWeights(tensors);
+    const data = dataAndSpecs.data;
+    const specs = dataAndSpecs.specs;
+    expect(data.byteLength).toEqual(8 * 4);
+    expect(new Float32Array(data, 0, 4)).toEqual(new Float32Array([
+      1, 1, 2, 2
+    ]));
+    expect(new Float32Array(data, 16, 2)).toEqual(new Float32Array([1, 2]));
+    expect(new Float32Array(data, 24, 2)).toEqual(new Float32Array([1, 2]));
+    expect(specs).toEqual([
+      {
+        name: 'x1',
+        dtype: 'complex64',
+        shape: [2],
+      },
+      {
+        name: 'x2',
+        dtype: 'complex64',
+        shape: [],
+      },
+      {
+        name: 'x3',
+        dtype: 'complex64',
+        shape: [1, 1],
+      }
+    ]);
+  });
   it('String tensors', async () => {
     const tensors: NamedTensorMap = {
       x1: tensor2d([['a', 'bc'], ['def', 'g']], [2, 2]),
@@ -396,16 +429,20 @@ describeWithFlags('encodeWeights', ALL_ENVS, () => {
       x1: tensor2d([[10, 20], [30, 40]], [2, 2], 'int32'),
       x2: scalar(13.37, 'float32'),
       x3: tensor1d([true, false, false, true], 'bool'),
+      x4: tf.complex([1, 1], [2, 2])
     };
     const dataAndSpecs = await tf.io.encodeWeights(tensors);
     const data = dataAndSpecs.data;
     const specs = dataAndSpecs.specs;
-    expect(data.byteLength).toEqual(4 * 4 + 4 * 1 + 1 * 4);
+    expect(data.byteLength).toEqual(4 * 4 + 4 * 1 + 1 * 4 + 4 * 4);
     expect(new Int32Array(data, 0, 4)).toEqual(new Int32Array([
       10, 20, 30, 40
     ]));
     expect(new Float32Array(data, 16, 1)).toEqual(new Float32Array([13.37]));
     expect(new Uint8Array(data, 20, 4)).toEqual(new Uint8Array([1, 0, 0, 1]));
+    expect(new Float32Array(data, 24, 4)).toEqual(new Float32Array([
+      1, 2, 1, 2
+    ]));
     expect(specs).toEqual([
       {
         name: 'x1',
@@ -421,6 +458,11 @@ describeWithFlags('encodeWeights', ALL_ENVS, () => {
         name: 'x3',
         dtype: 'bool',
         shape: [4],
+      },
+      {
+        name: 'x4',
+        dtype: 'complex64',
+        shape: [2],
       }
     ]);
   });
@@ -436,12 +478,13 @@ describeWithFlags('decodeWeights', {}, () => {
       x5: tensor1d([''], 'string'),  // Empty string.
       x6: scalar('hello'),           // Single string.
       y1: tensor2d([-10, -20, -30], [3, 1], 'float32'),
+      y2: tf.complex([1, 1], [2, 2])
     };
     const dataAndSpecs = await tf.io.encodeWeights(tensors);
     const data = dataAndSpecs.data;
     const specs = dataAndSpecs.specs;
     const decoded = tf.io.decodeWeights(data, specs);
-    expect(Object.keys(decoded).length).toEqual(7);
+    expect(Object.keys(decoded).length).toEqual(8);
     expectArraysEqual(await decoded['x1'].data(), await tensors['x1'].data());
     expectArraysEqual(await decoded['x2'].data(), await tensors['x2'].data());
     expectArraysEqual(await decoded['x3'].data(), await tensors['x3'].data());
@@ -449,6 +492,7 @@ describeWithFlags('decodeWeights', {}, () => {
     expectArraysEqual(await decoded['x5'].data(), await tensors['x5'].data());
     expectArraysEqual(await decoded['x6'].data(), await tensors['x6'].data());
     expectArraysEqual(await decoded['y1'].data(), await tensors['y1'].data());
+    expectArraysEqual(await decoded['y2'].data(), await tensors['y2'].data());
   });
 
   it('Unsupported dtype raises Error', () => {
@@ -520,6 +564,22 @@ describeWithFlags('decodeWeights', {}, () => {
     expectArraysEqual(await weight1.data(), [-1, 4, 25]);
     expect(weight1.shape).toEqual([3]);
     expect(weight1.dtype).toEqual('int32');
+  });
+  it('support quantization float16 weights', async () => {
+    const manifestSpecs: WeightsManifestEntry[] = [
+      {
+        name: 'weight0',
+        dtype: 'float32',
+        shape: [3],
+        quantization: { dtype: 'float16' },
+      },
+    ];
+    const data = new Uint16Array([13312, 14336, 14848]);
+    const decoded = tf.io.decodeWeights(data.buffer, manifestSpecs);
+    const weight0 = decoded['weight0'];
+    expectArraysClose(await weight0.data(), [0.25, 0.5, 0.75]);
+    expect(weight0.shape).toEqual([3]);
+    expect(weight0.dtype).toEqual('float32');
   });
 });
 
@@ -608,5 +668,64 @@ describe('basename', () => {
     expect(basename('/foo/bar/baz')).toEqual('baz');
     expect(basename('foo/bar/baz/')).toEqual('baz');
     expect(basename('foo/bar/baz//')).toEqual('baz');
+  });
+});
+
+describe('float16', () => {
+  it('decodes NaN to float32 NaN', () => {
+    const decoder = getFloat16Decoder();
+    const float16NaN = 0x00007e00;
+    const buffer = new Uint16Array([float16NaN]);
+    const f32 = decoder(buffer);
+    expect(f32).toEqual(new Float32Array([NaN]));
+  });
+
+  it('decodes ±Infinity to float32 ±Infinity', () => {
+    const decoder = getFloat16Decoder();
+    const positiveInfinity = 0x00007c00;
+    const negativeInfinity = 0xfffffc00;
+    const buffer = new Uint16Array([positiveInfinity, negativeInfinity]);
+    const f32 = decoder(buffer);
+    expect(f32).toEqual(new Float32Array([Infinity, -Infinity]));
+  });
+
+  it('decodes ±0 to float32 ±0', () => {
+    const decoder = getFloat16Decoder();
+    const positiveZero = 0x00000000;
+    const negativeZero = 0xffff8000;
+    const buffer = new Uint16Array([positiveZero, negativeZero]);
+    const f32 = decoder(buffer);
+    expect(f32).toEqual(new Float32Array([0.0, -0.0]));
+  });
+
+  it('decodes -Infinity on underflow', () => {
+    const decoder = getFloat16Decoder();
+    const minVal = 0xfffffbff;
+    const buffer = new Uint16Array([minVal + 1]);
+    const f32 = decoder(buffer);
+    expect(f32).toEqual(new Float32Array([-Infinity]));
+  });
+
+  it('decodes +Infinity on overflow', () => {
+    const decoder = getFloat16Decoder();
+    const maxVal = 0x00007bff;
+    const buffer = new Uint16Array([maxVal + 1]);
+    const f32 = decoder(buffer);
+    expect(f32).toEqual(new Float32Array([Infinity]));
+  });
+
+  it('decodes interpretable float16 to float32', () => {
+    const decoder = getFloat16Decoder();
+    const buffer = new Uint16Array([
+      0x00003400,
+      0x00003800,
+      0x00003A00,
+      0x00003555
+    ]);
+    const f32 = decoder(buffer);
+    expect(f32[0]).toBeCloseTo(0.25);
+    expect(f32[1]).toBeCloseTo(0.5);
+    expect(f32[2]).toBeCloseTo(0.75);
+    expect(f32[3]).toBeCloseTo(0.333);
   });
 });

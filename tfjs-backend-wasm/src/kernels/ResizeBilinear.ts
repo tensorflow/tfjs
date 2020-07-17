@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,21 +15,11 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, NamedAttrMap, NamedTensorInfoMap, ResizeBilinear, ResizeBilinearAttrs, ResizeBilinearInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
 import {cast} from './Cast';
-
-interface ResizeBilinearInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-interface ResizeBilinearAttrs extends NamedAttrMap {
-  newWidth: number;
-  newHeight: number;
-  alignCorners: boolean;
-}
 
 let wasmResizeBilinear: (
     xId: number, batch: number, oldHeight: number, oldWidth: number,
@@ -52,26 +42,29 @@ function setup(backend: BackendWasm): void {
 
 function resizeBilinear(args: {
   backend: BackendWasm,
-  inputs: ResizeBilinearInputs,
-  attrs: ResizeBilinearAttrs
+  inputs: NamedTensorInfoMap,
+  attrs: NamedAttrMap
 }): TensorInfo {
   const {backend, inputs, attrs} = args;
-  const {x} = inputs;
-  const {alignCorners, newHeight, newWidth} = attrs;
 
-  const [batch, oldHeight, oldWidth, numChannels] = x.shape;
+  const {images} = inputs as ResizeBilinearInputs;
+  const {alignCorners, size} = attrs as {} as ResizeBilinearAttrs;
+  const [newHeight, newWidth] = size;
+
+  const [batch, oldHeight, oldWidth, numChannels] = images.shape;
   const outShape = [batch, newHeight, newWidth, numChannels];
 
-  let xData = backend.dataIdMap.get(x.dataId);
+  let xData = backend.dataIdMap.get(images.dataId);
   let castedData;
   if (xData.dtype !== 'float32') {
-    castedData = cast({backend, inputs: {x}, attrs: {dtype: 'float32'}});
+    castedData =
+        cast({backend, inputs: {x: images}, attrs: {dtype: 'float32'}});
     xData = backend.dataIdMap.get(castedData.dataId);
   }
   const xId = xData.id;
 
   const out = backend.makeOutput(outShape, 'float32');
-  if (util.sizeFromShape(x.shape) === 0) {
+  if (util.sizeFromShape(images.shape) === 0) {
     return out;
   }
   const outId = backend.dataIdMap.get(out.dataId).id;
@@ -87,9 +80,9 @@ function resizeBilinear(args: {
   return out;
 }
 
-registerKernel({
-  kernelName: 'ResizeBilinear',
+export const resizeBilinearConfig: KernelConfig = {
+  kernelName: ResizeBilinear,
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: resizeBilinear
-});
+};

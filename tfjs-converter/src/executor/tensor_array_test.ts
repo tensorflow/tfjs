@@ -54,7 +54,8 @@ describe('TensorArray', () => {
     tensorArray.clearAndClose();
     expect(tensorArray.size()).toBe(0);
     expect(tensorArray.closed).toBeTruthy();
-    expect(memory().numTensors).toEqual(numOfTensors - size);
+    // disposed the tensor in the array and idTensor of the array
+    expect(memory().numTensors).toEqual(numOfTensors - size - 1);
   });
 
   describe('write', () => {
@@ -142,6 +143,11 @@ describe('TensorArray', () => {
 
     it('should return packed tensors when indices is specified', async () => {
       const gathered = tensorArray.gather([1, 0]);
+      expect(gathered.shape).toEqual([2, 1, 1]);
+      test_util.expectArraysClose(await gathered.data(), [2, 1]);
+    });
+    it('should return when indices longer than available tensors', async () => {
+      const gathered = tensorArray.gather([1, 0, 2, 3]);
       expect(gathered.shape).toEqual([2, 1, 1]);
       test_util.expectArraysClose(await gathered.data(), [2, 1]);
     });

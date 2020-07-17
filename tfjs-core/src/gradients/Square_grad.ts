@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,12 +17,14 @@
 
 import {Square} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
+import {mul} from '../ops/mul';
 import {Tensor} from '../tensor';
 
 export const squareGradConfig: GradConfig = {
   kernelName: Square,
+  inputsToSave: ['x'],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
     const [x] = saved;
-    return {x: () => dy.mul(x.toFloat().mul(2))};
+    return {x: () => mul(dy, mul(x.toFloat(), 2))};
   }
 };

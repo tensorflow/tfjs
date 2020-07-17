@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,17 +15,11 @@
  * =============================================================================
  */
 
-import {backend_util, NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, Min, MinAttrs, MinInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
-interface MinInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-interface MinAttrs extends NamedAttrMap {
-  axes: number[];
-}
+import {permuteAxesAndTranspose} from './kernel_utils';
 
 let wasmMin: (xId: number, reduceSize: number, outId: number) => void;
 
@@ -37,29 +31,55 @@ function setup(backend: BackendWasm): void {
 function min(args: {backend: BackendWasm, inputs: MinInputs, attrs: MinAttrs}):
     TensorInfo {
   const {backend, inputs, attrs} = args;
-  const {axes} = attrs;
+  const {axis, keepDims} = attrs;
   const {x} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
+  let inputId = xId;
+  let input = x;
 
-  backend_util.assertAxesAreInnerMostDims('min', axes, x.shape.length);
-  const [outShape, reduceShape] =
-      backend_util.computeOutAndReduceShapes(x.shape, axes);
-  const reduceSize = util.sizeFromShape(reduceShape);
+  const {transposed, axes, originalAxes, inputWasTransposed} =
+      permuteAxesAndTranspose(x, axis, backend);
 
-  const out = backend.makeOutput(outShape, x.dtype);
-  if (util.sizeFromShape(x.shape) === 0) {
-    return out;
+  if (inputWasTransposed) {
+    const transposedId = backend.dataIdMap.get(transposed.dataId).id;
+    if (transposedId !== xId) {
+      // transpose was not a no-op. We will need to dispose of this
+      // once we are done.
+      input = transposed;
+      inputId = transposedId;
+    }
   }
 
-  const outId = backend.dataIdMap.get(out.dataId).id;
+  const inputRank = input.shape.length;
 
-  wasmMin(xId, reduceSize, outId);
+  backend_util.assertAxesAreInnerMostDims('min', axes, inputRank);
+  const [outShape, reduceShape] =
+      backend_util.computeOutAndReduceShapes(input.shape, axes);
+  const reduceSize = util.sizeFromShape(reduceShape);
+
+  const out = backend.makeOutput(outShape, input.dtype);
+  if (util.sizeFromShape(input.shape) !== 0) {
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    wasmMin(inputId, reduceSize, outId);
+  }
+
+  if (inputWasTransposed) {
+    // dispose of the transposed tensor.
+    backend.disposeData(transposed.dataId);
+  }
+
+  if (keepDims) {
+    // reshape
+    const newShape = backend_util.expandShapeToKeepDim(out.shape, originalAxes);
+    out.shape = newShape;
+  }
+
   return out;
 }
 
-registerKernel({
-  kernelName: 'Min',
+export const minConfig: KernelConfig = {
+  kernelName: Min,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: min
-});
+  kernelFunc: min as {} as KernelFunc
+};

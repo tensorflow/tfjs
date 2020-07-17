@@ -49,6 +49,7 @@ interface ProgramParams {
   workGroupSize?: [number, number, number];
   variableNames: string[];
   uniforms?: string;
+  needsShapesUniforms: boolean;
   userCode: string;
 }
 
@@ -78,10 +79,7 @@ export function makeShader(
     };
   `);
 
-  let uniformDeclaration = '';
   program.variableNames.forEach((x, i) => {
-    uniformDeclaration += `${getCoordsDataType(inputInfo[i].shape.length)} ${
-        x.charAt(0).toLowerCase() + x.slice(1)}Shape; `;
     prefixSnippets.push(`
       layout(std430, set = 0, binding = ${1 + i}) readonly buffer ssb${x} {
         ${mapToGlslTypes(inputInfo[i].dtype)} ${x}[];
@@ -89,11 +87,30 @@ export function makeShader(
     `);
   });
 
-  uniformDeclaration +=
-      `${getCoordsDataType(outputData.shape.length)} outShape; `;
+  let uniformDeclaration = '';
+  if (program.needsShapesUniforms) {
+    program.variableNames.forEach((x, i) => {
+      uniformDeclaration += `${getCoordsDataType(inputInfo[i].shape.length)} ${
+          x.charAt(0).toLowerCase() + x.slice(1)}Shape; `;
+    });
+    uniformDeclaration +=
+        `${getCoordsDataType(outputData.shape.length)} outShape; `;
+  }
 
   if (program.uniforms) {
     uniformDeclaration += program.uniforms;
+  }
+
+  if (!(program.uniforms || program.needsShapesUniforms)) {
+    const sources = [
+      SHADER_PREFIX, prefixSnippets.join('\n'),
+      getSetOutputSnippet(
+          outputData.shape.length, outputData.dtype,
+          program.needsShapesUniforms),
+      program.userCode
+    ];
+    const source = sources.join('\n');
+    return source;
   }
 
   prefixSnippets.push(`
@@ -109,7 +126,8 @@ export function makeShader(
   const sources = [
     SHADER_PREFIX, prefixSnippets.join('\n'), SAMPLING_SNIPPETS,
     getOutputCoords, getCoords,
-    getSetOutputSnippet(outputData.shape.length, outputData.dtype)
+    getSetOutputSnippet(
+        outputData.shape.length, outputData.dtype, program.needsShapesUniforms)
   ];
 
   if (dispatchLayoutRank === outputData.shape.length) {
@@ -143,6 +161,11 @@ const SHADER_PREFIX = `#version 450
         all(lessThan(coord, shape));
   }
 
+  bool coordsInBounds(ivec3 coord, ivec3 shape) {
+    return all(greaterThanEqual(coord, ivec3(0))) &&
+        all(lessThan(coord, shape));
+  }
+
   bool coordsInBounds(ivec2 coord, ivec2 shape) {
     return all(greaterThanEqual(coord, ivec2(0))) &&
         all(lessThan(coord, shape));
@@ -168,7 +191,9 @@ const SAMPLING_SNIPPETS = `
   }
 `;
 
-function getSetOutputSnippet(outRank: number, outBufferType: DataType): string {
+function getSetOutputSnippet(
+    outRank: number, outBufferType: DataType,
+    needsShapesUniforms: boolean): string {
   const glslType = mapToGlslTypes(outBufferType);
   let snippet = `void setOutput(int flatIndex, float value) {
       result[flatIndex] = ${
@@ -181,6 +206,9 @@ function getSetOutputSnippet(outRank: number, outBufferType: DataType): string {
                              (glslType === 'bool' ? 'bool(value)' : 'value')};
     }`;
 
+  if (!needsShapesUniforms) {
+    return snippet;
+  }
   if (outRank >= 2) {
     const dims = ['d0', 'd1', 'd2', 'd3'].slice(0, outRank);
     const type = getCoordsDataType(outRank);

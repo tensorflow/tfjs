@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,5 +15,8 @@
  * =============================================================================
  */
 
-import {registerUnaryKernel} from './unary_kernel';
-registerUnaryKernel('Cos');
+import {KernelConfig} from '@tensorflow/tfjs-core';
+
+import {createUnaryKernelConfig} from './unary_kernel';
+
+export const cosConfig: KernelConfig = createUnaryKernelConfig('Cos');

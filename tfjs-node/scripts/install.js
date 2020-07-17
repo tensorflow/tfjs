@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -89,6 +89,10 @@ function getPlatformLibtensorflowUri() {
 
   if (customTFLibUri !== undefined) {
     return customTFLibUri;
+  }
+
+  if (platform === 'linux' && os.arch() === 'arm') {
+    return 'https://storage.googleapis.com/tf-builds/libtensorflow_r1_14_linux_arm.tar.gz';
   }
 
   if (ALL_SUPPORTED_COMBINATION.indexOf(system) === -1) {

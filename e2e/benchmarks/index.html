@@ -1,0 +1,547 @@
+<!-- Copyright 2019 Google LLC. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================-->
+
+<html>
+
+<head>
+  <title>TensorFlow.js Model Benchmark</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+  <link href="./main.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+  <link rel="shortcut icon" href="https://www.gstatic.com/devrel-devsite/prod/vf4ca28c48392b1412e7b030290622a0dd55b62dec1202c59f119b1e23227c988/tensorflow/images/favicon.png">
+</head>
+
+<body>
+  <h2>TensorFlow.js Model Benchmark</h2>
+  <div id="modal-msg"></div>
+  <div id="container">
+    <div id="stats">
+      <div class="box">
+        <pre id="env"></pre>
+      </div>
+      <table class="table" id="parameters">
+        <caption>Parameters</caption>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+      <table class="table" id="modelInputs" style="display: none;">
+        <caption>Inputs</caption>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <table class="table" id="timings">
+        <caption>Model</caption>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+      <div class="box" id="perf-trendline-container">
+        <div class="label">Inference times</div>
+        <div class="trendline">
+          <div class="yMax"></div>
+          <div class="yMin"></div>
+          <svg>
+            <path></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+    <table class="table" id="kernels">
+      <caption>Kernel</caption>
+      <thead id="kernels-thead">
+        <tr>
+          <th>Type</th>
+          <th>Time(ms)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-backend-cpu@latest/dist/tf-backend-cpu.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-backend-webgl@latest/dist/tf-backend-webgl.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-backend-wasm@latest/dist/tf-backend-wasm.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-automl@latest/dist/tf-automl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2"></script>
+
+  <script src="./modelConfig.js"></script>
+  <script src="./util.js"></script>
+  <script src="./benchmark_util.js"></script>
+  <script>
+    'use strict';
+
+    const state = {
+      numRuns: 50,
+      benchmark: 'mobilenet_v2',
+      run: (v) => {
+        runBenchmark().catch(e => {
+          showMsg('Error: ' + e.message);
+          throw e;
+        });
+      },
+      testCorrectness: async () => {
+        if (state.benchmark === 'custom') {
+          // TODO: seperate input generation from the predict function
+          await showMsg('Testing correctness for custom models is not supported.');
+          throw new Error();
+        }
+
+        let match, predictionData, referenceData;
+        await cleanUpTable();
+
+        // load model and run inference
+        try {
+          await loadModelAndRecordTime();
+          await showMsg('Testing correctness');
+          await showInputs();
+          await showCorrectnessTestParameters();
+
+          tf.setBackend('cpu');
+          await showMsg('Runing on cpu');
+          const referencePrediction = predict(model);
+          referenceData = await getPredictionData(referencePrediction);
+
+          await tf.setBackend(state.backend);
+          await showMsg(`Runing on ${state.backend}`);
+          const prediction = predict(model);
+          predictionData = await getPredictionData(prediction);
+        } catch (e) {
+          showMsg('Error: ' + e.message);
+          throw e;
+        }
+
+        // compare results
+        try {
+          await showMsg(null);
+          tf.test_util.expectArraysClose(referenceData, predictionData);
+          match = true;
+        } catch (e) {
+          match = false;
+          throw e;
+        } finally {
+          appendRow(timeTable, `backend`, state.backend);
+          appendRow(timeTable, `Prediction matches CPU`, match);
+          appendRow(timeTable, '', '');
+        }
+      },
+      backend: 'wasm',
+      kernelTiming: 'aggregate',
+      modelType: '',
+      modelUrl: '',
+      isModelChanged: false,
+    };
+
+    const modalDiv = document.getElementById('modal-msg');
+    const timeTable = document.querySelector('#timings tbody');
+    const envDiv = document.getElementById('env');
+    const kernelsTableHead = document.getElementById('kernels-thead');
+    const kernelTable = document.querySelector('#kernels tbody');
+    const parameterTable = document.querySelector('#parameters tbody');
+    const modelInputsTable = document.querySelector('#modelInputs tbody');
+
+    let model, predict, chartWidth;
+
+    async function showMsg(message) {
+      if (message != null) {
+        modalDiv.innerHTML = message + '...';
+        modalDiv.style.display = 'block';
+      } else {
+        modalDiv.style.display = 'none';
+      }
+      await tf.nextFrame();
+      await tf.nextFrame();
+    }
+
+    function showVersions() {
+      envDiv.innerHTML = JSON.stringify({
+        core: tf.version_core,
+        layers: tf.version_layers,
+        converter: tf.version_converter
+      }, null, 2);
+    }
+
+    async function showEnvironment() {
+      await tf.time(() => tf.add(tf.tensor1d([1]), tf.tensor1d([1])).data());
+      envDiv.innerHTML += `<br/>${JSON.stringify(tf.env().features, null, 2)
+        } `;
+    }
+
+    function showBenchmarkingParameters() {
+      appendRow(parameterTable, 'task', 'Performance Benchmark');
+      appendRow(parameterTable, 'benchmark', state.benchmark);
+      appendRow(parameterTable, 'modelType', state.modelType || 'Unknown');
+      if (state.benchmark === 'custom') {
+        appendRow(parameterTable, 'modelUrl', state.modelUrl);
+      }
+      appendRow(parameterTable, 'numRuns', state.numRuns);
+      appendRow(parameterTable, 'backend', state.backend);
+      appendRow(parameterTable, 'kernelTiming', state.kernelTiming);
+    }
+
+    async function setupKernelTable() {
+      kernelsTableHead.innerText = '';
+      kernelTable.innerHTML = '';
+      const rows = ['<b>Kernel</b>', '<b>Time(ms)</b>'];
+      if (state.kernelTiming === 'individual') {
+        rows.push('<b>Inputs</b>', '<b>Output</b>');
+        if (state.backend === 'webgl') {
+          rows.push('<b>GPUPrograms</b>');
+        }
+      }
+      appendRow(kernelsTableHead, ...rows);
+
+      await tf.nextFrame();
+    }
+
+    async function showCorrectnessTestParameters() {
+      appendRow(parameterTable, 'task', 'Correctness Test');
+      appendRow(parameterTable, 'benchmark', state.benchmark);
+      appendRow(parameterTable, 'modelType', state.modelType || 'Unknown');
+      if (state.benchmark === 'custom') {
+        appendRow(parameterTable, 'modelUrl', state.modelUrl);
+      }
+      appendRow(parameterTable, 'numRuns', 1);
+      appendRow(parameterTable, 'backend', state.backend);
+
+      await tf.nextFrame();
+    }
+
+    function appendRow(tbody, ...cells) {
+      const tr = document.createElement('tr');
+      cells.forEach(c => {
+        const td = document.createElement('td');
+        if (c instanceof HTMLElement) {
+          td.appendChild(c);
+        } else {
+          td.innerHTML = c;
+        }
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    }
+
+    async function warmUpAndRecordTime() {
+      await showMsg('Warming up');
+
+      let elapsedTimeArray;
+      if (state.benchmark === 'custom') {
+        const input = generateInput(model);
+        try {
+          elapsedTimeArray = await profileInferenceTimeForModel(model, input, 1);
+        } finally {
+          tf.dispose(input);
+        }
+      } else {
+        elapsedTimeArray = await profileInferenceTime(() => predict(model), 1);
+      }
+
+      await showMsg(null);
+      appendRow(timeTable, 'backend', state.backend);
+      appendRow(timeTable, '1st inference', printTime(elapsedTimeArray[0]));
+    }
+
+    async function showInputs() {
+      if (modelInputsTable.innerHTML !== '') {
+        // the input table for the model have been constructed
+        return;
+      }
+
+      const modelInputsElement = document.getElementById('modelInputs');
+      if (model['inputs'] == null) {
+        modelInputsElement.style.display='none';
+      } else {
+        modelInputsElement.style.display='';
+        // construct the input table for the new model
+        for (let modelInputIndex = 0; modelInputIndex < model.inputs.length; modelInputIndex++) {
+          let modelInput = model.inputs[modelInputIndex];
+          if (modelInput.shape == null) continue;
+          const shape = modelInput.shape.map(e => e == null ? -1 : e);
+          appendRow(modelInputsTable, 'name', modelInput.name);
+          appendRow(modelInputsTable, 'shape', shape);
+          appendRow(modelInputsTable, 'data type', modelInput.dtype);
+          appendRow(modelInputsTable, '', '');
+        }
+      }
+
+      await tf.nextFrame();
+    }
+
+    async function loadModelAndRecordTime() {
+      const benchmark = benchmarks[state.benchmark];
+      state.modelType = benchmark['type'];
+      state.isModelChanged = false; // used to clean the performance history
+
+      if (benchmark['load'] == null) {
+        throw new Error(`Please provide a load method for '${state.benchmark}' model.`);
+      }
+
+      await showMsg('Loading the model');
+      let start = performance.now();
+      model = await benchmark.load();
+      predict = benchmark.predictFunc();
+      const elapsed = performance.now() - start;
+
+      await showMsg(null);
+      appendRow(timeTable, 'Model load', printTime(elapsed));
+    }
+
+    const chartHeight = 150;
+    function populateTrendline(node, data, forceYMinToZero = false, yFormatter = d => d) {
+      node.querySelector('svg').setAttribute('width', chartWidth);
+      node.querySelector('svg').setAttribute('height', chartHeight);
+
+      const yMax = Math.max(...data);
+      let yMin = forceYMinToZero ? 0 : Math.min(...data);
+      if (yMin === yMax) {
+        yMin = 0;
+      }
+
+      node.querySelector('.yMin').textContent = yFormatter(yMin);
+      node.querySelector('.yMax').textContent = yFormatter(yMax);
+
+      const xIncrement = chartWidth / (data.length - 1);
+      node.querySelector('path')
+        .setAttribute('d', `M${data.map((d, i) => `${i * xIncrement},${chartHeight - ((d - yMin) / (yMax - yMin)) * chartHeight}`).join('L')} `);
+    }
+
+    async function measureAveragePredictTime() {
+      await showMsg(`Running predict ${state.numRuns} times`);
+      chartWidth = document.querySelector('#perf-trendline-container').getBoundingClientRect().width;
+
+      let times;
+      const numRuns = state.numRuns;
+      if (state.benchmark === 'custom') {
+        const input = generateInput(model);
+        try {
+          times = await profileInferenceTimeForModel(model, input, numRuns);
+        } finally {
+          tf.dispose(input);
+        }
+      } else {
+        times = await profileInferenceTime(() => predict(model), numRuns);
+      }
+
+      const forceInferenceTrendYMinToZero = true;
+      populateTrendline(document.querySelector('#perf-trendline-container'), times, forceInferenceTrendYMinToZero, printTime);
+
+      await showMsg(null);
+      const average = times.reduce((acc, curr) => acc + curr, 0) / times.length;
+      const min = Math.min(...times);
+      appendRow(timeTable, `Subsequent average(${state.numRuns} runs)`, printTime(average));
+      appendRow(timeTable, 'Best time', printTime(min));
+    }
+
+    async function profileMemory() {
+      await showMsg('Profile memory');
+      const start = performance.now();
+
+      let memoryInfo;
+      if (state.benchmark === 'custom') {
+        const input = generateInput(model);
+        try {
+          memoryInfo = await profileInferenceMemoryForModel(model, input);
+        } finally {
+          tf.dispose(input);
+        }
+      } else {
+        memoryInfo = await profileInferenceMemory(() => predict(model));
+      }
+
+      const elapsed = performance.now() - start;
+      await showMsg(null);
+      appendRow(timeTable, 'Peak memory', printMemory(memoryInfo.peakBytes));
+      appendRow(timeTable, 'Leaked tensors', memoryInfo.newTensors);
+      appendRow(timeTable, '2nd inference', printTime(elapsed));
+    }
+
+    function showKernelTime(kernels) {
+      const tbody = document.querySelector('#kernels tbody');
+      if (state.kernelTiming === 'individual') {
+        kernels.forEach(k => {
+          const nameSpan = document.createElement('span');
+          nameSpan.setAttribute('title', k.scopes.slice(0, -1).join(' --> '));
+          nameSpan.textContent = k.scopes[k.scopes.length - 1];
+          appendRow(tbody, nameSpan, k.time.toFixed(2), k.inputs, k.output, k.gpuProgramsInfo);
+        });
+      } else {
+        const kernelTotalTime = {};
+        kernels.forEach(k => {
+          const kernelName = k.scopes[0];
+          if (kernelTotalTime[kernelName] == null) {
+            kernelTotalTime[kernelName] = 0;
+          }
+          kernelTotalTime[kernelName] += k.time;
+        });
+
+        const result = Object.keys(kernelTotalTime)
+            .map(k => [k, kernelTotalTime[k]])
+            .sort((a, b) => b[1] - a[1]);
+        result.forEach(r => {
+          const nameSpan = document.createElement('span');
+          nameSpan.setAttribute('title', r[0]);
+          nameSpan.textContent = r[0];
+          appendRow(tbody, nameSpan, r[1].toFixed(2));
+        });
+      }
+    }
+
+    async function profileKernelTime() {
+      await showMsg('Profiling kernels');
+      _tfengine.ENV.set('DEBUG', true);
+      const oldLog = console.log;
+      let kernels = [];
+      console.log = msg => {
+        let parts = [];
+        if (typeof msg === 'string') {
+          parts = msg.split('\t').map(x => x.slice(2));
+        }
+
+        if (parts.length > 2) {
+          // heuristic for determining whether we've caught a profiler
+          // log statement as opposed to a regular console.log
+          // TODO(https://github.com/tensorflow/tfjs/issues/563): return timing information as part of tf.profile
+          const scopes = parts[0].trim()
+            .split('||')
+            .filter(s => s !== 'unnamed scope');
+          kernels.push({
+            scopes: scopes,
+            time: Number.parseFloat(parts[1]),
+            output: parts[2].trim(),
+            inputs: parts[4],
+            gpuProgramsInfo: parts[5]
+          });
+        } else {
+          oldLog.call(oldLog, msg);
+        }
+      }
+      let res = predict(model);
+      res = await getPredictionData(res);
+
+      await showMsg(null);
+      await sleep(10);
+      kernels = kernels.sort((a, b) => b.time - a.time);
+      appendRow(timeTable, 'Number of kernels', kernels.length);
+
+      // Add an empty row at the end of a benchmark run
+      appendRow(timeTable, '', '');
+      showKernelTime(kernels);
+      _tfengine.ENV.set('DEBUG', false);
+      // Switch back to the old log;
+      console.log = oldLog;
+    }
+
+    async function cleanUpTable() {
+      parameterTable.innerHTML = '';
+      if (state.isModelChanged) {
+        timeTable.innerHTML = '';
+        kernelTable.innerHTML = '';
+        modelInputsTable.innerHTML = '';
+      }
+      await tf.nextFrame();
+    }
+
+    async function runBenchmark() {
+      await cleanUpTable();
+      await setupKernelTable();
+
+      await loadModelAndRecordTime();
+      await showInputs();
+      await showBenchmarkingParameters();
+
+      await warmUpAndRecordTime();
+      await showMsg('Waiting for GC');
+      await sleep(1000);
+      await profileMemory();
+      await sleep(200);
+      await measureAveragePredictTime();
+      await sleep(200);
+
+      if (state.backend != 'webgl' || queryTimerIsEnabled()) {
+        await profileKernelTime();
+      } else {
+        await showMsg('Skipping kernel times since query timer extension is not ' +
+          'available. <br/> Use Chrome 70+.');
+      };
+    }
+
+
+    async function onPageLoad() {
+      var gui = new dat.gui.GUI({width: 400});
+      gui.domElement.id = 'gui';
+
+      await tf.setBackend(state.backend);
+
+      let modelFolder = gui.addFolder('Benchmark');
+      let modelUrlController = null;
+      modelFolder.add(state, 'benchmark', Object.keys(benchmarks)).name('models').onChange(async model => {
+        await showMsg(null);
+        state.isModelChanged = true;
+        if (model === 'custom') {
+          if (modelUrlController === null) {
+            modelUrlController = modelFolder.add(state, 'modelUrl').onChange(async modelUrl => {
+              state.isModelChanged = true;
+              await showMsg(null);
+            });
+            modelUrlController.domElement.querySelector('input').placeholder =
+                'https://your-domain.com/model-path/model.json';
+          }
+        } else if (modelUrlController != null) {
+          modelFolder.remove(modelUrlController);
+          modelUrlController = null;
+        }
+      });
+      modelFolder.open();
+
+      let parameterFolder = gui.addFolder('Parameters');
+      parameterFolder.add(state, 'numRuns');
+      parameterFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu']).onChange(backend => {
+        // TODO: Failed to set backend
+        tf.setBackend(backend);
+      });
+      parameterFolder.add(state, 'kernelTiming', ['aggregate', 'individual']);
+      parameterFolder.open();
+
+      gui.add(state, 'run').name('Run benchmark');
+      gui.add(state, 'testCorrectness').name('Test correctness');
+
+      showVersions();
+      await showEnvironment();
+    }
+
+    onPageLoad();
+  </script>
+</body>
+
+</html>

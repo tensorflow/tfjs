@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, NamedTensorInfoMap, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -136,9 +136,9 @@ function fusedConv2d(args: {
   return out;
 }
 
-registerKernel({
+export const fusedConv2DConfig: KernelConfig = {
   kernelName: 'FusedConv2D',
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: fusedConv2d as {} as KernelFunc
-});
+};

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedTensorMap, test_util} from '@tensorflow/tfjs-core';
+import {NamedTensorMap, test_util} from '@tensorflow/tfjs';
 import * as tf from './index';
 import {nodeBackend} from './nodejs_kernel_backend';
 import {getEnumKeyFromValue, getInputAndOutputNodeNameFromMetaGraphInfo, readSavedModelProto} from './saved_model';

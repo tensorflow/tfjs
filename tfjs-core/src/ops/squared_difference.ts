@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,15 +25,10 @@ import {TensorLike} from '../types';
 
 import {assertAndGetBroadcastShape} from './broadcast_util';
 import {op} from './operation';
-import {scalar} from './tensor_ops';
 
 /**
  * Returns (a - b) * (a - b) element-wise.
  * Supports broadcasting.
- *
- * We also expose `tf.squaredDifferenceStrict` which has the same signature as
- * this op and asserts that `a` and `b` are the same shape (does not
- * broadcast).
  *
  * ```js
  * const a = tf.tensor1d([1, 4, 3, 16]);
@@ -61,13 +56,7 @@ function squaredDifference_<T extends Tensor>(
   [$a, $b] = makeTypesMatch($a, $b);
 
   assertAndGetBroadcastShape($a.shape, $b.shape);
-  const der = (dy: Tensor, saved: Tensor[]) => {
-    const [$a, $b] = saved;
-    const two = scalar(2);
-    const derA = () => dy.mul($a.sub($b).mul(two));
-    const derB = () => dy.mul($b.sub($a).mul(two));
-    return {a: derA, b: derB};
-  };
+
   const forward: ForwardFunc<Tensor> = (backend, save) => {
     const res = backend.squaredDifference($a, $b);
     save([$a, $b]);
@@ -77,11 +66,9 @@ function squaredDifference_<T extends Tensor>(
   const inputs: SquaredDifferenceInputs = {a: $a, b: $b};
   const attrs = {};
 
-  const inputsToSave = [$a, $b];
-  const outputToSave: boolean[] = [];
   return ENGINE.runKernelFunc(
-             forward, inputs as unknown as NamedTensorMap, der,
-             SquaredDifference, attrs, inputsToSave, outputToSave) as T;
+             forward, inputs as unknown as NamedTensorMap, null /* grad */,
+             SquaredDifference, attrs) as T;
 }
 
 export const squaredDifference = op({squaredDifference_});

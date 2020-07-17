@@ -24,9 +24,9 @@ import {InternalOpExecutor, Node} from '../types';
 import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor = (node: Node,
-                                            tensorMap: NamedTensorsMap,
-                                            context: ExecutionContext):
-                                               tfc.Tensor[] => {
+                                              tensorMap: NamedTensorsMap,
+                                              context: ExecutionContext):
+                                                 tfc.Tensor[] => {
   switch (node.op) {
     case 'ConcatV2':
     case 'Concat': {
@@ -126,9 +126,9 @@ export const executeOp: InternalOpExecutor = (node: Node,
       const numOrSizeSplits =
           getParamValue('numOrSizeSplits', node, tensorMap, context) as number |
           number[];
-      return tfc.split(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor,
-          numOrSizeSplits, axis);
+      const tensor = getParamValue('x', node, tensorMap, context) as tfc.Tensor;
+
+      return tfc.split(tensor, numOrSizeSplits, axis);
     }
     case 'ScatterNd': {
       const indices =

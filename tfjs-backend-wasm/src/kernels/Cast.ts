@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, NamedAttrMap, NamedTensorInfoMap, registerKernel} from '@tensorflow/tfjs-core';
+import {DataType, KernelConfig, NamedAttrMap, NamedTensorInfoMap} from '@tensorflow/tfjs-core';
 import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
@@ -39,8 +39,8 @@ export function cast(
   return out;
 }
 
-registerKernel({
+export const castConfig: KernelConfig = {
   kernelName: 'Cast',
   backendName: 'wasm',
   kernelFunc: cast,
-});
+};

@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,11 +35,9 @@ EMSCRIPTEN_KEEPALIVE
 const NonMaxSuppressionResult* NonMaxSuppressionV3(
     const size_t boxes_id, const size_t scores_id, const size_t max_out_size,
     const float iou_threshold, const float score_threshold) {
-  const float dummy_soft_nms_sigma = 0.0;
-
-  return tfjs::wasm::non_max_suppression_impl(boxes_id, scores_id, max_out_size,
-                                              iou_threshold, score_threshold,
-                                              dummy_soft_nms_sigma);
+  return tfjs::wasm::non_max_suppression_impl(
+      boxes_id, scores_id, max_out_size, iou_threshold, score_threshold,
+      0.0 /* soft_nms_sigma */, false /* pad_to_max_output_size */);
 }
 
 }  // extern "C"

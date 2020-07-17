@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,8 @@
  * Implementation of the NonMaxSuppression kernel shared between webgl and cpu.
  */
 
-import {scalar, tensor1d} from '../ops/tensor_ops';
+import {scalar} from '../ops/scalar';
+import {tensor1d} from '../ops/tensor1d';
 import {Tensor1D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {TypedArray} from '../types';
@@ -32,48 +33,51 @@ interface Candidate {
   suppressBeginIndex: number;
 }
 
-export function nonMaxSuppressionV3(
+export function nonMaxSuppressionV3Impl(
     boxes: TypedArray, scores: TypedArray, maxOutputSize: number,
     iouThreshold: number, scoreThreshold: number): Tensor1D {
-  const dummySoftNmsSigma = 0.0;
-
   return nonMaxSuppressionImpl_(
              boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
-             dummySoftNmsSigma)
+             0 /* softNmsSigma */)
              .selectedIndices as Tensor1D;
 }
 
-export function nonMaxSuppressionV5(
+export function nonMaxSuppressionV4Impl(
+    boxes: TypedArray, scores: TypedArray, maxOutputSize: number,
+    iouThreshold: number, scoreThreshold: number,
+    padToMaxOutputSize: boolean): NamedTensorMap {
+  return nonMaxSuppressionImpl_(
+      boxes, scores, maxOutputSize, iouThreshold, scoreThreshold,
+      0 /* softNmsSigma */, false /* returnScoresTensor */,
+      padToMaxOutputSize /* padToMaxOutputSize */, true
+      /* returnValidOutputs */);
+}
+
+export function nonMaxSuppressionV5Impl(
     boxes: TypedArray, scores: TypedArray, maxOutputSize: number,
     iouThreshold: number, scoreThreshold: number,
     softNmsSigma: number): NamedTensorMap {
-  // For NonMaxSuppressionV5Op, we always return a second output holding
-  // corresponding scores.
-  const returnScoresTensor = true;
-
-  const result = nonMaxSuppressionImpl_(
+  return nonMaxSuppressionImpl_(
       boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma,
-      returnScoresTensor);
-
-  result.numValidOutputs.dispose();
-
-  return {
-    selectedIndices: result.selectedIndices,
-    selectedScores: result.selectedScores
-  };
+      true /* returnScoresTensor */);
 }
 
 function nonMaxSuppressionImpl_(
     boxes: TypedArray, scores: TypedArray, maxOutputSize: number,
     iouThreshold: number, scoreThreshold: number, softNmsSigma: number,
-    returnScoresTensor = false, padToMaxOutputSize = false): NamedTensorMap {
+    returnScoresTensor = false, padToMaxOutputSize = false,
+    returnValidOutputs = false): NamedTensorMap {
   // The list is sorted in ascending order, so that we can always pop the
   // candidate with the largest score in O(1) time.
-  const candidates =
-      Array.from(scores)
-          .map((score, boxIndex) => ({score, boxIndex, suppressBeginIndex: 0}))
-          .filter(c => c.score > scoreThreshold)
-          .sort(ascendingComparator);
+  const candidates = [];
+
+  for (let i = 0; i < scores.length; i++) {
+    if (scores[i] > scoreThreshold) {
+      candidates.push({score: scores[i], boxIndex: i, suppressBeginIndex: 0});
+    }
+  }
+
+  candidates.sort(ascendingComparator);
 
   // If softNmsSigma is 0, the outcome of this algorithm is exactly same as
   // before.
@@ -137,17 +141,26 @@ function nonMaxSuppressionImpl_(
   }
 
   // NonMaxSuppressionV4 feature: padding output to maxOutputSize.
-  const numValidOutputs = selectedIndices.length;
-  if (padToMaxOutputSize) {
-    selectedIndices.fill(0, numValidOutputs);
-    selectedScores.fill(0.0, numValidOutputs);
+  const validOutputs = selectedIndices.length;
+  const elemsToPad = maxOutputSize - validOutputs;
+
+  if (padToMaxOutputSize && elemsToPad > 0) {
+    selectedIndices.push(...new Array(elemsToPad).fill(0));
+    selectedScores.push(...new Array(elemsToPad).fill(0.0));
   }
 
-  return {
-    selectedIndices: tensor1d(selectedIndices, 'int32'),
-    selectedScores: tensor1d(selectedScores, 'float32'),
-    numValidOutputs: scalar(numValidOutputs, 'int32')
-  };
+  const result:
+      NamedTensorMap = {selectedIndices: tensor1d(selectedIndices, 'int32')};
+
+  if (returnScoresTensor) {
+    result['selectedScores'] = tensor1d(selectedScores, 'float32');
+  }
+
+  if (returnValidOutputs) {
+    result['validOutputs'] = scalar(validOutputs, 'int32');
+  }
+
+  return result;
 }
 
 function intersectionOverUnion(boxes: TypedArray, i: number, j: number) {

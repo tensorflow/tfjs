@@ -14,13 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
+import {env} from './environment';
 
+import {getGlobal} from './global_util';
 import {NamedGradientMap} from './tape';
 import {Tensor} from './tensor';
 import {DataType, RecursiveArray} from './types';
 
-const kernelRegistry: Map<string, KernelConfig> = new Map();
-const gradRegistry: Map<string, GradConfig> = new Map();
+const kernelRegistry =
+    getGlobal('kernelRegistry', () => new Map<string, KernelConfig>());
+const gradRegistry =
+    getGlobal('gradRegistry', () => new Map<string, GradConfig>());
 
 export type DataId = object;
 
@@ -59,6 +63,11 @@ export interface KernelConfig {
 /** Config object for registering a gradient in the global registry. */
 export interface GradConfig {
   kernelName: string;
+  inputsToSave?: string[];
+  // When saveAllInputs is true, all inputs will be saved. Only use this flag
+  // if inputs is an array of Tensors.
+  saveAllInputs?: boolean;
+  outputsToSave?: boolean[];
   gradFunc: GradFunc;
 }
 
@@ -130,7 +139,7 @@ export function registerKernel(config: KernelConfig) {
   const {kernelName, backendName} = config;
   const key = makeKey(kernelName, backendName);
   if (kernelRegistry.has(key)) {
-    throw new Error(
+    console.warn(
         `The kernel '${kernelName}' for backend ` +
         `'${backendName}' is already registered`);
   }
@@ -147,8 +156,13 @@ export function registerKernel(config: KernelConfig) {
  */
 export function registerGradient(config: GradConfig) {
   const {kernelName} = config;
+
   if (gradRegistry.has(kernelName)) {
-    console.warn(`Overriding the gradient for '${kernelName}'`);
+    // TODO (yassogba) after 3.0 assess whether we need to keep this gated
+    // to debug mode.
+    if (env().getBool('DEBUG')) {
+      console.warn(`Overriding the gradient for '${kernelName}'`);
+    }
   }
   gradRegistry.set(kernelName, config);
 }

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,27 +15,23 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel} from '@tensorflow/tfjs-core';
-import {TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, NamedAttrMap, NamedTensorInfoMap, Reshape, ReshapeAttrs, ReshapeInputs} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
-interface ReshapeInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-interface ReshapeAttrs extends NamedAttrMap {
-  shape: number[];
-}
-
-function reshape(
-    args: {inputs: ReshapeInputs, attrs: ReshapeAttrs, backend: BackendWasm}) {
-  const {inputs: {x}, attrs: {shape}} = args;
+export function reshape(args: {
+  inputs: NamedTensorInfoMap,
+  attrs: NamedAttrMap,
+  backend: BackendWasm
+}) {
+  const {inputs, attrs} = args;
+  const {x} = inputs as {} as ReshapeInputs;
+  const {shape} = attrs as {} as ReshapeAttrs;
   return {dataId: x.dataId, shape, dtype: x.dtype};
 }
 
-registerKernel({
-  kernelName: 'Reshape',
+export const reshapeConfig: KernelConfig = {
+  kernelName: Reshape,
   backendName: 'wasm',
   kernelFunc: reshape,
-});
+};

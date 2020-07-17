@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,11 +21,12 @@ import {Platform} from './platforms/platform';
 const TENSORFLOWJS_FLAGS_PREFIX = 'tfjsflags';
 
 type FlagValue = number|boolean;
+type FlagEvaluationFn = (() => FlagValue)|(() => Promise<FlagValue>);
 export type Flags = {
   [featureName: string]: FlagValue
 };
 export type FlagRegistryEntry = {
-  evaluationFn: () => FlagValue;
+  evaluationFn: FlagEvaluationFn;
   setHook?: (value: FlagValue) => void;
 };
 
@@ -60,7 +61,7 @@ export class Environment {
   }
 
   registerFlag(
-      flagName: string, evaluationFn: () => FlagValue,
+      flagName: string, evaluationFn: FlagEvaluationFn,
       setHook?: (value: FlagValue) => void) {
     this.flagRegistry[flagName] = {evaluationFn, setHook};
 
@@ -74,12 +75,28 @@ export class Environment {
     }
   }
 
+  async getAsync(flagName: string): Promise<FlagValue> {
+    if (flagName in this.flags) {
+      return this.flags[flagName];
+    }
+
+    this.flags[flagName] = await this.evaluateFlag(flagName);
+    return this.flags[flagName];
+  }
+
   get(flagName: string): FlagValue {
     if (flagName in this.flags) {
       return this.flags[flagName];
     }
 
-    this.flags[flagName] = this.evaluateFlag(flagName);
+    const flagValue = this.evaluateFlag(flagName);
+    if (flagValue instanceof Promise) {
+      throw new Error(
+          `Flag ${flagName} cannot be synchronously evaluated. ` +
+          `Please use getAsync() instead.`);
+    }
+
+    this.flags[flagName] = flagValue;
 
     return this.flags[flagName];
   }
@@ -111,7 +128,7 @@ export class Environment {
     }
   }
 
-  private evaluateFlag(flagName: string): FlagValue {
+  private evaluateFlag(flagName: string): FlagValue|Promise<FlagValue> {
     if (this.flagRegistry[flagName] == null) {
       throw new Error(
           `Cannot evaluate flag '${flagName}': no evaluation function found.`);

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -94,9 +94,26 @@ export interface TestFilter {
   excludes?: string[];
 }
 
+/**
+ * Add test filtering logic to Jasmine's specFilter hook.
+ *
+ * @param testFilters Used for include a test suite, with the ability
+ *     to selectively exclude some of the tests.
+ *     Either `include` or `startsWith` must exist for a `TestFilter`.
+ *     Tests that have the substrings specified by the include or startsWith
+ *     will be included in the test run, unless one of the substrings specified
+ *     by `excludes` appears in the name.
+ * @param customInclude Function to programatically include a test.
+ *     If this function returns true, a test will immediately run. Otherwise,
+ *     `testFilters` is used for fine-grained filtering.
+ *
+ * If a test is not handled by `testFilters` or `customInclude`, the test will
+ * be excluded in the test run.
+ */
 export function setupTestFilters(
     testFilters: TestFilter[], customInclude: (name: string) => boolean) {
   const env = jasmine.getEnv();
+
   // Account for --grep flag passed to karma by saving the existing specFilter.
   const grepFilter = env.specFilter;
 
@@ -119,8 +136,7 @@ export function setupTestFilters(
       return true;
     }
 
-    // Include a describeWithFlags() test from tfjs-core only if the test is
-    // in the include list.
+    // Include tests of a test suite unless tests are in excludes list.
     for (let i = 0; i < testFilters.length; ++i) {
       const testFilter = testFilters[i];
       if ((testFilter.include != null &&
@@ -137,6 +153,7 @@ export function setupTestFilters(
         return true;
       }
     }
+
     // Otherwise ignore the test.
     return false;
   };

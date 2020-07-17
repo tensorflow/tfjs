@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,9 +15,11 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, NamedAttrMap, NamedTensorInfoMap, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+
+import {identity} from './Identity';
 import {CppDType} from './types';
 
 interface TransposeInputs extends NamedTensorInfoMap {
@@ -44,7 +46,7 @@ function setup(backend: BackendWasm) {
   ]);
 }
 
-function transpose(
+export function transpose(
     args:
         {inputs: TransposeInputs, backend: BackendWasm, attrs: TransposeAttrs}):
     TensorInfo {
@@ -52,11 +54,7 @@ function transpose(
   // Reduce any dimensions with size one. Lower-rank transpose kernel performs
   // better due to simpler memory access pattern.
   const [reducedShape, perm] = removeOneSizeDims(inputs.x.shape, attrs.perm);
-  const x = {
-    dataId: inputs.x.dataId,
-    shape: reducedShape,
-    dtype: inputs.x.dtype
-  };
+
   let permIsNoOp = true;
   for (let i = 0; i < perm.length; i++) {
     if (perm[i] !== i) {
@@ -64,9 +62,18 @@ function transpose(
     }
   }
   const outShape = computeOutShape(inputs.x.shape, attrs.perm);
+  const x = {
+    dataId: inputs.x.dataId,
+    shape: reducedShape,
+    dtype: inputs.x.dtype
+  };
+
   if (permIsNoOp) {
-    return {dataId: x.dataId, shape: outShape, dtype: x.dtype};
+    const cloned = identity({inputs, backend});
+    cloned.shape = outShape;
+    return cloned;
   }
+
   const out = backend.makeOutput(outShape, x.dtype);
   const xId = backend.dataIdMap.get(x.dataId).id;
   const outId = backend.dataIdMap.get(out.dataId).id;
@@ -112,9 +119,9 @@ function removeOneSizeDims(
   return [newShape, newPerm];
 }
 
-registerKernel({
+export const transposeConfig: KernelConfig = {
   kernelName: 'Transpose',
   backendName: 'wasm',
   kernelFunc: transpose,
   setupFunc: setup,
-});
+};

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, Tensor} from '@tensorflow/tfjs-core';
+import {DataType, Rank, ShapeMap, TensorInfo} from '@tensorflow/tfjs-core';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import * as shader_preprocessor from '../shader_preprocessor';
@@ -33,6 +33,8 @@ export interface WebGPUProgram {
   dispatch: [number, number, number];
   variableNames: string[];
   uniforms?: string;
+  // Indicate whether shapes data are needed.
+  needsShapesUniforms: boolean;
   // Size of register cache in one dimension (assumes square cache).
   // Each thread writes to workPerThread * workPerThread locations in the output
   // buffer.
@@ -65,40 +67,13 @@ export const makeBindGroup =
       }
       return device.createBindGroup({
         layout: bindGroupLayout,
-        bindings: bindings.map((b, i) => ({binding: i, resource: b.resource})),
-      });
-    };
-
-const makeBindGroupLayout =
-    (device: GPUDevice, inputs: shader_preprocessor.InputInfo[], output: Tensor,
-     uniforms?: BindingInfo): GPUBindGroupLayout => {
-      const bindings =
-          Array(1 + inputs.length)
-              .fill(
-                  {
-                    visibility: GPUShaderStage.COMPUTE,
-                    type: 'readonly-storage-buffer' as GPUBindingType
-                  },
-                  1);
-      bindings[0] = {
-        visibility: GPUShaderStage.COMPUTE,
-        type: 'storage-buffer' as GPUBindingType
-      };
-
-      if (uniforms) {
-        bindings.push({
-          visibility: GPUShaderStage.COMPUTE,
-          type: 'uniform-buffer' as GPUBindingType
-        });
-      }
-      return device.createBindGroupLayout({
-        bindings: bindings.map((b, i) => ({binding: i, ...b})),
+        entries: bindings.map((b, i) => ({binding: i, resource: b.resource})),
       });
     };
 
 export const compileProgram =
     (glslang: Glslang, device: GPUDevice, program: WebGPUProgram,
-     inputsData: shader_preprocessor.InputInfo[], output: Tensor,
+     inputsData: shader_preprocessor.InputInfo[], output: TensorInfo,
      uniforms?: BindingInfo): WebGPUBinary => {
       const outputData = {dtype: output.dtype, shape: output.shape};
 
@@ -109,23 +84,20 @@ export const compileProgram =
         throw new Error('Shader compilation failed');
       }
 
-      const bindGroupLayout =
-          makeBindGroupLayout(device, inputsData, output, uniforms);
-      const layout =
-          device.createPipelineLayout({bindGroupLayouts: [bindGroupLayout]});
       const module = device.createShaderModule({code: result.data});
       const pipeline = device.createComputePipeline(
-          {layout, computeStage: {module, entryPoint: 'main'}});
+          {computeStage: {module, entryPoint: 'main'}});
+      const bindGroupLayout = pipeline.getBindGroupLayout(0);
 
       result.free();
       return {bindGroupLayout, pipeline};
     };
 
-// TODO: Consider uploading shape info as vec4s regardless of rank to reduce
-// recompilation.
-export function makeShaderKey(program: WebGPUProgram, ranks: number[]): string {
+export function makeShaderKey<R extends Rank>(
+    program: WebGPUProgram, shapes: Array<ShapeMap[R]>,
+    types: string[]): string {
   const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
-      ranks.join(',') +
+      shapes.join(',') + types.join(',') + program.variableNames.join(',') +
       (program.shaderKey ? program.shaderKey : program.userCode);
   return key;
 }

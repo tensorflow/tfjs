@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,7 +28,7 @@ const fn2String = (fn: Function): string => {
 const workerTestNode = () => {
   // Web worker scripts in node live relative to the CWD, not to the dir of the
   // file that spawned them.
-  const tf = require('./dist/index.js');
+  const tf = require('@tensorflow/tfjs');
   const {parentPort} = require('worker_threads');
   let a = tf.tensor1d([1, 2, 3]);
   const b = tf.tensor1d([3, 2, 1]);
@@ -37,6 +37,7 @@ const workerTestNode = () => {
 };
 
 describeWithFlags('computation in worker (node env)', HAS_NODE_WORKER, () => {
+  // tslint:disable-next-line: ban
   it('tensor in worker', (done) => {
     const {Worker} = require('worker_threads');
     const worker = new Worker(fn2String(workerTestNode), {eval: true});

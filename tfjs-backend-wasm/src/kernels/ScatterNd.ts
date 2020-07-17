@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,19 +15,11 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, scatter_util, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, scatter_util, ScatterNd, ScatterNdAttrs, ScatterNdInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+
 import {CppDType} from './types';
-
-interface ScatterNdInputs extends NamedTensorInfoMap {
-  indices: TensorInfo;
-  updates: TensorInfo;
-}
-
-interface ScatterNdAttrs extends NamedAttrMap {
-  shape: number[];
-}
 
 let wasmScatterNd: (
     indicesId: number, updatesId: number, dtype: CppDType, sliceRank: number,
@@ -80,9 +72,9 @@ function scatterNd(
   return out;
 }
 
-registerKernel({
-  kernelName: 'ScatterNd',
+export const scatterNdConfig: KernelConfig = {
+  kernelName: ScatterNd,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: scatterNd
-});
+  kernelFunc: scatterNd as {} as KernelFunc
+};

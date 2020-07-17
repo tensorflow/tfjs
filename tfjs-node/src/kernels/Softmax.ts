@@ -15,23 +15,23 @@
  * =============================================================================
  */
 
-import {NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, NamedTensorInfoMap, TensorInfo} from '@tensorflow/tfjs';
 
-import {createTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
+import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
 interface SoftmaxInputs extends NamedTensorInfoMap {
   logits: TensorInfo;
 }
 
-registerKernel({
+export const softmaxConfig: KernelConfig = {
   kernelName: 'Softmax',
   backendName: 'tensorflow',
   kernelFunc: ({inputs, backend}) => {
     const {logits} = inputs as SoftmaxInputs;
-    const opAttrs = [createTypeOpAttr('T', logits.dtype)];
+    const opAttrs = [createTensorsTypeOpAttr('T', logits.dtype)];
 
     const nodeBackend = backend as NodeJSKernelBackend;
 
     return nodeBackend.executeSingleOutput('Softmax', opAttrs, [logits]);
   }
-});
+};

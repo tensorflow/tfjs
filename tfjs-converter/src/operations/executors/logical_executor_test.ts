@@ -26,7 +26,7 @@ describe('logical', () => {
   let node: Node;
   const input1 = [tfc.scalar(1)];
   const input2 = [tfc.scalar(2)];
-  const context = new ExecutionContext({}, {});
+  const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
     node = {
@@ -68,6 +68,19 @@ describe('logical', () => {
       it('should call tfc.where', () => {
         spyOn(tfc, 'where');
         node.op = 'Select';
+        node.inputNames = ['input1', 'input2', 'input3'];
+        node.inputParams.condition = createTensorAttr(2);
+        const input3 = [tfc.scalar(1)];
+        executeOp(node, {input1, input2, input3}, context);
+
+        expect(tfc.where).toHaveBeenCalledWith(input3[0], input1[0], input2[0]);
+      });
+    });
+
+    describe('SelectV2', () => {
+      it('should call tfc.where', () => {
+        spyOn(tfc, 'where');
+        node.op = 'SelectV2';
         node.inputNames = ['input1', 'input2', 'input3'];
         node.inputParams.condition = createTensorAttr(2);
         const input3 = [tfc.scalar(1)];
