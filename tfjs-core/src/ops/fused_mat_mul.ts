@@ -144,7 +144,7 @@ function fusedMatMul_<T extends Tensor>({
     // necessarily going to be a 3d tensor due to a reshape done at the end of
     // the customOp.
     const dyActivation =
-        getFusedDyActivation(dy.reshape(y.shape), y, activation)
+        getFusedDyActivation(dy.reshape(y.shape), y, activation);
     let aDer: Tensor;
     let bDer: Tensor;
 
