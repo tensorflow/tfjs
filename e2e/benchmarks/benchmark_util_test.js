@@ -21,7 +21,7 @@
  */
 
 describe('benchmark_util', () => {
-  beforeAll(() => tf.setBackend('cpu'));
+  beforeEach(() => tf.setBackend('cpu'));
 
   describe('generateInput', () => {
     it('LayersModel', () => {
@@ -57,13 +57,16 @@ describe('benchmark_util', () => {
   });
 
   describe('getPredictFnForModel', () => {
-    it('graph model with async ops uses executeAsync to run', async () => {
-      const modelUrl =
-          'https://storage.googleapis.com/tfjs-models/savedmodel/ssd_mobilenet_v1/model.json';
-      const model = await tf.loadGraphModel(modelUrl);
-      const input = generateInput(model);
+    it('graph model with async ops uses executeAsync to run', () => {
+      const model = new tf.GraphModel();
+      const input = tf.tensor([1]);
       const oldTensorNum = tf.memory().numTensors;
-      spyOn(model, 'execute').and.callThrough();
+      spyOn(model, 'execute').and.callFake(() => {
+        const leakedTensor = tf.tensor([1]);
+        throw new Error(
+            'This model has dynamic ops, ' +
+            'please use model.executeAsync() instead');
+      });
       spyOn(model, 'executeAsync');
 
       const wrappedPredict = getPredictFnForModel(model, input);
@@ -77,16 +80,16 @@ describe('benchmark_util', () => {
       expect(model.executeAsync.calls.first().args).toEqual([input]);
 
       tf.dispose(input);
-      model.dispose();
     });
 
-    it('graph model without async ops uses execute to run', async () => {
-      const modelUrl =
-          'https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json';
-      const model = await tf.loadGraphModel(modelUrl);
-      const input = tf.zeros([1, 224, 224, 3]);
+    it('graph model without async ops uses execute to run', () => {
+      const model = new tf.GraphModel();
+      const input = tf.tensor([1]);
       const oldTensorNum = tf.memory().numTensors;
-      spyOn(model, 'execute').and.callThrough();
+      spyOn(model, 'execute').and.callFake(() => {
+        const leakedTensor = tf.tensor([1]);
+      });
+      spyOn(model, 'executeAsync');
 
       const wrappedPredict = getPredictFnForModel(model, input);
       expect(tf.memory().numTensors).toBe(oldTensorNum);
@@ -96,15 +99,15 @@ describe('benchmark_util', () => {
       wrappedPredict();
       expect(model.execute.calls.count()).toBe(2);
       expect(model.execute.calls.argsFor(1)).toEqual([input]);
+      expect(model.executeAsync.calls.count()).toBe(0);
 
       tf.dispose(input);
-      model.dispose();
     });
 
     it('layers model uses predict to run', () => {
       const model = tf.sequential(
-          {layers: [tf.layers.dense({units: 1, inputShape: [10]})]});
-      const input = tf.ones([8, 10]);
+          {layers: [tf.layers.dense({units: 1, inputShape: [1]})]});
+      const input = tf.ones([1, 1]);
       spyOn(model, 'predict');
 
       const wrappedPredict = getPredictFnForModel(model, input);

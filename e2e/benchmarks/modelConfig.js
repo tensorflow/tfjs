@@ -230,7 +230,7 @@ const benchmarks = {
         let inferenceInput;
         try {
           inferenceInput = generateInput(model);
-          const predict = wrapPredictFnForModel(model, inferenceInput);
+          const predict = getPredictFnForModel(model, inferenceInput);
           const inferenceOutput = await predict();
           return inferenceOutput;
         } finally {
