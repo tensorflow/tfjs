@@ -139,31 +139,31 @@ function fusedMatMul_<T extends Tensor>({
   }
 
   const grad = (dy: Tensor3D, saved: Tensor[]) => {
-    const [a3D, b3D, y, bias] = saved;
-    const dyActivation = getFusedDyActivation(dy, y, activation);
-
+    const [a3D, b3D, y, $bias] = saved;
+    // we reshape dy because the result of the forward is not
+    // necessarily going to be a 3d tensor due to a reshape done at the end of
+    // the customOp.
+    const dyActivation =
+        getFusedDyActivation(dy.reshape(y.shape), y, activation)
     let aDer: Tensor;
     let bDer: Tensor;
 
     if (!transposeA && !transposeB) {
-      aDer = dyActivation.matMul(b3D as Tensor3D, false, true);
+      aDer = dyActivation.matMul(b3D, false, true);
       bDer = a3D.matMul(dyActivation, true, false);
-
     } else if (!transposeA && transposeB) {
-      aDer = dyActivation.matMul(b3D as Tensor3D, false, false);
-      bDer = dyActivation.matMul(a3D as Tensor3D, true, false);
-
+      aDer = dyActivation.matMul(b3D, false, false);
+      bDer = dyActivation.matMul(a3D, true, false);
     } else if (transposeA && !transposeB) {
       aDer = b3D.matMul(dyActivation, false, true);
       bDer = a3D.matMul(dyActivation, false, false);
-
     } else {
       aDer = b3D.matMul(dyActivation, true, true);
-      bDer = dyActivation.matMul(a3D as Tensor3D, true, true);
+      bDer = dyActivation.matMul(a3D, true, true);
     }
 
     if (bias != null) {
-      const biasDer = getFusedBiasGradient(bias, dyActivation);
+      const biasDer = getFusedBiasGradient($bias, dyActivation);
       return [aDer, bDer, biasDer];
     } else {
       return [aDer, bDer];
@@ -195,24 +195,24 @@ function fusedMatMul_<T extends Tensor>({
   // inputs and thus a a different number of elements in the gradient.
   if (bias == null) {
     const customOp =
-        customGrad((a: Tensor3D, b: Tensor3D, save: GradSaveFunc) => {
+        customGrad((a3D: Tensor3D, b3D: Tensor3D, save: GradSaveFunc) => {
           const res = ENGINE.runKernelFunc(
               forward, inputs as {} as NamedTensorMap, null /* grad */,
               _FusedMatMul, attrs as {} as NamedAttrMap);
 
-          save([a, b, res]);
+          save([a3D, b3D, res]);
 
           return {value: res.reshape(outShape), gradFunc: grad};
         });
     return customOp(a3D, b3D) as T;
   } else {
     const customOpWithBias = customGrad(
-        (a: Tensor3D, b: Tensor3D, bias: Tensor, save: GradSaveFunc) => {
+        (a3D: Tensor3D, b3D: Tensor3D, $bias: Tensor, save: GradSaveFunc) => {
           const res = ENGINE.runKernelFunc(
               forward, inputs as {} as NamedTensorMap, null /* grad */,
               _FusedMatMul, attrs as {} as NamedAttrMap);
 
-          save([a, b, res, bias]);
+          save([a3D, b3D, res, $bias]);
 
           return {value: res.reshape(outShape), gradFunc: grad};
         });
