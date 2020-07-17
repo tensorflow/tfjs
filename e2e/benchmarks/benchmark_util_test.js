@@ -66,6 +66,7 @@ describe('benchmark_util', () => {
         throw new Error(
             'This model has dynamic ops, ' +
             'please use model.executeAsync() instead');
+        return leakedTensor;
       });
       spyOn(model, 'executeAsync');
 
