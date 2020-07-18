@@ -47,6 +47,7 @@ Please reach out to us if you'd like to put your project on the list.
 - [Chester Radiology Assistant](https://mlmed.org/tools/xray) - A web-based tool for diagnosing chest x-ray images.
 - [Membrane](https://membrane.today) - An interactive audiovisual tone mirror that responds to nose movement, by Ashlin Aronin.
 - [MedSeg](https://www.medseg.ai) - Online interactive segmentation tool for radiological images.
+- [Arabic Font Classification](https://mhmoodlan.github.io/blog/arabic-font-classification) - Tackling the visual font recognition problem for Arabic fonts by synthesizing a [dataset](https://github.com/mhmoodlan/arabic-font-classification/releases/tag/v0.1.0) and addressing domain mismatch challenges, by [Mahmoud Aslan](https://mhmoodlan.github.io)
 
 ## Tutorials
 
