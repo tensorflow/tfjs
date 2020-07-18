@@ -20,11 +20,11 @@ const TUNABLE_FLAG_NAME_MAP = {
 // This map depends on the runtime environment.
 let TUNABLE_FLAG_DEFAULT_VALUE_MAP;
 
-// Setup flag settings from scratch or for a new backend.
-async function showFlagSettings(folderController) {
+// Set up flag settings from scratch or for a new backend.
+async function showFlagSettings(folderController, backendName) {
   // Delete settings for other flags.
-  // The first constroller under the `folderController` is the backend. In
-  // addition to backend setting, general flags also apply to all backends.
+  // The first constroller under the `folderController` is the backend.
+  // Backend setting and general flag setting apply to all backends.
   const fixedSelectionNum = BACKEND_FLAGS_MAP.general.length + 1;
   while (folderController.__controllers.length > fixedSelectionNum) {
     folderController.remove(folderController.__controllers[fixedSelectionNum]);
@@ -36,13 +36,13 @@ async function showFlagSettings(folderController) {
 
   // Add general flag settings.
   if (folderController.__controllers.length < fixedSelectionNum) {
-    showBackendFlagSettings('general', folderController);
+    showBackendFlagSettings(folderController, 'general');
   }
-  // Add flag setting for the current backend.
-  showBackendFlagSettings(state.backend, folderController);
+  // Add flag setting for the new backend.
+  showBackendFlagSettings(folderController, backendName);
 }
 
-function showBackendFlagSettings(backendName, folderController) {
+function showBackendFlagSettings(folderController, backendName) {
   const tunableFlags = BACKEND_FLAGS_MAP[backendName];
   for (let index = 0; index < tunableFlags.length; index++) {
     const flag = tunableFlags[index];
@@ -57,7 +57,7 @@ function showBackendFlagSettings(backendName, folderController) {
     }
 
     let flagController;
-    if (typeof state.flags[flag] === 'boolean') {
+    if (typeof flagValueRange[0] === 'boolean') {
       // Show checkbox for boolean flags.
       flagController = folderController.add(state.flags, flag);
     } else {

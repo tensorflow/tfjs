@@ -508,7 +508,7 @@ limitations under the License.
 
 
     async function onPageLoad() {
-      var gui = new dat.gui.GUI({width: 550});
+      const gui = new dat.gui.GUI({width: 550});
       gui.domElement.id = 'gui';
 
       await tf.setBackend(state.backend);
@@ -543,14 +543,14 @@ limitations under the License.
       envFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu']).onChange(async backend => {
         // TODO: Failed to set backend
         await tf.setBackend(backend);
-        await showFlagSettings(envFolder);
+        await showFlagSettings(envFolder, state.backend);
       });
       envFolder.open();
 
       gui.add(state, 'run').name('Run benchmark');
       gui.add(state, 'testCorrectness').name('Test correctness');
 
-      await showFlagSettings(envFolder);
+      await showFlagSettings(envFolder, state.backend);
       showVersions();
       await showEnvironment();
     }
