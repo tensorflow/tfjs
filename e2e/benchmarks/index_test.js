@@ -16,7 +16,7 @@ class testFolderController {
 }
 
 const state = {
-  flags: {testFlag: null}
+  flags: {}
 };
 
 describe('index', () => {
@@ -127,41 +127,42 @@ describe('index', () => {
     let oldGetTunableRange;
 
     beforeAll(() => {
+      // Assume testBackend has only one flag, testFlag.
+      // A DOM element is showed based on this flag's tunable range.
       BACKEND_FLAGS_MAP['testBackend'] = ['testFlag'];
+      state.flags['testFlag'] = null;
       oldGetTunableRange = getTunableRange;
     });
+
     afterAll(() => {
       delete BACKEND_FLAGS_MAP['testBackend'];
+      delete state.flags['testFlag'];
       getTunableRange = oldGetTunableRange;
     });
 
-    it('does not show selection for untunable flags', () => {
-      const folderController = new testFolderController();
-      getTunableRange = jasmine.createSpy().and.callFake(() => {
-        return [1];
-      });
+    it('does not show DOM element for untunable flags', () => {
+      const folderController = new dat.gui.GUI();
+      // The flag with only one value option is considered as untunable.
+      const flagValueRange = [false];
+      getTunableRange = jasmine.createSpy().and.returnValue(flagValueRange);
       spyOn(folderController, 'add');
 
       showBackendFlagSettings(folderController, 'testBackend');
 
-      expect(getTunableRange.calls.count()).toBe(1);
-      expect(getTunableRange.calls.first().args).toEqual(['testFlag']);
       expect(folderController.add.calls.count()).toBe(0);
+
+      folderController.destroy();
     });
 
     it('show checkbox for boolean tunable flags', () => {
       const folderController = new dat.gui.GUI();
       state.flags.testFlag = true;
-      getTunableRange = jasmine.createSpy().and.returnValue([true, false]);
+      const flagValueRange = [true, false];
+      getTunableRange = jasmine.createSpy().and.returnValue(flagValueRange);
       spyOn(folderController, 'add').and.callThrough();
-      // spyOn(folderController, 'onFinishChange');
-      // spyOn(folderController, 'name');
-      // spyOn(folderController, 'onChange');
 
       showBackendFlagSettings(folderController, 'testBackend');
 
-      expect(getTunableRange.calls.count()).toBe(1);
-      expect(getTunableRange.calls.first().args).toEqual(['testFlag']);
       expect(folderController.add.calls.count()).toBe(1);
       expect(folderController.add.calls.first().args).toEqual([
         state.flags, 'testFlag'
@@ -181,8 +182,6 @@ describe('index', () => {
 
       showBackendFlagSettings(folderController, 'testBackend');
 
-      expect(getTunableRange.calls.count()).toBe(1);
-      expect(getTunableRange.calls.first().args).toEqual(['testFlag']);
       expect(folderController.add.calls.count()).toBe(1);
       expect(folderController.add.calls.first().args).toEqual([
         state.flags, 'testFlag', flagValueRange
@@ -195,6 +194,10 @@ describe('index', () => {
   });
 
   describe('getTunableRange', () => {
+    afterAll(() => {
+      TUNABLE_FLAG_DEFAULT_VALUE_MAP = null;
+    });
+
     it('returns [false] for the flag with false as default value', () => {
       TUNABLE_FLAG_DEFAULT_VALUE_MAP = {testFlag: false};
       const flagValueRange = getTunableRange('testFlag');

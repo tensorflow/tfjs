@@ -17,7 +17,7 @@ const TUNABLE_FLAG_NAME_MAP = {
   WEBGL_RENDER_FLOAT32_CAPABLE: 'enable float32'
 };
 
-// This map depends on the runtime environment.
+// This map depends on the runtime environment and is a const in runtime.
 let TUNABLE_FLAG_DEFAULT_VALUE_MAP;
 
 // Set up flag settings from scratch or for a new backend.
