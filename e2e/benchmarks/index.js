@@ -17,14 +17,25 @@ const TUNABLE_FLAG_NAME_MAP = {
   WEBGL_RENDER_FLOAT32_CAPABLE: 'enable float32'
 };
 
-// This map depends on the runtime environment and is a const in runtime.
+/**
+ * Records each flag's default value under the runtime environment and is a
+ * constant in runtime.
+ */
 let TUNABLE_FLAG_DEFAULT_VALUE_MAP;
 
-// Set up flag settings from scratch or for a new backend.
+/**
+ * Set up flag settings under the UI element of `folderController`:
+ * - If it is the first call, show flag settings for both the general and the
+ * given backend.
+ * - Else, clean up flag settings for the previous backend and show flag
+ * settings for the new backend.
+ *
+ * @param {dat.gui.GUI} folderController
+ * @param {string} backendName
+ */
 async function showFlagSettings(folderController, backendName) {
-  // Delete settings for other flags.
-  // The first constroller under the `folderController` is the backend.
-  // Backend setting and general flag setting apply to all backends.
+  // Clean up flag settings for the previous backend.
+  // The first constroller under the `folderController` is the backend setting.
   const fixedSelectionNum = BACKEND_FLAGS_MAP.general.length + 1;
   while (folderController.__controllers.length > fixedSelectionNum) {
     folderController.remove(folderController.__controllers[fixedSelectionNum]);
@@ -34,14 +45,22 @@ async function showFlagSettings(folderController, backendName) {
     await initDefaultValueMap();
   }
 
-  // Add general flag settings.
+  // Show general flag settings for the first call.
   if (folderController.__controllers.length < fixedSelectionNum) {
     showBackendFlagSettings(folderController, 'general');
   }
-  // Add flag setting for the new backend.
+
+  // Show flag settings for the new backend.
   showBackendFlagSettings(folderController, backendName);
 }
 
+/**
+ * Show flag settings for the given backend under the UI element of
+ * `folderController`.
+ *
+ * @param {dat.gui.GUI} folderController
+ * @param {string} backendName
+ */
 function showBackendFlagSettings(folderController, backendName) {
   const tunableFlags = BACKEND_FLAGS_MAP[backendName];
   for (let index = 0; index < tunableFlags.length; index++) {
@@ -51,8 +70,11 @@ function showBackendFlagSettings(folderController, backendName) {
     // When tunable (bool) and range (array) attributes of `flagRegistry` is
     // implemented, we can apply them to here.
     const flagValueRange = getTunableRange(flag);
-    // Consider a flag with at least two options as tunable.
+    // Heuristically consider a flag with at least two options as tunable.
     if (flagValueRange.length < 2) {
+      console.warn(
+          `The ${flag} is considered as untunable, ` +
+          `because its value range is [${flagValueRange}].`);
       continue;
     }
 
@@ -62,16 +84,19 @@ function showBackendFlagSettings(folderController, backendName) {
       flagController = folderController.add(state.flags, flag);
     } else {
       // Show dropdown for other types of flags.
+      flagController = folderController.add(state.flags, flag, flagValueRange);
+
       // Because dat.gui always casts dropdown option values to string, we need
       // `stringValueMap` and `onFinishChange()` to recover the value type.
       const stringValueMap = {};
-      flagValueRange.forEach(option => {
-        stringValueMap[option] = option;
+      for (let index = 0; index < flagValueRange.length; index++) {
+        const realValue = flagValueRange[index];
+        const stringValue = String(flagValueRange[index]);
+        stringValueMap[stringValue] = realValue;
+      }
+      flagController.onFinishChange(stringValue => {
+        state.flags[flag] = stringValueMap[stringValue];
       });
-      flagController = folderController.add(state.flags, flag, flagValueRange)
-                           .onFinishChange(stringValue => {
-                             state.flags[flag] = stringValueMap[stringValue];
-                           });
     }
     flagController.name(flagName).onChange(() => {
       state.isFlagChanged = true;
@@ -94,7 +119,11 @@ async function initDefaultValueMap() {
   state.isFlagChanged = false;
 }
 
-// Heuristically determine flag's value range based on the default value.
+/**
+ * Heuristically determines flag's value range based on flag's  default value.
+ *
+ * @param {string} flag
+ */
 function getTunableRange(flag) {
   const defaultValue = TUNABLE_FLAG_DEFAULT_VALUE_MAP[flag];
   if (flag === 'WEBGL_FORCE_F16_TEXTURES') {

@@ -146,10 +146,12 @@ describe('index', () => {
       const flagValueRange = [false];
       getTunableRange = jasmine.createSpy().and.returnValue(flagValueRange);
       spyOn(folderController, 'add');
+      spyOn(console, 'warn');
 
       showBackendFlagSettings(folderController, 'testBackend');
 
       expect(folderController.add.calls.count()).toBe(0);
+      expect(console.warn.calls.count()).toBe(1);
 
       folderController.destroy();
     });
