@@ -141,7 +141,7 @@ async function initDefaultValueMap() {
 }
 
 /**
- * Heuristically determine flag's value range based on flag's  default value.
+ * Heuristically determine flag's value range based on flag's default value.
  *
  * @param {string} flag
  */
