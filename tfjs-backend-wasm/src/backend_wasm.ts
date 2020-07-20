@@ -237,8 +237,10 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
     //                              wasmFactory(factoryConfig);
     const wasm = wasmFactory(factoryConfig);
     const voidReturnType: string = null;
-    // wasm.mainScriptUrlOrBlob =
-    //     new Blob([emscriptenContents], {type: 'text/javascript'});
+    wasm.mainScriptUrlOrBlob = new Blob(
+        [`var _scriptDir = undefined; var WasmBackendModule = ` +
+         wasmFactory.toString()],
+        {type: 'text/javascript'});
     // Using the tfjs namespace to avoid conflict with emscripten's API.
     wasm.tfjs = {
       init: wasm.cwrap('init', null, []),
