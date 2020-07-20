@@ -81,7 +81,7 @@ namespace wasm {
 const NonMaxSuppressionResult* non_max_suppression_impl(
     const size_t boxes_id, const size_t scores_id, const size_t max_out_size,
     const float iou_threshold, const float score_threshold,
-    const float soft_nms_sigma) {
+    const float soft_nms_sigma, const bool pad_to_max_output_size) {
   auto& boxes_info = backend::get_tensor_info(boxes_id);
   auto& scores_info = backend::get_tensor_info_out(scores_id);
   const float* boxes = boxes_info.f32();
@@ -175,6 +175,12 @@ const NonMaxSuppressionResult* non_max_suppression_impl(
     }
   }
 
+  size_t num_valid_outputs = selected_indices.size();
+  if (pad_to_max_output_size) {
+    selected_indices.resize(max_out_size, 0);
+    selected_scores.resize(max_out_size, 0.0);
+  }
+
   // Allocate memory on the heap for the results and copy the data from the
   // `selected_indices` and `selected_scores` vector since we can't "steal" the
   // data from the vector.
@@ -190,10 +196,16 @@ const NonMaxSuppressionResult* non_max_suppression_impl(
   std::memcpy(selected_scores_data, selected_scores.data(),
               selected_scores_data_size);
 
+  size_t valid_outputs_data_size = sizeof(size_t);
+  size_t* valid_outputs_data =
+      static_cast<size_t*>(malloc(valid_outputs_data_size));
+  *valid_outputs_data = num_valid_outputs;
+
   // Allocate the result of the method on the heap so it survives past this
   // function and we can read it in js.
-  return new NonMaxSuppressionResult{
-      selected_indices_data, selected_indices.size(), selected_scores_data};
+  return new NonMaxSuppressionResult{selected_indices_data,
+                                     selected_indices.size(),
+                                     selected_scores_data, valid_outputs_data};
 }
 
 }  // namespace wasm

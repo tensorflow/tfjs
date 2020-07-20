@@ -157,6 +157,7 @@
 |ListDiff|setdiff1dAsync|
 |NonMaxSuppressionV2|nonMaxSuppression|
 |NonMaxSuppressionV3|nonMaxSuppression|
+|NonMaxSuppressionV4|nonMaxSuppression|
 |NonMaxSuppressionV5|nonMaxSuppression|
 |Where|whereAsync|
 
