@@ -16,11 +16,13 @@
  */
 import './flags_wasm';
 
-import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, env, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
-import wasmFactorySimd from '../wasm-out/tfjs-backend-wasm-simd.js';
 import wasmFactory from '../wasm-out/tfjs-backend-wasm.js';
+
+// @ts-ignore
+import {wasmWorkerContents} from '../wasm-out/tfjs-backend-wasm.worker.js';
 
 const WASM_PRIORITY = 2;
 
@@ -203,15 +205,26 @@ function createInstantiateWasmFunc(path: string) {
  * in Chrome 76).
  */
 export async function init(): Promise<{wasm: BackendWasmModule}> {
-  const simdSupported = await env().getAsync('WASM_HAS_SIMD_SUPPORT');
+  // const simdSupported = await env().getAsync('WASM_HAS_SIMD_SUPPORT');
   return new Promise((resolve, reject) => {
     const factoryConfig: WasmFactoryConfig = {};
+    const locateFile = (path: string, prefix: string) => {
+      if (path.endsWith('.worker.js')) {
+        const response = wasmWorkerContents;
+        const blob = new Blob([response], {type: 'application/javascript'});
+        return URL.createObjectURL(blob);
+      }
+      return prefix + path;
+    };
+
+    factoryConfig.locateFile = locateFile;
+
     if (wasmPath != null) {
-      factoryConfig.locateFile = (path, prefix) => {
+      factoryConfig.locateFile = (path: string, prefix: string) => {
         if (path.endsWith('.wasm')) {
           return wasmPath;
         }
-        return prefix + path;
+        return locateFile(path, prefix);
       };
       // use wasm instantiateWasm override when system fetch is not available.
       // For detail references
@@ -220,9 +233,12 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
         factoryConfig.instantiateWasm = createInstantiateWasmFunc(wasmPath);
       }
     }
-    const wasm = simdSupported ? wasmFactorySimd(factoryConfig) :
-                                 wasmFactory(factoryConfig);
+    // const wasm = simdSupported ? wasmFactorySimd(factoryConfig) :
+    //                              wasmFactory(factoryConfig);
+    const wasm = wasmFactory(factoryConfig);
     const voidReturnType: string = null;
+    // wasm.mainScriptUrlOrBlob =
+    //     new Blob([emscriptenContents], {type: 'text/javascript'});
     // Using the tfjs namespace to avoid conflict with emscripten's API.
     wasm.tfjs = {
       init: wasm.cwrap('init', null, []),

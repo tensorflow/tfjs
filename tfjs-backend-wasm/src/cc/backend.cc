@@ -48,6 +48,7 @@ TensorInfo &get_tensor_info_out(const size_t tensor_id) {
 }
 
 size_t xnn_operator_count = 0;
+pthreadpool *threadpool = pthreadpool_create(4);
 
 // Registers a disposal callback for a tensor id with a given callback function.
 void register_disposal_callback(const size_t tensor_id,
