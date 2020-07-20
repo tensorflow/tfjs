@@ -1,217 +1,220 @@
-
-// import * as index from './index.js';
-
-class testFolderController {
-  __controllers = ['backendController'];
-  add(childController) {
-    this.__controllers.push(childController);
-    return this;
-  };
-  remove(targetController) {
-    const targetIndex = this.__controllers.indexOf(targetController);
-    if (targetIndex >= 0) {
-      this.__controllers.splice(targetIndex, 1);
-    }
-  }
-}
-
 const state = {
+  backend: 'wasm',
   flags: {}
 };
 
 describe('index', () => {
   describe('showFlagSettings', () => {
-    // const BACKEND_FLAGS_MAP = {
-    //   general: ['generalFlag0', 'generalFlag1'],
-    //   backend0: ['flag00', 'flag01', 'flag02'],
-    //   backend1: ['flag10', 'flag11', 'flag12', 'flag13']
-    // };
-    let oldInitDefaultValueMap;
-    let oldShowBackendFlagSettings;
-
     beforeAll(() => {
-      oldInitDefaultValueMap = initDefaultValueMap;
-      oldShowBackendFlagSettings = showBackendFlagSettings;
+      this.originalInitDefaultValueMap = initDefaultValueMap;
+      this.originalShowBackendFlagSettings = showBackendFlagSettings;
+      this.originalTUNABLE_FLAG_DEFAULT_VALUE_MAP =
+          TUNABLE_FLAG_DEFAULT_VALUE_MAP;
+      BACKEND_FLAGS_MAP.general.push('testGeneralFlag');
     });
-
-    beforeEach(() => {
-      TUNABLE_FLAG_DEFAULT_VALUE_MAP = null;
-    })
 
     afterAll(() => {
-      initDefaultValueMap = oldInitDefaultValueMap;
-      showBackendFlagSettings = oldShowBackendFlagSettings;
+      initDefaultValueMap = this.originalInitDefaultValueMap;
+      showBackendFlagSettings = this.originalShowBackendFlagSettings;
+      TUNABLE_FLAG_DEFAULT_VALUE_MAP =
+          this.originalTUNABLE_FLAG_DEFAULT_VALUE_MAP;
+      BACKEND_FLAGS_MAP.general.pop();  // Pop 'testGeneralFlag'.
     });
 
-    it('sets general flag settings when setting up from scratch', async () => {
-      const folderController = {__controllers: ['backendController']};
-      initDefaultValueMap = jasmine.createSpy();
-      showBackendFlagSettings = jasmine.createSpy();
-      // spyOn(index, 'initDefaultValueMap');
-      // spyOn(index, 'showBackendFlagSettings');
+    describe('at the first call', () => {
+      beforeAll(() => {
+        // Only the backend setting is shown and the general flag settings have
+        // not been shown.
+        this.folderController = new dat.gui.GUI();
+        this.folderController.add(state, 'backend', ['wasm', 'webgl', 'cpu']);
 
-      await showFlagSettings(folderController, 'webgl');
+        // The flag default value map has not been initialized.
+        TUNABLE_FLAG_DEFAULT_VALUE_MAP = null;
+      });
 
-      expect(initDefaultValueMap.calls.count()).toBe(1);
-      if (BACKEND_FLAGS_MAP.general.length > 0) {
+      afterAll(() => {
+        this.folderController.destroy();
+      });
+
+      it('shows general flag settings', async () => {
+        initDefaultValueMap = jasmine.createSpy();
+        showBackendFlagSettings = jasmine.createSpy();
+
+        await showFlagSettings(this.folderController, 'webgl');
+
+        expect(showBackendFlagSettings.calls.count()).toBe(2);
+        expect(showBackendFlagSettings.calls.first().args).toEqual([
+          this.folderController, 'general'
+        ]);
+      });
+
+      it('initializes default value map', async () => {
+        initDefaultValueMap = jasmine.createSpy();
+        showBackendFlagSettings = jasmine.createSpy();
+        await showFlagSettings(this.folderController, 'webgl');
+        expect(initDefaultValueMap.calls.count()).toBe(1);
+      });
+
+      it('shows flag settings for the given backend', async () => {
+        initDefaultValueMap = jasmine.createSpy();
+        showBackendFlagSettings = jasmine.createSpy();
+
+        await showFlagSettings(this.folderController, 'webgl');
+
         expect(showBackendFlagSettings.calls.count()).toBe(2);
         expect(showBackendFlagSettings.calls.argsFor(0)).toEqual([
-          folderController, 'general'
+          this.folderController, 'general'
         ]);
         expect(showBackendFlagSettings.calls.argsFor(1)).toEqual([
-          folderController, 'webgl'
+          this.folderController, 'webgl'
         ]);
-      } else {
+      });
+    });
+
+    describe('When switching the backend', () => {
+      beforeAll(() => {
+        // The flag default value map has been initialized and the state.flags
+        // is populated with all tunable flags.
+        this.originalInitDefaultValueMap();
+        TUNABLE_FLAG_DEFAULT_VALUE_MAP.testGeneralFlag = 10;
+        state.flags.testGeneralFlag = 10;
+      });
+
+      afterAll(() => {
+        delete TUNABLE_FLAG_DEFAULT_VALUE_MAP['testGeneralFlag'];
+        delete state.flags['testGeneralFlag'];
+      });
+
+      beforeEach(() => {
+        // The backend setting and the general flag settings have been shown.
+        this.folderController = new dat.gui.GUI();
+        this.folderController.add(state, 'backend', ['wasm', 'webgl', 'cpu']);
+        this.originalShowBackendFlagSettings(this.folderController, 'general');
+
+        // Flag settings for a certain backend have been shown.
+        this.originalShowBackendFlagSettings(this.folderController, 'webgl');
+      });
+
+      afterEach(() => {
+        this.folderController.destroy();
+      });
+
+      it('removes flag settings of the previous backend', async () => {
+        initDefaultValueMap = jasmine.createSpy();
+        showBackendFlagSettings = jasmine.createSpy();
+        spyOn(this.folderController, 'remove').and.callThrough();
+
+        await showFlagSettings(this.folderController, 'wasm');
+
+        expect(initDefaultValueMap.calls.count()).toBe(0);
+        expect(this.folderController.remove.calls.count())
+            .toBe(BACKEND_FLAGS_MAP.webgl.length);
+      });
+
+      it('only add flag settings for the new backend', async () => {
+        initDefaultValueMap = jasmine.createSpy();
+        showBackendFlagSettings = jasmine.createSpy();
+
+        await showFlagSettings(folderController, 'webgl');
+
+        expect(initDefaultValueMap.calls.count()).toBe(0);
         expect(showBackendFlagSettings.calls.count()).toBe(1);
         expect(showBackendFlagSettings.calls.first().args).toEqual([
-          folderController, 'webgl'
+          this.folderController, 'webgl'
         ]);
-      }
+      });
     });
-
-    it('only sets settings for new backend if not from scratch', async () => {
-      const folderController = {__controllers: ['backendController']};
-      // Show general flag settings by create element controllers under the
-      // parent controller.
-      for (let index = 0; index < BACKEND_FLAGS_MAP.general.length; index++) {
-        folderController.__controllers.push('generalFlagController');
-      }
-      initDefaultValueMap = jasmine.createSpy();
-      showBackendFlagSettings = jasmine.createSpy();
-
-      await showFlagSettings(folderController, 'webgl');
-
-      expect(initDefaultValueMap.calls.count()).toBe(1);
-      expect(showBackendFlagSettings.calls.count()).toBe(1);
-      expect(showBackendFlagSettings.calls.first().args).toEqual([
-        folderController, 'webgl'
-      ]);
-    });
-
-    it('removes history flag settings except backend and general flag settings',
-       async () => {
-         const folderController = new testFolderController();
-         // Show general flag settings.
-         for (let index = 0; index < BACKEND_FLAGS_MAP.general.length;
-              index++) {
-           folderController.add(BACKEND_FLAGS_MAP.general[index]);
-         }
-         // Show webgl flag settings as the history flag settings.
-         for (let index = 0; index < BACKEND_FLAGS_MAP.webgl.length; index++) {
-           folderController.add(BACKEND_FLAGS_MAP.webgl[index]);
-         }
-
-         initDefaultValueMap = jasmine.createSpy();
-         showBackendFlagSettings = jasmine.createSpy();
-         spyOn(folderController, 'remove').and.callThrough();
-
-         await showFlagSettings(folderController, 'wasm');
-
-         expect(folderController.remove.calls.count())
-             .toBe(BACKEND_FLAGS_MAP.webgl.length);
-         // Show webgl flag settings as the history flag settings.
-         for (let index = 0; index < BACKEND_FLAGS_MAP.webgl.length; index++) {
-           expect(folderController.remove.calls.argsFor(index)).toEqual([
-             BACKEND_FLAGS_MAP.webgl[index]
-           ]);
-         }
-         expect(initDefaultValueMap.calls.count()).toBe(1);
-         expect(showBackendFlagSettings.calls.count()).toBe(1);
-         expect(showBackendFlagSettings.calls.first().args).toEqual([
-           folderController, 'wasm'
-         ]);
-       });
   });
 
   describe('showBackendFlagSettings', () => {
-    let oldGetTunableRange;
-
     beforeAll(() => {
       // Assume testBackend has only one flag, testFlag.
-      // A DOM element is showed based on this flag's tunable range.
+      // A DOM element is shown based on this flag's tunable range.
       BACKEND_FLAGS_MAP['testBackend'] = ['testFlag'];
       state.flags['testFlag'] = null;
-      oldGetTunableRange = getTunableRange;
+      this.originalGetTunableRange = getTunableRange;
+
+      this.folderController = new dat.gui.GUI();
     });
 
     afterAll(() => {
       delete BACKEND_FLAGS_MAP['testBackend'];
       delete state.flags['testFlag'];
-      getTunableRange = oldGetTunableRange;
+      getTunableRange = this.originalGetTunableRange;
+
+      this.folderController.destroy();
     });
 
     it('does not show DOM element for untunable flags', () => {
-      const folderController = new dat.gui.GUI();
       // The flag with only one value option is considered as untunable.
       const flagValueRange = [false];
       getTunableRange = jasmine.createSpy().and.returnValue(flagValueRange);
-      spyOn(folderController, 'add');
+      spyOn(this.folderController, 'add');
       spyOn(console, 'warn');
 
-      showBackendFlagSettings(folderController, 'testBackend');
+      showBackendFlagSettings(this.folderController, 'testBackend');
 
-      expect(folderController.add.calls.count()).toBe(0);
+      expect(this.folderController.add.calls.count()).toBe(0);
       expect(console.warn.calls.count()).toBe(1);
-
-      folderController.destroy();
     });
 
-    it('show checkbox for boolean tunable flags', () => {
-      const folderController = new dat.gui.GUI();
+    it('shows a checkbox for a tunable boolean flag', () => {
       state.flags.testFlag = true;
       const flagValueRange = [true, false];
       getTunableRange = jasmine.createSpy().and.returnValue(flagValueRange);
-      spyOn(folderController, 'add').and.callThrough();
+      spyOn(this.folderController, 'add').and.callThrough();
 
-      showBackendFlagSettings(folderController, 'testBackend');
+      showBackendFlagSettings(this.folderController, 'testBackend');
 
-      expect(folderController.add.calls.count()).toBe(1);
-      expect(folderController.add.calls.first().args).toEqual([
+      expect(this.folderController.add.calls.count()).toBe(1);
+      expect(this.folderController.add.calls.first().args).toEqual([
         state.flags, 'testFlag'
       ]);
-      expect(folderController.add.calls.first().returnValue.__checkbox)
+      expect(this.folderController.add.calls.first().returnValue.__checkbox)
           .toBeDefined();
-
-      folderController.destroy();
     });
 
-    it('show dropdown menu for number type tunable flags', () => {
-      const folderController = new dat.gui.GUI();
+    it('shows a dropdown menu for a tunable number type flag', () => {
       state.flags.testFlag = 1;
       const flagValueRange = [1, 2];
       getTunableRange = jasmine.createSpy().and.returnValue(flagValueRange);
-      spyOn(folderController, 'add').and.callThrough();
+      spyOn(this.folderController, 'add').and.callThrough();
 
-      showBackendFlagSettings(folderController, 'testBackend');
+      showBackendFlagSettings(this.folderController, 'testBackend');
 
-      expect(folderController.add.calls.count()).toBe(1);
-      expect(folderController.add.calls.first().args).toEqual([
+      expect(this.folderController.add.calls.count()).toBe(1);
+      expect(this.folderController.add.calls.first().args).toEqual([
         state.flags, 'testFlag', flagValueRange
       ]);
-      expect(folderController.add.calls.first().returnValue.__select)
+      expect(this.folderController.add.calls.first().returnValue.__select)
           .toBeDefined();
-
-      folderController.destroy();
     });
   });
 
   describe('getTunableRange', () => {
+    beforeAll(() => {
+      this.originalTUNABLE_FLAG_DEFAULT_VALUE_MAP =
+          TUNABLE_FLAG_DEFAULT_VALUE_MAP;
+      TUNABLE_FLAG_DEFAULT_VALUE_MAP = {};
+    });
+
     afterAll(() => {
-      TUNABLE_FLAG_DEFAULT_VALUE_MAP = null;
+      TUNABLE_FLAG_DEFAULT_VALUE_MAP =
+          this.originalTUNABLE_FLAG_DEFAULT_VALUE_MAP;
     });
 
     it('returns [false] for the flag with false as default value', () => {
-      TUNABLE_FLAG_DEFAULT_VALUE_MAP = {testFlag: false};
+      TUNABLE_FLAG_DEFAULT_VALUE_MAP.testFlag = false;
       const flagValueRange = getTunableRange('testFlag');
       expect(flagValueRange).toEqual([false]);
     });
     it('returns [false, true] for the flag with true as default value', () => {
-      TUNABLE_FLAG_DEFAULT_VALUE_MAP = {testFlag: true};
+      TUNABLE_FLAG_DEFAULT_VALUE_MAP.testFlag = true;
       const flagValueRange = getTunableRange('testFlag');
       expect(flagValueRange).toEqual([false, true]);
     });
     it('returns [1..n] for the flag with number n as default value', () => {
-      TUNABLE_FLAG_DEFAULT_VALUE_MAP = {testFlag: 5};
+      TUNABLE_FLAG_DEFAULT_VALUE_MAP.testFlag = 5;
       const flagValueRange = getTunableRange('testFlag');
       expect(flagValueRange).toEqual([1, 2, 3, 4, 5]);
     });

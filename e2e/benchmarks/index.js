@@ -36,9 +36,10 @@ let TUNABLE_FLAG_DEFAULT_VALUE_MAP;
 async function showFlagSettings(folderController, backendName) {
   // Clean up flag settings for the previous backend.
   // The first constroller under the `folderController` is the backend setting.
-  const fixedSelectionNum = BACKEND_FLAGS_MAP.general.length + 1;
-  while (folderController.__controllers.length > fixedSelectionNum) {
-    folderController.remove(folderController.__controllers[fixedSelectionNum]);
+  const fixedSelectionCount = BACKEND_FLAGS_MAP.general.length + 1;
+  while (folderController.__controllers.length > fixedSelectionCount) {
+    folderController.remove(
+        folderController.__controllers[fixedSelectionCount]);
   }
 
   if (TUNABLE_FLAG_DEFAULT_VALUE_MAP == null) {
@@ -46,7 +47,7 @@ async function showFlagSettings(folderController, backendName) {
   }
 
   // Show general flag settings for the first call.
-  if (folderController.__controllers.length < fixedSelectionNum) {
+  if (folderController.__controllers.length < fixedSelectionCount) {
     showBackendFlagSettings(folderController, 'general');
   }
 
@@ -104,6 +105,9 @@ function showBackendFlagSettings(folderController, backendName) {
   }
 }
 
+/**
+ * Query all tunable flags' default value and populate `state.flags` with them.
+ */
 async function initDefaultValueMap() {
   // Clean up the cache to query tunable flags' default values.
   setEnvFlags({});
@@ -120,7 +124,7 @@ async function initDefaultValueMap() {
 }
 
 /**
- * Heuristically determines flag's value range based on flag's  default value.
+ * Heuristically determine flag's value range based on flag's  default value.
  *
  * @param {string} flag
  */
