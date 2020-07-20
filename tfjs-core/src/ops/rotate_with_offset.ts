@@ -27,8 +27,8 @@ import * as util from '../util';
 import {op} from './operation';
 
 /**
- * Rotates the input image tensor with an optional offset center of rotation.
- * Currently available in the CPU, WebGL, and WASM backends.
+ * Rotates the input image tensor counter-clockwise with an optional offset
+ * center of rotation. Currently available in the CPU, WebGL, and WASM backends.
  *
  * @param image 4d tensor of shape `[batch, imageHeight, imageWidth, depth]`.
  * @param radians The amount of rotation.
