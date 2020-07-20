@@ -150,17 +150,17 @@ function fusedMatMul_<T extends Tensor>({
     let bDer: Tensor;
 
     if (!transposeA && !transposeB) {
-      aDer = dyActivation.matMul(b3D, false, true);
-      bDer = a3D.matMul(dyActivation, true, false);
+      aDer = unfusedMatMul(dyActivation, b3D, false, true);
+      bDer = unfusedMatMul(a3D, dyActivation, true, false);
     } else if (!transposeA && transposeB) {
-      aDer = dyActivation.matMul(b3D, false, false);
-      bDer = dyActivation.matMul(a3D, true, false);
+      aDer = unfusedMatMul(dyActivation, b3D, false, false);
+      bDer = unfusedMatMul(dyActivation, a3D, true, false);
     } else if (transposeA && !transposeB) {
-      aDer = b3D.matMul(dyActivation, false, true);
-      bDer = a3D.matMul(dyActivation, false, false);
+      aDer = unfusedMatMul(b3D, dyActivation, false, true);
+      bDer = unfusedMatMul(a3D, dyActivation, false, false);
     } else {
-      aDer = b3D.matMul(dyActivation, true, true);
-      bDer = dyActivation.matMul(a3D, true, true);
+      aDer = unfusedMatMul(b3D, dyActivation, true, true);
+      bDer = unfusedMatMul(dyActivation, a3D, true, true);
     }
 
     if (bias != null) {
@@ -203,7 +203,7 @@ function fusedMatMul_<T extends Tensor>({
 
           save([a3D, b3D, res]);
 
-          return {value: res.reshape(outShape), gradFunc: grad};
+          return {value: reshape(res, outShape), gradFunc: grad};
         });
     return customOp(a3D, b3D) as T;
   } else {
@@ -215,7 +215,7 @@ function fusedMatMul_<T extends Tensor>({
 
           save([a3D, b3D, res, $bias]);
 
-          return {value: res.reshape(outShape), gradFunc: grad};
+          return {value: reshape(res, outShape), gradFunc: grad};
         });
 
     return customOpWithBias(a3D, b3D, $bias) as T;

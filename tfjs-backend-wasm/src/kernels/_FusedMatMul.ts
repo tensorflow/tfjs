@@ -28,7 +28,7 @@ let wasmFusedMatMul: (
     preluActivationWeightsId: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmFusedMatMul = backend.wasm.cwrap('_FusedMatMul', null /* void */, [
+  wasmFusedMatMul = backend.wasm.cwrap(_FusedMatMul, null /* void */, [
     'number',  // a_id
     'array',   // a_shape
     'number',  // a_shape.length

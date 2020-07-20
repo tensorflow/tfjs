@@ -193,9 +193,8 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
     if (bias != null) {
       const biasDer = getFusedBiasGradient($bias, dyActivation);
       return [xDer, filterDer, biasDer];
-    } else {
-      return [xDer, filterDer];
     }
+    return [xDer, filterDer];
   };
 
   const forward: ForwardFunc<Tensor> = (backend) => {

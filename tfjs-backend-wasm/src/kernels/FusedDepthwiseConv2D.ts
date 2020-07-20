@@ -32,7 +32,7 @@ let wasmFusedDepthwiseConv2d: (
 
 function setup(backend: BackendWasm) {
   wasmFusedDepthwiseConv2d =
-      backend.wasm.cwrap('FusedDepthwiseConv2D', null /* void */, [
+      backend.wasm.cwrap(FusedDepthwiseConv2D, null /* void */, [
         'number',  // xId
         'number',  // batchSize
         'number',  // inputHeight
