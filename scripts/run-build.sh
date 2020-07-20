@@ -14,10 +14,31 @@
 # limitations under the License.
 # =============================================================================
 
+# Echo every command being executed
+set -x
+
+# Exit the script on any command with non 0 return code
 set -e
 
+# Use the top level empty release file as a RELEASE flag.
+RELEASE = false
+if [[ -f "release" ]]; then
+  $RELEASE = true
+fi
+
 DIR=$1
-if [[ -f "$DIR/run-ci" || "$NIGHTLY" = true || $DIR == "e2e" ]]; then
-  gcloud builds submit . --config=$DIR/cloudbuild.yml \
-    --substitutions _NIGHTLY=$NIGHTLY
+if [[ $RELEASE = true ]]; then
+  # Release flow: Only run e2e release test, ignore unit tests in all other
+  # directories.
+  if [[ $DIR = "e2e" ]]; then
+    gcloud build submit . --config=$DIR/cloudbuild.yml \
+      --substitutions _RELEASE=$RELEASE
+  fi
+else
+  # Regular flow: Only run changed packages plus e2e regular test.
+  # Nightly flow: Run everything.
+  if [[ -f "$DIR/run-ci" || $DIR == "e2e" || $NIGHTLY = true ]]; then
+    gcloud builds submit . --config=$DIR/cloudbuild.yml \
+      --substitutions _NIGHTLY=$NIGHTLY
+  fi
 fi

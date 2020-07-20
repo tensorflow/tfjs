@@ -39,7 +39,6 @@ set -x
 
 # Go to root
 cd ../../
-root_path=$PWD
 
 # Yarn in the top-level
 yarn
@@ -79,3 +78,7 @@ do
 
   cd ..
 done
+
+cd e2e
+# Update e2e package.json tfjs dependency to the published version.
+yarn update-to-pinned-version $RELEASE_VERSION
