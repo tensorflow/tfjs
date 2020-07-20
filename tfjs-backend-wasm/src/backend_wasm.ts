@@ -19,7 +19,7 @@ import './flags_wasm';
 import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
-import wasmFactory from '../wasm-out/tfjs-backend-wasm.js';
+import wasmFactory from '../wasm-out/tfjs-backend-wasm-threaded.js';
 
 // @ts-ignore
 import {wasmWorkerContents} from '../wasm-out/tfjs-backend-wasm.worker.js';
