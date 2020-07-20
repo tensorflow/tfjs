@@ -24,7 +24,6 @@ import * as util from './util';
 export type KernelProfile = {
   kernelName: string,
   outputs: Tensor[],
-  vals: Array<Promise<TypedArray>>,
   inputs: NamedTensorMap,
   timeMs: Promise<number|{error: string}>,
   extraInfo: Promise<string>
@@ -45,12 +44,11 @@ export class Profiler {
     };
     const timer = this.backendTimer.time(holdResultWrapperFn);
 
-    const outputVals = outputs.map(r => {
+    outputs.map(r => {
       // Dangling promise here because we don't want to propagate up
       // asynchronicity.
-      return r.data().then(tensorVals => {
+      r.data().then(tensorVals => {
         checkComputationForErrors(tensorVals, r.dtype, kernelName);
-        return tensorVals;
       });
     });
 
@@ -62,18 +60,16 @@ export class Profiler {
       extraInfo: timer.then(
           timing => timing.getExtraProfileInfo != null ?
               timing.getExtraProfileInfo() :
-              ''),
-      vals: outputVals
+              '')
     };
     return kernelProfile;
   }
 
   logKernelProfile(kernelProfile: KernelProfile): void {
-    const {kernelName, outputs, vals, timeMs, inputs, extraInfo} =
-        kernelProfile;
+    const {kernelName, outputs, timeMs, inputs, extraInfo} = kernelProfile;
 
-    outputs.forEach((result, index) => {
-      Promise.all([vals[index], timeMs, extraInfo]).then(valueContainer => {
+    outputs.forEach(result => {
+      Promise.all([result.data(), timeMs, extraInfo]).then(valueContainer => {
         this.logger.logKernelProfile(
             kernelName, result, valueContainer[0], valueContainer[1], inputs,
             valueContainer[2]);

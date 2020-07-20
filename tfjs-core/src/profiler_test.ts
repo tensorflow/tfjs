@@ -52,7 +52,6 @@ function promiseCheckWrapper(acturalValPromise: Promise<{}>, truthVal: {}) {
 function checkKernelProfile(acturalVal: KernelProfile, truthVal: {
   kernelName: string,
   outputs: Tensor[],
-  vals: TypedArray[],
   timeMs: number|{error: string},
   inputs: NamedTensorMap,
   extraInfo: string
@@ -67,9 +66,6 @@ function checkKernelProfile(acturalVal: KernelProfile, truthVal: {
     promiseCheckWrapper(acturalVal.timeMs, truthVal.timeMs),
     promiseCheckWrapper(acturalVal.extraInfo, truthVal.extraInfo),
   ];
-  acturalVal.vals.forEach((val, index) => {
-    promiseContainer.push(promiseCheckWrapper(val, truthVal.vals[index]));
-  });
   return Promise.all(promiseContainer);
 }
 
@@ -103,7 +99,6 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
       checkKernelProfile(kernelProfile, {
         kernelName: 'MatMul',
         outputs: [resultScalar],
-        vals: [new Float32Array([result])],
         timeMs: queryTimeMs,
         inputs,
         extraInfo,
@@ -147,7 +142,6 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
       const checkInnerKernelProfile = checkKernelProfile(innerKernelProfile, {
         kernelName: 'Max',
         outputs: [resultScalar],
-        vals: [new Float32Array([result])],
         timeMs: queryTimeMs,
         inputs,
         extraInfo
@@ -155,7 +149,6 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
       const checkOuterKernelProfile = checkKernelProfile(outerKernelProfile, {
         kernelName: 'MatMul',
         outputs: [resultScalar],
-        vals: [new Float32Array([result])],
         timeMs: queryTimeMs * 2,
         inputs,
         extraInfo
