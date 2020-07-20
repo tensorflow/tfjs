@@ -129,8 +129,11 @@ async function initDefaultValueMap() {
   // Clean up the cache to query tunable flags' default values.
   setEnvFlags({});
   TUNABLE_FLAG_DEFAULT_VALUE_MAP = {};
-  for (const flag in TUNABLE_FLAG_VALUE_RANGE_MAP) {
-    TUNABLE_FLAG_DEFAULT_VALUE_MAP[flag] = await tf.env().getAsync(flag);
+  for (const backend in BACKEND_FLAGS_MAP) {
+    for (let index = 0; index < BACKEND_FLAGS_MAP[backend].length; index++) {
+      const flag = BACKEND_FLAGS_MAP[backend][index];
+      TUNABLE_FLAG_DEFAULT_VALUE_MAP[flag] = await tf.env().getAsync(flag);
+    }
   }
 
   // Initialize state.flags with tunable flags' default values.
@@ -141,7 +144,7 @@ async function initDefaultValueMap() {
 }
 
 /**
- * Heuristically determine flag's value range based on flag's  default value.
+ * Heuristically determine flag's value range based on flag's default value.
  *
  * @param {string} flag
  */
