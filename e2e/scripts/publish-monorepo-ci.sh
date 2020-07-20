@@ -53,6 +53,7 @@ else
   echo "Publishing version ${RELEASE_VERSION}"
 fi
 
+# Packages to publish.
 PACKAGES=("tfjs-core" "tfjs-backend-cpu" "tfjs-backend-webgl" \
 "tfjs-backend-wasm" "tfjs-layers" "tfjs-converter" "tfjs-data" "tfjs" \
 "tfjs-node" "tfjs-node-gpu")
