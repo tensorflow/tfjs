@@ -24,7 +24,7 @@ describeWithFlags('rotateWithOffset', BROWSER_ENVS, () => {
       'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QCMRXhpZgAATU0AKgAAAAgABQESAAMAAAABAAEAAAEaAAUAAAABAAAASgEbAAUAAAABAAAAUgEoAAMAAAABAAIAAIdpAAQAAAABAAAAWgAAAAAAAABIAAAAAQAAAEgAAAABAAOgAQADAAAAAQABAACgAgAEAAAAAQAAAAigAwAEAAAAAQAAAAgAAAAA/+0AOFBob3Rvc2hvcCAzLjAAOEJJTQQEAAAAAAAAOEJJTQQlAAAAAAAQ1B2M2Y8AsgTpgAmY7PhCfv/AABEIAAgACAMBIgACEQEDEQH/xAAfAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgv/xAC1EAACAQMDAgQDBQUEBAAAAX0BAgMABBEFEiExQQYTUWEHInEUMoGRoQgjQrHBFVLR8CQzYnKCCQoWFxgZGiUmJygpKjQ1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4eLj5OXm5+jp6vHy8/T19vf4+fr/xAAfAQADAQEBAQEBAQEBAAAAAAAAAQIDBAUGBwgJCgv/xAC1EQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2wBDAAkGBw0HCA0HBw0HBwcHBw0HBwcHDQ8IDQcNFREWFhURExMYHSggGBolGxUTITEhMSk3Ojo6Fx8zODMtNygtLiv/2wBDAQoKCg0NDRUNDRUrGRUZKysrKy0rKy0rKysrKy0rKysrKystKzctKysrKy0rKysrLSsrKysrKzcrLSsrKy0rKyv/3QAEAAH/2gAMAwEAAhEDEQA/AOin1Kxs7JgEVSsZAPU5xWF/wkdp6L+QqlrX/Hm/0P8AKuSqsRk+FlUcmnd+Z4WBzzGulrO+vY//2Q==';
   const size = 8;
 
-  it('should rotate 90 degrees', async () => {
+  it('should rotate counterclockwise 90 degrees', async () => {
     const img = new Image();
     img.src = imageBase64String;
 
@@ -66,7 +66,7 @@ describeWithFlags('rotateWithOffset', BROWSER_ENVS, () => {
     expectArraysClose(expected, rotatedPixelsData, 10);
   });
 
-  it('should rotate negative 90 degrees', async () => {
+  it('should rotate clockwise 90 degrees', async () => {
     const img = new Image();
     img.src = imageBase64String;
 
