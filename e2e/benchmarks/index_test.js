@@ -27,7 +27,6 @@ describe('index', () => {
       this.originalShowBackendFlagSettings = showBackendFlagSettings;
       this.originalTUNABLE_FLAG_DEFAULT_VALUE_MAP =
           TUNABLE_FLAG_DEFAULT_VALUE_MAP;
-      BACKEND_FLAGS_MAP.general.push('testGeneralFlag');
     });
 
     afterAll(() => {
@@ -35,7 +34,6 @@ describe('index', () => {
       showBackendFlagSettings = this.originalShowBackendFlagSettings;
       TUNABLE_FLAG_DEFAULT_VALUE_MAP =
           this.originalTUNABLE_FLAG_DEFAULT_VALUE_MAP;
-      BACKEND_FLAGS_MAP.general.pop();  // Pop 'testGeneralFlag'.
     });
 
     describe('at the first call', () => {
@@ -47,10 +45,13 @@ describe('index', () => {
 
         // The flag default value map has not been initialized.
         TUNABLE_FLAG_DEFAULT_VALUE_MAP = null;
+
+        BACKEND_FLAGS_MAP.general.push('testGeneralFlag');
       });
 
       afterAll(() => {
         this.folderController.destroy();
+        BACKEND_FLAGS_MAP.general.pop();  // Pop 'testGeneralFlag'.
       });
 
       it('shows general flag settings', async () => {
@@ -93,11 +94,13 @@ describe('index', () => {
         // The flag default value map has been initialized and the state.flags
         // is populated with all tunable flags.
         this.originalInitDefaultValueMap();
+        BACKEND_FLAGS_MAP.general.push('testGeneralFlag');
         TUNABLE_FLAG_DEFAULT_VALUE_MAP.testGeneralFlag = 10;
         state.flags.testGeneralFlag = 10;
       });
 
       afterAll(() => {
+        BACKEND_FLAGS_MAP.general.pop();  // Pop 'testGeneralFlag'.
         delete TUNABLE_FLAG_DEFAULT_VALUE_MAP['testGeneralFlag'];
         delete state.flags['testGeneralFlag'];
       });
