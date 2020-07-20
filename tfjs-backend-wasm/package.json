@@ -16,6 +16,7 @@
     "build-deps": "cd ../tfjs-core && yarn && yarn build",
     "build-deps-ci": "cd ../tfjs-core && yarn && yarn build-ci",
     "build": "rimraf dist/ && tsc && ./scripts/build-wasm.sh",
+    "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "build-ci": "./scripts/build-ci.sh",
     "build-npm": "./scripts/build-npm.sh",
     "build-benchmark": "./scripts/build-benchmark.sh",
