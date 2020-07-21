@@ -1,4 +1,4 @@
-# path to a directory with all packages
+# Path to a directory with all packages.
 storage: ./storage
 
 # Maximum body size for a JSON document.
