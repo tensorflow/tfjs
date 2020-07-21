@@ -15,16 +15,55 @@
 // =============================================================================
 
 // Run this script from the e2e root directory:
-// yarn update-to-pinned-version VERSION
+// node ./scripts/update-to-pinned-version.js VERSION
 // Where VERSION is the pinned version to update to for tfjs package
 // dependencies.
-import * as fs from 'fs';
-import {updateTFJSDependencyVersions} from '../../scripts/release-util';
+const fs = require('fs');
 
 const DEPENDENCY_LIST = [
   'tfjs-core', 'tfjs-converter', 'tfjs-layers', 'tfjs-backend-cpu',
   'tfjs-backend-webgl', 'tfjs-data', 'tfjs', 'tfjs-node'
 ];
+
+// Todo(linazhao): Refactor release-util.ts to import this js function.
+function updateTFJSDependencyVersions(deps, pkg, parsedPkg, tfjsVersion) {
+  if (deps != null) {
+    for (let j = 0; j < deps.length; j++) {
+      const dep = deps[j];
+
+      // Get the current dependency package version.
+      let version = '';
+      const depNpmName = `@tensorflow/${dep}`;
+      if (parsedPkg['dependencies'] != null &&
+          parsedPkg['dependencies'][depNpmName] != null) {
+        version = parsedPkg['dependencies'][depNpmName];
+      } else if (
+          parsedPkg['peerDependencies'] != null &&
+          parsedPkg['peerDependencies'][depNpmName] != null) {
+        version = parsedPkg['peerDependencies'][depNpmName];
+      } else if (
+          parsedPkg['devDependencies'] != null &&
+          parsedPkg['devDependencies'][depNpmName] != null) {
+        version = parsedPkg['devDependencies'][depNpmName];
+      }
+      if (version == null) {
+        throw new Error(`No dependency found for ${dep}.`);
+      }
+
+      let relaxedVersionPrefix = '';
+      if (version.startsWith('~') || version.startsWith('^')) {
+        relaxedVersionPrefix = version.substr(0, 1);
+      }
+      const versionLatest = relaxedVersionPrefix + tfjsVersion;
+
+      pkg = `${pkg}`.replace(
+          new RegExp(`"${depNpmName}": "${version}"`, 'g'),
+          `"${depNpmName}": "${versionLatest}"`);
+    }
+  }
+
+  return pkg;
+}
 
 const latestVersion = process.argv[2];
 if (!latestVersion) {
