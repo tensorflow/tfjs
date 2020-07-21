@@ -79,6 +79,6 @@ do
   cd ..
 done
 
+# Update e2e package.json tfjs dependency to the locally published version.
 cd e2e
-# Update e2e package.json tfjs dependency to the published version.
 node ./scripts/update-to-pinned-version.js $RELEASE_VERSION
