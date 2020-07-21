@@ -242,8 +242,8 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
     if (threadsSupported && simdSupported) {
       wasm = wasmFactoryThreadedSimd(factoryConfig);
       wasm.mainScriptUrlOrBlob = new Blob(
-          [`var _scriptDir = undefined; var WasmBackendModule = ` +
-           wasmFactory.toString()],
+          [`var _scriptDir = undefined; var WasmBackendModuleSimd = ` +
+           wasmFactoryThreadedSimd.toString()],
           {type: 'text/javascript'});
     } else if (simdSupported) {
       wasm = wasmFactorySimd(factoryConfig);

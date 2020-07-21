@@ -31,7 +31,7 @@ cp -f bazel-bin/src/cc/tfjs-backend-wasm-simd.js \
       wasm-out/
 
 # Threaded + SIMD build.
-yarn bazel build -c opt //src/cc:tfjs-backend-wasm-threaded-simd.js --config=wasm --copt="-msimd128" --copt="-pthread"
+yarn bazel build -c opt //src/cc:tfjs-backend-wasm-threaded-simd.js --config=wasm --copt="-pthread" --copt="-msimd128"
 cp -f bazel-bin/src/cc/tfjs-backend-wasm-threaded-simd.js \
       bazel-bin/src/cc/tfjs-backend-wasm-threaded-simd.worker.js \
       bazel-bin/src/cc/tfjs-backend-wasm-threaded-simd.wasm \
