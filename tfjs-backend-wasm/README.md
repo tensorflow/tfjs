@@ -183,13 +183,13 @@ We'd love your feedback as we develop this backend! Please file an issue
 
 ## Emscripten installation
 
-Install the Emscripten SDK (version 1.39.15):
+Install the Emscripten SDK (version 1.39.19):
 
 ```sh
 git clone https://github.com/emscripten-core/emsdk.git
 cd emsdk
-./emsdk install 1.39.15
-./emsdk activate 1.39.15
+./emsdk install 1.39.19
+./emsdk activate 1.39.19
 ```
 
 ## Prepare the environment
