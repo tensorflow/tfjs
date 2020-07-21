@@ -1,5 +1,9 @@
 # path to a directory with all packages
 storage: ./storage
+
+# Maximum body size for a JSON document.
+max_body_size: 1000mb
+
 auth:
   htpasswd:
     file: ./htpasswd
