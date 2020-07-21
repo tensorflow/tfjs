@@ -21,14 +21,6 @@ import {NamedTensorMap} from './tensor_types';
 import {DataType, DataTypeMap, TypedArray} from './types';
 import * as util from './util';
 
-export type KernelProfile = {
-  kernelName: string,
-  outputs: Tensor[],
-  inputs: NamedTensorMap,
-  timeMs: Promise<number|{error: string}>,
-  extraInfo: Promise<string>
-};
-
 export class Profiler {
   constructor(private backendTimer: BackendTimer, private logger?: Logger) {
     if (logger == null) {
@@ -42,29 +34,25 @@ export class Profiler {
     const holdResultWrapperFn = () => {
       outputs = f();
     };
-    this.backendTimer.time(holdResultWrapperFn);
-
-    outputs.map(r => {
+    const timer = this.backendTimer.time(holdResultWrapperFn);
+    outputs.forEach(r => {
       // Dangling promise here because we don't want to propagate up
       // asynchronicity.
-      r.data().then(tensorVals => {
-        checkComputationForErrors(tensorVals, r.dtype, kernelName);
+      r.data().then(vals => {
+        checkComputationForErrors(vals, r.dtype, kernelName);
+        timer.then(timing => {
+          let extraInfo = '';
+          if (timing.getExtraProfileInfo != null) {
+            extraInfo = timing.getExtraProfileInfo();
+          }
+
+          this.logger.logKernelProfile(
+              kernelName, r, vals, timing.kernelMs, inputs, extraInfo);
+        });
       });
     });
 
     return outputs;
-  }
-
-  logKernelProfile(kernelProfile: KernelProfile): void {
-    const {kernelName, outputs, timeMs, inputs, extraInfo} = kernelProfile;
-
-    outputs.forEach(result => {
-      Promise.all([result.data(), timeMs, extraInfo]).then(valueContainer => {
-        this.logger.logKernelProfile(
-            kernelName, result, valueContainer[0], valueContainer[1], inputs,
-            valueContainer[2]);
-      });
-    });
   }
 }
 
