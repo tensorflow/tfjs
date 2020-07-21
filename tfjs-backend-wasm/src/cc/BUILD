@@ -29,7 +29,7 @@ cc_binary(
 )
 
 cc_binary(
-    name = "tfjs-backend-wasm-threaded.js",
+    name = "tfjs-backend-wasm-simd.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
     linkopts = [
         "-s ALLOW_MEMORY_GROWTH=1",
@@ -42,12 +42,7 @@ cc_binary(
         "-s MODULARIZE=1",
         "-s EXPORT_NAME=WasmBackendModule",
         "-s MALLOC=emmalloc",
-        "-s USE_PTHREADS=1",
-        "-s PTHREAD_POOL_SIZE=4",
-        "-s ASSERTIONS=1",
-        "-s INITIAL_MEMORY=1Gb",
-        "-s MAXIMUM_MEMORY=1Gb",
-        "-s PROXY_TO_PTHREAD=1",
+        "-s SIMD=1",
     ],
     deps = [
         ":all_kernels",
