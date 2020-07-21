@@ -32,7 +32,7 @@ do
   ./emsdk install 1.39.16 && break
 done
 
-./emsdk activate 1.39.16
+./emsdk activate --no-embedded 1.39.16
 source ./emsdk_env.sh
 cd ..
 
