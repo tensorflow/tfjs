@@ -18,9 +18,8 @@
 import {BackendTimer, BackendTimingInfo} from './backends/backend';
 import * as tf from './index';
 import {describeWithFlags, SYNC_BACKEND_ENVS} from './jasmine_util';
-import {checkComputationForErrors, KernelProfile, Logger, Profiler} from './profiler';
+import {checkComputationForErrors, Logger, Profiler} from './profiler';
 import {Tensor} from './tensor';
-import {NamedTensorMap} from './tensor_types';
 import {TypedArray} from './types';
 
 class TestBackendTimer implements BackendTimer {
@@ -43,32 +42,6 @@ class TestLogger extends Logger {
       name: string, result: Tensor, vals: TypedArray, timeMs: number) {}
 }
 
-function promiseCheckWrapper(acturalValPromise: Promise<{}>, truthVal: {}) {
-  return acturalValPromise.then(acturalVal => {
-    expect(acturalVal).toEqual(truthVal);
-  });
-}
-
-function checkKernelProfile(acturalVal: KernelProfile, truthVal: {
-  kernelName: string,
-  outputs: Tensor[],
-  timeMs: number|{error: string},
-  inputs: NamedTensorMap,
-  extraInfo: string
-}) {
-  expect(acturalVal.kernelName).toBe(truthVal.kernelName);
-  expect(acturalVal.inputs).toBe(truthVal.inputs);
-  acturalVal.outputs.forEach((output, index) => {
-    expect(output).toBe(truthVal.outputs[index]);
-  });
-
-  const promiseContainer = [
-    promiseCheckWrapper(acturalVal.timeMs, truthVal.timeMs),
-    promiseCheckWrapper(acturalVal.extraInfo, truthVal.extraInfo),
-  ];
-  return Promise.all(promiseContainer);
-}
-
 describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
   it('profiles simple function', doneFn => {
     const delayMs = 5;
@@ -83,26 +56,29 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
     spyOn(logger, 'logKernelProfile').and.callThrough();
 
     const timeSpy = timer.time as jasmine.Spy;
+    const logKernelProfileSpy = logger.logKernelProfile as jasmine.Spy;
 
     let kernelCalled = false;
     const result = 1;
     const resultScalar = tf.scalar(result);
 
-    const kernelProfile = profiler.profileKernel('MatMul', inputs, () => {
+    profiler.profileKernel('MatMul', inputs, () => {
       kernelCalled = true;
       return [resultScalar];
     });
+
     setTimeout(() => {
       expect(timeSpy.calls.count()).toBe(1);
-      expect(kernelCalled).toBe(true);
 
-      checkKernelProfile(kernelProfile, {
-        kernelName: 'MatMul',
-        outputs: [resultScalar],
-        timeMs: queryTimeMs,
-        inputs,
-        extraInfo,
-      }).then(() => doneFn());
+      expect(logKernelProfileSpy.calls.count()).toBe(1);
+
+      expect(logKernelProfileSpy.calls.first().args).toEqual([
+        'MatMul', resultScalar, new Float32Array([result]), queryTimeMs, inputs,
+        extraInfo
+      ]);
+
+      expect(kernelCalled).toBe(true);
+      doneFn();
     }, delayMs * 2);
   });
 
@@ -118,73 +94,37 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
     spyOn(timer, 'time').and.callThrough();
     spyOn(logger, 'logKernelProfile').and.callThrough();
     const timeSpy = timer.time as jasmine.Spy;
+    const logKernelProfileSpy = logger.logKernelProfile as jasmine.Spy;
 
     let matmulKernelCalled = false;
     let maxKernelCalled = false;
     const result = 1;
     const resultScalar = tf.scalar(result);
 
-    let innerKernelProfile: KernelProfile;
-    const outerKernelProfile = profiler.profileKernel('MatMul', inputs, () => {
-      innerKernelProfile = profiler.profileKernel('Max', inputs, () => {
+    profiler.profileKernel('MatMul', inputs, () => {
+      const result = profiler.profileKernel('Max', inputs, () => {
         maxKernelCalled = true;
         return [resultScalar];
       });
       matmulKernelCalled = true;
-      return innerKernelProfile.outputs;
+      return result;
     });
 
     setTimeout(() => {
       expect(timeSpy.calls.count()).toBe(2);
-      expect(matmulKernelCalled).toBe(true);
-      expect(maxKernelCalled).toBe(true);
 
-      const checkInnerKernelProfile = checkKernelProfile(innerKernelProfile, {
-        kernelName: 'Max',
-        outputs: [resultScalar],
-        timeMs: queryTimeMs,
-        inputs,
-        extraInfo
-      });
-      const checkOuterKernelProfile = checkKernelProfile(outerKernelProfile, {
-        kernelName: 'MatMul',
-        outputs: [resultScalar],
-        timeMs: queryTimeMs * 2,
-        inputs,
-        extraInfo
-      });
-      Promise.all([checkInnerKernelProfile, checkOuterKernelProfile])
-          .then(() => doneFn());
-    }, delayMs * 2);
-  });
-
-  it('log kernelProfile', doneFn => {
-    const delayMs = 5;
-    const queryTimeMs = 10;
-    const inputs = {'x': tf.tensor1d([1])};
-    const extraInfo = '';
-    const timer = new TestBackendTimer(delayMs, queryTimeMs, extraInfo);
-    const logger = new TestLogger();
-    const profiler = new Profiler(timer, logger);
-
-    spyOn(logger, 'logKernelProfile').and.callThrough();
-    const logKernelProfileSpy = logger.logKernelProfile as jasmine.Spy;
-
-    const result = 1;
-    const resultScalar = tf.scalar(result);
-
-    const kernelProfiles = profiler.profileKernel('MatMul', inputs, () => {
-      return [resultScalar];
-    });
-    profiler.logKernelProfile(kernelProfiles);
-
-    setTimeout(() => {
-      expect(logKernelProfileSpy.calls.count()).toBe(1);
-
+      expect(logKernelProfileSpy.calls.count()).toBe(2);
       expect(logKernelProfileSpy.calls.first().args).toEqual([
-        'MatMul', resultScalar, new Float32Array([result]), queryTimeMs, inputs,
+        'Max', resultScalar, new Float32Array([result]), queryTimeMs, inputs,
         extraInfo
       ]);
+      expect(logKernelProfileSpy.calls.argsFor(1)).toEqual([
+        'MatMul', resultScalar, new Float32Array([result]), queryTimeMs * 2,
+        inputs, extraInfo
+      ]);
+
+      expect(matmulKernelCalled).toBe(true);
+      expect(maxKernelCalled).toBe(true);
       doneFn();
     }, delayMs * 2);
   });
