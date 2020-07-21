@@ -44,25 +44,23 @@ export class Profiler {
     };
     const timer = this.backendTimer.time(holdResultWrapperFn);
 
-    outputs.map(r => {
+    outputs.forEach(r => {
       // Dangling promise here because we don't want to propagate up
       // asynchronicity.
-      r.data().then(tensorVals => {
-        checkComputationForErrors(tensorVals, r.dtype, kernelName);
+      r.data().then(vals => {
+        checkComputationForErrors(vals, r.dtype, kernelName);
+
+        timer.then(timing => {
+          let extraInfo = '';
+          if (timing.getExtraProfileInfo != null) {
+            extraInfo = timing.getExtraProfileInfo();
+          }
+
+          this.logger.logKernelProfile(
+              kernelName, r, vals, timing.kernelMs, inputs, extraInfo);
+        });
       });
     });
-
-    const kernelProfile = {
-      kernelName,
-      outputs,
-      inputs,
-      timeMs: timer.then(timing => timing.kernelMs),
-      extraInfo: timer.then(
-          timing => timing.getExtraProfileInfo != null ?
-              timing.getExtraProfileInfo() :
-              '')
-    };
-    this.logKernelProfile(kernelProfile);
 
     return outputs;
   }
