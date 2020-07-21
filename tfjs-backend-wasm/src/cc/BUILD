@@ -8,6 +8,27 @@ KERNELS_WITH_KEEPALIVE = glob(
 )
 
 cc_binary(
+    name = "tfjs-backend-wasm.js",
+    srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
+    linkopts = [
+        "-s ALLOW_MEMORY_GROWTH=1",
+        "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
+        "-s DISABLE_EXCEPTION_CATCHING=1",
+        "-s FILESYSTEM=0",
+        "-s EXIT_RUNTIME=0",
+        "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
+        "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
+        "-s MODULARIZE=1",
+        "-s EXPORT_NAME=WasmBackendModule",
+        "-s MALLOC=emmalloc",
+    ],
+    deps = [
+        ":all_kernels",
+        ":backend",
+    ],
+)
+
+cc_binary(
     name = "tfjs-backend-wasm-threaded.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
     linkopts = [
@@ -35,7 +56,7 @@ cc_binary(
 )
 
 cc_binary(
-    name = "tfjs-backend-wasm-simd.js",
+    name = "tfjs-backend-wasm-threaded-simd.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
     linkopts = [
         "-s ALLOW_MEMORY_GROWTH=1",
@@ -49,6 +70,12 @@ cc_binary(
         "-s EXPORT_NAME=WasmBackendModuleSimd",
         "-s MALLOC=emmalloc",
         "-s SIMD=1",
+        "-s USE_PTHREADS=1",
+        "-s PTHREAD_POOL_SIZE=4",
+        "-s ASSERTIONS=1",
+        "-s INITIAL_MEMORY=1Gb",
+        "-s MAXIMUM_MEMORY=1Gb",
+        "-s PROXY_TO_PTHREAD=1",
     ],
     deps = [
         ":all_kernels",

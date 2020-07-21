@@ -16,11 +16,12 @@
  */
 import './flags_wasm';
 
-import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, env, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
-import wasmFactory from '../wasm-out/tfjs-backend-wasm-threaded.js';
-
+import wasmFactorySimd, {BackendWasmModuleSimd} from '../wasm-out/tfjs-backend-wasm-simd.js';
+import wasmFactoryThreadedSimd from '../wasm-out/tfjs-backend-wasm-threaded-simd.js';
+import wasmFactory from '../wasm-out/tfjs-backend-wasm.js';
 // @ts-ignore
 import {wasmWorkerContents} from '../wasm-out/tfjs-backend-wasm.worker.js';
 
@@ -205,7 +206,11 @@ function createInstantiateWasmFunc(path: string) {
  * in Chrome 76).
  */
 export async function init(): Promise<{wasm: BackendWasmModule}> {
-  // const simdSupported = await env().getAsync('WASM_HAS_SIMD_SUPPORT');
+  const [simdSupported, threadsSupported] = await Promise.all([
+    env().getAsync('WASM_HAS_SIMD_SUPPORT'),
+    env().getAsync('WASM_HAS_MULTITHREAD_SUPPORT')
+  ]);
+
   return new Promise((resolve, reject) => {
     const factoryConfig: WasmFactoryConfig = {};
     const locateFile = (path: string, prefix: string) => {
@@ -233,14 +238,19 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
         factoryConfig.instantiateWasm = createInstantiateWasmFunc(wasmPath);
       }
     }
-    // const wasm = simdSupported ? wasmFactorySimd(factoryConfig) :
-    //                              wasmFactory(factoryConfig);
-    const wasm = wasmFactory(factoryConfig);
+    let wasm: BackendWasmModule|BackendWasmModuleSimd;
+    if (threadsSupported && simdSupported) {
+      wasm = wasmFactoryThreadedSimd(factoryConfig);
+      wasm.mainScriptUrlOrBlob = new Blob(
+          [`var _scriptDir = undefined; var WasmBackendModule = ` +
+           wasmFactory.toString()],
+          {type: 'text/javascript'});
+    } else if (simdSupported) {
+      wasm = wasmFactorySimd(factoryConfig);
+    } else {
+      wasm = wasmFactory(factoryConfig);
+    }
     const voidReturnType: string = null;
-    wasm.mainScriptUrlOrBlob = new Blob(
-        [`var _scriptDir = undefined; var WasmBackendModule = ` +
-         wasmFactory.toString()],
-        {type: 'text/javascript'});
     // Using the tfjs namespace to avoid conflict with emscripten's API.
     wasm.tfjs = {
       init: wasm.cwrap('init', null, []),

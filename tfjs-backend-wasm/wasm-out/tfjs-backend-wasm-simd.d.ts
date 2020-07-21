@@ -16,6 +16,7 @@
  */
 
 export interface BackendWasmModuleSimd extends EmscriptenModule {
+  mainScriptUrlOrBlob: string|Blob;
   onRuntimeInitialized: () => void;
   onAbort: (msg: string) => void;
   // Using the tfjs namespace to avoid conflict with emscripten's API.
