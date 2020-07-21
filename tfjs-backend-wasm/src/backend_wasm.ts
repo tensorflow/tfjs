@@ -21,9 +21,9 @@ import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, env, Ker
 import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
 import wasmFactorySimd, {BackendWasmModuleSimd} from '../wasm-out/tfjs-backend-wasm-simd.js';
 import wasmFactoryThreadedSimd from '../wasm-out/tfjs-backend-wasm-threaded-simd.js';
-import wasmFactory from '../wasm-out/tfjs-backend-wasm.js';
 // @ts-ignore
-import {wasmWorkerContents} from '../wasm-out/tfjs-backend-wasm.worker.js';
+import {wasmWorkerContents} from '../wasm-out/tfjs-backend-wasm-threaded-simd.worker.js';
+import wasmFactory from '../wasm-out/tfjs-backend-wasm.js';
 
 const WASM_PRIORITY = 2;
 
