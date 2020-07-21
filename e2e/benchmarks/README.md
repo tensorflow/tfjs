@@ -2,7 +2,7 @@
 
 The `custom model` in the [benchmark tool](https://tensorflow.github.io/tfjs/e2e/benchmarks/index.html) currently only supports `tf.GraphModel` or `tf.LayersModel`.
 
-If you want to benchmark models in other types, you need to implement `load` and `predictFunc` methods, following this [example PR](https://github.com/tensorflow/tfjs/pull/3168/files).
+If you want to benchmark models in other types or customize the inputs for model inference, you need to implement `load` and `predictFunc` methods, following this [example PR](https://github.com/tensorflow/tfjs/pull/3168/files).
 
 ## Models in local file system
 If you have a model in local file system, you can follow the steps below:
