@@ -26,6 +26,9 @@ const minBundleSize = getFileSizeBytes(bundleFilename);
 const wasmFileName = 'dist/tfjs-backend-wasm.wasm';
 const wasmSize = getFileSizeBytes(wasmFileName);
 
+shell.cd('emsdk');
+exec('source ./emsdk_env.sh');
+
 // Clone master and get the bundle size from master.
 const dirName = '/tmp/tfjs-backend-wasm-bundle';
 const wasmDirName = 'tfjs-backend-wasm';
@@ -36,9 +39,11 @@ exec(
 
 shell.cd(dirName);
 shell.cd(wasmDirName);
-exec(
-    `yarn && yarn build-deps-ci && yarn build-ci && yarn rollup -c`,
-    {silent: false});
+
+exec(`yarn && yarn build-deps-ci && yarn build && yarn rollup -c`, {silent: false});
+// exec(
+//     `yarn && yarn build-deps-ci && yarn build-ci && yarn rollup -c`,
+//     {silent: false});
 
 const masterMinBundleSize = getFileSizeBytes(bundleFilename);
 const masterWasmSize = getFileSizeBytes(wasmFileName);
