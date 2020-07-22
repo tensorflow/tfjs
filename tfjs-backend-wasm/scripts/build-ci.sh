@@ -20,7 +20,7 @@ git clone --depth=1 --single-branch https://github.com/emscripten-core/emsdk.git
 
 cd emsdk
 # Need to tell emsdk where to write the .emscripten file.
-# export HOME='/root'
+export HOME='/root'
 
 # Install emsdk with up to 1 retry.
 for i in $(seq 0 1)
