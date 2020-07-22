@@ -21,8 +21,13 @@
 
 const fs = require('fs');
 
-const workerContents = fs.readFileSync('./wasm-out/tfjs-backend-wasm-threaded-simd.worker.js', "utf8");
+const BASE_PATH = './wasm-out/';
+const WORKER_PATH = `${BASE_PATH}tfjs-backend-wasm-threaded-simd.worker.js`;
+
+const workerContents = fs.readFileSync(WORKER_PATH, "utf8");
 
 const fileContents = `export const wasmWorkerContents = '${workerContents.trim()}';`;
 
-fs.writeFileSync('./wasm-out/tfjs-backend-wasm-threaded-simd.worker.ts', fileContents);
+fs.writeFileSync(`${BASE_PATH}tfjs-backend-wasm-threaded-simd.worker.ts`, fileContents);
+
+fs.unlinkSync(WORKER_PATH)
