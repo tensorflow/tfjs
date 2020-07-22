@@ -108,8 +108,8 @@ JS backend, and ~5.3-7.7X slower than the WebGL backend.
 
 <img src="./mobilenet-v2-bench.svg">
 
-| MobileNet inference (ms) | WASM  | WebGL | Plain JS | WASM + SIMD |
-|--------------------------|-------|-------|----------|-------------|
+| MobileNet inference (ms) | WASM  | WebGL | Plain JS | WASM + SIMD | WASM + SIMD + threads
+|--------------------------|-------|-------|----------|-------------|----------------------
 | iPhone X                 | 147.1 | 20.3  | 941.3    | N/A         |
 | iPhone XS                | 140   | 18.1  | 426.4    | N/A         |
 | Pixel 3                  | 266.2 | 77.3  | 2345.2   | N/A         |
@@ -128,8 +128,8 @@ the device).
 
 <img src="./face-detector-bench.svg">
 
-| Face Detector inference (ms) | WASM | WebGL | Plain JS | WASM + SIMD |
-|------------------------------|------|-------|----------|-------------|
+| Face Detector inference (ms) | WASM | WebGL | Plain JS | WASM + SIMD | WASM + SIMD + threads
+|------------------------------|------|-------|----------|-------------|----------------------
 | iPhone X                     | 22.4 | 13.5  | 318      | N/A         |
 | iPhone XS                    | 21.4 | 10.5  | 176.9    | N/A         |
 | Pixel 3                      | 40.7 | 31.8  | 535.2    | N/A         |

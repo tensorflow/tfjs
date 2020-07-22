@@ -1,5 +1,4 @@
 yarn build
-node ./scripts/inline-worker.js
 yarn rollup -c
 
 cp dist/tf-backend-wasm.js ../e2e/benchmarks/

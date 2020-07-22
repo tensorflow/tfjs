@@ -22,7 +22,7 @@ import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-was
 import wasmFactorySimd, {BackendWasmModuleSimd} from '../wasm-out/tfjs-backend-wasm-simd.js';
 import wasmFactoryThreadedSimd from '../wasm-out/tfjs-backend-wasm-threaded-simd.js';
 // @ts-ignore
-import {wasmWorkerContents} from '../wasm-out/tfjs-backend-wasm-threaded-simd.worker.js';
+import {wasmWorkerContents} from '../wasm-out/tfjs-backend-wasm-threaded-simd.worker.ts';
 import wasmFactory from '../wasm-out/tfjs-backend-wasm.js';
 
 const WASM_PRIORITY = 2;
