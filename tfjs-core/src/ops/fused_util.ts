@@ -34,8 +34,7 @@ export function getFusedDyActivation(
     return dy.mul(y.step());
   }
   throw new Error(
-      `Gradient for activation ${activation} has not been ` +
-      `implemented yet.`);
+      `Cannot compute gradient for fused activation ${activation}.`);
 }
 
 // Returns gradient for fused bias.
