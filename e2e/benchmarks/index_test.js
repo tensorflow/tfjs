@@ -95,8 +95,8 @@ describe('index', () => {
         // is populated with all tunable flags.
         this.originalInitDefaultValueMap();
         BACKEND_FLAGS_MAP.general.push('testGeneralFlag');
-        TUNABLE_FLAG_DEFAULT_VALUE_MAP.testGeneralFlag = 10;
-        state.flags.testGeneralFlag = 10;
+        TUNABLE_FLAG_DEFAULT_VALUE_MAP.testGeneralFlag = true;
+        state.flags.testGeneralFlag = true;
       });
 
       afterAll(() => {
@@ -223,20 +223,33 @@ describe('index', () => {
           this.originalTUNABLE_FLAG_DEFAULT_VALUE_MAP;
     });
 
+    it(`returns [false, true] for 'WEBGL_FORCE_F16_TEXTURES'`, () => {
+      const flagValueRange = getTunableRange('WEBGL_FORCE_F16_TEXTURES');
+      expect(flagValueRange).toEqual([false, true]);
+    });
+
+    it(`returns [1, 2] for 'WEBGL_VERSION' if its default value is 2`, () => {
+      TUNABLE_FLAG_DEFAULT_VALUE_MAP.WEBGL_VERSION = 2;
+      const flagValueRange = getTunableRange('WEBGL_VERSION');
+      expect(flagValueRange).toEqual([1, 2]);
+    });
+
+    it(`returns [1] for 'WEBGL_VERSION' if its default value is 1`, () => {
+      TUNABLE_FLAG_DEFAULT_VALUE_MAP.WEBGL_VERSION = 1;
+      const flagValueRange = getTunableRange('WEBGL_VERSION');
+      expect(flagValueRange).toEqual([1]);
+    });
+
     it('returns [false] for the flag with false as default value', () => {
       TUNABLE_FLAG_DEFAULT_VALUE_MAP.testFlag = false;
       const flagValueRange = getTunableRange('testFlag');
       expect(flagValueRange).toEqual([false]);
     });
+
     it('returns [false, true] for the flag with true as default value', () => {
       TUNABLE_FLAG_DEFAULT_VALUE_MAP.testFlag = true;
       const flagValueRange = getTunableRange('testFlag');
       expect(flagValueRange).toEqual([false, true]);
-    });
-    it('returns [1..n] for the flag with number n as default value', () => {
-      TUNABLE_FLAG_DEFAULT_VALUE_MAP.testFlag = 5;
-      const flagValueRange = getTunableRange('testFlag');
-      expect(flagValueRange).toEqual([1, 2, 3, 4, 5]);
     });
   });
 });
