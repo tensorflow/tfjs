@@ -19,7 +19,8 @@ import './flags_wasm';
 import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, env, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
-import wasmFactorySimd, {BackendWasmModuleSimd} from '../wasm-out/tfjs-backend-wasm-simd.js';
+// import wasmFactorySimd, {BackendWasmModuleSimd} from
+// '../wasm-out/tfjs-backend-wasm-simd.js';
 import wasmFactoryThreadedSimd from '../wasm-out/tfjs-backend-wasm-threaded-simd.js';
 // @ts-ignore
 import {wasmWorkerContents} from '../wasm-out/tfjs-backend-wasm-threaded-simd.worker.ts';
@@ -238,15 +239,15 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
         factoryConfig.instantiateWasm = createInstantiateWasmFunc(wasmPath);
       }
     }
-    let wasm: BackendWasmModule|BackendWasmModuleSimd;
+    let wasm: BackendWasmModule;
     if (threadsSupported && simdSupported) {
       wasm = wasmFactoryThreadedSimd(factoryConfig);
       wasm.mainScriptUrlOrBlob = new Blob(
           [`var _scriptDir = undefined; var WasmBackendModuleSimd = ` +
            wasmFactoryThreadedSimd.toString()],
           {type: 'text/javascript'});
-    } else if (simdSupported) {
-      wasm = wasmFactorySimd(factoryConfig);
+      // } else if (simdSupported) {
+      //   wasm = wasmFactorySimd(factoryConfig);
     } else {
       wasm = wasmFactory(factoryConfig);
     }
