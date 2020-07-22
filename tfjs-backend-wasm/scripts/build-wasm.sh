@@ -42,4 +42,3 @@ node ./scripts/create-worker-module.js
 mkdir -p dist
 # Only copying binary into dist because the js module gets bundled.
 cp wasm-out/*.wasm dist/
-cp wasm-out/*.worker.js dist/
