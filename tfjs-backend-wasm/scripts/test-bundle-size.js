@@ -36,12 +36,9 @@ exec(
 
 shell.cd(dirName);
 shell.cd(wasmDirName);
-shell.cd('emsdk');
-exec('source ./emsdk_env.sh');
-exec(`yarn && yarn build-deps-ci && yarn build && yarn rollup -c`, {silent: false});
-// exec(
-//     `yarn && yarn build-deps-ci && yarn build-ci && yarn rollup -c`,
-//     {silent: false});
+exec(
+    `yarn && yarn build-deps-ci && yarn build-ci && yarn rollup -c`,
+    {silent: false});
 
 const masterMinBundleSize = getFileSizeBytes(bundleFilename);
 const masterWasmSize = getFileSizeBytes(wasmFileName);
