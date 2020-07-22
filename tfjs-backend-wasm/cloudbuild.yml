@@ -56,13 +56,12 @@ steps:
   waitFor: ['build']
 
 # Check bundle size.
-# TODO: Re-enable once master includes --no-embedded fix.
-# - name: 'bitnami/node:latest'
-#   dir: 'tfjs-backend-wasm'
-#   id: 'test-bundle-size'
-#   entrypoint: 'yarn'
-#   args: ['test-bundle-size']
-#   waitFor: ['yarn', 'build-deps', 'build']
+- name: 'bitnami/node:latest'
+  dir: 'tfjs-backend-wasm'
+  id: 'test-bundle-size'
+  entrypoint: 'yarn'
+  args: ['test-bundle-size']
+  waitFor: ['yarn', 'build-deps', 'build']
 
 # Lint bazel files.
 - name: 'bitnami/node:latest'
