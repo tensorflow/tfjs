@@ -366,9 +366,9 @@ function variableGrads(f: () => Scalar, varList?: Variable[]):
  */
 /** @doc {heading: 'Training', subheading: 'Gradients'} */
 function customGrad<T extends Tensor>(
-    f: CustomGradientFunc<T>, kernelName?: string,
+    f: CustomGradientFunc<T>, inputs?: NamedTensorMap, kernelName?: string,
     attrs?: NamedAttrMap): (...args: Tensor[]) => T {
-  return ENGINE.customGrad(f, kernelName, attrs);
+  return ENGINE.customGrad(f, kernelName, inputs, attrs);
 }
 
 function checkGrads(grads: Tensor[]) {

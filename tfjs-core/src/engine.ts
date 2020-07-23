@@ -1021,14 +1021,14 @@ export class Engine implements TensorTracker, DataMover {
   }
 
   customGrad<T extends Tensor>(
-      f: CustomGradientFunc<T>, kernelName?: string,
+      f: CustomGradientFunc<T>, kernelName?: string, inputs?: NamedTensorMap,
       attrs?: NamedAttrMap): (...args: Array<Tensor|GradSaveFunc>) => T {
     util.assert(
         util.isFunction(f),
         () => 'The f passed in customGrad(f) must be a function.');
-    return (...inputs: Tensor[]): T => {
+    return (...kernelInputs: Tensor[]): T => {
       util.assert(
-          inputs.every(t => t instanceof Tensor),
+          kernelInputs.every(t => t instanceof Tensor),
           () => 'The args passed in customGrad(f)(x1, x2,...) must all be ' +
               'tensors');
 
@@ -1036,13 +1036,16 @@ export class Engine implements TensorTracker, DataMover {
         value: T,
         gradFunc: (dy: T, saved: Tensor[]) => Tensor | Tensor[],
       };
-      const inputMap: NamedTensorMap = {};
-      inputs.forEach((input, i) => {
-        inputMap[i] = input;
-      });
+      const inputMap: NamedTensorMap = inputs;
+      if (inputMap == null) {
+        kernelInputs.forEach((input, i) => {
+          inputMap[i] = input;
+        });
+      }
+
       return this.runKernelFunc(
           (_, save) => {
-            res = f(...[...inputs, save]);
+            res = f(...[...kernelInputs, save]);
             util.assert(
                 res.value instanceof Tensor,
                 () => 'The function f passed in customGrad(f) must return an ' +
@@ -1059,7 +1062,7 @@ export class Engine implements TensorTracker, DataMover {
             const grads: Tensor[] =
                 Array.isArray(gradRes) ? gradRes : [gradRes];
             util.assert(
-                grads.length === inputs.length,
+                grads.length === kernelInputs.length,
                 () => 'The function f passed in customGrad(f) must return an ' +
                     'object where `obj.gradFunc` is a function that returns ' +
                     'the same number of tensors as inputs passed to f(...).');

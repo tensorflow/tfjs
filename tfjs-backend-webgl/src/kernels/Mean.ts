@@ -63,9 +63,12 @@ export const meanConfig: KernelConfig = {
     }
 
     const value = sumImpl(sumInput, reduceShape, outShape, webglBackend);
-    console.log('in mean kernel');
 
-    // dispose transposed input to sum
+    webglBackend.disposeData(res.dataId);
+    webglBackend.disposeData(reduceSizeScalar.dataId);
+    if (permutedAxes != null) {
+      webglBackend.disposeData(sumInput.dataId);
+    }
 
     return value;
   }
