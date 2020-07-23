@@ -479,7 +479,7 @@ export interface MaxPoolWithArgmaxAttrs {
 export const Mean = 'Mean';
 export type MeanInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface MeanAttrs {
-  axis: number|number[];
+  reductionIndices: number|number[];
   keepDims: boolean;
 }
 

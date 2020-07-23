@@ -16,7 +16,10 @@
  */
 import {ENGINE, ForwardFunc} from '../engine';
 import {customGrad} from '../gradients';
+import {Mean, MeanAttrs, MeanInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {parseAxisParam, sizeFromShape} from '../util';
@@ -30,7 +33,6 @@ import {op} from './operation';
 import {reshape} from './reshape';
 import {scalar} from './scalar';
 import {sum} from './sum';
-
 
 /**
  * Computes the mean of elements across dimensions of a `tf.Tensor`.
@@ -91,10 +93,13 @@ function mean_<T extends Tensor>(
       const derX = div(mul(expandedDy, ones(x.shape, 'float32')), reduceSize);
       return derX;
     };
-    // return {value, gradFunc};
 
-    const res =
-        ENGINE.runKernelFunc(forward, {x: $x}, null, 'Mean', {axis, keepDims});
+    const inputs: MeanInputs = {x: $x};
+    const attrs: MeanAttrs = {reductionIndices: axis, keepDims};
+
+    const res = ENGINE.runKernelFunc(
+        forward, inputs as {} as NamedTensorMap, null, Mean,
+        attrs as {} as NamedAttrMap);
 
     return {value: res, gradFunc};
   });

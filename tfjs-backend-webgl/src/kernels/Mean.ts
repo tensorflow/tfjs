@@ -15,39 +15,29 @@
  * =============================================================================
  */
 
-// import {Max, MaxAttrs, MaxInputs} from '@tensorflow/tfjs-core';
+import {Mean, MeanAttrs, MeanInputs} from '@tensorflow/tfjs-core';
 import {backend_util, KernelConfig, scalar, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {divImpl} from './Div_impl';
 import {sumImpl} from './Sum_impl';
 import {transposeImpl} from './Transpose_impl';
-// import {maxImplCPU} from '../kernel_utils/shared';
-
-// import {maxImpl} from './Max_impl';
-// import {transposeImpl, transposeImplCPU} from './Transpose_impl';
 
 export const meanConfig: KernelConfig = {
-  kernelName: 'Mean',
+  kernelName: Mean,
   backendName: 'webgl',
   kernelFunc: ({inputs, attrs, backend}) => {
-    const {x} = inputs;
-    const {axis, keepDims} = attrs as {
-      axis: number[];
-      keepDims: boolean
-    };
+    const {x} = inputs as MeanInputs;
+    const {reductionIndices, keepDims} = attrs as {} as MeanAttrs;
     const webglBackend = backend as MathBackendWebGL;
 
-    const origAxes = util.parseAxisParam(axis, x.shape);
+    const origAxes = util.parseAxisParam(reductionIndices, x.shape);
     let axes = origAxes;
     const [sumOutShape, reduceShape] =
         backend_util.computeOutAndReduceShapes(x.shape, axes);
     const reduceSize = util.sizeFromShape(reduceShape);
 
     const reduceSizeScalar = scalar(reduceSize);
-    // const xReduce = reduceSizeScalar.dtype === x.dtype ?
-    //     x :
-    //     cast(x, reduceSizeScalar.dtype);
     const res = divImpl(x, reduceSizeScalar, webglBackend);
 
     const permutedAxes = backend_util.getAxesPermutation(axes, x.shape.length);
