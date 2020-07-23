@@ -34,6 +34,28 @@ describe('benchmark_util', () => {
     });
   });
 
+  describe('profile inference time', () => {
+    describe('profileInferenceTime', () => {
+      it('throws when passing in invalid predict', async () => {
+        const predict = {};
+        await expectAsync(profileInferenceTime(predict)).toBeRejected();
+      });
+
+      it('does not add new tensors', async () => {
+        const model = tf.sequential(
+            {layers: [tf.layers.dense({units: 1, inputShape: [3]})]});
+        const input = tf.zeros([1, 3]);
+
+        const tensorsBefore = tf.memory().numTensors;
+        await profileInferenceTime(() => model.predict(input));
+        expect(tf.memory().numTensors).toEqual(tensorsBefore);
+
+        model.dispose();
+        input.dispose();
+      });
+    });
+  });
+
   describe('Profile Memory', () => {
     describe('profileInferenceMemory', () => {
       it('pass in invalid predict', async () => {

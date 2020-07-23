@@ -109,8 +109,12 @@ function wrapPredictFnForModel(model, input) {
 /**
  * Executes the predict function for `model` (`model.predict` for tf.LayersModel
  * and `model.executeAsync` for tf.GraphModel) and times the inference process
- * for `numRuns` rounds. Then returns a promise that resolves with an array of
- * inference times for each inference process.
+ * for `numRuns` rounds. Then returns a promise that resolves with information
+ * about the model's inference time:
+ * - `times`: an array of inference time for each inference
+ * - `averageTime`: the average time of all inferences
+ * - `minTime`: the minimum time of all inferences
+ * - `maxTime`: the maximum time of all inferences
  *
  * The inference time contains the time spent by both `predict()` and `data()`
  * called by tensors in the prediction.
@@ -120,10 +124,13 @@ function wrapPredictFnForModel(model, input) {
  *    'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2';
  * const model = await tf.loadGraphModel(modelUrl, {fromTFHub: true});
  * const zeros = tf.zeros([1, 224, 224, 3]);
- * const elapsedTimeArray =
+ * const timeInfo =
  *    await profileInferenceTimeForModel(model, zeros, 2);
  *
- * console.log(`Elapsed time array: ${elapsedTimeArray}`);
+ * console.log(`Elapsed time array: ${timeInfo.times}`);
+ * console.log(`Average time: ${timeInfo.averageTime}`);
+ * console.log(`Minimum time: ${timeInfo.minTime}`);
+ * console.log(`Maximum time: ${timeInfo.maxTime}`);
  * ```
  *
  * @param model An instance of tf.GraphModel or tf.LayersModel for timing the
@@ -138,8 +145,12 @@ async function profileInferenceTimeForModel(model, input, numRuns = 1) {
 
 /**
  * Executes `predict()` and times the inference process for `numRuns` rounds.
- * Then returns a promise that resolves with an array of inference time for each
- * inference process.
+ * Then returns a promise that resolves with information about the inference
+ * time:
+ * - `times`: an array of inference time for each inference
+ * - `averageTime`: the average time of all inferences
+ * - `minTime`: the minimum time of all inferences
+ * - `maxTime`: the maximum time of all inferences
  *
  * The inference time contains the time spent by both `predict()` and `data()`
  * called by tensors in the prediction.
@@ -149,10 +160,13 @@ async function profileInferenceTimeForModel(model, input, numRuns = 1) {
  *    'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2';
  * const model = await tf.loadGraphModel(modelUrl, {fromTFHub: true});
  * const zeros = tf.zeros([1, 224, 224, 3]);
- * const elapsedTimeArray =
+ * const timeInfo =
  *    await profileInferenceTime(() => model.predict(zeros), 2);
  *
- * console.log(`Elapsed time array: ${elapsedTimeArray}`);
+ * console.log(`Elapsed time array: ${timeInfo.times}`);
+ * console.log(`Average time: ${timeInfo.averageTime}`);
+ * console.log(`Minimum time: ${timeInfo.minTime}`);
+ * console.log(`Maximum time: ${timeInfo.maxTime}`);
  * ```
  *
  * @param predict The predict function to execute and time.
@@ -165,7 +179,7 @@ async function profileInferenceTime(predict, numRuns = 1) {
         `a(n) ${typeof predict} is found.`);
   }
 
-  const elapsedTimeArray = [];
+  const times = [];
   for (let i = 0; i < numRuns; i++) {
     const start = performance.now();
     const res = await predict();
@@ -174,9 +188,20 @@ async function profileInferenceTime(predict, numRuns = 1) {
     const elapsedTime = performance.now() - start;
 
     tf.dispose(res);
-    elapsedTimeArray.push(elapsedTime);
+    times.push(elapsedTime);
   }
-  return elapsedTimeArray;
+
+  const averageTime = times.reduce((acc, curr) => acc + curr, 0) / times.length;
+  const minTime = Math.min(...times);
+  const maxTime = Math.max(...times);
+  const timeInfo = {
+    times,
+    averageTime,
+    minTime,
+    maxTime
+
+  };
+  return timeInfo;
 }
 
 /**

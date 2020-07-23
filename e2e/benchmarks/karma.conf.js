@@ -32,6 +32,13 @@ const browserstackConfig = {
   },
 
   customLaunchers: {
+    bs_chrome_mac: {
+      base: 'BrowserStack',
+      browser: 'chrome',
+      browser_version: '84.0',
+      os: 'OS X',
+      os_version: 'Catalina',
+    },
     bs_firefox_mac: {
       base: 'BrowserStack',
       browser: 'firefox',
@@ -48,7 +55,7 @@ const browserstackConfig = {
     }
   },
 
-  browsers: ['bs_firefox_mac', 'bs_safari_mac'],
+  browsers: ['bs_chrome_mac', 'bs_firefox_mac', 'bs_safari_mac'],
 };
 
 

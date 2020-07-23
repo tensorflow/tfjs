@@ -15,15 +15,36 @@
  * =============================================================================
  */
 
-async function getEnvInfo() {
-  let envInfo = `${tf.getBackend()} backend`;
+async function getEnvSummary() {
+  let envSummary = `${tf.getBackend()} backend`;
   if (tf.getBackend() === 'webgl') {
-    envInfo += `, version ${tf.env().get('WEBGL_VERSION')}`;
+    envSummary += `, version ${tf.env().get('WEBGL_VERSION')}`;
   } else if (tf.getBackend() === 'wasm') {
     const hasSIMD = await tf.env().getAsync('WASM_HAS_SIMD_SUPPORT')
-    envInfo += hasSIMD ? ' with SIMD' : ' without SIMD';
+    envSummary += hasSIMD ? ' with SIMD' : ' without SIMD';
   }
-  return envInfo;
+  return envSummary;
+}
+
+async function getBenchmarkSummary(timeInfo, memoryInfo, modelName = 'model') {
+  if (timeInfo == null) {
+    throw new Error('Missing the timeInfo parameter.');
+  } else if (timeInfo.times.length === 0) {
+    throw new Error('Missing the memoryInfo parameter.');
+  } else if (memoryInfo == null) {
+    throw new Error('The length of timeInfo.times is at least 1.');
+  }
+
+  const numRuns = timeInfo.times.length;
+  const envSummary = await getEnvSummary();
+  const benchmarkSummary = `
+  benchmark the ${modelName} on ${envSummary}
+  1st inference time: ${printTime(timeInfo.times[0])}
+  Average inference time (${numRuns} runs): ${printTime(timeInfo.averageTime)}
+  Best inference time: ${printTime(timeInfo.minTime)}
+  Peak memory: ${printMemory(memoryInfo.peakBytes)}
+  `;
+  return benchmarkSummary;
 }
 
 describe('benchmark models', () => {
@@ -39,19 +60,11 @@ describe('benchmark models', () => {
     const predict = () => model.predict(input);
 
     const numRuns = 20;
-    const times = await profileInferenceTime(predict, numRuns);
-    const memory = await profileInferenceMemory(predict);
-    const averageTime =
-        times.reduce((acc, curr) => acc + curr, 0) / times.length;
-    const minTime = Math.min(...times);
+    const timeInfo = await profileInferenceTime(predict, numRuns);
+    const memoryInfo = await profileInferenceMemory(predict);
 
-    let benchmarkInfo = 'benchmark mobilenet_v2 on ';
-    benchmarkInfo += await getEnvInfo();
-    console.log(benchmarkInfo);
-    console.log('1st inference time', printTime(times[0]));
-    console.log(
-        `Average inference time (${numRuns} runs)`, printTime(averageTime));
-    console.log('Best inference time', printTime(minTime));
-    console.log('Peak memory', printMemory(memory.peakBytes));
+    const benchmarkSummary =
+        await getBenchmarkSummary(timeInfo, memoryInfo, 'mobilenet_v2');
+    console.log(benchmarkSummary);
   });
 });
