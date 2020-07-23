@@ -14,6 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
+import {ENGINE, ForwardFunc} from '../engine';
 import {customGrad} from '../gradients';
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
@@ -29,6 +30,7 @@ import {op} from './operation';
 import {reshape} from './reshape';
 import {scalar} from './scalar';
 import {sum} from './sum';
+
 
 /**
  * Computes the mean of elements across dimensions of a `tf.Tensor`.
@@ -67,17 +69,19 @@ function mean_<T extends Tensor>(
   const reduceShape = shapes[1];
   const reduceSize = sizeFromShape(reduceShape);
 
-  // Use a custom gradient to bypass 2 gradient backprops since mean is used
-  // extremely often.
-  const customOp = customGrad((x: Tensor) => {
+  const forward: ForwardFunc<Tensor> = () => {
     const reduceSizeScalar = scalar(reduceSize);
     // Cast if needed.
-    const xReduce = reduceSizeScalar.dtype === x.dtype ?
+    const xReduce = reduceSizeScalar.dtype === $x.dtype ?
         x :
         cast(x, reduceSizeScalar.dtype);
     const res = div(xReduce, reduceSizeScalar);
-    const value = sum(res, axis, keepDims);
+    return sum(res, axis, keepDims);
+  };
 
+  // Use a custom gradient to bypass 2 gradient backprops since mean is used
+  // extremely often.
+  const customOp = customGrad((x: Tensor) => {
     const gradFunc = (dy: Tensor) => {
       const expandedDyShape = x.shape.slice();
       axes.forEach(axis => {
@@ -87,8 +91,13 @@ function mean_<T extends Tensor>(
       const derX = div(mul(expandedDy, ones(x.shape, 'float32')), reduceSize);
       return derX;
     };
-    return {value, gradFunc};
-  }, {x: $x}, 'Mean', {axis, keepDims});
+    // return {value, gradFunc};
+
+    const res =
+        ENGINE.runKernelFunc(forward, {x: $x}, null, 'Mean', {axis, keepDims});
+
+    return {value: res, gradFunc};
+  });
 
   return customOp($x) as T;
 }
