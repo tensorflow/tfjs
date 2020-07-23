@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,9 +15,26 @@
  * =============================================================================
  */
 
-import {conv2d} from './fused_conv2d';
-import {depthwiseConv2d} from './fused_depthwise_conv2d';
-import {matMul} from './fused_mat_mul';
-import {Activation} from './fused_types';
+import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import {Conv2DInfo} from './conv_util';
 
-export {Activation, conv2d, depthwiseConv2d, matMul};
+export type FusedConv2DConfig = {
+  input: Tensor4D,
+  filter: Tensor4D,
+  convInfo: Conv2DInfo,
+  bias?: Tensor,
+  activation?: Activation,
+  preluActivationWeights?: Tensor
+};
+
+export type FusedBatchMatMulConfig = {
+  a: Tensor3D,
+  b: Tensor3D,
+  transposeA: boolean,
+  transposeB: boolean,
+  bias?: Tensor,
+  activation?: Activation,
+  preluActivationWeights?: Tensor
+};
+
+export type Activation = 'linear'|'relu'|'prelu'|'elu'|'relu6';
