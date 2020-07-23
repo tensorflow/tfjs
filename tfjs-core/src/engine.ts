@@ -1073,8 +1073,7 @@ export class Engine implements TensorTracker, DataMover {
               gradMap[i] = () => grad;
             });
             return gradMap;
-          },
-          kernelName, attrs);
+          });
     };
   }
 
