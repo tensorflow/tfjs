@@ -77,7 +77,7 @@ on NPM.
 
 ## Benchmarks
 
-[Benchmark tool](https://tensorflow.github.io/tfjs/e2e/benchmarks/). Use this webpage tool to test the performance related metrics (speed, memory, power, etc) of TensorFlow.js models on your local device with CPU, WebGL or WASM backend.
+[Benchmark tool](https://tensorflow.github.io/tfjs/e2e/benchmarks/index.html). Use this webpage tool to test the performance related metrics (speed, memory, power, etc) of TensorFlow.js models on your local device with CPU, WebGL or WASM backend. You can benchmark custom models following this [guide](https://github.com/tensorflow/tfjs/e2e/benchmarks/README.md).
 
 ## Getting started
 
