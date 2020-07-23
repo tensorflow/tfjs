@@ -20,7 +20,7 @@ async function getEnvSummary() {
   if (tf.getBackend() === 'webgl') {
     envSummary += `, version ${tf.env().get('WEBGL_VERSION')}`;
   } else if (tf.getBackend() === 'wasm') {
-    const hasSIMD = await tf.env().getAsync('WASM_HAS_SIMD_SUPPORT')
+    const hasSIMD = await tf.env().getAsync('WASM_HAS_SIMD_SUPPORT');
     envSummary += hasSIMD ? ' with SIMD' : ' without SIMD';
   }
   return envSummary;
