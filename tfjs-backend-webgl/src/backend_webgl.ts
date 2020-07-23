@@ -268,7 +268,8 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   write(values: BackendValues, shape: number[], dtype: DataType): DataId {
-    if (env().getBool('WEBGL_CHECK_NUMERICAL_PROBLEMS')) {
+    if (env().getBool('WEBGL_CHECK_NUMERICAL_PROBLEMS') ||
+        env().getBool('DEBUG')) {
       this.checkNumericalProblems(values);
     }
     if (dtype === 'complex64' && values != null) {
