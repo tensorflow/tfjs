@@ -6,7 +6,6 @@ steps:
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
-  waitFor: ['verdaccio']
 
 # Build deps.
 - name: 'node:10'
