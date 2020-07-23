@@ -88,7 +88,7 @@ function mean_<T extends Tensor>(
       return derX;
     };
     return {value, gradFunc};
-  });
+  }, 'Mean', {axis});
 
   return customOp($x) as T;
 }

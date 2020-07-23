@@ -16,6 +16,7 @@
  */
 
 import {CustomGradientFunc, ENGINE} from './engine';
+import {NamedAttrMap} from './kernel_registry';
 import {Scalar, Tensor, Variable} from './tensor';
 import {NamedTensorMap} from './tensor_types';
 import {convertToTensor, convertToTensorArray} from './tensor_util_env';
@@ -364,9 +365,10 @@ function variableGrads(f: () => Scalar, varList?: Variable[]):
  *     returns the custom gradients of `f` with respect to its inputs.
  */
 /** @doc {heading: 'Training', subheading: 'Gradients'} */
-function customGrad<T extends Tensor>(f: CustomGradientFunc<T>):
-    (...args: Tensor[]) => T {
-  return ENGINE.customGrad(f);
+function customGrad<T extends Tensor>(
+    f: CustomGradientFunc<T>, kernelName?: string,
+    attrs?: NamedAttrMap): (...args: Tensor[]) => T {
+  return ENGINE.customGrad(f, kernelName, attrs);
 }
 
 function checkGrads(grads: Tensor[]) {

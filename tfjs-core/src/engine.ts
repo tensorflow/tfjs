@@ -1020,8 +1020,9 @@ export class Engine implements TensorTracker, DataMover {
     });
   }
 
-  customGrad<T extends Tensor>(f: CustomGradientFunc<T>):
-      (...args: Array<Tensor|GradSaveFunc>) => T {
+  customGrad<T extends Tensor>(
+      f: CustomGradientFunc<T>, kernelName?: string,
+      attrs?: NamedAttrMap): (...args: Array<Tensor|GradSaveFunc>) => T {
     util.assert(
         util.isFunction(f),
         () => 'The f passed in customGrad(f) must be a function.');
@@ -1072,7 +1073,8 @@ export class Engine implements TensorTracker, DataMover {
               gradMap[i] = () => grad;
             });
             return gradMap;
-          });
+          },
+          kernelName, attrs);
     };
   }
 
