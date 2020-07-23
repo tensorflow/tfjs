@@ -37,7 +37,7 @@ const browserstackConfig = {
       browser: 'firefox',
       browser_version: '70.0',
       os: 'OS X',
-      os_version: 'High Sierra'
+      os_version: 'Catalina',
     },
     bs_safari_mac: {
       base: 'BrowserStack',
@@ -45,7 +45,6 @@ const browserstackConfig = {
       browser_version: '13.1',
       os: 'OS X',
       os_version: 'Catalina',
-      resolution: '1920x1080'
     }
   },
 
