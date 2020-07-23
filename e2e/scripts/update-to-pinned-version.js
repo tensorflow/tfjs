@@ -56,7 +56,7 @@ function updateTFJSDependencyVersions(deps, pkg, parsedPkg, tfjsVersion) {
       }
       const versionLatest = relaxedVersionPrefix + tfjsVersion;
 
-      pkg = `${pkg}`.replace(
+      pkg = pkg.replace(
           new RegExp(`"${depNpmName}": "${version}"`, 'g'),
           `"${depNpmName}": "${versionLatest}"`);
     }
@@ -71,6 +71,13 @@ if (!latestVersion) {
   process.exit(1);
 }
 
+const dirName = path.basename(process.cwd());
+if (dirName != 'e2e') {
+  console.log(
+      `Expect to run this script from e2e, instead run from ${dirName}`);
+  process.exit(1);
+}
+
 const packageJsonFile = './package.json';
 if (!fs.existsSync(packageJsonFile)) {
   console.log(
@@ -80,8 +87,8 @@ if (!fs.existsSync(packageJsonFile)) {
 }
 
 // Update the version.
-let pkg = `${fs.readFileSync(packageJsonFile)}`;
-const parsedPkg = JSON.parse(`${pkg}`);
+let pkg = fs.readFileSync(packageJsonFile, 'utf8');
+const parsedPkg = JSON.parse(pkg);
 
 pkg = updateTFJSDependencyVersions(
     DEPENDENCY_LIST, pkg, parsedPkg, latestVersion);
