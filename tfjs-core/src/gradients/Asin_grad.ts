@@ -20,9 +20,9 @@ import {GradConfig} from '../kernel_registry';
 import {cast} from '../ops/cast';
 import {div} from '../ops/div';
 import {scalar} from '../ops/scalar';
+import {sqrt} from '../ops/sqrt';
 import {square} from '../ops/square';
 import {sub} from '../ops/sub';
-import {sqrt} from '../ops/unary_ops';
 import {Tensor} from '../tensor';
 
 export const asinGradConfig: GradConfig = {

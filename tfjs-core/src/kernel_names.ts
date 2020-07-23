@@ -21,6 +21,7 @@
 import {ExplicitPadding} from '../src/ops/conv_util';
 
 import {NamedTensorInfoMap, TensorInfo} from './kernel_registry';
+import {Activation} from './ops/fused_types';
 import {DataType, PixelData} from './types';
 
 export const Abs = 'Abs';
@@ -308,6 +309,9 @@ export type ExpInputs = UnaryInputs;
 export const Expm1 = 'Expm1';
 export type Expm1Inputs = UnaryInputs;
 
+export const FFT = 'FFT';
+export type FFTInputs = Pick<NamedTensorInfoMap, 'input'>;
+
 export const Floor = 'Floor';
 export type FloorInputs = UnaryInputs;
 
@@ -346,8 +350,20 @@ export type GreaterEqualInputs = BinaryInputs;
 export const Identity = 'Identity';
 export type IdentityInputs = Pick<NamedTensorInfoMap, 'x'>;
 
+export const IFFT = 'IFFT';
+export type IFFTInputs = Pick<NamedTensorInfoMap, 'input'>;
+
 export const Imag = 'Imag';
 export type ImagInputs = Pick<NamedTensorInfoMap, 'input'>;
+
+export const IsFinite = 'IsFinite';
+export type IsFiniteInputs = UnaryInputs;
+
+export const IsInf = 'IsInf';
+export type IsInfInputs = UnaryInputs;
+
+export const IsNan = 'IsNan';
+export type IsNanInputs = UnaryInputs;
 
 export const Less = 'Less';
 export type LessInputs = BinaryInputs;
@@ -498,6 +514,16 @@ export interface NonMaxSuppressionV3Attrs {
   scoreThreshold: number;
 }
 
+export const NonMaxSuppressionV4 = 'NonMaxSuppressionV4';
+export type NonMaxSuppressionV4Inputs =
+    Pick<NamedTensorInfoMap, 'boxes'|'scores'>;
+export interface NonMaxSuppressionV4Attrs {
+  maxOutputSize: number;
+  iouThreshold: number;
+  scoreThreshold: number;
+  padToMaxOutputSize: boolean;
+}
+
 export const NonMaxSuppressionV5 = 'NonMaxSuppressionV5';
 export type NonMaxSuppressionV5Inputs =
     Pick<NamedTensorInfoMap, 'boxes'|'scores'>;
@@ -595,6 +621,12 @@ export interface ReverseAttrs {
   dims: number|number[];
 }
 
+export const Round = 'Round';
+export type RoundInputs = UnaryInputs;
+
+export const Rsqrt = 'Rsqrt';
+export type RsqrtInputs = UnaryInputs;
+
 export const ScatterNd = 'ScatterNd';
 export type ScatterNdInputs = Pick<NamedTensorInfoMap, 'indices'|'updates'>;
 export interface ScatterNdAttrs {
@@ -621,6 +653,15 @@ export type SinhInputs = UnaryInputs;
 
 export const Sign = 'Sign';
 export type SignInputs = UnaryInputs;
+
+export const Sigmoid = 'Sigmoid';
+export type SigmoidInputs = UnaryInputs;
+
+export const Softplus = 'Softplus';
+export type SoftplusInputs = UnaryInputs;
+
+export const Sqrt = 'Sqrt';
+export type SqrtInputs = UnaryInputs;
 
 export const Sum = 'Sum';
 export type SumInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -724,6 +765,12 @@ export type ZerosLikeInputs = UnaryInputs;
 /**
  * TensorFlow.js-only kernels
  */
+export const Step = 'Step';
+export type StepInputs = UnaryInputs;
+export interface StepAttrs {
+  alpha: number;
+}
+
 export const FromPixels = 'FromPixels';
 export interface FromPixelsInputs {
   pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
@@ -739,4 +786,51 @@ export interface RotateWithOffsetAttrs {
   radians: number;
   fillValue: number|[number, number, number];
   center: number|[number, number];
+}
+
+export const _FusedMatMul = '_FusedMatMul';
+// tslint:disable-next-line: class-name
+export interface _FusedMatMulInputs extends NamedTensorInfoMap {
+  a: TensorInfo;
+  b: TensorInfo;
+  bias?: TensorInfo;
+  preluActivationWeights?: TensorInfo;
+}
+// tslint:disable-next-line: class-name
+export interface _FusedMatMulAttrs {
+  transposeA: boolean;
+  transposeB: boolean;
+  activation: Activation;
+}
+
+export const FusedConv2D = 'FusedConv2D';
+export interface FusedConv2DInputs extends NamedTensorInfoMap {
+  x: TensorInfo;
+  filter: TensorInfo;
+  bias?: TensorInfo;
+  preluActivationWeights?: TensorInfo;
+}
+export interface FusedConv2DAttrs {
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
+  dataFormat: 'NHWC'|'NCHW';
+  dilations: [number, number]|number;
+  dimRoundingMode: 'floor'|'round'|'ceil';
+  activation: Activation;
+}
+
+export const FusedDepthwiseConv2D = 'FusedDepthwiseConv2D';
+export interface FusedDepthwiseConv2DInputs extends NamedTensorInfoMap {
+  x: TensorInfo;
+  filter: TensorInfo;
+  bias?: TensorInfo;
+  preluActivationWeights?: TensorInfo;
+}
+export interface FusedDepthwiseConv2DAttrs {
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  dataFormat: 'NHWC'|'NCHW';
+  dilations: [number, number]|number;
+  dimRoundingMode: 'floor'|'round'|'ceil';
+  activation: Activation;
 }
