@@ -21,6 +21,7 @@
 import {ExplicitPadding} from '../src/ops/conv_util';
 
 import {NamedTensorInfoMap, TensorInfo} from './kernel_registry';
+import {Activation} from './ops/fused_types';
 import {DataType, PixelData} from './types';
 
 export const Abs = 'Abs';
@@ -785,4 +786,51 @@ export interface RotateWithOffsetAttrs {
   radians: number;
   fillValue: number|[number, number, number];
   center: number|[number, number];
+}
+
+export const _FusedMatMul = '_FusedMatMul';
+// tslint:disable-next-line: class-name
+export interface _FusedMatMulInputs extends NamedTensorInfoMap {
+  a: TensorInfo;
+  b: TensorInfo;
+  bias?: TensorInfo;
+  preluActivationWeights?: TensorInfo;
+}
+// tslint:disable-next-line: class-name
+export interface _FusedMatMulAttrs {
+  transposeA: boolean;
+  transposeB: boolean;
+  activation: Activation;
+}
+
+export const FusedConv2D = 'FusedConv2D';
+export interface FusedConv2DInputs extends NamedTensorInfoMap {
+  x: TensorInfo;
+  filter: TensorInfo;
+  bias?: TensorInfo;
+  preluActivationWeights?: TensorInfo;
+}
+export interface FusedConv2DAttrs {
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
+  dataFormat: 'NHWC'|'NCHW';
+  dilations: [number, number]|number;
+  dimRoundingMode: 'floor'|'round'|'ceil';
+  activation: Activation;
+}
+
+export const FusedDepthwiseConv2D = 'FusedDepthwiseConv2D';
+export interface FusedDepthwiseConv2DInputs extends NamedTensorInfoMap {
+  x: TensorInfo;
+  filter: TensorInfo;
+  bias?: TensorInfo;
+  preluActivationWeights?: TensorInfo;
+}
+export interface FusedDepthwiseConv2DAttrs {
+  strides: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  dataFormat: 'NHWC'|'NCHW';
+  dilations: [number, number]|number;
+  dimRoundingMode: 'floor'|'round'|'ceil';
+  activation: Activation;
 }
