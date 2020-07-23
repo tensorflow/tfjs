@@ -20,7 +20,7 @@ import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose, expectArraysEqual} from '../test_util';
 
 describeWithFlags('mean', ALL_ENVS, () => {
-  fit('basic', async () => {
+  it('basic', async () => {
     const a = tf.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
     const r = tf.mean(a);
 
