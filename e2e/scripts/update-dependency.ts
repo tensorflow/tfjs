@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // Copyright 2020 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,9 +18,8 @@
 // Where VERSION is the pinned version to update to for tfjs package
 // dependencies.
 
-import * as fs from 'fs';
-
 import * as argparse from 'argparse';
+import * as fs from 'fs';
 
 import {updateTFJSDependencyVersions} from '../../scripts/release-util';
 
