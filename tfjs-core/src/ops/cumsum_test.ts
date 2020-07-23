@@ -93,6 +93,11 @@ describeWithFlags('cumsum', ALL_ENVS, () => {
     expectArraysClose(await res.data(), [0, 1, 2, 5, 4, 9, 6, 13]);
   });
 
+  it('handle permutation properly', async () => {
+    const res = tf.ones([1, 240, 1, 10]).cumsum(1);
+    expect(res.shape).toEqual([1, 240, 1, 10]);
+  });
+
   it('throws when passed a non-tensor', () => {
     expect(() => tf.cumsum({} as tf.Tensor))
         .toThrowError(/Argument 'x' passed to 'cumsum' must be a Tensor/);
