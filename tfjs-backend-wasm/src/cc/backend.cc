@@ -14,9 +14,11 @@
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
+#include <emscripten/threading.h>
 #endif
 
 #include <xnnpack.h>
+#include <cmath>
 #include <cstddef>
 #include <unordered_map>
 #include <utility>
@@ -48,7 +50,8 @@ TensorInfo &get_tensor_info_out(const size_t tensor_id) {
 }
 
 size_t xnn_operator_count = 0;
-pthreadpool *threadpool = pthreadpool_create(4);
+pthreadpool *threadpool =
+    pthreadpool_create(std::min(emscripten_num_logical_cores(), 4));
 
 // Registers a disposal callback for a tensor id with a given callback function.
 void register_disposal_callback(const size_t tensor_id,
