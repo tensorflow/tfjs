@@ -60,17 +60,17 @@ The script expects three required arguments: `model_path`, `inputs_dir` and
 ### Run the cli tool in non-Node env using the binary.
 * Download the binary for the right platform. (TODO: provide binary link)
 * Run inference:
-** For Linux:
+  * For Linux:
 ```
 ./tfjs-inference-linux --model_path=MODEL_PATH --inputs_dir=INPUTS_DIR
  *   --outputs_dir=OUTPUTS_DIR
 ```
-** For MacOS:
+  * For MacOS:
 ```
 ./tfjs-inference-macos --model_path=MODEL_PATH --inputs_dir=INPUTS_DIR
  *   --outputs_dir=OUTPUTS_DIR
 ```
-** For Windows:
+  * For Windows:
 ```
 ./tfjs-inference-win.exe --model_path=MODEL_PATH --inputs_dir=INPUTS_DIR
  *   --outputs_dir=OUTPUTS_DIR
