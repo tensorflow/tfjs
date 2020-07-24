@@ -61,19 +61,19 @@ The script expects three required arguments: `model_path`, `inputs_dir` and
 * Download the binary for the right platform. (TODO: provide binary link)
 * Run inference:
   * For Linux:
-```
-./tfjs-inference-linux --model_path=MODEL_PATH --inputs_dir=INPUTS_DIR
- *   --outputs_dir=OUTPUTS_DIR
-```
+    ```
+    ./tfjs-inference-linux --model_path=MODEL_PATH --inputs_dir=INPUTS_DIR
+    *   --outputs_dir=OUTPUTS_DIR
+    ```
   * For MacOS:
-```
-./tfjs-inference-macos --model_path=MODEL_PATH --inputs_dir=INPUTS_DIR
- *   --outputs_dir=OUTPUTS_DIR
-```
+    ```
+    ./tfjs-inference-macos --model_path=MODEL_PATH --inputs_dir=INPUTS_DIR
+    *   --outputs_dir=OUTPUTS_DIR
+    ```
   * For Windows:
-```
-./tfjs-inference-win.exe --model_path=MODEL_PATH --inputs_dir=INPUTS_DIR
- *   --outputs_dir=OUTPUTS_DIR
-```
+    ```
+    ./tfjs-inference-win.exe --model_path=MODEL_PATH --inputs_dir=INPUTS_DIR
+    *   --outputs_dir=OUTPUTS_DIR
+    ```
 
 The options and input/output formats are same as above.
