@@ -20,24 +20,27 @@ var Rule = /** @class */ (function (_super) {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     Rule.prototype.apply = function (sourceFile) {
-        return this.applyWithWalker(new NoImportsFromSrcWalker(sourceFile, this.getOptions()));
+        return this.applyWithWalker(new NoImportsWithRegexWalker(sourceFile, this.getOptions()));
     };
-    Rule.FAILURE_STRING = 'importing from src/ is prohibited. You should be able to import from a closer path';
     return Rule;
 }(Lint.Rules.AbstractRule));
 exports.Rule = Rule;
-var NoImportsFromSrcWalker = /** @class */ (function (_super) {
-    __extends(NoImportsFromSrcWalker, _super);
-    function NoImportsFromSrcWalker() {
+var NoImportsWithRegexWalker = /** @class */ (function (_super) {
+    __extends(NoImportsWithRegexWalker, _super);
+    function NoImportsWithRegexWalker() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    NoImportsFromSrcWalker.prototype.visitImportDeclaration = function (node) {
-        var importFrom = node.moduleSpecifier.getText();
-        var reg = /src/;
-        if (importFrom.match(reg)) {
-            this.addFailure(this.createFailure(node.moduleSpecifier.getStart(), node.moduleSpecifier.getWidth(), Rule.FAILURE_STRING));
+    NoImportsWithRegexWalker.prototype.visitImportDeclaration = function (node) {
+        var options = this.getOptions();
+        for (var _i = 0, options_1 = options; _i < options_1.length; _i++) {
+            var regStr = options_1[_i];
+            var importFrom = node.moduleSpecifier.getText();
+            var reg = new RegExp(regStr);
+            if (importFrom.match(reg)) {
+                this.addFailure(this.createFailure(node.moduleSpecifier.getStart(), node.moduleSpecifier.getWidth(), "importing from " + regStr + " is prohibited."));
+            }
         }
         _super.prototype.visitImportDeclaration.call(this, node);
     };
-    return NoImportsFromSrcWalker;
+    return NoImportsWithRegexWalker;
 }(Lint.RuleWalker));
