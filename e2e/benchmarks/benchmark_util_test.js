@@ -21,7 +21,7 @@
  */
 
 describe('benchmark_util', () => {
-  beforeAll(() => tf.setBackend('cpu'));
+  beforeEach(() => tf.setBackend('cpu'));
 
   describe('generateInput', () => {
     it('LayersModel', () => {
@@ -56,8 +56,81 @@ describe('benchmark_util', () => {
     });
   });
 
+  describe('getPredictFnForModel', () => {
+    it('graph model with async ops uses executeAsync to run', () => {
+      const model = new tf.GraphModel();
+      const input = tf.tensor([1]);
+      const oldTensorNum = tf.memory().numTensors;
+      spyOn(model, 'execute').and.callFake(() => {
+        const leakedTensor = tf.tensor([1]);
+        throw new Error(
+            'This model has dynamic ops, ' +
+            'please use model.executeAsync() instead');
+        return leakedTensor;
+      });
+      spyOn(model, 'executeAsync');
+
+      const wrappedPredict = getPredictFnForModel(model, input);
+      expect(tf.memory().numTensors).toBe(oldTensorNum);
+      expect(model.execute.calls.count()).toBe(1);
+      expect(model.execute.calls.first().args).toEqual([input]);
+
+      wrappedPredict();
+      expect(model.execute.calls.count()).toBe(1);
+      expect(model.executeAsync.calls.count()).toBe(1);
+      expect(model.executeAsync.calls.first().args).toEqual([input]);
+
+      tf.dispose(input);
+    });
+
+    it('graph model without async ops uses execute to run', () => {
+      const model = new tf.GraphModel();
+      const input = tf.tensor([1]);
+      const oldTensorNum = tf.memory().numTensors;
+      spyOn(model, 'execute').and.callFake(() => {
+        const leakedTensor = tf.tensor([1]);
+      });
+      spyOn(model, 'executeAsync');
+
+      const wrappedPredict = getPredictFnForModel(model, input);
+      expect(tf.memory().numTensors).toBe(oldTensorNum);
+      expect(model.execute.calls.count()).toBe(1);
+      expect(model.execute.calls.first().args).toEqual([input]);
+
+      wrappedPredict();
+      expect(model.execute.calls.count()).toBe(2);
+      expect(model.execute.calls.argsFor(1)).toEqual([input]);
+      expect(model.executeAsync.calls.count()).toBe(0);
+
+      tf.dispose(input);
+    });
+
+    it('layers model uses predict to run', () => {
+      const model = tf.sequential(
+          {layers: [tf.layers.dense({units: 1, inputShape: [1]})]});
+      const input = tf.ones([1, 1]);
+      spyOn(model, 'predict');
+
+      const wrappedPredict = getPredictFnForModel(model, input);
+      wrappedPredict();
+
+      expect(model.predict.calls.count()).toBe(1);
+      expect(model.predict.calls.first().args).toEqual([input]);
+
+      tf.dispose(input);
+      model.dispose();
+    });
+
+    it('throws when passed in a model that is not layers or graph model',
+       () => {
+         const model = {};
+         const input = [];
+         expect(() => getPredictFnForModel(model, input)).toThrowError(Error);
+       });
+  });
+
   describe('setEnvFlags', () => {
-    describe('change nothing', () => {
+    describe('changes nothing when setting empty config or rejecting', () => {
       let originalFlags = {};
 
       beforeEach(() => {
@@ -70,7 +143,7 @@ describe('benchmark_util', () => {
         expect(tf.env().flags).toEqual(originalFlags);
       });
 
-      it('untunable flag', async () => {
+      it('rejects when setting untunable flags', async () => {
         const flagConfig = {
           IS_BROWSER: false,
         };
@@ -80,7 +153,7 @@ describe('benchmark_util', () => {
         expect(tf.env().flags).toEqual(originalFlags);
       });
 
-      it('set a number type flag by a boolean value', async () => {
+      it('rejects when setting a number flag by a boolean value', async () => {
         const flagConfig = {
           WEBGL_VERSION: false,
         };
@@ -88,7 +161,7 @@ describe('benchmark_util', () => {
         expect(tf.env().flags).toEqual(originalFlags);
       });
 
-      it('set boolean flag by a number', async () => {
+      it('rejects when setting boolean flag by a number', async () => {
         const flagConfig = {
           WEBGL_PACK: 1,
         };
@@ -96,7 +169,7 @@ describe('benchmark_util', () => {
         expect(tf.env().flags).toEqual(originalFlags);
       });
 
-      it('set flag value out of the range', async () => {
+      it('rejects when setting flag value out of the range', async () => {
         const outOfRangeValue =
             Math.max(...TUNABLE_FLAG_VALUE_RANGE_MAP.WEBGL_VERSION) + 1;
         const flagConfig = {
@@ -107,7 +180,7 @@ describe('benchmark_util', () => {
       });
     });
 
-    describe('reset flags', () => {
+    describe('reset simple flags', () => {
       beforeEach(() => tf.env().reset());
       afterEach(() => tf.env().reset());
 
@@ -201,13 +274,13 @@ describe('benchmark_util', () => {
     beforeEach(() => tf.setBackend('cpu'));
     afterAll(() => tf.engine().reset());
 
-    it('reset a backend that is not registed', async () => {
+    it('rejects when resetting a backend that is not registed', async () => {
       expectAsync(resetBackend('invalidBackendName'))
           .toBeRejectedWithError(
               Error, 'invalidBackendName backend is not registed.');
     });
 
-    it('reset a backend that is not generated', async () => {
+    it('do nothing when resetting a backend that is not created', async () => {
       const testCpuBackend = 'testCpuBackend';
       tf.registerBackend(testCpuBackend, tf.findBackendFactory('cpu'));
       expect(tf.engine().registry[testCpuBackend]).toBeUndefined();
@@ -223,7 +296,7 @@ describe('benchmark_util', () => {
       tf.removeBackend(testCpuBackend);
     });
 
-    it('reset a backend that has been generated', async () => {
+    it('reset the backend when resetting an existed backend', async () => {
       await tf.ready();
       const currentBackend = tf.getBackend();
       expect(tf.engine().registry[currentBackend]).toBeDefined();
@@ -238,23 +311,25 @@ describe('benchmark_util', () => {
       expect(tf.registerBackend.calls.count()).toBe(1);
     });
 
-    it('reset the active backend', async () => {
-      const currentBackend = tf.getBackend();
-      spyOn(tf, 'setBackend');
-      await resetBackend(currentBackend);
-      expect(tf.setBackend.calls.count()).toBe(1);
-    });
+    it('tf.setBackend is called when resetting the active backend',
+       async () => {
+         const currentBackend = tf.getBackend();
+         spyOn(tf, 'setBackend');
+         await resetBackend(currentBackend);
+         expect(tf.setBackend.calls.count()).toBe(1);
+       });
 
-    it('reset an inactive backend', async () => {
-      const testCpuBackend = 'testCpuBackend';
-      tf.registerBackend(testCpuBackend, tf.findBackendFactory('cpu'));
-      expect(tf.getBackend()).not.toBe(testCpuBackend);
-      spyOn(tf, 'setBackend');
+    it('tf.setBackend is not called when resetting an inactive backend',
+       async () => {
+         const testCpuBackend = 'testCpuBackend';
+         tf.registerBackend(testCpuBackend, tf.findBackendFactory('cpu'));
+         expect(tf.getBackend()).not.toBe(testCpuBackend);
+         spyOn(tf, 'setBackend');
 
-      await resetBackend(testCpuBackend);
+         await resetBackend(testCpuBackend);
 
-      expect(tf.setBackend.calls.count()).toBe(0);
-      tf.removeBackend(testCpuBackend);
-    });
+         expect(tf.setBackend.calls.count()).toBe(0);
+         tf.removeBackend(testCpuBackend);
+       });
   });
 });
