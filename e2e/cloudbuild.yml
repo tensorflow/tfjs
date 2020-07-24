@@ -6,6 +6,7 @@ steps:
   entrypoint: 'bash'
   id: 'verdaccio'
   args: ['./scripts/start-verdaccio.sh']
+  env: ['RELEASE=$_RELEASE']
 
 # Install packages.
 - name: 'node:10'
