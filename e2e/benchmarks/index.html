@@ -258,21 +258,21 @@ limitations under the License.
     async function warmUpAndRecordTime() {
       await showMsg('Warming up');
 
-      let elapsedTimeArray;
+      let timeInfo;
       if (state.benchmark === 'custom') {
         const input = generateInput(model);
         try {
-          elapsedTimeArray = await profileInferenceTimeForModel(model, input, 1);
+          timeInfo = await profileInferenceTimeForModel(model, input, 1);
         } finally {
           tf.dispose(input);
         }
       } else {
-        elapsedTimeArray = await profileInferenceTime(() => predict(model), 1);
+        timeInfo = await profileInferenceTime(() => predict(model), 1);
       }
 
       await showMsg(null);
       appendRow(timeTable, 'backend', state.backend);
-      appendRow(timeTable, '1st inference', printTime(elapsedTimeArray[0]));
+      appendRow(timeTable, '1st inference', printTime(timeInfo.times[0]));
     }
 
     async function showInputs() {
@@ -343,27 +343,25 @@ limitations under the License.
       await showMsg(`Running predict ${state.numRuns} times`);
       chartWidth = document.querySelector('#perf-trendline-container').getBoundingClientRect().width;
 
-      let times;
+      let timeInfo;
       const numRuns = state.numRuns;
       if (state.benchmark === 'custom') {
         const input = generateInput(model);
         try {
-          times = await profileInferenceTimeForModel(model, input, numRuns);
+          timeInfo = await profileInferenceTimeForModel(model, input, numRuns);
         } finally {
           tf.dispose(input);
         }
       } else {
-        times = await profileInferenceTime(() => predict(model), numRuns);
+        timeInfo = await profileInferenceTime(() => predict(model), numRuns);
       }
 
       const forceInferenceTrendYMinToZero = true;
-      populateTrendline(document.querySelector('#perf-trendline-container'), times, forceInferenceTrendYMinToZero, printTime);
+      populateTrendline(document.querySelector('#perf-trendline-container'), timeInfo.times, forceInferenceTrendYMinToZero, printTime);
 
       await showMsg(null);
-      const average = times.reduce((acc, curr) => acc + curr, 0) / times.length;
-      const min = Math.min(...times);
-      appendRow(timeTable, `Subsequent average(${state.numRuns} runs)`, printTime(average));
-      appendRow(timeTable, 'Best time', printTime(min));
+      appendRow(timeTable, `Subsequent average(${state.numRuns} runs)`, printTime(timeInfo.averageTime));
+      appendRow(timeTable, 'Best time', printTime(timeInfo.minTime));
     }
 
     async function profileMemory() {

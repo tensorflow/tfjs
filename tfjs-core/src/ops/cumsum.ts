@@ -24,7 +24,7 @@ import {GradSaveFunc, NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
-import {getAxesPermutation, getInnerMostAxes} from './axis_util';
+import {getAxesPermutation, getInnerMostAxes, getUndoAxesPermutation} from './axis_util';
 import {op} from './operation';
 import {transpose} from './transpose';
 
@@ -66,7 +66,8 @@ function cumsum_<T extends Tensor>(
         save([$x]);
 
         if (permutation != null) {
-          value = transpose(value, permutation);
+          const reversePermutation = getUndoAxesPermutation(permutation);
+          value = transpose(value, reversePermutation);
         }
         return value;
       };
