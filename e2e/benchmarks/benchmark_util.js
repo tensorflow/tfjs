@@ -92,16 +92,26 @@ function generateInput(model) {
  *     wrapping the predict function.
  * @param input The input tensor container for model inference.
  */
-function wrapPredictFnForModel(model, input) {
+function getPredictFnForModel(model, input) {
   let predict;
   if (model instanceof tf.GraphModel) {
-    predict = () => model.executeAsync(input);
+    // Because there's no straightforward way to analyze whether a graph has
+    // dynamic op, so we try to use `execute` and, if it fails, we will fall
+    // back to `executeAsync`.
+    try {
+      tf.tidy(() => {
+        model.execute(input);
+      });
+      predict = () => model.execute(input);
+    } catch (e) {
+      predict = async () => await model.executeAsync(input);
+    }
   } else if (model instanceof tf.LayersModel) {
     predict = () => model.predict(input);
   } else {
     throw new Error(
-        'Please pass in an instance of tf.GraphModel ' +
-        'or tf.LayersModel as the first parameter.');
+        'Predict function was not found. Please provide a tf.GraphModel or ' +
+        'tf.LayersModel');
   }
   return predict;
 }
@@ -132,7 +142,7 @@ function wrapPredictFnForModel(model, input) {
  * @param numRuns The number of rounds for timing the inference process.
  */
 async function profileInferenceTimeForModel(model, input, numRuns = 1) {
-  const predict = wrapPredictFnForModel(model, input);
+  const predict = getPredictFnForModel(model, input);
   return profileInferenceTime(predict, numRuns);
 }
 
@@ -246,7 +256,7 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
  * @param input The input tensor container for model inference.
  */
 async function profileInferenceMemoryForModel(model, input) {
-  const predict = wrapPredictFnForModel(model, input);
+  const predict = getPredictFnForModel(model, input);
   return profileInferenceMemory(predict);
 }
 
@@ -291,6 +301,8 @@ async function profileInferenceMemory(predict) {
 }
 
 /**
+ * This function is temporarily used and will be deleted after a new release of
+ * tf-core. This function modifies
  * This function is temporarily used and will be deleted after a new release
  * of tf-core. This function modifies
  * [`tf.profile`](https://github.com/tensorflow/tfjs/blob/95b5f878218ee45c0f8464386ee01d1f96e78297/tfjs-core/src/engine.ts#L848)
