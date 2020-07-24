@@ -1,5 +1,5 @@
 {
-  "name": "benchmark-models",
+  "name": "@tensorflow/tfjs-benchmark",
   "version": "0.0.1",
   "description": "Benchmark models' and ops' performance",
   "private": true,

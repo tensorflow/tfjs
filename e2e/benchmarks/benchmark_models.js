@@ -15,6 +15,15 @@
  * =============================================================================
  */
 
+/**
+ * The purpose of this test file is to benchmark models by a test runner, such
+ * as karma. To invoke this test, inlude this file to the `files` field of
+ * `karma.conf.js`.
+ *
+ * This file wraps the model benchmarking into a Jasmine test and the benchmark
+ * results will be logged to the console.
+ */
+
 async function getEnvSummary() {
   let envSummary = `${tf.getBackend()} backend`;
   if (tf.getBackend() === 'webgl') {
