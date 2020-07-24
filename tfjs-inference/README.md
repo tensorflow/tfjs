@@ -25,25 +25,34 @@ The script expects three required arguments: `model_path`, `inputs_dir` and
 `outputs_dir`. There are also optional arguments, see the options below.
 
 **Options**
+
 **model_path**: Directory to a tfjs model json file.
+
 **inputs_dir**: Directory to read the input tensor info and output info files.
+
 **outputs_dir**: Directory to write the output files. Output files include:
                  data.json, shape.json and dtype.json. The order of the output
                  tensors follow the same order as the tf_output_name_file.
+
 **inputs_data_file**: (Optional) Filename of the input data file.
                       Default to data.json.
+
 **inputs_shape_file**: (Optional) Filename of the input shape file.
                        Default to shape.json
+
 **inputs_dtype_file**: (Optional) Filename of the input dtype file.
                        Default to dtype.json
+
 **tf_input_name_file**: (Optional) Filename of the input name of the tf model.
                         The input names should match the names defined in the
                         signatureDef of the model.
                         Default to tf_input_name.json
+
 **tf_output_name_file**: (Optional) Filename of the output name of the tf model.
                          The output names should match the names defined in
                          the signatureDef of the model.
                          Default to tf_output_name.json
+
 **backend**: Choose which tfjs backend to use. Supported backends: cpu|wasm.
              Default to cpu.
 
