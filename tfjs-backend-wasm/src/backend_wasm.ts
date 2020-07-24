@@ -20,6 +20,8 @@ import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, env, Ker
 
 import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
 import wasmFactorySimd from '../wasm-out/tfjs-backend-wasm-simd.js';
+// @ts-ignore
+import {wasmWorkerContents} from '../wasm-out/tfjs-backend-wasm-threaded-simd.worker.ts';
 import wasmFactory from '../wasm-out/tfjs-backend-wasm.js';
 
 const WASM_PRIORITY = 2;
@@ -195,6 +197,10 @@ function createInstantiateWasmFunc(path: string) {
   };
 }
 
+function fetchText(path: string) {
+  return fetch(path).then(response => response.text());
+}
+
 /**
  * Initializes the wasm module and creates the js <--> wasm bridge.
  *
@@ -203,15 +209,36 @@ function createInstantiateWasmFunc(path: string) {
  * in Chrome 76).
  */
 export async function init(): Promise<{wasm: BackendWasmModule}> {
-  const simdSupported = await env().getAsync('WASM_HAS_SIMD_SUPPORT');
+  const [simdSupported, threadsSupported] = await Promise.all([
+    env().getAsync('WASM_HAS_SIMD_SUPPORT'),
+    env().getAsync('WASM_HAS_MULTITHREAD_SUPPORT')
+  ]);
+
+  let wasmFactoryThreadedSimd: any;
+  if (threadsSupported && simdSupported) {
+    wasmFactoryThreadedSimd =
+        await fetchText('./tfjs-backend-wasm-threaded-simd.js');
+  }
+
   return new Promise((resolve, reject) => {
     const factoryConfig: WasmFactoryConfig = {};
+    const locateFile = (path: string, prefix: string) => {
+      if (path.endsWith('.worker.js')) {
+        const response = wasmWorkerContents;
+        const blob = new Blob([response], {type: 'application/javascript'});
+        return URL.createObjectURL(blob);
+      }
+      return prefix + path;
+    };
+
+    factoryConfig.locateFile = locateFile;
+
     if (wasmPath != null) {
-      factoryConfig.locateFile = (path, prefix) => {
+      factoryConfig.locateFile = (path: string, prefix: string) => {
         if (path.endsWith('.wasm')) {
           return wasmPath;
         }
-        return prefix + path;
+        return locateFile(path, prefix);
       };
       // use wasm instantiateWasm override when system fetch is not available.
       // For detail references
@@ -220,8 +247,18 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
         factoryConfig.instantiateWasm = createInstantiateWasmFunc(wasmPath);
       }
     }
-    const wasm = simdSupported ? wasmFactorySimd(factoryConfig) :
-                                 wasmFactory(factoryConfig);
+    let wasm: BackendWasmModule;
+    if (threadsSupported && simdSupported) {
+      wasm = wasmFactoryThreadedSimd(factoryConfig);
+      wasm.mainScriptUrlOrBlob = new Blob(
+          [`var _scriptDir = undefined; var WasmBackendModuleSimd = ` +
+           wasmFactoryThreadedSimd],
+          {type: 'text/javascript'});
+    } else if (simdSupported) {
+      wasm = wasmFactorySimd(factoryConfig);
+    } else {
+      wasm = wasmFactory(factoryConfig);
+    }
     const voidReturnType: string = null;
     // Using the tfjs namespace to avoid conflict with emscripten's API.
     wasm.tfjs = {

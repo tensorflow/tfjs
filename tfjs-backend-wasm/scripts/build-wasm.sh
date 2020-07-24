@@ -30,6 +30,14 @@ cp -f bazel-bin/src/cc/tfjs-backend-wasm-simd.js \
       bazel-bin/src/cc/tfjs-backend-wasm-simd.wasm \
       wasm-out/
 
+# Threaded + SIMD build.
+yarn bazel build -c opt //src/cc:tfjs-backend-wasm-threaded-simd.js --config=wasm --copt="-pthread" --copt="-msimd128"
+cp -f bazel-bin/src/cc/tfjs-backend-wasm-threaded-simd.js \
+      bazel-bin/src/cc/tfjs-backend-wasm-threaded-simd.worker.js \
+      bazel-bin/src/cc/tfjs-backend-wasm-threaded-simd.wasm \
+      wasm-out/	      wasm-out/
+node ./scripts/create-worker-module.js
+
 mkdir -p dist
 # Only copying binary into dist because the js module gets bundled.
 cp wasm-out/*.wasm dist/
