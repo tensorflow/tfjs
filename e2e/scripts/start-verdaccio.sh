@@ -77,10 +77,9 @@ if [[ "$RELEASE" = true ]]; then
   # Start the local NPM registry
   startLocalRegistry "$e2e_root_path"/scripts/verdaccio.yaml
 
-  # Publish the monorepo
-  "$e2e_root_path"/scripts/publish-monorepo-ci.sh
-
-  # Todo(linazhao): Revise package.json to use the published version.
+  # Publish the monorepo and update package.json tfjs dependency to the
+  # published version.
+  "$e2e_root_path"/scripts/publish-tfjs-ci.sh
 
   # Cleanup
   cleanup

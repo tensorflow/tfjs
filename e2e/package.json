@@ -60,7 +60,8 @@
     "lint": "tslint -p . -t verbose",
     "run-browserstack": "karma start --browserstack",
     "test": "./scripts/test.sh",
-    "test-ci": "./scripts/test-ci.sh"
+    "test-ci": "./scripts/test-ci.sh",
+    "update-dependency": "ts-node ./scripts/update-dependency.ts"
   },
   "license": "Apache-2.0",
   "engines": {
