@@ -47,6 +47,7 @@ Please reach out to us if you'd like to put your project on the list.
 - [Chester Radiology Assistant](https://mlmed.org/tools/xray) - A web-based tool for diagnosing chest x-ray images.
 - [Membrane](https://membrane.today) - An interactive audiovisual tone mirror that responds to nose movement, by Ashlin Aronin.
 - [MedSeg](https://www.medseg.ai) - Online interactive segmentation tool for radiological images.
+- [Poetry Generator](https://abhay07.github.io/word-prediction-frontend/) - Auto poetry creation based on Faiz Ahmad's works.
 
 ## Tutorials
 
