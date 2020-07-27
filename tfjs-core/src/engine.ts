@@ -808,7 +808,7 @@ export class Engine implements TensorTracker, DataMover {
     // refCount mechanism is completely moved from Engine to backends.
     // During the migration, non-modularized kernels will still use
     // TensorInfo's refCounting whereas modularized kernels will use
-    // TensorData's refCounting, so we need to incRef and decRef both
+    // TensorData's refCounting, so we need to decRef both
     // TensorInfo and TensorData's refCount to keep them in sync.
     info.backend.decRef(a.dataId);
 
