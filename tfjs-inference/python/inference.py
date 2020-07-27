@@ -35,7 +35,6 @@ def predict(binary_path, model_path, inputs_dir, outputs_dir, backend=None, tf_o
       and dtype files.
     tf_output_name_file: Optional. File name of the tf_output_name, if file does
       not exist, will use the default outputs of the model.
-      Default: 'tf_output_name.json'
     backend: Optional. Choose which TensorFlow.js backend to use. Supported
       backends include cpu and wasm. Default: cpu
   """

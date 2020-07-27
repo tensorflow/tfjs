@@ -103,8 +103,7 @@ async function main() {
           'names should match the names defined in the signatureDef of the ' +
           'model. If the file is not provided, the default outputs of the ' +
           'model would be used.',
-      type: 'string',
-      default: 'tf_output_name.json'
+      type: 'string'
     },
     backend: {
       description: 'Choose which tfjs backend to use. Supported backends: ' +
@@ -145,11 +144,10 @@ async function main() {
       path.join(options.inputs_dir, options.tf_input_name_file), 'utf8');
   const inputName = JSON.parse(tfInputNameString);
 
-  const outputNamePath =
-      path.join(options.inputs_dir, options.tf_output_name_file);
   let outputName;
-  if (fs.existsSync(outputNamePath)) {
-    const tfOutputNameString = fs.readFileSync(outputNamePath, 'utf8');
+  if (options.tf_output_name_file) {
+    const tfOutputNameString = fs.readFileSync(
+        path.join(options.inputs_dir, options.tf_output_name_file), 'utf8');
     outputName = JSON.parse(tfOutputNameString);
   }
 
