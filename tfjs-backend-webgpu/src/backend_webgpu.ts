@@ -50,6 +50,7 @@ import * as unary_op from './kernels/unary_op_webgpu';
 import {UnaryOpProgram} from './kernels/unary_op_webgpu';
 import * as webgpu_program from './kernels/webgpu_program';
 import {WebGPUBinary} from './kernels/webgpu_program';
+import {GetFormatSize, TextureManager} from './texture_manager';
 import * as webgpu_util from './webgpu_util';
 
 export interface WebGPUMemoryInfo extends backend_util.MemoryInfo {
@@ -61,7 +62,10 @@ export interface WebGPUMemoryInfo extends backend_util.MemoryInfo {
 type BufferInfo = {
   byteSize: number,
   usage: GPUBufferUsageFlags,
-  buffer?: GPUBuffer
+  buffer?: GPUBuffer,
+  texUsage?: GPUTextureUsageFlags,
+  format?: GPUTextureFormat,
+  texture?: GPUTexture
 };
 
 type TensorBufferInfo = {
@@ -94,6 +98,8 @@ const CPU_HANDOFF_SIZE_THRESHOLD = 128;
 
 const DEFAULT_GPUBUFFER_USAGE =
     GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
+const DEFAULT_GPUTEXTURE_USAGE = GPUTextureUsage.STORAGE |
+    GPUTextureUsage.COPY_SRC | GPUTextureUsage.COPY_DST;
 
 export class WebGPUBackend extends KernelBackend {
   device: GPUDevice;
@@ -105,6 +111,7 @@ export class WebGPUBackend extends KernelBackend {
   private binaryCache: {[key: string]: WebGPUBinary};
   private fromPixels2DContext: CanvasRenderingContext2D;
   private bufferManager: BufferManager;
+  private textureManager: TextureManager;
   private tensorMap: DataStorage<TensorBufferInfo>;
 
   private tensorDisposalQueue: DataId[] = [];
@@ -127,6 +134,7 @@ export class WebGPUBackend extends KernelBackend {
     this.glslang = glslang;
 
     this.bufferManager = new BufferManager(this.device);
+    this.textureManager = new TextureManager(this.device);
     this.tensorMap = new DataStorage(this, engine());
   }
 
@@ -178,6 +186,12 @@ export class WebGPUBackend extends KernelBackend {
     return this.bufferManager.acquireBuffer(byteSize, usage);
   }
 
+  private acquireTexture(
+      byteSize: number, format: GPUTextureFormat = 'r32float',
+      usage: GPUTextureUsageFlags = DEFAULT_GPUTEXTURE_USAGE) {
+    return this.textureManager.acquireTexture(byteSize, format, usage);
+  }
+
   private maybeReleaseBuffer(dataId: DataId) {
     const info = this.tensorMap.get(dataId);
     if (info != null && info.bufferInfo.buffer != null) {
@@ -185,6 +199,12 @@ export class WebGPUBackend extends KernelBackend {
           info.bufferInfo.buffer, info.bufferInfo.byteSize,
           info.bufferInfo.usage);
       info.bufferInfo.buffer = null;
+    }
+    if (info != null && info.bufferInfo.texture != null) {
+      this.textureManager.releaseTexture(
+          info.bufferInfo.texture, info.bufferInfo.byteSize,
+          info.bufferInfo.format, info.bufferInfo.texUsage);
+      info.bufferInfo.texture = null;
     }
   }
 
@@ -197,7 +217,12 @@ export class WebGPUBackend extends KernelBackend {
     this.tensorMap.set(dataId, {
       dtype,
       values,
-      bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE}
+      bufferInfo: {
+        byteSize,
+        usage: DEFAULT_GPUBUFFER_USAGE,
+        texUsage: DEFAULT_GPUTEXTURE_USAGE,
+        format: 'r32float'
+      }
     });
     return dataId;
   }
@@ -235,26 +260,52 @@ export class WebGPUBackend extends KernelBackend {
       // Data is on the CPU.
       return info.values;
     }
-    const staging = this.acquireBuffer(
-        info.bufferInfo.byteSize,
-        GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
-    const encoder = this.device.createCommandEncoder({});
-    encoder.copyBufferToBuffer(
-        info.bufferInfo.buffer, 0, staging, 0, info.bufferInfo.byteSize);
-    this.commandQueue.push(encoder);
-    this.submitQueue();
-
-    const mapped: ArrayBuffer = await staging.mapReadAsync();
-    const values = mapped.slice(0);
-
-    staging.unmap();
-    if (staging != null) {
-      this.bufferManager.releaseBuffer(
-          staging, info.bufferInfo.byteSize,
+    if (info.bufferInfo.buffer) {
+      const staging = this.acquireBuffer(
+          info.bufferInfo.byteSize,
           GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
-    }
+      const encoder = this.device.createCommandEncoder({});
+      encoder.copyBufferToBuffer(
+          info.bufferInfo.buffer, 0, staging, 0, info.bufferInfo.byteSize);
+      this.commandQueue.push(encoder);
+      this.submitQueue();
 
-    return values as backend_util.BackendValues;
+      const mapped: ArrayBuffer = await staging.mapReadAsync();
+      const values = mapped.slice(0);
+
+      staging.unmap();
+      if (staging != null) {
+        this.bufferManager.releaseBuffer(
+            staging, info.bufferInfo.byteSize,
+            GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
+      }
+
+      return values as backend_util.BackendValues;
+    } else {
+      const requiredSize = Math.ceil(info.bufferInfo.byteSize / 256) * 256;
+      const staging = this.acquireBuffer(
+          info.bufferInfo.byteSize,
+          GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
+      const encoder = this.device.createCommandEncoder({});
+      encoder.copyTextureToBuffer(
+          {texture: info.bufferInfo.texture},
+          {buffer: staging, bytesPerRow: requiredSize},
+          {width: info.bufferInfo.byteSize / 4, height: 1, depth: 1});
+      this.commandQueue.push(encoder);
+      this.submitQueue();
+
+      const mapped: ArrayBuffer = await staging.mapReadAsync();
+      const values = mapped.slice(0);
+
+      staging.unmap();
+      if (staging != null) {
+        this.bufferManager.releaseBuffer(
+            staging, info.bufferInfo.byteSize,
+            GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
+      }
+
+      return values as backend_util.BackendValues;
+    }
   }
 
   private convertAndCacheOnCPU(dataId: DataId, data: backend_util.TypedArray):
@@ -355,20 +406,22 @@ export class WebGPUBackend extends KernelBackend {
     return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;
   }
 
-  private tensorToBinding(tensor?: TensorInfo): webgpu_program.BindingInfo {
+  private tensorToBinding(tensor?: TensorInfo): GPUBindingResource {
     if (!tensor) {
       return null;
     }
 
     const tensorData = this.tensorMap.get(tensor.dataId);
 
-    return {
-      resource: {
+    if (tensorData.bufferInfo.buffer) {
+      return {
         offset: 0,
         size: tensorData.bufferInfo.byteSize,
         buffer: tensorData.bufferInfo.buffer
-      }
-    };
+      };
+    }
+
+    return tensorData.bufferInfo.texture.createView();
   }
 
   startTimer() {
@@ -385,8 +438,32 @@ export class WebGPUBackend extends KernelBackend {
     return timerQuery.endMs - timerQuery.startMs;
   }
 
-  private uploadToGPU(dataId: DataId): void {
+  private uploadToGPU(
+      dataId: DataId, useTexture = false, format: GPUTextureFormat = 'r32float',
+      usage: GPUTextureUsageFlags = DEFAULT_GPUTEXTURE_USAGE): void {
     const info = this.tensorMap.get(dataId);
+
+    if (useTexture) {
+      if (info.bufferInfo.texture != null) {
+        // Already on the GPU.
+        return;
+      }
+
+      info.bufferInfo.texture =
+          this.acquireTexture(info.bufferInfo.byteSize, format, usage);
+
+      if (info.values) {
+        const requiredSize = Math.ceil(info.bufferInfo.byteSize / 256) * 256;
+        const formatSize = GetFormatSize(format);
+        const texWidth = info.bufferInfo.byteSize / formatSize;
+        this.queue.writeTexture(
+            {texture: info.bufferInfo.texture}, info.values as ArrayBuffer,
+            {bytesPerRow: requiredSize, rowsPerImage: 1},
+            {width: texWidth, height: 1, depth: 1});
+        info.values = null;
+      }
+      return;
+    }
 
     if (info.bufferInfo.buffer != null) {
       // Already on the GPU.
@@ -410,7 +487,7 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     let uniformDataLength;
-    let uniforms: webgpu_program.BindingInfo;
+    let uniforms: GPUBindingResource;
     if (program.uniforms) {
       // TODO: handle padding of program-specific uniforms
       const uniformData = new Int32Array(programUniforms);
@@ -419,14 +496,22 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     const inputsData = inputs.map((input: Tensor, i: number) => {
-      this.uploadToGPU(input.dataId);
+      const useBuffer = i < program.variableNames.length;
+      if (useBuffer) {
+        this.uploadToGPU(input.dataId);
+      } else {
+        this.uploadToGPU(input.dataId, true);
+      }
 
       return {
         // Returning dtype from tensorMap because it reflects dtype
         // of underlying buffer, rather than abstract dtype.
         dtype: this.tensorMap.get(input.dataId).dtype,
         shape: input.shape,
-        name: program.variableNames[i]
+        name: useBuffer ?
+            program.variableNames[i] :
+            program.variableTextureNames[i - program.variableNames.length],
+        useTexture: !useBuffer
       };
     });
     this.uploadToGPU(output.dataId);
@@ -436,7 +521,7 @@ export class WebGPUBackend extends KernelBackend {
         webgpu_program.makeShaderKey(program, bufferShapes, bufferTypes);
     const {bindGroupLayout, pipeline} = this.getAndSavePipeline(key, () => {
       return webgpu_program.compileProgram(
-          this.glslang, this.device, program, inputsData, output, uniforms);
+          this.glslang, this.device, program, inputsData, output);
     });
 
     const shouldTimeProgram = this.activeTimers != null;
@@ -468,7 +553,7 @@ export class WebGPUBackend extends KernelBackend {
       const uniformInfo = {
         byteSize: uniformDataLength,
         usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
-        buffer: uniforms.resource.buffer
+        buffer: (uniforms as GPUBufferBinding).buffer
       };
       this.uniformDisposalQueue.push(uniformInfo);
     }
@@ -485,15 +570,12 @@ export class WebGPUBackend extends KernelBackend {
     return output as {} as K;
   }
 
-  private makeUniforms(data: Uint32Array|
-                       Int32Array): webgpu_program.BindingInfo {
+  private makeUniforms(data: Uint32Array|Int32Array): GPUBindingResource {
     const dimensionsBuffer = this.acquireBuffer(
         data.byteLength, GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM);
     this.queue.writeBuffer(dimensionsBuffer, 0, data);
 
-    return {
-      resource: {offset: 0, size: data.byteLength, buffer: dimensionsBuffer}
-    };
+    return {offset: 0, size: data.byteLength, buffer: dimensionsBuffer};
   }
 
   private getCPUBackend(): KernelBackend|null {

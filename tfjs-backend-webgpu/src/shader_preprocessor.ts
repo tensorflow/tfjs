@@ -64,6 +64,7 @@ interface ProgramParams {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   workGroupSize?: [number, number, number];
   variableNames: string[];
+  variableTextureNames?: string[];
   uniforms?: string;
   userCode: string;
 }
@@ -72,6 +73,7 @@ export interface InputInfo {
   dtype: DataType;
   shape: number[];
   name: string;
+  useTexture: boolean;
 }
 
 export function makeShader(
@@ -102,14 +104,25 @@ export function makeShader(
     `);
   });
 
+  if (program.variableTextureNames) {
+    program.variableTextureNames.forEach((x, i) => {
+      prefixSnippets.push(`
+        layout(set = 0, binding = ${
+          1 + program.variableNames.length +
+          i}, r32f) uniform readonly image2D ${x};
+      `);
+    });
+  }
+
   let uniformDeclaration = '';
 
   if (program.uniforms) {
     uniformDeclaration += program.uniforms;
-
+    const bindingOffset = program.variableTextureNames ?
+        1 + program.variableNames.length + program.variableTextureNames.length :
+        1 + program.variableNames.length;
     prefixSnippets.push(`
-    layout(std140, set = 0, binding = ${
-        1 + program.variableNames.length}) uniform Uniforms {
+    layout(std140, set = 0, binding = ${bindingOffset}) uniform Uniforms {
       ${uniformDeclaration}
     };
   `);
@@ -248,10 +261,21 @@ function getSamplerFromInInfo(inInfo: InputInfo): string {
     `;
   }
 
+  if (inInfo.useTexture) {
+    return `
+    float ${funcName}(${inputs}) {
+      int index = getFlatIndex(${type}(${dims.join(',')}),
+      ${getShapeCoords(inInfo.shape)});
+      return imageLoad(${texName}, ivec2(index, 0)).r;
+    }
+  `;
+  }
+
   return `
     float ${funcName}(${inputs}) {
-      return float(${texName}[getFlatIndex(${type}(${dims.join(',')}),
-        ${getShapeCoords(inInfo.shape)})]);
+      int index = getFlatIndex(${type}(${dims.join(',')}),
+      ${getShapeCoords(inInfo.shape)});
+      return float(${texName}[index]);
     }
   `;
 }
@@ -303,6 +327,25 @@ function getSamplerAtOutputCoords(
     } else {
       unpackedCoordsSnippet = 'coords';
     }
+  }
+
+  if (inInfo.useTexture) {
+    return `
+    float ${funcName}() {
+      ${type} coords = getOutputCoords();
+      ${coordsSnippet}
+      int index = getFlatIndex(${unpackedCoordsSnippet}, ${
+        getShapeCoords(inInfo.shape)});
+      return imageLoad(${texName}, ivec2(index, 0)).r;
+    }
+
+    float ${funcName}(${type} coords) {
+      ${coordsSnippet}
+      int index = getFlatIndex(${unpackedCoordsSnippet}, ${
+        getShapeCoords(inInfo.shape)});
+      return imageLoad(${texName}, ivec2(index, 0)).r;
+    }
+  `;
   }
 
   return `

@@ -31,6 +31,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
+  variableTextureNames: string[];
   uniforms = 'ivec2 filterDims, pad, stride, dilation;';
   workGroupSize: [number, number, number];
 
@@ -109,11 +110,17 @@ export class Conv2DMMProgram implements WebGPUProgram {
             'value += getBiasAtOutCoords(outCoord);' :
                                      '';
     if (addBias) {
-      this.variableNames.push('bias');
+      // this.variableNames.push('bias');
+      this.variableTextureNames = ['bias'];
     }
 
     if (hasPreluActivationWeights) {
-      this.variableNames.push('preluActivationWeights');
+      // this.variableNames.push('preluActivationWeights');
+      if (this.variableTextureNames) {
+        this.variableTextureNames.push('preluActivationWeights');
+      } else {
+        this.variableTextureNames = ['preluActivationWeights'];
+      }
     }
 
     this.userCode = `

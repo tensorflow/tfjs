@@ -29,6 +29,7 @@ export class BatchNormProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames: string[];
+  variableTextureNames: string[];
   workGroupSize: [4, 4, 4];
 
   constructor(
@@ -58,14 +59,20 @@ export class BatchNormProgram implements WebGPUProgram {
     let offsetSnippet = '0.0';
     if (offsetShape != null) {
       backend_util.assertAndGetBroadcastShape(xShape, offsetShape);
-      this.variableNames.push('offset');
+      // this.variableNames.push('offset');
+      this.variableTextureNames = ['offset'];
       offsetSnippet = 'getOffsetAtOutCoords()';
     }
 
     let scaleSnippet = '1.0';
     if (scaleShape != null) {
       backend_util.assertAndGetBroadcastShape(xShape, scaleShape);
-      this.variableNames.push('scale');
+      // this.variableNames.push('scale');
+      if (this.variableTextureNames) {
+        this.variableTextureNames.push('scale');
+      } else {
+        this.variableTextureNames = ['scale'];
+      }
       scaleSnippet = 'getScaleAtOutCoords()';
     }
 
