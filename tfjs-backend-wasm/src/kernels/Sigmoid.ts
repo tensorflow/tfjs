@@ -15,13 +15,9 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, NamedTensorInfoMap, Sigmoid, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Sigmoid, SigmoidInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
-
-interface SigmoidInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
 
 let wasmFunc: (xId: number, outId: number) => void;
 
