@@ -47,7 +47,7 @@ export const spaceToBatchNDConfig: KernelConfig = {
     const paddedX = padV2Config.kernelFunc({
       inputs: {x},
       backend,
-      attrs: {completePaddings, constantValue: 0}
+      attrs: {paddings: completePaddings, constantValue: 0}
     }) as TensorInfo;
 
     const reshapedPaddedShape =

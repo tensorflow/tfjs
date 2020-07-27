@@ -95,10 +95,7 @@ export class MathBackendCPU extends KernelBackend {
     }
     const dataId = {};
 
-    // When creating a data bucket, we assume it is temporary, therefore its
-    // refCount starts from 0. When an output tensor is made, it will increase
-    // the refCount by 1. This makes sure the output data is not disposed.
-    this.data.set(dataId, {values, dtype, refCount: 0});
+    this.data.set(dataId, {values, dtype, refCount: 1});
 
     return dataId;
   }
@@ -126,7 +123,7 @@ export class MathBackendCPU extends KernelBackend {
   move(
       dataId: DataId, values: backend_util.BackendValues, shape: number[],
       dtype: DataType): void {
-    this.data.set(dataId, {values, dtype, refCount: 0});
+    this.data.set(dataId, {values, dtype, refCount: 1});
   }
 
   numDataIds(): number {
@@ -171,6 +168,8 @@ export class MathBackendCPU extends KernelBackend {
   disposeData(dataId: DataId): void {
     if (this.data.has(dataId)) {
       const tensorData = this.data.get(dataId);
+
+      tensorData.refCount--;
 
       if (tensorData.refCount < 1) {
         if (tensorData.complexTensors != null) {

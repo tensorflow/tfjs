@@ -17,17 +17,17 @@
 
 import {Reshape, ReshapeAttrs, ReshapeInputs} from '@tensorflow/tfjs-core';
 import {KernelConfig} from '@tensorflow/tfjs-core';
+import {MathBackendCPU} from '../backend_cpu';
 
 export const reshapeConfig: KernelConfig = {
   kernelName: Reshape,
   backendName: 'cpu',
-  kernelFunc: ({inputs, attrs}) => {
+  kernelFunc: ({inputs, backend, attrs}) => {
     const {x} = inputs as ReshapeInputs;
     const {shape} = attrs as {} as ReshapeAttrs;
+    const cpuBackend = backend as MathBackendCPU;
 
-    // Todo(linazhao): use reshapeImpl once the `TensorInfo` refCounter
-    // mechanism are deprecated. Right now, the engine will take care of
-    // increase refCount.
+    cpuBackend.incRef(x.dataId);
 
     return {dataId: x.dataId, shape, dtype: x.dtype};
   }
