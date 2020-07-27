@@ -16,7 +16,7 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
-import {getCoordsDataType} from '../shader_preprocessor';
+import {getCoordsDataType, getShapeCoords} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 import {WebGPUProgram} from './webgpu_program';
 
@@ -28,7 +28,6 @@ export class ReduceProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number];
   variableNames = ['x'];
-  needsShapesUniforms = true;
 
   constructor(
       reduceInfo: backend_util.ReduceInfo, reduceType: 'max'|'min'|'sum') {
@@ -91,8 +90,9 @@ export class ReduceProgram implements WebGPUProgram {
       int getOffset() {
         const ${outputCoordsType} outputCoords = getOutputCoords();
         int offset = ${
-        this.outputShape.length === 1 ? 'outputCoords' :
-                                        'outputCoords[0]'} * xShape[1];
+        this.outputShape.length === 1 ?
+            'outputCoords' :
+            'outputCoords[0]'} * ${getShapeCoords(inputShape)}[1];
         return offset;
       }
       void main() {
@@ -100,7 +100,9 @@ export class ReduceProgram implements WebGPUProgram {
         ${
         reduceType === 'sum' ? 'float bestValue = 0;' :
                                'float bestValue = x[offset];'}
-        const int Length = ${inputShape.length === 1 ? 'xShape' : 'xShape[1]'};
+        const int Length = ${
+        inputShape.length === 1 ? `${getShapeCoords(inputShape)}` :
+                                  `${getShapeCoords(inputShape)}[1]`};
         const int WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
         for (int w = 0; w < WorkPerThread; ++w) {
           int i = int(gl_GlobalInvocationID.x) * WorkPerThread + w;
