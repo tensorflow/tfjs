@@ -26,7 +26,7 @@ let wasmFunc:
         void;
 
 function setupFunc(backend: BackendWasm): void {
-  wasmFunc = backend.wasm.cwrap('AddN', null /* void */, [
+  wasmFunc = backend.wasm.cwrap(AddN, null /* void */, [
     'array',   // input_ids
     'number',  // input_ids.length
     'number',  // dtype
