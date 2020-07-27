@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-node",
-  "version": "0.0.0",
+  "version": "2.1.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "gypfile": true,
@@ -68,8 +68,8 @@
     "yargs": "^14.2.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "link:../tfjs",
-    "@tensorflow/tfjs-core": "link:../tfjs-core",
+    "@tensorflow/tfjs": "2.1.0",
+    "@tensorflow/tfjs-core": "2.1.0",
     "adm-zip": "^0.4.11",
     "google-protobuf": "^3.9.2",
     "https-proxy-agent": "^2.2.1",
