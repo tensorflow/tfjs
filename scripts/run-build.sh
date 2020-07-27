@@ -23,7 +23,7 @@ set -e
 # Use the top level empty release file as a RELEASE flag.
 RELEASE=false
 if [[ -f "release" ]]; then
-  $RELEASE=true
+  RELEASE=true
 fi
 
 DIR=$1
