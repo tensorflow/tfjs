@@ -16,8 +16,6 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
-// TODO : use backend_util.reduce_util with the next release of tfjs-core.
-import {ReduceInfo} from '@tensorflow/tfjs-core/src/ops/reduce_util';
 import {getCoordsDataType, getShapeCoords} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 import {WebGPUProgram} from './webgpu_program';
@@ -31,7 +29,8 @@ export class ReduceProgram implements WebGPUProgram {
   workGroupSize: [number, number, number];
   variableNames = ['x'];
 
-  constructor(reduceInfo: ReduceInfo, reduceType: 'max'|'min'|'sum') {
+  constructor(
+      reduceInfo: backend_util.ReduceInfo, reduceType: 'max'|'min'|'sum') {
     const inputShape = [reduceInfo.batchSize, reduceInfo.inSize];
     const [outputShape, reduceShape] =
         backend_util.computeOutAndReduceShapes(inputShape, [1]);
