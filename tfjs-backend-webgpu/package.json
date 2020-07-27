@@ -31,6 +31,7 @@
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
+    "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
     "@tensorflow/tfjs-backend-webgl": "link:../tfjs-backend-webgl",
     "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@tensorflow/tfjs-converter": "link:../tfjs-converter",
