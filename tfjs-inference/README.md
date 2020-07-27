@@ -1,11 +1,12 @@
 # TensorFlow.js Inference API
 
-This package exposes a minimal set of features for model inferencing through
-cli in a Node env. Additionally, the package is compiled to a binary with the same functionality, which allows to use tfjs for ML tasks in any envs and platforms.
+This package provides a cli tool for model inferencing in a Node env.
+Additionally, the package is compiled to a binary with the same functionality,
+which allows to use tfjs for ML tasks in any envs and platforms.
 
-**Note**: Currently, this package is under development, we are making effort to
-make it perfect. Please file a bug if you encounter any or open feature requests
-in issues.
+The tool can be used to validate TFJS model execution against python results.
+
+**Note**: This package is under development.
 
 ## How to use
 
@@ -65,24 +66,3 @@ The script expects three required arguments: `model_path`, `inputs_dir` and
 * About the input and output formats. They are represented as array of tensors.
   The data.json, shape.json, dtype.json and tf_input_name.json files together
   represent the array of tensors. [Example](https://github.com/tensorflow/tfjs/tree/master/tfjs-inference/test_data)
-
-### Run the cli tool in non-Node env using the binary.
-* Download the binary for the right platform. (TODO: provide binary link)
-* Run inference:
-  * For Linux:
-    ```
-    ./tfjs-inference-linux --model_path=MODEL_PATH --inputs_dir=INPUTS_DIR
-    *   --outputs_dir=OUTPUTS_DIR
-    ```
-  * For MacOS:
-    ```
-    ./tfjs-inference-macos --model_path=MODEL_PATH --inputs_dir=INPUTS_DIR
-    *   --outputs_dir=OUTPUTS_DIR
-    ```
-  * For Windows:
-    ```
-    ./tfjs-inference-win.exe --model_path=MODEL_PATH --inputs_dir=INPUTS_DIR
-    *   --outputs_dir=OUTPUTS_DIR
-    ```
-
-The options and input/output formats are same as above.
