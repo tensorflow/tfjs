@@ -27,7 +27,7 @@ let wasmResizeBilinear: (
     alignCorners: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
-  wasmResizeBilinear = backend.wasm.cwrap('ResizeBilinear', null /*void*/, [
+  wasmResizeBilinear = backend.wasm.cwrap(ResizeBilinear, null /*void*/, [
     'number',  // xId
     'number',  // batch
     'number',  // oldHeight
