@@ -805,14 +805,6 @@ export class Engine implements TensorTracker, DataMover {
 
     this.state.tensorInfo.get(a.dataId).refCount++;
 
-    // If Tensor is just created, i.e. refCount is 1, the backend will set
-    // the TensorData refCount during write, so no need to call incRef.  
-    if (refCount > 1) {
-      this.backend.incRef(a.dataId);
-    }
-    // Todo(linazhao): Remove incRef once all the kernels use TensorData
-    // refCount.
-
     if (!(a instanceof Variable)) {
       this.track(a);
     }
@@ -830,13 +822,13 @@ export class Engine implements TensorTracker, DataMover {
     const info = this.state.tensorInfo.get(a.dataId);
     const refCount = info.refCount;
 
-    // Todo(linazhao): Move decRef into backend's disposeData method once 
-    // refCount mechanism is completely moved from Engine to backends. 
-    // During the migration, non-modularized kernels will still use 
-    // TensorInfo's refCounting whereas modularized kernels will use 
+    // Todo(linazhao): Move decRef into backend's disposeData method once
+    // refCount mechanism is completely moved from Engine to backends.
+    // During the migration, non-modularized kernels will still use
+    // TensorInfo's refCounting whereas modularized kernels will use
     // TensorData's refCounting, so we need to incRef and decRef both
-    // TensorInfo and TensorData's refCount to keep them in sync. 
-    this.backend.decRef(a.dataId);
+    // TensorInfo and TensorData's refCount to keep them in sync.
+    info.backend.decRef(a.dataId);
 
     if (refCount <= 1) {
       // Don't count bytes for complex numbers as they are counted by their
