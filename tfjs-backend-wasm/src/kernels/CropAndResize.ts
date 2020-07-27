@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {CropAndResize, CropAndResizeAttrs, CropAndResizeInputs, KernelConfig, NamedAttrMap, NamedTensorInfoMap, TensorInfo} from '@tensorflow/tfjs-core';
+import {CropAndResize, CropAndResizeAttrs, CropAndResizeInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -49,13 +49,12 @@ function setup(backend: BackendWasm): void {
 
 function cropAndResize(args: {
   backend: BackendWasm,
-  inputs: NamedTensorInfoMap,
-  attrs: NamedAttrMap
+  inputs: CropAndResizeInputs,
+  attrs: CropAndResizeAttrs
 }): TensorInfo {
   const {backend, inputs, attrs} = args;
-  const {method, extrapolationValue, cropSize} =
-      attrs as {} as CropAndResizeAttrs;
-  const {image, boxes, boxInd} = inputs as CropAndResizeInputs;
+  const {method, extrapolationValue, cropSize} = attrs;
+  const {image, boxes, boxInd} = inputs;
 
   const numBoxes = boxes.shape[0];
 
@@ -95,5 +94,5 @@ export const cropAndResizeConfig: KernelConfig = {
   kernelName: CropAndResize,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: cropAndResize
+  kernelFunc: cropAndResize as {} as KernelFunc
 };
