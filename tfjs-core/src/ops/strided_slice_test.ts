@@ -446,6 +446,12 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
         .toThrowError(/Argument 'x' passed to 'stridedSlice' must be a Tensor/);
   });
 
+  it('stridedSlice should handle negative end with ellipsisMask', () => {
+    const a = tf.ones([1, 240, 1, 10]);
+    const output =
+        tf.stridedSlice(a, [0, 0, 0], [0, -1, 0], [1, 1, 1], 3, 1, 4);
+    expect(output.shape).toEqual([1, 239, 1, 10]);
+  });
   it('accepts a tensor-like object', async () => {
     const tensor = [0, 1, 2, 3];
     const output = tf.stridedSlice(tensor, [0], [3], [2]);
