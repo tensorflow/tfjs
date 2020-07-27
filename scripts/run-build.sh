@@ -31,7 +31,7 @@ if [[ $RELEASE = true ]]; then
   # Release flow: Only run e2e release test, ignore unit tests in all other
   # directories.
   if [[ $DIR = "e2e" ]]; then
-    gcloud build submit . --config=$DIR/cloudbuild.yml \
+    gcloud build submit . --config=$DIR/cloudbuild-release.yml \
       --substitutions _RELEASE=$RELEASE
   fi
 else
