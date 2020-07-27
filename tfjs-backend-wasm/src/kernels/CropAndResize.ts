@@ -33,7 +33,7 @@ let wasmCropAndResize: (
     method: number, extrapolationValue: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
-  wasmCropAndResize = backend.wasm.cwrap('CropAndResize', null /*void*/, [
+  wasmCropAndResize = backend.wasm.cwrap(CropAndResize, null /*void*/, [
     'number',  // imagesId
     'number',  // boxesId
     'number',  // boxIndId

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, KernelConfig, NamedAttrMap, NamedTensorInfoMap} from '@tensorflow/tfjs-core';
+import {Cast, DataType, KernelConfig, NamedAttrMap, NamedTensorInfoMap} from '@tensorflow/tfjs-core';
 import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
@@ -40,7 +40,7 @@ export function cast(
 }
 
 export const castConfig: KernelConfig = {
-  kernelName: 'Cast',
+  kernelName: Cast,
   backendName: 'wasm',
   kernelFunc: cast,
 };

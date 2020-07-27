@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {AddN, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -52,7 +52,7 @@ function addn(args: {inputs: TensorInfo[], backend: BackendWasm}) {
 }
 
 export const addNConfig: KernelConfig = {
-  kernelName: 'AddN',
+  kernelName: AddN,
   backendName: 'wasm',
   setupFunc,
   kernelFunc: addn as {} as KernelFunc,
