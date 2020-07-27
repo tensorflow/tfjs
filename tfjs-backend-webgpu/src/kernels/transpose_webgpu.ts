@@ -16,7 +16,7 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
-import {getCoordsDataType} from '../shader_preprocessor';
+import {getCoordsDataType, getShapeCoords} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -31,7 +31,6 @@ export class TransposeProgram implements WebGPUProgram {
   rank: number;
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
-  needsShapesUniforms = true;
 
   constructor(aShape: number[], newDim: number[]) {
     const outputShape: number[] = new Array(aShape.length);
@@ -58,7 +57,7 @@ export class TransposeProgram implements WebGPUProgram {
           if(flatIndex < ${size}) {
             ${dtype} resRC = getCoordsFromFlatIndex(flatIndex);
             setOutput(flatIndex, A[getFlatIndex(
-              ${dtype}(${switched}), aShape)]);
+              ${dtype}(${switched}), ${getShapeCoords(aShape)})]);
           }
         }
       }
