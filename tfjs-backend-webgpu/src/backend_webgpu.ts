@@ -396,7 +396,8 @@ export class WebGPUBackend extends KernelBackend {
     info.bufferInfo.buffer = this.acquireBuffer(info.bufferInfo.byteSize);
 
     if (info.values) {
-      info.bufferInfo.buffer.setSubData(0, info.values as ArrayBufferView);
+      this.queue.writeBuffer(
+          info.bufferInfo.buffer, 0, info.values as ArrayBuffer);
       info.values = null;
     }
   }
@@ -536,7 +537,7 @@ export class WebGPUBackend extends KernelBackend {
                        Int32Array): webgpu_program.BindingInfo {
     const dimensionsBuffer = this.acquireBuffer(
         data.byteLength, GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM);
-    dimensionsBuffer.setSubData(0, data);
+    this.queue.writeBuffer(dimensionsBuffer, 0, data);
 
     return {
       resource: {offset: 0, size: data.byteLength, buffer: dimensionsBuffer}
