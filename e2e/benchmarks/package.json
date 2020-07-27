@@ -1,0 +1,22 @@
+{
+  "name": "@tensorflow/tfjs-benchmark",
+  "version": "0.0.1",
+  "description": "Benchmark models' and ops' performance",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tensorflow/tfjs"
+  },
+  "devDependencies": {
+    "karma": "^4.4.1",
+    "karma-browserstack-launcher": "^1.6.0",
+    "karma-jasmine": "^3.3.1"
+  },
+  "scripts": {
+    "test": "karma start"
+  },
+  "license": "Apache-2.0",
+  "engines": {
+    "yarn": ">= 1.0.0"
+  }
+}
