@@ -63,7 +63,7 @@ class InferenceTest(tf.test.TestCase):
       # Cleanup tmp dir.
       shutil.rmtree(tmp_dir)
 
-  // Todo(linazhao): Add a test model that outputs multiple tensors.
+  # Todo(linazhao): Add a test model that outputs multiple tensors.
   def testInferenceWithOutputNameFile(self):
     binary_path = os.path.join('../binaries', 'tfjs-inference-linux')
     model_path = os.path.join('../test_data', 'model.json')
@@ -101,8 +101,11 @@ class InferenceTest(tf.test.TestCase):
     test_data_dir = os.path.join('../test_data')
     tmp_dir = tempfile.mkdtemp()
 
-    with self.assertRaises(OSError):
-      inference.predict(binary_path, model_path, test_data_dir, tmp_dir, tf_output_name_file='non_exist.json')
+    inference.predict(binary_path, model_path, test_data_dir, tmp_dir, tf_output_name_file='non_exist.json')
+
+    with self.assertRaises(FileNotFoundError):
+      with open(os.path.join(tmp_dir, 'data.json'), 'rt') as f:
+        json.load(f)
 
     # Cleanup tmp dir.
     shutil.rmtree(tmp_dir)
