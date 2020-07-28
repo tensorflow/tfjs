@@ -70,7 +70,7 @@ function fusedDepthwiseConv2d(args: {
 
   const convInfo = backend_util.computeConv2DInfo(
       (x as Tensor4D).shape, (filter as Tensor4D).shape, strides, dilations,
-      pad, dimRoundingMode);
+      pad, dimRoundingMode, true);
 
   const fusedActivation =
       FusableActivation[activation as {} as keyof typeof FusableActivation];
