@@ -6,7 +6,8 @@ steps:
   entrypoint: 'bash'
   id: 'verdaccio'
   args: ['./scripts/release-e2e.sh']
-  env: ['RELEASE=$_RELEASE']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'RELEASE=$_RELEASE']
+  secretEnv: ['BROWSERSTACK_KEY']
 
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
