@@ -8,7 +8,7 @@ steps:
   args: ['./scripts/release-e2e.sh']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'RELEASE=$_RELEASE']
   secretEnv: ['BROWSERSTACK_KEY']
-  timeout: 1h
+  timeout: 3600s
 
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
