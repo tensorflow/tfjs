@@ -95,5 +95,17 @@ class InferenceTest(tf.test.TestCase):
     # Cleanup tmp dir.
     shutil.rmtree(tmp_dir)
 
+  def testInferenceWithNonExistingOutputNameFile(self):
+    binary_path = os.path.join('../binaries', 'tfjs-inference-linux')
+    model_path = os.path.join('../test_data', 'model.json')
+    test_data_dir = os.path.join('../test_data')
+    tmp_dir = tempfile.mkdtemp()
+
+    with self.assertRaises(OSError):
+      inference.predict(binary_path, model_path, test_data_dir, tmp_dir, tf_output_name_file='non_exist.json')
+
+    # Cleanup tmp dir.
+    shutil.rmtree(tmp_dir)
+
 if __name__ == '__main__':
   tf.test.main()
