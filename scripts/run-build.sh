@@ -23,7 +23,7 @@ set -e
 # Use the top level empty release file as a RELEASE flag.
 RELEASE=false
 if [[ -f "release" ]]; then
-  $RELEASE=true
+  RELEASE=true
 fi
 
 DIR=$1
@@ -31,7 +31,7 @@ if [[ $RELEASE = true ]]; then
   # Release flow: Only run e2e release test, ignore unit tests in all other
   # directories.
   if [[ $DIR = "e2e" ]]; then
-    gcloud build submit . --config=$DIR/cloudbuild-release.yml \
+    gcloud builds submit . --config=$DIR/cloudbuild-release.yml \
       --substitutions _RELEASE=$RELEASE
   fi
 else
