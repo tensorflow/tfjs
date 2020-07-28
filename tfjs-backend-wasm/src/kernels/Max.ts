@@ -25,8 +25,7 @@ import {permuteAxesAndTranspose} from './kernel_utils';
 let wasmMax: (xId: number, reduceSize: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
-  wasmMax =
-      backend.wasm.cwrap('Max', null /*void*/, ['number, number, number']);
+  wasmMax = backend.wasm.cwrap(Max, null /*void*/, ['number, number, number']);
 }
 
 function max(args: {backend: BackendWasm, inputs: MaxInputs, attrs: MaxAttrs}):

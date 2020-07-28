@@ -27,7 +27,7 @@ let wasmGatherNd: (
     void;
 
 function setup(backend: BackendWasm): void {
-  wasmGatherNd = backend.wasm.cwrap('GatherNd', null /*void*/, [
+  wasmGatherNd = backend.wasm.cwrap(GatherNd, null /*void*/, [
     'number',  // xId
     'number',  // dtype
     'number',  // indicesId

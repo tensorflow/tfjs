@@ -175,7 +175,7 @@ const benchmarks = {
       return async model => {
         const res = await model.embed(sentences30);
         return res;
-      }
+      };
     }
   },
   'USE - batchsize 1': {
@@ -191,7 +191,7 @@ const benchmarks = {
         nextIdx += 1;
         const res = await model.embed(next);
         return res;
-      }
+      };
     }
   },
   'posenet': {
@@ -204,7 +204,7 @@ const benchmarks = {
     predictFunc: () => {
       return async model => {
         return model.estimateSinglePose(model.image);
-      }
+      };
     }
   },
   'bodypix': {
@@ -217,7 +217,7 @@ const benchmarks = {
     predictFunc: () => {
       return async model => {
         return model.segmentPerson(model.image);
-      }
+      };
     }
   },
   'custom': {
@@ -230,15 +230,9 @@ const benchmarks = {
         let inferenceInput;
         try {
           inferenceInput = generateInput(model);
-          let resultTensor;
-          if (model instanceof tf.GraphModel && model.executeAsync != null) {
-            resultTensor = await model.executeAsync(inferenceInput);
-          } else if (model.predict != null) {
-            resultTensor = model.predict(inferenceInput);
-          } else {
-            throw new Error('Predict function was not found.');
-          }
-          return resultTensor;
+          const predict = getPredictFnForModel(model, inferenceInput);
+          const inferenceOutput = await predict();
+          return inferenceOutput;
         } finally {
           // dispose input tensors
           tf.dispose(inferenceInput);
