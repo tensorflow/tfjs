@@ -24,7 +24,7 @@ let wasmOneHot: (
     outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmOneHot = backend.wasm.cwrap('OneHot', null /* void */, [
+  wasmOneHot = backend.wasm.cwrap(OneHot, null /* void */, [
     'number',  // indices_id
     'number',  // depth,
     'number',  // onValue

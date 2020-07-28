@@ -24,8 +24,7 @@ import {permuteAxesAndTranspose} from './kernel_utils';
 let wasmMin: (xId: number, reduceSize: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
-  wasmMin =
-      backend.wasm.cwrap('Min', null /*void*/, ['number, number, number']);
+  wasmMin = backend.wasm.cwrap(Min, null /*void*/, ['number, number, number']);
 }
 
 function min(args: {backend: BackendWasm, inputs: MinInputs, attrs: MinAttrs}):
