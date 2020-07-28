@@ -3430,6 +3430,9 @@
     var Step = 'Step';
     var FromPixels = 'FromPixels';
     var RotateWithOffset = 'RotateWithOffset';
+    var _FusedMatMul = '_FusedMatMul';
+    var FusedConv2D = 'FusedConv2D';
+    var FusedDepthwiseConv2D = 'FusedDepthwiseConv2D';
 
     /**
      * @license
@@ -6876,7 +6879,8 @@
             var value = backend.cumsum(permutedX, permutedAxis, exclusive, reverse);
             save([$x]);
             if (permutation != null) {
-                value = transpose(value, permutation);
+                var reversePermutation = getUndoAxesPermutation(permutation);
+                value = transpose(value, reversePermutation);
             }
             return value;
         };
@@ -9676,6 +9680,11 @@
             }
         }
         for (var i = 0; i < newIndices.length; i++) {
+            // Handle negative indices
+            var axisSize = inputShape[i];
+            if (newIndices[i] < 0) {
+                newIndices[i] += axisSize;
+            }
             newIndices[i] = clamp(0, newIndices[i], inputShape[i]);
         }
         return newIndices;
@@ -23563,6 +23572,43 @@
      * limitations under the License.
      * =============================================================================
      */
+    // Returns gradient for fused activation.
+    function getFusedDyActivation(dy, y, activation) {
+        if (activation == null || activation === 'linear') {
+            return dy;
+        }
+        if (activation === 'relu') {
+            return dy.mul(y.step());
+        }
+        throw new Error("Cannot compute gradient for fused activation " + activation + ".");
+    }
+    // Returns gradient for fused bias.
+    function getFusedBiasGradient(bias, dyActivation) {
+        var res = dyActivation;
+        var reduceAxes = getReductionAxes(bias.shape, dyActivation.shape);
+        if (reduceAxes.length > 0) {
+            res = res.sum(reduceAxes);
+        }
+        return res.reshape(bias.shape);
+    }
+    function applyActivation(x, activation, preluActivationWeights) {
+        if (activation === 'linear') {
+            return x;
+        }
+        else if (activation === 'relu') {
+            return relu(x);
+        }
+        else if (activation === 'elu') {
+            return elu(x);
+        }
+        else if (activation === 'relu6') {
+            return relu6(x);
+        }
+        else if (activation === 'prelu') {
+            return prelu(x, preluActivationWeights);
+        }
+        throw new Error("Unknown fused activation " + activation + ".");
+    }
     // Whether we should call fused ops.
     var shouldFuse = function (gradientDepth, activation) {
         var gradientMode = gradientDepth > 0;
@@ -23585,167 +23631,6 @@
      * limitations under the License.
      * =============================================================================
      */
-    // Returns gradient for fused activation.
-    var getFusedDyActivation = function (dy, y, activation) {
-        if (activation == null || activation === 'linear') {
-            return dy;
-        }
-        if (activation === 'relu') {
-            return dy.mul(y.step());
-        }
-        throw new Error("Gradient for activation " + activation + " has not been " +
-            "implemented yet.");
-    };
-    // Returns gradient for fused bias.
-    var getFusedBiasGradient = function (bias, dyActivation) {
-        var res = dyActivation;
-        var reduceAxes = getReductionAxes(bias.shape, dyActivation.shape);
-        if (reduceAxes.length > 0) {
-            res = res.sum(reduceAxes);
-        }
-        return res.reshape(bias.shape);
-    };
-    var applyActivation = function (x, activation, preluActivationWeights) {
-        if (activation === 'linear') {
-            return x;
-        }
-        else if (activation === 'relu') {
-            return relu(x);
-        }
-        else if (activation === 'elu') {
-            return elu(x);
-        }
-        else if (activation === 'relu6') {
-            return relu6(x);
-        }
-        else if (activation === 'prelu') {
-            return prelu(x, preluActivationWeights);
-        }
-        throw new Error("Unknown fused activation " + activation + ".");
-    };
-    /**
-     * Computes the dot product of two matrices with optional activation and bias.
-     *
-     * ```js
-     * const a = tf.tensor2d([-1, -2], [1, 2]);
-     * const b = tf.tensor2d([1, 2, 3, 4], [2, 2]);
-     * const bias = tf.tensor2d([1, 2], [1, 2]);
-     *
-     * tf.fused.matMul({a, b, bias, activation: 'relu'}).print();
-     * ```
-     *
-     * @param obj An object with the following properties:
-     * - `a` First matrix in dot product operation.
-     * - `b` Second matrix in dot product operation.
-     * - `transposeA` If true, `a` is transposed before multiplication.
-     * - `transposeB` If true, `b` is transposed before multiplication.
-     * - `bias` Matrix to be added to the result.
-     * - `activation` Name of activation kernel (defaults to `linear`).
-     * - `preluActivationWeights` Tensor of prelu weights.
-     */
-    function fusedMatMul_(_a) {
-        var _b;
-        var a = _a.a, b = _a.b, _c = _a.transposeA, transposeA = _c === void 0 ? false : _c, _d = _a.transposeB, transposeB = _d === void 0 ? false : _d, bias = _a.bias, _e = _a.activation, activation = _e === void 0 ? 'linear' : _e, preluActivationWeights = _a.preluActivationWeights;
-        if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
-            var result = matMul(a, b, transposeA, transposeB);
-            if (bias != null) {
-                result = add(result, bias);
-            }
-            return applyActivation(result, activation, preluActivationWeights);
-        }
-        var $a = convertToTensor(a, 'a', 'fused matMul');
-        var $b = convertToTensor(b, 'b', 'fused matMul');
-        _b = makeTypesMatch($a, $b), $a = _b[0], $b = _b[1];
-        var innerShapeA = transposeA ? $a.shape[$a.rank - 2] : $a.shape[$a.rank - 1];
-        var innerShapeB = transposeB ? $b.shape[$b.rank - 1] : $b.shape[$b.rank - 2];
-        var outerShapeA = transposeA ? $a.shape[$a.rank - 1] : $a.shape[$a.rank - 2];
-        var outerShapeB = transposeB ? $b.shape[$b.rank - 2] : $b.shape[$b.rank - 1];
-        var outerDimsA = $a.shape.slice(0, -2);
-        var outerDimsB = $b.shape.slice(0, -2);
-        var batchDimA = sizeFromShape(outerDimsA);
-        var batchDimB = sizeFromShape(outerDimsB);
-        assert($a.rank >= 2 && $b.rank >= 2 && $a.rank === $b.rank, function () {
-            return "Error in fused matMul: inputs must have the same rank of at least " +
-                ("2, got ranks " + $a.rank + " and " + $b.rank + ".");
-        });
-        assert(arraysEqual(outerDimsA, outerDimsB), function () { return "Error in fused matMul: outer dimensions (" + outerDimsA + ") and (" +
-            (outerDimsB + ") of Tensors with shapes " + $a.shape + " and ") +
-            ($b.shape + " must match."); });
-        assert(innerShapeA === innerShapeB, function () { return "Error in fused matMul: inner shapes (" + innerShapeA + ") and (" +
-            (innerShapeB + ") of Tensors with shapes " + $a.shape + " and ") +
-            ($b.shape + " and transposeA=" + transposeA) +
-            (" and transposeB=" + transposeB + " must match."); });
-        var outShape = $a.shape.slice(0, -2).concat([outerShapeA, outerShapeB]);
-        var a3D = transposeA ? $a.as3D(batchDimA, innerShapeA, outerShapeA) :
-            $a.as3D(batchDimA, outerShapeA, innerShapeA);
-        var b3D = transposeB ? $b.as3D(batchDimB, outerShapeB, innerShapeB) :
-            $b.as3D(batchDimB, innerShapeB, outerShapeB);
-        var $bias;
-        if (bias != null) {
-            $bias = convertToTensor(bias, 'bias', 'fused matMul');
-            $bias = makeTypesMatch($bias, $a)[0];
-            assertAndGetBroadcastShape(outShape, $bias.shape);
-        }
-        var $preluActivationWeights;
-        if (preluActivationWeights != null) {
-            $preluActivationWeights = convertToTensor(preluActivationWeights, 'prelu weights', 'fused matMul');
-        }
-        var grad = function (dy, saved) {
-            var a3D = saved[0], b3D = saved[1], y = saved[2];
-            var dyActivation = getFusedDyActivation(dy, y, activation);
-            var biasGradient = {};
-            if (bias != null) {
-                biasGradient = { bias: function () { return getFusedBiasGradient($bias, dyActivation); } };
-            }
-            if (!transposeA && !transposeB) {
-                return Object.assign({
-                    a: function () { return dyActivation.matMul(b3D, false, true); },
-                    b: function () { return a3D.matMul(dyActivation, true, false); }
-                }, biasGradient);
-            }
-            else if (!transposeA && transposeB) {
-                return Object.assign({
-                    a: function () { return dyActivation.matMul(b3D, false, false); },
-                    b: function () { return dyActivation.matMul(a3D, true, false); }
-                }, biasGradient);
-            }
-            else if (transposeA && !transposeB) {
-                return Object.assign({
-                    a: function () { return b3D.matMul(dyActivation, false, true); },
-                    b: function () { return a3D.matMul(dyActivation, false, false); }
-                }, biasGradient);
-            }
-            else {
-                return Object.assign({
-                    a: function () { return b3D.matMul(dyActivation, true, true); },
-                    b: function () { return dyActivation.matMul(a3D, true, true); }
-                }, biasGradient);
-            }
-        };
-        var inputs = { a: a3D, b: b3D };
-        if (bias != null) {
-            inputs.bias = $bias;
-        }
-        if (preluActivationWeights != null) {
-            inputs.preluActivationWeights = $preluActivationWeights;
-        }
-        var inputsToSave = [a3D, b3D];
-        var outputsToSave = [true];
-        var res = ENGINE.runKernelFunc(function (backend, save) {
-            var y = backend.fusedBatchMatMul({
-                a: a3D,
-                b: b3D,
-                transposeA: transposeA,
-                transposeB: transposeB,
-                bias: $bias,
-                activation: activation,
-                preluActivationWeights: $preluActivationWeights
-            });
-            save([a3D, b3D, y]);
-            return y;
-        }, inputs, grad, '_FusedMatMul', { transposeA: transposeA, transposeB: transposeB, activation: activation }, inputsToSave, outputsToSave);
-        return res.reshape(outShape);
-    }
     /**
      * Computes a 2D convolution over the input x, optionally fused with adding a
      * bias and applying an activation.
@@ -23845,30 +23730,21 @@
             $preluActivationWeights = convertToTensor(preluActivationWeights, 'prelu weights', 'fused conv2d');
         }
         var grad = function (dy, saved) {
-            var _a = saved, $filter = _a[0], x4D = _a[1], y = _a[2];
+            var _a = saved, $filter = _a[0], x4D = _a[1], y = _a[2], $bias = _a[3];
             var dyActivation = getFusedDyActivation(dy, y, activation);
             assert(tupleValuesAreOne(dilations), function () { return 'Error in gradient of fused conv2D: ' +
                 "dilation rates greater than 1 " +
                 ("are not yet supported in gradients. Got dilations '" + dilations + "'"); });
-            var biasGradient = {};
-            if (bias != null) {
-                biasGradient = { bias: function () { return getFusedBiasGradient($bias, dyActivation); } };
+            var xDer = conv2DBackpropInput(x4D.shape, dyActivation, $filter, strides, pad);
+            var filterDer = conv2DBackpropFilter(x4D, dyActivation, $filter.shape, strides, pad);
+            var der = [xDer, filterDer];
+            if ($bias != null) {
+                var biasDer = getFusedBiasGradient($bias, dyActivation);
+                der.push(biasDer);
             }
-            return Object.assign({
-                x: function () { return conv2DBackpropInput(x4D.shape, dyActivation, $filter, strides, pad); },
-                filter: function () { return conv2DBackpropFilter(x4D, dyActivation, $filter.shape, strides, pad); }
-            }, biasGradient);
+            return der;
         };
-        var inputs = { x: x4D, filter: $filter };
-        if (bias != null) {
-            inputs.bias = $bias;
-        }
-        if (preluActivationWeights != null) {
-            inputs.preluActivationWeights = $preluActivationWeights;
-        }
-        var inputsToSave = [$filter, x4D];
-        var outputsToSave = [true]; // Save the only output.
-        var res = ENGINE.runKernelFunc(function (backend, save) {
+        var forward = function (backend) {
             var res = backend.fusedConv2d({
                 input: x4D,
                 filter: $filter,
@@ -23877,14 +23753,58 @@
                 activation: activation,
                 preluActivationWeights: $preluActivationWeights
             });
-            save([$filter, x4D, res]);
             return res;
-        }, inputs, grad, 'FusedConv2D', { convInfo: convInfo, activation: activation }, inputsToSave, outputsToSave);
-        if (reshapedTo4D) {
-            return res.as3D(res.shape[1], res.shape[2], res.shape[3]);
+        };
+        var inputs = {
+            x: x4D,
+            filter: $filter,
+            bias: $bias,
+            preluActivationWeights: $preluActivationWeights
+        };
+        var attrs = { strides: strides, pad: pad, dataFormat: dataFormat, dilations: dilations, dimRoundingMode: dimRoundingMode, activation: activation };
+        // Depending on the the params passed in we will have different number of
+        // inputs and thus a a different number of elements in the gradient.
+        if (bias == null) {
+            var customOp = customGrad(function (x4D, filter, save) {
+                var res = ENGINE.runKernelFunc(forward, inputs, null /* grad */, FusedConv2D, attrs);
+                save([filter, x4D, res]);
+                if (reshapedTo4D) {
+                    res = res.as3D(res.shape[1], res.shape[2], res.shape[3]);
+                }
+                return { value: res, gradFunc: grad };
+            });
+            return customOp(x4D, $filter);
         }
-        return res;
+        else {
+            var customOpWithBias = customGrad(function (x4D, filter, bias, save) {
+                var res = ENGINE.runKernelFunc(forward, inputs, null /* grad */, FusedConv2D, attrs);
+                save([filter, x4D, res, bias]);
+                if (reshapedTo4D) {
+                    res = res.as3D(res.shape[1], res.shape[2], res.shape[3]);
+                }
+                return { value: res, gradFunc: grad };
+            });
+            return customOpWithBias(x4D, $filter, $bias);
+        }
     }
+    var conv2d$1 = op({ fusedConv2d_: fusedConv2d_ });
+
+    /**
+     * @license
+     * Copyright 2019 Google LLC. All Rights Reserved.
+     * Licensed under the Apache License, Version 2.0 (the "License");
+     * you may not use this file except in compliance with the License.
+     * You may obtain a copy of the License at
+     *
+     * http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
+     * =============================================================================
+     */
     /**
      * Computes depthwise 2D convolution, optionally fused with adding a
      * bias and applying an activation.
@@ -23985,27 +23905,17 @@
             assert(tupleValuesAreOne(dilations), function () { return 'Error in gradient of fused depthwiseConv2d: dilation rates ' +
                 "greater than 1 are not yet supported. Got dilations " +
                 ("'" + dilations + "'"); });
-            var $filter = saved[0], x4D = saved[1], y = saved[2];
+            var $filter = saved[0], x4D = saved[1], y = saved[2], bias = saved[3];
             var dyActivation = getFusedDyActivation(dy, y, activation);
-            var biasGradient = {};
+            var xDer = depthwiseConv2dNativeBackpropInput(x4D.shape, dyActivation, $filter, convInfo);
+            var filterDer = depthwiseConv2dNativeBackpropFilter(x4D, dyActivation, $filter.shape, convInfo);
             if (bias != null) {
-                biasGradient = { bias: function () { return getFusedBiasGradient($bias, dyActivation); } };
+                var biasDer = getFusedBiasGradient($bias, dyActivation);
+                return [xDer, filterDer, biasDer];
             }
-            return Object.assign({
-                x: function () { return depthwiseConv2dNativeBackpropInput(x4D.shape, dyActivation, $filter, convInfo); },
-                filter: function () { return depthwiseConv2dNativeBackpropFilter(x4D, dyActivation, $filter.shape, convInfo); },
-            }, biasGradient);
+            return [xDer, filterDer];
         };
-        var inputs = { x: x4D, filter: $filter };
-        if (bias != null) {
-            inputs.bias = $bias;
-        }
-        if (preluActivationWeights != null) {
-            inputs.preluActivationWeights = $preluActivationWeights;
-        }
-        var inputsToSave = [$filter, x4D];
-        var outputsToSave = [true];
-        var res = ENGINE.runKernelFunc(function (backend, save) {
+        var forward = function (backend) {
             var res = backend.fusedDepthwiseConv2D({
                 input: x4D,
                 filter: $filter,
@@ -24014,23 +23924,219 @@
                 activation: activation,
                 preluActivationWeights: $preluActivationWeights
             });
-            save([$filter, x4D, res]);
             return res;
-        }, inputs, grad, 'FusedDepthwiseConv2D', { convInfo: convInfo, activation: activation }, inputsToSave, outputsToSave);
-        if (reshapedTo4D) {
-            return res.as3D(res.shape[1], res.shape[2], res.shape[3]);
+        };
+        var inputs = {
+            x: x4D,
+            filter: $filter,
+            bias: $bias,
+            preluActivationWeights: $preluActivationWeights
+        };
+        var attrs = { strides: strides, pad: pad, dataFormat: dataFormat, dilations: dilations, dimRoundingMode: dimRoundingMode, activation: activation };
+        // Depending on the the params passed in we will have different number of
+        // inputs and thus a a different number of elements in the gradient.
+        if (bias == null) {
+            var customOp = customGrad(function (x4D, filter, save) {
+                var res = ENGINE.runKernelFunc(forward, inputs, null /* grad */, FusedDepthwiseConv2D, attrs);
+                save([filter, x4D, res]);
+                if (reshapedTo4D) {
+                    res = res.as3D(res.shape[1], res.shape[2], res.shape[3]);
+                }
+                return { value: res, gradFunc: grad };
+            });
+            return customOp(x4D, $filter);
         }
-        return res;
+        else {
+            var customOpWithBias = customGrad(function (x4D, filter, bias, save) {
+                var res = ENGINE.runKernelFunc(forward, inputs, null /* grad */, FusedDepthwiseConv2D, attrs);
+                save([filter, x4D, res, bias]);
+                if (reshapedTo4D) {
+                    res = res.as3D(res.shape[1], res.shape[2], res.shape[3]);
+                }
+                return { value: res, gradFunc: grad };
+            });
+            return customOpWithBias(x4D, $filter, $bias);
+        }
+    }
+    var depthwiseConv2d$1 = op({ fusedDepthwiseConv2d_: fusedDepthwiseConv2d_ });
+
+    /**
+     * @license
+     * Copyright 2019 Google LLC. All Rights Reserved.
+     * Licensed under the Apache License, Version 2.0 (the "License");
+     * you may not use this file except in compliance with the License.
+     * You may obtain a copy of the License at
+     *
+     * http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
+     * =============================================================================
+     */
+    /**
+     * Computes the dot product of two matrices with optional activation and bias.
+     *
+     * ```js
+     * const a = tf.tensor2d([-1, -2], [1, 2]);
+     * const b = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+     * const bias = tf.tensor2d([1, 2], [1, 2]);
+     *
+     * tf.fused.matMul({a, b, bias, activation: 'relu'}).print();
+     * ```
+     *
+     * @param obj An object with the following properties:
+     * - `a` First matrix in dot product operation.
+     * - `b` Second matrix in dot product operation.
+     * - `transposeA` If true, `a` is transposed before multiplication.
+     * - `transposeB` If true, `b` is transposed before multiplication.
+     * - `bias` Matrix to be added to the result.
+     * - `activation` Name of activation kernel (defaults to `linear`).
+     * - `preluActivationWeights` Tensor of prelu weights.
+     */
+    function fusedMatMul_(_a) {
+        var _b;
+        var a = _a.a, b = _a.b, _c = _a.transposeA, transposeA = _c === void 0 ? false : _c, _d = _a.transposeB, transposeB = _d === void 0 ? false : _d, bias = _a.bias, _e = _a.activation, activation = _e === void 0 ? 'linear' : _e, preluActivationWeights = _a.preluActivationWeights;
+        if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
+            var result = matMul(a, b, transposeA, transposeB);
+            if (bias != null) {
+                result = add(result, bias);
+            }
+            return applyActivation(result, activation, preluActivationWeights);
+        }
+        var $a = convertToTensor(a, 'a', 'fused matMul');
+        var $b = convertToTensor(b, 'b', 'fused matMul');
+        _b = makeTypesMatch($a, $b), $a = _b[0], $b = _b[1];
+        var innerShapeA = transposeA ? $a.shape[$a.rank - 2] : $a.shape[$a.rank - 1];
+        var innerShapeB = transposeB ? $b.shape[$b.rank - 1] : $b.shape[$b.rank - 2];
+        var outerShapeA = transposeA ? $a.shape[$a.rank - 1] : $a.shape[$a.rank - 2];
+        var outerShapeB = transposeB ? $b.shape[$b.rank - 2] : $b.shape[$b.rank - 1];
+        var outerDimsA = $a.shape.slice(0, -2);
+        var outerDimsB = $b.shape.slice(0, -2);
+        var batchDimA = sizeFromShape(outerDimsA);
+        var batchDimB = sizeFromShape(outerDimsB);
+        assert($a.rank >= 2 && $b.rank >= 2 && $a.rank === $b.rank, function () {
+            return "Error in fused matMul: inputs must have the same rank of at least " +
+                ("2, got ranks " + $a.rank + " and " + $b.rank + ".");
+        });
+        assert(arraysEqual(outerDimsA, outerDimsB), function () { return "Error in fused matMul: outer dimensions (" + outerDimsA + ") and (" +
+            (outerDimsB + ") of Tensors with shapes " + $a.shape + " and ") +
+            ($b.shape + " must match."); });
+        assert(innerShapeA === innerShapeB, function () { return "Error in fused matMul: inner shapes (" + innerShapeA + ") and (" +
+            (innerShapeB + ") of Tensors with shapes " + $a.shape + " and ") +
+            ($b.shape + " and transposeA=" + transposeA) +
+            (" and transposeB=" + transposeB + " must match."); });
+        var outShape = $a.shape.slice(0, -2).concat([outerShapeA, outerShapeB]);
+        var a3D = transposeA ? $a.as3D(batchDimA, innerShapeA, outerShapeA) :
+            $a.as3D(batchDimA, outerShapeA, innerShapeA);
+        var b3D = transposeB ? $b.as3D(batchDimB, outerShapeB, innerShapeB) :
+            $b.as3D(batchDimB, innerShapeB, outerShapeB);
+        var $bias;
+        if (bias != null) {
+            $bias = convertToTensor(bias, 'bias', 'fused matMul');
+            $bias = makeTypesMatch($bias, $a)[0];
+            assertAndGetBroadcastShape(outShape, $bias.shape);
+        }
+        var $preluActivationWeights;
+        if (preluActivationWeights != null) {
+            $preluActivationWeights = convertToTensor(preluActivationWeights, 'prelu weights', 'fused matMul');
+        }
+        var grad = function (dy, saved) {
+            var a3D = saved[0], b3D = saved[1], y = saved[2], $bias = saved[3];
+            // we reshape dy because the result of the forward is not
+            // necessarily going to be a 3d tensor due to a reshape done at the end of
+            // the customOp.
+            var dyActivation = getFusedDyActivation(reshape(dy, y.shape), y, activation);
+            var aDer;
+            var bDer;
+            if (!transposeA && !transposeB) {
+                aDer = matMul(dyActivation, b3D, false, true);
+                bDer = matMul(a3D, dyActivation, true, false);
+            }
+            else if (!transposeA && transposeB) {
+                aDer = matMul(dyActivation, b3D, false, false);
+                bDer = matMul(dyActivation, a3D, true, false);
+            }
+            else if (transposeA && !transposeB) {
+                aDer = matMul(b3D, dyActivation, false, true);
+                bDer = matMul(a3D, dyActivation, false, false);
+            }
+            else {
+                aDer = matMul(b3D, dyActivation, true, true);
+                bDer = matMul(dyActivation, a3D, true, true);
+            }
+            if (bias != null) {
+                var biasDer = getFusedBiasGradient($bias, dyActivation);
+                return [aDer, bDer, biasDer];
+            }
+            else {
+                return [aDer, bDer];
+            }
+        };
+        var forward = function (backend) {
+            var y = backend.fusedBatchMatMul({
+                a: a3D,
+                b: b3D,
+                transposeA: transposeA,
+                transposeB: transposeB,
+                bias: $bias,
+                activation: activation,
+                preluActivationWeights: $preluActivationWeights
+            });
+            return y;
+        };
+        var inputs = {
+            a: a3D,
+            b: b3D,
+            bias: $bias,
+            preluActivationWeights: $preluActivationWeights
+        };
+        var attrs = { transposeA: transposeA, transposeB: transposeB, activation: activation };
+        // Depending on the the params passed in we will have different number of
+        // inputs and thus a a different number of elements in the gradient.
+        if (bias == null) {
+            var customOp = customGrad(function (a3D, b3D, save) {
+                var res = ENGINE.runKernelFunc(forward, inputs, null /* grad */, _FusedMatMul, attrs);
+                save([a3D, b3D, res]);
+                return { value: reshape(res, outShape), gradFunc: grad };
+            });
+            return customOp(a3D, b3D);
+        }
+        else {
+            var customOpWithBias = customGrad(function (a3D, b3D, $bias, save) {
+                var res = ENGINE.runKernelFunc(forward, inputs, null /* grad */, _FusedMatMul, attrs);
+                save([a3D, b3D, res, $bias]);
+                return { value: reshape(res, outShape), gradFunc: grad };
+            });
+            return customOpWithBias(a3D, b3D, $bias);
+        }
     }
     var matMul$1 = op({ fusedMatMul_: fusedMatMul_ });
-    var conv2d$1 = op({ fusedConv2d_: fusedConv2d_ });
-    var depthwiseConv2d$1 = op({ fusedDepthwiseConv2d_: fusedDepthwiseConv2d_ });
+
+    /**
+     * @license
+     * Copyright 2019 Google LLC. All Rights Reserved.
+     * Licensed under the Apache License, Version 2.0 (the "License");
+     * you may not use this file except in compliance with the License.
+     * You may obtain a copy of the License at
+     *
+     * http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
+     * =============================================================================
+     */
 
     var fused_ops = {
         __proto__: null,
-        matMul: matMul$1,
         conv2d: conv2d$1,
-        depthwiseConv2d: depthwiseConv2d$1
+        depthwiseConv2d: depthwiseConv2d$1,
+        matMul: matMul$1
     };
 
     /**
@@ -27987,6 +28093,10 @@
         tupleValuesAreOne: tupleValuesAreOne,
         eitherStridesOrDilationsAreOne: eitherStridesOrDilationsAreOne,
         convertConv2DDataFormat: convertConv2DDataFormat,
+        getFusedDyActivation: getFusedDyActivation,
+        getFusedBiasGradient: getFusedBiasGradient,
+        applyActivation: applyActivation,
+        shouldFuse: shouldFuse,
         PARALLELIZE_THRESHOLD: PARALLELIZE_THRESHOLD,
         computeOptimalWindowSize: computeOptimalWindowSize,
         getImageCenter: getImageCenter,
@@ -28001,7 +28111,6 @@
         calculateShapes: calculateShapes,
         SELU_SCALEALPHA: SELU_SCALEALPHA,
         SELU_SCALE: SELU_SCALE,
-        shouldFuse: shouldFuse,
         ERF_P: ERF_P,
         ERF_A1: ERF_A1,
         ERF_A2: ERF_A2,
@@ -31995,6 +32104,8 @@
     exports.FloorDiv = FloorDiv;
     exports.FromPixels = FromPixels;
     exports.FusedBatchNorm = FusedBatchNorm;
+    exports.FusedConv2D = FusedConv2D;
+    exports.FusedDepthwiseConv2D = FusedDepthwiseConv2D;
     exports.GatherNd = GatherNd;
     exports.GatherV2 = GatherV2;
     exports.Greater = Greater;
@@ -32090,6 +32201,7 @@
     exports.UnsortedSegmentSum = UnsortedSegmentSum;
     exports.Variable = Variable;
     exports.ZerosLike = ZerosLike;
+    exports._FusedMatMul = _FusedMatMul;
     exports.abs = abs;
     exports.acos = acos;
     exports.acosh = acosh;
