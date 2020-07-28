@@ -50,8 +50,12 @@ TensorInfo &get_tensor_info_out(const size_t tensor_id) {
 }
 
 size_t xnn_operator_count = 0;
-pthreadpool *threadpool =
-    pthreadpool_create(std::min(emscripten_num_logical_cores(), 4));
+int num_cores = 1;
+#ifdef __EMSCRIPTEN__
+num_cores = emscripten_num_logical_cores();
+#endif
+
+pthreadpool *threadpool = pthreadpool_create(std::min(num_cores, 4));
 
 // Registers a disposal callback for a tensor id with a given callback function.
 void register_disposal_callback(const size_t tensor_id,
