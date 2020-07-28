@@ -69,6 +69,29 @@ describeWithFlags('fused depthwiseConv2D', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
+  it('basic with channel-wise broadcasted bias and relu', async () => {
+    const strides = 1;
+    const pad = 'same';
+    const x = tf.tensor4d(
+        [
+          0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 1, 2, 3, 4, 5, 6, 7, 8,
+          0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 1, 2, 3, 4, 5, 6, 7, 8
+        ],
+        [1, 3, 3, 4]);
+    const w = tf.tensor4d(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], [2, 2, 4, 1]);
+    const bias = tf.tensor1d([0, 1, 2, 3]);
+
+    const result = tf.fused.depthwiseConv2d({x, filter: w, strides, pad, bias});
+    expect(result.shape).toEqual([1, 3, 3, 4]);
+    const expected = [
+      124, 167, 92,  142, 112, 117, 76,  124, 16, 28, 44, 64,
+      88,  134, 134, 88,  76,  120, 154, 205, 40, 58, 80, 106,
+      4,   18,  36,  31,  20,  33,  50,  71,  0,  7,  16, 27
+    ];
+    expectArraysClose(await result.data(), expected);
+  });
+
   it('basic with broadcasted bias and relu', async () => {
     const fSize = 2;
     const pad = 'valid';
