@@ -15,23 +15,11 @@
  * =============================================================================
  */
 
-import {KernelConfig, NamedAttrMap, NamedTensorInfoMap, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, NonMaxSuppressionV5, NonMaxSuppressionV5Attrs, NonMaxSuppressionV5Inputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
 import {parseResultStruct} from './NonMaxSuppression_util';
-
-interface NonMaxSuppressionInputs extends NamedTensorInfoMap {
-  boxes: TensorInfo;
-  scores: TensorInfo;
-}
-
-interface NonMaxSuppressionAttrs extends NamedAttrMap {
-  maxOutputSize: number;
-  iouThreshold: number;
-  scoreThreshold: number;
-  softNmsSigma: number;
-}
 
 let wasmFunc:
     (boxesId: number, scoresId: number, maxOutputSize: number,
@@ -40,7 +28,7 @@ let wasmFunc:
 
 function setup(backend: BackendWasm): void {
   wasmFunc = backend.wasm.cwrap(
-      'NonMaxSuppressionV5',
+      NonMaxSuppressionV5,
       'number',  // Result*
       [
         'number',  // boxesId
@@ -54,8 +42,8 @@ function setup(backend: BackendWasm): void {
 
 function kernelFunc(args: {
   backend: BackendWasm,
-  inputs: NonMaxSuppressionInputs,
-  attrs: NonMaxSuppressionAttrs
+  inputs: NonMaxSuppressionV5Inputs,
+  attrs: NonMaxSuppressionV5Attrs
 }): TensorInfo[] {
   const {backend, inputs, attrs} = args;
   const {iouThreshold, maxOutputSize, scoreThreshold, softNmsSigma} = attrs;
@@ -84,8 +72,8 @@ function kernelFunc(args: {
 }
 
 export const nonMaxSuppressionV5Config: KernelConfig = {
-  kernelName: 'NonMaxSuppressionV5',
+  kernelName: NonMaxSuppressionV5,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc,
+  kernelFunc: kernelFunc as {} as KernelFunc,
 };
