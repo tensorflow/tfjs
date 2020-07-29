@@ -72,6 +72,7 @@ app.listen(port, () => {
 });
 
 io.on('connection', socket => {
+  socket.emit('availableBrowsers', availableBrowsers);
   socket.on('run', benchmark);
 });
 
@@ -82,6 +83,9 @@ function benchmark(config) {
   // 2. Write benchmark parameter config.
 
   // Write the browsers to benchmark to `./browsers.json`.
+  config.browsers.forEach(browser => {
+    browser.base = 'BrowserStack';
+  });
   fs.writeFileSync('./browsers.json', JSON.stringify(config.browsers, null, 2));
 
   console.log(`Start benchmarking.`);

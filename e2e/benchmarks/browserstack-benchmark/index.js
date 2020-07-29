@@ -33,6 +33,31 @@ const state = {
   }]
 };
 
+const BROWSER_FIELDS =
+    ['os', 'os_version', 'browser', 'browser_version', 'device'];
+function constructBrowserTree(browsers) {
+  const browserTreeRoot = {};
+  browsers.forEach(browser => {
+    let currentNode = browserTreeRoot;
+    for (const field of BROWSER_FIELDS) {
+      if (currentNode[browser[field]] == null) {
+        currentNode[browser[field]] = {};
+      }
+      currentNode = currentNode[browser[field]];
+    }
+    if (currentNode['browserList'] == null) {
+      currentNode['browserList'] = [];
+    }
+    currentNode['browserList'].push(browser);
+  });
+  return browserTreeRoot;
+}
+
+let browserTreeRoot;
+socket.on('availableBrowsers', browsers => {
+  browserTreeRoot = constructBrowserTree(browsers);
+});
+
 socket.on('benchmarkComplete', benchmarkResult => {
   const {timeInfo, memoryInfo} = benchmarkResult;
   document.getElementById('results').innerHTML +=
