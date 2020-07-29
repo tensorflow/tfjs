@@ -246,7 +246,7 @@ def _create_saved_model_with_conv2d(save_dir):
   return {
       "async": False,
       "inputs": {
-          "input_1": {"value": np.ones((1, 24, 24, 3)).tolist(),
+          "conv2d_input:0": {"value": np.ones((1, 24, 24, 3)).tolist(),
                 "shape": [1, 24, 24, 3],
                 "dtype": 'float32'}},
       "outputs": {
@@ -275,7 +275,7 @@ def _create_saved_model_with_prelu(save_dir):
   return {
       "async": False,
       "inputs": {
-          "input_1": {"value": np.ones((1, 24, 24, 3)).tolist(),
+          "conv2d_1_input": {"value": np.ones((1, 24, 24, 3)).tolist(),
                 "shape": [1, 24, 24, 3],
                 "dtype": 'float32'}},
       "outputs": {
@@ -353,7 +353,7 @@ def _create_saved_model_v2_with_tensorlist_ops(save_dir):
   """
   model = tf.keras.Sequential()
   model.add(tf.keras.layers.Embedding(100, 20, input_shape=[10]))
-  model.add(tf.keras.layers.GRU(4, reset_after=True))
+  model.add(tf.keras.layers.GRU(4))
 
   result = model.predict(tf.ones([1, 10]))
 
