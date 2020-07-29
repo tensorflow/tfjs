@@ -22,8 +22,15 @@ const state = {
     benchmarkButton.__li.style.pointerEvents = 'none';
     benchmarkButton.__li.style.opacity = .5;
 
-    socket.emit('run', true);
-  }
+    socket.emit('run', {browsers: state.browsers});
+  },
+  browsers: [{
+    base: 'BrowserStack',
+    browser: 'chrome',
+    browser_version: '84.0',
+    os: 'OS X',
+    os_version: 'Catalina',
+  }]
 };
 
 socket.on('benchmarkComplete', benchmarkResult => {

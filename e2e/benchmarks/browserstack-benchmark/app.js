@@ -76,9 +76,14 @@ io.on('connection', socket => {
 });
 
 function benchmark(config) {
+  console.log('Preparing configuration files for the test runner.');
   // TODO:
   // 1. Write browsers.json.
   // 2. Write benchmark parameter config.
+
+  // Write the browsers to benchmark to `./browsers.json`.
+  fs.writeFileSync('./browsers.json', JSON.stringify(config.browsers, null, 2));
+
   console.log(`Start benchmarking.`);
   exec('yarn test --browserstack', (err, stdout, stderr) => {
     if (err) {
