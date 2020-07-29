@@ -1,14 +1,14 @@
 # Benchmark custom models
 
-The `custom model` in the [benchmark tool](https://tensorflow.github.io/tfjs/e2e/benchmarks/index.html) currently only supports `tf.GraphModel` or `tf.LayersModel`.
+The `custom model` in the [benchmark tool](https://tensorflow.github.io/tfjs/e2e/benchmarks/local_benchmark/index.html) currently only supports `tf.GraphModel` or `tf.LayersModel`.
 
 If you want to benchmark models in other types or customize the inputs for model inference, you need to implement `load` and `predictFunc` methods, following this [example PR](https://github.com/tensorflow/tfjs/pull/3168/files).
 
 ## Models in local file system
 If you have a model in local file system, you can follow the steps below:
 1. Download [tfjs repository](https://github.com/tensorflow/tfjs.git).
-2. Put your `model.json` file and the weight files under the `tfjs/e2e/benchmarks/` folder.
-3. Under the `tfjs/e2e/benchmarks/` folder, run `npx http-server`.
+2. Put your `model.json` file and the weight files under the `tfjs/e2e/benchmarks/local_benchmark/` folder.
+3. Under the `tfjs/e2e/benchmarks/local_benchmark/` folder, run `npx http-server`.
 4. Open the browser go to `http://127.0.0.1:8080/`, this will open the benchmark tool. Then populate the `model.json` url to `modelUrl` under the custom model, which is `http://127.0.0.1:8080/model.json`.
 
 In addition, if the online tool is blocked by `CORS` problems when fetching the custom model, you can locally serve the model by the above steps to solve this problem.
