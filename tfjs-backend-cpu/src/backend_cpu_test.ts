@@ -16,7 +16,8 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {engine, test_util, util} from '@tensorflow/tfjs-core';
+import {engine, Tensor, test_util, util} from '@tensorflow/tfjs-core';
+
 const {expectArraysClose, expectArraysEqual} = test_util;
 // tslint:disable-next-line: no-imports-from-dist
 import {describeWithFlags, ALL_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
@@ -131,19 +132,38 @@ describeWithFlags('memory cpu', ALL_ENVS, () => {
         '(2 bytes per character)';
     expect(mem.reasons.indexOf(expectedReasonString) >= 0).toBe(true);
   });
-});
 
-describeWithFlags('CPU backend has sync init', ALL_ENVS, () => {
-  it('can do matmul without waiting for ready', async () => {
+  it('does not have memory leak.', async () => {
     tf.registerBackend('my-cpu', () => {
       return new MathBackendCPU();
     });
-    tf.setBackend('my-cpu');
-    const a = tf.tensor1d([5]);
-    const b = tf.tensor1d([3]);
-    const res = tf.dot(a, b);
-    expectArraysClose(await res.data(), 15);
-    tf.dispose([a, b, res]);
-    tf.removeBackend('my-cpu');
+    await tf.setBackend('my-cpu');
+
+    tf.registerKernel({
+      kernelName: 'SimpleKernel',
+      backendName: 'my-cpu',
+      kernelFunc: ({backend}) => {
+        const cpuBackend = backend as MathBackendCPU;
+        const outId = cpuBackend.write(new Float32Array(1), [], 'float32');
+        return {dtype: 'float32', shape: [], dataId: outId};
+      }
+    });
+
+    const beforeDataIds = tf.engine().backend.numDataIds();
+
+    const res = tf.engine().runKernel('SimpleKernel', {}, {}) as Tensor;
+
+    expectArraysClose(await res.data(), [0]);
+    expectArraysEqual(res.shape, []);
+
+    const afterResDataIds = tf.engine().backend.numDataIds();
+    expect(afterResDataIds).toEqual(beforeDataIds + 1);
+
+    res.dispose();
+
+    const afterDisposeDataIds = tf.engine().backend.numDataIds();
+    expect(afterDisposeDataIds).toEqual(beforeDataIds);
+
+    tf.unregisterKernel('SimpleKernel', tf.getBackend());
   });
 });
