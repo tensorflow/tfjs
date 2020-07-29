@@ -1,6 +1,6 @@
 h5py>=2.8.0
 numpy>=1.16.4,<1.19.0
 six>=1.12.0
-tensorflow-cpu>=2.1.0,<3
+tensorflow-cpu>=2.2.0,<3
 tensorflow-hub==0.7.0
 PyInquirer==1.0.3
