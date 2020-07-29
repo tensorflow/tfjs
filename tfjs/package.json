@@ -14,6 +14,9 @@
     "url": "https://github.com/tensorflow/tfjs.git"
   },
   "license": "Apache-2.0",
+  "bin": {
+    "tfjs-custom-bundle": "dist/tools/custom_bundle/cli.js"
+  },
   "devDependencies": {
     "@babel/core": "^7.9.0",
     "@babel/preset-env": "^7.9.5",
@@ -67,6 +70,8 @@
     "build-backend-webgl-ci": "cd ../tfjs-backend-webgl && yarn && yarn build-ci",
     "build-deps": "yarn build-core && yarn build-layers && yarn build-converter && yarn build-data && yarn build-backend-cpu && yarn build-backend-webgl",
     "build-deps-ci": "yarn build-core-ci && yarn build-layers-ci && yarn build-converter-ci && yarn build-data-ci && yarn build-backend-cpu-ci && yarn build-backend-webgl-ci",
+    "build-cli": "tsc --project ./src/tools/custom_bundle/tsconfig.json && chmod +x ./dist/tools/custom_bundle/cli.js",
+    "run-custom-build": "ts-node -s ./src/tools/custom_bundle/cli.ts",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
@@ -82,6 +87,8 @@
     "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@tensorflow/tfjs-data": "link:../tfjs-data",
     "@tensorflow/tfjs-layers": "link:../tfjs-layers",
+    "argparse": "^1.0.10",
+    "chalk": "^4.1.0",
     "core-js": "3",
     "regenerator-runtime": "^0.13.5"
   }
