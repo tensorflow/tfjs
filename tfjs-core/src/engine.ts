@@ -800,14 +800,6 @@ export class Engine implements TensorTracker, DataMover {
     const info = this.state.tensorInfo.get(a.dataId);
     const refCount = info.refCount;
 
-    // Todo(linazhao): Move decRef into backend's disposeData method once
-    // refCount mechanism is completely moved from Engine to backends.
-    // During the migration, non-modularized kernels will still use
-    // TensorInfo's refCounting whereas modularized kernels will use
-    // TensorData's refCounting, so we need to decRef both
-    // TensorInfo and TensorData's refCount to keep them in sync.
-    info.backend.decRef(a.dataId);
-
     if (refCount <= 1) {
       // Don't count bytes for complex numbers as they are counted by their
       // components.
@@ -820,6 +812,14 @@ export class Engine implements TensorTracker, DataMover {
       this.state.tensorInfo.delete(a.dataId);
     } else {
       this.state.tensorInfo.get(a.dataId).refCount--;
+
+      // Todo(linazhao): Move decRef into backend's disposeData method once
+      // refCount mechanism is completely moved from Engine to backends.
+      // During the migration, non-modularized kernels will still use
+      // TensorInfo's refCounting whereas modularized kernels will use
+      // TensorData's refCounting, so we need to decRef both
+      // TensorInfo and TensorData's refCount to keep them in sync.
+      info.backend.decRef(a.dataId);
     }
     // TODO(nsthorat): Construct an error and save the stack trace for
     // debugging when in debug mode. Creating a stack trace is too expensive
