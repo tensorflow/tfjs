@@ -133,37 +133,23 @@ describeWithFlags('memory cpu', ALL_ENVS, () => {
     expect(mem.reasons.indexOf(expectedReasonString) >= 0).toBe(true);
   });
 
-  it('does not have memory leak.', async () => {
-    tf.registerBackend('my-cpu', () => {
-      return new MathBackendCPU();
-    });
-    await tf.setBackend('my-cpu');
-
-    tf.registerKernel({
-      kernelName: 'SimpleKernel',
-      backendName: 'my-cpu',
-      kernelFunc: ({backend}) => {
-        const cpuBackend = backend as MathBackendCPU;
-        const outId = cpuBackend.write(new Float32Array(1), [], 'float32');
-        return {dtype: 'float32', shape: [], dataId: outId};
-      }
-    });
-
+  it('does not have memory leak with reshape.', async () => {
     const beforeDataIds = tf.engine().backend.numDataIds();
 
-    const res = tf.engine().runKernel('SimpleKernel', {}, {}) as Tensor;
+    const x = tf.tensor1d([1, 1, 1, 1]);
+    const res =
+        tf.engine().runKernel('Reshape', {x}, {shape: [2, 2]}) as Tensor;
 
-    expectArraysClose(await res.data(), [0]);
-    expectArraysEqual(res.shape, []);
+    expectArraysClose(await res.data(), [1, 1, 1, 1]);
+    expectArraysEqual(res.shape, [2, 2]);
 
     const afterResDataIds = tf.engine().backend.numDataIds();
     expect(afterResDataIds).toEqual(beforeDataIds + 1);
 
+    x.dispose();
     res.dispose();
 
     const afterDisposeDataIds = tf.engine().backend.numDataIds();
     expect(afterDisposeDataIds).toEqual(beforeDataIds);
-
-    tf.unregisterKernel('SimpleKernel', tf.getBackend());
   });
 });
