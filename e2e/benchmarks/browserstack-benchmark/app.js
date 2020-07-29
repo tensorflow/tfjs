@@ -24,7 +24,7 @@ const port = process.env.PORT || 8001;
 let availableBrowsers;
 
 function authenticateBrowserStack() {
-  const BrowserStack = require('browserstack');
+  const browserStack = require('browserstack');
   if (process.env.BROWSERSTACK_USERNAME == null ||
       process.env.BROWSERSTACK_ACCESS_KEY == null) {
     throw new Error(
@@ -38,7 +38,7 @@ function authenticateBrowserStack() {
     password: process.env.BROWSERSTACK_ACCESS_KEY
   };
   const automateClient =
-      BrowserStack.createAutomateClient(browserStackCredentials);
+      browserStack.createAutomateClient(browserStackCredentials);
   automateClient.getBrowsers((error, browsers) => {
     if (error != null) {
       console.log(error);
