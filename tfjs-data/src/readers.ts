@@ -113,10 +113,10 @@ export function csv(
 
 /**
  * Create a `TFRecordDataset` by reading and decoding TFRecords file(s) from provided
- * local path if it's in Node environment.
+ * local path. This API only works in node environment.
  *
  * ```js
- * const tfrecordPath = './data.tfrecord';
+ * const tfrecordPath = 'file://data.tfrecord';
  *
  * async function run() {
  *   const dataset = await tf.data.TFRecord(tfrecordPath);
@@ -129,7 +129,16 @@ export function csv(
  * await run();
  * ```
  *
- * @param source Local file path, eg: `./path to file`. Only works in node environment.
+ * @param source Local path to get TFRecord file, it must have
+ * prefix `file://` and it only works in node environment.
+ */
+/**
+ * @doc {
+ *   heading: 'Data',
+ *   subheading: 'Creation',
+ *   namespace: 'data',
+ *   configParamIndices: [1]
+ *  }
  */
 export function TFRecord(source: string): TFRecordDataset {
   return new TFRecordDataset(new TFRecordDataSource(source));

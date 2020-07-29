@@ -18,7 +18,7 @@
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
   "[typescript]": {
-    "editor.formatOnSave": true
+    "editor.formatOnSave": false
   },
   "[javascript]": {
     "editor.formatOnSave": true

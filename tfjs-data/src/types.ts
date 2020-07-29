@@ -217,3 +217,19 @@ export interface MicrophoneConfig {
   // throw an error. Defaults to false.
   includeWaveform?: boolean;
 }
+
+export interface IFeature {
+  toObject(): IFeatureProto
+}
+
+export interface IFeatureProto {
+  bytesList?: {
+    valueList: [string]
+  }
+  floatList?: {
+    valueList: [number]
+  }
+  int64List?: {
+    valueList: [number]
+  }
+}
