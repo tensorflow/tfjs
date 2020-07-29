@@ -10,7 +10,7 @@ const state = {
   }
 };
 
-socket.on('benchmarkComplete', function(benchmarkResult) {
+socket.on('benchmarkComplete', benchmarkResult => {
   const {timeInfo, memoryInfo} = benchmarkResult;
   document.getElementById('results').innerHTML +=
       JSON.stringify(timeInfo, null, 2);

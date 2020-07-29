@@ -5,9 +5,9 @@ const {exec} = require('child_process');
 
 const port = process.env.PORT || 8001;
 
-const app = http.createServer(function(request, response) {
+const app = http.createServer((request, response) => {
   const url = request.url === '/' ? '/index.html' : request.url;
-  fs.readFile(__dirname + url, function(err, data) {
+  fs.readFile(__dirname + url, (err, data) => {
     if (err) {
       response.writeHead(404);
       response.end(JSON.stringify(err));
@@ -24,7 +24,7 @@ app.listen(port, () => {
   console.log(`  > Running socket on port: ${port}`);
 });
 
-io.on('connection', function(socket) {
+io.on('connection', socket => {
   socket.on('run', benchmark);
 });
 
