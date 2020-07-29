@@ -1722,11 +1722,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun<Tensor>(program, inputs) as T;
   }
 
-  sigmoid<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SIGMOID);
-    return this.compileAndRun(program, [x]);
-  }
-
   softplus<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.SOFTPLUS);
     return this.compileAndRun(program, [x]);
