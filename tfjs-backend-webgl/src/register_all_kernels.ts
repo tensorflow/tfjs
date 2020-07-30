@@ -28,6 +28,7 @@ import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {subConfig} from './kernels/Sub';
 import {transposeConfig} from './kernels/Transpose';
 
 // List all kernel configs here
@@ -35,7 +36,7 @@ const kernelConfigs: KernelConfig[] = [
   maxConfig, fromPixelsConfig, divConfig, maxPoolWithArgmaxConfig,
   nonMaxSuppressionV3Config, nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config, rotateWithOffsetConfig, sigmoidConfig,
-  squareConfig, squaredDifferenceConfig, reluConfig, transposeConfig
+  squareConfig, squaredDifferenceConfig, subConfig, reluConfig, transposeConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {
