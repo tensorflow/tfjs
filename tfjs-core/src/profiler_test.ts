@@ -106,10 +106,11 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
     }, delayMs * 2);
   });
 
-  it('profiles nested kernel', doneFn => {
+  it('profiles nested kernel with optional inputs', doneFn => {
     const delayMs = 5;
     const queryTimeMs = 10;
-    const inputs = {'x': tf.tensor1d([1])};
+    const inputs: {'x': tf.Tensor,
+                   'bias': null} = {'x': tf.tensor1d([1]), 'bias': null};
     const extraInfo = '';
     const timer = new TestBackendTimer(delayMs, queryTimeMs, extraInfo);
     const logger = new TestLogger();
