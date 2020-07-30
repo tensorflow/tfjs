@@ -22,7 +22,7 @@
  */
 
 import * as argparse from 'argparse';
-import chalk from 'chalk';
+import * as chalk from 'chalk';
 import * as fs from 'fs';
 
 import {getCustomModuleString} from './custom_module';
