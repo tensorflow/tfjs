@@ -26,7 +26,7 @@ import * as chalk from 'chalk';
 import * as fs from 'fs';
 
 import {getCustomModuleString} from './custom_module';
-import {CustomTFJSBundleConfig} from './types';
+import {CustomTFJSBundleConfig, SupportedBackends} from './types';
 import {esmModuleProvider} from './esm_module_provider';
 
 const DEFAULT_CUSTOM_BUNDLE_ARGS: Partial<CustomTFJSBundleConfig> = {
@@ -67,7 +67,24 @@ function validateArgs(): CustomTFJSBundleConfig {
       configFilePath}. Final config:`);
   console.log(`${JSON.stringify(config, null, 2)}\n`);
 
-  return Object.assign({}, DEFAULT_CUSTOM_BUNDLE_ARGS, config);
+  const finalConfig = Object.assign({}, DEFAULT_CUSTOM_BUNDLE_ARGS, config);
+
+  if (finalConfig.entries.length !== 0) {
+    bail('Error: config.entries not yet supported');
+  }
+
+  if (finalConfig.models.length !== 0) {
+    bail('Error: config.models not yet supported');
+  }
+
+  for (const requestedBackend of finalConfig.backends) {
+    if (requestedBackend !== SupportedBackends.cpu &&
+        requestedBackend !== SupportedBackends.webgl) {
+      bail(`Error: Unsupported backend specified '${requestedBackend}'`);
+    }
+  }
+
+  return finalConfig;
 }
 
 function getKernelNamesForConfig(config: CustomTFJSBundleConfig) {
