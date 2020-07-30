@@ -16,11 +16,11 @@
  */
 
 const http = require('http');
+const https = require('https');
 const socketio = require('socket.io');
 const fs = require('fs');
 const path = require('path');
 const {exec} = require('child_process');
-const request = require('request');
 
 const port = process.env.PORT || 8001;
 let io;
@@ -35,27 +35,37 @@ function authenticateBrowserStack() {
           export BROWSERSTACK_ACCESS_KEY=YOUR_ACCESS_KEY`);
   }
 
-  var options = {
-    url: 'https://api.browserstack.com/automate/browsers.json',
-    auth: {
-      user: process.env.BROWSERSTACK_USERNAME,
-      pass: process.env.BROWSERSTACK_ACCESS_KEY
-    }
+  const requestOptions = {
+    auth: `${process.env.BROWSERSTACK_USERNAME}:` +
+        `${process.env.BROWSERSTACK_ACCESS_KEY}`
   };
 
-  request(options, (error, response, body) => {
-    if (error != null) {
-      console.log(error);
-      throw new Error('Failed to send request.');
-    } else if (response.statusCode !== 200) {
-      console.log(body);
-      throw new Error('Failed to authenticate BrowserStack.');
-    } else {
-      console.log('Successfully authenticated BrowserStack.');
-      const browsersArray = JSON.parse(body);
-      runServer(browsersArray);
-    }
+  const browserstackBrowsersApi =
+      'https://api.browserstack.com/automate/browsers.json'
+  const request =
+      https.request(browserstackBrowsersApi, requestOptions, (response) => {
+        if (response.statusCode !== 200) {
+          throw new Error('Failed to authenticate BrowserStack.');
+        } else {
+          let data = '';
+
+          response.on('data', (chunk) => {
+            data += chunk;
+          });
+
+          response.on('end', () => {
+            console.log('Successfully authenticated BrowserStack.');
+            const browsersArray = JSON.parse(data);
+            runServer(browsersArray);
+          });
+        }
+      });
+
+  request.on('error', (e) => {
+    console.error(e);
+    throw new Error('Request failed.');
   });
+  request.end();
 }
 
 function runServer(availableBrowsers) {
