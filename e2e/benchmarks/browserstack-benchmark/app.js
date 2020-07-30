@@ -20,12 +20,12 @@ const socketio = require('socket.io');
 const fs = require('fs');
 const path = require('path');
 const {exec} = require('child_process');
+const request = require('request');
 
 const port = process.env.PORT || 8001;
 let io;
 
 function authenticateBrowserStack() {
-  const browserStack = require('browserstack');
   if (process.env.BROWSERSTACK_USERNAME == null ||
       process.env.BROWSERSTACK_ACCESS_KEY == null) {
     throw new Error(
@@ -34,19 +34,26 @@ function authenticateBrowserStack() {
           export BROWSERSTACK_USERNAME=YOUR_USERNAME
           export BROWSERSTACK_ACCESS_KEY=YOUR_ACCESS_KEY`);
   }
-  const browserStackCredentials = {
-    username: process.env.BROWSERSTACK_USERNAME,
-    password: process.env.BROWSERSTACK_ACCESS_KEY
+
+  var options = {
+    url: 'https://api.browserstack.com/automate/browsers.json',
+    auth: {
+      user: process.env.BROWSERSTACK_USERNAME,
+      pass: process.env.BROWSERSTACK_ACCESS_KEY
+    }
   };
-  const automateClient =
-      browserStack.createAutomateClient(browserStackCredentials);
-  automateClient.getBrowsers((error, browsers) => {
+
+  request(options, (error, response, body) => {
     if (error != null) {
       console.log(error);
+      throw new Error('Failed to send request.');
+    } else if (response.statusCode !== 200) {
+      console.log(body);
       throw new Error('Failed to authenticate BrowserStack.');
     } else {
       console.log('Successfully authenticated BrowserStack.');
-      runServer(browsers);
+      const browsersArray = JSON.parse(body);
+      runServer(browsersArray);
     }
   });
 }
