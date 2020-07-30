@@ -141,7 +141,7 @@ browserstack@^1.6.0:
   integrity sha512-HJDJ0TSlmkwnt9RZ+v5gFpa1XZTBYTj0ywvLwJ3241J7vMw2jAsGNVhKHtmCOyg+VxeLZyaibO9UL71AsUeDIw==
   dependencies:
     https-proxy-agent "^2.2.1"
-
+    
 browserstack@~1.5.1:
   version "1.5.3"
   resolved "https://registry.yarnpkg.com/browserstack/-/browserstack-1.5.3.tgz#93ab48799a12ef99dbd074dd595410ddb196a7ac"

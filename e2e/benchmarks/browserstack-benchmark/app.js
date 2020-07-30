@@ -18,6 +18,7 @@
 const http = require('http');
 const socketio = require('socket.io');
 const fs = require('fs');
+const path = require('path');
 const {exec} = require('child_process');
 
 const port = process.env.PORT || 8001;
@@ -54,7 +55,8 @@ authenticateBrowserStack();
 
 const app = http.createServer((request, response) => {
   const url = request.url === '/' ? '/index.html' : request.url;
-  fs.readFile(__dirname + url, (err, data) => {
+  const filePath = path.join(__dirname, url);
+  fs.readFile(filePath, (err, data) => {
     if (err) {
       response.writeHead(404);
       response.end(JSON.stringify(err));
