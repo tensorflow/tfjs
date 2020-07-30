@@ -31,7 +31,7 @@ let wasmFusedConv2d: (
     preluActivationWeightsId: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmFusedConv2d = backend.wasm.cwrap('FusedConv2D', null /* void */, [
+  wasmFusedConv2d = backend.wasm.cwrap(FusedConv2D, null /* void */, [
     'number',  // xId
     'number',  // batchSize
     'number',  // inputHeight

@@ -15,19 +15,10 @@
  * =============================================================================
  */
 
-import {backend_util, buffer, KernelConfig, NamedAttrMap, NamedTensorInfoMap, slice_util, Tensor, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, KernelConfig, KernelFunc, Slice, slice_util, SliceAttrs, SliceInputs, Tensor, util} from '@tensorflow/tfjs-core';
 import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
-
-interface SliceInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-interface SliceAttrs extends NamedAttrMap {
-  begin: number[];
-  size: number[];
-}
 
 export function slice(
     args: {inputs: SliceInputs, attrs: SliceAttrs, backend: BackendWasm}) {
@@ -136,7 +127,7 @@ function genericSliceSlow(
 }
 
 export const sliceConfig: KernelConfig = {
-  kernelName: 'Slice',
+  kernelName: Slice,
   backendName: 'wasm',
-  kernelFunc: slice,
+  kernelFunc: slice as {} as KernelFunc,
 };

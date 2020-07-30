@@ -17,7 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType} from '../shader_preprocessor';
+import {getCoordsDataType, getShapeCoords} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -30,7 +30,6 @@ export class BatchNormProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames: string[];
   workGroupSize: [4, 4, 4];
-  needsShapesUniforms = true;
 
   constructor(
       xShape: number[], meanShape: number[], varianceShape: number[],
@@ -72,7 +71,7 @@ export class BatchNormProgram implements WebGPUProgram {
 
     this.userCode = `
       void writeResult(${coordsDataType} coords,float value) {
-        if (coordsInBounds(coords, outShape)) {
+        if (coordsInBounds(coords, ${getShapeCoords(this.outputShape)})) {
           ${setOutput}
         }
       }

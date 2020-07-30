@@ -26,7 +26,6 @@ export class FromPixelsProgram implements WebGPUProgram {
   variableNames = ['A'];
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  needsShapesUniforms = true;
 
   constructor(outputShape: number[]) {
     this.outputShape = outputShape;
