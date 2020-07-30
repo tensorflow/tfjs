@@ -23,6 +23,8 @@ describe('ESM Module Provider', () => {
     expect(res).toContain(
         // tslint:disable-next-line: max-line-length
         `import {registerKernel, registerGradient} from '@tensorflow/tfjs-core/dist/base'`);
+    expect(res).toContain(
+        `import '@tensorflow/tfjs-core/dist/base_side_effects';`);
     expect(res).toContain(`export * from '@tensorflow/tfjs-core/dist/base';`);
   });
 

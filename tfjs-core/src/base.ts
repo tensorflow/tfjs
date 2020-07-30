@@ -26,15 +26,6 @@
  *   setOpHandler(ops);
  */
 
-// Engine is the global singleton that needs to be initialized before the rest
-// of the app.
-import './engine';
-// Register backend-agnostic flags.
-import './flags';
-// Register platforms
-import './platforms/platform_browser';
-import './platforms/platform_node';
-
 // Serialization.
 import * as io from './io/io';
 import * as math from './math';

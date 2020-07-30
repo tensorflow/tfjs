@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
-// Required side effectful code.
-import './base_side_effects';
-// All exports from this package should be in base.
-export * from './base';
+// Required side effectful code for tfjs-core (in any build)
 
-// TEMP comment these out in this branch. In 3.x these will be removed
-// Register all the gradients.
-// import './register_all_gradients';
-// Import all op chainers and add type info to Tensor.
-import './public/chained_ops/register_all_chained_ops';
+// Engine is the global singleton that needs to be initialized before the rest
+// of the app.
+import './engine';
+// Register backend-agnostic flags.
+import './flags';
+// Register platforms
+import './platforms/platform_browser';
+import './platforms/platform_node';
