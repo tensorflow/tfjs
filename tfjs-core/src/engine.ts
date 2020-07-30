@@ -636,7 +636,7 @@ export class Engine implements TensorTracker, DataMover {
         tensorsAdded: this.state.numTensors - startingNumTensors,
         totalTensorsSnapshot: this.state.numTensors,
         inputShapes: Object.keys(inputs).map(
-            key => inputs[key] != null ? inputs[key].shape : []),
+            key => inputs[key] != null ? inputs[key].shape : null),
         outputShapes: outputs.map(item => item.shape)
       });
     }
