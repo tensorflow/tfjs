@@ -38,7 +38,7 @@ const state = {
     browser_version: '84.0',
     os: 'OS X',
     os_version: 'Catalina',
-    device: null,
+    device: 'null',
     real_mobile: null
   }
 };
@@ -47,6 +47,7 @@ let browserTreeRoot;
 let gui;
 let browserFolder;
 let benchmarkButton;
+let browserSettingControllers = [];
 
 function constructBrowserTree(browsers) {
   const browserTreeRoot = {};
@@ -78,20 +79,54 @@ function cleanFollowingBrowserFields(currentFieldController) {
   }
 }
 
+function updateFollowingFields(
+    currentFieldIndex, currentFieldValue, currentNode) {
+  const nextFieldIndex = currentFieldIndex + 1;
+  if (nextFieldIndex === BROWSER_FIELDS.length) {
+    return;
+  }
+
+  const nextFieldName = BROWSER_FIELDS[nextFieldIndex];
+  const nextNode = currentNode[currentFieldValue];
+  const nextFieldAvailableValues = Object.keys(nextNode);
+  let nextFieldValue = state.browser[nextFieldName];
+
+  // Update the options for the next field.
+  const nextFieldController = browserSettingControllers[nextFieldIndex].options(
+      nextFieldAvailableValues);
+  nextFieldController.onFinishChange(() => {
+    const newValue = state.browser[nextFieldName];
+    updateFollowingFields(nextFieldIndex, newValue, nextNode);
+  });
+  browserSettingControllers[nextFieldIndex] = nextFieldController;
+
+  // Update the value of the next field, if the old value is not applicable.
+  if (nextNode[nextFieldValue] == null) {
+    nextFieldValue = nextFieldAvailableValues[0];
+  }
+  nextFieldController.setValue(nextFieldValue);
+
+  if (nextFieldValue === 'null') {
+    nextFieldController.__li.hidden = true;
+  } else {
+    nextFieldController.__li.hidden = false;
+  }
+
+  updateFollowingFields(nextFieldIndex, nextFieldValue, nextNode);
+}
+
 function showBrowserField(field, index, currentNode) {
   const fieldController =
       browserFolder.add(state.browser, field, Object.keys(currentNode));
 
-  fieldController.onFinishChange(value => {
-    // When
-    cleanFollowingBrowserFields(fieldController);
-    const nextFieldIndex = index + 1;
-    if (nextFieldIndex < BROWSER_FIELDS.length) {
-      const nextField = BROWSER_FIELDS[nextFieldIndex];
-      state.browser[nextField] = '';
-      showBrowserField(nextField, nextFieldIndex, currentNode[value]);
-    }
+  fieldController.onFinishChange(() => {
+    const newValue = state.browser[field];
+    updateFollowingFields(index, newValue, currentNode);
   });
+  if (state.browser[field] == 'null') {
+    fieldController.__li.hidden = true;
+  }
+  browserSettingControllers.push(fieldController);
 }
 
 function onPageLoad() {
