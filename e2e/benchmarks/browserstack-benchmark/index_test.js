@@ -21,7 +21,7 @@
  */
 
 describe('constructBrowserTree', () => {
-  const bs_firefox_mac = {
+  const mac = {
     base: 'BrowserStack',
     browser: 'firefox',
     browser_version: '70.0',
@@ -29,7 +29,7 @@ describe('constructBrowserTree', () => {
     os_version: 'High Sierra',
     device: 'null'
   };
-  const bs_iphoneX = {
+  const iphoneX = {
     base: 'BrowserStack',
     browser: 'ios',
     browser_version: 'null',
@@ -39,17 +39,17 @@ describe('constructBrowserTree', () => {
   };
 
   const expectedTree = {
-    'OS X': {'High Sierra': {'firefox': {'70.0': {'null': bs_firefox_mac}}}},
-    'ios': {'11.0': {'ios': {'null': {'iPhone X': bs_iphoneX}}}}
+    'OS X': {'High Sierra': {'firefox': {'70.0': {'null': mac}}}},
+    'ios': {'11.0': {'ios': {'null': {'iPhone X': iphoneX}}}}
   };
 
   it('constructs a tree', () => {
-    const browsersArray = [bs_firefox_mac, bs_iphoneX];
+    const browsersArray = [mac, iphoneX];
     expect(constructBrowserTree(browsersArray)).toEqual(expectedTree);
   });
 
   it('warns when finding duplicate nodes', () => {
-    const browsersArray = [bs_firefox_mac, bs_iphoneX, bs_iphoneX];
+    const browsersArray = [mac, iphoneX, iphoneX];
     spyOn(console, 'warn');
     expect(constructBrowserTree(browsersArray)).toEqual(expectedTree);
     expect(console.warn).toHaveBeenCalled();

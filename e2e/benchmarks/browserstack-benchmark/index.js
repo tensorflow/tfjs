@@ -93,7 +93,7 @@ function constructBrowserTree(browsersArray) {
 /**
  * Once the value of a certain browser field is changed, the values and options
  * of the following fields will be invalid. This function updates the following
- * fields recursively.
+ * fields recursively and does nothing for the leaf nodes.
  *
  * @param {number} currentFieldIndex
  * @param {string} currentFieldValue
@@ -144,7 +144,7 @@ function updateFollowingFields(
  * This is a wrapper function of `dat.gui.GUI.add()` with:
  * - Binds the `finishChange` event to update the value and options for the
  * controller of its child field.
- * - Hide this dropdown menu, if it is not applicable for this browser.
+ * - Hides the dropdown menu, if the field is not applicable for this browser.
  *
  * @param {number} fieldIndex The index of the browser field to be shown.
  * @param {object} currentNode The keys of this map are available values
@@ -162,7 +162,7 @@ function showBrowserField(fieldIndex, currentNode) {
 
   // Null represents the field is not applicable for this browser. For example,
   // `browser_version` is normally not applicable for mobile devices.
-  if (state.browser[fieldName] == 'null') {
+  if (state.browser[fieldName] === 'null') {
     fieldController.__li.hidden = true;
   }
 
