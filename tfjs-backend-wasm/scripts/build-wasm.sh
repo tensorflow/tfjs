@@ -25,9 +25,8 @@ cp -f bazel-bin/src/cc/tfjs-backend-wasm.js \
       wasm-out/
 
 # SIMD build.
-yarn bazel build -c opt //src/cc:tfjs-backend-wasm-simd.js --config=wasm --copt="-msimd128"
-cp -f bazel-bin/src/cc/tfjs-backend-wasm-simd.js \
-      bazel-bin/src/cc/tfjs-backend-wasm-simd.wasm \
+yarn bazel build -c opt //src/cc:tfjs-backend-wasm-simd.wasm --config=wasm --copt="-msimd128"
+cp -f bazel-bin/src/cc/tfjs-backend-wasm-simd.wasm \
       wasm-out/
 
 mkdir -p dist

@@ -19,7 +19,6 @@ import './flags_wasm';
 import {backend_util, BackendTimingInfo, DataStorage, DataType, engine, env, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
-import wasmFactorySimd from '../wasm-out/tfjs-backend-wasm-simd.js';
 import wasmFactory from '../wasm-out/tfjs-backend-wasm.js';
 
 const WASM_PRIORITY = 2;
@@ -206,13 +205,19 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
   const simdSupported = await env().getAsync('WASM_HAS_SIMD_SUPPORT');
   return new Promise((resolve, reject) => {
     const factoryConfig: WasmFactoryConfig = {};
-    if (wasmPath != null) {
-      factoryConfig.locateFile = (path, prefix) => {
-        if (path.endsWith('.wasm')) {
+    factoryConfig.locateFile = (path, prefix) => {
+      if (path.endsWith('.wasm')) {
+        if (wasmPath != null) {
           return wasmPath;
         }
-        return prefix + path;
-      };
+        if (simdSupported) {
+          return prefix + 'tfjs-backend-wasm-simd.wasm';
+        }
+        return prefix + 'tfjs-backend-wasm.wasm';
+      }
+      return prefix + path;
+    };
+    if (wasmPath != null) {
       // use wasm instantiateWasm override when system fetch is not available.
       // For detail references
       // https://github.com/emscripten-core/emscripten/blob/2bca083cbbd5a4133db61fbd74d04f7feecfa907/tests/manual_wasm_instantiate.html#L170
@@ -220,8 +225,7 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
         factoryConfig.instantiateWasm = createInstantiateWasmFunc(wasmPath);
       }
     }
-    const wasm = simdSupported ? wasmFactorySimd(factoryConfig) :
-                                 wasmFactory(factoryConfig);
+    const wasm = wasmFactory(factoryConfig);
     const voidReturnType: string = null;
     // Using the tfjs namespace to avoid conflict with emscripten's API.
     wasm.tfjs = {
