@@ -221,6 +221,9 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
 
       if (path.endsWith('.wasm')) {
         if (simdSupported) {
+          if (threadsSupported) {
+            return prefix + 'tfjs-backend-wasm-threaded-simd.wasm';
+          }
           return prefix + 'tfjs-backend-wasm-simd.wasm';
         }
         return prefix + 'tfjs-backend-wasm.wasm';

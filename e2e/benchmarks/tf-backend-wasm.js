@@ -3573,7 +3573,10 @@
                   return URL.createObjectURL(blob);
               }
               if (path.endsWith('.wasm')) {
-                  if (simdSupported) {
+                if (simdSupported) {
+                    if(threadsSupported) {
+                      return prefix + 'tfjs-backend-wasm-threaded-simd.wasm';
+                    }
                       return prefix + 'tfjs-backend-wasm-simd.wasm';
                   }
                   return prefix + 'tfjs-backend-wasm.wasm';
