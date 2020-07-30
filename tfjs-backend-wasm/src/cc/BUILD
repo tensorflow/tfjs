@@ -45,7 +45,6 @@ cc_binary(
         "-s SIMD=1",
         "-s USE_PTHREADS=1",
         "-s PTHREAD_POOL_SIZE=4",
-        "-s ASSERTIONS=1",
         "-s INITIAL_MEMORY=1Gb",
         "-s MAXIMUM_MEMORY=1Gb",
         "-s PROXY_TO_PTHREAD=1",
