@@ -40,7 +40,7 @@ function getBrowserStackConfig() {
   const browsers = require('./browsers.json');
   browsers.forEach((browser, index) => {
     browserstackConfig.customLaunchers[index.toString()] = browser;
-    browserstackConfig.browsers.push(index.toString())
+    browserstackConfig.browsers.push(index.toString());
   });
   return browserstackConfig;
 }

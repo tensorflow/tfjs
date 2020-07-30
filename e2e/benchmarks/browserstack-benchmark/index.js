@@ -15,26 +15,39 @@
  * =============================================================================
  */
 
+const BROWSER_FIELDS =
+    ['os', 'os_version', 'browser', 'browser_version', 'device'];
 const socket = io();
 const state = {
   run: () => {
-    // Disable the button.
+    // Disable the benchmark button.
     benchmarkButton.__li.style.pointerEvents = 'none';
-    benchmarkButton.__li.style.opacity = .5;
+    benchmarkButton.__li.style.opacity = .8;
 
-    socket.emit('run', {browsers: state.browsers});
+    if (state.browser.os === 'ios' || state.browser.os === 'android') {
+      state.browser.real_mobile = true;
+    }
+    if (state.browser.device === 'null') {
+      state.browser.device = null;
+    }
+    socket.emit('run', {browsers: [state.browser]});
   },
-  browsers: [{
+  browser: {
     base: 'BrowserStack',
     browser: 'chrome',
     browser_version: '84.0',
     os: 'OS X',
     os_version: 'Catalina',
-  }]
+    device: null,
+    real_mobile: null
+  }
 };
 
-const BROWSER_FIELDS =
-    ['os', 'os_version', 'browser', 'browser_version', 'device'];
+let browserTreeRoot;
+let gui;
+let browserFolder;
+let benchmarkButton;
+
 function constructBrowserTree(browsers) {
   const browserTreeRoot = {};
   browsers.forEach(browser => {
@@ -53,20 +66,67 @@ function constructBrowserTree(browsers) {
   return browserTreeRoot;
 }
 
-let browserTreeRoot;
-socket.on('availableBrowsers', browsers => {
-  browserTreeRoot = constructBrowserTree(browsers);
-});
+function cleanFollowingBrowserFields(currentFieldController) {
+  while (browserFolder.__controllers.length > 0) {
+    let tailController =
+        browserFolder.__controllers[browserFolder.__controllers.length - 1];
+    if (tailController === currentFieldController) {
+      break;
+    } else {
+      browserFolder.remove(tailController);
+    }
+  }
+}
 
-socket.on('benchmarkComplete', benchmarkResult => {
-  const {timeInfo, memoryInfo} = benchmarkResult;
-  document.getElementById('results').innerHTML +=
-      JSON.stringify(timeInfo, null, 2);
+function showBrowserField(field, index, currentNode) {
+  const fieldController =
+      browserFolder.add(state.browser, field, Object.keys(currentNode));
 
-  // Enable the button.
-  benchmarkButton.__li.style.pointerEvents = '';
-  benchmarkButton.__li.style.opacity = 1;
-});
+  fieldController.onFinishChange(value => {
+    // When
+    cleanFollowingBrowserFields(fieldController);
+    const nextFieldIndex = index + 1;
+    if (nextFieldIndex < BROWSER_FIELDS.length) {
+      const nextField = BROWSER_FIELDS[nextFieldIndex];
+      state.browser[nextField] = '';
+      showBrowserField(nextField, nextFieldIndex, currentNode[value]);
+    }
+  });
+}
 
-const gui = new dat.gui.GUI();
-const benchmarkButton = gui.add(state, 'run').name('Run benchmark');
+function onPageLoad() {
+  // Once the server is connected, the server will send back all
+  // BrowserStack's available browsers.
+  socket.on('availableBrowsers', availableBrowsersArray => {
+    if (browserTreeRoot == null) {
+      browserTreeRoot = constructBrowserTree(availableBrowsersArray);
+
+      // Show browser settings.
+      let currentNode = browserTreeRoot;
+      BROWSER_FIELDS.forEach((field, index) => {
+        showBrowserField(field, index, currentNode);
+        currentNode = currentNode[state.browser[field]];
+      });
+      browserFolder.open();
+
+      benchmarkButton = gui.add(state, 'run').name('Run benchmark');
+    }
+  });
+
+  socket.on('benchmarkComplete', benchmarkResult => {
+    const {timeInfo, memoryInfo} = benchmarkResult;
+
+    // TODO: Add UI for results presenting.
+    document.getElementById('results').innerHTML +=
+        JSON.stringify(timeInfo, null, 2);
+
+    // Enable the benchmark button.
+    benchmarkButton.__li.style.pointerEvents = '';
+    benchmarkButton.__li.style.opacity = 1;
+  });
+
+  gui = new dat.gui.GUI({width: 400});
+  browserFolder = gui.addFolder('Browser');
+}
+
+onPageLoad();
