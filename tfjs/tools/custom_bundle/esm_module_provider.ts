@@ -28,7 +28,6 @@ export * from '@tensorflow/tfjs-core/dist/base';
   },
 
   importConverterStr() {
-    // TODO(yassogba). Create a 'base' file for converter,
     return `export * from '@tensorflow/tfjs-converter';`;
   },
 

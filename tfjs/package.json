@@ -78,6 +78,7 @@
     "publish-npm": "npm publish",
     "lint": "tslint -p . -t verbose",
     "test": "yarn && yarn build-deps && yarn build && karma start",
+    "test-tools": "ts-node --project ./tools/custom_bundle/tsconfig.json run_tools_tests.ts",
     "test-ci": "./scripts/test-ci.sh"
   },
   "dependencies": {
