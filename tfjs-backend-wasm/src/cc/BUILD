@@ -21,6 +21,7 @@ cc_binary(
         "-s MODULARIZE=1",
         "-s EXPORT_NAME=WasmBackendModule",
         "-s MALLOC=emmalloc",
+        "-s STANDALONE_WASM=1",
     ],
     deps = [
         ":all_kernels",
@@ -43,6 +44,7 @@ cc_binary(
         "-s EXPORT_NAME=WasmBackendModuleSimd",
         "-s MALLOC=emmalloc",
         "-s SIMD=1",
+        "-s STANDALONE_WASM=1",
     ],
     deps = [
         ":all_kernels",
