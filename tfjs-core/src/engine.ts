@@ -819,7 +819,7 @@ export class Engine implements TensorTracker, DataMover {
       // TensorInfo's refCounting whereas modularized kernels will use
       // TensorData's refCounting, so we need to decRef both
       // TensorInfo and TensorData's refCount to keep them in sync.
-      info.backend.decRef(a.dataId);
+      // info.backend.decRef(a.dataId);
     }
     // TODO(nsthorat): Construct an error and save the stack trace for
     // debugging when in debug mode. Creating a stack trace is too expensive
