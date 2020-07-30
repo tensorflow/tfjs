@@ -1215,10 +1215,10 @@ export class WebGPUBackend extends KernelBackend {
       pixelArray = new Uint8Array(pixels.width * pixels.height * numChannels);
 
       const dataLength = imageData.length;
+      let j = 0;
       for (let i = 0; i < dataLength; i++) {
         if (i % 4 < numChannels) {
-          const pixelIndex = Math.floor(i / 4);
-          pixelArray[pixelIndex * numChannels + i % 4] = imageData[i];
+          pixelArray[j++] = imageData[i];
         }
       }
     }
