@@ -24,6 +24,9 @@ const state = {
     benchmarkButton.__li.style.opacity = .8;
 
     // Send the benchmark configuration to the server to start the benchmark.
+    if (state.browser.device === 'null') {
+      state.browser.device = null;
+    }
     socket.emit('run', {browsers: [state.browser]});
   },
   browser: {
