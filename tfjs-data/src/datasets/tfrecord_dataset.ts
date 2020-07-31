@@ -18,7 +18,7 @@
 
 import {TensorContainerObject} from '@tensorflow/tfjs-core';
 import {Dataset} from '../dataset';
-import {TFRecordDataSource} from '../sources/tfrecord_data_source'
+import {TFRecordDataSource} from '../sources/tfrecord_data_source';
 import {LazyIterator} from '../iterators/lazy_iterator';
 
 /**
@@ -35,6 +35,6 @@ export class TFRecordDataset extends Dataset<TensorContainerObject> {
   }
 
   async iterator(): Promise<LazyIterator<TensorContainerObject>> {
-    return await this.input.iterator();
+    return this.input.iterator();
   }
 }

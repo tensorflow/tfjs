@@ -112,8 +112,9 @@ export function csv(
 }
 
 /**
- * Create a `TFRecordDataset` by reading and decoding TFRecords file(s) from provided
- * local path. This API only works in node environment.
+ * Create a `TFRecordDataset` by reading and decoding
+ * TFRecords file(s) from provided local path.
+ * This API only works in node environment.
  *
  * ```js
  * const tfrecordPath = 'file://data.tfrecord';

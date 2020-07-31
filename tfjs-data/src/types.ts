@@ -218,18 +218,18 @@ export interface MicrophoneConfig {
   includeWaveform?: boolean;
 }
 
-export interface IFeature {
-  toObject(): IFeatureProto
+export interface Feature {
+  toObject(): FeatureProto;
 }
 
-export interface IFeatureProto {
+export interface FeatureProto {
   bytesList?: {
     valueList: [string]
-  }
+  };
   floatList?: {
     valueList: [number]
-  }
+  };
   int64List?: {
     valueList: [number]
-  }
+  };
 }

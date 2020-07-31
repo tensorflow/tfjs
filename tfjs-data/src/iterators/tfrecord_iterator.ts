@@ -20,7 +20,7 @@ import {TensorContainerObject, env, tensor, scalar} from '@tensorflow/tfjs-core'
 import {isLocalPath} from '../util/source_util';
 import {maskedCrc32c} from '../proto/crc32c';
 import {LazyIterator} from './lazy_iterator';
-import {IFeatureProto, IFeature} from '../types';
+import {FeatureProto, Feature} from '../types';
 
 // tslint:disable-next-line:no-require-imports
 const messages = require('../proto/api_pb.js');
@@ -74,7 +74,9 @@ export class TFRecordIterator extends LazyIterator<TensorContainerObject> {
     if (!isLocalPath(this.file) || !env().get('IS_NODE')) {
       return {value: null, done: true};
     }
-    if (this.closed) return {value: null, done: true};
+    if (this.closed) {
+      return {value: null, done: true};
+    }
     // tslint:disable-next-line:no-require-imports
     const fs = require('fs');
     let bytesRead = fs.readSync(this.fd, this.lengthAndCrcBuffer, 0, 12, null);
@@ -123,7 +125,8 @@ export class TFRecordIterator extends LazyIterator<TensorContainerObject> {
     if (bytesRead !== readLength) {
       fs.closeSync(this.fd);
       this.closed = true;
-      // error msg: `Incomplete read; expected ${readLength} bytes, got ${bytesRead}`
+      // error msg: `Incomplete read; expected ${readLength} bytes,
+      // got ${bytesRead}`
       return {value: null, done: true};
     }
 
@@ -142,12 +145,12 @@ export class TFRecordIterator extends LazyIterator<TensorContainerObject> {
       return {value: null, done: true};
     }
 
-    let result: TensorContainerObject = {};
+    const result: TensorContainerObject = {};
     messages.Example.deserializeBinary(recordData)
       .getFeatures()
       .getFeatureMap()
-      .forEach((item: IFeature, index: string) => {
-        const itemObj: IFeatureProto = item.toObject();
+      .forEach((item: Feature, index: string) => {
+        const itemObj: FeatureProto = item.toObject();
         if (itemObj.bytesList) {
           const bytesBuff = Buffer.from(
             itemObj.bytesList.valueList[0],
