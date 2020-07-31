@@ -31,7 +31,6 @@ export class PadProgram implements WebGPUProgram {
   variableNames = ['x'];
   workPerThread = 8;
   workGroupSize: [number, number, number] = [16, 1, 1];
-  needsShapesUniforms = true;
 
   constructor(
       xShape: number[], paddings: Array<[number, number]>,
