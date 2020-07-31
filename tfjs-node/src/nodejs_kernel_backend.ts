@@ -189,6 +189,8 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.tensorMap.numDataIds();
   }
 
+  decRef(dataId: DataId): void {}
+
   dispose(): void {}
 
   async read(dataId: DataId): Promise<backend_util.BackendValues> {

@@ -15,52 +15,55 @@
  * =============================================================================
  */
 
-import {NumericDataType, PadV2, PadV2Attrs, PadV2Inputs, TypedArray, util} from '@tensorflow/tfjs-core';
-import {KernelConfig} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, NumericDataType, PadV2, PadV2Attrs, PadV2Inputs, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 
+function padV2(
+    args: {inputs: PadV2Inputs, backend: MathBackendCPU, attrs: PadV2Attrs}):
+    TensorInfo {
+  const {inputs, backend, attrs} = args;
+  const {x} = inputs;
+  const {paddings, constantValue} = attrs;
+
+  assertNotComplex(x, 'pad');
+
+  const outShape = paddings.map(
+      (p, i) => p[0] /* beforePad */ + x.shape[i] + p[1] /* afterPad */);
+
+  const start = paddings.map(p => p[0]);
+
+  const xVals = backend.data.get(x.dataId).values as TypedArray;
+  const xSize = util.sizeFromShape(x.shape);
+  const xRank = x.shape.length;
+  const xStrides = util.computeStrides(x.shape);
+
+  const resultSize = util.sizeFromShape(outShape);
+  const resultRank = outShape.length;
+  const resultStrides = util.computeStrides(outShape);
+  const resVals =
+      util.getTypedArrayFromDType(x.dtype as NumericDataType, resultSize);
+
+  if (constantValue !== 0) {
+    resVals.fill(constantValue);
+  }
+
+  for (let i = 0; i < xSize; i++) {
+    const coords = util.indexToCoord(i, xRank, xStrides);
+    const outCoords = coords.map((c, i) => c + start[i]);
+    const outIndex = util.coordToIndex(outCoords, resultRank, resultStrides);
+
+    resVals[outIndex] = xVals[i];
+  }
+
+  const outId = backend.write(resVals, outShape, x.dtype);
+
+  return {dataId: outId, shape: outShape, dtype: x.dtype};
+}
+
 export const padV2Config: KernelConfig = {
   kernelName: PadV2,
   backendName: 'cpu',
-  kernelFunc: ({inputs, backend, attrs}) => {
-    const {x} = inputs as PadV2Inputs;
-    const {paddings, constantValue} = attrs as {} as PadV2Attrs;
-    const cpuBackend = backend as MathBackendCPU;
-
-    assertNotComplex(x, 'pad');
-
-    const outShape = paddings.map(
-        (p, i) => p[0] /* beforePad */ + x.shape[i] + p[1] /* afterPad */);
-
-    const start = paddings.map(p => p[0]);
-
-    const xVals = cpuBackend.data.get(x.dataId).values as TypedArray;
-    const xSize = util.sizeFromShape(x.shape);
-    const xRank = x.shape.length;
-    const xStrides = util.computeStrides(x.shape);
-
-    const resultSize = util.sizeFromShape(outShape);
-    const resultRank = outShape.length;
-    const resultStrides = util.computeStrides(outShape);
-    const resVals =
-        util.getTypedArrayFromDType(x.dtype as NumericDataType, resultSize);
-
-    if (constantValue !== 0) {
-      resVals.fill(constantValue);
-    }
-
-    for (let i = 0; i < xSize; i++) {
-      const coords = util.indexToLoc(i, xRank, xStrides);
-      const outCoords = coords.map((c, i) => c + start[i]);
-      const outIndex = util.locToIndex(outCoords, resultRank, resultStrides);
-
-      resVals[outIndex] = xVals[i];
-    }
-
-    const outId = cpuBackend.write(resVals, outShape, x.dtype);
-
-    return {dataId: outId, shape: outShape, dtype: x.dtype};
-  }
+  kernelFunc: padV2 as {} as KernelFunc
 };
