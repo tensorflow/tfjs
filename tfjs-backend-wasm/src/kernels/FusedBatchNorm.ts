@@ -15,21 +15,9 @@
  * =============================================================================
  */
 
-import {KernelConfig, NamedAttrMap, NamedTensorInfoMap, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {FusedBatchNorm, FusedBatchNormAttrs, FusedBatchNormInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
-
-interface BatchNormInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-  mean: TensorInfo;
-  variance: TensorInfo;
-  offset: TensorInfo;
-  scale: TensorInfo;
-}
-
-interface BatchNormAttrs extends NamedAttrMap {
-  varianceEpsilon: number;
-}
 
 let wasmBatchNorm: (
     xId: number, meanId: number, varianceId: number, offsetId: number,
@@ -37,14 +25,15 @@ let wasmBatchNorm: (
 
 function setup(backend: BackendWasm): void {
   wasmBatchNorm = backend.wasm.cwrap(
-      'FusedBatchNorm', null /* void */,
+      FusedBatchNorm, null /* void */,
       ['number', 'number', 'number', 'number', 'number', 'number', 'number']);
 }
 
-function fusedBatchNorm(
-    args:
-        {backend: BackendWasm, inputs: BatchNormInputs, attrs: BatchNormAttrs}):
-    TensorInfo {
+function fusedBatchNorm(args: {
+  backend: BackendWasm,
+  inputs: FusedBatchNormInputs,
+  attrs: FusedBatchNormAttrs
+}): TensorInfo {
   const {backend, inputs, attrs} = args;
   const {varianceEpsilon} = attrs;
   const {x, mean, variance, offset, scale} = inputs;
@@ -68,8 +57,8 @@ function fusedBatchNorm(
 }
 
 export const fusedBatchNormConfig: KernelConfig = {
-  kernelName: 'FusedBatchNorm',
+  kernelName: FusedBatchNorm,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: fusedBatchNorm
+  kernelFunc: fusedBatchNorm as {} as KernelFunc
 };

@@ -15,23 +15,15 @@
  * =============================================================================
  */
 
-import {KernelConfig, NamedAttrMap, NamedTensorInfoMap, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Softmax, SoftmaxAttrs, SoftmaxInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
-
-interface SoftmaxInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-interface SoftmaxAttrs extends NamedAttrMap {
-  dim: number;
-}
 
 let wasmFunc: (xId: number, outId: number, channels: number, batch: number) =>
     void;
 
 function setup(backend: BackendWasm): void {
-  wasmFunc = backend.wasm.cwrap('Softmax', null /* void */, [
+  wasmFunc = backend.wasm.cwrap(Softmax, null /* void */, [
     'number',  // xId
     'number',  // outId
     'number',  // channels
@@ -60,8 +52,8 @@ function softmax(
 }
 
 export const softmaxConfig: KernelConfig = {
-  kernelName: 'Softmax',
+  kernelName: Softmax,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: softmax
+  kernelFunc: softmax as {} as KernelFunc
 };
