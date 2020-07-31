@@ -51,7 +51,7 @@ export type MemoryInfo = {
   unreliable?: boolean; reasons: string[];
 };
 
-type KernelProfile = {
+type KernelInfo = {
   name: string; bytesAdded: number; totalBytesSnapshot: number;
   tensorsAdded: number;
   totalTensorsSnapshot: number;
@@ -61,7 +61,7 @@ type KernelProfile = {
 
 export type ProfileInfo = {
   newBytes: number; newTensors: number; peakBytes: number;
-  kernels: KernelProfile[];
+  kernels: KernelInfo[];
   result: TensorContainer;
 };
 
