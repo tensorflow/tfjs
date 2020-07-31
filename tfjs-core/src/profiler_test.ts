@@ -196,61 +196,6 @@ describeWithFlags('new profiler.Profiler', SYNC_BACKEND_ENVS, () => {
     }, delayMs * 2);
   });
 
-  it('new profiles nested kernel with optional inputs', doneFn => {
-    const delayMs = 5;
-    const queryTimeMs = 10;
-    const inputs: {'x': tf.Tensor,
-                   'bias': null} = {'x': tf.tensor1d([1]), 'bias': null};
-    const extraInfo = '';
-    const timer = new TestBackendTimer(delayMs, queryTimeMs, extraInfo);
-    const logger = new TestLogger();
-    const profiler = new Profiler(timer, logger);
-
-    spyOn(timer, 'time').and.callThrough();
-    spyOn(logger, 'logKernelProfile').and.callThrough();
-    const timeSpy = timer.time as jasmine.Spy;
-
-    let matmulKernelCalled = false;
-    let maxKernelCalled = false;
-    const result = 1;
-    const resultScalar = tf.scalar(result);
-
-    let innerKernelProfile: KernelProfile;
-    const outerKernelProfile =
-        profiler.profileKernelKernelProfile('MatMul', inputs, () => {
-          innerKernelProfile =
-              profiler.profileKernelKernelProfile('Max', inputs, () => {
-                maxKernelCalled = true;
-                return [resultScalar];
-              });
-          matmulKernelCalled = true;
-          return innerKernelProfile.outputs;
-        });
-
-    setTimeout(() => {
-      expect(timeSpy.calls.count()).toBe(2);
-      expect(matmulKernelCalled).toBe(true);
-      expect(maxKernelCalled).toBe(true);
-
-      const checkInnerKernelProfile = checkKernelProfile(innerKernelProfile, {
-        kernelName: 'Max',
-        outputs: [resultScalar],
-        timeMs: queryTimeMs,
-        inputs,
-        extraInfo
-      });
-      const checkOuterKernelProfile = checkKernelProfile(outerKernelProfile, {
-        kernelName: 'MatMul',
-        outputs: [resultScalar],
-        timeMs: queryTimeMs * 2,
-        inputs,
-        extraInfo
-      });
-      Promise.all([checkInnerKernelProfile, checkOuterKernelProfile])
-          .then(() => doneFn());
-    }, delayMs * 2);
-  });
-
   it('new log kernelProfile', doneFn => {
     const delayMs = 5;
     const queryTimeMs = 10;
