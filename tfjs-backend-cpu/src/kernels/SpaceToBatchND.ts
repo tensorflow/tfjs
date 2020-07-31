@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, SpaceToBatchND, SpaceToBatchNDAttrs, SpaceToBatchNDInputs, TensorInfo} from '@tensorflow/tfjs-core';
-import {KernelConfig} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, NamedAttrMap, ReshapeAttrs, ReshapeInputs, SpaceToBatchND, SpaceToBatchNDAttrs, SpaceToBatchNDInputs, TensorInfo, TransposeAttrs, TransposeInputs} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
@@ -25,59 +24,75 @@ import {padV2Config} from './PadV2';
 import {reshapeConfig} from './Reshape';
 import {transposeConfig} from './Transpose';
 
+function spaceToBatchND(args: {
+  inputs: SpaceToBatchNDInputs,
+  backend: MathBackendCPU,
+  attrs: SpaceToBatchNDAttrs
+}): TensorInfo {
+  const {inputs, backend, attrs} = args;
+  const {x} = inputs;
+  const {blockShape, paddings} = attrs;
+
+  assertNotComplex([x], 'spaceToBatchND');
+
+  const prod = blockShape.reduce((a, b) => a * b);
+
+  const completePaddings: Array<[number, number]> = [[0, 0]];
+  completePaddings.push(...(paddings as Array<[number, number]>));
+
+  for (let i = 1 + blockShape.length; i < x.shape.length; ++i) {
+    completePaddings.push([0, 0]);
+  }
+
+  const paddedX = padV2Config.kernelFunc({
+    inputs: {x},
+    backend,
+    attrs: {paddings: completePaddings, constantValue: 0}
+  }) as TensorInfo;
+
+  const reshapedPaddedShape =
+      backend_util.getReshaped(paddedX.shape, blockShape, prod, false);
+
+  const permutedReshapedPaddedPermutation = backend_util.getPermuted(
+      reshapedPaddedShape.length, blockShape.length, false);
+
+  const flattenShape =
+      backend_util.getReshapedPermuted(paddedX.shape, blockShape, prod, false);
+
+  const reshapeInputs: ReshapeInputs = {x: paddedX};
+  const reshapeAttrs: ReshapeAttrs = {shape: reshapedPaddedShape};
+  const paddedXReshaped = reshapeConfig.kernelFunc({
+    inputs: reshapeInputs,
+    backend,
+    attrs: reshapeAttrs as {} as NamedAttrMap
+  }) as TensorInfo;
+
+  const transposeInputs: TransposeInputs = {x: paddedXReshaped};
+  const transposeAttrs:
+      TransposeAttrs = {perm: permutedReshapedPaddedPermutation};
+  const paddedXT = transposeConfig.kernelFunc({
+    inputs: transposeInputs,
+    backend,
+    attrs: transposeAttrs as {} as NamedAttrMap
+  }) as TensorInfo;
+
+  const resultReshapeInputs: ReshapeInputs = {x: paddedXT};
+  const resultReshapeAttrs: ReshapeAttrs = {shape: flattenShape};
+  const result = reshapeConfig.kernelFunc({
+    inputs: resultReshapeInputs,
+    backend,
+    attrs: resultReshapeAttrs as {} as NamedAttrMap
+  });
+
+  backend.disposeData(paddedX.dataId);
+  backend.disposeData(paddedXReshaped.dataId);
+  backend.disposeData(paddedXT.dataId);
+
+  return result as TensorInfo;
+}
+
 export const spaceToBatchNDConfig: KernelConfig = {
   kernelName: SpaceToBatchND,
   backendName: 'cpu',
-  kernelFunc: ({inputs, backend, attrs}) => {
-    const {x} = inputs as SpaceToBatchNDInputs;
-    const {blockShape, paddings} = attrs as {} as SpaceToBatchNDAttrs;
-    const cpuBackend = backend as MathBackendCPU;
-
-    assertNotComplex([x], 'spaceToBatchND');
-
-    const prod = blockShape.reduce((a, b) => a * b);
-
-    const completePaddings: Array<[number, number]> = [[0, 0]];
-    completePaddings.push(...(paddings as Array<[number, number]>));
-
-    for (let i = 1 + blockShape.length; i < x.shape.length; ++i) {
-      completePaddings.push([0, 0]);
-    }
-
-    const paddedX = padV2Config.kernelFunc({
-      inputs: {x},
-      backend,
-      attrs: {paddings: completePaddings, constantValue: 0}
-    }) as TensorInfo;
-
-    const reshapedPaddedShape =
-        backend_util.getReshaped(paddedX.shape, blockShape, prod, false);
-
-    const permutedReshapedPaddedPermutation = backend_util.getPermuted(
-        reshapedPaddedShape.length, blockShape.length, false);
-
-    const flattenShape = backend_util.getReshapedPermuted(
-        paddedX.shape, blockShape, prod, false);
-
-    const paddedXReshaped = reshapeConfig.kernelFunc({
-      inputs: {x: paddedX},
-      backend,
-      attrs: {shape: reshapedPaddedShape}
-    }) as TensorInfo;
-
-    const paddedXT = transposeConfig.kernelFunc({
-      inputs: {x: paddedXReshaped},
-      backend,
-      attrs: {perm: permutedReshapedPaddedPermutation}
-    }) as TensorInfo;
-
-    const result = reshapeConfig.kernelFunc(
-        {inputs: {x: paddedXT}, backend, attrs: {shape: flattenShape}});
-
-    cpuBackend.disposeData(paddedX.dataId);
-    cpuBackend.disposeData(paddedXReshaped.dataId);
-    cpuBackend.disposeData(paddedXT.dataId);
-
-    return result;
-  }
+  kernelFunc: spaceToBatchND as {} as KernelFunc
 };

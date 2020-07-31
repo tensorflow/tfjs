@@ -100,16 +100,6 @@ export class MathBackendCPU extends KernelBackend {
     return dataId;
   }
 
-  /** Increase refCount of a `TensorData`. */
-  incRef(dataId: DataId): void {
-    if (this.data.has(dataId)) {
-      const tensorData = this.data.get(dataId);
-      tensorData.refCount++;
-    }
-    // Do not throw error when dataId not found for testing. Some tests
-    // may use the backend without actually write any data to the backend.
-  }
-
   /** Decrease refCount of a `TensorData`. */
   decRef(dataId: DataId): void {
     if (this.data.has(dataId)) {
