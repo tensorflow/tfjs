@@ -72,8 +72,8 @@ describe('benchmark models', () => {
     const timeInfo = await profileInferenceTime(predict, numRuns);
     const memoryInfo = await profileInferenceMemory(predict);
 
-    const benchmarkSummary =
-        await getBenchmarkSummary(timeInfo, memoryInfo, 'mobilenet_v2');
-    console.log(benchmarkSummary);
+    const resultStr =
+        `<benchmark>${JSON.stringify({timeInfo, memoryInfo})}</benchmark>`;
+    console.log(resultStr);
   });
 });
