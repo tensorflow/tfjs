@@ -159,43 +159,6 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
 });
 
 describeWithFlags('new profiler.Profiler', SYNC_BACKEND_ENVS, () => {
-  it('new profiles simple function', doneFn => {
-    const delayMs = 5;
-    const queryTimeMs = 10;
-    const inputs = {'x': tf.tensor1d([1])};
-    const extraInfo = '';
-    const timer = new TestBackendTimer(delayMs, queryTimeMs, extraInfo);
-    const logger = new TestLogger();
-    const profiler = new Profiler(timer, logger);
-
-    spyOn(timer, 'time').and.callThrough();
-    spyOn(logger, 'logKernelProfile').and.callThrough();
-
-    const timeSpy = timer.time as jasmine.Spy;
-
-    let kernelCalled = false;
-    const result = 1;
-    const resultScalar = tf.scalar(result);
-
-    const kernelProfile =
-        profiler.profileKernelKernelProfile('MatMul', inputs, () => {
-          kernelCalled = true;
-          return [resultScalar];
-        });
-    setTimeout(() => {
-      expect(timeSpy.calls.count()).toBe(1);
-      expect(kernelCalled).toBe(true);
-
-      checkKernelProfile(kernelProfile, {
-        kernelName: 'MatMul',
-        outputs: [resultScalar],
-        timeMs: queryTimeMs,
-        inputs,
-        extraInfo,
-      }).then(() => doneFn());
-    }, delayMs * 2);
-  });
-
   it('new log kernelProfile', doneFn => {
     const delayMs = 5;
     const queryTimeMs = 10;
