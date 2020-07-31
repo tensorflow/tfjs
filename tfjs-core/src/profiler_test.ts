@@ -18,8 +18,9 @@
 import {BackendTimer, BackendTimingInfo} from './backends/backend';
 import * as tf from './index';
 import {describeWithFlags, SYNC_BACKEND_ENVS} from './jasmine_util';
-import {checkComputationForErrors, Logger, Profiler} from './profiler';
+import {checkComputationForErrors, KernelProfile, Logger, Profiler} from './profiler';
 import {Tensor} from './tensor';
+import {NamedTensorMap} from './tensor_types';
 import {TypedArray} from './types';
 
 class TestBackendTimer implements BackendTimer {
@@ -40,6 +41,32 @@ class TestBackendTimer implements BackendTimer {
 class TestLogger extends Logger {
   logKernelProfile(
       name: string, result: Tensor, vals: TypedArray, timeMs: number) {}
+}
+
+function promiseCheckWrapper(acturalValPromise: Promise<{}>, truthVal: {}) {
+  return acturalValPromise.then(acturalVal => {
+    expect(acturalVal).toEqual(truthVal);
+  });
+}
+
+export function checkKernelProfile(acturalVal: KernelProfile, truthVal: {
+  kernelName: string,
+  outputs: Tensor[],
+  timeMs: number|{error: string},
+  inputs: NamedTensorMap,
+  extraInfo: string
+}) {
+  expect(acturalVal.kernelName).toBe(truthVal.kernelName);
+  expect(acturalVal.inputs).toBe(truthVal.inputs);
+  acturalVal.outputs.forEach((output, index) => {
+    expect(output).toBe(truthVal.outputs[index]);
+  });
+
+  const promiseContainer = [
+    promiseCheckWrapper(acturalVal.timeMs, truthVal.timeMs),
+    promiseCheckWrapper(acturalVal.extraInfo, truthVal.extraInfo),
+  ];
+  return Promise.all(promiseContainer);
 }
 
 describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
