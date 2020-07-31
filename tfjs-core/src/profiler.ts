@@ -38,6 +38,14 @@ export class Profiler {
 
   profileKernel(kernelName: string, inputs: NamedTensorMap, f: () => Tensor[]):
       Tensor[] {
+    const res = this.profileKernelKernelProfile(kernelName, inputs, f);
+    this.logKernelProfile(res);
+    return res.outputs;
+  }
+
+  profileKernelKernelProfile(
+      kernelName: string, inputs: NamedTensorMap,
+      f: () => Tensor[]): KernelProfile {
     let outputs: Tensor[];
     const holdResultWrapperFn = () => {
       outputs = f();
@@ -62,8 +70,7 @@ export class Profiler {
               timing.getExtraProfileInfo() :
               '')
     };
-    this.logKernelProfile(kernelProfile);
-    return outputs;
+    return kernelProfile;
   }
 
   logKernelProfile(kernelProfile: KernelProfile): void {
