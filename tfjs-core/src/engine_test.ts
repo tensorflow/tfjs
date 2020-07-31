@@ -687,7 +687,6 @@ describeWithFlags('Detects memory leaks in kernels', ALL_ENVS, () => {
         dispose: () => null,
         disposeData: (dataId: {}) => null,
         numDataIds: () => dataIdsCount,
-        incRef: (dataId: {}) => null,
         decRef: (dataId: {}) => null
       } as TestStorage;
     });
@@ -715,7 +714,6 @@ describeWithFlags('Detects memory leaks in kernels', ALL_ENVS, () => {
         dispose: () => null,
         disposeData: (dataId: {}) => null,
         numDataIds: () => dataIdsCount,
-        incRef: (dataId: {}) => null,
         decRef: (dataId: {}) => null
       } as TestStorage;
     });
@@ -771,7 +769,6 @@ describe('Memory allocation outside a test scope', () => {
         read: async (dataId: object) => storedValues,
         dispose: () => null,
         disposeData: (dataId: {}) => null,
-        incRef: (dataId: {}) => {},
         decRef: (dataId: {}) => {}
       } as TestStorage;
     });
