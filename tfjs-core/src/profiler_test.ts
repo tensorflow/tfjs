@@ -158,8 +158,8 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
   });
 });
 
-describeWithFlags('profiler.Profiler2', SYNC_BACKEND_ENVS, () => {
-  it('profiles simple function2', doneFn => {
+describeWithFlags('new profiler.Profiler', SYNC_BACKEND_ENVS, () => {
+  it('new profiles simple function', doneFn => {
     const delayMs = 5;
     const queryTimeMs = 10;
     const inputs = {'x': tf.tensor1d([1])};
@@ -196,7 +196,7 @@ describeWithFlags('profiler.Profiler2', SYNC_BACKEND_ENVS, () => {
     }, delayMs * 2);
   });
 
-  it('profiles nested kernel with optional inputs2', doneFn => {
+  it('new profiles nested kernel with optional inputs', doneFn => {
     const delayMs = 5;
     const queryTimeMs = 10;
     const inputs: {'x': tf.Tensor,
@@ -251,7 +251,7 @@ describeWithFlags('profiler.Profiler2', SYNC_BACKEND_ENVS, () => {
     }, delayMs * 2);
   });
 
-  it('log kernelProfile2', doneFn => {
+  it('new log kernelProfile', doneFn => {
     const delayMs = 5;
     const queryTimeMs = 10;
     const inputs = {'x': tf.tensor1d([1])};
