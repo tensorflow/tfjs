@@ -158,40 +158,6 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
   });
 });
 
-describeWithFlags('new profiler.Profiler', SYNC_BACKEND_ENVS, () => {
-  it('new log kernelProfile', doneFn => {
-    const delayMs = 5;
-    const queryTimeMs = 10;
-    const inputs = {'x': tf.tensor1d([1])};
-    const extraInfo = '';
-    const timer = new TestBackendTimer(delayMs, queryTimeMs, extraInfo);
-    const logger = new TestLogger();
-    const profiler = new Profiler(timer, logger);
-
-    spyOn(logger, 'logKernelProfile').and.callThrough();
-    const logKernelProfileSpy = logger.logKernelProfile as jasmine.Spy;
-
-    const result = 1;
-    const resultScalar = tf.scalar(result);
-
-    const kernelProfiles =
-        profiler.profileKernelKernelProfile('MatMul', inputs, () => {
-          return [resultScalar];
-        });
-    profiler.logKernelProfile(kernelProfiles);
-
-    setTimeout(() => {
-      expect(logKernelProfileSpy.calls.count()).toBe(1);
-
-      expect(logKernelProfileSpy.calls.first().args).toEqual([
-        'MatMul', resultScalar, new Float32Array([result]), queryTimeMs, inputs,
-        extraInfo
-      ]);
-      doneFn();
-    }, delayMs * 2);
-  });
-});
-
 describe('profiler.checkComputationForErrors', () => {
   beforeAll(() => {
     // Silence warnings.
