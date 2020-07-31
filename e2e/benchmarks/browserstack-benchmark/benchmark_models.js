@@ -70,6 +70,9 @@ describe('benchmark models', () => {
       const numRuns = benchmark_parameters.numRuns;
       let model;
       if (benchmark_parameters.model === 'custom') {
+        if (benchmark_parameters.modelUrl == null) {
+          throw new Error('Please provide model url for the custom model.')
+        }
         model = await loadModelByUrl(benchmark_parameters.modelUrl);
       } else {
         model = await benchmark.load();
