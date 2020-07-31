@@ -821,7 +821,9 @@ export class Engine implements TensorTracker, DataMover {
       // are modularized.
       // We added this to keep backend refCount to be in sync with engine
       // refCount.
-      info.backend.decRef(a.dataId);
+      if (this.backendName === 'cpu') {
+        info.backend.decRef(a.dataId);
+      }
     }
     // TODO(nsthorat): Construct an error and save the stack trace for
     // debugging when in debug mode. Creating a stack trace is too expensive
