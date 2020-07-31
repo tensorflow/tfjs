@@ -61,19 +61,19 @@ describe('benchmark models', () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
   });
 
-  it(`benchmark ${benchmarks[benchmark_parameters.model]}`, async () => {
+  it(`benchmark ${benchmarks[benchmarkParameters.model]}`, async () => {
     try {
-      await tf.setBackend(benchmark_parameters.backend);
+      await tf.setBackend(benchmarkParameters.backend);
 
       // Load the model.
-      const benchmark = benchmarks[benchmark_parameters.model];
-      const numRuns = benchmark_parameters.numRuns;
+      const benchmark = benchmarks[benchmarkParameters.model];
+      const numRuns = benchmarkParameters.numRuns;
       let model;
-      if (benchmark_parameters.model === 'custom') {
-        if (benchmark_parameters.modelUrl == null) {
-          throw new Error('Please provide model url for the custom model.')
+      if (benchmarkParameters.model === 'custom') {
+        if (benchmarkParameters.modelUrl == null) {
+          throw new Error('Please provide model url for the custom model.');
         }
-        model = await loadModelByUrl(benchmark_parameters.modelUrl);
+        model = await loadModelByUrl(benchmarkParameters.modelUrl);
       } else {
         model = await benchmark.load();
       }
