@@ -61,19 +61,39 @@ describe('benchmark models', () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
   });
 
-  it('mobile net', async () => {
-    const url =
-        'https://storage.googleapis.com/learnjs-data/mobilenet_v2_100_fused/model.json';
-    const model = await tf.loadGraphModel(url);
-    const input = generateInput(model);
-    const predict = () => model.predict(input);
+  it(`benchmark ${benchmarks[benchmark_parameters.model]}`, async () => {
+    try {
+      await tf.setBackend(benchmark_parameters.backend);
 
-    const numRuns = 20;
-    const timeInfo = await profileInferenceTime(predict, numRuns);
-    const memoryInfo = await profileInferenceMemory(predict);
+      // Load the model.
+      const benchmark = benchmarks[benchmark_parameters.model];
+      const numRuns = benchmark_parameters.numRuns;
+      let model;
+      if (benchmark_parameters.model === 'custom') {
+        model = await loadModelByUrl(benchmark_parameters.modelUrl);
+      } else {
+        model = await benchmark.load();
+      }
 
-    const resultStr =
-        `<benchmark>${JSON.stringify({timeInfo, memoryInfo})}</benchmark>`;
-    console.log(resultStr);
+      // Benchmark.
+      let timeInfo;
+      let memoryInfo;
+      if (benchmark.predictFunc != null) {
+        const predict = benchmark.predictFunc();
+        timeInfo = await profileInferenceTime(() => predict(model), numRuns);
+        memoryInfo = await profileInferenceMemory(() => predict(model));
+      } else {
+        const input = generateInput(model);
+        timeInfo = await profileInferenceTimeForModel(model, input, numRuns);
+        memoryInfo = await profileInferenceMemoryForModel(model, input);
+      }
+
+      // Report results.
+      const resultStr =
+          `<benchmark>${JSON.stringify({timeInfo, memoryInfo})}</benchmark>`;
+      console.log(resultStr);
+    } catch (error) {
+      console.log(`<error>${error}</error>`);
+    }
   });
 });

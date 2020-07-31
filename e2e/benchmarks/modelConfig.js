@@ -223,7 +223,7 @@ const benchmarks = {
   'custom': {
     type: '',
     load: async () => {
-      return loadModelByUrl(state.modelUrl);
+      return loadModelByUrl(state.modelUrl, {}, state);
     },
     predictFunc: () => {
       return async model => {
@@ -277,7 +277,8 @@ function findIOHandler(path, loadOptions = {}) {
   return handler;
 }
 
-async function tryAllLoadingMethods(modelHandler, loadOptions = {}) {
+async function tryAllLoadingMethods(
+    modelHandler, loadOptions = {}, state = {}) {
   let model;
   // TODO: download weights once
   try {
@@ -297,7 +298,7 @@ async function tryAllLoadingMethods(modelHandler, loadOptions = {}) {
   throw new Error(`Didn't find a fit loading method for this model.`);
 }
 
-async function loadModelByUrl(modelUrl, loadOptions = {}) {
+async function loadModelByUrl(modelUrl, loadOptions = {}, state = {}) {
   let model, ioHandler, modelType;
 
   const supportedSchemes = /^(https?|localstorage|indexeddb):\/\/.+$/;
@@ -315,7 +316,7 @@ async function loadModelByUrl(modelUrl, loadOptions = {}) {
 
   // Convert URL to IOHandler and parse the model type
   try {
-    ioHandler = findIOHandler(modelUrl, loadOptions);
+    ioHandler = findIOHandler(modelUrl, loadOptions, state);
     const artifacts = await ioHandler.load();
     modelType = artifacts.format;
   } catch (e) {
