@@ -101,9 +101,6 @@ async function main() {
       }
     }
   }
-  // Insert an empty release file at the root level, so that CI can use it to
-  // set RELEASE flag.
-  fs.writeFileSync('release', '');
 
   // Use dev prefix to avoid branch being locked.
   const devBranchName = `dev_${releaseBranch}`;

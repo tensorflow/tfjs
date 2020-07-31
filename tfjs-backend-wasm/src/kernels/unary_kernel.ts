@@ -15,13 +15,9 @@
  * =============================================================================
  */
 
-import {KernelConfig, NamedTensorInfoMap, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, TensorInfo, UnaryInputs, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
-
-interface UnaryInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
 
 export function createUnaryKernelConfig(kernelName: string): KernelConfig {
   let wasmFunc: (xId: number, outId: number) => void;
