@@ -61,6 +61,7 @@ function multinomial_(
   const res = ENGINE.runKernelFunc(
       backend => backend.multinomial(logits2D, normalized, numSamples, seed),
       {logits2D});
+  // tslint:disable-next-line:no-unnecessary-type-assertion
   return origRank === 1 ? reshape(res, [res.size]) as Tensor1D : res;
 }
 
