@@ -20,6 +20,7 @@ import {Tensor1D, Tensor2D} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {op} from './operation';
+import {reshape} from './reshape';
 
 /**
  * Creates a `tf.Tensor` with values drawn from a multinomial distribution.
@@ -55,11 +56,12 @@ function multinomial_(
     throw new Error(`Rank of probabilities must be 1 or 2, but is ${origRank}`);
   }
   seed = seed || Math.random();
-  const logits2D = origRank === 1 ? $logits.as2D(1, -1) : $logits as Tensor2D;
+  const logits2D: Tensor2D =
+      origRank === 1 ? reshape($logits, [1, -1]) : $logits as Tensor2D;
   const res = ENGINE.runKernelFunc(
       backend => backend.multinomial(logits2D, normalized, numSamples, seed),
       {logits2D});
-  return origRank === 1 ? res.as1D() : res;
+  return origRank === 1 ? reshape(res, [res.size]) as Tensor1D : res;
 }
 
 export const multinomial = op({multinomial_});

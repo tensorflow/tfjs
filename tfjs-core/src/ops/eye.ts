@@ -21,7 +21,9 @@ import {DataType} from '../types';
 import {buffer} from './buffer';
 import {expandDims} from './expand_dims';
 import {op} from './operation';
+import {reshape} from './reshape';
 import {tile} from './tile';
+
 
 /**
  * Create an identity matrix.
@@ -52,7 +54,7 @@ function eye_(
   for (let i = 0; i < n; ++i) {
     buff.set(1, i, i);
   }
-  const out = buff.toTensor().as2D(numRows, numColumns);
+  const out = reshape(buff.toTensor(), [numRows, numColumns]) as Tensor2D;
   if (batchShape == null) {
     return out;
   } else {
