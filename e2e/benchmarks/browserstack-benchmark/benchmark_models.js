@@ -57,11 +57,14 @@ async function getBenchmarkSummary(timeInfo, memoryInfo, modelName = 'model') {
 }
 
 describe('benchmark models', () => {
-  beforeAll(() => {
+  let benchmarkParameters;
+  beforeAll(async () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
+    const response = await fetch('./base/benchmark_parameters.json');
+    benchmarkParameters = await response.json();
   });
 
-  it(`benchmark ${benchmarks[benchmarkParameters.model]}`, async () => {
+  it(`benchmark model`, async () => {
     try {
       await tf.setBackend(benchmarkParameters.backend);
 

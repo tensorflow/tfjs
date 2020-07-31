@@ -30,7 +30,7 @@ e2e/integration_tests/create_save_predict_data
 e2e/integration_tests/convert_predict_data
 e2e/scripts/storage
 e2e/scripts/htpasswd
-e2e/benchmarks/browserstack-benchmark/benchmark_parameters.js
+e2e/benchmarks/browserstack-benchmark/benchmark_parameters.json
 tfjs-converter/python/tensorflowjs.egg-info
 tfjs-inference/binaries
 

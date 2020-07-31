@@ -51,9 +51,8 @@ function benchmark(config) {
   // TODO:
   // 1. Write browsers.json.
   // 2. Write benchmark parameter config.
-  const benchmarkParametersStr = 'const benchmarkParameters = ' +
-      `${JSON.stringify(config.benchmark, null, 2)};`;
-  fs.writeFileSync('./benchmark_parameters.js', benchmarkParametersStr);
+  fs.writeFileSync(
+      './benchmark_parameters.json', JSON.stringify(config.benchmark, null, 2));
 
   console.log(`Start benchmarking.`);
   exec('yarn test', (err, stdout, stderr) => {
