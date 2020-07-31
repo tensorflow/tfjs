@@ -835,12 +835,10 @@ export class Engine implements TensorTracker, DataMover {
     } else {
       this.state.tensorInfo.get(a.dataId).refCount--;
 
-      // Todo(linazhao): Move decRef into backend's disposeData method once
-      // refCount mechanism is completely moved from Engine to backends.
-      // During the migration, non-modularized kernels will still use
-      // TensorInfo's refCounting whereas modularized kernels will use
-      // TensorData's refCounting, so we need to decRef both
-      // TensorInfo and TensorData's refCount to keep them in sync.
+      // Todo(linazhao): Remove decRef once reshape, clone and cast kernels
+      // are modularized.
+      // We added this to keep backend refCount to be in sync with engine
+      // refCount.
       info.backend.decRef(a.dataId);
     }
     // TODO(nsthorat): Construct an error and save the stack trace for
