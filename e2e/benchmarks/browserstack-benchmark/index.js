@@ -22,7 +22,14 @@ const state = {
     benchmarkButton.__li.style.pointerEvents = 'none';
     benchmarkButton.__li.style.opacity = .5;
 
-    socket.emit('run', true);
+    socket.emit('run', {benchmark: state.benchmark});
+  },
+  benchmark: {
+    model: 'custom',
+    modelUrl:
+        'https://storage.googleapis.com/tfjs-models/savedmodel/posenet/mobilenet/float/050/model-stride8.json',
+    numRuns: 1,
+    backend: 'wasm'
   }
 };
 
