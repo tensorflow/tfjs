@@ -158,6 +158,132 @@ describeWithFlags('profiler.Profiler', SYNC_BACKEND_ENVS, () => {
   });
 });
 
+describeWithFlags('profiler.Profiler2', SYNC_BACKEND_ENVS, () => {
+  it('profiles simple function2', doneFn => {
+    const delayMs = 5;
+    const queryTimeMs = 10;
+    const inputs = {'x': tf.tensor1d([1])};
+    const extraInfo = '';
+    const timer = new TestBackendTimer(delayMs, queryTimeMs, extraInfo);
+    const logger = new TestLogger();
+    const profiler = new Profiler(timer, logger);
+
+    spyOn(timer, 'time').and.callThrough();
+    spyOn(logger, 'logKernelProfile').and.callThrough();
+
+    const timeSpy = timer.time as jasmine.Spy;
+
+    let kernelCalled = false;
+    const result = 1;
+    const resultScalar = tf.scalar(result);
+
+    const kernelProfile =
+        profiler.profileKernelKernelProfile('MatMul', inputs, () => {
+          kernelCalled = true;
+          return [resultScalar];
+        });
+    setTimeout(() => {
+      expect(timeSpy.calls.count()).toBe(1);
+      expect(kernelCalled).toBe(true);
+
+      checkKernelProfile(kernelProfile, {
+        kernelName: 'MatMul',
+        outputs: [resultScalar],
+        timeMs: queryTimeMs,
+        inputs,
+        extraInfo,
+      }).then(() => doneFn());
+    }, delayMs * 2);
+  });
+
+  it('profiles nested kernel with optional inputs2', doneFn => {
+    const delayMs = 5;
+    const queryTimeMs = 10;
+    const inputs: {'x': tf.Tensor,
+                   'bias': null} = {'x': tf.tensor1d([1]), 'bias': null};
+    const extraInfo = '';
+    const timer = new TestBackendTimer(delayMs, queryTimeMs, extraInfo);
+    const logger = new TestLogger();
+    const profiler = new Profiler(timer, logger);
+
+    spyOn(timer, 'time').and.callThrough();
+    spyOn(logger, 'logKernelProfile').and.callThrough();
+    const timeSpy = timer.time as jasmine.Spy;
+
+    let matmulKernelCalled = false;
+    let maxKernelCalled = false;
+    const result = 1;
+    const resultScalar = tf.scalar(result);
+
+    let innerKernelProfile: KernelProfile;
+    const outerKernelProfile =
+        profiler.profileKernelKernelProfile('MatMul', inputs, () => {
+          innerKernelProfile =
+              profiler.profileKernelKernelProfile('Max', inputs, () => {
+                maxKernelCalled = true;
+                return [resultScalar];
+              });
+          matmulKernelCalled = true;
+          return innerKernelProfile.outputs;
+        });
+
+    setTimeout(() => {
+      expect(timeSpy.calls.count()).toBe(2);
+      expect(matmulKernelCalled).toBe(true);
+      expect(maxKernelCalled).toBe(true);
+
+      const checkInnerKernelProfile = checkKernelProfile(innerKernelProfile, {
+        kernelName: 'Max',
+        outputs: [resultScalar],
+        timeMs: queryTimeMs,
+        inputs,
+        extraInfo
+      });
+      const checkOuterKernelProfile = checkKernelProfile(outerKernelProfile, {
+        kernelName: 'MatMul',
+        outputs: [resultScalar],
+        timeMs: queryTimeMs * 2,
+        inputs,
+        extraInfo
+      });
+      Promise.all([checkInnerKernelProfile, checkOuterKernelProfile])
+          .then(() => doneFn());
+    }, delayMs * 2);
+  });
+
+  it('log kernelProfile2', doneFn => {
+    const delayMs = 5;
+    const queryTimeMs = 10;
+    const inputs = {'x': tf.tensor1d([1])};
+    const extraInfo = '';
+    const timer = new TestBackendTimer(delayMs, queryTimeMs, extraInfo);
+    const logger = new TestLogger();
+    const profiler = new Profiler(timer, logger);
+
+    spyOn(logger, 'logKernelProfile').and.callThrough();
+    const logKernelProfileSpy = logger.logKernelProfile as jasmine.Spy;
+
+    const result = 1;
+    const resultScalar = tf.scalar(result);
+
+    const kernelProfiles =
+        profiler.profileKernelKernelProfile('MatMul', inputs, () => {
+          return [resultScalar];
+        });
+    profiler.logKernelProfile(kernelProfiles);
+
+    setTimeout(() => {
+      expect(logKernelProfileSpy.calls.count()).toBe(1);
+
+      expect(logKernelProfileSpy.calls.first().args).toEqual([
+        'MatMul', resultScalar, new Float32Array([result]), queryTimeMs, inputs,
+        extraInfo
+      ]);
+      doneFn();
+    }, delayMs * 2);
+  });
+});
+
 describe('profiler.checkComputationForErrors', () => {
   beforeAll(() => {
     // Silence warnings.
