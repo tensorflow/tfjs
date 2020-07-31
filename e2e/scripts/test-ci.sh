@@ -20,7 +20,7 @@ set -e
 TAGS="#SMOKE"
 
 # Regression tests run in nightly builds.
-if [[ "$NIGHTLY" = true ]]; then
+if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
     TAGS="${TAGS},#REGRESSION"
 fi
 
@@ -45,7 +45,7 @@ if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
   cd ..
 fi
 
-if [ "$NIGHTLY" = true ]; then
+if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
   yarn run-browserstack --browsers=bs_chrome_mac --tags $TAGS
   yarn run-browserstack --browsers=bs_safari_mac,bs_firefox_mac,win_10_chrome,bs_ios_11,bs_android_9 --tags $TAGS
 else

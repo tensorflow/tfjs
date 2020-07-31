@@ -27,7 +27,7 @@ let wasmFunc: (
     outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmFunc = backend.wasm.cwrap('ArgMax', null /* void */, [
+  wasmFunc = backend.wasm.cwrap(ArgMax, null /* void */, [
     'number',  // x_id
     'number',  // dtype
     'number',  // outer_size
