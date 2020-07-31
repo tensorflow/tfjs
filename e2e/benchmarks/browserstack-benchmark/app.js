@@ -48,11 +48,23 @@ io.on('connection', socket => {
 });
 
 function benchmark(config) {
+  console.log('Preparing configuration files for the test runner.');
   // TODO:
   // 1. Write browsers.json.
+  // Write the browsers to benchmark to `./browsers.json`.
+  config.browsers.forEach(browser => {
+    browser.base = 'BrowserStack';
+    // For mobile devices, it is required by BowserStack to use real devices.
+    if (browser.os === 'ios' || browser.os === 'android') {
+      browser.real_mobile = true;
+    }
+  });
+  fs.writeFileSync('./browsers.json', JSON.stringify(config.browsers, null, 2));
+
   // 2. Write benchmark parameter config.
+
   console.log(`Start benchmarking.`);
-  exec('yarn test', (err, stdout, stderr) => {
+  exec('yarn test --browserstack', (err, stdout, stderr) => {
     if (err) {
       console.log(err);
       return;
@@ -60,6 +72,7 @@ function benchmark(config) {
     const re = /.*\<benchmark\>(.*)\<\/benchmark\>/;
     const benchmarkResultStr = stdout.match(re)[1];
     const benchmarkResult = JSON.parse(benchmarkResultStr);
+    console.log(`benchmark completed.`);
     io.emit('benchmarkComplete', benchmarkResult);
   });
 }

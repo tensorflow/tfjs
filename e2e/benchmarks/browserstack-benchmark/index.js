@@ -22,7 +22,19 @@ const state = {
     benchmarkButton.__li.style.pointerEvents = 'none';
     benchmarkButton.__li.style.opacity = .5;
 
-    socket.emit('run', true);
+    // Send the benchmark configuration to the server to start the benchmark.
+    if (state.browser.device === 'null') {
+      state.browser.device = null;
+    }
+    socket.emit('run', {browsers: [state.browser]});
+  },
+  browser: {
+    base: 'BrowserStack',
+    browser: 'chrome',
+    browser_version: '84.0',
+    os: 'OS X',
+    os_version: 'Catalina',
+    device: 'null'
   }
 };
 
