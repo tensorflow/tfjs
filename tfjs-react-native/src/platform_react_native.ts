@@ -155,7 +155,7 @@ export class PlatformReactNative implements Platform {
     if (encoding === 'utf-16') {
       encoding = 'utf16le';
     }
-    return Buffer.from(bytes).toString(encoding);
+    return Buffer.from(bytes).toString(encoding as BufferEncoding);
   }
 
   now(): number {
