@@ -76,15 +76,15 @@ export function createBinaryKernelImpl(op: (a: number, b: number) => number) {
       }
     } else {
       for (let i = 0; i < result.length; ++i) {
-        const loc = util.indexToLoc(i, resultRank, resultStrides);
+        const loc = util.indexToCoord(i, resultRank, resultStrides);
 
         const aLoc = loc.slice(-aRank);
         aBroadcastDims.forEach(d => aLoc[d] = 0);
-        const aIndex = util.locToIndex(aLoc, aRank, aStrides);
+        const aIndex = util.coordToIndex(aLoc, aRank, aStrides);
 
         const bLoc = loc.slice(-bRank);
         bBroadcastDims.forEach(d => bLoc[d] = 0);
-        const bIndex = util.locToIndex(bLoc, bRank, bStrides);
+        const bIndex = util.coordToIndex(bLoc, bRank, bStrides);
 
         result[i] = op(aVals[aIndex], bVals[bIndex]);
       }
