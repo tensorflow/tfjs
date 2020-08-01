@@ -1,0 +1,39 @@
+[{
+  "base": "BrowserStack",
+  "browser": "chrome",
+  "browser_version": "84.0",
+  "os": "OS X",
+  "os_version": "Catalina",
+  "device": null,
+  "real_mobile": null
+},{
+  "os": "android",
+  "os_version": "4.4",
+  "browser": "android",
+  "device": "Samsung Galaxy Tab 4",
+  "browser_version": null,
+  "real_mobile": true
+},
+{
+  "os": "android",
+  "os_version": "11.0",
+  "browser": "android",
+  "device": "Google Pixel 4",
+  "browser_version": null,
+  "real_mobile": true
+},
+{
+  "os": "android",
+  "os_version": "9.0",
+  "browser": "android",
+  "device": "Xiaomi Redmi Note 8",
+  "browser_version": null,
+  "real_mobile": true
+},{
+  "os": "OS X",
+  "os_version": "Catalina",
+  "browser": "chrome",
+  "device": null,
+  "browser_version": "39.0",
+  "real_mobile": null
+}]
