@@ -29,7 +29,10 @@
  * zero, or a positive number.
  */
 export function binaryInsert<T>(
-    arr: T[], element: T, comparator?: (a: T, b: T) => number) {
+  arr: T[],
+  element: T,
+  comparator?: (a: T, b: T) => number
+) {
   const index = binarySearch(arr, element, comparator);
   const insertionPoint = index < 0 ? -(index + 1) : index;
   arr.splice(insertionPoint, 0, element);
@@ -51,7 +54,10 @@ export function binaryInsert<T>(
  *    (-insertionPoint - 1).
  */
 export function binarySearch<T>(
-    arr: T[], target: T, comparator?: (a: T, b: T) => number) {
+  arr: T[],
+  target: T,
+  comparator?: (a: T, b: T) => number
+) {
   return binarySearch_(arr, target, comparator || defaultComparator);
 }
 
@@ -63,11 +69,14 @@ export function binarySearch<T>(
  *     argument is less than, equal to, or greater than the second.
  */
 function defaultComparator<T>(a: T, b: T): number {
-  return a > b ? 1 : a < b ? -1 : 0;
+  return <any>a - <any>b;
 }
 
 function binarySearch_<T>(
-    arr: T[], target: T, comparator: (a: T, b: T) => number) {
+  arr: T[],
+  target: T,
+  comparator: (a: T, b: T) => number
+) {
   let left = 0;
   let right = arr.length;
   let middle = 0;
