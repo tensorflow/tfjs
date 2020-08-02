@@ -69,7 +69,8 @@ export interface ModelFitDatasetArgs<T> {
    *      as in `onBatchEnd()`. Note that `onYield` can skip batches or
    *      epochs. See also docs for `yieldEvery` below.
    */
-  callbacks?: BaseCallback[]|CustomCallbackArgs|CustomCallbackArgs[];
+  callbacks?: BaseCallback|CustomCallbackArgs|
+      Array<BaseCallback|CustomCallbackArgs>;
 
   /**
    * Data on which to evaluate the loss and any model
