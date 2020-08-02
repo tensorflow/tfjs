@@ -460,11 +460,23 @@ export class CustomCallback extends BaseCallback {
 }
 
 /**
+ * Standardize a callback or configuration of one to a callback.
+ */
+function standardizeCallback(
+    callback: BaseCallback|CustomCallbackArgs,
+    yieldEvery: YieldEveryOptions): BaseCallback {
+  if (callback instanceof BaseCallback) {
+    return callback;
+  }
+  return new CustomCallback(callback, yieldEvery);
+}
+
+/**
  * Standardize callbacks or configurations of them to an Array of callbacks.
  */
 export function standardizeCallbacks(
-    callbacks: BaseCallback|BaseCallback[]|CustomCallbackArgs|
-    CustomCallbackArgs[],
+    callbacks: BaseCallback|CustomCallbackArgs|
+    Array<BaseCallback|CustomCallbackArgs>,
     yieldEvery: YieldEveryOptions): BaseCallback[] {
   if (callbacks == null) {
     callbacks = {} as BaseCallback;
@@ -472,14 +484,11 @@ export function standardizeCallbacks(
   if (callbacks instanceof BaseCallback) {
     return [callbacks];
   }
-  if (Array.isArray(callbacks) && callbacks[0] instanceof BaseCallback) {
-    return callbacks as BaseCallback[];
-  }
   // Convert custom callback configs to custom callback objects.
-  const callbackConfigs =
-      generic_utils.toList(callbacks) as CustomCallbackArgs[];
-  return callbackConfigs.map(
-      callbackConfig => new CustomCallback(callbackConfig, yieldEvery));
+  const callbacksAndConfigs =
+      generic_utils.toList(callbacks) as Array<BaseCallback|CustomCallbackArgs>;
+  return callbacksAndConfigs.map(
+      callbackOrConfig => standardizeCallback(callbackOrConfig, yieldEvery));
 }
 
 export declare type BaseCallbackConstructor = {

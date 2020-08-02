@@ -420,4 +420,32 @@ describe('standardizeCallbacks', () => {
     standardized.forEach(cb => expect(cb instanceof BaseCallback).toBe(true));
     spies.forEach(spy => expect(spy).toHaveBeenCalled());
   });
+
+  it('standardize a mixed array starting with BaseCallback', async () => {
+    const callback = new CustomCallback({}), args = { onEpochEnd: () => {} };
+    const spy = spyOn(args, 'onEpochEnd');
+    const mixedArray = [callback, args];
+
+    const standardized = standardizeCallbacks(mixedArray, 'never');
+    await Promise.all(standardized.map(cb => cb.onEpochEnd(1)));
+
+    expect(standardized.length).toEqual(mixedArray.length);
+    standardized.forEach(cb => expect(cb instanceof BaseCallback).toBe(true));
+    expect(mixedArray[0]).toBe(callback);
+    expect(spy).toHaveBeenCalled();
+  });
+
+  it('standardize a mixed array starting with CustomCallbackArgs', async () => {
+    const args = { onEpochEnd: () => {} }, callback = new CustomCallback({});
+    const spy = spyOn(args, 'onEpochEnd');
+    const mixedArray = [args, callback];
+
+    const standardized = standardizeCallbacks(mixedArray, 'never');
+    await Promise.all(standardized.map(cb => cb.onEpochEnd(1)));
+
+    expect(standardized.length).toEqual(mixedArray.length);
+    standardized.forEach(cb => expect(cb instanceof BaseCallback).toBe(true));
+    expect(spy).toHaveBeenCalled();
+    expect(mixedArray[1]).toBe(callback);
+  });
 });
