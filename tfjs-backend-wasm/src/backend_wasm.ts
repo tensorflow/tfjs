@@ -205,11 +205,20 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
   const simdSupported = await env().getAsync('WASM_HAS_SIMD_SUPPORT');
   return new Promise((resolve, reject) => {
     const factoryConfig: WasmFactoryConfig = {};
+
+    /**
+     * This function overrides the Emscripten module locateFile utility.
+     * @param path The relative path to the file that needs to be loaded.
+     * @param prefix The path to the main JavaScript file's directory.
+     */
     factoryConfig.locateFile = (path, prefix) => {
       if (path.endsWith('.wasm')) {
         if (wasmPath != null) {
+          // If wasmPath is defined, the user has supplied a full path to
+          // the .wasm binary.
           return wasmPath;
         }
+
         if (simdSupported) {
           return prefix + 'tfjs-backend-wasm-simd.wasm';
         }
@@ -217,6 +226,7 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
       }
       return prefix + path;
     };
+
     if (wasmPath != null) {
       // use wasm instantiateWasm override when system fetch is not available.
       // For detail references
@@ -282,6 +292,7 @@ function typedArrayFromBuffer(
 let wasmPath: string = null;
 let initAborted = false;
 let customFetch = false;
+
 /**
  * Sets the path to the `.wasm` file which will be fetched when the wasm
  * backend is initialized. See
