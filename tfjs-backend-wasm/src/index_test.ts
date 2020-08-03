@@ -94,7 +94,7 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     expect(wasmPath).toBe('invalid/path');
   });
 
-  it('backend init fails when setWasmPathPrefix is called with ' +
+  it('backend init fails when setWasmPaths is called with ' +
          'an invalid prefix',
      async () => {
        setWasmPaths('invalid/prefix/');
