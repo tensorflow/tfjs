@@ -220,8 +220,15 @@ function getWasmPath(
     path = 'tfjs-backend-wasm-simd.wasm';
   }
 
-  if (wasmFileMap != null && wasmFileMap[path] != null) {
-    return wasmFileMap[path];
+  if (wasmFileMap != null) {
+    if (wasmFileMap[path] != null) {
+      return wasmFileMap[path];
+    }
+
+    console.warn(
+        `You provided a map of overrides for WASM binary locations, ` +
+        `but there was no entry found for ${path}. We are falling back to ` +
+        `the default location: ${prefix + path}.`);
   }
 
   if (wasmPathPrefix != null) {
