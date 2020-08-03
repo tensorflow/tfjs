@@ -73,22 +73,32 @@ bundlers such as Parcel and WebPack need to be able to serve the `.wasm` file in
 production. See [starter/parcel](./starter/parcel/) and
 [starter/webpack](./starter/webpack/) for how to setup your favorite bundler.
 
-If your server is serving the `.wasm` file on a different path or a different
-name, use `setWasmPath` before you initialize the backend:
+If your server is serving the `.wasm` file on a different path, call `setWasmPaths`
+with the location of its parent directory before you initialize the backend:
 
 ```ts
 import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
-setWasmPath(yourCustomPath); // or tf.wasm.setWasmPath when using <script> tags.
+setWasmPaths(yourCustomPathPrefix); // or tf.wasm.setWasmPaths when using <script> tags.
+tf.setBackend('wasm').then(() => {...});
+```
+
+You can also specify overrides for individual WASM binaries via the second
+`fileMap` argument of `setWasmPaths`, like so:
+```ts
+import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
+setWasmPaths('' /* custom prefix */, {
+  'tfjs-backend-wasm-simd.wasm': 'www.yourdomain.com/tfjs-backend-wasm-simd.wasm'
+  }); // or tf.wasm.setWasmPaths when using <script> tags.
 tf.setBackend('wasm').then(() => {...});
 ```
 
 If you are using a platform that does not support fetch directly, please set the
-optional `usePlatformFetch` to true:
+optional `usePlatformFetch` to `true`:
 
 ```ts
 import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
 const usePlatformFetch = true;
-setWasmPath(yourCustomPath, usePlatformFetch); // or tf.wasm.setWasmPath when using <script> tags.
+setWasmPaths(yourCustomPathPrefix, null /* file map */, usePlatformFetch); // or tf.wasm.setWasmPaths when using <script> tags.
 tf.setBackend('wasm').then(() => {...});
 ```
 ## Benchmarks
@@ -169,7 +179,7 @@ inference as fast as possible.
 Yes. If you run into issues, please let us know.
 
 ### Do you support SIMD and multi-threading?
-Yes. We take advantage of SIMD and multi-threading wherever they are supported by testing the capabilities of your runtime and serving the appropriate WASM binary. However we do not yet have a mechanism for users to specify a custom path to multiple WASM binaries, so if you are serving the WASM binary from a custom path via  `setWasmPath`, we will initialize the WASM backend without SIMD or multi-threading support.
+Yes. We take advantage of SIMD and multi-threading wherever they are supported by testing the capabilities of your runtime and serving the appropriate WASM binary. If you intend to serve the WASM binaries from a custom location (via `setWasmPaths`), please note that the SIMD-enabled and threading-enabled binaries are separate from the vanilla binary.
 
 ### How do I give feedback?
 We'd love your feedback as we develop this backend! Please file an issue
