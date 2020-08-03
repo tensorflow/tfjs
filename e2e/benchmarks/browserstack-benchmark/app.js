@@ -25,7 +25,10 @@ const port = process.env.PORT || 8001;
 
 const app = http.createServer((request, response) => {
   const url = request.url === '/' ? '/index.html' : request.url;
-  const filePath = path.join(__dirname, url);
+  let filePath = path.join(__dirname, url);
+  if (!fs.existsSync(filePath)) {
+    filePath = path.join(__dirname, '../', url);
+  }
   fs.readFile(filePath, (err, data) => {
     if (err) {
       response.writeHead(404);

@@ -19,15 +19,19 @@ const TUNABLE_BROWSER_FIELDS =
     ['os', 'os_version', 'browser', 'browser_version', 'device'];
 const state = {
   run: () => {
-    // Disable the benchmark button, until the benchmark is complete.
+    // Disable the button.
     benchmarkButton.__li.style.pointerEvents = 'none';
-    benchmarkButton.__li.style.opacity = .8;
+    benchmarkButton.__li.style.opacity = .5;
 
     // Send the benchmark configuration to the server to start the benchmark.
     if (state.browser.device === 'null') {
       state.browser.device = null;
     }
-    socket.emit('run', {browsers: [state.browser]});
+    const benchmark = {...state.benchmark};
+    if (state.benchmark.model !== 'custom') {
+      delete benchmark['modelUrl'];
+    }
+    socket.emit('run', {benchmark, browsers: [state.browser]});
   },
   browser: {
     browser: 'android',
@@ -35,7 +39,8 @@ const state = {
     os: 'android',
     os_version: '9.0',
     device: 'Xiaomi Redmi Note 8'
-  }
+  },
+  benchmark: {model: 'mobilenet_v2', modelUrl: '', numRuns: 1, backend: 'wasm'}
 };
 
 let socket;
@@ -173,6 +178,36 @@ function showBrowserField(fieldIndex, currentNode) {
   browserSettingControllers.push(fieldController);
 }
 
+function showParameterSettings() {
+  const parameterFolder = gui.addFolder('Parameters');
+  parameterFolder.add(state.benchmark, 'numRuns');
+  parameterFolder.add(state.benchmark, 'backend', ['wasm', 'webgl', 'cpu']);
+  parameterFolder.open();
+  return parameterFolder;
+}
+
+function showModelSelection() {
+  const modelFolder = gui.addFolder('Model');
+  let modelUrlController = null;
+
+  modelFolder.add(state.benchmark, 'model', Object.keys(benchmarks))
+      .name('model name')
+      .onChange(async model => {
+        if (model === 'custom') {
+          if (modelUrlController === null) {
+            modelUrlController = modelFolder.add(state.benchmark, 'modelUrl');
+            modelUrlController.domElement.querySelector('input').placeholder =
+                'https://your-domain.com/model-path/model.json';
+          }
+        } else if (modelUrlController != null) {
+          modelFolder.remove(modelUrlController);
+          modelUrlController = null;
+        }
+      });
+  modelFolder.open();
+  return modelFolder;
+}
+
 function onPageLoad() {
   socket = io();
 
@@ -192,6 +227,8 @@ function onPageLoad() {
       browserFolder.open();
 
       // Enable users to benchmark.
+      showModelSelection();
+      showParameterSettings();
       benchmarkButton = gui.add(state, 'run').name('Run benchmark');
     }
   });
