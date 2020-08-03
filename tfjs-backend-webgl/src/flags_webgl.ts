@@ -40,6 +40,9 @@ ENV.registerFlag('WEBGL_VERSION', () => {
   return 0;
 });
 
+/** Whether to check for numerical representation problems. */
+ENV.registerFlag('WEBGL_CHECK_NUMERICAL_PROBLEMS', () => false);
+
 ENV.registerFlag(
     'WEBGL_BUFFER_SUPPORTED', () => ENV.get('WEBGL_VERSION') === 2);
 
@@ -164,3 +167,23 @@ ENV.registerFlag('WEBGL_SIZE_UPLOAD_UNIFORM', () => {
   const useUniforms = ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED');
   return useUniforms ? 4 : 0;
 });
+
+/**
+ * If the total number of bytes allocated on the GPU is greater than this
+ * number, we will aggressively delete textures upon disposal with
+ * gl.deleteMatrixTexture, rather than making them available for reuse.
+ *
+ * Default value -1 indicates that we will never aggressively delete textures.
+ */
+ENV.registerFlag(
+    'WEBGL_DELETE_TEXTURE_THRESHOLD',
+    () => {
+      return -1;
+    },
+    threshold => {
+      if (threshold < 0 && threshold !== -1) {
+        throw new Error(
+            `WEBGL_DELETE_TEXTURE_THRESHOLD must be -1 (indicating never ` +
+            `delete) or at least 0, but got ${threshold}.`);
+      }
+    });

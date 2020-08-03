@@ -15,26 +15,18 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel} from '@tensorflow/tfjs-core';
-import {TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Tile, TileAttrs, TileInputs} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+
 import {CppDType} from './types';
-
-interface TileInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-interface TileAttrs extends NamedAttrMap {
-  reps: number[];
-}
 
 let wasmTile: (
     xId: number, xShape: Uint8Array, xShapeSize: number, newShape: Uint8Array,
     newShapeSize: number, dtype: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmTile = backend.wasm.cwrap('Tile', null /* void */, [
+  wasmTile = backend.wasm.cwrap(Tile, null /* void */, [
     'number',  // x_id
     'array',   // x_shape
     'number',  // x_shape.length
@@ -66,9 +58,9 @@ function tile(
   return out;
 }
 
-registerKernel({
-  kernelName: 'Tile',
+export const tileConfig: KernelConfig = {
+  kernelName: Tile,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: tile
-});
+  kernelFunc: tile as {} as KernelFunc
+};

@@ -15,16 +15,11 @@
  * =============================================================================
  */
 
-import {backend_util, KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, FusedDepthwiseConv2D, FusedDepthwiseConv2DAttrs, FusedDepthwiseConv2DInputs, KernelConfig, KernelFunc, Tensor4D} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
-import {FusableActivation} from './types';
 
-interface FusedDepthwiseConv2DInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-  filter: TensorInfo;
-  bias?: TensorInfo;
-}
+import {FusableActivation} from './types';
 
 let wasmFusedDepthwiseConv2d: (
     xId: number, batchSize: number, inputHeight: number, inputWidth: number,
@@ -37,7 +32,7 @@ let wasmFusedDepthwiseConv2d: (
 
 function setup(backend: BackendWasm) {
   wasmFusedDepthwiseConv2d =
-      backend.wasm.cwrap('FusedDepthwiseConv2D', null /* void */, [
+      backend.wasm.cwrap(FusedDepthwiseConv2D, null /* void */, [
         'number',  // xId
         'number',  // batchSize
         'number',  // inputHeight
@@ -66,11 +61,17 @@ function setup(backend: BackendWasm) {
 function fusedDepthwiseConv2d(args: {
   inputs: FusedDepthwiseConv2DInputs,
   backend: BackendWasm,
-  attrs:
-      {convInfo: backend_util.Conv2DInfo, activation: backend_util.Activation}
+  attrs: FusedDepthwiseConv2DAttrs
 }) {
   const {inputs, attrs, backend} = args;
-  const {convInfo, activation} = attrs;
+  const {x, filter, bias, preluActivationWeights} = inputs;
+  const {strides, pad, dilations, dataFormat, dimRoundingMode, activation} =
+      attrs;
+
+  const convInfo = backend_util.computeConv2DInfo(
+      (x as Tensor4D).shape, (filter as Tensor4D).shape, strides, dilations,
+      pad, dimRoundingMode, true /* depthwise */);
+
   const fusedActivation =
       FusableActivation[activation as {} as keyof typeof FusableActivation];
   if (fusedActivation == null) {
@@ -79,7 +80,6 @@ function fusedDepthwiseConv2d(args: {
         `in the wasm backend.`);
   }
 
-  const {x, filter, bias, preluActivationWeights} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
   const filterId = backend.dataIdMap.get(filter.dataId).id;
 
@@ -117,10 +117,10 @@ function fusedDepthwiseConv2d(args: {
   const inHeight = convInfo.inHeight;
   const inWidth = convInfo.inWidth;
 
-  if (convInfo.dataFormat !== 'channelsLast') {
+  if (dataFormat !== 'NHWC') {
     throw new Error(
         `wasm backend FusedDepthwiseConv2D does not support dataFormat:'` +
-        `${convInfo.dataFormat}'. Please use 'channelsLast'.`);
+        `${dataFormat}'. Please use 'NHWC'.`);
   }
 
   const out = backend.makeOutput(convInfo.outShape, 'float32');
@@ -136,9 +136,9 @@ function fusedDepthwiseConv2d(args: {
   return out;
 }
 
-registerKernel({
-  kernelName: 'FusedDepthwiseConv2D',
+export const fusedDepthwiseConv2DConfig: KernelConfig = {
+  kernelName: FusedDepthwiseConv2D,
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: fusedDepthwiseConv2d as {} as KernelFunc
-});
+};

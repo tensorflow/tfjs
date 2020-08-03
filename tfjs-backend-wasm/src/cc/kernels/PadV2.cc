@@ -16,10 +16,28 @@
 #include <emscripten.h>
 #endif
 
+#include <xnnpack.h>
 #include <cstddef>
+#include <cstring>
+#include <map>
+#include <memory>
+#include <tuple>
+#include <vector>
 
 #include "src/cc/backend.h"
+#include "src/cc/kernels/PadV2.h"
 #include "src/cc/util.h"
+
+namespace {
+// We use std::tuple as the cache key as it implements the compare operator
+// needed for std::map.
+typedef std::tuple<float, uint32_t> OperatorCacheKey;
+
+// The operator cache maps the weights id to the xnn_operator_t instantiated for
+// this set of weights.
+std::map<OperatorCacheKey, xnn_operator_t> operator_cache;
+
+}  // namespace
 
 namespace {
 
@@ -120,13 +138,14 @@ void pad_4d(const T* x_data, size_t x_shape[4], size_t paddings[8],
 // Generic pad implementation for n-dim tensors.
 template <typename T>
 void slow_pad_nd(const T* x_data, const std::vector<size_t>& x_shape,
-                 const std::vector<size_t>& paddings, const T pad_value,
+                 const std::vector<size_t>& pre_paddings,
+                 const std::vector<size_t>& post_paddings, const T pad_value,
                  T* out_data) {
   const size_t rank = x_shape.size();
   std::vector<size_t> out_shape(rank);
   for (size_t i = 0; i < rank; ++i) {
-    const size_t pad_left = paddings[i * 2];
-    const size_t pad_right = paddings[i * 2 + 1];
+    const size_t pad_left = pre_paddings[i];
+    const size_t pad_right = post_paddings[i];
     out_shape[i] = x_shape[i] + pad_left + pad_right;
   }
   const auto& in_strides = compute_strides(x_shape);
@@ -139,7 +158,7 @@ void slow_pad_nd(const T* x_data, const std::vector<size_t>& x_shape,
   for (size_t i = 0; i < in_size; ++i) {
     auto out_loc = offset_to_loc(i, in_strides);
     for (size_t j = 0; j < rank; ++j) {
-      out_loc[j] += paddings[j * 2];
+      out_loc[j] += pre_paddings[j];
     }
     const size_t out_offset = loc_to_offset(out_loc, out_strides);
     out_data[out_offset] = x_data[i];
@@ -148,7 +167,9 @@ void slow_pad_nd(const T* x_data, const std::vector<size_t>& x_shape,
 
 template <typename T>
 void pad(const T* x_data, const std::vector<size_t>& x_shape,
-         const std::vector<size_t>& paddings, const T pad_value, T* out_data) {
+         const std::vector<size_t>& pre_paddings,
+         const std::vector<size_t>& post_paddings, const T pad_value,
+         T* out_data) {
   const size_t rank = x_shape.size();
   if (rank <= 4) {
     // Expand the shape to be 4d.
@@ -165,8 +186,8 @@ void pad(const T* x_data, const std::vector<size_t>& x_shape,
 
     for (size_t i = 0; i < rank; ++i) {
       size_t j = i + rank_shift;
-      const size_t pad_left = paddings[i * 2];
-      const size_t pad_right = paddings[i * 2 + 1];
+      const size_t pad_left = pre_paddings[i];
+      const size_t pad_right = post_paddings[i];
       x_shape_4d[j] = x_shape[i];
       out_shape_4d[j] = x_shape[i] + pad_left + pad_right;
       paddings_4d[j * 2] = pad_left;
@@ -174,7 +195,8 @@ void pad(const T* x_data, const std::vector<size_t>& x_shape,
     }
     pad_4d(x_data, x_shape_4d, paddings_4d, pad_value, out_shape_4d, out_data);
   } else {
-    slow_pad_nd(x_data, x_shape, paddings, pad_value, out_data);
+    slow_pad_nd(x_data, x_shape, pre_paddings, post_paddings, pad_value,
+                out_data);
   }
 }
 
@@ -190,26 +212,64 @@ EMSCRIPTEN_KEEPALIVE
 #endif
 void PadV2(const size_t x_id, const size_t* x_shape_ptr,
            const size_t x_shape_length, const DType dtype,
-           const size_t* paddings_ptr, const float pad_value,
-           const size_t out_id) {
+           const size_t* pre_paddings_ptr, const size_t* post_paddings_ptr,
+           const float pad_value, const size_t out_id) {
   auto x_shape = std::vector<size_t>(x_shape_ptr, x_shape_ptr + x_shape_length);
-  const size_t paddings_length = x_shape_length * 2;
-  auto paddings =
-      std::vector<size_t>(paddings_ptr, paddings_ptr + paddings_length);
+  auto pre_paddings =
+      std::vector<size_t>(pre_paddings_ptr, pre_paddings_ptr + x_shape_length);
+  auto post_paddings = std::vector<size_t>(post_paddings_ptr,
+                                           post_paddings_ptr + x_shape_length);
+
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
   switch (dtype) {
-    case DType::float32:
-      pad<float>(x_info.f32(), x_shape, paddings, pad_value,
-                 out_info.f32_write());
+    case DType::float32: {
+      xnn_operator_t pad_op = nullptr;
+      const uint32_t flags = 0;
+
+      OperatorCacheKey cache_key = {pad_value, flags};
+
+      auto operator_cache_idx = operator_cache.find(cache_key);
+      if (operator_cache_idx == operator_cache.end()) {
+        xnn_status status =
+            xnn_create_constant_pad_nd_x32(&pad_value, flags, &pad_op);
+        if (status != xnn_status_success) {
+          tfjs::util::warn(
+              "XNN status for xnn_create_constant_pad_nd_x32 is not "
+              "successful. Got status %d. Use -c dbg to see XNN logs.",
+              status);
+          return;
+        }
+
+        operator_cache.insert({cache_key, pad_op});
+
+        tfjs::backend::xnn_operator_count++;
+      } else {
+        pad_op = operator_cache_idx->second;
+      }
+
+      xnn_status status = xnn_setup_constant_pad_nd_x32(
+          pad_op, x_shape_length, x_shape_ptr, pre_paddings_ptr,
+          post_paddings_ptr, x_info.f32(), out_info.f32_write(),
+          nullptr /* threadpool */);
+      if (status != xnn_status_success) {
+        tfjs::util::warn(
+            "XNN status for xnn_setup_constant_pad_nd_x32 is not "
+            "successful. Got status %d. Use -c dbg to see XNN logs.",
+            status);
+        return;
+      }
+
+      xnn_run_operator(pad_op, nullptr /* threadpool */);
       break;
+    }
     case DType::int32:
-      pad<int32_t>(x_info.i32(), x_shape, paddings,
+      pad<int32_t>(x_info.i32(), x_shape, pre_paddings, post_paddings,
                    static_cast<int32_t>(pad_value), out_info.i32_write());
       break;
     case DType::boolean:
-      pad<bool>(x_info.b(), x_shape, paddings, static_cast<bool>(pad_value),
-                out_info.b_write());
+      pad<bool>(x_info.b(), x_shape, pre_paddings, post_paddings,
+                static_cast<bool>(pad_value), out_info.b_write());
       break;
     default:
       util::warn("Pad for tensor id %d failed. Unknown dtype % d ", x_id,

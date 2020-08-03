@@ -1,3 +1,21 @@
+#!/usr/bin/env node
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+
 import chalk from 'chalk';
 import * as mkdirp from 'mkdirp';
 import * as readline from 'readline';
@@ -225,6 +243,51 @@ export async function updateDependency(
       pkg = `${pkg}`.replace(
           new RegExp(`"${depNpmName}": "${version}"`, 'g'),
           `"${depNpmName}": "${depVersion}"`);
+    }
+  }
+
+  return pkg;
+}
+
+// Update package.json dependencies of tfjs packages. This method is different
+// than `updateDependency`, it does not rely on published versions, instead it
+// assumes all the packages have the same version and use that to update.
+export function updateTFJSDependencyVersions(
+    deps: string[], pkg: string, parsedPkg: any, tfjsVersion: string): string {
+  console.log(chalk.magenta.bold(`~~~ Update dependency versions ~~~`));
+
+  if (deps != null) {
+    for (let j = 0; j < deps.length; j++) {
+      const dep = deps[j];
+
+      // Get the current dependency package version.
+      let version = '';
+      const depNpmName = `@tensorflow/${dep}`;
+      if (parsedPkg['dependencies'] != null &&
+          parsedPkg['dependencies'][depNpmName] != null) {
+        version = parsedPkg['dependencies'][depNpmName];
+      } else if (
+          parsedPkg['peerDependencies'] != null &&
+          parsedPkg['peerDependencies'][depNpmName] != null) {
+        version = parsedPkg['peerDependencies'][depNpmName];
+      } else if (
+          parsedPkg['devDependencies'] != null &&
+          parsedPkg['devDependencies'][depNpmName] != null) {
+        version = parsedPkg['devDependencies'][depNpmName];
+      }
+      if (version == null) {
+        throw new Error(`No dependency found for ${dep}.`);
+      }
+
+      let relaxedVersionPrefix = '';
+      if (version.startsWith('~') || version.startsWith('^')) {
+        relaxedVersionPrefix = version.substr(0, 1);
+      }
+      const versionLatest = relaxedVersionPrefix + tfjsVersion;
+
+      pkg = `${pkg}`.replace(
+          new RegExp(`"${depNpmName}": "${version}"`, 'g'),
+          `"${depNpmName}": "${versionLatest}"`);
     }
   }
 

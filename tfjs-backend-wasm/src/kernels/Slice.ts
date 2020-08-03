@@ -15,50 +15,42 @@
  * =============================================================================
  */
 
-import {backend_util, buffer, NamedAttrMap, NamedTensorInfoMap, registerKernel, slice_util, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, KernelConfig, KernelFunc, Slice, slice_util, SliceAttrs, SliceInputs, Tensor, util} from '@tensorflow/tfjs-core';
 import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
-interface SliceInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-interface SliceAttrs extends NamedAttrMap {
-  begin: number[];
-  size: number[];
-}
-
 export function slice(
     args: {inputs: SliceInputs, attrs: SliceAttrs, backend: BackendWasm}) {
   const {inputs: {x}, attrs: {begin, size}, backend} = args;
-  const isContinous = slice_util.isSliceContinous(x.shape, begin, size);
+  const [begin_, size_] = slice_util.parseSliceParams(x as Tensor, begin, size);
+  const isContinous = slice_util.isSliceContinous(x.shape, begin_, size_);
   const xVals = backend.typedArrayFromHeap(x);
-  const out = backend.makeOutput(size, x.dtype);
+  const out = backend.makeOutput(size_, x.dtype);
   const outVals = backend.typedArrayFromHeap(out);
   const xStrides = util.computeStrides(x.shape);
   if (isContinous) {
-    const flatOffset = slice_util.computeFlatOffset(begin, xStrides);
+    const flatOffset = slice_util.computeFlatOffset(begin_, xStrides);
     outVals.set(
-        xVals.subarray(flatOffset, flatOffset + util.sizeFromShape(size)));
+        xVals.subarray(flatOffset, flatOffset + util.sizeFromShape(size_)));
     return out;
   }
   const rank = x.shape.length;
   if (rank === 2) {
     slice2d(
-        xVals, xStrides[0], outVals, begin as [number, number],
-        size as [number, number]);
+        xVals, xStrides[0], outVals, begin_ as [number, number],
+        size_ as [number, number]);
   } else if (rank === 3) {
     slice3d(
         xVals, xStrides[0], xStrides[1], outVals,
-        begin as [number, number, number], size as [number, number, number]);
+        begin_ as [number, number, number], size_ as [number, number, number]);
   } else if (rank === 4) {
     slice4d(
         xVals, xStrides[0], xStrides[1], xStrides[2], outVals,
-        begin as [number, number, number, number],
-        size as [number, number, number, number]);
+        begin_ as [number, number, number, number],
+        size_ as [number, number, number, number]);
   } else {
-    genericSliceSlow(xVals, x, outVals, begin, size);
+    genericSliceSlow(xVals, x, outVals, begin_, size_);
   }
   return out;
 }
@@ -134,8 +126,8 @@ function genericSliceSlow(
   }
 }
 
-registerKernel({
-  kernelName: 'Slice',
+export const sliceConfig: KernelConfig = {
+  kernelName: Slice,
   backendName: 'wasm',
-  kernelFunc: slice,
-});
+  kernelFunc: slice as {} as KernelFunc,
+};

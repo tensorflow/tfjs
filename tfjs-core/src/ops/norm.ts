@@ -20,15 +20,17 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {parseAxisParam} from '../util';
 
+import {abs} from './abs';
 import * as axis_util from './axis_util';
 import {max} from './max';
+import {min} from './min';
 import {op} from './operation';
 import {pow} from './pow';
-import {min, sum} from './reduction_ops';
 import {reshape} from './reshape';
+import {scalar} from './scalar';
+import {sqrt} from './sqrt';
 import {square} from './square';
-import {scalar} from './tensor_ops';
-import {abs, sqrt} from './unary_ops';
+import {sum} from './sum';
 
 /**
  * Computes the norm of scalar, vectors, and matrices.

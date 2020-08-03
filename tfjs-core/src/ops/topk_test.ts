@@ -19,7 +19,10 @@ import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
-import {scalar, tensor1d, tensor2d, tensor3d} from './tensor_ops';
+import {scalar} from './scalar';
+import {tensor1d} from './tensor1d';
+import {tensor2d} from './tensor2d';
+import {tensor3d} from './tensor3d';
 
 describeWithFlags('topk', ALL_ENVS, () => {
   it('1d array with default k', async () => {

@@ -19,12 +19,12 @@ import {GradConfig, NamedAttrMap} from '../kernel_registry';
 import {add} from '../ops/add';
 import {getReductionAxes} from '../ops/broadcast_util';
 import {mul} from '../ops/mul';
-import {sum} from '../ops/reduction_ops';
 import {reshape} from '../ops/reshape';
+import {rsqrt} from '../ops/rsqrt';
+import {scalar} from '../ops/scalar';
 import {sub} from '../ops/sub';
-import {scalar} from '../ops/tensor_ops';
+import {sum} from '../ops/sum';
 import {tile} from '../ops/tile';
-import {rsqrt} from '../ops/unary_ops';
 import {Tensor} from '../tensor';
 import {Rank, ShapeMap} from '../types';
 

@@ -172,7 +172,8 @@ tfjs_cc_library(
 
 tfjs_cc_library(
     name = "unary",
-    srcs = ["unary.h"],
+    srcs = ["unary.cc"],
+    hdrs = ["unary.h"],
     deps = [
         ":backend",
     ],
@@ -213,8 +214,9 @@ tfjs_cc_library(
         ":Min",
         ":Minimum",
         ":Multiply",
-        ":Neg",
+        ":Negate",
         ":NonMaxSuppressionV3",
+        ":NonMaxSuppressionV4",
         ":NonMaxSuppressionV5",
         ":NotEqual",
         ":OneHot",
@@ -224,6 +226,8 @@ tfjs_cc_library(
         ":Relu",
         ":Relu6",
         ":ResizeBilinear",
+        ":Reverse",
+        ":RotateWithOffset",
         ":ScatterNd",
         ":SelectV2",
         ":Sigmoid",
@@ -634,8 +638,8 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-    name = "Neg",
-    srcs = ["kernels/Neg.cc"],
+    name = "Negate",
+    srcs = ["kernels/Negate.cc"],
     deps = [
         ":backend",
         ":unary",
@@ -645,6 +649,16 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "NonMaxSuppressionV3",
     srcs = ["kernels/NonMaxSuppressionV3.cc"],
+    deps = [
+        ":backend",
+        ":non_max_suppression_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "NonMaxSuppressionV4",
+    srcs = ["kernels/NonMaxSuppressionV4.cc"],
     deps = [
         ":backend",
         ":non_max_suppression_impl",
@@ -673,9 +687,18 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "PadV2",
     srcs = ["kernels/PadV2.cc"],
+    hdrs = ["kernels/PadV2.h"],
     deps = [
         ":backend",
         ":util",
+    ],
+)
+
+tfjs_unit_test(
+    name = "PadV2_test",
+    srcs = ["kernels/PadV2_test.cc"],
+    deps = [
+        ":PadV2",
     ],
 )
 
@@ -743,6 +766,24 @@ tfjs_unit_test(
     srcs = ["kernels/ResizeBilinear_test.cc"],
     deps = [
         ":ResizeBilinear",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Reverse",
+    srcs = ["kernels/Reverse.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "RotateWithOffset",
+    srcs = ["kernels/RotateWithOffset.cc"],
+    deps = [
+        ":backend",
+        ":util",
     ],
 )
 

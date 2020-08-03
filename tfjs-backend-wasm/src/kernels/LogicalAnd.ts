@@ -14,7 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
+import {KernelConfig, LogicalAnd} from '@tensorflow/tfjs-core';
 
-import {registerBinaryKernel} from './binary_kernel';
+import {createBinaryKernelConfig} from './binary_kernel';
 const supportsFullBroadcast = false;
-registerBinaryKernel('LogicalAnd', supportsFullBroadcast, 'bool');
+export const logicalAndConfig: KernelConfig =
+    createBinaryKernelConfig(LogicalAnd, supportsFullBroadcast, 'bool');

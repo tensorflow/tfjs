@@ -19,10 +19,10 @@ import {GradConfig} from '../kernel_registry';
 import {getReductionAxes} from '../ops/broadcast_util';
 import {greater} from '../ops/greater';
 import {mul} from '../ops/mul';
-import {sum} from '../ops/reduction_ops';
 import {reshape} from '../ops/reshape';
-import {zerosLike} from '../ops/tensor_ops';
+import {sum} from '../ops/sum';
 import {where} from '../ops/where';
+import {zerosLike} from '../ops/zeros_like';
 import {Tensor} from '../tensor';
 
 export const preluGradConfig: GradConfig = {

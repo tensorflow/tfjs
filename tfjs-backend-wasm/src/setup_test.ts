@@ -117,7 +117,9 @@ const TEST_FILTERS: TestFilter[] = [
       'basic with elu',    // Only fused relu, relu6, prelu activations
                            // supported.
       'gradient',          // Gradients not defined yet.
-      'NCHW',              // xnn pack does not support channels first.
+      'backProp input x=[2,3,3,1] f=[2,2,1,1] s=1 p=0',  // Gradients not
+                                                         // defined.
+      'NCHW',  // xnn pack does not support channels first.
       // Issue: https://github.com/tensorflow/tfjs/issues/3104.
       // Actual != expected.
       'relu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=8 p=same',
@@ -189,6 +191,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {include: 'slice '},
+  {include: 'rotate '},
   {include: 'square '},
   {
     startsWith: 'min ',
@@ -308,6 +311,7 @@ const TEST_FILTERS: TestFilter[] = [
       'axis=0',  // Reduction not supported along inner dimensions.
     ]
   },
+  {startsWith: 'reverse'},
   {startsWith: 'sum '},
   {
     startsWith: 'logicalAnd ',

@@ -15,51 +15,72 @@
  * =============================================================================
  */
 
-import {backend_util, NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, Sum, SumAttrs, SumInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
-interface SumInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-interface SumAttrs extends NamedAttrMap {
-  axes: number[];
-}
+import {permuteAxesAndTranspose} from './kernel_utils';
 
 let wasmSum: (xId: number, reduceSize: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
-  wasmSum =
-      backend.wasm.cwrap('Sum', null /*void*/, ['number, number, number']);
+  wasmSum = backend.wasm.cwrap(Sum, null /*void*/, ['number, number, number']);
 }
 
 function sum(args: {backend: BackendWasm, inputs: SumInputs, attrs: SumAttrs}):
     TensorInfo {
   const {backend, inputs, attrs} = args;
-  const {axes} = attrs;
+  const {axis, keepDims} = attrs;
   const {x} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
+  let inputId = xId;
+  let input = x;
 
-  backend_util.assertAxesAreInnerMostDims('sum', axes, x.shape.length);
-  const [outShape, reduceShape] =
-      backend_util.computeOutAndReduceShapes(x.shape, axes);
-  const reduceSize = util.sizeFromShape(reduceShape);
+  const {transposed, axes, originalAxes, inputWasTransposed} =
+      permuteAxesAndTranspose(x, axis, backend);
 
-  const out = backend.makeOutput(outShape, x.dtype);
-  if (util.sizeFromShape(x.shape) === 0) {
-    return out;
+  let reductionAxes = axes;
+  if (inputWasTransposed) {
+    const transposedId = backend.dataIdMap.get(transposed.dataId).id;
+    if (transposedId !== xId) {
+      // transpose was not a no-op. We will need to dispose of this
+      // once we are done.
+      input = transposed;
+      inputId = transposedId;
+      reductionAxes = backend_util.getInnerMostAxes(
+          reductionAxes.length, input.shape.length);
+    }
   }
 
-  const outId = backend.dataIdMap.get(out.dataId).id;
+  backend_util.assertAxesAreInnerMostDims(
+      'sum', reductionAxes, input.shape.length);
+  const [outShape, reduceShape] =
+      backend_util.computeOutAndReduceShapes(input.shape, reductionAxes);
+  const reduceSize = util.sizeFromShape(reduceShape);
 
-  wasmSum(xId, reduceSize, outId);
+  const out = backend.makeOutput(outShape, input.dtype);
+  if (util.sizeFromShape(input.shape) !== 0) {
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    wasmSum(inputId, reduceSize, outId);
+  }
+
+  if (inputWasTransposed) {
+    // dispose of the transposed tensor.
+    backend.disposeData(transposed.dataId);
+  }
+
+  if (keepDims) {
+    // reshape
+    const newShape = backend_util.expandShapeToKeepDim(out.shape, originalAxes);
+    out.shape = newShape;
+  }
+
   return out;
 }
 
-registerKernel({
-  kernelName: 'Sum',
+export const sumConfig: KernelConfig = {
+  kernelName: Sum,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: sum
-});
+  kernelFunc: sum as {} as KernelFunc
+};

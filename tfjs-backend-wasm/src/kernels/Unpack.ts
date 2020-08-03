@@ -15,20 +15,18 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, Unpack, UnpackAttrs, UnpackInputs} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, TensorInfo, Unpack, UnpackAttrs, UnpackInputs} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
 import {slice} from './Slice';
 
-function unpack(args: {
-  inputs: NamedTensorInfoMap,
-  backend: BackendWasm,
-  attrs: NamedAttrMap
-}): TensorInfo[] {
+function unpack(
+    args: {inputs: UnpackInputs, backend: BackendWasm, attrs: UnpackAttrs}):
+    TensorInfo[] {
   const {inputs, backend, attrs} = args;
-  const {value} = inputs as {} as UnpackInputs;
-  const {axis} = attrs as {} as UnpackAttrs;
+  const {value} = inputs;
+  const {axis} = attrs;
   const numOutputs = value.shape[axis];
   const rank = value.shape.length;
   const outShape: number[] = new Array(rank - 1);
@@ -49,8 +47,8 @@ function unpack(args: {
   return outs.map(({dataId, dtype}) => ({dataId, dtype, shape: outShape}));
 }
 
-registerKernel({
+export const unpackConfig: KernelConfig = {
   kernelName: Unpack,
   backendName: 'wasm',
-  kernelFunc: unpack,
-});
+  kernelFunc: unpack as {} as KernelFunc,
+};

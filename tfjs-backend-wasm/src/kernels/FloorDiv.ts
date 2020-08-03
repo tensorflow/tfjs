@@ -15,6 +15,10 @@
  * =============================================================================
  */
 
-import {registerBinaryKernel} from './binary_kernel';
+import {FloorDiv, KernelConfig} from '@tensorflow/tfjs-core';
+
+import {createBinaryKernelConfig} from './binary_kernel';
+
 const supportsFullBroadcast = false;
-registerBinaryKernel('FloorDiv', supportsFullBroadcast);
+export const floorDivConfig: KernelConfig =
+    createBinaryKernelConfig(FloorDiv, supportsFullBroadcast);

@@ -22,19 +22,20 @@ import {TensorLike} from '../types';
 import {assertShapesMatch} from '../util';
 
 import {add} from './add';
-import {cast} from './array_ops';
 import {expandShapeToKeepDim} from './axis_util';
+import {cast} from './cast';
 import {computeWeightedLoss} from './compute_weighted_loss';
 import {div} from './div';
+import {exp} from './exp';
 import {logSumExp} from './log_sum_exp';
 import {Reduction} from './loss_ops_utils';
 import {mul} from './mul';
+import {neg} from './neg';
 import {op} from './operation';
-import {sum} from './reduction_ops';
 import {reshape} from './reshape';
+import {scalar} from './scalar';
 import {sub} from './sub';
-import {scalar} from './tensor_ops';
-import {exp, neg} from './unary_ops';
+import {sum} from './sum';
 
 /**
  * Computes softmax cross entropy between logits and labels.

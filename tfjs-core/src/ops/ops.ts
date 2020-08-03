@@ -16,11 +16,20 @@
  */
 
 // Modularized ops.
+export {abs} from './abs';
+export {acos} from './acos';
+export {acosh} from './acosh';
 export {add} from './add';
 export {addN} from './add_n';
 export {all} from './all';
 export {any} from './any';
+export {argMax} from './arg_max';
+export {argMin} from './arg_min';
+export {asin} from './asin';
+export {asinh} from './asinh';
+export {atan} from './atan';
 export {atan2} from './atan2';
+export {atanh} from './atanh';
 export {avgPool} from './avg_pool';
 export {avgPool3d} from './avg_pool_3d';
 export {basicLSTMCell} from './basic_lstm_cell';
@@ -30,6 +39,10 @@ export {batchNorm2d} from './batchnorm2d';
 export {batchNorm3d} from './batchnorm3d';
 export {batchNorm4d} from './batchnorm4d';
 export {broadcastTo} from './broadcast_to';
+export {buffer} from './buffer';
+export {cast} from './cast';
+export {ceil} from './ceil';
+export {clipByValue} from './clip_by_value';
 export {clone} from './clone';
 export {complex} from './complex';
 export {concat} from './concat';
@@ -42,6 +55,8 @@ export {conv2d} from './conv2d';
 export {conv2dTranspose} from './conv2d_transpose';
 export {conv3d} from './conv3d';
 export {conv3dTranspose} from './conv3d_transpose';
+export {cos} from './cos';
+export {cosh} from './cosh';
 export {cumsum} from './cumsum';
 export {depthToSpace} from './depth_to_space';
 export {depthwiseConv2d} from './depthwise_conv2d';
@@ -52,17 +67,33 @@ export {divNoNan} from './div_no_nan';
 export {dot} from './dot';
 export {elu} from './elu';
 export {equal} from './equal';
+export {erf} from './erf';
+export {exp} from './exp';
 export {expandDims} from './expand_dims';
+export {expm1} from './expm1';
 export {eye} from './eye';
+export {fft} from './fft';
 export {fill} from './fill';
+export {floor} from './floor';
 export {floorDiv} from './floorDiv';
+export {gather} from './gather';
 export {greater} from './greater';
 export {greaterEqual} from './greater_equal';
+export {ifft} from './ifft';
 export {imag} from './imag';
+export {irfft} from './irfft';
+export {isFinite} from './is_finite';
+export {isInf} from './is_inf';
+export {isNaN} from './is_nan';
 export {leakyRelu} from './leaky_relu';
 export {less} from './less';
 export {lessEqual} from './less_equal';
+export {linspace} from './linspace';
 export {localResponseNormalization} from './local_response_normalization';
+export {log} from './log';
+export {log1p} from './log1p';
+export {logSigmoid} from './log_sigmoid';
+export {logSoftmax} from './log_softmax';
 export {logSumExp} from './log_sum_exp';
 export {logicalAnd} from './logical_and';
 export {logicalNot} from './logical_not';
@@ -74,14 +105,19 @@ export {maxPool} from './max_pool';
 export {maxPool3d} from './max_pool_3d';
 export {maxPoolWithArgmax} from './max_pool_with_argmax';
 export {maximum} from './maximum';
+export {mean} from './mean';
+export {min} from './min';
 export {minimum} from './minimum';
 export {mod} from './mod';
 export {moments} from './moments';
 export {mul} from './mul';
 export {LSTMCellFunc, multiRNNCell} from './multi_rnn_cell';
 export {multinomial} from './multinomial';
+export {neg} from './neg';
 export {notEqual} from './not_equal';
 export {oneHot} from './one_hot';
+export {ones} from './ones';
+export {onesLike} from './ones_like';
 export {outerProduct} from './outer_product';
 export {pad} from './pad';
 export {pad1d} from './pad1d';
@@ -91,12 +127,15 @@ export {pad4d} from './pad4d';
 export {pool} from './pool';
 export {pow} from './pow';
 export {prelu} from './prelu';
+export {print} from './print';
 export {prod} from './prod';
 export {rand} from './rand';
 export {randomGamma} from './random_gamma';
 export {randomNormal} from './random_normal';
 export {randomUniform} from './random_uniform';
+export {range} from './range';
 export {real} from './real';
+export {reciprocal} from './reciprocal';
 export {relu} from './relu';
 export {relu6} from './relu6';
 export {reshape} from './reshape';
@@ -105,66 +144,116 @@ export {reverse1d} from './reverse_1d';
 export {reverse2d} from './reverse_2d';
 export {reverse3d} from './reverse_3d';
 export {reverse4d} from './reverse_4d';
+export {rfft} from './rfft';
+export {round} from './round';
+export {rsqrt} from './rsqrt';
+export {scalar} from './scalar';
 export {selu} from './selu';
 export {separableConv2d} from './separable_conv2d';
+export {setdiff1dAsync} from './setdiff1d_async';
+export {sigmoid} from './sigmoid';
+export {sign} from './sign';
+export {sin} from './sin';
+export {sinh} from './sinh';
+export {slice} from './slice';
+export {slice1d} from './slice1d';
+export {slice2d} from './slice2d';
+export {slice3d} from './slice3d';
+export {slice4d} from './slice4d';
+export {softmax} from './softmax';
+export {softplus} from './softplus';
 export {spaceToBatchND} from './space_to_batch_nd';
 export {split} from './split';
+export {sqrt} from './sqrt';
 export {square} from './square';
 export {squaredDifference} from './squared_difference';
 export {squeeze} from './squeeze';
 export {stack} from './stack';
+export {step} from './step';
+export {stridedSlice} from './strided_slice';
 export {sub} from './sub';
+export {sum} from './sum';
+export {tan} from './tan';
+export {tanh} from './tanh';
+export {tensor} from './tensor';
+export {tensor1d} from './tensor1d';
+export {tensor2d} from './tensor2d';
+export {tensor3d} from './tensor3d';
+export {tensor4d} from './tensor4d';
+export {tensor5d} from './tensor5d';
+export {tensor6d} from './tensor6d';
 export {tile} from './tile';
+export {topk} from './topk';
 export {truncatedNormal} from './truncated_normal';
+export {unsortedSegmentSum} from './unsorted_segment_sum';
 export {unstack} from './unstack';
+export {variable} from './variable';
 export {where} from './where';
 export {whereAsync} from './where_async';
+export {zeros} from './zeros';
+export {zerosLike} from './zeros_like';
 
 export * from './boolean_mask';
-export * from './slice';
-export * from './unary_ops';
-export * from './reduction_ops';
 export * from './compare';
 export * from './binary_ops';
-export * from './array_ops';
-export * from './tensor_ops';
 export * from './transpose';
-export * from './softmax';
 export * from './norm';
-export * from './segment_ops';
 export * from './moving_average';
-export * from './strided_slice';
-export * from './topk';
 export * from './scatter_nd';
-export * from './spectral_ops';
 export * from './sparse_to_dense';
 export * from './gather_nd';
 export * from './dropout';
-export * from './signal_ops';
+export * from './signal_ops_util';
 export * from './in_top_k';
 
 export {op} from './operation';
 
-import * as spectral from './spectral_ops';
+import {rfft} from './rfft';
+import {fft} from './fft';
+import {ifft} from './ifft';
+import {irfft} from './irfft';
+const spectral = {
+  fft,
+  ifft,
+  rfft,
+  irfft
+};
+
 import * as fused from './fused_ops';
-import * as signal from './signal_ops';
+
+import {hammingWindow} from './hamming_window';
+import {hannWindow} from './hann_window';
+import {frame} from './frame';
+import {stft} from './stft';
+const signal = {
+  hammingWindow,
+  hannWindow,
+  frame,
+  stft,
+};
 
 // Image Ops namespace
 import {cropAndResize} from './crop_and_resize';
+import {rotateWithOffset} from './rotate_with_offset';
 import {nonMaxSuppression} from './non_max_suppression';
 import {nonMaxSuppressionAsync} from './non_max_suppression_async';
 import {nonMaxSuppressionWithScore} from './non_max_suppression_with_score';
-import {nonMaxSuppressionWithScoreAsync} from './non_max_suppresion_with_score_async';
+import {nonMaxSuppressionWithScoreAsync} from './non_max_suppression_with_score_async';
+import {nonMaxSuppressionPadded} from './non_max_suppression_padded';
+import {nonMaxSuppressionPaddedAsync} from './non_max_suppression_padded_async';
 import {resizeBilinear} from './resize_bilinear';
 import {resizeNearestNeighbor} from './resize_nearest_neighbor';
 const image = {
   resizeNearestNeighbor,
   resizeBilinear,
+  rotateWithOffset,
   cropAndResize,
   nonMaxSuppression,
   nonMaxSuppressionAsync,
   nonMaxSuppressionWithScore,
-  nonMaxSuppressionWithScoreAsync
+  nonMaxSuppressionWithScoreAsync,
+  nonMaxSuppressionPadded,
+  nonMaxSuppressionPaddedAsync
 };
 
 // linalg namespace

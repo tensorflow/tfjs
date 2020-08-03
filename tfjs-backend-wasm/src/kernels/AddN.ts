@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
-import {KernelFunc, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {AddN, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+
 import {CppDType} from './types';
 
 let wasmFunc:
@@ -25,7 +26,7 @@ let wasmFunc:
         void;
 
 function setupFunc(backend: BackendWasm): void {
-  wasmFunc = backend.wasm.cwrap('AddN', null /* void */, [
+  wasmFunc = backend.wasm.cwrap(AddN, null /* void */, [
     'array',   // input_ids
     'number',  // input_ids.length
     'number',  // dtype
@@ -50,9 +51,9 @@ function addn(args: {inputs: TensorInfo[], backend: BackendWasm}) {
   return out;
 }
 
-registerKernel({
-  kernelName: 'AddN',
+export const addNConfig: KernelConfig = {
+  kernelName: AddN,
   backendName: 'wasm',
   setupFunc,
   kernelFunc: addn as {} as KernelFunc,
-});
+};

@@ -635,7 +635,8 @@ export class Engine implements TensorTracker, DataMover {
         totalBytesSnapshot: this.state.numBytes,
         tensorsAdded: this.state.numTensors - startingNumTensors,
         totalTensorsSnapshot: this.state.numTensors,
-        inputShapes: Object.keys(inputs).map(key => inputs[key].shape),
+        inputShapes: Object.keys(inputs).map(
+            key => inputs[key] != null ? inputs[key].shape : null),
         outputShapes: outputs.map(item => item.shape)
       });
     }
@@ -743,7 +744,7 @@ export class Engine implements TensorTracker, DataMover {
       dtype?: DataType): Variable {
     name = name || this.nextVariableId().toString();
     if (dtype != null && dtype !== initialValue.dtype) {
-      initialValue = initialValue.asType(dtype);
+      initialValue = initialValue.cast(dtype);
     }
     const v = new Variable(initialValue, trainable, name, this.nextTensorId());
     if (this.state.registeredVariables[v.name] != null) {
@@ -845,14 +846,15 @@ export class Engine implements TensorTracker, DataMover {
     return info;
   }
 
-  async profile(query: () => TensorContainer): Promise<ProfileInfo> {
+  async profile(query: () => (TensorContainer | Promise<TensorContainer>)):
+      Promise<ProfileInfo> {
     this.state.profiling = true;
 
     const startBytes = this.state.numBytes;
     const startNumTensors = this.state.numTensors;
 
     this.state.activeProfile.kernels = [];
-    this.state.activeProfile.result = query();
+    this.state.activeProfile.result = await query();
 
     this.state.profiling = false;
 
