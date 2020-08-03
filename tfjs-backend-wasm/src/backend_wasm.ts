@@ -383,7 +383,8 @@ export function setWasmPath(path: string, usePlatformFetch = false): void {
  *     SIMD-enabled, threading-enabled, etc.).
  * @param fileMap optional mapping from names of WASM binaries to custom
  *     full paths specifying the locations of those binaries. This is useful if
- *     your WASM binaries are not all located in the same directory.
+ *     your WASM binaries are not all located in the same directory, or if your
+ *     WASM binaries have been renamed.
  * @param usePlatformFetch optional boolean to use platform fetch to download
  *     the wasm file, default to false.
  */
