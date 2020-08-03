@@ -13,90 +13,20 @@ import {assertPositiveInteger} from '../utils/generic_utils';
 import * as math_utils from '../utils/math_utils';
 import {LayerVariable} from '../variables';
 
-import {RNNCell, SimpleRNNCellLayerArgs} from './recurrent';
+import {LSTMCellLayerArgs, RNNCell,} from './recurrent';
 
-export declare interface ConvLSTM2DCellArgs extends SimpleRNNCellLayerArgs {
-  /**
-   * The dimensionality of the output space (i.e. the number of filters in the
-   * convolution).
-   */
+export declare interface ConvLSTM2DCellArgs extends LSTMCellLayerArgs {
   filters: number;
 
-  /**
-   * The dimensions of the convolution window. If kernelSize is a number, the
-   * convolutional window will be square.
-   */
   kernelSize: number|number[];
 
-  /**
-   * The strides of the convolution in each dimension. If strides is a number,
-   * strides in both dimensions are equal.
-   *
-   * Specifying any stride value != 1 is incompatible with specifying any
-   * `dilationRate` value != 1.
-   */
   strides?: number|number[];
 
-  /**
-   * Padding mode.
-   */
   padding?: PaddingMode;
 
-  /**
-   * Format of the data, which determines the ordering of the dimensions in
-   * the inputs.
-   *
-   * `channels_last` corresponds to inputs with shape
-   *   `(batch, ..., channels)`
-   *
-   *  `channels_first` corresponds to inputs with shape `(batch, channels,
-   * ...)`.
-   *
-   * Defaults to `channels_last`.
-   */
   dataFormat?: DataFormat;
 
-  /**
-   * The dilation rate to use for the dilated convolution in each dimension.
-   * Should be an integer or array of two or three integers.
-   *
-   * Currently, specifying any `dilationRate` value != 1 is incompatible with
-   * specifying any `strides` value != 1.
-   */
   dilationRate?: number|[number]|[number, number]|[number, number, number];
-
-  /**
-   * Activation function to use for the recurrent step.
-   *
-   * Defaults to hard sigmoid (`hardSigmoid`).
-   *
-   * If `null`, no activation is applied.
-   */
-  recurrentActivation?: ActivationIdentifier;
-
-  /**
-   * If `true`, add 1 to the bias of the forget gate at initialization.
-   * Setting it to `true` will also force `biasInitializer = 'zeros'`.
-   * This is recommended in
-   * [Jozefowicz et
-   * al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf).
-   */
-  unitForgetBias?: boolean;
-
-  /**
-   * Implementation mode, either 1 or 2.
-   *
-   * Mode 1 will structure its operations as a larger number of
-   *   smaller dot products and additions.
-   *
-   * Mode 2 will batch them into fewer, larger operations. These modes will
-   * have different performance profiles on different hardware and
-   * for different applications.
-   *
-   * Note: For superior performance, TensorFlow.js always uses implementation
-   * 2, regardless of the actual value of this configuration field.
-   */
-  implementation?: number;
 }
 
 export class ConvLSTM2DCell extends RNNCell {
