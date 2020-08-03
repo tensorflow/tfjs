@@ -94,13 +94,15 @@ export function makeShader(
     };
   `);
 
-  program.variableNames.forEach((x, i) => {
-    prefixSnippets.push(`
-      layout(std430, set = 0, binding = ${1 + i}) readonly buffer ssb${x} {
-        ${mapToGlslTypes(inputInfo[i].dtype)} ${x}[];
-      };
-    `);
-  });
+  if (inputInfo.length > 0) {
+    program.variableNames.forEach((x, i) => {
+      prefixSnippets.push(`
+        layout(std430, set = 0, binding = ${1 + i}) readonly buffer ssb${x} {
+          ${mapToGlslTypes(inputInfo[i].dtype)} ${x}[];
+        };
+      `);
+    });
+  }
 
   let uniformDeclaration = '';
 
