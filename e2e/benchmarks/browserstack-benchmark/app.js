@@ -55,14 +55,23 @@ function benchmark(config) {
       './benchmark_parameters.json', JSON.stringify(config.benchmark, null, 2));
 
   console.log(`Start benchmarking.`);
-  exec('yarn test', (err, stdout, stderr) => {
-    if (err) {
-      console.log(err);
+  exec('yarn test', (error, stdout, stderr) => {
+    if (error) {
+      console.log(error);
+      io.emit('benchmarkComplete', {error: 'Failed to run yarn test'});
       return;
     }
-    const re = /.*\<tfjs_benchmark\>(.*)\<\/tfjs_benchmark\>/;
-    const benchmarkResultStr = stdout.match(re)[1];
-    const benchmarkResult = JSON.parse(benchmarkResultStr);
+
+    const errorReg = /.*\<tfjs_error\>(.*)\<\/tfjs_error\>/;
+    const matchedError = stdout.match(errorReg);
+    if (matchedError != null) {
+      io.emit('benchmarkComplete', {error: matchedError[1]});
+      return;
+    }
+
+    const resultReg = /.*\<tfjs_benchmark\>(.*)\<\/tfjs_benchmark\>/;
+    const matchedResult = stdout.match(resultReg);
+    const benchmarkResult = JSON.parse(benchmarkResultStr[1]);
     io.emit('benchmarkComplete', benchmarkResult);
   });
 }
