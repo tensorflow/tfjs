@@ -73,8 +73,9 @@ bundlers such as Parcel and WebPack need to be able to serve the `.wasm` file in
 production. See [starter/parcel](./starter/parcel/) and
 [starter/webpack](./starter/webpack/) for how to setup your favorite bundler.
 
-If your server is serving the `.wasm` file on a different path, call `setWasmPaths`
-with the location of its parent directory before you initialize the backend:
+If your server is serving the `.wasm` files from a different directory, call
+`setWasmPaths` with the location of that directory before you initialize the
+backend:
 
 ```ts
 import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
