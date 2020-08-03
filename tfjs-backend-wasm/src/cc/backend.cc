@@ -50,6 +50,9 @@ TensorInfo &get_tensor_info_out(const size_t tensor_id) {
 }
 
 size_t xnn_operator_count = 0;
+
+// emscripten_num_logical_cores corresponds to navigator.hardwareConcurrency.
+// many x86-64 processors have two threads per core, so we are dividing by 2.
 #ifdef __EMSCRIPTEN_PTHREADS__
 int num_cores = emscripten_num_logical_cores() / 2;
 #else

@@ -228,7 +228,7 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
       if (path.endsWith('.wasm')) {
         if (wasmPath != null) {
           // If wasmPath is defined, the user has supplied a full path to
-          // the .wasm binary.
+          // the vanilla .wasm binary.
           return wasmPath;
         }
 

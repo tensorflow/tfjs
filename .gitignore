@@ -54,5 +54,6 @@ tensorflow-tfjs-*.tgz
 tfjs-backend-wasm/dist
 tfjs-backend-wasm/wasm-out/*.js
 tfjs-backend-wasm/wasm-out/*.wasm
+tfjs-backend-wasm/wasm-out/*.worker.ts
 yalc.lock
 yarn-error.log
