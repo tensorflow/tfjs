@@ -298,6 +298,16 @@ async function tryAllLoadingMethods(
   throw new Error(`Didn't find a fit loading method for this model.`);
 }
 
+/**
+ * Load a graph model or a a model composed of Layer objects and record the
+ * model type (GraphModel or LayersModel) at `state.modelType`, given a URL to
+ * the model definition.
+ *
+ * @param {string} modelUrl
+ * @param {io.LoadOptions} loadOptions
+ * @param {object} state  The object that is used to record the model type. This
+ *     can be extended with more model information if needed.
+ */
 async function loadModelByUrlWithState(modelUrl, loadOptions = {}, state = {}) {
   let model, ioHandler, modelType;
 
