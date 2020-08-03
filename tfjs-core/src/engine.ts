@@ -618,12 +618,14 @@ export class Engine implements TensorTracker, DataMover {
     let kernelProfile: KernelProfile;
     this.scopedRun(
         () => this.state.kernelDepth++, () => this.state.kernelDepth--, () => {
-          if (!this.ENV.getBool('DEBUG')) {
+          if (!this.ENV.getBool('DEBUG') && !this.state.profiling) {
             outputs = kernelFunc();
           } else {
             kernelProfile = this.profiler.profileKernel(
                 kernelName, inputs, () => kernelFunc());
-            this.profiler.logKernelProfile(kernelProfile);
+            if (this.ENV.getBool('DEBUG')) {
+              this.profiler.logKernelProfile(kernelProfile);
+            }
             outputs = kernelProfile.outputs;
           }
         });

@@ -387,26 +387,30 @@ describeWithFlags('profile', ALL_ENVS, () => {
     expect(profile.peakBytes).toBe(24);
     expect(profile.newTensors).toBe(1);
     expectArraysClose(await result.data(), [1, 2, 3]);
-    expect(profile.kernels).toEqual([
-      {
-        'name': 'Square',
-        'bytesAdded': 12,
-        'totalBytesSnapshot': 24,
-        'tensorsAdded': 1,
-        'totalTensorsSnapshot': 2,
-        'inputShapes': [[3]],
-        'outputShapes': [[3]]
-      },
-      {
-        'name': 'Square',
-        'bytesAdded': 12,
-        'totalBytesSnapshot': 24,
-        'tensorsAdded': 1,
-        'totalTensorsSnapshot': 2,
-        'inputShapes': [[3]],
-        'outputShapes': [[3]]
-      }
-    ]);
+    expect(profile.kernels.length).toBe(2);
+    expect(typeof profile.kernels[0].kernelTimeMs).toBe('number');
+    expect(typeof profile.kernels[0].extraInfo).toBe('string');
+    expect(typeof profile.kernels[1].kernelTimeMs).toBe('number');
+    expect(typeof profile.kernels[1].extraInfo).toBe('string');
+    expect(profile.kernels[0]).toEqual(jasmine.objectContaining({
+      'name': 'Square',
+      'bytesAdded': 12,
+      'totalBytesSnapshot': 24,
+      'tensorsAdded': 1,
+      'totalTensorsSnapshot': 2,
+      'inputShapes': [[3]],
+      'outputShapes': [[3]]
+    }));
+
+    expect(profile.kernels[1]).toEqual(jasmine.objectContaining({
+      'name': 'Square',
+      'bytesAdded': 12,
+      'totalBytesSnapshot': 24,
+      'tensorsAdded': 1,
+      'totalTensorsSnapshot': 2,
+      'inputShapes': [[3]],
+      'outputShapes': [[3]]
+    }));
   });
 
   it('squaring without disposing', async () => {
@@ -422,7 +426,10 @@ describeWithFlags('profile', ALL_ENVS, () => {
     expect(profile.peakBytes).toBe(24);
     expect(profile.newTensors).toBe(2);
     expectArraysClose(await result.data(), [1, 4, 9]);
-    expect(profile.kernels).toEqual([{
+    expect(profile.kernels.length).toBe(1);
+    expect(typeof profile.kernels[0].kernelTimeMs).toBe('number');
+    expect(typeof profile.kernels[0].extraInfo).toBe('string');
+    expect(profile.kernels[0]).toEqual(jasmine.objectContaining({
       'name': 'Square',
       'bytesAdded': 12,
       'totalBytesSnapshot': 24,
@@ -430,7 +437,7 @@ describeWithFlags('profile', ALL_ENVS, () => {
       'totalTensorsSnapshot': 2,
       'inputShapes': [[3]],
       'outputShapes': [[3]]
-    }]);
+    }));
   });
 
   it('squaring in async query', async () => {
@@ -448,7 +455,10 @@ describeWithFlags('profile', ALL_ENVS, () => {
     expect(profile.peakBytes).toBe(24);
     expect(profile.newTensors).toBe(1);
     expectArraysClose(await result.data(), [1, 2, 3]);
-    expect(profile.kernels).toEqual([{
+    expect(profile.kernels.length).toBe(1);
+    expect(typeof profile.kernels[0].kernelTimeMs).toBe('number');
+    expect(typeof profile.kernels[0].extraInfo).toBe('string');
+    expect(profile.kernels[0]).toEqual(jasmine.objectContaining({
       'name': 'Square',
       'bytesAdded': 12,
       'totalBytesSnapshot': 24,
@@ -456,7 +466,7 @@ describeWithFlags('profile', ALL_ENVS, () => {
       'totalTensorsSnapshot': 2,
       'inputShapes': [[3]],
       'outputShapes': [[3]]
-    }]);
+    }));
   });
 });
 
