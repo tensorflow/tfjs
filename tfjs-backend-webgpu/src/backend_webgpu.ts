@@ -33,6 +33,7 @@ import {Conv2DNaiveProgram} from './kernels/conv2d_naive_webgpu';
 import {CropAndResizeProgram} from './kernels/crop_and_resize_webgpu';
 import {DepthwiseConv2DProgram} from './kernels/depthwise_conv2d_webgpu';
 import {FillProgram} from './kernels/fill_webgpu';
+import {FromPixelsProgram} from './kernels/from_pixels_webgpu';
 import {Im2ColProgram} from './kernels/im2col_webgpu';
 import {MatMulPackedProgram} from './kernels/matmul_packed_webgpu';
 import {MatMulProgram} from './kernels/matmul_webgpu';
@@ -100,6 +101,7 @@ export class WebGPUBackend extends KernelBackend {
   queue: GPUQueue;
   glslang: Glslang;
   commandQueue: GPUCommandEncoder[];
+  fromPixelProgram: FromPixelsProgram = null;
 
   private commandQueueOwnedIds = new WeakSet<DataId>();
   private binaryCache: {[key: string]: WebGPUBinary};
@@ -1160,7 +1162,7 @@ export class WebGPUBackend extends KernelBackend {
 
   fromPixels(
       pixels: backend_util.PixelData|ImageData|HTMLImageElement|
-      HTMLCanvasElement|HTMLVideoElement,
+      HTMLCanvasElement|HTMLVideoElement|ImageBitmap,
       numChannels: number): Tensor3D {
     if (pixels == null) {
       throw new Error(
@@ -1168,20 +1170,57 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     const outShape = [pixels.height, pixels.width, numChannels];
+    const size = util.sizeFromShape(outShape);
+    const uniformData: [number, number] = [size, numChannels];
     let imageData = (pixels as ImageData | backend_util.PixelData).data;
 
     if (env().getBool('IS_BROWSER')) {
-      if (!(pixels instanceof HTMLVideoElement) &&
+      if (!(pixels instanceof ImageBitmap) &&
+          !(pixels instanceof HTMLVideoElement) &&
           !(pixels instanceof HTMLImageElement) &&
           !(pixels instanceof HTMLCanvasElement) &&
           !(pixels instanceof ImageData) &&
           !(pixels.data instanceof Uint8Array)) {
         throw new Error(
             'pixels passed to tf.browser.fromPixels() must be either an ' +
-            `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData` +
-            ` or {data: Uint32Array, width: number, height: number}, ` +
+            `ImageBitmap, HTMLVideoElement, HTMLImageElement, ` +
+            `HTMLCanvasElement, ImageData` +
+            ` or {data: Uint8Array, width: number, height: number}, ` +
             `but was ${(pixels as {}).constructor.name}`);
       }
+
+      if (pixels instanceof ImageBitmap) {
+        const output = this.makeOutputArray(outShape, 'int32');
+        if (!this.fromPixelProgram) {
+          this.fromPixelProgram = new FromPixelsProgram(outShape);
+
+          const {bindGroupLayout, pipeline} = webgpu_program.compileProgram(
+              this.glslang, this.device, this.fromPixelProgram, [], output);
+
+          // TODO(tfjs-optimization): Replace the uniform buffer with fixed
+          // numbers.
+          this.fromPixelProgram.setUniform(this.device, uniformData);
+
+          this.fromPixelProgram.setWebGPUBinary(bindGroupLayout, pipeline);
+        }
+
+        this.queue.copyImageBitmapToTexture(
+            {imageBitmap: pixels, origin: {x: 0, y: 0}}, {
+              texture: this.fromPixelProgram.makeInputTexture(
+                  this.device, pixels.width, pixels.height)
+            },
+            {width: pixels.width, height: pixels.height, depth: 1});
+
+        const info = this.tensorMap.get(output.dataId);
+
+        info.bufferInfo.buffer = this.acquireBuffer(info.bufferInfo.byteSize);
+
+        this.commandQueue.push(this.fromPixelProgram.generateEncoder(
+            this.device, info.bufferInfo.buffer, uniformData));
+        this.submitQueue();
+        return output as Tensor3D;
+      }
+
       if (pixels instanceof HTMLVideoElement ||
           pixels instanceof HTMLImageElement ||
           pixels instanceof HTMLCanvasElement) {
@@ -1242,6 +1281,7 @@ export class WebGPUBackend extends KernelBackend {
       return;
     }
     this.bufferManager.dispose();
+    this.fromPixelProgram.dispose();
     this.disposed = true;
   }
 }
