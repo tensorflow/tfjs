@@ -20,6 +20,7 @@ import {backend_util, BackendTimingInfo, DataStorage, DataType, deprecationWarn,
 
 import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
 import wasmFactoryThreadedSimd from '../wasm-out/tfjs-backend-wasm-threaded-simd.js';
+// @ts-ignore
 import {wasmWorkerContents} from '../wasm-out/tfjs-backend-wasm-threaded-simd.worker';
 import wasmFactory from '../wasm-out/tfjs-backend-wasm.js';
 
