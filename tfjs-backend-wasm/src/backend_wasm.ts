@@ -212,7 +212,13 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
 
   return new Promise((resolve, reject) => {
     const factoryConfig: WasmFactoryConfig = {};
-    const locateFile = (path: string, prefix: string) => {
+
+    /**
+     * This function overrides the Emscripten module locateFile utility.
+     * @param path The relative path to the file that needs to be loaded.
+     * @param prefix The path to the main JavaScript file's directory.
+     */
+    factoryConfig.locateFile = (path, prefix) => {
       if (path.endsWith('.worker.js')) {
         const response = wasmWorkerContents;
         const blob = new Blob([response], {type: 'application/javascript'});
@@ -220,26 +226,26 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
       }
 
       if (path.endsWith('.wasm')) {
+        if (wasmPath != null) {
+          // If wasmPath is defined, the user has supplied a full path to
+          // the .wasm binary.
+          return wasmPath;
+        }
+
+        if (simdSupported && threadsSupported) {
+          return prefix + 'tfjs-backend-wasm-threaded-simd.wasm';
+        }
+
         if (simdSupported) {
-          if (threadsSupported) {
-            return prefix + 'tfjs-backend-wasm-threaded-simd.wasm';
-          }
           return prefix + 'tfjs-backend-wasm-simd.wasm';
         }
+
         return prefix + 'tfjs-backend-wasm.wasm';
       }
       return prefix + path;
     };
 
-    factoryConfig.locateFile = locateFile;
-
     if (wasmPath != null) {
-      factoryConfig.locateFile = (path: string, prefix: string) => {
-        if (path.endsWith('.wasm')) {
-          return wasmPath;
-        }
-        return locateFile(path, prefix);
-      };
       // use wasm instantiateWasm override when system fetch is not available.
       // For detail references
       // https://github.com/emscripten-core/emscripten/blob/2bca083cbbd5a4133db61fbd74d04f7feecfa907/tests/manual_wasm_instantiate.html#L170
@@ -255,8 +261,10 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
            wasmFactoryThreadedSimd.toString()],
           {type: 'text/javascript'});
     } else {
+      // The wasmFactory works for both vanilla and SIMD binaries.
       wasm = wasmFactory(factoryConfig);
     }
+
     const voidReturnType: string = null;
     // Using the tfjs namespace to avoid conflict with emscripten's API.
     wasm.tfjs = {
@@ -313,6 +321,7 @@ function typedArrayFromBuffer(
 let wasmPath: string = null;
 let initAborted = false;
 let customFetch = false;
+
 /**
  * Sets the path to the `.wasm` file which will be fetched when the wasm
  * backend is initialized. See

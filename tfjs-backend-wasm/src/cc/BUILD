@@ -61,8 +61,6 @@ cc_binary(
         "-s EXIT_RUNTIME=0",
         "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
         "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
-        "-s MODULARIZE=1",
-        "-s EXPORT_NAME=WasmBackendModuleSimd",
         "-s MALLOC=emmalloc",
         "-s SIMD=1",
         "-s USE_PTHREADS=1",
