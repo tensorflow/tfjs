@@ -378,6 +378,17 @@ export function setWasmPath(path: string, usePlatformFetch = false): void {
 
 /**
  * Configures the locations of the WASM binaries.
+ *
+ * ```js
+ * const customPrefix = null;
+ * setWasmPaths(customPrefix, {
+ *  'tfjs-backend-wasm.wasm': 'renamed.wasm',
+ *  'tfjs-backend-wasm-simd.wasm': 'renamed-simd.wasm',
+ *  'tfjs-backend-wasm-threaded-simd.wasm': 'renamed-threaded-simd.wasm'
+ * });
+ * tf.setBackend('wasm');
+ * ```
+ *
  * @param prefix The path to the directory where the WASM binaries are located.
  *     Note that this prefix will be used to load each binary (vanilla,
  *     SIMD-enabled, threading-enabled, etc.).
