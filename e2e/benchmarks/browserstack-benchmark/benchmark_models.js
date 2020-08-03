@@ -95,11 +95,11 @@ describe('benchmark models', () => {
       }
 
       // Report results.
-      const resultStr =
-          `<benchmark>${JSON.stringify({timeInfo, memoryInfo})}</benchmark>`;
+      const resultStr = `<tfjs_benchmark>${
+          JSON.stringify({timeInfo, memoryInfo})}</tfjs_benchmark>`;
       console.log(resultStr);
     } catch (error) {
-      console.log(`<error>${error}</error>`);
+      console.log(`<tfjs_error>${error}</tfjs_error>`);
     }
   });
 });

@@ -60,7 +60,7 @@ function benchmark(config) {
       console.log(err);
       return;
     }
-    const re = /.*\<benchmark\>(.*)\<\/benchmark\>/;
+    const re = /.*\<tfjs_benchmark\>(.*)\<\/tfjs_benchmark\>/;
     const benchmarkResultStr = stdout.match(re)[1];
     const benchmarkResult = JSON.parse(benchmarkResultStr);
     io.emit('benchmarkComplete', benchmarkResult);
