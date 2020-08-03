@@ -223,7 +223,7 @@ const benchmarks = {
   'custom': {
     type: '',
     load: async () => {
-      return loadModelByUrl(state.modelUrl, {}, state);
+      return loadModelByUrlWithState(state.modelUrl, {}, state);
     },
     predictFunc: () => {
       return async model => {
@@ -298,7 +298,7 @@ async function tryAllLoadingMethods(
   throw new Error(`Didn't find a fit loading method for this model.`);
 }
 
-async function loadModelByUrl(modelUrl, loadOptions = {}, state = {}) {
+async function loadModelByUrlWithState(modelUrl, loadOptions = {}, state = {}) {
   let model, ioHandler, modelType;
 
   const supportedSchemes = /^(https?|localstorage|indexeddb):\/\/.+$/;
@@ -316,7 +316,7 @@ async function loadModelByUrl(modelUrl, loadOptions = {}, state = {}) {
 
   // Convert URL to IOHandler and parse the model type
   try {
-    ioHandler = findIOHandler(modelUrl, loadOptions, state);
+    ioHandler = findIOHandler(modelUrl, loadOptions);
     const artifacts = await ioHandler.load();
     modelType = artifacts.format;
   } catch (e) {
@@ -332,11 +332,16 @@ async function loadModelByUrl(modelUrl, loadOptions = {}, state = {}) {
       model = await tf.loadLayersModel(ioHandler, loadOptions);
       state.modelType = 'LayersModel';
     } else {
-      model = await tryAllLoadingMethods(ioHandler, loadOptions);
+      model = await tryAllLoadingMethods(ioHandler, loadOptions, state);
     }
   } catch (e) {
     throw new Error('Failed to load the model.');
   }
 
   return model;
+}
+
+async function loadModelByUrl(modelUrl, loadOptions = {}) {
+  const state = {};
+  return loadModelByUrlWithState(modelUrl, loadOptions, state);
 }
