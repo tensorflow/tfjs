@@ -254,7 +254,12 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
       }
     }
     let wasm: BackendWasmModule;
-    if (threadsSupported && simdSupported) {
+    // There is currently no way to specify custom WASM paths to multiple
+    // binaries, so if `wasmPath` has been defined we must initialize the
+    // vanilla module.
+    // TODO(annxingyuan): remove this constraint once users are able to define a
+    // custom prefix to multiple WASM binaries.
+    if (threadsSupported && simdSupported && wasmPath == null) {
       wasm = wasmFactoryThreadedSimd(factoryConfig);
       wasm.mainScriptUrlOrBlob = new Blob(
           [`var _scriptDir = undefined; var WasmBackendModuleSimd = ` +

@@ -82,7 +82,7 @@ setWasmPath(yourCustomPath); // or tf.wasm.setWasmPath when using <script> tags.
 tf.setBackend('wasm').then(() => {...});
 ```
 
-If you are using platform that does not support fetch directly, please set the
+If you are using a platform that does not support fetch directly, please set the
 optional `usePlatformFetch` to true:
 
 ```ts
