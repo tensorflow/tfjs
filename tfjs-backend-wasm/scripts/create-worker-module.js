@@ -16,7 +16,9 @@
  */
 
 /**
- * This file creates a TypeScript module that exports the contents of the Emscripten-generated WASM worker script so that it can be inlined by the tf-backend-wasm bundle.
+ * This file creates a TypeScript module that exports the contents of the
+ * Emscripten-generated WASM worker script so that it can be inlined by the
+ * tf-backend-wasm bundle.
  */
 
 const fs = require('fs');

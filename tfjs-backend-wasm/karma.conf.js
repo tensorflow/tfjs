@@ -20,8 +20,8 @@ const karmaTypescriptConfig = {
   compilerOptions: {allowJs: true, declaration: false},
   bundlerOptions: {
     sourceMap: true,
-    // Ignore the import of the `worker_threads`/`perf_hooks` packages used in a
-    // core test meant to run in node.
+    // Ignore the import of the `worker_threads`/`perf_hooks` packages meant to
+    // run in node.
     exclude: ['worker_threads', 'perf_hooks'],
     // worker_node_test in tfjs-core contains a conditional require statement
     // that confuses the bundler of karma-typescript.

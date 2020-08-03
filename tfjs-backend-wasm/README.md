@@ -168,11 +168,8 @@ inference as fast as possible.
 ### Do you work in node?
 Yes. If you run into issues, please let us know.
 
-### Do you support SIMD?
-Yes. We take advantage of SIMD wherever it is supported. If you intend to serve the WASM assets yourself, note that the SIMD-enabled WASM binary is separate from the default binary.
-
-### Do you support multi-threading?
-Yes. We take advantage of multi-threading wherever it is supported. If you intend to serve the WASM assets yourself, note that the multi-threading-enabled WASM binary is separate from the default binary.
+### Do you support SIMD and multi-threading?
+Yes. We take advantage of SIMD and multi-threading wherever they are supported by testing the capabilities of your runtime and serving the appropriate WASM binary. However we do not yet have a mechanism for users to specify a custom path to multiple WASM binaries, so if you are serving the WASM binary from a custom path via  `setWasmPath`, we will initialize the WASM backend without SIMD or multi-threading support.
 
 ### How do I give feedback?
 We'd love your feedback as we develop this backend! Please file an issue
