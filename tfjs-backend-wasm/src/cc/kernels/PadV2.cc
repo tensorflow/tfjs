@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "src/cc/backend.h"
+#include "src/cc/kernels/PadV2.h"
 #include "src/cc/util.h"
 
 namespace {
