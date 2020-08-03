@@ -257,8 +257,9 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
     // There is currently no way to specify custom WASM paths to multiple
     // binaries, so if `wasmPath` has been defined we must initialize the
     // vanilla module.
-    // TODO(annxingyuan): remove this constraint once users are able to define a
-    // custom prefix to multiple WASM binaries.
+    // TODO(annxingyuan): remove `wasmPath == null` constraint once users are
+    // able to define a custom prefix to multiple WASM binaries
+    // (https://github.com/tensorflow/tfjs/issues/3718).
     if (threadsSupported && simdSupported && wasmPath == null) {
       wasm = wasmFactoryThreadedSimd(factoryConfig);
       wasm.mainScriptUrlOrBlob = new Blob(
