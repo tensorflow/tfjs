@@ -18,6 +18,7 @@
 #endif
 
 #include <xnnpack.h>
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <unordered_map>
