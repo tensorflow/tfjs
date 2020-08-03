@@ -25,11 +25,11 @@ module: {
 ```
 
 Then we obtain the final serving path of the `tfjs-backend-wasm.wasm` file
-that was shipped on NPM, and use `setWasmPath` to let the library know the
+that was shipped on NPM, and use `setWasmPaths` to let the library know the
 serving location:
 
 ```ts
 import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
 import wasmPath from '../node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm';
-setWasmPath(wasmPath);
+setWasmPaths('' /* custom prefix */, {'tfjs-backend-wasm.wasm': wasmPath});
 ```
