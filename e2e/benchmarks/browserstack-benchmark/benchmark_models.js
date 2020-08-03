@@ -56,11 +56,13 @@ async function getBenchmarkSummary(timeInfo, memoryInfo, modelName = 'model') {
   return benchmarkSummary;
 }
 
+const KARMA_SERVER = './base';
+
 describe('benchmark models', () => {
   let benchmarkParameters;
   beforeAll(async () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
-    const response = await fetch('./base/benchmark_parameters.json');
+    const response = await fetch(`${KARMA_SERVER}/benchmark_parameters.json`);
     benchmarkParameters = await response.json();
   });
 
