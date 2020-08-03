@@ -78,7 +78,8 @@ with the location of its parent directory before you initialize the backend:
 
 ```ts
 import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
-setWasmPaths(yourCustomPathPrefix); // or tf.wasm.setWasmPaths when using <script> tags.
+// If your WASM binaries are located at www.yourdomain.com:
+setWasmPaths('www.yourdomain.com/'); // or tf.wasm.setWasmPaths when using <script> tags.
 tf.setBackend('wasm').then(() => {...});
 ```
 
