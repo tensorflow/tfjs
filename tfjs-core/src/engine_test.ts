@@ -388,10 +388,16 @@ describeWithFlags('profile', ALL_ENVS, () => {
     expect(profile.newTensors).toBe(1);
     expectArraysClose(await result.data(), [1, 2, 3]);
     expect(profile.kernels.length).toBe(2);
+
+    // Test the types for `kernelTimeMs` and `extraInfo` to confirm the promises
+    // are resolved.
     expect(typeof profile.kernels[0].kernelTimeMs).toBe('number');
     expect(typeof profile.kernels[0].extraInfo).toBe('string');
     expect(typeof profile.kernels[1].kernelTimeMs).toBe('number');
     expect(typeof profile.kernels[1].extraInfo).toBe('string');
+
+    // The `kernelTimeMs` and `extraInfo` are tested in Profiler.profileKernel
+    // and are excluded from here.
     expect(profile.kernels[0]).toEqual(jasmine.objectContaining({
       'name': 'Square',
       'bytesAdded': 12,
