@@ -232,15 +232,21 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
           return wasmPath;
         }
 
+        if (wasmPathPrefix != null) {
+          prefix = wasmPathPrefix;
+        }
+
         if (simdSupported && threadsSupported) {
-          return prefix + 'tfjs-backend-wasm-threaded-simd.wasm';
+          path = 'tfjs-backend-wasm-threaded-simd.wasm';
         }
 
         if (simdSupported) {
-          return prefix + 'tfjs-backend-wasm-simd.wasm';
+          path = 'tfjs-backend-wasm-simd.wasm';
         }
 
-        return prefix + 'tfjs-backend-wasm.wasm';
+        if (wasmFileMap[path] != null) {
+          return wasmFileMap[path];
+        }
       }
       return prefix + path;
     };
@@ -325,10 +331,13 @@ function typedArrayFromBuffer(
 }
 
 let wasmPath: string = null;
+let wasmPathPrefix: string = null;
+let wasmFileMap: {[key: string]: string} = {};
 let initAborted = false;
 let customFetch = false;
 
 /**
+ * @deprecated Use `setWasmPathPrefix` or `setWasmFileMap` instead.
  * Sets the path to the `.wasm` file which will be fetched when the wasm
  * backend is initialized. See
  * https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/README.md#using-bundlers
@@ -348,9 +357,52 @@ export function setWasmPath(path: string, usePlatformFetch = false): void {
   customFetch = usePlatformFetch;
 }
 
+/**
+ * Use platform fetch to download WASM binaries.
+ */
+/** @doc {heading: 'Environment', namespace: 'wasm'} */
+export function usePlatformFetch(): void {
+  customFetch = true;
+}
+
+/**
+ * Sets the path to the directory where the WASM binaries are located. Note that
+ * this prefix will be used to load each binary (vanilla, SIMD-enabled,
+ * threading-enabled, etc.).
+ * @param prefix The path to the directory where the WASM binaries are located.
+ */
+/** @doc {heading: 'Environment', namespace: 'wasm'} */
+export function setWasmPathPrefix(prefix: string): void {
+  if (initAborted) {
+    throw new Error(
+        'The WASM backend was already initialized. Make sure you call ' +
+        '`setWasmPathPrefix()` before you call `tf.setBackend()` or ' +
+        '`tf.ready()`');
+  }
+  wasmPathPrefix = prefix;
+}
+
+/**
+ * Defines a map of overrides that can be used to specify custom paths to WASM
+ * binaries.
+ * @param fileMap a mapping from names of WASM binaries to custom paths
+ *     that should be used to load those binaries.
+ */
+/** @doc {heading: 'Environment', namespace: 'wasm'} */
+export function setWasmFileMap(fileMap: {[key: string]: string}): void {
+  if (initAborted) {
+    throw new Error(
+        'The WASM backend was already initialized. Make sure you call ' +
+        '`setWasmFileMap()` before you call `tf.setBackend()` or `tf.ready()`');
+  }
+  wasmFileMap = fileMap;
+}
+
 /** Used in unit tests. */
 export function resetWasmPath(): void {
   wasmPath = null;
+  wasmPathPrefix = null;
+  wasmFileMap = {};
   customFetch = false;
   initAborted = false;
 }
