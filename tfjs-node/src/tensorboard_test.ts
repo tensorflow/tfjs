@@ -306,9 +306,13 @@ describe('tensorBoard callback', () => {
     });
 
     const callback = tfn.node.tensorBoard(tmpLogDir, {updateFreq: 'epoch'});
+    // tslint:disable-next-line:no-any
     (callback as any).ensureTrainWriterCreated();
+    // tslint:disable-next-line:no-any
     (callback as any).ensureValWriterCreated();
+    // tslint:disable-next-line:no-any
     const trainWriterScalarSpy = spyOn((callback as any).trainWriter, 'scalar');
+    // tslint:disable-next-line:no-any
     const valWriterScalarSpy = spyOn((callback as any).valWriter, 'scalar');
 
     // Train for 2 more epochs, using initialEpoch and callback.
