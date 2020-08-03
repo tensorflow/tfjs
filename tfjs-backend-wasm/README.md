@@ -133,7 +133,7 @@ the device).
 | iPhone X                     | 22.4 | 13.5  | 318      | N/A         | N/A                 |
 | iPhone XS                    | 21.4 | 10.5  | 176.9    | N/A         | N/A                 |
 | Pixel 3                      | 40.7 | 31.8  | 535.2    | N/A         | N/A                 |
-| Desktop Linux                | 12.6 | 12.7  | 249.5    | N/A         | N/A                 |
+| Desktop Linux                | 12.6 | 12.7  | 249.5    | 8.0         | 6.2                 |
 | Desktop Windows              | 16.2 | 7.1   | 270.9    | 7.5         | N/A                 |
 | Macbook Pro 15 2019          | 13.6 | 22.7  | 209.1    | 7.9         | 4.0                 |
 
