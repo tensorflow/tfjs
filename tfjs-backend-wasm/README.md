@@ -172,8 +172,7 @@ Yes. If you run into issues, please let us know.
 Yes. We take advantage of SIMD wherever it is supported. If you intend to serve the WASM assets yourself, note that the SIMD-enabled WASM binary is separate from the default binary.
 
 ### Do you support multi-threading?
-Multi-threading support is not a priority for us at this point since it is still
-a proposal. We will keep a close eye on it as the proposal progresses.
+Yes. We take advantage of multi-threading wherever it is supported. If you intend to serve the WASM assets yourself, note that the multi-threading-enabled WASM binary is separate from the default binary.
 
 ### How do I give feedback?
 We'd love your feedback as we develop this backend! Please file an issue

@@ -24,10 +24,10 @@ const fs = require('fs');
 const BASE_PATH = './wasm-out/';
 const WORKER_PATH = `${BASE_PATH}tfjs-backend-wasm-threaded-simd.worker.js`;
 
+// Write out a worker TypeScript module.
 const workerContents = fs.readFileSync(WORKER_PATH, "utf8");
+fs.writeFileSync(`${BASE_PATH}tfjs-backend-wasm-threaded-simd.worker.ts`,
+  `export const wasmWorkerContents = '${workerContents.trim()}';`);
 
-const fileContents = `export const wasmWorkerContents = '${workerContents.trim()}';`;
-
-fs.writeFileSync(`${BASE_PATH}tfjs-backend-wasm-threaded-simd.worker.ts`, fileContents);
-
+// Delete the original worker file.
 fs.unlinkSync(WORKER_PATH)
