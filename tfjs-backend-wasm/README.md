@@ -73,7 +73,7 @@ bundlers such as Parcel and WebPack need to be able to serve the `.wasm` file in
 production. See [starter/parcel](./starter/parcel/) and
 [starter/webpack](./starter/webpack/) for how to setup your favorite bundler.
 
-If your server is serving the `.wasm` files from a different directory, call
+If you are serving the `.wasm` files from a different directory, call
 `setWasmPaths` with the location of that directory before you initialize the
 backend:
 
@@ -86,7 +86,7 @@ tf.setBackend('wasm').then(() => {...});
 ```
 
 Note that if you call `setWasmPaths` with a `prefix`, it will be used to load
-each binary (SIMD-enabled, threading-enabled, etc.) However you can also specify
+each binary (SIMD-enabled, threading-enabled, etc.) However you can specify
 overrides for individual WASM binaries via the second `fileMap` argument of
 `setWasmPaths`. This is also helpful in case your binaries have been renamed.
 

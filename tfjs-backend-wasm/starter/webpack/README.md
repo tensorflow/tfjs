@@ -30,5 +30,5 @@ NPM, and use `setWasmPaths` to let the library know the serving locations:
 ```ts
 import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
 import wasmPath from '../node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm';
-setWasmPaths('' /* custom prefix */, {'tfjs-backend-wasm.wasm': wasmPath});
+setWasmPaths(null /* custom prefix */, {'tfjs-backend-wasm.wasm': wasmPath});
 ```

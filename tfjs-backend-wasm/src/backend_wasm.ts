@@ -273,8 +273,8 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
       return prefix + path;
     };
 
-    // use wasm instantiateWasm override when system fetch is not available.
-    // For detail references
+    // Use the instantiateWasm override when system fetch is not available.
+    // Reference:
     // https://github.com/emscripten-core/emscripten/blob/2bca083cbbd5a4133db61fbd74d04f7feecfa907/tests/manual_wasm_instantiate.html#L170
     if (customFetch) {
       factoryConfig.instantiateWasm = createInstantiateWasmFunc(
