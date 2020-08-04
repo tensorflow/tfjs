@@ -42,4 +42,37 @@ describeWithFlags('Reshape.', ALL_ENVS, () => {
     const afterDisposeDataIds = tf.engine().backend.numDataIds();
     expect(afterDisposeDataIds).toEqual(beforeDataIds);
   });
+
+  it('does not have memory leak calling reshape twice.', async () => {
+    const beforeDataIds = tf.engine().backend.numDataIds();
+
+    // Adding 1 new dataId.
+    const x = tf.tensor1d([1, 1, 1, 1]);
+
+    // Does not add new dataId;
+    const res =
+        tf.engine().runKernel('Reshape', {x}, {shape: [2, 2]}) as Tensor;
+
+    expectArraysEqual(res.shape, [2, 2]);
+
+    // Does not add new dataId.
+    const res2 =
+        tf.engine().runKernel('Reshape', {x: res}, {shape: [1, 4]}) as Tensor;
+    expectArraysEqual(res2.shape, [1, 4]);
+
+    const afterRes2DataIds = tf.engine().backend.numDataIds();
+    expect(afterRes2DataIds).toEqual(beforeDataIds + 1);
+
+    res.dispose();
+
+    const afterResDataIds = tf.engine().backend.numDataIds();
+    expect(afterResDataIds).toEqual(beforeDataIds + 1);
+
+    x.dispose();
+    res2.dispose();
+
+    const afterDisposeDataIds = tf.engine().backend.numDataIds();
+    // Should be able to dispose the dataId.
+    expect(afterDisposeDataIds).toEqual(beforeDataIds);
+  });
 });
