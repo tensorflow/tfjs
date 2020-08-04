@@ -267,8 +267,6 @@ export class MathBackendWebGL extends KernelBackend {
         this.pendingDeletes;
   }
 
-  decRef(dataId: DataId): void {}
-
   write(values: BackendValues, shape: number[], dtype: DataType): DataId {
     if (env().getBool('WEBGL_CHECK_NUMERICAL_PROBLEMS') ||
         env().getBool('DEBUG')) {
