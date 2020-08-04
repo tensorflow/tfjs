@@ -201,17 +201,17 @@ function createInstantiateWasmFunc(path: string) {
  * Returns the path of the WASM binary.
  * @param simdSupported whether SIMD is supported
  * @param threadsSupported whether multithreading is supported
- * @param prefix the directory containing the WASM binaries.
+ * @param wasmModuleFolder the directory containing the WASM binaries.
  */
-function getWasmPath(
-    simdSupported: boolean, threadsSupported: boolean, prefix = '') {
-  let path = 'tfjs-backend-wasm.wasm';
+function getPathToWasmBinary(
+    simdSupported: boolean, threadsSupported: boolean, wasmModuleFolder = '') {
   if (wasmPath != null) {
     // If wasmPath is defined, the user has supplied a full path to
     // the vanilla .wasm binary.
     return wasmPath;
   }
 
+  let path = 'tfjs-backend-wasm.wasm';
   if (simdSupported && threadsSupported) {
     path = 'tfjs-backend-wasm-threaded-simd.wasm';
   }
@@ -228,14 +228,14 @@ function getWasmPath(
     console.warn(
         `You provided a map of overrides for WASM binary locations, ` +
         `but there was no entry found for ${path}. We are falling back to ` +
-        `the default location: ${prefix + path}.`);
+        `the default location: ${wasmModuleFolder + path}.`);
   }
 
   if (wasmPathPrefix != null) {
-    prefix = wasmPathPrefix;
+    wasmModuleFolder = wasmPathPrefix;
   }
 
-  return prefix + path;
+  return wasmModuleFolder + path;
 }
 
 /**
@@ -267,7 +267,7 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
       }
 
       if (path.endsWith('.wasm')) {
-        return getWasmPath(
+        return getPathToWasmBinary(
             simdSupported as boolean, threadsSupported as boolean, prefix);
       }
       return prefix + path;
@@ -277,8 +277,9 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
     // Reference:
     // https://github.com/emscripten-core/emscripten/blob/2bca083cbbd5a4133db61fbd74d04f7feecfa907/tests/manual_wasm_instantiate.html#L170
     if (customFetch) {
-      factoryConfig.instantiateWasm = createInstantiateWasmFunc(
-          getWasmPath(simdSupported as boolean, threadsSupported as boolean));
+      factoryConfig.instantiateWasm =
+          createInstantiateWasmFunc(getPathToWasmBinary(
+              simdSupported as boolean, threadsSupported as boolean));
     }
     let wasm: BackendWasmModule;
     // If `wasmPath` has been defined we must initialize the vanilla module.
