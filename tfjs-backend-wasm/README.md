@@ -78,31 +78,40 @@ If your server is serving the `.wasm` files from a different directory, call
 backend:
 
 ```ts
-import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
-// If your WASM binaries are located at www.yourdomain.com:
+import {setWasmPaths} from '@tensorflow/tfjs-backend-wasm';
+// setWasmPaths accepts a `prefix` argument which indicates the path to the
+// directory where your WASM binaries are located.
 setWasmPaths('www.yourdomain.com/'); // or tf.wasm.setWasmPaths when using <script> tags.
 tf.setBackend('wasm').then(() => {...});
 ```
 
-You can also specify overrides for individual WASM binaries via the second
-`fileMap` argument of `setWasmPaths`, like so:
+Note that if you call `setWasmPaths` with a `prefix`, it will be used to load
+each binary (SIMD-enabled, threading-enabled, etc.) However you can also specify
+overrides for individual WASM binaries via the second `fileMap` argument of
+`setWasmPaths`. This is also helpful in case your binaries have been renamed.
+
+For example:
+
 ```ts
-import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
-setWasmPaths('' /* custom prefix */, {
-  'tfjs-backend-wasm-simd.wasm': 'www.yourdomain.com/tfjs-backend-wasm-simd.wasm'
-  }); // or tf.wasm.setWasmPaths when using <script> tags.
+import {setWasmPaths} from '@tensorflow/tfjs-backend-wasm';
+setWasmPaths(null /* custom prefix */, {
+  'tfjs-backend-wasm.wasm': 'www.yourdomain.com/renamed.wasm',
+  'tfjs-backend-wasm-simd.wasm': 'www.yourdomain.com/renamed-simd.wasm',
+  'tfjs-backend-wasm-threaded-simd.wasm': 'www.yourdomain.com/renamed-threaded-simd.wasm'
+  });
 tf.setBackend('wasm').then(() => {...});
 ```
 
 If you are using a platform that does not support fetch directly, please set the
-optional `usePlatformFetch` to `true`:
+optional `usePlatformFetch` argument to `true`:
 
 ```ts
 import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
 const usePlatformFetch = true;
-setWasmPaths(yourCustomPathPrefix, null /* file map */, usePlatformFetch); // or tf.wasm.setWasmPaths when using <script> tags.
+setWasmPaths(yourCustomPathPrefix, null /* file map */, usePlatformFetch);
 tf.setBackend('wasm').then(() => {...});
 ```
+
 ## Benchmarks
 
 The benchmarks below show inference times (ms) for two different edge-friendly
