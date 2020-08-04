@@ -71,7 +71,7 @@ function getKernelMappingForFile(source: SourceFile) {
   }
   const caseClauses = switchStatement.getClauses();
 
-  const kernelsToOp: {[key: string]: string;} = {};
+  const kernelsToOp: {[key: string]: string[];} = {};
   let currentClauseGroup: string[] = [];
   caseClauses.forEach((caseClause: CaseOrDefaultClause) => {
     if (caseClause instanceof CaseClause) {
@@ -85,18 +85,24 @@ function getKernelMappingForFile(source: SourceFile) {
         if (kind === 'Block' || kind === 'ReturnStatement') {
           const callExprs =
               clausePart.getDescendantsOfKind(SyntaxKind.CallExpression);
-          const tfcCall = callExprs.find(expr => expr.getText().match(/tfc/));
-          let tfSymbol = null;
-          if (tfcCall != null) {
+          const tfcCallExprs =
+              callExprs.filter(expr => expr.getText().match(/tfc/));
+          const tfSymbols: Set<string> = new Set();
+          for (const tfcCall of tfcCallExprs) {
             const tfcCallStr = tfcCall.getText();
-            console.log('tfcCallStr', tfcCallStr);
-            const symbolMatcher = /(tfc\.([\w\.]*))\(/;
-            const matches = tfcCallStr.match(symbolMatcher);
-            tfSymbol = matches != null ? matches[2] : null;
+            const functionCallMatcher = /(tfc\.([\w\.]*)\()/g;
+            const matches = tfcCallStr.match(functionCallMatcher);
+            if (matches != null && matches.length > 0) {
+              for (const match of matches) {
+                // extract the method name (and any namespaces used to call it)
+                const symbolMatcher = /(tfc\.([\w\.]*)\()/;
+                const symbol = match.match(symbolMatcher)[2];
+                tfSymbols.add(symbol);
+              }
+            }
           }
-
           for (const kern of currentClauseGroup) {
-            kernelsToOp[kern] = tfSymbol;
+            kernelsToOp[kern] = Array.from(tfSymbols);
           }
           currentClauseGroup = [];
         }
@@ -110,7 +116,7 @@ function getKernelMappingForFile(source: SourceFile) {
 function getKernelMapping() {
   const sourceFiles = project.getSourceFiles();
 
-  const kernelsToOp: {[key: string]: string;} = {};
+  const kernelsToOp: {[key: string]: string[];} = {};
 
   for (const sourceFile of sourceFiles) {
     const mapping = getKernelMappingForFile(sourceFile);
@@ -125,8 +131,8 @@ async function run(outputFilePath: string) {
 
   const kernelMapping = getKernelMapping();
 
-  const pairs: Array<[string, string]> = Object.entries(kernelMapping).sort();
-  const sortedKernelMapping: {[key: string]: string;} = {};
+  const pairs: Array<[string, string[]]> = Object.entries(kernelMapping).sort();
+  const sortedKernelMapping: {[key: string]: string[];} = {};
   pairs.forEach(([k, v]) => {
     sortedKernelMapping[k] = v;
   });
