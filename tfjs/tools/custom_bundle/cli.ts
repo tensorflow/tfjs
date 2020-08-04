@@ -65,7 +65,9 @@ function validateArgs(): CustomTFJSBundleConfig {
 
   console.log(`Using custom bundle configuration from ${
       configFilePath}. Final config:`);
-  console.log(`${JSON.stringify(config, null, 2)}\n`);
+  const replacer: null = null;
+  const space = 2;
+  console.log(`${JSON.stringify(config, replacer, space)}\n`);
 
   const finalConfig = Object.assign({}, DEFAULT_CUSTOM_BUNDLE_ARGS, config);
 

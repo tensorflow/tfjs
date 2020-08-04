@@ -28,7 +28,6 @@ describe('ESM Module Provider', () => {
     expect(res).toContain(`export * from '@tensorflow/tfjs-core/dist/base';`);
   });
 
-  // tslint:disable-next-line: ban
   it('importConverterStr', () => {
     const res = esmModuleProvider.importConverterStr();
     expect(res).toBe(`export * from '@tensorflow/tfjs-converter';`);
