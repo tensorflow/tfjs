@@ -132,24 +132,4 @@ describeWithFlags('memory cpu', ALL_ENVS, () => {
         '(2 bytes per character)';
     expect(mem.reasons.indexOf(expectedReasonString) >= 0).toBe(true);
   });
-
-  it('does not have memory leak with reshape.', async () => {
-    const beforeDataIds = tf.engine().backend.numDataIds();
-
-    const x = tf.tensor1d([1, 1, 1, 1]);
-    const res =
-        tf.engine().runKernel('Reshape', {x}, {shape: [2, 2]}) as Tensor;
-
-    expectArraysClose(await res.data(), [1, 1, 1, 1]);
-    expectArraysEqual(res.shape, [2, 2]);
-
-    const afterResDataIds = tf.engine().backend.numDataIds();
-    expect(afterResDataIds).toEqual(beforeDataIds + 1);
-
-    x.dispose();
-    res.dispose();
-
-    const afterDisposeDataIds = tf.engine().backend.numDataIds();
-    expect(afterDisposeDataIds).toEqual(beforeDataIds);
-  });
 });
