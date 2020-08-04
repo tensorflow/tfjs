@@ -10,6 +10,9 @@
 
 import {util} from '@tensorflow/tfjs-core';
 
+import {AssertionError} from '../errors';
+import {DataFormat, PaddingMode} from '../keras_format/common';
+
 import * as utils from './generic_utils';
 
 describe('pyListRepeat() ', () => {
@@ -285,5 +288,81 @@ describe('debouce', () => {
     }
     // Expect f to be called 2 times (between timestamps 4 and 2, and 8 and 4).
     expect(numCalls).toBe(2);
+  });
+});
+
+describe('getCartesianProductOfValues', () => {
+  it('should return correct cartesian product of 2 group of values', () => {
+    const filters = [128, 256, 512];
+    const paddings: PaddingMode[] = ['same', 'valid'];
+
+    const product = utils.getCartesianProductOfValues(filters, paddings);
+
+    expect(Array.isArray(product)).toBe(true);
+    expect(product.length).toBe(6);
+    expect(product.sort()).toEqual([
+      [128, 'same'], [128, 'valid'], [256, 'same'], [256, 'valid'],
+      [512, 'same'], [512, 'valid']
+    ].sort());
+  });
+
+  it('should return correct cartesian product of 3 group of values', () => {
+    const filters = [128, 256, 512];
+    const kernels = [3, 5, 7];
+    const paddings: PaddingMode[] = ['same', 'valid'];
+
+    const product =
+        utils.getCartesianProductOfValues(filters, kernels, paddings);
+
+    expect(Array.isArray(product)).toBe(true);
+    expect(product.length).toBe(18);
+    expect(product.sort()).toEqual([
+      [128, 3, 'same'], [128, 3, 'valid'], [128, 5, 'same'], [128, 5, 'valid'],
+      [128, 7, 'same'], [128, 7, 'valid'], [256, 3, 'same'], [256, 3, 'valid'],
+      [256, 5, 'same'], [256, 5, 'valid'], [256, 7, 'same'], [256, 7, 'valid'],
+      [512, 3, 'same'], [512, 3, 'valid'], [512, 5, 'same'], [512, 5, 'valid'],
+      [512, 7, 'same'], [512, 7, 'valid']
+    ].sort());
+  });
+
+  it('should return correct cartesian product of 5 group of values', () => {
+    const filters = [128, 256, 512];
+    const kernels = [3, 5, 7];
+    const paddings: PaddingMode[] = ['same', 'valid'];
+    const formats: DataFormat[] = ['channelsFirst', 'channelsLast'];
+    const dilation = [1, 2];
+
+    const product = utils.getCartesianProductOfValues(
+        filters, kernels, paddings, formats, dilation);
+
+    expect(Array.isArray(product)).toBe(true);
+    expect(product.length).toBe(72);
+    // expect(product[0].length).toBe(5);
+    expect(product.every(p => p.length === 5)).toBe(true);
+    expect(product[0].map(p => typeof p)).toEqual([
+      'number', 'number', 'string', 'string', 'number'
+    ]);
+  });
+
+  it('should raise AssertionError if array is not valid', () => {
+    expect(() => {
+      utils.getCartesianProductOfValues(undefined);
+    }).toThrowError(AssertionError);
+  });
+
+  it('should raise AssertionError if array is empty', () => {
+    expect(() => {
+      utils.getCartesianProductOfValues([]);
+    }).toThrowError(AssertionError);
+  });
+
+  it('should raise AssertionError if 1 group of values is empty', () => {
+    expect(() => {
+      const filters = [128, 256, 512];
+      const kernels: string[] = [];
+      const paddings: PaddingMode[] = ['same', 'valid'];
+
+      utils.getCartesianProductOfValues(filters, kernels, paddings);
+    }).toThrowError(AssertionError);
   });
 });

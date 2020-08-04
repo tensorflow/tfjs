@@ -10,9 +10,10 @@
 
 /* Original source: utils/generic_utils.py */
 
-import {DataType, serialization, util, fused} from '@tensorflow/tfjs-core';
+import {DataType, fused, serialization, util} from '@tensorflow/tfjs-core';
 
 import {AssertionError, ValueError} from '../errors';
+
 // tslint:enable
 
 /**
@@ -506,15 +507,55 @@ export function debounce<T>(
  * @return The name of the fusable activation.
  */
 export function mapActivationToFusedKernel(activationName: string):
-  fused.Activation {
+    fused.Activation {
   if (activationName === 'relu') {
     return 'relu';
   }
   if (activationName === 'linear') {
     return 'linear';
   }
-  if(activationName === 'elu') {
+  if (activationName === 'elu') {
     return 'elu';
   }
   return null;
+}
+
+/**
+ * Returns the cartesian product of sets of values.
+ * This works the same as itertools.product in Python.
+ *
+ * Example:
+ *
+ * filters = [128, 256, 512]
+ * paddings = ['same', 'valid']
+ *
+ * product = [ [128, 'same'], [128, 'valid'], [256, 'same'], [256, 'valid'],
+ * [512, 'same'], [512, 'valid']]
+ *
+ * @param arrayOfValues List/array of values.
+ * @return The cartesian product.
+ */
+export function getCartesianProductOfValues(
+    ...arrayOfValues: Array<Array<string|number>>):
+    Array<Array<string|number>> {
+  assert(arrayOfValues.length > 0, 'arrayOfValues is empty');
+
+  for (const values of arrayOfValues) {
+    assert(Array.isArray(values), 'one of the values is not an array');
+    assert(values.length > 0, 'one of the values is empty');
+  }
+
+  return arrayOfValues.reduce((products, values) => {
+    if (products.length === 0) {
+      return values.map(value => [value]);
+    }
+
+    return values
+        .map(value => {
+          return products.map((prevValue) => [...prevValue, value]);
+        })
+        .reduce((flattenedProduct, unflattenedProduct) => {
+          return flattenedProduct.concat(unflattenedProduct);
+        }, []);
+  }, [] as Array<Array<string|number>>);
 }
