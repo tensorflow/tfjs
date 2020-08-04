@@ -23,6 +23,9 @@ import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {PixelData, TensorLike} from '../types';
 
+import {cast} from './cast';
+import {max} from './max';
+import {min} from './min';
 import {op} from './operation';
 import {tensor3d} from './tensor3d';
 
@@ -177,7 +180,7 @@ export async function toPixels(
   if (!(img instanceof Tensor)) {
     // Assume int32 if user passed a native array.
     const originalImgTensor = $img;
-    $img = originalImgTensor.toInt();
+    $img = cast(originalImgTensor, 'int32');
     originalImgTensor.dispose();
   }
   if ($img.rank !== 2 && $img.rank !== 3) {
@@ -194,26 +197,26 @@ export async function toPixels(
   }
 
   const data = await $img.data();
-  const minTensor = $img.min();
-  const maxTensor = $img.max();
+  const minTensor = min($img);
+  const maxTensor = max($img);
   const vals = await Promise.all([minTensor.data(), maxTensor.data()]);
   const minVals = vals[0];
   const maxVals = vals[1];
-  const min = minVals[0];
-  const max = maxVals[0];
+  const minVal = minVals[0];
+  const maxVal = maxVals[0];
   minTensor.dispose();
   maxTensor.dispose();
   if ($img.dtype === 'float32') {
-    if (min < 0 || max > 1) {
+    if (minVal < 0 || maxVal > 1) {
       throw new Error(
           `Tensor values for a float32 Tensor must be in the ` +
-          `range [0 - 1] but got range [${min} - ${max}].`);
+          `range [0 - 1] but got range [${minVal} - ${maxVal}].`);
     }
   } else if ($img.dtype === 'int32') {
-    if (min < 0 || max > 255) {
+    if (minVal < 0 || maxVal > 255) {
       throw new Error(
           `Tensor values for a int32 Tensor must be in the ` +
-          `range [0 - 255] but got range [${min} - ${max}].`);
+          `range [0 - 255] but got range [${minVal} - ${maxVal}].`);
     }
   } else {
     throw new Error(

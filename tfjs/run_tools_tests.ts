@@ -15,11 +15,18 @@
  * =============================================================================
  */
 
-// Import shared functionality from tfjs-backend-cpu without triggering
-// side effects.
-// tslint:disable-next-line: no-imports-from-dist
-import * as shared from '@tensorflow/tfjs-backend-cpu/dist/shared';
+// tslint:disable-next-line:no-require-imports
+const jasmineCtor = require('jasmine');
+// tslint:disable-next-line:no-require-imports
 
-const {maxImpl: maxImplCPU, transposeImpl: transposeImplCPU} = shared;
+Error.stackTraceLimit = Infinity;
 
-export {maxImplCPU, transposeImplCPU};
+process.on('unhandledRejection', e => {
+  throw e;
+});
+const toolsTests = './tools/**/*_test.ts';
+
+const runner = new jasmineCtor();
+runner.loadConfig({spec_files: [toolsTests], random: false});
+
+runner.execute();

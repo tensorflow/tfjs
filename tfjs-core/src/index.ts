@@ -15,98 +15,12 @@
  * =============================================================================
  */
 
-/**
- * @fileoverview
- * @suppress {partialAlias} Optimization disabled due to passing the module
- * object into a function below:
- *
- *   import * as ops from './ops/ops';
- *   setOpHandler(ops);
- */
+// Required side effectful code.
+import './base_side_effects';
+// All exports from this package should be in base.
+export * from './base';
 
-// Engine is the global singleton that needs to be initialized before the rest
-// of the app.
-import './engine';
-// Register backend-agnostic flags.
-import './flags';
 // Register all the gradients.
 import './register_all_gradients';
-import './platforms/platform_browser';
-import './platforms/platform_node';
-
-// Serialization.
-import * as io from './io/io';
-import * as math from './math';
-import * as browser from './ops/browser';
-import * as gather_util from './ops/gather_nd_util';
-import * as scatter_util from './ops/scatter_nd_util';
-import * as slice_util from './ops/slice_util';
-import * as serialization from './serialization';
-import {setOpHandler} from './tensor';
-import * as tensor_util from './tensor_util';
-import * as test_util from './test_util';
-import * as util from './util';
-import {version} from './version';
-
-export {InferenceModel, MetaGraph, MetaGraphInfo, ModelPredictConfig, ModelTensorInfo, SavedModelTensorInfo, SignatureDef, SignatureDefInfo} from './model_types';
-// Optimizers.
-export {AdadeltaOptimizer} from './optimizers/adadelta_optimizer';
-export {AdagradOptimizer} from './optimizers/adagrad_optimizer';
-export {AdamOptimizer} from './optimizers/adam_optimizer';
-export {AdamaxOptimizer} from './optimizers/adamax_optimizer';
-export {MomentumOptimizer} from './optimizers/momentum_optimizer';
-export {Optimizer} from './optimizers/optimizer';
-export {RMSPropOptimizer} from './optimizers/rmsprop_optimizer';
-export {SGDOptimizer} from './optimizers/sgd_optimizer';
-export {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, Variable} from './tensor';
-export {GradSaveFunc, NamedTensorMap, TensorContainer, TensorContainerArray, TensorContainerObject} from './tensor_types';
-export {BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, PixelData, Rank, RecursiveArray, ScalarLike, ShapeMap, sumOutType, TensorLike, TypedArray, upcastType} from './types';
-
-export * from './ops/ops';
-export {Reduction} from './ops/loss_ops_utils';
-
-export * from './train';
-export * from './globals';
-export * from './kernel_registry';
-export {customGrad, grad, grads, valueAndGrad, valueAndGrads, variableGrads} from './gradients';
-
-export {TimingInfo, MemoryInfo, ForwardFunc} from './engine';
-export {Environment, env, ENV} from './environment';
-export {Platform} from './platforms/platform';
-
-export {version as version_core};
-
-// Top-level method exports.
-export {nextFrame} from './browser_util';
-
-// Second level exports.
-import * as backend_util from './backends/backend_util';
-import * as device_util from './device_util';
-export {
-  browser,
-  io,
-  math,
-  serialization,
-  test_util,
-  util,
-  backend_util,
-  tensor_util,
-  slice_util,
-  gather_util,
-  scatter_util,
-  device_util
-};
-
-import * as kernel_impls from './backends/kernel_impls';
-export {kernel_impls};
-// Backend specific.
-export {KernelBackend, BackendTimingInfo, DataMover, DataStorage} from './backends/backend';
-
-import * as ops from './ops/ops';
-setOpHandler(ops);
-
-// Export all kernel names / info.
-export * from './kernel_names';
-
 // Import all op chainers and add type info to Tensor.
 import './public/chained_ops/register_all_chained_ops';

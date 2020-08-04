@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,11 +15,19 @@
  * =============================================================================
  */
 
-// Import shared functionality from tfjs-backend-cpu without triggering
-// side effects.
-// tslint:disable-next-line: no-imports-from-dist
-import * as shared from '@tensorflow/tfjs-backend-cpu/dist/shared';
+// base.ts is the webgl backend without auto kernel registration.
 
-const {maxImpl: maxImplCPU, transposeImpl: transposeImplCPU} = shared;
+import {device_util, registerBackend} from '@tensorflow/tfjs-core';
+import {MathBackendWebGL} from './backend_webgl';
+export {version as version_webgl} from './version';
 
-export {maxImplCPU, transposeImplCPU};
+if (device_util.isBrowser()) {
+  registerBackend('webgl', () => new MathBackendWebGL(), 2 /* priority */);
+}
+
+// Export webgl utilities
+export * from './webgl';
+
+// Export forceHalfFlost under webgl namespace for the union bundle.
+import {forceHalfFloat} from './webgl';
+export const webgl = {forceHalfFloat};
