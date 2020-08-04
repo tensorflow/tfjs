@@ -70,5 +70,10 @@
   "browser": {
     "util": false,
     "crypto": false
-  }
+  },
+  "sideEffects": [
+    "./dist/register_all_kernels.js",
+    "./dist/base.js",
+    "./dist/index.js"
+  ]
 }
