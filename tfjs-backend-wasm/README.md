@@ -190,7 +190,7 @@ inference as fast as possible.
 Yes. If you run into issues, please let us know.
 
 ### Do you support SIMD and multi-threading?
-Yes. We take advantage of SIMD and multi-threading wherever they are supported by testing the capabilities of your runtime and serving the appropriate WASM binary. If you intend to serve the WASM binaries from a custom location (via `setWasmPaths`), please note that the SIMD-enabled and threading-enabled binaries are separate from the vanilla binary.
+Yes. We take advantage of SIMD and multi-threading wherever they are supported by testing the capabilities of your runtime and loading the appropriate WASM binary. If you intend to serve the WASM binaries from a custom location (via `setWasmPaths`), please note that the SIMD-enabled and threading-enabled binaries are separate from the regular binary.
 
 ### How do I give feedback?
 We'd love your feedback as we develop this backend! Please file an issue
