@@ -120,7 +120,6 @@ export function makeMatMulPackedSource(workPerThread: number[]): string {
 
 export class MatMulPackedProgram implements WebGPUProgram {
   outputShape: number[];
-  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
@@ -214,7 +213,5 @@ export class MatMulPackedProgram implements WebGPUProgram {
         mm_matMul(dimAOuter, dimInner, dimBOuter);
       }
     `;
-    this.shaderKey = `matmulpacked${this.workPerThread}${fitA}${fitB}${
-        transposeA}${transposeB}`;
   }
 }

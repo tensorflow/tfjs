@@ -24,7 +24,6 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class BinaryOpProgram implements WebGPUProgram {
   outputShape: number[];
-  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
@@ -61,7 +60,6 @@ export class BinaryOpProgram implements WebGPUProgram {
             setOutput(index, binaryOperation(a, b));
           }
         `;
-      this.shaderKey = `binary2${op}`;
     } else if (sizeFit) {
       const type = getCoordsDataType(this.outputShape.length);
       this.userCode = `
@@ -103,7 +101,6 @@ export class BinaryOpProgram implements WebGPUProgram {
         }
       }
       `;
-      this.shaderKey = `binary${op}${type}${size}`;
     }
   }
 }
