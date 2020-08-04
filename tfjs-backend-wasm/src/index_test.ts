@@ -127,14 +127,14 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
        const usePlatformFetch = true;
        const validPrefix = '/base/wasm-out/';
        setWasmPaths(validPrefix, null /* fileMap */, usePlatformFetch);
-       let wasmPrefix: string;
+       let wasmPath: string;
        const realFetch = util.fetch;
        spyOn(util, 'fetch').and.callFake((path: string) => {
-         wasmPrefix = path;
+         wasmPath = path;
          return realFetch(path);
        });
        expect(await tf.setBackend('wasm-test')).toBe(true);
-       expect(wasmPrefix).toBe(validPrefix + 'tfjs-backend-wasm.wasm');
+       expect(wasmPath).toBe(validPrefix + 'tfjs-backend-wasm.wasm');
      });
 
   it('backend init works when the path is valid and use platform fetch',
