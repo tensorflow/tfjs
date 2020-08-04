@@ -16,9 +16,9 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {engine, Tensor, test_util, util} from '@tensorflow/tfjs-core';
+import {engine, test_util, util} from '@tensorflow/tfjs-core';
 
-const {expectArraysClose, expectArraysEqual} = test_util;
+const {expectArraysEqual} = test_util;
 // tslint:disable-next-line: no-imports-from-dist
 import {describeWithFlags, ALL_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
