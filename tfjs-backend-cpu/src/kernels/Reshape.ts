@@ -25,9 +25,8 @@ function reshape(
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
   const {shape} = attrs;
-  const cpuBackend = backend;
 
-  cpuBackend.incRef(x.dataId);
+  backend.incRef(x.dataId);
 
   return {dataId: x.dataId, shape, dtype: x.dtype};
 }

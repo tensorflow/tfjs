@@ -822,7 +822,8 @@ export class Engine implements TensorTracker, DataMover {
       // We added this to keep backend refCount to be in sync with engine
       // refCount.
       if (this.backendName === 'cpu') {
-        info.backend.decRef(a.dataId);
+        // tslint:disable-next-line: no-any
+        (info.backend as any).decRef(a.dataId);
       }
     }
     // TODO(nsthorat): Construct an error and save the stack trace for

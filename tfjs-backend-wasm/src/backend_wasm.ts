@@ -57,8 +57,6 @@ export class BackendWasm extends KernelBackend {
     return this.dataIdMap.numDataIds();
   }
 
-  decRef(dataId: DataId): void {}
-
   async time(f: () => void): Promise<BackendTimingInfo> {
     const start = util.now();
     f();

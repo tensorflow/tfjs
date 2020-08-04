@@ -662,8 +662,7 @@ describeWithFlags('Detects memory leaks in kernels', ALL_ENVS, () => {
         id: 1,
         dispose: () => null,
         disposeData: (dataId: {}) => null,
-        numDataIds: () => dataIdsCount,
-        decRef: (dataId: {}) => null
+        numDataIds: () => dataIdsCount
       } as TestStorage;
     });
 
@@ -689,8 +688,7 @@ describeWithFlags('Detects memory leaks in kernels', ALL_ENVS, () => {
         id: 1,
         dispose: () => null,
         disposeData: (dataId: {}) => null,
-        numDataIds: () => dataIdsCount,
-        decRef: (dataId: {}) => null
+        numDataIds: () => dataIdsCount
       } as TestStorage;
     });
     tf.setBackend(backendName);
@@ -744,8 +742,7 @@ describe('Memory allocation outside a test scope', () => {
         },
         read: async (dataId: object) => storedValues,
         dispose: () => null,
-        disposeData: (dataId: {}) => null,
-        decRef: (dataId: {}) => {}
+        disposeData: (dataId: {}) => null
       } as TestStorage;
     });
     tf.setBackend(backendName);

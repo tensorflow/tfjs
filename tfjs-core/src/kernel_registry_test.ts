@@ -100,8 +100,7 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
         id: 1,
         dispose: () => null,
         disposeData: (dataId: {}) => null,
-        numDataIds: () => 0,
-        decRef: (dataId: {}) => null
+        numDataIds: () => 0
       } as TestBackend;
     });
     tf.registerBackend('backend2', () => {
@@ -109,8 +108,7 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
         id: 2,
         dispose: () => null,
         disposeData: (dataId: {}) => null,
-        numDataIds: () => 0,
-        decRef: (dataId: {}) => null
+        numDataIds: () => 0
       } as TestBackend;
     });
 
@@ -150,8 +148,7 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
     const customBackend = {
       dispose: () => null,
       disposeData: (dataId: {}) => null,
-      numDataIds: () => 0,
-      decRef: (dataId: {}) => null
+      numDataIds: () => 0
     } as TestBackend;
     tf.registerBackend(backendName, () => customBackend);
 
