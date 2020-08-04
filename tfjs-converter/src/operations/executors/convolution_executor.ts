@@ -61,8 +61,14 @@ function fusedConvAndDepthWiseParams(
       getParamValue('args', node, tensorMap, context) as tfc.Tensor[];
 
   return {
-    stride, pad, dataFormat, dilations, biasArg, preluArg, activationFunc
-  }
+    stride,
+    pad,
+    dataFormat,
+    dilations,
+    biasArg,
+    preluArg,
+    activationFunc
+  };
 }
 
 export const executeOp: InternalOpExecutor =

@@ -36,8 +36,8 @@
  *         getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
  *   }
  *
- * Case matchers represent kernel names and tfc.* represent the tfjs op that is
- * called. This example shows that we need to support fallthrough case
+ * Case matchers represent kernel names and tfc.*(...) represent the tfjs op(s)
+ * that are called. This example shows that we need to support fallthrough case
  * statements as well.
  *
  */
@@ -51,10 +51,10 @@ const parser = new argparse.ArgumentParser();
 parser.addArgument(
     '--out', {help: 'Path to output JSON to create', required: true});
 
-// initialize
 const project = new Project({});
 
 function getSwitchStatement(source: SourceFile): SwitchStatement {
+  // Each executor only has one switch statment.
   let switchStatement: SwitchStatement;
   source.forEachDescendant((node) => {
     if (node.getKindName() === 'SwitchStatement') {
@@ -64,6 +64,10 @@ function getSwitchStatement(source: SourceFile): SwitchStatement {
   return switchStatement;
 }
 
+type KernelMapping = {
+  [key: string]: string[]
+};
+
 function getKernelMappingForFile(source: SourceFile) {
   const switchStatement = getSwitchStatement(source);
   if (switchStatement === null) {
@@ -71,8 +75,11 @@ function getKernelMappingForFile(source: SourceFile) {
   }
   const caseClauses = switchStatement.getClauses();
 
-  const kernelsToOp: {[key: string]: string[];} = {};
+  const kernelsToOp: KernelMapping = {};
   let currentClauseGroup: string[] = [];
+
+  // Loop through clauses until you reach one that has a block or return.
+  // This allows us to coalesce fallthrough case blocks in a switch statement.
   caseClauses.forEach((caseClause: CaseOrDefaultClause) => {
     if (caseClause instanceof CaseClause) {
       let kernelName;
@@ -83,6 +90,11 @@ function getKernelMappingForFile(source: SourceFile) {
           currentClauseGroup.push(kernelName);
         }
         if (kind === 'Block' || kind === 'ReturnStatement') {
+          // We have reached a code block, all the previously captured
+          // kernels use this block as their execution path.
+
+          // Parse the code block and determing all the tfc.*() function calls
+          // used.
           const callExprs =
               clausePart.getDescendantsOfKind(SyntaxKind.CallExpression);
           const tfcCallExprs =
@@ -104,6 +116,7 @@ function getKernelMappingForFile(source: SourceFile) {
           for (const kern of currentClauseGroup) {
             kernelsToOp[kern] = Array.from(tfSymbols);
           }
+          // Reset the clause tracker as we are moving to a new set of kernels
           currentClauseGroup = [];
         }
       });
@@ -115,8 +128,7 @@ function getKernelMappingForFile(source: SourceFile) {
 
 function getKernelMapping() {
   const sourceFiles = project.getSourceFiles();
-
-  const kernelsToOp: {[key: string]: string[];} = {};
+  const kernelsToOp: KernelMapping = {};
 
   for (const sourceFile of sourceFiles) {
     const mapping = getKernelMappingForFile(sourceFile);
@@ -132,7 +144,7 @@ async function run(outputFilePath: string) {
   const kernelMapping = getKernelMapping();
 
   const pairs: Array<[string, string[]]> = Object.entries(kernelMapping).sort();
-  const sortedKernelMapping: {[key: string]: string[];} = {};
+  const sortedKernelMapping: KernelMapping = {};
   pairs.forEach(([k, v]) => {
     sortedKernelMapping[k] = v;
   });
