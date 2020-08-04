@@ -17,7 +17,7 @@
 
 /*
  * base.ts contains all the exports from tfjs-backend-cpu
- * but skips auto-kernel registration
+ * without auto-kernel registration
  */
 import {registerBackend} from '@tensorflow/tfjs-core';
 import {MathBackendCPU} from './backend_cpu';
