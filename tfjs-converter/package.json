@@ -56,8 +56,8 @@
     "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
-    "build": "yarn gen-json --test && tsc && yarn bundle",
-    "build-ci": "yarn gen-json --test && tsc && yarn bundle-ci",
+    "build": "yarn gen-json --test && yarn gen-kernel2ops && tsc && yarn bundle",
+    "build-ci": "yarn gen-json --test && yarn gen-kernel2ops && tsc && yarn bundle-ci",
     "bundle": "rollup -c",
     "bundle-ci": "rollup -c --ci",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
@@ -70,7 +70,7 @@
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
     "publish-npm": "npm publish",
-    "test": "yarn && yarn build-deps && yarn gen-json --test && ts-node -P tsconfig.test.json run_tests.ts",
+    "test": "yarn && yarn build-deps && yarn gen-json --test && yarn gen-kernel2ops && ts-node -P tsconfig.test.json run_tests.ts",
     "test-ci": "ts-node --skip-ignore -P tsconfig.test.json run_tests.ts",
     "test-snippets": "ts-node --skip-ignore -s ./scripts/test_snippets.ts",
     "lint": "tslint -p . -t verbose",
@@ -80,6 +80,7 @@
     "model-summary": "ts-node -s ./tools/model_summary.ts",
     "pb2json": "ts-node -s ./tools/pb2json_converter.ts",
     "build-pip-package": "yarn gen-json --test && cd python && ./build-pip-package.sh --test /tmp/tfjs-pips",
-    "run-python-tests": "yarn gen-json --test && cd python && ./run-python-tests.sh"
+    "run-python-tests": "yarn gen-json --test && cd python && ./run-python-tests.sh",
+    "gen-kernel2ops": "ts-node -s scripts/kernels_to_ops.ts --out metadata/kernel2op.json"
   }
 }
