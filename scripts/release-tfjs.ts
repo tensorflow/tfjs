@@ -27,7 +27,7 @@ import * as argparse from 'argparse';
 import chalk from 'chalk';
 import * as fs from 'fs';
 import * as shell from 'shelljs';
-import {TMP_DIR, $, question, makeReleaseDir, createPR, TFJS_RELEASE_UNIT, updateTFJSDependencyVersions} from './release-util';
+import {TMP_DIR, $, question, makeReleaseDir, createPR, TFJS_RELEASE_UNIT, updateTFJSDependencyVersions, prepareReleaseBuild} from './release-util';
 
 const parser = new argparse.ArgumentParser();
 
@@ -72,8 +72,9 @@ async function main() {
   const phases = TFJS_RELEASE_UNIT.phases;
 
   for (let i = 0; i < phases.length; i++) {
-    const packages = phases[i].packages;
-    const deps = phases[i].deps || [];
+    const phase = phases[i];
+    const packages = phase.packages;
+    const deps = phase.deps || [];
 
     for (let i = 0; i < packages.length; i++) {
       const packageName = packages[i];
@@ -91,6 +92,9 @@ async function main() {
       pkg = updateTFJSDependencyVersions(deps, pkg, parsedPkg, newVersion);
 
       fs.writeFileSync(packageJsonPath, pkg);
+
+      // Update lockfile.
+      prepareReleaseBuild(phase, packageName);
 
       shell.cd('..');
 
