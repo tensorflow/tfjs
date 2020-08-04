@@ -21,8 +21,6 @@ import {expectArraysClose} from '../test_util';
 
 describeWithFlags('spaceToBatchND', ALL_ENVS, () => {
   it('tensor4d, input shape=[1, 2, 2, 1], blockShape=[2, 2]', async () => {
-    const initialDataIds = tf.engine().backend.numDataIds();
-
     const t = tf.tensor4d([[[[1], [2]], [[3], [4]]]], [1, 2, 2, 1]);
     const blockShape = [2, 2];
     const paddings = [[0, 0], [0, 0]];
@@ -30,17 +28,6 @@ describeWithFlags('spaceToBatchND', ALL_ENVS, () => {
     const res = tf.spaceToBatchND(t, blockShape, paddings);
     expect(res.shape).toEqual([4, 1, 1, 1]);
     expectArraysClose(await res.data(), [1, 2, 3, 4]);
-
-    const afterResDataIds = tf.engine().backend.numDataIds();
-    // 1 input tensor and 1 result tensor
-    expect(afterResDataIds).toEqual(initialDataIds + 2);
-
-    t.dispose();
-    res.dispose();
-
-    const afterDisposeDataIds = tf.engine().backend.numDataIds();
-
-    expect(afterDisposeDataIds).toEqual(initialDataIds);
   });
 
   it('tensor4d, input shape=[1, 2, 2, 3], blockShape=[2, 2]', async () => {

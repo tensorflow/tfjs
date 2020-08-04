@@ -30,7 +30,7 @@ export function transposeImpl(
       dtype as NumericDataType, util.sizeFromShape(newShape));
 
   for (let i = 0; i < xSize; ++i) {
-    const loc = util.indexToCoord(i, xRank, xStrides);
+    const loc = util.indexToLoc(i, xRank, xStrides);
 
     // Permute location.
     const newLoc: number[] = new Array(loc.length);
@@ -38,7 +38,7 @@ export function transposeImpl(
       newLoc[i] = loc[perm[i]];
     }
 
-    const newIndex = util.coordToIndex(newLoc, xRank, newStrides);
+    const newIndex = util.locToIndex(newLoc, xRank, newStrides);
     result[newIndex] = xVals[i];
   }
   return result;

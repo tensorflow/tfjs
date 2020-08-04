@@ -50,9 +50,9 @@ function padV2(
   }
 
   for (let i = 0; i < xSize; i++) {
-    const coords = util.indexToCoord(i, xRank, xStrides);
+    const coords = util.indexToLoc(i, xRank, xStrides);
     const outCoords = coords.map((c, i) => c + start[i]);
-    const outIndex = util.coordToIndex(outCoords, resultRank, resultStrides);
+    const outIndex = util.locToIndex(outCoords, resultRank, resultStrides);
 
     resVals[outIndex] = xVals[i];
   }

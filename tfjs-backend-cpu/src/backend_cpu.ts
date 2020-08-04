@@ -105,9 +105,9 @@ export class MathBackendCPU extends KernelBackend {
     if (this.data.has(dataId)) {
       const tensorData = this.data.get(dataId);
       tensorData.refCount++;
+    } else {
+      throw new Error('incRef in cpu backend, but dataId not found.');
     }
-    // Do not throw error when dataId not found for testing. Some tests
-    // may use the backend without actually write any data to the backend.
   }
 
   /** Decrease refCount of a `TensorData`. */

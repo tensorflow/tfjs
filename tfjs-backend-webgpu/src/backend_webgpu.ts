@@ -1241,8 +1241,6 @@ export class WebGPUBackend extends KernelBackend {
     return this.tensorMap.numDataIds();
   }
 
-  decRef(dataId: DataId): void {}
-
   dispose() {
     if (this.disposed) {
       return;
