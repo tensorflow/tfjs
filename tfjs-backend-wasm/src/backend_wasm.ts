@@ -204,14 +204,15 @@ function createInstantiateWasmFunc(path: string) {
  * @param wasmModuleFolder the directory containing the WASM binaries.
  */
 function getPathToWasmBinary(
-    simdSupported: boolean, threadsSupported: boolean, wasmModuleFolder = '') {
+    simdSupported: boolean, threadsSupported: boolean,
+    wasmModuleFolder: string) {
   if (wasmPath != null) {
     // If wasmPath is defined, the user has supplied a full path to
     // the vanilla .wasm binary.
     return wasmPath;
   }
 
-  let path = 'tfjs-backend-wasm.wasm';
+  let path: WasmBinaryName = 'tfjs-backend-wasm.wasm';
   if (simdSupported && threadsSupported) {
     path = 'tfjs-backend-wasm-threaded-simd.wasm';
   }
@@ -229,10 +230,6 @@ function getPathToWasmBinary(
         `You provided a map of overrides for WASM binary locations, ` +
         `but there was no entry found for ${path}. We are falling back to ` +
         `the default location: ${wasmModuleFolder + path}.`);
-  }
-
-  if (wasmPathPrefix != null) {
-    wasmModuleFolder = wasmPathPrefix;
   }
 
   return wasmModuleFolder + path;
@@ -268,7 +265,8 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
 
       if (path.endsWith('.wasm')) {
         return getPathToWasmBinary(
-            simdSupported as boolean, threadsSupported as boolean, prefix);
+            simdSupported as boolean, threadsSupported as boolean,
+            wasmPathPrefix != null ? wasmPathPrefix : prefix);
       }
       return prefix + path;
     };
@@ -279,7 +277,8 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
     if (customFetch) {
       factoryConfig.instantiateWasm =
           createInstantiateWasmFunc(getPathToWasmBinary(
-              simdSupported as boolean, threadsSupported as boolean));
+              simdSupported as boolean, threadsSupported as boolean,
+              wasmPathPrefix != null ? wasmPathPrefix : ''));
     }
     let wasm: BackendWasmModule;
     // If `wasmPath` has been defined we must initialize the vanilla module.
@@ -347,9 +346,12 @@ function typedArrayFromBuffer(
   }
 }
 
+type WasmBinaryName = 'tfjs-backend-wasm.wasm'|'tfjs-backend-wasm-simd.wasm'|
+    'tfjs-backend-wasm-threaded-simd.wasm';
+
 let wasmPath: string = null;
 let wasmPathPrefix: string = null;
-let wasmFileMap: {[key: string]: string} = {};
+let wasmFileMap: {[key in WasmBinaryName]?: string} = {};
 let initAborted = false;
 let customFetch = false;
 
@@ -390,10 +392,11 @@ export function setWasmPath(path: string, usePlatformFetch = false): void {
  * tf.setBackend('wasm');
  * ```
  *
- * @param prefix The path to the directory where the WASM binaries are located.
+ * @param prefixOrFileMap This can be either a string or object:
+ *  - (string) The path to the directory where the WASM binaries are located.
  *     Note that this prefix will be used to load each binary (vanilla,
  *     SIMD-enabled, threading-enabled, etc.).
- * @param fileMap optional mapping from names of WASM binaries to custom
+ *  - (object) Mapping from names of WASM binaries to custom
  *     full paths specifying the locations of those binaries. This is useful if
  *     your WASM binaries are not all located in the same directory, or if your
  *     WASM binaries have been renamed.
@@ -402,7 +405,7 @@ export function setWasmPath(path: string, usePlatformFetch = false): void {
  */
 /** @doc {heading: 'Environment', namespace: 'wasm'} */
 export function setWasmPaths(
-    prefix: string, fileMap: {[key: string]: string} = {},
+    prefixOrFileMap: string|{[key in WasmBinaryName]?: string},
     usePlatformFetch = false): void {
   if (initAborted) {
     throw new Error(
@@ -411,8 +414,12 @@ export function setWasmPaths(
         '`tf.ready()`');
   }
 
-  wasmPathPrefix = prefix;
-  wasmFileMap = fileMap;
+  if (typeof prefixOrFileMap === 'string') {
+    wasmPathPrefix = prefixOrFileMap;
+  } else {
+    wasmFileMap = prefixOrFileMap;
+  }
+
   customFetch = usePlatformFetch;
 }
 

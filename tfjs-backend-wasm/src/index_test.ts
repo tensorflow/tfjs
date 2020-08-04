@@ -111,7 +111,7 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
   it('backend init fails when setWasmPaths is called with ' +
          'an invalid fileMap',
      async () => {
-       setWasmPaths('', {'tfjs-backend-wasm.wasm': 'invalid/path'});
+       setWasmPaths({'tfjs-backend-wasm.wasm': 'invalid/path'});
        let wasmPathPrefix: string;
        const realFetch = fetch;
        spyOn(self, 'fetch').and.callFake((path: string) => {
@@ -126,7 +126,7 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
      async () => {
        const usePlatformFetch = true;
        const validPrefix = '/base/wasm-out/';
-       setWasmPaths(validPrefix, null /* fileMap */, usePlatformFetch);
+       setWasmPaths(validPrefix, usePlatformFetch);
        let wasmPath: string;
        const realFetch = util.fetch;
        spyOn(util, 'fetch').and.callFake((path: string) => {
