@@ -177,7 +177,9 @@
   "FusedBatchNormV3": [
     "batchNorm"
   ],
-  "FusedDepthwiseConv2dNative": [],
+  "FusedDepthwiseConv2dNative": [
+    "fused.depthwiseConv2d"
+  ],
   "Gather": [
     "gather"
   ],
@@ -513,7 +515,9 @@
   "ZerosLike": [
     "zerosLike"
   ],
-  "_FusedConv2D": [],
+  "_FusedConv2D": [
+    "fused.conv2d"
+  ],
   "_FusedMatMul": [
     "fused.matMul"
   ]

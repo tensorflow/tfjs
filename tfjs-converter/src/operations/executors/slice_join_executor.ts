@@ -102,12 +102,10 @@ export const executeOp: InternalOpExecutor = (node: Node,
       });
     }
     case 'Unpack': {
-      return tfc.tidy(() => {
-        const axis = getParamValue('axis', node, tensorMap, context) as number;
-        const tensor =
-            getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
-        return tfc.unstack(tensor, axis);
-      });
+      const axis = getParamValue('axis', node, tensorMap, context) as number;
+      const tensor =
+          getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
+      return tfc.unstack(tensor, axis);
     }
     case 'Tile': {
       const reps = getParamValue('reps', node, tensorMap, context) as number[];
