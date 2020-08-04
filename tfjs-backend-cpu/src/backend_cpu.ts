@@ -116,8 +116,6 @@ export class MathBackendCPU extends KernelBackend {
       const tensorData = this.data.get(dataId);
       tensorData.refCount--;
     }
-    // Do not throw error when dataId not found for testing. Some tests
-    // may use the backend without actually write any data to the backend.
   }
 
   move(
