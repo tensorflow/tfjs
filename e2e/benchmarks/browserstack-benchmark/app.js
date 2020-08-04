@@ -56,15 +56,35 @@ function benchmark(config) {
   // TODO:
   // 1. Write browsers.json.
   // 2. Write benchmark parameter config.
+  fs.writeFileSync(
+      './benchmark_parameters.json', JSON.stringify(config.benchmark, null, 2));
+
   console.log(`Start benchmarking.`);
-  exec('yarn test', (err, stdout, stderr) => {
-    if (err) {
-      console.log(err);
+  exec('yarn test', (error, stdout, stderr) => {
+    if (error) {
+      console.log(error);
+      io.emit('benchmarkComplete', {error: 'Failed to run yarn test.'});
       return;
     }
-    const re = /.*\<benchmark\>(.*)\<\/benchmark\>/;
-    const benchmarkResultStr = stdout.match(re)[1];
-    const benchmarkResult = JSON.parse(benchmarkResultStr);
-    io.emit('benchmarkComplete', benchmarkResult);
+
+    const errorReg = /.*\<tfjs_error\>(.*)\<\/tfjs_error\>/;
+    const matchedError = stdout.match(errorReg);
+    if (matchedError != null) {
+      io.emit('benchmarkComplete', {error: matchedError[1]});
+      return;
+    }
+
+    const resultReg = /.*\<tfjs_benchmark\>(.*)\<\/tfjs_benchmark\>/;
+    const matchedResult = stdout.match(resultReg);
+    if (matchedResult != null) {
+      const benchmarkResult = JSON.parse(matchedResult[1]);
+      io.emit('benchmarkComplete', benchmarkResult);
+      return;
+    }
+
+    io.emit('benchmarkComplete', {
+      error: 'Did not find benchmark results from the logs ' +
+          'of the benchmark test (benchmark_models.js).'
+    });
   });
 }

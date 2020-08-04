@@ -234,11 +234,14 @@ function onPageLoad() {
   });
 
   socket.on('benchmarkComplete', benchmarkResult => {
-    const {timeInfo, memoryInfo} = benchmarkResult;
-
-    // TODO: Add UI to present results.
-    document.getElementById('results').innerHTML +=
-        JSON.stringify(timeInfo, null, 2);
+    if (benchmarkResult.error != null) {
+      document.getElementById('results').innerHTML += benchmarkResult.error;
+    } else {
+      const {timeInfo, memoryInfo} = benchmarkResult;
+      // TODO: Add UI to present results.
+      document.getElementById('results').innerHTML +=
+          JSON.stringify(timeInfo, null, 2);
+    }
 
     // Enable users to benchmark again.
     benchmarkButton.__li.style.pointerEvents = '';
