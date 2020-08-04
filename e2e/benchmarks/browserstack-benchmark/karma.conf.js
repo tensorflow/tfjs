@@ -63,7 +63,9 @@ module.exports = function(config) {
       'https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js',
       'https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js',
       'https://unpkg.com/@tensorflow/tfjs-backend-wasm@latest/dist/tf-backend-wasm.js',
-      '../util.js', '../benchmark_util.js', 'benchmark_models.js'
+      {pattern: './benchmark_parameters.json', included: false, served: true},
+      '../util.js', '../benchmark_util.js', '../model_config.js',
+      'benchmark_models.js'
     ],
     preprocessors: {},
     singleRun: true,
