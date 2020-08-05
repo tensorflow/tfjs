@@ -18,9 +18,10 @@
 import {ENGINE} from '../engine';
 import {IFFT, IFFTInputs} from '../kernel_names';
 import {op} from '../ops/operation';
-import {Tensor} from '../tensor';
+import {Tensor, Tensor2D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {assert} from '../util';
+import {reshape} from './reshape';
 
 /**
  * Inverse fast Fourier transform.
@@ -53,9 +54,9 @@ function ifft_(input: Tensor): Tensor {
     const innerDimensionSize = input.shape[input.shape.length - 1];
     const batch = input.size / innerDimensionSize;
 
-    const input2D = input.as2D(batch, innerDimensionSize);
+    const input2D: Tensor2D = reshape(input, [batch, innerDimensionSize]);
     const result = backend.ifft(input2D);
-    return result.reshape(input.shape);
+    return reshape(result, input.shape);
   }, inputs as {} as NamedTensorMap, null /* gradient */, IFFT);
 }
 

@@ -25,6 +25,7 @@ import {TensorLike} from '../types';
 import {parseAxisParam} from '../util';
 
 import {op} from './operation';
+import {reshape} from './reshape';
 import {collectGatherOpShapeInfo} from './segment_util';
 
 /**
@@ -60,10 +61,11 @@ function gather_<T extends Tensor>(
     const parsedAxis = parseAxisParam(axis, $x.shape)[0];
     const shapeInfo = collectGatherOpShapeInfo($x, $indices, parsedAxis);
 
-    const res = backend.gather($x, $indices.flatten(), parsedAxis);
+    const res =
+        backend.gather($x, reshape($indices, [$indices.size]), parsedAxis);
     save([$x, $indices]);
 
-    return res.reshape(shapeInfo.outputShape);
+    return reshape(res, shapeInfo.outputShape);
   };
 
   return ENGINE.runKernelFunc(

@@ -58,7 +58,7 @@ export const fusedBatchNormGradConfig: GradConfig = {
         return reshape(
             mul(mul(dy,
                     tile(
-                        oneOverSqrtVariance.as4D(1, 1, 1, mean.shape[0]),
+                        reshape(oneOverSqrtVariance, [1, 1, 1, mean.shape[0]]),
                         tileShape)),
                 scaleValue),
             x.shape);
