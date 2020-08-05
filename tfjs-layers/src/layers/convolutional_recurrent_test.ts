@@ -2,7 +2,7 @@ import {ones, tensor1d, zeros} from '@tensorflow/tfjs-core';
 
 import {DataFormat, PaddingMode} from '../keras_format/common';
 import {getCartesianProductOfValues} from '../utils/generic_utils';
-import {describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {ConvLSTM2DCell} from './convolutional_recurrent';
 
@@ -45,7 +45,7 @@ describeMathCPUAndGPU('ConvLSTM2DCell', () => {
           padding,
           kernelInitializer: 'ones',
           recurrentInitializer: 'ones',
-          biasInitializer: 'ones'
+          biasInitializer: 'ones',
         });
 
         cell.build(x.shape);
@@ -74,3 +74,9 @@ describeMathCPUAndGPU('ConvLSTM2DCell', () => {
     }
   });
 });
+
+describeMathCPU('ConvLSTM2D Symbolic', () => {});
+
+describeMathCPUAndGPU('ConvLSTM2D Tensor', () => {});
+
+describeMathCPU('ConvLSTM2D Serialization and Deserialization', () => {});

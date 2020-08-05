@@ -14,7 +14,7 @@ import {normalizeArray} from '../utils/conv_utils';
 import {assertPositiveInteger} from '../utils/generic_utils';
 import {getExactlyOneShape} from '../utils/types_utils';
 
-import {LSTMCell, LSTMCellLayerArgs,} from './recurrent';
+import {LSTM, LSTMCell, LSTMCellLayerArgs, LSTMLayerArgs,} from './recurrent';
 
 declare interface ConvLSTM2DCellArgs extends Omit<LSTMCellLayerArgs, 'units'> {
   /**
@@ -331,3 +331,9 @@ export class ConvLSTM2DCell extends LSTMCell {
 }
 
 serialization.registerClass(ConvLSTM2DCell);
+
+declare interface ConvLSTM2DArgs extends Omit<LSTMLayerArgs, 'units'> {}
+
+export class ConvLSTM2D extends LSTM {}
+
+serialization.registerClass(ConvLSTM2D);
