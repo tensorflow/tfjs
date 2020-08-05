@@ -39,7 +39,7 @@ function checkBrowserStackAccount() {
 function runServer() {
   const app = http.createServer((request, response) => {
     const url = request.url === '/' ? '/index.html' : request.url;
-    const filePath = path.join(__dirname, url);
+    let filePath = path.join(__dirname, url);
     if (!fs.existsSync(filePath)) {
       filePath = path.join(__dirname, '../', url);
     }
@@ -71,10 +71,12 @@ function benchmark(config) {
       './benchmark_parameters.json', JSON.stringify(config.benchmark, null, 2));
 
   console.log(`Start benchmarking.`);
-  exec('yarn test', (error, stdout, stderr) => {
+  exec('yarn test --browserstack', (error, stdout, stderr) => {
     if (error) {
       console.log(error);
-      io.emit('benchmarkComplete', {error: 'Failed to run yarn test.'});
+      io.emit(
+          'benchmarkComplete',
+          {error: `Failed to run 'yarn test --browserstack':\n\n${error}`});
       return;
     }
 
