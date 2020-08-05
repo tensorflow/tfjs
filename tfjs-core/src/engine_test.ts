@@ -396,27 +396,31 @@ describeWithFlags('profile', ALL_ENVS, () => {
     expect(typeof profile.kernels[1].kernelTimeMs).toBe('number');
     expect(typeof profile.kernels[1].extraInfo).toBe('string');
 
-    // The values of `kernelTimeMs` and `extraInfo` are tested in
-    // Profiler.profileKernel, so they are excluded from here.
-    expect(profile.kernels[0]).toEqual(jasmine.objectContaining({
+    // The specific values of `kernelTimeMs` and `extraInfo` are tested in the
+    // tests of Profiler.profileKernel, so their values are not tested here.
+    expect(profile.kernels[0]).toEqual({
       'name': 'Square',
       'bytesAdded': 12,
       'totalBytesSnapshot': 24,
       'tensorsAdded': 1,
       'totalTensorsSnapshot': 2,
       'inputShapes': [[3]],
-      'outputShapes': [[3]]
-    }));
+      'outputShapes': [[3]],
+      'kernelTimeMs': profile.kernels[0].kernelTimeMs,
+      'extraInfo': profile.kernels[0].extraInfo
+    });
 
-    expect(profile.kernels[1]).toEqual(jasmine.objectContaining({
+    expect(profile.kernels[1]).toEqual({
       'name': 'Square',
       'bytesAdded': 12,
       'totalBytesSnapshot': 24,
       'tensorsAdded': 1,
       'totalTensorsSnapshot': 2,
       'inputShapes': [[3]],
-      'outputShapes': [[3]]
-    }));
+      'outputShapes': [[3]],
+      'kernelTimeMs': profile.kernels[1].kernelTimeMs,
+      'extraInfo': profile.kernels[1].extraInfo
+    });
   });
 
   it('squaring without disposing', async () => {
@@ -435,15 +439,17 @@ describeWithFlags('profile', ALL_ENVS, () => {
     expect(profile.kernels.length).toBe(1);
     expect(typeof profile.kernels[0].kernelTimeMs).toBe('number');
     expect(typeof profile.kernels[0].extraInfo).toBe('string');
-    expect(profile.kernels[0]).toEqual(jasmine.objectContaining({
+    expect(profile.kernels[0]).toEqual({
       'name': 'Square',
       'bytesAdded': 12,
       'totalBytesSnapshot': 24,
       'tensorsAdded': 1,
       'totalTensorsSnapshot': 2,
       'inputShapes': [[3]],
-      'outputShapes': [[3]]
-    }));
+      'outputShapes': [[3]],
+      'kernelTimeMs': profile.kernels[0].kernelTimeMs,
+      'extraInfo': profile.kernels[0].extraInfo
+    });
   });
 
   it('squaring in async query', async () => {
@@ -464,15 +470,17 @@ describeWithFlags('profile', ALL_ENVS, () => {
     expect(profile.kernels.length).toBe(1);
     expect(typeof profile.kernels[0].kernelTimeMs).toBe('number');
     expect(typeof profile.kernels[0].extraInfo).toBe('string');
-    expect(profile.kernels[0]).toEqual(jasmine.objectContaining({
+    expect(profile.kernels[0]).toEqual({
       'name': 'Square',
       'bytesAdded': 12,
       'totalBytesSnapshot': 24,
       'tensorsAdded': 1,
       'totalTensorsSnapshot': 2,
       'inputShapes': [[3]],
-      'outputShapes': [[3]]
-    }));
+      'outputShapes': [[3]],
+      'kernelTimeMs': profile.kernels[0].kernelTimeMs,
+      'extraInfo': profile.kernels[0].extraInfo
+    });
   });
 });
 
