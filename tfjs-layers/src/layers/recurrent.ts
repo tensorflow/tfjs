@@ -499,8 +499,8 @@ export class RNN extends Layer {
     inputShape = inputShape as Shape;
 
     const batchSize: number = this.stateful ? inputShape[0] : null;
-    const inputDim = inputShape[inputShape.length - 1];
-    this.inputSpec[0] = new InputSpec({shape: [batchSize, null, inputDim]});
+    const inputDim = inputShape.slice(2);
+    this.inputSpec[0] = new InputSpec({shape: [batchSize, null, ...inputDim]});
 
     // Allow cell (if RNNCell Layer) to build before we set or validate
     // stateSpec.
