@@ -375,8 +375,8 @@ export class ConvLSTM2DCell extends LSTMCell {
 
 tfc.serialization.registerClass(ConvLSTM2DCell);
 
-export declare interface ConvLSTM2DArgs extends Omit<LSTMLayerArgs, 'units'>,
-                                                ConvLSTM2DCellArgs {}
+export declare interface ConvLSTM2DArgs extends
+    Omit<LSTMLayerArgs, 'units'|'cell'>, ConvLSTM2DCellArgs {}
 
 export class ConvLSTM2D extends RNN {
   /** @nocollapse */
@@ -389,9 +389,9 @@ export class ConvLSTM2D extends RNN {
           '`implementation=1`. Please update your layer call.');
     }
 
-    args.cell = new ConvLSTM2DCell(args);
+    const cell = new ConvLSTM2DCell(args);
 
-    super(args as RNNLayerArgs);
+    super({...args, cell} as RNNLayerArgs);
 
     this.inputSpec = [new InputSpec({ndim: 5})];
   }
