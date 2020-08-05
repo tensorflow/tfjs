@@ -163,13 +163,15 @@ export class MathBackendCPU extends KernelBackend {
     return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;
   }
 
-  disposeData(dataId: DataId): void {
+  disposeData(dataId: DataId, force?: boolean): void {
     if (this.data.has(dataId)) {
       const tensorData = this.data.get(dataId);
 
       tensorData.refCount--;
 
-      if (tensorData.refCount < 1) {
+      const shouldDelete = force || (tensorData.refCount < 1);
+
+      if (shouldDelete) {
         if (tensorData.complexTensors != null) {
           // Todo(linazhao): Change to disposeData once complex, real, and imag
           // kernels are modularized and real and imag becomes `TensorInfo`.
@@ -435,6 +437,7 @@ export class MathBackendCPU extends KernelBackend {
   batchMatMul(
       a: Tensor3D, b: Tensor3D, transposeA: boolean,
       transposeB: boolean): Tensor3D {
+    console.log('IN CPU BATCHMATMUL');
     assertNotComplex([a, b], 'matMul');
 
     const sharedDim = transposeA ? a.shape[1] : a.shape[2];
@@ -486,15 +489,19 @@ export class MathBackendCPU extends KernelBackend {
   fusedBatchMatMul(
       {a, b, transposeA, transposeB, bias, activation, preluActivationWeights}:
           backend_util.FusedBatchMatMulConfig): Tensor3D {
+    console.log('IM IN FUSED BATCH MAT MUL');
     let result = this.batchMatMul(a, b, transposeA, transposeB);
     if (bias) {
+      console.log('GOING TO ADD');
       result = this.add(result, bias) as Tensor3D;
     }
     if (activation) {
+      console.log('GOING TO map activation');
       result =
           mapActivation(this, result, activation, preluActivationWeights) as
           Tensor3D;
     }
+    console.log('RETURN RESULT');
     return result;
   }
 
