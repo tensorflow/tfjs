@@ -1353,11 +1353,11 @@ export function simpleRNNCell(args: SimpleRNNCellLayerArgs): RNNCell {
   return new SimpleRNNCell(args);
 }
 
-export function convLstm2d(args: ConvLSTM2DArgs): RNN {
+export function convLstm2d(args: ConvLSTM2DArgs): ConvLSTM2D {
   return new ConvLSTM2D(args);
 }
 
-export function convLstm2dCell(args: ConvLSTM2DCellArgs): RNNCell {
+export function convLstm2dCell(args: ConvLSTM2DCellArgs): ConvLSTM2DCell {
   return new ConvLSTM2DCell(args);
 }
 

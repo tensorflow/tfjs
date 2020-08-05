@@ -10,7 +10,7 @@ import {Initializer, serializeInitializer} from '../initializers';
 import {DataFormat, DataType, PaddingMode, Shape} from '../keras_format/common';
 import {serializeRegularizer} from '../regularizers';
 import {Kwargs} from '../types';
-import {normalizeArray} from '../utils/conv_utils';
+import {convOutputLength, normalizeArray} from '../utils/conv_utils';
 import {assertPositiveInteger} from '../utils/generic_utils';
 import {getExactlyOneShape} from '../utils/types_utils';
 
@@ -285,6 +285,28 @@ export class ConvLSTM2DCell extends LSTMCell {
     return {...baseConfig, ...config};
   }
 
+  computeOutputShape(inputShape: Shape): Shape|Shape[] {
+    const isChannelsFirst = this.dataFormat === 'channelsFirst';
+
+    const h = inputShape[isChannelsFirst ? 3 : 2];
+    const w = inputShape[isChannelsFirst ? 4 : 3];
+
+    const hOut = convOutputLength(
+        h, this.kernelSize[0], this.padding, this.strides[0],
+        this.dilationRate[0]);
+    const wOut = convOutputLength(
+        w, this.kernelSize[1], this.padding, this.strides[1],
+        this.dilationRate[1]);
+
+    const outShape = [
+      ...inputShape.slice(0, 2),
+      ...(isChannelsFirst ? [this.filters, hOut, wOut] :
+                            [hOut, wOut, this.filters])
+    ];
+
+    return outShape;
+  }
+
   getInitialState(inputs: tfc.Tensor): tfc.Tensor[] {
     return tfc.tidy(() => {
       let initialState = tfc.zerosLike(inputs);
@@ -396,6 +418,22 @@ export class ConvLSTM2D extends RNN {
 
       return super.call(inputs, {mask, training, initialState});
     });
+  }
+
+  computeOutputShape(inputShape: Shape): Shape|Shape[] {
+    let outShape = (this.cell as ConvLSTM2DCell).computeOutputShape(inputShape);
+
+    if (!this.returnSequences) {
+      outShape =
+          [...outShape.slice(0, 1) as Shape[], ...outShape.slice(2) as Shape[]];
+    }
+
+    if (this.returnState) {
+      outShape =
+          [outShape, ...Array(2).fill([inputShape[0], ...outShape.slice(-3)])];
+    }
+
+    return outShape;
   }
 
   getInitialState(inputs: tfc.Tensor): tfc.Tensor[] {
