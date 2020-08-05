@@ -16,7 +16,8 @@ import {getExactlyOneShape} from '../utils/types_utils';
 
 import {LSTMCell, LSTMCellLayerArgs, LSTMLayerArgs, RNN, RNNLayerArgs,} from './recurrent';
 
-declare interface ConvLSTM2DCellArgs extends Omit<LSTMCellLayerArgs, 'units'> {
+export declare interface ConvLSTM2DCellArgs extends
+    Omit<LSTMCellLayerArgs, 'units'> {
   /**
    * The dimensionality of the output space (i.e. the number of filters in the
    * convolution).
@@ -352,8 +353,8 @@ export class ConvLSTM2DCell extends LSTMCell {
 
 tfc.serialization.registerClass(ConvLSTM2DCell);
 
-declare interface ConvLSTM2DArgs extends Omit<LSTMLayerArgs, 'units'>,
-                                         ConvLSTM2DCellArgs {}
+export declare interface ConvLSTM2DArgs extends Omit<LSTMLayerArgs, 'units'>,
+                                                ConvLSTM2DCellArgs {}
 
 export class ConvLSTM2D extends RNN {
   /** @nocollapse */

@@ -14,6 +14,7 @@ import {input} from './exports';
 import {ELU, ELULayerArgs, LeakyReLU, LeakyReLULayerArgs, PReLU, PReLULayerArgs, ReLU, ReLULayerArgs, Softmax, SoftmaxLayerArgs, ThresholdedReLU, ThresholdedReLULayerArgs} from './layers/advanced_activations';
 import {Conv1D, Conv2D, Conv2DTranspose, Conv3D, ConvLayerArgs, Cropping2D, Cropping2DLayerArgs, SeparableConv2D, SeparableConvLayerArgs, UpSampling2D, UpSampling2DLayerArgs} from './layers/convolutional';
 import {DepthwiseConv2D, DepthwiseConv2DLayerArgs} from './layers/convolutional_depthwise';
+import {ConvLSTM2D, ConvLSTM2DArgs, ConvLSTM2DCell, ConvLSTM2DCellArgs} from './layers/convolutional_recurrent';
 import {Activation, ActivationLayerArgs, Dense, DenseLayerArgs, Dropout, DropoutLayerArgs, Flatten, FlattenLayerArgs, Masking, MaskingArgs, Permute, PermuteLayerArgs, RepeatVector, RepeatVectorLayerArgs, Reshape, ReshapeLayerArgs, SpatialDropout1D, SpatialDropout1DLayerConfig} from './layers/core';
 import {Embedding, EmbeddingLayerArgs} from './layers/embeddings';
 import {Add, Average, Concatenate, ConcatenateLayerArgs, Dot, DotLayerArgs, Maximum, Minimum, Multiply} from './layers/merge';
@@ -1350,6 +1351,14 @@ export function simpleRNN(args: SimpleRNNLayerArgs): Layer {
 /** @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'} */
 export function simpleRNNCell(args: SimpleRNNCellLayerArgs): RNNCell {
   return new SimpleRNNCell(args);
+}
+
+export function convLstm2d(args: ConvLSTM2DArgs): RNN {
+  return new ConvLSTM2D(args);
+}
+
+export function convLstm2dCell(args: ConvLSTM2DCellArgs): RNNCell {
+  return new ConvLSTM2DCell(args);
 }
 
 /**
