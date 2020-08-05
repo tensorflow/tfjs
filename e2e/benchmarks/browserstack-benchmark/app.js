@@ -57,7 +57,7 @@ function benchmark(config) {
   // Write the browsers to benchmark to `./browsers.json`.
   config.browsers.forEach(browser => {
     browser.base = 'BrowserStack';
-    // For mobile devices, it is required by BowserStack to use real devices.
+    // For mobile devices, we would use real devices instead of emulators.
     if (browser.os === 'ios' || browser.os === 'android') {
       browser.real_mobile = true;
     }
