@@ -387,7 +387,7 @@ export class Engine implements TensorTracker, DataMover {
     const values = this.readSync(dataId);
     // Delete the tensor from the old backend and move it to the new
     // backend.
-    srcBackend.disposeData(dataId);
+    srcBackend.disposeData(dataId, true /* force */);
     info.backend = backend;
     backend.move(dataId, values, info.shape, info.dtype);
     if (this.shouldCheckForMemLeaks()) {
@@ -822,6 +822,7 @@ export class Engine implements TensorTracker, DataMover {
     const info = this.state.tensorInfo.get(a.dataId);
     const refCount = info.refCount;
 
+    console.log(`refCount is: ${refCount}`);
     if (refCount <= 1) {
       // Don't count bytes for complex numbers as they are counted by their
       // components.

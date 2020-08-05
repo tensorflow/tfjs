@@ -107,7 +107,7 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   numDataIds(): number {
     return notYetImplemented('numDataIds');
   }
-  disposeData(dataId: object): void {
+  disposeData(dataId: object, force?: boolean): void {
     return notYetImplemented('disposeData');
   }
   write(values: BackendValues, shape: number[], dtype: DataType): DataId {
