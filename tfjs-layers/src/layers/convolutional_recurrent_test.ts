@@ -1,10 +1,12 @@
-import {ones, tensor1d, zeros} from '@tensorflow/tfjs-core';
+import {ones, Tensor, tensor1d, zeros} from '@tensorflow/tfjs-core';
 
+import {sequential} from '../exports';
+import * as tfl from '../index';
 import {DataFormat, PaddingMode} from '../keras_format/common';
 import {getCartesianProductOfValues} from '../utils/generic_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
-import {ConvLSTM2DCell} from './convolutional_recurrent';
+import {ConvLSTM2D, ConvLSTM2DCell} from './convolutional_recurrent';
 
 describeMathCPUAndGPU('ConvLSTM2DCell', () => {
   describe('should return the correct outputs', () => {
@@ -79,4 +81,31 @@ describeMathCPU('ConvLSTM2D Symbolic', () => {});
 
 describeMathCPUAndGPU('ConvLSTM2D Tensor', () => {});
 
-describeMathCPU('ConvLSTM2D Serialization and Deserialization', () => {});
+describeMathCPU('ConvLSTM2D Serialization and Deserialization', () => {
+  it('should', async () => {
+    const model = sequential();
+
+    const layer = new ConvLSTM2D({
+      filters: 5,
+      kernelSize: 3,
+      kernelInitializer: 'ones',
+      recurrentInitializer: 'ones',
+      returnSequences: true,
+      dataFormat: 'channelsFirst',
+      inputShape: [1, 3, 8, 8]
+    });
+
+    model.add(layer);
+
+    const x = ones([1, 1, 3, 8, 8]);
+    const y = model.predict(x) as Tensor;
+
+    const json = model.toJSON(null, false);
+
+    const modelFromJson = await tfl.models.modelFromJSON({modelTopology: json});
+
+    const yFromJson = modelFromJson.predict(x) as Tensor;
+
+    expectTensorsClose(yFromJson, y);
+  });
+});

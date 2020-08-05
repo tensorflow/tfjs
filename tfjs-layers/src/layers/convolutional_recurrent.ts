@@ -1,10 +1,11 @@
 import * as tfc from '@tensorflow/tfjs-core';
-import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
+import {serialization, sum, Tensor, tidy, zeros, zerosLike} from '@tensorflow/tfjs-core';
 
 import {serializeActivation} from '../activations';
 import * as K from '../backend/tfjs_backend';
 import {checkDataFormat, checkPaddingMode} from '../common';
 import {serializeConstraint} from '../constraints';
+import {InputSpec} from '../engine/topology';
 import {ValueError} from '../errors';
 import {Initializer, serializeInitializer} from '../initializers';
 import {DataFormat, DataType, PaddingMode, Shape} from '../keras_format/common';
@@ -14,7 +15,7 @@ import {normalizeArray} from '../utils/conv_utils';
 import {assertPositiveInteger} from '../utils/generic_utils';
 import {getExactlyOneShape} from '../utils/types_utils';
 
-import {LSTM, LSTMCell, LSTMCellLayerArgs, LSTMLayerArgs,} from './recurrent';
+import {LSTMCell, LSTMCellLayerArgs, LSTMLayerArgs, RNN, RNNLayerArgs,} from './recurrent';
 
 declare interface ConvLSTM2DCellArgs extends Omit<LSTMCellLayerArgs, 'units'> {
   /**
@@ -280,7 +281,26 @@ export class ConvLSTM2DCell extends LSTMCell {
 
     const baseConfig = super.getConfig();
 
-    return {...baseConfig, config};
+    return {...baseConfig, ...config};
+  }
+
+  getInitialState(inputs: Tensor): Tensor[] {
+    return tidy(() => {
+      let initialState = zerosLike(inputs);
+
+      initialState = sum(initialState, 1);
+
+      const shape = [...this.kernel.shape.slice(0, -1), this.filters];
+
+      initialState =
+          this.inputConv(initialState, zeros(shape), null, this.padding);
+
+      if (Array.isArray(this.stateSize)) {
+        return Array(this.stateSize.length).fill(initialState);
+      }
+
+      return [initialState];
+    });
   }
 
   protected generateDropoutMask(args: {
@@ -332,8 +352,124 @@ export class ConvLSTM2DCell extends LSTMCell {
 
 serialization.registerClass(ConvLSTM2DCell);
 
-declare interface ConvLSTM2DArgs extends Omit<LSTMLayerArgs, 'units'> {}
+declare interface ConvLSTM2DArgs extends Omit<LSTMLayerArgs, 'units'>,
+                                         ConvLSTM2DCellArgs {}
 
-export class ConvLSTM2D extends LSTM {}
+export class ConvLSTM2D extends RNN {
+  /** @nocollapse */
+  static className = 'ConvLSTM2D';
+
+  constructor(args: ConvLSTM2DArgs) {
+    if (args.implementation === 0) {
+      console.warn(
+          '`implementation=0` has been deprecated, and now defaults to ' +
+          '`implementation=1`. Please update your layer call.');
+    }
+
+    args.cell = new ConvLSTM2DCell(args);
+
+    super(args as RNNLayerArgs);
+
+    this.inputSpec = [new InputSpec({ndim: 5})];
+  }
+
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+    return tidy(() => {
+      if (this.cell.dropoutMask != null) {
+        tfc.dispose(this.cell.dropoutMask);
+        this.cell.dropoutMask = null;
+      }
+
+      if (this.cell.recurrentDropoutMask != null) {
+        tfc.dispose(this.cell.recurrentDropoutMask);
+        this.cell.recurrentDropoutMask = null;
+      }
+
+      const mask = kwargs == null ? null : kwargs['mask'];
+
+      const training = kwargs == null ? null : kwargs['training'];
+
+      const initialState: Tensor[] =
+          kwargs == null ? null : kwargs['initialState'];
+
+      return super.call(inputs, {mask, training, initialState});
+    });
+  }
+
+  getInitialState(inputs: Tensor): Tensor[] {
+    return tidy(() => {
+      return (this.cell as ConvLSTM2DCell).getInitialState(inputs);
+    });
+  }
+
+  getConfig(): serialization.ConfigDict {
+    const {
+      filters,
+      kernelSize,
+      strides,
+      padding,
+      dataFormat,
+      dilationRate,
+      activation,
+      recurrentActivation,
+      useBias,
+      kernelInitializer,
+      recurrentInitializer,
+      biasInitializer,
+      unitForgetBias,
+      kernelRegularizer,
+      recurrentRegularizer,
+      biasRegularizer,
+      activityRegularizer,
+      kernelConstraint,
+      recurrentConstraint,
+      biasConstraint,
+      dropout,
+      recurrentDropout,
+      implementation,
+    } = this.cell as ConvLSTM2DCell;
+
+    const config: serialization.ConfigDict = {
+      filters,
+      kernelSize,
+      strides,
+      padding,
+      dataFormat,
+      dilationRate,
+      activation: serializeActivation(activation),
+      recurrentActivation: serializeActivation(recurrentActivation),
+      useBias,
+      kernelInitializer: serializeInitializer(kernelInitializer),
+      recurrentInitializer: serializeInitializer(recurrentInitializer),
+      biasInitializer: serializeInitializer(biasInitializer),
+      unitForgetBias,
+      kernelRegularizer: serializeRegularizer(kernelRegularizer),
+      recurrentRegularizer: serializeRegularizer(recurrentRegularizer),
+      biasRegularizer: serializeRegularizer(biasRegularizer),
+      activityRegularizer: serializeRegularizer(activityRegularizer),
+      kernelConstraint: serializeConstraint(kernelConstraint),
+      recurrentConstraint: serializeConstraint(recurrentConstraint),
+      biasConstraint: serializeConstraint(biasConstraint),
+      dropout,
+      recurrentDropout,
+      implementation,
+    };
+
+    const {'cell': _, ...baseConfig} = super.getConfig();
+
+    return {...baseConfig, ...config};
+  }
+
+  /** @nocollapse */
+  static fromConfig<T extends serialization.Serializable>(
+      cls: serialization.SerializableConstructor<T>,
+      config: serialization.ConfigDict): T {
+    if (config['implmentation'] === 0) {
+      config['implementation'] = 1;
+    }
+
+    return new cls(config);
+  }
+}
 
 serialization.registerClass(ConvLSTM2D);
