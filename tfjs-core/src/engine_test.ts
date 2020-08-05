@@ -396,8 +396,8 @@ describeWithFlags('profile', ALL_ENVS, () => {
     expect(typeof profile.kernels[1].kernelTimeMs).toBe('number');
     expect(typeof profile.kernels[1].extraInfo).toBe('string');
 
-    // The `kernelTimeMs` and `extraInfo` are tested in Profiler.profileKernel
-    // and are excluded from here.
+    // The values of `kernelTimeMs` and `extraInfo` are tested in
+    // Profiler.profileKernel, so they are excluded from here.
     expect(profile.kernels[0]).toEqual(jasmine.objectContaining({
       'name': 'Square',
       'bytesAdded': 12,
