@@ -1,11 +1,14 @@
-import {ones, Tensor, tensor1d, zeros} from '@tensorflow/tfjs-core';
+import {io, ones, randomNormal, Tensor, tensor1d, zeros} from '@tensorflow/tfjs-core';
 
 import {sequential} from '../exports';
 import * as tfl from '../index';
 import {DataFormat, PaddingMode} from '../keras_format/common';
 import {modelFromJSON} from '../models';
 import {getCartesianProductOfValues} from '../utils/generic_utils';
+import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
+
+import {ConvLSTM2DArgs} from './convolutional_recurrent';
 
 describeMathCPUAndGPU('ConvLSTM2DCell', () => {
   describe('should return the correct outputs', () => {
@@ -130,49 +133,59 @@ describeMathCPU('ConvLSTM2D Symbolic', () => {
     expect(lstm.weights.length).toEqual(3);
   });
 
-  // for (const implementation of [1, 2]) {
-  //   it('Serialization round trip', () => {
-  //     const layer = tfl.layers.lstm({units: 4, implementation});
-  //     const pythonicConfig = convertTsToPythonic(layer.getConfig());
-  //     // tslint:disable-next-line:no-any
-  //     const tsConfig = convertPythonicToTs(pythonicConfig) as any;
-  //     const layerPrime = tfl.layers.lstm(tsConfig);
-  //     expect(layerPrime.getConfig().units).toEqual(4);
-  //     expect(layerPrime.getConfig().implementation).toEqual(implementation);
-  //   });
-  // }
+  for (const implementation of [1, 2]) {
+    it('serialization round trip', () => {
+      const layer = tfl.layers.convLstm2d({
+        filters: 5,
+        kernelSize: 3,
+        padding: 'same',
+        returnSequences: true,
+        inputShape: [10, 8, 8, 3],
+        implementation,
+      });
 
-  // it('save and load', async () => {
-  //   const model = tfl.sequential();
+      const pythonicConfig = convertTsToPythonic(layer.getConfig());
 
-  //   const cells = [
-  //     tfl.layers.convLstm2dCell({filters: 5, kernelSize: 3, padding:
-  //     'same'}), tfl.layers.convLstm2dCell({filters: 5, kernelSize: 3,
-  //     padding: 'same'}),
-  //   ];
+      const tsConfig = convertPythonicToTs(pythonicConfig);
 
-  //   const rnn = tfl.layers.rnn(
-  //       {cell: cells, returnSequences: true, inputShape: [10, 8, 8, 3]});
+      const layerPrime =
+          tfl.layers.convLstm2d(tsConfig as unknown as ConvLSTM2DArgs);
 
-  //   model.add(rnn);
+      expect(layerPrime.getConfig().filters).toEqual(5);
+      expect(layerPrime.getConfig().implementation).toEqual(implementation);
+    });
+  }
 
-  //   const x = randomNormal([8, 10, 8, 8, 3]);
-  //   const y = model.predict(x) as Tensor;
+  it('save and load', async () => {
+    const model = tfl.sequential();
 
-  //   let savedArtifacts: io.ModelArtifacts;
+    const layer = tfl.layers.convLstm2d({
+      filters: 5,
+      kernelSize: 3,
+      padding: 'same',
+      returnSequences: true,
+      inputShape: [10, 8, 8, 3]
+    });
 
-  //   await model.save(io.withSaveHandler(async (artifacts) => {
-  //     savedArtifacts = artifacts;
-  //     return null;
-  //   }));
+    model.add(layer);
 
-  //   const loadedModel =
-  //       await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
+    const x = randomNormal([8, 10, 8, 8, 3]);
+    const y = model.predict(x) as Tensor;
 
-  //   expect(model.inputs[0].shape).toEqual(loadedModel.inputs[0].shape);
-  //   expect(model.outputs[0].shape).toEqual(loadedModel.outputs[0].shape);
-  //   expectTensorsClose(loadedModel.predict(x) as Tensor, y);
-  // });
+    let savedArtifacts: io.ModelArtifacts;
+
+    await model.save(io.withSaveHandler(async (artifacts) => {
+      savedArtifacts = artifacts;
+      return null;
+    }));
+
+    const loadedModel =
+        await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
+
+    expect(model.inputs[0].shape).toEqual(loadedModel.inputs[0].shape);
+    expect(model.outputs[0].shape).toEqual(loadedModel.outputs[0].shape);
+    expectTensorsClose(loadedModel.predict(x) as Tensor, y);
+  });
 });
 
 describeMathCPUAndGPU('ConvLSTM2D Tensor', () => {});
