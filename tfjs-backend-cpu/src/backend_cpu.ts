@@ -163,23 +163,29 @@ export class MathBackendCPU extends KernelBackend {
     return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;
   }
 
-  disposeData(dataId: DataId, force?: boolean): void {
+  disposeData(dataId: DataId): void {
+    if (this.data.has(dataId)) {
+      const tensorData = this.data.get(dataId);
+      if (tensorData.complexTensors != null) {
+        // Todo(linazhao): Change to disposeData once complex, real, and imag
+        // kernels are modularized and real and imag becomes `TensorInfo`.
+        tensorData.complexTensors.real.dispose();
+        tensorData.complexTensors.imag.dispose();
+      }
+      this.data.delete(dataId);
+    }
+  }
+
+  disposeInternal(dataId: DataId): void {
     if (this.data.has(dataId)) {
       const tensorData = this.data.get(dataId);
 
       tensorData.refCount--;
 
-      const shouldDelete = force || (tensorData.refCount < 1);
+      const shouldDelete = tensorData.refCount < 1;
 
       if (shouldDelete) {
-        if (tensorData.complexTensors != null) {
-          // Todo(linazhao): Change to disposeData once complex, real, and imag
-          // kernels are modularized and real and imag becomes `TensorInfo`.
-          tensorData.complexTensors.real.dispose();
-          tensorData.complexTensors.imag.dispose();
-        }
-
-        this.data.delete(dataId);
+        this.disposeData(dataId);
       }
     }
   }
