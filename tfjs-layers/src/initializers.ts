@@ -545,9 +545,8 @@ export class Orthogonal extends Initializer {
 
   apply(shape: Shape, dtype?: DataType): Tensor {
     return tidy(() => {
-      if (shape.length !== 2) {
-        throw new NotImplementedError(
-            'The Orthogonal Initializer does not support non-2D shapes yet.');
+      if (shape.length < 2) {
+        throw new NotImplementedError('Shape must be at least 2D.');
       }
       if (shape[0] * shape[1] > 2000) {
         console.warn(
