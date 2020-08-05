@@ -25,7 +25,7 @@ const {exec} = require('child_process');
 const port = process.env.PORT || 8001;
 let io;
 
-function authenticateBrowserStack() {
+function checkBrowserStackAccount() {
   if (process.env.BROWSERSTACK_USERNAME == null ||
       process.env.BROWSERSTACK_ACCESS_KEY == null) {
     throw new Error(
@@ -34,41 +34,9 @@ function authenticateBrowserStack() {
           export BROWSERSTACK_USERNAME=YOUR_USERNAME
           export BROWSERSTACK_ACCESS_KEY=YOUR_ACCESS_KEY`);
   }
-
-  const requestOptions = {
-    auth: `${process.env.BROWSERSTACK_USERNAME}:` +
-        `${process.env.BROWSERSTACK_ACCESS_KEY}`
-  };
-
-  const browserstackBrowsersApi =
-      'https://api.browserstack.com/automate/browsers.json'
-  const request =
-      https.request(browserstackBrowsersApi, requestOptions, (response) => {
-        if (response.statusCode !== 200) {
-          throw new Error('Failed to authenticate BrowserStack.');
-        } else {
-          let data = '';
-
-          response.on('data', (chunk) => {
-            data += chunk;
-          });
-
-          response.on('end', () => {
-            console.log('Successfully authenticated BrowserStack.');
-            const browsersArray = JSON.parse(data);
-            runServer(browsersArray);
-          });
-        }
-      });
-
-  request.on('error', (e) => {
-    console.error(e);
-    throw new Error('Request failed.');
-  });
-  request.end();
 }
 
-function runServer(availableBrowsers) {
+function runServer() {
   const app = http.createServer((request, response) => {
     const url = request.url === '/' ? '/index.html' : request.url;
     const filePath = path.join(__dirname, url);
@@ -132,4 +100,5 @@ function benchmark(config) {
   });
 }
 
-authenticateBrowserStack();
+checkBrowserStackAccount();
+runServer();
