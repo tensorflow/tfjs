@@ -18,6 +18,13 @@
 import {FloorDiv} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import {assertAndGetBroadcastShape, getReductionAxes} from '../ops/broadcast_util';
+import {cast} from '../ops/cast';
+import {div} from '../ops/div';
+import {mul} from '../ops/mul';
+import {neg} from '../ops/neg';
+import {reshape} from '../ops/reshape';
+import {square} from '../ops/square';
+import {sum} from '../ops/sum';
 import {Tensor} from '../tensor';
 
 export const floorDivGradConfig: GradConfig = {
@@ -28,21 +35,21 @@ export const floorDivGradConfig: GradConfig = {
     const outShape = assertAndGetBroadcastShape(a.shape, b.shape);
 
     const derA = () => {
-      const res = dy.div(b.toFloat());
+      const res = div(dy, cast(b, 'float32'));
       const reduceAxes = getReductionAxes(a.shape, outShape);
       if (reduceAxes.length > 0) {
-        return res.sum(reduceAxes).reshape(a.shape);
+        return reshape(sum(res, reduceAxes), a.shape);
       }
       return res;
     };
     const derB = () => {
-      let res = dy.mul(a.toFloat());
+      let res = mul(dy, cast(a, 'float32'));
       const reduceAxes = getReductionAxes(b.shape, outShape);
       if (reduceAxes.length > 0) {
-        res = res.sum(reduceAxes).reshape(b.shape);
+        res = reshape(sum(res, reduceAxes), b.shape);
       }
-      const tmp = b.square();
-      return res.div(tmp.toFloat()).neg();
+      const tmp = square(b);
+      return neg(div(res, cast(tmp, 'float32')));
     };
     return {a: derA, b: derB};
   }
