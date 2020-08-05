@@ -18,6 +18,7 @@
 import {BackendTimingInfo, DataMover, KernelBackend} from './backends/backend';
 import {Environment, setEnvironmentGlobal} from './environment';
 import {getGlobalNamespace} from './global_util';
+import {Add, Cast} from './kernel_names';
 import {getGradient, getKernel, getKernelsForBackend, GradFunc, NamedAttrMap, TensorInfo} from './kernel_registry';
 import {KernelProfile, Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, TapeNode} from './tape';
@@ -466,7 +467,18 @@ export class Engine implements TensorTracker, DataMover {
   private clone(x: Tensor): Tensor {
     const y = this.makeTensorFromDataId(x.dataId, x.shape, x.dtype);
     const inputs = {x};
-    const grad = (dy: Tensor) => ({x: () => dy.toFloat()});
+    const grad = (dy: Tensor) => ({
+      x: () => {
+        const dtype = 'float32';
+        const gradInputs = {x: dy};
+        const attrs = {dtype};
+
+        return ENGINE.runKernelFunc(
+            backend => backend.cast(dy, dtype),
+            gradInputs as {} as NamedTensorMap, null /* grad */, Cast,
+            attrs as {} as NamedAttrMap);
+      }
+    });
     const saved: Tensor[] = [];
     this.addTapeNode(this.state.activeScope.name, inputs, [y], grad, saved, {});
     return y;
@@ -1017,7 +1029,9 @@ export class Engine implements TensorTracker, DataMover {
       backpropagateGradients(
           accumulatedGradientMap, filteredTape,
           // Pass the tidy function to avoid circular dep with `tape.ts`.
-          f => this.tidy(f as ScopeFn<Tensor>));
+          f => this.tidy(f as ScopeFn<Tensor>),
+          // Pass an add function to avoide a circular dep with `tape.ts`.
+          add);
       const grads = xs.map(x => accumulatedGradientMap[x.id]);
 
       if (this.state.gradientDepth === 0) {
@@ -1170,3 +1184,19 @@ function getOrMakeEngine(): Engine {
 }
 
 export const ENGINE = getOrMakeEngine();
+
+/**
+ * A implementation of the add op for use within engine and tape.
+ *
+ * This allows us to avoid a circular dependency between add.ts and engine.
+ * It is exported to be available in tape tests.
+ */
+export function add(a: Tensor, b: Tensor): Tensor {
+  // We duplicate Add here to avoid a circular dependency with add.ts.
+  const inputs = {a, b};
+  return ENGINE.runKernelFunc((backend, save) => {
+    const res = backend.add(a, b);
+    save([a, b]);
+    return res;
+  }, inputs as {} as NamedTensorMap, null /* gradient */, Add);
+}

@@ -17,6 +17,7 @@
 
 import {PadV2, PadV2Attrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
+import {slice} from '../ops/slice';
 import {Tensor} from '../tensor';
 
 export const padV2GradConfig: GradConfig = {
@@ -28,6 +29,6 @@ export const padV2GradConfig: GradConfig = {
     const x = saved[0];
     const {paddings} = attrs as unknown as PadV2Attrs;
     const begin = paddings.map(p => p[0]);
-    return {x: () => dy.slice(begin, x.shape)};
+    return {x: () => slice(dy, begin, x.shape)};
   }
 };

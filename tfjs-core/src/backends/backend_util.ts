@@ -16,6 +16,7 @@
  */
 
 import {ENGINE} from '../engine';
+import {cast} from '../ops/cast';
 import {scalar} from '../ops/scalar';
 import {tensor1d} from '../ops/tensor1d';
 import {zeros} from '../ops/zeros';
@@ -58,7 +59,7 @@ export function castTensor<T extends Tensor>(
       return x.clone();
     }
     const zerosTensor = zeros(x.shape);
-    const floatX = x.toFloat();
+    const floatX = cast(x, 'float32');
     const result = backend.complex(floatX, zerosTensor);
     zerosTensor.dispose();
     floatX.dispose();
@@ -72,9 +73,9 @@ export function castTensor<T extends Tensor>(
   }
   if (x.dtype === 'complex64') {
     const real = backend.real(x);
-    const result = real.cast(dtype);
+    const result = cast(real, dtype);
     real.dispose();
-    return result as T;
+    return result;
   }
   if (dtype === 'int32') {
     return backend.int(x);

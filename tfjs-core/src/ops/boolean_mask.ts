@@ -21,6 +21,8 @@ import {TensorLike} from '../types';
 import * as util from '../util';
 
 import {gather} from './gather';
+import {reshape} from './reshape';
+import {squeeze} from './squeeze';
 import {whereAsync} from './where_async';
 
 /**
@@ -62,10 +64,10 @@ async function booleanMaskAsync_(
   const targetTensorShape =
       tensorShape.slice(0, axisFrom)
           .concat([leadingSize], tensorShape.slice(axisFrom + maskDim));
-  const reshapedTensor = $tensor.reshape(targetTensorShape);
-  const reshapedMask = $mask.reshape([-1]);
+  const reshapedTensor = reshape($tensor, targetTensorShape);
+  const reshapedMask = reshape($mask, [-1]);
   const positivePositions = await whereAsync(reshapedMask);
-  const indices = positivePositions.squeeze([1]);
+  const indices = squeeze(positivePositions, [1]);
 
   const res = gather(reshapedTensor, indices, axisFrom);
 
