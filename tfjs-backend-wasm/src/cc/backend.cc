@@ -60,8 +60,10 @@ int num_cores = emscripten_num_logical_cores() / 2;
 int num_cores = 1;
 #endif
 
-pthreadpool *threadpool =
-    pthreadpool_create(std::min(std::max(num_cores, 1), 4));
+int min_num_threads = 1;
+int max_num_threads = 4;
+pthreadpool *threadpool = pthreadpool_create(
+    std::min(std::max(num_cores, min_num_threads), max_num_threads));
 
 // Registers a disposal callback for a tensor id with a given callback function.
 void register_disposal_callback(const size_t tensor_id,

@@ -225,11 +225,6 @@ function getPathToWasmBinary(
     if (wasmFileMap[path] != null) {
       return wasmFileMap[path];
     }
-
-    console.warn(
-        `You provided a map of overrides for WASM binary locations, ` +
-        `but there was no entry found for ${path}. We are falling back to ` +
-        `the default location: ${wasmModuleFolder + path}.`);
   }
 
   return wasmModuleFolder + path;
@@ -346,8 +341,11 @@ function typedArrayFromBuffer(
   }
 }
 
-type WasmBinaryName = 'tfjs-backend-wasm.wasm'|'tfjs-backend-wasm-simd.wasm'|
-    'tfjs-backend-wasm-threaded-simd.wasm';
+const wasmBinaryNames = [
+  'tfjs-backend-wasm.wasm', 'tfjs-backend-wasm-simd.wasm',
+  'tfjs-backend-wasm-threaded-simd.wasm'
+] as const ;
+type WasmBinaryName = typeof wasmBinaryNames[number];
 
 let wasmPath: string = null;
 let wasmPathPrefix: string = null;
@@ -418,6 +416,15 @@ export function setWasmPaths(
     wasmPathPrefix = prefixOrFileMap;
   } else {
     wasmFileMap = prefixOrFileMap;
+    const missingPaths =
+        wasmBinaryNames.filter(name => wasmFileMap[name] == null);
+    if (missingPaths.length) {
+      console.warn(
+          `You provided a map of overrides for WASM binaries, but there ` +
+          `were no entries found for the following binaries: ` +
+          `${missingPaths.join(',')}. We will fall back to their ` +
+          `default locations.`);
+    }
   }
 
   customFetch = usePlatformFetch;
