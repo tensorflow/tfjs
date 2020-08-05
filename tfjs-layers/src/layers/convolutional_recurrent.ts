@@ -1,5 +1,4 @@
 import * as tfc from '@tensorflow/tfjs-core';
-import {serialization, sum, Tensor, tidy, zeros, zerosLike} from '@tensorflow/tfjs-core';
 
 import {serializeActivation} from '../activations';
 import * as K from '../backend/tfjs_backend';
@@ -150,7 +149,7 @@ export class ConvLSTM2DCell extends LSTMCell {
           /** @nocollapse */
           static className = 'CustomInit';
 
-          apply(shape: Shape, dtype?: DataType): Tensor {
+          apply(shape: Shape, dtype?: DataType): tfc.Tensor {
             const biasI = init.apply([filters]);
             const biasF = tfc.ones([filters]);
             const biasCAndO = init.apply([filters * 2]);
@@ -169,8 +168,8 @@ export class ConvLSTM2DCell extends LSTMCell {
     this.built = true;
   }
 
-  call(inputs: Tensor[], kwargs: Kwargs): Tensor[] {
-    return tidy(() => {
+  call(inputs: tfc.Tensor[], kwargs: Kwargs): tfc.Tensor[] {
+    return tfc.tidy(() => {
       if (inputs.length !== 3) {
         throw new ValueError(
             `ConvLSTM2DCell expects 3 input Tensors (inputs, h, c), got ` +
@@ -184,7 +183,7 @@ export class ConvLSTM2DCell extends LSTMCell {
       const cTMinus1 = inputs[2];  // Previous carry state.
 
       const toCreateDropout =
-          (dropout: number, existingMask: Tensor|Tensor[]) =>
+          (dropout: number, existingMask: tfc.Tensor|tfc.Tensor[]) =>
               0 < dropout && dropout < 1 && existingMask == null;
 
       if (toCreateDropout(this.dropout, this.dropoutMask)) {
@@ -193,10 +192,12 @@ export class ConvLSTM2DCell extends LSTMCell {
           rate: this.dropout,
           training,
           count: 4
-        }) as Tensor[];
+        }) as tfc.Tensor[];
       }
 
-      const dropoutMask = this.dropoutMask as [Tensor, Tensor, Tensor, Tensor];
+      type DropoutMasks = [tfc.Tensor, tfc.Tensor, tfc.Tensor, tfc.Tensor];
+
+      const dropoutMask = this.dropoutMask as DropoutMasks;
 
       let xI = dropoutMask ? tfc.mul(dropoutMask[0], x) : x;
       let xF = dropoutMask ? tfc.mul(dropoutMask[1], x) : x;
@@ -209,21 +210,20 @@ export class ConvLSTM2DCell extends LSTMCell {
           rate: this.recurrentDropout,
           training,
           count: 4
-        }) as Tensor[];
+        }) as tfc.Tensor[];
       }
 
-      const recDropoutMask =
-          this.recurrentDropoutMask as [Tensor, Tensor, Tensor, Tensor];
+      const recDropoutMask = this.recurrentDropoutMask as DropoutMasks;
 
       let hI = recDropoutMask ? tfc.mul(recDropoutMask[0], hTMinus1) : hTMinus1;
       let hF = recDropoutMask ? tfc.mul(recDropoutMask[1], hTMinus1) : hTMinus1;
       let hC = recDropoutMask ? tfc.mul(recDropoutMask[2], hTMinus1) : hTMinus1;
       let hO = recDropoutMask ? tfc.mul(recDropoutMask[3], hTMinus1) : hTMinus1;
 
-      const [kernelI, kernelF, kernelC, kernelO]: Tensor[] =
+      const [kernelI, kernelF, kernelC, kernelO]: tfc.Tensor[] =
           tfc.split(this.kernel.read(), 4, 3);
 
-      const [biasI, biasF, biasC, biasO]: Tensor[] = this.useBias ?
+      const [biasI, biasF, biasC, biasO]: tfc.Tensor[] = this.useBias ?
           tfc.split(this.bias.read(), 4) :
           [null, null, null, null];
 
@@ -232,7 +232,7 @@ export class ConvLSTM2DCell extends LSTMCell {
       xC = this.inputConv(xC, kernelC, biasC, this.padding);
       xO = this.inputConv(xO, kernelO, biasO, this.padding);
 
-      const [recKernelI, recKernelF, recKernelC, recKernelO]: Tensor[] =
+      const [recKernelI, recKernelF, recKernelC, recKernelO]: tfc.Tensor[] =
           tfc.split(this.recurrentKernel.read(), 4, 3);
 
       hI = this.recurrentConv(hI, recKernelI);
@@ -253,8 +253,8 @@ export class ConvLSTM2DCell extends LSTMCell {
     });
   }
 
-  getConfig(): serialization.ConfigDict {
-    const config: serialization.ConfigDict = {
+  getConfig(): tfc.serialization.ConfigDict {
+    const config: tfc.serialization.ConfigDict = {
       filters: this.filters,
       kernelSize: this.kernelSize,
       padding: this.padding,
@@ -284,16 +284,16 @@ export class ConvLSTM2DCell extends LSTMCell {
     return {...baseConfig, ...config};
   }
 
-  getInitialState(inputs: Tensor): Tensor[] {
-    return tidy(() => {
-      let initialState = zerosLike(inputs);
+  getInitialState(inputs: tfc.Tensor): tfc.Tensor[] {
+    return tfc.tidy(() => {
+      let initialState = tfc.zerosLike(inputs);
 
-      initialState = sum(initialState, 1);
+      initialState = tfc.sum(initialState, 1);
 
       const shape = [...this.kernel.shape.slice(0, -1), this.filters];
 
       initialState =
-          this.inputConv(initialState, zeros(shape), null, this.padding);
+          this.inputConv(initialState, tfc.zeros(shape), null, this.padding);
 
       if (Array.isArray(this.stateSize)) {
         return Array(this.stateSize.length).fill(initialState);
@@ -304,11 +304,11 @@ export class ConvLSTM2DCell extends LSTMCell {
   }
 
   protected generateDropoutMask(args: {
-    ones: () => Tensor,
+    ones: () => tfc.Tensor,
     rate: number,
     training?: boolean,
     count?: number,
-  }): Tensor|Tensor[] {
+  }): tfc.Tensor|tfc.Tensor[] {
     const {ones, rate, training = false, count = 1} = args;
 
     const droppedInputs = () => K.dropout(ones(), rate);
@@ -350,7 +350,7 @@ export class ConvLSTM2DCell extends LSTMCell {
   }
 }
 
-serialization.registerClass(ConvLSTM2DCell);
+tfc.serialization.registerClass(ConvLSTM2DCell);
 
 declare interface ConvLSTM2DArgs extends Omit<LSTMLayerArgs, 'units'>,
                                          ConvLSTM2DCellArgs {}
@@ -373,8 +373,9 @@ export class ConvLSTM2D extends RNN {
     this.inputSpec = [new InputSpec({ndim: 5})];
   }
 
-  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    return tidy(() => {
+  call(inputs: tfc.Tensor|tfc.Tensor[], kwargs: Kwargs): tfc.Tensor
+      |tfc.Tensor[] {
+    return tfc.tidy(() => {
       if (this.cell.dropoutMask != null) {
         tfc.dispose(this.cell.dropoutMask);
         this.cell.dropoutMask = null;
@@ -389,20 +390,20 @@ export class ConvLSTM2D extends RNN {
 
       const training = kwargs == null ? null : kwargs['training'];
 
-      const initialState: Tensor[] =
+      const initialState: tfc.Tensor[] =
           kwargs == null ? null : kwargs['initialState'];
 
       return super.call(inputs, {mask, training, initialState});
     });
   }
 
-  getInitialState(inputs: Tensor): Tensor[] {
-    return tidy(() => {
+  getInitialState(inputs: tfc.Tensor): tfc.Tensor[] {
+    return tfc.tidy(() => {
       return (this.cell as ConvLSTM2DCell).getInitialState(inputs);
     });
   }
 
-  getConfig(): serialization.ConfigDict {
+  getConfig(): tfc.serialization.ConfigDict {
     const {
       filters,
       kernelSize,
@@ -429,7 +430,7 @@ export class ConvLSTM2D extends RNN {
       implementation,
     } = this.cell as ConvLSTM2DCell;
 
-    const config: serialization.ConfigDict = {
+    const config: tfc.serialization.ConfigDict = {
       filters,
       kernelSize,
       strides,
@@ -461,9 +462,9 @@ export class ConvLSTM2D extends RNN {
   }
 
   /** @nocollapse */
-  static fromConfig<T extends serialization.Serializable>(
-      cls: serialization.SerializableConstructor<T>,
-      config: serialization.ConfigDict): T {
+  static fromConfig<T extends tfc.serialization.Serializable>(
+      cls: tfc.serialization.SerializableConstructor<T>,
+      config: tfc.serialization.ConfigDict): T {
     if (config['implmentation'] === 0) {
       config['implementation'] = 1;
     }
@@ -472,4 +473,4 @@ export class ConvLSTM2D extends RNN {
   }
 }
 
-serialization.registerClass(ConvLSTM2D);
+tfc.serialization.registerClass(ConvLSTM2D);

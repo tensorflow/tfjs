@@ -1,8 +1,8 @@
 import {ones, Tensor, tensor1d, zeros} from '@tensorflow/tfjs-core';
 
 import {sequential} from '../exports';
-import * as tfl from '../index';
 import {DataFormat, PaddingMode} from '../keras_format/common';
+import {modelFromJSON} from '../models';
 import {getCartesianProductOfValues} from '../utils/generic_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
@@ -102,10 +102,10 @@ describeMathCPU('ConvLSTM2D Serialization and Deserialization', () => {
 
     const json = model.toJSON(null, false);
 
-    const modelFromJson = await tfl.models.modelFromJSON({modelTopology: json});
+    const modelPrime = await modelFromJSON({modelTopology: json});
 
-    const yFromJson = modelFromJson.predict(x) as Tensor;
+    const yPrime = modelPrime.predict(x) as Tensor;
 
-    expectTensorsClose(yFromJson, y);
+    expectTensorsClose(yPrime, y);
   });
 });
