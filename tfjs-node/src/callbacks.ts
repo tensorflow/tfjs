@@ -205,7 +205,6 @@ export class TensorBoardCallback extends CustomCallback {
   private trainWriter: SummaryFileWriter;
   private valWriter: SummaryFileWriter;
   private batchesSeen: number;
-  private epochsSeen: number;
   private readonly args: TensorBoardCallbackArgs;
 
   constructor(readonly logdir = './logs', args?: TensorBoardCallbackArgs) {
@@ -217,8 +216,7 @@ export class TensorBoardCallback extends CustomCallback {
         }
       },
       onEpochEnd: async (epoch: number, logs?: Logs) => {
-        this.epochsSeen++;
-        this.logMetrics(logs, 'epoch_', this.epochsSeen);
+        this.logMetrics(logs, 'epoch_', epoch + 1);
       },
       onTrainEnd: async (logs?: Logs) => {
         if (this.trainWriter != null) {
@@ -239,7 +237,6 @@ export class TensorBoardCallback extends CustomCallback {
         () => `Expected updateFreq to be 'batch' or 'epoch', but got ` +
             `${this.args.updateFreq}`);
     this.batchesSeen = 0;
-    this.epochsSeen = 0;
   }
 
   private logMetrics(logs: Logs, prefix: string, step: number) {

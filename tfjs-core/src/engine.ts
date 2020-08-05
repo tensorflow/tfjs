@@ -20,7 +20,7 @@ import {Environment, setEnvironmentGlobal} from './environment';
 import {getGlobalNamespace} from './global_util';
 import {Add, Cast} from './kernel_names';
 import {getGradient, getKernel, getKernelsForBackend, GradFunc, NamedAttrMap, TensorInfo} from './kernel_registry';
-import {Profiler} from './profiler';
+import {KernelProfile, Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, TapeNode} from './tape';
 import {DataId, setTensorTracker, Tensor, TensorTracker, Variable} from './tensor';
 import {GradSaveFunc, NamedTensorMap, NamedVariableMap, TensorContainer} from './tensor_types';
@@ -52,7 +52,7 @@ export type MemoryInfo = {
   unreliable?: boolean; reasons: string[];
 };
 
-type KernelProfile = {
+type KernelInfo = {
   name: string; bytesAdded: number; totalBytesSnapshot: number;
   tensorsAdded: number;
   totalTensorsSnapshot: number;
@@ -62,7 +62,7 @@ type KernelProfile = {
 
 export type ProfileInfo = {
   newBytes: number; newTensors: number; peakBytes: number;
-  kernels: KernelProfile[];
+  kernels: KernelInfo[];
   result: TensorContainer;
 };
 
@@ -630,8 +630,11 @@ export class Engine implements TensorTracker, DataMover {
           if (!this.ENV.getBool('DEBUG')) {
             outputs = kernelFunc();
           } else {
-            outputs = this.profiler.profileKernel(
+            let kernelProfile: KernelProfile;
+            kernelProfile = this.profiler.profileKernel(
                 kernelName, inputs, () => kernelFunc());
+            this.profiler.logKernelProfile(kernelProfile);
+            outputs = kernelProfile.outputs;
           }
         });
 

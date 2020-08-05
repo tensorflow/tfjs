@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,11 +15,13 @@
  * =============================================================================
  */
 
-// Import shared functionality from tfjs-backend-cpu without triggering
-// side effects.
-// tslint:disable-next-line: no-imports-from-dist
-import * as shared from '@tensorflow/tfjs-backend-cpu/dist/shared';
+// Required side effectful code for tfjs-core (in any build)
 
-const {maxImpl: maxImplCPU, transposeImpl: transposeImplCPU} = shared;
-
-export {maxImplCPU, transposeImplCPU};
+// Engine is the global singleton that needs to be initialized before the rest
+// of the app.
+import './engine';
+// Register backend-agnostic flags.
+import './flags';
+// Register platforms
+import './platforms/platform_browser';
+import './platforms/platform_node';
