@@ -120,10 +120,12 @@ function fusedMatMul_<T extends Tensor>({
 
   const outShape = $a.shape.slice(0, -2).concat([outerShapeA, outerShapeB]);
 
-  const a3D = transposeA ? $a.as3D(batchDimA, innerShapeA, outerShapeA) :
-                           $a.as3D(batchDimA, outerShapeA, innerShapeA);
-  const b3D = transposeB ? $b.as3D(batchDimB, outerShapeB, innerShapeB) :
-                           $b.as3D(batchDimB, innerShapeB, outerShapeB);
+  const a3D: Tensor3D = transposeA ?
+      reshape($a, [batchDimA, innerShapeA, outerShapeA]) :
+      reshape($a, [batchDimA, outerShapeA, innerShapeA]);
+  const b3D: Tensor3D = transposeB ?
+      reshape($b, [batchDimB, outerShapeB, innerShapeB]) :
+      reshape($b, [batchDimB, innerShapeB, outerShapeB]);
 
   let $bias: Tensor;
   if (bias != null) {

@@ -51,17 +51,31 @@ io.on('connection', socket => {
 });
 
 function benchmark(config) {
+  console.log('Preparing configuration files for the test runner.');
   // TODO:
   // 1. Write browsers.json.
+  // Write the browsers to benchmark to `./browsers.json`.
+  config.browsers.forEach(browser => {
+    browser.base = 'BrowserStack';
+    // For mobile devices, we would use real devices instead of emulators.
+    if (browser.os === 'ios' || browser.os === 'android') {
+      browser.real_mobile = true;
+    }
+  });
+  fs.writeFileSync('./browsers.json', JSON.stringify(config.browsers, null, 2));
+
   // 2. Write benchmark parameter config.
   fs.writeFileSync(
       './benchmark_parameters.json', JSON.stringify(config.benchmark, null, 2));
 
   console.log(`Start benchmarking.`);
-  exec('yarn test', (error, stdout, stderr) => {
+  exec('yarn test --browserstack', (error, stdout, stderr) => {
+    console.log(`benchmark completed.`);
     if (error) {
       console.log(error);
-      io.emit('benchmarkComplete', {error: 'Failed to run yarn test.'});
+      io.emit(
+          'benchmarkComplete',
+          {error: 'Failed to run yarn test --browserstack.'});
       return;
     }
 

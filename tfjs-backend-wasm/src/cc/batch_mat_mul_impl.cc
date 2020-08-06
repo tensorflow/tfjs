@@ -150,7 +150,7 @@ void xnn_matmul(const size_t a_id, const size_t* a_shape_ptr,
   const size_t batch_size = a_shape_ptr[1];
   xnn_status status =
       xnn_setup_fully_connected_nc_f32(fully_connected_op, batch_size, a_buf,
-                                       out_buf, nullptr /* thread pool */);
+                                       out_buf, tfjs::backend::threadpool);
   if (status != xnn_status_success) {
     tfjs::util::warn(
         "XNN status for xnn_setup_fully_connected_nc_f32 is not successful. "
@@ -159,7 +159,7 @@ void xnn_matmul(const size_t a_id, const size_t* a_shape_ptr,
     return;
   }
 
-  xnn_run_operator(fully_connected_op, nullptr /* thread pool */);
+  xnn_run_operator(fully_connected_op, tfjs::backend::threadpool);
 }
 
 void slow_batch_matmul(const size_t a_id, const size_t* a_shape_ptr,

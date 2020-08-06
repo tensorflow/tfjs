@@ -56,7 +56,9 @@ function oneHot_(
   const forward: ForwardFunc<Tensor> = (backend, save) => {
     save([$indices]);
     return reshape(
-        backend.oneHot($indices.flatten(), depth, onValue, offValue), outShape);
+        backend.oneHot(
+            reshape($indices, [$indices.size]), depth, onValue, offValue),
+        outShape);
   };
 
   const inputs: OneHotInputs = {indices: $indices};

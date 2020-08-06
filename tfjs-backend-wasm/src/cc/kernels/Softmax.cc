@@ -82,7 +82,7 @@ void Softmax(const size_t x_id, const size_t out_id, const size_t channels,
   }
 
   xnn_status status = xnn_setup_softmax_nc_f32(
-      softmax_op, batch, x_buf, out_buf, nullptr /* thread pool */);
+      softmax_op, batch, x_buf, out_buf, tfjs::backend::threadpool);
   if (status != xnn_status_success) {
     tfjs::util::warn(
         "XNN status for xnn_setup_softmax_nc_f32 is not "
@@ -91,7 +91,7 @@ void Softmax(const size_t x_id, const size_t out_id, const size_t channels,
     return;
   }
 
-  xnn_run_operator(softmax_op, nullptr /* thread pool */);
+  xnn_run_operator(softmax_op, tfjs::backend::threadpool);
 }
 
 }  // extern "C"
