@@ -60,7 +60,7 @@
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
     "publish-npm": "npm publish",
-    "test": "yarn && yarn build-deps && karma start",
+    "test": "yarn && karma start",
     "test-ci": "./scripts/test-ci.sh",
     "test-snippets": "ts-node --skip-ignore -s ./scripts/test_snippets.ts",
     "run-browserstack": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun --reporters='dots,karma-typescript'",
