@@ -26,5 +26,5 @@ const BASE_PATH = './wasm-out/';
 const WORKER_PATH = `${BASE_PATH}tfjs-backend-wasm-threaded-simd.worker.js`;
 
 const workerContents = fs.readFileSync(WORKER_PATH, "utf8");
-fs.writeFileSync(`${BASE_PATH}tfjs-backend-wasm-threaded-simd.worker.js`,
-  `export const wasmWorkerContents = '${workerContents}';`);
+fs.writeFileSync(`${WORKER_PATH}`,
+  `export const wasmWorkerContents = '${workerContents.trim()}';`);
