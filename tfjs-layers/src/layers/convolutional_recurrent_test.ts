@@ -32,7 +32,7 @@ describeMathCPUAndGPU('ConvLSTM2DCell', () => {
       const [dataFormat, filters, kernelSize, padding] =
           args as [DataFormat, number, number, PaddingMode];
 
-      const testTitle = `with dataFormat=${dataFormat}, filters=${
+      const testTitle = `for dataFormat=${dataFormat}, filters=${
           filters}, kernelSize=${kernelSize}, padding=${padding}`;
 
       it(testTitle, () => {
@@ -80,48 +80,54 @@ describeMathCPUAndGPU('ConvLSTM2DCell', () => {
 });
 
 describeMathCPU('ConvLSTM2D Symbolic', () => {
-  it('returnSequences=false, returnState=false', () => {
-    const input =
-        new tfl.SymbolicTensor('float32', [8, 10, 8, 8, 3], null, [], null);
-    const lstm = tfl.layers.convLstm2d({filters: 5, kernelSize: 3});
-    const output = lstm.apply(input) as tfl.SymbolicTensor;
-    expect(output.shape).toEqual([8, 6, 6, 5]);
+  describe('should return the correct output shape', () => {
+    it('for returnSequences=false, returnState=false', () => {
+      const input =
+          new tfl.SymbolicTensor('float32', [8, 10, 8, 8, 3], null, [], null);
+      const lstm = tfl.layers.convLstm2d({filters: 5, kernelSize: 3});
+      const output = lstm.apply(input) as tfl.SymbolicTensor;
+      expect(output.shape).toEqual([8, 6, 6, 5]);
+    });
+
+    it('for returnSequences=false, returnState=true', () => {
+      const input =
+          new tfl.SymbolicTensor('float32', [8, 10, 8, 8, 3], null, [], null);
+      const lstm =
+          tfl.layers.convLstm2d({filters: 5, kernelSize: 3, returnState: true});
+      const output = lstm.apply(input) as tfl.SymbolicTensor[];
+      expect(output.length).toEqual(3);
+      expect(output[0].shape).toEqual([8, 6, 6, 5]);
+      expect(output[1].shape).toEqual([8, 6, 6, 5]);
+      expect(output[2].shape).toEqual([8, 6, 6, 5]);
+    });
+
+    it('for returnSequences=true, returnState=false', () => {
+      const input =
+          new tfl.SymbolicTensor('float32', [8, 10, 8, 8, 3], null, [], null);
+      const lstm = tfl.layers.convLstm2d(
+          {filters: 5, kernelSize: 3, returnSequences: true});
+      const output = lstm.apply(input) as tfl.SymbolicTensor;
+      expect(output.shape).toEqual([8, 10, 6, 6, 5]);
+    });
+
+    it('for returnSequences=true, returnState=true', () => {
+      const input =
+          new tfl.SymbolicTensor('float32', [8, 10, 8, 8, 3], null, [], null);
+      const lstm = tfl.layers.convLstm2d({
+        filters: 5,
+        kernelSize: 3,
+        returnSequences: true,
+        returnState: true
+      });
+      const output = lstm.apply(input) as tfl.SymbolicTensor[];
+      expect(output.length).toEqual(3);
+      expect(output[0].shape).toEqual([8, 10, 6, 6, 5]);
+      expect(output[1].shape).toEqual([8, 6, 6, 5]);
+      expect(output[2].shape).toEqual([8, 6, 6, 5]);
+    });
   });
 
-  it('returnSequences=false, returnState=true', () => {
-    const input =
-        new tfl.SymbolicTensor('float32', [8, 10, 8, 8, 3], null, [], null);
-    const lstm =
-        tfl.layers.convLstm2d({filters: 5, kernelSize: 3, returnState: true});
-    const output = lstm.apply(input) as tfl.SymbolicTensor[];
-    expect(output.length).toEqual(3);
-    expect(output[0].shape).toEqual([8, 6, 6, 5]);
-    expect(output[1].shape).toEqual([8, 6, 6, 5]);
-    expect(output[2].shape).toEqual([8, 6, 6, 5]);
-  });
-
-  it('returnSequences=true, returnState=false', () => {
-    const input =
-        new tfl.SymbolicTensor('float32', [8, 10, 8, 8, 3], null, [], null);
-    const lstm = tfl.layers.convLstm2d(
-        {filters: 5, kernelSize: 3, returnSequences: true});
-    const output = lstm.apply(input) as tfl.SymbolicTensor;
-    expect(output.shape).toEqual([8, 10, 6, 6, 5]);
-  });
-
-  it('returnSequences=true, returnState=true', () => {
-    const input =
-        new tfl.SymbolicTensor('float32', [8, 10, 8, 8, 3], null, [], null);
-    const lstm = tfl.layers.convLstm2d(
-        {filters: 5, kernelSize: 3, returnSequences: true, returnState: true});
-    const output = lstm.apply(input) as tfl.SymbolicTensor[];
-    expect(output.length).toEqual(3);
-    expect(output[0].shape).toEqual([8, 10, 6, 6, 5]);
-    expect(output[1].shape).toEqual([8, 6, 6, 5]);
-    expect(output[2].shape).toEqual([8, 6, 6, 5]);
-  });
-
-  it('trainableWeights, nonTrainableWeights and weights are correct', () => {
+  it('should contain the correct numbers of weights', () => {
     const input =
         new tfl.SymbolicTensor('float32', [8, 10, 8, 8, 3], null, [], null);
     const lstm = tfl.layers.convLstm2d(
@@ -133,58 +139,97 @@ describeMathCPU('ConvLSTM2D Symbolic', () => {
     expect(lstm.weights.length).toEqual(3);
   });
 
-  for (const implementation of [1, 2]) {
-    it('serialization round trip', () => {
+  describe('should build the correct layer from exported config', () => {
+    for (const implementation of [1, 2]) {
+      it(`for implementation=${implementation}`, () => {
+        const layer = tfl.layers.convLstm2d({
+          filters: 5,
+          kernelSize: 3,
+          padding: 'same',
+          returnSequences: true,
+          inputShape: [10, 8, 8, 3],
+          implementation,
+        });
+
+        const pythonicConfig = convertTsToPythonic(layer.getConfig());
+
+        const tsConfig = convertPythonicToTs(pythonicConfig);
+
+        const layerPrime =
+            tfl.layers.convLstm2d(tsConfig as unknown as ConvLSTM2DArgs);
+
+        expect(layerPrime.getConfig().filters).toEqual(5);
+        expect(layerPrime.getConfig().implementation).toEqual(implementation);
+      });
+    }
+  });
+
+  describe('should return equal outputs with loaded model', () => {
+    it('for simple model', async () => {
+      const model = tfl.sequential();
+
       const layer = tfl.layers.convLstm2d({
         filters: 5,
         kernelSize: 3,
         padding: 'same',
         returnSequences: true,
-        inputShape: [10, 8, 8, 3],
-        implementation,
+        inputShape: [10, 8, 8, 3]
       });
 
-      const pythonicConfig = convertTsToPythonic(layer.getConfig());
+      model.add(layer);
 
-      const tsConfig = convertPythonicToTs(pythonicConfig);
+      const x = randomNormal([8, 10, 8, 8, 3]);
+      const y = model.predict(x) as Tensor;
 
-      const layerPrime =
-          tfl.layers.convLstm2d(tsConfig as unknown as ConvLSTM2DArgs);
+      let savedArtifacts: io.ModelArtifacts;
 
-      expect(layerPrime.getConfig().filters).toEqual(5);
-      expect(layerPrime.getConfig().implementation).toEqual(implementation);
-    });
-  }
+      await model.save(io.withSaveHandler(async (artifacts) => {
+        savedArtifacts = artifacts;
+        return null;
+      }));
 
-  it('save and load', async () => {
-    const model = tfl.sequential();
+      const loadedModel =
+          await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
 
-    const layer = tfl.layers.convLstm2d({
-      filters: 5,
-      kernelSize: 3,
-      padding: 'same',
-      returnSequences: true,
-      inputShape: [10, 8, 8, 3]
+      expect(model.inputs[0].shape).toEqual(loadedModel.inputs[0].shape);
+      expect(model.outputs[0].shape).toEqual(loadedModel.outputs[0].shape);
+      expectTensorsClose(loadedModel.predict(x) as Tensor, y);
     });
 
-    model.add(layer);
+    it('for more complex model', async () => {
+      const model = tfl.sequential();
 
-    const x = randomNormal([8, 10, 8, 8, 3]);
-    const y = model.predict(x) as Tensor;
+      const layer = tfl.layers.convLstm2d({
+        filters: 64,
+        kernelSize: 3,
+        returnSequences: false,
+        inputShape: [10, 8, 8, 3]
+      });
 
-    let savedArtifacts: io.ModelArtifacts;
+      model.add(layer);
+      model.add(tfl.layers.dropout({rate: 0.2}));
+      model.add(tfl.layers.flatten());
+      model.add(tfl.layers.dense({units: 256, activation: 'relu'}));
+      model.add(tfl.layers.dropout({rate: 0.3}));
+      model.add(tfl.layers.dense({units: 6, activation: 'softmax'}));
 
-    await model.save(io.withSaveHandler(async (artifacts) => {
-      savedArtifacts = artifacts;
-      return null;
-    }));
+      const x = randomNormal([8, 10, 8, 8, 3]);
+      const y = model.predict(x) as Tensor;
 
-    const loadedModel =
-        await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
+      let savedArtifacts: io.ModelArtifacts;
 
-    expect(model.inputs[0].shape).toEqual(loadedModel.inputs[0].shape);
-    expect(model.outputs[0].shape).toEqual(loadedModel.outputs[0].shape);
-    expectTensorsClose(loadedModel.predict(x) as Tensor, y);
+      await model.save(io.withSaveHandler(async (artifacts) => {
+        savedArtifacts = artifacts;
+        return null;
+      }));
+
+      const loadedModel =
+          await tfl.loadLayersModel(io.fromMemory(savedArtifacts));
+
+      expect(model.inputs[0].shape).toEqual(loadedModel.inputs[0].shape);
+      expect(model.outputs[0].shape).toEqual(loadedModel.outputs[0].shape);
+      expectTensorsClose(loadedModel.predict(x) as Tensor, y);
+    });
   });
 });
 
