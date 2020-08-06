@@ -106,44 +106,63 @@ export const executeOp: InternalOpAsyncExecutor = async(
       return result;
     }
     case 'LoopCond': {
-      return [
-        (getParamValue('pred', node, tensorMap, context) as tfc.Tensor).clone()
-      ];
+      let pred = getParamValue('pred', node, tensorMap, context) as tfc.Tensor;
+      if (!pred.kept) {
+        pred = pred.clone();
+      }
+
+      return [pred];
     }
     case 'Switch': {
       const pred =
           getParamValue('pred', node, tensorMap, context) as tfc.Tensor;
-      const data =
-          getParamValue('data', node, tensorMap, context) as tfc.Tensor;
+      let data = getParamValue('data', node, tensorMap, context) as tfc.Tensor;
+      if (!data.kept) {
+        data = data.clone();
+      }
       // Outputs nodes :0 => false, :1 => true
-      return (await pred.data())[0] ? [undefined, data.clone()] :
-                                      [data.clone(), undefined];
+      return (await pred.data())[0] ? [undefined, data] : [data, undefined];
     }
     case 'Merge': {
       const inputName = node.inputNames.find(
           name => getTensor(name, tensorMap, context) !== undefined);
-      return inputName ? [getTensor(inputName, tensorMap, context).clone()] :
-                         undefined;
+      if (inputName) {
+        let data = getTensor(inputName, tensorMap, context);
+        if (!data.kept) {
+          data = data.clone();
+        }
+        return [data];
+      }
+      return undefined;
     }
     case 'Enter': {
       const frameId =
           getParamValue('frameName', node, tensorMap, context) as string;
-      const data =
+      let data =
           getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
       context.enterFrame(frameId);
-      return [data.clone()];
+      if (!data.kept) {
+        data = data.clone();
+      }
+      return [data];
     }
     case 'Exit': {
-      const tensor =
+      let data =
           getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
       context.exitFrame();
-      return [tensor.clone()];
+      if (!data.kept) {
+        data = data.clone();
+      }
+      return [data];
     }
     case 'NextIteration': {
-      const input =
+      let data =
           getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
       context.nextIteration();
-      return [input.clone()];
+      if (!data.kept) {
+        data = data.clone();
+      }
+      return [data];
     }
     case 'TensorArrayV3': {
       const size = getParamValue('size', node, tensorMap, context) as number;
