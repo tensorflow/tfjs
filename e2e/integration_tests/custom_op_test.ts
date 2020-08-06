@@ -52,7 +52,6 @@ describe(`${SMOKE} custom model`, () => {
     ]);
 
     // A custom op that calls unmodularized kernels and modularized kernels.
-    // softmax ker
     tfconverter.registerOp('CustomOp', (nodeValue) => {
       const x = nodeValue.inputs[0];
       const softMax = tfc.softmax(x);
