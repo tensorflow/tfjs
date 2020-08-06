@@ -21,47 +21,34 @@ const localRunConfig = {
   browsers: ['Chrome']
 };
 
-const browserstackConfig = {
-  hostname: 'bs-local.com',
-  plugins: ['karma-jasmine', 'karma-browserstack-launcher'],
-  reporters: ['progress', 'BrowserStack'],
-  browserStack: {
-    username: process.env.BROWSERSTACK_USERNAME,
-    accessKey: process.env.BROWSERSTACK_ACCESS_KEY,
-    apiClientEndpoint: 'https://api.browserstack.com'
-  },
-
-  customLaunchers: {
-    bs_chrome_mac: {
-      base: 'BrowserStack',
-      browser: 'chrome',
-      browser_version: '84.0',
-      os: 'OS X',
-      os_version: 'Catalina',
+function getBrowserStackConfig() {
+  const browserstackConfig = {
+    hostname: 'bs-local.com',
+    plugins: ['karma-jasmine', 'karma-browserstack-launcher'],
+    reporters: ['progress', 'BrowserStack'],
+    browserStack: {
+      username: process.env.BROWSERSTACK_USERNAME,
+      accessKey: process.env.BROWSERSTACK_ACCESS_KEY,
+      apiClientEndpoint: 'https://api.browserstack.com'
     },
-    bs_firefox_mac: {
-      base: 'BrowserStack',
-      browser: 'firefox',
-      browser_version: '70.0',
-      os: 'OS X',
-      os_version: 'Catalina',
-    },
-    bs_safari_mac: {
-      base: 'BrowserStack',
-      browser: 'Safari',
-      browser_version: '13.1',
-      os: 'OS X',
-      os_version: 'Catalina',
-    }
-  },
+    customLaunchers: {},
+    browsers: []
+  };
 
-  browsers: ['bs_chrome_mac'],
-};
+  // The JSON file stores an array of browsers to benchmark, which is
+  // automatically generated based on browser selection from the webpage.
+  const browsers = require('./browsers.json');
+  browsers.forEach((browser, index) => {
+    browserstackConfig.customLaunchers[index.toString()] = browser;
+    browserstackConfig.browsers.push(index.toString());
+  });
+  return browserstackConfig;
+}
 
 module.exports = function(config) {
   let extraConfig = null;
   if (config.browserstack) {
-    extraConfig = browserstackConfig;
+    extraConfig = getBrowserStackConfig();
   } else {
     extraConfig = localRunConfig;
   }

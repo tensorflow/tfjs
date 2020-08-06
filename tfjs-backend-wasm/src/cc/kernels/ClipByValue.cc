@@ -79,7 +79,7 @@ void ClipByValue(const size_t x_id, const float min, const float max,
 
   const size_t batch_size = x_info.size;
   xnn_status status = xnn_setup_clamp_nc_f32(
-      clamp_op, batch_size, x_buf, out_buf, nullptr /* thread pool */);
+      clamp_op, batch_size, x_buf, out_buf, tfjs::backend::threadpool);
   if (status != xnn_status_success) {
     util::warn(
         "XNN status for xnn_setup_clamp_nc_f32 is not successful. Got "
@@ -87,7 +87,7 @@ void ClipByValue(const size_t x_id, const float min, const float max,
         status);
   }
 
-  xnn_run_operator(clamp_op, nullptr /* thread pool */);
+  xnn_run_operator(clamp_op, tfjs::backend::threadpool);
 }
 
 }  // extern "C"

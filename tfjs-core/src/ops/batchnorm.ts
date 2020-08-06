@@ -119,13 +119,16 @@ function as1DOr4D(x: Tensor): Tensor4D|Tensor1D {
     return null;
   }
   if (x.rank === 0) {
-    return x.as1D();
+    // tslint:disable-next-line:no-unnecessary-type-assertion
+    return reshape(x, [x.size]) as Tensor1D;
   } else if (x.rank === 1) {
     return x as Tensor1D;
   } else if (x.rank === 2) {
-    return x.as4D(1, 1, x.shape[0], x.shape[1]);
+    // tslint:disable-next-line:no-unnecessary-type-assertion
+    return reshape(x, [1, 1, x.shape[0], x.shape[1]]) as Tensor4D;
   } else if (x.rank === 3) {
-    return x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
+    // tslint:disable-next-line:no-unnecessary-type-assertion
+    return reshape(x, [1, x.shape[0], x.shape[1], x.shape[2]]) as Tensor4D;
   }
   return x as Tensor4D;
 }
