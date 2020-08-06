@@ -30,6 +30,7 @@ e2e/integration_tests/create_save_predict_data
 e2e/integration_tests/convert_predict_data
 e2e/scripts/storage
 e2e/scripts/htpasswd
+e2e/benchmarks/browserstack-benchmark/browsers.json
 e2e/benchmarks/browserstack-benchmark/benchmark_parameters.json
 tfjs-converter/python/tensorflowjs.egg-info
 tfjs-inference/binaries
@@ -55,5 +56,6 @@ tensorflow-tfjs-*.tgz
 tfjs-backend-wasm/dist
 tfjs-backend-wasm/wasm-out/*.js
 tfjs-backend-wasm/wasm-out/*.wasm
+tfjs-backend-wasm/wasm-out/*.worker.ts
 yalc.lock
 yarn-error.log

@@ -106,7 +106,7 @@ function avgPool_<T extends Tensor3D|Tensor4D>(
   res = cast(res, $x.dtype);
 
   if (reshapedTo4D) {
-    return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
+    return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
   }
 
   return res as T;
