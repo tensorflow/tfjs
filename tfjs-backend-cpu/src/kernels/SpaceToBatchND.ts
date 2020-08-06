@@ -84,9 +84,9 @@ function spaceToBatchND(args: {
     attrs: resultReshapeAttrs as {} as NamedAttrMap
   });
 
-  backend.disposeData(paddedX.dataId);
-  backend.disposeData(paddedXReshaped.dataId);
-  backend.disposeData(paddedXT.dataId);
+  backend.disposeDataSoft(paddedX.dataId);
+  backend.disposeDataSoft(paddedXReshaped.dataId);
+  backend.disposeDataSoft(paddedXT.dataId);
 
   return result as TensorInfo;
 }
