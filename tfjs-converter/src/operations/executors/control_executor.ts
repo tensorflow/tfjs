@@ -106,19 +106,18 @@ export const executeOp: InternalOpAsyncExecutor = async(
       return result;
     }
     case 'LoopCond': {
-      let pred = getParamValue('pred', node, tensorMap, context) as tfc.Tensor;
-      if (!pred.kept) {
-        pred = pred.clone();
-      }
-
-      return [pred];
+      const pred =
+          getParamValue('pred', node, tensorMap, context) as tfc.Tensor;
+      // Reuse the tensor if has marked as keep, otherwise clone the tensor to
+      // avoid disposal.
+      return [pred.kept ? pred : tfc.clone(pred)];
     }
     case 'Switch': {
       const pred =
           getParamValue('pred', node, tensorMap, context) as tfc.Tensor;
       let data = getParamValue('data', node, tensorMap, context) as tfc.Tensor;
       if (!data.kept) {
-        data = data.clone();
+        data = tfc.clone(data);
       }
       // Outputs nodes :0 => false, :1 => true
       return (await pred.data())[0] ? [undefined, data] : [data, undefined];
@@ -127,42 +126,38 @@ export const executeOp: InternalOpAsyncExecutor = async(
       const inputName = node.inputNames.find(
           name => getTensor(name, tensorMap, context) !== undefined);
       if (inputName) {
-        let data = getTensor(inputName, tensorMap, context);
-        if (!data.kept) {
-          data = data.clone();
-        }
-        return [data];
+        const data = getTensor(inputName, tensorMap, context);
+        // Reuse the tensor if has marked as keep, otherwise clone the tensor to
+        // avoid disposal.
+        return [data.kept ? data : tfc.clone(data)];
       }
       return undefined;
     }
     case 'Enter': {
       const frameId =
           getParamValue('frameName', node, tensorMap, context) as string;
-      let data =
+      const data =
           getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
       context.enterFrame(frameId);
-      if (!data.kept) {
-        data = data.clone();
-      }
-      return [data];
+      // Reuse the tensor if has marked as keep, otherwise clone the tensor to
+      // avoid disposal.
+      return [data.kept ? data : tfc.clone(data)];
     }
     case 'Exit': {
-      let data =
+      const data =
           getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
       context.exitFrame();
-      if (!data.kept) {
-        data = data.clone();
-      }
-      return [data];
+      // Reuse the tensor if has marked as keep, otherwise clone the tensor to
+      // avoid disposal.
+      return [data.kept ? data : tfc.clone(data)];
     }
     case 'NextIteration': {
-      let data =
+      const data =
           getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
       context.nextIteration();
-      if (!data.kept) {
-        data = data.clone();
-      }
-      return [data];
+      // Reuse the tensor if has marked as keep, otherwise clone the tensor to
+      // avoid disposal.
+      return [data.kept ? data : tfc.clone(data)];
     }
     case 'TensorArrayV3': {
       const size = getParamValue('size', node, tensorMap, context) as number;

@@ -41,15 +41,21 @@ export const executeOp: InternalOpExecutor = (node: Node,
     case 'StopGradient':
     case 'FakeQuantWithMinMaxVars': {  // This op is currently ignored.
       const data = getParamValue('x', node, tensorMap, context) as tfc.Tensor;
-      return [data.kept ? data : data.clone()];
+      // Reuse the tensor if has marked as keep, otherwise clone the tensor to
+      // avoid disposal.
+      return [data.kept ? data : tfc.clone(data)];
     }
     case 'IdentityN':
+      // Reuse the tensor if has marked as keep, otherwise clone the tensor to
+      // avoid disposal.
       return (getParamValue('x', node, tensorMap, context) as tfc.Tensor[])
-          .map((t: tfc.Tensor) => t.kept ? t : t.clone());
+          .map((t: tfc.Tensor) => t.kept ? t : tfc.clone(t));
     case 'Snapshot':
       const snapshot =
           (getParamValue('x', node, tensorMap, context) as tfc.Tensor);
-      return [snapshot.kept ? snapshot : snapshot.clone()];
+      // Reuse the tensor if has marked as keep, otherwise clone the tensor to
+      // avoid disposal.
+      return [snapshot.kept ? snapshot : tfc.clone(snapshot)];
     case 'Shape':
       return [tfc.tensor1d(
           (getParamValue('x', node, tensorMap, context) as tfc.Tensor).shape,
