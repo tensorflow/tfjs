@@ -15,13 +15,14 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, Reshape, ReshapeAttrs, ReshapeInputs} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Reshape, ReshapeAttrs, ReshapeInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 
-function reshape(
+export function reshape(
     args:
-        {inputs: ReshapeInputs, backend: MathBackendCPU, attrs: ReshapeAttrs}) {
+        {inputs: ReshapeInputs, backend: MathBackendCPU, attrs: ReshapeAttrs}):
+    TensorInfo {
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
   const {shape} = attrs;

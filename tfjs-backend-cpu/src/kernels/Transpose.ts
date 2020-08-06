@@ -15,35 +15,40 @@
  * =============================================================================
  */
 
-import {KernelConfig, TypedArray} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, TensorInfo, Transpose, TransposeAttrs, TransposeInputs, TypedArray} from '@tensorflow/tfjs-core';
 
-import {Transpose, TransposeAttrs, TransposeInputs} from '@tensorflow/tfjs-core';
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 
 import {transposeImpl} from './Transpose_impl';
 
+export function transpose(args: {
+  inputs: TransposeInputs,
+  attrs: TransposeAttrs,
+  backend: MathBackendCPU
+}): TensorInfo {
+  const {inputs, attrs, backend} = args;
+  const {x} = inputs;
+  const {perm} = attrs;
+
+  assertNotComplex(x, 'transpose');
+
+  const xRank = x.shape.length;
+
+  const newShape: number[] = new Array(xRank);
+  for (let i = 0; i < newShape.length; i++) {
+    newShape[i] = x.shape[perm[i]];
+  }
+
+  const values = backend.data.get(x.dataId).values as TypedArray;
+  const result = transposeImpl(values, x.shape, x.dtype, perm, newShape);
+
+  const dataId = backend.write(result, newShape, x.dtype);
+  return {dataId, shape: newShape, dtype: x.dtype};
+}
+
 export const transposeConfig: KernelConfig = {
   kernelName: Transpose,
   backendName: 'cpu',
-  kernelFunc: ({inputs, attrs, backend}) => {
-    const {x} = inputs as TransposeInputs;
-    const {perm} = attrs as {} as TransposeAttrs;
-    const cpuBackend = backend as MathBackendCPU;
-
-    assertNotComplex(x, 'transpose');
-
-    const xRank = x.shape.length;
-
-    const newShape: number[] = new Array(xRank);
-    for (let i = 0; i < newShape.length; i++) {
-      newShape[i] = x.shape[perm[i]];
-    }
-
-    const values = cpuBackend.data.get(x.dataId).values as TypedArray;
-    const result = transposeImpl(values, x.shape, x.dtype, perm, newShape);
-
-    const dataId = cpuBackend.write(result, newShape, x.dtype);
-    return {dataId, shape: newShape, dtype: x.dtype};
-  }
+  kernelFunc: transpose as {} as KernelFunc
 };
