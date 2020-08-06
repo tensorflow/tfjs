@@ -18,25 +18,18 @@ limitations under the License.
     <head>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
         <script src='/socket.io/socket.io.js'></script>
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"> </script>
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis"></script>
 
         <style>
-          .box {
-            width: 70%
-          }
-
-          .box pre {
-            margin: 0;
-            border: 1px solid #ccc;
-            padding: 8px;
-            font-size: 10px;
+          #gui {
+            position: absolute;
+            top: 2px;
+            left: 0px;
           }
         </style>
     </head>
     <body>
-        <ul id='messages'></ul>
-        <div class="box">
-          <pre id="results"></pre>
-        </div>
         <script src='/../model_config.js'></script>
         <script src='./index.js'></script>
     </body>

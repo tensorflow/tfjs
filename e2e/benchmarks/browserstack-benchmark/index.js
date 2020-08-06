@@ -30,7 +30,9 @@ const state = {
     if (state.benchmark.model !== 'custom') {
       delete benchmark['modelUrl'];
     }
-    socket.emit('run', {benchmark, browsers: [state.browser]});
+    const tabName = createTab(state.browser);
+
+    socket.emit('run', {tabName, benchmark, browser: state.browser});
   },
   browser: {
     base: 'BrowserStack',
@@ -43,13 +45,46 @@ const state = {
   benchmark: {model: 'mobilenet_v2', modelUrl: '', numRuns: 1, backend: 'wasm'}
 };
 
+
+function getTabName(browserConf) {
+  return 'fakeName';
+}
+
+function drawBrowserSettingTable(tabName, browserConf) {
+  tfvis.visor().surface({name: 'browser setting', tab: tabName});
+}
+
+function drawBenchmarkParameterTable(tabName) {
+  tfvis.visor().surface({name: 'benchmark parameter', tab: tabName});
+}
+
+function createTab(browserConf) {
+  const tabName = getTabName(browserConf);
+  drawBrowserSettingTable(tabName, browserConf);
+  drawBenchmarkParameterTable(tabName);
+
+  // TODO: add a 'loading indicator' under the tab.
+
+  return tabName;
+}
+
+function reportBenchmarkResults(benchmarkResults) {
+  const tabName = benchmarkResults.tabName;
+  console.log(tabName, 'finished');
+
+  // TODO:
+  //   1. draw a summary table for inference time and memory info.
+  //   2. draw a line chart for inference time.
+  //   3. draw a table for inference kernel information.
+
+  //   4. delete 'loading indicator' under the tab.
+}
+
 socket.on('benchmarkComplete', benchmarkResult => {
   if (benchmarkResult.error != null) {
     document.getElementById('results').innerHTML += benchmarkResult.error;
   } else {
-    const {timeInfo, memoryInfo} = benchmarkResult;
-    document.getElementById('results').innerHTML +=
-        JSON.stringify(timeInfo, null, 2);
+    reportBenchmarkResults(benchmarkResult);
   }
 
   // Enable the button.
@@ -58,6 +93,7 @@ socket.on('benchmarkComplete', benchmarkResult => {
 });
 
 const gui = new dat.gui.GUI();
+gui.domElement.id = 'gui';
 showModelSelection();
 showParameterSettings();
 const benchmarkButton = gui.add(state, 'run').name('Run benchmark');

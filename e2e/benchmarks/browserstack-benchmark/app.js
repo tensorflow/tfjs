@@ -66,19 +66,18 @@ function benchmark(config) {
   const benchmarkResult = require('./benchmark_res.json');
   benchmarkResult.tabName = config.tabName;
   io.emit('benchmarkComplete', benchmarkResult);
+
   // console.log('Preparing configuration files for the test runner.');
   // // TODO:
   // // 1. Write browsers.json.
   // // Write the browsers to benchmark to `./browsers.json`.
-  // config.browsers.forEach(browser => {
-  //   browser.base = 'BrowserStack';
-  //   // For mobile devices, we would use real devices instead of emulators.
-  //   if (browser.os === 'ios' || browser.os === 'android') {
-  //     browser.real_mobile = true;
-  //   }
-  // });
-  // fs.writeFileSync('./browsers.json', JSON.stringify(config.browsers, null,
-  // 2));
+  // const browser = config.browser;
+  // browser.base = 'BrowserStack';
+  // // For mobile devices, we would use real devices instead of emulators.
+  // if (browser.os === 'ios' || browser.os === 'android') {
+  //   browser.real_mobile = true;
+  // }
+  // fs.writeFileSync('./browsers.json', JSON.stringify([browser], null, 2));
 
   // // 2. Write benchmark parameter config.
   // fs.writeFileSync(
@@ -107,6 +106,7 @@ function benchmark(config) {
   //   const matchedResult = stdout.match(resultReg);
   //   if (matchedResult != null) {
   //     const benchmarkResult = JSON.parse(matchedResult[1]);
+  //     benchmarkResult.tabName = config.tabName;
   //     io.emit('benchmarkComplete', benchmarkResult);
   //     return;
   //   }
