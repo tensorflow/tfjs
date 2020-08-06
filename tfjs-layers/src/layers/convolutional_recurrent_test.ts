@@ -11,6 +11,41 @@ import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../uti
 import {ConvLSTM2DArgs} from './convolutional_recurrent';
 
 describeMathCPUAndGPU('ConvLSTM2DCell', () => {
+  /**
+   * The tensor values (output, h, c) can be obtained by the following Python
+   * code
+   *
+   * sequence_len = 1
+   * data_size = 8
+   * data_channel = 3
+   *
+   * data_format = "channels_first"
+   * filters = 9
+   * kernel_size = 5
+   * padding = "same"
+   *
+   * inputs = np.ones([1, sequence_len, data_channel, data_size, data_size])
+   *
+   * x = keras.Input(batch_shape=inputs.shape)
+   *
+   * kwargs = {'data_format': data_format,
+   *           'return_state': True,
+   *           'filters': filters,
+   *           'kernel_size': kernel_size,
+   *           'padding': padding}
+   *
+   * layer = keras.layers.ConvLSTM2D(kernel_initializer='ones',
+   * bias_initializer="ones", recurrent_initializer='ones', **kwargs)
+   * layer.build(inputs.shape)
+   *
+   * outputs = layer(x)
+   *
+   * model = keras.models.Model(x, outputs)
+   *
+   * y = model.predict(inputs)
+   *
+   * y[0].mean(), y[1].mean(), y[2].mean()
+   */
   describe('should return the correct outputs', () => {
     const sequenceLength = 1;
     const dataSize = 8;
