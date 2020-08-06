@@ -63,54 +63,59 @@ function runServer() {
 }
 
 function benchmark(config) {
-  console.log('Preparing configuration files for the test runner.');
-  // TODO:
-  // 1. Write browsers.json.
-  // Write the browsers to benchmark to `./browsers.json`.
-  config.browsers.forEach(browser => {
-    browser.base = 'BrowserStack';
-    // For mobile devices, we would use real devices instead of emulators.
-    if (browser.os === 'ios' || browser.os === 'android') {
-      browser.real_mobile = true;
-    }
-  });
-  fs.writeFileSync('./browsers.json', JSON.stringify(config.browsers, null, 2));
+  const benchmarkResult = require('./benchmark_res.json');
+  benchmarkResult.tabName = config.tabName;
+  io.emit('benchmarkComplete', benchmarkResult);
+  // console.log('Preparing configuration files for the test runner.');
+  // // TODO:
+  // // 1. Write browsers.json.
+  // // Write the browsers to benchmark to `./browsers.json`.
+  // config.browsers.forEach(browser => {
+  //   browser.base = 'BrowserStack';
+  //   // For mobile devices, we would use real devices instead of emulators.
+  //   if (browser.os === 'ios' || browser.os === 'android') {
+  //     browser.real_mobile = true;
+  //   }
+  // });
+  // fs.writeFileSync('./browsers.json', JSON.stringify(config.browsers, null,
+  // 2));
 
-  // 2. Write benchmark parameter config.
-  fs.writeFileSync(
-      './benchmark_parameters.json', JSON.stringify(config.benchmark, null, 2));
+  // // 2. Write benchmark parameter config.
+  // fs.writeFileSync(
+  //     './benchmark_parameters.json', JSON.stringify(config.benchmark, null,
+  //     2));
 
-  console.log(`Start benchmarking.`);
-  exec('yarn test --browserstack', (error, stdout, stderr) => {
-    console.log(`benchmark completed.`);
-    if (error) {
-      console.log(error);
-      io.emit(
-          'benchmarkComplete',
-          {error: `Failed to run 'yarn test --browserstack':\n\n${error}`});
-      return;
-    }
+  // console.log(`Start benchmarking.`);
+  // exec('yarn test --browserstack', (error, stdout, stderr) => {
+  //   console.log(`benchmark completed.`);
+  //   if (error) {
+  //     console.log(error);
+  //     io.emit(
+  //         'benchmarkComplete',
+  //         {error: `Failed to run 'yarn test --browserstack':\n\n${error}`});
+  //     return;
+  //   }
 
-    const errorReg = /.*\<tfjs_error\>(.*)\<\/tfjs_error\>/;
-    const matchedError = stdout.match(errorReg);
-    if (matchedError != null) {
-      io.emit('benchmarkComplete', {error: matchedError[1]});
-      return;
-    }
+  //   const errorReg = /.*\<tfjs_error\>(.*)\<\/tfjs_error\>/;
+  //   const matchedError = stdout.match(errorReg);
+  //   if (matchedError != null) {
+  //     io.emit('benchmarkComplete', {error: matchedError[1]});
+  //     return;
+  //   }
 
-    const resultReg = /.*\<tfjs_benchmark\>(.*)\<\/tfjs_benchmark\>/;
-    const matchedResult = stdout.match(resultReg);
-    if (matchedResult != null) {
-      const benchmarkResult = JSON.parse(matchedResult[1]);
-      io.emit('benchmarkComplete', benchmarkResult);
-      return;
-    }
+  //   const resultReg = /.*\<tfjs_benchmark\>(.*)\<\/tfjs_benchmark\>/;
+  //   const matchedResult = stdout.match(resultReg);
+  //   if (matchedResult != null) {
+  //     const benchmarkResult = JSON.parse(matchedResult[1]);
+  //     io.emit('benchmarkComplete', benchmarkResult);
+  //     return;
+  //   }
 
-    io.emit('benchmarkComplete', {
-      error: 'Did not find benchmark results from the logs ' +
-          'of the benchmark test (benchmark_models.js).'
-    });
-  });
+  //   io.emit('benchmarkComplete', {
+  //     error: 'Did not find benchmark results from the logs ' +
+  //         'of the benchmark test (benchmark_models.js).'
+  //   });
+  // });
 }
 
 checkBrowserStackAccount();
