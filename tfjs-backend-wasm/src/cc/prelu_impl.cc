@@ -80,7 +80,7 @@ void prelu(const float* x_buf, const size_t x_size, const size_t weights_id,
 
   const size_t batch_size = x_size / weights_info.size;
   xnn_status status = xnn_setup_prelu_nc_f32(
-      prelu_op, batch_size, x_buf, out_buf, nullptr /* thread pool */);
+      prelu_op, batch_size, x_buf, out_buf, tfjs::backend::threadpool);
   if (status != xnn_status_success) {
     util::warn(
         "XNN status for xnn_setup_prelu_nc_f32 is not successful. Got "
@@ -88,7 +88,7 @@ void prelu(const float* x_buf, const size_t x_size, const size_t weights_id,
         status);
   }
 
-  xnn_run_operator(prelu_op, nullptr /* thread pool */);
+  xnn_run_operator(prelu_op, tfjs::backend::threadpool);
 }
 
 }  // namespace wasm

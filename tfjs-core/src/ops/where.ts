@@ -23,6 +23,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assert, assertShapesMatch} from '../util';
 
+import {broadcastTo} from './broadcast_to';
 import {assertAndGetBroadcastShape} from './broadcast_util';
 import {op} from './operation';
 
@@ -57,8 +58,8 @@ function where_<T extends Tensor>(
   // implemented in WASM.
   // Find the broadcastable shape for $a and $b.
   const broadcastShape = assertAndGetBroadcastShape($a.shape, $b.shape);
-  const $broadcastedA = $a.broadcastTo(broadcastShape);
-  const $broadcastedB = $b.broadcastTo(broadcastShape);
+  const $broadcastedA = broadcastTo($a, broadcastShape);
+  const $broadcastedB = broadcastTo($b, broadcastShape);
   if ($condition.rank === 1) {
     // If condition rank is 1, then the first dimension must match the size of
     // condition.
