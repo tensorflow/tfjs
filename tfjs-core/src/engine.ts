@@ -58,6 +58,8 @@ type KernelInfo = {
   totalTensorsSnapshot: number;
   inputShapes: number[][];
   outputShapes: number[][];
+  kernelTimeMs: number | {error: string} | Promise<number|{error: string}>;
+  extraInfo: string | Promise<string>;
 };
 
 export type ProfileInfo = {
@@ -625,15 +627,17 @@ export class Engine implements TensorTracker, DataMover {
     }
 
     // Stop recording to a tape when running a kernel.
+    let kernelProfile: KernelProfile;
     this.scopedRun(
         () => this.state.kernelDepth++, () => this.state.kernelDepth--, () => {
-          if (!this.ENV.getBool('DEBUG')) {
+          if (!this.ENV.getBool('DEBUG') && !this.state.profiling) {
             outputs = kernelFunc();
           } else {
-            let kernelProfile: KernelProfile;
             kernelProfile = this.profiler.profileKernel(
                 kernelName, inputs, () => kernelFunc());
-            this.profiler.logKernelProfile(kernelProfile);
+            if (this.ENV.getBool('DEBUG')) {
+              this.profiler.logKernelProfile(kernelProfile);
+            }
             outputs = kernelProfile.outputs;
           }
         });
@@ -652,7 +656,9 @@ export class Engine implements TensorTracker, DataMover {
         totalTensorsSnapshot: this.state.numTensors,
         inputShapes: Object.keys(inputs).map(
             key => inputs[key] != null ? inputs[key].shape : null),
-        outputShapes: outputs.map(item => item.shape)
+        outputShapes: outputs.map(item => item.shape),
+        kernelTimeMs: kernelProfile.timeMs,
+        extraInfo: kernelProfile.extraInfo
       });
     }
     return (Array.isArray(out) ? outputs : outputs[0]) as T;
@@ -878,6 +884,10 @@ export class Engine implements TensorTracker, DataMover {
     this.state.activeProfile.newBytes = this.state.numBytes - startBytes;
     this.state.activeProfile.newTensors =
         this.state.numTensors - startNumTensors;
+    for (const kernel of this.state.activeProfile.kernels) {
+      kernel.kernelTimeMs = await kernel.kernelTimeMs;
+      kernel.extraInfo = await kernel.extraInfo;
+    }
     return this.state.activeProfile;
   }
 
