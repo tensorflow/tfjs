@@ -659,10 +659,6 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   dispose(): void {
     return notYetImplemented('dispose');
   }
-
-  convLSTM2D(): void {
-    return notYetImplemented('convLSTM2D');
-  }
 }
 
 function notYetImplemented(kernelName: string): never {
