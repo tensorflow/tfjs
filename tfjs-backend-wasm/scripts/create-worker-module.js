@@ -16,9 +16,8 @@
  */
 
 /**
- * This file creates a TypeScript module that exports the contents of the
- * Emscripten-generated WASM worker script so that it can be inlined by the
- * tf-backend-wasm bundle.
+ * This file modifies the Emscripten-generated WASM worker script so that it can
+ * be inlined by the tf-backend-wasm bundle.
  */
 
 const fs = require('fs');
@@ -26,10 +25,6 @@ const fs = require('fs');
 const BASE_PATH = './wasm-out/';
 const WORKER_PATH = `${BASE_PATH}tfjs-backend-wasm-threaded-simd.worker.js`;
 
-// Write out a worker TypeScript module.
 const workerContents = fs.readFileSync(WORKER_PATH, "utf8");
-fs.writeFileSync(`${BASE_PATH}tfjs-backend-wasm-threaded-simd.worker.ts`,
-  `export const wasmWorkerContents = '${workerContents.trim()}';`);
-
-// Delete the original worker file.
-fs.unlinkSync(WORKER_PATH)
+fs.writeFileSync(`${BASE_PATH}tfjs-backend-wasm-threaded-simd.worker.js`,
+  `export const wasmWorkerContents = '${workerContents}';`);
