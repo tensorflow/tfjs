@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,16 +15,16 @@
  * =============================================================================
  */
 
-import {backend_util, KernelConfig, KernelFunc, NamedAttrMap, ReshapeAttrs, ReshapeInputs, SpaceToBatchND, SpaceToBatchNDAttrs, SpaceToBatchNDInputs, TensorInfo, TransposeAttrs, TransposeInputs} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, ReshapeAttrs, ReshapeInputs, SpaceToBatchND, SpaceToBatchNDAttrs, SpaceToBatchNDInputs, TensorInfo, TransposeAttrs, TransposeInputs, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 
 import {padV2Config} from './PadV2';
-import {reshapeConfig} from './Reshape';
-import {transposeConfig} from './Transpose';
+import {reshape} from './Reshape';
+import {transpose} from './Transpose';
 
-function spaceToBatchND(args: {
+export function spaceToBatchND(args: {
   inputs: SpaceToBatchNDInputs,
   backend: MathBackendCPU,
   attrs: SpaceToBatchNDAttrs
@@ -35,7 +35,7 @@ function spaceToBatchND(args: {
 
   assertNotComplex([x], 'spaceToBatchND');
 
-  const prod = blockShape.reduce((a, b) => a * b);
+  const prod = util.sizeFromShape(blockShape);
 
   const completePaddings: Array<[number, number]> = [[0, 0]];
   completePaddings.push(...(paddings as Array<[number, number]>));
@@ -61,34 +61,25 @@ function spaceToBatchND(args: {
 
   const reshapeInputs: ReshapeInputs = {x: paddedX};
   const reshapeAttrs: ReshapeAttrs = {shape: reshapedPaddedShape};
-  const paddedXReshaped = reshapeConfig.kernelFunc({
-    inputs: reshapeInputs,
-    backend,
-    attrs: reshapeAttrs as {} as NamedAttrMap
-  }) as TensorInfo;
+  const paddedXReshaped =
+      reshape({inputs: reshapeInputs, backend, attrs: reshapeAttrs});
 
   const transposeInputs: TransposeInputs = {x: paddedXReshaped};
   const transposeAttrs:
       TransposeAttrs = {perm: permutedReshapedPaddedPermutation};
-  const paddedXT = transposeConfig.kernelFunc({
-    inputs: transposeInputs,
-    backend,
-    attrs: transposeAttrs as {} as NamedAttrMap
-  }) as TensorInfo;
+  const paddedXT =
+      transpose({inputs: transposeInputs, backend, attrs: transposeAttrs});
 
   const resultReshapeInputs: ReshapeInputs = {x: paddedXT};
   const resultReshapeAttrs: ReshapeAttrs = {shape: flattenShape};
-  const result = reshapeConfig.kernelFunc({
-    inputs: resultReshapeInputs,
-    backend,
-    attrs: resultReshapeAttrs as {} as NamedAttrMap
-  });
+  const result = reshape(
+      {inputs: resultReshapeInputs, backend, attrs: resultReshapeAttrs});
 
   backend.disposeDataSoft(paddedX.dataId);
   backend.disposeDataSoft(paddedXReshaped.dataId);
   backend.disposeDataSoft(paddedXT.dataId);
 
-  return result as TensorInfo;
+  return result;
 }
 
 export const spaceToBatchNDConfig: KernelConfig = {

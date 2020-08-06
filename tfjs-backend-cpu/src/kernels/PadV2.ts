@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,7 +20,7 @@ import {KernelConfig, KernelFunc, NumericDataType, PadV2, PadV2Attrs, PadV2Input
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 
-function padV2(
+export function padV2(
     args: {inputs: PadV2Inputs, backend: MathBackendCPU, attrs: PadV2Attrs}):
     TensorInfo {
   const {inputs, backend, attrs} = args;

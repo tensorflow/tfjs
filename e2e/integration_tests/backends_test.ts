@@ -37,11 +37,11 @@ describe(`${SMOKE} backends`, () => {
 
       const webglBefore = tfc.engine().backend.numDataIds();
 
-      // input is stored in webgl backend. tensorInfo refCount = 1.
       const input = tfc.tensor2d([1, 1, 1, 1], [2, 2], 'float32');
+      // input is stored in webgl backend. tensorInfo refCount = 1.
 
-      // input tensorInfo refCount = 2;
       const inputReshaped = tfc.reshape(input, [2, 2]);
+      // input tensorInfo refCount = 2;
 
       const webglAfter = tfc.engine().backend.numDataIds();
 
@@ -51,14 +51,14 @@ describe(`${SMOKE} backends`, () => {
 
       const cpuBefore = tfc.engine().backend.numDataIds();
 
-      // input moved to cpu. tensorData refCount = 1.
       const inputReshaped2 = tfc.reshape(inputReshaped, [2, 2]);
+      // input moved to cpu. tensorData refCount = 1.
 
       const cpuAfter = tfc.engine().backend.numDataIds();
 
+      expect(cpuAfter).toEqual(cpuBefore + 1);
       // input tensorData refCount = 3, reshape increase by 1, then output
       // tensor increase by 1.
-      expect(cpuAfter).toEqual(cpuBefore + 1);
 
       await tfc.setBackend('webgl');
 
@@ -67,20 +67,20 @@ describe(`${SMOKE} backends`, () => {
 
       await tfc.setBackend('cpu');
 
-      // After dispose, tensorData refCount = 2.
       input.dispose();
+      // After dispose, tensorData refCount = 2.
 
       // Input is not deleted, because refCount is 2.
       expect(tfc.engine().backend.numDataIds()).toEqual(cpuAfter);
 
-      // After dispose, tensorData refCount = 1.
       inputReshaped.dispose();
+      // After dispose, tensorData refCount = 1.
 
       // Input is not deleted, because refCount is 1.
       expect(tfc.engine().backend.numDataIds()).toEqual(cpuAfter);
 
-      // After dispose, tensorData refCount = 0, data deleted.
       inputReshaped2.dispose();
+      // After dispose, tensorData refCount = 0, data deleted.
 
       const after = tfc.engine().backend.numDataIds();
 
@@ -92,13 +92,13 @@ describe(`${SMOKE} backends`, () => {
 
       const cpuBefore = tfc.engine().backend.numDataIds();
 
+      const input = tfc.tensor2d([1, 1, 1, 1], [2, 2], 'float32');
       // input is stored in cpu backend. tensorData refCount = 1, tensorInfo
       // refCount = 1.
-      const input = tfc.tensor2d([1, 1, 1, 1], [2, 2], 'float32');
 
+      const inputReshaped = tfc.reshape(input, [2, 2]);
       // input tensorData refCount = 3, reshape increase by 1, then output
       // tensor increase by 1. tensorInfo refCount = 1.
-      const inputReshaped = tfc.reshape(input, [2, 2]);
 
       const cpuAfter = tfc.engine().backend.numDataIds();
 
@@ -108,8 +108,8 @@ describe(`${SMOKE} backends`, () => {
 
       const webglBefore = tfc.engine().backend.numDataIds();
 
-      // input moved to webgl. tensorInfo refCount = 3.
       const inputReshaped2 = tfc.reshape(inputReshaped, [2, 2]);
+      // input moved to webgl. tensorInfo refCount = 3.
 
       const webglAfter = tfc.engine().backend.numDataIds();
 
@@ -122,20 +122,20 @@ describe(`${SMOKE} backends`, () => {
 
       await tfc.setBackend('webgl');
 
-      // After dispose, tensorInfo = 2.
       input.dispose();
+      // After dispose, tensorInfo = 2.
 
       // Data is not deleted, because tensorInfo is 2.
       expect(tfc.engine().backend.numDataIds()).toEqual(webglAfter);
 
-      // After dipose, tensorInfo = 1.
       inputReshaped.dispose();
+      // After dipose, tensorInfo = 1.
 
       // Data is not deleted, because tensorInfo is 1.
       expect(tfc.engine().backend.numDataIds()).toEqual(webglAfter);
 
-      // After dipose, tensorInfo = 1, data deleted.
       inputReshaped2.dispose();
+      // After dipose, tensorInfo = 1, data deleted.
 
       const after = tfc.engine().backend.numDataIds();
 
