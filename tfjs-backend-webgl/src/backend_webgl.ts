@@ -2200,7 +2200,7 @@ export class MathBackendWebGL extends KernelBackend {
 
   reshape<R extends Rank>(x: Tensor, shape: ShapeMap[R]): Tensor<R> {
     const texData = this.texData.get(x.dataId);
-    console.log('IN WEBGL RESHAPE');
+
     if (texData.isPacked && !webgl_util.isReshapeFree(x.shape, shape) &&
         !(texData.texture !== null &&
           webgl_util.isReshapeFree(texData.shape, shape))) {
