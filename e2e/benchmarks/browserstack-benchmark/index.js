@@ -115,15 +115,60 @@ function reportBenchmarkResults(benchmarkResults) {
 
   // TODO: show error message, if `benchmarkResult.error != null`.
 
-  // TODO:
-  //   1. draw a summary table for inference time and memory info.
-  //   2. draw a line chart for inference time.
-  //   3. draw a table for inference kernel information.
-  tfvis.visor().surface(
-      {name: 'benchmark results', tab: tabId, styles: {width: '100%'}});
+  drawBenchmarkResultSummaryTable(benchmarkResults);
+  drawInferenceTimeLineChart(benchmarkResults);
+  // TODO: draw a table for inference kernel information.
 
   // TODO: delete 'loading indicator' under the tab.
 }
+
+function drawBenchmarkResultSummaryTable(benchmarkResults) {
+  const headers = ['Field', 'Value'];
+  const values = [];
+
+  const {timeInfo, memoryInfo, tabId} = benchmarkResults;
+  const timeArray = benchmarkResults.timeInfo.times;
+  const numRuns = timeArray.length;
+
+  if (numRuns >= 1) {
+    values.push(['1st inference time', printTime(timeArray[0])]);
+    if (numRuns >= 2) {
+      values.push(['2nd inference time', printTime(timeArray[1])]);
+    }
+    values.push([
+      `Average inference time (${numRuns} runs)`,
+      printTime(timeInfo.averageTime)
+    ]);
+    values.push(['Best time', printTime(timeInfo.minTime)]);
+    values.push(['Worst time', printTime(timeInfo.maxTime)]);
+  }
+
+  values.push(['Peak memory', printMemory(memoryInfo.peakBytes)]);
+  values.push(['Leaked tensors', memoryInfo.newTensors]);
+
+  values.push(['Number of kernels', memoryInfo.kernels.length]);
+
+  const surface = {
+    name: 'Benchmark Result',
+    tab: tabId,
+    styles: {width: '100%'}
+  };
+  tfvis.render.table(surface, {headers, values});
+}
+
+function drawInferenceTimeLineChart(benchmarkResults) {
+  const tabId = benchmarkResults.tabId;
+  const inferenceTimeArray = benchmarkResults.timeInfo.times;
+  if (inferenceTimeArray.length < 2) {
+    return;
+  }
+
+  const values = inferenceTimeArray.map((y, x) => ({x, y}));
+  const data = {values};
+  const surface = {name: 'Inference Time', tab: tabId, styles: {width: '100%'}};
+  tfvis.render.linechart(surface, data);
+}
+
 
 function drawBrowserSettingTable(tabId, browserConf) {
   const headers = ['Field', 'Value'];
@@ -202,4 +247,18 @@ function showParameterSettings() {
   parameterFolder.add(state.benchmark, 'backend', ['wasm', 'webgl', 'cpu']);
   parameterFolder.open();
   return parameterFolder;
+}
+
+function printTime(elapsed) {
+  return elapsed.toFixed(1) + ' ms';
+}
+
+function printMemory(bytes) {
+  if (bytes < 1024) {
+    return bytes + ' B';
+  } else if (bytes < 1024 * 1024) {
+    return (bytes / 1024).toFixed(2) + ' KB';
+  } else {
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  }
 }
