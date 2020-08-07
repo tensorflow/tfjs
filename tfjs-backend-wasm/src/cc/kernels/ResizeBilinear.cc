@@ -90,7 +90,7 @@ void ResizeBilinear(size_t x_id, size_t batch, size_t old_height,
 
   xnn_status status = xnn_setup_resize_bilinear2d_nhwc_f32(
       resize_bilinear_op, batch, old_height, old_width, new_height, new_width,
-      x_buf, out_buf, nullptr /* thread pool */);
+      x_buf, out_buf, tfjs::backend::threadpool);
   if (status != xnn_status_success) {
     tfjs::util::warn(
         "XNN status for xnn_setup_resize_bilinear2d_nhwc_f32 is not "
@@ -99,7 +99,7 @@ void ResizeBilinear(size_t x_id, size_t batch, size_t old_height,
     return;
   }
 
-  xnn_run_operator(resize_bilinear_op, nullptr /* thread pool */);
+  xnn_run_operator(resize_bilinear_op, tfjs::backend::threadpool);
 }
 
 }  // extern "C"

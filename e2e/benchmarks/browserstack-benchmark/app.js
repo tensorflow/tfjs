@@ -22,46 +22,72 @@ const path = require('path');
 const {exec} = require('child_process');
 
 const port = process.env.PORT || 8001;
+let io;
 
-const app = http.createServer((request, response) => {
-  const url = request.url === '/' ? '/index.html' : request.url;
-  let filePath = path.join(__dirname, url);
-  if (!fs.existsSync(filePath)) {
-    filePath = path.join(__dirname, '../', url);
+function checkBrowserStackAccount() {
+  if (process.env.BROWSERSTACK_USERNAME == null ||
+      process.env.BROWSERSTACK_ACCESS_KEY == null) {
+    throw new Error(
+        `Please export your BrowserStack username and access key by running` +
+        `the following commands in the terminal:
+          export BROWSERSTACK_USERNAME=YOUR_USERNAME
+          export BROWSERSTACK_ACCESS_KEY=YOUR_ACCESS_KEY`);
   }
-  fs.readFile(filePath, (err, data) => {
-    if (err) {
-      response.writeHead(404);
-      response.end(JSON.stringify(err));
-      return;
+}
+
+function runServer() {
+  const app = http.createServer((request, response) => {
+    const url = request.url === '/' ? '/index.html' : request.url;
+    let filePath = path.join(__dirname, url);
+    if (!fs.existsSync(filePath)) {
+      filePath = path.join(__dirname, '../', url);
     }
-    response.writeHead(200);
-    response.end(data);
+    fs.readFile(filePath, (err, data) => {
+      if (err) {
+        response.writeHead(404);
+        response.end(JSON.stringify(err));
+        return;
+      }
+      response.writeHead(200);
+      response.end(data);
+    });
   });
-});
+  app.listen(port, () => {
+    console.log(`  > Running socket on port: ${port}`);
+  });
 
-const io = socketio(app);
-
-app.listen(port, () => {
-  console.log(`  > Running socket on port: ${port}`);
-});
-
-io.on('connection', socket => {
-  socket.on('run', benchmark);
-});
+  io = socketio(app);
+  io.on('connection', socket => {
+    socket.on('run', benchmark);
+  });
+}
 
 function benchmark(config) {
+  console.log('Preparing configuration files for the test runner.');
   // TODO:
   // 1. Write browsers.json.
+  // Write the browsers to benchmark to `./browsers.json`.
+  config.browsers.forEach(browser => {
+    browser.base = 'BrowserStack';
+    // For mobile devices, we would use real devices instead of emulators.
+    if (browser.os === 'ios' || browser.os === 'android') {
+      browser.real_mobile = true;
+    }
+  });
+  fs.writeFileSync('./browsers.json', JSON.stringify(config.browsers, null, 2));
+
   // 2. Write benchmark parameter config.
   fs.writeFileSync(
       './benchmark_parameters.json', JSON.stringify(config.benchmark, null, 2));
 
   console.log(`Start benchmarking.`);
-  exec('yarn test', (error, stdout, stderr) => {
+  exec('yarn test --browserstack', (error, stdout, stderr) => {
+    console.log(`benchmark completed.`);
     if (error) {
       console.log(error);
-      io.emit('benchmarkComplete', {error: 'Failed to run yarn test.'});
+      io.emit(
+          'benchmarkComplete',
+          {error: `Failed to run 'yarn test --browserstack':\n\n${error}`});
       return;
     }
 
@@ -86,3 +112,6 @@ function benchmark(config) {
     });
   });
 }
+
+checkBrowserStackAccount();
+runServer();

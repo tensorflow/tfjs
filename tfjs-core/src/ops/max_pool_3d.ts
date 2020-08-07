@@ -92,7 +92,7 @@ function maxPool3d_<T extends Tensor4D|Tensor5D>(
   let reshapedTo5D = false;
   if ($x.rank === 4) {
     reshapedTo5D = true;
-    x5D = $x.as5D(1, $x.shape[0], $x.shape[1], $x.shape[2], $x.shape[3]);
+    x5D = reshape($x, [1, $x.shape[0], $x.shape[1], $x.shape[2], $x.shape[3]]);
   }
 
   util.assert(

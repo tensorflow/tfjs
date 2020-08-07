@@ -20,9 +20,13 @@ import {Tensor} from '../tensor';
 import * as broadcast_util from './broadcast_util';
 import {elu} from './elu';
 import {Activation} from './fused_types';
+import {mul} from './mul';
 import {prelu} from './prelu';
 import {relu} from './relu';
 import {relu6} from './relu6';
+import {reshape} from './reshape';
+import {step} from './step';
+import {sum} from './sum';
 
 // Returns gradient for fused activation.
 export function getFusedDyActivation(
@@ -31,7 +35,7 @@ export function getFusedDyActivation(
     return dy;
   }
   if (activation === 'relu') {
-    return dy.mul(y.step());
+    return mul(dy, step(y));
   }
   throw new Error(
       `Cannot compute gradient for fused activation ${activation}.`);
@@ -44,9 +48,9 @@ export function getFusedBiasGradient(
   const reduceAxes =
       broadcast_util.getReductionAxes(bias.shape, dyActivation.shape);
   if (reduceAxes.length > 0) {
-    res = res.sum(reduceAxes);
+    res = sum(res, reduceAxes);
   }
-  return res.reshape(bias.shape);
+  return reshape(res, bias.shape);
 }
 
 export function applyActivation(
