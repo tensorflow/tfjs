@@ -74,7 +74,7 @@ function initVisor() {
   visorHideButton.style.display = 'none';
 }
 
-const nameCounter = {};
+const visorTabNameCounter = {};
 /**
  *  Generate a unique name for the given setting.
  *
@@ -88,11 +88,11 @@ function getTabName(browserConf) {
   } else {
     baseName = `${browserConf.os}(${browserConf.os_version})`;
   }
-  if (nameCounter[baseName] == null) {
-    nameCounter[baseName] = 0;
+  if (visorTabNameCounter[baseName] == null) {
+    visorTabNameCounter[baseName] = 0;
   }
-  nameCounter[baseName] += 1;
-  return `${baseName} - ${nameCounter[baseName]}`;
+  visorTabNameCounter[baseName] += 1;
+  return `${baseName} - ${visorTabNameCounter[baseName]}`;
 }
 
 function createTab(browserConf) {
