@@ -61,12 +61,34 @@ function initVisor() {
   // Bind an event to visor's 'Maximize/Minimize' button.
   const visorFullScreenButton =
       tfvis.visor().el.getElementsByTagName('button')[0];
+  const guiCloseButton = document.getElementsByClassName('close-button')[0];
+  const originalGuiWidth = gui.domElement.style.width;
+
+  // The following two bound events are to implemet:
+  // - When the visor is minimized, the controlled panel is hidden;
+  // - When the visor is maximized, the controlled panel appears;
+  gui.domElement.style.width = originalGuiWidth;
   visorFullScreenButton.onclick = () => {
     if (state.isDatGuiHidden) {
-      gui.show();
+      // When opening the controll panel, recover the size.
+      gui.open();
+      gui.domElement.style.width = originalGuiWidth;
     } else {
-      gui.hide();
+      // When closing the controll panel, narrow the size.
+      gui.close();
+      gui.domElement.style.width = '10%';
     }
+    state.isDatGuiHidden = !state.isDatGuiHidden;
+  };
+  guiCloseButton.onclick = () => {
+    if (state.isDatGuiHidden) {
+      // When opening the controll panel, recover the size.
+      gui.domElement.style.width = originalGuiWidth;
+    } else {
+      // When closing the controll panel, narrow the size.
+      gui.domElement.style.width = '10%';
+    }
+    tfvis.visor().toggleFullScreen();
     state.isDatGuiHidden = !state.isDatGuiHidden;
   };
 
