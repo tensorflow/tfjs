@@ -22,14 +22,35 @@ const state = {
     benchmarkButton.__li.style.pointerEvents = 'none';
     benchmarkButton.__li.style.opacity = .5;
 
-    socket.emit('run', true);
-  }
+    // Send the benchmark configuration to the server to start the benchmark.
+    if (state.browser.device === 'null') {
+      state.browser.device = null;
+    }
+    const benchmark = {...state.benchmark};
+    if (state.benchmark.model !== 'custom') {
+      delete benchmark['modelUrl'];
+    }
+    socket.emit('run', {benchmark, browsers: [state.browser]});
+  },
+  browser: {
+    base: 'BrowserStack',
+    browser: 'chrome',
+    browser_version: '84.0',
+    os: 'OS X',
+    os_version: 'Catalina',
+    device: 'null'
+  },
+  benchmark: {model: 'mobilenet_v2', modelUrl: '', numRuns: 1, backend: 'wasm'}
 };
 
 socket.on('benchmarkComplete', benchmarkResult => {
-  const {timeInfo, memoryInfo} = benchmarkResult;
-  document.getElementById('results').innerHTML +=
-      JSON.stringify(timeInfo, null, 2);
+  if (benchmarkResult.error != null) {
+    document.getElementById('results').innerHTML += benchmarkResult.error;
+  } else {
+    const {timeInfo, memoryInfo} = benchmarkResult;
+    document.getElementById('results').innerHTML +=
+        JSON.stringify(timeInfo, null, 2);
+  }
 
   // Enable the button.
   benchmarkButton.__li.style.pointerEvents = '';
@@ -37,4 +58,36 @@ socket.on('benchmarkComplete', benchmarkResult => {
 });
 
 const gui = new dat.gui.GUI();
+showModelSelection();
+showParameterSettings();
 const benchmarkButton = gui.add(state, 'run').name('Run benchmark');
+
+function showModelSelection() {
+  const modelFolder = gui.addFolder('Model');
+  let modelUrlController = null;
+
+  modelFolder.add(state.benchmark, 'model', Object.keys(benchmarks))
+      .name('model name')
+      .onChange(async model => {
+        if (model === 'custom') {
+          if (modelUrlController === null) {
+            modelUrlController = modelFolder.add(state.benchmark, 'modelUrl');
+            modelUrlController.domElement.querySelector('input').placeholder =
+                'https://your-domain.com/model-path/model.json';
+          }
+        } else if (modelUrlController != null) {
+          modelFolder.remove(modelUrlController);
+          modelUrlController = null;
+        }
+      });
+  modelFolder.open();
+  return modelFolder;
+}
+
+function showParameterSettings() {
+  const parameterFolder = gui.addFolder('Parameters');
+  parameterFolder.add(state.benchmark, 'numRuns');
+  parameterFolder.add(state.benchmark, 'backend', ['wasm', 'webgl', 'cpu']);
+  parameterFolder.open();
+  return parameterFolder;
+}

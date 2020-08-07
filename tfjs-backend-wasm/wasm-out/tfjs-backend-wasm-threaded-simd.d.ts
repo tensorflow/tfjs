@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-export interface BackendWasmModuleSimd extends EmscriptenModule {
+export interface BackendWasmModule extends EmscriptenModule {
+  mainScriptUrlOrBlob: string|Blob;
   onRuntimeInitialized: () => void;
   onAbort: (msg: string) => void;
   // Using the tfjs namespace to avoid conflict with emscripten's API.
@@ -29,11 +30,10 @@ export interface BackendWasmModuleSimd extends EmscriptenModule {
   }
 }
 
-export interface WasmFactoryConfigSimd {
+export interface WasmFactoryConfig {
   locateFile?(path: string, prefix: string): string;
   instantiateWasm?: Function;
 }
 
-declare var moduleFactory: (settings: WasmFactoryConfigSimd) =>
-    BackendWasmModuleSimd;
+declare var moduleFactory: (settings: WasmFactoryConfig) => BackendWasmModule;
 export default moduleFactory;

@@ -18,8 +18,9 @@
 import {BackendTimingInfo, DataMover, KernelBackend} from './backends/backend';
 import {Environment, setEnvironmentGlobal} from './environment';
 import {getGlobalNamespace} from './global_util';
+import {Add, Cast} from './kernel_names';
 import {getGradient, getKernel, getKernelsForBackend, GradFunc, NamedAttrMap, TensorInfo} from './kernel_registry';
-import {Profiler} from './profiler';
+import {KernelProfile, Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, TapeNode} from './tape';
 import {DataId, setTensorTracker, Tensor, TensorTracker, Variable} from './tensor';
 import {GradSaveFunc, NamedTensorMap, NamedVariableMap, TensorContainer} from './tensor_types';
@@ -51,17 +52,19 @@ export type MemoryInfo = {
   unreliable?: boolean; reasons: string[];
 };
 
-type KernelProfile = {
+type KernelInfo = {
   name: string; bytesAdded: number; totalBytesSnapshot: number;
   tensorsAdded: number;
   totalTensorsSnapshot: number;
   inputShapes: number[][];
   outputShapes: number[][];
+  kernelTimeMs: number | {error: string} | Promise<number|{error: string}>;
+  extraInfo: string | Promise<string>;
 };
 
 export type ProfileInfo = {
   newBytes: number; newTensors: number; peakBytes: number;
-  kernels: KernelProfile[];
+  kernels: KernelInfo[];
   result: TensorContainer;
 };
 
@@ -464,7 +467,18 @@ export class Engine implements TensorTracker, DataMover {
   private clone(x: Tensor): Tensor {
     const y = this.makeTensorFromDataId(x.dataId, x.shape, x.dtype);
     const inputs = {x};
-    const grad = (dy: Tensor) => ({x: () => dy.toFloat()});
+    const grad = (dy: Tensor) => ({
+      x: () => {
+        const dtype = 'float32';
+        const gradInputs = {x: dy};
+        const attrs = {dtype};
+
+        return ENGINE.runKernelFunc(
+            backend => backend.cast(dy, dtype),
+            gradInputs as {} as NamedTensorMap, null /* grad */, Cast,
+            attrs as {} as NamedAttrMap);
+      }
+    });
     const saved: Tensor[] = [];
     this.addTapeNode(this.state.activeScope.name, inputs, [y], grad, saved, {});
     return y;
@@ -613,13 +627,18 @@ export class Engine implements TensorTracker, DataMover {
     }
 
     // Stop recording to a tape when running a kernel.
+    let kernelProfile: KernelProfile;
     this.scopedRun(
         () => this.state.kernelDepth++, () => this.state.kernelDepth--, () => {
-          if (!this.ENV.getBool('DEBUG')) {
+          if (!this.ENV.getBool('DEBUG') && !this.state.profiling) {
             outputs = kernelFunc();
           } else {
-            outputs = this.profiler.profileKernel(
+            kernelProfile = this.profiler.profileKernel(
                 kernelName, inputs, () => kernelFunc());
+            if (this.ENV.getBool('DEBUG')) {
+              this.profiler.logKernelProfile(kernelProfile);
+            }
+            outputs = kernelProfile.outputs;
           }
         });
 
@@ -637,7 +656,9 @@ export class Engine implements TensorTracker, DataMover {
         totalTensorsSnapshot: this.state.numTensors,
         inputShapes: Object.keys(inputs).map(
             key => inputs[key] != null ? inputs[key].shape : null),
-        outputShapes: outputs.map(item => item.shape)
+        outputShapes: outputs.map(item => item.shape),
+        kernelTimeMs: kernelProfile.timeMs,
+        extraInfo: kernelProfile.extraInfo
       });
     }
     return (Array.isArray(out) ? outputs : outputs[0]) as T;
@@ -863,6 +884,10 @@ export class Engine implements TensorTracker, DataMover {
     this.state.activeProfile.newBytes = this.state.numBytes - startBytes;
     this.state.activeProfile.newTensors =
         this.state.numTensors - startNumTensors;
+    for (const kernel of this.state.activeProfile.kernels) {
+      kernel.kernelTimeMs = await kernel.kernelTimeMs;
+      kernel.extraInfo = await kernel.extraInfo;
+    }
     return this.state.activeProfile;
   }
 
@@ -1004,7 +1029,9 @@ export class Engine implements TensorTracker, DataMover {
       backpropagateGradients(
           accumulatedGradientMap, filteredTape,
           // Pass the tidy function to avoid circular dep with `tape.ts`.
-          f => this.tidy(f as ScopeFn<Tensor>));
+          f => this.tidy(f as ScopeFn<Tensor>),
+          // Pass an add function to avoide a circular dep with `tape.ts`.
+          add);
       const grads = xs.map(x => accumulatedGradientMap[x.id]);
 
       if (this.state.gradientDepth === 0) {
@@ -1157,3 +1184,19 @@ function getOrMakeEngine(): Engine {
 }
 
 export const ENGINE = getOrMakeEngine();
+
+/**
+ * A implementation of the add op for use within engine and tape.
+ *
+ * This allows us to avoid a circular dependency between add.ts and engine.
+ * It is exported to be available in tape tests.
+ */
+export function add(a: Tensor, b: Tensor): Tensor {
+  // We duplicate Add here to avoid a circular dependency with add.ts.
+  const inputs = {a, b};
+  return ENGINE.runKernelFunc((backend, save) => {
+    const res = backend.add(a, b);
+    save([a, b]);
+    return res;
+  }, inputs as {} as NamedTensorMap, null /* gradient */, Add);
+}

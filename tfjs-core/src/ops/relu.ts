@@ -23,6 +23,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
 import {op} from './operation';
+import { cast } from './cast';
 
 /**
  * Computes rectified linear element-wise: `max(x, 0)`.
@@ -43,7 +44,7 @@ function relu_<T extends Tensor>(x: T|TensorLike): T {
     save([$x]);
 
     if ($x.dtype === 'bool') {
-      return $x.toInt();
+      return cast($x, 'int32');
     }
 
     return backend.relu($x);

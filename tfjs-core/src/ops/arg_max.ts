@@ -26,6 +26,7 @@ import * as util from '../util';
 
 import * as axis_util from './axis_util';
 import {op} from './operation';
+import {transpose} from './transpose';
 
 /**
  * Returns the indices of the maximum values along an `axis`.
@@ -59,7 +60,7 @@ function argMax_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
     let axes = util.parseAxisParam(axis, $x.shape);
     const permutedAxes = axis_util.getAxesPermutation(axes, $x.rank);
     if (permutedAxes != null) {
-      $x = $x.transpose(permutedAxes);
+      $x = transpose($x, permutedAxes);
       axes = axis_util.getInnerMostAxes(axes.length, $x.rank);
     }
     return backend.argMax($x, axes[0]);

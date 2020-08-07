@@ -25,6 +25,7 @@ import {TensorLike} from '../types';
 import * as util from '../util';
 
 import {op} from './operation';
+import {reshape} from './reshape';
 
 /**
  * Bilinear resize a batch of 3D images to a new shape.
@@ -56,8 +57,8 @@ function resizeBilinear_<T extends Tensor3D|Tensor4D>(
   let reshapedTo4D = false;
   if ($images.rank === 3) {
     reshapedTo4D = true;
-    batchImages =
-        $images.as4D(1, $images.shape[0], $images.shape[1], $images.shape[2]);
+    batchImages = reshape(
+        $images, [1, $images.shape[0], $images.shape[1], $images.shape[2]]);
   }
 
   const [newHeight, newWidth] = size;
@@ -75,7 +76,7 @@ function resizeBilinear_<T extends Tensor3D|Tensor4D>(
       ResizeBilinear, attrs as {} as NamedAttrMap);
 
   if (reshapedTo4D) {
-    return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
+    return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
   }
   return res as T;
 }

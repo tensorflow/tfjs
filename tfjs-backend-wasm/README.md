@@ -73,24 +73,45 @@ bundlers such as Parcel and WebPack need to be able to serve the `.wasm` file in
 production. See [starter/parcel](./starter/parcel/) and
 [starter/webpack](./starter/webpack/) for how to setup your favorite bundler.
 
-If your server is serving the `.wasm` file on a different path or a different
-name, use `setWasmPath` before you initialize the backend:
+If you are serving the `.wasm` files from a different directory, call
+`setWasmPaths` with the location of that directory before you initialize the
+backend:
 
 ```ts
-import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
-setWasmPath(yourCustomPath); // or tf.wasm.setWasmPath when using <script> tags.
+import {setWasmPaths} from '@tensorflow/tfjs-backend-wasm';
+// setWasmPaths accepts a `prefix` argument which indicates the path to the
+// directory where your WASM binaries are located.
+setWasmPaths('www.yourdomain.com/'); // or tf.wasm.setWasmPaths when using <script> tags.
 tf.setBackend('wasm').then(() => {...});
 ```
 
-If you are using platform that does not support fetch directly, please set the
-optional `usePlatformFetch` to true:
+Note that if you call `setWasmPaths` with a `prefix`, it will be used to load
+each binary (SIMD-enabled, threading-enabled, etc.) However you can specify
+overrides for individual WASM binaries via the second `fileMap` argument of
+`setWasmPaths`. This is also helpful in case your binaries have been renamed.
+
+For example:
+
+```ts
+import {setWasmPaths} from '@tensorflow/tfjs-backend-wasm';
+setWasmPaths(null /* custom prefix */, {
+  'tfjs-backend-wasm.wasm': 'www.yourdomain.com/renamed.wasm',
+  'tfjs-backend-wasm-simd.wasm': 'www.yourdomain.com/renamed-simd.wasm',
+  'tfjs-backend-wasm-threaded-simd.wasm': 'www.yourdomain.com/renamed-threaded-simd.wasm'
+  });
+tf.setBackend('wasm').then(() => {...});
+```
+
+If you are using a platform that does not support fetch directly, please set the
+optional `usePlatformFetch` argument to `true`:
 
 ```ts
 import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
 const usePlatformFetch = true;
-setWasmPath(yourCustomPath, usePlatformFetch); // or tf.wasm.setWasmPath when using <script> tags.
+setWasmPaths(yourCustomPathPrefix, null /* file map */, usePlatformFetch);
 tf.setBackend('wasm').then(() => {...});
 ```
+
 ## Benchmarks
 
 The benchmarks below show inference times (ms) for two different edge-friendly
@@ -108,14 +129,14 @@ JS backend, and ~5.3-7.7X slower than the WebGL backend.
 
 <img src="./mobilenet-v2-bench.svg">
 
-| MobileNet inference (ms) | WASM  | WebGL | Plain JS | WASM + SIMD |
-|--------------------------|-------|-------|----------|-------------|
-| iPhone X                 | 147.1 | 20.3  | 941.3    | N/A         |
-| iPhone XS                | 140   | 18.1  | 426.4    | N/A         |
-| Pixel 3                  | 266.2 | 77.3  | 2345.2   | N/A         |
-| Desktop Linux            | 91.5  | 17.1  | 1049     | N/A         |
-| Desktop Windows          | 123.1 | 41.6  | 1117     | 37.2        |
-| Macbook Pro              | 98.4  | 19.6  | 893.5    | 30.2        |
+| MobileNet inference (ms) | WASM  | WebGL | Plain JS | WASM + SIMD | WASM + SIMD + threads
+|--------------------------|-------|-------|----------|-------------|----------------------
+| iPhone X                 | 147.1 | 20.3  | 941.3    | N/A         | N/A                 |
+| iPhone XS                | 140   | 18.1  | 426.4    | N/A         | N/A                 |
+| Pixel 4                  | 197.3 | 68.3  | 2228.2   | 142.4       | N/A                 |
+| Desktop Linux            | 91.5  | 17.1  | 1049     | 61.9        | 30.0                |
+| Desktop Windows          | 123.1 | 41.6  | 1117     | 37.2        | N/A                 |
+| Macbook Pro              | 98.4  | 19.6  | 893.5    | 30.2        | 10.3                |
 
 
 
@@ -128,14 +149,14 @@ the device).
 
 <img src="./face-detector-bench.svg">
 
-| Face Detector inference (ms) | WASM | WebGL | Plain JS | WASM + SIMD |
-|------------------------------|------|-------|----------|-------------|
-| iPhone X                     | 22.4 | 13.5  | 318      | N/A         |
-| iPhone XS                    | 21.4 | 10.5  | 176.9    | N/A         |
-| Pixel 3                      | 40.7 | 31.8  | 535.2    | N/A         |
-| Desktop Linux                | 12.6 | 12.7  | 249.5    | N/A         |
-| Desktop Windows              | 16.2 | 7.1   | 270.9    | 7.5         |
-| Macbook Pro 15 2019          | 13.6 | 22.7  | 209.1    | 7.9         |
+| Face Detector inference (ms) | WASM | WebGL | Plain JS | WASM + SIMD | WASM + SIMD + threads
+|------------------------------|------|-------|----------|-------------|----------------------
+| iPhone X                     | 22.4 | 13.5  | 318      | N/A         | N/A                 |
+| iPhone XS                    | 21.4 | 10.5  | 176.9    | N/A         | N/A                 |
+| Pixel 4                      | 32.2 | 30.6  | 478.8    | 24.0        | N/A                 |
+| Desktop Linux                | 12.6 | 12.7  | 249.5    | 8.0         | 6.2                 |
+| Desktop Windows              | 16.2 | 7.1   | 270.9    | 7.5         | N/A                 |
+| Macbook Pro 15 2019          | 13.6 | 22.7  | 209.1    | 7.9         | 4.0                 |
 
 # FAQ
 
@@ -168,12 +189,8 @@ inference as fast as possible.
 ### Do you work in node?
 Yes. If you run into issues, please let us know.
 
-### Do you support SIMD?
-Yes. We take advantage of SIMD wherever it is supported. If you intend to serve the WASM assets yourself, note that the SIMD-enabled WASM binary is separate from the default binary.
-
-### Do you support multi-threading?
-Multi-threading support is not a priority for us at this point since it is still
-a proposal. We will keep a close eye on it as the proposal progresses.
+### Do you support SIMD and multi-threading?
+Yes. We take advantage of SIMD and multi-threading wherever they are supported by testing the capabilities of your runtime and loading the appropriate WASM binary. If you intend to serve the WASM binaries from a custom location (via `setWasmPaths`), please note that the SIMD-enabled and threading-enabled binaries are separate from the regular binary.
 
 ### How do I give feedback?
 We'd love your feedback as we develop this backend! Please file an issue
