@@ -22,6 +22,8 @@ const state = {
     benchmarkButton.__li.style.pointerEvents = 'none';
     benchmarkButton.__li.style.opacity = .5;
 
+    const tabName = createTab(state.browser);
+
     // Send the benchmark configuration to the server to start the benchmark.
     if (state.browser.device === 'null') {
       state.browser.device = null;
@@ -30,7 +32,6 @@ const state = {
     if (state.benchmark.model !== 'custom') {
       delete benchmark['modelUrl'];
     }
-    const tabName = createTab(state.browser);
 
     socket.emit('run', {tabName, benchmark, browser: state.browser});
   },
@@ -45,17 +46,29 @@ const state = {
   benchmark: {model: 'mobilenet_v2', modelUrl: '', numRuns: 1, backend: 'wasm'}
 };
 
-
+const nameCounter = {};
 function getTabName(browserConf) {
-  return 'fakeName';
+  let baseName;
+  if (browserConf.os === 'android' || browserConf.os === 'ios') {
+    baseName = browserConf.device;
+  } else {
+    baseName = `${browserConf.os}(${browserConf.os_version})`;
+  }
+  if (nameCounter[baseName] == null) {
+    nameCounter[baseName] = 0;
+  }
+  nameCounter[baseName] += 1;
+  return `${baseName} - ${nameCounter[baseName]}`;
 }
 
 function drawBrowserSettingTable(tabName, browserConf) {
-  tfvis.visor().surface({name: 'browser setting', tab: tabName});
+  tfvis.visor().surface(
+      {name: 'browser setting', tab: tabName, styles: {width: '100%'}});
 }
 
 function drawBenchmarkParameterTable(tabName) {
-  tfvis.visor().surface({name: 'benchmark parameter', tab: tabName});
+  tfvis.visor().surface(
+      {name: 'benchmark parameter', tab: tabName, styles: {width: '100%'}});
 }
 
 function createTab(browserConf) {
@@ -70,14 +83,15 @@ function createTab(browserConf) {
 
 function reportBenchmarkResults(benchmarkResults) {
   const tabName = benchmarkResults.tabName;
-  console.log(tabName, 'finished');
 
   // TODO:
   //   1. draw a summary table for inference time and memory info.
   //   2. draw a line chart for inference time.
   //   3. draw a table for inference kernel information.
+  tfvis.visor().surface(
+      {name: 'benchmark results', tab: tabName, styles: {width: '100%'}});
 
-  //   4. delete 'loading indicator' under the tab.
+  // TODO: delete 'loading indicator' under the tab.
 }
 
 socket.on('benchmarkComplete', benchmarkResult => {
