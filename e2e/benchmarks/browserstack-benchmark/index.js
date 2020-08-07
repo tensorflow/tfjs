@@ -35,7 +35,7 @@ const state = {
     benchmarkButton.__li.style.opacity = .5;
 
     initVisor();
-    const tabName = createTab(state.browser);
+    const tabId = createTab(state.browser);
 
     // Send the benchmark configuration to the server to start the benchmark.
     if (state.browser.device === 'null') {
@@ -46,7 +46,7 @@ const state = {
       delete benchmark['modelUrl'];
     }
 
-    socket.emit('run', {tabName, benchmark, browser: state.browser});
+    socket.emit('run', {tabId, benchmark, browser: state.browser});
   }
 };
 
@@ -81,7 +81,7 @@ const visorTabNameCounter = {};
  * @param {object} browserConf An object including os, os_version, browser,
  *     browser_version and device fields.
  */
-function getTabName(browserConf) {
+function getTabId(browserConf) {
   let baseName;
   if (browserConf.os === 'android' || browserConf.os === 'ios') {
     baseName = browserConf.device;
@@ -96,20 +96,20 @@ function getTabName(browserConf) {
 }
 
 function createTab(browserConf) {
-  const tabName = getTabName(browserConf);
+  const tabId = getTabId(browserConf);
 
   // For tfjs-vis, the tab name is not only a name but also the index to the
   // tab.
-  drawBrowserSettingTable(tabName, browserConf);
-  drawBenchmarkParameterTable(tabName);
+  drawBrowserSettingTable(tabId, browserConf);
+  drawBenchmarkParameterTable(tabId);
 
   // TODO: add a 'loading indicator' under the tab.
 
-  return tabName;
+  return tabId;
 }
 
 function reportBenchmarkResults(benchmarkResults) {
-  const tabName = benchmarkResults.tabName;
+  const tabId = benchmarkResults.tabId;
 
   // TODO: show error message, if `benchmarkResult.error != null`.
 
@@ -118,21 +118,21 @@ function reportBenchmarkResults(benchmarkResults) {
   //   2. draw a line chart for inference time.
   //   3. draw a table for inference kernel information.
   tfvis.visor().surface(
-      {name: 'benchmark results', tab: tabName, styles: {width: '100%'}});
+      {name: 'benchmark results', tab: tabId, styles: {width: '100%'}});
 
   // TODO: delete 'loading indicator' under the tab.
 }
 
-function drawBrowserSettingTable(tabName, browserConf) {
+function drawBrowserSettingTable(tabId, browserConf) {
   // TODO: Add a table.
   tfvis.visor().surface(
-      {name: 'browser setting', tab: tabName, styles: {width: '100%'}});
+      {name: 'browser setting', tab: tabId, styles: {width: '100%'}});
 }
 
-function drawBenchmarkParameterTable(tabName) {
+function drawBenchmarkParameterTable(tabId) {
   // TODO: Add a table.
   tfvis.visor().surface(
-      {name: 'benchmark parameter', tab: tabName, styles: {width: '100%'}});
+      {name: 'benchmark parameter', tab: tabId, styles: {width: '100%'}});
 }
 
 socket.on('benchmarkComplete', benchmarkResult => {

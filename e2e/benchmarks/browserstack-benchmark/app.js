@@ -101,7 +101,7 @@ function benchmark(config) {
     const matchedResult = stdout.match(resultReg);
     if (matchedResult != null) {
       const benchmarkResult = JSON.parse(matchedResult[1]);
-      benchmarkResult.tabName = config.tabName;
+      benchmarkResult.tabId = config.tabId;
       io.emit('benchmarkComplete', benchmarkResult);
       return;
     }

@@ -20,7 +20,7 @@
  * browser.
  */
 
-describe('getTabName', () => {
+describe('getTabId', () => {
   const mac = {
     base: 'BrowserStack',
     browser: 'firefox',
@@ -39,18 +39,18 @@ describe('getTabName', () => {
   };
 
   it('gives different names for the same browser configs', () => {
-    const name1 = getTabName(mac);
-    const name2 = getTabName(mac);
+    const name1 = getTabId(mac);
+    const name2 = getTabId(mac);
     expect(name1).not.toBe(name2);
   });
 
   it('for mobile devices, uses device name as part of the tab name', () => {
-    const mobileName = getTabName(iphoneX);
+    const mobileName = getTabId(iphoneX);
     expect(mobileName).toContain(iphoneX.device);
   });
 
   it('for desktop devices, uses OS name as part of the tab name', () => {
-    const desktopName = getTabName(mac);
+    const desktopName = getTabId(mac);
     expect(desktopName).toContain(mac.os);
     expect(desktopName).toContain(mac.os_version);
   });
