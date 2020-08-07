@@ -56,6 +56,7 @@ function initVisor() {
   }
   state.isVisorInitiated = true;
 
+  // Bind an event to visor's 'Maximize/Minimize' button.
   const visorFullScreenButton =
       tfvis.visor().el.getElementsByTagName('button')[0];
   visorFullScreenButton.onclick = () => {
@@ -66,9 +67,20 @@ function initVisor() {
     }
     state.isDatGuiHidden = !state.isDatGuiHidden;
   };
+
+  // If this button (hide visor) is exposed, then too much extra logics will be
+  // needed to tell the full story.
+  const visorHideButton = tfvis.visor().el.getElementsByTagName('button')[1];
+  visorHideButton.style.display = 'none';
 }
 
 const nameCounter = {};
+/**
+ *  Generate a unique name for the given setting.
+ *
+ * @param {object} browserConf An object including os, os_version, browser,
+ *     browser_version and device fields.
+ */
 function getTabName(browserConf) {
   let baseName;
   if (browserConf.os === 'android' || browserConf.os === 'ios') {
@@ -83,20 +95,11 @@ function getTabName(browserConf) {
   return `${baseName} - ${nameCounter[baseName]}`;
 }
 
-function drawBrowserSettingTable(tabName, browserConf) {
-  // TODO: Add a table.
-  tfvis.visor().surface(
-      {name: 'browser setting', tab: tabName, styles: {width: '100%'}});
-}
-
-function drawBenchmarkParameterTable(tabName) {
-  // TODO: Add a table.
-  tfvis.visor().surface(
-      {name: 'benchmark parameter', tab: tabName, styles: {width: '100%'}});
-}
-
 function createTab(browserConf) {
   const tabName = getTabName(browserConf);
+
+  // For tfjs-vis, the tab name is not only a name but also the index to the
+  // tab.
   drawBrowserSettingTable(tabName, browserConf);
   drawBenchmarkParameterTable(tabName);
 
@@ -116,6 +119,18 @@ function reportBenchmarkResults(benchmarkResults) {
       {name: 'benchmark results', tab: tabName, styles: {width: '100%'}});
 
   // TODO: delete 'loading indicator' under the tab.
+}
+
+function drawBrowserSettingTable(tabName, browserConf) {
+  // TODO: Add a table.
+  tfvis.visor().surface(
+      {name: 'browser setting', tab: tabName, styles: {width: '100%'}});
+}
+
+function drawBenchmarkParameterTable(tabName) {
+  // TODO: Add a table.
+  tfvis.visor().surface(
+      {name: 'benchmark parameter', tab: tabName, styles: {width: '100%'}});
 }
 
 socket.on('benchmarkComplete', benchmarkResult => {
