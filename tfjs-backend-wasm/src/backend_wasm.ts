@@ -418,7 +418,7 @@ export function setWasmPaths(
     wasmFileMap = prefixOrFileMap;
     const missingPaths =
         wasmBinaryNames.filter(name => wasmFileMap[name] == null);
-    if (missingPaths.length) {
+    if (missingPaths.length > 0) {
       throw new Error(
           `There were no entries found for the following binaries: ` +
           `${missingPaths.join(',')}. Please either call setWasmPaths with a ` +
