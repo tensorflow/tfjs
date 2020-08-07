@@ -102,6 +102,7 @@ async function main() {
     }
   }
 
+  // ========== Generate PR. ===================================================
   // Use dev prefix to avoid branch being locked.
   const devBranchName = `dev_${releaseBranch}_update`;
 
