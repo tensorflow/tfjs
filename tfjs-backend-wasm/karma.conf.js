@@ -61,8 +61,6 @@ module.exports = function(config) {
       {pattern: 'wasm-out/**/*.wasm', included: false},
       // Import the generated js library from emscripten.
       {pattern: 'wasm-out/**/*.js'},
-      // Import the generated worker file from emscripten.
-      {pattern: 'wasm-out/tfjs-backend-wasm-threaded-simd.worker.ts'},
       // Import the rest of the sources.
       {pattern: 'src/**/*.ts'},
     ],
