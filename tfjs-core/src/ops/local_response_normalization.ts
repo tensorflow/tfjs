@@ -78,7 +78,7 @@ function localResponseNormalization_<T extends Tensor3D|Tensor4D>(
       attrs as {} as NamedAttrMap);
 
   if (reshapedTo4D) {
-    return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
+    return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
   } else {
     return res as T;
   }

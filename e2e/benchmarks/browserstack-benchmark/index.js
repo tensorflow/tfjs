@@ -22,11 +22,23 @@ const state = {
     benchmarkButton.__li.style.pointerEvents = 'none';
     benchmarkButton.__li.style.opacity = .5;
 
+    // Send the benchmark configuration to the server to start the benchmark.
+    if (state.browser.device === 'null') {
+      state.browser.device = null;
+    }
     const benchmark = {...state.benchmark};
     if (state.benchmark.model !== 'custom') {
       delete benchmark['modelUrl'];
     }
-    socket.emit('run', {benchmark});
+    socket.emit('run', {benchmark, browsers: [state.browser]});
+  },
+  browser: {
+    base: 'BrowserStack',
+    browser: 'chrome',
+    browser_version: '84.0',
+    os: 'OS X',
+    os_version: 'Catalina',
+    device: 'null'
   },
   benchmark: {model: 'mobilenet_v2', modelUrl: '', numRuns: 1, backend: 'wasm'}
 };

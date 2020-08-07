@@ -18,6 +18,7 @@
 import {Div} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import * as broadcast_util from '../ops/broadcast_util';
+import {cast} from '../ops/cast';
 import {div} from '../ops/div';
 import {mul} from '../ops/mul';
 import {neg} from '../ops/neg';
@@ -34,21 +35,21 @@ export const divGradConfig: GradConfig = {
     const outShape =
         broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     const derA = () => {
-      const res = div(dy, b.toFloat());
+      const res = div(dy, cast(b, 'float32'));
       const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
       if (reduceAxes.length > 0) {
-        return sum(res, reduceAxes).reshape(a.shape);
+        return reshape(sum(res, reduceAxes), a.shape);
       }
       return res;
     };
     const derB = () => {
-      let res = mul(dy, a.toFloat());
+      let res = mul(dy, cast(a, 'float32'));
       const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
       if (reduceAxes.length > 0) {
         res = reshape(sum(res, reduceAxes), b.shape);
       }
       const tmp = square(b);
-      return neg(div(res, tmp.toFloat()));
+      return neg(div(res, cast(tmp, 'float32')));
     };
     return {a: derA, b: derB};
   }
