@@ -71,6 +71,8 @@ function getBackendPath(backend: SupportedBackend) {
       return '@tensorflow/tfjs-backend-cpu';
     case 'webgl':
       return '@tensorflow/tfjs-backend-webgl';
+    case 'wasm':
+      return '@tensorflow/tfjs-backend-wasm';
     default:
       throw new Error(`Unsupported backend ${backend}`);
   }
