@@ -17,11 +17,24 @@
 
 const socket = io();
 const state = {
+  isVisorInitiated: false,
+  isDatGuiHidden: false,
+  browser: {
+    base: 'BrowserStack',
+    browser: 'chrome',
+    browser_version: '84.0',
+    os: 'OS X',
+    os_version: 'Catalina',
+    device: 'null'
+  },
+  benchmark: {model: 'mobilenet_v2', modelUrl: '', numRuns: 1, backend: 'wasm'},
+
   run: () => {
     // Disable the button.
     benchmarkButton.__li.style.pointerEvents = 'none';
     benchmarkButton.__li.style.opacity = .5;
 
+    initVisor();
     const tabName = createTab(state.browser);
 
     // Send the benchmark configuration to the server to start the benchmark.
@@ -34,17 +47,26 @@ const state = {
     }
 
     socket.emit('run', {tabName, benchmark, browser: state.browser});
-  },
-  browser: {
-    base: 'BrowserStack',
-    browser: 'chrome',
-    browser_version: '84.0',
-    os: 'OS X',
-    os_version: 'Catalina',
-    device: 'null'
-  },
-  benchmark: {model: 'mobilenet_v2', modelUrl: '', numRuns: 1, backend: 'wasm'}
+  }
 };
+
+function initVisor() {
+  if (state.isVisorInitiated) {
+    return;
+  }
+  state.isVisorInitiated = true;
+
+  const visorFullScreenButton =
+      tfvis.visor().el.getElementsByTagName('button')[0];
+  visorFullScreenButton.onclick = () => {
+    if (state.isDatGuiHidden) {
+      gui.show();
+    } else {
+      gui.hide();
+    }
+    state.isDatGuiHidden = !state.isDatGuiHidden;
+  };
+}
 
 const nameCounter = {};
 function getTabName(browserConf) {
@@ -62,11 +84,13 @@ function getTabName(browserConf) {
 }
 
 function drawBrowserSettingTable(tabName, browserConf) {
+  // TODO: Add a table.
   tfvis.visor().surface(
       {name: 'browser setting', tab: tabName, styles: {width: '100%'}});
 }
 
 function drawBenchmarkParameterTable(tabName) {
+  // TODO: Add a table.
   tfvis.visor().surface(
       {name: 'benchmark parameter', tab: tabName, styles: {width: '100%'}});
 }
