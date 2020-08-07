@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+const TUNABLE_BROWSER_FIELDS =
+    ['os', 'os_version', 'browser', 'browser_version', 'device'];
 const socket = io();
 const state = {
   isVisorInitiated: false,
@@ -124,15 +126,38 @@ function reportBenchmarkResults(benchmarkResults) {
 }
 
 function drawBrowserSettingTable(tabId, browserConf) {
-  // TODO: Add a table.
-  tfvis.visor().surface(
-      {name: 'browser setting', tab: tabId, styles: {width: '100%'}});
+  const headers = ['Field', 'Value'];
+  const values = [];
+  for (const fieldName of TUNABLE_BROWSER_FIELDS) {
+    if (browserConf[fieldName] != null && browserConf[fieldName] !== 'null') {
+      const row = [fieldName, browserConf[fieldName]];
+      values.push(row);
+    }
+  }
+  const surface = {
+    name: 'Browser Setting',
+    tab: tabId,
+    styles: {width: '100%'}
+  };
+  tfvis.render.table(surface, {headers, values});
 }
 
 function drawBenchmarkParameterTable(tabId) {
-  // TODO: Add a table.
-  tfvis.visor().surface(
-      {name: 'benchmark parameter', tab: tabId, styles: {width: '100%'}});
+  const headers = ['Field', 'Value'];
+  const values = [];
+
+  for (const entry of Object.entries(state.benchmark)) {
+    if (entry[1] != null && entry[1] !== '') {
+      values.push(entry);
+    }
+  }
+
+  const surface = {
+    name: 'Benchmark Parameter',
+    tab: tabId,
+    styles: {width: '100%'}
+  };
+  tfvis.render.table(surface, {headers, values});
 }
 
 socket.on('benchmarkComplete', benchmarkResult => {
