@@ -156,19 +156,41 @@ function drawBenchmarkResultSummaryTable(benchmarkResults) {
   tfvis.render.table(surface, {headers, values});
 }
 
-function drawInferenceTimeLineChart(benchmarkResults) {
-  const tabId = benchmarkResults.tabId;
+async function drawInferenceTimeLineChart(benchmarkResults) {
   const inferenceTimeArray = benchmarkResults.timeInfo.times;
   if (inferenceTimeArray.length < 2) {
     return;
   }
 
+  const tabId = benchmarkResults.tabId;
   const values = inferenceTimeArray.map((y, x) => ({x, y}));
-  const data = {values};
   const surface = {name: 'Inference Time', tab: tabId, styles: {width: '100%'}};
-  tfvis.render.linechart(surface, data);
-}
+  const data = {values};
+  const drawOptions =
+      {zoomToFit: true, xLabel: '', yLabel: 'time (ms)', xType: 'ordinal'};
 
+  await tfvis.render.linechart(surface, data, drawOptions);
+
+  // Whenever resize the parent div element, re-draw the chart canvas.
+  try {
+    const originalCanvasHeight = tfvis.visor()
+                                     .surface(surface)
+                                     .drawArea.getElementsByTagName('canvas')[0]
+                                     .height;
+    const labelElement = tfvis.visor().surface(surface).label;
+
+    new ResizeObserver(() => {
+      // Keep the height of chart/canvas unchanged.
+      tfvis.visor()
+          .surface(surface)
+          .drawArea.getElementsByTagName('canvas')[0]
+          .height = originalCanvasHeight;
+      tfvis.render.linechart(surface, data, drawOptions);
+    }).observe(labelElement);
+  } catch (e) {
+    console.warn(`The browser does not support the ResizeObserver API: ${e}`);
+  }
+}
 
 function drawBrowserSettingTable(tabId, browserConf) {
   const headers = ['Field', 'Value'];
