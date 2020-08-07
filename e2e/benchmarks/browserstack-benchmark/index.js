@@ -100,11 +100,9 @@ function getTabId(browserConf) {
 function createTab(browserConf) {
   const tabId = getTabId(browserConf);
 
-  // For tfjs-vis, the tab name is not only a name but also the index to the
-  // tab.
+  // For tfvis, the tab name is not only a name but also the index to the tab.
   drawBrowserSettingTable(tabId, browserConf);
   drawBenchmarkParameterTable(tabId);
-
   // TODO: add a 'loading indicator' under the tab.
 
   return tabId;
@@ -113,11 +111,16 @@ function createTab(browserConf) {
 function reportBenchmarkResults(benchmarkResults) {
   const tabId = benchmarkResults.tabId;
 
-  // TODO: show error message, if `benchmarkResult.error != null`.
+  if (benchmarkResult.error != null) {
+    // TODO: show error message under the tab.
+    alert(benchmarkResult.error);
+    return;
+  }
 
-  drawBenchmarkResultSummaryTable(benchmarkResults);
   drawInferenceTimeLineChart(benchmarkResults);
+  drawBenchmarkResultSummaryTable(benchmarkResults);
   // TODO: draw a table for inference kernel information.
+  // This will be done, when we can get kernel timing info from `tf.profile()`.
 
   // TODO: delete 'loading indicator' under the tab.
 }
@@ -149,7 +152,7 @@ function drawBenchmarkResultSummaryTable(benchmarkResults) {
   values.push(['Number of kernels', memoryInfo.kernels.length]);
 
   const surface = {
-    name: 'Benchmark Result',
+    name: 'Benchmark Summary',
     tab: tabId,
     styles: {width: '100%'}
   };
@@ -228,11 +231,12 @@ function drawBenchmarkParameterTable(tabId) {
 }
 
 socket.on('benchmarkComplete', benchmarkResult => {
-  reportBenchmarkResults(benchmarkResult);
-
   // Enable the button.
   benchmarkButton.__li.style.pointerEvents = '';
   benchmarkButton.__li.style.opacity = 1;
+
+  console.log(benchmarkResult);
+  reportBenchmarkResults(benchmarkResult);
 });
 
 const gui = new dat.gui.GUI();
@@ -272,15 +276,15 @@ function showParameterSettings() {
 }
 
 function printTime(elapsed) {
-  return elapsed.toFixed(1) + ' ms';
+  return `${elapsed.toFixed(1)} ms`;
 }
 
 function printMemory(bytes) {
   if (bytes < 1024) {
-    return bytes + ' B';
+    return `${bytes} B`;
   } else if (bytes < 1024 * 1024) {
-    return (bytes / 1024).toFixed(2) + ' KB';
+    return `${(bytes / 1024).toFixed(2)} KB`;
   } else {
-    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   }
 }
