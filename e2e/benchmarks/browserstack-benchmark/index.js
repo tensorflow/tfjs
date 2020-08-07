@@ -111,6 +111,8 @@ function createTab(browserConf) {
 function reportBenchmarkResults(benchmarkResults) {
   const tabName = benchmarkResults.tabName;
 
+  // TODO: show error message, if `benchmarkResult.error != null`.
+
   // TODO:
   //   1. draw a summary table for inference time and memory info.
   //   2. draw a line chart for inference time.
@@ -134,11 +136,7 @@ function drawBenchmarkParameterTable(tabName) {
 }
 
 socket.on('benchmarkComplete', benchmarkResult => {
-  if (benchmarkResult.error != null) {
-    document.getElementById('results').innerHTML += benchmarkResult.error;
-  } else {
-    reportBenchmarkResults(benchmarkResult);
-  }
+  reportBenchmarkResults(benchmarkResult);
 
   // Enable the button.
   benchmarkButton.__li.style.pointerEvents = '';
