@@ -81,7 +81,8 @@ function validateArgs(): CustomTFJSBundleConfig {
 
   for (const requestedBackend of finalConfig.backends) {
     if (requestedBackend !== SupportedBackends.cpu &&
-        requestedBackend !== SupportedBackends.webgl) {
+        requestedBackend !== SupportedBackends.webgl &&
+        requestedBackend !== SupportedBackends.wasm) {
       bail(`Error: Unsupported backend specified '${requestedBackend}'`);
     }
   }
