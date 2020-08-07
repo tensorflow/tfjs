@@ -23,6 +23,7 @@
     "@rollup/plugin-typescript": "^3.0.0",
     "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
     "@tensorflow/tfjs-core": "link:../tfjs-core",
+    "@types/argparse": "^1.0.38",
     "@types/deep-equal": "^1.0.1",
     "@types/jasmine": "~2.8.6",
     "@types/long": "~3.0.32",
