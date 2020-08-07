@@ -65,6 +65,9 @@ ENV.registerFlag('WEBGL_PACK_CLIP', () => ENV.getBool('WEBGL_PACK'));
 // TODO: https://github.com/tensorflow/tfjs/issues/1679
 ENV.registerFlag('WEBGL_PACK_DEPTHWISECONV', () => false);
 
+/** Whether we will channel/col packed a texture */
+ENV.registerFlag('WEBGL_PACK_COL', () => false);
+
 /** Whether we will pack binary ops. */
 ENV.registerFlag(
     'WEBGL_PACK_BINARY_OPERATIONS', () => ENV.getBool('WEBGL_PACK'));

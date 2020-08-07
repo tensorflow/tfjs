@@ -359,6 +359,59 @@ export function getShapeAs3D(shape: number[]): [number, number, number] {
   return shapeAs3D;
 }
 
+export function getTextureShapeFromLogicalShapeColPacked(
+    logShape: number[],
+    ): [number, number] {
+  const maxTexSize = env().getNumber('WEBGL_MAX_TEXTURE_SIZE');
+  const packedMaxTexSize = maxTexSize * 4;
+
+  // logShape = logShape.map(
+  //     (d, i) => i === logShape.length - 1 ?
+  //         util.nearestLargerEven(logShape[i]) :
+  //         logShape[i]);
+
+  if (logShape.length === 1) {
+    logShape = [1, logShape[0]];
+  }
+
+  if (logShape.length !== 2) {
+    const squeezeResult = util.squeezeShape(logShape);
+    logShape = squeezeResult.newShape;
+  }
+
+  let size = util.sizeFromShape(logShape);
+  if (logShape.length <= 1 && size <= maxTexSize) {
+    return [1, size];
+  } else if (
+      logShape.length === 2 && logShape[0] <= maxTexSize &&
+      logShape[1] <= maxTexSize) {
+    return logShape as [number, number];
+  } else if (
+      logShape.length === 3 && logShape[0] * logShape[1] <= maxTexSize &&
+      logShape[2] <= packedMaxTexSize) {
+    return [logShape[0] * logShape[1], logShape[2]];
+  } else if (
+      logShape.length === 4 &&
+      logShape[0] * logShape[1] * logShape[2] <= maxTexSize &&
+      logShape[3] <= packedMaxTexSize) {
+    return [logShape[0] * logShape[1] * logShape[2], logShape[3]];
+  } else if (
+      logShape.length === 4 && logShape[0] * logShape[1] <= maxTexSize &&
+      logShape[2] * logShape[3] <= packedMaxTexSize) {
+    return [logShape[0] * logShape[1] * logShape[2], logShape[3]];
+  } else {
+    const batchDim = getBatchDim(logShape);
+    let rows = 2, cols = 2;
+    if (logShape.length) {
+      [rows, cols] = getRowsCols(logShape);
+    }
+    size = batchDim * rows * (cols / 4);
+    return util.sizeToSquarishShape(size).map(
+               (d: number, index: number) =>
+                   index === 0 ? d : d * 4) as [number, number];
+  }
+}
+
 export function getTextureShapeFromLogicalShape(
     logShape: number[], isPacked = false): [number, number] {
   let maxTexSize = env().getNumber('WEBGL_MAX_TEXTURE_SIZE');

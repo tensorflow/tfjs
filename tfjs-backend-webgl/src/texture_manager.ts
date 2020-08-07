@@ -34,9 +34,10 @@ export class TextureManager {
   constructor(private gpgpu: GPGPUContext) {}
 
   acquireTexture(
-      shapeRC: [number, number], usage: TextureUsage,
-      isPacked: boolean): WebGLTexture {
-    const physicalTexType = getPhysicalFromLogicalTextureType(usage, isPacked);
+      shapeRC: [number, number], usage: TextureUsage, isPacked: boolean,
+      packCol?: boolean): WebGLTexture {
+    const physicalTexType =
+        getPhysicalFromLogicalTextureType(usage, isPacked, packCol);
 
     const shapeKey = getKeyFromTextureShape(shapeRC, physicalTexType, isPacked);
     if (!(shapeKey in this.freeTextures)) {
@@ -66,6 +67,12 @@ export class TextureManager {
     } else if (physicalTexType === PhysicalTextureType.PACKED_2X2_FLOAT16) {
       newTexture =
           this.gpgpu.createFloat16PackedMatrixTexture(shapeRC[0], shapeRC[1]);
+    } else if (physicalTexType === PhysicalTextureType.PACKED_1X4_FLOAT32) {
+      newTexture =
+          this.gpgpu.createColPackedMatrixTexture(shapeRC[0], shapeRC[1]);
+    } else if (physicalTexType === PhysicalTextureType.PACKED_1X4_FLOAT16) {
+      newTexture = this.gpgpu.createFloat16ColPackedMatrixTexture(
+          shapeRC[0], shapeRC[1]);
     } else if (physicalTexType === PhysicalTextureType.UNPACKED_FLOAT32) {
       newTexture =
           this.gpgpu.createFloat32MatrixTexture(shapeRC[0], shapeRC[1]);
@@ -88,13 +95,14 @@ export class TextureManager {
 
   releaseTexture(
       texture: WebGLTexture, shape: [number, number],
-      logicalTexType: TextureUsage, isPacked: boolean): void {
+      logicalTexType: TextureUsage, isPacked: boolean,
+      packCol?: boolean): void {
     if (this.freeTextures == null) {
       // Already disposed.
       return;
     }
     const physicalTexType =
-        getPhysicalFromLogicalTextureType(logicalTexType, isPacked);
+        getPhysicalFromLogicalTextureType(logicalTexType, isPacked, packCol);
     const shapeKey = getKeyFromTextureShape(shape, physicalTexType, isPacked);
     if (!(shapeKey in this.freeTextures)) {
       this.freeTextures[shapeKey] = [];
@@ -232,8 +240,10 @@ function internalFormatForPhysicalTexType(
     textureConfig: TextureConfig): number {
   switch (physicalTexType) {
     case PhysicalTextureType.PACKED_2X2_FLOAT32:
+    case PhysicalTextureType.PACKED_1X4_FLOAT32:
       return getInternalFormatForPackedMatrixTexture(textureConfig);
     case PhysicalTextureType.PACKED_2X2_FLOAT16:
+    case PhysicalTextureType.PACKED_1X4_FLOAT16:
       return getInternalFormatForFloat16PackedMatrixTexture(textureConfig);
     case PhysicalTextureType.UNPACKED_FLOAT32:
       return getInternalFormatForFloat32MatrixTexture(textureConfig);
@@ -246,27 +256,31 @@ function internalFormatForPhysicalTexType(
   }
 }
 
-function getPhysicalTextureForRendering(isPacked: boolean):
-    PhysicalTextureType {
+function getPhysicalTextureForRendering(
+    isPacked: boolean, packCol: boolean): PhysicalTextureType {
   if (env().getBool('WEBGL_RENDER_FLOAT32_ENABLED')) {
     if (isPacked) {
-      return PhysicalTextureType.PACKED_2X2_FLOAT32;
+      return packCol ? PhysicalTextureType.PACKED_1X4_FLOAT32 :
+                       PhysicalTextureType.PACKED_2X2_FLOAT32;
     }
     return PhysicalTextureType.UNPACKED_FLOAT32;
   }
 
   if (isPacked) {
-    return PhysicalTextureType.PACKED_2X2_FLOAT16;
+    return packCol ? PhysicalTextureType.PACKED_1X4_FLOAT16 :
+                     PhysicalTextureType.PACKED_2X2_FLOAT16;
   }
   return PhysicalTextureType.UNPACKED_FLOAT16;
 }
 
 function getPhysicalFromLogicalTextureType(
-    logicalTexType: TextureUsage, isPacked: boolean): PhysicalTextureType {
+    logicalTexType: TextureUsage, isPacked: boolean,
+    packCol: boolean): PhysicalTextureType {
   if (logicalTexType === TextureUsage.UPLOAD) {
-    return PhysicalTextureType.PACKED_2X2_FLOAT32;
+    return packCol ? PhysicalTextureType.PACKED_1X4_FLOAT32 :
+                     PhysicalTextureType.PACKED_2X2_FLOAT32;
   } else if (logicalTexType === TextureUsage.RENDER || logicalTexType == null) {
-    return getPhysicalTextureForRendering(isPacked);
+    return getPhysicalTextureForRendering(isPacked, packCol);
   } else if (
       logicalTexType === TextureUsage.DOWNLOAD ||
       logicalTexType === TextureUsage.PIXELS) {

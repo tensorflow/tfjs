@@ -110,6 +110,14 @@ import {UnpackProgram} from './unpack_gpu';
 import * as webgl_util from './webgl_util';
 import {BackendValues} from '@tensorflow/tfjs-core';
 
+import {Pack1x4Program} from './1x4packed/1x4_pack_gpu';
+import {Packed2x2To1x4} from './1x4packed/2x2_to_1x4_packed';
+import {DepthwiseConvColPacked2DProgram} from './1x4packed/depthwise_conv';
+import {EncodeMatrixColPackedProgram} from './1x4packed/encode_matrix_packed_channel';
+import {EncodeMatrixRowPackedProgram} from './1x4packed/encode_matrix_packed_row';
+import {MatMulColPackedProgram} from './1x4packed/mulmat_packed_gpu';
+import {UnpackColProgram} from './1x4packed/upack1x4';
+
 export const EPSILON_FLOAT32 = 1e-7;
 export const EPSILON_FLOAT16 = 1e-4;
 
@@ -592,7 +600,7 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   private releaseGPUData(dataId: DataId): void {
-    const {texture, dtype, texShape, usage, isPacked, slice} =
+    const {texture, dtype, texShape, usage, isPacked, slice, packCol} =
         this.texData.get(dataId);
     const key = slice && slice.origDataId || dataId;
     const refCount = this.dataRefCount.get(key);
@@ -602,7 +610,8 @@ export class MathBackendWebGL extends KernelBackend {
       this.dataRefCount.delete(key);
       if (texture != null) {
         this.numBytesInGPU -= this.computeBytes(texShape, dtype);
-        this.textureManager.releaseTexture(texture, texShape, usage, isPacked);
+        this.textureManager.releaseTexture(
+            texture, texShape, usage, isPacked, packCol);
       }
     }
     const texData = this.texData.get(dataId);
@@ -858,7 +867,10 @@ export class MathBackendWebGL extends KernelBackend {
     const hasPreluActivationWeights = preluActivationWeights != null;
     const fusedActivation =
         activation ? mapActivationToShaderProgram(activation, true) : null;
-    const program = new MatMulPackedProgram(
+    const mulProgram = env().getBool('WEBGL_PACK_COL') ?
+        MatMulColPackedProgram :
+        MatMulPackedProgram;
+    const program = new mulProgram(
         a.shape, [batch, outerShapeA, outerShapeB], transposeA, transposeB,
         hasBias, fusedActivation, hasPreluActivationWeights);
     const inputs: TensorInfo[] = [a, b];
@@ -1840,6 +1852,10 @@ export class MathBackendWebGL extends KernelBackend {
       const filterReshaped =
           this.reshape(filter, [1, convInfo.inChannels, convInfo.outChannels]);
 
+      // exchange row and col for the filter
+      // const dataId = filterReshaped.dataId;
+      // this.encodeMatrixByRow(dataId);
+
       return this.reshape<Rank.R4>(
           this.fusedBatchMatMul({
             a: xReshaped as Tensor3D,
@@ -1951,6 +1967,8 @@ export class MathBackendWebGL extends KernelBackend {
     const hasPreluActivationWeights = preluActivationWeights != null;
     const fusedActivation =
         activation ? mapActivationToShaderProgram(activation, true) : null;
+    // const mulProgram = env().getBool('WEBGL_PACK_COL')?
+    // MatMulColPackedProgram : MatMulPackedProgram;
     const matmulProgram = new MatMulPackedProgram(
         im2Col.shape, [1, numCols, convInfo.outChannels], transposeA,
         transposeB, hasBias, fusedActivation, hasPreluActivationWeights);
@@ -2034,7 +2052,7 @@ export class MathBackendWebGL extends KernelBackend {
   fusedDepthwiseConv2D(
       {input, filter, convInfo, bias, activation, preluActivationWeights}:
           backend_util.FusedConv2DConfig): Tensor4D {
-    const shouldPackDepthwiseConv = env().getBool('WEBGL_PACK_DEPTHWISECONV') &&
+    const shouldPackDepthwiseConv = env().getBool('WEBGL_PACK_COL') &&
         convInfo.strideWidth <= 2 &&
         convInfo.outChannels / convInfo.inChannels === 1;
     const fusedActivation = activation ?
@@ -2051,11 +2069,21 @@ export class MathBackendWebGL extends KernelBackend {
       inputs.push(preluActivationWeights);
     }
 
-    let program: DepthwiseConv2DProgram|DepthwiseConvPacked2DProgram;
+    let program: DepthwiseConv2DProgram|DepthwiseConvPacked2DProgram|
+        DepthwiseConvColPacked2DProgram;
     if (shouldPackDepthwiseConv) {
-      program = new DepthwiseConvPacked2DProgram(
+      const texData = this.texData.get(filter.dataId);
+      if (!texData.texture) {
+        const dataId = this.write(
+            texData.values, texData.shape.slice(0, 3), texData.dtype);
+        filter.dataId = dataId;
+      }
+      (filter as any).shape = filter.shape.slice(0, 3);
+      program = new DepthwiseConvColPacked2DProgram(
           convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
-      return this.compileAndRun(program, inputs);
+      const t = this.compileAndRun(program, inputs);
+      (filter as any).shape = [...filter.shape, 1];
+      return t as Tensor4D;
     }
 
     program = new DepthwiseConv2DProgram(
@@ -2066,11 +2094,12 @@ export class MathBackendWebGL extends KernelBackend {
   depthwiseConv2D(
       x: Tensor4D, filter: Tensor4D,
       convInfo: backend_util.Conv2DInfo): Tensor4D {
-    let program: DepthwiseConv2DProgram|DepthwiseConvPacked2DProgram;
+    let program: DepthwiseConv2DProgram|DepthwiseConvPacked2DProgram|
+        DepthwiseConvColPacked2DProgram;
     if (env().getBool('WEBGL_PACK_DEPTHWISECONV') &&
         convInfo.strideWidth <= 2 &&
         convInfo.outChannels / convInfo.inChannels === 1) {
-      program = new DepthwiseConvPacked2DProgram(convInfo);
+      program = new DepthwiseConvColPacked2DProgram(convInfo);
       return this.compileAndRun(program, [x, filter]);
     }
 
@@ -2429,16 +2458,45 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   private unpackTensor(input: TensorInfo): TensorInfo {
-    const program = new UnpackProgram(input.shape);
+    const texData = this.texData.get(input.dataId);
+    const program = texData.packCol ? new UnpackColProgram(input.shape) :
+                                      new UnpackProgram(input.shape);
     return this.runWebGLProgram(program, [input], input.dtype);
   }
 
-  private packTensor(input: TensorInfo): TensorInfo {
-    const program = new PackProgram(input.shape);
+  private pack2x2To1x4(input: TensorInfo): TensorInfo {
+    const program = new Packed2x2To1x4(input.shape);
     const preventEagerUnpackingOutput = true;
     return this.runWebGLProgram(
         program, [input], input.dtype, null /* customSetup */,
         preventEagerUnpackingOutput);
+  }
+
+  encodeMatrixByRow(dataId: DataId): void {
+    const texData = this.texData.get(dataId);
+    if (texData.texture) {
+      return;
+    }
+    const {shape} = texData;
+    texData.packRow = true;
+    texData.packCol = true;
+    texData.isPacked = true;
+    const newShape = [...shape.slice(0, -2), ...shape.slice(-2).reverse()];
+    texData.shape = newShape;
+    texData.texShape = null;
+    this.uploadToGPU(dataId);
+  }
+
+  private packTensor(input: TensorInfo, packCol?: boolean): TensorInfo {
+    const shapeAs3D = webgl_util.getShapeAs3D(input.shape);
+    const program =
+        packCol ? new Pack1x4Program(shapeAs3D) : new PackProgram(input.shape);
+    const preventEagerUnpackingOutput = true;
+    const tensor = this.runWebGLProgram(
+        program, [input], input.dtype, null /* customSetup */,
+        preventEagerUnpackingOutput);
+    tensor.shape = input.shape;
+    return tensor;
   }
 
   private packedReshape(input: TensorInfo, afterShape: number[]): TensorInfo {
@@ -2489,10 +2547,11 @@ export class MathBackendWebGL extends KernelBackend {
     const outData = this.texData.get(output.dataId);
     if (program.packedOutput) {
       outData.isPacked = true;
+      outData.packCol = program.packCol;
     }
     if (program.outPackingScheme === tex_util.PackingScheme.DENSE) {
       const texelShape = tex_util.getDenseTexShape(program.outputShape);
-      // For a densely packed output, we explicitly set texShape
+      // For a densely packed output, we explicitly set texShapess
       // so it doesn't get assigned later according to our typical packing
       // scheme wherein a single texel can only contain values from adjacent
       // rows/cols.
@@ -2542,14 +2601,30 @@ export class MathBackendWebGL extends KernelBackend {
         if (program.packedInputs) {
           texData.isPacked = true;
           texData.shape = input.shape;
+          texData.packCol = program.packColInput;
         }
-      } else if (!!texData.isPacked !== !!program.packedInputs) {
-        input = texData.isPacked ? this.unpackTensor(input) :
-                                   this.packTensor(input);
+      } else if (
+          texData.isPacked && program.packedInputs && !texData.packCol &&
+          program.packColInput) {
+        input = this.pack2x2To1x4(input);
         dataToDispose.push(input);
         texData = this.texData.get(input.dataId);
+      } else if (!!texData.isPacked !== !!program.packedInputs) {
+        input = texData.isPacked ? this.unpackTensor(input) :
+                                   this.packTensor(input, program.packColInput);
+        dataToDispose.push(input);
+        texData = this.texData.get(input.dataId);
+      } else if (texData.packRow) {
+        return {
+          shape: [
+            ...input.shape.slice(0, -2),
+            ...input.shape.slice(-2).reverse(),
+          ],
+          texData,
+          isUniform: false,
+        };
       } else if (
-          texData.isPacked &&
+          !texData.packCol && texData.isPacked &&
           !webgl_util.isReshapeFree(texData.shape, input.shape)) {
         // This is a special case where a texture exists for a tensor
         // but the shapes are incompatible (due to packing constraints) because
@@ -2688,7 +2763,8 @@ export class MathBackendWebGL extends KernelBackend {
 
   private uploadToGPU(dataId: DataId): void {
     const texData = this.texData.get(dataId);
-    const {shape, dtype, values, texture, usage, isPacked} = texData;
+    const {shape, dtype, values, texture, usage, isPacked, packCol, packRow} =
+        texData;
 
     if (texture != null) {
       // Array is already on GPU. No-op.
@@ -2702,7 +2778,11 @@ export class MathBackendWebGL extends KernelBackend {
 
     let texShape = texData.texShape;
     if (texShape == null) {
-      texShape = webgl_util.getTextureShapeFromLogicalShape(shape, isPacked);
+      if (isPacked && packCol) {
+        texShape = webgl_util.getTextureShapeFromLogicalShapeColPacked(shape);
+      } else {
+        texShape = webgl_util.getTextureShapeFromLogicalShape(shape, isPacked);
+      }
       texData.texShape = texShape;
     }
 
@@ -2714,10 +2794,22 @@ export class MathBackendWebGL extends KernelBackend {
       const isByteArray = values instanceof Uint8Array;
 
       if (isPacked) {
-        [width, height] = tex_util.getPackedMatrixTextureShapeWidthHeight(
-            texShape[0], texShape[1]);
-        program = new EncodeMatrixPackedProgram(
-            shapeAs3D, [height, width], isByteArray);
+        if (packCol) {
+          [width, height] = tex_util.getColPackedMatrixTextureShapeWidthHeight(
+              texShape[0], texShape[1]);
+          program = new EncodeMatrixColPackedProgram(
+              shapeAs3D, [height, width], isByteArray);
+        } else if (packRow) {
+          [width, height] = tex_util.getColPackedMatrixTextureShapeWidthHeight(
+              texShape[0], texShape[1]);
+          program = new EncodeMatrixRowPackedProgram(
+              shapeAs3D, [height, width], isByteArray);
+        } else {
+          [width, height] = tex_util.getPackedMatrixTextureShapeWidthHeight(
+              texShape[0], texShape[1]);
+          program = new EncodeMatrixPackedProgram(
+              shapeAs3D, [height, width], isByteArray);
+        }
       } else {
         program =
             new EncodeMatrixProgram(shapeAs3D, [height, width], isByteArray);
@@ -2757,7 +2849,8 @@ export class MathBackendWebGL extends KernelBackend {
         this.uploadWaitMs += util.now() - start;
       }
     } else {
-      const newTexture = this.acquireTexture(texShape, usage, dtype, isPacked);
+      const newTexture = this.acquireTexture(
+          texShape, usage, dtype, isPacked, texData.packCol);
       texData.texture = newTexture;
     }
   }
@@ -2777,7 +2870,7 @@ export class MathBackendWebGL extends KernelBackend {
 
   private acquireTexture(
       texShape: [number, number], texType: TextureUsage, dtype: DataType,
-      isPacked: boolean): WebGLTexture {
+      isPacked: boolean, packCol?: boolean): WebGLTexture {
     this.numBytesInGPU += this.computeBytes(texShape, dtype);
     if (!this.warnedAboutMemory &&
         this.numBytesInGPU > this.numMBBeforeWarning * 1024 * 1024) {
@@ -2787,7 +2880,8 @@ export class MathBackendWebGL extends KernelBackend {
           `High memory usage in GPU: ${mb} MB, ` +
           `most likely due to a memory leak`);
     }
-    return this.textureManager.acquireTexture(texShape, texType, isPacked);
+    return this.textureManager.acquireTexture(
+        texShape, texType, isPacked, packCol);
   }
 
   private computeBytes(shape: [number, number], dtype: DataType) {

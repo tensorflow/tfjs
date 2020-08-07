@@ -31,6 +31,16 @@ export interface GPGPUProgram {
   /** If true, this program produces a packed texture. Defaults to false. */
   packedOutput?: boolean;
   /**
+   * If true, this program produces a channel/col packed texture. Defaults to
+   * false.
+   */
+  packCol?: boolean;
+  /**
+   * If true, this program expects channel/col packed input textures. Defaults
+   * to false.
+   */
+  packColInput?: boolean;
+  /**
    * Affects what type of texture we allocate for the output. Defaults to
    * `TextureUsage.RENDER`.
    */
@@ -71,6 +81,7 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
       texShape: input.isUniform ? null : input.texData.texShape,
       isUniform: input.isUniform,
       isPacked: input.isUniform ? false : input.texData.isPacked,
+      packCol: input.texData.packCol,
       flatOffset: null
     };
     if (input.texData != null && input.texData.slice != null &&
@@ -85,10 +96,12 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
     texShape: output.texData.texShape,
     isUniform: false,
     isPacked: output.texData.isPacked,
+    packCol: output.texData.packCol,
     flatOffset: null
   };
   const source = shader_compiler.makeShader(
-      inputInfos, outShapeInfo, userCode, program.packedInputs);
+      inputInfos, outShapeInfo, userCode, program.packedInputs,
+      program.packColInput);
 
   const webGLProgram = gpgpu.createProgram(source);
 
@@ -166,7 +179,8 @@ export function runProgram<T extends Tensor, K extends Tensor>(
   const outTex = output.texData.texture;
   const outTexShape = output.texData.texShape;
   if (output.texData.isPacked) {
-    gpgpu.setOutputPackedMatrixTexture(outTex, outTexShape[0], outTexShape[1]);
+    gpgpu.setOutputPackedMatrixTexture(
+        outTex, outTexShape[0], outTexShape[1], output.texData.packCol);
   } else {
     gpgpu.setOutputMatrixTexture(outTex, outTexShape[0], outTexShape[1]);
   }
