@@ -17,10 +17,25 @@
 
 const socket = io();
 const state = {
+  isVisorInitiated: false,
+  isDatGuiHidden: false,
+  browser: {
+    base: 'BrowserStack',
+    browser: 'chrome',
+    browser_version: '84.0',
+    os: 'OS X',
+    os_version: 'Catalina',
+    device: 'null'
+  },
+  benchmark: {model: 'mobilenet_v2', modelUrl: '', numRuns: 1, backend: 'wasm'},
+
   run: () => {
     // Disable the button.
     benchmarkButton.__li.style.pointerEvents = 'none';
     benchmarkButton.__li.style.opacity = .5;
+
+    initVisor();
+    const tabId = createTab(state.browser);
 
     // Send the benchmark configuration to the server to start the benchmark.
     if (state.browser.device === 'null') {
@@ -30,27 +45,120 @@ const state = {
     if (state.benchmark.model !== 'custom') {
       delete benchmark['modelUrl'];
     }
-    socket.emit('run', {benchmark, browsers: [state.browser]});
-  },
-  browser: {
-    base: 'BrowserStack',
-    browser: 'chrome',
-    browser_version: '84.0',
-    os: 'OS X',
-    os_version: 'Catalina',
-    device: 'null'
-  },
-  benchmark: {model: 'mobilenet_v2', modelUrl: '', numRuns: 1, backend: 'wasm'}
+
+    socket.emit('run', {tabId, benchmark, browser: state.browser});
+  }
 };
 
-socket.on('benchmarkComplete', benchmarkResult => {
-  if (benchmarkResult.error != null) {
-    document.getElementById('results').innerHTML += benchmarkResult.error;
-  } else {
-    const {timeInfo, memoryInfo} = benchmarkResult;
-    document.getElementById('results').innerHTML +=
-        JSON.stringify(timeInfo, null, 2);
+function initVisor() {
+  if (state.isVisorInitiated) {
+    return;
   }
+  state.isVisorInitiated = true;
+
+  // Bind an event to visor's 'Maximize/Minimize' button.
+  const visorFullScreenButton =
+      tfvis.visor().el.getElementsByTagName('button')[0];
+  const guiCloseButton = document.getElementsByClassName('close-button')[0];
+  const originalGuiWidth = gui.domElement.style.width;
+
+  // The following two bound events are to implemet:
+  // - When the visor is minimized, the controlled panel is hidden;
+  // - When the visor is maximized, the controlled panel appears;
+  gui.domElement.style.width = originalGuiWidth;
+  visorFullScreenButton.onclick = () => {
+    if (state.isDatGuiHidden) {
+      // When opening the controll panel, recover the size.
+      gui.open();
+      gui.domElement.style.width = originalGuiWidth;
+    } else {
+      // When closing the controll panel, narrow the size.
+      gui.close();
+      gui.domElement.style.width = '10%';
+    }
+    state.isDatGuiHidden = !state.isDatGuiHidden;
+  };
+  guiCloseButton.onclick = () => {
+    if (state.isDatGuiHidden) {
+      // When opening the controll panel, recover the size.
+      gui.domElement.style.width = originalGuiWidth;
+    } else {
+      // When closing the controll panel, narrow the size.
+      gui.domElement.style.width = '10%';
+    }
+    tfvis.visor().toggleFullScreen();
+    state.isDatGuiHidden = !state.isDatGuiHidden;
+  };
+
+  // If this button (hide visor) is exposed, then too much extra logics will be
+  // needed to tell the full story.
+  const visorHideButton = tfvis.visor().el.getElementsByTagName('button')[1];
+  visorHideButton.style.display = 'none';
+}
+
+const visorTabNameCounter = {};
+/**
+ *  Generate a unique name for the given setting.
+ *
+ * @param {object} browserConf An object including os, os_version, browser,
+ *     browser_version and device fields.
+ */
+function getTabId(browserConf) {
+  let baseName;
+  if (browserConf.os === 'android' || browserConf.os === 'ios') {
+    baseName = browserConf.device;
+  } else {
+    baseName = `${browserConf.os}(${browserConf.os_version})`;
+  }
+  if (visorTabNameCounter[baseName] == null) {
+    visorTabNameCounter[baseName] = 0;
+  }
+  visorTabNameCounter[baseName] += 1;
+  return `${baseName} - ${visorTabNameCounter[baseName]}`;
+}
+
+function createTab(browserConf) {
+  const tabId = getTabId(browserConf);
+
+  // For tfjs-vis, the tab name is not only a name but also the index to the
+  // tab.
+  drawBrowserSettingTable(tabId, browserConf);
+  drawBenchmarkParameterTable(tabId);
+
+  // TODO: add a 'loading indicator' under the tab.
+
+  return tabId;
+}
+
+function reportBenchmarkResults(benchmarkResults) {
+  const tabId = benchmarkResults.tabId;
+
+  // TODO: show error message, if `benchmarkResult.error != null`.
+
+  // TODO:
+  //   1. draw a summary table for inference time and memory info.
+  //   2. draw a line chart for inference time.
+  //   3. draw a table for inference kernel information.
+  tfvis.visor().surface(
+      {name: 'benchmark results', tab: tabId, styles: {width: '100%'}});
+
+  // TODO: delete 'loading indicator' under the tab.
+}
+
+function drawBrowserSettingTable(tabId, browserConf) {
+  // TODO: Add a table.
+  tfvis.visor().surface(
+      {name: 'browser setting', tab: tabId, styles: {width: '100%'}});
+}
+
+function drawBenchmarkParameterTable(tabId) {
+  // TODO: Add a table.
+  tfvis.visor().surface(
+      {name: 'benchmark parameter', tab: tabId, styles: {width: '100%'}});
+}
+
+socket.on('benchmarkComplete', benchmarkResult => {
+  reportBenchmarkResults(benchmarkResult);
 
   // Enable the button.
   benchmarkButton.__li.style.pointerEvents = '';
@@ -58,6 +166,7 @@ socket.on('benchmarkComplete', benchmarkResult => {
 });
 
 const gui = new dat.gui.GUI();
+gui.domElement.id = 'gui';
 showModelSelection();
 showParameterSettings();
 const benchmarkButton = gui.add(state, 'run').name('Run benchmark');
