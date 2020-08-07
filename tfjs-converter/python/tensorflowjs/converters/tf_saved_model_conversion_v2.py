@@ -525,7 +525,11 @@ def convert_tf_saved_model(saved_model_dir,
 
     def _strip_unused_nodes(frozen_graph, concrete_func, output_node_names):
       # Find the names of the input nodes needed to extract the minimal
-      # subgraph.
+      # inference graph. This is particularly useful for cases when the concrete
+      # function contains nodes that do not contribute the inference computation
+      # defined by the input/output pair. This would also eliminate op
+      # unsupported error caused by nodes outside of the minial infrerence
+      # graph.
       input_node_names = []
       for input_tensor in concrete_func.inputs:
         if not input_tensor.dtype == 'resource':
