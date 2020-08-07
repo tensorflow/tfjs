@@ -500,14 +500,16 @@ def convert_tf_saved_model(saved_model_dir,
   signature = _build_signature_def(
       frozen_graph, inputs, concrete_func.outputs)
 
-  # Check if the TransformGraph is available to be imported,
+  # Check if the TransformGraph is available to be imported, this package is
+  # available in g3 but not in oss version of TensorFlow.
   transform_graph_available = True
   try:
     from tensorflow.tools.graph_transforms import TransformGraph # pylint: disable=C0415
   except: # pylint: disable=W0702
     transform_graph_available = False
 
-
+  # Define the strip graph functions when TransformGraph is available, this will
+  # strip the unused nodes from the graph.
   if transform_graph_available:
     def _gen_strip_unused_nodes_transformation(tensor):
       """Generate `strip_unused_nodes()` transformation for the

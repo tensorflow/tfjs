@@ -18,7 +18,7 @@
 
 function print_usage() {
   echo "Usage:"
-  echo "  run-python-tests.sh <req_file>"
+  echo "  run-python-tests.sh <requirments_file>"
   echo
 }
 
@@ -34,16 +34,26 @@ TMP_VENV_DIR="$(mktemp -u).venv"
 virtualenv -p "python" "${TMP_VENV_DIR}"
 source "${TMP_VENV_DIR}/bin/activate"
 
+# There is one argument (requirements_file), please update this constant when
+# you adding more arguments.
+ARGS_COUNT=1
+
+# Default requirements file name.
 REQ_FILE="${SCRIPTS_DIR}/requirements-dev.txt"
-if [[ $# > 1 ]]; then
+
+# Show the usage message if there are too many arguments.
+if [[ $# > ARGS_COUNT ]]; then
   print_usage
   exit 1
 fi
+
+# Use the user specified requirements file name.
 if [[ $# == 1 ]]; then
   REQ_FILE=$1
 fi
 pip install -r "${REQ_FILE}"
 
+# Run pylint for tensorflowjs directory
 cd "${SCRIPTS_DIR}"
 pylint --rcfile=.pylintrc tensorflowjs
 
@@ -59,5 +69,6 @@ echo
 echo "All tests passed."
 echo
 
+# Clean up
 deactivate
 rm -rf "${TMP_VENV_DIR}"

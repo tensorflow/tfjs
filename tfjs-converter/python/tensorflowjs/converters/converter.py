@@ -584,12 +584,14 @@ def get_arg_parser():
       '"tf_frozen_model".')
   parser.add_argument(
       '--%s' % common.CONTROL_FLOW_V2,
-      type=str,
+      type=bool,
+      default=False,
       help='Enable control flow v2 ops, this would improve inference '
       'performance on models with branches or loops.')
   parser.add_argument(
       '--%s' % common.EXPERIMENTS,
-      type=str,
+      type=bool,
+      default=False,
       help='Enable experimental features, you should only enable this flag '
       'when using Python3 and TensorFlow nightly build.')
   return parser
