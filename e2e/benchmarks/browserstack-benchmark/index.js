@@ -111,9 +111,9 @@ function createTab(browserConf) {
 function reportBenchmarkResults(benchmarkResults) {
   const tabId = benchmarkResults.tabId;
 
-  if (benchmarkResult.error != null) {
+  if (benchmarkResults.error != null) {
     // TODO: show error message under the tab.
-    alert(benchmarkResult.error);
+    alert(benchmarkResults.error);
     return;
   }
 
@@ -235,7 +235,6 @@ socket.on('benchmarkComplete', benchmarkResult => {
   benchmarkButton.__li.style.pointerEvents = '';
   benchmarkButton.__li.style.opacity = 1;
 
-  console.log(benchmarkResult);
   reportBenchmarkResults(benchmarkResult);
 });
 
