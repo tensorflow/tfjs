@@ -16,6 +16,12 @@
 
 # A script that runs all Python unit tests in tfjs-layers.
 
+function print_usage() {
+  echo "Usage:"
+  echo "  run-python-tests.sh <req_file>"
+  echo
+}
+
 set -e
 
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -28,7 +34,15 @@ TMP_VENV_DIR="$(mktemp -u).venv"
 virtualenv -p "python" "${TMP_VENV_DIR}"
 source "${TMP_VENV_DIR}/bin/activate"
 
-pip install -r "${SCRIPTS_DIR}/requirements-dev.txt"
+REQ_FILE="${SCRIPTS_DIR}/requirements-dev.txt"
+if [[ $# > 1 ]]; then
+  print_usage
+  exit 1
+fi
+if [[ $# == 1 ]]; then
+  REQ_FILE=$1
+fi
+pip install -r "${REQ_FILE}"
 
 cd "${SCRIPTS_DIR}"
 pylint --rcfile=.pylintrc tensorflowjs

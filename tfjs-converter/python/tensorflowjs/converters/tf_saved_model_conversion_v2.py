@@ -112,7 +112,7 @@ def _run_grappler(config, graph_def, graph, signature_def):
 def optimize_graph(graph, signature_def, output_graph,
                    tf_version, quantization_dtype_map=None,
                    skip_op_check=False, strip_debug_ops=False,
-                   weight_shard_size_bytes=1024 * 1024 * 4):
+                   weight_shard_size_bytes=1024 * 1024 * 4, experiments=False):
   """Takes a Python Graph object and optimizes the graph.
 
   Args:
@@ -149,6 +149,9 @@ def optimize_graph(graph, signature_def, output_graph,
       'pruning', 'constfold', 'arithmetic', 'dependency', 'pruning',
       'constfold', 'arithmetic', 'dependency'
   ]
+  if experiments:
+    rewriter_config.experimental_disable_compressed_tensor_optimization = True
+
   if strip_debug_ops:
     rewriter_config.optimizers.insert(0, 'debug_stripper')
 
@@ -391,7 +394,8 @@ def convert_tf_frozen_model(frozen_model_path,
                             quantization_dtype_map=None,
                             skip_op_check=False,
                             strip_debug_ops=False,
-                            weight_shard_size_bytes=1024 * 1024 * 4):
+                            weight_shard_size_bytes=1024 * 1024 * 4,
+                            experiments=False):
   """Convert frozen model and check the model compatibility with Tensorflow.js.
   Optimize and convert the model to Tensorflow.js format, when the model passes
   the compatiblity check.
@@ -409,6 +413,7 @@ def convert_tf_frozen_model(frozen_model_path,
     strip_debug_ops: Bool whether to strip debug ops.
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
+    experiments: Bool enable experimental features.
   """
 
   if not os.path.exists(output_dir):
@@ -424,7 +429,8 @@ def convert_tf_frozen_model(frozen_model_path,
                  quantization_dtype_map=quantization_dtype_map,
                  skip_op_check=skip_op_check,
                  strip_debug_ops=strip_debug_ops,
-                 weight_shard_size_bytes=weight_shard_size_bytes)
+                 weight_shard_size_bytes=weight_shard_size_bytes,
+                 experiments=experiments)
 
 def convert_tf_saved_model(saved_model_dir,
                            output_dir, signature_def='serving_default',
@@ -433,7 +439,7 @@ def convert_tf_saved_model(saved_model_dir,
                            skip_op_check=False,
                            strip_debug_ops=False,
                            weight_shard_size_bytes=1024 * 1024 * 4,
-                           control_flow_v2=False):
+                           control_flow_v2=False, experiments=False):
   """Freeze the SavedModel and check the model compatibility with Tensorflow.js.
 
   Optimize and convert the model to Tensorflow.js format, when the model passes
@@ -457,6 +463,7 @@ def convert_tf_saved_model(saved_model_dir,
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
     control_flow_v2: Bool whether to enable control flow v2 ops.
+    experiments: Bool enable experimental features.
   """
   if signature_def is None:
     signature_def = 'serving_default'
@@ -493,12 +500,67 @@ def convert_tf_saved_model(saved_model_dir,
   signature = _build_signature_def(
       frozen_graph, inputs, concrete_func.outputs)
 
+  # Check if the TransformGraph is available to be imported,
+  transform_graph_available = True
+  try:
+    from tensorflow.tools.graph_transforms import TransformGraph # pylint: disable=C0415
+  except: # pylint: disable=W0702
+    transform_graph_available = False
+
+
+  if transform_graph_available:
+    def _gen_strip_unused_nodes_transformation(tensor):
+      """Generate `strip_unused_nodes()` transformation for the
+      input `tensor`.
+      """
+      name = tensor.name.split(":")[0]
+      # "<dtype: 'int64'>" -> "int64"
+      dtype = repr(tensor.dtype).replace("tf.", "")
+      # TensorShape([1, 128]) -> "1,128"
+      shape = ",".join(str(dim) for dim in tensor.shape)
+      return ('name="{}", type_for_name={}, '
+              'shape_for_name="{}"').format(name, dtype, shape)
+
+    def _strip_unused_nodes(frozen_graph, concrete_func, output_node_names):
+      # Find the names of the input nodes needed to extract the minimal
+      # subgraph.
+      input_node_names = []
+      for input_tensor in concrete_func.inputs:
+        if not input_tensor.dtype == 'resource':
+          op_name = input_tensor.name.split(':')[0]
+          # The graph freezing may turn the original inputs into constants, or
+          # remove them from the graph, so we need to ignore those.
+          try:
+            op = frozen_graph.get_operation_by_name(op_name)
+            if op.type != 'Const':
+              input_node_names.append(op_name)
+          except KeyError:
+            # The original input was removed when the graph was frozen.
+            continue
+
+      graph_transformations = [
+          "strip_unused_nodes(" + ", ".join(
+              _gen_strip_unused_nodes_transformation(tensor)
+              for tensor in concrete_func.inputs
+              if not tensor.dtype == 'resource') + ")"
+      ]
+      stripped_graph_def = TransformGraph(
+          frozen_graph.as_graph_def(), input_node_names, output_node_names,
+          graph_transformations)
+      with tf.Graph().as_default() as stripped_graph:
+        tf.import_graph_def(stripped_graph_def, name='')
+        return stripped_graph
+
+    frozen_graph = _strip_unused_nodes(
+        frozen_graph, concrete_func, output_node_names)
+
   optimize_graph(frozen_graph, signature,
                  output_graph, model.tensorflow_version,
                  quantization_dtype_map=quantization_dtype_map,
                  skip_op_check=skip_op_check,
                  strip_debug_ops=strip_debug_ops,
-                 weight_shard_size_bytes=weight_shard_size_bytes)
+                 weight_shard_size_bytes=weight_shard_size_bytes,
+                 experiments=experiments)
 
 def load_and_initialize_hub_module(module_path, signature='default'):
   """Loads graph of a TF-Hub module and initializes it into a session.
@@ -549,7 +611,8 @@ def load_and_initialize_hub_module(module_path, signature='default'):
 def convert_tf_hub_module_v1(module_path, output_dir,
                              signature='default', quantization_dtype_map=None,
                              skip_op_check=False, strip_debug_ops=False,
-                             weight_shard_size_bytes=1024 * 1024 * 4):
+                             weight_shard_size_bytes=1024 * 1024 * 4,
+                             experiments=False):
   """Freeze the TF-Hub module and check compatibility with Tensorflow.js.
 
   Optimize and convert the TF-Hub module to Tensorflow.js format, if it passes
@@ -569,6 +632,7 @@ def convert_tf_hub_module_v1(module_path, output_dir,
     strip_debug_ops: Bool whether to strip debug ops.
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
+    experiments: Bool enable experimental features.
   """
 
   if signature is None:
@@ -609,7 +673,8 @@ def convert_tf_hub_module_v1(module_path, output_dir,
                    quantization_dtype_map=quantization_dtype_map,
                    skip_op_check=skip_op_check,
                    strip_debug_ops=strip_debug_ops,
-                   weight_shard_size_bytes=weight_shard_size_bytes)
+                   weight_shard_size_bytes=weight_shard_size_bytes,
+                   experiments=experiments)
   finally:
     # Clean up the temp files.
     if os.path.exists(frozen_file):
@@ -621,7 +686,7 @@ def convert_tf_hub_module(module_handle, output_dir,
                           quantization_dtype_map=None,
                           skip_op_check=False, strip_debug_ops=False,
                           weight_shard_size_bytes=1024 * 1024 * 4,
-                          control_flow_v2=False):
+                          control_flow_v2=False, experiments=False):
   """Conversion for TF Hub modules V1 and V2.
 
   See convert_tf_hub_module and convert_tf_saved_model.
@@ -642,6 +707,7 @@ def convert_tf_hub_module(module_handle, output_dir,
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
     control_flow_v2: Bool whether to enable control flow v2 ops.
+    experiments: Bool enable experimental features.
   """
   module_path = hub.resolve(module_handle)
   # TODO(vbardiovskyg): We can remove this v1 code path once loading of all v1
@@ -652,7 +718,8 @@ def convert_tf_hub_module(module_handle, output_dir,
     convert_tf_hub_module_v1(module_path, output_dir, signature,
                              quantization_dtype_map,
                              skip_op_check, strip_debug_ops,
-                             weight_shard_size_bytes)
+                             weight_shard_size_bytes,
+                             experiments=experiments)
   else:
     print("Loading the module using TF 2.X interface from %s." % module_path)
     if signature is None:
@@ -665,4 +732,5 @@ def convert_tf_hub_module(module_handle, output_dir,
                            skip_op_check=skip_op_check,
                            strip_debug_ops=strip_debug_ops,
                            weight_shard_size_bytes=weight_shard_size_bytes,
-                           control_flow_v2=control_flow_v2)
+                           control_flow_v2=control_flow_v2,
+                           experiments=experiments)
