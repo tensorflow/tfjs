@@ -158,15 +158,11 @@ export class MathBackendCPU extends KernelBackend {
 
   disposeData(dataId: DataId): void {
     if (this.data.has(dataId)) {
-      const tensorData = this.data.get(dataId);
-
-      if (tensorData.complexTensors != null) {
-        // Todo(linazhao): Change to disposeData once complex, real, and imag
-        // kernels are modularized and real and imag becomes `TensorInfo`.
-        tensorData.complexTensors.real.dispose();
-        tensorData.complexTensors.imag.dispose();
+      const {complexTensors} = this.data.get(dataId);
+      if (complexTensors != null) {
+        complexTensors.real.dispose();
+        complexTensors.imag.dispose();
       }
-
       this.data.delete(dataId);
     }
   }
