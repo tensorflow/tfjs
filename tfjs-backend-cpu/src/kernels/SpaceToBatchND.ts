@@ -75,9 +75,9 @@ export function spaceToBatchND(args: {
   const result = reshape(
       {inputs: resultReshapeInputs, backend, attrs: resultReshapeAttrs});
 
-  backend.disposeDataSoft(paddedX.dataId);
-  backend.disposeDataSoft(paddedXReshaped.dataId);
-  backend.disposeDataSoft(paddedXT.dataId);
+  backend.disposeIntermediateTensorInfo(paddedX);
+  backend.disposeIntermediateTensorInfo(paddedXReshaped);
+  backend.disposeIntermediateTensorInfo(paddedXT);
 
   return result;
 }

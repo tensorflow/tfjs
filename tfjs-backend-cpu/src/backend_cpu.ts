@@ -16,10 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {engine, env} from '@tensorflow/tfjs-core';
-import {backend_util, buffer, slice_util, util} from '@tensorflow/tfjs-core';
-import {BackendTimingInfo, DataStorage, DataType, DataValues, KernelBackend, max, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, TypedArray, upcastType} from '@tensorflow/tfjs-core';
-import {kernel_impls} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, max, NumericDataType, Rank, Scalar, ShapeMap, slice_util, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
 const nonMaxSuppressionV3Impl = kernel_impls.nonMaxSuppressionV3Impl;
 const split = kernel_impls.split;
@@ -174,7 +171,9 @@ export class MathBackendCPU extends KernelBackend {
     }
   }
 
-  disposeDataSoft(dataId: DataId): void {
+  disposeIntermediateTensorInfo(tensorInfo: TensorInfo): void {
+    const dataId = tensorInfo.dataId;
+
     if (this.data.has(dataId)) {
       const tensorData = this.data.get(dataId);
 
