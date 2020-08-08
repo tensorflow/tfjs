@@ -834,15 +834,6 @@ export class Engine implements TensorTracker, DataMover {
       this.state.tensorInfo.delete(a.dataId);
     } else {
       this.state.tensorInfo.get(a.dataId).refCount--;
-
-      // Todo(linazhao): Remove decRef once reshape, clone and cast kernels
-      // are modularized.
-      // We added this to keep backend refCount to be in sync with engine
-      // refCount.
-      if (this.backendName === 'cpu') {
-        // tslint:disable-next-line: no-any
-        (info.backend as any).decRef(a.dataId);
-      }
     }
     // TODO(nsthorat): Construct an error and save the stack trace for
     // debugging when in debug mode. Creating a stack trace is too expensive
