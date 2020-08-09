@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+const TUNABLE_BROWSER_FIELDS =
+    ['os', 'os_version', 'browser', 'browser_version', 'device'];
 const socket = io();
 const state = {
   isVisorInitiated: false,
@@ -120,49 +122,155 @@ function getTabId(browserConf) {
 function createTab(browserConf) {
   const tabId = getTabId(browserConf);
 
-  // For tfjs-vis, the tab name is not only a name but also the index to the
-  // tab.
+  // For tfvis, the tab name is not only a name but also the index to the tab.
   drawBrowserSettingTable(tabId, browserConf);
   drawBenchmarkParameterTable(tabId);
-
   // TODO: add a 'loading indicator' under the tab.
 
   return tabId;
 }
 
-function reportBenchmarkResults(benchmarkResults) {
-  const tabId = benchmarkResults.tabId;
+function reportBenchmarkResult(benchmarkResult) {
+  const tabId = benchmarkResult.tabId;
 
-  // TODO: show error message, if `benchmarkResult.error != null`.
+  if (benchmarkResult.error != null) {
+    // TODO: show error message under the tab.
+    alert(benchmarkResult.error);
+    return;
+  }
 
-  // TODO:
-  //   1. draw a summary table for inference time and memory info.
-  //   2. draw a line chart for inference time.
-  //   3. draw a table for inference kernel information.
-  tfvis.visor().surface(
-      {name: 'benchmark results', tab: tabId, styles: {width: '100%'}});
+  drawInferenceTimeLineChart(benchmarkResult);
+  drawBenchmarkResultSummaryTable(benchmarkResult);
+  // TODO: draw a table for inference kernel information.
+  // This will be done, when we can get kernel timing info from `tf.profile()`.
 
   // TODO: delete 'loading indicator' under the tab.
 }
 
+function drawBenchmarkResultSummaryTable(benchmarkResult) {
+  const headers = ['Field', 'Value'];
+  const values = [];
+
+  const {timeInfo, memoryInfo, tabId} = benchmarkResult;
+  const timeArray = benchmarkResult.timeInfo.times;
+  const numRuns = timeArray.length;
+
+  if (numRuns >= 1) {
+    values.push(['1st inference time', printTime(timeArray[0])]);
+    if (numRuns >= 2) {
+      values.push(['2nd inference time', printTime(timeArray[1])]);
+    }
+    values.push([
+      `Average inference time (${numRuns} runs)`,
+      printTime(timeInfo.averageTime)
+    ]);
+    values.push(['Best time', printTime(timeInfo.minTime)]);
+    values.push(['Worst time', printTime(timeInfo.maxTime)]);
+  }
+
+  values.push(['Peak memory', printMemory(memoryInfo.peakBytes)]);
+  values.push(['Leaked tensors', memoryInfo.newTensors]);
+
+  values.push(['Number of kernels', memoryInfo.kernels.length]);
+
+  const surface = {
+    name: 'Benchmark Summary',
+    tab: tabId,
+    styles: {width: '100%'}
+  };
+  tfvis.render.table(surface, {headers, values});
+}
+
+async function drawInferenceTimeLineChart(benchmarkResult) {
+  const inferenceTimeArray = benchmarkResult.timeInfo.times;
+  if (inferenceTimeArray.length <= 2) {
+    return;
+  }
+
+  const tabId = benchmarkResult.tabId;
+  const values = [];
+  inferenceTimeArray.forEach((time, index) => {
+    // The first inference time is much larger than other times for webgl,
+    // skewing the scaling, so it is removed from the line chart.
+    if (index === 0) {
+      return;
+    }
+    values.push({x: index + 1, y: time});
+  });
+
+  const surface = {
+    name: `2nd - ${inferenceTimeArray.length}st Inference Time`,
+    tab: tabId,
+    styles: {width: '100%'}
+  };
+  const data = {values};
+  const drawOptions =
+      {zoomToFit: true, xLabel: '', yLabel: 'time (ms)', xType: 'ordinal'};
+
+  await tfvis.render.linechart(surface, data, drawOptions);
+
+  // Whenever resize the parent div element, re-draw the chart canvas.
+  try {
+    const originalCanvasHeight = tfvis.visor()
+                                     .surface(surface)
+                                     .drawArea.getElementsByTagName('canvas')[0]
+                                     .height;
+    const labelElement = tfvis.visor().surface(surface).label;
+
+    new ResizeObserver(() => {
+      // Keep the height of chart/canvas unchanged.
+      tfvis.visor()
+          .surface(surface)
+          .drawArea.getElementsByTagName('canvas')[0]
+          .height = originalCanvasHeight;
+      tfvis.render.linechart(surface, data, drawOptions);
+    }).observe(labelElement);
+  } catch (e) {
+    console.warn(`The browser does not support the ResizeObserver API: ${e}`);
+  }
+}
+
 function drawBrowserSettingTable(tabId, browserConf) {
-  // TODO: Add a table.
-  tfvis.visor().surface(
-      {name: 'browser setting', tab: tabId, styles: {width: '100%'}});
+  const headers = ['Field', 'Value'];
+  const values = [];
+  for (const fieldName of TUNABLE_BROWSER_FIELDS) {
+    if (browserConf[fieldName] != null && browserConf[fieldName] !== 'null') {
+      const row = [fieldName, browserConf[fieldName]];
+      values.push(row);
+    }
+  }
+  const surface = {
+    name: 'Browser Setting',
+    tab: tabId,
+    styles: {width: '100%'}
+  };
+  tfvis.render.table(surface, {headers, values});
 }
 
 function drawBenchmarkParameterTable(tabId) {
-  // TODO: Add a table.
-  tfvis.visor().surface(
-      {name: 'benchmark parameter', tab: tabId, styles: {width: '100%'}});
+  const headers = ['Field', 'Value'];
+  const values = [];
+
+  for (const entry of Object.entries(state.benchmark)) {
+    if (entry[1] != null && entry[1] !== '') {
+      values.push(entry);
+    }
+  }
+
+  const surface = {
+    name: 'Benchmark Parameter',
+    tab: tabId,
+    styles: {width: '100%'}
+  };
+  tfvis.render.table(surface, {headers, values});
 }
 
 socket.on('benchmarkComplete', benchmarkResult => {
-  reportBenchmarkResults(benchmarkResult);
-
   // Enable the button.
   benchmarkButton.__li.style.pointerEvents = '';
   benchmarkButton.__li.style.opacity = 1;
+
+  reportBenchmarkResult(benchmarkResult);
 });
 
 const gui = new dat.gui.GUI();
@@ -199,4 +307,18 @@ function showParameterSettings() {
   parameterFolder.add(state.benchmark, 'backend', ['wasm', 'webgl', 'cpu']);
   parameterFolder.open();
   return parameterFolder;
+}
+
+function printTime(elapsed) {
+  return `${elapsed.toFixed(1)} ms`;
+}
+
+function printMemory(bytes) {
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  } else if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(2)} KB`;
+  } else {
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  }
 }
