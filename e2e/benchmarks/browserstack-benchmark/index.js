@@ -134,9 +134,8 @@ function createTab(browserConf) {
   // Add a status indicator into the tab button.
   const visorTabList = document.getElementsByClassName('tf-tab');
   const curTabElement = visorTabList[visorTabList.length - 1];
-
   const indicatorElement = document.createElement('span');
-  indicatorElement.innerHTML = `.`;
+  indicatorElement.innerHTML = '.';
   indicatorElement.style.fontSize = '20px';
   indicatorElement.id = `${tabId}-indicator`;
   curTabElement.appendChild(indicatorElement);
