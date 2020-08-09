@@ -130,29 +130,29 @@ function createTab(browserConf) {
   return tabId;
 }
 
-function reportBenchmarkResults(benchmarkResults) {
-  const tabId = benchmarkResults.tabId;
+function reportBenchmarkResult(benchmarkResult) {
+  const tabId = benchmarkResult.tabId;
 
-  if (benchmarkResults.error != null) {
+  if (benchmarkResult.error != null) {
     // TODO: show error message under the tab.
-    alert(benchmarkResults.error);
+    alert(benchmarkResult.error);
     return;
   }
 
-  drawInferenceTimeLineChart(benchmarkResults);
-  drawBenchmarkResultSummaryTable(benchmarkResults);
+  drawInferenceTimeLineChart(benchmarkResult);
+  drawBenchmarkResultSummaryTable(benchmarkResult);
   // TODO: draw a table for inference kernel information.
   // This will be done, when we can get kernel timing info from `tf.profile()`.
 
   // TODO: delete 'loading indicator' under the tab.
 }
 
-function drawBenchmarkResultSummaryTable(benchmarkResults) {
+function drawBenchmarkResultSummaryTable(benchmarkResult) {
   const headers = ['Field', 'Value'];
   const values = [];
 
-  const {timeInfo, memoryInfo, tabId} = benchmarkResults;
-  const timeArray = benchmarkResults.timeInfo.times;
+  const {timeInfo, memoryInfo, tabId} = benchmarkResult;
+  const timeArray = benchmarkResult.timeInfo.times;
   const numRuns = timeArray.length;
 
   if (numRuns >= 1) {
@@ -181,15 +181,28 @@ function drawBenchmarkResultSummaryTable(benchmarkResults) {
   tfvis.render.table(surface, {headers, values});
 }
 
-async function drawInferenceTimeLineChart(benchmarkResults) {
-  const inferenceTimeArray = benchmarkResults.timeInfo.times;
-  if (inferenceTimeArray.length < 2) {
+async function drawInferenceTimeLineChart(benchmarkResult) {
+  const inferenceTimeArray = benchmarkResult.timeInfo.times;
+  if (inferenceTimeArray.length <= 2) {
     return;
   }
 
-  const tabId = benchmarkResults.tabId;
-  const values = inferenceTimeArray.map((y, x) => ({x, y}));
-  const surface = {name: 'Inference Time', tab: tabId, styles: {width: '100%'}};
+  const tabId = benchmarkResult.tabId;
+  const values = [];
+  inferenceTimeArray.forEach((time, index) => {
+    // The first inference time is much larger than other times for webgl,
+    // skewing the scaling, so it is removed from the line chart.
+    if (index === 0) {
+      return;
+    }
+    values.push({x: index + 1, y: time});
+  });
+
+  const surface = {
+    name: `2nd - ${inferenceTimeArray.length}st Inference Time`,
+    tab: tabId,
+    styles: {width: '100%'}
+  };
   const data = {values};
   const drawOptions =
       {zoomToFit: true, xLabel: '', yLabel: 'time (ms)', xType: 'ordinal'};
@@ -257,7 +270,7 @@ socket.on('benchmarkComplete', benchmarkResult => {
   benchmarkButton.__li.style.pointerEvents = '';
   benchmarkButton.__li.style.opacity = 1;
 
-  reportBenchmarkResults(benchmarkResult);
+  reportBenchmarkResult(benchmarkResult);
 });
 
 const gui = new dat.gui.GUI();
