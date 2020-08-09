@@ -271,4 +271,17 @@ describeWithFlags('pad', ALL_ENVS, () => {
     // 0, 0, 0
     expectArraysClose(await res.data(), [0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0]);
   });
+  
+  it('pads an empty tensor', () => {
+    expect(
+      tf.pad(
+        tf.ones([0, 3]),
+        [
+          [5, 6],
+          [0, 0]
+        ],
+        12
+      )
+     ).toEqualTensor(tf.fill([11, 3], 12));
+  })
 });
