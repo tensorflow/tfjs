@@ -142,48 +142,65 @@ function createTab(browserConf) {
   curTabElement.appendChild(indicatorElement);
 
   setTabStatus(tabId, 'waiting');
+  addLoaderElement(tabId);
   return tabId;
 }
 
 function reportBenchmarkResult(benchmarkResult) {
   const tabId = benchmarkResult.tabId;
+  removeLoaderElement(tabId);
 
   if (benchmarkResult.error != null) {
     setTabStatus(tabId, 'error');
     // TODO: show error message under the tab.
     alert(benchmarkResult.error);
-    return;
+  } else {
+    setTabStatus(tabId, 'complete');
+    drawInferenceTimeLineChart(benchmarkResult);
+    drawBenchmarkResultSummaryTable(benchmarkResult);
+    // TODO: draw a table for inference kernel information.
+    // This will be done, when we can get kernel timing info from
+    // `tf.profile()`.
   }
-
-  drawInferenceTimeLineChart(benchmarkResult);
-  drawBenchmarkResultSummaryTable(benchmarkResult);
-  // TODO: draw a table for inference kernel information.
-  // This will be done, when we can get kernel timing info from `tf.profile()`.
-
-  setTabStatus(tabId, 'complete');
 }
 
+/**
+ * Set the status for the given tab. The status can be 'waiting', 'complete' or
+ * 'error'.
+ *
+ * @param {string} tabId  The index element id of the tab.
+ * @param {string} status The status to be set for the tab.
+ */
 function setTabStatus(tabId, status) {
-  // Set the status of the status indicator as waiting.
   const indicatorElementId = `${tabId}-indicator`;
   const indicatorElement = document.getElementById(indicatorElementId);
   indicatorElement.style.color = STATUS_COLOR_MAP[status];
+}
 
-  if (status === 'waiting') {
-    // Add a loader in the page.
-    const surface = tfvis.visor().surface(
-        {name: 'Benchmark Summary', tab: tabId, styles: {width: '100%'}});
-    const loaderElement = document.createElement('div');
-    loaderElement.className = 'loader';
-    loaderElement.id = `${tabId}-loader`;
-    surface.drawArea.appendChild(loaderElement);
-  } else {
-    // Remove the loader from the page, if the status is 'error' or 'complete'.
-    const loaderElementId = `${tabId}-loader`;
-    const loaderElement = document.getElementById(loaderElementId);
-    if (loaderElement != null) {
-      loaderElement.remove();
-    }
+/**
+ * Add a loader element under the tab page.
+ *
+ * @param {string} tabId
+ */
+function addLoaderElement(tabId) {
+  const surface = tfvis.visor().surface(
+      {name: 'Benchmark Summary', tab: tabId, styles: {width: '100%'}});
+  const loaderElement = document.createElement('div');
+  loaderElement.className = 'loader';
+  loaderElement.id = `${tabId}-loader`;
+  surface.drawArea.appendChild(loaderElement);
+}
+
+/**
+ * Remove the loader element under the tab page.
+ *
+ * @param {string} tabId
+ */
+function removeLoaderElement(tabId) {
+  const loaderElementId = `${tabId}-loader`;
+  const loaderElement = document.getElementById(loaderElementId);
+  if (loaderElement != null) {
+    loaderElement.remove();
   }
 }
 
