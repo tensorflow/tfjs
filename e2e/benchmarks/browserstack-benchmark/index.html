@@ -16,32 +16,11 @@ limitations under the License.
 <!doctype html>
 <html>
     <head>
+        <link href="./main.css" rel="stylesheet">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
         <script src='/socket.io/socket.io.js'></script>
         <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"> </script>
         <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis"></script>
-
-        <style>
-          #gui {
-            position: absolute;
-            top: 2px;
-            left: 0px;
-          }
-
-          th {
-            text-align: center !important;
-            width: 50% !important;
-          }
-
-          td {
-            text-align: center !important;
-            width: 50% !important;
-          }
-
-          .close-button{
-            width: 100% !important;
-          }
-        </style>
     </head>
     <body>
         <script src='/../model_config.js'></script>

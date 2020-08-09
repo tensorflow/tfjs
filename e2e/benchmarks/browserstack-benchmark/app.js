@@ -84,16 +84,18 @@ function benchmark(config) {
     console.log(`benchmark completed.`);
     if (error) {
       console.log(error);
-      io.emit(
-          'benchmarkComplete',
-          {error: `Failed to run 'yarn test --browserstack':\n\n${error}`});
+      io.emit('benchmarkComplete', {
+        tabId: config.tabId,
+        error: `Failed to run 'yarn test --browserstack':\n\n${error}`
+      });
       return;
     }
 
     const errorReg = /.*\<tfjs_error\>(.*)\<\/tfjs_error\>/;
     const matchedError = stdout.match(errorReg);
     if (matchedError != null) {
-      io.emit('benchmarkComplete', {error: matchedError[1]});
+      io.emit(
+          'benchmarkComplete', {tabId: config.tabId, error: matchedError[1]});
       return;
     }
 

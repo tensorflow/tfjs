@@ -17,6 +17,11 @@
 
 const TUNABLE_BROWSER_FIELDS =
     ['os', 'os_version', 'browser', 'browser_version', 'device'];
+const STATUS_COLOR_MAP = {
+  waiting: '#AAAAAA',
+  complete: '#357edd',
+  error: '#e8564b'
+};
 const socket = io();
 const state = {
   isVisorInitiated: false,
@@ -125,8 +130,18 @@ function createTab(browserConf) {
   // For tfvis, the tab name is not only a name but also the index to the tab.
   drawBrowserSettingTable(tabId, browserConf);
   drawBenchmarkParameterTable(tabId);
-  // TODO: add a 'loading indicator' under the tab.
 
+  // Add a status indicator into the tab button.
+  const visorTabList = document.getElementsByClassName('tf-tab');
+  const curTabElement = visorTabList[visorTabList.length - 1];
+
+  const indicatorElement = document.createElement('span');
+  indicatorElement.innerHTML = `.`;
+  indicatorElement.style.fontSize = '20px';
+  indicatorElement.id = `${tabId}-indicator`;
+  curTabElement.appendChild(indicatorElement);
+
+  setTabStatus(tabId, 'waiting');
   return tabId;
 }
 
@@ -134,6 +149,7 @@ function reportBenchmarkResult(benchmarkResult) {
   const tabId = benchmarkResult.tabId;
 
   if (benchmarkResult.error != null) {
+    setTabStatus(tabId, 'error');
     // TODO: show error message under the tab.
     alert(benchmarkResult.error);
     return;
@@ -144,7 +160,31 @@ function reportBenchmarkResult(benchmarkResult) {
   // TODO: draw a table for inference kernel information.
   // This will be done, when we can get kernel timing info from `tf.profile()`.
 
-  // TODO: delete 'loading indicator' under the tab.
+  setTabStatus(tabId, 'complete');
+}
+
+function setTabStatus(tabId, status) {
+  // Set the status of the status indicator as waiting.
+  const indicatorElementId = `${tabId}-indicator`;
+  const indicatorElement = document.getElementById(indicatorElementId);
+  indicatorElement.style.color = STATUS_COLOR_MAP[status];
+
+  if (status === 'waiting') {
+    // Add a loader in the page.
+    const surface = tfvis.visor().surface(
+        {name: 'Benchmark Summary', tab: tabId, styles: {width: '100%'}});
+    const loaderElement = document.createElement('div');
+    loaderElement.className = 'loader';
+    loaderElement.id = `${tabId}-loader`;
+    surface.drawArea.appendChild(loaderElement);
+  } else {
+    // Remove the loader from the page, if the status is 'error' or 'complete'.
+    const loaderElementId = `${tabId}-loader`;
+    const loaderElement = document.getElementById(loaderElementId);
+    if (loaderElement != null) {
+      loaderElement.remove();
+    }
+  }
 }
 
 function drawBenchmarkResultSummaryTable(benchmarkResult) {
