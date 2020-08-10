@@ -271,4 +271,11 @@ describeWithFlags('pad', ALL_ENVS, () => {
     // 0, 0, 0
     expectArraysClose(await res.data(), [0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0]);
   });
+
+  it("pads an empty tensor", async () => {
+    await expect(async () => {
+      const padded = tf.pad(tf.ones([0, 3]), [[5, 6]], 12);
+      expectArraysClose(await padded.data(), await tf.fill([11, 3], 12).data());
+    }).not.toThrow();
+  });
 });
