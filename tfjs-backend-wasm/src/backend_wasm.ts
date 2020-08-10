@@ -215,9 +215,7 @@ function getPathToWasmBinary(
   let path: WasmBinaryName = 'tfjs-backend-wasm.wasm';
   if (simdSupported && threadsSupported) {
     path = 'tfjs-backend-wasm-threaded-simd.wasm';
-  }
-
-  if (simdSupported) {
+  } else if (simdSupported) {
     path = 'tfjs-backend-wasm-simd.wasm';
   }
 
