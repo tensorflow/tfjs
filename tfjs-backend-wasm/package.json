@@ -20,6 +20,7 @@
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "build-ci": "./scripts/build-ci.sh",
     "build-npm": "./scripts/build-npm.sh",
+    "build-fast": "tsc && yarn rollup -c",
     "build-benchmark": "./scripts/build-benchmark.sh",
     "buildifier-ci": "./scripts/buildifier-ci.sh",
     "clean": "rimraf dist/ && bazel clean --expunge",
