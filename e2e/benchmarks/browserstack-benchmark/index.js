@@ -17,11 +17,9 @@
 
 const TUNABLE_BROWSER_FIELDS =
     ['os', 'os_version', 'browser', 'browser_version', 'device'];
-const STATUS_COLOR_MAP = {
-  waiting: '#AAAAAA',
-  complete: '#357edd',
-  error: '#e8564b'
-};
+const WAITING_STATUS_COLOR = '#AAAAAA';
+const COMPLETE_STATUS_COLOR = '#357edd';
+const ERROR_STATUS_COLOR = '#e8564b';
 const socket = io();
 const state = {
   isVisorInitiated: false,
@@ -140,7 +138,7 @@ function createTab(browserConf) {
   indicatorElement.id = `${tabId}-indicator`;
   curTabElement.appendChild(indicatorElement);
 
-  setTabStatus(tabId, 'waiting');
+  setTabStatus(tabId, 'WAITING');
   addLoaderElement(tabId);
   return tabId;
 }
@@ -150,11 +148,11 @@ function reportBenchmarkResult(benchmarkResult) {
   removeLoaderElement(tabId);
 
   if (benchmarkResult.error != null) {
-    setTabStatus(tabId, 'error');
+    setTabStatus(tabId, 'ERROR');
     // TODO: show error message under the tab.
     alert(benchmarkResult.error);
   } else {
-    setTabStatus(tabId, 'complete');
+    setTabStatus(tabId, 'COMPLETE');
     drawInferenceTimeLineChart(benchmarkResult);
     drawBenchmarkResultSummaryTable(benchmarkResult);
     // TODO: draw a table for inference kernel information.
@@ -164,8 +162,8 @@ function reportBenchmarkResult(benchmarkResult) {
 }
 
 /**
- * Set the status for the given tab. The status can be 'waiting', 'complete' or
- * 'error'.
+ * Set the status for the given tab. The status can be 'WAITING', 'COMPLETE' or
+ * 'ERROR'.
  *
  * @param {string} tabId  The index element id of the tab.
  * @param {string} status The status to be set for the tab.
@@ -173,7 +171,19 @@ function reportBenchmarkResult(benchmarkResult) {
 function setTabStatus(tabId, status) {
   const indicatorElementId = `${tabId}-indicator`;
   const indicatorElement = document.getElementById(indicatorElementId);
-  indicatorElement.style.color = STATUS_COLOR_MAP[status];
+  switch (status) {
+    case 'WAITING':
+      indicatorElement.style.color = WAITING_STATUS_COLOR;
+      break;
+    case 'COMPLETE':
+      indicatorElement.style.color = COMPLETE_STATUS_COLOR;
+      break;
+    case 'ERROR':
+      indicatorElement.style.color = ERROR_STATUS_COLOR;
+      break;
+    default:
+      throw new Error(`Undefined status: ${status}.`);
+  }
 }
 
 /**
