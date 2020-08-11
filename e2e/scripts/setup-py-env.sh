@@ -36,16 +36,6 @@ if [[ -z "${DEV_VERSION}" ]]; then
   exit 1
 fi
 
-# Install python env.
-if [[ -z "$(which pip3)" ]]; then
-  echo "pip3 is not on path. Attempting to install it..."
-  apt-get update
-  apt-get install -y python3-pip python3-dev
-fi
-
-echo "Installing virtualenv..."
-pip3 install virtualenv
-
 VENV_DIR="$(mktemp -d)_venv"
 echo "Creating virtualenv at ${VENV_DIR} ..."
 virtualenv -p python3 "${VENV_DIR}"
