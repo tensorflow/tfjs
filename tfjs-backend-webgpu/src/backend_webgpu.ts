@@ -238,14 +238,14 @@ export class WebGPUBackend extends KernelBackend {
     const staging = this.acquireBuffer(
         info.bufferInfo.byteSize,
         GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
-    const encoder = this.device.createCommandEncoder({});
+    const encoder = this.device.createCommandEncoder();
     encoder.copyBufferToBuffer(
         info.bufferInfo.buffer, 0, staging, 0, info.bufferInfo.byteSize);
     this.commandQueue.push(encoder);
     this.submitQueue();
 
-    const mapped: ArrayBuffer = await staging.mapReadAsync();
-    const values = mapped.slice(0);
+    await staging.mapAsync(GPUMapMode.READ);
+    const values = staging.getMappedRange().slice(0);
 
     staging.unmap();
     if (staging != null) {
@@ -450,7 +450,7 @@ export class WebGPUBackend extends KernelBackend {
         this.device, bindGroupLayout, inputs.map(t => this.tensorToBinding(t)),
         this.tensorToBinding(output), uniforms);
 
-    const encoder = this.device.createCommandEncoder({});
+    const encoder = this.device.createCommandEncoder();
     const pass = encoder.beginComputePass();
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bg);
