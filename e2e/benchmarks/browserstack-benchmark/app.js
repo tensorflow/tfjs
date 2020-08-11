@@ -111,7 +111,7 @@ function benchmark(config) {
   console.log(`Start benchmarking.`);
   for (const tabId in config.browsers) {
     const command = `yarn test --browserstack --browsers=${tabId}`;
-    console.log(`Running: ${command}`)
+    console.log(`Running: ${command}`);
     exec(command, (error, stdout, stderr) => {
       console.log(`benchmark ${tabId} completed.`);
       if (error) {
