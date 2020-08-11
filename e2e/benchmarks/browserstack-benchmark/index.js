@@ -54,6 +54,9 @@ const state = {
   }
 };
 
+let gui;
+let benchmarkButton;
+
 function initVisor() {
   if (state.isVisorInitiated) {
     return;
@@ -268,20 +271,6 @@ function drawBenchmarkParameterTable(tabId) {
   tfvis.render.table(surface, {headers, values});
 }
 
-socket.on('benchmarkComplete', benchmarkResult => {
-  // Enable the button.
-  benchmarkButton.__li.style.pointerEvents = '';
-  benchmarkButton.__li.style.opacity = 1;
-
-  reportBenchmarkResult(benchmarkResult);
-});
-
-const gui = new dat.gui.GUI();
-gui.domElement.id = 'gui';
-showModelSelection();
-showParameterSettings();
-const benchmarkButton = gui.add(state, 'run').name('Run benchmark');
-
 function showModelSelection() {
   const modelFolder = gui.addFolder('Model');
   let modelUrlController = null;
@@ -324,4 +313,20 @@ function printMemory(bytes) {
   } else {
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   }
+}
+
+function onPageLoad() {
+  gui = new dat.gui.GUI();
+  gui.domElement.id = 'gui';
+  showModelSelection();
+  showParameterSettings();
+  benchmarkButton = gui.add(state, 'run').name('Run benchmark');
+
+  socket.on('benchmarkComplete', benchmarkResult => {
+    // Enable the button.
+    benchmarkButton.__li.style.pointerEvents = '';
+    benchmarkButton.__li.style.opacity = 1;
+
+    reportBenchmarkResult(benchmarkResult);
+  });
 }
