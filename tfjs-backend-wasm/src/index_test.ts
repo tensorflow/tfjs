@@ -111,7 +111,11 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
   it('backend init fails when setWasmPaths is called with ' +
          'an invalid fileMap',
      async () => {
-       setWasmPaths({'tfjs-backend-wasm.wasm': 'invalid/path'});
+       setWasmPaths({
+         'tfjs-backend-wasm.wasm': 'invalid/path',
+         'tfjs-backend-wasm-simd.wasm': 'invalid/path',
+         'tfjs-backend-wasm-threaded-simd.wasm': 'invalid/path'
+       });
        let wasmPathPrefix: string;
        const realFetch = fetch;
        spyOn(self, 'fetch').and.callFake((path: string) => {
@@ -122,11 +126,45 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
        expect(wasmPathPrefix).toBe('invalid/path');
      });
 
+  it('setWasmPaths throws error when called without specifying a path for ' +
+         'each binary',
+     async () => {
+       expect(() => {
+         setWasmPaths({
+           'tfjs-backend-wasm.wasm': '/base/wasm-out/tfjs-backend-wasm.wasm'
+         });
+       }).toThrow();
+     });
+
   it('backend init works when the path is valid and use platform fetch',
      async () => {
        const usePlatformFetch = true;
        const validPrefix = '/base/wasm-out/';
        setWasmPaths(validPrefix, usePlatformFetch);
+       let wasmPath: string;
+       const realFetch = util.fetch;
+       spyOn(util, 'fetch').and.callFake((path: string) => {
+         wasmPath = path;
+         return realFetch(path);
+       });
+       expect(await tf.setBackend('wasm-test')).toBe(true);
+       expect(wasmPath).toBe(validPrefix + 'tfjs-backend-wasm.wasm');
+     });
+
+  it('backend init works when the wasm paths overrides map is valid and ' +
+         'using platform fetch',
+     async () => {
+       const usePlatformFetch = true;
+       const validPrefix = '/base/wasm-out/';
+       setWasmPaths(
+           {
+             'tfjs-backend-wasm.wasm': '/base/wasm-out/tfjs-backend-wasm.wasm',
+             'tfjs-backend-wasm-simd.wasm':
+                 '/base/wasm-out/tfjs-backend-wasm.wasm',
+             'tfjs-backend-wasm-threaded-simd.wasm':
+                 '/base/wasm-out/tfjs-backend-wasm.wasm'
+           },
+           usePlatformFetch);
        let wasmPath: string;
        const realFetch = util.fetch;
        spyOn(util, 'fetch').and.callFake((path: string) => {

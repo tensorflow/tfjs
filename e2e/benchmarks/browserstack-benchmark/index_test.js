@@ -55,3 +55,39 @@ describe('constructBrowserTree', () => {
     expect(console.warn).toHaveBeenCalled();
   });
 });
+
+describe('getTabId', () => {
+  const mac = {
+    base: 'BrowserStack',
+    browser: 'firefox',
+    browser_version: '70.0',
+    os: 'OS X',
+    os_version: 'High Sierra',
+    device: 'null'
+  };
+  const iphoneX = {
+    base: 'BrowserStack',
+    browser: 'ios',
+    browser_version: 'null',
+    os: 'ios',
+    os_version: '11.0',
+    device: 'iPhone X'
+  };
+
+  it('gives different names for the same browser configs', () => {
+    const name1 = getTabId(mac);
+    const name2 = getTabId(mac);
+    expect(name1).not.toBe(name2);
+  });
+
+  it('for mobile devices, uses device name as part of the tab name', () => {
+    const mobileName = getTabId(iphoneX);
+    expect(mobileName).toContain(iphoneX.device);
+  });
+
+  it('for desktop devices, uses OS name as part of the tab name', () => {
+    const desktopName = getTabId(mac);
+    expect(desktopName).toContain(mac.os);
+    expect(desktopName).toContain(mac.os_version);
+  });
+});
