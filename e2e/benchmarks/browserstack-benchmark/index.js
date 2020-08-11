@@ -48,7 +48,9 @@ const state = {
       delete benchmark['modelUrl'];
     }
 
-    socket.emit('run', {tabId, benchmark, browser: state.browser});
+    const browsers = {};
+    browsers[tabId] = state.browser;
+    socket.emit('run', {benchmark, browsers});
   }
 };
 
@@ -110,13 +112,14 @@ function getTabId(browserConf) {
   if (browserConf.os === 'android' || browserConf.os === 'ios') {
     baseName = browserConf.device;
   } else {
-    baseName = `${browserConf.os}(${browserConf.os_version})`;
+    baseName = `${browserConf.os}_${browserConf.os_version}`;
   }
+  baseName = baseName.split(' ').join('_');
   if (visorTabNameCounter[baseName] == null) {
     visorTabNameCounter[baseName] = 0;
   }
   visorTabNameCounter[baseName] += 1;
-  return `${baseName} - ${visorTabNameCounter[baseName]}`;
+  return `${baseName}_${visorTabNameCounter[baseName]}`;
 }
 
 function createTab(browserConf) {
@@ -135,7 +138,7 @@ function reportBenchmarkResult(benchmarkResult) {
 
   if (benchmarkResult.error != null) {
     // TODO: show error message under the tab.
-    alert(benchmarkResult.error);
+    console.log(benchmarkResult.error);
     return;
   }
 
