@@ -217,3 +217,28 @@ describe('profiler.checkComputationForErrors', () => {
         .toBe(false);
   });
 });
+
+describe('profiler.Logger', () => {
+  it('skips logging for undefined input node in input tensor map', () => {
+    const kernelName = 'FusedConv2D';
+    const vals = new Float32Array(1);
+    const outputs = tf.tensor1d([1]);
+    const timeMs = 10;
+    const inputs: NamedTensorMap = {
+      'x': tf.tensor1d([1]),
+      'filter': tf.tensor1d([1]),
+      'bias': tf.tensor1d([1]),
+      'preluActivationWeights': undefined
+    };
+    const extraInfo = '';
+    const logger = new Logger();
+    spyOn(console, 'log');
+    const consoleLogSpy = console.log as jasmine.Spy;
+
+    logger.logKernelProfile(
+        kernelName, outputs, vals, timeMs, inputs, extraInfo);
+
+    expect(consoleLogSpy.calls.first().args)
+        .not.toContain('preluActivationWeights');
+  });
+});
