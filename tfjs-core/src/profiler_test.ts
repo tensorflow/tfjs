@@ -17,7 +17,7 @@
 
 import {BackendTimer, BackendTimingInfo} from './backends/backend';
 import * as tf from './index';
-import {describeWithFlags, SYNC_BACKEND_ENVS} from './jasmine_util';
+import {ALL_ENVS, describeWithFlags, SYNC_BACKEND_ENVS} from './jasmine_util';
 import {checkComputationForErrors, KernelProfile, Logger, Profiler} from './profiler';
 import {Tensor} from './tensor';
 import {NamedTensorMap} from './tensor_types';
@@ -215,5 +215,30 @@ describe('profiler.checkComputationForErrors', () => {
     expect(checkComputationForErrors(
                new Float32Array([1, 2, 3, -1, 4, 255]), 'float32', 'test'))
         .toBe(false);
+  });
+});
+
+describeWithFlags('profiler.Logger', ALL_ENVS, () => {
+  it('skips logging for undefined input node in input tensor map', () => {
+    const kernelName = 'FusedConv2D';
+    const vals = new Float32Array(1);
+    const outputs = tf.tensor1d([1]);
+    const timeMs = 10;
+    const inputs: NamedTensorMap = {
+      'x': tf.tensor1d([1]),
+      'filter': tf.tensor1d([1]),
+      'bias': tf.tensor1d([1]),
+      'preluActivationWeights': undefined
+    };
+    const extraInfo = '';
+    const logger = new Logger();
+    spyOn(console, 'log');
+    const consoleLogSpy = console.log as jasmine.Spy;
+
+    logger.logKernelProfile(
+        kernelName, outputs, vals, timeMs, inputs, extraInfo);
+
+    expect(consoleLogSpy.calls.first().args)
+        .not.toContain('preluActivationWeights');
   });
 });
