@@ -23,12 +23,9 @@
  */
 
 import * as argparse from 'argparse';
-import chalk from 'chalk';
 import * as shell from 'shelljs';
 
-import {$, createPR, question, TFJS_RELEASE_UNIT, prepareReleaseBuild} from './release-util';
-
-import mkdirp = require('mkdirp');
+import {$, TFJS_RELEASE_UNIT, prepareReleaseBuild, getReleaseBranch, checkoutReleaseBranch} from './release-util';
 
 const parser = new argparse.ArgumentParser();
 
@@ -44,41 +41,12 @@ async function main() {
 
   // ========== Get release branch. ============================================
   // Infer release branch name.
-  let releaseBranch = '';
-
-  // Get a list of branches sorted by timestamp in descending order.
-  const branchesStr = $(
-      `git branch -r --sort=-authordate --format='%(HEAD) %(refname:lstrip=-1)'`);
-  const branches =
-      Array.from(branchesStr.split(/\n/)).map(line => line.toString().trim());
-
-  // Find the latest matching branch, e.g. tfjs_1.7.1
-  // It will not match temprary generated branches such as tfjs_1.7.1_phase0.
-  const exp = '^tfjs_([^_]+)$';
-  const regObj = new RegExp(exp);
-  const maybeBranch = branches.find(branch => branch.match(regObj));
-  releaseBranch = await question(`Which branch to update lockfiles for
-  (leave empty for ${maybeBranch}): `);
-  if (releaseBranch === '') {
-    releaseBranch = maybeBranch;
-  }
+  let releaseBranch = await getReleaseBranch();
   console.log();
 
-
   // ========== Checkout release branch. =======================================
-  console.log(chalk.magenta.bold(
-      `~~~ Checking out release branch ${releaseBranch} ~~~`));
-  $(`rm -f -r ${TMP_DIR}`);
-  mkdirp(TMP_DIR, err => {
-    if (err) {
-      console.log('Error creating temp dir', TMP_DIR);
-      process.exit(1);
-    }
-  });
+  checkoutReleaseBranch(releaseBranch, args.git_protocol);
 
-  const urlBase = args.git_protocol ? 'git@github.com:' : 'https://github.com/';
-  $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${
-      TMP_DIR} --depth=1`);
   shell.cd(TMP_DIR);
 
   // ========== Run yarn to update yarn.lock file for each package. ============
@@ -102,12 +70,12 @@ async function main() {
     }
   }
 
-  // ========== Generate PR. ===================================================
-  // Use dev prefix to avoid branch being locked.
-  const devBranchName = `dev_${releaseBranch}_update`;
-
+  // ========== Push to release branch. ========================================
   const message = `Update release branch ${releaseBranch} lock files.`;
-  createPR(devBranchName, releaseBranch, message);
+
+  $(`git add .`);
+  $(`git commit -a -m "${message}"`);
+  $(`git push`);
 
   console.log('Done.');
 
