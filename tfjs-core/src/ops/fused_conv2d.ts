@@ -35,6 +35,7 @@ import * as conv_util from './conv_util';
 import {Activation} from './fused_types';
 import {applyActivation, getFusedBiasGradient, getFusedDyActivation, shouldFuse} from './fused_util';
 import {op} from './operation';
+import {reshape} from './reshape';
 
 /**
  * Computes a 2D convolution over the input x, optionally fused with adding a
@@ -135,7 +136,7 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
 
   if ($x.rank === 3) {
     reshapedTo4D = true;
-    x4D = $x.as4D(1, $x.shape[0], $x.shape[1], $x.shape[2]);
+    x4D = reshape($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
   }
   util.assert(
       x4D.rank === 4,
@@ -241,7 +242,7 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
           save([filter, x4D, res]);
 
           if (reshapedTo4D) {
-            res = res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
+            res = reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
           }
 
           return {value: res, gradFunc: grad};
@@ -257,7 +258,7 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
           save([filter, x4D, res, bias]);
 
           if (reshapedTo4D) {
-            res = res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
+            res = reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
           }
 
           return {value: res, gradFunc: grad};

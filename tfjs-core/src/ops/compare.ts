@@ -20,6 +20,12 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assertShapesMatch} from '../util';
 
+import {equal} from './equal';
+import {greater} from './greater';
+import {greaterEqual} from './greater_equal';
+import {less} from './less';
+import {lessEqual} from './less_equal';
+import {notEqual} from './not_equal';
 import {op} from './operation';
 
 /**
@@ -39,7 +45,7 @@ function notEqualStrict_<T extends Tensor>(
   const $a = convertToTensor(a, 'a', 'notEqualStrict');
   const $b = convertToTensor(b, 'b', 'notEqualStrict');
   assertShapesMatch($a.shape, $b.shape, 'Error in notEqualStrict: ');
-  return $a.notEqual($b);
+  return notEqual($a, $b);
 }
 
 /**
@@ -58,7 +64,7 @@ function lessStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
   const $a = convertToTensor(a, 'a', 'lessStrict');
   const $b = convertToTensor(b, 'b', 'lessStrict');
   assertShapesMatch($a.shape, $b.shape, 'Error in lessStrict: ');
-  return $a.less($b);
+  return less($a, $b);
 }
 
 function equalStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
@@ -68,7 +74,7 @@ function equalStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
   const $a = convertToTensor(a, 'a', 'equalStrict');
   const $b = convertToTensor(b, 'b', 'equalStrict');
   assertShapesMatch($a.shape, $b.shape, 'Error in equalStrict: ');
-  return $a.equal($b);
+  return equal($a, $b);
 }
 
 function lessEqualStrict_<T extends Tensor>(
@@ -79,7 +85,7 @@ function lessEqualStrict_<T extends Tensor>(
   const $a = convertToTensor(a, 'a', 'lessEqualStrict');
   const $b = convertToTensor(b, 'b', 'lessEqualStrict');
   assertShapesMatch($a.shape, $b.shape, 'Error in lessEqualStrict: ');
-  return $a.lessEqual($b);
+  return lessEqual($a, $b);
 }
 
 function greaterStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
@@ -89,7 +95,7 @@ function greaterStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
   const $a = convertToTensor(a, 'a', 'greaterStrict');
   const $b = convertToTensor(b, 'b', 'greaterStrict');
   assertShapesMatch($a.shape, $b.shape, 'Error in greaterStrict: ');
-  return $a.greater($b);
+  return greater($a, $b);
 }
 
 function greaterEqualStrict_<T extends Tensor>(
@@ -100,7 +106,7 @@ function greaterEqualStrict_<T extends Tensor>(
   const $a = convertToTensor(a, 'a', 'greaterEqualStrict');
   const $b = convertToTensor(b, 'b', 'greaterEqualStrict');
   assertShapesMatch($a.shape, $b.shape, 'Error in greaterEqualStrict: ');
-  return $a.greaterEqual($b);
+  return greaterEqual($a, $b);
 }
 
 export const equalStrict = op({equalStrict_});

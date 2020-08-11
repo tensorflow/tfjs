@@ -17,7 +17,10 @@
 
 import {ENGINE} from '../engine';
 import {dispose, tidy} from '../globals';
-import {scalar, zerosLike} from '../ops/ops';
+import {add} from '../ops/add';
+import {mul} from '../ops/mul';
+import {scalar} from '../ops/scalar';
+import {zerosLike} from '../ops/zeros_like';
 import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
 import {Scalar, Tensor} from '../tensor';
 import {NamedTensor, NamedVariableMap} from '../tensor_types';
@@ -64,12 +67,12 @@ export class MomentumOptimizer extends SGDOptimizer {
 
       tidy(() => {
         let newValue: Tensor;
-        const newAccumulation = this.m.mul(accumulation).add(gradient);
+        const newAccumulation = add(mul(this.m, accumulation), gradient);
         if (this.useNesterov) {
-          newValue =
-              this.c.mul(gradient.add(newAccumulation.mul(this.m))).add(value);
+          newValue = add(
+              mul(this.c, add(gradient, mul(newAccumulation, this.m))), value);
         } else {
-          newValue = this.c.mul(newAccumulation).add(value);
+          newValue = add(mul(this.c, newAccumulation), value);
         }
         accumulation.assign(newAccumulation);
         value.assign(newValue);

@@ -20,9 +20,9 @@ const karmaTypescriptConfig = {
   compilerOptions: {allowJs: true, declaration: false},
   bundlerOptions: {
     sourceMap: true,
-    // Ignore the import of the `worker_threads` package used in a core test
-    // meant to run in node.
-    exclude: ['worker_threads'],
+    // Ignore the import of the `worker_threads`/`perf_hooks` packages meant to
+    // run in node.
+    exclude: ['worker_threads', 'perf_hooks'],
     // worker_node_test in tfjs-core contains a conditional require statement
     // that confuses the bundler of karma-typescript.
     ignore: ['./worker_node_test'],
@@ -61,6 +61,8 @@ module.exports = function(config) {
       {pattern: 'wasm-out/**/*.wasm', included: false},
       // Import the generated js library from emscripten.
       {pattern: 'wasm-out/**/*.js'},
+      // Import the generated worker file from emscripten.
+      {pattern: 'wasm-out/tfjs-backend-wasm-threaded-simd.worker.ts'},
       // Import the rest of the sources.
       {pattern: 'src/**/*.ts'},
     ],

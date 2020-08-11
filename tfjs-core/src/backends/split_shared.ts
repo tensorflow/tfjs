@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {slice} from '../ops/slice';
 import {Tensor} from '../tensor';
 
 // TODO(annxingyuan): Use this helper in WASM Split kernel once intermediate
@@ -28,8 +29,8 @@ export function split<T extends Tensor>(
   return sizeSplits.map(s => {
     const sliceSize = [...size];
     sliceSize[axis] = s;
-    const slice = x.slice(begin, sliceSize);
+    const sliceT = slice(x, begin, sliceSize);
     begin[axis] += s;
-    return slice;
+    return sliceT;
   });
 }

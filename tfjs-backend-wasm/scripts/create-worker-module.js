@@ -15,20 +15,16 @@
  * =============================================================================
  */
 
-import {PadV2, PadV2Attrs} from '../kernel_names';
-import {GradConfig, NamedAttrMap} from '../kernel_registry';
-import {slice} from '../ops/slice';
-import {Tensor} from '../tensor';
+/**
+ * This file modifies the Emscripten-generated WASM worker script so that it can
+ * be inlined by the tf-backend-wasm bundle.
+ */
 
-export const padV2GradConfig: GradConfig = {
-  kernelName: PadV2,
-  inputsToSave: ['x'],
-  gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
-    // Pad introduces values around the original tensor, so the gradient
-    // slices the original shape out of the gradient.
-    const x = saved[0];
-    const {paddings} = attrs as unknown as PadV2Attrs;
-    const begin = paddings.map(p => p[0]);
-    return {x: () => slice(dy, begin, x.shape)};
-  }
-};
+const fs = require('fs');
+
+const BASE_PATH = './wasm-out/';
+const WORKER_PATH = `${BASE_PATH}tfjs-backend-wasm-threaded-simd.worker.js`;
+
+const workerContents = fs.readFileSync(WORKER_PATH, "utf8");
+fs.writeFileSync(`${WORKER_PATH}`,
+  `export const wasmWorkerContents = '${workerContents.trim()}';`);

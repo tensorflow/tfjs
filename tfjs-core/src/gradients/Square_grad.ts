@@ -17,6 +17,7 @@
 
 import {Square} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
+import {cast} from '../ops/cast';
 import {mul} from '../ops/mul';
 import {Tensor} from '../tensor';
 
@@ -25,6 +26,6 @@ export const squareGradConfig: GradConfig = {
   inputsToSave: ['x'],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
     const [x] = saved;
-    return {x: () => mul(dy, mul(x.toFloat(), 2))};
+    return {x: () => mul(dy, mul(cast(x, 'float32'), 2))};
   }
 };

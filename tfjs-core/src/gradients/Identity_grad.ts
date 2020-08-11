@@ -17,11 +17,12 @@
 
 import {Identity} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
+import {cast} from '../ops/cast';
 import {Tensor} from '../tensor';
 
 export const identityGradConfig: GradConfig = {
   kernelName: Identity,
   gradFunc: (dy: Tensor) => {
-    return {x: () => dy.toFloat()};
+    return {x: () => cast(dy, 'float32')};
   }
 };

@@ -24,7 +24,30 @@ const ENV = env();
  */
 // From: https://github.com/GoogleChromeLabs/wasm-feature-detect
 ENV.registerFlag(
+    // This typed array passed in to WebAssembly.validate is WebAssembly binary
+    // code. In this case it is a small program that contains SIMD
+    // instructions.
     'WASM_HAS_SIMD_SUPPORT', async () => WebAssembly.validate(new Uint8Array([
       0, 97, 115, 109, 1, 0, 0, 0, 1,  4, 1,   96, 0,  0, 3,
       2, 1,  0,   10,  9, 1, 7, 0, 65, 0, 253, 15, 26, 11
     ])));
+
+/**
+ * True if threads are supported.
+ */
+// From: https://github.com/GoogleChromeLabs/wasm-feature-detect
+ENV.registerFlag('WASM_HAS_MULTITHREAD_SUPPORT', async () => {
+  try {
+    // Test for transferability of SABs (needed for Firefox)
+    // https://groups.google.com/forum/#!msg/mozilla.dev.platform/IHkBZlHETpA/dwsMNchWEQAJ
+    new MessageChannel().port1.postMessage(new SharedArrayBuffer(1));
+    // This typed array is a WebAssembly program containing threaded
+    // instructions.
+    return WebAssembly.validate(new Uint8Array([
+      0, 97, 115, 109, 1, 0,  0,  0, 1, 4, 1,  96, 0,   0,  3, 2, 1,  0, 5,
+      4, 1,  3,   1,   1, 10, 11, 1, 9, 0, 65, 0,  254, 16, 2, 0, 26, 11
+    ]));
+  } catch (e) {
+    return false;
+  }
+});
