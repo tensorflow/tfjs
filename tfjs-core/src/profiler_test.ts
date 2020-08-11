@@ -17,7 +17,7 @@
 
 import {BackendTimer, BackendTimingInfo} from './backends/backend';
 import * as tf from './index';
-import {describeWithFlags, SYNC_BACKEND_ENVS} from './jasmine_util';
+import {ALL_ENVS, describeWithFlags, SYNC_BACKEND_ENVS} from './jasmine_util';
 import {checkComputationForErrors, KernelProfile, Logger, Profiler} from './profiler';
 import {Tensor} from './tensor';
 import {NamedTensorMap} from './tensor_types';
@@ -218,7 +218,7 @@ describe('profiler.checkComputationForErrors', () => {
   });
 });
 
-describe('profiler.Logger', () => {
+describeWithFlags('profiler.Logger', ALL_ENVS, () => {
   it('skips logging for undefined input node in input tensor map', () => {
     const kernelName = 'FusedConv2D';
     const vals = new Float32Array(1);
