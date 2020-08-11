@@ -62,7 +62,13 @@ function runServer() {
   });
 }
 
-function setupBenchmarkConfig(config) {
+/**
+ * Supplement the browser configurations and create `browsers.json` and
+ * `benchmark_parameters.json` configuration files for karma.
+ *
+ * @param {{browsers, benchmark}} config
+ */
+function setupBenchmarkEnv(config) {
   // Write the map (tabId - browser setting) to `./browsers.json`.
   for (const tabId in config.browsers) {
     const browser = config.browsers[tabId];
@@ -79,9 +85,28 @@ function setupBenchmarkConfig(config) {
       './benchmark_parameters.json', JSON.stringify(config.benchmark, null, 2));
 }
 
+/**
+ * Run model benchmark on BrowserStack.
+ *
+ * The benchmark configuration object contains two objects:
+ * - `browsers`: Each key-value pair represents a browser instance to be
+ * benchmarked. The key is a unique string id/tabId (assigned by the webpage)
+ * for the browser instance, while the value is the browser configuration.
+ *
+ * - `benchmark`: An object with the following properties:
+ *  - `model`: The name of model (registed at
+ * 'tfjs/e2e/benchmarks/model_config.js') or `custom`.
+ *  - modelUrl: The URL to the model description file. Only applicable when the
+ * `model` is `custom`.
+ *  - `numRuns`: The number of rounds for model inference.
+ *  - `backend`: The backend to be benchmarked on.
+ *
+ *
+ * @param {{browsers, benchmark}} config Benchmark configuration.
+ */
 function benchmark(config) {
   console.log('Preparing configuration files for the test runner.');
-  setupBenchmarkConfig(config);
+  setupBenchmarkEnv(config);
 
   console.log(`Start benchmarking.`);
   for (const tabId in config.browsers) {

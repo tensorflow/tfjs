@@ -16,7 +16,7 @@
  */
 
 describe('benchmark multiple browsers', () => {
-  const testBrowserList = [
+  const browsersList = [
     {
       'os': 'OS X',
       'os_version': 'Catalina',
@@ -48,7 +48,7 @@ describe('benchmark multiple browsers', () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 100000;
 
     // Populate `browsers`.
-    for (const browserConfig of testBrowserList) {
+    for (const browserConfig of browsersList) {
       const tabId = getTabId(browserConfig);
       browsers[tabId] = browserConfig;
     }
@@ -62,7 +62,7 @@ describe('benchmark multiple browsers', () => {
        socket.on('benchmarkComplete', benchmarkResult => {
          expect(benchmarkResult.error).toBeUndefined();
          benchmarkResults.push(benchmarkResult);
-         if (benchmarkResults.length === testBrowserList.length) {
+         if (benchmarkResults.length === browsersList.length) {
            done();
          }
        });

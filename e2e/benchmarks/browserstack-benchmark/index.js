@@ -48,6 +48,8 @@ const state = {
       delete benchmark['modelUrl'];
     }
 
+    // TODO: Let `browsers` variable record multiple browser settings, when
+    // building UI for the multiple-selection.
     const browsers = {};
     browsers[tabId] = state.browser;
     socket.emit('run', {benchmark, browsers});
