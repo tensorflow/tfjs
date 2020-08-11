@@ -134,7 +134,7 @@ export class ConvLSTM2DCell extends LSTMCell {
         this.kernelSize.concat([this.filters, this.filters * 4]);
 
     this.recurrentKernel = this.addWeight(
-        'recurrentKernel', recurrentKernelShape, null,
+        'recurrent_kernel', recurrentKernelShape, null,
         this.recurrentInitializer, this.recurrentRegularizer, true,
         this.recurrentConstraint);
 
