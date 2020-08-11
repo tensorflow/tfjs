@@ -1,0 +1,21 @@
+steps:
+
+# Publish tfjs to npm.
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'bash'
+  id: 'publish'
+  args: ['./scripts/publish-tfjs-ci.sh']
+  env: ['PUBLISH=$_PUBLISH']
+  secretEnv: ['BROWSERSTACK_KEY']
+
+secrets:
+- kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
+  secretEnv:
+    BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
+timeout: 3600s
+logsBucket: 'gs://tfjs-build-logs'
+substitutions:
+  _PUBLISH: ''
+options:
+  logStreamingOption: 'STREAM_ON'
+  substitution_option: 'ALLOW_LOOSE'

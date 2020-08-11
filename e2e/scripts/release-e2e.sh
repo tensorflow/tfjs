@@ -48,8 +48,12 @@ trap 'set +x; handle_exit' SIGQUIT SIGTERM SIGINT SIGKILL SIGHUP
 # Echo every command being executed
 set -x
 
-# Go to e2e root
-cd ..
+# Go to root
+cd ../..
+root_path=$PWD
+
+# Go to e2e
+cd e2e
 e2e_root_path=$PWD
 
 # ****************************************************************************
@@ -90,17 +94,28 @@ source "$e2e_root_path"/scripts/local-registry.sh
 # Start the local NPM registry
 startLocalRegistry "$e2e_root_path"/scripts/verdaccio.yaml
 
-# Publish the monorepo and update package.json tfjs dependency to the
-# published version.
-"$e2e_root_path"/scripts/publish-tfjs-ci.sh
+# Load functions for publish
+source "$root_path"/scripts/publish-util.sh
+
+RELEASE_VERSION=`getReleaseVersion`
+
+publishTfjs $RELEASE_VERSION
+
 
 # ****************************************************************************
-# Third, install the packages from local registry.
+# Third, Update e2e's package.json's all tfjs related packages to locally
+# published version.
+# ****************************************************************************
+cd $e2e_root_path
+npx ts-node ./scripts/update-dependency.ts --version=$RELEASE_VERSION
+
+# ****************************************************************************
+# Fourth, install the packages from local registry.
 # ****************************************************************************
 yarn
 
 # ****************************************************************************
-# Fourth, run integration tests against locally published version.
+# Fifth, run integration tests against locally published version.
 # ****************************************************************************
 yarn test-ci
 
