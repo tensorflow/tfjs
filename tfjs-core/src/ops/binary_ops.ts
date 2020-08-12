@@ -20,7 +20,17 @@ import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
+
+import {add} from './add';
+import {div} from './div';
+import {maximum} from './maximum';
+import {minimum} from './minimum';
+import {mod} from './mod';
+import {mul} from './mul';
 import {op} from './operation';
+import {pow} from './pow';
+import {squaredDifference} from './squared_difference';
+import {sub} from './sub';
 
 /**
  * @deprecated
@@ -38,7 +48,7 @@ function addStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
   const $a = convertToTensor(a, 'a', 'addStrict');
   const $b = convertToTensor(b, 'b', 'addStrict');
   util.assertShapesMatch($a.shape, $b.shape, 'Error in addStrict: ');
-  return $a.add($b);
+  return add($a, $b);
 }
 
 /**
@@ -59,7 +69,7 @@ function subStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
   const $a = convertToTensor(a, 'a', 'subStrict');
   const $b = convertToTensor(b, 'b', 'subStrict');
   util.assertShapesMatch($a.shape, $b.shape, 'Error in subStrict: ');
-  return $a.sub($b);
+  return sub($a, $b);
 }
 
 /**
@@ -78,7 +88,7 @@ function powStrict_<T extends Tensor>(base: T, exp: Tensor): T {
       'and will be removed in future');
 
   util.assertShapesMatch(base.shape, exp.shape, 'Error in powStrict: ');
-  return base.pow(exp);
+  return pow(base, exp);
 }
 
 /**
@@ -99,7 +109,7 @@ function mulStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
   const $a = convertToTensor(a, 'a', 'mul');
   const $b = convertToTensor(b, 'b', 'mul');
   util.assertShapesMatch($a.shape, $b.shape, 'Error in multiplyStrict: ');
-  return $a.mul($b);
+  return mul($a, $b);
 }
 
 /**
@@ -118,7 +128,7 @@ function divStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
   const $a = convertToTensor(a, 'a', 'div');
   const $b = convertToTensor(b, 'b', 'div');
   util.assertShapesMatch($a.shape, $b.shape, 'Error in divideStrict: ');
-  return $a.div($b);
+  return div($a, $b);
 }
 
 /**
@@ -137,7 +147,7 @@ function modStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
   const $a = convertToTensor(a, 'a', 'modStrict');
   const $b = convertToTensor(b, 'b', 'modStrict');
   util.assertShapesMatch($a.shape, $b.shape, 'Error in modStrict: ');
-  return $a.mod($b);
+  return mod($a, $b);
 }
 
 /**
@@ -156,7 +166,7 @@ function minimumStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
   const $a = convertToTensor(a, 'a', 'minimumStrict');
   const $b = convertToTensor(b, 'b', 'minimumStrict');
   util.assertShapesMatch($a.shape, $b.shape, 'Error in minimumStrict: ');
-  return $a.minimum($b);
+  return minimum($a, $b);
 }
 
 /**
@@ -175,7 +185,7 @@ function maximumStrict_<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
   const $a = convertToTensor(a, 'a', 'maximumStrict');
   const $b = convertToTensor(b, 'b', 'maximumStrict');
   util.assertShapesMatch($a.shape, $b.shape, 'Error in maximumStrict: ');
-  return $a.maximum($b);
+  return maximum($a, $b);
 }
 
 /**
@@ -197,7 +207,7 @@ function squaredDifferenceStrict_<T extends Tensor>(
   const $b = convertToTensor(b, 'b', 'squaredDifferenceStrict');
   util.assertShapesMatch(
       $a.shape, $b.shape, 'Error in squaredDifferenceStrict: ');
-  return $a.squaredDifference($b);
+  return squaredDifference($a, $b);
 }
 
 export const addStrict = op({addStrict_});

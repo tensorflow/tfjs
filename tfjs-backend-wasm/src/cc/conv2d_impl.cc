@@ -259,7 +259,7 @@ void conv2d(const size_t x_id, const size_t batch_size,
 
   xnn_status status = xnn_setup_convolution2d_nhwc_f32(
       conv2d_op, batch_size, input_height, input_width, x_buf, out_buf,
-      nullptr /* thread pool */);
+      tfjs::backend::threadpool);
   if (status != xnn_status_success) {
     util::warn(
         "XNN status for xnn_setup_convolution2d_nhwc_f32 is not successful. "
@@ -267,7 +267,7 @@ void conv2d(const size_t x_id, const size_t batch_size,
         status);
   }
 
-  xnn_run_operator(conv2d_op, nullptr /* thread pool */);
+  xnn_run_operator(conv2d_op, tfjs::backend::threadpool);
 
   if (activation == FusableActivation::PRELU) {
     prelu(out_buf, out_info.size, prelu_weights_id, out_id);

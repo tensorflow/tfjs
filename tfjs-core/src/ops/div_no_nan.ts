@@ -21,6 +21,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
 import {div} from './div';
+import {equal} from './equal';
 import {op} from './operation';
 import {where} from './where';
 import {zerosLike} from './zeros_like';
@@ -63,7 +64,7 @@ function divNoNan_<T extends Tensor>(
 
   const divResult = div($a, $b);
   const zeros = zerosLike(divResult);
-  const bEqualsZero = $b.equal(zeros);
+  const bEqualsZero = equal($b, zeros);
   return where(bEqualsZero, zeros, divResult) as T;
 }
 

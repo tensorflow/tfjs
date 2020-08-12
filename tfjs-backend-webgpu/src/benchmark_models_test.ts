@@ -64,4 +64,26 @@ describeWebGPU('Models benchmarks', () => {
     console.log(`Mean time: ${fmt(mean)} ms -> ${fmt(mean / 1)} / rep`);
     console.log(`Min time: ${fmt(min)} ms -> ${fmt(min / 1)} / rep`);
   });
+
+  it('mobilenet', async () => {
+    const input = tf.randomNormal([1, 500, 500, 3]);
+    const url =
+        'https://storage.googleapis.com/tfjs-models/savedmodel/posenet/mobilenet/float/075/model-stride16.json';
+    const model = await tfc.loadGraphModel(url);
+    const bench = () => model.predict(input);
+    await benchmark(bench);
+    const times = [];
+    const trials = 50;
+    for (let t = 0; t < trials; ++t) {
+      const time = await benchmark(bench);
+      times.push(time);
+    }
+    input.dispose();
+    console.log(times);
+    const mean = times.reduce((a, b) => a + b, 0) / trials;
+    const min = Math.min(...times);
+    const fmt = (n: number) => n.toFixed(3);
+    console.log(`Mean time: ${fmt(mean)} ms -> ${fmt(mean / 1)} / rep`);
+    console.log(`Min time: ${fmt(min)} ms -> ${fmt(min / 1)} / rep`);
+  });
 });
