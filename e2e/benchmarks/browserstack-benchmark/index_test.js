@@ -46,12 +46,12 @@ describe('getTabId', () => {
 
   it('for mobile devices, uses device name as part of the tab name', () => {
     const mobileName = getTabId(iphoneX);
-    expect(mobileName).toContain(iphoneX.device);
+    expect(mobileName).toContain('iPhone_X');
   });
 
   it('for desktop devices, uses OS name as part of the tab name', () => {
     const desktopName = getTabId(mac);
-    expect(desktopName).toContain(mac.os);
-    expect(desktopName).toContain(mac.os_version);
+    expect(desktopName).toContain('OS_X');
+    expect(desktopName).toContain('High_Sierra');
   });
 });
