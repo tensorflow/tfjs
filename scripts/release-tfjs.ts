@@ -101,8 +101,7 @@ async function main() {
 
       shell.cd('..');
 
-      // Make version for all packages other than tfjs-node-gpu. Consider
-      // remove make version.
+      // Make version for all packages other than tfjs-node-gpu.
       if (packageName !== 'tfjs-node-gpu') {
         $(`./scripts/make-version.js ${packageName}`);
       }
