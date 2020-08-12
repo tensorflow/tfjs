@@ -33,9 +33,9 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 
-void RotateWithOffset(const size_t image_id, const size_t batch,
-                      const size_t image_height, const size_t image_width,
-                      const size_t num_channels, const size_t out_id) {
+void FlipLeftRight(const size_t image_id, const size_t batch,
+                   const size_t image_height, const size_t image_width,
+                   const size_t num_channels, const size_t out_id) {
   auto& image_info = backend::get_tensor_info(image_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
 
