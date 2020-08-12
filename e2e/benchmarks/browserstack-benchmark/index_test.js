@@ -56,8 +56,8 @@ describe('getTabId', () => {
   });
 
   it('assigns unique summary names for undefined config', () => {
-    expect(getTabId()).toBe('Summary_1');
-    expect(getTabId()).toBe('Summary_2');
-    expect(getTabId()).toBe('Summary_3');
+    expect(state.summaryTabId).toBe('Summary - 1');
+    expect(getTabId()).toBe('Summary - 2');
+    expect(getTabId()).toBe('Summary - 3');
   });
 });
