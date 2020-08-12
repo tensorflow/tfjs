@@ -51,7 +51,7 @@ void RotateWithOffset(const size_t image_id, const size_t batch,
           const size_t x = col;
           const size_t y = row;
 
-          float coord_x = float(image_width - x);
+          const size_t coord_x = image_width - x;
           float output_value = 0.0;
           const size_t row_offset = y * (image_width * num_channels);
           size_t col_offset = x * num_channels;
