@@ -54,4 +54,53 @@ describe('getTabId', () => {
     expect(desktopName).toContain('OS_X');
     expect(desktopName).toContain('High_Sierra');
   });
+
+  it('assigns unique summary names for undefined config', () => {
+    expect(state.summaryTabId).toBe('Summary_1');
+    expect(getTabId()).toBe('Summary_2');
+    expect(getTabId()).toBe('Summary_3');
+  });
+});
+
+describe('state methods', () => {
+  beforeAll(() => {
+    this.originalInitVisor = initVisor;
+    this.originalDrawTunableBrowserSummaryTable =
+        drawTunableBrowserSummaryTable;
+    initVisor = jasmine.createSpy();
+    drawTunableBrowserSummaryTable = jasmine.createSpy();
+  });
+
+  beforeEach(() => {
+    gui = new dat.gui.GUI();
+    benchmarkButton = gui.add(state, 'run').name('Run benchmark');
+  });
+
+  afterEach(() => {
+    gui.destroy();
+  });
+
+  afterAll(() => {
+    initVisor = this.originalInitVisor;
+    drawTunableBrowserSummaryTable =
+        this.originalDrawTunableBrowserSummaryTable;
+  });
+
+  it(`enables 'Run benchmark' button, when adding the first browser'`, () => {
+    state.addBrowser();
+
+    expect(benchmarkButton.__li.style.pointerEvents).toBe('');
+    expect(benchmarkButton.__li.style.opacity)
+        .toBe(ENABLED_BUTTON_OPACITY.toString());
+  });
+
+  it(`disables 'Run benchmark' button, when 'state.browsers' is empty'`, () => {
+    state.addBrowser();
+    state.addBrowser();
+    state.clearBrowsers();
+
+    expect(benchmarkButton.__li.style.pointerEvents).toBe('none');
+    expect(benchmarkButton.__li.style.opacity)
+        .toBe(DISABLED_BUTTON_OPACITY.toString());
+  });
 });
