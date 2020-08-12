@@ -155,6 +155,9 @@ function drawTunableBrowserSummaryTable(summaryTabId, browsers) {
         row.push(browser[fieldName]);
       }
     }
+
+    // Whenever a browser configuration is removed, this table will be re-drawn,
+    // so the index (the argument for state.removeBrowser) will be re-assigned.
     const removeBrowserButtonElement =
         `<button onclick="state.removeBrowser(${index})">Remove</button>`;
     row.push(removeBrowserButtonElement);
