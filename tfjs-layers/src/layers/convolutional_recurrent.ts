@@ -351,7 +351,7 @@ export class ConvLSTM2DCell extends LSTMCell {
       return tfc.keep(createMask().clone());
     }
 
-    const masks = Array(count).map(createMask);
+    const masks = Array(count).fill(undefined).map(createMask);
 
     return masks.map(m => tfc.keep(m.clone()));
   }
