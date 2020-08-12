@@ -17,7 +17,8 @@
 
 export enum SupportedBackends {
   cpu = 'cpu',
-  webgl = 'webgl'
+  webgl = 'webgl',
+  wasm = 'wasm'
 }
 export type SupportedBackend = keyof typeof SupportedBackends;
 

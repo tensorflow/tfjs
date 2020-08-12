@@ -215,9 +215,7 @@ function getPathToWasmBinary(
   let path: WasmBinaryName = 'tfjs-backend-wasm.wasm';
   if (simdSupported && threadsSupported) {
     path = 'tfjs-backend-wasm-threaded-simd.wasm';
-  }
-
-  if (simdSupported) {
+  } else if (simdSupported) {
     path = 'tfjs-backend-wasm-simd.wasm';
   }
 
@@ -418,12 +416,12 @@ export function setWasmPaths(
     wasmFileMap = prefixOrFileMap;
     const missingPaths =
         wasmBinaryNames.filter(name => wasmFileMap[name] == null);
-    if (missingPaths.length) {
-      console.warn(
-          `You provided a map of overrides for WASM binaries, but there ` +
-          `were no entries found for the following binaries: ` +
-          `${missingPaths.join(',')}. We will fall back to their ` +
-          `default locations.`);
+    if (missingPaths.length > 0) {
+      throw new Error(
+          `There were no entries found for the following binaries: ` +
+          `${missingPaths.join(',')}. Please either call setWasmPaths with a ` +
+          `map providing a path for each binary, or with a string indicating ` +
+          `the directory where all the binaries can be found.`);
     }
   }
 

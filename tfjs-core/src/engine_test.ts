@@ -391,10 +391,10 @@ describeWithFlags('profile', ALL_ENVS, () => {
 
     // Test the types for `kernelTimeMs` and `extraInfo` to confirm the promises
     // are resolved.
-    expect(typeof profile.kernels[0].kernelTimeMs).toBe('number');
-    expect(typeof profile.kernels[0].extraInfo).toBe('string');
-    expect(typeof profile.kernels[1].kernelTimeMs).toBe('number');
-    expect(typeof profile.kernels[1].extraInfo).toBe('string');
+    expect(profile.kernels[0].kernelTimeMs instanceof Promise).toBe(false);
+    expect(profile.kernels[0].extraInfo instanceof Promise).toBe(false);
+    expect(profile.kernels[1].kernelTimeMs instanceof Promise).toBe(false);
+    expect(profile.kernels[1].extraInfo instanceof Promise).toBe(false);
 
     // The specific values of `kernelTimeMs` and `extraInfo` are tested in the
     // tests of Profiler.profileKernel, so their values are not tested here.
@@ -437,8 +437,8 @@ describeWithFlags('profile', ALL_ENVS, () => {
     expect(profile.newTensors).toBe(2);
     expectArraysClose(await result.data(), [1, 4, 9]);
     expect(profile.kernels.length).toBe(1);
-    expect(typeof profile.kernels[0].kernelTimeMs).toBe('number');
-    expect(typeof profile.kernels[0].extraInfo).toBe('string');
+    expect(profile.kernels[0].kernelTimeMs instanceof Promise).toBe(false);
+    expect(profile.kernels[0].extraInfo instanceof Promise).toBe(false);
     expect(profile.kernels[0]).toEqual({
       'name': 'Square',
       'bytesAdded': 12,
@@ -468,8 +468,8 @@ describeWithFlags('profile', ALL_ENVS, () => {
     expect(profile.newTensors).toBe(1);
     expectArraysClose(await result.data(), [1, 2, 3]);
     expect(profile.kernels.length).toBe(1);
-    expect(typeof profile.kernels[0].kernelTimeMs).toBe('number');
-    expect(typeof profile.kernels[0].extraInfo).toBe('string');
+    expect(profile.kernels[0].kernelTimeMs instanceof Promise).toBe(false);
+    expect(profile.kernels[0].extraInfo instanceof Promise).toBe(false);
     expect(profile.kernels[0]).toEqual({
       'name': 'Square',
       'bytesAdded': 12,
