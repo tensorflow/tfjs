@@ -183,9 +183,20 @@ export class ConvLSTM2DCell extends LSTMCell {
       const hTMinus1 = inputs[1];  // Previous memory state.
       const cTMinus1 = inputs[2];  // Previous carry state.
 
+      type DropoutMasks = [tfc.Tensor, tfc.Tensor, tfc.Tensor, tfc.Tensor];
+
       const toCreateDropout =
           (dropout: number, existingMask: tfc.Tensor|tfc.Tensor[]) =>
               0 < dropout && dropout < 1 && existingMask == null;
+
+      const applyDropout =
+          (x: tfc.Tensor, mask: tfc.Tensor[], index: number) => {
+            if (!mask || !mask[index]) {
+              return x;
+            }
+
+            return tfc.mul(mask[index], x);
+          };
 
       if (toCreateDropout(this.dropout, this.dropoutMask)) {
         this.dropoutMask = this.generateDropoutMask({
@@ -196,14 +207,12 @@ export class ConvLSTM2DCell extends LSTMCell {
         }) as tfc.Tensor[];
       }
 
-      type DropoutMasks = [tfc.Tensor, tfc.Tensor, tfc.Tensor, tfc.Tensor];
-
       const dropoutMask = this.dropoutMask as DropoutMasks;
 
-      let xI = dropoutMask ? tfc.mul(dropoutMask[0], x) : x;
-      let xF = dropoutMask ? tfc.mul(dropoutMask[1], x) : x;
-      let xC = dropoutMask ? tfc.mul(dropoutMask[2], x) : x;
-      let xO = dropoutMask ? tfc.mul(dropoutMask[3], x) : x;
+      let xI = applyDropout(x, dropoutMask, 0);
+      let xF = applyDropout(x, dropoutMask, 1);
+      let xC = applyDropout(x, dropoutMask, 2);
+      let xO = applyDropout(x, dropoutMask, 3);
 
       if (toCreateDropout(this.recurrentDropout, this.recurrentDropoutMask)) {
         this.recurrentDropoutMask = this.generateDropoutMask({
@@ -216,10 +225,10 @@ export class ConvLSTM2DCell extends LSTMCell {
 
       const recDropoutMask = this.recurrentDropoutMask as DropoutMasks;
 
-      let hI = recDropoutMask ? tfc.mul(recDropoutMask[0], hTMinus1) : hTMinus1;
-      let hF = recDropoutMask ? tfc.mul(recDropoutMask[1], hTMinus1) : hTMinus1;
-      let hC = recDropoutMask ? tfc.mul(recDropoutMask[2], hTMinus1) : hTMinus1;
-      let hO = recDropoutMask ? tfc.mul(recDropoutMask[3], hTMinus1) : hTMinus1;
+      let hI = applyDropout(hTMinus1, recDropoutMask, 0);
+      let hF = applyDropout(hTMinus1, recDropoutMask, 1);
+      let hC = applyDropout(hTMinus1, recDropoutMask, 2);
+      let hO = applyDropout(hTMinus1, recDropoutMask, 3);
 
       const [kernelI, kernelF, kernelC, kernelO]: tfc.Tensor[] =
           tfc.split(this.kernel.read(), 4, 3);
