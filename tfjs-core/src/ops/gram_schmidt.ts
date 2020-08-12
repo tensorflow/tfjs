@@ -54,8 +54,7 @@ import {sum} from './sum';
  *   Orthogonalization means that the vectors or the rows of the matrix
  *   are orthogonal (zero inner products). Normalization means that each
  *   vector or each row of the matrix has an L2 norm that equals `1`.
- */
-/**
+ *
  * @doc {heading:'Operations', subheading:'Linear Algebra', namespace:'linalg'}
  */
 function gramSchmidt_(xs: Tensor1D[]|Tensor2D): Tensor1D[]|Tensor2D {

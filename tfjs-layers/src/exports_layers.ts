@@ -60,8 +60,9 @@ import {Bidirectional, BidirectionalLayerArgs, TimeDistributed, WrapperLayerArgs
  * model2.summary();
  * model2.predict(tf.zeros([1, 3])).print();
  * ```
+ *
+ * @doc {heading: 'Layers', subheading: 'Inputs', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Inputs', namespace: 'layers'} */
 export function inputLayer(args: InputLayerArgs): Layer {
   return new InputLayer(args);
 }
@@ -85,8 +86,7 @@ export function inputLayer(args: InputLayerArgs): Layer {
  * References:
  *   - [Fast and Accurate Deep Network Learning by Exponential Linear Units
  * (ELUs)](https://arxiv.org/abs/1511.07289v1)
- */
-/**
+ *
  * @doc {
  *   heading: 'Layers',
  *   subheading: 'Advanced Activation',
@@ -107,8 +107,7 @@ export function elu(args?: ELULayerArgs): Layer {
  *
  * Output shape:
  *   Same shape as the input.
- */
-/**
+ *
  * @doc {
  *   heading: 'Layers',
  *   subheading: 'Advanced Activation',
@@ -132,8 +131,7 @@ export function reLU(args?: ReLULayerArgs): Layer {
  *
  * Output shape:
  *   Same shape as the input.
- */
-/**
+ *
  * @doc {
  *   heading: 'Layers',
  *   subheading: 'Advanced Activation',
@@ -158,8 +156,7 @@ export function leakyReLU(args?: LeakyReLULayerArgs): Layer {
  *
  * Output shape:
  *   Same shape as the input.
- */
-/**
+ *
  * @doc {
  *   heading: 'Layers',
  *   subheading: 'Advanced Activation',
@@ -179,8 +176,7 @@ export function prelu(args?: PReLULayerArgs): Layer {
  *
  * Output shape:
  *   Same shape as the input.
- */
-/**
+ *
  * @doc {
  *   heading: 'Layers',
  *   subheading: 'Advanced Activation',
@@ -208,8 +204,7 @@ export function softmax(args?: SoftmaxLayerArgs): Layer {
  * References:
  *   - [Zero-Bias Autoencoders and the Benefits of Co-Adapting
  * Features](http://arxiv.org/abs/1402.3337)
- */
-/**
+ *
  * @doc {
  *   heading: 'Layers',
  *   subheading: 'Advanced Activation',
@@ -239,8 +234,7 @@ export function thresholdedReLU(args?: ThresholdedReLULayerArgs): Layer {
  * For example, `inputShape` would be:
  * - `[10, 128]` for sequences of 10 vectors of 128-dimensional vectors
  * - `[null, 128]` for variable-length sequences of 128-dimensional vectors.
- */
-/**
+ *
  * @doc {heading: 'Layers', subheading: 'Convolutional',  namespace: 'layers'}
  */
 export function conv1d(args: ConvLayerArgs): Layer {
@@ -262,8 +256,7 @@ export function conv1d(args: ConvLayerArgs): Layer {
  * (Array of integers, does not include the sample axis),
  * e.g. `inputShape=[128, 128, 3]` for 128x128 RGB pictures
  * in `dataFormat='channelsLast'`.
- */
-/**
+ *
  * @doc {heading: 'Layers', subheading: 'Convolutional', namespace: 'layers'}
  */
 export function conv2d(args: ConvLayerArgs): Layer {
@@ -302,8 +295,7 @@ export function conv2d(args: ConvLayerArgs): Layer {
  * learning](https://arxiv.org/abs/1603.07285v1)
  *   - [Deconvolutional
  * Networks](http://www.matthewzeiler.com/pubs/cvpr2010/cvpr2010.pdf)
- */
-/**
+ *
  * @doc {heading: 'Layers', subheading: 'Convolutional', namespace: 'layers'}
  */
 export function conv2dTranspose(args: ConvLayerArgs): Layer {
@@ -325,8 +317,7 @@ export function conv2dTranspose(args: ConvLayerArgs): Layer {
  * (Array of integers, does not include the sample axis),
  * e.g. `inputShape=[128, 128, 128, 1]` for 128x128x128 grayscale volumes
  * in `dataFormat='channelsLast'`.
- */
-/**
+ *
  * @doc {heading: 'Layers', subheading: 'Convolutional', namespace: 'layers'}
  */
 export function conv3d(args: ConvLayerArgs): Layer {
@@ -359,8 +350,7 @@ export function conv3d(args: ConvLayerArgs): Layer {
  *   or 4D tensor with shape:
  *     `[batch, newRows, newCols, filters]` if data_format='channelsLast'.
  *     `rows` and `cols` values might have changed due to padding.
- */
-/**
+ *
  * @doc {heading: 'Layers', subheading: 'Convolutional', namespace: 'layers'}
  */
 export function separableConv2d(args: SeparableConvLayerArgs): Layer {
@@ -395,8 +385,7 @@ export function separableConv2d(args: SeparableConvLayerArgs): Layer {
  *                                inputShape: [128, 128, 3]}));
  * //now output shape is [batch, 124, 124, 3]
  * ```
- */
-/**
+ *
  * @doc {heading: 'Layers', subheading: 'Convolutional', namespace: 'layers'}
  */
 export function cropping2D(args: Cropping2DLayerArgs): Layer {
@@ -424,8 +413,7 @@ export function cropping2D(args: Cropping2DLayerArgs): Layer {
  *     - If `dataFormat` is `"channelsFirst"`:
  *         `[batch, channels, upsampledRows, upsampledCols]`
  *
- */
-/**
+ *
  * @doc {heading: 'Layers', subheading: 'Convolutional', namespace: 'layers'}
  */
 export function upSampling2d(args: UpSampling2DLayerArgs): Layer {
@@ -441,8 +429,7 @@ export function upSampling2d(args: UpSampling2DLayerArgs): Layer {
  * in a depthwise spatial convolution (which acts on each input channel
  * separately). The `depthMultplier` argument controls how many output channels
  * are generated per input channel in the depthwise step.
- */
-/**
+ *
  * @doc {heading: 'Layers', subheading: 'Convolutional', namespace: 'layers'}
  */
 export function depthwiseConv2d(args: DepthwiseConv2DLayerArgs): Layer {
@@ -479,8 +466,7 @@ export function depthwiseConv2d(args: DepthwiseConv2DLayerArgs): Layer {
  * denseOut.print();
  * activationOut.print();
  * ```
- */
-/**
+ *
  * @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'}
  */
 export function activation(args: ActivationLayerArgs): Layer {
@@ -517,8 +503,9 @@ export function activation(args: ActivationLayerArgs): Layer {
  *
  * Note: if the input to the layer has a rank greater than 2, then it is
  * flattened prior to the initial dot product with the kernel.
+ *
+ * @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'} */
 export function dense(args: DenseLayerArgs): Layer {
   return new Dense(args);
 }
@@ -530,8 +517,9 @@ export function dense(args: DenseLayerArgs): Layer {
  *
  * Dropout consists in randomly setting a fraction `rate` of input units to 0 at
  * each update during training time, which helps prevent overfitting.
+ *
+ * @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'} */
 export function dropout(args: DropoutLayerArgs): Layer {
   return new Dropout(args);
 }
@@ -565,8 +553,9 @@ export function dropout(args: DropoutLayerArgs): Layer {
  * References:
  *   - [Efficient Object Localization Using Convolutional
  *      Networks](https://arxiv.org/abs/1411.4280)
+ *
+ * @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'} */
 export function spatialDropout1d(args: SpatialDropout1DLayerConfig): Layer {
   return new SpatialDropout1D(args);
 }
@@ -587,8 +576,9 @@ export function spatialDropout1d(args: SpatialDropout1DLayerConfig): Layer {
  * // flattening. (The 1st dimension is the undermined batch size.)
  * console.log(JSON.stringify(flattenLayer.apply(input).shape));
  * ```
+ *
+ * @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'} */
 export function flatten(args?: FlattenLayerArgs): Layer {
   return new Flatten(args);
 }
@@ -604,8 +594,9 @@ export function flatten(args?: FlattenLayerArgs): Layer {
  *  model.predict(x).print();
  *  // output shape is now [batch, 2, 4]
  * ```
+ *
+ * @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'} */
 export function repeatVector(args: RepeatVectorLayerArgs): Layer {
   return new RepeatVector(args);
 }
@@ -630,8 +621,9 @@ export function repeatVector(args: RepeatVectorLayerArgs): Layer {
  * Output shape:
  *   [batchSize, targetShape[0], targetShape[1], ...,
  *    targetShape[targetShape.length - 1]].
+ *
+ * @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'} */
 export function reshape(args: ReshapeLayerArgs): Layer {
   return new Reshape(args);
 }
@@ -661,8 +653,9 @@ export function reshape(args: ReshapeLayerArgs): Layer {
  * Output shape:
  *   Same rank as the input shape, but with the dimensions re-ordered (i.e.,
  *   permuted) according to the `dims` configuration of this layer.
+ *
+ * @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'} */
 export function permute(args: PermuteLayerArgs): Layer {
   return new Permute(args);
 }
@@ -675,8 +668,9 @@ export function permute(args: PermuteLayerArgs): Layer {
  *
  * **Output shape:** 3D tensor with shape: `[batchSize, sequenceLength,
  * outputDim]`.
+ *
+ * @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'} */
 export function embedding(args: EmbeddingLayerArgs): Layer {
   return new Embedding(args);
 }
@@ -700,8 +694,9 @@ export function embedding(args: EmbeddingLayerArgs): Layer {
  * // You get [null, 2, 2], with the first dimension as the undetermined batch
  * // dimension.
  * ```
+ *
+ * @doc {heading: 'Layers', subheading: 'Merge', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Merge', namespace: 'layers'} */
 export function add(args?: LayerArgs): Layer {
   return new Add(args);
 }
@@ -721,8 +716,9 @@ export function add(args?: LayerArgs): Layer {
  * // You get [null, 2, 2], with the first dimension as the undetermined batch
  * // dimension.
  * ```
+ *
+ * @doc {heading: 'Layers', subheading: 'Merge', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Merge', namespace: 'layers'} */
 export function average(args?: LayerArgs): Layer {
   return new Average(args);
 }
@@ -744,8 +740,9 @@ export function average(args?: LayerArgs): Layer {
  * // dimension. The last dimension (5) is the result of concatenating the
  * // last dimensions of the inputs (2 and 3).
  * ```
+ *
+ * @doc {heading: 'Layers', subheading: 'Merge', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Merge', namespace: 'layers'} */
 export function concatenate(args?: ConcatenateLayerArgs): Layer {
   return new Concatenate(args);
 }
@@ -765,8 +762,9 @@ export function concatenate(args?: ConcatenateLayerArgs): Layer {
  * // You get [null, 2, 2], with the first dimension as the undetermined batch
  * // dimension.
  * ```
+ *
+ * @doc {heading: 'Layers', subheading: 'Merge', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Merge', namespace: 'layers'} */
 export function maximum(args?: LayerArgs): Layer {
   return new Maximum(args);
 }
@@ -786,8 +784,9 @@ export function maximum(args?: LayerArgs): Layer {
  * // You get [null, 2, 2], with the first dimension as the undetermined batch
  * // dimension.
  * ```
+ *
+ * @doc {heading: 'Layers', subheading: 'Merge', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Merge', namespace: 'layers'} */
 export function minimum(args?: LayerArgs): Layer {
   return new Minimum(args);
 }
@@ -808,8 +807,9 @@ export function minimum(args?: LayerArgs): Layer {
  * console.log(product.shape);
  * // You get [null, 2, 2], with the first dimension as the undetermined batch
  * // dimension.
+ *
+ * @doc {heading: 'Layers', subheading: 'Merge', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Merge', namespace: 'layers'} */
 export function multiply(args?: LayerArgs): Layer {
   return new Multiply(args);
 }
@@ -833,8 +833,9 @@ export function multiply(args?: LayerArgs): Layer {
  * const y = dotLayer.apply([x1, x2]);
  * y.print();
  * ```
+ *
+ * @doc {heading: 'Layers', subheading: 'Merge', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Merge', namespace: 'layers'} */
 export function dot(args: DotLayerArgs): Layer {
   return new Dot(args);
 }
@@ -859,8 +860,7 @@ export function dot(args: DotLayerArgs): Layer {
  * References:
  *   - [Batch Normalization: Accelerating Deep Network Training by Reducing
  * Internal Covariate Shift](https://arxiv.org/abs/1502.03167)
- */
-/**
+ *
  * @doc {heading: 'Layers', subheading: 'Normalization', namespace: 'layers'}
  */
 export function batchNormalization(args?: BatchNormalizationLayerArgs): Layer {
@@ -884,8 +884,7 @@ export function batchNormalization(args?: BatchNormalizationLayerArgs): Layer {
  *
  * References:
  *   - [Layer Normalization](https://arxiv.org/abs/1607.06450)
- */
-/**
+ *
  * @doc {heading: 'Layers', subheading: 'Normalization', namespace: 'layers'}
  */
 export function layerNormalization(args?: LayerNormalizationLayerArgs): Layer {
@@ -913,8 +912,9 @@ export function layerNormalization(args?: LayerNormalizationLayerArgs): Layer {
  *     `[batch, paddedRows, paddedCols, channels]`
  *    - If `dataFormat` is `"channelsFirst"`:
  *     `[batch, channels, paddedRows, paddedCols]`.
+ *
+ * @doc {heading: 'Layers', subheading: 'Padding', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Padding', namespace: 'layers'} */
 export function zeroPadding2d(args?: ZeroPadding2DLayerArgs): Layer {
   return new ZeroPadding2D(args);
 }
@@ -929,8 +929,9 @@ export function zeroPadding2d(args?: ZeroPadding2DLayerArgs): Layer {
  * Output shape: `[batchSize, pooledLength, channels]`
  *
  * `tf.avgPool1d` is an alias.
+ *
+ * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'} */
 export function averagePooling1d(args: Pooling1DLayerArgs): Layer {
   return new AveragePooling1D(args);
 }
@@ -963,8 +964,9 @@ export function avgPooling1d(args: Pooling1DLayerArgs): Layer {
  *      `[batchSize, channels, pooleRows, pooledCols]`
  *
  * `tf.avgPool2d` is an alias.
+ *
+ * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'} */
 export function averagePooling2d(args: Pooling2DLayerArgs): Layer {
   return new AveragePooling2D(args);
 }
@@ -995,8 +997,9 @@ export function avgPooling2d(args: Pooling2DLayerArgs): Layer {
  *   - If `dataFormat=channelsFirst`:
  *       5D tensor with shape:
  *       `[batchSize, channels, pooledDepths, pooledRows, pooledCols]`
+ *
+ * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'} */
 export function averagePooling3d(args: Pooling3DLayerArgs): Layer {
   return new AveragePooling3D(args);
 }
@@ -1015,8 +1018,9 @@ export function avgPooling3d(args: Pooling3DLayerArgs): Layer {
  * Input Shape: 3D tensor with shape: `[batchSize, steps, features]`.
  *
  * Output Shape:2D tensor with shape: `[batchSize, features]`.
+ *
+ * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'} */
 export function globalAveragePooling1d(args?: LayerArgs): Layer {
   return new GlobalAveragePooling1D(args);
 }
@@ -1032,8 +1036,9 @@ export function globalAveragePooling1d(args?: LayerArgs): Layer {
  *
  * Output shape:
  *   2D tensor with shape: `[batchSize, channels]`.
+ *
+ * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'} */
 export function globalAveragePooling2d(args: GlobalPooling2DLayerArgs): Layer {
   return new GlobalAveragePooling2D(args);
 }
@@ -1044,8 +1049,9 @@ export function globalAveragePooling2d(args: GlobalPooling2DLayerArgs): Layer {
  * Input Shape: 3D tensor with shape: `[batchSize, steps, features]`.
  *
  * Output Shape:2D tensor with shape: `[batchSize, features]`.
+ *
+ * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'} */
 export function globalMaxPooling1d(args?: LayerArgs): Layer {
   return new GlobalMaxPooling1D(args);
 }
@@ -1061,8 +1067,9 @@ export function globalMaxPooling1d(args?: LayerArgs): Layer {
  *
  * Output shape:
  *   2D tensor with shape: `[batchSize, channels]`.
+ *
+ * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'} */
 export function globalMaxPooling2d(args: GlobalPooling2DLayerArgs): Layer {
   return new GlobalMaxPooling2D(args);
 }
@@ -1073,8 +1080,9 @@ export function globalMaxPooling2d(args: GlobalPooling2DLayerArgs): Layer {
  * Input shape:  `[batchSize, inLength, channels]`
  *
  * Output shape: `[batchSize, pooledLength, channels]`
+ *
+ * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'} */
 export function maxPooling1d(args: Pooling1DLayerArgs): Layer {
   return new MaxPooling1D(args);
 }
@@ -1097,8 +1105,9 @@ export function maxPooling1d(args: Pooling1DLayerArgs): Layer {
  *   - If `dataFormat=CHANNEL_FIRST`:
  *       4D tensor with shape:
  *       `[batchSize, channels, pooleRows, pooledCols]`
+ *
+ * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'} */
 export function maxPooling2d(args: Pooling2DLayerArgs): Layer {
   return new MaxPooling2D(args);
 }
@@ -1121,8 +1130,9 @@ export function maxPooling2d(args: Pooling2DLayerArgs): Layer {
  *   - If `dataFormat=channelsFirst`:
  *       5D tensor with shape:
  *       `[batchSize, channels, pooledDepths, pooledRows, pooledCols]`
+ *
+ * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'} */
 export function maxPooling3d(args: Pooling3DLayerArgs): Layer {
   return new MaxPooling3D(args);
 }
@@ -1149,8 +1159,9 @@ export function maxPooling3d(args: Pooling3DLayerArgs): Layer {
  * // [null, 10, 8]: 1st dimension is unknown batch size; 2nd dimension is the
  * // same as the sequence length of `input`, due to `returnSequences`: `true`;
  * // 3rd dimension is the `GRUCell`'s number of units.
+ *
+ * @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'} */
 export function gru(args: GRULayerArgs): Layer {
   return new GRU(args);
 }
@@ -1197,8 +1208,9 @@ export function gru(args: GRULayerArgs): Layer {
  *
  * To create an `RNN` consisting of only *one* `GRUCell`, use the
  * `tf.layers.gru`.
+ *
+ * @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'} */
 export function gruCell(args: GRUCellLayerArgs): RNNCell {
   return new GRUCell(args);
 }
@@ -1223,8 +1235,9 @@ export function gruCell(args: GRUCellLayerArgs): RNNCell {
  * // [null, 10, 8]: 1st dimension is unknown batch size; 2nd dimension is the
  * // same as the sequence length of `input`, due to `returnSequences`: `true`;
  * // 3rd dimension is the `LSTMCell`'s number of units.
+ *
+ * @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'} */
 export function lstm(args: LSTMLayerArgs): Layer {
   return new LSTM(args);
 }
@@ -1271,8 +1284,9 @@ export function lstm(args: LSTMLayerArgs): Layer {
  *
  * To create an `RNN` consisting of only *one* `LSTMCell`, use the
  * `tf.layers.lstm`.
+ *
+ * @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'} */
 export function lstmCell(args: LSTMCellLayerArgs): RNNCell {
   return new LSTMCell(args);
 }
@@ -1298,8 +1312,9 @@ export function lstmCell(args: LSTMCellLayerArgs): RNNCell {
  * // same as the sequence length of `input`, due to `returnSequences`: `true`;
  * // 3rd dimension is the `SimpleRNNCell`'s number of units.
  * ```
+ *
+ * @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'} */
 export function simpleRNN(args: SimpleRNNLayerArgs): Layer {
   return new SimpleRNN(args);
 }
@@ -1346,8 +1361,9 @@ export function simpleRNN(args: SimpleRNNLayerArgs): Layer {
  *
  * To create an `RNN` consisting of only *one* `SimpleRNNCell`, use the
  * `tf.layers.simpleRNN`.
+ *
+ * @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'} */
 export function simpleRNNCell(args: SimpleRNNCellLayerArgs): RNNCell {
   return new SimpleRNNCell(args);
 }
@@ -1409,8 +1425,9 @@ export function simpleRNNCell(args: SimpleRNNCellLayerArgs): RNNCell {
  *   method accepts the same keyword argument `constants`. Such constants
  *   can be used to conditon the cell transformation on additional static inputs
  *   (not changing over time), a.k.a an attention mechanism.
+ *
+ * @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'} */
 export function rnn(args: RNNLayerArgs): Layer {
   return new RNN(args);
 }
@@ -1419,8 +1436,9 @@ export function rnn(args: RNNLayerArgs): Layer {
  * Wrapper allowing a stack of RNN cells to behave as a single cell.
  *
  * Used to implement efficient stacked RNNs.
+ *
+ * @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'} */
 export function stackedRNNCells(args: StackedRNNCellsArgs): RNNCell {
   return new StackedRNNCells(args);
 }
@@ -1475,8 +1493,9 @@ export function bidirectional(args: BidirectionalLayerArgs): Bidirectional {
  * }));
  * console.log(JSON.stringify(model.outputs[0].shape));
  * ```
+ *
+ * @doc {heading: 'Layers', subheading: 'Wrapper', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Wrapper', namespace: 'layers'} */
 export function timeDistributed(args: WrapperLayerArgs): Layer {
   return new TimeDistributed(args);
 }
@@ -1509,8 +1528,9 @@ export {Layer, RNN, RNNCell, input /* alias for tf.input */};
  *
  * # Output shape
  *         Same shape as input.
+ *
+ * @doc {heading: 'Layers', subheading: 'Noise', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Noise', namespace: 'layers'} */
 export function gaussianNoise(args: GaussianNoiseArgs): GaussianNoise {
   return new GaussianNoise(args);
 }
@@ -1537,8 +1557,8 @@ export function gaussianNoise(args: GaussianNoiseArgs): GaussianNoise {
  *   - [Dropout: A Simple Way to Prevent Neural Networks from Overfitting](
  *      http://www.cs.toronto.edu/~rsalakhu/papers/srivastava14a.pdf)
  *
+ * @doc {heading: 'Layers', subheading: 'Noise', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Noise', namespace: 'layers'} */
 export function gaussianDropout(args: GaussianDropoutArgs): GaussianDropout {
   return new GaussianDropout(args);
 }
@@ -1571,8 +1591,9 @@ export function gaussianDropout(args: GaussianDropoutArgs): GaussianDropout {
  *
  * References:
  *   - [Self-Normalizing Neural Networks](https://arxiv.org/abs/1706.02515)
+ *
+ * @doc {heading: 'Layers', subheading: 'Noise', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Noise', namespace: 'layers'} */
 export function alphaDropout(args: AlphaDropoutArgs): AlphaDropout {
   return new AlphaDropout(args);
 }
@@ -1597,8 +1618,9 @@ export function alphaDropout(args: AlphaDropoutArgs): AlphaDropout {
  *
  * Output shape:
  *   Same shape as input.
+ *
+ * @doc {heading: 'Layers', subheading: 'Mask', namespace: 'layers'}
  */
-/** @doc {heading: 'Layers', subheading: 'Mask', namespace: 'layers'} */
 export function masking(args?: MaskingArgs): Layer {
   return new Masking(args);
 }

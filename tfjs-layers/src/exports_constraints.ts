@@ -20,24 +20,27 @@ import {Constraint, MaxNorm, MaxNormArgs, MinMaxNorm, MinMaxNormArgs, NonNeg, Un
  *       - [Dropout: A Simple Way to Prevent Neural Networks from Overfitting
  * Srivastava, Hinton, et al.
  * 2014](http://www.cs.toronto.edu/~rsalakhu/papers/srivastava14a.pdf)
+ *
+ * @doc {heading: 'Constraints',namespace: 'constraints'}
  */
-/** @doc {heading: 'Constraints',namespace: 'constraints'} */
 export function maxNorm(args: MaxNormArgs): Constraint {
   return new MaxNorm(args);
 }
 
 /**
  * Constrains the weights incident to each hidden unit to have unit norm.
+ *
+ * @doc {heading: 'Constraints', namespace: 'constraints'}
  */
-/** @doc {heading: 'Constraints', namespace: 'constraints'} */
 export function unitNorm(args: UnitNormArgs): Constraint {
   return new UnitNorm(args);
 }
 
 /**
  * Constains the weight to be non-negative.
+ *
+ * @doc {heading: 'Constraints', namespace: 'constraints'}
  */
-/** @doc {heading: 'Constraints', namespace: 'constraints'} */
 export function nonNeg(): Constraint {
   return new NonNeg();
 }

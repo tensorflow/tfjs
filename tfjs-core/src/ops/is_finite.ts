@@ -33,8 +33,9 @@ import {op} from './operation';
  * x.isFinite().print();  // or tf.isNaN(x)
  * ```
  * @param x The input Tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function isFinite_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'isFinite');
 

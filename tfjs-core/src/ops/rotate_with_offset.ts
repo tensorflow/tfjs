@@ -39,8 +39,9 @@ import {op} from './operation';
  * @param center The center of rotation. Can be either a single value (0-1), or
  *     an array of two numbers `[centerX, centerY]`. Defaults to `0.5` (rotates
  *     the image around its center).
+ *
+ * @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'}
  */
-/** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
 function rotateWithOffset_(
     image: Tensor4D|TensorLike, radians: number,
     fillValue: number|[number, number, number] = 0,

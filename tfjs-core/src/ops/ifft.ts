@@ -37,8 +37,7 @@ import {reshape} from './reshape';
  * x.ifft().print();  // tf.spectral.ifft(x).print();
  * ```
  * @param input The complex input to compute an ifft over.
- */
-/**
+ *
  * @doc {heading: 'Operations', subheading: 'Spectral', namespace: 'spectral'}
  */
 function ifft_(input: Tensor): Tensor {

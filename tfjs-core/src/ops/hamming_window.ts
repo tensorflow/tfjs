@@ -28,8 +28,7 @@ import {cosineWindow} from './signal_ops_util';
  * tf.signal.hammingWindow(10).print();
  * ```
  * @param The length of window
- */
-/**
+ *
  * @doc {heading: 'Operations', subheading: 'Signal', namespace: 'signal'}
  */
 function hammingWindow_(windowLength: number): Tensor1D {

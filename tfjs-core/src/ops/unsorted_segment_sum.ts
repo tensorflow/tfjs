@@ -41,8 +41,9 @@ import {op} from './operation';
  * @param segmentIds A `tf.Tensor1D` whose rank is equal to the rank of `x`'s
  * dimension along the `axis`.  Maps each element of `x` to a segment.
  * @param numSegments The number of distinct `segmentIds`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Segment'}
  */
-/** @doc {heading: 'Operations', subheading: 'Segment'} */
 function unsortedSegmentSum_<T extends Tensor>(
     x: T|TensorLike, segmentIds: Tensor1D|TensorLike, numSegments: number): T {
   const $x = convertToTensor(x, 'x', 'unsortedSegmentSum');

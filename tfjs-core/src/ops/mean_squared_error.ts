@@ -35,8 +35,9 @@ import {squaredDifference} from './squared_difference';
  *    dimension).
  * @param reduction Type of reduction to apply to loss. Should be of type
  *    `Reduction`
+ *
+ * @doc {heading: 'Training', subheading: 'Losses', namespace: 'losses'}
  */
-/** @doc {heading: 'Training', subheading: 'Losses', namespace: 'losses'} */
 function meanSquaredError_<T extends Tensor, O extends Tensor>(
     labels: T|TensorLike, predictions: T|TensorLike,
     weights?: Tensor|TensorLike,

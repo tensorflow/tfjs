@@ -39,8 +39,7 @@ import {slice} from './slice';
  * @param frameStep The number of samples to step.
  * @param fftLength The size of the FFT to apply.
  * @param windowFn A callable that takes a window length and returns 1-d tensor.
- */
-/**
+ *
  * @doc {heading: 'Operations', subheading: 'Signal', namespace: 'signal'}
  */
 function stft_(

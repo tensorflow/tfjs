@@ -33,8 +33,9 @@ import {op} from './operation';
  * ```
  *
  * @param x The input tensor. Must be of dtype 'bool'.
+ *
+ * @doc {heading: 'Operations', subheading: 'Logical'}
  */
-/** @doc {heading: 'Operations', subheading: 'Logical'} */
 function logicalNot_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'logicalNot', 'bool');
   const inputs: LogicalNotInputs = {x: $x};

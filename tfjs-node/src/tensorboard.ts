@@ -87,8 +87,7 @@ const summaryFileWriterCache: {[logdir: string]: SummaryFileWriter} = {};
  * @param filenameSuffix Suffix of the protocol buffer file names to be
  *   written in the `logdir` (default: `.v2`).
  * @returns An instance of `SummaryFileWriter`.
- */
-/**
+ *
  * @doc {heading: 'TensorBoard', namespace: 'node'}
  */
 export function summaryFileWriter(

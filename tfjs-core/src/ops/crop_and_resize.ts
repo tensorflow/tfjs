@@ -46,8 +46,9 @@ import {op} from './operation';
  * @param extrapolationValue A threshold for deciding when to remove boxes based
  *     on score. Defaults to 0.
  * @return A 4D tensor of the shape `[numBoxes,cropHeight,cropWidth,depth]`
+ *
+ * @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'}
  */
-/** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
 function cropAndResize_(
     image: Tensor4D|TensorLike,
     boxes: Tensor2D|TensorLike,

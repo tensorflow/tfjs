@@ -47,8 +47,9 @@ import {makeTensor} from './tensor_ops_util';
  * @param shape The shape of the tensor. Optional. If not provided,
  *   it is inferred from `values`.
  * @param dtype The data type.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 export function tensor<R extends Rank>(
     values: TensorLike, shape?: ShapeMap[R], dtype?: DataType): Tensor<R> {
   const inferredShape = inferShape(values, dtype);

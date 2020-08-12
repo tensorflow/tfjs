@@ -119,8 +119,9 @@ function softmaxCrossEntropyWithLogits_<T extends Tensor, O extends Tensor>(
  * @param labelSmoothing If greater than 0, then smooth the labels.
  * @param reduction Type of reduction to apply to loss. Should be of type
  *    `Reduction`
+ *
+ * @doc { heading: 'Training', subheading: 'Losses', namespace: 'losses' }
  */
-/** @doc { heading: 'Training', subheading: 'Losses', namespace: 'losses' } */
 function softmaxCrossEntropy_<T extends Tensor, O extends Tensor>(
     onehotLabels: T|TensorLike, logits: T|TensorLike,
     weights?: Tensor|TensorLike, labelSmoothing = 0,

@@ -43,8 +43,7 @@ import {slice} from './slice';
  * x.irfft().print();
  * ```
  * @param input The real value input to compute an irfft over.
- */
-/**
+ *
  * @doc {heading: 'Operations', subheading: 'Spectral', namespace: 'spectral'}
  */
 function irfft_(input: Tensor): Tensor {

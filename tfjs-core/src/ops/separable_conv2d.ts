@@ -66,8 +66,9 @@ import {reshape} from './reshape';
  *     "NHWC". Specify the data format of the input and output data. With the
  *     default format "NHWC", the data is stored in the order of: [batch,
  *     height, width, channels]. Only "NHWC" is currently supported.
+ *
+ * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
-/** @doc {heading: 'Operations', subheading: 'Convolution'} */
 function separableConv2d_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, depthwiseFilter: Tensor4D|TensorLike,
     pointwiseFilter: Tensor4D|TensorLike, strides: [number, number]|number,

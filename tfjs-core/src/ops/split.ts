@@ -58,8 +58,9 @@ import {prepareSplitSize} from './split_util';
  * Can contain one -1 indicating that dimension is to be inferred.
  * @param axis The dimension along which to split. Defaults to 0 (the first
  * dim).
+ *
+ * @doc {heading: 'Tensors', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
 function split_<T extends Tensor>(
     x: Tensor|TensorLike, numOrSizeSplits: number[]|number, axis = 0): T[] {
   const $x = convertToTensor(x, 'x', 'split');

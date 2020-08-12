@@ -42,8 +42,9 @@ import * as scatter_nd_util from './scatter_nd_util';
  * @param indices The tensor contains the indices into the output tensor.
  * @param updates The tensor contains the value for the indices.
  * @param shape: The shape of the output tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Operations', subheading: 'Slicing and Joining'} */
 function scatterND_<R extends Rank>(
     indices: Tensor|TensorLike, updates: Tensor|TensorLike,
     shape: ShapeMap[R]): Tensor<R> {

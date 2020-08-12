@@ -33,8 +33,9 @@ import {op} from './operation';
  * x.sign().print();  // or tf.sign(x)
  * ```
  * @param x The input Tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function sign_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'sign');
   const inputs: SignInputs = {x: $x};

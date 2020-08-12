@@ -35,8 +35,9 @@ declare module '../../tensor' {
  * @param depth Depth of `tf.Tensor5D`.
  * @param depth2 4th dimension of `tf.Tensor5D`.
  * @param depth3 5th dimension of 'tf.Tensor5D'
+ *
+ * @doc {heading: 'Tensors', subheading: 'Classes'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Classes'} */
 Tensor.prototype.as5D = function<T extends Tensor>(
     rows: number, columns: number, depth: number, depth2: number,
     depth3: number): T {

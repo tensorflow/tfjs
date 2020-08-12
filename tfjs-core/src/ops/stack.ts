@@ -36,8 +36,9 @@ import {op} from './operation';
  *
  * @param tensors A list of tensor objects with the same shape and dtype.
  * @param axis The axis to stack along. Defaults to 0 (the first dim).
+ *
+ * @doc {heading: 'Tensors', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
 function stack_<T extends Tensor>(
     tensors: Array<T|TensorLike>, axis = 0): Tensor {
   const $tensors = convertToTensorArray(tensors, 'tensors', 'stack');

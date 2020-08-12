@@ -42,8 +42,9 @@ import {reshape} from './reshape';
  * the location.
  * @param offValue A number used to fill in the output when the index does
  *     not match the location.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function oneHot_(
     indices: Tensor|TensorLike, depth: number, onValue = 1,
     offValue = 0): Tensor {

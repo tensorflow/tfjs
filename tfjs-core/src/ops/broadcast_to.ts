@@ -39,8 +39,9 @@ import {reshape} from './reshape';
  *
  * @param input The tensor that is to be broadcasted.
  * @param shape The input is to be broadcast to this shape.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Transformations'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Transformations'} */
 function broadcastTo_<R extends Rank>(
     x: Tensor|TensorLike, shape: ShapeMap[R]): Tensor<R> {
   let input = convertToTensor(x, 'broadcastTo', 'x');

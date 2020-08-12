@@ -37,8 +37,7 @@ import {tensor2d} from './tensor2d';
  * @param padEnd Whether to pad the end of signal with padValue.
  * @param padValue An number to use where the input signal does
  *     not exist when padEnd is True.
- */
-/**
+ *
  * @doc {heading: 'Operations', subheading: 'Signal', namespace: 'signal'}
  */
 function frame_(
