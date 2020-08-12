@@ -520,6 +520,8 @@ export function mapActivationToFusedKernel(activationName: string):
   return null;
 }
 
+type PossibleValues = Array<Array<boolean|string|number>>;
+
 /**
  * Returns the cartesian product of sets of values.
  * This works the same as itertools.product in Python.
@@ -535,9 +537,8 @@ export function mapActivationToFusedKernel(activationName: string):
  * @param arrayOfValues List/array of values.
  * @return The cartesian product.
  */
-export function getCartesianProductOfValues(
-    ...arrayOfValues: Array<Array<string|number>>):
-    Array<Array<string|number>> {
+export function getCartesianProductOfValues(...arrayOfValues: PossibleValues):
+    PossibleValues {
   assert(arrayOfValues.length > 0, 'arrayOfValues is empty');
 
   for (const values of arrayOfValues) {
@@ -557,5 +558,5 @@ export function getCartesianProductOfValues(
         .reduce((flattenedProduct, unflattenedProduct) => {
           return flattenedProduct.concat(unflattenedProduct);
         }, []);
-  }, [] as Array<Array<string|number>>);
+  }, [] as PossibleValues);
 }
