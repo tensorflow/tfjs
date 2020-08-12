@@ -17,6 +17,8 @@
 
 const TUNABLE_BROWSER_FIELDS =
     ['os', 'os_version', 'browser', 'browser_version', 'device'];
+const DISABLED_BUTTON_OPACITY = 0.8;
+const ENABLED_BUTTON_OPACITY = 1;
 const socket = io();
 
 /**
@@ -58,6 +60,10 @@ const state = {
     // Add browser config to `state.browsers` array.
     state.browsers.push(state.browser);
 
+    // Enable the benchmark button.
+    benchmarkButton.__li.style.pointerEvents = '';
+    benchmarkButton.__li.style.opacity = ENABLED_BUTTON_OPACITY;
+
     // Initialize tfvis, if it is the first call.
     initVisor();
     // (Re-)draw the browser list table, based on the current browsers.
@@ -68,14 +74,28 @@ const state = {
     // Remove the browser from the `state.browsers` array.
     state.browsers.splice(index, 1);
 
+    if (state.browsers.length === 0) {
+      // Disable the benchmark button.
+      benchmarkButton.__li.style.pointerEvents = 'none';
+      benchmarkButton.__li.style.opacity = DISABLED_BUTTON_OPACITY;
+    }
+
     // Re-draw the browser list table, based on the current browsers.
     drawTunableBrowserSummaryTable(state.summaryTabId, state.browsers);
   },
 
-  run: () => {
-    // Disable the button.
+  clearBrowsers: () => {
+    state.browsers.splice(0, state.browsers.length);
+
+    // Disable the benchmark button.
     benchmarkButton.__li.style.pointerEvents = 'none';
-    benchmarkButton.__li.style.opacity = .5;
+    benchmarkButton.__li.style.opacity = DISABLED_BUTTON_OPACITY;
+  },
+
+  run: () => {
+    // Disable the 'Add browser' button.
+    addingBrowserButton.__li.style.pointerEvents = 'none';
+    addingBrowserButton.__li.style.opacity = DISABLED_BUTTON_OPACITY;
 
     // Initialize tfvis, if it is the first call.
     initVisor();
@@ -107,7 +127,7 @@ const state = {
 
     // Prepare for the next round benchmark.
     state.summaryTabId = createTabId();
-    state.browsers.splice(0, state.browsers.length);
+    state.clearBrowsers();
   }
 };
 
@@ -400,8 +420,8 @@ function drawBenchmarkParameterTable(tabId) {
 
 socket.on('benchmarkComplete', benchmarkResult => {
   // Enable the button.
-  benchmarkButton.__li.style.pointerEvents = '';
-  benchmarkButton.__li.style.opacity = 1;
+  addingBrowserButton.__li.style.pointerEvents = '';
+  addingBrowserButton.__li.style.opacity = ENABLED_BUTTON_OPACITY;
 
   reportBenchmarkResult(benchmarkResult);
 });
@@ -410,8 +430,11 @@ const gui = new dat.gui.GUI();
 gui.domElement.id = 'gui';
 showModelSelection();
 showParameterSettings();
-const addBrowserButton = gui.add(state, 'addBrowser').name('Add browser');
+const addingBrowserButton = gui.add(state, 'addBrowser').name('Add browser');
 const benchmarkButton = gui.add(state, 'run').name('Run benchmark');
+// Disable the button until a browser is added.
+benchmarkButton.__li.style.pointerEvents = 'none';
+benchmarkButton.__li.style.opacity = DISABLED_BUTTON_OPACITY;
 
 function showModelSelection() {
   const modelFolder = gui.addFolder('Model');
