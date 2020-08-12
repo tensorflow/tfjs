@@ -131,6 +131,10 @@ const state = {
   }
 };
 
+let gui;
+let benchmarkButton;
+let addingBrowserButton;
+
 /**
  * Create a tunable browser list table that can be used to remove browsers.
  *
@@ -265,14 +269,14 @@ function getTabId(browserConf) {
     // For mobile devices.
     baseName = browserConf.device;
   } else {
-    // For desktop devices.
-    baseName = `${browserConf.os}(${browserConf.os_version})`;
+    baseName = `${browserConf.os}_${browserConf.os_version}`;
   }
+  baseName = baseName.split(' ').join('_');
   if (visorTabNameCounter[baseName] == null) {
     visorTabNameCounter[baseName] = 0;
   }
   visorTabNameCounter[baseName] += 1;
-  return `${baseName} - ${visorTabNameCounter[baseName]}`;
+  return `${baseName}_${visorTabNameCounter[baseName]}`;
 }
 
 function createTab(browserConf) {
@@ -291,7 +295,7 @@ function reportBenchmarkResult(benchmarkResult) {
 
   if (benchmarkResult.error != null) {
     // TODO: show error message under the tab.
-    alert(benchmarkResult.error);
+    console.log(benchmarkResult.error);
     return;
   }
 
@@ -421,24 +425,6 @@ function drawBenchmarkParameterTable(tabId) {
   tfvis.render.table(surface, {headers, values});
 }
 
-socket.on('benchmarkComplete', benchmarkResult => {
-  // Enable the button.
-  addingBrowserButton.__li.style.pointerEvents = '';
-  addingBrowserButton.__li.style.opacity = ENABLED_BUTTON_OPACITY;
-
-  reportBenchmarkResult(benchmarkResult);
-});
-
-const gui = new dat.gui.GUI();
-gui.domElement.id = 'gui';
-showModelSelection();
-showParameterSettings();
-const addingBrowserButton = gui.add(state, 'addBrowser').name('Add browser');
-const benchmarkButton = gui.add(state, 'run').name('Run benchmark');
-// Disable the button until a browser is added.
-benchmarkButton.__li.style.pointerEvents = 'none';
-benchmarkButton.__li.style.opacity = DISABLED_BUTTON_OPACITY;
-
 function showModelSelection() {
   const modelFolder = gui.addFolder('Model');
   let modelUrlController = null;
@@ -481,4 +467,25 @@ function printMemory(bytes) {
   } else {
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   }
+}
+
+function onPageLoad() {
+  gui = new dat.gui.GUI();
+  gui.domElement.id = 'gui';
+  showModelSelection();
+  showParameterSettings();
+  addingBrowserButton = gui.add(state, 'addBrowser').name('Add browser');
+  benchmarkButton = gui.add(state, 'run').name('Run benchmark');
+
+  // Disable the 'Run benchmark' button until a browser is added.
+  benchmarkButton.__li.style.pointerEvents = 'none';
+  benchmarkButton.__li.style.opacity = DISABLED_BUTTON_OPACITY;
+
+  socket.on('benchmarkComplete', benchmarkResult => {
+    // Enable the 'Add browser' button.
+    addingBrowserButton.__li.style.pointerEvents = '';
+    addingBrowserButton.__li.style.opacity = ENABLED_BUTTON_OPACITY;
+
+    reportBenchmarkResult(benchmarkResult);
+  });
 }

@@ -35,13 +35,10 @@ function getBrowserStackConfig() {
     browsers: []
   };
 
-  // The JSON file stores an array of browsers to benchmark, which is
-  // automatically generated based on browser selection from the webpage.
+  // The JSON file `./browsers.json` stores the `customLaunchers`. The key is
+  // tabId, while the value is specific browser setting.
   const browsers = require('./browsers.json');
-  browsers.forEach((browser, index) => {
-    browserstackConfig.customLaunchers[index.toString()] = browser;
-    browserstackConfig.browsers.push(index.toString());
-  });
+  browserstackConfig.customLaunchers = browsers;
   return browserstackConfig;
 }
 
