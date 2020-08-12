@@ -15,8 +15,6 @@
  * =============================================================================
  */
 
-import {backend_util} from '@tensorflow/tfjs-core';
-
 import {GPGPUProgram} from './gpgpu_math';
 
 export class FlipLeftRightProgram implements GPGPUProgram {
@@ -35,8 +33,11 @@ export class FlipLeftRightProgram implements GPGPUProgram {
 
           float coordXFloat = ${imageWidth}.0 - float(x);
           int coordX = int(round(coordXFloat));
+          float outputValue;
           if(coordX >= 0 && coordX < ${imageWidth}) {
-            outputValue = getImage(coords[0], coord[1], coordX, coords[3]);
+            outputValue = getImage(coords[0], coords[1], coordX, coords[3]);
+          } else {
+            outputValue = getImage(coords[0], coords[1], coords[2], coords[3]);
           }
           setOutput(outputValue);
         }

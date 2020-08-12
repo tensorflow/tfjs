@@ -48,8 +48,9 @@ export const flipLeftRightConfig: KernelConfig = {
             const x = coords[2];
 
             const coordX = Math.round(imageWidth - x);
+            const outIdx = batchOffset + rowOffset + colOffset + channel;
 
-            let outputValue = 0;
+            let outputValue = imageVals[outIdx];
             // If the coordinate position falls within the image boundaries...
             if (coordX >= 0 && coordX < imageWidth) {
               // set the output to the image value at the coordinate position.
@@ -58,8 +59,6 @@ export const flipLeftRightConfig: KernelConfig = {
                   batchOffset + rowOffset + rotatedColOffset + channel;
               outputValue = imageVals[imageIdx];
             }
-
-            const outIdx = batchOffset + rowOffset + colOffset + channel;
             output[outIdx] = outputValue;
           }
         }
