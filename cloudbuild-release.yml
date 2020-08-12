@@ -1,7 +1,7 @@
 steps:
 
 # Release e2e flow.
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'e2e'
   entrypoint: 'bash'
   id: 'verdaccio'
