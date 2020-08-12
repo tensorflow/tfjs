@@ -54,4 +54,10 @@ describe('getTabId', () => {
     expect(desktopName).toContain(mac.os);
     expect(desktopName).toContain(mac.os_version);
   });
+
+  it('assigns unique summary names for undefined config', () => {
+    expect(getTabId()).toBe('Summary_1');
+    expect(getTabId()).toBe('Summary_2');
+    expect(getTabId()).toBe('Summary_3');
+  });
 });

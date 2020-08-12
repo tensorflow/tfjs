@@ -54,7 +54,7 @@ const state = {
    * round of benchmark (has not started).
    * @type {string}
    */
-  summaryTabId: createTabId(),
+  summaryTabId: getTabId(),
 
   addBrowser: () => {
     // Add browser config to `state.browsers` array.
@@ -126,7 +126,7 @@ const state = {
     drawUntunableBrowserSummaryTable(state.summaryTabId, browserTabIdConfigMap);
 
     // Prepare for the next round benchmark.
-    state.summaryTabId = createTabId();
+    state.summaryTabId = getTabId();
     state.clearBrowsers();
   }
 };
@@ -253,7 +253,7 @@ function initVisor() {
  * @param {?Object<string, string>=} browserConf An object including fields in
  *     `TUNABLE_BROWSER_FIELDS`.
  */
-function createTabId(browserConf) {
+function getTabId(browserConf) {
   let baseName;
   if (browserConf == null) {
     // The tab is a summary tab.
@@ -273,7 +273,7 @@ function createTabId(browserConf) {
 }
 
 function createTab(browserConf) {
-  const tabId = createTabId(browserConf);
+  const tabId = getTabId(browserConf);
 
   // For tfvis, the tab name is not only a name but also the index to the tab.
   drawBrowserSettingTable(tabId, browserConf);
