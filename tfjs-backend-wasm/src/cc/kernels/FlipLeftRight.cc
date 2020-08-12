@@ -46,24 +46,24 @@ void FlipLeftRight(const size_t image_id, const size_t batch,
     const size_t batch_offset =
         batch_idx * image_width * image_height * num_channels;
     for (size_t row = 0; row < image_height; ++row) {
+      const size_t row_offset = row * (image_width * num_channels);
       for (size_t col = 0; col < image_width; ++col) {
+        const size_t col_offset = col * num_channels;
+
         for (size_t channel = 0; channel < num_channels; ++channel) {
           const size_t x = col;
-          const size_t y = row;
-
           const size_t coord_x = image_width - x;
-          float output_value = 0.0;
-          const size_t row_offset = y * (image_width * num_channels);
-          size_t col_offset = x * num_channels;
-
-          // If the coordinate position falls within the image boundaries...
-          if (coord_x >= 0 && coord_x < image_width) {
-            size_t col_offset = coord_x * num_channels;
-          }
           const size_t image_idx =
               batch_offset + row_offset + col_offset + channel;
-          // set the output to the image value at the coordinate position.
-          output_value = image_buf[image_idx];
+
+          float output_value = image_buf[image_idx];
+          // If the coordinate position falls within the image boundaries...
+          if (coord_x >= 0 && coord_x < image_width) {
+            const size_t flipped_col_offset = coord_x * num_channels;
+            const size_t rotated_image_idx =
+                batch_offset + row_offset + flipped_col_offset + channel;
+            output_value = image_buf[rotated_image_idx];
+          }
 
           *out_buf = output_value;
           out_buf++;
