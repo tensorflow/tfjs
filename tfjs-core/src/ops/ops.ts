@@ -234,6 +234,7 @@ const signal = {
 
 // Image Ops namespace
 import {cropAndResize} from './crop_and_resize';
+import {flipLeftRight} from './flip_left_right';
 import {rotateWithOffset} from './rotate_with_offset';
 import {nonMaxSuppression} from './non_max_suppression';
 import {nonMaxSuppressionAsync} from './non_max_suppression_async';
@@ -244,6 +245,7 @@ import {nonMaxSuppressionPaddedAsync} from './non_max_suppression_padded_async';
 import {resizeBilinear} from './resize_bilinear';
 import {resizeNearestNeighbor} from './resize_nearest_neighbor';
 const image = {
+  flipLeftRight,
   resizeNearestNeighbor,
   resizeBilinear,
   rotateWithOffset,
