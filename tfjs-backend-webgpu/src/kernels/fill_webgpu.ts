@@ -27,7 +27,6 @@ export class FillProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workPerThread = 4;
   workGroupSize: [number, number, number] = [16, 1, 1];
-  needsShapesUniforms = true;
 
   constructor(shape: number[], value: number) {
     this.outputShape = shape;

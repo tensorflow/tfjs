@@ -19,7 +19,7 @@ import * as tf from '@tensorflow/tfjs-core';
 import wasmPath from '../node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm';
 
 async function run() {
-  setWasmPath(wasmPath);
+  setWasmPath(null /* custom prefix */, {'tfjs-backend-wasm.wasm': wasmPath});
   await tf.setBackend('wasm');
   tf.add(5, 3).print();
 }

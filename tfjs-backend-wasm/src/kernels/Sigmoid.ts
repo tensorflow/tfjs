@@ -15,19 +15,14 @@
  * =============================================================================
  */
 
-import {KernelConfig, NamedTensorInfoMap, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Sigmoid, SigmoidInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
-
-interface SigmoidInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
 
 let wasmFunc: (xId: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
-  wasmFunc =
-      backend.wasm.cwrap('Sigmoid', null /* void */, ['number', 'number']);
+  wasmFunc = backend.wasm.cwrap(Sigmoid, null /* void */, ['number', 'number']);
 }
 
 function sigmoid(args: {backend: BackendWasm, inputs: SigmoidInputs}):
@@ -50,5 +45,5 @@ export const sigmoidConfig: KernelConfig = {
   kernelName: 'Sigmoid',
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: sigmoid
+  kernelFunc: sigmoid as {} as KernelFunc
 };

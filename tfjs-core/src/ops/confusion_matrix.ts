@@ -20,8 +20,11 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
+import {cast} from './cast';
+import {matMul} from './mat_mul';
 import {oneHot} from './one_hot';
 import {op} from './operation';
+import {transpose} from './transpose';
 
 /**
  * Computes the confusion matrix from true labels and predicted labels.
@@ -81,11 +84,11 @@ export function confusionMatrix_(
   // TODO(cais): In the future, if oneHot supports tensors inputs for
   //   `numClasses`, `confusionMatrix` can make `numClasses` optional.
 
-  const oneHotLabels = oneHot($labels.asType('int32'), numClasses) as Tensor2D;
+  const oneHotLabels = oneHot(cast($labels, 'int32'), numClasses) as Tensor2D;
   const oneHotPredictions =
-      oneHot($predictions.asType('int32'), numClasses) as Tensor2D;
-  const oneHotLabelsT: Tensor2D = oneHotLabels.transpose();
-  return oneHotLabelsT.matMul(oneHotPredictions).asType('int32');
+      oneHot(cast($predictions, 'int32'), numClasses) as Tensor2D;
+  const oneHotLabelsT: Tensor2D = transpose(oneHotLabels);
+  return cast(matMul(oneHotLabelsT, oneHotPredictions), 'int32');
 }
 
 export const confusionMatrix = op({confusionMatrix_});

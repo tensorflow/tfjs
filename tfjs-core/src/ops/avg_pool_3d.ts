@@ -142,7 +142,8 @@ function avgPool3d_<T extends Tensor4D|Tensor5D>(
   res = cast(res, x5D.dtype);
 
   if (reshapedTo5D) {
-    return res.as4D(res.shape[1], res.shape[2], res.shape[3], res.shape[4]) as
+    return reshape(
+               res, [res.shape[1], res.shape[2], res.shape[3], res.shape[4]]) as
         T;
   }
 

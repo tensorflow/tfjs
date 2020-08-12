@@ -24,8 +24,7 @@ import {permuteAxesAndTranspose} from './kernel_utils';
 let wasmSum: (xId: number, reduceSize: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
-  wasmSum =
-      backend.wasm.cwrap('Sum', null /*void*/, ['number, number, number']);
+  wasmSum = backend.wasm.cwrap(Sum, null /*void*/, ['number, number, number']);
 }
 
 function sum(args: {backend: BackendWasm, inputs: SumInputs, attrs: SumAttrs}):

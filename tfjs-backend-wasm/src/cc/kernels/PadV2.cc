@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "src/cc/backend.h"
+#include "src/cc/kernels/PadV2.h"
 #include "src/cc/util.h"
 
 namespace {
@@ -250,7 +251,7 @@ void PadV2(const size_t x_id, const size_t* x_shape_ptr,
       xnn_status status = xnn_setup_constant_pad_nd_x32(
           pad_op, x_shape_length, x_shape_ptr, pre_paddings_ptr,
           post_paddings_ptr, x_info.f32(), out_info.f32_write(),
-          nullptr /* threadpool */);
+          tfjs::backend::threadpool);
       if (status != xnn_status_success) {
         tfjs::util::warn(
             "XNN status for xnn_setup_constant_pad_nd_x32 is not "
@@ -259,7 +260,7 @@ void PadV2(const size_t x_id, const size_t* x_shape_ptr,
         return;
       }
 
-      xnn_run_operator(pad_op, nullptr /* threadpool */);
+      xnn_run_operator(pad_op, tfjs::backend::threadpool);
       break;
     }
     case DType::int32:

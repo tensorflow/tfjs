@@ -136,3 +136,16 @@ export function getPadding(
   }
   return pad;
 }
+
+/**
+ *  Reuse the tensor if it is marked as keep, otherwise clone the tensor to
+ *  avoid disposal. This is important for TensorArray and TensorList ops, since
+ *  internally they use a tensor as the id for TensorArray and TensorList, and
+ * to simplify lookup, they also use Tensor.id as the key to the internal map.
+ * These id tensors have been marked as kept in the backend, we need avoid clone
+ * them in order to create new Tensor.id.
+ * @param tensor
+ */
+export function cloneTensor(tensor: tfc.Tensor): tfc.Tensor {
+  return tensor.kept ? tensor : tfc.clone(tensor);
+}

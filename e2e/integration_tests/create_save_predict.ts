@@ -77,7 +77,8 @@ describe(`${REGRESSION} create_save_predict`, () => {
           for (let i = 0; i < ys.length; i++) {
             const y = ys[i];
             expect(y.shape).toEqual(kerasOutputShapes[i]);
-            tfc.test_util.expectArraysClose(await y.data(), kerasOutputData[i]);
+            tfc.test_util.expectArraysClose(
+                await y.data(), kerasOutputData[i], 0.005);
           }
 
           // Dispose all tensors;

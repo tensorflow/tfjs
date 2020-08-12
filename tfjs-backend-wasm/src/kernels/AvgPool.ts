@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {AvgPoolAttrs, AvgPoolInputs, backend_util, KernelConfig, KernelFunc, Tensor4D} from '@tensorflow/tfjs-core';
+import {AvgPool, AvgPoolAttrs, AvgPoolInputs, backend_util, KernelConfig, KernelFunc, Tensor4D} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -26,7 +26,7 @@ let wasmAvgPool: (
     strideWidth: number, channels: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmAvgPool = backend.wasm.cwrap('AvgPool', null /* void */, [
+  wasmAvgPool = backend.wasm.cwrap(AvgPool, null /* void */, [
     'number',  // xId
     'number',  // batchSize
     'number',  // inputHeight
@@ -88,7 +88,7 @@ function avgPool(
 }
 
 export const avgPoolConfig: KernelConfig = {
-  kernelName: 'AvgPool',
+  kernelName: AvgPool,
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: avgPool as {} as KernelFunc

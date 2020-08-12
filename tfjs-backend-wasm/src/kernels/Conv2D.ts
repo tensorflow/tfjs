@@ -15,14 +15,9 @@
  * =============================================================================
  */
 
-import {backend_util, Conv2DAttrs, KernelConfig, KernelFunc, NamedTensorInfoMap, Tensor4D, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, Conv2D, Conv2DAttrs, Conv2DInputs, KernelConfig, KernelFunc, Tensor4D} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
-
-interface Conv2DInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-  filter: TensorInfo;
-}
 
 let wasmConv2d: (
     xId: number, batchSize: number, inputHeight: number, inputWidth: number,
@@ -33,7 +28,7 @@ let wasmConv2d: (
     outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmConv2d = backend.wasm.cwrap('Conv2D', null /* void */, [
+  wasmConv2d = backend.wasm.cwrap(Conv2D, null /* void */, [
     'number',  // xId
     'number',  // batchSize
     'number',  // inputHeight
@@ -101,7 +96,7 @@ function conv2d(
 }
 
 export const conv2DConfig: KernelConfig = {
-  kernelName: 'Conv2D',
+  kernelName: Conv2D,
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: conv2d as {} as KernelFunc

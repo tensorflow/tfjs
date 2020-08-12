@@ -1,0 +1,64 @@
+/**
+ * @license
+ * Copyright 2020 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+
+import {esmModuleProvider} from './esm_module_provider';
+
+describe('ESM Module Provider', () => {
+  it('importCoreStr', () => {
+    const res = esmModuleProvider.importCoreStr();
+    expect(res).toContain(
+        // tslint:disable-next-line: max-line-length
+        `import {registerKernel, registerGradient} from '@tensorflow/tfjs-core/dist/base'`);
+    expect(res).toContain(
+        `import '@tensorflow/tfjs-core/dist/base_side_effects';`);
+    expect(res).toContain(`export * from '@tensorflow/tfjs-core/dist/base';`);
+  });
+
+  it('importConverterStr', () => {
+    const res = esmModuleProvider.importConverterStr();
+    expect(res).toBe(`export * from '@tensorflow/tfjs-converter';`);
+  });
+
+  it('importBackendStr cpu', () => {
+    const res = esmModuleProvider.importBackendStr('cpu');
+    expect(res).toBe(`export * from '@tensorflow/tfjs-backend-cpu/dist/base';`);
+  });
+
+  it('importBackendStr webgl', () => {
+    const res = esmModuleProvider.importBackendStr('webgl');
+    expect(res).toBe(
+        `export * from '@tensorflow/tfjs-backend-webgl/dist/base';`);
+  });
+
+  it('importKernelStr Max cpu', () => {
+    const res = esmModuleProvider.importKernelStr('Max', 'cpu');
+    expect(res.importStatement).toContain('import {maxConfig as Max_cpu}');
+    expect(res.importStatement)
+        .toContain(`from '@tensorflow/tfjs-backend-cpu/dist/kernels/Max'`);
+
+    expect(res.kernelConfigId).toBe('Max_cpu');
+  });
+
+  it('importGradientConfigStr Max', () => {
+    const res = esmModuleProvider.importGradientConfigStr('Max');
+    expect(res.importStatement).toContain('import {maxGradConfig}');
+    expect(res.importStatement)
+        .toContain(`from '@tensorflow/tfjs-core/dist/gradients/Max_grad'`);
+
+    expect(res.gradConfigId).toBe('maxGradConfig');
+  });
+});

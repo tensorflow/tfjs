@@ -64,7 +64,7 @@ void binary_xnn_f32(const size_t a_id, const size_t* a_shape_ptr,
   const size_t batch_size = out_info.size;
   xnn_status status =
       setup_op(binary_op, a_shape_len, a_shape_ptr, b_shape_len, b_shape_ptr,
-               a_buf, b_buf, out_buf, nullptr /* thread pool */);
+               a_buf, b_buf, out_buf, tfjs::backend::threadpool);
   if (status != xnn_status_success) {
     util::warn(
         "XNN status for xnn_setup_*_nd_f32 is not successful. Got "
@@ -73,7 +73,7 @@ void binary_xnn_f32(const size_t a_id, const size_t* a_shape_ptr,
     return;
   }
 
-  xnn_run_operator(binary_op, nullptr /* thread pool */);
+  xnn_run_operator(binary_op, tfjs::backend::threadpool);
 }
 
 }  // namespace wasm

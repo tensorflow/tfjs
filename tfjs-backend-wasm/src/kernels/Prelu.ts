@@ -15,20 +15,14 @@
  * =============================================================================
  */
 
-import {KernelConfig, NamedTensorInfoMap} from '@tensorflow/tfjs-core';
-import {TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Prelu, PreluInputs} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
-
-interface PreluInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-  alpha: TensorInfo;
-}
 
 let wasmPrelu: (xId: number, weightsId: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmPrelu = backend.wasm.cwrap('Prelu', null /* void */, [
+  wasmPrelu = backend.wasm.cwrap(Prelu, null /* void */, [
     'number',  // x_id
     'number',  // weights_id
     'number'   // out_id
@@ -48,8 +42,8 @@ function prelu(args: {inputs: PreluInputs, backend: BackendWasm}) {
 }
 
 export const preluConfig: KernelConfig = {
-  kernelName: 'Prelu',
+  kernelName: Prelu,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: prelu
+  kernelFunc: prelu as {} as KernelFunc
 };

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, DataType, KernelConfig, NamedTensorInfoMap, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, BinaryInputs, DataType, KernelConfig, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -86,9 +86,4 @@ export function createBinaryKernelConfig(
   }
 
   return {kernelName, backendName: 'wasm', setupFunc, kernelFunc};
-}
-
-interface BinaryInputs extends NamedTensorInfoMap {
-  a: TensorInfo;
-  b: TensorInfo;
 }

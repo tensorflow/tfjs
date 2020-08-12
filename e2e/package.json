@@ -30,7 +30,7 @@
     "karma-typescript": "~4.1.1",
     "mathjs": "^5.7.0",
     "request": "^2.88.0",
-    "ts-node": "~7.0.0",
+    "ts-node": "~8.8.2",
     "tsc": "^1.20150623.0",
     "tsify": "^3.0.4",
     "tslint": "^5.10.0",
@@ -60,7 +60,8 @@
     "lint": "tslint -p . -t verbose",
     "run-browserstack": "karma start --browserstack",
     "test": "./scripts/test.sh",
-    "test-ci": "./scripts/test-ci.sh"
+    "test-ci": "./scripts/test-ci.sh",
+    "update-dependency": "ts-node ./scripts/update-dependency.ts"
   },
   "license": "Apache-2.0",
   "engines": {

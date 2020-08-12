@@ -16,15 +16,16 @@
  */
 import {Tensor, Tensor4D} from '../tensor';
 import {Rank} from '../types';
+import {reshape} from './reshape';
 
 export function xAs4D<R extends Rank>(x: Tensor<R>) {
   let x4D: Tensor4D;
   if (x.rank === 0 || x.rank === 1) {
-    x4D = x.as4D(1, 1, 1, x.size);
+    x4D = reshape(x, [1, 1, 1, x.size]);
   } else if (x.rank === 2) {
-    x4D = x.as4D(1, 1, x.shape[0], x.shape[1]);
+    x4D = reshape(x, [1, 1, x.shape[0], x.shape[1]]);
   } else if (x.rank === 3) {
-    x4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
+    x4D = reshape(x, [1, x.shape[0], x.shape[1], x.shape[2]]);
   } else {
     x4D = x as Tensor4D;
   }

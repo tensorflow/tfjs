@@ -139,7 +139,7 @@ function stridedSlice_(
     }
 
     const res = backend.stridedSlice($x, begin, end, strides);
-    return res.reshape(outShape);
+    return reshape(res, outShape);
   };
 
   const inputs: StridedSliceInputs = {x: $x};

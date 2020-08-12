@@ -290,6 +290,62 @@ describe('tensorBoard callback', () => {
     expect(trainFileSize1).toBeGreaterThan(valFileSize1);
   });
 
+  it('fit(): with initialEpoch', async () => {
+    const model = createModelForTest();
+    const xs = tfn.randomUniform([100, 10]);
+    const ys = tfn.randomUniform([100, 1]);
+    const valXs = tfn.randomUniform([10, 10]);
+    const valYs = tfn.randomUniform([10, 1]);
+
+    // Warm-up training. Also ensures that `callback.trainWriter` and
+    // `callback.valWriter` are created.
+    await model.fit(xs, ys, {
+      epochs: 2,
+      validationData: [valXs, valYs],
+      verbose: 0,
+    });
+
+    const callback = tfn.node.tensorBoard(tmpLogDir, {updateFreq: 'epoch'});
+    // tslint:disable-next-line:no-any
+    (callback as any).ensureTrainWriterCreated();
+    // tslint:disable-next-line:no-any
+    (callback as any).ensureValWriterCreated();
+    // tslint:disable-next-line:no-any
+    const trainWriterScalarSpy = spyOn((callback as any).trainWriter, 'scalar');
+    // tslint:disable-next-line:no-any
+    const valWriterScalarSpy = spyOn((callback as any).valWriter, 'scalar');
+
+    // Train for 2 more epochs, using initialEpoch and callback.
+    await model.fit(xs, ys, {
+      epochs: 4,
+      initialEpoch: 2,
+      validationData: [valXs, valYs],
+      callbacks: [callback],
+    });
+    expect(trainWriterScalarSpy).toHaveBeenCalledTimes(4);
+    const trainCallArgs = trainWriterScalarSpy.calls.allArgs();
+    // Assert that the epoch numbers used to log the epoch-end loss and metric
+    // reflect initialEpoch.
+    expect(trainCallArgs[0][0]).toEqual('epoch_loss');
+    expect(trainCallArgs[0][2]).toEqual(3);
+    expect(trainCallArgs[1][0]).toEqual('epoch_MAE');
+    expect(trainCallArgs[1][2]).toEqual(3);
+    expect(trainCallArgs[2][0]).toEqual('epoch_loss');
+    expect(trainCallArgs[2][2]).toEqual(4);
+    expect(trainCallArgs[3][0]).toEqual('epoch_MAE');
+    expect(trainCallArgs[3][2]).toEqual(4);
+    expect(valWriterScalarSpy).toHaveBeenCalledTimes(4);
+    const valCallArgs = valWriterScalarSpy.calls.allArgs();
+    expect(valCallArgs[0][0]).toEqual('epoch_loss');
+    expect(valCallArgs[0][2]).toEqual(3);
+    expect(valCallArgs[1][0]).toEqual('epoch_MAE');
+    expect(valCallArgs[1][2]).toEqual(3);
+    expect(valCallArgs[2][0]).toEqual('epoch_loss');
+    expect(valCallArgs[2][2]).toEqual(4);
+    expect(valCallArgs[3][0]).toEqual('epoch_MAE');
+    expect(valCallArgs[3][2]).toEqual(4);
+  });
+
   it('Invalid updateFreq value causes error', async () => {
     expect(() => tfn.node.tensorBoard(tmpLogDir, {
       // tslint:disable-next-line:no-any

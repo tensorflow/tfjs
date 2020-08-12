@@ -83,7 +83,7 @@ void Sigmoid(const size_t x_id, const size_t out_id) {
 
   const size_t batch = x_info.size;
   xnn_status status = xnn_setup_sigmoid_nc_f32(
-      sigmoid_op, batch, x_buf, out_buf, nullptr /* thread pool */);
+      sigmoid_op, batch, x_buf, out_buf, tfjs::backend::threadpool);
   if (status != xnn_status_success) {
     tfjs::util::warn(
         "XNN status for xnn_setup_resize_bilinear2d_nhwc_f32 is not "
@@ -92,7 +92,7 @@ void Sigmoid(const size_t x_id, const size_t out_id) {
     return;
   }
 
-  xnn_run_operator(sigmoid_op, nullptr /* thread pool */);
+  xnn_run_operator(sigmoid_op, tfjs::backend::threadpool);
 }
 
 }  // extern "C"

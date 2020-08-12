@@ -17,10 +17,15 @@
 
 /*
  * base.ts contains all the exports from tfjs-backend-cpu
- * that do not trigger side effects.
+ * without auto-kernel registration
  */
+import {registerBackend} from '@tensorflow/tfjs-core';
+import {MathBackendCPU} from './backend_cpu';
 import * as shared from './shared';
 
 export {MathBackendCPU} from './backend_cpu';
 export {version as version_cpu} from './version';
 export {shared};
+
+// Side effects for default initialization of MathBackendCPU
+registerBackend('cpu', () => new MathBackendCPU(), 1 /* priority */);

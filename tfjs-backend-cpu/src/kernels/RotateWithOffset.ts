@@ -36,8 +36,8 @@ export const rotateWithOffsetConfig: KernelConfig = {
         backend_util.getImageCenter(center, imageHeight, imageWidth);
     const fullOpacityValue = 255;
 
-    const sinFactor = Math.sin(-radians);
-    const cosFactor = Math.cos(-radians);
+    const sinFactor = Math.sin(radians);
+    const cosFactor = Math.cos(radians);
     const imageVals = cpuBackend.data.get(image.dataId).values as TypedArray;
 
     for (let batchIdx = 0; batchIdx < batch; batchIdx++) {

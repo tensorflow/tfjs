@@ -1,3 +1,21 @@
+#!/usr/bin/env node
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+
 import chalk from 'chalk';
 import * as mkdirp from 'mkdirp';
 import * as readline from 'readline';
@@ -292,6 +310,48 @@ export function prepareReleaseBuild(phase: Phase, packageName: string) {
       phase.scripts[packageName]['after-yarn'] != null) {
     phase.scripts[packageName]['after-yarn'].forEach(script => $(script));
   }
+}
+
+export async function getReleaseBranch(): Promise<string> {
+  // Infer release branch name.
+  let releaseBranch = '';
+
+  // Get a list of branches sorted by timestamp in descending order.
+  const branchesStr = $(
+      `git branch -r --sort=-authordate --format='%(HEAD) %(refname:lstrip=-1)'`);
+  const branches =
+      Array.from(branchesStr.split(/\n/)).map(line => line.toString().trim());
+
+  // Find the latest matching branch, e.g. tfjs_1.7.1
+  // It will not match temprary generated branches such as tfjs_1.7.1_phase0.
+  const exp = '^' + name + '_([^_]+)$';
+  const regObj = new RegExp(exp);
+  const maybeBranch = branches.find(branch => branch.match(regObj));
+  releaseBranch = await question(
+      `Which release branch (leave empty for ` +
+      `${maybeBranch}):`);
+  if (releaseBranch === '') {
+    releaseBranch = maybeBranch;
+  }
+
+  return releaseBranch;
+}
+
+export function checkoutReleaseBranch(
+    releaseBranch: string, git_protocol: string) {
+  console.log(chalk.magenta.bold(
+      `~~~ Checking out release branch ${releaseBranch} ~~~`));
+  $(`rm -f -r ${TMP_DIR}`);
+  mkdirp(TMP_DIR, err => {
+    if (err) {
+      console.log('Error creating temp dir', TMP_DIR);
+      process.exit(1);
+    }
+  });
+
+  const urlBase = git_protocol ? 'git@github.com:' : 'https://github.com/';
+  $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${
+      TMP_DIR} --depth=1`);
 }
 
 export function createPR(

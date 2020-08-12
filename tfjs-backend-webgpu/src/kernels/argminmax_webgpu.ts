@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType} from '../shader_preprocessor';
+import {getCoordsDataType, getShapeCoords} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -31,7 +31,6 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   workGroupSize: [number, number, number];
   variableNames = ['x'];
   uniforms = 'int axis;';
-  needsShapesUniforms = true;
 
   constructor(inputShape: number[], axis: number, reduceType: 'min'|'max') {
     const axes = [axis];
@@ -113,9 +112,9 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
     const indexInputShape = (index: string) => {
       if (inputShape.length === 1) {
-        return 'xShape';
+        return `${getShapeCoords(inputShape)}`;
       } else {
-        return `xShape[${index}]`;
+        return `${getShapeCoords(inputShape)}[${index}]`;
       }
     };
 

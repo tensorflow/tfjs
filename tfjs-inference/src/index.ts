@@ -70,38 +70,40 @@ async function main() {
       description:
           'Directory to write the output files. Output files include: ' +
           'data.json, shape.json and dtype.json. The order of the output ' +
-          'tensors follow the same order as the tf_output_name_file.',
+          'tensors follow the same order as the tf_output_name_file. If the ' +
+          'file is not provided, the default outputs of the model would be ' +
+          'used.',
       type: 'string',
       demandOption: true
     },
     inputs_data_file: {
-      description: 'Filename of the input data file.',
+      description: 'Filename of the input data file. Must provide the file.',
       type: 'string',
       default: 'data.json'
     },
     inputs_shape_file: {
-      description: 'Filename of the input shape file.',
+      description: 'Filename of the input shape file. Must provide the file.',
       type: 'string',
       default: 'shape.json'
     },
     inputs_dtype_file: {
-      description: 'Filename of the input dtype file.',
+      description: 'Filename of the input dtype file. Must provide the file.',
       type: 'string',
       default: 'dtype.json'
     },
     tf_input_name_file: {
       description: 'Filename of the input name of the tf model. The input ' +
           'names should match the names defined in the signatureDef of the ' +
-          'model.',
+          'model. Must provide the file.',
       type: 'string',
       default: 'tf_input_name.json'
     },
     tf_output_name_file: {
       description: 'Filename of the output name of the tf model. The output ' +
           'names should match the names defined in the signatureDef of the ' +
-          'model.',
-      type: 'string',
-      default: 'tf_output_name.json'
+          'model. If the file is not provided, the default outputs of the ' +
+          'model would be used.',
+      type: 'string'
     },
     backend: {
       description: 'Choose which tfjs backend to use. Supported backends: ' +
@@ -142,9 +144,12 @@ async function main() {
       path.join(options.inputs_dir, options.tf_input_name_file), 'utf8');
   const inputName = JSON.parse(tfInputNameString);
 
-  const tfOutputNameString = fs.readFileSync(
-      path.join(options.inputs_dir, options.tf_output_name_file), 'utf8');
-  const outputName = JSON.parse(tfOutputNameString);
+  let outputName;
+  if (options.tf_output_name_file) {
+    const tfOutputNameString = fs.readFileSync(
+        path.join(options.inputs_dir, options.tf_output_name_file), 'utf8');
+    outputName = JSON.parse(tfOutputNameString);
+  }
 
   const namedInputs =
       createInputTensors(inputsData, inputsShape, inputsDtype, inputName);

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ScopeFn} from './engine';
+import {add, ScopeFn} from './engine';
 import * as tf from './index';
 import {ALL_ENVS, describeWithFlags} from './jasmine_util';
 import {zerosLike} from './ops/ops';
@@ -266,7 +266,7 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
     expect(
         () => backpropagateGradients(
             accumulatedGradientsMap, tape,
-            f => tf.tidy(f as ScopeFn<tf.Tensor>)))
+            f => tf.tidy(f as ScopeFn<tf.Tensor>), add))
         .toThrowError();
   });
 
@@ -290,7 +290,8 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
     }];
 
     backpropagateGradients(
-        accumulatedGradientsMap, tape, f => tf.tidy(f as ScopeFn<tf.Tensor>));
+        accumulatedGradientsMap, tape, f => tf.tidy(f as ScopeFn<tf.Tensor>),
+        add);
 
     expectArraysClose(await accumulatedGradientsMap[x.id].data(), [2]);
   });
@@ -327,7 +328,8 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
     ];
 
     backpropagateGradients(
-        accumulatedGradientsMap, tape, f => tf.tidy(f as ScopeFn<tf.Tensor>));
+        accumulatedGradientsMap, tape, f => tf.tidy(f as ScopeFn<tf.Tensor>),
+        add);
 
     // dx = dy + 1 + 1
     expectArraysClose(await accumulatedGradientsMap[x.id].data(), [3]);
@@ -378,7 +380,8 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
     ];
 
     backpropagateGradients(
-        accumulatedGradientsMap, tape, f => tf.tidy(f as ScopeFn<tf.Tensor>));
+        accumulatedGradientsMap, tape, f => tf.tidy(f as ScopeFn<tf.Tensor>),
+        add);
 
     // dx = dy + 1 + 1 + 1 + 1 + 1
     expectArraysClose(
@@ -410,8 +413,8 @@ describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
        }];
 
        backpropagateGradients(
-           accumulatedGradientsMap, tape,
-           f => tf.tidy(f as ScopeFn<tf.Tensor>));
+           accumulatedGradientsMap, tape, f => tf.tidy(f as ScopeFn<tf.Tensor>),
+           add);
        expectArraysClose(await accumulatedGradientsMap[x.id].data(), [0, 5, 0]);
        expectArraysClose(await dys[0].data(), [0]);
        expectArraysClose(await dys[1].data(), [5]);

@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
-import {KernelConfig} from '@tensorflow/tfjs-core';
+import {Add, KernelConfig} from '@tensorflow/tfjs-core';
 
 import {createBinaryKernelConfig} from './binary_kernel';
 
 const supportsFullBroadcast = true;
 
 export const addConfig: KernelConfig =
-    createBinaryKernelConfig('Add', supportsFullBroadcast);
+    createBinaryKernelConfig(Add, supportsFullBroadcast);

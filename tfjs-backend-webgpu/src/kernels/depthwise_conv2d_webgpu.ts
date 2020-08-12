@@ -16,23 +16,24 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
-import {computeDispatch} from '../webgpu_util';
+import {getShapeCoords} from '../shader_preprocessor';
+import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {WebGPUProgram} from './webgpu_program';
 
 export class DepthwiseConv2DProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
   userCode: string;
-  dispatchLayout: {x: number[], y: number[], z: number[]};
+  dispatchLayout: {x: number[], y?: number[], z?: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride, dilation, inDims;';
-  workGroupSize: [number, number, number] = [4, 8, 4];
-  needsShapesUniforms = true;
+  // This is an experimental value.
+  workGroupSize: [number, number, number] = [256, 1, 1];
 
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.outShape;
-    this.dispatchLayout = {x: [2], y: [1], z: [0, 3]};
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
     const channelMul = convInfo.outChannels / convInfo.inChannels;
@@ -44,7 +45,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
     this.userCode = `
       void writeResult(int batch, int row, int col, int chan, float value) {
         ivec4 coord = ivec4(batch, row, col, chan);
-        if (coordsInBounds(coord, outShape)) {
+        if (coordsInBounds(coord, ${getShapeCoords(this.outputShape)})) {
           setOutput(batch, row, col, chan, value);
         }
       }

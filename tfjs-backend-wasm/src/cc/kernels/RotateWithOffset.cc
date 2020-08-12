@@ -46,8 +46,8 @@ void RotateWithOffset(const size_t image_id, const size_t batch,
   const float* image_buf = image_info.f32();
   float* out_buf = out_info.f32_write();
 
-  const float sin_factor = sin(-radians);
-  const float cos_factor = cos(-radians);
+  const float sin_factor = sin(radians);
+  const float cos_factor = cos(radians);
 
   for (size_t batch_idx = 0; batch_idx < batch; ++batch_idx) {
     const size_t batch_offset =

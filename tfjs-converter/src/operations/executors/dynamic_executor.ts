@@ -23,47 +23,68 @@ import {InternalOpAsyncExecutor, Node} from '../types';
 
 import {getParamValue} from './utils';
 
+function nmsParams(
+    node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext) {
+  const boxes = getParamValue('boxes', node, tensorMap, context) as tfc.Tensor;
+  const scores =
+      getParamValue('scores', node, tensorMap, context) as tfc.Tensor;
+  const maxOutputSize =
+      getParamValue('maxOutputSize', node, tensorMap, context) as number;
+  const iouThreshold =
+      getParamValue('iouThreshold', node, tensorMap, context) as number;
+  const scoreThreshold =
+      getParamValue('scoreThreshold', node, tensorMap, context) as number;
+  const softNmsSigma =
+      getParamValue('softNmsSigma', node, tensorMap, context) as number;
+
+  return {
+    boxes,
+    scores,
+    maxOutputSize,
+    iouThreshold,
+    scoreThreshold,
+    softNmsSigma
+  };
+}
+
 export const executeOp: InternalOpAsyncExecutor = async(
     node: Node, tensorMap: NamedTensorsMap,
     context: ExecutionContext): Promise<tfc.Tensor[]> => {
   switch (node.op) {
-    case 'NonMaxSuppressionV5':
-    case 'NonMaxSuppressionV4':
+    case 'NonMaxSuppressionV5': {
+      const {
+        boxes,
+        scores,
+        maxOutputSize,
+        iouThreshold,
+        scoreThreshold,
+        softNmsSigma
+      } = nmsParams(node, tensorMap, context);
+
+      const result = await tfc.image.nonMaxSuppressionWithScoreAsync(
+          boxes as tfc.Tensor2D, scores as tfc.Tensor1D, maxOutputSize,
+          iouThreshold, scoreThreshold, softNmsSigma);
+
+      return [result.selectedIndices, result.selectedScores];
+    }
+    case 'NonMaxSuppressionV4': {
+      const {boxes, scores, maxOutputSize, iouThreshold, scoreThreshold} =
+          nmsParams(node, tensorMap, context);
+
+      const padToMaxOutputSize =
+          getParamValue('padToMaxOutputSize', node, tensorMap, context) as
+          boolean;
+
+      const result = await tfc.image.nonMaxSuppressionPaddedAsync(
+          boxes as tfc.Tensor2D, scores as tfc.Tensor1D, maxOutputSize,
+          iouThreshold, scoreThreshold, padToMaxOutputSize);
+
+      return [result.selectedIndices, result.validOutputs];
+    }
     case 'NonMaxSuppressionV3':
     case 'NonMaxSuppressionV2': {
-      const boxes =
-          getParamValue('boxes', node, tensorMap, context) as tfc.Tensor;
-      const scores =
-          getParamValue('scores', node, tensorMap, context) as tfc.Tensor;
-      const maxOutputSize =
-          getParamValue('maxOutputSize', node, tensorMap, context) as number;
-      const iouThreshold =
-          getParamValue('iouThreshold', node, tensorMap, context) as number;
-      const scoreThreshold =
-          getParamValue('scoreThreshold', node, tensorMap, context) as number;
-
-      if (node.op === 'NonMaxSuppressionV5') {
-        const softNmsSigma =
-            getParamValue('softNmsSigma', node, tensorMap, context) as number;
-
-        const result = await tfc.image.nonMaxSuppressionWithScoreAsync(
-            boxes as tfc.Tensor2D, scores as tfc.Tensor1D, maxOutputSize,
-            iouThreshold, scoreThreshold, softNmsSigma);
-
-        return [result.selectedIndices, result.selectedScores];
-      }
-
-      if (node.op === 'NonMaxSuppressionV4') {
-        const padToMaxOutputSize =
-            getParamValue('padToMaxOutputSize', node, tensorMap, context) as
-            boolean;
-
-        const result = await tfc.image.nonMaxSuppressionPaddedAsync(
-            boxes as tfc.Tensor2D, scores as tfc.Tensor1D, maxOutputSize,
-            iouThreshold, scoreThreshold, padToMaxOutputSize);
-
-        return [result.selectedIndices, result.validOutputs];
-      }
+      const {boxes, scores, maxOutputSize, iouThreshold, scoreThreshold} =
+          nmsParams(node, tensorMap, context);
 
       return [await tfc.image.nonMaxSuppressionAsync(
           boxes as tfc.Tensor2D, scores as tfc.Tensor1D, maxOutputSize,

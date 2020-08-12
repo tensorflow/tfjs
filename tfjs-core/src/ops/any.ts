@@ -26,6 +26,8 @@ import {parseAxisParam} from '../util';
 
 import {expandShapeToKeepDim, getAxesPermutation, getInnerMostAxes} from './axis_util';
 import {op} from './operation';
+import {reshape} from './reshape';
+import {transpose} from './transpose';
 
 /**
  * Computes the logical or of elements across dimensions of a `tf.Tensor`.
@@ -64,13 +66,13 @@ function any_<T extends Tensor>(
     let axes = origAxes;
     const permutedAxes = getAxesPermutation(axes, $x.rank);
     if (permutedAxes != null) {
-      $x = $x.transpose(permutedAxes);
+      $x = transpose($x, permutedAxes);
       axes = getInnerMostAxes(axes.length, $x.rank);
     }
     const res = backend.any($x, axes);
     if (keepDims) {
       const newShape = expandShapeToKeepDim(res.shape, origAxes);
-      return res.reshape(newShape);
+      return reshape(res, newShape);
     }
     return res as T;
   };

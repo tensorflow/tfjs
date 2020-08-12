@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {KernelConfig} from '@tensorflow/tfjs-core';
+import {KernelConfig, Sin} from '@tensorflow/tfjs-core';
 
 import {createUnaryKernelConfig} from './unary_kernel';
-export const sinConfig: KernelConfig = createUnaryKernelConfig('Sin');
+export const sinConfig: KernelConfig = createUnaryKernelConfig(Sin);

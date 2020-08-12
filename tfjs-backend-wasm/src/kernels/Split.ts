@@ -15,21 +15,18 @@
  * =============================================================================
  */
 
-import {KernelConfig, NamedAttrMap, NamedTensorInfoMap, SplitV, SplitVAttrs, SplitVInputs, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, SplitV, SplitVAttrs, SplitVInputs, util} from '@tensorflow/tfjs-core';
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
 import {slice} from './Slice';
 
-export function split(args: {
-  inputs: NamedTensorInfoMap,
-  attrs: NamedAttrMap,
-  backend: BackendWasm
-}) {
+export function split(
+    args: {inputs: SplitVInputs, attrs: SplitVAttrs, backend: BackendWasm}) {
   const {inputs, attrs, backend} = args;
-  const {x} = inputs as {} as SplitVInputs;
-  const {numOrSizeSplits, axis} = attrs as {} as SplitVAttrs;
+  const {x} = inputs;
+  const {numOrSizeSplits, axis} = attrs;
 
   const $axis = util.parseAxisParam(axis, x.shape)[0];
 
@@ -49,5 +46,5 @@ export function split(args: {
 export const splitVConfig: KernelConfig = {
   kernelName: SplitV,
   backendName: 'wasm',
-  kernelFunc: split
+  kernelFunc: split as {} as KernelFunc
 };

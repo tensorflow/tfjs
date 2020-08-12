@@ -40,6 +40,9 @@ ENV.registerFlag('WEBGL_VERSION', () => {
   return 0;
 });
 
+/** Whether to check for numerical representation problems. */
+ENV.registerFlag('WEBGL_CHECK_NUMERICAL_PROBLEMS', () => false);
+
 ENV.registerFlag(
     'WEBGL_BUFFER_SUPPORTED', () => ENV.get('WEBGL_VERSION') === 2);
 

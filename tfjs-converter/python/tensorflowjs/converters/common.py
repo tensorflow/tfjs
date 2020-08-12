@@ -59,6 +59,7 @@ SKIP_OP_CHECK = 'skip_op_check'
 STRIP_DEBUG_OPS = 'strip_debug_ops'
 WEIGHT_SHARD_SIZE_BYTES = 'weight_shard_size_bytes'
 CONTROL_FLOW_V2 = 'control_flow_v2'
+EXPERIMENTS = 'experiments'
 
 def get_converted_by():
   """Get the convertedBy string for storage in model artifacts."""

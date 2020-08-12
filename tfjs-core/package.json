@@ -91,5 +91,15 @@
     "node-fetch": false,
     "util": false,
     "crypto": false
-  }
+  },
+  "sideEffects": [
+    "./dist/index.js",
+    "./dist/base_side_effects.js",
+    "./dist/engine.js",
+    "./dist/flags.js",
+    "./dist/platforms/*.js",
+    "./dist/register_all_gradients.js",
+    "./dist/public/chained_ops/*.js",
+    "./dist/io/*.js"
+  ]
 }

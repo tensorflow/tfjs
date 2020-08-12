@@ -15,6 +15,7 @@
 #ifndef BACKEND_H_
 #define BACKEND_H_
 
+#include <xnnpack.h>
 #include <cstddef>
 #include <cstdint>
 
@@ -81,6 +82,8 @@ const size_t num_tensors();
 
 // The number of instantiated XNN operators.
 extern size_t xnn_operator_count;
+
+extern pthreadpool *threadpool;
 }  // namespace backend
 
 namespace wasm {

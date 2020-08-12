@@ -14,9 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
-import {KernelConfig} from '@tensorflow/tfjs-core';
+import {GreaterEqual, KernelConfig} from '@tensorflow/tfjs-core';
 
 import {createBinaryKernelConfig} from './binary_kernel';
+
 const supportsFullBroadcast = false;
 export const greaterEqualConfig: KernelConfig =
-    createBinaryKernelConfig('GreaterEqual', supportsFullBroadcast, 'bool');
+    createBinaryKernelConfig(GreaterEqual, supportsFullBroadcast, 'bool');

@@ -96,9 +96,10 @@ limitations under the License.
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2"></script>
 
-  <script src="./modelConfig.js"></script>
+  <script src="./model_config.js"></script>
   <script src="./util.js"></script>
   <script src="./benchmark_util.js"></script>
+  <script src="./index.js"></script>
   <script>
     'use strict';
 
@@ -161,6 +162,8 @@ limitations under the License.
       modelType: '',
       modelUrl: '',
       isModelChanged: false,
+      flags: {},
+      isFlagChanged: false
     };
 
     const modalDiv = document.getElementById('modal-msg');
@@ -255,21 +258,21 @@ limitations under the License.
     async function warmUpAndRecordTime() {
       await showMsg('Warming up');
 
-      let elapsedTimeArray;
+      let timeInfo;
       if (state.benchmark === 'custom') {
         const input = generateInput(model);
         try {
-          elapsedTimeArray = await profileInferenceTimeForModel(model, input, 1);
+          timeInfo = await profileInferenceTimeForModel(model, input, 1);
         } finally {
           tf.dispose(input);
         }
       } else {
-        elapsedTimeArray = await profileInferenceTime(() => predict(model), 1);
+        timeInfo = await profileInferenceTime(() => predict(model), 1);
       }
 
       await showMsg(null);
       appendRow(timeTable, 'backend', state.backend);
-      appendRow(timeTable, '1st inference', printTime(elapsedTimeArray[0]));
+      appendRow(timeTable, '1st inference', printTime(timeInfo.times[0]));
     }
 
     async function showInputs() {
@@ -340,27 +343,25 @@ limitations under the License.
       await showMsg(`Running predict ${state.numRuns} times`);
       chartWidth = document.querySelector('#perf-trendline-container').getBoundingClientRect().width;
 
-      let times;
+      let timeInfo;
       const numRuns = state.numRuns;
       if (state.benchmark === 'custom') {
         const input = generateInput(model);
         try {
-          times = await profileInferenceTimeForModel(model, input, numRuns);
+          timeInfo = await profileInferenceTimeForModel(model, input, numRuns);
         } finally {
           tf.dispose(input);
         }
       } else {
-        times = await profileInferenceTime(() => predict(model), numRuns);
+        timeInfo = await profileInferenceTime(() => predict(model), numRuns);
       }
 
       const forceInferenceTrendYMinToZero = true;
-      populateTrendline(document.querySelector('#perf-trendline-container'), times, forceInferenceTrendYMinToZero, printTime);
+      populateTrendline(document.querySelector('#perf-trendline-container'), timeInfo.times, forceInferenceTrendYMinToZero, printTime);
 
       await showMsg(null);
-      const average = times.reduce((acc, curr) => acc + curr, 0) / times.length;
-      const min = Math.min(...times);
-      appendRow(timeTable, `Subsequent average(${state.numRuns} runs)`, printTime(average));
-      appendRow(timeTable, 'Best time', printTime(min));
+      appendRow(timeTable, `Subsequent average(${state.numRuns} runs)`, printTime(timeInfo.averageTime));
+      appendRow(timeTable, 'Best time', printTime(timeInfo.minTime));
     }
 
     async function profileMemory() {
@@ -473,6 +474,13 @@ limitations under the License.
     }
 
     async function runBenchmark() {
+      if (state.isFlagChanged) {
+        await setEnvFlags(state.flags);
+        state.isFlagChanged = false;
+        envDiv.innerHTML = '';
+        showVersions();
+        await showEnvironment();
+      }
       await cleanUpTable();
       await setupKernelTable();
 
@@ -492,18 +500,18 @@ limitations under the License.
         await profileKernelTime();
       } else {
         await showMsg('Skipping kernel times since query timer extension is not ' +
-          'available. <br/> Use Chrome 70+.');
+          'available. <br/> Please use a browser supporting the EXT_disjoint_timer_query WebGL API.');
       };
     }
 
 
     async function onPageLoad() {
-      var gui = new dat.gui.GUI({width: 400});
+      const gui = new dat.gui.GUI({width: 550});
       gui.domElement.id = 'gui';
 
       await tf.setBackend(state.backend);
 
-      let modelFolder = gui.addFolder('Benchmark');
+      const modelFolder = gui.addFolder('Benchmark');
       let modelUrlController = null;
       modelFolder.add(state, 'benchmark', Object.keys(benchmarks)).name('models').onChange(async model => {
         await showMsg(null);
@@ -524,18 +532,23 @@ limitations under the License.
       });
       modelFolder.open();
 
-      let parameterFolder = gui.addFolder('Parameters');
+      const parameterFolder = gui.addFolder('Parameters');
       parameterFolder.add(state, 'numRuns');
-      parameterFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu']).onChange(backend => {
-        // TODO: Failed to set backend
-        tf.setBackend(backend);
-      });
       parameterFolder.add(state, 'kernelTiming', ['aggregate', 'individual']);
       parameterFolder.open();
+
+      const envFolder = gui.addFolder('Environment');
+      envFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu']).onChange(async backend => {
+        // TODO: Failed to set backend
+        await tf.setBackend(backend);
+        await showFlagSettings(envFolder, state.backend);
+      });
+      envFolder.open();
 
       gui.add(state, 'run').name('Run benchmark');
       gui.add(state, 'testCorrectness').name('Test correctness');
 
+      await showFlagSettings(envFolder, state.backend);
       showVersions();
       await showEnvironment();
     }

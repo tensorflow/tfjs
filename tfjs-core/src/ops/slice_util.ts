@@ -150,6 +150,11 @@ export function stopIndicesWithElidedDims(
   }
 
   for (let i = 0; i < newIndices.length; i++) {
+    // Handle negative indices
+    const axisSize = inputShape[i];
+    if (newIndices[i] < 0) {
+      newIndices[i] += axisSize;
+    }
     newIndices[i] = util.clamp(0, newIndices[i], inputShape[i]);
   }
   return newIndices;

@@ -31,7 +31,6 @@ export class BinaryOpProgram implements WebGPUProgram {
   variableNames = ['A', 'B'];
   workPerThread: number;
   workGroupSize: [number, number, number];
-  needsShapesUniforms = true;
 
   constructor(op: string, aShape: number[], bShape: number[]) {
     // TODO(jiajia.qin@intel.com): Heuristically select a good work group size.
@@ -49,7 +48,6 @@ export class BinaryOpProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
 
     if (shapesFit) {
-      this.needsShapesUniforms = false;
       this.userCode = `
           float binaryOperation(float a, float b) {
             ${op}

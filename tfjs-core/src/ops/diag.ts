@@ -46,10 +46,11 @@ import {reshape} from './reshape';
  * @param x The input tensor.
  */
 function diag_(x: Tensor): Tensor {
-  const $x = convertToTensor(x, 'x', 'diag').flatten();
+  const $x = convertToTensor(x, 'x', 'diag');
 
   const forward: ForwardFunc<Tensor> = backend => {
-    const result = backend.diag($x);
+    const flat = reshape($x, [$x.size]);
+    const result = backend.diag(flat);
     const outShape = [...x.shape, ...x.shape];
 
     return reshape(result, outShape);
