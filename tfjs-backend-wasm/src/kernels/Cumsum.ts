@@ -23,8 +23,8 @@ import {CppDType} from './types';
 
 import {transpose} from './Transpose';
 
-let wasmCumsum: (xId: number, exclusive: number, reverse: number, finalDim: number,
-                 outId: number, dtype: CppDType) => void;
+let wasmCumsum: (xId: number, exclusive: number, reverse: number,
+                 finalDim: number, outId: number, dtype: CppDType) => void;
 
 function setup(backend: BackendWasm) {
   wasmCumsum = backend.wasm.cwrap(Cumsum, null /* void */, [
@@ -67,7 +67,8 @@ TensorInfo {
   let out = permutedOut;
   if (permutation !== null) {
     const undoPermutation = backend_util.getUndoAxesPermutation(permutation);
-    out = transpose({inputs: {x: permutedOut}, attrs: {perm: undoPermutation}, backend});
+    out = transpose(
+      {inputs: {x: permutedOut}, attrs: {perm: undoPermutation}, backend});
     backend.disposeData(permutedX.dataId);
     backend.disposeData(permutedOut.dataId);
   }

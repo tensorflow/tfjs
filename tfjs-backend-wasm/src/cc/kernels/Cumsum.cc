@@ -64,10 +64,11 @@ void Cumsum(const size_t x_id, const size_t exclusive, const size_t reverse,
       cumsum<int32_t>(x_id, exclusive, reverse, final_dim, out_id);
       break;
     default:
-      util::warn("Cumsum for tensor id %d failed. Unsupported dtype %d", x_id, dtype);
+      util::warn("Cumsum for tensor id %d failed. Unsupported dtype %d",
+                 x_id, dtype);
   }
 }
 
-} // extern "C"
-} // namespace wasm
-} // namespace tfjs
+}   // extern "C"
+}   // namespace wasm
+}   // namespace tfjs
