@@ -71,6 +71,12 @@ const state = {
   },
 
   removeBrowser: index => {
+    if (index >= state.browsers.length) {
+      throw new Error(
+          `Invalid index ${index}, while the state.browsers only ` +
+          `has ${state.browsers.length} items.`);
+    }
+
     // Remove the browser from the `state.browsers` array.
     state.browsers.splice(index, 1);
 
@@ -487,5 +493,7 @@ function onPageLoad() {
     addingBrowserButton.__li.style.opacity = ENABLED_BUTTON_OPACITY;
 
     reportBenchmarkResult(benchmarkResult);
+
+    // TODO: We can add a summary for the benchmark results in this round.
   });
 }
