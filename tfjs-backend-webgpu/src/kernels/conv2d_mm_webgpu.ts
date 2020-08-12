@@ -26,7 +26,6 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class Conv2DMMProgram implements WebGPUProgram {
   outputShape: number[];
-  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
@@ -162,7 +161,5 @@ export class Conv2DMMProgram implements WebGPUProgram {
           mm_matMul(dimAOuter, dimInner, dimBOuter);
         }
       `;
-    this.shaderKey = `conv2dmm'${elementsPerThread.join('')}${fitA}${fitB}${
-        addBiasSnippet}${activationSnippet}`;
   }
 }

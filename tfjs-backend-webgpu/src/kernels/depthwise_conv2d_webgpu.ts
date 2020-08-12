@@ -88,6 +88,5 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
       }
     `;
 
-    this.shaderKey = `depthwise${channelMul}`;
   }
 }

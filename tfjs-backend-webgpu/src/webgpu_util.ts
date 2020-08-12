@@ -16,6 +16,43 @@
  */
 import {DataType} from '@tensorflow/tfjs-core';
 
+export const ARGMINMAXPROGRAM = 0x0101;
+export const CLIPPROGRAM = 0x0102;
+export const CONCATPROGRAM = 0x0103;
+export const CONV2DMMPROGRAM = 0x0104;
+export const CONV2DNAIVEPROGRAM = 0x0105;
+export const CROPANDRESIZEPROGRAM = 0x0106;
+export const DEPTHWISECONV2DPROGRAM = 0x0107;
+export const FILLPROGRAM = 0x0108;
+export const IM2COLPROGRAM = 0x0109;
+export const MATMULPACKEDPROGRAM = 0x010a;
+export const MATMULPROGRAM = 0x010b;
+export const MAXPOOLWITHFILTERSIZEEQUALSONEPROGRAM = 0x010c;
+export const PADPROGRAM = 0x010d;
+export const POOL2DPROGRAM = 0x010e;
+export const RESIZEBILINEARPROGRAM = 0x0110;
+export const REDUCEPROGRAM = 0x0111;
+export const SELECTPROGRAM = 0x0112;
+export const SLICEPROGRAM = 0x0113;
+export const STRIDEDSLICEPROGRAM = 0x0114;
+export const TRANSPOSEPROGRAM = 0x0115;
+export const TRANSPOSESHAREDPROGRAM = 0x0116;
+export const UNARYOPPROGRAM = 0x0117;
+
+export const AVG = 0x0201;
+export const MAX = 0x0202;
+export const MIN = 0x0203;
+
+export const ABS = 0x0301;
+export const EXP = 0x0302;
+export const LOG= 0x0303;
+export const NEG = 0x0304;
+export const PRELU = 0x0305;
+export const RELU = 0x0306;
+export const RELU6 = 0x0307;
+export const SIGMOID = 0x0308;
+export const TANH = 0x0309;
+
 const arrayProduct = (arr: number[]) => {
   let product = 1;
   for (let i = 0; i < arr.length; i++) {
@@ -136,4 +173,42 @@ export function ArrayBufferToTypedArray(data: ArrayBuffer, dtype: DataType) {
   } else {
     throw new Error(`Unknown dtype ${dtype}`);
   }
+}
+
+export function mapActivationToNum(activation: string): number {
+  if (activation === 'linear') {
+    return 0x0401;
+  } else if (activation === 'relu') {
+    return 0x0402;
+  } else if (activation === 'elu') {
+    return 0x0403;
+  } else if (activation === 'relu6') {
+    return 0x0404;
+  } else if (activation === 'prelu') {
+    return 0x0405;
+  }
+  throw new Error(`Activation ${
+      activation} has not been implemented for the WebGPU backend.`);
+}
+
+export function mapReduceTypeToNum(type: string): number {
+  if (type === 'min') {
+    return 0x0406;
+  } else if (type === 'max') {
+    return 0x0407;
+  } else if (type === 'sum') {
+    return 0x0408;
+  }
+  throw new Error(`Reduce type ${
+      type} has not been implemented for the WebGPU backend.`);
+}
+
+export function mapCropToNum(method: string): number {
+  if (method === 'bilinear') {
+    return 0x0409;
+  } else if (method === 'nearest') {
+    return 0x040a;
+  }
+  throw new Error(`Crop method ${
+      method} has not been implemented for the WebGPU backend.`);
 }

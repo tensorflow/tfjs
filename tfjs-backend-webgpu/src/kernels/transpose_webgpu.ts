@@ -23,7 +23,6 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class TransposeProgram implements WebGPUProgram {
   variableNames = ['A'];
-  shaderKey: string;
   outputShape: number[];
   userCode: string;
   dispatchLayout: {x: number[]};
@@ -62,7 +61,6 @@ export class TransposeProgram implements WebGPUProgram {
         }
       }
     `;
-    this.shaderKey = `tranpose${size}${dtype}${newDim.join(',')}`;
   }
 }
 

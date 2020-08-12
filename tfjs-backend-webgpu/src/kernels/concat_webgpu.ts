@@ -22,7 +22,6 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class ConcatProgram implements WebGPUProgram {
   outputShape: number[];
-  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
@@ -77,6 +76,5 @@ export class ConcatProgram implements WebGPUProgram {
         }
       }
     `;
-    this.shaderKey = `concat${size}${offsets.join(',')}`;
   }
 }

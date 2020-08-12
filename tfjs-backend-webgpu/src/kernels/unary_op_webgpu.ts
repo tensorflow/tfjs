@@ -41,7 +41,6 @@ export const LOG = `if (a < 0.0) return 1.0/0.0;
 export class UnaryOpProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;
-  shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A'];
@@ -72,7 +71,6 @@ export class UnaryOpProgram implements WebGPUProgram {
         setOutput(index, unaryOperation(a));;
       }
       `;
-      this.shaderKey = `unary2${op}`;
     } else {
       const type = getCoordsDataType(this.outputShape.length);
       this.userCode = `
@@ -95,7 +93,6 @@ export class UnaryOpProgram implements WebGPUProgram {
         }
       }
       `;
-      this.shaderKey = `unary${op}${type}${size}`;
     }
   }
 }

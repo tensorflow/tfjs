@@ -24,7 +24,6 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class BinaryOpSharedProgram implements WebGPUProgram {
   outputShape: number[];
-  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];

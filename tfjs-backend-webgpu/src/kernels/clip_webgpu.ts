@@ -23,7 +23,6 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class ClipProgram implements WebGPUProgram {
   outputShape: number[];
-  shaderKey: string;
   userCode: string;
   variableNames = ['A'];
   dispatchLayout: {x: number[]};
@@ -59,7 +58,5 @@ export class ClipProgram implements WebGPUProgram {
         }
       }
     `;
-
-    this.shaderKey = `clip${size}${type}`;
   }
 }
