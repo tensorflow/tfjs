@@ -48,9 +48,16 @@ const state = {
       delete benchmark['modelUrl'];
     }
 
-    socket.emit('run', {tabId, benchmark, browser: state.browser});
+    // TODO: Let `browsers` variable record multiple browser settings, when
+    // building UI for the multiple-selection.
+    const browsers = {};
+    browsers[tabId] = state.browser;
+    socket.emit('run', {benchmark, browsers});
   }
 };
+
+let gui;
+let benchmarkButton;
 
 function initVisor() {
   if (state.isVisorInitiated) {
@@ -110,13 +117,14 @@ function getTabId(browserConf) {
   if (browserConf.os === 'android' || browserConf.os === 'ios') {
     baseName = browserConf.device;
   } else {
-    baseName = `${browserConf.os}(${browserConf.os_version})`;
+    baseName = `${browserConf.os}_${browserConf.os_version}`;
   }
+  baseName = baseName.split(' ').join('_');
   if (visorTabNameCounter[baseName] == null) {
     visorTabNameCounter[baseName] = 0;
   }
   visorTabNameCounter[baseName] += 1;
-  return `${baseName} - ${visorTabNameCounter[baseName]}`;
+  return `${baseName}_${visorTabNameCounter[baseName]}`;
 }
 
 function createTab(browserConf) {
@@ -135,7 +143,7 @@ function reportBenchmarkResult(benchmarkResult) {
 
   if (benchmarkResult.error != null) {
     // TODO: show error message under the tab.
-    alert(benchmarkResult.error);
+    console.log(benchmarkResult.error);
     return;
   }
 
@@ -265,20 +273,6 @@ function drawBenchmarkParameterTable(tabId) {
   tfvis.render.table(surface, {headers, values});
 }
 
-socket.on('benchmarkComplete', benchmarkResult => {
-  // Enable the button.
-  benchmarkButton.__li.style.pointerEvents = '';
-  benchmarkButton.__li.style.opacity = 1;
-
-  reportBenchmarkResult(benchmarkResult);
-});
-
-const gui = new dat.gui.GUI();
-gui.domElement.id = 'gui';
-showModelSelection();
-showParameterSettings();
-const benchmarkButton = gui.add(state, 'run').name('Run benchmark');
-
 function showModelSelection() {
   const modelFolder = gui.addFolder('Model');
   let modelUrlController = null;
@@ -321,4 +315,20 @@ function printMemory(bytes) {
   } else {
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   }
+}
+
+function onPageLoad() {
+  gui = new dat.gui.GUI();
+  gui.domElement.id = 'gui';
+  showModelSelection();
+  showParameterSettings();
+  benchmarkButton = gui.add(state, 'run').name('Run benchmark');
+
+  socket.on('benchmarkComplete', benchmarkResult => {
+    // Enable the button.
+    benchmarkButton.__li.style.pointerEvents = '';
+    benchmarkButton.__li.style.opacity = 1;
+
+    reportBenchmarkResult(benchmarkResult);
+  });
 }
