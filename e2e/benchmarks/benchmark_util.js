@@ -16,6 +16,11 @@
  */
 
 /**
+ * This tool depends on tf-core, tf-layers, tf-converter and the backends
+ * (tf-backend-cpu, tf-backend-webgl or tf-backend-wasm) that you would use.
+ */
+
+/**
  * Generates a random input for `model`, based on `model.inputs`. For
  * tf.GraphModel, `NamedTensorMap` input will be returned; otherwise,
  * `Tensor[]` will be returned.
