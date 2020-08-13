@@ -382,12 +382,6 @@ describeMathCPUAndGPU('ConvLSTM2D Tensor', () => {
     }
 
     it('for stateful forward');
-
-    it('for goBackwards=false');
-
-    it('for goBackwards=true');
-
-    it('for nested model');
   });
 
   describe('should return the correct outputs', () => {
@@ -467,14 +461,129 @@ describeMathCPUAndGPU('ConvLSTM2D Tensor', () => {
         }
       });
     }
+
+    it('for nested model', () => {
+      const model = tfl.sequential();
+
+      const nestedModel = tfl.sequential();
+
+      nestedModel.add(tfl.layers.convLstm2d({
+        filters,
+        kernelSize,
+        kernelInitializer: 'ones',
+        recurrentInitializer: 'ones',
+        biasInitializer: 'ones',
+        batchInputShape: inputShape
+      }));
+
+      model.add(nestedModel);
+
+      const input = tfc.ones(inputShape);
+
+      const output = model.apply(input) as tfc.Tensor;
+
+      const expectedOutput = tfc.mul(
+          tfc.scalar(0.96402746),
+          tfc.ones([batchSize, outputSize, outputSize, filters]));
+
+      expectTensorsClose(output, expectedOutput);
+    });
+  });
+});
+
+// TODO: Add GPU test once Gather supports 5 rank tensor.
+describeMathCPU('should run BPPT correctly', () => {
+  const filters = 5;
+  const kernelSize = 3;
+
+  const batchSize = 4;
+  const sequenceLength = 2;
+  const inputSize = 5;
+  const channels = 3;
+
+  const inputShape =
+      [batchSize, sequenceLength, inputSize, inputSize, channels];
+
+  const outputSize = inputSize - kernelSize + 1;
+
+  it('for stateful BPPT', async () => {
+    const model = tfl.sequential();
+
+    model.add(tfl.layers.convLstm2d({
+      filters,
+      kernelSize,
+      kernelInitializer: 'ones',
+      recurrentInitializer: 'ones',
+      biasInitializer: 'ones',
+      stateful: true,
+      batchInputShape: inputShape
+    }));
+
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+
+    const input = tfc.ones(inputShape);
+
+    const output = tfc.ones([batchSize, outputSize, outputSize, filters]);
+
+    const history = await model.fit(input, output, {batchSize, shuffle: false});
+
+    expect(history.history.loss[0]).toBeCloseTo(0);
   });
 
-  describe('should run BPPT correctly', () => {
-    it('for stateful BPPT');
+  it('for normal BPPT', async () => {
+    const model = tfl.sequential();
 
-    it('for normal BPPT');
+    model.add(tfl.layers.convLstm2d({
+      filters,
+      kernelSize,
+      kernelInitializer: 'ones',
+      recurrentInitializer: 'ones',
+      biasInitializer: 'ones',
+      batchInputShape: inputShape
+    }));
 
-    it('with no leak');
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+
+    const input = tfc.ones(inputShape);
+
+    const output = tfc.ones([batchSize, outputSize, outputSize, filters]);
+
+    const history = await model.fit(input, output, {batchSize, shuffle: false});
+
+    expect(history.history.loss[0]).toBeCloseTo(0);
+  });
+
+  it('with no leak', async () => {
+    const model = tfl.sequential();
+
+    model.add(tfl.layers.convLstm2d({
+      filters,
+      kernelSize,
+      kernelInitializer: 'ones',
+      recurrentInitializer: 'ones',
+      biasInitializer: 'ones',
+      batchInputShape: inputShape
+    }));
+
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+
+    const input = tfc.ones(inputShape);
+
+    const output = tfc.ones([batchSize, outputSize, outputSize, filters]);
+
+    // Serves as burn-in call for subsequent tracking of memory leak.
+    await model.fit(input, output, {epochs: 2, batchSize, shuffle: false});
+
+    const numTensors0 = tfc.memory().numTensors;
+    const history = await model.fit(
+        input, output, {epochs: 2, batchSize: 4, shuffle: false});
+    const numTensors1 = tfc.memory().numTensors;
+
+    // Assert no memory leak.
+    expect(numTensors1).toEqual(numTensors0);
+    expect(history.history.loss.length).toEqual(2);
+    expect(history.history.loss[0]).toBeCloseTo(0);
+    expect(history.history.loss[1]).toBeCloseTo(0);
   });
 });
 
