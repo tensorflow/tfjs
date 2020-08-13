@@ -17,10 +17,21 @@
 
 const TUNABLE_BROWSER_FIELDS =
     ['os', 'os_version', 'browser', 'browser_version', 'device'];
+const DISABLED_BUTTON_OPACITY = 0.8;
+const ENABLED_BUTTON_OPACITY = 1;
 const socket = io();
+
+/**
+ * Helps assign unique id for visor tabs.
+ * @type {Object<string, number>}
+ */
+const visorTabNameCounter = {};
+
 const state = {
   isVisorInitiated: false,
   isDatGuiHidden: false,
+
+  // The following `browser` and `benchmark` fields are kept updated by dat.gui.
   browser: {
     base: 'BrowserStack',
     browser: 'chrome',
@@ -31,26 +42,176 @@ const state = {
   },
   benchmark: {model: 'mobilenet_v2', modelUrl: '', numRuns: 1, backend: 'wasm'},
 
-  run: () => {
-    // Disable the button.
-    benchmarkButton.__li.style.pointerEvents = 'none';
-    benchmarkButton.__li.style.opacity = .5;
+  /**
+   * An array of browser configurations, used to record the browsers to
+   * benchmark in this round.
+   * @type {!Array<!Object<string, string>>}
+   */
+  browsers: [],
 
+  /**
+   * The id for the visor tab that is used to show the summary for the incoming
+   * round of benchmark (has not started).
+   * @type {string}
+   */
+  summaryTabId: getTabId(),
+
+  addBrowser: () => {
+    // Add browser config to `state.browsers` array.
+    state.browsers.push(state.browser);
+
+    // Enable the benchmark button.
+    benchmarkButton.__li.style.pointerEvents = '';
+    benchmarkButton.__li.style.opacity = ENABLED_BUTTON_OPACITY;
+
+    // Initialize tfvis, if it is the first call.
     initVisor();
-    const tabId = createTab(state.browser);
+    // (Re-)draw the browser list table, based on the current browsers.
+    drawTunableBrowserSummaryTable(state.summaryTabId, state.browsers);
+  },
 
-    // Send the benchmark configuration to the server to start the benchmark.
-    if (state.browser.device === 'null') {
-      state.browser.device = null;
+  removeBrowser: index => {
+    if (index >= state.browsers.length) {
+      throw new Error(
+          `Invalid index ${index}, while the state.browsers only ` +
+          `has ${state.browsers.length} items.`);
     }
+
+    // Remove the browser from the `state.browsers` array.
+    state.browsers.splice(index, 1);
+
+    if (state.browsers.length === 0) {
+      // Disable the benchmark button.
+      benchmarkButton.__li.style.pointerEvents = 'none';
+      benchmarkButton.__li.style.opacity = DISABLED_BUTTON_OPACITY;
+    }
+
+    // Re-draw the browser list table, based on the current browsers.
+    drawTunableBrowserSummaryTable(state.summaryTabId, state.browsers);
+  },
+
+  clearBrowsers: () => {
+    state.browsers.splice(0, state.browsers.length);
+
+    // Disable the benchmark button.
+    benchmarkButton.__li.style.pointerEvents = 'none';
+    benchmarkButton.__li.style.opacity = DISABLED_BUTTON_OPACITY;
+  },
+
+  run: () => {
+    // Disable the 'Add browser' button.
+    addingBrowserButton.__li.style.pointerEvents = 'none';
+    addingBrowserButton.__li.style.opacity = DISABLED_BUTTON_OPACITY;
+
+    // Initialize tfvis, if it is the first call.
+    initVisor();
+
+    // Build 'tabId - browser config' map (one of benchmark config arguments).
+    const browserTabIdConfigMap = {};
+    state.browsers.forEach(browser => {
+      const tabId = createTab(browser);
+      if (browser.device === 'null') {
+        browser.device = null;
+      }
+      browserTabIdConfigMap[tabId] = browser;
+    });
+
     const benchmark = {...state.benchmark};
     if (state.benchmark.model !== 'custom') {
       delete benchmark['modelUrl'];
     }
 
-    socket.emit('run', {tabId, benchmark, browser: state.browser});
+    // Send the configuration object to the server to start the benchmark.
+    socket.emit('run', {
+      summaryTabId: state.summaryTabId,
+      benchmark,
+      browsers: browserTabIdConfigMap,
+    });
+
+    // Re-draw the browser list table (untunable) with tabId.
+    drawUntunableBrowserSummaryTable(state.summaryTabId, browserTabIdConfigMap);
+
+    // Prepare for the next round benchmark.
+    state.summaryTabId = getTabId();
+    state.clearBrowsers();
   }
 };
+
+let gui;
+let benchmarkButton;
+let addingBrowserButton;
+
+/**
+ * Create a tunable browser list table that can be used to remove browsers.
+ *
+ * This table is shown before benchmarking.
+ *
+ * @param {string} summaryTabId The summary tab id.
+ * @param {Array<!Object<string, string>>} browsers A list of browsers to
+ *     benchmark. The browser object should include fields in
+ *     `TUNABLE_BROWSER_FIELDS`.
+ */
+function drawTunableBrowserSummaryTable(summaryTabId, browsers) {
+  const headers = [...TUNABLE_BROWSER_FIELDS, ''];
+  const values = [];
+
+  for (let index = 0; index < browsers.length; index++) {
+    const browser = browsers[index];
+    const row = [];
+    for (const fieldName of TUNABLE_BROWSER_FIELDS) {
+      if (browser[fieldName] == null || browser[fieldName] === 'null') {
+        row.push('-');
+      } else {
+        row.push(browser[fieldName]);
+      }
+    }
+
+    // Whenever a browser configuration is removed, this table will be re-drawn,
+    // so the index (the argument for state.removeBrowser) will be re-assigned.
+    const removeBrowserButtonElement =
+        `<button onclick="state.removeBrowser(${index})">Remove</button>`;
+    row.push(removeBrowserButtonElement);
+
+    values.push(row);
+  }
+
+  const surface = {
+    name: 'Browsers to benchmark',
+    tab: summaryTabId,
+    styles: {width: '100%'}
+  };
+  tfvis.render.table(surface, {headers, values});
+}
+
+/**
+ * Create a untunable browser list table, including tab ids. The tab id will be
+ * used in the following charts under this summary tab.
+ *
+ * This table is shown when it is benchmarking or the benchmark is complete.
+ *
+ * @param {string} summaryTabId The summary tab id.
+ * @param {!Object<string, !Object<string, string>>} browserTabIdConfigMap A map
+ *     of ' tabId - browser' pairs.
+ */
+function drawUntunableBrowserSummaryTable(summaryTabId, browserTabIdConfigMap) {
+  const headers = ['tabId', ...TUNABLE_BROWSER_FIELDS];
+  const values = [];
+  for (const browserTabId in browserTabIdConfigMap) {
+    const browser = browserTabIdConfigMap[browserTabId];
+    const row = [browserTabId];
+    for (const fieldName of TUNABLE_BROWSER_FIELDS) {
+      row.push(browser[fieldName] || '-');
+    }
+    values.push(row);
+  }
+
+  const surface = {
+    name: 'Browsers to benchmark',
+    tab: summaryTabId,
+    styles: {width: '100%'}
+  };
+  tfvis.render.table(surface, {headers, values});
+}
 
 function initVisor() {
   if (state.isVisorInitiated) {
@@ -98,25 +259,30 @@ function initVisor() {
   visorHideButton.style.display = 'none';
 }
 
-const visorTabNameCounter = {};
 /**
- *  Generate a unique name for the given setting.
+ *  Generate a unique id/name for the given setting. tfvis uses tab name as the
+ * index for the tab.
  *
- * @param {object} browserConf An object including os, os_version, browser,
- *     browser_version and device fields.
+ * @param {?Object<string, string>=} browserConf An object including fields in
+ *     `TUNABLE_BROWSER_FIELDS`.
  */
 function getTabId(browserConf) {
   let baseName;
-  if (browserConf.os === 'android' || browserConf.os === 'ios') {
+  if (browserConf == null) {
+    // The tab is a summary tab.
+    baseName = 'Summary';
+  } else if (browserConf.os === 'android' || browserConf.os === 'ios') {
+    // For mobile devices.
     baseName = browserConf.device;
   } else {
-    baseName = `${browserConf.os}(${browserConf.os_version})`;
+    baseName = `${browserConf.os}_${browserConf.os_version}`;
   }
+  baseName = baseName.split(' ').join('_');
   if (visorTabNameCounter[baseName] == null) {
     visorTabNameCounter[baseName] = 0;
   }
   visorTabNameCounter[baseName] += 1;
-  return `${baseName} - ${visorTabNameCounter[baseName]}`;
+  return `${baseName}_${visorTabNameCounter[baseName]}`;
 }
 
 function createTab(browserConf) {
@@ -135,7 +301,7 @@ function reportBenchmarkResult(benchmarkResult) {
 
   if (benchmarkResult.error != null) {
     // TODO: show error message under the tab.
-    alert(benchmarkResult.error);
+    console.log(benchmarkResult.error);
     return;
   }
 
@@ -265,20 +431,6 @@ function drawBenchmarkParameterTable(tabId) {
   tfvis.render.table(surface, {headers, values});
 }
 
-socket.on('benchmarkComplete', benchmarkResult => {
-  // Enable the button.
-  benchmarkButton.__li.style.pointerEvents = '';
-  benchmarkButton.__li.style.opacity = 1;
-
-  reportBenchmarkResult(benchmarkResult);
-});
-
-const gui = new dat.gui.GUI();
-gui.domElement.id = 'gui';
-showModelSelection();
-showParameterSettings();
-const benchmarkButton = gui.add(state, 'run').name('Run benchmark');
-
 function showModelSelection() {
   const modelFolder = gui.addFolder('Model');
   let modelUrlController = null;
@@ -321,4 +473,27 @@ function printMemory(bytes) {
   } else {
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   }
+}
+
+function onPageLoad() {
+  gui = new dat.gui.GUI();
+  gui.domElement.id = 'gui';
+  showModelSelection();
+  showParameterSettings();
+  addingBrowserButton = gui.add(state, 'addBrowser').name('Add browser');
+  benchmarkButton = gui.add(state, 'run').name('Run benchmark');
+
+  // Disable the 'Run benchmark' button until a browser is added.
+  benchmarkButton.__li.style.pointerEvents = 'none';
+  benchmarkButton.__li.style.opacity = DISABLED_BUTTON_OPACITY;
+
+  socket.on('benchmarkComplete', benchmarkResult => {
+    // Enable the 'Add browser' button.
+    addingBrowserButton.__li.style.pointerEvents = '';
+    addingBrowserButton.__li.style.opacity = ENABLED_BUTTON_OPACITY;
+
+    reportBenchmarkResult(benchmarkResult);
+
+    // TODO: We can add a summary for the benchmark results in this round.
+  });
 }

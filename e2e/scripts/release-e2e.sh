@@ -53,40 +53,11 @@ cd ..
 e2e_root_path=$PWD
 
 # ****************************************************************************
-# First, install env.
+# First, publish the monorepo.
 # ****************************************************************************
-# emsdk
-# tfjs-backend-wasm needs emsdk to build. emsdk install needs to be done
-# before switch to local registry, otherwise some packages installation will
-# fail.
-# Todo(linazhao): Remove this once we have a custom docker with emsdk.
-cd ..
-git clone https://github.com/emscripten-core/emsdk.git
-cd emsdk
-./emsdk install 1.39.15
-./emsdk activate 1.39.15
-source ./emsdk_env.sh
-cd $e2e_root_path
-
-# NVM
-touch ~/.bashrc
-curl https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
-# node 10
-nvm install 10
-
-# yarn
-npm install -g yarn
-
 # Load functions for working with local NPM registry (Verdaccio)
 source "$e2e_root_path"/scripts/local-registry.sh
 
-# ****************************************************************************
-# Second, publish the monorepo.
-# ****************************************************************************
 # Start the local NPM registry
 startLocalRegistry "$e2e_root_path"/scripts/verdaccio.yaml
 
@@ -95,12 +66,12 @@ startLocalRegistry "$e2e_root_path"/scripts/verdaccio.yaml
 "$e2e_root_path"/scripts/publish-tfjs-ci.sh
 
 # ****************************************************************************
-# Third, install the packages from local registry.
+# Second, install the packages from local registry.
 # ****************************************************************************
 yarn
 
 # ****************************************************************************
-# Fourth, run integration tests against locally published version.
+# Third, run integration tests against locally published version.
 # ****************************************************************************
 yarn test-ci
 

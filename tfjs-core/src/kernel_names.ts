@@ -311,18 +311,21 @@ export type Expm1Inputs = UnaryInputs;
 export const FFT = 'FFT';
 export type FFTInputs = Pick<NamedTensorInfoMap, 'input'>;
 
-export const Floor = 'Floor';
-export type FloorInputs = UnaryInputs;
-
-export const FloorDiv = 'FloorDiv';
-export type FloorDivInputs = BinaryInputs;
-
 export const Fill = 'Fill';
 export interface FillAttrs {
   shape: number[];
   value: number|string;
   dtype: DataType;
 }
+
+export const FlipLeftRight = 'FlipLeftRight';
+export type FlipLeftRightInputs = Pick<NamedTensorInfoMap, 'image'>;
+
+export const Floor = 'Floor';
+export type FloorInputs = UnaryInputs;
+
+export const FloorDiv = 'FloorDiv';
+export type FloorDivInputs = BinaryInputs;
 
 export const FusedBatchNorm = 'FusedBatchNorm';
 export type FusedBatchNormInputs =
