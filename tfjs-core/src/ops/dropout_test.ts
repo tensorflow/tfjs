@@ -19,7 +19,7 @@ import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
-import {tensor1d, tensor2d} from './tensor_ops';
+import {tensor1d, tensor2d} from './ops';
 
 describeWithFlags('dropout', ALL_ENVS, () => {
   it('x 1d array, rate 0', async () => {

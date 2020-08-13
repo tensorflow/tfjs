@@ -548,15 +548,15 @@ export function computeStrides(shape: number[]): number[] {
   return strides;
 }
 
-export function toTypedArray(
-    a: TensorLike, dtype: DataType, debugMode: boolean): TypedArray {
+export function toTypedArray(a: TensorLike, dtype: DataType): TypedArray {
   if (dtype === 'string') {
     throw new Error('Cannot convert a string[] to a TypedArray');
   }
   if (Array.isArray(a)) {
     a = flatten(a);
   }
-  if (debugMode) {
+
+  if (env().getBool('DEBUG')) {
     checkConversionForErrors(a as number[], dtype);
   }
   if (noConversionNeeded(a, dtype)) {

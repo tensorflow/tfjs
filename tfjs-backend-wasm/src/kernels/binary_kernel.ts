@@ -15,13 +15,15 @@
  * =============================================================================
  */
 
-import {backend_util, DataType, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, BinaryInputs, DataType, KernelConfig, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+
 import {CppDType} from './types';
 
-export function registerBinaryKernel(
-    kernelName: string, supportsFullBroadcast: boolean, dtype?: DataType) {
+export function createBinaryKernelConfig(
+    kernelName: string, supportsFullBroadcast: boolean,
+    dtype?: DataType): KernelConfig {
   let wasmFunc:
       (aId: number, aShape: Uint8Array, aShapeLen: number, bId: number,
        bShape: Uint8Array, bShapeLen: number, dtype: number, outId: number) =>
@@ -83,10 +85,5 @@ export function registerBinaryKernel(
     }
   }
 
-  registerKernel({kernelName, backendName: 'wasm', setupFunc, kernelFunc});
-}
-
-interface BinaryInputs extends NamedTensorInfoMap {
-  a: TensorInfo;
-  b: TensorInfo;
+  return {kernelName, backendName: 'wasm', setupFunc, kernelFunc};
 }

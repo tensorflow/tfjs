@@ -16,7 +16,9 @@
  */
 
 import {ENGINE} from '../engine';
-import {scalar, tensor1d, zeros} from '../ops/tensor_ops';
+import {scalar} from '../ops/scalar';
+import {tensor1d} from '../ops/tensor1d';
+import {zeros} from '../ops/zeros';
 import {Tensor} from '../tensor';
 import {Rank} from '../types';
 import {DataType, ShapeMap} from '../types';
@@ -29,11 +31,13 @@ export * from '../ops/axis_util';
 export * from '../ops/broadcast_util';
 export * from '../ops/concat_util';
 export * from '../ops/conv_util';
-export {Activation, FusedConv2DConfig} from '../ops/fused_util';
+export * from '../ops/fused_util';
+export * from '../ops/fused_types';
 export * from '../ops/reduce_util';
 
 export {BackendValues, TypedArray, upcastType, PixelData} from '../types';
 export {MemoryInfo, TimingInfo} from '../engine';
+export * from '../ops/rotate_util';
 export * from '../ops/array_ops_util';
 export * from '../ops/gather_nd_util';
 export * from '../ops/scatter_nd_util';
@@ -42,6 +46,7 @@ export * from '../ops/fused_util';
 export * from '../ops/erf_util';
 export * from '../log';
 export * from '../backends/complex_util';
+export * from '../ops/split_util';
 
 import * as segment_util from '../ops/segment_util';
 export {segment_util};
@@ -69,7 +74,7 @@ export function castTensor<T extends Tensor>(
     const real = backend.real(x);
     const result = real.cast(dtype);
     real.dispose();
-    return result;
+    return result as T;
   }
   if (dtype === 'int32') {
     return backend.int(x);

@@ -19,10 +19,11 @@ import {Mod} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import {assertAndGetBroadcastShape, getReductionAxes} from '../ops/broadcast_util';
 import {div} from '../ops/div';
+import {floor} from '../ops/floor';
 import {mul} from '../ops/mul';
-import {sum} from '../ops/reduction_ops';
+import {neg} from '../ops/neg';
 import {reshape} from '../ops/reshape';
-import {floor, neg} from '../ops/unary_ops';
+import {sum} from '../ops/sum';
 import {Tensor} from '../tensor';
 
 export const modGradConfig: GradConfig = {

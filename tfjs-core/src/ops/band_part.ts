@@ -24,12 +24,14 @@ import {greaterEqual} from './greater_equal';
 import {lessEqual} from './less_equal';
 import {logicalAnd} from './logical_and';
 import {op} from './operation';
+import {range} from './range';
 import {reshape} from './reshape';
+import {scalar} from './scalar';
 import {stack} from './stack';
 import {sub} from './sub';
-import {range, scalar, zeros} from './tensor_ops';
 import {unstack} from './unstack';
 import {where} from './where';
+import {zeros} from './zeros';
 
 /**
  * Copy a tensor setting everything outside a central band in each innermost

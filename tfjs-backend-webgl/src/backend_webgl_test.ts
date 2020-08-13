@@ -23,7 +23,10 @@ const {expectArraysClose, expectArraysEqual} = test_util;
 const {decodeString} = util;
 
 import {getBinaryCache, MathBackendWebGL, WebGLMemoryInfo, WebGLTimingInfo} from './backend_webgl';
+import {computeBytes} from './texture_manager';
+import {PhysicalTextureType} from './tex_util';
 import {WEBGL_ENVS} from './backend_webgl_test_registry';
+import {GPGPUContext} from './gpgpu_context';
 
 function decodeStrings(bytes: Uint8Array[]): string[] {
   return bytes.map(b => decodeString(b));
@@ -431,6 +434,112 @@ describeWithFlags('debug on webgl', WEBGL_ENVS, () => {
     const a = () => tf.tensor1d([2, 1e-8], 'float32');
     expect(a).toThrowError();
     tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', savedRenderFloat32Flag);
+  });
+});
+
+const WEBGL1_ENVS = {
+  flags: {'WEBGL_VERSION': 1},
+  predicate: WEBGL_ENVS.predicate
+};
+
+const WEBGL2_ENVS = {
+  flags: {'WEBGL_VERSION': 2},
+  predicate: WEBGL_ENVS.predicate
+};
+
+describeWithFlags('computeBytes counts bytes correctly', WEBGL1_ENVS, () => {
+  it('for all physical texture types', () => {
+    const gpgpu = new GPGPUContext();
+
+    const shapeRC: [number, number] = [2, 3];
+
+    let bytesForTex = computeBytes(
+        shapeRC, PhysicalTextureType.UNPACKED_FLOAT16, gpgpu.gl,
+        gpgpu.textureConfig, false /* isPacked */);
+    expect(bytesForTex).toBe(96);
+
+    bytesForTex = computeBytes(
+        shapeRC, PhysicalTextureType.UNPACKED_FLOAT32, gpgpu.gl,
+        gpgpu.textureConfig, false /* isPacked */);
+    expect(bytesForTex).toBe(96);
+
+    bytesForTex = computeBytes(
+        shapeRC, PhysicalTextureType.PACKED_4X1_UNSIGNED_BYTE, gpgpu.gl,
+        gpgpu.textureConfig, true /* isPacked */);
+    expect(bytesForTex).toBe(32);
+
+    bytesForTex = computeBytes(
+        shapeRC, PhysicalTextureType.PACKED_2X2_FLOAT32, gpgpu.gl,
+        gpgpu.textureConfig, true /* isPacked */);
+    expect(bytesForTex).toBe(32);
+
+    bytesForTex = computeBytes(
+        shapeRC, PhysicalTextureType.PACKED_2X2_FLOAT16, gpgpu.gl,
+        gpgpu.textureConfig, true /* isPacked */);
+    expect(bytesForTex).toBe(32);
+
+    gpgpu.dispose();
+  });
+});
+
+describeWithFlags('computeBytes counts bytes correctly', WEBGL2_ENVS, () => {
+  it('test every physical tex type input to computeBytes', () => {
+    const gpgpu = new GPGPUContext();
+
+    const shapeRC: [number, number] = [2, 3];
+
+    let bytesForTex = computeBytes(
+        shapeRC, PhysicalTextureType.UNPACKED_FLOAT16, gpgpu.gl,
+        gpgpu.textureConfig, false /* isPacked */);
+    expect(bytesForTex).toBe(12);
+
+    bytesForTex = computeBytes(
+        shapeRC, PhysicalTextureType.UNPACKED_FLOAT32, gpgpu.gl,
+        gpgpu.textureConfig, false /* isPacked */);
+    expect(bytesForTex).toBe(24);
+
+    bytesForTex = computeBytes(
+        shapeRC, PhysicalTextureType.PACKED_4X1_UNSIGNED_BYTE, gpgpu.gl,
+        gpgpu.textureConfig, true /* isPacked */);
+    expect(bytesForTex).toBe(32);
+
+    bytesForTex = computeBytes(
+        shapeRC, PhysicalTextureType.PACKED_2X2_FLOAT32, gpgpu.gl,
+        gpgpu.textureConfig, true /* isPacked */);
+    expect(bytesForTex).toBe(32);
+
+    bytesForTex = computeBytes(
+        shapeRC, PhysicalTextureType.PACKED_2X2_FLOAT16, gpgpu.gl,
+        gpgpu.textureConfig, true /* isPacked */);
+    expect(bytesForTex).toBe(16);
+
+    gpgpu.dispose();
+  });
+});
+
+describeWithFlags('aggressive texture deletion', WEBGL_ENVS, () => {
+  it('basic', () => {
+    const savedDeleteThreshold =
+        tf.env().get('WEBGL_DELETE_TEXTURE_THRESHOLD') as number;
+    tf.env().set('WEBGL_DELETE_TEXTURE_THRESHOLD', 0);
+
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+
+    tf.matMul(a, b);
+
+    const startNumBytesAllocated =
+        (tf.memory() as WebGLMemoryInfo).numBytesInGPUAllocated;
+
+    a.dispose();
+    b.dispose();
+
+    expect(
+        startNumBytesAllocated -
+        (tf.memory() as WebGLMemoryInfo).numBytesInGPUAllocated)
+        .toBeGreaterThan(0);
+
+    tf.env().set('WEBGL_DELETE_TEXTURE_THRESHOLD', savedDeleteThreshold);
   });
 });
 

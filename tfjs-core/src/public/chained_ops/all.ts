@@ -20,13 +20,13 @@ import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
-    all<T extends Tensor>(this: T, axis: number|number[], keepDims?: boolean):
+    all<T extends Tensor>(this: T, axis?: number|number[], keepDims?: boolean):
         T;
   }
 }
 
 Tensor.prototype.all = function<T extends Tensor>(
-    this: T, axis: number|number[] = null, keepDims?: boolean): T {
+    this: T, axis?: number|number[], keepDims?: boolean): T {
   this.throwIfDisposed();
   return all(this, axis, keepDims);
 };

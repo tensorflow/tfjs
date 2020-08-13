@@ -17,6 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
+import {getShapeCoords} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -33,7 +34,6 @@ export class Pool2DProgram implements WebGPUProgram {
   // workPerThead for different output shapes.
   workGroupSize: [number, number, number] = [4, 4, 1];
   workPerThread = 16;
-  needsShapesUniforms = true;
 
   constructor(convInfo: backend_util.Conv2DInfo, poolType: 'max'|'avg') {
     this.outputShape = convInfo.outShape;
@@ -64,7 +64,7 @@ export class Pool2DProgram implements WebGPUProgram {
 
       void main() {
         ivec4 coords = getOutputCoords();
-        if (all(lessThan(coords, outShape))) {
+        if (all(lessThan(coords, ${getShapeCoords(this.outputShape)}))) {
           int batch = coords[0];
           ivec2 xRCCorner = coords.yz * stride - pad;
           int xRCorner = xRCCorner.x;
@@ -90,7 +90,7 @@ export class Pool2DProgram implements WebGPUProgram {
               for (int i = 0; i < ${this.workPerThread}; i++)
               {
                 int d = coords[3] * ${this.workPerThread} + i;
-                if (d < outShape[3])
+                if (d < ${this.outputShape[3]})
                 {
                   float value = getValue(batch, xR, xC, d);
                   ${updateSnippet}
@@ -105,7 +105,7 @@ export class Pool2DProgram implements WebGPUProgram {
           for (int i = 0; i < ${this.workPerThread}; i++)
           {
             int d = coords[3] * ${this.workPerThread} + i;
-            if (d < outShape[3])
+            if (d < ${this.outputShape[3]})
             {
               setOutput(batch, coords[1], coords[2], d, ${returnValue});
             }

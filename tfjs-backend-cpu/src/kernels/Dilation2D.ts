@@ -92,9 +92,8 @@ export const dilation2dConfig: KernelConfig = {
       }
     }
 
-    const dataId = cpuBackend.write(
-        util.toTypedArray(output, x.dtype, false /* debug mode */), outShape,
-        x.dtype);
+    const dataId =
+        cpuBackend.write(util.toTypedArray(output, x.dtype), outShape, x.dtype);
 
     return {dataId, shape: outShape, dtype: x.dtype};
   }

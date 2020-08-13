@@ -17,7 +17,7 @@
 
 /** An implementation of the TopK kernel shared between webgl and cpu. */
 
-import {tensor} from '../ops/tensor_ops';
+import {tensor} from '../ops/tensor';
 import {Tensor} from '../tensor';
 import {NumericDataType, TypedArray} from '../types';
 import {getTypedArrayFromDType} from '../util';

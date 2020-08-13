@@ -30,7 +30,7 @@ export const maxConfig: KernelConfig = {
   backendName: 'cpu',
   kernelFunc: ({inputs, attrs, backend}) => {
     const {x} = inputs as MaxInputs;
-    const {reductionIndices} = attrs as {} as MaxAttrs;
+    const {reductionIndices, keepDims} = attrs as {} as MaxAttrs;
     const cpuBackend = backend as MathBackendCPU;
     let xShape = x.shape;
     const xRank = xShape.length;
@@ -60,6 +60,14 @@ export const maxConfig: KernelConfig = {
 
     const result = maxImpl(xVals, reduceSize, maxOutShape, x.dtype);
     const dataId = cpuBackend.write(result, maxOutShape, x.dtype);
-    return {dataId, shape: maxOutShape, dtype: x.dtype};
+
+    let outShape = maxOutShape;
+    if (keepDims) {
+      // reshape
+      const newShape = backend_util.expandShapeToKeepDim(maxOutShape, origAxes);
+      outShape = newShape;
+    }
+
+    return {dataId, shape: outShape, dtype: x.dtype};
   }
 };

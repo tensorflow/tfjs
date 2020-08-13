@@ -28,6 +28,7 @@ export const executeOp: InternalOpAsyncExecutor = async(
     context: ExecutionContext): Promise<tfc.Tensor[]> => {
   switch (node.op) {
     case 'NonMaxSuppressionV5':
+    case 'NonMaxSuppressionV4':
     case 'NonMaxSuppressionV3':
     case 'NonMaxSuppressionV2': {
       const boxes =
@@ -50,6 +51,18 @@ export const executeOp: InternalOpAsyncExecutor = async(
             iouThreshold, scoreThreshold, softNmsSigma);
 
         return [result.selectedIndices, result.selectedScores];
+      }
+
+      if (node.op === 'NonMaxSuppressionV4') {
+        const padToMaxOutputSize =
+            getParamValue('padToMaxOutputSize', node, tensorMap, context) as
+            boolean;
+
+        const result = await tfc.image.nonMaxSuppressionPaddedAsync(
+            boxes as tfc.Tensor2D, scores as tfc.Tensor1D, maxOutputSize,
+            iouThreshold, scoreThreshold, padToMaxOutputSize);
+
+        return [result.selectedIndices, result.validOutputs];
       }
 
       return [await tfc.image.nonMaxSuppressionAsync(

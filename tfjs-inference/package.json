@@ -34,7 +34,7 @@
     "test": "ts-node --skip-ignore -P tsconfig.test.json src/test_node.ts",
     "test-ci": "yarn test",
     "build-binary": "yarn build && pkg . --targets=node10-macos-x64,node10-linux-x64,node10-win-x64 --out-path=binaries",
-    "test-python": "./scripts/run_python.sh"
+    "test-python": "yarn build-binary && ./scripts/run_python.sh"
   },
   "dependencies": {
     "@types/seedrandom": "2.4.27",

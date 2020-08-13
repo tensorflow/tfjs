@@ -15,17 +15,11 @@
  * =============================================================================
  */
 
-import {backend_util, KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, FusedConv2D, FusedConv2DAttrs, FusedConv2DInputs, KernelConfig, KernelFunc, Tensor4D} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
 import {FusableActivation} from './types';
-
-interface FusedConv2DInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-  filter: TensorInfo;
-  bias?: TensorInfo;
-}
 
 let wasmFusedConv2d: (
     xId: number, batchSize: number, inputHeight: number, inputWidth: number,
@@ -37,7 +31,7 @@ let wasmFusedConv2d: (
     preluActivationWeightsId: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmFusedConv2d = backend.wasm.cwrap('FusedConv2D', null /* void */, [
+  wasmFusedConv2d = backend.wasm.cwrap(FusedConv2D, null /* void */, [
     'number',  // xId
     'number',  // batchSize
     'number',  // inputHeight
@@ -66,11 +60,17 @@ function setup(backend: BackendWasm) {
 function fusedConv2d(args: {
   inputs: FusedConv2DInputs,
   backend: BackendWasm,
-  attrs:
-      {convInfo: backend_util.Conv2DInfo, activation: backend_util.Activation}
+  attrs: FusedConv2DAttrs
 }) {
   const {inputs, attrs, backend} = args;
-  const {convInfo, activation} = attrs;
+  const {x, filter, bias, preluActivationWeights} = inputs;
+  const {strides, pad, dilations, dataFormat, dimRoundingMode, activation} =
+      attrs;
+
+  const convInfo = backend_util.computeConv2DInfo(
+      (x as Tensor4D).shape, (filter as Tensor4D).shape, strides, dilations,
+      pad, dimRoundingMode);
+
   const fusedActivation =
       FusableActivation[activation as {} as keyof typeof FusableActivation];
   if (fusedActivation == null) {
@@ -79,7 +79,6 @@ function fusedConv2d(args: {
         `in the wasm backend.`);
   }
 
-  const {x, filter, bias, preluActivationWeights} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
   const filterId = backend.dataIdMap.get(filter.dataId).id;
 
@@ -117,10 +116,10 @@ function fusedConv2d(args: {
   const inHeight = convInfo.inHeight;
   const inWidth = convInfo.inWidth;
 
-  if (convInfo.dataFormat !== 'channelsLast') {
+  if (dataFormat !== 'NHWC') {
     throw new Error(
         `wasm backend FusedConv2D does not support dataFormat:'` +
-        `${convInfo.dataFormat}'. Please use 'channelsLast'.`);
+        `${dataFormat}'. Please use 'NHWC'.`);
   }
 
   const out = backend.makeOutput(convInfo.outShape, 'float32');
@@ -136,9 +135,9 @@ function fusedConv2d(args: {
   return out;
 }
 
-registerKernel({
-  kernelName: 'FusedConv2D',
+export const fusedConv2DConfig: KernelConfig = {
+  kernelName: FusedConv2D,
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: fusedConv2d as {} as KernelFunc
-});
+};

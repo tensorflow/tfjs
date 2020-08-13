@@ -22,7 +22,7 @@ import {TensorLike} from '../types';
 import {maximum} from './maximum';
 import {mul} from './mul';
 import {op} from './operation';
-import {scalar} from './tensor_ops';
+import {scalar} from './scalar';
 
 /**
  * Computes leaky rectified linear element-wise.

@@ -24,7 +24,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {PixelData, TensorLike} from '../types';
 
 import {op} from './operation';
-import {tensor3d} from './tensor_ops';
+import {tensor3d} from './tensor3d';
 
 let fromPixels2DContext: CanvasRenderingContext2D;
 

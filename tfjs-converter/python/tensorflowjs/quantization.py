@@ -68,7 +68,7 @@ def map_layers_to_quantization_dtype(names, quantization_dtype_map):
             'exactly one is supported')
       fallthrough = dtype_name
       continue
-    elif isinstance(patterns, str):
+    if isinstance(patterns, str):
       patterns = list([patterns])
 
     # Record matched weights for dtype

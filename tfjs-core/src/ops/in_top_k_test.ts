@@ -19,7 +19,7 @@ import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
-import {tensor1d, tensor2d, tensor3d} from './tensor_ops';
+import {tensor1d, tensor2d, tensor3d} from './ops';
 
 describeWithFlags('inTopKAsync', ALL_ENVS, async () => {
   it('predictions 2d array, targets 1d array, with default k', async () => {

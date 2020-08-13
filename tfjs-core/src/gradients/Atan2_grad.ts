@@ -21,10 +21,10 @@ import {add} from '../ops/add';
 import {assertAndGetBroadcastShape, getReductionAxes} from '../ops/broadcast_util';
 import {div} from '../ops/div';
 import {mul} from '../ops/mul';
-import {sum} from '../ops/reduction_ops';
+import {neg} from '../ops/neg';
 import {reshape} from '../ops/reshape';
 import {square} from '../ops/square';
-import {neg} from '../ops/unary_ops';
+import {sum} from '../ops/sum';
 import {Tensor} from '../tensor';
 
 export const atan2GradConfig: GradConfig = {

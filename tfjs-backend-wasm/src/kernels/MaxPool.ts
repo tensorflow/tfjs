@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, KernelFunc, MaxPoolAttrs, MaxPoolInputs, registerKernel, Tensor4D} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, MaxPool, MaxPoolAttrs, MaxPoolInputs, Tensor4D} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -27,7 +27,7 @@ let wasmMaxPool: (
     inputChannels: number, outputChannels: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmMaxPool = backend.wasm.cwrap('MaxPool', null /* void */, [
+  wasmMaxPool = backend.wasm.cwrap(MaxPool, null /* void */, [
     'number',  // xId
     'number',  // batchSize
     'number',  // inputHeight
@@ -88,9 +88,9 @@ function maxPool(
   return out;
 }
 
-registerKernel({
-  kernelName: 'MaxPool',
+export const maxPoolConfig: KernelConfig = {
+  kernelName: MaxPool,
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: maxPool as {} as KernelFunc
-});
+};

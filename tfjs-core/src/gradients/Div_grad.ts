@@ -20,10 +20,10 @@ import {GradConfig} from '../kernel_registry';
 import * as broadcast_util from '../ops/broadcast_util';
 import {div} from '../ops/div';
 import {mul} from '../ops/mul';
-import {sum} from '../ops/reduction_ops';
+import {neg} from '../ops/neg';
 import {reshape} from '../ops/reshape';
 import {square} from '../ops/square';
-import {neg} from '../ops/unary_ops';
+import {sum} from '../ops/sum';
 import {Tensor} from '../tensor';
 
 export const divGradConfig: GradConfig = {

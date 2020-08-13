@@ -20,7 +20,7 @@
  * tensors only.
  */
 
-import {buffer} from '../ops/array_ops';
+import {buffer} from '../ops/buffer';
 import {Tensor, TensorBuffer} from '../tensor';
 import {DataType, Rank} from '../types';
 

@@ -432,6 +432,32 @@ describeWithFlags('profile', ALL_ENVS, () => {
       'outputShapes': [[3]]
     }]);
   });
+
+  it('squaring in async query', async () => {
+    const profile = await tf.profile(async () => {
+      await new Promise(resolve => setTimeout(resolve, 1));
+      const x = tf.tensor1d([1, 2, 3]);
+      const x2 = x.square();
+      x2.dispose();
+      return x;
+    });
+
+    const result = profile.result as Tensor;
+
+    expect(profile.newBytes).toBe(12);
+    expect(profile.peakBytes).toBe(24);
+    expect(profile.newTensors).toBe(1);
+    expectArraysClose(await result.data(), [1, 2, 3]);
+    expect(profile.kernels).toEqual([{
+      'name': 'Square',
+      'bytesAdded': 12,
+      'totalBytesSnapshot': 24,
+      'tensorsAdded': 1,
+      'totalTensorsSnapshot': 2,
+      'inputShapes': [[3]],
+      'outputShapes': [[3]]
+    }]);
+  });
 });
 
 describeWithFlags('disposeVariables', ALL_ENVS, () => {

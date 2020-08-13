@@ -18,7 +18,7 @@
 import {Tensor} from '../tensor';
 import {DataType, Rank, ShapeMap} from '../types';
 
-import {buffer} from './array_ops';
+import {buffer} from './buffer';
 import {op} from './operation';
 import {MPRandGauss} from './rand_util';
 

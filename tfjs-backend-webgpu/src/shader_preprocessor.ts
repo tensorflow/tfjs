@@ -33,6 +33,22 @@ export function getCoordsDataType(rank: number): string {
   }
 }
 
+export function getShapeCoords(dataShape: number[]): string {
+  const rank = dataShape.length;
+  if (rank <= 1) {
+    return `int(${dataShape[0]})`;
+  } else if (rank === 2) {
+    return `ivec2(${dataShape[0]}, ${dataShape[1]})`;
+  } else if (rank === 3) {
+    return `ivec3(${dataShape[0]}, ${dataShape[1]}, ${dataShape[2]})`;
+  } else if (rank === 4) {
+    return `ivec4(${dataShape[0]}, ${dataShape[1]}, ${dataShape[2]}, ${
+        dataShape[3]})`;
+  } else {
+    throw Error(`GPU for rank ${rank} is not yet supported`);
+  }
+}
+
 type GLSLDataType = 'float'|'int';
 function mapToGlslTypes(type: DataType): GLSLDataType|DataType {
   if (type === 'float32') {
@@ -49,7 +65,6 @@ interface ProgramParams {
   workGroupSize?: [number, number, number];
   variableNames: string[];
   uniforms?: string;
-  needsShapesUniforms: boolean;
   userCode: string;
 }
 
@@ -88,40 +103,24 @@ export function makeShader(
   });
 
   let uniformDeclaration = '';
-  if (program.needsShapesUniforms) {
-    program.variableNames.forEach((x, i) => {
-      uniformDeclaration += `${getCoordsDataType(inputInfo[i].shape.length)} ${
-          x.charAt(0).toLowerCase() + x.slice(1)}Shape; `;
-    });
-    uniformDeclaration +=
-        `${getCoordsDataType(outputData.shape.length)} outShape; `;
-  }
 
   if (program.uniforms) {
     uniformDeclaration += program.uniforms;
-  }
 
-  if (!(program.uniforms || program.needsShapesUniforms)) {
-    const sources =
-        [SHADER_PREFIX, prefixSnippets.join('\n'), program.userCode];
-    const source = sources.join('\n');
-    return source;
-  }
-
-  prefixSnippets.push(`
+    prefixSnippets.push(`
     layout(std140, set = 0, binding = ${
-      1 + program.variableNames.length}) uniform Uniforms {
+        1 + program.variableNames.length}) uniform Uniforms {
       ${uniformDeclaration}
     };
   `);
-
+  }
   const [getOutputCoords, dispatchLayoutRank] =
-      generateGetOutputCoords(program.dispatchLayout);
+      generateGetOutputCoords(outputData.shape, program.dispatchLayout);
   const getCoords = generateGetCoordsFromFlatIndex(outputData.shape);
   const sources = [
     SHADER_PREFIX, prefixSnippets.join('\n'), SAMPLING_SNIPPETS,
     getOutputCoords, getCoords,
-    getSetOutputSnippet(outputData.shape.length, outputData.dtype)
+    getSetOutputSnippet(outputData.shape, outputData.dtype)
   ];
 
   if (dispatchLayoutRank === outputData.shape.length) {
@@ -185,7 +184,9 @@ const SAMPLING_SNIPPETS = `
   }
 `;
 
-function getSetOutputSnippet(outRank: number, outBufferType: DataType): string {
+function getSetOutputSnippet(
+    outShape: number[], outBufferType: DataType): string {
+  const outRank = outShape.length;
   const glslType = mapToGlslTypes(outBufferType);
   let snippet = `void setOutput(int flatIndex, float value) {
       result[flatIndex] = ${
@@ -204,11 +205,13 @@ function getSetOutputSnippet(outRank: number, outBufferType: DataType): string {
 
     snippet += `
       void setOutput(${dims.map(d => `int ${d}`).join(', ')}, float value) {
-        int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), outShape);
+        int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), ${
+        getShapeCoords(outShape)});
         setOutput(flatIndex, value);
       }
       void setOutput(${dims.map(d => `int ${d}`).join(', ')}, int value) {
-        int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), outShape);
+        int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), ${
+        getShapeCoords(outShape)});
         setOutput(flatIndex, value);
       }
     `;
@@ -248,7 +251,7 @@ function getSamplerFromInInfo(inInfo: InputInfo): string {
   return `
     float ${funcName}(${inputs}) {
       return float(${texName}[getFlatIndex(${type}(${dims.join(',')}),
-        ${texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)]);
+        ${getShapeCoords(inInfo.shape)})]);
     }
   `;
 }
@@ -307,13 +310,13 @@ function getSamplerAtOutputCoords(
       ${type} coords = getOutputCoords();
       ${coordsSnippet}
       return float(${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
-      texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)]);
+      getShapeCoords(inInfo.shape)})]);
     }
 
     float ${funcName}(${type} coords) {
       ${coordsSnippet}
       return float(${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
-      texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)]);
+      getShapeCoords(inInfo.shape)})]);
     }
   `;
 }
@@ -323,6 +326,7 @@ function getSamplerAtOutputCoords(
  * dispatch geometry to reduce arithmetic.
  */
 function generateGetOutputCoords(
+    outShape: number[],
     dispatchLayout: {x: number[], y?: number[], z?: number[]}):
     [string, number] {
   const {x, y = [], z = []} = dispatchLayout;
@@ -344,7 +348,8 @@ function generateGetOutputCoords(
       gatherDimensionsStr += `int d${arr[0]} =
         int(gl_GlobalInvocationID[${i}]);`;
     } else {
-      const strides = symbolicallyComputeStrides(arr, 'outShape');
+      const strides =
+          symbolicallyComputeStrides(arr, `${getShapeCoords(outShape)}`);
       gatherDimensionsStr += `int index${i} =
         int(gl_GlobalInvocationID[${i}]);`;
       for (let j = 0; j < strides.length; j++) {

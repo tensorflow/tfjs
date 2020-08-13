@@ -17,7 +17,7 @@
 
 import {complex} from '../ops/complex';
 
-import {tensor} from '../ops/tensor_ops';
+import {tensor} from '../ops/tensor';
 import {NamedTensor, NamedTensorMap} from '../tensor_types';
 import {TypedArray} from '../types';
 import {sizeFromShape} from '../util';
@@ -128,16 +128,14 @@ export function decodeWeights(
       if (quantization.dtype === 'uint8' || quantization.dtype === 'uint16') {
         if (!('min' in quantization && 'scale' in quantization)) {
           throw new Error(
-            `Weight ${spec.name} with quantization ${quantization.dtype} ` +
-            `doesn't have corresponding metadata min and scale.`
-          );
+              `Weight ${spec.name} with quantization ${quantization.dtype} ` +
+              `doesn't have corresponding metadata min and scale.`);
         }
       } else if (quantization.dtype === 'float16') {
         if (dtype !== 'float32') {
           throw new Error(
-            `Weight ${spec.name} is quantized with ${quantization.dtype} ` +
-            `which only supports weights of type float32 not ${dtype}.`
-          );
+              `Weight ${spec.name} is quantized with ${quantization.dtype} ` +
+              `which only supports weights of type float32 not ${dtype}.`);
         }
       } else {
         throw new Error(
@@ -166,16 +164,14 @@ export function decodeWeights(
           values = float16Decode(quantizedArray as Uint16Array);
         } else {
           throw new Error(
-            `Unsupported quantization type ${quantization.dtype} ` +
-            `for weight type float32.`
-          );
+              `Unsupported quantization type ${quantization.dtype} ` +
+              `for weight type float32.`);
         }
       } else if (dtype === 'int32') {
         if (quantization.dtype !== 'uint8' && quantization.dtype !== 'uint16') {
           throw new Error(
-            `Unsupported quantization type ${quantization.dtype} ` +
-            `for weight type int32.`
-          );
+              `Unsupported quantization type ${quantization.dtype} ` +
+              `for weight type int32.`);
         }
         values = new Int32Array(quantizedArray.length);
         for (let i = 0; i < quantizedArray.length; i++) {
@@ -480,7 +476,8 @@ function computeFloat16OffsetTable(): Uint32Array {
  *          the Uint16Array of Float16 bytes to a Float32Array.
  */
 export function getFloat16Decoder(): (buffer: Uint16Array) => Float32Array {
-  // Algorithm is based off of http://www.fox-toolkit.org/ftp/fasthalffloatconversion.pdf
+  // Algorithm is based off of
+  // http://www.fox-toolkit.org/ftp/fasthalffloatconversion.pdf
 
   // Cache lookup tables
   const mantisaTable = computeFloat16MantisaTable();
@@ -493,8 +490,8 @@ export function getFloat16Decoder(): (buffer: Uint16Array) => Float32Array {
     for (let index = 0; index < quantizedArray.length; index++) {
       const float16Bits = quantizedArray[index];
       const float32Bits =
-        mantisaTable[offsetTable[float16Bits >> 10] + (float16Bits & 0x3ff)] +
-        exponentTable[float16Bits >> 10];
+          mantisaTable[offsetTable[float16Bits >> 10] + (float16Bits & 0x3ff)] +
+          exponentTable[float16Bits >> 10];
       bufferUint32View[index] = float32Bits;
     }
     return new Float32Array(buffer);

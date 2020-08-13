@@ -26,8 +26,8 @@ import {div} from './div';
 import {mul} from './mul';
 import {op} from './operation';
 import {pow} from './pow';
+import {scalar} from './scalar';
 import {sub} from './sub';
-import {scalar} from './tensor_ops';
 
 /**
  * Compute the moving average of a variable.

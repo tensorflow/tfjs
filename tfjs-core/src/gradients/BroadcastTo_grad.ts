@@ -17,7 +17,7 @@
 
 import {BroadcastTo, BroadCastToAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
-import {sum} from '../ops/reduction_ops';
+import {sum} from '../ops/sum';
 import {Tensor} from '../tensor';
 
 export const broadcastToGradConfig: GradConfig = {

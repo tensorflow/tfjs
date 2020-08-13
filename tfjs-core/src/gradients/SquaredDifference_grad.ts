@@ -18,8 +18,8 @@
 import {SquaredDifference} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import {mul} from '../ops/mul';
+import {scalar} from '../ops/scalar';
 import {sub} from '../ops/sub';
-import {scalar} from '../ops/tensor_ops';
 import {Tensor} from '../tensor';
 
 export const squaredDifferenceGradConfig: GradConfig = {

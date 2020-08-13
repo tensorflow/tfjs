@@ -15,19 +15,9 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {BatchMatMul, BatchMatMulAttrs, BatchMatMulInputs, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
-
-interface BatchMatMulInputs extends NamedTensorInfoMap {
-  a: TensorInfo;
-  b: TensorInfo;
-}
-
-interface BatchMatMulAttrs extends NamedAttrMap {
-  transposeA: boolean;
-  transposeB: boolean;
-}
 
 let wasmBatchMatMul: (
     aId: number, aShape: Uint8Array, aShapeSize: number, bId: number,
@@ -35,7 +25,7 @@ let wasmBatchMatMul: (
     transposeB: boolean, outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmBatchMatMul = backend.wasm.cwrap('BatchMatMul', null /* void */, [
+  wasmBatchMatMul = backend.wasm.cwrap(BatchMatMul, null /* void */, [
     'number',  // a_id
     'array',   // a_shape
     'number',  // a_shape.length
@@ -82,9 +72,9 @@ function batchMatMul(args: {
   return out;
 }
 
-registerKernel({
-  kernelName: 'BatchMatMul',
+export const batchMatMulConfig: KernelConfig = {
+  kernelName: BatchMatMul,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: batchMatMul
-});
+  kernelFunc: batchMatMul as {} as KernelFunc
+};

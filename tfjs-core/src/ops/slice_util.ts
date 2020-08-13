@@ -150,6 +150,11 @@ export function stopIndicesWithElidedDims(
   }
 
   for (let i = 0; i < newIndices.length; i++) {
+    // Handle negative indices
+    const axisSize = inputShape[i];
+    if (newIndices[i] < 0) {
+      newIndices[i] += axisSize;
+    }
     newIndices[i] = util.clamp(0, newIndices[i], inputShape[i]);
   }
   return newIndices;
@@ -267,4 +272,43 @@ export function computeFlatOffset(begin: number[], strides: number[]): number {
     flatOffset += begin[i] * strides[i];
   }
   return flatOffset;
+}
+
+export function parseSliceParams(
+    x: Tensor, begin: number|number[], size?: number|number[]) {
+  // The following logic allows for more ergonomic calls.
+  let begin_: number[];
+  if (typeof begin === 'number') {
+    begin_ = [begin, ...new Array(x.rank - 1).fill(0)];
+  } else if (begin.length < x.rank) {
+    begin_ = begin.concat(new Array(x.rank - begin.length).fill(0));
+  } else {
+    begin_ = begin.slice();
+  }
+  begin_.forEach(d => {
+    util.assert(
+        d !== -1, () => 'slice() does not support negative begin indexing.');
+  });
+  let size_: number[];
+  if (size == null) {
+    size_ = new Array(x.rank).fill(-1);
+  } else if (typeof size === 'number') {
+    size_ = [size, ...new Array(x.rank - 1).fill(-1)];
+  } else if (size.length < x.rank) {
+    size_ = size.concat(new Array(x.rank - size.length).fill(-1));
+  } else {
+    size_ = size;
+  }
+  size_ = size_.map((d, i) => {
+    if (d >= 0) {
+      return d;
+    } else {
+      util.assert(
+          d === -1,
+          () => `Negative size values should be exactly -1 but got ` +
+              `${d} for the slice() size at index ${i}.`);
+      return x.shape[i] - begin_[i];
+    }
+  });
+  return [begin_, size_];
 }

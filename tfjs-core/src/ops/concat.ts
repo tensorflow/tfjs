@@ -25,7 +25,7 @@ import {assert, parseAxisParam, sizeFromShape} from '../util';
 
 import {assertParamsConsistent, computeOutShape} from './concat_util';
 import {op} from './operation';
-import {tensor} from './tensor_ops';
+import {tensor} from './tensor';
 
 /**
  * Concatenates a list of `tf.Tensor`s along a given axis.

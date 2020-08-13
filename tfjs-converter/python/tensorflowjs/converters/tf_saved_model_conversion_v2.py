@@ -348,8 +348,13 @@ def _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
       return frozen_graph
 
 def _freeze_saved_model_v2(concrete_func, control_flow_v2=False):
+  if tf.__version__ < '2.2.0':
+    return convert_to_constants.convert_variables_to_constants_v2(
+        concrete_func, lower_control_flow=not control_flow_v2).graph
+
   return convert_to_constants.convert_variables_to_constants_v2(
-      concrete_func, lower_control_flow=not control_flow_v2).graph
+      concrete_func, lower_control_flow=not control_flow_v2,
+      aggressive_inlining=True).graph
 
 
 def _build_signature_def(frozen_graph, input_nodes, output_nodes):
@@ -483,8 +488,10 @@ def convert_tf_saved_model(saved_model_dir,
   except BaseException:
     frozen_graph = _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
                                           output_node_names)
+
+  inputs = [x for x in concrete_func.inputs if not x.dtype == 'resource']
   signature = _build_signature_def(
-      frozen_graph, concrete_func.inputs, concrete_func.outputs)
+      frozen_graph, inputs, concrete_func.outputs)
 
   optimize_graph(frozen_graph, signature,
                  output_graph, model.tensorflow_version,

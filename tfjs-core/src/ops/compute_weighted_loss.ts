@@ -18,14 +18,16 @@ import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
-import {cast} from './array_ops';
+import {cast} from './cast';
 import {div} from './div';
 import {Reduction} from './loss_ops_utils';
+import {mean} from './mean';
 import {mul} from './mul';
 import {notEqual} from './not_equal';
+import {ones} from './ones';
 import {op} from './operation';
-import {mean, sum} from './reduction_ops';
-import {ones, scalar} from './tensor_ops';
+import {scalar} from './scalar';
+import {sum} from './sum';
 
 /**
  * Computes the weighted loss between two tensors.

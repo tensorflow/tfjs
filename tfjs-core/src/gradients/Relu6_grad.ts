@@ -16,10 +16,10 @@
  */
 import {Relu6} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
-import {cast} from '../ops/array_ops';
+import {cast} from '../ops/cast';
 import {lessEqual} from '../ops/less_equal';
 import {mul} from '../ops/mul';
-import {step} from '../ops/unary_ops';
+import {step} from '../ops/step';
 import {Tensor} from '../tensor';
 
 export const relu6GradConfig: GradConfig = {

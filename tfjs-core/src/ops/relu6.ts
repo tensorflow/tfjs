@@ -22,7 +22,7 @@ import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
-import {cast} from './array_ops';
+import {cast} from './cast';
 import {op} from './operation';
 
 /**

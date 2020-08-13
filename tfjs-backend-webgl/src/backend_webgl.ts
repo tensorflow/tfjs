@@ -125,6 +125,12 @@ export interface CPUTimerQuery {
 
 export interface WebGLMemoryInfo extends MemoryInfo {
   numBytesInGPU: number;
+  // Tracks the total number of bytes allocated on the GPU, accounting for the
+  // physical texture type.
+  numBytesInGPUAllocated: number;
+  // Tracks byte size of textures that were created and then made available for
+  // reuse (disposed).
+  numBytesInGPUFree: number;
   unreliable: boolean;
 }
 
@@ -262,7 +268,8 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   write(values: BackendValues, shape: number[], dtype: DataType): DataId {
-    if (env().getBool('DEBUG')) {
+    if (env().getBool('WEBGL_CHECK_NUMERICAL_PROBLEMS') ||
+        env().getBool('DEBUG')) {
       this.checkNumericalProblems(values);
     }
     if (dtype === 'complex64' && values != null) {
@@ -527,8 +534,12 @@ export class MathBackendWebGL extends KernelBackend {
     return res;
   }
   memory(): WebGLMemoryInfo {
-    return {unreliable: false, numBytesInGPU: this.numBytesInGPU} as
-        WebGLMemoryInfo;
+    return {
+      unreliable: false,
+      numBytesInGPU: this.numBytesInGPU,
+      numBytesInGPUAllocated: this.textureManager.numBytesAllocated,
+      numBytesInGPUFree: this.textureManager.numBytesFree
+    } as WebGLMemoryInfo;
   }
 
   private startTimer(): WebGLQuery|CPUTimerQuery {

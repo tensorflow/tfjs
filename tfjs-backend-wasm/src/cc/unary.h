@@ -15,7 +15,10 @@
 #ifndef UNARY_H_
 #define UNARY_H_
 
+#include <xnnpack.h>
 #include <cstddef>
+
+#include "src/cc/backend.h"
 
 namespace tfjs {
 namespace wasm {
@@ -32,6 +35,14 @@ inline void unary(const size_t x_id, const size_t out_id,
     out_buf[i] = operation(a_buf[i]);
   }
 }
+
+typedef xnn_status (*xnn_create_unary_op)(size_t, size_t, size_t, uint32_t,
+                                          xnn_operator_t*);
+typedef xnn_status (*xnn_setup_unary_op)(xnn_operator_t, size_t, const float*,
+                                         float*, pthreadpool_t);
+
+void unary_xnn_f32(const size_t x_id, const size_t out_id,
+                   xnn_create_unary_op create_op, xnn_setup_unary_op setup_op);
 
 }  // namespace wasm
 }  // namespace tfjs

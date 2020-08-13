@@ -18,13 +18,14 @@ import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assertShapesMatch} from '../util';
+
 import {computeWeightedLoss} from './compute_weighted_loss';
 import {Reduction} from './loss_ops_utils';
 import {mul} from './mul';
 import {op} from './operation';
 import {relu} from './relu';
+import {scalar} from './scalar';
 import {sub} from './sub';
-import {scalar} from './tensor_ops';
 
 /**
  * Computes the Hinge loss between two tensors.

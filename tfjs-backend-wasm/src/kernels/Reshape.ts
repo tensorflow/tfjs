@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, Reshape, ReshapeAttrs, ReshapeInputs} from '@tensorflow/tfjs-core';
+import {KernelConfig, NamedAttrMap, NamedTensorInfoMap, Reshape, ReshapeAttrs, ReshapeInputs} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -30,8 +30,8 @@ export function reshape(args: {
   return {dataId: x.dataId, shape, dtype: x.dtype};
 }
 
-registerKernel({
+export const reshapeConfig: KernelConfig = {
   kernelName: Reshape,
   backendName: 'wasm',
   kernelFunc: reshape,
-});
+};

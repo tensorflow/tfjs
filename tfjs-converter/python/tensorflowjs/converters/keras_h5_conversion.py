@@ -66,7 +66,8 @@ def _convert_h5_group(group):
   group_out = []
   if 'weight_names' in group.attrs:
     # This is a leaf node in namespace (e.g., 'Dense' in 'foo/bar/Dense').
-    names = [name for name in group.attrs['weight_names']]
+    names = group.attrs['weight_names'].tolist()
+
     if not names:
       return group_out
 

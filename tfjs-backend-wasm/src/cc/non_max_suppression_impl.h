@@ -27,12 +27,13 @@ struct NonMaxSuppressionResult {
   int32_t* selected_indices;
   size_t selected_size;
   float* selected_scores;
+  size_t* valid_outputs;
 };
 
 const NonMaxSuppressionResult* non_max_suppression_impl(
     const size_t boxes_id, const size_t scores_id, const size_t max_out_size,
     const float iou_threshold, const float score_threshold,
-    const float soft_nms_sigma);
+    const float soft_nms_sigma, const bool pad_to_max_output_size);
 
 }  // namespace wasm
 }  // namespace tfjs

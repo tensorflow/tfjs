@@ -62,7 +62,7 @@ function parseTags(tagsInput: string): string[] {
 }
 
 /**
- * Run Jasmine tests only for whitelisted tags.
+ * Run Jasmine tests only for allowlisted tags.
  */
 function setupTestFilters(tags: string[] = []) {
   const env = jasmine.getEnv();

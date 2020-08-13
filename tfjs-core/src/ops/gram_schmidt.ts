@@ -23,11 +23,11 @@ import {div} from './div';
 import {mul} from './mul';
 import {norm} from './norm';
 import {op} from './operation';
-import {sum} from './reduction_ops';
 import {split} from './split';
 import {squeeze} from './squeeze';
 import {stack} from './stack';
 import {sub} from './sub';
+import {sum} from './sum';
 
 /**
  * Gram-Schmidt orthogonalization.

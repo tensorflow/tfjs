@@ -113,8 +113,7 @@ export const dilation2dBackpropInputConfig: KernelConfig = {
     }
 
     const dataId = cpuBackend.write(
-        util.toTypedArray(gradients, x.dtype, false /* debug mode */), x.shape,
-        x.dtype);
+        util.toTypedArray(gradients, x.dtype), x.shape, x.dtype);
 
     return {dataId, shape: x.shape, dtype: x.dtype};
   }

@@ -16,6 +16,7 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
+import {getShapeCoords} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 import {WebGPUProgram} from './webgpu_program';
 
@@ -28,7 +29,6 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride, dilation, inDims;';
   workGroupSize: [number, number, number] = [4, 8, 4];
-  needsShapesUniforms = true;
 
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.outShape;
@@ -44,7 +44,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
     this.userCode = `
       void writeResult(int batch, int row, int col, int chan, float value) {
         ivec4 coord = ivec4(batch, row, col, chan);
-        if (coordsInBounds(coord, outShape)) {
+        if (coordsInBounds(coord, ${getShapeCoords(this.outputShape)})) {
           setOutput(batch, row, col, chan, value);
         }
       }

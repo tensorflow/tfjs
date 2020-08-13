@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-export {nonMaxSuppressionV3Impl, nonMaxSuppressionV5Impl} from './non_max_suppression_impl';
+export {nonMaxSuppressionV3Impl, nonMaxSuppressionV4Impl, nonMaxSuppressionV5Impl} from './non_max_suppression_impl';
 export {split} from './split_shared';
 export {tile} from './tile_impl';
 export {topkImpl} from './topk_impl';

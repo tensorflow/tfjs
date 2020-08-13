@@ -17,6 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
+import {getShapeCoords} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -30,7 +31,6 @@ export class MaxPoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
   variableNames = ['x'];
   uniforms = 'ivec2 pad, stride, dilation, convDims, filterDims;';
   workGroupSize: [number, number, number] = [4, 4, 4];
-  needsShapesUniforms = true;
 
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.outShape;
@@ -45,7 +45,7 @@ export class MaxPoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
         int batch = coords[0];
         int d = coords[3];
 
-        if (all(lessThan(coords, outShape))) {
+        if (all(lessThan(coords, ${getShapeCoords(this.outputShape)}))) {
           ivec2 xRCCorner = coords.yz * stride;
           int xRCorner = xRCCorner.x;
           int xCCorner = xRCCorner.y;

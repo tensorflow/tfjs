@@ -16,9 +16,13 @@
  */
 
 import {ENGINE} from '../engine';
+import {TopK, TopKAttrs, TopKInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {NumericTensor, Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
+
 import {op} from './operation';
 
 /**
@@ -57,8 +61,14 @@ function topk_<T extends Tensor>(
         `but got ${k}`);
   }
 
-  const [values, indices] =
-      ENGINE.runKernelFunc(b => b.topk($x as NumericTensor, k, sorted), {$x});
+  const inputs: TopKInputs = {x: $x};
+  const attrs: TopKAttrs = {k, sorted};
+
+  const [values, indices] = ENGINE.runKernelFunc(
+      b => b.topk($x as NumericTensor, k, sorted),
+      inputs as {} as NamedTensorMap, null /* grad */, TopK,
+      attrs as {} as NamedAttrMap);
+
   return {values, indices} as {values: T, indices: T};
 }
 

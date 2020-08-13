@@ -40,9 +40,9 @@ const NonMaxSuppressionResult* NonMaxSuppressionV5(const size_t boxes_id,
                                                    const float iou_threshold,
                                                    const float score_threshold,
                                                    const float soft_nms_sigma) {
-  return tfjs::wasm::non_max_suppression_impl(boxes_id, scores_id, max_out_size,
-                                              iou_threshold, score_threshold,
-                                              soft_nms_sigma);
+  return tfjs::wasm::non_max_suppression_impl(
+      boxes_id, scores_id, max_out_size, iou_threshold, score_threshold,
+      soft_nms_sigma, false /* pad_to_max_output_size */);
 }
 
 }  // extern "C"

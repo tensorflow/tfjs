@@ -150,7 +150,7 @@ inline bool EnsureValueIsNumber(napi_env env, napi_value value,
   ENSURE_NAPI_OK_RETVAL(env, napi_typeof(env, value, &type), false);
   bool is_number = type == napi_number;
   if (!is_number) {
-    NapiThrowError(env, file, line_number, "Argument is not a string!");
+    NapiThrowError(env, file, line_number, "Argument is not a number!");
   }
   return is_number;
 }

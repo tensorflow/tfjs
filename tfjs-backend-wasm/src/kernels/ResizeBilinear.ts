@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, ResizeBilinear, ResizeBilinearAttrs, ResizeBilinearInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, ResizeBilinear, ResizeBilinearAttrs, ResizeBilinearInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -27,7 +27,7 @@ let wasmResizeBilinear: (
     alignCorners: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
-  wasmResizeBilinear = backend.wasm.cwrap('ResizeBilinear', null /*void*/, [
+  wasmResizeBilinear = backend.wasm.cwrap(ResizeBilinear, null /*void*/, [
     'number',  // xId
     'number',  // batch
     'number',  // oldHeight
@@ -42,13 +42,13 @@ function setup(backend: BackendWasm): void {
 
 function resizeBilinear(args: {
   backend: BackendWasm,
-  inputs: NamedTensorInfoMap,
-  attrs: NamedAttrMap
+  inputs: ResizeBilinearInputs,
+  attrs: ResizeBilinearAttrs
 }): TensorInfo {
   const {backend, inputs, attrs} = args;
 
-  const {images} = inputs as ResizeBilinearInputs;
-  const {alignCorners, size} = attrs as {} as ResizeBilinearAttrs;
+  const {images} = inputs;
+  const {alignCorners, size} = attrs;
   const [newHeight, newWidth] = size;
 
   const [batch, oldHeight, oldWidth, numChannels] = images.shape;
@@ -80,9 +80,9 @@ function resizeBilinear(args: {
   return out;
 }
 
-registerKernel({
+export const resizeBilinearConfig: KernelConfig = {
   kernelName: ResizeBilinear,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: resizeBilinear
-});
+  kernelFunc: resizeBilinear as {} as KernelFunc
+};

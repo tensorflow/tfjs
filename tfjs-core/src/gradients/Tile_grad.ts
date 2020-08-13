@@ -19,7 +19,7 @@ import {Tile, TileAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
 import {add} from '../ops/add';
 import {slice} from '../ops/slice';
-import {zerosLike} from '../ops/tensor_ops';
+import {zerosLike} from '../ops/zeros_like';
 import {Tensor} from '../tensor';
 
 export const tileGradConfig: GradConfig = {

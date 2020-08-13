@@ -22,8 +22,8 @@ import {TensorLike} from '../types';
 
 import {div} from './div';
 import {op} from './operation';
-import {zerosLike} from './tensor_ops';
 import {where} from './where';
+import {zerosLike} from './zeros_like';
 
 /**
  * Divides two `tf.Tensor`s element-wise, A / B. Supports broadcasting. Return 0
