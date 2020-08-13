@@ -169,6 +169,9 @@ class ConvertH5WeightsTest(unittest.TestCase):
     model = tf.keras.models.Model(inputs=[input_tensor], outputs=[output])
     h5_path = os.path.join(self._tmp_dir, 'MyModelMerged.h5')
     model.save(h5_path)
+    if six.PY3:
+    config_json = json.loads(model.to_json())
+    else:
     config_json = json.loads(model.to_json(), encoding='utf8')
 
     # Load the saved weights as a JSON string.
@@ -215,6 +218,9 @@ class ConvertH5WeightsTest(unittest.TestCase):
     model = tf.keras.models.Model(inputs=[input_tensor], outputs=[output])
     h5_path = os.path.join(self._tmp_dir, 'MyModelMerged.h5')
     model.save(h5_path)
+    if six.PY3:
+    config_json = json.loads(model.to_json())
+    else:
     config_json = json.loads(model.to_json(), encoding='utf8')
 
     # Load the saved weights as a JSON string.
