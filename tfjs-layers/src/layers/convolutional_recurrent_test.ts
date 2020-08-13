@@ -492,7 +492,7 @@ describeMathCPUAndGPU('ConvLSTM2D Tensor', () => {
 });
 
 // TODO: Add GPU test once Gather supports 5 rank tensor.
-describeMathCPU('should run BPPT correctly', () => {
+describeMathCPU('should run BPTT correctly', () => {
   const filters = 5;
   const kernelSize = 3;
 
@@ -506,7 +506,7 @@ describeMathCPU('should run BPPT correctly', () => {
 
   const outputSize = inputSize - kernelSize + 1;
 
-  it('for stateful BPPT', async () => {
+  it('for stateful BPTT', async () => {
     const model = tfl.sequential();
 
     model.add(tfl.layers.convLstm2d({
@@ -530,7 +530,7 @@ describeMathCPU('should run BPPT correctly', () => {
     expect(history.history.loss[0]).toBeCloseTo(0);
   });
 
-  it('for normal BPPT', async () => {
+  it('for normal BPTT', async () => {
     const model = tfl.sequential();
 
     model.add(tfl.layers.convLstm2d({
