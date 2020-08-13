@@ -47,7 +47,17 @@ describe(`${REGRESSION} convert_predict`, () => {
       let tfOutputData: tfc.TypedArray[];
       let tfOutputShapes: number[][];
       let tfOutputDtypes: tfc.DataType[];
+
+      let originalTimeout: number;
+
       beforeAll(async () => {
+        // This test needs more time to finish the async fetch, adjusting
+        // jasmine timeout for this test to avoid flakiness. See jasmine
+        // documentation for detail:
+        // https://jasmine.github.io/2.0/introduction.html#section-42
+        originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+        jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
+
         [inputsNames, inputsData, inputsShapes, inputsDtypes, tfOutputNames,
          tfOutputData, tfOutputShapes, tfOutputDtypes] =
             await Promise.all([
@@ -69,6 +79,8 @@ describe(`${REGRESSION} convert_predict`, () => {
                   .then(response => response.json())
             ]);
       });
+
+      afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
 
       BACKENDS.forEach(backend => {
         it(`with ${backend}.`, async () => {
