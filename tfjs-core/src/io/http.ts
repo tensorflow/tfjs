@@ -36,6 +36,7 @@ export class HTTPRequest implements IOHandler {
   protected readonly requestInit: RequestInit;
 
   private readonly fetch: Function;
+  private readonly weightUrlTranslationFunc: (weightName: string) => Promise<string>;
 
   readonly DEFAULT_METHOD = 'POST';
 
@@ -50,6 +51,7 @@ export class HTTPRequest implements IOHandler {
     }
     this.weightPathPrefix = loadOptions.weightPathPrefix;
     this.onProgress = loadOptions.onProgress;
+    this.weightUrlTranslationFunc = loadOptions.weightUrlTranslateFunc;
 
     if (loadOptions.fetchFunc != null) {
       assert(
@@ -216,8 +218,12 @@ export class HTTPRequest implements IOHandler {
 
     const fetchURLs: string[] = [];
     weightsManifest.forEach(weightsGroup => {
-      weightsGroup.paths.forEach(path => {
-        fetchURLs.push(pathPrefix + path + suffix);
+      weightsGroup.paths.forEach(async (path) => {
+        if (this.weightUrlTranslationFunc) {
+          fetchURLs.push(await this.weightUrlTranslationFunc(path));
+        } else {
+          fetchURLs.push(pathPrefix + path + suffix);
+        }
       });
     });
     const buffers = await loadWeightsAsArrayBuffer(fetchURLs, {
