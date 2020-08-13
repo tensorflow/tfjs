@@ -38,6 +38,7 @@ import {divConfig} from './kernels/Div';
 import {equalConfig} from './kernels/Equal';
 import {expConfig} from './kernels/Exp';
 import {fillConfig} from './kernels/Fill';
+import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorDivConfig} from './kernels/FloorDiv';
 import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
 import {fusedConv2DConfig} from './kernels/FusedConv2D';
@@ -111,6 +112,7 @@ const kernelConfigs: KernelConfig[] = [
   equalConfig,
   expConfig,
   fillConfig,
+  flipLeftRightConfig,
   floorDivConfig,
   fusedMatMulConfig,
   fusedBatchNormConfig,

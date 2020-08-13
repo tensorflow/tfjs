@@ -222,6 +222,7 @@ tfjs_cc_library(
         ":Div",
         ":Equal",
         ":Exp",
+        ":FlipLeftRight",
         ":FloorDiv",
         ":FusedBatchNorm",
         ":FusedConv2D",
@@ -451,6 +452,15 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "FlipLeftRight",
+    srcs = ["kernels/FlipLeftRight.cc"],
+    deps = [
+        ":backend",
+        ":util",
     ],
 )
 

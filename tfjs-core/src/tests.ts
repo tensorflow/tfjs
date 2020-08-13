@@ -100,6 +100,7 @@ import './ops/expm1_test';
 import './ops/eye_test';
 import './ops/fft_test';
 import './ops/fill_test';
+import './ops/flip_left_right_test';
 import './ops/floor_test';
 import './ops/frame_test';
 import './ops/from_pixels_test';
