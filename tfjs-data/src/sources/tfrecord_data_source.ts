@@ -16,7 +16,9 @@
  * =============================================================================
  */
 
-import { TFRecordIterator } from '../iterators/tfrecord_iterator';
+import {env} from '@tensorflow/tfjs-core';
+import {TFRecordIterator} from '../iterators/tfrecord_iterator';
+import {isLocalPath} from '../util/source_util';
 
 export class TFRecordDataSource {
   /**
@@ -25,7 +27,16 @@ export class TFRecordDataSource {
    * @param input Local file path.
    *     Only works in node environment.
    */
-  constructor(protected input: string) {}
+  constructor(protected input: string) {
+    if (!env().get('IS_NODE')) {
+      throw new Error(
+        'tf.data.TFRecord is only supported in node environment.');
+    }
+    if (!isLocalPath(input)) {
+      throw new Error(
+        `tf.data.TFRecord is only supported path with prefix 'file://'.`);
+    }
+  }
 
   async iterator(): Promise<TFRecordIterator> {
     return new TFRecordIterator(this.input);

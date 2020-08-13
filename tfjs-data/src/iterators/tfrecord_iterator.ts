@@ -16,8 +16,7 @@
  * =============================================================================
  */
 
-import {TensorContainerObject, env, tensor, scalar} from '@tensorflow/tfjs-core';
-import {isLocalPath} from '../util/source_util';
+import {TensorContainerObject, tensor, scalar} from '@tensorflow/tfjs-core';
 import {maskedCrc32c} from '../proto/crc32c';
 import {LazyIterator} from './lazy_iterator';
 import {FeatureProto, Feature} from '../types';
@@ -42,6 +41,12 @@ export class TFRecordIterator extends LazyIterator<TensorContainerObject> {
   private lengthAndCrc: DataView;
   // node.js Buffer pointing at length for CRC32C computations.
   private lengthBuffer: Buffer;
+  // Bytes length of buffer: 8-byte length.
+  private lengthBufferLength = 8;
+  // Bytes length of buffer: 4-byte CRC32C header.
+  private crcBufferLength = 4;
+  // Bytes length of read buffer: 8-byte length and 4-byte CRC32C header.
+  private readByteLength = 12;
 
   // Buffer used to read records.
   private dataBuffer: Uint8Array;
@@ -51,19 +56,18 @@ export class TFRecordIterator extends LazyIterator<TensorContainerObject> {
   constructor(protected file: string) {
     super();
     this.closed = false;
-    if (isLocalPath(file) && env().get('IS_NODE')) {
-      // tslint:disable-next-line:no-require-imports
-      const fs = require('fs');
-      this.fd = fs.openSync(file.substr(7), 'r');
-    }
+    // tslint:disable-next-line:no-require-imports
+    const fs = require('fs');
+    this.fd = fs.openSync(file.substr(7), 'r');
 
     this.dataBuffer = new Uint8Array(1);
     this.dataBufferView = new DataView(this.dataBuffer.buffer, 0, 1);
 
-    const metadataBuffer = new ArrayBuffer(12);
-    this.lengthAndCrcBuffer = new Uint8Array(metadataBuffer, 0, 12);
-    this.lengthAndCrc = new DataView(metadataBuffer, 0, 12);
-    this.lengthBuffer = Buffer.from(metadataBuffer, 0, 8);
+    const metadataBuffer = new ArrayBuffer(this.readByteLength);
+    this.lengthAndCrcBuffer = new Uint8Array(
+      metadataBuffer, 0, this.readByteLength);
+    this.lengthAndCrc = new DataView(metadataBuffer, 0, this.readByteLength);
+    this.lengthBuffer = Buffer.from(metadataBuffer, 0, this.lengthBufferLength);
   }
 
   summary() {
@@ -71,25 +75,24 @@ export class TFRecordIterator extends LazyIterator<TensorContainerObject> {
   }
 
   async next(): Promise<IteratorResult<TensorContainerObject>> {
-    if (!isLocalPath(this.file) || !env().get('IS_NODE')) {
-      return {value: null, done: true};
-    }
     if (this.closed) {
       return {value: null, done: true};
     }
     // tslint:disable-next-line:no-require-imports
     const fs = require('fs');
-    let bytesRead = fs.readSync(this.fd, this.lengthAndCrcBuffer, 0, 12, null);
+    let bytesRead = fs.readSync(
+      this.fd, this.lengthAndCrcBuffer, 0, this.readByteLength, null);
     if (bytesRead === 0) {
       fs.closeSync(this.fd);
       this.closed = true;
       return {value: null, done: true};
     }
-    if (bytesRead !== 12) {
+    if (bytesRead !== this.readByteLength) {
       fs.closeSync(this.fd);
       this.closed = true;
-      // error msg: `Incomplete read; expected 12 bytes, got ${bytesRead}`
-      return {value: null, done: true};
+      throw new Error(
+        `Incomplete read; expected ${this.readByteLength} bytes,` +
+        `got ${bytesRead}`);
     }
 
     const length = this.lengthAndCrc.getUint32(0, true);
@@ -99,18 +102,16 @@ export class TFRecordIterator extends LazyIterator<TensorContainerObject> {
     if (length64 !== 0) {
       fs.closeSync(this.fd);
       this.closed = true;
-      // error msg: `4GB+ records not supported`
-      return {value: null, done: true};
+      throw new Error(`4GB+ records not supported`);
     }
 
     if (lengthCrc !== maskedCrc32c(this.lengthBuffer)) {
       fs.closeSync(this.fd);
       this.closed = true;
-      // error msg: `Incorrect record length CRC32C`
-      return {value: null, done: true};
+      throw new Error(`Incorrect record length CRC32C`);
     }
-
-    const readLength = length + 4; // Need to read the CRC32C as well.
+    // Need to read the CRC32C as well.
+    const readLength = length + this.crcBufferLength;
     if (readLength > this.dataBuffer.length) {
       // Grow the buffer.
       let newLength = this.dataBuffer.length;
@@ -125,9 +126,8 @@ export class TFRecordIterator extends LazyIterator<TensorContainerObject> {
     if (bytesRead !== readLength) {
       fs.closeSync(this.fd);
       this.closed = true;
-      // error msg: `Incomplete read; expected ${readLength} bytes,
-      // got ${bytesRead}`
-      return {value: null, done: true};
+      throw new Error(
+        `Incomplete read; expected ${readLength} bytes,got ${bytesRead}`);
     }
 
     const recordData = new Uint8Array(this.dataBuffer.buffer, 0, length);
@@ -141,8 +141,7 @@ export class TFRecordIterator extends LazyIterator<TensorContainerObject> {
     if (recordCrc !== maskedCrc32c(recordBuffer)) {
       fs.closeSync(this.fd);
       this.closed = true;
-      // error msg: `Incorrect record CRC32C`
-      return {value: null, done: true};
+      throw new Error(`Incorrect record CRC32C`);
     }
 
     const result: TensorContainerObject = {};

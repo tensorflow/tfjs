@@ -224,12 +224,12 @@ export interface Feature {
 
 export interface FeatureProto {
   bytesList?: {
-    valueList: [string]
+    valueList: string[]
   };
   floatList?: {
-    valueList: [number]
+    valueList: number[]
   };
   int64List?: {
-    valueList: [number]
+    valueList: number[]
   };
 }
