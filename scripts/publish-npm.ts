@@ -65,7 +65,7 @@ async function main() {
   console.log(chalk.blue(`Using phase ${phaseInt}`));
   console.log();
 
-  let releaseBranch = await getReleaseBranch();
+  let releaseBranch = await getReleaseBranch(name);
   console.log();
 
   checkoutReleaseBranch(releaseBranch, args.git_protocol);

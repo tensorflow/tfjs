@@ -312,7 +312,7 @@ export function prepareReleaseBuild(phase: Phase, packageName: string) {
   }
 }
 
-export async function getReleaseBranch(): Promise<string> {
+export async function getReleaseBranch(name: string): Promise<string> {
   // Infer release branch name.
   let releaseBranch = '';
 
