@@ -315,87 +315,167 @@ describeMathCPUAndGPU('ConvLSTM2D Tensor', () => {
   const kernelSize = 3;
 
   const batchSize = 4;
-  const sequence = 3;
+  const sequenceLength = 2;
   const inputSize = 5;
   const channels = 3;
 
-  const dropouts = [0.0, 0.1];
-  const recurrentDropouts = [0.0, 0.1];
-  const trainings = [true, false];
-  const implementations = [1, 2];
-  const returnStates = [false, true];
-  const returnSequencesValues = [false, true];
+  const inputShape =
+      [batchSize, sequenceLength, inputSize, inputSize, channels];
 
-  const args = getCartesianProductOfValues(
-                   dropouts, recurrentDropouts, trainings, implementations,
-                   returnStates, returnSequencesValues) as
-      Array<[number, number, boolean, number, boolean, boolean]>;
+  const outputSize = inputSize - kernelSize + 1;
 
-  for (const
-           [dropout, recurrentDropout, training, implementation, returnState,
-            returnSequences] of args) {
-    const testTitle = `for dropout=${dropout}, recurrentDropout=${
-        recurrentDropout},implementation=${implementation}, training=${
-        training}, implementation=${implementation}, returnState=${
-        returnState}, returnSequence=${returnSequences}`;
+  describe('should run as expected', () => {
+    const dropoutValues = [0.0, 0.1];
+    const recurrentDropoutValues = [0.0, 0.1];
+    const trainingValues = [true, false];
+    const implementationValues = [1, 2];
 
-    it(testTitle, () => {
-      const convLstm = tfl.layers.convLstm2d({
-        filters,
-        kernelSize,
-        kernelInitializer: 'ones',
-        recurrentInitializer: 'ones',
-        biasInitializer: 'ones',
-        dropout,
-        recurrentDropout,
-        implementation,
-        returnState,
-        returnSequences,
-      });
+    const args = getCartesianProductOfValues(
+                     dropoutValues,
+                     recurrentDropoutValues,
+                     trainingValues,
+                     implementationValues,
+                     ) as Array<[number, number, boolean, number]>;
 
-      const input =
-          tfc.ones([batchSize, sequence, inputSize, inputSize, channels]);
+    for (const [dropout, recurrentDropout, training, implementation] of args) {
+      const testTitle = `for dropout=${dropout}, recurrentDropout=${
+          recurrentDropout},implementation=${implementation}, training=${
+          training}, implementation=${implementation}`;
 
-      spyOn(tfc, 'dropout').and.callThrough();
-      let dropoutCall = 0;
-      if (dropout !== 0.0 && training) {
-        dropoutCall += 4;
-      }
-      if (recurrentDropout !== 0.0 && training) {
-        dropoutCall += 4;
-      }
+      it(testTitle, () => {
+        const convLstm = tfl.layers.convLstm2d({
+          filters,
+          kernelSize,
+          kernelInitializer: 'ones',
+          recurrentInitializer: 'ones',
+          biasInitializer: 'ones',
+          dropout,
+          recurrentDropout,
+          implementation,
+        });
 
-      let numTensors = 0;
+        const input = tfc.ones(inputShape);
 
-      for (let i = 0; i < 2; i++) {
-        tfc.dispose(convLstm.apply(input, {training}) as tfc.Tensor);
-
-        expect(tfc.dropout).toHaveBeenCalledTimes((i + 1) * dropoutCall);
-
-        if (i === 0) {
-          numTensors = tfc.memory().numTensors;
-        } else {
-          expect(tfc.memory().numTensors).toEqual(numTensors);
+        spyOn(tfc, 'dropout').and.callThrough();
+        let dropoutCall = 0;
+        if (dropout !== 0.0 && training) {
+          dropoutCall += 4;
         }
-      }
-    });
-  }
+        if (recurrentDropout !== 0.0 && training) {
+          dropoutCall += 4;
+        }
 
-  it('for forward stateful');
+        let numTensors = 0;
 
-  it('with goBackwards=false');
+        for (let i = 0; i < 2; i++) {
+          tfc.dispose(convLstm.apply(input, {training}) as tfc.Tensor);
 
-  it('with goBackwards=true');
+          expect(tfc.dropout).toHaveBeenCalledTimes((i + 1) * dropoutCall);
 
-  it('with nested model');
-});
+          if (i === 0) {
+            numTensors = tfc.memory().numTensors;
+          } else {
+            expect(tfc.memory().numTensors).toEqual(numTensors);
+          }
+        }
+      });
+    }
 
-describe('should run BPPT correctly', () => {
-  it('for stateful BPPT');
+    it('for stateful forward');
 
-  it('for normal BPPT');
+    it('for goBackwards=false');
 
-  it('with no leak');
+    it('for goBackwards=true');
+
+    it('for nested model');
+  });
+
+  describe('should return the correct outputs', () => {
+    const returnStateValues = [true, false];
+    const returnSequencesValues = [true, false];
+    const implementationValues = [1, 2];
+
+    const args = getCartesianProductOfValues(
+                     returnStateValues,
+                     returnSequencesValues,
+                     implementationValues,
+                     ) as Array<[boolean, boolean, number]>;
+
+    for (const [returnState, returnSequences, implementation] of args) {
+      const testTitle = `for returnState=${returnState}, returnSequences=${
+          returnSequences}, implementation=${implementation}`;
+
+      it(testTitle, () => {
+        const convLstm = tfl.layers.convLstm2d({
+          filters,
+          kernelSize,
+          returnState,
+          returnSequences,
+          implementation,
+          kernelInitializer: 'ones',
+          recurrentInitializer: 'ones',
+          biasInitializer: 'ones',
+        });
+
+        const input = tfc.ones(inputShape);
+
+        let output = convLstm.apply(input);
+
+        const expectedOutputValueAtT0 = 0.76159424;
+        const expectedOutputValueAtT1 = 0.96402746;
+        const expectedH = expectedOutputValueAtT1;
+        const expectedC = 2.0;
+
+        let expectedOutput: tfc.Tensor;
+        if (returnSequences) {
+          const outputAtT0 = tfc.mul(
+              tfc.scalar(expectedOutputValueAtT0),
+              tfc.ones([batchSize, 1, outputSize, outputSize, filters]));
+
+          const outputAtT1 = tfc.mul(
+              tfc.scalar(expectedOutputValueAtT1),
+              tfc.ones([batchSize, 1, outputSize, outputSize, filters]));
+
+          expectedOutput = tfc.concat([outputAtT0, outputAtT1], 1);
+        } else {
+          expectedOutput = tfc.mul(
+              tfc.scalar(expectedOutputValueAtT1),
+              tfc.ones([batchSize, outputSize, outputSize, filters]));
+        }
+
+        if (returnState) {
+          output = output as tfc.Tensor[];
+
+          expect(output.length).toEqual(3);
+
+          expectTensorsClose(output[0], expectedOutput);
+
+          expectTensorsClose(
+              output[1],
+              tfc.mul(
+                  tfc.scalar(expectedH),
+                  tfc.ones([batchSize, outputSize, outputSize, filters])));
+          expectTensorsClose(
+              output[2],
+              tfc.mul(
+                  tfc.scalar(expectedC),
+                  tfc.ones([batchSize, outputSize, outputSize, filters])));
+        } else {
+          output = output as tfc.Tensor;
+
+          expectTensorsClose(output, expectedOutput);
+        }
+      });
+    }
+  });
+
+  describe('should run BPPT correctly', () => {
+    it('for stateful BPPT');
+
+    it('for normal BPPT');
+
+    it('with no leak');
+  });
 });
 
 describeMathCPU('ConvLSTM2D Serialization and Deserialization', () => {
