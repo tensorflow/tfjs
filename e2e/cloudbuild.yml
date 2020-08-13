@@ -1,19 +1,18 @@
 steps:
 
 # Install packages.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'e2e'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
 
 # Build deps.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'e2e'
   entrypoint: 'yarn'
   id: 'build-deps'
   args: ['build-deps-ci']
-  waitFor: ['yarn']
 
 # Test.
 - name: 'gcr.io/learnjs-174218/release'
@@ -21,7 +20,6 @@ steps:
   entrypoint: 'yarn'
   id: 'test'
   args: ['test-ci']
-  waitFor: ['build-deps']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 
