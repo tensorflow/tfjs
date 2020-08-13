@@ -57,8 +57,8 @@ void SquaredDifference(
       binary_bool(a_id, b_id, out_id, squared_diff<bool>);
       break;
     default:
-      util::warn("Sub for tensor ids %d and %d failed. Unknown dtype %d", a_id,
-                 b_id, dtype);
+      util::warn("SquaredDifference for tensor ids %d and %d failed. "
+                 "Unknown dtype %d", a_id, b_id, dtype);
   }
 }
 
