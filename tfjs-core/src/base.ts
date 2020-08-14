@@ -34,7 +34,6 @@ import * as gather_util from './ops/gather_nd_util';
 import * as scatter_util from './ops/scatter_nd_util';
 import * as slice_util from './ops/slice_util';
 import * as serialization from './serialization';
-import {setOpHandler} from './tensor';
 import * as tensor_util from './tensor_util';
 import * as test_util from './test_util';
 import * as util from './util';
@@ -93,9 +92,6 @@ import * as kernel_impls from './backends/kernel_impls';
 export {kernel_impls};
 // Backend specific.
 export {KernelBackend, BackendTimingInfo, DataMover, DataStorage} from './backends/backend';
-
-import * as ops from './ops/ops';
-setOpHandler(ops);
 
 // Export all kernel names / info.
 export * from './kernel_names';
