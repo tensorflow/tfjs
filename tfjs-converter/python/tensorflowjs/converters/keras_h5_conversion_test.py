@@ -23,8 +23,8 @@ import json
 import os
 import shutil
 import tempfile
-import six
 import unittest
+import six
 
 import h5py
 import numpy as np
