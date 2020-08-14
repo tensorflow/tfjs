@@ -36,7 +36,8 @@ export class HTTPRequest implements IOHandler {
   protected readonly requestInit: RequestInit;
 
   private readonly fetch: Function;
-  private readonly weightUrlTranslationFunc: (weightName: string) => Promise<string>;
+  private readonly weightUrlTranslationFunc:
+      (weightName: string) => Promise<string>;
 
   readonly DEFAULT_METHOD = 'POST';
 

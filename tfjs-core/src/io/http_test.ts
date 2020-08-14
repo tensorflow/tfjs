@@ -777,6 +777,55 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
         done();
       }
     });
+    it('Provide WeightFileTranslateFunc', async () => {
+      const weightManifest1: tf.io.WeightsManifestConfig = [{
+        paths: ['weightfile0'],
+        weights: [
+          {
+            name: 'dense/kernel',
+            shape: [3, 1],
+            dtype: 'float32',
+          },
+          {
+            name: 'dense/bias',
+            shape: [2],
+            dtype: 'float32',
+          }
+        ]
+      }];
+      const floatData = new Float32Array([1, 3, 3, 7, 4]);
+      setupFakeWeightFiles(
+          {
+            'path1/model.json': {
+              data: JSON.stringify({weightManifest1}),
+              contentType: 'application/json'
+            },
+            'auth_weightfile0':
+                {data: floatData, contentType: 'application/octet-stream'}
+          },
+          requestInits);
+      const fetchInputs: RequestInfo[] = [];
+      const fetchInits: RequestInit[] = [];
+      async function weightUrlTranslateFunc(weightFile: string):
+          Promise<string> {
+            console.log(weightFile);
+        return 'auth_' + weightFile;
+      }
+
+      const handler = tf.io.http('./model.json', {
+        requestInit: {credentials: 'include'},
+        weightUrlTranslateFunc
+      });
+      const modelArtifacts = await handler.load();
+      expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
+      expect(modelArtifacts.weightSpecs).toEqual(weightManifest1[0].weights);
+      expect(new Float32Array(modelArtifacts.weightData)).toEqual(floatData);
+
+      expect(fetchInputs).toEqual(['./model.json', './weightfile0']);
+      expect(fetchInits.length).toEqual(2);
+      expect(fetchInits[0].credentials).toEqual('include');
+      expect(fetchInits[1].credentials).toEqual('include');
+    });
   });
 
   it('Overriding BrowserHTTPRequest fetchFunc', async () => {
@@ -824,54 +873,6 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
     const handler = tf.io.http(
         './model.json',
         {requestInit: {credentials: 'include'}, fetchFunc: customFetch});
-    const modelArtifacts = await handler.load();
-    expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
-    expect(modelArtifacts.weightSpecs).toEqual(weightManifest1[0].weights);
-    expect(new Float32Array(modelArtifacts.weightData)).toEqual(floatData);
-
-    expect(fetchInputs).toEqual(['./model.json', './weightfile0']);
-    expect(fetchInits.length).toEqual(2);
-    expect(fetchInits[0].credentials).toEqual('include');
-    expect(fetchInits[1].credentials).toEqual('include');
-  });
-  it('Provide WeightFileTranslateFunc', async () => {
-    const weightManifest1: tf.io.WeightsManifestConfig = [{
-      paths: ['weightfile0'],
-      weights: [
-        {
-          name: 'dense/kernel',
-          shape: [3, 1],
-          dtype: 'float32',
-        },
-        {
-          name: 'dense/bias',
-          shape: [2],
-          dtype: 'float32',
-        }
-      ]
-    }];
-    const floatData = new Float32Array([1, 3, 3, 7, 4]);
-    setupFakeWeightFiles(
-        {
-          'path1/model.json': {
-            data: JSON.stringify({weightManifest1}),
-            contentType: 'application/json'
-          },
-          'auth_weightfile0':
-              {data: floatData, contentType: 'application/octet-stream'}
-        },
-        {});
-    const fetchInputs: RequestInfo[] = [];
-    const fetchInits: RequestInit[] = [];
-    async function WeightFileTranslateFunc(weightFile: string):
-        Promise<string> {
-      return 'auth_' + weightFile;
-    }
-
-    const handler = tf.io.http('./model.json', {
-      requestInit: {credentials: 'include'},
-      weightUrlTranslateFunc: WeightFileTranslateFunc
-    });
     const modelArtifacts = await handler.load();
     expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
     expect(modelArtifacts.weightSpecs).toEqual(weightManifest1[0].weights);
