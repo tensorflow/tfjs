@@ -14,9 +14,6 @@
     "url": "https://github.com/tensorflow/tfjs.git"
   },
   "license": "Apache-2.0",
-  "bin": {
-    "tfjs-custom-bundle": "dist/tools/custom_bundle/cli.js"
-  },
   "devDependencies": {
     "@babel/core": "^7.9.0",
     "@babel/preset-env": "^7.9.5",
