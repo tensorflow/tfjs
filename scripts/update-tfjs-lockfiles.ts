@@ -41,11 +41,11 @@ async function main() {
 
   // ========== Get release branch. ============================================
   // Infer release branch name.
-  let releaseBranch = await getReleaseBranch();
+  let releaseBranch = await getReleaseBranch('tfjs');
   console.log();
 
   // ========== Checkout release branch. =======================================
-  checkoutReleaseBranch(releaseBranch, args.git_protocol);
+  checkoutReleaseBranch(releaseBranch, args.git_protocol, TMP_DIR);
 
   shell.cd(TMP_DIR);
 
