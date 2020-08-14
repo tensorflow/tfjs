@@ -338,20 +338,19 @@ export async function getReleaseBranch(name: string): Promise<string> {
 }
 
 export function checkoutReleaseBranch(
-    releaseBranch: string, git_protocol: string) {
+    releaseBranch: string, git_protocol: string, dir: string) {
   console.log(chalk.magenta.bold(
       `~~~ Checking out release branch ${releaseBranch} ~~~`));
-  $(`rm -f -r ${TMP_DIR}`);
-  mkdirp(TMP_DIR, err => {
+  $(`rm -f -r ${dir}`);
+  mkdirp(dir, err => {
     if (err) {
-      console.log('Error creating temp dir', TMP_DIR);
+      console.log('Error creating temp dir', dir);
       process.exit(1);
     }
   });
 
   const urlBase = git_protocol ? 'git@github.com:' : 'https://github.com/';
-  $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${
-      TMP_DIR} --depth=1`);
+  $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${dir} --depth=1`);
 }
 
 export function createPR(

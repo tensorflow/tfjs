@@ -45,7 +45,7 @@ async function main() {
   console.log();
 
   // ========== Checkout release branch. =======================================
-  checkoutReleaseBranch(releaseBranch, args.git_protocol);
+  checkoutReleaseBranch(releaseBranch, args.git_protocol, TMP_DIR);
 
   shell.cd(TMP_DIR);
 
