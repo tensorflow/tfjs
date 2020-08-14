@@ -22,8 +22,8 @@ import glob
 import json
 import os
 import shutil
-import six
 import tempfile
+import six
 import unittest
 
 import h5py
