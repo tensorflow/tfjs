@@ -218,15 +218,16 @@ export class HTTPRequest implements IOHandler {
     }
 
     const fetchURLs: string[] = [];
-    weightsManifest.forEach(weightsGroup => {
-      weightsGroup.paths.forEach(async (path) => {
-        if (this.weightUrlTranslationFunc) {
-          fetchURLs.push(await this.weightUrlTranslationFunc(path));
+    for await (const weightsGroup of weightsManifest) {
+      for await (const path of weightsGroup.paths) {
+        if (this.weightUrlTranslationFunc != null) {
+          const url = await this.weightUrlTranslationFunc(path);
+          fetchURLs.push(url);
         } else {
           fetchURLs.push(pathPrefix + path + suffix);
         }
-      });
-    });
+      }
+    }
     const buffers = await loadWeightsAsArrayBuffer(fetchURLs, {
       requestInit: this.requestInit,
       fetchFunc: this.fetch,

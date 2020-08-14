@@ -796,35 +796,38 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
       const floatData = new Float32Array([1, 3, 3, 7, 4]);
       setupFakeWeightFiles(
           {
-            'path1/model.json': {
-              data: JSON.stringify({weightManifest1}),
+            './model.json': {
+              data: JSON.stringify({
+                modelTopology: modelTopology1,
+                weightsManifest: weightManifest1
+              }),
               contentType: 'application/json'
             },
             'auth_weightfile0':
-                {data: floatData, contentType: 'application/octet-stream'}
+                {data: floatData, contentType: 'application/octet-stream'},
           },
           requestInits);
-      const fetchInputs: RequestInfo[] = [];
-      const fetchInits: RequestInit[] = [];
       async function weightUrlTranslateFunc(weightFile: string):
           Promise<string> {
-            console.log(weightFile);
         return 'auth_' + weightFile;
       }
 
       const handler = tf.io.http('./model.json', {
-        requestInit: {credentials: 'include'},
+        requestInit: {headers: {'header_key_1': 'header_value_1'}},
         weightUrlTranslateFunc
       });
       const modelArtifacts = await handler.load();
       expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
       expect(modelArtifacts.weightSpecs).toEqual(weightManifest1[0].weights);
       expect(new Float32Array(modelArtifacts.weightData)).toEqual(floatData);
+      expect(Object.keys(requestInits).length).toEqual(2);
+      expect(Object.keys(requestInits).length).toEqual(2);
+      expect(requestInits['./model.json'].headers['header_key_1'])
+          .toEqual('header_value_1');
+      expect(requestInits['auth_weightfile0'].headers['header_key_1'])
+          .toEqual('header_value_1');
 
-      expect(fetchInputs).toEqual(['./model.json', './weightfile0']);
-      expect(fetchInits.length).toEqual(2);
-      expect(fetchInits[0].credentials).toEqual('include');
-      expect(fetchInits[1].credentials).toEqual('include');
+      expect(fetchSpy.calls.mostRecent().object).toEqual(window);
     });
   });
 

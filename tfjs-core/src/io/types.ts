@@ -466,8 +466,8 @@ export interface LoadOptions {
   fromTFHub?: boolean;
 
   /**
-   * A function to translate weight file name to URL. By default we consider
-   * weight files are colocated with the model.json file. For example:
+   * An async function to translate weight file name to URL. By default we
+   * consider weight files are colocated with the model.json file. For example:
    *     model.json URL: https://www.google.com/models/1/model.json
    *     group1-shard1of1.bin url:
    *        https://www.google.com/models/1/group1-shard1of1.bin
