@@ -19,7 +19,7 @@ const http = require('http');
 const socketio = require('socket.io');
 const fs = require('fs');
 const path = require('path');
-const {exec} = require('child_process');
+const {execFile} = require('child_process');
 
 const port = process.env.PORT || 8001;
 let io;
@@ -62,57 +62,90 @@ function runServer() {
   });
 }
 
-function benchmark(config) {
-  console.log('Preparing configuration files for the test runner.');
-  // TODO:
-  // 1. Write browsers.json.
-  // Write the browsers to benchmark to `./browsers.json`.
-  const browser = config.browser;
-  browser.base = 'BrowserStack';
-  // For mobile devices, we would use real devices instead of emulators.
-  if (browser.os === 'ios' || browser.os === 'android') {
-    browser.real_mobile = true;
+/**
+ * Supplement the browser configurations and create `browsers.json` and
+ * `benchmark_parameters.json` configuration files for karma.
+ *
+ * @param {{browsers, benchmark}} config
+ */
+function setupBenchmarkEnv(config) {
+  // Write the map (tabId - browser setting) to `./browsers.json`.
+  for (const tabId in config.browsers) {
+    const browser = config.browsers[tabId];
+    browser.base = 'BrowserStack';
+    // For mobile devices, we would use real devices instead of emulators.
+    if (browser.os === 'ios' || browser.os === 'android') {
+      browser.real_mobile = true;
+    }
   }
-  fs.writeFileSync('./browsers.json', JSON.stringify([browser], null, 2));
+  fs.writeFileSync('./browsers.json', JSON.stringify(config.browsers, null, 2));
 
-  // 2. Write benchmark parameter config.
+  // Write benchmark parameters to './benchmark_parameters.json'.
   fs.writeFileSync(
       './benchmark_parameters.json', JSON.stringify(config.benchmark, null, 2));
+}
+
+/**
+ * Run model benchmark on BrowserStack.
+ *
+ * The benchmark configuration object contains two objects:
+ * - `browsers`: Each key-value pair represents a browser instance to be
+ * benchmarked. The key is a unique string id/tabId (assigned by the webpage)
+ * for the browser instance, while the value is the browser configuration.
+ *
+ * - `benchmark`: An object with the following properties:
+ *  - `model`: The name of model (registed at
+ * 'tfjs/e2e/benchmarks/model_config.js') or `custom`.
+ *  - modelUrl: The URL to the model description file. Only applicable when the
+ * `model` is `custom`.
+ *  - `numRuns`: The number of rounds for model inference.
+ *  - `backend`: The backend to be benchmarked on.
+ *
+ *
+ * @param {{browsers, benchmark}} config Benchmark configuration.
+ */
+function benchmark(config) {
+  console.log('Preparing configuration files for the test runner.');
+  setupBenchmarkEnv(config);
 
   console.log(`Start benchmarking.`);
-  exec('yarn test --browserstack', (error, stdout, stderr) => {
-    console.log(`benchmark completed.`);
-    if (error) {
-      console.log(error);
+  for (const tabId in config.browsers) {
+    const args = ['test', '--browserstack', `--browsers=${tabId}`];
+    const command = `yarn ${args.join(' ')}`;
+    console.log(`Running: ${command}`);
+
+    execFile('yarn', args, (error, stdout, stderr) => {
+      console.log(`benchmark ${tabId} completed.`);
+      if (error) {
+        console.log(error);
+        io.emit(
+            'benchmarkComplete',
+            {tabId, error: `Failed to run ${command}:\n${error}`});
+        return;
+      }
+
+      const errorReg = /.*\<tfjs_error\>(.*)\<\/tfjs_error\>/;
+      const matchedError = stdout.match(errorReg);
+      if (matchedError != null) {
+        io.emit('benchmarkComplete', {tabId, error: matchedError[1]});
+        return;
+      }
+
+      const resultReg = /.*\<tfjs_benchmark\>(.*)\<\/tfjs_benchmark\>/;
+      const matchedResult = stdout.match(resultReg);
+      if (matchedResult != null) {
+        const benchmarkResult = JSON.parse(matchedResult[1]);
+        benchmarkResult.tabId = tabId;
+        io.emit('benchmarkComplete', benchmarkResult);
+        return;
+      }
+
       io.emit('benchmarkComplete', {
-        tabId: config.tabId,
-        error: `Failed to run 'yarn test --browserstack':\n\n${error}`
+        error: 'Did not find benchmark results from the logs ' +
+            'of the benchmark test (benchmark_models.js).'
       });
-      return;
-    }
-
-    const errorReg = /.*\<tfjs_error\>(.*)\<\/tfjs_error\>/;
-    const matchedError = stdout.match(errorReg);
-    if (matchedError != null) {
-      io.emit(
-          'benchmarkComplete', {tabId: config.tabId, error: matchedError[1]});
-      return;
-    }
-
-    const resultReg = /.*\<tfjs_benchmark\>(.*)\<\/tfjs_benchmark\>/;
-    const matchedResult = stdout.match(resultReg);
-    if (matchedResult != null) {
-      const benchmarkResult = JSON.parse(matchedResult[1]);
-      benchmarkResult.tabId = config.tabId;
-      io.emit('benchmarkComplete', benchmarkResult);
-      return;
-    }
-
-    io.emit('benchmarkComplete', {
-      error: 'Did not find benchmark results from the logs ' +
-          'of the benchmark test (benchmark_models.js).'
     });
-  });
+  }
 }
 
 checkBrowserStackAccount();
