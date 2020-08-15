@@ -57,7 +57,7 @@ const state = {
 
   addBrowser: () => {
     // Add browser config to `state.browsers` array.
-    state.browsers.push(state.browser);
+    state.browsers.push({...state.browser});
 
     // Enable the benchmark button.
     benchmarkButton.__li.style.pointerEvents = '';
