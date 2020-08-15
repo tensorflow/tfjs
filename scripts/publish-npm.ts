@@ -24,9 +24,8 @@
 
 import * as argparse from 'argparse';
 import chalk from 'chalk';
-import * as mkdirp from 'mkdirp';
 import * as shell from 'shelljs';
-import {RELEASE_UNITS, question, $, printReleaseUnit, printPhase} from './release-util';
+import {RELEASE_UNITS, question, $, printReleaseUnit, printPhase, getReleaseBranch, checkoutReleaseBranch} from './release-util';
 
 const TMP_DIR = '/tmp/tfjs-publish';
 
@@ -66,41 +65,12 @@ async function main() {
   console.log(chalk.blue(`Using phase ${phaseInt}`));
   console.log();
 
-  // Infer release branch name.
-  let releaseBranch = '';
-
-  // Get a list of branches sorted by timestamp in descending order.
-  const branchesStr = $(
-      `git branch -r --sort=-authordate --format='%(HEAD) %(refname:lstrip=-1)'`);
-  const branches =
-      Array.from(branchesStr.split(/\n/)).map(line => line.toString().trim());
-
-  // Find the latest matching branch, e.g. tfjs_1.7.1
-  // It will not match temprary generated branches such as tfjs_1.7.1_phase0.
-  const exp = '^' + name + '_([^_]+)$';
-  const regObj = new RegExp(exp);
-  const maybeBranch = branches.find(branch => branch.match(regObj));
-  releaseBranch = await question(`Which branch to publish from
-  (leave empty for ${maybeBranch}): `);
-  if (releaseBranch === '') {
-    releaseBranch = maybeBranch;
-  }
+  let releaseBranch = await getReleaseBranch(name);
   console.log();
 
-  console.log(chalk.magenta.bold(
-      `~~~ Checking out release branch ${releaseBranch} ~~~`));
-  $(`rm -f -r ${TMP_DIR}`);
-  mkdirp(TMP_DIR, err => {
-    if (err) {
-      console.log('Error creating temp dir', TMP_DIR);
-      process.exit(1);
-    }
-  });
-
-  const urlBase = args.git_protocol ? 'git@github.com:' : 'https://github.com/';
-  $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${
-      TMP_DIR} --depth=1`);
+  checkoutReleaseBranch(releaseBranch, args.git_protocol, TMP_DIR);
   shell.cd(TMP_DIR);
+
   // Yarn in the top-level and in the directory.
   $('yarn');
   console.log();

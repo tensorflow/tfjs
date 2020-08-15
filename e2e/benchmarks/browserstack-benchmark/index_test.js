@@ -16,7 +16,7 @@
  */
 
 /**
- * The unit tests in this file can be run by opening `SpecRunner.html` in
+ * The unit tests in this file can be run by opening `./SpecRunner.html` in
  * browser.
  */
 
@@ -46,12 +46,61 @@ describe('getTabId', () => {
 
   it('for mobile devices, uses device name as part of the tab name', () => {
     const mobileName = getTabId(iphoneX);
-    expect(mobileName).toContain(iphoneX.device);
+    expect(mobileName).toContain('iPhone_X');
   });
 
   it('for desktop devices, uses OS name as part of the tab name', () => {
     const desktopName = getTabId(mac);
-    expect(desktopName).toContain(mac.os);
-    expect(desktopName).toContain(mac.os_version);
+    expect(desktopName).toContain('OS_X');
+    expect(desktopName).toContain('High_Sierra');
+  });
+
+  it('assigns unique summary names for undefined config', () => {
+    expect(state.summaryTabId).toBe('Summary_1');
+    expect(getTabId()).toBe('Summary_2');
+    expect(getTabId()).toBe('Summary_3');
+  });
+});
+
+describe('state methods', () => {
+  beforeAll(() => {
+    this.originalInitVisor = initVisor;
+    this.originalDrawTunableBrowserSummaryTable =
+        drawTunableBrowserSummaryTable;
+    initVisor = jasmine.createSpy();
+    drawTunableBrowserSummaryTable = jasmine.createSpy();
+  });
+
+  beforeEach(() => {
+    gui = new dat.gui.GUI();
+    benchmarkButton = gui.add(state, 'run').name('Run benchmark');
+  });
+
+  afterEach(() => {
+    gui.destroy();
+  });
+
+  afterAll(() => {
+    initVisor = this.originalInitVisor;
+    drawTunableBrowserSummaryTable =
+        this.originalDrawTunableBrowserSummaryTable;
+  });
+
+  it(`enables 'Run benchmark' button, when adding the first browser'`, () => {
+    state.addBrowser();
+
+    expect(benchmarkButton.__li.style.pointerEvents).toBe('');
+    expect(benchmarkButton.__li.style.opacity)
+        .toBe(ENABLED_BUTTON_OPACITY.toString());
+  });
+
+  it(`disables 'Run benchmark' button, when 'state.browsers' is empty'`, () => {
+    state.addBrowser();
+    state.addBrowser();
+    state.clearBrowsers();
+
+    expect(benchmarkButton.__li.style.pointerEvents).toBe('none');
+    expect(benchmarkButton.__li.style.opacity)
+        .toBe(DISABLED_BUTTON_OPACITY.toString());
   });
 });
