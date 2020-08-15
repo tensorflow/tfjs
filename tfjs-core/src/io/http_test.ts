@@ -807,14 +807,16 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
                 {data: floatData, contentType: 'application/octet-stream'},
           },
           requestInits);
-      async function weightUrlTranslateFunc(weightFile: string):
+      async function prefixWeightUrlConverter(weightFile: string):
           Promise<string> {
-        return 'auth_' + weightFile;
+        // Add 'auth_' prefix to the weight file url.
+        return new Promise(
+            resolve => setTimeout(resolve, 1, 'auth_' + weightFile));
       }
 
       const handler = tf.io.http('./model.json', {
         requestInit: {headers: {'header_key_1': 'header_value_1'}},
-        weightUrlTranslateFunc
+        weightUrlConverter: prefixWeightUrlConverter
       });
       const modelArtifacts = await handler.load();
       expect(modelArtifacts.modelTopology).toEqual(modelTopology1);

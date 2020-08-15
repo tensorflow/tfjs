@@ -466,15 +466,16 @@ export interface LoadOptions {
   fromTFHub?: boolean;
 
   /**
-   * An async function to translate weight file name to URL. By default we
+   * An async function to convert weight file name to URL. The weight file
+   * names are stored in model.json's weightsManifest.paths field. By default we
    * consider weight files are colocated with the model.json file. For example:
    *     model.json URL: https://www.google.com/models/1/model.json
    *     group1-shard1of1.bin url:
    *        https://www.google.com/models/1/group1-shard1of1.bin
    *
-   * With this func you can translate the weight file name to any URL.
+   * With this func you can convert the weight file name to any URL.
    */
-  weightUrlTranslateFunc?: (weightFileName: string) => Promise<string>;
+  weightUrlConverter?: (weightFileName: string) => Promise<string>;
 }
 
 /**
