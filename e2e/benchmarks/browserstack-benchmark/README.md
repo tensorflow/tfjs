@@ -33,6 +33,10 @@ The BrowserStack-benchmark tool can benchmark the performance (time, memory) of 
   Then you can see `> Running socket on port: 8001` on your Command-line interface.
 
 3. Open http://localhost:8001/ and start to benchmark.
+4. When the benchmark is complete, you can see the benchmark results in the webpage, like:
+<center>
+  <img src="https://user-images.githubusercontent.com/40653845/90341914-a432f180-dfb8-11ea-841e-0d9078c6d50d.png" alt="drawing" height="300px"/>
+</center>
 
 ## Custom model
 The custom model is supported, but is constrained by:
