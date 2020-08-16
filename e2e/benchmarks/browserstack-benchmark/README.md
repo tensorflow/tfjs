@@ -24,7 +24,7 @@ The BrowserStack-benchmark tool can benchmark the performance (time, memory) of 
   ```
 2. Download and run the tool:
   ``` shell
-  git clone https://github.com/Linchenn/tfjs.git
+  git clone https://github.com/tensorflow/tfjs.git
   cd tfjs/e2e/benchmarks/browserstack-benchmark
   yarn install
 
