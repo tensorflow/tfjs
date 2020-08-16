@@ -65,10 +65,10 @@ async function main() {
   console.log(chalk.blue(`Using phase ${phaseInt}`));
   console.log();
 
-  let releaseBranch = await getReleaseBranch();
+  let releaseBranch = await getReleaseBranch(name);
   console.log();
 
-  checkoutReleaseBranch(releaseBranch, args.git_protocol);
+  checkoutReleaseBranch(releaseBranch, args.git_protocol, TMP_DIR);
   shell.cd(TMP_DIR);
 
   // Yarn in the top-level and in the directory.
