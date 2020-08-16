@@ -1,14 +1,14 @@
 # Benchmark on multiple devices
 
-> :warning: To use this tool, you need to have an access key of BrowserStack's Automate service.
+> :warning: To use this tool, you need to have an access key of BrowserStack's [Automate](https://automate.browserstack.com/dashboard) service.
 
 The BrowserStack-benchmark tool can benchmark the performance (time, memory) of model inference on a collection of remote devices. Using this tool you will be able to:
   * Select a collection of BrowserStack devices, based on the following fields:
     - OS
     - OS version
-    - browser
-    - browser version
-    - device
+    - Browser
+    - Browser version
+    - Device
   * Select a backend:
     - WASM
     - WebGL
@@ -22,11 +22,13 @@ The BrowserStack-benchmark tool can benchmark the performance (time, memory) of 
   export BROWSERSTACK_USERNAME=YOUR_USERNAME
   export BROWSERSTACK_ACCESS_KEY=YOUR_ACCESS_KEY
   ```
-2. Download and install the tool:
+2. Download and run the tool:
   ``` shell
   git clone https://github.com/Linchenn/tfjs.git
   cd tfjs/e2e/benchmarks/browserstack-benchmark
   yarn install
+
+  node app.js
   ```
   Then you can see `> Running socket on port: 8001` on your Command-line interface.
 
@@ -34,12 +36,12 @@ The BrowserStack-benchmark tool can benchmark the performance (time, memory) of 
 
 ## Custom model
 The custom model is supported, but is constrained by:
-  * A URL path to the model is required, while the model in local file system is not supported. The following URLs are examples.
+  * A URL path to the model is required, while the model in local file system is not supported. The following URLs are examples:
     - TF Hub: https://tfhub.dev/google/tfjs-model/imagenet/resnet_v2_50/feature_vector/1/default/1
     - Storage: https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json
   * Currently only `tf.GraphModel` and `tf.LayersModel` are supported.
 
-If you want to benchmark models in other types or customize the inputs for model inference, you need to implement `load` and `predictFunc` methods, following this [example PR](https://github.com/tensorflow/tfjs/pull/3168/files).
+If you want to benchmark models in other types or customize the inputs for model inference, you need to add your model with `load` and `predictFunc` methods into [`tfjs/e2e/benchmarks/model_config.js`](https://github.com/Linchenn/tfjs/blob/bs-benchmark-readme/e2e/benchmarks/model_config.js), following this [example PR](https://github.com/tensorflow/tfjs/pull/3168/files).
 
 ## About this tool
 The tool mainly contains:
