@@ -392,7 +392,7 @@ limitations under the License.
         await showMsg('Profiling kernels');
         const kernels = profileInfo.kernels.sort((a, b) => b.time - a.time);
         appendRow(timeTable, 'Number of kernels', kernels.length);
-        // showKernelTime(kernels);
+        showKernelTime(kernels);
       } else {
         await showMsg('Skipping kernel times since query timer extension is not ' +
           'available. <br/> Please use a browser supporting the EXT_disjoint_timer_query WebGL API.');
@@ -402,20 +402,35 @@ limitations under the License.
     function showKernelTime(kernels) {
       const tbody = document.querySelector('#kernels tbody');
       if (state.kernelTiming === 'individual') {
-        kernels.forEach(k => {
+        kernels.forEach(kernel => {
           const nameSpan = document.createElement('span');
-          nameSpan.setAttribute('title', k.scopes.slice(0, -1).join(' --> '));
-          nameSpan.textContent = k.scopes[k.scopes.length - 1];
-          appendRow(tbody, nameSpan, k.time.toFixed(2), k.inputs, k.output, k.gpuProgramsInfo);
+          nameSpan.textContent = kernel.name;
+          let inputSummary;
+          kernel.inputShapes.forEach((inputShape, index) => {
+            if (inputSummary == null) {
+              inputSummary = '';
+            } else {
+              inputSummary += '<br>';
+            }
+            // TODO: Add the name for each input node in the returned value of
+            // `tf.profile` at https://github.com/tensorflow/tfjs/blob/master/tfjs-core/src/engine.ts#L657.
+            if (inputShape == null) {
+              inputSummary += `input${index}: null`;
+            } else {
+              inputSummary += `input${index}: ${inputShape.length}D[${inputShape}]`;
+            }
+          });
+          appendRow(tbody, nameSpan, kernel.kernelTimeMs.toFixed(2), inputSummary, kernel.outputShapes, kernel.extraInfo);
         });
       } else {
         const kernelTotalTime = {};
-        kernels.forEach(k => {
-          const kernelName = k.scopes[0];
-          if (kernelTotalTime[kernelName] == null) {
-            kernelTotalTime[kernelName] = 0;
+        kernels.forEach(kernel => {
+          const oldKernelTotalTime = kernelTotalTime[kernel.name];
+          if (oldKernelTotalTime == null) {
+            kernelTotalTime[kernel.name] = kernel.kernelTimeMs;
+          } else {
+            kernelTotalTime[kernel.name] = oldKernelTotalTime + kernel.kernelTimeMs;
           }
-          kernelTotalTime[kernelName] += k.time;
         });
 
         const result = Object.keys(kernelTotalTime)

@@ -322,7 +322,7 @@ async function profileInferenceMemory(predict) {
         `a(n) ${typeof predict} is found.`);
   }
 
-  const memoryInfo = await profile(async () => {
+  const memoryInfo = await tf.profile(async () => {
     const res = await predict();
     await downloadValuesFromTensorContainer(res);
     tf.dispose(res);
