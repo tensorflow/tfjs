@@ -25,3 +25,8 @@ import './flags';
 // Register platforms
 import './platforms/platform_browser';
 import './platforms/platform_node';
+
+import * as ops from './ops/ops';
+import {setOpHandler} from './tensor';
+
+setOpHandler(ops);

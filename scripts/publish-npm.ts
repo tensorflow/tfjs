@@ -65,10 +65,10 @@ async function main() {
   console.log(chalk.blue(`Using phase ${phaseInt}`));
   console.log();
 
-  let releaseBranch = await getReleaseBranch();
+  let releaseBranch = await getReleaseBranch(name);
   console.log();
 
-  checkoutReleaseBranch(releaseBranch, args.git_protocol);
+  checkoutReleaseBranch(releaseBranch, args.git_protocol, TMP_DIR);
   shell.cd(TMP_DIR);
 
   // Yarn in the top-level and in the directory.
@@ -114,13 +114,7 @@ async function main() {
       $('yarn build-npm for-publish');
     }
 
-    console.log(chalk.magenta('~~~ Tag version ~~~'));
-    shell.cd('..');
-    const tagVersion = $(`./scripts/tag-version.js ${pkg}`);
-    console.log(tagVersion);
-
     console.log(chalk.magenta.bold(`~~~ Publishing ${pkg} to npm ~~~`));
-    shell.cd(pkg);
     const otp =
         await question(`Enter one-time password from your authenticator: `);
     $(`YARN_REGISTRY="https://registry.npmjs.org/" npm publish --otp=${otp}`);
