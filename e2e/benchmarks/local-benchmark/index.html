@@ -366,8 +366,8 @@ limitations under the License.
       appendRow(timeTable, '', '');
     }
 
-    async function profileMemory() {
-      await showMsg('Profile memory');
+    async function profileMemoryAndKernelTime() {
+      await showMsg('Profile memory and kernels');
       const start = performance.now();
 
       let profileInfo;
@@ -403,23 +403,24 @@ limitations under the License.
       if (state.kernelTiming === 'individual') {
         profileInfo.kernels.forEach(kernel => {
           const nameSpan = document.createElement('span');
+          nameSpan.setAttribute('title', kernel.name);
           nameSpan.textContent = kernel.name;
-          let inputSummary;
+          let inputInfo;
           kernel.inputShapes.forEach((inputShape, index) => {
-            if (inputSummary == null) {
-              inputSummary = '';
+            if (inputInfo == null) {
+              inputInfo = '';
             } else {
-              inputSummary += '<br>';
+              inputInfo += '<br>';
             }
             // TODO: Add the name for each input node in the returned value of
             // `tf.profile` at https://github.com/tensorflow/tfjs/blob/master/tfjs-core/src/engine.ts#L657.
             if (inputShape == null) {
-              inputSummary += `input${index}: null`;
+              inputInfo += `input${index}: null`;
             } else {
-              inputSummary += `input${index}: ${inputShape.length}D[${inputShape}]`;
+              inputInfo += `input${index}: ${inputShape.length}D[${inputShape}]`;
             }
           });
-          appendRow(tbody, nameSpan, kernel.kernelTimeMs.toFixed(2), inputSummary, kernel.outputShapes, kernel.extraInfo);
+          appendRow(tbody, nameSpan, kernel.kernelTimeMs.toFixed(2), inputInfo, kernel.outputShapes, kernel.extraInfo);
         });
       } else {
         profileInfo.operations.forEach(r => {
@@ -459,7 +460,7 @@ limitations under the License.
       await warmUpAndRecordTime();
       await showMsg('Waiting for GC');
       await sleep(1000);
-      await profileMemory();
+      await profileMemoryAndKernelTime();
       await sleep(200);
       await measureAveragePredictTime();
     }

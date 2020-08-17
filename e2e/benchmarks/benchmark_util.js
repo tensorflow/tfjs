@@ -267,9 +267,11 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
  * - `peakBytes`: the peak number of bytes allocated.
  * - `kernels`: an array of kernel information objects about their input and
  * output shapes, number of bytes used, number of new tensors created and kernel
- * time (ms). The array is sorted by `kernelTimeMs` field.
+ * time (ms). The array is sorted by `kernelTimeMs` field in non-ascending
+ * order.
  * - `operations`: an array of operation information objects about their name
- * and time. The array is sorted by `operationTimeMs` field.
+ * and time. The array is sorted by `operationTimeMs` field in non-ascending
+ * order.
  *
  * ```js
  * const modelUrl =
@@ -300,9 +302,11 @@ async function profileModelInference(model, input) {
  * - `peakBytes`: the peak number of bytes allocated.
  * - `kernels`: an array of kernel information objects about their input and
  * output shapes, number of bytes used, number of new tensors created and kernel
- * time (ms). The array is sorted by `kernelTimeMs` field.
+ * time (ms). The array is sorted by `kernelTimeMs` field in non-ascending
+ * order.
  * - `operations`: an array of operation information objects about their name
- * and time. The array is sorted by `operationTimeMs` field.
+ * and time. The array is sorted by `operationTimeMs` field in non-ascending
+ * order.
  *
  * ```js
  * const modelUrl =
