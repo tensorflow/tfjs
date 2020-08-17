@@ -322,12 +322,31 @@ async function profileInferenceMemory(predict) {
         `a(n) ${typeof predict} is found.`);
   }
 
-  const memoryInfo = await tf.profile(async () => {
+  const kernelInfo = await tf.profile(async () => {
     const res = await predict();
     await downloadValuesFromTensorContainer(res);
     tf.dispose(res);
   });
-  return memoryInfo;
+
+  // Aggregate kernel times into operation times.
+  kernelInfo.operations = aggregateKernelTime(kernelInfo.kernels);
+  return kernelInfo;
+}
+
+function aggregateKernelTime(kernels) {
+  const operationTime = {};
+  kernels.forEach(kernel => {
+    const oldOperationTime = operationTime[kernel.name];
+    if (oldOperationTime == null) {
+      operationTime[kernel.name] = kernel.kernelTimeMs;
+    } else {
+      operationTime[kernel.name] = oldOperationTime + kernel.kernelTimeMs;
+    }
+  });
+
+  return Object.entries(operationTime)
+      .map((name, operationTimeMs) => ({name, operationTimeMs}))
+      .sort((a, b) => b.operationTimeMs - a.operationTimeMs);
 }
 
 /**

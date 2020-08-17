@@ -390,18 +390,18 @@ limitations under the License.
 
       if (state.backend != 'webgl' || queryTimerIsEnabled()) {
         await showMsg('Profiling kernels');
-        const kernels = profileInfo.kernels.sort((a, b) => b.time - a.time);
-        appendRow(timeTable, 'Number of kernels', kernels.length);
-        showKernelTime(kernels);
+        appendRow(timeTable, 'Number of kernels', profileInfo.kernels.length);
+        showKernelTime(profileInfo);
       } else {
         await showMsg('Skipping kernel times since query timer extension is not ' +
           'available. <br/> Please use a browser supporting the EXT_disjoint_timer_query WebGL API.');
       };
     }
 
-    function showKernelTime(kernels) {
+    function showKernelTime(profileInfo) {
       const tbody = document.querySelector('#kernels tbody');
       if (state.kernelTiming === 'individual') {
+        const kernels = profileInfo.kernels.sort((a, b) => b.time - a.time);
         kernels.forEach(kernel => {
           const nameSpan = document.createElement('span');
           nameSpan.textContent = kernel.name;
@@ -423,24 +423,11 @@ limitations under the License.
           appendRow(tbody, nameSpan, kernel.kernelTimeMs.toFixed(2), inputSummary, kernel.outputShapes, kernel.extraInfo);
         });
       } else {
-        const kernelTotalTime = {};
-        kernels.forEach(kernel => {
-          const oldKernelTotalTime = kernelTotalTime[kernel.name];
-          if (oldKernelTotalTime == null) {
-            kernelTotalTime[kernel.name] = kernel.kernelTimeMs;
-          } else {
-            kernelTotalTime[kernel.name] = oldKernelTotalTime + kernel.kernelTimeMs;
-          }
-        });
-
-        const result = Object.keys(kernelTotalTime)
-            .map(k => [k, kernelTotalTime[k]])
-            .sort((a, b) => b[1] - a[1]);
-        result.forEach(r => {
+        profileInfo.operations.forEach(r => {
           const nameSpan = document.createElement('span');
-          nameSpan.setAttribute('title', r[0]);
-          nameSpan.textContent = r[0];
-          appendRow(tbody, nameSpan, r[1].toFixed(2));
+          nameSpan.setAttribute('title', r.name);
+          nameSpan.textContent = r.name;
+          appendRow(tbody, nameSpan, r.operationTimeMs.toFixed(2));
         });
       }
     }
