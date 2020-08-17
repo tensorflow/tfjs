@@ -328,7 +328,8 @@ async function profileInferenceMemory(predict) {
     tf.dispose(res);
   });
 
-  // Aggregate kernel times into operation times.
+  kernelInfo.kernels =
+      kernelInfo.kernels.sort((a, b) => b.kernelTimeMs - a.kernelTimeMs);
   kernelInfo.operations = aggregateKernelTime(kernelInfo.kernels);
   return kernelInfo;
 }
@@ -345,7 +346,7 @@ function aggregateKernelTime(kernels) {
   });
 
   return Object.entries(operationTime)
-      .map((name, operationTimeMs) => ({name, operationTimeMs}))
+      .map(([name, operationTimeMs]) => ({name, operationTimeMs}))
       .sort((a, b) => b.operationTimeMs - a.operationTimeMs);
 }
 

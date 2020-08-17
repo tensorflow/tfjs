@@ -401,8 +401,7 @@ limitations under the License.
     function showKernelTime(profileInfo) {
       const tbody = document.querySelector('#kernels tbody');
       if (state.kernelTiming === 'individual') {
-        const kernels = profileInfo.kernels.sort((a, b) => b.time - a.time);
-        kernels.forEach(kernel => {
+        profileInfo.kernels.forEach(kernel => {
           const nameSpan = document.createElement('span');
           nameSpan.textContent = kernel.name;
           let inputSummary;
