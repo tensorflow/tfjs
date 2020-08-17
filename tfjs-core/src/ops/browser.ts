@@ -24,8 +24,6 @@ import {convertToTensor} from '../tensor_util_env';
 import {PixelData, TensorLike} from '../types';
 
 import {cast} from './cast';
-import {max} from './max';
-import {min} from './min';
 import {op} from './operation';
 import {tensor3d} from './tensor3d';
 
