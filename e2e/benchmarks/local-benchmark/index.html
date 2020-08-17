@@ -362,29 +362,41 @@ limitations under the License.
       await showMsg(null);
       appendRow(timeTable, `Subsequent average(${state.numRuns} runs)`, printTime(timeInfo.averageTime));
       appendRow(timeTable, 'Best time', printTime(timeInfo.minTime));
+      // Add an empty row at the end of a round of benchmark.
+      appendRow(timeTable, '', '');
     }
 
     async function profileMemory() {
       await showMsg('Profile memory');
       const start = performance.now();
 
-      let memoryInfo;
+      let profileInfo;
       if (state.benchmark === 'custom') {
         const input = generateInput(model);
         try {
-          memoryInfo = await profileInferenceMemoryForModel(model, input);
+          profileInfo = await profileInferenceMemoryForModel(model, input);
         } finally {
           tf.dispose(input);
         }
       } else {
-        memoryInfo = await profileInferenceMemory(() => predict(model));
+        profileInfo = await profileInferenceMemory(() => predict(model));
       }
 
       const elapsed = performance.now() - start;
       await showMsg(null);
-      appendRow(timeTable, 'Peak memory', printMemory(memoryInfo.peakBytes));
-      appendRow(timeTable, 'Leaked tensors', memoryInfo.newTensors);
+      appendRow(timeTable, 'Peak memory', printMemory(profileInfo.peakBytes));
+      appendRow(timeTable, 'Leaked tensors', profileInfo.newTensors);
       appendRow(timeTable, '2nd inference', printTime(elapsed));
+
+      if (state.backend != 'webgl' || queryTimerIsEnabled()) {
+        await showMsg('Profiling kernels');
+        const kernels = profileInfo.kernels.sort((a, b) => b.time - a.time);
+        appendRow(timeTable, 'Number of kernels', kernels.length);
+        // showKernelTime(kernels);
+      } else {
+        await showMsg('Skipping kernel times since query timer extension is not ' +
+          'available. <br/> Please use a browser supporting the EXT_disjoint_timer_query WebGL API.');
+      };
     }
 
     function showKernelTime(kernels) {
@@ -418,51 +430,6 @@ limitations under the License.
       }
     }
 
-    async function profileKernelTime() {
-      await showMsg('Profiling kernels');
-      _tfengine.ENV.set('DEBUG', true);
-      const oldLog = console.log;
-      let kernels = [];
-      console.log = msg => {
-        let parts = [];
-        if (typeof msg === 'string') {
-          parts = msg.split('\t').map(x => x.slice(2));
-        }
-
-        if (parts.length > 2) {
-          // heuristic for determining whether we've caught a profiler
-          // log statement as opposed to a regular console.log
-          // TODO(https://github.com/tensorflow/tfjs/issues/563): return timing information as part of tf.profile
-          const scopes = parts[0].trim()
-            .split('||')
-            .filter(s => s !== 'unnamed scope');
-          kernels.push({
-            scopes: scopes,
-            time: Number.parseFloat(parts[1]),
-            output: parts[2].trim(),
-            inputs: parts[4],
-            gpuProgramsInfo: parts[5]
-          });
-        } else {
-          oldLog.call(oldLog, msg);
-        }
-      }
-      let res = predict(model);
-      res = await getPredictionData(res);
-
-      await showMsg(null);
-      await sleep(10);
-      kernels = kernels.sort((a, b) => b.time - a.time);
-      appendRow(timeTable, 'Number of kernels', kernels.length);
-
-      // Add an empty row at the end of a benchmark run
-      appendRow(timeTable, '', '');
-      showKernelTime(kernels);
-      _tfengine.ENV.set('DEBUG', false);
-      // Switch back to the old log;
-      console.log = oldLog;
-    }
-
     async function cleanUpTable() {
       parameterTable.innerHTML = '';
       if (state.isModelChanged) {
@@ -494,14 +461,6 @@ limitations under the License.
       await profileMemory();
       await sleep(200);
       await measureAveragePredictTime();
-      await sleep(200);
-
-      if (state.backend != 'webgl' || queryTimerIsEnabled()) {
-        await profileKernelTime();
-      } else {
-        await showMsg('Skipping kernel times since query timer extension is not ' +
-          'available. <br/> Please use a browser supporting the EXT_disjoint_timer_query WebGL API.');
-      };
     }
 
 
