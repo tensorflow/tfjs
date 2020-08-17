@@ -148,7 +148,12 @@ const TEST_FILTERS: TestFilter[] = [
                           // 'CanvasRenderingContext2D': The source width is 0
     ]
   },
-  {include: 'nonMaxSuppression', excludes: []},
+  {
+    include: 'nonMaxSuppression',
+    excludes: [
+      'NonMaxSuppressionPadded'  // NonMaxSuppressionV4 not yet implemented.
+    ]
+  },
   {
     include: 'argmax',
     excludes: [
