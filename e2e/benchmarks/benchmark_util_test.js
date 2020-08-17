@@ -56,11 +56,11 @@ describe('benchmark_util', () => {
     });
   });
 
-  describe('Profile Memory', () => {
-    describe('profileInferenceMemory', () => {
+  describe('Profile Inference', () => {
+    describe('profileInference', () => {
       it('pass in invalid predict', async () => {
         const predict = {};
-        await expectAsync(profileInferenceMemory(predict)).toBeRejected();
+        await expectAsync(profileInference(predict)).toBeRejected();
       });
 
       it('check tensor leak', async () => {
@@ -69,7 +69,7 @@ describe('benchmark_util', () => {
         const input = tf.zeros([1, 3]);
 
         const tensorsBefore = tf.memory().numTensors;
-        await profileInferenceMemory(() => model.predict(input));
+        await profileInference(() => model.predict(input));
         expect(tf.memory().numTensors).toEqual(tensorsBefore);
 
         model.dispose();

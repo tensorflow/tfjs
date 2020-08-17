@@ -374,12 +374,12 @@ limitations under the License.
       if (state.benchmark === 'custom') {
         const input = generateInput(model);
         try {
-          profileInfo = await profileInferenceMemoryForModel(model, input);
+          profileInfo = await profileModelInference(model, input);
         } finally {
           tf.dispose(input);
         }
       } else {
-        profileInfo = await profileInferenceMemory(() => predict(model));
+        profileInfo = await profileInference(() => predict(model));
       }
 
       const elapsed = performance.now() - start;
