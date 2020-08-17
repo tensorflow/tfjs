@@ -99,3 +99,4 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [machinelearn.js](https://github.com/machinelearnjs/machinelearnjs) - A general machine learning library like ScikitLearn directly in the Browser and Node.
 - [TensorFlow.js GPU-accelerated t-SNE](https://github.com/tensorflow/tfjs-tsne) - A linear t-SNE for the web.
 - [Pipcook](https://github.com/alibaba/pipcook) - A front-end algorithm framework to create a ML pipeline based on tfjs-node, which is similar to TFX but in JS.
+- [danfo.js] (https://github.com/opensource9ja/danfojs) - A powerful JavaScript data analysis toolkit inspired by the Python PANDAS library. 
