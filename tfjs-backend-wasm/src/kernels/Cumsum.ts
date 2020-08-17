@@ -46,7 +46,7 @@ TensorInfo {
   const xRank = x.shape.length;
 
   util.assert(x.dtype === 'float32' || x.dtype === 'int32',
-    () => `cumsum does not support ${x.dtype} tensors in WASM backend`);
+    () => `cumsum does not support ${x.dtype} tensors in the WASM backend`);
   // permute required axis to inner most axis
   const permutation = backend_util.getAxesPermutation([axis], xRank);
   let permutedX = x;
