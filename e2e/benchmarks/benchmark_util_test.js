@@ -20,6 +20,10 @@
  * browser.
  */
 
+function sleep(timeMs) {
+  return new Promise(resolve => setTimeout(resolve, timeMs));
+}
+
 describe('benchmark_util', () => {
   beforeEach(() => tf.setBackend('cpu'));
 
@@ -74,6 +78,25 @@ describe('benchmark_util', () => {
 
         model.dispose();
         input.dispose();
+      });
+
+      it('profile all statements in async predict function', async () => {
+        const predict = async () => {
+          await sleep(1);
+          const x = tf.tensor1d([1, 2, 3]);
+          const x2 = x.square();
+          x2.dispose();
+          return x;
+        };
+
+        const oldTensorCount = tf.memory().numTensors;
+        let profileInfo = await profileInferenceMemory(predict);
+        expect(tf.memory().numTensors).toEqual(oldTensorCount);
+
+        // If `profileInferenceMemory` cannot profile async function, it would
+        // fail to profile all the statements after `await sleep(1);` and the
+        // peak memory would be `-Infinity`.
+        expect(profileInfo.peakBytes).toBeGreaterThan(0);
       });
     });
   });
