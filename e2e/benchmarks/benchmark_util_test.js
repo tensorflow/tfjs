@@ -78,6 +78,25 @@ describe('benchmark_util', () => {
     });
   });
 
+  describe('aggregateKernelTime', () => {
+    it('aggregates the kernels according to names', () => {
+      const kernels = [
+        {name: 'testKernel1', kernelTimeMs: 1},
+        {name: 'testKernel1', kernelTimeMs: 1},
+        {name: 'testKernel1', kernelTimeMs: 1},
+        {name: 'testKernel2', kernelTimeMs: 1},
+        {name: 'testKernel2', kernelTimeMs: 1},
+      ];
+
+      const operations = aggregateKernelTime(kernels);
+      expect(operations.length).toBe(2);
+      expect(operations[0].name).toBe('testKernel1');
+      expect(operations[0].operationTimeMs).toBe(3);
+      expect(operations[1].name).toBe('testKernel2');
+      expect(operations[1].operationTimeMs).toBe(2);
+    });
+  });
+
   describe('getPredictFnForModel', () => {
     it('graph model with async ops uses executeAsync to run', () => {
       const model = new tf.GraphModel();

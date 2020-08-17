@@ -296,21 +296,23 @@ async function profileInferenceMemoryForModel(model, input) {
  * - `newBytes`: the number of new bytes allocated
  * - `newTensors`: the number of new tensors created
  * - `peakBytes`: the peak number of bytes allocated
- * - `kernels`: an array of objects for each kernel involved that reports
- * their input and output shapes, number of bytes used, and number of new
- * tensors created.
+ * - `kernels`: an array of kernel information objects about their input and
+ * output shapes, number of bytes used, number of new tensors created and kernel
+ * time (ms). The array is sorted by `kernelTimeMs` field.
+ * - `operations`: an array of operation information objects about their name
+ * and time. The array is sorted by `operationTimeMs` field.
  *
  * ```js
  * const modelUrl =
  *    'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2';
  * const model = await tf.loadGraphModel(modelUrl, {fromTFHub: true});
  * const zeros = tf.zeros([1, 224, 224, 3]);
- * const memoryInfo = await profileInferenceMemory(() =>
+ * const profileInfo = await profileInferenceMemory(() =>
  * model.predict(zeros));
  *
- * console.log(`newBytes: ${memoryInfo.newBytes}`);
- * console.log(`newTensors: ${memoryInfo.newTensors}`);
- * console.log(`peakBytes: ${memoryInfo.peakBytes}`);
+ * console.log(`newBytes: ${profileInfo.newBytes}`);
+ * console.log(`newTensors: ${profileInfo.newTensors}`);
+ * console.log(`peakBytes: ${profileInfo.peakBytes}`);
  * ```
  *
  * @param predict The predict function to execute for profiling memory usage.
@@ -334,6 +336,14 @@ async function profileInferenceMemory(predict) {
   return kernelInfo;
 }
 
+/**
+ * Aggregate kernel times into operation times and sort the array in
+ * non-ascending order of time. Return an array of objects with `name` and
+ * `operationTimeMs` fields.
+ *
+ * @param {Array<Object>} kernels An array of kernel information objects. Each
+ *     object must include `name` (string) and `kernelTimeMs` (number) fields.
+ */
 function aggregateKernelTime(kernels) {
   const operationTime = {};
   kernels.forEach(kernel => {
