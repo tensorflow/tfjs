@@ -348,14 +348,14 @@ export class RNN extends Layer {
   public readonly unroll: boolean;
 
   public stateSpec: InputSpec[];
-  private states_: Tensor[];
+  protected states_: Tensor[];
 
   // NOTE(cais): For stateful RNNs, the old states cannot be disposed right
   // away when new states are set, because the old states may need to be used
   // later for backpropagation through time (BPTT) and other purposes. So we
   // keep them here for final disposal when the state is reset completely
   // (i.e., through no-arg call to `resetStates()`).
-  private keptStates: Tensor[][];
+  protected keptStates: Tensor[][];
 
   private numConstants: number;
 
