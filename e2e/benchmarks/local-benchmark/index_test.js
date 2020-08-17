@@ -15,6 +15,11 @@
  * =============================================================================
  */
 
+/**
+ * The unit tests in this file can be run by opening `./SpecRunner.html` in
+ * browser.
+ */
+
 const state = {
   backend: 'wasm',
   flags: {}
