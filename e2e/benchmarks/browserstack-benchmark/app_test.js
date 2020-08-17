@@ -15,6 +15,11 @@
  * =============================================================================
  */
 
+/**
+ * The unit tests in this file can be run by opening `./SpecRunner.html` in
+ * browser.
+ */
+
 describe('benchmark multiple browsers', () => {
   const browsersList = [
     {
