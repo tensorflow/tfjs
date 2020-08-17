@@ -111,12 +111,12 @@ describe('benchmark_util', () => {
         {name: 'testKernel2', kernelTimeMs: 1},
       ];
 
-      const operations = aggregateKernelTime(kernels);
-      expect(operations.length).toBe(2);
-      expect(operations[0].name).toBe('testKernel1');
-      expect(operations[0].operationTimeMs).toBe(3);
-      expect(operations[1].name).toBe('testKernel2');
-      expect(operations[1].operationTimeMs).toBe(2);
+      const aggregatedKernels = aggregateKernelTime(kernels);
+      expect(aggregatedKernels.length).toBe(2);
+      expect(aggregatedKernels[0].name).toBe('testKernel1');
+      expect(aggregatedKernels[0].timeMs).toBe(3);
+      expect(aggregatedKernels[1].name).toBe('testKernel2');
+      expect(aggregatedKernels[1].timeMs).toBe(2);
     });
   });
 

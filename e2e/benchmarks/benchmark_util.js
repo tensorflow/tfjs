@@ -269,9 +269,9 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
  * output shapes, number of bytes used, number of new tensors created and kernel
  * time (ms). The array is sorted by `kernelTimeMs` field in non-ascending
  * order.
- * - `operations`: an array of operation information objects about their name
- * and time. The array is sorted by `operationTimeMs` field in non-ascending
- * order.
+ * - `aggregatedKernels`: an array of aggregated kernel information objects with
+ * `name` and `timeMs` fields. The array is sorted by `timeMs` field in
+ * non-ascending order.
  *
  * ```js
  * const modelUrl =
@@ -304,9 +304,9 @@ async function profileModelInference(model, input) {
  * output shapes, number of bytes used, number of new tensors created and kernel
  * time (ms). The array is sorted by `kernelTimeMs` field in non-ascending
  * order.
- * - `operations`: an array of operation information objects about their name
- * and time. The array is sorted by `operationTimeMs` field in non-ascending
- * order.
+ * - `aggregatedKernels`: an array of aggregated kernel information objects with
+ * `name` and `timeMs` fields. The array is sorted by `timeMs` field in
+ * non-ascending order.
  *
  * ```js
  * const modelUrl =
@@ -338,32 +338,32 @@ async function profileInference(predict) {
 
   kernelInfo.kernels =
       kernelInfo.kernels.sort((a, b) => b.kernelTimeMs - a.kernelTimeMs);
-  kernelInfo.operations = aggregateKernelTime(kernelInfo.kernels);
+  kernelInfo.aggregatedKernels = aggregateKernelTime(kernelInfo.kernels);
   return kernelInfo;
 }
 
 /**
- * Aggregate kernel times into operation times and sort the array in
- * non-ascending order of time. Return an array of objects with `name` and
- * `operationTimeMs` fields.
+ * Aggregate kernels by name and sort the array in non-ascending order of time.
+ * Return an array of objects with `name` and `timeMs` fields.
  *
  * @param {Array<Object>} kernels An array of kernel information objects. Each
  *     object must include `name` (string) and `kernelTimeMs` (number) fields.
  */
 function aggregateKernelTime(kernels) {
-  const operationTime = {};
+  const aggregatedKernelTime = {};
   kernels.forEach(kernel => {
-    const oldOperationTime = operationTime[kernel.name];
-    if (oldOperationTime == null) {
-      operationTime[kernel.name] = kernel.kernelTimeMs;
+    const oldAggregatedKernelTime = aggregatedKernelTime[kernel.name];
+    if (oldAggregatedKernelTime == null) {
+      aggregatedKernelTime[kernel.name] = kernel.kernelTimeMs;
     } else {
-      operationTime[kernel.name] = oldOperationTime + kernel.kernelTimeMs;
+      aggregatedKernelTime[kernel.name] =
+          oldAggregatedKernelTime + kernel.kernelTimeMs;
     }
   });
 
-  return Object.entries(operationTime)
-      .map(([name, operationTimeMs]) => ({name, operationTimeMs}))
-      .sort((a, b) => b.operationTimeMs - a.operationTimeMs);
+  return Object.entries(aggregatedKernelTime)
+      .map(([name, timeMs]) => ({name, timeMs}))
+      .sort((a, b) => b.timeMs - a.timeMs);
 }
 
 /**

@@ -423,11 +423,11 @@ limitations under the License.
           appendRow(tbody, nameSpan, kernel.kernelTimeMs.toFixed(2), inputInfo, kernel.outputShapes, kernel.extraInfo);
         });
       } else {
-        profileInfo.operations.forEach(r => {
+        profileInfo.aggregatedKernels.forEach(r => {
           const nameSpan = document.createElement('span');
           nameSpan.setAttribute('title', r.name);
           nameSpan.textContent = r.name;
-          appendRow(tbody, nameSpan, r.operationTimeMs.toFixed(2));
+          appendRow(tbody, nameSpan, r.timeMs.toFixed(2));
         });
       }
     }
