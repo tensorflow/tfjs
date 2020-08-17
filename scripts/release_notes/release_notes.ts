@@ -44,32 +44,25 @@ const octokit = require('@octokit/rest')();
 
 const OUT_FILE = 'release-notes.md';
 
-const UNION_DEPENDENCIES: Repo[] = [
-  {name: 'Core', identifier: 'tfjs-core'},
-  {name: 'Data', identifier: 'tfjs-data'},
-  {name: 'Layers', identifier: 'tfjs-layers'},
-  {name: 'Converter', identifier: 'tfjs-converter'}
+const TFJS_REPOS: Repo[] = [
+  {name: 'Core', identifier: 'tfjs', path: 'tfjs-core'},
+  {name: 'Data', identifier: 'tfjs', path: 'tfjs-data'},
+  {name: 'Layers', identifier: 'tfjs', path: 'tfjs-layers'},
+  {name: 'Converter', identifier: 'tfjs', path: 'tfjs-converter'},
+  {name: 'Node', identifier: 'tfjs', path: 'tfjs-node'},
+  {name: 'Wasm', identifier: 'tfjs', path: 'tfjs-backend-wasm'},
+  {name: 'Cpu', identifier: 'tfjs', path: 'tfjs-backend-cpu'},
+  {name: 'Webgl', identifier: 'tfjs', path: 'tfjs-backend-webgl'}
 ];
-
-const NODE_REPO: Repo = {
-  name: 'Node',
-  identifier: 'tfjs-node'
-};
-
-const WASM_REPO: Repo = {
-  name: 'Wasm',
-  identifier: 'tfjs-backend-wasm'
-}
 
 const VIS_REPO: Repo = {
   name: 'tfjs-vis',
   identifier: 'tfjs-vis',
-}
+  path: 'tfjs-vis',
+};
 
-async function
-askUserForVersions(validVersions: string[], packageName: string): Promise<{
-  startVersion: string, endVersion: string
-}> {
+async function askUserForVersions(validVersions: string[], packageName: string):
+    Promise<{startVersion: string, endVersion: string}> {
   const YELLOW_TERMINAL_COLOR = '\x1b[33m%s\x1b[0m';
   const RED_TERMINAL_COLOR = '\x1b[31m%s\x1b[0m';
 
@@ -106,37 +99,25 @@ function getTagName(packageName: string, version: string) {
   return packageName + '-v' + version;
 }
 
-async function generateUnionPackageNotes() {
+async function generateTfjsPackageNotes() {
   // Get union start version and end version.
-  const versions = getTaggedVersions('tfjs');
-  const {startVersion, endVersion} = await askUserForVersions(versions, 'tfjs');
+  const identifier = 'tfjs';
+  const versions = getTaggedVersions(identifier);
+  const {startVersion, endVersion} =
+      await askUserForVersions(versions, identifier);
+  const startCommit =
+      `git rev-list -n 1 ` + getTagName(identifier, startVersion);
 
-  // Get Node start version and end version.
-  NODE_REPO.startVersion = startVersion;
-  NODE_REPO.endVersion = endVersion;
-  NODE_REPO.startCommit = $(`git rev-list -n 1 ${
-      getTagName(NODE_REPO.identifier, NODE_REPO.startVersion)}`);
-
-  // Get WASM start version and end version.
-  WASM_REPO.startVersion = startVersion;
-  WASM_REPO.endVersion = endVersion;
-  WASM_REPO.startCommit = $(`git rev-list -n 1 ${
-      getTagName(WASM_REPO.identifier, WASM_REPO.startVersion)}`);
-
-  // Populate start and end for each of the union dependencies.
-  UNION_DEPENDENCIES.forEach(repo => {
+  // Populate start and end for each of the tfjs packages.
+  TFJS_REPOS.forEach(repo => {
     // Find the version of the dependency from the package.json from the
-    // earliest union tag.
-    repo.startCommit =
-        $(startVersion != null ?
-              `git rev-list -n 1 ` + getTagName(repo.identifier, startVersion) :
-              // Get the first commit if there are no tags yet.
-              `git rev-list --max-parents=0 HEAD`);
-
-    repo.startVersion = startVersion != null ? startVersion : null;
+    // earliest tfjs tag.
+    repo.startCommit = startCommit;
+    repo.startVersion = startVersion;
     repo.endVersion = endVersion;
   });
-  await generateNotes([...UNION_DEPENDENCIES, NODE_REPO, WASM_REPO]);
+
+  await generateNotes(TFJS_REPOS);
 }
 
 async function generateVisNotes() {
@@ -189,7 +170,7 @@ async function generateNotes(repositories: util.Repo[]) {
               .split('\n');
       let touchedDir = false;
       for (let j = 0; j < filesTouched.length; j++) {
-        if (filesTouched[j].startsWith(repo.identifier)) {
+        if (filesTouched[j].startsWith(repo.path)) {
           touchedDir = true;
           break;
         }
@@ -242,7 +223,7 @@ parser.addArgument('--project', {
 const args = parser.parseArgs();
 
 if (args.project === 'union') {
-  generateUnionPackageNotes();
+  generateTfjsPackageNotes();
 } else if (args.project === 'vis') {
   generateVisNotes();
 }
