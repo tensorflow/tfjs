@@ -1,8 +1,8 @@
 # Benchmark on multiple devices
 
-> :warning: To use this tool, you need to have an access key of BrowserStack's [Automate](https://automate.browserstack.com/dashboard) service.
+> :warning: To use this tool, you need to sign up for BrowserStack's [Automate](https://automate.browserstack.com/dashboard) service.
 
-The BrowserStack-benchmark tool can benchmark the performance (time, memory) of model inference on a collection of remote devices. Using this tool you will be able to:
+The Multi-device benchmark tool can benchmark the performance (time, memory) of model inference on a collection of remote devices. Using this tool you will be able to:
   * Select a collection of BrowserStack devices, based on the following fields:
     - OS
     - OS version
@@ -34,9 +34,9 @@ The BrowserStack-benchmark tool can benchmark the performance (time, memory) of 
 
 3. Open http://localhost:8001/ and start to benchmark.
 4. When the benchmark is complete, you can see the benchmark results in the webpage, like:
-<center>
+<div style="text-align:center">
   <img src="https://user-images.githubusercontent.com/40653845/90341914-a432f180-dfb8-11ea-841e-0d9078c6d50d.png" alt="drawing" height="300px"/>
-</center>
+</div>
 
 ## Custom model
 The custom model is supported, but is constrained by:
@@ -45,10 +45,10 @@ The custom model is supported, but is constrained by:
     - Storage: https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json
   * Currently only `tf.GraphModel` and `tf.LayersModel` are supported.
 
-If you want to benchmark models in other types or customize the inputs for model inference, you need to add your model with `load` and `predictFunc` methods into [`tfjs/e2e/benchmarks/model_config.js`](https://github.com/Linchenn/tfjs/blob/bs-benchmark-readme/e2e/benchmarks/model_config.js), following this [example PR](https://github.com/tensorflow/tfjs/pull/3168/files).
+If you want to benchmark more complex models with customized input preprocessing logic, you need to add your model with `load` and `predictFunc` methods into [`tfjs/e2e/benchmarks/model_config.js`](https://github.com/Linchenn/tfjs/blob/bs-benchmark-readme/e2e/benchmarks/model_config.js), following this [example PR](https://github.com/tensorflow/tfjs/pull/3168/files).
 
 ## About this tool
-The tool mainly contains:
+The tool contains:
   * A test runner - Karma:
     - [benchmark_models.js](https://github.com/tensorflow/tfjs/blob/master/e2e/benchmarks/browserstack-benchmark/benchmark_models.js) warps the all benchmark logics into a Jasmine spec.
     - [browser_list.json](https://github.com/tensorflow/tfjs/blob/master/e2e/benchmarks/browserstack-benchmark/browser_list.json) lists the supported BrowserStack combinations. If you want to add more combinations or refactor this list, you can follow this [conversation](https://github.com/tensorflow/tfjs/pull/3737#issue-463759838).
