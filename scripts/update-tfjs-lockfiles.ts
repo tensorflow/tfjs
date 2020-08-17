@@ -77,6 +77,21 @@ async function main() {
   $(`git commit -a -m "${message}"`);
   $(`git push`);
 
+  // ========== Tag version. ========================================
+  console.log('~~~ Tag version ~~~');
+  shell.cd('..');
+
+  // The releaseBranch format is tfjs_x.x.x, we only need the version part.
+  const version = releaseBranch.split('_')[1];
+  const tag = `tfjs-v${version}`;
+  var exec = require('child_process').exec;
+  exec(`git tag ${tag} && git push --tags`, (err) => {
+    if (err) {
+      throw new Error(`Could not git tag with ${tag}: ${err.message}.`);
+    }
+    console.log(`Successfully tagged with ${tag}.`);
+  });
+
   console.log('Done.');
 
   process.exit(0);

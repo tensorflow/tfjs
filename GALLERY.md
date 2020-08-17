@@ -6,6 +6,19 @@ Please reach out to us if you'd like to put your project on the list.
 
 ## Demos & Applications
 
+- [PoseAnimator](https://github.com/yemount/pose-animator/) - Animate any SVG character using your own body live via your webcam. Uses posenet and facemesh to create some really unique animations.
+- [3D Face Doodles](https://github.com/cyrildiagne/ar-facedoodle) - What if your face was a canvas and you could paint on it in real time? Check out this experiment that does just that in real time in the browser.
+- [Shaderbooth](https://shaderbooth.com/?85daa) - Experiment with WebGL Shaders + TensorFlow.js to create stunning visual effects such as shooting lasers from your eyes and more!
+- [Veremin](https://github.com/vabarbosa/veremin) - Play and create music in thin air with this digital take of a Theramin instrument. [Even better when hooked up to Tesla Coils](https://www.youtube.com/watch?v=ywbNLHydgzA)
+- [Man of many faces](https://twitter.com/thespite/status/1263576045577555969) - Create 3D masks of any face which you can then wear yourself.
+- [Confront yourself](https://yiwenl.github.io/Sketches/exps/66/) - An artistic peice that allows you to confront yourself in this beautiful WebGL experience.
+- [Virtual Tailor](https://www.youtube.com/watch?v=kFtIddNLcuM) - Get an estimate of your clothing size measurements in less than 15 seconds.
+- [Paper Doll](https://github.com/bengfarrell/paperdoll) - What if you could colour in a drawing of a character and then bring the drawing to life using your own body as the controller? Well now you can. Bring drawings to life with Paper Doll.
+- [Invisibility Cloak](https://github.com/jasonmayes/Real-Time-Person-Removal) - Bring your scifi movie dreams to life with this real time person removal system that runs in the browser.
+- [Bring magazines to life](https://twitter.com/AlexandreDevaux/status/1254719491755433985) - Scan a magazine of a person in it and bring that person to life right infront of you using WebGL and WebXR.
+- [Music Generation using Hands](https://twitter.com/prenalys/status/1250509352458268673) - turn your hands into a musical instrument using handpose.
+- [Posenet2Scratch](https://github.com/champierre/posenet2scratch) Use the popular posenet model within the Scratch environment - a great way to get younger folk or those interested in using visual based editors to take their first steps. Also see [Handpose2Scratch](https://github.com/champierre/handpose2scratch) and [FaceMesh2Scratch](https://github.com/champierre/facemesh2scratch).
+- [MLBlock](http://mlblock.org) A very advanced visual based edtior to explore many TensorFlow.js models and more. Combine sensors with models and see results live in your browser as you chain items together creating complex apps in minutes.
 - [Touch The Dot](http://touch-the-dot.herokuapp.com/) - A game created using PoseNet which the player must hit the colored dots with the correct hand and gain as many points as possible (A webcam is a must). [library](https://github.com/OmriGM/body-pose-beat-game) by [Omri Grossman](http://github.com/OmriGM)
 - [Object Tracking JS](https://cp4ms.csb.app/) - Track any object as it moves through a video with no training required. [library](https://github.com/cloud-annotations/object-tracking-js) by [Nick Bourdakos](http://github.com/bourdakos1)
 - [NSFW JS](https://nsfwjs.com/) - Client-side indecent content checker. [library](https://github.com/infinitered/nsfwjs) and [blogpost](https://shift.infinite.red/avoid-nightmares-nsfw-js-ab7b176978b1) by [Gant Laborde](http://gantlaborde.com/)
@@ -48,15 +61,17 @@ Please reach out to us if you'd like to put your project on the list.
 - [Membrane](https://membrane.today) - An interactive audiovisual tone mirror that responds to nose movement, by Ashlin Aronin.
 - [MedSeg](https://www.medseg.ai) - Online interactive segmentation tool for radiological images.
 
-## Tutorials
+## Tutorials / Codelabs
 
 These tutorials augment the [official tutorials](https://js.tensorflow.org/tutorials/).
 
+- [Use Firebase Hosting to deploy and host a machine learning model at scale](https://codelabs.developers.google.com/codelabs/tensorflowjs-firebase-hosting-model/index.html?index=..%2F..index#0) by Jason Mayes
 - [Using TensorFlow.js to train a "Rock-Paper-Scissors" model](https://heartbeat.fritz.ai/using-tensorflow-js-to-train-a-rock-paper-scissors-model-b5f393b548eb) by [Gant Laborde](http://gantlaborde.com/)
 - [A gentle introduction to TensorFlow.js](https://medium.com/tensorflow/a-gentle-introduction-to-tensorflow-js-dba2e5257702) by Zaid Alyafeai
 - [Train a model in tf.keras with Colab, and run it in the browser with TensorFlow.js](https://medium.com/tensorflow/train-on-google-colab-and-run-on-the-browser-a-case-study-8a45f9b1474e) by Zaid Alyafeai
 - [Python Programming - Deep learning in the browser with TensorFlow.js](https://pythonprogramming.net/deep-learning-browser-introduction-tensorflowjs/) by Harrison Kinsley
 - [Basic Tutorial with TensorFlow.js: Linear Regression](https://medium.com/@tristansokol/basic-tutorial-with-tensorflow-js-linear-regression-aa68b16e5b8e) by Tristan Sokol
+- [Make a smart webcam in JavaScript with a pre-trained Machine Learning model](https://codelabs.developers.google.com/codelabs/tensorflowjs-object-detection/index.html?index=..%2F..index#8) by Jason Mayes
 
 ## Video tutorials
 - [Beginning Machine Learning with TensorFlow.js](https://academy.infinite.red/p/beginning-machine-learning-with-tensorflow-js)
@@ -82,6 +97,7 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [Solving the Chrome T-Rex Game with Neural Networks, Genetic Algorithms and TensorFlow.js (Chinese: 前端人工智能？TensorFlow.js 学会游戏通关)](https://zhuanlan.zhihu.com/p/35451395) by [@MagicCube](https://github.com/MagicCube)
 - [A look at how we built the Emoji Scavenger Hunt using TensorFlow.js](https://medium.com/tensorflow/a-look-at-how-we-built-the-emoji-scavenger-hunt-using-tensorflow-js-3d760a7ebfe6) by Jacques Bruwer, JK Kafalas, and Shuhei Iitsuka from Google Brand Studio
 - [Read a tensorflow demo to get started with machine learning](https://mp.weixin.qq.com/s/sffUvod_KlmvtVI-W3PLEQ) by [EuryChen](https://github.com/netpi) (Chinese: 读懂一个Tensorflow Demo 入门机器学习)
+
 ## Notebooks
 - [Introduction to TensorFlow.js](https://beta.observablehq.com/@nsthorat/introduction-to-deeplearn-js) by Nikhil Thorat
 - [How to build a Teachable Machine](https://beta.observablehq.com/@nsthorat/how-to-build-a-teachable-machine-with-tensorflow-js) by Nikhil Thorat
@@ -99,4 +115,4 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [machinelearn.js](https://github.com/machinelearnjs/machinelearnjs) - A general machine learning library like ScikitLearn directly in the Browser and Node.
 - [TensorFlow.js GPU-accelerated t-SNE](https://github.com/tensorflow/tfjs-tsne) - A linear t-SNE for the web.
 - [Pipcook](https://github.com/alibaba/pipcook) - A front-end algorithm framework to create a ML pipeline based on tfjs-node, which is similar to TFX but in JS.
-- [danfo.js] (https://github.com/opensource9ja/danfojs) - A powerful JavaScript data analysis toolkit inspired by the Python PANDAS library. 
+- [danfo.js](https://github.com/opensource9ja/danfojs) - A powerful JavaScript data analysis toolkit inspired by the Python PANDAS library. 
