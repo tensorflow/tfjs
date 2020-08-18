@@ -51,7 +51,6 @@ if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
 
   # Test script tag bundles
   karma start ./script_tag_tests/karma.conf.js --browserstack --browsers=bs_chrome_mac --testBundle tf.min.js
-  karma start ./script_tag_tests/karma.conf.js --browserstack --browsers=bs_chrome_mac --testBundle tf.es2017.min.js
 else
   yarn run-browserstack --browsers=bs_chrome_mac --tags $TAGS
 fi
