@@ -22,7 +22,7 @@ steps:
   args: ['test-ci']
   # TEMPORARY force nightly CI
   # env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=TRUE']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=true']
 
   secretEnv: ['BROWSERSTACK_KEY']
 
