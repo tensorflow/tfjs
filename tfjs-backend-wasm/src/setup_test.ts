@@ -315,6 +315,7 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {startsWith: 'reverse'},
   {startsWith: 'sum '},
+  {startsWith: 'cumsum'},
   {
     startsWith: 'logicalAnd ',
     excludes: [
