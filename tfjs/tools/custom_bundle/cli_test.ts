@@ -19,7 +19,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 describe('CLI binary', () => {
-  it(' should be present and executable', () => {
+  it('should be present and executable', () => {
     const packageJsonPath = path.resolve(
         __dirname,
         '../../package.json',
