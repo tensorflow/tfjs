@@ -43,7 +43,7 @@ export const executeOp: InternalOpExecutor = (node: Node,
       const input = getParamValue('x', node, tensorMap, context) as tfc.Tensor;
       const indices =
           getParamValue('indices', node, tensorMap, context) as tfc.Tensor1D;
-      return [tfc.gather(input, indices.asType('int32'), axis)];
+      return [tfc.gather(input, tfc.cast(indices, 'int32'), axis)];
     }
     case 'ReverseV2':
     case 'Reverse': {
@@ -89,14 +89,14 @@ export const executeOp: InternalOpExecutor = (node: Node,
             getParamValue('tensors', node, tensorMap, context) as tfc.Tensor[];
         // Reshape the tensors to the first tensor's shape if they don't match.
         const shape = tensors[0].shape;
-        const squeezedShape = tensors[0].squeeze().shape;
+        const squeezedShape = tfc.squeeze(tensors[0]).shape;
         const mapped = tensors.map(tensor => {
           const sameShape = tfc.util.arraysEqual(tensor.shape, shape);
           if (!sameShape &&
-              !tfc.util.arraysEqual(tensor.squeeze().shape, squeezedShape)) {
+              !tfc.util.arraysEqual(tfc.squeeze(tensor).shape, squeezedShape)) {
             throw new Error('the input tensors shape does not match');
           }
-          return sameShape ? tensor : tensor.reshape(shape);
+          return sameShape ? tensor : tfc.reshape(tensor, shape);
         });
         return [tfc.stack(mapped, axis)];
       });
@@ -151,7 +151,7 @@ export const executeOp: InternalOpExecutor = (node: Node,
           indices, sparseValues, shape,
           sparseValues.dtype === defaultValue.dtype ?
               defaultValue :
-              defaultValue.asType(sparseValues.dtype))];
+              tfc.cast(defaultValue, sparseValues.dtype))];
     }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
