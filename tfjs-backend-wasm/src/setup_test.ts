@@ -194,6 +194,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'rotate '},
   {include: 'flipLeftRight '},
   {include: 'square '},
+  {include: 'squaredDifference'},
   {
     startsWith: 'min ',
     excludes: [
@@ -314,6 +315,7 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {startsWith: 'reverse'},
   {startsWith: 'sum '},
+  {startsWith: 'cumsum'},
   {
     startsWith: 'logicalAnd ',
     excludes: [
