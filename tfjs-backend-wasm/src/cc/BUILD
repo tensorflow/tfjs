@@ -218,6 +218,7 @@ tfjs_cc_library(
         ":Conv2D",
         ":Conv2DBackpropInput",
         ":CropAndResize",
+        ":Cumsum",
         ":DepthwiseConv2dNative",
         ":Div",
         ":Equal",
@@ -406,6 +407,15 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":interpolate_bilinear_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Cumsum",
+    srcs = ["kernels/Cumsum.cc"],
+    deps = [
+        ":backend",
         ":util",
     ],
 )
