@@ -17,6 +17,9 @@
 
 const TUNABLE_BROWSER_FIELDS =
     ['os', 'os_version', 'browser', 'browser_version', 'device'];
+const WAITING_STATUS_COLOR = '#AAAAAA';
+const COMPLETE_STATUS_COLOR = '#357edd';
+const ERROR_STATUS_COLOR = '#e8564b';
 const DISABLED_BUTTON_OPACITY = 0.8;
 const ENABLED_BUTTON_OPACITY = 1;
 
@@ -422,26 +425,89 @@ function createTab(browserConf) {
   // For tfvis, the tab name is not only a name but also the index to the tab.
   drawBrowserSettingTable(tabId, browserConf);
   drawBenchmarkParameterTable(tabId);
-  // TODO: add a 'loading indicator' under the tab.
 
+  // Add a status indicator into the tab button.
+  const visorTabList = document.getElementsByClassName('tf-tab');
+  const curTabElement = visorTabList[visorTabList.length - 1];
+  const indicatorElement = document.createElement('span');
+  indicatorElement.innerHTML = '.';
+  indicatorElement.style.fontSize = '20px';
+  indicatorElement.id = `${tabId}-indicator`;
+  curTabElement.appendChild(indicatorElement);
+
+  setTabStatus(tabId, 'WAITING');
+  addLoaderElement(tabId);
   return tabId;
 }
 
 function reportBenchmarkResult(benchmarkResult) {
   const tabId = benchmarkResult.tabId;
+  removeLoaderElement(tabId);
 
   if (benchmarkResult.error != null) {
+    setTabStatus(tabId, 'ERROR');
     // TODO: show error message under the tab.
     console.log(benchmarkResult.error);
-    return;
+  } else {
+    setTabStatus(tabId, 'COMPLETE');
+    drawInferenceTimeLineChart(benchmarkResult);
+    drawBenchmarkResultSummaryTable(benchmarkResult);
+    // TODO: draw a table for inference kernel information.
+    // This will be done, when we can get kernel timing info from
+    // `tf.profile()`.
   }
+}
 
-  drawInferenceTimeLineChart(benchmarkResult);
-  drawBenchmarkResultSummaryTable(benchmarkResult);
-  // TODO: draw a table for inference kernel information.
-  // This will be done, when we can get kernel timing info from `tf.profile()`.
+/**
+ * Set the status for the given tab. The status can be 'WAITING', 'COMPLETE' or
+ * 'ERROR'.
+ *
+ * @param {string} tabId  The index element id of the tab.
+ * @param {string} status The status to be set for the tab.
+ */
+function setTabStatus(tabId, status) {
+  const indicatorElementId = `${tabId}-indicator`;
+  const indicatorElement = document.getElementById(indicatorElementId);
+  switch (status) {
+    case 'WAITING':
+      indicatorElement.style.color = WAITING_STATUS_COLOR;
+      break;
+    case 'COMPLETE':
+      indicatorElement.style.color = COMPLETE_STATUS_COLOR;
+      break;
+    case 'ERROR':
+      indicatorElement.style.color = ERROR_STATUS_COLOR;
+      break;
+    default:
+      throw new Error(`Undefined status: ${status}.`);
+  }
+}
 
-  // TODO: delete 'loading indicator' under the tab.
+/**
+ * Add a loader element under the tab page.
+ *
+ * @param {string} tabId
+ */
+function addLoaderElement(tabId) {
+  const surface = tfvis.visor().surface(
+      {name: 'Benchmark Summary', tab: tabId, styles: {width: '100%'}});
+  const loaderElement = document.createElement('div');
+  loaderElement.className = 'loader';
+  loaderElement.id = `${tabId}-loader`;
+  surface.drawArea.appendChild(loaderElement);
+}
+
+/**
+ * Remove the loader element under the tab page.
+ *
+ * @param {string} tabId
+ */
+function removeLoaderElement(tabId) {
+  const loaderElementId = `${tabId}-loader`;
+  const loaderElement = document.getElementById(loaderElementId);
+  if (loaderElement != null) {
+    loaderElement.remove();
+  }
 }
 
 function drawBenchmarkResultSummaryTable(benchmarkResult) {
