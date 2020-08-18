@@ -43,7 +43,7 @@ const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
 
 const registry = process.env.npm_config_registry;
-const BASE_HOST = registry === 'https://registry.npm.taobao.org' ?
+const BASE_HOST = registry === 'https://registry.npm.taobao.org/' ?
     'https://cdn.npm.taobao.org/dist/' :
     'https://storage.googleapis.com/';
 const BASE_URI =
