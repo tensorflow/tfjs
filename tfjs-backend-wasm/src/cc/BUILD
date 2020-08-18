@@ -258,6 +258,8 @@ tfjs_cc_library(
         ":SelectV2",
         ":Sigmoid",
         ":Softmax",
+        ":Square",
+        ":SquaredDifference",
         ":Sub",
         ":Tile",
         ":Transpose",
@@ -891,6 +893,17 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SquaredDifference",
+    srcs = ["kernels/SquaredDifference.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":unary",
+        ":util",
     ],
 )
 
