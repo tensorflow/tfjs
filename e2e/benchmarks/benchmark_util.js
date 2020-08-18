@@ -262,105 +262,108 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
  * Executes the predict function for `model` (`model.predict` for
  * tf.LayersModel and `model.executeAsync` for tf.GraphModel) and returns a
  * promise that resolves with information about the memory usage:
- * - `newBytes`: the number of new bytes allocated
- * - `newTensors`: the number of new tensors created
- * - `peakBytes`: the peak number of bytes allocated
- * - `kernels`: an array of objects for each kernel involved that reports
- * their input and output shapes, number of bytes used, and number of new
- * tensors created.
+ * - `newBytes`: the number of new bytes allocated.
+ * - `newTensors`: the number of new tensors created.
+ * - `peakBytes`: the peak number of bytes allocated.
+ * - `kernels`: an array of kernel information objects about their input and
+ * output shapes, number of bytes used, number of new tensors created and kernel
+ * time (ms). The array is sorted by `kernelTimeMs` field in non-ascending
+ * order.
+ * - `aggregatedKernels`: an array of aggregated kernel information objects with
+ * `name` and `timeMs` fields. The array is sorted by `timeMs` field in
+ * non-ascending order.
  *
  * ```js
  * const modelUrl =
  *    'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2';
  * const model = await tf.loadGraphModel(modelUrl, {fromTFHub: true});
  * const zeros = tf.zeros([1, 224, 224, 3]);
- * const memoryInfo = await profileInferenceMemoryForModel(model, zeros);
+ * const profileInfo = await profileModelInference(model, zeros);
  *
- * console.log(`newBytes: ${memoryInfo.newBytes}`);
- * console.log(`newTensors: ${memoryInfo.newTensors}`);
- * console.log(`peakBytes: ${memoryInfo.peakBytes}`);
+ * console.log(`newBytes: ${profileInfo.newBytes}`);
+ * console.log(`newTensors: ${profileInfo.newTensors}`);
+ * console.log(`peakBytes: ${profileInfo.peakBytes}`);
  * ```
  *
  * @param model An instance of tf.GraphModel or tf.LayersModel for profiling
  *     memory usage in the inference process.
  * @param input The input tensor container for model inference.
  */
-async function profileInferenceMemoryForModel(model, input) {
+async function profileModelInference(model, input) {
   const predict = getPredictFnForModel(model, input);
-  return profileInferenceMemory(predict);
+  return profileInference(predict);
 }
 
 /**
  * Executes `predict()` and returns a promise that resolves with information
  * about the memory usage:
- * - `newBytes`: the number of new bytes allocated
- * - `newTensors`: the number of new tensors created
- * - `peakBytes`: the peak number of bytes allocated
- * - `kernels`: an array of objects for each kernel involved that reports
- * their input and output shapes, number of bytes used, and number of new
- * tensors created.
+ * - `newBytes`: the number of new bytes allocated.
+ * - `newTensors`: the number of new tensors created.
+ * - `peakBytes`: the peak number of bytes allocated.
+ * - `kernels`: an array of kernel information objects about their input and
+ * output shapes, number of bytes used, number of new tensors created and kernel
+ * time (ms). The array is sorted by `kernelTimeMs` field in non-ascending
+ * order.
+ * - `aggregatedKernels`: an array of aggregated kernel information objects with
+ * `name` and `timeMs` fields. The array is sorted by `timeMs` field in
+ * non-ascending order.
  *
  * ```js
  * const modelUrl =
  *    'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2';
  * const model = await tf.loadGraphModel(modelUrl, {fromTFHub: true});
  * const zeros = tf.zeros([1, 224, 224, 3]);
- * const memoryInfo = await profileInferenceMemory(() =>
+ * const profileInfo = await profileInference(() =>
  * model.predict(zeros));
  *
- * console.log(`newBytes: ${memoryInfo.newBytes}`);
- * console.log(`newTensors: ${memoryInfo.newTensors}`);
- * console.log(`peakBytes: ${memoryInfo.peakBytes}`);
+ * console.log(`newBytes: ${profileInfo.newBytes}`);
+ * console.log(`newTensors: ${profileInfo.newTensors}`);
+ * console.log(`peakBytes: ${profileInfo.peakBytes}`);
  * ```
  *
  * @param predict The predict function to execute for profiling memory usage.
  */
-async function profileInferenceMemory(predict) {
+async function profileInference(predict) {
   if (typeof predict !== 'function') {
     throw new Error(
         'The first parameter should be a function, while ' +
         `a(n) ${typeof predict} is found.`);
   }
 
-  const memoryInfo = await profile(async () => {
+  const kernelInfo = await tf.profile(async () => {
     const res = await predict();
     await downloadValuesFromTensorContainer(res);
     tf.dispose(res);
   });
-  return memoryInfo;
+
+  kernelInfo.kernels =
+      kernelInfo.kernels.sort((a, b) => b.kernelTimeMs - a.kernelTimeMs);
+  kernelInfo.aggregatedKernels = aggregateKernelTime(kernelInfo.kernels);
+  return kernelInfo;
 }
 
 /**
- * This function is temporarily used and will be deleted after a new release of
- * tf-core. This function modifies
- * This function is temporarily used and will be deleted after a new release
- * of tf-core. This function modifies
- * [`tf.profile`](https://github.com/tensorflow/tfjs/blob/95b5f878218ee45c0f8464386ee01d1f96e78297/tfjs-core/src/engine.ts#L848)
- * in the following points:
- * - replaces all `this` by `tf.engine()`
- * - adds `await` in `this.state.activeProfile.result = query();`
+ * Aggregate kernels by name and sort the array in non-ascending order of time.
+ * Return an array of objects with `name` and `timeMs` fields.
  *
- * When deleting this method, please change the caller
- * `profileInferenceMemory`.
+ * @param {Array<Object>} kernels An array of kernel information objects. Each
+ *     object must include `name` (string) and `kernelTimeMs` (number) fields.
  */
-async function profile(query) {
-  const engine = tf.engine();
-  engine.state.profiling = true;
+function aggregateKernelTime(kernels) {
+  const aggregatedKernelTime = {};
+  kernels.forEach(kernel => {
+    const oldAggregatedKernelTime = aggregatedKernelTime[kernel.name];
+    if (oldAggregatedKernelTime == null) {
+      aggregatedKernelTime[kernel.name] = kernel.kernelTimeMs;
+    } else {
+      aggregatedKernelTime[kernel.name] =
+          oldAggregatedKernelTime + kernel.kernelTimeMs;
+    }
+  });
 
-  const startBytes = engine.state.numBytes;
-  const startNumTensors = engine.state.numTensors;
-
-  engine.state.activeProfile.kernels = [];
-  engine.state.activeProfile.result = await query();
-
-  engine.state.profiling = false;
-
-  engine.state.activeProfile.peakBytes = Math.max(
-      ...engine.state.activeProfile.kernels.map(d => d.totalBytesSnapshot));
-  engine.state.activeProfile.newBytes = engine.state.numBytes - startBytes;
-  engine.state.activeProfile.newTensors =
-      engine.state.numTensors - startNumTensors;
-  return engine.state.activeProfile;
+  return Object.entries(aggregatedKernelTime)
+      .map(([name, timeMs]) => ({name, timeMs}))
+      .sort((a, b) => b.timeMs - a.timeMs);
 }
 
 /**

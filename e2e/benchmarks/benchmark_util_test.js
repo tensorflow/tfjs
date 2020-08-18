@@ -20,6 +20,10 @@
  * browser.
  */
 
+function sleep(timeMs) {
+  return new Promise(resolve => setTimeout(resolve, timeMs));
+}
+
 describe('benchmark_util', () => {
   beforeEach(() => tf.setBackend('cpu'));
 
@@ -56,11 +60,11 @@ describe('benchmark_util', () => {
     });
   });
 
-  describe('Profile Memory', () => {
-    describe('profileInferenceMemory', () => {
+  describe('Profile Inference', () => {
+    describe('profileInference', () => {
       it('pass in invalid predict', async () => {
         const predict = {};
-        await expectAsync(profileInferenceMemory(predict)).toBeRejected();
+        await expectAsync(profileInference(predict)).toBeRejected();
       });
 
       it('check tensor leak', async () => {
@@ -69,12 +73,50 @@ describe('benchmark_util', () => {
         const input = tf.zeros([1, 3]);
 
         const tensorsBefore = tf.memory().numTensors;
-        await profileInferenceMemory(() => model.predict(input));
+        await profileInference(() => model.predict(input));
         expect(tf.memory().numTensors).toEqual(tensorsBefore);
 
         model.dispose();
         input.dispose();
       });
+
+      it('profile all statements in async predict function', async () => {
+        const predict = async () => {
+          await sleep(1);
+          const x = tf.tensor1d([1, 2, 3]);
+          const x2 = x.square();
+          x2.dispose();
+          return x;
+        };
+
+        const oldTensorCount = tf.memory().numTensors;
+        let profileInfo = await profileInference(predict);
+        expect(tf.memory().numTensors).toEqual(oldTensorCount);
+
+        // If `profileInference` cannot profile async function, it would
+        // fail to profile all the statements after `await sleep(1);` and the
+        // peak memory would be `-Infinity`.
+        expect(profileInfo.peakBytes).toBeGreaterThan(0);
+      });
+    });
+  });
+
+  describe('aggregateKernelTime', () => {
+    it('aggregates the kernels according to names', () => {
+      const kernels = [
+        {name: 'testKernel1', kernelTimeMs: 1},
+        {name: 'testKernel1', kernelTimeMs: 1},
+        {name: 'testKernel1', kernelTimeMs: 1},
+        {name: 'testKernel2', kernelTimeMs: 1},
+        {name: 'testKernel2', kernelTimeMs: 1},
+      ];
+
+      const aggregatedKernels = aggregateKernelTime(kernels);
+      expect(aggregatedKernels.length).toBe(2);
+      expect(aggregatedKernels[0].name).toBe('testKernel1');
+      expect(aggregatedKernels[0].timeMs).toBe(3);
+      expect(aggregatedKernels[1].name).toBe('testKernel2');
+      expect(aggregatedKernels[1].timeMs).toBe(2);
     });
   });
 

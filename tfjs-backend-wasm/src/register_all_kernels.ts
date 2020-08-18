@@ -33,6 +33,7 @@ import {conv2DConfig} from './kernels/Conv2D';
 import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
 import {cosConfig} from './kernels/Cos';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
+import {cumsumConfig} from './kernels/Cumsum';
 import {depthwiseConv2DNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {divConfig} from './kernels/Div';
 import {equalConfig} from './kernels/Equal';
@@ -84,6 +85,7 @@ import {softmaxConfig} from './kernels/Softmax';
 import {splitVConfig} from './kernels/Split';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
+import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanhConfig} from './kernels/Tanh';
@@ -107,6 +109,7 @@ const kernelConfigs: KernelConfig[] = [
   conv2DBackpropInputConfig,
   cosConfig,
   cropAndResizeConfig,
+  cumsumConfig,
   depthwiseConv2DNativeConfig,
   divConfig,
   equalConfig,
@@ -159,6 +162,7 @@ const kernelConfigs: KernelConfig[] = [
   splitVConfig,
   sqrtConfig,
   squareConfig,
+  squaredDifferenceConfig,
   subConfig,
   sumConfig,
   tanhConfig,
