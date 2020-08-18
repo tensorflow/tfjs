@@ -22,7 +22,6 @@ const COMPLETE_STATUS_COLOR = '#357edd';
 const ERROR_STATUS_COLOR = '#e8564b';
 const DISABLED_BUTTON_OPACITY = 0.8;
 const ENABLED_BUTTON_OPACITY = 1;
-const socket = io();
 
 /**
  * Helps assign unique id for visor tabs.
@@ -61,7 +60,7 @@ const state = {
 
   addBrowser: () => {
     // Add browser config to `state.browsers` array.
-    state.browsers.push(state.browser);
+    state.browsers.push({...state.browser});
 
     // Enable the benchmark button.
     benchmarkButton.__li.style.pointerEvents = '';
@@ -140,9 +139,141 @@ const state = {
   }
 };
 
+let socket;
+
+// UI controllers.
 let gui;
+let browserFolder;
 let benchmarkButton;
 let addingBrowserButton;
+let browserSettingControllers = [];
+
+// Available BrowserStack's browsers will be collected in a tree when the array
+// of available browsers is recieved in runtime.
+let browserTreeRoot;
+
+/**
+ * Collect all given browsers to a tree. The field of each level is defined by
+ * `TUNABLE_BROWSER_FIELDS`.
+ *
+ * The tree node is implemented by Map/Object:
+ * - For non-leaf nodes, each node stores a map: each key is the index to a
+ * child node and the correspoding value is the child node.
+ * - For leaf nodes, each leaf node stores the full configuration for a certain
+ * browser.
+ *
+ * @param {Array<object>} browsersArray An array of browser configurations.
+ */
+function constructBrowserTree(browsersArray) {
+  const browserTreeRoot = {};
+  browsersArray.forEach(browser => {
+    let currentNode = browserTreeRoot;
+
+    // Route through non-leaf nodes.
+    for (let fieldIndex = 0; fieldIndex <= TUNABLE_BROWSER_FIELDS.length - 2;
+         fieldIndex++) {
+      const fieldName = TUNABLE_BROWSER_FIELDS[fieldIndex];
+      if (currentNode[browser[fieldName]] == null) {
+        currentNode[browser[fieldName]] = {};
+      }
+      currentNode = currentNode[browser[fieldName]];
+    }
+
+    // Set the full configuration as the leaf node.
+    const leafFieldName =
+        TUNABLE_BROWSER_FIELDS[TUNABLE_BROWSER_FIELDS.length - 1];
+    const leafFieldValue = browser[leafFieldName];
+    if (currentNode[leafFieldValue] == null) {
+      currentNode[leafFieldValue] = browser;
+    } else {
+      console.warn(
+          `The browser ${browser} shares the same ` +
+          'configuration with another browser.');
+    }
+  });
+  return browserTreeRoot;
+}
+
+/**
+ * Once the value of a certain browser field is changed, the values and options
+ * of the following fields will be invalid. This function updates the following
+ * fields recursively and does nothing for the leaf nodes.
+ *
+ * @param {number} currentFieldIndex
+ * @param {string} currentFieldValue
+ * @param {object} currentNode
+ */
+function updateFollowingFields(
+    currentFieldIndex, currentFieldValue, currentNode) {
+  const nextFieldIndex = currentFieldIndex + 1;
+  if (nextFieldIndex === TUNABLE_BROWSER_FIELDS.length) {
+    return;
+  }
+
+  const nextFieldName = TUNABLE_BROWSER_FIELDS[nextFieldIndex];
+  const nextNode = currentNode[currentFieldValue];
+  const nextFieldAvailableValues = Object.keys(nextNode);
+  let nextFieldValue = state.browser[nextFieldName];
+
+  // Update the value of the next field, if the old value is not applicable.
+  if (nextNode[nextFieldValue] == null) {
+    nextFieldValue = nextFieldAvailableValues[0];
+  }
+
+  // Update the options for the next field.
+  const nextFieldController = browserSettingControllers[nextFieldIndex].options(
+      nextFieldAvailableValues);
+
+  // When updating options for a dat.gui controller, a new controller instacne
+  // will be created, so we need to bind the event again and record the new
+  // controller.
+  nextFieldController.onFinishChange(() => {
+    const newValue = state.browser[nextFieldName];
+    updateFollowingFields(nextFieldIndex, newValue, nextNode);
+  });
+  browserSettingControllers[nextFieldIndex] = nextFieldController;
+
+  nextFieldController.setValue(nextFieldValue);
+
+  if (nextFieldValue === 'null') {
+    nextFieldController.__li.hidden = true;
+  } else {
+    nextFieldController.__li.hidden = false;
+  }
+
+  updateFollowingFields(nextFieldIndex, nextFieldValue, nextNode);
+}
+
+/**
+ * This is a wrapper function of `dat.gui.GUI.add()` with:
+ * - Binds the `finishChange` event to update the value and options for the
+ * controller of its child field.
+ * - Hides the dropdown menu, if the field is not applicable for this browser.
+ *
+ * @param {number} fieldIndex The index of the browser field to be shown.
+ * @param {object} currentNode The keys of this map are available values
+ *     for this field.
+ */
+function showBrowserField(fieldIndex, currentNode) {
+  const fieldName = TUNABLE_BROWSER_FIELDS[fieldIndex];
+  const fieldController =
+      browserFolder.add(state.browser, fieldName, Object.keys(currentNode));
+
+  fieldController.onFinishChange(() => {
+    const newValue = state.browser[fieldName];
+    updateFollowingFields(fieldIndex, newValue, currentNode);
+  });
+
+  // Null represents the field is not applicable for this browser. For example,
+  // `browser_version` is normally not applicable for mobile devices.
+  if (state.browser[fieldName] === 'null') {
+    fieldController.__li.hidden = true;
+  }
+
+  // The controller will be used to reset options when the value of its parent
+  // field is changed.
+  browserSettingControllers.push(fieldController);
+}
 
 /**
  * Create a tunable browser list table that can be used to remove browsers.
@@ -542,16 +673,40 @@ function printMemory(bytes) {
 }
 
 function onPageLoad() {
-  gui = new dat.gui.GUI();
+  gui = new dat.gui.GUI({width: 400});
   gui.domElement.id = 'gui';
-  showModelSelection();
-  showParameterSettings();
-  addingBrowserButton = gui.add(state, 'addBrowser').name('Add browser');
-  benchmarkButton = gui.add(state, 'run').name('Run benchmark');
+  socket = io();
 
-  // Disable the 'Run benchmark' button until a browser is added.
-  benchmarkButton.__li.style.pointerEvents = 'none';
-  benchmarkButton.__li.style.opacity = DISABLED_BUTTON_OPACITY;
+  // Once the server is connected, the server will send back all
+  // BrowserStack's available browsers in an array.
+  socket.on('availableBrowsers', availableBrowsersArray => {
+    if (browserTreeRoot == null) {
+      // Build UI folders.
+      showModelSelection();
+      showParameterSettings();
+      browserFolder = gui.addFolder('Browser');
+
+      // Initialize the browser tree.
+      browserTreeRoot = constructBrowserTree(availableBrowsersArray);
+
+      // Show browser settings.
+      let currentNode = browserTreeRoot;
+      TUNABLE_BROWSER_FIELDS.forEach((field, index) => {
+        showBrowserField(index, currentNode);
+        currentNode = currentNode[state.browser[field]];
+      });
+      browserFolder.open();
+
+      // Enable users to benchmark.
+      addingBrowserButton =
+          browserFolder.add(state, 'addBrowser').name('Add browser');
+      benchmarkButton = gui.add(state, 'run').name('Run benchmark');
+
+      // Disable the 'Run benchmark' button until a browser is added.
+      benchmarkButton.__li.style.pointerEvents = 'none';
+      benchmarkButton.__li.style.opacity = DISABLED_BUTTON_OPACITY;
+    }
+  });
 
   socket.on('benchmarkComplete', benchmarkResult => {
     // Enable the 'Add browser' button.
