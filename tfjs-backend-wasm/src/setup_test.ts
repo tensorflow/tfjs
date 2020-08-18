@@ -194,6 +194,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'rotate '},
   {include: 'flipLeftRight '},
   {include: 'square '},
+  {include: 'squaredDifference'},
   {
     startsWith: 'min ',
     excludes: [

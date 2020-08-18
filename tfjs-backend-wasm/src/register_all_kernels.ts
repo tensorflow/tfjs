@@ -85,6 +85,7 @@ import {softmaxConfig} from './kernels/Softmax';
 import {splitVConfig} from './kernels/Split';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
+import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanhConfig} from './kernels/Tanh';
@@ -161,6 +162,7 @@ const kernelConfigs: KernelConfig[] = [
   splitVConfig,
   sqrtConfig,
   squareConfig,
+  squaredDifferenceConfig,
   subConfig,
   sumConfig,
   tanhConfig,
