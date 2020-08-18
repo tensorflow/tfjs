@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-// base.ts is tfjs-core without auto registration of gradients or chained ops.
+// base.ts is tfjs-core without auto registration of things like flags,
+// gradients, chained ops or the opHandler. See base_side_effects.ts for parts
+// tfjs core that are required side effects.
 
 /**
  * @fileoverview
@@ -31,17 +33,13 @@ import * as io from './io/io';
 import * as math from './math';
 import * as browser from './ops/browser';
 import * as gather_util from './ops/gather_nd_util';
-import * as ops from './ops/ops';
 import * as scatter_util from './ops/scatter_nd_util';
 import * as slice_util from './ops/slice_util';
 import * as serialization from './serialization';
-import {setOpHandler} from './tensor';
 import * as tensor_util from './tensor_util';
 import * as test_util from './test_util';
 import * as util from './util';
 import {version} from './version';
-
-setOpHandler(ops);
 
 export {InferenceModel, MetaGraph, MetaGraphInfo, ModelPredictConfig, ModelTensorInfo, SavedModelTensorInfo, SignatureDef, SignatureDefInfo} from './model_types';
 // Optimizers.
