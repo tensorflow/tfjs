@@ -20,9 +20,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test'
   args: ['test-ci']
-  # TEMPORARY force nightly CI
-  # env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=true']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
 
   secretEnv: ['BROWSERSTACK_KEY']
 
