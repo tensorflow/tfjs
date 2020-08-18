@@ -135,4 +135,13 @@ describeWithFlags('clipByValue', ALL_ENVS, () => {
     expect(() => tf.clipByValue('q', 0, 1))
         .toThrowError(/Argument 'x' passed to 'clipByValue' must be numeric/);
   });
+
+  it('clip int32 tensor', async () => {
+    const min = -1;
+    const max = 50;
+    const tensor = tf.tensor([2, 3, 4], [3], 'int32');
+    const result = tf.clipByValue(tensor, min, max);
+    expectArraysClose(await result.data(), [2, 3, 4]);
+    expect(result.dtype).toEqual('int32');
+  });
 });
