@@ -37,6 +37,10 @@ ENV.registerFlag(
  */
 // From: https://github.com/GoogleChromeLabs/wasm-feature-detect
 ENV.registerFlag('WASM_HAS_MULTITHREAD_SUPPORT', async () => {
+  if (ENV.get('IS_NODE')) {
+    return false;
+  }
+
   try {
     // Test for transferability of SABs (needed for Firefox)
     // https://groups.google.com/forum/#!msg/mozilla.dev.platform/IHkBZlHETpA/dwsMNchWEQAJ
