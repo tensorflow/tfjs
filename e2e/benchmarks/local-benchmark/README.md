@@ -17,7 +17,7 @@ If you have a TensorFlow.js model in local file system, you can benchmark it thr
 In addition, if the online [local benchmark tool](https://tensorflow.github.io/tfjs/e2e/benchmarks/local-benchmark/index.html) is blocked by `CORS` problems when fetching custom models, you can locally serve the models by the above steps to solve this problem.
 
 ### Example
-You can benchmark the [MobileNet model](https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v2_130_224/classification/3/default/1) in local file system, by:
+You can benchmark the [MobileNet model](https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v2_130_224/classification/3/default/1) in local file system.
 1. Download the tool.
 ```shell
 git clone https://github.com/tensorflow/tfjs.git
