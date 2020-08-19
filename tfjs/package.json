@@ -53,7 +53,7 @@
   },
   "scripts": {
     "build": "tsc && yarn build-cli && yarn bundle",
-    "build-ci": "tsc && yarn bundle-ci",
+    "build-ci": "tsc && yarn build-cli && yarn bundle-ci",
     "bundle": "rollup -c",
     "bundle-ci": "rollup -c --ci",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
