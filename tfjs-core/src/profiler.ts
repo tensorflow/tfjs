@@ -44,13 +44,14 @@ export class Profiler {
     };
     const timer = this.backendTimer.time(holdResultWrapperFn);
 
-    outputs.map(r => {
+    for (let i = 0; i < outputs.length; i++) {
+      const output = outputs[i];
       // Dangling promise here because we don't want to propagate up
       // asynchronicity.
-      r.data().then(tensorVals => {
-        checkComputationForErrors(tensorVals, r.dtype, kernelName);
+      output.data().then(tensorVals => {
+        checkComputationForErrors(tensorVals, output.dtype, kernelName);
       });
-    });
+    }
 
     const kernelProfile = {
       kernelName,
