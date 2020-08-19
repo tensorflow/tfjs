@@ -37,7 +37,7 @@ export const SLICEPROGRAM = 0x0113;
 export const STRIDEDSLICEPROGRAM = 0x0114;
 export const TRANSPOSEPROGRAM = 0x0115;
 export const TRANSPOSESHAREDPROGRAM = 0x0116;
-export const UNARYOPPROGRAM = 0x0117;
+export const BINARYOPPROGRAM= 0x0117;
 
 export const AVG = 0x0201;
 export const MAX = 0x0202;
@@ -175,40 +175,29 @@ export function ArrayBufferToTypedArray(data: ArrayBuffer, dtype: DataType) {
   }
 }
 
-export function mapActivationToNum(activation: string): number {
-  if (activation === 'linear') {
-    return 0x0401;
-  } else if (activation === 'relu') {
-    return 0x0402;
-  } else if (activation === 'elu') {
-    return 0x0403;
-  } else if (activation === 'relu6') {
-    return 0x0404;
-  } else if (activation === 'prelu') {
-    return 0x0405;
-  }
-  throw new Error(`Activation ${
-      activation} has not been implemented for the WebGPU backend.`);
-}
+export const hashForActivation: {[key: string]: number;} = {
+  ['linear'] : 0x0401,
+  ['relu'] : 0x0402,
+  ['elu'] : 0x0403,
+  ['relu6'] : 0x0404,
+  ['prelu'] : 0x0405
+};
 
-export function mapReduceTypeToNum(type: string): number {
-  if (type === 'min') {
-    return 0x0406;
-  } else if (type === 'max') {
-    return 0x0407;
-  } else if (type === 'sum') {
-    return 0x0408;
-  }
-  throw new Error(`Reduce type ${
-      type} has not been implemented for the WebGPU backend.`);
-}
+export const hashForReduce: {[key: string]: number;} = {
+  ['min'] : 0x0406,
+  ['max'] : 0x0407,
+  ['sum'] : 0x0408
+};
 
-export function mapCropToNum(method: string): number {
-  if (method === 'bilinear') {
-    return 0x0409;
-  } else if (method === 'nearest') {
-    return 0x040a;
-  }
-  throw new Error(`Crop method ${
-      method} has not been implemented for the WebGPU backend.`);
-}
+export const hashForCrop: {[key: string]: number;} = {
+  ['bilinear'] : 0x0409,
+  ['nearest'] : 0x040a
+};
+
+export const hashForType: {[key : string]: number;} = {
+  ['float32'] : 0x040b,
+  ['string'] : 0x040c,
+  ['int32'] : 0x040d,
+  ['bool'] : 0x040e,
+  ['complex64'] : 0x040f
+};

@@ -38,6 +38,20 @@ export const EXP = `return exp(a);`;
 export const LOG = `if (a < 0.0) return 1.0/0.0;
   return log(a);`;
 
+export const hashForOp: {[key : string]: number;} = {
+  [RELU] : 0x0c01,
+  [RELU6] : 0x0c02,
+  [LINEAR] : 0x0c03,
+  [ELU] : 0x0c04,
+  [SIGMOID] : 0x0c05,
+  [ABS] : 0x0c06,
+  [SQUARE] : 0x0c07,
+  [NEG] : 0x0c08,
+  [TANH] : 0x0c09,
+  [EXP] : 0x0c0a,
+  [LOG] : 0x0c0b
+};
+
 export class UnaryOpProgram implements WebGPUProgram {
   outputShape: number[];
   userCode: string;

@@ -43,21 +43,20 @@ const CHECK_NAN_SNIPPET = `
 export const MAX = CHECK_NAN_SNIPPET + `
   return max(a, b);
 `;
-export function getOpNum(op: string): number {
-  if (op === ADD) {return 0x0b01;}
-  if (op === SUB) {return 0x0b02;}
-  if (op === MUL) {return 0x0b03;}
-  if (op === DIV) {return 0x0b04;}
-  if (op === GREATER) {return 0x0b05;}
-  if (op === GREATER_EQUAL) {return 0x0b06;}
-  if (op === LESS) {return 0x0b07;}
-  if (op === LESS_EQUAL) {return 0x0b08;}
-  if (op === SQUARED_DIFFERENCE) {return 0x0b09;}
-  if (op === INT_DIV) {return 0x0b0a;}
-  if (op === PRELU) {return 0x0b0b;}
-  if (op === MAX) {return 0x0b0c;}
-  return 0;
-}
+export const hashForOp: {[key : string]: number;} = {
+  [ADD] : 0x0b01,
+  [SUB] : 0x0b02,
+  [MUL] : 0x0b03,
+  [DIV] : 0x0b04,
+  [GREATER] : 0x0b05,
+  [GREATER_EQUAL] : 0x0b06,
+  [LESS] : 0x0b07,
+  [LESS_EQUAL] : 0x0b08,
+  [SQUARED_DIFFERENCE] : 0x0b09,
+  [INT_DIV] : 0x0b0a,
+  [PRELU] : 0x0b0b,
+  [MAX] : 0x0b0c
+};
 
 export function getBinaryProgram(
     op: string, aShape: number[], bShape: number[]) {
