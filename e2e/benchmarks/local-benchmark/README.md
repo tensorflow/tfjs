@@ -14,7 +14,7 @@ You can benchmark the [MobileNet model](https://tfhub.dev/google/tfjs-model/imag
 git clone https://github.com/tensorflow/tfjs.git
 cd tfjs/e2e/benchmarks/
 ```
-2. Download the model and run a http server.
+2. Download the model.
 ```shell
 wget -O model.tar.gz "https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v2_130_224/classification/3/default/1?tfjs-format=compressed"
 mkdir model
