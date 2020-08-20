@@ -61,10 +61,10 @@ function config({plugins = [], output = {}, tsCompilerOptions = {}}) {
     output: {
       banner: PREAMBLE,
       sourcemap: true,
-      globals: {'@tensorflow/tfjs-core': 'tf', 'fs': 'fs', 'path': 'path'},
+      globals: {'@tensorflow/tfjs-core': 'tf', 'fs': 'fs', 'path': 'path', 'worker_threads': 'worker_threads', 'perf_hooks': 'perf_hooks'},
       ...output,
     },
-    external: ['crypto', '@tensorflow/tfjs-core', 'fs', 'path'],
+    external: ['crypto', '@tensorflow/tfjs-core', 'fs', 'path', 'worker_threads', 'perf_hooks'],
     onwarn: warning => {
       let {code} = warning;
       if (code === 'CIRCULAR_DEPENDENCY' || code === 'CIRCULAR' ||
