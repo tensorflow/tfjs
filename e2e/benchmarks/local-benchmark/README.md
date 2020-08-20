@@ -5,9 +5,7 @@ The `custom model` in the [local benchmark tool](https://tensorflow.github.io/tf
 If you want to benchmark more complex TensorFlow.js models with customized input preprocessing logic, you need to implement `load` and `predictFunc` methods, following this [example PR](https://github.com/tensorflow/tfjs/pull/3168/files).
 
 ## Models in local file system
-If you have a TensorFlow.js model in local file system, you can benchmark it by: locally host the [local benchmark tool](https://tensorflow.github.io/tfjs/e2e/benchmarks/local-benchmark/index.html) and the model on a http server.
-
-In addition, if the online [local benchmark tool](https://tensorflow.github.io/tfjs/e2e/benchmarks/local-benchmark/index.html) is blocked by `CORS` problems when fetching custom models, you can locally serve the models by the above steps to solve this problem.
+If you have a TensorFlow.js model in local file system, you can benchmark it by: locally host the [local benchmark tool](https://tensorflow.github.io/tfjs/e2e/benchmarks/local-benchmark/index.html) and the model on a http server. In addition, if the online [local benchmark tool](https://tensorflow.github.io/tfjs/e2e/benchmarks/local-benchmark/index.html) is blocked by `CORS` problems when fetching custom models, this solution also works.
 
 ### Example
 You can benchmark the [MobileNet model](https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v2_130_224/classification/3/default/1) in local file system through the following steps:
