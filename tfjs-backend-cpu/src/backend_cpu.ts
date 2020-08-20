@@ -1152,7 +1152,7 @@ export class MathBackendCPU extends KernelBackend {
       const v = values[i];
       resultValues[i] = v > max ? max : (v < min ? min : v);
     }
-    return this.makeOutput(resultValues, x.shape, 'float32');
+    return this.makeOutput(resultValues, x.shape, x.dtype);
   }
 
   abs<T extends Tensor>(x: T): T {
