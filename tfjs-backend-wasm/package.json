@@ -36,7 +36,9 @@
   },
   "browser": {
     "fs": false,
-    "path": false
+    "path": false,
+    "worker_threads": false,
+    "perf_hooks": false
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "link:../tfjs-core"
