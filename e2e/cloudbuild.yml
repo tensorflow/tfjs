@@ -21,6 +21,7 @@ steps:
   id: 'test'
   args: ['test-ci']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
+
   secretEnv: ['BROWSERSTACK_KEY']
 
 secrets:
