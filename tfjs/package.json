@@ -9,6 +9,9 @@
   "unpkg": "dist/tf.min.js",
   "types": "dist/index.d.ts",
   "miniprogram": "dist/miniprogram",
+  "bin": {
+    "tfjs-custom-bundle": "dist/tools/custom_bundle/cli.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/tensorflow/tfjs.git"
@@ -20,6 +23,7 @@
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
+    "@types/argparse": "^1.0.38",
     "@types/jasmine": "2.8.7",
     "@types/mkdirp": "^0.5.2",
     "@types/node": "~9.6.1",
@@ -49,8 +53,8 @@
     "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
-    "build": "tsc && yarn bundle",
-    "build-ci": "tsc && yarn bundle-ci",
+    "build": "tsc && yarn build-cli && yarn bundle",
+    "build-ci": "tsc && yarn build-cli && yarn bundle-ci",
     "bundle": "rollup -c",
     "bundle-ci": "rollup -c --ci",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
