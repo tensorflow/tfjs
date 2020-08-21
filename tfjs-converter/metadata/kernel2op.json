@@ -181,13 +181,15 @@
     "fused.depthwiseConv2d"
   ],
   "Gather": [
-    "gather"
+    "gather",
+    "cast"
   ],
   "GatherNd": [
     "gatherND"
   ],
   "GatherV2": [
-    "gather"
+    "gather",
+    "cast"
   ],
   "Greater": [
     "greater"
@@ -314,7 +316,9 @@
   ],
   "Pack": [
     "tidy",
+    "squeeze",
     "util.arraysEqual",
+    "reshape",
     "stack"
   ],
   "Pad": [
@@ -430,7 +434,8 @@
     "spaceToBatchND"
   ],
   "SparseToDense": [
-    "sparseToDense"
+    "sparseToDense",
+    "cast"
   ],
   "Split": [
     "split"
@@ -506,6 +511,7 @@
     "unstack"
   ],
   "Where": [
+    "cast",
     "whereAsync"
   ],
   "While": [],
