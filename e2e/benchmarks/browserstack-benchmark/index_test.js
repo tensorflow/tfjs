@@ -20,6 +20,42 @@
  * browser.
  */
 
+describe('constructBrowserTree', () => {
+  const mac = {
+    base: 'BrowserStack',
+    browser: 'firefox',
+    browser_version: '70.0',
+    os: 'OS X',
+    os_version: 'High Sierra',
+    device: 'null'
+  };
+  const iphoneX = {
+    base: 'BrowserStack',
+    browser: 'ios',
+    browser_version: 'null',
+    os: 'ios',
+    os_version: '11.0',
+    device: 'iPhone X'
+  };
+
+  const expectedTree = {
+    'OS X': {'High Sierra': {'firefox': {'70.0': {'null': mac}}}},
+    'ios': {'11.0': {'ios': {'null': {'iPhone X': iphoneX}}}}
+  };
+
+  it('constructs a tree', () => {
+    const browsersArray = [mac, iphoneX];
+    expect(constructBrowserTree(browsersArray)).toEqual(expectedTree);
+  });
+
+  it('warns when finding duplicate nodes', () => {
+    const browsersArray = [mac, iphoneX, iphoneX];
+    spyOn(console, 'warn');
+    expect(constructBrowserTree(browsersArray)).toEqual(expectedTree);
+    expect(console.warn).toHaveBeenCalled();
+  });
+});
+
 describe('getTabId', () => {
   const mac = {
     base: 'BrowserStack',

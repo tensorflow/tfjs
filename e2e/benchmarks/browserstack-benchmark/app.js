@@ -58,6 +58,8 @@ function runServer() {
 
   io = socketio(app);
   io.on('connection', socket => {
+    const availableBrowsers = require('./browser_list.json');
+    socket.emit('availableBrowsers', availableBrowsers);
     socket.on('run', benchmark);
   });
 }
