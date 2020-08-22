@@ -51,7 +51,7 @@ def main(_):
     class TimesThreePlusOne(tf.Module):
 
       @tf.function(input_signature=[
-          tf.TensorSpec(shape=[], dtype=tf.float32)])
+          tf.TensorSpec(shape=None, dtype=tf.float32)])
       def compute(self, x):
         return x * 3.0 + 1.0
 
