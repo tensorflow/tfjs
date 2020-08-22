@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {concat, DataType, keep, scalar, slice, stack, Tensor, tensor, tidy, unstack} from '@tensorflow/tfjs-core';
+import {concat, DataType, keep, reshape, scalar, slice, stack, Tensor, tensor, tidy, unstack} from '@tensorflow/tfjs-core';
 
 import {assertShapesMatchAllowUndefinedSize} from './tensor_utils';
 
@@ -294,12 +294,12 @@ export class TensorArray {
     const elementPerRow = totalLength === 0 ? 0 : tensor.size / totalLength;
     const tensors: Tensor[] = [];
     tidy(() => {
-      tensor = tensor.reshape([1, totalLength, elementPerRow]);
+      tensor = reshape(tensor, [1, totalLength, elementPerRow]);
       for (let i = 0; i < length.length; ++i) {
         const previousLength = (i === 0) ? 0 : cumulativeLengths[i - 1];
         const indices = [0, previousLength, 0];
         const sizes = [1, length[i], elementPerRow];
-        tensors[i] = slice(tensor, indices, sizes).reshape(this.elementShape);
+        tensors[i] = reshape(slice(tensor, indices, sizes), this.elementShape);
       }
       return tensors;
     });

@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-// base.ts is tfjs-core without auto registration of gradients or chained ops.
+// base.ts is tfjs-core without auto registration of things like flags,
+// gradients, chained ops or the opHandler. See base_side_effects.ts for parts
+// tfjs core that are required side effects.
 
 /**
  * @fileoverview
