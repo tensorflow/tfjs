@@ -16,10 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {engine, env} from '@tensorflow/tfjs-core';
-import {backend_util, buffer, slice_util, util} from '@tensorflow/tfjs-core';
-import {BackendTimingInfo, DataStorage, DataType, DataValues, KernelBackend, max, NumericDataType, Rank, reshape, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, TypedArray, upcastType} from '@tensorflow/tfjs-core';
-import {kernel_impls} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, max, NumericDataType, Rank, Scalar, ShapeMap, slice_util, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
 const nonMaxSuppressionV3Impl = kernel_impls.nonMaxSuppressionV3Impl;
 const split = kernel_impls.split;
@@ -59,6 +56,9 @@ export interface TensorData<D extends DataType> {
   // TODO(smilkov): Replace Tensor with TensorInfo when you modularize ops
   // that work with complex tensors.
   complexTensors?: {real: Tensor, imag: Tensor};
+  // refCount keeps track of how many tensors reference it. Used for memory
+  // management.
+  refCount: number;
 }
 
 export class MathBackendCPU extends KernelBackend {
@@ -91,14 +91,30 @@ export class MathBackendCPU extends KernelBackend {
       }
     }
     const dataId = {};
-    this.data.set(dataId, {values, dtype});
+
+    this.data.set(dataId, {values, dtype, refCount: 1});
+
     return dataId;
+  }
+
+  /** Increase refCount of a `TensorData`. */
+  incRef(dataId: DataId): void {
+    const tensorData = this.data.get(dataId);
+    tensorData.refCount++;
+  }
+
+  /** Decrease refCount of a `TensorData`. */
+  decRef(dataId: DataId): void {
+    if (this.data.has(dataId)) {
+      const tensorData = this.data.get(dataId);
+      tensorData.refCount--;
+    }
   }
 
   move(
       dataId: DataId, values: backend_util.BackendValues, shape: number[],
       dtype: DataType): void {
-    this.data.set(dataId, {values, dtype});
+    this.data.set(dataId, {values, dtype, refCount: 1});
   }
 
   numDataIds(): number {
@@ -148,6 +164,20 @@ export class MathBackendCPU extends KernelBackend {
         complexTensors.imag.dispose();
       }
       this.data.delete(dataId);
+    }
+  }
+
+  disposeIntermediateTensorInfo(tensorInfo: TensorInfo): void {
+    const dataId = tensorInfo.dataId;
+
+    if (this.data.has(dataId)) {
+      const tensorData = this.data.get(dataId);
+
+      tensorData.refCount--;
+
+      if (tensorData.refCount < 1) {
+        this.disposeData(dataId);
+      }
     }
   }
 
@@ -464,6 +494,7 @@ export class MathBackendCPU extends KernelBackend {
           mapActivation(this, result, activation, preluActivationWeights) as
           Tensor3D;
     }
+
     return result;
   }
 
@@ -2061,27 +2092,6 @@ export class MathBackendCPU extends KernelBackend {
     return tile(this.bufferSync(x), reps) as T;
   }
 
-  pad<T extends Tensor>(
-      x: T, paddings: Array<[number, number]>, constantValue: number): T {
-    assertNotComplex(x, 'pad');
-
-    const outShape = paddings.map(
-        (p, i) => p[0] /* beforePad */ + x.shape[i] + p[1] /* afterPad */);
-    const start = paddings.map(p => p[0]);
-    const xBuffer = this.bufferSync(x);
-    const buffer = tf.buffer(outShape, x.dtype as 'float32');
-    if (constantValue !== 0) {
-      buffer.values.fill(constantValue);
-    }
-
-    for (let i = 0; i < x.size; i++) {
-      const coords = xBuffer.indexToLoc(i);
-      const outCoords = coords.map((c, i) => c + start[i]);
-      buffer.set(xBuffer.get(...coords), ...outCoords);
-    }
-    return buffer.toTensor() as T;
-  }
-
   gather<T extends Tensor>(x: T, indices: Tensor1D, axis: number): T {
     assertNotComplex([x, indices], 'gather');
 
@@ -2122,33 +2132,6 @@ export class MathBackendCPU extends KernelBackend {
     return tf.transpose(x.reshape(reshaped), permuted)
                .reshape(reshapedPermuted)
                .slice(sliceBeginCoords, sliceSize) as T;
-  }
-
-  spaceToBatchND<T extends Tensor>(
-      x: T, blockShape: number[], paddings: Array<[number, number]>): T {
-    assertNotComplex([x], 'spaceToBatchND');
-
-    const prod = blockShape.reduce((a, b) => a * b);
-
-    const completePaddings: Array<[number, number]> = [[0, 0]];
-    completePaddings.push(...paddings);
-    for (let i = 1 + blockShape.length; i < x.shape.length; ++i) {
-      completePaddings.push([0, 0]);
-    }
-
-    const paddedX = x.pad(completePaddings);
-
-    const reshapedPaddedShape =
-        backend_util.getReshaped(paddedX.shape, blockShape, prod, false);
-    const permutedReshapedPaddedPermutation = backend_util.getPermuted(
-        reshapedPaddedShape.length, blockShape.length, false);
-    const flattenShape = backend_util.getReshapedPermuted(
-        paddedX.shape, blockShape, prod, false);
-
-    const paddedXT = tf.transpose(
-        paddedX.reshape(reshapedPaddedShape),
-        permutedReshapedPaddedPermutation);
-    return reshape(paddedXT, flattenShape) as T;
   }
 
   maxPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
@@ -2629,10 +2612,6 @@ export class MathBackendCPU extends KernelBackend {
 
   cast<T extends Tensor>(x: T, dtype: DataType): T {
     return backend_util.castTensor(x, dtype, this);
-  }
-
-  reshape<R extends Rank>(x: Tensor, shape: ShapeMap[R]): Tensor<R> {
-    return backend_util.reshapeTensor(x, shape);
   }
 
   avgPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
