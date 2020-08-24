@@ -116,6 +116,43 @@ module.exports = function(config) {
         browser_version: 'latest',
         os: 'OS X',
         os_version: 'High Sierra'
+      },
+      bs_firefox_mac: {
+        base: 'BrowserStack',
+        browser: 'firefox',
+        browser_version: 'latest',
+        os: 'OS X',
+        os_version: 'High Sierra'
+      },
+      bs_safari_mac: {
+        base: 'BrowserStack',
+        browser: 'safari',
+        browser_version: 'latest',
+        os: 'OS X',
+        os_version: 'High Sierra'
+      },
+      bs_ios_11: {
+        base: 'BrowserStack',
+        device: 'iPhone X',
+        os: 'iOS',
+        os_version: '11.0',
+        real_mobile: true
+      },
+      bs_android_9: {
+        base: 'BrowserStack',
+        device: 'Google Pixel 3 XL',
+        os: 'android',
+        os_version: '9.0',
+        real_mobile: true
+      },
+      win_10_chrome: {
+        base: 'BrowserStack',
+        browser: 'chrome',
+        // Latest Chrome on Windows has WebGL problems:
+        // https://github.com/tensorflow/tfjs/issues/2272
+        browser_version: '77.0',
+        os: 'Windows',
+        os_version: '10'
       }
     },
     client: {jasmine: {random: false}, args: args},
