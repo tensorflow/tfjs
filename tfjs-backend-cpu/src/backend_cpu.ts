@@ -59,6 +59,9 @@ export interface TensorData<D extends DataType> {
   // TODO(smilkov): Replace Tensor with TensorInfo when you modularize ops
   // that work with complex tensors.
   complexTensors?: {real: Tensor, imag: Tensor};
+  // refCount keeps track of how many tensors reference it. Used for memory
+  // management.
+  refCount: number;
 }
 
 export class MathBackendCPU extends KernelBackend {
@@ -91,14 +94,39 @@ export class MathBackendCPU extends KernelBackend {
       }
     }
     const dataId = {};
-    this.data.set(dataId, {values, dtype});
+
+    // When creating a data bucket, we assume it is temporary, therefore its
+    // refCount starts from 0. When an output tensor is made, it will increase
+    // the refCount by 1. This makes sure the output data is not disposed.
+    this.data.set(dataId, {values, dtype, refCount: 0});
+
     return dataId;
+  }
+
+  /** Increase refCount of a `TensorData`. */
+  incRef(dataId: DataId): void {
+    if (this.data.has(dataId)) {
+      const tensorData = this.data.get(dataId);
+      tensorData.refCount++;
+    }
+    // Do not throw error when dataId not found for testing. Some tests
+    // may use the backend without actually write any data to the backend.
+  }
+
+  /** Decrease refCount of a `TensorData`. */
+  decRef(dataId: DataId): void {
+    if (this.data.has(dataId)) {
+      const tensorData = this.data.get(dataId);
+      tensorData.refCount--;
+    }
+    // Do not throw error when dataId not found for testing. Some tests
+    // may use the backend without actually write any data to the backend.
   }
 
   move(
       dataId: DataId, values: backend_util.BackendValues, shape: number[],
       dtype: DataType): void {
-    this.data.set(dataId, {values, dtype});
+    this.data.set(dataId, {values, dtype, refCount: 0});
   }
 
   numDataIds(): number {
@@ -142,12 +170,18 @@ export class MathBackendCPU extends KernelBackend {
 
   disposeData(dataId: DataId): void {
     if (this.data.has(dataId)) {
-      const {complexTensors} = this.data.get(dataId);
-      if (complexTensors != null) {
-        complexTensors.real.dispose();
-        complexTensors.imag.dispose();
+      const tensorData = this.data.get(dataId);
+
+      if (tensorData.refCount < 1) {
+        if (tensorData.complexTensors != null) {
+          // Todo(linazhao): Change to disposeData once complex, real, and imag
+          // kernels are modularized and real and imag becomes `TensorInfo`.
+          tensorData.complexTensors.real.dispose();
+          tensorData.complexTensors.imag.dispose();
+        }
+
+        this.data.delete(dataId);
       }
-      this.data.delete(dataId);
     }
   }
 
@@ -2629,10 +2663,6 @@ export class MathBackendCPU extends KernelBackend {
 
   cast<T extends Tensor>(x: T, dtype: DataType): T {
     return backend_util.castTensor(x, dtype, this);
-  }
-
-  reshape<R extends Rank>(x: Tensor, shape: ShapeMap[R]): Tensor<R> {
-    return backend_util.reshapeTensor(x, shape);
   }
 
   avgPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {

@@ -113,6 +113,12 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   write(values: BackendValues, shape: number[], dtype: DataType): DataId {
     return notYetImplemented('write');
   }
+  incRef(dataId: DataId): void {
+    return notYetImplemented('incRef');
+  }
+  decRef(dataId: DataId): void {
+    return notYetImplemented('decRef');
+  }
   move(dataId: DataId, values: BackendValues, shape: number[], dtype: DataType):
       void {
     return notYetImplemented('move');
