@@ -44,8 +44,13 @@ export class BackendWasm extends KernelBackend {
 
   constructor(public wasm: BackendWasmModule) {
     super();
-    this.wasm.tfjs.init();
-    this.dataIdMap = new DataStorage(this, engine());
+
+    try {
+      this.wasm.tfjs.init();
+      this.dataIdMap = new DataStorage(this, engine());
+    } catch (e) {
+      throw new Error(`Unable to initialize an instance of BackendWasm: ${e}`);
+    }
   }
 
   write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
@@ -176,7 +181,14 @@ export class BackendWasm extends KernelBackend {
 }
 
 registerBackend('wasm', async () => {
-  const {wasm} = await init();
+  let wasm;
+
+  try {
+    wasm = (await init()).wasm;
+  } catch (e) {
+    throw new Error(`Unable to initialize the wasm module: ${e}`);
+  }
+
   return new BackendWasm(wasm);
 }, WASM_PRIORITY);
 
