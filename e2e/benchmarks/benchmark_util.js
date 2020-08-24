@@ -140,7 +140,7 @@ function getPredictFnForModel(model, input) {
  * const model = await tf.loadGraphModel(modelUrl, {fromTFHub: true});
  * const zeros = tf.zeros([1, 224, 224, 3]);
  * const timeInfo =
- *    await profileInferenceTimeForModel(model, zeros, 2);
+ *    await timeModelInference(model, zeros, 2);
  *
  * console.log(`Elapsed time array: ${timeInfo.times}`);
  * console.log(`Average time: ${timeInfo.averageTime}`);
@@ -153,9 +153,9 @@ function getPredictFnForModel(model, input) {
  * @param input The input tensor container for model inference.
  * @param numRuns The number of rounds for timing the inference process.
  */
-async function profileInferenceTimeForModel(model, input, numRuns = 1) {
+async function timeModelInference(model, input, numRuns = 1) {
   const predict = getPredictFnForModel(model, input);
-  return profileInferenceTime(predict, numRuns);
+  return timeInference(predict, numRuns);
 }
 
 /**
@@ -176,7 +176,7 @@ async function profileInferenceTimeForModel(model, input, numRuns = 1) {
  * const model = await tf.loadGraphModel(modelUrl, {fromTFHub: true});
  * const zeros = tf.zeros([1, 224, 224, 3]);
  * const timeInfo =
- *    await profileInferenceTime(() => model.predict(zeros), 2);
+ *    await timeInference(() => model.predict(zeros), 2);
  *
  * console.log(`Elapsed time array: ${timeInfo.times}`);
  * console.log(`Average time: ${timeInfo.averageTime}`);
@@ -187,7 +187,7 @@ async function profileInferenceTimeForModel(model, input, numRuns = 1) {
  * @param predict The predict function to execute and time.
  * @param numRuns The number of rounds for `predict` to execute and time.
  */
-async function profileInferenceTime(predict, numRuns = 1) {
+async function timeInference(predict, numRuns = 1) {
   if (typeof predict !== 'function') {
     throw new Error(
         'The first parameter should be a function, while ' +
