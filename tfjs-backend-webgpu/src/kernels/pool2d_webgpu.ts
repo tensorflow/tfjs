@@ -26,23 +26,23 @@ export class Pool2DProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
   userCode: string;
-  dispatchLayout: {x: number[], y: number[], z: number[]};
+  dispatchLayout: {x: number[], y: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
   uniforms = 'ivec2 pad, stride, dilation, convDims, filterDims;';
   // TODO(jiajia.qin@intel.com): Dynamically choose different workGroupSize and
   // workPerThead for different output shapes.
-  workGroupSize: [number, number, number] = [4, 4, 1];
-  workPerThread = 16;
+  workGroupSize: [number, number, number] = [16, 16, 1];
+  workPerThread = 4;
 
   constructor(convInfo: backend_util.Conv2DInfo, poolType: 'max'|'avg') {
     this.outputShape = convInfo.outShape;
 
-    this.dispatchLayout = {x: [0, 1], y: [2], z: [3]};
+    this.dispatchLayout = {x: [0, 1, 2], y: [3]};
 
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [1, 1, this.workPerThread]);
+        [1, this.workPerThread, 1]);
 
     let updateSnippet = `resultValue[i] = max(value, resultValue[i]);`;
     if (poolType === 'avg') {

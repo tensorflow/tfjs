@@ -18,7 +18,7 @@
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {getShapeCoords} from '../shader_preprocessor';
-import {computeDispatch} from '../webgpu_util';
+import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
@@ -26,15 +26,15 @@ export class MaxPoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
   userCode: string;
-  dispatchLayout: {x: number[], y: number[], z: number[]};
+  dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
   uniforms = 'ivec2 pad, stride, dilation, convDims, filterDims;';
-  workGroupSize: [number, number, number] = [4, 4, 4];
+  workGroupSize: [number, number, number] = [256, 1, 1];
 
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.outShape;
-    this.dispatchLayout = {x: [0, 1], y: [2], z: [3]};
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
 
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);

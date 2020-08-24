@@ -39,10 +39,10 @@ describe('benchmark_util', () => {
   });
 
   describe('profile inference time', () => {
-    describe('profileInferenceTime', () => {
+    describe('timeInference', () => {
       it('throws when passing in invalid predict', async () => {
         const predict = {};
-        await expectAsync(profileInferenceTime(predict)).toBeRejected();
+        await expectAsync(timeInference(predict)).toBeRejected();
       });
 
       it('does not add new tensors', async () => {
@@ -51,7 +51,7 @@ describe('benchmark_util', () => {
         const input = tf.zeros([1, 3]);
 
         const tensorsBefore = tf.memory().numTensors;
-        await profileInferenceTime(() => model.predict(input));
+        await timeInference(() => model.predict(input));
         expect(tf.memory().numTensors).toEqual(tensorsBefore);
 
         model.dispose();

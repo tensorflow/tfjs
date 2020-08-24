@@ -88,11 +88,11 @@ describe('benchmark models', () => {
       let memoryInfo;
       if (benchmark.predictFunc != null) {
         const predict = benchmark.predictFunc();
-        timeInfo = await profileInferenceTime(() => predict(model), numRuns);
+        timeInfo = await timeInference(() => predict(model), numRuns);
         memoryInfo = await profileInference(() => predict(model));
       } else {
         const input = generateInput(model);
-        timeInfo = await profileInferenceTimeForModel(model, input, numRuns);
+        timeInfo = await timeModelInference(model, input, numRuns);
         memoryInfo = await profileModelInference(model, input);
       }
 
