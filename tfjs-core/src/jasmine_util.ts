@@ -259,7 +259,8 @@ function executeTests(
       }
       env().set('IS_TEST', true);
       // Await setting the new backend since it can have async init.
-      await ENGINE.setBackend(testEnv.backendName);
+      ENGINE.setBackend(testEnv.backendName);
+      await ENGINE.ready();
     });
 
     beforeEach(() => {
