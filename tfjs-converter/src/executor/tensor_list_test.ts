@@ -40,6 +40,20 @@ describe('TensorList', () => {
     expect(tensorList.elementShape).toEqual(SHAPE);
   });
 
+  it('should not dispose keep tensors when close', () => {
+    const numOfTensors = memory().numTensors;
+    tensorList.pushBack(tensor);
+    tensorList.pushBack(tensor2);
+    const size = tensorList.size();
+    const keepIds = new Set([tensor.id]);
+    tensorList.clearAndClose(keepIds);
+    expect(tensorList.size()).toBe(0);
+    expect(tensor.isDisposed).toBeFalsy();
+    expect(tensor2.isDisposed).toBeTruthy();
+    // disposed the tensor in the array and idTensor of the array
+    expect(memory().numTensors).toEqual(numOfTensors - size);
+  });
+
   describe('pushBack', () => {
     it('should add new tensor', () => {
       tensorList.pushBack(tensor);
