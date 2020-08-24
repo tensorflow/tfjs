@@ -52,8 +52,12 @@ export class TensorArray {
   /**
    * Dispose the tensors and idTensor and mark the TensoryArray as closed.
    */
-  clearAndClose() {
-    this.tensors.forEach(tensor => tensor.tensor.dispose());
+  clearAndClose(keepIds?: Set<number>) {
+    this.tensors.forEach(tensor => {
+      if (keepIds == null || !keepIds.has(tensor.tensor.id)) {
+        tensor.tensor.dispose();
+      }
+    });
     this.tensors = [];
     this.closed_ = true;
     this.idTensor.dispose();

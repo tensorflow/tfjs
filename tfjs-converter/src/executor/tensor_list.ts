@@ -80,8 +80,12 @@ export class TensorList {
   /**
    * Dispose the tensors and idTensor and clear the tensor list.
    */
-  clearAndClose() {
-    this.tensors.forEach(tensor => tensor.dispose());
+  clearAndClose(keepIds?: Set<number>) {
+    this.tensors.forEach(tensor => {
+      if (keepIds == null || !keepIds.has(tensor.id)) {
+        tensor.dispose();
+      }
+    });
     this.tensors.length = 0;
     this.idTensor.dispose();
   }
