@@ -37,6 +37,12 @@ ENV.registerFlag(
  */
 // From: https://github.com/GoogleChromeLabs/wasm-feature-detect
 ENV.registerFlag('WASM_HAS_MULTITHREAD_SUPPORT', async () => {
+  // TODO(annxingyuan): Enable node support once this is resolved:
+  // https://github.com/tensorflow/tfjs/issues/3830
+  if (ENV.get('IS_NODE')) {
+    return false;
+  }
+
   try {
     // Test for transferability of SABs (needed for Firefox)
     // https://groups.google.com/forum/#!msg/mozilla.dev.platform/IHkBZlHETpA/dwsMNchWEQAJ
