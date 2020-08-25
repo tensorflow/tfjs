@@ -26,7 +26,17 @@ import './flags';
 import './platforms/platform_browser';
 import './platforms/platform_node';
 
-import * as ops from './ops/ops';
-import {setOpHandler} from './tensor';
+import {buffer} from './ops/buffer';
+import {cast} from './ops/cast';
+import {clone} from './ops/clone';
+import {print} from './ops/print';
+import {OpHandler, setOpHandler} from './tensor';
 
-setOpHandler(ops);
+const opHandler: OpHandler = {
+  buffer,
+  cast,
+  clone,
+  print
+};
+
+setOpHandler(opHandler);
