@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,19 +14,26 @@
  * limitations under the License.
  * =============================================================================
  */
-import {resizeBilinear} from '../../ops/image/resize_bilinear';
-import {Tensor, Tensor3D, Tensor4D} from '../../tensor';
-import {Rank} from '../../types';
 
-declare module '../../tensor' {
-  interface Tensor<R extends Rank = Rank> {
-    resizeBilinear<T extends Tensor3D|Tensor4D>(
-        newShape2D: [number, number], alignCorners?: boolean): T;
-  }
+import {Tensor1D} from '../../tensor';
+import {op} from '../operation';
+import {cosineWindow} from '../signal_ops_util';
+
+
+/**
+ * Generate a hamming window.
+ *
+ * See: https://en.wikipedia.org/wiki/Window_function#Hann_and_Hamming_windows
+ *
+ * ```js
+ * tf.signal.hammingWindow(10).print();
+ * ```
+ * @param The length of window
+ */
+/**
+ * @doc {heading: 'Operations', subheading: 'Signal', namespace: 'signal'}
+ */
+function hammingWindow_(windowLength: number): Tensor1D {
+  return cosineWindow(windowLength, 0.54, 0.46);
 }
-
-Tensor.prototype.resizeBilinear = function<T extends Tensor3D|Tensor4D>(
-    this: T, newShape2D: [number, number], alignCorners?: boolean): T {
-  this.throwIfDisposed();
-  return resizeBilinear(this, newShape2D, alignCorners);
-};
+export const hammingWindow = op({hammingWindow_});
