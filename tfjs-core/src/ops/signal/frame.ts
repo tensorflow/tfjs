@@ -23,7 +23,6 @@ import {reshape} from '../reshape';
 import {slice} from '../slice';
 import {tensor2d} from '../tensor2d';
 
-
 /**
  * Expands input into frames of frameLength.
  * Slides a window size with frameStep.

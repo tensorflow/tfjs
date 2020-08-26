@@ -26,7 +26,6 @@ import {sub} from '../sub';
 
 import {computeWeightedLoss} from './compute_weighted_loss';
 
-
 /**
  * Computes the absolute difference loss between two tensors.
  *

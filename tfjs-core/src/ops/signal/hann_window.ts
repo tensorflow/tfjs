@@ -19,7 +19,6 @@ import {Tensor1D} from '../../tensor';
 import {op} from '../operation';
 import {cosineWindow} from '../signal_ops_util';
 
-
 /**
  * Generate a Hann window.
  *

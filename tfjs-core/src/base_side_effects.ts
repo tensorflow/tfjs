@@ -19,7 +19,6 @@
 
 // Set up Engine and ENV
 import {getOrMakeEngine} from './engine';
-console.log('calling getOrMakeEngine');
 getOrMakeEngine();
 
 // Register backend-agnostic flags.

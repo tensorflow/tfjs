@@ -27,7 +27,6 @@ import {sub} from '../sub';
 
 import {computeWeightedLoss} from './compute_weighted_loss';
 
-
 /**
  * Computes the Hinge loss between two tensors.
  *

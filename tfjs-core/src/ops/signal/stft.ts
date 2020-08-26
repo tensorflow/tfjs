@@ -26,8 +26,6 @@ import {rfft} from '../spectral/rfft';
 import {frame} from './frame';
 import {hannWindow} from './hann_window';
 
-
-
 /**
  * Computes the Short-time Fourier Transform of signals
  * See: https://en.wikipedia.org/wiki/Short-time_Fourier_transform

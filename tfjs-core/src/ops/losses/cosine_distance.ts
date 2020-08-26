@@ -27,7 +27,6 @@ import {sum} from '../sum';
 
 import {computeWeightedLoss} from './compute_weighted_loss';
 
-
 /**
  * Computes the cosine distance loss between two tensors.
  *

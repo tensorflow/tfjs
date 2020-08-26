@@ -31,7 +31,6 @@ import {sub} from '../sub';
 
 import {computeWeightedLoss} from './compute_weighted_loss';
 
-
 /**
  * Computes the huber loss between two tensors.
  *
