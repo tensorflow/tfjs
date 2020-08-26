@@ -25,8 +25,6 @@ import {Node} from '../types';
 import {executeOp} from './arithmetic_executor';
 import {createTensorAttr, createTensorsAttr} from './test_helper';
 
-console.log('ARITCHMETIC EXEC TEST');
-
 describe('arithmetic', () => {
   let node: Node;
   const input1 = [tfOps.scalar(1)];
