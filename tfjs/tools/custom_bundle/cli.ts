@@ -132,11 +132,12 @@ function produceCustomTFJSModule(
   const customTfjsFileName = 'custom_tfjs.js';
   const customTfjsCoreFileName = 'custom_tfjs_core.js';
 
+  // Write a custom module for @tensorflow/tfjs and @tensorflow/tfjs-core
   fs.writeFileSync(
       path.join(outputPath, customTfjsCoreFileName), moduleStrs.core);
   fs.writeFileSync(path.join(outputPath, customTfjsFileName), moduleStrs.tfjs);
 
-  // Write a custom module for converter executors
+  // Write a custom module tfjs-core ops used by converter executors
   if (converterOps.length > 0) {
     const converterOpsModule =
         getCustomConverterOpsModule(converterOps, esmModuleProvider);

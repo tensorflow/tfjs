@@ -36,6 +36,8 @@ export interface CustomTFJSBundleConfig {
 export interface ModuleProvider {
   importCoreStr: () => string;
   importOpForConverterStr: (opSymbol: string) => string;
+  importNamespacedOpsForConverterStr:
+      (namespace: string, opSymbols: string[]) => string;
   importConverterStr: () => string;
   importBackendStr: (backendPkg: string) => string;
   importKernelStr: (kernelName: string, backend: string) => {

@@ -60,7 +60,36 @@ export function getCustomModuleString(
 export function getCustomConverterOpsModule(
     ops: string[], moduleProvider: ModuleProvider): string {
   const result: string[] = [];
+
+  // Separate namespaced apis from non namespaced ones as they require a
+  // different export pattern that treats each namespace as a whole.
+
+  const flatOps = [];
+  const namespacedOps: {[key: string]: string[]} = {};
+
   for (const opSymbol of ops) {
+    if (opSymbol.match(/\./)) {
+      const parts = opSymbol.split(/\./);
+      const namespace = parts[0];
+      const opName = parts[1];
+
+      if (namespacedOps[namespace] == null) {
+        namespacedOps[namespace] = [];
+      }
+      namespacedOps[namespace].push(opName);
+    } else {
+      flatOps.push(opSymbol);
+    }
+  }
+
+  // Group the namespaced symbols by namespa
+  for (const namespace of Object.keys(namespacedOps)) {
+    const opSymbols = namespacedOps[namespace];
+    result.push(moduleProvider.importNamespacedOpsForConverterStr(
+        namespace, opSymbols));
+  }
+
+  for (const opSymbol of flatOps) {
     result.push(moduleProvider.importOpForConverterStr(opSymbol));
   }
 

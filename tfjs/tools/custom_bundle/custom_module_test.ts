@@ -34,17 +34,12 @@ const mockModuleProvider: ModuleProvider = {
     return 'PATH_TO_KERNEL2OP.json';
   },
   importOpForConverterStr: (opSymbol: string) => {
-    if (Array.isArray(opSymbol)) {
-      return opSymbol.map(o => `export * from ${o}`).join('\n');
-    } else {
-      if (opSymbol.match('.')) {
-        const symbolPath = opSymbol.replace('.', '/');
-        return `export * from ${symbolPath}`;
-      } else {
-        return `export * from ${opSymbol}`;
-      }
-    }
+    return `export * from ${opSymbol}`;
   },
+  importNamespacedOpsForConverterStr: (
+      namespace: string, opSymbols: string[]) => {
+    return `export ${opSymbols.join(',')} as ${namespace} from ${namespace}/`;
+  }
 };
 
 describe('getCustomModuleString forwardModeOnly=true', () => {
@@ -194,7 +189,7 @@ describe('getCustomConverterOpsModule', () => {
         ['image.resizeBilinear', 'image.resizeNearestNeighbor'],
         mockModuleProvider);
 
-    expect(result).toContain('export * from image/resizeBilinear');
-    expect(result).toContain('export * from image/resizeNearestNeighbor');
+    expect(result).toContain(
+        'export resizeBilinear,resizeNearestNeighbor as image from image/');
   });
 });
