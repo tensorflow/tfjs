@@ -127,7 +127,7 @@ MobileNet is a medium-sized model with 3.48M params and ~300M multiply-adds.
 For this model, the WASM backend is between ~3X-11.5X faster than the plain
 JS backend, and ~5.3-7.7X slower than the WebGL backend.
 
-<img src="./mobilenet-v2-bench.svg">
+<img src="./mobilenet-v2-bench.png">
 
 | MobileNet inference (ms) | WASM  | WebGL | Plain JS | WASM + SIMD | WASM + SIMD + threads
 |--------------------------|-------|-------|----------|-------------|----------------------
@@ -147,7 +147,7 @@ the WASM backend is between ~8.2-19.8X faster than the plain JS backend and
 comparable to the WebGL backend (up to ~1.7X faster, or 2X slower, depending on
 the device).
 
-<img src="./face-detector-bench.svg">
+<img src="./face-detector-bench.png">
 
 | Face Detector inference (ms) | WASM | WebGL | Plain JS | WASM + SIMD | WASM + SIMD + threads
 |------------------------------|------|-------|----------|-------------|----------------------
