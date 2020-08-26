@@ -14,6 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
+import './engine';
+
 import * as device_util from './device_util';
 import {env} from './environment';
 
