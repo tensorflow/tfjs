@@ -14,7 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as tfc from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import * as image from '../op_list/image';
@@ -25,7 +26,7 @@ import {createBoolAttr, createNumberAttr, createNumericArrayAttrFromIndex, creat
 
 describe('image', () => {
   let node: Node;
-  const input1 = [tfc.tensor1d([1])];
+  const input1 = [tfOps.tensor1d([1])];
   const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
@@ -49,10 +50,10 @@ describe('image', () => {
         node.inputParams['size'] = createNumericArrayAttrFromIndex(1);
         node.attrParams['alignCorners'] = createBoolAttr(true);
         node.inputNames = ['input1', 'input2'];
-        const input2 = [tfc.tensor1d([1, 2])];
-        spyOn(tfc.image, 'resizeBilinear');
+        const input2 = [tfOps.tensor1d([1, 2])];
+        spyOn(tfOps.image, 'resizeBilinear');
         executeOp(node, {input1, input2}, context);
-        expect(tfc.image.resizeBilinear)
+        expect(tfOps.image.resizeBilinear)
             .toHaveBeenCalledWith(input1[0], [1, 2], true);
       });
       it('should match json def', () => {
@@ -71,10 +72,10 @@ describe('image', () => {
         node.inputParams['size'] = createNumericArrayAttrFromIndex(1);
         node.attrParams['alignCorners'] = createBoolAttr(true);
         node.inputNames = ['input1', 'input2'];
-        const input2 = [tfc.tensor1d([1, 2])];
-        spyOn(tfc.image, 'resizeNearestNeighbor');
+        const input2 = [tfOps.tensor1d([1, 2])];
+        spyOn(tfOps.image, 'resizeNearestNeighbor');
         executeOp(node, {input1, input2}, context);
-        expect(tfc.image.resizeNearestNeighbor)
+        expect(tfOps.image.resizeNearestNeighbor)
             .toHaveBeenCalledWith(input1[0], [1, 2], true);
       });
       it('should match json def', () => {
@@ -97,13 +98,13 @@ describe('image', () => {
         node.attrParams['extrapolationValue'] = createNumberAttr(0.5);
         node.inputNames = ['input1', 'input2', 'input3', 'input4'];
 
-        spyOn(tfc.image, 'cropAndResize');
-        const input2 = [tfc.tensor1d([2])];
-        const input3 = [tfc.tensor1d([3])];
-        const input4 = [tfc.tensor1d([4, 5])];
+        spyOn(tfOps.image, 'cropAndResize');
+        const input2 = [tfOps.tensor1d([2])];
+        const input3 = [tfOps.tensor1d([3])];
+        const input4 = [tfOps.tensor1d([4, 5])];
 
         executeOp(node, {input1, input2, input3, input4}, context);
-        expect(tfc.image.cropAndResize)
+        expect(tfOps.image.cropAndResize)
             .toHaveBeenCalledWith(
                 input1[0], input2[0], input3[0], [4, 5], 'bilinear', 0.5);
       });
