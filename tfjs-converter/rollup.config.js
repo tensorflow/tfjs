@@ -74,10 +74,16 @@ function config({
     output: {
       banner: PREAMBLE,
       sourcemap: true,
-      globals: {'@tensorflow/tfjs-core': 'tf'},
+      globals: {
+        '@tensorflow/tfjs-core': 'tf',
+        '@tensorflow/tfjs-core/dist/ops/ops_for_converter': 'tf'
+      },
       ...output
     },
-    external: ['@tensorflow/tfjs-core', ...external],
+    external: [
+      '@tensorflow/tfjs-core',
+      '@tensorflow/tfjs-core/dist/ops/ops_for_converter', ...external
+    ],
     onwarn: warning => {
       let {code} = warning;
       if (code === 'CIRCULAR_DEPENDENCY' || code === 'CIRCULAR' ||
