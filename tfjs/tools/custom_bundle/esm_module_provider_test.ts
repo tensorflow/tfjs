@@ -107,7 +107,6 @@ export const image = {
 };`);
   });
 
-
   it('pathToKernel2OpMapping', () => {
     const res = esmModuleProvider.pathToKernel2OpMapping();
     expect(res).toContain(`tfjs-converter/metadata/kernel2op.json`);
