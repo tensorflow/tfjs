@@ -62,6 +62,20 @@ export * from '@tensorflow/tfjs-core/dist/base';
             kernelName}_grad';`;
 
     return {importStatement, gradConfigId};
+  },
+
+  pathToKernel2OpMapping() {
+    return require.resolve(
+        '@tensorflow/tfjs-converter/metadata/kernel2op.json');
+  },
+
+  importOpForConverterStr(opSymbol) {
+    if (opSymbol.match('.')) {
+      const symbolPath = opSymbol.replace('.', '/');
+      return `export * from '@tensorflow/tfjs-core/dist/ops/${symbolPath}';`;
+    } else {
+      return `export * from '@tensorflow/tfjs-core/dist/ops/${opSymbol}';`;
+    }
   }
 };
 

@@ -61,4 +61,30 @@ describe('ESM Module Provider', () => {
 
     expect(res.gradConfigId).toBe('maxGradConfig');
   });
+
+  it('importGradientConfigStr Max', () => {
+    const res = esmModuleProvider.importGradientConfigStr('Max');
+    expect(res.importStatement).toContain('import {maxGradConfig}');
+    expect(res.importStatement)
+        .toContain(`from '@tensorflow/tfjs-core/dist/gradients/Max_grad'`);
+
+    expect(res.gradConfigId).toBe('maxGradConfig');
+  });
+
+  it('importOpForConverterStr add', () => {
+    const res = esmModuleProvider.importOpForConverterStr('add');
+    expect(res).toBe(`export * from '@tensorflow/tfjs-core/dist/ops/add';`);
+  });
+
+  it('importOpForConverterStr image.resizeBilinear', () => {
+    const res =
+        esmModuleProvider.importOpForConverterStr('image.resizeBilinear');
+    expect(res).toBe(
+        `export * from '@tensorflow/tfjs-core/dist/ops/image/resizeBilinear';`);
+  });
+
+  it('pathToKernel2OpMapping', () => {
+    const res = esmModuleProvider.pathToKernel2OpMapping();
+    expect(res).toContain(`tfjs-converter/metadata/kernel2op.json`);
+  });
 });
