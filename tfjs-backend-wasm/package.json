@@ -74,5 +74,11 @@
     "typescript": "3.5.3",
     "yalc": "~1.0.0-pre.21"
   },
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "sideEffects": [
+    "./dist/register_all_kernels.js",
+    "./dist/flags_wasm.js",
+    "./dist/base.js",
+    "./dist/index.js"
+  ]
 }
