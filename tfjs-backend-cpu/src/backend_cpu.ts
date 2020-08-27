@@ -1208,17 +1208,6 @@ export class MathBackendCPU extends KernelBackend {
     return this.makeOutput(resultValues, x.shape, 'float32');
   }
 
-  int<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'int');
-
-    const resultValues = new Int32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < values.length; ++i) {
-      resultValues[i] = values[i];
-    }
-    return this.makeOutput(resultValues, x.shape, 'int32');
-  }
-
   sigmoid<T extends Tensor>(x: T): T {
     assertNotComplex(x, 'sigmoid');
 
@@ -2608,10 +2597,6 @@ export class MathBackendCPU extends KernelBackend {
       }
     }
     return dx.toTensor();
-  }
-
-  cast<T extends Tensor>(x: T, dtype: DataType): T {
-    return backend_util.castTensor(x, dtype, this);
   }
 
   avgPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {

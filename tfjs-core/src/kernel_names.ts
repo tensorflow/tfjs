@@ -358,6 +358,9 @@ export type IFFTInputs = Pick<NamedTensorInfoMap, 'input'>;
 export const Imag = 'Imag';
 export type ImagInputs = Pick<NamedTensorInfoMap, 'input'>;
 
+export const Int = 'Int';
+export type IntInputs = Pick<NamedTensorInfoMap, 'x'>;
+
 export const IsFinite = 'IsFinite';
 export type IsFiniteInputs = UnaryInputs;
 
