@@ -78,10 +78,10 @@ function validateArgs(): CustomTFJSBundleConfig {
     bail('Error: config.entries not yet supported');
   }
 
-  if (finalConfig.models.length !== 0) {
-    // TODO validate that all these paths exist.
-    // bail('Error: config.models not yet supported');
-  }
+  // if (finalConfig.models.length !== 0) {
+  // TODO validate that all these paths exist.
+  // bail('Error: config.models not yet supported');
+  // }
 
   for (const requestedBackend of finalConfig.backends) {
     if (requestedBackend !== SupportedBackends.cpu &&
