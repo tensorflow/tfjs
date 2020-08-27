@@ -224,7 +224,7 @@ export class GraphExecutor implements FunctionExecutor {
       }
       // dispose the context for the root executor
       if (this.parent == null) {
-        context.dispose();
+        context.dispose(tensorsToKeep);
       }
       return outputs.map(name => getTensor(name, tensorsMap, context));
     });
@@ -333,22 +333,21 @@ export class GraphExecutor implements FunctionExecutor {
     const results = outputs.map(name => getTensor(name, tensorMap, context));
 
     // dispose all the intermediate tensors
-    const outputIds = new Set<number>(results.map(t => t.id));
-    const inputIds =
-        new Set<number>(Object.keys(inputs).map(name => inputs[name].id));
+    const outputIds = results.map(t => t.id);
+    const inputIds = Object.keys(inputs).map(name => inputs[name].id);
+    const keepIds =
+        new Set<number>([...outputIds, ...inputIds, ...this.weightIds]);
     Object.keys(tensorMap).forEach(key => {
       const tensorArray = tensorMap[key];
       tensorArray.forEach(tensor => {
-        if (tensor && !tensor.isDisposed && !outputIds.has(tensor.id) &&
-            !inputIds.has(tensor.id) &&
-            this.weightIds.indexOf(tensor.id) === -1) {
+        if (tensor && !tensor.isDisposed && !keepIds.has(tensor.id)) {
           tensor.dispose();
         }
       });
     });
     // dispose the context for the root executor
     if (this.parent == null) {
-      context.dispose();
+      context.dispose(keepIds);
     }
 
     return results;

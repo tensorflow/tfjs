@@ -218,6 +218,7 @@ tfjs_cc_library(
         ":Conv2D",
         ":Conv2DBackpropInput",
         ":CropAndResize",
+        ":Cumsum",
         ":DepthwiseConv2dNative",
         ":Div",
         ":Equal",
@@ -257,6 +258,8 @@ tfjs_cc_library(
         ":SelectV2",
         ":Sigmoid",
         ":Softmax",
+        ":Square",
+        ":SquaredDifference",
         ":Sub",
         ":Tile",
         ":Transpose",
@@ -406,6 +409,15 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":interpolate_bilinear_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Cumsum",
+    srcs = ["kernels/Cumsum.cc"],
+    deps = [
+        ":backend",
         ":util",
     ],
 )
@@ -881,6 +893,17 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SquaredDifference",
+    srcs = ["kernels/SquaredDifference.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":unary",
+        ":util",
     ],
 )
 

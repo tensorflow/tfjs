@@ -91,9 +91,9 @@ export const executeOp: InternalOpAsyncExecutor = async(
           iouThreshold, scoreThreshold)];
     }
     case 'Where': {
-      const condition =
-          (getParamValue('condition', node, tensorMap, context) as tfc.Tensor)
-              .asType('bool');
+      const condition = tfc.cast(
+          (getParamValue('condition', node, tensorMap, context) as tfc.Tensor),
+          'bool');
       const result = [await tfc.whereAsync(condition)];
       condition.dispose();
       return result;

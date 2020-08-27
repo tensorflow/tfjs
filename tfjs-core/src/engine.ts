@@ -802,7 +802,9 @@ export class Engine implements TensorTracker, DataMover {
       });
       this.state.numBytes += bytes;
     }
+
     this.state.tensorInfo.get(a.dataId).refCount++;
+
     if (!(a instanceof Variable)) {
       this.track(a);
     }
@@ -819,6 +821,7 @@ export class Engine implements TensorTracker, DataMover {
     }
     const info = this.state.tensorInfo.get(a.dataId);
     const refCount = info.refCount;
+
     if (refCount <= 1) {
       // Don't count bytes for complex numbers as they are counted by their
       // components.
@@ -826,6 +829,7 @@ export class Engine implements TensorTracker, DataMover {
         this.state.numBytes -= info.bytes;
       }
       this.state.numDataBuffers--;
+
       info.backend.disposeData(a.dataId);
       this.state.tensorInfo.delete(a.dataId);
     } else {

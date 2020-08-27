@@ -68,6 +68,10 @@ startLocalRegistry "$e2e_root_path"/scripts/verdaccio.yaml
 # ****************************************************************************
 # Second, install the packages from local registry.
 # ****************************************************************************
+# First make sure npm install succeeds.
+npm install
+rm -rf node_modules
+# Then install dependencies via yarn.
 yarn
 
 # ****************************************************************************

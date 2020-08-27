@@ -469,6 +469,7 @@ describe('GraphExecutor', () => {
           };
 
           executor = new GraphExecutor(graphWithControlFlow);
+          executor.weightMap = {};
         });
 
         it('should execute control flow v2 graph', async () => {
@@ -595,6 +596,7 @@ describe('GraphExecutor', () => {
           };
 
           executor = new GraphExecutor(graphWithControlFlow);
+          executor.weightMap = {};
         });
 
         it('should execute control flow v2 graph', async () => {

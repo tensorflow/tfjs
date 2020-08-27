@@ -42,6 +42,34 @@ const karmaTypescriptConfig = {
   include: ['src/', 'wasm-out/']
 };
 
+const devConfig = {
+  frameworks: ['jasmine', 'karma-typescript'],
+  files: [
+    {pattern: './node_modules/@babel/polyfill/dist/polyfill.js'},
+    // Setup the environment for the tests.
+    'src/setup_test.ts',
+    // Serve the wasm file as a static resource.
+    {pattern: 'wasm-out/**/*.wasm', included: false},
+    // Import the generated js library from emscripten.
+    {pattern: 'wasm-out/**/*.js'},
+    // Import the rest of the sources.
+    {pattern: 'src/**/*.ts'},
+  ],
+  exclude: ['src/test_node.ts'],
+  preprocessors: {
+    'wasm-out/**/*.js': ['karma-typescript'],
+    '**/*.ts': ['karma-typescript']
+  },
+  karmaTypescriptConfig,
+  reporters: ['dots', 'karma-typescript']
+};
+
+const browserstackConfig = {
+  ...devConfig,
+  hostname: 'bs-local.com',
+  singleRun: true
+};
+
 module.exports = function(config) {
   const args = [];
   if (config.grep) {
@@ -50,45 +78,35 @@ module.exports = function(config) {
   if (config.flags) {
     args.push('--flags', config.flags);
   }
+
+  let extraConfig = null;
+
+  if (config.browserstack) {
+    extraConfig = browserstackConfig;
+  } else {
+    extraConfig = devConfig;
+  }
+
   config.set({
+    ...extraConfig,
     basePath: '',
-    frameworks: ['jasmine', 'karma-typescript'],
-    files: [
-      {pattern: './node_modules/@babel/polyfill/dist/polyfill.js'},
-      // Setup the environment for the tests.
-      'src/setup_test.ts',
-      // Serve the wasm file as a static resource.
-      {pattern: 'wasm-out/**/*.wasm', included: false},
-      // Import the generated js library from emscripten.
-      {pattern: 'wasm-out/**/*.js'},
-      // Import the rest of the sources.
-      {pattern: 'src/**/*.ts'},
-    ],
-    exclude: ['src/test_node.ts'],
-    preprocessors: {
-      'wasm-out/**/*.js': ['karma-typescript'],
-      '**/*.ts': ['karma-typescript']
-    },
-    karmaTypescriptConfig,
     // Redirect the request for the wasm file so karma can find it.
     proxies: {
       '/base/node_modules/karma-typescript/dist/client/tfjs-backend-wasm.wasm':
           '/base/wasm-out/tfjs-backend-wasm.wasm',
     },
-    reporters: ['dots', 'karma-typescript'],
-    port: 9876,
-    colors: true,
-    autoWatch: true,
     browsers: ['Chrome'],
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
-      accessKey: process.env.BROWSERSTACK_KEY
+      accessKey: process.env.BROWSERSTACK_KEY,
+      timeout: 1800
     },
-    singleRun: false,
-    captureTimeout: 120000,
+    captureTimeout: 3e5,
     reportSlowerThan: 500,
-    browserNoActivityTimeout: 180000,
-    client: {jasmine: {random: false}, args: args},
+    browserNoActivityTimeout: 3e5,
+    browserDisconnectTimeout: 3e5,
+    browserDisconnectTolerance: 0,
+    browserSocketTimeout: 1.2e5,
     customLaunchers: {
       // For browserstack configs see:
       // https://www.browserstack.com/automate/node
@@ -98,7 +116,45 @@ module.exports = function(config) {
         browser_version: 'latest',
         os: 'OS X',
         os_version: 'High Sierra'
+      },
+      bs_firefox_mac: {
+        base: 'BrowserStack',
+        browser: 'firefox',
+        browser_version: 'latest',
+        os: 'OS X',
+        os_version: 'High Sierra'
+      },
+      bs_safari_mac: {
+        base: 'BrowserStack',
+        browser: 'safari',
+        browser_version: 'latest',
+        os: 'OS X',
+        os_version: 'High Sierra'
+      },
+      bs_ios_11: {
+        base: 'BrowserStack',
+        device: 'iPhone X',
+        os: 'iOS',
+        os_version: '11.0',
+        real_mobile: true
+      },
+      bs_android_9: {
+        base: 'BrowserStack',
+        device: 'Google Pixel 3 XL',
+        os: 'android',
+        os_version: '9.0',
+        real_mobile: true
+      },
+      win_10_chrome: {
+        base: 'BrowserStack',
+        browser: 'chrome',
+        // Latest Chrome on Windows has WebGL problems:
+        // https://github.com/tensorflow/tfjs/issues/2272
+        browser_version: '77.0',
+        os: 'Windows',
+        os_version: '10'
       }
-    }
+    },
+    client: {jasmine: {random: false}, args: args},
   })
 }

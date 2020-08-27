@@ -511,18 +511,6 @@ def convert_tf_saved_model(saved_model_dir,
   # Define the strip graph functions when TransformGraph is available, this will
   # strip the unused nodes from the graph.
   if transform_graph_available:
-    def _gen_strip_unused_nodes_transformation(tensor):
-      """Generate `strip_unused_nodes()` transformation for the
-      input `tensor`.
-      """
-      name = tensor.name.split(":")[0]
-      # "<dtype: 'int64'>" -> "int64"
-      dtype = repr(tensor.dtype).replace("tf.", "")
-      # TensorShape([1, 128]) -> "1,128"
-      shape = ",".join(str(dim) for dim in tensor.shape)
-      return ('name="{}", type_for_name={}, '
-              'shape_for_name="{}"').format(name, dtype, shape)
-
     def _strip_unused_nodes(frozen_graph, concrete_func, output_node_names):
       # Find the names of the input nodes needed to extract the minimal
       # inference graph. This is particularly useful for cases when the concrete
@@ -544,12 +532,7 @@ def convert_tf_saved_model(saved_model_dir,
             # The original input was removed when the graph was frozen.
             continue
 
-      graph_transformations = [
-          "strip_unused_nodes(" + ", ".join(
-              _gen_strip_unused_nodes_transformation(tensor)
-              for tensor in concrete_func.inputs
-              if not tensor.dtype == 'resource') + ")"
-      ]
+      graph_transformations = ['strip_unused_nodes']
       stripped_graph_def = TransformGraph(
           frozen_graph.as_graph_def(), input_node_names, output_node_names,
           graph_transformations)
