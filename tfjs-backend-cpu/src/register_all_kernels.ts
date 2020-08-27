@@ -24,6 +24,7 @@ import {dilation2dBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter
 import {dilation2dBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
 import {divConfig} from './kernels/Div';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
+import {identityConfig} from './kernels/Identity';
 import {maxConfig} from './kernels/Max';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
@@ -40,7 +41,7 @@ import {transposeConfig} from './kernels/Transpose';
 const kernelConfigs: KernelConfig[] = [
   dilation2dConfig, dilation2dBackpropInputConfig,
   dilation2dBackpropFilterConfig, divConfig, flipLeftRightConfig,
-  maxPoolWithArgmaxConfig, maxConfig, nonMaxSuppressionV4Config,
+  identityConfig, maxPoolWithArgmaxConfig, maxConfig, nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config, padV2Config, reshapeConfig, rotateWithOffsetConfig,
   spaceToBatchNDConfig, squareConfig, squaredDifferenceConfig, transposeConfig
 ];
