@@ -82,7 +82,7 @@ export function getCustomConverterOpsModule(
     }
   }
 
-  // Group the namespaced symbols by namespa
+  // Group the namespaced symbols by namespace
   for (const namespace of Object.keys(namespacedOps)) {
     const opSymbols = namespacedOps[namespace];
     result.push(moduleProvider.importNamespacedOpsForConverterStr(

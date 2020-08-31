@@ -46,7 +46,7 @@ export interface ModuleProvider {
   importGradientConfigStr: (kernelName: string) => {
     importStatement: string, gradConfigId: string
   };
-  pathToKernel2OpMapping: () => string;
+  kernelToOpsMapPath: () => string;
 }
 
 export interface CustomModuleFiles {

@@ -64,7 +64,7 @@ export * from '@tensorflow/tfjs-core/dist/base';
     return {importStatement, gradConfigId};
   },
 
-  pathToKernel2OpMapping() {
+  kernelToOpsMapPath() {
     return require.resolve(
         '@tensorflow/tfjs-converter/metadata/kernel2op.json');
   },

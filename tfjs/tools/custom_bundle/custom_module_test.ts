@@ -30,7 +30,7 @@ const mockModuleProvider: ModuleProvider = {
     importStatement: `import GRADIENT ${kernel}`,
     gradConfigId: `${kernel}_GRAD_CONFIG`,
   }),
-  pathToKernel2OpMapping: () => {
+  kernelToOpsMapPath: () => {
     return 'PATH_TO_KERNEL2OP.json';
   },
   importOpForConverterStr: (opSymbol: string) => {
