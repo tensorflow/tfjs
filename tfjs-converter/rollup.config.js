@@ -17,6 +17,7 @@
 
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
+import replace from '@rollup/plugin-replace';
 import typescript from '@rollup/plugin-typescript';
 import {terser} from 'rollup-plugin-terser';
 import visualizer from 'rollup-plugin-visualizer';
@@ -166,6 +167,29 @@ module.exports = cmdOptions => {
         file: `dist/${fileName}.es2017.min.js`
       },
       tsCompilerOptions: {target: 'es2017'}
+    }));
+
+    // Miniprogram entry (minified es5)
+    bundles.push(config({
+      plugins: [
+        // replace dist import with tfjs-core because miniprogram build
+        // systems modify the package structure of our npm package, and only
+        // mirrors the 'main' entries.
+        replace({
+          '@tensorflow/tfjs-core/dist/ops/ops_for_converter':
+              '@tensorflow/tfjs-core',
+          delimiters: ['', '']
+        }),
+        terserPlugin
+      ],
+      output: {
+        format: browserFormat,
+        name,
+        extend,
+        file: `dist/miniprogram/index.min.js`,
+        freeze: false
+      },
+      tsCompilerOptions: {target: 'es5'},
     }));
   }
 
