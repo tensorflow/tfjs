@@ -26,20 +26,35 @@ export function getOps(modelJson: io.ModelArtifacts): string[] {
   const kernel2op = kernelToOpMapping();
   const results: Set<string> = new Set();
 
-  const graph = modelJson.modelTopology as tensorflow.IGraphDef;
-  const nodes = graph.node;
-  nodes.forEach((node) => {
-    const ops = kernel2op[node.op];
+  const addOpsToResults = (kernel: string) => {
+    const ops = kernel2op[kernel];
     if (ops == null) {
-      console.log(`Kernel => Op warning: could not find op mapping for kernel ${
-          node.op}`);
+      console.warn(
+          `Kernel => Op warning: could not find op mapping for kernel ${
+              kernel}`);
     }
     ops.forEach((op: string) => results.add(op));
-  });
+  };
+
+  const graph = modelJson.modelTopology as tensorflow.IGraphDef;
+
+  // Parse nodes
+  if (graph.node != null) {
+    graph.node.forEach((node) => addOpsToResults(node.op));
+  }
+
+  // Parse functionDef nodes
+  if (graph.library != null && graph.library.function !== null) {
+    graph.library.function.forEach((functionDef) => {
+      const nodeDef = functionDef.nodeDef;
+      nodeDef.forEach((node) => addOpsToResults(node.op));
+    });
+  }
+
   return Array.from(results);
 }
 
 function kernelToOpMapping() {
-  const mappingPath = esmModuleProvider.pathToKernel2OpMapping();
+  const mappingPath = esmModuleProvider.kernelToOpsMapPath();
   return JSON.parse(fs.readFileSync(mappingPath, 'utf-8'));
 }
