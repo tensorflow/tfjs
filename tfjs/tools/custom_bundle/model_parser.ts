@@ -47,7 +47,9 @@ export function getOps(modelJson: io.ModelArtifacts): string[] {
   if (graph.library != null && graph.library.function !== null) {
     graph.library.function.forEach((functionDef) => {
       const nodeDef = functionDef.nodeDef;
-      nodeDef.forEach((node) => addOpsToResults(node.op));
+      if (nodeDef != null) {
+        nodeDef.forEach((node) => addOpsToResults(node.op));
+      }
     });
   }
 
