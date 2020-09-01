@@ -27,9 +27,10 @@ export function real(args: {inputs: RealInputs, backend: MathBackendCPU}):
   const real = backend.data.get(input.dataId).complexTensors.real;
   const realVal = backend.data.get(real.dataId).values;
 
-  const outId = backend.write(realVal, real.shape, real.dtype);
-
-  return {dataId: outId, shape: real.shape, dtype: real.dtype};
+  // When complex tensor is disposed, its underlying parts will be disposed too.
+  // Make new tensor out of the real value of the complex. This makes sure the
+  // value is still accessible even if complex tensor is disposed.
+  return backend.makeTensorInfo(realVal, real.shape, real.dtype);
 }
 
 export const realConfig: KernelConfig = {

@@ -80,13 +80,10 @@ export function fftBatch(
     cpuBackend.disposeIntermediateTensorInfo(input);
   }
 
-  const realId = cpuBackend.write(resultReal, resultShape, 'float32');
-  const imagId = cpuBackend.write(resultImag, resultShape, 'float32');
-
-  const $realInfo:
-      TensorInfo = {dataId: realId, shape: resultShape, dtype: 'float32'};
-  const $imagInfo:
-      TensorInfo = {dataId: imagId, shape: resultShape, dtype: 'float32'};
+  const $realInfo: TensorInfo =
+      cpuBackend.makeTensorInfo(resultReal, resultShape, 'float32');
+  const $imagInfo: TensorInfo =
+      cpuBackend.makeTensorInfo(resultImag, resultShape, 'float32');
 
   const result = complex(
       {inputs: {real: $realInfo, imag: $imagInfo}, backend: cpuBackend});
@@ -119,19 +116,14 @@ export function fftImpl(
     const resultShape = [input.shape[0], input.shape[1]];
 
     if (inverse) {
-      const realId = cpuBackend.write(result.real, resultShape, 'float32');
-      const imagId = cpuBackend.write(result.imag, resultShape, 'float32');
+      const realInfo: TensorInfo =
+          cpuBackend.makeTensorInfo(result.real, resultShape, 'float32');
+      const imagInfo: TensorInfo =
+          cpuBackend.makeTensorInfo(result.imag, resultShape, 'float32');
 
-      const realInfo:
-          TensorInfo = {dataId: realId, shape: resultShape, dtype: 'float32'};
-      const imagInfo:
-          TensorInfo = {dataId: imagId, shape: resultShape, dtype: 'float32'};
-
-      const sizeId = cpuBackend.write(
+      const sizeInfo: TensorInfo = cpuBackend.makeTensorInfo(
           util.createScalarValue(inputSize as {} as 'float32', 'float32'), [],
           'float32');
-      const sizeInfo:
-          TensorInfo = {dataId: sizeId, shape: [], dtype: 'float32'};
       const sizeInfoCopy =
           identity({inputs: {x: sizeInfo}, backend: cpuBackend});
 
@@ -194,13 +186,10 @@ function fftRadix2(
 
   const evenShape = [evenRealVals.length];
 
-  const evenRealId = cpuBackend.write(evenRealVals, evenShape, 'float32');
-  const evenImagId = cpuBackend.write(evenImagVals, evenShape, 'float32');
-
-  const evenRealInfo:
-      TensorInfo = {dataId: evenRealId, shape: evenShape, dtype: 'float32'};
-  const evenImagInfo:
-      TensorInfo = {dataId: evenImagId, shape: evenShape, dtype: 'float32'};
+  const evenRealInfo =
+      cpuBackend.makeTensorInfo(evenRealVals, evenShape, 'float32');
+  const evenImagInfo =
+      cpuBackend.makeTensorInfo(evenImagVals, evenShape, 'float32');
 
   const evenTensorInfo = complex(
       {inputs: {real: evenRealInfo, imag: evenImagInfo}, backend: cpuBackend});
@@ -212,13 +201,10 @@ function fftRadix2(
 
   const oddShape = [oddRealVals.length];
 
-  const oddRealId = cpuBackend.write(oddRealVals, oddShape, 'float32');
-  const oddImagId = cpuBackend.write(oddImagVals, oddShape, 'float32');
-
-  const oddRealInfo:
-      TensorInfo = {dataId: oddRealId, shape: oddShape, dtype: 'float32'};
-  const oddImagInfo:
-      TensorInfo = {dataId: oddImagId, shape: oddShape, dtype: 'float32'};
+  const oddRealInfo =
+      cpuBackend.makeTensorInfo(oddRealVals, oddShape, 'float32');
+  const oddImagInfo =
+      cpuBackend.makeTensorInfo(oddImagVals, oddShape, 'float32');
 
   const oddTensorInfo = complex(
       {inputs: {real: oddRealInfo, imag: oddImagInfo}, backend: cpuBackend});
@@ -231,13 +217,11 @@ function fftRadix2(
   const $evenImagVals = $evenComplex.imag;
 
   const $evenShape = [$evenRealVals.length];
-  const $evenRealId = cpuBackend.write($evenRealVals, $evenShape, 'float32');
-  const $evenImagId = cpuBackend.write($evenImagVals, $evenShape, 'float32');
 
-  const $evenRealInfo:
-      TensorInfo = {dataId: $evenRealId, shape: $evenShape, dtype: 'float32'};
-  const $evenImagInfo:
-      TensorInfo = {dataId: $evenImagId, shape: $evenShape, dtype: 'float32'};
+  const $evenRealInfo =
+      cpuBackend.makeTensorInfo($evenRealVals, $evenShape, 'float32');
+  const $evenImagInfo =
+      cpuBackend.makeTensorInfo($evenImagVals, $evenShape, 'float32');
 
   const $evenTensorInfo = complex({
     inputs: {real: $evenRealInfo, imag: $evenImagInfo},
@@ -251,13 +235,11 @@ function fftRadix2(
   const $oddImagVals = $oddComplex.imag;
 
   const $oddShape = [$oddRealVals.length];
-  const $oddRealId = cpuBackend.write($oddRealVals, $oddShape, 'float32');
-  const $oddImagId = cpuBackend.write($oddImagVals, $oddShape, 'float32');
 
-  const $oddRealInfo:
-      TensorInfo = {dataId: $oddRealId, shape: $oddShape, dtype: 'float32'};
-  const $oddImagInfo:
-      TensorInfo = {dataId: $oddImagId, shape: $oddShape, dtype: 'float32'};
+  const $oddRealInfo =
+      cpuBackend.makeTensorInfo($oddRealVals, $oddShape, 'float32');
+  const $oddImagInfo =
+      cpuBackend.makeTensorInfo($oddImagVals, $oddShape, 'float32');
 
   const $oddTensorInfo = complex(
       {inputs: {real: $oddRealInfo, imag: $oddImagInfo}, backend: cpuBackend});
@@ -265,13 +247,8 @@ function fftRadix2(
   const e = backend_util.exponents(size, inverse);
   const eShape = [e.real.length];
 
-  const eRealId = cpuBackend.write(e.real, eShape, 'float32');
-  const eImagId = cpuBackend.write(e.imag, eShape, 'float32');
-
-  const eRealInfo:
-      TensorInfo = {dataId: eRealId, shape: eShape, dtype: 'float32'};
-  const eImagInfo:
-      TensorInfo = {dataId: eImagId, shape: eShape, dtype: 'float32'};
+  const eRealInfo = cpuBackend.makeTensorInfo(e.real, eShape, 'float32');
+  const eImagInfo = cpuBackend.makeTensorInfo(e.imag, eShape, 'float32');
 
   const complexInfo = complex(
       {inputs: {real: eRealInfo, imag: eImagInfo}, backend: cpuBackend});
