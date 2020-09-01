@@ -515,25 +515,29 @@ describeMathCPU('should run BPTT correctly', () => {
    * kernel_size = 3
    * padding = "same"
    *
-   * kwargs = {'filters': filters,
-   *           'kernel_size': kernel_size,
-   *          'padding': padding,
-   *          'batch_input_shape': [batch_size, sequence_len, data_size,
+   * kwargs = {'filters': filters, 'kernel_size': kernel_size, 'padding':
+   * padding, 'batch_input_shape': [batch_size, sequence_len, data_size,
    * data_size, data_channel], 'stateful': True}
    *
    * model = keras.Sequential()
+   *
    * model.add(keras.layers.ConvLSTM2D(kernel_initializer='ones',
    * bias_initializer="ones", recurrent_initializer='ones', **kwargs))
+   *
    * model.add(keras.layers.Flatten())
+   *
    * model.add(keras.layers.Dense(units=1, kernel_initializer='zeros',
    * use_bias=False))
    *
    * model.compile(loss='mean_squared_error', optimizer='sgd')
    *
    * xs_1 = np.ones([batch_size, sequence_len, data_size, data_size,
-   * data_channel]) xs_2 = np.zeros([batch_size, sequence_len, data_size,
-   * data_size, data_channel]) xs = np.concatenate([xs_1, xs_2], 0) ys =
-   * np.array([[1], [1], [1], [1], [0], [0], [0], [0]])
+   * data_channel])
+   * xs_2 = np.zeros([batch_size, sequence_len, data_size, data_size,
+   * data_channel])
+   * xs = np.concatenate([xs_1, xs_2], 0)
+   *
+   * ys = np.array([[1], [1], [1], [1], [0], [0], [0], [0]])
    *
    * history = model.fit(xs, ys, batch_size=batch_size, shuffle=False, epochs=3)
    * print(history.history)
@@ -582,25 +586,29 @@ describeMathCPU('should run BPTT correctly', () => {
    * kernel_size = 3
    * padding = "same"
    *
-   * kwargs = {'filters': filters,
-   *           'kernel_size': kernel_size,
-   *          'padding': padding,
-   *          'batch_input_shape': [batch_size, sequence_len, data_size,
+   * kwargs = {'filters': filters, 'kernel_size': kernel_size, 'padding':
+   * padding, 'batch_input_shape': [batch_size, sequence_len, data_size,
    * data_size, data_channel]}
    *
    * model = keras.Sequential()
+   *
    * model.add(keras.layers.ConvLSTM2D(kernel_initializer='ones',
    * bias_initializer="ones", recurrent_initializer='ones', **kwargs))
+   *
    * model.add(keras.layers.Flatten())
+   *
    * model.add(keras.layers.Dense(units=1, kernel_initializer='zeros',
    * use_bias=False))
    *
    * model.compile(loss='mean_squared_error', optimizer='sgd')
    *
    * xs_1 = np.ones([batch_size, sequence_len, data_size, data_size,
-   * data_channel]) xs_2 = np.zeros([batch_size, sequence_len, data_size,
-   * data_size, data_channel]) xs = np.concatenate([xs_1, xs_2], 0) ys =
-   * np.array([[1], [1], [1], [1], [0], [0], [0], [0]])
+   * data_channel])
+   * xs_2 = np.zeros([batch_size, sequence_len, data_size,
+   * data_size, data_channel])
+   * xs = np.concatenate([xs_1, xs_2], 0)
+   *
+   * ys = np.array([[1], [1], [1], [1], [0], [0], [0], [0]])
    *
    * history = model.fit(xs, ys, batch_size=batch_size, shuffle=False, epochs=3)
    * print(history.history)
@@ -648,27 +656,32 @@ describeMathCPU('should run BPTT correctly', () => {
    * kernel_size = 3
    * padding = "same"
    *
-   * kwargs = {'filters': filters,
-   *           'kernel_size': kernel_size,
-   *          'padding': padding,
-   *          'batch_input_shape': [batch_size, sequence_len, data_size,
+   * kwargs = {'filters': filters, 'kernel_size': kernel_size, 'padding':
+   * padding, 'batch_input_shape': [batch_size, sequence_len, data_size,
    * data_size, data_channel]}
    *
    * model = keras.Sequential()
+   *
    * model.add(keras.layers.ConvLSTM2D(kernel_initializer='ones',
    * bias_initializer="ones", recurrent_initializer='ones', **kwargs))
+   *
    * model.add(keras.layers.Flatten())
+   *
    * model.add(keras.layers.Dense(units=1, kernel_initializer='zeros',
    * use_bias=False))
    *
    * model.compile(loss='mean_squared_error', optimizer='sgd')
    *
    * xs_1 = np.ones([batch_size, sequence_len, data_size, data_size,
-   * data_channel]) xs_2 = np.zeros([batch_size, sequence_len, data_size,
-   * data_size, data_channel]) xs = np.concatenate([xs_1, xs_2], 0) ys =
-   * np.array([[1], [1], [1], [1], [0], [0], [0], [0]])
+   * data_channel])
+   * xs_2 = np.zeros([batch_size, sequence_len, data_size,
+   * data_size, data_channel])
+   * xs = np.concatenate([xs_1, xs_2], 0)
+   *
+   * ys = np.array([[1], [1], [1], [1], [0], [0], [0], [0]])
    *
    * model.fit(xs, ys, batch_size=batch_size, shuffle=False, epochs=2)
+   *
    * history = model.fit(xs, ys, batch_size=batch_size, shuffle=False, epochs=3)
    * print(history.history)
    */
