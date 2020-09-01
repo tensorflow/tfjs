@@ -186,7 +186,7 @@ module.exports = cmdOptions => {
         format: browserFormat,
         name,
         extend,
-        file: `dist/miniprogram/index.min.js`,
+        file: `dist/miniprogram/index.js`,
         freeze: false
       },
       tsCompilerOptions: {target: 'es5'},
