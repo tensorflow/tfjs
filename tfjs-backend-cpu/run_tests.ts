@@ -45,6 +45,10 @@ const customInclude = (testName: string) => {
     return false;
   }
 
+  if (testName.includes('complex64 memory')) {
+    return false;
+  }
+
   // Include all other tests.
   return true;
 };
