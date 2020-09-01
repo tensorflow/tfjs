@@ -15,7 +15,7 @@ import {convOutputLength, normalizeArray} from '../utils/conv_utils';
 import {assertPositiveInteger} from '../utils/generic_utils';
 import {getExactlyOneShape} from '../utils/types_utils';
 
-import {BaseRNNLayerArgs, LSTMCell, LSTMCellLayerArgs, LSTMLayerArgs, RNN, RNNCell, RNNLayerArgs, SimpleRNNCellLayerArgs} from './recurrent';
+import {BaseRNNLayerArgs, generateDropoutMask, LSTMCell, LSTMCellLayerArgs, LSTMLayerArgs, RNN, RNNCell, RNNLayerArgs, SimpleRNNCellLayerArgs} from './recurrent';
 
 declare interface ConvRNN2DCellArgs extends
     Omit<SimpleRNNCellLayerArgs, 'units'> {
@@ -573,24 +573,3 @@ export class ConvLSTM2D extends ConvRNN2D {
 }
 
 tfc.serialization.registerClass(ConvLSTM2D);
-
-function generateDropoutMask(args: {
-  ones: () => tfc.Tensor,
-  rate: number,
-  training?: boolean,
-  count?: number,
-}): tfc.Tensor|tfc.Tensor[] {
-  const {ones, rate, training = false, count = 1} = args;
-
-  const droppedInputs = () => K.dropout(ones(), rate);
-
-  const createMask = () => K.inTrainPhase(droppedInputs, ones, training);
-
-  if (count === 1) {
-    return tfc.keep(createMask().clone());
-  }
-
-  const masks = Array(count).fill(undefined).map(createMask);
-
-  return masks.map(m => tfc.keep(m.clone()));
-}
