@@ -35,9 +35,9 @@ export function reshape(
       () => `new shape: ${$shape}, old shape: ${x.shape}. New shape and old ` +
           `shape must have the same number of elements.`);
 
-  const xVals = backend.data.get(x.dataId);
-
   backend.incRef(x.dataId);
+
+  const xVals = backend.data.get(x.dataId);
 
   if (xVals.complexTensors != null) {
     const real = xVals.complexTensors.real;

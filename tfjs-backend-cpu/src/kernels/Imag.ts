@@ -18,7 +18,6 @@
 import {Imag, ImagInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
-import {identity} from './Identity';
 
 export function imag(args: {inputs: ImagInputs, backend: MathBackendCPU}):
     TensorInfo {
@@ -26,8 +25,11 @@ export function imag(args: {inputs: ImagInputs, backend: MathBackendCPU}):
   const {input} = inputs;
 
   const imag = backend.data.get(input.dataId).complexTensors.imag;
+  const imagVal = backend.data.get(imag.dataId).values;
 
-  return identity({inputs: {x: imag}, backend});
+  const outId = backend.write(imagVal, imag.shape, imag.dtype);
+
+  return {dataId: outId, shape: imag.shape, dtype: imag.dtype};
 }
 
 export const imagConfig: KernelConfig = {
