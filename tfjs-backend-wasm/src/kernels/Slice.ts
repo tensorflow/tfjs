@@ -23,7 +23,10 @@ import {BackendWasm} from '../backend_wasm';
 export function slice(
     args: {inputs: SliceInputs, attrs: SliceAttrs, backend: BackendWasm}) {
   const {inputs: {x}, attrs: {begin, size}, backend} = args;
+
   const [begin_, size_] = slice_util.parseSliceParams(x as Tensor, begin, size);
+  slice_util.assertParamsValid(x, begin_, size_);
+
   const isContinous = slice_util.isSliceContinous(x.shape, begin_, size_);
   const xVals = backend.typedArrayFromHeap(x);
   const out = backend.makeOutput(size_, x.dtype);
