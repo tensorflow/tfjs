@@ -77,29 +77,6 @@ def _load_predict_save(model_path):
     with open(ys_shape_path, 'w') as f:
       f.write(json.dumps(ys_shape))
 
-def _mobilenet():
-  model = tf.keras.applications.MobileNetV2()
-  model_path = 'mobilenet'
-  tfjs.converters.save_keras_model(model, os.path.join(
-      _tmp_dir, model_path))
-  xs_data_path = os.path.join(_tmp_dir, model_path + '.xs-data.json')
-  xs_shape_path = os.path.join(_tmp_dir, model_path + '.xs-shapes.json')
-  ys_data_path = os.path.join(_tmp_dir, model_path + '.ys-data.json')
-  ys_shape_path = os.path.join(_tmp_dir, model_path + '.ys-shapes.json')
-
-  input = tf.ones([1, 224, 224, 3])
-  output = model.predict(input)
-
-  with open(xs_data_path, 'w') as f:
-    f.write(json.dumps([input.numpy().tolist()]))
-  with open(xs_shape_path, 'w') as f:
-    f.write(json.dumps([input.shape.as_list()]))
-  with open(ys_data_path, 'w') as f:
-    f.write(json.dumps([output.tolist()]))
-  with open(ys_shape_path, 'w') as f:
-    f.write(json.dumps([output.shape]))
-
-
 def main():
   _load_predict_save('mlp')
   _load_predict_save('cnn')
@@ -110,7 +87,6 @@ def main():
   _load_predict_save('time_distributed_lstm')
   _load_predict_save('one_dimensional')
   _load_predict_save('functional_merge')
-  _mobilenet()
 
 if __name__ == '__main__':
   main()

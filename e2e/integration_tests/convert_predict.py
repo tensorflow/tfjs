@@ -372,6 +372,28 @@ def _create_saved_model_v2_with_tensorlist_ops(save_dir):
               "shape": result.shape,
               "dtype": "float32"}}}
 
+def _layers_mobilenet():
+  model = tf.keras.applications.MobileNetV2()
+  model_path = 'mobilenet'
+  tfjs.converters.save_keras_model(model, os.path.join(
+      _tmp_dir, model_path))
+  xs_data_path = os.path.join(_tmp_dir, model_path + '.xs-data.json')
+  xs_shape_path = os.path.join(_tmp_dir, model_path + '.xs-shapes.json')
+  ys_data_path = os.path.join(_tmp_dir, model_path + '.ys-data.json')
+  ys_shape_path = os.path.join(_tmp_dir, model_path + '.ys-shapes.json')
+
+  input = tf.ones([1, 224, 224, 3])
+  output = model.predict(input)
+
+  with open(xs_data_path, 'w') as f:
+    f.write(json.dumps([input.numpy().tolist()]))
+  with open(xs_shape_path, 'w') as f:
+    f.write(json.dumps([input.shape.as_list()]))
+  with open(ys_data_path, 'w') as f:
+    f.write(json.dumps([output.tolist()]))
+  with open(ys_shape_path, 'w') as f:
+    f.write(json.dumps([output.shape]))
+
 def main():
   # Create the directory to store model and data.
   if os.path.exists(_tmp_dir) and os.path.isdir(_tmp_dir):
@@ -392,5 +414,7 @@ def main():
       'saved_model_with_prelu')
   _save_and_convert_model(_create_saved_model_v2_with_tensorlist_ops,
       'saved_model_v2_with_tensorlist_ops', control_flow_v2=True)
+
+  _layers_mobilenet()
 if __name__ == '__main__':
   main()

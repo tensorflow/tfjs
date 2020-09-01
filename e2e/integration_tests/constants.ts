@@ -29,15 +29,18 @@ export const BACKENDS = ['cpu', 'webgl'];
 /** Testing models for CUJ: create -> save -> predict. */
 export const LAYERS_MODELS = [
   'mlp', 'cnn', 'depthwise_cnn', 'simple_rnn', 'gru', 'bidirectional_lstm',
-  'time_distributed_lstm', 'one_dimensional', 'functional_merge', 'mobilenet'
+  'time_distributed_lstm', 'one_dimensional', 'functional_merge'
 ];
 
-export const GRAPH_MODELS = [
-  'saved_model_v1', 'saved_model_v2', 'saved_model_v2_with_control_flow',
-  'saved_model_with_conv2d', 'saved_model_with_prelu',
-  'saved_model_v2_complex64', 'saved_model_v2_with_control_flow_v2',
-  'saved_model_v2_with_tensorlist_ops'
-];
+export const CONVERT_PREDICT_MODELS = {
+  graph_models: [
+    'saved_model_v1', 'saved_model_v2', 'saved_model_v2_with_control_flow',
+    'saved_model_with_conv2d', 'saved_model_with_prelu',
+    'saved_model_v2_complex64', 'saved_model_v2_with_control_flow_v2',
+    'saved_model_v2_with_tensorlist_ops'
+  ],
+  layers_model: ['mobilenet']
+};
 
 /** Karma server directory serving local files. */
 export const KARMA_SERVER = './base/integration_tests';
