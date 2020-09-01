@@ -1353,10 +1353,70 @@ export function simpleRNNCell(args: SimpleRNNCellLayerArgs): RNNCell {
   return new SimpleRNNCell(args);
 }
 
+/**
+ * Convolutional LSTM layer - Xingjian Shi 2015.
+ *
+ * This is an `ConvRNN2D` layer consisting of one `ConvLSTM2DCell`. However,
+ * unlike the underlying `ConvLSTM2DCell`, the `apply` method of `ConvLSTM2D`
+ * operates on a sequence of inputs. The shape of the input (not including the
+ * first, batch dimension) needs to be 4-D, with the first dimension being time
+ * steps. For example:
+ *
+ * ```js
+ * const filters = 3;
+ * const kernelSize = 3;
+ *
+ * const batchSize = 4;
+ * const sequenceLength = 2;
+ * const size = 5;
+ * const channels = 3;
+ *
+ * const inputShape = [batchSize, sequenceLength, size, size, channels];
+ * const input = tfc.ones(inputShape);
+ *
+ * const layer = tfl.layers.convLstm2d({filters, kernelSize});
+ *
+ * const output = lstm.apply(input);
+ * ```
+ */
+/** @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'} */
 export function convLstm2d(args: ConvLSTM2DArgs): ConvLSTM2D {
   return new ConvLSTM2D(args);
 }
 
+/**
+ * Cell class for `ConvLSTM2D`.
+ *
+ * `ConvLSTM2DCell` is distinct from the `ConvRNN2D` subclass `ConvLSTM2D` in
+ * that its `call` method takes the input data of only a single time step and
+ * returns the cell's output at the time step, while `ConvLSTM2D` takes the
+ * input data over a number of time steps. For example:
+ *
+ * ```js
+ * const filters = 3;
+ * const kernelSize = 3;
+ *
+ * const sequenceLength = 1;
+ * const size = 5;
+ * const channels = 3;
+ *
+ * const inputShape = [sequenceLength, inputSize, inputSize, channels];
+ * const input = tfc.ones(inputShape);
+ *
+ * const cell = tf.layers.convLstm2dCell({filters, kernelSize});
+ *
+ * cell.build(input.shape);
+ *
+ * const outputSize = inputSize - kernelSize + 1;
+ * const outShape = [sequenceLength, outputSize, outputSize, filters];
+ *
+ * const initialH = tfc.zeros(outShape);
+ * const initialC = tfc.zeros(outShape);
+ *
+ * const [o, h, c] = cell.call([x, initialH, initialC], {});
+ * ```
+ */
+/** @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'} */
 export function convLstm2dCell(args: ConvLSTM2DCellArgs): ConvLSTM2DCell {
   return new ConvLSTM2DCell(args);
 }
