@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, buffer, KernelConfig, KernelFunc, Slice, slice_util, SliceAttrs, SliceInputs, Tensor, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, KernelConfig, KernelFunc, Slice, slice_util, SliceAttrs, SliceInputs, util} from '@tensorflow/tfjs-core';
 import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
