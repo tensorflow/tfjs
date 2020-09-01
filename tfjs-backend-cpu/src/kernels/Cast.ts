@@ -21,6 +21,8 @@ import {MathBackendCPU} from '../backend_cpu';
 
 import {identity} from './Identity';
 import {int} from './Int';
+import {complex} from './Complex';
+import {real} from './Real';
 
 export function cast(
     args: {inputs: CastInputs, backend: MathBackendCPU, attrs: CastAttrs}):
@@ -38,8 +40,8 @@ export function cast(
     const zerosTensor = tf.zeros(x.shape);
     const floatX = cast({inputs: {x}, backend, attrs: {dtype: 'float32'}});
 
-    // TODO(lina128): Import kernel function once complex is modularized.
-    const result = tf.complex(floatX as Tensor, zerosTensor);
+    const result =
+        complex({inputs: {real: floatX, imag: zerosTensor}, backend});
 
     zerosTensor.dispose();
     backend.disposeIntermediateTensorInfo(floatX);
@@ -55,11 +57,10 @@ export function cast(
   }
 
   if (x.dtype === 'complex64') {
-    // TODO(lina128): Import kernel function once real is modularized.
-    const real = tf.real(x as Tensor);
-    const result = cast({inputs: {x: real}, backend, attrs: {dtype}});
+    const realPart = real({inputs: {input: x}, backend});
+    const result = cast({inputs: {x: realPart}, backend, attrs: {dtype}});
 
-    real.dispose();
+    backend.disposeIntermediateTensorInfo(realPart);
 
     return result;
   }
