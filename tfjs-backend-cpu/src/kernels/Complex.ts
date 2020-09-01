@@ -27,21 +27,19 @@ export function complex(args: {inputs: ComplexInputs, backend: MathBackendCPU}):
   const realVals = backend.data.get(real.dataId).values as TypedArray;
   const imagVals = backend.data.get(imag.dataId).values as TypedArray;
 
-  const realId = backend.write(realVals, real.shape, 'float32');
-  const imagId = backend.write(imagVals, imag.shape, 'float32');
-  const complexId = backend.write(null, real.shape, 'complex64');
+  const complexInfo = backend.makeTensorInfo(null, real.shape, 'complex64');
 
-  const complex = backend.data.get(complexId);
+  const complex = backend.data.get(complexInfo.dataId);
 
-  // The backend owns the reference to the underlying real and imaginary
-  // clones. These will explicitly get disposed when the complex data is
-  // disposed.
+  // The complex tensor owns the underlying real and imag tensors, only the
+  // complex tensor tracks refCount, when complex is disposed the underlying
+  // tensors will be disposed.
   complex.complexTensors = {
-    real: {dataId: realId, shape: real.shape, dtype: 'float32'},
-    imag: {dataId: imagId, shape: imag.shape, dtype: 'float32'}
+    real: backend.makeTensorInfo(realVals, real.shape, 'float32'),
+    imag: backend.makeTensorInfo(imagVals, imag.shape, 'float32')
   };
 
-  return {dataId: complexId, shape: real.shape, dtype: 'complex64'};
+  return complexInfo;
 }
 
 export const complexConfig: KernelConfig = {

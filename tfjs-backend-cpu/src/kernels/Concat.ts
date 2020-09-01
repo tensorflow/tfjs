@@ -34,9 +34,7 @@ export function concat(
   let outShape = backend_util.computeOutShape(inputs.map(t => t.shape), $axis);
 
   if (util.sizeFromShape(outShape) === 0) {
-    const outId = backend.write([], outShape, inputs[0].dtype);
-
-    return {dataId: outId, shape: outShape, dtype: inputs[0].dtype};
+    return backend.makeTensorInfo([], outShape, inputs[0].dtype);
   }
 
   // Keep only non-empty tensors (ignore tensors with 0 in their shape).
@@ -118,11 +116,12 @@ export function concat(
   const finalOutShape =
       backend_util.computeOutShape($inputs.map(t => t.shape), $axis);
 
-  const outId = backend.write(outVals, finalOutShape, inputs[0].dtype);
+  const outInfo =
+      backend.makeTensorInfo(outVals, finalOutShape, inputs[0].dtype);
 
   inputs2D.forEach(t => backend.disposeIntermediateTensorInfo(t));
 
-  return {dataId: outId, shape: finalOutShape, dtype: inputs[0].dtype};
+  return outInfo;
 }
 
 export const concatConfig: KernelConfig = {

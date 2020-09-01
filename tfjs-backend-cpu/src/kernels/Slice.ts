@@ -46,9 +46,7 @@ export function slice(
 
     const resultVals = vals.subarray(flatOffset, flatOffset + length);
 
-    const resultId = backend.write(resultVals, $size, x.dtype);
-
-    return {dataId: resultId, shape: $size, dtype: x.dtype};
+    return backend.makeTensorInfo(resultVals, $size, x.dtype);
   }
 
   const outVals =
@@ -58,14 +56,12 @@ export function slice(
     const rank = $size.length;
     const strides = util.computeStrides($size);
     const loc = util.indexToLoc(i, rank, strides);
-    const xLoc = loc.map((idx, j) => idx + $begin[j]);
+    const xLoc = loc.map((idx: number, j) => idx + $begin[j]);
     const xIndex = util.locToIndex(xLoc, xRank, xStrides);
     outVals[i] = vals[xIndex];
   }
 
-  const outId = backend.write(outVals, $size, x.dtype);
-
-  return {dataId: outId, shape: $size, dtype: x.dtype};
+  return backend.makeTensorInfo(outVals, $size, x.dtype);
 }
 
 export const sliceConfig: KernelConfig = {
