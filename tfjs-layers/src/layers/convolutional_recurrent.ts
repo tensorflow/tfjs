@@ -157,7 +157,7 @@ class ConvRNN2D extends RNN {
     let outShape: Shape = this.computeSingleOutputShape(inputShape);
 
     if (!this.returnSequences) {
-      outShape = [outShape[0], ...outShape.slice(2) as Shape];
+      outShape = [outShape[0], ...outShape.slice(2)];
     }
 
     if (this.returnState) {
