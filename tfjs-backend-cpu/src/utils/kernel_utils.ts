@@ -57,8 +57,7 @@ export function createBinaryKernelConfig(
       const [resultData, resultShape] =
           op(a.shape, b.shape, aVals, bVals, a.dtype);
 
-      const dataId = cpuBackend.write(resultData, resultShape, a.dtype);
-      return {dataId, shape: resultShape, dtype: a.dtype};
+      return cpuBackend.makeTensorInfo(resultData, resultShape, a.dtype);
     }
   };
 }
@@ -152,19 +151,11 @@ export function createBinaryKernelComplexSupportKernelFunc(
       const [resultRealData, resultImagData, resultShape] = complexOp(
           a.shape, b.shape, aRealVals, aImagVals, bRealVals, bImagVals);
 
-      const realId = cpuBackend.write(resultRealData, resultShape, 'float32');
-      const resultReal = {
-        dataId: realId,
-        shape: aReal.shape,
-        dtype: aReal.dtype
-      };
+      const resultReal =
+          cpuBackend.makeTensorInfo(resultRealData, resultShape, 'float32');
 
-      const imagId = cpuBackend.write(resultImagData, resultShape, 'float32');
-      const resultImag = {
-        dataId: imagId,
-        shape: bReal.shape,
-        dtype: bReal.dtype
-      };
+      const resultImag =
+          cpuBackend.makeTensorInfo(resultImagData, resultShape, 'float32');
 
       const result = complex(
           {inputs: {real: resultReal, imag: resultImag}, backend: cpuBackend});
@@ -182,9 +173,7 @@ export function createBinaryKernelComplexSupportKernelFunc(
       const [resultData, resultShape] =
           op(a.shape, b.shape, aVals, bVals, a.dtype);
 
-      const dataId = cpuBackend.write(resultData, resultShape, a.dtype);
-
-      return {dataId, shape: resultShape, dtype: a.dtype};
+      return cpuBackend.makeTensorInfo(resultData, resultShape, a.dtype);
     }
   };
 }
