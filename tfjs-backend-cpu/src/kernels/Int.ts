@@ -35,9 +35,7 @@ export function int(args: {inputs: IntInputs, backend: MathBackendCPU}):
     resultValues[i] = values[i];
   }
 
-  const resultId = backend.write(resultValues, x.shape, 'int32');
-
-  return {dataId: resultId, shape: x.shape, dtype: 'int32'};
+  return backend.makeTensorInfo(resultValues, x.shape, 'int32');
 }
 
 export const intConfig: KernelConfig = {

@@ -37,11 +37,11 @@ export function reshape(
 
   backend.incRef(x.dataId);
 
-  const xVals = backend.data.get(x.dataId);
+  const xData = backend.data.get(x.dataId);
 
-  if (xVals.complexTensors != null) {
-    const real = xVals.complexTensors.real;
-    const imag = xVals.complexTensors.imag;
+  if (xData.complexTensors != null) {
+    const real = xData.complexTensors.real;
+    const imag = xData.complexTensors.imag;
 
     real.shape = $shape;
     imag.shape = $shape;
