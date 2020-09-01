@@ -544,32 +544,6 @@ describeWithFlags(
         expect(tf.memory().numTensors).toBe(0);
         expect(tf.memory().numBytes).toBe(0);
       });
-
-      it('can execute op with data from mixed backends', async () => {
-        tf.setBackend('cpu1');
-        // This scalar lives in cpu1.
-        const a = tf.scalar(5);
-
-        tf.setBackend('cpu2');
-        // This scalar lives in cpu2.
-        const b = tf.scalar(3);
-
-        // Verify that ops can execute with mixed backend data.
-        ENGINE.startScope();
-        tf.setBackend('cpu1');
-        expectArraysClose(await tf.add(a, b).data(), [8]);
-
-        tf.setBackend('cpu2');
-        expectArraysClose(await tf.add(a, b).data(), [8]);
-        ENGINE.endScope();
-        expect(tf.memory().numTensors).toBe(2);
-        expect(tf.memory().numDataBuffers).toBe(2);
-
-        tf.dispose([a, b]);
-
-        expect(tf.memory().numTensors).toBe(0);
-        expect(tf.memory().numDataBuffers).toBe(0);
-      });
     });
 
 /**
