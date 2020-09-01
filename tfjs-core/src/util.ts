@@ -16,7 +16,9 @@
  */
 
 import {env} from './environment';
-import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray} from './types';
+import {BackendValues, DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, ScalarLike, TensorLike, TypedArray} from './types';
+
+
 
 /**
  * Shuffles the array in-place using Fisher-Yates algorithm.
@@ -556,7 +558,11 @@ export function computeStrides(shape: number[]): number[] {
  * Create typed array for scalar value. Used for storing in `DataStorage`.
  */
 export function createScalarValue(
-    value: DataType, dtype: DataType): TypedArray {
+    value: DataType, dtype: DataType): BackendValues {
+  if (dtype === 'string') {
+    return encodeString(value);
+  }
+
   return toTypedArray([value], dtype);
 }
 
