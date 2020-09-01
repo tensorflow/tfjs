@@ -493,25 +493,58 @@ describeMathCPUAndGPU('ConvLSTM2D Tensor', () => {
 
 // TODO: Add GPU test once Gather supports 5 rank tensor.
 describeMathCPU('should run BPTT correctly', () => {
-  const filters = 5;
+  const filters = 3;
   const kernelSize = 3;
+  const padding = 'same';
 
   const batchSize = 4;
   const sequenceLength = 2;
   const inputSize = 5;
-  const channels = 3;
+  const channels = 1;
 
   const inputShape =
       [batchSize, sequenceLength, inputSize, inputSize, channels];
 
-  const outputSize = inputSize - kernelSize + 1;
-
+  /**
+   * batch_size = 4
+   * sequence_len = 2
+   * data_size = 5
+   * data_channel = 1
+   *
+   * filters = 3
+   * kernel_size = 3
+   * padding = "same"
+   *
+   * kwargs = {'filters': filters,
+   *           'kernel_size': kernel_size,
+   *          'padding': padding,
+   *          'batch_input_shape': [batch_size, sequence_len, data_size,
+   * data_size, data_channel], 'stateful': True}
+   *
+   * model = keras.Sequential()
+   * model.add(keras.layers.ConvLSTM2D(kernel_initializer='ones',
+   * bias_initializer="ones", recurrent_initializer='ones', **kwargs))
+   * model.add(keras.layers.Flatten())
+   * model.add(keras.layers.Dense(units=1, kernel_initializer='zeros',
+   * use_bias=False))
+   *
+   * model.compile(loss='mean_squared_error', optimizer='sgd')
+   *
+   * xs_1 = np.ones([batch_size, sequence_len, data_size, data_size,
+   * data_channel]) xs_2 = np.zeros([batch_size, sequence_len, data_size,
+   * data_size, data_channel]) xs = np.concatenate([xs_1, xs_2], 0) ys =
+   * np.array([[1], [1], [1], [1], [0], [0], [0], [0]])
+   *
+   * history = model.fit(xs, ys, batch_size=batch_size, shuffle=False, epochs=3)
+   * print(history.history)
+   */
   it('for stateful BPTT', async () => {
     const model = tfl.sequential();
 
     model.add(tfl.layers.convLstm2d({
       filters,
       kernelSize,
+      padding,
       kernelInitializer: 'ones',
       recurrentInitializer: 'ones',
       biasInitializer: 'ones',
@@ -519,71 +552,164 @@ describeMathCPU('should run BPTT correctly', () => {
       batchInputShape: inputShape
     }));
 
+    model.add(tfl.layers.flatten());
+
+    model.add(tfl.layers.dense(
+        {units: 1, kernelInitializer: 'zeros', useBias: false}));
+
     model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
 
-    const input = tfc.ones(inputShape);
+    const input = tfc.concat([tfc.ones(inputShape), tfc.zeros(inputShape)], 0);
 
-    const output = tfc.ones([batchSize, outputSize, outputSize, filters]);
+    const output = tfc.tensor([1, 1, 1, 1, 0, 0, 0, 0]);
 
-    const history = await model.fit(input, output, {batchSize, shuffle: false});
+    const history =
+        await model.fit(input, output, {batchSize, shuffle: false, epochs: 3});
 
-    expect(history.history.loss[0]).toBeCloseTo(0);
+    expect(history.history.loss.length).toBe(3);
+    expect(history.history.loss[0]).toBeCloseTo(1.5441135168075562);
+    expect(history.history.loss[1]).toBeCloseTo(3.209195613861084);
+    expect(history.history.loss[2]).toBeCloseTo(3.7930736541748047);
   });
 
+  /**
+   * batch_size = 4
+   * sequence_len = 2
+   * data_size = 5
+   * data_channel = 1
+   *
+   * filters = 3
+   * kernel_size = 3
+   * padding = "same"
+   *
+   * kwargs = {'filters': filters,
+   *           'kernel_size': kernel_size,
+   *          'padding': padding,
+   *          'batch_input_shape': [batch_size, sequence_len, data_size,
+   * data_size, data_channel]}
+   *
+   * model = keras.Sequential()
+   * model.add(keras.layers.ConvLSTM2D(kernel_initializer='ones',
+   * bias_initializer="ones", recurrent_initializer='ones', **kwargs))
+   * model.add(keras.layers.Flatten())
+   * model.add(keras.layers.Dense(units=1, kernel_initializer='zeros',
+   * use_bias=False))
+   *
+   * model.compile(loss='mean_squared_error', optimizer='sgd')
+   *
+   * xs_1 = np.ones([batch_size, sequence_len, data_size, data_size,
+   * data_channel]) xs_2 = np.zeros([batch_size, sequence_len, data_size,
+   * data_size, data_channel]) xs = np.concatenate([xs_1, xs_2], 0) ys =
+   * np.array([[1], [1], [1], [1], [0], [0], [0], [0]])
+   *
+   * history = model.fit(xs, ys, batch_size=batch_size, shuffle=False, epochs=3)
+   * print(history.history)
+   */
   it('for normal BPTT', async () => {
     const model = tfl.sequential();
 
     model.add(tfl.layers.convLstm2d({
       filters,
       kernelSize,
+      padding,
       kernelInitializer: 'ones',
       recurrentInitializer: 'ones',
       biasInitializer: 'ones',
       batchInputShape: inputShape
     }));
 
+    model.add(tfl.layers.flatten());
+
+    model.add(tfl.layers.dense(
+        {units: 1, kernelInitializer: 'zeros', useBias: false}));
+
     model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
 
-    const input = tfc.ones(inputShape);
+    const input = tfc.concat([tfc.ones(inputShape), tfc.zeros(inputShape)], 0);
 
-    const output = tfc.ones([batchSize, outputSize, outputSize, filters]);
+    const output = tfc.tensor([1, 1, 1, 1, 0, 0, 0, 0]);
 
-    const history = await model.fit(input, output, {batchSize, shuffle: false});
+    const history =
+        await model.fit(input, output, {batchSize, shuffle: false, epochs: 3});
 
-    expect(history.history.loss[0]).toBeCloseTo(0);
+    expect(history.history.loss.length).toBe(3);
+    expect(history.history.loss[0]).toBeCloseTo(1.367607831954956);
+    expect(history.history.loss[1]).toBeCloseTo(1.9423290491104126);
+    expect(history.history.loss[2]).toBeCloseTo(2.00433349609375);
   });
 
+  /**
+   * batch_size = 4
+   * sequence_len = 2
+   * data_size = 5
+   * data_channel = 1
+   *
+   * filters = 3
+   * kernel_size = 3
+   * padding = "same"
+   *
+   * kwargs = {'filters': filters,
+   *           'kernel_size': kernel_size,
+   *          'padding': padding,
+   *          'batch_input_shape': [batch_size, sequence_len, data_size,
+   * data_size, data_channel]}
+   *
+   * model = keras.Sequential()
+   * model.add(keras.layers.ConvLSTM2D(kernel_initializer='ones',
+   * bias_initializer="ones", recurrent_initializer='ones', **kwargs))
+   * model.add(keras.layers.Flatten())
+   * model.add(keras.layers.Dense(units=1, kernel_initializer='zeros',
+   * use_bias=False))
+   *
+   * model.compile(loss='mean_squared_error', optimizer='sgd')
+   *
+   * xs_1 = np.ones([batch_size, sequence_len, data_size, data_size,
+   * data_channel]) xs_2 = np.zeros([batch_size, sequence_len, data_size,
+   * data_size, data_channel]) xs = np.concatenate([xs_1, xs_2], 0) ys =
+   * np.array([[1], [1], [1], [1], [0], [0], [0], [0]])
+   *
+   * model.fit(xs, ys, batch_size=batch_size, shuffle=False, epochs=2)
+   * history = model.fit(xs, ys, batch_size=batch_size, shuffle=False, epochs=3)
+   * print(history.history)
+   */
   it('with no leak', async () => {
     const model = tfl.sequential();
 
     model.add(tfl.layers.convLstm2d({
       filters,
       kernelSize,
+      padding,
       kernelInitializer: 'ones',
       recurrentInitializer: 'ones',
       biasInitializer: 'ones',
       batchInputShape: inputShape
     }));
 
+    model.add(tfl.layers.flatten());
+
+    model.add(tfl.layers.dense(
+        {units: 1, kernelInitializer: 'zeros', useBias: false}));
+
     model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
 
-    const input = tfc.ones(inputShape);
+    const input = tfc.concat([tfc.ones(inputShape), tfc.zeros(inputShape)], 0);
 
-    const output = tfc.ones([batchSize, outputSize, outputSize, filters]);
+    const output = tfc.tensor([1, 1, 1, 1, 0, 0, 0, 0]);
 
     // Serves as burn-in call for subsequent tracking of memory leak.
     await model.fit(input, output, {epochs: 2, batchSize, shuffle: false});
 
     const numTensors0 = tfc.memory().numTensors;
-    const history = await model.fit(
-        input, output, {epochs: 2, batchSize: 4, shuffle: false});
+    const history =
+        await model.fit(input, output, {epochs: 3, batchSize, shuffle: false});
     const numTensors1 = tfc.memory().numTensors;
 
     // Assert no memory leak.
     expect(numTensors1).toEqual(numTensors0);
-    expect(history.history.loss.length).toEqual(2);
-    expect(history.history.loss[0]).toBeCloseTo(0);
-    expect(history.history.loss[1]).toBeCloseTo(0);
+    expect(history.history.loss.length).toEqual(3);
+    expect(history.history.loss[0]).toBeCloseTo(2.00433349609375);
+    expect(history.history.loss[1]).toBeCloseTo(2.0098776817321777);
+    expect(history.history.loss[2]).toBeCloseTo(2.0099055767059326);
   });
 });
 
