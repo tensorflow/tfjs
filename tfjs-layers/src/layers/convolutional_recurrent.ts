@@ -1,15 +1,15 @@
 import * as tfc from '@tensorflow/tfjs-core';
 import {Tensor, util} from '@tensorflow/tfjs-core';
 
-import {Activation, serializeActivation} from '../activations';
+import {Activation} from '../activations';
 import * as K from '../backend/tfjs_backend';
 import {checkDataFormat, checkPaddingMode} from '../common';
-import {Constraint, serializeConstraint} from '../constraints';
+import {Constraint} from '../constraints';
 import {InputSpec} from '../engine/topology';
 import {AttributeError, NotImplementedError, ValueError} from '../errors';
-import {Initializer, serializeInitializer} from '../initializers';
+import {Initializer} from '../initializers';
 import {DataFormat, DataType, PaddingMode, Shape} from '../keras_format/common';
-import {Regularizer, serializeRegularizer} from '../regularizers';
+import {Regularizer} from '../regularizers';
 import {Kwargs} from '../types';
 import {convOutputLength, normalizeArray} from '../utils/conv_utils';
 import {assertPositiveInteger} from '../utils/generic_utils';
@@ -99,6 +99,9 @@ abstract class ConvRNN2DCell extends RNNCell {
 declare interface ConvRNN2DLayerArgs extends BaseRNNLayerArgs,
                                              ConvRNN2DCellArgs {}
 
+/**
+ * Base class for convolutional-recurrent layers.
+ */
 class ConvRNN2D extends RNN {
   /** @nocollapse */
   static className = 'ConvRNN2D';
@@ -135,6 +138,10 @@ class ConvRNN2D extends RNN {
         this.cell.recurrentDropoutMask = null;
       }
 
+      if (kwargs && kwargs['constants']) {
+        throw new ValueError('ConvRNN2D cell does not support constants');
+      }
+
       const mask = kwargs == null ? null : kwargs['mask'];
 
       const training = kwargs == null ? null : kwargs['training'];
@@ -150,8 +157,7 @@ class ConvRNN2D extends RNN {
     let outShape: Shape = this.computeSingleOutputShape(inputShape);
 
     if (!this.returnSequences) {
-      outShape =
-          [...outShape.slice(0, 1) as Shape, ...outShape.slice(2) as Shape];
+      outShape = [outShape[0], ...outShape.slice(2) as Shape];
     }
 
     if (this.returnState) {
@@ -210,7 +216,7 @@ class ConvRNN2D extends RNN {
       // Initialize state if null.
       if (this.getStates() == null) {
         if (Array.isArray(this.cell.stateSize)) {
-          this.states_ = this.cell.stateSize.map(dim => tfc.zeros(stateShape));
+          this.states_ = this.cell.stateSize.map(() => tfc.zeros(stateShape));
         } else {
           this.states_ = [tfc.zeros(stateShape)];
         }
@@ -225,7 +231,7 @@ class ConvRNN2D extends RNN {
         }
 
         if (Array.isArray(this.cell.stateSize)) {
-          this.states_ = this.cell.stateSize.map(dim => tfc.zeros(stateShape));
+          this.states_ = this.cell.stateSize.map(() => tfc.zeros(stateShape));
         } else {
           this.states_[0] = tfc.zeros(stateShape);
         }
@@ -241,7 +247,7 @@ class ConvRNN2D extends RNN {
               `received: ${states}`);
         }
 
-        if (training === true) {
+        if (training) {
           // Store old state tensors for complete disposal later, i.e., during
           // the next no-arg call to this method. We do not dispose the old
           // states immediately because that BPTT (among other things) require
@@ -272,55 +278,12 @@ class ConvRNN2D extends RNN {
   }
 
   getConfig(): tfc.serialization.ConfigDict {
-    const {
-      filters,
-      kernelSize,
-      strides,
-      padding,
-      dataFormat,
-      dilationRate,
-      activation,
-      useBias,
-      kernelInitializer,
-      recurrentInitializer,
-      biasInitializer,
-      kernelRegularizer,
-      recurrentRegularizer,
-      biasRegularizer,
-      activityRegularizer,
-      kernelConstraint,
-      recurrentConstraint,
-      biasConstraint,
-      dropout,
-      recurrentDropout,
-    } = this.cell;
+    const {'cell': _, ...config} = super.getConfig();
 
-    const config: tfc.serialization.ConfigDict = {
-      filters,
-      kernelSize,
-      strides,
-      padding,
-      dataFormat,
-      dilationRate,
-      activation: serializeActivation(activation),
-      useBias,
-      kernelInitializer: serializeInitializer(kernelInitializer),
-      recurrentInitializer: serializeInitializer(recurrentInitializer),
-      biasInitializer: serializeInitializer(biasInitializer),
-      kernelRegularizer: serializeRegularizer(kernelRegularizer),
-      recurrentRegularizer: serializeRegularizer(recurrentRegularizer),
-      biasRegularizer: serializeRegularizer(biasRegularizer),
-      activityRegularizer: serializeRegularizer(activityRegularizer),
-      kernelConstraint: serializeConstraint(kernelConstraint),
-      recurrentConstraint: serializeConstraint(recurrentConstraint),
-      biasConstraint: serializeConstraint(biasConstraint),
-      dropout,
-      recurrentDropout,
-    };
+    const cellConfig = this.cell.getConfig();
 
-    const {'cell': _, ...baseConfig} = super.getConfig();
-
-    return {...baseConfig, ...config};
+    // this order is necessary, to prevent cell name from replacing layer name
+    return {...cellConfig, ...config};
   }
 
   protected computeSingleOutputShape(inputShape: Shape): Shape {
@@ -405,14 +368,17 @@ export class ConvLSTM2DCell extends LSTMCell implements ConvRNN2DCell {
 
     const inputDim = inputShape[channelAxis];
 
-    const kernelShape = this.kernelSize.concat([inputDim, this.filters * 4]);
+    const numOfKernels = 4;
+
+    const kernelShape =
+        this.kernelSize.concat([inputDim, this.filters * numOfKernels]);
 
     this.kernel = this.addWeight(
         'kernel', kernelShape, null, this.kernelInitializer,
         this.kernelRegularizer, true, this.kernelConstraint);
 
     const recurrentKernelShape =
-        this.kernelSize.concat([this.filters, this.filters * 4]);
+        this.kernelSize.concat([this.filters, this.filters * numOfKernels]);
 
     this.recurrentKernel = this.addWeight(
         'recurrent_kernel', recurrentKernelShape, null,
@@ -425,7 +391,7 @@ export class ConvLSTM2DCell extends LSTMCell implements ConvRNN2DCell {
       if (this.unitForgetBias) {
         const init = this.biasInitializer;
 
-        const filters = this.units;
+        const filters = this.filters;
 
         biasInitializer = new (class CustomInit extends Initializer {
           /** @nocollapse */
@@ -443,7 +409,7 @@ export class ConvLSTM2DCell extends LSTMCell implements ConvRNN2DCell {
       }
 
       this.bias = this.addWeight(
-          'bias', [this.filters * 4], null, biasInitializer,
+          'bias', [this.filters * numOfKernels], null, biasInitializer,
           this.biasRegularizer, true, this.biasConstraint);
     }
 
@@ -464,6 +430,8 @@ export class ConvLSTM2DCell extends LSTMCell implements ConvRNN2DCell {
       const hTMinus1 = inputs[1];  // Previous memory state.
       const cTMinus1 = inputs[2];  // Previous carry state.
 
+      const numOfKernels = 4;
+
       type DropoutMasks = [tfc.Tensor, tfc.Tensor, tfc.Tensor, tfc.Tensor];
 
       if (0 < this.dropout && this.dropout < 1 && this.dropoutMask == null) {
@@ -471,7 +439,7 @@ export class ConvLSTM2DCell extends LSTMCell implements ConvRNN2DCell {
                              ones: () => tfc.onesLike(x),
                              rate: this.dropout,
                              training,
-                             count: 4
+                             count: numOfKernels
                            }) as tfc.Tensor[];
       }
 
@@ -497,7 +465,7 @@ export class ConvLSTM2DCell extends LSTMCell implements ConvRNN2DCell {
                                       ones: () => tfc.onesLike(hTMinus1),
                                       rate: this.recurrentDropout,
                                       training,
-                                      count: 4
+                                      count: numOfKernels
                                     }) as tfc.Tensor[];
       }
 
@@ -508,11 +476,13 @@ export class ConvLSTM2DCell extends LSTMCell implements ConvRNN2DCell {
       let hC = applyDropout(hTMinus1, recDropoutMask, 2);
       let hO = applyDropout(hTMinus1, recDropoutMask, 3);
 
+      const kernelChannelAxis = 3;
+
       const [kernelI, kernelF, kernelC, kernelO]: tfc.Tensor[] =
-          tfc.split(this.kernel.read(), 4, 3);
+          tfc.split(this.kernel.read(), numOfKernels, kernelChannelAxis);
 
       const [biasI, biasF, biasC, biasO]: tfc.Tensor[] = this.useBias ?
-          tfc.split(this.bias.read(), 4) :
+          tfc.split(this.bias.read(), numOfKernels) :
           [null, null, null, null];
 
       xI = this.inputConv(xI, kernelI, biasI, this.padding);
@@ -521,7 +491,8 @@ export class ConvLSTM2DCell extends LSTMCell implements ConvRNN2DCell {
       xO = this.inputConv(xO, kernelO, biasO, this.padding);
 
       const [recKernelI, recKernelF, recKernelC, recKernelO]: tfc.Tensor[] =
-          tfc.split(this.recurrentKernel.read(), 4, 3);
+          tfc.split(
+              this.recurrentKernel.read(), numOfKernels, kernelChannelAxis);
 
       hI = this.recurrentConv(hI, recKernelI);
       hF = this.recurrentConv(hF, recKernelF);
@@ -542,32 +513,15 @@ export class ConvLSTM2DCell extends LSTMCell implements ConvRNN2DCell {
   }
 
   getConfig(): tfc.serialization.ConfigDict {
+    const {'units': _, ...baseConfig} = super.getConfig();
+
     const config: tfc.serialization.ConfigDict = {
       filters: this.filters,
       kernelSize: this.kernelSize,
       padding: this.padding,
       dataFormat: this.dataFormat,
       dilationRate: this.dilationRate,
-      activation: serializeActivation(this.activation),
-      recurrentActivation: serializeActivation(this.recurrentActivation),
-      useBias: this.useBias,
-      kernelInitializer: serializeInitializer(this.kernelInitializer),
-      recurrentInitializer: serializeInitializer(this.recurrentInitializer),
-      biasInitializer: serializeInitializer(this.biasInitializer),
-      unitForgetBias: this.unitForgetBias,
-      kernelRegularizer: serializeRegularizer(this.kernelRegularizer),
-      recurrentRegularizer: serializeRegularizer(this.recurrentRegularizer),
-      biasRegularizer: serializeRegularizer(this.biasRegularizer),
-      activityRegularizer: serializeRegularizer(this.activityRegularizer),
-      kernelConstraint: serializeConstraint(this.kernelConstraint),
-      recurrentConstraint: serializeConstraint(this.recurrentConstraint),
-      biasConstraint: serializeConstraint(this.biasConstraint),
-      dropout: this.dropout,
-      recurrentDropout: this.recurrentDropout,
-      implementation: this.implementation,
     };
-
-    const baseConfig = super.getConfig();
 
     return {...baseConfig, ...config};
   }
@@ -587,8 +541,10 @@ export class ConvLSTM2DCell extends LSTMCell implements ConvRNN2DCell {
   }
 
   recurrentConv(x: Tensor, w: Tensor) {
+    const strides = 1;
+
     return tfc.conv2d(
-        x as tfc.Tensor3D, w as tfc.Tensor4D, 1, 'same',
+        x as tfc.Tensor3D, w as tfc.Tensor4D, strides, 'same',
         this.dataFormat === 'channelsFirst' ? 'NCHW' : 'NHWC');
   }
 }
@@ -606,20 +562,6 @@ export class ConvLSTM2D extends ConvRNN2D {
     const cell = new ConvLSTM2DCell(args);
 
     super({...args, cell} as ConvRNN2DLayerArgs);
-  }
-
-  getConfig(): tfc.serialization.ConfigDict {
-    const {recurrentActivation, unitForgetBias, implementation} =
-        this.cell as unknown as ConvLSTM2DCell;
-
-    const config: tfc.serialization.ConfigDict = {
-      ...super.getConfig(),
-      recurrentActivation: serializeActivation(recurrentActivation),
-      unitForgetBias,
-      implementation,
-    };
-
-    return config;
   }
 
   /** @nocollapse */
