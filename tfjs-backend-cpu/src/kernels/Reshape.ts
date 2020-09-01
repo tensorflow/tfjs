@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, Reshape, ReshapeAttrs, ReshapeInputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Reshape, ReshapeAttrs, ReshapeInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 
@@ -27,9 +27,27 @@ export function reshape(
   const {x} = inputs;
   const {shape} = attrs;
 
+  const xSize = util.sizeFromShape(x.shape);
+  const $shape = util.inferFromImplicitShape(shape, xSize);
+
+  util.assert(
+      xSize === util.sizeFromShape($shape),
+      () => `new shape: ${$shape}, old shape: ${x.shape}. New shape and old ` +
+          `shape must have the same number of elements.`);
+
+  const xVals = backend.data.get(x.dataId);
+
   backend.incRef(x.dataId);
 
-  return {dataId: x.dataId, shape, dtype: x.dtype};
+  if (xVals.complexTensors != null) {
+    const real = xVals.complexTensors.real;
+    const imag = xVals.complexTensors.imag;
+
+    real.shape = $shape;
+    imag.shape = $shape;
+  }
+
+  return {dataId: x.dataId, shape: $shape, dtype: x.dtype};
 }
 
 export const reshapeConfig: KernelConfig = {
