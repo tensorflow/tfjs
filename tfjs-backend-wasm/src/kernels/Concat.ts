@@ -39,6 +39,9 @@ function concat(
     return $inputs[0];
   }
 
+  const shapes = $inputs.map(t => t.shape);
+  backend_util.assertParamsConsistent(shapes, axis);
+
   const batchDim = util.sizeFromShape($inputs[0].shape.slice(0, axis));
   let sumInnerDims = 0;
   const innerDims = $inputs.map(input => {
