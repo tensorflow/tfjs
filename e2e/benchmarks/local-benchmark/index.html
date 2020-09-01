@@ -262,12 +262,12 @@ limitations under the License.
       if (state.benchmark === 'custom') {
         const input = generateInput(model);
         try {
-          timeInfo = await profileInferenceTimeForModel(model, input, 1);
+          timeInfo = await timeModelInference(model, input, 1);
         } finally {
           tf.dispose(input);
         }
       } else {
-        timeInfo = await profileInferenceTime(() => predict(model), 1);
+        timeInfo = await timeInference(() => predict(model), 1);
       }
 
       await showMsg(null);
@@ -348,12 +348,12 @@ limitations under the License.
       if (state.benchmark === 'custom') {
         const input = generateInput(model);
         try {
-          timeInfo = await profileInferenceTimeForModel(model, input, numRuns);
+          timeInfo = await timeModelInference(model, input, numRuns);
         } finally {
           tf.dispose(input);
         }
       } else {
-        timeInfo = await profileInferenceTime(() => predict(model), numRuns);
+        timeInfo = await timeInference(() => predict(model), numRuns);
       }
 
       const forceInferenceTrendYMinToZero = true;
@@ -362,105 +362,74 @@ limitations under the License.
       await showMsg(null);
       appendRow(timeTable, `Subsequent average(${state.numRuns} runs)`, printTime(timeInfo.averageTime));
       appendRow(timeTable, 'Best time', printTime(timeInfo.minTime));
+      // Add an empty row at the end of a round of benchmark.
+      appendRow(timeTable, '', '');
     }
 
-    async function profileMemory() {
-      await showMsg('Profile memory');
+    async function profileMemoryAndKernelTime() {
+      await showMsg('Profile memory and kernels');
       const start = performance.now();
 
-      let memoryInfo;
+      let profileInfo;
       if (state.benchmark === 'custom') {
         const input = generateInput(model);
         try {
-          memoryInfo = await profileInferenceMemoryForModel(model, input);
+          profileInfo = await profileModelInference(model, input);
         } finally {
           tf.dispose(input);
         }
       } else {
-        memoryInfo = await profileInferenceMemory(() => predict(model));
+        profileInfo = await profileInference(() => predict(model));
       }
 
       const elapsed = performance.now() - start;
       await showMsg(null);
-      appendRow(timeTable, 'Peak memory', printMemory(memoryInfo.peakBytes));
-      appendRow(timeTable, 'Leaked tensors', memoryInfo.newTensors);
+      appendRow(timeTable, 'Peak memory', printMemory(profileInfo.peakBytes));
+      appendRow(timeTable, 'Leaked tensors', profileInfo.newTensors);
       appendRow(timeTable, '2nd inference', printTime(elapsed));
+
+      if (state.backend != 'webgl' || queryTimerIsEnabled()) {
+        await showMsg('Profiling kernels');
+        appendRow(timeTable, 'Number of kernels', profileInfo.kernels.length);
+        showKernelTime(profileInfo);
+      } else {
+        await showMsg('Skipping kernel times since query timer extension is not ' +
+          'available. <br/> Please use a browser supporting the EXT_disjoint_timer_query WebGL API.');
+      };
     }
 
-    function showKernelTime(kernels) {
+    function showKernelTime(profileInfo) {
       const tbody = document.querySelector('#kernels tbody');
       if (state.kernelTiming === 'individual') {
-        kernels.forEach(k => {
+        profileInfo.kernels.forEach(kernel => {
           const nameSpan = document.createElement('span');
-          nameSpan.setAttribute('title', k.scopes.slice(0, -1).join(' --> '));
-          nameSpan.textContent = k.scopes[k.scopes.length - 1];
-          appendRow(tbody, nameSpan, k.time.toFixed(2), k.inputs, k.output, k.gpuProgramsInfo);
+          nameSpan.setAttribute('title', kernel.name);
+          nameSpan.textContent = kernel.name;
+          let inputInfo;
+          kernel.inputShapes.forEach((inputShape, index) => {
+            if (inputInfo == null) {
+              inputInfo = '';
+            } else {
+              inputInfo += '<br>';
+            }
+            // TODO: Add the name for each input node in the returned value of
+            // `tf.profile` at https://github.com/tensorflow/tfjs/blob/master/tfjs-core/src/engine.ts#L657.
+            if (inputShape == null) {
+              inputInfo += `input${index}: null`;
+            } else {
+              inputInfo += `input${index}: ${inputShape.length}D[${inputShape}]`;
+            }
+          });
+          appendRow(tbody, nameSpan, kernel.kernelTimeMs.toFixed(2), inputInfo, kernel.outputShapes, kernel.extraInfo);
         });
       } else {
-        const kernelTotalTime = {};
-        kernels.forEach(k => {
-          const kernelName = k.scopes[0];
-          if (kernelTotalTime[kernelName] == null) {
-            kernelTotalTime[kernelName] = 0;
-          }
-          kernelTotalTime[kernelName] += k.time;
-        });
-
-        const result = Object.keys(kernelTotalTime)
-            .map(k => [k, kernelTotalTime[k]])
-            .sort((a, b) => b[1] - a[1]);
-        result.forEach(r => {
+        profileInfo.aggregatedKernels.forEach(r => {
           const nameSpan = document.createElement('span');
-          nameSpan.setAttribute('title', r[0]);
-          nameSpan.textContent = r[0];
-          appendRow(tbody, nameSpan, r[1].toFixed(2));
+          nameSpan.setAttribute('title', r.name);
+          nameSpan.textContent = r.name;
+          appendRow(tbody, nameSpan, r.timeMs.toFixed(2));
         });
       }
-    }
-
-    async function profileKernelTime() {
-      await showMsg('Profiling kernels');
-      _tfengine.ENV.set('DEBUG', true);
-      const oldLog = console.log;
-      let kernels = [];
-      console.log = msg => {
-        let parts = [];
-        if (typeof msg === 'string') {
-          parts = msg.split('\t').map(x => x.slice(2));
-        }
-
-        if (parts.length > 2) {
-          // heuristic for determining whether we've caught a profiler
-          // log statement as opposed to a regular console.log
-          // TODO(https://github.com/tensorflow/tfjs/issues/563): return timing information as part of tf.profile
-          const scopes = parts[0].trim()
-            .split('||')
-            .filter(s => s !== 'unnamed scope');
-          kernels.push({
-            scopes: scopes,
-            time: Number.parseFloat(parts[1]),
-            output: parts[2].trim(),
-            inputs: parts[4],
-            gpuProgramsInfo: parts[5]
-          });
-        } else {
-          oldLog.call(oldLog, msg);
-        }
-      }
-      let res = predict(model);
-      res = await getPredictionData(res);
-
-      await showMsg(null);
-      await sleep(10);
-      kernels = kernels.sort((a, b) => b.time - a.time);
-      appendRow(timeTable, 'Number of kernels', kernels.length);
-
-      // Add an empty row at the end of a benchmark run
-      appendRow(timeTable, '', '');
-      showKernelTime(kernels);
-      _tfengine.ENV.set('DEBUG', false);
-      // Switch back to the old log;
-      console.log = oldLog;
     }
 
     async function cleanUpTable() {
@@ -491,17 +460,9 @@ limitations under the License.
       await warmUpAndRecordTime();
       await showMsg('Waiting for GC');
       await sleep(1000);
-      await profileMemory();
+      await profileMemoryAndKernelTime();
       await sleep(200);
       await measureAveragePredictTime();
-      await sleep(200);
-
-      if (state.backend != 'webgl' || queryTimerIsEnabled()) {
-        await profileKernelTime();
-      } else {
-        await showMsg('Skipping kernel times since query timer extension is not ' +
-          'available. <br/> Please use a browser supporting the EXT_disjoint_timer_query WebGL API.');
-      };
     }
 
 

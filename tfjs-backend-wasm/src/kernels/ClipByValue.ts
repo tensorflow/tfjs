@@ -39,7 +39,7 @@ function clip(args: {
   const {x} = inputs;
   const {clipValueMin, clipValueMax} = attrs;
   const xId = backend.dataIdMap.get(x.dataId).id;
-  const out = backend.makeOutput(x.shape, 'float32');
+  const out = backend.makeOutput(x.shape, x.dtype);
   const outId = backend.dataIdMap.get(out.dataId).id;
   wasmClip(xId, clipValueMin, clipValueMax, outId);
   return out;

@@ -766,7 +766,7 @@ describe('Memory allocation outside a test scope', () => {
         },
         read: async (dataId: object) => storedValues,
         dispose: () => null,
-        disposeData: (dataId: {}) => null,
+        disposeData: (dataId: {}) => null
       } as TestStorage;
     });
     tf.setBackend(backendName);

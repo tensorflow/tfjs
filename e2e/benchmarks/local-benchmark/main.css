@@ -17,11 +17,11 @@
 
 html,
 body {
+  box-sizing: border-box;
+  display: flex;
   font-family: 'Roboto', sans-serif;
   font-size: 13px;
-  display: flex;
   flex-direction: column;
-  box-sizing: border-box;
   position: relative;
 }
 
@@ -44,21 +44,21 @@ h2 {
 }
 
 .box {
-  margin-right: 30px;
   margin-bottom: 30px;
+  margin-right: 30px;
 }
 
 .box pre {
-  margin: 0;
   border: 1px solid #ccc;
-  padding: 8px;
   font-size: 10px;
+  margin: 0;
+  padding: 8px;
 }
 
 div[id*='trendline-container'] svg {
-  overflow: visible;
   border-bottom: 1px solid #ccc;
   border-left: 1px solid #ccc;
+  overflow: visible;
 }
 
 div[id*='trendline-container'] .label {
@@ -72,15 +72,15 @@ div[id*='trendline-container'] path {
 }
 
 .trendline {
-  position: relative;
   margin-top: 20px;
+  position: relative;
 }
 
 .trendline .yMax,
 .trendline .yMin {
+  font-size: 11px;
   position: absolute;
   right: calc(100% + 6px);
-  font-size: 11px;
   white-space: nowrap;
 }
 
@@ -96,19 +96,19 @@ div[id*='trendline-container'] path {
   border-radius: 5px;
   background-color: black;
   color: white;
-  padding: 7px;
-  top: 15px;
-  left: 45%;
   display: none;
+  left: 45%;
+  padding: 7px;
   position: absolute;
+  top: 15px;
 }
 
 .table {
-  margin-right: 30px;
-  margin-bottom: 30px;
   border: 1px solid #ccc;
   border-collapse: collapse;
   border-spacing: 0;
+  margin-right: 30px;
+  margin-bottom: 30px;
 }
 
 .table caption {
@@ -130,8 +130,8 @@ div[id*='trendline-container'] path {
 
 .table td,
 th {
-  padding: 8px 8px;
   font-size: 13px;
+  padding: 8px 8px;
   text-align: left;
   vertical-align: top;
 }
@@ -146,8 +146,8 @@ th:first-child {
 }
 
 #gui input[type=checkbox] {
-  width: 100%;
   margin: 7 auto;
+  width: 100%;
 }
 
 #gui .dg .property-name {
