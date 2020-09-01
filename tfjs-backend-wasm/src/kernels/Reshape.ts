@@ -36,7 +36,7 @@ export function reshape(args: {
       () => `new shape: ${$shape}, old shape: ${x.shape}. New shape and old ` +
           `shape must have the same number of elements.`);
 
-  return {dataId: x.dataId, shape, dtype: x.dtype};
+  return {dataId: x.dataId, shape: $shape, dtype: x.dtype};
 }
 
 export const reshapeConfig: KernelConfig = {
