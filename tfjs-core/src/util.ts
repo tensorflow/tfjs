@@ -16,7 +16,7 @@
  */
 
 import {env} from './environment';
-import {BackendValues, DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, ScalarLike, TensorLike, TypedArray} from './types';
+import {BackendValues, DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray} from './types';
 
 
 
