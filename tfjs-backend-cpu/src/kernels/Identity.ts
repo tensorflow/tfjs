@@ -15,25 +15,22 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, Reshape, ReshapeAttrs, ReshapeInputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {Identity, IdentityInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 
-export function reshape(
-    args:
-        {inputs: ReshapeInputs, backend: MathBackendCPU, attrs: ReshapeAttrs}):
-    TensorInfo {
-  const {inputs, backend, attrs} = args;
+export function identity(
+    args: {inputs: IdentityInputs, backend: MathBackendCPU}): TensorInfo {
+  const {inputs, backend} = args;
   const {x} = inputs;
-  const {shape} = attrs;
 
   backend.incRef(x.dataId);
 
-  return {dataId: x.dataId, shape, dtype: x.dtype};
+  return {dataId: x.dataId, shape: x.shape, dtype: x.dtype};
 }
 
-export const reshapeConfig: KernelConfig = {
-  kernelName: Reshape,
+export const identityConfig: KernelConfig = {
+  kernelName: Identity,
   backendName: 'cpu',
-  kernelFunc: reshape as {} as KernelFunc
+  kernelFunc: identity as {} as KernelFunc
 };
