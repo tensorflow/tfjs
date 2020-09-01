@@ -95,6 +95,14 @@ export class MathBackendCPU extends KernelBackend {
     return dataId;
   }
 
+  makeTensorInfo(
+      values: backend_util.BackendValues, shape: number[],
+      dtype: DataType): TensorInfo {
+    const outId = this.write(values, shape, dtype);
+
+    return {dataId: outId, shape, dtype};
+  }
+
   /** Increase refCount of a `TensorData`. */
   incRef(dataId: DataId): void {
     const tensorData = this.data.get(dataId);
