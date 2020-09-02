@@ -1064,7 +1064,12 @@ export class MathBackendWebGL extends KernelBackend {
       inSize = bestIndicesA.shape[1];
     }
     const windowSize = backend_util.computeOptimalWindowSize(inSize);
-    const reduceInfo = {windowSize, inSize, batchSize};
+    const reduceInfo = {
+      windowSize,
+      inSize,
+      batchSize,
+      outSize: Math.ceil(inSize / windowSize)
+    };
     const program =
         new ArgMinMaxProgram(reduceInfo, reduceType, bestIndicesA == null);
     const inputs = [x];

@@ -552,16 +552,6 @@ describeWithFlags('memory webgl', WEBGL_ENVS, () => {
     expect(mem.numBytes).toBe(4);
     expect(mem.unreliable).toBeFalsy();
   });
-
-  it('max', async () => {
-    console.log(
-        'memory before', (tf.memory() as WebGLMemoryInfo).numBytesInGPU);
-    const img = tf.ones([300, 300]);
-    const fbmx = img.max();
-    img.dispose();
-    fbmx.dispose();
-    console.log('memory after', (tf.memory() as WebGLMemoryInfo).numBytesInGPU);
-  });
 });
 
 // We do not yet fully support half float backends. These tests are a starting
