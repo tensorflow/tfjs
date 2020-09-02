@@ -553,7 +553,7 @@ describeWithFlags('memory webgl', WEBGL_ENVS, () => {
     expect(mem.unreliable).toBeFalsy();
   });
 
-  fit('max', async () => {
+  it('max', async () => {
     console.log(
         'memory before', (tf.memory() as WebGLMemoryInfo).numBytesInGPU);
     const img = tf.ones([300, 300]);
