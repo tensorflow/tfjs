@@ -15,25 +15,21 @@
  * =============================================================================
  */
 
-import {DataType, TensorInfo} from '@tensorflow/tfjs-core';
-import {computeOptimalWindowSize} from '@tensorflow/tfjs-core/dist/ops/reduce_util';
+import {backend_util, DataType, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {ReduceProgram} from '../reduce_gpu';
 
 type ReduceTypes = 'all'|'any'|'max'|'min'|'sum'|'prod';
 
-function getSizes(inShape: number[]):
+function getReductionSizes(inShape: number[]):
     Array<{inSize: number, windowSize: number, outSize: number}> {
-  const sizes = [{
-    inSize: inShape[1],
-    windowSize: computeOptimalWindowSize(inShape[1]),
-    outSize: Math.ceil(inShape[1] / computeOptimalWindowSize(inShape[1]))
-  }];
+  const sizes = [];
 
-  while (sizes[sizes.length - 1].outSize !== 1) {
-    const outSize = sizes[sizes.length - 1].outSize;
-    const windowSize = computeOptimalWindowSize(outSize);
+  while (sizes.length === 0 || sizes[sizes.length - 1].outSize !== 1) {
+    const outSize: number =
+        sizes.length ? sizes[sizes.length - 1].outSize : inShape[1];
+    const windowSize = backend_util.computeOptimalWindowSize(outSize);
     sizes.push({
       inSize: outSize,
       windowSize,
@@ -47,9 +43,7 @@ function getSizes(inShape: number[]):
 export function reduce(
     x: TensorInfo, dtype: DataType, reductionType: ReduceTypes,
     backend: MathBackendWebGL): TensorInfo {
-  const sizes = getSizes(x.shape);
-  console.log('REDUCE BEGIN');
-  console.log(backend.numDataIds());
+  const sizes = getReductionSizes(x.shape);
 
   let result = x;
   for (let i = 0; i < sizes.length; i++) {
@@ -64,9 +58,6 @@ export function reduce(
       backend.disposeData(previousResult.dataId);
     }
   }
-
-  console.log('REDUCE END');
-  console.log(backend.numDataIds());
 
   return result;
 }
