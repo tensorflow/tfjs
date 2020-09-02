@@ -47,10 +47,10 @@ export function reduce(
 
   let result = x;
   for (let i = 0; i < sizes.length; i++) {
-    const {inSize, windowSize} = sizes[i];
+    const {inSize, windowSize, outSize} = sizes[i];
 
     const program = new ReduceProgram(
-        {windowSize, inSize, batchSize: x.shape[0]}, reductionType);
+        {windowSize, inSize, batchSize: x.shape[0], outSize}, reductionType);
     const previousResult = result;
     result = backend.runWebGLProgram(program, [result], dtype);
 
