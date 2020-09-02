@@ -22,6 +22,23 @@ import {ReduceProgram} from '../reduce_gpu';
 
 type ReduceTypes = 'all'|'any'|'max'|'min'|'sum'|'prod';
 
+function reduceImpl(
+    x: TensorInfo, dtype: DataType, reductionType: ReduceTypes,
+    backend: MathBackendWebGL): TensorInfo {
+  const [batchSize, inSize] = x.shape;
+  const windowSize = backend_util.computeOptimalWindowSize(inSize);
+  const reduceInfo = {windowSize, inSize, batchSize};
+  const program = new ReduceProgram(reduceInfo, reductionType);
+  const output = backend.runWebGLProgram(program, [x], dtype);
+
+  if (output.shape[1] === 1) {
+    backend.disposeData(x.dataId);
+    return output;
+  }
+
+  return reduceImpl(output, dtype, reductionType, backend);
+}
+
 export function reduce(
     x: TensorInfo, dtype: DataType, reductionType: ReduceTypes,
     backend: MathBackendWebGL): TensorInfo {
@@ -35,5 +52,11 @@ export function reduce(
     return output;
   }
 
-  return reduce(output, dtype, reductionType, backend);
+  const final = reduceImpl(output, dtype, reductionType, backend);
+
+  if (final.dataId !== output.dataId) {
+    backend.disposeData(output.dataId);
+  }
+
+  return final;
 }
