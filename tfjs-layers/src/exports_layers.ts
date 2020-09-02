@@ -1372,9 +1372,9 @@ export function simpleRNNCell(args: SimpleRNNCellLayerArgs): RNNCell {
  * const channels = 3;
  *
  * const inputShape = [batchSize, sequenceLength, size, size, channels];
- * const input = tfc.ones(inputShape);
+ * const input = tf.ones(inputShape);
  *
- * const layer = tfl.layers.convLstm2d({filters, kernelSize});
+ * const layer = tf.layers.convLstm2d({filters, kernelSize});
  *
  * const output = layer.apply(input);
  * ```
@@ -1401,7 +1401,7 @@ export function convLstm2d(args: ConvLSTM2DArgs): ConvLSTM2D {
  * const channels = 3;
  *
  * const inputShape = [sequenceLength, size, size, channels];
- * const input = tfc.ones(inputShape);
+ * const input = tf.ones(inputShape);
  *
  * const cell = tf.layers.convLstm2dCell({filters, kernelSize});
  *
@@ -1410,8 +1410,8 @@ export function convLstm2d(args: ConvLSTM2DArgs): ConvLSTM2D {
  * const outputSize = size - kernelSize + 1;
  * const outShape = [sequenceLength, outputSize, outputSize, filters];
  *
- * const initialH = tfc.zeros(outShape);
- * const initialC = tfc.zeros(outShape);
+ * const initialH = tf.zeros(outShape);
+ * const initialC = tf.zeros(outShape);
  *
  * const [o, h, c] = cell.call([x, initialH, initialC], {});
  * ```
