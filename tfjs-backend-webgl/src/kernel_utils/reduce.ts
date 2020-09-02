@@ -15,48 +15,58 @@
  * =============================================================================
  */
 
-import {backend_util, DataType, TensorInfo} from '@tensorflow/tfjs-core';
+import {DataType, TensorInfo} from '@tensorflow/tfjs-core';
+import {computeOptimalWindowSize} from '@tensorflow/tfjs-core/dist/ops/reduce_util';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {ReduceProgram} from '../reduce_gpu';
 
 type ReduceTypes = 'all'|'any'|'max'|'min'|'sum'|'prod';
 
-function reduceImpl(
-    x: TensorInfo, dtype: DataType, reductionType: ReduceTypes,
-    backend: MathBackendWebGL): TensorInfo {
-  const [batchSize, inSize] = x.shape;
-  const windowSize = backend_util.computeOptimalWindowSize(inSize);
-  const reduceInfo = {windowSize, inSize, batchSize};
-  const program = new ReduceProgram(reduceInfo, reductionType);
-  const output = backend.runWebGLProgram(program, [x], dtype);
+function getSizes(inShape: number[]):
+    Array<{inSize: number, windowSize: number, outSize: number}> {
+  const sizes = [{
+    inSize: inShape[1],
+    windowSize: computeOptimalWindowSize(inShape[1]),
+    outSize: Math.ceil(inShape[1] / computeOptimalWindowSize(inShape[1]))
+  }];
 
-  if (output.shape[1] === 1) {
-    backend.disposeData(x.dataId);
-    return output;
+  while (sizes[sizes.length - 1].outSize !== 1) {
+    const outSize = sizes[sizes.length - 1].outSize;
+    const windowSize = computeOptimalWindowSize(outSize);
+    sizes.push({
+      inSize: outSize,
+      windowSize,
+      outSize: Math.ceil(outSize / windowSize)
+    });
   }
 
-  return reduceImpl(output, dtype, reductionType, backend);
+  return sizes;
 }
 
 export function reduce(
     x: TensorInfo, dtype: DataType, reductionType: ReduceTypes,
     backend: MathBackendWebGL): TensorInfo {
-  const [batchSize, inSize] = x.shape;
-  const windowSize = backend_util.computeOptimalWindowSize(inSize);
-  const reduceInfo = {windowSize, inSize, batchSize};
-  const program = new ReduceProgram(reduceInfo, reductionType);
-  const output = backend.runWebGLProgram(program, [x], dtype);
+  const sizes = getSizes(x.shape);
+  console.log('REDUCE BEGIN');
+  console.log(backend.numDataIds());
 
-  if (output.shape[1] === 1) {
-    return output;
+  let result = x;
+  for (let i = 0; i < sizes.length; i++) {
+    const {inSize, windowSize} = sizes[i];
+
+    const program = new ReduceProgram(
+        {windowSize, inSize, batchSize: x.shape[0]}, reductionType);
+    const previousResult = result;
+    result = backend.runWebGLProgram(program, [result], dtype);
+
+    if (i > 0) {
+      backend.disposeData(previousResult.dataId);
+    }
   }
 
-  const final = reduceImpl(output, dtype, reductionType, backend);
+  console.log('REDUCE END');
+  console.log(backend.numDataIds());
 
-  if (final.dataId !== output.dataId) {
-    backend.disposeData(output.dataId);
-  }
-
-  return final;
+  return result;
 }
