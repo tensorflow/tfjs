@@ -23,14 +23,14 @@ describeWithFlags('Max', ALL_ENVS, () => {
   it('does not have memory leak.', async () => {
     const beforeDataIds = tf.engine().backend.numDataIds();
 
-    const img = tf.ones([100, 100]);
-    const fbmx = img.max();
+    const x = tf.ones([100, 100]);
+    const xMax = x.max();
 
     const afterResDataIds = tf.engine().backend.numDataIds();
     expect(afterResDataIds).toEqual(beforeDataIds + 2);
 
-    img.dispose();
-    fbmx.dispose();
+    x.dispose();
+    xMax.dispose();
 
     const afterDisposeDataIds = tf.engine().backend.numDataIds();
     expect(afterDisposeDataIds).toEqual(beforeDataIds);
