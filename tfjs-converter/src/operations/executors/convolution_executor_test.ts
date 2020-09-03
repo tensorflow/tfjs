@@ -14,7 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as tfc from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
@@ -25,7 +26,7 @@ import {createBoolAttr} from './test_helper';
 
 describe('convolution', () => {
   let node: Node;
-  const input = [tfc.scalar(1)];
+  const input = [tfOps.scalar(1)];
   const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
@@ -43,8 +44,8 @@ describe('convolution', () => {
 
   describe('executeOp', () => {
     describe('AvgPool', () => {
-      it('should call tfc.avgPool', () => {
-        spyOn(tfc, 'avgPool');
+      it('should call tfOps.avgPool', () => {
+        spyOn(tfOps, 'avgPool');
         node.op = 'AvgPool';
         node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.attrParams['pad'] = createStrAttr('same');
@@ -52,14 +53,14 @@ describe('convolution', () => {
 
         executeOp(node, {input}, context);
 
-        expect(tfc.avgPool)
+        expect(tfOps.avgPool)
             .toHaveBeenCalledWith(input[0], [2, 2], [2, 2], 'same');
       });
     });
 
     describe('maxPool', () => {
-      it('should call tfc.maxPool', () => {
-        spyOn(tfc, 'maxPool');
+      it('should call tfOps.maxPool', () => {
+        spyOn(tfOps, 'maxPool');
         node.op = 'MaxPool';
         node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.attrParams['pad'] = createStrAttr('same');
@@ -67,13 +68,13 @@ describe('convolution', () => {
 
         executeOp(node, {input}, context);
 
-        expect(tfc.maxPool)
+        expect(tfOps.maxPool)
             .toHaveBeenCalledWith(input[0], [2, 2], [2, 2], 'same');
       });
     });
     describe('Conv2d', () => {
-      it('should call tfc.conv2d', () => {
-        spyOn(tfc, 'conv2d');
+      it('should call tfOps.conv2d', () => {
+        spyOn(tfOps, 'conv2d');
         node.op = 'Conv2D';
         node.inputParams['filter'] = createTensorAttr(1);
         node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
@@ -81,18 +82,18 @@ describe('convolution', () => {
         node.attrParams['dataFormat'] = createStrAttr('NHWC');
         node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
 
-        const input1 = [tfc.scalar(1.0)];
-        const input2 = [tfc.scalar(1.0)];
+        const input1 = [tfOps.scalar(1.0)];
+        const input2 = [tfOps.scalar(1.0)];
         node.inputNames = ['input1', 'input2'];
 
         executeOp(node, {input1, input2}, context);
 
-        expect(tfc.conv2d)
+        expect(tfOps.conv2d)
             .toHaveBeenCalledWith(
                 input1[0], input2[0], [2, 2], 'same', 'NHWC', [2, 2]);
       });
       it('should support explicit padding', () => {
-        spyOn(tfc, 'conv2d');
+        spyOn(tfOps, 'conv2d');
         node.op = 'Conv2D';
         node.inputParams['filter'] = createTensorAttr(1);
         node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
@@ -102,39 +103,39 @@ describe('convolution', () => {
         node.attrParams['dataFormat'] = createStrAttr('NHWC');
         node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
 
-        const input1 = [tfc.scalar(1.0)];
-        const input2 = [tfc.scalar(1.0)];
+        const input1 = [tfOps.scalar(1.0)];
+        const input2 = [tfOps.scalar(1.0)];
         node.inputNames = ['input1', 'input2'];
 
         executeOp(node, {input1, input2}, context);
 
-        expect(tfc.conv2d)
+        expect(tfOps.conv2d)
             .toHaveBeenCalledWith(
                 input1[0], input2[0], [2, 2], [[0, 0], [1, 1], [2, 2], [0, 0]],
                 'NHWC', [2, 2]);
       });
     });
     describe('Conv2DBackpropInput', () => {
-      it('should call tfc.conv2dTranspose', () => {
-        spyOn(tfc, 'conv2dTranspose');
+      it('should call tfOps.conv2dTranspose', () => {
+        spyOn(tfOps, 'conv2dTranspose');
         node.op = 'Conv2DBackpropInput';
         node.attrParams['outputShape'] = createNumericArrayAttr([1, 2, 2, 2]);
         node.inputParams['filter'] = createTensorAttr(1);
         node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.attrParams['pad'] = createStrAttr('same');
 
-        const input1 = [tfc.scalar(1.0)];
-        const input2 = [tfc.scalar(1.0)];
+        const input1 = [tfOps.scalar(1.0)];
+        const input2 = [tfOps.scalar(1.0)];
         node.inputNames = ['input1', 'input2'];
 
         executeOp(node, {input1, input2}, context);
 
-        expect(tfc.conv2dTranspose)
+        expect(tfOps.conv2dTranspose)
             .toHaveBeenCalledWith(
                 input1[0], input2[0], [1, 2, 2, 2], [2, 2], 'same');
       });
       it('should support explicit padding', () => {
-        spyOn(tfc, 'conv2dTranspose');
+        spyOn(tfOps, 'conv2dTranspose');
         node.op = 'Conv2DBackpropInput';
         node.attrParams['outputShape'] = createNumericArrayAttr([1, 2, 2, 2]);
         node.inputParams['filter'] = createTensorAttr(1);
@@ -143,13 +144,13 @@ describe('convolution', () => {
         node.attrParams['explicitPaddings'] =
             createNumericArrayAttr([0, 0, 1, 1, 2, 2, 0, 0]);
 
-        const input1 = [tfc.scalar(1.0)];
-        const input2 = [tfc.scalar(1.0)];
+        const input1 = [tfOps.scalar(1.0)];
+        const input2 = [tfOps.scalar(1.0)];
         node.inputNames = ['input1', 'input2'];
 
         executeOp(node, {input1, input2}, context);
 
-        expect(tfc.conv2dTranspose)
+        expect(tfOps.conv2dTranspose)
             .toHaveBeenCalledWith(
                 input1[0],
                 input2[0],
@@ -160,8 +161,8 @@ describe('convolution', () => {
       });
     });
     describe('Conv1D', () => {
-      it('should call tfc.conv1d', () => {
-        spyOn(tfc, 'conv1d');
+      it('should call tfOps.conv1d', () => {
+        spyOn(tfOps, 'conv1d');
         node.op = 'Conv1D';
         node.category = 'convolution';
         node.inputParams['filter'] = createTensorAttr(1);
@@ -170,20 +171,20 @@ describe('convolution', () => {
         node.attrParams['dataFormat'] = createStrAttr('NWC');
         node.attrParams['dilation'] = createNumberAttr(1);
 
-        const input1 = [tfc.scalar(1.0)];
-        const input2 = [tfc.scalar(1.0)];
+        const input1 = [tfOps.scalar(1.0)];
+        const input2 = [tfOps.scalar(1.0)];
         node.inputNames = ['input1', 'input2'];
 
         executeOp(node, {input1, input2}, context);
 
-        expect(tfc.conv1d)
+        expect(tfOps.conv1d)
             .toHaveBeenCalledWith(input1[0], input2[0], 1, 'same', 'NWC', 1);
       });
     });
 
     describe('DepthwiseConv2d', () => {
-      it('should call tfc.depthwiseConv2d', () => {
-        spyOn(tfc, 'depthwiseConv2d');
+      it('should call tfOps.depthwiseConv2d', () => {
+        spyOn(tfOps, 'depthwiseConv2d');
         node.op = 'DepthwiseConv2d';
         node.category = 'convolution';
         node.inputParams['input'] = createTensorAttr(0);
@@ -192,18 +193,18 @@ describe('convolution', () => {
         node.attrParams['pad'] = createStrAttr('same');
         node.attrParams['dataFormat'] = createStrAttr('NHWC');
         node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
-        const input1 = [tfc.scalar(1.0)];
-        const input2 = [tfc.scalar(1.0)];
+        const input1 = [tfOps.scalar(1.0)];
+        const input2 = [tfOps.scalar(1.0)];
         node.inputNames = ['input1', 'input2'];
 
         executeOp(node, {input1, input2}, context);
 
-        expect(tfc.depthwiseConv2d)
+        expect(tfOps.depthwiseConv2d)
             .toHaveBeenCalledWith(
                 input1[0], input2[0], [2, 2], 'same', 'NHWC', [2, 2]);
       });
       it('support explicit padding', () => {
-        spyOn(tfc, 'depthwiseConv2d');
+        spyOn(tfOps, 'depthwiseConv2d');
         node.op = 'DepthwiseConv2d';
         node.category = 'convolution';
         node.inputParams['input'] = createTensorAttr(0);
@@ -214,13 +215,13 @@ describe('convolution', () => {
             createNumericArrayAttr([0, 0, 1, 1, 2, 2, 0, 0]);
         node.attrParams['dataFormat'] = createStrAttr('NHWC');
         node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
-        const input1 = [tfc.scalar(1.0)];
-        const input2 = [tfc.scalar(1.0)];
+        const input1 = [tfOps.scalar(1.0)];
+        const input2 = [tfOps.scalar(1.0)];
         node.inputNames = ['input1', 'input2'];
 
         executeOp(node, {input1, input2}, context);
 
-        expect(tfc.depthwiseConv2d)
+        expect(tfOps.depthwiseConv2d)
             .toHaveBeenCalledWith(
                 input1[0], input2[0], [2, 2], [[0, 0], [1, 1], [2, 2], [0, 0]],
                 'NHWC', [2, 2]);
@@ -228,8 +229,8 @@ describe('convolution', () => {
     });
 
     describe('Conv3d', () => {
-      it('should call tfc.conv3d', () => {
-        spyOn(tfc, 'conv3d');
+      it('should call tfOps.conv3d', () => {
+        spyOn(tfOps, 'conv3d');
         node.op = 'Conv3D';
         node.category = 'convolution';
         node.inputParams['filter'] = createTensorAttr(1);
@@ -238,21 +239,21 @@ describe('convolution', () => {
         node.attrParams['dataFormat'] = createStrAttr('NHWC');
         node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 2, 1]);
 
-        const input1 = [tfc.scalar(1.0)];
-        const input2 = [tfc.scalar(1.0)];
+        const input1 = [tfOps.scalar(1.0)];
+        const input2 = [tfOps.scalar(1.0)];
         node.inputNames = ['input1', 'input2'];
 
         executeOp(node, {input1, input2}, context);
 
-        expect(tfc.conv3d)
+        expect(tfOps.conv3d)
             .toHaveBeenCalledWith(
                 input1[0], input2[0], [2, 2, 2], 'same', 'NHWC', [2, 2, 2]);
       });
     });
 
     describe('AvgPool3D', () => {
-      it('should call tfc.avgPool3d', () => {
-        spyOn(tfc, 'avgPool3d');
+      it('should call tfOps.avgPool3d', () => {
+        spyOn(tfOps, 'avgPool3d');
         node.op = 'AvgPool3D';
         node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 2, 1]);
         node.attrParams['pad'] = createStrAttr('same');
@@ -260,14 +261,14 @@ describe('convolution', () => {
 
         executeOp(node, {input}, context);
 
-        expect(tfc.avgPool3d)
+        expect(tfOps.avgPool3d)
             .toHaveBeenCalledWith(input[0], [2, 2, 2], [2, 2, 2], 'same');
       });
     });
 
     describe('MaxPool3D', () => {
-      it('should call tfc.maxPool3d', () => {
-        spyOn(tfc, 'maxPool3d');
+      it('should call tfOps.maxPool3d', () => {
+        spyOn(tfOps, 'maxPool3d');
         node.op = 'MaxPool3D';
         node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 2, 1]);
         node.attrParams['pad'] = createStrAttr('same');
@@ -275,14 +276,14 @@ describe('convolution', () => {
 
         executeOp(node, {input}, context);
 
-        expect(tfc.maxPool3d)
+        expect(tfOps.maxPool3d)
             .toHaveBeenCalledWith(input[0], [2, 2, 2], [2, 2, 2], 'same');
       });
     });
 
     describe('MaxPoolWithArgmax', () => {
-      it('should call tfc.maxPoolWithArgmax', () => {
-        spyOn(tfc, 'maxPoolWithArgmax').and.returnValue({});
+      it('should call tfOps.maxPoolWithArgmax', () => {
+        spyOn(tfOps, 'maxPoolWithArgmax').and.returnValue({});
         node.op = 'MaxPoolWithArgmax';
         node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.attrParams['pad'] = createStrAttr('same');
@@ -291,14 +292,14 @@ describe('convolution', () => {
         node.attrParams['includeBatchInIndex'] = createBoolAttr(true);
         executeOp(node, {input}, context);
 
-        expect(tfc.maxPoolWithArgmax)
+        expect(tfOps.maxPoolWithArgmax)
             .toHaveBeenCalledWith(input[0], [2, 2], [2, 2], 'same', true);
       });
     });
 
     describe('_FusedConv2d', () => {
       it('with bias and activation func', () => {
-        spyOn(tfc.fused, 'conv2d');
+        spyOn(tfOps.fused, 'conv2d');
         node.op = '_FusedConv2D';
         node.inputParams['filter'] = createTensorAttr(1);
         node.inputParams['args'] = createTensorsAttr(2, 0);
@@ -308,14 +309,14 @@ describe('convolution', () => {
         node.attrParams['dataFormat'] = createStrAttr('NHWC');
         node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.attrParams['numArgs'] = createNumberAttr(1);
-        const input1 = [tfc.scalar(1.0)];
-        const input2 = [tfc.scalar(2.0)];
-        const input3 = [tfc.scalar(3.0)];
+        const input1 = [tfOps.scalar(1.0)];
+        const input2 = [tfOps.scalar(2.0)];
+        const input3 = [tfOps.scalar(3.0)];
 
         node.inputNames = ['input1', 'input2', 'input3'];
         executeOp(node, {input1, input2, input3}, context);
 
-        expect(tfc.fused.conv2d).toHaveBeenCalledWith({
+        expect(tfOps.fused.conv2d).toHaveBeenCalledWith({
           x: input1[0],
           filter: input2[0],
           strides: [2, 2],
@@ -328,7 +329,7 @@ describe('convolution', () => {
         });
       });
       it('should support explicit padding', () => {
-        spyOn(tfc.fused, 'conv2d');
+        spyOn(tfOps.fused, 'conv2d');
         node.op = '_FusedConv2D';
         node.inputParams['filter'] = createTensorAttr(1);
         node.inputParams['args'] = createTensorsAttr(2, 0);
@@ -340,14 +341,14 @@ describe('convolution', () => {
         node.attrParams['dataFormat'] = createStrAttr('NHWC');
         node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.attrParams['numArgs'] = createNumberAttr(1);
-        const input1 = [tfc.scalar(1.0)];
-        const input2 = [tfc.scalar(2.0)];
-        const input3 = [tfc.scalar(3.0)];
+        const input1 = [tfOps.scalar(1.0)];
+        const input2 = [tfOps.scalar(2.0)];
+        const input3 = [tfOps.scalar(3.0)];
 
         node.inputNames = ['input1', 'input2', 'input3'];
         executeOp(node, {input1, input2, input3}, context);
 
-        expect(tfc.fused.conv2d).toHaveBeenCalledWith({
+        expect(tfOps.fused.conv2d).toHaveBeenCalledWith({
           x: input1[0],
           filter: input2[0],
           strides: [2, 2],
@@ -360,7 +361,7 @@ describe('convolution', () => {
         });
       });
       it('with bias and prelu activation func', () => {
-        spyOn(tfc.fused, 'conv2d');
+        spyOn(tfOps.fused, 'conv2d');
         node.op = '_FusedConv2D';
         node.inputParams['filter'] = createTensorAttr(1);
         node.inputParams['args'] = createTensorsAttr(2, 0);
@@ -370,14 +371,14 @@ describe('convolution', () => {
         node.attrParams['dataFormat'] = createStrAttr('NHWC');
         node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.attrParams['numArgs'] = createNumberAttr(2);
-        const input1 = [tfc.scalar(1.0)];
-        const input2 = [tfc.scalar(2.0)];
-        const input3 = [tfc.scalar(3.0)];
-        const input4 = [tfc.scalar(4.0)];
+        const input1 = [tfOps.scalar(1.0)];
+        const input2 = [tfOps.scalar(2.0)];
+        const input3 = [tfOps.scalar(3.0)];
+        const input4 = [tfOps.scalar(4.0)];
         node.inputNames = ['input1', 'input2', 'input3', 'input4'];
         executeOp(node, {input1, input2, input3, input4}, context);
 
-        expect(tfc.fused.conv2d).toHaveBeenCalledWith({
+        expect(tfOps.fused.conv2d).toHaveBeenCalledWith({
           x: input1[0],
           filter: input2[0],
           strides: [2, 2],
@@ -391,7 +392,7 @@ describe('convolution', () => {
       });
 
       it('bias add', () => {
-        spyOn(tfc.fused, 'conv2d');
+        spyOn(tfOps.fused, 'conv2d');
         node.op = '_FusedConv2D';
         node.inputParams['filter'] = createTensorAttr(1);
         node.inputParams['args'] = createTensorsAttr(2, 0);
@@ -401,14 +402,14 @@ describe('convolution', () => {
         node.attrParams['dataFormat'] = createStrAttr('NHWC');
         node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.attrParams['numArgs'] = createNumberAttr(1);
-        const input1 = [tfc.scalar(1.0)];
-        const input2 = [tfc.scalar(2.0)];
-        const input3 = [tfc.scalar(3.0)];
+        const input1 = [tfOps.scalar(1.0)];
+        const input2 = [tfOps.scalar(2.0)];
+        const input3 = [tfOps.scalar(3.0)];
 
         node.inputNames = ['input1', 'input2', 'input3'];
         executeOp(node, {input1, input2, input3}, context);
 
-        expect(tfc.fused.conv2d).toHaveBeenCalledWith({
+        expect(tfOps.fused.conv2d).toHaveBeenCalledWith({
           x: input1[0],
           filter: input2[0],
           strides: [2, 2],
@@ -421,7 +422,7 @@ describe('convolution', () => {
         });
       });
       it('fail with batchnorm', () => {
-        spyOn(tfc.fused, 'conv2d');
+        spyOn(tfOps.fused, 'conv2d');
         node.op = '_FusedConv2D';
         node.inputParams['filter'] = createTensorAttr(1);
         node.inputParams['args'] = createTensorsAttr(2, 0);
@@ -431,9 +432,9 @@ describe('convolution', () => {
         node.attrParams['dataFormat'] = createStrAttr('NHWC');
         node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.attrParams['numArgs'] = createNumberAttr(1);
-        const input1 = [tfc.scalar(1.0)];
-        const input2 = [tfc.scalar(2.0)];
-        const input3 = [tfc.scalar(3.0)];
+        const input1 = [tfOps.scalar(1.0)];
+        const input2 = [tfOps.scalar(2.0)];
+        const input3 = [tfOps.scalar(3.0)];
 
         node.inputNames = ['input1', 'input2', 'input3'];
         expect(() => executeOp(node, {input1, input2, input3}, context))
@@ -443,7 +444,7 @@ describe('convolution', () => {
   });
   describe('FusedDepthwiseConv2d', () => {
     it('support explicit padding', () => {
-      spyOn(tfc.fused, 'depthwiseConv2d');
+      spyOn(tfOps.fused, 'depthwiseConv2d');
       node.op = 'FusedDepthwiseConv2dNative';
       node.inputParams['filter'] = createTensorAttr(1);
       node.inputParams['args'] = createTensorsAttr(2, 0);
@@ -455,14 +456,14 @@ describe('convolution', () => {
       node.attrParams['dataFormat'] = createStrAttr('NHWC');
       node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
       node.attrParams['numArgs'] = createNumberAttr(1);
-      const input1 = [tfc.scalar(1.0)];
-      const input2 = [tfc.scalar(2.0)];
-      const input3 = [tfc.scalar(3.0)];
+      const input1 = [tfOps.scalar(1.0)];
+      const input2 = [tfOps.scalar(2.0)];
+      const input3 = [tfOps.scalar(3.0)];
 
       node.inputNames = ['input1', 'input2', 'input3'];
       executeOp(node, {input1, input2, input3}, context);
 
-      expect(tfc.fused.depthwiseConv2d).toHaveBeenCalledWith({
+      expect(tfOps.fused.depthwiseConv2d).toHaveBeenCalledWith({
         x: input1[0],
         filter: input2[0],
         strides: [2, 2],
@@ -475,7 +476,7 @@ describe('convolution', () => {
       });
     });
     it('with bias and activation func', () => {
-      spyOn(tfc.fused, 'depthwiseConv2d');
+      spyOn(tfOps.fused, 'depthwiseConv2d');
       node.op = 'FusedDepthwiseConv2dNative';
       node.inputParams['filter'] = createTensorAttr(1);
       node.inputParams['args'] = createTensorsAttr(2, 0);
@@ -485,14 +486,14 @@ describe('convolution', () => {
       node.attrParams['dataFormat'] = createStrAttr('NHWC');
       node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
       node.attrParams['numArgs'] = createNumberAttr(1);
-      const input1 = [tfc.scalar(1.0)];
-      const input2 = [tfc.scalar(2.0)];
-      const input3 = [tfc.scalar(3.0)];
+      const input1 = [tfOps.scalar(1.0)];
+      const input2 = [tfOps.scalar(2.0)];
+      const input3 = [tfOps.scalar(3.0)];
 
       node.inputNames = ['input1', 'input2', 'input3'];
       executeOp(node, {input1, input2, input3}, context);
 
-      expect(tfc.fused.depthwiseConv2d).toHaveBeenCalledWith({
+      expect(tfOps.fused.depthwiseConv2d).toHaveBeenCalledWith({
         x: input1[0],
         filter: input2[0],
         strides: [2, 2],
@@ -505,7 +506,7 @@ describe('convolution', () => {
       });
     });
     it('with bias and prelu activation func', () => {
-      spyOn(tfc.fused, 'depthwiseConv2d');
+      spyOn(tfOps.fused, 'depthwiseConv2d');
       node.op = 'FusedDepthwiseConv2dNative';
       node.inputParams['filter'] = createTensorAttr(1);
       node.inputParams['args'] = createTensorsAttr(2, 0);
@@ -515,14 +516,14 @@ describe('convolution', () => {
       node.attrParams['dataFormat'] = createStrAttr('NHWC');
       node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
       node.attrParams['numArgs'] = createNumberAttr(2);
-      const input1 = [tfc.scalar(1.0)];
-      const input2 = [tfc.scalar(2.0)];
-      const input3 = [tfc.scalar(3.0)];
-      const input4 = [tfc.scalar(4.0)];
+      const input1 = [tfOps.scalar(1.0)];
+      const input2 = [tfOps.scalar(2.0)];
+      const input3 = [tfOps.scalar(3.0)];
+      const input4 = [tfOps.scalar(4.0)];
       node.inputNames = ['input1', 'input2', 'input3', 'input4'];
       executeOp(node, {input1, input2, input3, input4}, context);
 
-      expect(tfc.fused.depthwiseConv2d).toHaveBeenCalledWith({
+      expect(tfOps.fused.depthwiseConv2d).toHaveBeenCalledWith({
         x: input1[0],
         filter: input2[0],
         strides: [2, 2],
@@ -536,7 +537,7 @@ describe('convolution', () => {
     });
 
     it('bias add', () => {
-      spyOn(tfc.fused, 'depthwiseConv2d');
+      spyOn(tfOps.fused, 'depthwiseConv2d');
       node.op = 'FusedDepthwiseConv2dNative';
       node.inputParams['filter'] = createTensorAttr(1);
       node.inputParams['args'] = createTensorsAttr(2, 0);
@@ -546,14 +547,14 @@ describe('convolution', () => {
       node.attrParams['dataFormat'] = createStrAttr('NHWC');
       node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
       node.attrParams['numArgs'] = createNumberAttr(1);
-      const input1 = [tfc.scalar(1.0)];
-      const input2 = [tfc.scalar(2.0)];
-      const input3 = [tfc.scalar(3.0)];
+      const input1 = [tfOps.scalar(1.0)];
+      const input2 = [tfOps.scalar(2.0)];
+      const input3 = [tfOps.scalar(3.0)];
 
       node.inputNames = ['input1', 'input2', 'input3'];
       executeOp(node, {input1, input2, input3}, context);
 
-      expect(tfc.fused.depthwiseConv2d).toHaveBeenCalledWith({
+      expect(tfOps.fused.depthwiseConv2d).toHaveBeenCalledWith({
         x: input1[0],
         filter: input2[0],
         strides: [2, 2],
@@ -568,21 +569,21 @@ describe('convolution', () => {
   });
 
   describe('dilation2d', () => {
-    it('should call tfc.dilation2d', () => {
-      spyOn(tfc, 'dilation2d');
+    it('should call tfOps.dilation2d', () => {
+      spyOn(tfOps, 'dilation2d');
       node.op = 'Dilation2D';
       node.inputParams['filter'] = createTensorAttr(1);
       node.attrParams['strides'] = createNumericArrayAttr([1, 1, 1, 1]);
       node.attrParams['pad'] = createStrAttr('same');
       node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
 
-      const input1 = [tfc.scalar(1.0)];
-      const input2 = [tfc.scalar(1.0)];
+      const input1 = [tfOps.scalar(1.0)];
+      const input2 = [tfOps.scalar(1.0)];
       node.inputNames = ['input1', 'input2'];
 
       executeOp(node, {input1, input2}, context);
 
-      expect(tfc.dilation2d)
+      expect(tfOps.dilation2d)
           .toHaveBeenCalledWith(
               input1[0], input2[0], [1, 1], 'same', [2, 2], 'NHWC');
     });

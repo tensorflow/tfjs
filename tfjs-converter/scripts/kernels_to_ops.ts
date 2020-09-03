@@ -97,17 +97,17 @@ function getKernelMappingForFile(source: SourceFile) {
           // used.
           const callExprs =
               clausePart.getDescendantsOfKind(SyntaxKind.CallExpression);
-          const tfcCallExprs =
-              callExprs.filter(expr => expr.getText().match(/tfc/));
+          const tfOpsCallExprs =
+              callExprs.filter(expr => expr.getText().match(/tfOps/));
           const tfSymbols: Set<string> = new Set();
-          for (const tfcCall of tfcCallExprs) {
-            const tfcCallStr = tfcCall.getText();
-            const functionCallMatcher = /(tfc\.([\w\.]*)\()/g;
-            const matches = tfcCallStr.match(functionCallMatcher);
+          for (const tfOpsCall of tfOpsCallExprs) {
+            const tfOpsCallStr = tfOpsCall.getText();
+            const functionCallMatcher = /(tfOps\.([\w\.]*)\()/g;
+            const matches = tfOpsCallStr.match(functionCallMatcher);
             if (matches != null && matches.length > 0) {
               for (const match of matches) {
                 // extract the method name (and any namespaces used to call it)
-                const symbolMatcher = /(tfc\.([\w\.]*)\()/;
+                const symbolMatcher = /(tfOps\.([\w\.]*)\()/;
                 const symbol = match.match(symbolMatcher)[2];
                 tfSymbols.add(symbol);
               }
