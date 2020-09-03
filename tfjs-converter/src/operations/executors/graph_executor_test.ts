@@ -14,8 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as tfc from '@tensorflow/tfjs-core';
+import {Tensor} from '@tensorflow/tfjs-core';
 import {test_util} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
@@ -25,9 +27,9 @@ import {createNumberAttr, createStrAttr, createTensorAttr, createTensorsAttr} fr
 
 describe('graph', () => {
   let node: Node;
-  const input1 = [tfc.tensor1d([1])];
-  const input2 = [tfc.tensor1d([1])];
-  const input3 = [tfc.tensor3d([1, 1, 1, 2, 2, 2], [1, 2, 3])];
+  const input1 = [tfOps.tensor1d([1])];
+  const input2 = [tfOps.tensor1d([1])];
+  const input3 = [tfOps.tensor3d([1, 1, 1, 2, 2, 2], [1, 2, 3])];
   const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
@@ -68,7 +70,7 @@ describe('graph', () => {
         node.inputParams.x = createTensorAttr(0);
         node.op = 'Identity';
         test_util.expectArraysEqual(
-            await (executeOp(node, {input: input1}, context) as tfc.Tensor[])[0]
+            await (executeOp(node, {input: input1}, context) as Tensor[])[0]
                 .array(),
             await input1[0].array());
       });
@@ -78,10 +80,10 @@ describe('graph', () => {
         node.inputNames = ['input1', 'input3'];
         node.inputParams.x = createTensorsAttr(0, 0);
         node.op = 'IdentityN';
-        expect((executeOp(node, {input1, input3}, context) as tfc.Tensor[])
-                   .map(t => {
-                     return Array.prototype.slice.call(t.dataSync());
-                   }))
+        expect(
+            (executeOp(node, {input1, input3}, context) as Tensor[]).map(t => {
+              return Array.prototype.slice.call(t.dataSync());
+            }))
             .toEqual([[1], [1, 1, 1, 2, 2, 2]]);
       });
     });
@@ -91,7 +93,7 @@ describe('graph', () => {
         node.inputParams.x = createTensorAttr(0);
         node.op = 'Snapshot';
         const result =
-            (executeOp(node, {input: input1}, context) as tfc.Tensor[])[0];
+            (executeOp(node, {input: input1}, context) as Tensor[])[0];
         expect(result.rank).toEqual(input1[0].rank);
         test_util.expectArraysClose(await result.data(), [1]);
       });
@@ -101,10 +103,9 @@ describe('graph', () => {
         node.inputNames = ['input'];
         node.inputParams.x = createTensorAttr(0);
         node.op = 'Shape';
-        expect(
-            Array.prototype.slice.call(
-                (executeOp(node, {input: input3}, context) as tfc.Tensor[])[0]
-                    .dataSync()))
+        expect(Array.prototype.slice.call(
+                   (executeOp(node, {input: input3}, context) as Tensor[])[0]
+                       .dataSync()))
             .toEqual([1, 2, 3]);
       });
     });
@@ -113,10 +114,10 @@ describe('graph', () => {
         node.inputNames = ['input1', 'input3'];
         node.inputParams.x = createTensorsAttr(0, 0);
         node.op = 'ShapeN';
-        expect((executeOp(node, {input1, input3}, context) as tfc.Tensor[])
-                   .map(t => {
-                     return Array.prototype.slice.call(t.dataSync());
-                   }))
+        expect(
+            (executeOp(node, {input1, input3}, context) as Tensor[]).map(t => {
+              return Array.prototype.slice.call(t.dataSync());
+            }))
             .toEqual([[1], [1, 2, 3]]);
       });
     });
@@ -125,10 +126,9 @@ describe('graph', () => {
         node.inputNames = ['input'];
         node.inputParams.x = createTensorAttr(0);
         node.op = 'Size';
-        expect(
-            Array.prototype.slice.call(
-                (executeOp(node, {input: input3}, context) as tfc.Tensor[])[0]
-                    .dataSync()))
+        expect(Array.prototype.slice.call(
+                   (executeOp(node, {input: input3}, context) as Tensor[])[0]
+                       .dataSync()))
             .toEqual([6]);
       });
     });
@@ -137,10 +137,9 @@ describe('graph', () => {
         node.inputNames = ['input'];
         node.inputParams.x = createTensorAttr(0);
         node.op = 'Rank';
-        expect(
-            Array.prototype.slice.call(
-                (executeOp(node, {input: input3}, context) as tfc.Tensor[])[0]
-                    .dataSync()))
+        expect(Array.prototype.slice.call(
+                   (executeOp(node, {input: input3}, context) as Tensor[])[0]
+                       .dataSync()))
             .toEqual([3]);
       });
     });
@@ -148,8 +147,7 @@ describe('graph', () => {
       it('should return empty', async () => {
         node.op = 'NoOp';
         test_util.expectArraysClose(
-            await (executeOp(node, {}, context) as tfc.Tensor[])[0].data(),
-            [1]);
+            await (executeOp(node, {}, context) as Tensor[])[0].data(), [1]);
       });
     });
   });
@@ -176,7 +174,7 @@ describe('graph', () => {
       node.inputParams.x = createTensorAttr(0);
       node.op = 'StopGradient';
       test_util.expectArraysClose(
-          await (executeOp(node, {input: input1}, context) as tfc.Tensor[])[0]
+          await (executeOp(node, {input: input1}, context) as Tensor[])[0]
               .array(),
           await input1[0].array());
     });
@@ -187,7 +185,7 @@ describe('graph', () => {
       node.inputParams.x = createTensorAttr(0);
       node.op = 'FakeQuantWithMinMaxVars';
       test_util.expectArraysClose(
-          await (executeOp(node, {input: input1}, context) as tfc.Tensor[])[0]
+          await (executeOp(node, {input: input1}, context) as Tensor[])[0]
               .array(),
           await input1[0].array());
     });

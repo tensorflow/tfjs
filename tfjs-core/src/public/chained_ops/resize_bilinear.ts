@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {resizeBilinear} from '../../ops/resize_bilinear';
+import {resizeBilinear} from '../../ops/image/resize_bilinear';
 import {Tensor, Tensor3D, Tensor4D} from '../../tensor';
 import {Rank} from '../../types';
 

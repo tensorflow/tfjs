@@ -23,7 +23,7 @@ describe('CLI binary', () => {
     const packageJsonPath = path.resolve(
         __dirname,
         '../../package.json',
-    )
+    );
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
     const binEntry = packageJson.bin;
     expect(binEntry['tfjs-custom-bundle']).toBeDefined();

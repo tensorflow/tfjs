@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
@@ -23,53 +25,54 @@ import {InternalOpExecutor, Node} from '../types';
 
 import {getParamValue} from './utils';
 
-export const executeOp: InternalOpExecutor = (node: Node,
-                                              tensorMap: NamedTensorsMap,
-                                              context: ExecutionContext):
-                                                 tfc.Tensor[] => {
-  switch (node.op) {
-    case 'ResizeBilinear': {
-      const images =
-          getParamValue('images', node, tensorMap, context) as tfc.Tensor;
-      const size = getParamValue('size', node, tensorMap, context) as number[];
-      const alignCorners =
-          getParamValue('alignCorners', node, tensorMap, context) as boolean;
-      return [tfc.image.resizeBilinear(
-          images as tfc.Tensor3D | tfc.Tensor4D, [size[0], size[1]],
-          alignCorners)];
-    }
-    case 'ResizeNearestNeighbor': {
-      const images =
-          getParamValue('images', node, tensorMap, context) as tfc.Tensor;
-      const size = getParamValue('size', node, tensorMap, context) as number[];
-      const alignCorners =
-          getParamValue('alignCorners', node, tensorMap, context) as boolean;
-      return [tfc.image.resizeNearestNeighbor(
-          images as tfc.Tensor3D | tfc.Tensor4D, [size[0], size[1]],
-          alignCorners)];
-    }
-    case 'CropAndResize': {
-      const image =
-          getParamValue('image', node, tensorMap, context) as tfc.Tensor;
-      const boxes =
-          getParamValue('boxes', node, tensorMap, context) as tfc.Tensor;
-      const boxInd =
-          getParamValue('boxInd', node, tensorMap, context) as tfc.Tensor;
-      const cropSize =
-          getParamValue('cropSize', node, tensorMap, context) as number[];
-      const method =
-          getParamValue('method', node, tensorMap, context) as string;
-      const extrapolationValue =
-          getParamValue('extrapolationValue', node, tensorMap, context) as
-          number;
-      return [tfc.image.cropAndResize(
-          image as tfc.Tensor4D, boxes as tfc.Tensor2D, boxInd as tfc.Tensor1D,
-          cropSize as [number, number], method as 'bilinear' | 'nearest',
-          extrapolationValue)];
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
+export const executeOp: InternalOpExecutor =
+    (node: Node, tensorMap: NamedTensorsMap,
+     context: ExecutionContext): Tensor[] => {
+      switch (node.op) {
+        case 'ResizeBilinear': {
+          const images =
+              getParamValue('images', node, tensorMap, context) as Tensor;
+          const size =
+              getParamValue('size', node, tensorMap, context) as number[];
+          const alignCorners =
+              getParamValue('alignCorners', node, tensorMap, context) as
+              boolean;
+          return [tfOps.image.resizeBilinear(
+              images as Tensor3D | Tensor4D, [size[0], size[1]], alignCorners)];
+        }
+        case 'ResizeNearestNeighbor': {
+          const images =
+              getParamValue('images', node, tensorMap, context) as Tensor;
+          const size =
+              getParamValue('size', node, tensorMap, context) as number[];
+          const alignCorners =
+              getParamValue('alignCorners', node, tensorMap, context) as
+              boolean;
+          return [tfOps.image.resizeNearestNeighbor(
+              images as Tensor3D | Tensor4D, [size[0], size[1]], alignCorners)];
+        }
+        case 'CropAndResize': {
+          const image =
+              getParamValue('image', node, tensorMap, context) as Tensor;
+          const boxes =
+              getParamValue('boxes', node, tensorMap, context) as Tensor;
+          const boxInd =
+              getParamValue('boxInd', node, tensorMap, context) as Tensor;
+          const cropSize =
+              getParamValue('cropSize', node, tensorMap, context) as number[];
+          const method =
+              getParamValue('method', node, tensorMap, context) as string;
+          const extrapolationValue =
+              getParamValue('extrapolationValue', node, tensorMap, context) as
+              number;
+          return [tfOps.image.cropAndResize(
+              image as Tensor4D, boxes as Tensor2D, boxInd as Tensor1D,
+              cropSize as [number, number], method as 'bilinear' | 'nearest',
+              extrapolationValue)];
+        }
+        default:
+          throw TypeError(`Node type ${node.op} is not implemented`);
+      }
+    };
 
 export const CATEGORY = 'image';

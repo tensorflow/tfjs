@@ -1173,7 +1173,7 @@ function ones(shape: number[]): Tensor {
   return ENGINE.makeTensor(values, shape, 'float32');
 }
 
-function getOrMakeEngine(): Engine {
+export function getOrMakeEngine(): Engine {
   const ns = getGlobalNamespace() as {} as {_tfengine: Engine};
   if (ns._tfengine == null) {
     const environment = new Environment(ns);

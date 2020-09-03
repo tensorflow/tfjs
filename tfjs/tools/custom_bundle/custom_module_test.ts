@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getCustomModuleString} from './custom_module';
+import {getCustomConverterOpsModule, getCustomModuleString} from './custom_module';
 import {ModuleProvider} from './types';
 
 const mockModuleProvider: ModuleProvider = {
@@ -30,136 +30,166 @@ const mockModuleProvider: ModuleProvider = {
     importStatement: `import GRADIENT ${kernel}`,
     gradConfigId: `${kernel}_GRAD_CONFIG`,
   }),
+  kernelToOpsMapPath: () => {
+    return 'PATH_TO_KERNEL2OP.json';
+  },
+  importOpForConverterStr: (opSymbol: string) => {
+    return `export * from ${opSymbol}`;
+  },
+  importNamespacedOpsForConverterStr: (
+      namespace: string, opSymbols: string[]) => {
+    return `export ${opSymbols.join(',')} as ${namespace} from ${namespace}/`;
+  }
 };
 
-describe('ESM Module Provider forwardModeOnly=true', () => {
+describe('getCustomModuleString forwardModeOnly=true', () => {
   const forwardModeOnly = true;
   it('one kernel, one backend', () => {
-    const res = getCustomModuleString(
+    const {tfjs, core} = getCustomModuleString(
         ['MathKrnl'], ['FastBcknd'], forwardModeOnly, mockModuleProvider);
 
-    expect(res).toContain('import CORE');
-    expect(res).toContain('import CONVERTER');
+    expect(core).toContain('import CORE');
+    expect(tfjs).toContain('import CORE');
+    expect(tfjs).toContain('import CONVERTER');
 
-    expect(res).toContain('import BACKEND FastBcknd');
-    expect(res).toContain('import KERNEL MathKrnl from BACKEND FastBcknd');
-    expect(res).toContain('registerKernel(MathKrnl_FastBcknd)');
+    expect(tfjs).toContain('import BACKEND FastBcknd');
+    expect(tfjs).toContain('import KERNEL MathKrnl from BACKEND FastBcknd');
+    expect(tfjs).toContain('registerKernel(MathKrnl_FastBcknd)');
 
-    expect(res).not.toContain('GRADIENT');
+    expect(tfjs).not.toContain('GRADIENT');
   });
 
   it('one kernel, two backend', () => {
-    const res = getCustomModuleString(
+    const {tfjs} = getCustomModuleString(
         ['MathKrnl'], ['FastBcknd', 'SlowBcknd'], forwardModeOnly,
         mockModuleProvider);
 
-    expect(res).toContain('import CORE');
-    expect(res).toContain('import CONVERTER');
+    expect(tfjs).toContain('import CORE');
+    expect(tfjs).toContain('import CONVERTER');
 
-    expect(res).toContain('import BACKEND FastBcknd');
-    expect(res).toContain('import KERNEL MathKrnl from BACKEND FastBcknd');
-    expect(res).toContain('registerKernel(MathKrnl_FastBcknd)');
+    expect(tfjs).toContain('import BACKEND FastBcknd');
+    expect(tfjs).toContain('import KERNEL MathKrnl from BACKEND FastBcknd');
+    expect(tfjs).toContain('registerKernel(MathKrnl_FastBcknd)');
 
-    expect(res).toContain('import BACKEND SlowBcknd');
-    expect(res).toContain('import KERNEL MathKrnl from BACKEND SlowBcknd');
-    expect(res).toContain('registerKernel(MathKrnl_SlowBcknd)');
+    expect(tfjs).toContain('import BACKEND SlowBcknd');
+    expect(tfjs).toContain('import KERNEL MathKrnl from BACKEND SlowBcknd');
+    expect(tfjs).toContain('registerKernel(MathKrnl_SlowBcknd)');
 
-    expect(res).not.toContain('GRADIENT');
+    expect(tfjs).not.toContain('GRADIENT');
   });
 
   it('two kernels, one backend', () => {
-    const res = getCustomModuleString(
+    const {tfjs} = getCustomModuleString(
         ['MathKrnl', 'MathKrn2'], ['FastBcknd'], forwardModeOnly,
         mockModuleProvider);
 
-    expect(res).toContain('import CORE');
-    expect(res).toContain('import CONVERTER');
+    expect(tfjs).toContain('import CORE');
+    expect(tfjs).toContain('import CONVERTER');
 
-    expect(res).toContain('import BACKEND FastBcknd');
-    expect(res).toContain('import KERNEL MathKrnl from BACKEND FastBcknd');
-    expect(res).toContain('import KERNEL MathKrn2 from BACKEND FastBcknd');
-    expect(res).toContain('registerKernel(MathKrnl_FastBcknd)');
-    expect(res).toContain('registerKernel(MathKrn2_FastBcknd)');
+    expect(tfjs).toContain('import BACKEND FastBcknd');
+    expect(tfjs).toContain('import KERNEL MathKrnl from BACKEND FastBcknd');
+    expect(tfjs).toContain('import KERNEL MathKrn2 from BACKEND FastBcknd');
+    expect(tfjs).toContain('registerKernel(MathKrnl_FastBcknd)');
+    expect(tfjs).toContain('registerKernel(MathKrn2_FastBcknd)');
 
-    expect(res).not.toContain('GRADIENT');
+    expect(tfjs).not.toContain('GRADIENT');
   });
 
   it('two kernels, two backends', () => {
-    const res = getCustomModuleString(
+    const {tfjs} = getCustomModuleString(
         ['MathKrnl', 'MathKrn2'], ['FastBcknd', 'SlowBcknd'], forwardModeOnly,
         mockModuleProvider);
 
-    expect(res).toContain('import CORE');
-    expect(res).toContain('import CONVERTER');
+    expect(tfjs).toContain('import CORE');
+    expect(tfjs).toContain('import CONVERTER');
 
-    expect(res).toContain('import BACKEND FastBcknd');
-    expect(res).toContain('import KERNEL MathKrnl from BACKEND FastBcknd');
-    expect(res).toContain('import KERNEL MathKrn2 from BACKEND FastBcknd');
-    expect(res).toContain('registerKernel(MathKrnl_FastBcknd)');
-    expect(res).toContain('registerKernel(MathKrn2_FastBcknd)');
+    expect(tfjs).toContain('import BACKEND FastBcknd');
+    expect(tfjs).toContain('import KERNEL MathKrnl from BACKEND FastBcknd');
+    expect(tfjs).toContain('import KERNEL MathKrn2 from BACKEND FastBcknd');
+    expect(tfjs).toContain('registerKernel(MathKrnl_FastBcknd)');
+    expect(tfjs).toContain('registerKernel(MathKrn2_FastBcknd)');
 
-    expect(res).toContain('import BACKEND SlowBcknd');
-    expect(res).toContain('import KERNEL MathKrnl from BACKEND SlowBcknd');
-    expect(res).toContain('import KERNEL MathKrn2 from BACKEND SlowBcknd');
-    expect(res).toContain('registerKernel(MathKrnl_SlowBcknd)');
-    expect(res).toContain('registerKernel(MathKrn2_SlowBcknd)');
+    expect(tfjs).toContain('import BACKEND SlowBcknd');
+    expect(tfjs).toContain('import KERNEL MathKrnl from BACKEND SlowBcknd');
+    expect(tfjs).toContain('import KERNEL MathKrn2 from BACKEND SlowBcknd');
+    expect(tfjs).toContain('registerKernel(MathKrnl_SlowBcknd)');
+    expect(tfjs).toContain('registerKernel(MathKrn2_SlowBcknd)');
 
-    expect(res).not.toContain('GRADIENT');
+    expect(tfjs).not.toContain('GRADIENT');
   });
 });
 
-describe('ESM Module Provider forwardModeOnly=false', () => {
+describe('getCustomModuleString forwardModeOnly=false', () => {
   const forwardModeOnly = false;
 
   it('one kernel, one backend', () => {
-    const res = getCustomModuleString(
+    const {tfjs} = getCustomModuleString(
         ['MathKrnl'], ['FastBcknd'], forwardModeOnly, mockModuleProvider);
 
-    expect(res).toContain('import CORE');
-    expect(res).toContain('import CONVERTER');
+    expect(tfjs).toContain('import CORE');
+    expect(tfjs).toContain('import CONVERTER');
 
-    expect(res).toContain('import BACKEND FastBcknd');
-    expect(res).toContain('import KERNEL MathKrnl from BACKEND FastBcknd');
-    expect(res).toContain('registerKernel(MathKrnl_FastBcknd)');
+    expect(tfjs).toContain('import BACKEND FastBcknd');
+    expect(tfjs).toContain('import KERNEL MathKrnl from BACKEND FastBcknd');
+    expect(tfjs).toContain('registerKernel(MathKrnl_FastBcknd)');
 
-    expect(res).toContain('import GRADIENT MathKrnl');
-    expect(res).toContain('registerGradient(MathKrnl_GRAD_CONFIG)');
+    expect(tfjs).toContain('import GRADIENT MathKrnl');
+    expect(tfjs).toContain('registerGradient(MathKrnl_GRAD_CONFIG)');
   });
 
   it('one kernel, two backend', () => {
-    const res = getCustomModuleString(
+    const {tfjs} = getCustomModuleString(
         ['MathKrnl'], ['FastBcknd', 'SlowBcknd'], forwardModeOnly,
         mockModuleProvider);
 
-    expect(res).toContain('import GRADIENT MathKrnl');
-    expect(res).toContain('registerGradient(MathKrnl_GRAD_CONFIG)');
+    expect(tfjs).toContain('import GRADIENT MathKrnl');
+    expect(tfjs).toContain('registerGradient(MathKrnl_GRAD_CONFIG)');
 
-    const gradIndex = res.indexOf('GRADIENT');
-    expect(res.indexOf('GRADIENT', gradIndex + 1))
-        .toBe(-1, `Gradient import appears twice in:\n ${res}`);
+    const gradIndex = tfjs.indexOf('GRADIENT');
+    expect(tfjs.indexOf('GRADIENT', gradIndex + 1))
+        .toBe(-1, `Gradient import appears twice in:\n ${tfjs}`);
   });
 
   it('two kernels, one backend', () => {
-    const res = getCustomModuleString(
+    const {tfjs} = getCustomModuleString(
         ['MathKrnl', 'MathKrn2'], ['FastBcknd'], forwardModeOnly,
         mockModuleProvider);
 
-    expect(res).toContain('import GRADIENT MathKrnl');
-    expect(res).toContain('registerGradient(MathKrnl_GRAD_CONFIG)');
+    expect(tfjs).toContain('import GRADIENT MathKrnl');
+    expect(tfjs).toContain('registerGradient(MathKrnl_GRAD_CONFIG)');
 
-    expect(res).toContain('import GRADIENT MathKrn2');
-    expect(res).toContain('registerGradient(MathKrn2_GRAD_CONFIG)');
+    expect(tfjs).toContain('import GRADIENT MathKrn2');
+    expect(tfjs).toContain('registerGradient(MathKrn2_GRAD_CONFIG)');
   });
 
   it('two kernels, two backends', () => {
-    const res = getCustomModuleString(
+    const {tfjs} = getCustomModuleString(
         ['MathKrnl', 'MathKrn2'], ['FastBcknd', 'SlowBcknd'], forwardModeOnly,
         mockModuleProvider);
 
-    expect(res).toContain('import GRADIENT MathKrnl');
-    expect(res).toContain('registerGradient(MathKrnl_GRAD_CONFIG)');
+    expect(tfjs).toContain('import GRADIENT MathKrnl');
+    expect(tfjs).toContain('registerGradient(MathKrnl_GRAD_CONFIG)');
 
-    expect(res).toContain('import GRADIENT MathKrn2');
-    expect(res).toContain('registerGradient(MathKrn2_GRAD_CONFIG)');
+    expect(tfjs).toContain('import GRADIENT MathKrn2');
+    expect(tfjs).toContain('registerGradient(MathKrn2_GRAD_CONFIG)');
+  });
+});
+
+describe('getCustomConverterOpsModule', () => {
+  it('non namespaced ops', () => {
+    const result =
+        getCustomConverterOpsModule(['add', 'sub'], mockModuleProvider);
+
+    expect(result).toContain('export * from add');
+    expect(result).toContain('export * from sub');
+  });
+
+  it('namespaced ops', () => {
+    const result = getCustomConverterOpsModule(
+        ['image.resizeBilinear', 'image.resizeNearestNeighbor'],
+        mockModuleProvider);
+
+    expect(result).toContain(
+        'export resizeBilinear,resizeNearestNeighbor as image from image/');
   });
 });
