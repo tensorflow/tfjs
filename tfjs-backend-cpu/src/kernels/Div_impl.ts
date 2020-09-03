@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
-import {createBinaryKernelImpl} from '../utils/kernel_utils';
+import {broadcastedBinaryKernelSimple} from '../utils/kernel_utils';
 
-export const divImpl = createBinaryKernelImpl((a: number, b: number) => a / b);
+export const divImpl =
+    broadcastedBinaryKernelSimple((a: number, b: number) => a / b);

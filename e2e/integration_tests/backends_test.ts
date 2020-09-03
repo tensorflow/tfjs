@@ -116,4 +116,36 @@ describe(`${SMOKE} backends`, () => {
       expect(after).toBe(webglBefore);
     });
   });
+
+  it('can execute op with data from mixed backends', async () => {
+    const numTensors = tfc.memory().numTensors;
+    const webglNumDataIds = tfc.findBackend('webgl').numDataIds();
+    const cpuNumDataIds = tfc.findBackend('cpu').numDataIds();
+
+    tfc.setBackend('cpu');
+    // This scalar lives in cpu1.
+    const a = tfc.scalar(5);
+
+    tfc.setBackend('webgl');
+    // This scalar lives in cpu2.
+    const b = tfc.scalar(3);
+
+    // Verify that ops can execute with mixed backend data.
+    tfc.engine().startScope();
+    tfc.setBackend('cpu');
+    tfc.test_util.expectArraysClose(await tfc.add(a, b).data(), [8]);
+    tfc.setBackend('webgl');
+    tfc.test_util.expectArraysClose(await tfc.add(a, b).data(), [8]);
+    tfc.engine().endScope();
+
+    expect(tfc.memory().numTensors).toBe(numTensors + 2);
+    expect(tfc.findBackend('webgl').numDataIds()).toBe(webglNumDataIds + 2);
+    expect(tfc.findBackend('cpu').numDataIds()).toBe(cpuNumDataIds);
+
+    tfc.dispose([a, b]);
+
+    expect(tfc.memory().numTensors).toBe(numTensors);
+    expect(tfc.findBackend('webgl').numDataIds()).toBe(webglNumDataIds);
+    expect(tfc.findBackend('cpu').numDataIds()).toBe(cpuNumDataIds);
+  });
 });
