@@ -7,6 +7,4 @@ labels: 'type:others'
 
 This template is for miscellaneous issues not covered by the other issue categories.
 
-For questions on how to work with TensorFlow, or support for problems that are not verified bugs in TensorFlow, please go to [StackOverflow](https://stackoverflow.com/tags/tensorflow.js).
-
-For high-level discussions about TensorFlow, please post to discuss@tensorflow.org, for questions about the development or internal workings of TensorFlow, or if you would like to know how to contribute to TensorFlow, please post to developers@tensorflow.org.
+For questions on how to work with TensorFlow.js, or support for problems that are not verified bugs in TensorFlow.js, please go to [StackOverflow](https://stackoverflow.com/tags/tensorflow.js).
