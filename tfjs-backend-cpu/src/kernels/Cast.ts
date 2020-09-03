@@ -31,6 +31,7 @@ export function cast(
   const {x} = inputs;
   const {dtype} = attrs;
 
+  // Casting to complex64.
   if (dtype === 'complex64') {
     if (x.dtype === 'complex64') {
       return identity({inputs: {x}, backend});
@@ -49,13 +50,7 @@ export function cast(
     return result;
   }
 
-  if (!util.hasEncodingLoss(x.dtype, dtype)) {
-    // We don't change the underlying data, since we cast to higher
-    // precision.
-    const result = identity({inputs: {x}, backend});
-    return {dataId: result.dataId, shape: result.shape, dtype};
-  }
-
+  // Casting from complex64
   if (x.dtype === 'complex64') {
     const realPart = real({inputs: {input: x}, backend});
     const result = cast({inputs: {x: realPart}, backend, attrs: {dtype}});
@@ -63,6 +58,13 @@ export function cast(
     backend.disposeIntermediateTensorInfo(realPart);
 
     return result;
+  }
+
+  if (!util.hasEncodingLoss(x.dtype, dtype)) {
+    // We don't change the underlying data, since we cast to higher
+    // precision.
+    const result = identity({inputs: {x}, backend});
+    return {dataId: result.dataId, shape: result.shape, dtype};
   }
 
   if (dtype === 'int32') {
@@ -73,7 +75,6 @@ export function cast(
     // TODO(lina128): Import kernel function and just use 0 once notEqual is
     // modularized.
     const zero = tf.scalar(0, x.dtype);
-
     const result = tf.notEqual(x as Tensor, zero);
 
     zero.dispose();
