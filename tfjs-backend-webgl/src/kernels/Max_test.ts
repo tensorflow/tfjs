@@ -20,19 +20,21 @@ import * as tf from '@tensorflow/tfjs-core';
 import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 describeWithFlags('Max', ALL_ENVS, () => {
-  it('does not have memory leak.', async () => {
-    const beforeDataIds = tf.engine().backend.numDataIds();
+  it('does not have memory leak when calling reduce multiple times.',
+     async () => {
+       const beforeDataIds = tf.engine().backend.numDataIds();
 
-    const x = tf.ones([100, 100]);
-    const xMax = x.max();
+       // Input must be large enough to trigger multi-stage reduction.
+       const x = tf.ones([100, 100]);
+       const xMax = x.max();
 
-    const afterResDataIds = tf.engine().backend.numDataIds();
-    expect(afterResDataIds).toEqual(beforeDataIds + 2);
+       const afterResDataIds = tf.engine().backend.numDataIds();
+       expect(afterResDataIds).toEqual(beforeDataIds + 2);
 
-    x.dispose();
-    xMax.dispose();
+       x.dispose();
+       xMax.dispose();
 
-    const afterDisposeDataIds = tf.engine().backend.numDataIds();
-    expect(afterDisposeDataIds).toEqual(beforeDataIds);
-  });
+       const afterDisposeDataIds = tf.engine().backend.numDataIds();
+       expect(afterDisposeDataIds).toEqual(beforeDataIds);
+     });
 });

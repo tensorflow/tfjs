@@ -22,32 +22,34 @@ import {ReduceProgram} from '../reduce_gpu';
 
 type ReduceTypes = 'all'|'any'|'max'|'min'|'sum'|'prod';
 
-function getReductionSizes(inShape: number[]):
+// Returns an array of configuration objects that describe each stage of the
+// reduction.
+function getReductionStages(inShape: number[]):
     Array<{inSize: number, windowSize: number, outSize: number}> {
-  const sizes = [];
+  const stages = [];
 
-  while (sizes.length === 0 || sizes[sizes.length - 1].outSize !== 1) {
+  while (stages.length === 0 || stages[stages.length - 1].outSize !== 1) {
     const outSize: number =
-        sizes.length ? sizes[sizes.length - 1].outSize : inShape[1];
+        stages.length ? stages[stages.length - 1].outSize : inShape[1];
     const windowSize = backend_util.computeOptimalWindowSize(outSize);
-    sizes.push({
+    stages.push({
       inSize: outSize,
       windowSize,
       outSize: Math.ceil(outSize / windowSize)
     });
   }
 
-  return sizes;
+  return stages;
 }
 
 export function reduce(
     x: TensorInfo, dtype: DataType, reductionType: ReduceTypes,
     backend: MathBackendWebGL): TensorInfo {
-  const sizes = getReductionSizes(x.shape);
+  const reductionStages = getReductionStages(x.shape);
 
   let result = x;
-  for (let i = 0; i < sizes.length; i++) {
-    const {inSize, windowSize, outSize} = sizes[i];
+  for (let i = 0; i < reductionStages.length; i++) {
+    const {inSize, windowSize, outSize} = reductionStages[i];
 
     const program = new ReduceProgram(
         {windowSize, inSize, batchSize: x.shape[0], outSize}, reductionType);

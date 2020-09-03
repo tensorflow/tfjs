@@ -33,7 +33,7 @@ describeWithFlags('max', ALL_ENVS, () => {
   });
 
   it('with a large dimension', async () => {
-    const aData = new Float32Array(100);
+    const aData = new Float32Array(1000);
     aData[0] = 1;
     const a = tf.tensor1d(aData);
     const r = tf.max(a);
