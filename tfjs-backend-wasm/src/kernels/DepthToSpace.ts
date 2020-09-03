@@ -38,7 +38,7 @@ function setup(backend: BackendWasm): void {
   ]);
 }
 
-function depthToSpace(args: {
+export function depthToSpace(args: {
   backend: BackendWasm,
   inputs: DepthToSpaceInputs,
   attrs: DepthToSpaceAttrs
