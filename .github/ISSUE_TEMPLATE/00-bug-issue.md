@@ -14,9 +14,9 @@ build/installation issues on GitHub. tag:bug_template</em>
 - Have I written custom code (as opposed to using a stock example script provided in TensorFlow.js):
 - OS Platform and Distribution (e.g., Linux Ubuntu 16.04):
 - Mobile device (e.g. iPhone 8, Pixel 2, Samsung Galaxy) if the issue happens on mobile device:
-- TensorFlow.js installed from (source or binary):
+- TensorFlow.js installed from (npm or script link):
 - TensorFlow.js version (use command below):
-- CUDA/cuDNN version:
+- Browser version:
 
 
 
