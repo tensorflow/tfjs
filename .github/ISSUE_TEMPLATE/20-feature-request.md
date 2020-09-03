@@ -9,7 +9,7 @@ labels: 'type:feature'
 
 
 **System information**
-- TensorFlow version.js (you are using):
+- TensorFlow.js version (you are using):
 - Are you willing to contribute it (Yes/No):
 
 
