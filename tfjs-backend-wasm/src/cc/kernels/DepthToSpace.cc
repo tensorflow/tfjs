@@ -27,7 +27,7 @@ EMSCRIPTEN_KEEPALIVE
 #endif
 
 void DepthToSpace(const size_t x_id, const size_t block_size,
-                  const size_t data_format, const int32_t* x_strides_ptr,
+                  const bool nhwc_format, const int32_t* x_strides_ptr,
                   const size_t x_strides_size, const int32_t* out_shape_ptr,
                   const int32_t* out_strides_ptr, const size_t out_shape_size,
                   const size_t out_id) {
@@ -48,11 +48,10 @@ void DepthToSpace(const size_t x_id, const size_t block_size,
   for (size_t i = 0; i < out_size; ++i) {
     auto coords = tfjs::util::offset_to_loc(i, out_strides);
     const size_t b = coords[0];
-    const size_t h = data_format == 1 ? coords[1] : coords[2];
-    const size_t w = data_format == 1 ? coords[2] : coords[3];
-    const size_t d = data_format == 1 ? coords[3] : coords[1];
-    const size_t out_depth_size =
-        data_format == 1 ? out_shape[3] : out_shape[1];
+    const size_t h = nhwc_format ? coords[1] : coords[2];
+    const size_t w = nhwc_format ? coords[2] : coords[3];
+    const size_t d = nhwc_format ? coords[3] : coords[1];
+    const size_t out_depth_size = nhwc_format ? out_shape[3] : out_shape[1];
 
     const size_t in_h = h / block_size;
     const size_t offset_h = h % block_size;
@@ -63,7 +62,7 @@ void DepthToSpace(const size_t x_id, const size_t block_size,
     const size_t in_d = d + offset_d;
 
     size_t x_index =
-        data_format == 1
+        nhwc_format
             ? tfjs::util::loc_to_offset({b, in_h, in_w, in_d}, x_strides)
             : tfjs::util::loc_to_offset({b, in_d, in_h, in_w}, x_strides);
     *out_buf_ptr = x_ptr[x_index];

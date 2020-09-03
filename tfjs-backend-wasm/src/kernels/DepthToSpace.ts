@@ -20,7 +20,7 @@ import {DepthToSpace, DepthToSpaceAttrs, DepthToSpaceInputs, KernelConfig, Kerne
 import {BackendWasm} from '../backend_wasm';
 
 let wasmDepthToSpace: (
-    xId: number, blockSize: number, dataFormat: number, xStrides: Uint8Array,
+    xId: number, blockSize: number, nhwcFormat: number, xStrides: Uint8Array,
     xStridesLength: number, outputShape: Uint8Array, outputStrides: Uint8Array,
     outSize: number, outId: number) => void;
 
@@ -28,7 +28,7 @@ function setup(backend: BackendWasm): void {
   wasmDepthToSpace = backend.wasm.cwrap(DepthToSpace, null /*void*/, [
     'number',  // xId
     'number',  // blockSize
-    'number',  // dataFormat
+    'number',  // nhwcFormat
     'array',   // xStrides
     'number',  // xStridesLength
     'array',   // outputShape
