@@ -107,6 +107,15 @@ module.exports = cmdOptions => {
 
   // Node
   bundles.push(config({
+    plugins: [
+      // replace dist import with tfjs-core because our modules are not
+      // es5 commonjs modules
+      replace({
+        '@tensorflow/tfjs-core/dist/ops/ops_for_converter':
+            '@tensorflow/tfjs-core',
+        delimiters: ['', '']
+      })
+    ],
     output: {
       format: 'cjs',
       name,
