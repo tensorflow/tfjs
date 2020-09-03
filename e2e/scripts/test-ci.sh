@@ -17,7 +17,8 @@
 set -e
 
 # Smoke tests run in PR and nightly builds.
-TAGS="#SMOKE"
+# TEMP remove after regression tests pass with this PR
+TAGS="#SMOKE,#REGRESSION"
 
 # Regression tests run in nightly builds.
 if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
