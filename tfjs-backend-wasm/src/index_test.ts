@@ -73,8 +73,8 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     }, 100);
 
     // Silences backend registration warnings.
-    spyOn(console, 'warn');
-    spyOn(console, 'log');
+    // spyOn(console, 'warn');
+    // spyOn(console, 'log');
   });
 
   afterEach(() => {
@@ -219,4 +219,17 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     expect(() => setWasmPath('too/late'))
         .toThrowError(/The WASM backend was already initialized. Make sure/);
   });
+
+  fit('tensor4d, input shape=[1, 1, 1, 4], blockSize=2, format=NHWC',
+      async () => {
+        const t = tf.tensor4d([[[[1, 2, 3, 4]]]]);
+        const blockSize = 2;
+        const dataFormat = 'NHWC';
+
+        const res = tf.depthToSpace(t, blockSize, dataFormat);
+        expect(res.shape).toEqual([1, 2, 2, 1]);
+        const data = await res.data();
+        console.log(Array.from(data));
+        //  expectArraysClose(await res.data(), [1, 2, 3, 4]);
+      });
 });
