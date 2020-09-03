@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
-import {scalar} from '@tensorflow/tfjs-core';
+import {DataType, scalar, Tensor} from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
@@ -28,7 +27,7 @@ import {cloneTensor, getParamValue, getTensor} from './utils';
 
 export const executeOp: InternalOpAsyncExecutor = async(
     node: Node, tensorMap: NamedTensorsMap,
-    context: ExecutionContext): Promise<tfc.Tensor[]> => {
+    context: ExecutionContext): Promise<Tensor[]> => {
   switch (node.op) {
     case 'If':
     case 'StatelessIf': {
@@ -36,10 +35,8 @@ export const executeOp: InternalOpAsyncExecutor = async(
           getParamValue('thenBranch', node, tensorMap, context) as string;
       const elseFunc =
           getParamValue('elseBranch', node, tensorMap, context) as string;
-      const cond =
-          getParamValue('cond', node, tensorMap, context) as tfc.Tensor;
-      const args =
-          getParamValue('args', node, tensorMap, context) as tfc.Tensor[];
+      const cond = getParamValue('cond', node, tensorMap, context) as Tensor;
+      const args = getParamValue('args', node, tensorMap, context) as Tensor[];
       const condValue = await cond.data();
       if (condValue[0]) {
         return context.functionMap[thenFunc].executeFunctionAsync(
@@ -55,8 +52,7 @@ export const executeOp: InternalOpAsyncExecutor = async(
           getParamValue('body', node, tensorMap, context) as string;
       const condFunc =
           getParamValue('cond', node, tensorMap, context) as string;
-      const args =
-          getParamValue('args', node, tensorMap, context) as tfc.Tensor[];
+      const args = getParamValue('args', node, tensorMap, context) as Tensor[];
 
       // Calculate the condition of the loop
       const condResult =
@@ -71,7 +67,7 @@ export const executeOp: InternalOpAsyncExecutor = async(
         }
       });
 
-      let result: tfc.Tensor[] = args;
+      let result: Tensor[] = args;
 
       while (condValue[0]) {
         // Record the previous result for intermediate tensor tracking
@@ -106,14 +102,12 @@ export const executeOp: InternalOpAsyncExecutor = async(
       return result;
     }
     case 'LoopCond': {
-      const pred =
-          getParamValue('pred', node, tensorMap, context) as tfc.Tensor;
+      const pred = getParamValue('pred', node, tensorMap, context) as Tensor;
       return [cloneTensor(pred)];
     }
     case 'Switch': {
-      const pred =
-          getParamValue('pred', node, tensorMap, context) as tfc.Tensor;
-      let data = getParamValue('data', node, tensorMap, context) as tfc.Tensor;
+      const pred = getParamValue('pred', node, tensorMap, context) as Tensor;
+      let data = getParamValue('data', node, tensorMap, context) as Tensor;
       if (!data.kept) {
         data = cloneTensor(data);
       }
@@ -132,27 +126,24 @@ export const executeOp: InternalOpAsyncExecutor = async(
     case 'Enter': {
       const frameId =
           getParamValue('frameName', node, tensorMap, context) as string;
-      const data =
-          getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
+      const data = getParamValue('tensor', node, tensorMap, context) as Tensor;
       context.enterFrame(frameId);
       return [cloneTensor(data)];
     }
     case 'Exit': {
-      const data =
-          getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
+      const data = getParamValue('tensor', node, tensorMap, context) as Tensor;
       context.exitFrame();
       return [cloneTensor(data)];
     }
     case 'NextIteration': {
-      const data =
-          getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
+      const data = getParamValue('tensor', node, tensorMap, context) as Tensor;
       context.nextIteration();
       return [cloneTensor(data)];
     }
     case 'TensorArrayV3': {
       const size = getParamValue('size', node, tensorMap, context) as number;
       const dtype =
-          getParamValue('dtype', node, tensorMap, context) as tfc.DataType;
+          getParamValue('dtype', node, tensorMap, context) as DataType;
       const elementShape =
           getParamValue('elementShape', node, tensorMap, context) as number[];
       const dynamicSize =
@@ -170,18 +161,18 @@ export const executeOp: InternalOpAsyncExecutor = async(
       return [tensorArray.idTensor, scalar(1.0)];
     }
     case 'TensorArrayWriteV3': {
-      const id = getParamValue('tensorArrayId', node, tensorMap, context) as
-          tfc.Tensor;
+      const id =
+          getParamValue('tensorArrayId', node, tensorMap, context) as Tensor;
       const index = getParamValue('index', node, tensorMap, context) as number;
       const writeTensor =
-          getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
+          getParamValue('tensor', node, tensorMap, context) as Tensor;
       const writeTensorArray = context.getTensorArray(id.id);
       writeTensorArray.write(index, writeTensor);
       return [writeTensorArray.idTensor];
     }
     case 'TensorArrayReadV3': {
-      const readId = getParamValue('tensorArrayId', node, tensorMap, context) as
-          tfc.Tensor;
+      const readId =
+          getParamValue('tensorArrayId', node, tensorMap, context) as Tensor;
       const readIndex =
           getParamValue('index', node, tensorMap, context) as number;
       const readTensorArray = context.getTensorArray(readId.id);
@@ -189,42 +180,38 @@ export const executeOp: InternalOpAsyncExecutor = async(
     }
     case 'TensorArrayGatherV3': {
       const gatherId =
-          getParamValue('tensorArrayId', node, tensorMap, context) as
-          tfc.Tensor;
+          getParamValue('tensorArrayId', node, tensorMap, context) as Tensor;
       const gatherIndices =
           getParamValue('indices', node, tensorMap, context) as number[];
       const gatherDtype =
-          getParamValue('dtype', node, tensorMap, context) as tfc.DataType;
+          getParamValue('dtype', node, tensorMap, context) as DataType;
       const gatherTensorArray = context.getTensorArray(gatherId.id);
       return [gatherTensorArray.gather(gatherIndices, gatherDtype)];
     }
     case 'TensorArrayScatterV3': {
       const scatterId =
-          getParamValue('tensorArrayId', node, tensorMap, context) as
-          tfc.Tensor;
+          getParamValue('tensorArrayId', node, tensorMap, context) as Tensor;
       const scatterIndices =
           getParamValue('indices', node, tensorMap, context) as number[];
       const scatterTensor =
-          getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
+          getParamValue('tensor', node, tensorMap, context) as Tensor;
       const scatterTensorArray = context.getTensorArray(scatterId.id);
       scatterTensorArray.scatter(scatterIndices, scatterTensor);
       return [scatterTensorArray.idTensor];
     }
     case 'TensorArrayConcatV3': {
       const concatId =
-          getParamValue('tensorArrayId', node, tensorMap, context) as
-          tfc.Tensor;
+          getParamValue('tensorArrayId', node, tensorMap, context) as Tensor;
       const concatTensorArray = context.getTensorArray(concatId.id);
       const concatDtype =
-          getParamValue('dtype', node, tensorMap, context) as tfc.DataType;
+          getParamValue('dtype', node, tensorMap, context) as DataType;
       return [concatTensorArray.concat(concatDtype)];
     }
     case 'TensorArraySplitV3': {
       const splitId =
-          getParamValue('tensorArrayId', node, tensorMap, context) as
-          tfc.Tensor;
+          getParamValue('tensorArrayId', node, tensorMap, context) as Tensor;
       const splitTensor =
-          getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
+          getParamValue('tensor', node, tensorMap, context) as Tensor;
       const lengths =
           getParamValue('lengths', node, tensorMap, context) as number[];
       const splitTensorArray = context.getTensorArray(splitId.id);
@@ -232,40 +219,38 @@ export const executeOp: InternalOpAsyncExecutor = async(
       return [splitTensorArray.idTensor];
     }
     case 'TensorArraySizeV3': {
-      const sizeId = getParamValue('tensorArrayId', node, tensorMap, context) as
-          tfc.Tensor;
+      const sizeId =
+          getParamValue('tensorArrayId', node, tensorMap, context) as Tensor;
       const sizeTensorArray = context.getTensorArray(sizeId.id);
       return [scalar(sizeTensorArray.size(), 'int32')];
     }
     case 'TensorArrayCloseV3': {
       const closeId =
-          getParamValue('tensorArrayId', node, tensorMap, context) as
-          tfc.Tensor;
+          getParamValue('tensorArrayId', node, tensorMap, context) as Tensor;
       const closeTensorArray = context.getTensorArray(closeId.id);
       closeTensorArray.clearAndClose();
       return [closeTensorArray.idTensor];
     }
     case 'TensorListSetItem': {
       const idTensor =
-          getParamValue('tensorListId', node, tensorMap, context) as tfc.Tensor;
+          getParamValue('tensorListId', node, tensorMap, context) as Tensor;
       const index = getParamValue('index', node, tensorMap, context) as number;
       const writeTensor =
-          getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
+          getParamValue('tensor', node, tensorMap, context) as Tensor;
       const tensorList = context.getTensorList(idTensor.id);
       tensorList.setItem(index, writeTensor);
       return [tensorList.idTensor];
     }
     case 'TensorListGetItem': {
       const idTensor =
-          getParamValue('tensorListId', node, tensorMap, context) as tfc.Tensor;
+          getParamValue('tensorListId', node, tensorMap, context) as Tensor;
       const readIndex =
           getParamValue('index', node, tensorMap, context) as number;
       const elementShape =
           getParamValue('elementShape', node, tensorMap, context) as number[];
 
       const elementDType =
-          getParamValue('elementDType', node, tensorMap, context) as
-          tfc.DataType;
+          getParamValue('elementDType', node, tensorMap, context) as DataType;
       const tensorList = context.getTensorList(idTensor.id);
       return [tensorList.getItem(readIndex, elementShape, elementDType)];
     }
@@ -274,7 +259,7 @@ export const executeOp: InternalOpAsyncExecutor = async(
       const scatterIndices =
           getParamValue('indices', node, tensorMap, context) as number[];
       const scatterTensor =
-          getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
+          getParamValue('tensor', node, tensorMap, context) as Tensor;
       const elementShape =
           getParamValue('elementShape', node, tensorMap, context) as number[];
       const numElements =
@@ -288,8 +273,7 @@ export const executeOp: InternalOpAsyncExecutor = async(
       const elementShape =
           getParamValue('elementShape', node, tensorMap, context) as number[];
       const elementDtype =
-          getParamValue('elementDType', node, tensorMap, context) as
-          tfc.DataType;
+          getParamValue('elementDType', node, tensorMap, context) as DataType;
       const numElements =
           getParamValue('numElements', node, tensorMap, context) as number;
       const tensorList = reserve(elementShape, elementDtype, numElements);
@@ -298,25 +282,23 @@ export const executeOp: InternalOpAsyncExecutor = async(
     }
     case 'TensorListGather': {
       const gatherId =
-          getParamValue('tensorListId', node, tensorMap, context) as tfc.Tensor;
+          getParamValue('tensorListId', node, tensorMap, context) as Tensor;
       const gatherIndices =
           getParamValue('indices', node, tensorMap, context) as number[];
       const elementShape =
           getParamValue('elementShape', node, tensorMap, context) as number[];
       const elementDtype =
-          getParamValue('elementDType', node, tensorMap, context) as
-          tfc.DataType;
+          getParamValue('elementDType', node, tensorMap, context) as DataType;
       const tensorList = context.getTensorList(gatherId.id);
       return [tensorList.gather(gatherIndices, elementDtype, elementShape)];
     }
     case 'TensorListStack': {
       const idTensor =
-          getParamValue('tensorListId', node, tensorMap, context) as tfc.Tensor;
+          getParamValue('tensorListId', node, tensorMap, context) as Tensor;
       const elementShape =
           getParamValue('elementShape', node, tensorMap, context) as number[];
       const elementDtype =
-          getParamValue('elementDType', node, tensorMap, context) as
-          tfc.DataType;
+          getParamValue('elementDType', node, tensorMap, context) as DataType;
       const numElements =
           getParamValue('numElements', node, tensorMap, context) as number;
       const tensorList = context.getTensorList(idTensor.id);
@@ -324,49 +306,47 @@ export const executeOp: InternalOpAsyncExecutor = async(
     }
     case 'TensorListFromTensor': {
       const tensor =
-          getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
+          getParamValue('tensor', node, tensorMap, context) as Tensor;
       const elementShape =
           getParamValue('elementShape', node, tensorMap, context) as number[];
       const elementDtype =
-          getParamValue('elementDType', node, tensorMap, context) as
-          tfc.DataType;
+          getParamValue('elementDType', node, tensorMap, context) as DataType;
       const tensorList = fromTensor(tensor, elementShape, elementDtype);
       context.addTensorList(tensorList);
       return [tensorList.idTensor];
     }
     case 'TensorListConcat': {
       const concatId =
-          getParamValue('tensorListId', node, tensorMap, context) as tfc.Tensor;
+          getParamValue('tensorListId', node, tensorMap, context) as Tensor;
       const tensorList = context.getTensorList(concatId.id);
       const concatDtype =
-          getParamValue('dtype', node, tensorMap, context) as tfc.DataType;
+          getParamValue('dtype', node, tensorMap, context) as DataType;
       const elementShape =
           getParamValue('elementShape', node, tensorMap, context) as number[];
       return [tensorList.concat(concatDtype, elementShape)];
     }
     case 'TensorListPushBack': {
       const idTensor =
-          getParamValue('tensorListId', node, tensorMap, context) as tfc.Tensor;
+          getParamValue('tensorListId', node, tensorMap, context) as Tensor;
       const writeTensor =
-          getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
+          getParamValue('tensor', node, tensorMap, context) as Tensor;
       const tensorList = context.getTensorList(idTensor.id);
       tensorList.pushBack(writeTensor);
       return [tensorList.idTensor];
     }
     case 'TensorListPopBack': {
       const idTensor =
-          getParamValue('tensorListId', node, tensorMap, context) as tfc.Tensor;
+          getParamValue('tensorListId', node, tensorMap, context) as Tensor;
       const elementShape =
           getParamValue('elementShape', node, tensorMap, context) as number[];
       const elementDType =
-          getParamValue('elementDType', node, tensorMap, context) as
-          tfc.DataType;
+          getParamValue('elementDType', node, tensorMap, context) as DataType;
       const tensorList = context.getTensorList(idTensor.id);
       return [tensorList.popBack(elementShape, elementDType)];
     }
     case 'TensorListSplit': {
       const splitTensor =
-          getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
+          getParamValue('tensor', node, tensorMap, context) as Tensor;
       const elementShape =
           getParamValue('elementShape', node, tensorMap, context) as number[];
       const lengths =

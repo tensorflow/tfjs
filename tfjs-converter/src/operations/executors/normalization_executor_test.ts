@@ -14,7 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as tfc from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import * as normalization from '../op_list/normalization';
@@ -25,7 +26,7 @@ import {createNumberAttr, createNumericArrayAttrFromIndex, createTensorAttr, val
 
 describe('normalization', () => {
   let node: Node;
-  const input1 = [tfc.scalar(1)];
+  const input1 = [tfOps.scalar(1)];
   const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
@@ -43,8 +44,8 @@ describe('normalization', () => {
 
   describe('executeOp', () => {
     describe('FusedBatchNorm', () => {
-      it('should call tfc.batchNorm', () => {
-        spyOn(tfc, 'batchNorm');
+      it('should call tfOps.batchNorm', () => {
+        spyOn(tfOps, 'batchNorm');
         node.op = 'FusedBatchNorm';
         node.inputParams.scale = createTensorAttr(1);
         node.inputParams.offset = createTensorAttr(2);
@@ -52,20 +53,20 @@ describe('normalization', () => {
         node.inputParams.variance = createTensorAttr(4);
         node.attrParams.epsilon = createNumberAttr(5);
         node.inputNames = ['input1', 'input2', 'input3', 'input4', 'input5'];
-        const input2 = [tfc.scalar(1)];
-        const input3 = [tfc.scalar(2)];
-        const input4 = [tfc.scalar(3)];
-        const input5 = [tfc.scalar(4)];
+        const input2 = [tfOps.scalar(1)];
+        const input3 = [tfOps.scalar(2)];
+        const input4 = [tfOps.scalar(3)];
+        const input5 = [tfOps.scalar(4)];
         executeOp(node, {input1, input2, input3, input4, input5}, context);
 
-        expect(tfc.batchNorm)
+        expect(tfOps.batchNorm)
             .toHaveBeenCalledWith(
                 input1[0], input4[0], input5[0], input3[0], input2[0], 5);
       });
     });
     describe('FusedBatchNormV2', () => {
-      it('should call tfc.batchNorm', () => {
-        spyOn(tfc, 'batchNorm');
+      it('should call tfOps.batchNorm', () => {
+        spyOn(tfOps, 'batchNorm');
         node.op = 'FusedBatchNormV2';
         node.inputParams.scale = createTensorAttr(1);
         node.inputParams.offset = createTensorAttr(2);
@@ -73,20 +74,20 @@ describe('normalization', () => {
         node.inputParams.variance = createTensorAttr(4);
         node.attrParams.epsilon = createNumberAttr(5);
         node.inputNames = ['input1', 'input2', 'input3', 'input4', 'input5'];
-        const input2 = [tfc.scalar(1)];
-        const input3 = [tfc.scalar(2)];
-        const input4 = [tfc.scalar(3)];
-        const input5 = [tfc.scalar(4)];
+        const input2 = [tfOps.scalar(1)];
+        const input3 = [tfOps.scalar(2)];
+        const input4 = [tfOps.scalar(3)];
+        const input5 = [tfOps.scalar(4)];
         executeOp(node, {input1, input2, input3, input4, input5}, context);
 
-        expect(tfc.batchNorm)
+        expect(tfOps.batchNorm)
             .toHaveBeenCalledWith(
                 input1[0], input4[0], input5[0], input3[0], input2[0], 5);
       });
     });
     describe('FusedBatchNormV3', () => {
-      it('should call tfc.batchNorm', () => {
-        spyOn(tfc, 'batchNorm');
+      it('should call tfOps.batchNorm', () => {
+        spyOn(tfOps, 'batchNorm');
         node.op = 'FusedBatchNormV3';
         node.inputParams.scale = createTensorAttr(1);
         node.inputParams.offset = createTensorAttr(2);
@@ -94,20 +95,20 @@ describe('normalization', () => {
         node.inputParams.variance = createTensorAttr(4);
         node.attrParams.epsilon = createNumberAttr(5);
         node.inputNames = ['input1', 'input2', 'input3', 'input4', 'input5'];
-        const input2 = [tfc.scalar(1)];
-        const input3 = [tfc.scalar(2)];
-        const input4 = [tfc.scalar(3)];
-        const input5 = [tfc.scalar(4)];
+        const input2 = [tfOps.scalar(1)];
+        const input3 = [tfOps.scalar(2)];
+        const input4 = [tfOps.scalar(3)];
+        const input5 = [tfOps.scalar(4)];
         executeOp(node, {input1, input2, input3, input4, input5}, context);
 
-        expect(tfc.batchNorm)
+        expect(tfOps.batchNorm)
             .toHaveBeenCalledWith(
                 input1[0], input4[0], input5[0], input3[0], input2[0], 5);
       });
     });
     describe('LRN', () => {
-      it('should call tfc.localResponseNormalization', () => {
-        spyOn(tfc, 'localResponseNormalization');
+      it('should call tfOps.localResponseNormalization', () => {
+        spyOn(tfOps, 'localResponseNormalization');
         node.op = 'LRN';
         node.attrParams.radius = createNumberAttr(1);
         node.attrParams.bias = createNumberAttr(2);
@@ -116,7 +117,7 @@ describe('normalization', () => {
 
         executeOp(node, {input1}, context);
 
-        expect(tfc.localResponseNormalization)
+        expect(tfOps.localResponseNormalization)
             .toHaveBeenCalledWith(input1[0], 1, 2, 3, 4);
       });
       it('should match json def', () => {
@@ -131,13 +132,13 @@ describe('normalization', () => {
     });
 
     describe('Softmax', () => {
-      it('should call tfc.softmax', () => {
-        spyOn(tfc, 'softmax');
+      it('should call tfOps.softmax', () => {
+        spyOn(tfOps, 'softmax');
         node.op = 'Softmax';
 
         executeOp(node, {input1}, context);
 
-        expect(tfc.softmax).toHaveBeenCalledWith(input1[0]);
+        expect(tfOps.softmax).toHaveBeenCalledWith(input1[0]);
       });
       it('should match json def', () => {
         node.op = 'Softmax';
@@ -147,13 +148,13 @@ describe('normalization', () => {
     });
 
     describe('LogSoftmax', () => {
-      it('should call tfc.logSoftmax', () => {
-        spyOn(tfc, 'logSoftmax');
+      it('should call tfOps.logSoftmax', () => {
+        spyOn(tfOps, 'logSoftmax');
         node.op = 'LogSoftmax';
 
         executeOp(node, {input1}, context);
 
-        expect(tfc.logSoftmax).toHaveBeenCalledWith(input1[0]);
+        expect(tfOps.logSoftmax).toHaveBeenCalledWith(input1[0]);
       });
       it('should match json def', () => {
         node.op = 'LogSoftmax';
@@ -162,20 +163,20 @@ describe('normalization', () => {
       });
     });
     describe('SparseToDense', () => {
-      it('should call tfc.sparseToDense', () => {
-        spyOn(tfc, 'sparseToDense');
+      it('should call tfOps.sparseToDense', () => {
+        spyOn(tfOps, 'sparseToDense');
         node.op = 'SparseToDense';
         node.inputParams.sparseIndices = createTensorAttr(0);
         node.inputParams.outputShape = createNumericArrayAttrFromIndex(1);
         node.inputParams.sparseValues = createTensorAttr(2);
         node.inputParams.defaultValue = createTensorAttr(3);
         node.inputNames = ['input1', 'input2', 'input3', 'input4'];
-        const input2 = [tfc.tensor1d([1], 'int32')];
-        const input3 = [tfc.scalar(2)];
-        const input4 = [tfc.scalar(3)];
+        const input2 = [tfOps.tensor1d([1], 'int32')];
+        const input3 = [tfOps.scalar(2)];
+        const input4 = [tfOps.scalar(3)];
         executeOp(node, {input1, input2, input3, input4}, context);
 
-        expect(tfc.sparseToDense)
+        expect(tfOps.sparseToDense)
             .toHaveBeenCalledWith(input1[0], [1], input3[0], input4[0]);
       });
       it('should match json def', () => {

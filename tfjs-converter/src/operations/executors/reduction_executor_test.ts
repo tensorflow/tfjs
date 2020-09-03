@@ -14,7 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as tfc from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
@@ -24,7 +25,7 @@ import {createBoolAttr, createNumberAttr, createNumberAttrFromIndex, createTenso
 
 describe('reduction', () => {
   let node: Node;
-  const input1 = [tfc.scalar(1)];
+  const input1 = [tfOps.scalar(1)];
   const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
@@ -42,9 +43,9 @@ describe('reduction', () => {
 
   describe('executeOp', () => {
     ['Max', 'Mean', 'Min', 'Sum', 'All', 'Any', 'Prod'].forEach(op => {
-      it('should call tfc.' + op, () => {
+      it('should call tfOps.' + op, () => {
         const spy =
-            spyOn(tfc, op.charAt(0).toLowerCase() + op.slice(1) as 'max');
+            spyOn(tfOps, op.charAt(0).toLowerCase() + op.slice(1) as 'max');
         node.op = op;
         executeOp(node, {input1}, context);
 
@@ -52,34 +53,34 @@ describe('reduction', () => {
       });
     });
     describe('ArgMax', () => {
-      it('should call tfc.argMax', () => {
-        spyOn(tfc, 'argMax');
+      it('should call tfOps.argMax', () => {
+        spyOn(tfOps, 'argMax');
         node.op = 'ArgMax';
         executeOp(node, {input1}, context);
 
-        expect(tfc.argMax).toHaveBeenCalledWith(input1[0], 1);
+        expect(tfOps.argMax).toHaveBeenCalledWith(input1[0], 1);
       });
     });
     describe('ArgMin', () => {
-      it('should call tfc.argMin', () => {
-        spyOn(tfc, 'argMin');
+      it('should call tfOps.argMin', () => {
+        spyOn(tfOps, 'argMin');
         node.op = 'ArgMin';
         executeOp(node, {input1}, context);
 
-        expect(tfc.argMin).toHaveBeenCalledWith(input1[0], 1);
+        expect(tfOps.argMin).toHaveBeenCalledWith(input1[0], 1);
       });
       describe('Cumsum', () => {
-        it('should call tfc.cumsum', () => {
-          spyOn(tfc, 'cumsum');
+        it('should call tfOps.cumsum', () => {
+          spyOn(tfOps, 'cumsum');
           node.op = 'Cumsum';
           node.attrParams.exclusive = createBoolAttr(true);
           node.attrParams.reverse = createBoolAttr(false);
           node.inputNames = ['input1', 'input2'];
           node.inputParams.axis = createNumberAttrFromIndex(1);
-          const input2 = [tfc.scalar(2)];
+          const input2 = [tfOps.scalar(2)];
           executeOp(node, {input1, input2}, context);
 
-          expect(tfc.cumsum).toHaveBeenCalledWith(input1[0], 2, true, false);
+          expect(tfOps.cumsum).toHaveBeenCalledWith(input1[0], 2, true, false);
         });
       });
     });

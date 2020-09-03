@@ -14,9 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as tfc from '@tensorflow/tfjs-core';
-import {scalar, tensor1d, tensor2d} from '@tensorflow/tfjs-core';
-import {test_util} from '@tensorflow/tfjs-core';
+import {scalar, Tensor, tensor1d, tensor2d, test_util} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import {GraphExecutor} from '../../executor/graph_executor';
@@ -31,8 +31,8 @@ import {createShapeAttrFromIndex} from './test_helper';
 
 describe('control', () => {
   let node: Node;
-  let input1: tfc.Tensor[];
-  let input2: tfc.Tensor[];
+  let input1: Tensor[];
+  let input2: Tensor[];
   const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
@@ -46,8 +46,8 @@ describe('control', () => {
       attrParams: {},
       children: []
     };
-    input1 = [tfc.scalar(1, 'int32')];
-    input2 = [tfc.scalar(0, 'bool')];
+    input1 = [tfOps.scalar(1, 'int32')];
+    input2 = [tfOps.scalar(0, 'bool')];
   });
 
   afterEach(() => {
@@ -62,7 +62,7 @@ describe('control', () => {
         node.inputParams['pred'] = createTensorAttr(1);
         node.inputParams['data'] = createTensorAttr(0);
 
-        const pred = [tfc.scalar(true)];
+        const pred = [tfOps.scalar(true)];
         const result = await executeOp(node, {pred, input1}, context);
         expect(result[0]).toBeUndefined();
         test_util.expectArraysEqual(
@@ -73,7 +73,7 @@ describe('control', () => {
         node.inputParams['pred'] = createTensorAttr(1);
         node.inputParams['data'] = createTensorAttr(0);
 
-        const pred = [tfc.scalar(false)];
+        const pred = [tfOps.scalar(false)];
         const result = await executeOp(node, {pred, input1}, context);
         test_util.expectArraysEqual(
             await result[0].array(), await input1[0].array());
@@ -91,7 +91,7 @@ describe('control', () => {
       it('should return the first available input', async () => {
         node.op = 'Merge';
 
-        const pred = [tfc.scalar(true)];
+        const pred = [tfOps.scalar(true)];
         test_util.expectArraysEqual(
             await (await executeOp(node, {pred: undefined, input1}, context))[0]
                 .array(),
@@ -425,7 +425,7 @@ describe('control', () => {
       node.attrParams['cond'] = {'value': 'condFunc', 'type': 'func'};
       node.attrParams['body'] = {'value': 'bodyFunc', 'type': 'func'};
 
-      const cond = [tfc.scalar(false)];
+      const cond = [tfOps.scalar(false)];
       const graph: Graph = {
         inputs: [],
         nodes: {
@@ -447,7 +447,7 @@ describe('control', () => {
         return input2;
       });
       const bodyExecutor = new GraphExecutor(graph);
-      const input3 = [tfc.scalar(3, 'int32')];
+      const input3 = [tfOps.scalar(3, 'int32')];
       spyOn(bodyExecutor, 'executeFunctionAsync').and.returnValue(input3);
       context.functionMap['bodyFunc'] = bodyExecutor;
       context.functionMap['condFunc'] = condExecutor;
@@ -475,7 +475,7 @@ describe('control', () => {
       node.attrParams['cond'] = {'value': 'condFunc', 'type': 'func'};
       node.attrParams['body'] = {'value': 'bodyFunc', 'type': 'func'};
 
-      const cond = [tfc.scalar(false)];
+      const cond = [tfOps.scalar(false)];
       const graph: Graph = {
         inputs: [],
         nodes: {
@@ -497,7 +497,7 @@ describe('control', () => {
         return input2;
       });
       const bodyExecutor = new GraphExecutor(graph);
-      const input3 = [tfc.scalar(3, 'int32')];
+      const input3 = [tfOps.scalar(3, 'int32')];
       spyOn(bodyExecutor, 'executeFunctionAsync').and.returnValue(input3);
       context.functionMap['bodyFunc'] = bodyExecutor;
       context.functionMap['condFunc'] = condExecutor;
@@ -526,7 +526,7 @@ describe('control', () => {
       node.attrParams['thenBranch'] = {'value': 'thenFunc', 'type': 'func'};
       node.attrParams['elseBranch'] = {'value': 'elseFunc', 'type': 'func'};
 
-      const cond = [tfc.scalar(true)];
+      const cond = [tfOps.scalar(true)];
       const graph: Graph = {
         inputs: [],
         nodes: {
@@ -557,7 +557,7 @@ describe('control', () => {
       node.attrParams['thenBranch'] = {'value': 'thenFunc', 'type': 'func'};
       node.attrParams['elseBranch'] = {'value': 'elseFunc', 'type': 'func'};
 
-      const cond = [tfc.scalar(false)];
+      const cond = [tfOps.scalar(false)];
       const graph: Graph = {
         inputs: [],
         nodes: {
@@ -600,7 +600,7 @@ describe('control', () => {
       node.attrParams['thenBranch'] = {'value': 'thenFunc', 'type': 'func'};
       node.attrParams['elseBranch'] = {'value': 'elseFunc', 'type': 'func'};
 
-      const cond = [tfc.scalar(true)];
+      const cond = [tfOps.scalar(true)];
       const graph: Graph = {
         inputs: [],
         nodes: {
@@ -631,7 +631,7 @@ describe('control', () => {
       node.attrParams['thenBranch'] = {'value': 'thenFunc', 'type': 'func'};
       node.attrParams['elseBranch'] = {'value': 'elseFunc', 'type': 'func'};
 
-      const cond = [tfc.scalar(false)];
+      const cond = [tfOps.scalar(false)];
       const graph: Graph = {
         inputs: [],
         nodes: {

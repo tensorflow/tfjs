@@ -34,7 +34,7 @@ import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
 import {cosConfig} from './kernels/Cos';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {cumsumConfig} from './kernels/Cumsum';
-import {depthwiseConv2DNativeConfig} from './kernels/DepthwiseConv2dNative';
+import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {divConfig} from './kernels/Div';
 import {equalConfig} from './kernels/Equal';
 import {expConfig} from './kernels/Exp';
@@ -110,7 +110,7 @@ const kernelConfigs: KernelConfig[] = [
   cosConfig,
   cropAndResizeConfig,
   cumsumConfig,
-  depthwiseConv2DNativeConfig,
+  depthwiseConv2dNativeConfig,
   divConfig,
   equalConfig,
   expConfig,
