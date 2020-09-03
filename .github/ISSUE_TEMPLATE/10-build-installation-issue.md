@@ -10,9 +10,8 @@ labels: 'type:build/install'
 **System information**
 - OS Platform and Distribution (e.g., Linux Ubuntu 16.04):
 - Mobile device (e.g. iPhone 8, Pixel 2, Samsung Galaxy) if the issue happens on mobile device:
-- TensorFlow.js installed from (source or binary):
+- TensorFlow.js installed from (npm or script link):
 - TensorFlow.js version:
-- Installed using:
 - CUDA/cuDNN version:
 
 
