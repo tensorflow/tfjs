@@ -1413,7 +1413,7 @@ export function convLstm2d(args: ConvLSTM2DArgs): ConvLSTM2D {
  * const initialH = tf.zeros(outShape);
  * const initialC = tf.zeros(outShape);
  *
- * const [o, h, c] = cell.call([x, initialH, initialC], {});
+ * const [o, h, c] = cell.call([input, initialH, initialC], {});
  * ```
  */
 /** @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'} */
