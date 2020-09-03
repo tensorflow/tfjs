@@ -15,36 +15,82 @@
  * =============================================================================
  */
 
-import {ModuleProvider} from './types';
+import {CustomModuleFiles, ModuleProvider} from './types';
 
 export function getCustomModuleString(
     kernels: string[],
     backends: string[],
     forwardModeOnly: boolean,
     moduleProvider: ModuleProvider,
-    ): string {
-  const result: string[] = [];
+    ): CustomModuleFiles {
+  const tfjs: string[] = [];
 
-  addLine(result, moduleProvider.importCoreStr());
-  addLine(result, moduleProvider.importConverterStr());
+  // A custom tfjs module
+  addLine(tfjs, moduleProvider.importCoreStr());
+  addLine(tfjs, moduleProvider.importConverterStr());
 
   for (const backend of backends) {
-    addLine(result, `\n//backend = ${backend}`);
-    addLine(result, moduleProvider.importBackendStr(backend));
+    addLine(tfjs, `\n//backend = ${backend}`);
+    addLine(tfjs, moduleProvider.importBackendStr(backend));
     for (const kernelName of kernels) {
       const kernelImport = moduleProvider.importKernelStr(kernelName, backend);
-      addLine(result, kernelImport.importStatement);
-      addLine(result, registerKernelStr(kernelImport.kernelConfigId));
+      addLine(tfjs, kernelImport.importStatement);
+      addLine(tfjs, registerKernelStr(kernelImport.kernelConfigId));
     }
   }
 
   if (!forwardModeOnly) {
-    addLine(result, `\n//Gradients`);
+    addLine(tfjs, `\n//Gradients`);
     for (const kernelName of kernels) {
       const gradImport = moduleProvider.importGradientConfigStr(kernelName);
-      addLine(result, gradImport.importStatement);
-      addLine(result, registerGradientConfigStr(gradImport.gradConfigId));
+      addLine(tfjs, gradImport.importStatement);
+      addLine(tfjs, registerGradientConfigStr(gradImport.gradConfigId));
     }
+  }
+
+  // A custom tfjs core module for imports within tfjs packages
+  const core: string[] = [];
+  addLine(core, moduleProvider.importCoreStr());
+  return {
+    core: core.join('\n'),
+    tfjs: tfjs.join('\n'),
+  };
+}
+
+export function getCustomConverterOpsModule(
+    ops: string[], moduleProvider: ModuleProvider): string {
+  const result: string[] = [];
+
+  // Separate namespaced apis from non namespaced ones as they require a
+  // different export pattern that treats each namespace as a whole.
+
+  const flatOps = [];
+  const namespacedOps: {[key: string]: string[]} = {};
+
+  for (const opSymbol of ops) {
+    if (opSymbol.match(/\./)) {
+      const parts = opSymbol.split(/\./);
+      const namespace = parts[0];
+      const opName = parts[1];
+
+      if (namespacedOps[namespace] == null) {
+        namespacedOps[namespace] = [];
+      }
+      namespacedOps[namespace].push(opName);
+    } else {
+      flatOps.push(opSymbol);
+    }
+  }
+
+  // Group the namespaced symbols by namespace
+  for (const namespace of Object.keys(namespacedOps)) {
+    const opSymbols = namespacedOps[namespace];
+    result.push(moduleProvider.importNamespacedOpsForConverterStr(
+        namespace, opSymbols));
+  }
+
+  for (const opSymbol of flatOps) {
+    result.push(moduleProvider.importOpForConverterStr(opSymbol));
   }
 
   return result.join('\n');

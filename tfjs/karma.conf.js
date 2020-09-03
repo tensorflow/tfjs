@@ -18,13 +18,27 @@
 module.exports = function(config) {
   config.set({
     frameworks: ['jasmine', 'karma-typescript'],
-    files: [{pattern: 'src/**/*.ts'}],
+    files: [
+      {pattern: './node_modules/@babel/polyfill/dist/polyfill.js'},
+      {pattern: 'src/**/*.ts'}
+    ],
     preprocessors: {
       '**/*.ts': ['karma-typescript'],  // *.tsx for React Jsx
     },
     karmaTypescriptConfig: {
       tsconfig: 'tsconfig.test.json',
-      reports: {}  // Do not produce coverage html.
+      reports: {},  // Do not produce coverage html.
+      bundlerOptions: {
+        acornOptions: {ecmaVersion: 8},
+        transforms: [
+          require('karma-typescript-es6-transform')({
+            presets: [
+              // ensure we get es5 by adding IE 11 as a target
+              ['@babel/env', {'targets': {'ie': '11'}, 'loose': true}]
+            ]
+          }),
+        ]
+      }
     },
     reporters: ['progress', 'karma-typescript'],
     browsers: ['Chrome'],

@@ -15,17 +15,21 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import {Tensor, test_util} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
+
 import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
+
 import {executeOp} from './arithmetic_executor';
 import {createTensorAttr, createTensorsAttr} from './test_helper';
 
 describe('arithmetic', () => {
   let node: Node;
-  const input1 = [tfc.scalar(1)];
-  const input2 = [tfc.scalar(1)];
-  const input3 = [tfc.scalar(4)];
+  const input1 = [tfOps.scalar(1)];
+  const input2 = [tfOps.scalar(1)];
+  const input3 = [tfOps.scalar(4)];
   const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
@@ -45,9 +49,9 @@ describe('arithmetic', () => {
     ['Add', 'Mul', 'Div', 'Sub', 'Maximum', 'Minimum', 'Pow',
      'SquaredDifference', 'Mod', 'FloorDiv', 'DivNoNan']
         .forEach((op => {
-          it('should call tfc.' + op, () => {
+          it('should call tfOps.' + op, () => {
             const spy =
-                spyOn(tfc, op.charAt(0).toLowerCase() + op.slice(1) as 'add');
+                spyOn(tfOps, op.charAt(0).toLowerCase() + op.slice(1) as 'add');
             node.op = op;
             executeOp(node, {input1, input2}, context);
 
@@ -56,26 +60,26 @@ describe('arithmetic', () => {
         }));
 
     it('AddV2', async () => {
-      const spy = spyOn(tfc, 'add').and.callThrough();
+      const spy = spyOn(tfOps, 'add').and.callThrough();
       node.op = 'AddV2';
-      const res = executeOp(node, {input1, input2}, context) as tfc.Tensor[];
+      const res = executeOp(node, {input1, input2}, context) as Tensor[];
       expect(spy).toHaveBeenCalledWith(input1[0], input2[0]);
       expect(res[0].dtype).toBe('float32');
       expect(res[0].shape).toEqual([]);
-      tfc.test_util.expectArraysClose(await res[0].data(), 2);
+      test_util.expectArraysClose(await res[0].data(), 2);
     });
 
     it('AddN', async () => {
-      const spy = spyOn(tfc, 'addN').and.callThrough();
+      const spy = spyOn(tfOps, 'addN').and.callThrough();
       node.op = 'AddN';
       node.inputParams = {tensors: createTensorsAttr(0, 0)};
       node.inputNames = ['input1', 'input2', 'input3'];
       const res =
-          executeOp(node, {input1, input2, input3}, context) as tfc.Tensor[];
+          executeOp(node, {input1, input2, input3}, context) as Tensor[];
       expect(spy).toHaveBeenCalledWith([input1[0], input2[0], input3[0]]);
       expect(res[0].dtype).toBe('float32');
       expect(res[0].shape).toEqual([]);
-      tfc.test_util.expectArraysClose(await res[0].data(), [6]);
+      test_util.expectArraysClose(await res[0].data(), [6]);
     });
   });
 });
