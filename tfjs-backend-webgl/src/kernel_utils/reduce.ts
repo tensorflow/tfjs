@@ -56,7 +56,7 @@ export function reduce(
     const previousResult = result;
     result = backend.runWebGLProgram(program, [result], dtype);
 
-    if (i > 0) {
+    if (previousResult.dataId !== x.dataId) {
       backend.disposeData(previousResult.dataId);
     }
   }
