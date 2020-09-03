@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {resizeNearestNeighbor} from '../../ops/resize_nearest_neighbor';
+import {resizeNearestNeighbor} from '../../ops/image/resize_nearest_neighbor';
 import {Tensor, Tensor3D, Tensor4D} from '../../tensor';
 import {Rank} from '../../types';
 

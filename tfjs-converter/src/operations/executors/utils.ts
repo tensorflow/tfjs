@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import {clone, Tensor, util} from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
@@ -45,7 +45,7 @@ export function getParamValue(
     const data = tensor.dataSync();
     return inputParam.type === 'number' ?
         data[0] :
-        tfc.util.toNestedArray(tensor.shape, data);
+        util.toNestedArray(tensor.shape, data);
   }
   const attrParam = node.attrParams[paramName];
   return attrParam && attrParam.value;
@@ -59,7 +59,7 @@ export function getParamValue(
  */
 export function getTensor(
     name: string, tensorsMap: NamedTensorsMap,
-    context: ExecutionContext): tfc.Tensor {
+    context: ExecutionContext): Tensor {
   const [nodeName, index] = parseNodeName(name);
   const contextId = context.currentContextIds.find(contextId => {
     return !!tensorsMap[getNodeNameWithContextId(nodeName, contextId)];
@@ -77,7 +77,7 @@ export function getTensor(
  */
 export function getTensorsForCurrentContenxt(
     name: string, tensorsMap: NamedTensorsMap,
-    context: ExecutionContext): tfc.Tensor[] {
+    context: ExecutionContext): Tensor[] {
   return tensorsMap[getNodeNameWithContextId(name, context.currentContextId)];
 }
 
@@ -146,6 +146,6 @@ export function getPadding(
  * them in order to create new Tensor.id.
  * @param tensor
  */
-export function cloneTensor(tensor: tfc.Tensor): tfc.Tensor {
-  return tensor.kept ? tensor : tfc.clone(tensor);
+export function cloneTensor(tensor: Tensor): Tensor {
+  return tensor.kept ? tensor : clone(tensor);
 }

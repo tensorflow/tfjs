@@ -102,7 +102,7 @@ function depthwiseConv2d(args: {
   return out;
 }
 
-export const depthwiseConv2DNativeConfig: KernelConfig = {
+export const depthwiseConv2dNativeConfig: KernelConfig = {
   kernelName: DepthwiseConv2dNative,
   backendName: 'wasm',
   setupFunc: setup,

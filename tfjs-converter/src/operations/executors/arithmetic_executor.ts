@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import {Tensor} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
@@ -23,75 +25,74 @@ import {InternalOpExecutor, Node} from '../types';
 
 import {getParamValue} from './utils';
 
-export const executeOp: InternalOpExecutor = (node: Node,
-                                            tensorMap: NamedTensorsMap,
-                                            context: ExecutionContext):
-                                               tfc.Tensor[] => {
-  switch (node.op) {
-    case 'BiasAdd':
-    case 'AddV2':
-    case 'Add': {
-      return [tfc.add(
-          (getParamValue('a', node, tensorMap, context) as tfc.Tensor),
-          getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
-    }
-    case 'AddN': {
-      return [tfc.addN((
-          getParamValue('tensors', node, tensorMap, context) as tfc.Tensor[]))];
-    }
-    case 'FloorMod':
-    case 'Mod':
-      return [tfc.mod(
-          getParamValue('a', node, tensorMap, context) as tfc.Tensor,
-          getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
-    case 'Mul':
-      return [tfc.mul(
-          getParamValue('a', node, tensorMap, context) as tfc.Tensor,
-          getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
-    case 'RealDiv':
-    case 'Div': {
-      return [tfc.div(
-          getParamValue('a', node, tensorMap, context) as tfc.Tensor,
-          getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
-    }
-    case 'DivNoNan': {
-      return [tfc.divNoNan(
-          getParamValue('a', node, tensorMap, context) as tfc.Tensor,
-          getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
-    }
-    case 'FloorDiv': {
-      return [tfc.floorDiv(
-          getParamValue('a', node, tensorMap, context) as tfc.Tensor,
-          getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
-    }
-    case 'Sub': {
-      return [tfc.sub(
-          getParamValue('a', node, tensorMap, context) as tfc.Tensor,
-          getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
-    }
-    case 'Minimum': {
-      return [tfc.minimum(
-          getParamValue('a', node, tensorMap, context) as tfc.Tensor,
-          getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
-    }
-    case 'Maximum': {
-      return [tfc.maximum(
-          getParamValue('a', node, tensorMap, context) as tfc.Tensor,
-          getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
-    }
-    case 'Pow': {
-      return [tfc.pow(
-          getParamValue('a', node, tensorMap, context) as tfc.Tensor,
-          getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
-    }
-    case 'SquaredDifference': {
-      return [tfc.squaredDifference(
-          getParamValue('a', node, tensorMap, context) as tfc.Tensor,
-          getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
+export const executeOp: InternalOpExecutor =
+    (node: Node, tensorMap: NamedTensorsMap,
+     context: ExecutionContext): Tensor[] => {
+      switch (node.op) {
+        case 'BiasAdd':
+        case 'AddV2':
+        case 'Add': {
+          return [tfOps.add(
+              (getParamValue('a', node, tensorMap, context) as Tensor),
+              getParamValue('b', node, tensorMap, context) as Tensor)];
+        }
+        case 'AddN': {
+          return [tfOps.addN((
+              getParamValue('tensors', node, tensorMap, context) as Tensor[]))];
+        }
+        case 'FloorMod':
+        case 'Mod':
+          return [tfOps.mod(
+              getParamValue('a', node, tensorMap, context) as Tensor,
+              getParamValue('b', node, tensorMap, context) as Tensor)];
+        case 'Mul':
+          return [tfOps.mul(
+              getParamValue('a', node, tensorMap, context) as Tensor,
+              getParamValue('b', node, tensorMap, context) as Tensor)];
+        case 'RealDiv':
+        case 'Div': {
+          return [tfOps.div(
+              getParamValue('a', node, tensorMap, context) as Tensor,
+              getParamValue('b', node, tensorMap, context) as Tensor)];
+        }
+        case 'DivNoNan': {
+          return [tfOps.divNoNan(
+              getParamValue('a', node, tensorMap, context) as Tensor,
+              getParamValue('b', node, tensorMap, context) as Tensor)];
+        }
+        case 'FloorDiv': {
+          return [tfOps.floorDiv(
+              getParamValue('a', node, tensorMap, context) as Tensor,
+              getParamValue('b', node, tensorMap, context) as Tensor)];
+        }
+        case 'Sub': {
+          return [tfOps.sub(
+              getParamValue('a', node, tensorMap, context) as Tensor,
+              getParamValue('b', node, tensorMap, context) as Tensor)];
+        }
+        case 'Minimum': {
+          return [tfOps.minimum(
+              getParamValue('a', node, tensorMap, context) as Tensor,
+              getParamValue('b', node, tensorMap, context) as Tensor)];
+        }
+        case 'Maximum': {
+          return [tfOps.maximum(
+              getParamValue('a', node, tensorMap, context) as Tensor,
+              getParamValue('b', node, tensorMap, context) as Tensor)];
+        }
+        case 'Pow': {
+          return [tfOps.pow(
+              getParamValue('a', node, tensorMap, context) as Tensor,
+              getParamValue('b', node, tensorMap, context) as Tensor)];
+        }
+        case 'SquaredDifference': {
+          return [tfOps.squaredDifference(
+              getParamValue('a', node, tensorMap, context) as Tensor,
+              getParamValue('b', node, tensorMap, context) as Tensor)];
+        }
+        default:
+          throw TypeError(`Node type ${node.op} is not implemented`);
+      }
+    };
 
 export const CATEGORY = 'arithmetic';
