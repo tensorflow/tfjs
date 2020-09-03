@@ -55,10 +55,7 @@ export function reduce(
         {windowSize, inSize, batchSize: x.shape[0], outSize}, reductionType);
     const previousResult = result;
     result = backend.runWebGLProgram(program, [result], dtype);
-
-    if (i > 0) {
-      backend.disposeData(previousResult.dataId);
-    }
+    backend.disposeData(previousResult.dataId);
   }
 
   return result;

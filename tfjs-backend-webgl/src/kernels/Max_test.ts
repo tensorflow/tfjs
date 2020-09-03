@@ -29,7 +29,7 @@ describeWithFlags('Max', ALL_ENVS, () => {
        const xMax = x.max();
 
        const afterResDataIds = tf.engine().backend.numDataIds();
-       expect(afterResDataIds).toEqual(beforeDataIds + 2);
+       expect(afterResDataIds).toEqual(beforeDataIds + 1);
 
        x.dispose();
        xMax.dispose();
