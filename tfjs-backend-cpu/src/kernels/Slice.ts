@@ -36,16 +36,12 @@ export function slice(
   slice_util.assertParamsValid(x, $begin, $size);
 
   const isContinous = slice_util.isSliceContinous(x.shape, $begin, $size);
-
   const vals = backend.data.get(x.dataId).values as TypedArray;
-
   const length = util.sizeFromShape($size);
 
   if (isContinous) {
     const flatOffset = slice_util.computeFlatOffset($begin, xStrides);
-
     const resultVals = vals.subarray(flatOffset, flatOffset + length);
-
     return backend.makeTensorInfo(resultVals, $size, x.dtype);
   }
 
