@@ -20,7 +20,8 @@ import {DepthToSpace, DepthToSpaceAttrs, DepthToSpaceInputs, KernelConfig, Kerne
 import {BackendWasm} from '../backend_wasm';
 
 let wasmDepthToSpace: (
-    xId: number, blockSize: number, dataFormat: number, outputShape: Uint8Array,
+    xId: number, blockSize: number, dataFormat: number, xStrides: Uint8Array,
+    xStridesLength: number, outputShape: Uint8Array, outputStrides: Uint8Array,
     outSize: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
@@ -28,7 +29,10 @@ function setup(backend: BackendWasm): void {
     'number',  // xId
     'number',  // blockSize
     'number',  // dataFormat
+    'array',   // xStrides
+    'number',  // xStridesLength
     'array',   // outputShape
+    'array',   // outputStrides
     'number',  // outSize
     'number',  // outId
   ]);
@@ -64,13 +68,18 @@ function depthToSpace(args: {
 
   const xData = backend.dataIdMap.get(x.dataId);
   const xId = xData.id;
+  const xStridesBytes =
+      new Uint8Array(new Int32Array(util.computeStrides(x.shape)).buffer);
 
   const outputShapeBytes = new Uint8Array(new Int32Array(outputShape).buffer);
+  const outStridesBytes =
+      new Uint8Array(new Int32Array(util.computeStrides(outputShape)).buffer);
 
   const outId = backend.dataIdMap.get(out.dataId).id;
   wasmDepthToSpace(
-      xId, blockSize, dataFormat === 'NHWC' ? 1 : 0, outputShapeBytes,
-      outputShape.length, outId);
+      xId, blockSize, dataFormat === 'NHWC' ? 1 : 0, xStridesBytes,
+      x.shape.length - 1, outputShapeBytes, outStridesBytes, outputShape.length,
+      outId);
 
   return out;
 }
