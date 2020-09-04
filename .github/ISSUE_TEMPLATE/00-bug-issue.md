@@ -17,6 +17,7 @@ build/installation issues on GitHub. tag:bug_template</em>
 - TensorFlow.js installed from (npm or script link):
 - TensorFlow.js version (use command below):
 - Browser version:
+- Tensorflow.js Converter Version:
 
 
 
