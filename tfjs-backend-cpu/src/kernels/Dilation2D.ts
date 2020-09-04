@@ -27,15 +27,11 @@ export const dilation2dConfig: KernelConfig = {
     const {strides, pad, dilations} = attrs as {} as Dilation2DAttrs;
     const cpuBackend = backend as MathBackendCPU;
 
-    const $x =
-        util.toNestedArray(
-            x.shape, cpuBackend.data.get(x.dataId).values as TypedArray) as
-        number[][][][];
+    const xVals = cpuBackend.data.get(x.dataId).values as TypedArray;
+    const xRank = x.shape.length;
 
-    const $filter = util.toNestedArray(
-                        filter.shape,
-                        cpuBackend.data.get(filter.dataId).values as
-                            TypedArray) as number[][][];
+    const filterVals = cpuBackend.data.get(filter.dataId).values as TypedArray;
+    const filterRank = filter.shape.length;
 
     const {
       batchSize,
@@ -58,8 +54,9 @@ export const dilation2dConfig: KernelConfig = {
             filter.shape as [number, number, number], strides, pad,
             'NHWC' /* dataFormat */, dilations);
 
-    const output =
-        util.makeZerosNestedTypedArray(outShape, x.dtype) as number[][][][];
+    const outSize = util.sizeFromShape(outShape);
+    const outRank = outShape.length;
+    const outputVals = util.getArrayFromDType(x.dtype, outSize);
 
     // Upsampling the input by fill in `dilation size - 1` values between each
     // input value.
@@ -78,7 +75,12 @@ export const dilation2dConfig: KernelConfig = {
                 for (let w = 0; w < filterWidth; ++w) {
                   const wIn = wBeg + w * dilationWidth;
                   if (wIn >= 0 && wIn < inWidth) {
-                    const val = $x[b][hIn][wIn][d] + $filter[h][w][d];
+                    const xIndex = util.locToIndex(
+                        [b, hIn, wIn, d], xRank, util.computeStrides(x.shape));
+                    const filterIndex = util.locToIndex(
+                        [h, w, d], filterRank,
+                        util.computeStrides(filter.shape));
+                    const val = xVals[xIndex] + filterVals[filterIndex];
                     if (val > curVal) {
                       curVal = val;
                     }
@@ -86,14 +88,16 @@ export const dilation2dConfig: KernelConfig = {
                 }
               }
             }
-            output[b][hOut][wOut][d] = curVal;
+            const outputIndex = util.locToIndex(
+                [b, hOut, wOut, d], outRank, util.computeStrides(outShape));
+            outputVals[outputIndex] = curVal;
           }
         }
       }
     }
 
-    const dataId =
-        cpuBackend.write(util.toTypedArray(output, x.dtype), outShape, x.dtype);
+    const dataId = cpuBackend.write(
+        util.toTypedArray(outputVals, x.dtype), outShape, x.dtype);
 
     return {dataId, shape: outShape, dtype: x.dtype};
   }

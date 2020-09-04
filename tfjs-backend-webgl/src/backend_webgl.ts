@@ -1043,7 +1043,8 @@ export class MathBackendWebGL extends KernelBackend {
     const batchSize = x.shape[0];
     const inSize = x.shape[1];
     const windowSize = backend_util.computeOptimalWindowSize(inSize);
-    const reduceInfo = {windowSize, inSize, batchSize};
+    const outSize = Math.ceil(inSize / windowSize);
+    const reduceInfo = {windowSize, inSize, batchSize, outSize};
     const program = new ReduceProgram(reduceInfo, reduceType);
     const output = this.compileAndRun<Tensor2D>(program, [x], dtype);
     // No need to run another GPGPU program.
@@ -1063,7 +1064,12 @@ export class MathBackendWebGL extends KernelBackend {
       inSize = bestIndicesA.shape[1];
     }
     const windowSize = backend_util.computeOptimalWindowSize(inSize);
-    const reduceInfo = {windowSize, inSize, batchSize};
+    const reduceInfo = {
+      windowSize,
+      inSize,
+      batchSize,
+      outSize: Math.ceil(inSize / windowSize)
+    };
     const program =
         new ArgMinMaxProgram(reduceInfo, reduceType, bestIndicesA == null);
     const inputs = [x];

@@ -26,10 +26,7 @@ export class ReduceProgram implements GPGPUProgram {
   constructor(
       reduceInfo: backend_util.ReduceInfo,
       reduceType: 'all'|'any'|'max'|'min'|'sum'|'prod') {
-    const windowSize = reduceInfo.windowSize;
-    const batchSize = reduceInfo.batchSize;
-    const inSize = reduceInfo.inSize;
-    const outSize = Math.ceil(inSize / windowSize);
+    const {windowSize, batchSize, inSize, outSize} = reduceInfo;
     this.outputShape = [batchSize, outSize];
 
     let initializationValue = '0.0';
