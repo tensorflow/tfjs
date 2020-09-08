@@ -190,7 +190,7 @@ describeWithFlags('Complex.', ALL_ENVS, () => {
 
     const b = a.clone();
 
-    // 1 new tensor from the reshape.
+    // 1 new tensor from the clone.
     expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 2);
     // No new tensor data.
     expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore + 3);

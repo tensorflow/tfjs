@@ -29,11 +29,13 @@ export function reshape(
 
   const xSize = util.sizeFromShape(x.shape);
   const $shape = util.inferFromImplicitShape(shape, xSize);
+  const $xSize = util.sizeFromShape($shape);
 
   // TODO(linazhao): Measure performance with and without assertion.
   util.assert(
-      xSize === util.sizeFromShape($shape),
-      () => `new shape: ${$shape}, old shape: ${x.shape}. New shape and old ` +
+      xSize === $xSize,
+      () => `The new shape (${$shape}) has ${$xSize} elements and the old ` +
+          `shape (${x.shape}) has ${xSize} elements. The new shape and old ` +
           `shape must have the same number of elements.`);
 
   backend.incRef(x.dataId);
