@@ -154,4 +154,42 @@ describe(`${SMOKE} backends`, () => {
     expect(tfc.findBackend('webgl').numDataIds()).toBe(webglNumDataIds);
     expect(tfc.findBackend('cpu').numDataIds()).toBe(cpuNumDataIds);
   });
+
+  // tslint:disable-next-line: ban
+  xit('can move complex tensor from cpu to webgl.', async () => {
+    await tfc.setBackend('cpu');
+
+    const real1 = tfc.tensor1d([1]);
+    const imag1 = tfc.tensor1d([2]);
+    const complex1 = tfc.complex(real1, imag1);
+
+    await tfc.setBackend('webgl');
+
+    const real2 = tfc.tensor1d([3]);
+    const imag2 = tfc.tensor1d([4]);
+    const complex2 = tfc.complex(real2, imag2);
+
+    const result = complex1.add(complex2);
+
+    tfc.test_util.expectArraysClose(await result.data(), [4, 6]);
+  });
+
+  // tslint:disable-next-line: ban
+  xit('can move complex tensor from webgl to cpu.', async () => {
+    await tfc.setBackend('webgl');
+
+    const real1 = tfc.tensor1d([1]);
+    const imag1 = tfc.tensor1d([2]);
+    const complex1 = tfc.complex(real1, imag1);
+
+    await tfc.setBackend('cpu');
+
+    const real2 = tfc.tensor1d([3]);
+    const imag2 = tfc.tensor1d([4]);
+    const complex2 = tfc.complex(real2, imag2);
+
+    const result = complex1.add(complex2);
+
+    tfc.test_util.expectArraysClose(await result.data(), [4, 6]);
+  });
 });
