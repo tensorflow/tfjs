@@ -122,20 +122,26 @@ describe(`${SMOKE} backends`, () => {
     const webglNumDataIds = tfc.findBackend('webgl').numDataIds();
     const cpuNumDataIds = tfc.findBackend('cpu').numDataIds();
 
-    tfc.setBackend('cpu');
-    // This scalar lives in cpu1.
+    await tfc.setBackend('cpu');
+    // This scalar lives in cpu.
     const a = tfc.scalar(5);
 
-    tfc.setBackend('webgl');
-    // This scalar lives in cpu2.
+    await tfc.setBackend('webgl');
+    // This scalar lives in webgl.
     const b = tfc.scalar(3);
 
     // Verify that ops can execute with mixed backend data.
     tfc.engine().startScope();
-    tfc.setBackend('cpu');
+
+    await tfc.setBackend('cpu');
+    const result = tfc.add(a, b);
+    tfc.test_util.expectArraysClose(await result.data(), [8]);
+    expect(tfc.findBackend('cpu').numDataIds()).toBe(cpuNumDataIds + 3);
+
+    await tfc.setBackend('webgl');
     tfc.test_util.expectArraysClose(await tfc.add(a, b).data(), [8]);
-    tfc.setBackend('webgl');
-    tfc.test_util.expectArraysClose(await tfc.add(a, b).data(), [8]);
+    expect(tfc.findBackend('webgl').numDataIds()).toBe(webglNumDataIds + 3);
+
     tfc.engine().endScope();
 
     expect(tfc.memory().numTensors).toBe(numTensors + 2);
