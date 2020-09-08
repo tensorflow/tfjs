@@ -62,6 +62,38 @@ export * from '@tensorflow/tfjs-core/dist/base';
             kernelName}_grad';`;
 
     return {importStatement, gradConfigId};
+  },
+
+  kernelToOpsMapPath() {
+    return require.resolve(
+        '@tensorflow/tfjs-converter/metadata/kernel2op.json');
+  },
+
+  importOpForConverterStr(opSymbol) {
+    const opFileName = opNameToFileName(opSymbol);
+    return `export {${opSymbol}} from '@tensorflow/tfjs-core/dist/ops/${
+        opFileName}';`;
+  },
+
+  importNamespacedOpsForConverterStr(namespace, opSymbols) {
+    const result: string[] = [];
+
+    for (const opSymbol of opSymbols) {
+      const opFileName = opNameToFileName(opSymbol);
+      const opAlias = `${opSymbol}_${namespace}`;
+      result.push(`import {${opSymbol} as ${
+          opAlias}} from '@tensorflow/tfjs-core/dist/ops/${namespace}/${
+          opFileName}';`);
+    }
+
+    result.push(`export const ${namespace} = {`);
+    for (const opSymbol of opSymbols) {
+      const opAlias = `${opSymbol}_${namespace}`;
+      result.push(`\t${opSymbol}: ${opAlias},`);
+    }
+    result.push(`};`);
+
+    return result.join('\n');
   }
 };
 
@@ -80,4 +112,12 @@ function getBackendPath(backend: SupportedBackend) {
 
 function kernelNameToVariableName(kernelName: string) {
   return kernelName.charAt(0).toLowerCase() + kernelName.slice(1);
+}
+
+function opNameToFileName(opName: string) {
+  // add exceptions here.
+  if (opName === 'isNaN') {
+    return 'is_nan';
+  }
+  return opName.replace(/[A-Z]/g, (s: string) => `_${s.toLowerCase()}`);
 }

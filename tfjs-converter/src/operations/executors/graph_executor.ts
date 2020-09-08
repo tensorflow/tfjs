@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import {Tensor} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
@@ -23,71 +25,70 @@ import {InternalOpExecutor, Node} from '../types';
 
 import {cloneTensor, getParamValue, getTensor} from './utils';
 
-export const executeOp: InternalOpExecutor = (node: Node,
-                                              tensorMap: NamedTensorsMap,
-                                              context: ExecutionContext):
-                                                 tfc.Tensor[] => {
-  switch (node.op) {
-    case 'Const': {
-      return tensorMap[node.name];
-    }
-    case 'PlaceholderWithDefault':
-      const def =
-          getParamValue('default', node, tensorMap, context) as tfc.Tensor;
-      return [getTensor(node.name, tensorMap, context) || def];
-    case 'Placeholder':
-      return [getTensor(node.name, tensorMap, context)];
-    case 'Identity':
-    case 'StopGradient':
-    case 'FakeQuantWithMinMaxVars': {  // This op is currently ignored.
-      const data = getParamValue('x', node, tensorMap, context) as tfc.Tensor;
-      return [cloneTensor(data)];
-    }
-    case 'IdentityN':
-      return (getParamValue('x', node, tensorMap, context) as tfc.Tensor[])
-          .map((t: tfc.Tensor) => cloneTensor(t));
-    case 'Snapshot':
-      const snapshot =
-          (getParamValue('x', node, tensorMap, context) as tfc.Tensor);
-      return [cloneTensor(snapshot)];
-    case 'Shape':
-      return [tfc.tensor1d(
-          (getParamValue('x', node, tensorMap, context) as tfc.Tensor).shape,
-          'int32')];
-    case 'ShapeN':
-      return (getParamValue('x', node, tensorMap, context) as tfc.Tensor[])
-          .map((t: tfc.Tensor) => tfc.tensor1d(t.shape));
-    case 'Size':
-      return [tfc.scalar(
-          (getParamValue('x', node, tensorMap, context) as tfc.Tensor).size,
-          'int32')];
-    case 'Rank':
-      return [tfc.scalar(
-          (getParamValue('x', node, tensorMap, context) as tfc.Tensor).rank,
-          'int32')];
-    case 'NoOp':
-      return [tfc.scalar(1)];
-    case 'Print':
-      const input = getParamValue('x', node, tensorMap, context) as tfc.Tensor;
-      const data =
-          getParamValue('data', node, tensorMap, context) as tfc.Tensor[];
-      const message =
-          getParamValue('message', node, tensorMap, context) as string;
-      const summarize =
-          getParamValue('summarize', node, tensorMap, context) as number;
-      console.warn(
-          'The graph has a tf.print() operation,' +
-          'usually used for debugging, which slows down performance.');
-      console.log(message);
-      for (let i = 0; i < data.length; i++) {
-        console.log(
-            Array.prototype.slice.call(data[i].dataSync()).slice(0, summarize));
-      }
-      return [input];
+export const executeOp: InternalOpExecutor =
+    (node: Node, tensorMap: NamedTensorsMap,
+     context: ExecutionContext): Tensor[] => {
+      switch (node.op) {
+        case 'Const': {
+          return tensorMap[node.name];
+        }
+        case 'PlaceholderWithDefault':
+          const def =
+              getParamValue('default', node, tensorMap, context) as Tensor;
+          return [getTensor(node.name, tensorMap, context) || def];
+        case 'Placeholder':
+          return [getTensor(node.name, tensorMap, context)];
+        case 'Identity':
+        case 'StopGradient':
+        case 'FakeQuantWithMinMaxVars': {  // This op is currently ignored.
+          const data = getParamValue('x', node, tensorMap, context) as Tensor;
+          return [cloneTensor(data)];
+        }
+        case 'IdentityN':
+          return (getParamValue('x', node, tensorMap, context) as Tensor[])
+              .map((t: Tensor) => cloneTensor(t));
+        case 'Snapshot':
+          const snapshot =
+              (getParamValue('x', node, tensorMap, context) as Tensor);
+          return [cloneTensor(snapshot)];
+        case 'Shape':
+          return [tfOps.tensor1d(
+              (getParamValue('x', node, tensorMap, context) as Tensor).shape,
+              'int32')];
+        case 'ShapeN':
+          return (getParamValue('x', node, tensorMap, context) as Tensor[])
+              .map((t: Tensor) => tfOps.tensor1d(t.shape));
+        case 'Size':
+          return [tfOps.scalar(
+              (getParamValue('x', node, tensorMap, context) as Tensor).size,
+              'int32')];
+        case 'Rank':
+          return [tfOps.scalar(
+              (getParamValue('x', node, tensorMap, context) as Tensor).rank,
+              'int32')];
+        case 'NoOp':
+          return [tfOps.scalar(1)];
+        case 'Print':
+          const input = getParamValue('x', node, tensorMap, context) as Tensor;
+          const data =
+              getParamValue('data', node, tensorMap, context) as Tensor[];
+          const message =
+              getParamValue('message', node, tensorMap, context) as string;
+          const summarize =
+              getParamValue('summarize', node, tensorMap, context) as number;
+          console.warn(
+              'The graph has a tf.print() operation,' +
+              'usually used for debugging, which slows down performance.');
+          console.log(message);
+          for (let i = 0; i < data.length; i++) {
+            console.log(Array.prototype.slice.call(data[i].dataSync())
+                            .slice(0, summarize));
+          }
+          return [input];
 
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
+        default:
+          throw TypeError(`Node type ${node.op} is not implemented`);
+      }
+    };
 
 export const CATEGORY = 'graph';

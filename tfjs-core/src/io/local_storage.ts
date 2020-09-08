@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
+import '../flags';
 import {env} from '../environment';
 
 import {assert} from '../util';
 import {arrayBufferToBase64String, base64StringToArrayBuffer, getModelArtifactsInfoForJSON} from './io_utils';
-import {ModelStoreManagerRegistry} from './model_management';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, ModelArtifacts, ModelArtifactsInfo, ModelStoreManager, SaveResult} from './types';
 
@@ -37,8 +37,7 @@ const MODEL_METADATA_SUFFIX = 'model_metadata';
  * @returns Paths of the models purged.
  */
 export function purgeLocalStorageArtifacts(): string[] {
-  if (!env().getBool('IS_BROWSER') ||
-      typeof window === 'undefined' ||
+  if (!env().getBool('IS_BROWSER') || typeof window === 'undefined' ||
       typeof window.localStorage === 'undefined') {
     throw new Error(
         'purgeLocalStorageModels() cannot proceed because local storage is ' +
@@ -119,9 +118,8 @@ export class BrowserLocalStorage implements IOHandler {
   static readonly URL_SCHEME = 'localstorage://';
 
   constructor(modelPath: string) {
-    if (!env().getBool('IS_BROWSER') ||
-          typeof window === 'undefined' ||
-          typeof window.localStorage === 'undefined') {
+    if (!env().getBool('IS_BROWSER') || typeof window === 'undefined' ||
+        typeof window.localStorage === 'undefined') {
       // TODO(cais): Add more info about what IOHandler subtypes are
       // available.
       //   Maybe point to a doc page on the web and/or automatically determine
@@ -310,7 +308,7 @@ export class BrowserLocalStorageManager implements ModelStoreManager {
         () => 'Current environment is not a web browser');
     assert(
         typeof window === 'undefined' ||
-        typeof window.localStorage !== 'undefined',
+            typeof window.localStorage !== 'undefined',
         () => 'Current browser does not appear to support localStorage');
     this.LS = window.localStorage;
   }
@@ -342,15 +340,5 @@ export class BrowserLocalStorageManager implements ModelStoreManager {
     this.LS.removeItem(keys.weightSpecs);
     this.LS.removeItem(keys.weightData);
     return info;
-  }
-}
-
-if (env().getBool('IS_BROWSER')) {
-  // Wrap the construction and registration, to guard against browsers that
-  // don't support Local Storage.
-  try {
-    ModelStoreManagerRegistry.registerManager(
-        BrowserLocalStorage.URL_SCHEME, new BrowserLocalStorageManager());
-  } catch (err) {
   }
 }

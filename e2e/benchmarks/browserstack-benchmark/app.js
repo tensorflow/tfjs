@@ -19,7 +19,7 @@ const http = require('http');
 const socketio = require('socket.io');
 const fs = require('fs');
 const path = require('path');
-const {exec} = require('child_process');
+const {execFile} = require('child_process');
 
 const port = process.env.PORT || 8001;
 let io;
@@ -58,6 +58,8 @@ function runServer() {
 
   io = socketio(app);
   io.on('connection', socket => {
+    const availableBrowsers = require('./browser_list.json');
+    socket.emit('availableBrowsers', availableBrowsers);
     socket.on('run', benchmark);
   });
 }
@@ -110,9 +112,11 @@ function benchmark(config) {
 
   console.log(`Start benchmarking.`);
   for (const tabId in config.browsers) {
-    const command = `yarn test --browserstack --browsers=${tabId}`;
+    const args = ['test', '--browserstack', `--browsers=${tabId}`];
+    const command = `yarn ${args.join(' ')}`;
     console.log(`Running: ${command}`);
-    exec(command, (error, stdout, stderr) => {
+
+    execFile('yarn', args, (error, stdout, stderr) => {
       console.log(`benchmark ${tabId} completed.`);
       if (error) {
         console.log(error);

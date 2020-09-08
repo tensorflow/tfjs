@@ -218,10 +218,13 @@ tfjs_cc_library(
         ":Conv2D",
         ":Conv2DBackpropInput",
         ":CropAndResize",
+        ":Cumsum",
+        ":DepthToSpace",
         ":DepthwiseConv2dNative",
         ":Div",
         ":Equal",
         ":Exp",
+        ":FlipLeftRight",
         ":FloorDiv",
         ":FusedBatchNorm",
         ":FusedConv2D",
@@ -256,6 +259,8 @@ tfjs_cc_library(
         ":SelectV2",
         ":Sigmoid",
         ":Softmax",
+        ":Square",
+        ":SquaredDifference",
         ":Sub",
         ":Tile",
         ":Transpose",
@@ -410,6 +415,24 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "Cumsum",
+    srcs = ["kernels/Cumsum.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "DepthToSpace",
+    srcs = ["kernels/DepthToSpace.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "DepthwiseConv2dNative",
     srcs = ["kernels/DepthwiseConv2dNative.cc"],
     hdrs = ["kernels/DepthwiseConv2dNative.h"],
@@ -451,6 +474,15 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "FlipLeftRight",
+    srcs = ["kernels/FlipLeftRight.cc"],
+    deps = [
+        ":backend",
+        ":util",
     ],
 )
 
@@ -871,6 +903,17 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SquaredDifference",
+    srcs = ["kernels/SquaredDifference.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":unary",
+        ":util",
     ],
 )
 

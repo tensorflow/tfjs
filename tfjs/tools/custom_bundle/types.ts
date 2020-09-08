@@ -27,7 +27,7 @@ export interface CustomTFJSBundleConfig {
   models?: string[];              // paths to model.json files to walk
   backends?: SupportedBackend[];  // backends to include/use kernels from
   forwardModeOnly?: boolean;      // whether to drop gradients
-  outputPath: string;             // path to output file
+  outputPath: string;             // path to output folder
   kernels?: string[];             // Kernels to include
 }
 
@@ -35,6 +35,9 @@ export interface CustomTFJSBundleConfig {
 // a correct custom module for that build environment (e.g. node vs g3).
 export interface ModuleProvider {
   importCoreStr: () => string;
+  importOpForConverterStr: (opSymbol: string) => string;
+  importNamespacedOpsForConverterStr:
+      (namespace: string, opSymbols: string[]) => string;
   importConverterStr: () => string;
   importBackendStr: (backendPkg: string) => string;
   importKernelStr: (kernelName: string, backend: string) => {
@@ -43,4 +46,10 @@ export interface ModuleProvider {
   importGradientConfigStr: (kernelName: string) => {
     importStatement: string, gradConfigId: string
   };
+  kernelToOpsMapPath: () => string;
+}
+
+export interface CustomModuleFiles {
+  core: string;
+  tfjs: string;
 }

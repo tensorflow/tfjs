@@ -61,6 +61,8 @@ function config({
 
   return {
     input: entry,
+    // Do not tree shake union package library
+    treeshake: false,
     plugins: [
       typescript(tsoptions),
       resolve({dedupe: ['seedrandom']}),

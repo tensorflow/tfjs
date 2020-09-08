@@ -1888,3 +1888,15 @@ export class LayersModel extends Container implements tfc.InferenceModel {
   }
 }
 serialization.registerClass(LayersModel);
+
+/**
+ * A `tf.Functional` is an alias to `tf.LayersModel`.
+ *
+ * See also:
+ *   `tf.LayersModel`, `tf.Sequential`, `tf.loadLayersModel`.
+ */
+/** @doc {heading: 'Models', subheading: 'Classes'} */
+export class Functional extends LayersModel {
+  static className = 'Functional';
+}
+serialization.registerClass(Functional);

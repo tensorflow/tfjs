@@ -722,8 +722,8 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   clip<T extends Tensor>(x: T, min: number, max: number): T {
-    const xMin = this.minimum(x, scalar(max));
-    return this.maximum(xMin, scalar(min)) as T;
+    const xMin = this.minimum(x, scalar(max, x.dtype));
+    return this.maximum(xMin, scalar(min, x.dtype)) as T;
   }
 
   abs<T extends Tensor>(x: T): T {

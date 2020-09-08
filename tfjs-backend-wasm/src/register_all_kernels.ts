@@ -33,11 +33,14 @@ import {conv2DConfig} from './kernels/Conv2D';
 import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
 import {cosConfig} from './kernels/Cos';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
-import {depthwiseConv2DNativeConfig} from './kernels/DepthwiseConv2dNative';
+import {cumsumConfig} from './kernels/Cumsum';
+import {depthToSpaceConfig} from './kernels/DepthToSpace';
+import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {divConfig} from './kernels/Div';
 import {equalConfig} from './kernels/Equal';
 import {expConfig} from './kernels/Exp';
 import {fillConfig} from './kernels/Fill';
+import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorDivConfig} from './kernels/FloorDiv';
 import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
 import {fusedConv2DConfig} from './kernels/FusedConv2D';
@@ -83,6 +86,7 @@ import {softmaxConfig} from './kernels/Softmax';
 import {splitVConfig} from './kernels/Split';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
+import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanhConfig} from './kernels/Tanh';
@@ -106,11 +110,14 @@ const kernelConfigs: KernelConfig[] = [
   conv2DBackpropInputConfig,
   cosConfig,
   cropAndResizeConfig,
-  depthwiseConv2DNativeConfig,
+  cumsumConfig,
+  depthToSpaceConfig,
+  depthwiseConv2dNativeConfig,
   divConfig,
   equalConfig,
   expConfig,
   fillConfig,
+  flipLeftRightConfig,
   floorDivConfig,
   fusedMatMulConfig,
   fusedBatchNormConfig,
@@ -157,6 +164,7 @@ const kernelConfigs: KernelConfig[] = [
   splitVConfig,
   sqrtConfig,
   squareConfig,
+  squaredDifferenceConfig,
   subConfig,
   sumConfig,
   tanhConfig,

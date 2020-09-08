@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import {Tensor, Tensor1D, Tensor2D} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
@@ -25,9 +27,8 @@ import {getParamValue} from './utils';
 
 function nmsParams(
     node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext) {
-  const boxes = getParamValue('boxes', node, tensorMap, context) as tfc.Tensor;
-  const scores =
-      getParamValue('scores', node, tensorMap, context) as tfc.Tensor;
+  const boxes = getParamValue('boxes', node, tensorMap, context) as Tensor;
+  const scores = getParamValue('scores', node, tensorMap, context) as Tensor;
   const maxOutputSize =
       getParamValue('maxOutputSize', node, tensorMap, context) as number;
   const iouThreshold =
@@ -49,7 +50,7 @@ function nmsParams(
 
 export const executeOp: InternalOpAsyncExecutor = async(
     node: Node, tensorMap: NamedTensorsMap,
-    context: ExecutionContext): Promise<tfc.Tensor[]> => {
+    context: ExecutionContext): Promise<Tensor[]> => {
   switch (node.op) {
     case 'NonMaxSuppressionV5': {
       const {
@@ -61,9 +62,9 @@ export const executeOp: InternalOpAsyncExecutor = async(
         softNmsSigma
       } = nmsParams(node, tensorMap, context);
 
-      const result = await tfc.image.nonMaxSuppressionWithScoreAsync(
-          boxes as tfc.Tensor2D, scores as tfc.Tensor1D, maxOutputSize,
-          iouThreshold, scoreThreshold, softNmsSigma);
+      const result = await tfOps.image.nonMaxSuppressionWithScoreAsync(
+          boxes as Tensor2D, scores as Tensor1D, maxOutputSize, iouThreshold,
+          scoreThreshold, softNmsSigma);
 
       return [result.selectedIndices, result.selectedScores];
     }
@@ -75,9 +76,9 @@ export const executeOp: InternalOpAsyncExecutor = async(
           getParamValue('padToMaxOutputSize', node, tensorMap, context) as
           boolean;
 
-      const result = await tfc.image.nonMaxSuppressionPaddedAsync(
-          boxes as tfc.Tensor2D, scores as tfc.Tensor1D, maxOutputSize,
-          iouThreshold, scoreThreshold, padToMaxOutputSize);
+      const result = await tfOps.image.nonMaxSuppressionPaddedAsync(
+          boxes as Tensor2D, scores as Tensor1D, maxOutputSize, iouThreshold,
+          scoreThreshold, padToMaxOutputSize);
 
       return [result.selectedIndices, result.validOutputs];
     }
@@ -86,22 +87,22 @@ export const executeOp: InternalOpAsyncExecutor = async(
       const {boxes, scores, maxOutputSize, iouThreshold, scoreThreshold} =
           nmsParams(node, tensorMap, context);
 
-      return [await tfc.image.nonMaxSuppressionAsync(
-          boxes as tfc.Tensor2D, scores as tfc.Tensor1D, maxOutputSize,
-          iouThreshold, scoreThreshold)];
+      return [await tfOps.image.nonMaxSuppressionAsync(
+          boxes as Tensor2D, scores as Tensor1D, maxOutputSize, iouThreshold,
+          scoreThreshold)];
     }
     case 'Where': {
-      const condition =
-          (getParamValue('condition', node, tensorMap, context) as tfc.Tensor)
-              .asType('bool');
-      const result = [await tfc.whereAsync(condition)];
+      const condition = tfOps.cast(
+          (getParamValue('condition', node, tensorMap, context) as Tensor),
+          'bool');
+      const result = [await tfOps.whereAsync(condition)];
       condition.dispose();
       return result;
     }
     case 'ListDiff': {
-      return tfc.setdiff1dAsync(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor,
-          getParamValue('y', node, tensorMap, context) as tfc.Tensor);
+      return tfOps.setdiff1dAsync(
+          getParamValue('x', node, tensorMap, context) as Tensor,
+          getParamValue('y', node, tensorMap, context) as Tensor);
     }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);

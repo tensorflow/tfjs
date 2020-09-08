@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import {conv2d} from './fused_conv2d';
-import {depthwiseConv2d} from './fused_depthwise_conv2d';
-import {matMul} from './fused_mat_mul';
+import {conv2d} from './fused/conv2d';
+import {depthwiseConv2d} from './fused/depthwise_conv2d';
+import {matMul} from './fused/mat_mul';
 import {Activation} from './fused_types';
 
 export {Activation, conv2d, depthwiseConv2d, matMul};
