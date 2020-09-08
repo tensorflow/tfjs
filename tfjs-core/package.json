@@ -8,7 +8,7 @@
   "unpkg": "dist/tf-core.min.js",
   "types": "dist/index.d.ts",
   "jsnext:main": "dist/index.js",
-  "module": "dist/index.js",
+  "module": "dist/tf-core.node.js",
   "miniprogram": "dist/miniprogram",
   "engines": {
     "yarn": ">= 1.3.2"
