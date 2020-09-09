@@ -118,7 +118,8 @@ export function binaryKernelFunc(
       const [resultData, resultShape] =
           op(a.shape, b.shape, aVals, bVals, a.dtype);
 
-      return cpuBackend.makeTensorInfo(resultData, resultShape, a.dtype);
+      return cpuBackend.makeTensorInfoWithData(
+          resultData, resultShape, a.dtype);
     };
   }
 
@@ -132,8 +133,8 @@ export function binaryKernelFunc(
 
       const $aComplexVals = cpuBackend.data.get($aComplex.dataId);
 
-      const aReal = $aComplexVals.complexTensors.real;
-      const aImag = $aComplexVals.complexTensors.imag;
+      const aReal = $aComplexVals.complexTensorInfos.real;
+      const aImag = $aComplexVals.complexTensorInfos.imag;
 
       const aRealVals =
           cpuBackend.data.get(aReal.dataId).values as Float32Array;
@@ -145,8 +146,8 @@ export function binaryKernelFunc(
 
       const $bComplexVals = cpuBackend.data.get($bComplex.dataId);
 
-      const bReal = $bComplexVals.complexTensors.real;
-      const bImag = $bComplexVals.complexTensors.imag;
+      const bReal = $bComplexVals.complexTensorInfos.real;
+      const bImag = $bComplexVals.complexTensorInfos.imag;
 
       const bRealVals =
           cpuBackend.data.get(bReal.dataId).values as Float32Array;
@@ -156,11 +157,11 @@ export function binaryKernelFunc(
       const [resultRealData, resultImagData, resultShape] = complexOp(
           a.shape, b.shape, aRealVals, aImagVals, bRealVals, bImagVals);
 
-      const resultReal =
-          cpuBackend.makeTensorInfo(resultRealData, resultShape, 'float32');
+      const resultReal = cpuBackend.makeTensorInfoWithData(
+          resultRealData, resultShape, 'float32');
 
-      const resultImag =
-          cpuBackend.makeTensorInfo(resultImagData, resultShape, 'float32');
+      const resultImag = cpuBackend.makeTensorInfoWithData(
+          resultImagData, resultShape, 'float32');
 
       const result = complex(
           {inputs: {real: resultReal, imag: resultImag}, backend: cpuBackend});
@@ -178,7 +179,8 @@ export function binaryKernelFunc(
       const [resultData, resultShape] =
           op(a.shape, b.shape, aVals, bVals, a.dtype);
 
-      return cpuBackend.makeTensorInfo(resultData, resultShape, a.dtype);
+      return cpuBackend.makeTensorInfoWithData(
+          resultData, resultShape, a.dtype);
     }
   };
 }
