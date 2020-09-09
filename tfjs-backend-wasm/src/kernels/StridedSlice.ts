@@ -127,7 +127,7 @@ export function stridedSlice(args: {
     return reshape({inputs: {x: xSliced}, attrs: {shape: outShape}, backend});
   }
 
-  const xId = backend.dataIdMap.get(xReshaped.dataId);
+  const xId = backend.dataIdMap.get(xReshaped.dataId).id;
 
   const out = backend.makeOutput(outShape, 'float32');
   const outId = backend.dataIdMap.get(out.dataId).id;
@@ -142,39 +142,6 @@ export function stridedSlice(args: {
       shrinkAxisMask, outId);
 
   return reshape({inputs: {x: out}, attrs: {shape: outShape}, backend});
-
-  // const batchSize = x.shape[0];
-  // const inputHeight = (dataFormat === 'NHWC') ? x.shape[1] : x.shape[2];
-  // const inputWidth = (dataFormat === 'NHWC') ? x.shape[2] : x.shape[3];
-  // const inputDepth = (dataFormat === 'NHWC') ? x.shape[3] : x.shape[1];
-
-  // const outputHeight = inputHeight * blockSize;
-  // const outputWidth = inputWidth * blockSize;
-  // const outputDepth = inputDepth / (blockSize * blockSize);
-
-  // const outputShape = (dataFormat === 'NHWC') ?
-  //     [batchSize, outputHeight, outputWidth, outputDepth] :
-  //     [batchSize, outputDepth, outputHeight, outputWidth];
-
-  // const out = backend.makeOutput(outputShape, 'float32');
-
-  // const xData = backend.dataIdMap.get(x.dataId);
-  // const xId = xData.id;
-  // const xStridesBytes =
-  //     new Uint8Array(new Int32Array(util.computeStrides(x.shape)).buffer);
-
-  // const outputShapeBytes = new Uint8Array(new
-  // Int32Array(outputShape).buffer); const outStridesBytes =
-  //     new Uint8Array(new
-  //     Int32Array(util.computeStrides(outputShape)).buffer);
-
-  // const outId = backend.dataIdMap.get(out.dataId).id;
-  // const channelsLast = dataFormat === 'NHWC' ? 1 : 0;
-  // wasmStridedSlice(
-  //     xId, blockSize, channelsLast, xStridesBytes, x.shape.length - 1,
-  //     outputShapeBytes, outStridesBytes, outputShape.length, outId);
-
-  // return out;
 }
 
 export const stridedSliceConfig: KernelConfig = {
