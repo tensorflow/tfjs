@@ -27,16 +27,17 @@ export function complex(args: {inputs: ComplexInputs, backend: MathBackendCPU}):
   const realVals = backend.data.get(real.dataId).values as TypedArray;
   const imagVals = backend.data.get(imag.dataId).values as TypedArray;
 
-  const complexInfo = backend.makeTensorInfo(null, real.shape, 'complex64');
+  const complexInfo = backend.
+  makeTensorInfoWithData(null, real.shape, 'complex64');
 
   const complex = backend.data.get(complexInfo.dataId);
 
   // The complex tensor owns the underlying real and imag tensorInfos, only the
   // complex tensor tracks refCount, when complexData is disposed the
   // underlying tensorData will be disposed.
-  complex.complexTensors = {
-    real: backend.makeTensorInfo(realVals, real.shape, 'float32'),
-    imag: backend.makeTensorInfo(imagVals, imag.shape, 'float32')
+  complex.complexTensorInfos = {
+    real: backend.makeTensorInfoWithData(realVals, real.shape, 'float32'),
+    imag: backend.makeTensorInfoWithData(imagVals, imag.shape, 'float32')
   };
 
   return complexInfo;

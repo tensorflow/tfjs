@@ -52,8 +52,8 @@ export interface TensorData<D extends DataType> {
   dtype: D;
   // For complex numbers, the real and imaginary parts are stored as their own
   // individual tensors, with a parent joining the two with the
-  // complexTensors field.
-  complexTensors?: {real: TensorInfo, imag: TensorInfo};
+  // complexTensorInfos field.
+  complexTensorInfos?: {real: TensorInfo, imag: TensorInfo};
   // refCount keeps track of how many tensors reference it. Used for memory
   // management.
   refCount: number;
@@ -95,7 +95,7 @@ export class MathBackendCPU extends KernelBackend {
     return dataId;
   }
 
-  makeTensorInfo(
+  makeTensorInfoWithData(
       values: backend_util.BackendValues, shape: number[],
       dtype: DataType): TensorInfo {
     const outId = this.write(values, shape, dtype);
@@ -131,13 +131,13 @@ export class MathBackendCPU extends KernelBackend {
     return this.readSync(dataId);
   }
   readSync(dataId: DataId): backend_util.BackendValues {
-    const {dtype, complexTensors} = this.data.get(dataId);
+    const {dtype, complexTensorInfos} = this.data.get(dataId);
 
     if (dtype === 'complex64') {
       const realValues =
-          this.readSync(complexTensors.real.dataId) as Float32Array;
+          this.readSync(complexTensorInfos.real.dataId) as Float32Array;
       const imagValues =
-          this.readSync(complexTensors.imag.dataId) as Float32Array;
+          this.readSync(complexTensorInfos.imag.dataId) as Float32Array;
       return backend_util.mergeRealAndImagArrays(realValues, imagValues);
     }
 
@@ -166,11 +166,11 @@ export class MathBackendCPU extends KernelBackend {
 
   disposeData(dataId: DataId): void {
     if (this.data.has(dataId)) {
-      const {complexTensors} = this.data.get(dataId);
+      const {complexTensorInfos} = this.data.get(dataId);
 
-      if (complexTensors != null) {
-        this.disposeData(complexTensors.real.dataId);
-        this.disposeData(complexTensors.imag.dataId);
+      if (complexTensorInfos != null) {
+        this.disposeData(complexTensorInfos.real.dataId);
+        this.disposeData(complexTensorInfos.imag.dataId);
       }
 
       this.data.delete(dataId);

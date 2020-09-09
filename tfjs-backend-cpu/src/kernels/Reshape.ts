@@ -31,7 +31,6 @@ export function reshape(
   const $shape = util.inferFromImplicitShape(shape, xSize);
   const $xSize = util.sizeFromShape($shape);
 
-  // TODO(linazhao): Measure performance with and without assertion.
   util.assert(
       xSize === $xSize,
       () => `The new shape (${$shape}) has ${$xSize} elements and the old ` +
@@ -42,9 +41,9 @@ export function reshape(
 
   const xData = backend.data.get(x.dataId);
 
-  if (xData.complexTensors != null) {
-    const real = xData.complexTensors.real;
-    const imag = xData.complexTensors.imag;
+  if (xData.complexTensorInfos != null) {
+    const real = xData.complexTensorInfos.real;
+    const imag = xData.complexTensorInfos.imag;
 
     real.shape = $shape;
     imag.shape = $shape;

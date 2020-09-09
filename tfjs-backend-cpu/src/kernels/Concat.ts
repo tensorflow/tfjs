@@ -34,7 +34,7 @@ export function concat(
   let outShape = backend_util.computeOutShape(inputs.map(t => t.shape), $axis);
 
   if (util.sizeFromShape(outShape) === 0) {
-    return backend.makeTensorInfo([], outShape, inputs[0].dtype);
+    return backend.makeTensorInfoWithData([], outShape, inputs[0].dtype);
   }
 
   // Keep only non-empty tensors (ignore tensors with 0 in their shape).
@@ -117,7 +117,7 @@ export function concat(
       backend_util.computeOutShape($inputs.map(t => t.shape), $axis);
 
   const outInfo =
-      backend.makeTensorInfo(outVals, finalOutShape, inputs[0].dtype);
+      backend.makeTensorInfoWithData(outVals, finalOutShape, inputs[0].dtype);
 
   inputs2D.forEach(t => backend.disposeIntermediateTensorInfo(t));
 

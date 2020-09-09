@@ -24,13 +24,13 @@ export function imag(args: {inputs: ImagInputs, backend: MathBackendCPU}):
   const {inputs, backend} = args;
   const {input} = inputs;
 
-  const imag = backend.data.get(input.dataId).complexTensors.imag;
+  const imag = backend.data.get(input.dataId).complexTensorInfos.imag;
   const imagVal = backend.data.get(imag.dataId).values;
 
   // When complex tensor is disposed, its underlying parts will be disposed too.
   // Make new tensor out of the imag value of the complex. This makes sure the
   // value is still accessible even if complex tensor is disposed.
-  return backend.makeTensorInfo(imagVal, imag.shape, imag.dtype);
+  return backend.makeTensorInfoWithData(imagVal, imag.shape, imag.dtype);
 }
 
 export const imagConfig: KernelConfig = {
