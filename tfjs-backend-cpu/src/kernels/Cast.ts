@@ -19,10 +19,10 @@ import {Cast, CastAttrs, CastInputs, KernelConfig, KernelFunc, Tensor, TensorInf
 
 import {MathBackendCPU} from '../backend_cpu';
 
-import {identity} from './Identity';
-import {int} from './Int';
 import {complex} from './Complex';
+import {identity} from './Identity';
 import {real} from './Real';
+import {int} from '../utils/cast_utils';
 
 export function cast(
     args: {inputs: CastInputs, backend: MathBackendCPU, attrs: CastAttrs}):

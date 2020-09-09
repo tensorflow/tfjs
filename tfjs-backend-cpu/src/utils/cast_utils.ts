@@ -15,12 +15,11 @@
  * =============================================================================
  */
 
-import {Int, IntInputs, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
-
+import {TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 
-export function int(args: {inputs: IntInputs, backend: MathBackendCPU}):
+export function int(args: {inputs: {x: TensorInfo}, backend: MathBackendCPU}):
     TensorInfo {
   const {inputs, backend} = args;
   const {x} = inputs;
@@ -35,11 +34,5 @@ export function int(args: {inputs: IntInputs, backend: MathBackendCPU}):
     resultValues[i] = values[i];
   }
 
-  return backend.makeTensorInfo(resultValues, x.shape, 'int32');
+  return backend.makeTensorInfoWithData(resultValues, x.shape, 'int32');
 }
-
-export const intConfig: KernelConfig = {
-  kernelName: Int,
-  backendName: 'cpu',
-  kernelFunc: int as {} as KernelFunc
-};
