@@ -50,7 +50,7 @@ describe('benchmark multiple browsers', () => {
   const browsers = {};
 
   beforeAll(() => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 100000;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
 
     // Populate `browsers`.
     for (const browserConfig of browsersList) {
