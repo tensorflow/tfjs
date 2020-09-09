@@ -26,10 +26,12 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 
-void StridedSlice(const size_t x_id, const size_t block_size,
-                  const bool channels_last, const int32_t* x_strides_ptr,
-                  const size_t x_strides_size, const int32_t* out_shape_ptr,
-                  const int32_t* out_strides_ptr, const size_t out_shape_size,
+void StridedSlice(const size_t x_id, const int32_t* begin_ptr,
+                  const size_t begin_size, const int32_t* end_ptr,
+                  const size_t end_size, const int32_t* strides_ptr,
+                  const size_t strides_size, const size_t begin_mask,
+                  const size_t end_mask, const size_t ellipsis_mask,
+                  const size_t new_axis_mask, const size_t shrink_axis_mask,
                   const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
