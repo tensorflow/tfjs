@@ -38,6 +38,10 @@ export function op<T extends Function>(f: {[name: string]: T}): T {
     opName = opName.substring(0, opName.length - 1);
   }
 
+  // an an __op suffix to distinguish ops from kernels in tf.profile
+
+  opName = opName + '__op';
+
   // tslint:disable-next-line:no-any
   const f2 = (...args: any[]) => {
     ENGINE.startScope(opName);
