@@ -20,6 +20,7 @@
  * user-selected files in browser.
  */
 
+import '../flags';
 import {env} from '../environment';
 
 import {basename, concatenateArrayBuffers, getModelArtifactsInfoForJSON} from './io_utils';

@@ -80,7 +80,7 @@ function norm_(
     const axes = parseAxisParam(axis, x.shape);
     keepDimsShape = axis_util.expandShapeToKeepDim(norm.shape, axes);
   }
-  return norm.reshape(keepDimsShape);
+  return reshape(norm, keepDimsShape);
 }
 
 function normImpl(

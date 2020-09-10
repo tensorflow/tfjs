@@ -22,6 +22,7 @@ import * as util from '../util';
 import {conv2d} from './conv2d';
 import {depthwiseConv2d} from './depthwise_conv2d';
 import {op} from './operation';
+import {reshape} from './reshape';
 
 /**
  * 2-D convolution with separable filters.
@@ -82,7 +83,7 @@ function separableConv2d_<T extends Tensor3D|Tensor4D>(
   let reshapedTo4D = false;
   if ($x.rank === 3) {
     reshapedTo4D = true;
-    x4D = $x.as4D(1, $x.shape[0], $x.shape[1], $x.shape[2]);
+    x4D = reshape($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
   }
 
   if (dataFormat === 'NCHW') {
@@ -129,7 +130,7 @@ function separableConv2d_<T extends Tensor3D|Tensor4D>(
       conv2d(depthwise, $pointwiseFilter, pointwiseStride, 'valid', dataFormat);
 
   if (reshapedTo4D) {
-    return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
+    return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
   }
   return res as T;
 }

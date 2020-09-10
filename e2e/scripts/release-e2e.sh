@@ -19,9 +19,6 @@
 # Start in scripts/ even if run from root directory
 cd "$(dirname "$0")"
 
-# Load functions for working with local NPM registry (Verdaccio)
-source local-registry.sh
-
 function cleanup {
   echo 'Cleaning up.'
   # Restore the original NPM and Yarn registry URLs and stop Verdaccio
@@ -56,23 +53,11 @@ cd ..
 e2e_root_path=$PWD
 
 # ****************************************************************************
-# First, install emsdk.
+# First, publish the monorepo.
 # ****************************************************************************
-# tfjs-backend-wasm needs emsdk to build. emsdk install needs to be done
-# before switch to local registry, otherwise some packages installation will
-# fail.
-# Todo(linazhao): Remove this once we have a custom docker with emsdk.
-cd ..
-git clone https://github.com/emscripten-core/emsdk.git
-cd emsdk
-./emsdk install 1.39.15
-./emsdk activate 1.39.15
-source ./emsdk_env.sh
-cd $e2e_root_path
+# Load functions for working with local NPM registry (Verdaccio)
+source "$e2e_root_path"/scripts/local-registry.sh
 
-# ****************************************************************************
-# Second, publish the monorepo.
-# ****************************************************************************
 # Start the local NPM registry
 startLocalRegistry "$e2e_root_path"/scripts/verdaccio.yaml
 
@@ -81,12 +66,16 @@ startLocalRegistry "$e2e_root_path"/scripts/verdaccio.yaml
 "$e2e_root_path"/scripts/publish-tfjs-ci.sh
 
 # ****************************************************************************
-# Third, install the packages from local registry.
+# Second, install the packages from local registry.
 # ****************************************************************************
+# First make sure npm install succeeds.
+npm install
+rm -rf node_modules
+# Then install dependencies via yarn.
 yarn
 
 # ****************************************************************************
-# Fourth, run integration tests against locally published version.
+# Third, run integration tests against locally published version.
 # ****************************************************************************
 yarn test-ci
 

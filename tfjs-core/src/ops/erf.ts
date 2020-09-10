@@ -23,6 +23,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
+import {cast} from './cast';
 import {op} from './operation';
 
 /**
@@ -44,7 +45,7 @@ function erf_<T extends Tensor>(x: T|TensorLike): T {
       () => 'Input dtype must be `int32` or `float32`.');
 
   if ($x.dtype === 'int32') {
-    $x = $x.toFloat();
+    $x = cast($x, 'float32');
   }
 
   const inputs: ErfInputs = {x: $x};

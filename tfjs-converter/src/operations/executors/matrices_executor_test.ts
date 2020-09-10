@@ -14,7 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as tfc from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
@@ -24,8 +25,8 @@ import {createBoolAttr, createNumberAttr, createNumericArrayAttr, createStrArray
 
 describe('matrices', () => {
   let node: Node;
-  const input1 = [tfc.scalar(1)];
-  const input2 = [tfc.scalar(2)];
+  const input1 = [tfOps.scalar(1)];
+  const input2 = [tfOps.scalar(2)];
   const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
@@ -43,31 +44,31 @@ describe('matrices', () => {
 
   describe('executeOp', () => {
     describe('MatMul', () => {
-      it('should call tfc.matMul', () => {
-        spyOn(tfc, 'matMul');
+      it('should call tfOps.matMul', () => {
+        spyOn(tfOps, 'matMul');
         node.op = 'MatMul';
         node.attrParams.transposeA = createBoolAttr(true);
         node.attrParams.transposeB = createBoolAttr(false);
         executeOp(node, {input1, input2}, context);
 
-        expect(tfc.matMul)
+        expect(tfOps.matMul)
             .toHaveBeenCalledWith(input1[0], input2[0], true, false);
       });
     });
     describe('_FusedMatMul', () => {
-      it('should call tfc.fused.matMul', () => {
-        spyOn(tfc.fused, 'matMul');
+      it('should call tfOps.fused.matMul', () => {
+        spyOn(tfOps.fused, 'matMul');
         node.op = '_FusedMatMul';
         node.inputParams['args'] = createTensorsAttr(2, 0);
         node.attrParams['fusedOps'] = createStrArrayAttr(['biasadd', 'relu']);
         node.attrParams['numArgs'] = createNumberAttr(1);
         node.attrParams.transposeA = createBoolAttr(true);
         node.attrParams.transposeB = createBoolAttr(false);
-        const input3 = [tfc.scalar(3.0)];
+        const input3 = [tfOps.scalar(3.0)];
         node.inputNames = ['input1', 'input2', 'input3'];
         executeOp(node, {input1, input2, input3}, context);
 
-        expect(tfc.fused.matMul).toHaveBeenCalledWith({
+        expect(tfOps.fused.matMul).toHaveBeenCalledWith({
           a: input1[0],
           b: input2[0],
           transposeA: true,
@@ -77,20 +78,20 @@ describe('matrices', () => {
           preluActivationWeights: undefined
         });
       });
-      it('should call tfc.fused.matMul - prelu activation', () => {
-        spyOn(tfc.fused, 'matMul');
+      it('should call tfOps.fused.matMul - prelu activation', () => {
+        spyOn(tfOps.fused, 'matMul');
         node.op = '_FusedMatMul';
         node.inputParams['args'] = createTensorsAttr(2, 0);
         node.attrParams['fusedOps'] = createStrArrayAttr(['biasadd', 'prelu']);
         node.attrParams['numArgs'] = createNumberAttr(2);
         node.attrParams.transposeA = createBoolAttr(true);
         node.attrParams.transposeB = createBoolAttr(false);
-        const input3 = [tfc.scalar(3.0)];
-        const input4 = [tfc.scalar(4.0)];
+        const input3 = [tfOps.scalar(3.0)];
+        const input4 = [tfOps.scalar(4.0)];
         node.inputNames = ['input1', 'input2', 'input3', 'input4'];
         executeOp(node, {input1, input2, input3, input4}, context);
 
-        expect(tfc.fused.matMul).toHaveBeenCalledWith({
+        expect(tfOps.fused.matMul).toHaveBeenCalledWith({
           a: input1[0],
           b: input2[0],
           transposeA: true,
@@ -102,39 +103,39 @@ describe('matrices', () => {
       });
     });
     describe('BatchMatMul', () => {
-      it('should call tfc.matMul', () => {
-        spyOn(tfc, 'matMul');
+      it('should call tfOps.matMul', () => {
+        spyOn(tfOps, 'matMul');
         node.op = 'BatchMatMul';
         node.attrParams.transposeA = createBoolAttr(true);
         node.attrParams.transposeB = createBoolAttr(false);
         executeOp(node, {input1, input2}, context);
 
-        expect(tfc.matMul)
+        expect(tfOps.matMul)
             .toHaveBeenCalledWith(input1[0], input2[0], true, false);
       });
     });
     describe('BatchMatMulV2', () => {
-      it('should call tfc.matMul', () => {
-        spyOn(tfc, 'matMul');
+      it('should call tfOps.matMul', () => {
+        spyOn(tfOps, 'matMul');
         node.op = 'BatchMatMulV2';
         node.attrParams.transposeA = createBoolAttr(true);
         node.attrParams.transposeB = createBoolAttr(false);
         executeOp(node, {input1, input2}, context);
 
-        expect(tfc.matMul)
+        expect(tfOps.matMul)
             .toHaveBeenCalledWith(input1[0], input2[0], true, false);
       });
     });
     describe('Transpose', () => {
-      it('should call tfc.transpose', () => {
-        spyOn(tfc, 'transpose');
+      it('should call tfOps.transpose', () => {
+        spyOn(tfOps, 'transpose');
         node.op = 'Transpose';
         node.inputNames = ['input1', 'input2', 'input3'];
         node.inputParams.x = createTensorAttr(0);
         node.attrParams.perm = createNumericArrayAttr([1, 2]);
         executeOp(node, {input1}, context);
 
-        expect(tfc.transpose).toHaveBeenCalledWith(input1[0], [1, 2]);
+        expect(tfOps.transpose).toHaveBeenCalledWith(input1[0], [1, 2]);
       });
     });
   });

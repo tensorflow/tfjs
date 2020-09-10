@@ -107,7 +107,7 @@ export const REACT_NATIVE_PHASE: Phase = {
 export const WEBSITE_PHASE: Phase = {
   packages: ['tfjs-website'],
   deps: ['tfjs', 'tfjs-node', 'tfjs-vis', 'tfjs-react-native'],
-  scripts: {'tfjs-website': {'after-yarn': ['yarn build-prod']}},
+  scripts: {'tfjs-website': {'after-yarn': ['yarn prep && yarn build-prod']}},
   leaveVersion: true,
   title: 'Update website to latest dependencies.'
 };
@@ -310,6 +310,47 @@ export function prepareReleaseBuild(phase: Phase, packageName: string) {
       phase.scripts[packageName]['after-yarn'] != null) {
     phase.scripts[packageName]['after-yarn'].forEach(script => $(script));
   }
+}
+
+export async function getReleaseBranch(name: string): Promise<string> {
+  // Infer release branch name.
+  let releaseBranch = '';
+
+  // Get a list of branches sorted by timestamp in descending order.
+  const branchesStr = $(
+      `git branch -r --sort=-authordate --format='%(HEAD) %(refname:lstrip=-1)'`);
+  const branches =
+      Array.from(branchesStr.split(/\n/)).map(line => line.toString().trim());
+
+  // Find the latest matching branch, e.g. tfjs_1.7.1
+  // It will not match temprary generated branches such as tfjs_1.7.1_phase0.
+  const exp = '^' + name + '_([^_]+)$';
+  const regObj = new RegExp(exp);
+  const maybeBranch = branches.find(branch => branch.match(regObj));
+  releaseBranch = await question(
+      `Which release branch (leave empty for ` +
+      `${maybeBranch}):`);
+  if (releaseBranch === '') {
+    releaseBranch = maybeBranch;
+  }
+
+  return releaseBranch;
+}
+
+export function checkoutReleaseBranch(
+    releaseBranch: string, git_protocol: string, dir: string) {
+  console.log(chalk.magenta.bold(
+      `~~~ Checking out release branch ${releaseBranch} ~~~`));
+  $(`rm -f -r ${dir}`);
+  mkdirp(dir, err => {
+    if (err) {
+      console.log('Error creating temp dir', dir);
+      process.exit(1);
+    }
+  });
+
+  const urlBase = git_protocol ? 'git@github.com:' : 'https://github.com/';
+  $(`git clone -b ${releaseBranch} ${urlBase}tensorflow/tfjs ${dir} --depth=1`);
 }
 
 export function createPR(

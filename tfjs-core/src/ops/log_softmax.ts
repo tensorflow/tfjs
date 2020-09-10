@@ -23,9 +23,13 @@ import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
+import {cast} from './cast';
+import {exp} from './exp';
+import {log} from './log';
 import {max} from './max';
 import {op} from './operation';
 import {sub} from './sub';
+import {sum} from './sum';
 
 /**
  * Computes the log softmax.
@@ -64,7 +68,7 @@ function logSoftmax_<T extends Tensor>(logits: T|TensorLike, axis = -1): T {
     const xMax = max(logits, axis, true);
     const shifted = sub(logits, xMax);
     const value =
-        shifted.toFloat().sub(shifted.exp().sum(axis, keepDims).log());
+        sub(cast(shifted, 'float32'), log(sum(exp(shifted), axis, keepDims)));
     save([value]);
     return value;
   };

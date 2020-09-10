@@ -9,6 +9,9 @@
   "unpkg": "dist/tf.min.js",
   "types": "dist/index.d.ts",
   "miniprogram": "dist/miniprogram",
+  "bin": {
+    "tfjs-custom-bundle": "dist/tools/custom_bundle/cli.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/tensorflow/tfjs.git"
@@ -16,10 +19,12 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@babel/core": "^7.9.0",
+    "@babel/polyfill": "^7.10.4",
     "@babel/preset-env": "^7.9.5",
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
+    "@types/argparse": "^1.0.38",
     "@types/jasmine": "2.8.7",
     "@types/mkdirp": "^0.5.2",
     "@types/node": "~9.6.1",
@@ -34,6 +39,7 @@
     "karma-firefox-launcher": "~1.1.0",
     "karma-jasmine": "~1.1.1",
     "karma-typescript": "~4.1.1",
+    "karma-typescript-es6-transform": "^5.1.0",
     "mkdirp": "~0.5.1",
     "npm-run-all": "~4.1.3",
     "rimraf": "~2.6.2",
@@ -49,8 +55,8 @@
     "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
-    "build": "tsc && yarn bundle",
-    "build-ci": "tsc && yarn bundle-ci",
+    "build": "tsc && yarn build-cli && yarn bundle",
+    "build-ci": "tsc && yarn build-cli && yarn bundle-ci",
     "bundle": "rollup -c",
     "bundle-ci": "rollup -c --ci",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
@@ -67,12 +73,15 @@
     "build-backend-webgl-ci": "cd ../tfjs-backend-webgl && yarn && yarn build-ci",
     "build-deps": "yarn build-core && yarn build-layers && yarn build-converter && yarn build-data && yarn build-backend-cpu && yarn build-backend-webgl",
     "build-deps-ci": "yarn build-core-ci && yarn build-layers-ci && yarn build-converter-ci && yarn build-data-ci && yarn build-backend-cpu-ci && yarn build-backend-webgl-ci",
+    "build-cli": "tsc --project ./tools/custom_bundle/tsconfig.json && chmod +x ./dist/tools/custom_bundle/cli.js",
+    "run-custom-build": "ts-node -s ./src/tools/custom_bundle/cli.ts",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
     "publish-npm": "npm publish",
     "lint": "tslint -p . -t verbose",
     "test": "yarn && yarn build-deps && yarn build && karma start",
+    "test-tools": "ts-node --project ./tools/custom_bundle/tsconfig.json run_tools_tests.ts",
     "test-ci": "./scripts/test-ci.sh"
   },
   "dependencies": {
@@ -82,6 +91,8 @@
     "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@tensorflow/tfjs-data": "link:../tfjs-data",
     "@tensorflow/tfjs-layers": "link:../tfjs-layers",
+    "argparse": "^1.0.10",
+    "chalk": "^4.1.0",
     "core-js": "3",
     "regenerator-runtime": "^0.13.5"
   }

@@ -59,13 +59,20 @@ async function main() {
     newVersion = minorUpdateVersion;
   }
 
+  // Get release candidate commit.
+  const commit = await question('Commit of release candidate: ');
+  if (commit === '') {
+    console.log(chalk.red('Commit cannot be empty.'));
+    process.exit(1);
+  }
+
   // Create a release branch in remote.
-  $(`git clone ${urlBase}tensorflow/tfjs ${dir} --depth=1`);
+  $(`git clone ${urlBase}tensorflow/tfjs ${dir}`);
   shell.cd(dir);
   const releaseBranch = `tfjs_${newVersion}`;
   console.log(chalk.magenta.bold(
       `~~~ Creating new release branch ${releaseBranch} ~~~`));
-  $(`git checkout -b ${releaseBranch}`);
+  $(`git checkout -b ${releaseBranch} ${commit}`);
   $(`git push origin ${releaseBranch}`);
 
   // Update version.
@@ -94,16 +101,12 @@ async function main() {
 
       shell.cd('..');
 
-      // Make version for all packages other than tfjs-node-gpu. Consider
-      // remove make version.
+      // Make version for all packages other than tfjs-node-gpu.
       if (packageName !== 'tfjs-node-gpu') {
         $(`./scripts/make-version.js ${packageName}`);
       }
     }
   }
-  // Insert an empty release file at the root level, so that CI can use it to
-  // set RELEASE flag.
-  fs.writeFileSync('release', '');
 
   // Use dev prefix to avoid branch being locked.
   const devBranchName = `dev_${releaseBranch}`;

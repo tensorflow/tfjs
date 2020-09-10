@@ -54,8 +54,24 @@ describe('TensorArray', () => {
     tensorArray.clearAndClose();
     expect(tensorArray.size()).toBe(0);
     expect(tensorArray.closed).toBeTruthy();
+
     // disposed the tensor in the array and idTensor of the array
     expect(memory().numTensors).toEqual(numOfTensors - size - 1);
+  });
+
+  it('should not dispose keep tensors when close', () => {
+    const numOfTensors = memory().numTensors;
+    tensorArray.write(0, tensor);
+    tensorArray.write(1, tensor2);
+    const size = tensorArray.size();
+    const keepIds = new Set([tensor.id]);
+    tensorArray.clearAndClose(keepIds);
+    expect(tensorArray.size()).toBe(0);
+    expect(tensorArray.closed).toBeTruthy();
+    expect(tensor.isDisposed).toBeFalsy();
+    expect(tensor2.isDisposed).toBeTruthy();
+    // disposed the tensor in the array and idTensor of the array
+    expect(memory().numTensors).toEqual(numOfTensors - size);
   });
 
   describe('write', () => {

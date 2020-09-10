@@ -82,4 +82,4 @@ done
 # Update e2e's package.json's all tfjs related packages to locally published
 # version.
 cd e2e
-yarn update-dependency --version=$RELEASE_VERSION
+npx ts-node ./scripts/update-dependency.ts --version=$RELEASE_VERSION

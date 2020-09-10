@@ -24,7 +24,10 @@ import {TensorLike} from '../types';
 import {parseAxisParam} from '../util';
 
 import {expandShapeToKeepDim, getAxesPermutation, getInnerMostAxes} from './axis_util';
+import {cast} from './cast';
 import {op} from './operation';
+import {reshape} from './reshape';
+import {transpose} from './transpose';
 
 /**
  * Computes the sum of elements across dimensions of a `tf.Tensor`.
@@ -59,7 +62,7 @@ function sum_<T extends Tensor>(
     x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
   let $x = convertToTensor(x, 'x', 'sum');
   if ($x.dtype === 'bool') {
-    $x = $x.toInt();
+    $x = cast($x, 'int32');
   }
 
   const forward: ForwardFunc<Tensor> = (backend, save) => {
@@ -70,13 +73,13 @@ function sum_<T extends Tensor>(
     let reductionAxes = axes;
     let permutedX = $x;
     if (permutation != null) {
-      permutedX = $x.transpose(permutation);
+      permutedX = transpose($x, permutation);
       reductionAxes = getInnerMostAxes(reductionAxes.length, $x.rank);
     }
     let value = backend.sum(permutedX, reductionAxes);
     if (keepDims) {
       const newShape = expandShapeToKeepDim(value.shape, axes);
-      value = value.reshape(newShape);
+      value = reshape(value, newShape);
     }
     return value;
   };

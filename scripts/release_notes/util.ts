@@ -50,6 +50,7 @@ export async function question(questionStr: string): Promise<string> {
 export interface Repo {
   name: string;
   identifier: string;
+  path: string;
   startVersion?: string;
   startCommit?: string;
   endVersion?: string;

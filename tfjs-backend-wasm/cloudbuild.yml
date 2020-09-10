@@ -1,12 +1,12 @@
 steps:
 # Install common dependencies.
-- name: 'bitnami/node:latest'
+- name: 'node:10'
   id: 'yarn-common'
   entrypoint: 'yarn'
   args: ['install']
 
 # Install packages.
-- name: 'bitnami/node:latest'
+- name: 'node:10'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'yarn'
@@ -14,7 +14,7 @@ steps:
   waitFor: ['yarn-common']
 
 # Install build-deps.
-- name: 'bitnami/node:latest'
+- name: 'node:10'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'build-deps'
@@ -22,15 +22,15 @@ steps:
   waitFor: ['yarn-common']
 
 # Build.
-- name: 'bitnami/node:latest'
+- name: 'gcr.io/learnjs-174218/wasm'
   dir: 'tfjs-backend-wasm'
-  entrypoint: 'yarn'
+  entrypoint: 'bash'
   id: 'build'
-  args: ['build-ci']
+  args: ['./scripts/build-ci.sh']
   waitFor: ['yarn', 'build-deps']
 
 # Lint.
-- name: 'bitnami/node:latest'
+- name: 'node:10'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'lint'
@@ -38,17 +38,17 @@ steps:
   waitFor: ['yarn', 'build-deps']
 
 # Run JS tests.
-- name: 'bitnami/node:latest'
+- name: 'node:10'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'test-wasm'
   args: ['test-ci']
   waitFor: ['yarn', 'build-deps', 'build', 'lint']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 
 # Run C++ tests.
-- name: 'bitnami/node:latest'
+- name: 'gcr.io/learnjs-174218/wasm'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'test-cc'
@@ -56,7 +56,7 @@ steps:
   waitFor: ['build']
 
 # Check bundle size.
-- name: 'bitnami/node:latest'
+- name: 'gcr.io/learnjs-174218/wasm'
   dir: 'tfjs-backend-wasm'
   id: 'test-bundle-size'
   entrypoint: 'yarn'
@@ -64,7 +64,7 @@ steps:
   waitFor: ['yarn', 'build-deps', 'build']
 
 # Lint bazel files.
-- name: 'bitnami/node:latest'
+- name: 'node:10'
   dir: 'tfjs-backend-wasm'
   id: 'buildifier'
   entrypoint: 'yarn'
@@ -76,7 +76,7 @@ secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
   secretEnv:
     BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
-timeout: 1800s
+timeout: 3600s
 logsBucket: 'gs://tfjs-build-logs'
 substitutions:
   _NIGHTLY: ''
