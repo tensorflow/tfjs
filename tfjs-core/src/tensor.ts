@@ -443,7 +443,7 @@ export class Tensor<R extends Rank = Rank> {
 }
 Object.defineProperty(Tensor, Symbol.hasInstance, {
   value: (instance: Tensor) => {
-    // Implementation note: we should use properties of the object will be
+    // Implementation note: we should use properties of the object that will be
     // defined before the constructor body has finished executing (methods).
     // This is because when this code is transpiled by babel, babel will call
     // classCallCheck before the constructor body is run.
