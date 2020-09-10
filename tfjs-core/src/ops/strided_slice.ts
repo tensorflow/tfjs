@@ -65,13 +65,13 @@ function stridedSlice_(
     x: Tensor|TensorLike, begin: number[], end: number[], strides?: number[],
     beginMask = 0, endMask = 0, ellipsisMask = 0, newAxisMask = 0,
     shrinkAxisMask = 0): Tensor {
-  if (strides == null) {
-    strides = new Array(begin.length);
-  }
-
   let $x = convertToTensor(x, 'x', 'stridedSlice');
 
   const forward: ForwardFunc<Tensor> = (backend) => {
+    if (strides == null) {
+      strides = new Array(begin.length);
+    }
+
     const ellipsisAxes = maskToAxes(ellipsisMask);
     if (ellipsisAxes.length > 1) {
       throw new Error('Multiple ellipses in slice is not allowed.');

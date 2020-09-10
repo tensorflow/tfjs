@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -51,6 +51,10 @@ export function stridedSlice(args: {
   const {x} = inputs;
 
   let {begin, end, strides} = attrs;
+  if (strides == null) {
+    strides = new Array(begin.length);
+  }
+
   const {beginMask, endMask, ellipsisMask, newAxisMask, shrinkAxisMask} = attrs;
 
   const ellipsisAxes = backend_util.slice_util.maskToAxes(ellipsisMask);
