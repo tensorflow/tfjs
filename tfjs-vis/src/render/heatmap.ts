@@ -57,8 +57,9 @@ import {getDrawArea} from './render_utils';
  * tfvis.render.heatmap(surface, data);
  * ```
  *
+ *
+ * @doc {heading: 'Charts', namespace: 'render'}
  */
-/** @doc {heading: 'Charts', namespace: 'render'} */
 export async function heatmap(
     container: Drawable, data: HeatmapData,
     opts: HeatmapOptions = {}): Promise<void> {

@@ -34,8 +34,9 @@ import {op} from './operation';
  * x.atanh().print();  // or tf.atanh(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function atanh_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'atanh');
 

@@ -33,8 +33,9 @@ import {op} from './operation';
  * x.sinh().print();  // or tf.sinh(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function sinh_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'sinh');
   const inputs: SinhInputs = {x: $x};

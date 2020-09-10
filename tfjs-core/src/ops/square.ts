@@ -30,8 +30,9 @@ import {op} from './operation';
  * x.square().print();  // or tf.square(x)
  * ```
  * @param x The input Tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function square_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'square');
   const attrs = {};

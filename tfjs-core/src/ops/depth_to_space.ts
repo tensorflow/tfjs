@@ -60,8 +60,9 @@ import {op} from './operation';
  * @param x The input tensor of rank 4
  * @param blockSIze  An `int` that is `>= 2`. The size of the spatial block
  * @param dataFormat An optional string from: "NHWC", "NCHW". Defaults to "NHWC"
+ *
+ * @doc {heading: 'Tensors', subheading: 'Transformations'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Transformations'} */
 function depthToSpace_(
     x: Tensor4D|TensorLike4D, blockSize: number,
     dataFormat: 'NHWC'|'NCHW' = 'NHWC'): Tensor4D {

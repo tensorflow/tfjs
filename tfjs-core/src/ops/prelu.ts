@@ -37,8 +37,9 @@ import {op} from './operation';
  * ```
  * @param x The input tensor.
  * @param alpha Scaling factor for negative values.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function prelu_<T extends Tensor>(x: T|TensorLike, alpha: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'prelu');
   const $alpha = convertToTensor(alpha, 'alpha', 'prelu');

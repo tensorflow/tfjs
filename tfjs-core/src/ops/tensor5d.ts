@@ -42,8 +42,9 @@ import {makeTensor} from './tensor_ops_util';
  * @param shape The shape of the tensor. Optional. If not provided,
  *   it is inferred from `values`.
  * @param dtype The data type.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 export function tensor5d(
     values: TensorLike5D, shape?: [number, number, number, number, number],
     dtype?: DataType): Tensor5D {

@@ -40,8 +40,9 @@ import {zeros} from './zeros';
  * @param stop An integer stop value
  * @param step An integer increment (will default to 1 or -1)
  * @param dtype The data type of the output tensor. Defaults to 'float32'.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 export function range(
     start: number, stop: number, step = 1,
     dtype: 'float32'|'int32' = 'float32'): Tensor1D {

@@ -33,8 +33,8 @@ declare module '../../tensor' {
  * @param columns Number of columns in `tf.Tensor4D`.
  * @param depth Depth of `tf.Tensor4D`.
  * @param depth2 4th dimension of `tf.Tensor4D`.
+ * @doc {heading: 'Tensors', subheading: 'Classes'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Classes'} */
 Tensor.prototype.as4D = function<T extends Tensor>(
     rows: number, columns: number, depth: number, depth2: number): T {
   this.throwIfDisposed();

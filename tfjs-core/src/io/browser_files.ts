@@ -293,8 +293,7 @@ IORouterRegistry.registerSaveRouter(browserDownloadsRouter);
  *      'foo.weights.bin', respectively.
  * @param config Additional configuration for triggering downloads.
  * @returns An instance of `BrowserDownloads` `IOHandler`.
- */
-/**
+ *
  * @doc {
  *   heading: 'Models',
  *   subheading: 'Loading',
@@ -338,8 +337,7 @@ export function browserDownloads(fileNamePrefix = 'model'): IOHandler {
  *     Python PIP package. If no weights files are provided, only the model
  *     topology will be loaded from the JSON file above.
  * @returns An instance of `Files` `IOHandler`.
- */
-/**
+ *
  * @doc {
  *   heading: 'Models',
  *   subheading: 'Loading',

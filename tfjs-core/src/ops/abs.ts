@@ -33,8 +33,9 @@ import {op} from './operation';
  * x.abs().print();  // or tf.abs(x)
  * ```
  * @param x The input `tf.Tensor`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function abs_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'abs');
 

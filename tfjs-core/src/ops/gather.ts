@@ -47,8 +47,9 @@ import {collectGatherOpShapeInfo} from './segment_util';
  * @param x The input tensor whose slices to be gathered.
  * @param indices The indices of the values to extract.
  * @param axis The axis over which to select values. Defaults to 0.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
 function gather_<T extends Tensor>(
     x: T|TensorLike, indices: Tensor|TensorLike, axis = 0): T {
   const $x = convertToTensor(x, 'x', 'gather');

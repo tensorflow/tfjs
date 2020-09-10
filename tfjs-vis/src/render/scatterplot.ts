@@ -41,8 +41,8 @@ import {getDrawArea} from './render_utils';
  * tfvis.render.scatterplot(surface, data);
  * ```
  *
+ * @doc {heading: 'Charts', namespace: 'render'}
  */
-/** @doc {heading: 'Charts', namespace: 'render'} */
 export async function scatterplot(
     container: Drawable, data: XYPlotData,
     opts: XYPlotOptions = {}): Promise<void> {
