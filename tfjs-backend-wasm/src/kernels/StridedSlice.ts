@@ -81,29 +81,17 @@ export function stridedSlice(args: {
 
   const xReshaped = reshape({inputs: {x}, attrs: {shape: newShape}, backend});
 
-  // Normalize the start, end and strides.
-  if (ellipsisAxes.length && numInterpolatedAxes > 0) {
-    const fullIndex = ellipsisAxes[0];
-
-    // The ellipsis applies to the masked index as well as any dimensions
-    // that are interpolated.
-    const numElidedAxes = numInterpolatedAxes + 1;
-    begin = backend_util.slice_util.startIndicesWithElidedDims(
-        beginMask, fullIndex, numElidedAxes, begin, xReshaped.shape);
-    end = backend_util.slice_util.stopIndicesWithElidedDims(
-        endMask, fullIndex, numElidedAxes, end, xReshaped.shape);
-    strides = backend_util.slice_util.stridesWithElidedDims(
-        strides, fullIndex, numElidedAxes, xReshaped.shape);
-  } else {
-    for (let axis = 0; axis < xReshaped.shape.length; axis++) {
-      begin[axis] = backend_util.slice_util.startForAxis(
-          beginMask, begin, strides, xReshaped.shape, axis, ellipsisMask);
-      end[axis] = backend_util.slice_util.stopForAxis(
-          endMask, end, strides, xReshaped.shape, axis, ellipsisMask);
-      strides[axis] =
-          backend_util.slice_util.stridesForAxis(strides, axis, ellipsisMask);
-    }
-  }
+  const {
+    begin: normalizedBegin,
+    end: normalizedEnd,
+    strides: normalizedStrides
+  } =
+      backend_util.slice_util.getNormalizedAxes(
+          xReshaped.shape, ellipsisAxes, numInterpolatedAxes, begin, end,
+          strides, beginMask, endMask, ellipsisMask);
+  begin = normalizedBegin;
+  end = normalizedEnd;
+  strides = normalizedStrides;
 
   const shrinkAxes = backend_util.slice_util.maskToAxes(shrinkAxisMask);
   // Adjust the ends based on the shrink mask.
