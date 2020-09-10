@@ -15,24 +15,14 @@
  * =============================================================================
  */
 
-import {TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
 import {MathBackendCPU} from '../backend_cpu';
-import {assertNotComplex} from '../cpu_util';
 
-export function int(args: {inputs: {x: TensorInfo}, backend: MathBackendCPU}):
-    TensorInfo {
-  const {inputs, backend} = args;
-  const {x} = inputs;
-
-  assertNotComplex(x, 'int');
-
+export function makeInt32TensorInfo(
+    x: TensorInfo, backend: MathBackendCPU): TensorInfo {
   const values = backend.data.get(x.dataId).values as TypedArray;
 
-  const resultValues = new Int32Array(util.sizeFromShape(x.shape));
+  const resultValues = Int32Array.from(values);
 
-  for (let i = 0; i < values.length; ++i) {
-    resultValues[i] = values[i];
-  }
-
-  return backend.makeTensorInfoWithData(resultValues, x.shape, 'int32');
+  return backend.makeTensorInfo(x.shape, 'int32', resultValues);
 }

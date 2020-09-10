@@ -30,7 +30,7 @@ export function real(args: {inputs: RealInputs, backend: MathBackendCPU}):
   // When complex tensor is disposed, its underlying parts will be disposed too.
   // Make new tensor out of the real value of the complex. This makes sure the
   // value is still accessible even if complex tensor is disposed.
-  return backend.makeTensorInfoWithData(realVal, real.shape, real.dtype);
+  return backend.makeTensorInfo(real.shape, real.dtype, realVal);
 }
 
 export const realConfig: KernelConfig = {

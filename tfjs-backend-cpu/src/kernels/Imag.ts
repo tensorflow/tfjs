@@ -30,7 +30,7 @@ export function imag(args: {inputs: ImagInputs, backend: MathBackendCPU}):
   // When complex tensor is disposed, its underlying parts will be disposed too.
   // Make new tensor out of the imag value of the complex. This makes sure the
   // value is still accessible even if complex tensor is disposed.
-  return backend.makeTensorInfoWithData(imagVal, imag.shape, imag.dtype);
+  return backend.makeTensorInfo(imag.shape, imag.dtype, imagVal);
 }
 
 export const imagConfig: KernelConfig = {
