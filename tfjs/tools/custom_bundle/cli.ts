@@ -27,6 +27,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as mkdirp from 'mkdirp';
 
+import {OP_SCOPE_SUFFIX} from '@tensorflow/tfjs-core';
+
 import {getCustomModuleString, getCustomConverterOpsModule} from './custom_module';
 import {CustomTFJSBundleConfig, SupportedBackends} from './types';
 import {esmModuleProvider} from './esm_module_provider';
@@ -104,7 +106,9 @@ function getKernelNamesForConfig(config: CustomTFJSBundleConfig) {
   // they will have __op as a suffix. These do not have corresponding backend
   // kernels so we need to filter them out.
   function isNotCustomOp(kernelName: string) {
-    return !kernelName.endsWith('__op');
+    // opSuffix value is defined in tfjs-core/src/operation.ts
+    // duplicating it here to avoid an export.
+    return !kernelName.endsWith(OP_SCOPE_SUFFIX);
   }
 
   return config.kernels.filter(isNotCustomOp);

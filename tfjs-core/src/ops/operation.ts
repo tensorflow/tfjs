@@ -16,6 +16,8 @@
  */
 import {ENGINE} from '../engine';
 
+export const OP_SCOPE_SUFFIX = '__op';
+
 /**
  * Used for wrapping functions that perform math operations on
  * Tensors. The function will be wrapped in a named scope that cleans all
@@ -38,9 +40,8 @@ export function op<T extends Function>(f: {[name: string]: T}): T {
     opName = opName.substring(0, opName.length - 1);
   }
 
-  // an an __op suffix to distinguish ops from kernels in tf.profile
-
-  opName = opName + '__op';
+  // add an __op suffix to distinguish ops from kernels in tf.profile
+  opName = opName + OP_SCOPE_SUFFIX;
 
   // tslint:disable-next-line:no-any
   const f2 = (...args: any[]) => {
