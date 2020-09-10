@@ -40,8 +40,9 @@ import {reshape} from './reshape';
  * @param b Second matrix in dot product operation.
  * @param transposeA If true, `a` is transposed before multiplication.
  * @param transposeB If true, `b` is transposed before multiplication.
+ *
+ * @doc {heading: 'Operations', subheading: 'Matrices'}
  */
-/** @doc {heading: 'Operations', subheading: 'Matrices'} */
 function matMul_<T extends Tensor>(
     a: T|TensorLike, b: T|TensorLike, transposeA = false,
     transposeB = false): T {

@@ -67,8 +67,9 @@ import {sum} from './sum';
  * over which to compute a matrix norm.
  * @param keepDims Optional. If true, the norm have the same dimensionality
  * as the input.
+ *
+ * @doc {heading: 'Operations', subheading: 'Matrices'}
  */
-/** @doc {heading: 'Operations', subheading: 'Matrices'} */
 function norm_(
     x: Tensor|TensorLike, ord: number|'euclidean'|'fro' = 'euclidean',
     axis: number|number[] = null, keepDims = false): Tensor {

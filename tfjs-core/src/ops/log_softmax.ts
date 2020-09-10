@@ -49,8 +49,9 @@ import {sum} from './sum';
  * @param logits The logits array.
  * @param axis The dimension softmax would be performed on. Defaults to `-1`
  *     which indicates the last dimension.
+ *
+ * @doc {heading: 'Operations', subheading: 'Normalization'}
  */
-/** @doc {heading: 'Operations', subheading: 'Normalization'} */
 function logSoftmax_<T extends Tensor>(logits: T|TensorLike, axis = -1): T {
   const $logits = convertToTensor(logits, 'logits', 'logSoftmax');
 

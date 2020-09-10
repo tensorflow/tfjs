@@ -35,8 +35,9 @@ import {makeTensor} from './tensor_ops_util';
  * @param values The values of the tensor. Can be array of numbers,
  *     or a `TypedArray`.
  * @param dtype The data type.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 export function tensor1d(values: TensorLike1D, dtype?: DataType): Tensor1D {
   assertNonNull(values);
   const inferredShape = inferShape(values, dtype);

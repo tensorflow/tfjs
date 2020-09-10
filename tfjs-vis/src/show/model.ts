@@ -41,8 +41,6 @@ import {tensorStats} from '../util/math';
  * tfvis.show.modelSummary(surface, model);
  * ```
  *
- */
-/**
  * @doc {
  *  heading: 'Models & Tensors',
  *  subheading: 'Model Inspection',
@@ -87,8 +85,6 @@ export async function modelSummary(container: Drawable, model: tf.LayersModel) {
  * tfvis.show.layer(surface, model.getLayer(undefined, 1));
  * ```
  *
- */
-/**
  * @doc {
  *  heading: 'Models & Tensors',
  *  subheading: 'Model Inspection',

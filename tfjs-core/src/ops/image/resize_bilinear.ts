@@ -38,8 +38,9 @@ import {reshape} from '../reshape';
  *     input by `(new_height - 1) / (height - 1)`, which exactly aligns the 4
  *     corners of images and resized images. If false, rescale by
  *     `new_height / height`. Treat similarly the width dimension.
+ *
+ * @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'}
  */
-/** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
 function resizeBilinear_<T extends Tensor3D|Tensor4D>(
     images: T|TensorLike, size: [number, number], alignCorners = false): T {
   const $images = convertToTensor(images, 'images', 'resizeBilinear');

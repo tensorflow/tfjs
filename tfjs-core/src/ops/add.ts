@@ -44,8 +44,9 @@ import {op} from './operation';
  * ```
  * @param a The first `tf.Tensor` to add.
  * @param b The second `tf.Tensor` to add. Must have the same type as `a`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Arithmetic'}
  */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function add_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   let $a = convertToTensor(a, 'a', 'add');
   let $b = convertToTensor(b, 'b', 'add');

@@ -28,8 +28,9 @@ enum ImageType {
  *     1: output a grayscale image.
  *     3: output an RGB image.
  * @returns A 3D Tensor of dtype `int32` with shape [height, width, 1/3].
+ *
+ * @doc {heading: 'Media', subheading: 'Images'}
  */
-/** @doc {heading: 'Media', subheading: 'Images'} */
 export function decodeJpeg(
     contents: Uint8Array, channels: 0|1|3 = 3): Tensor3D {
   util.assert(

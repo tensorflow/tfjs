@@ -34,8 +34,9 @@ import {op} from './operation';
  * x.expm1().print();  // or tf.expm1(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function expm1_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'expm1');
 

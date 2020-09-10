@@ -33,8 +33,9 @@ import {op} from './operation';
  * x.cosh().print();  // or tf.cosh(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function cosh_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'cosh');
   const inputs: CoshInputs = {x: $x};

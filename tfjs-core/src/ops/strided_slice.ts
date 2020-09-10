@@ -58,8 +58,9 @@ import {computeOutShape, maskToAxes, startForAxis, startIndicesWithElidedDims, s
  * @param shrinkAxisMask: a bitmask where bit i implies that
  * the ith specification should shrink the dimensionality. begin and end must
  * imply a slice of size 1 in the dimension.
+ *
+ * @doc {heading: 'Operations', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Operations', subheading: 'Slicing and Joining'} */
 function stridedSlice_(
     x: Tensor|TensorLike, begin: number[], end: number[], strides?: number[],
     beginMask = 0, endMask = 0, ellipsisMask = 0, newAxisMask = 0,

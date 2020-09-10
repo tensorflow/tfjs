@@ -39,8 +39,8 @@ import {op} from './operation';
  * @param a The first tensor.
  * @param b The second tensor. Must have the same dtype as `a`.
  *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function atan2_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   let $a = convertToTensor(a, 'a', 'atan2');
