@@ -42,7 +42,7 @@ export function slice(
   if (isContinous) {
     const flatOffset = slice_util.computeFlatOffset($begin, xStrides);
     const resultVals = vals.subarray(flatOffset, flatOffset + length);
-    return backend.makeTensorInfoWithData(resultVals, $size, x.dtype);
+    return backend.makeTensorInfo($size, x.dtype, resultVals);
   }
 
   const outVals =
@@ -57,7 +57,7 @@ export function slice(
     outVals[i] = vals[xIndex];
   }
 
-  return backend.makeTensorInfoWithData(outVals, $size, x.dtype);
+  return backend.makeTensorInfo($size, x.dtype, outVals);
 }
 
 export const sliceConfig: KernelConfig = {

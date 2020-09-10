@@ -95,9 +95,15 @@ export class MathBackendCPU extends KernelBackend {
     return dataId;
   }
 
-  makeTensorInfoWithData(
-      values: backend_util.BackendValues, shape: number[],
-      dtype: DataType): TensorInfo {
+  /**
+   * Create a data bucket in cpu backend.
+   * @param shape Shape of the `TensorInfo`.
+   * @param dtype DType of the `TensorInfo`.
+   * @param values The value of the `TensorInfo` stored as a flattened array.
+   */
+  makeTensorInfo(
+      shape: number[], dtype: DataType,
+      values?: backend_util.BackendValues): TensorInfo {
     const outId = this.write(values, shape, dtype);
 
     return {dataId: outId, shape, dtype};

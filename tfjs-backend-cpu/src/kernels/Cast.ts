@@ -18,11 +18,11 @@ import * as tf from '@tensorflow/tfjs-core';
 import {Cast, CastAttrs, CastInputs, KernelConfig, KernelFunc, Tensor, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
+import {makeInt32TensorInfo} from '../utils/cast_utils';
 
 import {complex} from './Complex';
 import {identity} from './Identity';
 import {real} from './Real';
-import {int} from '../utils/cast_utils';
 
 export function cast(
     args: {inputs: CastInputs, backend: MathBackendCPU, attrs: CastAttrs}):
@@ -68,7 +68,7 @@ export function cast(
   }
 
   if (dtype === 'int32') {
-    return int({inputs: {x}, backend});
+    return makeInt32TensorInfo(x, backend);
   }
 
   if (dtype === 'bool') {

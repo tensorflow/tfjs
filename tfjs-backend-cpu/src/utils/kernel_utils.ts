@@ -22,18 +22,18 @@ import {assertNotComplex} from '../cpu_util';
 import {cast} from '../kernels/Cast';
 import {complex} from '../kernels/Complex';
 
-export type SimpleBinaryOp = (a: number, b: number) => number;
+export type SimpleBinaryOperation = (a: number, b: number) => number;
 
-export type SimpleBinaryOpImpl =
+export type SimpleBinaryKernelImpl =
     (aShape: number[], bShape: number[], aVals: TypedArray, bVals: TypedArray,
      dtype: DataType) => [TypedArray, number[]];
 
-export type ComplexBinaryOp =
+export type ComplexBinaryOperation =
     (aReal: number, aImag: number, bReal: number, bImag: number) => {
       real: number, imag: number
     };
 
-export type ComplexBinaryOpImpl =
+export type ComplexBinaryKernelImpl =
     (aShape: number[], bShape: number[], aRealVals: Float32Array,
      aImagVals: Float32Array, bRealVals: Float32Array,
      bImagVals: Float32Array) => [TypedArray, TypedArray, number[]];
@@ -42,7 +42,7 @@ export type ComplexBinaryOpImpl =
  * Template that creates a `KernelConfig` for binary ops.
  */
 export function createBinaryKernelConfig(
-    name: string, op: SimpleBinaryOpImpl): KernelConfig {
+    name: string, op: SimpleBinaryKernelImpl): KernelConfig {
   return {
     kernelName: name,
     backendName: 'cpu',
@@ -54,8 +54,8 @@ export function createBinaryKernelConfig(
  * Template that creates implementation for binary ops.
  * Supports broadcast.
  */
-export function broadcastedBinaryKernelSimple(op: SimpleBinaryOp):
-    SimpleBinaryOpImpl {
+export function broadcastedBinaryKernelSimple(op: SimpleBinaryOperation):
+    SimpleBinaryKernelImpl {
   return (aShape: number[], bShape: number[], aVals: TypedArray,
           bVals: TypedArray, dtype: DataType): [TypedArray, number[]] => {
     const newShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
@@ -104,8 +104,8 @@ export function broadcastedBinaryKernelSimple(op: SimpleBinaryOp):
  * Template that creates a `KernelFunc` for binary ops. Supports complex type.
  */
 export function binaryKernelFunc(
-    name: string, op: SimpleBinaryOpImpl,
-    complexOp?: ComplexBinaryOpImpl): KernelFunc {
+    name: string, op: SimpleBinaryKernelImpl,
+    complexOp?: ComplexBinaryKernelImpl): KernelFunc {
   if (complexOp == null) {
     return ({inputs, backend}) => {
       const {a, b} = inputs as BinaryInputs;
@@ -118,8 +118,7 @@ export function binaryKernelFunc(
       const [resultData, resultShape] =
           op(a.shape, b.shape, aVals, bVals, a.dtype);
 
-      return cpuBackend.makeTensorInfoWithData(
-          resultData, resultShape, a.dtype);
+      return cpuBackend.makeTensorInfo(resultShape, a.dtype, resultData);
     };
   }
 
@@ -157,11 +156,11 @@ export function binaryKernelFunc(
       const [resultRealData, resultImagData, resultShape] = complexOp(
           a.shape, b.shape, aRealVals, aImagVals, bRealVals, bImagVals);
 
-      const resultReal = cpuBackend.makeTensorInfoWithData(
-          resultRealData, resultShape, 'float32');
+      const resultReal =
+          cpuBackend.makeTensorInfo(resultShape, 'float32', resultRealData);
 
-      const resultImag = cpuBackend.makeTensorInfoWithData(
-          resultImagData, resultShape, 'float32');
+      const resultImag =
+          cpuBackend.makeTensorInfo(resultShape, 'float32', resultImagData);
 
       const result = complex(
           {inputs: {real: resultReal, imag: resultImag}, backend: cpuBackend});
@@ -179,8 +178,7 @@ export function binaryKernelFunc(
       const [resultData, resultShape] =
           op(a.shape, b.shape, aVals, bVals, a.dtype);
 
-      return cpuBackend.makeTensorInfoWithData(
-          resultData, resultShape, a.dtype);
+      return cpuBackend.makeTensorInfo(resultShape, a.dtype, resultData);
     }
   };
 }
@@ -189,8 +187,8 @@ export function binaryKernelFunc(
  * Template that creates the complex type implementation for binary ops.
  * Supports broadcast.
  */
-export function broadcastedBinaryKernelComplex(op: ComplexBinaryOp):
-    ComplexBinaryOpImpl {
+export function broadcastedBinaryKernelComplex(op: ComplexBinaryOperation):
+    ComplexBinaryKernelImpl {
   return (aShape: number[], bShape: number[], aRealVals: Float32Array,
           aImagVals: Float32Array, bRealVals: Float32Array,
           bImagVals: Float32Array): [TypedArray, TypedArray, number[]] => {
