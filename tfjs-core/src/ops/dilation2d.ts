@@ -55,8 +55,9 @@ import {reshape} from './reshape';
  *     for atrous morphological dilation. Defaults to `[1, 1]`. If `dilations`
  *     is a single number, then `dilationHeight == dilationWidth`. If it is
  *     greater than 1, then all values of `strides` must be 1.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function dilation2d_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, filter: Tensor3D|TensorLike,
     strides: [number, number]|number, pad: 'valid'|'same',

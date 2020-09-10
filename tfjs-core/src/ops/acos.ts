@@ -32,8 +32,8 @@ import {op} from './operation';
  * x.acos().print();  // or tf.acos(x)
  * ```
  * @param x The input tensor.
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function acos_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'acos');
   const inputs: AcosInputs = {x: $x};

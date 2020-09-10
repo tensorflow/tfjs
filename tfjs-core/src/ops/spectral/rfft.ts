@@ -42,8 +42,7 @@ import {fft} from './fft';
  * real.rfft().print();
  * ```
  * @param input The real value input to compute an rfft over.
- */
-/**
+ *
  * @doc {heading: 'Operations', subheading: 'Spectral', namespace: 'spectral'}
  */
 function rfft_(input: Tensor, fftLength?: number): Tensor {

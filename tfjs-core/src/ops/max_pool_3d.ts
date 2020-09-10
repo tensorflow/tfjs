@@ -70,8 +70,9 @@ import {reshape} from './reshape';
  *     Defaults to `[1, 1, 1]`. If `dilations` is a single number,
  *     then `dilationDepth == dilationHeight == dilationWidth`.
  *     If it is greater than 1, then all values of `strides` must be 1.
+ *
+ * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
-/** @doc {heading: 'Operations', subheading: 'Convolution'} */
 function maxPool3d_<T extends Tensor4D|Tensor5D>(
     x: T|TensorLike, filterSize: [number, number, number]|number = [1, 1, 1],
     strides: [number, number, number]|number, pad: 'valid'|'same'|number,

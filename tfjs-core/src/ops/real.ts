@@ -35,8 +35,9 @@ import {op} from './operation';
  * const x = tf.complex([-2.25, 3.25], [4.75, 5.75]);
  * tf.real(x).print();
  * ```
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function real_<T extends Tensor>(input: T|TensorLike): T {
   const $input = convertToTensor(input, 'input', 'real');
 

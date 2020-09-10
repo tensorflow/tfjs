@@ -34,8 +34,9 @@ import {reshape} from './reshape';
  * ```
  * @param v1 The first vector in the outer product operation.
  * @param v2 The second vector in the outer product operation.
+ *
+ * @doc {heading: 'Operations', subheading: 'Matrices'}
  */
-/** @doc {heading: 'Operations', subheading: 'Matrices'} */
 function outerProduct_(
     v1: Tensor1D|TensorLike, v2: Tensor1D|TensorLike): Tensor2D {
   const $v1 = convertToTensor(v1, 'v1', 'outerProduct');
