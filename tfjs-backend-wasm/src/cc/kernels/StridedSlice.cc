@@ -40,11 +40,9 @@ void StridedSlice(const size_t x_id, const int32_t* x_strides_ptr,
 
   const auto x_strides =
       std::vector<size_t>(x_strides_ptr, x_strides_ptr + x_rank - 1);
-
   const auto begin = std::vector<size_t>(begin_ptr, begin_ptr + x_rank);
   const auto end = std::vector<size_t>(end_ptr, end_ptr + x_rank);
   const auto strides = std::vector<size_t>(strides_ptr, strides_ptr + x_rank);
-
   const auto out_shape =
       std::vector<size_t>(out_shape_ptr, out_shape_ptr + out_shape_size);
   const auto out_strides = std::vector<size_t>(

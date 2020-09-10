@@ -123,23 +123,19 @@ export function stridedSlice(args: {
     return reshape({inputs: {x: xSliced}, attrs: {shape: outShape}, backend});
   }
 
-  const xId = backend.dataIdMap.get(xReshaped.dataId).id;
-
   const out = backend.makeOutput(outShape, 'float32');
-
   if (!outShape.some(axis => axis === 0)) {
-    const outId = backend.dataIdMap.get(out.dataId).id;
-
+    const xId = backend.dataIdMap.get(xReshaped.dataId).id;
+    const xStridesBytes = new Uint8Array(
+        new Int32Array(util.computeStrides(xReshaped.shape)).buffer);
     const beginBytes = new Uint8Array(new Int32Array(begin).buffer);
     const endBytes = new Uint8Array(new Int32Array(end).buffer);
     const stridesBytes = new Uint8Array(new Int32Array(strides).buffer);
 
-    const xStridesBytes =
-        new Uint8Array(new Int32Array(util.computeStrides(x.shape)).buffer);
-
     const outputShapeBytes = new Uint8Array(new Int32Array(outShape).buffer);
     const outStridesBytes =
         new Uint8Array(new Int32Array(util.computeStrides(outShape)).buffer);
+    const outId = backend.dataIdMap.get(out.dataId).id;
 
     wasmStridedSlice(
         xId, xStridesBytes, xReshaped.shape.length, beginBytes, endBytes,
