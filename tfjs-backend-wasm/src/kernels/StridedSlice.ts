@@ -15,22 +15,25 @@
  * =============================================================================
  */
 
-import {backend_util, KernelConfig, KernelFunc, StridedSlice, StridedSliceAttrs, StridedSliceInputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, StridedSlice, StridedSliceAttrs, StridedSliceInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 import {reshape} from './Reshape';
 import {slice} from './Slice';
 
 let wasmStridedSlice: (
-    xId: number, beginBytes: Uint8Array, beginLength: number,
-    endBytes: Uint8Array, endLength: number, stridesBytes: Uint8Array,
-    stridesLength: number, beginMask: number, endMask: number,
-    ellipsisMask: number, newAxisMask: number, shrinkAxisMask: number,
-    outId: number) => void;
+    xId: number, xStridesBytes: Uint8Array, xStridesLength: number,
+    beginBytes: Uint8Array, beginLength: number, endBytes: Uint8Array,
+    endLength: number, stridesBytes: Uint8Array, stridesLength: number,
+    beginMask: number, endMask: number, ellipsisMask: number,
+    newAxisMask: number, shrinkAxisMask: number, outShapeBytes: Uint8Array,
+    outStridesBytes: Uint8Array, outShapeLength: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmStridedSlice = backend.wasm.cwrap(StridedSlice, null /*void*/, [
     'number',  // xId
+    'array',   // xStrides
+    'number',  // xStridesLength
     'array',   // beginBytes
     'number',  // beginLength
     'array',   // endBytes
@@ -42,6 +45,9 @@ function setup(backend: BackendWasm): void {
     'number',  // ellipsisMask
     'number',  // newAxisMask
     'number',  // shrinkAxisMask
+    'array',   // outShapeBytes
+    'array',   // outStridesBytes
+    'number',  // outShapeLength
     'number',  // outId
   ]);
 }
@@ -130,16 +136,27 @@ export function stridedSlice(args: {
   const xId = backend.dataIdMap.get(xReshaped.dataId).id;
 
   const out = backend.makeOutput(outShape, 'float32');
-  const outId = backend.dataIdMap.get(out.dataId).id;
 
-  const beginBytes = new Uint8Array(new Int32Array(begin).buffer);
-  const endBytes = new Uint8Array(new Int32Array(end).buffer);
-  const stridesBytes = new Uint8Array(new Int32Array(strides).buffer);
+  if (!outShape.some(axis => axis === 0)) {
+    const outId = backend.dataIdMap.get(out.dataId).id;
 
-  wasmStridedSlice(
-      xId, beginBytes, begin.length, endBytes, end.length, stridesBytes,
-      strides.length, beginMask, endMask, ellipsisMask, newAxisMask,
-      shrinkAxisMask, outId);
+    const beginBytes = new Uint8Array(new Int32Array(begin).buffer);
+    const endBytes = new Uint8Array(new Int32Array(end).buffer);
+    const stridesBytes = new Uint8Array(new Int32Array(strides).buffer);
+
+    const xStridesBytes =
+        new Uint8Array(new Int32Array(util.computeStrides(x.shape)).buffer);
+
+    const outputShapeBytes = new Uint8Array(new Int32Array(outShape).buffer);
+    const outStridesBytes =
+        new Uint8Array(new Int32Array(util.computeStrides(outShape)).buffer);
+
+    wasmStridedSlice(
+        xId, xStridesBytes, x.shape.length - 1, beginBytes, begin.length,
+        endBytes, end.length, stridesBytes, strides.length, beginMask, endMask,
+        ellipsisMask, newAxisMask, shrinkAxisMask, outputShapeBytes,
+        outStridesBytes, outShape.length, outId);
+  }
 
   return reshape({inputs: {x: out}, attrs: {shape: outShape}, backend});
 }
