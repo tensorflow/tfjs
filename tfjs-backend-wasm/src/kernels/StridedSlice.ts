@@ -22,29 +22,19 @@ import {reshape} from './Reshape';
 import {slice} from './Slice';
 
 let wasmStridedSlice: (
-    xId: number, xStridesBytes: Uint8Array, xStridesLength: number,
-    beginBytes: Uint8Array, beginLength: number, endBytes: Uint8Array,
-    endLength: number, stridesBytes: Uint8Array, stridesLength: number,
-    beginMask: number, endMask: number, ellipsisMask: number,
-    newAxisMask: number, shrinkAxisMask: number, outShapeBytes: Uint8Array,
-    outStridesBytes: Uint8Array, outShapeLength: number, outId: number) => void;
+    xId: number, xStridesBytes: Uint8Array, xRank: number,
+    beginBytes: Uint8Array, endBytes: Uint8Array, stridesBytes: Uint8Array,
+    outShapeBytes: Uint8Array, outStridesBytes: Uint8Array,
+    outShapeLength: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmStridedSlice = backend.wasm.cwrap(StridedSlice, null /*void*/, [
     'number',  // xId
     'array',   // xStrides
-    'number',  // xStridesLength
+    'number',  // xRank
     'array',   // beginBytes
-    'number',  // beginLength
     'array',   // endBytes
-    'number',  // endLength
     'array',   // stridesBytes
-    'number',  // stridesLength
-    'number',  // beginMask
-    'number',  // endMask
-    'number',  // ellipsisMask
-    'number',  // newAxisMask
-    'number',  // shrinkAxisMask
     'array',   // outShapeBytes
     'array',   // outStridesBytes
     'number',  // outShapeLength
@@ -152,10 +142,9 @@ export function stridedSlice(args: {
         new Uint8Array(new Int32Array(util.computeStrides(outShape)).buffer);
 
     wasmStridedSlice(
-        xId, xStridesBytes, x.shape.length - 1, beginBytes, begin.length,
-        endBytes, end.length, stridesBytes, strides.length, beginMask, endMask,
-        ellipsisMask, newAxisMask, shrinkAxisMask, outputShapeBytes,
-        outStridesBytes, outShape.length, outId);
+        xId, xStridesBytes, xReshaped.shape.length, beginBytes, endBytes,
+        stridesBytes, outputShapeBytes, outStridesBytes, outShape.length,
+        outId);
   }
 
   return reshape({inputs: {x: out}, attrs: {shape: outShape}, backend});

@@ -27,12 +27,8 @@ EMSCRIPTEN_KEEPALIVE
 #endif
 
 void StridedSlice(const size_t x_id, const int32_t* x_strides_ptr,
-                  const size_t x_strides_size, const int32_t* begin_ptr,
-                  const size_t begin_size, const int32_t* end_ptr,
-                  const size_t end_size, const int32_t* strides_ptr,
-                  const size_t strides_size, const size_t begin_mask,
-                  const size_t end_mask, const size_t ellipsis_mask,
-                  const size_t new_axis_mask, const size_t shrink_axis_mask,
+                  const size_t x_rank, const int32_t* begin_ptr,
+                  const int32_t* end_ptr, const int32_t* strides_ptr,
                   const int32_t* out_shape_ptr, const int32_t* out_strides_ptr,
                   const size_t out_shape_size, const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
@@ -43,12 +39,11 @@ void StridedSlice(const size_t x_id, const int32_t* x_strides_ptr,
   float* out_buf_ptr = out_info.f32_write();
 
   const auto x_strides =
-      std::vector<size_t>(x_strides_ptr, x_strides_ptr + x_strides_size);
+      std::vector<size_t>(x_strides_ptr, x_strides_ptr + x_rank - 1);
 
-  const auto begin = std::vector<size_t>(begin_ptr, begin_ptr + begin_size);
-  const auto end = std::vector<size_t>(end_ptr, end_ptr + end_size);
-  const auto strides =
-      std::vector<size_t>(strides_ptr, strides_ptr + strides_size);
+  const auto begin = std::vector<size_t>(begin_ptr, begin_ptr + x_rank);
+  const auto end = std::vector<size_t>(end_ptr, end_ptr + x_rank);
+  const auto strides = std::vector<size_t>(strides_ptr, strides_ptr + x_rank);
 
   const auto out_shape =
       std::vector<size_t>(out_shape_ptr, out_shape_ptr + out_shape_size);
