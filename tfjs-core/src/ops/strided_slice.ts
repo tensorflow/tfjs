@@ -28,7 +28,6 @@ import {reshape} from './reshape';
 import {slice} from './slice';
 import {computeOutShape, getNormalizedAxes, maskToAxes} from './slice_util';
 
-
 /**
  * Extracts a strided slice of a tensor.
  *

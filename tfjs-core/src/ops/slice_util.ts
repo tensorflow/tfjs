@@ -106,7 +106,8 @@ function getElidedAxes(numElidedAxes: number, ellipsisInsertionIndex: number) {
 export function getNormalizedAxes(
     inputShape: number[], ellipsisAxes: number[], numInterpolatedAxes: number,
     begin: number[], end: number[], strides: number[], beginMask: number,
-    endMask: number, ellipsisMask: number) {
+    endMask: number,
+    ellipsisMask: number): {begin: number[], end: number[], strides: number[]} {
   const inputRank = inputShape.length;
   let normalizedBegin = new Array(inputRank),
       normalizedEnd = new Array(inputRank),
