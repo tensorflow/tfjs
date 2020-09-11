@@ -68,8 +68,7 @@ import {zeros} from '../zeros';
  *   If negative, keep entire upper triangle.
  * @returns Rank `k` tensor of the same shape as input.
  *   The extracted banded tensor.
- */
-/**
+ *
  * @doc {heading:'Operations', subheading:'Linear Algebra', namespace:'linalg'}
  */
 function bandPart_<T extends Tensor>(

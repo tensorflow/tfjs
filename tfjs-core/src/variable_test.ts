@@ -220,11 +220,6 @@ describeWithFlags('x instanceof Variable', ALL_ENVS, () => {
     expect(t instanceof Variable).toBe(true);
   });
 
-  it('x: Variable-like', () => {
-    const t = {assign: () => {}, shape: [2], dtype: 'float32', dataId: {}};
-    expect(t instanceof Variable).toBe(true);
-  });
-
   it('x: other object, fails', () => {
     const t = {something: 'else'};
     expect(t instanceof Variable).toBe(false);

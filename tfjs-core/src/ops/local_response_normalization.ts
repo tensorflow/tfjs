@@ -39,8 +39,9 @@ import {reshape} from './reshape';
  * @param bias A constant bias term for the basis.
  * @param alpha A scale factor, usually positive.
  * @param beta An exponent.
+ *
+ * @doc {heading: 'Operations', subheading: 'Normalization'}
  */
-/** @doc {heading: 'Operations', subheading: 'Normalization'} */
 function localResponseNormalization_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, depthRadius = 5, bias = 1, alpha = 1, beta = 0.5): T {
   const $x = convertToTensor(x, 'x', 'localResponseNormalization');

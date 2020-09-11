@@ -43,8 +43,9 @@ import {computeWeightedLoss} from './compute_weighted_loss';
  * @param epsilon A small increment to avoid taking log of zero
  * @param reduction Type of reduction to apply to loss. Should be of type
  *    `Reduction`
+ *
+ * @doc {heading: 'Training', subheading: 'Losses', namespace: 'losses'}
  */
-/** @doc {heading: 'Training', subheading: 'Losses', namespace: 'losses'} */
 function logLoss_<T extends Tensor, O extends Tensor>(
     labels: T|TensorLike, predictions: T|TensorLike,
     weights?: Tensor|TensorLike, epsilon = 1e-7,

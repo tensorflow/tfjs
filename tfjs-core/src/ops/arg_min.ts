@@ -50,8 +50,8 @@ import {transpose} from './transpose';
  * @param x The input tensor.
  * @param axis The dimension to reduce. Defaults to 0 (outer-most dimension).
  *
+ * @doc {heading: 'Operations', subheading: 'Reduction'}
  */
-/** @doc {heading: 'Operations', subheading: 'Reduction'} */
 function argMin_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
   let $x = convertToTensor(x, 'x', 'argMin');
 

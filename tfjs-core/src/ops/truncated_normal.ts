@@ -39,8 +39,9 @@ import {MPRandGauss} from './rand_util';
  * @param stdDev The standard deviation of the normal distribution.
  * @param dtype The data type of the output tensor.
  * @param seed The seed for the random number generator.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function truncatedNormal_<R extends Rank>(
     shape: ShapeMap[R], mean = 0, stdDev = 1, dtype?: 'float32'|'int32',
     seed?: number): Tensor<R> {

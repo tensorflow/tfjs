@@ -95,8 +95,7 @@ import {CSVConfig, MicrophoneConfig, WebcamConfig} from './types';
  * must have prefix `file://` and it only works in node environment.
  * @param csvConfig (Optional) A CSVConfig object that contains configurations
  *     of reading and decoding from CSV file(s).
- */
-/**
+ *
  * @doc {
  *   heading: 'Data',
  *   subheading: 'Creation',
@@ -191,8 +190,7 @@ export function func<T extends TensorContainer>(
  *
  * @param generator A Javascript generator function that returns a JavaScript
  *     iterator.
- */
-/**
+ *
  * @doc {
  *   heading: 'Data',
  *   subheading: 'Creation',
@@ -230,8 +228,7 @@ export function generator<T extends TensorContainer>(
  *     provided to set the generated tensor shape.
  * @param webcamConfig A `WebcamConfig` object that contains configurations of
  *     reading and manipulating data from webcam video stream.
- */
-/**
+ *
  * @doc {
  *   heading: 'Data',
  *   subheading: 'Creation',
@@ -271,8 +268,7 @@ export async function webcam(
  *
  * @param microphoneConfig A `MicrophoneConfig` object that contains
  *     configurations of reading audio data from microphone.
- */
-/**
+ *
  * @doc {
  *   heading: 'Data',
  *   subheading: 'Creation',

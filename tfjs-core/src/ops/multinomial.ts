@@ -39,8 +39,9 @@ import {reshape} from './reshape';
  *     probabilities (sum to 1). Defaults to false.
  * @return 1D array of shape `[numSamples]`, or 2D array of shape
  *     `[batchSize, numSamples]`, depending on the rank of the input.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Random'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Random'} */
 function multinomial_(
     logits: Tensor1D|Tensor2D|TensorLike, numSamples: number, seed?: number,
     normalized = false): Tensor1D|Tensor2D {
