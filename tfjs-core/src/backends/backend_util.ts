@@ -36,6 +36,9 @@ export * from '../ops/fused_util';
 export * from '../ops/fused_types';
 export * from '../ops/reduce_util';
 
+import * as slice_util from '../ops/slice_util';
+export {slice_util};
+
 export {BackendValues, TypedArray, upcastType, PixelData} from '../types';
 export {MemoryInfo, TimingInfo} from '../engine';
 export * from '../ops/rotate_util';
