@@ -261,6 +261,7 @@ tfjs_cc_library(
         ":Softmax",
         ":Square",
         ":SquaredDifference",
+        ":StridedSlice",
         ":Sub",
         ":Tile",
         ":Transpose",
@@ -913,6 +914,15 @@ tfjs_cc_library(
         ":backend",
         ":binary",
         ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "StridedSlice",
+    srcs = ["kernels/StridedSlice.cc"],
+    deps = [
+        ":backend",
         ":util",
     ],
 )
