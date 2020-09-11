@@ -279,8 +279,21 @@ export class MathBackendWebGL extends KernelBackend {
     }
     const dataId = {};
     this.texData.set(
-        dataId, {shape, dtype, values, usage: TextureUsage.UPLOAD});
+        dataId,
+        {shape, dtype, values, usage: TextureUsage.UPLOAD, refCount: 1});
     return dataId;
+  }
+
+  incRef(dataId: DataId): void {
+    const texData = this.texData.get(dataId);
+    texData.refCount++;
+  }
+
+  decRef(dataId: DataId): void {
+    if (this.texData.has(dataId)) {
+      const texData = this.texData.get(dataId);
+      texData.refCount--;
+    }
   }
 
   move(dataId: DataId, values: BackendValues, shape: number[], dtype: DataType):
@@ -294,7 +307,22 @@ export class MathBackendWebGL extends KernelBackend {
           `Please use tf.complex(real, imag).`);
     }
     this.texData.set(
-        dataId, {shape, dtype, values, usage: TextureUsage.UPLOAD});
+        dataId,
+        {shape, dtype, values, usage: TextureUsage.UPLOAD, refCount: 1});
+  }
+
+  disposeIntermediateTensorInfo(tensorInfo: TensorInfo): void {
+    const dataId = tensorInfo.dataId;
+
+    if (this.texData.has(dataId)) {
+      const textureData = this.texData.get(dataId);
+
+      textureData.refCount--;
+
+      if (textureData.refCount < 1) {
+        this.disposeData(dataId);
+      }
+    }
   }
 
   readSync(dataId: DataId): BackendValues {
