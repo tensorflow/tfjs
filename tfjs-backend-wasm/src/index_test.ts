@@ -175,27 +175,27 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
        expect(wasmPath).toBe(validPrefix + 'tfjs-backend-wasm.wasm');
      });
 
-  fit('backend init works when the path is valid and use platform fetch',
-      async () => {
-        const usePlatformFetch = true;
-        const validPath = '/base/wasm-out/tfjs-backend-wasm.wasm';
-        setWasmPath(validPath, usePlatformFetch);
-        let wasmPath: string;
-        const realFetch = util.fetch;
-        spyOn(util, 'fetch').and.callFake((path: string) => {
-          wasmPath = path;
-          return realFetch(path);
-        });
-        expect(await tf.setBackend('wasm-test')).toBe(true);
-        expect(wasmPath).toBe(validPath);
+  it('backend init works when the path is valid and use platform fetch',
+     async () => {
+       const usePlatformFetch = true;
+       const validPath = '/base/wasm-out/tfjs-backend-wasm.wasm';
+       setWasmPath(validPath, usePlatformFetch);
+       let wasmPath: string;
+       const realFetch = util.fetch;
+       spyOn(util, 'fetch').and.callFake((path: string) => {
+         wasmPath = path;
+         return realFetch(path);
+       });
+       expect(await tf.setBackend('wasm-test')).toBe(true);
+       expect(wasmPath).toBe(validPath);
 
-        tf.reRegisterKernelsForBackend('wasm', 'wasm-test');
-
-        const a = tf.tensor1d([5]);
-        const b = tf.tensor1d([3]);
-        const res = tf.dot(a, b);
-        test_util.expectArraysClose(await res.data(), 15);
-      });
+       // Ensure it is also possible to run kernels.
+       tf.reRegisterKernelsForBackend('wasm', 'wasm-test');
+       const a = tf.tensor1d([5]);
+       const b = tf.tensor1d([3]);
+       const res = tf.dot(a, b);
+       test_util.expectArraysClose(await res.data(), 15);
+     });
 
   // Disabling this test because it intermittently times out on CI.
   // tslint:disable-next-line: ban
