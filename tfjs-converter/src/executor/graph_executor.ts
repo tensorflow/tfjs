@@ -183,8 +183,8 @@ export class GraphExecutor implements FunctionExecutor {
     this.checkOutputs(outputs);
     const inputNodes =
         names.map(name => this.graph.nodes[parseNodeName(name)[0]]);
-    const outputNodes =
-        outputs.map(name => this.graph.nodes[parseNodeName(name)[0]]);
+    const outputNodeNames = outputs.map(name => parseNodeName(name)[0]);
+    const outputNodes = outputNodeNames.map(name => this.graph.nodes[name]);
     const compilationKey = this.getCompilationKey(inputNodes, outputNodes);
     // Do nothing if the compiled graph cache contains the input.
     let orderedNodes = this.compiledMap.get(compilationKey);
@@ -218,8 +218,8 @@ export class GraphExecutor implements FunctionExecutor {
           }
           tensorsMap[node.name] = tensors;
           this.checkTensorForDisposal(
-              node.name, node, tensorsMap, context, tensorsToKeep, outputs,
-              intermediateTensorConsumerCount);
+              node.name, node, tensorsMap, context, tensorsToKeep,
+              outputNodeNames, intermediateTensorConsumerCount);
         }
       }
       // dispose the context for the root executor
@@ -377,8 +377,8 @@ export class GraphExecutor implements FunctionExecutor {
     const names = Object.keys(inputs);
     const inputNodes =
         names.map(name => this.graph.nodes[parseNodeName(name)[0]]);
-    const outputNodes =
-        outputNames.map(name => this.graph.nodes[parseNodeName(name)[0]]);
+    const outputNodeNames = outputNames.map(name => parseNodeName(name)[0]);
+    const outputNodes = outputNodeNames.map(name => this.graph.nodes[name]);
     const {usedNodes, missingInputs, dynamicNode, syncInputs} =
         getExecutionSubgraph(inputs, outputNodes, this.weightMap);
 
@@ -399,7 +399,7 @@ export class GraphExecutor implements FunctionExecutor {
     while (stack.length > 0) {
       const promises = this.processStack(
           inputNodes, stack, context, tensorsMap, added, tensorsToKeep,
-          outputNames, intermediateTensorConsumerCount, usedNodes);
+          outputNodeNames, intermediateTensorConsumerCount, usedNodes);
       await Promise.all(promises);
     }
     if (dynamicNode == null && !isFunctionExecution) {
