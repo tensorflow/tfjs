@@ -292,7 +292,8 @@ export class Tensor<R extends Rank = Rank> {
     return opHandler.buffer(this.shape, this.dtype as D, vals);
   }
 
-  /** Returns a `tf.TensorBuffer` that holds the underlying data.
+  /**
+   * Returns a `tf.TensorBuffer` that holds the underlying data.
    * @doc {heading: 'Tensors', subheading: 'Classes'}
    */
   bufferSync<D extends DataType = 'float32'>(): TensorBuffer<R, D> {
@@ -411,7 +412,8 @@ export class Tensor<R extends Rank = Rank> {
     return opHandler.print(this, verbose);
   }
 
-  /** Returns a copy of the tensor. See `tf.clone` for details.
+  /**
+   * Returns a copy of the tensor. See `tf.clone` for details.
    * @doc {heading: 'Tensors', subheading: 'Classes'}
    */
   clone<T extends Tensor>(this: T): T {
@@ -441,8 +443,13 @@ export class Tensor<R extends Rank = Rank> {
 }
 Object.defineProperty(Tensor, Symbol.hasInstance, {
   value: (instance: Tensor) => {
-    return !!instance && instance.dataId != null && instance.shape != null &&
-        instance.dtype != null;
+    // Implementation note: we should use properties of the object that will be
+    // defined before the constructor body has finished executing (methods).
+    // This is because when this code is transpiled by babel, babel will call
+    // classCallCheck before the constructor body is run.
+    // See https://github.com/tensorflow/tfjs/issues/3384 for backstory.
+    return !!instance && instance.data != null && instance.dataSync != null &&
+        instance.throwIfDisposed != null;
   }
 });
 

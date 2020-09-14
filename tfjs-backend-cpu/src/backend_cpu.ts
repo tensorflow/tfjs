@@ -1279,17 +1279,6 @@ export class MathBackendCPU extends KernelBackend {
     return this.makeOutput(resultValues, x.shape, 'float32');
   }
 
-  cos<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'cos');
-
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < values.length; ++i) {
-      resultValues[i] = Math.cos(values[i]);
-    }
-    return this.makeOutput(resultValues, x.shape, 'float32');
-  }
-
   tan<T extends Tensor>(x: T): T {
     assertNotComplex(x, 'tan');
 
