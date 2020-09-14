@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {BinaryInputs, KernelConfig} from '@tensorflow/tfjs-core';
+import {BinaryInputs, KernelFunc} from '@tensorflow/tfjs-core';
 import {DataType, NumericDataType, TypedArray} from '@tensorflow/tfjs-core';
 import {backend_util} from '@tensorflow/tfjs-core';
 
@@ -23,29 +23,36 @@ import {util} from '@tensorflow/tfjs-core';
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 
-export function createBinaryKernelConfig(
-    name: string,
-    op: (
-        aShape: number[], bShape: number[], aVals: TypedArray,
-        bVals: TypedArray,
-        dtype: DataType) => [TypedArray, number[]]): KernelConfig {
-  return {
-    kernelName: name,
-    backendName: 'cpu',
-    kernelFunc: ({inputs, backend}) => {
-      const {a, b} = inputs as BinaryInputs;
-      const cpuBackend = backend as MathBackendCPU;
-      assertNotComplex([a, b], name);
+export type SimpleBinaryOperation = (a: number, b: number) => number;
+export type SimpleBinaryKernelImpl =
+    (aShape: number[], bShape: number[], aVals: TypedArray, bVals: TypedArray,
+     dtype: DataType) => [TypedArray, number[]];
 
-      const aVals = cpuBackend.data.get(a.dataId).values as TypedArray;
-      const bVals = cpuBackend.data.get(b.dataId).values as TypedArray;
+/**
+ * Template that creates a `KernelFunc` for binary ops.
+ * @param name Kernel name.
+ * @param op A `SimpleBinaryKernelImpl` of the kernel.
+ * @param dtype Optional. If set, the result has this dtype. Otherwise, the
+ *     result has the same dtype as the the first input. This is mainly used
+ *     in comparison kernels, such as Equal, Less, Greater, etc.
+ */
+export function binaryKernelFunc(
+    name: string, op: SimpleBinaryKernelImpl, dtype?: DataType): KernelFunc {
+  return ({inputs, backend}) => {
+    const {a, b} = inputs as BinaryInputs;
+    const cpuBackend = backend as MathBackendCPU;
+    assertNotComplex([a, b], name);
 
-      const [resultData, resultShape] =
-          op(a.shape, b.shape, aVals, bVals, a.dtype);
+    const aVals = cpuBackend.data.get(a.dataId).values as TypedArray;
+    const bVals = cpuBackend.data.get(b.dataId).values as TypedArray;
 
-      const dataId = cpuBackend.write(resultData, resultShape, a.dtype);
-      return {dataId, shape: resultShape, dtype: a.dtype};
-    }
+    const $dtype = dtype || a.dtype;
+
+    const [resultData, resultShape] =
+        op(a.shape, b.shape, aVals, bVals, $dtype);
+
+    const dataId = cpuBackend.write(resultData, resultShape, $dtype);
+    return {dataId, shape: resultShape, dtype: $dtype};
   };
 }
 
