@@ -32,8 +32,9 @@ import {makeTensor} from './tensor_ops_util';
  *
  * @param value The value of the scalar.
  * @param dtype The data type.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 export function scalar(
     value: number|boolean|string|Uint8Array, dtype?: DataType): Scalar {
   if (((isTypedArray(value) && dtype !== 'string') || Array.isArray(value)) &&

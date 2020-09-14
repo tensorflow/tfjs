@@ -35,8 +35,9 @@ import {reshape} from './reshape';
  * @param axis An optional list of numbers. If specified, only
  *     squeezes the dimensions listed. The dimension index starts at 0. It
  * is an error to squeeze a dimension that is not 1.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Transformations'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Transformations'} */
 function squeeze_<T extends Tensor>(x: Tensor|TensorLike, axis?: number[]): T {
   const $x = convertToTensor(x, 'x', 'squeeze');
   return reshape($x, squeezeShape($x.shape, axis).newShape) as T;

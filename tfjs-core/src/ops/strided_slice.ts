@@ -26,7 +26,7 @@ import {TensorLike} from '../types';
 import {op} from './operation';
 import {reshape} from './reshape';
 import {slice} from './slice';
-import {computeOutShape, maskToAxes, startForAxis, startIndicesWithElidedDims, stopForAxis, stopIndicesWithElidedDims, stridesForAxis, stridesWithElidedDims} from './slice_util';
+import {computeOutShape, getNormalizedAxes, maskToAxes} from './slice_util';
 
 /**
  * Extracts a strided slice of a tensor.
@@ -58,19 +58,20 @@ import {computeOutShape, maskToAxes, startForAxis, startIndicesWithElidedDims, s
  * @param shrinkAxisMask: a bitmask where bit i implies that
  * the ith specification should shrink the dimensionality. begin and end must
  * imply a slice of size 1 in the dimension.
+ *
+ * @doc {heading: 'Operations', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Operations', subheading: 'Slicing and Joining'} */
 function stridedSlice_(
     x: Tensor|TensorLike, begin: number[], end: number[], strides?: number[],
     beginMask = 0, endMask = 0, ellipsisMask = 0, newAxisMask = 0,
     shrinkAxisMask = 0): Tensor {
-  if (strides == null) {
-    strides = new Array(begin.length);
-  }
-
   let $x = convertToTensor(x, 'x', 'stridedSlice');
 
   const forward: ForwardFunc<Tensor> = (backend) => {
+    if (strides == null) {
+      strides = new Array(begin.length);
+    }
+
     const ellipsisAxes = maskToAxes(ellipsisMask);
     if (ellipsisAxes.length > 1) {
       throw new Error('Multiple ellipses in slice is not allowed.');
@@ -98,28 +99,17 @@ function stridedSlice_(
     });
     $x = reshape($x, newShape);
 
-    // Normalize the start, end and strides.
-    if (ellipsisAxes.length && numInterpolatedAxes > 0) {
-      const fullIndex = ellipsisAxes[0];
-
-      // The ellipsis applies to the masked index as well as any dimensions
-      // that are interpolated.
-      const numElidedAxes = numInterpolatedAxes + 1;
-      begin = startIndicesWithElidedDims(
-          beginMask, fullIndex, numElidedAxes, begin, $x.shape);
-      end = stopIndicesWithElidedDims(
-          endMask, fullIndex, numElidedAxes, end, $x.shape);
-      strides =
-          stridesWithElidedDims(strides, fullIndex, numElidedAxes, $x.shape);
-    } else {
-      for (let axis = 0; axis < $x.rank; axis++) {
-        begin[axis] = startForAxis(
-            beginMask, begin, strides, $x.shape, axis, ellipsisMask);
-        end[axis] =
-            stopForAxis(endMask, end, strides, $x.shape, axis, ellipsisMask);
-        strides[axis] = stridesForAxis(strides, axis, ellipsisMask);
-      }
-    }
+    const {
+      begin: normalizedBegin,
+      end: normalizedEnd,
+      strides: normalizedStrides
+    } =
+        getNormalizedAxes(
+            $x.shape, ellipsisAxes, numInterpolatedAxes, begin, end, strides,
+            beginMask, endMask, ellipsisMask);
+    begin = normalizedBegin;
+    end = normalizedEnd;
+    strides = normalizedStrides;
 
     const shrinkAxes = maskToAxes(shrinkAxisMask);
     // Adjust the ends based on the shrink mask.

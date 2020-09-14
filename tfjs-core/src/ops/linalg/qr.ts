@@ -76,8 +76,7 @@ import {where} from '../where';
  *     - `Q` has a shape of `[..., M, M]`,
  *     - `R` has a shape of `[..., M, N]`.
  * @throws If the rank of `x` is less than 2.
- */
-/**
+ *
  * @doc {heading:'Operations',
  *       subheading:'Linear Algebra',
  *       namespace:'linalg'}

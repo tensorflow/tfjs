@@ -316,8 +316,7 @@ export class TensorBoardCallback extends CustomCallback {
  * @param args Optional configuration arguments.
  * @returns An instance of `TensorBoardCallback`, which is a subclass of
  *   `tf.CustomCallback`.
- */
-/**
+ *
  * @doc {heading: 'TensorBoard', namespace: 'node'}
  */
 export function tensorBoard(

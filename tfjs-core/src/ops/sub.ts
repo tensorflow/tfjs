@@ -44,8 +44,9 @@ import {op} from './operation';
  * @param a The first `tf.Tensor` to subtract from.
  * @param b The second `tf.Tensor` to be subtracted. Must have the same dtype as
  * `a`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Arithmetic'}
  */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function sub_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   let $a = convertToTensor(a, 'a', 'sub');
   let $b = convertToTensor(b, 'b', 'sub');

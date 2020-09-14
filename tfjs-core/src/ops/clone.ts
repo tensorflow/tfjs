@@ -35,8 +35,9 @@ import {op} from './operation';
  * ```
  *
  * @param x The tensor to clone.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function clone_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'clone', null);
   const forward = () =>

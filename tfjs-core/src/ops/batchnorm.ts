@@ -51,8 +51,9 @@ import {reshape} from './reshape';
  * @param offset An offset Tensor.
  * @param scale A scale Tensor.
  * @param varianceEpsilon A small float number to avoid dividing by 0.
+ *
+ * @doc {heading: 'Operations', subheading: 'Normalization'}
  */
-/** @doc {heading: 'Operations', subheading: 'Normalization'} */
 function batchNorm_<R extends Rank>(
     x: Tensor<R>|TensorLike, mean: Tensor<R>|Tensor1D|TensorLike,
     variance: Tensor<R>|Tensor1D|TensorLike,

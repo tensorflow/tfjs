@@ -57,8 +57,9 @@ import * as slice_util from './slice_util';
  *     x - the rest of the axes will have implicit -1. A value of -1 requests
  *     the rest of the dimensions in the axis. Can also be a single number,
  *     in which case it specifies the size of the first axis.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
 function slice_<R extends Rank, T extends Tensor<R>>(
     x: T|TensorLike, begin: number|number[], size?: number|number[]): T {
   const $x = convertToTensor(x, 'x', 'slice');

@@ -33,8 +33,9 @@ import {op} from './operation';
  * x.log().print();  // or tf.log(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function log_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'log');
 

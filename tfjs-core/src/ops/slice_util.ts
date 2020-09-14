@@ -102,6 +102,45 @@ function getElidedAxes(numElidedAxes: number, ellipsisInsertionIndex: number) {
   return elidedAxes;
 }
 
+// Normalize the start, end and strides.
+export function getNormalizedAxes(
+    inputShape: number[], ellipsisAxes: number[], numInterpolatedAxes: number,
+    begin: number[], end: number[], strides: number[], beginMask: number,
+    endMask: number,
+    ellipsisMask: number): {begin: number[], end: number[], strides: number[]} {
+  const inputRank = inputShape.length;
+  let normalizedBegin = new Array(inputRank),
+      normalizedEnd = new Array(inputRank),
+      normalizedStrides = new Array(inputRank);
+  if (ellipsisAxes.length && numInterpolatedAxes > 0) {
+    const fullIndex = ellipsisAxes[0];
+
+    // The ellipsis applies to the masked index as well as any dimensions
+    // that are interpolated.
+    const numElidedAxes = numInterpolatedAxes + 1;
+    normalizedBegin = startIndicesWithElidedDims(
+        beginMask, fullIndex, numElidedAxes, begin, inputShape);
+    normalizedEnd = stopIndicesWithElidedDims(
+        endMask, fullIndex, numElidedAxes, end, inputShape);
+    normalizedStrides =
+        stridesWithElidedDims(strides, fullIndex, numElidedAxes, inputShape);
+  } else {
+    for (let axis = 0; axis < inputRank; axis++) {
+      normalizedBegin[axis] = startForAxis(
+          beginMask, begin, strides, inputShape, axis, ellipsisMask);
+      normalizedEnd[axis] =
+          stopForAxis(endMask, end, strides, inputShape, axis, ellipsisMask);
+      normalizedStrides[axis] = stridesForAxis(strides, axis, ellipsisMask);
+    }
+  }
+
+  return {
+    begin: normalizedBegin,
+    end: normalizedEnd,
+    strides: normalizedStrides
+  };
+}
+
 // Creates full selection at the elided dimensions. If the dimension matches
 // the ellipsis mask, override the current start value. Otherwise, insert.
 export function startIndicesWithElidedDims(

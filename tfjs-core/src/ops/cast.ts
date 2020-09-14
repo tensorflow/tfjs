@@ -34,8 +34,9 @@ import {op} from './operation';
  * ```
  * @param x The input tensor to be casted.
  * @param dtype The dtype to cast the input tensor to.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Transformations'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Transformations'} */
 function cast_<T extends Tensor>(x: T|TensorLike, dtype: DataType): T {
   const $x = convertToTensor(x, 'x', 'cast');
 

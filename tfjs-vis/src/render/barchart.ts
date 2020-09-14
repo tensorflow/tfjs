@@ -40,8 +40,9 @@ import {getDrawArea, nextFrame, shallowEquals} from './render_utils';
  *    `[ {index: number, value: number} ... ]`
  *
  * @returns Promise - indicates completion of rendering
+ *
+ * @doc {heading: 'Charts', namespace: 'render'}
  */
-/** @doc {heading: 'Charts', namespace: 'render'} */
 export async function barchart(
     container: Drawable, data: Array<{index: number; value: number;}>,
     opts: BarChartOpts = {}): Promise<void> {
