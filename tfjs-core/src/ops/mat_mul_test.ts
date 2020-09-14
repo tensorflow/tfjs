@@ -29,6 +29,13 @@ import {expectArraysClose, expectArraysEqual} from '../test_util';
 import {Rank} from '../types';
 
 describeWithFlags('matmul', ALL_ENVS, () => {
+  fit('unequal ranks', async () => {
+    const a = tf.ones([1, 8, 8, 64, 2]);
+    const b = tf.ones([2, 1]);
+    const c = tf.matMul(a, b);
+    expect(c.shape).toEqual([1, 8, 8, 64, 1]);
+  });
+
   it('A x B', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);

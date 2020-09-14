@@ -50,11 +50,6 @@ function matMul_<T extends Tensor>(
   let $b = convertToTensor(b, 'b', 'matMul');
   [$a, $b] = makeTypesMatch($a, $b);
 
-  util.assert(
-      $a.rank >= 2 && $b.rank >= 2 && $a.rank === $b.rank,
-      () => `Error in matMul: inputs must have the same rank of at least 2, ` +
-          `got ranks ${$a.rank} and ${$b.rank}.`);
-
   const innerShapeA =
       transposeA ? $a.shape[$a.rank - 2] : $a.shape[$a.rank - 1];
   const innerShapeB =
@@ -70,11 +65,13 @@ function matMul_<T extends Tensor>(
   const batchDimA = util.sizeFromShape(outerDimsA);
   const batchDimB = util.sizeFromShape(outerDimsB);
 
+  const batchDimsCompatible = batchDimA === 1 || batchDimB === 1;
+
   util.assert(
-      util.arraysEqual(outerDimsA, outerDimsB),
-      () => `Error in matMul: outer dimensions (${outerDimsA}) and (` +
-          `${outerDimsB}) of Tensors with shapes ${$a.shape} and ` +
-          `${$b.shape} must match.`);
+      $a.rank >= 2 && $b.rank >= 2 && batchDimsCompatible,
+      () => `Error in matMul: the input batch dimensions must either be the ` +
+          `same or at least one input batch dimension must be 1. Got input ` +
+          `batch dimensions of (${outerDimsA}) and (${outerDimsB}).`);
 
   util.assert(
       innerShapeA === innerShapeB,
@@ -83,7 +80,12 @@ function matMul_<T extends Tensor>(
           `${$b.shape} and transposeA=${transposeA}` +
           ` and transposeB=${transposeB} must match.`);
 
-  const outShape = $a.shape.slice(0, -2).concat([outerShapeA, outerShapeB]);
+  let outShape = $a.shape.slice(0, -2).concat([outerShapeA, outerShapeB]);
+  if ($a.rank >= 2 && $b.rank >= 2 && $a.rank !== $b.rank) {
+    const outShapeOuterDims =
+        $a.rank > $b.rank ? $a.shape.slice(0, -2) : $b.shape.slice(0, -2);
+    outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
+  }
 
   const a3D = transposeA ? reshape($a, [batchDimA, innerShapeA, outerShapeA]) :
                            reshape($a, [batchDimA, outerShapeA, innerShapeA]);
