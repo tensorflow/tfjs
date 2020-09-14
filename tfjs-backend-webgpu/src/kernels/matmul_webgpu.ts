@@ -70,7 +70,6 @@ export function makeMatMulSource(): string {
 
 export class MatMulProgram implements WebGPUProgram {
   outputShape: number[];
-  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
@@ -140,6 +139,5 @@ export class MatMulProgram implements WebGPUProgram {
         mm_matMul(dimAOuter, dimInner, dimBOuter);
       }
     `;
-    this.shaderKey = `matmul${fitA}${fitB}${transposeA}${transposeB}`;
   }
 }
