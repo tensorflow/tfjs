@@ -1870,21 +1870,20 @@ export class MathBackendWebGL extends KernelBackend {
         !reshapeWillBeExpensive) {
       const targetShape = isChannelsLast ? xShape[0] * xShape[1] * xShape[2] :
                                            xShape[0] * xShape[2] * xShape[3];
-      const xReshaped = this.reshape(x, [1, targetShape, convInfo.inChannels]);
+      const xReshaped = x.reshape([1, targetShape, convInfo.inChannels]);
       const filterReshaped =
-          this.reshape(filter, [1, convInfo.inChannels, convInfo.outChannels]);
+          filter.reshape([1, convInfo.inChannels, convInfo.outChannels]);
 
-      return this.reshape<Rank.R4>(
-          this.fusedBatchMatMul({
-            a: xReshaped as Tensor3D,
-            b: filterReshaped as Tensor3D,
-            transposeA,
-            transposeB,
-            bias,
-            activation,
-            preluActivationWeights
-          }),
-          convInfo.outShape);
+      const result = this.fusedBatchMatMul({
+        a: xReshaped as Tensor3D,
+        b: filterReshaped as Tensor3D,
+        transposeA,
+        transposeB,
+        bias,
+        activation,
+        preluActivationWeights
+      });
+      return result.reshape(convInfo.outShape);
     }
 
     // Following optimization is specific to packed |x| with odd row count
@@ -1919,7 +1918,7 @@ export class MathBackendWebGL extends KernelBackend {
         () => `packed reshape ${xTexData.shape} to ${
             xReshaped.shape} isn't free`);
     const filterReshaped =
-        this.reshape(filter, [1, convInfo.inChannels, convInfo.outChannels]);
+        filter.reshape([1, convInfo.inChannels, convInfo.outChannels]);
 
     const pointwiseConv = this.fusedBatchMatMul({
       a: xReshaped as Tensor3D,
@@ -2230,19 +2229,6 @@ export class MathBackendWebGL extends KernelBackend {
         maxPool3dBackPropProgram, [dy, maxPool3dPositions], x.dtype);
     maxPool3dPositions.dispose();
     return result as Tensor5D;
-  }
-
-  reshape<R extends Rank>(x: Tensor, shape: ShapeMap[R]): Tensor<R> {
-    const texData = this.texData.get(x.dataId);
-
-    if (texData.isPacked && !webgl_util.isReshapeFree(x.shape, shape) &&
-        !(texData.texture !== null &&
-          webgl_util.isReshapeFree(texData.shape, shape))) {
-      const info = this.packedReshape(x, shape);
-      return engine().makeTensorFromDataId(
-                 info.dataId, info.shape, info.dtype) as Tensor<R>;
-    }
-    return backend_util.reshapeTensor(x, shape);
   }
 
   resizeBilinear(

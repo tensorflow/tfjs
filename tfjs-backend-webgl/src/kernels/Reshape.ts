@@ -19,6 +19,31 @@ import {KernelFunc, Reshape, ReshapeAttrs, ReshapeInputs, TensorInfo} from '@ten
 import {KernelConfig, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
+import {ReshapePackedProgram} from '../reshape_packed_gpu';
+import {getBatchDim, getRowsCols, isReshapeFree} from '../webgl_util';
+
+function packedReshape(
+    input: TensorInfo, afterShape: number[],
+    backend: MathBackendWebGL): TensorInfo {
+  const input3DShape =
+      [getBatchDim(input.shape),
+       ...getRowsCols(input.shape)] as [number, number, number];
+  const input3D: TensorInfo = {
+    dtype: input.dtype,
+    shape: input3DShape,
+    dataId: input.dataId
+  };
+  const afterShapeAs3D =
+      [getBatchDim(afterShape),
+       ...getRowsCols(afterShape)] as [number, number, number];
+
+  const program = new ReshapePackedProgram(afterShapeAs3D, input3DShape);
+  const preventEagerUnpackingOfOutput = true;
+  const output = backend.runWebGLProgram(
+      program, [input3D], input.dtype, null /* customSetup */,
+      preventEagerUnpackingOfOutput);
+  return {dataId: output.dataId, shape: afterShape, dtype: output.dtype};
+}
 
 export function reshape(args: {
   inputs: ReshapeInputs,
@@ -39,6 +64,12 @@ export function reshape(args: {
       () => `The new shape (${$shape}) has ${$xSize} elements and the old ` +
           `shape (${x.shape}) has ${xSize} elements. The new shape and old ` +
           `shape must have the same number of elements.`);
+
+  const xTexData = webglBackend.texData.get(x.dataId);
+  if (xTexData.isPacked && !isReshapeFree(x.shape, $shape) &&
+      !(xTexData.texture !== null && isReshapeFree(xTexData.shape, $shape))) {
+    return packedReshape(x, $shape, webglBackend);
+  }
 
   webglBackend.incRef(x.dataId);
 
