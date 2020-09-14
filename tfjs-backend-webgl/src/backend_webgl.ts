@@ -84,7 +84,6 @@ import {PadProgram} from './pad_gpu';
 import {PadPackedProgram} from './pad_packed_gpu';
 import {Pool2DProgram, Pool3DProgram} from './pool_gpu';
 import {ReduceProgram} from './reduce_gpu';
-import {ReshapePackedProgram} from './reshape_packed_gpu';
 import {ResizeBilinearBackpropProgram} from './resize_bilinear_backprop_gpu';
 import {ResizeBilinearProgram} from './resize_bilinear_gpu';
 import {ResizeBilinearPackedProgram} from './resize_bilinear_packed_gpu';
@@ -109,6 +108,7 @@ import {UnaryOpPackedProgram} from './unaryop_packed_gpu';
 import {UnpackProgram} from './unpack_gpu';
 import * as webgl_util from './webgl_util';
 import {BackendValues} from '@tensorflow/tfjs-core';
+import {packedReshape} from './kernel_utils/reshape';
 
 export const EPSILON_FLOAT32 = 1e-7;
 export const EPSILON_FLOAT16 = 1e-4;
@@ -2462,28 +2462,6 @@ export class MathBackendWebGL extends KernelBackend {
         preventEagerUnpackingOutput);
   }
 
-  private packedReshape(input: TensorInfo, afterShape: number[]): TensorInfo {
-    const input3DShape = [
-      webgl_util.getBatchDim(input.shape),
-      ...webgl_util.getRowsCols(input.shape)
-    ] as [number, number, number];
-    const input3D: TensorInfo = {
-      dtype: input.dtype,
-      shape: input3DShape,
-      dataId: input.dataId
-    };
-    const afterShapeAs3D = [
-      webgl_util.getBatchDim(afterShape), ...webgl_util.getRowsCols(afterShape)
-    ] as [number, number, number];
-
-    const program = new ReshapePackedProgram(afterShapeAs3D, input3DShape);
-    const preventEagerUnpackingOfOutput = true;
-    const output = this.runWebGLProgram(
-        program, [input3D], input.dtype, null /* customSetup */,
-        preventEagerUnpackingOfOutput);
-    return {dataId: output.dataId, shape: afterShape, dtype: output.dtype};
-  }
-
   private decode(dataId: DataId): TensorInfo {
     const texData = this.texData.get(dataId);
     const {isPacked, shape, dtype} = texData;
@@ -2583,7 +2561,7 @@ export class MathBackendWebGL extends KernelBackend {
         const targetShape = input.shape;
 
         input.shape = texData.shape;
-        input = this.packedReshape(input as Tensor, targetShape);
+        input = packedReshape(input as Tensor, targetShape, this);
         dataToDispose.push(input);
         texData = this.texData.get(input.dataId);
 

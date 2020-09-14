@@ -182,6 +182,7 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
   it('read packed and then use by an unpacked op', async () => {
     const backend = new MathBackendWebGL(null);
     tf.registerBackend('test-storage', () => backend);
+    tf.reRegisterKernelsForBackend('webgl', 'test-storage');
     tf.setBackend('test-storage');
 
     const webglPackFlagSaved = tf.env().getBool('WEBGL_PACK');

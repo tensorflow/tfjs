@@ -19,31 +19,8 @@ import {KernelFunc, Reshape, ReshapeAttrs, ReshapeInputs, TensorInfo} from '@ten
 import {KernelConfig, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import {ReshapePackedProgram} from '../reshape_packed_gpu';
-import {getBatchDim, getRowsCols, isReshapeFree} from '../webgl_util';
-
-function packedReshape(
-    input: TensorInfo, afterShape: number[],
-    backend: MathBackendWebGL): TensorInfo {
-  const input3DShape =
-      [getBatchDim(input.shape),
-       ...getRowsCols(input.shape)] as [number, number, number];
-  const input3D: TensorInfo = {
-    dtype: input.dtype,
-    shape: input3DShape,
-    dataId: input.dataId
-  };
-  const afterShapeAs3D =
-      [getBatchDim(afterShape),
-       ...getRowsCols(afterShape)] as [number, number, number];
-
-  const program = new ReshapePackedProgram(afterShapeAs3D, input3DShape);
-  const preventEagerUnpackingOfOutput = true;
-  const output = backend.runWebGLProgram(
-      program, [input3D], input.dtype, null /* customSetup */,
-      preventEagerUnpackingOfOutput);
-  return {dataId: output.dataId, shape: afterShape, dtype: output.dtype};
-}
+import {packedReshape} from '../kernel_utils/reshape';
+import {isReshapeFree} from '../webgl_util';
 
 export function reshape(args: {
   inputs: ReshapeInputs,
