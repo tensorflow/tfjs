@@ -711,15 +711,19 @@ describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
 
 describeWithFlags('WebGL backend has sync init', WEBGL_ENVS, () => {
   it('can do matmul without waiting for ready', async () => {
-    tf.registerBackend('my-webgl', () => {
+    const customWebGLBackendName = 'my-webgl';
+
+    tf.reRegisterKernelsForBackend('webgl', customWebGLBackendName);
+
+    tf.registerBackend(customWebGLBackendName, () => {
       return new MathBackendWebGL();
     });
-    tf.setBackend('my-webgl');
+    tf.setBackend(customWebGLBackendName);
     const a = tf.tensor1d([5]);
     const b = tf.tensor1d([3]);
     const res = tf.dot(a, b);
     expectArraysClose(await res.data(), 15);
     tf.dispose([a, b, res]);
-    tf.removeBackend('my-webgl');
+    tf.removeBackend(customWebGLBackendName);
   });
 });

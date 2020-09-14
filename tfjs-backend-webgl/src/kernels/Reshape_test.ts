@@ -23,7 +23,7 @@ const {expectArraysClose, expectArraysEqual} = test_util;
 import {describeWithFlags, ALL_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 describeWithFlags('Reshape.', ALL_ENVS, () => {
-  fit('does not have memory leak.', async () => {
+  it('does not have memory leak.', async () => {
     const beforeDataIds = tf.engine().backend.numDataIds();
 
     const x = tf.tensor1d([1, 1, 1, 1]);
@@ -43,7 +43,7 @@ describeWithFlags('Reshape.', ALL_ENVS, () => {
     expect(afterDisposeDataIds).toEqual(beforeDataIds);
   });
 
-  fit('does not have memory leak calling reshape twice.', async () => {
+  it('does not have memory leak calling reshape twice.', async () => {
     const beforeDataIds = tf.engine().backend.numDataIds();
 
     // Adding 1 new dataId.
