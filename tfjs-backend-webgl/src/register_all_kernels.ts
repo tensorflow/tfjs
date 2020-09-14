@@ -24,6 +24,7 @@ import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
+import {reshapeConfig} from './kernels/Reshape';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
@@ -33,8 +34,8 @@ import {transposeConfig} from './kernels/Transpose';
 const kernelConfigs: KernelConfig[] = [
   maxConfig, flipLeftRightConfig, fromPixelsConfig, divConfig,
   maxPoolWithArgmaxConfig, nonMaxSuppressionV3Config, nonMaxSuppressionV4Config,
-  nonMaxSuppressionV5Config, rotateWithOffsetConfig, squareConfig,
-  squaredDifferenceConfig, transposeConfig
+  nonMaxSuppressionV5Config, reshapeConfig, rotateWithOffsetConfig,
+  squareConfig, squaredDifferenceConfig, transposeConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {
