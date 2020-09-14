@@ -56,7 +56,8 @@ export function binaryKernelFunc(
   };
 }
 
-export function createBinaryKernelImpl(op: (a: number, b: number) => number) {
+export function createBinaryKernelImpl(op: SimpleBinaryOperation):
+    SimpleBinaryKernelImpl {
   return (aShape: number[], bShape: number[], aVals: TypedArray,
           bVals: TypedArray, dtype: DataType): [TypedArray, number[]] => {
     const newShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
