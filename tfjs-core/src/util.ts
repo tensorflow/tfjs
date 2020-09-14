@@ -16,8 +16,8 @@
  */
 
 import {env} from './environment';
-
 import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray} from './types';
+
 
 /**
  * Shuffles the array in-place using Fisher-Yates algorithm.
