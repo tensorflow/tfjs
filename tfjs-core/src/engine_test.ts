@@ -544,6 +544,31 @@ describeWithFlags(
         expect(tf.memory().numTensors).toBe(0);
         expect(tf.memory().numBytes).toBe(0);
       });
+
+      it('can execute op with data from mixed backends', async () => {
+        const kernelFunc = tf.getKernel('Add', 'cpu').kernelFunc;
+        tf.registerKernel({kernelName: 'Add', backendName: 'cpu1', kernelFunc});
+        tf.registerKernel({kernelName: 'Add', backendName: 'cpu2', kernelFunc});
+
+        tf.setBackend('cpu1');
+        // This scalar lives in cpu1.
+        const a = tf.scalar(5);
+
+        tf.setBackend('cpu2');
+        // This scalar lives in cpu2.
+        const b = tf.scalar(3);
+
+        // Verify that ops can execute with mixed backend data.
+        ENGINE.startScope();
+        tf.setBackend('cpu1');
+        expectArraysClose(await tf.add(a, b).data(), [8]);
+
+        tf.setBackend('cpu2');
+        expectArraysClose(await tf.add(a, b).data(), [8]);
+        ENGINE.endScope();
+
+        tf.dispose([a, b]);
+      });
     });
 
 /**

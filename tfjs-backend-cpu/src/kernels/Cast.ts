@@ -15,10 +15,9 @@
  * =============================================================================
  */
 import * as tf from '@tensorflow/tfjs-core';
-import {Cast, CastAttrs, CastInputs, KernelConfig, KernelFunc, Tensor, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {Cast, CastAttrs, CastInputs, KernelConfig, KernelFunc, Tensor, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
-import {makeInt32TensorInfo} from '../utils/cast_utils';
 
 import {complex} from './Complex';
 import {identity} from './Identity';
@@ -68,7 +67,9 @@ export function cast(
   }
 
   if (dtype === 'int32') {
-    return makeInt32TensorInfo(x, backend);
+    const values = backend.data.get(x.dataId).values as TypedArray;
+    const resultValues = Int32Array.from(values);
+    return backend.makeTensorInfo(x.shape, 'int32', resultValues);
   }
 
   if (dtype === 'bool') {
