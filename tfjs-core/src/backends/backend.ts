@@ -664,5 +664,5 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
 function notYetImplemented(kernelName: string): never {
   throw new Error(
       `'${kernelName}' not yet implemented or not found in the registry. ` +
-      `Did you forget to import the kernel?`);
+      `This kernel may not be supported by the tfjs backend you have chosen`);
 }
