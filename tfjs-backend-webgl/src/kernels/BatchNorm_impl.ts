@@ -39,14 +39,13 @@ export function batchNorm(
     inputs.push(scale);
   }
 
-  let program = new BatchNormProgram(
-      x.shape, mean.shape, variance.shape, offsetShape, scaleShape,
-      varianceEpsilon);
-  if (env().getBool('WEBGL_PACK_NORMALIZATION')) {
-    program = new BatchNormPackedProgram(
-        x.shape, mean.shape, variance.shape, offsetShape, scaleShape,
-        varianceEpsilon);
-  }
+  const program = env().getBool('WEBGL_PACK_NORMALIZATION') ?
+      new BatchNormPackedProgram(
+          x.shape, mean.shape, variance.shape, offsetShape, scaleShape,
+          varianceEpsilon) :
+      new BatchNormProgram(
+          x.shape, mean.shape, variance.shape, offsetShape, scaleShape,
+          varianceEpsilon);
   const output = backend.runWebGLProgram(program, inputs, inputs[0].dtype);
   return output;
 }

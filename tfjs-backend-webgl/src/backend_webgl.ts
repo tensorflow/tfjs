@@ -623,7 +623,7 @@ export class MathBackendWebGL extends KernelBackend {
     return this.texData.get(dataId);
   }
 
-  private getCPUBackend(): KernelBackend|null {
+  getCPUBackend(): KernelBackend|null {
     if (!env().getBool('WEBGL_CPU_FORWARD')) {
       return null;
     }
@@ -869,6 +869,8 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun<Tensor3D>(program, inputs, dtype);
   }
 
+  // TODO(jingjin): delete this method when batchMetMul (which uses multiply
+  // here) is modularized.
   multiply(a: Tensor, b: Tensor): Tensor {
     if (a.dtype === 'complex64') {
       const aData = this.texData.get(a.dataId);
@@ -1420,8 +1422,8 @@ export class MathBackendWebGL extends KernelBackend {
   // Returns a TensorInfo with the complex shape and the dataId of the
   // underlying part. We need to do this because a reshaped complex tensor is
   // not reflected in its parts.
-  private makeComplexComponentTensorInfo(
-      complexTensor: Tensor, complexPart: Tensor): TensorInfo {
+  makeComplexComponentTensorInfo(
+      complexTensor: TensorInfo, complexPart: Tensor): TensorInfo {
     return {
       dataId: complexPart.dataId,
       dtype: complexPart.dtype,

@@ -15,20 +15,22 @@
  * =============================================================================
  */
 
-import {env} from '@tensorflow/tfjs-core';
-import {TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelFunc, Multiply, MultiplyInputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import * as binaryop_gpu from '../binaryop_gpu';
-import {BinaryOpProgram} from '../binaryop_gpu';
-import * as binaryop_packed_gpu from '../binaryop_packed_gpu';
-import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
 
-export function atan2Impl(
-    a: TensorInfo, b: TensorInfo, backend: MathBackendWebGL): TensorInfo {
-  const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
-      new BinaryOpPackedProgram(binaryop_packed_gpu.ATAN2, a.shape, b.shape) :
-      new BinaryOpProgram(binaryop_gpu.ATAN2, a.shape, b.shape);
-  const output = backend.runWebGLProgram(program, [a, b], 'float32');
-  return output;
-}
+import {multiplyImpl} from './Multiply_impl';
+
+export const multiplyKernelFunc:
+    (params: {inputs: MultiplyInputs, backend: MathBackendWebGL}) =>
+        TensorInfo | TensorInfo[] = ({inputs, backend}) => {
+          const {a, b} = inputs;
+          return multiplyImpl(a, b, backend);
+        };
+
+export const multiplyConfig: KernelConfig = {
+  kernelName: Multiply,
+  backendName: 'webgl',
+  kernelFunc: multiplyKernelFunc as {} as KernelFunc,
+};
