@@ -15,21 +15,22 @@
  * =============================================================================
  */
 
-import {Cos, CosInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
+import {env} from '@tensorflow/tfjs-core';
+import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import {COS, UnaryOpProgram} from '../unaryop_gpu';
+import * as binaryop_gpu from '../binaryop_gpu';
+import {BinaryOpProgram} from '../binaryop_gpu';
+import * as binaryop_packed_gpu from '../binaryop_packed_gpu';
+import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
 
-export const cosKernelFunc:
-    (params: {inputs: CosInputs, backend: MathBackendWebGL}) =>
-        TensorInfo | TensorInfo[] = ({inputs, backend}) => {
-          const {x} = inputs;
-          const program = new UnaryOpProgram(x.shape, COS);
-          return backend.runWebGLProgram(program, [x], x.dtype);
-        };
-
-export const cosConfig: KernelConfig = {
-  kernelName: Cos,
-  backendName: 'webgl',
-  kernelFunc: cosKernelFunc as {} as KernelFunc,
-};
+export function atan2Impl(
+    a: TensorInfo, b: TensorInfo, backend: MathBackendWebGL): TensorInfo {
+  let program = new BinaryOpProgram(binaryop_gpu.ATAN2, a.shape, b.shape);
+  if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
+    program =
+        new BinaryOpPackedProgram(binaryop_packed_gpu.ATAN2, a.shape, b.shape);
+  }
+  const output = backend.runWebGLProgram(program, [a, b], 'float32');
+  return output;
+}

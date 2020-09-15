@@ -15,21 +15,24 @@
  * =============================================================================
  */
 
-import {Cos, CosInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
+import {FusedBatchNorm, FusedBatchNormAttrs, FusedBatchNormInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import {COS, UnaryOpProgram} from '../unaryop_gpu';
 
-export const cosKernelFunc:
-    (params: {inputs: CosInputs, backend: MathBackendWebGL}) =>
-        TensorInfo | TensorInfo[] = ({inputs, backend}) => {
-          const {x} = inputs;
-          const program = new UnaryOpProgram(x.shape, COS);
-          return backend.runWebGLProgram(program, [x], x.dtype);
-        };
+import {batchNorm} from './BatchNorm_impl';
 
-export const cosConfig: KernelConfig = {
-  kernelName: Cos,
+export const batchNormKernelFunc: (params: {
+  inputs: FusedBatchNormInputs,
+  backend: MathBackendWebGL,
+  attrs: FusedBatchNormAttrs
+}) => TensorInfo | TensorInfo[] = ({inputs, backend, attrs}) => {
+  const {x, mean, variance, offset, scale} = inputs;
+  const {varianceEpsilon} = attrs;
+  return batchNorm(x, mean, variance, backend, offset, scale, varianceEpsilon);
+};
+
+export const batchNormConfig: KernelConfig = {
+  kernelName: FusedBatchNorm,
   backendName: 'webgl',
-  kernelFunc: cosKernelFunc as {} as KernelFunc,
+  kernelFunc: batchNormKernelFunc as {} as KernelFunc,
 };

@@ -15,21 +15,22 @@
  * =============================================================================
  */
 
-import {Cos, CosInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
+import {Atan2, Atan2Inputs, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import {COS, UnaryOpProgram} from '../unaryop_gpu';
 
-export const cosKernelFunc:
-    (params: {inputs: CosInputs, backend: MathBackendWebGL}) =>
+import {atan2Impl} from './Atan2_impl';
+
+export const atan2KernelFunc:
+    (params: {inputs: Atan2Inputs, backend: MathBackendWebGL}) =>
         TensorInfo | TensorInfo[] = ({inputs, backend}) => {
-          const {x} = inputs;
-          const program = new UnaryOpProgram(x.shape, COS);
-          return backend.runWebGLProgram(program, [x], x.dtype);
+          const {a, b} = inputs;
+          return atan2Impl(a, b, backend);
         };
 
-export const cosConfig: KernelConfig = {
-  kernelName: Cos,
+export const atan2Config: KernelConfig = {
+  kernelName: Atan2,
   backendName: 'webgl',
-  kernelFunc: cosKernelFunc as {} as KernelFunc,
+  kernelFunc: atan2KernelFunc as {} as KernelFunc,
 };
