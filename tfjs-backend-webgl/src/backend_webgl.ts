@@ -284,11 +284,13 @@ export class MathBackendWebGL extends KernelBackend {
     return dataId;
   }
 
+  /** Increase refCount of a `TensorData`. */
   incRef(dataId: DataId): void {
     const texData = this.texData.get(dataId);
     texData.refCount++;
   }
 
+  /** Decrease refCount of a `TensorData`. */
   decRef(dataId: DataId): void {
     if (this.texData.has(dataId)) {
       const texData = this.texData.get(dataId);
