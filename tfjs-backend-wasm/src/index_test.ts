@@ -188,13 +188,6 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
        });
        expect(await tf.setBackend('wasm-test')).toBe(true);
        expect(wasmPath).toBe(validPath);
-
-       // Ensure it is also possible to run kernels.
-       tf.reregisterKernelsForNewBackend('wasm', 'wasm-test');
-       const a = tf.tensor1d([5]);
-       const b = tf.tensor1d([3]);
-       const res = tf.dot(a, b);
-       test_util.expectArraysClose(await res.data(), 15);
      });
 
   // Disabling this test because it intermittently times out on CI.
