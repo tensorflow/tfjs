@@ -51,9 +51,6 @@ export function reshape(args: {
   webglBackend.incRef(x.dataId);
 
   return {dataId: x.dataId, shape: $shape, dtype: x.dtype};
-
-  // const out = webglBackend.makeTensorInfo(shape, x.dtype);
-  // return out;
 }
 
 export const reshapeConfig: KernelConfig = {
