@@ -338,7 +338,7 @@ export class MathBackendWebGL extends KernelBackend {
       const res =
           this.runWebGLProgram(program, [{dataId, shape, dtype}], dtype);
       const data = this.readSync(res.dataId);
-      this.disposeData(res.dataId);
+      this.disposeIntermediateTensorInfo(res);
       return data;
     }
     if (values != null) {
@@ -386,7 +386,7 @@ export class MathBackendWebGL extends KernelBackend {
       const res =
           this.runWebGLProgram(program, [{dataId, shape, dtype}], dtype);
       const data = this.read(res.dataId);
-      this.disposeData(res.dataId);
+      this.disposeIntermediateTensorInfo(res);
       return data;
     }
 
@@ -436,7 +436,7 @@ export class MathBackendWebGL extends KernelBackend {
       vals = this.gpgpu.downloadFloat32MatrixFromBuffer(buffer, size);
     }
     if (tmpDownloadTarget != null) {
-      this.disposeData(tmpDownloadTarget.dataId);
+      this.disposeIntermediateTensorInfo(tmpDownloadTarget);
     }
     const dTypeVals = this.convertAndCacheOnCPU(dataId, vals);
 
@@ -482,7 +482,7 @@ export class MathBackendWebGL extends KernelBackend {
                            tmpData.texture, ...tex_util.getDenseTexShape(shape))
                        .subarray(0, size);
 
-      this.disposeData(tmpTarget.dataId);
+      this.disposeIntermediateTensorInfo(tmpTarget);
 
       return vals;
     }
@@ -502,7 +502,7 @@ export class MathBackendWebGL extends KernelBackend {
             .downloadByteEncodedFloatMatrixFromOutputTexture(
                 tmpData.texture, tmpData.texShape[0], tmpData.texShape[1])
             .subarray(0, size);
-    this.disposeData(output.dataId);
+    this.disposeIntermediateTensorInfo(output);
 
     return vals;
   }
@@ -2589,7 +2589,7 @@ export class MathBackendWebGL extends KernelBackend {
     gpgpu_math.runProgram(
         this.gpgpu, binary, inputsData, outputData, customSetup);
 
-    dataToDispose.forEach(info => this.disposeData(info.dataId));
+    dataToDispose.forEach(info => this.disposeIntermediateTensorInfo(info));
 
     if (shouldTimeProgram) {
       query = this.endTimer(query);
@@ -2600,7 +2600,7 @@ export class MathBackendWebGL extends KernelBackend {
     if (!env().getBool('WEBGL_LAZILY_UNPACK') && outData.isPacked &&
         preventEagerUnpackingOfOutput === false) {
       const unpacked = this.unpackTensor(output);
-      this.disposeData(output.dataId);
+      this.disposeIntermediateTensorInfo(output);
       return unpacked;
     }
     return output;
@@ -2747,7 +2747,7 @@ export class MathBackendWebGL extends KernelBackend {
       texData.isPacked = outputTexData.isPacked;
       texData.usage = outputTexData.usage;
 
-      this.disposeData(tempDenseInputHandle.dataId);
+      this.disposeIntermediateTensorInfo(tempDenseInputHandle);
       this.texData.delete(encodedOutputTarget.dataId);
 
       // Once uploaded, don't store the values on cpu.
