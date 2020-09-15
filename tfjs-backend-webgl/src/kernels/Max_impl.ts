@@ -32,10 +32,7 @@ export function maxImpl(
 
   const reduced = reduce(reshapedInput, x.dtype, 'max', backend);
 
-  if (reshapedInput.dataId !== x.dataId) {
-    // dispose the output of the packed reshape.
-    backend.disposeData(reshapedInput.dataId);
-  }
+  backend.disposeIntermediateTensorInfo(reshapedInput);
 
   return reshape({inputs: {x: reduced}, attrs: {shape: outShape}, backend});
 }
