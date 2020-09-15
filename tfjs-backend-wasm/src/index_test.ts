@@ -190,7 +190,7 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
        expect(wasmPath).toBe(validPath);
 
        // Ensure it is also possible to run kernels.
-       tf.reRegisterKernelsForBackend('wasm', 'wasm-test');
+       tf.reregisterKernelsForNewBackend('wasm', 'wasm-test');
        const a = tf.tensor1d([5]);
        const b = tf.tensor1d([3]);
        const res = tf.dot(a, b);

@@ -194,9 +194,13 @@ export function unregisterGradient(kernelName: string): void {
   gradRegistry.delete(kernelName);
 }
 
-// Finds kernels that have already been registered to a backend and re-registers
-// them for a new backend.
-export function reRegisterKernelsForBackend(
+/**
+ * Finds kernels that have already been registered to a backend and re-registers
+ * them for a new backend. Useful for registering custom backends.
+ * @param registeredBackendName Already registered backend.
+ * @param newBackendName New backend.
+ */
+export function reregisterKernelsForNewBackend(
     registeredBackendName: string, newBackendName: string): void {
   const kernels = getKernelsForBackend(registeredBackendName);
   kernels.forEach(kernelConfig => {
