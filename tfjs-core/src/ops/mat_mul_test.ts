@@ -29,13 +29,6 @@ import {expectArraysClose, expectArraysEqual} from '../test_util';
 import {Rank} from '../types';
 
 describeWithFlags('matmul', ALL_ENVS, () => {
-  fit('unequal ranks', async () => {
-    const a = tf.ones([1, 8, 8, 64, 2]);
-    const b = tf.ones([2, 1]);
-    const c = tf.matMul(a, b);
-    expect(c.shape).toEqual([1, 8, 8, 64, 1]);
-  });
-
   it('A x B', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
@@ -71,6 +64,20 @@ describeWithFlags('matmul', ALL_ENVS, () => {
       388, 409, 453, 185, 161, 28,  125, 213, 472, 49,  53,  25,  21,
       8,   25,  33,  52,  121, 133, 57,  49,  12,  45,  69,  136
     ]);
+  });
+
+  fit('unequal ranks', async () => {
+    const a = tf.tensor5d(
+        [
+          2, 1, 3, 2, 1,  1,  1, 5, 6, 7, 8, 1,
+          2, 2, 1, 9, 11, 10, 1, 1, 3, 2, 1, 1
+        ],
+        [1, 2, 2, 3, 2]);
+    const b = tf.tensor2d([1, 0.5], [2, 1]);
+    const c = tf.matMul(a, b);
+    const data = await c.data();
+    console.log(Array.from(data));
+    expect(c.shape).toEqual([1, 2, 2, 3, 1]);
   });
 
   it('matmul followed by mul', async () => {

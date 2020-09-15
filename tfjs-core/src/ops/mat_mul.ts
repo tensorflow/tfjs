@@ -44,7 +44,7 @@ import {reshape} from './reshape';
  * @doc {heading: 'Operations', subheading: 'Matrices'}
  */
 function matMul_<T extends Tensor>(
-    a: T|TensorLike, b: T|TensorLike, transposeA = false,
+    a: Tensor|TensorLike, b: Tensor|TensorLike, transposeA = false,
     transposeB = false): T {
   let $a = convertToTensor(a, 'a', 'matMul');
   let $b = convertToTensor(b, 'b', 'matMul');
