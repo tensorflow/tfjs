@@ -72,7 +72,7 @@
     "build-backend-webgl": "cd ../tfjs-backend-webgl && yarn && yarn build",
     "build-backend-webgl-ci": "cd ../tfjs-backend-webgl && yarn && yarn build-ci",
     "build-deps": "yarn build-core && yarn build-layers && yarn build-converter && yarn build-data && yarn build-backend-cpu && yarn build-backend-webgl",
-    "build-deps-ci": "yarn build-core-ci && yarn build-layers-ci && yarn build-converter-ci && yarn build-data-ci && yarn build-backend-cpu-ci && yarn build-backend-webgl-ci",
+    "build-deps-ci": "../scripts/build-deps-ci.sh tfjs-core tfjs-backend-cpu tfjs-backend-webgl tfjs-layers tfjs-converter tfjs-data",
     "build-cli": "tsc --project ./tools/custom_bundle/tsconfig.json && chmod +x ./dist/tools/custom_bundle/cli.js",
     "run-custom-build": "ts-node -s ./src/tools/custom_bundle/cli.ts",
     "build-npm": "./scripts/build-npm.sh",

@@ -52,7 +52,7 @@
     "bundle": "rollup -c",
     "bundle-ci": "rollup -c --ci",
     "build-deps": "yarn build-core && yarn build-cpu-backend",
-    "build-deps-ci": "yarn build-core-ci && yarn build-cpu-backend-ci",
+    "build-deps-ci": "../scripts/build-deps-ci.sh tfjs-core tfjs-backend-cpu",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
     "build-cpu-backend": "cd ../tfjs-backend-cpu && yarn && yarn build",

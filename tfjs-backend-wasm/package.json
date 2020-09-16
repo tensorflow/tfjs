@@ -14,7 +14,7 @@
     "bazel:lint": "yarn bazel:format --lint=warn",
     "bazel:lint-check": "yarn bazel:format --lint=warn --mode=check",
     "build-deps": "cd ../tfjs-core && yarn && yarn build",
-    "build-deps-ci": "cd ../tfjs-core && yarn && yarn build-ci",
+    "build-deps-ci": "../scripts/build-deps-ci.sh tfjs-core",
     "build": "rimraf dist/ && tsc && ./scripts/build-wasm.sh",
     "build-dev": "rimraf dist/ && tsc && ./scripts/build-wasm.sh --dev",
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
