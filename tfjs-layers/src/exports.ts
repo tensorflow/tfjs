@@ -64,9 +64,7 @@ import {loadLayersModelInternal, Sequential, SequentialArgs} from './models';
  * ```
  * See also:
  *   `tf.sequential`, `tf.loadLayersModel`.
- */
-
-/**
+ *
  * @doc {heading: 'Models', subheading: 'Creation'}
  */
 export function model(args: ContainerArgs): LayersModel {
@@ -130,8 +128,7 @@ export function model(args: ContainerArgs): LayersModel {
  * });
  * console.log(JSON.stringify(model.outputs[0].shape));
  * ```
- */
-/**
+ *
  * @doc {heading: 'Models', subheading: 'Creation'}
  */
 export function sequential(config?: SequentialArgs): Sequential {
@@ -226,8 +223,9 @@ export function sequential(config?: SequentialArgs): Sequential {
  *     that can be used as the progress callback for the model loading.
  * @returns A `Promise` of `tf.LayersModel`, with the topology and weights
  *     loaded.
+ *
+ * @doc {heading: 'Models', subheading: 'Loading'}
  */
-/** @doc {heading: 'Models', subheading: 'Loading'} */
 export function loadLayersModel(
     pathOrIOHandler: string|io.IOHandler,
     options?: io.LoadOptions): Promise<LayersModel> {
@@ -257,8 +255,9 @@ export function loadLayersModel(
  * Note: `input` is only necessary when using `model`. When using
  * `sequential`, specify `inputShape` for the first layer or use `inputLayer`
  * as the first layer.
+ *
+ * @doc {heading: 'Models', subheading: 'Inputs'}
  */
-/** @doc {heading: 'Models', subheading: 'Inputs'} */
 export function input(config: InputConfig): SymbolicTensor {
   return Input(config);
 }

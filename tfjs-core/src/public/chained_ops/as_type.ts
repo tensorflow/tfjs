@@ -30,8 +30,9 @@ declare module '../../tensor' {
  * Casts a `tf.Tensor` to a specified dtype.
  *
  * @param dtype Data-type to cast the tensor to.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Classes'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Classes'} */
 Tensor.prototype.asType = function<T extends Tensor>(
     this: T, dtype: DataType): T {
   this.throwIfDisposed();

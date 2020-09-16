@@ -37,8 +37,9 @@ import {sum} from '../sum';
  *    `losses`, and must be broadcastable to `losses` (i.e., all
  *    dimensions must be either `1`, or the same as the corresponding
  *    `losses` dimension).
+ *
+ * @doc {heading: 'Training', subheading: 'Losses', namespace: 'losses'}
  */
-/** @doc {heading: 'Training', subheading: 'Losses', namespace: 'losses'} */
 function computeWeightedLoss_<T extends Tensor, O extends Tensor>(
     losses: T|TensorLike, weights?: Tensor|TensorLike,
     reduction = Reduction.SUM_BY_NONZERO_WEIGHTS): O {

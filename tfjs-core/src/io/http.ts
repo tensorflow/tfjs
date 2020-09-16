@@ -352,8 +352,7 @@ IORouterRegistry.registerLoadRouter(httpRouter);
  *   - onProgress Optional, progress callback function, fired periodically
  *     before the load is completed.
  * @returns An instance of `IOHandler`.
- */
-/**
+ *
  * @doc {
  *   heading: 'Models',
  *   subheading: 'Loading',

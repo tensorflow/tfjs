@@ -50,23 +50,24 @@ import {op} from './operation';
  *
  * @param x The input tensor to be reshaped.
  * @param shape An array of integers defining the output tensor shape.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Transformations'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Transformations'} */
 function reshape_<R extends Rank>(
     x: Tensor|TensorLike, shape: ShapeMap[R]): Tensor<R> {
   const $x = convertToTensor(x, 'x', 'reshape', null);
-  shape = util.inferFromImplicitShape(shape, $x.size) as ShapeMap[R];
-  util.assert(
-      $x.size === util.sizeFromShape(shape),
-      () => 'new shape and old shape must have the same number of elements.');
 
   const inputs: ReshapeInputs = {x: $x};
   const attrs: ReshapeAttrs = {shape};
-  const forward: ForwardFunc<Tensor<R>> =
-      (backend: KernelBackend, save: GradSaveFunc) => {
-        save([$x]);
-        return backend.reshape($x, shape);
-      };
+  const forward: ForwardFunc<
+      Tensor<R>> = (backend: KernelBackend, save: GradSaveFunc) => {
+    shape = util.inferFromImplicitShape(shape, $x.size) as ShapeMap[R];
+    util.assert(
+        $x.size === util.sizeFromShape(shape),
+        () => 'new shape and old shape must have the same number of elements.');
+    save([$x]);
+    return backend.reshape($x, shape);
+  };
   return ENGINE.runKernelFunc(
       forward, inputs as {} as NamedTensorMap, null /* grad */, Reshape,
       attrs as {} as NamedAttrMap);

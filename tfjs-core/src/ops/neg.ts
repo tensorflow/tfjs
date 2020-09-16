@@ -34,8 +34,9 @@ import {op} from './operation';
  * ```
  *
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function neg_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'neg');
 

@@ -35,8 +35,9 @@ import {op} from './operation';
  * ```
  * @param x The input tensor. If the dtype is `bool`, the output dtype will be
  *     `int32'.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function relu6_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'relu6');
 

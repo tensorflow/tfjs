@@ -33,8 +33,9 @@ import {op} from './operation';
  * x.sigmoid().print();  // or tf.sigmoid(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function sigmoid_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'sigmoid');
 

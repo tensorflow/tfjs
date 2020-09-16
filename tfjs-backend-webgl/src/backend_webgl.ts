@@ -1728,11 +1728,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  cos<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.COS);
-    return this.compileAndRun(program, [x]);
-  }
-
   tan<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.TAN);
     return this.compileAndRun(program, [x]);

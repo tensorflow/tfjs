@@ -669,7 +669,7 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
   });
 });
 
-describe('LayerNormalization Layer: Symbolic', () => {
+describeMathCPUAndGPU('LayerNormalization Layer: Symbolic', () => {
   it('Invalid axis value leads to constructor error', () => {
     expect(() => tfl.layers.layerNormalization({
       // tslint:disable-next-line:no-any

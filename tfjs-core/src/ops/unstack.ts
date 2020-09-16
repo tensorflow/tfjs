@@ -38,8 +38,9 @@ import {op} from './operation';
  *
  * @param x A tensor object.
  * @param axis The axis to unstack along. Defaults to 0 (the first dim).
+ *
+ * @doc {heading: 'Tensors', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
 function unstack_(x: Tensor|TensorLike, axis = 0): Tensor[] {
   const $x = convertToTensor(x, 'x', 'unstack');
   util.assert(

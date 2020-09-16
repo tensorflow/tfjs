@@ -48,8 +48,9 @@ import {op} from './operation';
  * @param a The first tensor as the numerator.
  * @param b The second tensor as the denominator. Must have the same dtype as
  * `a`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Arithmetic'}
  */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function floorDiv_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   let $a = convertToTensor(a, 'a', 'floorDiv');

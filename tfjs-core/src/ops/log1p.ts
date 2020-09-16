@@ -34,8 +34,9 @@ import {op} from './operation';
  * x.log1p().print();  // or tf.log1p(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function log1p_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'log1p');
 

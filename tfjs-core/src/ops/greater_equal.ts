@@ -37,8 +37,9 @@ import {op} from './operation';
  *
  * @param a The first input tensor.
  * @param b The second input tensor. Must have the same dtype as `a`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Logical'}
  */
-/** @doc {heading: 'Operations', subheading: 'Logical'} */
 function greaterEqual_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   let $a = convertToTensor(a, 'a', 'greaterEqual');
