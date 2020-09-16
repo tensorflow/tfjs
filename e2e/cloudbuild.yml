@@ -13,6 +13,7 @@ steps:
   entrypoint: 'yarn'
   id: 'build-deps'
   args: ['build-deps-ci']
+  waitFor: ['yarn']
 
 # Test.
 - name: 'gcr.io/learnjs-174218/release'
@@ -21,6 +22,7 @@ steps:
   id: 'test'
   args: ['test-ci']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
+  waitFor: ['build-deps']
 
   secretEnv: ['BROWSERSTACK_KEY']
 
