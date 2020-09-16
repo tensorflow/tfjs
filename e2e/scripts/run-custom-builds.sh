@@ -16,8 +16,9 @@
 # ==============================================================================
 
 # Go to e2e root
-cd ..
-e2e_root_path=$PWD
+echo $PWD
+# cd ..
+# e2e_root_path=$PWD
 
 cd custom_bundle/blazeface
 yarn
