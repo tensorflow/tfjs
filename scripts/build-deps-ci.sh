@@ -19,4 +19,5 @@ set -e
 
 echo "$@"
 cd $(dirname $0)/../
+yarn
 npx ts-node -s scripts/build-deps-ci-helper.ts "$@"
