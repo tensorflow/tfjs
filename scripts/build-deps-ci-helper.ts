@@ -48,7 +48,8 @@ function maybeBuildPackage(folder: string) {
     console.log(`dist folder for ${folder} does not exist. Triggering build`);
     console.log(process.cwd());
     shell.cd(folder)
-    $('yarn build-ci')
+    console.log(process.cwd());
+    $('yarn && yarn build-ci')
     shell.cd('..');
     console.log(process.cwd());
   }
