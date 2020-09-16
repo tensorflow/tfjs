@@ -15,6 +15,15 @@
  * =============================================================================
  */
 
-import {createBinaryKernelImpl} from '../utils/kernel_utils';
+import {KernelConfig, NotEqual} from '@tensorflow/tfjs-core';
 
-export const divImpl = createBinaryKernelImpl((a: number, b: number) => a / b);
+import {binaryKernelFunc} from '../utils/kernel_utils';
+
+export const notEqual =
+    binaryKernelFunc(NotEqual, ((a, b) => (a !== b) ? 1 : 0), 'bool');
+
+export const notEqualConfig: KernelConfig = {
+  kernelName: NotEqual,
+  backendName: 'cpu',
+  kernelFunc: notEqual
+};

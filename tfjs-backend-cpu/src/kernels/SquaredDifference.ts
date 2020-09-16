@@ -15,14 +15,18 @@
  * =============================================================================
  */
 
-import {SquaredDifference} from '@tensorflow/tfjs-core';
-import {createBinaryKernelImpl} from '../utils/kernel_utils';
-import {createBinaryKernelConfig} from '../utils/kernel_utils';
+import {KernelConfig, SquaredDifference} from '@tensorflow/tfjs-core';
 
-const squaredDifferenceImpl = createBinaryKernelImpl((aVal, bVal) => {
-  const diff = aVal - bVal;
-  return diff * diff;
-});
+import {binaryKernelFunc} from '../utils/kernel_utils';
 
-export const squaredDifferenceConfig =
-    createBinaryKernelConfig(SquaredDifference, squaredDifferenceImpl);
+export const squaredDifference =
+    binaryKernelFunc(SquaredDifference, (aVal, bVal) => {
+      const diff = aVal - bVal;
+      return diff * diff;
+    });
+
+export const squaredDifferenceConfig: KernelConfig = {
+  kernelName: SquaredDifference,
+  backendName: 'cpu',
+  kernelFunc: squaredDifference
+};
