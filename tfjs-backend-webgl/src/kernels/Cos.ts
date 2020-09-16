@@ -15,14 +15,18 @@
  * =============================================================================
  */
 
-import {Div, KernelConfig} from '@tensorflow/tfjs-core';
+import {Cos, CosInputs, KernelConfig} from '@tensorflow/tfjs-core';
 
-import {binaryKernelFunc} from '../utils/kernel_utils';
+import {MathBackendWebGL} from '../backend_webgl';
+import {COS, UnaryOpProgram} from '../unaryop_gpu';
 
-export const div = binaryKernelFunc(Div, (a: number, b: number) => a / b);
-
-export const divConfig: KernelConfig = {
-  kernelName: Div,
-  backendName: 'cpu',
-  kernelFunc: div
+export const cosConfig: KernelConfig = {
+  kernelName: Cos,
+  backendName: 'webgl',
+  kernelFunc: ({inputs, backend}) => {
+    const {x} = inputs as CosInputs;
+    const webglBackend = backend as MathBackendWebGL;
+    const program = new UnaryOpProgram(x.shape, COS);
+    return webglBackend.runWebGLProgram(program, [x], x.dtype);
+  }
 };

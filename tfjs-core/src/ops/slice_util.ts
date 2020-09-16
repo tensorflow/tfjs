@@ -15,24 +15,25 @@
  * =============================================================================
  */
 
-import {Tensor} from '../tensor';
+import {TensorInfo} from '../kernel_registry';
 import * as util from '../util';
 
 export function assertParamsValid(
-    input: Tensor, begin: number[], size: number[]): void {
+    input: TensorInfo, begin: number[], size: number[]): void {
+  const inputRank = input.shape.length;
   util.assert(
-      input.rank === begin.length,
-      () => `Error in slice${input.rank}D: Length of begin ${begin} must ` +
-          `match the rank of the array (${input.rank}).`);
+      inputRank === begin.length,
+      () => `Error in slice${inputRank}D: Length of begin ${begin} must ` +
+          `match the rank of the array (${inputRank}).`);
   util.assert(
-      input.rank === size.length,
-      () => `Error in slice${input.rank}D: Length of size ${size} must ` +
-          `match the rank of the array (${input.rank}).`);
+      inputRank === size.length,
+      () => `Error in slice${inputRank}D: Length of size ${size} must ` +
+          `match the rank of the array (${inputRank}).`);
 
-  for (let i = 0; i < input.rank; ++i) {
+  for (let i = 0; i < inputRank; ++i) {
     util.assert(
         begin[i] + size[i] <= input.shape[i],
-        () => `Error in slice${input.rank}D: begin[${i}] + size[${i}] ` +
+        () => `Error in slice${inputRank}D: begin[${i}] + size[${i}] ` +
             `(${begin[i] + size[i]}) would overflow input.shape[${i}] (${
                   input.shape[i]})`);
   }
@@ -314,13 +315,14 @@ export function computeFlatOffset(begin: number[], strides: number[]): number {
 }
 
 export function parseSliceParams(
-    x: Tensor, begin: number|number[], size?: number|number[]) {
+    x: TensorInfo, begin: number|number[], size?: number|number[]) {
   // The following logic allows for more ergonomic calls.
   let begin_: number[];
+  const xRank = x.shape.length;
   if (typeof begin === 'number') {
-    begin_ = [begin, ...new Array(x.rank - 1).fill(0)];
-  } else if (begin.length < x.rank) {
-    begin_ = begin.concat(new Array(x.rank - begin.length).fill(0));
+    begin_ = [begin, ...new Array(xRank - 1).fill(0)];
+  } else if (begin.length < xRank) {
+    begin_ = begin.concat(new Array(xRank - begin.length).fill(0));
   } else {
     begin_ = begin.slice();
   }
@@ -330,11 +332,11 @@ export function parseSliceParams(
   });
   let size_: number[];
   if (size == null) {
-    size_ = new Array(x.rank).fill(-1);
+    size_ = new Array(xRank).fill(-1);
   } else if (typeof size === 'number') {
-    size_ = [size, ...new Array(x.rank - 1).fill(-1)];
-  } else if (size.length < x.rank) {
-    size_ = size.concat(new Array(x.rank - size.length).fill(-1));
+    size_ = [size, ...new Array(xRank - 1).fill(-1)];
+  } else if (size.length < xRank) {
+    size_ = size.concat(new Array(xRank - size.length).fill(-1));
   } else {
     size_ = size;
   }

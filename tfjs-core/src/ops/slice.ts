@@ -67,10 +67,10 @@ function slice_<R extends Rank, T extends Tensor<R>>(
   if ($x.rank === 0) {
     throw new Error('Slicing scalar is not possible');
   }
-  const [begin_, size_] = slice_util.parseSliceParams($x, begin, size);
-  slice_util.assertParamsValid($x, begin_, size_);
 
   const forward: ForwardFunc<Tensor> = (backend, save) => {
+    const [begin_, size_] = slice_util.parseSliceParams($x, begin, size);
+    slice_util.assertParamsValid($x, begin_, size_);
     save([$x]);
     return backend.slice($x, begin_, size_);
   };

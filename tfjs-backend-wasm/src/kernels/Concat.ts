@@ -26,16 +26,30 @@ function concat(
   const axis = util.parseAxisParam(args.attrs.axis, inputs[0].shape)[0];
 
   const outShape = backend_util.computeOutShape(inputs.map(t => t.shape), axis);
+
   const out = backend.makeOutput(outShape, inputs[0].dtype);
 
-  const batchDim = util.sizeFromShape(inputs[0].shape.slice(0, axis));
+  if (util.sizeFromShape(outShape) === 0) {
+    return out;
+  }
+
+  // Keep only non-empty tensors (ignore tensors with 0 in their shape).
+  const $inputs = inputs.filter(t => util.sizeFromShape(t.shape) > 0);
+  if ($inputs.length === 1) {
+    return $inputs[0];
+  }
+
+  const shapes = $inputs.map(t => t.shape);
+  backend_util.assertParamsConsistent(shapes, axis);
+
+  const batchDim = util.sizeFromShape($inputs[0].shape.slice(0, axis));
   let sumInnerDims = 0;
-  const innerDims = inputs.map(input => {
+  const innerDims = $inputs.map(input => {
     const innerDim = util.sizeFromShape(input.shape.slice(axis));
     sumInnerDims += innerDim;
     return innerDim;
   });
-  const inVals = inputs.map(input => backend.typedArrayFromHeap(input));
+  const inVals = $inputs.map(input => backend.typedArrayFromHeap(input));
   const outVals = backend.typedArrayFromHeap(out);
   for (let b = 0; b < batchDim; b++) {
     let outOffset = b * sumInnerDims;
