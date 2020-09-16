@@ -136,10 +136,8 @@ export class MathBackendCPU extends KernelBackend {
     if (dtype === 'complex64') {
       const realValues =
           this.readSync(complexTensors.real.dataId) as Float32Array;
-
       const imagValues =
           this.readSync(complexTensors.imag.dataId) as Float32Array;
-
       return backend_util.mergeRealAndImagArrays(realValues, imagValues);
     }
 

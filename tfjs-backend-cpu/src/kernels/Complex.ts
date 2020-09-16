@@ -31,9 +31,9 @@ export function complex(args: {inputs: ComplexInputs, backend: MathBackendCPU}):
 
   const complex = backend.data.get(complexInfo.dataId);
 
-  // The complex tensor owns the underlying real and imag tensors, only the
-  // complex tensor tracks refCount, when complex is disposed the underlying
-  // tensors will be disposed.
+  // The complex tensor owns the underlying real and imag tensorInfos, only the
+  // complex tensor tracks refCount, when complexData is disposed the
+  // underlying tensorData will be disposed.
   complex.complexTensors = {
     real: backend.makeTensorInfo(realVals, real.shape, 'float32'),
     imag: backend.makeTensorInfo(imagVals, imag.shape, 'float32')

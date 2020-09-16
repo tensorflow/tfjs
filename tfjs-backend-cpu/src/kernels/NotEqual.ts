@@ -15,15 +15,7 @@
  * =============================================================================
  */
 
-import {KernelConfig, NotEqual} from '@tensorflow/tfjs-core';
+import {broadcastedBinaryKernelSimple} from '../utils/kernel_utils';
 
-import {binaryKernelFunc} from '../utils/kernel_utils';
-
-export const notEqual =
-    binaryKernelFunc(NotEqual, ((a, b) => (a !== b) ? 1 : 0), 'bool');
-
-export const notEqualConfig: KernelConfig = {
-  kernelName: NotEqual,
-  backendName: 'cpu',
-  kernelFunc: notEqual
-};
+export const divImpl =
+    broadcastedBinaryKernelSimple((a: number, b: number) => a / b);

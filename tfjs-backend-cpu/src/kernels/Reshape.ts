@@ -30,6 +30,7 @@ export function reshape(
   const xSize = util.sizeFromShape(x.shape);
   const $shape = util.inferFromImplicitShape(shape, xSize);
 
+  // TODO(linazhao): Measure performance with and without assertion.
   util.assert(
       xSize === util.sizeFromShape($shape),
       () => `new shape: ${$shape}, old shape: ${x.shape}. New shape and old ` +
