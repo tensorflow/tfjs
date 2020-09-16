@@ -512,6 +512,7 @@ export class ConvLSTM2DCell extends LSTMCell implements ConvRNN2DCell {
       padding: this.padding,
       dataFormat: this.dataFormat,
       dilationRate: this.dilationRate,
+      strides: this.strides,
     };
 
     return {...baseConfig, ...config};
