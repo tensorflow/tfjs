@@ -16,8 +16,7 @@
  */
 
 import {env} from './environment';
-
-import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray} from './types';
+import {BackendValues, DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray} from './types';
 
 /**
  * Shuffles the array in-place using Fisher-Yates algorithm.
@@ -551,6 +550,18 @@ export function computeStrides(shape: number[]): number[] {
     strides[i] = strides[i + 1] * shape[i + 1];
   }
   return strides;
+}
+
+/**
+ * Create typed array for scalar value. Used for storing in `DataStorage`.
+ */
+export function createScalarValue(
+    value: DataType, dtype: DataType): BackendValues {
+  if (dtype === 'string') {
+    return encodeString(value);
+  }
+
+  return toTypedArray([value], dtype);
 }
 
 export function toTypedArray(a: TensorLike, dtype: DataType): TypedArray {
