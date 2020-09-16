@@ -25,7 +25,6 @@ export function slice(
   const {inputs: {x}, attrs: {begin, size}, backend} = args;
 
   const [begin_, size_] = slice_util.parseSliceParams(x, begin, size);
-  slice_util.assertParamsValid(x, begin_, size_);
 
   const isContinous = slice_util.isSliceContinous(x.shape, begin_, size_);
   const xVals = backend.typedArrayFromHeap(x);
