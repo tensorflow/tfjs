@@ -50,8 +50,9 @@ import {op} from './operation';
  *
  * @param x The input tensor to be reshaped.
  * @param shape An array of integers defining the output tensor shape.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Transformations'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Transformations'} */
 function reshape_<R extends Rank>(
     x: Tensor|TensorLike, shape: ShapeMap[R]): Tensor<R> {
   const $x = convertToTensor(x, 'x', 'reshape', null);
