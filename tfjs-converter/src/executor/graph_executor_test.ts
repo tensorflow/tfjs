@@ -251,6 +251,15 @@ describe('GraphExecutor', () => {
           const res = executor.execute({input: inputTensor}, ['output']);
           expect(res).not.toBeNull();
         });
+
+        it('should not have mem leak when add index', async () => {
+          const inputTensor = tfc.tensor4d([1, 1], [2, 1, 1, 1], 'float32');
+          const numTensors: number = tfc.memory().numTensors;
+
+          const res = executor.execute({input: inputTensor}, ['output:0']);
+          expect(res).not.toBeNull();
+          expect(tfc.memory().numTensors).toEqual(numTensors + 1);
+        });
       });
 
       describe('executeAsync', () => {
@@ -614,6 +623,15 @@ describe('GraphExecutor', () => {
 
           await executor.executeAsync(
               {x: trueTensor, y: falseTensor}, ['output']);
+          expect(tfc.memory().numTensors).toEqual(numTensors + 1);
+        });
+        it('should not have mem leak when add index', async () => {
+          const trueTensor = tfc.scalar(-1, 'int32');
+          const falseTensor = tfc.scalar(1, 'int32');
+          const numTensors: number = tfc.memory().numTensors;
+
+          await executor.executeAsync(
+              {x: trueTensor, y: falseTensor}, ['output:0']);
           expect(tfc.memory().numTensors).toEqual(numTensors + 1);
         });
       });
