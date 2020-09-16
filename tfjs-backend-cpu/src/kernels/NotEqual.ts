@@ -17,11 +17,10 @@
 
 import {KernelConfig, NotEqual} from '@tensorflow/tfjs-core';
 
-import {binaryKernelFunc, createBinaryKernelImpl} from '../utils/kernel_utils';
+import {binaryKernelFunc} from '../utils/kernel_utils';
 
-const notEqualImpl = createBinaryKernelImpl((a, b) => (a !== b) ? 1 : 0);
-
-export const notEqual = binaryKernelFunc(NotEqual, notEqualImpl, 'bool');
+export const notEqual =
+    binaryKernelFunc(NotEqual, ((a, b) => (a !== b) ? 1 : 0), 'bool');
 
 export const notEqualConfig: KernelConfig = {
   kernelName: NotEqual,

@@ -37,7 +37,7 @@ export type SimpleBinaryKernelImpl =
  *     in comparison kernels, such as Equal, Less, Greater, etc.
  */
 export function binaryKernelFunc(
-    name: string, op: SimpleBinaryKernelImpl, dtype?: DataType): KernelFunc {
+    name: string, op: SimpleBinaryOperation, dtype?: DataType): KernelFunc {
   return ({inputs, backend}) => {
     const {a, b} = inputs as BinaryInputs;
     const cpuBackend = backend as MathBackendCPU;
@@ -49,7 +49,7 @@ export function binaryKernelFunc(
     const $dtype = dtype || a.dtype;
 
     const [resultData, resultShape] =
-        op(a.shape, b.shape, aVals, bVals, $dtype);
+        createBinaryKernelImpl(op)(a.shape, b.shape, aVals, bVals, $dtype);
 
     const dataId = cpuBackend.write(resultData, resultShape, $dtype);
     return {dataId, shape: resultShape, dtype: $dtype};
