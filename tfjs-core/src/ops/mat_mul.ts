@@ -65,7 +65,8 @@ function matMul_<T extends Tensor>(
   const batchDimA = util.sizeFromShape(outerDimsA);
   const batchDimB = util.sizeFromShape(outerDimsB);
 
-  const batchDimsCompatible = batchDimA === 1 || batchDimB === 1;
+  const batchDimsCompatible =
+      batchDimA === batchDimB || batchDimA === 1 || batchDimB === 1;
 
   util.assert(
       $a.rank >= 2 && $b.rank >= 2 && batchDimsCompatible,
