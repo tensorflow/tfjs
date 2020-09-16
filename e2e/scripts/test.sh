@@ -23,6 +23,9 @@ set -e
 if [[ -z "$TAGS" ]]; then
   echo "Env variable TAGS is not found, set TAGS='#SMOKE'"
   TAGS="#SMOKE"
+
+  # Generate custom bundle files for tests
+  ./scripts/run-custom-builds.sh
 fi
 
 if [[ "$NIGHTLY" = true ]]; then

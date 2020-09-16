@@ -44,6 +44,14 @@ const devConfig = {
       served: true,
       nocache: true
     },
+    // Serve program bundles as files
+    {
+      pattern: 'custom_bundle/blazeface/dist/**/*',
+      watched: true,
+      included: false,
+      served: true,
+      nocache: true
+    },
   ],
   include: ['integration_tests/**/*.ts'],
   preprocessors: {
