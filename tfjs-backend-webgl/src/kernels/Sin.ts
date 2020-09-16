@@ -17,8 +17,12 @@
 
 import {KernelConfig, Sin} from '@tensorflow/tfjs-core';
 
-import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {SIN} from '../unaryop_gpu';
+import {CHECK_NAN_SNIPPET_UNARY, unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+
+
+const SIN = CHECK_NAN_SNIPPET_UNARY + `
+  return sin(x);
+`;
 
 export const sinKernelFunc = unaryKernelFunc(SIN);
 

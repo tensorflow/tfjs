@@ -18,7 +18,9 @@
 import {KernelConfig, Tan} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {TAN} from '../unaryop_gpu';
+
+
+const TAN = `return tan(x);`;
 
 export const tanKernelFunc = unaryKernelFunc(TAN);
 

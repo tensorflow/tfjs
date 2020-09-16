@@ -18,12 +18,22 @@
 import {Atan2} from '@tensorflow/tfjs-core';
 import {KernelConfig} from '@tensorflow/tfjs-core';
 
-import * as binaryop_gpu from '../binaryop_gpu';
-import * as binaryop_packed_gpu from '../binaryop_packed_gpu';
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {binaryKernelFunc, CHECK_NAN_SNIPPET_BINARY, CHECK_NAN_SNIPPET_BINARY_PACKED} from '../kernel_utils/kernel_funcs_utils';
 
-export const atan2KernelFunc =
-    binaryKernelFunc(binaryop_gpu.ATAN2, binaryop_packed_gpu.ATAN2);
+
+const ATAN2 = CHECK_NAN_SNIPPET_BINARY + `
+  return atan(a, b);
+`;
+
+const ATAN2_PACKED = `
+  vec4 result = atan(a, b);
+  vec4 isNaN = min(vec4(isnan(a)) + vec4(isnan(b)), vec4(1.0));
+  ` +
+    CHECK_NAN_SNIPPET_BINARY_PACKED + `
+  return result;
+`;
+
+export const atan2KernelFunc = binaryKernelFunc(ATAN2, ATAN2_PACKED);
 
 export const atan2Config: KernelConfig = {
   kernelName: Atan2,
