@@ -19,7 +19,6 @@ import {KernelConfig, Square} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-
 const SQUARE = `return x * x;`;
 
 export const squareKernelFunc = unaryKernelFunc(SQUARE);

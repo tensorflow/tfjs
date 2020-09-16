@@ -19,7 +19,6 @@ export const CHECK_NAN_SNIPPET_BINARY_PACKED = `
   result.a = isNaN.a > 0. ? NAN : result.a;
 `;
 
-
 /**
  * Template that creates a `KernelFunc` for unary ops.
  * @param opSnippets Op snippet to create `UnaryOpProgram`.

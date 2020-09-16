@@ -28,7 +28,6 @@ export const ADD = 'return a + b;';
 export const SUB = 'return a - b;';
 export const MUL = 'return a * b;';
 
-
 // We use native integer division to deal with floating point imprecision. Since
 // we implement floor division and glsl implements truncated division, we
 // correct for this by subtracting 1 from result when the result is negative and

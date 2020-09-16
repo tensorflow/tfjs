@@ -19,7 +19,6 @@ import {Div} from '@tensorflow/tfjs-core';
 import {KernelConfig} from '@tensorflow/tfjs-core';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-
 // Without the equality check div produces 0.9999 for a = b, which when
 // floored can cause errors.
 const DIV = `

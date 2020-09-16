@@ -20,7 +20,6 @@ import {KernelConfig} from '@tensorflow/tfjs-core';
 
 import {binaryKernelFunc, CHECK_NAN_SNIPPET_BINARY, CHECK_NAN_SNIPPET_BINARY_PACKED} from '../kernel_utils/kernel_funcs_utils';
 
-
 const ATAN2 = CHECK_NAN_SNIPPET_BINARY + `
   return atan(a, b);
 `;
