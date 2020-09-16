@@ -21,8 +21,9 @@ import * as binaryop_gpu from '../binaryop_gpu';
 import * as binaryop_packed_gpu from '../binaryop_packed_gpu';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-export const divKernelFunc =
-    binaryKernelFunc(binaryop_gpu.DIV, binaryop_packed_gpu.DIV, true);
+export const divKernelFunc = binaryKernelFunc(
+    binaryop_gpu.DIV, binaryop_packed_gpu.DIV,
+    true /* checkOutOfBoundsForPackedProgram */);
 
 export const divConfig: KernelConfig = {
   kernelName: Div,
