@@ -840,6 +840,10 @@
   version "0.0.0"
   uid ""
 
+"@tensorflow/tfjs-backend-wasm@link:../tfjs-backend-wasm":
+  version "0.0.0"
+  uid ""
+
 "@tensorflow/tfjs-backend-webgl@link:../tfjs-backend-webgl":
   version "0.0.0"
   uid ""
@@ -879,6 +883,11 @@
   integrity sha512-c2cAqR4G5QL2aPDgzpsk8ck/R+w7djxpe05Z8XYg1Ahfe/Bekb+06PG9zw64T6I1oNWDVM+IAsSbyASVydAdRw==
   dependencies:
     detect-browser "*"
+
+"@types/emscripten@~0.0.34":
+  version "0.0.34"
+  resolved "https://registry.yarnpkg.com/@types/emscripten/-/emscripten-0.0.34.tgz#12b4a344274fb102ff2f6c877b37587bc3e46008"
+  integrity sha512-QSb9ojDincskc+uKMI0KXp8e1NALFINCrMlp8VGKGcTSxeEyRTTKyjWw75NYrCZHUsVEEEpr1tYHpbtaC++/sQ==
 
 "@types/jasmine@~3.0.0":
   version "3.0.0"
