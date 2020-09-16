@@ -31,6 +31,8 @@ export function unaryKernelFunc(opSnippet: string): KernelFunc {
 export function binaryKernelFunc(
     opSnippet: string, packedOpSnippet: string,
     checkOutOfBoundsForPackedProgram?: boolean, dtype?: DataType): KernelFunc {
+  // TODO(jingjin): handle complex64.
+
   return ({inputs, backend}) => {
     const {a, b} = inputs as BinaryInputs;
     const webglBackend = backend as MathBackendWebGL;
