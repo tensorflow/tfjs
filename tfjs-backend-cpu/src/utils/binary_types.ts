@@ -15,16 +15,17 @@
  * =============================================================================
  */
 
-import {Add, KernelConfig} from '@tensorflow/tfjs-core';
-import {binaryKernelFunc} from '../utils/kernel_utils';
+import {DataType, TypedArray} from '@tensorflow/tfjs-core';
 
-export const add =
-    binaryKernelFunc(Add, ((a, b) => a + b), ((aReal, aImag, bReal, bImag) => {
-                       return {real: aReal + bReal, imag: aImag + bImag};
-                     }));
-
-export const addConfig: KernelConfig = {
-  kernelName: Add,
-  backendName: 'cpu',
-  kernelFunc: add
-};
+export type SimpleBinaryOperation = (a: number, b: number) => number;
+export type SimpleBinaryKernelImpl =
+    (aShape: number[], bShape: number[], aVals: TypedArray, bVals: TypedArray,
+     dtype: DataType) => [TypedArray, number[]];
+export type ComplexBinaryOperation =
+    (aReal: number, aImag: number, bReal: number, bImag: number) => {
+      real: number, imag: number
+    };
+export type ComplexBinaryKernelImpl =
+    (aShape: number[], bShape: number[], aRealVals: Float32Array,
+     aImagVals: Float32Array, bRealVals: Float32Array,
+     bImagVals: Float32Array) => [TypedArray, TypedArray, number[]];

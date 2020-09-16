@@ -15,9 +15,10 @@
  * =============================================================================
  */
 import * as tf from '@tensorflow/tfjs-core';
-import {Cast, CastAttrs, CastInputs, KernelConfig, KernelFunc, Tensor, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {Cast, CastAttrs, CastInputs, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
+import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
 
 import {complex} from './Complex';
 import {identity} from './Identity';
@@ -73,14 +74,16 @@ export function cast(
   }
 
   if (dtype === 'bool') {
-    // TODO(lina128): Import kernel function and just use 0 once notEqual is
-    // modularized.
-    const zero = tf.scalar(0, x.dtype);
-    const result = tf.notEqual(x as Tensor, zero);
+    // This is essentially the result of notEqual(x, 0). We avoid using
+    // kernel notEqual to avoid circular dependency, i.e. binary_utils ->
+    // cast -> notEqual -> binary_utils.
+    const xVals = backend.data.get(x.dataId).values as TypedArray;
+    const zero = util.toTypedArray([0], x.dtype);
 
-    zero.dispose();
+    const [resultData, resultShape] = createSimpleBinaryKernelImpl(
+        (a, b) => (a !== b) ? 1 : 0)(x.shape, [], xVals, zero, 'bool');
 
-    return result;
+    return backend.makeTensorInfo(resultShape, 'bool', resultData);
   }
 
   throw new Error(`Error in Cast: failed to cast ${x.dtype} to ${dtype}`);

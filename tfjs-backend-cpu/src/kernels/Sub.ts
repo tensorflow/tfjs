@@ -16,18 +16,13 @@
  */
 
 import {KernelConfig, Sub} from '@tensorflow/tfjs-core';
+import {binaryKernelFunc} from '../utils/kernel_utils';
 
-import {binaryKernelFunc, broadcastedBinaryKernelComplex, broadcastedBinaryKernelSimple} from '../utils/kernel_utils';
-
-const subImpl =
-    broadcastedBinaryKernelSimple((aValue, bValue) => aValue - bValue);
-
-const subComplexImpl =
-    broadcastedBinaryKernelComplex((aReal, aImag, bReal, bImag) => {
+export const sub = binaryKernelFunc(
+    Sub, ((aValue, bValue) => aValue - bValue),
+    ((aReal, aImag, bReal, bImag) => {
       return {real: aReal - bReal, imag: aImag - bImag};
-    });
-
-export const sub = binaryKernelFunc(Sub, subImpl, subComplexImpl);
+    }));
 
 export const subConfig: KernelConfig = {
   kernelName: Sub,

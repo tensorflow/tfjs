@@ -15,110 +15,45 @@
  * =============================================================================
  */
 
-import {backend_util, BinaryInputs, DataType, KernelConfig, KernelFunc, NumericDataType, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, BinaryInputs, DataType, KernelFunc, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 import {cast} from '../kernels/Cast';
 import {complex} from '../kernels/Complex';
 
-export type SimpleBinaryOperation = (a: number, b: number) => number;
-
-export type SimpleBinaryKernelImpl =
-    (aShape: number[], bShape: number[], aVals: TypedArray, bVals: TypedArray,
-     dtype: DataType) => [TypedArray, number[]];
-
-export type ComplexBinaryOperation =
-    (aReal: number, aImag: number, bReal: number, bImag: number) => {
-      real: number, imag: number
-    };
-
-export type ComplexBinaryKernelImpl =
-    (aShape: number[], bShape: number[], aRealVals: Float32Array,
-     aImagVals: Float32Array, bRealVals: Float32Array,
-     bImagVals: Float32Array) => [TypedArray, TypedArray, number[]];
+import {createSimpleBinaryKernelImpl} from './binary_impl';
+import {ComplexBinaryKernelImpl, ComplexBinaryOperation, SimpleBinaryOperation} from './binary_types';
 
 /**
- * Template that creates a `KernelConfig` for binary ops.
- */
-export function createBinaryKernelConfig(
-    name: string, op: SimpleBinaryKernelImpl): KernelConfig {
-  return {
-    kernelName: name,
-    backendName: 'cpu',
-    kernelFunc: binaryKernelFunc(name, op)
-  };
-}
-
-/**
- * Template that creates implementation for binary ops.
- * Supports broadcast.
- */
-export function broadcastedBinaryKernelSimple(op: SimpleBinaryOperation):
-    SimpleBinaryKernelImpl {
-  return (aShape: number[], bShape: number[], aVals: TypedArray,
-          bVals: TypedArray, dtype: DataType): [TypedArray, number[]] => {
-    const newShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
-
-    const resultRank = newShape.length;
-    const resultStrides = util.computeStrides(newShape);
-    const resultSize = util.sizeFromShape(newShape);
-
-    const result =
-        util.getTypedArrayFromDType(dtype as NumericDataType, resultSize);
-
-    const aRank = aShape.length;
-    const bRank = bShape.length;
-
-    const aStrides = util.computeStrides(aShape);
-    const bStrides = util.computeStrides(bShape);
-
-    const aBroadcastDims = backend_util.getBroadcastDims(aShape, newShape);
-    const bBroadcastDims = backend_util.getBroadcastDims(bShape, newShape);
-
-    if (aBroadcastDims.length + bBroadcastDims.length === 0) {
-      for (let i = 0; i < result.length; ++i) {
-        result[i] = op(aVals[i % aVals.length], bVals[i % bVals.length]);
-      }
-    } else {
-      for (let i = 0; i < result.length; ++i) {
-        const loc = util.indexToLoc(i, resultRank, resultStrides);
-
-        const aLoc = loc.slice(-aRank);
-        aBroadcastDims.forEach(d => aLoc[d] = 0);
-        const aIndex = util.locToIndex(aLoc, aRank, aStrides);
-
-        const bLoc = loc.slice(-bRank);
-        bBroadcastDims.forEach(d => bLoc[d] = 0);
-        const bIndex = util.locToIndex(bLoc, bRank, bStrides);
-
-        result[i] = op(aVals[aIndex], bVals[bIndex]);
-      }
-    }
-
-    return [result, newShape];
-  };
-}
-
-/**
- * Template that creates a `KernelFunc` for binary ops. Supports complex type.
+ * Template that creates a `KernelFunc` for binary ops.
+ * @param name Kernel name.
+ * @param op A `SimpleBinaryOperation` for the kernel.
+ * @param ComplexOp Optional. If exists, represents a `ComplexBinaryOperation`
+ *     for the kernel, will be used when input dtype is `complex64`.
+ * @param dtype Optional. If set, the result has this dtype. Otherwise, the
+ *     result has the same dtype as the first input. This is mainly used in
+ *     comparison kernels, such as Equal, Less, Greater, etc.
  */
 export function binaryKernelFunc(
-    name: string, op: SimpleBinaryKernelImpl,
-    complexOp?: ComplexBinaryKernelImpl): KernelFunc {
+    name: string, op: SimpleBinaryOperation, complexOp?: ComplexBinaryOperation,
+    dtype?: DataType): KernelFunc {
   if (complexOp == null) {
     return ({inputs, backend}) => {
       const {a, b} = inputs as BinaryInputs;
       const cpuBackend = backend as MathBackendCPU;
+
       assertNotComplex([a, b], name);
 
       const aVals = cpuBackend.data.get(a.dataId).values as TypedArray;
       const bVals = cpuBackend.data.get(b.dataId).values as TypedArray;
 
-      const [resultData, resultShape] =
-          op(a.shape, b.shape, aVals, bVals, a.dtype);
+      const $dtype = dtype || a.dtype;
 
-      return cpuBackend.makeTensorInfo(resultShape, a.dtype, resultData);
+      const [resultData, resultShape] = createSimpleBinaryKernelImpl(op)(
+          a.shape, b.shape, aVals, bVals, $dtype);
+
+      return cpuBackend.makeTensorInfo(resultShape, $dtype, resultData);
     };
   }
 
@@ -153,8 +88,9 @@ export function binaryKernelFunc(
       const bImagVals =
           cpuBackend.data.get(bImag.dataId).values as Float32Array;
 
-      const [resultRealData, resultImagData, resultShape] = complexOp(
-          a.shape, b.shape, aRealVals, aImagVals, bRealVals, bImagVals);
+      const [resultRealData, resultImagData, resultShape] =
+          createComplexBinaryKernelImpl(complexOp)(
+              a.shape, b.shape, aRealVals, aImagVals, bRealVals, bImagVals);
 
       const resultReal =
           cpuBackend.makeTensorInfo(resultShape, 'float32', resultRealData);
@@ -175,10 +111,12 @@ export function binaryKernelFunc(
       const aVals = cpuBackend.data.get(a.dataId).values as TypedArray;
       const bVals = cpuBackend.data.get(b.dataId).values as TypedArray;
 
-      const [resultData, resultShape] =
-          op(a.shape, b.shape, aVals, bVals, a.dtype);
+      const $dtype = dtype || a.dtype;
 
-      return cpuBackend.makeTensorInfo(resultShape, a.dtype, resultData);
+      const [resultData, resultShape] = createSimpleBinaryKernelImpl(op)(
+          a.shape, b.shape, aVals, bVals, $dtype);
+
+      return cpuBackend.makeTensorInfo(resultShape, $dtype, resultData);
     }
   };
 }
@@ -187,7 +125,7 @@ export function binaryKernelFunc(
  * Template that creates the complex type implementation for binary ops.
  * Supports broadcast.
  */
-export function broadcastedBinaryKernelComplex(op: ComplexBinaryOperation):
+export function createComplexBinaryKernelImpl(op: ComplexBinaryOperation):
     ComplexBinaryKernelImpl {
   return (aShape: number[], bShape: number[], aRealVals: Float32Array,
           aImagVals: Float32Array, bRealVals: Float32Array,
