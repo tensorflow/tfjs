@@ -846,13 +846,14 @@ export class RNN extends Layer {
 }
 serialization.registerClass(RNN);
 
-/**
- * An RNNCell layer.
- */
 // Porting Note: This is a common parent class for RNN cells. There is no
 // equivalent of this in PyKeras. Having a common parent class forgoes the
 //  need for `has_attr(cell, ...)` checks or its TypeScript equivalent.
-/** @doc {heading: 'Layers', subheading: 'Classes'} */
+/**
+ * An RNNCell layer.
+ *
+ * @doc {heading: 'Layers', subheading: 'Classes'}
+ */
 export abstract class RNNCell extends Layer {
   /**
    * Size(s) of the states.

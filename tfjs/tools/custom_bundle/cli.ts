@@ -27,6 +27,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as mkdirp from 'mkdirp';
 
+import {OP_SCOPE_SUFFIX} from '@tensorflow/tfjs-core';
+
 import {getCustomModuleString, getCustomConverterOpsModule} from './custom_module';
 import {CustomTFJSBundleConfig, SupportedBackends} from './types';
 import {esmModuleProvider} from './esm_module_provider';
@@ -99,7 +101,17 @@ function getKernelNamesForConfig(config: CustomTFJSBundleConfig) {
   // (and kernels used by the converter itself) Currently we only support
   // directly listing kernels. remember that this also needs to handle
   // kernels used by gradients if forwardModeOnly is false.
-  return config.kernels;
+
+  // Ops in core that are implemented as custom ops may appear in tf.profile
+  // they will have __op as a suffix. These do not have corresponding backend
+  // kernels so we need to filter them out.
+  function isNotCustomOp(kernelName: string) {
+    // opSuffix value is defined in tfjs-core/src/operation.ts
+    // duplicating it here to avoid an export.
+    return !kernelName.endsWith(OP_SCOPE_SUFFIX);
+  }
+
+  return config.kernels.filter(isNotCustomOp);
 }
 
 function getOpsForConfig(config: CustomTFJSBundleConfig) {

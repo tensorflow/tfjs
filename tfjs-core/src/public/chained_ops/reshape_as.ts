@@ -29,8 +29,9 @@ declare module '../../tensor' {
  * Reshapes the tensor into the shape of the provided tensor.
  *
  * @param x The tensor of required shape.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Classes'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Classes'} */
 Tensor.prototype.reshapeAs = function<T extends Tensor>(x: T): T {
   this.throwIfDisposed();
   return reshape(this, x.shape) as T;

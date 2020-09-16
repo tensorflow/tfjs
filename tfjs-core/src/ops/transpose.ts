@@ -42,8 +42,9 @@ import {op} from './operation';
  *
  * @param x The tensor to transpose.
  * @param perm The permutation of the dimensions of a.
+ *
+ * @doc {heading: 'Operations', subheading: 'Matrices'}
  */
-/** @doc {heading: 'Operations', subheading: 'Matrices'} */
 function transpose_<T extends Tensor>(x: T|TensorLike, perm?: number[]): T {
   const $x = convertToTensor(x, 'x', 'transpose');
 

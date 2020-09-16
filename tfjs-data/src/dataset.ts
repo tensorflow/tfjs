@@ -56,8 +56,9 @@ export type DatasetContainer = Container<Dataset<TensorContainer>>;
  *
  * The following code examples are calling `await dataset.forEachAsync(...)` to
  * iterate once over the entire dataset in order to print out the data.
+ *
+ * @doc {heading: 'Data', subheading: 'Classes', namespace: 'data'}
  */
-/** @doc {heading: 'Data', subheading: 'Classes', namespace: 'data'} */
 export abstract class Dataset<T extends tf.TensorContainer> {
   /*
    * Provide a new stream of elements.  Note this will also start new streams
@@ -129,8 +130,9 @@ export abstract class Dataset<T extends tf.TensorContainer> {
    * @param smallLastBatch Whether to emit the final batch when it has fewer
    *   than batchSize elements. Default true.
    * @returns A `Dataset`, from which a stream of batches can be obtained.
+   *
+   * @doc {heading: 'Data', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Data', subheading: 'Classes'} */
   batch(batchSize: number, smallLastBatch = true): Dataset<tf.TensorContainer> {
     const base = this;
     tf.util.assert(
@@ -168,8 +170,9 @@ export abstract class Dataset<T extends tf.TensorContainer> {
    *
    * @param dataset A `Dataset` to be concatenated onto this one.
    * @returns A `Dataset`.
+   *
+   * @doc {heading: 'Data', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Data', subheading: 'Classes'} */
   concatenate(dataset: Dataset<T>): Dataset<T> {
     const base = this;
     let size;
@@ -205,8 +208,9 @@ export abstract class Dataset<T extends tf.TensorContainer> {
    * `Promise` for one.
    *
    * @returns A `Dataset` of elements for which the predicate was true.
+   *
+   * @doc {heading: 'Data', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Data', subheading: 'Classes'} */
   filter(predicate: (value: T) => boolean): Dataset<T> {
     const base = this;
     let size;
@@ -236,8 +240,9 @@ export abstract class Dataset<T extends tf.TensorContainer> {
    *
    * @param f A function to apply to each dataset element.
    * @returns A `Promise` that resolves after all elements have been processed.
+   *
+   * @doc {heading: 'Data', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Data', subheading: 'Classes'} */
   async forEachAsync(f: (input: T) => void): Promise<void> {
     return (await this.iterator()).forEachAsync(f);
   }
@@ -254,8 +259,9 @@ export abstract class Dataset<T extends tf.TensorContainer> {
    *   dataset element.
    *
    * @returns A `Dataset` of transformed elements.
+   *
+   * @doc {heading: 'Data', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Data', subheading: 'Classes'} */
   map<O extends tf.TensorContainer>(transform: (value: T) => O): Dataset<O> {
     const base = this;
     return datasetFromIteratorFn(async () => {
@@ -283,8 +289,9 @@ export abstract class Dataset<T extends tf.TensorContainer> {
    *   `map()` case).
    *
    * @returns A `Dataset` of transformed elements.
+   *
+   * @doc {heading: 'Data', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Data', subheading: 'Classes'} */
   mapAsync<O extends tf.TensorContainer>(transform: (value: T) => Promise<O>):
       Dataset<O> {
     const base = this;
@@ -299,8 +306,9 @@ export abstract class Dataset<T extends tf.TensorContainer> {
    * @param bufferSize: An integer specifying the number of elements to be
    *   prefetched.
    * @returns A `Dataset`.
+   *
+   * @doc {heading: 'Data', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Data', subheading: 'Classes'} */
   prefetch(bufferSize: number): Dataset<T> {
     if (bufferSize == null) {
       throw new RangeError(
@@ -327,8 +335,9 @@ export abstract class Dataset<T extends tf.TensorContainer> {
    *   the dataset should be repeated. The default behavior (if `count` is
    *   `undefined` or negative) is for the dataset be repeated indefinitely.
    * @returns A `Dataset`.
+   *
+   * @doc {heading: 'Data', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Data', subheading: 'Classes'} */
   repeat(count?: number): Dataset<T> {
     const base = this;
     let size;
@@ -369,8 +378,9 @@ export abstract class Dataset<T extends tf.TensorContainer> {
    *   is `undefined` or negative, skips the entire dataset.
    *
    * @returns A `Dataset`.
+   *
+   * @doc {heading: 'Data', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Data', subheading: 'Classes'} */
   skip(count: number): Dataset<T> {
     const base = this;
     let size;
@@ -415,8 +425,9 @@ export abstract class Dataset<T extends tf.TensorContainer> {
    *   it is iterated over. If false, elements will be returned in the same
    *   shuffled order on each iteration. (Defaults to `true`.)
    * @returns A `Dataset`.
+   *
+   * @doc {heading: 'Data', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Data', subheading: 'Classes'} */
   shuffle(bufferSize: number, seed?: string, reshuffleEachIteration = true):
       Dataset<T> {
     if (bufferSize == null || bufferSize < 0) {
@@ -456,8 +467,9 @@ export abstract class Dataset<T extends tf.TensorContainer> {
    *   `count` is greater than the size of this dataset, the new dataset will
    *   contain all elements of this dataset.
    * @returns A `Dataset`.
+   *
+   * @doc {heading: 'Data', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Data', subheading: 'Classes'} */
   take(count: number): Dataset<T> {
     const base = this;
     let size;
@@ -490,8 +502,9 @@ export abstract class Dataset<T extends tf.TensorContainer> {
    *
    * @returns A Promise for an array of elements, which will resolve
    *   when a new stream has been obtained and fully consumed.
+   *
+   * @doc {heading: 'Data', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Data', subheading: 'Classes'} */
   async toArray() {
     if (this.size === Infinity) {
       throw new Error('Can not convert infinite data stream to array.');
@@ -562,8 +575,9 @@ export function datasetFromIteratorFn<T extends tf.TensorContainer>(
  * await a.forEachAsync(e => console.log(e));
  * ```
  * @param items An array of elements that will be parsed as items in a dataset.
+ *
+ * @doc {heading: 'Data', subheading: 'Creation', namespace: 'data'}
  */
-/** @doc {heading: 'Data', subheading: 'Creation', namespace: 'data'} */
 export function array<T extends tf.TensorContainer>(items: T[]): Dataset<T> {
   return datasetFromIteratorFn(
       async () => iteratorFromItems(items), items.length);
@@ -607,8 +621,9 @@ export function array<T extends tf.TensorContainer>(items: T[]): Dataset<T> {
  * const c = tf.data.zip({c: a, d: b});
  * await c.forEachAsync(e => console.log(JSON.stringify(e)));
  * ```
+ *
+ * @doc {heading: 'Data', subheading: 'Operations', namespace: 'data'}
  */
-/** @doc {heading: 'Data', subheading: 'Operations', namespace: 'data'} */
 export function zip<O extends tf.TensorContainer>(datasets: DatasetContainer):
     Dataset<O> {
   // manually type-check the argument for JS users

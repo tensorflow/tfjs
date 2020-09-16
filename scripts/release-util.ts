@@ -107,7 +107,7 @@ export const REACT_NATIVE_PHASE: Phase = {
 export const WEBSITE_PHASE: Phase = {
   packages: ['tfjs-website'],
   deps: ['tfjs', 'tfjs-node', 'tfjs-vis', 'tfjs-react-native'],
-  scripts: {'tfjs-website': {'after-yarn': ['yarn build-prod']}},
+  scripts: {'tfjs-website': {'after-yarn': ['yarn prep && yarn build-prod']}},
   leaveVersion: true,
   title: 'Update website to latest dependencies.'
 };

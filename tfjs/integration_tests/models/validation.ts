@@ -28,7 +28,7 @@ import * as common from './common';
 
 describe('TF.js converter validation', () => {
   beforeAll(() => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 600000;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
   });
 
   // Karma serves static files under the base/ path.
@@ -104,7 +104,7 @@ describe('TF.js converter validation', () => {
             if (!Array.isArray(predictOut)) {
               predictOut = [predictOut];
             }
-            
+
             outputs.map((key, index) => {
               expect(predictOut[index].dtype).toEqual(task.outputs[key].dtype);
               expect(predictOut[index].shape).toEqual(task.outputs[key].shape);

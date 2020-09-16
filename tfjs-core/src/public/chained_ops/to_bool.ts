@@ -26,8 +26,10 @@ declare module '../../tensor' {
   }
 }
 
-/** Casts the array to type `bool` */
-/** @doc {heading: 'Tensors', subheading: 'Classes'} */
+/** Casts the array to type `bool`
+ *
+ * @doc {heading: 'Tensors', subheading: 'Classes'}
+ */
 Tensor.prototype.toBool = function<T extends Tensor>(this: T): T {
   this.throwIfDisposed();
   return cast<T>(this, 'bool');

@@ -72,8 +72,9 @@ function parseHeaders(rawHeaders: string) {
  * @param options A RequestDetails object.
  *    - __options.isBinary__ boolean indicating whether this request is for a
  *     binary file.
+ *
+ * @doc {heading: 'Platform helpers', subheading: 'http'}
  */
-/** @doc {heading: 'Platform helpers', subheading: 'http'} */
 export async function fetch(
     path: string, init?: RequestInit,
     options?: tf.io.RequestDetails): Promise<Response> {

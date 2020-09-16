@@ -61,8 +61,9 @@ import {op} from './operation';
  * @param outputShape Shape of the dense output tensor. the type is inferred.
  * @param defaultValue Scalar. Value to set for indices not specified in
  * sparseIndices. Defaults to zero.
+ *
+ * @doc {heading: 'Operations', subheading: 'Normalization'}
  */
-/** @doc {heading: 'Operations', subheading: 'Normalization'} */
 function sparseToDense_<R extends Rank>(
     sparseIndices: Tensor|TensorLike, sparseValues: Tensor|TensorLike,
     outputShape: ShapeMap[R], defaultValue: Scalar|ScalarLike = 0): Tensor<R> {

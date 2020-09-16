@@ -56,8 +56,9 @@ import {sum} from './sum';
  * @param axis The dimension(s) to reduce. By default it reduces
  *     all dimensions.
  * @param keepDims If true, retains reduced dimensions with size 1.
+ *
+ * @doc {heading: 'Operations', subheading: 'Reduction'}
  */
-/** @doc {heading: 'Operations', subheading: 'Reduction'} */
 function mean_<T extends Tensor>(
     x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
   const $x = convertToTensor(x, 'x', 'mean');

@@ -32,8 +32,9 @@ export const DEFAULT_MODEL_NAME = 'model.json';
  * A `tf.GraphModel` can only be created by loading from a model converted from
  * a [TensorFlow SavedModel](https://www.tensorflow.org/guide/saved_model) using
  * the command line converter tool and loaded via `tf.loadGraphModel`.
+ *
+ * @doc {heading: 'Models', subheading: 'Classes'}
  */
-/** @doc {heading: 'Models', subheading: 'Classes'} */
 export class GraphModel implements InferenceModel {
   private executor: GraphExecutor;
   private version = 'n/a';
@@ -122,8 +123,9 @@ export class GraphModel implements InferenceModel {
   /**
    * Synchronously construct the in memory weight map and
    * compile the inference graph.
+   *
+   * @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true}
    */
-  /** @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true} */
   loadSync(artifacts:io.ModelArtifacts) {
     this.artifacts = artifacts;
     const graph = this.artifacts.modelTopology as tensorflow.IGraphDef;
@@ -184,8 +186,7 @@ export class GraphModel implements InferenceModel {
    * @returns A `Promise` of `SaveResult`, which summarizes the result of
    * the saving, such as byte sizes of the saved artifacts for the model's
    *   topology and weight values.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true}
    */
   async save(handlerOrURL: io.IOHandler|string, config?: io.SaveConfig):
@@ -246,8 +247,9 @@ export class GraphModel implements InferenceModel {
    * @returns Inference result tensors. The output would be single `tf.Tensor`
    * if model has single output node, otherwise Tensor[] or NamedTensorMap[]
    * will be returned for model with multiple outputs.
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Models', subheading: 'Classes'} */
   predict(inputs: Tensor|Tensor[]|NamedTensorMap, config?: ModelPredictConfig):
       Tensor|Tensor[]|NamedTensorMap {
     return this.execute(inputs, this.outputNodes);
@@ -290,8 +292,9 @@ export class GraphModel implements InferenceModel {
    * are provided and there is only one default output, otherwise return a
    * tensor array. The order of the tensor array is the same as the outputs
    * if provided, otherwise the order of outputNodes attribute of the model.
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Models', subheading: 'Classes'} */
   execute(inputs: Tensor|Tensor[]|NamedTensorMap, outputs?: string|string[]):
       Tensor|Tensor[] {
     inputs = this.normalizeInputs(inputs);
@@ -312,8 +315,9 @@ export class GraphModel implements InferenceModel {
    * @returns A Promise of single tensor if provided with a single output or
    * no outputs are provided and there is only one default output, otherwise
    * return a tensor map.
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Models', subheading: 'Classes'} */
   async executeAsync(
       inputs: Tensor|Tensor[]|NamedTensorMap,
       outputs?: string|string[]): Promise<Tensor|Tensor[]> {
@@ -332,8 +336,9 @@ export class GraphModel implements InferenceModel {
 
   /**
    * Releases the memory used by the weight tensors.
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Models', subheading: 'Classes'} */
   dispose() {
     this.executor.dispose();
   }
@@ -366,8 +371,9 @@ export class GraphModel implements InferenceModel {
  * @param modelUrl The url or an `io.IOHandler` that loads the model.
  * @param options Options for the HTTP request, which allows to send credentials
  *    and custom headers.
+ *
+ * @doc {heading: 'Models', subheading: 'Loading'}
  */
-/** @doc {heading: 'Models', subheading: 'Loading'} */
 export async function loadGraphModel(
     modelUrl: string|io.IOHandler,
     options: io.LoadOptions = {}): Promise<GraphModel> {

@@ -25,8 +25,9 @@ declare module '../../tensor' {
   }
 }
 
-/** Flatten a Tensor to a 1D array. */
-/** @doc {heading: 'Tensors', subheading: 'Classes'} */
+/** Flatten a Tensor to a 1D array.
+ * @doc {heading: 'Tensors', subheading: 'Classes'}
+ */
 Tensor.prototype.flatten = function<T extends Tensor>(): T {
   this.throwIfDisposed();
   return reshape(this, [this.size]) as T;

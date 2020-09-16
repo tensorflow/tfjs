@@ -37,8 +37,9 @@ import {zerosLike} from './zeros_like';
  * tf.onesLike(x).print();
  * ```
  * @param x A tensor.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function onesLike_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'onesLike');
 
