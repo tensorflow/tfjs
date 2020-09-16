@@ -15,19 +15,17 @@
  * =============================================================================
  */
 
-import {Div, DivInputs} from '@tensorflow/tfjs-core';
+import {Div} from '@tensorflow/tfjs-core';
 import {KernelConfig} from '@tensorflow/tfjs-core';
-import {MathBackendWebGL} from '../backend_webgl';
-import {divImpl} from './Div_impl';
+import * as binaryop_gpu from '../binaryop_gpu';
+import * as binaryop_packed_gpu from '../binaryop_packed_gpu';
+import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+
+export const divKernelFunc =
+    binaryKernelFunc(binaryop_gpu.DIV, binaryop_packed_gpu.DIV, true);
 
 export const divConfig: KernelConfig = {
   kernelName: Div,
   backendName: 'webgl',
-  kernelFunc: ({inputs, backend}) => {
-    const {a, b} = inputs as DivInputs;
-
-    const webglBackend = backend as MathBackendWebGL;
-
-    return divImpl(a, b, webglBackend);
-  }
+  kernelFunc: divKernelFunc,
 };

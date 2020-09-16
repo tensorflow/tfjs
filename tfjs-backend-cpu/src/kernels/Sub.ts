@@ -15,22 +15,17 @@
  * =============================================================================
  */
 
-import {KernelFunc, Multiply, MultiplyInputs, TensorInfo} from '@tensorflow/tfjs-core';
-import {KernelConfig} from '@tensorflow/tfjs-core';
+import {KernelConfig, Sub} from '@tensorflow/tfjs-core';
+import {binaryKernelFunc} from '../utils/kernel_utils';
 
-import {MathBackendWebGL} from '../backend_webgl';
+export const sub = binaryKernelFunc(
+    Sub, ((aValue, bValue) => aValue - bValue),
+    ((aReal, aImag, bReal, bImag) => {
+      return {real: aReal - bReal, imag: aImag - bImag};
+    }));
 
-import {multiplyImpl} from './Multiply_impl';
-
-export const multiplyKernelFunc:
-    (params: {inputs: MultiplyInputs, backend: MathBackendWebGL}) =>
-        TensorInfo | TensorInfo[] = ({inputs, backend}) => {
-          const {a, b} = inputs;
-          return multiplyImpl(a, b, backend);
-        };
-
-export const multiplyConfig: KernelConfig = {
-  kernelName: Multiply,
-  backendName: 'webgl',
-  kernelFunc: multiplyKernelFunc as {} as KernelFunc,
+export const subConfig: KernelConfig = {
+  kernelName: Sub,
+  backendName: 'cpu',
+  kernelFunc: sub
 };

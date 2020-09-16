@@ -15,6 +15,16 @@
  * =============================================================================
  */
 
-import {createBinaryKernelImpl} from '../utils/kernel_utils';
+import {Add, KernelConfig} from '@tensorflow/tfjs-core';
+import {binaryKernelFunc} from '../utils/kernel_utils';
 
-export const divImpl = createBinaryKernelImpl((a: number, b: number) => a / b);
+export const add =
+    binaryKernelFunc(Add, ((a, b) => a + b), ((aReal, aImag, bReal, bImag) => {
+                       return {real: aReal + bReal, imag: aImag + bImag};
+                     }));
+
+export const addConfig: KernelConfig = {
+  kernelName: Add,
+  backendName: 'cpu',
+  kernelFunc: add
+};

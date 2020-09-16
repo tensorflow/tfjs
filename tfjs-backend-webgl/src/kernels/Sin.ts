@@ -15,21 +15,15 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, Sin, SinInputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, Sin} from '@tensorflow/tfjs-core';
 
-import {MathBackendWebGL} from '../backend_webgl';
-import {SIN, UnaryOpProgram} from '../unaryop_gpu';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {SIN} from '../unaryop_gpu';
 
-export const sinKernelFunc:
-    (params: {inputs: SinInputs, backend: MathBackendWebGL}) =>
-        TensorInfo | TensorInfo[] = ({inputs, backend}) => {
-          const {x} = inputs;
-          const program = new UnaryOpProgram(x.shape, SIN);
-          return backend.runWebGLProgram(program, [x], x.dtype);
-        };
+export const sinKernelFunc = unaryKernelFunc(SIN);
 
 export const sinConfig: KernelConfig = {
   kernelName: Sin,
   backendName: 'webgl',
-  kernelFunc: sinKernelFunc as {} as KernelFunc,
+  kernelFunc: sinKernelFunc,
 };

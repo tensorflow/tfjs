@@ -15,15 +15,20 @@
  * =============================================================================
  */
 
-import {KernelConfig, Tan} from '@tensorflow/tfjs-core';
+import {KernelConfig, Multiply} from '@tensorflow/tfjs-core';
+import {binaryKernelFunc} from '../utils/kernel_utils';
 
-import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {TAN} from '../unaryop_gpu';
+export const multiply = binaryKernelFunc(
+    Multiply, ((aValue, bValue) => aValue * bValue),
+    ((aReal, aImag, bReal, bImag) => {
+      return {
+        real: aReal * bReal - aImag * bImag,
+        imag: aReal * bImag + aImag * bReal
+      };
+    }));
 
-export const tanKernelFunc = unaryKernelFunc(TAN);
-
-export const tanConfig: KernelConfig = {
-  kernelName: Tan,
-  backendName: 'webgl',
-  kernelFunc: tanKernelFunc,
+export const multiplyConfig: KernelConfig = {
+  kernelName: Multiply,
+  backendName: 'cpu',
+  kernelFunc: multiply
 };

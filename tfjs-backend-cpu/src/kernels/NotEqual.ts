@@ -15,15 +15,14 @@
  * =============================================================================
  */
 
-import {KernelConfig, Tan} from '@tensorflow/tfjs-core';
+import {KernelConfig, NotEqual} from '@tensorflow/tfjs-core';
+import {binaryKernelFunc} from '../utils/kernel_utils';
 
-import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {TAN} from '../unaryop_gpu';
+export const notEqual = binaryKernelFunc(
+    NotEqual, ((a, b) => (a !== b) ? 1 : 0), null /* complexOp */, 'bool');
 
-export const tanKernelFunc = unaryKernelFunc(TAN);
-
-export const tanConfig: KernelConfig = {
-  kernelName: Tan,
-  backendName: 'webgl',
-  kernelFunc: tanKernelFunc,
+export const notEqualConfig: KernelConfig = {
+  kernelName: NotEqual,
+  backendName: 'cpu',
+  kernelFunc: notEqual
 };
