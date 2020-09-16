@@ -17,9 +17,9 @@
 set -e
 
 # Build CPU:
-rimraf dist/
-rimraf deps/
-rimraf lib/
+yarn rimraf dist/
+yarn rimraf deps/
+yarn rimraf lib/
 
 # Build and upload pre-built addon
 yarn build-addon $1

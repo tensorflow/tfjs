@@ -15,14 +15,17 @@
  * =============================================================================
  */
 
-import {Div, KernelConfig} from '@tensorflow/tfjs-core';
-
+import {KernelConfig, Sub} from '@tensorflow/tfjs-core';
 import {binaryKernelFunc} from '../utils/kernel_utils';
 
-export const div = binaryKernelFunc(Div, (a: number, b: number) => a / b);
+export const sub = binaryKernelFunc(
+    Sub, ((aValue, bValue) => aValue - bValue),
+    ((aReal, aImag, bReal, bImag) => {
+      return {real: aReal - bReal, imag: aImag - bImag};
+    }));
 
-export const divConfig: KernelConfig = {
-  kernelName: Div,
+export const subConfig: KernelConfig = {
+  kernelName: Sub,
   backendName: 'cpu',
-  kernelFunc: div
+  kernelFunc: sub
 };
