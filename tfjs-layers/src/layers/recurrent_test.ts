@@ -15,15 +15,19 @@
 import * as tfc from '@tensorflow/tfjs-core';
 import {io, randomNormal, scalar, Tensor, tensor1d, tensor2d, tensor3d, tensor4d} from '@tensorflow/tfjs-core';
 
+import {serializeActivation, Tanh} from '../activations';
 import * as K from '../backend/tfjs_backend';
+import {NonNeg, serializeConstraint, UnitNorm} from '../constraints';
 import * as tfl from '../index';
+import {GlorotUniform, HeUniform, Ones, serializeInitializer} from '../initializers';
 import {ActivationIdentifier} from '../keras_format/activation_config';
 import {ModelAndWeightsConfig, modelFromJSON} from '../models';
+import {L1L2, serializeRegularizer} from '../regularizers';
 import {Kwargs} from '../types';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
-import {GRU, LSTM, rnn, RNN, RNNCell} from './recurrent';
+import {GRU, GRUCellLayerArgs, GRULayerArgs, LSTM, LSTMCellLayerArgs, LSTMLayerArgs, rnn, RNN, RNNCell, SimpleRNNCellLayerArgs, SimpleRNNLayerArgs} from './recurrent';
 
 /**
  * A simplistic RNN step function for testing.
@@ -1030,6 +1034,98 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
   });
 });
 
+describeMathCPU('SimpleRNN Serialization', () => {
+  const cellConfig: SimpleRNNCellLayerArgs = {
+    units: 8,
+    activation: 'tanh',
+    useBias: true,
+    kernelInitializer: 'glorotUniform',
+    recurrentInitializer: 'heUniform',
+    biasInitializer: 'ones',
+    kernelRegularizer: 'l1l2',
+    recurrentRegularizer: 'l1l2',
+    biasRegularizer: 'l1l2',
+    kernelConstraint: 'unitNorm',
+    recurrentConstraint: 'unitNorm',
+    biasConstraint: 'nonNeg',
+    dropout: 0.1,
+    recurrentDropout: 0.2,
+    name: 'cell_1',
+    batchSize: 12,
+    batchInputShape: [12, 8, 8],
+    inputShape: [8, 8],
+    dtype: 'int32',
+    inputDType: 'int32',
+    trainable: true,
+  };
+
+  const expectedCellConfigPrime = {
+    name: 'cell_1',
+    trainable: true,
+    batchInputShape: [12, 8, 8],
+    dtype: 'int32',
+    units: 8,
+    activation: serializeActivation(new Tanh()),
+    useBias: true,
+    kernelInitializer: serializeInitializer(new GlorotUniform()),
+    recurrentInitializer: serializeInitializer(new HeUniform()),
+    biasInitializer: serializeInitializer(new Ones()),
+    kernelRegularizer: serializeRegularizer(new L1L2()),
+    recurrentRegularizer: serializeRegularizer(new L1L2()),
+    biasRegularizer: serializeRegularizer(new L1L2()),
+    activityRegularizer: serializeRegularizer(null),
+    kernelConstraint: serializeConstraint(new UnitNorm({})),
+    recurrentConstraint: serializeConstraint(new UnitNorm({})),
+    biasConstraint: serializeConstraint(new NonNeg()),
+  };
+
+  describe('SimpleRNNCell.getConfig', () => {
+    it('should return the expected values', () => {
+      const cell = tfl.layers.simpleRNNCell(cellConfig);
+
+      const {dropout, recurrentDropout, ...configPrime} = cell.getConfig();
+
+      expect(configPrime).toEqual(expectedCellConfigPrime);
+      expect(dropout).toBeCloseTo(0.1);
+      expect(recurrentDropout).toBeCloseTo(0.2);
+    });
+  });
+
+  describe('SimpleRNN.getConfig', () => {
+    it('should return the expected values', () => {
+      const config: SimpleRNNLayerArgs = {
+        ...cellConfig,
+        name: 'layer_1',
+        ...{
+          returnSequences: true,
+          returnState: true,
+          stateful: true,
+          unroll: true,
+          goBackwards: true,
+          inputDim: 8,
+          inputLength: 8,
+        } as Omit<SimpleRNNLayerArgs, keyof SimpleRNNCellLayerArgs>
+      };
+
+      const cell = tfl.layers.simpleRNN(config);
+
+      const {dropout, recurrentDropout, ...configPrime} = cell.getConfig();
+
+      expect(configPrime).toEqual({
+        ...expectedCellConfigPrime,
+        name: 'layer_1',
+        returnSequences: true,
+        returnState: true,
+        stateful: true,
+        unroll: true,
+        goBackwards: true,
+      });
+      expect(dropout).toBeCloseTo(0.1);
+      expect(recurrentDropout).toBeCloseTo(0.2);
+    });
+  });
+});
+
 describeMathCPU('GRU Symbolic', () => {
   it('returnSequences=false, returnState=false', () => {
     const input = new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
@@ -1563,6 +1659,103 @@ describeMathCPU('GRU-deserialization', () => {
     expectTensorsClose(yPrime, y);
     expect(layerPrime.getConfig()['recurrentActivation'])
         .toEqual(layer.getConfig()['recurrentActivation']);
+  });
+});
+
+describeMathCPU('GRU Serialization', () => {
+  const cellConfig: GRUCellLayerArgs = {
+    units: 8,
+    activation: 'tanh',
+    recurrentActivation: 'tanh',
+    useBias: true,
+    kernelInitializer: 'glorotUniform',
+    recurrentInitializer: 'heUniform',
+    biasInitializer: 'ones',
+    kernelRegularizer: 'l1l2',
+    recurrentRegularizer: 'l1l2',
+    biasRegularizer: 'l1l2',
+    kernelConstraint: 'unitNorm',
+    recurrentConstraint: 'unitNorm',
+    biasConstraint: 'nonNeg',
+    dropout: 0.1,
+    recurrentDropout: 0.2,
+    name: 'cell_1',
+    batchSize: 12,
+    batchInputShape: [12, 8, 8],
+    inputShape: [8, 8],
+    dtype: 'int32',
+    inputDType: 'int32',
+    trainable: true,
+    implementation: 1,
+  };
+
+  const expectedCellConfigPrime = {
+    name: 'cell_1',
+    trainable: true,
+    batchInputShape: [12, 8, 8],
+    dtype: 'int32',
+    units: 8,
+    activation: serializeActivation(new Tanh()),
+    recurrentActivation: serializeActivation(new Tanh()),
+    useBias: true,
+    kernelInitializer: serializeInitializer(new GlorotUniform()),
+    recurrentInitializer: serializeInitializer(new HeUniform()),
+    biasInitializer: serializeInitializer(new Ones()),
+    kernelRegularizer: serializeRegularizer(new L1L2()),
+    recurrentRegularizer: serializeRegularizer(new L1L2()),
+    biasRegularizer: serializeRegularizer(new L1L2()),
+    activityRegularizer: serializeRegularizer(null),
+    kernelConstraint: serializeConstraint(new UnitNorm({})),
+    recurrentConstraint: serializeConstraint(new UnitNorm({})),
+    biasConstraint: serializeConstraint(new NonNeg()),
+    implementation: 1,
+    resetAfter: false,
+  };
+
+  describe('GRUCell.getConfig', () => {
+    it('should return the expected values', () => {
+      const cell = tfl.layers.gruCell(cellConfig);
+
+      const {dropout, recurrentDropout, ...configPrime} = cell.getConfig();
+
+      expect(configPrime).toEqual(expectedCellConfigPrime);
+      expect(dropout).toBeCloseTo(0.1);
+      expect(recurrentDropout).toBeCloseTo(0.2);
+    });
+  });
+
+  describe('GRU.getConfig', () => {
+    it('should return the expected values', () => {
+      const config: GRULayerArgs = {
+        ...cellConfig,
+        name: 'layer_1',
+        ...{
+          returnSequences: true,
+          returnState: true,
+          stateful: true,
+          unroll: true,
+          goBackwards: true,
+          inputDim: 8,
+          inputLength: 8,
+        } as Omit<GRULayerArgs, keyof GRUCellLayerArgs>
+      };
+
+      const cell = tfl.layers.gru(config);
+
+      const {dropout, recurrentDropout, ...configPrime} = cell.getConfig();
+
+      expect(configPrime).toEqual({
+        ...expectedCellConfigPrime,
+        name: 'layer_1',
+        returnSequences: true,
+        returnState: true,
+        stateful: true,
+        unroll: true,
+        goBackwards: true,
+      });
+      expect(dropout).toBeCloseTo(0.1);
+      expect(recurrentDropout).toBeCloseTo(0.2);
+    });
   });
 });
 
@@ -2694,6 +2887,104 @@ const fakeLSTMModel: ModelAndWeightsConfig = {
     'backend': 'tensorflow'
   }
 };
+
+describeMathCPU('LSTM Serialization', () => {
+  const cellConfig: LSTMCellLayerArgs = {
+    units: 8,
+    activation: 'tanh',
+    recurrentActivation: 'tanh',
+    useBias: true,
+    kernelInitializer: 'glorotUniform',
+    recurrentInitializer: 'heUniform',
+    biasInitializer: 'ones',
+    kernelRegularizer: 'l1l2',
+    recurrentRegularizer: 'l1l2',
+    biasRegularizer: 'l1l2',
+    kernelConstraint: 'unitNorm',
+    recurrentConstraint: 'unitNorm',
+    biasConstraint: 'nonNeg',
+    dropout: 0.1,
+    recurrentDropout: 0.2,
+    name: 'cell_1',
+    batchSize: 12,
+    batchInputShape: [12, 8, 8],
+    inputShape: [8, 8],
+    dtype: 'int32',
+    inputDType: 'int32',
+    trainable: true,
+    implementation: 1,
+    unitForgetBias: true,
+  };
+
+  const expectedCellConfigPrime = {
+    name: 'cell_1',
+    trainable: true,
+    batchInputShape: [12, 8, 8],
+    dtype: 'int32',
+    units: 8,
+    activation: serializeActivation(new Tanh()),
+    recurrentActivation: serializeActivation(new Tanh()),
+    useBias: true,
+    kernelInitializer: serializeInitializer(new GlorotUniform()),
+    recurrentInitializer: serializeInitializer(new HeUniform()),
+    biasInitializer: serializeInitializer(new Ones()),
+    kernelRegularizer: serializeRegularizer(new L1L2()),
+    recurrentRegularizer: serializeRegularizer(new L1L2()),
+    biasRegularizer: serializeRegularizer(new L1L2()),
+    activityRegularizer: serializeRegularizer(null),
+    kernelConstraint: serializeConstraint(new UnitNorm({})),
+    recurrentConstraint: serializeConstraint(new UnitNorm({})),
+    biasConstraint: serializeConstraint(new NonNeg()),
+    implementation: 1,
+    unitForgetBias: true,
+  };
+
+  describe('LSTMCell.getConfig', () => {
+    it('should return the expected values', () => {
+      const cell = tfl.layers.lstmCell(cellConfig);
+
+      const {dropout, recurrentDropout, ...configPrime} = cell.getConfig();
+
+      expect(configPrime).toEqual(expectedCellConfigPrime);
+      expect(dropout).toBeCloseTo(0.1);
+      expect(recurrentDropout).toBeCloseTo(0.2);
+    });
+  });
+
+  describe('LSTM.getConfig', () => {
+    it('should return the expected values', () => {
+      const config: LSTMLayerArgs = {
+        ...cellConfig,
+        name: 'layer_1',
+        ...{
+          returnSequences: true,
+          returnState: true,
+          stateful: true,
+          unroll: true,
+          goBackwards: true,
+          inputDim: 8,
+          inputLength: 8,
+        } as Omit<LSTMLayerArgs, keyof LSTMCellLayerArgs>
+      };
+
+      const cell = tfl.layers.lstm(config);
+
+      const {dropout, recurrentDropout, ...configPrime} = cell.getConfig();
+
+      expect(configPrime).toEqual({
+        ...expectedCellConfigPrime,
+        name: 'layer_1',
+        returnSequences: true,
+        returnState: true,
+        stateful: true,
+        unroll: true,
+        goBackwards: true,
+      });
+      expect(dropout).toBeCloseTo(0.1);
+      expect(recurrentDropout).toBeCloseTo(0.2);
+    });
+  });
+});
 
 describeMathCPU('StackedRNNCells Symbolic', () => {
   it('With SimpleRNNCell', () => {
