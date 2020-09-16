@@ -25,7 +25,7 @@ function getBundleUrl(folder: string, custom: boolean, bundler: string) {
   return `./base/custom_bundle/${folder}/dist/${distFolder}/app_${bundler}.js`;
 }
 
-const DEBUG_WORKER_SCRIPT = true;
+const DEBUG_WORKER_SCRIPT = false;
 
 describe(`${SMOKE} blazeface`, () => {
   describe('webpack', () => {
