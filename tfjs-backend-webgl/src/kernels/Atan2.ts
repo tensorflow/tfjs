@@ -15,22 +15,18 @@
  * =============================================================================
  */
 
-import {Atan2, Atan2Inputs, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
+import {Atan2} from '@tensorflow/tfjs-core';
 import {KernelConfig} from '@tensorflow/tfjs-core';
 
-import {MathBackendWebGL} from '../backend_webgl';
+import * as binaryop_gpu from '../binaryop_gpu';
+import * as binaryop_packed_gpu from '../binaryop_packed_gpu';
+import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-import {atan2Impl} from './Atan2_impl';
-
-export const atan2KernelFunc:
-    (params: {inputs: Atan2Inputs, backend: MathBackendWebGL}) =>
-        TensorInfo | TensorInfo[] = ({inputs, backend}) => {
-          const {a, b} = inputs;
-          return atan2Impl(a, b, backend);
-        };
+export const atan2KernelFunc =
+    binaryKernelFunc(binaryop_gpu.ATAN2, binaryop_packed_gpu.ATAN2);
 
 export const atan2Config: KernelConfig = {
   kernelName: Atan2,
   backendName: 'webgl',
-  kernelFunc: atan2KernelFunc as {} as KernelFunc,
+  kernelFunc: atan2KernelFunc,
 };

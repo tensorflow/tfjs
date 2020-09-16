@@ -15,21 +15,15 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, Tan, TanInputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, Tan} from '@tensorflow/tfjs-core';
 
-import {MathBackendWebGL} from '../backend_webgl';
-import {TAN, UnaryOpProgram} from '../unaryop_gpu';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {TAN} from '../unaryop_gpu';
 
-export const tanKernelFunc:
-    (params: {inputs: TanInputs, backend: MathBackendWebGL}) =>
-        TensorInfo | TensorInfo[] = ({inputs, backend}) => {
-          const {x} = inputs;
-          const program = new UnaryOpProgram(x.shape, TAN);
-          return backend.runWebGLProgram(program, [x], x.dtype);
-        };
+export const tanKernelFunc = unaryKernelFunc(TAN);
 
 export const tanConfig: KernelConfig = {
   kernelName: Tan,
   backendName: 'webgl',
-  kernelFunc: tanKernelFunc as {} as KernelFunc,
+  kernelFunc: tanKernelFunc,
 };
