@@ -16,7 +16,7 @@
 
 set -e
 
-rimraf dist/
+yarn rimraf dist/
 yarn
 yarn build
 yarn lint
