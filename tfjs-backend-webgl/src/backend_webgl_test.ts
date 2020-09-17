@@ -182,7 +182,7 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
   it('read packed and then use by an unpacked op', async () => {
     const backend = new MathBackendWebGL(null);
     tf.registerBackend('test-storage', () => backend);
-    tf.reregisterKernelsFromExistingToNewBackend('webgl', 'test-storage');
+    tf.copyRegisteredKernelsFromExistingToNewBackend('webgl', 'test-storage');
     tf.setBackend('test-storage');
 
     const webglPackFlagSaved = tf.env().getBool('WEBGL_PACK');
@@ -714,7 +714,7 @@ describeWithFlags('WebGL backend has sync init', WEBGL_ENVS, () => {
   it('can do matmul without waiting for ready', async () => {
     const customWebGLBackendName = 'my-webgl';
 
-    tf.reregisterKernelsFromExistingToNewBackend(
+    tf.copyRegisteredKernelsFromExistingToNewBackend(
         'webgl', customWebGLBackendName);
 
     tf.registerBackend(customWebGLBackendName, () => {

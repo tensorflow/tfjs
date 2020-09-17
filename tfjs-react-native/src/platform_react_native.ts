@@ -241,7 +241,7 @@ function registerWebGLBackend() {
     }, PRIORITY);
 
     // Register all the webgl kernels on the rn-webgl backend
-    tf.reregisterKernelsFromExistingToNewBackend('webgl', 'rn-webgl');
+    tf.copyRegisteredKernelsFromExistingToNewBackend('webgl', 'rn-webgl');
   } catch (e) {
     throw (new Error(`Failed to register Webgl backend: ${e.message}`));
   }
