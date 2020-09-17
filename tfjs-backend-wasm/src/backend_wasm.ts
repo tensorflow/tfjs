@@ -380,8 +380,7 @@ export function setWasmPath(path: string, usePlatformFetch = false): void {
  * Configures the locations of the WASM binaries.
  *
  * ```js
- * const customPrefix = null;
- * setWasmPaths(customPrefix, {
+ * setWasmPaths({
  *  'tfjs-backend-wasm.wasm': 'renamed.wasm',
  *  'tfjs-backend-wasm-simd.wasm': 'renamed-simd.wasm',
  *  'tfjs-backend-wasm-threaded-simd.wasm': 'renamed-threaded-simd.wasm'
