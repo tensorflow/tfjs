@@ -284,13 +284,13 @@ export class MathBackendWebGL extends KernelBackend {
     return dataId;
   }
 
-  /** Increase refCount of a `TensorData`. */
+  /** Increase refCount of a `TextureData`. */
   incRef(dataId: DataId): void {
     const texData = this.texData.get(dataId);
     texData.refCount++;
   }
 
-  /** Decrease refCount of a `TensorData`. */
+  /** Decrease refCount of a `TextureData`. */
   decRef(dataId: DataId): void {
     if (this.texData.has(dataId)) {
       const texData = this.texData.get(dataId);
@@ -330,6 +330,10 @@ export class MathBackendWebGL extends KernelBackend {
   readSync(dataId: DataId): BackendValues {
     const texData = this.texData.get(dataId);
     const {values, dtype, complexTensors, slice, shape, isPacked} = texData;
+
+    // The presence of `slice` indicates this tensor is a shallow slice of a
+    // different tensor, and is using that original tensor's texture. Run
+    // `clone` in order to copy that texture and read from it.
     if (slice != null) {
       let program;
       if (isPacked) {
@@ -378,6 +382,9 @@ export class MathBackendWebGL extends KernelBackend {
     const texData = this.texData.get(dataId);
     const {values, shape, slice, dtype, complexTensors, isPacked} = texData;
 
+    // The presence of `slice` indicates this tensor is a shallow slice of a
+    // different tensor, and is using that original tensor's texture. Run
+    // `clone` in order to copy that texture and read from it.
     if (slice != null) {
       let program;
       if (isPacked) {
