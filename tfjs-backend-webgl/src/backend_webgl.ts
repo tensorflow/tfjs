@@ -1638,16 +1638,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  relu<T extends Tensor>(x: T): T {
-    let program: UnaryOpProgram|UnaryOpPackedProgram;
-    if (env().getBool('WEBGL_PACK')) {
-      program = new UnaryOpPackedProgram(x.shape, unary_packed_op.RELU);
-    } else {
-      program = new UnaryOpProgram(x.shape, unary_op.RELU);
-    }
-    return this.compileAndRun(program, [x]);
-  }
-
   relu6<T extends Tensor>(x: T): T {
     let program: UnaryOpProgram|UnaryOpPackedProgram;
     if (env().getBool('WEBGL_PACK')) {
@@ -1726,11 +1716,6 @@ export class MathBackendWebGL extends KernelBackend {
     ];
 
     return this.compileAndRun<Tensor>(program, inputs) as T;
-  }
-
-  sigmoid<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SIGMOID);
-    return this.compileAndRun(program, [x]);
   }
 
   softplus<T extends Tensor>(x: T): T {
