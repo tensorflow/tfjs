@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {KernelFunc, Reshape, ReshapeAttrs, ReshapeInputs, TensorInfo} from '@tensorflow/tfjs-core';
-import {KernelConfig, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Reshape, ReshapeAttrs, ReshapeInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {packedReshape} from '../kernel_utils/reshape';

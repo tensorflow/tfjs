@@ -31,8 +31,11 @@ export function maxImpl(
       reshape({inputs: {x}, attrs: {shape: [batchSize, inSize]}, backend});
 
   const reduced = reduce(reshapedInput, x.dtype, 'max', backend);
+  const reshapedOutput =
+      reshape({inputs: {x: reduced}, attrs: {shape: outShape}, backend});
 
   backend.disposeIntermediateTensorInfo(reshapedInput);
+  backend.disposeIntermediateTensorInfo(reduced);
 
-  return reshape({inputs: {x: reduced}, attrs: {shape: outShape}, backend});
+  return reshapedOutput;
 }
