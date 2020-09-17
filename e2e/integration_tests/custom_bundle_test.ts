@@ -59,6 +59,9 @@ describe(`${SMOKE} blazeface`, () => {
         'NonMaxSuppressionV3'
       ]));
 
+      // TODO(yassogba) revisit the question of comparing the output of full
+      // and custom bundle on real inputs once CPU has modularized the blazeface
+      // kernels.
       expect(result.predictions.length).toEqual(0);
     });
   });
