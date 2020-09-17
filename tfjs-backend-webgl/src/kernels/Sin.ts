@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,16 +15,18 @@
  * =============================================================================
  */
 
-import {KernelConfig, Square} from '@tensorflow/tfjs-core';
+import {KernelConfig, Sin} from '@tensorflow/tfjs-core';
 
-import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {CHECK_NAN_SNIPPET_UNARY, unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-const SQUARE = `return x * x;`;
+const SIN = CHECK_NAN_SNIPPET_UNARY + `
+  return sin(x);
+`;
 
-export const squareKernelFunc = unaryKernelFunc(SQUARE);
+export const sinKernelFunc = unaryKernelFunc(SIN);
 
-export const squareConfig: KernelConfig = {
-  kernelName: Square,
+export const sinConfig: KernelConfig = {
+  kernelName: Sin,
   backendName: 'webgl',
-  kernelFunc: squareKernelFunc,
+  kernelFunc: sinKernelFunc,
 };
