@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-// import * as fs from 'fs';
-// import * as path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as shell from 'shelljs';
 
 /**
@@ -39,21 +39,20 @@ function getPackageFolders() {
 }
 
 function maybeBuildPackage(folder: string) {
-  // const distPath = path.resolve(folder, './dist');
-  // const stat = fs.existsSync(distPath)
-  // if (stat) {
-  //   console.log(`dist folder for ${folder} already exists. Skipping build`);
-  // }
-  // else {
-  //   console.log(`dist folder for ${folder} does not exist. Triggering
-  //   build`);
-  console.log(process.cwd());
-  shell.cd(folder)
-  console.log(process.cwd());
-  $('yarn && yarn build-ci')
-  shell.cd('..');
-  console.log(process.cwd());
-  // }
+  const distPath = path.resolve(folder, './dist');
+  const stat = fs.existsSync(distPath)
+  if (stat) {
+    console.log(`dist folder for ${folder} already exists. Skipping build`);
+  }
+  else {
+    console.log(`dist folder for ${folder} does not exist. Triggering build`);
+    console.log(process.cwd());
+    shell.cd(folder)
+    console.log(process.cwd());
+    $('yarn && yarn build-ci')
+    shell.cd('..');
+    console.log(process.cwd());
+  }
 }
 
 console.log('in ts')
