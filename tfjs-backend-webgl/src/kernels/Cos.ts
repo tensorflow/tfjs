@@ -17,9 +17,9 @@
 
 import {Cos, KernelConfig} from '@tensorflow/tfjs-core';
 
-import {CHECK_NAN_SNIPPET_BINARY, unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {CHECK_NAN_SNIPPET_UNARY, unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-const COS = CHECK_NAN_SNIPPET_BINARY + `
+const COS = CHECK_NAN_SNIPPET_UNARY + `
   return cos(x);
 `;
 
