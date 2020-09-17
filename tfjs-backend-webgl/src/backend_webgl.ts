@@ -1874,9 +1874,9 @@ export class MathBackendWebGL extends KernelBackend {
         !reshapeWillBeExpensive) {
       const targetShape = isChannelsLast ? xShape[0] * xShape[1] * xShape[2] :
                                            xShape[0] * xShape[2] * xShape[3];
-      const xReshaped = x.reshape([1, targetShape, convInfo.inChannels]);
+      const xReshaped = reshape(x, [1, targetShape, convInfo.inChannels]);
       const filterReshaped =
-          filter.reshape([1, convInfo.inChannels, convInfo.outChannels]);
+          reshape(filter, [1, convInfo.inChannels, convInfo.outChannels]);
 
       const result = this.fusedBatchMatMul({
         a: xReshaped as Tensor3D,
@@ -1887,7 +1887,7 @@ export class MathBackendWebGL extends KernelBackend {
         activation,
         preluActivationWeights
       });
-      return result.reshape(convInfo.outShape);
+      return reshape(result, convInfo.outShape);
     }
 
     // Following optimization is specific to packed |x| with odd row count
@@ -1922,7 +1922,7 @@ export class MathBackendWebGL extends KernelBackend {
         () => `packed reshape ${xTexData.shape} to ${
             xReshaped.shape} isn't free`);
     const filterReshaped =
-        filter.reshape([1, convInfo.inChannels, convInfo.outChannels]);
+        reshape(filter, [1, convInfo.inChannels, convInfo.outChannels]);
 
     const pointwiseConv = this.fusedBatchMatMul({
       a: xReshaped as Tensor3D,
