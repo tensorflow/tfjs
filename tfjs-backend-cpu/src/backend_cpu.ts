@@ -831,18 +831,6 @@ export class MathBackendCPU extends KernelBackend {
     return this.makeOutput(resultValues, y.shape, 'float32');
   }
 
-  complexAbs<T extends Tensor>(x: T): T {
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-
-    for (let i = 0; i < x.size; ++i) {
-      const real = values[i * 2];
-      const imag = values[i * 2 + 1];
-      resultValues[i] = Math.hypot(real, imag);
-    }
-    return this.makeOutput(resultValues, x.shape, 'float32');
-  }
-
   atan2<T extends Tensor>(a: T, b: T): T {
     assertNotComplex([a, b], 'atan2');
 
