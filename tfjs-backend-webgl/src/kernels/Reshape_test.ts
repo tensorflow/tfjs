@@ -75,4 +75,39 @@ describeWithFlags('Reshape.', ALL_ENVS, () => {
     // Should be able to dispose the dataId.
     expect(afterDisposeDataIds).toEqual(beforeDataIds);
   });
+
+  it('does not leak when reshaping a shallowly sliced tensor', async () => {
+    const packedFlagSaved = tf.env().getBool('WEBGL_PACK');
+    tf.env().set('WEBGL_PACK', false);
+
+    const nBefore = tf.memory().numTensors;
+    const nBeforeDataIds = tf.engine().backend.numDataIds();
+
+    const a = tf.tensor1d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    const b = tf.slice(a, 0, 6);
+
+    await b.data();
+
+    let nAfter = tf.memory().numTensors;
+    let nAfterDataIds = tf.engine().backend.numDataIds();
+    expect(nAfter).toBe(nBefore + 2);
+    expect(nAfterDataIds).toBe(nBeforeDataIds + 2);
+
+    const c = tf.reshape(b, [2, 3]);
+    expectArraysClose(await c.data(), [0, 1, 2, 3, 4, 5]);
+
+    tf.dispose([a, b]);
+    nAfter = tf.memory().numTensors;
+    nAfterDataIds = tf.engine().backend.numDataIds();
+    expect(nAfter).toBe(nBefore + 1);
+    expect(nAfterDataIds).toBe(nBeforeDataIds + 1);
+
+    tf.dispose([c]);
+    nAfter = tf.memory().numTensors;
+    nAfterDataIds = tf.engine().backend.numDataIds();
+    expect(nAfter).toBe(nBefore);
+    expect(nAfterDataIds).toBe(nBeforeDataIds);
+
+    tf.env().set('WEBGL_PACK', packedFlagSaved);
+  });
 });
