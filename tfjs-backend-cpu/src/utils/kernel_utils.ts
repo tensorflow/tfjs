@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, BinaryInputs, DataType, KernelFunc, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, BinaryInputs, DataType, KernelFunc, TypedArray, UnaryInputs, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
@@ -23,7 +23,44 @@ import {cast} from '../kernels/Cast';
 import {complex} from '../kernels/Complex';
 
 import {createSimpleBinaryKernelImpl} from './binary_impl';
-import {ComplexBinaryKernelImpl, ComplexBinaryOperation, SimpleBinaryOperation} from './binary_types';
+import {ComplexBinaryKernelImpl, ComplexBinaryOperation, ComplexUnaryOperation, SimpleBinaryOperation, SimpleUnaryOperation} from './binary_types';
+
+/**
+ * Template that creates a `KernelFunc` for unary ops.
+ * @param name Kernel name.
+ * @param op A `SimpleUnaryOperation` for the kernel.
+ * @param dtype Optional. If set, the result has this dtype. Otherwise, the
+ *     result has the same dtype as the first input. This is mainly used in
+ *     certain kernels that return bool type, such as isFinite, isInf, etc.
+ * @param opComplex A `ComplexUnaryOperation` for the kernel to handle complex64
+ *     inputs.
+ */
+export function unaryKernelFunc(
+    name: string, op: SimpleUnaryOperation, dtype?: DataType,
+    opComplex?: ComplexUnaryOperation): KernelFunc {
+  return ({inputs, attrs, backend}) => {
+    const {x} = inputs as UnaryInputs;
+    const cpuBackend = backend as MathBackendCPU;
+
+    const values = cpuBackend.readSync(x.dataId) as TypedArray;
+    const xSize = util.sizeFromShape(x.shape);
+    const newValues =
+        dtype === 'bool' ? new Uint8Array(xSize) : new Float32Array(xSize);
+    if (x.dtype === 'complex64') {
+      util.assert(
+          opComplex !== undefined, () => `no complex op defined for ${name}`);
+      for (let i = 0; i < xSize; ++i) {
+        newValues[i] = opComplex(values[i * 2], values[i * 2 + 1], attrs);
+      }
+    } else {
+      assertNotComplex(x, name);
+      for (let i = 0; i < xSize; ++i) {
+        newValues[i] = op(values[i], attrs);
+      }
+    }
+    return cpuBackend.makeTensorInfo(x.shape, dtype || x.dtype, newValues);
+  };
+}
 
 /**
  * Template that creates a `KernelFunc` for binary ops.

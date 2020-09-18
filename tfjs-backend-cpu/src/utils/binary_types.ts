@@ -15,8 +15,11 @@
  * =============================================================================
  */
 
-import {DataType, TypedArray} from '@tensorflow/tfjs-core';
+import {DataType, NamedAttrMap, TypedArray} from '@tensorflow/tfjs-core';
 
+export type SimpleUnaryOperation = (x: number, attrs?: NamedAttrMap) => number;
+export type ComplexUnaryOperation =
+    (real: number, imag: number, attrs?: NamedAttrMap) => number;
 export type SimpleBinaryOperation = (a: number, b: number) => number;
 export type SimpleBinaryKernelImpl =
     (aShape: number[], bShape: number[], aVals: TypedArray, bVals: TypedArray,
