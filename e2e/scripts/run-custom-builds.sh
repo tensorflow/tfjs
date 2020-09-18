@@ -15,10 +15,13 @@
 # limitations under the License.
 # ==============================================================================
 
+# Start in scripts/ even if run from root directory
+cd "$(dirname "$0")"
+
 # Go to e2e root
 echo $PWD
-# cd ..
-# e2e_root_path=$PWD
+cd ..
+e2e_root_path=$PWD
 
 cd custom_bundle/blazeface
 yarn
