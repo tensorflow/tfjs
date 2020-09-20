@@ -27,6 +27,7 @@ import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {identityConfig} from './kernels/Identity';
 import {maxConfig} from './kernels/Max';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
+import {mirrorPadConfig} from './kernels/MirrorPad';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {padV2Config} from './kernels/PadV2';
@@ -41,9 +42,10 @@ import {transposeConfig} from './kernels/Transpose';
 const kernelConfigs: KernelConfig[] = [
   dilation2dConfig, dilation2dBackpropInputConfig,
   dilation2dBackpropFilterConfig, divConfig, flipLeftRightConfig,
-  identityConfig, maxPoolWithArgmaxConfig, maxConfig, nonMaxSuppressionV4Config,
-  nonMaxSuppressionV5Config, padV2Config, reshapeConfig, rotateWithOffsetConfig,
-  spaceToBatchNDConfig, squareConfig, squaredDifferenceConfig, transposeConfig
+  identityConfig, maxPoolWithArgmaxConfig, maxConfig, mirrorPadConfig,
+  nonMaxSuppressionV4Config, nonMaxSuppressionV5Config, padV2Config,
+  reshapeConfig, rotateWithOffsetConfig, spaceToBatchNDConfig, squareConfig,
+  squaredDifferenceConfig, transposeConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {

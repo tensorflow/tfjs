@@ -78,6 +78,7 @@ import {LRNPackedProgram} from './lrn_packed_gpu';
 import {MaxPool2DBackpropProgram, MaxPool3DBackpropProgram} from './max_pool_backprop_gpu';
 import {MatMulPackedProgram} from './mulmat_packed_gpu';
 import {MultinomialProgram} from './multinomial_gpu';
+import {MirrorPadProgram} from './mirror_pad_gpu';
 import {OneHotProgram} from './onehot_gpu';
 import {PackProgram} from './pack_gpu';
 import {PadProgram} from './pad_gpu';
@@ -109,6 +110,7 @@ import {UnaryOpPackedProgram} from './unaryop_packed_gpu';
 import {UnpackProgram} from './unpack_gpu';
 import * as webgl_util from './webgl_util';
 import {BackendValues} from '@tensorflow/tfjs-core';
+import {MirrorPadPackedProgram} from './mirror_pad_packed_gpu';
 
 export const EPSILON_FLOAT32 = 1e-7;
 export const EPSILON_FLOAT16 = 1e-4;
@@ -971,6 +973,14 @@ export class MathBackendWebGL extends KernelBackend {
     const program = env().getBool('WEBGL_PACK_ARRAY_OPERATIONS') ?
         new PadPackedProgram(x.shape, paddings, constantValue) :
         new PadProgram(x.shape, paddings, constantValue);
+    return this.compileAndRun(program, [x]);
+  }
+
+  mirrorPad<T extends Tensor>(
+      x: T, paddings: Array<[number, number]>, mode: 'reflect'|'symmetric'): T {
+    const program = env().getBool('WEBGL_PACK_ARRAY_OPERATIONS') ?
+        new MirrorPadPackedProgram(x.shape, paddings, mode) :
+        new MirrorPadProgram(x.shape, paddings, mode);
     return this.compileAndRun(program, [x]);
   }
 

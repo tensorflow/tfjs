@@ -495,6 +495,13 @@ export interface MinAttrs {
 export const Minimum = 'Minimum';
 export type MinimumInputs = BinaryInputs;
 
+export const MirrorPad = 'MirrorPad';
+export type MirrorPadInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface MirrorPadAttrs {
+  paddings: Array<[number, number]>;
+  mode: 'reflect'|'symmetric';
+}
+
 export const Mod = 'Mod';
 export type ModInputs = BinaryInputs;
 

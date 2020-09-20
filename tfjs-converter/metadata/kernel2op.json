@@ -274,6 +274,9 @@
   "Minimum": [
     "minimum"
   ],
+  "MirrorPad": [
+    "mirrorPad"
+  ],
   "Mod": [
     "mod"
   ],

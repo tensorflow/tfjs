@@ -37,6 +37,7 @@ import {Im2ColProgram} from './kernels/im2col_webgpu';
 import {MatMulPackedProgram} from './kernels/matmul_packed_webgpu';
 import {MatMulProgram} from './kernels/matmul_webgpu';
 import {MaxPoolWithFilterSizeEqualsOneProgram} from './kernels/maxpool_filtersizeone_webgpu';
+import {MirrorPadProgram} from './kernels/mirror_pad_webgpu';
 import {PadProgram} from './kernels/pad_webgpu';
 import {Pool2DProgram} from './kernels/pool2d_webgpu';
 import {ReduceProgram} from './kernels/reduce_webgpu';
@@ -515,6 +516,13 @@ export class WebGPUBackend extends KernelBackend {
             input =>
                 this.tensorMap.get(input.dataId).bufferInfo.buffer == null &&
                 input.size < sizeThreshold);
+  }
+
+  mirrorPad<T extends Tensor>(
+    x: T, paddings: Array<[number, number]>, mode: 'reflect'|'symmetric'): T {
+      const program = new MirrorPadProgram(x.shape, paddings, mode);
+      const output = this.makeOutputArray(program.outputShape, x.dtype);
+      return this.compileAndRun(program, [x], output);
   }
 
   pad<T extends Tensor>(

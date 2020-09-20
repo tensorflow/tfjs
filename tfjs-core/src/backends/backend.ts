@@ -581,6 +581,11 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
     return notYetImplemented('multinomial');
   }
 
+  mirrorPad<T extends Tensor>(
+      x: T, paddings: Array<[number, number]>, mode: 'reflect'|'symmetric'): T {
+    return notYetImplemented('mirrorPad');
+  }
+
   oneHot(indices: Tensor1D, depth: number, onValue: number, offValue: number):
       Tensor2D {
     return notYetImplemented('oneHot');

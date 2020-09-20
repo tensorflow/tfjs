@@ -291,6 +291,7 @@
 |Cast|cast|
 |DepthToSpace|depthToSpace|
 |ExpandDims|expandDims|
+|MirrorPad|mirrorPad|
 |Pad|pad|
 |PadV2|pad|
 |Reshape|reshape|

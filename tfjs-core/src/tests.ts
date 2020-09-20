@@ -148,6 +148,7 @@ import './ops/max_pool_with_argmax_test';
 import './ops/max_test';
 import './ops/mean_test';
 import './ops/min_test';
+import './ops/mirror_pad_test';
 import './ops/moments_test';
 import './ops/moving_average_test';
 import './ops/multi_rnn_cell_test';
