@@ -36,8 +36,9 @@ import {op} from './operation';
  * @param x The input tensor.
  * @param clipValueMin Lower-bound of range to be clipped to.
  * @param clipValueMax Upper-bound of range to be clipped to.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function clipByValue_<T extends Tensor>(
     x: T|TensorLike, clipValueMin: number, clipValueMax: number): T {
   const $x = convertToTensor(x, 'x', 'clipByValue');

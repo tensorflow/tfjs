@@ -60,7 +60,9 @@ async function main() {
   }
 
   // Get release candidate commit.
-  const commit = await question('Commit of release candidate: ');
+  const commit = await question(
+      'Commit of release candidate (the last ' +
+      'successful nightly build): ');
   if (commit === '') {
     console.log(chalk.red('Commit cannot be empty.'));
     process.exit(1);

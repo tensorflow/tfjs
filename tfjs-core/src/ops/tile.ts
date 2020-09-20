@@ -48,8 +48,9 @@ import {op} from './operation';
  * ```
  * @param x The tensor to tile.
  * @param reps Determines the number of replications per dimension.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
 function tile_<T extends Tensor>(x: T|TensorLike, reps: number[]): T {
   const parseAs: DataType = null;
   const $x = convertToTensor(x, 'x', 'tile', parseAs);

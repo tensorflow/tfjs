@@ -49,8 +49,9 @@ let fromPixels2DContext: CanvasRenderingContext2D;
  * @param numChannels The number of channels of the output tensor. A
  * numChannels value less than 4 allows you to ignore channels. Defaults to
  * 3 (ignores alpha channel of input image).
+ *
+ * @doc {heading: 'Browser', namespace: 'browser', ignoreCI: true}
  */
-/** @doc {heading: 'Browser', namespace: 'browser', ignoreCI: true} */
 function fromPixels_(
     pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
     HTMLVideoElement,
@@ -169,8 +170,9 @@ function fromPixels_(
  * the depth dimension corresponding to r, g, b and alpha = 1. When depth of
  * 4, all four components of the depth dimension correspond to r, g, b, a.
  * @param canvas The canvas to draw to.
+ *
+ * @doc {heading: 'Browser', namespace: 'browser'}
  */
-/** @doc {heading: 'Browser', namespace: 'browser'} */
 export async function toPixels(
     img: Tensor2D|Tensor3D|TensorLike,
     canvas?: HTMLCanvasElement): Promise<Uint8ClampedArray> {

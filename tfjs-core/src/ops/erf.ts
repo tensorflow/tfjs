@@ -36,8 +36,9 @@ import {op} from './operation';
  * x.erf().print(); // or tf.erf(x);
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function erf_<T extends Tensor>(x: T|TensorLike): T {
   let $x = convertToTensor(x, 'x', 'erf');
   util.assert(

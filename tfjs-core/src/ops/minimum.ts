@@ -51,8 +51,9 @@ import {op} from './operation';
  *
  * @param a The first tensor.
  * @param b The second tensor. Must have the same type as `a`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Arithmetic'}
  */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function minimum_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   let $a = convertToTensor(a, 'a', 'minimum');

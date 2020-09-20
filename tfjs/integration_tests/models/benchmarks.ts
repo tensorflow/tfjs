@@ -45,7 +45,7 @@ const LOSS_MAP: {[pyName: string]: string} = {
 
 describe('TF.js Layers Benchmarks', () => {
   beforeAll(() => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 600000;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
   });
 
   // Karma serves static files under the base/ path.

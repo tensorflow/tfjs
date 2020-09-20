@@ -207,7 +207,7 @@ export * from './dropout';
 export * from './signal_ops_util';
 export * from './in_top_k';
 
-export {op} from './operation';
+export {op, OP_SCOPE_SUFFIX} from './operation';
 
 import {rfft} from './spectral/rfft';
 import {fft} from './spectral/fft';

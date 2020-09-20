@@ -25,6 +25,8 @@ import {nonMaxSuppSanityCheck} from '../nonmax_util';
  * Performs non maximum suppression of bounding boxes based on
  * iou (intersection over union).
  *
+ * This is the async version of `nonMaxSuppression`
+ *
  * @param boxes a 2d tensor of shape `[numBoxes, 4]`. Each entry is
  *     `[y1, x1, y2, x2]`, where `(y1, x1)` and `(y2, x2)` are the corners of
  *     the bounding box.
@@ -36,9 +38,9 @@ import {nonMaxSuppSanityCheck} from '../nonmax_util';
  * @param scoreThreshold A threshold for deciding when to remove boxes based
  *     on score. Defaults to -inf, which means any score is accepted.
  * @return A 1D tensor with the selected box indices.
+ *
+ * @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'}
  */
-/** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
-/** This is the async version of `nonMaxSuppression` */
 async function nonMaxSuppressionAsync_(
     boxes: Tensor2D|TensorLike, scores: Tensor1D|TensorLike,
     maxOutputSize: number, iouThreshold = 0.5,

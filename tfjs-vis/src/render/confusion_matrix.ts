@@ -63,8 +63,9 @@ import {getDrawArea} from './render_utils';
  *   shadeDiagonal: false
  * });
  * ```
+ *
+ * @doc {heading: 'Charts', namespace: 'render'}
  */
-/** @doc {heading: 'Charts', namespace: 'render'} */
 export async function confusionMatrix(
     container: Drawable, data: ConfusionMatrixData,
     opts: ConfusionMatrixOptions = {}): Promise<void> {

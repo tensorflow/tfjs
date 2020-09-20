@@ -56,8 +56,9 @@ import {reshape} from './reshape';
  * @param x The input tensor to be reversed.
  * @param axis The set of dimensions to reverse. Must be in the
  *     range [-rank(x), rank(x)). Defaults to all axes.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
 function reverse_<T extends Tensor>(
     x: T|TensorLike, axis?: number|number[]): T {
   const $x = convertToTensor(x, 'x', 'reverse');

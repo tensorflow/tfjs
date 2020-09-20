@@ -44,8 +44,9 @@ import {computeWeightedLoss} from './compute_weighted_loss';
  * @param delta Point where huber loss changes from quadratic to linear.
  * @param reduction Type of reduction to apply to loss. Should be of type
  *    `Reduction`.
+ *
+ * @doc {heading: 'Training', subheading: 'Losses', namespace: 'losses'}
  */
-/** @doc {heading: 'Training', subheading: 'Losses', namespace: 'losses'} */
 function huberLoss_<T extends Tensor, O extends Tensor>(
     labels: T|TensorLike, predictions: T|TensorLike,
     weights?: Tensor|TensorLike, delta = 1.0,

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, buffer, KernelConfig, KernelFunc, Slice, slice_util, SliceAttrs, SliceInputs, Tensor, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, KernelConfig, KernelFunc, Slice, slice_util, SliceAttrs, SliceInputs, util} from '@tensorflow/tfjs-core';
 import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
@@ -23,7 +23,9 @@ import {BackendWasm} from '../backend_wasm';
 export function slice(
     args: {inputs: SliceInputs, attrs: SliceAttrs, backend: BackendWasm}) {
   const {inputs: {x}, attrs: {begin, size}, backend} = args;
-  const [begin_, size_] = slice_util.parseSliceParams(x as Tensor, begin, size);
+
+  const [begin_, size_] = slice_util.parseSliceParams(x, begin, size);
+
   const isContinous = slice_util.isSliceContinous(x.shape, begin_, size_);
   const xVals = backend.typedArrayFromHeap(x);
   const out = backend.makeOutput(size_, x.dtype);

@@ -56,8 +56,9 @@ import {sum} from './sum';
  *     reduces all dimensions.
  * @param keepDims If true, retains reduced dimensions with length
  *     of 1. Defaults to false.
+ *
+ * @doc {heading: 'Operations', subheading: 'Reduction'}
  */
-/** @doc {heading: 'Operations', subheading: 'Reduction'} */
 function logSumExp_<T extends Tensor>(
     x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
   const $x = convertToTensor(x, 'x', 'logSumExp');

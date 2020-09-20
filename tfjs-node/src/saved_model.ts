@@ -78,8 +78,7 @@ export async function readSavedModelProto(path: string) {
  * function will return an array of `MetaGraphInfo` objects.
  *
  * @param path Path to SavedModel folder.
- */
-/**
+ *
  * @doc {heading: 'Models', subheading: 'SavedModel', namespace: 'node'}
  */
 export async function getMetaGraphsFromSavedModel(path: string):
@@ -202,8 +201,7 @@ export function getInputAndOutputNodeNameFromMetaGraphInfo(
 /**
  * A `tf.TFSavedModel` is a signature loaded from a SavedModel
  * metagraph, and allows inference execution.
- */
-/**
+ *
  * @doc {heading: 'Models', subheading: 'SavedModel', namespace: 'node'}
  */
 export class TFSavedModel implements InferenceModel {
@@ -217,16 +215,18 @@ export class TFSavedModel implements InferenceModel {
 
   /**
    * Return the array of input tensor info.
+   *
+   * @doc {heading: 'Models', subheading: 'SavedModel'}
    */
-  /** @doc {heading: 'Models', subheading: 'SavedModel'} */
   get inputs(): ModelTensorInfo[] {
     throw new Error('SavedModel inputs information is not available yet.');
   }
 
   /**
    * Return the array of output tensor info.
+   *
+   * @doc {heading: 'Models', subheading: 'SavedModel'}
    */
-  /** @doc {heading: 'Models', subheading: 'SavedModel'} */
   get outputs(): ModelTensorInfo[] {
     throw new Error('SavedModel outputs information is not available yet.');
   }
@@ -234,8 +234,9 @@ export class TFSavedModel implements InferenceModel {
   /**
    * Delete the SavedModel from nodeBackend and delete corresponding session in
    * the C++ backend if the session is only used by this TFSavedModel.
+   *
+   * @doc {heading: 'Models', subheading: 'SavedModel'}
    */
-  /** @doc {heading: 'Models', subheading: 'SavedModel'} */
   dispose() {
     if (!this.disposed) {
       this.disposed = true;
@@ -274,8 +275,9 @@ export class TFSavedModel implements InferenceModel {
    * @returns Inference result tensors. The output would be single Tensor if
    * model has single output node, otherwise Tensor[] or NamedTensorMap[] will
    * be returned for model with multiple outputs.
+   *
+   * @doc {heading: 'Models', subheading: 'SavedModel'}
    */
-  /** @doc {heading: 'Models', subheading: 'SavedModel'} */
   predict(inputs: Tensor|Tensor[]|NamedTensorMap, config?: ModelPredictConfig):
       Tensor|Tensor[]|NamedTensorMap {
     if (this.disposed) {
@@ -345,8 +347,9 @@ export class TFSavedModel implements InferenceModel {
    * type matches specified parameter outputs type. The output would be single
    * Tensor if single output is specified, otherwise Tensor[] for multiple
    * outputs.
+   *
+   * @doc {heading: 'Models', subheading: 'SavedModel'}
    */
-  /** @doc {heading: 'Models', subheading: 'SavedModel'} */
   execute(inputs: Tensor|Tensor[]|NamedTensorMap, outputs: string|string[]):
       Tensor|Tensor[] {
     throw new Error('execute() of TFSavedModel is not supported yet.');
@@ -373,8 +376,9 @@ export class TFSavedModel implements InferenceModel {
  * @param signature The name of the SignatureDef to load. The available
  *     SignatureDefs of a SavedModel can be retrieved through
  *     tf.node.getMetaGraphsFromSavedModel() API. Defaults to 'serving_default'.
+ *
+ * @doc {heading: 'Models', subheading: 'SavedModel', namespace: 'node'}
  */
-/** @doc {heading: 'Models', subheading: 'SavedModel', namespace: 'node'} */
 export async function loadSavedModel(
     path: string, tags = ['serve'],
     signature = 'serving_default'): Promise<TFSavedModel> {

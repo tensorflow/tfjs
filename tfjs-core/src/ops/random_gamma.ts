@@ -35,8 +35,9 @@ import {RandGamma} from './rand_util';
  *     to 1.
  * @param dtype The data type of the output. Defaults to float32.
  * @param seed The seed for the random number generator.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Random'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Random'} */
 function randomGamma_<R extends Rank>(
     shape: ShapeMap[R], alpha: number, beta = 1,
     dtype: 'float32'|'int32' = 'float32', seed?: number): Tensor<R> {

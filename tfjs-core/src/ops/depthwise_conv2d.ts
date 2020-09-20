@@ -70,8 +70,9 @@ import {reshape} from './reshape';
  * @param dimRoundingMode The rounding mode used when computing output
  *     dimensions if pad is a number. If none is provided, it will not round
  *     and error if the output is of fractional size.
+ *
+ * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
-/** @doc {heading: 'Operations', subheading: 'Convolution'} */
 function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, filter: Tensor4D|TensorLike,
     strides: [number, number]|number, pad: 'valid'|'same'|number,

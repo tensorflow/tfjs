@@ -55,8 +55,8 @@ import {getDrawArea} from './render_utils';
  * tfvis.render.linechart(surface, data, { zoomToFit: true });
  * ```
  *
+ * @doc {heading: 'Charts', namespace: 'render'}
  */
-/** @doc {heading: 'Charts', namespace: 'render'} */
 export async function linechart(
     container: Drawable, data: XYPlotData,
     opts: XYPlotOptions = {}): Promise<void> {

@@ -36,8 +36,7 @@ import {op} from '../operation';
  * x.fft().print();  // tf.spectral.fft(x).print();
  * ```
  * @param input The complex input to compute an fft over.
- */
-/**
+ *
  * @doc {heading: 'Operations', subheading: 'Spectral', namespace: 'spectral'}
  */
 function fft_(input: Tensor): Tensor {
