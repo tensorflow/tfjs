@@ -151,4 +151,22 @@ describeWithFlags('mirrorPad', ALL_ENVS, () => {
         [NaN, 1, NaN, 1, NaN, 1, NaN, 1, NaN, 1, NaN, 1, NaN, 1, NaN,
         1]);
   });
+
+  it('grad', async () => {
+    const a = tf.tensor1d([1, 2, 3]);
+    const dy = tf.tensor1d([10, 20, 30, 40, 50, 60]);
+    const da = tf.grad((a: tf.Tensor1D) => tf.mirrorPad(a, [[2, 1]]))(a, dy);
+    expect(da.shape).toEqual([3]);
+    expectArraysClose(await da.data(), [30, 40, 50]);
+  });
+
+  it('gradient with clones', async () => {
+    const a = tf.tensor1d([1, 2, 3]);
+    const dy = tf.tensor1d([10, 20, 30, 40, 50, 60]);
+    const da =
+        tf.grad((a: tf.Tensor1D) =>
+        tf.mirrorPad(a.clone(), [[2, 1]]).clone())(a, dy);
+    expect(da.shape).toEqual([3]);
+    expectArraysClose(await da.data(), [30, 40, 50]);
+  });
 });
