@@ -30,9 +30,7 @@ export const absKernelFunc =
           resultValues[i] = Math.abs(values[i]);
         }
       } else {
-        console.log('!!!!!!!!!!!!!!!');
         const complexVals = cpuBackend.data.get(x.dataId);
-        console.log(complexVals.complexTensorInfos.real);
         const real = complexVals.complexTensorInfos.real;
         const imag = complexVals.complexTensorInfos.imag;
         const realVals =
