@@ -19,7 +19,7 @@ import {Acosh, KernelConfig} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../utils/kernel_utils';
 
-export const acoshKernelFunc = unaryKernelFunc(Acosh, (x) => Math.acosh(x));
+export const acoshKernelFunc = unaryKernelFunc(Acosh, (xi) => Math.acosh(xi));
 
 export const acoshConfig: KernelConfig = {
   kernelName: Acosh,

@@ -19,7 +19,7 @@ import {Expm1, KernelConfig} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../utils/kernel_utils';
 
-export const expm1KernelFunc = unaryKernelFunc(Expm1, (x) => Math.expm1(x));
+export const expm1KernelFunc = unaryKernelFunc(Expm1, (xi) => Math.expm1(xi));
 
 export const expm1Config: KernelConfig = {
   kernelName: Expm1,

@@ -19,12 +19,12 @@ import {KernelConfig, Step, StepAttrs} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../utils/kernel_utils';
 
-export const stepKernelFunc = unaryKernelFunc(Step, (x, attrs) => {
+export const stepKernelFunc = unaryKernelFunc(Step, (xi, attrs) => {
   const stepAttrs = attrs as {} as StepAttrs;
-  if (isNaN(x)) {
+  if (isNaN(xi)) {
     return NaN;
   } else {
-    return x > 0 ? 1 : stepAttrs.alpha;
+    return xi > 0 ? 1 : stepAttrs.alpha;
   }
 });
 

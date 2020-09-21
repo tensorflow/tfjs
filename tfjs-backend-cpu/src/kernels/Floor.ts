@@ -19,7 +19,7 @@ import {Floor, KernelConfig} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../utils/kernel_utils';
 
-export const floorKernelFunc = unaryKernelFunc(Floor, (x) => Math.floor(x));
+export const floorKernelFunc = unaryKernelFunc(Floor, (xi) => Math.floor(xi));
 
 export const floorConfig: KernelConfig = {
   kernelName: Floor,

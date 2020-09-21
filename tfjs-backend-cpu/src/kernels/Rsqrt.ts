@@ -19,7 +19,8 @@ import {KernelConfig, Rsqrt} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../utils/kernel_utils';
 
-export const rsqrtKernelFunc = unaryKernelFunc(Rsqrt, (x) => 1 / Math.sqrt(x));
+export const rsqrtKernelFunc =
+    unaryKernelFunc(Rsqrt, (xi) => 1 / Math.sqrt(xi));
 
 export const rsqrtConfig: KernelConfig = {
   kernelName: Rsqrt,

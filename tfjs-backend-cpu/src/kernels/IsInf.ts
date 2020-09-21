@@ -20,7 +20,7 @@ import {IsInf, KernelConfig} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../utils/kernel_utils';
 
 export const isInfKernelFunc =
-    unaryKernelFunc(IsInf, (x) => Math.abs(x) === Infinity ? 1 : 0, 'bool');
+    unaryKernelFunc(IsInf, (xi) => Math.abs(xi) === Infinity ? 1 : 0, 'bool');
 
 export const isInfConfig: KernelConfig = {
   kernelName: IsInf,

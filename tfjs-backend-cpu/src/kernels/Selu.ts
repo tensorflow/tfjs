@@ -22,11 +22,11 @@ import {unaryKernelFunc} from '../utils/kernel_utils';
 const scaleAlpha = backend_util.SELU_SCALEALPHA;
 const scale = backend_util.SELU_SCALE;
 
-export const seluKernelFunc = unaryKernelFunc(Selu, (x) => {
-  if (x >= 0) {
-    return scale * x;
+export const seluKernelFunc = unaryKernelFunc(Selu, (xi) => {
+  if (xi >= 0) {
+    return scale * xi;
   } else {
-    return scaleAlpha * (Math.exp(x) - 1);
+    return scaleAlpha * (Math.exp(xi) - 1);
   }
 });
 

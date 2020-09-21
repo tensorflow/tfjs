@@ -19,13 +19,13 @@ import {KernelConfig, Round} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../utils/kernel_utils';
 
-export const roundKernelFunc = unaryKernelFunc(Round, (x) => {
+export const roundKernelFunc = unaryKernelFunc(Round, (xi) => {
   // The algorithm is based on banker's rounding.
-  const base = Math.floor(x);
-  if (x - base < 0.5) {
-    return Math.floor(x);
-  } else if (x - base > 0.5) {
-    return Math.ceil(x);
+  const base = Math.floor(xi);
+  if (xi - base < 0.5) {
+    return Math.floor(xi);
+  } else if (xi - base > 0.5) {
+    return Math.ceil(xi);
   } else {
     if (base % 2.0 === 0.0) {
       return base;

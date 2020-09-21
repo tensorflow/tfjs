@@ -19,7 +19,7 @@ import {Ceil, KernelConfig} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../utils/kernel_utils';
 
-export const ceilKernelFunc = unaryKernelFunc(Ceil, (x) => Math.ceil(x));
+export const ceilKernelFunc = unaryKernelFunc(Ceil, (xi) => Math.ceil(xi));
 
 export const ceilConfig: KernelConfig = {
   kernelName: Ceil,

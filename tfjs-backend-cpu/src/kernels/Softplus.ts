@@ -27,22 +27,22 @@ import {unaryKernelFunc} from '../utils/kernel_utils';
 const epsilon = 1.1920928955078125e-7;
 const threshold = Math.log(epsilon) + 2.0;
 
-export const softplusKernelFunc = unaryKernelFunc(Softplus, (x) => {
+export const softplusKernelFunc = unaryKernelFunc(Softplus, (xi) => {
   // Value above which exp(x) may overflow, but softplus(x) == x
   // is within machine epsilon.
-  const tooLarge = x > -threshold;
+  const tooLarge = xi > -threshold;
 
   // Value below which exp(x) may underflow, but softplus(x) == exp(x)
   // is within machine epsilon.
-  const tooSmall = x < threshold;
+  const tooSmall = xi < threshold;
 
-  const expX = Math.exp(x);
+  const expX = Math.exp(xi);
   let result;
 
   if (tooSmall) {
     result = expX;
   } else if (tooLarge) {
-    result = x;
+    result = xi;
   } else {
     result = Math.log(1.0 + expX);
   }

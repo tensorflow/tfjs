@@ -164,7 +164,7 @@ export class MathBackendCPU extends KernelBackend {
     return tf.buffer(t.shape, t.dtype, decodedData) as TensorBuffer<R>;
   }
 
-  private makeOutput<T extends Tensor>(
+  makeOutput<T extends Tensor>(
       values: backend_util.BackendValues, shape: number[], dtype: DataType): T {
     const dataId = this.write(values, shape, dtype);
     return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;

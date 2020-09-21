@@ -20,7 +20,7 @@ import {IsNan, KernelConfig} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../utils/kernel_utils';
 
 export const isNaNKernelFunc =
-    unaryKernelFunc(IsNan, (x) => Number.isNaN(x) ? 1 : 0, 'bool');
+    unaryKernelFunc(IsNan, (xi) => Number.isNaN(xi) ? 1 : 0, 'bool');
 
 export const isNaNConfig: KernelConfig = {
   kernelName: IsNan,

@@ -28,9 +28,9 @@ const a5 = backend_util.ERF_A5;
 
 export const erfKernelFunc = unaryKernelFunc(
     Erf,
-    (x) => {
-      const sign = Math.sign(x);
-      const v = Math.abs(x);
+    (xi) => {
+      const sign = Math.sign(xi);
+      const v = Math.abs(xi);
       const t = 1.0 / (1.0 + p * v);
       return sign *
           (1.0 -

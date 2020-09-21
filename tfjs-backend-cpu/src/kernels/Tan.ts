@@ -19,7 +19,7 @@ import {KernelConfig, Tan} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../utils/kernel_utils';
 
-export const tanKernelFunc = unaryKernelFunc(Tan, (x) => Math.tan(x));
+export const tanKernelFunc = unaryKernelFunc(Tan, (xi) => Math.tan(xi));
 
 export const tanConfig: KernelConfig = {
   kernelName: Tan,

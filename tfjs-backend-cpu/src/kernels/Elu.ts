@@ -20,7 +20,7 @@ import {Elu, KernelConfig} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../utils/kernel_utils';
 
 export const eluKernelFunc =
-    unaryKernelFunc(Elu, (x) => x >= 0 ? x : (Math.exp(x) - 1));
+    unaryKernelFunc(Elu, (xi) => xi >= 0 ? xi : (Math.exp(xi) - 1));
 
 export const eluConfig: KernelConfig = {
   kernelName: Elu,

@@ -15,15 +15,41 @@
  * =============================================================================
  */
 
-import {Abs, KernelConfig} from '@tensorflow/tfjs-core';
+import {Abs, AbsInputs, KernelConfig, KernelFunc, TypedArray, util} from '@tensorflow/tfjs-core';
 
-import {unaryKernelFunc} from '../utils/kernel_utils';
+import {MathBackendCPU} from '../backend_cpu';
 
-export const absKernelFunc = unaryKernelFunc(
-    Abs, (x) => Math.abs(x), 'float32', (real, imag) => Math.hypot(real, imag));
+export const absKernelFunc =
+    (args: {inputs: AbsInputs, backend: MathBackendCPU}) => {
+      const {x} = args.inputs;
+      const cpuBackend = args.backend;
+      const resultValues = new Float32Array(util.sizeFromShape(x.shape));
+      if (x.dtype !== 'complex64') {
+        const values = cpuBackend.data.get(x.dataId).values as TypedArray;
+        for (let i = 0; i < values.length; ++i) {
+          resultValues[i] = Math.abs(values[i]);
+        }
+      } else {
+        console.log('!!!!!!!!!!!!!!!');
+        const complexVals = cpuBackend.data.get(x.dataId);
+        console.log(complexVals.complexTensorInfos.real);
+        const real = complexVals.complexTensorInfos.real;
+        const imag = complexVals.complexTensorInfos.imag;
+        const realVals =
+            cpuBackend.data.get(real.dataId).values as Float32Array;
+        const imagVals =
+            cpuBackend.data.get(imag.dataId).values as Float32Array;
+        for (let i = 0; i < realVals.length; i++) {
+          const real = realVals[i];
+          const imag = imagVals[i];
+          resultValues[i] = Math.hypot(real, imag);
+        }
+      }
+      return cpuBackend.makeOutput(resultValues, x.shape, 'float32');
+    };
 
 export const absConfig: KernelConfig = {
   kernelName: Abs,
   backendName: 'cpu',
-  kernelFunc: absKernelFunc,
+  kernelFunc: absKernelFunc as {} as KernelFunc,
 };

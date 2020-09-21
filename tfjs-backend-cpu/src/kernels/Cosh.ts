@@ -19,7 +19,7 @@ import {Cosh, KernelConfig} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../utils/kernel_utils';
 
-export const coshKernelFunc = unaryKernelFunc(Cosh, (x) => Math.cosh(x));
+export const coshKernelFunc = unaryKernelFunc(Cosh, (xi) => Math.cosh(xi));
 
 export const coshConfig: KernelConfig = {
   kernelName: Cosh,
