@@ -252,8 +252,8 @@ describeWebGPU('backend webgpu', () => {
       tf.setBackend('webgpu');
       const d = tf.add(a, b);
       await d.data();
+      expect(() => d.dataSync()).not.toThrow();
     };
-
-    expect(f).not.toThrow();
+    await f();
   });
 });

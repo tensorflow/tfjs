@@ -15,14 +15,16 @@
  * =============================================================================
  */
 
-import {Div, KernelConfig} from '@tensorflow/tfjs-core';
+import {KernelConfig, Tan} from '@tensorflow/tfjs-core';
 
-import {binaryKernelFunc} from '../utils/kernel_utils';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-export const div = binaryKernelFunc(Div, (a: number, b: number) => a / b);
+const TAN = `return tan(x);`;
 
-export const divConfig: KernelConfig = {
-  kernelName: Div,
-  backendName: 'cpu',
-  kernelFunc: div
+export const tanKernelFunc = unaryKernelFunc(TAN);
+
+export const tanConfig: KernelConfig = {
+  kernelName: Tan,
+  backendName: 'webgl',
+  kernelFunc: tanKernelFunc,
 };

@@ -15,14 +15,17 @@
  * =============================================================================
  */
 
-import {Div, KernelConfig} from '@tensorflow/tfjs-core';
+import {DataType, TypedArray} from '@tensorflow/tfjs-core';
 
-import {binaryKernelFunc} from '../utils/kernel_utils';
-
-export const div = binaryKernelFunc(Div, (a: number, b: number) => a / b);
-
-export const divConfig: KernelConfig = {
-  kernelName: Div,
-  backendName: 'cpu',
-  kernelFunc: div
-};
+export type SimpleBinaryOperation = (a: number, b: number) => number;
+export type SimpleBinaryKernelImpl =
+    (aShape: number[], bShape: number[], aVals: TypedArray, bVals: TypedArray,
+     dtype: DataType) => [TypedArray, number[]];
+export type ComplexBinaryOperation =
+    (aReal: number, aImag: number, bReal: number, bImag: number) => {
+      real: number, imag: number
+    };
+export type ComplexBinaryKernelImpl =
+    (aShape: number[], bShape: number[], aRealVals: Float32Array,
+     aImagVals: Float32Array, bRealVals: Float32Array,
+     bImagVals: Float32Array) => [TypedArray, TypedArray, number[]];

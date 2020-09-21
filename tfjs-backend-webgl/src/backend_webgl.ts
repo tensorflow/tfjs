@@ -1738,21 +1738,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  sin<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SIN);
-    return this.compileAndRun(program, [x]);
-  }
-
-  cos<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.COS);
-    return this.compileAndRun(program, [x]);
-  }
-
-  tan<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.TAN);
-    return this.compileAndRun(program, [x]);
-  }
-
   asin<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.ASIN);
     return this.compileAndRun(program, [x]);
@@ -1766,13 +1751,6 @@ export class MathBackendWebGL extends KernelBackend {
   atan<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.ATAN);
     return this.compileAndRun(program, [x]);
-  }
-
-  atan2<T extends Tensor>(a: T, b: T): T {
-    const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
-        new BinaryOpPackedProgram(binaryop_packed_gpu.ATAN2, a.shape, b.shape) :
-        new BinaryOpProgram(binaryop_gpu.ATAN2, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b]);
   }
 
   sinh<T extends Tensor>(x: T): T {

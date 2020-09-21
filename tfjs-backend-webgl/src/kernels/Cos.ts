@@ -15,14 +15,18 @@
  * =============================================================================
  */
 
-import {Div, KernelConfig} from '@tensorflow/tfjs-core';
+import {Cos, KernelConfig} from '@tensorflow/tfjs-core';
 
-import {binaryKernelFunc} from '../utils/kernel_utils';
+import {CHECK_NAN_SNIPPET_UNARY, unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-export const div = binaryKernelFunc(Div, (a: number, b: number) => a / b);
+const COS = CHECK_NAN_SNIPPET_UNARY + `
+  return cos(x);
+`;
 
-export const divConfig: KernelConfig = {
-  kernelName: Div,
-  backendName: 'cpu',
-  kernelFunc: div
+export const cosKernelFunc = unaryKernelFunc(COS);
+
+export const cosConfig: KernelConfig = {
+  kernelName: Cos,
+  backendName: 'webgl',
+  kernelFunc: cosKernelFunc,
 };

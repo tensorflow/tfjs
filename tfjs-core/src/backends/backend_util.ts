@@ -14,7 +14,6 @@
  * limitations under the License.
  * =============================================================================
  */
-
 import {ENGINE} from '../engine';
 import {cast} from '../ops/cast';
 import {scalar} from '../ops/scalar';
