@@ -36,6 +36,8 @@ setWasmPaths({
   'tfjs-backend-wasm-threaded-simd.wasm': wasmSimdThreadedPath
 });
 
+import {STUBBED_IMAGE_VALS} from './test_data';
+
 async function main() {
   tf.setBackend('wasm');
   tf.env().set('WASM_HAS_SIMD_SUPPORT', false);
@@ -47,6 +49,7 @@ async function main() {
   self.postMessage({msg: true, payload: `'${backend}' backend ready`});
 
   const registeredKernels = tf.getKernelsForBackend(backend)
+  // Debug messsage with info about the registered kernels.
   self.postMessage({
     msg: true,
     payload: {
@@ -60,9 +63,11 @@ async function main() {
 
   self.postMessage({msg: true, payload: `model loaded`});
 
-  const predictions = await model.estimateFaces(
-      tf.ones([100, 100, 3]), false /*returnTensors*/);
+  const input = tf.tensor3d(STUBBED_IMAGE_VALS, [128, 128, 3]);
+  const predictions = await model.estimateFaces(input, false /*returnTensors*/);
 
+  input.dispose();
+  // send the final result of the test.
   self.postMessage({
     result: true,
     payload: {

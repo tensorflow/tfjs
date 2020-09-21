@@ -32,8 +32,10 @@ describe(`${SMOKE} blazeface`, () => {
     let webpackBundle: {full: string, custom: string};
     beforeAll(async () => {
       const [webpackFull, webpackCustom] = await Promise.all([
-        fetch(getBundleUrl('blazeface', false, 'webpack')).then(r => r.text()),
-        fetch(getBundleUrl('blazeface', true, 'webpack')).then(r => r.text()),
+        fetch(getBundleUrl('blazeface', false /* custom */, 'webpack'))
+            .then(r => r.text()),
+        fetch(getBundleUrl('blazeface', true /* custom */, 'webpack'))
+            .then(r => r.text()),
       ]);
 
       webpackBundle = {full: webpackFull, custom: webpackCustom};
@@ -42,12 +44,13 @@ describe(`${SMOKE} blazeface`, () => {
     it('custom webpack should be smaller', async () => {
       expect(webpackBundle.custom.length)
           .toBeLessThan(
-              webpackBundle.full.length / 2,
-              'Custom bundle should be at least half as small as full bundle');
+              webpackBundle.full.length,
+              'Custom bundle should be smaller than full bundle');
     });
 
     it('custom bundle should execute with exact kernels', async () => {
-      const programUrl = getBundleUrl('blazeface', true, 'webpack');
+      const programUrl =
+          getBundleUrl('blazeface', true /* custom */, 'webpack');
       // tslint:disable-next-line: no-any
       const result: any =
           await executeInWorker(programUrl, DEBUG_WORKER_SCRIPT);
@@ -59,10 +62,7 @@ describe(`${SMOKE} blazeface`, () => {
         'NonMaxSuppressionV3'
       ]));
 
-      // TODO(yassogba) revisit the question of comparing the output of full
-      // and custom bundle on real inputs once CPU has modularized the blazeface
-      // kernels.
-      expect(result.predictions.length).toEqual(0);
+      expect(result.predictions.length).toEqual(1);
     });
   });
 });
