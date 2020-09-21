@@ -200,7 +200,7 @@ export function unregisterGradient(kernelName: string): void {
  * @param registeredBackendName Already registered backend.
  * @param newBackendName New backend.
  */
-export function copyRegisteredKernelsFromExistingToNewBackend(
+export function copyRegisteredKernels(
     registeredBackendName: string, newBackendName: string): void {
   const kernels = getKernelsForBackend(registeredBackendName);
   kernels.forEach(kernelConfig => {
