@@ -19,6 +19,9 @@ set -e
 # Smoke tests run in PR and nightly builds.
 TAGS="#SMOKE"
 
+# Generate custom bundle files for tests
+./scripts/run-custom-builds.sh
+
 # Regression tests run in nightly builds.
 if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
     TAGS="${TAGS},#REGRESSION"
