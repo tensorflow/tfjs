@@ -67,7 +67,9 @@ export enum PhysicalTextureType {
   UNPACKED_FLOAT32,
   PACKED_4X1_UNSIGNED_BYTE,
   PACKED_2X2_FLOAT32,
-  PACKED_2X2_FLOAT16
+  PACKED_2X2_FLOAT16,
+  PACKED_1X4_FLOAT32,
+  PACKED_1X4_FLOAT16
 }
 
 export interface TextureData {
@@ -86,6 +88,8 @@ export interface TextureData {
   texShape?: [number, number];
   usage?: TextureUsage;
   isPacked?: boolean;
+  packCol?: boolean;
+  packRow?: boolean;
 
   // Available when the tensor has been sliced.
   slice?: {
@@ -143,6 +147,11 @@ export function decodeMatrixFromUnpackedColorRGBAArray(
       matrix[dst++] = unpackedArray[src + c];
     }
   }
+}
+
+export function getColPackedMatrixTextureShapeWidthHeight(
+    rows: number, columns: number): [number, number] {
+  return [Math.max(1, Math.ceil(columns / 4)), rows];
 }
 
 export function getPackedMatrixTextureShapeWidthHeight(

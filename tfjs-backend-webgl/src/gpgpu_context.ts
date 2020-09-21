@@ -169,6 +169,20 @@ export class GPGPUContext {
         this.gl, texture, width, height, data, this.textureConfig);
   }
 
+  public createFloat16ColPackedMatrixTexture(rows: number, columns: number):
+      WebGLTexture {
+    this.throwIfDisposed();
+    return gpgpu_util.createFloat16ColPackedMatrixTexture(
+        this.gl, this.debug, rows, columns, this.textureConfig);
+  }
+
+  public createColPackedMatrixTexture(rows: number, columns: number):
+      WebGLTexture {
+    this.throwIfDisposed();
+    return gpgpu_util.createColPackedMatrixTexture(
+        this.gl, this.debug, rows, columns, this.textureConfig);
+  }
+
   public createFloat16PackedMatrixTexture(rows: number, columns: number):
       WebGLTexture {
     this.throwIfDisposed();
@@ -354,10 +368,17 @@ export class GPGPUContext {
   }
 
   public setOutputPackedMatrixTexture(
-      outputPackedMatrixTexture: WebGLTexture, rows: number, columns: number) {
+      outputPackedMatrixTexture: WebGLTexture, rows: number, columns: number,
+      packCol?: boolean) {
     this.throwIfDisposed();
-    const [width, height] =
-        tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
+    let width, height;
+    if (!packCol) {
+      [width, height] =
+          tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
+    } else {
+      [width, height] =
+          tex_util.getColPackedMatrixTextureShapeWidthHeight(rows, columns);
+    }
     this.setOutputMatrixTextureDriver(outputPackedMatrixTexture, width, height);
   }
 

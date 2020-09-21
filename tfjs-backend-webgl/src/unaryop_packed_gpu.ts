@@ -71,6 +71,8 @@ export class UnaryOpPackedProgram implements GPGPUProgram {
   outputShape: number[];
   packedInputs = true;
   packedOutput = true;
+  packCol = true;
+  packColInputs = true;
 
   constructor(aShape: number[], opSnippet: string) {
     this.outputShape = aShape;

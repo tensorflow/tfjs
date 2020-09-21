@@ -19,12 +19,14 @@ import {backend_util, util} from '@tensorflow/tfjs-core';
 const {getBroadcastDims} = backend_util;
 import {getGlslDifferences, GLSL} from './glsl_version';
 import * as shader_util from './shader_compiler_util';
+import {getColPackedOutputSamplingSnippet, getColPackedInputSamplingSnippet, SAMPLE_1D_CHANNEL_SNIPPET, SAMPLE_2D_CHANNEL_SNIPPET, SAMPLE_3D_CHANNEL_SNIPPET,} from './1x4packed/shader_compile_channel';
 
 export type ShapeInfo = {
   logicalShape: number[],
   texShape: [number, number],
   isUniform: boolean,
   isPacked: boolean,
+  packCol: boolean,
   flatOffset: number
 };
 
@@ -35,7 +37,7 @@ export type InputInfo = {
 
 export function makeShader(
     inputsInfo: InputInfo[], outputShape: ShapeInfo, userCode: string,
-    usesPackedTextures: boolean): string {
+    usesPackedTextures: boolean, usedPackedCol?: boolean): string {
   const prefixSnippets: string[] = [];
   inputsInfo.forEach(x => {
     const size = util.sizeFromShape(x.shapeInfo.logicalShape);
@@ -53,18 +55,30 @@ export function makeShader(
 
   const inputSamplingSnippet =
       inputsInfo
-          .map(x => getInputSamplingSnippet(x, outputShape, usesPackedTextures))
+          .map(x => {
+            if (usedPackedCol && x.shapeInfo.packCol) {
+              return getColPackedInputSamplingSnippet(x, outputShape);
+            } else {
+              return getInputSamplingSnippet(
+                  x, outputShape, usesPackedTextures);
+            }
+          })
           .join('\n');
   const outTexShape = outputShape.texShape;
   const glsl = getGlslDifferences();
   const floatTextureSampleSnippet = getFloatTextureSampleSnippet(glsl);
   let outputSamplingSnippet: string;
   let floatTextureSetOutputSnippet: string;
-  let shaderPrefix = getShaderPrefix(glsl);
+  let shaderPrefix = getShaderPrefix(glsl, usedPackedCol);
 
   if (outputShape.isPacked) {
-    outputSamplingSnippet =
-        getPackedOutputSamplingSnippet(outputShape.logicalShape, outTexShape);
+    if (outputShape.packCol) {
+      outputSamplingSnippet = getColPackedOutputSamplingSnippet(
+          outputShape.logicalShape, outTexShape);
+    } else {
+      outputSamplingSnippet =
+          getPackedOutputSamplingSnippet(outputShape.logicalShape, outTexShape);
+    }
     floatTextureSetOutputSnippet = getFloatTextureSetRGBASnippet(glsl);
   } else {
     outputSamplingSnippet =
@@ -214,7 +228,7 @@ function getFloatTextureSetRGBASnippet(glsl: GLSL): string {
   `;
 }
 
-function getShaderPrefix(glsl: GLSL): string {
+function getShaderPrefix(glsl: GLSL, isPackCol: boolean): string {
   const SHADER_PREFIX = `${glsl.version}
     precision highp float;
     precision highp int;
@@ -270,9 +284,9 @@ function getShaderPrefix(glsl: GLSL): string {
       return fract((p3.x + p3.y) * p3.z);
     }
 
-    ${SAMPLE_1D_SNIPPET}
-    ${SAMPLE_2D_SNIPPET}
-    ${SAMPLE_3D_SNIPPET}
+    ${isPackCol ? SAMPLE_1D_CHANNEL_SNIPPET : SAMPLE_1D_SNIPPET}
+    ${isPackCol ? SAMPLE_2D_CHANNEL_SNIPPET : SAMPLE_2D_SNIPPET}
+    ${isPackCol ? SAMPLE_3D_CHANNEL_SNIPPET : SAMPLE_3D_SNIPPET}
   `;
 
   return SHADER_PREFIX;
