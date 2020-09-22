@@ -142,7 +142,6 @@ function as1DOr4D(x: TensorInfo, backend: MathBackendWebGL): TensorInfo {
       backend,
     });
   } else if (xRank === 3) {
-    // tslint:disable-next-line:no-unnecessary-type-assertion
     return reshape({
       inputs: {x},
       attrs: {shape: [1, x.shape[0], x.shape[1], x.shape[2]]},
