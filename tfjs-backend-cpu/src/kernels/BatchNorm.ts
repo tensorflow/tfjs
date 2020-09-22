@@ -26,12 +26,7 @@ export function batchNormKernelFunc(args: {
   attrs: FusedBatchNormAttrs
 }): TensorInfo {
   const {inputs, backend, attrs} = args;
-  let {varianceEpsilon} = attrs;
   const {x, scale, offset, mean, variance} = inputs;
-
-  if (varianceEpsilon == null) {
-    varianceEpsilon = 0.001;
-  }
 
   util.assert(
       mean.shape.length === variance.shape.length,
@@ -47,6 +42,11 @@ export function batchNormKernelFunc(args: {
           'equal ranks.');
 
   assertNotComplex([x, mean, variance, scale, offset], 'batchNorm');
+
+  let {varianceEpsilon} = attrs;
+  if (varianceEpsilon == null) {
+    varianceEpsilon = 0.001;
+  }
 
   const xVals = backend.data.get(x.dataId).values as TypedArray;
   const mVals = backend.data.get(mean.dataId).values as TypedArray;
