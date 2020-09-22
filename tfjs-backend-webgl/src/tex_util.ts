@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {env} from '@tensorflow/tfjs-core';
-import {backend_util, DataId, DataType, Tensor, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataId, DataType, env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 export enum PackingScheme {
   /**
@@ -81,7 +80,7 @@ export interface TextureData {
   // For complex numbers, the real and imaginary parts are stored as their own
   // individual tensors, with a parent joining the two with the
   // complexTensors field. When this is defined, texture will be null.
-  complexTensors?: {real: Tensor, imag: Tensor};
+  complexTensorInfos?: {real: TensorInfo, imag: TensorInfo};
   /** [rows, columns] shape of the texture. */
   texShape?: [number, number];
   usage?: TextureUsage;

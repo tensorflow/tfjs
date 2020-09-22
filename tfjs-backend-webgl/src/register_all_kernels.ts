@@ -17,15 +17,19 @@
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
 import {atan2Config} from './kernels/Atan2';
+import {castConfig} from './kernels/Cast';
+import {complexConfig} from './kernels/Complex';
 import {cosConfig} from './kernels/Cos';
 import {divConfig} from './kernels/Div';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {fromPixelsConfig} from './kernels/FromPixels';
+import {imagConfig} from './kernels/Imag';
 import {maxConfig} from './kernels/Max';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
+import {realConfig} from './kernels/Real';
 import {reshapeConfig} from './kernels/Reshape';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {sinConfig} from './kernels/Sin';
@@ -36,11 +40,27 @@ import {transposeConfig} from './kernels/Transpose';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
-  atan2Config, cosConfig, maxConfig, flipLeftRightConfig, fromPixelsConfig,
-  divConfig, maxPoolWithArgmaxConfig, nonMaxSuppressionV3Config,
-  nonMaxSuppressionV4Config, nonMaxSuppressionV5Config, reshapeConfig,
-  rotateWithOffsetConfig, sinConfig, squareConfig, squaredDifferenceConfig,
-  tanConfig, transposeConfig
+  atan2Config,
+  castConfig,
+  cosConfig,
+  complexConfig,
+  maxConfig,
+  flipLeftRightConfig,
+  fromPixelsConfig,
+  divConfig,
+  imagConfig,
+  maxPoolWithArgmaxConfig,
+  nonMaxSuppressionV3Config,
+  nonMaxSuppressionV4Config,
+  nonMaxSuppressionV5Config,
+  realConfig,
+  reshapeConfig,
+  rotateWithOffsetConfig,
+  sinConfig,
+  squareConfig,
+  squaredDifferenceConfig,
+  tanConfig,
+  transposeConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {
