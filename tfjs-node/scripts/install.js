@@ -42,12 +42,9 @@ const mkdir = util.promisify(fs.mkdir);
 const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
 
-const registry = process.env.npm_config_registry;
-const BASE_HOST = registry === 'https://registry.npm.taobao.org/' ?
-    'https://cdn.npm.taobao.org/dist/' :
-    'https://storage.googleapis.com/';
-const BASE_URI =
-    `${BASE_HOST}tensorflow/libtensorflow/libtensorflow-`;
+const CDN_STORAGE = process.env.CDN_STORAGE;
+const BASE_HOST = CDN_STORAGE || 'https://storage.googleapis.com/';
+const BASE_URI = `${BASE_HOST}tensorflow/libtensorflow/libtensorflow-`;
 
 const platform = os.platform();
 // Use windows path
