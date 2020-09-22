@@ -17,7 +17,7 @@
 
 import {KernelConfig, Softplus} from '@tensorflow/tfjs-core';
 
-import {unaryKernelFunc} from '../utils/kernel_utils';
+import {unaryKernelFunc} from '../utils/unary_utils';
 
 // mirrors the implementation of tf.nn.softplus: https://goo.gl/vkcvwX
 

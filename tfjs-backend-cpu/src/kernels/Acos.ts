@@ -17,7 +17,7 @@
 
 import {Acos, KernelConfig} from '@tensorflow/tfjs-core';
 
-import {unaryKernelFunc} from '../utils/kernel_utils';
+import {unaryKernelFunc} from '../utils/unary_utils';
 
 export const acosKernelFunc = unaryKernelFunc(Acos, (xi) => Math.acos(xi));
 

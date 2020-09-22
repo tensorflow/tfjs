@@ -17,7 +17,7 @@
 
 import {backend_util, Erf, KernelConfig} from '@tensorflow/tfjs-core';
 
-import {unaryKernelFunc} from '../utils/kernel_utils';
+import {unaryKernelFunc} from '../utils/unary_utils';
 
 const p = backend_util.ERF_P;
 const a1 = backend_util.ERF_A1;

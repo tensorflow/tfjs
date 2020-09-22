@@ -17,7 +17,7 @@
 
 import {Asinh, KernelConfig} from '@tensorflow/tfjs-core';
 
-import {unaryKernelFunc} from '../utils/kernel_utils';
+import {unaryKernelFunc} from '../utils/unary_utils';
 
 export const asinhKernelFunc = unaryKernelFunc(Asinh, (xi) => Math.asinh(xi));
 

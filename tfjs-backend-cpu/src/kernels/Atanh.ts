@@ -17,7 +17,7 @@
 
 import {Atanh, KernelConfig} from '@tensorflow/tfjs-core';
 
-import {unaryKernelFunc} from '../utils/kernel_utils';
+import {unaryKernelFunc} from '../utils/unary_utils';
 
 export const atanhKernelFunc = unaryKernelFunc(Atanh, (xi) => Math.atanh(xi));
 

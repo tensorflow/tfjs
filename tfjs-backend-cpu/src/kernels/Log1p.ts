@@ -17,7 +17,7 @@
 
 import {KernelConfig, Log1p} from '@tensorflow/tfjs-core';
 
-import {unaryKernelFunc} from '../utils/kernel_utils';
+import {unaryKernelFunc} from '../utils/unary_utils';
 
 export const log1pKernelFunc = unaryKernelFunc(Log1p, (xi) => Math.log1p(xi));
 

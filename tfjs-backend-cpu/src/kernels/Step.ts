@@ -17,7 +17,7 @@
 
 import {KernelConfig, Step, StepAttrs} from '@tensorflow/tfjs-core';
 
-import {unaryKernelFunc} from '../utils/kernel_utils';
+import {unaryKernelFunc} from '../utils/unary_utils';
 
 export const stepKernelFunc = unaryKernelFunc(Step, (xi, attrs) => {
   const stepAttrs = attrs as {} as StepAttrs;

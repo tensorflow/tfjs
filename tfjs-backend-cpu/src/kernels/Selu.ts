@@ -17,7 +17,7 @@
 
 import {backend_util, KernelConfig, Selu} from '@tensorflow/tfjs-core';
 
-import {unaryKernelFunc} from '../utils/kernel_utils';
+import {unaryKernelFunc} from '../utils/unary_utils';
 
 const scaleAlpha = backend_util.SELU_SCALEALPHA;
 const scale = backend_util.SELU_SCALE;

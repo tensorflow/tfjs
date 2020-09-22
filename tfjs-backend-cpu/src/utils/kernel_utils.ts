@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, BinaryInputs, DataType, KernelFunc, TypedArray, UnaryInputs, util} from '@tensorflow/tfjs-core';
+import {backend_util, BinaryInputs, DataType, KernelFunc, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
@@ -24,38 +24,6 @@ import {complex} from '../kernels/Complex';
 
 import {createSimpleBinaryKernelImpl} from './binary_impl';
 import {ComplexBinaryKernelImpl, ComplexBinaryOperation, SimpleBinaryOperation} from './binary_types';
-import {SimpleUnaryOperation} from './unary_types';
-
-/**
- * Template that creates a `KernelFunc` for unary ops.
- * @param name Kernel name.
- * @param op A `SimpleUnaryOperation` for the kernel.
- * @param dtype Optional. If set, the result has this dtype. Otherwise, the
- *     result has the same dtype as the input. This is mainly used in certain
- *     kernels that return bool type, such as isFinite, isInf, etc.
- * @param opComplex A `ComplexUnaryOperation` for the kernel to handle complex64
- *     inputs.
- */
-export function unaryKernelFunc(
-    name: string, op: SimpleUnaryOperation, dtype?: DataType): KernelFunc {
-  return ({inputs, attrs, backend}) => {
-    const {x} = inputs as UnaryInputs;
-    assertNotComplex(x, name);
-    if (x.dtype === 'string' || dtype === 'string') {
-      throw new Error('unaryKernelFunc does not support string input/output');
-    }
-
-    const cpuBackend = backend as MathBackendCPU;
-    const values = cpuBackend.data.get(x.dataId).values as TypedArray;
-    const xSize = util.sizeFromShape(x.shape);
-    const $dtype = dtype || x.dtype;
-    const newValues = util.getArrayFromDType($dtype, xSize);
-    for (let i = 0; i < xSize; ++i) {
-      newValues[i] = op(values[i], attrs);
-    }
-    return cpuBackend.makeTensorInfo(x.shape, $dtype, newValues);
-  };
-}
 
 /**
  * Template that creates a `KernelFunc` for binary ops.

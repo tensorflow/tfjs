@@ -17,7 +17,7 @@
 
 import {ClipByValue, ClipByValueAttrs, KernelConfig} from '@tensorflow/tfjs-core';
 
-import {unaryKernelFunc} from '../utils/kernel_utils';
+import {unaryKernelFunc} from '../utils/unary_utils';
 
 export const clipKernelFunc = unaryKernelFunc(ClipByValue, (xi, attrs) => {
   const clipAttrs = attrs as {} as ClipByValueAttrs;
