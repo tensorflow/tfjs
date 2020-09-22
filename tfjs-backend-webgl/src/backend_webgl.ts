@@ -329,7 +329,7 @@ export class MathBackendWebGL extends KernelBackend {
 
   readSync(dataId: DataId): BackendValues {
     const texData = this.texData.get(dataId);
-    const {values, dtype, complexTensors, slice, shape, isPacked} = texData;
+    const {values, dtype, complexTensorInfos, slice, shape, isPacked} = texData;
 
     // The presence of `slice` indicates this tensor is a shallow slice of a
     // different tensor, and is using that original tensor's texture. Run
@@ -361,8 +361,10 @@ export class MathBackendWebGL extends KernelBackend {
 
     let result: Float32Array;
     if (dtype === 'complex64') {
-      const realValues = complexTensors.real.dataSync() as Float32Array;
-      const imagValues = complexTensors.imag.dataSync() as Float32Array;
+      const realValues =
+          this.getValuesFromTexture(complexTensorInfos.real.dataId);
+      const imagValues =
+          this.getValuesFromTexture(complexTensorInfos.imag.dataId);
       result = backend_util.mergeRealAndImagArrays(realValues, imagValues);
     } else {
       result = this.getValuesFromTexture(dataId);
@@ -380,7 +382,7 @@ export class MathBackendWebGL extends KernelBackend {
       return new Promise<TypedArray>(resolve => subscribers.push(resolve));
     }
     const texData = this.texData.get(dataId);
-    const {values, shape, slice, dtype, complexTensors, isPacked} = texData;
+    const {values, shape, slice, dtype, complexTensorInfos, isPacked} = texData;
 
     // The presence of `slice` indicates this tensor is a shallow slice of a
     // different tensor, and is using that original tensor's texture. Run
@@ -432,8 +434,11 @@ export class MathBackendWebGL extends KernelBackend {
     // Download the values from the GPU.
     let vals: Float32Array;
     if (dtype === 'complex64') {
-      const ps = await Promise.all(
-          [complexTensors.real.data(), complexTensors.imag.data()]);
+      const ps = await Promise.all([
+        this.read(complexTensorInfos.real.dataId),
+        this.read(complexTensorInfos.imag.dataId)
+      ]);
+
       const realValues = ps[0];
       const imagValues = ps[1];
       vals = backend_util.mergeRealAndImagArrays(
@@ -620,10 +625,10 @@ export class MathBackendWebGL extends KernelBackend {
     }
 
     this.releaseGPUData(dataId);
-    const {complexTensors} = this.texData.get(dataId);
-    if (complexTensors != null) {
-      complexTensors.real.dispose();
-      complexTensors.imag.dispose();
+    const {complexTensorInfos} = this.texData.get(dataId);
+    if (complexTensorInfos != null) {
+      complexTensorInfos.real.dispose();
+      complexTensorInfos.imag.dispose();
     }
     this.texData.delete(dataId);
   }
@@ -897,10 +902,10 @@ export class MathBackendWebGL extends KernelBackend {
           binaryop_complex_gpu.COMPLEX_MULTIPLY.IMAG, a.shape, b.shape);
 
       const inputs = [
-        this.makeComplexComponentTensorInfo(a, aData.complexTensors.real),
-        this.makeComplexComponentTensorInfo(a, aData.complexTensors.imag),
-        this.makeComplexComponentTensorInfo(b, bData.complexTensors.real),
-        this.makeComplexComponentTensorInfo(b, bData.complexTensors.imag)
+        this.makeComplexComponentTensorInfo(a, aData.complexTensorInfos.real),
+        this.makeComplexComponentTensorInfo(a, aData.complexTensorInfos.imag),
+        this.makeComplexComponentTensorInfo(b, bData.complexTensorInfos.real),
+        this.makeComplexComponentTensorInfo(b, bData.complexTensorInfos.imag)
       ];
       const real = this.compileAndRun<Tensor>(realProgram, inputs);
       const imag = this.compileAndRun<Tensor>(imagProgram, inputs);
@@ -1446,8 +1451,8 @@ export class MathBackendWebGL extends KernelBackend {
     const bData = this.texData.get(b.dataId);
 
     const [real, imag] = [
-      [aData.complexTensors.real, bData.complexTensors.real],
-      [aData.complexTensors.imag, bData.complexTensors.imag]
+      [aData.complexTensorInfos.real, bData.complexTensorInfos.real],
+      [aData.complexTensorInfos.imag, bData.complexTensorInfos.imag]
     ].map(complexParts => {
       const [aPart, bPart] = complexParts;
 
@@ -1736,8 +1741,8 @@ export class MathBackendWebGL extends KernelBackend {
 
     const program = new ComplexAbsProgram(x.shape);
     const inputs = [
-      this.makeComplexComponentTensorInfo(x, xData.complexTensors.real),
-      this.makeComplexComponentTensorInfo(x, xData.complexTensors.imag),
+      this.makeComplexComponentTensorInfo(x, xData.complexTensorInfos.real),
+      this.makeComplexComponentTensorInfo(x, xData.complexTensorInfos.imag),
     ];
 
     return this.compileAndRun<Tensor>(program, inputs) as T;
@@ -2337,8 +2342,8 @@ export class MathBackendWebGL extends KernelBackend {
     const imagProgram =
         new FFTProgram(fft_gpu.COMPLEX_FFT.IMAG, x.shape, inverse);
     const inputs = [
-      this.makeComplexComponentTensorInfo(x, xData.complexTensors.real),
-      this.makeComplexComponentTensorInfo(x, xData.complexTensors.imag),
+      this.makeComplexComponentTensorInfo(x, xData.complexTensorInfos.real),
+      this.makeComplexComponentTensorInfo(x, xData.complexTensorInfos.imag),
     ];
 
     const real = this.compileAndRun<Tensor>(realProgram, inputs);
