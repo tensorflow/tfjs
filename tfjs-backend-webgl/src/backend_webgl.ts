@@ -1707,11 +1707,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  int<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.TO_INT);
-    return this.compileAndRun(program, [x], 'int32');
-  }
-
   clip<T extends Tensor>(x: T, min: number, max: number): T {
     let program;
     if (env().getBool('WEBGL_PACK_CLIP')) {

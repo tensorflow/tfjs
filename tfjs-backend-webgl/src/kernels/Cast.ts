@@ -23,6 +23,7 @@ import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
 import {complex} from './Complex';
 import {identity} from './Identity';
 import {real} from './Real';
+import {int} from '../kernel_utils/int';
 
 export function cast(
     args: {inputs: CastInputs, backend: MathBackendWebGL, attrs: CastAttrs}):
@@ -50,6 +51,13 @@ export function cast(
     return result;
   }
 
+  if (!util.hasEncodingLoss(x.dtype, dtype)) {
+    // We don't change the underlying data, since we cast to higher
+    // precision.
+    const result = identity({inputs: {x}, backend});
+    return {dataId: result.dataId, shape: result.shape, dtype};
+  }
+
   // Casting from complex64
   if (x.dtype === 'complex64') {
     const realPart = real({inputs: {input: x}, backend});
@@ -60,17 +68,8 @@ export function cast(
     return result;
   }
 
-  if (!util.hasEncodingLoss(x.dtype, dtype)) {
-    // We don't change the underlying data, since we cast to higher
-    // precision.
-    const result = identity({inputs: {x}, backend});
-    return {dataId: result.dataId, shape: result.shape, dtype};
-  }
-
   if (dtype === 'int32') {
-    const values = backend.data.get(x.dataId).values as TypedArray;
-    const resultValues = Int32Array.from(values);
-    return backend.makeTensorInfo(x.shape, 'int32', resultValues);
+    return int(x, backend);
   }
 
   if (dtype === 'bool') {

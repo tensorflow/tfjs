@@ -23,6 +23,7 @@ import {cosConfig} from './kernels/Cos';
 import {divConfig} from './kernels/Div';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {fromPixelsConfig} from './kernels/FromPixels';
+import {identityConfig} from './kernels/Identity';
 import {imagConfig} from './kernels/Imag';
 import {maxConfig} from './kernels/Max';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
@@ -48,6 +49,7 @@ const kernelConfigs: KernelConfig[] = [
   flipLeftRightConfig,
   fromPixelsConfig,
   divConfig,
+  identityConfig,
   imagConfig,
   maxPoolWithArgmaxConfig,
   nonMaxSuppressionV3Config,
