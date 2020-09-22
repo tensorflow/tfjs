@@ -28,6 +28,7 @@ from tensorflow.core.protobuf import config_pb2
 from tensorflow.core.protobuf import device_properties_pb2
 from tensorflow.core.protobuf import meta_graph_pb2
 from tensorflow.python.eager import context
+from tensorflow.python.eager import wrap_function
 from tensorflow.python.framework import convert_to_constants
 from tensorflow.python.grappler import cluster as gcluster
 from tensorflow.python.grappler import tf_optimizer
@@ -112,9 +113,7 @@ def _run_grappler(config, graph_def, graph, signature_def):
 def optimize_graph(graph, signature_def, output_graph,
                    tf_version, quantization_dtype_map=None,
                    skip_op_check=False, strip_debug_ops=False,
-                   weight_shard_size_bytes=1024 * 1024 * 4,
-                   experiments=False,
-                   initializer_graph=None):
+                   weight_shard_size_bytes=1024 * 1024 * 4, experiments=False, init_ops=None, initializers=None):
   """Takes a Python Graph object and optimizes the graph.
 
   Args:
@@ -204,8 +203,7 @@ def optimize_graph(graph, signature_def, output_graph,
 
   extract_weights(
       optimized_graph, output_graph, tf_version,
-      signature_def, quantization_dtype_map, weight_shard_size_bytes,
-      initializer_graph_def)
+      signature_def, quantization_dtype_map, weight_shard_size_bytes, init_ops, initializers)
 
   return optimize_graph
 
@@ -245,8 +243,7 @@ def extract_weights(graph_def,
                     tf_version,
                     signature_def,
                     quantization_dtype_map=None,
-                    weight_shard_size_bytes=1024 * 1024 * 4,
-                    initializer_graph_def=None):
+                    weight_shard_size_bytes=1024 * 1024 * 4, init_ops=None, initializers=None):
   """Takes a Python GraphDef object and extract the weights.
 
   Args:
@@ -272,21 +269,17 @@ def extract_weights(graph_def,
     func.node_def.extend(nodes)
     function_manifests += extract_const_nodes(func.node_def)
 
-  initializer_manifests = []
-  if initializer_graph_def:
-    initializer_manifests = extract_const_nodes(initializer_graph_def.node)
+  init_manifests = extract_const_nodes(init_ops)
 
   print('Writing weight file ' + output_graph + '...')
 
   write_artifacts(MessageToDict(graph_def),
-                  [global_manifest +
-                   function_manifests +
-                   initializer_manifests],
+                  [global_manifest + function_manifests + init_manifests],
                   output_graph,
                   tf_version, signature_def,
                   quantization_dtype_map=quantization_dtype_map,
-                  weight_shard_size_bytes=weight_shard_size_bytes,
-                  initializer_graph_def=initializer_graph_def)
+                  weight_shard_size_bytes=weight_shard_size_bytes, init_ops=init_ops, initializers=initializers)
+
 
 def write_artifacts(topology,
                     weights,
@@ -294,8 +287,7 @@ def write_artifacts(topology,
                     tf_version,
                     signature_def,
                     quantization_dtype_map=None,
-                    weight_shard_size_bytes=1024 * 1024 * 4,
-                    initializer_graph_def=None):
+                    weight_shard_size_bytes=1024 * 1024 * 4, init_ops=None, initializers=None):
   """Writes weights and topology to the output_dir.
 
   If `topology` is Falsy (e.g., `None`), only emit weights to output_dir.
@@ -324,10 +316,9 @@ def write_artifacts(topology,
       }
   }
   model_json[common.ARTIFACT_MODEL_TOPOLOGY_KEY] = topology or None
-
-  if initializer_graph_def:
-    model_json[common.ARTIFACT_MODEL_INITIALIZER] = MessageToDict(
-        initializer_graph_def)
+  model_json[common.ARTIFACT_MODEL_INITIALIZER] = {}
+  model_json[common.ARTIFACT_MODEL_INITIALIZER]['outputs'] = [MessageToDict(initializer) for initializer in initializers]
+  model_json[common.ARTIFACT_MODEL_INITIALIZER]['node'] = [MessageToDict(op) for op in init_ops]
 
   weights_manifest = write_weights.write_weights(
       weights, os.path.dirname(output_graph), write_manifest=False,
@@ -378,35 +369,22 @@ def _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
     with tf.compat.v1.Session() as sess:
       meta_graph = loader.load(sess, saved_model_tags, saved_model_dir)
 
-      meta_graph_def = g.as_graph_def()
+      graph_def = g.as_graph_def()
 
       frozen_graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(
-          sess, meta_graph_def, output_node_names)
+          sess, graph_def, output_node_names)
+
+      init_op_names = meta_graph.collection_def['table_initializer'].node_list.value
+
+      init_ops, initializers = update_init_op(graph_def, frozen_graph_def, init_op_names)
 
       frozen_graph = tf.Graph()
       with frozen_graph.as_default():
         tf.import_graph_def(frozen_graph_def, name='')
 
-      frozen_initializer_graph = None
-      initializer_output_names = None
-      # Only support table initializers for now.
-      if meta_graph.collection_def and meta_graph.collection_def[
-          'table_initializer']:
-        initializer_output_names = meta_graph.collection_def[
-            'table_initializer'].node_list.value
-        # This will use grappler to extract a subgraph with the
-        # table initializer ops as the outputs.
-        frozen_initializer_graph_def = (tf.compat.v1.graph_util
-                                        .convert_variables_to_constants(
-                                            sess, meta_graph_def,
-                                            initializer_output_names))
-        frozen_initializer_graph = tf.Graph()
-        with frozen_initializer_graph.as_default():
-          tf.import_graph_def(frozen_initializer_graph_def, name='')
+      return frozen_graph, init_ops, initializers
 
-      return frozen_graph, frozen_initializer_graph
-
-def _freeze_saved_model_v2(concrete_func, control_flow_v2=False):
+def _freeze_saved_model_v2(concrete_func, control_flow_v2=False, init_concrete_func=None):
   if tf.__version__ < '2.2.0':
     return convert_to_constants.convert_variables_to_constants_v2(
         concrete_func, lower_control_flow=not control_flow_v2).graph
@@ -443,6 +421,33 @@ def _build_signature_def(frozen_graph, input_nodes, output_nodes):
     else: #just the tensor name string array
       signature.outputs[output_tensor].name = output_tensor
   return signature
+
+def update_init_op(init_graph_def, input_graph_def, init_ops):
+  full_node_map = {}
+  for node in init_graph_def.node:
+    if node.name not in full_node_map:
+      full_node_map[node.name] = node
+    else:
+      raise ValueError("Duplicate node names detected for ", node.name)
+
+  input_node_map = {}
+  for node in input_graph_def.node:
+    if node.name not in input_node_map:
+      input_node_map[node.name] = node
+    else:
+      raise ValueError("Duplicate node names detected for ", node.name)
+
+  nodes_to_skip = {}
+  inputs_to_remove = []
+  init_node_map = {}
+  init_nodes = []
+  initializers = []
+
+  for op in init_ops:
+    initializers.append(graph_rewrite_util.node_from_map(full_node_map, op))
+    get_init_nodes(init_nodes, op, full_node_map, input_node_map, init_node_map)
+
+  return init_nodes, initializers
 
 def convert_tf_frozen_model(frozen_model_path,
                             output_node_names,
@@ -552,10 +557,8 @@ def convert_tf_saved_model(saved_model_dir,
   try:
     frozen_graph = _freeze_saved_model_v2(concrete_func, control_flow_v2)
   except BaseException:
-    (frozen_graph,
-     frozen_initializer_graph) = _freeze_saved_model_v1(saved_model_dir,
-                                                        saved_model_tags,
-                                                        output_node_names)
+    frozen_graph, init_ops, initializers = _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
+                                          output_node_names)
 
   inputs = [x for x in concrete_func.inputs if not x.dtype == 'resource']
   signature = _build_signature_def(
@@ -610,8 +613,18 @@ def convert_tf_saved_model(saved_model_dir,
                  skip_op_check=skip_op_check,
                  strip_debug_ops=strip_debug_ops,
                  weight_shard_size_bytes=weight_shard_size_bytes,
-                 experiments=experiments,
-                 initializer_graph=frozen_initializer_graph)
+                 experiments=experiments, init_ops=init_ops, initializers=initializers)
+
+def get_init_nodes(results, node_name, search_list, exclude_list, result_list):
+  if (node_name not in exclude_list) and (node_name not in result_list):
+    node = graph_rewrite_util.node_from_map(search_list, node_name)
+    new_node = node_def_pb2.NodeDef()
+    new_node.CopyFrom(node)
+    results.append(new_node)
+    result_list[node_name] = new_node
+    if node.input:
+      for node_name in node.input:
+        get_init_nodes(results, node_name, search_list, exclude_list, result_list)
 
 def load_and_initialize_hub_module(module_path, signature='default'):
   """Loads graph of a TF-Hub module and initializes it into a session.
