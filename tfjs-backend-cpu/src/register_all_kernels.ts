@@ -27,6 +27,7 @@ import {asinConfig} from './kernels/Asin';
 import {asinhConfig} from './kernels/Asinh';
 import {atanConfig} from './kernels/Atan';
 import {atanhConfig} from './kernels/Atanh';
+import {batchNormConfig} from './kernels/Batchnorm';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
 import {clipConfig} from './kernels/Clip';
@@ -94,6 +95,7 @@ const kernelConfigs: KernelConfig[] = [
   asinhConfig,
   atanConfig,
   atanhConfig,
+  batchNormConfig,
   castConfig,
   ceilConfig,
   clipConfig,
