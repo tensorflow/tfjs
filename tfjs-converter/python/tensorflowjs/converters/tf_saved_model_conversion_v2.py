@@ -384,7 +384,7 @@ def _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
 
       return frozen_graph, init_ops, initializers
 
-def _freeze_saved_model_v2(concrete_func, control_flow_v2=False, init_concrete_func=None):
+def _freeze_saved_model_v2(concrete_func, control_flow_v2=False):
   if tf.__version__ < '2.2.0':
     return convert_to_constants.convert_variables_to_constants_v2(
         concrete_func, lower_control_flow=not control_flow_v2).graph
