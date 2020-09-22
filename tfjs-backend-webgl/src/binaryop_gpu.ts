@@ -58,8 +58,6 @@ export const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
 
 export const EQUAL = `return float(a == b);`;
 
-export const NOT_EQUAL = `return float(a != b);`;
-
 export const LESS = `return float(a < b);`;
 
 export const LESS_EQUAL = `return float(a <= b);`;

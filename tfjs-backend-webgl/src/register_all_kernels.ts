@@ -30,6 +30,7 @@ import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
+import {notEqualConfig} from './kernels/NotEqual';
 import {realConfig} from './kernels/Real';
 import {reshapeConfig} from './kernels/Reshape';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
@@ -55,6 +56,7 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV3Config,
   nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config,
+  notEqualConfig,
   realConfig,
   reshapeConfig,
   rotateWithOffsetConfig,

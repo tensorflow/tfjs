@@ -43,14 +43,17 @@ export function unaryKernelFunc(opSnippet: string): KernelFunc {
  *     comparison kernels, such as Equal, Less, Greater, etc.
  */
 export function binaryKernelFunc(
-    opSnippet: string, packedOpSnippet: string,
+    opSnippet: string, packedOpSnippet?: string,
     checkOutOfBoundsForPackedProgram?: boolean, dtype?: DataType): KernelFunc {
   // TODO(jingjin): handle complex64.
 
   return ({inputs, backend}) => {
     const {a, b} = inputs as BinaryInputs;
     const webglBackend = backend as MathBackendWebGL;
-    const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
+    const shouldUsePackedProgram =
+        env().getBool('WEBGL_PACK_BINARY_OPERATIONS') &&
+        packedOpSnippet != null;
+    const program = shouldUsePackedProgram ?
         new BinaryOpPackedProgram(
             packedOpSnippet, a.shape, b.shape,
             !!checkOutOfBoundsForPackedProgram) :

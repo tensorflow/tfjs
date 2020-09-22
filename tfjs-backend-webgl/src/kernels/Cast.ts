@@ -15,14 +15,15 @@
  * =============================================================================
  */
 import * as tf from '@tensorflow/tfjs-core';
-import {Cast, CastAttrs, CastInputs, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {BinaryInputs, Cast, CastAttrs, CastInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
 
 import {complex} from './Complex';
 import {identity} from './Identity';
+import {notEqual} from './NotEqual';
 import {real} from './Real';
+
 import {int} from '../kernel_utils/int';
 
 export function cast(
@@ -73,16 +74,11 @@ export function cast(
   }
 
   if (dtype === 'bool') {
-    // This is essentially the result of notEqual(x, 0). We avoid using
-    // kernel notEqual to avoid circular dependency, i.e. binary_utils ->
-    // cast -> notEqual -> binary_utils.
-    const xVals = backend.data.get(x.dataId).values as TypedArray;
-    const zero = util.toTypedArray([0], x.dtype);
+    const zerosTensorInfo = backend.makeTensorInfo([], 'bool');
 
-    const [resultData, resultShape] = createSimpleBinaryKernelImpl(
-        (a, b) => (a !== b) ? 1 : 0)(x.shape, [], xVals, zero, 'bool');
+    const binaryInputs: BinaryInputs = {a: x, b: zerosTensorInfo};
 
-    return backend.makeTensorInfo(resultShape, 'bool', resultData);
+    return notEqual({inputs: binaryInputs, backend}) as TensorInfo;
   }
 
   throw new Error(`Error in Cast: failed to cast ${x.dtype} to ${dtype}`);
