@@ -627,8 +627,8 @@ export class MathBackendWebGL extends KernelBackend {
     this.releaseGPUData(dataId);
     const {complexTensorInfos} = this.texData.get(dataId);
     if (complexTensorInfos != null) {
-      complexTensorInfos.real.dispose();
-      complexTensorInfos.imag.dispose();
+      this.disposeData(complexTensorInfos.real.dataId);
+      this.disposeData(complexTensorInfos.imag.dataId);
     }
     this.texData.delete(dataId);
   }
@@ -1474,7 +1474,7 @@ export class MathBackendWebGL extends KernelBackend {
   // underlying part. We need to do this because a reshaped complex tensor is
   // not reflected in its parts.
   private makeComplexComponentTensorInfo(
-      complexTensor: Tensor, complexPart: Tensor): TensorInfo {
+      complexTensor: Tensor, complexPart: TensorInfo): TensorInfo {
     return {
       dataId: complexPart.dataId,
       dtype: complexPart.dtype,
