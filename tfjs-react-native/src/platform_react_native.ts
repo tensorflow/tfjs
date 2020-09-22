@@ -241,6 +241,8 @@ function registerWebGLBackend() {
     }, PRIORITY);
 
     // Register all the webgl kernels on the rn-webgl backend
+    // TODO: Use tf.copyRegisteredKernels once synced to tfjs-core 2.5.0.
+    // tf.copyRegisteredKernels('webgl', 'rn-webgl');
     const kernels = tf.getKernelsForBackend('webgl');
     kernels.forEach(kernelConfig => {
       const newKernelConfig =

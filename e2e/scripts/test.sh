@@ -25,6 +25,11 @@ if [[ -z "$TAGS" ]]; then
   TAGS="#SMOKE"
 fi
 
+if [[ "$TAGS" == *"#SMOKE"*  ]]; then
+  # Generate custom bundle files for tests
+  ./scripts/run-custom-builds.sh
+fi
+
 if [[ "$NIGHTLY" = true ]]; then
     TAGS="${TAGS},#REGRESSION"
 fi
