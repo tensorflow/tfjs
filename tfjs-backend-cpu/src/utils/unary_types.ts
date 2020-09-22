@@ -15,14 +15,6 @@
  * =============================================================================
  */
 
-import {Cos, KernelConfig} from '@tensorflow/tfjs-core';
+import {NamedAttrMap} from '@tensorflow/tfjs-core';
 
-import {unaryKernelFunc} from '../utils/unary_utils';
-
-export const cosKernelFunc = unaryKernelFunc(Cos, (xi) => Math.cos(xi));
-
-export const cosConfig: KernelConfig = {
-  kernelName: Cos,
-  backendName: 'cpu',
-  kernelFunc: cosKernelFunc,
-};
+export type SimpleUnaryOperation = (x: number, attrs?: NamedAttrMap) => number;
