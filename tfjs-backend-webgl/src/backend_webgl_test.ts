@@ -84,21 +84,21 @@ describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  // fit('complex number multiplication', async () => {
-  //   const real1 = tf.tensor1d([2]);
-  //   const imag1 = tf.tensor1d([3]);
-  //   const complex1 = tf.complex(real1, imag1);
+  fit('complex number multiplication', async () => {
+    const real1 = tf.tensor1d([2]);
+    const imag1 = tf.tensor1d([3]);
+    const complex1 = tf.complex(real1, imag1);
 
-  //   const real2 = tf.tensor1d([4]);
-  //   const imag2 = tf.tensor1d([5]);
-  //   const complex2 = tf.complex(real2, imag2);
+    const real2 = tf.tensor1d([4]);
+    const imag2 = tf.tensor1d([5]);
+    const complex2 = tf.complex(real2, imag2);
 
-  //   const result = complex1.mul(complex2);
+    const result = complex1.mul(complex2);
 
-  //   expect(result.dtype).toBe('complex64');
-  //   expect(result.shape).toEqual([1]);
-  //   expectArraysClose(await result.data(), [2 * 4 - 3 * 5, 2 * 5 + 3 * 4]);
-  // });
+    expect(result.dtype).toBe('complex64');
+    expect(result.shape).toEqual([1]);
+    expectArraysClose(await result.data(), [2 * 4 - 3 * 5, 2 * 5 + 3 * 4]);
+  });
 
   it('should not leak memory when lazily unpacking', () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);

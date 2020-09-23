@@ -23,7 +23,94 @@ import {cast} from '../kernels/Cast';
 import {complex} from '../kernels/Complex';
 
 import {createSimpleBinaryKernelImpl} from './binary_impl';
-import {ComplexBinaryKernelImpl, ComplexBinaryOperation, SimpleBinaryOperation} from './binary_types';
+import {ComplexBinaryKernelImpl, ComplexBinaryOperation, SimpleBinaryKernelImpl, SimpleBinaryOperation} from './binary_types';
+
+export function binaryKernelFunc2(
+    name: string, binaryKernelImpl: SimpleBinaryKernelImpl,
+    binaryKernelComplexImpl?: ComplexBinaryKernelImpl,
+    dtype?: DataType): KernelFunc {
+  if (binaryKernelComplexImpl == null) {
+    return ({inputs, backend}) => {
+      const {a, b} = inputs as BinaryInputs;
+      const cpuBackend = backend as MathBackendCPU;
+
+      assertNotComplex([a, b], name);
+
+      const aVals = cpuBackend.data.get(a.dataId).values as TypedArray;
+      const bVals = cpuBackend.data.get(b.dataId).values as TypedArray;
+
+      const $dtype = dtype || a.dtype;
+
+      const [resultData, resultShape] =
+          binaryKernelImpl(a.shape, b.shape, aVals, bVals, $dtype);
+
+      return cpuBackend.makeTensorInfo(resultShape, $dtype, resultData);
+    };
+  }
+
+  return ({inputs, backend}) => {
+    const {a, b} = inputs as BinaryInputs;
+    const cpuBackend = backend as MathBackendCPU;
+
+    if (a.dtype === 'complex64' || b.dtype === 'complex64') {
+      const $aComplex = cast(
+          {inputs: {x: a}, backend: cpuBackend, attrs: {dtype: 'complex64'}});
+
+      const $aComplexVals = cpuBackend.data.get($aComplex.dataId);
+
+      const aReal = $aComplexVals.complexTensorInfos.real;
+      const aImag = $aComplexVals.complexTensorInfos.imag;
+
+      const aRealVals =
+          cpuBackend.data.get(aReal.dataId).values as Float32Array;
+      const aImagVals =
+          cpuBackend.data.get(aImag.dataId).values as Float32Array;
+
+      const $bComplex = cast(
+          {inputs: {x: b}, backend: cpuBackend, attrs: {dtype: 'complex64'}});
+
+      const $bComplexVals = cpuBackend.data.get($bComplex.dataId);
+
+      const bReal = $bComplexVals.complexTensorInfos.real;
+      const bImag = $bComplexVals.complexTensorInfos.imag;
+
+      const bRealVals =
+          cpuBackend.data.get(bReal.dataId).values as Float32Array;
+      const bImagVals =
+          cpuBackend.data.get(bImag.dataId).values as Float32Array;
+
+      const [resultRealData, resultImagData, resultShape] =
+          binaryKernelComplexImpl(
+              a.shape, b.shape, aRealVals, aImagVals, bRealVals, bImagVals);
+
+      const resultReal =
+          cpuBackend.makeTensorInfo(resultShape, 'float32', resultRealData);
+
+      const resultImag =
+          cpuBackend.makeTensorInfo(resultShape, 'float32', resultImagData);
+
+      const result = complex(
+          {inputs: {real: resultReal, imag: resultImag}, backend: cpuBackend});
+
+      cpuBackend.disposeIntermediateTensorInfo($aComplex);
+      cpuBackend.disposeIntermediateTensorInfo($bComplex);
+      cpuBackend.disposeIntermediateTensorInfo(resultReal);
+      cpuBackend.disposeIntermediateTensorInfo(resultImag);
+
+      return result;
+    } else {
+      const aVals = cpuBackend.data.get(a.dataId).values as TypedArray;
+      const bVals = cpuBackend.data.get(b.dataId).values as TypedArray;
+
+      const $dtype = dtype || a.dtype;
+
+      const [resultData, resultShape] =
+          binaryKernelImpl(a.shape, b.shape, aVals, bVals, $dtype);
+
+      return cpuBackend.makeTensorInfo(resultShape, $dtype, resultData);
+    }
+  };
+}
 
 /**
  * Template that creates a `KernelFunc` for binary ops.
