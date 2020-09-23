@@ -84,7 +84,7 @@ export function batchNormKernelFunc(args: {
       vi = 0;
     }
   }
-  return backend.makeTensorInfo(get4DShapeFromX(x), x.dtype, outVals);
+  return backend.makeTensorInfo(x.shape, x.dtype, outVals);
 }
 
 export const batchNormConfig: KernelConfig = {
@@ -92,16 +92,3 @@ export const batchNormConfig: KernelConfig = {
   backendName: 'cpu',
   kernelFunc: batchNormKernelFunc as {} as KernelFunc,
 };
-
-function get4DShapeFromX(x: TensorInfo): number[] {
-  const xRank = x.shape.length;
-  if (xRank === 0 || xRank === 1) {
-    return [1, 1, 1, util.sizeFromShape(x.shape)];
-  } else if (xRank === 2) {
-    return [1, 1, x.shape[0], x.shape[1]];
-  } else if (xRank === 3) {
-    return [1, x.shape[0], x.shape[1], x.shape[2]];
-  } else {
-    return x.shape;
-  }
-}

@@ -22,13 +22,11 @@ import {MathBackendWebGL} from '../backend_webgl';
 import {BatchNormProgram} from '../batchnorm_gpu';
 import {BatchNormPackedProgram} from '../batchnorm_packed_gpu';
 
-import {reshape} from './Reshape';
-
 export const batchNormKernelFunc: (params: {
   inputs: FusedBatchNormInputs,
   backend: MathBackendWebGL,
   attrs: FusedBatchNormAttrs
-}) => TensorInfo | TensorInfo[] = ({inputs, backend, attrs}) => {
+}) => TensorInfo = ({inputs, backend, attrs}) => {
   const {x, mean, variance, offset, scale} = inputs;
 
   util.assert(
@@ -49,45 +47,29 @@ export const batchNormKernelFunc: (params: {
     varianceEpsilon = 0.001;
   }
 
-  const $x: TensorInfo = xAs4D(x, backend);
-  const $mean = as1DOr4D(mean, backend);
-  const $variance = as1DOr4D(variance, backend);
-  const $offset = as1DOr4D(offset, backend);
-  const $scale = as1DOr4D(scale, backend);
-
-  const finalInputs = [$x, $mean, $variance];
+  const finalInputs = [x, mean, variance];
 
   let offsetShape = null;
-  if ($offset != null) {
-    offsetShape = $offset.shape;
-    finalInputs.push($offset);
+  if (offset != null) {
+    offsetShape = offset.shape;
+    finalInputs.push(offset);
   }
 
   let scaleShape = null;
-  if ($scale != null) {
-    scaleShape = $scale.shape;
-    finalInputs.push($scale);
+  if (scale != null) {
+    scaleShape = scale.shape;
+    finalInputs.push(scale);
   }
 
   const program = env().getBool('WEBGL_PACK_NORMALIZATION') ?
       new BatchNormPackedProgram(
-          $x.shape, $mean.shape, $variance.shape, offsetShape, scaleShape,
+          x.shape, mean.shape, variance.shape, offsetShape, scaleShape,
           varianceEpsilon) :
       new BatchNormProgram(
-          $x.shape, $mean.shape, $variance.shape, offsetShape, scaleShape,
+          x.shape, mean.shape, variance.shape, offsetShape, scaleShape,
           varianceEpsilon);
   const output =
       backend.runWebGLProgram(program, finalInputs, finalInputs[0].dtype);
-
-  backend.disposeIntermediateTensorInfo($x);
-  backend.disposeIntermediateTensorInfo($mean);
-  backend.disposeIntermediateTensorInfo($variance);
-  if ($offset != null) {
-    backend.disposeIntermediateTensorInfo($offset);
-  }
-  if ($scale != null) {
-    backend.disposeIntermediateTensorInfo($scale);
-  }
 
   return output;
 };
@@ -97,58 +79,3 @@ export const batchNormConfig: KernelConfig = {
   backendName: 'webgl',
   kernelFunc: batchNormKernelFunc as {} as KernelFunc,
 };
-
-function xAs4D(x: TensorInfo, backend: MathBackendWebGL): TensorInfo {
-  const xRank = x.shape.length;
-  if (xRank === 0 || xRank === 1) {
-    return reshape({
-      inputs: {x},
-      attrs: {shape: [1, 1, 1, util.sizeFromShape(x.shape)]},
-      backend,
-    });
-  } else if (xRank === 2) {
-    return reshape({
-      inputs: {x},
-      attrs: {shape: [1, 1, x.shape[0], x.shape[1]]},
-      backend,
-    });
-  } else if (xRank === 3) {
-    return reshape({
-      inputs: {x},
-      attrs: {shape: [1, x.shape[0], x.shape[1], x.shape[2]]},
-      backend,
-    });
-  } else {
-    backend.incRef(x.dataId);
-    return {...x};
-  }
-}
-
-function as1DOr4D(x: TensorInfo, backend: MathBackendWebGL): TensorInfo {
-  if (x == null) {
-    return null;
-  }
-  const xRank = x.shape.length;
-  if (xRank === 0) {
-    return reshape({
-      inputs: {x},
-      attrs: {shape: [util.sizeFromShape(x.shape)]},
-      backend,
-    });
-  } else if (xRank === 2) {
-    return reshape({
-      inputs: {x},
-      attrs: {shape: [1, 1, x.shape[0], x.shape[1]]},
-      backend,
-    });
-  } else if (xRank === 3) {
-    return reshape({
-      inputs: {x},
-      attrs: {shape: [1, x.shape[0], x.shape[1], x.shape[2]]},
-      backend,
-    });
-  } else {
-    backend.incRef(x.dataId);
-    return {...x};
-  }
-}
