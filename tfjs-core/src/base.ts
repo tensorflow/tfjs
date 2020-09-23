@@ -32,6 +32,7 @@
 import * as io from './io/io';
 import * as math from './math';
 import * as browser from './ops/browser';
+import * as browser_async from './ops/browser_async';
 import * as gather_util from './ops/gather_nd_util';
 import * as scatter_util from './ops/scatter_nd_util';
 import * as slice_util from './ops/slice_util';
@@ -77,6 +78,7 @@ import * as backend_util from './backends/backend_util';
 import * as device_util from './device_util';
 export {
   browser,
+  browser_async,
   io,
   math,
   serialization,
