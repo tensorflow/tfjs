@@ -25,7 +25,7 @@ export function complex(
   const {real, imag} = inputs;
 
   // TODO(annxingyuan): Share data buckets once soft disposal through engine is
-  // possible
+  // possible.
   const realVals = backend.readSync(real.dataId) as TypedArray;
   const imagVals = backend.readSync(imag.dataId) as TypedArray;
 

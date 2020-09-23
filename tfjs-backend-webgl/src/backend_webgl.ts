@@ -36,8 +36,6 @@ import {ArgMinMaxPackedProgram} from './argminmax_packed_gpu';
 import {AvgPool2DBackpropProgram, AvgPool3DBackpropProgram} from './avg_pool_backprop_gpu';
 import {BatchNormProgram} from './batchnorm_gpu';
 import {BatchNormPackedProgram} from './batchnorm_packed_gpu';
-import * as binaryop_complex_gpu from './binaryop_complex_gpu';
-import {BinaryOpComplexProgram} from './binaryop_complex_gpu';
 import * as binaryop_gpu from './binaryop_gpu';
 import {BinaryOpProgram} from './binaryop_gpu';
 import * as binaryop_packed_gpu from './binaryop_packed_gpu';
@@ -891,40 +889,43 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun<Tensor3D>(program, inputs, dtype);
   }
 
-  multiply(a: Tensor, b: Tensor): Tensor {
-    if (a.dtype === 'complex64') {
-      const aData = this.texData.get(a.dataId);
-      const bData = this.texData.get(b.dataId);
+  // multiply(a: Tensor, b: Tensor): Tensor {
+  //   if (a.dtype === 'complex64') {
+  //     const aData = this.texData.get(a.dataId);
+  //     const bData = this.texData.get(b.dataId);
 
-      const realProgram = new BinaryOpComplexProgram(
-          binaryop_complex_gpu.COMPLEX_MULTIPLY.REAL, a.shape, b.shape);
-      const imagProgram = new BinaryOpComplexProgram(
-          binaryop_complex_gpu.COMPLEX_MULTIPLY.IMAG, a.shape, b.shape);
+  //     const realProgram = new BinaryOpComplexProgram(
+  //         binaryop_complex_gpu.COMPLEX_MULTIPLY.REAL, a.shape, b.shape);
+  //     const imagProgram = new BinaryOpComplexProgram(
+  //         binaryop_complex_gpu.COMPLEX_MULTIPLY.IMAG, a.shape, b.shape);
 
-      const inputs = [
-        this.makeComplexComponentTensorInfo(a, aData.complexTensorInfos.real),
-        this.makeComplexComponentTensorInfo(a, aData.complexTensorInfos.imag),
-        this.makeComplexComponentTensorInfo(b, bData.complexTensorInfos.real),
-        this.makeComplexComponentTensorInfo(b, bData.complexTensorInfos.imag)
-      ];
-      const real = this.compileAndRun<Tensor>(realProgram, inputs);
-      const imag = this.compileAndRun<Tensor>(imagProgram, inputs);
+  //     const inputs = [
+  //       this.makeComplexComponentTensorInfo(a,
+  //       aData.complexTensorInfos.real),
+  //       this.makeComplexComponentTensorInfo(a,
+  //       aData.complexTensorInfos.imag),
+  //       this.makeComplexComponentTensorInfo(b,
+  //       bData.complexTensorInfos.real),
+  //       this.makeComplexComponentTensorInfo(b, bData.complexTensorInfos.imag)
+  //     ];
+  //     const real = this.compileAndRun<Tensor>(realProgram, inputs);
+  //     const imag = this.compileAndRun<Tensor>(imagProgram, inputs);
 
-      const complex = this.complex(real, imag);
-      real.dispose();
-      imag.dispose();
-      return complex;
-    }
+  //     const complex = this.complex(real, imag);
+  //     real.dispose();
+  //     imag.dispose();
+  //     return complex;
+  //   }
 
-    if (this.shouldExecuteOnCPU([a, b])) {
-      return this.cpuBackend.multiply(a, b);
-    }
-    if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-      return this.packedBinaryOp(a, b, binaryop_gpu.MUL, a.dtype);
-    }
-    const program = new BinaryOpProgram(binaryop_gpu.MUL, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b], a.dtype);
-  }
+  //   if (this.shouldExecuteOnCPU([a, b])) {
+  //     return this.cpuBackend.multiply(a, b);
+  //   }
+  //   if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
+  //     return this.packedBinaryOp(a, b, binaryop_gpu.MUL, a.dtype);
+  //   }
+  //   const program = new BinaryOpProgram(binaryop_gpu.MUL, a.shape, b.shape);
+  //   return this.compileAndRun(program, [a, b], a.dtype);
+  // }
 
   batchNorm(
       x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,

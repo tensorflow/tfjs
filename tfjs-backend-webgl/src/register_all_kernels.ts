@@ -27,6 +27,7 @@ import {identityConfig} from './kernels/Identity';
 import {imagConfig} from './kernels/Imag';
 import {maxConfig} from './kernels/Max';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
+import {multiplyConfig} from './kernels/Multiply';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
@@ -53,6 +54,7 @@ const kernelConfigs: KernelConfig[] = [
   identityConfig,
   imagConfig,
   maxPoolWithArgmaxConfig,
+  multiplyConfig,
   nonMaxSuppressionV3Config,
   nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config,
