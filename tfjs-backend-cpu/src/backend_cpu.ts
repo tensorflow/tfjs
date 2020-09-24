@@ -2306,50 +2306,6 @@ export class MathBackendCPU extends KernelBackend {
     return tf.tensor4d(output, x.shape, x.dtype);
   }
 
-  batchNorm(
-      x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
-      offset?: Tensor4D|Tensor1D, scale?: Tensor4D|Tensor1D,
-      varianceEpsilon?: number): Tensor4D {
-    assertNotComplex([x, mean, variance, scale, offset], 'batchNorm');
-
-    const xVals = this.readSync(x.dataId) as TypedArray;
-    const mVals = this.readSync(mean.dataId) as TypedArray;
-    const varVals = this.readSync(variance.dataId) as TypedArray;
-    const sVals = scale ? this.readSync(scale.dataId) as TypedArray :
-                          new Float32Array([1]);
-    const offVals = offset ? this.readSync(offset.dataId) as TypedArray :
-                             new Float32Array([0]);
-    const outVals = new Float32Array(xVals.length);
-
-    const offValsLength = offVals.length;
-    const sValsLength = sVals.length;
-    const varValsLength = varVals.length;
-    const mValsLength = mVals.length;
-
-    let offi = 0;
-    let mi = 0;
-    let si = 0;
-    let vi = 0;
-    for (let i = 0; i < xVals.length; ++i) {
-      outVals[i] = offVals[offi++] +
-          (xVals[i] - mVals[mi++]) * sVals[si++] /
-              Math.sqrt(varVals[vi++] + varianceEpsilon);
-      if (offi >= offValsLength) {
-        offi = 0;
-      }
-      if (mi >= mValsLength) {
-        mi = 0;
-      }
-      if (si >= sValsLength) {
-        si = 0;
-      }
-      if (vi >= varValsLength) {
-        vi = 0;
-      }
-    }
-    return tf.tensor4d(outVals, x.shape);
-  }
-
   localResponseNormalization4D(
       x: Tensor4D, depthRadius: number, bias: number, alpha: number,
       beta: number): Tensor4D {

@@ -158,6 +158,11 @@ echo
 echo "Copying requirements.txt"
 cp "${SCRIPTS_DIR}/requirements.txt" "${TMP_DIR}/"
 
+# Copy requirements.txt
+echo
+echo "Copying extra-requirements.txt"
+cp "${SCRIPTS_DIR}/extra-requirements.txt" "${TMP_DIR}/"
+
 # Copy README.md.
 echo
 echo "Copying README.md"
@@ -239,7 +244,7 @@ for VENV_PYTHON_BIN in ${VENV_PYTHON_BINS}; do
 
     pushd "${TEST_ON_INSTALL_DIR}" > /dev/null
 
-    pip install "${WHEEL_PATH}"
+    pip install "${WHEEL_PATH}[wizard]"
     echo "Successfully installed ${WHEEL_PATH} for $(python --version 2>&1)."
     echo
 
