@@ -80,8 +80,7 @@ export function multiply(
     return complexOutput;
   }
 
-  const shouldExecuteOnCPU = backend.shouldExecuteOnCPU([a, b]);
-  if (shouldExecuteOnCPU) {
+  if (backend.shouldExecuteOnCPU([a, b])) {
     const aData = backend.texData.get(a.dataId);
     const bData = backend.texData.get(b.dataId);
     const [outValues, outShape] = cpuMultiply(
