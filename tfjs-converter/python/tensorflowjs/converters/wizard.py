@@ -26,8 +26,8 @@ import traceback
 try:
   import PyInquirer
 except ImportError:
-    sys.exit("""Please install PyInquirer using following command:
-                `pip install PyInquirer==1.0.3`""")
+  sys.exit("""Please install PyInquirer using following command:
+              pip install PyInquirer==1.0.3""")
 
 import h5py
 import tensorflow.compat.v2 as tf
