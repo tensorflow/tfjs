@@ -25,6 +25,15 @@ const {
   transposeImpl: transposeImplCPU,
   multiplyImpl: multiplyImplCPU,
   multiplyComplexImpl: multiplyComplexImplCPU,
+  subImpl: subImplCPU,
+  subComplexImpl: subComplexImplCPU
 } = shared;
 
-export {maxImplCPU, transposeImplCPU, multiplyImplCPU, multiplyComplexImplCPU};
+export {
+  maxImplCPU,
+  transposeImplCPU,
+  multiplyImplCPU,
+  multiplyComplexImplCPU,
+  subImplCPU,
+  subComplexImplCPU
+};

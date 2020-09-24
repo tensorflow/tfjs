@@ -889,44 +889,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun<Tensor3D>(program, inputs, dtype);
   }
 
-  // multiply(a: Tensor, b: Tensor): Tensor {
-  //   if (a.dtype === 'complex64') {
-  //     const aData = this.texData.get(a.dataId);
-  //     const bData = this.texData.get(b.dataId);
-
-  //     const realProgram = new BinaryOpComplexProgram(
-  //         binaryop_complex_gpu.COMPLEX_MULTIPLY.REAL, a.shape, b.shape);
-  //     const imagProgram = new BinaryOpComplexProgram(
-  //         binaryop_complex_gpu.COMPLEX_MULTIPLY.IMAG, a.shape, b.shape);
-
-  //     const inputs = [
-  //       this.makeComplexComponentTensorInfo(a,
-  //       aData.complexTensorInfos.real),
-  //       this.makeComplexComponentTensorInfo(a,
-  //       aData.complexTensorInfos.imag),
-  //       this.makeComplexComponentTensorInfo(b,
-  //       bData.complexTensorInfos.real),
-  //       this.makeComplexComponentTensorInfo(b, bData.complexTensorInfos.imag)
-  //     ];
-  //     const real = this.compileAndRun<Tensor>(realProgram, inputs);
-  //     const imag = this.compileAndRun<Tensor>(imagProgram, inputs);
-
-  //     const complex = this.complex(real, imag);
-  //     real.dispose();
-  //     imag.dispose();
-  //     return complex;
-  //   }
-
-  //   if (this.shouldExecuteOnCPU([a, b])) {
-  //     return this.cpuBackend.multiply(a, b);
-  //   }
-  //   if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-  //     return this.packedBinaryOp(a, b, binaryop_gpu.MUL, a.dtype);
-  //   }
-  //   const program = new BinaryOpProgram(binaryop_gpu.MUL, a.shape, b.shape);
-  //   return this.compileAndRun(program, [a, b], a.dtype);
-  // }
-
   batchNorm(
       x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
       offset?: Tensor4D|Tensor1D, scale?: Tensor4D|Tensor1D,
@@ -1498,21 +1460,21 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun<T>(program, tensors, dtype);
   }
 
-  subtract(a: Tensor, b: Tensor): Tensor {
-    if (a.dtype === 'complex64' && b.dtype === 'complex64') {
-      return this.complexSeparableBinaryOp(a, b, binaryop_gpu.SUB);
-    }
+  // subtract(a: Tensor, b: Tensor): Tensor {
+  //   if (a.dtype === 'complex64' && b.dtype === 'complex64') {
+  //     return this.complexSeparableBinaryOp(a, b, binaryop_gpu.SUB);
+  //   }
 
-    if (this.shouldExecuteOnCPU([a, b])) {
-      return this.cpuBackend.subtract(a, b);
-    }
-    const dtype = upcastType(a.dtype, b.dtype);
-    if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-      return this.packedBinaryOp(a, b, binaryop_gpu.SUB, a.dtype);
-    }
-    const program = new BinaryOpProgram(binaryop_gpu.SUB, a.shape, b.shape);
-    return this.compileAndRun<Tensor>(program, [a, b], dtype);
-  }
+  //   if (this.shouldExecuteOnCPU([a, b])) {
+  //     return this.cpuBackend.subtract(a, b);
+  //   }
+  //   const dtype = upcastType(a.dtype, b.dtype);
+  //   if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
+  //     return this.packedBinaryOp(a, b, binaryop_gpu.SUB, a.dtype);
+  //   }
+  //   const program = new BinaryOpProgram(binaryop_gpu.SUB, a.shape, b.shape);
+  //   return this.compileAndRun<Tensor>(program, [a, b], dtype);
+  // }
 
   pow<T extends Tensor>(a: T, b: Tensor): T {
     const usePackedOp = env().getBool('WEBGL_PACK_BINARY_OPERATIONS');

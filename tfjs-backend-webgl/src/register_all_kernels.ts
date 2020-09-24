@@ -38,6 +38,7 @@ import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {sinConfig} from './kernels/Sin';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {subConfig} from './kernels/Sub';
 import {tanConfig} from './kernels/Tan';
 import {transposeConfig} from './kernels/Transpose';
 
@@ -64,6 +65,7 @@ const kernelConfigs: KernelConfig[] = [
   rotateWithOffsetConfig,
   sinConfig,
   squareConfig,
+  subConfig,
   squaredDifferenceConfig,
   tanConfig,
   transposeConfig
