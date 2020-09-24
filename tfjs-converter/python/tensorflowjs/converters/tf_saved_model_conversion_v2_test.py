@@ -377,6 +377,11 @@ class ConvertTest(tf.test.TestCase):
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
     self.assertTrue(model_json['modelInitializer'])
+<<<<<<< HEAD
+=======
+    self.assertTrue(model_json['modelInitializer']['outputs'])
+    self.assertTrue(model_json['modelInitializer']['topology'])
+>>>>>>> 38a9fbf5 (Add test.)
 
     weights_manifest = model_json['weightsManifest']
     self.assertEqual(weights_manifest, expected_weights_manifest)
