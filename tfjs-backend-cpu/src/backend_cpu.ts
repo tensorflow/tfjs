@@ -1528,62 +1528,6 @@ export class MathBackendCPU extends KernelBackend {
                .slice(sliceBeginCoords, sliceSize) as T;
   }
 
-  // avgPoolBackprop(dy: Tensor4D, x: Tensor4D, convInfo:
-  // backend_util.Conv2DInfo):
-  //     Tensor4D {
-  //   assertNotComplex([dy, x], 'avgPoolBackprop');
-
-  //   const strideHeight = convInfo.strideHeight;
-  //   const strideWidth = convInfo.strideWidth;
-  //   const filterHeight = convInfo.filterHeight;
-  //   const filterWidth = convInfo.filterWidth;
-  //   const dilationHeight = convInfo.dilationHeight;
-  //   const dilationWidth = convInfo.dilationWidth;
-  //   const effectiveFilterHeight = convInfo.effectiveFilterHeight;
-  //   const effectiveFilterWidth = convInfo.effectiveFilterWidth;
-  //   const padLeft = effectiveFilterWidth - 1 - convInfo.padInfo.left;
-  //   const padTop = effectiveFilterHeight - 1 - convInfo.padInfo.top;
-  //   const dx = tf.buffer<Rank.R4>(x.shape, 'float32');
-
-  //   const avgMultiplier = 1 / (filterHeight * filterWidth);
-
-  //   const dyBuf = this.bufferSync(dy);
-
-  //   for (let b = 0; b < convInfo.batchSize; ++b) {
-  //     for (let d = 0; d < convInfo.inChannels; ++d) {
-  //       for (let dxR = 0; dxR < convInfo.inHeight; ++dxR) {
-  //         for (let dxC = 0; dxC < convInfo.inWidth; ++dxC) {
-  //           // Shader code begins.
-  //           const dyRCorner = dxR - padTop;
-  //           const dyCCorner = dxC - padLeft;
-  //           let dotProd = 0;
-  //           for (let wR = 0; wR < effectiveFilterHeight; wR +=
-  //           dilationHeight) {
-  //             const dyR = (dyRCorner + wR) / strideHeight;
-  //             if (dyR < 0 || dyR >= convInfo.outHeight ||
-  //                 Math.floor(dyR) !== dyR) {
-  //               continue;
-  //             }
-  //             for (let wC = 0; wC < effectiveFilterWidth; wC +=
-  //             dilationWidth) {
-  //               const dyC = (dyCCorner + wC) / strideWidth;
-  //               if (dyC < 0 || dyC >= convInfo.outWidth ||
-  //                   Math.floor(dyC) !== dyC) {
-  //                 continue;
-  //               }
-
-  //               const pixel = dyBuf.get(b, dyR, dyC, d);
-  //               dotProd += pixel;
-  //             }
-  //           }
-  //           dx.set(dotProd * avgMultiplier, b, dxR, dxC, d);
-  //         }
-  //       }
-  //     }
-  //   }
-  //   return dx.toTensor();
-  // }
-
   private pool3d(
       x: Tensor5D, convInfo: backend_util.Conv3DInfo,
       poolType: 'max'|'avg'): Tensor5D {
