@@ -38,7 +38,7 @@ export function getWebGLContext(webGLVersion: number): WebGLRenderingContext {
     if (newCtx) {
       contexts[webGLVersion] = newCtx;
     } else {
-      console.log("Could not get context for WebGL version", webGLVersion);
+      console.log('Could not get context for WebGL version', webGLVersion);
       return null;
     }
   }
