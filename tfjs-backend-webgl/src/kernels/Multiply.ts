@@ -16,13 +16,14 @@
  * =============================================================================
  */
 
-import {BinaryInputs, env, KernelConfig, Multiply, TensorInfo} from '@tensorflow/tfjs-core';
+import {BinaryInputs, env, KernelConfig, Multiply, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import * as binaryop_complex_gpu from '../binaryop_complex_gpu';
 import {BinaryOpComplexProgram} from '../binaryop_complex_gpu';
 import {BinaryOpProgram} from '../binaryop_gpu';
 import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
+import {multiplyImplCPU as cpuMultiply} from '../kernel_utils/shared';
 
 import {complex} from './Complex';
 
@@ -74,13 +75,24 @@ export function multiply(
     backend.disposeIntermediateTensorInfo(realPart);
     backend.disposeIntermediateTensorInfo(imagPart);
 
+    // TODO(annxingyuan): CPU forwarding for complex inputs.
+
     return complexOutput;
   }
 
-  // const shouldExecuteOnCPU = backend.shouldExecuteOnCPU([a, b]);
-  // if (shouldExecuteOnCPU) {
-  //   return
-  // }
+  const shouldExecuteOnCPU = backend.shouldExecuteOnCPU([a, b]);
+  if (shouldExecuteOnCPU) {
+    const aData = backend.texData.get(a.dataId);
+    const bData = backend.texData.get(b.dataId);
+    const [outValues, outShape] = cpuMultiply(
+        a.shape, b.shape, aData.values as TypedArray,
+        bData.values as TypedArray, 'float32');
+
+    const out = backend.makeTensorInfo(outShape, 'float32');
+    const outData = backend.texData.get(out.dataId);
+    outData.values = outValues;
+    return out;
+  }
 
   let program: BinaryOpProgram|BinaryOpPackedProgram;
   if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
