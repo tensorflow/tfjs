@@ -244,7 +244,7 @@ for VENV_PYTHON_BIN in ${VENV_PYTHON_BINS}; do
 
     pushd "${TEST_ON_INSTALL_DIR}" > /dev/null
 
-    pip install "${WHEEL_PATH}"
+    pip install "${WHEEL_PATH}[wizard]"
     echo "Successfully installed ${WHEEL_PATH} for $(python --version 2>&1)."
     echo
 
