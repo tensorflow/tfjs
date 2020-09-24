@@ -1460,22 +1460,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun<T>(program, tensors, dtype);
   }
 
-  // subtract(a: Tensor, b: Tensor): Tensor {
-  //   if (a.dtype === 'complex64' && b.dtype === 'complex64') {
-  //     return this.complexSeparableBinaryOp(a, b, binaryop_gpu.SUB);
-  //   }
-
-  //   if (this.shouldExecuteOnCPU([a, b])) {
-  //     return this.cpuBackend.subtract(a, b);
-  //   }
-  //   const dtype = upcastType(a.dtype, b.dtype);
-  //   if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-  //     return this.packedBinaryOp(a, b, binaryop_gpu.SUB, a.dtype);
-  //   }
-  //   const program = new BinaryOpProgram(binaryop_gpu.SUB, a.shape, b.shape);
-  //   return this.compileAndRun<Tensor>(program, [a, b], dtype);
-  // }
-
   pow<T extends Tensor>(a: T, b: Tensor): T {
     const usePackedOp = env().getBool('WEBGL_PACK_BINARY_OPERATIONS');
     const program = usePackedOp ?

@@ -19,6 +19,7 @@
 // side effects.
 // tslint:disable-next-line: no-imports-from-dist
 import * as shared from '@tensorflow/tfjs-backend-cpu/dist/shared';
+import {SimpleBinaryKernelImpl} from '@tensorflow/tfjs-backend-cpu/dist/shared';
 
 const {
   maxImpl: maxImplCPU,
@@ -37,3 +38,5 @@ export {
   subImplCPU,
   subComplexImplCPU
 };
+
+export type SimpleBinaryKernelImplCPU = SimpleBinaryKernelImpl;
