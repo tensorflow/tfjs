@@ -360,7 +360,11 @@ class ConvertTest(tf.test.TestCase):
 
     expected_weights_manifest = [{
         'paths': ['group1-shard1of1.bin'],
-        'weights': [{'dtype': 'float32', 'name': 'w', 'shape': [2, 2]}]}]
+        'weights': [
+            {'dtype': 'float32', 'name': 'w', 'shape': [2, 2]},
+            {'dtype': 'string', 'name': 'Const', 'shape': [1]},
+            {'dtype': 'int32', 'name': 'Const_1', 'shape': [1]}
+        ]}]
 
     tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'js')
     # Check model.json and weights manifest.
@@ -372,7 +376,9 @@ class ConvertTest(tf.test.TestCase):
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
-
+    self.assertTrue(model_json['modelInitializer'])
+    self.assertTrue(model_json['modelInitializer']['outputs'])
+    self.assertTrue(model_json['modelInitializer']['topology'])
 
     weights_manifest = model_json['weightsManifest']
     self.assertEqual(weights_manifest, expected_weights_manifest)
