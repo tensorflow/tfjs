@@ -25,7 +25,6 @@ const CHECK_NAN_SNIPPET = `
 `;
 
 export const ADD = 'return a + b;';
-export const SUB = 'return a - b;';
 
 // We use native integer division to deal with floating point imprecision. Since
 // we implement floor division and glsl implements truncated division, we

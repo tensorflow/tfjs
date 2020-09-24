@@ -16,11 +16,9 @@
  * =============================================================================
  */
 
-import {BinaryInputs, env, KernelConfig, Sub, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
+import {BinaryInputs, env, KernelConfig, Sub, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import * as binaryop_complex_gpu from '../binaryop_complex_gpu';
-import {BinaryOpComplexProgram} from '../binaryop_complex_gpu';
 import {BinaryOpProgram} from '../binaryop_gpu';
 import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
 import {subImplCPU as cpuSub} from '../kernel_utils/shared';
@@ -38,42 +36,32 @@ export function sub(args: {inputs: BinaryInputs, backend: MathBackendWebGL}):
     const aData = backend.texData.get(a.dataId);
     const bData = backend.texData.get(b.dataId);
 
-    const realProgram = new BinaryOpComplexProgram(
-        binaryop_complex_gpu.COMPLEX_MULTIPLY.REAL, a.shape, b.shape);
-    const imagProgram = new BinaryOpComplexProgram(
-        binaryop_complex_gpu.COMPLEX_MULTIPLY.IMAG, a.shape, b.shape);
+    const [real, imag] = [
+      [aData.complexTensorInfos.real, bData.complexTensorInfos.real],
+      [aData.complexTensorInfos.imag, bData.complexTensorInfos.imag]
+    ].map(complexParts => {
+      const [aPart, bPart] = complexParts;
 
-    const inputs = [
-      {
-        dataId: aData.complexTensorInfos.real.dataId,
-        dtype: aData.complexTensorInfos.real.dtype,
+      const aHandle = {
+        dataId: aPart.dataId,
+        dtype: aPart.dtype,
         shape: a.shape
-      },
-      {
-        dataId: aData.complexTensorInfos.imag.dataId,
-        dtype: aData.complexTensorInfos.imag.dtype,
-        shape: a.shape
-      },
-      {
-        dataId: bData.complexTensorInfos.real.dataId,
-        dtype: bData.complexTensorInfos.real.dtype,
+      };
+      const bHandle = {
+        dataId: bPart.dataId,
+        dtype: bPart.dtype,
         shape: b.shape
-      },
-      {
-        dataId: bData.complexTensorInfos.imag.dataId,
-        dtype: bData.complexTensorInfos.imag.dtype,
-        shape: b.shape
-      }
-    ];
+      };
 
-    const realPart = backend.runWebGLProgram(realProgram, inputs, 'float32');
-    const imagPart = backend.runWebGLProgram(imagProgram, inputs, 'float32');
+      const program = new BinaryOpProgram(SUB, a.shape, b.shape);
+      return backend.runWebGLProgram(
+          program, [aHandle, bHandle], upcastType(aPart.dtype, bPart.dtype));
+    });
 
-    const complexOutput =
-        complex({inputs: {real: realPart, imag: imagPart}, backend});
+    const complexOutput = complex({inputs: {real, imag}, backend});
 
-    backend.disposeIntermediateTensorInfo(realPart);
-    backend.disposeIntermediateTensorInfo(imagPart);
+    backend.disposeIntermediateTensorInfo(real);
+    backend.disposeIntermediateTensorInfo(imag);
 
     // TODO(annxingyuan): CPU forwarding for complex inputs.
 
@@ -93,6 +81,7 @@ export function sub(args: {inputs: BinaryInputs, backend: MathBackendWebGL}):
     return out;
   }
 
+  const dtype = upcastType(a.dtype, b.dtype);
   let program: BinaryOpProgram|BinaryOpPackedProgram;
   if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
     program = new BinaryOpPackedProgram(SUB, a.shape, b.shape);
@@ -100,7 +89,7 @@ export function sub(args: {inputs: BinaryInputs, backend: MathBackendWebGL}):
     program = new BinaryOpProgram(SUB, a.shape, b.shape);
   }
 
-  return backend.runWebGLProgram(program, [a, b], a.dtype);
+  return backend.runWebGLProgram(program, [a, b], dtype);
 }
 
 export const subConfig: KernelConfig = {
