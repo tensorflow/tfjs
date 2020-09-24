@@ -70,6 +70,8 @@
   },
   "dependencies": {
     "@types/node-fetch": "^2.1.2",
+    "fast-crc32c": "^2.0.0",
+    "google-protobuf": "^3.9.2",
     "node-fetch": "~2.1.2"
   },
   "browser": {
