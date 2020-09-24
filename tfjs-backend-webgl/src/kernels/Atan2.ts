@@ -32,7 +32,8 @@ const ATAN2_PACKED = `
   return result;
 `;
 
-export const atan2KernelFunc = binaryKernelFunc(ATAN2, ATAN2_PACKED);
+export const atan2KernelFunc =
+    binaryKernelFunc({opSnippet: ATAN2, packedOpSnippet: ATAN2_PACKED});
 
 export const atan2Config: KernelConfig = {
   kernelName: Atan2,

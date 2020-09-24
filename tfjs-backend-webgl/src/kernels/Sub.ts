@@ -18,12 +18,12 @@
 
 import {KernelConfig, Sub} from '@tensorflow/tfjs-core';
 
-import {binaryKernelFunc2} from '../kernel_utils/kernel_funcs_utils';
+import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {subImplCPU as cpuSub} from '../kernel_utils/shared';
 
 const SUB = 'return a - b;';
 
-export const subKernelFunc = binaryKernelFunc2({
+export const subKernelFunc = binaryKernelFunc({
   opSnippet: SUB,
   packedOpSnippet: SUB,
   supportsComplex: true,

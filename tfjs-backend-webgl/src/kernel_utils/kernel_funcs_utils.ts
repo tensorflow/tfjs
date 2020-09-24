@@ -62,29 +62,7 @@ export function unaryKernelFunc(opSnippet: string): KernelFunc {
  *     result has the same dtype as the first input. This is mainly used in
  *     comparison kernels, such as Equal, Less, Greater, etc.
  */
-export function binaryKernelFunc(
-    opSnippet: string, packedOpSnippet?: string,
-    checkOutOfBoundsForPackedProgram?: boolean, dtype?: DataType): KernelFunc {
-  // TODO(jingjin): handle complex64.
-
-  return ({inputs, backend}) => {
-    const {a, b} = inputs as BinaryInputs;
-    const webglBackend = backend as MathBackendWebGL;
-    const shouldUsePackedProgram =
-        env().getBool('WEBGL_PACK_BINARY_OPERATIONS') &&
-        packedOpSnippet != null;
-    const program = shouldUsePackedProgram ?
-        new BinaryOpPackedProgram(
-            packedOpSnippet, a.shape, b.shape,
-            !!checkOutOfBoundsForPackedProgram) :
-        new BinaryOpProgram(opSnippet, a.shape, b.shape);
-    const $dtype = dtype || a.dtype;
-    const output = webglBackend.runWebGLProgram(program, [a, b], $dtype);
-    return output;
-  };
-}
-
-export function binaryKernelFunc2({
+export function binaryKernelFunc({
   opSnippet,
   packedOpSnippet = '',
   checkOutOfBounds = false,
@@ -100,7 +78,7 @@ export function binaryKernelFunc2({
   dtype?: DataType
 }): KernelFunc {
   return ({inputs, backend}) => {
-    const {a, b} = inputs;
+    const {a, b} = inputs as BinaryInputs;
     const webglBackend = backend as MathBackendWebGL;
 
     if (supportsComplex && a.dtype === 'complex64') {
