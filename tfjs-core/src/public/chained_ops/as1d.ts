@@ -25,8 +25,9 @@ declare module '../../tensor' {
   }
 }
 
-/** Converts a `tf.Tensor` to a `tf.Tensor1D`. */
-/** @doc {heading: 'Tensors', subheading: 'Classes'} */
+/** Converts a `tf.Tensor` to a `tf.Tensor1D`.
+ * @doc {heading: 'Tensors', subheading: 'Classes'}
+ */
 Tensor.prototype.as1D = function<T extends Tensor>(): T {
   this.throwIfDisposed();
   return reshape(this, [this.size]) as T;

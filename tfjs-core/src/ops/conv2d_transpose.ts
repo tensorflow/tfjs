@@ -39,8 +39,9 @@ import {op} from './operation';
  * @param dimRoundingMode The rounding mode used when computing output
  *    dimensions if pad is a number. If none is provided, it will not round
  *    and error if the output is of fractional size.
+ *
+ * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
-/** @doc {heading: 'Operations', subheading: 'Convolution'} */
 function conv2dTranspose_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, filter: Tensor4D|TensorLike,
     outputShape: [number, number, number, number]|[number, number, number],

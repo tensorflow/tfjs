@@ -183,8 +183,8 @@ export class GraphExecutor implements FunctionExecutor {
     this.checkOutputs(outputs);
     const inputNodes =
         names.map(name => this.graph.nodes[parseNodeName(name)[0]]);
-    const outputNodes =
-        outputs.map(name => this.graph.nodes[parseNodeName(name)[0]]);
+    const outputNodeNames = outputs.map(name => parseNodeName(name)[0]);
+    const outputNodes = outputNodeNames.map(name => this.graph.nodes[name]);
     const compilationKey = this.getCompilationKey(inputNodes, outputNodes);
     // Do nothing if the compiled graph cache contains the input.
     let orderedNodes = this.compiledMap.get(compilationKey);
@@ -218,13 +218,13 @@ export class GraphExecutor implements FunctionExecutor {
           }
           tensorsMap[node.name] = tensors;
           this.checkTensorForDisposal(
-              node.name, node, tensorsMap, context, tensorsToKeep, outputs,
-              intermediateTensorConsumerCount);
+              node.name, node, tensorsMap, context, tensorsToKeep,
+              outputNodeNames, intermediateTensorConsumerCount);
         }
       }
       // dispose the context for the root executor
       if (this.parent == null) {
-        context.dispose();
+        context.dispose(tensorsToKeep);
       }
       return outputs.map(name => getTensor(name, tensorsMap, context));
     });
@@ -333,22 +333,21 @@ export class GraphExecutor implements FunctionExecutor {
     const results = outputs.map(name => getTensor(name, tensorMap, context));
 
     // dispose all the intermediate tensors
-    const outputIds = new Set<number>(results.map(t => t.id));
-    const inputIds =
-        new Set<number>(Object.keys(inputs).map(name => inputs[name].id));
+    const outputIds = results.map(t => t.id);
+    const inputIds = Object.keys(inputs).map(name => inputs[name].id);
+    const keepIds =
+        new Set<number>([...outputIds, ...inputIds, ...this.weightIds]);
     Object.keys(tensorMap).forEach(key => {
       const tensorArray = tensorMap[key];
       tensorArray.forEach(tensor => {
-        if (tensor && !tensor.isDisposed && !outputIds.has(tensor.id) &&
-            !inputIds.has(tensor.id) &&
-            this.weightIds.indexOf(tensor.id) === -1) {
+        if (tensor && !tensor.isDisposed && !keepIds.has(tensor.id)) {
           tensor.dispose();
         }
       });
     });
     // dispose the context for the root executor
     if (this.parent == null) {
-      context.dispose();
+      context.dispose(keepIds);
     }
 
     return results;
@@ -378,8 +377,8 @@ export class GraphExecutor implements FunctionExecutor {
     const names = Object.keys(inputs);
     const inputNodes =
         names.map(name => this.graph.nodes[parseNodeName(name)[0]]);
-    const outputNodes =
-        outputNames.map(name => this.graph.nodes[parseNodeName(name)[0]]);
+    const outputNodeNames = outputNames.map(name => parseNodeName(name)[0]);
+    const outputNodes = outputNodeNames.map(name => this.graph.nodes[name]);
     const {usedNodes, missingInputs, dynamicNode, syncInputs} =
         getExecutionSubgraph(inputs, outputNodes, this.weightMap);
 
@@ -400,7 +399,7 @@ export class GraphExecutor implements FunctionExecutor {
     while (stack.length > 0) {
       const promises = this.processStack(
           inputNodes, stack, context, tensorsMap, added, tensorsToKeep,
-          outputNames, intermediateTensorConsumerCount, usedNodes);
+          outputNodeNames, intermediateTensorConsumerCount, usedNodes);
       await Promise.all(promises);
     }
     if (dynamicNode == null && !isFunctionExecution) {

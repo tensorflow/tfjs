@@ -72,16 +72,13 @@ export {exp} from './exp';
 export {expandDims} from './expand_dims';
 export {expm1} from './expm1';
 export {eye} from './eye';
-export {fft} from './fft';
 export {fill} from './fill';
 export {floor} from './floor';
 export {floorDiv} from './floorDiv';
 export {gather} from './gather';
 export {greater} from './greater';
 export {greaterEqual} from './greater_equal';
-export {ifft} from './ifft';
 export {imag} from './imag';
-export {irfft} from './irfft';
 export {isFinite} from './is_finite';
 export {isInf} from './is_inf';
 export {isNaN} from './is_nan';
@@ -144,7 +141,6 @@ export {reverse1d} from './reverse_1d';
 export {reverse2d} from './reverse_2d';
 export {reverse3d} from './reverse_3d';
 export {reverse4d} from './reverse_4d';
-export {rfft} from './rfft';
 export {round} from './round';
 export {rsqrt} from './rsqrt';
 export {scalar} from './scalar';
@@ -163,6 +159,10 @@ export {slice4d} from './slice4d';
 export {softmax} from './softmax';
 export {softplus} from './softplus';
 export {spaceToBatchND} from './space_to_batch_nd';
+export {fft} from './spectral/fft';
+export {ifft} from './spectral/ifft';
+export {irfft} from './spectral/irfft';
+export {rfft} from './spectral/rfft';
 export {split} from './split';
 export {sqrt} from './sqrt';
 export {square} from './square';
@@ -206,12 +206,12 @@ export * from './dropout';
 export * from './signal_ops_util';
 export * from './in_top_k';
 
-export {op} from './operation';
+export {op, OP_SCOPE_SUFFIX} from './operation';
 
-import {rfft} from './rfft';
-import {fft} from './fft';
-import {ifft} from './ifft';
-import {irfft} from './irfft';
+import {rfft} from './spectral/rfft';
+import {fft} from './spectral/fft';
+import {ifft} from './spectral/ifft';
+import {irfft} from './spectral/irfft';
 const spectral = {
   fft,
   ifft,
@@ -221,10 +221,10 @@ const spectral = {
 
 import * as fused from './fused_ops';
 
-import {hammingWindow} from './hamming_window';
-import {hannWindow} from './hann_window';
-import {frame} from './frame';
-import {stft} from './stft';
+import {hammingWindow} from './signal/hamming_window';
+import {hannWindow} from './signal/hann_window';
+import {frame} from './signal/frame';
+import {stft} from './signal/stft';
 const signal = {
   hammingWindow,
   hannWindow,
@@ -233,17 +233,17 @@ const signal = {
 };
 
 // Image Ops namespace
-import {cropAndResize} from './crop_and_resize';
-import {flipLeftRight} from './flip_left_right';
-import {rotateWithOffset} from './rotate_with_offset';
-import {nonMaxSuppression} from './non_max_suppression';
-import {nonMaxSuppressionAsync} from './non_max_suppression_async';
-import {nonMaxSuppressionWithScore} from './non_max_suppression_with_score';
-import {nonMaxSuppressionWithScoreAsync} from './non_max_suppression_with_score_async';
-import {nonMaxSuppressionPadded} from './non_max_suppression_padded';
-import {nonMaxSuppressionPaddedAsync} from './non_max_suppression_padded_async';
-import {resizeBilinear} from './resize_bilinear';
-import {resizeNearestNeighbor} from './resize_nearest_neighbor';
+import {cropAndResize} from './image/crop_and_resize';
+import {flipLeftRight} from './image/flip_left_right';
+import {rotateWithOffset} from './image/rotate_with_offset';
+import {nonMaxSuppression} from './image/non_max_suppression';
+import {nonMaxSuppressionAsync} from './image/non_max_suppression_async';
+import {nonMaxSuppressionWithScore} from './image/non_max_suppression_with_score';
+import {nonMaxSuppressionWithScoreAsync} from './image/non_max_suppression_with_score_async';
+import {nonMaxSuppressionPadded} from './image/non_max_suppression_padded';
+import {nonMaxSuppressionPaddedAsync} from './image/non_max_suppression_padded_async';
+import {resizeBilinear} from './image/resize_bilinear';
+import {resizeNearestNeighbor} from './image/resize_nearest_neighbor';
 const image = {
   flipLeftRight,
   resizeNearestNeighbor,
@@ -259,9 +259,9 @@ const image = {
 };
 
 // linalg namespace
-import {bandPart} from './band_part';
-import {gramSchmidt} from './gram_schmidt';
-import {qr} from './qr';
+import {bandPart} from './linalg/band_part';
+import {gramSchmidt} from './linalg/gram_schmidt';
+import {qr} from './linalg/qr';
 const linalg = {
   bandPart,
   gramSchmidt,
@@ -269,15 +269,15 @@ const linalg = {
 };
 
 // losses namespace;
-import {absoluteDifference} from './absolute_difference';
-import {computeWeightedLoss} from './compute_weighted_loss';
-import {cosineDistance} from './cosine_distance';
-import {hingeLoss} from './hinge_loss';
-import {huberLoss} from './huber_loss';
-import {logLoss} from './log_loss';
-import {meanSquaredError} from './mean_squared_error';
-import {sigmoidCrossEntropy} from './sigmoid_cross_entropy';
-import {softmaxCrossEntropy} from './softmax_cross_entropy';
+import {absoluteDifference} from './losses/absolute_difference';
+import {computeWeightedLoss} from './losses/compute_weighted_loss';
+import {cosineDistance} from './losses/cosine_distance';
+import {hingeLoss} from './losses/hinge_loss';
+import {huberLoss} from './losses/huber_loss';
+import {logLoss} from './losses/log_loss';
+import {meanSquaredError} from './losses/mean_squared_error';
+import {sigmoidCrossEntropy} from './losses/sigmoid_cross_entropy';
+import {softmaxCrossEntropy} from './losses/softmax_cross_entropy';
 const losses = {
   absoluteDifference,
   computeWeightedLoss,

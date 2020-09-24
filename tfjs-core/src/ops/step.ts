@@ -35,8 +35,9 @@ import {op} from './operation';
  * ```
  * @param x The input tensor.
  * @param alpha The gradient when input is negative.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function step_<T extends Tensor>(x: T|TensorLike, alpha = 0.0): T {
   const $x = convertToTensor(x, 'x', 'step');
 

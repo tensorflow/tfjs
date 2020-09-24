@@ -52,6 +52,7 @@ const TEST_FILTERS: TestFilter[] = [
       'complex',                         // Complex numbers not supported yet
     ]
   },
+  {include: 'depthToSpace'},
   {
     include: 'avgPool',
     excludes: [
@@ -191,6 +192,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {include: 'slice '},
+  {include: 'stridedSlice '},
   {include: 'rotate '},
   {include: 'flipLeftRight '},
   {include: 'square '},
@@ -224,7 +226,14 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'oneHot'},
   {include: 'split'},
   {include: 'pad ', excludes: ['complex', 'zerosLike']},
-  {include: 'clip', excludes: ['gradient']},
+  {
+    include: 'clip',
+    excludes: [
+      'gradient',
+      'propagates NaNs'  // clip delegates to XNNPACK which does not make
+                         // guarantees about behavior of nans.
+    ]
+  },
   {include: 'addN'},
   {include: 'nonMaxSuppression'},
   {include: 'argmax', excludes: ['gradient']},

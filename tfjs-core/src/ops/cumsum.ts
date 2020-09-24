@@ -48,8 +48,9 @@ import {transpose} from './transpose';
  *     along the specified axis.
  * @param reverse Whether to sum in the opposite direction. Optional.
  *     Defaults to false.
+ *
+ * @doc {heading: 'Operations', subheading: 'Scan'}
  */
-/** @doc {heading: 'Operations', subheading: 'Scan'} */
 function cumsum_<T extends Tensor>(
     x: Tensor|TensorLike, axis = 0, exclusive = false, reverse = false): T {
   const $x = convertToTensor(x, 'x', 'cumsum');

@@ -219,6 +219,7 @@ tfjs_cc_library(
         ":Conv2DBackpropInput",
         ":CropAndResize",
         ":Cumsum",
+        ":DepthToSpace",
         ":DepthwiseConv2dNative",
         ":Div",
         ":Equal",
@@ -260,6 +261,7 @@ tfjs_cc_library(
         ":Softmax",
         ":Square",
         ":SquaredDifference",
+        ":StridedSlice",
         ":Sub",
         ":Tile",
         ":Transpose",
@@ -416,6 +418,15 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "Cumsum",
     srcs = ["kernels/Cumsum.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "DepthToSpace",
+    srcs = ["kernels/DepthToSpace.cc"],
     deps = [
         ":backend",
         ":util",
@@ -903,6 +914,15 @@ tfjs_cc_library(
         ":backend",
         ":binary",
         ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "StridedSlice",
+    srcs = ["kernels/StridedSlice.cc"],
+    deps = [
+        ":backend",
         ":util",
     ],
 )

@@ -360,8 +360,9 @@ let customFetch = false;
  * @param path wasm file path or url
  * @param usePlatformFetch optional boolean to use platform fetch to download
  *     the wasm file, default to false.
+ *
+ * @doc {heading: 'Environment', namespace: 'wasm'}
  */
-/** @doc {heading: 'Environment', namespace: 'wasm'} */
 export function setWasmPath(path: string, usePlatformFetch = false): void {
   deprecationWarn(
       'setWasmPath has been deprecated in favor of setWasmPaths and' +
@@ -379,8 +380,7 @@ export function setWasmPath(path: string, usePlatformFetch = false): void {
  * Configures the locations of the WASM binaries.
  *
  * ```js
- * const customPrefix = null;
- * setWasmPaths(customPrefix, {
+ * setWasmPaths({
  *  'tfjs-backend-wasm.wasm': 'renamed.wasm',
  *  'tfjs-backend-wasm-simd.wasm': 'renamed-simd.wasm',
  *  'tfjs-backend-wasm-threaded-simd.wasm': 'renamed-threaded-simd.wasm'
@@ -398,8 +398,9 @@ export function setWasmPath(path: string, usePlatformFetch = false): void {
  *     WASM binaries have been renamed.
  * @param usePlatformFetch optional boolean to use platform fetch to download
  *     the wasm file, default to false.
+ *
+ * @doc {heading: 'Environment', namespace: 'wasm'}
  */
-/** @doc {heading: 'Environment', namespace: 'wasm'} */
 export function setWasmPaths(
     prefixOrFileMap: string|{[key in WasmBinaryName]?: string},
     usePlatformFetch = false): void {

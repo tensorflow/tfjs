@@ -22,7 +22,7 @@ describeWithFlags('operation', ALL_ENVS, () => {
     const f = () => 2;
     const opfn = op({'opName': f});
 
-    expect(opfn.name).toBe('opName');
+    expect(opfn.name).toBe('opName__op');
     expect(opfn()).toBe(2);
   });
 
@@ -30,7 +30,7 @@ describeWithFlags('operation', ALL_ENVS, () => {
     const f = () => 2;
     const opfn = op({'opName_': f});
 
-    expect(opfn.name).toBe('opName');
+    expect(opfn.name).toBe('opName__op');
     expect(opfn()).toBe(2);
   });
 

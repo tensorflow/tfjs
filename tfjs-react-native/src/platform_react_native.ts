@@ -72,8 +72,9 @@ function parseHeaders(rawHeaders: string) {
  * @param options A RequestDetails object.
  *    - __options.isBinary__ boolean indicating whether this request is for a
  *     binary file.
+ *
+ * @doc {heading: 'Platform helpers', subheading: 'http'}
  */
-/** @doc {heading: 'Platform helpers', subheading: 'http'} */
 export async function fetch(
     path: string, init?: RequestInit,
     options?: tf.io.RequestDetails): Promise<Response> {
@@ -240,6 +241,8 @@ function registerWebGLBackend() {
     }, PRIORITY);
 
     // Register all the webgl kernels on the rn-webgl backend
+    // TODO: Use tf.copyRegisteredKernels once synced to tfjs-core 2.5.0.
+    // tf.copyRegisteredKernels('webgl', 'rn-webgl');
     const kernels = tf.getKernelsForBackend('webgl');
     kernels.forEach(kernelConfig => {
       const newKernelConfig =

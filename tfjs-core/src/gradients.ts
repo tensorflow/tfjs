@@ -53,8 +53,9 @@ import * as util from './util';
  * ```
  *
  * @param f The function f(x), to compute gradient for.
+ *
+ * @doc {heading: 'Training', subheading: 'Gradients'}
  */
-/** @doc {heading: 'Training', subheading: 'Gradients'} */
 function grad(f: (x: Tensor) => Tensor): (
     x: TensorLike|Tensor, dy?: TensorLike|Tensor) => Tensor {
   util.assert(
@@ -104,8 +105,9 @@ function grad(f: (x: Tensor) => Tensor): (
  * ```
  *
  * @param f The function `f(x1, x2,...)` to compute gradients for.
+ *
+ * @doc {heading: 'Training', subheading: 'Gradients'}
  */
-/** @doc {heading: 'Training', subheading: 'Gradients'} */
 function grads(f: (...args: Tensor[]) => Tensor): (
     args: Array<Tensor|TensorLike>, dy?: Tensor|TensorLike) => Tensor[] {
   util.assert(
@@ -155,8 +157,9 @@ function grads(f: (...args: Tensor[]) => Tensor): (
  * console.log('grad');
  * grad.print();
  * ```
+ *
+ * @doc {heading: 'Training', subheading: 'Gradients'}
  */
-/** @doc {heading: 'Training', subheading: 'Gradients'} */
 function valueAndGrad<I extends Tensor, O extends Tensor>(f: (x: I) => O): (
     x: I, dy?: O) => {
   value: O;
@@ -206,8 +209,9 @@ function valueAndGrad<I extends Tensor, O extends Tensor>(f: (x: I) => O): (
  * console.log('db');
  * db.print();
  * ```
+ *
+ * @doc {heading: 'Training', subheading: 'Gradients'}
  */
-/** @doc {heading: 'Training', subheading: 'Gradients'} */
 function valueAndGrads<O extends Tensor>(f: (...args: Tensor[]) => O): (
     args: Tensor[], dy?: O) => {
   grads: Tensor[];
@@ -263,8 +267,9 @@ function valueAndGrads<O extends Tensor>(f: (...args: Tensor[]) => O): (
  *     If the `varList` argument is provided explicitly and contains a subset of
  *     non-trainable variables, this map in the return value will contain keys
  *     that map the names of the non-trainable variables to `null`.
+ *
+ * @doc {heading: 'Training', subheading: 'Gradients'}
  */
-/** @doc {heading: 'Training', subheading: 'Gradients'} */
 function variableGrads(f: () => Scalar, varList?: Variable[]):
     {value: Scalar, grads: NamedTensorMap} {
   util.assert(
@@ -362,8 +367,9 @@ function variableGrads(f: () => Scalar, varList?: Variable[]):
  * @param f The function to evaluate in forward mode, which should return
  *     `{value: Tensor, gradFunc: (dy, saved) => Tensor[]}`, where `gradFunc`
  *     returns the custom gradients of `f` with respect to its inputs.
+ *
+ * @doc {heading: 'Training', subheading: 'Gradients'}
  */
-/** @doc {heading: 'Training', subheading: 'Gradients'} */
 function customGrad<T extends Tensor>(f: CustomGradientFunc<T>):
     (...args: Tensor[]) => T {
   return ENGINE.customGrad(f);

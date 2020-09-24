@@ -36,8 +36,9 @@ import {reshape} from './reshape';
  * @param x The input tensor whose dimensions to be expanded.
  * @param axis The dimension index at which to insert shape of `1`. Defaults
  *     to 0 (the first dimension).
+ *
+ * @doc {heading: 'Tensors', subheading: 'Transformations'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Transformations'} */
 function expandDims_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
   const parseAs: DataType = null;
   const $x = convertToTensor(x, 'x', 'expandDims', parseAs);

@@ -15,18 +15,28 @@
  * =============================================================================
  */
 
-// Required side effectful code for tfjs-core (in any build)
+// Required side effectful code for tfjs-core
 
-// Engine is the global singleton that needs to be initialized before the rest
-// of the app.
-import './engine';
+// Set up Engine and ENV
+import {getOrMakeEngine} from './engine';
+getOrMakeEngine();
+
 // Register backend-agnostic flags.
 import './flags';
 // Register platforms
 import './platforms/platform_browser';
 import './platforms/platform_node';
 
-import * as ops from './ops/ops';
-import {setOpHandler} from './tensor';
-
-setOpHandler(ops);
+// Set up OpHandler
+import {buffer} from './ops/buffer';
+import {cast} from './ops/cast';
+import {clone} from './ops/clone';
+import {print} from './ops/print';
+import {OpHandler, setOpHandler} from './tensor';
+const opHandler: OpHandler = {
+  buffer,
+  cast,
+  clone,
+  print
+};
+setOpHandler(opHandler);

@@ -39,8 +39,9 @@ import {sub} from './sub';
  * @param keepDims If true, the moments have the same dimensionality as the
  *     input.
  * @return An object with two keys: `mean` and `variance`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Normalization'}
  */
-/** @doc {heading: 'Operations', subheading: 'Normalization'} */
 function moments_(
     x: Tensor|TensorLike, axis: number|number[] = null,
     keepDims = false): {mean: Tensor, variance: Tensor} {

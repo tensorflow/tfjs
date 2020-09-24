@@ -17,16 +17,36 @@
 
 const karmaTypescriptConfig = {
   tsconfig: 'tsconfig.json',
-  coverageOptions: {instrumentation: false}
+  coverageOptions: {instrumentation: false},
+  bundlerOptions: {
+    acornOptions: {ecmaVersion: 8},
+    transforms: [
+      require('karma-typescript-es6-transform')({
+        presets: [
+          // ensure we get es5 by adding IE 11 as a target
+          ['@babel/env', {targets: {browsers: ['defaults', 'IE 11']}}]
+        ]
+      }),
+    ]
+  }
 };
 
 const devConfig = {
   frameworks: ['jasmine', 'karma-typescript'],
   files: [
+    {pattern: './node_modules/@babel/polyfill/dist/polyfill.js'},
     'integration_tests/setup_test.ts',
     {pattern: 'integration_tests/**/*.ts'},
     {
       pattern: 'integration_tests/*_data/**/*',
+      watched: true,
+      included: false,
+      served: true,
+      nocache: true
+    },
+    // Serve program bundles as files
+    {
+      pattern: 'custom_bundle/blazeface/dist/**/*',
       watched: true,
       included: false,
       served: true,

@@ -34,8 +34,9 @@ import {op} from './operation';
  * ```
  *
  * @param x The tensor of required shape.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function zerosLike_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'zerosLike');
   const inputs: ZerosLikeInputs = {x: $x};

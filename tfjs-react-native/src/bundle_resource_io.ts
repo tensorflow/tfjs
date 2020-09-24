@@ -166,8 +166,9 @@ class BundleResourceHandler implements io.IOHandler {
  * app including how to configure `metro` to bundle `.bin` files.
  *
  * @returns An instance of `IOHandler`
+ *
+ * @doc {heading: 'Models', subheading: 'IOHandlers'}
  */
-/** @doc {heading: 'Models', subheading: 'IOHandlers'} */
 export function bundleResourceIO(
     modelJson: io.ModelJSON, modelWeightsId: number): io.IOHandler {
   if (typeof modelJson !== 'object') {

@@ -24,10 +24,15 @@
 import * as argparse from 'argparse';
 import * as chalk from 'chalk';
 import * as fs from 'fs';
+import * as path from 'path';
+import * as mkdirp from 'mkdirp';
 
-import {getCustomModuleString} from './custom_module';
+import {OP_SCOPE_SUFFIX} from '@tensorflow/tfjs-core';
+
+import {getCustomModuleString, getCustomConverterOpsModule} from './custom_module';
 import {CustomTFJSBundleConfig, SupportedBackends} from './types';
 import {esmModuleProvider} from './esm_module_provider';
+import {getOps} from './model_parser';
 
 const DEFAULT_CUSTOM_BUNDLE_ARGS: Partial<CustomTFJSBundleConfig> = {
   entries: [],
@@ -75,9 +80,10 @@ function validateArgs(): CustomTFJSBundleConfig {
     bail('Error: config.entries not yet supported');
   }
 
-  if (finalConfig.models.length !== 0) {
-    bail('Error: config.models not yet supported');
-  }
+  // if (finalConfig.models.length !== 0) {
+  // TODO validate that all these paths exist.
+  // bail('Error: config.models not yet supported');
+  // }
 
   for (const requestedBackend of finalConfig.backends) {
     if (requestedBackend !== SupportedBackends.cpu &&
@@ -95,20 +101,69 @@ function getKernelNamesForConfig(config: CustomTFJSBundleConfig) {
   // (and kernels used by the converter itself) Currently we only support
   // directly listing kernels. remember that this also needs to handle
   // kernels used by gradients if forwardModeOnly is false.
-  return config.kernels;
+
+  // Ops in core that are implemented as custom ops may appear in tf.profile
+  // they will have __op as a suffix. These do not have corresponding backend
+  // kernels so we need to filter them out.
+  function isNotCustomOp(kernelName: string) {
+    // opSuffix value is defined in tfjs-core/src/operation.ts
+    // duplicating it here to avoid an export.
+    return !kernelName.endsWith(OP_SCOPE_SUFFIX);
+  }
+
+  return config.kernels.filter(isNotCustomOp);
 }
+
+function getOpsForConfig(config: CustomTFJSBundleConfig) {
+  // This will return a list of ops used by the model.json(s) passed in.
+  const results: Set<string> = new Set();
+  for (const modelJsonPath of config.models) {
+    let modelJson;
+    try {
+      modelJson = JSON.parse(fs.readFileSync(modelJsonPath, 'utf-8'));
+    } catch (e) {
+      console.log(`Error loading JSON file ${modelJsonPath}`);
+      console.log(e);
+    }
+
+    const ops = getOps(modelJson);
+    ops.forEach((op: string) => results.add(op));
+  }
+  return Array.from(results);
+}
+
 function produceCustomTFJSModule(
     kernels: string[], backends: string[], forwardModeOnly: boolean,
-    outputPath: string) {
-  const moduleStr = getCustomModuleString(
+    converterOps: string[], outputPath: string) {
+  const moduleStrs = getCustomModuleString(
       kernels, backends, forwardModeOnly, esmModuleProvider);
 
+  mkdirp.sync(outputPath);
   console.log(`Writing custom tfjs module to ${outputPath}`);
-  fs.writeFileSync(outputPath, moduleStr);
+
+  const customTfjsFileName = 'custom_tfjs.js';
+  const customTfjsCoreFileName = 'custom_tfjs_core.js';
+
+  // Write a custom module for @tensorflow/tfjs and @tensorflow/tfjs-core
+  fs.writeFileSync(
+      path.join(outputPath, customTfjsCoreFileName), moduleStrs.core);
+  fs.writeFileSync(path.join(outputPath, customTfjsFileName), moduleStrs.tfjs);
+
+  // Write a custom module tfjs-core ops used by converter executors
+  if (converterOps.length > 0) {
+    const converterOpsModule =
+        getCustomConverterOpsModule(converterOps, esmModuleProvider);
+
+    const customConverterOpsFileName = 'custom_ops_for_converter.js';
+
+    fs.writeFileSync(
+        path.join(outputPath, customConverterOpsFileName), converterOpsModule);
+  }
 }
 
 const customConfig = validateArgs();
 const kernelsToInclude = getKernelNamesForConfig(customConfig);
+const converterOps = getOpsForConfig(customConfig);
 produceCustomTFJSModule(
     kernelsToInclude, customConfig.backends, customConfig.forwardModeOnly,
-    customConfig.outputPath);
+    converterOps, customConfig.outputPath);

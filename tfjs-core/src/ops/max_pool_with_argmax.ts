@@ -55,9 +55,9 @@ import {op} from './operation';
  *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
  * @param includeBatchIndex Defaults to False. Whether to include batch
  *    dimension in flattened index of argmax.
+ *
+ * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
-/** @doc {heading: 'Operations', subheading: 'Convolution'} */
-/** @doc {heading: 'Operations', subheading: 'Convolution'} */
 function maxPoolWithArgmax_<T extends Tensor4D>(
     x: T|TensorLike, filterSize: [number, number]|number,
     strides: [number, number]|number, pad: 'valid'|'same'|number,

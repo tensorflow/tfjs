@@ -462,8 +462,9 @@ const LAYERS_MODEL_FORMAT_NAME = 'layers-model';
  *
  * See also:
  *   `tf.Sequential`, `tf.loadLayersModel`.
+ *
+ * @doc {heading: 'Models', subheading: 'Classes'}
  */
-/** @doc {heading: 'Models', subheading: 'Classes'} */
 export class LayersModel extends Container implements tfc.InferenceModel {
   // The class name is 'Model' rather than 'LayersModel' for backwards
   // compatibility since this class name shows up in the serialization format.
@@ -545,8 +546,9 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    * @param printFn Custom print function. Can be used to replace the default
    *   `console.log`. For example, you can use `x => {}` to mute the printed
    *   messages in the console.
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Models', subheading: 'Classes'} */
   summary(
       lineLength?: number, positions?: number[],
       printFn:
@@ -568,8 +570,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    *
    * @param args a `ModelCompileArgs` specifying the loss, optimizer, and
    * metrics to be used for fitting and evaluating this model.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
   compile(args: ModelCompileArgs): void {
@@ -826,8 +827,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    *   metrics) or `Array` of `Scalar`s (if the model has multiple outputs
    *   and/or metrics). The attribute `model.metricsNames`
    *   will give you the display labels for the scalar outputs.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
   evaluate(
@@ -875,8 +875,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    *   first is the input feature(s) and the second is the output target(s).
    * @param args A configuration object for the dataset-based evaluation.
    * @returns Loss and metric values as an Array of `Scalar` objects.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
   async evaluateDataset(dataset: Dataset<{}>, args?: ModelEvaluateDatasetArgs):
@@ -1093,8 +1092,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    * @exception ValueError In case of mismatch between the provided input data
    *   and the model's expectations, or in case a stateful model receives a
    *   number of samples that is not a multiple of the batch size.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
   predict(x: Tensor|Tensor[], args: ModelPredictArgs = {}): Tensor|Tensor[] {
@@ -1126,8 +1124,9 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    * @param x: Input samples, as a Tensor (for models with exactly one
    *   input) or an array of Tensors (for models with more than one input).
    * @return Tensor(s) of predictions
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Models', subheading: 'Classes'} */
   predictOnBatch(x: Tensor|Tensor[]): Tensor|Tensor[] {
     checkInputData(x, this.inputNames, this.feedInputShapes, true);
     // TODO(cais): Take care of the learning_phase boolean flag.
@@ -1452,8 +1451,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    *
    * @exception ValueError In case of mismatch between the provided input
    * data and what the model expects.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
   async fit(
@@ -1483,8 +1481,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    *
    * @return A `History` instance. Its `history` attribute contains all
    *   information collected during training.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
   async fitDataset<T>(dataset: Dataset<T>, args: ModelFitDatasetArgs<T>):
@@ -1512,8 +1509,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    *   `tf.Tensor`s. It should be consistent with `x`.
    * @returns Training loss or losses (in case the model has
    *   multiple outputs), along with metrics (if any), as numbers.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
   async trainOnBatch(
@@ -1804,8 +1800,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
    * @returns A `Promise` of `SaveResult`, which summarizes the result of
    * the saving, such as byte sizes of the saved artifacts for the model's
    *   topology and weight values.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true}
    */
   async save(handlerOrURL: io.IOHandler|string, config?: io.SaveConfig):
@@ -1893,3 +1888,15 @@ export class LayersModel extends Container implements tfc.InferenceModel {
   }
 }
 serialization.registerClass(LayersModel);
+
+/**
+ * A `tf.Functional` is an alias to `tf.LayersModel`.
+ *
+ * See also:
+ *   `tf.LayersModel`, `tf.Sequential`, `tf.loadLayersModel`.
+ */
+/** @doc {heading: 'Models', subheading: 'Classes'} */
+export class Functional extends LayersModel {
+  static className = 'Functional';
+}
+serialization.registerClass(Functional);

@@ -57,9 +57,9 @@ import {reshape} from './reshape';
  *     If `dilations` is a single number, then
  *     `dilationDepth == dilationHeight == dilationWidth`. If it is greater
  *     than 1, then all values of `strides` must be 1.
+ *
+ * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
-
-/** @doc {heading: 'Operations', subheading: 'Convolution'} */
 function conv3d_<T extends Tensor4D|Tensor5D>(
     x: T|TensorLike, filter: Tensor5D|TensorLike,
     strides: [number, number, number]|number, pad: 'valid'|'same',

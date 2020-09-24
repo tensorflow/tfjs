@@ -348,14 +348,14 @@ export class RNN extends Layer {
   public readonly unroll: boolean;
 
   public stateSpec: InputSpec[];
-  private states_: Tensor[];
+  protected states_: Tensor[];
 
   // NOTE(cais): For stateful RNNs, the old states cannot be disposed right
   // away when new states are set, because the old states may need to be used
   // later for backpropagation through time (BPTT) and other purposes. So we
   // keep them here for final disposal when the state is reset completely
   // (i.e., through no-arg call to `resetStates()`).
-  private keptStates: Tensor[][];
+  protected keptStates: Tensor[][];
 
   private numConstants: number;
 
@@ -499,8 +499,8 @@ export class RNN extends Layer {
     inputShape = inputShape as Shape;
 
     const batchSize: number = this.stateful ? inputShape[0] : null;
-    const inputDim = inputShape[inputShape.length - 1];
-    this.inputSpec[0] = new InputSpec({shape: [batchSize, null, inputDim]});
+    const inputDim = inputShape.slice(2);
+    this.inputSpec[0] = new InputSpec({shape: [batchSize, null, ...inputDim]});
 
     // Allow cell (if RNNCell Layer) to build before we set or validate
     // stateSpec.
@@ -839,13 +839,14 @@ export class RNN extends Layer {
 }
 serialization.registerClass(RNN);
 
-/**
- * An RNNCell layer.
- */
 // Porting Note: This is a common parent class for RNN cells. There is no
 // equivalent of this in PyKeras. Having a common parent class forgoes the
 //  need for `has_attr(cell, ...)` checks or its TypeScript equivalent.
-/** @doc {heading: 'Layers', subheading: 'Classes'} */
+/**
+ * An RNNCell layer.
+ *
+ * @doc {heading: 'Layers', subheading: 'Classes'}
+ */
 export abstract class RNNCell extends Layer {
   /**
    * Size(s) of the states.
@@ -1042,16 +1043,19 @@ export class SimpleRNNCell extends RNNCell {
       const training = kwargs['training'] == null ? false : kwargs['training'];
 
       if (0 < this.dropout && this.dropout < 1 && this.dropoutMask == null) {
-        this.dropoutMask = generateDropoutMask(
-                               () => tfc.onesLike(inputs as Tensor),
-                               this.dropout, training) as Tensor;
+        this.dropoutMask = generateDropoutMask({
+                             ones: () => tfc.onesLike(inputs as Tensor),
+                             rate: this.dropout,
+                             training
+                           }) as Tensor;
       }
       if (0 < this.recurrentDropout && this.recurrentDropout < 1 &&
           this.recurrentDropoutMask == null) {
-        this.recurrentDropoutMask =
-            generateDropoutMask(
-                () => tfc.onesLike(prevOutput), this.recurrentDropout,
-                training) as Tensor;
+        this.recurrentDropoutMask = generateDropoutMask({
+                                      ones: () => tfc.onesLike(prevOutput),
+                                      rate: this.recurrentDropout,
+                                      training
+                                    }) as Tensor;
       }
       let h: Tensor;
       const dpMask: Tensor = this.dropoutMask as Tensor;
@@ -1466,16 +1470,21 @@ export class GRUCell extends RNNCell {
       // implementation 2, regardless of the actual value of
       // config.implementation.
       if (0 < this.dropout && this.dropout < 1 && this.dropoutMask == null) {
-        this.dropoutMask = generateDropoutMask(
-                               () => tfc.onesLike(inputs as Tensor),
-                               this.dropout, training, 3) as Tensor[];
+        this.dropoutMask = generateDropoutMask({
+                             ones: () => tfc.onesLike(inputs as Tensor),
+                             rate: this.dropout,
+                             training,
+                             count: 3
+                           }) as Tensor[];
       }
       if (0 < this.recurrentDropout && this.recurrentDropout < 1 &&
           this.recurrentDropoutMask == null) {
-        this.recurrentDropoutMask =
-            generateDropoutMask(
-                () => tfc.onesLike(hTMinus1), this.recurrentDropout, training,
-                3) as Tensor[];
+        this.recurrentDropoutMask = generateDropoutMask({
+                                      ones: () => tfc.onesLike(hTMinus1),
+                                      rate: this.recurrentDropout,
+                                      training,
+                                      count: 3
+                                    }) as Tensor[];
       }
       const dpMask = this.dropoutMask as [Tensor, Tensor, Tensor];
       const recDpMask = this.recurrentDropoutMask as [Tensor, Tensor, Tensor];
@@ -1881,16 +1890,21 @@ export class LSTMCell extends RNNCell {
       const cTMinus1 = inputs[2];  // Previous carry state.
       inputs = inputs[0];
       if (0 < this.dropout && this.dropout < 1 && this.dropoutMask == null) {
-        this.dropoutMask = generateDropoutMask(
-                               () => tfc.onesLike(inputs as Tensor),
-                               this.dropout, training, 4) as Tensor[];
+        this.dropoutMask = generateDropoutMask({
+                             ones: () => tfc.onesLike(inputs as Tensor),
+                             rate: this.dropout,
+                             training,
+                             count: 4
+                           }) as Tensor[];
       }
       if (0 < this.recurrentDropout && this.recurrentDropout < 1 &&
           this.recurrentDropoutMask == null) {
-        this.recurrentDropoutMask =
-            generateDropoutMask(
-                () => tfc.onesLike(hTMinus1), this.recurrentDropout, training,
-                4) as Tensor[];
+        this.recurrentDropoutMask = generateDropoutMask({
+                                      ones: () => tfc.onesLike(hTMinus1),
+                                      rate: this.recurrentDropout,
+                                      training,
+                                      count: 4
+                                    }) as Tensor[];
       }
       const dpMask = this.dropoutMask as [Tensor, Tensor, Tensor, Tensor];
       const recDpMask =
@@ -2315,19 +2329,24 @@ export class StackedRNNCells extends RNNCell {
 }
 serialization.registerClass(StackedRNNCells);
 
-function generateDropoutMask(
-    ones: () => Tensor, rate: number, training: boolean = null,
-    count = 1): Tensor|Tensor[] {
-  function droppedInputs(): Tensor {
-    return K.dropout(ones(), rate);
+export function generateDropoutMask(args: {
+  ones: () => tfc.Tensor,
+  rate: number,
+  training?: boolean,
+  count?: number,
+}): tfc.Tensor|tfc.Tensor[] {
+  const {ones, rate, training = false, count = 1} = args;
+
+  const droppedInputs = () => K.dropout(ones(), rate);
+
+  const createMask = () => K.inTrainPhase(droppedInputs, ones, training);
+
+  // just in case count is provided with null or undefined
+  if (!count || count <= 1) {
+    return tfc.keep(createMask().clone());
   }
-  if (count > 1) {
-    const mask: Tensor[] = [];
-    for (let i = 0; i < count; i++) {
-      mask.push(K.inTrainPhase(droppedInputs, ones, training));
-    }
-    return mask.map(m => tfc.keep(m.clone()));
-  } else {
-    return tfc.keep(K.inTrainPhase(droppedInputs, ones, training).clone());
-  }
+
+  const masks = Array(count).fill(undefined).map(createMask);
+
+  return masks.map(m => tfc.keep(m.clone()));
 }

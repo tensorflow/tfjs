@@ -61,4 +61,54 @@ describe('ESM Module Provider', () => {
 
     expect(res.gradConfigId).toBe('maxGradConfig');
   });
+
+  it('importGradientConfigStr Max', () => {
+    const res = esmModuleProvider.importGradientConfigStr('Max');
+    expect(res.importStatement).toContain('import {maxGradConfig}');
+    expect(res.importStatement)
+        .toContain(`from '@tensorflow/tfjs-core/dist/gradients/Max_grad'`);
+
+    expect(res.gradConfigId).toBe('maxGradConfig');
+  });
+
+  it('importOpForConverterStr add', () => {
+    const res = esmModuleProvider.importOpForConverterStr('add');
+    expect(res).toBe(`export {add} from '@tensorflow/tfjs-core/dist/ops/add';`);
+  });
+
+  it('importOpForConverterStr stridedSlice', () => {
+    const res = esmModuleProvider.importOpForConverterStr('stridedSlice');
+    expect(res).toBe(
+        // tslint:disable-next-line: max-line-length
+        `export {stridedSlice} from '@tensorflow/tfjs-core/dist/ops/strided_slice';`);
+  });
+
+  it('importNamespacedOpsForConverterStr image.resizeBilinear', () => {
+    const res = esmModuleProvider.importNamespacedOpsForConverterStr(
+        'image', ['resizeBilinear']);
+    expect(res).toBe(
+        // tslint:disable-next-line: max-line-length
+        `import {resizeBilinear as resizeBilinear_image} from '@tensorflow/tfjs-core/dist/ops/image/resize_bilinear';
+export const image = {
+\tresizeBilinear: resizeBilinear_image,
+};`);
+  });
+
+  it('importNamespacedOpsForConverterStr two ops in namespace', () => {
+    const res = esmModuleProvider.importNamespacedOpsForConverterStr(
+        'image', ['resizeBilinear', 'resizeNearestNeighbor']);
+    expect(res).toBe(
+        // tslint:disable-next-line: max-line-length
+        `import {resizeBilinear as resizeBilinear_image} from '@tensorflow/tfjs-core/dist/ops/image/resize_bilinear';
+import {resizeNearestNeighbor as resizeNearestNeighbor_image} from '@tensorflow/tfjs-core/dist/ops/image/resize_nearest_neighbor';
+export const image = {
+\tresizeBilinear: resizeBilinear_image,
+\tresizeNearestNeighbor: resizeNearestNeighbor_image,
+};`);
+  });
+
+  it('pathToKernel2OpMapping', () => {
+    const res = esmModuleProvider.kernelToOpsMapPath();
+    expect(res).toContain(`tfjs-converter/metadata/kernel2op.json`);
+  });
 });

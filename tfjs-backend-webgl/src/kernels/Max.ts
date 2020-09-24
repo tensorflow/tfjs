@@ -89,7 +89,7 @@ export const maxConfig: KernelConfig = {
     }
 
     if (maxInputIsTransposed) {
-      webglBackend.disposeData(maxInput.dataId);
+      webglBackend.disposeIntermediateTensorInfo(maxInput);
     }
 
     return out;

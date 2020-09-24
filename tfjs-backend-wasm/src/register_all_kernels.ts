@@ -34,7 +34,8 @@ import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
 import {cosConfig} from './kernels/Cos';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {cumsumConfig} from './kernels/Cumsum';
-import {depthwiseConv2DNativeConfig} from './kernels/DepthwiseConv2dNative';
+import {depthToSpaceConfig} from './kernels/DepthToSpace';
+import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {divConfig} from './kernels/Div';
 import {equalConfig} from './kernels/Equal';
 import {expConfig} from './kernels/Exp';
@@ -86,6 +87,7 @@ import {splitVConfig} from './kernels/Split';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {stridedSliceConfig} from './kernels/StridedSlice';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanhConfig} from './kernels/Tanh';
@@ -110,7 +112,8 @@ const kernelConfigs: KernelConfig[] = [
   cosConfig,
   cropAndResizeConfig,
   cumsumConfig,
-  depthwiseConv2DNativeConfig,
+  depthToSpaceConfig,
+  depthwiseConv2dNativeConfig,
   divConfig,
   equalConfig,
   expConfig,
@@ -163,6 +166,7 @@ const kernelConfigs: KernelConfig[] = [
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
+  stridedSliceConfig,
   subConfig,
   sumConfig,
   tanhConfig,

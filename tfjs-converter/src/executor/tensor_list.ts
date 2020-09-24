@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {concat, DataType, keep, scalar, slice, stack, Tensor, tensor, tidy, unstack} from '@tensorflow/tfjs-core';
+import {concat, DataType, keep, reshape, scalar, slice, stack, Tensor, tensor, tidy, unstack} from '@tensorflow/tfjs-core';
 
 import {assertShapesMatchAllowUndefinedSize} from './tensor_utils';
 
@@ -80,8 +80,12 @@ export class TensorList {
   /**
    * Dispose the tensors and idTensor and clear the tensor list.
    */
-  clearAndClose() {
-    this.tensors.forEach(tensor => tensor.dispose());
+  clearAndClose(keepIds?: Set<number>) {
+    this.tensors.forEach(tensor => {
+      if (keepIds == null || !keepIds.has(tensor.id)) {
+        tensor.dispose();
+      }
+    });
     this.tensors.length = 0;
     this.idTensor.dispose();
   }
@@ -114,7 +118,7 @@ export class TensorList {
         elementShape, this.elementShape, 'TensorList shape mismatch: ');
     return tidy(() => {
       const reshapedTensors =
-          this.tensors.map(tensor => tensor.reshape(elementShape));
+          this.tensors.map(tensor => reshape(tensor, elementShape));
       return stack(reshapedTensors, 0);
     });
   }
@@ -137,7 +141,7 @@ export class TensorList {
     const tensor = this.tensors.pop();
     assertShapesMatchAllowUndefinedSize(
         tensor.shape, elementShape, 'TensorList shape mismatch: ');
-    return tensor.reshape(elementShape);
+    return reshape(tensor, elementShape);
   }
 
   /**
@@ -254,7 +258,7 @@ export class TensorList {
     }
 
     return tidy(() => {
-      const tensors = indices.map(i => this.tensors[i].reshape(elementShape));
+      const tensors = indices.map(i => reshape(this.tensors[i], elementShape));
       return stack(tensors, 0);
     });
   }
@@ -278,7 +282,7 @@ export class TensorList {
     }
 
     return tidy(() => {
-      const tensors = this.tensors.map(t => t.reshape(elementShape));
+      const tensors = this.tensors.map(t => reshape(t, elementShape));
       return concat(tensors, 0);
     });
   }
@@ -304,7 +308,7 @@ export function fromTensor(
   assertShapesMatchAllowUndefinedSize(
       outputShape, elementShape, 'TensorList shape mismatch: ');
 
-  const tensorList: Tensor[] = tensor.unstack();
+  const tensorList: Tensor[] = unstack(tensor);
   return new TensorList(tensorList, elementShape, dtype);
 }
 
@@ -373,12 +377,12 @@ export function split(
   const elementPerRow = totalLength === 0 ? 0 : tensor.size / totalLength;
   const tensors: Tensor[] = tidy(() => {
     const tensors = [];
-    tensor = tensor.reshape([1, totalLength, elementPerRow]);
+    tensor = reshape(tensor, [1, totalLength, elementPerRow]);
     for (let i = 0; i < length.length; ++i) {
       const previousLength = (i === 0) ? 0 : cumulativeLengths[i - 1];
       const indices = [0, previousLength, 0];
       const sizes = [1, length[i], elementPerRow];
-      tensors[i] = slice(tensor, indices, sizes).reshape(elementShape);
+      tensors[i] = reshape(slice(tensor, indices, sizes), elementShape);
     }
     tensor.dispose();
     return tensors;

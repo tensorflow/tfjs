@@ -14,7 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as tfc from '@tensorflow/tfjs-core';
+import {scalar} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import * as basic_math from '../op_list/basic_math';
@@ -25,7 +27,7 @@ import {createNumberAttr, createNumericArrayAttrFromIndex, createTensorAttr, val
 
 describe('basic math', () => {
   let node: Node;
-  const input1 = [tfc.scalar(1)];
+  const input1 = [scalar(1)];
   const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
@@ -47,9 +49,9 @@ describe('basic math', () => {
      'Sinh', 'Sqrt', 'Square', 'Tanh', 'Tan', 'Sign', 'Round', 'Expm1', 'Log1p',
      'Reciprocal', 'Softplus', 'Asinh', 'Acosh', 'Atanh', 'Erf']
         .forEach(op => {
-          it('should call tfc.' + op, () => {
+          it('should call tfOps.' + op, () => {
             const spy =
-                spyOn(tfc, op.charAt(0).toLowerCase() + op.slice(1) as 'abs');
+                spyOn(tfOps, op.charAt(0).toLowerCase() + op.slice(1) as 'abs');
             node.op = op;
             executeOp(node, {input1}, context);
 
@@ -62,15 +64,15 @@ describe('basic math', () => {
           });
         });
     describe('Relu6', () => {
-      it('should call tfc.clipByValue', () => {
-        spyOn(tfc, 'clipByValue');
+      it('should call tfOps.clipByValue', () => {
+        spyOn(tfOps, 'clipByValue');
         node.op = 'Relu6';
         node.attrParams['clipValueMax'] = createNumberAttr(6);
         node.attrParams['clipValueMin'] = createNumberAttr(0);
 
         executeOp(node, {input1}, context);
 
-        expect(tfc.clipByValue).toHaveBeenCalledWith(input1[0], 0, 6);
+        expect(tfOps.clipByValue).toHaveBeenCalledWith(input1[0], 0, 6);
       });
       it('should match op def', () => {
         node.op = 'Relu6';
@@ -81,15 +83,15 @@ describe('basic math', () => {
       });
     });
     describe('Prod', () => {
-      it('should call tfc.prod', () => {
-        spyOn(tfc, 'prod');
+      it('should call tfOps.prod', () => {
+        spyOn(tfOps, 'prod');
         node.op = 'Prod';
         node.inputParams['axes'] = createNumericArrayAttrFromIndex(1);
         node.inputNames = ['input1', 'input2'];
-        const input2 = [tfc.tensor1d([2])];
+        const input2 = [tfOps.tensor1d([2])];
         executeOp(node, {input1, input2}, context);
 
-        expect(tfc.prod).toHaveBeenCalledWith(input1[0], [2]);
+        expect(tfOps.prod).toHaveBeenCalledWith(input1[0], [2]);
       });
       it('should match op def', () => {
         node.op = 'Prod';
@@ -99,13 +101,13 @@ describe('basic math', () => {
       });
     });
     describe('Rsqrt', () => {
-      it('should call tfc.rsqrt', () => {
-        const input1 = [tfc.scalar(1)];
+      it('should call tfOps.rsqrt', () => {
+        const input1 = [tfOps.scalar(1)];
         node.op = 'Rsqrt';
-        spyOn(tfc, 'rsqrt').and.returnValue(input1);
+        spyOn(tfOps, 'rsqrt').and.returnValue(input1);
         executeOp(node, {input1}, context);
 
-        expect(tfc.rsqrt).toHaveBeenCalledWith(input1[0]);
+        expect(tfOps.rsqrt).toHaveBeenCalledWith(input1[0]);
       });
       it('should match op def', () => {
         node.op = 'Rsqrt';
@@ -114,14 +116,14 @@ describe('basic math', () => {
       });
     });
     describe('LeakyRelu', () => {
-      it('should call tfc.leakyRelu', () => {
-        spyOn(tfc, 'leakyRelu');
+      it('should call tfOps.leakyRelu', () => {
+        spyOn(tfOps, 'leakyRelu');
         node.op = 'LeakyRelu';
         node.attrParams['alpha'] = createNumberAttr(1);
         node.inputNames = ['input1'];
         executeOp(node, {input1}, context);
 
-        expect(tfc.leakyRelu).toHaveBeenCalledWith(input1[0], 1);
+        expect(tfOps.leakyRelu).toHaveBeenCalledWith(input1[0], 1);
       });
       it('should match op def', () => {
         node.op = 'LeakyRelu';
@@ -130,16 +132,16 @@ describe('basic math', () => {
       });
     });
     describe('Prelu', () => {
-      it('should call tfc.Prelu', () => {
-        spyOn(tfc, 'prelu');
+      it('should call tfOps.Prelu', () => {
+        spyOn(tfOps, 'prelu');
         node.op = 'Prelu';
         node.inputParams['x'] = createTensorAttr(0);
         node.inputParams['alpha'] = createTensorAttr(1);
         node.inputNames = ['input1', 'input2'];
-        const input2 = [tfc.scalar(1)];
+        const input2 = [tfOps.scalar(1)];
         executeOp(node, {input1, input2}, context);
 
-        expect(tfc.prelu).toHaveBeenCalledWith(input1[0], input2[0]);
+        expect(tfOps.prelu).toHaveBeenCalledWith(input1[0], input2[0]);
       });
       it('should match op def', () => {
         node.op = 'Prelu';
@@ -149,15 +151,15 @@ describe('basic math', () => {
       });
     });
     describe('Atan2', () => {
-      it('should call tfc.atan2', () => {
-        spyOn(tfc, 'atan2');
+      it('should call tfOps.atan2', () => {
+        spyOn(tfOps, 'atan2');
         node.op = 'Atan2';
         node.inputParams['y'] = createTensorAttr(1);
         node.inputNames = ['input1', 'input2'];
-        const input2 = [tfc.scalar(2)];
+        const input2 = [tfOps.scalar(2)];
         executeOp(node, {input1, input2}, context);
 
-        expect(tfc.atan2).toHaveBeenCalledWith(input1[0], input2[0]);
+        expect(tfOps.atan2).toHaveBeenCalledWith(input1[0], input2[0]);
       });
       it('should match op def', () => {
         node.op = 'Atan2';
@@ -167,13 +169,13 @@ describe('basic math', () => {
       });
     });
     describe('ComplexAbs', () => {
-      it('should call tfc.abs', () => {
-        spyOn(tfc, 'abs');
+      it('should call tfOps.abs', () => {
+        spyOn(tfOps, 'abs');
         node.op = 'ComplexAbs';
         node.inputNames = ['input1'];
         executeOp(node, {input1}, context);
 
-        expect(tfc.abs).toHaveBeenCalledWith(input1[0]);
+        expect(tfOps.abs).toHaveBeenCalledWith(input1[0]);
       });
       it('should match op def', () => {
         node.op = 'ComplexAbs';
@@ -182,18 +184,18 @@ describe('basic math', () => {
       });
     });
     describe('Complex', () => {
-      it('should call tfc.complex', () => {
-        spyOn(tfc, 'complex');
+      it('should call tfOps.complex', () => {
+        spyOn(tfOps, 'complex');
         node.op = 'Complex';
         node.inputParams = {
           real: createTensorAttr(0),
           imag: createTensorAttr(1)
         };
-        const input2 = [tfc.scalar(2)];
+        const input2 = [tfOps.scalar(2)];
         node.inputNames = ['input1', 'input2'];
         executeOp(node, {input1, input2}, context);
 
-        expect(tfc.complex).toHaveBeenCalledWith(input1[0], input2[0]);
+        expect(tfOps.complex).toHaveBeenCalledWith(input1[0], input2[0]);
       });
       it('should match op def', () => {
         node.op = 'Complex';

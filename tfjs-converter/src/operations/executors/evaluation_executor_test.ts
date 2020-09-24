@@ -14,7 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as tfc from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
@@ -24,8 +25,8 @@ import {createBoolAttr, createNumberAttrFromIndex, createTensorAttr} from './tes
 
 describe('evaluation', () => {
   let node: Node;
-  const input1 = [tfc.tensor1d([1])];
-  const input2 = [tfc.scalar(1)];
+  const input1 = [tfOps.tensor1d([1])];
+  const input2 = [tfOps.scalar(1)];
   const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
@@ -48,9 +49,9 @@ describe('evaluation', () => {
         node.inputParams['x'] = createTensorAttr(0);
         node.inputParams['k'] = createNumberAttrFromIndex(1);
         node.attrParams['sorted'] = createBoolAttr(true);
-        spyOn(tfc, 'topk').and.callThrough();
+        spyOn(tfOps, 'topk').and.callThrough();
         executeOp(node, {input1, input2}, context);
-        expect(tfc.topk).toHaveBeenCalledWith(input1[0], 1, true);
+        expect(tfOps.topk).toHaveBeenCalledWith(input1[0], 1, true);
       });
     });
   });

@@ -79,22 +79,23 @@ backend:
 
 ```ts
 import {setWasmPaths} from '@tensorflow/tfjs-backend-wasm';
-// setWasmPaths accepts a `prefix` argument which indicates the path to the
-// directory where your WASM binaries are located.
+// setWasmPaths accepts a `prefixOrFileMap` argument which can be either a
+// string or an object. If passing in a string, this indicates the path to
+// the directory where your WASM binaries are located.
 setWasmPaths('www.yourdomain.com/'); // or tf.wasm.setWasmPaths when using <script> tags.
 tf.setBackend('wasm').then(() => {...});
 ```
 
-Note that if you call `setWasmPaths` with a `prefix`, it will be used to load
-each binary (SIMD-enabled, threading-enabled, etc.) However you can specify
-overrides for individual WASM binaries via the second `fileMap` argument of
-`setWasmPaths`. This is also helpful in case your binaries have been renamed.
+Note that if you call `setWasmPaths` with a string, it will be used to load
+each binary (SIMD-enabled, threading-enabled, etc.) Alternatively you can specify
+overrides for individual WASM binaries via a file map object. This is also helpful
+in case your binaries have been renamed.
 
 For example:
 
 ```ts
 import {setWasmPaths} from '@tensorflow/tfjs-backend-wasm';
-setWasmPaths(null /* custom prefix */, {
+setWasmPaths({
   'tfjs-backend-wasm.wasm': 'www.yourdomain.com/renamed.wasm',
   'tfjs-backend-wasm-simd.wasm': 'www.yourdomain.com/renamed-simd.wasm',
   'tfjs-backend-wasm-threaded-simd.wasm': 'www.yourdomain.com/renamed-threaded-simd.wasm'
@@ -108,7 +109,7 @@ optional `usePlatformFetch` argument to `true`:
 ```ts
 import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
 const usePlatformFetch = true;
-setWasmPaths(yourCustomPathPrefix, null /* file map */, usePlatformFetch);
+setWasmPaths(yourCustomPathPrefix, usePlatformFetch);
 tf.setBackend('wasm').then(() => {...});
 ```
 
@@ -127,17 +128,17 @@ MobileNet is a medium-sized model with 3.48M params and ~300M multiply-adds.
 For this model, the WASM backend is between ~3X-11.5X faster than the plain
 JS backend, and ~5.3-7.7X slower than the WebGL backend.
 
-<img src="./mobilenet-v2-bench.svg">
+<img src="./mobilenet-v2-bench.png" width="750">
 
 | MobileNet inference (ms) | WASM  | WebGL | Plain JS | WASM + SIMD | WASM + SIMD + threads
 |--------------------------|-------|-------|----------|-------------|----------------------
 | iPhone X                 | 147.1 | 20.3  | 941.3    | N/A         | N/A                 |
 | iPhone XS                | 140   | 18.1  | 426.4    | N/A         | N/A                 |
-| Pixel 4                  | 197.3 | 68.3  | 2228.2   | 142.4       | N/A                 |
-| Desktop Linux            | 91.5  | 17.1  | 1049     | 61.9        | 30.0                |
+| Pixel 4                  | 182   | 76.4  | 1628     | 82          | N/A                 |
+| ThinkPad X1 Gen6 w/Linux | 122.7 | 44.8  | 1489.4   | 34.6        | 12.4                |
 | Desktop Windows          | 123.1 | 41.6  | 1117     | 37.2        | N/A                 |
-| Macbook Pro              | 98.4  | 19.6  | 893.5    | 30.2        | 10.3                |
-
+| Macbook Pro 15 2019      | 98.4  | 19.6  | 893.5    | 30.2        | 10.3                |
+| Node v.14 on Macbook Pro | 290   | N/A   | 1404.3   | 64.2        | N/A                 |
 
 
 ### Face Detector
@@ -147,13 +148,13 @@ the WASM backend is between ~8.2-19.8X faster than the plain JS backend and
 comparable to the WebGL backend (up to ~1.7X faster, or 2X slower, depending on
 the device).
 
-<img src="./face-detector-bench.svg">
+<img src="./face-detector-bench.png" width="750">
 
 | Face Detector inference (ms) | WASM | WebGL | Plain JS | WASM + SIMD | WASM + SIMD + threads
 |------------------------------|------|-------|----------|-------------|----------------------
 | iPhone X                     | 22.4 | 13.5  | 318      | N/A         | N/A                 |
 | iPhone XS                    | 21.4 | 10.5  | 176.9    | N/A         | N/A                 |
-| Pixel 4                      | 32.2 | 30.6  | 478.8    | 24.0        | N/A                 |
+| Pixel 4                      | 28   | 28    | 368      | 15.9        | N/A                 |
 | Desktop Linux                | 12.6 | 12.7  | 249.5    | 8.0         | 6.2                 |
 | Desktop Windows              | 16.2 | 7.1   | 270.9    | 7.5         | N/A                 |
 | Macbook Pro 15 2019          | 13.6 | 22.7  | 209.1    | 7.9         | 4.0                 |
