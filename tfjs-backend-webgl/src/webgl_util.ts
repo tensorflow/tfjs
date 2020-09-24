@@ -534,6 +534,7 @@ export function isWebGLVersionEnabled(webGLVersion: 1|2) {
       return true;
     }
   } catch (e) {
+    console.log("Error when getting WebGL context: ", e);
     return false;
   }
   return false;
