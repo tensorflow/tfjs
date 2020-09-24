@@ -24,19 +24,11 @@ import {SimpleBinaryKernelImpl} from '@tensorflow/tfjs-backend-cpu/dist/shared';
 const {
   maxImpl: maxImplCPU,
   transposeImpl: transposeImplCPU,
+  addImpl: addImplCPU,
   multiplyImpl: multiplyImplCPU,
-  multiplyComplexImpl: multiplyComplexImplCPU,
   subImpl: subImplCPU,
-  subComplexImpl: subComplexImplCPU
 } = shared;
 
-export {
-  maxImplCPU,
-  transposeImplCPU,
-  multiplyImplCPU,
-  multiplyComplexImplCPU,
-  subImplCPU,
-  subComplexImplCPU
-};
+export {addImplCPU, maxImplCPU, transposeImplCPU, multiplyImplCPU, subImplCPU};
 
 export type SimpleBinaryKernelImplCPU = SimpleBinaryKernelImpl;

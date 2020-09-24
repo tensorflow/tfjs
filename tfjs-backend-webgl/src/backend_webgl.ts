@@ -1366,23 +1366,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun<Tensor>(program, [a, b], outputDtype);
   }
 
-  add(a: Tensor, b: Tensor): Tensor {
-    if (a.dtype === 'complex64' && b.dtype === 'complex64') {
-      return this.complexSeparableBinaryOp(a, b, binaryop_gpu.ADD);
-    }
-
-    if (this.shouldExecuteOnCPU([a, b])) {
-      return this.cpuBackend.add(a, b);
-    }
-
-    const dtype = upcastType(a.dtype, b.dtype);
-    if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-      return this.packedBinaryOp(a, b, binaryop_gpu.ADD, dtype);
-    }
-    const program = new BinaryOpProgram(binaryop_gpu.ADD, a.shape, b.shape);
-    return this.compileAndRun<Tensor>(program, [a, b], dtype);
-  }
-
   private packedUnaryOp(x: TensorInfo, op: string, dtype: DataType) {
     const program = new UnaryOpPackedProgram(x.shape, op);
     return this.compileAndRun<Tensor>(program, [x], dtype);
@@ -1394,34 +1377,6 @@ export class MathBackendWebGL extends KernelBackend {
     const program =
         new BinaryOpPackedProgram(op, a.shape, b.shape, checkOutOfBounds);
     return this.compileAndRun<Tensor>(program, [a, b], dtype);
-  }
-
-  /**
-   * Computes a complex binary operation that can be decomposed into a simple
-   * binary operation on both the real and imagary parts.
-   */
-  private complexSeparableBinaryOp(a: Tensor, b: Tensor, op: string): Tensor {
-    const aData = this.texData.get(a.dataId);
-    const bData = this.texData.get(b.dataId);
-
-    const [real, imag] = [
-      [aData.complexTensorInfos.real, bData.complexTensorInfos.real],
-      [aData.complexTensorInfos.imag, bData.complexTensorInfos.imag]
-    ].map(complexParts => {
-      const [aPart, bPart] = complexParts;
-
-      const aHandle = this.makeComplexComponentTensorInfo(a, aPart);
-      const bHandle = this.makeComplexComponentTensorInfo(b, bPart);
-
-      const program = new BinaryOpProgram(op, a.shape, b.shape);
-      return this.compileAndRun<Tensor>(
-          program, [aHandle, bHandle], upcastType(aPart.dtype, bPart.dtype));
-    });
-
-    const complex = this.complex(real, imag);
-    real.dispose();
-    imag.dispose();
-    return complex;
   }
 
   // Returns a TensorInfo with the complex shape and the dataId of the

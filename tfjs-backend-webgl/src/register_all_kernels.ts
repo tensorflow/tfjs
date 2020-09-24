@@ -16,6 +16,7 @@
  */
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
+import {addConfig} from './kernels/Add';
 import {atan2Config} from './kernels/Atan2';
 import {castConfig} from './kernels/Cast';
 import {complexConfig} from './kernels/Complex';
@@ -44,6 +45,7 @@ import {transposeConfig} from './kernels/Transpose';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
+  addConfig,
   atan2Config,
   castConfig,
   cosConfig,

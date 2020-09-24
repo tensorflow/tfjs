@@ -18,12 +18,12 @@
 // Shared functionality among backends.
 
 // Kernel implementation functions.
-export {addComplexImpl, addImpl} from './kernels/Add';
+export {addImpl} from './kernels/Add';
 export {maxImpl} from './kernels/Max_impl';
-export {multiplyComplexImpl, multiplyImpl} from './kernels/Multiply';
+export {multiplyImpl} from './kernels/Multiply';
 export {notEqualImpl} from './kernels/NotEqual';
 export {squaredDifferenceImpl} from './kernels/SquaredDifference';
-export {subComplexImpl, subImpl} from './kernels/Sub';
+export {subImpl} from './kernels/Sub';
 export {transposeImpl} from './kernels/Transpose_impl';
 
 // Types.
