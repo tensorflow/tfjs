@@ -27,7 +27,7 @@ import {asinConfig} from './kernels/Asin';
 import {asinhConfig} from './kernels/Asinh';
 import {atanConfig} from './kernels/Atan';
 import {atanhConfig} from './kernels/Atanh';
-import {batchNormConfig} from './kernels/Batchnorm';
+import {batchNormConfig} from './kernels/BatchNorm';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
 import {clipConfig} from './kernels/Clip';
