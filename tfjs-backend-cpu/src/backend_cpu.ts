@@ -1882,14 +1882,6 @@ export class MathBackendCPU extends KernelBackend {
     return dx.toTensor();
   }
 
-  // avgPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
-  //   assertNotComplex(x, 'avgPool');
-  //   const xValues = this.readSync(x.dataId) as TypedArray;
-  //   return pool(xValues, x.shape, x.dtype, x.strides, convInfo, 'avg')
-  //              .toTensor()
-  //              .toFloat() as Tensor4D;
-  // }
-
   resizeBilinear(
       x: Tensor4D, newHeight: number, newWidth: number,
       alignCorners: boolean): Tensor4D {
