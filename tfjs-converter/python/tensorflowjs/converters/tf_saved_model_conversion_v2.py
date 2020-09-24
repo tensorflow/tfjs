@@ -283,13 +283,15 @@ def extract_weights(graph_def,
   print('Writing weight file ' + output_graph + '...')
 
   write_artifacts(MessageToDict(graph_def),
-                [global_manifest + function_manifests + initializer_manifests],
-                output_graph,
-                tf_version, signature_def,
-                quantization_dtype_map=quantization_dtype_map,
-                weight_shard_size_bytes=weight_shard_size_bytes,
-                initializer_graph_def=initializer_graph_def,
-                initializer_outputs=initializer_outputs)
+                  [global_manifest +
+                   function_manifests +
+                   initializer_manifests],
+                  output_graph,
+                  tf_version, signature_def,
+                  quantization_dtype_map=quantization_dtype_map,
+                  weight_shard_size_bytes=weight_shard_size_bytes,
+                  initializer_graph_def=initializer_graph_def,
+                  initializer_outputs=initializer_outputs)
 
 def write_artifacts(topology,
                     weights,
@@ -333,10 +335,10 @@ def write_artifacts(topology,
   if initializer_graph_def and initializer_outputs:
     model_json[common.ARTIFACT_MODEL_INITIALIZER] = {}
     model_json[common.ARTIFACT_MODEL_INITIALIZER]['outputs'] = [
-      MessageToDict(node) for node in initializer_outputs
+        MessageToDict(node) for node in initializer_outputs
     ]
     model_json[
-      common.ARTIFACT_MODEL_INITIALIZER
+        common.ARTIFACT_MODEL_INITIALIZER
     ]['topology'] = MessageToDict(initializer_graph_def)
 
   weights_manifest = write_weights.write_weights(
@@ -401,14 +403,15 @@ def _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
       initializer_output_names = None
       # Only support table initializers for now.
       if meta_graph.collection_def and meta_graph.collection_def[
-        'table_initializer']:
+          'table_initializer']:
         initializer_output_names = meta_graph.collection_def[
-          'table_initializer'].node_list.value
+            'table_initializer'].node_list.value
         # This will use grappler to extract a subgraph with the
         # table initializer ops as the outputs.
         frozen_initializer_graph_def = (tf.compat.v1.graph_util
-          .convert_variables_to_constants(sess, meta_graph_def,
-          initializer_output_names))
+                                        .convert_variables_to_constants(
+                                            sess, meta_graph_def,
+                                            initializer_output_names))
         frozen_initializer_graph = tf.Graph()
         with frozen_initializer_graph.as_default():
           tf.import_graph_def(frozen_initializer_graph_def, name='')
@@ -557,13 +560,16 @@ def convert_tf_saved_model(saved_model_dir,
   # TensorFlow doesn't encode the saved model version in the graph in a
   # reliable way. Try to freeze the graph using V2 utils. If that fails, freeze
   # the graph using V1 utils.
+  frozen_initializer_graph = None
+  initializer_output_names = None
   try:
     frozen_graph = _freeze_saved_model_v2(concrete_func, control_flow_v2)
   except BaseException:
     (frozen_graph,
-    frozen_initializer_graph,
-    initializer_output_names) = _freeze_saved_model_v1(saved_model_dir,
-      saved_model_tags, output_node_names)
+     frozen_initializer_graph,
+     initializer_output_names) = _freeze_saved_model_v1(saved_model_dir,
+                                                        saved_model_tags,
+                                                        output_node_names)
 
   inputs = [x for x in concrete_func.inputs if not x.dtype == 'resource']
   signature = _build_signature_def(
