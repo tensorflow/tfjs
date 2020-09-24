@@ -1529,12 +1529,12 @@ export class MathBackendCPU extends KernelBackend {
                .slice(sliceBeginCoords, sliceSize) as T;
   }
 
-  maxPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
-    assertNotComplex(x, 'maxPool');
-    const xValues = this.readSync(x.dataId) as TypedArray;
-    return pool(xValues, x.shape, x.dtype, x.strides, convInfo, 'max')
-               .toTensor() as Tensor4D;
-  }
+  // maxPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
+  //   assertNotComplex(x, 'maxPool');
+  //   const xValues = this.readSync(x.dataId) as TypedArray;
+  //   return pool(xValues, x.shape, x.dtype, x.strides, convInfo, 'max')
+  //              .toTensor() as Tensor4D;
+  // }
 
   maxPoolBackprop(
       dy: Tensor4D, x: Tensor4D, y: Tensor4D,

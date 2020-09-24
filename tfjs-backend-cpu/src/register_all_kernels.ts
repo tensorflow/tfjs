@@ -56,6 +56,7 @@ import {logConfig} from './kernels/Log';
 import {log1pConfig} from './kernels/Log1p';
 import {logicalNotConfig} from './kernels/LogicalNot';
 import {maxConfig} from './kernels/Max';
+import {maxPoolConfig} from './kernels/MaxPool';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {multiplyConfig} from './kernels/Multiply';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
@@ -123,6 +124,7 @@ const kernelConfigs: KernelConfig[] = [
   logConfig,
   log1pConfig,
   logicalNotConfig,
+  maxPoolConfig,
   maxPoolWithArgmaxConfig,
   maxConfig,
   multiplyConfig,
