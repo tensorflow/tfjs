@@ -158,6 +158,11 @@ echo
 echo "Copying requirements.txt"
 cp "${SCRIPTS_DIR}/requirements.txt" "${TMP_DIR}/"
 
+# Copy requirements.txt
+echo
+echo "Copying extra-requirements.txt"
+cp "${SCRIPTS_DIR}/extra-requirements.txt" "${TMP_DIR}/"
+
 # Copy README.md.
 echo
 echo "Copying README.md"

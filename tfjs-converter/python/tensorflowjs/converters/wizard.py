@@ -23,7 +23,12 @@ import sys
 import tempfile
 import traceback
 
-import PyInquirer
+try:
+  import PyInquirer
+except ImportError:
+    sys.exit("""Please install PyInquirer using following command:
+                `pip install PyInquirer==1.0.3`""")
+
 import h5py
 import tensorflow.compat.v2 as tf
 from tensorflow.core.framework import types_pb2
