@@ -14,35 +14,36 @@
  * limitations under the License.
  * =============================================================================
  */
-import {backend_util, KernelConfig, KernelFunc, MaxPool, MaxPoolAttrs, MaxPoolInputs, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {AvgPool, AvgPoolAttrs, AvgPoolInputs, backend_util, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 import {pool} from '../utils/pool_utils';
 
-export function maxPool(
+export function avgPool(
     args:
-        {inputs: MaxPoolInputs, backend: MathBackendCPU, attrs: MaxPoolAttrs}):
+        {inputs: AvgPoolInputs, backend: MathBackendCPU, attrs: AvgPoolAttrs}):
     TensorInfo {
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
-  assertNotComplex(x, 'maxPool');
+  assertNotComplex(x, 'avgPool');
   const {filterSize, strides, pad, dimRoundingMode} = attrs;
   const dilations = 1;
+
+  util.assert(
+      backend_util.eitherStridesOrDilationsAreOne(strides, dilations),
+      () => 'Error in avgPool: Either strides or dilations must be 1. ' +
+          `Got strides ${strides} and dilations '${dilations}'`);
 
   const xRank = x.shape.length;
   util.assert(
       xRank === 4,
-      () => `Error in maxPool: input must be rank 4 but got rank ${
+      () => `Error in avgPool: input must be rank 4 but got rank ${
           x.shape.length}}.`);
-  util.assert(
-      backend_util.eitherStridesOrDilationsAreOne(strides, dilations),
-      () => 'Error in maxPool: Either strides or dilations must be 1. ' +
-          `Got strides ${strides} and dilations '${dilations}'`);
   if (dimRoundingMode != null) {
     util.assert(
         util.isInt(pad as number),
-        () => `Error in maxPool: pad must be an integer when using, ` +
+        () => `Error in avgPool: pad must be an integer when using, ` +
             `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
   }
 
@@ -58,15 +59,15 @@ export function maxPool(
   } else {
     const xValues = backend.data.get(x.dataId).values as TypedArray;
     const strides = util.computeStrides(x.shape);
-    const buffer = pool(xValues, x.shape, x.dtype, strides, convInfo, 'max');
+    const buffer = pool(xValues, x.shape, x.dtype, strides, convInfo, 'avg');
     res = backend.makeTensorInfo(
         convInfo.outShape, x.dtype, buffer.values as TypedArray);
   }
   return res;
 }
 
-export const maxPoolConfig: KernelConfig = {
-  kernelName: MaxPool,
+export const avgPoolConfig: KernelConfig = {
+  kernelName: AvgPool,
   backendName: 'cpu',
-  kernelFunc: maxPool as {} as KernelFunc
+  kernelFunc: avgPool as {} as KernelFunc
 };
