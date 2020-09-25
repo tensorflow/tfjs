@@ -74,41 +74,20 @@ describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
     tf.env().set('WEBGL_CPU_FORWARD', webglCpuForwardFlagSaved);
   });
 
-  // fit('3 + 5', async () => {
-  //   const a = tf.tensor1d([3]);
-  //   const b = tf.tensor1d([5]);
-
-  //   const result = tf.concat1d([a, b]);
-  //   const expected = [3, 5];
-  //   expectArraysClose(await result.data(), expected);
-  // });
-  // fit('TensorLike 3 + 5', async () => {
-  //   const a = [3];
-  //   const b = [5];
-
-  //   const result = tf.concat1d([a, b]);
-  //   const expected = [3, 5];
-  //   expectArraysClose(await result.data(), expected);
-  // });
-
-  fit('concat complex input axis=1', async () => {
-    // [[[1+1j, 2+2j], [3+3j, 4+4j], [5+5j, 6+6j]]]
-    const c1 =
-        tf.complex([[[1, 2], [3, 4], [5, 6]]], [[[1, 2], [3, 4], [5, 6]]]);
-    // [[[7+7j, 8+8j], [9+9j, 10+10j], [11+11j, 12+12j]]]
-    const c2 = tf.complex(
-        [[[7, 8], [9, 10], [11, 12]]], [[[7, 8], [9, 10], [11, 12]]]);
-
+  fit('concat throws when invalid non-axis shapes, axis=2', () => {
     const axis = 2;
-    const result = tf.concat([c1, c2], axis);
-    const expected = [
-      1, 1, 2,  2,  7, 7, 8, 8, 3,  3,  4,  4,
-      9, 9, 10, 10, 5, 5, 6, 6, 11, 11, 12, 12
-    ];
-    expect(result.dtype).toEqual('complex64');
-    const resultData = await result.data();
-    console.log(Array.from(resultData));
-    expectArraysClose(resultData, expected);
+    const x1 = tf.tensor3d([1, 11, 2, 22], [1, 2, 2]);
+    const x2 = tf.tensor3d(
+        [5, 55, 555, 6, 66, 666, 7, 77, 777, 8, 88, 888], [2, 2, 3]);
+    expect(() => tf.concat3d([x1, x2], axis)).toThrowError();
+  });
+
+  fit('shapes correct concat axis=-1', async () => {
+    const tensor1 = tf.tensor3d([1, 2, 3], [1, 1, 3]);
+    const tensor2 = tf.tensor3d([4, 5, 6], [1, 1, 3]);
+    const values = tf.concat3d([tensor1, tensor2], -1);
+    expect(values.shape).toEqual([1, 1, 6]);
+    expectArraysClose(await values.data(), [1, 2, 3, 4, 5, 6]);
   });
 
   it('should not leak memory when lazily unpacking', () => {
