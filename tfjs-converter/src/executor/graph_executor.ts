@@ -24,7 +24,7 @@ import {executeOp} from '../operations/operation_executor';
 import {Graph, Node} from '../operations/types';
 
 import {ExecutionContext, ExecutionContextInfo} from './execution_context';
-import {getExecutionSubgraph, getNodesInTopologicalOrder, isControlFlow} from './model_analysis';
+import {getExecutionSubgraph, getGraphInTopologicalOrder, getNodesInTopologicalOrder, isControlFlow} from './model_analysis';
 import {FunctionExecutor} from './types';
 
 interface NodeWithContexts {
@@ -156,13 +156,19 @@ export class GraphExecutor implements FunctionExecutor {
     if (missingInputs.length > 0) {
       const outNames = outputs.map(n => n.name);
       const inNames = Object.keys(inputs);
+      const missingInputNames = missingInputs.map(input => input.name);
       throw new Error(
           `Cannot compute the outputs [${outNames}] from the provided inputs ` +
-          `[${inNames}]. Missing the following inputs: [${missingInputs}]`);
+          `[${inNames}]. Missing the following inputs: [${missingInputNames}]`);
     }
 
     return getNodesInTopologicalOrder(
         this.graph, this.weightMap, executionInfo);
+  }
+
+  initialize(): void {
+    const orderedNodes = getGraphInTopologicalOrder(this._outputs);
+    this._execute(orderedNodes, this.outputNodes);
   }
 
   /**
@@ -186,12 +192,25 @@ export class GraphExecutor implements FunctionExecutor {
     const outputNodeNames = outputs.map(name => parseNodeName(name)[0]);
     const outputNodes = outputNodeNames.map(name => this.graph.nodes[name]);
     const compilationKey = this.getCompilationKey(inputNodes, outputNodes);
+
     // Do nothing if the compiled graph cache contains the input.
     let orderedNodes = this.compiledMap.get(compilationKey);
     if (orderedNodes == null) {
       orderedNodes = this.compile(inputs, outputNodes);
       this.compiledMap.set(compilationKey, orderedNodes);
     }
+
+    return this._execute(orderedNodes, outputNodeNames, inputs);
+  }
+
+  // Given an orderedNodes list, execute nodes in the list. Returns tensors
+  // specified in the outpus list. If `inputs` is provided, they will be
+  // kept to avoid being disposed after execution.
+  private _execute(
+      orderedNodes: Node[],
+      outputs: string[],
+      inputs?: NamedTensorMap,
+      ): Tensor[] {
     const tensorArrayMap: TensorArrayMap = {};
     const tensorListMap: TensorListMap = {};
     return tidy(() => {
@@ -199,12 +218,16 @@ export class GraphExecutor implements FunctionExecutor {
           this.weightMap, tensorArrayMap, tensorListMap,
           this.functionExecutorMap);
       const tensorsMap: NamedTensorsMap = {...this.weightMap};
-      Object.keys(inputs).forEach(name => {
-        const [nodeName, index] = parseNodeName(name);
-        const tensors: Tensor[] = [];
-        tensors[index] = inputs[name];
-        tensorsMap[nodeName] = tensors;
-      });
+
+      if (inputs != null) {
+        Object.keys(inputs).forEach(name => {
+          const [nodeName, index] = parseNodeName(name);
+          const tensors: Tensor[] = [];
+          tensors[index] = inputs[name];
+          tensorsMap[nodeName] = tensors;
+        });
+      }
+
       const tensorsToKeep = this.getFrozenTensorIds(tensorsMap);
       const intermediateTensorConsumerCount: {[key: number]: number} = {};
       for (let i = 0; i < orderedNodes.length; i++) {
@@ -218,8 +241,8 @@ export class GraphExecutor implements FunctionExecutor {
           }
           tensorsMap[node.name] = tensors;
           this.checkTensorForDisposal(
-              node.name, node, tensorsMap, context, tensorsToKeep,
-              outputNodeNames, intermediateTensorConsumerCount);
+              node.name, node, tensorsMap, context, tensorsToKeep, outputs,
+              intermediateTensorConsumerCount);
         }
       }
       // dispose the context for the root executor
@@ -420,10 +443,11 @@ export class GraphExecutor implements FunctionExecutor {
             `Alternatively, to avoid the dynamic ops, use model.execute() ` +
             `and specify the inputs [${syncInputs}]`;
       }
+      const missingInputNames = missingInputs.map(input => input.name);
       throw new Error(
           `Cannot compute the outputs [${missingOutputs}] from the provided ` +
           `inputs [${names}]. Consider providing the following inputs: ` +
-          `[${missingInputs}]. ${alternativeMsg}`);
+          `[${missingInputNames}]. ${alternativeMsg}`);
     }
     return tensorsMap;
   }
@@ -579,6 +603,7 @@ export class GraphExecutor implements FunctionExecutor {
       return name;
     }, {});
   }
+
   private checkOutputs(outputs: string[]): void {
     outputs.forEach(name => {
       const [normalizedName] = parseNodeName(name);
