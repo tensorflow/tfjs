@@ -195,7 +195,7 @@ export class HTTPRequest implements IOHandler {
       [weightSpecs, weightData] = results;
     }
 
-    return {
+    const artifacts:ModelArtifacts = {
       modelTopology,
       weightSpecs,
       weightData,
@@ -204,6 +204,13 @@ export class HTTPRequest implements IOHandler {
       convertedBy,
       format
     };
+
+    const initializer = modelConfig.modelInitializer;
+    if (initializer) {
+      artifacts['modelInitializer'] = initializer;
+    }
+
+    return artifacts;
   }
 
   private async loadWeights(weightsManifest: WeightsManifestConfig):
