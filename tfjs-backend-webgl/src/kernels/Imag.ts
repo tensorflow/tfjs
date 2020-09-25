@@ -26,8 +26,10 @@ export function imag(args: {inputs: ImagInputs, backend: MathBackendWebGL}):
 
   // TODO(annxingyuan): Share data buckets once soft disposal through engine is
   // possible
-  const vals = backend.readSync(input.dataId) as TypedArray;
-  const dataId = backend.write(vals, input.shape, 'float32');
+  const resultData = backend.texData.get(input.dataId);
+  const imagVals =
+      backend.readSync(resultData.complexTensorInfos.imag.dataId) as TypedArray;
+  const dataId = backend.write(imagVals, input.shape, 'float32');
   const tensorInfo: TensorInfo = {dataId, shape: input.shape, dtype: 'float32'};
 
   // When complex tensor is disposed, its underlying parts will be disposed too.

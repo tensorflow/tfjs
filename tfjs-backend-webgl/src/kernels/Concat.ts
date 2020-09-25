@@ -38,17 +38,10 @@ export function concat(
   const {inputs, backend, attrs} = args;
   const {axis} = attrs;
 
-  // Keep only non-empty tensors (ignore tensors with 0 in their shape).
-  const $inputs = inputs.filter(t => util.sizeFromShape(t.shape) > 0);
-  if ($inputs.length === 1) {
-    return $inputs[0];
-  }
-
-  const dtype = $inputs[0].dtype;
-
+  const dtype = inputs[0].dtype;
   if (dtype === 'complex64') {
-    const reals = $inputs.map((t) => real({inputs: {input: t}, backend}));
-    const imags = $inputs.map((t) => imag({inputs: {input: t}, backend}));
+    const reals = inputs.map((t) => real({inputs: {input: t}, backend}));
+    const imags = inputs.map((t) => imag({inputs: {input: t}, backend}));
 
     const realConcated = concat({inputs: reals, backend, attrs: {axis}});
     const imagConcated = concat({inputs: imags, backend, attrs: {axis}});
@@ -64,12 +57,16 @@ export function concat(
     return result;
   }
 
-  if ($inputs.length > env().getNumber('WEBGL_MAX_TEXTURES_IN_SHADER')) {
-    const midIndex = Math.floor($inputs.length / 2);
+  if (inputs.length === 1) {
+    return inputs[0];
+  }
+
+  if (inputs.length > env().getNumber('WEBGL_MAX_TEXTURES_IN_SHADER')) {
+    const midIndex = Math.floor(inputs.length / 2);
     const leftSide =
-        concat({inputs: $inputs.slice(0, midIndex), backend, attrs: {axis}});
+        concat({inputs: inputs.slice(0, midIndex), backend, attrs: {axis}});
     const rightSide =
-        concat({inputs: $inputs.slice(midIndex), backend, attrs: {axis}});
+        concat({inputs: inputs.slice(midIndex), backend, attrs: {axis}});
 
     const result =
         concat({inputs: [leftSide, rightSide], backend, attrs: {axis}});
@@ -81,9 +78,9 @@ export function concat(
   }
 
   if (env().getBool('WEBGL_PACK_ARRAY_OPERATIONS') &&
-      $inputs[0].shape.length > 1) {
-    const program = new ConcatPackedProgram($inputs.map(t => t.shape), axis);
-    return backend.runWebGLProgram(program, $inputs, dtype);
+      inputs[0].shape.length > 1) {
+    const program = new ConcatPackedProgram(inputs.map(t => t.shape), axis);
+    return backend.runWebGLProgram(program, inputs, dtype);
   }
 
   // Any concat of n-dimensional tensors across any axis can be reduced to
@@ -93,9 +90,8 @@ export function concat(
   // into a two-dimensional tensor by collapsing these two sets of axes and
   // concatenate the resulting matrices across the axis 1, finally reshaping
   // the result to have the proper shape.
-  const outShape =
-      backend_util.computeOutShape($inputs.map(t => t.shape), axis);
-  const tensors2D = $inputs.map(
+  const outShape = backend_util.computeOutShape(inputs.map(t => t.shape), axis);
+  const tensors2D = inputs.map(
       x => reshape({
         inputs: {x},
         attrs: {shape: [-1, util.sizeFromShape(x.shape.slice(axis))]},
@@ -104,7 +100,13 @@ export function concat(
   const program =
       new ConcatProgram(tensors2D.map(t => t.shape as [number, number]));
   const result = backend.runWebGLProgram(program, tensors2D, dtype);
-  return reshape({inputs: {x: result}, attrs: {shape: outShape}, backend});
+
+  tensors2D.forEach(r => backend.disposeIntermediateTensorInfo(r));
+  const reshapedResult =
+      reshape({inputs: {x: result}, attrs: {shape: outShape}, backend});
+  backend.disposeIntermediateTensorInfo(result);
+
+  return reshapedResult;
 }
 
 export const concatConfig: KernelConfig = {
