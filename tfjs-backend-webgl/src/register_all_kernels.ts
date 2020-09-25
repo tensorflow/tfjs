@@ -20,6 +20,7 @@ import {addConfig} from './kernels/Add';
 import {atan2Config} from './kernels/Atan2';
 import {castConfig} from './kernels/Cast';
 import {complexConfig} from './kernels/Complex';
+import {concatConfig} from './kernels/Concat';
 import {cosConfig} from './kernels/Cos';
 import {divConfig} from './kernels/Div';
 import {fftConfig} from './kernels/FFT';
@@ -52,6 +53,7 @@ const kernelConfigs: KernelConfig[] = [
   castConfig,
   cosConfig,
   complexConfig,
+  concatConfig,
   maxConfig,
   fftConfig,
   flipLeftRightConfig,

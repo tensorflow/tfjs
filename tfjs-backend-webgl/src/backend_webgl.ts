@@ -19,7 +19,7 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {complex, DataId, div, engine, env, imag, max, MemoryInfo, range, real, RecursiveArray, reshape, scalar, softmax, tensor, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
+import {DataId, div, engine, env, max, MemoryInfo, range, RecursiveArray, reshape, scalar, softmax, tensor, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
 import {backend_util, buffer, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
 import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 
@@ -44,8 +44,6 @@ import {getWebGLContext} from './canvas_util';
 import {ClipProgram} from './clip_gpu';
 import {ClipPackedProgram} from './clip_packed_gpu';
 import {ComplexAbsProgram} from './complex_abs_gpu';
-import {ConcatProgram} from './concat_gpu';
-import {ConcatPackedProgram} from './concat_packed_gpu';
 import {Conv2DDerFilterProgram, Conv2DDerInputProgram, Conv3DDerFilterProgram, Conv3DDerInputProgram} from './conv_backprop_gpu';
 import {DepthwiseConv2DDerFilterProgram, DepthwiseConv2DDerInputProgram} from './conv_backprop_gpu_depthwise';
 import {Conv2DProgram, Conv3DProgram} from './conv_gpu';
@@ -776,45 +774,6 @@ export class MathBackendWebGL extends KernelBackend {
         new ReversePackedProgram(x.shape, axis) :
         new ReverseProgram(x.shape, axis);
     return this.compileAndRun(program, [x]);
-  }
-
-  concat(tensors: Tensor[], axis: number): Tensor {
-    if (tensors[0].dtype === 'complex64') {
-      const reals = tensors.map((t) => real(t));
-      const imags = tensors.map((t) => imag(t));
-      return complex(this.concat(reals, axis), this.concat(imags, axis));
-    }
-    if (this.shouldExecuteOnCPU(tensors)) {
-      return this.cpuBackend.concat(tensors, axis);
-    }
-
-    if (tensors.length === 1) {
-      return tensors[0];
-    }
-    if (tensors.length > env().getNumber('WEBGL_MAX_TEXTURES_IN_SHADER')) {
-      const midIndex = Math.floor(tensors.length / 2);
-      const leftSide = this.concat(tensors.slice(0, midIndex), axis);
-      const rightSide = this.concat(tensors.slice(midIndex), axis);
-      return this.concat([leftSide, rightSide], axis);
-    }
-    if (env().getBool('WEBGL_PACK_ARRAY_OPERATIONS') && tensors[0].rank > 1) {
-      const program = new ConcatPackedProgram(tensors.map(t => t.shape), axis);
-      return this.compileAndRun(program, tensors);
-    }
-    // Any concat of n-dimensional tensors across any axis can be reduced to
-    // a concatenation of two-dimensional tensors across the axis 1 by first
-    // partitioning the axes of the original tensors into those less than the
-    // axis to be concatenated and the rest. Then reshape the tensors
-    // into a two-dimensional tensor by collapsing these two sets of axes and
-    // concatenate the resulting matrices across the axis 1, finally reshaping
-    // the result to have the proper shape.
-    const outShape =
-        backend_util.computeOutShape(tensors.map(t => t.shape), axis);
-    const tensors2D =
-        tensors.map(t => t.as2D(-1, util.sizeFromShape(t.shape.slice(axis))));
-    const program = new ConcatProgram(tensors2D.map(t => t.shape));
-    const res: Tensor = this.compileAndRun(program, tensors2D);
-    return res.reshape(outShape);
   }
 
   neg<T extends Tensor>(x: T): T {
