@@ -22,9 +22,11 @@ import {castConfig} from './kernels/Cast';
 import {complexConfig} from './kernels/Complex';
 import {cosConfig} from './kernels/Cos';
 import {divConfig} from './kernels/Div';
+import {fftConfig} from './kernels/FFT';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {fromPixelsConfig} from './kernels/FromPixels';
 import {identityConfig} from './kernels/Identity';
+import {ifftConfig} from './kernels/IFFT';
 import {imagConfig} from './kernels/Imag';
 import {maxConfig} from './kernels/Max';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
@@ -51,10 +53,12 @@ const kernelConfigs: KernelConfig[] = [
   cosConfig,
   complexConfig,
   maxConfig,
+  fftConfig,
   flipLeftRightConfig,
   fromPixelsConfig,
   divConfig,
   identityConfig,
+  ifftConfig,
   imagConfig,
   maxPoolWithArgmaxConfig,
   multiplyConfig,

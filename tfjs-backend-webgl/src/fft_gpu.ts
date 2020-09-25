@@ -17,17 +17,13 @@
 
 import {GPGPUProgram} from './gpgpu_math';
 
-export const COMPLEX_FFT = {
-  REAL: 'return real * expR - imag * expI;',
-  IMAG: 'return real * expI + imag * expR;'
-};
-
 export class FFTProgram implements GPGPUProgram {
   variableNames = ['real', 'imag'];
   outputShape: number[];
   userCode: string;
 
-  constructor(op: string, inputShape: [number, number], inverse: boolean) {
+  constructor(
+      op: 'real'|'imag', inputShape: [number, number], inverse: boolean) {
     const innerDim = inputShape[1];
     this.outputShape = inputShape;
 
@@ -35,11 +31,20 @@ export class FFTProgram implements GPGPUProgram {
         inverse ? `2.0 * ${Math.PI}` : `-2.0 * ${Math.PI}`;
     const resultDenominator = inverse ? `${innerDim}.0` : '1.0';
 
+    let opString: string;
+    if (op === 'real') {
+      opString = 'return real * expR - imag * expI;';
+    } else if (op === 'imag') {
+      opString = 'return real * expI + imag * expR;';
+    } else {
+      throw new Error(`FFT op must be either "real" or "imag", got ${op}.`);
+    }
+
     this.userCode = `
       const float exponentMultiplier = ${exponentMultiplierSnippet};
 
       float unaryOpComplex(float real, float expR, float imag, float expI) {
-        ${op}
+        ${opString}
       }
 
       float mulMatDFT(int batch, int index) {

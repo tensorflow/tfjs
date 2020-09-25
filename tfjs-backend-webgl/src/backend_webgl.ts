@@ -61,8 +61,6 @@ import {EncodeFloatProgram} from './encode_float_gpu';
 import {EncodeFloatPackedProgram} from './encode_float_packed_gpu';
 import {EncodeMatrixProgram} from './encode_matrix_gpu';
 import {EncodeMatrixPackedProgram} from './encode_matrix_packed_gpu';
-import * as fft_gpu from './fft_gpu';
-import {FFTProgram} from './fft_gpu';
 import {FillProgram} from './fill_gpu';
 import {GatherProgram} from './gather_gpu';
 import {GatherNDProgram} from './gather_nd_gpu';
@@ -2210,36 +2208,6 @@ export class MathBackendWebGL extends KernelBackend {
     const res: Tensor = this.compileAndRun(
         program, [sparseValues, sparseIndices, defaultValue]);
     return res.reshape(outputShape);
-  }
-
-  fft(x: Tensor2D): Tensor2D {
-    const inverse = false;
-    return this.fftImpl(x, inverse);
-  }
-
-  ifft(x: Tensor2D): Tensor2D {
-    const inverse = true;
-    return this.fftImpl(x, inverse);
-  }
-
-  private fftImpl(x: Tensor2D, inverse: boolean): Tensor2D {
-    const xData = this.texData.get(x.dataId);
-
-    const realProgram =
-        new FFTProgram(fft_gpu.COMPLEX_FFT.REAL, x.shape, inverse);
-    const imagProgram =
-        new FFTProgram(fft_gpu.COMPLEX_FFT.IMAG, x.shape, inverse);
-    const inputs = [
-      this.makeComplexComponentTensorInfo(x, xData.complexTensorInfos.real),
-      this.makeComplexComponentTensorInfo(x, xData.complexTensorInfos.imag),
-    ];
-
-    const real = this.compileAndRun<Tensor>(realProgram, inputs);
-    const imag = this.compileAndRun<Tensor>(imagProgram, inputs);
-    const complex = this.complex(real, imag).as2D(x.shape[0], x.shape[1]);
-    real.dispose();
-    imag.dispose();
-    return complex;
   }
 
   gatherND(x: Tensor, indices: Tensor): Tensor {
