@@ -1463,7 +1463,9 @@ export class MathBackendWebGL extends KernelBackend {
     const maxLogit = max(logits, axes);
     const expandedShape =
         backend_util.expandShapeToKeepDim(maxLogit.shape, axes);
-    const a = this.subtract(logits, maxLogit.reshape(expandedShape));
+    // TODO(annxingyuan): Call sub directly as part of softmax kernel
+    // modularization.
+    const a = tf.sub(logits, maxLogit.reshape(expandedShape));
     const b = this.exp(a);
     const sumExp = this.sum(b, axes).reshape(expandedShape);
 

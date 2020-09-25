@@ -74,56 +74,6 @@ describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
     tf.env().set('WEBGL_CPU_FORWARD', webglCpuForwardFlagSaved);
   });
 
-  fit('A - B broadcasting same rank Tensors different shape', async () => {
-    const a = tf.tensor2d([1, 2, -3, -4], [2, 2]);
-    const b = tf.tensor2d([2, 3], [2, 1]);
-
-    const result = tf.sub(a, b);
-
-    expect(result.shape).toEqual([2, 2]);
-    const expected = [-1, 0, -6, -7];
-
-    expectArraysClose(await result.data(), expected);
-  });
-
-  fit('A - B broadcast 2D + 1D', async () => {
-    const a = tf.tensor2d([1, 2, -3, -4], [2, 2]);
-    const b = tf.tensor1d([1, 2]);
-
-    const result = tf.sub(a, b);
-
-    expect(result.shape).toEqual([2, 2]);
-    const expected = [0, 0, -4, -6];
-
-    expectArraysClose(await result.data(), expected);
-  });
-
-  fit('same-shaped tensors', async () => {
-    const a = tf.tensor2d([1, 2, -3, -4], [2, 2]);
-    const b = tf.tensor2d([5, 3, 4, -7], [2, 2]);
-    const expected = [5, 6, -12, 28];
-    const result = tf.mul(a, b);
-
-    expect(result.shape).toEqual([2, 2]);
-    expectArraysClose(await result.data(), expected);
-  });
-
-  fit('complex number multiplication', async () => {
-    const real1 = tf.tensor1d([2]);
-    const imag1 = tf.tensor1d([3]);
-    const complex1 = tf.complex(real1, imag1);
-
-    const real2 = tf.tensor1d([4]);
-    const imag2 = tf.tensor1d([5]);
-    const complex2 = tf.complex(real2, imag2);
-
-    const result = complex1.mul(complex2);
-
-    expect(result.dtype).toBe('complex64');
-    expect(result.shape).toEqual([1]);
-    expectArraysClose(await result.data(), [2 * 4 - 3 * 5, 2 * 5 + 3 * 4]);
-  });
-
   it('should not leak memory when lazily unpacking', () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
