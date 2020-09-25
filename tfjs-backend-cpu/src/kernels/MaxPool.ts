@@ -19,6 +19,7 @@ import {backend_util, KernelConfig, KernelFunc, MaxPool, MaxPoolAttrs, MaxPoolIn
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 import {pool} from '../utils/pool_utils';
+import {identity} from './Identity';
 
 export function maxPool(
     args:
@@ -53,8 +54,7 @@ export function maxPool(
 
   if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
       util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
-    res = {...x};
-    backend.incRef(x.dataId);
+    res = identity({inputs: {x}, backend});
   } else {
     const xValues = backend.data.get(x.dataId).values as TypedArray;
     const strides = util.computeStrides(x.shape);
