@@ -25,7 +25,7 @@ export interface ExecutionInfo {
   inputs: NamedTensorMap;
   outputs: Node[];
   usedNodes: Set<string>;
-  missingInputs: string[];
+  missingInputs: Node[];
   dynamicNode: Node;
   syncInputs: string[];
 }
@@ -42,7 +42,7 @@ export function getExecutionSubgraph(
     inputs: NamedTensorMap, outputs: Node[],
     weightMap: NamedTensorsMap): ExecutionInfo {
   const usedNodes = new Set<string>();
-  const missingInputs: string[] = [];
+  const missingInputs: Node[] = [];
   let dynamicNode: Node = null;
   let syncInputs: string[] = null;
 
@@ -73,7 +73,7 @@ export function getExecutionSubgraph(
       continue;
     }
     if (node.inputs.length === 0) {
-      missingInputs.push(node.name);
+      missingInputs.push(node);
       continue;
     }
     node.inputs.forEach(input => {
@@ -126,6 +126,60 @@ export function getNodesInTopologicalOrder(
     });
   }
   return orderedNodes;
+}
+
+/**
+ * Given the outputs, return a list of nodes in topological order that
+ * need to be executed to compute the outputs.
+ *
+ * This method is used for building initializer subgraph. The differences
+ * between this method and `getNodesInTopologicalOrder` is that the input nodes
+ * are not required to be tensors, they can be ops.
+ *
+ * @param outputs: Output nodes that the algorithm use to trace back to input
+ *     nodes and then calculate execution order from the input nodes.
+ */
+export function getGraphInTopologicalOrder(outputs: Node[]): Node[] {
+  const inputs = findInputs(outputs);
+  const frontier = [...inputs];
+  const seen = new Set<string>();
+  const orderedNodes: Node[] = [];
+
+  while (frontier.length > 0) {
+    const top = frontier.pop();
+    seen.add(top.name);
+    orderedNodes.push(top);
+    top.children.forEach(child => {
+      if (!seen.has(child.name) &&
+          child.inputs.every(input => seen.has(input.name))) {
+        frontier.push(child);
+      }
+    });
+  }
+
+  return orderedNodes;
+}
+
+// Output nodes that the algorithm use to trace back to input nodes.
+function findInputs(outputs: Node[]): Node[] {
+  const frontier = [...outputs];
+  const inputs = [];
+  const seen = new Set<string>();
+
+  while (frontier.length > 0) {
+    const top = frontier.pop();
+
+    if (!seen.has(top.name)) {
+      if (top.inputs.length > 0) {
+        frontier.push(...top.inputs);
+      } else {
+        inputs.push(top);
+      }
+      seen.add(top.name);
+    }
+  }
+
+  return inputs;
 }
 
 const CONTROL_FLOW_OPS = [

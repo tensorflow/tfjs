@@ -282,6 +282,11 @@ export declare interface ModelArtifacts {
    * User-defined metadata about the model.
    */
   userDefinedMetadata?: {};
+
+  /**
+   * Initializer for the model.
+   */
+  modelInitializer?: ModelInitializer;
 }
 
 /**
@@ -342,7 +347,17 @@ export declare interface ModelJSON {
    * User-defined metadata about the model.
    */
   userDefinedMetadata?: {};
+
+  /**
+   * Initializer for the model.
+   */
+  modelInitializer?: ModelInitializer;
 }
+
+export type ModelInitializer = {
+  outputs: [],
+  topology: {}
+};
 
 /**
  * Type definition for handlers of loading operations.
