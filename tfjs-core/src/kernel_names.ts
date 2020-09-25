@@ -746,6 +746,9 @@ export interface TransposeAttrs {
   perm: number[];
 }
 
+export const Unique = 'Unique';
+export type UniqueInputs = Pick<NamedTensorInfoMap, 'x'>;
+
 export type UnaryInputs = Pick<NamedTensorInfoMap, 'x'>;
 
 export const Unpack = 'Unpack';
