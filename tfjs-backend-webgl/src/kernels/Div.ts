@@ -75,7 +75,7 @@ function getDivStages(
     return stages.map(val => {
       const info = backend.makeTensorInfo([], 'float32');
       const data = backend.texData.get(info.dataId);
-      data.values = new Float32Array(val);
+      data.values = new Float32Array([val]);
       return {shape: [], dtype: 'float32', dataId: info.dataId};
     });
   }
