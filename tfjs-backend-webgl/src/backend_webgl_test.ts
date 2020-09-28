@@ -74,7 +74,7 @@ describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
     tf.env().set('WEBGL_CPU_FORWARD', webglCpuForwardFlagSaved);
   });
 
-  fit('concat throws when invalid non-axis shapes, axis=2', () => {
+  it('concat throws when invalid non-axis shapes, axis=2', () => {
     const axis = 2;
     const x1 = tf.tensor3d([1, 11, 2, 22], [1, 2, 2]);
     const x2 = tf.tensor3d(
