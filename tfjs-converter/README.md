@@ -48,8 +48,9 @@ virtualenv --no-site-packages venv
 
 __1. Install the TensorFlow.js pip package:__
 
+Install the library with interactive CLI:
 ```bash
- pip install tensorflowjs
+ pip install tensorflowjs[wizard]
 ```
 
 __2. Run the converter script provided by the pip package:__
