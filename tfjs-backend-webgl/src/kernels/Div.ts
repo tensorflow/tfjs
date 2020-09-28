@@ -15,9 +15,13 @@
  * =============================================================================
  */
 
-import {Div} from '@tensorflow/tfjs-core';
+import {BinaryInputs, Div, env} from '@tensorflow/tfjs-core';
 import {KernelConfig} from '@tensorflow/tfjs-core';
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+
+import {MathBackendWebGL} from '../backend_webgl';
+import {BinaryOpProgram} from '../binaryop_gpu';
+import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
+// import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
 // Without the equality check div produces 0.9999 for a = b, which when
 // floored can cause errors.
@@ -49,8 +53,22 @@ const DIV_PACKED = `
   return result;
 `;
 
-export const divKernelFunc = binaryKernelFunc(
-    DIV, DIV_PACKED, true /* checkOutOfBoundsForPackedProgram */);
+// export const divKernelFunc = binaryKernelFunc(
+//     DIV, DIV_PACKED, true /* checkOutOfBoundsForPackedProgram */);
+
+export function divKernelFunc(
+    {inputs, backend}: {inputs: BinaryInputs, backend: MathBackendWebGL}) {
+  const {a, b} = inputs;
+  const webglBackend = backend;
+  const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
+      new BinaryOpPackedProgram(
+          DIV_PACKED, a.shape, b.shape,
+          true /* checkOutOfBoundsForPackedProgram */) :
+      new BinaryOpProgram(DIV, a.shape, b.shape);
+  const $dtype = a.dtype;
+  const output = webglBackend.runWebGLProgram(program, [a, b], $dtype);
+  return output;
+}
 
 export const divConfig: KernelConfig = {
   kernelName: Div,
