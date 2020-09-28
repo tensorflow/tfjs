@@ -555,35 +555,6 @@ describeWithFlags('memory webgl', WEBGL_ENVS, () => {
   });
 });
 
-const DOWNLOAD_FLOAT_ENVS = {
-  flags: {'WEBGL_DOWNLOAD_FLOAT_ENABLED': true},
-  predicate: WEBGL_ENVS.predicate
-};
-
-describeWithFlags(
-    'GPGPUContext setOutputMatrixTexture', DOWNLOAD_FLOAT_ENVS, () => {
-      let gpgpu: GPGPUContext;
-      let texture: WebGLTexture;
-
-      beforeEach(() => {
-        gpgpu = new GPGPUContext();
-        // Silences debug warnings.
-        spyOn(console, 'warn');
-        tf.enableDebugMode();
-        texture = gpgpu.createFloat32MatrixTexture(1, 1);
-      });
-
-      afterEach(() => {
-        gpgpu.deleteMatrixTexture(texture);
-        gpgpu.dispose();
-      });
-
-      fit('sets the output texture property to the output texture', () => {
-        gpgpu.setOutputMatrixTexture(texture, 1, 1);
-        expect(gpgpu.outputTexture).toBe(texture);
-      });
-    });
-
 // We do not yet fully support half float backends. These tests are a starting
 // point.
 describeWithFlags('backend without render float32 support', WEBGL_ENVS, () => {
