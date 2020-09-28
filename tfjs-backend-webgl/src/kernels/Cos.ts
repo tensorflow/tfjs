@@ -15,18 +15,18 @@
  * =============================================================================
  */
 
-import {Cos, CosInputs, KernelConfig} from '@tensorflow/tfjs-core';
+import {Cos, KernelConfig} from '@tensorflow/tfjs-core';
 
-import {MathBackendWebGL} from '../backend_webgl';
-import {COS, UnaryOpProgram} from '../unaryop_gpu';
+import {CHECK_NAN_SNIPPET_UNARY, unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+
+const COS = CHECK_NAN_SNIPPET_UNARY + `
+  return cos(x);
+`;
+
+export const cosKernelFunc = unaryKernelFunc(COS);
 
 export const cosConfig: KernelConfig = {
   kernelName: Cos,
   backendName: 'webgl',
-  kernelFunc: ({inputs, backend}) => {
-    const {x} = inputs as CosInputs;
-    const webglBackend = backend as MathBackendWebGL;
-    const program = new UnaryOpProgram(x.shape, COS);
-    return webglBackend.runWebGLProgram(program, [x], x.dtype);
-  }
+  kernelFunc: cosKernelFunc,
 };

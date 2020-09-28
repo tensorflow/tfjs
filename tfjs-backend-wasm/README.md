@@ -79,22 +79,23 @@ backend:
 
 ```ts
 import {setWasmPaths} from '@tensorflow/tfjs-backend-wasm';
-// setWasmPaths accepts a `prefix` argument which indicates the path to the
-// directory where your WASM binaries are located.
+// setWasmPaths accepts a `prefixOrFileMap` argument which can be either a
+// string or an object. If passing in a string, this indicates the path to
+// the directory where your WASM binaries are located.
 setWasmPaths('www.yourdomain.com/'); // or tf.wasm.setWasmPaths when using <script> tags.
 tf.setBackend('wasm').then(() => {...});
 ```
 
-Note that if you call `setWasmPaths` with a `prefix`, it will be used to load
-each binary (SIMD-enabled, threading-enabled, etc.) However you can specify
-overrides for individual WASM binaries via the second `fileMap` argument of
-`setWasmPaths`. This is also helpful in case your binaries have been renamed.
+Note that if you call `setWasmPaths` with a string, it will be used to load
+each binary (SIMD-enabled, threading-enabled, etc.) Alternatively you can specify
+overrides for individual WASM binaries via a file map object. This is also helpful
+in case your binaries have been renamed.
 
 For example:
 
 ```ts
 import {setWasmPaths} from '@tensorflow/tfjs-backend-wasm';
-setWasmPaths(null /* custom prefix */, {
+setWasmPaths({
   'tfjs-backend-wasm.wasm': 'www.yourdomain.com/renamed.wasm',
   'tfjs-backend-wasm-simd.wasm': 'www.yourdomain.com/renamed-simd.wasm',
   'tfjs-backend-wasm-threaded-simd.wasm': 'www.yourdomain.com/renamed-threaded-simd.wasm'
@@ -108,7 +109,7 @@ optional `usePlatformFetch` argument to `true`:
 ```ts
 import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
 const usePlatformFetch = true;
-setWasmPaths(yourCustomPathPrefix, null /* file map */, usePlatformFetch);
+setWasmPaths(yourCustomPathPrefix, usePlatformFetch);
 tf.setBackend('wasm').then(() => {...});
 ```
 

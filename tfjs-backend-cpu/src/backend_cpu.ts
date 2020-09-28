@@ -37,7 +37,7 @@ function mapActivation(
   } else if (activation === 'relu') {
     return backend.relu(x);
   } else if (activation === 'elu') {
-    return backend.elu(x);
+    return tf.elu(x);
   } else if (activation === 'relu6') {
     return backend.relu6(x);
   } else if (activation === 'prelu') {
@@ -164,7 +164,7 @@ export class MathBackendCPU extends KernelBackend {
     return tf.buffer(t.shape, t.dtype, decodedData) as TensorBuffer<R>;
   }
 
-  private makeOutput<T extends Tensor>(
+  makeOutput<T extends Tensor>(
       values: backend_util.BackendValues, shape: number[], dtype: DataType): T {
     const dataId = this.write(values, shape, dtype);
     return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;
@@ -318,7 +318,7 @@ export class MathBackendCPU extends KernelBackend {
 
     // TODO(lina128): Use sub directly once softmax is modularized.
     const a = tf.sub(logits, maxLogit.reshape(expandedShape));
-    const b = this.exp(a);
+    const b = tf.exp(a);
     const sumExp = this.sum(b, axes).reshape(expandedShape);
 
     // TODO(annxingyuan): Call divImpl rather than op as part of softmax
@@ -615,17 +615,6 @@ export class MathBackendCPU extends KernelBackend {
     });
   }
 
-  logicalNot<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'logicalNot');
-
-    const values = this.readSync(x.dataId) as TypedArray;
-    const newValues = new Uint8Array(values.length);
-    for (let i = 0; i < values.length; ++i) {
-      newValues[i] = values[i] ? 0 : 1;
-    }
-    return this.makeOutput(newValues, x.shape, 'bool');
-  }
-
   logicalAnd(a: Tensor, b: Tensor): Tensor {
     assertNotComplex([a, b], 'logicalAnd');
 
@@ -789,188 +778,6 @@ export class MathBackendCPU extends KernelBackend {
     });
   }
 
-  ceil<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'ceil');
-
-    const values = this.readSync(x.dataId) as TypedArray;
-    const newValues = new Float32Array(values.length);
-    for (let i = 0; i < values.length; ++i) {
-      newValues[i] = Math.ceil(values[i]);
-    }
-    return this.makeOutput(newValues, x.shape, 'float32');
-  }
-
-  floor<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'floor');
-
-    const values = this.readSync(x.dataId) as TypedArray;
-    const newValues = new Float32Array(values.length);
-    for (let i = 0; i < values.length; ++i) {
-      newValues[i] = Math.floor(values[i]);
-    }
-    return this.makeOutput(newValues, x.shape, 'float32');
-  }
-
-  sign<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'x');
-
-    const values = this.readSync(x.dataId) as TypedArray;
-    const newValues = new Float32Array(values.length);
-    for (let i = 0; i < values.length; ++i) {
-      if (values[i] < 0) {
-        newValues[i] = -1;
-      } else if (values[i] > 0) {
-        newValues[i] = 1;
-      } else {
-        newValues[i] = 0;
-      }
-    }
-    return this.makeOutput(newValues, x.shape, 'float32');
-  }
-
-  isNaN<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'x');
-
-    const values = this.readSync(x.dataId) as TypedArray;
-    const newValues = new Uint8Array(values.length);
-    for (let i = 0; i < values.length; ++i) {
-      if (Number.isNaN(values[i])) {
-        newValues[i] = 1;
-      }
-    }
-    return this.makeOutput(newValues, x.shape, 'bool');
-  }
-
-  isInf<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'x');
-
-    const values = this.readSync(x.dataId) as TypedArray;
-    const newValues = new Uint8Array(values.length);
-    for (let i = 0; i < values.length; ++i) {
-      if (Math.abs(values[i]) === Infinity) {
-        newValues[i] = 1;
-      }
-    }
-    return this.makeOutput(newValues, x.shape, 'bool');
-  }
-
-  isFinite<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'x');
-
-    const values = this.readSync(x.dataId) as TypedArray;
-    const newValues = new Uint8Array(values.length);
-    for (let i = 0; i < values.length; ++i) {
-      if (Number.isFinite(values[i])) {
-        newValues[i] = 1;
-      }
-    }
-    return this.makeOutput(newValues, x.shape, 'bool');
-  }
-
-  round<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'round');
-
-    const values = this.readSync(x.dataId) as TypedArray;
-    const newValues = new Float32Array(values.length);
-    for (let i = 0; i < values.length; ++i) {
-      // The algorithm is based on banker's rounding.
-      const base = Math.floor(values[i]);
-      if (values[i] - base < 0.5) {
-        newValues[i] = Math.floor(values[i]);
-      } else if (values[i] - base > 0.5) {
-        newValues[i] = Math.ceil(values[i]);
-      } else {
-        if (base % 2.0 === 0.0) {
-          newValues[i] = base;
-        } else {
-          newValues[i] = base + 1.0;
-        }
-      }
-    }
-    return this.makeOutput(newValues, x.shape, 'float32');
-  }
-
-  exp<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'exp');
-
-    const values = this.readSync(x.dataId) as TypedArray;
-    const newValues = new Float32Array(values.length);
-    for (let i = 0; i < values.length; ++i) {
-      newValues[i] = Math.exp(values[i]);
-    }
-    return this.makeOutput(newValues, x.shape, 'float32');
-  }
-
-  expm1<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'expm1');
-
-    const values = this.readSync(x.dataId) as TypedArray;
-    const newValues = new Float32Array(values.length);
-    for (let i = 0; i < values.length; ++i) {
-      newValues[i] = Math.expm1(values[i]);
-    }
-    return this.makeOutput(newValues, x.shape, 'float32');
-  }
-
-  log<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'log');
-
-    const values = this.readSync(x.dataId) as TypedArray;
-    const newValues = new Float32Array(values.length);
-    for (let i = 0; i < values.length; ++i) {
-      const value = values[i];
-      newValues[i] = Math.log(value);
-    }
-    return this.makeOutput(newValues, x.shape, 'float32');
-  }
-
-  log1p<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'log1p');
-
-    const values = this.readSync(x.dataId) as TypedArray;
-    const newValues = new Float32Array(values.length);
-    for (let i = 0; i < values.length; ++i) {
-      const value = values[i];
-      newValues[i] = Math.log1p(value);
-    }
-    return this.makeOutput(newValues, x.shape, 'float32');
-  }
-
-  sqrt<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'sqrt');
-
-    const values = this.readSync(x.dataId) as TypedArray;
-    const newValues = new Float32Array(values.length);
-    for (let i = 0; i < values.length; ++i) {
-      const value = values[i];
-      newValues[i] = Math.sqrt(value);
-    }
-    return this.makeOutput(newValues, x.shape, 'float32');
-  }
-
-  rsqrt<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'rsqrt');
-
-    const values = this.readSync(x.dataId) as TypedArray;
-    const newValues = new Float32Array(values.length);
-    for (let i = 0; i < values.length; ++i) {
-      const value = values[i];
-      newValues[i] = 1 / Math.sqrt(value);
-    }
-    return this.makeOutput(newValues, x.shape, 'float32');
-  }
-
-  reciprocal<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'reciprocal');
-
-    const values = this.readSync(x.dataId) as TypedArray;
-    const newValues = new Float32Array(values.length);
-    for (let i = 0; i < values.length; ++i) {
-      newValues[i] = 1 / values[i];
-    }
-    return this.makeOutput(newValues, x.shape, 'float32');
-  }
-
   linear<T extends Tensor>(x: T): T {
     return x;
   }
@@ -1007,22 +814,6 @@ export class MathBackendCPU extends KernelBackend {
                (xValue, aValue) => xValue < 0 ? aValue * xValue : xValue) as T;
   }
 
-  elu<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'elu');
-
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < values.length; ++i) {
-      const v = values[i];
-      if (v >= 0) {
-        resultValues[i] = v;
-      } else {
-        resultValues[i] = (Math.exp(v) - 1);
-      }
-    }
-    return this.makeOutput(resultValues, x.shape, 'float32');
-  }
-
   eluDer<T extends Tensor>(dy: T, y: T): T {
     assertNotComplex([dy, y], 'eluDer');
 
@@ -1040,276 +831,12 @@ export class MathBackendCPU extends KernelBackend {
     return this.makeOutput(resultValues, y.shape, 'float32');
   }
 
-  selu<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'selu');
-
-    // Stable and Attracting Fixed Point (0, 1) for Normalized Weights.
-    // see: https://arxiv.org/abs/1706.02515
-    const scaleAlpha = backend_util.SELU_SCALEALPHA;
-    const scale = backend_util.SELU_SCALE;
-
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < values.length; ++i) {
-      const v = values[i];
-      if (v >= 0) {
-        resultValues[i] = scale * v;
-      } else {
-        resultValues[i] = scaleAlpha * (Math.exp(v) - 1);
-      }
-    }
-    return this.makeOutput(resultValues, x.shape, 'float32');
-  }
-
-  clip<T extends Tensor>(x: T, min: number, max: number): T {
-    assertNotComplex(x, 'clip');
-
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < values.length; ++i) {
-      const v = values[i];
-      resultValues[i] = v > max ? max : (v < min ? min : v);
-    }
-    return this.makeOutput(resultValues, x.shape, x.dtype);
-  }
-
-  abs<T extends Tensor>(x: T): T {
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < values.length; ++i) {
-      resultValues[i] = Math.abs(values[i]);
-    }
-
-    return this.makeOutput(resultValues, x.shape, 'float32');
-  }
-
-  complexAbs<T extends Tensor>(x: T): T {
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-
-    for (let i = 0; i < x.size; ++i) {
-      const real = values[i * 2];
-      const imag = values[i * 2 + 1];
-      resultValues[i] = Math.hypot(real, imag);
-    }
-    return this.makeOutput(resultValues, x.shape, 'float32');
-  }
-
-  sigmoid<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'sigmoid');
-
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < values.length; ++i) {
-      resultValues[i] = 1 / (1 + Math.exp(-values[i]));
-    }
-    return this.makeOutput(resultValues, x.shape, 'float32');
-  }
-
-  softplus<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'softplus');
-
-    // mirrors the implementation of tf.nn.softplus: https://goo.gl/vkcvwX
-
-    // epsilon is the difference between 1.0 and the next representable float.
-    // For a single precision 32 bit float this should be 2^-23, see:
-    // https://math.byu.edu/~schow/work/IEEEFloatingPoint.htm
-    const epsilon = 1.1920928955078125e-7;
-    const threshold = Math.log(epsilon) + 2.0;
-
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-
-    for (let i = 0; i < values.length; ++i) {
-      // Value above which exp(x) may overflow, but softplus(x) == x
-      // is within machine epsilon.
-      const tooLarge = values[i] > -threshold;
-
-      // Value below which exp(x) may underflow, but softplus(x) == exp(x)
-      // is within machine epsilon.
-      const tooSmall = values[i] < threshold;
-
-      const expX = Math.exp(values[i]);
-      let result;
-
-      if (tooSmall) {
-        result = expX;
-      } else if (tooLarge) {
-        result = values[i];
-      } else {
-        result = Math.log(1.0 + expX);
-      }
-      resultValues[i] = result;
-    }
-    return this.makeOutput(resultValues, x.shape, 'float32');
-  }
-
-  sin<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'sin');
-
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < values.length; ++i) {
-      resultValues[i] = Math.sin(values[i]);
-    }
-    return this.makeOutput(resultValues, x.shape, 'float32');
-  }
-
-  tan<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'tan');
-
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < values.length; ++i) {
-      resultValues[i] = Math.tan(values[i]);
-    }
-    return this.makeOutput(resultValues, x.shape, 'float32');
-  }
-
-  asin<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'asin');
-
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < values.length; ++i) {
-      resultValues[i] = Math.asin(values[i]);
-    }
-    return this.makeOutput(resultValues, x.shape, 'float32');
-  }
-
-  acos<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'acos');
-
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < values.length; ++i) {
-      resultValues[i] = Math.acos(values[i]);
-    }
-    return this.makeOutput(resultValues, x.shape, 'float32');
-  }
-
-  atan<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'atan');
-
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < values.length; ++i) {
-      resultValues[i] = Math.atan(values[i]);
-    }
-    return this.makeOutput(resultValues, x.shape, 'float32');
-  }
-
   atan2<T extends Tensor>(a: T, b: T): T {
     assertNotComplex([a, b], 'atan2');
 
     return this.broadcastedBinaryOp(
                a, b, a.dtype, (aValue, bValue) => Math.atan2(aValue, bValue)) as
         T;
-  }
-
-  sinh<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'sinh');
-
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < values.length; ++i) {
-      resultValues[i] = Math.sinh(values[i]);
-    }
-    return this.makeOutput(resultValues, x.shape, 'float32');
-  }
-
-  cosh<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'cosh');
-
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < values.length; ++i) {
-      resultValues[i] = Math.cosh(values[i]);
-    }
-    return this.makeOutput(resultValues, x.shape, 'float32');
-  }
-
-  tanh<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'tanh');
-
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < values.length; ++i) {
-      resultValues[i] = util.tanh(values[i]);
-    }
-    return this.makeOutput(resultValues, x.shape, 'float32');
-  }
-
-  asinh<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'asinh');
-
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < values.length; ++i) {
-      resultValues[i] = Math.asinh(values[i]);
-    }
-    return this.makeOutput(resultValues, x.shape, 'float32');
-  }
-
-  acosh<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'acosh');
-
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < values.length; ++i) {
-      resultValues[i] = Math.acosh(values[i]);
-    }
-    return this.makeOutput(resultValues, x.shape, 'float32');
-  }
-
-  atanh<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'atanh');
-
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < values.length; ++i) {
-      resultValues[i] = Math.atanh(values[i]);
-    }
-    return this.makeOutput(resultValues, x.shape, 'float32');
-  }
-
-  erf<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'erf');
-
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-    const p = backend_util.ERF_P;
-    const a1 = backend_util.ERF_A1;
-    const a2 = backend_util.ERF_A2;
-    const a3 = backend_util.ERF_A3;
-    const a4 = backend_util.ERF_A4;
-    const a5 = backend_util.ERF_A5;
-    for (let i = 0; i < values.length; ++i) {
-      const sign = Math.sign(values[i]);
-      const v = Math.abs(values[i]);
-      const t = 1.0 / (1.0 + p * v);
-      resultValues[i] = sign *
-          (1.0 -
-           (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t *
-               Math.exp(-v * v));
-    }
-    return this.makeOutput(resultValues, x.shape, 'float32');
-  }
-
-  step<T extends Tensor>(x: T, alpha = 0): T {
-    assertNotComplex(x, 'step');
-
-    const resultValues = new Float32Array(x.size);
-    const values = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < values.length; ++i) {
-      const value = values[i];
-      if (isNaN(value)) {
-        resultValues[i] = NaN;
-      } else {
-        resultValues[i] = value > 0 ? 1 : alpha;
-      }
-    }
-    return this.makeOutput(resultValues, x.shape, 'float32');
   }
 
   fusedConv2d(
@@ -2777,50 +2304,6 @@ export class MathBackendCPU extends KernelBackend {
       }
     }
     return tf.tensor4d(output, x.shape, x.dtype);
-  }
-
-  batchNorm(
-      x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
-      offset?: Tensor4D|Tensor1D, scale?: Tensor4D|Tensor1D,
-      varianceEpsilon?: number): Tensor4D {
-    assertNotComplex([x, mean, variance, scale, offset], 'batchNorm');
-
-    const xVals = this.readSync(x.dataId) as TypedArray;
-    const mVals = this.readSync(mean.dataId) as TypedArray;
-    const varVals = this.readSync(variance.dataId) as TypedArray;
-    const sVals = scale ? this.readSync(scale.dataId) as TypedArray :
-                          new Float32Array([1]);
-    const offVals = offset ? this.readSync(offset.dataId) as TypedArray :
-                             new Float32Array([0]);
-    const outVals = new Float32Array(xVals.length);
-
-    const offValsLength = offVals.length;
-    const sValsLength = sVals.length;
-    const varValsLength = varVals.length;
-    const mValsLength = mVals.length;
-
-    let offi = 0;
-    let mi = 0;
-    let si = 0;
-    let vi = 0;
-    for (let i = 0; i < xVals.length; ++i) {
-      outVals[i] = offVals[offi++] +
-          (xVals[i] - mVals[mi++]) * sVals[si++] /
-              Math.sqrt(varVals[vi++] + varianceEpsilon);
-      if (offi >= offValsLength) {
-        offi = 0;
-      }
-      if (mi >= mValsLength) {
-        mi = 0;
-      }
-      if (si >= sValsLength) {
-        si = 0;
-      }
-      if (vi >= varValsLength) {
-        vi = 0;
-      }
-    }
-    return tf.tensor4d(outVals, x.shape);
   }
 
   localResponseNormalization4D(
