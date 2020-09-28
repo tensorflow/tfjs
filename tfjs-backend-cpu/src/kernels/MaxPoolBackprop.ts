@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {backend_util, buffer, KernelConfig, KernelFunc, MaxPoolBackprop, MaxPoolBackpropAttrs, MaxPoolBackpropInputs, Rank, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, KernelConfig, KernelFunc, MaxPoolBackprop, MaxPoolBackpropAttrs, MaxPoolBackpropInputs, Rank, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
@@ -30,28 +30,6 @@ export function maxPoolBackprop(args: {
   const x = input;
   assertNotComplex([input, output], 'maxPoolBackprop');
   const {filterSize, strides, pad, dimRoundingMode} = attrs;
-
-  const inputRank = input.shape.length;
-  const dyRank = dy.shape.length;
-  util.assert(
-      inputRank === dyRank,
-      () => `Rank of input (${inputRank}) does not match rank of dy ` +
-          `(${dyRank})`);
-
-  util.assert(
-      dyRank === 4,
-      () => `Error in maxPoolBackprop: dy must be rank 4 but got rank ` +
-          `${dyRank}.`);
-  util.assert(
-      inputRank === 4,
-      () => `Error in maxPoolBackprop: input must be rank 4 but got rank ` +
-          `${inputRank}.`);
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in maxPoolBackprop: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
 
   const convInfo = backend_util.computePool2DInfo(
       x.shape as [number, number, number, number], filterSize, strides,

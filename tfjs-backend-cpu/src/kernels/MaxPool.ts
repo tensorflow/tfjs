@@ -31,21 +31,10 @@ export function maxPool(
   const {filterSize, strides, pad, dimRoundingMode} = attrs;
   const dilations = 1;
 
-  const xRank = x.shape.length;
-  util.assert(
-      xRank === 4,
-      () => `Error in maxPool: input must be rank 4 but got rank ${
-          x.shape.length}}.`);
   util.assert(
       backend_util.eitherStridesOrDilationsAreOne(strides, dilations),
       () => 'Error in maxPool: Either strides or dilations must be 1. ' +
           `Got strides ${strides} and dilations '${dilations}'`);
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in maxPool: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
 
   const convInfo = backend_util.computePool2DInfo(
       x.shape as [number, number, number, number], filterSize, strides,
