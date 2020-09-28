@@ -70,13 +70,16 @@ function getDivStages(
       stages.push(Math.min(max, divisorVal / util.sizeFromShape(stages)));
     }
 
-    return stages.map(val => {
-      const info = backend.makeTensorInfo([], 'float32');
-      const data = backend.texData.get(info.dataId);
-      data.values = new Float32Array([val]);
-      return {shape: [], dtype: 'float32', dataId: info.dataId};
-    });
+    if (stages.length > 1) {
+      return stages.map(val => {
+        const info = backend.makeTensorInfo([], 'float32');
+        const data = backend.texData.get(info.dataId);
+        data.values = new Float32Array([val]);
+        return {shape: [], dtype: 'float32', dataId: info.dataId};
+      });
+    }
   }
+
   return [divisor];
 }
 
@@ -95,16 +98,15 @@ export function divKernelFunc(
             DIV_PACKED, a.shape, divisor.shape,
             true /* checkOutOfBoundsForPackedProgram */) :
         new BinaryOpProgram(DIV, a.shape, divisor.shape);
-
     const previousResult = result;
     result = webglBackend.runWebGLProgram(program, [result, divisor], $dtype);
 
     if (previousResult.dataId !== a.dataId) {
-      webglBackend.disposeData(previousResult.dataId);
+      webglBackend.disposeIntermediateTensorInfo(previousResult);
     }
 
     if (divisor.dataId !== b.dataId) {
-      webglBackend.disposeData(divisor.dataId);
+      webglBackend.disposeIntermediateTensorInfo(divisor);
     }
   }
 

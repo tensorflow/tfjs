@@ -57,7 +57,7 @@ export function reduce(
     result = backend.runWebGLProgram(program, [result], dtype);
 
     if (previousResult.dataId !== x.dataId) {
-      backend.disposeData(previousResult.dataId);
+      backend.disposeIntermediateTensorInfo(previousResult);
     }
   }
 
