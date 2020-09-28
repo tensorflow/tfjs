@@ -24,26 +24,33 @@ import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_ut
 import * as webgl_util from '../webgl_util';
 
 describeWithFlags('Div.', ALL_ENVS, () => {
-  fit('does not have memory leak.', async () => {
-    const MAX_FLOAT16 = 65504;
-    spyOn(webgl_util, 'canBeRepresented').and.callFake((val: number) => {
-      if (val > MAX_FLOAT16) {
-        return false;
-      }
-      return true;
-    });
+  it('Multi-stage div produces the correct result and does not leak memory.',
+     async () => {
+       const MAX_FLOAT16 = 65504;
+       // We can't simply flip the WEBGL_RENDER_FLOAT32_ENABLED flag to test
+       // this functionality because as part of test cleanup we dispose webgl
+       // textures. WEBGL_RENDER_FLOAT32_ENABLED determines the physical type
+       // of the textures we register / dispose, so by altering
+       // WEBGL_RENDER_FLOAT32_ENABLED within a test we may end up trying to
+       // clean up textures that were never registered.
+       spyOn(webgl_util, 'canBeRepresented').and.callFake((val: number) => {
+         if (val > MAX_FLOAT16) {
+           return false;
+         }
+         return true;
+       });
 
-    // We can't flip the WEBGL_RENDER_FLOAT32_ENABLED flag to test this because
-    // the cleanup mechanisms in our test suite will try to clean up webgl
-    // textures, and if we mess with this flag then the physical texture types
-    // will also change.
+       const a = tf.tensor1d([1000, 2000, -2000, -4000]);
+       const b = 70000;
 
-    const a = tf.tensor1d([1000, 2000, -2000, -4000]);
-    const b = 70000;
-    const result = tf.div(a, b);
+       const nBeforeDataIds = tf.engine().backend.numDataIds();
+       const result = tf.div(a, b);
+       const nAfterDataIds = tf.engine().backend.numDataIds();
 
-    expect(result.shape).toEqual(a.shape);
-    const resultData = await result.data();
-    expectArraysClose(await resultData, [0.01429, 0.02857, -0.02857, -0.05714]);
-  });
+       expect(nAfterDataIds).toBe(nBeforeDataIds + 1);
+       expect(result.shape).toEqual(a.shape);
+       const resultData = await result.data();
+       expectArraysClose(
+           await resultData, [0.01429, 0.02857, -0.02857, -0.05714]);
+     });
 });
