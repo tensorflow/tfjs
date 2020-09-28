@@ -19,6 +19,8 @@ import '@tensorflow/tfjs-backend-cpu';
 
 import * as tfconverter from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {SMOKE} from './constants';
 
@@ -60,10 +62,10 @@ const CUSTOM_HTTP_MODEL_LOADER = {
   }
 };
 
-describe(
+describeWithFlags(
     `${SMOKE} A custom op that calls unmodularized kernels and modularized ` +
         `kernels`,
-    () => {
+    ALL_ENVS, () => {
       it('should have no memory leak in a model run.', async () => {
         const model = new tfconverter.GraphModel(MODEL_URL);
 

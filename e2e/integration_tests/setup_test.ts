@@ -15,7 +15,13 @@
  * =============================================================================
  */
 
+// tslint:disable-next-line: no-imports-from-dist
+import {registerTestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
 import {TAGS} from './constants';
+
+registerTestEnv({name: 'cpu', backendName: 'cpu'});
+registerTestEnv({name: 'webgl2', backendName: 'webgl'});
 
 // tslint:disable-next-line:no-any
 declare let __karma__: any;

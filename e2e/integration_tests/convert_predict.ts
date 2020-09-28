@@ -30,6 +30,8 @@ import '@tensorflow/tfjs-backend-webgl';
 
 import * as tfconverter from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import * as tfl from '@tensorflow/tfjs-layers';
 
 import {BACKENDS, CONVERT_PREDICT_MODELS, KARMA_SERVER, REGRESSION} from './constants';
@@ -37,7 +39,7 @@ import {createInputTensors} from './test_util';
 
 const DATA_URL = 'convert_predict_data';
 
-describe(`${REGRESSION} convert_predict`, () => {
+describeWithFlags(`${REGRESSION} convert_predict`, ALL_ENVS, () => {
   for (const modelType in CONVERT_PREDICT_MODELS) {
     const models =
         (CONVERT_PREDICT_MODELS as {[key: string]: string[]})[modelType];

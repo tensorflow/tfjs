@@ -20,6 +20,8 @@ import '@tensorflow/tfjs-backend-webgl';
 
 import * as tfconverter from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import * as tfl from '@tensorflow/tfjs-layers';
 
 import {BACKENDS, KARMA_SERVER, SMOKE} from './constants';
@@ -35,7 +37,7 @@ function getModelUrl(modelType: string) {
  *  - Load layers or graph model.
  *  - Make inference using each backends.
  */
-describe(`${SMOKE} load_predict`, () => {
+describeWithFlags(`${SMOKE} load_predict`, ALL_ENVS, () => {
   describe('layers_model', () => {
     let model: tfl.LayersModel;
     let inputs: tfc.Tensor;

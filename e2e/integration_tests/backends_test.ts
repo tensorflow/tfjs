@@ -19,13 +19,15 @@ import '@tensorflow/tfjs-backend-cpu';
 import '@tensorflow/tfjs-backend-webgl';
 
 import * as tfc from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {SMOKE} from './constants';
 
 /**
  *  This file tests backend switching scenario.
  */
-describe(`${SMOKE} backends`, () => {
+describeWithFlags(`${SMOKE} backends`, ALL_ENVS, () => {
   describe('switch', () => {
     beforeAll(() => {
       tfc.env().set('WEBGL_CPU_FORWARD', false);

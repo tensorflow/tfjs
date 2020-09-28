@@ -19,6 +19,8 @@ import '@tensorflow/tfjs-backend-cpu';
 import '@tensorflow/tfjs-backend-webgl';
 
 import * as tfc from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import * as tfl from '@tensorflow/tfjs-layers';
 
 import {BACKENDS, KARMA_SERVER, LAYERS_MODELS, REGRESSION} from './constants';
@@ -36,7 +38,7 @@ const DATA_URL = 'create_save_predict_data';
  *  - Make inference using each backends, and validate the results against
  *    Keras results.
  */
-describe(`${REGRESSION} create_save_predict`, () => {
+describeWithFlags(`${REGRESSION} create_save_predict`, ALL_ENVS, () => {
   LAYERS_MODELS.forEach(model => {
     describe(`${model}`, () => {
       let inputsData: tfc.TypedArray[];
