@@ -35,8 +35,8 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
 
     // 5 new Tensors: real1, imag1, complex1, and two internal clones.
     expect(tf.memory().numTensors).toBe(numTensors + 5);
-    // Only 3 new data buckets are actually created.
-    expect(tf.memory().numDataBuffers).toBe(numBuffers + 3);
+    // 5 new data buckets are created.
+    expect(tf.memory().numDataBuffers).toBe(numBuffers + 5);
     numTensors = tf.memory().numTensors;
     numBuffers = tf.memory().numDataBuffers;
 
@@ -46,8 +46,8 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
 
     // 5 new Tensors: real1, imag1, complex1, and two internal clones.
     expect(tf.memory().numTensors).toBe(numTensors + 5);
-    // Only 3 new data buckets are actually created.
-    expect(tf.memory().numDataBuffers).toBe(numBuffers + 3);
+    // 5 new data buckets are created.
+    expect(tf.memory().numDataBuffers).toBe(numBuffers + 5);
     numTensors = tf.memory().numTensors;
     numBuffers = tf.memory().numDataBuffers;
 
