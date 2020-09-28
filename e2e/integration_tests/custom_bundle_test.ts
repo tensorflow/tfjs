@@ -32,7 +32,7 @@ const DEBUG_WORKER_SCRIPT = false;
 
 describeWithFlags(`${REGRESSION} blazeface`, CHROME_ENVS, () => {
   // tslint:disable-next-line: ban
-  fdescribe('webpack', () => {
+  describeWithFlags('webpack', CHROME_ENVS, () => {
     let webpackBundle: {full: string, custom: string};
     beforeAll(async () => {
       const [webpackFull, webpackCustom] = await Promise.all([

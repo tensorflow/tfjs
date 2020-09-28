@@ -34,7 +34,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import * as tfl from '@tensorflow/tfjs-layers';
 
-import {BACKENDS, CONVERT_PREDICT_MODELS, KARMA_SERVER, REGRESSION} from './constants';
+import {CONVERT_PREDICT_MODELS, KARMA_SERVER, REGRESSION} from './constants';
 import {createInputTensors} from './test_util';
 
 const DATA_URL = 'convert_predict_data';
@@ -91,68 +91,65 @@ describeWithFlags(`${REGRESSION} convert_predict`, ALL_ENVS, () => {
 
         afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
 
-        BACKENDS.forEach(backend => {
-          it(`with ${backend}.`, async () => {
-            await tfc.setBackend(backend);
-            if (modelType === 'graph_model') {
-              const $model = await tfconverter.loadGraphModel(
-                  `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
-              const numTensors = tfc.memory().numTensors;
+        // BACKENDS.forEach(backend => {
+        it(`with ${tfc.getBackend()}.`, async () => {
+          if (modelType === 'graph_model') {
+            const $model = await tfconverter.loadGraphModel(
+                `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
+            const numTensors = tfc.memory().numTensors;
 
-              const namedInputs = createInputTensors(
-                                      inputsData, inputsShapes, inputsDtypes,
-                                      inputsNames) as tfc.NamedTensorMap;
+            const namedInputs = createInputTensors(
+                                    inputsData, inputsShapes, inputsDtypes,
+                                    inputsNames) as tfc.NamedTensorMap;
 
-              const result =
-                  await $model.executeAsync(namedInputs, tfOutputNames);
+            const result =
+                await $model.executeAsync(namedInputs, tfOutputNames);
 
-              const ys = ($model.outputs.length === 1 ? [result] : result) as
-                  tfc.Tensor[];
+            const ys = ($model.outputs.length === 1 ? [result] : result) as
+                tfc.Tensor[];
 
-              // Validate outputs with tf results.
-              for (let i = 0; i < ys.length; i++) {
-                const y = ys[i];
-                expect(y.shape).toEqual(tfOutputShapes[i]);
-                expect(y.dtype).toEqual(tfOutputDtypes[i]);
-                tfc.test_util.expectArraysClose(
-                    await y.data(), tfOutputData[i]);
-              }
-
-              // Dispose all tensors;
-              Object.keys(namedInputs)
-                  .forEach(key => namedInputs[key].dispose());
-              ys.forEach(tensor => tensor.dispose());
-
-              expect(tfc.memory().numTensors).toEqual(numTensors);
+            // Validate outputs with tf results.
+            for (let i = 0; i < ys.length; i++) {
+              const y = ys[i];
+              expect(y.shape).toEqual(tfOutputShapes[i]);
+              expect(y.dtype).toEqual(tfOutputDtypes[i]);
+              tfc.test_util.expectArraysClose(await y.data(), tfOutputData[i]);
             }
-            if (modelType === 'layers_model') {
-              const $model = await tfl.loadLayersModel(
-                  `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
 
-              const xs =
-                  createInputTensors(inputsData, inputsShapes) as tfc.Tensor[];
+            // Dispose all tensors;
+            Object.keys(namedInputs).forEach(key => namedInputs[key].dispose());
+            ys.forEach(tensor => tensor.dispose());
 
-              await tfc.setBackend(backend);
+            expect(tfc.memory().numTensors).toEqual(numTensors);
+          }
+          if (modelType === 'layers_model') {
+            const $model = await tfl.loadLayersModel(
+                `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
 
-              const result = $model.predict(xs);
+            const xs =
+                createInputTensors(inputsData, inputsShapes) as tfc.Tensor[];
 
-              const ys = ($model.outputs.length === 1 ? [result] : result) as
-                  tfc.Tensor[];
+            // await tfc.setBackend(backend);
 
-              // Validate outputs with keras results.
-              for (let i = 0; i < ys.length; i++) {
-                const y = ys[i];
-                expect(y.shape).toEqual(tfOutputShapes[i]);
-                tfc.test_util.expectArraysClose(
-                    await y.data(), tfOutputData[i], 0.005);
-              }
+            const result = $model.predict(xs);
 
-              // Dispose all tensors;
-              xs.forEach(tensor => tensor.dispose());
-              ys.forEach(tensor => tensor.dispose());
+            const ys = ($model.outputs.length === 1 ? [result] : result) as
+                tfc.Tensor[];
+
+            // Validate outputs with keras results.
+            for (let i = 0; i < ys.length; i++) {
+              const y = ys[i];
+              expect(y.shape).toEqual(tfOutputShapes[i]);
+              tfc.test_util.expectArraysClose(
+                  await y.data(), tfOutputData[i], 0.005);
             }
-          });
+
+            // Dispose all tensors;
+            xs.forEach(tensor => tensor.dispose());
+            ys.forEach(tensor => tensor.dispose());
+          }
         });
+        // });
       });
     });
   }
