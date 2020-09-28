@@ -21,8 +21,8 @@ import {expectArraysEqual} from '../test_util';
 
 import {tensor1d} from './tensor1d';
 
-describeWithFlags('unique jjj', ALL_ENVS, () => {
-  it('1d array with int32', async () => {
+describeWithFlags('unique', ALL_ENVS, () => {
+  it('1d tensor with int32', async () => {
     const x = tensor1d([1, 1, 2, 4, 4, 4, 7, 8, 8]);
     const {values, indices} = tf.unique(x);
 
@@ -30,5 +30,45 @@ describeWithFlags('unique jjj', ALL_ENVS, () => {
     expect(indices.shape).toEqual(x.shape);
     expectArraysEqual(await values.data(), [1, 2, 4, 7, 8]);
     expectArraysEqual(await indices.data(), [0, 0, 1, 2, 2, 2, 3, 4, 4]);
+  });
+
+  it('1d tensor with random int32', async () => {
+    const x = tf.randomNormal([700], 5, 2, 'int32');
+    const {values, indices} = tf.unique(x);
+
+    expect(indices.dtype).toBe('int32');
+    expect(indices.shape).toEqual(x.shape);
+    const xValues = await x.data();
+    const outputValues = await values.data();
+    const indicesValues = await indices.data();
+    for (let i = 0; i < xValues.length; i++) {
+      expect(xValues[i]).toBe(outputValues[indicesValues[i]]);
+    }
+  });
+
+  it('1d tensor with string', async () => {
+    const x = tensor1d(['a', 'b', 'b', 'c', 'c']);
+    const {values, indices} = tf.unique(x);
+
+    expect(indices.dtype).toBe('int32');
+    expect(indices.shape).toEqual(x.shape);
+    expectArraysEqual(await values.data(), ['a', 'b', 'c']);
+    expectArraysEqual(await indices.data(), [0, 1, 1, 2, 2]);
+  });
+
+  it('1d tensor with bool', async () => {
+    const x = tensor1d([true, true, false]);
+    const {values, indices} = tf.unique(x);
+
+    expect(indices.dtype).toBe('int32');
+    expect(indices.shape).toEqual(x.shape);
+    expectArraysEqual(await values.data(), [true, false]);
+    expectArraysEqual(await indices.data(), [0, 0, 1]);
+  });
+
+  it('throws for non 1-D tensor', () => {
+    expect(() => tf.unique([[1, 2], [3, 4]]))
+        .toThrowError(
+            /unique\(\) currently only supports 1-D tensor.*got rank 2.*/);
   });
 });

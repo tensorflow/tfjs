@@ -16,11 +16,9 @@
  */
 
 import {kernel_impls, KernelConfig, KernelFunc, TensorInfo, Unique, UniqueInputs} from '@tensorflow/tfjs-core';
+import {MathBackendWebGL} from '../backend_webgl';
 
-import {MathBackendCPU} from '../backend_cpu';
-import {assertNotComplex} from '../cpu_util';
-
-export function unique(args: {inputs: UniqueInputs, backend: MathBackendCPU}):
+export function unique(args: {inputs: UniqueInputs, backend: MathBackendWebGL}):
     TensorInfo[] {
   const {inputs, backend} = args;
   const {x} = inputs;
@@ -28,9 +26,9 @@ export function unique(args: {inputs: UniqueInputs, backend: MathBackendCPU}):
     throw new Error(`unique() currently only supports 1-D tensor (got rank ${
         x.shape.length})`);
   }
-  assertNotComplex(x, 'unique');
 
-  const values = backend.data.get(x.dataId).values;
+  // Download data and use the shared cpu implementation.
+  const values = backend.readSync(x.dataId);
   const {outputValues, indices} = kernel_impls.uniqueImpl(values, x.dtype);
   return [
     backend.makeTensorInfo(x.shape, x.dtype, outputValues),
@@ -40,6 +38,6 @@ export function unique(args: {inputs: UniqueInputs, backend: MathBackendCPU}):
 
 export const uniqueConfig: KernelConfig = {
   kernelName: Unique,
-  backendName: 'cpu',
+  backendName: 'webgl',
   kernelFunc: unique as {} as KernelFunc,
 };

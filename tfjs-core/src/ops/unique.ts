@@ -49,12 +49,8 @@ import {op} from './operation';
  */
 function unique_<T extends Tensor>(
     x: T|TensorLike, axis?: number): {values: T, indices: T} {
-  const $x = convertToTensor(x, 'x', 'unique');
-  if ($x.shape.length !== 1) {
-    throw new Error(`unique() currenlty only supports 1-D tensor (got rank ${
-        $x.shape.length})`);
-  }
-
+  // x can be of any dtype, thus null as the last argument.
+  const $x = convertToTensor(x, 'x', 'unique', null);
   const inputs: UniqueInputs = {x: $x};
   const [values, indices] =
       ENGINE.runKernel(

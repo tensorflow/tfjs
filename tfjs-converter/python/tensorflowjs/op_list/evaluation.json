@@ -21,5 +21,16 @@
         "type": "bool"
       }
     ]
+  },
+  {
+    "tfOpName": "Unique",
+    "category": "evaluation",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "x",
+        "type": "tensor"
+      }
+    ]
   }
 ]

@@ -54,5 +54,15 @@ describe('evaluation', () => {
         expect(tfOps.topk).toHaveBeenCalledWith(input1[0], 1, true);
       });
     });
+
+    describe('Unique', () => {
+      it('should return input', () => {
+        node.op = 'Unique';
+        node.inputParams['x'] = createTensorAttr(0);
+        spyOn(tfOps, 'unique').and.callThrough();
+        executeOp(node, {input1}, context);
+        expect(tfOps.unique).toHaveBeenCalledWith(input1[0]);
+      });
+    });
   });
 });

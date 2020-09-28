@@ -56,8 +56,7 @@ function findTestFiles(dir, files) {
         !fs.existsSync(path.join(filePath, 'package.json'))) {
       files = findTestFiles(filePath, files);
     } else if (
-        filePath.endsWith('unique_test.ts') &&
-        filePath !== 'src/setup_test.ts') {
+        filePath.endsWith('_test.ts') && filePath !== 'src/setup_test.ts') {
       files.push(filePath.replace('src/', './').replace('.ts', ''));
     }
   });

@@ -46,8 +46,7 @@ const customInclude = (testName: string) => {
   }
 
   // Include all other tests.
-  return testName.includes('jjj');
-  // return true;
+  return true;
 };
 setupTestFilters(TEST_FILTERS, customInclude);
 
