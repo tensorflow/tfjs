@@ -42,20 +42,6 @@ describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
     tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', false);
   });
 
-  fit('Tensor1D - int32', async () => {
-    let a = tf.tensor1d([1, 4, 5], 'int32');
-    let b = tf.tensor1d([2, 3, 5], 'int32');
-    expectArraysClose(await tf.notEqualStrict(a, b).data(), [1, 1, 0]);
-
-    a = tf.tensor1d([2, 2, 2], 'int32');
-    b = tf.tensor1d([2, 2, 2], 'int32');
-    expectArraysClose(await tf.notEqualStrict(a, b).data(), [0, 0, 0]);
-
-    a = tf.tensor1d([0, 0], 'int32');
-    b = tf.tensor1d([3, 3], 'int32');
-    expectArraysClose(await tf.notEqualStrict(a, b).data(), [1, 1]);
-  });
-
   it('should overflow if larger than 66k', async () => {
     const a = tf.tensor1d([Math.pow(2, 17)], 'float32');
     const b = tf.relu(a);

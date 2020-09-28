@@ -64,7 +64,7 @@ export function unaryKernelFunc(opSnippet: string): KernelFunc {
  */
 export function binaryKernelFunc({
   opSnippet,
-  packedOpSnippet = '',
+  packedOpSnippet,
   checkOutOfBounds = false,
   supportsComplex = false,
   cpuKernelImpl,
