@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {AvgPoolBackprop, AvgPoolBackpropAttrs, AvgPoolBackpropInputs, backend_util, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {AvgPoolBackprop, AvgPoolBackpropAttrs, AvgPoolBackpropInputs, backend_util, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {AvgPool2DBackpropProgram} from '../avg_pool_backprop_gpu';
 import {MathBackendWebGL} from '../backend_webgl';
@@ -30,17 +30,6 @@ export function avgPoolBackprop(args: {
   const x = input;
   assertNotComplex([dy, input], 'avgPoolBackprop');
   const {filterSize, strides, pad} = attrs;
-
-  const inputRank = input.shape.length;
-  const dyRank = dy.shape.length;
-  util.assert(
-      dyRank === 4,
-      () => `Error in avgPoolBackprop: dy must be rank 4 but got rank ` +
-          `${dyRank}.`);
-  util.assert(
-      inputRank === 4,
-      () => `Error in avgPoolBackprop: input must be rank 4 but got rank ` +
-          `${inputRank}.`);
 
   const convInfo = backend_util.computePool2DInfo(
       x.shape as [number, number, number, number], filterSize, strides,

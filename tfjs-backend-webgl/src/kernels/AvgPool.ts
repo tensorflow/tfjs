@@ -36,18 +36,6 @@ export function avgPool(args: {
       () => 'Error in avgPool: Either strides or dilations must be 1. ' +
           `Got strides ${strides} and dilations '${dilations}'`);
 
-  const xRank = x.shape.length;
-  util.assert(
-      xRank === 4,
-      () => `Error in avgPool: input must be rank 4 but got rank ${
-          x.shape.length}}.`);
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in avgPool: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
   const convInfo = backend_util.computePool2DInfo(
       x.shape as [number, number, number, number], filterSize, strides,
       dilations, pad, dimRoundingMode);
