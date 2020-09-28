@@ -18,6 +18,7 @@ import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
 import {addConfig} from './kernels/Add';
 import {atan2Config} from './kernels/Atan2';
+import {batchNormConfig} from './kernels/BatchNorm';
 import {castConfig} from './kernels/Cast';
 import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
@@ -50,6 +51,7 @@ import {transposeConfig} from './kernels/Transpose';
 const kernelConfigs: KernelConfig[] = [
   addConfig,
   atan2Config,
+  batchNormConfig,
   castConfig,
   cosConfig,
   complexConfig,
