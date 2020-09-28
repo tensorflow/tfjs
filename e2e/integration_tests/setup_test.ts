@@ -15,21 +15,11 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line: no-imports-from-dist
-import {parseTestEnvFromKarmaFlags, setTestEnvs, TEST_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import {TAGS} from './constants';
-
-// Set up a webgl test env as the default test env
-setTestEnvs([{name: 'webgl', backendName: 'webgl', isDataSync: true}]);
 
 // tslint:disable-next-line:no-any
 declare let __karma__: any;
 if (typeof __karma__ !== 'undefined') {
-  const testEnv = parseTestEnvFromKarmaFlags(__karma__.config.args, TEST_ENVS);
-  if (testEnv != null) {
-    setTestEnvs([testEnv]);
-  }
-
   const args = __karma__.config.args || [];
 
   let tags;
