@@ -52,7 +52,7 @@ if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
 
 
   # Build the wasm backend
-  yarn build-backend-wasm-ci
+  yarn build-backend-wasm
 
   # Generate custom bundle files for tests
   ./scripts/run-custom-builds.sh
