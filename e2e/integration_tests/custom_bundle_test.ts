@@ -14,7 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
-import {SMOKE} from './constants';
+// tslint:disable-next-line: no-imports-from-dist
+import {CHROME_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
+import {REGRESSION} from './constants';
 
 /**
  *  This file is the test suite for CUJ: custom_module->custom_bundle->predict.
@@ -27,7 +30,7 @@ function getBundleUrl(folder: string, custom: boolean, bundler: string) {
 
 const DEBUG_WORKER_SCRIPT = false;
 
-describe(`${SMOKE} blazeface`, () => {
+describeWithFlags(`${REGRESSION} blazeface`, CHROME_ENVS, () => {
   describe('webpack', () => {
     let webpackBundle: {full: string, custom: string};
     beforeAll(async () => {

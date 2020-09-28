@@ -19,9 +19,6 @@ set -e
 # Smoke tests run in PR and nightly builds.
 TAGS="#SMOKE"
 
-# Generate custom bundle files for tests
-./scripts/run-custom-builds.sh
-
 # Regression tests run in nightly builds.
 if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
     TAGS="${TAGS},#REGRESSION"
@@ -46,6 +43,12 @@ if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
   source ../scripts/cleanup-py-env.sh
 
   cd ..
+
+  # Build the wasm backend
+  yarn build-backend-wasm-ci
+
+  # Generate custom bundle files for tests
+  ./scripts/run-custom-builds.sh
 fi
 
 if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
