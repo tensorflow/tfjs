@@ -78,7 +78,9 @@ export function cast(
 
     const binaryInputs: BinaryInputs = {a: x, b: zerosTensorInfo};
 
-    return notEqual({inputs: binaryInputs, backend}) as TensorInfo;
+    const result = notEqual({inputs: binaryInputs, backend}) as TensorInfo;
+    backend.disposeIntermediateTensorInfo(zerosTensorInfo);
+    return result;
   }
 
   throw new Error(`Error in Cast: failed to cast ${x.dtype} to ${dtype}`);
