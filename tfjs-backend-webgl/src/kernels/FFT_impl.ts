@@ -15,18 +15,27 @@
  * =============================================================================
  */
 
-import {TensorInfo} from '@tensorflow/tfjs-core';
+import {TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {FFTProgram} from '../fft_gpu';
 
 import {complex} from './Complex';
+import {reshape} from './Reshape';
 
 export function fftImpl(
     x: TensorInfo, inverse: boolean, backend: MathBackendWebGL): TensorInfo {
   const xData = backend.texData.get(x.dataId);
 
-  const xShape = x.shape as [number, number];
+  const inputSize = util.sizeFromShape(x.shape);
+  // Collapse all outer dimensions to a single batch dimension.
+  const innerDimensionSize = x.shape[x.shape.length - 1];
+  const batch = inputSize / innerDimensionSize;
+
+  const input2D = reshape(
+      {inputs: {x}, backend, attrs: {shape: [batch, innerDimensionSize]}});
+
+  const xShape = input2D.shape as [number, number];
   const realProgram = new FFTProgram('real', xShape, inverse);
   const imagProgram = new FFTProgram('imag', xShape, inverse);
 
@@ -34,12 +43,12 @@ export function fftImpl(
     {
       dataId: xData.complexTensorInfos.real.dataId,
       dtype: xData.complexTensorInfos.real.dtype,
-      shape: x.shape
+      shape: xShape
     },
     {
       dataId: xData.complexTensorInfos.imag.dataId,
       dtype: xData.complexTensorInfos.imag.dtype,
-      shape: x.shape
+      shape: xShape
     }
   ];
 
@@ -52,5 +61,10 @@ export function fftImpl(
   backend.disposeIntermediateTensorInfo(realPart);
   backend.disposeIntermediateTensorInfo(imagPart);
 
-  return complexOutput;
+  const complexOutputReshaped =
+      reshape({inputs: {x: complexOutput}, backend, attrs: {shape: x.shape}});
+
+  backend.disposeIntermediateTensorInfo(complexOutputReshaped);
+
+  return complexOutputReshaped;
 }
