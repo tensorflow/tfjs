@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
-import {esmModuleProvider} from './esm_module_provider';
+import {esmImportProvider} from './esm_module_provider';
 
 describe('ESM Module Provider', () => {
   it('importCoreStr', () => {
-    const res = esmModuleProvider.importCoreStr();
+    const res = esmImportProvider.importCoreStr();
     expect(res).toContain(
         // tslint:disable-next-line: max-line-length
         `import {registerKernel, registerGradient} from '@tensorflow/tfjs-core/dist/base'`);
@@ -29,23 +29,23 @@ describe('ESM Module Provider', () => {
   });
 
   it('importConverterStr', () => {
-    const res = esmModuleProvider.importConverterStr();
+    const res = esmImportProvider.importConverterStr();
     expect(res).toBe(`export * from '@tensorflow/tfjs-converter';`);
   });
 
   it('importBackendStr cpu', () => {
-    const res = esmModuleProvider.importBackendStr('cpu');
+    const res = esmImportProvider.importBackendStr('cpu');
     expect(res).toBe(`export * from '@tensorflow/tfjs-backend-cpu/dist/base';`);
   });
 
   it('importBackendStr webgl', () => {
-    const res = esmModuleProvider.importBackendStr('webgl');
+    const res = esmImportProvider.importBackendStr('webgl');
     expect(res).toBe(
         `export * from '@tensorflow/tfjs-backend-webgl/dist/base';`);
   });
 
   it('importKernelStr Max cpu', () => {
-    const res = esmModuleProvider.importKernelStr('Max', 'cpu');
+    const res = esmImportProvider.importKernelStr('Max', 'cpu');
     expect(res.importStatement).toContain('import {maxConfig as Max_cpu}');
     expect(res.importStatement)
         .toContain(`from '@tensorflow/tfjs-backend-cpu/dist/kernels/Max'`);
@@ -54,7 +54,7 @@ describe('ESM Module Provider', () => {
   });
 
   it('importGradientConfigStr Max', () => {
-    const res = esmModuleProvider.importGradientConfigStr('Max');
+    const res = esmImportProvider.importGradientConfigStr('Max');
     expect(res.importStatement).toContain('import {maxGradConfig}');
     expect(res.importStatement)
         .toContain(`from '@tensorflow/tfjs-core/dist/gradients/Max_grad'`);
@@ -63,7 +63,7 @@ describe('ESM Module Provider', () => {
   });
 
   it('importGradientConfigStr Max', () => {
-    const res = esmModuleProvider.importGradientConfigStr('Max');
+    const res = esmImportProvider.importGradientConfigStr('Max');
     expect(res.importStatement).toContain('import {maxGradConfig}');
     expect(res.importStatement)
         .toContain(`from '@tensorflow/tfjs-core/dist/gradients/Max_grad'`);
@@ -72,19 +72,19 @@ describe('ESM Module Provider', () => {
   });
 
   it('importOpForConverterStr add', () => {
-    const res = esmModuleProvider.importOpForConverterStr('add');
+    const res = esmImportProvider.importOpForConverterStr('add');
     expect(res).toBe(`export {add} from '@tensorflow/tfjs-core/dist/ops/add';`);
   });
 
   it('importOpForConverterStr stridedSlice', () => {
-    const res = esmModuleProvider.importOpForConverterStr('stridedSlice');
+    const res = esmImportProvider.importOpForConverterStr('stridedSlice');
     expect(res).toBe(
         // tslint:disable-next-line: max-line-length
         `export {stridedSlice} from '@tensorflow/tfjs-core/dist/ops/strided_slice';`);
   });
 
   it('importNamespacedOpsForConverterStr image.resizeBilinear', () => {
-    const res = esmModuleProvider.importNamespacedOpsForConverterStr(
+    const res = esmImportProvider.importNamespacedOpsForConverterStr(
         'image', ['resizeBilinear']);
     expect(res).toBe(
         // tslint:disable-next-line: max-line-length
@@ -95,7 +95,7 @@ export const image = {
   });
 
   it('importNamespacedOpsForConverterStr two ops in namespace', () => {
-    const res = esmModuleProvider.importNamespacedOpsForConverterStr(
+    const res = esmImportProvider.importNamespacedOpsForConverterStr(
         'image', ['resizeBilinear', 'resizeNearestNeighbor']);
     expect(res).toBe(
         // tslint:disable-next-line: max-line-length
@@ -105,10 +105,5 @@ export const image = {
 \tresizeBilinear: resizeBilinear_image,
 \tresizeNearestNeighbor: resizeNearestNeighbor_image,
 };`);
-  });
-
-  it('pathToKernel2OpMapping', () => {
-    const res = esmModuleProvider.kernelToOpsMapPath();
-    expect(res).toContain(`tfjs-converter/metadata/kernel2op.json`);
   });
 });

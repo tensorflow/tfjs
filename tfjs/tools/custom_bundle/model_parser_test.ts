@@ -18,6 +18,7 @@
 // tslint:disable-next-line: no-imports-from-dist
 import * as tensorflow from '@tensorflow/tfjs-converter/dist/data/compiled_api';
 import {io} from '@tensorflow/tfjs-core';
+import * as fs from 'fs';
 
 import {getOps} from './model_parser';
 
@@ -251,13 +252,21 @@ const CONTROL_FLOW_V2_MODEL: io.ModelArtifacts = {
 };
 
 describe('Model parse', () => {
+  // tslint:disable-next-line: no-any
+  let kernelToOps: any;
+  beforeAll(() => {
+    const mappingPath =
+        require.resolve('@tensorflow/tfjs-converter/metadata/kernel2op.json');
+    kernelToOps = JSON.parse(fs.readFileSync(mappingPath, 'utf-8'));
+  });
+
   it('should get ops from simple model', () => {
-    const ops = getOps(SIMPLE_MODEL);
+    const ops = getOps(SIMPLE_MODEL, kernelToOps);
     expect(ops).toEqual(jasmine.arrayWithExactContents(['add', 'sub']));
   });
 
   it('should get ops from control flow v2 model', () => {
-    const ops = getOps(CONTROL_FLOW_V2_MODEL);
+    const ops = getOps(CONTROL_FLOW_V2_MODEL, kernelToOps);
     expect(ops).toEqual(jasmine.arrayWithExactContents([
       'cast', 'batchNorm', 'logicalNot', 'split', 'squeeze', 'add', 'conv2d',
       'fill', 'less'
