@@ -22,7 +22,6 @@ import {MathBackendWebGL} from '../backend_webgl';
 import {BinaryOpProgram} from '../binaryop_gpu';
 import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
 import {webgl_util} from '../webgl';
-// import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
 // Without the equality check div produces 0.9999 for a = b, which when
 // floored can cause errors.

@@ -16,15 +16,27 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-// import {test_util} from '@tensorflow/tfjs-core';
-// const {expectArraysClose} = test_util;
+import {test_util} from '@tensorflow/tfjs-core';
+const {expectArraysClose} = test_util;
 // tslint:disable-next-line: no-imports-from-dist
 import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
+import * as webgl_util from '../webgl_util';
+
 describeWithFlags('Div.', ALL_ENVS, () => {
   fit('does not have memory leak.', async () => {
-    const renderF32Saved = tf.env().getBool('WEBGL_RENDER_FLOAT32_ENABLED');
-    tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', false);
+    const MAX_FLOAT16 = 65504;
+    spyOn(webgl_util, 'canBeRepresented').and.callFake((val: number) => {
+      if (val > MAX_FLOAT16) {
+        return false;
+      }
+      return true;
+    });
+
+    // We can't flip the WEBGL_RENDER_FLOAT32_ENABLED flag to test this because
+    // the cleanup mechanisms in our test suite will try to clean up webgl
+    // textures, and if we mess with this flag then the physical texture types
+    // will also change.
 
     const a = tf.tensor1d([1000, 2000, -2000, -4000]);
     const b = 70000;
@@ -32,10 +44,6 @@ describeWithFlags('Div.', ALL_ENVS, () => {
 
     expect(result.shape).toEqual(a.shape);
     const resultData = await result.data();
-    console.log(Array.from(resultData));
-    // expectArraysClose(await resultData, [0.01429, 0.02857, -0.02857,
-    // -0.05714]);
-
-    tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', renderF32Saved);
+    expectArraysClose(await resultData, [0.01429, 0.02857, -0.02857, -0.05714]);
   });
 });
