@@ -19,8 +19,8 @@
 import {parseTestEnvFromKarmaFlags, setTestEnvs, TEST_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import {TAGS} from './constants';
 
-// Set up a CPU test env as the default test env
-setTestEnvs([{name: 'cpu', backendName: 'cpu', isDataSync: true}]);
+// Set up a webgl test env as the default test env
+setTestEnvs([{name: 'webgl', backendName: 'webgl', isDataSync: true}]);
 
 // tslint:disable-next-line:no-any
 declare let __karma__: any;
