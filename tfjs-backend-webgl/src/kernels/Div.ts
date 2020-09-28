@@ -21,6 +21,7 @@ import {KernelConfig} from '@tensorflow/tfjs-core';
 import {MathBackendWebGL} from '../backend_webgl';
 import {BinaryOpProgram} from '../binaryop_gpu';
 import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
+import {webgl_util} from '../webgl';
 // import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
 // Without the equality check div produces 0.9999 for a = b, which when
@@ -53,9 +54,6 @@ const DIV_PACKED = `
   return result;
 `;
 
-// export const divKernelFunc = binaryKernelFunc(
-//     DIV, DIV_PACKED, true /* checkOutOfBoundsForPackedProgram */);
-
 function getDivStages(
     divisor: TensorInfo, backend: MathBackendWebGL): TensorInfo[] {
   const divisorOnCPU = backend.texData.get(divisor.dataId).texture == null;
@@ -63,7 +61,7 @@ function getDivStages(
   if (divisorOnCPU && divisorIsScalar) {
     const divisorVal = backend.texData.get(divisor.dataId).values[0] as number;
     let max = divisorVal;
-    while (max > 4) {  // TODO: replace with numerical limit
+    while (!webgl_util.canBeRepresented(max)) {
       max = Math.sqrt(max);
     }
 
