@@ -118,20 +118,20 @@ export function binaryKernelFunc({
       return complexOutput;
     }
 
+    const $dtype = dtype || upcastType(a.dtype, b.dtype);
     if (webglBackend.shouldExecuteOnCPU([a, b]) && cpuKernelImpl != null) {
       const aData = webglBackend.texData.get(a.dataId);
       const bData = webglBackend.texData.get(b.dataId);
       const [outValues, outShape] = cpuKernelImpl(
           a.shape, b.shape, aData.values as TypedArray,
-          bData.values as TypedArray, 'float32');
+          bData.values as TypedArray, $dtype);
 
-      const out = webglBackend.makeTensorInfo(outShape, 'float32');
+      const out = webglBackend.makeTensorInfo(outShape, $dtype);
       const outData = webglBackend.texData.get(out.dataId);
       outData.values = outValues;
       return out;
     }
 
-    const $dtype = dtype || upcastType(a.dtype, b.dtype);
     const shouldUsePackedProgram =
         env().getBool('WEBGL_PACK_BINARY_OPERATIONS') &&
         packedOpSnippet != null;

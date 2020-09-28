@@ -21,7 +21,7 @@ import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
 const NOT_EQUAL = `return float(a != b);`;
 
-export const notEqual = binaryKernelFunc({opSnippet: NOT_EQUAL});
+export const notEqual = binaryKernelFunc({opSnippet: NOT_EQUAL, dtype: 'bool'});
 
 export const notEqualConfig: KernelConfig = {
   kernelName: NotEqual,
