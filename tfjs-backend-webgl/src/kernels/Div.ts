@@ -15,8 +15,9 @@
  * =============================================================================
  */
 
-import {BinaryInputs, Div, env} from '@tensorflow/tfjs-core';
+import {BinaryInputs, Div, env, TensorInfo, util} from '@tensorflow/tfjs-core';
 import {KernelConfig} from '@tensorflow/tfjs-core';
+import {sizeFromShape} from '@tensorflow/tfjs-core/dist/util';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {BinaryOpProgram} from '../binaryop_gpu';
@@ -56,18 +57,57 @@ const DIV_PACKED = `
 // export const divKernelFunc = binaryKernelFunc(
 //     DIV, DIV_PACKED, true /* checkOutOfBoundsForPackedProgram */);
 
+function getDivStages(
+    divisor: TensorInfo, backend: MathBackendWebGL): TensorInfo[] {
+  const divisorOnCPU = backend.texData.get(divisor.dataId).texture == null;
+  const divisorIsScalar = util.sizeFromShape(divisor.shape) === 1;
+  if (divisorOnCPU && divisorIsScalar) {
+    const divisorVal = backend.texData.get(divisor.dataId).values[0] as number;
+    let max = divisorVal;
+    while (max > 4) {  // TODO: replace with numerical limit
+      max = Math.sqrt(max);
+    }
+
+    const stages = [max];
+    while (util.sizeFromShape(stages) < divisorVal) {
+      stages.push(Math.min(max, divisorVal / util.sizeFromShape(stages)));
+    }
+
+    return stages.map(val => {
+      const info = backend.makeTensorInfo([], 'float32');
+      const data = backend.texData.get(info.dataId);
+      data.values = new Float32Array(val);
+      return {shape: [], dtype: 'float32', dataId: info.dataId};
+    });
+  }
+  return [divisor];
+}
+
 export function divKernelFunc(
     {inputs, backend}: {inputs: BinaryInputs, backend: MathBackendWebGL}) {
   const {a, b} = inputs;
   const webglBackend = backend;
-  const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
-      new BinaryOpPackedProgram(
-          DIV_PACKED, a.shape, b.shape,
-          true /* checkOutOfBoundsForPackedProgram */) :
-      new BinaryOpProgram(DIV, a.shape, b.shape);
+  const stages = getDivStages(b, webglBackend);
   const $dtype = a.dtype;
-  const output = webglBackend.runWebGLProgram(program, [a, b], $dtype);
-  return output;
+
+  let result = a;
+  for (let i = 0; i < stages.length; i++) {
+    const divisor = stages[i];
+    const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
+        new BinaryOpPackedProgram(
+            DIV_PACKED, a.shape, divisor.shape,
+            true /* checkOutOfBoundsForPackedProgram */) :
+        new BinaryOpProgram(DIV, a.shape, divisor.shape);
+
+    const previousResult = result;
+    result = webglBackend.runWebGLProgram(program, [result, divisor], $dtype);
+
+    if (previousResult.dataId !== a.dataId) {
+      webglBackend.disposeData(previousResult.dataId);
+    }
+  }
+
+  return result;
 }
 
 export const divConfig: KernelConfig = {
