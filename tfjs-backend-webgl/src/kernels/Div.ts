@@ -17,7 +17,6 @@
 
 import {BinaryInputs, Div, env, TensorInfo, util} from '@tensorflow/tfjs-core';
 import {KernelConfig} from '@tensorflow/tfjs-core';
-import {sizeFromShape} from '@tensorflow/tfjs-core/dist/util';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {BinaryOpProgram} from '../binaryop_gpu';
@@ -104,6 +103,10 @@ export function divKernelFunc(
 
     if (previousResult.dataId !== a.dataId) {
       webglBackend.disposeData(previousResult.dataId);
+    }
+
+    if (divisor.dataId !== b.dataId) {
+      webglBackend.disposeData(divisor.dataId);
     }
   }
 
