@@ -21,7 +21,7 @@ steps:
   id: 'test'
   args: ['test-ci']
   # TEMPORARY to test this PR.
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=TRUE']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=true']
 
   secretEnv: ['BROWSERSTACK_KEY']
 
