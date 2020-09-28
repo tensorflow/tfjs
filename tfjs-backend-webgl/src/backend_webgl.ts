@@ -808,7 +808,10 @@ export class MathBackendWebGL extends KernelBackend {
       const a3D = outerShapeB === 1 ? a : a.as3D(batch, sharedDim, 1);
       const axis = outerShapeB === 1 ? 2 : 1;
       const b3D = outerShapeB === 1 ? b.as3D(batch, 1, sharedDim) : b;
-      return this.multiply(a3D, b3D).sum(axis, true /* keepDims */);
+      // TODO(annxingyuan): Call multiply directly as part of batchMatMul
+      // modularization.
+      const product = tf.mul(a3D, b3D);
+      return product.sum(axis, true /* keepDims */);
     }
 
     const dtype = upcastType(a.dtype, b.dtype);
