@@ -227,8 +227,9 @@ const benchmarks = {
       await recognizer.ensureModelLoaded();
       return recognizer;
     },
-    predictFunc: (model) => {
-      const shape = model.modelInputShape();
+    predictFunc: () => {
+      return async (model) => {
+        const shape = model.modelInputShape();
       const mySpectrogramData = new Float32Array(shape.reduce((acc, curr) => {
         if(curr == null) {
           return acc;
@@ -237,7 +238,6 @@ const benchmarks = {
       }, 1));
       const x = tf.tensor4d(
         mySpectrogramData, [1].concat(shape.slice(1)));
-      return async () => {
         return await model.recognize(x);
       }
     }
