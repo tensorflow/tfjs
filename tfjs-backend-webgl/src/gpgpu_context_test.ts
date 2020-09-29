@@ -20,6 +20,7 @@ import * as tf from '@tensorflow/tfjs-core';
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {WEBGL_ENVS} from './backend_webgl_test_registry';
+import * as canvas_util from './canvas_util';
 import {getGlslDifferences} from './glsl_version';
 import {GPGPUContext, linearSearchLastTrue} from './gpgpu_context';
 import * as tex_util from './tex_util';
@@ -33,21 +34,26 @@ describeWithFlags(
     'GPGPUContext setOutputMatrixTexture', DOWNLOAD_FLOAT_ENVS, () => {
       let gpgpu: GPGPUContext;
       let texture: WebGLTexture;
+      let gl: WebGLRenderingContext;
 
       beforeEach(() => {
-        gpgpu = new GPGPUContext();
+        canvas_util.clearWebGLContext(tf.env().getNumber('WEBGL_VERSION'));
+        gl = canvas_util.getWebGLContext(tf.env().getNumber('WEBGL_VERSION'));
+        gpgpu = new GPGPUContext(gl);
         // Silences debug warnings.
         spyOn(console, 'warn');
         tf.enableDebugMode();
-        texture = gpgpu.createFloat32MatrixTexture(1, 1);
       });
 
       afterEach(() => {
-        gpgpu.deleteMatrixTexture(texture);
+        if (texture != null) {
+          gpgpu.deleteMatrixTexture(texture);
+        }
         gpgpu.dispose();
       });
 
       it('sets the output texture property to the output texture', () => {
+        texture = gpgpu.createFloat32MatrixTexture(1, 1);
         gpgpu.setOutputMatrixTexture(texture, 1, 1);
         expect(gpgpu.outputTexture).toBe(texture);
       });
@@ -55,11 +61,10 @@ describeWithFlags(
       it('sets the gl viewport to the output texture dimensions', () => {
         const columns = 456;
         const rows = 123;
-        const output = gpgpu.createFloat32MatrixTexture(rows, columns);
-        gpgpu.setOutputMatrixTexture(output, rows, columns);
+        texture = gpgpu.createFloat32MatrixTexture(rows, columns);
+        gpgpu.setOutputMatrixTexture(texture, rows, columns);
         const expected = new Int32Array([0, 0, columns, rows]);
         expect(gpgpu.gl.getParameter(gpgpu.gl.VIEWPORT)).toEqual(expected);
-        gpgpu.deleteMatrixTexture(output);
       });
     });
 
@@ -67,9 +72,12 @@ describeWithFlags(
     'GPGPUContext setOutputPackedMatrixTexture', DOWNLOAD_FLOAT_ENVS, () => {
       let gpgpu: GPGPUContext;
       let texture: WebGLTexture;
+      let gl: WebGLRenderingContext;
 
       beforeEach(() => {
-        gpgpu = new GPGPUContext();
+        canvas_util.clearWebGLContext(tf.env().getNumber('WEBGL_VERSION'));
+        gl = canvas_util.getWebGLContext(tf.env().getNumber('WEBGL_VERSION'));
+        gpgpu = new GPGPUContext(gl);
         // Silences debug warnings.
         spyOn(console, 'warn');
         tf.enableDebugMode();
