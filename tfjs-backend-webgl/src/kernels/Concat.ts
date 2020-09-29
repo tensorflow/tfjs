@@ -20,11 +20,6 @@ import {backend_util, Concat, ConcatAttrs, ConcatInputs, KernelConfig, KernelFun
 import {MathBackendWebGL} from '../backend_webgl';
 import {concatImpl} from './Concat_impl';
 
-// TODO: CPU FORWARDING
-// if (this.shouldExecuteOnCPU(tensors)) {
-//   return this.cpuBackend.concat(tensors, axis);
-// }
-
 export function concat(
     args:
         {inputs: ConcatInputs, attrs: ConcatAttrs, backend: MathBackendWebGL}):
@@ -49,6 +44,7 @@ export function concat(
   const shapes = $inputs.map(t => t.shape);
   backend_util.assertParamsConsistent(shapes, $axis);
 
+  // TODO(annxingyuan): Forward to the CPU where appropriate.
   return concatImpl($inputs, $axis, backend);
 }
 
