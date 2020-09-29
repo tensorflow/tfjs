@@ -23,6 +23,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as chalk from 'chalk';
+import * as yargs from 'yargs';
 
 import {OP_SCOPE_SUFFIX} from '@tensorflow/tfjs-core';
 
@@ -43,7 +44,15 @@ const DEFAULT_CUSTOM_BUNDLE_ARGS: Partial<CustomTFJSBundleConfig> = {
   moduleOptions: {},
 };
 
-const args = process.argv.slice(2);
+const argParser = yargs.options({
+  config: {
+    description: 'Path to custom bundle config file.',
+    type: 'string',
+    demandOption: true
+  }
+});
+
+const args = argParser.argv;
 
 function bail(errorMsg: string) {
   console.log(chalk.red(errorMsg));
@@ -51,7 +60,7 @@ function bail(errorMsg: string) {
 }
 
 function validateArgs(): CustomTFJSBundleConfig {
-  let configFilePath = args[0];
+  let configFilePath = args.config;
   if (configFilePath == null) {
     bail(`Error: no config file passed`);
   }
@@ -110,9 +119,9 @@ function validateArgs(): CustomTFJSBundleConfig {
 }
 
 function getKernelNamesForConfig(config: CustomTFJSBundleConfig) {
-  // Later on this will do a union of kernels from entries, models and kernels,
-  // (and kernels used by the converter itself) Currently we only support
-  // directly listing kernels. remember that this also needs to handle
+  // Later on this will do a union of kernels from entries, models and
+  // kernels, (and kernels used by the converter itself) Currently we only
+  // support directly listing kernels. remember that this also needs to handle
   // kernels used by gradients if forwardModeOnly is false.
 
   // Ops in core that are implemented as custom ops may appear in tf.profile
