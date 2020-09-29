@@ -22,7 +22,6 @@ const {expectArraysClose} = test_util;
 // tslint:disable-next-line: no-imports-from-dist
 import {describeWithFlags, ALL_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-const BYTES_PER_COMPLEX_ELEMENT = 4 * 2;
 describeWithFlags('complex64 memory', ALL_ENVS, () => {
   it('usage', async () => {
     let numTensors = tf.memory().numTensors;
@@ -142,7 +141,7 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
     expect(tf.engine().backend.numDataIds()).toEqual(numDataIds);
   });
 
-  fit('reshape', async () => {
+  it('reshape', async () => {
     const memoryBefore = tf.memory();
     const numDataIdsBefore = tf.engine().backend.numDataIds();
 
@@ -152,24 +151,12 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
     expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 1);
     // 1 new tensor and 2 underlying tensors for real and imag.
     expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore + 3);
-    // Bytes should be counted once.
-    console.log('count bytes 1');
-    console.log(memoryBefore.numBytes);
-    console.log(tf.memory().numBytes);
-    // expect(tf.memory().numBytes)
-    //     .toBe(memoryBefore.numBytes + 6 * BYTES_PER_COMPLEX_ELEMENT);
 
     const b = a.reshape([6]);
     // 1 new tensor from the reshape.
     expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 2);
     // No new tensor data.
     expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore + 3);
-    console.log('count bytes 2');
-    console.log(memoryBefore.numBytes);
-    console.log(tf.memory().numBytes);
-    // No new bytes from a reshape.
-    // expect(tf.memory().numBytes)
-    //     .toBe(memoryBefore.numBytes + 6 * BYTES_PER_COMPLEX_ELEMENT);
 
     expect(b.dtype).toBe('complex64');
     expect(b.shape).toEqual([6]);
@@ -180,56 +167,46 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
     expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 1);
     // Tensor data not deleted yet.
     expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore + 3);
-    console.log('count bytes 3');
-    console.log(memoryBefore.numBytes);
-    console.log(tf.memory().numBytes);
-    // Byte count should not change because the refcounts are all 1.
-    // expect(tf.memory().numBytes)
-    //     .toBe(memoryBefore.numBytes + 6 * BYTES_PER_COMPLEX_ELEMENT);
 
     a.dispose();
     // All the tensors should now be disposed.
     expect(tf.memory().numTensors).toBe(memoryBefore.numTensors);
     expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore);
     // The underlying memory should now be released.
-    console.log('count bytes 4');
-    console.log(memoryBefore.numBytes);
-    console.log(tf.memory().numBytes);
-    // expect(tf.memory().numBytes).toBe(memoryBefore.numBytes);
   });
 
   it('clone', async () => {
     const memoryBefore = tf.memory();
+    const numDataIdsBefore = tf.engine().backend.numDataIds();
 
     const a = tf.complex([[1, 3, 5], [7, 9, 11]], [[2, 4, 6], [8, 10, 12]]);
 
-    // 3 new tensors, the complex64 tensor and the 2 underlying float32 tensors.
-    expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 3);
-    // Bytes should be counted once
-    expect(tf.memory().numBytes)
-        .toBe(memoryBefore.numBytes + 6 * BYTES_PER_COMPLEX_ELEMENT);
+    // 1 new tensor, the complex64 tensor
+    expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 1);
+    // 1 new tensor and 2 underlying tensors for real and imag.
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore + 3);
 
     const b = a.clone();
+
     // 1 new tensor from the clone.
-    expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 4);
-    // No new bytes from a clone.
-    expect(tf.memory().numBytes)
-        .toBe(memoryBefore.numBytes + 6 * BYTES_PER_COMPLEX_ELEMENT);
+    expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 2);
+    // No new tensor data.
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore + 3);
 
     expect(b.dtype).toBe('complex64');
     expectArraysClose(await a.data(), await b.data());
 
     b.dispose();
+
     // 1 complex tensor should be disposed.
-    expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 3);
-    // Byte count should not change because the refcounts are all 1.
-    expect(tf.memory().numBytes)
-        .toBe(memoryBefore.numBytes + 6 * BYTES_PER_COMPLEX_ELEMENT);
+    expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 1);
+    // Tensor data not deleted yet.
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore + 3);
 
     a.dispose();
+
     // All the tensors should now be disposed.
     expect(tf.memory().numTensors).toBe(memoryBefore.numTensors);
-    // The underlying memory should now be released.
-    expect(tf.memory().numBytes).toBe(memoryBefore.numBytes);
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore);
   });
 });
