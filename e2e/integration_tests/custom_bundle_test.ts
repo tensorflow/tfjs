@@ -30,7 +30,7 @@ function getBundleUrl(folder: string, custom: boolean, bundler: string) {
 
 const DEBUG_WORKER_SCRIPT = false;
 
-describeWithFlags(`${REGRESSION} blazeface`, CHROME_ENVS, () => {
+describe(`${REGRESSION} blazeface`, () => {
   // tslint:disable-next-line: ban
   describeWithFlags('webpack', CHROME_ENVS, () => {
     let webpackBundle: {full: string, custom: string};

@@ -60,15 +60,11 @@ describeWithFlags(`${REGRESSION} create_save_predict`, ALL_ENVS, () => {
             ]);
       });
 
-      // BACKENDS.forEach(backend => {
       it(`with ${tfc.getBackend()}.`, async () => {
         const $model = await tfl.loadLayersModel(
             `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
 
         const xs = createInputTensors(inputsData, inputsShapes) as tfc.Tensor[];
-
-        // await tfc.setBackend(backend);
-
         const result = $model.predict(xs);
 
         const ys =
@@ -86,7 +82,6 @@ describeWithFlags(`${REGRESSION} create_save_predict`, ALL_ENVS, () => {
         xs.forEach(tensor => tensor.dispose());
         ys.forEach(tensor => tensor.dispose());
       });
-      // });
     });
   });
 });

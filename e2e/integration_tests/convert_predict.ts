@@ -91,7 +91,6 @@ describeWithFlags(`${REGRESSION} convert_predict`, ALL_ENVS, () => {
 
         afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
 
-        // BACKENDS.forEach(backend => {
         it(`with ${tfc.getBackend()}.`, async () => {
           if (modelType === 'graph_model') {
             const $model = await tfconverter.loadGraphModel(
@@ -129,8 +128,6 @@ describeWithFlags(`${REGRESSION} convert_predict`, ALL_ENVS, () => {
             const xs =
                 createInputTensors(inputsData, inputsShapes) as tfc.Tensor[];
 
-            // await tfc.setBackend(backend);
-
             const result = $model.predict(xs);
 
             const ys = ($model.outputs.length === 1 ? [result] : result) as
@@ -149,7 +146,6 @@ describeWithFlags(`${REGRESSION} convert_predict`, ALL_ENVS, () => {
             ys.forEach(tensor => tensor.dispose());
           }
         });
-        // });
       });
     });
   }

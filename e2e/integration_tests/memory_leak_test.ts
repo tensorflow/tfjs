@@ -47,10 +47,9 @@ const CUSTOM_OP_MODEL = {
 const weightsManifest: tfc.io.WeightsManifestEntry[] =
     [{'name': 'Const', 'dtype': 'float32', 'shape': [1]}];
 
-const bias = tfc.tensor1d([0], 'float32');
-
 const CUSTOM_HTTP_MODEL_LOADER = {
   load: async () => {
+    const bias = tfc.tensor1d([0], 'float32');
     return {
       modelTopology: CUSTOM_OP_MODEL,
       weightSpecs: weightsManifest,
