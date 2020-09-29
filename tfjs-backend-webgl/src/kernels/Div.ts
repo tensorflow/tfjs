@@ -74,7 +74,6 @@ function getDivSteps(
     }
 
     const stages = [max];
-
     while (overflow ? util.sizeFromShape(stages) < divisorVal :
                       util.sizeFromShape(stages) > divisorVal) {
       stages.push(Math.min(max, divisorVal / util.sizeFromShape(stages)));
