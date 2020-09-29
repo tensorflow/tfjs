@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, max, NumericDataType, Rank, Scalar, ShapeMap, slice_util, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, max, NumericDataType, Rank, Scalar, ShapeMap, slice_util, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
 const nonMaxSuppressionV3Impl = kernel_impls.nonMaxSuppressionV3Impl;
 const split = kernel_impls.split;
@@ -25,7 +25,6 @@ const topkImpl = kernel_impls.topkImpl;
 const whereImpl = kernel_impls.whereImpl;
 import * as seedrandom from 'seedrandom';
 import {assertNotComplex} from './cpu_util';
-import {maxPoolPositions, pool} from './utils/pool_utils';
 
 interface DataId {}
 
@@ -1529,128 +1528,6 @@ export class MathBackendCPU extends KernelBackend {
                .slice(sliceBeginCoords, sliceSize) as T;
   }
 
-  maxPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
-    assertNotComplex(x, 'maxPool');
-    const xValues = this.readSync(x.dataId) as TypedArray;
-    return pool(xValues, x.shape, x.dtype, x.strides, convInfo, 'max')
-               .toTensor() as Tensor4D;
-  }
-
-  maxPoolBackprop(
-      dy: Tensor4D, x: Tensor4D, y: Tensor4D,
-      convInfo: backend_util.Conv2DInfo): Tensor4D {
-    assertNotComplex([x, y], 'maxPoolBackprop');
-
-    const xValues = this.readSync(x.dataId) as TypedArray;
-    const maxPosBuf = buffer(
-        convInfo.outShape, x.dtype,
-        maxPoolPositions(xValues, x.shape, x.dtype, convInfo).values);
-    const strideHeight = convInfo.strideHeight;
-    const strideWidth = convInfo.strideWidth;
-    const dilationHeight = convInfo.dilationHeight;
-    const dilationWidth = convInfo.dilationWidth;
-    const effectiveFilterHeight = convInfo.effectiveFilterHeight;
-    const effectiveFilterWidth = convInfo.effectiveFilterWidth;
-    const padLeft = effectiveFilterWidth - 1 - convInfo.padInfo.left;
-    const padTop = effectiveFilterHeight - 1 - convInfo.padInfo.top;
-    const dx = tf.buffer<Rank.R4>(x.shape, 'float32');
-
-    const dyBuf = this.bufferSync(dy);
-
-    for (let b = 0; b < convInfo.batchSize; ++b) {
-      for (let d = 0; d < convInfo.inChannels; ++d) {
-        for (let dxR = 0; dxR < convInfo.inHeight; ++dxR) {
-          for (let dxC = 0; dxC < convInfo.inWidth; ++dxC) {
-            // Shader code begins.
-            const dyRCorner = dxR - padTop;
-            const dyCCorner = dxC - padLeft;
-            let dotProd = 0;
-            for (let wR = 0; wR < effectiveFilterHeight; wR += dilationHeight) {
-              const dyR = (dyRCorner + wR) / strideHeight;
-              if (dyR < 0 || dyR >= convInfo.outHeight ||
-                  Math.floor(dyR) !== dyR) {
-                continue;
-              }
-              for (let wC = 0; wC < effectiveFilterWidth; wC += dilationWidth) {
-                const dyC = (dyCCorner + wC) / strideWidth;
-                if (dyC < 0 || dyC >= convInfo.outWidth ||
-                    Math.floor(dyC) !== dyC) {
-                  continue;
-                }
-                const maxPos = effectiveFilterHeight * effectiveFilterWidth -
-                    1 - (maxPosBuf.get(b, dyR, dyC, d) as number);
-                const curPos = wR * effectiveFilterWidth + wC;
-
-                const mask = maxPos === curPos ? 1 : 0;
-                if (mask === 0) {
-                  continue;
-                }
-
-                const pixel = dyBuf.get(b, dyR, dyC, d);
-                dotProd += pixel * mask;
-              }
-            }
-            dx.set(dotProd, b, dxR, dxC, d);
-          }
-        }
-      }
-    }
-    return dx.toTensor();
-  }
-
-  avgPoolBackprop(dy: Tensor4D, x: Tensor4D, convInfo: backend_util.Conv2DInfo):
-      Tensor4D {
-    assertNotComplex([dy, x], 'avgPoolBackprop');
-
-    const strideHeight = convInfo.strideHeight;
-    const strideWidth = convInfo.strideWidth;
-    const filterHeight = convInfo.filterHeight;
-    const filterWidth = convInfo.filterWidth;
-    const dilationHeight = convInfo.dilationHeight;
-    const dilationWidth = convInfo.dilationWidth;
-    const effectiveFilterHeight = convInfo.effectiveFilterHeight;
-    const effectiveFilterWidth = convInfo.effectiveFilterWidth;
-    const padLeft = effectiveFilterWidth - 1 - convInfo.padInfo.left;
-    const padTop = effectiveFilterHeight - 1 - convInfo.padInfo.top;
-    const dx = tf.buffer<Rank.R4>(x.shape, 'float32');
-
-    const avgMultiplier = 1 / (filterHeight * filterWidth);
-
-    const dyBuf = this.bufferSync(dy);
-
-    for (let b = 0; b < convInfo.batchSize; ++b) {
-      for (let d = 0; d < convInfo.inChannels; ++d) {
-        for (let dxR = 0; dxR < convInfo.inHeight; ++dxR) {
-          for (let dxC = 0; dxC < convInfo.inWidth; ++dxC) {
-            // Shader code begins.
-            const dyRCorner = dxR - padTop;
-            const dyCCorner = dxC - padLeft;
-            let dotProd = 0;
-            for (let wR = 0; wR < effectiveFilterHeight; wR += dilationHeight) {
-              const dyR = (dyRCorner + wR) / strideHeight;
-              if (dyR < 0 || dyR >= convInfo.outHeight ||
-                  Math.floor(dyR) !== dyR) {
-                continue;
-              }
-              for (let wC = 0; wC < effectiveFilterWidth; wC += dilationWidth) {
-                const dyC = (dyCCorner + wC) / strideWidth;
-                if (dyC < 0 || dyC >= convInfo.outWidth ||
-                    Math.floor(dyC) !== dyC) {
-                  continue;
-                }
-
-                const pixel = dyBuf.get(b, dyR, dyC, d);
-                dotProd += pixel;
-              }
-            }
-            dx.set(dotProd * avgMultiplier, b, dxR, dxC, d);
-          }
-        }
-      }
-    }
-    return dx.toTensor();
-  }
-
   private pool3d(
       x: Tensor5D, convInfo: backend_util.Conv3DInfo,
       poolType: 'max'|'avg'): Tensor5D {
@@ -2003,15 +1880,6 @@ export class MathBackendCPU extends KernelBackend {
       }
     }
     return dx.toTensor();
-  }
-
-  avgPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
-    assertNotComplex(x, 'avgPool');
-    assertNotComplex(x, 'maxPool');
-    const xValues = this.readSync(x.dataId) as TypedArray;
-    return pool(xValues, x.shape, x.dtype, x.strides, convInfo, 'avg')
-               .toTensor()
-               .toFloat() as Tensor4D;
   }
 
   resizeBilinear(
