@@ -44,13 +44,18 @@ describeWithFlags('Div.', ALL_ENVS, () => {
        const b = 70000;
 
        const nBeforeDataIds = tf.engine().backend.numDataIds();
-       const result = tf.div(a, b);
+       let result = tf.div(a, b);
        const nAfterDataIds = tf.engine().backend.numDataIds();
 
        expect(nAfterDataIds).toBe(nBeforeDataIds + 1);
        expect(result.shape).toEqual(a.shape);
        expectArraysClose(
            await result.data(), [0.01429, 0.02857, -0.02857, -0.05714]);
+
+       const c = -70000;
+       result = tf.div(a, c);
+       expectArraysClose(
+           await result.data(), [-0.01429, -0.02857, 0.02857, 0.05714]);
      });
 
   it('Multi-stage div produces the correct result in case of underflow.',
