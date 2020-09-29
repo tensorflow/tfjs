@@ -69,22 +69,28 @@ function getDivSteps(
     const divisorAbsVal = Math.abs(divisorVal);
     const overflow = divisorAbsVal > 1;
 
-    let max = divisorAbsVal;
-    while (!webgl_util.canBeRepresented(max)) {
-      max = Math.sqrt(max);
+    // Compute the nearest representable divisor.
+    let maxDivisor = divisorAbsVal;
+    while (!webgl_util.canBeRepresented(maxDivisor)) {
+      maxDivisor = Math.sqrt(maxDivisor);
     }
 
-    const stages = [max];
+    // Compute the successive divisors.
+    const stages = [maxDivisor];
     while (overflow ? util.sizeFromShape(stages) < divisorAbsVal :
                       util.sizeFromShape(stages) > divisorAbsVal) {
-      stages.push(Math.min(max, divisorAbsVal / util.sizeFromShape(stages)));
+      stages.push(
+          Math.min(maxDivisor, divisorAbsVal / util.sizeFromShape(stages)));
     }
 
     if (stages.length > 1) {
+      // Ensure the sign of the first partial divisor matches the original
+      // divisor.
       if (divisorVal < 0) {
         stages[0] *= -1;
       }
 
+      // Create data buckets for each partial divisor.
       return stages.map(val => {
         const info = backend.makeTensorInfo([], 'float32');
         const data = backend.texData.get(info.dataId);
