@@ -55,8 +55,8 @@ const DIV_PACKED = `
 
 /**
  * Returns an array of divisors that, when successively applied to the dividend,
- * yields the same result as the original divisor. Useful in the case of a large
- * scalar divisor that overflows the device's precision limits.
+ * yields the same result as the original divisor. Useful in the case of a
+ * scalar divisor that cannot be represented due to underflow / overflow.
  * @param divisor The original divisor.
  * @param backend The WebGL backend.
  */
@@ -66,13 +66,17 @@ function getDivSteps(
   const divisorIsScalar = util.sizeFromShape(divisor.shape) === 1;
   if (divisorOnCPU && divisorIsScalar) {
     const divisorVal = backend.texData.get(divisor.dataId).values[0] as number;
+    const overflow = divisorVal > 1;
+
     let max = divisorVal;
     while (!webgl_util.canBeRepresented(max)) {
       max = Math.sqrt(max);
     }
 
     const stages = [max];
-    while (util.sizeFromShape(stages) < divisorVal) {
+
+    while (overflow ? util.sizeFromShape(stages) < divisorVal :
+                      util.sizeFromShape(stages) > divisorVal) {
       stages.push(Math.min(max, divisorVal / util.sizeFromShape(stages)));
     }
 
