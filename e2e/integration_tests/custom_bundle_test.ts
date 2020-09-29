@@ -34,7 +34,11 @@ describe(`${REGRESSION} blazeface`, () => {
   // tslint:disable-next-line: ban
   describeWithFlags('webpack', CHROME_ENVS, () => {
     let webpackBundle: {full: string, custom: string};
+    let originalTimeout: number;
     beforeAll(async () => {
+      originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+      jasmine.DEFAULT_TIMEOUT_INTERVAL = 500000;
+
       const [webpackFull, webpackCustom] = await Promise.all([
         fetch(getBundleUrl('blazeface', false /* custom */, 'webpack'))
             .then(r => r.text()),
@@ -44,6 +48,8 @@ describe(`${REGRESSION} blazeface`, () => {
 
       webpackBundle = {full: webpackFull, custom: webpackCustom};
     });
+
+    afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
 
     it('custom webpack should be smaller', async () => {
       expect(webpackBundle.custom.length)

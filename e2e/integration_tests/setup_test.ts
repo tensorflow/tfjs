@@ -27,18 +27,18 @@ import {parseTestEnvFromKarmaFlags, setTestEnvs, TEST_ENVS} from '@tensorflow/tf
 import {TAGS} from './constants';
 
 setTestEnvs([
+  // {
+  //   name: 'webgl1',
+  //   backendName: 'webgl',
+  //   flags: {
+  //     'WEBGL_VERSION': 1,
+  //     'WEBGL_CPU_FORWARD': false,
+  //     'WEBGL_SIZE_UPLOAD_UNIFORM': 0
+  //   },
+  //   isDataSync: true
+  // },
   {
-    name: 'webgl1',
-    backendName: 'webgl',
-    flags: {
-      'WEBGL_VERSION': 1,
-      'WEBGL_CPU_FORWARD': false,
-      'WEBGL_SIZE_UPLOAD_UNIFORM': 0
-    },
-    isDataSync: true
-  },
-  {
-    name: 'webgl2',
+    name: 'webgl',
     backendName: 'webgl',
     flags: {
       'WEBGL_VERSION': 2,
@@ -59,6 +59,8 @@ if (typeof __karma__ !== 'undefined') {
   if (testEnv != null) {
     setTestEnvs([testEnv]);
   }
+
+  console.log('TEST ENVS', TEST_ENVS);
 
   let tags;
 
