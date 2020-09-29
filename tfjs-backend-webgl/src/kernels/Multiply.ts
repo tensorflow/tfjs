@@ -75,7 +75,6 @@ export function multiply(
     backend.disposeIntermediateTensorInfo(imagPart);
 
     // TODO(annxingyuan): CPU forwarding for complex inputs.
-
     return complexOutput;
   }
 
