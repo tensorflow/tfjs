@@ -221,9 +221,8 @@ const benchmarks = {
     }
   },
   'speech-commands': {
-    type: 'GraphModel',
     load: async () => {
-      const recognizer = speechCommands.create('BROWSER_FFT');
+      const recognizer = speechCommands.create('SOFT_FFT');
       await recognizer.ensureModelLoaded();
       return recognizer;
     },
