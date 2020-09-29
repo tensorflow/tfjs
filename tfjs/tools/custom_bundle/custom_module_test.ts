@@ -16,9 +16,9 @@
  */
 
 import {getCustomConverterOpsModule, getCustomModuleString} from './custom_module';
-import {ModuleProvider} from './types';
+import {ImportProvider} from './types';
 
-const mockModuleProvider: ModuleProvider = {
+const mockImportProvider: ImportProvider = {
   importCoreStr: () => 'import CORE',
   importConverterStr: () => 'import CONVERTER',
   importBackendStr: (name: string) => `import BACKEND ${name}`,
@@ -30,9 +30,6 @@ const mockModuleProvider: ModuleProvider = {
     importStatement: `import GRADIENT ${kernel}`,
     gradConfigId: `${kernel}_GRAD_CONFIG`,
   }),
-  kernelToOpsMapPath: () => {
-    return 'PATH_TO_KERNEL2OP.json';
-  },
   importOpForConverterStr: (opSymbol: string) => {
     return `export * from ${opSymbol}`;
   },
@@ -46,7 +43,7 @@ describe('getCustomModuleString forwardModeOnly=true', () => {
   const forwardModeOnly = true;
   it('one kernel, one backend', () => {
     const {tfjs, core} = getCustomModuleString(
-        ['MathKrnl'], ['FastBcknd'], forwardModeOnly, mockModuleProvider);
+        ['MathKrnl'], ['FastBcknd'], forwardModeOnly, mockImportProvider);
 
     expect(core).toContain('import CORE');
     expect(tfjs).toContain('import CORE');
@@ -62,7 +59,7 @@ describe('getCustomModuleString forwardModeOnly=true', () => {
   it('one kernel, two backend', () => {
     const {tfjs} = getCustomModuleString(
         ['MathKrnl'], ['FastBcknd', 'SlowBcknd'], forwardModeOnly,
-        mockModuleProvider);
+        mockImportProvider);
 
     expect(tfjs).toContain('import CORE');
     expect(tfjs).toContain('import CONVERTER');
@@ -81,7 +78,7 @@ describe('getCustomModuleString forwardModeOnly=true', () => {
   it('two kernels, one backend', () => {
     const {tfjs} = getCustomModuleString(
         ['MathKrnl', 'MathKrn2'], ['FastBcknd'], forwardModeOnly,
-        mockModuleProvider);
+        mockImportProvider);
 
     expect(tfjs).toContain('import CORE');
     expect(tfjs).toContain('import CONVERTER');
@@ -98,7 +95,7 @@ describe('getCustomModuleString forwardModeOnly=true', () => {
   it('two kernels, two backends', () => {
     const {tfjs} = getCustomModuleString(
         ['MathKrnl', 'MathKrn2'], ['FastBcknd', 'SlowBcknd'], forwardModeOnly,
-        mockModuleProvider);
+        mockImportProvider);
 
     expect(tfjs).toContain('import CORE');
     expect(tfjs).toContain('import CONVERTER');
@@ -124,7 +121,7 @@ describe('getCustomModuleString forwardModeOnly=false', () => {
 
   it('one kernel, one backend', () => {
     const {tfjs} = getCustomModuleString(
-        ['MathKrnl'], ['FastBcknd'], forwardModeOnly, mockModuleProvider);
+        ['MathKrnl'], ['FastBcknd'], forwardModeOnly, mockImportProvider);
 
     expect(tfjs).toContain('import CORE');
     expect(tfjs).toContain('import CONVERTER');
@@ -140,7 +137,7 @@ describe('getCustomModuleString forwardModeOnly=false', () => {
   it('one kernel, two backend', () => {
     const {tfjs} = getCustomModuleString(
         ['MathKrnl'], ['FastBcknd', 'SlowBcknd'], forwardModeOnly,
-        mockModuleProvider);
+        mockImportProvider);
 
     expect(tfjs).toContain('import GRADIENT MathKrnl');
     expect(tfjs).toContain('registerGradient(MathKrnl_GRAD_CONFIG)');
@@ -153,7 +150,7 @@ describe('getCustomModuleString forwardModeOnly=false', () => {
   it('two kernels, one backend', () => {
     const {tfjs} = getCustomModuleString(
         ['MathKrnl', 'MathKrn2'], ['FastBcknd'], forwardModeOnly,
-        mockModuleProvider);
+        mockImportProvider);
 
     expect(tfjs).toContain('import GRADIENT MathKrnl');
     expect(tfjs).toContain('registerGradient(MathKrnl_GRAD_CONFIG)');
@@ -165,7 +162,7 @@ describe('getCustomModuleString forwardModeOnly=false', () => {
   it('two kernels, two backends', () => {
     const {tfjs} = getCustomModuleString(
         ['MathKrnl', 'MathKrn2'], ['FastBcknd', 'SlowBcknd'], forwardModeOnly,
-        mockModuleProvider);
+        mockImportProvider);
 
     expect(tfjs).toContain('import GRADIENT MathKrnl');
     expect(tfjs).toContain('registerGradient(MathKrnl_GRAD_CONFIG)');
@@ -178,7 +175,7 @@ describe('getCustomModuleString forwardModeOnly=false', () => {
 describe('getCustomConverterOpsModule', () => {
   it('non namespaced ops', () => {
     const result =
-        getCustomConverterOpsModule(['add', 'sub'], mockModuleProvider);
+        getCustomConverterOpsModule(['add', 'sub'], mockImportProvider);
 
     expect(result).toContain('export * from add');
     expect(result).toContain('export * from sub');
@@ -187,7 +184,7 @@ describe('getCustomConverterOpsModule', () => {
   it('namespaced ops', () => {
     const result = getCustomConverterOpsModule(
         ['image.resizeBilinear', 'image.resizeNearestNeighbor'],
-        mockModuleProvider);
+        mockImportProvider);
 
     expect(result).toContain(
         'export resizeBilinear,resizeNearestNeighbor as image from image/');
