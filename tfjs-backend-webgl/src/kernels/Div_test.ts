@@ -53,24 +53,25 @@ describeWithFlags('Div.', ALL_ENVS, () => {
            await result.data(), [0.01429, 0.02857, -0.02857, -0.05714]);
      });
 
-  it('Multi-stage div produces the correct in case of underflow.', async () => {
-    const MIN_FLOAT16 = 0.1;
-    spyOn(webgl_util, 'canBeRepresented').and.callFake((val: number) => {
-      if (val < MIN_FLOAT16) {
-        return false;
-      }
-      return true;
-    });
+  it('Multi-stage div produces the correct result in case of underflow.',
+     async () => {
+       const MIN_FLOAT16 = 0.1;
+       spyOn(webgl_util, 'canBeRepresented').and.callFake((val: number) => {
+         if (val < MIN_FLOAT16) {
+           return false;
+         }
+         return true;
+       });
 
-    const a = tf.tensor1d([1, 2, -2, -4]);
-    const b = 0.01;
+       const a = tf.tensor1d([1, 2, -2, -4]);
+       const b = 0.01;
 
-    const nBeforeDataIds = tf.engine().backend.numDataIds();
-    const result = tf.div(a, b);
-    const nAfterDataIds = tf.engine().backend.numDataIds();
+       const nBeforeDataIds = tf.engine().backend.numDataIds();
+       const result = tf.div(a, b);
+       const nAfterDataIds = tf.engine().backend.numDataIds();
 
-    expect(nAfterDataIds).toBe(nBeforeDataIds + 1);
-    expect(result.shape).toEqual(a.shape);
-    expectArraysClose(await result.data(), [100, 200, -200, -400]);
-  });
+       expect(nAfterDataIds).toBe(nBeforeDataIds + 1);
+       expect(result.shape).toEqual(a.shape);
+       expectArraysClose(await result.data(), [100, 200, -200, -400]);
+     });
 });
