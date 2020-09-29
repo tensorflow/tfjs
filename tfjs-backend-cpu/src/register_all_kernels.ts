@@ -27,6 +27,8 @@ import {asinConfig} from './kernels/Asin';
 import {asinhConfig} from './kernels/Asinh';
 import {atanConfig} from './kernels/Atan';
 import {atanhConfig} from './kernels/Atanh';
+import {avgPoolConfig} from './kernels/AvgPool';
+import {avgPoolBackpropConfig} from './kernels/AvgPoolBackprop';
 import {batchNormConfig} from './kernels/BatchNorm';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
@@ -56,6 +58,8 @@ import {logConfig} from './kernels/Log';
 import {log1pConfig} from './kernels/Log1p';
 import {logicalNotConfig} from './kernels/LogicalNot';
 import {maxConfig} from './kernels/Max';
+import {maxPoolConfig} from './kernels/MaxPool';
+import {maxPoolBackpropConfig} from './kernels/MaxPoolBackprop';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {multiplyConfig} from './kernels/Multiply';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
@@ -95,6 +99,8 @@ const kernelConfigs: KernelConfig[] = [
   asinhConfig,
   atanConfig,
   atanhConfig,
+  avgPoolConfig,
+  avgPoolBackpropConfig,
   batchNormConfig,
   castConfig,
   ceilConfig,
@@ -123,6 +129,8 @@ const kernelConfigs: KernelConfig[] = [
   logConfig,
   log1pConfig,
   logicalNotConfig,
+  maxPoolConfig,
+  maxPoolBackpropConfig,
   maxPoolWithArgmaxConfig,
   maxConfig,
   multiplyConfig,
