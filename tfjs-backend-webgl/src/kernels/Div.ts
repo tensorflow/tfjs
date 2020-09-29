@@ -67,20 +67,25 @@ function getDivSteps(
   if (divisorOnCPU && divisorIsScalar) {
     const divisorVal = backend.texData.get(divisor.dataId).values[0] as number;
     const divisorAbsVal = Math.abs(divisorVal);
-    const overflow = divisorAbsVal > 1;
 
     // Compute the nearest representable divisor.
-    let maxDivisor = divisorAbsVal;
-    while (!webgl_util.canBeRepresented(maxDivisor)) {
-      maxDivisor = Math.sqrt(maxDivisor);
+    let nearestDivisor = divisorAbsVal;
+    while (!webgl_util.canBeRepresented(nearestDivisor)) {
+      nearestDivisor = Math.sqrt(nearestDivisor);
     }
 
     // Compute the successive divisors.
-    const stages = [maxDivisor];
-    while (overflow ? util.sizeFromShape(stages) < divisorAbsVal :
-                      util.sizeFromShape(stages) > divisorAbsVal) {
-      stages.push(
-          Math.min(maxDivisor, divisorAbsVal / util.sizeFromShape(stages)));
+    const stages = [nearestDivisor];
+    if (divisorAbsVal > 1) {  // overflow
+      while (util.sizeFromShape(stages) < divisorAbsVal) {
+        stages.push(Math.min(
+            nearestDivisor, divisorAbsVal / util.sizeFromShape(stages)));
+      }
+    } else {  // underflow
+      while (util.sizeFromShape(stages) > divisorAbsVal) {
+        stages.push(Math.max(
+            nearestDivisor, divisorAbsVal / util.sizeFromShape(stages)));
+      }
     }
 
     if (stages.length > 1) {
