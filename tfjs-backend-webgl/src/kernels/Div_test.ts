@@ -67,11 +67,15 @@ describeWithFlags('Div.', ALL_ENVS, () => {
        const b = 0.01;
 
        const nBeforeDataIds = tf.engine().backend.numDataIds();
-       const result = tf.div(a, b);
+       let result = tf.div(a, b);
        const nAfterDataIds = tf.engine().backend.numDataIds();
 
        expect(nAfterDataIds).toBe(nBeforeDataIds + 1);
        expect(result.shape).toEqual(a.shape);
        expectArraysClose(await result.data(), [100, 200, -200, -400]);
+
+       const c = -0.01;
+       result = tf.div(a, c);
+       expectArraysClose(await result.data(), [-100, -200, 200, 400]);
      });
 });

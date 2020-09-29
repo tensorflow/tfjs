@@ -66,20 +66,25 @@ function getDivSteps(
   const divisorIsScalar = util.sizeFromShape(divisor.shape) === 1;
   if (divisorOnCPU && divisorIsScalar) {
     const divisorVal = backend.texData.get(divisor.dataId).values[0] as number;
-    const overflow = divisorVal > 1;
+    const divisorAbsVal = Math.abs(divisorVal);
+    const overflow = divisorAbsVal > 1;
 
-    let max = divisorVal;
+    let max = divisorAbsVal;
     while (!webgl_util.canBeRepresented(max)) {
       max = Math.sqrt(max);
     }
 
     const stages = [max];
-    while (overflow ? util.sizeFromShape(stages) < divisorVal :
-                      util.sizeFromShape(stages) > divisorVal) {
-      stages.push(Math.min(max, divisorVal / util.sizeFromShape(stages)));
+    while (overflow ? util.sizeFromShape(stages) < divisorAbsVal :
+                      util.sizeFromShape(stages) > divisorAbsVal) {
+      stages.push(Math.min(max, divisorAbsVal / util.sizeFromShape(stages)));
     }
 
     if (stages.length > 1) {
+      if (divisorVal < 0) {
+        stages[0] *= -1;
+      }
+
       return stages.map(val => {
         const info = backend.makeTensorInfo([], 'float32');
         const data = backend.texData.get(info.dataId);
