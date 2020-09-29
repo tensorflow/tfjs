@@ -53,7 +53,14 @@ const DIV_PACKED = `
   return result;
 `;
 
-function getDivStages(
+/**
+ * Returns an array of divisors that, when successively applied to the dividend,
+ * yields the same result as the original divisor. Useful in the case of a large
+ * scalar divisor that overflows the device's precision limits.
+ * @param divisor The original divisor.
+ * @param backend The WebGL backend.
+ */
+function getDivSteps(
     divisor: TensorInfo, backend: MathBackendWebGL): TensorInfo[] {
   const divisorOnCPU = backend.texData.get(divisor.dataId).texture == null;
   const divisorIsScalar = util.sizeFromShape(divisor.shape) === 1;
@@ -86,7 +93,7 @@ export function divKernelFunc(
     {inputs, backend}: {inputs: BinaryInputs, backend: MathBackendWebGL}) {
   const {a, b} = inputs;
   const webglBackend = backend;
-  const stages = getDivStages(b, webglBackend);
+  const stages = getDivSteps(b, webglBackend);
   const $dtype = a.dtype;
 
   let result = a;
