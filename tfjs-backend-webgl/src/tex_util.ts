@@ -87,6 +87,7 @@ export interface TextureData {
   isPacked?: boolean;
 
   refCount: number;
+  kept?: boolean;
 
   // Available when the tensor has been sliced.
   slice?: {

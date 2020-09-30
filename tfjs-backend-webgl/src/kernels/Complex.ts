@@ -50,10 +50,14 @@ export function complex(
   const complex = backend.texData.get(complexInfo.dataId);
 
   backend.incRef(real.dataId);
+  const realData = backend.texData.get(real.dataId);
+  realData.kept = true;
   const realTensorInfo:
       TensorInfo = {dataId: real.dataId, shape: real.shape, dtype: 'float32'};
 
   backend.incRef(imag.dataId);
+  const imagData = backend.texData.get(imag.dataId);
+  imagData.kept = true;
   const imagTensorInfo:
       TensorInfo = {dataId: imag.dataId, shape: imag.shape, dtype: 'float32'};
 
