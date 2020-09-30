@@ -21,7 +21,7 @@ import '@tensorflow/tfjs-backend-webgl';
 import * as tfconverter from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
-import {BROWSER_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import * as tfl from '@tensorflow/tfjs-layers';
 
 import {KARMA_SERVER, SMOKE} from './constants';
@@ -38,7 +38,7 @@ function getModelUrl(modelType: string) {
  *  - Make inference using each backends.
  */
 describe(`${SMOKE} load_predict`, () => {
-  describeWithFlags(`layers_model`, BROWSER_ENVS, () => {
+  describeWithFlags(`layers_model`, ALL_ENVS, () => {
     let model: tfl.LayersModel;
     let inputs: tfc.Tensor;
 
@@ -65,7 +65,7 @@ describe(`${SMOKE} load_predict`, () => {
     });
   });
 
-  describeWithFlags(`graph_model`, BROWSER_ENVS, async () => {
+  describeWithFlags(`graph_model`, ALL_ENVS, async () => {
     let model: tfconverter.GraphModel;
     let a: tfc.Tensor;
 

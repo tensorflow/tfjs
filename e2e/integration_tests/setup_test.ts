@@ -19,36 +19,25 @@
 // TODO(yassogba) this should be removable after tfjs 3.x. As is removing
 // this line can cause tests to fail on the webgl backend as chained ops
 // are not added to the tensor class by the time the tests run.
-import '@tensorflow/tfjs-core';
+// import '@tensorflow/tfjs-core';
 
 // tslint:disable-next-line: no-imports-from-dist
-import {parseTestEnvFromKarmaFlags, setTestEnvs, TEST_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {parseTestEnvFromKarmaFlags, registerTestEnv, setTestEnvs, TEST_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {TAGS} from './constants';
 
-setTestEnvs([
-  // {
-  //   name: 'webgl1',
-  //   backendName: 'webgl',
-  //   flags: {
-  //     'WEBGL_VERSION': 1,
-  //     'WEBGL_CPU_FORWARD': false,
-  //     'WEBGL_SIZE_UPLOAD_UNIFORM': 0
-  //   },
-  //   isDataSync: true
-  // },
-  {
-    name: 'webgl',
-    backendName: 'webgl',
-    flags: {
-      'WEBGL_VERSION': 2,
-      'WEBGL_CPU_FORWARD': false,
-      'WEBGL_SIZE_UPLOAD_UNIFORM': 0
-    },
-    isDataSync: true
+registerTestEnv({
+  name: 'webgl',
+  backendName: 'webgl',
+  flags: {
+    'WEBGL_VERSION': 2,
+    'WEBGL_CPU_FORWARD': false,
+    'WEBGL_SIZE_UPLOAD_UNIFORM': 0
   },
-  {name: 'cpu', backendName: 'cpu', isDataSync: true}
-]);
+  isDataSync: true
+});
+
+registerTestEnv({name: 'cpu', backendName: 'cpu', isDataSync: true});
 
 // tslint:disable-next-line:no-any
 declare let __karma__: any;
@@ -59,8 +48,6 @@ if (typeof __karma__ !== 'undefined') {
   if (testEnv != null) {
     setTestEnvs([testEnv]);
   }
-
-  console.log('TEST ENVS', TEST_ENVS);
 
   let tags;
 
