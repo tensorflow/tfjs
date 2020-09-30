@@ -24,6 +24,7 @@ import {cosConfig} from './kernels/Cos';
 import {divConfig} from './kernels/Div';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {fromPixelsConfig} from './kernels/FromPixels';
+import {identityConfig} from './kernels/Identity';
 import {maxConfig} from './kernels/Max';
 import {maxPoolConfig} from './kernels/MaxPool';
 import {maxPoolBackpropConfig} from './kernels/MaxPoolBackprop';
@@ -46,10 +47,11 @@ const kernelConfigs: KernelConfig[] = [
   avgPoolBackpropConfig,
   batchNormConfig,
   cosConfig,
-  maxConfig,
+  divConfig,
   flipLeftRightConfig,
   fromPixelsConfig,
-  divConfig,
+  identityConfig,
+  maxConfig,
   maxPoolConfig,
   maxPoolBackpropConfig,
   maxPoolWithArgmaxConfig,

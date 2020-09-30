@@ -19,6 +19,7 @@ import {backend_util, KernelConfig, KernelFunc, MaxPool, MaxPoolAttrs, MaxPoolIn
 import {MathBackendWebGL} from '../backend_webgl';
 import {Pool2DProgram} from '../pool_gpu';
 import {assertNotComplex} from '../webgl_util';
+import {identity} from './Identity';
 
 export function maxPool(args: {
   inputs: MaxPoolInputs,
@@ -39,8 +40,12 @@ export function maxPool(args: {
   const convInfo = backend_util.computePool2DInfo(
       x.shape as [number, number, number, number], filterSize, strides,
       dilations, pad, dimRoundingMode);
-  const program = new Pool2DProgram(convInfo, 'max', false);
-  return backend.runWebGLProgram(program, [x], x.dtype);
+  if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
+      util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
+    return identity({inputs: {x}, backend});
+  }
+  const maxPoolProgram = new Pool2DProgram(convInfo, 'max', false);
+  return backend.runWebGLProgram(maxPoolProgram, [x], x.dtype);
 }
 
 export const maxPoolConfig: KernelConfig = {

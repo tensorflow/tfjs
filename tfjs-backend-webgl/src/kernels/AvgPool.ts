@@ -19,6 +19,7 @@ import {AvgPool, AvgPoolAttrs, AvgPoolInputs, backend_util, KernelConfig, Kernel
 import {MathBackendWebGL} from '../backend_webgl';
 import {Pool2DProgram} from '../pool_gpu';
 import {assertNotComplex} from '../webgl_util';
+import {identity} from './Identity';
 
 export function avgPool(args: {
   inputs: AvgPoolInputs,
@@ -39,8 +40,12 @@ export function avgPool(args: {
   const convInfo = backend_util.computePool2DInfo(
       x.shape as [number, number, number, number], filterSize, strides,
       dilations, pad, dimRoundingMode);
-  const program = new Pool2DProgram(convInfo, 'avg', false);
-  return backend.runWebGLProgram(program, [x], 'float32');
+  if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
+      util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
+    return identity({inputs: {x}, backend});
+  }
+  const avgPoolProgram = new Pool2DProgram(convInfo, 'avg', false);
+  return backend.runWebGLProgram(avgPoolProgram, [x], 'float32');
 }
 
 export const avgPoolConfig: KernelConfig = {
