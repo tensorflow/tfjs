@@ -602,7 +602,7 @@ export class MathBackendWebGL extends KernelBackend {
 
   private pendingDeletes = 0;
 
-  disposeData(dataId: DataId): void {
+  disposeData(dataId: DataId, force?: boolean): void {
     if (this.pendingDisposal.has(dataId)) {
       return;
     }
@@ -616,13 +616,18 @@ export class MathBackendWebGL extends KernelBackend {
       return;
     }
 
-    this.releaseGPUData(dataId);
-    const {complexTensorInfos} = this.texData.get(dataId);
-    if (complexTensorInfos != null) {
-      this.disposeData(complexTensorInfos.real.dataId);
-      this.disposeData(complexTensorInfos.imag.dataId);
+    const texData = this.texData.get(dataId);
+    texData.refCount--;
+
+    if (force || texData.refCount < 1) {
+      const {complexTensorInfos} = this.texData.get(dataId);
+      this.releaseGPUData(dataId);
+      if (complexTensorInfos != null) {
+        this.disposeData(complexTensorInfos.real.dataId);
+        this.disposeData(complexTensorInfos.imag.dataId);
+      }
+      this.texData.delete(dataId);
     }
-    this.texData.delete(dataId);
   }
 
   private releaseGPUData(dataId: DataId): void {

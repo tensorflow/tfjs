@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Imag, ImagInputs, KernelConfig, KernelFunc, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
+import {Imag, ImagInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 
@@ -24,19 +24,28 @@ export function imag(args: {inputs: ImagInputs, backend: MathBackendWebGL}):
   const {inputs, backend} = args;
   const {input} = inputs;
 
-  // TODO(annxingyuan): Share data buckets once soft disposal through engine is
-  // possible
-  const resultData = backend.texData.get(input.dataId);
-  const imagVals =
-      backend.readSync(resultData.complexTensorInfos.imag.dataId) as TypedArray;
-  const dataId = backend.write(imagVals, input.shape, 'float32');
-  const tensorInfo: TensorInfo = {dataId, shape: input.shape, dtype: 'float32'};
+  // const resultData = backend.texData.get(input.dataId);
+  // const imagVals =
+  //     backend.readSync(resultData.complexTensorInfos.imag.dataId) as
+  //     TypedArray;
+  // const dataId = backend.write(imagVals, input.shape, 'float32');
+  // const tensorInfo: TensorInfo = {dataId, shape: input.shape, dtype:
+  // 'float32'};
 
   // When complex tensor is disposed, its underlying parts will be disposed too.
   // Make new tensor out of the imaginary values of the complex tensor. This
   // makes sure the value is still accessible even if complex tensor is
   // disposed.
-  return tensorInfo;
+  // return tensorInfo;
+
+  const inputData = backend.texData.get(input.dataId);
+  backend.incRef(inputData.complexTensorInfos.imag.dataId);
+
+  return {
+    dataId: inputData.complexTensorInfos.imag.dataId,
+    shape: input.shape,
+    dtype: 'float32'
+  };
 }
 
 export const imagConfig: KernelConfig = {

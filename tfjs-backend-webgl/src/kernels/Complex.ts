@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Complex, ComplexInputs, KernelConfig, KernelFunc, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
+import {Complex, ComplexInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 
@@ -24,25 +24,39 @@ export function complex(
   const {inputs, backend} = args;
   const {real, imag} = inputs;
 
-  // TODO(annxingyuan): Share data buckets once soft disposal through engine is
-  // possible.
-  const realVals = backend.readSync(real.dataId) as TypedArray;
-  const imagVals = backend.readSync(imag.dataId) as TypedArray;
+  // const realVals = backend.readSync(real.dataId) as TypedArray;
+  // const imagVals = backend.readSync(imag.dataId) as TypedArray;
+
+  // const complexInfo = backend.makeTensorInfo(real.shape, 'complex64');
+  // const complex = backend.texData.get(complexInfo.dataId);
+
+  // const realDataId = backend.write(realVals, real.shape, 'float32');
+  // const realTensorInfo:
+  //     TensorInfo = {dataId: realDataId, shape: real.shape, dtype: 'float32'};
+
+  // const imagDataId = backend.write(imagVals, imag.shape, 'float32');
+  // const imagTensorInfo:
+  //     TensorInfo = {dataId: imagDataId, shape: imag.shape, dtype: 'float32'};
+
+  // // The complex tensor owns the underlying real and imag tensorInfos, only
+  // the
+  // // complex tensor tracks refCount, when complexData is disposed the
+  // // underlying tensorData will be disposed.
+  // complex.complexTensorInfos = {real: realTensorInfo, imag: imagTensorInfo};
+
+  // return complexInfo;
 
   const complexInfo = backend.makeTensorInfo(real.shape, 'complex64');
   const complex = backend.texData.get(complexInfo.dataId);
 
-  const realDataId = backend.write(realVals, real.shape, 'float32');
+  backend.incRef(real.dataId);
   const realTensorInfo:
-      TensorInfo = {dataId: realDataId, shape: real.shape, dtype: 'float32'};
+      TensorInfo = {dataId: real.dataId, shape: real.shape, dtype: 'float32'};
 
-  const imagDataId = backend.write(imagVals, imag.shape, 'float32');
+  backend.incRef(imag.dataId);
   const imagTensorInfo:
-      TensorInfo = {dataId: imagDataId, shape: imag.shape, dtype: 'float32'};
+      TensorInfo = {dataId: imag.dataId, shape: imag.shape, dtype: 'float32'};
 
-  // The complex tensor owns the underlying real and imag tensorInfos, only the
-  // complex tensor tracks refCount, when complexData is disposed the
-  // underlying tensorData will be disposed.
   complex.complexTensorInfos = {real: realTensorInfo, imag: imagTensorInfo};
 
   return complexInfo;

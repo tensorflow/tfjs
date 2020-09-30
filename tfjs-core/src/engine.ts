@@ -387,7 +387,8 @@ export class Engine implements TensorTracker, DataMover {
     const values = this.readSync(dataId);
     // Delete the tensor from the old backend and move it to the new
     // backend.
-    srcBackend.disposeData(dataId);
+    // tslint:disable-next-line: no-any
+    (srcBackend as any).disposeData(dataId, true /* force */);
     info.backend = backend;
     backend.move(dataId, values, info.shape, info.dtype);
     if (this.shouldCheckForMemLeaks()) {
@@ -834,6 +835,10 @@ export class Engine implements TensorTracker, DataMover {
       this.state.tensorInfo.delete(a.dataId);
     } else {
       this.state.tensorInfo.get(a.dataId).refCount--;
+      if (this.backendName === 'webgl') {
+        // tslint:disable-next-line: no-any
+        (info.backend as any).decRef(a.dataId);
+      }
     }
     // TODO(nsthorat): Construct an error and save the stack trace for
     // debugging when in debug mode. Creating a stack trace is too expensive
