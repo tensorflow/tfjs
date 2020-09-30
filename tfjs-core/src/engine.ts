@@ -291,7 +291,8 @@ export class Engine implements TensorTracker, DataMover {
     try {
       const backend = registryFactoryEntry.factory();
       // Test if the factory returns a promise.
-      if (backend && typeof backend.then === 'function') {
+      if (backend && !(backend instanceof KernelBackend)
+          && typeof backend.then === 'function') {
         const promiseId = ++this.pendingBackendInitId;
         const success =
             backend
