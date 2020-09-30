@@ -229,14 +229,13 @@ const benchmarks = {
     predictFunc: () => {
       return async (model) => {
         const shape = model.modelInputShape();
-      const mySpectrogramData = new Float32Array(shape.reduce((acc, curr) => {
-        if(curr == null) {
-          return acc;
-        }
-        return acc * curr;
-      }, 1));
-      const x = tf.tensor4d(
-        mySpectrogramData, [1].concat(shape.slice(1)));
+        const mySpectrogramData = new Float32Array(shape.reduce((acc, curr) => {
+          if(curr == null) {
+            return acc;
+          }
+          return acc * curr;
+        }, 1));
+        const x = tf.tensor4d(mySpectrogramData, [1].concat(shape.slice(1)));
         return await model.recognize(x);
       }
     }
