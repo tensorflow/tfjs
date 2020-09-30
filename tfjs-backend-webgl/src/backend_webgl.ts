@@ -1534,6 +1534,8 @@ export class MathBackendWebGL extends KernelBackend {
       try {
         return this.cpuBackend.floor(x);
       } catch (e) {
+        // The op has been modularized in the cpu backend. Use the shared cpu
+        // implementation.
         const outValues = floorImplCPU(
             this.texData.get(x.dataId).values as TypedArray, x.dtype);
         const outInfo = this.makeTensorInfo(x.shape, x.dtype);

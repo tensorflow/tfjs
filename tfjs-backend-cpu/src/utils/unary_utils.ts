@@ -50,6 +50,9 @@ export function unaryKernelFunc(
   };
 }
 
+/**
+ * Template that creates the core implementation for the given unary op.
+ */
 export function unaryOpImpl(op: SimpleUnaryOperation): (
     values: TypedArray, dtype: DataType, attrs?: NamedAttrMap) => TypedArray {
   return (values, dtype, attrs) => {
