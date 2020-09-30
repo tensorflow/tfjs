@@ -15,11 +15,8 @@
  * =============================================================================
  */
 
-// Import core for side effects
-// TODO(yassogba) this should be removable after tfjs 3.x. As is removing
-// this line can cause tests to fail on the webgl backend as chained ops
-// are not added to the tensor class by the time the tests run.
-// import '@tensorflow/tfjs-core';
+// Import core for side effects (e.g. flag registration)
+import '@tensorflow/tfjs-core';
 
 // tslint:disable-next-line: no-imports-from-dist
 import {parseTestEnvFromKarmaFlags, registerTestEnv, setTestEnvs, TEST_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
