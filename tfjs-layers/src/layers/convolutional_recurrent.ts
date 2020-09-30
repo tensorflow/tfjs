@@ -287,15 +287,6 @@ class ConvRNN2D extends RNN {
     });
   }
 
-  getConfig(): tfc.serialization.ConfigDict {
-    const {'cell': _, ...config} = super.getConfig();
-
-    const cellConfig = this.cell.getConfig();
-
-    // this order is necessary, to prevent cell name from replacing layer name
-    return {...cellConfig, ...config};
-  }
-
   protected computeSingleOutputShape(inputShape: Shape): Shape {
     const {dataFormat, filters, kernelSize, padding, strides, dilationRate} =
         this.cell;
@@ -532,6 +523,7 @@ export class ConvLSTM2DCell extends LSTMCell implements ConvRNN2DCell {
       padding: this.padding,
       dataFormat: this.dataFormat,
       dilationRate: this.dilationRate,
+      strides: this.strides,
     };
 
     return {...baseConfig, ...config};

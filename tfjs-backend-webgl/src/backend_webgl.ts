@@ -34,8 +34,6 @@ import {AddNPackedProgram} from './addn_packed_gpu';
 import {ArgMinMaxProgram} from './argminmax_gpu';
 import {ArgMinMaxPackedProgram} from './argminmax_packed_gpu';
 import {AvgPool2DBackpropProgram, AvgPool3DBackpropProgram} from './avg_pool_backprop_gpu';
-import {BatchNormProgram} from './batchnorm_gpu';
-import {BatchNormPackedProgram} from './batchnorm_packed_gpu';
 import * as binaryop_complex_gpu from './binaryop_complex_gpu';
 import {BinaryOpComplexProgram} from './binaryop_complex_gpu';
 import * as binaryop_gpu from './binaryop_gpu';
@@ -943,37 +941,6 @@ export class MathBackendWebGL extends KernelBackend {
     }
     const program = new BinaryOpProgram(binaryop_gpu.MUL, a.shape, b.shape);
     return this.compileAndRun(program, [a, b], a.dtype);
-  }
-
-  batchNorm(
-      x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
-      offset?: Tensor4D|Tensor1D, scale?: Tensor4D|Tensor1D,
-      varianceEpsilon?: number): Tensor4D {
-    const inputs = [x, mean, variance];
-
-    let offsetShape = null;
-    if (offset != null) {
-      offsetShape = offset.shape;
-      inputs.push(offset);
-    }
-
-    let scaleShape = null;
-    if (scale != null) {
-      scaleShape = scale.shape;
-      inputs.push(scale);
-    }
-
-    if (env().getBool('WEBGL_PACK_NORMALIZATION')) {
-      const batchNormPackedProgram = new BatchNormPackedProgram(
-          x.shape, mean.shape, variance.shape, offsetShape, scaleShape,
-          varianceEpsilon);
-      return this.compileAndRun<Tensor4D>(batchNormPackedProgram, inputs);
-    }
-
-    const batchNormProgram = new BatchNormProgram(
-        x.shape, mean.shape, variance.shape, offsetShape, scaleShape,
-        varianceEpsilon);
-    return this.compileAndRun(batchNormProgram, inputs);
   }
 
   localResponseNormalization4D(
