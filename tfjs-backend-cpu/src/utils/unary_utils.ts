@@ -15,12 +15,12 @@
  * =============================================================================
  */
 
-import {DataType, KernelFunc, NamedAttrMap, NumericDataType, TypedArray, UnaryInputs, util} from '@tensorflow/tfjs-core';
+import {DataType, KernelFunc, TypedArray, UnaryInputs, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 
-import {SimpleUnaryOperation} from './unary_types';
+import {SimpleUnaryImpl, SimpleUnaryOperation} from './unary_types';
 
 /**
  * Template that creates a `KernelFunc` for unary ops.
@@ -29,8 +29,6 @@ import {SimpleUnaryOperation} from './unary_types';
  * @param dtype Optional. If set, the result has this dtype. Otherwise, the
  *     result has the same dtype as the input. This is mainly used in certain
  *     kernels that return bool type, such as isFinite, isInf, etc.
- * @param opComplex A `ComplexUnaryOperation` for the kernel to handle complex64
- *     inputs.
  */
 export function unaryKernelFunc(
     name: string, op: SimpleUnaryOperation, dtype?: DataType): KernelFunc {
@@ -43,24 +41,38 @@ export function unaryKernelFunc(
 
     const cpuBackend = backend as MathBackendCPU;
     const values = cpuBackend.data.get(x.dataId).values as TypedArray;
+    const xSize = util.sizeFromShape(x.shape);
     const $dtype = dtype || x.dtype;
-    const implFn = unaryOpImpl(op);
-    const newValues = implFn(values, $dtype, attrs);
+    const newValues = util.getArrayFromDType($dtype, xSize);
+    for (let i = 0; i < xSize; ++i) {
+      newValues[i] = op(values[i], attrs);
+    }
     return cpuBackend.makeTensorInfo(x.shape, $dtype, newValues);
   };
 }
 
 /**
- * Template that creates the core implementation for the given unary op.
+ * Template that creates a `KernelFunc` for unary ops from the given
+ * `SimpleUnaryImpl`..
+ * @param name Kernel name.
+ * @param unaryImpl A `SimpleUnaryImpl` that implements the op.
+ * @param dtype Optional. If set, the result has this dtype. Otherwise, the
+ *     result has the same dtype as the input. This is mainly used in certain
+ *     kernels that return bool type, such as isFinite, isInf, etc.
  */
-export function unaryOpImpl(op: SimpleUnaryOperation): (
-    values: TypedArray, dtype: DataType, attrs?: NamedAttrMap) => TypedArray {
-  return (values, dtype, attrs) => {
-    const newValues =
-        util.getTypedArrayFromDType(dtype as NumericDataType, values.length);
-    for (let i = 0; i < values.length; ++i) {
-      newValues[i] = op(values[i], attrs);
+export function unaryKernelFuncFromImpl(
+    name: string, unaryImpl: SimpleUnaryImpl, dtype?: DataType): KernelFunc {
+  return ({inputs, attrs, backend}) => {
+    const {x} = inputs as UnaryInputs;
+    assertNotComplex(x, name);
+    if (x.dtype === 'string' || dtype === 'string') {
+      throw new Error('unaryKernelFunc does not support string input/output');
     }
-    return newValues;
+
+    const cpuBackend = backend as MathBackendCPU;
+    const values = cpuBackend.data.get(x.dataId).values as TypedArray;
+    const $dtype = dtype || x.dtype;
+    const newValues = unaryImpl(values, $dtype, attrs);
+    return cpuBackend.makeTensorInfo(x.shape, $dtype, newValues);
   };
 }

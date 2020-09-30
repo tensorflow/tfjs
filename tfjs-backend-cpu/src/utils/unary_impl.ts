@@ -15,8 +15,21 @@
  * =============================================================================
  */
 
-import {DataType, NamedAttrMap, TypedArray} from '@tensorflow/tfjs-core';
+import {NumericDataType, util} from '@tensorflow/tfjs-core';
 
-export type SimpleUnaryOperation = (x: number, attrs?: NamedAttrMap) => number;
-export type SimpleUnaryImpl =
-    (values: TypedArray, dtype: DataType, attrs?: NamedAttrMap) => TypedArray;
+import {SimpleUnaryImpl, SimpleUnaryOperation} from './unary_types';
+
+/**
+ * Template that creates implementation for unary op.
+ */
+export function createSimpleUnaryImpl(op: SimpleUnaryOperation):
+    SimpleUnaryImpl {
+  return (values, dtype, attrs) => {
+    const newValues =
+        util.getTypedArrayFromDType(dtype as NumericDataType, values.length);
+    for (let i = 0; i < values.length; ++i) {
+      newValues[i] = op(values[i], attrs);
+    }
+    return newValues;
+  };
+}

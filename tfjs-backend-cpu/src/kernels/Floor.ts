@@ -17,13 +17,11 @@
 
 import {Floor, KernelConfig} from '@tensorflow/tfjs-core';
 
-import {SimpleUnaryOperation} from '../utils/unary_types';
-import {unaryKernelFunc, unaryOpImpl} from '../utils/unary_utils';
+import {createSimpleUnaryImpl} from '../utils/unary_impl';
+import {unaryKernelFuncFromImpl} from '../utils/unary_utils';
 
-const floorUnaryOp: SimpleUnaryOperation = (xi) => Math.floor(xi);
-
-export const floorImpl = unaryOpImpl(floorUnaryOp);
-export const floorKernelFunc = unaryKernelFunc(Floor, floorUnaryOp);
+export const floorImpl = createSimpleUnaryImpl((xi) => Math.floor(xi));
+export const floorKernelFunc = unaryKernelFuncFromImpl(Floor, floorImpl);
 
 export const floorConfig: KernelConfig = {
   kernelName: Floor,
