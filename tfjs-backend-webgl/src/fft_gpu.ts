@@ -23,7 +23,8 @@ export class FFTProgram implements GPGPUProgram {
   userCode: string;
 
   constructor(
-      op: 'real'|'imag', inputShape: [number, number], inverse: boolean) {
+      component: 'real'|'imag', inputShape: [number, number],
+      inverse: boolean) {
     const innerDim = inputShape[1];
     this.outputShape = inputShape;
 
@@ -32,12 +33,13 @@ export class FFTProgram implements GPGPUProgram {
     const resultDenominator = inverse ? `${innerDim}.0` : '1.0';
 
     let opString: string;
-    if (op === 'real') {
+    if (component === 'real') {
       opString = 'return real * expR - imag * expI;';
-    } else if (op === 'imag') {
+    } else if (component === 'imag') {
       opString = 'return real * expI + imag * expR;';
     } else {
-      throw new Error(`FFT op must be either "real" or "imag", got ${op}.`);
+      throw new Error(
+          `FFT component must be either "real" or "imag", got ${component}.`);
     }
 
     this.userCode = `
