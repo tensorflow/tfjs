@@ -387,8 +387,6 @@ export class Engine implements TensorTracker, DataMover {
     const values = this.readSync(dataId);
     // Delete the tensor from the old backend and move it to the new
     // backend.
-    // tslint:disable-next-line: no-any
-    // (srcBackend as any).disposeData(dataId, true /* force */);
     srcBackend.disposeData(dataId);
     info.backend = backend;
     backend.move(dataId, values, info.shape, info.dtype);

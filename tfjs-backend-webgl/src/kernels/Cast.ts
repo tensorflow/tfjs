@@ -63,9 +63,7 @@ export function cast(
   if (x.dtype === 'complex64') {
     const realPart = real({inputs: {input: x}, backend});
     const result = cast({inputs: {x: realPart}, backend, attrs: {dtype}});
-
     backend.disposeIntermediateTensorInfo(realPart);
-
     return result;
   }
 

@@ -24,20 +24,6 @@ export function imag(args: {inputs: ImagInputs, backend: MathBackendWebGL}):
   const {inputs, backend} = args;
   const {input} = inputs;
 
-  // const resultData = backend.texData.get(input.dataId);
-  // const imagVals =
-  //     backend.readSync(resultData.complexTensorInfos.imag.dataId) as
-  //     TypedArray;
-  // const dataId = backend.write(imagVals, input.shape, 'float32');
-  // const tensorInfo: TensorInfo = {dataId, shape: input.shape, dtype:
-  // 'float32'};
-
-  // When complex tensor is disposed, its underlying parts will be disposed too.
-  // Make new tensor out of the imaginary values of the complex tensor. This
-  // makes sure the value is still accessible even if complex tensor is
-  // disposed.
-  // return tensorInfo;
-
   const inputData = backend.texData.get(input.dataId);
   backend.incRef(inputData.complexTensorInfos.imag.dataId);
 

@@ -44,7 +44,6 @@ export function concat(
   const shapes = $inputs.map(t => t.shape);
   backend_util.assertParamsConsistent(shapes, $axis);
 
-  // TODO(annxingyuan): Forward to the CPU where appropriate.
   return concatImpl($inputs, $axis, backend);
 }
 
