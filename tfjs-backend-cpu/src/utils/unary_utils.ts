@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, KernelFunc, TypedArray, UnaryInputs, util} from '@tensorflow/tfjs-core';
+import {DataType, KernelFunc, NamedAttrMap, NumericDataType, TypedArray, UnaryInputs, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
@@ -43,12 +43,21 @@ export function unaryKernelFunc(
 
     const cpuBackend = backend as MathBackendCPU;
     const values = cpuBackend.data.get(x.dataId).values as TypedArray;
-    const xSize = util.sizeFromShape(x.shape);
     const $dtype = dtype || x.dtype;
-    const newValues = util.getArrayFromDType($dtype, xSize);
-    for (let i = 0; i < xSize; ++i) {
+    const implFn = unaryOpImpl(op);
+    const newValues = implFn(values, $dtype, attrs);
+    return cpuBackend.makeTensorInfo(x.shape, $dtype, newValues);
+  };
+}
+
+export function unaryOpImpl(op: SimpleUnaryOperation): (
+    values: TypedArray, dtype: DataType, attrs?: NamedAttrMap) => TypedArray {
+  return (values, dtype, attrs) => {
+    const newValues =
+        util.getTypedArrayFromDType(dtype as NumericDataType, values.length);
+    for (let i = 0; i < values.length; ++i) {
       newValues[i] = op(values[i], attrs);
     }
-    return cpuBackend.makeTensorInfo(x.shape, $dtype, newValues);
+    return newValues;
   };
 }

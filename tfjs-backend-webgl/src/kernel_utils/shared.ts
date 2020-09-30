@@ -20,6 +20,10 @@
 // tslint:disable-next-line: no-imports-from-dist
 import * as shared from '@tensorflow/tfjs-backend-cpu/dist/shared';
 
-const {maxImpl: maxImplCPU, transposeImpl: transposeImplCPU} = shared;
+const {
+  maxImpl: maxImplCPU,
+  transposeImpl: transposeImplCPU,
+  floorImpl: floorImplCPU,
+} = shared;
 
-export {maxImplCPU, transposeImplCPU};
+export {maxImplCPU, transposeImplCPU, floorImplCPU};

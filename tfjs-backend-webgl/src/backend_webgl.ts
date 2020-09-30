@@ -22,6 +22,7 @@ import * as tf from '@tensorflow/tfjs-core';
 import {complex, DataId, div, engine, env, imag, max, MemoryInfo, range, real, RecursiveArray, reshape, scalar, softmax, tensor, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
 import {backend_util, buffer, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
 import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
+import {floorImplCPU} from './kernel_utils/shared';
 
 const {segment_util} = backend_util;
 const split = kernel_impls.split;
@@ -1530,7 +1531,16 @@ export class MathBackendWebGL extends KernelBackend {
 
   floor<T extends Tensor>(x: T): T {
     if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.floor(x);
+      try {
+        return this.cpuBackend.floor(x);
+      } catch (e) {
+        const outValues = floorImplCPU(
+            this.texData.get(x.dataId).values as TypedArray, x.dtype);
+        const outInfo = this.makeTensorInfo(x.shape, x.dtype);
+        this.texData.get(outInfo.dataId).values = outValues;
+        return engine().makeTensorFromDataId(
+                   outInfo.dataId, outInfo.shape, outInfo.dtype) as T;
+      }
     }
 
     if (env().getBool('WEBGL_PACK_UNARY_OPERATIONS')) {

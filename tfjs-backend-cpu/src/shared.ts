@@ -16,5 +16,6 @@
  */
 
 // Shared kernel impls for use in other backends.
+export {floorImpl} from './kernels/Floor';
 export {maxImpl} from './kernels/Max_impl';
 export {transposeImpl} from './kernels/Transpose_impl';
