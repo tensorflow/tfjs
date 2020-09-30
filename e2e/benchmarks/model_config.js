@@ -222,13 +222,14 @@ const benchmarks = {
   },
   'speech-commands': {
     load: async () => {
-      const recognizer = speechCommands.create('SOFT_FFT');
+      const recognizer = speechCommands.create('BROWSER_FFT');
       await recognizer.ensureModelLoaded();
       return recognizer;
     },
     predictFunc: () => {
       return async (model) => {
         const shape = model.modelInputShape();
+        // Cannot use tf.util.sizeFromShape because shape includes null.
         const mySpectrogramData = new Float32Array(shape.reduce((acc, curr) => {
           if(curr == null) {
             return acc;
