@@ -14,7 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
-import {SMOKE} from './constants';
+// tslint:disable-next-line: no-imports-from-dist
+import {CHROME_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
+import {REGRESSION} from './constants';
 
 /**
  *  This file is the test suite for CUJ: custom_module->custom_bundle->predict.
@@ -27,10 +30,15 @@ function getBundleUrl(folder: string, custom: boolean, bundler: string) {
 
 const DEBUG_WORKER_SCRIPT = false;
 
-describe(`${SMOKE} blazeface`, () => {
-  describe('webpack', () => {
+describe(`${REGRESSION} blazeface`, () => {
+  // tslint:disable-next-line: ban
+  describeWithFlags('webpack', CHROME_ENVS, () => {
     let webpackBundle: {full: string, custom: string};
+    let originalTimeout: number;
     beforeAll(async () => {
+      originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+      jasmine.DEFAULT_TIMEOUT_INTERVAL = 500000;
+
       const [webpackFull, webpackCustom] = await Promise.all([
         fetch(getBundleUrl('blazeface', false /* custom */, 'webpack'))
             .then(r => r.text()),
@@ -40,6 +48,8 @@ describe(`${SMOKE} blazeface`, () => {
 
       webpackBundle = {full: webpackFull, custom: webpackCustom};
     });
+
+    afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
 
     it('custom webpack should be smaller', async () => {
       expect(webpackBundle.custom.length)
