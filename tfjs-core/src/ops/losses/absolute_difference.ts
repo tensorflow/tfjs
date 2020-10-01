@@ -38,8 +38,9 @@ import {computeWeightedLoss} from './compute_weighted_loss';
  *    dimension).
  * @param reduction Type of reduction to apply to loss. Should be of type
  *    `Reduction`
+ *
+ * @doc {heading: 'Training', subheading: 'Losses', namespace: 'losses'}
  */
-/** @doc {heading: 'Training', subheading: 'Losses', namespace: 'losses'} */
 function absoluteDifference_<T extends Tensor, O extends Tensor>(
     labels: T|TensorLike, predictions: T|TensorLike,
     weights?: Tensor|TensorLike,

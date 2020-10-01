@@ -20,9 +20,11 @@ import '@tensorflow/tfjs-backend-webgl';
 
 import * as tfconverter from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import * as tfl from '@tensorflow/tfjs-layers';
 
-import {BACKENDS, KARMA_SERVER, SMOKE} from './constants';
+import {KARMA_SERVER, SMOKE} from './constants';
 
 function getModelUrl(modelType: string) {
   return `${KARMA_SERVER}/load_predict_data/${modelType}/model.json`;
@@ -36,7 +38,7 @@ function getModelUrl(modelType: string) {
  *  - Make inference using each backends.
  */
 describe(`${SMOKE} load_predict`, () => {
-  describe('layers_model', () => {
+  describeWithFlags(`layers_model`, ALL_ENVS, () => {
     let model: tfl.LayersModel;
     let inputs: tfc.Tensor;
 
@@ -57,16 +59,13 @@ describe(`${SMOKE} load_predict`, () => {
       inputs.dispose();
     });
 
-    BACKENDS.forEach(backend => {
-      it(`predict with ${backend}.`, async () => {
-        await tfc.setBackend(backend);
-        const result = model.predict(inputs) as tfc.Tensor;
-        tfc.test_util.expectArraysClose(await result.data(), expected);
-      });
+    it(`predict`, async () => {
+      const result = model.predict(inputs) as tfc.Tensor;
+      tfc.test_util.expectArraysClose(await result.data(), expected);
     });
   });
 
-  describe('graph_model', () => {
+  describeWithFlags(`graph_model`, ALL_ENVS, async () => {
     let model: tfconverter.GraphModel;
     let a: tfc.Tensor;
 
@@ -87,12 +86,9 @@ describe(`${SMOKE} load_predict`, () => {
       a.dispose();
     });
 
-    BACKENDS.forEach(backend => {
-      it(`predict with ${backend}.`, async () => {
-        await tfc.setBackend(backend);
-        const result = await model.executeAsync(a) as tfc.Tensor;
-        tfc.test_util.expectArraysClose(await result.data(), expected);
-      });
+    it(`predict with ${tfc.getBackend()}`, async () => {
+      const result = await model.executeAsync(a) as tfc.Tensor;
+      tfc.test_util.expectArraysClose(await result.data(), expected);
     });
   });
 });

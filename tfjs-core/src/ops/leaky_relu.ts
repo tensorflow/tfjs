@@ -38,8 +38,9 @@ import {scalar} from './scalar';
  * ```
  * @param x The input tensor.
  * @param alpha The scaling factor for negative values, defaults to 0.2.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function leakyRelu_<T extends Tensor>(x: T|TensorLike, alpha = 0.2): T {
   const $x = convertToTensor(x, 'x', 'leakyRelu');
   return maximum(mul(scalar(alpha), $x), $x);

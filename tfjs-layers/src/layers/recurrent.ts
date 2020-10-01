@@ -807,6 +807,8 @@ export class RNN extends Layer {
   }
 
   getConfig(): serialization.ConfigDict {
+    const baseConfig = super.getConfig();
+
     const config: serialization.ConfigDict = {
       returnSequences: this.returnSequences,
       returnState: this.returnState,
@@ -814,17 +816,22 @@ export class RNN extends Layer {
       stateful: this.stateful,
       unroll: this.unroll,
     };
+
     if (this.numConstants != null) {
       config['numConstants'] = this.numConstants;
     }
+
     const cellConfig = this.cell.getConfig();
-    config['cell'] = {
-      'className': this.cell.getClassName(),
-      'config': cellConfig,
-    } as serialization.ConfigDictValue;
-    const baseConfig = super.getConfig();
-    Object.assign(config, baseConfig);
-    return config;
+
+    if (this.getClassName() === RNN.className) {
+      config['cell'] = {
+        'className': this.cell.getClassName(),
+        'config': cellConfig,
+      } as serialization.ConfigDictValue;
+    }
+
+    // this order is necessary, to prevent cell name from replacing layer name
+    return {...cellConfig, ...baseConfig, ...config};
   }
 
   /** @nocollapse */
@@ -839,13 +846,14 @@ export class RNN extends Layer {
 }
 serialization.registerClass(RNN);
 
-/**
- * An RNNCell layer.
- */
 // Porting Note: This is a common parent class for RNN cells. There is no
 // equivalent of this in PyKeras. Having a common parent class forgoes the
 //  need for `has_attr(cell, ...)` checks or its TypeScript equivalent.
-/** @doc {heading: 'Layers', subheading: 'Classes'} */
+/**
+ * An RNNCell layer.
+ *
+ * @doc {heading: 'Layers', subheading: 'Classes'}
+ */
 export abstract class RNNCell extends Layer {
   /**
    * Size(s) of the states.
@@ -1081,6 +1089,8 @@ export class SimpleRNNCell extends RNNCell {
   }
 
   getConfig(): serialization.ConfigDict {
+    const baseConfig = super.getConfig();
+
     const config: serialization.ConfigDict = {
       units: this.units,
       activation: serializeActivation(this.activation),
@@ -1098,9 +1108,8 @@ export class SimpleRNNCell extends RNNCell {
       dropout: this.dropout,
       recurrentDropout: this.recurrentDropout,
     };
-    const baseConfig = super.getConfig();
-    Object.assign(config, baseConfig);
-    return config;
+
+    return {...baseConfig, ...config};
   }
 }
 serialization.registerClass(SimpleRNNCell);
@@ -1219,88 +1228,6 @@ export class SimpleRNN extends RNN {
           kwargs == null ? null : kwargs['initialState'];
       return super.call(inputs, {mask, training, initialState});
     });
-  }
-
-  // TODO(cais): Research possibility of refactoring out the tedious all
-  //   the getters that delegate to `this.cell` below.
-  get units(): number {
-    return (this.cell as SimpleRNNCell).units;
-  }
-
-  get activation(): Activation {
-    return (this.cell as SimpleRNNCell).activation;
-  }
-
-  get useBias(): boolean {
-    return (this.cell as SimpleRNNCell).useBias;
-  }
-
-  get kernelInitializer(): Initializer {
-    return (this.cell as SimpleRNNCell).kernelInitializer;
-  }
-
-  get recurrentInitializer(): Initializer {
-    return (this.cell as SimpleRNNCell).recurrentInitializer;
-  }
-
-  get biasInitializer(): Initializer {
-    return (this.cell as SimpleRNNCell).biasInitializer;
-  }
-
-  get kernelRegularizer(): Regularizer {
-    return (this.cell as SimpleRNNCell).kernelRegularizer;
-  }
-
-  get recurrentRegularizer(): Regularizer {
-    return (this.cell as SimpleRNNCell).recurrentRegularizer;
-  }
-
-  get biasRegularizer(): Regularizer {
-    return (this.cell as SimpleRNNCell).biasRegularizer;
-  }
-
-  get kernelConstraint(): Constraint {
-    return (this.cell as SimpleRNNCell).kernelConstraint;
-  }
-
-  get recurrentConstraint(): Constraint {
-    return (this.cell as SimpleRNNCell).recurrentConstraint;
-  }
-
-  get biasConstraint(): Constraint {
-    return (this.cell as SimpleRNNCell).biasConstraint;
-  }
-
-  get dropout(): number {
-    return (this.cell as SimpleRNNCell).dropout;
-  }
-
-  get recurrentDropout(): number {
-    return (this.cell as SimpleRNNCell).recurrentDropout;
-  }
-
-  getConfig(): serialization.ConfigDict {
-    const config: serialization.ConfigDict = {
-      units: this.units,
-      activation: serializeActivation(this.activation),
-      useBias: this.useBias,
-      kernelInitializer: serializeInitializer(this.kernelInitializer),
-      recurrentInitializer: serializeInitializer(this.recurrentInitializer),
-      biasInitializer: serializeInitializer(this.biasInitializer),
-      kernelRegularizer: serializeRegularizer(this.kernelRegularizer),
-      recurrentRegularizer: serializeRegularizer(this.recurrentRegularizer),
-      biasRegularizer: serializeRegularizer(this.biasRegularizer),
-      activityRegularizer: serializeRegularizer(this.activityRegularizer),
-      kernelConstraint: serializeConstraint(this.kernelConstraint),
-      recurrentConstraint: serializeConstraint(this.recurrentConstraint),
-      biasConstraint: serializeConstraint(this.biasConstraint),
-      dropout: this.dropout,
-      recurrentDropout: this.recurrentDropout,
-    };
-    const baseConfig = super.getConfig();
-    delete baseConfig['cell'];
-    Object.assign(config, baseConfig);
-    return config;
   }
 
   /** @nocollapse */
@@ -1525,6 +1452,8 @@ export class GRUCell extends RNNCell {
   }
 
   getConfig(): serialization.ConfigDict {
+    const baseConfig = super.getConfig();
+
     const config: serialization.ConfigDict = {
       units: this.units,
       activation: serializeActivation(this.activation),
@@ -1545,9 +1474,8 @@ export class GRUCell extends RNNCell {
       implementation: this.implementation,
       resetAfter: false
     };
-    const baseConfig = super.getConfig();
-    Object.assign(config, baseConfig);
-    return config;
+
+    return {...baseConfig, ...config};
   }
 }
 serialization.registerClass(GRUCell);
@@ -1610,97 +1538,6 @@ export class GRU extends RNN {
           kwargs == null ? null : kwargs['initialState'];
       return super.call(inputs, {mask, training, initialState});
     });
-  }
-
-  get units(): number {
-    return (this.cell as GRUCell).units;
-  }
-
-  get activation(): Activation {
-    return (this.cell as GRUCell).activation;
-  }
-
-  get recurrentActivation(): Activation {
-    return (this.cell as GRUCell).recurrentActivation;
-  }
-
-  get useBias(): boolean {
-    return (this.cell as GRUCell).useBias;
-  }
-
-  get kernelInitializer(): Initializer {
-    return (this.cell as GRUCell).kernelInitializer;
-  }
-
-  get recurrentInitializer(): Initializer {
-    return (this.cell as GRUCell).recurrentInitializer;
-  }
-
-  get biasInitializer(): Initializer {
-    return (this.cell as GRUCell).biasInitializer;
-  }
-
-  get kernelRegularizer(): Regularizer {
-    return (this.cell as GRUCell).kernelRegularizer;
-  }
-
-  get recurrentRegularizer(): Regularizer {
-    return (this.cell as GRUCell).recurrentRegularizer;
-  }
-
-  get biasRegularizer(): Regularizer {
-    return (this.cell as GRUCell).biasRegularizer;
-  }
-
-  get kernelConstraint(): Constraint {
-    return (this.cell as GRUCell).kernelConstraint;
-  }
-
-  get recurrentConstraint(): Constraint {
-    return (this.cell as GRUCell).recurrentConstraint;
-  }
-
-  get biasConstraint(): Constraint {
-    return (this.cell as GRUCell).biasConstraint;
-  }
-
-  get dropout(): number {
-    return (this.cell as GRUCell).dropout;
-  }
-
-  get recurrentDropout(): number {
-    return (this.cell as GRUCell).recurrentDropout;
-  }
-
-  get implementation(): number {
-    return (this.cell as GRUCell).implementation;
-  }
-
-  getConfig(): serialization.ConfigDict {
-    const config: serialization.ConfigDict = {
-      units: this.units,
-      activation: serializeActivation(this.activation),
-      recurrentActivation: serializeActivation(this.recurrentActivation),
-      useBias: this.useBias,
-      kernelInitializer: serializeInitializer(this.kernelInitializer),
-      recurrentInitializer: serializeInitializer(this.recurrentInitializer),
-      biasInitializer: serializeInitializer(this.biasInitializer),
-      kernelRegularizer: serializeRegularizer(this.kernelRegularizer),
-      recurrentRegularizer: serializeRegularizer(this.recurrentRegularizer),
-      biasRegularizer: serializeRegularizer(this.biasRegularizer),
-      activityRegularizer: serializeRegularizer(this.activityRegularizer),
-      kernelConstraint: serializeConstraint(this.kernelConstraint),
-      recurrentConstraint: serializeConstraint(this.recurrentConstraint),
-      biasConstraint: serializeConstraint(this.biasConstraint),
-      dropout: this.dropout,
-      recurrentDropout: this.recurrentDropout,
-      implementation: this.implementation,
-      resetAfter: false
-    };
-    const baseConfig = super.getConfig();
-    delete baseConfig['cell'];
-    Object.assign(config, baseConfig);
-    return config;
   }
 
   /** @nocollapse */
@@ -1942,6 +1779,8 @@ export class LSTMCell extends RNNCell {
   }
 
   getConfig(): serialization.ConfigDict {
+    const baseConfig = super.getConfig();
+
     const config: serialization.ConfigDict = {
       units: this.units,
       activation: serializeActivation(this.activation),
@@ -1962,9 +1801,8 @@ export class LSTMCell extends RNNCell {
       recurrentDropout: this.recurrentDropout,
       implementation: this.implementation,
     };
-    const baseConfig = super.getConfig();
-    Object.assign(config, baseConfig);
-    return config;
+
+    return {...baseConfig, ...config};
   }
 }
 serialization.registerClass(LSTMCell);
@@ -2034,101 +1872,6 @@ export class LSTM extends RNN {
           kwargs == null ? null : kwargs['initialState'];
       return super.call(inputs, {mask, training, initialState});
     });
-  }
-
-  get units(): number {
-    return (this.cell as LSTMCell).units;
-  }
-
-  get activation(): Activation {
-    return (this.cell as LSTMCell).activation;
-  }
-
-  get recurrentActivation(): Activation {
-    return (this.cell as LSTMCell).recurrentActivation;
-  }
-
-  get useBias(): boolean {
-    return (this.cell as LSTMCell).useBias;
-  }
-
-  get kernelInitializer(): Initializer {
-    return (this.cell as LSTMCell).kernelInitializer;
-  }
-
-  get recurrentInitializer(): Initializer {
-    return (this.cell as LSTMCell).recurrentInitializer;
-  }
-
-  get biasInitializer(): Initializer {
-    return (this.cell as LSTMCell).biasInitializer;
-  }
-
-  get unitForgetBias(): boolean {
-    return (this.cell as LSTMCell).unitForgetBias;
-  }
-
-  get kernelRegularizer(): Regularizer {
-    return (this.cell as LSTMCell).kernelRegularizer;
-  }
-
-  get recurrentRegularizer(): Regularizer {
-    return (this.cell as LSTMCell).recurrentRegularizer;
-  }
-
-  get biasRegularizer(): Regularizer {
-    return (this.cell as LSTMCell).biasRegularizer;
-  }
-
-  get kernelConstraint(): Constraint {
-    return (this.cell as LSTMCell).kernelConstraint;
-  }
-
-  get recurrentConstraint(): Constraint {
-    return (this.cell as LSTMCell).recurrentConstraint;
-  }
-
-  get biasConstraint(): Constraint {
-    return (this.cell as LSTMCell).biasConstraint;
-  }
-
-  get dropout(): number {
-    return (this.cell as LSTMCell).dropout;
-  }
-
-  get recurrentDropout(): number {
-    return (this.cell as LSTMCell).recurrentDropout;
-  }
-
-  get implementation(): number {
-    return (this.cell as LSTMCell).implementation;
-  }
-
-  getConfig(): serialization.ConfigDict {
-    const config: serialization.ConfigDict = {
-      units: this.units,
-      activation: serializeActivation(this.activation),
-      recurrentActivation: serializeActivation(this.recurrentActivation),
-      useBias: this.useBias,
-      kernelInitializer: serializeInitializer(this.kernelInitializer),
-      recurrentInitializer: serializeInitializer(this.recurrentInitializer),
-      biasInitializer: serializeInitializer(this.biasInitializer),
-      unitForgetBias: this.unitForgetBias,
-      kernelRegularizer: serializeRegularizer(this.kernelRegularizer),
-      recurrentRegularizer: serializeRegularizer(this.recurrentRegularizer),
-      biasRegularizer: serializeRegularizer(this.biasRegularizer),
-      activityRegularizer: serializeRegularizer(this.activityRegularizer),
-      kernelConstraint: serializeConstraint(this.kernelConstraint),
-      recurrentConstraint: serializeConstraint(this.recurrentConstraint),
-      biasConstraint: serializeConstraint(this.biasConstraint),
-      dropout: this.dropout,
-      recurrentDropout: this.recurrentDropout,
-      implementation: this.implementation,
-    };
-    const baseConfig = super.getConfig();
-    delete baseConfig['cell'];
-    Object.assign(config, baseConfig);
-    return config;
   }
 
   /** @nocollapse */
@@ -2242,17 +1985,20 @@ export class StackedRNNCells extends RNNCell {
   }
 
   getConfig(): serialization.ConfigDict {
-    const cellConfigs: serialization.ConfigDict[] = [];
-    for (const cell of this.cells) {
-      cellConfigs.push({
+    const baseConfig = super.getConfig();
+
+    const getCellConfig = (cell: RNNCell) => {
+      return {
         'className': cell.getClassName(),
         'config': cell.getConfig(),
-      });
-    }
-    const config: serialization.ConfigDict = {'cells': cellConfigs};
-    const baseConfig = super.getConfig();
-    Object.assign(config, baseConfig);
-    return config;
+      };
+    };
+
+    const cellConfigs = this.cells.map(getCellConfig);
+
+    const config = {'cells': cellConfigs};
+
+    return {...baseConfig, ...config};
   }
 
   /** @nocollapse */

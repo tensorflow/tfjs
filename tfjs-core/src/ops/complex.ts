@@ -41,8 +41,9 @@ import {op} from './operation';
  *
  * complex.print();
  * ```
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 function complex_<T extends Tensor>(real: T|TensorLike, imag: T|TensorLike): T {
   const $real = convertToTensor(real, 'real', 'complex');
   const $imag = convertToTensor(imag, 'imag', 'complex');

@@ -34,8 +34,9 @@ import {op} from './operation';
  * x.round().print();  // or tf.round(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function round_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'round');
   const inputs: RoundInputs = {x: $x};

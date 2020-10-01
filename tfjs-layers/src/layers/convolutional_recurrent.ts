@@ -1,3 +1,13 @@
+/**
+ * @license
+ * Copyright 2020 Google LLC
+ *
+ * Use of this source code is governed by an MIT-style
+ * license that can be found in the LICENSE file or at
+ * https://opensource.org/licenses/MIT.
+ * =============================================================================
+ */
+
 import * as tfc from '@tensorflow/tfjs-core';
 import {Tensor, util} from '@tensorflow/tfjs-core';
 
@@ -277,15 +287,6 @@ class ConvRNN2D extends RNN {
     });
   }
 
-  getConfig(): tfc.serialization.ConfigDict {
-    const {'cell': _, ...config} = super.getConfig();
-
-    const cellConfig = this.cell.getConfig();
-
-    // this order is necessary, to prevent cell name from replacing layer name
-    return {...cellConfig, ...config};
-  }
-
   protected computeSingleOutputShape(inputShape: Shape): Shape {
     const {dataFormat, filters, kernelSize, padding, strides, dilationRate} =
         this.cell;
@@ -339,10 +340,10 @@ export class ConvLSTM2DCell extends LSTMCell implements ConvRNN2DCell {
     assertPositiveInteger(this.filters, 'filters');
 
     this.kernelSize = normalizeArray(kernelSize, 2, 'kernelSize');
-    this.kernelSize.map(size => assertPositiveInteger(size, 'kernelSize'));
+    this.kernelSize.forEach(size => assertPositiveInteger(size, 'kernelSize'));
 
     this.strides = normalizeArray(strides || 1, 2, 'strides');
-    this.strides.map(stride => assertPositiveInteger(stride, 'strides'));
+    this.strides.forEach(stride => assertPositiveInteger(stride, 'strides'));
 
     this.padding = padding || 'valid';
     checkPaddingMode(this.padding);
@@ -351,7 +352,8 @@ export class ConvLSTM2DCell extends LSTMCell implements ConvRNN2DCell {
     checkDataFormat(this.dataFormat);
 
     this.dilationRate = normalizeArray(dilationRate || 1, 2, 'dilationRate');
-    this.dilationRate.map(rate => assertPositiveInteger(rate, 'dilationRate'));
+    this.dilationRate.forEach(
+        rate => assertPositiveInteger(rate, 'dilationRate'));
   }
 
   public build(inputShape: Shape|Shape[]): void {
@@ -521,6 +523,7 @@ export class ConvLSTM2DCell extends LSTMCell implements ConvRNN2DCell {
       padding: this.padding,
       dataFormat: this.dataFormat,
       dilationRate: this.dilationRate,
+      strides: this.strides,
     };
 
     return {...baseConfig, ...config};

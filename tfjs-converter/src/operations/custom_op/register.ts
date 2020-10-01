@@ -42,8 +42,9 @@ const CUSTOM_OPS: {[key: string]: OpMapper} = {};
  * has the following attributes:
  *    - attr: A map from attribute name to its value
  *    - inputs: A list of input tensors
+ *
+ * @doc {heading: 'Models', subheading: 'Op Registry'}
  */
-/** @doc {heading: 'Models', subheading: 'Op Registry'} */
 export function registerOp(name: string, opFunc: OpExecutor) {
   const opMapper: OpMapper = {
     tfOpName: name,
@@ -60,9 +61,9 @@ export function registerOp(name: string, opFunc: OpExecutor) {
  * Retrieve the OpMapper object for the registered op.
  *
  * @param name The Tensorflow Op name.
+ *
+ * @doc {heading: 'Models', subheading: 'Op Registry'}
  */
-/** @doc {heading: 'Models', subheading: 'Op Registry'} */
-
 export function getRegisteredOp(name: string): OpMapper {
   return CUSTOM_OPS[name];
 }
@@ -71,8 +72,9 @@ export function getRegisteredOp(name: string): OpMapper {
  * Deregister the Op for graph model executor.
  *
  * @param name The Tensorflow Op name.
+ *
+ * @doc {heading: 'Models', subheading: 'Op Registry'}
  */
-/** @doc {heading: 'Models', subheading: 'Op Registry'} */
 export function deregisterOp(name: string) {
   delete CUSTOM_OPS[name];
 }

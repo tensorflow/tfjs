@@ -24,8 +24,7 @@ function calcL2Norms(w: Tensor, axis: number): Tensor {
 
 /**
  * Base class for functions that impose constraints on weight values
- */
-/**
+ *
  * @doc {
  *   heading: 'Constraints',
  *   subheading: 'Classes',

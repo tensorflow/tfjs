@@ -32,8 +32,9 @@ import {op} from './operation';
  * x.floor().print();  // or tf.floor(x)
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function floor_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'floor');
 

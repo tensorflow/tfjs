@@ -16,25 +16,55 @@
  */
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
+import {atan2Config} from './kernels/Atan2';
+import {avgPoolConfig} from './kernels/AvgPool';
+import {avgPoolBackpropConfig} from './kernels/AvgPoolBackprop';
+import {batchNormConfig} from './kernels/BatchNorm';
+import {cosConfig} from './kernels/Cos';
 import {divConfig} from './kernels/Div';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {fromPixelsConfig} from './kernels/FromPixels';
+import {identityConfig} from './kernels/Identity';
 import {maxConfig} from './kernels/Max';
+import {maxPoolConfig} from './kernels/MaxPool';
+import {maxPoolBackpropConfig} from './kernels/MaxPoolBackprop';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
+import {reshapeConfig} from './kernels/Reshape';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
+import {sinConfig} from './kernels/Sin';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {tanConfig} from './kernels/Tan';
 import {transposeConfig} from './kernels/Transpose';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
-  maxConfig, flipLeftRightConfig, fromPixelsConfig, divConfig,
-  maxPoolWithArgmaxConfig, nonMaxSuppressionV3Config, nonMaxSuppressionV4Config,
-  nonMaxSuppressionV5Config, rotateWithOffsetConfig, squareConfig,
-  squaredDifferenceConfig, transposeConfig
+  atan2Config,
+  avgPoolConfig,
+  avgPoolBackpropConfig,
+  batchNormConfig,
+  cosConfig,
+  divConfig,
+  flipLeftRightConfig,
+  fromPixelsConfig,
+  identityConfig,
+  maxConfig,
+  maxPoolConfig,
+  maxPoolBackpropConfig,
+  maxPoolWithArgmaxConfig,
+  nonMaxSuppressionV3Config,
+  nonMaxSuppressionV4Config,
+  nonMaxSuppressionV5Config,
+  reshapeConfig,
+  rotateWithOffsetConfig,
+  sinConfig,
+  squareConfig,
+  squaredDifferenceConfig,
+  tanConfig,
+  transposeConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {

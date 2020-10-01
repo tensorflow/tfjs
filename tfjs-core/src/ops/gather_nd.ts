@@ -57,8 +57,9 @@ import {op} from './operation';
  *
  * @param x The tensor from which to gather values.
  * @param indices Index tensor, must be of type int32.
+ *
+ * @doc {heading: 'Operations', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Operations', subheading: 'Slicing and Joining'} */
 function gatherND_(x: Tensor|TensorLike, indices: Tensor|TensorLike): Tensor {
   const $indices = convertToTensor(indices, 'indices', 'gatherND', 'int32');
   const $x = convertToTensor(x, 'x', 'gatherND');

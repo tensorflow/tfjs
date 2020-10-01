@@ -16,8 +16,7 @@
  */
 
 import {env} from './environment';
-
-import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray} from './types';
+import {BackendValues, DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, TensorLike, TypedArray} from './types';
 
 /**
  * Shuffles the array in-place using Fisher-Yates algorithm.
@@ -29,8 +28,9 @@ import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, Tens
  * ```
  *
  * @param array The array to shuffle in-place.
+ *
+ * @doc {heading: 'Util', namespace: 'util'}
  */
-/** @doc {heading: 'Util', namespace: 'util'} */
 // tslint:disable-next-line:no-any
 export function shuffle(array: any[]|Uint32Array|Int32Array|
                         Float32Array): void {
@@ -101,8 +101,9 @@ export function distSquared(a: FlatVector, b: FlatVector): number {
  * @param expr The expression to assert (as a boolean).
  * @param msg A function that returns the message to report when throwing an
  *     error. We use a function for performance reasons.
+ *
+ * @doc {heading: 'Util', namespace: 'util'}
  */
-/** @doc {heading: 'Util', namespace: 'util'} */
 export function assert(expr: boolean, msg: () => string) {
   if (!expr) {
     throw new Error(typeof msg === 'string' ? msg : msg());
@@ -138,8 +139,9 @@ export function assertNonNull(a: TensorLike): void {
  *  @param result The destination array which holds the elements.
  *  @param skipTypedArray If true, avoids flattening the typed arrays. Defaults
  *      to false.
+ *
+ * @doc {heading: 'Util', namespace: 'util'}
  */
-/** @doc {heading: 'Util', namespace: 'util'} */
 export function
 flatten<T extends number|boolean|string|Promise<number>|TypedArray>(
     arr: T|RecursiveArray<T>, result: T[] = [], skipTypedArray = false): T[] {
@@ -164,8 +166,9 @@ flatten<T extends number|boolean|string|Promise<number>|TypedArray>(
  * const size = tf.util.sizeFromShape(shape);
  * console.log(size);
  * ```
+ *
+ * @doc {heading: 'Util', namespace: 'util'}
  */
-/** @doc {heading: 'Util', namespace: 'util'} */
 export function sizeFromShape(shape: number[]): number {
   if (shape.length === 0) {
     // Scalar.
@@ -235,8 +238,9 @@ export function sizeToSquarishShape(size: number): [number, number] {
  * ```
  *
  * @param number Quantity of how many shuffled indicies to create.
+ *
+ * @doc {heading: 'Util', namespace: 'util'}
  */
-/** @doc {heading: 'Util', namespace: 'util'} */
 export function createShuffledIndices(n: number): Uint32Array {
   const shuffledIndices = new Uint32Array(n);
   for (let i = 0; i < n; ++i) {
@@ -548,6 +552,18 @@ export function computeStrides(shape: number[]): number[] {
   return strides;
 }
 
+/**
+ * Create typed array for scalar value. Used for storing in `DataStorage`.
+ */
+export function createScalarValue(
+    value: DataType, dtype: DataType): BackendValues {
+  if (dtype === 'string') {
+    return encodeString(value);
+  }
+
+  return toTypedArray([value], dtype);
+}
+
 export function toTypedArray(a: TensorLike, dtype: DataType): TypedArray {
   if (dtype === 'string') {
     throw new Error('Cannot convert a string[] to a TypedArray');
@@ -670,8 +686,9 @@ export function makeZerosNestedTypedArray<D extends DataType>(
  * ```js
  * console.log(tf.util.now());
  * ```
+ *
+ * @doc {heading: 'Util', namespace: 'util'}
  */
-/** @doc {heading: 'Util', namespace: 'util'} */
 export function now(): number {
   return env().platform.now();
 }
@@ -699,8 +716,9 @@ export function assertNonNegativeIntegerDimensions(shape: number[]) {
  * const resource = await tf.util.fetch('https://unpkg.com/@tensorflow/tfjs');
  * // handle response
  * ```
+ *
+ * @doc {heading: 'Util'}
  */
-/** @doc {heading: 'Util'} */
 export function fetch(
     path: string, requestInits?: RequestInit): Promise<Response> {
   return env().platform.fetch(path, requestInits);
@@ -712,8 +730,8 @@ export function fetch(
  * @param s The string to encode.
  * @param encoding The encoding scheme. Defaults to utf-8.
  *
+ * @doc {heading: 'Util'}
  */
-/** @doc {heading: 'Util'} */
 export function encodeString(s: string, encoding = 'utf-8'): Uint8Array {
   encoding = encoding || 'utf-8';
   return env().platform.encode(s, encoding);
@@ -724,8 +742,9 @@ export function encodeString(s: string, encoding = 'utf-8'): Uint8Array {
  * @param bytes The bytes to decode.
  *
  * @param encoding The encoding scheme. Defaults to utf-8.
+ *
+ * @doc {heading: 'Util'}
  */
-/** @doc {heading: 'Util'} */
 export function decodeString(bytes: Uint8Array, encoding = 'utf-8'): string {
   encoding = encoding || 'utf-8';
   return env().platform.decode(bytes, encoding);

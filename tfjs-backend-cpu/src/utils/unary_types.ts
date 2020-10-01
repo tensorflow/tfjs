@@ -15,6 +15,6 @@
  * =============================================================================
  */
 
-import {createBinaryKernelImpl} from '../utils/kernel_utils';
+import {NamedAttrMap} from '@tensorflow/tfjs-core';
 
-export const divImpl = createBinaryKernelImpl((a: number, b: number) => a / b);
+export type SimpleUnaryOperation = (x: number, attrs?: NamedAttrMap) => number;

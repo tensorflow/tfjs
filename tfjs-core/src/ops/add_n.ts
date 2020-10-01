@@ -35,8 +35,8 @@ import {op} from './operation';
  * tf.addN([a, b, c]).print();
  * ```
  * @param tensors A list of tensors with the same shape and dtype.
+ * @doc {heading: 'Operations', subheading: 'Arithmetic'}
  */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function addN_<T extends Tensor>(tensors: Array<T|TensorLike>): T {
   util.assert(
       Array.isArray(tensors),

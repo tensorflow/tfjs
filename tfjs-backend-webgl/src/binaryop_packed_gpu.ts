@@ -28,28 +28,6 @@ const CHECK_NAN_SNIPPET = `
   result.a = isNaN.a > 0. ? NAN : result.a;
 `;
 
-// We do the same as in ./binaryop_gpu, with vec4 and ivec4.
-// On Linux, the vectorized implementation produces NaNs when a and b are 0.
-export const DIV = `
-  // vec4 one = vec4(equal(a, b));
-  // return one + (vec4(1.0) - one) * a / b;
-  vec4 result = a / b;
-  if(a.x == b.x) {
-    result.x = 1.;
-  }
-  if(a.y == b.y) {
-    result.y = 1.;
-  }
-  if(a.z == b.z) {
-    result.z = 1.;
-  }
-  if(a.w == b.w) {
-    result.w = 1.;
-  }
-
-  return result;
-`;
-
 export const INT_DIV = `
   ivec4 ia = round(a);
   ivec4 ib = round(b);
@@ -100,14 +78,6 @@ export const PRELU = `
 export const ELU_DER = `
   vec4 bGTEZero = vec4(greaterThanEqual(b, vec4(0.)));
   return (bGTEZero * a) + ((vec4(1.0) - bGTEZero) * (a * (b + vec4(1.0))));
-`;
-
-export const ATAN2 = `
-  vec4 result = atan(a, b);
-  vec4 isNaN = min(vec4(isnan(a)) + vec4(isnan(b)), vec4(1.0));
-  ` +
-    CHECK_NAN_SNIPPET + `
-  return result;
 `;
 
 export const EQUAL = `

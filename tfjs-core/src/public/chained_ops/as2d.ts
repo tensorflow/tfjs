@@ -30,8 +30,8 @@ declare module '../../tensor' {
  *
  * @param rows Number of rows in `tf.Tensor2D`.
  * @param columns Number of columns in `tf.Tensor2D`.
+ * @doc {heading: 'Tensors', subheading: 'Classes'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Classes'} */
 Tensor.prototype.as2D = function<T extends Tensor>(
     rows: number, columns: number): T {
   this.throwIfDisposed();

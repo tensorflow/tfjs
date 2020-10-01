@@ -71,8 +71,9 @@ import {op} from './operation';
  * prod(blockShape),x.shape[1] * blockShape[0] - crops[0,0] - crops[0,1],
  * ..., x.shape[M] * blockShape[M-1] - crops[M-1,0] -
  * crops[M-1,1],x.shape[M+1], ..., x.shape[N-1]]`
+ *
+ * @doc {heading: 'Tensors', subheading: 'Transformations'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Transformations'} */
 function batchToSpaceND_<T extends Tensor>(
     x: T|TensorLike, blockShape: number[], crops: number[][]): T {
   const $x = convertToTensor(x, 'x', 'batchToSpaceND');

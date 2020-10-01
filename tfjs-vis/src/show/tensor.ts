@@ -32,8 +32,6 @@ import {tensorStats} from '../util/math';
  * await tfvis.show.valuesDistribution(surface, tensor);
  * ```
  *
- */
-/**
  * @doc {heading: 'Models & Tensors', subheading: 'Model Inspection', namespace:
  * 'show'}
  */

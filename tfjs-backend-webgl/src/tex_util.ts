@@ -87,6 +87,8 @@ export interface TextureData {
   usage?: TextureUsage;
   isPacked?: boolean;
 
+  refCount: number;
+
   // Available when the tensor has been sliced.
   slice?: {
     // Offset in the 'flat index' space.

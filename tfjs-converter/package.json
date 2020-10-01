@@ -44,7 +44,7 @@
     "karma-firefox-launcher": "~1.1.0",
     "karma-jasmine": "~2.0.1",
     "karma-typescript": "~4.0.0",
-    "node-fetch": "~2.1.2",
+    "node-fetch": "~2.6.1",
     "opn": "~5.1.0",
     "protobufjs": "~6.8.6",
     "rimraf": "~2.6.2",
