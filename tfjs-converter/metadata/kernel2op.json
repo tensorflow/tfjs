@@ -505,6 +505,9 @@
   "TruncatedNormal": [
     "truncatedNormal"
   ],
+  "Unique": [
+    "unique"
+  ],
   "Unpack": [
     "unstack"
   ],

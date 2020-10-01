@@ -15,23 +15,20 @@
  * =============================================================================
  */
 
-import {kernel_impls, KernelConfig, KernelFunc, TensorInfo, Unique, UniqueInputs} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, TensorInfo, Unique, UniqueInputs} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
+import {uniqueImpl} from './Unique_impl';
 
 export function unique(args: {inputs: UniqueInputs, backend: MathBackendCPU}):
     TensorInfo[] {
   const {inputs, backend} = args;
   const {x} = inputs;
-  if (x.shape.length !== 1) {
-    throw new Error(`unique() currently only supports 1-D tensor (got rank ${
-        x.shape.length})`);
-  }
   assertNotComplex(x, 'unique');
 
   const values = backend.data.get(x.dataId).values;
-  const {outputValues, indices} = kernel_impls.uniqueImpl(values, x.dtype);
+  const {outputValues, indices} = uniqueImpl(values, x.dtype);
   return [
     backend.makeTensorInfo(x.shape, x.dtype, outputValues),
     backend.makeTensorInfo([indices.length], 'int32', indices),

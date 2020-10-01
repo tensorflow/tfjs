@@ -15,18 +15,13 @@
  * =============================================================================
  */
 
-/**
- * An implementation of the unique kernel shared between webgl and cpu.
- */
-
-import {BackendValues, DataType, TypedArray} from '../types';
-import {decodeString} from '../util';
+import {BackendValues, DataType, TypedArray, util} from '@tensorflow/tfjs-core';
 
 export function uniqueImpl(values: BackendValues, dtype: DataType):
     {outputValues: BackendValues, indices: BackendValues} {
   let xValues: TypedArray|string[] = [];
   if (dtype === 'string') {
-    xValues = (values as Uint8Array[]).map(d => decodeString(d));
+    xValues = (values as Uint8Array[]).map(d => util.decodeString(d));
   } else {
     xValues = values as TypedArray;
   }

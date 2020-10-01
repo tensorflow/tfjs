@@ -19,5 +19,4 @@ export {nonMaxSuppressionV3Impl, nonMaxSuppressionV4Impl, nonMaxSuppressionV5Imp
 export {split} from './split_shared';
 export {tile} from './tile_impl';
 export {topkImpl} from './topk_impl';
-export {uniqueImpl} from './unique_impl';
 export {whereImpl} from './where_impl';

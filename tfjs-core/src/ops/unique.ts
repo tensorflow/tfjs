@@ -17,10 +17,11 @@
 
 import {ENGINE} from '../engine';
 import {Unique, UniqueInputs} from '../kernel_names';
-import {Tensor} from '../tensor';
+import {Tensor, Tensor1D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
+import * as util from '../util';
 
 import {op} from './operation';
 
@@ -39,23 +40,30 @@ import {op} from './operation';
  * ```js
  * const a = tf.tensor2d([1, 1, 2, 4, 4, 4, 7, 8, 8]);
  * const {values, indices} = tf.unique(a);
- * values.print();
- * indices.print();
+ * values.print();   // [1, 2, 4, 7, 8, 9]
+ * indices.print();  // [0, 0, 1, 2, 2, 2, 3, 4, 4]
  * ```
- * @param x 1-D or higher `tf.Tensor`.
- * @param axis The axis of the tensor to find the unique elements.
+ * @param x 1-D tensor (int32, string, bool).
+ * @param axis The axis of the tensor to find the unique elements (not used for
+ *     now).
+ * @returns [uniqueValues, indices (see above)]
  *
  * @doc {heading: 'Operations', subheading: 'Evaluation'}
  */
 function unique_<T extends Tensor>(
-    x: T|TensorLike, axis?: number): {values: T, indices: T} {
+    x: T|TensorLike, axis?: number): {values: Tensor1D, indices: Tensor1D} {
   // x can be of any dtype, thus null as the last argument.
   const $x = convertToTensor(x, 'x', 'unique', null);
+  util.assert(
+      $x.rank === 1,
+      () => 'unique() currently only supports 1-D tensor ' +
+          `(got rank ${$x.rank})`);
+
   const inputs: UniqueInputs = {x: $x};
-  const [values, indices] =
-      ENGINE.runKernel(
-          Unique, inputs as {} as NamedTensorMap, {} /* attrs */) as Tensor[];
-  return {values, indices} as {values: T, indices: T};
+  const [values, indices] = ENGINE.runKernel(
+                                Unique, inputs as {} as NamedTensorMap,
+                                {} /* attrs */) as [Tensor1D, Tensor1D];
+  return {values, indices};
 }
 
 export const unique = op({unique_});

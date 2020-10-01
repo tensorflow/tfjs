@@ -32,20 +32,6 @@ describeWithFlags('unique', ALL_ENVS, () => {
     expectArraysEqual(await indices.data(), [0, 0, 1, 2, 2, 2, 3, 4, 4]);
   });
 
-  it('1d tensor with random int32', async () => {
-    const x = tf.randomNormal([700], 5, 2, 'int32');
-    const {values, indices} = tf.unique(x);
-
-    expect(indices.dtype).toBe('int32');
-    expect(indices.shape).toEqual(x.shape);
-    const xValues = await x.data();
-    const outputValues = await values.data();
-    const indicesValues = await indices.data();
-    for (let i = 0; i < xValues.length; i++) {
-      expect(xValues[i]).toBe(outputValues[indicesValues[i]]);
-    }
-  });
-
   it('1d tensor with string', async () => {
     const x = tensor1d(['a', 'b', 'b', 'c', 'c']);
     const {values, indices} = tf.unique(x);
