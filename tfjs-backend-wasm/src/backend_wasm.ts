@@ -170,7 +170,7 @@ export class BackendWasm extends KernelBackend {
       case 'bool':
         return new Uint8Array(buffer, memoryOffset, size);
       default:
-        throw new Error(`Uknown dtype ${dtype}`);
+        throw new Error(`Unknown dtype ${dtype}`);
     }
   }
 }
