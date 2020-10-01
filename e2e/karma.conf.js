@@ -70,6 +70,12 @@ const browserstackConfig = {
 module.exports = function(config) {
   const args = [];
 
+  if (config.testEnv) {
+    args.push('--testEnv', config.testEnv);
+  }
+  if (config.flags) {
+    args.push('--flags', config.flags);
+  }
   if (config.grep) {
     args.push('--grep', config.grep);
   }
