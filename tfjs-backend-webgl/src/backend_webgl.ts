@@ -33,7 +33,7 @@ import {AddNProgram} from './addn_gpu';
 import {AddNPackedProgram} from './addn_packed_gpu';
 import {ArgMinMaxProgram} from './argminmax_gpu';
 import {ArgMinMaxPackedProgram} from './argminmax_packed_gpu';
-import {AvgPool2DBackpropProgram, AvgPool3DBackpropProgram} from './avg_pool_backprop_gpu';
+import {AvgPool3DBackpropProgram} from './avg_pool_backprop_gpu';
 import * as binaryop_complex_gpu from './binaryop_complex_gpu';
 import {BinaryOpComplexProgram} from './binaryop_complex_gpu';
 import * as binaryop_gpu from './binaryop_gpu';
@@ -73,14 +73,14 @@ import {Im2ColPackedProgram} from './im2col_packed_gpu';
 import {LRNProgram} from './lrn_gpu';
 import {LRNGradProgram} from './lrn_grad_gpu';
 import {LRNPackedProgram} from './lrn_packed_gpu';
-import {MaxPool2DBackpropProgram, MaxPool3DBackpropProgram} from './max_pool_backprop_gpu';
+import {MaxPool3DBackpropProgram} from './max_pool_backprop_gpu';
 import {MatMulPackedProgram} from './mulmat_packed_gpu';
 import {MultinomialProgram} from './multinomial_gpu';
 import {OneHotProgram} from './onehot_gpu';
 import {PackProgram} from './pack_gpu';
 import {PadProgram} from './pad_gpu';
 import {PadPackedProgram} from './pad_packed_gpu';
-import {Pool2DProgram, Pool3DProgram} from './pool_gpu';
+import {Pool3DProgram} from './pool_gpu';
 import {ReduceProgram} from './reduce_gpu';
 import {ReshapePackedProgram} from './reshape_packed_gpu';
 import {ResizeBilinearBackpropProgram} from './resize_bilinear_backprop_gpu';
@@ -2095,38 +2095,6 @@ export class MathBackendWebGL extends KernelBackend {
       Tensor5D {
     const program = new Conv3DDerFilterProgram(convInfo);
     return this.compileAndRun(program, [x, dy]);
-  }
-
-  maxPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
-    const program = new Pool2DProgram(convInfo, 'max', false);
-    return this.compileAndRun(program, [x]);
-  }
-
-  avgPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
-    const program = new Pool2DProgram(convInfo, 'avg', false);
-    return this.compileAndRun(program, [x], 'float32');
-  }
-
-  maxPoolBackprop(
-      dy: Tensor4D, x: Tensor4D, y: Tensor4D,
-      convInfo: backend_util.Conv2DInfo): Tensor4D {
-    const getPositions = true;
-    const maxPoolPositionsProgram =
-        new Pool2DProgram(convInfo, 'max', getPositions);
-    const maxPoolPositions: Tensor4D =
-        this.compileAndRun(maxPoolPositionsProgram, [x]);
-
-    const maxPoolBackPropProgram = new MaxPool2DBackpropProgram(convInfo);
-    const result = this.compileAndRun(
-        maxPoolBackPropProgram, [dy, maxPoolPositions], x.dtype);
-    maxPoolPositions.dispose();
-    return result as Tensor4D;
-  }
-
-  avgPoolBackprop(dy: Tensor4D, x: Tensor4D, convInfo: backend_util.Conv2DInfo):
-      Tensor4D {
-    const avgPoolBackpropProgram = new AvgPool2DBackpropProgram(convInfo);
-    return this.compileAndRun(avgPoolBackpropProgram, [dy], x.dtype);
   }
 
   cast<T extends Tensor>(x: T, dtype: DataType): T {
