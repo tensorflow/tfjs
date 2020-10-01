@@ -1344,21 +1344,6 @@ export class NodeJSKernelBackend extends KernelBackend {
         Tensor5D;
   }
 
-  mirrorPad<T extends Tensor>(
-    x: T, paddings: Array<[number, number]>, mode: 'reflect'|'symmetric'): T {
-  // Bind tensor values
-  const paddingsTensor = tensor2d(paddings, [paddings.length, 2], 'int32');
-
-  const opAttrs = [
-    createTensorsTypeOpAttr('T', x.dtype),
-    createTensorsTypeOpAttr('Tpaddings', paddingsTensor.dtype),
-    {name: 'mode', type: this.binding.TF_ATTR_STRING, value: mode.toUpperCase()}
-  ];
-
-  return this.executeSingleOutput(
-             'MirrorPad', opAttrs, [x, paddingsTensor]) as T;
-}
-
   reshape<T extends Tensor, R extends Rank>(x: T, shape: ShapeMap[R]):
       Tensor<R> {
     const shapeTensor = tensor1d(shape, 'int32');

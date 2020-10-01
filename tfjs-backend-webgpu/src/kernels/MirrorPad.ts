@@ -15,20 +15,23 @@
  * =============================================================================
  */
 
-import {mirrorPad} from '../../ops/mirror_pad';
-import {Tensor} from '../../tensor';
-import {Rank} from '../../types';
+import {KernelConfig, MirrorPad, MirrorPadAttrs, MirrorPadInputs} from '@tensorflow/tfjs-core';
 
-declare module '../../tensor' {
-  interface Tensor<R extends Rank = Rank> {
-    mirrorPad<T extends Tensor>(
-        paddings: Array<[number, number]>, mode: 'reflect'|'symmetric'): T;
+import {WebGPUBackend} from '../backend_webgpu';
+
+import {MirrorPadProgram} from './mirror_pad_webgpu';
+
+export const mirrorPadConfig: KernelConfig = {
+  kernelName: MirrorPad,
+  backendName: 'webgpu',
+  kernelFunc: ({inputs, attrs, backend}) => {
+    const {x} = inputs as MirrorPadInputs;
+    const {paddings, mode} = attrs as unknown as MirrorPadAttrs;
+    const webGPUBackend = backend as WebGPUBackend;
+
+    const program = new MirrorPadProgram(x.shape, paddings, mode);
+    const output = webGPUBackend.compileAndRun(program, [x]);
+
+    return output;
   }
-}
-
-Tensor.prototype.mirrorPad = function<T extends Tensor>(
-    this: T, paddings: Array<[number, number]>,
-    mode: 'reflect'|'symmetric'): T {
-  this.throwIfDisposed();
-  return mirrorPad(this, paddings, mode);
 };

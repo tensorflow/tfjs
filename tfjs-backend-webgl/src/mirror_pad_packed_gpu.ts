@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,45 @@ import {GPGPUProgram} from './gpgpu_math';
 import {getChannels} from './packing_util';
 import {getCoordsDataType} from './shader_compiler';
 
+/**
+ * Example shader code for
+ * `mirrorPad(tf.tensor1d([1, 2, 3], 'int32'), [[2, 2]], 'reflect')`
+ * ```
+ *    const int start = int(2);
+ *    const int end = int(5);
+ *
+ *    void main() {
+ *       int outputLoc = getOutputCoords();
+ *       vec4 result = vec4(0.);
+ *
+ *       int rc = outputLoc;
+ *
+ *       int source = rc;
+ *       if (source < start) {
+ *         source = start * 2 - source - 0;
+ *       } else if (source >= end) {
+ *         source = (end - 1) * 2 - source + 0;
+ *       }
+ *       source -= start;
+ *
+ *       result[0] = getChannel(getX(source), source);
+ *       rc += 1;
+ *       if(rc < 6) {
+ *          int source = rc;
+ *          if (source < start) {
+ *            source = start * 2 - source - 0;
+ *          } else if (source >= end) {
+ *            source = (end - 1) * 2 - source + 0;
+ *          }
+ *          source -= start;
+ *
+ *         result[1] = getChannel(getX(source), source);
+ *       }
+ *
+ *       setOutput(result);
+ *     }
+ * ```
+ */
 export class MirrorPadPackedProgram implements GPGPUProgram {
   variableNames = ['x'];
   packedInputs = true;
@@ -43,38 +82,61 @@ export class MirrorPadPackedProgram implements GPGPUProgram {
         rank === 1 ? 'source' : `vec2(${source.slice(-2).join()})`;
     const offset = mode === 'reflect' ? 0 : 1;
 
-    const componentSetup = [
-      `${dtype} rc = outputLoc;`, `${coords[rank - 1]} += 1;
-       if(${cLimit}) {
-      `,
-      rank === 1 ? '' : `}
-       rc = outputLoc;
-       ${coords[rank - 2]} += 1;
-       if(${coords[rank - 2]} < ${this.outputShape[rank - 2]}) {`,
-      rank === 1 ? '' : `  ${coords[rank - 1]} += 1;
-         if(${cLimit}) {`
-    ];
-
-    const lessThan = rank === 1 ? 'source < start' : 'lessThan(source, start)';
-    const greatherThanEqual = rank === 1 ?
-            'source >= end' : 'greaterThanEqual(source, end)';
-
     let mainLoop = '';
-    for (let i = 0, j = rank === 1 ? 2 : 4; i < j; i++) {
-      mainLoop += `
-        ${componentSetup[i]}
+    if (rank === 1) {
+      const padSetup = `
         ${dtype} source = rc;
-        ${dtype} lt = ${dtype}(${lessThan});
-        ${dtype} gte = ${dtype}(${greatherThanEqual});
+        if (source < start) {
+          source = start * 2 - source - ${offset};
+        } else if (source >= end) {
+          source = (end - 1) * 2 - source + ${offset};
+        }
+        source -= start;
+      `;
+      mainLoop = `
+        ${dtype} rc = outputLoc;
+        ${padSetup}
+        result[0] = getChannel(getX(${source.join()}), ${innerDims});
+        ${coords[rank - 1]} += 1;
+        if(${cLimit}) {
+          ${padSetup}
+          result[1] = getChannel(getX(${source.join()}), ${innerDims});
+        }
+      `;
+    } else {
+      const padSetup = `
+        ${dtype} source = rc;
+        ${dtype} lt = ${dtype}(lessThan(source, start));
+        ${dtype} gte = ${dtype}(greaterThanEqual(source, end));
         ${dtype} orig = 1 - (lt + gte);
         source = orig * source +
-                 lt * (start * 2 - source - ${offset}) +
-                 gte * ((end - 1) * 2 - source + ${offset});
+                lt * (start * 2 - source - ${offset}) +
+                gte * ((end - 1) * 2 - source + ${offset});
         source -= start;
-        result[${i}] = getChannel(getX(${source.join()}), ${innerDims});
+      `;
+
+      mainLoop = `
+        ${dtype} rc = outputLoc;
+        ${padSetup}
+        result[0] = getChannel(getX(${source.join()}), ${innerDims});
+        ${coords[rank - 1]} += 1;
+        if(${cLimit}) {
+          ${padSetup}
+          result[1] = getChannel(getX(${source.join()}), ${innerDims});
+        }
+        rc = outputLoc;
+        ${coords[rank - 2]} += 1;
+        if(${coords[rank - 2]} < ${this.outputShape[rank - 2]}) {
+          ${padSetup}
+          result[2] = getChannel(getX(${source.join()}), ${innerDims});
+          ${coords[rank - 1]} += 1;
+          if(${cLimit}) {
+            ${padSetup}
+            result[3] = getChannel(getX(${source.join()}), ${innerDims});
+          }
+        }
       `;
     }
-    mainLoop += (rank === 1 ? `} ` : `}}`);
 
     this.userCode = `
       const ${dtype} start = ${dtype}(${start});

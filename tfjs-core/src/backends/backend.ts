@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -579,11 +579,6 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
       logits: Tensor2D, normalized: boolean, numSamples: number,
       seed: number): Tensor2D {
     return notYetImplemented('multinomial');
-  }
-
-  mirrorPad<T extends Tensor>(
-      x: T, paddings: Array<[number, number]>, mode: 'reflect'|'symmetric'): T {
-    return notYetImplemented('mirrorPad');
   }
 
   oneHot(indices: Tensor1D, depth: number, onValue: number, offValue: number):
