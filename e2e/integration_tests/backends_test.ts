@@ -56,7 +56,7 @@ describeWithFlags(
         const inputReshaped2 = tfc.reshape(inputReshaped, [2, 2]);
         // input moved to cpu.
 
-        // Because input is moved to cpu, data should be deleted from
+        // Because input is moved to cpu, data should be deleted from webgl
         expect(tfc.findBackend('webgl').numDataIds()).toEqual(webglAfter - 1);
 
         const cpuAfter = tfc.engine().backend.numDataIds();
@@ -98,7 +98,7 @@ describeWithFlags(
         const inputReshaped2 = tfc.reshape(inputReshaped, [2, 2]);
         // input moved to webgl.
 
-        // Because input is moved to webgl, data should be deleted from
+        // Because input is moved to webgl, data should be deleted from cpu
         expect(tfc.findBackend('cpu').numDataIds()).toEqual(cpuAfter - 1);
 
         const webglAfter = tfc.engine().backend.numDataIds();
