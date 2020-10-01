@@ -354,9 +354,9 @@ export class MathBackendWebGL extends KernelBackend {
     let result: Float32Array;
     if (dtype === 'complex64') {
       const realValues =
-          this.getValuesFromTexture(complexTensorInfos.real.dataId);
+          this.readSync(complexTensorInfos.real.dataId) as Float32Array;
       const imagValues =
-          this.getValuesFromTexture(complexTensorInfos.imag.dataId);
+          this.readSync(complexTensorInfos.imag.dataId) as Float32Array;
       result = backend_util.mergeRealAndImagArrays(realValues, imagValues);
     } else {
       result = this.getValuesFromTexture(dataId);
@@ -617,7 +617,7 @@ export class MathBackendWebGL extends KernelBackend {
     }
 
     if (this.texData.get(dataId).kept) {
-      this.texData.get(dataId).refCount--;
+      this.decRef(this.texData.get(dataId));
       return;
     }
 
