@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Int64Scalar} from './int64_tensors';
+import {encodeInt32ArrayAsInt64, Int64Scalar} from './int64_tensors';
 
 describe('int64 tensors', () => {
   it('positive value', () => {
@@ -57,5 +57,15 @@ describe('int64 tensors', () => {
     expect(() => new Int64Scalar(2147483648)).toThrowError(/bound/);
     expect(() => new Int64Scalar(2147483648 * 2)).toThrowError(/bound/);
     expect(() => new Int64Scalar(-2147483648 - 1)).toThrowError(/bound/);
+  });
+
+  it('encode int32array as int64 layout', () => {
+    const input = Int32Array.from([2, 10]);
+    const valueArray = encodeInt32ArrayAsInt64(input);
+    expect(valueArray.length).toEqual(4);
+    expect(valueArray[0]).toEqual(2);
+    expect(valueArray[1]).toEqual(0);
+    expect(valueArray[2]).toEqual(10);
+    expect(valueArray[3]).toEqual(0);
   });
 });
