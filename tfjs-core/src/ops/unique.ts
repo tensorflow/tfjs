@@ -34,7 +34,7 @@ import {op} from './operation';
  * `indices` the same size as the number of the elements in `x` along the `axis`
  * dimension. It contains the index in the unique output `values`.
  *
- * For now, only 1-D tensor is support, and the `axis` parameter is not used.
+ * For now, only 1-D tensor is supported, and the `axis` parameter is not used.
  * Tensors with higher dimensions will be supported in UniqueV2.
  *
  * ```js

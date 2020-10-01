@@ -56,7 +56,7 @@ describe('evaluation', () => {
     });
 
     describe('Unique', () => {
-      it('should return input', () => {
+      it('should get called correctly', () => {
         node.op = 'Unique';
         node.inputParams['x'] = createTensorAttr(0);
         spyOn(tfOps, 'unique').and.callThrough();
