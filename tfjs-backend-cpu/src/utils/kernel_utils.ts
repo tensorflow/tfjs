@@ -27,18 +27,18 @@ import {ComplexBinaryKernelImpl, ComplexBinaryOperation, SimpleBinaryKernelImpl}
 /**
  * Template that creates a `KernelFunc` for binary ops.
  * @param name Kernel name.
- * @param op A `SimpleBinaryKernelImpl` for the kernel.
- * @param ComplexOp Optional. If exists, represents a `ComplexBinaryKernelImpl`
- *     for the kernel, will be used when input dtype is `complex64`.
+ * @param binaryKernelImpl A `SimpleBinaryKernelImpl` for the kernel.
+ * @param binaryKernelComplexImpl Optional. If exists, represents a
+ *     `ComplexBinaryKernelImpl` for the kernel, will be used when input dtype
+ *     is `complex64`.
  * @param dtype Optional. If set, the result has this dtype. Otherwise, the
  *     result has the same dtype as the first input. This is mainly used in
  *     comparison kernels, such as Equal, Less, Greater, etc.
  */
 export function binaryKernelFunc(
-    name: string, binaryKernelImpl: SimpleBinaryKernelImpl,
-    binaryKernelComplexImpl?: ComplexBinaryKernelImpl,
-    dtype?: DataType): KernelFunc {
-  if (binaryKernelComplexImpl == null) {
+    name: string, simpleImpl: SimpleBinaryKernelImpl,
+    complexImpl?: ComplexBinaryKernelImpl, dtype?: DataType): KernelFunc {
+  if (complexImpl == null) {
     return ({inputs, backend}) => {
       const {a, b} = inputs as BinaryInputs;
       const cpuBackend = backend as MathBackendCPU;
@@ -51,7 +51,7 @@ export function binaryKernelFunc(
       const $dtype = dtype || a.dtype;
 
       const [resultData, resultShape] =
-          binaryKernelImpl(a.shape, b.shape, aVals, bVals, $dtype);
+          simpleImpl(a.shape, b.shape, aVals, bVals, $dtype);
 
       return cpuBackend.makeTensorInfo(resultShape, $dtype, resultData);
     };
@@ -88,9 +88,8 @@ export function binaryKernelFunc(
       const bImagVals =
           cpuBackend.data.get(bImag.dataId).values as Float32Array;
 
-      const [resultRealData, resultImagData, resultShape] =
-          binaryKernelComplexImpl(
-              a.shape, b.shape, aRealVals, aImagVals, bRealVals, bImagVals);
+      const [resultRealData, resultImagData, resultShape] = complexImpl(
+          a.shape, b.shape, aRealVals, aImagVals, bRealVals, bImagVals);
 
       const resultReal =
           cpuBackend.makeTensorInfo(resultShape, 'float32', resultRealData);
@@ -114,7 +113,7 @@ export function binaryKernelFunc(
       const $dtype = dtype || a.dtype;
 
       const [resultData, resultShape] =
-          binaryKernelImpl(a.shape, b.shape, aVals, bVals, $dtype);
+          simpleImpl(a.shape, b.shape, aVals, bVals, $dtype);
 
       return cpuBackend.makeTensorInfo(resultShape, $dtype, resultData);
     }
