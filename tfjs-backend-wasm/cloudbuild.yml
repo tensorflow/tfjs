@@ -1,12 +1,12 @@
 steps:
 # Install common dependencies.
-- name: 'node:10'
+- name: 'bitnami/node:latest'
   id: 'yarn-common'
   entrypoint: 'yarn'
   args: ['install']
 
 # Install packages.
-- name: 'node:10'
+- name: 'bitnami/node:latest'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'yarn'
@@ -14,7 +14,7 @@ steps:
   waitFor: ['yarn-common']
 
 # Install build-deps.
-- name: 'node:10'
+- name: 'bitnami/node:latest'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'build-deps'
@@ -24,13 +24,13 @@ steps:
 # Build.
 - name: 'gcr.io/learnjs-174218/wasm'
   dir: 'tfjs-backend-wasm'
-  entrypoint: 'bash'
+  entrypoint: 'yarn'
   id: 'build'
-  args: ['./scripts/build-ci.sh']
+  args: ['build-ci']
   waitFor: ['yarn', 'build-deps']
 
 # Lint.
-- name: 'node:10'
+- name: 'bitnami/node:latest'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'lint'
@@ -38,7 +38,7 @@ steps:
   waitFor: ['yarn', 'build-deps']
 
 # Run JS tests.
-- name: 'node:10'
+- name: 'bitnami/node:latest'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'test-wasm'
@@ -64,7 +64,7 @@ steps:
   waitFor: ['yarn', 'build-deps', 'build']
 
 # Lint bazel files.
-- name: 'node:10'
+- name: 'bitnami/node:latest'
   dir: 'tfjs-backend-wasm'
   id: 'buildifier'
   entrypoint: 'yarn'
