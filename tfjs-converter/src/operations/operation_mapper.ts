@@ -112,13 +112,15 @@ export class OperationMapper {
     const tfNodes = graph.node;
     const placeholders: Node[] = [];
     const weights: Node[] = [];
+    const initNodes: Node[] = [];
     const nodes = tfNodes.reduce<{[key: string]: Node}>((map, node) => {
       map[node.name] = this.mapNode(node);
       if (node.op.startsWith('Placeholder')) {
         placeholders.push(map[node.name]);
-      }
-      if (node.op === 'Const') {
+      } else if (node.op === 'Const') {
         weights.push(map[node.name]);
+      } else if (node.input == null || node.input.length === 0) {
+        initNodes.push(map[node.name]);
       }
       return map;
     }, {});
@@ -182,15 +184,14 @@ export class OperationMapper {
       }, {} as {[key: string]: Graph});
     }
 
-    return {
-      nodes,
-      inputs,
-      outputs,
-      weights,
-      placeholders,
-      signature,
-      functions
-    };
+    const result: Graph =
+        {nodes, inputs, outputs, weights, placeholders, signature, functions};
+
+    if (initNodes.length > 0) {
+      result['initNodes'] = initNodes;
+    }
+
+    return result;
   }
 
   private mapSignatureEntries(entries: {[k: string]: tensorflow.ITensorInfo}) {

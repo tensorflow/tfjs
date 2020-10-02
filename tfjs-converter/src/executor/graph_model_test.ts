@@ -35,8 +35,8 @@ const weightsManifest: tfc.io.WeightsManifestEntry[] =
 
 const weightsManifestWithInitializer: tfc.io.WeightsManifestEntry[] = [
   {'name': 'Const', 'dtype': 'int32', 'shape': [1]},
-  {'dtype': 'string', 'name': 'Const', 'shape': [1]},
-  {'dtype': 'int32', 'name': 'Const_1', 'shape': [1]}
+  {'dtype': 'string', 'name': 'transform/keys', 'shape': [1]},
+  {'dtype': 'int32', 'name': 'transform/values', 'shape': [1]}
 ];
 
 const SIMPLE_MODEL: tensorflow.IGraphDef = {
