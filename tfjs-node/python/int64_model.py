@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Python script for creating Tensorflow SavedModel with UINT8 input."""
+"""Python script for creating Tensorflow SavedModel with UINT64 input."""
 
 import os
 

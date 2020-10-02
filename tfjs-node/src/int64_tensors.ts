@@ -84,7 +84,7 @@ export class Int64Scalar {
 }
 
 /**
- * This method encode a Int32Array as Int64 layout in order to create TF_INT64
+ * This method encodes a Int32Array as Int64 layout in order to create TF_INT64
  * tensor through binding.
  */
 export function encodeInt32ArrayAsInt64(value: Int32Array): Int32Array {
