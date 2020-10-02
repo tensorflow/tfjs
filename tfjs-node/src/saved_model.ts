@@ -430,6 +430,7 @@ function mapTFDtypeToJSDtype(tfDtype: string): DataType {
   switch (tfDtype) {
     case 'DT_FLOAT':
       return 'float32';
+    case 'DT_INT64':
     case 'DT_INT32':
     case 'DT_UINT8':
       return 'int32';
