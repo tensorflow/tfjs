@@ -1914,7 +1914,8 @@ export class NodeJSKernelBackend extends KernelBackend {
               inputs[i].shape, this.binding.TF_UINT8, data);
           tensorIds[i] = inputTensorId;
         } else if (inputTensorInfos[i].tfDtype === 'DT_INT64') {
-          const data = encodeInt32ArrayAsInt64(inputs[i].dataSync());
+          const data =
+              encodeInt32ArrayAsInt64(inputs[i].dataSync() as Int32Array);
           const inputTensorId = this.binding.createTensor(
               inputs[i].shape, this.binding.TF_INT64, data);
           tensorIds[i] = inputTensorId;
