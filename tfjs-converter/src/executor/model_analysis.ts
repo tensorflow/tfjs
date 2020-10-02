@@ -39,8 +39,8 @@ export interface ExecutionInfo {
  * - Alternative inputs in order to avoid async (dynamic op) execution.
  */
 export function getExecutionSubgraph(
-    inputs: NamedTensorMap, outputs: Node[],
-    weightMap: NamedTensorsMap): ExecutionInfo {
+    inputs: NamedTensorMap, outputs: Node[], weightMap: NamedTensorsMap,
+    initNodes?: Node[]): ExecutionInfo {
   const usedNodes = new Set<string>();
   const missingInputs: Node[] = [];
   let dynamicNode: Node = null;
@@ -51,6 +51,12 @@ export function getExecutionSubgraph(
   const seen = new Set<string>();
   const inputNodeNames =
       Object.keys(inputs).map(name => parseNodeName(name)[0]);
+
+  let initNodeNames: string[] = [];
+  if (initNodes != null) {
+    initNodeNames = initNodes.map(node => parseNodeName(node.name)[0]);
+  }
+
   const frontier = [...outputs];
   while (frontier.length > 0) {
     const node = frontier.pop();
@@ -68,8 +74,11 @@ export function getExecutionSubgraph(
       continue;
     }
     // This node is a dead end since it's one of the user-provided inputs.
-
     if (inputNodeNames.indexOf(node.name) !== -1) {
+      continue;
+    }
+    // This node is a dead end since it doesn't have any inputs.
+    if (initNodeNames.indexOf(node.name) !== -1) {
       continue;
     }
     if (node.inputs.length === 0) {
@@ -100,6 +109,8 @@ export function getNodesInTopologicalOrder(
   const inputNodes = Object.keys(inputs)
                          .map(name => parseNodeName(name)[0])
                          .map(name => graph.nodes[name]);
+  const initNodes = graph.initNodes;
+
   inputNodes.forEach(input => {
     if (usedNodes.has(input.name)) {
       frontier.push(input);
@@ -110,6 +121,13 @@ export function getNodesInTopologicalOrder(
       frontier.push(weight);
     }
   });
+  if (initNodes != null) {
+    initNodes.forEach(node => {
+      if (usedNodes.has(node.name)) {
+        frontier.push(node);
+      }
+    });
+  }
   const seen = new Set<string>();
   const orderedNodes: Node[] = [];
   while (frontier.length > 0) {
@@ -126,60 +144,6 @@ export function getNodesInTopologicalOrder(
     });
   }
   return orderedNodes;
-}
-
-/**
- * Given the outputs, return a list of nodes in topological order that
- * need to be executed to compute the outputs.
- *
- * This method is used for building initializer subgraph. The differences
- * between this method and `getNodesInTopologicalOrder` is that the input nodes
- * are not required to be tensors, they can be ops.
- *
- * @param outputs: Output nodes that the algorithm use to trace back to input
- *     nodes and then calculate execution order from the input nodes.
- */
-export function getGraphInTopologicalOrder(outputs: Node[]): Node[] {
-  const inputs = findInputs(outputs);
-  const frontier = [...inputs];
-  const seen = new Set<string>();
-  const orderedNodes: Node[] = [];
-
-  while (frontier.length > 0) {
-    const top = frontier.pop();
-    seen.add(top.name);
-    orderedNodes.push(top);
-    top.children.forEach(child => {
-      if (!seen.has(child.name) &&
-          child.inputs.every(input => seen.has(input.name))) {
-        frontier.push(child);
-      }
-    });
-  }
-
-  return orderedNodes;
-}
-
-// Output nodes that the algorithm use to trace back to input nodes.
-function findInputs(outputs: Node[]): Node[] {
-  const frontier = [...outputs];
-  const inputs = [];
-  const seen = new Set<string>();
-
-  while (frontier.length > 0) {
-    const top = frontier.pop();
-
-    if (!seen.has(top.name)) {
-      if (top.inputs.length > 0) {
-        frontier.push(...top.inputs);
-      } else {
-        inputs.push(top);
-      }
-      seen.add(top.name);
-    }
-  }
-
-  return inputs;
 }
 
 const CONTROL_FLOW_OPS = [
