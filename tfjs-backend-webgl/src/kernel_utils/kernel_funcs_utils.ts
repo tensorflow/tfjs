@@ -52,6 +52,15 @@ export function unaryKernelFunc(opSnippet: string): KernelFunc {
   };
 }
 
+type BinaryKernelFuncConfig = {
+  opSnippet: string,
+  packedOpSnippet?: string,
+  checkOutOfBounds?: boolean,
+  supportsComplex?: boolean,
+  cpuKernelImpl?: SimpleBinaryKernelImplCPU,
+  dtype?: DataType
+};
+
 /**
  * Template that creates a `KernelFunc` for binary ops.
  * @param opSnippet Op snippet to create `BinaryOpProgram`.
@@ -69,14 +78,7 @@ export function binaryKernelFunc({
   supportsComplex = false,
   cpuKernelImpl,
   dtype
-}: {
-  opSnippet: string,
-  packedOpSnippet?: string,
-  checkOutOfBounds?: boolean,
-  supportsComplex?: boolean,
-  cpuKernelImpl?: SimpleBinaryKernelImplCPU,
-  dtype?: DataType
-}): KernelFunc {
+}: BinaryKernelFuncConfig): KernelFunc {
   return ({inputs, backend}) => {
     const {a, b} = inputs as BinaryInputs;
     const webglBackend = backend as MathBackendWebGL;

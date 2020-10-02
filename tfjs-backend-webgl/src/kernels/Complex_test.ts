@@ -110,7 +110,7 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
     expect(tf.engine().backend.numDataIds()).toBe(startDataIds);
   });
 
-  fit('tf.complex disposing underlying tensors', async () => {
+  it('tf.complex disposing underlying tensors', async () => {
     const numTensors = tf.memory().numTensors;
     const numDataIds = tf.engine().backend.numDataIds();
 
