@@ -64,5 +64,18 @@ describe('evaluation', () => {
         expect(tfOps.unique).toHaveBeenCalledWith(input1[0]);
       });
     });
+
+    describe('UniqueV2', () => {
+      it('should get called correctly', () => {
+        node.op = 'UniqueV2';
+        node.inputParams['x'] = createTensorAttr(0);
+        node.inputParams['axis'] = createNumberAttrFromIndex(1);
+        spyOn(tfOps, 'unique').and.callThrough();
+        const xInput = [tfOps.tensor2d([[1], [2]])];
+        const axisInput = [tfOps.scalar(1)];
+        executeOp(node, {'input1': xInput, 'input2': axisInput}, context);
+        expect(tfOps.unique).toHaveBeenCalledWith(xInput[0], 1);
+      });
+    });
   });
 });

@@ -42,6 +42,13 @@ export const executeOp: InternalOpExecutor =
               const result = tfOps.unique(x);
               return [result.values, result.indices];
             }
+            case 'UniqueV2': {
+              const x = getParamValue('x', node, tensorMap, context) as Tensor;
+              const axis =
+                  getParamValue('axis', node, tensorMap, context) as number;
+              const result = tfOps.unique(x, axis);
+              return [result.values, result.indices];
+            }
             default:
               throw TypeError(`Node type ${node.op} is not implemented`);
           }

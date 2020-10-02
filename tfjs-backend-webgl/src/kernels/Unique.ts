@@ -15,23 +15,29 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, TensorInfo, Unique, UniqueInputs} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, TensorInfo, Unique, UniqueAttrs, UniqueInputs} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {uniqueImplCPU} from '../kernel_utils/shared';
 import {assertNotComplex} from '../webgl_util';
 
-export function unique(args: {inputs: UniqueInputs, backend: MathBackendWebGL}):
+export function unique(
+    args:
+        {inputs: UniqueInputs, attrs: UniqueAttrs, backend: MathBackendWebGL}):
     TensorInfo[] {
-  const {inputs, backend} = args;
+  const {inputs, attrs, backend} = args;
+  const {axis} = attrs;
   const {x} = inputs;
   assertNotComplex(x, 'unique');
 
   // For now, always forward calculation to the CPU backend.
+  console.warn(
+      'WARNING: ', 'UI might be locked temparaily as data is being downloaded');
   const values = backend.readSync(x.dataId);
-  const {outputValues, indices} = uniqueImplCPU(values, x.dtype);
+  const {outputValues, outputShape, indices} =
+      uniqueImplCPU(values, axis, x.shape, x.dtype);
   return [
-    backend.makeTensorInfo(x.shape, x.dtype, outputValues),
+    backend.makeTensorInfo(outputShape, x.dtype, outputValues),
     backend.makeTensorInfo([indices.length], 'int32', indices),
   ];
 }

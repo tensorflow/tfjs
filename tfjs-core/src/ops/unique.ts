@@ -16,17 +16,17 @@
  */
 
 import {ENGINE} from '../engine';
-import {Unique, UniqueInputs} from '../kernel_names';
+import {Unique, UniqueAttrs, UniqueInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor1D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
-import * as util from '../util';
 
 import {op} from './operation';
 
 /**
- * Finds the unique elements in a 1-D tensor.
+ * Finds unique elements along an axis of a tensor.
  *
  * It returns a tensor `values` containing all of the unique elements along the
  * `axis` of the given tensor `x` in the same order that they occur along the
@@ -34,35 +34,51 @@ import {op} from './operation';
  * `indices` the same size as the number of the elements in `x` along the `axis`
  * dimension. It contains the index in the unique output `values`.
  *
- * For now, only 1-D tensor is supported, and the `axis` parameter is not used.
- * Tensors with higher dimensions will be supported in UniqueV2.
- *
  * ```js
- * const a = tf.tensor2d([1, 1, 2, 4, 4, 4, 7, 8, 8]);
+ * // A 1-D tensor
+ * const a = tf.tensor1d([1, 1, 2, 4, 4, 4, 7, 8, 8]);
  * const {values, indices} = tf.unique(a);
- * values.print();   // [1, 2, 4, 7, 8, 9]
+ * values.print();   // [1, 2, 4, 7, 8,]
  * indices.print();  // [0, 0, 1, 2, 2, 2, 3, 4, 4]
+ *
+ * // A 2-D tensor with axis=0
+ * //
+ * // 'a' is: [[1, 0, 0],
+ * //          [1, 0, 0],
+ * //          [2, 0, 0]]
+ * const a = tf.tensor2d([[1, 0, 0], [1, 0, 0], [2, 0, 0]]);
+ * const {values, indices} = tf.unique(a, 0)
+ * values.print();   // [[1, 0, 0],
+ *                   //  [2, 0, 0]]
+ * indices.print();  // [0, 0, 1]
+ *
+ * // A 2-D tensor with axis=1
+ * //
+ * // 'a' is: [[1, 0, 0],
+ * //          [1, 0, 0],
+ * //          [2, 0, 0]]
+ * const a = tf.tensor2d([[1, 0, 0], [1, 0, 0], [2, 0, 0]]);
+ * const {values, indices} = tf.unique(a, 1)
+ * values.print();   // [[1, 0],
+ *                   //  [1, 0],
+ *                   //  [2, 0]]
+ * indices.print();  // [0, 1, 1]
  * ```
- * @param x 1-D tensor (int32, string, bool).
- * @param axis The axis of the tensor to find the unique elements (not used for
- *     now).
- * @returns [uniqueValues, indices (see above)]
+ * @param x A tensor (int32, string, bool).
+ * @param axis The axis of the tensor to find the unique elements.
+ * @returns [uniqueElements, indices] (see above for details)
  *
  * @doc {heading: 'Operations', subheading: 'Evaluation'}
  */
 function unique_<T extends Tensor>(
-    x: T|TensorLike, axis?: number): {values: Tensor1D, indices: Tensor1D} {
+    x: T|TensorLike, axis = 0): {values: T, indices: Tensor1D} {
   // x can be of any dtype, thus null as the last argument.
   const $x = convertToTensor(x, 'x', 'unique', null);
-  util.assert(
-      $x.rank === 1,
-      () => 'unique() currently only supports 1-D tensor ' +
-          `(got rank ${$x.rank})`);
-
   const inputs: UniqueInputs = {x: $x};
+  const attrs: UniqueAttrs = {axis};
   const [values, indices] = ENGINE.runKernel(
                                 Unique, inputs as {} as NamedTensorMap,
-                                {} /* attrs */) as [Tensor1D, Tensor1D];
+                                attrs as {} as NamedAttrMap) as [T, Tensor1D];
   return {values, indices};
 }
 

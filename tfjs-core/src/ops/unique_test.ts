@@ -52,9 +52,23 @@ describeWithFlags('unique', ALL_ENVS, () => {
     expectArraysEqual(await indices.data(), [0, 0, 1]);
   });
 
-  it('throws for non 1-D tensor', () => {
-    expect(() => tf.unique([[1, 2], [3, 4]]))
-        .toThrowError(
-            /unique\(\) currently only supports 1-D tensor.*got rank 2.*/);
+  it('2d tensor with axis=0', async () => {
+    const x = tf.tensor2d([[1, 0, 0], [1, 0, 0], [2, 0, 0]]);
+    const {values, indices} = tf.unique(x, 0);
+
+    expect(indices.dtype).toBe('int32');
+    expect(indices.shape).toEqual([x.shape[0]]);
+    expectArraysEqual(await values.data(), [[1, 0, 0], [2, 0, 0]]);
+    expectArraysEqual(await indices.data(), [0, 0, 1]);
+  });
+
+  it('2d tensor with axis=1', async () => {
+    const x = tf.tensor2d([[1, 0, 0, 1], [1, 0, 0, 1], [2, 0, 0, 2]]);
+    const {values, indices} = tf.unique(x, 1);
+
+    expect(indices.dtype).toBe('int32');
+    expect(indices.shape).toEqual([x.shape[1]]);
+    expectArraysEqual(await values.data(), [[1, 0], [1, 0], [2, 0]]);
+    expectArraysEqual(await indices.data(), [0, 1, 1, 0]);
   });
 });
