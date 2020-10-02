@@ -25,5 +25,5 @@ DIR=$1
 # Nightly flow: Run everything.
 if [[ -f "$DIR/run-ci" || $DIR == "e2e" || $NIGHTLY = true ]]; then
   gcloud builds submit . --config=$DIR/cloudbuild.yml \
-    --substitutions _NIGHTLY=true
+    --substitutions _NIGHTLY=$NIGHTLY
 fi
