@@ -19,6 +19,16 @@ import {Complex, ComplexInputs, KernelConfig, KernelFunc, TensorInfo} from '@ten
 
 import {MathBackendWebGL} from '../backend_webgl';
 
+/**
+ * In WebGL data is stored in GPU textures which can't be efficiently copied, so
+ * complex tensors share data with their real and imaginary components. Complex
+ * tensors increment the `keptRefCount` properties of the underlying data
+ * buckets to prevent them from being disposed, as the engine's disposal logic
+ * does not account for data sharing by complex tensors.
+ *
+ * When a complex tensor is disposed, it will explicitly decrease the
+ * `keptRefCount` properties of its underlying components.
+ */
 export function complex(
     args: {inputs: ComplexInputs, backend: MathBackendWebGL}): TensorInfo {
   const {inputs, backend} = args;

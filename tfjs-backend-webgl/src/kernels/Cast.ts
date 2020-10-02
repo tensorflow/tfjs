@@ -52,19 +52,19 @@ export function cast(
     return result;
   }
 
-  if (!util.hasEncodingLoss(x.dtype, dtype)) {
-    // We don't change the underlying data, since we cast to higher
-    // precision.
-    const result = identity({inputs: {x}, backend});
-    return {dataId: result.dataId, shape: result.shape, dtype};
-  }
-
   // Casting from complex64
   if (x.dtype === 'complex64') {
     const realPart = real({inputs: {input: x}, backend});
     const result = cast({inputs: {x: realPart}, backend, attrs: {dtype}});
     backend.disposeIntermediateTensorInfo(realPart);
     return result;
+  }
+
+  if (!util.hasEncodingLoss(x.dtype, dtype)) {
+    // We don't change the underlying data, since we cast to higher
+    // precision.
+    const result = identity({inputs: {x}, backend});
+    return {dataId: result.dataId, shape: result.shape, dtype};
   }
 
   if (dtype === 'int32') {
