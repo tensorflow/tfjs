@@ -29,13 +29,13 @@ export function complex(
 
   backend.incRef(real.dataId);
   const realData = backend.texData.get(real.dataId);
-  realData.kept = true;
+  realData.keptRefCount++;
   const realTensorInfo:
       TensorInfo = {dataId: real.dataId, shape: real.shape, dtype: 'float32'};
 
   backend.incRef(imag.dataId);
   const imagData = backend.texData.get(imag.dataId);
-  imagData.kept = true;
+  imagData.keptRefCount++;
   const imagTensorInfo:
       TensorInfo = {dataId: imag.dataId, shape: imag.shape, dtype: 'float32'};
 

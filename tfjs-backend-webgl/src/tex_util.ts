@@ -87,8 +87,8 @@ export interface TextureData {
   isPacked?: boolean;
 
   refCount: number;
-  // Whether to prevent disposal of the texture data.
-  kept?: boolean;
+  // Number of references to prevent disposal of the texture data.
+  keptRefCount: number;
 
   // Available when the tensor has been sliced.
   slice?: {

@@ -270,9 +270,14 @@ export class MathBackendWebGL extends KernelBackend {
           `Please use tf.complex(real, imag).`);
     }
     const dataId = {};
-    this.texData.set(
-        dataId,
-        {shape, dtype, values, usage: TextureUsage.UPLOAD, refCount: 1});
+    this.texData.set(dataId, {
+      shape,
+      dtype,
+      values,
+      usage: TextureUsage.UPLOAD,
+      refCount: 1,
+      keptRefCount: 0
+    });
     return dataId;
   }
 
@@ -300,9 +305,14 @@ export class MathBackendWebGL extends KernelBackend {
           `Cannot write to a complex64 dtype. ` +
           `Please use tf.complex(real, imag).`);
     }
-    this.texData.set(
-        dataId,
-        {shape, dtype, values, usage: TextureUsage.UPLOAD, refCount: 1});
+    this.texData.set(dataId, {
+      shape,
+      dtype,
+      values,
+      usage: TextureUsage.UPLOAD,
+      refCount: 1,
+      keptRefCount: 0
+    });
   }
 
   disposeIntermediateTensorInfo(tensorInfo: TensorInfo): void {
@@ -616,18 +626,18 @@ export class MathBackendWebGL extends KernelBackend {
       return;
     }
 
-    if (this.texData.get(dataId).kept) {
-      this.decRef(this.texData.get(dataId));
+    if (this.texData.get(dataId).keptRefCount > 0) {
+      this.texData.get(dataId).refCount--;
       return;
     }
 
     this.releaseGPUData(dataId);
     const {complexTensorInfos} = this.texData.get(dataId);
     if (complexTensorInfos != null) {
-      this.texData.get(complexTensorInfos.real.dataId).kept = false;
+      this.texData.get(complexTensorInfos.real.dataId).keptRefCount--;
       this.disposeIntermediateTensorInfo(complexTensorInfos.real);
 
-      this.texData.get(complexTensorInfos.imag.dataId).kept = false;
+      this.texData.get(complexTensorInfos.imag.dataId).keptRefCount--;
       this.disposeIntermediateTensorInfo(complexTensorInfos.imag);
     }
     this.texData.delete(dataId);

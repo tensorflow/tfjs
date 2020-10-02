@@ -110,7 +110,7 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
     expect(tf.engine().backend.numDataIds()).toBe(startDataIds);
   });
 
-  it('tf.complex disposing underlying tensors', async () => {
+  fit('tf.complex disposing underlying tensors', async () => {
     const numTensors = tf.memory().numTensors;
     const numDataIds = tf.engine().backend.numDataIds();
 
@@ -209,4 +209,32 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
     expect(tf.memory().numTensors).toBe(memoryBefore.numTensors);
     expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore);
   });
+
+  it('Multiple complex tensors sharing same underlying components works',
+     async () => {
+       const numTensors = tf.memory().numTensors;
+       const numDataIds = tf.engine().backend.numDataIds();
+
+       const real = tf.tensor1d([1]);
+       const imag = tf.tensor1d([2]);
+
+       expect(tf.memory().numTensors).toEqual(numTensors + 2);
+       expect(tf.engine().backend.numDataIds()).toEqual(numDataIds + 2);
+
+       const complex1 = tf.complex(real, imag);
+       const complex2 = tf.complex(real, imag);
+
+       expect(tf.memory().numTensors).toEqual(numTensors + 4);
+       expect(tf.engine().backend.numDataIds()).toEqual(numDataIds + 4);
+
+       real.dispose();
+       expect(tf.memory().numTensors).toEqual(numTensors + 3);
+       expect(tf.engine().backend.numDataIds()).toEqual(numDataIds + 4);
+
+       complex1.dispose();
+       expect(tf.memory().numTensors).toEqual(numTensors + 2);
+       expect(tf.engine().backend.numDataIds()).toEqual(numDataIds + 3);
+
+       expectArraysClose(await complex2.data(), [1, 2]);
+     });
 });
