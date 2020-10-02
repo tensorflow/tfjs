@@ -18,6 +18,7 @@
 import {Complex, ComplexInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
+import {identity} from './Identity';
 
 /**
  * In WebGL data is stored in GPU textures which can't be efficiently copied, so
@@ -37,17 +38,13 @@ export function complex(
   const complexInfo = backend.makeTensorInfo(real.shape, 'complex64');
   const complex = backend.texData.get(complexInfo.dataId);
 
-  backend.incRef(real.dataId);
-  const realData = backend.texData.get(real.dataId);
+  const realTensorInfo = identity({inputs: {x: real}, backend});
+  const realData = backend.texData.get(realTensorInfo.dataId);
   realData.keptRefCount++;
-  const realTensorInfo:
-      TensorInfo = {dataId: real.dataId, shape: real.shape, dtype: 'float32'};
 
-  backend.incRef(imag.dataId);
-  const imagData = backend.texData.get(imag.dataId);
+  const imagTensorInfo = identity({inputs: {x: imag}, backend});
+  const imagData = backend.texData.get(imagTensorInfo.dataId);
   imagData.keptRefCount++;
-  const imagTensorInfo:
-      TensorInfo = {dataId: imag.dataId, shape: imag.shape, dtype: 'float32'};
 
   complex.complexTensorInfos = {real: realTensorInfo, imag: imagTensorInfo};
 

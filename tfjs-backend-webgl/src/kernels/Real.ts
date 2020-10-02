@@ -18,20 +18,15 @@
 import {KernelConfig, KernelFunc, Real, RealInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
+import {identity} from './Identity';
 
 export function real(args: {inputs: RealInputs, backend: MathBackendWebGL}):
     TensorInfo {
   const {inputs, backend} = args;
   const {input} = inputs;
-
   const inputData = backend.texData.get(input.dataId);
-  backend.incRef(inputData.complexTensorInfos.real.dataId);
 
-  return {
-    dataId: inputData.complexTensorInfos.real.dataId,
-    shape: input.shape,
-    dtype: 'float32'
-  };
+  return identity({inputs: {x: inputData.complexTensorInfos.real}, backend});
 }
 
 export const realConfig: KernelConfig = {

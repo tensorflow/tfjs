@@ -18,20 +18,15 @@
 import {Imag, ImagInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
+import {identity} from './Identity';
 
 export function imag(args: {inputs: ImagInputs, backend: MathBackendWebGL}):
     TensorInfo {
   const {inputs, backend} = args;
   const {input} = inputs;
-
   const inputData = backend.texData.get(input.dataId);
-  backend.incRef(inputData.complexTensorInfos.imag.dataId);
 
-  return {
-    dataId: inputData.complexTensorInfos.imag.dataId,
-    shape: input.shape,
-    dtype: 'float32'
-  };
+  return identity({inputs: {x: inputData.complexTensorInfos.imag}, backend});
 }
 
 export const imagConfig: KernelConfig = {
