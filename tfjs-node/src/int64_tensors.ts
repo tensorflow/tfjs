@@ -82,3 +82,21 @@ export class Int64Scalar {
     return this.valueArray_;
   }
 }
+
+/**
+ * This method encodes a Int32Array as Int64 layout in order to create TF_INT64
+ * tensor through binding.
+ */
+export function encodeInt32ArrayAsInt64(value: Int32Array): Int32Array {
+  if (endianness() !== 'LE') {
+    throw new Error(
+        `Int64Scalar does not support endianness of this machine: ` +
+        `${endianness()}`);
+  }
+
+  const buffer = new Int32Array(value.length * 2);
+  for (let i = 0; i < value.length; i++) {
+    buffer[i * 2] = value[i];
+  }
+  return buffer;
+}
