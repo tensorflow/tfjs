@@ -36,6 +36,51 @@ export function uniqueImpl(
   //
   // For example, for a 4D tensor with shape=[2, 3, 5, 4] and axis=2, the
   // newShape would be: [2*3, 5, 4].
+  //
+  // Note that this is not the final output shape. This will be the shape for an
+  // intermediate TensorBuffer (see inputBuffer below) to allow us to extract
+  // values along the given axis. To demonstrate how it works, consider the
+  // following example:
+  //
+  // Input: a 3D tensor, with shape [1, 2, 3]
+  // [
+  //   [
+  //      [1,2,3],
+  //      [4,5,6]
+  //   ]
+  // ]
+  // Axis: 2 (the last axis).
+  // Along axis 2, we expect to extract 3 tensors: [1,4], [2,5], [3,6].
+  //
+  // For this example, newShape would be: [2, 3, 1], where 2 is calculated from
+  // 1*2. The re-shaped data would look like:
+  //
+  // [
+  //   [
+  //     [1], [2], [3]
+  //   ],
+  //   [
+  //     [4], [5], [6]
+  //   ]
+  // ]
+  //
+  // Then, we can construct a 3-level nested loop by the following dimension
+  // order to extract the values along the axis (dimension1):
+  // i: dimension1       // 0,1,2 (newShape[1])
+  //   m: dimension0     // 0,1   (newShape[0])
+  //     n: dimension2   // 0     (newShape[2])
+  //
+  //                       m, i, n
+  //                      ---------
+  // Iteration 0: data at [0, 0, 0] => "1"
+  // Iteration 1: data at [1, 0, 0] => "4"
+  // We got [1,4].
+  // Iteration 2: data at [0, 1, 0] => "2"
+  // Iteration 3: data at [1, 1, 0] => "5"
+  // We got [2,5].
+  // Iteration 4: data at [0, 2, 0] => "3"
+  // Iteration 5: data at [1, 2, 0] => "6"
+  // We got [3,6].
   const newShape = [1, shape[0], 1];
   for (let i = 0; i < $axis; i++) {
     newShape[0] *= shape[i];
@@ -70,7 +115,7 @@ export function uniqueImpl(
           axisValues.push(inputBuffer.get(m, i, n));
         }
       }
-      element = axisValues.toString();
+      element = axisValues.join(',');
     }
 
     // Dedup and update various indices.

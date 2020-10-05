@@ -32,7 +32,8 @@ export function unique(
 
   // For now, always forward calculation to the CPU backend.
   console.warn(
-      'WARNING: ', 'UI might be locked temparaily as data is being downloaded');
+      'WARNING: ',
+      'UI might be locked temporarily as data is being downloaded');
   const values = backend.readSync(x.dataId);
   const {outputValues, outputShape, indices} =
       uniqueImplCPU(values, axis, x.shape, x.dtype);

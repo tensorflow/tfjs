@@ -22,6 +22,7 @@ import {Tensor, Tensor1D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
+import {assert} from '../util';
 
 import {op} from './operation';
 
@@ -74,6 +75,8 @@ function unique_<T extends Tensor>(
     x: T|TensorLike, axis = 0): {values: T, indices: Tensor1D} {
   // x can be of any dtype, thus null as the last argument.
   const $x = convertToTensor(x, 'x', 'unique', null);
+  assert($x.rank > 0, () => 'The input tensor must be at least 1D');
+
   const inputs: UniqueInputs = {x: $x};
   const attrs: UniqueAttrs = {axis};
   const [values, indices] = ENGINE.runKernel(
