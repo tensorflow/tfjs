@@ -66,44 +66,6 @@ export class OperationMapper {
         {});
   }
 
-  // Converts the initialzer subgraph from Tensorflow GraphDef to local
-  // representation for TensorFlow.js API
-  transformInitializer(graph: tensorflow.IGraphDef, outputs: Node[]): Graph {
-    const tfNodes = graph.node;
-    const weights: Node[] = [];
-
-    const nodes = tfNodes.reduce<{[key: string]: Node}>((map, node) => {
-      map[node.name] = this.mapNode(node);
-      if (node.op === 'Const') {
-        weights.push(map[node.name]);
-      }
-      return map;
-    }, {});
-
-    const allNodes = Object.keys(nodes);
-    allNodes.forEach(key => {
-      const node = nodes[key];
-      node.inputNames.forEach(name => {
-        const [nodeName, ] = getNodeNameAndIndex(name);
-        const inputNode = nodes[nodeName];
-        node.inputs.push(inputNode);
-        inputNode.children.push(node);
-      });
-    });
-
-    const $outputs = outputs.map(output => nodes[output.name]);
-
-    return {
-      nodes,
-      inputs: null,
-      outputs: $outputs,
-      weights,
-      placeholders: null,
-      signature: null,
-      functions: null
-    };
-  }
-
   // Converts the model inference graph from Tensorflow GraphDef to local
   // representation for TensorFlow.js API
   transformGraph(

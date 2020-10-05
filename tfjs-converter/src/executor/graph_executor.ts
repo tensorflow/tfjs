@@ -159,10 +159,9 @@ export class GraphExecutor implements FunctionExecutor {
     if (missingInputs.length > 0) {
       const outNames = outputs.map(n => n.name);
       const inNames = Object.keys(inputs);
-      const missingInputNames = missingInputs.map(input => input.name);
       throw new Error(
           `Cannot compute the outputs [${outNames}] from the provided inputs ` +
-          `[${inNames}]. Missing the following inputs: [${missingInputNames}]`);
+          `[${inNames}]. Missing the following inputs: [${missingInputs}]`);
     }
 
     return getNodesInTopologicalOrder(
@@ -212,14 +211,12 @@ export class GraphExecutor implements FunctionExecutor {
           this.functionExecutorMap);
       const tensorsMap: NamedTensorsMap = {...this.weightMap};
 
-      if (inputs != null) {
-        Object.keys(inputs).forEach(name => {
-          const [nodeName, index] = parseNodeName(name);
-          const tensors: Tensor[] = [];
-          tensors[index] = inputs[name];
-          tensorsMap[nodeName] = tensors;
-        });
-      }
+      Object.keys(inputs).forEach(name => {
+        const [nodeName, index] = parseNodeName(name);
+        const tensors: Tensor[] = [];
+        tensors[index] = inputs[name];
+        tensorsMap[nodeName] = tensors;
+      });
 
       const tensorsToKeep = this.getFrozenTensorIds(tensorsMap);
       const intermediateTensorConsumerCount: {[key: number]: number} = {};
@@ -234,8 +231,8 @@ export class GraphExecutor implements FunctionExecutor {
           }
           tensorsMap[node.name] = tensors;
           this.checkTensorForDisposal(
-              node.name, node, tensorsMap, context, tensorsToKeep, outputs,
-              intermediateTensorConsumerCount);
+              node.name, node, tensorsMap, context, tensorsToKeep,
+              outputNodeNames, intermediateTensorConsumerCount);
         }
       }
       // dispose the context for the root executor
@@ -436,11 +433,10 @@ export class GraphExecutor implements FunctionExecutor {
             `Alternatively, to avoid the dynamic ops, use model.execute() ` +
             `and specify the inputs [${syncInputs}]`;
       }
-      const missingInputNames = missingInputs.map(input => input.name);
       throw new Error(
           `Cannot compute the outputs [${missingOutputs}] from the provided ` +
           `inputs [${names}]. Consider providing the following inputs: ` +
-          `[${missingInputNames}]. ${alternativeMsg}`);
+          `[${missingInputs}]. ${alternativeMsg}`);
     }
     return tensorsMap;
   }
