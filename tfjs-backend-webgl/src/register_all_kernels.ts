@@ -18,6 +18,8 @@ import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
 import {addConfig} from './kernels/Add';
 import {atan2Config} from './kernels/Atan2';
+import {avgPoolConfig} from './kernels/AvgPool';
+import {avgPoolBackpropConfig} from './kernels/AvgPoolBackprop';
 import {batchNormConfig} from './kernels/BatchNorm';
 import {castConfig} from './kernels/Cast';
 import {complexConfig} from './kernels/Complex';
@@ -31,6 +33,8 @@ import {identityConfig} from './kernels/Identity';
 import {ifftConfig} from './kernels/IFFT';
 import {imagConfig} from './kernels/Imag';
 import {maxConfig} from './kernels/Max';
+import {maxPoolConfig} from './kernels/MaxPool';
+import {maxPoolBackpropConfig} from './kernels/MaxPoolBackprop';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {multiplyConfig} from './kernels/Multiply';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
@@ -51,19 +55,23 @@ import {transposeConfig} from './kernels/Transpose';
 const kernelConfigs: KernelConfig[] = [
   addConfig,
   atan2Config,
+  avgPoolConfig,
+  avgPoolBackpropConfig,
   batchNormConfig,
   castConfig,
-  cosConfig,
   complexConfig,
   concatConfig,
-  maxConfig,
+  cosConfig,
+  divConfig,
   fftConfig,
   flipLeftRightConfig,
   fromPixelsConfig,
-  divConfig,
   identityConfig,
   ifftConfig,
   imagConfig,
+  maxConfig,
+  maxPoolConfig,
+  maxPoolBackpropConfig,
   maxPoolWithArgmaxConfig,
   multiplyConfig,
   nonMaxSuppressionV3Config,
