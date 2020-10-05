@@ -114,8 +114,7 @@ def optimize_graph(graph, signature_def, output_graph,
                    skip_op_check=False, strip_debug_ops=False,
                    weight_shard_size_bytes=1024 * 1024 * 4,
                    experiments=False,
-                   initializer_graph=None,
-                   initializer_outputs=None):
+                   initializer_graph=None):
   """Takes a Python Graph object and optimizes the graph.
 
   Args:
@@ -131,7 +130,6 @@ def optimize_graph(graph, signature_def, output_graph,
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
     initializer_graph: The frozen graph for initializers.
-    initializer_outputs: A list of output nodes.
   """
 
   # Add a collection 'train_op' so that Grappler knows the outputs.
@@ -207,7 +205,7 @@ def optimize_graph(graph, signature_def, output_graph,
   extract_weights(
       optimized_graph, output_graph, tf_version,
       signature_def, quantization_dtype_map, weight_shard_size_bytes,
-      initializer_graph_def, initializer_outputs)
+      initializer_graph_def)
 
   return optimize_graph
 
@@ -248,8 +246,7 @@ def extract_weights(graph_def,
                     signature_def,
                     quantization_dtype_map=None,
                     weight_shard_size_bytes=1024 * 1024 * 4,
-                    initializer_graph_def=None,
-                    initializer_outputs=None):
+                    initializer_graph_def=None):
   """Takes a Python GraphDef object and extract the weights.
 
   Args:
@@ -264,7 +261,6 @@ def extract_weights(graph_def,
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
     initializer_graph_def: tf.GraphDef proto object for initializer graph.
-    initializer_outputs: A list of output nodes for initializer graph.
   """
   global_manifest = extract_const_nodes(graph_def.node)
 
@@ -290,8 +286,7 @@ def extract_weights(graph_def,
                   tf_version, signature_def,
                   quantization_dtype_map=quantization_dtype_map,
                   weight_shard_size_bytes=weight_shard_size_bytes,
-                  initializer_graph_def=initializer_graph_def,
-                  initializer_outputs=initializer_outputs)
+                  initializer_graph_def=initializer_graph_def)
 
 def write_artifacts(topology,
                     weights,
@@ -300,8 +295,7 @@ def write_artifacts(topology,
                     signature_def,
                     quantization_dtype_map=None,
                     weight_shard_size_bytes=1024 * 1024 * 4,
-                    initializer_graph_def=None,
-                    initializer_outputs=None):
+                    initializer_graph_def=None):
   """Writes weights and topology to the output_dir.
 
   If `topology` is Falsy (e.g., `None`), only emit weights to output_dir.
@@ -319,7 +313,6 @@ def write_artifacts(topology,
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
     initializer_graph_def: tf.GraphDef proto object for initializer graph.
-    initializer_outputs: A list of output nodes for initializer graph.
   """
   model_json = {
       common.FORMAT_KEY: common.TFJS_GRAPH_MODEL_FORMAT,
@@ -332,14 +325,9 @@ def write_artifacts(topology,
   }
   model_json[common.ARTIFACT_MODEL_TOPOLOGY_KEY] = topology or None
 
-  if initializer_graph_def and initializer_outputs:
-    model_json[common.ARTIFACT_MODEL_INITIALIZER] = {}
-    model_json[common.ARTIFACT_MODEL_INITIALIZER]['outputs'] = [
-        MessageToDict(node) for node in initializer_outputs
-    ]
-    model_json[
-        common.ARTIFACT_MODEL_INITIALIZER
-    ]['topology'] = MessageToDict(initializer_graph_def)
+  if initializer_graph_def:
+    model_json[common.ARTIFACT_MODEL_INITIALIZER] = MessageToDict(
+                                                      initializer_graph_def)
 
   weights_manifest = write_weights.write_weights(
       weights, os.path.dirname(output_graph), write_manifest=False,
@@ -416,7 +404,7 @@ def _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
         with frozen_initializer_graph.as_default():
           tf.import_graph_def(frozen_initializer_graph_def, name='')
 
-      return frozen_graph, frozen_initializer_graph, initializer_output_names
+      return frozen_graph, frozen_initializer_graph
 
 def _freeze_saved_model_v2(concrete_func, control_flow_v2=False):
   if tf.__version__ < '2.2.0':
@@ -561,27 +549,17 @@ def convert_tf_saved_model(saved_model_dir,
   # reliable way. Try to freeze the graph using V2 utils. If that fails, freeze
   # the graph using V1 utils.
   frozen_initializer_graph = None
-  initializer_output_names = None
   try:
     frozen_graph = _freeze_saved_model_v2(concrete_func, control_flow_v2)
   except BaseException:
     (frozen_graph,
-     frozen_initializer_graph,
-     initializer_output_names) = _freeze_saved_model_v1(saved_model_dir,
+     frozen_initializer_graph) = _freeze_saved_model_v1(saved_model_dir,
                                                         saved_model_tags,
                                                         output_node_names)
 
   inputs = [x for x in concrete_func.inputs if not x.dtype == 'resource']
   signature = _build_signature_def(
       frozen_graph, inputs, concrete_func.outputs)
-
-  initializer_outputs = None
-  if initializer_output_names:
-    nodes = frozen_initializer_graph.as_graph_def().node
-    node_map = {}
-    for node in nodes:
-      node_map[node.name] = node
-    initializer_outputs = [node_map[name] for name in initializer_output_names]
 
   # Check if the TransformGraph is available to be imported, this package is
   # available in g3 but not in oss version of TensorFlow.
@@ -633,8 +611,7 @@ def convert_tf_saved_model(saved_model_dir,
                  strip_debug_ops=strip_debug_ops,
                  weight_shard_size_bytes=weight_shard_size_bytes,
                  experiments=experiments,
-                 initializer_graph=frozen_initializer_graph,
-                 initializer_outputs=initializer_outputs)
+                 initializer_graph=frozen_initializer_graph)
 
 def load_and_initialize_hub_module(module_path, signature='default'):
   """Loads graph of a TF-Hub module and initializes it into a session.
