@@ -24,7 +24,6 @@
 
 import * as argparse from 'argparse';
 import * as shell from 'shelljs';
-import {exec} from 'child_process';
 
 import {$, TFJS_RELEASE_UNIT, prepareReleaseBuild, getReleaseBranch, checkoutReleaseBranch} from './release-util';
 
@@ -80,17 +79,11 @@ async function main() {
 
   // ========== Tag version. ========================================
   console.log('~~~ Tag version ~~~');
-  shell.cd('..');
 
   // The releaseBranch format is tfjs_x.x.x, we only need the version part.
   const version = releaseBranch.split('_')[1];
   const tag = `tfjs-v${version}`;
-  exec(`git tag ${tag} && git push --tags`, (err) => {
-    if (err) {
-      throw new Error(`Could not git tag with ${tag}: ${err.message}.`);
-    }
-    console.log(`Successfully tagged with ${tag}.`);
-  });
+  $(`git tag ${tag} && git push --tags`);
 
   console.log('Done.');
 
