@@ -84,7 +84,7 @@ describe('getExecutionInfo', () => {
     expect(executionInfo.inputs).toBe(inputs);
     expect(executionInfo.outputs).toBe(outputs);
     expect(executionInfo.dynamicNode).toBeFalsy();
-    expect(executionInfo.missingInputs[0].name).toEqual('input2');
+    expect(executionInfo.missingInputs).toEqual(['input2']);
     expect(executionInfo.syncInputs).toBeFalsy();
     expect(executionInfo.usedNodes).toContain('output2');
     expect(executionInfo.usedNodes).toContain('input2');
@@ -97,7 +97,7 @@ describe('getExecutionInfo', () => {
     expect(executionInfo.inputs).toBe(inputs);
     expect(executionInfo.outputs).toBe(outputs);
     expect(executionInfo.dynamicNode).toBeFalsy();
-    expect(executionInfo.missingInputs[0].name).toEqual('input');
+    expect(executionInfo.missingInputs).toEqual(['input']);
     expect(executionInfo.syncInputs).toBeFalsy();
     expect(executionInfo.usedNodes).toContain('input');
     expect(executionInfo.usedNodes).toContain('intermediate');

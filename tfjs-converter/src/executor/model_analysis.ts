@@ -25,7 +25,7 @@ export interface ExecutionInfo {
   inputs: NamedTensorMap;
   outputs: Node[];
   usedNodes: Set<string>;
-  missingInputs: Node[];
+  missingInputs: string[];
   dynamicNode: Node;
   syncInputs: string[];
 }
@@ -42,7 +42,7 @@ export function getExecutionSubgraph(
     inputs: NamedTensorMap, outputs: Node[], weightMap: NamedTensorsMap,
     initNodes?: Node[]): ExecutionInfo {
   const usedNodes = new Set<string>();
-  const missingInputs: Node[] = [];
+  const missingInputs: string[] = [];
   let dynamicNode: Node = null;
   let syncInputs: string[] = null;
 
@@ -82,7 +82,7 @@ export function getExecutionSubgraph(
       continue;
     }
     if (node.inputs.length === 0) {
-      missingInputs.push(node);
+      missingInputs.push(node.name);
       continue;
     }
     node.inputs.forEach(input => {

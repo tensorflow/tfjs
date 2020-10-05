@@ -146,8 +146,8 @@ export class GraphModel implements InferenceModel {
     this.executor.weightMap = this.convertTensorMapToTensorsMap(weightMap);
 
     if (artifacts.modelInitializer != null) {
-      const initializer = OperationMapper.Instance.transformGraph(
-          artifacts.modelInitializer.topology);
+      const initializer =
+          OperationMapper.Instance.transformGraph(artifacts.modelInitializer);
       this.initializer = new GraphExecutor(initializer);
       this.initializer.weightMap = this.executor.weightMap;
       this.initializer.execute({}, []);

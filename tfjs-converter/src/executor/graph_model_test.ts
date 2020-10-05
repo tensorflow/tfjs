@@ -260,10 +260,7 @@ const HASHTABLE_HTTP_MODEL_LOADER = {
       generatedBy: '1.15',
       convertedBy: '2.4',
       userDefinedMetadata: {signature: SIGNATURE},
-      modelInitializer: {
-        outputs: INITIALIZER_OUTPUTS,
-        topology: INITIALIZER_GRAPHDEF,
-      }
+      modelInitializer: INITIALIZER_GRAPHDEF
     };
   }
 };
