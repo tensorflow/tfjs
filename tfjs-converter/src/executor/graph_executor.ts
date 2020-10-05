@@ -204,17 +204,6 @@ export class GraphExecutor implements FunctionExecutor {
       this.compiledMap.set(compilationKey, orderedNodes);
     }
 
-    return this._execute(orderedNodes, outputNodeNames, inputs);
-  }
-
-  // Given an orderedNodes list, execute nodes in the list. Returns tensors
-  // specified in the outpus list. If `inputs` is provided, they will be
-  // kept to avoid being disposed after execution.
-  private _execute(
-      orderedNodes: Node[],
-      outputs: string[],
-      inputs?: NamedTensorMap,
-      ): Tensor[] {
     const tensorArrayMap: TensorArrayMap = {};
     const tensorListMap: TensorListMap = {};
     return tidy(() => {
