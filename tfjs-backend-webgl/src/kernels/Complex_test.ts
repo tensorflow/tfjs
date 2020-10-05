@@ -210,13 +210,13 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
 
     // 1 new tensor, the complex64 tensor
     expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 1);
-    // 1 new tensor and 2 underlying tensors for real and imag.
+    // 1 new tensor and 2 underlying data buckets for real and imag.
     expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore + 3);
 
     const b = a.reshape([6]);
     // 1 new tensor from the reshape.
     expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 2);
-    // No new tensor data.
+    // No new data buckets.
     expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore + 3);
 
     expect(b.dtype).toBe('complex64');
@@ -226,7 +226,7 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
     b.dispose();
     // 1 complex tensor should be disposed.
     expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 1);
-    // Tensor data not deleted yet.
+    // Data buckets not deleted yet.
     expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore + 3);
 
     a.dispose();
@@ -251,7 +251,7 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
 
     // 1 new tensor from the clone.
     expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 2);
-    // No new tensor data.
+    // No new data buckets.
     expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore + 3);
 
     expect(b.dtype).toBe('complex64');
@@ -261,7 +261,7 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
 
     // 1 complex tensor should be disposed.
     expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 1);
-    // Tensor data not deleted yet.
+    // Data bucket not deleted yet.
     expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore + 3);
 
     a.dispose();
