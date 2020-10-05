@@ -155,7 +155,8 @@ describe(`${SMOKE} backends`, () => {
     expect(tfc.findBackend('cpu').numDataIds()).toBe(cpuNumDataIds);
   });
 
-  it('can move complex tensor from cpu to webgl.', async () => {
+  // tslint:disable-next-line: ban
+  xit('can move complex tensor from cpu to webgl.', async () => {
     await tfc.setBackend('cpu');
 
     const real1 = tfc.tensor1d([1]);
@@ -173,7 +174,8 @@ describe(`${SMOKE} backends`, () => {
     tfc.test_util.expectArraysClose(await result.data(), [4, 6]);
   });
 
-  it('can move complex tensor from webgl to cpu.', async () => {
+  // tslint:disable-next-line: ban
+  xit('can move complex tensor from webgl to cpu.', async () => {
     await tfc.setBackend('webgl');
 
     const real1 = tfc.tensor1d([1]);
