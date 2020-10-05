@@ -65,16 +65,17 @@ function mirrorPad_<T extends Tensor>(
       paddings.length === $x.rank,
       () => `Padding doesn't match input. Must be ${$x.rank}. ` +
           `Got ${paddings.length}.`);
-  const offset = mode === 'reflect' ? 0 : 1;
+  const shapeOffset = mode === 'reflect' ? 1 : 0;
   for (let i = 0; i < $x.rank; i++) {
     util.assert(
         paddings[i].length === 2,
         () => `Invalid number of paddings. Must be length of 2 each.`);
     util.assert(
-        paddings[i][0] >= 0 && paddings[i][0] <= $x.shape[i] - offset &&
-            paddings[i][1] >= 0 && paddings[i][1] <= $x.shape[i] - offset,
+        paddings[i][0] >= 0 && paddings[i][0] <= $x.shape[i] - shapeOffset &&
+            paddings[i][1] >= 0 && paddings[i][1] <= $x.shape[i] - shapeOffset,
         () => `Padding in dimension ${i} cannot be greater than or equal ` +
-            `to ${$x.shape[i] + offset} for input of shape ${$x.shape}`);
+            `to ${$x.shape[i] - shapeOffset} or less than 0 for input of ` +
+            `shape ${$x.shape}`);
   }
 
   const attrs: MirrorPadAttrs = {paddings, mode};

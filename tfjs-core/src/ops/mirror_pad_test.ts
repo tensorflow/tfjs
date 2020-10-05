@@ -136,9 +136,27 @@ describeWithFlags('mirrorPad', ALL_ENVS, () => {
 
   it('Should handle paddings that are out of range', () => {
     const a = tf.tensor2d([[1, 2, 3], [4, 5, 6]], [2, 3], 'int32');
-    const f = () => {
+    let f = () => {
       // tslint:disable-next-line:no-any
       tf.mirrorPad(a, [[4, 1], [1, 1]], 'reflect');
+    };
+    expect(f).toThrowError();
+
+    f = () => {
+      // tslint:disable-next-line:no-any
+      tf.mirrorPad(a, [[-1, 1], [1, 1]], 'reflect');
+    };
+    expect(f).toThrowError();
+
+    f = () => {
+      // tslint:disable-next-line:no-any
+      tf.mirrorPad(a, [[2, 1], [1, 1]], 'reflect');
+    };
+    expect(f).toThrowError();
+
+    f = () => {
+      // tslint:disable-next-line:no-any
+      tf.mirrorPad(a, [[3, 1], [1, 1]], 'symmetric');
     };
     expect(f).toThrowError();
   });
