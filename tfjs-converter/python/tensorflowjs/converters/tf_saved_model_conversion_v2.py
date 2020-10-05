@@ -197,7 +197,6 @@ def optimize_graph(graph, signature_def, output_graph,
   extract_weights(
       optimized_graph, output_graph, tf_version,
       signature_def, quantization_dtype_map, weight_shard_size_bytes)
-
   return optimize_graph
 
 
@@ -250,8 +249,6 @@ def extract_weights(graph_def,
       supports wildcard substitution.
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
-    initializer_graph_def: tf.GraphDef proto object for initializer graph.
-    initializer_outputs: A list of output nodes for initializer graph.
   """
   global_manifest = extract_const_nodes(graph_def.node)
 
@@ -266,13 +263,12 @@ def extract_weights(graph_def,
   print('Writing weight file ' + output_graph + '...')
 
   write_artifacts(MessageToDict(graph_def),
-                  [global_manifest +
-                   function_manifests +
-                   initializer_manifests],
+                  [global_manifest + function_manifests],
                   output_graph,
                   tf_version, signature_def,
                   quantization_dtype_map=quantization_dtype_map,
                   weight_shard_size_bytes=weight_shard_size_bytes)
+
 
 def write_artifacts(topology,
                     weights,
@@ -298,6 +294,7 @@ def write_artifacts(topology,
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
   """
+
   model_json = {
       common.FORMAT_KEY: common.TFJS_GRAPH_MODEL_FORMAT,
       # TODO(piyu): Add tensorflow version below by using `meta_info_def`.
@@ -308,7 +305,6 @@ def write_artifacts(topology,
       }
   }
   model_json[common.ARTIFACT_MODEL_TOPOLOGY_KEY] = topology or None
-
   weights_manifest = write_weights.write_weights(
       weights, os.path.dirname(output_graph), write_manifest=False,
       quantization_dtype_map=quantization_dtype_map,
@@ -345,7 +341,6 @@ def _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
   with g.as_default():
     with tf.compat.v1.Session() as sess:
       loader.load(sess, saved_model_tags, saved_model_dir)
-
       frozen_graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(
           sess, g.as_graph_def(), output_node_names)
 

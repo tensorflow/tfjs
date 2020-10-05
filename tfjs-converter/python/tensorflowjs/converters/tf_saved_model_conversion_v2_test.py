@@ -382,6 +382,7 @@ class ConvertTest(tf.test.TestCase):
 =======
 >>>>>>> a01ea8e9 (Clean up.)
 
+
     weights_manifest = model_json['weightsManifest']
     self.assertEqual(weights_manifest, expected_weights_manifest)
     # Check meta-data in the artifact JSON.
