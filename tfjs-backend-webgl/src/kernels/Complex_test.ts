@@ -26,12 +26,12 @@ const BYTES_PER_COMPLEX_ELEMENT = 4 * 2;
 describeWithFlags('complex64 memory', ALL_ENVS, () => {
   it('usage', async () => {
     let numTensors = tf.memory().numTensors;
-    let numDataIds = tf.engine().backend.numDataIds();
     let numBytes = tf.memory().numBytes;
+    let numDataIds = tf.engine().backend.numDataIds();
 
     const startTensors = numTensors;
-    const startDataIds = numDataIds;
     const startNumBytes = numBytes;
+    const startDataIds = numDataIds;
 
     const real1 = tf.tensor1d([1]);
     const imag1 = tf.tensor1d([2]);
@@ -43,38 +43,40 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
     numDataIds = tf.engine().backend.numDataIds();
 
     const complex1 = tf.complex(real1, imag1);
-    // 1 new complex Tensor and 1 new data bucket created.
 
+    // 1 new complex Tensor and 1 new data bucket created.
     expect(tf.memory().numTensors).toBe(numTensors + 1);
+    expect(tf.memory().numBytes).toBe(numBytes + BYTES_PER_COMPLEX_ELEMENT);
     expect(tf.engine().backend.numDataIds()).toBe(numDataIds + 1);
-    expect(tf.memory().numBytes).toBe(numBytes + BYTES_PER_COMPLEX_ELEMENT * 1);
 
     numTensors = tf.memory().numTensors;
-    numDataIds = tf.engine().backend.numDataIds();
     numBytes = tf.memory().numBytes;
+    numDataIds = tf.engine().backend.numDataIds();
 
     const real2 = tf.tensor1d([3]);
     const imag2 = tf.tensor1d([4]);
 
-    // 2 new Tensors: real2, imag2.
+    // 2 new Tensors: real2, imag2, and 2 new data buckets.
     expect(tf.memory().numTensors).toBe(numTensors + 2);
+    expect(tf.memory().numBytes).toBe(numBytes + BYTES_PER_COMPLEX_ELEMENT);
     expect(tf.engine().backend.numDataIds()).toBe(numDataIds + 2);
-    expect(tf.memory().numBytes).toBe(numBytes + 4 * 2);
     numTensors = tf.memory().numTensors;
-    numDataIds = tf.engine().backend.numDataIds();
     numBytes = tf.memory().numBytes;
+    numDataIds = tf.engine().backend.numDataIds();
 
     const complex2 = tf.complex(real2, imag2);
 
     // 1 new Tensor and 1 new TensorData.
     expect(tf.memory().numTensors).toBe(numTensors + 1);
-    expect(tf.engine().backend.numDataIds()).toBe(numDataIds + 1);
-    // number of bytes stays the same.
+    // numBytes stays the same because it is determined by tensor creation at
+    // the engine level, and we do not increment memory for complex tensors
+    // (complex tensors track their own memory).
     expect(tf.memory().numBytes).toBe(numBytes);
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIds + 1);
 
     numTensors = tf.memory().numTensors;
-    numDataIds = tf.engine().backend.numDataIds();
     numBytes = tf.memory().numBytes;
+    numDataIds = tf.engine().backend.numDataIds();
 
     const result = complex1.add(complex2);
 
@@ -82,10 +84,8 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
     // They should not increase tensor count, only complex tensor does.
     // 3 new tensorData is created for complex, real and imag.
     expect(tf.memory().numTensors).toBe(numTensors + 1);
-    expect(tf.engine().backend.numDataIds()).toBe(numDataIds + 3);
-    // number of bytes stays the same because it is determined by tensor
-    // creation, and complex tensors track their own memory.
     expect(tf.memory().numBytes).toBe(numBytes);
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIds + 3);
     numTensors = tf.memory().numTensors;
     numDataIds = tf.engine().backend.numDataIds();
 
@@ -97,11 +97,11 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
 
     // A new tensor is created. No new tensorData is created.
     expect(tf.memory().numTensors).toBe(numTensors + 1);
-    expect(tf.engine().backend.numDataIds()).toBe(numDataIds);
     expect(tf.memory().numBytes).toBe(numBytes + 4);
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIds);
     numTensors = tf.memory().numTensors;
-    numDataIds = tf.engine().backend.numDataIds();
     numBytes = tf.memory().numBytes;
+    numDataIds = tf.engine().backend.numDataIds();
 
     expectArraysClose(await real.data(), [4]);
 
@@ -109,8 +109,8 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
 
     // A new tensor is created. No new tensorData is created.
     expect(tf.memory().numTensors).toBe(numTensors + 1);
-    expect(tf.engine().backend.numDataIds()).toBe(numDataIds);
     expect(tf.memory().numBytes).toBe(numBytes + 4);
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIds);
 
     expectArraysClose(await imag.data(), [6]);
 
@@ -125,8 +125,8 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
     real.dispose();
     imag.dispose();
     expect(tf.memory().numTensors).toBe(startTensors);
-    expect(tf.engine().backend.numDataIds()).toBe(startDataIds);
     expect(tf.memory().numBytes).toBe(startNumBytes);
+    expect(tf.engine().backend.numDataIds()).toBe(startDataIds);
   });
 
   it('tf.complex disposing underlying tensors', async () => {
