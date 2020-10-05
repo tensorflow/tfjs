@@ -53,12 +53,11 @@ In `run_tests.ts`, `IGNORE_LIST`, add test_name to the list.
 1. Create a new kernel in the `kernels` directory of a backend.
 
     The kernel file should have the following elements:
+    1. License information.
 
-        1. License information.
+    2. The kernel implementation, and export it.
 
-        2. The kernel implementation, and export it.
-
-        3. Export a `kernelConfig`.
+    3. Export a `kernelConfig`.
 
 2. Register the kernel in `register_all_kernels.ts` in the corresponding backend.
 
