@@ -21,6 +21,7 @@ import {test_util} from '@tensorflow/tfjs-core';
 const {expectArraysClose} = test_util;
 // tslint:disable-next-line: no-imports-from-dist
 import {describeWithFlags, ALL_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {WebGLMemoryInfo} from '../backend_webgl';
 
 const BYTES_PER_COMPLEX_ELEMENT = 4 * 2;
 describeWithFlags('complex64 memory', ALL_ENVS, () => {
@@ -31,6 +32,7 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
 
     const startTensors = numTensors;
     const startNumBytes = numBytes;
+    const startNumBytesInGPU = (tf.memory() as WebGLMemoryInfo).numBytesInGPU;
     const startDataIds = numDataIds;
 
     const real1 = tf.tensor1d([1]);
@@ -86,6 +88,11 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
     expect(tf.memory().numTensors).toBe(numTensors + 1);
     expect(tf.memory().numBytes).toBe(numBytes);
     expect(tf.engine().backend.numDataIds()).toBe(numDataIds + 3);
+    // Two new 1x1 textures are created to compute the sum of real / imag
+    // components, respectively. No new textures are allocated for the inputs
+    // because they are beneath the uniform upload threshold.
+    expect((tf.memory() as WebGLMemoryInfo).numBytesInGPU)
+        .toBe(startNumBytesInGPU + BYTES_PER_COMPLEX_ELEMENT);
     numTensors = tf.memory().numTensors;
     numDataIds = tf.engine().backend.numDataIds();
 
@@ -127,6 +134,8 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
     expect(tf.memory().numTensors).toBe(startTensors);
     expect(tf.memory().numBytes).toBe(startNumBytes);
     expect(tf.engine().backend.numDataIds()).toBe(startDataIds);
+    expect((tf.memory() as WebGLMemoryInfo).numBytesInGPU)
+        .toBe(startNumBytesInGPU);
   });
 
   it('Creating tf.real, tf.imag from complex.', async () => {
