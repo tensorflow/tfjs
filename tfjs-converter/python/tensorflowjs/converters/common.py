@@ -20,7 +20,6 @@ ARTIFACT_MODEL_JSON_FILE_NAME = 'model.json'
 
 # JSON string keys for fields of the indexing JSON.
 ARTIFACT_MODEL_TOPOLOGY_KEY = 'modelTopology'
-ARTIFACT_MODEL_INITIALIZER = 'modelInitializer'
 ARTIFACT_WEIGHTS_MANIFEST_KEY = 'weightsManifest'
 
 FORMAT_KEY = 'format'
