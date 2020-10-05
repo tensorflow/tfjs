@@ -54,14 +54,13 @@ In `run_tests.ts`, `IGNORE_LIST`, add test_name to the list.
 
     The kernel file should have the following elements:
     1. License information.
-
     2. The kernel implementation, and export it.
-
     3. Export a `kernelConfig`.
 
 2. Register the kernel in `register_all_kernels.ts` in the corresponding backend.
 
-3. Remove the op from test exclusion list in the corresponding backend.
+3. Remove the op from test exclusion list in the corresponding backend. For wasm
+   backend, add the test to the inclusion list.
 
 ### Step 3. Add the op to Converter’s executor.
 1. Add op mapping in the op list ts file, use your best judgement to assign an op category: `tfjs-converter/src/operations/op_list/{corresponding_op_category}.ts`. Use
