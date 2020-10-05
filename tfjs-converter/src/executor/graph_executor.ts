@@ -24,7 +24,7 @@ import {executeOp} from '../operations/operation_executor';
 import {Graph, Node} from '../operations/types';
 
 import {ExecutionContext, ExecutionContextInfo} from './execution_context';
-import {getExecutionSubgraph, getGraphInTopologicalOrder, getNodesInTopologicalOrder, isControlFlow} from './model_analysis';
+import {getExecutionSubgraph, getNodesInTopologicalOrder, isControlFlow} from './model_analysis';
 import {FunctionExecutor} from './types';
 
 interface NodeWithContexts {
