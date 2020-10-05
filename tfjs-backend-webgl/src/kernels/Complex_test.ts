@@ -129,6 +129,48 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
     expect(tf.engine().backend.numDataIds()).toBe(startDataIds);
   });
 
+  it('Creating tf.real, tf.imag from complex.', async () => {
+    let numTensors = tf.memory().numTensors;
+    let numDataIds = tf.engine().backend.numDataIds();
+
+    const startTensors = numTensors;
+    const startDataIds = numDataIds;
+
+    const complex = tf.complex([3, 30], [4, 40]);
+
+    // 1 new tensor, 3 new data buckets.
+    expect(tf.memory().numTensors).toBe(numTensors + 1);
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIds + 3);
+    numTensors = tf.memory().numTensors;
+    numDataIds = tf.engine().backend.numDataIds();
+
+    const real = tf.real(complex);
+    const imag = tf.imag(complex);
+
+    // 2 new tensors, no new data buckets.
+    expect(tf.memory().numTensors).toBe(numTensors + 2);
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIds);
+
+    numTensors = tf.memory().numTensors;
+    numDataIds = tf.engine().backend.numDataIds();
+
+    complex.dispose();
+
+    // 1 fewer tensor, 1 fewer data buckets.
+    expect(tf.memory().numTensors).toBe(numTensors - 1);
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIds - 1);
+
+    numTensors = tf.memory().numTensors;
+    numDataIds = tf.engine().backend.numDataIds();
+
+    real.dispose();
+    imag.dispose();
+
+    // Zero net tensors / data buckets.
+    expect(tf.memory().numTensors).toBe(startTensors);
+    expect(tf.engine().backend.numDataIds()).toBe(startDataIds);
+  });
+
   it('tf.complex disposing underlying tensors', async () => {
     const numTensors = tf.memory().numTensors;
     const numDataIds = tf.engine().backend.numDataIds();
