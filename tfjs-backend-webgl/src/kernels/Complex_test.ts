@@ -177,6 +177,8 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
     // 1 fewer tensor, 1 fewer data buckets.
     expect(tf.memory().numTensors).toBe(numTensors - 1);
     expect(tf.engine().backend.numDataIds()).toBe(numDataIds - 1);
+    expectArraysClose(await real.data(), [3, 30]);
+    expectArraysClose(await imag.data(), [4, 40]);
 
     numTensors = tf.memory().numTensors;
     numDataIds = tf.engine().backend.numDataIds();
