@@ -26,6 +26,10 @@ import {WebGLMemoryInfo} from '../backend_webgl';
 const BYTES_PER_COMPLEX_ELEMENT = 4 * 2;
 describeWithFlags('complex64 memory', ALL_ENVS, () => {
   it('usage', async () => {
+    const webglSizeUploadUniformFlagSaved =
+        tf.env().get('WEBGL_SIZE_UPLOAD_UNIFORM');
+    tf.env().set('WEBGL_SIZE_UPLOAD_UNIFORM', 4);
+
     let numTensors = tf.memory().numTensors;
     let numBytes = tf.memory().numBytes;
     let numDataIds = tf.engine().backend.numDataIds();
@@ -139,6 +143,8 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
     expect(tf.engine().backend.numDataIds()).toBe(startDataIds);
     expect((tf.memory() as WebGLMemoryInfo).numBytesInGPU)
         .toBe(startNumBytesInGPU);
+
+    tf.env().set('WEBGL_SIZE_UPLOAD_UNIFORM', webglSizeUploadUniformFlagSaved);
   });
 
   it('Creating tf.real, tf.imag from complex.', async () => {
