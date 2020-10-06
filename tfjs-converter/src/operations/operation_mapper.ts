@@ -150,7 +150,7 @@ export class OperationMapper {
         {nodes, inputs, outputs, weights, placeholders, signature, functions};
 
     if (initNodes.length > 0) {
-      result['initNodes'] = initNodes;
+      result.initNodes = initNodes;
     }
 
     return result;

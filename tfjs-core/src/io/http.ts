@@ -36,8 +36,7 @@ export class HTTPRequest implements IOHandler {
   protected readonly requestInit: RequestInit;
 
   private readonly fetch: Function;
-  private readonly weightUrlConverter:
-      (weightName: string) => Promise<string>;
+  private readonly weightUrlConverter: (weightName: string) => Promise<string>;
 
   readonly DEFAULT_METHOD = 'POST';
 
@@ -195,7 +194,7 @@ export class HTTPRequest implements IOHandler {
       [weightSpecs, weightData] = results;
     }
 
-    const artifacts:ModelArtifacts = {
+    const artifacts: ModelArtifacts = {
       modelTopology,
       weightSpecs,
       weightData,
@@ -207,7 +206,7 @@ export class HTTPRequest implements IOHandler {
 
     const initializer = modelConfig.modelInitializer;
     if (initializer) {
-      artifacts['modelInitializer'] = initializer;
+      artifacts.modelInitializer = initializer;
     }
 
     return artifacts;
