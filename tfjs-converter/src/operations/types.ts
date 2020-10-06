@@ -113,6 +113,7 @@ export declare interface Graph {
   weights: Node[];
   signature?: tensorflow.ISignatureDef;
   functions?: {[key: string]: Graph};
+  initNodes?: Node[];
 }
 
 export type ValueType = string|string[]|number|number[]|number[][]|boolean|
