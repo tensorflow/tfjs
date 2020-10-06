@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {BackendValues, DataType, DataValues, TensorBuffer, TypedArray, util} from '@tensorflow/tfjs-core';
+import {BackendValues, DataType, TensorBuffer, TypedArray, util} from '@tensorflow/tfjs-core';
 
 export function uniqueImpl(
     values: BackendValues, axis: number, shape: number[], dtype: DataType): {
@@ -148,15 +148,8 @@ export function uniqueImpl(
   const outputShape = shape.slice();
   outputShape[$axis] = outputTmpShape[1];
 
-  // Convert strings back to bytes if input is a string tensor.
-  let outputValues: BackendValues = outputBuffer.values as BackendValues;
-  if (dtype === 'string' && util.isString(outputValues[0])) {
-    outputValues =
-        (outputValues as DataValues as string[]).map(d => util.encodeString(d));
-  }
-
   return {
-    outputValues,
+    outputValues: outputBuffer.values as BackendValues,
     outputShape,
     indices,
   };
