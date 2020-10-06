@@ -188,16 +188,6 @@ const CONTROL_FLOW_HTTP_MODEL_LOADER = {
   }
 };
 
-const INITIALIZER_OUTPUTS: tensorflow.INodeDef[] = [{
-  name: 'transform/key_value_init/LookupTableImportV2',
-  op: 'LookupTableImportV2',
-  input: ['transform/hash_table', 'transform/keys', 'transform/values'],
-  attr: {
-    Tin: {type: tensorflow.DataType.DT_INT32},
-    Tout: {type: tensorflow.DataType.DT_STRING}
-  }
-}];
-
 const INITIALIZER_GRAPHDEF: tensorflow.IGraphDef = {
   node: [
     {

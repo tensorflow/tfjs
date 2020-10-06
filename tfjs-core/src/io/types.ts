@@ -286,7 +286,7 @@ export declare interface ModelArtifacts {
   /**
    * Initializer for the model.
    */
-  modelInitializer?: ModelInitializer;
+  modelInitializer?: {};
 }
 
 /**
@@ -351,13 +351,8 @@ export declare interface ModelJSON {
   /**
    * Initializer for the model.
    */
-  modelInitializer?: ModelInitializer;
+  modelInitializer?: {};
 }
-
-export type ModelInitializer = {
-  outputs: [],
-  topology: {}
-};
 
 /**
  * Type definition for handlers of loading operations.
