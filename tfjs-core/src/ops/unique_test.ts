@@ -91,7 +91,7 @@ describeWithFlags('unique', ALL_ENVS, () => {
     expectArraysEqual(await indices.data(), [0, 0, 1]);
   });
 
-  it('2d tensor with strings that has comma', async () => {
+  it('2d tensor with strings that have comma', async () => {
     const x = tf.tensor2d([['a', 'b,c', 'd'], ['a', 'b', 'c,d']]);
     const {values, indices} = tf.unique(x, 0);
 
