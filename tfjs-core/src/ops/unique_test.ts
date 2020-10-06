@@ -57,6 +57,17 @@ describeWithFlags('unique', ALL_ENVS, () => {
     expectArraysEqual(await indices.data(), [0, 0, 1]);
   });
 
+  it('1d tensor with NaN and Infinity', async () => {
+    const x = tensor1d([NaN, Infinity, NaN, Infinity]);
+    const {values, indices} = tf.unique(x);
+
+    expect(indices.dtype).toBe('int32');
+    expect(indices.shape).toEqual(x.shape);
+    expect(values.shape).toEqual([2]);
+    expectArraysEqual(await values.data(), [NaN, Infinity]);
+    expectArraysEqual(await indices.data(), [0, 1, 0, 1]);
+  });
+
   it('2d tensor with axis=0', async () => {
     const x = tf.tensor2d([[1, 0, 0], [1, 0, 0], [2, 0, 0]]);
     const {values, indices} = tf.unique(x, 0);
