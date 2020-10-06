@@ -244,6 +244,7 @@ def extract_weights(graph_def,
                     output_graph,
                     tf_version,
                     signature_def,
+                    quantization_dtype_map=None,
                     weight_shard_size_bytes=1024 * 1024 * 4,
                     initializer_graph_def=None):
   """Takes a Python GraphDef object and extract the weights.
@@ -286,7 +287,6 @@ def extract_weights(graph_def,
                   quantization_dtype_map=quantization_dtype_map,
                   weight_shard_size_bytes=weight_shard_size_bytes,
                   initializer_graph_def=initializer_graph_def)
-
 
 def write_artifacts(topology,
                     weights,
@@ -362,10 +362,12 @@ def _check_signature_in_model(saved_model, signature_name):
 def _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
                            output_node_names):
   """Freeze the graph by converting variables to constants for 1.x saved model.
+
   Args:
     saved_model_dir: dir where saved model files are stored.
     saved_model_tags: inference graph tag.
     output_node_names: List of name strings for the result nodes of the graph.
+
   Returns:
     A freezed and optimized graph.
     Nullable. A freezed and optimized initializer graph.
@@ -377,8 +379,6 @@ def _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
       meta_graph = loader.load(sess, saved_model_tags, saved_model_dir)
 
       meta_graph_def = g.as_graph_def()
-
-      loader.load(sess, saved_model_tags, saved_model_dir)
 
       frozen_graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(
           sess, meta_graph_def, output_node_names)

@@ -378,7 +378,6 @@ class ConvertTest(tf.test.TestCase):
     self.assertIsNot(signature['outputs'], None)
     self.assertTrue(model_json['modelInitializer'])
 
-
     weights_manifest = model_json['weightsManifest']
     self.assertEqual(weights_manifest, expected_weights_manifest)
     # Check meta-data in the artifact JSON.
