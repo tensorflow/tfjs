@@ -45,9 +45,12 @@ describe('tfjs union sub-packages', () => {
   });
 });
 
-describe('ops', async () => {
-  await tf.setBackend('cpu');
+describe('ops', () => {
 
+  beforeAll(async() => {
+    await tf.setBackend('cpu');
+  });
+  
   it('should support basic math', () => {
     tf.tidy(() => {
       const a = tf.scalar(3);

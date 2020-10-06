@@ -39,6 +39,7 @@ export class GraphExecutor implements FunctionExecutor {
   private _signature: ISignatureDef;
   private _inputs: Node[];
   private _outputs: Node[];
+  private _initNodes: Node[];
   private SEPERATOR = ',';
   private _functions: {[key: string]: Graph} = {};
   private _functionExecutorMap: {[key: string]: FunctionExecutor} = {};
@@ -120,6 +121,7 @@ export class GraphExecutor implements FunctionExecutor {
   constructor(private graph: Graph, private parent?: GraphExecutor) {
     this._outputs = graph.outputs;
     this._inputs = graph.inputs;
+    this._initNodes = graph.initNodes;
     this._signature = graph.signature;
     this._functions = graph.functions;
     // create sub-graph executors
@@ -143,7 +145,8 @@ export class GraphExecutor implements FunctionExecutor {
    * required for execution, in the correct execution order.
    */
   private compile(inputs: NamedTensorMap, outputs: Node[]): Node[] {
-    const executionInfo = getExecutionSubgraph(inputs, outputs, this.weightMap);
+    const executionInfo =
+        getExecutionSubgraph(inputs, outputs, this.weightMap, this._initNodes);
     const {missingInputs, dynamicNode, syncInputs} = executionInfo;
     if (dynamicNode != null) {
       throw new Error(
@@ -184,14 +187,22 @@ export class GraphExecutor implements FunctionExecutor {
     const inputNodes =
         names.map(name => this.graph.nodes[parseNodeName(name)[0]]);
     const outputNodeNames = outputs.map(name => parseNodeName(name)[0]);
-    const outputNodes = outputNodeNames.map(name => this.graph.nodes[name]);
+    let outputNodes = outputNodeNames.map(name => this.graph.nodes[name]);
+
+    // If no outputs are specified, then use the default outputs of the model.
+    if (outputNodes.length === 0) {
+      outputNodes = this._outputs;
+    }
+
     const compilationKey = this.getCompilationKey(inputNodes, outputNodes);
+
     // Do nothing if the compiled graph cache contains the input.
     let orderedNodes = this.compiledMap.get(compilationKey);
     if (orderedNodes == null) {
       orderedNodes = this.compile(inputs, outputNodes);
       this.compiledMap.set(compilationKey, orderedNodes);
     }
+
     const tensorArrayMap: TensorArrayMap = {};
     const tensorListMap: TensorListMap = {};
     return tidy(() => {
@@ -199,12 +210,14 @@ export class GraphExecutor implements FunctionExecutor {
           this.weightMap, tensorArrayMap, tensorListMap,
           this.functionExecutorMap);
       const tensorsMap: NamedTensorsMap = {...this.weightMap};
+
       Object.keys(inputs).forEach(name => {
         const [nodeName, index] = parseNodeName(name);
         const tensors: Tensor[] = [];
         tensors[index] = inputs[name];
         tensorsMap[nodeName] = tensors;
       });
+
       const tensorsToKeep = this.getFrozenTensorIds(tensorsMap);
       const intermediateTensorConsumerCount: {[key: number]: number} = {};
       for (let i = 0; i < orderedNodes.length; i++) {
@@ -579,6 +592,7 @@ export class GraphExecutor implements FunctionExecutor {
       return name;
     }, {});
   }
+
   private checkOutputs(outputs: string[]): void {
     outputs.forEach(name => {
       const [normalizedName] = parseNodeName(name);

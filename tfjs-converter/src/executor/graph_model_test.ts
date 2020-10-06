@@ -33,6 +33,12 @@ const bias = tfc.tensor1d([1], 'int32');
 const weightsManifest: tfc.io.WeightsManifestEntry[] =
     [{'name': 'Const', 'dtype': 'int32', 'shape': [1]}];
 
+const weightsManifestWithInitializer: tfc.io.WeightsManifestEntry[] = [
+  {'name': 'Const', 'dtype': 'int32', 'shape': [1]},
+  {'dtype': 'string', 'name': 'transform/keys', 'shape': [1]},
+  {'dtype': 'int32', 'name': 'transform/values', 'shape': [1]}
+];
+
 const SIMPLE_MODEL: tensorflow.IGraphDef = {
   node: [
     {
@@ -99,6 +105,7 @@ const DYNAMIC_SHAPE_MODEL: tensorflow.IGraphDef = {
   ],
   versions: {producer: 1.0, minConsumer: 3}
 };
+
 const SIGNATURE: tensorflow.ISignatureDef = {
   inputs: {x: {name: 'Input:0', dtype: tensorflow.DataType.DT_INT32}},
   outputs: {y: {name: 'Add:0', dtype: tensorflow.DataType.DT_INT32}}
@@ -177,6 +184,73 @@ const CONTROL_FLOW_HTTP_MODEL_LOADER = {
       format: 'tfjs-graph-model',
       generatedBy: '1.15',
       convertedBy: '1.3.1'
+    };
+  }
+};
+
+const INITIALIZER_GRAPHDEF: tensorflow.IGraphDef = {
+  node: [
+    {
+      name: 'transform/values',
+      op: 'Const',
+      attr: {
+        dtype: {type: tensorflow.DataType.DT_INT32},
+        value: {
+          tensor: {
+            dtype: tensorflow.DataType.DT_INT32,
+            tensorShape: {dim: [{size: 1}]}
+          }
+        }
+      }
+    },
+    {
+      name: 'transform/keys',
+      op: 'Const',
+      attr: {
+        dtype: {type: tensorflow.DataType.DT_STRING},
+        value: {
+          tensor: {
+            dtype: tensorflow.DataType.DT_STRING,
+            tensorShape: {dim: [{size: 1}]}
+          }
+        }
+      }
+    },
+    {
+      name: 'transform/hash_table',
+      op: 'HashTableV2',
+      attr: {
+        value_dtype: {type: tensorflow.DataType.DT_INT32},
+        use_node_name_sharing: {b: false},
+        key_dtype: {type: tensorflow.DataType.DT_STRING},
+        container: {s: ''},
+        shared_name: {s: 'tablename'}
+      }
+    },
+    {
+      name: 'transform/key_value_init/LookupTableImportV2',
+      op: 'LookupTableImportV2',
+      input: ['transform/hash_table', 'transform/keys', 'transform/values'],
+      attr: {
+        Tin: {type: tensorflow.DataType.DT_INT32},
+        Tout: {type: tensorflow.DataType.DT_STRING}
+      }
+    }
+  ],
+  versions: {producer: 1.0, minConsumer: 3}
+};
+
+const HASHTABLE_HTTP_MODEL_LOADER = {
+  load: async () => {
+    return {
+      modelTopology: SIMPLE_MODEL,
+      weightSpecs: weightsManifestWithInitializer,
+      weightData: new ArrayBuffer(16),
+      format: 'tfjs-graph-model',
+      generatedBy: '1.15',
+      convertedBy: '2.4',
+      userDefinedMetadata: {signature: SIGNATURE},
+      modelInitializer: INITIALIZER_GRAPHDEF
     };
   }
 };
@@ -600,6 +674,29 @@ describe('Model', () => {
       const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
       const res = await model.executeAsync({Where: input});
       expect(res).not.toBeNull();
+    });
+  });
+
+  describe('Hashtable model', () => {
+    beforeEach(() => {
+      spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+        HASHTABLE_HTTP_MODEL_LOADER
+      ]);
+      spyOn(tfc.io, 'browserHTTPRequest')
+          .and.returnValue(HASHTABLE_HTTP_MODEL_LOADER);
+    });
+    it('load.', async done => {
+      // TODO(lina128): Update test once HashTableV2 is implemented.
+      model.load()
+          .then(() => {
+            done.fail(
+                'Loading with unknown op succeeded ' +
+                'unexpectedly.');
+          })
+          .catch(err => {
+            expect(err.message).toMatch(/Unknown op 'HashTableV2'/);
+            done();
+          });
     });
   });
 });
