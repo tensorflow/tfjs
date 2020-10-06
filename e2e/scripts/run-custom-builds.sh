@@ -25,6 +25,9 @@ e2e_root_path=$PWD
 
 cd custom_bundle/blazeface
 yarn
+# Ensure that we test agaisnt freshly generated custom modules.
+rm -f ./custom_tfjs_blazeface/*.js
+echo "npm version $(npm --version)"
 yarn make-custom-tfjs-modules
 # TODO(yassogba) once blazeface kernels are modularized in cpu
 # switch the config to cpu and also run and test rollup bundle.
