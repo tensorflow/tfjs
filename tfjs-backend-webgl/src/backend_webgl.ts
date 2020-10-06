@@ -626,6 +626,10 @@ export class MathBackendWebGL extends KernelBackend {
       return;
     }
 
+    // Trying to dispose a textureData that has a 'kept' refCount, e.g. trying
+    // to dispose a tensor whose data bucket is shared with a complex tensor. In
+    // this case we are removing a reference to the textureData, but we
+    // shouldn't actually dispose the texture.
     if (this.texData.get(dataId).keptRefCount > 0) {
       this.texData.get(dataId).refCount--;
       return;

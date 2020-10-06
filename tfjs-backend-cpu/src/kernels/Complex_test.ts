@@ -138,7 +138,7 @@ describeWithFlags('Complex.', ALL_ENVS, () => {
 
     complex.dispose();
 
-    // 1 fewer tensor, 1 fewer data buckets.
+    // 1 fewer tensor, 3 fewer data buckets.
     expect(tf.memory().numTensors).toBe(numTensors - 1);
     expect(tf.engine().backend.numDataIds()).toBe(numDataIds - 3);
 
