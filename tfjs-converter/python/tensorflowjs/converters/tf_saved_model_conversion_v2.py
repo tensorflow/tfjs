@@ -327,7 +327,7 @@ def write_artifacts(topology,
 
   if initializer_graph_def:
     model_json[common.ARTIFACT_MODEL_INITIALIZER] = MessageToDict(
-                                                      initializer_graph_def)
+        initializer_graph_def)
 
   weights_manifest = write_weights.write_weights(
       weights, os.path.dirname(output_graph), write_manifest=False,
