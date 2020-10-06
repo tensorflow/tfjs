@@ -268,7 +268,7 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
 
     // 1 new tensor, the complex64 tensor
     expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 1);
-    // 1 new tensor and 2 underlying tensors for real and imag.
+    // 1 new tensor and 2 underlying data buckets for real and imag.
     expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore + 3);
 
     const b = a.clone();
