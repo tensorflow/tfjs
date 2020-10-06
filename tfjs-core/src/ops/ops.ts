@@ -185,6 +185,7 @@ export {tensor6d} from './tensor6d';
 export {tile} from './tile';
 export {topk} from './topk';
 export {truncatedNormal} from './truncated_normal';
+export {unique} from './unique';
 export {unsortedSegmentSum} from './unsorted_segment_sum';
 export {unstack} from './unstack';
 export {variable} from './variable';

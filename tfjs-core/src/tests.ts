@@ -216,6 +216,7 @@ import './ops/to_pixels_test';
 import './ops/topk_test';
 import './ops/transpose_test';
 import './ops/truncated_normal_test';
+import './ops/unique_test';
 import './ops/unsorted_segment_sum_test';
 import './ops/unstack_test';
 import './ops/where_async_test';

@@ -17,12 +17,29 @@ import {OpMapper} from '../types';
  * =============================================================================
  */
 
-export const json: OpMapper[] = [{
-  'tfOpName': 'TopKV2',
-  'category': 'evaluation',
-  'inputs': [
-    {'start': 0, 'name': 'x', 'type': 'tensor'},
-    {'start': 1, 'name': 'k', 'type': 'number'},
-  ],
-  'attrs': [{'tfName': 'sorted', 'name': 'sorted', 'type': 'bool'}]
-}];
+export const json: OpMapper[] = [
+  {
+    'tfOpName': 'TopKV2',
+    'category': 'evaluation',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+      {'start': 1, 'name': 'k', 'type': 'number'},
+    ],
+    'attrs': [{'tfName': 'sorted', 'name': 'sorted', 'type': 'bool'}]
+  },
+  {
+    'tfOpName': 'Unique',
+    'category': 'evaluation',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+    ],
+  },
+  {
+    'tfOpName': 'UniqueV2',
+    'category': 'evaluation',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+      {'start': 1, 'name': 'axis', 'type': 'number'},
+    ],
+  },
+];

@@ -39,6 +39,7 @@ import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {tanConfig} from './kernels/Tan';
 import {transposeConfig} from './kernels/Transpose';
+import {uniqueConfig} from './kernels/Unique';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
@@ -64,7 +65,8 @@ const kernelConfigs: KernelConfig[] = [
   squareConfig,
   squaredDifferenceConfig,
   tanConfig,
-  transposeConfig
+  transposeConfig,
+  uniqueConfig,
 ];
 
 for (const kernelConfig of kernelConfigs) {
