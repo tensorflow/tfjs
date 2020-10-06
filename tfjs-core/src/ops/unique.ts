@@ -41,7 +41,9 @@ import {op} from './operation';
  * const {values, indices} = tf.unique(a);
  * values.print();   // [1, 2, 4, 7, 8,]
  * indices.print();  // [0, 0, 1, 2, 2, 2, 3, 4, 4]
+ * ```
  *
+ * ```js
  * // A 2-D tensor with axis=0
  * //
  * // 'a' is: [[1, 0, 0],
@@ -52,7 +54,9 @@ import {op} from './operation';
  * values.print();   // [[1, 0, 0],
  *                   //  [2, 0, 0]]
  * indices.print();  // [0, 0, 1]
+ * ```
  *
+ * ```js
  * // A 2-D tensor with axis=1
  * //
  * // 'a' is: [[1, 0, 0],

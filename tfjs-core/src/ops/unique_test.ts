@@ -91,6 +91,18 @@ describeWithFlags('unique', ALL_ENVS, () => {
     expectArraysEqual(await indices.data(), [0, 0, 1]);
   });
 
+  it('2d tensor with strings that has comma', async () => {
+    const x = tf.tensor2d([['a', 'b,c', 'd'], ['a', 'b', 'c,d']]);
+    const {values, indices} = tf.unique(x, 0);
+
+    expect(indices.dtype).toBe('int32');
+    expect(indices.shape).toEqual([x.shape[0]]);
+    expect(values.dtype).toEqual('string');
+    expect(values.shape).toEqual([2, 3]);
+    expectArraysEqual(await values.data(), ['a', 'b,c', 'd', 'a', 'b', 'c,d']);
+    expectArraysEqual(await indices.data(), [0, 1]);
+  });
+
   it('3d tensor with axis=0', async () => {
     const x =
         tf.tensor3d([[[1, 0], [1, 0]], [[1, 0], [1, 0]], [[1, 1], [1, 1]]]);
