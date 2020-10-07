@@ -15,15 +15,18 @@
  * =============================================================================
  */
 
-// Import shared functionality from tfjs-backend-cpu without triggering
-// side effects.
-// tslint:disable-next-line: no-imports-from-dist
-import * as shared from '@tensorflow/tfjs-backend-cpu/dist/shared';
+import {unique} from '../../ops/unique';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
 
-const {
-  maxImpl: maxImplCPU,
-  transposeImpl: transposeImplCPU,
-  uniqueImpl: uniqueImplCPU,
-} = shared;
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    unique<T extends Tensor>(this: T, axis?: number): {values: T, indices: T};
+  }
+}
 
-export {maxImplCPU, transposeImplCPU, uniqueImplCPU};
+Tensor.prototype.unique = function<T extends Tensor>(
+    this: T, axis?: number): {values: T, indices: T} {
+  this.throwIfDisposed();
+  return unique(this, axis) as {values: T, indices: T};
+};

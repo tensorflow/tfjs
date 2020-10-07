@@ -166,6 +166,8 @@
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
 |TopKV2|topK|
+|Unique|unique|
+|UniqueV2|unique|
 |Not mapped|confusionMatrix|
 |Not mapped|topk|
 
