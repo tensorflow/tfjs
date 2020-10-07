@@ -1021,6 +1021,37 @@ describe('control', () => {
     });
   });
 
+  describe('LookupTableFind', () => {
+    it('should create new tensor on the context', async () => {
+      const hashTable = new HashTable('int32', 'float32');
+      const keys = tensor1d([1], 'int32');
+      const values = tensor1d([5.5]);
+      hashTable.initialize(keys, values);
+      context.addHashTable(hashTable);
+      const handle = hashTable.handle;
+
+      node.op = 'LookupTableFind';
+      node.inputParams['tableHandle'] = createTensorAttr(0);
+      node.inputParams['keys'] = createTensorAttr(1);
+      node.inputParams['defaultValue'] = createTensorAttr(2);
+      node.inputNames = ['input2', 'input3', 'input5'];
+      const input2 = [handle];
+      const input3 = [tensor1d([1, 2], 'int32')];
+      const input5 = [scalar(0)];
+
+      const result = (await executeOp(node, {input2, input3, input5}, context));
+      test_util.expectArraysClose(await result[0].data(), [5.5, 0]);
+    });
+    it('should match json def', () => {
+      node.op = 'LookupTableFindV2';
+      node.inputParams['tableHandle'] = createTensorAttr(0);
+      node.inputParams['keys'] = createTensorAttr(1);
+      node.inputParams['defaultValue'] = createTensorAttr(2);
+
+      expect(validateParam(node, control.json)).toBeTruthy();
+    });
+  });
+
   describe('LookupTableFindV2', () => {
     it('should create new tensor on the context', async () => {
       const hashTable = new HashTable('int32', 'float32');
