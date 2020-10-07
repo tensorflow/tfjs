@@ -33,7 +33,7 @@ import {op} from './operation';
  *
  * ```js
  * const x = tf.range(0, 9).reshape([1, 1, 3, 3]);
- * x.mirrorPad([[0, 0], [0, 0], [2, 2], [2, 2]]).print();
+ * x.mirrorPad([[0, 0], [0, 0], [2, 2], [2, 2]], 'reflect').print();
  * ```
  * @param x The tensor to pad.
  * @param paddings An array of length `R` (the rank of the tensor), where
