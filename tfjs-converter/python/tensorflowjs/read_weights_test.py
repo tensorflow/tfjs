@@ -368,10 +368,10 @@ class ReadWeightsTest(tf.test.TestCase):
 
   def testReadBoolWeights(self):
     groups = [
-      [{
-          'name': 'weight1',
-          'data': np.array([True, False, True], 'bool')
-      }]
+        [{
+            'name': 'weight1',
+            'data': np.array([True, False, True], 'bool')
+        }]
     ]
 
     manifest = write_weights.write_weights(groups, self._tmp_dir)
@@ -390,7 +390,7 @@ class ReadWeightsTest(tf.test.TestCase):
             'name': 'weight1',
             'data': np.array(u'abc'.encode('utf-8'), 'object')
         }]
-    ] 
+    ]
 
     manifest = write_weights.write_weights(groups, self._tmp_dir)
 
