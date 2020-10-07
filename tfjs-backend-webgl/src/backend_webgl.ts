@@ -22,7 +22,8 @@ import * as tf from '@tensorflow/tfjs-core';
 import {complex, DataId, div, engine, env, imag, max, MemoryInfo, range, real, RecursiveArray, reshape, scalar, softmax, tensor, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
 import {backend_util, buffer, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
 import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
-import {floorImplCPU} from './kernel_utils/shared';
+
+import {addImplCPU, ceilImplCPU, expImplCPU, expm1ImplCPU, floorImplCPU, logImplCPU, multiplyImplCPU, rsqrtImplCPU, simpleAbsImplCPU, sliceImplCPU, subImplCPU} from './kernel_utils/shared';
 
 const {segment_util} = backend_util;
 const split = kernel_impls.split;
@@ -729,7 +730,17 @@ export class MathBackendWebGL extends KernelBackend {
 
   slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
     if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.slice(x, begin, size);
+      try {
+        return this.cpuBackend.slice(x, begin, size);
+      } catch (e) {
+        const outValues = sliceImplCPU(
+            this.texData.get(x.dataId).values as TypedArray, begin, size,
+            x.shape, x.dtype);
+        const outInfo = this.makeTensorInfo(x.shape, x.dtype);
+        this.texData.get(outInfo.dataId).values = outValues;
+        return engine().makeTensorFromDataId(outInfo.dataId, size, x.dtype) as
+            T;
+      }
     }
     // Short-circuit computation if the slice is zero-sized.
     if (util.sizeFromShape(size) === 0) {
@@ -804,9 +815,10 @@ export class MathBackendWebGL extends KernelBackend {
       const imags = tensors.map((t) => imag(t));
       return complex(this.concat(reals, axis), this.concat(imags, axis));
     }
-    if (this.shouldExecuteOnCPU(tensors)) {
-      return this.cpuBackend.concat(tensors, axis);
-    }
+    // PR #3956 will modularize concat without this.
+    // if (this.shouldExecuteOnCPU(tensors)) {
+    //   return this.cpuBackend.concat(tensors, axis);
+    // }
 
     if (tensors.length === 1) {
       return tensors[0];
@@ -932,8 +944,21 @@ export class MathBackendWebGL extends KernelBackend {
       return complex;
     }
 
+    const dtype = upcastType(a.dtype, b.dtype);
     if (this.shouldExecuteOnCPU([a, b])) {
-      return this.cpuBackend.multiply(a, b);
+      try {
+        return this.cpuBackend.multiply(a, b);
+      } catch (e) {
+        const aData = this.texData.get(a.dataId);
+        const bData = this.texData.get(b.dataId);
+        const [outValues, outShape] = multiplyImplCPU(
+            a.shape, b.shape, aData.values as TypedArray,
+            bData.values as TypedArray, dtype);
+        const out = this.makeTensorInfo(outShape, dtype);
+        const outData = this.texData.get(out.dataId);
+        outData.values = outValues;
+        return engine().makeTensorFromDataId(out.dataId, out.shape, out.dtype);
+      }
     }
     if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
       return this.packedBinaryOp(a, b, binaryop_gpu.MUL, a.dtype);
@@ -1402,11 +1427,23 @@ export class MathBackendWebGL extends KernelBackend {
       return this.complexSeparableBinaryOp(a, b, binaryop_gpu.ADD);
     }
 
+    const dtype = upcastType(a.dtype, b.dtype);
     if (this.shouldExecuteOnCPU([a, b])) {
-      return this.cpuBackend.add(a, b);
+      try {
+        return this.cpuBackend.add(a, b);
+      } catch (e) {
+        const aData = this.texData.get(a.dataId);
+        const bData = this.texData.get(b.dataId);
+        const [outValues, outShape] = addImplCPU(
+            a.shape, b.shape, aData.values as TypedArray,
+            bData.values as TypedArray, dtype);
+        const out = this.makeTensorInfo(outShape, dtype);
+        const outData = this.texData.get(out.dataId);
+        outData.values = outValues;
+        return engine().makeTensorFromDataId(out.dataId, out.shape, out.dtype);
+      }
     }
 
-    const dtype = upcastType(a.dtype, b.dtype);
     if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
       return this.packedBinaryOp(a, b, binaryop_gpu.ADD, dtype);
     }
@@ -1496,10 +1533,22 @@ export class MathBackendWebGL extends KernelBackend {
       return this.complexSeparableBinaryOp(a, b, binaryop_gpu.SUB);
     }
 
-    if (this.shouldExecuteOnCPU([a, b])) {
-      return this.cpuBackend.subtract(a, b);
-    }
     const dtype = upcastType(a.dtype, b.dtype);
+    if (this.shouldExecuteOnCPU([a, b])) {
+      try {
+        return this.cpuBackend.subtract(a, b);
+      } catch (e) {
+        const aData = this.texData.get(a.dataId);
+        const bData = this.texData.get(b.dataId);
+        const [outValues, outShape] = subImplCPU(
+            a.shape, b.shape, aData.values as TypedArray,
+            bData.values as TypedArray, dtype);
+        const out = this.makeTensorInfo(outShape, dtype);
+        const outData = this.texData.get(out.dataId);
+        outData.values = outValues;
+        return engine().makeTensorFromDataId(out.dataId, out.shape, out.dtype);
+      }
+    }
     if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
       return this.packedBinaryOp(a, b, binaryop_gpu.SUB, a.dtype);
     }
@@ -1518,7 +1567,16 @@ export class MathBackendWebGL extends KernelBackend {
 
   ceil<T extends Tensor>(x: T): T {
     if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.ceil(x);
+      try {
+        return this.cpuBackend.ceil(x);
+      } catch (e) {
+        const outValues = ceilImplCPU(
+            this.texData.get(x.dataId).values as TypedArray, x.dtype);
+        const outInfo = this.makeTensorInfo(x.shape, x.dtype);
+        this.texData.get(outInfo.dataId).values = outValues;
+        return engine().makeTensorFromDataId(
+                   outInfo.dataId, outInfo.shape, outInfo.dtype) as T;
+      }
     }
 
     if (env().getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
@@ -1534,8 +1592,6 @@ export class MathBackendWebGL extends KernelBackend {
       try {
         return this.cpuBackend.floor(x);
       } catch (e) {
-        // The kernel has been modularized in the cpu backend. Use the shared
-        // cpu implementation.
         const outValues = floorImplCPU(
             this.texData.get(x.dataId).values as TypedArray, x.dtype);
         const outInfo = this.makeTensorInfo(x.shape, x.dtype);
@@ -1578,7 +1634,16 @@ export class MathBackendWebGL extends KernelBackend {
 
   exp<T extends Tensor>(x: T): T {
     if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.exp(x);
+      try {
+        return this.cpuBackend.exp(x);
+      } catch (e) {
+        const outValues = expImplCPU(
+            this.texData.get(x.dataId).values as TypedArray, x.dtype);
+        const outInfo = this.makeTensorInfo(x.shape, x.dtype);
+        this.texData.get(outInfo.dataId).values = outValues;
+        return engine().makeTensorFromDataId(
+                   outInfo.dataId, outInfo.shape, outInfo.dtype) as T;
+      }
     }
 
     if (env().getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
@@ -1591,7 +1656,16 @@ export class MathBackendWebGL extends KernelBackend {
 
   expm1<T extends Tensor>(x: T): T {
     if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.expm1(x);
+      try {
+        return this.cpuBackend.expm1(x);
+      } catch (e) {
+        const outValues = expm1ImplCPU(
+            this.texData.get(x.dataId).values as TypedArray, x.dtype);
+        const outInfo = this.makeTensorInfo(x.shape, x.dtype);
+        this.texData.get(outInfo.dataId).values = outValues;
+        return engine().makeTensorFromDataId(
+                   outInfo.dataId, outInfo.shape, outInfo.dtype) as T;
+      }
     }
 
     if (env().getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
@@ -1620,7 +1694,16 @@ export class MathBackendWebGL extends KernelBackend {
 
   log<T extends Tensor>(x: T): T {
     if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.log(x);
+      try {
+        return this.cpuBackend.log(x);
+      } catch (e) {
+        const outValues = logImplCPU(
+            this.texData.get(x.dataId).values as TypedArray, x.dtype);
+        const outInfo = this.makeTensorInfo(x.shape, x.dtype);
+        this.texData.get(outInfo.dataId).values = outValues;
+        return engine().makeTensorFromDataId(
+                   outInfo.dataId, outInfo.shape, outInfo.dtype) as T;
+      }
     }
 
     if (env().getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
@@ -1643,7 +1726,16 @@ export class MathBackendWebGL extends KernelBackend {
 
   rsqrt<T extends Tensor>(x: T): T {
     if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.rsqrt(x);
+      try {
+        return this.cpuBackend.rsqrt(x);
+      } catch (e) {
+        const outValues = rsqrtImplCPU(
+            this.texData.get(x.dataId).values as TypedArray, x.dtype);
+        const outInfo = this.makeTensorInfo(x.shape, x.dtype);
+        this.texData.get(outInfo.dataId).values = outValues;
+        return engine().makeTensorFromDataId(
+                   outInfo.dataId, outInfo.shape, outInfo.dtype) as T;
+      }
     }
     const program = new UnaryOpProgram(x.shape, unary_op.RSQRT);
     return this.compileAndRun(program, [x]);
@@ -1720,8 +1812,18 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   abs<T extends Tensor>(x: T): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.abs(x);
+    // TODO: handle cases when x is complex.
+    if (this.shouldExecuteOnCPU([x]) && x.dtype !== 'complex64') {
+      try {
+        return this.cpuBackend.abs(x);
+      } catch (e) {
+        const outValues =
+            simpleAbsImplCPU(this.texData.get(x.dataId).values as TypedArray);
+        const outInfo = this.makeTensorInfo(x.shape, x.dtype);
+        this.texData.get(outInfo.dataId).values = outValues;
+        return engine().makeTensorFromDataId(
+                   outInfo.dataId, outInfo.shape, outInfo.dtype) as T;
+      }
     }
 
     if (env().getBool('WEBGL_PACK_UNARY_OPERATIONS')) {

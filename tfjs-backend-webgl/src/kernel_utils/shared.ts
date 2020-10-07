@@ -21,10 +21,35 @@
 import * as shared from '@tensorflow/tfjs-backend-cpu/dist/shared';
 
 const {
+  simpleAbsImpl: simpleAbsImplCPU,
+  addImpl: addImplCPU,
+  ceilImpl: ceilImplCPU,
+  expImpl: expImplCPU,
+  expm1Impl: expm1ImplCPU,
   floorImpl: floorImplCPU,
+  logImpl: logImplCPU,
   maxImpl: maxImplCPU,
+  multiplyImpl: multiplyImplCPU,
+  rsqrtImpl: rsqrtImplCPU,
+  sliceImpl: sliceImplCPU,
+  subImpl: subImplCPU,
   transposeImpl: transposeImplCPU,
   uniqueImpl: uniqueImplCPU,
 } = shared;
 
-export {floorImplCPU, maxImplCPU, transposeImplCPU, uniqueImplCPU};
+export {
+  simpleAbsImplCPU,
+  addImplCPU,
+  ceilImplCPU,
+  expImplCPU,
+  expm1ImplCPU,
+  logImplCPU,
+  multiplyImplCPU,
+  sliceImplCPU,
+  subImplCPU,
+  floorImplCPU,
+  maxImplCPU,
+  rsqrtImplCPU,
+  transposeImplCPU,
+  uniqueImplCPU,
+};
