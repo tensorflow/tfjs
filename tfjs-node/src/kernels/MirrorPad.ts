@@ -39,7 +39,11 @@ export const mirrorPadConfig: KernelConfig = {
       }
     ];
 
-    return nodeBackend.executeSingleOutput(
+    const output = nodeBackend.executeSingleOutput(
         'MirrorPad', opAttrs, [x, paddingsTensor]);
+
+    paddingsTensor.dispose();
+
+    return output;
   }
 };
