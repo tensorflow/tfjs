@@ -68,7 +68,7 @@ export function getOps(
   }
 
   // Parse functionDef nodes
-  if (graph.library != null && graph.library.function !== null) {
+  if (graph.library != null && graph.library.function != null) {
     graph.library.function.forEach((functionDef) => {
       const nodeDef = functionDef.nodeDef;
       if (nodeDef != null) {
