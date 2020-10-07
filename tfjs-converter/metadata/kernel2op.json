@@ -505,6 +505,12 @@
   "TruncatedNormal": [
     "truncatedNormal"
   ],
+  "Unique": [
+    "unique"
+  ],
+  "UniqueV2": [
+    "unique"
+  ],
   "Unpack": [
     "unstack"
   ],

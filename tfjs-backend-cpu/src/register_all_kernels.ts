@@ -88,6 +88,7 @@ import {subConfig} from './kernels/Sub';
 import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
 import {transposeConfig} from './kernels/Transpose';
+import {uniqueConfig} from './kernels/Unique';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
@@ -159,7 +160,8 @@ const kernelConfigs: KernelConfig[] = [
   subConfig,
   tanConfig,
   tanhConfig,
-  transposeConfig
+  transposeConfig,
+  uniqueConfig,
 ];
 
 for (const kernelConfig of kernelConfigs) {

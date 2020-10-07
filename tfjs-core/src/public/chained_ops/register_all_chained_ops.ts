@@ -160,6 +160,7 @@ import './to_float';
 import './to_int';
 import './topk';
 import './transpose';
+import './unique';
 import './unsorted_segment_sum';
 import './unstack';
 import './where';

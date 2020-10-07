@@ -21,9 +21,10 @@
 import * as shared from '@tensorflow/tfjs-backend-cpu/dist/shared';
 
 const {
+  floorImpl: floorImplCPU,
   maxImpl: maxImplCPU,
   transposeImpl: transposeImplCPU,
-  floorImpl: floorImplCPU,
+  uniqueImpl: uniqueImplCPU,
 } = shared;
 
-export {maxImplCPU, transposeImplCPU, floorImplCPU};
+export {floorImplCPU, maxImplCPU, transposeImplCPU, uniqueImplCPU};

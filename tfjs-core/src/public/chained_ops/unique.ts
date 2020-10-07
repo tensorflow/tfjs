@@ -15,8 +15,18 @@
  * =============================================================================
  */
 
-// Shared kernel impls for use in other backends.
-export {floorImpl} from './kernels/Floor';
-export {maxImpl} from './kernels/Max_impl';
-export {transposeImpl} from './kernels/Transpose_impl';
-export {uniqueImpl} from './kernels/Unique_impl';
+import {unique} from '../../ops/unique';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
+
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    unique<T extends Tensor>(this: T, axis?: number): {values: T, indices: T};
+  }
+}
+
+Tensor.prototype.unique = function<T extends Tensor>(
+    this: T, axis?: number): {values: T, indices: T} {
+  this.throwIfDisposed();
+  return unique(this, axis) as {values: T, indices: T};
+};
