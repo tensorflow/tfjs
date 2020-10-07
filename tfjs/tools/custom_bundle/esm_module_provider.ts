@@ -68,7 +68,7 @@ class ESMModuleProvider implements ModuleProvider {
       const converterOpsModule =
           getCustomConverterOpsModule(converterOps, esmImportProvider);
 
-      const customConverterOpsFileName = 'custom_ops_for_converter.ts';
+      const customConverterOpsFileName = 'custom_ops_for_converter.js';
 
       fs.writeFileSync(
           path.join(outputPath, customConverterOpsFileName),
