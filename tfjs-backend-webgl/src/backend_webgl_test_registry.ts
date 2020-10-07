@@ -28,21 +28,13 @@ export const PACKED_ENVS: Constraints = {
 registerTestEnv({
   name: 'webgl1',
   backendName: 'webgl',
-  flags: {
-    'WEBGL_VERSION': 1,
-    'WEBGL_CPU_FORWARD': false,
-    'WEBGL_SIZE_UPLOAD_UNIFORM': 0
-  },
+  flags: {'WEBGL_VERSION': 1, 'WEBGL_SIZE_UPLOAD_UNIFORM': 0},
   isDataSync: true
 });
 
 registerTestEnv({
   name: 'webgl2',
   backendName: 'webgl',
-  flags: {
-    'WEBGL_VERSION': 2,
-    'WEBGL_CPU_FORWARD': false,
-    'WEBGL_SIZE_UPLOAD_UNIFORM': 0
-  },
+  flags: {'WEBGL_VERSION': 2, 'WEBGL_SIZE_UPLOAD_UNIFORM': 0},
   isDataSync: true
 });
