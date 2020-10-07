@@ -208,6 +208,25 @@ export class LogSoftmax extends Activation {
 }
 serialization.registerClass(LogSoftmax);
 
+/**
+ * Swish activation function
+ */
+export class Swish extends Activation {
+  /** @nocollapse */
+  static readonly className = 'swish';
+  /**
+   * Calculate the activation function.
+   *
+   * @param x Tensor.
+   * @param alpha Scaling factor for the sigmoid function.
+   * @returns a Tensor of the same shape as x
+   */
+  apply(x: Tensor, alpha = 1): Tensor {
+    return tidy(() => tfc.sigmoid(x.mul(alpha)).mul(x));
+  }
+}
+serialization.registerClass(Swish);
+
 export function serializeActivation(activation: Activation): string {
   return activation.getClassName();
 }

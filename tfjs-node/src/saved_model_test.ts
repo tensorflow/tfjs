@@ -406,6 +406,18 @@ describe('SavedModel', () => {
     model.dispose();
   });
 
+  it('execute model with int64 input', async () => {
+    const model = await tf.node.loadSavedModel(
+        './test_objects/saved_model/int64_multiply', ['serve'],
+        'serving_default');
+    const input = tf.tensor1d([3, 4], 'int32');
+    const output = model.predict(input) as tf.Tensor;
+    expect(output.shape).toEqual([2]);
+    expect(output.dtype).toBe('int32');
+    test_util.expectArraysClose(await output.data(), [18, 24]);
+    model.dispose();
+  });
+
   it('execute model int times two', async () => {
     const model = await tf.node.loadSavedModel(
         './test_objects/saved_model/times_two_int', ['serve'],
