@@ -54,7 +54,11 @@ import {op} from './operation';
 function mirrorPad_<T extends Tensor>(
     x: T|TensorLike, paddings: Array<[number, number]>,
     mode: 'reflect'|'symmetric'): T {
-  mode = mode || 'reflect';
+  util.assert(
+      mode === 'reflect' || mode === 'symmetric',
+      () => `Invalid mode. Mode must be either reflect or symmetric. ` +
+          `Got ${mode}.`);
+
   const $x = convertToTensor(x, 'x', 'mirrorPad');
   if ($x.rank === 0) {
     throw new Error(
