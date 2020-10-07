@@ -181,7 +181,9 @@ function mapActivationToShaderProgram(
 
 // Empirically determined constant used to determine size threshold for handing
 // off execution to the CPU.
-const CPU_HANDOFF_SIZE_THRESHOLD = 128;
+// TODO(lina128): Turn off cpuForwarding for now until we figure out the
+// ultimate solution.
+const CPU_HANDOFF_SIZE_THRESHOLD = 0;
 
 // Empirically determined constant used to decide the number of MB on GPU
 // before we warn about high memory use. The MB are this constant * screen area

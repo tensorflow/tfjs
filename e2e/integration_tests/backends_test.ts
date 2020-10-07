@@ -158,6 +158,23 @@ describeWithFlags(
         expect(tfc.findBackend('cpu').numDataIds()).toBe(cpuNumDataIds);
       });
 
+      // TODO(lina128): Remove once modularization is done and cpuForward
+      // is not used anymore.
+      it('can cpuForward.', async () => {
+        tfc.env().set('WEBGL_CPU_FORWARD', true);
+
+        await tfc.setBackend('cpu');
+
+        const a = tfc.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2]);
+
+        await tfc.setBackend('webgl');
+
+        const result = a.slice([0, 1, 1]);
+
+        expect(result.shape).toEqual([2, 1, 1]);
+        tfc.test_util.expectArraysClose(await result.data(), [4, 8]);
+      });
+
       // tslint:disable-next-line: ban
       xit('can move complex tensor from cpu to webgl.', async () => {
         await tfc.setBackend('cpu');
