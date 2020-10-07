@@ -1134,12 +1134,12 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
     std::string name(input_op_name_array[i]);
     int index = name.find(":");
     std::string input_op_name = name.substr(0, index);
-    const char *input_op_index = name.substr(index + 1).c_str();
+    std::string input_op_index = name.substr(index + 1);
     int input_tensor_index;
-    if (strlen(input_op_index) == 0) {
+    if (input_op_index.length() == 0) {
       input_tensor_index = 0;
     } else {
-      input_tensor_index = atoi(input_op_index);
+      input_tensor_index = atoi(input_op_index.c_str());
     }
 
     // Add input op into input ops list.
@@ -1162,12 +1162,12 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
     std::string name(output_op_name_array[i]);
     int index = name.find(":");
     std::string output_op_name = name.substr(0, index);
-    const char *output_op_index = name.substr(index + 1).c_str();
+    std::string output_op_index = name.substr(index + 1);
     int output_tensor_index;
-    if (strlen(output_op_index) == 0) {
+    if (output_op_index.length() == 0) {
       output_tensor_index = 0;
     } else {
-      output_tensor_index = atoi(output_op_index);
+      output_tensor_index = atoi(output_op_index.c_str());
     }
 
     TF_Operation *output_op = TF_GraphOperationByName(

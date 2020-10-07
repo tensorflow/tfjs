@@ -2360,8 +2360,9 @@ export class MathBackendWebGL extends KernelBackend {
     return backend_util.linspaceImpl(start, stop, num);
   }
 
-  makeTensorInfo(shape: number[], dtype: DataType): TensorInfo {
-    const dataId = this.write(null /* values */, shape, dtype);
+  makeTensorInfo(shape: number[], dtype: DataType, values?: BackendValues):
+      TensorInfo {
+    const dataId = this.write(values, shape, dtype);
     this.texData.get(dataId).usage = null;
     return {dataId, shape, dtype};
   }

@@ -40,6 +40,8 @@ export class GraphModel implements InferenceModel {
   private version = 'n/a';
   private handler: io.IOHandler;
   private artifacts: io.ModelArtifacts;
+  private initializer: GraphExecutor;
+
   // Returns the version information for the tensorflow model GraphDef.
   get modelVersion(): string {
     return this.version;
@@ -122,11 +124,11 @@ export class GraphModel implements InferenceModel {
 
   /**
    * Synchronously construct the in memory weight map and
-   * compile the inference graph.
+   * compile the inference graph. Also initialize hashtable if any.
    *
    * @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true}
    */
-  loadSync(artifacts:io.ModelArtifacts) {
+  loadSync(artifacts: io.ModelArtifacts) {
     this.artifacts = artifacts;
     const graph = this.artifacts.modelTopology as tensorflow.IGraphDef;
     let signature = {};
@@ -142,6 +144,15 @@ export class GraphModel implements InferenceModel {
     this.executor = new GraphExecutor(
         OperationMapper.Instance.transformGraph(graph, signature));
     this.executor.weightMap = this.convertTensorMapToTensorsMap(weightMap);
+
+    if (artifacts.modelInitializer != null) {
+      const initializer =
+          OperationMapper.Instance.transformGraph(artifacts.modelInitializer);
+      this.initializer = new GraphExecutor(initializer);
+      this.initializer.weightMap = this.executor.weightMap;
+      this.initializer.execute({}, []);
+    }
+
     return true;
   }
 
@@ -341,6 +352,10 @@ export class GraphModel implements InferenceModel {
    */
   dispose() {
     this.executor.dispose();
+
+    if (this.initializer) {
+      this.initializer.dispose();
+    }
   }
 }
 
