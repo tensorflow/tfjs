@@ -94,7 +94,7 @@ describeWithFlags(
         tfc.test_util.expectArraysClose(await result.data(), expected);
       });
 
-      fit('should work for neg.', async () => {
+      it('should work for neg.', async () => {
         await tfc.setBackend('webgl');
 
         const a = tfc.tensor1d([1, -3, 2, 7, -4]);
@@ -180,7 +180,7 @@ describeWithFlags(
             await result.data(), [0.5, 3, 0.25, 0.15]);
       });
 
-      fit('should work for max.', async () => {
+      it('should work for max.', async () => {
         await tfc.setBackend('webgl');
 
         const a = tfc.tensor1d([3, -1, 0, 100, -7, 2]);
