@@ -981,7 +981,9 @@ describe('control', () => {
       node.attrParams['valueDType'] = createDtypeAttr('float32');
 
       const handle = (await executeOp(node, {}, context))[0];
-      expect(context.getHashTable(handle)).toBeDefined();
+      const hashTable = context.getHashTable(handle);
+      expect(hashTable).toBeDefined();
+      expect(hashTable.initialized).toEqual(false);
     });
     it('should match json def', () => {
       node.op = 'HashTable';
@@ -1004,7 +1006,9 @@ describe('control', () => {
       node.attrParams['valueDType'] = createDtypeAttr('float32');
 
       const handle = (await executeOp(node, {}, context))[0];
-      expect(context.getHashTable(handle)).toBeDefined();
+      const hashTable = context.getHashTable(handle);
+      expect(hashTable).toBeDefined();
+      expect(hashTable.initialized).toEqual(false);
     });
     it('should match json def', () => {
       node.op = 'HashTableV2';
@@ -1019,9 +1023,9 @@ describe('control', () => {
 
   describe('LookupTableFindV2', () => {
     it('should create new tensor on the context', async () => {
-      const hashTable = new HashTable('string', 'float32');
-      const keys = tensor1d(['a']);
-      const values = tensor1d([1.0]);
+      const hashTable = new HashTable('int32', 'float32');
+      const keys = tensor1d([1], 'int32');
+      const values = tensor1d([5.5]);
       hashTable.initialize(keys, values);
       context.addHashTable(hashTable);
       const handle = hashTable.handle;
@@ -1032,11 +1036,11 @@ describe('control', () => {
       node.inputParams['defaultValue'] = createTensorAttr(2);
       node.inputNames = ['input2', 'input3', 'input5'];
       const input2 = [handle];
-      const input3 = [tensor1d(['a', 'b'], 'string')];
+      const input3 = [tensor1d([1, 2], 'int32')];
       const input5 = [scalar(0)];
 
       const result = (await executeOp(node, {input2, input3, input5}, context));
-      test_util.expectArraysClose(await result[0].data(), [1, 0]);
+      test_util.expectArraysClose(await result[0].data(), [5.5, 0]);
     });
     it('should match json def', () => {
       node.op = 'LookupTableFindV2';
