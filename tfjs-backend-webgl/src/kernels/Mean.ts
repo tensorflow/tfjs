@@ -25,13 +25,14 @@ import {transposeImpl, transposeImplCPU} from './Transpose_impl';
 export const meanConfig: KernelConfig = {
   kernelName: Mean,
   backendName: 'webgl',
-  kernelFunc: ({inputs, backend}) => {
+  kernelFunc: ({inputs, attrs, backend}) => {
     const {x} = inputs as MeanInputs;
-    const {keepDims, axis} = inputs as {} as MeanAttrs;
+    const {keepDims, axis} = attrs as {} as MeanAttrs;
     const webglBackend = backend as MathBackendWebGL;
 
     const xRank = x.shape.length;
     const origAxes = util.parseAxisParam(axis, x.shape);
+    const shapes = backend_util.computeOutAndReduceShapes(x.shape, origAxes);
 
     let axes = origAxes;
     const permutedAxes = backend_util.getAxesPermutation(axes, xRank);
@@ -71,7 +72,9 @@ export const meanConfig: KernelConfig = {
       outShape = backend_util.expandShapeToKeepDim(meanOutShape, origAxes);
     }
 
-    const out = meanImpl(meanInput, reduceShape, outShape, webglBackend);
+    const out = meanImpl(
+        meanInput, reduceShape, outShape, util.sizeFromShape(shapes[1]),
+        webglBackend);
 
     if (meanInputIsTransposed) {
       webglBackend.disposeIntermediateTensorInfo(meanInput);

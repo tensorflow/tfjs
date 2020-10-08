@@ -65,14 +65,13 @@ function reduce(
 
 export function meanImpl(
     x: TensorInfo, reduceShape: number[], outShape: number[],
-    backend: MathBackendWebGL): TensorInfo {
+    reduceSize: number, backend: MathBackendWebGL): TensorInfo {
   const inSize = util.sizeFromShape(reduceShape);
   const xSize = util.sizeFromShape(x.shape);
   const batchSize = xSize / inSize;
   const reshapedInput =
       reshape({inputs: {x}, attrs: {shape: [batchSize, inSize]}, backend});
 
-  const reduceSize = util.sizeFromShape(reduceShape);
   const reduced = reduce(reshapedInput, reduceSize, x.dtype, backend);
   const reshapedOutput =
       reshape({inputs: {x: reduced}, attrs: {shape: outShape}, backend});
