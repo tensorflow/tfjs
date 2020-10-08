@@ -46,8 +46,8 @@ import {Node} from './types';
  * @param tensorMap contains tensors for executed nodes and weights
  */
 export function executeOp(
-    node: Node, tensorMap: NamedTensorsMap,
-    context: ExecutionContext): tfc.Tensor[]|Promise<tfc.Tensor[]> {
+    node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
+    resourceManager?: {}): tfc.Tensor[]|Promise<tfc.Tensor[]> {
   const value =
       ((node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext) => {
         switch (node.category) {
@@ -58,7 +58,7 @@ export function executeOp(
             return tfc.tidy(
                 () => basicMath.executeOp(node, tensorMap, context));
           case 'control':
-            return control.executeOp(node, tensorMap, context);
+            return control.executeOp(node, tensorMap, context, resourceManager);
           case 'convolution':
             return tfc.tidy(
                 () => convolution.executeOp(node, tensorMap, context));

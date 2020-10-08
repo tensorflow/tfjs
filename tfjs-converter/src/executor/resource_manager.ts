@@ -14,34 +14,30 @@
  * limitations under the License.
  * =============================================================================
  */
-import {DataType, Tensor} from '@tensorflow/tfjs-core';
+import {HashTableMap, NamedTensorMap} from '../data/types';
+import {HashTable} from './hash_table';
 
-import {HashTable} from '../executor/hash_table';
-import {TensorArray} from '../executor/tensor_array';
-import {TensorList} from '../executor/tensor_list';
+export class ResourceManager {
+  constructor(
+      readonly hashTableNameToId: NamedTensorMap = {},
+      readonly hashTableMap: HashTableMap = {}) {}
 
-export type NamedTensorMap = {
-  [key: string]: Tensor
-};
+  addHashTable(sharedName: string, hashTable: HashTable) {
+    this.hashTableNameToId[sharedName] = hashTable.idTensor;
+    this.hashTableMap[hashTable.id] = hashTable;
+  }
 
-export type NamedTensorsMap = {
-  [key: string]: Tensor[]
-};
+  getHashTableId(name: string) {
+    return this.hashTableNameToId[name];
+  }
 
-export type TensorArrayMap = {
-  [key: number]: TensorArray
-};
+  getHashTable(id: number): HashTable {
+    return this.hashTableMap[id];
+  }
 
-export type TensorListMap = {
-  [key: number]: TensorList
-};
-
-export type HashTableMap = {
-  [key: number]: HashTable
-};
-
-export interface TensorInfo {
-  name: string;
-  shape?: number[];
-  dtype: DataType;
+  dispose() {
+    for (const key in this.hashTableMap) {
+      this.hashTableMap[key].clearAndClose();
+    }
+  }
 }

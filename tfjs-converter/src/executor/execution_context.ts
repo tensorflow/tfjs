@@ -16,9 +16,8 @@
  */
 import {Tensor} from '@tensorflow/tfjs-core';
 
-import {HashTableMap, NamedTensorsMap, TensorArrayMap, TensorListMap} from '../data/types';
+import {NamedTensorsMap, TensorArrayMap, TensorListMap} from '../data/types';
 
-import {HashTable} from './hash_table';
 import {TensorArray} from './tensor_array';
 import {TensorList} from './tensor_list';
 import {FunctionExecutor} from './types';
@@ -49,7 +48,6 @@ export class ExecutionContext {
       readonly weightMap: NamedTensorsMap = {},
       readonly tensorArrayMap: TensorArrayMap = {},
       readonly tensorListMap: TensorListMap = {},
-      readonly hashTableMap: HashTableMap = new Map<Tensor, HashTable>(),
       readonly functionMap: {[key: string]: FunctionExecutor} = {}) {
     this.generateCurrentContextIds();
   }
@@ -177,14 +175,6 @@ export class ExecutionContext {
     return this.tensorListMap[id];
   }
 
-  addHashTable(hashTable: HashTable) {
-    this.hashTableMap.set(hashTable.handle, hashTable);
-  }
-
-  getHashTable(handle: Tensor): HashTable {
-    return this.hashTableMap.get(handle);
-  }
-
   dispose(keepIds: Set<number>) {
     for (const key in this.tensorArrayMap) {
       this.tensorArrayMap[key].clearAndClose(keepIds);
@@ -193,11 +183,5 @@ export class ExecutionContext {
     for (const key in this.tensorListMap) {
       this.tensorListMap[key].clearAndClose(keepIds);
     }
-
-    this.hashTableMap.forEach((hashTable, handle) => {
-      hashTable.clearAndClose();
-      handle.dispose();
-    });
-    this.hashTableMap.clear();
   }
 }

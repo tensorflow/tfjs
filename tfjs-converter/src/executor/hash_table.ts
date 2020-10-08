@@ -20,34 +20,13 @@ import {DataType, equal, keep, scalar, stack, Tensor, tidy, unstack, util} from 
  * Hashtable contains a set of tensors, which can be accessed by key.
  */
 export class HashTable {
-  readonly handle: Tensor;
+  readonly idTensor: Tensor;
 
   private tensorMap: Map<Tensor, Tensor>;
   private initialized_ = false;
 
-  /**
-   * Constructor of HashTable. Creates a non-initialized hash table.
-   *
-   * @param keyDType `dtype` of the table keys.
-   * @param valueDType `dtype` of the table values.
-   * @param sharedName Optional. Defaults to ''. The name used to share the
-   *     table.
-   * @param useNodeNameSharing Optional. Defaults to false. If true and
-   *     sharedName is empty, the table is shared using the node name.
-   * @param name Optional. Name of the node.
-   */
-  constructor(
-      readonly keyDType: DataType, readonly valueDType: DataType,
-      readonly sharedName: string = '',
-      readonly useNodeNameSharing: boolean = false,
-      readonly name: string = '') {
-    if (useNodeNameSharing && sharedName === '') {
-      this.handle = scalar(util.encodeString(name), 'string');
-    }
-
-    this.handle = scalar(util.encodeString(sharedName), 'string');
-
-    keep(this.handle);
+  get id() {
+    return this.idTensor.id;
   }
 
   get initialized(): boolean {
@@ -55,11 +34,25 @@ export class HashTable {
   }
 
   /**
+   * Constructor of HashTable. Creates a non-initialized hash table.
+   *
+   * @param keyDType `dtype` of the table keys.
+   * @param valueDType `dtype` of the table values.
+   */
+  constructor(readonly keyDType: DataType, readonly valueDType: DataType) {
+    this.idTensor = scalar(0);
+    this.tensorMap = new Map<Tensor, Tensor>();
+    this.initialized_ = true;
+
+    keep(this.idTensor);
+  }
+
+  /**
    * Dispose the tensors and idTensor and clear the hashtable.
    */
   clearAndClose() {
     this.tensorMap.clear();
-    this.handle.dispose();
+    this.idTensor.dispose();
   }
 
   /**
@@ -107,55 +100,39 @@ export class HashTable {
   }
 
   /**
-   * Initializes the table with associated keys and values.
+   * Replaces the contents of the table with the specified keys and values.
    * @param keys Keys to store in the hashtable.
    * @param values Values to store in the hashtable.
    */
-  initialize(keys: Tensor, values: Tensor) {
-    if (this.initialized_) {
-      throw new Error(`Hashtable ${this.sharedName} already initialized.`);
+  import(keys: Tensor, values: Tensor) {
+    return tidy(() => {
+    const $keys = unstack(keys);
+    const $values = unstack(values);
+
+    this.tensorMap.clear();
+
+    for (let i = 0; i < $keys.length; i++) {
+      const key = $keys[i];
+      const value = $values[i];
+
+      this.checkKeyAndValueTensor(key, value);
+
+      this.tensorMap.set(key, value);
     }
-
-    this.tensorMap = new Map<Tensor, Tensor>();
-    this.insert(keys, values);
-    this.initialized_ = true;
-  }
-
-  private insert(keys: Tensor, values: Tensor) {
-    tidy(() => {
-      const $keys = unstack(keys);
-      const $values = unstack(values);
-
-      for (let i = 0; i < $keys.length; i++) {
-        const key = $keys[i];
-        const value = $values[i];
-
-        this.checkKeyAndValueTensor(key, value);
-
-        if (this.tensorMap.has(key) && this.tensorMap.get(key) !== value) {
-          throw new Error(
-              `HashTable ${this.sharedName} already has key ${key}`);
-        }
-
-        this.tensorMap.set(key, value);
-
-        keep(key);
-        keep(value);
-      }
     });
   }
 
   private async findWithDefault(keyToFind: Tensor, defaultValue: Tensor):
       Promise<Tensor> {
     for (const [key, value] of this.tensorMap) {
-      const isEqual = equal(key, keyToFind);
-      const $isEqual = (await isEqual.data())[0];
+    const isEqual = equal(key, keyToFind);
+    const $isEqual = (await isEqual.data())[0];
 
-      isEqual.dispose();
+    isEqual.dispose();
 
-      if ($isEqual) {
-        return value;
-      }
+    if ($isEqual) {
+      return value;
+    }
     }
 
     return defaultValue;
@@ -163,15 +140,15 @@ export class HashTable {
 
   private checkKeyAndValueTensor(key: Tensor, value: Tensor) {
     if (key.dtype !== this.keyDType) {
-      throw new Error(
-          `Expect key dtype ${this.keyDType}, but got ` +
-          `${key.dtype}`);
+    throw new Error(
+        `Expect key dtype ${this.keyDType}, but got ` +
+        `${key.dtype}`);
     }
 
     if (value.dtype !== this.valueDType) {
-      throw new Error(
-          `Expect value dtype ${this.valueDType}, but got ` +
-          `${value.dtype}`);
+    throw new Error(
+        `Expect value dtype ${this.valueDType}, but got ` +
+        `${value.dtype}`);
     }
   }
 }
