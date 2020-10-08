@@ -210,7 +210,7 @@ export class TFSavedModel implements InferenceModel {
     const entries = this.signature.inputs;
     const results = Object.keys(entries).map((key: string) => entries[key]);
     results.forEach((info: ModelTensorInfo) => {
-      info.name = info.name.replace(/:\d+$/, '');
+      info.name = info.name.replace(/:0$/, '');
     });
     return results;
   }
@@ -224,7 +224,7 @@ export class TFSavedModel implements InferenceModel {
     const entries = this.signature.outputs;
     const results = Object.keys(entries).map((key: string) => entries[key]);
     results.forEach((info: ModelTensorInfo) => {
-      info.name = info.name.replace(/:\d+$/, '');
+      info.name = info.name.replace(/:0$/, '');
     });
     return results;
   }
