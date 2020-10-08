@@ -60,8 +60,8 @@ const DEFAULT_RESIZE_DEPTH = 3;
  * component with the ability to yield tensors representing the camera stream.
  *
  * Because the camera data will be consumed in the process, the original
- * camera component will not render any content. A provided by this component
- * is used to render the camera preview.
+ * camera component will not render any content. This component provides
+ * options that can be used to render the camera preview.
  *
  * Notably the component allows on-the-fly resizing of the camera image to
  * smaller dimensions, this speeds up data transfer between the native and
@@ -306,9 +306,9 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
         const height = PixelRatio.getPixelSizeForLayoutSize(
           cameraLayout.height
         );
-        const isFrontCamera = 
+        const isFrontCamera =
           this.camera.props.type === Camera.Constants.Type.front;
-        const flipHorizontal = 
+        const flipHorizontal =
           Platform.OS === 'ios' && isFrontCamera ? false : true;
 
         renderToGLView(gl, cameraTexture, { width, height }, flipHorizontal);
