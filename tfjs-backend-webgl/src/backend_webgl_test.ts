@@ -74,6 +74,16 @@ describeWithFlags('lazy packing and unpacking', WEBGL_ENVS, () => {
     tf.env().set('WEBGL_CPU_FORWARD', webglCpuForwardFlagSaved);
   });
 
+  fit('basic', async () => {
+    const a = tf.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
+    const r = tf.mean(a);
+
+    expect(r.dtype).toBe('float32');
+    const data = await r.data();
+    console.log(data);
+    // expectArraysClose(await r.data(), 7 / 6);
+  });
+
   it('should not leak memory when lazily unpacking', () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);

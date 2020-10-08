@@ -15,11 +15,52 @@
  * =============================================================================
  */
 
-import {TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataType, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import {reduce} from '../kernel_utils/reduce';
 import {reshape} from '../kernels/Reshape';
+import {MeanProgram} from '../mean_gpu';
+
+// Returns an array of configuration objects that describe each stage of the
+// reduction.
+function getReductionStages(inShape: number[]):
+    Array<{inSize: number, windowSize: number, outSize: number}> {
+  const stages = [];
+
+  while (stages.length === 0 || stages[stages.length - 1].outSize !== 1) {
+    const outSize: number =
+        stages.length ? stages[stages.length - 1].outSize : inShape[1];
+    const windowSize = backend_util.computeOptimalWindowSize(outSize);
+    stages.push({
+      inSize: outSize,
+      windowSize,
+      outSize: Math.ceil(outSize / windowSize)
+    });
+  }
+
+  return stages;
+}
+
+function reduce(
+    x: TensorInfo, dtype: DataType, backend: MathBackendWebGL): TensorInfo {
+  const reductionStages = getReductionStages(x.shape);
+
+  let result = x;
+  for (let i = 0; i < reductionStages.length; i++) {
+    const {inSize, windowSize, outSize} = reductionStages[i];
+
+    const program =
+        new MeanProgram({windowSize, inSize, batchSize: x.shape[0], outSize});
+    const previousResult = result;
+    result = backend.runWebGLProgram(program, [result], dtype);
+
+    if (previousResult.dataId !== x.dataId) {
+      backend.disposeData(previousResult.dataId);
+    }
+  }
+
+  return result;
+}
 
 export function meanImpl(
     x: TensorInfo, reduceShape: number[], outShape: number[],
@@ -30,7 +71,7 @@ export function meanImpl(
   const reshapedInput =
       reshape({inputs: {x}, attrs: {shape: [batchSize, inSize]}, backend});
 
-  const reduced = reduce(reshapedInput, x.dtype, 'sum', backend);
+  const reduced = reduce(reshapedInput, x.dtype, backend);
   const reshapedOutput =
       reshape({inputs: {x: reduced}, attrs: {shape: outShape}, backend});
 
