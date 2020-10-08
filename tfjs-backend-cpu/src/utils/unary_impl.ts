@@ -15,27 +15,21 @@
  * =============================================================================
  */
 
-import {Atan2} from '@tensorflow/tfjs-core';
-import {KernelConfig} from '@tensorflow/tfjs-core';
+import {NumericDataType, util} from '@tensorflow/tfjs-core';
 
-import {binaryKernelFunc, CHECK_NAN_SNIPPET_BINARY, CHECK_NAN_SNIPPET_BINARY_PACKED} from '../kernel_utils/kernel_funcs_utils';
+import {SimpleUnaryImpl, SimpleUnaryOperation} from './unary_types';
 
-const ATAN2 = CHECK_NAN_SNIPPET_BINARY + `
-  return atan(a, b);
-`;
-
-const ATAN2_PACKED = `
-  vec4 result = atan(a, b);
-  vec4 isNaN = min(vec4(isnan(a)) + vec4(isnan(b)), vec4(1.0));
-  ` +
-    CHECK_NAN_SNIPPET_BINARY_PACKED + `
-  return result;
-`;
-
-export const atan2 = binaryKernelFunc(ATAN2, ATAN2_PACKED);
-
-export const atan2Config: KernelConfig = {
-  kernelName: Atan2,
-  backendName: 'webgl',
-  kernelFunc: atan2,
-};
+/**
+ * Template that creates implementation for unary op.
+ */
+export function createSimpleUnaryImpl(op: SimpleUnaryOperation):
+    SimpleUnaryImpl {
+  return (values, dtype, attrs) => {
+    const newValues =
+        util.getTypedArrayFromDType(dtype as NumericDataType, values.length);
+    for (let i = 0; i < values.length; ++i) {
+      newValues[i] = op(values[i], attrs);
+    }
+    return newValues;
+  };
+}

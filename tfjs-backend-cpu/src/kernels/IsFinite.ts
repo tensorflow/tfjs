@@ -19,11 +19,11 @@ import {IsFinite, KernelConfig} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../utils/unary_utils';
 
-export const isFiniteKernelFunc =
+export const isFinite =
     unaryKernelFunc(IsFinite, (xi) => Number.isFinite(xi) ? 1 : 0, 'bool');
 
 export const isFiniteConfig: KernelConfig = {
   kernelName: IsFinite,
   backendName: 'cpu',
-  kernelFunc: isFiniteKernelFunc,
+  kernelFunc: isFinite,
 };
