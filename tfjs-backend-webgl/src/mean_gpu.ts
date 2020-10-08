@@ -33,7 +33,7 @@ export class MeanProgram implements GPGPUProgram {
     let updateSnippet = `sumValue += dot(values, ones);`;
     if (divisor != null) {
       updateSnippet =
-          `sumValue += dot(values * ${(1 / divisor).toPrecision(4)}, ones);`;
+          `sumValue += dot(values * ${(1 / divisor).toPrecision(8)}, ones);`;
     }
 
     let checkOutOfBounds = '';
