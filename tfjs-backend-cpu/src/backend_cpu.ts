@@ -31,7 +31,7 @@ interface DataId {}
 /**
  * @deprecated remove once all fused kernels are modularized.
  *
- * Use fused_utils.applyActication instead.
+ * Use fused_utils.applyActivation instead.
  */
 function mapActivation(
     x: Tensor, activation: backend_util.Activation,
