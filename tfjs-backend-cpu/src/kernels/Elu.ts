@@ -19,11 +19,11 @@ import {Elu, KernelConfig} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../utils/unary_utils';
 
-export const eluKernelFunc =
+export const elu =
     unaryKernelFunc(Elu, (xi) => xi >= 0 ? xi : (Math.exp(xi) - 1));
 
 export const eluConfig: KernelConfig = {
   kernelName: Elu,
   backendName: 'cpu',
-  kernelFunc: eluKernelFunc,
+  kernelFunc: elu,
 };

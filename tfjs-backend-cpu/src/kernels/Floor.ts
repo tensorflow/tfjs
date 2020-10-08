@@ -21,10 +21,10 @@ import {createSimpleUnaryImpl} from '../utils/unary_impl';
 import {unaryKernelFuncFromImpl} from '../utils/unary_utils';
 
 export const floorImpl = createSimpleUnaryImpl((xi) => Math.floor(xi));
-export const floorKernelFunc = unaryKernelFuncFromImpl(Floor, floorImpl);
+export const floor = unaryKernelFuncFromImpl(Floor, floorImpl);
 
 export const floorConfig: KernelConfig = {
   kernelName: Floor,
   backendName: 'cpu',
-  kernelFunc: floorKernelFunc,
+  kernelFunc: floor,
 };

@@ -19,10 +19,10 @@ import {Asin, KernelConfig} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../utils/unary_utils';
 
-export const asinKernelFunc = unaryKernelFunc(Asin, (xi) => Math.asin(xi));
+export const asin = unaryKernelFunc(Asin, (xi) => Math.asin(xi));
 
 export const asinConfig: KernelConfig = {
   kernelName: Asin,
   backendName: 'cpu',
-  kernelFunc: asinKernelFunc,
+  kernelFunc: asin,
 };

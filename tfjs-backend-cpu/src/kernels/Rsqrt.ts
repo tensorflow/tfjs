@@ -21,10 +21,10 @@ import {createSimpleUnaryImpl} from '../utils/unary_impl';
 import {unaryKernelFuncFromImpl} from '../utils/unary_utils';
 
 export const rsqrtImpl = createSimpleUnaryImpl((xi) => 1 / Math.sqrt(xi));
-export const rsqrtKernelFunc = unaryKernelFuncFromImpl(Rsqrt, rsqrtImpl);
+export const rsqrt = unaryKernelFuncFromImpl(Rsqrt, rsqrtImpl);
 
 export const rsqrtConfig: KernelConfig = {
   kernelName: Rsqrt,
   backendName: 'cpu',
-  kernelFunc: rsqrtKernelFunc,
+  kernelFunc: rsqrt,
 };
