@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, DataType, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {reshape} from '../kernels/Reshape';
@@ -42,8 +42,7 @@ function getReductionStages(inShape: number[]):
 }
 
 function reduce(
-    x: TensorInfo, reduceSize: number, dtype: DataType,
-    backend: MathBackendWebGL): TensorInfo {
+    x: TensorInfo, reduceSize: number, backend: MathBackendWebGL): TensorInfo {
   const reductionStages = getReductionStages(x.shape);
 
   let result = x;
@@ -53,7 +52,7 @@ function reduce(
     const program = new MeanProgram(
         {windowSize, inSize, batchSize: x.shape[0], outSize}, reduceSize);
     const previousResult = result;
-    result = backend.runWebGLProgram(program, [result], dtype);
+    result = backend.runWebGLProgram(program, [result], 'float32');
 
     if (previousResult.dataId !== x.dataId) {
       backend.disposeData(previousResult.dataId);
@@ -73,7 +72,7 @@ export function meanImpl(
       reshape({inputs: {x}, attrs: {shape: [batchSize, inSize]}, backend});
 
   const reduced =
-      reduce(reshapedInput, util.sizeFromShape(reduceShape), x.dtype, backend);
+      reduce(reshapedInput, util.sizeFromShape(reduceShape), backend);
   const reshapedOutput =
       reshape({inputs: {x: reduced}, attrs: {shape: outShape}, backend});
 
