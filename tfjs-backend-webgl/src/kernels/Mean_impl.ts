@@ -30,7 +30,7 @@ function meanReduce(
   for (let i = 0; i < reductionStages.length; i++) {
     const {inSize, windowSize, outSize} = reductionStages[i];
 
-    let program = i === 0 ?
+    const program = i === 0 ?
         new MeanProgram(
             {windowSize, inSize, batchSize: x.shape[0], outSize}, reduceSize) :
         new MeanProgram({windowSize, inSize, batchSize: x.shape[0], outSize});
