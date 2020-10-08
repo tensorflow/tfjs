@@ -22,7 +22,7 @@ import {getReductionStages} from '../kernel_utils/reduce';
 import {reshape} from '../kernels/Reshape';
 import {MeanProgram} from '../mean_gpu';
 
-function reduce(
+function meanReduce(
     x: TensorInfo, reduceSize: number, backend: MathBackendWebGL): TensorInfo {
   const reductionStages = getReductionStages(x.shape);
 
@@ -53,7 +53,7 @@ export function meanImpl(
       reshape({inputs: {x}, attrs: {shape: [batchSize, inSize]}, backend});
 
   const reduced =
-      reduce(reshapedInput, util.sizeFromShape(reduceShape), backend);
+      meanReduce(reshapedInput, util.sizeFromShape(reduceShape), backend);
   const reshapedOutput =
       reshape({inputs: {x: reduced}, attrs: {shape: outShape}, backend});
 
