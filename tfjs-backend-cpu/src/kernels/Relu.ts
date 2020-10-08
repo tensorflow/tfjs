@@ -15,15 +15,14 @@
  * =============================================================================
  */
 
-import {Elu, KernelConfig} from '@tensorflow/tfjs-core';
+import {KernelConfig, Relu} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../utils/unary_utils';
 
-export const elu =
-    unaryKernelFunc(Elu, (xi) => xi >= 0 ? xi : (Math.exp(xi) - 1));
+export const relu = unaryKernelFunc(Relu, (xi) => Math.max(0, xi));
 
-export const eluConfig: KernelConfig = {
-  kernelName: Elu,
+export const reluConfig: KernelConfig = {
+  kernelName: Relu,
   backendName: 'cpu',
-  kernelFunc: elu,
+  kernelFunc: relu,
 };

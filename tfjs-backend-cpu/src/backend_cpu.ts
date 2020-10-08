@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, BackendTimingInfo, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, max, NumericDataType, Rank, Scalar, ShapeMap, slice_util, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, max, NumericDataType, Rank, Scalar, ShapeMap, slice_util, Tensor, Tensor1D, Tensor2D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
 const nonMaxSuppressionV3Impl = kernel_impls.nonMaxSuppressionV3Impl;
 const split = kernel_impls.split;
@@ -28,19 +28,24 @@ import {assertNotComplex} from './cpu_util';
 
 interface DataId {}
 
+/**
+ * @deprecated remove once all fused kernels are modularized.
+ *
+ * Use fused_utils.applyActication instead.
+ */
 function mapActivation(
-    backend: MathBackendCPU, x: Tensor, activation: backend_util.Activation,
+    x: Tensor, activation: backend_util.Activation,
     preluActivationWeights?: Tensor): Tensor {
   if (activation === 'linear') {
-    return backend.linear(x);
+    return tf.clone(x);
   } else if (activation === 'relu') {
-    return backend.relu(x);
+    return tf.relu(x);
   } else if (activation === 'elu') {
     return tf.elu(x);
   } else if (activation === 'relu6') {
-    return backend.relu6(x);
+    return tf.relu6(x);
   } else if (activation === 'prelu') {
-    return backend.prelu(x, preluActivationWeights);
+    return tf.prelu(x, preluActivationWeights);
   }
   throw new Error(
       `Activation ${activation} has not been implemented for the CPU backend.`);
@@ -331,74 +336,6 @@ export class MathBackendCPU extends KernelBackend {
     return this.broadcastedBinaryOp(
                a, b, a.dtype, (aValue, bValue) => Math.pow(aValue, bValue)) as
         T;
-  }
-
-  batchMatMul(
-      a: Tensor3D, b: Tensor3D, transposeA: boolean,
-      transposeB: boolean): Tensor3D {
-    assertNotComplex([a, b], 'matMul');
-
-    const sharedDim = transposeA ? a.shape[1] : a.shape[2];
-    const leftDim = transposeA ? a.shape[2] : a.shape[1];
-    const rightDim = transposeB ? b.shape[1] : b.shape[2];
-    const batchDim = a.shape[0];
-
-    const aValues = this.readSync(a.dataId) as TypedArray;
-    const bValues = this.readSync(b.dataId) as TypedArray;
-    const [aBatch, aOuterStep, aInnerStep] = transposeA ?
-        [a.strides[0], 1, a.strides[1]] :
-        [a.strides[0], a.strides[1], 1];
-    const [bInnerStep, bOuterStep, bBatch] = transposeB ?
-        [1, b.strides[1], b.strides[0]] :
-        [b.strides[1], 1, b.strides[0]];
-
-    const size = leftDim * rightDim;
-    const result = tf.buffer([batchDim, leftDim, rightDim], a.dtype);
-    const resVals = result.values as TypedArray;
-    const blockSize = this.blockSize;
-
-    for (let b = 0; b < batchDim; b++) {
-      for (let i0 = 0; i0 < leftDim; i0 += blockSize) {
-        for (let j0 = 0; j0 < rightDim; j0 += blockSize) {
-          for (let k0 = 0; k0 < sharedDim; k0 += blockSize) {
-            // for when blockSize doesn't evenly divide the input
-            const iBlock = Math.min(i0 + blockSize, leftDim);
-            const jBlock = Math.min(j0 + blockSize, rightDim);
-            const kBlock = Math.min(k0 + blockSize, sharedDim);
-
-            for (let i = i0; i < iBlock; i++) {
-              for (let j = j0; j < jBlock; j++) {
-                let sum = 0.0;
-
-                for (let k = k0; k < kBlock; k++) {
-                  sum += aValues[b * aBatch + i * aOuterStep + k * aInnerStep] *
-                      bValues[k * bInnerStep + j * bOuterStep + b * bBatch];
-                }
-                resVals[b * size + (i * rightDim + j)] += sum;
-              }
-            }
-          }
-        }
-      }
-    }
-    return result.toTensor() as Tensor3D;
-  }
-
-  fusedBatchMatMul(
-      {a, b, transposeA, transposeB, bias, activation, preluActivationWeights}:
-          backend_util.FusedBatchMatMulConfig): Tensor3D {
-    let result = this.batchMatMul(a, b, transposeA, transposeB);
-    if (bias) {
-      // TODO(lina128): Use add directly once fusedBatchMatMul is modularized.
-      result = tf.add(result, bias);
-    }
-    if (activation) {
-      result =
-          mapActivation(this, result, activation, preluActivationWeights) as
-          Tensor3D;
-    }
-
-    return result;
   }
 
   floorDiv(a: Tensor, b: Tensor): Tensor {
@@ -777,42 +714,6 @@ export class MathBackendCPU extends KernelBackend {
     });
   }
 
-  linear<T extends Tensor>(x: T): T {
-    return x;
-  }
-
-  relu<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'relu');
-
-    const res = tf.zeros(x.shape, x.dtype);
-    const resVals = this.readSync(res.dataId) as TypedArray;
-    const inVals = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < inVals.length; ++i) {
-      resVals[i] = Math.max(0, inVals[i]);
-    }
-    return res as T;
-  }
-
-  relu6<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'relu');
-
-    const res = tf.zeros(x.shape, x.dtype);
-    const resVals = this.readSync(res.dataId) as TypedArray;
-    const inVals = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < inVals.length; ++i) {
-      resVals[i] = Math.min(Math.max(0, inVals[i]), 6);
-    }
-    return res as T;
-  }
-
-  prelu<T extends Tensor>(x: T, a: T): T {
-    assertNotComplex([x, a], 'prelu');
-
-    return this.broadcastedBinaryOp(
-               x, a, x.dtype,
-               (xValue, aValue) => xValue < 0 ? aValue * xValue : xValue) as T;
-  }
-
   eluDer<T extends Tensor>(dy: T, y: T): T {
     assertNotComplex([dy, y], 'eluDer');
 
@@ -849,8 +750,7 @@ export class MathBackendCPU extends KernelBackend {
     }
     if (activation) {
       result =
-          mapActivation(this, result, activation, preluActivationWeights) as
-          Tensor4D;
+          mapActivation(result, activation, preluActivationWeights) as Tensor4D;
     }
     return result;
   }
@@ -1300,8 +1200,7 @@ export class MathBackendCPU extends KernelBackend {
     }
     if (activation) {
       result =
-          mapActivation(this, result, activation, preluActivationWeights) as
-          Tensor4D;
+          mapActivation(result, activation, preluActivationWeights) as Tensor4D;
     }
     return result;
   }
