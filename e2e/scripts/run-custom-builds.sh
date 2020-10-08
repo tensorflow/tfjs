@@ -45,3 +45,5 @@ yarn make-custom-tfjs-modules
 
 yarn webpack:full
 yarn webpack:custom
+yarn rollup:full
+yarn rollup:custom

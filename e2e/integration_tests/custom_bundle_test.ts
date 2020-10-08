@@ -31,7 +31,6 @@ function getBundleUrl(folder: string, custom: boolean, bundler: string) {
 const DEBUG_WORKER_SCRIPT = false;
 
 describe(`${REGRESSION} blazeface`, () => {
-  // tslint:disable-next-line: ban
   describeWithFlags('webpack', CHROME_ENVS, () => {
     let webpackBundle: {full: string, custom: string};
     let originalTimeout: number;
@@ -78,7 +77,6 @@ describe(`${REGRESSION} blazeface`, () => {
 });
 
 describe(`${REGRESSION} dense model`, () => {
-  // tslint:disable-next-line: ban
   describeWithFlags('webpack', CHROME_ENVS, () => {
     let webpackBundle: {full: string, custom: string};
     let originalTimeout: number;
@@ -105,6 +103,51 @@ describe(`${REGRESSION} dense model`, () => {
       expect(webpackBundle.custom.length)
           .toBeLessThan(
               webpackBundle.full.length / 2,
+              'Custom bundle should be smaller than full bundle');
+    });
+
+    it('custom bundle should execute with exact kernels', async () => {
+      const programUrl =
+          getBundleUrl('dense_model', true /* custom */, 'webpack');
+
+      // tslint:disable-next-line: no-any
+      const result: any = await executeInWorker(
+          programUrl, {debug: DEBUG_WORKER_SCRIPT, workerParams: {modelUrl}});
+      const kernelNames = result.kernelNames;
+      expect(kernelNames).toEqual(jasmine.arrayWithExactContents([
+        'Reshape', '_FusedMatMul', 'Identity'
+      ]));
+
+      expect(Math.floor(result.predictions[0])).toEqual(38);
+    });
+  });
+
+  describeWithFlags('rollup', CHROME_ENVS, () => {
+    let rollupBundle: {full: string, custom: string};
+    let originalTimeout: number;
+
+    let modelUrl: string;
+    beforeAll(async () => {
+      originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+      jasmine.DEFAULT_TIMEOUT_INTERVAL = 500000;
+
+      modelUrl = `/base/custom_bundle/dense_model/model/model.json`;
+      const [rollupFull, rollupCustom] = await Promise.all([
+        fetch(getBundleUrl('dense_model', false /* custom */, 'rollup'))
+            .then(r => r.text()),
+        fetch(getBundleUrl('dense_model', true /* custom */, 'rollup'))
+            .then(r => r.text()),
+      ]);
+
+      rollupBundle = {full: rollupFull, custom: rollupCustom};
+    });
+
+    afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
+
+    it('custom rollup should be smaller', async () => {
+      expect(rollupBundle.custom.length)
+          .toBeLessThan(
+              rollupBundle.full.length / 2,
               'Custom bundle should be smaller than full bundle');
     });
 
