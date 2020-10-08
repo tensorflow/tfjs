@@ -2417,10 +2417,7 @@ export class MathBackendWebGL extends KernelBackend {
 
   private makeOutput<T extends Tensor>(
       shape: number[], dtype: DataType, values?: BackendValues): T {
-    const {dataId} = this.makeTensorInfo(shape, dtype);
-    if (values) {
-      this.texData.get(dataId).values = values;
-    }
+    const {dataId} = this.makeTensorInfo(shape, dtype, values);
     return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;
   }
 
