@@ -16,7 +16,7 @@
  */
 
 import React from 'react';
-import {ActivityIndicator, Button, StyleSheet, View, Platform } from 'react-native';
+import { ActivityIndicator, Button, StyleSheet, View, Platform, Dimensions, Text } from 'react-native';
 import Svg, { Circle, Rect, G, Line} from 'react-native-svg';
 
 import * as Permissions from 'expo-permissions';
@@ -43,6 +43,8 @@ interface ScreenState {
   faceDetector?: any;
   faces?: blazeface.NormalizedFace[];
   modelName: string;
+  orientation?: 'portrait' | 'landscape';
+  debug: object;
 }
 
 const inputTensorWidth = 152;
@@ -61,7 +63,8 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
     this.state = {
       isLoading: true,
       cameraType: Camera.Constants.Type.front,
-      modelName: 'posenet',
+      modelName: 'face',
+      debug: {},
     };
     this.handleImageTensorReady = this.handleImageTensorReady.bind(this);
   }
@@ -103,6 +106,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
       } else {
         if (this.state.faceDetector != null) {
           const imageTensor = images.next().value;
+          this.setState({debug: { shape: imageTensor.shape }});
           const returnTensors = false;
           const faces = await this.state.faceDetector.estimateFaces(
             imageTensor, returnTensors);
@@ -138,7 +142,20 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
       isLoading: false,
       faceDetector: blazefaceModel,
       posenetModel,
+      orientation: this.isPortrait() ? 'portrait' : 'landscape',
     });
+
+    Dimensions.addEventListener('change', () => {
+      this.setState({
+        orientation: this.isPortrait() ? 'portrait' : 'landscape',
+      });
+    });
+  }
+
+  isPortrait() {
+    const dim = Dimensions.get('screen');
+
+    return dim.height >= dim.width;
   }
 
   renderPose() {
@@ -226,7 +243,8 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
   }
 
   render() {
-    const {isLoading, modelName} = this.state;
+    const {isLoading, modelName, orientation} = this.state;
+    const landscape = orientation === 'landscape';
 
     // TODO File issue to be able get this from expo.
     // Caller will still need to account for orientation/phone rotation changes
@@ -243,10 +261,13 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
         };
       }
 
+    const styleWidth = landscape ? 800/2 : 600/2;
+    const styleHeight = landscape ? 600/2 : 800/2;
+
     const camView = <View style={styles.cameraContainer}>
       <TensorCamera
         // Standard Camera props
-        style={styles.camera}
+        style={[styles.camera, {width: styleWidth, height: styleHeight}]}
         type={this.state.cameraType}
         zoom={0}
         // tensor related props
@@ -257,8 +278,12 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
         resizeDepth={3}
         onReady={this.handleImageTensorReady}
         autorender={AUTORENDER}
+        rotation={landscape ? 270 : 0} // or -90 for landscape right
       />
-      <View style={styles.modelResults}>
+      <View style={[
+        styles.modelResults,
+        {width: styleWidth, height: styleHeight}
+      ]}>
         {modelName === 'posenet' ? this.renderPose() : this.renderFaces()}
       </View>
     </View>;
@@ -270,6 +295,7 @@ export class RealtimeDemo extends React.Component<ScreenProps,ScreenState> {
             onPress={this.props.returnToMain}
             title='Back'
           />
+          <Text>{JSON.stringify(this.state.debug)}</Text>
         </View>
         {isLoading ? <View style={[styles.loadingIndicator]}>
           <ActivityIndicator size='large' color='#FF0266' />
@@ -288,7 +314,7 @@ const styles = StyleSheet.create({
     zIndex: 200,
   },
   sectionContainer: {
-    marginTop: 32,
+    marginTop: 16,
     paddingHorizontal: 24,
   },
   cameraContainer: {
@@ -303,9 +329,7 @@ const styles = StyleSheet.create({
   camera : {
     position:'absolute',
     left: 50,
-    top: 100,
-    width: 600/2,
-    height: 800/2,
+    top: 10,
     zIndex: 1,
     borderWidth: 1,
     borderColor: 'black',
@@ -314,9 +338,7 @@ const styles = StyleSheet.create({
   modelResults: {
     position:'absolute',
     left: 50,
-    top: 100,
-    width: 600/2,
-    height: 800/2,
+    top: 10,
     zIndex: 20,
     borderWidth: 1,
     borderColor: 'black',

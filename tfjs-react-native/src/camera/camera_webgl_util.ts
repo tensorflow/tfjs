@@ -24,6 +24,8 @@ import * as drawTextureProgramInfo from './draw_texture_program_info';
 import * as resizeBilinearProgramInfo from './resize_bilinear_program_info';
 import * as resizeNNProgramInfo from './resize_nearest_neigbor_program_info';
 
+export type Rotation = 0|90|180|270|360|- 80|- 180|- 270;
+
 interface Dimensions {
   width: number;
   height: number;
@@ -155,9 +157,10 @@ export function uploadTextureData(
  */
 export function drawTexture(
     gl: WebGL2RenderingContext, texture: WebGLTexture,
-    dims: {width: number, height: number}, flipHorizontal: boolean) {
+    dims: {width: number, height: number}, flipHorizontal: boolean,
+    rotation: Rotation) {
   const {program, vao, vertices, uniformLocations} =
-      drawTextureProgram(gl, flipHorizontal);
+      drawTextureProgram(gl, flipHorizontal, rotation);
   gl.useProgram(program);
   gl.bindVertexArray(vao);
 
@@ -182,11 +185,11 @@ export function drawTexture(
 export function runResizeProgram(
     gl: WebGL2RenderingContext, inputTexture: WebGLTexture,
     inputDims: Dimensions, outputDims: Dimensions, alignCorners: boolean,
-    interpolation: 'nearest_neighbor'|'bilinear') {
+    interpolation: 'nearest_neighbor'|'bilinear', rotation: number) {
   const debugMode = getDebugMode();
 
-  const {program, vao, vertices, uniformLocations} =
-      resizeProgram(gl, inputDims, outputDims, alignCorners, interpolation);
+  const {program, vao, vertices, uniformLocations} = resizeProgram(
+      gl, inputDims, outputDims, alignCorners, interpolation, rotation);
   gl.useProgram(program);
   // Set up geometry
   webgl_util.callAndCheck(gl, debugMode, () => {
@@ -304,16 +307,17 @@ function createFrameBuffer(gl: WebGL2RenderingContext): WebGLFramebuffer {
 }
 
 function drawTextureProgram(
-    gl: WebGL2RenderingContext, flipHorizontal: boolean): ProgramObjects {
+    gl: WebGL2RenderingContext, flipHorizontal: boolean,
+    rotation: Rotation): ProgramObjects {
   if (!programCacheByContext.has(gl)) {
     programCacheByContext.set(gl, new Map());
   }
   const programCache = programCacheByContext.get(gl);
 
-  const cacheKey = `drawTexture_${flipHorizontal}`;
+  const cacheKey = `drawTexture_${flipHorizontal}_${rotation}`;
   if (!programCache.has(cacheKey)) {
     const vertSource =
-        drawTextureProgramInfo.vertexShaderSource(flipHorizontal);
+        drawTextureProgramInfo.vertexShaderSource(flipHorizontal, rotation);
     const fragSource = drawTextureProgramInfo.fragmentShaderSource();
 
     const vertices = drawTextureProgramInfo.vertices();
@@ -329,8 +333,8 @@ function drawTextureProgram(
 
 function resizeProgram(
     gl: WebGL2RenderingContext, sourceDims: Dimensions, targetDims: Dimensions,
-    alignCorners: boolean,
-    interpolation: 'nearest_neighbor'|'bilinear'): ProgramObjects {
+    alignCorners: boolean, interpolation: 'nearest_neighbor'|'bilinear',
+    rotation: number): ProgramObjects {
   if (!programCacheByContext.has(gl)) {
     programCacheByContext.set(gl, new Map());
   }
@@ -338,10 +342,10 @@ function resizeProgram(
 
   const cacheKey = `resize_${sourceDims.width}_${sourceDims.height}_${
       sourceDims.depth}_${targetDims.width}_${targetDims.height}_${
-      targetDims.depth}_${alignCorners}_${interpolation}`;
+      targetDims.depth}_${alignCorners}_${interpolation}_${rotation}`;
 
   if (!programCache.has(cacheKey)) {
-    const vertSource = resizeNNProgramInfo.vertexShaderSource();
+    const vertSource = resizeNNProgramInfo.vertexShaderSource(rotation);
     let fragSource: string;
     if (interpolation === 'nearest_neighbor') {
       fragSource = resizeNNProgramInfo.fragmentShaderSource(

@@ -23,7 +23,8 @@ interface Dimensions {
   depth: number;
 }
 
-export function vertexShaderSource() {
+export function vertexShaderSource(rotation: number) {
+  const rotateAngle = rotation === 0 ? '0.' : rotation * (Math.PI / 180);
   return `#version 300 es
 precision highp float;
 precision highp int;
@@ -32,8 +33,19 @@ in vec2 position;
 in vec2 texCoords;
 out vec2 uv;
 
+vec2 rotate(vec2 uvCoods, vec2 pivot, float rotation) {
+  float cosa = cos(rotation);
+  float sina = sin(rotation);
+  uvCoods -= pivot;
+  return vec2(
+      cosa * uvCoods.x - sina * uvCoods.y,
+      cosa * uvCoods.y + sina * uvCoods.x
+  ) + pivot;
+}
+
 void main() {
-  uv = texCoords;
+  uv = rotate(texCoords, vec2(0.5), ${rotateAngle});
+
   gl_Position = vec4(position, 0, 1);
 }`;
 }
