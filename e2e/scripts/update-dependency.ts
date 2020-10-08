@@ -31,7 +31,7 @@ parser.addArgument('--version', {
 
 const DEPENDENCY_LIST = [
   'tfjs-core', 'tfjs-converter', 'tfjs-layers', 'tfjs-backend-cpu',
-  'tfjs-backend-webgl', 'tfjs-data', 'tfjs', 'tfjs-node'
+  'tfjs-backend-webgl', 'tfjs-backend-wasm', 'tfjs-data', 'tfjs', 'tfjs-node'
 ];
 
 function main() {
