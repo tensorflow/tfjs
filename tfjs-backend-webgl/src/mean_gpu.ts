@@ -40,13 +40,12 @@ export class MeanProgram implements GPGPUProgram {
     if (inSize % windowSize > 0) {
       checkOutOfBounds = `
         if (inIdx < 0 || inIdx >= ${inSize}) {
-          return initializationValue;
+          return 0.0;
         }
       `;
     }
 
     this.userCode = `
-      const float initializationValue = 0.0;
       const vec4 ones = vec4(1.0, 1.0, 1.0, 1.0);
 
       float getValue(int batch, int inIdx) {
@@ -76,30 +75,20 @@ export class MeanProgram implements GPGPUProgram {
 
         int inIdx = inOffset + ${windowSizeNearestVec4};
         if (${windowSizeVec4Remainder === 1}) {
-          vec4 values = vec4(
-            getValue(batch, inIdx),
-            initializationValue,
-            initializationValue,
-            initializationValue
-          );
+          vec4 values = vec4(getValue(batch, inIdx), 0.0, 0.0, 0.0);
 
           ${updateSnippet}
         } else if (${windowSizeVec4Remainder === 2}) {
           vec4 values = vec4(
             getValue(batch, inIdx),
-            getValue(batch, inIdx + 1),
-            initializationValue,
-            initializationValue
-          );
+            getValue(batch, inIdx + 1), 0.0, 0.0);
 
           ${updateSnippet}
         } else if (${windowSizeVec4Remainder === 3}) {
           vec4 values = vec4(
             getValue(batch, inIdx),
             getValue(batch, inIdx + 1),
-            getValue(batch, inIdx + 2),
-            initializationValue
-          );
+            getValue(batch, inIdx + 2), 0.0);
 
           ${updateSnippet}
         }
