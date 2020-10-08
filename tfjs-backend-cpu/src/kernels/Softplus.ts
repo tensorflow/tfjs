@@ -27,7 +27,7 @@ import {unaryKernelFunc} from '../utils/unary_utils';
 const epsilon = 1.1920928955078125e-7;
 const threshold = Math.log(epsilon) + 2.0;
 
-export const softplusKernelFunc = unaryKernelFunc(Softplus, (xi) => {
+export const softplus = unaryKernelFunc(Softplus, (xi) => {
   // Value above which exp(x) may overflow, but softplus(x) == x
   // is within machine epsilon.
   const tooLarge = xi > -threshold;
@@ -52,5 +52,5 @@ export const softplusKernelFunc = unaryKernelFunc(Softplus, (xi) => {
 export const softplusConfig: KernelConfig = {
   kernelName: Softplus,
   backendName: 'cpu',
-  kernelFunc: softplusKernelFunc,
+  kernelFunc: softplus,
 };

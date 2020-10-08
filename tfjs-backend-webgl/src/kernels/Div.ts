@@ -49,11 +49,11 @@ const DIV_PACKED = `
   return result;
 `;
 
-export const divKernelFunc = binaryKernelFunc(
+export const div = binaryKernelFunc(
     DIV, DIV_PACKED, true /* checkOutOfBoundsForPackedProgram */);
 
 export const divConfig: KernelConfig = {
   kernelName: Div,
   backendName: 'webgl',
-  kernelFunc: divKernelFunc,
+  kernelFunc: div,
 };

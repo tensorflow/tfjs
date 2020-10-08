@@ -21,10 +21,10 @@ import {createSimpleUnaryImpl} from '../utils/unary_impl';
 import {unaryKernelFuncFromImpl} from '../utils/unary_utils';
 
 export const logImpl = createSimpleUnaryImpl((xi) => Math.log(xi));
-export const logKernelFunc = unaryKernelFuncFromImpl(Log, logImpl);
+export const log = unaryKernelFuncFromImpl(Log, logImpl);
 
 export const logConfig: KernelConfig = {
   kernelName: Log,
   backendName: 'cpu',
-  kernelFunc: logKernelFunc,
+  kernelFunc: log,
 };
