@@ -23,14 +23,15 @@ export class MeanProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
 
-  constructor(reduceInfo: backend_util.ReduceInfo) {
+  constructor(reduceInfo: backend_util.ReduceInfo, divisor: number) {
     const {windowSize, batchSize, inSize, outSize} = reduceInfo;
     this.outputShape = [batchSize, outSize];
 
     const windowSizeNearestVec4 = Math.floor(windowSize / 4) * 4;
     const windowSizeVec4Remainder = windowSize % 4;
 
-    const updateSnippet = `sumValue += dot(values, ones);`;
+    const updateSnippet =
+        `sumValue += dot(values * ${(1 / divisor).toPrecision(4)}, ones);`;
 
     let checkOutOfBounds = '';
     if (inSize % windowSize > 0) {

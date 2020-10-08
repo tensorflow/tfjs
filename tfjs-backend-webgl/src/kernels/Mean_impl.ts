@@ -42,15 +42,16 @@ function getReductionStages(inShape: number[]):
 }
 
 function reduce(
-    x: TensorInfo, dtype: DataType, backend: MathBackendWebGL): TensorInfo {
+    x: TensorInfo, reduceSize: number, dtype: DataType,
+    backend: MathBackendWebGL): TensorInfo {
   const reductionStages = getReductionStages(x.shape);
 
   let result = x;
   for (let i = 0; i < reductionStages.length; i++) {
     const {inSize, windowSize, outSize} = reductionStages[i];
 
-    const program =
-        new MeanProgram({windowSize, inSize, batchSize: x.shape[0], outSize});
+    const program = new MeanProgram(
+        {windowSize, inSize, batchSize: x.shape[0], outSize}, reduceSize);
     const previousResult = result;
     result = backend.runWebGLProgram(program, [result], dtype);
 
@@ -71,7 +72,8 @@ export function meanImpl(
   const reshapedInput =
       reshape({inputs: {x}, attrs: {shape: [batchSize, inSize]}, backend});
 
-  const reduced = reduce(reshapedInput, x.dtype, backend);
+  const reduceSize = util.sizeFromShape(reduceShape);
+  const reduced = reduce(reshapedInput, reduceSize, x.dtype, backend);
   const reshapedOutput =
       reshape({inputs: {x: reduced}, attrs: {shape: outShape}, backend});
 

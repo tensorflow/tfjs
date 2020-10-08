@@ -31,8 +31,8 @@ export const meanConfig: KernelConfig = {
     const webglBackend = backend as MathBackendWebGL;
 
     const xRank = x.shape.length;
-
     const origAxes = util.parseAxisParam(axis, x.shape);
+
     let axes = origAxes;
     const permutedAxes = backend_util.getAxesPermutation(axes, xRank);
     const meanInputIsTransposed = permutedAxes != null;
