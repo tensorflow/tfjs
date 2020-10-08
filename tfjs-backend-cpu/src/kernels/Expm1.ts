@@ -21,10 +21,10 @@ import {createSimpleUnaryImpl} from '../utils/unary_impl';
 import {unaryKernelFuncFromImpl} from '../utils/unary_utils';
 
 export const expm1Impl = createSimpleUnaryImpl((xi) => Math.expm1(xi));
-export const expm1KernelFunc = unaryKernelFuncFromImpl(Expm1, expm1Impl);
+export const expm1 = unaryKernelFuncFromImpl(Expm1, expm1Impl);
 
 export const expm1Config: KernelConfig = {
   kernelName: Expm1,
   backendName: 'cpu',
-  kernelFunc: expm1KernelFunc,
+  kernelFunc: expm1,
 };
