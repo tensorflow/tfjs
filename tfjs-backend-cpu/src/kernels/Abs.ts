@@ -19,16 +19,22 @@ import {Abs, AbsInputs, KernelConfig, KernelFunc, TypedArray, util} from '@tenso
 
 import {MathBackendCPU} from '../backend_cpu';
 
+export function simpleAbsImpl(vals: TypedArray): Float32Array {
+  const resultValues = new Float32Array(vals.length);
+  for (let i = 0; i < vals.length; ++i) {
+    resultValues[i] = Math.abs(vals[i]);
+  }
+  return resultValues;
+}
+
 export const absKernelFunc =
     (args: {inputs: AbsInputs, backend: MathBackendCPU}) => {
       const {x} = args.inputs;
       const cpuBackend = args.backend;
-      const resultValues = new Float32Array(util.sizeFromShape(x.shape));
+      let resultValues = new Float32Array(util.sizeFromShape(x.shape));
       if (x.dtype !== 'complex64') {
         const values = cpuBackend.data.get(x.dataId).values as TypedArray;
-        for (let i = 0; i < values.length; ++i) {
-          resultValues[i] = Math.abs(values[i]);
-        }
+        resultValues = simpleAbsImpl(values);
       } else {
         const complexVals = cpuBackend.data.get(x.dataId);
         const real = complexVals.complexTensorInfos.real;
