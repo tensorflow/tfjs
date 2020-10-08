@@ -150,7 +150,8 @@ export class GraphModel implements InferenceModel {
           OperationMapper.Instance.transformGraph(artifacts.modelInitializer);
       this.initializer = new GraphExecutor(initializer);
       this.initializer.weightMap = this.executor.weightMap;
-      this.initializer.execute({}, []);
+      const initTensors =
+          this.initializer.execute({}, [], this.resourceManager);
     }
 
     return true;
@@ -263,7 +264,7 @@ export class GraphModel implements InferenceModel {
    */
   predict(inputs: Tensor|Tensor[]|NamedTensorMap, config?: ModelPredictConfig):
       Tensor|Tensor[]|NamedTensorMap {
-    return this.execute(inputs, this.outputNodes);
+    return this.execute(inputs, this.outputNodes, this.resourceManager);
   }
 
   private normalizeInputs(inputs: Tensor|Tensor[]|
@@ -310,7 +311,7 @@ export class GraphModel implements InferenceModel {
       Tensor|Tensor[] {
     inputs = this.normalizeInputs(inputs);
     outputs = this.normalizeOutputs(outputs);
-    const result = this.executor.execute(inputs, outputs);
+    const result = this.executor.execute(inputs, outputs, this.resourceManager);
     return result.length > 1 ? result : result[0];
   }
   /**

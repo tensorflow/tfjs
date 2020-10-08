@@ -19,11 +19,12 @@ import {clone, Tensor, util} from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
+import {ResourceManager} from '../../executor/resource_manager';
 import {Node, ValueType} from '../types';
 
 export function getParamValue(
     paramName: string, node: Node, tensorMap: NamedTensorsMap,
-    context: ExecutionContext): ValueType {
+    context: ExecutionContext, resourceManager?: ResourceManager): ValueType {
   const inputParam = node.inputParams[paramName];
   if (inputParam && inputParam.inputIndexStart !== undefined) {
     const start = inputParam.inputIndexStart;

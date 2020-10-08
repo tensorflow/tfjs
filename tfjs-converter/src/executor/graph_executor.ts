@@ -36,6 +36,7 @@ interface NodeWithContexts {
 export class GraphExecutor implements FunctionExecutor {
   private compiledMap: Map<string, Node[]> = new Map();
   private _weightMap: NamedTensorsMap = {};
+  private _hashTableMap: NamedTensorMap = {};
   private _weightIds: number[];
   private _signature: ISignatureDef;
   private _inputs: Node[];
@@ -63,6 +64,15 @@ export class GraphExecutor implements FunctionExecutor {
         key => weightMap[key].map(tensor => tensor.id));
     this._weightIds = [].concat(...weightIds);
     this._weightMap = weightMap;
+  }
+
+  get hashTableMap() {
+    return this._hashTableMap;
+  }
+
+  set hashTableMap(hashTableIdTensors: Tensor[]) {
+    hashTableIdTensors.forEach(
+        idTensor => {this._hashTableMap[idTensor.id] = hashTable});
   }
 
   get inputs(): TensorInfo[] {
@@ -178,7 +188,8 @@ export class GraphExecutor implements FunctionExecutor {
    * inspect intermediate nodes of the model by adding them to the outputs
    * array.
    */
-  execute(inputs: NamedTensorMap, outputs: string[]): Tensor[] {
+  execute(inputs: NamedTensorMap, outputs: string[], resourceManager?: {}):
+      Tensor[] {
     inputs = this.mapInputs(inputs);
     const names = Object.keys(inputs).sort();
     this.checkInputs(inputs);
@@ -206,10 +217,10 @@ export class GraphExecutor implements FunctionExecutor {
 
     const tensorArrayMap: TensorArrayMap = {};
     const tensorListMap: TensorListMap = {};
-    const hashTableMap: HashTableMap = new Map<Tensor, HashTable>();
+
     return tidy(() => {
       const context = new ExecutionContext(
-          this.weightMap, tensorArrayMap, tensorListMap, hashTableMap,
+          this.weightMap, tensorArrayMap, tensorListMap,
           this.functionExecutorMap);
       const tensorsMap: NamedTensorsMap = {...this.weightMap};
 
@@ -225,7 +236,8 @@ export class GraphExecutor implements FunctionExecutor {
       for (let i = 0; i < orderedNodes.length; i++) {
         const node = orderedNodes[i];
         if (!tensorsMap[node.name]) {
-          const tensors = executeOp(node, tensorsMap, context) as Tensor[];
+          const tensors =
+              executeOp(node, tensorsMap, context, resourceManager) as Tensor[];
           if (tensors instanceof Promise) {
             throw new Error(
                 `The execution of the op '${node.op}' returned a promise. ` +
