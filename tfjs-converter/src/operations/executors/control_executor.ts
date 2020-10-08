@@ -20,6 +20,7 @@ import {DataType, scalar, Tensor} from '@tensorflow/tfjs-core';
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
 import {HashTable} from '../../executor/hash_table';
+import {ResourceManager} from '../../executor/resource_manager';
 import {TensorArray} from '../../executor/tensor_array';
 import {fromTensor, reserve, scatter, split} from '../../executor/tensor_list';
 import {InternalOpAsyncExecutor, Node} from '../types';
@@ -368,16 +369,10 @@ export const executeOp: InternalOpAsyncExecutor = async(
           getParamValue('keyDType', node, tensorMap, context) as tfc.DataType;
       const valueDType =
           getParamValue('valueDType', node, tensorMap, context) as tfc.DataType;
-      const sharedName =
-          getParamValue('sharedName', node, tensorMap, context) as string;
-      const useNodeNameSharing =
-          getParamValue('useNodeNameSharing', node, tensorMap, context) as
-          boolean;
 
-      const hashTable = new HashTable(
-          keyDType, valueDType, sharedName, useNodeNameSharing, node.name);
-      context.addHashTable(hashTable);
-      return [hashTable.handle];
+      const hashTable = new HashTable(keyDType, valueDType);
+      ResourceManager.addHashTable(hashTable);
+      return [hashTable.idTensor];
     }
     case 'LookupTableFind':
     case 'LookupTableFindV2': {

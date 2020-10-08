@@ -19,6 +19,7 @@ import {Tensor} from '@tensorflow/tfjs-core';
 import * as tensorflow from '../data/compiled_api';
 import {NamedTensorsMap} from '../data/types';
 import {ExecutionContext} from '../executor/execution_context';
+import {ResourceManager} from '../executor/resource_manager';
 
 export type ParamType = 'number'|'string'|'string[]'|'number[]'|'bool'|'bool[]'|
     'shape'|'shape[]'|'tensor'|'tensors'|'dtype'|'dtype[]'|'func';
@@ -79,8 +80,8 @@ export interface InternalOpExecutor {
 }
 
 export interface InternalOpAsyncExecutor {
-  (node: Node, tensorMap: NamedTensorsMap,
-   context: ExecutionContext): Promise<Tensor[]>;
+  (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
+   resourceManager?: ResourceManager): Promise<Tensor[]>;
 }
 
 export declare interface OpMapper {
