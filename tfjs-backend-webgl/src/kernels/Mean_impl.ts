@@ -15,31 +15,12 @@
  * =============================================================================
  */
 
-import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
+import {getReductionStages} from '../kernel_utils/reduce';
 import {reshape} from '../kernels/Reshape';
 import {MeanProgram} from '../mean_gpu';
-
-// Returns an array of configuration objects that describe each stage of the
-// reduction.
-function getReductionStages(inShape: number[]):
-    Array<{inSize: number, windowSize: number, outSize: number}> {
-  const stages = [];
-
-  while (stages.length === 0 || stages[stages.length - 1].outSize !== 1) {
-    const outSize: number =
-        stages.length ? stages[stages.length - 1].outSize : inShape[1];
-    const windowSize = backend_util.computeOptimalWindowSize(outSize);
-    stages.push({
-      inSize: outSize,
-      windowSize,
-      outSize: Math.ceil(outSize / windowSize)
-    });
-  }
-
-  return stages;
-}
 
 function reduce(
     x: TensorInfo, reduceSize: number, backend: MathBackendWebGL): TensorInfo {
@@ -55,7 +36,7 @@ function reduce(
     result = backend.runWebGLProgram(program, [result], 'float32');
 
     if (previousResult.dataId !== x.dataId) {
-      backend.disposeData(previousResult.dataId);
+      backend.disposeIntermediateTensorInfo(previousResult);
     }
   }
 

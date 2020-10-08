@@ -24,7 +24,7 @@ type ReduceTypes = 'all'|'any'|'max'|'min'|'sum'|'prod';
 
 // Returns an array of configuration objects that describe each stage of the
 // reduction.
-function getReductionStages(inShape: number[]):
+export function getReductionStages(inShape: number[]):
     Array<{inSize: number, windowSize: number, outSize: number}> {
   const stages = [];
 
@@ -57,7 +57,7 @@ export function reduce(
     result = backend.runWebGLProgram(program, [result], dtype);
 
     if (previousResult.dataId !== x.dataId) {
-      backend.disposeData(previousResult.dataId);
+      backend.disposeIntermediateTensorInfo(previousResult);
     }
   }
 

@@ -30,8 +30,6 @@ export class MeanProgram implements GPGPUProgram {
     const windowSizeNearestVec4 = Math.floor(windowSize / 4) * 4;
     const windowSizeVec4Remainder = windowSize % 4;
 
-    // Multiplying by the reciprocal may be more performant than division on
-    // certain architectures.
     const updateSnippet =
         `sumValue += dot(values * ${(1 / divisor).toPrecision(4)}, ones);`;
 
