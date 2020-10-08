@@ -19,10 +19,10 @@ import {KernelConfig, Reciprocal} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../utils/unary_utils';
 
-export const reciprocalKernelFunc = unaryKernelFunc(Reciprocal, (xi) => 1 / xi);
+export const reciprocal = unaryKernelFunc(Reciprocal, (xi) => 1 / xi);
 
 export const reciprocalConfig: KernelConfig = {
   kernelName: Reciprocal,
   backendName: 'cpu',
-  kernelFunc: reciprocalKernelFunc,
+  kernelFunc: reciprocal,
 };

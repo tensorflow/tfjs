@@ -21,11 +21,11 @@ import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
 const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
 
-export const squaredDifferenceKernelFunc =
+export const squaredDifference =
     binaryKernelFunc(SQUARED_DIFFERENCE, SQUARED_DIFFERENCE);
 
 export const squaredDifferenceConfig: KernelConfig = {
   kernelName: SquaredDifference,
   backendName: 'webgl',
-  kernelFunc: squaredDifferenceKernelFunc,
+  kernelFunc: squaredDifference,
 };

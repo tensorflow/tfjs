@@ -21,10 +21,10 @@ import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
 const TAN = `return tan(x);`;
 
-export const tanKernelFunc = unaryKernelFunc(TAN);
+export const tan = unaryKernelFunc(TAN);
 
 export const tanConfig: KernelConfig = {
   kernelName: Tan,
   backendName: 'webgl',
-  kernelFunc: tanKernelFunc,
+  kernelFunc: tan,
 };

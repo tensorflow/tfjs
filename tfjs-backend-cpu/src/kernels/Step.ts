@@ -19,7 +19,7 @@ import {KernelConfig, Step, StepAttrs} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../utils/unary_utils';
 
-export const stepKernelFunc = unaryKernelFunc(Step, (xi, attrs) => {
+export const step = unaryKernelFunc(Step, (xi, attrs) => {
   const stepAttrs = attrs as {} as StepAttrs;
   if (isNaN(xi)) {
     return NaN;
@@ -31,5 +31,5 @@ export const stepKernelFunc = unaryKernelFunc(Step, (xi, attrs) => {
 export const stepConfig: KernelConfig = {
   kernelName: Step,
   backendName: 'cpu',
-  kernelFunc: stepKernelFunc,
+  kernelFunc: step,
 };
