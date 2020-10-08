@@ -17,9 +17,11 @@
 
 import {Ceil, KernelConfig} from '@tensorflow/tfjs-core';
 
-import {unaryKernelFunc} from '../utils/unary_utils';
+import {createSimpleUnaryImpl} from '../utils/unary_impl';
+import {unaryKernelFuncFromImpl} from '../utils/unary_utils';
 
-export const ceilKernelFunc = unaryKernelFunc(Ceil, (xi) => Math.ceil(xi));
+export const ceilImpl = createSimpleUnaryImpl((xi) => Math.ceil(xi));
+export const ceilKernelFunc = unaryKernelFuncFromImpl(Ceil, ceilImpl);
 
 export const ceilConfig: KernelConfig = {
   kernelName: Ceil,

@@ -15,20 +15,21 @@
  * =============================================================================
  */
 
-import {KernelConfig, SquaredDifference} from '@tensorflow/tfjs-core';
+import {NumericDataType, util} from '@tensorflow/tfjs-core';
 
-import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
-import {binaryKernelFunc} from '../utils/kernel_utils';
+import {SimpleUnaryImpl, SimpleUnaryOperation} from './unary_types';
 
-export const squaredDifferenceImpl = createSimpleBinaryKernelImpl(((a, b) => {
-  const diff = a - b;
-  return diff * diff;
-}));
-export const squaredDifference =
-    binaryKernelFunc(SquaredDifference, squaredDifferenceImpl);
-
-export const squaredDifferenceConfig: KernelConfig = {
-  kernelName: SquaredDifference,
-  backendName: 'cpu',
-  kernelFunc: squaredDifference
-};
+/**
+ * Template that creates implementation for unary op.
+ */
+export function createSimpleUnaryImpl(op: SimpleUnaryOperation):
+    SimpleUnaryImpl {
+  return (values, dtype, attrs) => {
+    const newValues =
+        util.getTypedArrayFromDType(dtype as NumericDataType, values.length);
+    for (let i = 0; i < values.length; ++i) {
+      newValues[i] = op(values[i], attrs);
+    }
+    return newValues;
+  };
+}
