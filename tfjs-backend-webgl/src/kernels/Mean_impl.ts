@@ -30,8 +30,10 @@ function meanReduce(
   for (let i = 0; i < reductionStages.length; i++) {
     const {inSize, windowSize, outSize} = reductionStages[i];
 
-    const program = new MeanProgram(
-        {windowSize, inSize, batchSize: x.shape[0], outSize}, reduceSize);
+    let program = i === 0 ?
+        new MeanProgram(
+            {windowSize, inSize, batchSize: x.shape[0], outSize}, reduceSize) :
+        new MeanProgram({windowSize, inSize, batchSize: x.shape[0], outSize});
     const previousResult = result;
     result = backend.runWebGLProgram(program, [result], 'float32');
 
