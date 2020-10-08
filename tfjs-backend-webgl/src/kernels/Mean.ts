@@ -32,7 +32,6 @@ export const meanConfig: KernelConfig = {
 
     const xRank = x.shape.length;
     const origAxes = util.parseAxisParam(axis, x.shape);
-    const shapes = backend_util.computeOutAndReduceShapes(x.shape, origAxes);
 
     let axes = origAxes;
     const permutedAxes = backend_util.getAxesPermutation(axes, xRank);
@@ -72,9 +71,7 @@ export const meanConfig: KernelConfig = {
       outShape = backend_util.expandShapeToKeepDim(meanOutShape, origAxes);
     }
 
-    const out = meanImpl(
-        meanInput, reduceShape, outShape, util.sizeFromShape(shapes[1]),
-        webglBackend);
+    const out = meanImpl(meanInput, reduceShape, outShape, webglBackend);
 
     if (meanInputIsTransposed) {
       webglBackend.disposeIntermediateTensorInfo(meanInput);
