@@ -20,6 +20,8 @@ import {BatchMatMul, BatchMatMulAttrs, BatchMatMulInputs, buffer, KernelConfig, 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 
+import {reshape} from './Reshape';
+
 export function batchMatMul(args: {
   inputs: BatchMatMulInputs,
   attrs: BatchMatMulAttrs,
@@ -31,30 +33,70 @@ export function batchMatMul(args: {
 
   assertNotComplex([a, b], 'matMul');
 
-  const sharedDim = transposeA ? a.shape[1] : a.shape[2];
-  const leftDim = transposeA ? a.shape[2] : a.shape[1];
-  const rightDim = transposeB ? b.shape[1] : b.shape[2];
-  const batchDim = a.shape[0];
+  const aRank = a.shape.length;
+  const bRank = b.shape.length;
 
-  const aValues = backend.data.get(a.dataId).values as TypedArray;
-  const bValues = backend.data.get(b.dataId).values as TypedArray;
+  const innerShapeA = transposeA ? a.shape[aRank - 2] : a.shape[aRank - 1];
+  const innerShapeB = transposeB ? b.shape[bRank - 1] : b.shape[bRank - 2];
 
-  const aStrides = util.computeStrides(a.shape);
-  const bStrides = util.computeStrides(b.shape);
+  const outerShapeA = transposeA ? a.shape[aRank - 1] : a.shape[aRank - 2];
+  const outerShapeB = transposeB ? b.shape[bRank - 2] : b.shape[bRank - 1];
+
+  const outerDimsA = a.shape.slice(0, -2);
+  const outerDimsB = b.shape.slice(0, -2);
+
+  util.assert(
+      util.arraysEqual(outerDimsA, outerDimsB),
+      () => `Error in matMul: outer dimensions (${outerDimsA}) and (` +
+          `${outerDimsB}) of Tensors with shapes ${a.shape} and ` +
+          `${b.shape} must match.`);
+
+  util.assert(
+      innerShapeA === innerShapeB,
+      () => `Error in matMul: inner shapes (${innerShapeA}) and (` +
+          `${innerShapeB}) of Tensors with shapes ${a.shape} and ` +
+          `${b.shape} and transposeA=${transposeA}` +
+          ` and transposeB=${transposeB} must match.`);
+
+  const outShape = a.shape.slice(0, -2).concat([outerShapeA, outerShapeB]);
+
+  const batchDimA = util.sizeFromShape(outerDimsA);
+  const batchDimB = util.sizeFromShape(outerDimsB);
+
+  const a3dShape = transposeA ? [batchDimA, innerShapeA, outerShapeA] :
+                                [batchDimA, outerShapeA, innerShapeA];
+  const b3dShape = transposeB ? [batchDimB, outerShapeB, innerShapeB] :
+                                [batchDimB, innerShapeB, outerShapeB];
+
+  // The rest of the implementation is designed to operate on rank-3 tensors
+  const a3d = reshape({inputs: {x: a}, backend, attrs: {shape: a3dShape}});
+  const b3d = reshape({inputs: {x: b}, backend, attrs: {shape: b3dShape}});
+
+  const sharedDim = transposeA ? a3d.shape[1] : a3d.shape[2];
+  const leftDim = transposeA ? a3d.shape[2] : a3d.shape[1];
+  const rightDim = transposeB ? b3d.shape[1] : b3d.shape[2];
+  const batchDim = a3d.shape[0];
+
+  const a3dValues = backend.data.get(a3d.dataId).values as TypedArray;
+  const b3dValues = backend.data.get(b3d.dataId).values as TypedArray;
+
+  const a3dStrides = util.computeStrides(a3d.shape);
+  const b3dStrides = util.computeStrides(b3d.shape);
 
   const [aBatch, aOuterStep, aInnerStep] = transposeA ?
-      [aStrides[0], 1, aStrides[1]] :
-      [aStrides[0], aStrides[1], 1];
+      [a3dStrides[0], 1, a3dStrides[1]] :
+      [a3dStrides[0], a3dStrides[1], 1];
   const [bInnerStep, bOuterStep, bBatch] = transposeB ?
-      [1, bStrides[1], bStrides[0]] :
-      [bStrides[1], 1, bStrides[0]];
+      [1, b3dStrides[1], b3dStrides[0]] :
+      [b3dStrides[1], 1, b3dStrides[0]];
 
   const size = leftDim * rightDim;
-  const result = buffer([batchDim, leftDim, rightDim], a.dtype);
+  const result = buffer([batchDim, leftDim, rightDim], a3d.dtype);
+
   const resVals = result.values as TypedArray;
   const blockSize = backend.blockSize;
 
-  for (let b = 0; b < batchDim; b++) {
+  for (let bi = 0; bi < batchDim; bi++) {
     for (let i0 = 0; i0 < leftDim; i0 += blockSize) {
       for (let j0 = 0; j0 < rightDim; j0 += blockSize) {
         for (let k0 = 0; k0 < sharedDim; k0 += blockSize) {
@@ -68,10 +110,11 @@ export function batchMatMul(args: {
               let sum = 0.0;
 
               for (let k = k0; k < kBlock; k++) {
-                sum += aValues[b * aBatch + i * aOuterStep + k * aInnerStep] *
-                    bValues[k * bInnerStep + j * bOuterStep + b * bBatch];
+                sum +=
+                    a3dValues[bi * aBatch + i * aOuterStep + k * aInnerStep] *
+                    b3dValues[k * bInnerStep + j * bOuterStep + bi * bBatch];
               }
-              resVals[b * size + (i * rightDim + j)] += sum;
+              resVals[bi * size + (i * rightDim + j)] += sum;
             }
           }
         }
@@ -79,8 +122,12 @@ export function batchMatMul(args: {
     }
   }
 
+  backend.disposeIntermediateTensorInfo(a3d);
+  backend.disposeIntermediateTensorInfo(b3d);
+
+  // set correct shape on output.
   return backend.makeTensorInfo(
-      result.shape, result.dtype, result.values as TypedArray);
+      outShape, result.dtype, result.values as TypedArray);
 }
 
 export const batchMatMulConfig: KernelConfig = {

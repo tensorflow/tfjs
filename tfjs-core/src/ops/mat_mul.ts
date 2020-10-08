@@ -55,57 +55,58 @@ function matMul_<T extends Tensor>(
       () => `Error in matMul: inputs must have the same rank of at least 2, ` +
           `got ranks ${$a.rank} and ${$b.rank}.`);
 
-  const innerShapeA =
-      transposeA ? $a.shape[$a.rank - 2] : $a.shape[$a.rank - 1];
-  const innerShapeB =
-      transposeB ? $b.shape[$b.rank - 1] : $b.shape[$b.rank - 2];
-
-  const outerShapeA =
-      transposeA ? $a.shape[$a.rank - 1] : $a.shape[$a.rank - 2];
-  const outerShapeB =
-      transposeB ? $b.shape[$b.rank - 2] : $b.shape[$b.rank - 1];
-
-  const outerDimsA = $a.shape.slice(0, -2);
-  const outerDimsB = $b.shape.slice(0, -2);
-  const batchDimA = util.sizeFromShape(outerDimsA);
-  const batchDimB = util.sizeFromShape(outerDimsB);
-
-  util.assert(
-      util.arraysEqual(outerDimsA, outerDimsB),
-      () => `Error in matMul: outer dimensions (${outerDimsA}) and (` +
-          `${outerDimsB}) of Tensors with shapes ${$a.shape} and ` +
-          `${$b.shape} must match.`);
-
-  util.assert(
-      innerShapeA === innerShapeB,
-      () => `Error in matMul: inner shapes (${innerShapeA}) and (` +
-          `${innerShapeB}) of Tensors with shapes ${$a.shape} and ` +
-          `${$b.shape} and transposeA=${transposeA}` +
-          ` and transposeB=${transposeB} must match.`);
-
-  const outShape = $a.shape.slice(0, -2).concat([outerShapeA, outerShapeB]);
-
-  const a3D = transposeA ? reshape($a, [batchDimA, innerShapeA, outerShapeA]) :
-                           reshape($a, [batchDimA, outerShapeA, innerShapeA]);
-  const b3D = transposeB ? reshape($b, [batchDimB, outerShapeB, innerShapeB]) :
-                           reshape($b, [batchDimB, innerShapeB, outerShapeB]);
-
   const forward: ForwardFunc<Tensor> = (backend, save) => {
+    const innerShapeA =
+        transposeA ? $a.shape[$a.rank - 2] : $a.shape[$a.rank - 1];
+    const innerShapeB =
+        transposeB ? $b.shape[$b.rank - 1] : $b.shape[$b.rank - 2];
+
+    const outerShapeA =
+        transposeA ? $a.shape[$a.rank - 1] : $a.shape[$a.rank - 2];
+    const outerShapeB =
+        transposeB ? $b.shape[$b.rank - 2] : $b.shape[$b.rank - 1];
+
+    const outerDimsA = $a.shape.slice(0, -2);
+    const outerDimsB = $b.shape.slice(0, -2);
+
+    util.assert(
+        util.arraysEqual(outerDimsA, outerDimsB),
+        () => `Error in matMul: outer dimensions (${outerDimsA}) and (` +
+            `${outerDimsB}) of Tensors with shapes ${$a.shape} and ` +
+            `${$b.shape} must match.`);
+
+    util.assert(
+        innerShapeA === innerShapeB,
+        () => `Error in matMul: inner shapes (${innerShapeA}) and (` +
+            `${innerShapeB}) of Tensors with shapes ${$a.shape} and ` +
+            `${$b.shape} and transposeA=${transposeA}` +
+            ` and transposeB=${transposeB} must match.`);
+
+    const outShape = $a.shape.slice(0, -2).concat([outerShapeA, outerShapeB]);
+
+    const batchDimA = util.sizeFromShape(outerDimsA);
+    const batchDimB = util.sizeFromShape(outerDimsB);
+
+    const a3D = transposeA ?
+        reshape($a, [batchDimA, innerShapeA, outerShapeA]) :
+        reshape($a, [batchDimA, outerShapeA, innerShapeA]);
+    const b3D = transposeB ?
+        reshape($b, [batchDimB, outerShapeB, innerShapeB]) :
+        reshape($b, [batchDimB, innerShapeB, outerShapeB]);
+
     save([a3D, b3D]);
 
-    return backend.batchMatMul(
+    const res3d = backend.batchMatMul(
         a3D as Tensor3D, b3D as Tensor3D, transposeA, transposeB);
+    return reshape(res3d, outShape) as T;
   };
 
-  const inputs: BatchMatMulInputs = {a: a3D, b: b3D};
-
+  const inputs: BatchMatMulInputs = {a: $a, b: $b};
   const attrs: BatchMatMulAttrs = {transposeA, transposeB};
 
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */, BatchMatMul,
-      attrs as {} as NamedAttrMap);
-
-  return reshape(res, outShape) as T;
+  return ENGINE.runKernelFunc(
+             forward, inputs as {} as NamedTensorMap, null /* grad */,
+             BatchMatMul, attrs as {} as NamedAttrMap) as T;
 }
 
 export const matMul = op({matMul_});
