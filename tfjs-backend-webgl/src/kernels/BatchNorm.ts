@@ -22,7 +22,7 @@ import {MathBackendWebGL} from '../backend_webgl';
 import {BatchNormProgram} from '../batchnorm_gpu';
 import {BatchNormPackedProgram} from '../batchnorm_packed_gpu';
 
-export const batchNormKernelFunc: (params: {
+export const batchNorm: (params: {
   inputs: FusedBatchNormInputs,
   backend: MathBackendWebGL,
   attrs: FusedBatchNormAttrs
@@ -77,5 +77,5 @@ export const batchNormKernelFunc: (params: {
 export const batchNormConfig: KernelConfig = {
   kernelName: FusedBatchNorm,
   backendName: 'webgl',
-  kernelFunc: batchNormKernelFunc as {} as KernelFunc,
+  kernelFunc: batchNorm as {} as KernelFunc,
 };

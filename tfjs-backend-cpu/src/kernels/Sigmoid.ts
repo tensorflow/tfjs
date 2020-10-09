@@ -19,11 +19,11 @@ import {KernelConfig, Sigmoid} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../utils/unary_utils';
 
-export const sigmoidKernelFunc =
+export const sigmoid =
     unaryKernelFunc(Sigmoid, (xi) => 1 / (1 + Math.exp(-xi)));
 
 export const sigmoidConfig: KernelConfig = {
   kernelName: Sigmoid,
   backendName: 'cpu',
-  kernelFunc: sigmoidKernelFunc,
+  kernelFunc: sigmoid,
 };
