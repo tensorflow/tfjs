@@ -19,10 +19,10 @@ import {Atan, KernelConfig} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../utils/unary_utils';
 
-export const atanKernelFunc = unaryKernelFunc(Atan, (xi) => Math.atan(xi));
+export const atan = unaryKernelFunc(Atan, (xi) => Math.atan(xi));
 
 export const atanConfig: KernelConfig = {
   kernelName: Atan,
   backendName: 'cpu',
-  kernelFunc: atanKernelFunc,
+  kernelFunc: atan,
 };

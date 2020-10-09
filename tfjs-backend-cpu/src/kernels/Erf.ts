@@ -26,7 +26,7 @@ const a3 = backend_util.ERF_A3;
 const a4 = backend_util.ERF_A4;
 const a5 = backend_util.ERF_A5;
 
-export const erfKernelFunc = unaryKernelFunc(
+export const erf = unaryKernelFunc(
     Erf,
     (xi) => {
       const sign = Math.sign(xi);
@@ -42,5 +42,5 @@ export const erfKernelFunc = unaryKernelFunc(
 export const erfConfig: KernelConfig = {
   kernelName: Erf,
   backendName: 'cpu',
-  kernelFunc: erfKernelFunc,
+  kernelFunc: erf,
 };

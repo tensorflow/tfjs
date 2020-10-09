@@ -21,10 +21,10 @@ import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
 const SQUARE = `return x * x;`;
 
-export const squareKernelFunc = unaryKernelFunc(SQUARE);
+export const square = unaryKernelFunc(SQUARE);
 
 export const squareConfig: KernelConfig = {
   kernelName: Square,
   backendName: 'webgl',
-  kernelFunc: squareKernelFunc,
+  kernelFunc: square,
 };

@@ -22,7 +22,7 @@ import {unaryKernelFunc} from '../utils/unary_utils';
 const scaleAlpha = backend_util.SELU_SCALEALPHA;
 const scale = backend_util.SELU_SCALE;
 
-export const seluKernelFunc = unaryKernelFunc(Selu, (xi) => {
+export const selu = unaryKernelFunc(Selu, (xi) => {
   if (xi >= 0) {
     return scale * xi;
   } else {
@@ -33,5 +33,5 @@ export const seluKernelFunc = unaryKernelFunc(Selu, (xi) => {
 export const seluConfig: KernelConfig = {
   kernelName: Selu,
   backendName: 'cpu',
-  kernelFunc: seluKernelFunc,
+  kernelFunc: selu,
 };

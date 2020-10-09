@@ -21,6 +21,7 @@ if [ "$NIGHTLY" = true ]; then
   yarn run-browserstack --browsers=bs_firefox_mac,bs_chrome_mac
   yarn run-browserstack --browsers=bs_chrome_mac,win_10_chrome,bs_android_9 --testEnv webgl2 --flags '{"WEBGL_CPU_FORWARD": false, "WEBGL_SIZE_UPLOAD_UNIFORM": 0}'
   yarn run-browserstack --browsers=bs_chrome_mac --testEnv webgl2 --flags '{"WEBGL_PACK": false}'
+  yarn run-browserstack --browsers=bs_chrome_mac --testEnv webgl2 --flags '{"WEBGL_CPU_FORWARD": true}'
 else
   yarn run-browserstack --browsers=bs_chrome_mac
 fi

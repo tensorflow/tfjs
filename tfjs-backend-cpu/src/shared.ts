@@ -16,6 +16,17 @@
  */
 
 // Shared kernel impls for use in other backends.
+export {simpleAbsImpl} from './kernels/Abs';
+export {addImpl} from './kernels/Add';
+export {ceilImpl} from './kernels/Ceil';
+export {expImpl} from './kernels/Exp';
+export {expm1Impl} from './kernels/Expm1';
+export {floorImpl} from './kernels/Floor';
+export {logImpl} from './kernels/Log';
 export {maxImpl} from './kernels/Max_impl';
+export {multiplyImpl} from './kernels/Multiply';
+export {rsqrtImpl} from './kernels/Rsqrt';
+export {sliceImpl} from './kernels/Slice';
+export {subImpl} from './kernels/Sub';
 export {transposeImpl} from './kernels/Transpose_impl';
 export {uniqueImpl} from './kernels/Unique_impl';

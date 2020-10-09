@@ -15,10 +15,34 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, NumericDataType, Slice, slice_util, SliceAttrs, SliceInputs, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {DataType, KernelConfig, KernelFunc, NumericDataType, Slice, slice_util, SliceAttrs, SliceInputs, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
+
+export function sliceImpl(
+    vals: TypedArray, begin: number[], size: number[], shape: number[],
+    dtype: DataType): TypedArray {
+  const isContinous = slice_util.isSliceContinous(shape, begin, size);
+  const length = util.sizeFromShape(size);
+  const xStrides = util.computeStrides(shape);
+
+  if (isContinous) {
+    const flatOffset = slice_util.computeFlatOffset(begin, xStrides);
+    return vals.subarray(flatOffset, flatOffset + length);
+  }
+
+  const outVals = util.getTypedArrayFromDType(dtype as NumericDataType, length);
+  for (let i = 0; i < length; ++i) {
+    const rank = size.length;
+    const strides = util.computeStrides(size);
+    const loc = util.indexToLoc(i, rank, strides);
+    const xLoc = loc.map((idx: number, j) => idx + begin[j]);
+    const xIndex = util.locToIndex(xLoc, shape.length, xStrides);
+    outVals[i] = vals[xIndex];
+  }
+  return outVals;
+}
 
 export function slice(
     args: {inputs: SliceInputs, backend: MathBackendCPU, attrs: SliceAttrs}):
@@ -29,34 +53,11 @@ export function slice(
 
   assertNotComplex(x, 'slice');
 
-  const xRank = x.shape.length;
-  const xStrides = util.computeStrides(x.shape);
-
   const [$begin, $size] = slice_util.parseSliceParams(x, begin, size);
   slice_util.assertParamsValid(x, $begin, $size);
 
-  const isContinous = slice_util.isSliceContinous(x.shape, $begin, $size);
   const vals = backend.data.get(x.dataId).values as TypedArray;
-  const length = util.sizeFromShape($size);
-
-  if (isContinous) {
-    const flatOffset = slice_util.computeFlatOffset($begin, xStrides);
-    const resultVals = vals.subarray(flatOffset, flatOffset + length);
-    return backend.makeTensorInfo($size, x.dtype, resultVals);
-  }
-
-  const outVals =
-      util.getTypedArrayFromDType(x.dtype as NumericDataType, length);
-
-  for (let i = 0; i < length; ++i) {
-    const rank = $size.length;
-    const strides = util.computeStrides($size);
-    const loc = util.indexToLoc(i, rank, strides);
-    const xLoc = loc.map((idx: number, j) => idx + $begin[j]);
-    const xIndex = util.locToIndex(xLoc, xRank, xStrides);
-    outVals[i] = vals[xIndex];
-  }
-
+  const outVals = sliceImpl(vals, $begin, $size, x.shape, x.dtype);
   return backend.makeTensorInfo($size, x.dtype, outVals);
 }
 
