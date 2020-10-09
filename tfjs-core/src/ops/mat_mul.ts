@@ -94,7 +94,7 @@ function matMul_<T extends Tensor>(
         reshape($b, [batchDimB, outerShapeB, innerShapeB]) :
         reshape($b, [batchDimB, innerShapeB, outerShapeB]);
 
-    save([a3D, b3D]);
+    save([$a, $b]);
 
     const res3d = backend.batchMatMul(
         a3D as Tensor3D, b3D as Tensor3D, transposeA, transposeB);
