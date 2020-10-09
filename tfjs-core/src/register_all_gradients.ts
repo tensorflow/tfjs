@@ -67,6 +67,7 @@ import {maxPool3DGradConfig} from './gradients/MaxPool3D_grad';
 import {maxPoolGradConfig} from './gradients/MaxPool_grad';
 import {minGradConfig} from './gradients/Min_grad';
 import {minimumGradConfig} from './gradients/Minimum_grad';
+import {mirrorPadGradConfig} from './gradients/MirrorPad_grad';
 import {modGradConfig} from './gradients/Mod_grad';
 import {multiplyGradConfig} from './gradients/Multiply_grad';
 import {negateGradConfig} from './gradients/Negate_grad';
@@ -167,6 +168,7 @@ const gradConfigs: GradConfig[] = [
   maxPoolGradConfig,
   minGradConfig,
   minimumGradConfig,
+  mirrorPadGradConfig,
   modGradConfig,
   multiplyGradConfig,
   negateGradConfig,

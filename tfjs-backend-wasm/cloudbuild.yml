@@ -56,13 +56,12 @@ steps:
   waitFor: ['build']
 
 # Check bundle size.
-# TODO(annxingyuan): Reenable once https://github.com/tensorflow/tfjs/pull/4012 is merged.
-# - name: 'gcr.io/learnjs-174218/wasm'
-#   dir: 'tfjs-backend-wasm'
-#   id: 'test-bundle-size'
-#   entrypoint: 'yarn'
-#   args: ['test-bundle-size']
-#   waitFor: ['yarn', 'build-deps', 'build']
+- name: 'gcr.io/learnjs-174218/wasm'
+  dir: 'tfjs-backend-wasm'
+  id: 'test-bundle-size'
+  entrypoint: 'yarn'
+  args: ['test-bundle-size']
+  waitFor: ['yarn', 'build-deps', 'build']
 
 # Lint bazel files.
 - name: 'node:10'

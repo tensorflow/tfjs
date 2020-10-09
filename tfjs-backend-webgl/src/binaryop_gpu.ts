@@ -24,10 +24,6 @@ const CHECK_NAN_SNIPPET = `
   if (isnan(b)) return b;
 `;
 
-export const ADD = 'return a + b;';
-export const SUB = 'return a - b;';
-export const MUL = 'return a * b;';
-
 // We use native integer division to deal with floating point imprecision. Since
 // we implement floor division and glsl implements truncated division, we
 // correct for this by subtracting 1 from result when the result is negative and
@@ -57,8 +53,6 @@ return (round(mod(b, 2.0)) != 1) ?
 export const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
 
 export const EQUAL = `return float(a == b);`;
-
-export const NOT_EQUAL = `return float(a != b);`;
 
 export const LESS = `return float(a < b);`;
 

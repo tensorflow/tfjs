@@ -50,7 +50,7 @@ const DIV_PACKED = `
 `;
 
 export const div = binaryKernelFunc(
-    DIV, DIV_PACKED, true /* checkOutOfBoundsForPackedProgram */);
+    {opSnippet: DIV, packedOpSnippet: DIV_PACKED, checkOutOfBounds: true});
 
 export const divConfig: KernelConfig = {
   kernelName: Div,

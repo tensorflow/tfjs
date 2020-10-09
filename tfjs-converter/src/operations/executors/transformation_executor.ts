@@ -53,6 +53,14 @@ export const executeOp: InternalOpExecutor =
               getParamValue('x', node, tensorMap, context) as Tensor,
               getParamValue('shape', node, tensorMap, context) as number[])];
         }
+        case 'MirrorPad': {
+          return [tfOps.mirrorPad(
+              getParamValue('x', node, tensorMap, context) as Tensor,
+              getParamValue('padding', node, tensorMap, context) as
+                  Array<[number, number]>,
+              getParamValue('mode', node, tensorMap, context) as 'reflect' |
+                  'symmetric')];
+        }
         case 'PadV2':
         case 'Pad': {
           return [tfOps.pad(
