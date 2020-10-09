@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util} from '@tensorflow/tfjs-core';
+import {backend_util, util} from '@tensorflow/tfjs-core';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class MeanProgram implements GPGPUProgram {
@@ -32,7 +32,10 @@ export class MeanProgram implements GPGPUProgram {
 
     let updateSnippet = `sumValue += dot(values, ones);`;
     if (divisor != null) {
-      updateSnippet = `sumValue += dot(values * ${1 / divisor}, ones);`;
+      const denominator = 1 / divisor;
+      updateSnippet = `sumValue += dot(values * ${
+          util.isInt(denominator) ? denominator.toPrecision(2) :
+                                    denominator}, ones);`;
     }
 
     let checkOutOfBounds = '';
