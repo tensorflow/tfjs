@@ -220,6 +220,27 @@ const benchmarks = {
       };
     }
   },
+  'speech-commands': {
+    load: async () => {
+      const recognizer = speechCommands.create('BROWSER_FFT');
+      await recognizer.ensureModelLoaded();
+      return recognizer;
+    },
+    predictFunc: () => {
+      return async (model) => {
+        const shape = model.modelInputShape();
+        // Cannot use tf.util.sizeFromShape because shape includes null.
+        const mySpectrogramData = new Float32Array(shape.reduce((acc, curr) => {
+          if(curr == null) {
+            return acc;
+          }
+          return acc * curr;
+        }, 1));
+        const x = tf.tensor4d(mySpectrogramData, [1].concat(shape.slice(1)));
+        return await model.recognize(x);
+      }
+    }
+  },
   'custom': {
     type: '',
     load: async () => {

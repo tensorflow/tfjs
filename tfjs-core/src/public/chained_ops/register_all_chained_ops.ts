@@ -103,6 +103,7 @@ import './mean';
 import './min';
 import './minimum_strict';
 import './minimum';
+import './mirror_pad';
 import './mod_strict';
 import './mod';
 import './mul_strict';

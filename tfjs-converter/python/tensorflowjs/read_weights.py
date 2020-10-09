@@ -25,7 +25,7 @@ import numpy as np
 from tensorflowjs import quantization
 
 _INPUT_DTYPES = [np.float16, np.float32, np.int32, np.complex64,
-                 np.uint8, np.uint16, np.object]
+                 np.uint8, np.uint16, np.object, np.bool]
 
 # Number of bytes used to encode the length of a string in a string tensor.
 STRING_LENGTH_NUM_BYTES = 4
@@ -99,7 +99,7 @@ def _deserialize_string_array(data_buffer, offset, shape):
     strings, and the offset contains the new offset (the byte position in the
     buffer at the end of the string data).
   """
-  size = np.prod(shape)
+  size = int(np.prod(shape))
   if size == 0:
     return (np.array([], 'object').reshape(shape),
             offset + STRING_LENGTH_NUM_BYTES)

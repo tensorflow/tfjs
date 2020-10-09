@@ -50,8 +50,8 @@ export function concat(
     const reals = $inputs.map((t) => real({inputs: {input: t}, backend}));
     const imags = $inputs.map((t) => imag({inputs: {input: t}, backend}));
 
-    const realConcated = concat({inputs: reals, backend, attrs: {axis}});
-    const imagConcated = concat({inputs: imags, backend, attrs: {axis}});
+    const realConcated = concat({inputs: reals, backend, attrs: {axis: $axis}});
+    const imagConcated = concat({inputs: imags, backend, attrs: {axis: $axis}});
 
     const result =
         complex({inputs: {real: realConcated, imag: imagConcated}, backend});

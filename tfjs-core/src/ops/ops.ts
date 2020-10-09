@@ -105,6 +105,7 @@ export {maximum} from './maximum';
 export {mean} from './mean';
 export {min} from './min';
 export {minimum} from './minimum';
+export {mirrorPad} from './mirror_pad';
 export {mod} from './mod';
 export {moments} from './moments';
 export {mul} from './mul';

@@ -21,41 +21,87 @@ import {test_util} from '@tensorflow/tfjs-core';
 const {expectArraysClose} = test_util;
 // tslint:disable-next-line: no-imports-from-dist
 import {describeWithFlags, ALL_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {WebGLMemoryInfo} from '../backend_webgl';
 
 const BYTES_PER_COMPLEX_ELEMENT = 4 * 2;
 describeWithFlags('complex64 memory', ALL_ENVS, () => {
   it('usage', async () => {
+    const webglSizeUploadUniformFlagSaved =
+        tf.env().get('WEBGL_SIZE_UPLOAD_UNIFORM');
+    tf.env().set('WEBGL_SIZE_UPLOAD_UNIFORM', 4);
+
     let numTensors = tf.memory().numTensors;
-    let numBuffers = tf.memory().numDataBuffers;
+    let numBytes = tf.memory().numBytes;
+    let numDataIds = tf.engine().backend.numDataIds();
+
     const startTensors = numTensors;
+    const startNumBytes = numBytes;
+    const startNumBytesInGPU = (tf.memory() as WebGLMemoryInfo).numBytesInGPU;
+    const startDataIds = numDataIds;
 
     const real1 = tf.tensor1d([1]);
     const imag1 = tf.tensor1d([2]);
+
+    // 2 new Tensors: real1, imag1, and two data buckets created.
+    expect(tf.memory().numTensors).toBe(numTensors + 2);
+    expect(tf.memory().numBytes).toBe(numBytes + BYTES_PER_COMPLEX_ELEMENT);
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIds + 2);
+    numTensors = tf.memory().numTensors;
+    numBytes = tf.memory().numBytes;
+    numDataIds = tf.engine().backend.numDataIds();
+
     const complex1 = tf.complex(real1, imag1);
 
-    // 5 new Tensors: real1, imag1, complex1, and two internal clones.
-    expect(tf.memory().numTensors).toBe(numTensors + 5);
-    // Only 3 new data buckets are actually created.
-    expect(tf.memory().numDataBuffers).toBe(numBuffers + 3);
+    // 1 new complex Tensor and 1 new data bucket created. No new bytes
+    // allocated.
+    expect(tf.memory().numTensors).toBe(numTensors + 1);
+    expect(tf.memory().numBytes).toBe(numBytes);
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIds + 1);
+
     numTensors = tf.memory().numTensors;
-    numBuffers = tf.memory().numDataBuffers;
+    numBytes = tf.memory().numBytes;
+    numDataIds = tf.engine().backend.numDataIds();
 
     const real2 = tf.tensor1d([3]);
     const imag2 = tf.tensor1d([4]);
+
+    // 2 new Tensors: real2, imag2, and 2 new data buckets.
+    expect(tf.memory().numTensors).toBe(numTensors + 2);
+    expect(tf.memory().numBytes).toBe(numBytes + BYTES_PER_COMPLEX_ELEMENT);
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIds + 2);
+    numTensors = tf.memory().numTensors;
+    numBytes = tf.memory().numBytes;
+    numDataIds = tf.engine().backend.numDataIds();
+
     const complex2 = tf.complex(real2, imag2);
 
-    // 5 new Tensors: real1, imag1, complex1, and two internal clones.
-    expect(tf.memory().numTensors).toBe(numTensors + 5);
-    // Only 3 new data buckets are actually created.
-    expect(tf.memory().numDataBuffers).toBe(numBuffers + 3);
+    // 1 new Tensor and 1 new data bucket.
+    expect(tf.memory().numTensors).toBe(numTensors + 1);
+    // numBytes stays the same because it is determined by tensor creation at
+    // the engine level, and we do not increment memory for complex tensors
+    // (complex tensors track their own memory).
+    expect(tf.memory().numBytes).toBe(numBytes);
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIds + 1);
+
     numTensors = tf.memory().numTensors;
-    numBuffers = tf.memory().numDataBuffers;
+    numBytes = tf.memory().numBytes;
+    numDataIds = tf.engine().backend.numDataIds();
 
     const result = complex1.add(complex2);
 
-    // A complex tensor is created, which is composed of 2 underlying tensors.
-    expect(tf.memory().numTensors).toBe(numTensors + 3);
+    // A complex tensor is created, which is composed of real and imag parts.
+    // They should not increase tensor count, only complex tensor does.
+    // 3 new data buckets created for complex, real and imag.
+    expect(tf.memory().numTensors).toBe(numTensors + 1);
+    expect(tf.memory().numBytes).toBe(numBytes);
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIds + 3);
+    // Two new 1x1 textures are created to compute the sum of real / imag
+    // components, respectively. No new textures are allocated for the inputs
+    // because they are beneath the uniform upload threshold.
+    expect((tf.memory() as WebGLMemoryInfo).numBytesInGPU)
+        .toBe(startNumBytesInGPU + BYTES_PER_COMPLEX_ELEMENT);
     numTensors = tf.memory().numTensors;
+    numDataIds = tf.engine().backend.numDataIds();
 
     expect(result.dtype).toBe('complex64');
     expect(result.shape).toEqual([1]);
@@ -63,15 +109,22 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
 
     const real = tf.real(result);
 
+    // A new tensor is created. No new data buckets created.
     expect(tf.memory().numTensors).toBe(numTensors + 1);
+    expect(tf.memory().numBytes).toBe(numBytes + 4);
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIds);
     numTensors = tf.memory().numTensors;
+    numBytes = tf.memory().numBytes;
+    numDataIds = tf.engine().backend.numDataIds();
 
     expectArraysClose(await real.data(), [4]);
 
     const imag = tf.imag(result);
 
+    // A new tensor is created. No new data buckets created.
     expect(tf.memory().numTensors).toBe(numTensors + 1);
-    numTensors = tf.memory().numTensors;
+    expect(tf.memory().numBytes).toBe(numBytes + 4);
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIds);
 
     expectArraysClose(await imag.data(), [6]);
 
@@ -86,25 +139,78 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
     real.dispose();
     imag.dispose();
     expect(tf.memory().numTensors).toBe(startTensors);
+    expect(tf.memory().numBytes).toBe(startNumBytes);
+    expect(tf.engine().backend.numDataIds()).toBe(startDataIds);
+    expect((tf.memory() as WebGLMemoryInfo).numBytesInGPU)
+        .toBe(startNumBytesInGPU);
+
+    tf.env().set('WEBGL_SIZE_UPLOAD_UNIFORM', webglSizeUploadUniformFlagSaved);
   });
 
-  it('tf.complex disposing underlying tensors', async () => {
-    const numTensors = tf.memory().numTensors;
+  it('Creating tf.real, tf.imag from complex.', async () => {
+    let numTensors = tf.memory().numTensors;
+    let numDataIds = tf.engine().backend.numDataIds();
 
-    const real = tf.tensor1d([3, 30]);
-    const imag = tf.tensor1d([4, 40]);
-    expect(tf.memory().numTensors).toEqual(numTensors + 2);
+    const startTensors = numTensors;
+    const startDataIds = numDataIds;
 
-    const complex = tf.complex(real, imag);
+    const complex = tf.complex([3, 30], [4, 40]);
 
-    // real and imag are cloned.
-    expect(tf.memory().numTensors).toEqual(numTensors + 5);
+    // 1 new tensor, 3 new data buckets.
+    expect(tf.memory().numTensors).toBe(numTensors + 1);
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIds + 3);
+    numTensors = tf.memory().numTensors;
+    numDataIds = tf.engine().backend.numDataIds();
+
+    const real = tf.real(complex);
+    const imag = tf.imag(complex);
+
+    // 2 new tensors, no new data buckets.
+    expect(tf.memory().numTensors).toBe(numTensors + 2);
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIds);
+
+    numTensors = tf.memory().numTensors;
+    numDataIds = tf.engine().backend.numDataIds();
+
+    complex.dispose();
+
+    // 1 fewer tensor, 1 fewer data buckets.
+    expect(tf.memory().numTensors).toBe(numTensors - 1);
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIds - 1);
+    expectArraysClose(await real.data(), [3, 30]);
+    expectArraysClose(await imag.data(), [4, 40]);
+
+    numTensors = tf.memory().numTensors;
+    numDataIds = tf.engine().backend.numDataIds();
 
     real.dispose();
     imag.dispose();
 
-    // A copy of real and imag still exist, the one owned by the complex tensor.
+    // Zero net tensors / data buckets.
+    expect(tf.memory().numTensors).toBe(startTensors);
+    expect(tf.engine().backend.numDataIds()).toBe(startDataIds);
+  });
+
+  it('tf.complex disposing underlying tensors', async () => {
+    const numTensors = tf.memory().numTensors;
+    const numDataIds = tf.engine().backend.numDataIds();
+
+    const real = tf.tensor1d([3, 30]);
+    const imag = tf.tensor1d([4, 40]);
+    expect(tf.memory().numTensors).toEqual(numTensors + 2);
+    expect(tf.engine().backend.numDataIds()).toEqual(numDataIds + 2);
+
+    const complex = tf.complex(real, imag);
+
+    // 1 new tensor is created for complex. real and imag data buckets created.
     expect(tf.memory().numTensors).toEqual(numTensors + 3);
+    expect(tf.engine().backend.numDataIds()).toEqual(numDataIds + 3);
+
+    real.dispose();
+    imag.dispose();
+
+    expect(tf.memory().numTensors).toEqual(numTensors + 1);
+    expect(tf.engine().backend.numDataIds()).toEqual(numDataIds + 3);
 
     expect(complex.dtype).toBe('complex64');
     expect(complex.shape).toEqual(real.shape);
@@ -113,25 +219,29 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
     complex.dispose();
 
     expect(tf.memory().numTensors).toEqual(numTensors);
+    expect(tf.engine().backend.numDataIds()).toEqual(numDataIds);
   });
 
   it('reshape', async () => {
     const memoryBefore = tf.memory();
+    const numDataIdsBefore = tf.engine().backend.numDataIds();
+    let numTensors = memoryBefore.numTensors;
+    let numDataIds = numDataIdsBefore;
 
     const a = tf.complex([[1, 3, 5], [7, 9, 11]], [[2, 4, 6], [8, 10, 12]]);
 
-    // 3 new tensors, the complex64 tensor and the 2 underlying float32 tensors.
-    expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 3);
-    // Bytes should be counted once.
-    expect(tf.memory().numBytes)
-        .toBe(memoryBefore.numBytes + 6 * BYTES_PER_COMPLEX_ELEMENT);
+    // 1 new tensor, the complex64 tensor
+    expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 1);
+    // 1 new tensor and 2 underlying data buckets for real and imag.
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore + 3);
+    numTensors = tf.memory().numTensors;
+    numDataIds = tf.engine().backend.numDataIds();
 
     const b = a.reshape([6]);
     // 1 new tensor from the reshape.
-    expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 4);
-    // No new bytes from a reshape.
-    expect(tf.memory().numBytes)
-        .toBe(memoryBefore.numBytes + 6 * BYTES_PER_COMPLEX_ELEMENT);
+    expect(tf.memory().numTensors).toBe(numTensors + 1);
+    // No new data buckets.
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIds);
 
     expect(b.dtype).toBe('complex64');
     expect(b.shape).toEqual([6]);
@@ -139,50 +249,77 @@ describeWithFlags('complex64 memory', ALL_ENVS, () => {
 
     b.dispose();
     // 1 complex tensor should be disposed.
-    expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 3);
-    // Byte count should not change because the refcounts are all 1.
-    expect(tf.memory().numBytes)
-        .toBe(memoryBefore.numBytes + 6 * BYTES_PER_COMPLEX_ELEMENT);
+    expect(tf.memory().numTensors).toBe(numTensors);
+    // Data buckets not deleted yet.
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIds);
 
     a.dispose();
     // All the tensors should now be disposed.
     expect(tf.memory().numTensors).toBe(memoryBefore.numTensors);
     // The underlying memory should now be released.
-    expect(tf.memory().numBytes).toBe(memoryBefore.numBytes);
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore);
   });
 
   it('clone', async () => {
     const memoryBefore = tf.memory();
+    const numDataIdsBefore = tf.engine().backend.numDataIds();
 
     const a = tf.complex([[1, 3, 5], [7, 9, 11]], [[2, 4, 6], [8, 10, 12]]);
 
-    // 3 new tensors, the complex64 tensor and the 2 underlying float32 tensors.
-    expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 3);
-    // Bytes should be counted once
-    expect(tf.memory().numBytes)
-        .toBe(memoryBefore.numBytes + 6 * BYTES_PER_COMPLEX_ELEMENT);
+    // 1 new tensor, the complex64 tensor
+    expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 1);
+    // 1 new tensor and 2 underlying data buckets for real and imag.
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore + 3);
 
     const b = a.clone();
+
     // 1 new tensor from the clone.
-    expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 4);
-    // No new bytes from a clone.
-    expect(tf.memory().numBytes)
-        .toBe(memoryBefore.numBytes + 6 * BYTES_PER_COMPLEX_ELEMENT);
+    expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 2);
+    // No new data buckets.
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore + 3);
 
     expect(b.dtype).toBe('complex64');
     expectArraysClose(await a.data(), await b.data());
 
     b.dispose();
+
     // 1 complex tensor should be disposed.
-    expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 3);
-    // Byte count should not change because the refcounts are all 1.
-    expect(tf.memory().numBytes)
-        .toBe(memoryBefore.numBytes + 6 * BYTES_PER_COMPLEX_ELEMENT);
+    expect(tf.memory().numTensors).toBe(memoryBefore.numTensors + 1);
+    // Data bucket not deleted yet.
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore + 3);
 
     a.dispose();
+
     // All the tensors should now be disposed.
     expect(tf.memory().numTensors).toBe(memoryBefore.numTensors);
-    // The underlying memory should now be released.
-    expect(tf.memory().numBytes).toBe(memoryBefore.numBytes);
+    expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore);
   });
+
+  it('Multiple complex tensors sharing same underlying components works',
+     async () => {
+       const numTensors = tf.memory().numTensors;
+       const numDataIds = tf.engine().backend.numDataIds();
+
+       const real = tf.tensor1d([1]);
+       const imag = tf.tensor1d([2]);
+
+       expect(tf.memory().numTensors).toEqual(numTensors + 2);
+       expect(tf.engine().backend.numDataIds()).toEqual(numDataIds + 2);
+
+       const complex1 = tf.complex(real, imag);
+       const complex2 = tf.complex(real, imag);
+
+       expect(tf.memory().numTensors).toEqual(numTensors + 4);
+       expect(tf.engine().backend.numDataIds()).toEqual(numDataIds + 4);
+
+       real.dispose();
+       expect(tf.memory().numTensors).toEqual(numTensors + 3);
+       expect(tf.engine().backend.numDataIds()).toEqual(numDataIds + 4);
+
+       complex1.dispose();
+       expect(tf.memory().numTensors).toEqual(numTensors + 2);
+       expect(tf.engine().backend.numDataIds()).toEqual(numDataIds + 3);
+
+       expectArraysClose(await complex2.data(), [1, 2]);
+     });
 });
