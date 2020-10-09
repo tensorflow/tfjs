@@ -106,6 +106,11 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
           // Browser specific mobile test
           return false;
         }
+
+        if(name.match('dilation2d')) {
+          // Not implemented in webgl
+          return false;
+        }
         return true;
       }
      });

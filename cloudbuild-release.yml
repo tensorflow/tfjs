@@ -13,10 +13,11 @@ secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
   secretEnv:
     BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
-timeout: 3600s
+timeout: 7200s
 logsBucket: 'gs://tfjs-build-logs'
 substitutions:
   _RELEASE: ''
 options:
   logStreamingOption: 'STREAM_ON'
+  machineType: 'N1_HIGHCPU_8'
   substitution_option: 'ALLOW_LOOSE'

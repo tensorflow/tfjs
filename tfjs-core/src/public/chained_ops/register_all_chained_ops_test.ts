@@ -169,6 +169,7 @@ const CHAINED_OPS = [
   'toInt',
   'topk',
   'transpose',
+  'unique',
   'unsortedSegmentSum',
   'unstack',
   'where',

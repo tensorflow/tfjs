@@ -15,16 +15,21 @@
  * =============================================================================
  */
 
-import {KernelConfig, Tan} from '@tensorflow/tfjs-core';
+import {NumericDataType, util} from '@tensorflow/tfjs-core';
 
-import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {SimpleUnaryImpl, SimpleUnaryOperation} from './unary_types';
 
-const TAN = `return tan(x);`;
-
-export const tan = unaryKernelFunc(TAN);
-
-export const tanConfig: KernelConfig = {
-  kernelName: Tan,
-  backendName: 'webgl',
-  kernelFunc: tan,
-};
+/**
+ * Template that creates implementation for unary op.
+ */
+export function createSimpleUnaryImpl(op: SimpleUnaryOperation):
+    SimpleUnaryImpl {
+  return (values, dtype, attrs) => {
+    const newValues =
+        util.getTypedArrayFromDType(dtype as NumericDataType, values.length);
+    for (let i = 0; i < values.length; ++i) {
+      newValues[i] = op(values[i], attrs);
+    }
+    return newValues;
+  };
+}

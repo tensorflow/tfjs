@@ -19,11 +19,11 @@ import {KernelConfig, LogicalNot} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../utils/unary_utils';
 
-export const logicalNotKernelFunc =
+export const logicalNot =
     unaryKernelFunc(LogicalNot, (xi) => xi ? 0 : 1, 'bool');
 
 export const logicalNotConfig: KernelConfig = {
   kernelName: LogicalNot,
   backendName: 'cpu',
-  kernelFunc: logicalNotKernelFunc,
+  kernelFunc: logicalNot,
 };

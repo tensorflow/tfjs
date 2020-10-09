@@ -22,14 +22,37 @@ import * as shared from '@tensorflow/tfjs-backend-cpu/dist/shared';
 // tslint:disable-next-line: no-imports-from-dist
 import {SimpleBinaryKernelImpl} from '@tensorflow/tfjs-backend-cpu/dist/shared';
 
+export type SimpleBinaryKernelImplCPU = SimpleBinaryKernelImpl;
 const {
-  maxImpl: maxImplCPU,
-  transposeImpl: transposeImplCPU,
+  simpleAbsImpl: simpleAbsImplCPU,
   addImpl: addImplCPU,
+  ceilImpl: ceilImplCPU,
+  expImpl: expImplCPU,
+  expm1Impl: expm1ImplCPU,
+  floorImpl: floorImplCPU,
+  logImpl: logImplCPU,
+  maxImpl: maxImplCPU,
   multiplyImpl: multiplyImplCPU,
+  rsqrtImpl: rsqrtImplCPU,
+  sliceImpl: sliceImplCPU,
   subImpl: subImplCPU,
+  transposeImpl: transposeImplCPU,
+  uniqueImpl: uniqueImplCPU,
 } = shared;
 
-export {addImplCPU, maxImplCPU, transposeImplCPU, multiplyImplCPU, subImplCPU};
-
-export type SimpleBinaryKernelImplCPU = SimpleBinaryKernelImpl;
+export {
+  simpleAbsImplCPU,
+  addImplCPU,
+  ceilImplCPU,
+  expImplCPU,
+  expm1ImplCPU,
+  logImplCPU,
+  multiplyImplCPU,
+  sliceImplCPU,
+  subImplCPU,
+  floorImplCPU,
+  maxImplCPU,
+  rsqrtImplCPU,
+  transposeImplCPU,
+  uniqueImplCPU,
+};

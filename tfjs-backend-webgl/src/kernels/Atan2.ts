@@ -32,11 +32,11 @@ const ATAN2_PACKED = `
   return result;
 `;
 
-export const atan2KernelFunc =
+export const atan2 =
     binaryKernelFunc({opSnippet: ATAN2, packedOpSnippet: ATAN2_PACKED});
 
 export const atan2Config: KernelConfig = {
   kernelName: Atan2,
   backendName: 'webgl',
-  kernelFunc: atan2KernelFunc,
+  kernelFunc: atan2,
 };

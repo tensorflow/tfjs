@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
-import {NamedAttrMap} from '@tensorflow/tfjs-core';
+import {DataType, NamedAttrMap, TypedArray} from '@tensorflow/tfjs-core';
 
 export type SimpleUnaryOperation = (x: number, attrs?: NamedAttrMap) => number;
+export type SimpleUnaryImpl =
+    (values: TypedArray, dtype: DataType, attrs?: NamedAttrMap) => TypedArray;

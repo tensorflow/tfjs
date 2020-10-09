@@ -23,10 +23,10 @@ const COS = CHECK_NAN_SNIPPET_UNARY + `
   return cos(x);
 `;
 
-export const cosKernelFunc = unaryKernelFunc(COS);
+export const cos = unaryKernelFunc(COS);
 
 export const cosConfig: KernelConfig = {
   kernelName: Cos,
   backendName: 'webgl',
-  kernelFunc: cosKernelFunc,
+  kernelFunc: cos,
 };

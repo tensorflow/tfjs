@@ -19,7 +19,7 @@ import {KernelConfig, Sign} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../utils/unary_utils';
 
-export const signKernelFunc = unaryKernelFunc(Sign, (xi) => {
+export const sign = unaryKernelFunc(Sign, (xi) => {
   if (xi < 0) {
     return -1;
   } else if (xi > 0) {
@@ -32,5 +32,5 @@ export const signKernelFunc = unaryKernelFunc(Sign, (xi) => {
 export const signConfig: KernelConfig = {
   kernelName: Sign,
   backendName: 'cpu',
-  kernelFunc: signKernelFunc,
+  kernelFunc: sign,
 };

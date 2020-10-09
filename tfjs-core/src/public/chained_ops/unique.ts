@@ -15,16 +15,18 @@
  * =============================================================================
  */
 
-import {KernelConfig, Tan} from '@tensorflow/tfjs-core';
+import {unique} from '../../ops/unique';
+import {Tensor} from '../../tensor';
+import {Rank} from '../../types';
 
-import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+declare module '../../tensor' {
+  interface Tensor<R extends Rank = Rank> {
+    unique<T extends Tensor>(this: T, axis?: number): {values: T, indices: T};
+  }
+}
 
-const TAN = `return tan(x);`;
-
-export const tan = unaryKernelFunc(TAN);
-
-export const tanConfig: KernelConfig = {
-  kernelName: Tan,
-  backendName: 'webgl',
-  kernelFunc: tan,
+Tensor.prototype.unique = function<T extends Tensor>(
+    this: T, axis?: number): {values: T, indices: T} {
+  this.throwIfDisposed();
+  return unique(this, axis) as {values: T, indices: T};
 };
