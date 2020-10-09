@@ -20,7 +20,7 @@ import {FusedBatchNorm, FusedBatchNormAttrs, FusedBatchNormInputs, KernelConfig,
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 
-export function batchNormKernelFunc(args: {
+export function batchNorm(args: {
   inputs: FusedBatchNormInputs,
   backend: MathBackendCPU,
   attrs: FusedBatchNormAttrs
@@ -90,5 +90,5 @@ export function batchNormKernelFunc(args: {
 export const batchNormConfig: KernelConfig = {
   kernelName: FusedBatchNorm,
   backendName: 'cpu',
-  kernelFunc: batchNormKernelFunc as {} as KernelFunc,
+  kernelFunc: batchNorm as {} as KernelFunc,
 };

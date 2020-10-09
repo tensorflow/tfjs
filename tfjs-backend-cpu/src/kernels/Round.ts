@@ -19,7 +19,7 @@ import {KernelConfig, Round} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../utils/unary_utils';
 
-export const roundKernelFunc = unaryKernelFunc(Round, (xi) => {
+export const round = unaryKernelFunc(Round, (xi) => {
   // The algorithm is based on banker's rounding.
   const base = Math.floor(xi);
   if (xi - base < 0.5) {
@@ -38,5 +38,5 @@ export const roundKernelFunc = unaryKernelFunc(Round, (xi) => {
 export const roundConfig: KernelConfig = {
   kernelName: Round,
   backendName: 'cpu',
-  kernelFunc: roundKernelFunc,
+  kernelFunc: round,
 };

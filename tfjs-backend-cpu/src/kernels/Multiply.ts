@@ -16,16 +16,21 @@
  */
 
 import {KernelConfig, Multiply} from '@tensorflow/tfjs-core';
-import {binaryKernelFunc} from '../utils/kernel_utils';
+import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
+import {binaryKernelFunc, createComplexBinaryKernelImpl} from '../utils/kernel_utils';
 
-export const multiply = binaryKernelFunc(
-    Multiply, ((aValue, bValue) => aValue * bValue),
-    ((aReal, aImag, bReal, bImag) => {
+export const multiplyImpl =
+    createSimpleBinaryKernelImpl(((aValue, bValue) => aValue * bValue));
+export const multiplyComplexImpl =
+    createComplexBinaryKernelImpl(((aReal, aImag, bReal, bImag) => {
       return {
         real: aReal * bReal - aImag * bImag,
         imag: aReal * bImag + aImag * bReal
       };
     }));
+
+export const multiply =
+    binaryKernelFunc(Multiply, multiplyImpl, multiplyComplexImpl);
 
 export const multiplyConfig: KernelConfig = {
   kernelName: Multiply,
