@@ -22,6 +22,10 @@
  * config.
  */
 export function kernelNameToVariableName(kernelName: string) {
+  if (kernelName.startsWith('_')) {
+    // e.g. _FusedMatMulConfig
+    return `_${kernelName.charAt(1).toLowerCase()}${kernelName.slice(2)}`;
+  }
   return kernelName.charAt(0).toLowerCase() + kernelName.slice(1);
 }
 
