@@ -560,17 +560,20 @@ describeWithFlags('memory webgl', WEBGL_ENVS, () => {
 describeWithFlags('backend without render float32 support', WEBGL_ENVS, () => {
   const savedRenderFloat32Flag =
       tf.env().getBool('WEBGL_RENDER_FLOAT32_ENABLED');
+  const customWebGLBackendName = 'half-float-webgl';
 
   beforeAll(() => {
     tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', false);
   });
 
   beforeEach(() => {
-    tf.registerBackend('half-float-webgl', () => new MathBackendWebGL(null));
+    tf.copyRegisteredKernels('webgl', customWebGLBackendName);
+    tf.registerBackend(
+        customWebGLBackendName, () => new MathBackendWebGL(null));
   });
 
   afterEach(() => {
-    tf.removeBackend('half-float-webgl');
+    tf.removeBackend(customWebGLBackendName);
   });
 
   afterAll(() => {
@@ -578,7 +581,7 @@ describeWithFlags('backend without render float32 support', WEBGL_ENVS, () => {
   });
 
   it('basic usage', async () => {
-    tf.setBackend('half-float-webgl');
+    tf.setBackend(customWebGLBackendName);
 
     const a = tf.tensor2d([1, 2], [1, 2]);
     const b = tf.tensor2d([1, 2], [1, 2]);
@@ -587,7 +590,7 @@ describeWithFlags('backend without render float32 support', WEBGL_ENVS, () => {
   });
 
   it('disposing tensors should not cause errors', () => {
-    tf.setBackend('half-float-webgl');
+    tf.setBackend(customWebGLBackendName);
     expect(() => tf.tidy(() => {
       const a = tf.tensor2d([1, 2], [1, 2]);
       const b = tf.tensor2d([1, 2], [1, 2]);

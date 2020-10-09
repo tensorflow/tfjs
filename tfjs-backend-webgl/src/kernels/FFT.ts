@@ -15,22 +15,22 @@
  * =============================================================================
  */
 
-import {Identity, IdentityInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
+import {FFT, FFTInputs, KernelConfig, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 
-export function identity(
-    args: {inputs: IdentityInputs, backend: MathBackendWebGL}): TensorInfo {
+import {fftImpl} from './FFT_impl';
+
+export function fft(args: {inputs: FFTInputs, backend: MathBackendWebGL}):
+    TensorInfo {
   const {inputs, backend} = args;
-  const {x} = inputs;
+  const {input} = inputs;
 
-  backend.incRef(x.dataId);
-
-  return {dataId: x.dataId, shape: x.shape, dtype: x.dtype};
+  return fftImpl(input, false /* inverse */, backend);
 }
 
-export const identityConfig: KernelConfig = {
-  kernelName: Identity,
+export const fftConfig: KernelConfig = {
+  kernelName: FFT,
   backendName: 'webgl',
-  kernelFunc: identity as {} as KernelFunc
+  kernelFunc: fft
 };

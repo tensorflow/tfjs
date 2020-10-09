@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {env} from '@tensorflow/tfjs-core';
-import {backend_util, DataId, DataType, Tensor, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataId, DataType, env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 export enum PackingScheme {
   /**
@@ -79,15 +78,21 @@ export interface TextureData {
   values?: backend_util.BackendValues;
   texture?: WebGLTexture;
   // For complex numbers, the real and imaginary parts are stored as their own
-  // individual tensors, with a parent joining the two with the
+  // individual tensorInfos, with a parent joining the two with the
   // complexTensors field. When this is defined, texture will be null.
-  complexTensors?: {real: Tensor, imag: Tensor};
+  complexTensorInfos?: {real: TensorInfo, imag: TensorInfo};
   /** [rows, columns] shape of the texture. */
   texShape?: [number, number];
   usage?: TextureUsage;
   isPacked?: boolean;
 
   refCount: number;
+  // The number of complex tensors that point to this TextureData. Unlike
+  // `refCount` above, `complexParentRefCount` must be at 0 before a TextureData
+  // can be disposed. There is no mechanism for bypassing this condition in the
+  // WebGL backend, whereas calling `disposeData` will dispose the TextureData
+  // even if its `refCount` is greater than 0.
+  complexParentRefCount: number;
 
   // Available when the tensor has been sliced.
   slice?: {
