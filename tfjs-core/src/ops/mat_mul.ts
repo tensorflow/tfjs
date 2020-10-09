@@ -56,6 +56,8 @@ function matMul_<T extends Tensor>(
           `got ranks ${$a.rank} and ${$b.rank}.`);
 
   const forward: ForwardFunc<Tensor> = (backend, save) => {
+    save([$a, $b]);
+
     const innerShapeA =
         transposeA ? $a.shape[$a.rank - 2] : $a.shape[$a.rank - 1];
     const innerShapeB =
@@ -94,11 +96,9 @@ function matMul_<T extends Tensor>(
         reshape($b, [batchDimB, outerShapeB, innerShapeB]) :
         reshape($b, [batchDimB, innerShapeB, outerShapeB]);
 
-    save([$a, $b]);
-
     const res3d = backend.batchMatMul(
         a3D as Tensor3D, b3D as Tensor3D, transposeA, transposeB);
-    return reshape(res3d, outShape) as T;
+    return reshape(res3d, outShape);
   };
 
   const inputs: BatchMatMulInputs = {a: $a, b: $b};
