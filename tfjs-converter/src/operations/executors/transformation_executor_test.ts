@@ -62,6 +62,20 @@ describe('transformation', () => {
         expect(tfOps.expandDims).toHaveBeenCalledWith(input1[0], 1);
       });
     });
+    describe('MirrorPad', () => {
+      it('should call tfc.mirrorPad', () => {
+        spyOn(tfOps, 'mirrorPad');
+        node.op = 'MirrorPad';
+        node.inputParams.padding = createNumericArrayAttrFromIndex(1);
+        node.attrParams.mode = createStrAttr('reflect');
+        node.inputNames = ['input1', 'input3'];
+        const input3 = [tfOps.tensor2d([1, 1, 2, 2], [2, 2])];
+        executeOp(node, {input1, input3}, context);
+
+        expect(tfOps.mirrorPad)
+            .toHaveBeenCalledWith(input1[0], [[1, 1], [2, 2]], 'reflect');
+      });
+    });
     describe('Pad', () => {
       it('should call tfOps.pad', () => {
         spyOn(tfOps, 'pad');
