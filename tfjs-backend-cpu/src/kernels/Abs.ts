@@ -27,33 +27,30 @@ export function simpleAbsImpl(vals: TypedArray): Float32Array {
   return resultValues;
 }
 
-export const absKernelFunc =
-    (args: {inputs: AbsInputs, backend: MathBackendCPU}) => {
-      const {x} = args.inputs;
-      const cpuBackend = args.backend;
-      let resultValues = new Float32Array(util.sizeFromShape(x.shape));
-      if (x.dtype !== 'complex64') {
-        const values = cpuBackend.data.get(x.dataId).values as TypedArray;
-        resultValues = simpleAbsImpl(values);
-      } else {
-        const complexVals = cpuBackend.data.get(x.dataId);
-        const real = complexVals.complexTensorInfos.real;
-        const imag = complexVals.complexTensorInfos.imag;
-        const realVals =
-            cpuBackend.data.get(real.dataId).values as Float32Array;
-        const imagVals =
-            cpuBackend.data.get(imag.dataId).values as Float32Array;
-        for (let i = 0; i < realVals.length; i++) {
-          const real = realVals[i];
-          const imag = imagVals[i];
-          resultValues[i] = Math.hypot(real, imag);
-        }
-      }
-      return cpuBackend.makeOutput(resultValues, x.shape, 'float32');
-    };
+export const abs = (args: {inputs: AbsInputs, backend: MathBackendCPU}) => {
+  const {x} = args.inputs;
+  const cpuBackend = args.backend;
+  let resultValues = new Float32Array(util.sizeFromShape(x.shape));
+  if (x.dtype !== 'complex64') {
+    const values = cpuBackend.data.get(x.dataId).values as TypedArray;
+    resultValues = simpleAbsImpl(values);
+  } else {
+    const complexVals = cpuBackend.data.get(x.dataId);
+    const real = complexVals.complexTensorInfos.real;
+    const imag = complexVals.complexTensorInfos.imag;
+    const realVals = cpuBackend.data.get(real.dataId).values as Float32Array;
+    const imagVals = cpuBackend.data.get(imag.dataId).values as Float32Array;
+    for (let i = 0; i < realVals.length; i++) {
+      const real = realVals[i];
+      const imag = imagVals[i];
+      resultValues[i] = Math.hypot(real, imag);
+    }
+  }
+  return cpuBackend.makeOutput(resultValues, x.shape, 'float32');
+};
 
 export const absConfig: KernelConfig = {
   kernelName: Abs,
   backendName: 'cpu',
-  kernelFunc: absKernelFunc as {} as KernelFunc,
+  kernelFunc: abs as {} as KernelFunc,
 };

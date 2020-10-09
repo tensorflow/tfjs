@@ -19,10 +19,10 @@ import {KernelConfig, Sinh} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../utils/unary_utils';
 
-export const sinhKernelFunc = unaryKernelFunc(Sinh, (xi) => Math.sinh(xi));
+export const sinh = unaryKernelFunc(Sinh, (xi) => Math.sinh(xi));
 
 export const sinhConfig: KernelConfig = {
   kernelName: Sinh,
   backendName: 'cpu',
-  kernelFunc: sinhKernelFunc,
+  kernelFunc: sinh,
 };

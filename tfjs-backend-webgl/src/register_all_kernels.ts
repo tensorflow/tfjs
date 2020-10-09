@@ -16,55 +16,77 @@
  */
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
+import {addConfig} from './kernels/Add';
 import {atan2Config} from './kernels/Atan2';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {avgPoolBackpropConfig} from './kernels/AvgPoolBackprop';
 import {batchNormConfig} from './kernels/BatchNorm';
+import {castConfig} from './kernels/Cast';
+import {complexConfig} from './kernels/Complex';
+import {concatConfig} from './kernels/Concat';
 import {cosConfig} from './kernels/Cos';
 import {divConfig} from './kernels/Div';
+import {fftConfig} from './kernels/FFT';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {fromPixelsConfig} from './kernels/FromPixels';
 import {identityConfig} from './kernels/Identity';
+import {ifftConfig} from './kernels/IFFT';
+import {imagConfig} from './kernels/Imag';
 import {maxConfig} from './kernels/Max';
 import {maxPoolConfig} from './kernels/MaxPool';
 import {maxPoolBackpropConfig} from './kernels/MaxPoolBackprop';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {mirrorPadConfig} from './kernels/MirrorPad';
+import {multiplyConfig} from './kernels/Multiply';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
+import {notEqualConfig} from './kernels/NotEqual';
+import {realConfig} from './kernels/Real';
 import {reshapeConfig} from './kernels/Reshape';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {sinConfig} from './kernels/Sin';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {subConfig} from './kernels/Sub';
 import {tanConfig} from './kernels/Tan';
 import {transposeConfig} from './kernels/Transpose';
 import {uniqueConfig} from './kernels/Unique';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
+  addConfig,
   atan2Config,
   avgPoolConfig,
   avgPoolBackpropConfig,
   batchNormConfig,
+  castConfig,
+  complexConfig,
+  concatConfig,
   cosConfig,
   divConfig,
+  fftConfig,
   flipLeftRightConfig,
   fromPixelsConfig,
   identityConfig,
+  ifftConfig,
+  imagConfig,
   maxConfig,
   maxPoolConfig,
   maxPoolBackpropConfig,
   maxPoolWithArgmaxConfig,
   mirrorPadConfig,
+  multiplyConfig,
   nonMaxSuppressionV3Config,
   nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config,
+  notEqualConfig,
+  realConfig,
   reshapeConfig,
   rotateWithOffsetConfig,
   sinConfig,
   squareConfig,
+  subConfig,
   squaredDifferenceConfig,
   tanConfig,
   transposeConfig,

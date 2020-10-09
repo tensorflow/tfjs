@@ -23,10 +23,10 @@ const SIN = CHECK_NAN_SNIPPET_UNARY + `
   return sin(x);
 `;
 
-export const sinKernelFunc = unaryKernelFunc(SIN);
+export const sin = unaryKernelFunc(SIN);
 
 export const sinConfig: KernelConfig = {
   kernelName: Sin,
   backendName: 'webgl',
-  kernelFunc: sinKernelFunc,
+  kernelFunc: sin,
 };

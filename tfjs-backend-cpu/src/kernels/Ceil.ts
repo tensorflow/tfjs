@@ -21,10 +21,10 @@ import {createSimpleUnaryImpl} from '../utils/unary_impl';
 import {unaryKernelFuncFromImpl} from '../utils/unary_utils';
 
 export const ceilImpl = createSimpleUnaryImpl((xi) => Math.ceil(xi));
-export const ceilKernelFunc = unaryKernelFuncFromImpl(Ceil, ceilImpl);
+export const ceil = unaryKernelFuncFromImpl(Ceil, ceilImpl);
 
 export const ceilConfig: KernelConfig = {
   kernelName: Ceil,
   backendName: 'cpu',
-  kernelFunc: ceilKernelFunc,
+  kernelFunc: ceil,
 };
