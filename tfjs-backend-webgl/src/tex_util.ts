@@ -87,12 +87,12 @@ export interface TextureData {
   isPacked?: boolean;
 
   refCount: number;
-  // Number of references to prevent disposal of the texture data. Unlike
-  // `refCount` above, `keptRefCount` must be at 0 before a TextureData can be
-  // disposed. There is no mechanism for bypassing this condition in the WebGL
-  // backend, whereas calling `disposeData` on the WebGL backend will dispose
-  // the TextureData even if its `refCount` is greater than 0.
-  keptRefCount: number;
+  // The number of complex tensors that point to this TextureData. Unlike
+  // `refCount` above, `complexParentRefCount` must be at 0 before a TextureData
+  // can be disposed. There is no mechanism for bypassing this condition in the
+  // WebGL backend, whereas calling `disposeData` will dispose the TextureData
+  // even if its `refCount` is greater than 0.
+  complexParentRefCount: number;
 
   // Available when the tensor has been sliced.
   slice?: {

@@ -278,7 +278,7 @@ export class MathBackendWebGL extends KernelBackend {
       values,
       usage: TextureUsage.UPLOAD,
       refCount: 1,
-      keptRefCount: 0
+      complexParentRefCount: 0
     });
     return dataId;
   }
@@ -313,7 +313,7 @@ export class MathBackendWebGL extends KernelBackend {
       values,
       usage: TextureUsage.UPLOAD,
       refCount: 1,
-      keptRefCount: 0
+      complexParentRefCount: 0
     });
   }
 
@@ -632,7 +632,7 @@ export class MathBackendWebGL extends KernelBackend {
     // to dispose a tensor whose data bucket is shared with a complex tensor. In
     // this case we are removing a reference to the textureData, but we
     // shouldn't actually dispose the texture.
-    if (this.texData.get(dataId).keptRefCount > 0) {
+    if (this.texData.get(dataId).complexParentRefCount > 0) {
       this.texData.get(dataId).refCount--;
       return;
     }
@@ -640,10 +640,10 @@ export class MathBackendWebGL extends KernelBackend {
     this.releaseGPUData(dataId);
     const {complexTensorInfos} = this.texData.get(dataId);
     if (complexTensorInfos != null) {
-      this.texData.get(complexTensorInfos.real.dataId).keptRefCount--;
+      this.texData.get(complexTensorInfos.real.dataId).complexParentRefCount--;
       this.disposeIntermediateTensorInfo(complexTensorInfos.real);
 
-      this.texData.get(complexTensorInfos.imag.dataId).keptRefCount--;
+      this.texData.get(complexTensorInfos.imag.dataId).complexParentRefCount--;
       this.disposeIntermediateTensorInfo(complexTensorInfos.imag);
     }
     this.texData.delete(dataId);

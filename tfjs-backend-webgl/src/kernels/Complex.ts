@@ -23,12 +23,12 @@ import {identity} from './Identity';
 /**
  * In WebGL data is stored in GPU textures which can't be efficiently copied, so
  * complex tensors share data with their real and imaginary components. Complex
- * tensors increment the `keptRefCount` properties of the underlying data
- * buckets to prevent them from being disposed, as the engine's disposal logic
- * does not account for data sharing by complex tensors.
+ * tensors increment the `complexParentRefCount` properties of the underlying
+ * data buckets to prevent them from being disposed, as the engine's disposal
+ * logic does not account for data sharing by complex tensors.
  *
  * When a complex tensor is disposed, it will explicitly decrease the
- * `keptRefCount` properties of its underlying components.
+ * `complexParentRefCount` properties of its underlying components.
  */
 export function complex(
     args: {inputs: ComplexInputs, backend: MathBackendWebGL}): TensorInfo {
@@ -40,11 +40,11 @@ export function complex(
 
   const realTensorInfo = identity({inputs: {x: real}, backend});
   const realData = backend.texData.get(realTensorInfo.dataId);
-  realData.keptRefCount++;
+  realData.complexParentRefCount++;
 
   const imagTensorInfo = identity({inputs: {x: imag}, backend});
   const imagData = backend.texData.get(imagTensorInfo.dataId);
-  imagData.keptRefCount++;
+  imagData.complexParentRefCount++;
 
   complex.complexTensorInfos = {real: realTensorInfo, imag: imagTensorInfo};
 
