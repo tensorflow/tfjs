@@ -15,22 +15,15 @@
  * =============================================================================
  */
 
-import {Identity, IdentityInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
+import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
+import {UnaryOpProgram} from '../unaryop_gpu';
 
-export function identity(
-    args: {inputs: IdentityInputs, backend: MathBackendWebGL}): TensorInfo {
-  const {inputs, backend} = args;
-  const {x} = inputs;
+const TO_INT = `return float(int(x));`;
 
-  backend.incRef(x.dataId);
-
-  return {dataId: x.dataId, shape: x.shape, dtype: x.dtype};
+export function int(input: TensorInfo, backend: MathBackendWebGL): TensorInfo {
+  const program = new UnaryOpProgram(input.shape, TO_INT);
+  const output = backend.runWebGLProgram(program, [input], 'int32');
+  return {dataId: output.dataId, shape: output.shape, dtype: output.dtype};
 }
-
-export const identityConfig: KernelConfig = {
-  kernelName: Identity,
-  backendName: 'webgl',
-  kernelFunc: identity as {} as KernelFunc
-};

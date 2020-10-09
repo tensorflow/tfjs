@@ -15,22 +15,16 @@
  * =============================================================================
  */
 
-import {Identity, IdentityInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
+import {NotEqual} from '@tensorflow/tfjs-core';
+import {KernelConfig} from '@tensorflow/tfjs-core';
+import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-import {MathBackendWebGL} from '../backend_webgl';
+const NOT_EQUAL = `return float(a != b);`;
 
-export function identity(
-    args: {inputs: IdentityInputs, backend: MathBackendWebGL}): TensorInfo {
-  const {inputs, backend} = args;
-  const {x} = inputs;
+export const notEqual = binaryKernelFunc({opSnippet: NOT_EQUAL, dtype: 'bool'});
 
-  backend.incRef(x.dataId);
-
-  return {dataId: x.dataId, shape: x.shape, dtype: x.dtype};
-}
-
-export const identityConfig: KernelConfig = {
-  kernelName: Identity,
+export const notEqualConfig: KernelConfig = {
+  kernelName: NotEqual,
   backendName: 'webgl',
-  kernelFunc: identity as {} as KernelFunc
+  kernelFunc: notEqual,
 };

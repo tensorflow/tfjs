@@ -15,22 +15,22 @@
  * =============================================================================
  */
 
-import {Identity, IdentityInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, Sub} from '@tensorflow/tfjs-core';
 
-import {MathBackendWebGL} from '../backend_webgl';
+import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {subImplCPU as cpuSub} from '../kernel_utils/shared';
 
-export function identity(
-    args: {inputs: IdentityInputs, backend: MathBackendWebGL}): TensorInfo {
-  const {inputs, backend} = args;
-  const {x} = inputs;
+const SUB = 'return a - b;';
 
-  backend.incRef(x.dataId);
+export const subKernelFunc = binaryKernelFunc({
+  opSnippet: SUB,
+  packedOpSnippet: SUB,
+  supportsComplex: true,
+  cpuKernelImpl: cpuSub
+});
 
-  return {dataId: x.dataId, shape: x.shape, dtype: x.dtype};
-}
-
-export const identityConfig: KernelConfig = {
-  kernelName: Identity,
+export const subConfig: KernelConfig = {
+  kernelName: Sub,
   backendName: 'webgl',
-  kernelFunc: identity as {} as KernelFunc
+  kernelFunc: subKernelFunc
 };

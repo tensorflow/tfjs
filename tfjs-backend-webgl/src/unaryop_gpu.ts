@@ -218,6 +218,4 @@ export const RECIPROCAL = `return 1.0 / x;`;
 
 export const LOGICAL_NOT = `return float(!(x >= 1.0));`;
 
-export const TO_INT = `return float(int(x));`;
-
 export const CLONE = 'return x;';

@@ -27,6 +27,10 @@ const WEBGL_ATTRIBUTES: WebGLContextAttributes = {
   failIfMajorPerformanceCaveat: true
 };
 
+export function clearWebGLContext(webGLVersion: number) {
+  delete contexts[webGLVersion];
+}
+
 export function setWebGLContext(
     webGLVersion: number, gl: WebGLRenderingContext) {
   contexts[webGLVersion] = gl;
