@@ -235,7 +235,7 @@ export class GraphExecutor implements FunctionExecutor {
         const node = orderedNodes[i];
         if (!tensorsMap[node.name]) {
           const tensors =
-              executeOp(node, tensorsMap, context, this.resourceManager) as
+              executeOp(node, tensorsMap, context, this._resourceManager) as
               Tensor[];
           if (tensors instanceof Promise) {
             throw new Error(
@@ -404,12 +404,19 @@ export class GraphExecutor implements FunctionExecutor {
     const inputNodes =
         names.map(name => this.graph.nodes[parseNodeName(name)[0]]);
     const outputNodeNames = outputNames.map(name => parseNodeName(name)[0]);
-    const outputNodes = outputNodeNames.map(name => this.graph.nodes[name]);
+    let outputNodes = outputNodeNames.map(name => this.graph.nodes[name]);
+
+    // If no outputs are specified, then use the default outputs of the model.
+    if (outputNodes.length === 0) {
+      outputNodes = this._outputs;
+    }
+
     const {usedNodes, missingInputs, dynamicNode, syncInputs} =
-        getExecutionSubgraph(inputs, outputNodes, this.weightMap);
+        getExecutionSubgraph(
+            inputs, outputNodes, this.weightMap, this._initNodes);
 
     const stack: NodeWithContexts[] =
-        [...inputNodes, ...this.graph.weights].map(node => {
+        [...inputNodes, ...this.graph.weights, ...this._initNodes].map(node => {
           return {node, contexts: context.currentContext};
         });
     const tensorsMap: NamedTensorsMap = {...this.weightMap};
@@ -474,9 +481,10 @@ export class GraphExecutor implements FunctionExecutor {
       }
 
       // only process nodes that are not provided as input nodes.
-      if (inputNodes.indexOf(item.node) === -1) {
+      if (inputNodes.indexOf(item.node) === -1 ||
+          tensorMap[item.node.name] == null) {
         const tensors =
-            executeOp(item.node, tensorMap, context, this.resourceManager);
+            executeOp(item.node, tensorMap, context, this._resourceManager);
         if (!nodeName) {
           [nodeName] = getNodeNameAndIndex(item.node.name, context);
         }

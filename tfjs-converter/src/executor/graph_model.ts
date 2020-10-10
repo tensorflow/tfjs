@@ -361,6 +361,8 @@ export class GraphModel implements InferenceModel {
     if (this.initializer) {
       this.initializer.dispose();
     }
+
+    this.resourceManager.dispose();
   }
 }
 
