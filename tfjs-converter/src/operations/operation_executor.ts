@@ -19,6 +19,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../data/types';
 import {ExecutionContext} from '../executor/execution_context';
+import {ResourceManager} from '../executor/resource_manager';
 
 import {NodeValueImpl} from './custom_op/node_value_impl';
 import {getRegisteredOp} from './custom_op/register';
@@ -30,6 +31,7 @@ import * as creation from './executors/creation_executor';
 import * as dynamic from './executors/dynamic_executor';
 import * as evaluation from './executors/evaluation_executor';
 import * as graph from './executors/graph_executor';
+import * as hashTable from './executors/hash_table_executor';
 import * as image from './executors/image_executor';
 import * as logical from './executors/logical_executor';
 import * as matrices from './executors/matrices_executor';
@@ -47,7 +49,7 @@ import {Node} from './types';
  */
 export function executeOp(
     node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
-    resourceManager?: {}): tfc.Tensor[]|Promise<tfc.Tensor[]> {
+    resourceManager?: ResourceManager): tfc.Tensor[]|Promise<tfc.Tensor[]> {
   const value =
       ((node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext) => {
         switch (node.category) {
@@ -58,7 +60,7 @@ export function executeOp(
             return tfc.tidy(
                 () => basicMath.executeOp(node, tensorMap, context));
           case 'control':
-            return control.executeOp(node, tensorMap, context, resourceManager);
+            return control.executeOp(node, tensorMap, context);
           case 'convolution':
             return tfc.tidy(
                 () => convolution.executeOp(node, tensorMap, context));
@@ -91,6 +93,9 @@ export function executeOp(
           case 'transformation':
             return tfc.tidy(
                 () => transformation.executeOp(node, tensorMap, context));
+          case 'hash_table':
+            return hashTable.executeOp(
+                node, tensorMap, context, resourceManager);
           case 'custom':
             const opMapper = getRegisteredOp(node.op);
             if (opMapper && opMapper.customExecutor) {

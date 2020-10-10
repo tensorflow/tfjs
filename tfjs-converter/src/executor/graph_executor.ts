@@ -18,14 +18,14 @@
 import {DataType, NamedTensorMap, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 import {ISignatureDef} from '../data/compiled_api';
-import {HashTableMap, NamedTensorsMap, TensorArrayMap, TensorInfo, TensorListMap} from '../data/types';
+import {NamedTensorsMap, TensorArrayMap, TensorInfo, TensorListMap} from '../data/types';
 import {getNodeNameAndIndex, getParamValue, getTensor, getTensorsForCurrentContenxt, parseNodeName} from '../operations/executors/utils';
 import {executeOp} from '../operations/operation_executor';
 import {Graph, Node} from '../operations/types';
 
 import {ExecutionContext, ExecutionContextInfo} from './execution_context';
-import {HashTable} from './hash_table';
 import {getExecutionSubgraph, getNodesInTopologicalOrder, isControlFlow} from './model_analysis';
+import {ResourceManager} from './resource_manager';
 import {FunctionExecutor} from './types';
 
 interface NodeWithContexts {
@@ -36,7 +36,6 @@ interface NodeWithContexts {
 export class GraphExecutor implements FunctionExecutor {
   private compiledMap: Map<string, Node[]> = new Map();
   private _weightMap: NamedTensorsMap = {};
-  private _hashTableMap: NamedTensorMap = {};
   private _weightIds: number[];
   private _signature: ISignatureDef;
   private _inputs: Node[];
@@ -45,6 +44,7 @@ export class GraphExecutor implements FunctionExecutor {
   private SEPERATOR = ',';
   private _functions: {[key: string]: Graph} = {};
   private _functionExecutorMap: {[key: string]: FunctionExecutor} = {};
+  private _resourceManager: ResourceManager;
 
   get weightIds(): number[] {
     return this.parent ? this.parent.weightIds : this._weightIds;
@@ -59,6 +59,10 @@ export class GraphExecutor implements FunctionExecutor {
     return this.parent ? this.parent.weightMap : this._weightMap;
   }
 
+  get resourcemanager(): ResourceManager {
+    return this._resourceManager;
+  }
+
   set weightMap(weightMap: NamedTensorsMap) {
     const weightIds = Object.keys(weightMap).map(
         key => weightMap[key].map(tensor => tensor.id));
@@ -66,13 +70,8 @@ export class GraphExecutor implements FunctionExecutor {
     this._weightMap = weightMap;
   }
 
-  get hashTableMap() {
-    return this._hashTableMap;
-  }
-
-  set hashTableMap(hashTableIdTensors: Tensor[]) {
-    hashTableIdTensors.forEach(
-        idTensor => {this._hashTableMap[idTensor.id] = hashTable});
+  set resourceManager(resourceManager: ResourceManager) {
+    this._resourceManager = resourceManager;
   }
 
   get inputs(): TensorInfo[] {
@@ -188,8 +187,7 @@ export class GraphExecutor implements FunctionExecutor {
    * inspect intermediate nodes of the model by adding them to the outputs
    * array.
    */
-  execute(inputs: NamedTensorMap, outputs: string[], resourceManager?: {}):
-      Tensor[] {
+  execute(inputs: NamedTensorMap, outputs: string[]): Tensor[] {
     inputs = this.mapInputs(inputs);
     const names = Object.keys(inputs).sort();
     this.checkInputs(inputs);
@@ -237,7 +235,8 @@ export class GraphExecutor implements FunctionExecutor {
         const node = orderedNodes[i];
         if (!tensorsMap[node.name]) {
           const tensors =
-              executeOp(node, tensorsMap, context, resourceManager) as Tensor[];
+              executeOp(node, tensorsMap, context, this.resourceManager) as
+              Tensor[];
           if (tensors instanceof Promise) {
             throw new Error(
                 `The execution of the op '${node.op}' returned a promise. ` +
@@ -338,9 +337,8 @@ export class GraphExecutor implements FunctionExecutor {
    */
   private async _executeAsync(
       inputs: NamedTensorMap, outputs: string[], isFunctionExecution = false,
-      tensorArrayMap: TensorArrayMap = {}, tensorListMap: TensorListMap = {},
-      hashTableMap: HashTableMap = new Map<Tensor, HashTable>()):
-      Promise<Tensor[]> {
+      tensorArrayMap: TensorArrayMap = {},
+      tensorListMap: TensorListMap = {}): Promise<Tensor[]> {
     if (!isFunctionExecution) {
       inputs = this.mapInputs(inputs);
       this.checkInputs(inputs);
@@ -350,7 +348,7 @@ export class GraphExecutor implements FunctionExecutor {
     }
 
     const context = new ExecutionContext(
-        this.weightMap, tensorArrayMap, tensorListMap, hashTableMap,
+        this.weightMap, tensorArrayMap, tensorListMap,
         this.functionExecutorMap);
 
     // Graph with control flow op requires runtime evaluation of the execution
@@ -383,16 +381,14 @@ export class GraphExecutor implements FunctionExecutor {
 
   async executeFunctionAsync(
       inputs: Tensor[], tensorArrayMap: TensorArrayMap,
-      tensorListMap: TensorListMap,
-      hashTableMap: HashTableMap): Promise<Tensor[]> {
+      tensorListMap: TensorListMap): Promise<Tensor[]> {
     const mappedInputs = inputs.reduce((map, tensor, index) => {
       map[this.inputs[index].name] = tensor;
       return map;
     }, {} as NamedTensorMap);
 
     return this._executeAsync(
-        mappedInputs, this.outputNodes, true, tensorArrayMap, tensorListMap,
-        hashTableMap);
+        mappedInputs, this.outputNodes, true, tensorArrayMap, tensorListMap);
   }
   /**
    * When there are control flow nodes in the graph, the graph execution use
@@ -479,7 +475,8 @@ export class GraphExecutor implements FunctionExecutor {
 
       // only process nodes that are not provided as input nodes.
       if (inputNodes.indexOf(item.node) === -1) {
-        const tensors = executeOp(item.node, tensorMap, context);
+        const tensors =
+            executeOp(item.node, tensorMap, context, this.resourceManager);
         if (!nodeName) {
           [nodeName] = getNodeNameAndIndex(item.node.name, context);
         }

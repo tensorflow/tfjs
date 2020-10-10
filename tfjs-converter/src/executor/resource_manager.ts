@@ -19,19 +19,19 @@ import {HashTable} from './hash_table';
 
 export class ResourceManager {
   constructor(
-      readonly hashTableNameToId: NamedTensorMap = {},
+      readonly hashTableNameToHandle: NamedTensorMap = {},
       readonly hashTableMap: HashTableMap = {}) {}
 
-  addHashTable(sharedName: string, hashTable: HashTable) {
-    this.hashTableNameToId[sharedName] = hashTable.idTensor;
+  addHashTable(name: string, hashTable: HashTable) {
+    this.hashTableNameToHandle[name] = hashTable.handle;
     this.hashTableMap[hashTable.id] = hashTable;
   }
 
-  getHashTableId(name: string) {
-    return this.hashTableNameToId[name];
+  getHashTableHandleByName(name: string) {
+    return this.hashTableNameToHandle[name];
   }
 
-  getHashTable(id: number): HashTable {
+  getHashTableById(id: number): HashTable {
     return this.hashTableMap[id];
   }
 

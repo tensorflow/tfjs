@@ -17,7 +17,7 @@
 
 import {Tensor} from '@tensorflow/tfjs-core';
 
-import {HashTableMap, NamedTensorsMap, TensorArrayMap, TensorListMap} from '../data/types';
+import {NamedTensorsMap, TensorArrayMap, TensorListMap} from '../data/types';
 
 /**
  *
@@ -25,7 +25,6 @@ import {HashTableMap, NamedTensorsMap, TensorArrayMap, TensorListMap} from '../d
 export interface FunctionExecutor {
   executeFunctionAsync(
       inputs: Tensor[], tensorArrayMap: TensorArrayMap,
-      tensorListMap: TensorListMap,
-      hashTableMap: HashTableMap): Promise<Tensor[]>;
+      tensorListMap: TensorListMap): Promise<Tensor[]>;
   weightMap: NamedTensorsMap;
 }

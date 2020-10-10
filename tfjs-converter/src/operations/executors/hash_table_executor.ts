@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Tensor} from '@tensorflow/tfjs-core';
+import {DataType, Tensor} from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
@@ -32,37 +32,35 @@ export const executeOp: InternalOpAsyncExecutor = async(
     case 'HashTable':
     case 'HashTableV2': {
       const keyDType =
-          getParamValue('keyDType', node, tensorMap, context) as tfc.DataType;
+          getParamValue('keyDType', node, tensorMap, context) as DataType;
       const valueDType =
-          getParamValue('valueDType', node, tensorMap, context) as tfc.DataType;
+          getParamValue('valueDType', node, tensorMap, context) as DataType;
 
       const hashTable = new HashTable(keyDType, valueDType);
       resourceManager.addHashTable(node.name, hashTable);
-      return [hashTable.idTensor];
+      return [hashTable.handle];
     }
     case 'LookupTableImportV2': {
       const handle = getParamValue(
                          'tableHandle', node, tensorMap, context,
-                         resourceManager) as tfc.Tensor;
-      const keys =
-          getParamValue('keys', node, tensorMap, context) as tfc.Tensor;
+                         resourceManager) as Tensor;
+      const keys = getParamValue('keys', node, tensorMap, context) as Tensor;
       const values =
-          getParamValue('values', node, tensorMap, context) as tfc.Tensor;
+          getParamValue('values', node, tensorMap, context) as Tensor;
 
-      const hashTable = resourceManager.getHashTable(handle);
-      return [hashTable.import(keys, values)];
+      const hashTable = resourceManager.getHashTableById(handle.id);
+      return [await hashTable.import(keys, values)];
     }
     case 'LookupTableFind':
     case 'LookupTableFindV2': {
       const handle = getParamValue(
                          'tableHandle', node, tensorMap, context,
-                         resourceManager) as tfc.Tensor;
-      const keys =
-          getParamValue('keys', node, tensorMap, context) as tfc.Tensor;
+                         resourceManager) as Tensor;
+      const keys = getParamValue('keys', node, tensorMap, context) as Tensor;
       const defaultValue =
-          getParamValue('defaultValue', node, tensorMap, context) as tfc.Tensor;
+          getParamValue('defaultValue', node, tensorMap, context) as Tensor;
 
-      const hashTable = resourceManager.getHashTable(handle);
+      const hashTable = resourceManager.getHashTableById(handle.id);
       return [await hashTable.find(keys, defaultValue)];
     }
     default:
