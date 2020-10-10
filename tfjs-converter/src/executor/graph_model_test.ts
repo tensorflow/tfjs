@@ -738,7 +738,7 @@ describe('Model', () => {
       spyOn(tfc.io, 'browserHTTPRequest')
           .and.returnValue(HASHTABLE_HTTP_MODEL_LOADER);
     });
-    fit('should be successful if call executeAsync', async () => {
+    it('should be successful if call executeAsync', async () => {
       await model.load();
       const keys = tfc.tensor1d(['a'], 'string');
       const defaultValues = tfc.tensor1d([0]);
