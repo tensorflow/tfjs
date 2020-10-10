@@ -14,19 +14,20 @@
  * limitations under the License.
  * =============================================================================
  */
-import {DataType, equal, keep, scalar, stack, Tensor, tidy, unstack, util} from '@tensorflow/tfjs-core';
+import {DataType, keep, scalar, stack, Tensor, tidy, unstack, util} from '@tensorflow/tfjs-core';
 
 /**
  * Hashtable contains a set of tensors, which can be accessed by key.
  */
 export class HashTable {
-  readonly idTensor: Tensor;
+  readonly handle: Tensor;
 
-  private tensorMap: Map<Tensor, Tensor>;
+  // tslint:disable-next-line: no-any
+  private tensorMap: Map<any, Tensor>;
   private initialized_ = false;
 
   get id() {
-    return this.idTensor.id;
+    return this.handle.id;
   }
 
   get initialized(): boolean {
@@ -40,19 +41,20 @@ export class HashTable {
    * @param valueDType `dtype` of the table values.
    */
   constructor(readonly keyDType: DataType, readonly valueDType: DataType) {
-    this.idTensor = scalar(0);
-    this.tensorMap = new Map<Tensor, Tensor>();
+    this.handle = scalar(0);
+    // tslint:disable-next-line: no-any
+    this.tensorMap = new Map<any, Tensor>();
     this.initialized_ = true;
 
-    keep(this.idTensor);
+    keep(this.handle);
   }
 
   /**
-   * Dispose the tensors and idTensor and clear the hashtable.
+   * Dispose the tensors and handle and clear the hashtable.
    */
   clearAndClose() {
     this.tensorMap.clear();
-    this.idTensor.dispose();
+    this.handle.dispose();
   }
 
   /**
@@ -60,6 +62,41 @@ export class HashTable {
    */
   size(): number {
     return this.tensorMap.size;
+  }
+
+  /**
+   * Replaces the contents of the table with the specified keys and values.
+   * @param keys Keys to store in the hashtable.
+   * @param values Values to store in the hashtable.
+   */
+  async import(keys: Tensor, values: Tensor): Promise<Tensor> {
+    this.checkKeyAndValueTensor(keys, values);
+
+    const $keys = await keys.data();
+
+    this.tensorMap.clear();
+
+    return tidy(() => {
+      const $values = unstack(values);
+
+      const keysLength = $keys.length;
+      const valuesLength = $values.length;
+
+      util.assert(
+          keysLength === valuesLength,
+          () => `The number of elements doesn't match, keys has ` +
+              `${keysLength} elements, the values has ${valuesLength} ` +
+              `elements.`);
+
+      for (let i = 0; i < keysLength; i++) {
+        const key = $keys[i];
+        const value = $values[i];
+
+        this.tensorMap.set(key, value);
+      }
+
+      return this.handle;
+    });
   }
 
   /**
@@ -79,76 +116,42 @@ export class HashTable {
    *     table values.
    */
   async find(keys: Tensor, defaultValue: Tensor): Promise<Tensor> {
-    const $keys = unstack(keys);
+    this.checkKeyAndValueTensor(keys, defaultValue);
 
-    const result: Tensor[] = [];
-    for (let i = 0; i < $keys.length; i++) {
-      const key = $keys[i];
+    const $keys = await keys.data();
 
-      try {
-        this.checkKeyAndValueTensor(key, defaultValue);
-
-        const value = await this.findWithDefault(key, defaultValue);
-
-        result.push(value);
-      } finally {
-        key.dispose();
-      }
-    }
-
-    return stack(result);
-  }
-
-  /**
-   * Replaces the contents of the table with the specified keys and values.
-   * @param keys Keys to store in the hashtable.
-   * @param values Values to store in the hashtable.
-   */
-  import(keys: Tensor, values: Tensor) {
     return tidy(() => {
-    const $keys = unstack(keys);
-    const $values = unstack(values);
+      const result: Tensor[] = [];
 
-    this.tensorMap.clear();
+      for (let i = 0; i < $keys.length; i++) {
+        const key = $keys[i];
 
-    for (let i = 0; i < $keys.length; i++) {
-      const key = $keys[i];
-      const value = $values[i];
+        const value = this.findWithDefault(key, defaultValue);
+        result.push(value);
+      }
 
-      this.checkKeyAndValueTensor(key, value);
-
-      this.tensorMap.set(key, value);
-    }
+      return stack(result);
     });
   }
 
-  private async findWithDefault(keyToFind: Tensor, defaultValue: Tensor):
-      Promise<Tensor> {
-    for (const [key, value] of this.tensorMap) {
-    const isEqual = equal(key, keyToFind);
-    const $isEqual = (await isEqual.data())[0];
+  // tslint:disable-next-line: no-any
+  private findWithDefault(key: any, defaultValue: Tensor): Tensor {
+    const result = this.tensorMap.get(key);
 
-    isEqual.dispose();
-
-    if ($isEqual) {
-      return value;
-    }
-    }
-
-    return defaultValue;
+    return result != null ? result : defaultValue;
   }
 
   private checkKeyAndValueTensor(key: Tensor, value: Tensor) {
     if (key.dtype !== this.keyDType) {
-    throw new Error(
-        `Expect key dtype ${this.keyDType}, but got ` +
-        `${key.dtype}`);
+      throw new Error(
+          `Expect key dtype ${this.keyDType}, but got ` +
+          `${key.dtype}`);
     }
 
     if (value.dtype !== this.valueDType) {
-    throw new Error(
-        `Expect value dtype ${this.valueDType}, but got ` +
-        `${value.dtype}`);
+      throw new Error(
+          `Expect value dtype ${this.valueDType}, but got ` +
+          `${value.dtype}`);
     }
   }
 }

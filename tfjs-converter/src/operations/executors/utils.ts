@@ -34,15 +34,17 @@ export function getParamValue(
                                                   inputParam.inputIndexEnd);
     if (inputParam.type === 'tensor') {
       return getTensor(
-          node.inputNames[inputParam.inputIndexStart], tensorMap, context);
+          node.inputNames[inputParam.inputIndexStart], tensorMap, context,
+          resourceManager);
     }
     if (inputParam.type === 'tensors') {
       const inputs = node.inputNames.slice(start, end);
 
-      return inputs.map(name => getTensor(name, tensorMap, context));
+      return inputs.map(
+          name => getTensor(name, tensorMap, context, resourceManager));
     }
-    const tensor =
-        getTensor(node.inputNames.slice(start)[0], tensorMap, context);
+    const tensor = getTensor(
+        node.inputNames.slice(start)[0], tensorMap, context, resourceManager);
     const data = tensor.dataSync();
     return inputParam.type === 'number' ?
         data[0] :
@@ -59,9 +61,17 @@ export function getParamValue(
  * @param tensorsMap Tensors map keyed by the node
  */
 export function getTensor(
-    name: string, tensorsMap: NamedTensorsMap,
-    context: ExecutionContext): Tensor {
+    name: string, tensorsMap: NamedTensorsMap, context: ExecutionContext,
+    resourceManager?: ResourceManager): Tensor {
   const [nodeName, index] = parseNodeName(name);
+
+  if (resourceManager != null) {
+    const tensor = resourceManager.getHashTableHandleByName(nodeName);
+    if (tensor != null) {
+      return tensor;
+    }
+  }
+
   const contextId = context.currentContextIds.find(contextId => {
     return !!tensorsMap[getNodeNameWithContextId(nodeName, contextId)];
   });
