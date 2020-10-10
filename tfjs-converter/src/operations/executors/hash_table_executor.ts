@@ -49,7 +49,9 @@ export const executeOp: InternalOpAsyncExecutor = async(
           getParamValue('values', node, tensorMap, context) as Tensor;
 
       const hashTable = resourceManager.getHashTableById(handle.id);
-      return [await hashTable.import(keys, values)];
+
+      await hashTable.import(keys, values)
+      return [];
     }
     case 'LookupTableFind':
     case 'LookupTableFindV2': {

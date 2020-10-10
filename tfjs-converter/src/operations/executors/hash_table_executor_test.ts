@@ -12,11 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  * =============================================================================
  */
-import {memory, scalar, setBackend, Tensor, tensor1d, test_util} from '@tensorflow/tfjs-core';
-// tslint:disable-next-line: no-imports-from-dist
-import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {memory, test_util} from '@tensorflow/tfjs-core';
+
 // tslint:disable-next-line: no-imports-from-dist
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
@@ -31,8 +31,6 @@ import {createDtypeAttr, createTensorAttr, validateParam} from './test_helper';
 
 describe('hash_table', () => {
   let node: Node;
-  let input1: Tensor[];
-  let input2: Tensor[];
   const context = new ExecutionContext({}, {}, {});
   let resourceManager: ResourceManager;
 
@@ -41,20 +39,16 @@ describe('hash_table', () => {
       name: 'test',
       op: '',
       category: 'hash_table',
-      inputNames: ['input1', 'pred'],
+      inputNames: [],
       inputs: [],
       inputParams: {},
       attrParams: {},
       children: []
     };
-    input1 = [tfOps.scalar(1, 'int32')];
-    input2 = [tfOps.scalar(0, 'bool')];
     resourceManager = new ResourceManager();
   });
 
   afterEach(() => {
-    input1[0].dispose();
-    input2[0].dispose();
     resourceManager.dispose();
   });
 
@@ -115,17 +109,14 @@ describe('hash_table', () => {
         node.inputParams['tableHandle'] = createTensorAttr(0);
         node.inputParams['keys'] = createTensorAttr(1);
         node.inputParams['values'] = createTensorAttr(2);
-        node.inputNames = ['input2', 'input3', 'input5'];
-        const input2 = [hashTable.handle];
-        const input3 = [tensor1d(['a'], 'string')];
-        const input5 = [tensor1d([5.5])];
+        node.inputNames = ['hashtable', 'input3', 'input5'];
+        const input3 = [tfOps.tensor1d(['a'], 'string')];
+        const input5 = [tfOps.tensor1d([5.5])];
 
         const before = memory().numTensors;
-        const result = (await executeOp(
-            node, {input2, input3, input5}, context, resourceManager));
+        (await executeOp(node, {input3, input5}, context, resourceManager));
         const after = memory().numTensors;
-        expect(after).toBe(before);
-        expect(result[0]).toBe(hashTable.handle);
+        expect(after).toBe(before + 1);
       });
 
       it('should throw if dtype doesnot match.', async (done) => {
@@ -137,15 +128,13 @@ describe('hash_table', () => {
         node.inputParams['tableHandle'] = createTensorAttr(0);
         node.inputParams['keys'] = createTensorAttr(1);
         node.inputParams['values'] = createTensorAttr(2);
-        node.inputNames = ['input2', 'input3', 'input5'];
-        const input2 = [hashTable.handle];
-        const input3 = [tensor1d([1])];
-        const input5 = [tensor1d([5.5])];
+        node.inputNames = ['hashtable', 'input3', 'input5'];
+        const input3 = [tfOps.tensor1d([1])];
+        const input5 = [tfOps.tensor1d([5.5])];
 
         const before = memory().numTensors;
         try {
-          await executeOp(
-              node, {input2, input3, input5}, context, resourceManager);
+          await executeOp(node, {input3, input5}, context, resourceManager);
           done.fail('Should fail, succeed unexpectedly.');
         } catch (err) {
           expect(err).toMatch(/Expect key dtype/);
@@ -165,15 +154,13 @@ describe('hash_table', () => {
            node.inputParams['tableHandle'] = createTensorAttr(0);
            node.inputParams['keys'] = createTensorAttr(1);
            node.inputParams['values'] = createTensorAttr(2);
-           node.inputNames = ['input2', 'input3', 'input5'];
-           const input2 = [hashTable.handle];
-           const input3 = [tensor1d(['a', 'b'])];
-           const input5 = [tensor1d([5.5])];
+           node.inputNames = ['hashtable', 'input3', 'input5'];
+           const input3 = [tfOps.tensor1d(['a', 'b'])];
+           const input5 = [tfOps.tensor1d([5.5])];
 
            const before = memory().numTensors;
            try {
-             await executeOp(
-                 node, {input2, input3, input5}, context, resourceManager);
+             await executeOp(node, {input3, input5}, context, resourceManager);
              done.fail('Should fail, succeed unexpectedly.');
            } catch (err) {
              expect(err).toMatch(/The number of elements doesn't match/);
@@ -193,10 +180,8 @@ describe('hash_table', () => {
       });
     });
 
-    describeWithFlags('LookupTableFind', ALL_ENVS, () => {
+    describe('LookupTableFind', () => {
       it('should find the value from hashtable.', async () => {
-        await setBackend('cpu');
-
         const hashTable = new HashTable('string', 'float32');
 
         resourceManager.addHashTable('hashtable', hashTable);
@@ -216,8 +201,8 @@ describe('hash_table', () => {
           children: []
         };
 
-        const keys = [tensor1d(['a'], 'string')];
-        const values = [tensor1d([5.5])];
+        const keys = [tfOps.tensor1d(['a'], 'string')];
+        const values = [tfOps.tensor1d([5.5])];
 
         (await executeOp(importNode, {keys, values}, context, resourceManager));
 
@@ -226,8 +211,8 @@ describe('hash_table', () => {
         node.inputParams['keys'] = createTensorAttr(1);
         node.inputParams['defaultValue'] = createTensorAttr(2);
         node.inputNames = ['hashtable', 'input3', 'input5'];
-        const input3 = [tensor1d(['a', 'b'], 'string')];
-        const input5 = [scalar(0)];
+        const input3 = [tfOps.tensor1d(['a', 'b'], 'string')];
+        const input5 = [tfOps.scalar(0)];
 
         const before = memory().numTensors;
 
@@ -239,33 +224,51 @@ describe('hash_table', () => {
         // Create a result tensor.
         expect(after).toBe(before + 1);
       });
-      xit('should throw if dtype doesnot match.', async (done) => {
-        const hashTable = new HashTable('int32', 'float32');
-        // const keys = tensor1d([1], 'int32');
-        // const values = tensor1d([5.5]);
-        const handle = hashTable.handle;
+      it('should throw if dtype doesnot match.', async (done) => {
+        const hashTable = new HashTable('string', 'float32');
+
+        resourceManager.addHashTable('hashtable', hashTable);
+
+        const importNode: Node = {
+          name: 'importv2',
+          op: 'LookupTableImportV2',
+          category: 'hash_table',
+          inputNames: ['hashtable', 'keys', 'values'],
+          inputs: [],
+          inputParams: {
+            tableHandle: createTensorAttr(0),
+            keys: createTensorAttr(1),
+            values: createTensorAttr(2)
+          },
+          attrParams: {},
+          children: []
+        };
+
+        const keys = [tfOps.tensor1d(['a'], 'string')];
+        const values = [tfOps.tensor1d([5.5])];
+
+        (await executeOp(importNode, {keys, values}, context, resourceManager));
 
         node.op = 'LookupTableFind';
         node.inputParams['tableHandle'] = createTensorAttr(0);
         node.inputParams['keys'] = createTensorAttr(1);
         node.inputParams['defaultValue'] = createTensorAttr(2);
-        node.inputNames = ['input2', 'input3', 'input5'];
-        const input2 = [handle];
-        const input3 = [tensor1d([1, 2], 'float32')];
-        const input5 = [scalar(0)];
+        node.inputNames = ['hashtable', 'input3', 'input5'];
+        const input3 = [tfOps.tensor1d([1, 2], 'float32')];
+        const input5 = [tfOps.scalar(0)];
 
         const before = memory().numTensors;
         try {
-          await executeOp(node, {input2, input3, input5}, context);
+          await executeOp(node, {input3, input5}, context, resourceManager);
           done.fail('Shoudl fail, succeed unexpectedly.');
         } catch (err) {
           expect(err).toMatch(/Expect key dtype/);
         }
         const after = memory().numTensors;
-        expect(after).toBe(before + 1);
+        expect(after).toBe(before);
         done();
       });
-      xit('should match json def.', () => {
+      it('should match json def.', () => {
         node.op = 'LookupTableFind';
         node.inputParams['tableHandle'] = createTensorAttr(0);
         node.inputParams['keys'] = createTensorAttr(1);
@@ -276,57 +279,94 @@ describe('hash_table', () => {
     });
 
     describe('LookupTableFindV2', () => {
-      xit('should create new tensor on the context.', async () => {
-        const hashTable = new HashTable('int32', 'float32');
-        // const keys = tensor1d([1], 'int32');
-        // const values = tensor1d([5.5]);
+      it('should find the value from hashtable.', async () => {
+        const hashTable = new HashTable('string', 'float32');
 
-        const handle = hashTable.handle;
+        resourceManager.addHashTable('hashtable', hashTable);
+
+        const importNode: Node = {
+          name: 'importv2',
+          op: 'LookupTableImportV2',
+          category: 'hash_table',
+          inputNames: ['hashtable', 'keys', 'values'],
+          inputs: [],
+          inputParams: {
+            tableHandle: createTensorAttr(0),
+            keys: createTensorAttr(1),
+            values: createTensorAttr(2)
+          },
+          attrParams: {},
+          children: []
+        };
+
+        const keys = [tfOps.tensor1d(['a'], 'string')];
+        const values = [tfOps.tensor1d([5.5])];
+
+        (await executeOp(importNode, {keys, values}, context, resourceManager));
 
         node.op = 'LookupTableFindV2';
         node.inputParams['tableHandle'] = createTensorAttr(0);
         node.inputParams['keys'] = createTensorAttr(1);
         node.inputParams['defaultValue'] = createTensorAttr(2);
-        node.inputNames = ['input2', 'input3', 'input5'];
-        const input2 = [handle];
-        const input3 = [tensor1d([1, 2], 'int32')];
-        const input5 = [scalar(0)];
+        node.inputNames = ['hashtable', 'input3', 'input5'];
+        const input3 = [tfOps.tensor1d(['a', 'b'], 'string')];
+        const input5 = [tfOps.scalar(0)];
 
         const before = memory().numTensors;
+
         const result =
-            (await executeOp(node, {input2, input3, input5}, context));
+            (await executeOp(node, {input3, input5}, context, resourceManager));
         const after = memory().numTensors;
         test_util.expectArraysClose(await result[0].data(), [5.5, 0]);
+
+        // Create a result tensor.
         expect(after).toBe(before + 1);
       });
-      xit('should throw if dtype doesnot match.', async (done) => {
-        const hashTable = new HashTable('int32', 'float32');
-        // const keys = tensor1d([1], 'int32');
-        // const values = tensor1d([5.5]);
+      it('should throw if dtype doesnot match.', async (done) => {
+        const hashTable = new HashTable('string', 'float32');
 
-        const handle = hashTable.handle;
+        resourceManager.addHashTable('hashtable', hashTable);
 
-        node.op = 'LookupTableFind';
+        const importNode: Node = {
+          name: 'importv2',
+          op: 'LookupTableImportV2',
+          category: 'hash_table',
+          inputNames: ['hashtable', 'keys', 'values'],
+          inputs: [],
+          inputParams: {
+            tableHandle: createTensorAttr(0),
+            keys: createTensorAttr(1),
+            values: createTensorAttr(2)
+          },
+          attrParams: {},
+          children: []
+        };
+
+        const keys = [tfOps.tensor1d(['a'], 'string')];
+        const values = [tfOps.tensor1d([5.5])];
+
+        (await executeOp(importNode, {keys, values}, context, resourceManager));
+
+        node.op = 'LookupTableFindV2';
         node.inputParams['tableHandle'] = createTensorAttr(0);
         node.inputParams['keys'] = createTensorAttr(1);
         node.inputParams['defaultValue'] = createTensorAttr(2);
-        node.inputNames = ['input2', 'input3', 'input5'];
-        const input2 = [handle];
-        const input3 = [tensor1d([1, 2], 'float32')];
-        const input5 = [scalar(0)];
+        node.inputNames = ['hashtable', 'input3', 'input5'];
+        const input3 = [tfOps.tensor1d([1, 2], 'float32')];
+        const input5 = [tfOps.scalar(0)];
 
         const before = memory().numTensors;
         try {
-          await executeOp(node, {input2, input3, input5}, context);
+          await executeOp(node, {input3, input5}, context, resourceManager);
           done.fail('Shoudl fail, succeed unexpectedly.');
         } catch (err) {
           expect(err).toMatch(/Expect key dtype/);
         }
         const after = memory().numTensors;
-        expect(after).toBe(before + 1);
+        expect(after).toBe(before);
         done();
       });
-      xit('should match json def.', () => {
+      it('should match json def.', () => {
         node.op = 'LookupTableFindV2';
         node.inputParams['tableHandle'] = createTensorAttr(0);
         node.inputParams['keys'] = createTensorAttr(1);
