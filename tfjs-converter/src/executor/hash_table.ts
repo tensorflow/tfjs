@@ -92,6 +92,7 @@ export class HashTable {
         const key = $keys[i];
         const value = $values[i];
 
+        keep(value);
         this.tensorMap.set(key, value);
       }
 
