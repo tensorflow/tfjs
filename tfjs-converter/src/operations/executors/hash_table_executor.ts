@@ -50,8 +50,7 @@ export const executeOp: InternalOpAsyncExecutor = async(
 
       const hashTable = resourceManager.getHashTableById(handle.id);
 
-      await hashTable.import(keys, values)
-      return [];
+      return [await hashTable.import(keys, values)];
     }
     case 'LookupTableFind':
     case 'LookupTableFindV2': {
