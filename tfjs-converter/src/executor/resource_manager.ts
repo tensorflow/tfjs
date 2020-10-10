@@ -39,5 +39,8 @@ export class ResourceManager {
     for (const key in this.hashTableMap) {
       this.hashTableMap[key].clearAndClose();
     }
+    for (const name in this.hashTableNameToHandle) {
+      this.hashTableNameToHandle[name].dispose();
+    }
   }
 }
