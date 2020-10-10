@@ -22,6 +22,7 @@ import {NamedTensorsMap, TensorInfo} from '../data/types';
 import {OperationMapper} from '../operations/operation_mapper';
 
 import {GraphExecutor} from './graph_executor';
+import {ResourceManager} from './resource_manager';
 
 export const TFHUB_SEARCH_PARAM = '?tfjs-format=file';
 export const DEFAULT_MODEL_NAME = 'model.json';
@@ -41,6 +42,7 @@ export class GraphModel implements InferenceModel {
   private handler: io.IOHandler;
   private artifacts: io.ModelArtifacts;
   private initializer: GraphExecutor;
+  private resourceManager: ResourceManager;
 
   // Returns the version information for the tensorflow model GraphDef.
   get modelVersion(): string {
@@ -82,6 +84,7 @@ export class GraphModel implements InferenceModel {
     if (loadOptions == null) {
       this.loadOptions = {};
     }
+    this.resourceManager = new ResourceManager();
   }
 
   private findIOHandler() {
@@ -144,14 +147,15 @@ export class GraphModel implements InferenceModel {
     this.executor = new GraphExecutor(
         OperationMapper.Instance.transformGraph(graph, signature));
     this.executor.weightMap = this.convertTensorMapToTensorsMap(weightMap);
+    this.executor.resourceManager = this.resourceManager;
 
     if (artifacts.modelInitializer != null) {
       const initializer =
           OperationMapper.Instance.transformGraph(artifacts.modelInitializer);
       this.initializer = new GraphExecutor(initializer);
       this.initializer.weightMap = this.executor.weightMap;
-      const initTensors =
-          this.initializer.execute({}, [], this.resourceManager);
+      this.initializer.resourceManager = this.resourceManager;
+      this.initializer.executeAsync({}, []);
     }
 
     return true;
@@ -264,7 +268,7 @@ export class GraphModel implements InferenceModel {
    */
   predict(inputs: Tensor|Tensor[]|NamedTensorMap, config?: ModelPredictConfig):
       Tensor|Tensor[]|NamedTensorMap {
-    return this.execute(inputs, this.outputNodes, this.resourceManager);
+    return this.execute(inputs, this.outputNodes);
   }
 
   private normalizeInputs(inputs: Tensor|Tensor[]|
@@ -311,7 +315,7 @@ export class GraphModel implements InferenceModel {
       Tensor|Tensor[] {
     inputs = this.normalizeInputs(inputs);
     outputs = this.normalizeOutputs(outputs);
-    const result = this.executor.execute(inputs, outputs, this.resourceManager);
+    const result = this.executor.execute(inputs, outputs);
     return result.length > 1 ? result : result[0];
   }
   /**

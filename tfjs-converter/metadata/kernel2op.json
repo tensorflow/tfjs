@@ -197,6 +197,8 @@
   "GreaterEqual": [
     "greaterEqual"
   ],
+  "HashTable": [],
+  "HashTableV2": [],
   "IFFT": [
     "ifft"
   ],
@@ -245,6 +247,9 @@
   "LogicalOr": [
     "logicalOr"
   ],
+  "LookupTableFind": [],
+  "LookupTableFindV2": [],
+  "LookupTableImportV2": [],
   "LoopCond": [],
   "MatMul": [
     "matMul"

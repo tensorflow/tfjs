@@ -68,6 +68,11 @@ describe('kernel2op metadata file', () => {
       'TensorListSplit',
       'TensorListStack',
       'While',
+      'HashTable',
+      'HashTableV2',
+      'LookupTableImportV2',
+      'LookupTableFind',
+      'LookupTableFindV2'
     ];
     // tslint:disable-next-line:no-require-imports
     const kernel2op = require('../metadata/kernel2op.json');
