@@ -415,10 +415,11 @@ export class GraphExecutor implements FunctionExecutor {
         getExecutionSubgraph(
             inputs, outputNodes, this.weightMap, this._initNodes);
 
-    const stack: NodeWithContexts[] =
-        [...inputNodes, ...this.graph.weights, ...this._initNodes].map(node => {
-          return {node, contexts: context.currentContext};
-        });
+    const stack: NodeWithContexts[] = [
+      ...inputNodes, ...this.graph.weights, ...(this._initNodes || [])
+    ].map(node => {
+      return {node, contexts: context.currentContext};
+    });
     const tensorsMap: NamedTensorsMap = {...this.weightMap};
     Object.keys(inputs).forEach(name => {
       const [nodeName, index] = parseNodeName(name);
