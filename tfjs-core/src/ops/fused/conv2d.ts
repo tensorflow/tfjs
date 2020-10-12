@@ -17,7 +17,7 @@
 
 import {ENGINE, ForwardFunc} from '../../engine';
 import {customGrad} from '../../gradients';
-import {FusedConv2D, FusedConv2DAttrs, FusedConv2DInputs} from '../../kernel_names';
+import {_FusedConv2D, _FusedConv2DAttrs, _FusedConv2DInputs} from '../../kernel_names';
 import {NamedAttrMap} from '../../kernel_registry';
 import {Tensor, Tensor3D, Tensor4D} from '../../tensor';
 import {GradSaveFunc, NamedTensorMap} from '../../tensor_types';
@@ -219,14 +219,14 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
     return res;
   };
 
-  const inputs: FusedConv2DInputs = {
+  const inputs: _FusedConv2DInputs = {
     x: x4D,
     filter: $filter,
     bias: $bias,
     preluActivationWeights: $preluActivationWeights
   };
 
-  const attrs: FusedConv2DAttrs =
+  const attrs: _FusedConv2DAttrs =
       {strides, pad, dataFormat, dilations, dimRoundingMode, activation};
 
   // Depending on the the params passed in we will have different number of
@@ -236,7 +236,7 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
         customGrad((x4D: Tensor4D, filter: Tensor4D, save: GradSaveFunc) => {
           let res = ENGINE.runKernelFunc(
               forward, inputs as {} as NamedTensorMap, null /* grad */,
-              FusedConv2D, attrs as {} as NamedAttrMap);
+              _FusedConv2D, attrs as {} as NamedAttrMap);
 
           save([filter, x4D, res]);
 
@@ -252,7 +252,7 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
         (x4D: Tensor4D, filter: Tensor4D, bias: Tensor, save: GradSaveFunc) => {
           let res = ENGINE.runKernelFunc(
               forward, inputs as {} as NamedTensorMap, null /* grad */,
-              FusedConv2D, attrs as {} as NamedAttrMap);
+              _FusedConv2D, attrs as {} as NamedAttrMap);
 
           save([filter, x4D, res, bias]);
 

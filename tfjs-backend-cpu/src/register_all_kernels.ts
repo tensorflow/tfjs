@@ -19,6 +19,7 @@
 // the contents of this file and import only the kernels that are needed.
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
+import {_fusedConv2DConfig} from './kernels/_FusedConv2D';
 import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {absConfig} from './kernels/Abs';
 import {acosConfig} from './kernels/Acos';
@@ -37,6 +38,7 @@ import {ceilConfig} from './kernels/Ceil';
 import {clipConfig} from './kernels/Clip';
 import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
+import {conv2DConfig} from './kernels/Conv2D';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
 import {dilation2dConfig} from './kernels/Dilation2D';
@@ -99,6 +101,7 @@ import {uniqueConfig} from './kernels/Unique';
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
   _fusedMatMulConfig,
+  _fusedConv2DConfig,
   absConfig,
   acosConfig,
   acoshConfig,
@@ -116,6 +119,7 @@ const kernelConfigs: KernelConfig[] = [
   clipConfig,
   complexConfig,
   concatConfig,
+  conv2DConfig,
   cosConfig,
   coshConfig,
   dilation2dConfig,
