@@ -600,6 +600,9 @@ def convert_tf_saved_model(saved_model_dir,
           frozen_graph.as_graph_def(), input_node_names, output_node_names,
           graph_transformations)
 
+      # The transform graph library cannot support input nodes that has dynamic
+      # shape, this code will update the dtype and shape based on the
+      # input tensor manually.
       for node in stripped_graph_def.node:
         if node.name in input_tensors:
           if node.attr['shape'] and node.attr['shape'].shape:
