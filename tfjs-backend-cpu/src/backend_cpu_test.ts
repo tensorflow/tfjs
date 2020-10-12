@@ -60,6 +60,8 @@ describeWithFlags('depthToSpace', ALL_ENVS, () => {
   });
 });
 
+describeWithFlags('spaceToDepth', ALL_ENVS, () => {});
+
 describeWithFlags('gatherND CPU', ALL_ENVS, () => {
   it('should throw error when index out of range', () => {
     const indices = tf.tensor2d([0, 2, 99], [3, 1], 'int32');
