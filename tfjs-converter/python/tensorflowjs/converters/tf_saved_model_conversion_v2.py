@@ -580,8 +580,9 @@ def convert_tf_saved_model(saved_model_dir,
       # unsupported error caused by nodes outside of the minial infrerence
       # graph.
       input_node_names = []
+      input_tensors = {}
       for input_tensor in concrete_func.inputs:
-        if not input_tensor.dtype == 'resource':
+        if input_tensor.dtype != 'resource':
           op_name = input_tensor.name.split(':')[0]
           # The graph freezing may turn the original inputs into constants, or
           # remove them from the graph, so we need to ignore those.
@@ -589,6 +590,7 @@ def convert_tf_saved_model(saved_model_dir,
             op = frozen_graph.get_operation_by_name(op_name)
             if op.type != 'Const':
               input_node_names.append(op_name)
+              input_tensors[op_name] = input_tensor
           except KeyError:
             # The original input was removed when the graph was frozen.
             continue
@@ -597,6 +599,16 @@ def convert_tf_saved_model(saved_model_dir,
       stripped_graph_def = TransformGraph(
           frozen_graph.as_graph_def(), input_node_names, output_node_names,
           graph_transformations)
+
+      for node in stripped_graph_def.node:
+        if node.name in input_tensors:
+          shape_attr = node.attr['shape']
+          if shape_attr and shape_attr.shape:
+            shape_attr.shape.CopyFrom(input_tensors[node.name].shape.as_proto())
+          dtype_attr = node.attr['dtype']
+          if dtype_attr and dtype_attr.type:
+            dtype_attr.type = input_tensors[node.name].dtype.as_datatype_enum
+
       with tf.Graph().as_default() as stripped_graph:
         tf.import_graph_def(stripped_graph_def, name='')
         return stripped_graph
