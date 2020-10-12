@@ -818,14 +818,16 @@ export interface _FusedMatMulAttrs {
   activation: Activation;
 }
 
-export const FusedConv2D = 'FusedConv2D';
-export interface FusedConv2DInputs extends NamedTensorInfoMap {
+export const _FusedConv2D = 'FusedConv2D';
+// tslint:disable-next-line: class-name
+export interface _FusedConv2DInputs extends NamedTensorInfoMap {
   x: TensorInfo;
   filter: TensorInfo;
   bias?: TensorInfo;
   preluActivationWeights?: TensorInfo;
 }
-export interface FusedConv2DAttrs {
+// tslint:disable-next-line: class-name
+export interface _FusedConv2DAttrs {
   strides: [number, number]|number;
   pad: 'valid'|'same'|number|ExplicitPadding;
   dataFormat: 'NHWC'|'NCHW';
