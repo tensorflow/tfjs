@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, KernelConfig, Mean, MeanAttrs, MeanInputs, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, Mean, MeanAttrs, MeanInputs, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 

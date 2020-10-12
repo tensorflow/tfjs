@@ -18,13 +18,14 @@
 import {backend_util, DataType, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
+import {MeanProgram} from '../mean_gpu';
 import {ReduceProgram} from '../reduce_gpu';
 
-type ReduceTypes = 'all'|'any'|'max'|'min'|'sum'|'prod';
+type ReduceTypes = 'all'|'any'|'max'|'min'|'sum'|'prod'|'mean';
 
 // Returns an array of configuration objects that describe each stage of the
 // reduction.
-export function getReductionStages(inShape: number[]):
+function getReductionStages(inShape: number[]):
     Array<{inSize: number, windowSize: number, outSize: number}> {
   const stages = [];
 
@@ -51,9 +52,19 @@ export function reduce(
   for (let i = 0; i < reductionStages.length; i++) {
     const {inSize, windowSize, outSize} = reductionStages[i];
 
-    const program = new ReduceProgram(
-        {windowSize, inSize, batchSize: x.shape[0], outSize}, reductionType);
-    const previousResult = result;
+    let program: ReduceProgram|MeanProgram;
+    let previousResult: TensorInfo;
+    if (reductionType === 'mean') {
+      program = i === 0 ?
+          new MeanProgram(
+              {windowSize, inSize, batchSize: x.shape[0], outSize}, inSize) :
+          new MeanProgram({windowSize, inSize, batchSize: x.shape[0], outSize});
+    } else {
+      program = new ReduceProgram(
+          {windowSize, inSize, batchSize: x.shape[0], outSize}, reductionType);
+    }
+
+    previousResult = result;
     result = backend.runWebGLProgram(program, [result], dtype);
 
     if (previousResult.dataId !== x.dataId) {

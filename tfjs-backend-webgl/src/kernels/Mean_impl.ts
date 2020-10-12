@@ -18,32 +18,8 @@
 import {TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import {getReductionStages} from '../kernel_utils/reduce';
+import {reduce} from '../kernel_utils/reduce';
 import {reshape} from '../kernels/Reshape';
-import {MeanProgram} from '../mean_gpu';
-
-function meanReduce(
-    x: TensorInfo, reduceSize: number, backend: MathBackendWebGL): TensorInfo {
-  const reductionStages = getReductionStages(x.shape);
-
-  let result = x;
-  for (let i = 0; i < reductionStages.length; i++) {
-    const {inSize, windowSize, outSize} = reductionStages[i];
-
-    const program = i === 0 ?
-        new MeanProgram(
-            {windowSize, inSize, batchSize: x.shape[0], outSize}, reduceSize) :
-        new MeanProgram({windowSize, inSize, batchSize: x.shape[0], outSize});
-    const previousResult = result;
-    result = backend.runWebGLProgram(program, [result], 'float32');
-
-    if (previousResult.dataId !== x.dataId) {
-      backend.disposeIntermediateTensorInfo(previousResult);
-    }
-  }
-
-  return result;
-}
 
 export function meanImpl(
     x: TensorInfo, reduceShape: number[], outShape: number[],
@@ -54,8 +30,7 @@ export function meanImpl(
   const reshapedInput =
       reshape({inputs: {x}, attrs: {shape: [batchSize, inSize]}, backend});
 
-  const reduced =
-      meanReduce(reshapedInput, util.sizeFromShape(reduceShape), backend);
+  const reduced = reduce(reshapedInput, 'float32', 'mean', backend)
   const reshapedOutput =
       reshape({inputs: {x: reduced}, attrs: {shape: outShape}, backend});
 
