@@ -23,7 +23,7 @@ import {applyActivation} from '../utils/fused_utils';
 import {add} from './Add';
 import {batchMatMul} from './BatchMatMul';
 
-export function _fusedMatMulKernelFunc(args: {
+export function _fusedMatMul(args: {
   inputs: _FusedMatMulInputs,
   attrs: _FusedMatMulAttrs,
   backend: MathBackendCPU
@@ -64,5 +64,5 @@ export function _fusedMatMulKernelFunc(args: {
 export const _fusedMatMulConfig: KernelConfig = {
   kernelName: _FusedMatMul,
   backendName: 'cpu',
-  kernelFunc: _fusedMatMulKernelFunc as {} as KernelFunc,
+  kernelFunc: _fusedMatMul as {} as KernelFunc,
 };
