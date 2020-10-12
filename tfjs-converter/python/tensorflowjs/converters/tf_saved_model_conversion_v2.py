@@ -602,12 +602,12 @@ def convert_tf_saved_model(saved_model_dir,
 
       for node in stripped_graph_def.node:
         if node.name in input_tensors:
-          shape_attr = node.attr['shape']
-          if shape_attr and shape_attr.shape:
-            shape_attr.shape.CopyFrom(input_tensors[node.name].shape.as_proto())
-          dtype_attr = node.attr['dtype']
-          if dtype_attr and dtype_attr.type:
-            dtype_attr.type = input_tensors[node.name].dtype.as_datatype_enum
+          if node.attr['shape'] and node.attr['shape'].shape:
+            node.attr['shape'].shape.CopyFrom(
+                input_tensors[node.name].shape.as_proto())
+          if node.attr['dtype'] and node.attr['dtype'].type:
+            node.attr['dtype'].type = input_tensors[
+                node.name].dtype.as_datatype_enum
 
       with tf.Graph().as_default() as stripped_graph:
         tf.import_graph_def(stripped_graph_def, name='')
