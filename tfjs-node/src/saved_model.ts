@@ -207,7 +207,12 @@ export class TFSavedModel implements InferenceModel {
    * @doc {heading: 'Models', subheading: 'SavedModel'}
    */
   get inputs(): ModelTensorInfo[] {
-    throw new Error('SavedModel inputs information is not available yet.');
+    const entries = this.signature.inputs;
+    const results = Object.keys(entries).map((key: string) => entries[key]);
+    results.forEach((info: ModelTensorInfo) => {
+      info.name = info.name.replace(/:0$/, '');
+    });
+    return results;
   }
 
   /**
@@ -216,7 +221,12 @@ export class TFSavedModel implements InferenceModel {
    * @doc {heading: 'Models', subheading: 'SavedModel'}
    */
   get outputs(): ModelTensorInfo[] {
-    throw new Error('SavedModel outputs information is not available yet.');
+    const entries = this.signature.outputs;
+    const results = Object.keys(entries).map((key: string) => entries[key]);
+    results.forEach((info: ModelTensorInfo) => {
+      info.name = info.name.replace(/:0$/, '');
+    });
+    return results;
   }
 
   /**
