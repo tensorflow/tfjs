@@ -515,4 +515,33 @@ describe('SavedModel', () => {
     model2.dispose();
     expect(tf.node.getNumOfSavedModels()).toBe(0);
   });
+
+  it('return inputs and outputs', async () =>{
+    const model = await tf.node.loadSavedModel(
+        './test_objects/saved_model/model_multi_output', ['serve'],
+        'serving_default');
+    expect(model.inputs.length).toBe(2);
+    expect(model.outputs.length).toBe(2);
+
+    expect(model.inputs[0].name).toBe('serving_default_x');
+    expect(model.inputs[0].dtype).toBe('int32');
+    expect(model.inputs[0].tfDtype).toBe('DT_INT32');
+    expect(model.inputs[0].shape.length).toBe(0);
+
+    expect(model.inputs[1].name).toBe('serving_default_y');
+    expect(model.inputs[1].dtype).toBe('int32');
+    expect(model.inputs[1].tfDtype).toBe('DT_INT32');
+    expect(model.inputs[1].shape.length).toBe(0);
+
+    expect(model.outputs[0].name).toBe('StatefulPartitionedCall');
+    expect(model.outputs[0].dtype).toBe('int32');
+    expect(model.outputs[0].tfDtype).toBe('DT_INT32');
+    expect(model.outputs[0].shape.length).toBe(0);
+
+    expect(model.outputs[1].name).toBe('StatefulPartitionedCall:1');
+    expect(model.outputs[1].dtype).toBe('int32');
+    expect(model.outputs[1].tfDtype).toBe('DT_INT32');
+    expect(model.outputs[1].shape.length).toBe(0);
+    model.dispose();
+  });
 });
