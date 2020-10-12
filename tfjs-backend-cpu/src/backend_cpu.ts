@@ -739,22 +739,6 @@ export class MathBackendCPU extends KernelBackend {
         T;
   }
 
-  fusedConv2d(
-      {input, filter, convInfo, bias, activation, preluActivationWeights}:
-          backend_util.FusedConv2DConfig): Tensor4D {
-    let result = this.conv2d(input, filter, convInfo);
-
-    if (bias) {
-      // TODO(lina128): Use add directly once fusedConv2d is modularized.
-      result = tf.add(result, bias);
-    }
-    if (activation) {
-      result =
-          mapActivation(result, activation, preluActivationWeights) as Tensor4D;
-    }
-    return result;
-  }
-
   conv3d(x: Tensor5D, filter: Tensor5D, convInfo: backend_util.Conv3DInfo):
       Tensor5D {
     const filterDepth = convInfo.filterDepth;
