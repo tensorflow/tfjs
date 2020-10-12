@@ -72,11 +72,11 @@ class ConvertTest(tf.test.TestCase):
         builder.add_meta_graph_and_variables(
             sess, [tf.compat.v1.saved_model.tag_constants.SERVING],
             signature_def_map={
-                "serving_default":
+                'serving_default':
                     tf.compat.v1.saved_model \
                         .signature_def_utils.predict_signature_def(
-                            inputs={"x": x},
-                            outputs={"output": output})
+                            inputs={'x': x},
+                            outputs={'output': output})
             },
             assets_collection=None)
 
@@ -87,9 +87,10 @@ class ConvertTest(tf.test.TestCase):
 
     graph = tf.Graph()
     with graph.as_default():
-      x = tf.compat.v1.placeholder('float32', [2, 2])
+      x = tf.compat.v1.placeholder('int32', [None, 2, 2])
+      t = tf.compat.v1.to_float(x)
       w = tf.compat.v1.get_variable('w', shape=[2, 2])
-      output = tf.compat.v1.matmul(x, w)
+      output = tf.compat.v1.matmul(t, w)
       init_op = w.initializer
 
       # Add a hash table that is not used by the output.
@@ -110,11 +111,11 @@ class ConvertTest(tf.test.TestCase):
         builder.add_meta_graph_and_variables(
             sess, [tf.compat.v1.saved_model.tag_constants.SERVING],
             signature_def_map={
-                "serving_default":
+                'serving_default':
                     tf.compat.v1.saved_model \
                         .signature_def_utils.predict_signature_def(
-                            inputs={"x": x},
-                            outputs={"output": output})
+                            inputs={'t': t},
+                            outputs={'output': output})
             },
             assets_collection=None)
 
@@ -377,6 +378,12 @@ class ConvertTest(tf.test.TestCase):
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
     self.assertTrue(model_json['modelInitializer'])
+
+    for node in model_json['modelTopology']['node']:
+      if node['name'] == 'ToFloat' and node['op'] == 'Placeholder':
+        self.assertEqual(node['attr']['shape'],
+                         {'shape': {'dim': [
+                             {'size': '-1'}, {'size': '2'}, {'size': '2'}]}})
 
     weights_manifest = model_json['weightsManifest']
     self.assertEqual(weights_manifest, expected_weights_manifest)
