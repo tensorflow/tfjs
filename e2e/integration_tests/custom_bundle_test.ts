@@ -31,7 +31,6 @@ function getBundleUrl(folder: string, custom: boolean, bundler: string) {
 const DEBUG_WORKER_SCRIPT = false;
 
 describe(`${REGRESSION} blazeface`, () => {
-  // tslint:disable-next-line: ban
   describeWithFlags('webpack', CHROME_ENVS, () => {
     let webpackBundle: {full: string, custom: string};
     let originalTimeout: number;
@@ -63,7 +62,7 @@ describe(`${REGRESSION} blazeface`, () => {
           getBundleUrl('blazeface', true /* custom */, 'webpack');
       // tslint:disable-next-line: no-any
       const result: any =
-          await executeInWorker(programUrl, DEBUG_WORKER_SCRIPT);
+          await executeInWorker(programUrl, {debug: DEBUG_WORKER_SCRIPT});
       const kernelNames = result.kernelNames;
       expect(kernelNames).toEqual(jasmine.arrayWithExactContents([
         'Cast', 'Reshape', 'ResizeBilinear', 'Div', 'Sub', 'Multiply',
@@ -77,6 +76,98 @@ describe(`${REGRESSION} blazeface`, () => {
   });
 });
 
+describe(`${REGRESSION} dense model`, () => {
+  describeWithFlags('webpack', CHROME_ENVS, () => {
+    let webpackBundle: {full: string, custom: string};
+    let originalTimeout: number;
+
+    let modelUrl: string;
+    beforeAll(async () => {
+      originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+      jasmine.DEFAULT_TIMEOUT_INTERVAL = 500000;
+
+      modelUrl = `/base/custom_bundle/dense_model/model/model.json`;
+      const [webpackFull, webpackCustom] = await Promise.all([
+        fetch(getBundleUrl('dense_model', false /* custom */, 'webpack'))
+            .then(r => r.text()),
+        fetch(getBundleUrl('dense_model', true /* custom */, 'webpack'))
+            .then(r => r.text()),
+      ]);
+
+      webpackBundle = {full: webpackFull, custom: webpackCustom};
+    });
+
+    afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
+
+    it('custom webpack should be smaller', async () => {
+      expect(webpackBundle.custom.length)
+          .toBeLessThan(
+              webpackBundle.full.length / 2,
+              'Custom bundle should be smaller than full bundle');
+    });
+
+    it('custom bundle should execute with exact kernels', async () => {
+      const programUrl =
+          getBundleUrl('dense_model', true /* custom */, 'webpack');
+
+      // tslint:disable-next-line: no-any
+      const result: any = await executeInWorker(
+          programUrl, {debug: DEBUG_WORKER_SCRIPT, workerParams: {modelUrl}});
+      const kernelNames = result.kernelNames;
+      expect(kernelNames).toEqual(jasmine.arrayWithExactContents([
+        'Reshape', '_FusedMatMul', 'Identity'
+      ]));
+
+      expect(Math.floor(result.predictions[0])).toEqual(38);
+    });
+  });
+
+  describeWithFlags('rollup', CHROME_ENVS, () => {
+    let rollupBundle: {full: string, custom: string};
+    let originalTimeout: number;
+
+    let modelUrl: string;
+    beforeAll(async () => {
+      originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+      jasmine.DEFAULT_TIMEOUT_INTERVAL = 500000;
+
+      modelUrl = `/base/custom_bundle/dense_model/model/model.json`;
+      const [rollupFull, rollupCustom] = await Promise.all([
+        fetch(getBundleUrl('dense_model', false /* custom */, 'rollup'))
+            .then(r => r.text()),
+        fetch(getBundleUrl('dense_model', true /* custom */, 'rollup'))
+            .then(r => r.text()),
+      ]);
+
+      rollupBundle = {full: rollupFull, custom: rollupCustom};
+    });
+
+    afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
+
+    it('custom rollup should be smaller', async () => {
+      expect(rollupBundle.custom.length)
+          .toBeLessThan(
+              rollupBundle.full.length / 2,
+              'Custom bundle should be smaller than full bundle');
+    });
+
+    it('custom bundle should execute with exact kernels', async () => {
+      const programUrl =
+          getBundleUrl('dense_model', true /* custom */, 'webpack');
+
+      // tslint:disable-next-line: no-any
+      const result: any = await executeInWorker(
+          programUrl, {debug: DEBUG_WORKER_SCRIPT, workerParams: {modelUrl}});
+      const kernelNames = result.kernelNames;
+      expect(kernelNames).toEqual(jasmine.arrayWithExactContents([
+        'Reshape', '_FusedMatMul', 'Identity'
+      ]));
+
+      expect(Math.floor(result.predictions[0])).toEqual(38);
+    });
+  });
+});
+
 /**
  * Helper function for executing scripts in a webworker. We use
  * webworkers to get isolated contexts for tests for custom bundles.
@@ -84,8 +175,11 @@ describe(`${REGRESSION} blazeface`, () => {
  * @param programUrl url to script to run in worker
  * @param debug debug mode
  */
-async function executeInWorker(programUrl: string, debug = false) {
+async function executeInWorker(
+    programUrl: string, opts: {debug?: boolean, workerParams?: {}}) {
   return new Promise((resolve, reject) => {
+    const debug = opts.debug || false;
+    const workerParams = opts.workerParams || {};
     const worker = new Worker(programUrl);
 
     worker.addEventListener('message', (evt) => {
@@ -98,10 +192,13 @@ async function executeInWorker(programUrl: string, debug = false) {
       }
 
       if (evt.data.result) {
+        if (debug) {
+          console.log('result from worker: ', evt.data.result);
+        }
         resolve(evt.data.payload);
       }
     }, false);
 
-    worker.postMessage('start');  // Send data to our worker.
+    worker.postMessage(workerParams);  // Send data to our worker.
   });
 }

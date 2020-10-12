@@ -38,6 +38,8 @@ export const meanConfig: KernelConfig = {
     const meanInputIsTransposed = permutedAxes != null;
     const shouldExecuteOnCPU = webglBackend.shouldExecuteOnCPU([x]);
 
+    const intermediates: TensorInfo[] = [];
+
     let meanInput = x;
     if (meanInputIsTransposed) {
       if (shouldExecuteOnCPU) {
@@ -58,6 +60,7 @@ export const meanConfig: KernelConfig = {
         meanInput = transposeImpl(x, permutedAxes, webglBackend);
       }
 
+      intermediates.push(meanInput);
       axes = backend_util.getInnerMostAxes(axes.length, xRank);
     }
 
@@ -72,9 +75,8 @@ export const meanConfig: KernelConfig = {
     }
 
     const out = meanImpl(meanInput, reduceShape, outShape, webglBackend);
-
-    if (meanInputIsTransposed) {
-      webglBackend.disposeIntermediateTensorInfo(meanInput);
+    for (const i of intermediates) {
+      webglBackend.disposeIntermediateTensorInfo(i);
     }
 
     return out;

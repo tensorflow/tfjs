@@ -46,7 +46,15 @@ const devConfig = {
     },
     // Serve program bundles as files
     {
-      pattern: 'custom_bundle/blazeface/dist/**/*',
+      pattern: 'custom_bundle/*/dist/**/*',
+      watched: true,
+      included: false,
+      served: true,
+      nocache: true
+    },
+    // Serve model assets as files
+    {
+      pattern: 'custom_bundle/*/model/**/*',
       watched: true,
       included: false,
       served: true,

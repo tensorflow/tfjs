@@ -112,6 +112,7 @@ const CHAINED_OPS = [
   'min',
   'minimum',
   'minimumStrict',
+  'mirrorPad',
   'mod',
   'modStrict',
   'mul',

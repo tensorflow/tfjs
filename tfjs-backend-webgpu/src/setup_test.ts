@@ -320,6 +320,9 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'mirrorPad',
+  },
+  {
     include: 'pad',
     excludes: [
       'RFFT',   // 'zerosLike' not yet implemented.

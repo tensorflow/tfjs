@@ -33,3 +33,17 @@ yarn make-custom-tfjs-modules
 # switch the config to cpu and also run and test rollup bundle.
 yarn webpack:full
 yarn webpack:custom
+
+echo $PWD
+cd $e2e_root_path
+echo $PWD
+cd custom_bundle/dense_model
+yarn
+# Ensure that we test agaisnt freshly generated custom modules.
+rm -f ./custom_tfjs/*.js
+yarn make-custom-tfjs-modules
+
+yarn webpack:full
+yarn webpack:custom
+yarn rollup:full
+yarn rollup:custom

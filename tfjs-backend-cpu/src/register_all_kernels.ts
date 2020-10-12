@@ -19,6 +19,7 @@
 // the contents of this file and import only the kernels that are needed.
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
+import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {absConfig} from './kernels/Abs';
 import {acosConfig} from './kernels/Acos';
 import {acoshConfig} from './kernels/Acosh';
@@ -29,6 +30,7 @@ import {atanConfig} from './kernels/Atan';
 import {atanhConfig} from './kernels/Atanh';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {avgPoolBackpropConfig} from './kernels/AvgPoolBackprop';
+import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchNormConfig} from './kernels/BatchNorm';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
@@ -61,13 +63,17 @@ import {maxConfig} from './kernels/Max';
 import {maxPoolConfig} from './kernels/MaxPool';
 import {maxPoolBackpropConfig} from './kernels/MaxPoolBackprop';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
+import {mirrorPadConfig} from './kernels/MirrorPad';
 import {multiplyConfig} from './kernels/Multiply';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
 import {padV2Config} from './kernels/PadV2';
+import {preluConfig} from './kernels/Prelu';
 import {realConfig} from './kernels/Real';
 import {reciprocalConfig} from './kernels/Reciprocal';
+import {reluConfig} from './kernels/Relu';
+import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {roundConfig} from './kernels/Round';
@@ -92,6 +98,7 @@ import {uniqueConfig} from './kernels/Unique';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
+  _fusedMatMulConfig,
   absConfig,
   acosConfig,
   acoshConfig,
@@ -102,6 +109,7 @@ const kernelConfigs: KernelConfig[] = [
   atanhConfig,
   avgPoolConfig,
   avgPoolBackpropConfig,
+  batchMatMulConfig,
   batchNormConfig,
   castConfig,
   ceilConfig,
@@ -134,13 +142,17 @@ const kernelConfigs: KernelConfig[] = [
   maxPoolBackpropConfig,
   maxPoolWithArgmaxConfig,
   maxConfig,
+  mirrorPadConfig,
   multiplyConfig,
   nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,
   padV2Config,
+  preluConfig,
   realConfig,
   reciprocalConfig,
+  reluConfig,
+  relu6Config,
   reshapeConfig,
   rotateWithOffsetConfig,
   roundConfig,
