@@ -192,8 +192,9 @@ class AsyncStorageHandler implements io.IOHandler {
  * @param modelPath A unique identifier for the model to be saved. Must be a
  *   non-empty string.
  * @returns An instance of `IOHandler`
+ *
+ * @doc {heading: 'Models', subheading: 'IOHandlers'}
  */
-/** @doc {heading: 'Models', subheading: 'IOHandlers'} */
 export function asyncStorageIO(modelPath: string): io.IOHandler {
   return new AsyncStorageHandler(modelPath);
 }

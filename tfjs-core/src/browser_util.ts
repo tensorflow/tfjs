@@ -31,8 +31,9 @@ const delayCallback: Function = (() => {
  *
  * This is simply a sugar method so that users can do the following:
  * `await tf.nextFrame();`
+ *
+ * @doc {heading: 'Performance', subheading: 'Timing'}
  */
-/** @doc {heading: 'Performance', subheading: 'Timing'} */
 function nextFrame(): Promise<void> {
   return new Promise<void>(resolve => delayCallback(() => resolve()));
 }

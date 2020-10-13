@@ -28,7 +28,8 @@ import {op} from './operation';
 /**
  * Pads a `tf.Tensor` with a given value and paddings.
  *
- * This operation currently only implements the `CONSTANT` mode.
+ * This operation implements `CONSTANT` mode. For `REFLECT` and `SYMMETRIC`,
+ * refer to `tf.mirrorPad`
  *
  * Also available are stricter rank-specific methods with the same signature
  * as this method that assert that `paddings` is of given length.
@@ -46,8 +47,9 @@ import {op} from './operation';
  * each element is a length-2 tuple of ints `[padBefore, padAfter]`,
  * specifying how much to pad along each dimension of the tensor.
  * @param constantValue The pad value to use. Defaults to 0.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Transformations'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Transformations'} */
 function pad_<T extends Tensor>(
     x: T|TensorLike, paddings: Array<[number, number]>, constantValue = 0): T {
   const $x = convertToTensor(x, 'x', 'pad');

@@ -47,8 +47,9 @@ import {op} from './operation';
  *     compatible with `a`.
  * @return A tensor with same dtype as `a` and `b`, and shape that is
  *     broadcastable from `a` and `b`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Logical'}
  */
-/** @doc {heading: 'Operations', subheading: 'Logical'} */
 function where_<T extends Tensor>(
     condition: Tensor|TensorLike, a: T|TensorLike, b: T|TensorLike): T {
   const $a = convertToTensor(a, 'a', 'where');

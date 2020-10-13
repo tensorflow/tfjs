@@ -49,8 +49,9 @@ import {op} from './operation';
  *
  * @param base The base `tf.Tensor` to pow element-wise.
  * @param exp The exponent `tf.Tensor` to pow element-wise.
+ *
+ * @doc {heading: 'Operations', subheading: 'Arithmetic'}
  */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function pow_<T extends Tensor>(
     base: Tensor|TensorLike, exp: Tensor|TensorLike): T {
   let $base = convertToTensor(base, 'base', 'pow');

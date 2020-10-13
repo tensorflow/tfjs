@@ -18,7 +18,7 @@
 import {NamedTensorMap, test_util} from '@tensorflow/tfjs';
 import * as tf from './index';
 import {nodeBackend} from './nodejs_kernel_backend';
-import {getEnumKeyFromValue, getInputAndOutputNodeNameFromMetaGraphInfo, readSavedModelProto} from './saved_model';
+import {getEnumKeyFromValue, getSignatureDefEntryFromMetaGraphInfo, readSavedModelProto} from './saved_model';
 
 // tslint:disable-next-line:no-require-imports
 const messages = require('./proto/api_pb');
@@ -187,11 +187,11 @@ describe('SavedModel', () => {
   it('get input and output node names from SavedModel metagraphs', async () => {
     const modelInfo = await tf.node.getMetaGraphsFromSavedModel(
         './test_objects/saved_model/times_three_float');
-    const inputAndOutputNodeNames = getInputAndOutputNodeNameFromMetaGraphInfo(
+    const signature = getSignatureDefEntryFromMetaGraphInfo(
         modelInfo, ['serve'], 'serving_default');
-    expect(inputAndOutputNodeNames.length).toBe(2);
-    expect(inputAndOutputNodeNames[0]['x']).toBe('serving_default_x:0');
-    expect(inputAndOutputNodeNames[1]['output_0'])
+    expect(Object.keys(signature).length).toBe(2);
+    expect(signature.inputs['x'].name).toBe('serving_default_x:0');
+    expect(signature.outputs['output_0'].name)
         .toBe('StatefulPartitionedCall:0');
   });
 
@@ -394,6 +394,29 @@ describe('SavedModel', () => {
       done();
     }
   });
+  it('execute model with uint8 input', async () => {
+    const model = await tf.node.loadSavedModel(
+        './test_objects/saved_model/uint8_multiply', ['serve'],
+        'serving_default');
+    const input = tf.scalar(3, 'int32');
+    const output = model.predict(input) as tf.Tensor;
+    expect(output.shape).toEqual([]);
+    expect(output.dtype).toBe('int32');
+    test_util.expectArraysClose(await output.data(), [18]);
+    model.dispose();
+  });
+
+  it('execute model with int64 input', async () => {
+    const model = await tf.node.loadSavedModel(
+        './test_objects/saved_model/int64_multiply', ['serve'],
+        'serving_default');
+    const input = tf.tensor1d([3, 4], 'int32');
+    const output = model.predict(input) as tf.Tensor;
+    expect(output.shape).toEqual([2]);
+    expect(output.dtype).toBe('int32');
+    test_util.expectArraysClose(await output.data(), [18, 24]);
+    model.dispose();
+  });
 
   it('execute model int times two', async () => {
     const model = await tf.node.loadSavedModel(
@@ -491,5 +514,34 @@ describe('SavedModel', () => {
     expect(tf.node.getNumOfSavedModels()).toBe(1);
     model2.dispose();
     expect(tf.node.getNumOfSavedModels()).toBe(0);
+  });
+
+  it('return inputs and outputs', async () =>{
+    const model = await tf.node.loadSavedModel(
+        './test_objects/saved_model/model_multi_output', ['serve'],
+        'serving_default');
+    expect(model.inputs.length).toBe(2);
+    expect(model.outputs.length).toBe(2);
+
+    expect(model.inputs[0].name).toBe('serving_default_x');
+    expect(model.inputs[0].dtype).toBe('int32');
+    expect(model.inputs[0].tfDtype).toBe('DT_INT32');
+    expect(model.inputs[0].shape.length).toBe(0);
+
+    expect(model.inputs[1].name).toBe('serving_default_y');
+    expect(model.inputs[1].dtype).toBe('int32');
+    expect(model.inputs[1].tfDtype).toBe('DT_INT32');
+    expect(model.inputs[1].shape.length).toBe(0);
+
+    expect(model.outputs[0].name).toBe('StatefulPartitionedCall');
+    expect(model.outputs[0].dtype).toBe('int32');
+    expect(model.outputs[0].tfDtype).toBe('DT_INT32');
+    expect(model.outputs[0].shape.length).toBe(0);
+
+    expect(model.outputs[1].name).toBe('StatefulPartitionedCall:1');
+    expect(model.outputs[1].dtype).toBe('int32');
+    expect(model.outputs[1].tfDtype).toBe('DT_INT32');
+    expect(model.outputs[1].shape.length).toBe(0);
+    model.dispose();
   });
 });

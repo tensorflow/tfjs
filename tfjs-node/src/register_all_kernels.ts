@@ -22,6 +22,7 @@ import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 import {dilation2dConfig} from './kernels/Dilation2D';
 import {dilation2dBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
 import {dilation2dBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
+import {mirrorPadConfig} from './kernels/MirrorPad';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {softmaxConfig} from './kernels/Softmax';
@@ -30,7 +31,7 @@ import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
   dilation2dConfig, dilation2dBackpropInputConfig,
-  dilation2dBackpropFilterConfig, nonMaxSuppressionV4Config,
+  dilation2dBackpropFilterConfig, nonMaxSuppressionV4Config, mirrorPadConfig,
   nonMaxSuppressionV5Config, softmaxConfig, squaredDifferenceConfig
 ];
 

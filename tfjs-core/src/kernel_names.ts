@@ -495,6 +495,13 @@ export interface MinAttrs {
 export const Minimum = 'Minimum';
 export type MinimumInputs = BinaryInputs;
 
+export const MirrorPad = 'MirrorPad';
+export type MirrorPadInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface MirrorPadAttrs {
+  paddings: Array<[number, number]>;
+  mode: 'reflect'|'symmetric';
+}
+
 export const Mod = 'Mod';
 export type ModInputs = BinaryInputs;
 
@@ -744,6 +751,12 @@ export const Transpose = 'Transpose';
 export type TransposeInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface TransposeAttrs {
   perm: number[];
+}
+
+export const Unique = 'Unique';
+export type UniqueInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface UniqueAttrs {
+  axis: number;
 }
 
 export type UnaryInputs = Pick<NamedTensorInfoMap, 'x'>;

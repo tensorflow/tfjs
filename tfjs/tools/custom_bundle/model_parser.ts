@@ -19,44 +19,65 @@
 import * as tensorflow from '@tensorflow/tfjs-converter/dist/data/compiled_api';
 import {io} from '@tensorflow/tfjs-core';
 import * as fs from 'fs';
+import {CustomTFJSBundleConfig} from './types';
 
-import {esmModuleProvider} from './esm_module_provider';
+export function getOpsForConfig(
+    // tslint:disable-next-line: no-any
+    config: CustomTFJSBundleConfig, kernelToOps: any) {
+  // This will return a list of ops used by the model.json(s) passed in.
+  const results: Set<string> = new Set();
+  let modelJson;
+  for (const modelJsonPath of config.models) {
+    try {
+      modelJson = JSON.parse(fs.readFileSync(modelJsonPath, 'utf-8'));
+    } catch (e) {
+      console.log(`Error loading JSON file ${modelJsonPath}`);
+      console.log(e);
+    }
 
-export function getOps(modelJson: io.ModelArtifacts): string[] {
-  const kernel2op = kernelToOpMapping();
+    const ops = getOps(modelJson, kernelToOps);
+    ops.forEach((op: string) => results.add(op));
+  }
+  return Array.from(results);
+}
+
+export function getOps(
+    // tslint:disable-next-line: no-any
+    modelJson: io.ModelArtifacts, kernelToOp: any): string[] {
   const results: Set<string> = new Set();
 
   const addOpsToResults = (kernel: string) => {
-    const ops = kernel2op[kernel];
+    const ops = kernelToOp[kernel];
     if (ops == null) {
       console.warn(
           `Kernel => Op warning: could not find op mapping for kernel ${
               kernel}`);
     }
-    ops.forEach((op: string) => results.add(op));
+    ops.forEach((op: string) => {
+      results.add(op);
+    });
   };
 
   const graph = modelJson.modelTopology as tensorflow.IGraphDef;
 
   // Parse nodes
   if (graph.node != null) {
-    graph.node.forEach((node) => addOpsToResults(node.op));
+    graph.node.forEach((node) => {
+      addOpsToResults(node.op);
+    });
   }
 
   // Parse functionDef nodes
-  if (graph.library != null && graph.library.function !== null) {
+  if (graph.library != null && graph.library.function != null) {
     graph.library.function.forEach((functionDef) => {
       const nodeDef = functionDef.nodeDef;
       if (nodeDef != null) {
-        nodeDef.forEach((node) => addOpsToResults(node.op));
+        nodeDef.forEach((node) => {
+          addOpsToResults(node.op);
+        });
       }
     });
   }
 
   return Array.from(results);
-}
-
-function kernelToOpMapping() {
-  const mappingPath = esmModuleProvider.kernelToOpsMapPath();
-  return JSON.parse(fs.readFileSync(mappingPath, 'utf-8'));
 }

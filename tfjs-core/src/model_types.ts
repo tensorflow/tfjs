@@ -41,6 +41,8 @@ export interface ModelTensorInfo {
   shape?: number[];
   // Data type of the tensor.
   dtype: DataType;
+  // TensorFlow native Data type of the tensor.
+  tfDtype?: string;
 }
 
 /**
@@ -139,11 +141,16 @@ export interface MetaGraph {
 }
 
 /**
+ * Interface for SavedModel/GraphModel SignatureDef entry.
+ */
+export interface SignatureDefEntry {
+  inputs: {[key: string]: ModelTensorInfo};
+  outputs: {[key: string]: ModelTensorInfo};
+}
+
+/**
  * Interface for SavedModel/GraphModel SignatureDef info.
  */
 export interface SignatureDef {
-  [key: string]: {
-    inputs: {[key: string]: ModelTensorInfo};
-    outputs: {[key: string]: ModelTensorInfo};
-  };
+  [key: string]: SignatureDefEntry;
 }

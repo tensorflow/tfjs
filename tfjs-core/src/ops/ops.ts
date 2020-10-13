@@ -105,6 +105,7 @@ export {maximum} from './maximum';
 export {mean} from './mean';
 export {min} from './min';
 export {minimum} from './minimum';
+export {mirrorPad} from './mirror_pad';
 export {mod} from './mod';
 export {moments} from './moments';
 export {mul} from './mul';
@@ -185,6 +186,7 @@ export {tensor6d} from './tensor6d';
 export {tile} from './tile';
 export {topk} from './topk';
 export {truncatedNormal} from './truncated_normal';
+export {unique} from './unique';
 export {unsortedSegmentSum} from './unsorted_segment_sum';
 export {unstack} from './unstack';
 export {variable} from './variable';
@@ -206,7 +208,7 @@ export * from './dropout';
 export * from './signal_ops_util';
 export * from './in_top_k';
 
-export {op} from './operation';
+export {op, OP_SCOPE_SUFFIX} from './operation';
 
 import {rfft} from './spectral/rfft';
 import {fft} from './spectral/fft';

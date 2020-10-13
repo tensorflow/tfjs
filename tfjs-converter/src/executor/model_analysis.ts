@@ -39,8 +39,8 @@ export interface ExecutionInfo {
  * - Alternative inputs in order to avoid async (dynamic op) execution.
  */
 export function getExecutionSubgraph(
-    inputs: NamedTensorMap, outputs: Node[],
-    weightMap: NamedTensorsMap): ExecutionInfo {
+    inputs: NamedTensorMap, outputs: Node[], weightMap: NamedTensorsMap,
+    initNodes?: Node[]): ExecutionInfo {
   const usedNodes = new Set<string>();
   const missingInputs: string[] = [];
   let dynamicNode: Node = null;
@@ -51,6 +51,12 @@ export function getExecutionSubgraph(
   const seen = new Set<string>();
   const inputNodeNames =
       Object.keys(inputs).map(name => parseNodeName(name)[0]);
+
+  let initNodeNames: string[] = [];
+  if (initNodes != null) {
+    initNodeNames = initNodes.map(node => parseNodeName(node.name)[0]);
+  }
+
   const frontier = [...outputs];
   while (frontier.length > 0) {
     const node = frontier.pop();
@@ -68,8 +74,11 @@ export function getExecutionSubgraph(
       continue;
     }
     // This node is a dead end since it's one of the user-provided inputs.
-
     if (inputNodeNames.indexOf(node.name) !== -1) {
+      continue;
+    }
+    // This node is a dead end since it doesn't have any inputs.
+    if (initNodeNames.indexOf(node.name) !== -1) {
       continue;
     }
     if (node.inputs.length === 0) {
@@ -100,6 +109,8 @@ export function getNodesInTopologicalOrder(
   const inputNodes = Object.keys(inputs)
                          .map(name => parseNodeName(name)[0])
                          .map(name => graph.nodes[name]);
+  const initNodes = graph.initNodes;
+
   inputNodes.forEach(input => {
     if (usedNodes.has(input.name)) {
       frontier.push(input);
@@ -110,6 +121,13 @@ export function getNodesInTopologicalOrder(
       frontier.push(weight);
     }
   });
+  if (initNodes != null) {
+    initNodes.forEach(node => {
+      if (usedNodes.has(node.name)) {
+        frontier.push(node);
+      }
+    });
+  }
   const seen = new Set<string>();
   const orderedNodes: Node[] = [];
   while (frontier.length > 0) {

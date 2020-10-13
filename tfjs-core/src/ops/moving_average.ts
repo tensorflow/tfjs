@@ -54,8 +54,9 @@ import {sub} from './sub';
  * @param step Step count.
  * @param zeroDebias: Whether zeroDebias is to be performed (default: `true`).
  * @returns The new moving average value.
+ *
+ * @doc {heading: 'Operations', subheading: 'Moving Average'}
  */
-/** @doc {heading: 'Operations', subheading: 'Moving Average'} */
 function movingAverage_<T extends Tensor>(
     v: T|TensorLike, x: T|TensorLike, decay: number|Scalar,
     step?: number|Scalar, zeroDebias = true): T {

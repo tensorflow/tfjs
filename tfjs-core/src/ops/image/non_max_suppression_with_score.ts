@@ -52,8 +52,9 @@ import {op} from '../operation';
  *     - selectedIndices: A 1D tensor with the selected box indices.
  *     - selectedScores: A 1D tensor with the corresponding scores for each
  *       selected box.
+ *
+ * @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'}
  */
-/** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
 function nonMaxSuppressionWithScore_(
     boxes: Tensor2D|TensorLike, scores: Tensor1D|TensorLike,
     maxOutputSize: number, iouThreshold = 0.5,

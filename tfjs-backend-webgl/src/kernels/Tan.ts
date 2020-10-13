@@ -15,6 +15,16 @@
  * =============================================================================
  */
 
-import {createBinaryKernelImpl} from '../utils/kernel_utils';
+import {KernelConfig, Tan} from '@tensorflow/tfjs-core';
 
-export const divImpl = createBinaryKernelImpl((a: number, b: number) => a / b);
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+
+const TAN = `return tan(x);`;
+
+export const tan = unaryKernelFunc(TAN);
+
+export const tanConfig: KernelConfig = {
+  kernelName: Tan,
+  backendName: 'webgl',
+  kernelFunc: tan,
+};

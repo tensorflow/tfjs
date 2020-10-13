@@ -24,9 +24,9 @@ import {scatterplot} from './render/scatterplot';
 import {table} from './render/table';
 import {fitCallbacks, history} from './show/history';
 import {layer, modelSummary} from './show/model';
-import {showPerClassAccuracy} from './show/quality';
+import {perClassAccuracy as showPerClassAccuracy} from './show/quality';
 import {valuesDistribution} from './show/tensor';
-import {accuracy, confusionMatrix as metricsConfusionMatrix, perClassAccuracy} from './util/math';
+import {accuracy, confusionMatrix as metricsConfusionMatrix, perClassAccuracy as metricsPerClassAccuracy} from './util/math';
 import {version} from './version';
 
 const render = {
@@ -41,7 +41,7 @@ const render = {
 
 const metrics = {
   accuracy,
-  perClassAccuracy,
+  perClassAccuracy: metricsPerClassAccuracy,
   confusionMatrix: metricsConfusionMatrix,
 };
 

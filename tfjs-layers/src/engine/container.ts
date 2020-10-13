@@ -964,8 +964,7 @@ export abstract class Container extends Layer {
    * @param index Index of layer.
    * @returns A Layer instance.
    * @throws ValueError: In case of invalid layer name or index.
-   */
-  /**
+   *
    * @doc {
    *    heading: 'Layers',
    *    subheading: 'Classes',

@@ -366,6 +366,41 @@ class ReadWeightsTest(tf.test.TestCase):
     self.assertTrue(
         np.allclose(groups[0][0]['data'], read_output[0][0]['data']))
 
+  def testReadBoolWeights(self):
+    groups = [
+        [{
+            'name': 'weight1',
+            'data': np.array([True, False, True], 'bool')
+        }]
+    ]
+
+    manifest = write_weights.write_weights(groups, self._tmp_dir)
+
+    # Read the weights using `read_weights`.
+    read_output = read_weights.read_weights(manifest, self._tmp_dir)
+    self.assertEqual(1, len(read_output))
+    self.assertEqual(1, len(read_output[0]))
+    self.assertEqual('weight1', read_output[0][0]['name'])
+    np.testing.assert_array_equal(read_output[0][0]['data'],
+                                  np.array([True, False, True], 'bool'))
+
+  def testReadStringScalar(self):
+    groups = [
+        [{
+            'name': 'weight1',
+            'data': np.array(u'abc'.encode('utf-8'), 'object')
+        }]
+    ]
+
+    manifest = write_weights.write_weights(groups, self._tmp_dir)
+
+    # Read the weights using `read_weights`.
+    read_output = read_weights.read_weights(manifest, self._tmp_dir)
+    self.assertEqual(1, len(read_output))
+    self.assertEqual(1, len(read_output[0]))
+    self.assertEqual('weight1', read_output[0][0]['name'])
+    np.testing.assert_array_equal(read_output[0][0]['data'],
+                                  np.array(u'abc'.encode('utf-8'), 'object'))
 
 if __name__ == '__main__':
   tf.test.main()

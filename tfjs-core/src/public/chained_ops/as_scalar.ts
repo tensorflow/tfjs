@@ -26,8 +26,9 @@ declare module '../../tensor' {
   }
 }
 
-/** Converts a size-1 `tf.Tensor` to a `tf.Scalar`. */
-/** @doc {heading: 'Tensors', subheading: 'Classes'} */
+/** Converts a size-1 `tf.Tensor` to a `tf.Scalar`.
+ * @doc {heading: 'Tensors', subheading: 'Classes'}
+ */
 Tensor.prototype.asScalar = function<T extends Tensor>(this: T): Scalar {
   this.throwIfDisposed();
   assert(this.size === 1, () => 'The array must have only 1 element.');

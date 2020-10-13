@@ -18,13 +18,13 @@
 import {BatchMatMul, BatchMatMulAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
 import {matMul} from '../ops/mat_mul';
-import {Tensor, Tensor3D} from '../tensor';
+import {Tensor} from '../tensor';
 
 export const batchMatMulGradConfig: GradConfig = {
   kernelName: BatchMatMul,
   inputsToSave: ['a', 'b'],
-  gradFunc: (dy: Tensor3D, saved: Tensor[], attrs: NamedAttrMap) => {
-    const [a, b] = saved as Tensor3D[];
+  gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
+    const [a, b] = saved;
 
     const {transposeA, transposeB} = attrs as {} as BatchMatMulAttrs;
 

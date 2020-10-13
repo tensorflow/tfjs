@@ -14,12 +14,74 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ModuleProvider, SupportedBackend} from './types';
+
+import * as fs from 'fs';
+import * as mkdirp from 'mkdirp';
+import * as path from 'path';
+
+import {getCustomConverterOpsModule, getCustomModuleString} from './custom_module';
+import {getOpsForConfig} from './model_parser';
+import {CustomTFJSBundleConfig, ImportProvider, ModuleProvider, SupportedBackend} from './types';
+import {kernelNameToVariableName, opNameToFileName} from './util';
+
+export function getModuleProvider(opts: {}): ModuleProvider {
+  return new ESMModuleProvider();
+}
+
+class ESMModuleProvider implements ModuleProvider {
+  /**
+   * Writes out custom tfjs module(s) to disk.
+   */
+  produceCustomTFJSModule(config: CustomTFJSBundleConfig) {
+    const {kernels, backends, forwardModeOnly, outputPath} = config;
+
+    const moduleStrs = getCustomModuleString(
+        kernels, backends, forwardModeOnly, esmImportProvider);
+
+    mkdirp.sync(outputPath);
+    console.log(`Writing custom tfjs module to ${outputPath}`);
+
+    const customTfjsFileName = 'custom_tfjs.js';
+    const customTfjsCoreFileName = 'custom_tfjs_core.js';
+
+    // Write a custom module for @tensorflow/tfjs and @tensorflow/tfjs-core
+    fs.writeFileSync(
+        path.join(outputPath, customTfjsCoreFileName), moduleStrs.core);
+    fs.writeFileSync(
+        path.join(outputPath, customTfjsFileName), moduleStrs.tfjs);
+
+    // Write a custom module tfjs-core ops used by converter executors
+
+    let kernelToOps;
+    let mappingPath;
+    try {
+      mappingPath =
+          require.resolve('@tensorflow/tfjs-converter/metadata/kernel2op.json');
+      kernelToOps = JSON.parse(fs.readFileSync(mappingPath, 'utf-8'));
+    } catch (e) {
+      console.log(`Error loading kernel to ops mapping file ${mappingPath}`);
+      console.log(e);
+    }
+
+    const converterOps = getOpsForConfig(config, kernelToOps);
+    if (converterOps.length > 0) {
+      const converterOpsModule =
+          getCustomConverterOpsModule(converterOps, esmImportProvider);
+
+      const customConverterOpsFileName = 'custom_ops_for_converter.js';
+
+      fs.writeFileSync(
+          path.join(outputPath, customConverterOpsFileName),
+          converterOpsModule);
+    }
+  }
+}
 
 /**
- * A module provider to generate custom esm modules.
+ * An import provider to generate custom esm modules.
  */
-export const esmModuleProvider: ModuleProvider = {
+// Exported for tests.
+export const esmImportProvider: ImportProvider = {
   importCoreStr() {
     return `
 import {registerKernel, registerGradient} from '@tensorflow/tfjs-core/dist/base';
@@ -64,11 +126,6 @@ export * from '@tensorflow/tfjs-core/dist/base';
     return {importStatement, gradConfigId};
   },
 
-  kernelToOpsMapPath() {
-    return require.resolve(
-        '@tensorflow/tfjs-converter/metadata/kernel2op.json');
-  },
-
   importOpForConverterStr(opSymbol) {
     const opFileName = opNameToFileName(opSymbol);
     return `export {${opSymbol}} from '@tensorflow/tfjs-core/dist/ops/${
@@ -108,16 +165,4 @@ function getBackendPath(backend: SupportedBackend) {
     default:
       throw new Error(`Unsupported backend ${backend}`);
   }
-}
-
-function kernelNameToVariableName(kernelName: string) {
-  return kernelName.charAt(0).toLowerCase() + kernelName.slice(1);
-}
-
-function opNameToFileName(opName: string) {
-  // add exceptions here.
-  if (opName === 'isNaN') {
-    return 'is_nan';
-  }
-  return opName.replace(/[A-Z]/g, (s: string) => `_${s.toLowerCase()}`);
 }

@@ -27,8 +27,9 @@ import {Tensor} from '../tensor';
  * @param x The tensor to be printed.
  * @param verbose Whether to print verbose information about the ` Tensor`,
  * including dtype and size.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Creation'} */
 export function print<T extends Tensor>(x: T, verbose = false): void {
   console.log(x.toString(verbose));
 }

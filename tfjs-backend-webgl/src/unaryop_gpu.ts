@@ -154,16 +154,6 @@ export const SOFTPLUS = `
   return result;
 `;
 
-export const SIN = CHECK_NAN_SNIPPET + `
-  return sin(x);
-`;
-
-export const COS = CHECK_NAN_SNIPPET + `
-  return cos(x);
-`;
-
-export const TAN = `return tan(x);`;
-
 export const ASIN = CHECK_NAN_SNIPPET + `
   if (abs(x) > 1.) {
     return NAN;
@@ -224,12 +214,8 @@ export const ERF = `
   return sign * (1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*exp(-x*x));
 `;
 
-export const SQUARE = `return x * x;`;
-
 export const RECIPROCAL = `return 1.0 / x;`;
 
 export const LOGICAL_NOT = `return float(!(x >= 1.0));`;
-
-export const TO_INT = `return float(int(x));`;
 
 export const CLONE = 'return x;';

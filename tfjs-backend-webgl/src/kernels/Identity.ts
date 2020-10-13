@@ -15,21 +15,22 @@
  * =============================================================================
  */
 
-import {env} from '@tensorflow/tfjs-core';
-import {TensorInfo} from '@tensorflow/tfjs-core';
-import {MathBackendWebGL} from '../backend_webgl';
-import * as binaryop_gpu from '../binaryop_gpu';
-import {BinaryOpProgram} from '../binaryop_gpu';
-import * as binaryop_packed_gpu from '../binaryop_packed_gpu';
-import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
+import {Identity, IdentityInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
-export function divImpl(
-    a: TensorInfo, b: TensorInfo, backend: MathBackendWebGL): TensorInfo {
-  let program = new BinaryOpProgram(binaryop_gpu.DIV, a.shape, b.shape);
-  if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-    program = new BinaryOpPackedProgram(
-        binaryop_packed_gpu.DIV, a.shape, b.shape, true);
-  }
-  const output = backend.runWebGLProgram(program, [a, b], 'float32');
-  return output;
+import {MathBackendWebGL} from '../backend_webgl';
+
+export function identity(
+    args: {inputs: IdentityInputs, backend: MathBackendWebGL}): TensorInfo {
+  const {inputs, backend} = args;
+  const {x} = inputs;
+
+  backend.incRef(x.dataId);
+
+  return {dataId: x.dataId, shape: x.shape, dtype: x.dtype};
 }
+
+export const identityConfig: KernelConfig = {
+  kernelName: Identity,
+  backendName: 'webgl',
+  kernelFunc: identity as {} as KernelFunc
+};

@@ -46,8 +46,9 @@ import {op} from './operation';
  * @param k Number of top elements to look for along the last dimension.
  * @param sorted If true, the resulting `k` elements will be sorted by the
  *     values in descending order.
+ *
+ * @doc {heading: 'Operations', subheading: 'Evaluation'}
  */
-/** @doc {heading: 'Operations', subheading: 'Evaluation'} */
 function topk_<T extends Tensor>(
     x: T|TensorLike, k = 1, sorted = true): {values: T, indices: T} {
   const $x = convertToTensor(x, 'x', 'topk');

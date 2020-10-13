@@ -71,8 +71,9 @@ import {op} from './operation';
  * batch dimension, producing an output tensor of shape:
  * `[batch * prod(blockShape)] + [paddedShape[1] / blockShape[0], ...,
  * paddedShape[M] / blockShape[M-1]] + remainingShape`
+ *
+ * @doc {heading: 'Tensors', subheading: 'Transformations'}
  */
-/** @doc {heading: 'Tensors', subheading: 'Transformations'} */
 function spaceToBatchND_<T extends Tensor>(
     x: T|TensorLike, blockShape: number[], paddings: number[][]): T {
   const $x = convertToTensor(x, 'x', 'spaceToBatchND');

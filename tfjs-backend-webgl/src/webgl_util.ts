@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {env, util} from '@tensorflow/tfjs-core';
+import {env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {getWebGLContext} from './canvas_util';
 import {getTextureConfig} from './tex_util';
@@ -534,6 +534,7 @@ export function isWebGLVersionEnabled(webGLVersion: 1|2) {
       return true;
     }
   } catch (e) {
+    console.log('Error when getting WebGL context: ', e);
     return false;
   }
   return false;
@@ -671,4 +672,19 @@ export function isWebGLFenceEnabled(webGLVersion: number) {
   // tslint:disable-next-line:no-any
   const isEnabled = (gl as any).fenceSync != null;
   return isEnabled;
+}
+
+export function assertNotComplex(
+    tensor: TensorInfo|TensorInfo[], opName: string): void {
+  if (!Array.isArray(tensor)) {
+    tensor = [tensor];
+  }
+  tensor.forEach(t => {
+    if (t != null) {
+      util.assert(
+          t.dtype !== 'complex64',
+          () => `${opName} does not support complex64 tensors ` +
+              'in the WebGL backend.');
+    }
+  });
 }

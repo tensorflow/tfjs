@@ -52,8 +52,9 @@ import {transpose} from './transpose';
  * @returns The confusion matrix as a int32-type 2D tensor. The value at
  *   row `r` and column `c` is the number of times examples of actual class
  *   `r` were predicted as class `c`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Evaluation'}
  */
-/** @doc {heading: 'Operations', subheading: 'Evaluation'} */
 export function confusionMatrix_(
     labels: Tensor1D|TensorLike, predictions: Tensor1D|TensorLike,
     numClasses: number): Tensor2D {

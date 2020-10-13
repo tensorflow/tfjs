@@ -57,7 +57,7 @@
     "@types/yargs": "^13.0.3",
     "clang-format": "~1.2.2",
     "jasmine": "~3.1.0",
-    "node-fetch": "^2.3.0",
+    "node-fetch": "~2.6.1",
     "nyc": "^13.3.0",
     "tmp": "^0.0.33",
     "ts-node": "^5.0.1",

@@ -52,6 +52,7 @@ const TEST_FILTERS: TestFilter[] = [
       'complex',                         // Complex numbers not supported yet
     ]
   },
+  {include: 'depthToSpace'},
   {
     include: 'avgPool',
     excludes: [
@@ -191,6 +192,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {include: 'slice '},
+  {include: 'stridedSlice '},
   {include: 'rotate '},
   {include: 'flipLeftRight '},
   {include: 'square '},

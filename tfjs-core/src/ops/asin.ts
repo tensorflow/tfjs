@@ -33,8 +33,8 @@ import {op} from './operation';
  * x.asin().print();  // or tf.asin(x)
  * ```
  * @param x The input tensor.
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function asin_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'asin');
   const inputs: AsinInputs = {x: $x};
