@@ -227,7 +227,6 @@ tfjs_cc_library(
         ":FlipLeftRight",
         ":FloorDiv",
         ":FusedBatchNorm",
-        ":_FusedConv2D",
         ":FusedDepthwiseConv2D",
         ":Gather",
         ":GatherNd",
@@ -265,6 +264,7 @@ tfjs_cc_library(
         ":Sub",
         ":Tile",
         ":Transpose",
+        ":_FusedConv2D",
         ":_FusedMatMul",
     ],
 )
