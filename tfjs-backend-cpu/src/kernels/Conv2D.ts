@@ -33,7 +33,7 @@ export function conv2D(
   const convInfo = backend_util.computeConv2DInfo(
       x.shape as [number, number, number, number],
       filter.shape as [number, number, number, number], strides, dilations, pad,
-      dimRoundingMode, false, $dataFormat);
+      dimRoundingMode, false /* depthwise */, $dataFormat);
 
   const filterHeight = convInfo.filterHeight;
   const filterWidth = convInfo.filterWidth;
@@ -67,7 +67,7 @@ export function conv2D(
     for (let yR = 0; yR < convInfo.outHeight; ++yR) {
       const yOffset2 = yOffset1 + yR * yRowStride;
       const xRCorner = yR * convInfo.strideHeight - padTop;
-      for (let wR = 0; wR < filterHeight; wR++) {
+      for (let wR = 0; wR < filterHeight; ++wR) {
         const xR = xRCorner + wR * dilationHeight;
         if (xR < 0 || xR >= convInfo.inHeight) {
           continue;
@@ -77,7 +77,7 @@ export function conv2D(
         for (let yC = 0; yC < convInfo.outWidth; ++yC) {
           const yOffset3 = yOffset2 + yC * yColStride;
           const xCCorner = yC * convInfo.strideWidth - padLeft;
-          for (let wC = 0; wC < filterWidth; wC++) {
+          for (let wC = 0; wC < filterWidth; ++wC) {
             const xC = xCCorner + wC * dilationWidth;
             if (xC < 0 || xC >= convInfo.inWidth) {
               continue;
