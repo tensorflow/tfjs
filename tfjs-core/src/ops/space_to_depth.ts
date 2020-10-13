@@ -48,12 +48,6 @@ function spaceToDepth_(
       () => `Input width must be evenly divisible by block size, but is ${
           inputWidth} for inputHeight and ${blockSize} for blockSize`);
 
-  util.assert(
-      (inputDepth % (blockSize * blockSize) === 0),
-      () => `Dimension size must be evenly divisible by ${
-          blockSize * blockSize} but is ${
-          inputDepth} for depthToSpace with input shape ${$x.shape}`);
-
   const forward: ForwardFunc<Tensor4D> = backend =>
       backend.spaceToDepth($x, blockSize, dataFormat);
 
