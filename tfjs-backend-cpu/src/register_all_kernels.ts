@@ -37,6 +37,7 @@ import {ceilConfig} from './kernels/Ceil';
 import {clipConfig} from './kernels/Clip';
 import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
+import {conv2DConfig} from './kernels/Conv2D';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
 import {dilation2dConfig} from './kernels/Dilation2D';
@@ -50,6 +51,7 @@ import {expm1Config} from './kernels/Expm1';
 import {fftConfig} from './kernels/FFT';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
+import {fusedConv2DConfig} from './kernels/FusedConv2D';
 import {identityConfig} from './kernels/Identity';
 import {ifftConfig} from './kernels/IFFT';
 import {imagConfig} from './kernels/Imag';
@@ -99,6 +101,7 @@ import {uniqueConfig} from './kernels/Unique';
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
   _fusedMatMulConfig,
+  fusedConv2DConfig,
   absConfig,
   acosConfig,
   acoshConfig,
@@ -116,6 +119,7 @@ const kernelConfigs: KernelConfig[] = [
   clipConfig,
   complexConfig,
   concatConfig,
+  conv2DConfig,
   cosConfig,
   coshConfig,
   dilation2dConfig,
