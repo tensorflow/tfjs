@@ -15,17 +15,17 @@
  * =============================================================================
  */
 
-import {_FusedConv2D, _FusedConv2DAttrs, _FusedConv2DInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
+import {FusedConv2D, FusedConv2DAttrs, FusedConv2DInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {applyActivation} from '../utils/fused_utils';
 import {add} from './Add';
 import {conv2D} from './Conv2D';
 
-export function _fusedConv2D(args: {
-  inputs: _FusedConv2DInputs,
+export function fusedConv2D(args: {
+  inputs: FusedConv2DInputs,
   backend: MathBackendCPU,
-  attrs: _FusedConv2DAttrs
+  attrs: FusedConv2DAttrs
 }): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {x, filter, bias, preluActivationWeights} = inputs;
@@ -54,8 +54,8 @@ export function _fusedConv2D(args: {
   return result;
 }
 
-export const _fusedConv2DConfig: KernelConfig = {
-  kernelName: _FusedConv2D,
+export const fusedConv2DConfig: KernelConfig = {
+  kernelName: FusedConv2D,
   backendName: 'cpu',
-  kernelFunc: _fusedConv2D as {} as KernelFunc
+  kernelFunc: fusedConv2D as {} as KernelFunc
 };
