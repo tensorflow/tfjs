@@ -493,7 +493,7 @@ export class MathBackendWebGL extends KernelBackend {
     const {shape, dtype, isPacked} = this.texData.get(dataId);
     const size = util.sizeFromShape(shape);
 
-    if (size === 0) {
+    if (shape.includes(0)) {
       return new Float32Array(0);
     }
 
