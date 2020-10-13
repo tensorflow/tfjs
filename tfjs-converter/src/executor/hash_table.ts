@@ -53,6 +53,7 @@ export class HashTable {
    * Dispose the tensors and handle and clear the hashtable.
    */
   clearAndClose() {
+    this.tensorMap.forEach(value => value.dispose());
     this.tensorMap.clear();
     this.handle.dispose();
   }
