@@ -36,7 +36,7 @@ export interface CustomTFJSBundleConfig {
 // Interface for an object that can provide functionality to generate
 // imports for module in that build environment (e.g. OSS vs g3).
 export interface ImportProvider {
-  importCoreStr: () => string;
+  importCoreStr: (forwardModeOnly: boolean) => string;
   importOpForConverterStr: (opSymbol: string) => string;
   importNamespacedOpsForConverterStr:
       (namespace: string, opSymbols: string[]) => string;
