@@ -12,8 +12,8 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef KERNELS_FUSEDCONV2D_H_
-#define KERNELS_FUSEDCONV2D_H_
+#ifndef KERNELS__FUSEDCONV2D_H_
+#define KERNELS__FUSEDCONV2D_H_
 
 #include <cstddef>
 
@@ -39,4 +39,4 @@ void _FusedConv2D(const size_t x_id, const size_t batch_size,
 }  // namespace wasm
 }  // namespace tfjs
 
-#endif  // KERNELS_FUSEDCONV2D_H_
+#endif  // KERNELS__FUSEDCONV2D_H_
