@@ -306,6 +306,7 @@
 |---|---|
 |HashTable|hashTable|
 |HashTableV2|hashTableV2|
+|LookupTableImport|lookupTableImport|
 |LookupTableImportV2|lookupTableImportV2|
 |LookupTableFind|lookupTableFind|
 |LookupTableFindV2|lookupTableFindV2|

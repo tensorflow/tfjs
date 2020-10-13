@@ -40,6 +40,7 @@ export const executeOp: InternalOpAsyncExecutor = async(
       resourceManager.addHashTable(node.name, hashTable);
       return [hashTable.handle];
     }
+    case 'LookupTableImport':
     case 'LookupTableImportV2': {
       const handle = getParamValue(
                          'tableHandle', node, tensorMap, context,

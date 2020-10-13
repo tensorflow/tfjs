@@ -147,6 +147,8 @@ export class GraphModel implements InferenceModel {
     this.executor = new GraphExecutor(
         OperationMapper.Instance.transformGraph(graph, signature));
     this.executor.weightMap = this.convertTensorMapToTensorsMap(weightMap);
+    // Attach a model-level resourceManager to each executor to share resources,
+    // such as `HashTable`.
     this.executor.resourceManager = this.resourceManager;
 
     if (artifacts.modelInitializer != null) {
@@ -154,6 +156,9 @@ export class GraphModel implements InferenceModel {
           OperationMapper.Instance.transformGraph(artifacts.modelInitializer);
       this.initializer = new GraphExecutor(initializer);
       this.initializer.weightMap = this.executor.weightMap;
+      // Attach a model-level resourceManager to the initializer, the
+      // hashTables created from when executing the initializer will be stored
+      // in the resourceManager.
       this.initializer.resourceManager = this.resourceManager;
       this.initializer.executeAsync({}, []);
     }
@@ -351,7 +356,7 @@ export class GraphModel implements InferenceModel {
   }
 
   /**
-   * Releases the memory used by the weight tensors.
+   * Releases the memory used by the weight tensors and resourceManager.
    *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */

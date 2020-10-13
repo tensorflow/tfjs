@@ -70,6 +70,7 @@ describe('kernel2op metadata file', () => {
       'While',
       'HashTable',
       'HashTableV2',
+      'LookupTableImport',
       'LookupTableImportV2',
       'LookupTableFind',
       'LookupTableFindV2'

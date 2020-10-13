@@ -55,10 +55,11 @@ export function getParamValue(
 }
 
 /**
- * Retrieve the tensor based on input name by extracting the node name and
- * output index information.
+ * Retrieve the tensor from tensorsMap based on input name.
  * @param name Node input name
  * @param tensorsMap Tensors map keyed by the node
+ * @param context contains tensors and information for running the current node.
+ * @param resourceManager Optional. Contains global resources of the model.
  */
 export function getTensor(
     name: string, tensorsMap: NamedTensorsMap, context: ExecutionContext,
