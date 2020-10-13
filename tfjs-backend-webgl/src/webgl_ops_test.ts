@@ -280,8 +280,6 @@ describeWithFlags('depthToSpace', WEBGL_ENVS, () => {
      });
 });
 
-describeWithFlags('spaceToDepth', WEBGL_ENVS, () => {});
-
 describeWithFlags('maximum', WEBGL_ENVS, () => {
   it('works with squarification for large dimension', async () => {
     const maxTextureSize = tf.env().getNumber('WEBGL_MAX_TEXTURE_SIZE');
