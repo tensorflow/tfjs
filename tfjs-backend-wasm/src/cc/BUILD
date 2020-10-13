@@ -227,7 +227,7 @@ tfjs_cc_library(
         ":FlipLeftRight",
         ":FloorDiv",
         ":FusedBatchNorm",
-        ":FusedConv2D",
+        ":_FusedConv2D",
         ":FusedDepthwiseConv2D",
         ":Gather",
         ":GatherNd",
@@ -507,19 +507,19 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
-    name = "FusedConv2D",
-    srcs = ["kernels/FusedConv2D.cc"],
-    hdrs = ["kernels/FusedConv2D.h"],
+    name = "_FusedConv2D",
+    srcs = ["kernels/_FusedConv2D.cc"],
+    hdrs = ["kernels/_FusedConv2D.h"],
     deps = [
         ":conv2d_impl",
     ],
 )
 
 tfjs_unit_test(
-    name = "FusedConv2D_test",
-    srcs = ["kernels/FusedConv2D_test.cc"],
+    name = "_FusedConv2D_test",
+    srcs = ["kernels/_FusedConv2D_test.cc"],
     deps = [
-        ":FusedConv2D",
+        ":_FusedConv2D",
     ],
 )
 

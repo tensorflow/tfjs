@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, FusedConv2D, FusedConv2DAttrs, FusedConv2DInputs, KernelConfig, KernelFunc, Tensor4D} from '@tensorflow/tfjs-core';
+import {_FusedConv2D, _FusedConv2DAttrs, _FusedConv2DInputs, backend_util, KernelConfig, KernelFunc, Tensor4D} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -31,7 +31,7 @@ let wasmFusedConv2d: (
     preluActivationWeightsId: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmFusedConv2d = backend.wasm.cwrap(FusedConv2D, null /* void */, [
+  wasmFusedConv2d = backend.wasm.cwrap(_FusedConv2D, null /* void */, [
     'number',  // xId
     'number',  // batchSize
     'number',  // inputHeight
@@ -57,10 +57,10 @@ function setup(backend: BackendWasm) {
   ]);
 }
 
-function fusedConv2d(args: {
-  inputs: FusedConv2DInputs,
+function _fusedConv2d(args: {
+  inputs: _FusedConv2DInputs,
   backend: BackendWasm,
-  attrs: FusedConv2DAttrs
+  attrs: _FusedConv2DAttrs
 }) {
   const {inputs, attrs, backend} = args;
   const {x, filter, bias, preluActivationWeights} = inputs;
@@ -135,9 +135,9 @@ function fusedConv2d(args: {
   return out;
 }
 
-export const fusedConv2DConfig: KernelConfig = {
-  kernelName: FusedConv2D,
+export const _fusedConv2DConfig: KernelConfig = {
+  kernelName: _FusedConv2D,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: fusedConv2d as {} as KernelFunc
+  kernelFunc: _fusedConv2d as {} as KernelFunc
 };

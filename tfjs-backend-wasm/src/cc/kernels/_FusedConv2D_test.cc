@@ -18,10 +18,10 @@
 #include <cstddef>
 
 #include "src/cc/backend.h"
-#include "src/cc/kernels/FusedConv2D.h"
+#include "src/cc/kernels/_FusedConv2D.h"
 #include "src/cc/util.h"
 
-TEST(FUSEDCONV2D, xnn_operator_lifetime) {
+TEST(_FUSEDCONV2D, xnn_operator_lifetime) {
   tfjs::wasm::init();
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
@@ -78,7 +78,7 @@ TEST(FUSEDCONV2D, xnn_operator_lifetime) {
   const FusableActivation activation = FusableActivation::LINEAR;
   const size_t prelu_weights_id = 0;
 
-  tfjs::wasm::FusedConv2D(
+  tfjs::wasm::_FusedConv2D(
       x0_id, batch_size, input_height, input_width, weights0_id, filter_height,
       filter_width, 0 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
       is_same_pad0, dilation_height, dilation_width, stride_height,
@@ -88,7 +88,7 @@ TEST(FUSEDCONV2D, xnn_operator_lifetime) {
 
   // No new xnn_operators should be created for the second call to conv2d with
   // the same arguments.
-  tfjs::wasm::FusedConv2D(
+  tfjs::wasm::_FusedConv2D(
       x0_id, batch_size, input_height, input_width, weights0_id, filter_height,
       filter_width, 0 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
       is_same_pad0, dilation_height, dilation_width, stride_height,
@@ -98,7 +98,7 @@ TEST(FUSEDCONV2D, xnn_operator_lifetime) {
 
   // No new xnn_operators should be created for the second call to conv2d with
   // the same arguments but different input.
-  tfjs::wasm::FusedConv2D(
+  tfjs::wasm::_FusedConv2D(
       x1_id, batch_size, input_height, input_width, weights0_id, filter_height,
       filter_width, 0 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
       is_same_pad0, dilation_height, dilation_width, stride_height,
@@ -110,7 +110,7 @@ TEST(FUSEDCONV2D, xnn_operator_lifetime) {
   // same weights and bias but different arguments.
   const size_t pad_top1 = 0;
   const size_t pad_bottom1 = 1;
-  tfjs::wasm::FusedConv2D(
+  tfjs::wasm::_FusedConv2D(
       x0_id, batch_size, input_height, input_width, weights0_id, filter_height,
       filter_width, 0 /* bias */, pad_top1, pad_right, pad_bottom1, pad_left,
       is_same_pad0, dilation_height, dilation_width, stride_height,
@@ -120,7 +120,7 @@ TEST(FUSEDCONV2D, xnn_operator_lifetime) {
 
   // One more xnn operator should be created for the next call to conv2d with
   // new weights and same input.
-  tfjs::wasm::FusedConv2D(
+  tfjs::wasm::_FusedConv2D(
       x0_id, batch_size, input_height, input_width, weights1_id, filter_height,
       filter_width, 0 /* bias */, pad_top0, pad_right, pad_bottom0, pad_left,
       is_same_pad0, dilation_height, dilation_width, stride_height,
@@ -130,7 +130,7 @@ TEST(FUSEDCONV2D, xnn_operator_lifetime) {
 
   // One more xnn operator should be created for the next call to conv2d with
   // bias, same input, same weights.
-  tfjs::wasm::FusedConv2D(
+  tfjs::wasm::_FusedConv2D(
       x0_id, batch_size, input_height, input_width, weights1_id, filter_height,
       filter_width, bias0_id, pad_top0, pad_right, pad_bottom0, pad_left,
       is_same_pad0, dilation_height, dilation_width, stride_height,
@@ -140,7 +140,7 @@ TEST(FUSEDCONV2D, xnn_operator_lifetime) {
 
   // One more xnn operator should be created for the next call to conv2d with
   // new bias, same input, same weights.
-  tfjs::wasm::FusedConv2D(
+  tfjs::wasm::_FusedConv2D(
       x0_id, batch_size, input_height, input_width, weights1_id, filter_height,
       filter_width, bias1_id, pad_top0, pad_right, pad_bottom0, pad_left,
       is_same_pad0, dilation_height, dilation_width, stride_height,
@@ -151,7 +151,7 @@ TEST(FUSEDCONV2D, xnn_operator_lifetime) {
   // One more xnn operator should be created for the next call to conv2d with
   // 'SAME' padding.
   const bool is_same_pad1 = true;
-  tfjs::wasm::FusedConv2D(
+  tfjs::wasm::_FusedConv2D(
       x0_id, batch_size, input_height, input_width, weights1_id, filter_height,
       filter_width, bias1_id, pad_top0, pad_right, pad_bottom0, pad_left,
       is_same_pad1, dilation_height, dilation_width, stride_height,
@@ -161,7 +161,7 @@ TEST(FUSEDCONV2D, xnn_operator_lifetime) {
 
   // No new XNN operators should be created for the next call to conv2d with
   // 'SAME' padding and different input and raw padding values.
-  tfjs::wasm::FusedConv2D(
+  tfjs::wasm::_FusedConv2D(
       x1_id, batch_size, input_height, input_width, weights1_id, filter_height,
       filter_width, bias1_id, pad_top1, pad_right, pad_bottom1, pad_left,
       is_same_pad1, dilation_height, dilation_width, stride_height,
@@ -172,7 +172,7 @@ TEST(FUSEDCONV2D, xnn_operator_lifetime) {
   // One new XNN operator should be created for the next call to conv2d with a
   // different activation.
   const FusableActivation activation2 = FusableActivation::RELU6;
-  tfjs::wasm::FusedConv2D(
+  tfjs::wasm::_FusedConv2D(
       x1_id, batch_size, input_height, input_width, weights1_id, filter_height,
       filter_width, bias1_id, pad_top1, pad_right, pad_bottom1, pad_left,
       is_same_pad1, dilation_height, dilation_width, stride_height,

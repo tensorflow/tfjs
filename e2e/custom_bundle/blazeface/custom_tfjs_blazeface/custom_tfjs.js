@@ -21,8 +21,8 @@ import {subConfig as Sub_wasm} from '@tensorflow/tfjs-backend-wasm/dist/kernels/
 registerKernel(Sub_wasm);
 import {multiplyConfig as Multiply_wasm} from '@tensorflow/tfjs-backend-wasm/dist/kernels/Multiply';
 registerKernel(Multiply_wasm);
-import {fusedConv2DConfig as FusedConv2D_wasm} from '@tensorflow/tfjs-backend-wasm/dist/kernels/FusedConv2D';
-registerKernel(FusedConv2D_wasm);
+import {_fusedConv2DConfig as _FusedConv2D_wasm} from '@tensorflow/tfjs-backend-wasm/dist/kernels/_FusedConv2D';
+registerKernel(_FusedConv2D_wasm);
 import {depthwiseConv2dNativeConfig as DepthwiseConv2dNative_wasm} from '@tensorflow/tfjs-backend-wasm/dist/kernels/DepthwiseConv2dNative';
 registerKernel(DepthwiseConv2dNative_wasm);
 import {addConfig as Add_wasm} from '@tensorflow/tfjs-backend-wasm/dist/kernels/Add';

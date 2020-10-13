@@ -66,7 +66,7 @@ describe(`${REGRESSION} blazeface`, () => {
       const kernelNames = result.kernelNames;
       expect(kernelNames).toEqual(jasmine.arrayWithExactContents([
         'Cast', 'Reshape', 'ResizeBilinear', 'Div', 'Sub', 'Multiply',
-        'FusedConv2D', 'DepthwiseConv2dNative', 'Add', 'Relu', 'PadV2',
+        '_FusedConv2D', 'DepthwiseConv2dNative', 'Add', 'Relu', 'PadV2',
         'MaxPool', 'Slice', 'StridedSlice', 'Concat', 'Identity', 'Sigmoid',
         'NonMaxSuppressionV3'
       ]));

@@ -818,7 +818,7 @@ export interface _FusedMatMulAttrs {
   activation: Activation;
 }
 
-export const _FusedConv2D = 'FusedConv2D';
+export const _FusedConv2D = '_FusedConv2D';
 // tslint:disable-next-line: class-name
 export interface _FusedConv2DInputs extends NamedTensorInfoMap {
   x: TensorInfo;

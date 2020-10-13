@@ -6,7 +6,7 @@
         "Div",
         "Sub",
         "Multiply",
-        "FusedConv2D",
+        "_FusedConv2D",
         "fusedConv2d__op",
         "DepthwiseConv2dNative",
         "Add",

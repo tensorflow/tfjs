@@ -220,7 +220,7 @@ describe('profiler.checkComputationForErrors', () => {
 
 describeWithFlags('profiler.Logger', ALL_ENVS, () => {
   it('skips logging for undefined input node in input tensor map', () => {
-    const kernelName = 'FusedConv2D';
+    const kernelName = '_FusedConv2D';
     const vals = new Float32Array(1);
     const outputs = tf.tensor1d([1]);
     const timeMs = 10;
