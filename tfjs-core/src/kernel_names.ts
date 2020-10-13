@@ -819,14 +819,12 @@ export interface _FusedMatMulAttrs {
 }
 
 export const FusedConv2D = 'FusedConv2D';
-// tslint:disable-next-line: class-name
 export interface FusedConv2DInputs extends NamedTensorInfoMap {
   x: TensorInfo;
   filter: TensorInfo;
   bias?: TensorInfo;
   preluActivationWeights?: TensorInfo;
 }
-// tslint:disable-next-line: class-name
 export interface FusedConv2DAttrs {
   strides: [number, number]|number;
   pad: 'valid'|'same'|number|ExplicitPadding;
