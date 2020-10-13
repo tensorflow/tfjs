@@ -385,21 +385,21 @@ def _create_saved_model_v1_with_hashtable(save_dir):
     builder = tf.compat.v1.saved_model.builder.SavedModelBuilder(save_dir)
 
     with tf.compat.v1.Session() as sess:
-      keys_tensor = tf.constant([1, 2])
+      keys_tensor = tf.constant(["a", "b"])
       vals_tensor = tf.constant([3, 4])
-      input_tensor = tf.constant([1, 5])
+
       table = tf.lookup.StaticHashTable(
         tf.lookup.KeyValueTensorInitializer(keys=keys_tensor, values=vals_tensor
         ),
         default_value=-1
       )
-      input = tf.compat.v1.placeholder(tf.int32, shape=[2])
+      input = tf.compat.v1.placeholder(tf.string, shape=[2])
       output = table.lookup(input)
 
       sess.run(tf.compat.v1.tables_initializer())
 
       # output_val = [3, -1]
-      output_val = sess.run(output, {input: [1, 5]})
+      output_val = sess.run(output, {input: ["a", "c"]})
 
       builder.add_meta_graph_and_variables(
           sess, [tf.compat.v1.saved_model.tag_constants.SERVING],
@@ -417,7 +417,7 @@ def _create_saved_model_v1_with_hashtable(save_dir):
         "async": False,
         "inputs": {
             "Placeholder:0": {
-                "value": [1, 5], "shape": [2], "dtype": "int32"
+                "value": ["a", "c"], "shape": [2], "dtype": "string"
             }
         },
         "outputs": {

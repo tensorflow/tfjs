@@ -4352,11 +4352,6 @@ ts-node@~8.8.2:
     source-map-support "^0.5.6"
     yn "3.1.1"
 
-tsc@^1.20150623.0:
-  version "1.20150623.0"
-  resolved "https://registry.npmjs.org/tsc/-/tsc-1.20150623.0.tgz#4ebc3c774e169148cbc768a7342533f082c7a6e5"
-  integrity sha1-Trw8d04WkUjLx2inNCUz8ILHpuU=
-
 tsconfig@^5.0.3:
   version "5.0.3"
   resolved "https://registry.npmjs.org/tsconfig/-/tsconfig-5.0.3.tgz#5f4278e701800967a8fc383fd19648878f2a6e3a"
