@@ -24,18 +24,13 @@ export class HashTable {
 
   // tslint:disable-next-line: no-any
   private tensorMap: Map<any, Tensor>;
-  private initialized_ = false;
 
   get id() {
     return this.handle.id;
   }
 
-  get initialized(): boolean {
-    return this.initialized_;
-  }
-
   /**
-   * Constructor of HashTable. Creates a non-initialized hash table.
+   * Constructor of HashTable. Creates a hash table.
    *
    * @param keyDType `dtype` of the table keys.
    * @param valueDType `dtype` of the table values.
@@ -44,7 +39,6 @@ export class HashTable {
     this.handle = scalar(0);
     // tslint:disable-next-line: no-any
     this.tensorMap = new Map<any, Tensor>();
-    this.initialized_ = true;
 
     keep(this.handle);
   }
@@ -73,8 +67,12 @@ export class HashTable {
   async import(keys: Tensor, values: Tensor): Promise<Tensor> {
     this.checkKeyAndValueTensor(keys, values);
 
+    // We only store the primitive values of the keys, this allows lookup
+    // to be O(1).
     const $keys = await keys.data();
 
+    // Clear the hashTable before inserting new values.
+    this.tensorMap.forEach(value => value.dispose());
     this.tensorMap.clear();
 
     return tidy(() => {
@@ -105,8 +103,7 @@ export class HashTable {
    * Looks up keys in a hash table, outputs the corresponding values.
    *
    * Performs batch lookups, for every element in the key tensor, `find`
-   * stacks the corresponding value into the return tensor. Each lookup takes
-   * O(n) time, n is the size of the table.
+   * stacks the corresponding value into the return tensor.
    *
    * If an element is not present in the table, the given `defaultValue` is
    * used.

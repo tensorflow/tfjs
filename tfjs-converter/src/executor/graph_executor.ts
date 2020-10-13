@@ -40,7 +40,7 @@ export class GraphExecutor implements FunctionExecutor {
   private _signature: ISignatureDef;
   private _inputs: Node[];
   private _outputs: Node[];
-  private _initNodes: Node[];
+  private _initNodes: Node[];  // Internal init nodes to start initialization.
   private SEPERATOR = ',';
   private _functions: {[key: string]: Graph} = {};
   private _functionExecutorMap: {[key: string]: FunctionExecutor} = {};
@@ -59,10 +59,6 @@ export class GraphExecutor implements FunctionExecutor {
     return this.parent ? this.parent.weightMap : this._weightMap;
   }
 
-  get resourcemanager(): ResourceManager {
-    return this._resourceManager;
-  }
-
   set weightMap(weightMap: NamedTensorsMap) {
     const weightIds = Object.keys(weightMap).map(
         key => weightMap[key].map(tensor => tensor.id));
@@ -70,6 +66,10 @@ export class GraphExecutor implements FunctionExecutor {
     this._weightMap = weightMap;
   }
 
+  /**
+   * Set `ResourceManager` shared by executors of a model.
+   * @param resourceManager: `ResourceManager` of the `GraphModel`.
+   */
   set resourceManager(resourceManager: ResourceManager) {
     this._resourceManager = resourceManager;
   }
@@ -182,12 +182,12 @@ export class GraphExecutor implements FunctionExecutor {
    * Executes the inference for given input tensors.
    * @param inputs Tensor map for the model inputs, keyed by the input node
    * names.
-   * @param outputs output node name from the Tensorflow model, if no outputs
-   * are specified, the default outputs of the model would be used. You can
-   * inspect intermediate nodes of the model by adding them to the outputs
-   * array.
+   * @param outputs Optional. output node name from the Tensorflow model, if
+   * no outputs are specified, the default outputs of the model would be used.
+   * You can inspect intermediate nodes of the model by adding them to the
+   * outputs array.
    */
-  execute(inputs: NamedTensorMap, outputs: string[]): Tensor[] {
+  execute(inputs: NamedTensorMap, outputs?: string[]): Tensor[] {
     inputs = this.mapInputs(inputs);
     const names = Object.keys(inputs).sort();
     this.checkInputs(inputs);
@@ -316,7 +316,7 @@ export class GraphExecutor implements FunctionExecutor {
    * inspect intermediate nodes of the model by adding them to the outputs
    * array.
    */
-  async executeAsync(inputs: NamedTensorMap, outputs: string[]):
+  async executeAsync(inputs: NamedTensorMap, outputs?: string[]):
       Promise<Tensor[]> {
     return this._executeAsync(inputs, outputs);
   }
@@ -325,18 +325,18 @@ export class GraphExecutor implements FunctionExecutor {
    * Executes the inference for given input tensors in Async fashion.
    * @param inputs Tensor map for the model inputs, keyed by the input node
    * names.
-   * @param outputs output node name from the Tensorflow model, if no outputs
-   * are specified, the default outputs of the model would be used. You can
-   * inspect intermediate nodes of the model by adding them to the outputs
-   * array.
-   * @param isFunctionExecution Flag for executing a function.
+   * @param outputs Optional. output node name from the Tensorflow model,
+   * if no outputs are specified, the default outputs of the model would be
+   * used. You can inspect intermediate nodes of the model by adding them to the
+   * outputs array.
+   * @param isFunctionExecution Optional. Flag for executing a function.
    * @param tensorArrayMap Optional, global TensorArray map by id. Used for
    * function execution.
    * @param tensorArrayMap Optinal global TensorList map by id. Used for
    * function execution.
    */
   private async _executeAsync(
-      inputs: NamedTensorMap, outputs: string[], isFunctionExecution = false,
+      inputs: NamedTensorMap, outputs?: string[], isFunctionExecution = false,
       tensorArrayMap: TensorArrayMap = {},
       tensorListMap: TensorListMap = {}): Promise<Tensor[]> {
     if (!isFunctionExecution) {
@@ -395,11 +395,15 @@ export class GraphExecutor implements FunctionExecutor {
    * ExecutionContext to keep track of the frames and loop iterators.
    * @param inputs placeholder tensors for the graph.
    * @param context the execution context object for current execution.
+   * @param outputNames Optional. output node name from the Tensorflow model,
+   * if no outputs are specified, the default outputs of the model would be
+   * used. You can inspect intermediate nodes of the model by adding them to the
+   * outputs array.
    * @param isFunctionExecution Flag for executing a function.
    */
   private async executeWithControlFlow(
-      inputs: NamedTensorMap, context: ExecutionContext, outputNames: string[],
-      isFunctionExecution: boolean): Promise<NamedTensorsMap> {
+      inputs: NamedTensorMap, context: ExecutionContext, outputNames?: string[],
+      isFunctionExecution?: boolean): Promise<NamedTensorsMap> {
     const names = Object.keys(inputs);
     const inputNodes =
         names.map(name => this.graph.nodes[parseNodeName(name)[0]]);
@@ -415,6 +419,7 @@ export class GraphExecutor implements FunctionExecutor {
         getExecutionSubgraph(
             inputs, outputNodes, this.weightMap, this._initNodes);
 
+    // First nodes to execute include inputNodes, weights, and initNodes.
     const stack: NodeWithContexts[] = [
       ...inputNodes, ...this.graph.weights, ...(this._initNodes || [])
     ].map(node => {
@@ -481,9 +486,9 @@ export class GraphExecutor implements FunctionExecutor {
         [nodeName] = getNodeNameAndIndex(item.node.name, context);
       }
 
-      // only process nodes that are not provided as input nodes.
-      if (inputNodes.indexOf(item.node) === -1 ||
-          tensorMap[item.node.name] == null) {
+      // only process nodes that are not in the tensorMap yet, this include
+      // inputNodes and internal initNodes.
+      if (tensorMap[item.node.name] == null) {
         const tensors =
             executeOp(item.node, tensorMap, context, this._resourceManager);
         if (!nodeName) {
