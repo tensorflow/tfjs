@@ -154,8 +154,8 @@ const DYNAMIC_SHAPE_OPS = [
   'NonMaxSuppressionV2', 'NonMaxSuppressionV3', 'NonMaxSuppressionV5', 'Where'
 ];
 const HASH_TABLE_OPS = [
-  'HashTable', 'HashTableV2', 'LookupTableImportV2', 'LookupTableFind',
-  'LookupTableFindV2'
+  'HashTable', 'HashTableV2', 'LookupTableImport', 'LookupTableImportV2',
+  'LookupTableFind', 'LookupTableFindV2'
 ];
 
 export function isControlFlow(node: Node) {

@@ -17,6 +17,9 @@
 import {HashTableMap, NamedTensorMap} from '../data/types';
 import {HashTable} from './hash_table';
 
+/**
+ * Contains global resources of a model.
+ */
 export class ResourceManager {
   constructor(
       readonly hashTableNameToHandle: NamedTensorMap = {},
@@ -38,9 +41,12 @@ export class ResourceManager {
   dispose() {
     for (const key in this.hashTableMap) {
       this.hashTableMap[key].clearAndClose();
+      delete this.hashTableMap[key];
     }
+
     for (const name in this.hashTableNameToHandle) {
       this.hashTableNameToHandle[name].dispose();
+      delete this.hashTableNameToHandle[name];
     }
   }
 }

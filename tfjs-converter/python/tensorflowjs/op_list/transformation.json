@@ -39,7 +39,7 @@
       }
     ]
   },
-    {
+  {
     "tfOpName": "MirrorPad",
     "category": "transformation",
     "inputs": [

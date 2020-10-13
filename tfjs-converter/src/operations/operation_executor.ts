@@ -46,6 +46,8 @@ import {Node} from './types';
  * Executes the op defined by the node object.
  * @param node
  * @param tensorMap contains tensors for executed nodes and weights
+ * @param context contains tensors and information for running the current node.
+ * @param resourceManager Optional. Contains global resources of the model.
  */
 export function executeOp(
     node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
