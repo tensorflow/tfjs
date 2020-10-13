@@ -624,6 +624,10 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
     return notYetImplemented('depthToSpace');
   }
 
+  spaceToDepth(x: Tensor4D, blockSize: number, dataFormat: string): Tensor4D {
+    return notYetImplemented('spaceToDepth');
+  }
+
   // Aligns with the "SplitV" kernel in TensorFlow.
   split<T extends Tensor>(value: T, sizeSplits: number[], axis: number): T[] {
     return notYetImplemented('split');

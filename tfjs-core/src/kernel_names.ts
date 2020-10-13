@@ -686,6 +686,13 @@ export interface SpaceToBatchNDAttrs {
   paddings: number[][];
 }
 
+export const SpaceToDepth = 'SpaceToDepth';
+export type SpaceToDepthInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface SpaceToDepthAttrs {
+  blockSize: number;
+  dataFormat: 'NHWC'|'NCHW'
+}
+
 export const SplitV = 'SplitV';
 export type SplitVInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface SplitVAttrs {
