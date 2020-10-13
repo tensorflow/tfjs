@@ -18,11 +18,25 @@
 import {esmImportProvider} from './esm_module_provider';
 
 describe('ESM Module Provider', () => {
-  it('importCoreStr', () => {
-    const res = esmImportProvider.importCoreStr();
+  it('importCoreStr forwardModeOnly=true', () => {
+    const forwardModeOnly = true;
+    const res = esmImportProvider.importCoreStr(forwardModeOnly);
     expect(res).toContain(
-        // tslint:disable-next-line: max-line-length
-        `import {registerKernel, registerGradient} from '@tensorflow/tfjs-core/dist/base'`);
+        `import {registerKernel} from '@tensorflow/tfjs-core/dist/base'`);
+    expect(res).not.toContain(
+        `import {registerGradient} from '@tensorflow/tfjs-core/dist/base'`);
+    expect(res).toContain(
+        `import '@tensorflow/tfjs-core/dist/base_side_effects';`);
+    expect(res).toContain(`export * from '@tensorflow/tfjs-core/dist/base';`);
+  });
+
+  it('importCoreStr forwardModeOnly=false', () => {
+    const forwardModeOnly = false;
+    const res = esmImportProvider.importCoreStr(forwardModeOnly);
+    expect(res).toContain(
+        `import {registerKernel} from '@tensorflow/tfjs-core/dist/base'`);
+    expect(res).toContain(
+        `import {registerGradient} from '@tensorflow/tfjs-core/dist/base'`);
     expect(res).toContain(
         `import '@tensorflow/tfjs-core/dist/base_side_effects';`);
     expect(res).toContain(`export * from '@tensorflow/tfjs-core/dist/base';`);
