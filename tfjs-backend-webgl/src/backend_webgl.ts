@@ -494,7 +494,7 @@ export class MathBackendWebGL extends KernelBackend {
     const size = util.sizeFromShape(shape);
 
     if (size === 0) {
-      return new Float32Array();
+      return new Float32Array(0);
     }
 
     if (env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
