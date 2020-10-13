@@ -82,12 +82,18 @@ class ESMModuleProvider implements ModuleProvider {
  */
 // Exported for tests.
 export const esmImportProvider: ImportProvider = {
-  importCoreStr() {
-    return `
-import {registerKernel, registerGradient} from '@tensorflow/tfjs-core/dist/base';
-import '@tensorflow/tfjs-core/dist/base_side_effects';
-export * from '@tensorflow/tfjs-core/dist/base';
-  `;
+  importCoreStr(forwardModeOnly: boolean) {
+    const importLines = [
+      `import {registerKernel} from '@tensorflow/tfjs-core/dist/base';`,
+      `import '@tensorflow/tfjs-core/dist/base_side_effects';`,
+      `export * from '@tensorflow/tfjs-core/dist/base';`
+    ];
+
+    if (!forwardModeOnly) {
+      importLines.push(
+          `import {registerGradient} from '@tensorflow/tfjs-core/dist/base';`)
+    }
+    return importLines.join('\n');
   },
 
   importConverterStr() {
