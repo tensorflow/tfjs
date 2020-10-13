@@ -23,7 +23,7 @@ set -e
 DIR=$1
 # Regular flow: Only run changed packages plus e2e regular test.
 # Nightly flow: Run everything.
-if [[ -f "$DIR/run-ci" || $DIR == "e2e" || $NIGHTLY = true ]]; then
-  gcloud builds submit . --config=$DIR/cloudbuild.yml \
-    --substitutions _NIGHTLY=$NIGHTLY
-fi
+# if [[ -f "$DIR/run-ci" || $DIR == "e2e" || $NIGHTLY = true ]]; then
+gcloud builds submit . --config=$DIR/cloudbuild.yml \
+  --substitutions _NIGHTLY=$NIGHTLY
+# fi
