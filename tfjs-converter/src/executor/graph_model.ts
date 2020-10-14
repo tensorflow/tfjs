@@ -22,6 +22,7 @@ import {NamedTensorsMap, TensorInfo} from '../data/types';
 import {OperationMapper} from '../operations/operation_mapper';
 
 import {GraphExecutor} from './graph_executor';
+import {ResourceManager} from './resource_manager';
 
 export const TFHUB_SEARCH_PARAM = '?tfjs-format=file';
 export const DEFAULT_MODEL_NAME = 'model.json';
@@ -41,6 +42,7 @@ export class GraphModel implements InferenceModel {
   private handler: io.IOHandler;
   private artifacts: io.ModelArtifacts;
   private initializer: GraphExecutor;
+  private resourceManager: ResourceManager;
 
   // Returns the version information for the tensorflow model GraphDef.
   get modelVersion(): string {
@@ -82,6 +84,7 @@ export class GraphModel implements InferenceModel {
     if (loadOptions == null) {
       this.loadOptions = {};
     }
+    this.resourceManager = new ResourceManager();
   }
 
   private findIOHandler() {
@@ -144,13 +147,20 @@ export class GraphModel implements InferenceModel {
     this.executor = new GraphExecutor(
         OperationMapper.Instance.transformGraph(graph, signature));
     this.executor.weightMap = this.convertTensorMapToTensorsMap(weightMap);
+    // Attach a model-level resourceManager to each executor to share resources,
+    // such as `HashTable`.
+    this.executor.resourceManager = this.resourceManager;
 
     if (artifacts.modelInitializer != null) {
       const initializer =
           OperationMapper.Instance.transformGraph(artifacts.modelInitializer);
       this.initializer = new GraphExecutor(initializer);
       this.initializer.weightMap = this.executor.weightMap;
-      this.initializer.execute({}, []);
+      // Attach a model-level resourceManager to the initializer, the
+      // hashTables created from when executing the initializer will be stored
+      // in the resourceManager.
+      this.initializer.resourceManager = this.resourceManager;
+      this.initializer.executeAsync({}, []);
     }
 
     return true;
@@ -346,7 +356,7 @@ export class GraphModel implements InferenceModel {
   }
 
   /**
-   * Releases the memory used by the weight tensors.
+   * Releases the memory used by the weight tensors and resourceManager.
    *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
@@ -356,6 +366,8 @@ export class GraphModel implements InferenceModel {
     if (this.initializer) {
       this.initializer.dispose();
     }
+
+    this.resourceManager.dispose();
   }
 }
 

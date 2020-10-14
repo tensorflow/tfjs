@@ -29,6 +29,7 @@ import * as creation from './op_list/creation';
 import * as dynamic from './op_list/dynamic';
 import * as evaluation from './op_list/evaluation';
 import * as graph from './op_list/graph';
+import * as hashTable from './op_list/hash_table';
 import * as image from './op_list/image';
 import * as logical from './op_list/logical';
 import * as matrices from './op_list/matrices';
@@ -54,7 +55,7 @@ export class OperationMapper {
     const ops = [
       arithmetic, basicMath, control, convolution, creation, dynamic,
       evaluation, logical, image, graph, matrices, normalization, reduction,
-      sliceJoin, spectral, transformation
+      sliceJoin, spectral, transformation, hashTable
     ];
     const mappersJson: OpMapper[] = [].concat(...ops.map(op => op.json));
 
