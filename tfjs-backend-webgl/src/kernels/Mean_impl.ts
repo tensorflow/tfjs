@@ -30,7 +30,7 @@ export function meanImpl(
   const reshapedInput =
       reshape({inputs: {x}, attrs: {shape: [batchSize, inSize]}, backend});
 
-  const reduced = reduce(reshapedInput, 'float32', 'mean', backend)
+  const reduced = reduce(reshapedInput, 'float32', 'mean', backend);
   const reshapedOutput =
       reshape({inputs: {x: reduced}, attrs: {shape: outShape}, backend});
 
