@@ -57,7 +57,7 @@ export class ResourceManager {
   }
 
   /**
-   * Dispose `ResourceManager`, including its hashTables and tensors in them/
+   * Dispose `ResourceManager`, including its hashTables and tensors in them.
    */
   dispose() {
     for (const key in this.hashTableMap) {
