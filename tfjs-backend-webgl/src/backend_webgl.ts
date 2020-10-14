@@ -2332,9 +2332,16 @@ export class MathBackendWebGL extends KernelBackend {
 
       if (texData.texture == null) {
         if (input.shape.includes(0)) {
-          texData.values =
-              util.getTypedArrayFromDType(input.dtype as 'float32', 0);
-          return {shape: input.shape, isUniform: false, texData};
+          // texData.values =
+          //     util.getTypedArrayFromDType(input.dtype as 'float32', 0);
+          return {
+            shape: input.shape,
+            isUniform: true,
+            texData: null,
+            uniformValues: texData.values ?
+                texData.values as TypedArray :
+                util.getTypedArrayFromDType(input.dtype as 'float32', 0)
+          };
         }
 
         if (!program.packedInputs &&
