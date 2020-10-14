@@ -2331,6 +2331,12 @@ export class MathBackendWebGL extends KernelBackend {
       let texData = this.texData.get(input.dataId);
 
       if (texData.texture == null) {
+        if (input.shape.includes(0)) {
+          texData.values =
+              util.getTypedArrayFromDType(input.dtype as 'float32', 0);
+          return {shape: input.shape, isUniform: false, texData};
+        }
+
         if (!program.packedInputs &&
             util.sizeFromShape(input.shape) <=
                 env().getNumber('WEBGL_SIZE_UPLOAD_UNIFORM')) {
