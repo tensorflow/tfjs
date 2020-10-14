@@ -19,11 +19,12 @@ import {clone, Tensor, util} from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
+import {ResourceManager} from '../../executor/resource_manager';
 import {Node, ValueType} from '../types';
 
 export function getParamValue(
     paramName: string, node: Node, tensorMap: NamedTensorsMap,
-    context: ExecutionContext): ValueType {
+    context: ExecutionContext, resourceManager?: ResourceManager): ValueType {
   const inputParam = node.inputParams[paramName];
   if (inputParam && inputParam.inputIndexStart !== undefined) {
     const start = inputParam.inputIndexStart;
@@ -33,15 +34,17 @@ export function getParamValue(
                                                   inputParam.inputIndexEnd);
     if (inputParam.type === 'tensor') {
       return getTensor(
-          node.inputNames[inputParam.inputIndexStart], tensorMap, context);
+          node.inputNames[inputParam.inputIndexStart], tensorMap, context,
+          resourceManager);
     }
     if (inputParam.type === 'tensors') {
       const inputs = node.inputNames.slice(start, end);
 
-      return inputs.map(name => getTensor(name, tensorMap, context));
+      return inputs.map(
+          name => getTensor(name, tensorMap, context, resourceManager));
     }
-    const tensor =
-        getTensor(node.inputNames.slice(start)[0], tensorMap, context);
+    const tensor = getTensor(
+        node.inputNames.slice(start)[0], tensorMap, context, resourceManager);
     const data = tensor.dataSync();
     return inputParam.type === 'number' ?
         data[0] :
@@ -52,15 +55,24 @@ export function getParamValue(
 }
 
 /**
- * Retrieve the tensor based on input name by extracting the node name and
- * output index information.
+ * Retrieve the tensor from tensorsMap based on input name.
  * @param name Node input name
  * @param tensorsMap Tensors map keyed by the node
+ * @param context contains tensors and information for running the current node.
+ * @param resourceManager Optional. Contains global resources of the model.
  */
 export function getTensor(
-    name: string, tensorsMap: NamedTensorsMap,
-    context: ExecutionContext): Tensor {
+    name: string, tensorsMap: NamedTensorsMap, context: ExecutionContext,
+    resourceManager?: ResourceManager): Tensor {
   const [nodeName, index] = parseNodeName(name);
+
+  if (resourceManager != null) {
+    const tensor = resourceManager.getHashTableHandleByName(nodeName);
+    if (tensor != null) {
+      return tensor;
+    }
+  }
+
   const contextId = context.currentContextIds.find(contextId => {
     return !!tensorsMap[getNodeNameWithContextId(nodeName, contextId)];
   });

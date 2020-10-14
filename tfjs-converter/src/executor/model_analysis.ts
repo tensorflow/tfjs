@@ -60,7 +60,7 @@ export function getExecutionSubgraph(
   const frontier = [...outputs];
   while (frontier.length > 0) {
     const node = frontier.pop();
-    if (isControlFlow(node) || isDynamicShape(node)) {
+    if (isControlFlow(node) || isDynamicShape(node) || isHashTable(node)) {
       if (dynamicNode == null) {
         dynamicNode = node;
         syncInputs = dynamicNode.children.map(child => child.name)
@@ -153,6 +153,10 @@ const CONTROL_FLOW_OPS = [
 const DYNAMIC_SHAPE_OPS = [
   'NonMaxSuppressionV2', 'NonMaxSuppressionV3', 'NonMaxSuppressionV5', 'Where'
 ];
+const HASH_TABLE_OPS = [
+  'HashTable', 'HashTableV2', 'LookupTableImport', 'LookupTableImportV2',
+  'LookupTableFind', 'LookupTableFindV2'
+];
 
 export function isControlFlow(node: Node) {
   return CONTROL_FLOW_OPS.indexOf(node.op) >= 0;
@@ -160,4 +164,8 @@ export function isControlFlow(node: Node) {
 
 export function isDynamicShape(node: Node) {
   return DYNAMIC_SHAPE_OPS.indexOf(node.op) >= 0;
+}
+
+export function isHashTable(node: Node) {
+  return HASH_TABLE_OPS.indexOf(node.op) >= 0;
 }
