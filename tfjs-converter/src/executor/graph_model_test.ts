@@ -34,9 +34,8 @@ const weightsManifest: tfc.io.WeightsManifestEntry[] =
     [{'name': 'Const', 'dtype': 'int32', 'shape': [1]}];
 
 const weightsManifestWithInitializer: tfc.io.WeightsManifestEntry[] = [
-  {'name': 'Const', 'dtype': 'int32', 'shape': [1]},
   {'dtype': 'string', 'name': 'transform/keys', 'shape': [1]},
-  {'dtype': 'int32', 'name': 'transform/values', 'shape': [1]}
+  {'dtype': 'float32', 'name': 'transform/values', 'shape': [1]}
 ];
 
 const SIMPLE_MODEL: tensorflow.IGraphDef = {
@@ -194,10 +193,10 @@ const INITIALIZER_GRAPHDEF: tensorflow.IGraphDef = {
       name: 'transform/values',
       op: 'Const',
       attr: {
-        dtype: {type: tensorflow.DataType.DT_INT32},
+        dtype: {type: tensorflow.DataType.DT_FLOAT},
         value: {
           tensor: {
-            dtype: tensorflow.DataType.DT_INT32,
+            dtype: tensorflow.DataType.DT_FLOAT,
             tensorShape: {dim: [{size: 1}]}
           }
         }
@@ -220,7 +219,7 @@ const INITIALIZER_GRAPHDEF: tensorflow.IGraphDef = {
       name: 'transform/hash_table',
       op: 'HashTableV2',
       attr: {
-        value_dtype: {type: tensorflow.DataType.DT_INT32},
+        value_dtype: {type: tensorflow.DataType.DT_FLOAT},
         use_node_name_sharing: {b: false},
         key_dtype: {type: tensorflow.DataType.DT_STRING},
         container: {s: ''},
@@ -232,7 +231,7 @@ const INITIALIZER_GRAPHDEF: tensorflow.IGraphDef = {
       op: 'LookupTableImportV2',
       input: ['transform/hash_table', 'transform/keys', 'transform/values'],
       attr: {
-        Tin: {type: tensorflow.DataType.DT_INT32},
+        Tin: {type: tensorflow.DataType.DT_FLOAT},
         Tout: {type: tensorflow.DataType.DT_STRING}
       }
     }
@@ -240,16 +239,70 @@ const INITIALIZER_GRAPHDEF: tensorflow.IGraphDef = {
   versions: {producer: 1.0, minConsumer: 3}
 };
 
+const HASH_TABLE_MODEL: tensorflow.IGraphDef = {
+  node: [
+    {
+      name: 'Input',
+      op: 'Placeholder',
+      attr: {
+        dtype: {
+          type: tensorflow.DataType.DT_STRING,
+        },
+        shape: {shape: {dim: [{size: 1}]}}
+      }
+    },
+    {
+      name: 'Input_1',
+      op: 'Placeholder',
+      attr: {
+        dtype: {
+          type: tensorflow.DataType.DT_FLOAT,
+        },
+        shape: {shape: {dim: [{size: 1}]}}
+      }
+    },
+    {
+      name: 'transform/hash_table',
+      op: 'HashTableV2',
+      input: [],
+      attr: {
+        value_dtype: {type: tensorflow.DataType.DT_FLOAT},
+        use_node_name_sharing: {b: false},
+        key_dtype: {type: tensorflow.DataType.DT_STRING},
+        container: {s: ''},
+        shared_name: {s: 'tablename'}
+      }
+    },
+    {
+      name: 'LookupTableFindV2',
+      op: 'LookupTableFindV2',
+      input: ['transform/hash_table', 'Input', 'Input_1'],
+      attr: {}
+    }
+  ],
+  versions: {producer: 1.0, minConsumer: 3}
+};
+
+const HASH_TABLE_SIGNATURE: tensorflow.ISignatureDef = {
+  inputs: {
+    keys: {name: 'Input:0', dtype: tensorflow.DataType.DT_STRING},
+    defaultValues: {name: 'Input_1:0', dtype: tensorflow.DataType.DT_FLOAT}
+  },
+  outputs: {
+    values:
+        {name: 'LookupTableFindV2:0', dtype: tensorflow.DataType.DT_FLOAT}
+  }
+};
 const HASHTABLE_HTTP_MODEL_LOADER = {
   load: async () => {
     return {
-      modelTopology: SIMPLE_MODEL,
+      modelTopology: HASH_TABLE_MODEL,
       weightSpecs: weightsManifestWithInitializer,
       weightData: new ArrayBuffer(16),
       format: 'tfjs-graph-model',
       generatedBy: '1.15',
       convertedBy: '2.4',
-      userDefinedMetadata: {signature: SIGNATURE},
+      userDefinedMetadata: {signature: HASH_TABLE_SIGNATURE},
       modelInitializer: INITIALIZER_GRAPHDEF
     };
   }
@@ -685,18 +738,12 @@ describe('Model', () => {
       spyOn(tfc.io, 'browserHTTPRequest')
           .and.returnValue(HASHTABLE_HTTP_MODEL_LOADER);
     });
-    it('load.', async done => {
-      // TODO(lina128): Update test once HashTableV2 is implemented.
-      model.load()
-          .then(() => {
-            done.fail(
-                'Loading with unknown op succeeded ' +
-                'unexpectedly.');
-          })
-          .catch(err => {
-            expect(err.message).toMatch(/Unknown op 'HashTableV2'/);
-            done();
-          });
+    it('should be successful if call executeAsync', async () => {
+      await model.load();
+      const keys = tfc.tensor1d(['a'], 'string');
+      const defaultValues = tfc.tensor1d([0]);
+      const res = await model.executeAsync({keys, defaultValues});
+      expect(res).not.toBeNull();
     });
   });
 });

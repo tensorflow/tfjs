@@ -19,6 +19,7 @@ const karmaTypescriptConfig = {
   tsconfig: 'tsconfig.json',
   coverageOptions: {instrumentation: false},
   bundlerOptions: {
+    sourceMap: true,
     acornOptions: {ecmaVersion: 8},
     transforms: [
       require('karma-typescript-es6-transform')({
@@ -158,6 +159,7 @@ module.exports = function(config) {
         os_version: '10'
       }
     },
-    client: {jasmine: {random: false}, args: args}
+    client: {jasmine: {random: false}, args: args, captureConsole: true},
+    logLevel: 'info'
   });
 };
