@@ -520,9 +520,9 @@ export class MathBackendWebGL extends KernelBackend {
     const output = this.runWebGLProgram(
         program, [{shape: outputShape, dtype, dataId}], 'float32');
     const tmpData = this.texData.get(output.dataId);
-    if (tmpData.values) {
-      return tmpData.values as Float32Array;
-    }
+    // if (tmpData.values) {
+    //   return tmpData.values as Float32Array;
+    // }
 
     const vals =
         this.gpgpu
