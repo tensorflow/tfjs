@@ -101,8 +101,8 @@ function conv2DBackpropFilter_<T extends Tensor3D|Tensor4D>(
   };
 
   const inputs: Conv2DBackpropFilterInputs = {x: x4D, dy: dy4D};
-  const attrs:
-      Conv2DBackpropFilterAttrs = {strides, pad, dataFormat, dimRoundingMode};
+  const attrs: Conv2DBackpropFilterAttrs =
+      {strides, pad, dataFormat, dimRoundingMode, filterShape};
 
   return ENGINE.runKernelFunc(
              forward, inputs as {} as NamedTensorMap, null,
