@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {BinaryInputs, env, KernelConfig, Multiply, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
+import {backend_util, BinaryInputs, env, KernelConfig, Multiply, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import * as binaryop_complex_gpu from '../binaryop_complex_gpu';
@@ -32,6 +32,7 @@ export function multiply(
     args: {inputs: BinaryInputs, backend: MathBackendWebGL}): TensorInfo {
   const {inputs, backend} = args;
   const {a, b} = inputs;
+  const dtype = backend_util.upcastType(a.dtype, b.dtype);
 
   if (a.dtype === 'complex64') {
     const aData = backend.texData.get(a.dataId);
@@ -83,9 +84,9 @@ export function multiply(
     const bData = backend.texData.get(b.dataId);
     const [outValues, outShape] = cpuMultiply(
         a.shape, b.shape, aData.values as TypedArray,
-        bData.values as TypedArray, 'float32');
+        bData.values as TypedArray, dtype);
 
-    const out = backend.makeTensorInfo(outShape, 'float32');
+    const out = backend.makeTensorInfo(outShape, dtype);
     const outData = backend.texData.get(out.dataId);
     outData.values = outValues;
     return out;
@@ -98,7 +99,7 @@ export function multiply(
     program = new BinaryOpProgram(MUL, a.shape, b.shape);
   }
 
-  return backend.runWebGLProgram(program, [a, b], a.dtype);
+  return backend.runWebGLProgram(program, [a, b], dtype);
 }
 
 export const multiplyConfig: KernelConfig = {
