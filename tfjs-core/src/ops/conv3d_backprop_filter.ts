@@ -82,9 +82,9 @@ function conv3DBackpropFilter_<T extends Tensor4D|Tensor5D>(
     return backend.conv3dDerFilter(x5D, dy5D, convInfo);
   };
 
-  const inputs: Conv3DBackpropFilterInputs = {x: x5D, y: dy5D};
+  const inputs: Conv3DBackpropFilterInputs = {x: x5D, dy: dy5D};
 
-  const attrs: Conv3DBackpropFilterAttrs = {strides, pad};
+  const attrs: Conv3DBackpropFilterAttrs = {strides, pad, filterShape};
 
   return ENGINE.runKernelFunc(
              forward, inputs as {} as NamedTensorMap, null,
