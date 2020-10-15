@@ -36,6 +36,7 @@ import {maxConfig} from './kernels/Max';
 import {maxPoolConfig} from './kernels/MaxPool';
 import {maxPoolBackpropConfig} from './kernels/MaxPoolBackprop';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
+import {meanConfig} from './kernels/Mean';
 import {mirrorPadConfig} from './kernels/MirrorPad';
 import {multiplyConfig} from './kernels/Multiply';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
@@ -75,6 +76,7 @@ const kernelConfigs: KernelConfig[] = [
   maxPoolConfig,
   maxPoolBackpropConfig,
   maxPoolWithArgmaxConfig,
+  meanConfig,
   mirrorPadConfig,
   multiplyConfig,
   nonMaxSuppressionV3Config,

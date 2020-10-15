@@ -24,7 +24,6 @@
  *  - Make inference using each backends, and validate the results against TF
  *    results.
  */
-
 import '@tensorflow/tfjs-backend-cpu';
 import '@tensorflow/tfjs-backend-webgl';
 
@@ -91,11 +90,12 @@ describeWithFlags(`${REGRESSION} convert_predict`, ALL_ENVS, () => {
 
         afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
 
-        it(`with ${tfc.getBackend()}.`, async () => {
+        it(`.`, async () => {
           if (modelType === 'graph_model') {
+            const numTensors = tfc.memory().numTensors;
+
             const $model = await tfconverter.loadGraphModel(
                 `${KARMA_SERVER}/${DATA_URL}/${model}/model.json`);
-            const numTensors = tfc.memory().numTensors;
 
             const namedInputs = createInputTensors(
                                     inputsData, inputsShapes, inputsDtypes,
@@ -118,6 +118,7 @@ describeWithFlags(`${REGRESSION} convert_predict`, ALL_ENVS, () => {
             // Dispose all tensors;
             Object.keys(namedInputs).forEach(key => namedInputs[key].dispose());
             ys.forEach(tensor => tensor.dispose());
+            $model.dispose();
 
             expect(tfc.memory().numTensors).toEqual(numTensors);
           }
