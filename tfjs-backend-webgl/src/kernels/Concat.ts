@@ -31,7 +31,7 @@ export function concat(
   const outShape =
       backend_util.computeOutShape(inputs.map(t => t.shape), $axis);
 
-  if (outShape.includes(0) || util.sizeFromShape(outShape) === 0) {
+  if (util.sizeFromShape(outShape) === 0) {
     return backend.makeTensorInfo(outShape, inputs[0].dtype, []);
   }
 
