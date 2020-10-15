@@ -2355,7 +2355,12 @@ export class MathBackendWebGL extends KernelBackend {
           // due to problems when comparing 16bit floats with 32bit floats.
           // TODO(https://github.com/tensorflow/tfjs/issues/821): Make it
           // possible for packed shaders to sample from uniforms.
-          return {shape: input.shape, texData: null, isUniform: true};
+          return {
+            shape: input.shape,
+            texData: null,
+            isUniform: true,
+            uniformValues: texData.values as TypedArray
+          };
         }
 
         // This ensures that if a packed program's inputs have not yet been
