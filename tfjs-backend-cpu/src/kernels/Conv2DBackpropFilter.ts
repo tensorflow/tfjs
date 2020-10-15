@@ -37,10 +37,7 @@ export function conv2DBackpropFilter(args: {
       1 /* dilations */, pad, dimRoundingMode, false /* depthwise */,
       $dataFormat);
 
-  const strideHeight = convInfo.strideHeight;
-  const strideWidth = convInfo.strideWidth;
-  const filterHeight = convInfo.filterHeight;
-  const filterWidth = convInfo.filterWidth;
+  const {strideHeight, strideWidth, filterHeight, filterWidth} = convInfo;
   const isChannelsLast = convInfo.dataFormat === 'channelsLast';
   const dW = new TensorBuffer(convInfo.filterShape, 'float32');
 
@@ -64,7 +61,6 @@ export function conv2DBackpropFilter(args: {
 
       for (let d1 = 0; d1 < convInfo.inChannels; ++d1) {
         for (let d2 = 0; d2 < convInfo.outChannels; ++d2) {
-          // Need to convolve.
           let dotProd = 0;
           for (let b = 0; b < convInfo.batchSize; ++b) {
             for (let yR = yRMin; yR < yRMax; ++yR) {

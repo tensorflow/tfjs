@@ -34,15 +34,18 @@ export function conv3D(
       filter.shape as [number, number, number, number, number], strides,
       dilations, pad);
 
-  const filterDepth = convInfo.filterDepth;
-  const filterHeight = convInfo.filterHeight;
-  const filterWidth = convInfo.filterWidth;
-  const dilationDepth = convInfo.dilationDepth;
-  const dilationHeight = convInfo.dilationHeight;
-  const dilationWidth = convInfo.dilationWidth;
-  const padFront = convInfo.padInfo.front;
-  const padLeft = convInfo.padInfo.left;
-  const padTop = convInfo.padInfo.top;
+  const {
+    filterDepth,
+    filterHeight,
+    filterWidth,
+    dilationDepth,
+    dilationHeight,
+    dilationWidth,
+    padInfo
+  } = convInfo;
+  const padFront = padInfo.front;
+  const padLeft = padInfo.left;
+  const padTop = padInfo.top;
   const y = new TensorBuffer(convInfo.outShape, x.dtype as 'float32');
 
   const xVals = backend.data.get(x.dataId).values as TypedArray;
