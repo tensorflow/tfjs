@@ -31,8 +31,8 @@ export function concat(
   const outShape =
       backend_util.computeOutShape(inputs.map(t => t.shape), $axis);
 
-  if (util.sizeFromShape(outShape) === 0) {
-    return backend.makeTensorInfo(outShape, inputs[0].dtype);
+  if (outShape.includes(0) || util.sizeFromShape(outShape) === 0) {
+    return backend.makeTensorInfo(outShape, inputs[0].dtype, []);
   }
 
   // Keep only non-empty tensors (ignore tensors with 0 in their shape).

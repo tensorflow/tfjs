@@ -523,9 +523,9 @@ export class MathBackendWebGL extends KernelBackend {
     // if (tmpData.values) {
     //   return tmpData.values as Float32Array;
     // }
-    if (tmpData.texShape == null) {
-      tmpData.texShape = [1, 1];
-    }
+    // if (tmpData.texShape == null) {
+    //   tmpData.texShape = [1, 1];
+    // }
 
     const vals =
         this.gpgpu
