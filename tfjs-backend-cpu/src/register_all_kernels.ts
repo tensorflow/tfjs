@@ -45,6 +45,9 @@ import {conv3DBackpropFilterV2Config} from './kernels/Conv3DBackpropFilterV2';
 import {conv3DBackpropInputV2Config} from './kernels/Conv3DBackpropInputV2';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
+import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
+import {depthwiseConv2dNativeBackpropFilterConfig} from './kernels/DepthwiseConv2dNativeBackpropFilter';
+import {depthwiseConv2dNativeBackpropInputConfig} from './kernels/DepthwiseConv2dNativeBackpropInput';
 import {dilation2dConfig} from './kernels/Dilation2D';
 import {dilation2dBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
 import {dilation2dBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
@@ -57,6 +60,7 @@ import {fftConfig} from './kernels/FFT';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
 import {fusedConv2DConfig} from './kernels/FusedConv2D';
+import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
 import {identityConfig} from './kernels/Identity';
 import {ifftConfig} from './kernels/IFFT';
 import {imagConfig} from './kernels/Imag';
@@ -106,7 +110,6 @@ import {uniqueConfig} from './kernels/Unique';
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
   _fusedMatMulConfig,
-  fusedConv2DConfig,
   absConfig,
   acosConfig,
   acoshConfig,
@@ -132,6 +135,9 @@ const kernelConfigs: KernelConfig[] = [
   conv3DConfig,
   cosConfig,
   coshConfig,
+  depthwiseConv2dNativeConfig,
+  depthwiseConv2dNativeBackpropInputConfig,
+  depthwiseConv2dNativeBackpropFilterConfig,
   dilation2dConfig,
   dilation2dBackpropInputConfig,
   dilation2dBackpropFilterConfig,
@@ -143,6 +149,8 @@ const kernelConfigs: KernelConfig[] = [
   fftConfig,
   flipLeftRightConfig,
   floorConfig,
+  fusedConv2DConfig,
+  fusedDepthwiseConv2DConfig,
   identityConfig,
   ifftConfig,
   imagConfig,
