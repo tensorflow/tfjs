@@ -493,10 +493,6 @@ export class MathBackendWebGL extends KernelBackend {
     const {shape, dtype, isPacked} = this.texData.get(dataId);
     const size = util.sizeFromShape(shape);
 
-    // if (shape.includes(0)) {
-    //   return util.getTypedArrayFromDType(dtype as 'float32', 0);
-    // }
-
     if (env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
       const tmpTarget = this.decode(dataId);
       const tmpData = this.texData.get(tmpTarget.dataId);
@@ -520,12 +516,6 @@ export class MathBackendWebGL extends KernelBackend {
     const output = this.runWebGLProgram(
         program, [{shape: outputShape, dtype, dataId}], 'float32');
     const tmpData = this.texData.get(output.dataId);
-    // if (tmpData.values) {
-    //   return tmpData.values as Float32Array;
-    // }
-    // if (tmpData.texShape == null) {
-    //   tmpData.texShape = [1, 1];
-    // }
 
     const vals =
         this.gpgpu
