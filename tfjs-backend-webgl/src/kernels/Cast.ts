@@ -72,7 +72,8 @@ export function cast(
   }
 
   if (dtype === 'bool') {
-    const zerosTensorInfo = backend.makeTensorInfo([], 'bool');
+    const zerosTensorInfo = backend.makeTensorInfo(
+        [], 'bool', util.getTypedArrayFromDType('bool', 0));
 
     const binaryInputs: BinaryInputs = {a: x, b: zerosTensorInfo};
 
