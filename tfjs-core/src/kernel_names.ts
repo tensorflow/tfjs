@@ -182,6 +182,7 @@ export interface Conv2DBackpropFilterAttrs {
   pad: 'valid'|'same'|number|ExplicitPadding;
   dataFormat: 'NHWC'|'NCHW';
   dimRoundingMode?: 'floor'|'round'|'ceil';
+  filterShape: [number, number, number, number];
 }
 
 export const Conv2DBackpropInput = 'Conv2DBackpropInput';
@@ -204,17 +205,20 @@ export interface Conv3DAttrs {
 }
 
 export const Conv3DBackpropFilterV2 = 'Conv3DBackpropFilterV2';
-export type Conv3DBackpropFilterInputs = Pick<NamedTensorInfoMap, 'x'|'y'>;
+export type Conv3DBackpropFilterInputs = Pick<NamedTensorInfoMap, 'x'|'dy'>;
 
 export interface Conv3DBackpropFilterAttrs {
   strides: [number, number, number]|number;
   pad: 'valid'|'same';
+  filterShape: [number, number, number, number, number];
 }
 
 export const Conv3DBackpropInputV2 = 'Conv3DBackpropInputV2';
-export type Conv3DBackpropInputInputs = Pick<NamedTensorInfoMap, 'dy'>;
+export type Conv3DBackpropInputInputs = Pick<NamedTensorInfoMap, 'dy'|'filter'>;
 export interface Conv3DBackpropInputAttrs {
+  strides: [number, number, number]|number;
   pad: 'valid'|'same';
+  inputShape: [number, number, number, number, number];
 }
 
 export const Cos = 'Cos';

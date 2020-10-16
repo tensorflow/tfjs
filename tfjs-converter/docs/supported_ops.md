@@ -301,3 +301,12 @@
 |Squeeze|squeeze|
 |Not mapped|setdiff1dAsync|
 
+## Operations - HashTable
+|Tensorflow Op Name|Tensorflow.js Op Name|
+|---|---|
+|HashTable|hashTable|
+|HashTableV2|hashTableV2|
+|LookupTableImport|lookupTableImport|
+|LookupTableImportV2|lookupTableImportV2|
+|LookupTableFind|lookupTableFind|
+|LookupTableFindV2|lookupTableFindV2|
