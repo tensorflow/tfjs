@@ -266,11 +266,25 @@ export const DepthwiseConv2dNativeBackpropFilter =
     'DepthwiseConv2dNativeBackpropFilter';
 export type DepthwiseConv2dNativeBackpropFilterInputs =
     Pick<NamedTensorInfoMap, 'x'|'dy'>;
+export interface DepthwiseConv2dNativeBackpropFilterAttrs {
+  strides: [number, number]|number;
+  dilations: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  dimRoundingMode?: 'floor'|'round'|'ceil';
+  filterShape: [number, number, number, number];
+}
 
 export const DepthwiseConv2dNativeBackpropInput =
     'DepthwiseConv2dNativeBackpropInput';
 export type DepthwiseConv2dNativeBackpropInputInputs =
-    Pick<NamedTensorInfoMap, 'dy'>;
+    Pick<NamedTensorInfoMap, 'dy'|'filter'>;
+export interface DepthwiseConv2dNativeBackpropInputAttrs {
+  strides: [number, number]|number;
+  dilations: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  dimRoundingMode?: 'floor'|'round'|'ceil';
+  inputShape: [number, number, number, number];
+}
 
 export const Diag = 'Diag';
 export type DiagInputs = Pick<NamedTensorInfoMap, 'x'>;
