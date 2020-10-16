@@ -187,9 +187,11 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
     const dyActivation = getFusedDyActivation(dy, y, activation) as Tensor4D;
 
     const xDer = depthwiseConv2dNativeBackpropInput(
-        (x4D as Tensor4D).shape, dyActivation, $filter as Tensor4D, convInfo);
+        (x4D as Tensor4D).shape, dyActivation, $filter as Tensor4D, strides,
+        pad, dilations, dimRoundingMode);
     const filterDer = depthwiseConv2dNativeBackpropFilter(
-        x4D as Tensor4D, dyActivation, ($filter as Tensor4D).shape, convInfo);
+        x4D as Tensor4D, dyActivation, ($filter as Tensor4D).shape, strides,
+        pad, dilations, dimRoundingMode);
 
     if (bias != null) {
       const biasDer = getFusedBiasGradient($bias, dyActivation);
