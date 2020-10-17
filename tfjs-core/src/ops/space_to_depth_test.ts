@@ -84,7 +84,7 @@ describeWithFlags('spaceToDepth', ALL_ENVS, () => {
       const blockSize = 1;
       const dataFormat = 'NHWC';
       expect(() => tf.spaceToDepth(x, blockSize, dataFormat))
-          .toThrowError(`Block size must be >= 2, but is ${blockSize}`);
+          .toThrowError(`blockSize must be >= 2, got ${blockSize}`);
     });
 
     it('throws Error if inputHeight is not divisible by blockSize', () => {
@@ -99,8 +99,8 @@ describeWithFlags('spaceToDepth', ALL_ENVS, () => {
       const dataFormat = 'NHWC';
       expect(() => tf.spaceToDepth(x, blockSize, dataFormat))
           .toThrowError(
-              `Input height must be evenly divisible by block size  , but is ${
-                  x.shape[1]} for inputHeight and ${blockSize} for blockSize`);
+              `inputHeight must be divisible by blockSize, got inputHeight=${
+                  x.shape[1]}, blockSize=${blockSize}`);
     });
 
     it('throws Error if inputWidth is not divisible by blockSize', () => {
@@ -114,8 +114,8 @@ describeWithFlags('spaceToDepth', ALL_ENVS, () => {
       const dataFormat = 'NHWC';
       expect(() => tf.spaceToDepth(x, blockSize, dataFormat))
           .toThrowError(
-              `Input width must be evenly divisible by block size  , but is ${
-                  x.shape[2]} for inputWidth and ${blockSize} for blockSize`);
+              `inputWidth must be divisible by blockSize, got inputWidth=${
+                  x.shape[2]}, blockSize=${blockSize}`);
     })
   });
 });

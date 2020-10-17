@@ -31,21 +31,22 @@ function spaceToDepth_(
     dataFormat: 'NHWC'|'NCHW' = 'NHWC'): Tensor4D {
   const $x = convertToTensor(x, 'x', 'spaceToDepth') as Tensor4D;
 
-  const inputHeight = (dataFormat === 'NHWC') ? $x.shape[1] : $x.shape[2];
-  const inputWidth = (dataFormat === 'NHWC') ? $x.shape[2] : $x.shape[3];
+  const channelsLast = dataFormat === 'NHWC';
 
-  util.assert(
-      blockSize >= 2, () => `Block size must be >= 2, but is ${blockSize}`);
+  const inputHeight = channelsLast ? $x.shape[1] : $x.shape[2];
+  const inputWidth = channelsLast ? $x.shape[2] : $x.shape[3];
+
+  util.assert(blockSize >= 2, () => `blockSize must be >= 2, got ${blockSize}`);
 
   util.assert(
       inputHeight % blockSize === 0,
-      () => `Input height must be evenly divisible by block size  , but is ${
-          inputHeight} for inputHeight and ${blockSize} for blockSize`);
+      () => `inputHeight must be divisible by blockSize, got inputHeight=${
+          inputHeight}, blockSize=${blockSize}`);
 
   util.assert(
       inputWidth % blockSize === 0,
-      () => `Input width must be evenly divisible by block size, but is ${
-          inputWidth} for inputWidth and ${blockSize} for blockSize`);
+      () => `inputWidth must be divisible by blockSize, got inputWidth=${
+          inputWidth}, blockSize=${blockSize}`);
 
   const forward: ForwardFunc<Tensor4D> = backend =>
       backend.spaceToDepth($x, blockSize, dataFormat);
