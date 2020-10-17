@@ -59,6 +59,25 @@ describeWithFlags('spaceToDepth', ALL_ENVS, () => {
       ]);
     });
 
+    it('for inputShape=[1,4,4,4], blockSize=2, dataFormat=NHWC', async () => {
+      const x =
+          tf.tensor4d(Array(64).fill(0).map((_, idx) => idx), [1, 4, 4, 4]);
+      const blockSize = 2;
+      const dataFormat = 'NHWC';
+      const y = tf.spaceToDepth(x, blockSize, dataFormat);
+      expect(y.shape).toEqual([1, 2, 2, 16]);
+      expectArraysClose(
+          await y.data(), [[
+            [
+              [0, 1, 2, 3, 4, 5, 6, 7, 16, 17, 18, 19, 20, 21, 22, 23],
+              [8, 9, 10, 11, 12, 13, 14, 15, 24, 25, 26, 27, 28, 29, 30, 31]
+            ],
+            [
+              [32, 33, 34, 35, 36, 37, 38, 39, 48, 49, 50, 51, 52, 53, 54, 55],
+              [40, 41, 42, 43, 44, 45, 46, 47, 56, 57, 58, 59, 60, 61, 62, 63]
+            ]
+          ]]);
+    });
 
     it('throws Error if blockSize < 2', () => {
       const x = tf.tensor4d([[[[1], [2]], [[3], [4]]]]);
