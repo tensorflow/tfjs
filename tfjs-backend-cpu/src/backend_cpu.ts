@@ -2260,6 +2260,29 @@ export class MathBackendCPU extends KernelBackend {
         result, [batchSize, outputHeight, outputWidth, outputDepth]);
   }
 
+  spaceToDepth(x: Tensor4D, blockSize: number, dataFormat: 'NHWC'|'NCHW') {
+    const channelsLast = dataFormat === 'NHWC';
+
+    const batch = x.shape[0];
+    const xHeight = channelsLast ? x.shape[1] : x.shape[2];
+    const xWidth = channelsLast ? x.shape[2] : x.shape[3];
+    const xDepth = channelsLast ? x.shape[3] : x.shape[1];
+
+    const yHeight = xHeight / blockSize;
+    const yWidth = xWidth / blockSize;
+    const yDepth = xDepth * blockSize * blockSize;
+
+    if (channelsLast) {
+      return x.reshape([batch, yHeight, blockSize, yWidth, blockSize, xDepth])
+          .transpose([0, 1, 3, 2, 4, 5])
+          .reshape<Tensor4D>([batch, yHeight, yWidth, yDepth]);
+    }
+
+    return x.reshape([batch, xDepth, yHeight, blockSize, yWidth, blockSize])
+        .transpose([0, 3, 5, 1, 2, 4])
+        .reshape<Tensor4D>([batch, yDepth, yHeight, yWidth]);
+  }
+
   private broadcastedBinaryOp(
       a: Tensor, b: Tensor, dtype: DataType,
       op: (a: number, b: number) => number): Tensor {
