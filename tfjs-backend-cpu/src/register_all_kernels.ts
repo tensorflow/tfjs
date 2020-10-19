@@ -57,6 +57,7 @@ import {erfConfig} from './kernels/Erf';
 import {expConfig} from './kernels/Exp';
 import {expm1Config} from './kernels/Expm1';
 import {fftConfig} from './kernels/FFT';
+import {fillConfig} from './kernels/Fill';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
 import {fusedConv2DConfig} from './kernels/FusedConv2D';
@@ -147,6 +148,7 @@ const kernelConfigs: KernelConfig[] = [
   expConfig,
   expm1Config,
   fftConfig,
+  fillConfig,
   flipLeftRightConfig,
   floorConfig,
   fusedConv2DConfig,
