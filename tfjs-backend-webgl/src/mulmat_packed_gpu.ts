@@ -25,9 +25,10 @@ export class MatMulPackedProgram implements GPGPUProgram {
   userCode: string;
 
   constructor(
-      aShape: [number, number, number], outputShape: [number, number, number],
-      transposeA = false, transposeB = false, addBias = false,
-      activation: string = null, hasPreluActivation = false) {
+      aShape: [number, number, number], bShape: [number, number, number],
+      outputShape: [number, number, number], transposeA = false,
+      transposeB = false, addBias = false, activation: string = null,
+      hasPreluActivation = false) {
     this.outputShape = outputShape;
 
     const sharedDim = transposeA ? aShape[1] : aShape[2];
@@ -71,8 +72,10 @@ export class MatMulPackedProgram implements GPGPUProgram {
       vec4 dot2x2ARowBCol(ivec3 rc) {
         vec4 result = vec4(0);
         for (int i = 0; i < ${sharedDimensionPacked}; i++) {
-          vec4 a = getMatrixA(rc.x, ${aSample});
-          vec4 b = getMatrixB(rc.x, ${bSample});
+          int batchA = int(min(float(rc.x), ${aShape[0] - 1}.));
+          int batchB = int(min(float(rc.x), ${bShape[0] - 1}.));
+          vec4 a = getMatrixA(batchA, ${aSample});
+          vec4 b = getMatrixB(batchB, ${bSample});
 
           // These swizzled products need to be separately added.
           // See: https://github.com/tensorflow/tfjs/issues/1735
