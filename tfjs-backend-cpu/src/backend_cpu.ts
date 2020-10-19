@@ -1839,20 +1839,13 @@ export class MathBackendCPU extends KernelBackend {
         strides, defaultValue, sumDupeIndices);
   }
 
-  fill<R extends Rank>(
-      shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
-    dtype = dtype || util.inferDtype(value);
-    const values =
-        util.getArrayFromDType(dtype, util.sizeFromShape(shape)) as TypedArray;
-    values.fill(value as number);
-    return engine().makeTensor(values, shape, dtype, this) as Tensor<R>;
-  }
-
   onesLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
     if (x.dtype === 'string') {
       throw new Error('onesLike is not supported for string tensors');
     } else {
-      return this.fill(x.shape, 1, x.dtype);
+      // TODO(lina128): Use fill kernel directly once this kernel is
+      // modularized.
+      return tf.fill(x.shape, 1, x.dtype);
     }
   }
 
