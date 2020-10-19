@@ -182,6 +182,7 @@ export interface Conv2DBackpropFilterAttrs {
   pad: 'valid'|'same'|number|ExplicitPadding;
   dataFormat: 'NHWC'|'NCHW';
   dimRoundingMode?: 'floor'|'round'|'ceil';
+  filterShape: [number, number, number, number];
 }
 
 export const Conv2DBackpropInput = 'Conv2DBackpropInput';
@@ -204,17 +205,20 @@ export interface Conv3DAttrs {
 }
 
 export const Conv3DBackpropFilterV2 = 'Conv3DBackpropFilterV2';
-export type Conv3DBackpropFilterInputs = Pick<NamedTensorInfoMap, 'x'|'y'>;
+export type Conv3DBackpropFilterInputs = Pick<NamedTensorInfoMap, 'x'|'dy'>;
 
 export interface Conv3DBackpropFilterAttrs {
   strides: [number, number, number]|number;
   pad: 'valid'|'same';
+  filterShape: [number, number, number, number, number];
 }
 
 export const Conv3DBackpropInputV2 = 'Conv3DBackpropInputV2';
-export type Conv3DBackpropInputInputs = Pick<NamedTensorInfoMap, 'dy'>;
+export type Conv3DBackpropInputInputs = Pick<NamedTensorInfoMap, 'dy'|'filter'>;
 export interface Conv3DBackpropInputAttrs {
+  strides: [number, number, number]|number;
   pad: 'valid'|'same';
+  inputShape: [number, number, number, number, number];
 }
 
 export const Cos = 'Cos';
@@ -262,11 +266,25 @@ export const DepthwiseConv2dNativeBackpropFilter =
     'DepthwiseConv2dNativeBackpropFilter';
 export type DepthwiseConv2dNativeBackpropFilterInputs =
     Pick<NamedTensorInfoMap, 'x'|'dy'>;
+export interface DepthwiseConv2dNativeBackpropFilterAttrs {
+  strides: [number, number]|number;
+  dilations: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  dimRoundingMode?: 'floor'|'round'|'ceil';
+  filterShape: [number, number, number, number];
+}
 
 export const DepthwiseConv2dNativeBackpropInput =
     'DepthwiseConv2dNativeBackpropInput';
 export type DepthwiseConv2dNativeBackpropInputInputs =
-    Pick<NamedTensorInfoMap, 'dy'>;
+    Pick<NamedTensorInfoMap, 'dy'|'filter'>;
+export interface DepthwiseConv2dNativeBackpropInputAttrs {
+  strides: [number, number]|number;
+  dilations: [number, number]|number;
+  pad: 'valid'|'same'|number;
+  dimRoundingMode?: 'floor'|'round'|'ceil';
+  inputShape: [number, number, number, number];
+}
 
 export const Diag = 'Diag';
 export type DiagInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -494,6 +512,13 @@ export interface MinAttrs {
 
 export const Minimum = 'Minimum';
 export type MinimumInputs = BinaryInputs;
+
+export const MirrorPad = 'MirrorPad';
+export type MirrorPadInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface MirrorPadAttrs {
+  paddings: Array<[number, number]>;
+  mode: 'reflect'|'symmetric';
+}
 
 export const Mod = 'Mod';
 export type ModInputs = BinaryInputs;
@@ -744,6 +769,12 @@ export const Transpose = 'Transpose';
 export type TransposeInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface TransposeAttrs {
   perm: number[];
+}
+
+export const Unique = 'Unique';
+export type UniqueInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface UniqueAttrs {
+  axis: number;
 }
 
 export type UnaryInputs = Pick<NamedTensorInfoMap, 'x'>;

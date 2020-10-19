@@ -16,10 +16,10 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-import {backend_util, BackendTimingInfo, DataId, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ScalarLike, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, Tensor5D, TensorInfo, tidy, util} from '@tensorflow/tfjs';
+import {backend_util, BackendTimingInfo, DataId, DataType, fill, KernelBackend, ModelTensorInfo, ones, Rank, rsqrt, Scalar, scalar, ScalarLike, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, Tensor5D, TensorInfo, tidy, util} from '@tensorflow/tfjs';
 import {isArray, isNullOrUndefined} from 'util';
 
-import {Int64Scalar} from './int64_tensors';
+import {encodeInt32ArrayAsInt64, Int64Scalar} from './int64_tensors';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
 type TensorData = {
@@ -1903,11 +1903,34 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.binding.loadSavedModel(path, tags);
   }
 
+  private getMappedInputTensorIds(
+      inputs: Tensor[], inputTensorInfos: ModelTensorInfo[]) {
+    const tensorIds = this.getInputTensorIds(inputs);
+    for (let i = 0; i < inputs.length; i++) {
+      if (inputTensorInfos[i] != null) {
+        if (inputTensorInfos[i].tfDtype === 'DT_UINT8') {
+          const data = Uint8Array.from(inputs[i].dataSync());
+          const inputTensorId = this.binding.createTensor(
+              inputs[i].shape, this.binding.TF_UINT8, data);
+          tensorIds[i] = inputTensorId;
+        } else if (inputTensorInfos[i].tfDtype === 'DT_INT64') {
+          const data =
+              encodeInt32ArrayAsInt64(inputs[i].dataSync() as Int32Array);
+          const inputTensorId = this.binding.createTensor(
+              inputs[i].shape, this.binding.TF_INT64, data);
+          tensorIds[i] = inputTensorId;
+        }
+      }
+    }
+    return tensorIds;
+  }
+
   runSavedModel(
-      id: number, inputs: Tensor[], inputOpNames: string[],
+      id: number, inputs: Tensor[], inputTensorInfos: ModelTensorInfo[],
       outputOpNames: string[]): Tensor[] {
     const outputMetadata = this.binding.runSavedModel(
-        id, this.getInputTensorIds(inputs), inputOpNames.join(','),
+        id, this.getMappedInputTensorIds(inputs, inputTensorInfos),
+        inputTensorInfos.map(info => info.name).join(','),
         outputOpNames.join(','));
     return outputMetadata.map(m => this.createOutputTensor(m));
   }

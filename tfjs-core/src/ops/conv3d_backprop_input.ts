@@ -96,9 +96,9 @@ function conv3DBackpropInput_<T extends Tensor4D|Tensor5D>(
     return backend.conv3dDerInput(dy5D, filter, convInfo);
   };
 
-  const inputs: Conv3DBackpropInputInputs = {dy: dy5D};
+  const inputs: Conv3DBackpropInputInputs = {dy: dy5D, filter};
 
-  const attrs: Conv3DBackpropInputAttrs = {pad};
+  const attrs: Conv3DBackpropInputAttrs = {pad, strides, inputShape: xShape5D};
 
   const res = ENGINE.runKernelFunc(
       forward, inputs as {} as NamedTensorMap, null, Conv3DBackpropInputV2,

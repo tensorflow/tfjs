@@ -27,6 +27,10 @@ const WEBGL_ATTRIBUTES: WebGLContextAttributes = {
   failIfMajorPerformanceCaveat: true
 };
 
+export function clearWebGLContext(webGLVersion: number) {
+  delete contexts[webGLVersion];
+}
+
 export function setWebGLContext(
     webGLVersion: number, gl: WebGLRenderingContext) {
   contexts[webGLVersion] = gl;
@@ -34,7 +38,13 @@ export function setWebGLContext(
 
 export function getWebGLContext(webGLVersion: number): WebGLRenderingContext {
   if (!(webGLVersion in contexts)) {
-    contexts[webGLVersion] = getWebGLRenderingContext(webGLVersion);
+    const newCtx = getWebGLRenderingContext(webGLVersion);
+    if (newCtx !== null) {
+      contexts[webGLVersion] = newCtx;
+    } else {
+      console.log('Could not get context for WebGL version', webGLVersion);
+      return null;
+    }
   }
   const gl = contexts[webGLVersion];
   if (gl.isContextLost()) {

@@ -27,7 +27,7 @@ import {ENGINE} from './engine';
 import {env, Environment, Flags} from './environment';
 
 Error.stackTraceLimit = Infinity;
-jasmineCore.DEFAULT_TIMEOUT_INTERVAL = 10000;
+jasmineCore.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
 export type Constraints = {
   flags?: Flags,

@@ -17,9 +17,12 @@
 
 import {Div, KernelConfig} from '@tensorflow/tfjs-core';
 
+import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
 import {binaryKernelFunc} from '../utils/kernel_utils';
 
-export const div = binaryKernelFunc(Div, (a: number, b: number) => a / b);
+export const divImpl =
+    createSimpleBinaryKernelImpl((a: number, b: number) => a / b);
+export const div = binaryKernelFunc(Div, divImpl);
 
 export const divConfig: KernelConfig = {
   kernelName: Div,

@@ -176,7 +176,6 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'oneHot',          // Not yet implemented.
       'fused',           // Not yet implemented.
-      'batched matmul',  // Actual != expected, shape mismatch.
       'shape has ones',  // Actual != expected.
       '5D',              // Rank 5 is not yet implemented.
       '6D',              // Rank 5 is not yet implemented.
@@ -248,13 +247,11 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'matmul',
     excludes: [
-      'matmulBatch',                     // Shape mismatch.
       'fused matmul',                    // FusedMatmul not yet implemented.
       'gradient',                        // Various: sum not yet implemented.
       'has zero in its shape',           // Test times out.
       'valueAndGradients',               // backend.sum() not yet implemented.
       'upcasts when dtypes dont match',  // Missing cast().
-      'batched matmul',                  // Actual != expected, shape mismatch.
     ]
   },
   {
@@ -318,6 +315,9 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient',         // 'conv2dDerInput' not yet implemented
       'conv2dTranspose',  // DerInput is not Implemented.
     ]
+  },
+  {
+    include: 'mirrorPad',
   },
   {
     include: 'pad',

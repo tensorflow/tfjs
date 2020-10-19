@@ -236,7 +236,7 @@ export async function encodeJpeg(
  * Encodes an image tensor to PNG.
  *
  * @param image A 3-D uint8 Tensor of shape [height, width, channels].
- * @param compression An optional int. Defaults to -1. Compression level.
+ * @param compression An optional int. Defaults to 1. Compression level.
  * @returns The PNG encoded data as an Uint8Array.
  *
  * @doc {heading: 'Operations', subheading: 'Images', namespace: 'node'}

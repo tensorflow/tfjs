@@ -42,8 +42,9 @@ const mkdir = util.promisify(fs.mkdir);
 const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
 
-const BASE_URI =
-    'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
+const CDN_STORAGE = process.env.CDN_STORAGE;
+const BASE_HOST = CDN_STORAGE || 'https://storage.googleapis.com/';
+const BASE_URI = `${BASE_HOST}tensorflow/libtensorflow/libtensorflow-`;
 
 const platform = os.platform();
 // Use windows path
@@ -92,7 +93,7 @@ function getPlatformLibtensorflowUri() {
   }
 
   if (platform === 'linux' && os.arch() === 'arm') {
-    return 'https://storage.googleapis.com/tf-builds/libtensorflow_r1_14_linux_arm.tar.gz';
+    return `${BASE_HOST}tf-builds/libtensorflow_r1_14_linux_arm.tar.gz`;
   }
 
   if (ALL_SUPPORTED_COMBINATION.indexOf(system) === -1) {

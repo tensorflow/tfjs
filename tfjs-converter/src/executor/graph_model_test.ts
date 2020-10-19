@@ -33,6 +33,11 @@ const bias = tfc.tensor1d([1], 'int32');
 const weightsManifest: tfc.io.WeightsManifestEntry[] =
     [{'name': 'Const', 'dtype': 'int32', 'shape': [1]}];
 
+const weightsManifestWithInitializer: tfc.io.WeightsManifestEntry[] = [
+  {'dtype': 'string', 'name': 'transform/keys', 'shape': [1]},
+  {'dtype': 'float32', 'name': 'transform/values', 'shape': [1]}
+];
+
 const SIMPLE_MODEL: tensorflow.IGraphDef = {
   node: [
     {
@@ -99,6 +104,7 @@ const DYNAMIC_SHAPE_MODEL: tensorflow.IGraphDef = {
   ],
   versions: {producer: 1.0, minConsumer: 3}
 };
+
 const SIGNATURE: tensorflow.ISignatureDef = {
   inputs: {x: {name: 'Input:0', dtype: tensorflow.DataType.DT_INT32}},
   outputs: {y: {name: 'Add:0', dtype: tensorflow.DataType.DT_INT32}}
@@ -177,6 +183,127 @@ const CONTROL_FLOW_HTTP_MODEL_LOADER = {
       format: 'tfjs-graph-model',
       generatedBy: '1.15',
       convertedBy: '1.3.1'
+    };
+  }
+};
+
+const INITIALIZER_GRAPHDEF: tensorflow.IGraphDef = {
+  node: [
+    {
+      name: 'transform/values',
+      op: 'Const',
+      attr: {
+        dtype: {type: tensorflow.DataType.DT_FLOAT},
+        value: {
+          tensor: {
+            dtype: tensorflow.DataType.DT_FLOAT,
+            tensorShape: {dim: [{size: 1}]}
+          }
+        }
+      }
+    },
+    {
+      name: 'transform/keys',
+      op: 'Const',
+      attr: {
+        dtype: {type: tensorflow.DataType.DT_STRING},
+        value: {
+          tensor: {
+            dtype: tensorflow.DataType.DT_STRING,
+            tensorShape: {dim: [{size: 1}]}
+          }
+        }
+      }
+    },
+    {
+      name: 'transform/hash_table',
+      op: 'HashTableV2',
+      attr: {
+        value_dtype: {type: tensorflow.DataType.DT_FLOAT},
+        use_node_name_sharing: {b: false},
+        key_dtype: {type: tensorflow.DataType.DT_STRING},
+        container: {s: ''},
+        shared_name: {s: 'tablename'}
+      }
+    },
+    {
+      name: 'transform/key_value_init/LookupTableImportV2',
+      op: 'LookupTableImportV2',
+      input: ['transform/hash_table', 'transform/keys', 'transform/values'],
+      attr: {
+        Tin: {type: tensorflow.DataType.DT_FLOAT},
+        Tout: {type: tensorflow.DataType.DT_STRING}
+      }
+    }
+  ],
+  versions: {producer: 1.0, minConsumer: 3}
+};
+
+const HASH_TABLE_MODEL: tensorflow.IGraphDef = {
+  node: [
+    {
+      name: 'Input',
+      op: 'Placeholder',
+      attr: {
+        dtype: {
+          type: tensorflow.DataType.DT_STRING,
+        },
+        shape: {shape: {dim: [{size: 1}]}}
+      }
+    },
+    {
+      name: 'Input_1',
+      op: 'Placeholder',
+      attr: {
+        dtype: {
+          type: tensorflow.DataType.DT_FLOAT,
+        },
+        shape: {shape: {dim: [{size: 1}]}}
+      }
+    },
+    {
+      name: 'transform/hash_table',
+      op: 'HashTableV2',
+      input: [],
+      attr: {
+        value_dtype: {type: tensorflow.DataType.DT_FLOAT},
+        use_node_name_sharing: {b: false},
+        key_dtype: {type: tensorflow.DataType.DT_STRING},
+        container: {s: ''},
+        shared_name: {s: 'tablename'}
+      }
+    },
+    {
+      name: 'LookupTableFindV2',
+      op: 'LookupTableFindV2',
+      input: ['transform/hash_table', 'Input', 'Input_1'],
+      attr: {}
+    }
+  ],
+  versions: {producer: 1.0, minConsumer: 3}
+};
+
+const HASH_TABLE_SIGNATURE: tensorflow.ISignatureDef = {
+  inputs: {
+    keys: {name: 'Input:0', dtype: tensorflow.DataType.DT_STRING},
+    defaultValues: {name: 'Input_1:0', dtype: tensorflow.DataType.DT_FLOAT}
+  },
+  outputs: {
+    values:
+        {name: 'LookupTableFindV2:0', dtype: tensorflow.DataType.DT_FLOAT}
+  }
+};
+const HASHTABLE_HTTP_MODEL_LOADER = {
+  load: async () => {
+    return {
+      modelTopology: HASH_TABLE_MODEL,
+      weightSpecs: weightsManifestWithInitializer,
+      weightData: new ArrayBuffer(16),
+      format: 'tfjs-graph-model',
+      generatedBy: '1.15',
+      convertedBy: '2.4',
+      userDefinedMetadata: {signature: HASH_TABLE_SIGNATURE},
+      modelInitializer: INITIALIZER_GRAPHDEF
     };
   }
 };
@@ -599,6 +726,23 @@ describe('Model', () => {
       await model.load();
       const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
       const res = await model.executeAsync({Where: input});
+      expect(res).not.toBeNull();
+    });
+  });
+
+  describe('Hashtable model', () => {
+    beforeEach(() => {
+      spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+        HASHTABLE_HTTP_MODEL_LOADER
+      ]);
+      spyOn(tfc.io, 'browserHTTPRequest')
+          .and.returnValue(HASHTABLE_HTTP_MODEL_LOADER);
+    });
+    it('should be successful if call executeAsync', async () => {
+      await model.load();
+      const keys = tfc.tensor1d(['a'], 'string');
+      const defaultValues = tfc.tensor1d([0]);
+      const res = await model.executeAsync({keys, defaultValues});
       expect(res).not.toBeNull();
     });
   });

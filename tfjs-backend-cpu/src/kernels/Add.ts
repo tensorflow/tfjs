@@ -16,12 +16,17 @@
  */
 
 import {Add, KernelConfig} from '@tensorflow/tfjs-core';
-import {binaryKernelFunc} from '../utils/kernel_utils';
 
-export const add =
-    binaryKernelFunc(Add, ((a, b) => a + b), ((aReal, aImag, bReal, bImag) => {
-                       return {real: aReal + bReal, imag: aImag + bImag};
-                     }));
+import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
+import {binaryKernelFunc, createComplexBinaryKernelImpl} from '../utils/kernel_utils';
+
+export const addImpl = createSimpleBinaryKernelImpl(((a, b) => a + b));
+export const addComplexImpl =
+    createComplexBinaryKernelImpl(((aReal, aImag, bReal, bImag) => {
+      return {real: aReal + bReal, imag: aImag + bImag};
+    }));
+
+export const add = binaryKernelFunc(Add, addImpl, addComplexImpl);
 
 export const addConfig: KernelConfig = {
   kernelName: Add,

@@ -18,8 +18,8 @@
 import {DataType, env} from '@tensorflow/tfjs-core';
 
 import * as tensorflow from '../data/compiled_api';
-import {getRegisteredOp} from './custom_op/register';
 
+import {getRegisteredOp} from './custom_op/register';
 import {getNodeNameAndIndex} from './executors/utils';
 import * as arithmetic from './op_list/arithmetic';
 import * as basicMath from './op_list/basic_math';
@@ -29,6 +29,7 @@ import * as creation from './op_list/creation';
 import * as dynamic from './op_list/dynamic';
 import * as evaluation from './op_list/evaluation';
 import * as graph from './op_list/graph';
+import * as hashTable from './op_list/hash_table';
 import * as image from './op_list/image';
 import * as logical from './op_list/logical';
 import * as matrices from './op_list/matrices';
@@ -54,7 +55,7 @@ export class OperationMapper {
     const ops = [
       arithmetic, basicMath, control, convolution, creation, dynamic,
       evaluation, logical, image, graph, matrices, normalization, reduction,
-      sliceJoin, spectral, transformation
+      sliceJoin, spectral, transformation, hashTable
     ];
     const mappersJson: OpMapper[] = [].concat(...ops.map(op => op.json));
 
@@ -66,21 +67,23 @@ export class OperationMapper {
         {});
   }
 
-  // Converts the model from Tensorflow GraphDef to local representation for
-  // TensorFlow.js API
+  // Converts the model inference graph from Tensorflow GraphDef to local
+  // representation for TensorFlow.js API
   transformGraph(
       graph: tensorflow.IGraphDef,
       signature: tensorflow.ISignatureDef = {}): Graph {
     const tfNodes = graph.node;
     const placeholders: Node[] = [];
     const weights: Node[] = [];
+    const initNodes: Node[] = [];
     const nodes = tfNodes.reduce<{[key: string]: Node}>((map, node) => {
       map[node.name] = this.mapNode(node);
       if (node.op.startsWith('Placeholder')) {
         placeholders.push(map[node.name]);
-      }
-      if (node.op === 'Const') {
+      } else if (node.op === 'Const') {
         weights.push(map[node.name]);
+      } else if (node.input == null || node.input.length === 0) {
+        initNodes.push(map[node.name]);
       }
       return map;
     }, {});
@@ -144,15 +147,14 @@ export class OperationMapper {
       }, {} as {[key: string]: Graph});
     }
 
-    return {
-      nodes,
-      inputs,
-      outputs,
-      weights,
-      placeholders,
-      signature,
-      functions
-    };
+    const result: Graph =
+        {nodes, inputs, outputs, weights, placeholders, signature, functions};
+
+    if (initNodes.length > 0) {
+      result.initNodes = initNodes;
+    }
+
+    return result;
   }
 
   private mapSignatureEntries(entries: {[k: string]: tensorflow.ITensorInfo}) {

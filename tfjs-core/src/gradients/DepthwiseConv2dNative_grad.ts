@@ -67,15 +67,11 @@ export const depthwiseConv2dNativeGradConfig: GradConfig = {
               `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
     }
 
-    const convInfo = conv_util.computeConv2DInfo(
-        x.shape, filter.shape, strides, $dilations as number | [number, number],
-        pad, dimRoundingMode, true /* depthwise */);
-
     return {
-      x: () =>
-          depthwiseConv2dNativeBackpropInput(x.shape, dy, filter, convInfo),
-      filter: () =>
-          depthwiseConv2dNativeBackpropFilter(x, dy, filter.shape, convInfo),
+      x: () => depthwiseConv2dNativeBackpropInput(
+          x.shape, dy, filter, strides, pad, dilations, dimRoundingMode),
+      filter: () => depthwiseConv2dNativeBackpropFilter(
+          x, dy, filter.shape, strides, pad, dilations, dimRoundingMode),
     };
   }
 };

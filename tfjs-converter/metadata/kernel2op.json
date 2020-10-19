@@ -197,6 +197,8 @@
   "GreaterEqual": [
     "greaterEqual"
   ],
+  "HashTable": [],
+  "HashTableV2": [],
   "IFFT": [
     "ifft"
   ],
@@ -245,6 +247,10 @@
   "LogicalOr": [
     "logicalOr"
   ],
+  "LookupTableFind": [],
+  "LookupTableFindV2": [],
+  "LookupTableImport": [],
+  "LookupTableImportV2": [],
   "LoopCond": [],
   "MatMul": [
     "matMul"
@@ -273,6 +279,9 @@
   ],
   "Minimum": [
     "minimum"
+  ],
+  "MirrorPad": [
+    "mirrorPad"
   ],
   "Mod": [
     "mod"
@@ -504,6 +513,12 @@
   ],
   "TruncatedNormal": [
     "truncatedNormal"
+  ],
+  "Unique": [
+    "unique"
+  ],
+  "UniqueV2": [
+    "unique"
   ],
   "Unpack": [
     "unstack"

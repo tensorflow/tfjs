@@ -15,26 +15,14 @@
  * =============================================================================
  */
 
-import {Cos, CosInputs, KernelConfig, TypedArray, util} from '@tensorflow/tfjs-core';
+import {Cos, KernelConfig} from '@tensorflow/tfjs-core';
 
-import {MathBackendCPU} from '../backend_cpu';
-import {assertNotComplex} from '../cpu_util';
+import {unaryKernelFunc} from '../utils/unary_utils';
+
+export const cos = unaryKernelFunc(Cos, (xi) => Math.cos(xi));
 
 export const cosConfig: KernelConfig = {
   kernelName: Cos,
   backendName: 'cpu',
-  kernelFunc: ({inputs, backend}) => {
-    const {x} = inputs as CosInputs;
-    const cpuBackend = backend as MathBackendCPU;
-    assertNotComplex(x, 'cos');
-
-    const values = cpuBackend.data.get(x.dataId).values as TypedArray;
-    const xSize = util.sizeFromShape(x.shape);
-    const newValues = new Float32Array(xSize);
-    for (let i = 0; i < xSize; ++i) {
-      newValues[i] = Math.cos(values[i]);
-    }
-    const dataId = cpuBackend.write(newValues, x.shape, x.dtype);
-    return {dataId, shape: x.shape, dtype: x.dtype};
-  }
+  kernelFunc: cos,
 };

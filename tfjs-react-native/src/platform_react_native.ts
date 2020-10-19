@@ -23,15 +23,6 @@ import {Buffer} from 'buffer';
 import {GLView} from 'expo-gl';
 import {Platform as RNPlatform} from 'react-native';
 
-let debugMode_ = false;
-export function setDebugMode(debugMode: boolean) {
-  debugMode_ = debugMode_;
-}
-
-export function getDebugMode() {
-  return debugMode_;
-}
-
 // See implemetation note on fetch
 // tslint:disable-next-line:max-line-length
 // https://github.com/facebook/react-native/blob/0ee5f68929610106ee6864baa04ea90be0fc5160/Libraries/vendor/core/whatwg-fetch.js#L421
@@ -241,6 +232,8 @@ function registerWebGLBackend() {
     }, PRIORITY);
 
     // Register all the webgl kernels on the rn-webgl backend
+    // TODO: Use tf.copyRegisteredKernels once synced to tfjs-core 2.5.0.
+    // tf.copyRegisteredKernels('webgl', 'rn-webgl');
     const kernels = tf.getKernelsForBackend('webgl');
     kernels.forEach(kernelConfig => {
       const newKernelConfig =
