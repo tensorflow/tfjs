@@ -29,11 +29,6 @@ export function fill(args: {backend: MathBackendCPU, attrs: FillAttrs}):
       util.getArrayFromDType($dtype, util.sizeFromShape(shape)) as TypedArray;
   values.fill(value as number);
 
-  if ($dtype === 'string' && util.isString(values[0])) {
-    values = (values as {} as string[]).map(d => util.encodeString(d)) as {} as
-        TypedArray;
-  }
-
   return backend.makeTensorInfo(shape, $dtype, values);
 }
 
