@@ -66,23 +66,7 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     ]);
   });
 
-  fit('test', async () => {
-    const a = tf.tensor3d(
-        [
-          2, 1, 3, 2, 1,  1,  1, 5, 6, 7, 8, 1,
-          2, 2, 1, 9, 11, 10, 1, 1, 3, 2, 1, 1
-        ],
-        [4, 3, 2]);
-    const b = tf.tensor3d([1, 0.5, 1, 0.5, 1, 0.5, 1, 0.5], [4, 2, 1]);
-    const c = tf.matMul(a, b);
-    const data = await c.data();
-    console.log(Array.from(data));
-    expect(c.shape).toEqual([4, 3, 1]);
-    expectArraysClose(
-        data, [2.5, 4, 1.5, 3.5, 9.5, 8.5, 3, 5.5, 16, 1.5, 4, 1.5]);
-  });
-
-  fit('unequal batch dim', async () => {
+  it('unequal batch dim', async () => {
     const a = tf.tensor3d(
         [
           2, 1, 3, 2, 1,  1,  1, 5, 6, 7, 8, 1,
@@ -91,14 +75,12 @@ describeWithFlags('matmul', ALL_ENVS, () => {
         [4, 3, 2]);
     const b = tf.tensor3d([1, 0.5], [1, 2, 1]);
     const c = tf.matMul(a, b);
-    const data = await c.data();
-    console.log(Array.from(data));
     expect(c.shape).toEqual([4, 3, 1]);
     expectArraysClose(
-        data, [2.5, 4, 1.5, 3.5, 9.5, 8.5, 3, 5.5, 16, 1.5, 4, 1.5]);
+        await c.data(), [2.5, 4, 1.5, 3.5, 9.5, 8.5, 3, 5.5, 16, 1.5, 4, 1.5]);
   });
 
-  fit('unequal ranks', async () => {
+  it('unequal ranks', async () => {
     const a = tf.tensor5d(
         [
           2, 1, 3, 2, 1,  1,  1, 5, 6, 7, 8, 1,
@@ -107,11 +89,9 @@ describeWithFlags('matmul', ALL_ENVS, () => {
         [1, 2, 2, 3, 2]);
     const b = tf.tensor2d([1, 0.5], [2, 1]);
     const c = tf.matMul(a, b);
-    const data = await c.data();
-    console.log(Array.from(data));
     expect(c.shape).toEqual([1, 2, 2, 3, 1]);
     expectArraysClose(
-        data, [2.5, 4, 1.5, 3.5, 9.5, 8.5, 3, 5.5, 16, 1.5, 4, 1.5]);
+        await c.data(), [2.5, 4, 1.5, 3.5, 9.5, 8.5, 3, 5.5, 16, 1.5, 4, 1.5]);
   });
 
   it('matmul followed by mul', async () => {
@@ -1224,6 +1204,7 @@ describeWithFlags('dot', ALL_ENVS, () => {
   let c: tf.Tensor2D;
   let d: tf.Tensor3D;
   let e: tf.Scalar;
+  let f: tf.Tensor3D;
 
   beforeEach(() => {
     a = tf.tensor1d([1, 2]);
@@ -1231,6 +1212,7 @@ describeWithFlags('dot', ALL_ENVS, () => {
     c = tf.tensor2d([[1, 2, 3], [4, 5, 6]]);
     d = tf.tensor3d([1, 2], [1, 1, 2]);
     e = tf.scalar(1);
+    f = tf.tensor3d([1, 2, 1, 2], [2, 1, 2]);
   });
 
   it('vector-vector', async () => {
@@ -1275,8 +1257,7 @@ describeWithFlags('dot', ALL_ENVS, () => {
   });
 
   it('throws error on incompatible dimensions', () => {
-    expect(() => tf.dot(c, a)).toThrowError();
-    expect(() => tf.dot(c, b)).toThrowError();
+    expect(() => tf.dot(c, f)).toThrowError();
   });
 
   it('throws error when inputs are not rank 1 or 2', () => {
