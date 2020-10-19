@@ -25,7 +25,7 @@ export function fill(args: {backend: MathBackendCPU, attrs: FillAttrs}):
   const {shape, value, dtype} = attrs;
 
   const $dtype = dtype || util.inferDtype(value);
-  let values =
+  const values =
       util.getArrayFromDType($dtype, util.sizeFromShape(shape)) as TypedArray;
   values.fill(value as number);
 
