@@ -29,7 +29,7 @@ import {op} from '../operation';
 /**
  * Extracts crops from the input image tensor and resizes them using bilinear
  * sampling or nearest neighbor sampling (possibly with aspect ratio change)
- * to a common output size specified by crop_size.
+ * to a common output size specified by cropSize.
  *
  * @param image 4d tensor of shape `[batch,imageHeight,imageWidth, depth]`,
  *     where imageHeight and imageWidth must be positive, specifying the
