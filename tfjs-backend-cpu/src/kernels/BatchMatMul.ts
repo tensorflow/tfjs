@@ -56,12 +56,10 @@ export function batchMatMul(args: {
       () => `Error in matMul: the input batch dimensions must either be the ` +
           `same or at least one input batch dimension must be 1. Got input ` +
           `batch dimensions of (${outerDimsA}) and (${outerDimsB}).`);
-  let outShape = a.shape.slice(0, -2).concat([outerShapeA, outerShapeB]);
-  if (aRank >= 2 && bRank >= 2 && aRank !== bRank) {
-    const outShapeOuterDims =
-        batchDimA > batchDimB ? a.shape.slice(0, -2) : b.shape.slice(0, -2);
-    outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
-  }
+
+  const outShapeOuterDims =
+      batchDimA > batchDimB ? a.shape.slice(0, -2) : b.shape.slice(0, -2);
+  const outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
 
   util.assert(
       innerShapeA === innerShapeB,

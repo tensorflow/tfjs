@@ -85,15 +85,9 @@ function matMul_<T extends Tensor>(
             `${$b.shape} and transposeA=${transposeA}` +
             ` and transposeB=${transposeB} must match.`);
 
-    let outShape = $a.shape.slice(0, -2).concat([outerShapeA, outerShapeB]);
     const outShapeOuterDims =
         batchDimA > batchDimB ? $a.shape.slice(0, -2) : $b.shape.slice(0, -2);
-    if ($a.rank >= 2 && $b.rank >= 2 && $a.rank !== $b.rank) {
-      outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
-    }
-
-    // const outShape = $a.shape.slice(0, -2).concat([outerShapeA,
-    // outerShapeB]);
+    const outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
 
     const a3D = transposeA ?
         reshape($a, [batchDimA, innerShapeA, outerShapeA]) :
