@@ -50,11 +50,6 @@ function matMul_<T extends Tensor>(
   let $b = convertToTensor(b, 'b', 'matMul');
   [$a, $b] = makeTypesMatch($a, $b);
 
-  util.assert(
-      $a.rank >= 2 && $b.rank >= 2 && $a.rank === $b.rank,
-      () => `Error in matMul: inputs must have the same rank of at least 2, ` +
-          `got ranks ${$a.rank} and ${$b.rank}.`);
-
   const forward: ForwardFunc<Tensor> = (backend, save) => {
     save([$a, $b]);
 
@@ -91,26 +86,11 @@ function matMul_<T extends Tensor>(
             ` and transposeB=${transposeB} must match.`);
 
     let outShape = $a.shape.slice(0, -2).concat([outerShapeA, outerShapeB]);
+    const outShapeOuterDims =
+        batchDimA > batchDimB ? $a.shape.slice(0, -2) : $b.shape.slice(0, -2);
     if ($a.rank >= 2 && $b.rank >= 2 && $a.rank !== $b.rank) {
-      const outShapeOuterDims =
-          $a.rank > $b.rank ? $a.shape.slice(0, -2) : $b.shape.slice(0, -2);
       outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
     }
-
-    // start master.
-
-    util.assert(
-        util.arraysEqual(outerDimsA, outerDimsB),
-        () => `Error in matMul: outer dimensions (${outerDimsA}) and (` +
-            `${outerDimsB}) of Tensors with shapes ${$a.shape} and ` +
-            `${$b.shape} must match.`);
-
-    util.assert(
-        innerShapeA === innerShapeB,
-        () => `Error in matMul: inner shapes (${innerShapeA}) and (` +
-            `${innerShapeB}) of Tensors with shapes ${$a.shape} and ` +
-            `${$b.shape} and transposeA=${transposeA}` +
-            ` and transposeB=${transposeB} must match.`);
 
     // const outShape = $a.shape.slice(0, -2).concat([outerShapeA,
     // outerShapeB]);
