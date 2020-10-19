@@ -49,7 +49,7 @@ function outerProduct_(
 
   const v12D = reshape($v1, [-1, 1]);
   const v22D = reshape($v2, [1, -1]);
-  return matMul(v12D, v22D) as Tensor2D;
+  return matMul(v12D, v22D);
 }
 
 export const outerProduct = op({outerProduct_});
