@@ -85,7 +85,14 @@ export class MathBackendCPU extends KernelBackend {
   makeTensorInfo(
       shape: number[], dtype: DataType,
       values?: backend_util.BackendValues): TensorInfo {
-    const outId = this.write(values, shape, dtype);
+    let $values = values;
+    if (dtype === 'string' && $values != null && $values.length > 0 &&
+        util.isString($values[0])) {
+      $values = ($values as {} as string[]).map(d => util.encodeString(d)) as
+          {} as TypedArray;
+    }
+
+    const outId = this.write($values, shape, dtype);
 
     return {dataId: outId, shape, dtype};
   }
