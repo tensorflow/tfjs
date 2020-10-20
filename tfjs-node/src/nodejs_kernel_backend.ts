@@ -142,17 +142,24 @@ export class NodeJSKernelBackend extends KernelBackend {
     ];
   }
 
-  private executeSingleInput(name: string, input: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr('T', input.dtype)];
-    return this.executeSingleOutput(name, opAttrs, [input]);
-  }
-
   floatPrecision(): 16|32 {
     return 32;
   }
 
   epsilon(): number {
     return super.epsilon();
+  }
+
+  /**
+   * Executes an op that has a single input and output.
+   *
+   * Helper function to wrap executeSingleOutput in a particular case.
+   * @param name The name of the Op to execute.
+   * @param input The input Tensor for the Op.
+   */
+  executeSingleInput(name: string, input: TensorInfo): Tensor {
+    const opAttrs = [createTensorsTypeOpAttr('T', input.dtype)];
+    return this.executeSingleOutput(name, opAttrs, [input]);
   }
 
   /**
@@ -178,7 +185,7 @@ export class NodeJSKernelBackend extends KernelBackend {
    * @return A resulting Tensor array from Op execution.
    */
   executeMultipleOutputs(
-      name: string, opAttrs: TFEOpAttr[], inputs: Tensor[],
+      name: string, opAttrs: TFEOpAttr[], inputs: TensorInfo[],
       numOutputs: number): Tensor[] {
     const outputMetadata = this.binding.executeOp(
         name, opAttrs, this.getInputTensorIds(inputs), numOutputs);
