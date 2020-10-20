@@ -66,7 +66,7 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     ]);
   });
 
-  it('unequal batch dims', async () => {
+  it('broadcast with unequal batch dims', async () => {
     const a = tf.tensor3d(
         [
           2, 1, 3, 2, 1,  1,  1, 5, 6, 7, 8, 1,
@@ -80,7 +80,7 @@ describeWithFlags('matmul', ALL_ENVS, () => {
         await c.data(), [2.5, 4, 1.5, 3.5, 9.5, 8.5, 3, 5.5, 16, 1.5, 4, 1.5]);
   });
 
-  it('unequal ranks', async () => {
+  it('broadcast with unequal ranks', async () => {
     const a = tf.tensor5d(
         [
           2, 1, 3, 2, 1,  1,  1, 5, 6, 7, 8, 1,
