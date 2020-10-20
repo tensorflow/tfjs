@@ -15,25 +15,13 @@
  * =============================================================================
  */
 
-import {Fill, FillAttrs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {DataType, DataValues, TypedArray} from '@tensorflow/tfjs-core';
 
-import {MathBackendCPU} from '../backend_cpu';
-import {fillValues} from '../utils/fill_utils';
-
-export function fill(args: {backend: MathBackendCPU, attrs: FillAttrs}):
-    TensorInfo {
-  const {backend, attrs} = args;
-  const {shape, value, dtype} = attrs;
-
-  const $dtype = dtype || util.inferDtype(value);
-  const values = util.getArrayFromDType($dtype, util.sizeFromShape(shape));
-  fillValues(values, value, $dtype);
-
-  return backend.makeTensorInfo(shape, $dtype, values);
+export function fillValues(
+    values: DataValues, value: string|number, dtype: DataType): void {
+  if (dtype === 'string') {
+    (values as string[]).fill(value as string);
+  } else {
+    (values as TypedArray).fill(value as number);
+  }
 }
-
-export const fillConfig: KernelConfig = {
-  kernelName: Fill,
-  backendName: 'cpu',
-  kernelFunc: fill as {} as KernelFunc
-};
