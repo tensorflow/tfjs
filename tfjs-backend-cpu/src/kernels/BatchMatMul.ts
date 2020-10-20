@@ -45,21 +45,11 @@ export function batchMatMul(args: {
   const outerDimsA = a.shape.slice(0, -2);
   const outerDimsB = b.shape.slice(0, -2);
 
-  const batchDimA = util.sizeFromShape(outerDimsA);
-  const batchDimB = util.sizeFromShape(outerDimsB);
-
-  const batchDimsCompatible =
-      batchDimA === batchDimB || batchDimA === 1 || batchDimB === 1;
-
   util.assert(
-      aRank >= 2 && bRank >= 2 && batchDimsCompatible,
-      () => `Error in matMul: the input batch dimensions must either be the ` +
-          `same or at least one input batch dimension must be 1. Got input ` +
-          `batch dimensions of (${outerDimsA}) and (${outerDimsB}).`);
-
-  const outShapeOuterDims =
-      batchDimA > batchDimB ? a.shape.slice(0, -2) : b.shape.slice(0, -2);
-  const outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
+      util.arraysEqual(outerDimsA, outerDimsB),
+      () => `Error in matMul: outer dimensions (${outerDimsA}) and (` +
+          `${outerDimsB}) of Tensors with shapes ${a.shape} and ` +
+          `${b.shape} must match.`);
 
   util.assert(
       innerShapeA === innerShapeB,
@@ -67,6 +57,11 @@ export function batchMatMul(args: {
           `${innerShapeB}) of Tensors with shapes ${a.shape} and ` +
           `${b.shape} and transposeA=${transposeA}` +
           ` and transposeB=${transposeB} must match.`);
+
+  const outShape = a.shape.slice(0, -2).concat([outerShapeA, outerShapeB]);
+
+  const batchDimA = util.sizeFromShape(outerDimsA);
+  const batchDimB = util.sizeFromShape(outerDimsB);
 
   const a3dShape = transposeA ? [batchDimA, innerShapeA, outerShapeA] :
                                 [batchDimA, outerShapeA, innerShapeA];
@@ -80,7 +75,7 @@ export function batchMatMul(args: {
   const sharedDim = transposeA ? a3d.shape[1] : a3d.shape[2];
   const leftDim = transposeA ? a3d.shape[2] : a3d.shape[1];
   const rightDim = transposeB ? b3d.shape[1] : b3d.shape[2];
-  const batchDim = Math.max(batchDimA, batchDimB);
+  const batchDim = a3d.shape[0];
 
   const a3dValues = backend.data.get(a3d.dataId).values as TypedArray;
   const b3dValues = backend.data.get(b3d.dataId).values as TypedArray;
@@ -115,13 +110,9 @@ export function batchMatMul(args: {
               let sum = 0.0;
 
               for (let k = k0; k < kBlock; k++) {
-                const batchOffsetA = Math.min(bi, batchDimA - 1) * aBatch;
-                const batchOffsetB = Math.min(bi, batchDimB - 1) * bBatch;
-                const aVal =
-                    a3dValues[batchOffsetA + i * aOuterStep + k * aInnerStep];
-                const bVal =
-                    b3dValues[k * bInnerStep + j * bOuterStep + batchOffsetB];
-                sum += aVal * bVal;
+                sum +=
+                    a3dValues[bi * aBatch + i * aOuterStep + k * aInnerStep] *
+                    b3dValues[k * bInnerStep + j * bOuterStep + bi * bBatch];
               }
               resVals[bi * size + (i * rightDim + j)] += sum;
             }
