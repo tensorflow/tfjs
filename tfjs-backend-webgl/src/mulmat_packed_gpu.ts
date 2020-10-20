@@ -25,10 +25,9 @@ export class MatMulPackedProgram implements GPGPUProgram {
   userCode: string;
 
   constructor(
-      aShape: [number, number, number], bShape: [number, number, number],
-      outputShape: [number, number, number], transposeA = false,
-      transposeB = false, addBias = false, activation: string = null,
-      hasPreluActivation = false) {
+      aShape: [number, number, number], outputShape: [number, number, number],
+      transposeA = false, transposeB = false, addBias = false,
+      activation: string = null, hasPreluActivation = false) {
     this.outputShape = outputShape;
 
     const sharedDim = transposeA ? aShape[1] : aShape[2];
@@ -64,14 +63,6 @@ export class MatMulPackedProgram implements GPGPUProgram {
       this.variableNames.push('preluActivationWeights');
     }
 
-    let batchASnippet = 'rc.x';
-    let batchBSnippet = 'rc.x';
-    if (aShape[0] < bShape[0]) {
-      batchASnippet = `int(min(float(rc.x), ${aShape[0] - 1}.))`;
-    } else if (bShape[0] < aShape[0]) {
-      batchBSnippet = `int(min(float(rc.x), ${bShape[0] - 1}.))`;
-    }
-
     this.userCode = `
       ${activationSnippet}
 
@@ -80,10 +71,8 @@ export class MatMulPackedProgram implements GPGPUProgram {
       vec4 dot2x2ARowBCol(ivec3 rc) {
         vec4 result = vec4(0);
         for (int i = 0; i < ${sharedDimensionPacked}; i++) {
-          int batchA = ${batchASnippet};
-          int batchB = ${batchBSnippet};
-          vec4 a = getMatrixA(batchA, ${aSample});
-          vec4 b = getMatrixB(batchB, ${bSample});
+          vec4 a = getMatrixA(rc.x, ${aSample});
+          vec4 b = getMatrixB(rc.x, ${bSample});
 
           // These swizzled products need to be separately added.
           // See: https://github.com/tensorflow/tfjs/issues/1735
