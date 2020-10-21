@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+import {computeDispatch, flatDispatchLayout} from '../../webgpu_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from '../webgpu_program';
 
 export class FromPixelsProgram implements WebGPUProgram {
   outputShape: number[];
