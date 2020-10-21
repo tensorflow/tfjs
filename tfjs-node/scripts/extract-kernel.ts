@@ -93,8 +93,8 @@ function getKernelConfigBody(
     kernelFuncName: string, kernelName: string, inputs: string[],
     attrs: string[], kernelFuncBody: string) {
   let inputDestructure =
-      `const {${inputs.join(', ')}} = args.inputs as ${kernelName}Inputs
-\t\tconst backend = args.backend as NodeJSKernelBackend`;
+      `const {${inputs.join(', ')}} = args.inputs as ${kernelName}Inputs;
+\t\tconst backend = args.backend as NodeJSKernelBackend;`;
   if (attrs.length > 0) {
     inputDestructure += `\n\t\tconst {${
         attrs.join(', ')}} = args.attrs as {} as ${kernelName}Attrs;`;
@@ -119,7 +119,9 @@ export async function moveToNewFile(
     kernelFuncName: string, kernelFunc: MethodDeclaration, inputs: string[],
     attrs: string[]) {
   const kernelName = upcaseFirstChar(kernelFuncName);
-  const functionBody = kernelFunc.getBodyText().replace(/this/g, 'backend');
+  const functionBody = kernelFunc.getBodyText()
+                           .replace(/this/g, 'backend')
+                           .replace(new RegExp(`'${kernelName}'`), kernelName);
 
   //
   // Move code to a new file
@@ -141,7 +143,7 @@ export async function moveToNewFile(
   await newKernelFile.save();
 }
 
-function registerKernel(
+export function registerKernel(
     kernelFuncName: string, kernelName: string,
     registerkernelsFile: SourceFile) {
   const configVarName = `${kernelFuncName}Config`;
@@ -183,6 +185,7 @@ async function run(kernelFuncNames: string[]) {
   const backendFile = project.getSourceFile(backendFilePath);
   const kernelNamesFile = project.getSourceFile(kernelNamesFilePath);
   const registerkernelsFile = project.getSourceFile(registerkernelsFilePath);
+  console.log('re', registerkernelsFile.getBaseName());
 
   const backendClass = backendFile.getClass('NodeJSKernelBackend');
 
@@ -213,11 +216,12 @@ async function run(kernelFuncNames: string[]) {
 
   await registerkernelsFile.save();
 
-  // kernelFuncNames.forEach(
-  //     () => {
-  //         // Delete the kernel func definition from the backend class
-
-  //     });
+  kernelFuncNames.forEach((kernelFuncName) => {
+    // Delete the kernel func definition from the backend class
+    const func = getKernelMethod(backendClass, kernelFuncName);
+    func.remove();
+  });
+  await backendFile.save();
 }
 
 // add source files
