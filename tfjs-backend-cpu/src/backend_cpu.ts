@@ -84,8 +84,17 @@ export class MathBackendCPU extends KernelBackend {
    */
   makeTensorInfo(
       shape: number[], dtype: DataType,
-      values?: backend_util.BackendValues): TensorInfo {
-    const outId = this.write(values, shape, dtype);
+      values?: backend_util.BackendValues|string[]): TensorInfo {
+    let outId;
+    if (dtype === 'string' && values != null && values.length > 0 &&
+        util.isString(values[0])) {
+      const encodedValues =
+          (values as {} as string[]).map(d => util.encodeString(d));
+
+      outId = this.write(encodedValues, shape, dtype);
+    } else {
+      outId = this.write(values as TypedArray, shape, dtype);
+    }
 
     return {dataId: outId, shape, dtype};
   }
@@ -1839,20 +1848,13 @@ export class MathBackendCPU extends KernelBackend {
         strides, defaultValue, sumDupeIndices);
   }
 
-  fill<R extends Rank>(
-      shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
-    dtype = dtype || util.inferDtype(value);
-    const values =
-        util.getArrayFromDType(dtype, util.sizeFromShape(shape)) as TypedArray;
-    values.fill(value as number);
-    return engine().makeTensor(values, shape, dtype, this) as Tensor<R>;
-  }
-
   onesLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
     if (x.dtype === 'string') {
       throw new Error('onesLike is not supported for string tensors');
     } else {
-      return this.fill(x.shape, 1, x.dtype);
+      // TODO(lina128): Use fill kernel directly once this kernel is
+      // modularized.
+      return tf.fill(x.shape, 1, x.dtype);
     }
   }
 
