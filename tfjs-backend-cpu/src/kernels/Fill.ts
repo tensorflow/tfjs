@@ -15,10 +15,9 @@
  * =============================================================================
  */
 
-import {Fill, FillAttrs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {DataType, DataValues, Fill, FillAttrs, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
-import {fillValues} from '../utils/fill_utils';
 
 export function fill(args: {backend: MathBackendCPU, attrs: FillAttrs}):
     TensorInfo {
@@ -37,3 +36,12 @@ export const fillConfig: KernelConfig = {
   backendName: 'cpu',
   kernelFunc: fill as {} as KernelFunc
 };
+
+function fillValues(
+    values: DataValues, value: string|number, dtype: DataType): void {
+  if (dtype === 'string') {
+    (values as string[]).fill(value as string);
+  } else {
+    (values as TypedArray).fill(value as number);
+  }
+}
