@@ -100,12 +100,11 @@ export class WebGPUBackend extends KernelBackend {
   queue: GPUQueue;
   glslang: Glslang;
   commandQueue: GPUCommandEncoder[];
+  tensorMap: DataStorage<TensorBufferInfo>;
 
   private commandQueueOwnedIds = new WeakSet<DataId>();
   private binaryCache: {[key: string]: WebGPUBinary};
-  private fromPixels2DContext: CanvasRenderingContext2D;
   private bufferManager: BufferManager;
-  private tensorMap: DataStorage<TensorBufferInfo>;
 
   private tensorDisposalQueue: DataId[] = [];
   private uniformDisposalQueue: BufferInfo[] = [];
@@ -178,7 +177,7 @@ export class WebGPUBackend extends KernelBackend {
     return this.bufferManager.acquireBuffer(byteSize, usage);
   }
 
-  private maybeReleaseBuffer(dataId: DataId) {
+  maybeReleaseBuffer(dataId: DataId) {
     const info = this.tensorMap.get(dataId);
     if (info != null && info.bufferInfo.buffer != null) {
       this.bufferManager.releaseBuffer(
@@ -348,7 +347,7 @@ export class WebGPUBackend extends KernelBackend {
     return this.binaryCache[key];
   }
 
-  private makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):
+  makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):
       T {
     const dataId = this.write(null /* values */, shape, dtype);
 
@@ -385,7 +384,7 @@ export class WebGPUBackend extends KernelBackend {
     return timerQuery.endMs - timerQuery.startMs;
   }
 
-  private uploadToGPU(dataId: DataId): void {
+  uploadToGPU(dataId: DataId): void {
     const info = this.tensorMap.get(dataId);
 
     if (info.bufferInfo.buffer != null) {
@@ -1161,81 +1160,6 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     return this.compileAndRun(program, [a, b], output);
-  }
-
-  fromPixels(
-      pixels: backend_util.PixelData|ImageData|HTMLImageElement|
-      HTMLCanvasElement|HTMLVideoElement,
-      numChannels: number): Tensor3D {
-    if (pixels == null) {
-      throw new Error(
-          'pixels passed to tf.browser.fromPixels() can not be null');
-    }
-
-    const outShape = [pixels.height, pixels.width, numChannels];
-    let imageData = (pixels as ImageData | backend_util.PixelData).data;
-
-    if (env().getBool('IS_BROWSER')) {
-      if (!(pixels instanceof HTMLVideoElement) &&
-          !(pixels instanceof HTMLImageElement) &&
-          !(pixels instanceof HTMLCanvasElement) &&
-          !(pixels instanceof ImageData) &&
-          !(pixels.data instanceof Uint8Array)) {
-        throw new Error(
-            'pixels passed to tf.browser.fromPixels() must be either an ' +
-            `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData` +
-            ` or {data: Uint32Array, width: number, height: number}, ` +
-            `but was ${(pixels as {}).constructor.name}`);
-      }
-      if (pixels instanceof HTMLVideoElement ||
-          pixels instanceof HTMLImageElement ||
-          pixels instanceof HTMLCanvasElement) {
-        if (this.fromPixels2DContext == null) {
-          this.fromPixels2DContext =
-              document.createElement('canvas').getContext('2d');
-        }
-        this.fromPixels2DContext.canvas.width = pixels.width;
-        this.fromPixels2DContext.canvas.height = pixels.height;
-        this.fromPixels2DContext.drawImage(
-            pixels, 0, 0, pixels.width, pixels.height);
-        pixels = this.fromPixels2DContext.canvas;
-      }
-
-      // TODO: Remove this once we figure out how to upload textures directly to
-      // WebGPU.
-      const imageDataLivesOnGPU = pixels instanceof HTMLVideoElement ||
-          pixels instanceof HTMLImageElement ||
-          pixels instanceof HTMLCanvasElement;
-      if (imageDataLivesOnGPU) {
-        imageData = this.fromPixels2DContext
-                        .getImageData(0, 0, pixels.width, pixels.height)
-                        .data;
-      }
-    }
-
-    // TODO: Encoding should happen on GPU once we no longer have to download
-    // image data to the CPU.
-    let pixelArray = imageData;
-    if (numChannels != null && numChannels !== 4) {
-      pixelArray = new Uint8Array(pixels.width * pixels.height * numChannels);
-
-      const dataLength = imageData.length;
-      let j = 0;
-      for (let i = 0; i < dataLength; i++) {
-        if (i % 4 < numChannels) {
-          pixelArray[j++] = imageData[i];
-        }
-      }
-    }
-
-    const output = this.makeOutputArray(outShape, 'int32');
-
-    const info = this.tensorMap.get(output.dataId);
-    info.values = new Int32Array(pixelArray);
-    this.maybeReleaseBuffer(output.dataId);
-
-    this.uploadToGPU(output.dataId);
-    return output as Tensor3D;
   }
 
   numDataIds() {
