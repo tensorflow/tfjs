@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, Rank, ShapeMap, TensorInfo} from '@tensorflow/tfjs-core';
+import {DataType, Rank, TensorInfo} from '@tensorflow/tfjs-core';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import * as shader_preprocessor from '../shader_preprocessor';
@@ -41,6 +41,7 @@ export interface WebGPUProgram {
   // in a thread group. Individual dimensions determines thread layout within
   // the group.
   workGroupSize?: [number, number, number];
+  binary?: WebGPUBinary;
 }
 
 export interface WebGPUBinary {
@@ -92,10 +93,7 @@ export const compileProgram =
     };
 
 export function makeShaderKey<R extends Rank>(
-    program: WebGPUProgram, shapes: Array<ShapeMap[R]>,
-    types: string[]): string {
-  const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
-      shapes.join(',') + types.join(',') + program.variableNames.join(',') +
-      (program.shaderKey ? program.shaderKey : program.userCode);
+    program: WebGPUProgram, types: string[]): string {
+  const key = program.shaderKey + '|' + types.join(',');
   return key;
 }

@@ -23,7 +23,6 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class Conv2DNaiveProgram implements WebGPUProgram {
   outputShape: number[];
-  shaderKey: string;
   userCode: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
@@ -115,6 +114,5 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
         writeResult(batch, coords[1], coords[2], outChannel, acc);
       }
     `;
-    this.shaderKey = 'conv2dnaive';
   }
 }
