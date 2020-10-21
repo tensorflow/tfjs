@@ -143,7 +143,7 @@ export async function moveToNewFile(
   await newKernelFile.save();
 }
 
-export function registerKernel(
+function registerKernel(
     kernelFuncName: string, kernelName: string,
     registerkernelsFile: SourceFile) {
   const configVarName = `${kernelFuncName}Config`;
@@ -185,7 +185,6 @@ async function run(kernelFuncNames: string[]) {
   const backendFile = project.getSourceFile(backendFilePath);
   const kernelNamesFile = project.getSourceFile(kernelNamesFilePath);
   const registerkernelsFile = project.getSourceFile(registerkernelsFilePath);
-  console.log('re', registerkernelsFile.getBaseName());
 
   const backendClass = backendFile.getClass('NodeJSKernelBackend');
 
