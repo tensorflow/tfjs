@@ -28,7 +28,7 @@ import {op} from '../operation';
 import {reshape} from '../reshape';
 
 /**
- * Bilinear resize a batch of 3D images to a new shape.
+ * Bilinear resize a single 3D image or a batch of 3D images to a new shape.
  *
  * @param images The images, of rank 4 or rank 3, of shape
  *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is assumed.
