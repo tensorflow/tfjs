@@ -85,8 +85,7 @@ function matMul_<T extends Tensor>(
             `${$b.shape} and transposeA=${transposeA}` +
             ` and transposeB=${transposeB} must match.`);
 
-    const outShapeOuterDims =
-        batchDimA > batchDimB ? $a.shape.slice(0, -2) : $b.shape.slice(0, -2);
+    const outShapeOuterDims = batchDimA > batchDimB ? outerDimsA : outerDimsB;
     const outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
 
     const a3D = transposeA ?
