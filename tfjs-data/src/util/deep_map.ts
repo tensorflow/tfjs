@@ -226,7 +226,7 @@ export async function deepMapAndAwaitAll(
   // (There's no advantage to Promise.all(), and that would be tricky anyway.)
   for (const key of Array.from(seen.keys())) {
     const value = seen.get(key);
-    if (value instanceof Promise) {
+    if (tf.util.isPromise(value)) {
       const mappedValue = await value;
       seen.set(key, mappedValue);
     }

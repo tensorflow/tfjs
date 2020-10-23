@@ -15,6 +15,7 @@
  * =============================================================================
  */
 import {ENGINE} from '../engine';
+import {isPromise} from '../util';
 
 export const OP_SCOPE_SUFFIX = '__op';
 
@@ -48,7 +49,7 @@ export function op<T extends Function>(f: {[name: string]: T}): T {
     ENGINE.startScope(opName);
     try {
       const result = fn(...args);
-      if (result instanceof Promise) {
+      if (isPromise(result)) {
         console.error('Cannot return a Promise inside of tidy.');
       }
       ENGINE.endScope(result);
