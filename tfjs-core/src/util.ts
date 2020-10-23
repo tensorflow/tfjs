@@ -795,3 +795,13 @@ export function indexToLoc(
   locs[locs.length - 1] = index;
   return locs;
 }
+
+/**
+ * This method to check of the object can be interpreted as `Promise` instance.
+ * Since `instanceof Promise` only works for es6 `Promise`, some framework like
+ * Angular has custom promise where `instanceof Promise` return false.
+ * @param object
+ */
+export function isPromise(object: any) {
+  return object && object.then && typeof object.then === 'function';
+}
