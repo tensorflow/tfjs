@@ -60,6 +60,7 @@
     "node-fetch": "~2.6.1",
     "nyc": "^13.3.0",
     "tmp": "^0.0.33",
+    "ts-morph": "^8.1.2",
     "ts-node": "^5.0.1",
     "tslint": "~5.9.1",
     "tslint-no-circular-imports": "^0.7.0",
