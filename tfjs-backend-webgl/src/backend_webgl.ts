@@ -821,7 +821,7 @@ export class MathBackendWebGL extends KernelBackend {
     const outerShapeA = transposeA ? a.shape[2] : a.shape[1];
     const outerShapeB = transposeB ? b.shape[1] : b.shape[2];
     const sharedDim = transposeA ? a.shape[1] : a.shape[2];
-    const [batch, , ] = a.shape;
+    const batch = Math.max(a.shape[0], b.shape[0]);
 
     // Since the matrices are vectors, it is faster to call mul().sum()
     // because sum() is O(sqrt(N)) due to divide-and-conquer.
@@ -846,7 +846,8 @@ export class MathBackendWebGL extends KernelBackend {
     const dtype = upcastType(a.dtype, b.dtype);
 
     const program = new MatMulPackedProgram(
-        a.shape, [batch, outerShapeA, outerShapeB], transposeA, transposeB);
+        a.shape, b.shape, [batch, outerShapeA, outerShapeB], transposeA,
+        transposeB);
     return this.compileAndRun<Tensor3D>(program, [a, b], dtype);
   }
 
@@ -855,7 +856,7 @@ export class MathBackendWebGL extends KernelBackend {
           backend_util.FusedBatchMatMulConfig): Tensor3D {
     const outerShapeA = transposeA ? a.shape[2] : a.shape[1];
     const outerShapeB = transposeB ? b.shape[1] : b.shape[2];
-    const [batch, , ] = a.shape;
+    const batch = Math.max(a.shape[0], b.shape[0]);
 
     const dtype = upcastType(a.dtype, b.dtype);
 
@@ -864,8 +865,8 @@ export class MathBackendWebGL extends KernelBackend {
     const fusedActivation =
         activation ? mapActivationToShaderProgram(activation, true) : null;
     const program = new MatMulPackedProgram(
-        a.shape, [batch, outerShapeA, outerShapeB], transposeA, transposeB,
-        hasBias, fusedActivation, hasPreluActivationWeights);
+        a.shape, b.shape, [batch, outerShapeA, outerShapeB], transposeA,
+        transposeB, hasBias, fusedActivation, hasPreluActivationWeights);
     const inputs: TensorInfo[] = [a, b];
     if (bias) {
       inputs.push(bias);
@@ -1815,7 +1816,7 @@ export class MathBackendWebGL extends KernelBackend {
     const transposeB = false;
 
     const xSqueezed = x.squeeze([0]);
-    const w2Row = filter.reshape([1, sharedDim, -1]);
+    const w2Row: Tensor3D = filter.reshape([1, sharedDim, -1]);
 
     const im2ColProgram =
         new Im2ColPackedProgram(x2ColShape, xSqueezed.shape, convInfo);
@@ -1829,8 +1830,9 @@ export class MathBackendWebGL extends KernelBackend {
     const fusedActivation =
         activation ? mapActivationToShaderProgram(activation, true) : null;
     const matmulProgram = new MatMulPackedProgram(
-        im2Col.shape, [1, numCols, convInfo.outChannels], transposeA,
-        transposeB, hasBias, fusedActivation, hasPreluActivationWeights);
+        im2Col.shape, w2Row.shape, [1, numCols, convInfo.outChannels],
+        transposeA, transposeB, hasBias, fusedActivation,
+        hasPreluActivationWeights);
     const inputs: TensorInfo[] = [im2Col, w2Row];
     if (bias) {
       inputs.push(bias);
