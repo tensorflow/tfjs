@@ -1,13 +1,9 @@
 import * as argparse from 'argparse';
-// import * as path from 'path';
-// import {FunctionDeclaration, ImportDeclaration, Project, SourceFile,
-// VariableStatement} from 'ts-morph';
 import {ClassDeclaration, MethodDeclaration, Project, SourceFile} from 'ts-morph';
 
 const parser = new argparse.ArgumentParser();
 parser.addArgument('--kernels', {
-  help: 'comma seprated list of kernels to extract (e.g. tanh,tan).' +
-      ' Skip this param to extract all ops from the file.',
+  help: 'comma separated list of kernels to extract (e.g. tanh,tan).',
   defaultValue: [],
   required: true
 });
