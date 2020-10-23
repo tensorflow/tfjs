@@ -177,7 +177,7 @@ performance. We plan to follow the WebAssembly standard closely and benefit from
 its upcoming features such as multi-threading.
 
 ### How many ops have you implemented?
-See [`all_kernels.ts`](https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/src/kernels/all_kernels.ts)
+See [`register_all_kernels.ts`](https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/src/register_all_kernels.ts)
 for an up-to-date list of supported ops. We love contributions. See the
 [contributing](https://github.com/tensorflow/tfjs/blob/master/CONTRIBUTING.md#adding-functionality)
 document for more info.
