@@ -22,6 +22,14 @@ import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 import {dilation2dConfig} from './kernels/Dilation2D';
 import {dilation2dBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
 import {dilation2dBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
+import {greaterConfig} from './kernels/Greater';
+import {greaterEqualConfig} from './kernels/GreaterEqual';
+import {lessConfig} from './kernels/Less';
+import {lessEqualConfig} from './kernels/LessEqual';
+import {logicalAndConfig} from './kernels/LogicalAnd';
+import {logicalNotConfig} from './kernels/LogicalNot';
+import {logicalOrConfig} from './kernels/LogicalOr';
+import {maxConfig} from './kernels/Max';
 import {mirrorPadConfig} from './kernels/MirrorPad';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
@@ -30,8 +38,10 @@ import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
-  dilation2dConfig, dilation2dBackpropInputConfig,
-  dilation2dBackpropFilterConfig, nonMaxSuppressionV4Config, mirrorPadConfig,
+  dilation2dBackpropFilterConfig, dilation2dBackpropInputConfig,
+  dilation2dConfig, greaterConfig, greaterEqualConfig, lessConfig,
+  lessEqualConfig, logicalAndConfig, logicalNotConfig, logicalOrConfig,
+  maxConfig, mirrorPadConfig, nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config, softmaxConfig, squaredDifferenceConfig
 ];
 
