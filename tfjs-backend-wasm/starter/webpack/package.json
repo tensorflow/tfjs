@@ -8,8 +8,8 @@
     "build": "webpack"
   },
   "dependencies": {
-    "@tensorflow/tfjs-backend-wasm": "2.0.1",
-    "@tensorflow/tfjs-core": "2.0.1"
+    "@tensorflow/tfjs-backend-wasm": "2.6.0",
+    "@tensorflow/tfjs-core": "2.6.0"
   },
   "browserslist": [
     "defaults"

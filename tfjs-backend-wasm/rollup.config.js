@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
-import commonjs from 'rollup-plugin-commonjs';
-import node from 'rollup-plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import resolve from '@rollup/plugin-node-resolve';
+import typescript from '@rollup/plugin-typescript';
+import node from '@rollup/plugin-node-resolve';
 import {terser} from 'rollup-plugin-terser';
-import typescript from 'rollup-plugin-typescript2';
 
 const PREAMBLE = `/**
  * @license
@@ -38,18 +39,16 @@ const PREAMBLE = `/**
  */`;
 
 function config({plugins = [], output = {}, tsCompilerOptions = {}}) {
-  const defaultTsCompilerOptions = {
+  const defaultTsOptions = {
+    include: ['src/**/*.ts'],
     module: 'ES2015',
   };
-  const tsOverrideCompilerOptions =
-      Object.assign({}, defaultTsCompilerOptions, tsCompilerOptions);
+  const tsoptions = Object.assign({}, defaultTsOptions, tsCompilerOptions);
 
   return {
     input: 'src/index.ts',
     plugins: [
-      typescript({
-        tsconfigOverride: {compilerOptions: tsOverrideCompilerOptions},
-      }),
+      typescript(tsoptions), resolve(),
       node({preferBuiltins: true}),
       // Polyfill require() from dependencies.
       commonjs({
@@ -82,6 +81,7 @@ module.exports = cmdOptions => {
   const terserPlugin = terser({output: {preamble: PREAMBLE, comments: false}});
   const name = 'tf.wasm';
   const extend = true;
+  const browserFormat = 'umd';
   const fileName = 'tf-backend-wasm';
 
   // Node
@@ -96,19 +96,8 @@ module.exports = cmdOptions => {
     tsCompilerOptions: {target: 'es5'}
   }));
 
-  if (!cmdOptions.ci) {
-    // tf-backend-wasm.js
-    bundles.push(config({
-      output: {
-        format: 'umd',
-        name,
-        extend,
-        file: `dist/${fileName}.js`,
-      }
-    }));
-  }
-
-  // tf-backend-wasm.min.js
+  if (!cmdOptions.ci || cmdOptions.npm) {
+    // tf-backend-wasm.min.js
   bundles.push(config({
     plugins: [terserPlugin],
     output: {
@@ -119,15 +108,44 @@ module.exports = cmdOptions => {
     },
   }));
 
-  if (!cmdOptions.ci) {
-    // tf-backend-wasm.esm.js
+  }
+
+  if (cmdOptions.npm) {
+    // Browser default unminified (ES5)
+    bundles.push(config({
+      output: {
+        format: browserFormat,
+        name,
+        extend,
+        file: `dist/${fileName}.js`,
+        freeze: false
+      },
+      tsCompilerOptions: {target: 'es5'}
+    }));
+
+    // Browser ES2017
+    bundles.push(config({
+      output: {
+        format: browserFormat,
+        name,
+        extend,
+        file: `dist/${fileName}.es2017.js`
+      },
+      tsCompilerOptions: {target: 'es2017'}
+    }));
+
+    // Browser ES2017 minified
     bundles.push(config({
       plugins: [terserPlugin],
       output: {
-        format: 'es',
-        file: `dist/${fileName}.esm.js`,
-      }
+        format: browserFormat,
+        name,
+        extend,
+        file: `dist/${fileName}.es2017.min.js`
+      },
+      tsCompilerOptions: {target: 'es2017'}
     }));
   }
+
   return bundles;
 };
