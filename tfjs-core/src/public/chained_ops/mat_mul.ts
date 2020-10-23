@@ -21,12 +21,14 @@ import {Rank, TensorLike} from '../../types';
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
     matMul<T extends Tensor>(
-        b: T|TensorLike, transposeA?: boolean, transposeB?: boolean): T;
+        b: Tensor|TensorLike, transposeA?: boolean,
+        transposeB?: boolean): Tensor;
   }
 }
 
 Tensor.prototype.matMul = function<T extends Tensor>(
-    this: T, b: T|TensorLike, transposeA?: boolean, transposeB?: boolean): T {
+    this: T, b: Tensor|TensorLike, transposeA?: boolean,
+    transposeB?: boolean): Tensor {
   this.throwIfDisposed();
   return matMul(this, b, transposeA, transposeB);
 };

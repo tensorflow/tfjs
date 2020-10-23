@@ -66,11 +66,21 @@ function batchMatMul(args: {
   const outerDimsA = a.shape.slice(0, -2);
   const outerDimsB = b.shape.slice(0, -2);
 
+  const batchDimA = util.sizeFromShape(outerDimsA);
+  const batchDimB = util.sizeFromShape(outerDimsB);
+
+  const batchDimsCompatible =
+      batchDimA === batchDimB || batchDimA === 1 || batchDimB === 1;
+
   util.assert(
-      util.arraysEqual(outerDimsA, outerDimsB),
-      () => `Error in matMul: outer dimensions (${outerDimsA}) and (` +
-          `${outerDimsB}) of Tensors with shapes ${a.shape} and ` +
-          `${b.shape} must match.`);
+      aRank >= 2 && bRank >= 2 && batchDimsCompatible,
+      () => `Error in matMul: the input batch dimensions must either be the ` +
+          `same or at least one input batch dimension must be 1. Got input ` +
+          `batch dimensions of (${outerDimsA}) and (${outerDimsB}).`);
+
+  const outShapeOuterDims =
+      batchDimA > batchDimB ? a.shape.slice(0, -2) : b.shape.slice(0, -2);
+  const outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
 
   util.assert(
       innerShapeA === innerShapeB,
@@ -78,11 +88,6 @@ function batchMatMul(args: {
           `${innerShapeB}) of Tensors with shapes ${a.shape} and ` +
           `${b.shape} and transposeA=${transposeA}` +
           ` and transposeB=${transposeB} must match.`);
-
-  const outShape = a.shape.slice(0, -2).concat([outerShapeA, outerShapeB]);
-
-  const batchDimA = util.sizeFromShape(outerDimsA);
-  const batchDimB = util.sizeFromShape(outerDimsB);
 
   const a3dShape = transposeA ? [batchDimA, innerShapeA, outerShapeA] :
                                 [batchDimA, outerShapeA, innerShapeA];
@@ -98,7 +103,7 @@ function batchMatMul(args: {
 
   const leftDim = transposeA ? a3d.shape[2] : a3d.shape[1];
   const rightDim = transposeB ? b3d.shape[1] : b3d.shape[2];
-  const batchDim = a3d.shape[0];
+  const batchDim = Math.max(batchDimA, batchDimB);
 
   const out = backend.makeOutput([batchDim, leftDim, rightDim], a3d.dtype);
   const outId = backend.dataIdMap.get(out.dataId).id;

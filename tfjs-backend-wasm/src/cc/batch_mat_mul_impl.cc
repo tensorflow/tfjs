@@ -232,9 +232,14 @@ void slow_batch_matmul(const size_t a_id, const size_t* a_shape_ptr,
               float sum = 0.0;
 
               for (size_t k = k0; k < k_block; ++k) {
+                const size_t batch_offset_a =
+                    std::min(b, a_shape[0] - 1) * a_batch;
+                const size_t batch_offset_b =
+                    std::min(b, b_shape[0] - 1) * b_batch;
                 sum +=
-                    a_buf[b * a_batch + i * a_outer_step + k * a_inner_step] *
-                    b_buf[k * b_inner_step + j * b_outer_step + b * b_batch];
+                    a_buf[batch_offset_a + i * a_outer_step +
+                          k * a_inner_step] *
+                    b_buf[k * b_inner_step + j * b_outer_step + batch_offset_b];
               }
               size_t innermost_dim = i * right_dim + j;
               size_t out_buf_index = b * size + innermost_dim;
