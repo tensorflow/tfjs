@@ -87,6 +87,5 @@ const kernelConfigs: KernelConfig[] = [
 ];
 
 for (const kernelConfig of kernelConfigs) {
-  console.log('registering kernel', kernelConfig.kernelName);
   registerKernel(kernelConfig);
 }
