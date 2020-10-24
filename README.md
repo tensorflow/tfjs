@@ -95,7 +95,7 @@ Add the following code to an HTML file:
 <html>
   <head>
     <!-- Load TensorFlow.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"> </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.6.0/dist/tf.min.js"> </script>
 
 
     <!-- Place your code in the script tag below. You can also use an external .js file -->
