@@ -370,7 +370,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     let result = this.conv2d(input, filter, convInfo);
 
     if (bias != null) {
-      result = this.add(result, bias) as Tensor4D;
+      result = tf.add(result, bias);
     }
 
     result = this.applyActivation(result, activation, preluActivationWeights);
@@ -385,7 +385,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     // achieve the same results:
     let result = this.batchMatMul(a, b, transposeA, transposeB);
     if (bias != null) {
-      result = this.add(result, bias) as Tensor3D;
+      result = tf.add(result, bias);
     }
 
     result = this.applyActivation(result, activation, preluActivationWeights);
@@ -435,28 +435,10 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleInput('Neg', a) as T;
   }
 
-  diag(x: Tensor): Tensor {
-    return this.executeSingleInput('Diag', x);
-  }
-
-  add(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr(
-        'T', backend_util.upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('Add', opAttrs, [a, b]);
-  }
-
   select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
     const opAttrs = [createTensorsTypeOpAttr(
         'T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('Select', opAttrs, [condition, a, b]);
-  }
-
-  addN<T extends Tensor>(tensors: T[]): T {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', tensors[0].dtype),
-      {name: 'N', type: this.binding.TF_ATTR_INT, value: tensors.length}
-    ];
-    return this.executeSingleOutput('AddN', opAttrs, tensors) as T;
   }
 
   subtract(a: Tensor, b: Tensor): Tensor {
@@ -465,22 +447,10 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('Sub', opAttrs, [a, b]);
   }
 
-  multiply(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr(
-        'T', backend_util.upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('Mul', opAttrs, [a, b]);
-  }
-
   realDivide(a: Tensor, b: Tensor): Tensor {
     const opAttrs = [createTensorsTypeOpAttr(
         'T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('RealDiv', opAttrs, [a, b]);
-  }
-
-  floorDiv(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr(
-        'T', backend_util.upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('FloorDiv', opAttrs, [a, b]);
   }
 
   divide(a: Tensor, b: Tensor): Tensor {
@@ -493,68 +463,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     const opAttrs = [createTensorsTypeOpAttr(
         'T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('DivNoNan', opAttrs, [a, b]);
-  }
-
-  unsortedSegmentSum<T extends Tensor>(
-      x: T, segmentIds: Tensor1D, numSegments: number): Tensor {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      createTensorsTypeOpAttr('Tindices', 'int32'),
-      createTensorsTypeOpAttr('Tnumsegments', 'int32')
-    ];
-    return this.executeSingleOutput(
-        'UnsortedSegmentSum', opAttrs,
-        [x, segmentIds, scalar(numSegments, 'int32')]);
-  }
-
-  sum(x: Tensor, axes: number[]): Tensor {
-    const axisTensor = tensor1d(axes, 'int32');
-    return this.executeSingleOutput(
-        'Sum', this.createReductionOpAttrs(x), [x, axisTensor]);
-  }
-
-  prod(x: Tensor, axes: number[]): Tensor {
-    const axesTensor = tensor1d(axes, 'int32');
-    const opAttrs = [
-      {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: false},
-      createTensorsTypeOpAttr('T', x.dtype),
-      createTensorsTypeOpAttr('Tidx', 'int32')
-    ];
-    return this.executeSingleOutput('Prod', opAttrs, [x, axesTensor]);
-  }
-
-  argMin(x: Tensor, axis: number): Tensor {
-    const xInput = x.dtype === 'bool' ? x.toInt() : x;
-    const axisScalar = scalar(axis, 'int32');
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', xInput.dtype),
-      createTensorsTypeOpAttr('Tidx', 'int32'),
-      createTensorsTypeOpAttr('output_type', 'int32')
-    ];
-    return this.executeSingleOutput('ArgMin', opAttrs, [xInput, axisScalar]);
-  }
-
-  argMax(x: Tensor, axis: number): Tensor {
-    const xInput = x.dtype === 'bool' ? x.toInt() : x;
-    const axisScalar = scalar(axis, 'int32');
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', xInput.dtype),
-      createTensorsTypeOpAttr('Tidx', 'int32'),
-      createTensorsTypeOpAttr('output_type', 'int32')
-    ];
-    return this.executeSingleOutput('ArgMax', opAttrs, [xInput, axisScalar]);
-  }
-
-  equal(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr(
-        'T', backend_util.upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('Equal', opAttrs, [a, b]);
-  }
-
-  notEqual(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr(
-        'T', backend_util.upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('NotEqual', opAttrs, [a, b]);
   }
 
   where(condition: Tensor): Tensor2D {
@@ -581,24 +489,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     // 'TopKV2' has two-hard coded output attributes:
     return this.executeMultipleOutputs(
                'TopKV2', opAttrs, [x, kTensor], 2) as [T, T];
-  }
-
-  min(x: Tensor, axes: number[]): Tensor {
-    const axesTensor = tensor1d(axes, 'int32');
-    return this.executeSingleOutput(
-        'Min', this.createReductionOpAttrs(x), [x, axesTensor]);
-  }
-
-  minimum(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr(
-        'T', backend_util.upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('Minimum', opAttrs, [a, b]);
-  }
-
-  maximum(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr(
-        'T', backend_util.upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('Maximum', opAttrs, [a, b]);
   }
 
   all(x: Tensor, axes: number[]): Tensor {
@@ -687,8 +577,8 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   clip<T extends Tensor>(x: T, min: number, max: number): T {
-    const xMin = this.minimum(x, scalar(max, x.dtype));
-    return this.maximum(xMin, scalar(min, x.dtype)) as T;
+    const xMin = tf.minimum(x, scalar(max, x.dtype));
+    return tf.maximum(xMin, scalar(min, x.dtype));
   }
 
   abs<T extends Tensor>(x: T): T {
@@ -957,7 +847,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     let result = this.depthwiseConv2D(input, filter, convInfo);
 
     if (bias != null) {
-      result = this.add(result, bias) as Tensor4D;
+      result = tf.add(result, bias);
     }
 
     result = this.applyActivation(result, activation, preluActivationWeights);
