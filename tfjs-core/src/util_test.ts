@@ -586,4 +586,13 @@ describe('util.decodeString', () => {
       expect(s).toEqual(expected);
     }
   });
+
+  it('assert promise', () => {
+    const promise = new Promise(() => {});
+    expect(util.isPromise(promise)).toBeTruthy();
+    const promise2 = {then: () => {}};
+    expect(util.isPromise(promise2)).toBeTruthy();
+    const promise3 = {};
+    expect(util.isPromise(promise3)).toBeFalsy();
+  });
 });

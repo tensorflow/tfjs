@@ -113,8 +113,8 @@ export function executeOp(
                 `, or register a custom execution with tf.registerOp()`);
         }
       })(node, tensorMap, context);
-  if (value instanceof Promise) {
-    return value.then((data) => [].concat(data));
+  if (tfc.util.isPromise(value)) {
+    return (value as Promise<tfc.Tensor>).then((data) => [].concat(data));
   }
   return [].concat(value);
 }
