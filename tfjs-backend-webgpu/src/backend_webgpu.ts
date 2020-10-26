@@ -51,6 +51,7 @@ import {UnaryOpProgram} from './kernels/unary_op_webgpu';
 import * as webgpu_program from './kernels/webgpu_program';
 import {WebGPUBinary} from './kernels/webgpu_program';
 import * as webgpu_util from './webgpu_util';
+import { FromPixelsProgram } from './kernels/FromPixels_utils/from_pixels_webgpu';
 
 export interface WebGPUMemoryInfo extends backend_util.MemoryInfo {
   numBytesInGPU: number;
@@ -101,6 +102,7 @@ export class WebGPUBackend extends KernelBackend {
   glslang: Glslang;
   commandQueue: GPUCommandEncoder[];
   tensorMap: DataStorage<TensorBufferInfo>;
+  fromPixelProgram : FromPixelsProgram;
 
   private commandQueueOwnedIds = new WeakSet<DataId>();
   private binaryCache: {[key: string]: WebGPUBinary};
@@ -172,7 +174,7 @@ export class WebGPUBackend extends KernelBackend {
     return this.bufferManager;
   }
 
-  private acquireBuffer(
+  acquireBuffer(
       byteSize: number, usage: GPUBufferUsageFlags = DEFAULT_GPUBUFFER_USAGE) {
     return this.bufferManager.acquireBuffer(byteSize, usage);
   }
@@ -214,7 +216,7 @@ export class WebGPUBackend extends KernelBackend {
     });
   }
 
-  private submitQueue() {
+  submitQueue() {
     this.queue.submit(this.commandQueue.map(enc => enc.finish()));
     this.commandQueue = [];
 
@@ -1171,6 +1173,9 @@ export class WebGPUBackend extends KernelBackend {
       return;
     }
     this.bufferManager.dispose();
+    if (this.fromPixelProgram) {
+      this.fromPixelProgram.dispose();
+    }
     this.disposed = true;
   }
 }
