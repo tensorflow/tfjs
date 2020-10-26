@@ -16,7 +16,7 @@
  */
 
 import {ENGINE} from '../engine';
-import {FromPixels, FromPixelsAttrs, FromPixelsInputs} from '../kernel_names';
+import {FromPixels, FromPixelsAttrs, FromPixelsInputs, FromPixelsAsync } from '../kernel_names';
 import {getKernel, NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor2D, Tensor3D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -103,8 +103,8 @@ function fromPixels_(
           '`loadeddata` event on the <video> element.');
     }
   }
-  // If the current backend has 'FromPixels' registered, it has a more
-  // efficient way of handling pixel uploads, so we call that.
+  // If the current backend is 'webgpu', then it can go to asyn from pixel path.
+
   const kernel = getKernel(FromPixels, ENGINE.backendName);
   if (kernel != null) {
     const inputs: FromPixelsInputs = {pixels};
@@ -115,43 +115,82 @@ function fromPixels_(
   }
 
   const [width, height] = isVideo ?
-      [
-        (pixels as HTMLVideoElement).videoWidth,
-        (pixels as HTMLVideoElement).videoHeight
-      ] :
-      [pixels.width, pixels.height];
-  let vals: Uint8ClampedArray|Uint8Array;
+  [
+    (pixels as HTMLVideoElement).videoWidth,
+    (pixels as HTMLVideoElement).videoHeight
+  ] :
+  [pixels.width, pixels.height];
+let vals: Uint8ClampedArray|Uint8Array;
 
-  if (isCanvasLike) {
-    vals =
-        // tslint:disable-next-line:no-any
-        (pixels as any).getContext('2d').getImageData(0, 0, width, height).data;
-  } else if (isImageData || isPixelData) {
-    vals = (pixels as PixelData | ImageData).data;
-  } else if (isImage || isVideo) {
-    if (fromPixels2DContext == null) {
-      fromPixels2DContext = document.createElement('canvas').getContext('2d');
-    }
-    fromPixels2DContext.canvas.width = width;
-    fromPixels2DContext.canvas.height = height;
-    fromPixels2DContext.drawImage(
-        pixels as HTMLVideoElement, 0, 0, width, height);
-    vals = fromPixels2DContext.getImageData(0, 0, width, height).data;
+if (isCanvasLike) {
+vals =
+    // tslint:disable-next-line:no-any
+    (pixels as any).getContext('2d').getImageData(0, 0, width, height).data;
+} else if (isImageData || isPixelData) {
+vals = (pixels as PixelData | ImageData).data;
+} else if (isImage || isVideo) {
+if (fromPixels2DContext == null) {
+  fromPixels2DContext = document.createElement('canvas').getContext('2d');
+}
+fromPixels2DContext.canvas.width = width;
+fromPixels2DContext.canvas.height = height;
+fromPixels2DContext.drawImage(
+    pixels as HTMLVideoElement, 0, 0, width, height);
+vals = fromPixels2DContext.getImageData(0, 0, width, height).data;
+}
+let values: Int32Array;
+if (numChannels === 4) {
+values = new Int32Array(vals);
+} else {
+const numPixels = width * height;
+values = new Int32Array(numPixels * numChannels);
+for (let i = 0; i < numPixels; i++) {
+  for (let channel = 0; channel < numChannels; ++channel) {
+    values[i * numChannels + channel] = vals[i * 4 + channel];
   }
-  let values: Int32Array;
-  if (numChannels === 4) {
-    values = new Int32Array(vals);
-  } else {
-    const numPixels = width * height;
-    values = new Int32Array(numPixels * numChannels);
-    for (let i = 0; i < numPixels; i++) {
-      for (let channel = 0; channel < numChannels; ++channel) {
-        values[i * numChannels + channel] = vals[i * 4 + channel];
-      }
-    }
+}
+}
+const outShape: [number, number, number] = [height, width, numChannels];
+return tensor3d(values, outShape, 'int32');
+}
+
+
+
+export async function fromPixelsAsync(
+  pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
+  HTMLVideoElement,
+  numChannels = 3) {
+// Sanity checks.
+if (numChannels > 4) {
+  throw new Error(
+      'Cannot construct Tensor with more than 4 channels from pixels.');
+}
+if (pixels == null) {
+  throw new Error('pixels passed to tf.browser.fromPixels() can not be null');
+}
+
+if ( typeof (HTMLVideoElement) !== 'undefined' &&
+pixels instanceof HTMLVideoElement) {
+  const HAVE_CURRENT_DATA_READY_STATE = 2;
+  if ((pixels as HTMLVideoElement).readyState <
+          HAVE_CURRENT_DATA_READY_STATE) {
+    throw new Error(
+        'The video element has not loaded data yet. Please wait for ' +
+        '`loadeddata` event on the <video> element.');
   }
-  const outShape: [number, number, number] = [height, width, numChannels];
-  return tensor3d(values, outShape, 'int32');
+}
+// If the current backend has 'FromPixels' registered, it has a more
+// efficient way of handling pixel uploads, so we call that.
+if (ENGINE.backendName == 'webgpu') {
+  const kernel = getKernel(FromPixelsAsync, ENGINE.backendName);
+  const inputs: NamedTensorMap = {pixels} as {} as NamedTensorMap;
+  const attrs: NamedAttrMap = {numChannels} as {} as NamedAttrMap;
+  return await kernel.kernelFunc({inputs, attrs, backend: ENGINE.backend}) as Tensor3D;
+
+} else {
+  throw new Error(
+    'fromPixelAsync is only supported in webgpu backend.');
+}
 }
 
 /**
