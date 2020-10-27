@@ -373,6 +373,10 @@ def _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
     Nullable. A freezed and optimized initializer graph.
     Nullable. A list of output node names of initializer.
   """
+  # v1 loader need empty list if there are no saved_model tags.
+  if not saved_model_tags:
+    saved_model_tags = []
+
   g = tf.Graph()
   with g.as_default():
     with tf.compat.v1.Session() as sess:
@@ -535,7 +539,10 @@ def convert_tf_saved_model(saved_model_dir,
   model = None
   # Ensure any graphs created in eager mode are able to run.
   with context.eager_mode():
-    model = load(saved_model_dir, saved_model_tags)
+    if saved_model_tags:
+      model = load(saved_model_dir, saved_model_tags)
+    else:
+      model = load(saved_model_dir)
 
   _check_signature_in_model(model, signature_def)
 
