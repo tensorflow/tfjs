@@ -103,25 +103,39 @@ class BundleResourceHandler implements io.IOHandler {
     const modelJson = this.modelJson;
 
     let base64Weights: string;
-    if (Platform.OS === 'android') {
-      // On android we get a resource id instead of a regular path. We need
-      // to load the weights from the res/raw folder using this id.
-      const fileName = `${weightsAsset.uri}.${weightsAsset.type}`;
+
+    if (weightsAsset.uri.match("^file://")) {
+      // Sometimes local asset returns file:// URL instead of file path
+      // (Like after applying CodePush updates)
+      // Since RNFS can't handle file URL, converting must done manually.
+      const localFilePath = unescape(weightsAsset.uri.substr("file://".length));
+
       try {
-        base64Weights = await RNFS.readFileRes(fileName, 'base64');
+        base64Weights = await RNFS.readFile(localFilePath, "base64");
       } catch (e) {
-        throw new Error(
-            `Error reading resource ${fileName}. Make sure the file is
-            in located in the res/raw folder of the bundle`,
-        );
+        throw new Error(`Error reading resource ${localFilePath}.`);
       }
     } else {
-      try {
-        base64Weights = await RNFS.readFile(weightsAsset.uri, 'base64');
-      } catch (e) {
-        throw new Error(
-            `Error reading resource ${weightsAsset.uri}.`,
-        );
+      if (Platform.OS === 'android') {
+        // On android we get a resource id instead of a regular path. We need
+        // to load the weights from the res/raw folder using this id.
+        const fileName = `${weightsAsset.uri}.${weightsAsset.type}`;
+        try {
+          base64Weights = await RNFS.readFileRes(fileName, 'base64');
+        } catch (e) {
+          throw new Error(
+              `Error reading resource ${fileName}. Make sure the file is
+              in located in the res/raw folder of the bundle`,
+          );
+        }
+      } else {
+        try {
+          base64Weights = await RNFS.readFile(weightsAsset.uri, 'base64');
+        } catch (e) {
+          throw new Error(
+              `Error reading resource ${weightsAsset.uri}.`,
+          );
+        }
       }
     }
 
