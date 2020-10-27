@@ -23,16 +23,21 @@ import {addConfig} from './kernels/Add';
 import {addNConfig} from './kernels/AddN';
 import {argMaxConfig} from './kernels/ArgMax';
 import {argMinConfig} from './kernels/ArgMin';
+import {ceilConfig} from './kernels/Ceil';
 import {diagConfig} from './kernels/Diag';
 import {dilation2dConfig} from './kernels/Dilation2D';
 import {dilation2dBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
 import {dilation2dBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
 import {equalConfig} from './kernels/Equal';
+import {expConfig} from './kernels/Exp';
+import {floorConfig} from './kernels/Floor';
 import {floorDivConfig} from './kernels/FloorDiv';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
+import {logConfig} from './kernels/Log';
+import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
 import {logicalNotConfig} from './kernels/LogicalNot';
 import {logicalOrConfig} from './kernels/LogicalOr';
@@ -46,7 +51,11 @@ import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
 import {prodConfig} from './kernels/Prod';
+import {reluConfig} from './kernels/Relu';
+import {relu6Config} from './kernels/Relu6';
 import {softmaxConfig} from './kernels/Softmax';
+import {sqrtConfig} from './kernels/Sqrt';
+import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {sumConfig} from './kernels/Sum';
 import {unsortedSegmentSumConfig} from './kernels/UnsortedSegmentSum';
@@ -57,16 +66,21 @@ const kernelConfigs: KernelConfig[] = [
   addNConfig,
   argMaxConfig,
   argMinConfig,
+  ceilConfig,
   diagConfig,
   dilation2dBackpropFilterConfig,
   dilation2dBackpropInputConfig,
   dilation2dConfig,
   equalConfig,
+  expConfig,
+  floorConfig,
   floorDivConfig,
   greaterConfig,
   greaterEqualConfig,
   lessConfig,
   lessEqualConfig,
+  log1pConfig,
+  logConfig,
   logicalAndConfig,
   logicalNotConfig,
   logicalOrConfig,
@@ -80,7 +94,11 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV5Config,
   notEqualConfig,
   prodConfig,
+  relu6Config,
+  reluConfig,
   softmaxConfig,
+  sqrtConfig,
+  squareConfig,
   squaredDifferenceConfig,
   sumConfig,
   unsortedSegmentSumConfig

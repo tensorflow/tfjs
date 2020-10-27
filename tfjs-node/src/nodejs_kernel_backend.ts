@@ -105,6 +105,11 @@ export class NodeJSKernelBackend extends KernelBackend {
       default:
         throw new Error(`Unknown dtype enum ${metadata.dtype}`);
     }
+
+    // TODO(yassogba) Enable this once all the kernels are removed from backend.
+    // We can then change the return type from Tensor to TensorInfo.
+    // return {dataId: newId, shape: metadata.shape, dtype};
+
     return tf.engine().makeTensorFromDataId(newId, metadata.shape, dtype);
   }
 
@@ -349,13 +354,13 @@ export class NodeJSKernelBackend extends KernelBackend {
       if (activation === 'linear') {
         // No-op
       } else if (activation === 'relu') {
-        result = this.relu(result);
+        result = tf.relu(result);
       } else if (activation === 'prelu') {
-        result = this.prelu(result, preluActivationWeights) as T;
+        result = tf.prelu(result, preluActivationWeights) as T;
       } else if (activation === 'elu') {
-        result = this.elu(result);
+        result = tf.elu(result);
       } else if (activation === 'relu6') {
-        result = this.relu6(result);
+        result = tf.relu6(result);
       } else {
         throw new Error(`Activation: ${
             activation} has not been implemented for the Node.js backend`);
@@ -509,14 +514,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('Any', opAttrs, [x, axesTensor]);
   }
 
-  ceil<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Ceil', x) as T;
-  }
-
-  floor<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Floor', x) as T;
-  }
-
   pow<T extends Tensor>(a: T, b: Tensor): T {
     const dtype = backend_util.upcastType(a.dtype, b.dtype);
     const opAttrs = [createTensorsTypeOpAttr('T', dtype)];
@@ -524,37 +521,8 @@ export class NodeJSKernelBackend extends KernelBackend {
                'Pow', opAttrs, [a.cast(dtype), b.cast(dtype)]) as T;
   }
 
-  exp<T extends Tensor>(x: T): T {
-    const xTensor = x.dtype === 'int32' ? x.toFloat() : x;
-    return this.executeSingleInput('Exp', xTensor) as T;
-  }
-
-  log<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Log', x) as T;
-  }
-
-  log1p<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Log1p', x) as T;
-  }
-
-  sqrt<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Sqrt', x) as T;
-  }
-
-  square<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Square', x) as T;
-  }
-
-  relu<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Relu', x) as T;
-  }
-
-  relu6<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Relu6', x) as T;
-  }
-
   prelu<T extends Tensor>(x: T, a: T): T {
-    const pos = this.relu(x);
+    const pos = tf.relu(x);
     const neg = a.mul(x.sub(this.abs(x))).mul(0.5);
     return pos.add(neg);
   }
