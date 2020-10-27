@@ -80,6 +80,7 @@ import {multiplyConfig} from './kernels/Multiply';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
+import {oneHotConfig} from './kernels/OneHot';
 import {padV2Config} from './kernels/PadV2';
 import {preluConfig} from './kernels/Prelu';
 import {realConfig} from './kernels/Real';
@@ -171,6 +172,7 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,
+  oneHotConfig,
   padV2Config,
   preluConfig,
   realConfig,
