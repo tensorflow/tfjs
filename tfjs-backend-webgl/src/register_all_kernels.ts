@@ -20,6 +20,7 @@ import {addConfig} from './kernels/Add';
 import {atan2Config} from './kernels/Atan2';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {avgPoolBackpropConfig} from './kernels/AvgPoolBackprop';
+import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchNormConfig} from './kernels/BatchNorm';
 import {castConfig} from './kernels/Cast';
 import {complexConfig} from './kernels/Complex';
@@ -50,6 +51,7 @@ import {sinConfig} from './kernels/Sin';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {subConfig} from './kernels/Sub';
+import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
 import {transposeConfig} from './kernels/Transpose';
 import {uniqueConfig} from './kernels/Unique';
@@ -61,6 +63,7 @@ const kernelConfigs: KernelConfig[] = [
   avgPoolConfig,
   avgPoolBackpropConfig,
   batchNormConfig,
+  batchMatMulConfig,
   castConfig,
   complexConfig,
   concatConfig,
@@ -89,6 +92,7 @@ const kernelConfigs: KernelConfig[] = [
   sinConfig,
   squareConfig,
   subConfig,
+  sumConfig,
   squaredDifferenceConfig,
   tanConfig,
   transposeConfig,
