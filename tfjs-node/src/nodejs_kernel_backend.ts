@@ -543,32 +543,11 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('ComplexAbs', opAttrs, [x]) as T;
   }
 
-  atan<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Atan', x) as T;
-  }
-
-  sinh<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Sinh', x) as T;
-  }
-
-  cosh<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Cosh', x) as T;
-  }
-
-  tanh<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Tanh', x) as T;
-  }
-
   mod(a: Tensor, b: Tensor): Tensor {
     const opAttrs = [createTensorsTypeOpAttr('T', a.dtype)];
     return this.executeSingleOutput('FloorMod', opAttrs, [a, b]);
   }
-  round<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Round', x) as T;
-  }
-  sign<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Sign', x) as T;
-  }
+
   isNaN<T extends Tensor>(x: T): T {
     return this.executeSingleInput('IsNan', x) as T;
   }
@@ -578,24 +557,9 @@ export class NodeJSKernelBackend extends KernelBackend {
   isFinite<T extends Tensor>(x: T): T {
     return this.executeSingleInput('IsFinite', x) as T;
   }
-  rsqrt<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Rsqrt', x) as T;
-  }
+
   reciprocal<T extends Tensor>(x: T): T {
     return this.executeSingleInput('Reciprocal', x) as T;
-  }
-  asinh<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Asinh', x) as T;
-  }
-  acosh<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Acosh', x) as T;
-  }
-  atanh<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Atanh', x) as T;
-  }
-
-  erf<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Erf', x) as T;
   }
 
   squaredDifference(a: Tensor, b: Tensor): Tensor {
