@@ -66,6 +66,7 @@ export type ProfileInfo = {
   newBytes: number; newTensors: number; peakBytes: number;
   kernels: KernelInfo[];
   result: TensorContainer;
+  kernelNames: string[];
 };
 
 export interface TimingInfo extends BackendTimingInfo {
@@ -119,8 +120,16 @@ class EngineState {
   }>();
 
   profiling = false;
-  activeProfile: ProfileInfo =
-      {newBytes: 0, newTensors: 0, peakBytes: 0, kernels: [], result: null};
+  activeProfile: ProfileInfo = {
+    newBytes: 0,
+    newTensors: 0,
+    peakBytes: 0,
+    kernels: [],
+    result: null,
+    get kernelNames() {
+      return Array.from(new Set(this.kernels.map(k => k.name)));
+    }
+  };
 
   dispose() {
     for (const variableName in this.registeredVariables) {
@@ -295,8 +304,8 @@ export class Engine implements TensorTracker, DataMover {
       previous 'Promise.resolve(backend)===backend'
       as we needed to account for custom Promise
       implementations (e.g. Angular) */
-      if (backend && !(backend instanceof KernelBackend)
-          && typeof backend.then === 'function') {
+      if (backend && !(backend instanceof KernelBackend) &&
+          typeof backend.then === 'function') {
         const promiseId = ++this.pendingBackendInitId;
         const success =
             backend

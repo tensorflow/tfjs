@@ -482,6 +482,19 @@ describeWithFlags('profile', ALL_ENVS, () => {
       'extraInfo': profile.kernels[0].extraInfo
     });
   });
+
+  it('reports correct kernelNames', async () => {
+    const profile = await tf.profile(() => {
+      const x = tf.tensor1d([1, 2, 3]);
+      const x2 = x.square();
+      const x3 = x2.abs();
+      return x3;
+    });
+
+    expect(profile.kernelNames).toEqual(jasmine.arrayWithExactContents([
+      'Square', 'Abs'
+    ]));
+  });
 });
 
 describeWithFlags('disposeVariables', ALL_ENVS, () => {
