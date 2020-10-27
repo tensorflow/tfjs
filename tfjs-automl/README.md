@@ -57,7 +57,7 @@ The following psuedocode demonstrates this approach:
 import * as automl from '@tensorflow/tfjs-automl';
 import * as tf from '@tensorflow/tfjs';
 // You can load the graph model using any IO handler
-const graphModel = await tf.loadGraphModel(string|io.IOHandler) // a url or ioHandler instance
+const graphModel = await tf.loadGraphModel(string|io.IOHandler); // a url or ioHandler instance
 // You can load the dictionary using any api available to the platform
 const dict = loadDictionary("path/to/dict.txt");
 const model = new automl.ImageClassificationModel(graphModel, dict);
@@ -147,7 +147,7 @@ The following psuedocode demonstrates this approach:
 import * as automl from '@tensorflow/tfjs-automl';
 import * as tf from '@tensorflow/tfjs';
 // You can load the graph model using any IO handler
-const graphModel = await tf.loadGraphModel(string|io.IOHandler) // a url or ioHandler instance
+const graphModel = await tf.loadGraphModel(string|io.IOHandler); // a url or ioHandler instance
 // You can load the dictionary using any api available to the platform
 const dict = readDictionary("path/to/dict.txt");
 const model = new automl.ObjectDetectionModel(graphModel, dict);
