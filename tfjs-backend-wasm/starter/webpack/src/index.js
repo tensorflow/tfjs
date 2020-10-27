@@ -13,13 +13,20 @@
 // limitations under the License.
 // =============================================================================
 
-import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
+import {setWasmPaths} from '@tensorflow/tfjs-backend-wasm';
 import * as tf from '@tensorflow/tfjs-core';
 
+import wasmSimdPath from '../node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-simd.wasm';
+import wasmSimdThreadedPath from '../node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-threaded-simd.wasm';
 import wasmPath from '../node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm';
 
+
 async function run() {
-  setWasmPath(null /* custom prefix */, {'tfjs-backend-wasm.wasm': wasmPath});
+  setWasmPaths({
+    'tfjs-backend-wasm.wasm': wasmPath,
+    'tfjs-backend-wasm-simd.wasm': wasmSimdPath,
+    'tfjs-backend-wasm-threaded-simd.wasm': wasmSimdThreadedPath
+  });
   await tf.setBackend('wasm');
   tf.add(5, 3).print();
 }

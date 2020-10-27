@@ -105,6 +105,11 @@ export class NodeJSKernelBackend extends KernelBackend {
       default:
         throw new Error(`Unknown dtype enum ${metadata.dtype}`);
     }
+
+    // TODO(yassogba) Enable this once all the kernels are removed from backend.
+    // We can then change the return type from Tensor to TensorInfo.
+    // return {dataId: newId, shape: metadata.shape, dtype};
+
     return tf.engine().makeTensorFromDataId(newId, metadata.shape, dtype);
   }
 
@@ -134,17 +139,12 @@ export class NodeJSKernelBackend extends KernelBackend {
     return ids;
   }
 
-  private createReductionOpAttrs(tensor: Tensor): TFEOpAttr[] {
+  createReductionOpAttrs(tensor: TensorInfo, keepDims = false): TFEOpAttr[] {
     return [
-      {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: false},
+      {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: keepDims},
       createTensorsTypeOpAttr('T', tensor.dtype),
       createTensorsTypeOpAttr('Tidx', 'int32')
     ];
-  }
-
-  private executeSingleInput(name: string, input: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr('T', input.dtype)];
-    return this.executeSingleOutput(name, opAttrs, [input]);
   }
 
   floatPrecision(): 16|32 {
@@ -153,6 +153,18 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   epsilon(): number {
     return super.epsilon();
+  }
+
+  /**
+   * Executes an op that has a single input and output.
+   *
+   * Helper function to wrap executeSingleOutput in a particular case.
+   * @param name The name of the Op to execute.
+   * @param input The input Tensor for the Op.
+   */
+  executeSingleInput(name: string, input: TensorInfo): Tensor {
+    const opAttrs = [createTensorsTypeOpAttr('T', input.dtype)];
+    return this.executeSingleOutput(name, opAttrs, [input]);
   }
 
   /**
@@ -178,7 +190,7 @@ export class NodeJSKernelBackend extends KernelBackend {
    * @return A resulting Tensor array from Op execution.
    */
   executeMultipleOutputs(
-      name: string, opAttrs: TFEOpAttr[], inputs: Tensor[],
+      name: string, opAttrs: TFEOpAttr[], inputs: TensorInfo[],
       numOutputs: number): Tensor[] {
     const outputMetadata = this.binding.executeOp(
         name, opAttrs, this.getInputTensorIds(inputs), numOutputs);
@@ -342,13 +354,13 @@ export class NodeJSKernelBackend extends KernelBackend {
       if (activation === 'linear') {
         // No-op
       } else if (activation === 'relu') {
-        result = this.relu(result);
+        result = tf.relu(result);
       } else if (activation === 'prelu') {
-        result = this.prelu(result, preluActivationWeights) as T;
+        result = tf.prelu(result, preluActivationWeights) as T;
       } else if (activation === 'elu') {
-        result = this.elu(result);
+        result = tf.elu(result);
       } else if (activation === 'relu6') {
-        result = this.relu6(result);
+        result = tf.relu6(result);
       } else {
         throw new Error(`Activation: ${
             activation} has not been implemented for the Node.js backend`);
@@ -363,7 +375,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     let result = this.conv2d(input, filter, convInfo);
 
     if (bias != null) {
-      result = this.add(result, bias) as Tensor4D;
+      result = tf.add(result, bias);
     }
 
     result = this.applyActivation(result, activation, preluActivationWeights);
@@ -378,7 +390,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     // achieve the same results:
     let result = this.batchMatMul(a, b, transposeA, transposeB);
     if (bias != null) {
-      result = this.add(result, bias) as Tensor3D;
+      result = tf.add(result, bias);
     }
 
     result = this.applyActivation(result, activation, preluActivationWeights);
@@ -428,28 +440,10 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleInput('Neg', a) as T;
   }
 
-  diag(x: Tensor): Tensor {
-    return this.executeSingleInput('Diag', x);
-  }
-
-  add(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr(
-        'T', backend_util.upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('Add', opAttrs, [a, b]);
-  }
-
   select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
     const opAttrs = [createTensorsTypeOpAttr(
         'T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('Select', opAttrs, [condition, a, b]);
-  }
-
-  addN<T extends Tensor>(tensors: T[]): T {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', tensors[0].dtype),
-      {name: 'N', type: this.binding.TF_ATTR_INT, value: tensors.length}
-    ];
-    return this.executeSingleOutput('AddN', opAttrs, tensors) as T;
   }
 
   subtract(a: Tensor, b: Tensor): Tensor {
@@ -458,22 +452,10 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('Sub', opAttrs, [a, b]);
   }
 
-  multiply(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr(
-        'T', backend_util.upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('Mul', opAttrs, [a, b]);
-  }
-
   realDivide(a: Tensor, b: Tensor): Tensor {
     const opAttrs = [createTensorsTypeOpAttr(
         'T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('RealDiv', opAttrs, [a, b]);
-  }
-
-  floorDiv(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr(
-        'T', backend_util.upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('FloorDiv', opAttrs, [a, b]);
   }
 
   divide(a: Tensor, b: Tensor): Tensor {
@@ -486,104 +468,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     const opAttrs = [createTensorsTypeOpAttr(
         'T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('DivNoNan', opAttrs, [a, b]);
-  }
-
-  unsortedSegmentSum<T extends Tensor>(
-      x: T, segmentIds: Tensor1D, numSegments: number): Tensor {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      createTensorsTypeOpAttr('Tindices', 'int32'),
-      createTensorsTypeOpAttr('Tnumsegments', 'int32')
-    ];
-    return this.executeSingleOutput(
-        'UnsortedSegmentSum', opAttrs,
-        [x, segmentIds, scalar(numSegments, 'int32')]);
-  }
-
-  sum(x: Tensor, axes: number[]): Tensor {
-    const axisTensor = tensor1d(axes, 'int32');
-    return this.executeSingleOutput(
-        'Sum', this.createReductionOpAttrs(x), [x, axisTensor]);
-  }
-
-  prod(x: Tensor, axes: number[]): Tensor {
-    const axesTensor = tensor1d(axes, 'int32');
-    const opAttrs = [
-      {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: false},
-      createTensorsTypeOpAttr('T', x.dtype),
-      createTensorsTypeOpAttr('Tidx', 'int32')
-    ];
-    return this.executeSingleOutput('Prod', opAttrs, [x, axesTensor]);
-  }
-
-  argMin(x: Tensor, axis: number): Tensor {
-    const xInput = x.dtype === 'bool' ? x.toInt() : x;
-    const axisScalar = scalar(axis, 'int32');
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', xInput.dtype),
-      createTensorsTypeOpAttr('Tidx', 'int32'),
-      createTensorsTypeOpAttr('output_type', 'int32')
-    ];
-    return this.executeSingleOutput('ArgMin', opAttrs, [xInput, axisScalar]);
-  }
-
-  argMax(x: Tensor, axis: number): Tensor {
-    const xInput = x.dtype === 'bool' ? x.toInt() : x;
-    const axisScalar = scalar(axis, 'int32');
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', xInput.dtype),
-      createTensorsTypeOpAttr('Tidx', 'int32'),
-      createTensorsTypeOpAttr('output_type', 'int32')
-    ];
-    return this.executeSingleOutput('ArgMax', opAttrs, [xInput, axisScalar]);
-  }
-
-  equal(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr(
-        'T', backend_util.upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('Equal', opAttrs, [a, b]);
-  }
-
-  notEqual(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr(
-        'T', backend_util.upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('NotEqual', opAttrs, [a, b]);
-  }
-
-  less(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr(
-        'T', backend_util.upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('Less', opAttrs, [a, b]);
-  }
-
-  lessEqual(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr(
-        'T', backend_util.upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('LessEqual', opAttrs, [a, b]);
-  }
-
-  greater(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr(
-        'T', backend_util.upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('Greater', opAttrs, [a, b]);
-  }
-
-  greaterEqual(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr(
-        'T', backend_util.upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('GreaterEqual', opAttrs, [a, b]);
-  }
-
-  logicalNot<T extends Tensor>(a: T): T {
-    return this.executeSingleOutput('LogicalNot', [], [a]) as T;
-  }
-
-  logicalAnd(a: Tensor, b: Tensor): Tensor {
-    return this.executeSingleOutput('LogicalAnd', [], [a, b]);
-  }
-
-  logicalOr(a: Tensor, b: Tensor): Tensor {
-    return this.executeSingleOutput('LogicalOr', [], [a, b]);
   }
 
   where(condition: Tensor): Tensor2D {
@@ -612,30 +496,6 @@ export class NodeJSKernelBackend extends KernelBackend {
                'TopKV2', opAttrs, [x, kTensor], 2) as [T, T];
   }
 
-  min(x: Tensor, axes: number[]): Tensor {
-    const axesTensor = tensor1d(axes, 'int32');
-    return this.executeSingleOutput(
-        'Min', this.createReductionOpAttrs(x), [x, axesTensor]);
-  }
-
-  minimum(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr(
-        'T', backend_util.upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('Minimum', opAttrs, [a, b]);
-  }
-
-  max(x: Tensor, axes: number[]): Tensor {
-    const axesTensor = tensor1d(axes, 'int32');
-    return this.executeSingleOutput(
-        'Max', this.createReductionOpAttrs(x), [x, axesTensor]);
-  }
-
-  maximum(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr(
-        'T', backend_util.upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('Maximum', opAttrs, [a, b]);
-  }
-
   all(x: Tensor, axes: number[]): Tensor {
     const opAttrs = [
       {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: false},
@@ -654,14 +514,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('Any', opAttrs, [x, axesTensor]);
   }
 
-  ceil<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Ceil', x) as T;
-  }
-
-  floor<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Floor', x) as T;
-  }
-
   pow<T extends Tensor>(a: T, b: Tensor): T {
     const dtype = backend_util.upcastType(a.dtype, b.dtype);
     const opAttrs = [createTensorsTypeOpAttr('T', dtype)];
@@ -669,52 +521,9 @@ export class NodeJSKernelBackend extends KernelBackend {
                'Pow', opAttrs, [a.cast(dtype), b.cast(dtype)]) as T;
   }
 
-  exp<T extends Tensor>(x: T): T {
-    const xTensor = x.dtype === 'int32' ? x.toFloat() : x;
-    return this.executeSingleInput('Exp', xTensor) as T;
-  }
-
-  log<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Log', x) as T;
-  }
-
-  log1p<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Log1p', x) as T;
-  }
-
-  sqrt<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Sqrt', x) as T;
-  }
-
-  square<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Square', x) as T;
-  }
-
-  relu<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Relu', x) as T;
-  }
-
-  relu6<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Relu6', x) as T;
-  }
-
-  prelu<T extends Tensor>(x: T, a: T): T {
-    const pos = this.relu(x);
-    const neg = a.mul(x.sub(this.abs(x))).mul(0.5);
-    return pos.add(neg);
-  }
-
-  elu<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Elu', x) as T;
-  }
-
   eluDer<T extends Tensor>(dy: T, y: T): T {
     const opAttrs = [createTensorsTypeOpAttr('T', y.dtype)];
     return this.executeSingleOutput('EluGrad', opAttrs, [dy, y]) as T;
-  }
-
-  selu<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Selu', x) as T;
   }
 
   int<T extends Tensor>(x: T): T {
@@ -722,12 +531,8 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   clip<T extends Tensor>(x: T, min: number, max: number): T {
-    const xMin = this.minimum(x, scalar(max, x.dtype));
-    return this.maximum(xMin, scalar(min, x.dtype)) as T;
-  }
-
-  abs<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Abs', x) as T;
+    const xMin = tf.minimum(x, scalar(max, x.dtype));
+    return tf.maximum(xMin, scalar(min, x.dtype));
   }
 
   complexAbs<T extends Tensor>(x: T): T {
@@ -738,56 +543,11 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('ComplexAbs', opAttrs, [x]) as T;
   }
 
-  sigmoid<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Sigmoid', x) as T;
-  }
-
-  sin<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Sin', x) as T;
-  }
-
-  cos<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Cos', x) as T;
-  }
-
-  tan<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Tan', x) as T;
-  }
-
-  asin<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Asin', x) as T;
-  }
-
-  acos<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Acos', x) as T;
-  }
-
-  atan<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Atan', x) as T;
-  }
-
-  sinh<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Sinh', x) as T;
-  }
-
-  cosh<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Cosh', x) as T;
-  }
-
-  tanh<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Tanh', x) as T;
-  }
-
   mod(a: Tensor, b: Tensor): Tensor {
     const opAttrs = [createTensorsTypeOpAttr('T', a.dtype)];
     return this.executeSingleOutput('FloorMod', opAttrs, [a, b]);
   }
-  round<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Round', x) as T;
-  }
-  sign<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Sign', x) as T;
-  }
+
   isNaN<T extends Tensor>(x: T): T {
     return this.executeSingleInput('IsNan', x) as T;
   }
@@ -797,24 +557,9 @@ export class NodeJSKernelBackend extends KernelBackend {
   isFinite<T extends Tensor>(x: T): T {
     return this.executeSingleInput('IsFinite', x) as T;
   }
-  rsqrt<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Rsqrt', x) as T;
-  }
+
   reciprocal<T extends Tensor>(x: T): T {
     return this.executeSingleInput('Reciprocal', x) as T;
-  }
-  asinh<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Asinh', x) as T;
-  }
-  acosh<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Acosh', x) as T;
-  }
-  atanh<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Atanh', x) as T;
-  }
-
-  erf<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Erf', x) as T;
   }
 
   squaredDifference(a: Tensor, b: Tensor): Tensor {
@@ -839,7 +584,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     const dtype = x.dtype;
     const nans = this.isNaN(x);
     const stepNoNans = this.select(
-        this.greater(x, scalar(0, dtype)), ones(x.shape),
+        tf.greater(x, scalar(0, dtype)), ones(x.shape),
         fill(x.shape, alpha, dtype));
     return this.select(nans, x, stepNoNans) as T;
   }
@@ -992,7 +737,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     let result = this.depthwiseConv2D(input, filter, convInfo);
 
     if (bias != null) {
-      result = this.add(result, bias) as Tensor4D;
+      result = tf.add(result, bias);
     }
 
     result = this.applyActivation(result, activation, preluActivationWeights);
@@ -2076,6 +1821,7 @@ export function createTensorsTypeOpAttr(
   };
 }
 
+// TODO(yassogba) remove? who uses this?
 export function createOpAttr(
     attrName: string, tensorsOrDtype: tf.Tensor|tf.Tensor[]|tf.DataType,
     value: ScalarLike): TFEOpAttr {

@@ -16,6 +16,7 @@
  */
 
 import {Platform} from './platforms/platform';
+import {isPromise} from './util_base';
 
 // Expects flags from URL in the format ?tfjsflags=FLAG1:1,FLAG2:true.
 const TENSORFLOWJS_FLAGS_PREFIX = 'tfjsflags';
@@ -91,13 +92,13 @@ export class Environment {
     }
 
     const flagValue = this.evaluateFlag(flagName);
-    if (flagValue instanceof Promise) {
+    if (isPromise(flagValue)) {
       throw new Error(
           `Flag ${flagName} cannot be synchronously evaluated. ` +
           `Please use getAsync() instead.`);
     }
 
-    this.flags[flagName] = flagValue;
+    this.flags[flagName] = flagValue as number | boolean;
 
     return this.flags[flagName];
   }

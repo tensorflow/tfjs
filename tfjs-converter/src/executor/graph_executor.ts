@@ -237,7 +237,7 @@ export class GraphExecutor implements FunctionExecutor {
           const tensors =
               executeOp(node, tensorsMap, context, this._resourceManager) as
               Tensor[];
-          if (tensors instanceof Promise) {
+          if (util.isPromise(tensors)) {
             throw new Error(
                 `The execution of the op '${node.op}' returned a promise. ` +
                 `Please use model.executeAsync() instead.`);
@@ -495,8 +495,8 @@ export class GraphExecutor implements FunctionExecutor {
           [nodeName] = getNodeNameAndIndex(item.node.name, context);
         }
         const currentContext = context.currentContext;
-        if (tensors instanceof Promise) {
-          promises.push(tensors.then(t => {
+        if (util.isPromise(tensors)) {
+          promises.push((tensors as Promise<Tensor[]>).then(t => {
             tensorMap[nodeName] = t;
             context.currentContext = currentContext;
             this.checkTensorForDisposal(
@@ -507,7 +507,7 @@ export class GraphExecutor implements FunctionExecutor {
             return t;
           }));
         } else {
-          tensorMap[nodeName] = tensors;
+          tensorMap[nodeName] = tensors as Tensor[];
           this.checkTensorForDisposal(
               nodeName, item.node, tensorMap, context, tensorsToKeep,
               outputNames, intermediateTensorConsumerCount);
