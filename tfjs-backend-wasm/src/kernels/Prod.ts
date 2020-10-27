@@ -23,14 +23,24 @@ import {permuteAxesAndTranspose} from './kernel_utils';
 
 import {CppDType} from './types';
 
-let wasmProd: (xId: number, reduceSize: number, dtype: number, outId: number) => void;
+let wasmProd: (
+    xId: number, reduceSize: number,
+    dtype: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
-  wasmProd = backend.wasm.cwrap(Prod, null /*void*/, ['number, number, number, number']);
+  wasmProd = backend.wasm.cwrap(Prod, null /*void*/, [
+    'number',
+    'number',
+    'number',
+    'number'
+  ]);
 }
 
-function prod(args: {backend: BackendWasm, inputs: ProdInputs, attrs: ProdAttrs}):
-    TensorInfo {
+function prod(args: {
+  backend: BackendWasm,
+  inputs: ProdInputs,
+  attrs: ProdAttrs
+}): TensorInfo {
   const {backend, inputs, attrs} = args;
   const {axis, keepDims} = attrs;
   const {x} = inputs;
