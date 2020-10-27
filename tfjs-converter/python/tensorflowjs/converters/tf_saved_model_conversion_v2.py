@@ -492,6 +492,16 @@ def convert_tf_frozen_model(frozen_model_path,
                  weight_shard_size_bytes=weight_shard_size_bytes,
                  experiments=experiments)
 
+def _load_model(saved_model_dir, saved_model_tags):
+  model = None
+  # Ensure any graphs created in eager mode are able to run.
+  with context.eager_mode():
+    if saved_model_tags:
+      model = load(saved_model_dir, saved_model_tags)
+    else:
+      model = load(saved_model_dir)
+  return model
+
 def convert_tf_saved_model(saved_model_dir,
                            output_dir, signature_def='serving_default',
                            saved_model_tags='serve',
@@ -536,13 +546,8 @@ def convert_tf_saved_model(saved_model_dir,
 
   if saved_model_tags:
     saved_model_tags = saved_model_tags.split(',')
-  model = None
-  # Ensure any graphs created in eager mode are able to run.
-  with context.eager_mode():
-    if saved_model_tags:
-      model = load(saved_model_dir, saved_model_tags)
-    else:
-      model = load(saved_model_dir)
+
+  model = _load_model(saved_model_dir, saved_model_tags)
 
   _check_signature_in_model(model, signature_def)
 
