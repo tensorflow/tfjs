@@ -186,6 +186,13 @@ describeWithFlags('max', ALL_ENVS, () => {
     expect(gradients.shape).toEqual([2, 3]);
   });
 
+  it('max gradient: 3D, axis=1 keepDims=false', async () => {
+    const x = tf.ones([2, 1, 250]);
+    const axis = 1;
+    const gradients = tf.grad(v => tf.max(v, axis))(x);
+    expect(gradients.shape).toEqual(x.shape);
+  });
+
   it('max gradient: 3D, axes=[1, 2], keepDims=false', async () => {
     const x = tf.tensor3d([[[0, 20], [10, 15]], [[-10, -30], [-20, -15]]]);
     const dy = tf.tensor1d([-1, -1]);
