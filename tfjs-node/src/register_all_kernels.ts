@@ -19,15 +19,20 @@
 // the contents of this file and import only the kernels that are needed.
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
+import {absConfig} from './kernels/Abs';
+import {acosConfig} from './kernels/Acos';
 import {addConfig} from './kernels/Add';
 import {addNConfig} from './kernels/AddN';
 import {argMaxConfig} from './kernels/ArgMax';
 import {argMinConfig} from './kernels/ArgMin';
+import {asinConfig} from './kernels/Asin';
 import {ceilConfig} from './kernels/Ceil';
+import {cosConfig} from './kernels/Cos';
 import {diagConfig} from './kernels/Diag';
 import {dilation2dConfig} from './kernels/Dilation2D';
 import {dilation2dBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
 import {dilation2dBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
+import {eluConfig} from './kernels/Elu';
 import {equalConfig} from './kernels/Equal';
 import {expConfig} from './kernels/Exp';
 import {floorConfig} from './kernels/Floor';
@@ -50,27 +55,37 @@ import {multiplyConfig} from './kernels/Multiply';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
+import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
+import {seluConfig} from './kernels/Selu';
+import {sigmoidConfig} from './kernels/Sigmoid';
+import {sinConfig} from './kernels/Sin';
 import {softmaxConfig} from './kernels/Softmax';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {sumConfig} from './kernels/Sum';
+import {tanConfig} from './kernels/Tan';
 import {unsortedSegmentSumConfig} from './kernels/UnsortedSegmentSum';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
+  absConfig,
+  acosConfig,
   addConfig,
   addNConfig,
   argMaxConfig,
   argMinConfig,
+  asinConfig,
   ceilConfig,
+  cosConfig,
   diagConfig,
   dilation2dBackpropFilterConfig,
   dilation2dBackpropInputConfig,
   dilation2dConfig,
+  eluConfig,
   equalConfig,
   expConfig,
   floorConfig,
@@ -93,14 +108,19 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,
+  preluConfig,
   prodConfig,
   relu6Config,
   reluConfig,
+  seluConfig,
+  sigmoidConfig,
+  sinConfig,
   softmaxConfig,
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
   sumConfig,
+  tanConfig,
   unsortedSegmentSumConfig
 ];
 

@@ -521,23 +521,9 @@ export class NodeJSKernelBackend extends KernelBackend {
                'Pow', opAttrs, [a.cast(dtype), b.cast(dtype)]) as T;
   }
 
-  prelu<T extends Tensor>(x: T, a: T): T {
-    const pos = tf.relu(x);
-    const neg = a.mul(x.sub(this.abs(x))).mul(0.5);
-    return pos.add(neg);
-  }
-
-  elu<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Elu', x) as T;
-  }
-
   eluDer<T extends Tensor>(dy: T, y: T): T {
     const opAttrs = [createTensorsTypeOpAttr('T', y.dtype)];
     return this.executeSingleOutput('EluGrad', opAttrs, [dy, y]) as T;
-  }
-
-  selu<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Selu', x) as T;
   }
 
   int<T extends Tensor>(x: T): T {
@@ -549,40 +535,12 @@ export class NodeJSKernelBackend extends KernelBackend {
     return tf.maximum(xMin, scalar(min, x.dtype));
   }
 
-  abs<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Abs', x) as T;
-  }
-
   complexAbs<T extends Tensor>(x: T): T {
     const opAttrs = [
       createTensorsTypeOpAttr('T', x.dtype),
       createTensorsTypeOpAttr('Tout', 'float32')
     ];
     return this.executeSingleOutput('ComplexAbs', opAttrs, [x]) as T;
-  }
-
-  sigmoid<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Sigmoid', x) as T;
-  }
-
-  sin<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Sin', x) as T;
-  }
-
-  cos<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Cos', x) as T;
-  }
-
-  tan<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Tan', x) as T;
-  }
-
-  asin<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Asin', x) as T;
-  }
-
-  acos<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Acos', x) as T;
   }
 
   atan<T extends Tensor>(x: T): T {
