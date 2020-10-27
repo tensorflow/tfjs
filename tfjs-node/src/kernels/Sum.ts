@@ -14,21 +14,23 @@
  * limitations under the License.
  * =============================================================================
  */
-import {matMul} from '../../ops/mat_mul';
-import {Tensor} from '../../tensor';
-import {Rank, TensorLike} from '../../types';
 
-declare module '../../tensor' {
-  interface Tensor<R extends Rank = Rank> {
-    matMul<T extends Tensor>(
-        b: Tensor|TensorLike, transposeA?: boolean,
-        transposeB?: boolean): Tensor;
+import {KernelConfig, Sum, SumAttrs, SumInputs, tensor1d, util} from '@tensorflow/tfjs';
+
+import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
+
+export const sumConfig: KernelConfig = {
+  kernelName: Sum,
+  backendName: 'tensorflow',
+  kernelFunc: (args) => {
+    const {x} = args.inputs as SumInputs;
+    const backend = args.backend as NodeJSKernelBackend;
+    const {axis, keepDims} = args.attrs as {} as SumAttrs;
+    const axes = util.parseAxisParam(axis, x.shape);
+    const axisTensor = tensor1d(axes, 'int32');
+    const res = backend.executeSingleOutput(
+        Sum, backend.createReductionOpAttrs(x, keepDims), [x, axisTensor]);
+    axisTensor.dispose();
+    return res;
   }
-}
-
-Tensor.prototype.matMul = function<T extends Tensor>(
-    this: T, b: Tensor|TensorLike, transposeA?: boolean,
-    transposeB?: boolean): Tensor {
-  this.throwIfDisposed();
-  return matMul(this, b, transposeA, transposeB);
 };

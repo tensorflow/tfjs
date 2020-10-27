@@ -89,7 +89,8 @@ export function confusionMatrix_(
   const oneHotPredictions =
       oneHot(cast($predictions, 'int32'), numClasses) as Tensor2D;
   const oneHotLabelsT: Tensor2D = transpose(oneHotLabels);
-  return cast(matMul(oneHotLabelsT, oneHotPredictions), 'int32');
+  const product: Tensor2D = matMul(oneHotLabelsT, oneHotPredictions);
+  return cast(product, 'int32');
 }
 
 export const confusionMatrix = op({confusionMatrix_});

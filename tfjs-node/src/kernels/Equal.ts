@@ -14,21 +14,20 @@
  * limitations under the License.
  * =============================================================================
  */
-import {matMul} from '../../ops/mat_mul';
-import {Tensor} from '../../tensor';
-import {Rank, TensorLike} from '../../types';
 
-declare module '../../tensor' {
-  interface Tensor<R extends Rank = Rank> {
-    matMul<T extends Tensor>(
-        b: Tensor|TensorLike, transposeA?: boolean,
-        transposeB?: boolean): Tensor;
+import {backend_util, Equal, EqualInputs, KernelConfig} from '@tensorflow/tfjs';
+
+import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
+
+export const equalConfig: KernelConfig = {
+  kernelName: Equal,
+  backendName: 'tensorflow',
+  kernelFunc: (args) => {
+    const {a, b} = args.inputs as EqualInputs;
+    const backend = args.backend as NodeJSKernelBackend;
+
+    const opAttrs = [createTensorsTypeOpAttr(
+        'T', backend_util.upcastType(a.dtype, b.dtype))];
+    return backend.executeSingleOutput(Equal, opAttrs, [a, b]);
   }
-}
-
-Tensor.prototype.matMul = function<T extends Tensor>(
-    this: T, b: Tensor|TensorLike, transposeA?: boolean,
-    transposeB?: boolean): Tensor {
-  this.throwIfDisposed();
-  return matMul(this, b, transposeA, transposeB);
 };

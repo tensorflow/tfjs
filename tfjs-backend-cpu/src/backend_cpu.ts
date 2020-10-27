@@ -1532,22 +1532,6 @@ export class MathBackendCPU extends KernelBackend {
     return res;
   }
 
-  oneHot(indices: Tensor1D, depth: number, onValue: number, offValue: number):
-      Tensor2D {
-    assertNotComplex(indices, 'oneHot');
-
-    const res = new Float32Array(indices.size * depth);
-    res.fill(offValue);
-    const indicesVal = this.readSync(indices.dataId) as TypedArray;
-
-    for (let event = 0; event < indices.size; ++event) {
-      if (indicesVal[event] >= 0 && indicesVal[event] < depth) {
-        res[event * depth + indicesVal[event]] = onValue;
-      }
-    }
-    return tf.tensor2d(res, [indices.size, depth], 'int32');
-  }
-
   nonMaxSuppression(
       boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
       iouThreshold: number, scoreThreshold: number): Tensor1D {

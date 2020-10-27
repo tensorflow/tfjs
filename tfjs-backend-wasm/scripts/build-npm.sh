@@ -20,7 +20,7 @@ yarn
 yarn rimraf dist/
 yarn tsc
 ./scripts/build-wasm.sh
-yarn rollup -c
+yarn rollup -c --npm
 
 # Use minified files for miniprogram
 mkdir dist/miniprogram

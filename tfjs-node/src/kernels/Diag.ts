@@ -14,21 +14,18 @@
  * limitations under the License.
  * =============================================================================
  */
-import {matMul} from '../../ops/mat_mul';
-import {Tensor} from '../../tensor';
-import {Rank, TensorLike} from '../../types';
 
-declare module '../../tensor' {
-  interface Tensor<R extends Rank = Rank> {
-    matMul<T extends Tensor>(
-        b: Tensor|TensorLike, transposeA?: boolean,
-        transposeB?: boolean): Tensor;
+import {Diag, DiagInputs, KernelConfig} from '@tensorflow/tfjs';
+
+import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
+
+export const diagConfig: KernelConfig = {
+  kernelName: Diag,
+  backendName: 'tensorflow',
+  kernelFunc: (args) => {
+    const {x} = args.inputs as DiagInputs;
+    const backend = args.backend as NodeJSKernelBackend;
+
+    return backend.executeSingleInput(Diag, x);
   }
-}
-
-Tensor.prototype.matMul = function<T extends Tensor>(
-    this: T, b: Tensor|TensorLike, transposeA?: boolean,
-    transposeB?: boolean): Tensor {
-  this.throwIfDisposed();
-  return matMul(this, b, transposeA, transposeB);
 };
