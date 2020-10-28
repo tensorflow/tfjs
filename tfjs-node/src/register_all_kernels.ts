@@ -80,6 +80,7 @@ import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
+import {unpackConfig} from './kernels/Unpack';
 import {unsortedSegmentSumConfig} from './kernels/UnsortedSegmentSum';
 import {zerosLikeConfig} from './kernels/ZerosLike';
 
@@ -146,6 +147,7 @@ const kernelConfigs: KernelConfig[] = [
   sumConfig,
   tanConfig,
   tanhConfig,
+  unpackConfig,
   unsortedSegmentSumConfig,
   zerosLikeConfig
 ];
