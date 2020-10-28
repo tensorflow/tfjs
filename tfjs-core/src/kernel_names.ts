@@ -814,13 +814,6 @@ export interface FromPixelsAttrs {
 }
 
 export const FromPixelsAsync = 'FromPixelsAsync';
-export interface FromPixelsAsyncInputs {
-  pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-      HTMLVideoElement;
-}
-export interface FromPixelsAsyncAttrs {
-  numChannels: number;
-}
 
 export const RotateWithOffset = 'RotateWithOffset';
 export type RotateWithOffsetInputs = Pick<NamedTensorInfoMap, 'image'>;

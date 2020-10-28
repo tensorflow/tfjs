@@ -155,7 +155,7 @@ function fromPixels_(
 }
 
 /**
- * Creates a `tf.Tensor` from an image.
+ * Creates a `tf.Tensor` from an image in async way.
  *
  * ```js
  * const image = new ImageData(1, 1);
@@ -164,7 +164,7 @@ function fromPixels_(
  * image.data[2] = 200;
  * image.data[3] = 255;
  *
- * tf.browser.fromPixels(image).print();
+ * await tf.browser.fromPixelsAsync(image).print();
  * ```
  *
  * @param pixels The input image to construct the tensor from. The
@@ -181,6 +181,13 @@ export async function fromPixelsAsync(
     pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
     HTMLVideoElement,
     numChannels = 3) {
+  // Check whether the backend has FromPixelsAsycn kernel support,
+  // if not fallback to normal fromPixels logic.
+  const kernel = getKernel(FromPixelsAsync, ENGINE.backendName);
+  if (kernel === null) {
+    return fromPixels_(pixels, numChannels);
+  }
+
   // Sanity checks.
   if (numChannels > 4) {
     throw new Error(
@@ -202,18 +209,11 @@ export async function fromPixelsAsync(
           '`loadeddata` event on the <video> element.');
     }
   }
-  // If the current backend has 'FromPixels' registered, it has a more
-  // efficient way of handling pixel uploads, so we call that.
-  if (ENGINE.backendName === 'webgpu') {
-    const kernel = getKernel(FromPixelsAsync, ENGINE.backendName);
-    const inputs: NamedTensorMap = {pixels} as {} as NamedTensorMap;
-    const attrs: NamedAttrMap = {numChannels} as {} as NamedAttrMap;
-    return await kernel.kernelFunc(
-        {inputs, attrs, backend: ENGINE.backend}) as Tensor3D;
-  } else {
-    // Call sync fromPixels for other backend. 
-    return fromPixels_(pixels, numChannels);
-  }
+    
+  const inputs: NamedTensorMap = {pixels} as {} as NamedTensorMap;
+  const attrs: NamedAttrMap = {numChannels} as {} as NamedAttrMap;
+  return await kernel.kernelFunc(
+      {inputs, attrs, backend: ENGINE.backend}) as Tensor3D;
 }
 
 /**
