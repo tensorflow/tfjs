@@ -61,6 +61,7 @@ import {multiplyConfig} from './kernels/Multiply';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
+import {onesLikeConfig} from './kernels/OnesLike';
 import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
 import {reluConfig} from './kernels/Relu';
@@ -80,6 +81,7 @@ import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
 import {unsortedSegmentSumConfig} from './kernels/UnsortedSegmentSum';
+import {zerosLikeConfig} from './kernels/ZerosLike';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
@@ -125,6 +127,7 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,
+  onesLikeConfig,
   preluConfig,
   prodConfig,
   relu6Config,
@@ -143,7 +146,8 @@ const kernelConfigs: KernelConfig[] = [
   sumConfig,
   tanConfig,
   tanhConfig,
-  unsortedSegmentSumConfig
+  unsortedSegmentSumConfig,
+  zerosLikeConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {

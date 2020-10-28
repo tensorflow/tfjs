@@ -43,7 +43,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     this.tensorMap = new tf.DataStorage<TensorData>(this, tf.engine());
   }
 
-  private getDTypeInteger(dtype: DataType): number {
+  getDTypeInteger(dtype: DataType): number {
     switch (dtype) {
       case 'float32':
         return this.binding.TF_FLOAT;
@@ -273,24 +273,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     ];
     return this.executeSingleOutput(
                'Fill', opAttrs, [shapeTensor, valueTensor]) as Tensor<R>;
-  }
-
-  onesLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
-    const opAttrs = [{
-      name: 'T',
-      type: this.binding.TF_ATTR_TYPE,
-      value: this.getDTypeInteger(x.dtype)
-    }];
-    return this.executeSingleOutput('OnesLike', opAttrs, [x]) as Tensor<R>;
-  }
-
-  zerosLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
-    const opAttrs = [{
-      name: 'T',
-      type: this.binding.TF_ATTR_TYPE,
-      value: this.getDTypeInteger(x.dtype)
-    }];
-    return this.executeSingleOutput('ZerosLike', opAttrs, [x]) as Tensor<R>;
   }
 
   stridedSlice<T extends Tensor>(
