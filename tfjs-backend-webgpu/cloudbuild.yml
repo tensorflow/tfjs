@@ -14,9 +14,11 @@ steps:
   waitFor: ['yarn-common']
 
 # Build core from master.
+# Named 'build-deps' to prevent
+# it from being run in CI.
 - name: 'node:10'
   dir: 'tfjs-backend-webgpu'
-  id: 'build-core'
+  id: 'build-deps'
   entrypoint: 'yarn'
   args: ['build-core']
   waitFor: ['yarn-common']
@@ -27,7 +29,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-webgpu'
   args: ['test-ci']
-  waitFor: ['build-core']
+  waitFor: ['build-deps']
 
 # General configuration
 timeout: 1800s
