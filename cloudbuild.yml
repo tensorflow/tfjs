@@ -5,16 +5,26 @@ steps:
   id: 'yarn'
   args: ['install']
 
-# Run test_affected_packages to test packages affected by the change.
+# Generate cloudbuild_generated.yml,
+# which builds and tests all modified packages.
 - name: 'node:10'
   entrypoint: 'yarn'
-  id: 'test-packages'
-  args: ['test-packages']
+  id: 'generate-cloudbuild-for-packages'
+  args: ['generate-cloudbuild-for-packages']
   waitFor: ['yarn']
   env:
   - 'COMMIT_SHA=$COMMIT_SHA'
   - 'BRANCH_NAME=$BRANCH_NAME'
   - 'BASE_BRANCH=$_BASE_BRANCH'
+  - 'NIGHTLY=$_NIGHTLY'
+
+# Run the generated cloudbuild file
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  id: 'run-cloudbuild'
+  args: ['./scripts/run-build.sh']
+  waitFor: ['generate-cloudbuild-for-packages']
+  env: ['NIGHTLY=$_NIGHTLY']
 
 # General settings.
 timeout: 3600s

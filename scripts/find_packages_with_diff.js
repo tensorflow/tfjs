@@ -55,7 +55,7 @@ function findPackagesWithDiff() {
   // We cannot do --depth=1 here because we need to check out an old merge base.
   // We cannot do --single-branch here because we need multiple branches.
   console.log(`Clone branch ${baseBranch}`);
-  shell.rm('-f', CLONE_PATH);
+  shell.rm('-rf', CLONE_PATH);
   exec(`git clone -b ${baseBranch} https://github.com/tensorflow/tfjs ${
     CLONE_PATH}`);
 
