@@ -60,10 +60,10 @@ export class ResizeBilinearPackedProgram implements GPGPUProgram {
         ivec3 yRC = coords.yzz + ivec3(0, 0, 1);
 
         // Fractional source index.
-        vec3 sourceFracIndexRC = vec3(yRC) * effectiveInputOverOutputRatioRC;
+        vec3 sourceFracIndexRC = (vec3(yRC) + vec3(0.5)) * effectiveInputOverOutputRatioRC - vec3(0.5);
 
         // Compute the four integer indices.
-        ivec3 sourceFloorRC = ivec3(sourceFracIndexRC);
+        ivec3 sourceFloorRC = max(ivec3(sourceFracIndexRC), ivec3(0));
         ivec3 sourceCeilRC = ivec3(
           min(inputShapeRC - 1.0, ceil(sourceFracIndexRC)));
 
