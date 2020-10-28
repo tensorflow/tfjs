@@ -46,6 +46,9 @@ import {floorConfig} from './kernels/Floor';
 import {floorDivConfig} from './kernels/FloorDiv';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
+import {isFiniteConfig} from './kernels/IsFinite';
+import {isInfConfig} from './kernels/IsInf';
+import {isNanConfig} from './kernels/IsNan';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {logConfig} from './kernels/Log';
@@ -65,6 +68,7 @@ import {notEqualConfig} from './kernels/NotEqual';
 import {onesLikeConfig} from './kernels/OnesLike';
 import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
+import {reciprocalConfig} from './kernels/Reciprocal';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
 import {roundConfig} from './kernels/Round';
@@ -115,6 +119,9 @@ const kernelConfigs: KernelConfig[] = [
   floorDivConfig,
   greaterConfig,
   greaterEqualConfig,
+  isFiniteConfig,
+  isInfConfig,
+  isNanConfig,
   lessConfig,
   lessEqualConfig,
   log1pConfig,
@@ -134,6 +141,7 @@ const kernelConfigs: KernelConfig[] = [
   onesLikeConfig,
   preluConfig,
   prodConfig,
+  reciprocalConfig,
   relu6Config,
   reluConfig,
   roundConfig,

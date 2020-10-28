@@ -490,25 +490,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('FloorMod', opAttrs, [a, b]);
   }
 
-  isNaN<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('IsNan', x) as T;
-  }
-  isInf<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('IsInf', x) as T;
-  }
-  isFinite<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('IsFinite', x) as T;
-  }
-
-  reciprocal<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Reciprocal', x) as T;
-  }
-
-  squaredDifference(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr('T', a.dtype)];
-    return this.executeSingleOutput('SquaredDifference', opAttrs, [a, b]);
-  }
-
   expm1<T extends Tensor>(x: T): T {
     return this.executeSingleInput('Expm1', x) as T;
   }
@@ -524,7 +505,7 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   step<T extends Tensor>(x: T, alpha: number): T {
     const dtype = x.dtype;
-    const nans = this.isNaN(x);
+    const nans = tf.isNaN(x);
     const stepNoNans = this.select(
         tf.greater(x, scalar(0, dtype)), ones(x.shape),
         fill(x.shape, alpha, dtype));
