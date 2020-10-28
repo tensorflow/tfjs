@@ -5,138 +5,25 @@ steps:
   id: 'yarn'
   args: ['install']
 
-# Run find-affected-packages to find affected files in each folder.
+# Generate cloudbuild_generated.yml,
+# which builds and tests all affected packages.
 - name: 'node:10'
   entrypoint: 'yarn'
-  id: 'find-affected-packages'
-  args: ['find-affected-packages']
+  id: 'generate-cloudbuild-for-packages'
+  args: ['generate-cloudbuild-for-packages']
   waitFor: ['yarn']
   env:
   - 'COMMIT_SHA=$COMMIT_SHA'
   - 'BRANCH_NAME=$BRANCH_NAME'
   - 'BASE_BRANCH=$_BASE_BRANCH'
+  - 'NIGHTLY=$_NIGHTLY'
 
-# Core.
+# Run the generated cloudbuild file
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bash'
-  id: 'tfjs-core'
-  args: ['./scripts/run-build.sh', 'tfjs-core']
-  waitFor: ['find-affected-packages']
-  env: ['NIGHTLY=$_NIGHTLY']
-
-# CPU backend.
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bash'
-  id: 'tfjs-backend-cpu'
-  args: ['./scripts/run-build.sh', 'tfjs-backend-cpu']
-  waitFor: ['find-affected-packages']
-  env: ['NIGHTLY=$_NIGHTLY']
-
-# Webgl backend.
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bash'
-  id: 'tfjs-backend-webgl'
-  args: ['./scripts/run-build.sh', 'tfjs-backend-webgl']
-  waitFor: ['find-affected-packages']
-  env: ['NIGHTLY=$_NIGHTLY']
-
-# Converter.
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bash'
-  id: 'tfjs-converter'
-  args: ['./scripts/run-build.sh', 'tfjs-converter']
-  waitFor: ['find-affected-packages']
-  env: ['NIGHTLY=$_NIGHTLY']
-
-# Data.
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bash'
-  id: 'tfjs-data'
-  args: ['./scripts/run-build.sh', 'tfjs-data']
-  waitFor: ['find-affected-packages']
-  env: ['NIGHTLY=$_NIGHTLY']
-
-# Layers.
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bash'
-  id: 'tfjs-layers'
-  args: ['./scripts/run-build.sh', 'tfjs-layers']
-  waitFor: ['find-affected-packages']
-  env: ['NIGHTLY=$_NIGHTLY']
-
-# Union.
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bash'
-  id: 'tfjs'
-  args: ['./scripts/run-build.sh', 'tfjs']
-  waitFor: ['find-affected-packages']
-
-# Vis.
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bash'
-  id: 'tfjs-vis'
-  args: ['./scripts/run-build.sh', 'tfjs-vis']
-  waitFor: ['find-affected-packages']
-
-# WebGPU.
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bash'
-  id: 'tfjs-backend-webgpu'
-  args: ['./scripts/run-build.sh', 'tfjs-backend-webgpu']
-  waitFor: ['find-affected-packages']
-
-# WASM.
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bash'
-  id: 'tfjs-backend-wasm'
-  args: ['./scripts/run-build.sh', 'tfjs-backend-wasm']
-  waitFor: ['find-affected-packages']
-  env: ['NIGHTLY=$_NIGHTLY']
-
-# React Native.
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bash'
-  id: 'tfjs-react-native'
-  args: ['./scripts/run-build.sh', 'tfjs-react-native']
-  waitFor: ['find-affected-packages']
-
-# Node CPU.
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bash'
-  id: 'tfjs-node'
-  args: ['./scripts/run-build.sh', 'tfjs-node']
-  waitFor: ['find-affected-packages']
-  env: ['NIGHTLY=$_NIGHTLY']
-
-# Node GPU.
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bash'
-  id: 'tfjs-node-gpu'
-  args: ['./scripts/run-build.sh', 'tfjs-node-gpu']
-  waitFor: ['find-affected-packages']
-  env: ['NIGHTLY=$_NIGHTLY']
-
-# Release notes test
-- name: 'node:10'
-  id: 'test-monorepo'
-  entrypoint: 'yarn'
-  args: ['test-release-notes']
-  waitFor: ['yarn']
-
-# E2E test
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bash'
-  id: 'e2e'
-  args: ['./scripts/run-build.sh', 'e2e']
-  waitFor: ['find-affected-packages']
-  env: ['NIGHTLY=$_NIGHTLY']
-
-# Inference API
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bash'
-  id: 'tfjs-inference'
-  args: ['scripts/run-build.sh', 'tfjs-inference']
-  waitFor: ['find-affected-packages']
+  id: 'run-cloudbuild'
+  args: ['./scripts/run-build.sh']
+  waitFor: ['generate-cloudbuild-for-packages']
   env: ['NIGHTLY=$_NIGHTLY']
 
 # General settings.
