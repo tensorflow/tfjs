@@ -34,7 +34,4 @@ if (process.argv.length > 2) {
   packages = findPackagesWithDiff();
 }
 
-
 generateCloudbuild(packages);
-shell.exec('gcloud builds submit . --config=cloudbuild_generated.yml '
-	  +`--substitutions _NIGHTLY=${process.env['NIGHTLY']}`);
