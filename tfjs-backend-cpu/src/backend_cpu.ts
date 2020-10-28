@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, BackendTimingInfo, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, max, NumericDataType, Rank, Scalar, ShapeMap, slice_util, Tensor, Tensor1D, Tensor2D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, slice_util, Tensor, Tensor1D, Tensor2D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
 const nonMaxSuppressionV3Impl = kernel_impls.nonMaxSuppressionV3Impl;
 const split = kernel_impls.split;
@@ -298,24 +298,6 @@ export class MathBackendCPU extends KernelBackend {
     return result.toTensor() as T;
   }
 
-  softmax<T extends Tensor>(logits: T, dim: number): T {
-    const axes = util.parseAxisParam([dim], logits.shape);
-    // TODO(annxingyuan): Call maxImpl rather than op as part of softmax kernel
-    // modularization.
-    const maxLogit = max(logits, axes);
-    const expandedShape =
-        backend_util.expandShapeToKeepDim(maxLogit.shape, axes);
-
-    // TODO(lina128): Use sub directly once softmax is modularized.
-    const a = tf.sub(logits, maxLogit.reshape(expandedShape));
-    const b = tf.exp(a);
-    const sumExp = this.sum(b, axes).reshape(expandedShape);
-
-    // TODO(annxingyuan): Call divImpl rather than op as part of softmax
-    // kernel modularization.
-    return tf.div(b, sumExp);
-  }
-
   pow<T extends Tensor>(a: T, b: Tensor): T {
     assertNotComplex([a, b], 'pow');
 
@@ -330,29 +312,6 @@ export class MathBackendCPU extends KernelBackend {
     const op = (a: number, b: number) => Math.floor(a / b);
     const outputDtype = 'int32';
     return this.broadcastedBinaryOp(a, b, outputDtype, op);
-  }
-
-  sum(x: Tensor, axes: number[]): Tensor {
-    assertNotComplex(x, 'sum');
-
-    backend_util.assertAxesAreInnerMostDims('sum', axes, x.rank);
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const resultDtype = upcastType(x.dtype, 'int32');
-    const result = tf.zeros(outShape, resultDtype);
-    const reduceSize = util.sizeFromShape(reduceShape);
-    const vals = this.readSync(result.dataId) as TypedArray;
-
-    const aVals = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < vals.length; ++i) {
-      const offset = i * reduceSize;
-      let sum = 0;
-      for (let j = 0; j < reduceSize; ++j) {
-        sum += aVals[offset + j];
-      }
-      vals[i] = sum;
-    }
-    return result;
   }
 
   prod(x: Tensor, axes: number[]): Tensor {
