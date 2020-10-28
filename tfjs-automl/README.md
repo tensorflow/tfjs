@@ -48,6 +48,21 @@ const modelUrl = 'model.json'; // URL to the model.json file.
 const model = await automl.loadImageClassification(modelUrl);
 ```
 
+If you do not want (or cannot) load the model over HTTP you can also load the model separately and directly use the constuctor. 
+This is particularly relevant for __non-browser__ platforms.
+
+The following psuedocode demonstrates this approach:
+
+```js
+import * as automl from '@tensorflow/tfjs-automl';
+import * as tf from '@tensorflow/tfjs';
+// You can load the graph model using any IO handler
+const graphModel = await tf.loadGraphModel(string|io.IOHandler); // a url or ioHandler instance
+// You can load the dictionary using any api available to the platform
+const dict = loadDictionary("path/to/dict.txt");
+const model = new automl.ImageClassificationModel(graphModel, dict);
+```
+
 ### Making a prediction
 
 The AutoML library takes care of any image preprocessing
@@ -121,6 +136,21 @@ This will start a local HTTP server on port 1234 that serves the demo.
 import * as automl from '@tensorflow/tfjs-automl';
 const modelUrl = 'model.json'; // URL to the model.json file.
 const model = await automl.loadObjectDetection(modelUrl);
+```
+
+If you do not want (or cannot) load the model over HTTP you can also load the model separately and directly use the constuctor. 
+This is particularly relevant for __non-browser__ platforms.
+
+The following psuedocode demonstrates this approach:
+
+```js
+import * as automl from '@tensorflow/tfjs-automl';
+import * as tf from '@tensorflow/tfjs';
+// You can load the graph model using any IO handler
+const graphModel = await tf.loadGraphModel(string|io.IOHandler); // a url or ioHandler instance
+// You can load the dictionary using any api available to the platform
+const dict = readDictionary("path/to/dict.txt");
+const model = new automl.ObjectDetectionModel(graphModel, dict);
 ```
 
 ### Making a prediction
