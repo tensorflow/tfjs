@@ -30,6 +30,7 @@ import {asinConfig} from './kernels/Asin';
 import {asinhConfig} from './kernels/Asinh';
 import {atanConfig} from './kernels/Atan';
 import {atanhConfig} from './kernels/Atanh';
+import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {ceilConfig} from './kernels/Ceil';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
@@ -73,6 +74,7 @@ import {sigmoidConfig} from './kernels/Sigmoid';
 import {signConfig} from './kernels/Sign';
 import {sinConfig} from './kernels/Sin';
 import {sinhConfig} from './kernels/Sinh';
+import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
@@ -97,6 +99,7 @@ const kernelConfigs: KernelConfig[] = [
   asinhConfig,
   atanConfig,
   atanhConfig,
+  batchMatMulConfig,
   ceilConfig,
   cosConfig,
   coshConfig,
@@ -140,6 +143,7 @@ const kernelConfigs: KernelConfig[] = [
   signConfig,
   sinConfig,
   sinhConfig,
+  sliceConfig,
   softmaxConfig,
   sqrtConfig,
   squareConfig,

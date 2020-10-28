@@ -303,18 +303,6 @@ export class NodeJSKernelBackend extends KernelBackend {
                [x, beginTensor, endTensor, stridesTensor]) as T;
   }
 
-  batchMatMul(
-      a: Tensor<Rank.R3>, b: Tensor<Rank.R3>, transposeA: boolean,
-      transposeB: boolean): Tensor<Rank.R3> {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', a.dtype),
-      {name: 'adj_x', type: this.binding.TF_ATTR_BOOL, value: transposeA},
-      {name: 'adj_y', type: this.binding.TF_ATTR_BOOL, value: transposeB}
-    ];
-    return this.executeSingleOutput('BatchMatMul', opAttrs, [a, b]) as
-        Tensor<Rank.R3>;
-  }
-
   private applyActivation<T extends Tensor>(
       input: T, activation: string, preluActivationWeights?: Tensor): T {
     let result = input;
@@ -356,7 +344,7 @@ export class NodeJSKernelBackend extends KernelBackend {
           backend_util.FusedBatchMatMulConfig): Tensor3D {
     // Core TensorFlow does not have a fused BatchMatMul op. Combine calls to
     // achieve the same results:
-    let result = this.batchMatMul(a, b, transposeA, transposeB);
+    let result: Tensor3D = tf.matMul(a, b, transposeA, transposeB);
     if (bias != null) {
       result = tf.add(result, bias);
     }
@@ -364,20 +352,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     result = this.applyActivation(result, activation, preluActivationWeights);
 
     return result;
-  }
-
-  slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      createTensorsTypeOpAttr('Index', 'int32')
-    ];
-
-    // Bind tensor values
-    const beginTensor = tensor1d(begin, 'int32');
-    const sizeTensor = tensor1d(size, 'int32');
-
-    return this.executeSingleOutput(
-               'Slice', opAttrs, [x, beginTensor, sizeTensor]) as T;
   }
 
   reverse<T extends Tensor>(a: T, axis: number[]): T {
