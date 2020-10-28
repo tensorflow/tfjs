@@ -74,7 +74,6 @@ export class FromPixelsProgram implements WebGPUProgram {
       }
     }
     `;
-    this.shaderKey = `fromPixel${this.workGroupSize}`;
   }
 
   setWebGPUBinary(
