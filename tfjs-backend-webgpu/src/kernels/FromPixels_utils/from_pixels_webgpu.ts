@@ -80,98 +80,98 @@ export class FromPixelsProgram implements WebGPUProgram {
     bindGroupLayout: GPUBindGroupLayout, pipeline: GPUComputePipeline) {
       this.bindGroupLayout = bindGroupLayout;
       this.pipeline = pipeline;
+  }
+
+  setUniform(device: GPUDevice, uniformData: number[]) {
+    // No need to update uniform buffer if no changes.
+    if (!uniformData ||
+       (uniformData[0] === this.lastUniformData[0] &&
+        uniformData[1] === this.lastUniformData[1])) {
+      return;
     }
 
-    setUniform(device: GPUDevice, uniformData: number[]) {
-      // No need to update uniform buffer if no changes.
-      if (!uniformData ||
-        (uniformData[0] === this.lastUniformData[0] &&
-         uniformData[1] === this.lastUniformData[1])) {
-        return;
-      }
+    if (this.uniform) {
+      this.uniform.destroy();
+    }
 
-      if (this.uniform) {
-        this.uniform.destroy();
-      }
+    const uniformBuffer = device.createBuffer({
+      size: uniformData.length * 4 , // bytesLength 
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+    });
 
-      const uniformBuffer = device.createBuffer({
-        size: 4 * 2, 
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-      });
-
-      device.defaultQueue.writeBuffer(uniformBuffer, 0, 
+    device.defaultQueue.writeBuffer(uniformBuffer, 0, 
                                       new Uint32Array(uniformData));
-      this.uniform = uniformBuffer;
-    }
+    this.uniform = uniformBuffer;
+  }
 
-    makeInputTexture(device: GPUDevice,
-                     pixelWidth: number,
-                     pixelHeight: number): GPUTexture {
-      if (!this.inputTexture || this.lastPixelSize.width !== pixelWidth ||
-          this.lastPixelSize.height !== pixelHeight) {
-        if (this.inputTexture) {
-          this.inputTexture.destroy();
-        }
-
-        this.inputTexture = device.createTexture({
-          size: {
-            width: pixelWidth,
-            height: pixelHeight,
-            depth: 1,
-          },
-          format: 'rgba8unorm',
-          usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.STORAGE,
-        });
-        this.lastPixelSize.width = pixelWidth;
-        this.lastPixelSize.height = pixelHeight;
-      }
-      return this.inputTexture;
-    }
-
-    generateEncoder(device: GPUDevice, output: GPUBuffer): GPUCommandEncoder {
-      const bindGroup = device.createBindGroup({
-        layout: this.bindGroupLayout,
-        entries: [
-          {
-            binding: 0,
-            resource: {
-              buffer: output,
-            }
-          },
-          {
-            binding: 1,
-            resource: this.inputTexture.createView(),
-          },
-          {
-            binding: 2,
-            resource: {
-              buffer: this.uniform,
-            }
-          }
-        ],
-      });
-
-      const commandEncoder = device.createCommandEncoder({});
-      const passEncoder = commandEncoder.beginComputePass();
-      passEncoder.setPipeline(this.pipeline);
-      passEncoder.setBindGroup(0, bindGroup);
-      passEncoder.dispatch(this.dispatch[0],
-                           this.dispatch[1],
-                           this.dispatch[2]);
-      passEncoder.endPass();
-      return commandEncoder;
-    }
-
-    dispose() {
-      if (this.disposed) {
-        return;
-      }
-      if (this.uniform) {
-        this.uniform.destroy();
-      }
+  makeInputTexture(device: GPUDevice,
+                   pixelWidth: number,
+                   pixelHeight: number): GPUTexture {
+    if (!this.inputTexture || this.lastPixelSize.width !== pixelWidth ||
+        this.lastPixelSize.height !== pixelHeight) {
       if (this.inputTexture) {
         this.inputTexture.destroy();
       }
-      this.disposed = true;
+
+      this.inputTexture = device.createTexture({
+        size: {
+          width: pixelWidth,
+          height: pixelHeight,
+          depth: 1,
+        },
+        format: 'rgba8unorm',
+        usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.STORAGE,
+      });
+      this.lastPixelSize.width = pixelWidth;
+      this.lastPixelSize.height = pixelHeight;
     }
+    return this.inputTexture;
+  }
+
+  generateEncoder(device: GPUDevice, output: GPUBuffer): GPUCommandEncoder {
+    const bindGroup = device.createBindGroup({
+      layout: this.bindGroupLayout,
+      entries: [
+        {
+          binding: 0,
+          resource: {
+            buffer: output,
+          }
+        },
+        {
+          binding: 1,
+          resource: this.inputTexture.createView(),
+        },
+        {
+          binding: 2,
+          resource: {
+            buffer: this.uniform,
+          }
+        }
+      ],
+    });
+
+    const commandEncoder = device.createCommandEncoder({});
+    const passEncoder = commandEncoder.beginComputePass();
+    passEncoder.setPipeline(this.pipeline);
+    passEncoder.setBindGroup(0, bindGroup);
+    passEncoder.dispatch(this.dispatch[0],
+                         this.dispatch[1],
+                         this.dispatch[2]);
+    passEncoder.endPass();
+    return commandEncoder;
+  }
+
+  dispose() {
+    if (this.disposed) {
+      return;
+    }
+    if (this.uniform) {
+      this.uniform.destroy();
+    }
+    if (this.inputTexture) {
+      this.inputTexture.destroy();
+    }
+    this.disposed = true;
+  }
 }

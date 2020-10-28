@@ -164,7 +164,7 @@ function fromPixels_(
  * image.data[2] = 200;
  * image.data[3] = 255;
  *
- * await tf.browser.fromPixelsAsync(image).print();
+ * (await tf.browser.fromPixelsAsync(image)).print();
  * ```
  *
  * @param pixels The input image to construct the tensor from. The
@@ -182,9 +182,12 @@ export async function fromPixelsAsync(
     HTMLVideoElement,
     numChannels = 3) {
   // Check whether the backend has FromPixelsAsycn kernel support,
-  // if not fallback to normal fromPixels logic.
+  // if not fallback to normal fromPixels.
+  // fromPixelAsync kernel doesn't support pixelData now, so fallback
+  // to normal fromPixels.
   const kernel = getKernel(FromPixelsAsync, ENGINE.backendName);
-  if (kernel === null) {
+  if (kernel == null ||
+    (pixels as PixelData).data instanceof Uint8Array) {
     return fromPixels_(pixels, numChannels);
   }
 

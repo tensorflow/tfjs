@@ -71,11 +71,20 @@ async function fromPixelsAsync(args: {
         }
       }
 
-      // tslint:disable-next-line:no-any
-      const imageBitmap = await createImageBitmap(pixels as any);
+      const imageBitmap = 
+            // tslint:disable-next-line:no-any
+          await (createImageBitmap as any)
+            // tslint:disable-next-line:no-any
+            (pixels as any, {premultiplyAlpha: 'none'});
+
+      if (imageBitmap.width !== pixels.width ||
+          imageBitmap.height !== pixels.height) {
+        return fromPixels({inputs, backend, attrs});
+      }
 
       const output = backend.makeOutputArray(outShape, 'int32');
-      if (!backend.fromPixelProgram) {
+      if (!backend.fromPixelProgram ||
+          backend.fromPixelProgram.outputShape !== outShape) {
         backend.fromPixelProgram = new FromPixelsProgram(outShape);
 
         const {bindGroupLayout, pipeline} = webgpu_program.compileProgram(
