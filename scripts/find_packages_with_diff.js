@@ -14,11 +14,11 @@
 // limitations under the License.
 // =============================================================================
 
-const {exec} = require('./test-util');
+const { exec } = require('./test-util');
 const shell = require('shelljs');
-const {readdirSync, statSync} = require('fs');
-const {join} = require('path');
-const fs = require('fs');
+const { readdirSync, statSync } = require('fs');
+const { join } = require('path');
+
 
 const filesAllowlistToTriggerBuild = [
   'cloudbuild.yml', 'package.json', 'tsconfig.json', 'tslint.json',
@@ -33,7 +33,7 @@ let baseBranch = process.env['BASE_BRANCH'];
 
 const allPackages = readdirSync('.').filter(f => {
   if (f === 'node_modules' || f === '.git'
-      || f === 'clone' || !statSync(f).isDirectory()) {
+    || f === 'clone' || !statSync(f).isDirectory()) {
     return false;
   }
   const directoryContents = readdirSync(join('.', f));
@@ -64,7 +64,7 @@ function findPackagesWithDiff() {
   shell.cd(CLONE_PATH);
 
   // If we cannot check out the commit then this PR is coming from a fork.
-  const res = shell.exec(`git checkout ${commitSha}`, {silent: true});
+  const res = shell.exec(`git checkout ${commitSha}`, { silent: true });
   const isPullRequestFromFork = res.code !== 0;
 
   // Only checkout the merge base if the pull requests comes from a
@@ -73,7 +73,7 @@ function findPackagesWithDiff() {
     console.log('PR is coming from tensorflow/tfjs. Finding the merge base...');
     exec(`git checkout ${branchName}`);
     const mergeBase =
-	  exec(`git merge-base ${baseBranch} ${branchName}`).stdout.trim();
+      exec(`git merge-base ${baseBranch} ${branchName}`).stdout.trim();
     exec(`git fetch origin ${mergeBase}`);
     exec(`git checkout ${mergeBase}`);
     console.log('mergeBase: ', mergeBase);
@@ -119,9 +119,9 @@ function findPackagesWithDiff() {
 
 function diff(fileOrDirName) {
   const diffCmd = `diff -rq --exclude='settings.json' ` +
-      `${CLONE_PATH}/${fileOrDirName} ` +
-      `${fileOrDirName}`;
-  return exec(diffCmd, {silent: true}, true).stdout.trim();
+    `${CLONE_PATH}/${fileOrDirName} ` +
+    `${fileOrDirName}`;
+  return exec(diffCmd, { silent: true }, true).stdout.trim();
 }
 
 exports.findPackagesWithDiff = findPackagesWithDiff;

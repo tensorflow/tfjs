@@ -19,7 +19,7 @@ const path = require('path');
 const { printTable } = require('console-table-printer');
 
 const DEPENDENCY_GRAPH = JSON.parse(
-    fs.readFileSync('scripts/package_dependencies.json'));
+  fs.readFileSync('scripts/package_dependencies.json'));
 
 // This is a reverse dependencies graph. Each entry in the graph lists the
 // packages that depend on it.
@@ -36,8 +36,8 @@ function transposeGraph(graph) {
 	transposed[connectedNode] = new Set();
       }
       if (!transposed[nodeName]) {
-	// Make sure the node itself ends up in the transposed graph.
-	transposed[nodeName] = new Set();
+        // Make sure the node itself ends up in the transposed graph.
+        transposed[nodeName] = new Set();
       }
       transposed[connectedNode].add(nodeName);
     }
@@ -62,12 +62,12 @@ function topologicalSort(graph) {
     // only to nodes already in 'sorted'
     const emptyNodes = Object.entries(graph).filter(([node, edges]) => {
       if (sorted.includes(node)) {
-	return false;
+        return false;
       }
       for (const edge of edges) {
-	if (!sorted.includes(edge)) {
-	  return false;
-	}
+        if (!sorted.includes(edge)) {
+          return false;
+        }
       }
       return true;
     }).map(([node, edges]) => node);
@@ -98,8 +98,8 @@ function findSubgraph(node, graph, subnodes = new Set()) {
   if (directSubnodes) {
     for (const directSubnode of directSubnodes) {
       if (!subnodes.has(directSubnode)) {
-	subnodes.add(directSubnode);
-	findSubgraph(directSubnode, graph, subnodes);
+        subnodes.add(directSubnode);
+        findSubgraph(directSubnode, graph, subnodes);
       }
     }
   }
@@ -112,7 +112,7 @@ function findSubgraph(node, graph, subnodes = new Set()) {
  */
 function findDeps(packages) {
   return new Set(...packages.map(
-      packageName => findSubgraph(packageName, DEPENDENCY_GRAPH)));
+    packageName => findSubgraph(packageName, DEPENDENCY_GRAPH)));
 }
 
 /**
@@ -122,7 +122,7 @@ function findDeps(packages) {
  */
 function findReverseDeps(packages) {
   return new Set(...packages.map(
-      packageName => findSubgraph(packageName, REVERSE_DEPENDENCY_GRAPH)));
+    packageName => findSubgraph(packageName, REVERSE_DEPENDENCY_GRAPH)));
 }
 
 const excludeSteps = new Set(['build-deps', 'yarn-common']);
@@ -139,7 +139,7 @@ function generateCloudbuild(packages, writeTo = 'cloudbuild_generated.yml') {
   for (const packageName of packages) {
     if (!allPackages.has(packageName)) {
       throw new Error(`Package ${packageName} was not declared in `
-		      + 'package_dependencies.json');
+        + 'package_dependencies.json');
     }
   }
 
@@ -165,7 +165,7 @@ function generateCloudbuild(packages, writeTo = 'cloudbuild_generated.yml') {
   const packageCloudbuildSteps = new Map();
   for (const packageName of new Set([...toBuild, ...toTest])) {
     const doc = yaml.safeLoad(fs.readFileSync(
-	path.join(packageName, 'cloudbuild.yml')));
+      path.join(packageName, 'cloudbuild.yml')));
     packageCloudbuildSteps.set(packageName, new Set(doc.steps));
   }
 
@@ -179,22 +179,22 @@ function generateCloudbuild(packages, writeTo = 'cloudbuild_generated.yml') {
       // Only include test steps if the package
       // is to be tested.
       if (excludeSteps.has(step.id) ||
-	  (!toTest.has(packageName) && isTestStep(step.id))) {
-	steps.delete(step);
-	continue;
+        (!toTest.has(packageName) && isTestStep(step.id))) {
+        steps.delete(step);
+        continue;
       }
 
       // Append package name to each step's id.
       if (step.id) {
-	// Test steps are not required to have ids.
-	step.id = makeStepId(step.id, packageName);
+        // Test steps are not required to have ids.
+        step.id = makeStepId(step.id, packageName);
       }
 
       // Append package names to step ids in the 'waitFor' field.
       if (step.waitFor) {
-	step.waitFor = step.waitFor
-	    .filter(id => id && !excludeSteps.has(id))
-	    .map(id => makeStepId(id, packageName));
+        step.waitFor = step.waitFor
+          .filter(id => id && !excludeSteps.has(id))
+          .map(id => makeStepId(id, packageName));
       }
     }
   }
@@ -206,12 +206,12 @@ function generateCloudbuild(packages, writeTo = 'cloudbuild_generated.yml') {
     const waitForSteps = new Set(['yarn-common']);
     for (const dependencyName of (DEPENDENCY_GRAPH[packageName] || new Set())) {
       const cloudbuildSteps = packageCloudbuildSteps
-	    .get(dependencyName) || new Set();
+        .get(dependencyName) || new Set();
 
       for (const step of cloudbuildSteps) {
-	if (!isTestStep(step.id)) {
-	  waitForSteps.add(step.id);
-	}
+        if (!isTestStep(step.id)) {
+          waitForSteps.add(step.id);
+        }
       }
     }
 
@@ -223,18 +223,17 @@ function generateCloudbuild(packages, writeTo = 'cloudbuild_generated.yml') {
 
   // Load the general cloudbuild config
   baseCloudbuild = yaml.safeLoad(
-      fs.readFileSync('scripts/cloudbuild_general_config.yml'));
+    fs.readFileSync('scripts/cloudbuild_general_config.yml'));
 
   // Include yarn-common as the first step.
   const steps = [...baseCloudbuild.steps];
 
   // Arrange steps in dependency order
-  const sortedPackageSteps = [];
   for (const packageName of DEPENDENCY_ORDER) {
     const packageSteps = packageCloudbuildSteps.get(packageName);
     if (packageSteps) {
       for (const step of packageSteps) {
-	steps.push(step);
+        steps.push(step);
       }
     }
   }
@@ -248,7 +247,7 @@ function generateCloudbuild(packages, writeTo = 'cloudbuild_generated.yml') {
   }
   const secretEnv = baseCloudbuild.secrets[0].secretEnv;
   for (const secret of Object.keys(secretEnv)) {
-    if (!usedSecrets.has(secret)){
+    if (!usedSecrets.has(secret)) {
       delete secretEnv[secret];
     }
   }
@@ -262,7 +261,7 @@ function generateCloudbuild(packages, writeTo = 'cloudbuild_generated.yml') {
 
 function isTestStep(id) {
   // Some steps have no ID, so we assume they're test steps.
-  if (! id) {
+  if (!id) {
     return true;
   }
   return id.includes('test');
