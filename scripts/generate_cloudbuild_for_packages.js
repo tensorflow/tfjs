@@ -28,12 +28,12 @@ const parser = new ArgumentParser({
       ' changes.'
 });
 
-parser.add_argument('packages', {
+parser.addArgument('packages', {
   type: String,
   nargs: '*',
 });
 
-const args = parser.parse_args(process.argv.slice(2));
+const args = parser.parseArgs(process.argv.slice(2));
 console.log(args)
 
 let packages;
