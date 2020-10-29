@@ -6,7 +6,7 @@ steps:
   args: ['install']
 
 # Generate cloudbuild_generated.yml,
-# which builds and tests all modified packages.
+# which builds and tests all affected packages.
 - name: 'node:10'
   entrypoint: 'yarn'
   id: 'generate-cloudbuild-for-packages'
