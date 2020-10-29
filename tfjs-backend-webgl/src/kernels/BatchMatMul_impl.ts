@@ -113,29 +113,54 @@ export function batchMatMulImpl({
   // because sum() is O(sqrt(N)) due to divide-and-conquer.
   if ((outerShapeA === 1 || outerShapeB === 1) &&
       sharedDim > MATMUL_SHARED_DIM_THRESHOLD && containsFusedOps === false) {
+    const intermediates: TensorInfo[] = [];
+
     let aVec = a3d;
     let bVec = b3d;
     if (transposeA) {
       aVec = transpose({inputs: {x: a3d}, backend, attrs: {perm: [0, 2, 1]}});
+      intermediates.push(aVec);
     }
     if (transposeB) {
       bVec = transpose({inputs: {x: b3d}, backend, attrs: {perm: [0, 2, 1]}});
+      intermediates.push(bVec);
     }
 
-    const aVec3d = outerShapeB === 1 ? aVec : reshape({
-      inputs: {x: aVec},
-      backend,
-      attrs: {shape: [batchDim, sharedDim, 1]}
-    });
+    const shouldReshapeA = outerShapeB !== 1;
+    const shouldReshapeB = outerShapeB === 1;
+
+    let aVec3d = aVec;
+    if (shouldReshapeA) {
+      aVec3d = reshape({
+        inputs: {x: aVec},
+        backend,
+        attrs: {shape: [batchDim, sharedDim, 1]}
+      });
+
+      intermediates.push(aVec3d);
+    }
+
     const axis = outerShapeB === 1 ? 2 : 1;
-    const bVec3d = outerShapeB === 1 ? reshape({
-      inputs: {x: bVec},
-      backend,
-      attrs: {shape: [batchDim, 1, sharedDim]}
-    }) :
-                                       bVec;
+
+    let bVec3d = bVec;
+    if (shouldReshapeB) {
+      bVec3d = reshape({
+        inputs: {x: bVec},
+        backend,
+        attrs: {shape: [batchDim, 1, sharedDim]}
+      });
+
+      intermediates.push(bVec3d);
+    }
+
     const product = multiply({inputs: {a: aVec3d, b: bVec3d}, backend});
-    return sum({inputs: {x: product}, backend, attrs: {axis, keepDims: true}});
+    const out =
+        sum({inputs: {x: product}, backend, attrs: {axis, keepDims: true}});
+    intermediates.push(product);
+    for (const i of intermediates) {
+      backend.disposeIntermediateTensorInfo(i);
+    }
+    return out;
   }
 
   const dtype = upcastType(a.dtype, b.dtype);
