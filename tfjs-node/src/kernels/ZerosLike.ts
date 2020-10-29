@@ -15,17 +15,21 @@
  * =============================================================================
  */
 
-import {KernelConfig, SquaredDifference, SquaredDifferenceInputs} from '@tensorflow/tfjs';
-import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
+import {KernelConfig, ZerosLike, ZerosLikeInputs} from '@tensorflow/tfjs';
+import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
-export const squaredDifferenceConfig: KernelConfig = {
-  kernelName: SquaredDifference,
+export const zerosLikeConfig: KernelConfig = {
+  kernelName: ZerosLike,
   backendName: 'tensorflow',
   kernelFunc: (args) => {
-    const {a, b} = args.inputs as SquaredDifferenceInputs;
+    const {x} = args.inputs as ZerosLikeInputs;
     const backend = args.backend as NodeJSKernelBackend;
 
-    const opAttrs = [createTensorsTypeOpAttr('T', a.dtype)];
-    return backend.executeSingleOutput(SquaredDifference, opAttrs, [a, b]);
+    const opAttrs = [{
+      name: 'T',
+      type: backend.binding.TF_ATTR_TYPE,
+      value: backend.getDTypeInteger(x.dtype)
+    }];
+    return backend.executeSingleOutput(ZerosLike, opAttrs, [x]);
   }
 };
