@@ -24,6 +24,8 @@ import {acosConfig} from './kernels/Acos';
 import {acoshConfig} from './kernels/Acosh';
 import {addConfig} from './kernels/Add';
 import {addNConfig} from './kernels/AddN';
+import {allConfig} from './kernels/All';
+import {anyConfig} from './kernels/Any';
 import {argMaxConfig} from './kernels/ArgMax';
 import {argMinConfig} from './kernels/ArgMin';
 import {asinConfig} from './kernels/Asin';
@@ -32,6 +34,7 @@ import {atanConfig} from './kernels/Atan';
 import {atanhConfig} from './kernels/Atanh';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {ceilConfig} from './kernels/Ceil';
+import {concatConfig} from './kernels/Concat';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
 import {diagConfig} from './kernels/Diag';
@@ -42,6 +45,7 @@ import {eluConfig} from './kernels/Elu';
 import {equalConfig} from './kernels/Equal';
 import {erfConfig} from './kernels/Erf';
 import {expConfig} from './kernels/Exp';
+import {expm1Config} from './kernels/Expm1';
 import {floorConfig} from './kernels/Floor';
 import {floorDivConfig} from './kernels/FloorDiv';
 import {greaterConfig} from './kernels/Greater';
@@ -61,16 +65,19 @@ import {maximumConfig} from './kernels/Maximum';
 import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
 import {mirrorPadConfig} from './kernels/MirrorPad';
+import {modConfig} from './kernels/Mod';
 import {multiplyConfig} from './kernels/Multiply';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
 import {onesLikeConfig} from './kernels/OnesLike';
+import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
 import {reciprocalConfig} from './kernels/Reciprocal';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
+import {reverseConfig} from './kernels/Reverse';
 import {roundConfig} from './kernels/Round';
 import {rsqrtConfig} from './kernels/Rsqrt';
 import {seluConfig} from './kernels/Selu';
@@ -83,9 +90,11 @@ import {softmaxConfig} from './kernels/Softmax';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
+import {topKConfig} from './kernels/TopK';
 import {unpackConfig} from './kernels/Unpack';
 import {unsortedSegmentSumConfig} from './kernels/UnsortedSegmentSum';
 import {zerosLikeConfig} from './kernels/ZerosLike';
@@ -97,6 +106,8 @@ const kernelConfigs: KernelConfig[] = [
   acoshConfig,
   addConfig,
   addNConfig,
+  allConfig,
+  anyConfig,
   argMaxConfig,
   argMinConfig,
   asinConfig,
@@ -105,6 +116,7 @@ const kernelConfigs: KernelConfig[] = [
   atanhConfig,
   batchMatMulConfig,
   ceilConfig,
+  concatConfig,
   cosConfig,
   coshConfig,
   diagConfig,
@@ -115,6 +127,7 @@ const kernelConfigs: KernelConfig[] = [
   equalConfig,
   erfConfig,
   expConfig,
+  expm1Config,
   floorConfig,
   floorDivConfig,
   greaterConfig,
@@ -134,16 +147,19 @@ const kernelConfigs: KernelConfig[] = [
   minConfig,
   minimumConfig,
   mirrorPadConfig,
+  modConfig,
   multiplyConfig,
   nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,
   onesLikeConfig,
+  powConfig,
   preluConfig,
   prodConfig,
   reciprocalConfig,
   relu6Config,
   reluConfig,
+  reverseConfig,
   roundConfig,
   rsqrtConfig,
   seluConfig,
@@ -156,9 +172,11 @@ const kernelConfigs: KernelConfig[] = [
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
+  subConfig,
   sumConfig,
   tanConfig,
   tanhConfig,
+  topKConfig,
   unpackConfig,
   unsortedSegmentSumConfig,
   zerosLikeConfig

@@ -23,6 +23,7 @@ import {convertToTensorArray} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assert, parseAxisParam, sizeFromShape} from '../util';
 
+import {clone} from './clone';
 import {assertParamsConsistent, computeOutShape} from './concat_util';
 import {op} from './operation';
 import {tensor} from './tensor';
@@ -79,6 +80,10 @@ function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
           with dtype ${tensor.dtype}. `);
       }
     });
+  }
+
+  if ($tensors.length === 1) {
+    return clone($tensors[0]);
   }
 
   const forward: ForwardFunc<Tensor> = (backend, save) => {

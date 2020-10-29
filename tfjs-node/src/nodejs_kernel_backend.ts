@@ -354,30 +354,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     return result;
   }
 
-  reverse<T extends Tensor>(a: T, axis: number[]): T {
-    const opAttrs = [
-      createTensorsTypeOpAttr('Tidx', 'int32'),
-      createTensorsTypeOpAttr('T', a.dtype)
-    ];
-    const axisTensor = tensor1d(axis, 'int32');
-    return this.executeSingleOutput('ReverseV2', opAttrs, [a, axisTensor]) as T;
-  }
-
-  concat(tensors: Tensor[], axis: number): Tensor {
-    const opAttrs = [
-      {name: 'N', type: this.binding.TF_ATTR_INT, value: tensors.length}, {
-        name: 'Tidx',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_INT32
-      },
-      createTensorsTypeOpAttr('T', tensors)
-    ];
-
-    const inputs = Array.from(tensors);
-    inputs.push(scalar(axis, 'int32'));
-    return this.executeSingleOutput('ConcatV2', opAttrs, inputs);
-  }
-
   neg<T extends Tensor>(a: T): T {
     return this.executeSingleInput('Neg', a) as T;
   }
@@ -386,12 +362,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     const opAttrs = [createTensorsTypeOpAttr(
         'T', backend_util.upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('Select', opAttrs, [condition, a, b]);
-  }
-
-  subtract(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr(
-        'T', backend_util.upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('Sub', opAttrs, [a, b]);
   }
 
   realDivide(a: Tensor, b: Tensor): Tensor {
@@ -424,46 +394,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     throw new Error('Method not implemented.');
   }
 
-  topk<T extends Tensor>(x: T, k?: number, sorted?: boolean): [T, T] {
-    const kCount = isNullOrUndefined(k) ? 1 : k;
-    const isSorted = isNullOrUndefined(sorted) ? true : sorted;
-    const opAttrs = [
-      {name: 'sorted', type: this.binding.TF_ATTR_BOOL, value: isSorted},
-      createTensorsTypeOpAttr('T', x.dtype),
-    ];
-    const kTensor = scalar(kCount, 'int32');
-
-    // 'TopKV2' has two-hard coded output attributes:
-    return this.executeMultipleOutputs(
-               'TopKV2', opAttrs, [x, kTensor], 2) as [T, T];
-  }
-
-  all(x: Tensor, axes: number[]): Tensor {
-    const opAttrs = [
-      {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: false},
-      createTensorsTypeOpAttr('Tidx', 'int32')
-    ];
-    const axesTensor = tensor1d(axes, 'int32');
-    return this.executeSingleOutput('All', opAttrs, [x, axesTensor]);
-  }
-
-  any(x: Tensor, axes: number[]): Tensor {
-    const opAttrs = [
-      {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: false},
-      createTensorsTypeOpAttr('Tidx', 'int32')
-    ];
-    const axesTensor = tensor1d(axes, 'int32');
-    return this.executeSingleOutput('Any', opAttrs, [x, axesTensor]);
-  }
-
-  pow<T extends Tensor>(a: T, b: Tensor): T {
-    const dtype = backend_util.upcastType(a.dtype, b.dtype);
-    const opAttrs = [createTensorsTypeOpAttr('T', dtype)];
-    return this.executeSingleOutput(
-               'Pow', opAttrs, [a.cast(dtype), b.cast(dtype)]) as T;
-  }
-
-  eluDer<T extends Tensor>(dy: T, y: T): T {
+  eluGrad<T extends Tensor>(dy: T, y: T): T {
     const opAttrs = [createTensorsTypeOpAttr('T', y.dtype)];
     return this.executeSingleOutput('EluGrad', opAttrs, [dy, y]) as T;
   }
@@ -477,21 +408,13 @@ export class NodeJSKernelBackend extends KernelBackend {
     return tf.maximum(xMin, scalar(min, x.dtype));
   }
 
+  // todo(yassogba) consider removing. core does not call this directly
   complexAbs<T extends Tensor>(x: T): T {
     const opAttrs = [
       createTensorsTypeOpAttr('T', x.dtype),
       createTensorsTypeOpAttr('Tout', 'float32')
     ];
     return this.executeSingleOutput('ComplexAbs', opAttrs, [x]) as T;
-  }
-
-  mod(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr('T', a.dtype)];
-    return this.executeSingleOutput('FloorMod', opAttrs, [a, b]);
-  }
-
-  expm1<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Expm1', x) as T;
   }
 
   softplus<T extends Tensor>(x: T): T {
@@ -1042,7 +965,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('Tile', opAttrs, [x, multiples]) as T;
   }
 
-  pad<T extends Tensor>(
+  padV2<T extends Tensor>(
       x: T, paddings: Array<[number, number]>, constantValue: number): T {
     // Bind tensor values
     const paddingsTensor = tensor2d(paddings, [paddings.length, 2], 'int32');
