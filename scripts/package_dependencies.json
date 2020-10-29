@@ -11,8 +11,8 @@
   "tfjs-backend-cpu": ["tfjs-core"],
   "tfjs-backend-webgl": ["tfjs-core", "tfjs-backend-cpu"],
   "tfjs-backend-webgpu": ["tfjs-core", "tfjs-backend-cpu", "tfjs-backend-webgl", "tfjs-converter"],
-  "tfjs-inference": ["tfjs-core", "tfjs-converter", "tfjs-backend-cpu"],
-  "tfjs-react-native": ["tfjs-core", "tfjs-backend-cpu", "tfjs-backend-webgl"],
-  "tfjs-vis": ["tfjs"],
+  "tfjs-inference": [],
+  "tfjs-react-native": [],
+  "tfjs-vis": [],
   "e2e": ["tfjs-backend-wasm", "tfjs", "tfjs-node"]
 }
