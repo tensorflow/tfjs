@@ -51,7 +51,7 @@ export async function precisionTestRunner() {
 export async function mobilenetRunner() {
   const model = await mobilenet.load();
   // warmup
-  const input = tf.zeros([1, 224, 224, 3]);
+  const input: tf.Tensor3D = tf.zeros([224, 224, 3]);
   await model.classify(input);
 
   return async () => {
@@ -90,6 +90,28 @@ export async function localGraphModelRunner() {
     const res = model.predict(tf.randomNormal([1, 10])) as tf.Tensor;
     const data = await res.data();
     return JSON.stringify(data);
+  };
+}
+
+/**
+ * A runner that loads a sharded model bundled with the app and runs a
+ * prediction through it.
+ */
+const shardedModelJson = require('../assets/sharded_model/model.json');
+const shardedModelWeights1: number =
+    require('../assets/sharded_model/group1-shard1of2.bin');
+const shardedModelWeights2: number =
+    require('../assets/sharded_model/group1-shard2of2.bin');
+
+export async function localShardedGraphModelRunner() {
+  const model = await tf.loadGraphModel(bundleResourceIO(
+      shardedModelJson, [shardedModelWeights1, shardedModelWeights2]));
+
+  return async () => {
+    const input = tf.zeros([1, 224, 224, 3]);
+    const res = model.predict(input) as tf.Tensor;
+    const data = await res.data();
+    return JSON.stringify({predictionsLength: data.length});
   };
 }
 
