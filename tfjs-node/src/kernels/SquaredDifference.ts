@@ -15,20 +15,17 @@
  * =============================================================================
  */
 
-import {KernelConfig} from '@tensorflow/tfjs';
+import {KernelConfig, SquaredDifference, SquaredDifferenceInputs} from '@tensorflow/tfjs';
 import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
 export const squaredDifferenceConfig: KernelConfig = {
-  // TODO import this kernelName from core once exported.
-  kernelName: 'SquaredDifference',
+  kernelName: SquaredDifference,
   backendName: 'tensorflow',
-  kernelFunc: ({inputs, backend}) => {
-    const {a, b} = inputs;
+  kernelFunc: (args) => {
+    const {a, b} = args.inputs as SquaredDifferenceInputs;
+    const backend = args.backend as NodeJSKernelBackend;
 
     const opAttrs = [createTensorsTypeOpAttr('T', a.dtype)];
-    const nodeBackend = backend as NodeJSKernelBackend;
-
-    return nodeBackend.executeSingleOutput(
-        'SquaredDifference', opAttrs, [a, b]);
+    return backend.executeSingleOutput(SquaredDifference, opAttrs, [a, b]);
   }
 };

@@ -592,9 +592,17 @@ export class Engine implements TensorTracker, DataMover {
         if (this.shouldCheckForMemLeaks()) {
           this.checkKernelForMemLeak(kernelName, numDataIdsBefore, outInfos);
         }
-        const outTensors = outInfos.map(
-            ({dataId, shape, dtype}) =>
-                this.makeTensorFromDataId(dataId, shape, dtype));
+
+        const outTensors = outInfos.map((outInfo: TensorInfo|Tensor) => {
+          // todo (yassogba) remove this option (Tensor) when node backend
+          // methods have been modularized and they all return tensorInfo.
+          // TensorInfos do not have a rank attribute.
+          if ((outInfo as Tensor).rank != null) {
+            return outInfo as Tensor;
+          }
+          const {dataId, shape, dtype} = outInfo as TensorInfo;
+          return this.makeTensorFromDataId(dataId, shape, dtype);
+        });
 
         // Save the inputs and outputs.
         // Do not save unless we are recording to the tape. Otherwise it would
