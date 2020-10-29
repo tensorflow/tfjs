@@ -16,6 +16,7 @@
  */
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
+import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {addConfig} from './kernels/Add';
 import {atan2Config} from './kernels/Atan2';
 import {avgPoolConfig} from './kernels/AvgPool';
@@ -58,6 +59,7 @@ import {uniqueConfig} from './kernels/Unique';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
+  _fusedMatMulConfig,
   addConfig,
   atan2Config,
   avgPoolConfig,
