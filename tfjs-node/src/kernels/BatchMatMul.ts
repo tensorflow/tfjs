@@ -15,17 +15,23 @@
  * =============================================================================
  */
 
-import {KernelConfig, SquaredDifference, SquaredDifferenceInputs} from '@tensorflow/tfjs';
+import {BatchMatMul, BatchMatMulAttrs, BatchMatMulInputs, KernelConfig} from '@tensorflow/tfjs';
+
 import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
-export const squaredDifferenceConfig: KernelConfig = {
-  kernelName: SquaredDifference,
+export const batchMatMulConfig: KernelConfig = {
+  kernelName: BatchMatMul,
   backendName: 'tensorflow',
   kernelFunc: (args) => {
-    const {a, b} = args.inputs as SquaredDifferenceInputs;
+    const {a, b} = args.inputs as BatchMatMulInputs;
     const backend = args.backend as NodeJSKernelBackend;
+    const {transposeA, transposeB} = args.attrs as {} as BatchMatMulAttrs;
 
-    const opAttrs = [createTensorsTypeOpAttr('T', a.dtype)];
-    return backend.executeSingleOutput(SquaredDifference, opAttrs, [a, b]);
+    const opAttrs = [
+      createTensorsTypeOpAttr('T', a.dtype),
+      {name: 'adj_x', type: backend.binding.TF_ATTR_BOOL, value: transposeA},
+      {name: 'adj_y', type: backend.binding.TF_ATTR_BOOL, value: transposeB}
+    ];
+    return backend.executeSingleOutput(BatchMatMul, opAttrs, [a, b]);
   }
 };
