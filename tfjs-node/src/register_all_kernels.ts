@@ -30,6 +30,7 @@ import {asinConfig} from './kernels/Asin';
 import {asinhConfig} from './kernels/Asinh';
 import {atanConfig} from './kernels/Atan';
 import {atanhConfig} from './kernels/Atanh';
+import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {ceilConfig} from './kernels/Ceil';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
@@ -45,6 +46,9 @@ import {floorConfig} from './kernels/Floor';
 import {floorDivConfig} from './kernels/FloorDiv';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
+import {isFiniteConfig} from './kernels/IsFinite';
+import {isInfConfig} from './kernels/IsInf';
+import {isNanConfig} from './kernels/IsNan';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {logConfig} from './kernels/Log';
@@ -61,8 +65,10 @@ import {multiplyConfig} from './kernels/Multiply';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
+import {onesLikeConfig} from './kernels/OnesLike';
 import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
+import {reciprocalConfig} from './kernels/Reciprocal';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
 import {roundConfig} from './kernels/Round';
@@ -72,6 +78,7 @@ import {sigmoidConfig} from './kernels/Sigmoid';
 import {signConfig} from './kernels/Sign';
 import {sinConfig} from './kernels/Sin';
 import {sinhConfig} from './kernels/Sinh';
+import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
@@ -79,7 +86,9 @@ import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
+import {unpackConfig} from './kernels/Unpack';
 import {unsortedSegmentSumConfig} from './kernels/UnsortedSegmentSum';
+import {zerosLikeConfig} from './kernels/ZerosLike';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
@@ -94,6 +103,7 @@ const kernelConfigs: KernelConfig[] = [
   asinhConfig,
   atanConfig,
   atanhConfig,
+  batchMatMulConfig,
   ceilConfig,
   cosConfig,
   coshConfig,
@@ -109,6 +119,9 @@ const kernelConfigs: KernelConfig[] = [
   floorDivConfig,
   greaterConfig,
   greaterEqualConfig,
+  isFiniteConfig,
+  isInfConfig,
+  isNanConfig,
   lessConfig,
   lessEqualConfig,
   log1pConfig,
@@ -125,8 +138,10 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,
+  onesLikeConfig,
   preluConfig,
   prodConfig,
+  reciprocalConfig,
   relu6Config,
   reluConfig,
   roundConfig,
@@ -136,6 +151,7 @@ const kernelConfigs: KernelConfig[] = [
   signConfig,
   sinConfig,
   sinhConfig,
+  sliceConfig,
   softmaxConfig,
   sqrtConfig,
   squareConfig,
@@ -143,7 +159,9 @@ const kernelConfigs: KernelConfig[] = [
   sumConfig,
   tanConfig,
   tanhConfig,
-  unsortedSegmentSumConfig
+  unpackConfig,
+  unsortedSegmentSumConfig,
+  zerosLikeConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {

@@ -15,17 +15,34 @@
  * =============================================================================
  */
 
-import {KernelConfig, SquaredDifference, SquaredDifferenceInputs} from '@tensorflow/tfjs';
+import {backend_util, KernelConfig, Slice, SliceAttrs, SliceInputs, tensor1d} from '@tensorflow/tfjs';
+
 import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
-export const squaredDifferenceConfig: KernelConfig = {
-  kernelName: SquaredDifference,
+export const sliceConfig: KernelConfig = {
+  kernelName: Slice,
   backendName: 'tensorflow',
   kernelFunc: (args) => {
-    const {a, b} = args.inputs as SquaredDifferenceInputs;
+    const {x} = args.inputs as SliceInputs;
     const backend = args.backend as NodeJSKernelBackend;
+    const {begin, size} = args.attrs as {} as SliceAttrs;
 
-    const opAttrs = [createTensorsTypeOpAttr('T', a.dtype)];
-    return backend.executeSingleOutput(SquaredDifference, opAttrs, [a, b]);
+    const opAttrs = [
+      createTensorsTypeOpAttr('T', x.dtype),
+      createTensorsTypeOpAttr('Index', 'int32')
+    ];
+
+    // Bind tensor values
+    const [begin_, size_] =
+        backend_util.slice_util.parseSliceParams(x, begin, size);
+    const beginTensor = tensor1d(begin_, 'int32');
+    const sizeTensor = tensor1d(size_, 'int32');
+
+    const res = backend.executeSingleOutput(
+        Slice, opAttrs, [x, beginTensor, sizeTensor]);
+    beginTensor.dispose();
+    sizeTensor.dispose();
+
+    return res;
   }
 };
