@@ -815,42 +815,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  batchMatMul(
-      a: Tensor3D, b: Tensor3D, transposeA: boolean,
-      transposeB: boolean): Tensor3D {
-    const outerShapeA = transposeA ? a.shape[2] : a.shape[1];
-    const outerShapeB = transposeB ? b.shape[1] : b.shape[2];
-    const sharedDim = transposeA ? a.shape[1] : a.shape[2];
-    const batch = Math.max(a.shape[0], b.shape[0]);
-
-    // Since the matrices are vectors, it is faster to call mul().sum()
-    // because sum() is O(sqrt(N)) due to divide-and-conquer.
-    if ((outerShapeA === 1 || outerShapeB === 1) &&
-        sharedDim > MATMUL_SHARED_DIM_THRESHOLD) {
-      if (transposeA) {
-        a = transpose(a, [0, 2, 1]);
-      }
-      if (transposeB) {
-        b = transpose(b, [0, 2, 1]);
-      }
-
-      const a3D = outerShapeB === 1 ? a : a.as3D(batch, sharedDim, 1);
-      const axis = outerShapeB === 1 ? 2 : 1;
-      const b3D = outerShapeB === 1 ? b.as3D(batch, 1, sharedDim) : b;
-      // TODO(annxingyuan): Call multiply directly as part of batchMatMul
-      // modularization.
-      const product = tf.mul(a3D, b3D);
-      return product.sum(axis, true /* keepDims */);
-    }
-
-    const dtype = upcastType(a.dtype, b.dtype);
-
-    const program = new MatMulPackedProgram(
-        a.shape, b.shape, [batch, outerShapeA, outerShapeB], transposeA,
-        transposeB);
-    return this.compileAndRun<Tensor3D>(program, [a, b], dtype);
-  }
-
   fusedBatchMatMul(
       {a, b, transposeA, transposeB, bias, activation, preluActivationWeights}:
           backend_util.FusedBatchMatMulConfig): Tensor3D {
