@@ -55,8 +55,8 @@ export function sumImpl(
   const inSize = util.sizeFromShape(reduceShape);
   const xSize = util.sizeFromShape(x.shape);
   const batchSize = xSize / inSize;
-  const reshapedInput =
-      reshape({inputs: {x}, attrs: {shape: [batchSize, inSize]}, backend});
+  const reshapedInput = reshape(
+      {inputs: {x: sumInput}, attrs: {shape: [batchSize, inSize]}, backend});
 
   const outType = sumOutType(x.dtype);
 
