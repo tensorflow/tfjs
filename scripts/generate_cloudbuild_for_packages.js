@@ -21,6 +21,8 @@ const {findPackagesWithDiff, allPackages} =
 const {generateCloudbuild} = require('./generate_cloudbuild.js');
 const shell = require('shelljs');
 const {ArgumentParser} = require('argparse');
+const yaml = require('js-yaml');
+const fs = require('fs');
 
 const parser = new ArgumentParser({
   description: 'Generate a cloudbuild file to test packages. When run' +
@@ -48,4 +50,5 @@ if (args.packages.length > 0) {
   packages = findPackagesWithDiff();
 }
 
-generateCloudbuild(packages);
+const cloudbuild = generateCloudbuild(packages);
+fs.writeFileSync('cloudbuild_generated.yml', yaml.safeDump(cloudbuild));

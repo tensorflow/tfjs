@@ -14,5 +14,6 @@
   "tfjs-inference": [],
   "tfjs-react-native": [],
   "tfjs-vis": [],
+  "scripts": [],
   "e2e": ["tfjs-backend-wasm", "tfjs", "tfjs-node"]
 }
