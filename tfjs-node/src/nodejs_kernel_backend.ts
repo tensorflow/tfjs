@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-import {backend_util, BackendTimingInfo, DataId, DataType, fill, KernelBackend, ModelTensorInfo, ones, Rank, rsqrt, Scalar, scalar, ScalarLike, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, Tensor5D, TensorInfo, tidy, util} from '@tensorflow/tfjs';
+import {backend_util, BackendTimingInfo, DataId, DataType, fill, KernelBackend, ModelTensorInfo, ones, Rank, rsqrt, Scalar, scalar, ScalarLike, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, tidy, util} from '@tensorflow/tfjs';
 import {isArray, isNullOrUndefined} from 'util';
 
 import {encodeInt32ArrayAsInt64, Int64Scalar} from './int64_tensors';
@@ -394,11 +394,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     throw new Error('Method not implemented.');
   }
 
-  eluGrad<T extends Tensor>(dy: T, y: T): T {
-    const opAttrs = [createTensorsTypeOpAttr('T', y.dtype)];
-    return this.executeSingleOutput('EluGrad', opAttrs, [dy, y]) as T;
-  }
-
   int<T extends Tensor>(x: T): T {
     throw new Error('Method not implemented.');
   }
@@ -415,15 +410,6 @@ export class NodeJSKernelBackend extends KernelBackend {
       createTensorsTypeOpAttr('Tout', 'float32')
     ];
     return this.executeSingleOutput('ComplexAbs', opAttrs, [x]) as T;
-  }
-
-  softplus<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Softplus', x) as T;
-  }
-
-  atan2<T extends Tensor>(a: T, b: T): T {
-    const opAttrs = [createTensorsTypeOpAttr('T', a.dtype)];
-    return this.executeSingleOutput('Atan2', opAttrs, [a, b]) as T;
   }
 
   step<T extends Tensor>(x: T, alpha: number): T {
@@ -956,39 +942,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('Cast', opAttrs, [x]) as T;
   }
 
-  tile<T extends Tensor>(x: T, reps: number[]): T {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      createTensorsTypeOpAttr('Tmultiples', 'int32')
-    ];
-    const multiples = tensor1d(reps, 'int32');
-    return this.executeSingleOutput('Tile', opAttrs, [x, multiples]) as T;
-  }
-
-  padV2<T extends Tensor>(
-      x: T, paddings: Array<[number, number]>, constantValue: number): T {
-    // Bind tensor values
-    const paddingsTensor = tensor2d(paddings, [paddings.length, 2], 'int32');
-    const constantTensor = scalar(constantValue, x.dtype);
-
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      createTensorsTypeOpAttr('Tpaddings', paddingsTensor.dtype)
-    ];
-
-    return this.executeSingleOutput(
-               'PadV2', opAttrs, [x, paddingsTensor, constantTensor]) as T;
-  }
-
-  transpose<T extends Tensor>(x: T, perm: number[]): T {
-    const permTensor = tensor1d(perm, 'int32');
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      createTensorsTypeOpAttr('Tperm', 'int32')
-    ];
-    return this.executeSingleOutput('Transpose', opAttrs, [x, permTensor]) as T;
-  }
-
   gather<T extends Tensor>(x: T, indices: Tensor1D, axis: number): T {
     const axisTensor = scalar(axis, 'int32');
     const opAttrs = [
@@ -998,56 +951,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     ];
     return this.executeSingleOutput(
                'GatherV2', opAttrs, [x, indices, axisTensor]) as T;
-  }
-
-  gatherND(x: Tensor, indices: Tensor): Tensor {
-    const opAttrs = [
-      createTensorsTypeOpAttr('Tparams', x.dtype),
-      createTensorsTypeOpAttr('Tindices', 'int32')
-    ];
-    return this.executeSingleOutput('GatherNd', opAttrs, [x, indices]);
-  }
-
-  scatterND<R extends Rank>(
-      indices: Tensor, updates: Tensor, shape: ShapeMap[R]): Tensor<R> {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', updates.dtype),
-      createTensorsTypeOpAttr('Tindices', 'int32')
-    ];
-    const shapeTensor = tensor1d(shape, 'int32');
-    return this.executeSingleOutput(
-               'ScatterNd', opAttrs, [indices, updates, shapeTensor]) as
-        Tensor<R>;
-  }
-
-  batchToSpaceND<T extends Tensor>(
-      x: T, blockShape: number[], crops: number[][]): T {
-    const blockShapeTensor = tensor1d(blockShape, 'int32');
-    const cropsTensor =
-        tensor2d(crops, [crops.length, crops[0].length], 'int32');
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      createTensorsTypeOpAttr('Tblock_shape', 'int32'),
-      createTensorsTypeOpAttr('Tcrops', cropsTensor.dtype)
-    ];
-    return this.executeSingleOutput(
-               'BatchToSpaceND', opAttrs, [x, blockShapeTensor, cropsTensor]) as
-        T;
-  }
-
-  spaceToBatchND<T extends Tensor>(
-      x: T, blockShape: number[], paddings: number[][]): T {
-    const blockShapeTensor = tensor1d(blockShape, 'int32');
-    const paddingsTensor =
-        tensor2d(paddings, [paddings.length, paddings[0].length], 'int32');
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      createTensorsTypeOpAttr('Tblock_shape', 'int32'),
-      createTensorsTypeOpAttr('Tpaddings', paddingsTensor.dtype)
-    ];
-    return this.executeSingleOutput(
-               'SpaceToBatchND', opAttrs,
-               [x, blockShapeTensor, paddingsTensor]) as T;
   }
 
   resizeBilinear(

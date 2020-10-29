@@ -31,8 +31,10 @@ import {argMinConfig} from './kernels/ArgMin';
 import {asinConfig} from './kernels/Asin';
 import {asinhConfig} from './kernels/Asinh';
 import {atanConfig} from './kernels/Atan';
+import {atan2Config} from './kernels/Atan2';
 import {atanhConfig} from './kernels/Atanh';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
+import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {ceilConfig} from './kernels/Ceil';
 import {concatConfig} from './kernels/Concat';
 import {cosConfig} from './kernels/Cos';
@@ -42,12 +44,14 @@ import {dilation2dConfig} from './kernels/Dilation2D';
 import {dilation2dBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
 import {dilation2dBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
 import {eluConfig} from './kernels/Elu';
+import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
 import {erfConfig} from './kernels/Erf';
 import {expConfig} from './kernels/Exp';
 import {expm1Config} from './kernels/Expm1';
 import {floorConfig} from './kernels/Floor';
 import {floorDivConfig} from './kernels/FloorDiv';
+import {gatherNdConfig} from './kernels/GatherNd';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {isFiniteConfig} from './kernels/IsFinite';
@@ -71,6 +75,7 @@ import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
 import {onesLikeConfig} from './kernels/OnesLike';
+import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
@@ -80,6 +85,7 @@ import {relu6Config} from './kernels/Relu6';
 import {reverseConfig} from './kernels/Reverse';
 import {roundConfig} from './kernels/Round';
 import {rsqrtConfig} from './kernels/Rsqrt';
+import {scatterNdConfig} from './kernels/ScatterNd';
 import {seluConfig} from './kernels/Selu';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {signConfig} from './kernels/Sign';
@@ -87,6 +93,8 @@ import {sinConfig} from './kernels/Sin';
 import {sinhConfig} from './kernels/Sinh';
 import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
+import {softplusConfig} from './kernels/Softplus';
+import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
@@ -94,7 +102,9 @@ import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
+import {tileConfig} from './kernels/Tile';
 import {topKConfig} from './kernels/TopK';
+import {transposeConfig} from './kernels/Transpose';
 import {unpackConfig} from './kernels/Unpack';
 import {unsortedSegmentSumConfig} from './kernels/UnsortedSegmentSum';
 import {zerosLikeConfig} from './kernels/ZerosLike';
@@ -112,9 +122,11 @@ const kernelConfigs: KernelConfig[] = [
   argMinConfig,
   asinConfig,
   asinhConfig,
+  atan2Config,
   atanConfig,
   atanhConfig,
   batchMatMulConfig,
+  batchToSpaceNDConfig,
   ceilConfig,
   concatConfig,
   cosConfig,
@@ -124,12 +136,14 @@ const kernelConfigs: KernelConfig[] = [
   dilation2dBackpropInputConfig,
   dilation2dConfig,
   eluConfig,
+  eluGradConfig,
   equalConfig,
   erfConfig,
   expConfig,
   expm1Config,
   floorConfig,
   floorDivConfig,
+  gatherNdConfig,
   greaterConfig,
   greaterEqualConfig,
   isFiniteConfig,
@@ -153,6 +167,7 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV5Config,
   notEqualConfig,
   onesLikeConfig,
+  padV2Config,
   powConfig,
   preluConfig,
   prodConfig,
@@ -162,6 +177,7 @@ const kernelConfigs: KernelConfig[] = [
   reverseConfig,
   roundConfig,
   rsqrtConfig,
+  scatterNdConfig,
   seluConfig,
   sigmoidConfig,
   signConfig,
@@ -169,6 +185,8 @@ const kernelConfigs: KernelConfig[] = [
   sinhConfig,
   sliceConfig,
   softmaxConfig,
+  softplusConfig,
+  spaceToBatchNDConfig,
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
@@ -176,7 +194,9 @@ const kernelConfigs: KernelConfig[] = [
   sumConfig,
   tanConfig,
   tanhConfig,
+  tileConfig,
   topKConfig,
+  transposeConfig,
   unpackConfig,
   unsortedSegmentSumConfig,
   zerosLikeConfig
