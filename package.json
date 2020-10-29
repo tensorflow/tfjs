@@ -20,7 +20,7 @@
   },
   "scripts": {
     "test-packages-ci": "yarn generate-cloudbuild-for-packages && ./scripts/run-build.sh",
-    "generate-cloudbuild-for-packages": "node ./scripts/generate_cloudbuild_for_packages.js",
+    "generate-cloudbuild-for-packages": "./scripts/generate_cloudbuild_for_packages.js",
     "release": "ts-node -s ./scripts/release.ts",
     "release-tfjs": "ts-node -s ./scripts/release-tfjs.ts",
     "publish-npm": "ts-node -s ./scripts/publish-npm.ts",
