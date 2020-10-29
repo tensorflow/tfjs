@@ -80,6 +80,7 @@ import {multiplyConfig} from './kernels/Multiply';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
+import {oneHotConfig} from './kernels/OneHot';
 import {padV2Config} from './kernels/PadV2';
 import {preluConfig} from './kernels/Prelu';
 import {realConfig} from './kernels/Real';
@@ -96,6 +97,7 @@ import {signConfig} from './kernels/Sign';
 import {sinConfig} from './kernels/Sin';
 import {sinhConfig} from './kernels/Sinh';
 import {sliceConfig} from './kernels/Slice';
+import {softmaxConfig} from './kernels/Softmax';
 import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {sqrtConfig} from './kernels/Sqrt';
@@ -103,6 +105,7 @@ import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {stepConfig} from './kernels/Step';
 import {subConfig} from './kernels/Sub';
+import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
 import {transposeConfig} from './kernels/Transpose';
@@ -171,6 +174,7 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,
+  oneHotConfig,
   padV2Config,
   preluConfig,
   realConfig,
@@ -187,6 +191,7 @@ const kernelConfigs: KernelConfig[] = [
   sinConfig,
   sinhConfig,
   sliceConfig,
+  softmaxConfig,
   softplusConfig,
   spaceToBatchNDConfig,
   sqrtConfig,
@@ -194,6 +199,7 @@ const kernelConfigs: KernelConfig[] = [
   squaredDifferenceConfig,
   stepConfig,
   subConfig,
+  sumConfig,
   tanConfig,
   tanhConfig,
   transposeConfig,
