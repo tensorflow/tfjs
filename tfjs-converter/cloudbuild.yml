@@ -1,3 +1,4 @@
+
 steps:
 
 # Install common dependencies.
@@ -51,18 +52,21 @@ steps:
 - name: 'gcr.io/google-appengine/python'
   dir: 'tfjs-converter/python'
   entrypoint: 'bash'
+  id: 'test-python-pip'
   args: ['./build-pip-package.sh', '--test', '/tmp/tfjs-pips']
   waitFor: ['yarn-common']
 
 - name: 'python:2'
   dir: 'tfjs-converter/python'
   entrypoint: 'bash'
+  id: 'test-python2'
   args: ['./run-python-tests.sh']
   waitFor: ['yarn-common']
 
 - name: 'python:3.6'
   dir: 'tfjs-converter/python'
   entrypoint: 'bash'
+  id: 'test-python3.6'
   args: ['./run-python-tests.sh']
   waitFor: ['yarn-common']
 

@@ -16,16 +16,30 @@
  * =============================================================================
  */
 
-const {findPackagesWithDiff, allPackages}
-      = require('./find_packages_with_diff.js');
+const {findPackagesWithDiff, allPackages} =
+    require('./find_packages_with_diff.js');
 const {generateCloudbuild} = require('./generate_cloudbuild.js');
 const shell = require('shelljs');
+const {ArgumentParser} = require('argparse');
 
+const parser = new ArgumentParser({
+  description: 'Generate a cloudbuild file to test packages. When run' +
+      ' with no arguments, tests packages affected by the current' +
+      ' changes.'
+});
+
+parser.add_argument('packages', {
+  type: String,
+  nargs: '*',
+});
+
+const args = parser.parse_args(process.argv.slice(2));
+console.log(args)
 
 let packages;
-if (process.argv.length > 2) {
+if (args.packages.length > 0) {
   // Test packages specified in command line args.
-  packages = process.argv.slice(2);
+  packages = args.packages;
 } else if (process.env['NIGHTLY']) {
   // Test all packages during the nightly build.
   packages = allPackages;
