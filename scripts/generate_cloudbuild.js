@@ -136,7 +136,7 @@ function findReverseDeps(packages) {
  * 2. Builds and tests all the packages in `packages`
  * 3. Builds and tests all the reverse dependnecies of `packages`
  */
-function generateCloudbuild(packages, writeTo = 'cloudbuild_generated.yml') {
+function generateCloudbuild(packages, print = true) {
   // Make sure all packages are declared in package_dependencies.json.
   const allPackages = new Set(Object.keys(DEPENDENCY_GRAPH));
   for (const packageName of packages) {
@@ -153,16 +153,18 @@ function generateCloudbuild(packages, writeTo = 'cloudbuild_generated.yml') {
   const toBuild = new Set([...deps, ...packages, ...reverseDeps]);
   const toTest = new Set([...packages, ...reverseDeps]);
 
-  // Log what will be built and tested
-  const buildTestTable = [];
-  for (const packageName of allPackages) {
-    buildTestTable.push({
-      'Package': packageName,
-      'Will Build': toBuild.has(packageName) ? '✔' : '',
-      'Will Test': toTest.has(packageName) ? '✔' : ''
-    });
+  if (print) {
+    // Log what will be built and tested
+    const buildTestTable = [];
+    for (const packageName of allPackages) {
+      buildTestTable.push({
+        'Package': packageName,
+        'Will Build': toBuild.has(packageName) ? '✔' : '',
+        'Will Test': toTest.has(packageName) ? '✔' : ''
+      });
+    }
+    printTable(buildTestTable);
   }
-  printTable(buildTestTable);
 
   // Load all the cloudbuild files for the packages
   // that need to be built or tested.
@@ -263,7 +265,7 @@ function generateCloudbuild(packages, writeTo = 'cloudbuild_generated.yml') {
   }
 
   baseCloudbuild.steps = steps;
-  fs.writeFileSync(writeTo, yaml.safeDump(baseCloudbuild));
+  return baseCloudbuild;
 }
 
 function isTestStep(id) {
