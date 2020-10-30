@@ -95,7 +95,7 @@ function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
     // Keep only non-empty tensors (ignore tensors with 0 in their shape).
     $tensors = $tensors.filter(t => t.size > 0);
     if ($tensors.length === 1) {
-      return $tensors[0];
+      return clone($tensors[0]);
     }
 
     const shapes = $tensors.map(t => t.shape);
