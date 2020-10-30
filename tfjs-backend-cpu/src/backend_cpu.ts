@@ -140,7 +140,7 @@ export class MathBackendCPU extends KernelBackend {
     return this.data.get(dataId).values;
   }
 
-  private bufferSync<R extends Rank>(t: Tensor<R>): TensorBuffer<R> {
+  bufferSync(t: TensorInfo) {
     const data = this.readSync(t.dataId);
     let decodedData = data as DataValues;
     if (t.dtype === 'string') {
@@ -151,7 +151,7 @@ export class MathBackendCPU extends KernelBackend {
         throw new Error('Failed to decode encoded string bytes into utf-8');
       }
     }
-    return tf.buffer(t.shape, t.dtype, decodedData) as TensorBuffer<R>;
+    return new TensorBuffer(t.shape, t.dtype, decodedData);
   }
 
   makeOutput<T extends Tensor>(
@@ -258,22 +258,6 @@ export class MathBackendCPU extends KernelBackend {
       res[i] = tf.slice(x, begin, size).reshape(outShape);
     }
     return res;
-  }
-
-  reverse<T extends Tensor>(x: T, axis: number[]): T {
-    assertNotComplex(x, 'reverse');
-
-    const buffer = tf.buffer(x.shape, x.dtype);
-    const xBuf = this.bufferSync(x);
-
-    for (let i = 0; i < buffer.size; i++) {
-      const outLoc = buffer.indexToLoc(i);
-      const inLoc = outLoc.slice();
-      axis.forEach(ax => inLoc[ax] = x.shape[ax] - 1 - inLoc[ax]);
-      buffer.set(xBuf.get(...inLoc), ...outLoc);
-    }
-
-    return buffer.toTensor() as T;
   }
 
   neg<T extends Tensor>(x: T): T {
@@ -903,7 +887,8 @@ export class MathBackendCPU extends KernelBackend {
                     }
 
                     const pixel =
-                        dyBuf.get(batch, dyDepth, dyRow, dyCol, channel);
+                        dyBuf.get(batch, dyDepth, dyRow, dyCol, channel) as
+                        number;
                     dotProd += pixel;
                   }
                 }
@@ -982,7 +967,8 @@ export class MathBackendCPU extends KernelBackend {
                   for (let xCol = xColMin; xCol < xColMax;
                        xCol += dilationWidth) {
                     const wCol = xCol - xColCorner;
-                    const pixel = xBuf.get(batch, xDepth, xRow, xCol, channel);
+                    const pixel =
+                        xBuf.get(batch, xDepth, xRow, xCol, channel) as number;
                     if (pixel >= maxValue) {
                       maxValue = pixel;
                       maxPosition = wDepth * effectiveFilterHeight *
@@ -1060,7 +1046,8 @@ export class MathBackendCPU extends KernelBackend {
                     const maxPos = effectiveFilterDepth *
                             effectiveFilterHeight * effectiveFilterWidth -
                         1 -
-                        maxPosBuf.get(batch, dyDepth, dyRow, dyCol, channel);
+                        (maxPosBuf.get(batch, dyDepth, dyRow, dyCol, channel) as
+                         number);
                     const curPos =
                         wDepth * effectiveFilterHeight * effectiveFilterWidth +
                         wRow * effectiveFilterWidth + wCol;
@@ -1071,7 +1058,8 @@ export class MathBackendCPU extends KernelBackend {
                     }
 
                     const pixel =
-                        dyBuf.get(batch, dyDepth, dyRow, dyCol, channel);
+                        dyBuf.get(batch, dyDepth, dyRow, dyCol, channel) as
+                        number;
                     dotProd += pixel * mask;
                   }
                 }
