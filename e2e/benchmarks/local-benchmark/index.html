@@ -263,7 +263,7 @@ limitations under the License.
 
       let timeInfo;
       if (state.benchmark === 'custom') {
-        const input = generateInputFromDef(state.inputs);
+        const input = generateInputFromDef(state.inputs, model instanceof tf.GraphModel);
         try {
           timeInfo = await timeModelInference(model, input, 1);
         } finally {
@@ -375,7 +375,7 @@ limitations under the License.
       let timeInfo;
       const numRuns = state.numRuns;
       if (state.benchmark === 'custom') {
-        const input = generateInputFromDef(state.inputs);
+        const input = generateInputFromDef(state.inputs, model instanceof tf.GraphModel);
         try {
           timeInfo = await timeModelInference(model, input, numRuns);
         } finally {
@@ -401,7 +401,7 @@ limitations under the License.
 
       let profileInfo;
       if (state.benchmark === 'custom') {
-        const input = generateInputFromDef(state.inputs);
+        const input = generateInputFromDef(state.inputs, model instanceof tf.GraphModel);
         try {
           profileInfo = await profileModelInference(model, input);
         } finally {

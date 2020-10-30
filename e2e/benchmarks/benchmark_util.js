@@ -69,10 +69,10 @@ function generateInput(model) {
  * console.log(`Prediction for the generated input: ${prediction}`);
  * ```
  *
- * @param inputDefs The input definition that is used to generated the input.
- * @param outputMap flag for determine output array or map of the tensors
+ * @param inputDefs The input definition that is used to generate the input.
+ * @param isForGraphModel flag for whether to generate inputs for GraphModel
  */
-function generateInputFromDef(inputDefs, outputMap) {
+function generateInputFromDef(inputDefs, isForGraphModel = false) {
   if (inputDefs == null) {
     throw new Error('The inputDef cannot be found.');
   }
@@ -95,8 +95,8 @@ function generateInputFromDef(inputDefs, outputMap) {
     });
 
     // Return tensor map for tf.GraphModel.
-    if (outputMap) {
-      const tensorMap = Object.keys(inputDefs).reduce((map, inputDef, i) => {
+    if (isForGraphModel) {
+      const tensorMap = inputDefs.reduce((map, inputDef, i) => {
         map[inputDef.name] = tensorArray[i];
         return map;
       }, {});

@@ -250,7 +250,8 @@ const benchmarks = {
       return async model => {
         let inferenceInput;
         try {
-          inferenceInput = generateInputFromDef(state.inputs);
+          inferenceInput = generateInputFromDef(
+              state.inputs, model instanceof tf.GraphModel);
           const predict = getPredictFnForModel(model, inferenceInput);
           const inferenceOutput = await predict();
           return inferenceOutput;
