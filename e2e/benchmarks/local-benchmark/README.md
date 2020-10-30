@@ -55,3 +55,10 @@ const indexDBModel = tf.sequential(
 const saveResults = await indexDBModel.save('indexeddb://my-model-1');
 ```
 Then use "indexeddb://my-model-1" as the custom model URL.
+
+### Variable input shapes
+If input shapes for you model contain variable dimension (i.e. value = -1), you are
+requires to set it to a valid number before you can perform the benchmark.
+In the Inputs section you will see an input box for you to update the shape.
+Once the shape is set, you can click the 'Run benchmark' button again to run
+the benchmark.
