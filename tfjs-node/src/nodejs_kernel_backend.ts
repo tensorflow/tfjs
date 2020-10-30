@@ -43,7 +43,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     this.tensorMap = new tf.DataStorage<TensorData>(this, tf.engine());
   }
 
-  private getDTypeInteger(dtype: DataType): number {
+  getDTypeInteger(dtype: DataType): number {
     switch (dtype) {
       case 'float32':
         return this.binding.TF_FLOAT;
@@ -275,24 +275,6 @@ export class NodeJSKernelBackend extends KernelBackend {
                'Fill', opAttrs, [shapeTensor, valueTensor]) as Tensor<R>;
   }
 
-  onesLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
-    const opAttrs = [{
-      name: 'T',
-      type: this.binding.TF_ATTR_TYPE,
-      value: this.getDTypeInteger(x.dtype)
-    }];
-    return this.executeSingleOutput('OnesLike', opAttrs, [x]) as Tensor<R>;
-  }
-
-  zerosLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
-    const opAttrs = [{
-      name: 'T',
-      type: this.binding.TF_ATTR_TYPE,
-      value: this.getDTypeInteger(x.dtype)
-    }];
-    return this.executeSingleOutput('ZerosLike', opAttrs, [x]) as Tensor<R>;
-  }
-
   stridedSlice<T extends Tensor>(
       x: T, begin: number[], end: number[], strides: number[]): T {
     const beginTensor = tensor1d(begin, 'int32');
@@ -319,32 +301,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput(
                'StridedSlice', opAttrs,
                [x, beginTensor, endTensor, stridesTensor]) as T;
-  }
-
-  unstack(x: Tensor, axis: number): Tensor[] {
-    if (axis >= x.shape.length) {
-      throw new Error(
-          `Invalid axis supplied: ${axis} shape length: ${x.shape.length}`);
-    }
-    const num = x.shape[axis];
-    const opAttrs = [
-      {name: 'num', type: this.binding.TF_ATTR_INT, value: num},
-      createTensorsTypeOpAttr('T', x.dtype),
-      {name: 'axis', type: this.binding.TF_ATTR_INT, value: axis}
-    ];
-    return this.executeMultipleOutputs('Unpack', opAttrs, [x], num);
-  }
-
-  batchMatMul(
-      a: Tensor<Rank.R3>, b: Tensor<Rank.R3>, transposeA: boolean,
-      transposeB: boolean): Tensor<Rank.R3> {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', a.dtype),
-      {name: 'adj_x', type: this.binding.TF_ATTR_BOOL, value: transposeA},
-      {name: 'adj_y', type: this.binding.TF_ATTR_BOOL, value: transposeB}
-    ];
-    return this.executeSingleOutput('BatchMatMul', opAttrs, [a, b]) as
-        Tensor<Rank.R3>;
   }
 
   private applyActivation<T extends Tensor>(
@@ -388,7 +344,7 @@ export class NodeJSKernelBackend extends KernelBackend {
           backend_util.FusedBatchMatMulConfig): Tensor3D {
     // Core TensorFlow does not have a fused BatchMatMul op. Combine calls to
     // achieve the same results:
-    let result = this.batchMatMul(a, b, transposeA, transposeB);
+    let result: Tensor3D = tf.matMul(a, b, transposeA, transposeB);
     if (bias != null) {
       result = tf.add(result, bias);
     }
@@ -396,20 +352,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     result = this.applyActivation(result, activation, preluActivationWeights);
 
     return result;
-  }
-
-  slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      createTensorsTypeOpAttr('Index', 'int32')
-    ];
-
-    // Bind tensor values
-    const beginTensor = tensor1d(begin, 'int32');
-    const sizeTensor = tensor1d(size, 'int32');
-
-    return this.executeSingleOutput(
-               'Slice', opAttrs, [x, beginTensor, sizeTensor]) as T;
   }
 
   reverse<T extends Tensor>(a: T, axis: number[]): T {
@@ -548,25 +490,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('FloorMod', opAttrs, [a, b]);
   }
 
-  isNaN<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('IsNan', x) as T;
-  }
-  isInf<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('IsInf', x) as T;
-  }
-  isFinite<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('IsFinite', x) as T;
-  }
-
-  reciprocal<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Reciprocal', x) as T;
-  }
-
-  squaredDifference(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr('T', a.dtype)];
-    return this.executeSingleOutput('SquaredDifference', opAttrs, [a, b]);
-  }
-
   expm1<T extends Tensor>(x: T): T {
     return this.executeSingleInput('Expm1', x) as T;
   }
@@ -582,7 +505,7 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   step<T extends Tensor>(x: T, alpha: number): T {
     const dtype = x.dtype;
-    const nans = this.isNaN(x);
+    const nans = tf.isNaN(x);
     const stepNoNans = this.select(
         tf.greater(x, scalar(0, dtype)), ones(x.shape),
         fill(x.shape, alpha, dtype));

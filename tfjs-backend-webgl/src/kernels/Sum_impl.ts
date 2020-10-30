@@ -15,29 +15,60 @@
  * =============================================================================
  */
 
-import {sumOutType, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, sumOutType, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {reduce} from '../kernel_utils/reduce';
-import {reshape} from '../kernels/Reshape';
+import {reshape} from './Reshape';
+
+import {transposeImpl} from './Transpose_impl';
 
 export function sumImpl(
-    x: TensorInfo, reduceShape: number[], outShape: number[],
+    x: TensorInfo, axis: number|number[], keepDims: boolean,
     backend: MathBackendWebGL): TensorInfo {
+  const reductionIndices = axis;
+
+  const xRank = x.shape.length;
+
+  const origAxes = util.parseAxisParam(reductionIndices, x.shape);
+  let axes = origAxes;
+  const permutedAxes = backend_util.getAxesPermutation(axes, xRank);
+  const sumInputIsTransposed = permutedAxes != null;
+
+  let sumInput = x;
+  if (sumInputIsTransposed) {
+    sumInput = transposeImpl(x, permutedAxes, backend);
+
+    axes = backend_util.getInnerMostAxes(axes.length, xRank);
+  }
+
+  backend_util.assertAxesAreInnerMostDims('sum', axes, xRank);
+  const [sumOutShape, reduceShape] =
+      backend_util.computeOutAndReduceShapes(sumInput.shape, axes);
+
+  let outShape = sumOutShape;
+  if (keepDims) {
+    // rather than reshape at the end, set the target shape here.
+    outShape = backend_util.expandShapeToKeepDim(sumOutShape, origAxes);
+  }
+
   const inSize = util.sizeFromShape(reduceShape);
   const xSize = util.sizeFromShape(x.shape);
   const batchSize = xSize / inSize;
-  const reshapedInput =
-      reshape({inputs: {x}, attrs: {shape: [batchSize, inSize]}, backend});
+  const reshapedInput = reshape(
+      {inputs: {x: sumInput}, attrs: {shape: [batchSize, inSize]}, backend});
 
   const outType = sumOutType(x.dtype);
 
   const reduced = reduce(reshapedInput, outType, 'sum', backend);
-  const reshapedOutput =
+  const out =
       reshape({inputs: {x: reduced}, attrs: {shape: outShape}, backend});
 
   backend.disposeIntermediateTensorInfo(reshapedInput);
   backend.disposeIntermediateTensorInfo(reduced);
+  if (sumInputIsTransposed) {
+    backend.disposeIntermediateTensorInfo(sumInput);
+  }
 
-  return reshapedOutput;
+  return out;
 }

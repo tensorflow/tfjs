@@ -15,17 +15,28 @@
  * =============================================================================
  */
 
-import {KernelConfig, SquaredDifference, SquaredDifferenceInputs} from '@tensorflow/tfjs';
+import {KernelConfig, Unpack, UnpackAttrs, UnpackInputs} from '@tensorflow/tfjs';
+
 import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
-export const squaredDifferenceConfig: KernelConfig = {
-  kernelName: SquaredDifference,
+export const unpackConfig: KernelConfig = {
+  kernelName: Unpack,
   backendName: 'tensorflow',
   kernelFunc: (args) => {
-    const {a, b} = args.inputs as SquaredDifferenceInputs;
+    const {value} = args.inputs as UnpackInputs;
     const backend = args.backend as NodeJSKernelBackend;
+    const {axis} = args.attrs as {} as UnpackAttrs;
 
-    const opAttrs = [createTensorsTypeOpAttr('T', a.dtype)];
-    return backend.executeSingleOutput(SquaredDifference, opAttrs, [a, b]);
+    if (axis >= value.shape.length) {
+      throw new Error(
+          `Invalid axis supplied: ${axis} shape length: ${value.shape.length}`);
+    }
+    const num = value.shape[axis];
+    const opAttrs = [
+      {name: 'num', type: backend.binding.TF_ATTR_INT, value: num},
+      createTensorsTypeOpAttr('T', value.dtype),
+      {name: 'axis', type: backend.binding.TF_ATTR_INT, value: axis}
+    ];
+    return backend.executeMultipleOutputs(Unpack, opAttrs, [value], num);
   }
 };

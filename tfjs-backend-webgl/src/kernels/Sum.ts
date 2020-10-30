@@ -15,12 +15,11 @@
  * =============================================================================
  */
 
-import {backend_util, KernelConfig, KernelFunc, Sum, SumAttrs, SumInputs, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Sum, SumAttrs, SumInputs} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 
 import {sumImpl} from './Sum_impl';
-import {transposeImpl} from './Transpose_impl';
 
 export function sum(
     args: {inputs: SumInputs, attrs: SumAttrs, backend: MathBackendWebGL}) {
@@ -28,40 +27,8 @@ export function sum(
 
   const {x} = inputs;
   const {axis, keepDims} = attrs;
-  const webglBackend = backend;
 
-  const reductionIndices = axis;
-
-  const xRank = x.shape.length;
-
-  const origAxes = util.parseAxisParam(reductionIndices, x.shape);
-  let axes = origAxes;
-  const permutedAxes = backend_util.getAxesPermutation(axes, xRank);
-  const sumInputIsTransposed = permutedAxes != null;
-
-  let sumInput = x;
-  if (sumInputIsTransposed) {
-    sumInput = transposeImpl(x, permutedAxes, webglBackend);
-
-    axes = backend_util.getInnerMostAxes(axes.length, xRank);
-  }
-
-  backend_util.assertAxesAreInnerMostDims('sum', axes, xRank);
-  const [sumOutShape, reduceShape] =
-      backend_util.computeOutAndReduceShapes(sumInput.shape, axes);
-
-  let outShape = sumOutShape;
-  if (keepDims) {
-    // rather than reshape at the end, set the target shape here.
-    outShape = backend_util.expandShapeToKeepDim(sumOutShape, origAxes);
-  }
-
-  const out = sumImpl(sumInput, reduceShape, outShape, webglBackend);
-  if (sumInputIsTransposed) {
-    webglBackend.disposeIntermediateTensorInfo(sumInput);
-  }
-
-  return out;
+  return sumImpl(x, axis, keepDims, backend);
 }
 
 export const sumConfig: KernelConfig = {

@@ -15,17 +15,17 @@
  * =============================================================================
  */
 
-import {KernelConfig, SquaredDifference, SquaredDifferenceInputs} from '@tensorflow/tfjs';
-import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
+import {IsFinite, IsFiniteInputs, KernelConfig} from '@tensorflow/tfjs';
 
-export const squaredDifferenceConfig: KernelConfig = {
-  kernelName: SquaredDifference,
+import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
+
+export const isFiniteConfig: KernelConfig = {
+  kernelName: IsFinite,
   backendName: 'tensorflow',
   kernelFunc: (args) => {
-    const {a, b} = args.inputs as SquaredDifferenceInputs;
+    const {x} = args.inputs as IsFiniteInputs;
     const backend = args.backend as NodeJSKernelBackend;
 
-    const opAttrs = [createTensorsTypeOpAttr('T', a.dtype)];
-    return backend.executeSingleOutput(SquaredDifference, opAttrs, [a, b]);
+    return backend.executeSingleInput(IsFinite, x);
   }
 };

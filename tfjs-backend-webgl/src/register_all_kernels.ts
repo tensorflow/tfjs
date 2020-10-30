@@ -64,6 +64,7 @@ const kernelConfigs: KernelConfig[] = [
   atan2Config,
   avgPoolConfig,
   avgPoolBackpropConfig,
+  batchMatMulConfig,
   batchNormConfig,
   batchMatMulConfig,
   castConfig,
