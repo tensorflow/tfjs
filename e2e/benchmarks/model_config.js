@@ -231,7 +231,7 @@ const benchmarks = {
         const shape = model.modelInputShape();
         // Cannot use tf.util.sizeFromShape because shape includes null.
         const mySpectrogramData = new Float32Array(shape.reduce((acc, curr) => {
-          if(curr == null) {
+          if (curr == null) {
             return acc;
           }
           return acc * curr;
@@ -250,7 +250,7 @@ const benchmarks = {
       return async model => {
         let inferenceInput;
         try {
-          inferenceInput = generateInput(model);
+          inferenceInput = generateInputFromDef(state.inputs);
           const predict = getPredictFnForModel(model, inferenceInput);
           const inferenceOutput = await predict();
           return inferenceOutput;

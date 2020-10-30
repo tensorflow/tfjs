@@ -164,7 +164,9 @@ limitations under the License.
       modelUrl: '',
       isModelChanged: false,
       flags: {},
-      isFlagChanged: false
+      isFlagChanged: false,
+      isModelLoaded: false,
+      inputs: {}
     };
 
     const modalDiv = document.getElementById('modal-msg');
@@ -261,7 +263,7 @@ limitations under the License.
 
       let timeInfo;
       if (state.benchmark === 'custom') {
-        const input = generateInput(model);
+        const input = generateInputFromDef(state.inputs);
         try {
           timeInfo = await timeModelInference(model, input, 1);
         } finally {
@@ -281,25 +283,37 @@ limitations under the License.
         // the input table for the model have been constructed
         return;
       }
-
+      let variableShape = false;
       const modelInputsElement = document.getElementById('modelInputs');
       if (model['inputs'] == null) {
         modelInputsElement.style.display='none';
       } else {
         modelInputsElement.style.display='';
         // construct the input table for the new model
-        for (let modelInputIndex = 0; modelInputIndex < model.inputs.length; modelInputIndex++) {
-          let modelInput = model.inputs[modelInputIndex];
-          if (modelInput.shape == null) continue;
-          const shape = modelInput.shape.map(e => e == null ? -1 : e);
-          appendRow(modelInputsTable, 'name', modelInput.name);
-          appendRow(modelInputsTable, 'shape', shape);
-          appendRow(modelInputsTable, 'data type', modelInput.dtype);
-          appendRow(modelInputsTable, '', '');
-        }
+        state.inputs.forEach((modelInput, inputIndex) => {
+          if (modelInput.shape != null) {
+            let shape = modelInput.shape;
+            variableShape = modelInput.shape.some(e => e == -1);
+            if (variableShape && state.benchmark === 'custom') {
+              const shapeInput = document.createElement("INPUT");
+              shapeInput.setAttribute('type', 'text');
+              shapeInput.setAttribute('value', shape);
+              shapeInput.addEventListener('focusout', () => {
+                state.inputs[inputIndex].shape =
+                    shapeInput.value.split(',').map(x => +x);
+              });
+              shape = shapeInput;
+            }
+            appendRow(modelInputsTable, 'name', modelInput.name);
+            appendRow(modelInputsTable, 'shape', shape);
+            appendRow(modelInputsTable, 'data type', modelInput.dtype);
+            appendRow(modelInputsTable, '', '');
+          }
+        });
       }
 
       await tf.nextFrame();
+      return variableShape;
     }
 
     async function loadModelAndRecordTime() {
@@ -314,6 +328,20 @@ limitations under the License.
       await showMsg('Loading the model');
       let start = performance.now();
       model = await benchmark.load();
+      state.inputs = [];
+      if (model.inputs) {
+        // construct the input state for the model
+        for (let modelInputIndex = 0; modelInputIndex < model.inputs.length; modelInputIndex++) {
+            let modelInput = model.inputs[modelInputIndex];
+            if (modelInput.shape == null) continue;
+            let shape = modelInput.shape.map(e => e == null ? -1 : e);
+            state.inputs.push({
+              name: modelInput.name,
+              shape: [...shape],
+              dtype: modelInput.dtype
+            });
+        }
+      }
       predict = benchmark.predictFunc();
       const elapsed = performance.now() - start;
 
@@ -347,7 +375,7 @@ limitations under the License.
       let timeInfo;
       const numRuns = state.numRuns;
       if (state.benchmark === 'custom') {
-        const input = generateInput(model);
+        const input = generateInputFromDef(state.inputs);
         try {
           timeInfo = await timeModelInference(model, input, numRuns);
         } finally {
@@ -373,7 +401,7 @@ limitations under the License.
 
       let profileInfo;
       if (state.benchmark === 'custom') {
-        const input = generateInput(model);
+        const input = generateInputFromDef(state.inputs);
         try {
           profileInfo = await profileModelInference(model, input);
         } finally {
@@ -443,6 +471,19 @@ limitations under the License.
       await tf.nextFrame();
     }
 
+    async function loadModel() {
+      if (state.isModelChanged || !state.isModelLoaded) {
+        await loadModelAndRecordTime();
+        state.isModelLoaded = true;
+        const needInputShape = await showInputs();
+        if (needInputShape) {
+          showMsg('Please set the variable input shapes, update -1 to the desired value.');
+          return false;
+        }
+      }
+      return true;
+    }
+
     async function runBenchmark() {
       if (state.isFlagChanged) {
         await setEnvFlags(state.flags);
@@ -454,8 +495,11 @@ limitations under the License.
       await cleanUpTable();
       await setupKernelTable();
 
-      await loadModelAndRecordTime();
-      await showInputs();
+      const canProceed = await loadModel();
+      // return immediately if load model failed or need user input.
+      if (!canProceed) {
+        return;
+      }
       await showBenchmarkingParameters();
 
       await warmUpAndRecordTime();
@@ -478,10 +522,12 @@ limitations under the License.
       modelFolder.add(state, 'benchmark', Object.keys(benchmarks)).name('models').onChange(async model => {
         await showMsg(null);
         state.isModelChanged = true;
+        state.isModelLoaded = false;
         if (model === 'custom') {
           if (modelUrlController === null) {
             modelUrlController = modelFolder.add(state, 'modelUrl').onChange(async modelUrl => {
               state.isModelChanged = true;
+              state.isModelLoaded = false;
               await showMsg(null);
             });
             modelUrlController.domElement.querySelector('input').placeholder =
