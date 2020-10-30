@@ -26,6 +26,7 @@ import {batchNormConfig} from './kernels/BatchNorm';
 import {castConfig} from './kernels/Cast';
 import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
+import {conv2DConfig} from './kernels/Conv2D';
 import {cosConfig} from './kernels/Cos';
 import {divConfig} from './kernels/Div';
 import {fftConfig} from './kernels/FFT';
@@ -66,10 +67,10 @@ const kernelConfigs: KernelConfig[] = [
   avgPoolBackpropConfig,
   batchMatMulConfig,
   batchNormConfig,
-  batchMatMulConfig,
   castConfig,
   complexConfig,
   concatConfig,
+  conv2DConfig,
   cosConfig,
   divConfig,
   fftConfig,
