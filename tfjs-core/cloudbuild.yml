@@ -14,13 +14,9 @@ steps:
   waitFor: ['yarn-common']
 
 # Build deps.
-# Named 'build-deps-always' since it must be run in CI,
-# and 'build-deps' would get automatically removed.
-# This is a hack around the limitation that there can not
-# be cycles in the continuous integration dependency tree.
 - name: 'node:10'
   dir: 'tfjs-core'
-  id: 'build-deps-always'
+  id: 'build-deps'
   entrypoint: 'yarn'
   args: ['build-deps-ci']
   waitFor: ['yarn']
@@ -31,7 +27,7 @@ steps:
   id: 'build'
   entrypoint: 'yarn'
   args: ['build-ci']
-  waitFor: ['yarn', 'build-deps-always']
+  waitFor: ['yarn', 'build-deps']
 
 # Lint.
 - name: 'node:10'
@@ -39,7 +35,7 @@ steps:
   id: 'lint'
   entrypoint: 'yarn'
   args: ['lint']
-  waitFor: ['yarn', 'build-deps-always']
+  waitFor: ['yarn', 'build-deps']
 
 # Run unit tests.
 - name: 'node:10'
@@ -47,7 +43,7 @@ steps:
   id: 'test'
   entrypoint: 'yarn'
   args: ['test-ci']
-  waitFor: ['yarn', 'build-deps-always', 'lint']
+  waitFor: ['yarn', 'build-deps', 'lint']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 
