@@ -57,6 +57,9 @@ export function conv2dByMatMul({
   const transposeA = false;
   const transposeB = false;
 
+  let out: TensorInfo;
+  const intermediates: TensorInfo[] = [];
+
   // TODO: Once reduction ops are packed, batchMatMul will always be packed
   // and we can remove this condition.
   const batchMatMulWillBeUnpacked =
@@ -79,7 +82,6 @@ export function conv2dByMatMul({
       backend,
       attrs: {shape: [1, convInfo.inChannels, convInfo.outChannels]}
     });
-
     const result = batchMatMulImpl({
       a: xReshaped,
       b: filterReshaped,
@@ -91,65 +93,79 @@ export function conv2dByMatMul({
       preluActivationWeights
     });
 
-    return reshape(
+    out = reshape(
         {inputs: {x: result}, backend, attrs: {shape: convInfo.outShape}});
+
+    intermediates.push(xReshaped);
+    intermediates.push(filterReshaped);
+    intermediates.push(result);
+  } else {
+    // Following optimization is specific to packed |x| with odd row count
+    // (For example, in channelLast mode, 'row count' refers to x.shape[2]):
+    // we avoid expensive packed 2x2 reshape by padding row count to next,
+    // even number. When x.shape[2] is odd, the result of packed batchMatMul is
+    // the same (has the same texture layout and and values in the texture) as
+    // it is for even x.shape[2] + 1. We make the odd-rows tensor to look like
+    // even-rows tensor before the operation and, after the batchMatMul,
+    // fix the even-rows result to have odd number of rows.
+    const targetShape = isChannelsLast ?
+        xShape[0] * xShape[1] * (xShape[2] + 1) :
+        xShape[0] * xShape[2] * (xShape[3] + 1);
+    const xReshaped: TensorInfo = {
+      dataId: x.dataId,
+      shape: [1, targetShape, convInfo.inChannels],
+      dtype: x.dtype
+    };
+    // xTexData.shape gets referenced from GPGPUBinary.inShapeInfos.
+    // Decrementing row count, after batchMatMul->...->compileProgram leads to
+    // invalid row count within the reference in GPGPUBinary.inShapeInfos.
+    // Alternative fix would be to provide a copy to GPGPUBinary.inShapeInfos
+    // in compileProgram method, but that would affect compilation of all
+    // programs - instead, provide a copy here, with even row count, before
+    // calling batchMatMul->...->compileProgram and after that, the original
+    // xTexData.shape is restored.
+    const originalXTexDataShape = xTexData.shape;
+    xTexData.shape = xTexData.shape.slice();
+    xTexData.shape[xTexData.shape.length - 2]++;
+    util.assert(
+        webgl_util.isReshapeFree(xTexData.shape, xReshaped.shape),
+        () => `packed reshape ${xTexData.shape} to ${
+            xReshaped.shape} isn't free`);
+    const filterReshaped = reshape({
+      inputs: {x: filter},
+      backend,
+      attrs: {shape: [1, convInfo.inChannels, convInfo.outChannels]}
+    });
+    intermediates.push(filterReshaped);
+    const pointwiseConv = batchMatMulImpl({
+      a: xReshaped,
+      b: filterReshaped,
+      backend,
+      transposeA,
+      transposeB,
+      bias,
+      activation,
+      preluActivationWeights
+    });
+
+    const pointwiseConvTexData = backend.texData.get(pointwiseConv.dataId);
+    util.assert(
+        pointwiseConvTexData.isPacked,
+        () => 'batchMatMul result is expected to be packed');
+    // Restore the input shape to original.
+    xTexData.shape = originalXTexDataShape;
+    // Set the output shape - there is no need for expensive reshape as data
+    // layout is already correct.
+    pointwiseConvTexData.shape = convInfo.outShape;
+
+    out = identity({inputs: {x: pointwiseConv}, backend});
   }
 
-  // Following optimization is specific to packed |x| with odd row count
-  // (For example, in channelLast mode, 'row count' refers to x.shape[2]):
-  // we avoid expensive packed 2x2 reshape by padding row count to next,
-  // even number. When x.shape[2] is odd, the result of packed batchMatMul is
-  // the same (has the same texture layout and and values in the texture) as
-  // it is for even x.shape[2] + 1. We make the odd-rows tensor to look like
-  // even-rows tensor before the operation and, after the batchMatMul,
-  // fix the even-rows result to have odd number of rows.
-  const targetShape = isChannelsLast ? xShape[0] * xShape[1] * (xShape[2] + 1) :
-                                       xShape[0] * xShape[2] * (xShape[3] + 1);
-  const xReshaped: TensorInfo = {
-    dataId: x.dataId,
-    shape: [1, targetShape, convInfo.inChannels],
-    dtype: x.dtype
-  };
-  // xTexData.shape gets referenced from GPGPUBinary.inShapeInfos.
-  // Decrementing row count, after batchMatMul->...->compileProgram leads to
-  // invalid row count within the reference in GPGPUBinary.inShapeInfos.
-  // Alternative fix would be to provide a copy to GPGPUBinary.inShapeInfos
-  // in compileProgram method, but that would affect compilation of all
-  // programs - instead, provide a copy here, with even row count, before
-  // calling batchMatMul->...->compileProgram and after that, the original
-  // xTexData.shape is restored.
-  const originalXTexDataShape = xTexData.shape;
-  xTexData.shape = xTexData.shape.slice();
-  xTexData.shape[xTexData.shape.length - 2]++;
-  util.assert(
-      webgl_util.isReshapeFree(xTexData.shape, xReshaped.shape),
-      () =>
-          `packed reshape ${xTexData.shape} to ${xReshaped.shape} isn't free`);
-  const filterReshaped = reshape({
-    inputs: {x: filter},
-    backend,
-    attrs: {shape: [1, convInfo.inChannels, convInfo.outChannels]}
-  });
-  const pointwiseConv = batchMatMulImpl({
-    a: xReshaped,
-    b: filterReshaped,
-    backend,
-    transposeA,
-    transposeB,
-    bias,
-    activation,
-    preluActivationWeights
-  });
-  const pointwiseConvTexData = backend.texData.get(pointwiseConv.dataId);
-  util.assert(
-      pointwiseConvTexData.isPacked,
-      () => 'batchMatMul result is expected to be packed');
-  // Restore the input shape to original.
-  xTexData.shape = originalXTexDataShape;
-  // Set the output shape - there is no need for expensive reshape as data
-  // layout is already correct.
-  pointwiseConvTexData.shape = convInfo.outShape;
-  return identity({inputs: {x: pointwiseConv}, backend});
+  for (const i of intermediates) {
+    backend.disposeIntermediateTensorInfo(i);
+  }
+
+  return out;
 }
 
 export function conv2dWithIm2Row({
@@ -184,10 +200,18 @@ export function conv2dWithIm2Row({
   const transposeA = true;
   const transposeB = false;
 
+  const intermediates: TensorInfo[] = [];
+
   const xSqueezed =
       reshape({inputs: {x}, backend, attrs: {shape: x.shape.slice(1)}});
-  const w2Row = reshape(
-      {inputs: {x: filter}, backend, attrs: {shape: [1, sharedDim, -1]}});
+  const w2Row = reshape({
+    inputs: {x: filter},
+    backend,
+    attrs: {shape: [1, sharedDim, util.sizeFromShape(filter.shape) / sharedDim]}
+  });
+
+  intermediates.push(xSqueezed);
+  intermediates.push(w2Row);
 
   const im2ColProgram =
       new Im2ColPackedProgram(x2ColShape, xSqueezed.shape, convInfo);
@@ -197,6 +221,8 @@ export function conv2dWithIm2Row({
     backend,
     attrs: {shape: [1, x2ColShape[0], x2ColShape[1]]}
   });
+
+  intermediates.push(im2Col);
 
   const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
@@ -216,17 +242,26 @@ export function conv2dWithIm2Row({
   }
   const product = backend.runWebGLProgram(matmulProgram, inputs, 'float32');
 
+  let out: TensorInfo;
   if (isChannelsLast) {
-    return reshape({
+    out = reshape({
       inputs: {x: product},
       backend,
       attrs: {shape: [1, outHeight, outWidth, convInfo.outChannels]}
     });
   } else {
-    return reshape({
+    out = reshape({
       inputs: {x: product},
       backend,
       attrs: {shape: [1, convInfo.outChannels, outHeight, outWidth]}
     });
   }
+
+  intermediates.push(product);
+
+  for (const i of intermediates) {
+    backend.disposeIntermediateTensorInfo(i);
+  }
+
+  return out;
 }
