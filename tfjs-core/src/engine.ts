@@ -66,6 +66,7 @@ export type ProfileInfo = {
   newBytes: number; newTensors: number; peakBytes: number;
   kernels: KernelInfo[];
   result: TensorContainer;
+  kernelNames: string[];
 };
 
 export interface TimingInfo extends BackendTimingInfo {
@@ -119,8 +120,16 @@ class EngineState {
   }>();
 
   profiling = false;
-  activeProfile: ProfileInfo =
-      {newBytes: 0, newTensors: 0, peakBytes: 0, kernels: [], result: null};
+  activeProfile: ProfileInfo = {
+    newBytes: 0,
+    newTensors: 0,
+    peakBytes: 0,
+    kernels: [],
+    result: null,
+    get kernelNames() {
+      return Array.from(new Set(this.kernels.map(k => k.name)));
+    }
+  };
 
   dispose() {
     for (const variableName in this.registeredVariables) {
