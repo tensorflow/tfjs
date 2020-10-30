@@ -1,35 +1,21 @@
-
 steps:
-# Install common dependencies.
+# Install top-level deps.
 - name: 'node:10'
+  entrypoint: 'yarn'
   id: 'yarn-common'
-  entrypoint: 'yarn'
   args: ['install']
 
-# Install tfjs-vis dependencies.
-- name: 'node:10'
-  dir: 'tfjs-node'
-  entrypoint: 'yarn'
-  id: 'yarn'
-  args: ['install']
-  waitFor: ['yarn-common']
-
-# Run vis tests.
-- name: 'node:10'
-  dir: 'tfjs-vis'
-  entrypoint: 'yarn'
-  id: 'test-vis'
-  args: ['test-ci']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
-  secretEnv: ['BROWSERSTACK_KEY']
-  waitFor: ['yarn']
-
+# General configuration
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
   secretEnv:
     BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
-timeout: 1800s
+    FIREBASE_KEY: CiQAkwyoIXmET39jOD3ywloCIa6+WUpu3w49twpMmkMqy0vS+YsSUAAD8BdZQGOL8FKEBxr/1jl0G78OigwlNVHjD3usZobNtlOp8tV/9iacb8zPFqy0SwIO1gvz3HRr+VU7c7LS2qqaTCdacZF+dx3VJNewvdZu
+timeout: 3600s
 logsBucket: 'gs://tfjs-build-logs'
+substitutions:
+  _NIGHTLY: ''
 options:
   logStreamingOption: 'STREAM_ON'
+  machineType: 'N1_HIGHCPU_32'
   substitution_option: 'ALLOW_LOOSE'
