@@ -307,6 +307,20 @@ limitations under the License.
             appendRow(modelInputsTable, 'name', modelInput.name);
             appendRow(modelInputsTable, 'shape', shape);
             appendRow(modelInputsTable, 'data type', modelInput.dtype);
+            // add data range for input generator
+            if (state.benchmark === 'custom') {
+              const minInput = createRangeInput(state.inputs[inputIndex].range,
+                    0);
+              const maxInput = createRangeInput(state.inputs[inputIndex].range,
+                    1);
+              const seperator = document.createElement('span');
+              seperator.textContent = ' - '
+              const div = document.createElement('div');
+              div.appendChild(minInput);
+              div.appendChild(seperator);
+              div.appendChild(maxInput);
+              appendRow(modelInputsTable, 'data range', div);
+            }
             appendRow(modelInputsTable, '', '');
           }
         });
@@ -316,6 +330,15 @@ limitations under the License.
       return variableShape;
     }
 
+    function createRangeInput(range, index) {
+      const input = document.createElement("INPUT");
+      input.setAttribute('type', 'text');
+      input.setAttribute('value', range[index]);
+      input.addEventListener('focusout', () => {
+        range[index] = +input.value;
+      });
+      return input;
+    }
     async function loadModelAndRecordTime() {
       const benchmark = benchmarks[state.benchmark];
       state.modelType = benchmark['type'];
@@ -338,7 +361,8 @@ limitations under the License.
             state.inputs.push({
               name: modelInput.name,
               shape: [...shape],
-              dtype: modelInput.dtype
+              dtype: modelInput.dtype,
+              range: [0, 1000]
             });
         }
       }

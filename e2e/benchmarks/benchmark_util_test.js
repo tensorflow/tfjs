@@ -38,6 +38,31 @@ describe('benchmark_util', () => {
     });
   });
 
+  describe('generateInputFromDef', () => {
+    it('should respect int32 data range', async () => {
+      const inputDef =
+          [{shape: [1, 1, 10], dtype: 'int32', range: [0, 255], name: 'test'}];
+      const input = generateInputFromDef(inputDef);
+      expect(input.length).toEqual(1);
+      expect(input[0]).toBeInstanceOf(tf.Tensor);
+      expect(input[0].shape).toEqual([1, 1, 10]);
+      expect(input[0].dtype).toEqual('int32');
+      const data = await input[0].dataSync();
+      expect(data.every(value => value >= 0 && value <= 255));
+    });
+    it('should respect flaot32 data range', async () => {
+      const inputDef =
+          [{shape: [1, 1, 10], dtype: 'float32', range: [0, 1], name: 'test'}];
+      const input = generateInputFromDef(inputDef);
+      expect(input.length).toEqual(1);
+      expect(input[0]).toBeInstanceOf(tf.Tensor);
+      expect(input[0].shape).toEqual([1, 1, 10]);
+      expect(input[0].dtype).toEqual('float32');
+      const data = await input[0].dataSync();
+      expect(data.every(value => value >= 0 && value <= 1));
+    });
+  });
+
   describe('profile inference time', () => {
     describe('timeInference', () => {
       it('throws when passing in invalid predict', async () => {
