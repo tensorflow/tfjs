@@ -23,6 +23,7 @@ import {convertToTensorArray} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assert, parseAxisParam, sizeFromShape} from '../util';
 
+import {clone} from './clone';
 import {assertParamsConsistent, computeOutShape} from './concat_util';
 import {op} from './operation';
 import {tensor} from './tensor';
@@ -81,6 +82,10 @@ function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
     });
   }
 
+  if ($tensors.length === 1) {
+    return clone($tensors[0]);
+  }
+
   const forward: ForwardFunc<Tensor> = (backend, save) => {
     const $axis = parseAxisParam(axis, $tensors[0].shape)[0];
     const outShape = computeOutShape($tensors.map(t => t.shape), $axis);
@@ -90,7 +95,7 @@ function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
     // Keep only non-empty tensors (ignore tensors with 0 in their shape).
     $tensors = $tensors.filter(t => t.size > 0);
     if ($tensors.length === 1) {
-      return $tensors[0];
+      return clone($tensors[0]);
     }
 
     const shapes = $tensors.map(t => t.shape);
