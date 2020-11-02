@@ -1836,22 +1836,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, inputs);
   }
 
-  // conv2d(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
-  //     Tensor4D {
-  //   if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
-  //       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
-  //       convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
-  //       (convInfo.padInfo.type === 'SAME' ||
-  //        convInfo.padInfo.type === 'VALID')) {
-  //     return this.conv2dByMatMul(x, filter, convInfo);
-  //   }
-  //   if (env().getBool('WEBGL_CONV_IM2COL') && x.shape[0] === 1) {
-  //     return this.conv2dWithIm2Row(x, filter, convInfo);
-  //   }
-  //   const program = new Conv2DProgram(convInfo);
-  //   return this.compileAndRun(program, [x, filter]);
-  // }
-
   conv2dDerInput(
       dy: Tensor4D, filter: Tensor4D,
       convInfo: backend_util.Conv2DInfo): Tensor4D {
