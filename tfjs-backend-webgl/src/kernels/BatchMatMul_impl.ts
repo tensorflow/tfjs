@@ -94,11 +94,11 @@ export function batchMatMulImpl({
       [batchDimB, outerShapeB, innerShapeB] :
       [batchDimB, innerShapeB, outerShapeB];
 
-  const intermediates: TensorInfo[] = [];
-
   // The rest of the implementation is designed to operate on rank-3 tensors
   const a3d = reshape({inputs: {x: a}, backend, attrs: {shape: a3dShape}});
   const b3d = reshape({inputs: {x: b}, backend, attrs: {shape: b3dShape}});
+
+  const intermediates: TensorInfo[] = [a3d, b3d];
 
   const batchDim = Math.max(batchDimA, batchDimB);
   const sharedDim = transposeA ? a3d.shape[1] : a3d.shape[2];
