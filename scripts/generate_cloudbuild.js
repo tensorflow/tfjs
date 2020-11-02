@@ -33,9 +33,25 @@ const DEPENDENCY_ORDER = topologicalSort(DEPENDENCY_GRAPH);
 const EXCLUDE_STEPS = new Set(['build-deps', 'yarn-common']);
 
 /**
+ * Verify that an object is a valid graph.
+ */
+function verifyGraph(graph) {
+  const nodes = new Set(Object.keys(graph));
+  for (const [node, edges] of Object.entries(graph)) {
+    for (const edge of edges) {
+      if (!nodes.has(edge)) {
+        throw new Error(
+            `Graph edge ${edge} of node ${node} not found in the graph`);
+      }
+    }
+  }
+}
+
+/**
  * Transpose a directed graph i.e. reverse the direction of the edges.
  */
 function transposeGraph(graph) {
+  verifyGraph(graph);
   const transposed = {};
   for (const [nodeName, connectedNodes] of Object.entries(graph)) {
     for (const connectedNode of connectedNodes) {
@@ -62,6 +78,7 @@ function topologicalSort(graph) {
   // We can't use a standard sorting algorithm because
   // often, two packages won't have any dependency relationship
   // between each other, meaning they are incomparable.
+  verifyGraph(graph);
   const sorted = [];
 
   while (sorted.length < Object.keys(graph).length) {
