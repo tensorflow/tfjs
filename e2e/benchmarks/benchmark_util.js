@@ -44,34 +44,60 @@ function generateInput(model) {
     throw new Error('The model.inputs cannot be found.');
   }
 
+  const inputDefs = model.inputs.map((inputNode, inputNodeIndex) => {
+    // Replace -1 or null in input tensor shape.
+    const inputShape = inputNode.shape.map(shapeValue => {
+      if (shapeValue == null || shapeValue < 0) {
+        return 1;
+      } else {
+        return shapeValue;
+      }
+    });
+    return {shape: inputShape, name: inputNode.name, dtype: inputNode.dtype};
+  });
+
+  return generateInputFromDef(inputDefs, model instanceof tf.GraphModel);
+}
+
+/**
+ * Generates a random input for input definition.
+ *
+ * ```js
+ * const input = generateInput(inputDefs);
+ *
+ * console.log(`Generated input: ${Object.values(input)}`);
+ * console.log(`Prediction for the generated input: ${prediction}`);
+ * ```
+ *
+ * @param inputDefs The input definition that is used to generate the input.
+ * @param isForGraphModel flag for whether to generate inputs for GraphModel
+ */
+function generateInputFromDef(inputDefs, isForGraphModel = false) {
+  if (inputDefs == null) {
+    throw new Error('The inputDef cannot be found.');
+  }
+
   const tensorArray = [];
   try {
-    model.inputs.forEach((inputNode, inputNodeIndex) => {
-      // Replace -1 or null in input tensor shape.
-      const inputShape = inputNode.shape.map(shapeValue => {
-        if (shapeValue == null || shapeValue < 0) {
-          return 1;
-        } else {
-          return shapeValue;
-        }
-      });
+    inputDefs.forEach((inputDef, inputDefIndex) => {
+      const inputShape = inputDef.shape;
 
       // Construct the input tensor.
       let inputTensor;
-      if (inputNode.dtype === 'float32' || inputNode.dtype === 'int32') {
-        inputTensor = tf.randomNormal(inputShape, 0, 1000, inputNode.dtype);
+      if (inputDef.dtype === 'float32' || inputDef.dtype === 'int32') {
+        inputTensor = tf.randomNormal(inputShape, 0, 1000, inputDef.dtype);
       } else {
         throw new Error(
-            `The ${inputNode.dtype} dtype of '${inputNode.name}' input ` +
-            `at model.inputs[${inputNodeIndex}] is not supported.`);
+            `The ${inputDef.dtype} dtype of '${inputDef.name}' input ` +
+            `at model.inputs[${inputDefIndex}] is not supported.`);
       }
       tensorArray.push(inputTensor);
     });
 
     // Return tensor map for tf.GraphModel.
-    if (model instanceof tf.GraphModel) {
-      const tensorMap = model.inputNodes.reduce((map, inputName, i) => {
-        map[inputName] = tensorArray[i];
+    if (isForGraphModel) {
+      const tensorMap = inputDefs.reduce((map, inputDef, i) => {
+        map[inputDef.name] = tensorArray[i];
         return map;
       }, {});
       return tensorMap;
