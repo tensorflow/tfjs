@@ -46,7 +46,7 @@ import {ClipPackedProgram} from './clip_packed_gpu';
 import {ComplexAbsProgram} from './complex_abs_gpu';
 import {Conv2DDerFilterProgram, Conv2DDerInputProgram, Conv3DDerFilterProgram, Conv3DDerInputProgram} from './conv_backprop_gpu';
 import {DepthwiseConv2DDerFilterProgram, DepthwiseConv2DDerInputProgram} from './conv_backprop_gpu_depthwise';
-import {Conv2DProgram, Conv3DProgram} from './conv_gpu';
+import {Conv3DProgram} from './conv_gpu';
 import {DepthwiseConv2DProgram} from './conv_gpu_depthwise';
 import {DepthwiseConvPacked2DProgram} from './conv_packed_gpu_depthwise';
 import {CropAndResizeProgram} from './crop_and_resize_gpu';
@@ -65,7 +65,6 @@ import {GatherNDProgram} from './gather_nd_gpu';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
 import {GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
-import {Im2ColPackedProgram} from './im2col_packed_gpu';
 import {LRNProgram} from './lrn_gpu';
 import {LRNGradProgram} from './lrn_grad_gpu';
 import {LRNPackedProgram} from './lrn_packed_gpu';
@@ -191,11 +190,6 @@ function numMBBeforeWarning(): number {
           window.devicePixelRatio) *
       BEFORE_PAGING_CONSTANT / 1024 / 1024;
 }
-
-// Empirically determined minimal shared dimension in matmul before we forward
-// to a.mul(b).sum() in order to take advantage of GPU parallelism. See
-// https://github.com/tensorflow/tfjs-core/pull/1379 for benchmarks.
-export const MATMUL_SHARED_DIM_THRESHOLD = 1000;
 
 export class MathBackendWebGL extends KernelBackend {
   texData: DataStorage<TextureData>;
