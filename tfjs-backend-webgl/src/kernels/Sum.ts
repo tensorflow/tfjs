@@ -15,15 +15,24 @@
  * =============================================================================
  */
 
-import {Tensor, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Sum, SumAttrs, SumInputs} from '@tensorflow/tfjs-core';
 
-import {WebGPUBackend} from '../backend_webgpu';
+import {MathBackendWebGL} from '../backend_webgl';
 
-import {BinaryOpType, getBinaryProgram} from './binary_ops';
+import {sumImpl} from './Sum_impl';
 
-export function divImpl(
-    a: TensorInfo, b: TensorInfo, backend: WebGPUBackend): TensorInfo {
-  const program = getBinaryProgram(BinaryOpType.DIV, a.shape, b.shape);
-  const output = backend.compileAndRun(program, [a as Tensor, b as Tensor]);
-  return output;
+export function sum(
+    args: {inputs: SumInputs, attrs: SumAttrs, backend: MathBackendWebGL}) {
+  const {inputs, backend, attrs} = args;
+
+  const {x} = inputs;
+  const {axis, keepDims} = attrs;
+
+  return sumImpl(x, axis, keepDims, backend);
 }
+
+export const sumConfig: KernelConfig = {
+  kernelName: Sum,
+  backendName: 'webgl',
+  kernelFunc: sum as {} as KernelFunc
+};

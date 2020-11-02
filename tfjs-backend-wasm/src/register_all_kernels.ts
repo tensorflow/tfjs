@@ -70,6 +70,7 @@ import {onesLikeConfig} from './kernels/OnesLike';
 import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
+import {prodConfig} from './kernels/Prod';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
@@ -149,6 +150,7 @@ const kernelConfigs: KernelConfig[] = [
   padV2Config,
   powConfig,
   preluConfig,
+  prodConfig,
   reluConfig,
   relu6Config,
   reshapeConfig,

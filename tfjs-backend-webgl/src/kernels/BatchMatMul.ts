@@ -15,15 +15,25 @@
  * =============================================================================
  */
 
-import {Tensor, TensorInfo} from '@tensorflow/tfjs-core';
+import {BatchMatMul, BatchMatMulAttrs, BatchMatMulInputs, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 
-import {WebGPUBackend} from '../backend_webgpu';
+import {MathBackendWebGL} from '../backend_webgl';
+import {batchMatMulImpl} from './BatchMatMul_impl';
 
-import {BinaryOpType, getBinaryProgram} from './binary_ops';
+export function batchMatMul(args: {
+  inputs: BatchMatMulInputs,
+  attrs: BatchMatMulAttrs,
+  backend: MathBackendWebGL
+}) {
+  const {inputs, backend, attrs} = args;
+  const {a, b} = inputs;
+  const {transposeA, transposeB} = attrs;
 
-export function divImpl(
-    a: TensorInfo, b: TensorInfo, backend: WebGPUBackend): TensorInfo {
-  const program = getBinaryProgram(BinaryOpType.DIV, a.shape, b.shape);
-  const output = backend.compileAndRun(program, [a as Tensor, b as Tensor]);
-  return output;
+  return batchMatMulImpl({a, b, transposeA, transposeB, backend});
 }
+
+export const batchMatMulConfig: KernelConfig = {
+  kernelName: BatchMatMul,
+  backendName: 'webgl',
+  kernelFunc: batchMatMul as {} as KernelFunc,
+};

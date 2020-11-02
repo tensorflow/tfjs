@@ -19,7 +19,7 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {DataId, div, engine, env, max, MemoryInfo, range, RecursiveArray, reshape, scalar, softmax, tensor, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
+import {DataId, div, engine, env, max, MemoryInfo, range, RecursiveArray, reshape, scalar, softmax, sum, tensor, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
 import {backend_util, buffer, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
 import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 
@@ -815,42 +815,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  batchMatMul(
-      a: Tensor3D, b: Tensor3D, transposeA: boolean,
-      transposeB: boolean): Tensor3D {
-    const outerShapeA = transposeA ? a.shape[2] : a.shape[1];
-    const outerShapeB = transposeB ? b.shape[1] : b.shape[2];
-    const sharedDim = transposeA ? a.shape[1] : a.shape[2];
-    const batch = Math.max(a.shape[0], b.shape[0]);
-
-    // Since the matrices are vectors, it is faster to call mul().sum()
-    // because sum() is O(sqrt(N)) due to divide-and-conquer.
-    if ((outerShapeA === 1 || outerShapeB === 1) &&
-        sharedDim > MATMUL_SHARED_DIM_THRESHOLD) {
-      if (transposeA) {
-        a = transpose(a, [0, 2, 1]);
-      }
-      if (transposeB) {
-        b = transpose(b, [0, 2, 1]);
-      }
-
-      const a3D = outerShapeB === 1 ? a : a.as3D(batch, sharedDim, 1);
-      const axis = outerShapeB === 1 ? 2 : 1;
-      const b3D = outerShapeB === 1 ? b.as3D(batch, 1, sharedDim) : b;
-      // TODO(annxingyuan): Call multiply directly as part of batchMatMul
-      // modularization.
-      const product = tf.mul(a3D, b3D);
-      return product.sum(axis, true /* keepDims */);
-    }
-
-    const dtype = upcastType(a.dtype, b.dtype);
-
-    const program = new MatMulPackedProgram(
-        a.shape, b.shape, [batch, outerShapeA, outerShapeB], transposeA,
-        transposeB);
-    return this.compileAndRun<Tensor3D>(program, [a, b], dtype);
-  }
-
   fusedBatchMatMul(
       {a, b, transposeA, transposeB, bias, activation, preluActivationWeights}:
           backend_util.FusedBatchMatMulConfig): Tensor3D {
@@ -1040,16 +1004,6 @@ export class MathBackendWebGL extends KernelBackend {
       return this.argReducePacked(x, reduceType, output);
     }
     return output;
-  }
-
-  sum(x: Tensor, axes: number[]): Tensor {
-    backend_util.assertAxesAreInnerMostDims('sum', axes, x.rank);
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const inSize = util.sizeFromShape(reduceShape);
-    const a2D = x.as2D(-1, inSize);
-    const outputDType = tf.sumOutType(x.dtype);
-    return this.reduce(a2D, 'sum', outputDType).reshape(outShape);
   }
 
   prod(x: Tensor, axes: number[]): Tensor {
@@ -1488,7 +1442,7 @@ export class MathBackendWebGL extends KernelBackend {
     // modularization.
     const a = tf.sub(logits, maxLogit.reshape(expandedShape));
     const b = this.exp(a);
-    const sumExp = this.sum(b, axes).reshape(expandedShape);
+    const sumExp = sum(b, axes).reshape(expandedShape);
 
     // TODO(annxingyuan): Call divImpl rather than op as part of softmax kernel
     // modularization.
