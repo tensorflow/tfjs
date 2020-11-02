@@ -61,6 +61,12 @@ const VIS_REPO: Repo = {
   path: 'tfjs-vis',
 };
 
+const RN_REPO: Repo = {
+  name: 'tfjs-react-native',
+  identifier: 'tfjs-react-native',
+  path: 'tfjs-react-native',
+};
+
 async function askUserForVersions(validVersions: string[], packageName: string):
     Promise<{startVersion: string, endVersion: string}> {
   const YELLOW_TERMINAL_COLOR = '\x1b[33m%s\x1b[0m';
@@ -134,6 +140,23 @@ async function generateVisNotes() {
 
   await generateNotes([VIS_REPO]);
 }
+
+
+async function generateReactNativeNotes() {
+  // Get start version and end version.
+  const versions = getTaggedVersions('tfjs-react-native');
+  const {startVersion, endVersion} =
+      await askUserForVersions(versions, 'tfjs-react-native');
+
+  // Get tfjs-vis start version and end version.
+  RN_REPO.startVersion = startVersion;
+  RN_REPO.endVersion = endVersion;
+  RN_REPO.startCommit = $(`git rev-list -n 1 ${
+      getTagName(RN_REPO.identifier, RN_REPO.startVersion)}`);
+
+  await generateNotes([RN_REPO]);
+}
+
 
 async function generateNotes(repositories: util.Repo[]) {
   const repoCommits: RepoCommits[] = [];
@@ -217,7 +240,7 @@ parser.addArgument('--project', {
   help:
       'Which project to generate release notes for. One of union|vis. Defaults to union.',
   defaultValue: 'union',
-  choices: ['union', 'vis']
+  choices: ['union', 'vis', 'rn']
 });
 
 const args = parser.parseArgs();
@@ -226,4 +249,6 @@ if (args.project === 'union') {
   generateTfjsPackageNotes();
 } else if (args.project === 'vis') {
   generateVisNotes();
+} else if (args.project === 'rn') {
+  generateReactNativeNotes();
 }
