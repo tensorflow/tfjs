@@ -15,11 +15,12 @@
  * =============================================================================
  */
 
-import {backend_util, Conv2D, Conv2DAttrs, Conv2DInputs, env, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
+import {backend_util, Conv2D, Conv2DAttrs, Conv2DInputs, env, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {Conv2DProgram} from '../conv_gpu';
 import {conv2dByMatMul, conv2dWithIm2Row} from './Conv2D_impl';
+import {reshape} from './Reshape';
 
 export function conv2d(
     args:
@@ -33,19 +34,25 @@ export function conv2d(
       x.shape as [number, number, number, number],
       filter.shape as [number, number, number, number], strides, dilations, pad,
       dimRoundingMode, false /* depthwise */, $dataFormat);
+  let out: TensorInfo;
 
   if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
       convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
       (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type === 'VALID')) {
-    return conv2dByMatMul({x, filter, convInfo, backend});
+    out = conv2dByMatMul({x, filter, convInfo, backend});
+  } else if (env().getBool('WEBGL_CONV_IM2COL') && x.shape[0] === 1) {
+    out = conv2dWithIm2Row({x, filter, convInfo, backend});
+  } else {
+    const program = new Conv2DProgram(convInfo);
+    out = backend.runWebGLProgram(program, [x, filter], 'float32');
   }
-  if (env().getBool('WEBGL_CONV_IM2COL') && x.shape[0] === 1) {
-    return conv2dWithIm2Row({x, filter, convInfo, backend});
-  }
-  const program = new Conv2DProgram(convInfo);
-  const out = backend.runWebGLProgram(program, [x, filter], 'float32');
-  return out;
+
+  const outReshaped =
+      reshape({inputs: {x: out}, backend, attrs: {shape: convInfo.outShape}});
+  backend.disposeIntermediateTensorInfo(out);
+
+  return outReshaped;
 }
 
 export const conv2DConfig: KernelConfig = {

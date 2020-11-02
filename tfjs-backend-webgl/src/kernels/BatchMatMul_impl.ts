@@ -94,6 +94,8 @@ export function batchMatMulImpl({
       [batchDimB, outerShapeB, innerShapeB] :
       [batchDimB, innerShapeB, outerShapeB];
 
+  const intermediates: TensorInfo[] = [];
+
   // The rest of the implementation is designed to operate on rank-3 tensors
   const a3d = reshape({inputs: {x: a}, backend, attrs: {shape: a3dShape}});
   const b3d = reshape({inputs: {x: b}, backend, attrs: {shape: b3dShape}});
@@ -108,13 +110,12 @@ export function batchMatMulImpl({
       null;
   const containsFusedOps =
       hasBias || hasPreluActivationWeights || fusedActivation != null;
+  let out: TensorInfo;
 
   // Since the matrices are vectors, it is faster to call mul().sum()
   // because sum() is O(sqrt(N)) due to divide-and-conquer.
   if ((outerShapeA === 1 || outerShapeB === 1) &&
       sharedDim > MATMUL_SHARED_DIM_THRESHOLD && containsFusedOps === false) {
-    const intermediates: TensorInfo[] = [];
-
     let aVec = a3d;
     let bVec = b3d;
     if (transposeA) {
@@ -154,30 +155,31 @@ export function batchMatMulImpl({
     }
 
     const product = multiply({inputs: {a: aVec3d, b: bVec3d}, backend});
-    const out =
-        sum({inputs: {x: product}, backend, attrs: {axis, keepDims: true}});
+    out = sum({inputs: {x: product}, backend, attrs: {axis, keepDims: true}});
     intermediates.push(product);
-    for (const i of intermediates) {
-      backend.disposeIntermediateTensorInfo(i);
+  } else {
+    const dtype = upcastType(a.dtype, b.dtype);
+
+    const program = new MatMulPackedProgram(
+        a3dShape, b3dShape, [batchDim, outerShapeA, outerShapeB], transposeA,
+        transposeB, hasBias, fusedActivation, hasPreluActivationWeights);
+
+    const inputs: TensorInfo[] = [a3d, b3d];
+    if (bias != null) {
+      inputs.push(bias);
     }
-    return out;
+    if (preluActivationWeights != null) {
+      inputs.push(preluActivationWeights);
+    }
+
+    out = backend.runWebGLProgram(program, inputs, dtype);
   }
 
-  const dtype = upcastType(a.dtype, b.dtype);
-
-  const program = new MatMulPackedProgram(
-      a3dShape, b3dShape, [batchDim, outerShapeA, outerShapeB], transposeA,
-      transposeB, hasBias, fusedActivation, hasPreluActivationWeights);
-
-  const inputs: TensorInfo[] = [a3d, b3d];
-  if (bias != null) {
-    inputs.push(bias);
+  const outReshaped =
+      reshape({inputs: {x: out}, backend, attrs: {shape: outShape}});
+  intermediates.push(out);
+  for (const i of intermediates) {
+    backend.disposeIntermediateTensorInfo(i);
   }
-  if (preluActivationWeights != null) {
-    inputs.push(preluActivationWeights);
-  }
-
-  const out = backend.runWebGLProgram(program, inputs, dtype);
-
-  return reshape({inputs: {x: out}, backend, attrs: {shape: outShape}});
+  return outReshaped;
 }
