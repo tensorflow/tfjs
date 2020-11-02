@@ -25,7 +25,7 @@ import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 import {BufferManager} from './buffer_manager';
 import {ArgMinMaxProgram} from './kernels/argminmax_webgpu';
 import {BinaryOpProgram} from './kernels/binary_op_webgpu';
-import * as binary_op from './kernels/binary_ops';
+import {BinaryOpType, getBinaryOpString, getBinaryProgram} from './kernels/binary_ops';
 import {ClipProgram} from './kernels/clip_webgpu';
 import {ConcatProgram} from './kernels/concat_webgpu';
 import {Conv2DMMProgram} from './kernels/conv2d_mm_webgpu';
@@ -349,8 +349,7 @@ export class WebGPUBackend extends KernelBackend {
     return this.binaryCache[key];
   }
 
-  makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):
-      T {
+  makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType): T {
     const dataId = this.write(null /* values */, shape, dtype);
 
     return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;
@@ -568,8 +567,16 @@ export class WebGPUBackend extends KernelBackend {
     return this.compileAndRun(program, [x], output, dimensions);
   }
 
-  private binaryOp(a: Tensor, b: Tensor, op: string): Tensor {
-    const program = binary_op.getBinaryProgram(op, a.shape, b.shape);
+  private binaryOp(a: Tensor, b: Tensor, op: BinaryOpType, boolType?: boolean):
+      Tensor {
+    const program = getBinaryProgram(op, a.shape, b.shape);
+    if (boolType) {
+      const dataId = this.write(null /*values*/, program.outputShape, 'bool');
+      const output = engine().makeTensorFromDataId(
+          dataId, program.outputShape, 'bool', this);
+
+      return this.compileAndRun(program, [a, b], output);
+    }
     const dtype = backend_util.upcastType(a.dtype, b.dtype);
     const dataId = this.write(null /*values*/, program.outputShape, dtype);
     const output =
@@ -582,45 +589,36 @@ export class WebGPUBackend extends KernelBackend {
     if (this.shouldExecuteOnCPU([a, b])) {
       return this.cpuBackend.add(a, b);
     }
-    return this.binaryOp(a, b, binary_op.ADD);
+    return this.binaryOp(a, b, BinaryOpType.ADD);
   }
 
   subtract(a: Tensor, b: Tensor): Tensor {
     if (this.shouldExecuteOnCPU([a, b])) {
       return this.cpuBackend.subtract(a, b);
     }
-    return this.binaryOp(a, b, binary_op.SUB);
-  }
-
-  private binaryCompareOp(a: Tensor, b: Tensor, op: string): Tensor {
-    const program = new BinaryOpProgram(op, a.shape, b.shape);
-    const dataId = this.write(null /*values*/, program.outputShape, 'bool');
-    const output = engine().makeTensorFromDataId(
-        dataId, program.outputShape, 'bool', this);
-
-    return this.compileAndRun(program, [a, b], output);
+    return this.binaryOp(a, b, BinaryOpType.SUB);
   }
 
   less(a: Tensor, b: Tensor): Tensor {
-    return this.binaryCompareOp(a, b, binary_op.LESS);
+    return this.binaryOp(a, b, BinaryOpType.LESS, true);
   }
 
   lessEqual(a: Tensor, b: Tensor): Tensor {
-    return this.binaryCompareOp(a, b, binary_op.LESS_EQUAL);
+    return this.binaryOp(a, b, BinaryOpType.LESS_EQUAL, true);
   }
 
   greater(a: Tensor, b: Tensor): Tensor {
     if (this.shouldExecuteOnCPU([a, b])) {
       return this.cpuBackend.greater(a, b);
     }
-    return this.binaryCompareOp(a, b, binary_op.GREATER);
+    return this.binaryOp(a, b, BinaryOpType.GREATER, true);
   }
 
   greaterEqual(a: Tensor, b: Tensor): Tensor {
     if (this.shouldExecuteOnCPU([a, b])) {
       return this.cpuBackend.greaterEqual(a, b);
     }
-    return this.binaryCompareOp(a, b, binary_op.GREATER_EQUAL);
+    return this.binaryOp(a, b, BinaryOpType.GREATER_EQUAL, true);
   }
 
   private conv2dWithIm2Col(
@@ -747,7 +745,7 @@ export class WebGPUBackend extends KernelBackend {
     } else if (activation === 'relu6') {
       return unary_op.RELU6;
     } else if (activation === 'prelu') {
-      return binary_op.PRELU;
+      return getBinaryOpString(BinaryOpType.PRELU);
     }
     throw new Error(`Activation ${
         activation} has not been implemented for the WebGL backend.`);
@@ -916,22 +914,22 @@ export class WebGPUBackend extends KernelBackend {
     if (this.shouldExecuteOnCPU([a, b])) {
       return this.cpuBackend.multiply(a, b);
     }
-    return this.binaryOp(a, b, binary_op.MUL);
+    return this.binaryOp(a, b, BinaryOpType.MUL);
   }
 
   realDivide(a: Tensor, b: Tensor): Tensor {
-    return this.binaryOp(a, b, binary_op.DIV);
+    return this.binaryOp(a, b, BinaryOpType.DIV);
   }
 
   floorDiv(a: Tensor, b: Tensor): Tensor {
-    return this.binaryOp(a, b, binary_op.INT_DIV);
+    return this.binaryOp(a, b, BinaryOpType.INT_DIV);
   }
 
   maximum(a: Tensor, b: Tensor): Tensor {
     if (this.shouldExecuteOnCPU([a, b])) {
       return this.cpuBackend.maximum(a, b);
     }
-    return this.binaryOp(a, b, binary_op.MAX);
+    return this.binaryOp(a, b, BinaryOpType.MAX);
   }
 
   neg<T extends Tensor>(x: T): T {
@@ -999,7 +997,8 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   prelu<T extends Tensor>(x: T, alpha: T): T {
-    const program = new BinaryOpProgram(binary_op.PRELU, x.shape, alpha.shape);
+    const program = new BinaryOpProgram(
+        getBinaryOpString(BinaryOpType.PRELU), x.shape, alpha.shape);
     return this.compileAndRun(program, [x, alpha]);
   }
 
