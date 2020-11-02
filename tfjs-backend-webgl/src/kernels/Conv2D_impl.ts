@@ -223,6 +223,7 @@ export function conv2dWithIm2Row({
   });
 
   intermediates.push(im2Col);
+  intermediates.push(im2ColReshaped);
 
   const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
@@ -233,7 +234,7 @@ export function conv2dWithIm2Row({
       w2Row.shape as [number, number, number],
       [1, numCols, convInfo.outChannels], transposeA, transposeB, hasBias,
       fusedActivation, hasPreluActivationWeights);
-  const inputs: TensorInfo[] = [im2Col, w2Row];
+  const inputs: TensorInfo[] = [im2ColReshaped, w2Row];
   if (bias) {
     inputs.push(bias);
   }
