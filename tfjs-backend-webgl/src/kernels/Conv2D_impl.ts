@@ -244,23 +244,13 @@ export function conv2dWithIm2Row({
   }
   const product = backend.runWebGLProgram(matmulProgram, inputs, 'float32');
 
-  let out: TensorInfo;
-  if (isChannelsLast) {
-    out = reshape({
-      inputs: {x: product},
-      backend,
-      attrs: {shape: [1, outHeight, outWidth, convInfo.outChannels]}
-    });
-  } else {
-    out = reshape({
-      inputs: {x: product},
-      backend,
-      attrs: {shape: [1, convInfo.outChannels, outHeight, outWidth]}
-    });
-  }
+  const outShape = isChannelsLast ?
+      [1, outHeight, outWidth, convInfo.outChannels] :
+      [1, convInfo.outChannels, outHeight, outWidth];
+  const out =
+      reshape({inputs: {x: product}, backend, attrs: {shape: outShape}});
 
   intermediates.push(product);
-
   for (const i of intermediates) {
     backend.disposeIntermediateTensorInfo(i);
   }
