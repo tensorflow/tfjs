@@ -19,6 +19,7 @@ import {backend_util, env, FusedConv2D, FusedConv2DAttrs, FusedConv2DInputs, Ker
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {Conv2DProgram} from '../conv_gpu';
+import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
 
 import {conv2dByMatMul, conv2dWithIm2Row} from './Conv2D_impl';
 import {reshape} from './Reshape';
@@ -30,7 +31,8 @@ export function fusedConv2d(args: {
 }) {
   const {inputs, backend, attrs} = args;
   const {x, filter, bias, preluActivationWeights} = inputs;
-  const {strides, pad, dataFormat, dilations, dimRoundingMode} = attrs;
+  const {strides, pad, dataFormat, dilations, dimRoundingMode, activation} =
+      attrs;
 
   const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
   const convInfo = backend_util.computeConv2DInfo(
@@ -43,13 +45,32 @@ export function fusedConv2d(args: {
       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
       convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
       (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type === 'VALID')) {
-    out = conv2dByMatMul(
-        {x, filter, convInfo, backend, bias, preluActivationWeights});
+    out = conv2dByMatMul({
+      x,
+      filter,
+      convInfo,
+      backend,
+      bias,
+      activation,
+      preluActivationWeights
+    });
   } else if (env().getBool('WEBGL_CONV_IM2COL') && x.shape[0] === 1) {
-    out = conv2dWithIm2Row(
-        {x, filter, convInfo, backend, bias, preluActivationWeights});
+    out = conv2dWithIm2Row({
+      x,
+      filter,
+      convInfo,
+      backend,
+      bias,
+      activation,
+      preluActivationWeights
+    });
   } else {
-    const program = new Conv2DProgram(convInfo);
+    const hasBias = bias != null;
+    const hasPreluActivationWeights = preluActivationWeights != null;
+    const fusedActivation =
+        activation ? mapActivationToShaderProgram(activation, false) : null;
+    const program = new Conv2DProgram(
+        convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
     const inputs: TensorInfo[] = [x, filter];
     if (bias) {
       inputs.push(bias);
