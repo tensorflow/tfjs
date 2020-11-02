@@ -32,6 +32,7 @@ import {divConfig} from './kernels/Div';
 import {fftConfig} from './kernels/FFT';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {fromPixelsConfig} from './kernels/FromPixels';
+import {fusedConv2DConfig} from './kernels/FusedConv2D';
 import {identityConfig} from './kernels/Identity';
 import {ifftConfig} from './kernels/IFFT';
 import {imagConfig} from './kernels/Imag';
@@ -76,6 +77,7 @@ const kernelConfigs: KernelConfig[] = [
   fftConfig,
   flipLeftRightConfig,
   fromPixelsConfig,
+  fusedConv2DConfig,
   identityConfig,
   ifftConfig,
   imagConfig,
