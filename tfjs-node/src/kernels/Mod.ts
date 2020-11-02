@@ -15,15 +15,17 @@
  * =============================================================================
  */
 
-import {Tensor, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, Mod, ModInputs} from '@tensorflow/tfjs';
+import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
-import {WebGPUBackend} from '../backend_webgpu';
+export const modConfig: KernelConfig = {
+  kernelName: Mod,
+  backendName: 'tensorflow',
+  kernelFunc: (args) => {
+    const {a, b} = args.inputs as ModInputs;
+    const backend = args.backend as NodeJSKernelBackend;
 
-import {BinaryOpType, getBinaryProgram} from './binary_ops';
-
-export function divImpl(
-    a: TensorInfo, b: TensorInfo, backend: WebGPUBackend): TensorInfo {
-  const program = getBinaryProgram(BinaryOpType.DIV, a.shape, b.shape);
-  const output = backend.compileAndRun(program, [a as Tensor, b as Tensor]);
-  return output;
-}
+    const opAttrs = [createTensorsTypeOpAttr('T', a.dtype)];
+    return backend.executeSingleOutput('FloorMod', opAttrs, [a, b]);
+  }
+};

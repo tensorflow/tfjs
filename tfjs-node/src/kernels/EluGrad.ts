@@ -15,15 +15,18 @@
  * =============================================================================
  */
 
-import {Tensor, TensorInfo} from '@tensorflow/tfjs-core';
+import {EluGrad, EluGradInputs, KernelConfig} from '@tensorflow/tfjs';
 
-import {WebGPUBackend} from '../backend_webgpu';
+import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
-import {BinaryOpType, getBinaryProgram} from './binary_ops';
+export const eluGradConfig: KernelConfig = {
+  kernelName: EluGrad,
+  backendName: 'tensorflow',
+  kernelFunc: (args) => {
+    const {dy, y} = args.inputs as EluGradInputs;
+    const backend = args.backend as NodeJSKernelBackend;
 
-export function divImpl(
-    a: TensorInfo, b: TensorInfo, backend: WebGPUBackend): TensorInfo {
-  const program = getBinaryProgram(BinaryOpType.DIV, a.shape, b.shape);
-  const output = backend.compileAndRun(program, [a as Tensor, b as Tensor]);
-  return output;
-}
+    const opAttrs = [createTensorsTypeOpAttr('T', y.dtype)];
+    return backend.executeSingleOutput(EluGrad, opAttrs, [dy, y]);
+  }
+};

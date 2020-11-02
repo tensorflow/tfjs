@@ -15,15 +15,19 @@
  * =============================================================================
  */
 
-import {Tensor, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, Sub, SubInputs} from '@tensorflow/tfjs';
 
-import {WebGPUBackend} from '../backend_webgpu';
+import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
-import {BinaryOpType, getBinaryProgram} from './binary_ops';
+export const subConfig: KernelConfig = {
+  kernelName: Sub,
+  backendName: 'tensorflow',
+  kernelFunc: (args) => {
+    const {a, b} = args.inputs as SubInputs;
+    const backend = args.backend as NodeJSKernelBackend;
 
-export function divImpl(
-    a: TensorInfo, b: TensorInfo, backend: WebGPUBackend): TensorInfo {
-  const program = getBinaryProgram(BinaryOpType.DIV, a.shape, b.shape);
-  const output = backend.compileAndRun(program, [a as Tensor, b as Tensor]);
-  return output;
-}
+    const opAttrs = [createTensorsTypeOpAttr(
+        'T', backend_util.upcastType(a.dtype, b.dtype))];
+    return backend.executeSingleOutput(Sub, opAttrs, [a, b]);
+  }
+};

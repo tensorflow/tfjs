@@ -27,6 +27,7 @@ import {Rank, ShapeMap, TensorLike} from '../types';
 import {clone} from './clone';
 import {op} from './operation';
 import {reshape} from './reshape';
+import {tile} from './tile';
 
 /**
  * Broadcast an array to a compatible shape NumPy-style.
@@ -80,7 +81,7 @@ function broadcastTo_<R extends Rank>(
     return clone(input) as Tensor<R>;
   }
 
-  const forward = (backend: KernelBackend) => backend.tile(input, reps);
+  const forward = (backend: KernelBackend) => tile(input, reps);
 
   const inputs: BroadcastToInputs = {x: input};
   const attrs: BroadCastToAttrs = {shape, inputShape};

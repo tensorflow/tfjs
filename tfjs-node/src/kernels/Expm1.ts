@@ -15,15 +15,17 @@
  * =============================================================================
  */
 
-import {Tensor, TensorInfo} from '@tensorflow/tfjs-core';
+import {Expm1, Expm1Inputs, KernelConfig} from '@tensorflow/tfjs';
 
-import {WebGPUBackend} from '../backend_webgpu';
+import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
-import {BinaryOpType, getBinaryProgram} from './binary_ops';
+export const expm1Config: KernelConfig = {
+  kernelName: Expm1,
+  backendName: 'tensorflow',
+  kernelFunc: (args) => {
+    const {x} = args.inputs as Expm1Inputs;
+    const backend = args.backend as NodeJSKernelBackend;
 
-export function divImpl(
-    a: TensorInfo, b: TensorInfo, backend: WebGPUBackend): TensorInfo {
-  const program = getBinaryProgram(BinaryOpType.DIV, a.shape, b.shape);
-  const output = backend.compileAndRun(program, [a as Tensor, b as Tensor]);
-  return output;
-}
+    return backend.executeSingleInput(Expm1, x);
+  }
+};

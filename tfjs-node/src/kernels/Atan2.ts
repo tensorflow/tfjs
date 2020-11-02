@@ -15,15 +15,18 @@
  * =============================================================================
  */
 
-import {Tensor, TensorInfo} from '@tensorflow/tfjs-core';
+import {Atan2, Atan2Inputs, KernelConfig} from '@tensorflow/tfjs';
 
-import {WebGPUBackend} from '../backend_webgpu';
+import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
-import {BinaryOpType, getBinaryProgram} from './binary_ops';
+export const atan2Config: KernelConfig = {
+  kernelName: Atan2,
+  backendName: 'tensorflow',
+  kernelFunc: (args) => {
+    const {a, b} = args.inputs as Atan2Inputs;
+    const backend = args.backend as NodeJSKernelBackend;
 
-export function divImpl(
-    a: TensorInfo, b: TensorInfo, backend: WebGPUBackend): TensorInfo {
-  const program = getBinaryProgram(BinaryOpType.DIV, a.shape, b.shape);
-  const output = backend.compileAndRun(program, [a as Tensor, b as Tensor]);
-  return output;
-}
+    const opAttrs = [createTensorsTypeOpAttr('T', a.dtype)];
+    return backend.executeSingleOutput(Atan2, opAttrs, [a, b]);
+  }
+};

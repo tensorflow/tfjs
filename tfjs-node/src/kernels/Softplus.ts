@@ -15,15 +15,16 @@
  * =============================================================================
  */
 
-import {Tensor, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, Softplus, SoftplusInputs} from '@tensorflow/tfjs';
+import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
-import {WebGPUBackend} from '../backend_webgpu';
+export const softplusConfig: KernelConfig = {
+  kernelName: Softplus,
+  backendName: 'tensorflow',
+  kernelFunc: (args) => {
+    const {x} = args.inputs as SoftplusInputs;
+    const backend = args.backend as NodeJSKernelBackend;
 
-import {BinaryOpType, getBinaryProgram} from './binary_ops';
-
-export function divImpl(
-    a: TensorInfo, b: TensorInfo, backend: WebGPUBackend): TensorInfo {
-  const program = getBinaryProgram(BinaryOpType.DIV, a.shape, b.shape);
-  const output = backend.compileAndRun(program, [a as Tensor, b as Tensor]);
-  return output;
-}
+    return backend.executeSingleInput(Softplus, x);
+  }
+};

@@ -20,5 +20,10 @@ set -x
 # Exit the script on any command with non 0 return code
 set -e
 
-gcloud builds submit . --config=cloudbuild_generated.yml \
-  --substitutions _NIGHTLY=$NIGHTLY
+DIR=$1
+# Regular flow: Only run changed packages plus e2e regular test.
+# Nightly flow: Run everything.
+if [[ -f "$DIR/run-ci" || $DIR == "e2e" || $NIGHTLY = true ]]; then
+  gcloud builds submit . --config=$DIR/cloudbuild.yml \
+    --substitutions _NIGHTLY=$NIGHTLY
+fi
