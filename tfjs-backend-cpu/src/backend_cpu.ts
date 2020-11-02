@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, BackendTimingInfo, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, slice_util, Tensor, Tensor1D, Tensor2D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, slice_util, Tensor, Tensor1D, Tensor2D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
 const nonMaxSuppressionV3Impl = kernel_impls.nonMaxSuppressionV3Impl;
 const split = kernel_impls.split;
@@ -140,7 +140,7 @@ export class MathBackendCPU extends KernelBackend {
     return this.data.get(dataId).values;
   }
 
-  bufferSync(t: TensorInfo) {
+  bufferSync<R extends Rank>(t: TensorInfo): TensorBuffer<R> {
     const data = this.readSync(t.dataId);
     let decodedData = data as DataValues;
     if (t.dtype === 'string') {
@@ -151,7 +151,8 @@ export class MathBackendCPU extends KernelBackend {
         throw new Error('Failed to decode encoded string bytes into utf-8');
       }
     }
-    return new TensorBuffer(t.shape, t.dtype, decodedData);
+    return buffer(t.shape as ShapeMap[R], t.dtype, decodedData) as
+        TensorBuffer<R>;
   }
 
   makeOutput<T extends Tensor>(
@@ -887,8 +888,7 @@ export class MathBackendCPU extends KernelBackend {
                     }
 
                     const pixel =
-                        dyBuf.get(batch, dyDepth, dyRow, dyCol, channel) as
-                        number;
+                        dyBuf.get(batch, dyDepth, dyRow, dyCol, channel);
                     dotProd += pixel;
                   }
                 }
@@ -967,8 +967,7 @@ export class MathBackendCPU extends KernelBackend {
                   for (let xCol = xColMin; xCol < xColMax;
                        xCol += dilationWidth) {
                     const wCol = xCol - xColCorner;
-                    const pixel =
-                        xBuf.get(batch, xDepth, xRow, xCol, channel) as number;
+                    const pixel = xBuf.get(batch, xDepth, xRow, xCol, channel);
                     if (pixel >= maxValue) {
                       maxValue = pixel;
                       maxPosition = wDepth * effectiveFilterHeight *
@@ -1046,8 +1045,7 @@ export class MathBackendCPU extends KernelBackend {
                     const maxPos = effectiveFilterDepth *
                             effectiveFilterHeight * effectiveFilterWidth -
                         1 -
-                        (maxPosBuf.get(batch, dyDepth, dyRow, dyCol, channel) as
-                         number);
+                        maxPosBuf.get(batch, dyDepth, dyRow, dyCol, channel);
                     const curPos =
                         wDepth * effectiveFilterHeight * effectiveFilterWidth +
                         wRow * effectiveFilterWidth + wCol;
@@ -1058,8 +1056,7 @@ export class MathBackendCPU extends KernelBackend {
                     }
 
                     const pixel =
-                        dyBuf.get(batch, dyDepth, dyRow, dyCol, channel) as
-                        number;
+                        dyBuf.get(batch, dyDepth, dyRow, dyCol, channel);
                     dotProd += pixel * mask;
                   }
                 }

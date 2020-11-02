@@ -38,17 +38,17 @@ export function reverse(
     return identity({inputs: {x}, backend});
   }
 
-  const buffer = new TensorBuffer(x.shape, x.dtype);
+  const outBuf = new TensorBuffer(x.shape, x.dtype);
   const xBuf = backend.bufferSync(x);
 
-  for (let i = 0; i < buffer.size; i++) {
-    const outLoc = buffer.indexToLoc(i);
+  for (let i = 0; i < outBuf.size; i++) {
+    const outLoc = outBuf.indexToLoc(i);
     const inLoc = outLoc.slice();
     $dims.forEach(d => inLoc[d] = x.shape[d] - 1 - inLoc[d]);
-    buffer.set(xBuf.get(...inLoc), ...outLoc);
+    outBuf.set(xBuf.get(...inLoc), ...outLoc);
   }
 
-  return backend.makeTensorInfo(buffer.shape, buffer.dtype, buffer.values);
+  return backend.makeTensorInfo(outBuf.shape, outBuf.dtype, outBuf.values);
 }
 
 export const reverseConfig: KernelConfig = {
