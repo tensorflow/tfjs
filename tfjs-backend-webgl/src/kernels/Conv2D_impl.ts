@@ -37,6 +37,9 @@ type Conv2DConfig = {
   activation?: backend_util.Activation
 };
 
+// For 1x1 kernels that iterate through every point in the input, convolution
+// can be expressed as matrix multiplication (without need for memory
+// remapping).
 export function conv2dByMatMul({
   x,
   filter,
@@ -169,6 +172,8 @@ export function conv2dByMatMul({
   return out;
 }
 
+// Implements the im2row algorithm as outlined in "High Performance
+// Convolutional Neural Networks for Document Processing" (Suvisoft, 2006)
 export function conv2dWithIm2Row({
   x,
   filter,
