@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorMap} from '..';
 import {ENGINE, ForwardFunc} from '../engine';
 import {Multinomial, MultinomialAttrs, MultinomialInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor1D, Tensor2D} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
