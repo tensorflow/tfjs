@@ -15,11 +15,19 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, Negate, TensorInfo, UnaryInputs, util} from '@tensorflow/tfjs-core';
+import {DataType, KernelConfig, KernelFunc, Negate, TensorInfo, TypedArray, UnaryInputs, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
-import {multiply} from './Multiply';
+import {multiplyImpl} from './Multiply';
+
+export function negateImpl(
+    xVals: TypedArray, xShape: number[],
+    xDtype: DataType): [TypedArray, number[]] {
+  const minusOne =
+      util.createScalarValue(-1 as {} as 'float32', xDtype) as TypedArray;
+  return multiplyImpl([], xShape, minusOne, xVals, xDtype);
+}
 
 export function negate(args: {inputs: UnaryInputs, backend: MathBackendCPU}):
     TensorInfo {
@@ -28,14 +36,10 @@ export function negate(args: {inputs: UnaryInputs, backend: MathBackendCPU}):
 
   assertNotComplex(x, 'neg');
 
-  const minusOne = util.createScalarValue(-1 as {} as 'float32', x.dtype);
-  const minusOneTensor = backend.makeTensorInfo([], x.dtype, minusOne);
-  const res =
-      multiply({inputs: {a: minusOneTensor, b: x}, backend}) as TensorInfo;
+  const xVals = backend.data.get(x.dataId).values as TypedArray;
+  const [res, newShape] = negateImpl(xVals, x.shape, x.dtype);
 
-  backend.disposeIntermediateTensorInfo(minusOneTensor);
-
-  return res;
+  return backend.makeTensorInfo(newShape, x.dtype, res);
 }
 
 export const negateConfig: KernelConfig = {
