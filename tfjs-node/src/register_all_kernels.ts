@@ -39,6 +39,8 @@ import {ceilConfig} from './kernels/Ceil';
 import {concatConfig} from './kernels/Concat';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
+import {cropAndResizeConfig} from './kernels/CropAndResize';
+import {cumsumConfig} from './kernels/Cumsum';
 import {diagConfig} from './kernels/Diag';
 import {dilation2dConfig} from './kernels/Dilation2D';
 import {dilation2dBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
@@ -72,9 +74,11 @@ import {mirrorPadConfig} from './kernels/MirrorPad';
 import {modConfig} from './kernels/Mod';
 import {multinomialConfig} from './kernels/Multinomial';
 import {multiplyConfig} from './kernels/Multiply';
+import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
+import {oneHotConfig} from './kernels/OneHot';
 import {onesLikeConfig} from './kernels/OnesLike';
 import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
@@ -132,6 +136,8 @@ const kernelConfigs: KernelConfig[] = [
   concatConfig,
   cosConfig,
   coshConfig,
+  cropAndResizeConfig,
+  cumsumConfig,
   diagConfig,
   dilation2dBackpropFilterConfig,
   dilation2dBackpropInputConfig,
@@ -165,9 +171,11 @@ const kernelConfigs: KernelConfig[] = [
   modConfig,
   multinomialConfig,
   multiplyConfig,
+  nonMaxSuppressionV3Config,
   nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,
+  oneHotConfig,
   onesLikeConfig,
   padV2Config,
   powConfig,
