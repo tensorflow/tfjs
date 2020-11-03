@@ -21,6 +21,7 @@ const karmaTypescriptConfig = {
   coverageOptions: {instrumentation: false},
   reports: {},
   bundlerOptions: {
+    sourceMap: true,
     // Ignore the import of the `worker_threads` package used in a core test
     // meant to run in node.
     exclude: ['worker_threads'],

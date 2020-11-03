@@ -722,10 +722,15 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
-    if (this.shouldExecuteOnCPU([x])) {
+    // Run on cpu if dtype is string. For string, the backend represents it
+    // as Uint8Array[], where each Uint8Array is a character. Given that the
+    // computation is only on the outer array, uploading the whole data onto
+    // gpu is wasteful. Also, currently webgl doesn't have a design to
+    // upload and retrieve Uint8Array[] between cpu and gpu. Therefore, we
+    // just run the kernel on cpu if dtype is string.
+    if (this.shouldExecuteOnCPU([x]) || x.dtype === 'string') {
       const outValues = sliceImplCPU(
-          this.texData.get(x.dataId).values as TypedArray, begin, size, x.shape,
-          x.dtype);
+          this.texData.get(x.dataId).values, begin, size, x.shape, x.dtype);
       return this.makeOutput(size, x.dtype, outValues);
     }
     // Short-circuit computation if the slice is zero-sized.
