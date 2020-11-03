@@ -427,9 +427,9 @@ export interface LRNAttrs {
   beta: number;
 }
 
-export const LRNBackprop = 'LRNBackprop';
-export type LRNBackpropInputs = Pick<NamedTensorInfoMap, 'x'|'y'|'dy'>;
-export interface LRNBackpropAttrs {
+export const LRNGrad = 'LRNGrad';
+export type LRNGradInputs = Pick<NamedTensorInfoMap, 'x'|'y'|'dy'>;
+export interface LRNGradAttrs {
   depthRadius: number;
   bias: number;
   alpha: number;

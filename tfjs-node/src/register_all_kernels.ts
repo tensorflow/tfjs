@@ -51,6 +51,7 @@ import {expConfig} from './kernels/Exp';
 import {expm1Config} from './kernels/Expm1';
 import {floorConfig} from './kernels/Floor';
 import {floorDivConfig} from './kernels/FloorDiv';
+import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
 import {gatherNdConfig} from './kernels/GatherNd';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
@@ -64,6 +65,8 @@ import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
 import {logicalNotConfig} from './kernels/LogicalNot';
 import {logicalOrConfig} from './kernels/LogicalOr';
+import {LRNConfig} from './kernels/LRN';
+import {LRNGradConfig} from './kernels/LRNGrad';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {minConfig} from './kernels/Min';
@@ -111,6 +114,8 @@ import {zerosLikeConfig} from './kernels/ZerosLike';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
+  LRNConfig,
+  LRNGradConfig,
   absConfig,
   acosConfig,
   acoshConfig,
@@ -143,6 +148,7 @@ const kernelConfigs: KernelConfig[] = [
   expm1Config,
   floorConfig,
   floorDivConfig,
+  fusedBatchNormConfig,
   gatherNdConfig,
   greaterConfig,
   greaterEqualConfig,
