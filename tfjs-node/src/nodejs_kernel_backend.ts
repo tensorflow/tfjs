@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-import {backend_util, BackendTimingInfo, DataId, DataType, fill, KernelBackend, ModelTensorInfo, ones, Rank, rsqrt, Scalar, scalar, ScalarLike, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, tidy, util} from '@tensorflow/tfjs';
+import {backend_util, BackendTimingInfo, DataId, DataType, fill, KernelBackend, ModelTensorInfo, ones, Rank, Scalar, scalar, ScalarLike, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, tidy, util} from '@tensorflow/tfjs';
 import {isArray, isNullOrUndefined} from 'util';
 
 import {encodeInt32ArrayAsInt64, Int64Scalar} from './int64_tensors';
@@ -755,134 +755,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     ];
     return this.executeSingleOutput(
                'GatherV2', opAttrs, [x, indices, axisTensor]) as T;
-  }
-
-  resizeBilinear(
-      x: Tensor4D, newHeight: number, newWidth: number,
-      alignCorners: boolean): Tensor4D {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      {
-        name: 'align_corners',
-        type: this.binding.TF_ATTR_BOOL,
-        value: alignCorners
-      },
-    ];
-    const size = tensor1d([newHeight, newWidth], 'int32');
-    return this.executeSingleOutput('ResizeBilinear', opAttrs, [x, size]) as
-        Tensor4D;
-  }
-
-  resizeBilinearBackprop(dy: Tensor4D, x: Tensor4D, alignCorners: boolean):
-      Tensor4D {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype), {
-        name: 'align_corners',
-        type: this.binding.TF_ATTR_BOOL,
-        value: alignCorners
-      }
-    ];
-    return this.executeSingleOutput('ResizeBilinearGrad', opAttrs, [dy, x]) as
-        Tensor4D;
-  }
-
-  resizeNearestNeighbor(
-      x: Tensor4D, newHeight: number, newWidth: number,
-      alignCorners: boolean): Tensor4D {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      {
-        name: 'align_corners',
-        type: this.binding.TF_ATTR_BOOL,
-        value: alignCorners
-      },
-    ];
-    const size = tensor1d([newHeight, newWidth], 'int32');
-    return this.executeSingleOutput(
-               'ResizeNearestNeighbor', opAttrs, [x, size]) as Tensor4D;
-  }
-
-  resizeNearestNeighborBackprop(
-      dy: Tensor4D, x: Tensor4D, alignCorners: boolean): Tensor4D {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype), {
-        name: 'align_corners',
-        type: this.binding.TF_ATTR_BOOL,
-        value: alignCorners
-      }
-    ];
-    const [, origHeight, origWidth, ] = x.shape;
-    const size = tensor1d([origHeight, origWidth], 'int32');
-    return this.executeSingleOutput(
-               'ResizeNearestNeighborGrad', opAttrs, [dy, size]) as Tensor4D;
-  }
-
-  batchNorm(
-      x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
-      offset?: Tensor4D|Tensor1D, scale?: Tensor4D|Tensor1D,
-      varianceEpsilon?: number): Tensor4D {
-    if (mean.rank > 1) {
-      // Fused batch norm doesn't work with high-dim mean/var/scale/offset.
-      let inv = rsqrt(variance.add(scalar(varianceEpsilon)));
-      if (scale != null) {
-        inv = inv.mul(scale);
-      }
-      const xNorm: Tensor4D = x.sub(mean).mul(inv);
-      return offset != null ? xNorm.add(offset) : xNorm;
-    }
-    const dataFormat = 'NHWC';
-    const depth = x.shape[3];
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      {
-        name: 'epsilon',
-        type: this.binding.TF_ATTR_FLOAT,
-        value: varianceEpsilon
-      },
-      {
-        name: 'data_format',
-        type: this.binding.TF_ATTR_STRING,
-        value: dataFormat
-      },
-      {name: 'is_training', type: this.binding.TF_ATTR_BOOL, value: false},
-    ];
-    const numOutputs = 5;
-    if (scale == null) {
-      scale = fill<Rank.R1>([depth], 1);
-    }
-    if (offset == null) {
-      offset = fill<Rank.R1>([depth], 0);
-    }
-    return this.executeMultipleOutputs(
-               'FusedBatchNorm', opAttrs, [x, scale, offset, mean, variance],
-               numOutputs)[0] as Tensor4D;
-  }
-
-  localResponseNormalization4D(
-      x: Tensor4D, radius: number, bias: number, alpha: number,
-      beta: number): Tensor4D {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      {name: 'depth_radius', type: this.binding.TF_ATTR_INT, value: radius},
-      {name: 'bias', type: this.binding.TF_ATTR_FLOAT, value: bias},
-      {name: 'alpha', type: this.binding.TF_ATTR_FLOAT, value: alpha},
-      {name: 'beta', type: this.binding.TF_ATTR_FLOAT, value: beta},
-    ];
-    return this.executeSingleOutput('LRN', opAttrs, [x]) as Tensor4D;
-  }
-
-  LRNGrad(
-      dy: Tensor4D, inputImage: Tensor4D, outputImage: Tensor4D, radius: number,
-      bias: number, alpha: number, beta: number): Tensor4D {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', dy.dtype),
-      {name: 'depth_radius', type: this.binding.TF_ATTR_INT, value: radius},
-      {name: 'bias', type: this.binding.TF_ATTR_FLOAT, value: bias},
-      {name: 'alpha', type: this.binding.TF_ATTR_FLOAT, value: alpha},
-      {name: 'beta', type: this.binding.TF_ATTR_FLOAT, value: beta},
-    ];
-    return this.executeSingleOutput(
-               'LRNGrad', opAttrs, [dy, inputImage, outputImage]) as Tensor4D;
   }
 
   multinomial(
