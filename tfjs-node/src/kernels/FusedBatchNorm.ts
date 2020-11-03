@@ -28,7 +28,6 @@ export const fusedBatchNormConfig: KernelConfig = {
     const backend = args.backend as NodeJSKernelBackend;
     const {varianceEpsilon} = args.attrs as {} as FusedBatchNormAttrs;
 
-
     return tidy(() => {
       if ((mean as Tensor).rank > 1) {
         // Fused batch norm doesn't work with high-dim mean/var/scale/offset.
