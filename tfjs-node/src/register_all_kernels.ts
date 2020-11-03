@@ -82,6 +82,10 @@ import {prodConfig} from './kernels/Prod';
 import {reciprocalConfig} from './kernels/Reciprocal';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
+import {resizeBilinearConfig} from './kernels/ResizeBilinear';
+import {resizeBilinearGradConfig} from './kernels/ResizeBilinearGrad';
+import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
+import {resizeNearestNeighborGradConfig} from './kernels/ResizeNearestNeighborGrad';
 import {reverseConfig} from './kernels/Reverse';
 import {roundConfig} from './kernels/Round';
 import {rsqrtConfig} from './kernels/Rsqrt';
@@ -174,6 +178,10 @@ const kernelConfigs: KernelConfig[] = [
   reciprocalConfig,
   relu6Config,
   reluConfig,
+  resizeBilinearConfig,
+  resizeBilinearGradConfig,
+  resizeNearestNeighborConfig,
+  resizeNearestNeighborGradConfig,
   reverseConfig,
   roundConfig,
   rsqrtConfig,

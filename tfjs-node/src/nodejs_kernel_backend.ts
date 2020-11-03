@@ -953,66 +953,6 @@ export class NodeJSKernelBackend extends KernelBackend {
                'GatherV2', opAttrs, [x, indices, axisTensor]) as T;
   }
 
-  resizeBilinear(
-      x: Tensor4D, newHeight: number, newWidth: number,
-      alignCorners: boolean): Tensor4D {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      {
-        name: 'align_corners',
-        type: this.binding.TF_ATTR_BOOL,
-        value: alignCorners
-      },
-    ];
-    const size = tensor1d([newHeight, newWidth], 'int32');
-    return this.executeSingleOutput('ResizeBilinear', opAttrs, [x, size]) as
-        Tensor4D;
-  }
-
-  resizeBilinearBackprop(dy: Tensor4D, x: Tensor4D, alignCorners: boolean):
-      Tensor4D {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype), {
-        name: 'align_corners',
-        type: this.binding.TF_ATTR_BOOL,
-        value: alignCorners
-      }
-    ];
-    return this.executeSingleOutput('ResizeBilinearGrad', opAttrs, [dy, x]) as
-        Tensor4D;
-  }
-
-  resizeNearestNeighbor(
-      x: Tensor4D, newHeight: number, newWidth: number,
-      alignCorners: boolean): Tensor4D {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      {
-        name: 'align_corners',
-        type: this.binding.TF_ATTR_BOOL,
-        value: alignCorners
-      },
-    ];
-    const size = tensor1d([newHeight, newWidth], 'int32');
-    return this.executeSingleOutput(
-               'ResizeNearestNeighbor', opAttrs, [x, size]) as Tensor4D;
-  }
-
-  resizeNearestNeighborBackprop(
-      dy: Tensor4D, x: Tensor4D, alignCorners: boolean): Tensor4D {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype), {
-        name: 'align_corners',
-        type: this.binding.TF_ATTR_BOOL,
-        value: alignCorners
-      }
-    ];
-    const [, origHeight, origWidth, ] = x.shape;
-    const size = tensor1d([origHeight, origWidth], 'int32');
-    return this.executeSingleOutput(
-               'ResizeNearestNeighborGrad', opAttrs, [dy, size]) as Tensor4D;
-  }
-
   batchNorm(
       x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
       offset?: Tensor4D|Tensor1D, scale?: Tensor4D|Tensor1D,
