@@ -19,22 +19,9 @@ import * as tf from './index';
 import {ALL_ENVS, describeWithFlags, SYNC_BACKEND_ENVS} from './jasmine_util';
 import {tensor5d} from './ops/ops';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
-import {expectArraysClose, expectArraysEqual, expectNumbersClose} from './test_util';
-import {Rank, RecursiveArray, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TypedArray} from './types';
+import {encodeStrings, expectArraysClose, expectArraysEqual, expectNumbersClose} from './test_util';
+import {Rank, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TypedArray} from './types';
 import {encodeString} from './util';
-
-/** Private method used by these tests. Encodes strings into utf-8 bytes. */
-function encodeStrings(a: RecursiveArray<{}>): RecursiveArray<Uint8Array> {
-  for (let i = 0; i < (a as Array<{}>).length; i++) {
-    const val = a[i];
-    if (Array.isArray(val)) {
-      encodeStrings(val);
-    } else {
-      a[i] = encodeString(val as string);
-    }
-  }
-  return a as RecursiveArray<Uint8Array>;
-}
 
 describeWithFlags('tensor', ALL_ENVS, () => {
   it('Tensors of arbitrary size', async () => {

@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import {backend_util, BackendValues, buffer, DataType, KernelConfig, KernelFunc, Slice, slice_util, SliceAttrs, SliceInputs, TypedArray, util} from '@tensorflow/tfjs-core';
-import {TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, Slice, slice_util, SliceAttrs, SliceInputs, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+import {sliceImplCPU} from '../kernel_utils/shared';
 
 export function slice(
     args: {inputs: SliceInputs, attrs: SliceAttrs, backend: BackendWasm}) {
@@ -50,8 +50,7 @@ export function slice(
   }
 
   if (x.dtype === 'string') {
-    const res =
-        genericSliceSlow(xVals, x, null /* outVals */, begin_, size_, x.dtype);
+    const res = sliceImplCPU(xVals, begin_, size_, x.shape, x.dtype);
     outData.stringBytes = res as Uint8Array[];
     return out;
   }
@@ -72,7 +71,9 @@ export function slice(
         begin_ as [number, number, number, number],
         size_ as [number, number, number, number]);
   } else {
-    genericSliceSlow(xVals, x, outVals, begin_, size_, x.dtype);
+    const res =
+        sliceImplCPU(xVals, begin_, size_, x.shape, x.dtype) as TypedArray;
+    outVals.set(res);
   }
 
   return out;
@@ -135,27 +136,6 @@ function slice4d(
       }
     }
   }
-}
-
-function genericSliceSlow(
-    xVals: BackendValues, xInfo: TensorInfo, outVals: BackendValues,
-    begin: number[], size: number[], dtype: DataType): BackendValues {
-  const decodedData = dtype === 'string' ?
-      backend_util.fromUint8ToStringArray(xVals as Uint8Array[]) :
-      xVals as TypedArray;
-
-  const outBuf = buffer(size, xInfo.dtype, outVals as TypedArray);
-  const xBuf = buffer(xInfo.shape, xInfo.dtype, decodedData);
-  for (let i = 0; i < outBuf.size; ++i) {
-    const loc = outBuf.indexToLoc(i);
-    const xLoc = loc.map((idx, j) => idx + begin[j]);
-    outBuf.set(xBuf.get(...xLoc), ...loc);
-  }
-
-  if (dtype === 'string') {
-    return backend_util.fromStringArrayToUint8(outBuf.values as string[]);
-  }
-  return outBuf.values as TypedArray;
 }
 
 export const sliceConfig: KernelConfig = {

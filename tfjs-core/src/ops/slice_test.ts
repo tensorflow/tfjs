@@ -17,7 +17,8 @@
 
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags, SYNC_BACKEND_ENVS} from '../jasmine_util';
-import {expectArraysClose} from '../test_util';
+import {encodeStrings, expectArraysClose} from '../test_util';
+import {TensorLike1D} from '../types';
 
 describeWithFlags('slice ', ALL_ENVS, () => {
   describeWithFlags('ergonomics', ALL_ENVS, () => {
@@ -250,6 +251,17 @@ describeWithFlags('slice ', ALL_ENVS, () => {
       const result = a.slice(1);
       expect(result.shape).toEqual([1, 2, 2]);
       expectArraysClose(await result.data(), ['five', 'six', 'seven', 'eight']);
+    });
+
+    it('slice encoded string.', async () => {
+      const bytes =
+          encodeStrings([
+            'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight'
+          ]) as TensorLike1D;
+      const a = tf.tensor3d(bytes, [2, 2, 2], 'string');
+      const result = a.slice([0, 1, 1]);
+      expect(result.shape).toEqual([2, 1, 1]);
+      expectArraysClose(await result.data(), ['four', 'eight']);
     });
   });
 });
