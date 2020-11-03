@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, buffer, KernelConfig, KernelFunc, Slice, slice_util, SliceAttrs, SliceInputs, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendValues, buffer, DataType, KernelConfig, KernelFunc, Slice, slice_util, SliceAttrs, SliceInputs, TypedArray, util} from '@tensorflow/tfjs-core';
 import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
@@ -27,33 +27,54 @@ export function slice(
   const [begin_, size_] = slice_util.parseSliceParams(x, begin, size);
 
   const isContinous = slice_util.isSliceContinous(x.shape, begin_, size_);
-  const xVals = backend.typedArrayFromHeap(x);
+  const xVals = backend.readSync(x.dataId);
   const out = backend.makeOutput(size_, x.dtype);
-  const outVals = backend.typedArrayFromHeap(out);
   const xStrides = util.computeStrides(x.shape);
+  const outData = backend.dataIdMap.get(out.dataId);
+
   if (isContinous) {
     const flatOffset = slice_util.computeFlatOffset(begin_, xStrides);
-    outVals.set(
-        xVals.subarray(flatOffset, flatOffset + util.sizeFromShape(size_)));
+
+    if (x.dtype === 'string') {
+      outData.stringBytes =
+          (xVals as Uint8Array[])
+              .slice(flatOffset, flatOffset + util.sizeFromShape(size_));
+    } else {
+      const outVals = backend.typedArrayFromHeap(out);
+      outVals.set(
+          (xVals as TypedArray)
+              .subarray(flatOffset, flatOffset + util.sizeFromShape(size_)));
+    }
+
     return out;
   }
+
+  if (x.dtype === 'string') {
+    const res =
+        genericSliceSlow(xVals, x, null /* outVals */, begin_, size_, x.dtype);
+    outData.stringBytes = res as Uint8Array[];
+    return out;
+  }
+
+  const outVals = backend.typedArrayFromHeap(out);
   const rank = x.shape.length;
   if (rank === 2) {
     slice2d(
-        xVals, xStrides[0], outVals, begin_ as [number, number],
+        xVals as TypedArray, xStrides[0], outVals, begin_ as [number, number],
         size_ as [number, number]);
   } else if (rank === 3) {
     slice3d(
-        xVals, xStrides[0], xStrides[1], outVals,
+        xVals as TypedArray, xStrides[0], xStrides[1], outVals,
         begin_ as [number, number, number], size_ as [number, number, number]);
   } else if (rank === 4) {
     slice4d(
-        xVals, xStrides[0], xStrides[1], xStrides[2], outVals,
+        xVals as TypedArray, xStrides[0], xStrides[1], xStrides[2], outVals,
         begin_ as [number, number, number, number],
         size_ as [number, number, number, number]);
   } else {
-    genericSliceSlow(xVals, x, outVals, begin_, size_);
+    genericSliceSlow(xVals, x, outVals, begin_, size_, x.dtype);
   }
+
   return out;
 }
 
@@ -117,15 +138,24 @@ function slice4d(
 }
 
 function genericSliceSlow(
-    xVals: backend_util.TypedArray, xInfo: TensorInfo,
-    outVals: backend_util.TypedArray, begin: number[], size: number[]): void {
-  const outBuf = buffer(size, xInfo.dtype, outVals);
-  const xBuf = buffer(xInfo.shape, xInfo.dtype, xVals);
+    xVals: BackendValues, xInfo: TensorInfo, outVals: BackendValues,
+    begin: number[], size: number[], dtype: DataType): BackendValues {
+  const decodedData = dtype === 'string' ?
+      backend_util.fromUint8ToStringArray(xVals as Uint8Array[]) :
+      xVals as TypedArray;
+
+  const outBuf = buffer(size, xInfo.dtype, outVals as TypedArray);
+  const xBuf = buffer(xInfo.shape, xInfo.dtype, decodedData);
   for (let i = 0; i < outBuf.size; ++i) {
     const loc = outBuf.indexToLoc(i);
     const xLoc = loc.map((idx, j) => idx + begin[j]);
-    outVals[i] = xBuf.get(...xLoc) as number;
+    outBuf.set(xBuf.get(...xLoc), ...loc);
   }
+
+  if (dtype === 'string') {
+    return backend_util.fromStringArrayToUint8(outBuf.values as string[]);
+  }
+  return outBuf.values as TypedArray;
 }
 
 export const sliceConfig: KernelConfig = {
