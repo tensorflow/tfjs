@@ -1081,25 +1081,6 @@ export class NodeJSKernelBackend extends KernelBackend {
                'LRNGrad', opAttrs, [dy, inputImage, outputImage]) as Tensor4D;
   }
 
-  multinomial(
-      logits: Tensor2D, normalized: boolean, numSamples: number,
-      seed: number): Tensor2D {
-    if (normalized) {
-      throw new Error(
-          'TF Node backend does not support normalized logits ' +
-          'passed to multinomial');
-    }
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', logits.dtype),
-      createTensorsTypeOpAttr('output_dtype', 'int32'),
-      {name: 'seed', type: this.binding.TF_ATTR_INT, value: seed},
-      {name: 'seed2', type: this.binding.TF_ATTR_INT, value: seed * seed},
-    ];
-    return this.executeSingleOutput(
-               'Multinomial', opAttrs, [logits, scalar(numSamples, 'int32')]) as
-        Tensor2D;
-  }
-
   oneHot(indices: Tensor1D, depth: number, onValue: number, offValue: number):
       Tensor2D {
     const depthTensor = scalar(depth, 'int32');

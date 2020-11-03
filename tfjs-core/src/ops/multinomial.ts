@@ -61,13 +61,15 @@ function multinomial_(
   }
   seed = seed || Math.random();
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const logits2D: Tensor2D =
-        origRank === 1 ? reshape($logits, [1, -1]) : $logits as Tensor2D;
+  // The kernel only accepts (and returns) rank 2 tensors.
+  const logits2D: Tensor2D =
+      origRank === 1 ? reshape($logits, [1, -1]) : $logits as Tensor2D;
+
+  const forward: ForwardFunc<Tensor> = (backend) => {
     return backend.multinomial(logits2D, normalized, numSamples, seed);
   };
 
-  const inputs: MultinomialInputs = {logits: $logits};
+  const inputs: MultinomialInputs = {logits: logits2D};
   const attrs: MultinomialAttrs = {numSamples, seed, normalized};
 
   const res = ENGINE.runKernelFunc(
