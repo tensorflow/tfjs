@@ -303,7 +303,7 @@ export class NodeJSKernelBackend extends KernelBackend {
                [x, beginTensor, endTensor, stridesTensor]) as T;
   }
 
-  private applyActivation<T extends Tensor>(
+  applyActivation<T extends Tensor>(
       input: T, activation: string, preluActivationWeights?: Tensor): T {
     let result = input;
     if (activation != null) {
@@ -322,20 +322,6 @@ export class NodeJSKernelBackend extends KernelBackend {
             activation} has not been implemented for the Node.js backend`);
       }
     }
-    return result;
-  }
-
-  fusedConv2d(
-      {input, filter, convInfo, bias, activation, preluActivationWeights}:
-          backend_util.FusedConv2DConfig): Tensor4D {
-    let result = this.conv2d(input, filter, convInfo);
-
-    if (bias != null) {
-      result = tf.add(result, bias);
-    }
-
-    result = this.applyActivation(result, activation, preluActivationWeights);
-
     return result;
   }
 
@@ -419,188 +405,6 @@ export class NodeJSKernelBackend extends KernelBackend {
         tf.greater(x, scalar(0, dtype)), ones(x.shape),
         fill(x.shape, alpha, dtype));
     return this.select(nans, x, stepNoNans) as T;
-  }
-
-  conv2d(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
-      Tensor4D {
-    if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME' &&
-        convInfo.padInfo.type !== 'EXPLICIT') {
-      throw new Error(
-          `TF Backend supports only 'valid' and 'same' padding ` +
-          `while padding was ${convInfo.padInfo.type}`);
-    }
-    const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
-    const padding = convInfo.padInfo.type;
-    const dataFormat = convInfo.dataFormat === 'channelsLast' ? 'NHWC' : 'NCHW';
-    const dilations = [1, convInfo.dilationHeight, convInfo.dilationWidth, 1];
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
-      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding},
-      {
-        name: 'data_format',
-        type: this.binding.TF_ATTR_STRING,
-        value: dataFormat
-      },
-      {name: 'use_cudnn_on_gpu', type: this.binding.TF_ATTR_BOOL, value: true},
-      {name: 'dilations', type: this.binding.TF_ATTR_INT, value: dilations},
-    ];
-    if (padding === 'EXPLICIT') {
-      const padValue = [
-        convInfo.padInfo.top, convInfo.padInfo.bottom, convInfo.padInfo.left,
-        convInfo.padInfo.right
-      ];
-      opAttrs.push({
-        name: 'explicit_paddings',
-        type: this.binding.TF_ATTR_INT,
-        value: dataFormat === 'NHWC' ? [0, 0, ...padValue, 0, 0] :
-                                       [0, 0, 0, 0, ...padValue]
-      });
-    }
-    return this.executeSingleOutput('Conv2D', opAttrs, [x, filter]) as Tensor4D;
-  }
-
-  conv2dDerInput(
-      dy: Tensor4D, filter: Tensor4D,
-      convInfo: backend_util.Conv2DInfo): Tensor4D {
-    if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
-      throw new Error(
-          `TF Backend supports only 'valid' and 'same' padding ` +
-          `while padding was ${convInfo.padInfo.type}`);
-    }
-    const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
-    const padding = convInfo.padInfo.type;
-    const dataFormat = convInfo.dataFormat === 'channelsLast' ? 'NHWC' : 'NCHW';
-    const dilations = [1, convInfo.dilationHeight, convInfo.dilationWidth, 1];
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', 'float32'),
-      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
-      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding}, {
-        name: 'data_format',
-        type: this.binding.TF_ATTR_STRING,
-        value: dataFormat
-      },
-      {name: 'use_cudnn_on_gpu', type: this.binding.TF_ATTR_BOOL, value: true},
-      {name: 'dilations', type: this.binding.TF_ATTR_INT, value: dilations}
-    ];
-    const inputSizes = tensor1d(convInfo.inShape, 'int32');
-    return this.executeSingleOutput(
-               'Conv2DBackpropInput', opAttrs, [inputSizes, filter, dy]) as
-        Tensor4D;
-  }
-
-  conv2dDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: backend_util.Conv2DInfo):
-      Tensor4D {
-    if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
-      throw new Error(
-          `TF Backend supports only 'valid' and 'same' padding ` +
-          `while padding was ${convInfo.padInfo.type}`);
-    }
-    const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
-    const padding = convInfo.padInfo.type;
-    const dataFormat = convInfo.dataFormat === 'channelsLast' ? 'NHWC' : 'NCHW';
-    const dilations = [1, convInfo.dilationHeight, convInfo.dilationWidth, 1];
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', 'float32'),
-      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
-      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding}, {
-        name: 'data_format',
-        type: this.binding.TF_ATTR_STRING,
-        value: dataFormat
-      },
-      {name: 'use_cudnn_on_gpu', type: this.binding.TF_ATTR_BOOL, value: true},
-      {name: 'dilations', type: this.binding.TF_ATTR_INT, value: dilations}
-    ];
-    const filterSizes = tensor1d(convInfo.filterShape, 'int32');
-    return this.executeSingleOutput(
-               'Conv2DBackpropFilter', opAttrs, [x, filterSizes, dy]) as
-        Tensor4D;
-  }
-
-  depthwiseConv2DDerInput(
-      dy: Tensor4D, filter: Tensor4D,
-      convInfo: backend_util.Conv2DInfo): Tensor4D {
-    const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
-    const padding = convInfo.padInfo.type;
-    const dataFormat = convInfo.dataFormat === 'channelsLast' ? 'NHWC' : 'NCHW';
-    const dilations = [1, convInfo.dilationHeight, convInfo.dilationWidth, 1];
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', 'float32'),
-      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
-      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding}, {
-        name: 'data_format',
-        type: this.binding.TF_ATTR_STRING,
-        value: dataFormat
-      },
-      {name: 'dilations', type: this.binding.TF_ATTR_INT, value: dilations}
-    ];
-
-    const inputSizes = tensor1d(convInfo.inShape, 'int32');
-    return this.executeSingleOutput(
-               'DepthwiseConv2dNativeBackpropInput', opAttrs,
-               [inputSizes, filter, dy]) as Tensor4D;
-  }
-
-  depthwiseConv2DDerFilter(
-      x: Tensor4D, dY: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
-    const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
-    const padding = convInfo.padInfo.type;
-    const dataFormat = convInfo.dataFormat === 'channelsLast' ? 'NHWC' : 'NCHW';
-    const dilations = [1, convInfo.dilationHeight, convInfo.dilationWidth, 1];
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', 'float32'),
-      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
-      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding}, {
-        name: 'data_format',
-        type: this.binding.TF_ATTR_STRING,
-        value: dataFormat
-      },
-      {name: 'dilations', type: this.binding.TF_ATTR_INT, value: dilations}
-    ];
-    const filterSizes = tensor1d(convInfo.filterShape, 'int32');
-    return this.executeSingleOutput(
-               'DepthwiseConv2dNativeBackpropFilter', opAttrs,
-               [x, filterSizes, dY]) as Tensor4D;
-  }
-
-  fusedDepthwiseConv2D(
-      {input, filter, convInfo, bias, activation, preluActivationWeights}:
-          backend_util.FusedConv2DConfig): Tensor4D {
-    let result = this.depthwiseConv2D(input, filter, convInfo);
-
-    if (bias != null) {
-      result = tf.add(result, bias);
-    }
-
-    result = this.applyActivation(result, activation, preluActivationWeights);
-
-    return result;
-  }
-
-  depthwiseConv2D(
-      input: Tensor4D, filter: Tensor4D,
-      convInfo: backend_util.Conv2DInfo): Tensor4D {
-    if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
-      throw new Error(
-          `TF Backend supports only 'valid' and 'same' padding ` +
-          `while padding was ${convInfo.padInfo.type}`);
-    }
-    const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
-    const padding = convInfo.padInfo.type;
-    const dataFormat = convInfo.dataFormat === 'channelsLast' ? 'NHWC' : 'NCHW';
-    const dilations = [1, convInfo.dilationHeight, convInfo.dilationWidth, 1];
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', input.dtype),
-      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
-      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding}, {
-        name: 'data_format',
-        type: this.binding.TF_ATTR_STRING,
-        value: dataFormat
-      },
-      {name: 'dilations', type: this.binding.TF_ATTR_INT, value: dilations}
-    ];
-    return this.executeSingleOutput(
-               'DepthwiseConv2dNative', opAttrs, [input, filter]) as Tensor4D;
   }
 
   conv3d(
@@ -951,66 +755,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     ];
     return this.executeSingleOutput(
                'GatherV2', opAttrs, [x, indices, axisTensor]) as T;
-  }
-
-  resizeBilinear(
-      x: Tensor4D, newHeight: number, newWidth: number,
-      alignCorners: boolean): Tensor4D {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      {
-        name: 'align_corners',
-        type: this.binding.TF_ATTR_BOOL,
-        value: alignCorners
-      },
-    ];
-    const size = tensor1d([newHeight, newWidth], 'int32');
-    return this.executeSingleOutput('ResizeBilinear', opAttrs, [x, size]) as
-        Tensor4D;
-  }
-
-  resizeBilinearBackprop(dy: Tensor4D, x: Tensor4D, alignCorners: boolean):
-      Tensor4D {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype), {
-        name: 'align_corners',
-        type: this.binding.TF_ATTR_BOOL,
-        value: alignCorners
-      }
-    ];
-    return this.executeSingleOutput('ResizeBilinearGrad', opAttrs, [dy, x]) as
-        Tensor4D;
-  }
-
-  resizeNearestNeighbor(
-      x: Tensor4D, newHeight: number, newWidth: number,
-      alignCorners: boolean): Tensor4D {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      {
-        name: 'align_corners',
-        type: this.binding.TF_ATTR_BOOL,
-        value: alignCorners
-      },
-    ];
-    const size = tensor1d([newHeight, newWidth], 'int32');
-    return this.executeSingleOutput(
-               'ResizeNearestNeighbor', opAttrs, [x, size]) as Tensor4D;
-  }
-
-  resizeNearestNeighborBackprop(
-      dy: Tensor4D, x: Tensor4D, alignCorners: boolean): Tensor4D {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype), {
-        name: 'align_corners',
-        type: this.binding.TF_ATTR_BOOL,
-        value: alignCorners
-      }
-    ];
-    const [, origHeight, origWidth, ] = x.shape;
-    const size = tensor1d([origHeight, origWidth], 'int32');
-    return this.executeSingleOutput(
-               'ResizeNearestNeighborGrad', opAttrs, [dy, size]) as Tensor4D;
   }
 
   multinomial(
