@@ -88,6 +88,7 @@ import {reciprocalConfig} from './kernels/Reciprocal';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
+import {reverseConfig} from './kernels/Reverse';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {roundConfig} from './kernels/Round';
 import {rsqrtConfig} from './kernels/Rsqrt';
@@ -182,6 +183,7 @@ const kernelConfigs: KernelConfig[] = [
   reluConfig,
   relu6Config,
   reshapeConfig,
+  reverseConfig,
   rotateWithOffsetConfig,
   roundConfig,
   rsqrtConfig,

@@ -53,7 +53,12 @@ function generateInput(model) {
         return shapeValue;
       }
     });
-    return {shape: inputShape, name: inputNode.name, dtype: inputNode.dtype};
+    return {
+      shape: inputShape,
+      name: inputNode.name,
+      dtype: inputNode.dtype,
+      range: [0, 1000]
+    };
   });
 
   return generateInputFromDef(inputDefs, model instanceof tf.GraphModel);
@@ -85,7 +90,8 @@ function generateInputFromDef(inputDefs, isForGraphModel = false) {
       // Construct the input tensor.
       let inputTensor;
       if (inputDef.dtype === 'float32' || inputDef.dtype === 'int32') {
-        inputTensor = tf.randomNormal(inputShape, 0, 1000, inputDef.dtype);
+        inputTensor = tf.randomNormal(
+            inputShape, inputDef.range[0], inputDef.range[1], inputDef.dtype);
       } else {
         throw new Error(
             `The ${inputDef.dtype} dtype of '${inputDef.name}' input ` +

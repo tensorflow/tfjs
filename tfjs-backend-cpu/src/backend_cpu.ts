@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, BackendTimingInfo, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, slice_util, Tensor, Tensor1D, Tensor2D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, slice_util, Tensor, Tensor1D, Tensor2D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
 const nonMaxSuppressionV3Impl = kernel_impls.nonMaxSuppressionV3Impl;
 const split = kernel_impls.split;
@@ -140,7 +140,7 @@ export class MathBackendCPU extends KernelBackend {
     return this.data.get(dataId).values;
   }
 
-  private bufferSync<R extends Rank>(t: Tensor<R>): TensorBuffer<R> {
+  bufferSync<R extends Rank>(t: TensorInfo): TensorBuffer<R> {
     const data = this.readSync(t.dataId);
     let decodedData = data as DataValues;
     if (t.dtype === 'string') {
@@ -151,7 +151,8 @@ export class MathBackendCPU extends KernelBackend {
         throw new Error('Failed to decode encoded string bytes into utf-8');
       }
     }
-    return tf.buffer(t.shape, t.dtype, decodedData) as TensorBuffer<R>;
+    return buffer(t.shape as ShapeMap[R], t.dtype, decodedData) as
+        TensorBuffer<R>;
   }
 
   makeOutput<T extends Tensor>(
@@ -258,22 +259,6 @@ export class MathBackendCPU extends KernelBackend {
       res[i] = tf.slice(x, begin, size).reshape(outShape);
     }
     return res;
-  }
-
-  reverse<T extends Tensor>(x: T, axis: number[]): T {
-    assertNotComplex(x, 'reverse');
-
-    const buffer = tf.buffer(x.shape, x.dtype);
-    const xBuf = this.bufferSync(x);
-
-    for (let i = 0; i < buffer.size; i++) {
-      const outLoc = buffer.indexToLoc(i);
-      const inLoc = outLoc.slice();
-      axis.forEach(ax => inLoc[ax] = x.shape[ax] - 1 - inLoc[ax]);
-      buffer.set(xBuf.get(...inLoc), ...outLoc);
-    }
-
-    return buffer.toTensor() as T;
   }
 
   neg<T extends Tensor>(x: T): T {
