@@ -1692,7 +1692,7 @@ export class MathBackendWebGL extends KernelBackend {
     const res = new Array(num);
     for (let i = 0; i < res.length; i++) {
       begin[axis] = i;
-      res[i] = this.slice(x, begin, size).reshape(outShape);
+      res[i] = x.slice(begin, size).reshape(outShape);
     }
     return res;
   }
