@@ -18,7 +18,7 @@
 import {KernelConfig, Pow} from '@tensorflow/tfjs-core';
 
 import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
-import {binaryKernelFunc} from '../utils/kernel_utils';
+import {binaryKernelFunc} from '../utils/binary_utils';
 
 export const powImpl =
     createSimpleBinaryKernelImpl((a: number, b: number) => Math.pow(a, b));

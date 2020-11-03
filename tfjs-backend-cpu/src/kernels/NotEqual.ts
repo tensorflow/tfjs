@@ -18,7 +18,7 @@
 import {KernelConfig, NotEqual} from '@tensorflow/tfjs-core';
 
 import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
-import {binaryKernelFunc} from '../utils/kernel_utils';
+import {binaryKernelFunc} from '../utils/binary_utils';
 
 export const notEqualImpl =
     createSimpleBinaryKernelImpl(((a, b) => (a !== b) ? 1 : 0));
