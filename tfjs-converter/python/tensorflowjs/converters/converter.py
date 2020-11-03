@@ -594,6 +594,12 @@ def get_arg_parser():
       default=False,
       help='Enable experimental features, you should only enable this flag '
       'when using Python3 and TensorFlow nightly build.')
+  parser.add_argument(
+      '--%s' % common.METADATA,
+      type=str,
+      help='Attach user defined metadata in format metadata_key1: '
+      'metadata1.json;metadata_key2:metadata2.json'
+  )
   return parser
 
 def convert(arguments):
@@ -658,6 +664,8 @@ def convert(arguments):
         'The --control_flow_v2 flag is applicable only to "tfjs_graph_model" '
         'as output format, but the current  output format '
         'is "%s"' % input_format, output_format)
+
+  if ()
 
   # TODO(cais, piyu): More conversion logics can be added as additional
   #   branches below.
