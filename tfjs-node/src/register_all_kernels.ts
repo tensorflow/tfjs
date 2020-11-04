@@ -58,6 +58,7 @@ import {equalConfig} from './kernels/Equal';
 import {erfConfig} from './kernels/Erf';
 import {expConfig} from './kernels/Exp';
 import {expm1Config} from './kernels/Expm1';
+import {fillConfig} from './kernels/Fill';
 import {floorConfig} from './kernels/Floor';
 import {floorDivConfig} from './kernels/FloorDiv';
 import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
@@ -71,6 +72,7 @@ import {isInfConfig} from './kernels/IsInf';
 import {isNanConfig} from './kernels/IsNan';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
+import {linSpaceConfig} from './kernels/LinSpace';
 import {logConfig} from './kernels/Log';
 import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
@@ -175,6 +177,7 @@ const kernelConfigs: KernelConfig[] = [
   erfConfig,
   expConfig,
   expm1Config,
+  fillConfig,
   floorConfig,
   floorDivConfig,
   fusedBatchNormConfig,
@@ -188,6 +191,7 @@ const kernelConfigs: KernelConfig[] = [
   isNanConfig,
   lessConfig,
   lessEqualConfig,
+  linSpaceConfig,
   log1pConfig,
   logConfig,
   logicalAndConfig,

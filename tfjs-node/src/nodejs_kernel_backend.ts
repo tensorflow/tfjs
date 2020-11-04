@@ -245,36 +245,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     return dataId;
   }
 
-  fill<R extends Rank>(
-      shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
-    // TODO(cais, nkreeger): Investigate whether this can be made into
-    // a dtype helper method. The underlying op kernel doesn't accept undefined
-    // or null dtype.
-    if (dtype == null) {
-      if (typeof value === 'number') {
-        dtype = 'float32';
-      } else {
-        dtype = 'string';
-      }
-    }
-    const shapeTensor = tensor1d(shape, 'int32');
-    const valueTensor = scalar(value, dtype);
-    const opAttrs = [
-      {
-        name: 'T',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.getDTypeInteger(dtype)
-      },
-      {
-        name: 'index_type',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_INT32
-      }
-    ];
-    return this.executeSingleOutput(
-               'Fill', opAttrs, [shapeTensor, valueTensor]) as Tensor<R>;
-  }
-
   stridedSlice<T extends Tensor>(
       x: T, begin: number[], end: number[], strides: number[]): T {
     const beginTensor = tensor1d(begin, 'int32');
@@ -807,17 +777,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     ];
     const inputs = [input];
     return this.executeSingleOutput('Imag', opAttrs, inputs) as T;
-  }
-
-  linspace(start: number, stop: number, num: number): Tensor1D {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', 'float32'),
-      createTensorsTypeOpAttr('Tidx', 'int32')
-    ];
-    const inputs = [
-      scalar(start, 'float32'), scalar(stop, 'float32'), scalar(num, 'int32')
-    ];
-    return this.executeSingleOutput('LinSpace', opAttrs, inputs) as Tensor1D;
   }
 
   decodeJpeg(
