@@ -44,6 +44,7 @@ import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {cumsumConfig} from './kernels/Cumsum';
+import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {depthwiseConv2dNativeBackpropFilterConfig} from './kernels/DepthwiseConv2dNativeBackpropFilter';
 import {depthwiseConv2dNativeBackpropInputConfig} from './kernels/DepthwiseConv2dNativeBackpropInput';
@@ -115,6 +116,8 @@ import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
+import {sparseToDenseConfig} from './kernels/SparseToDense';
+import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
@@ -158,6 +161,7 @@ const kernelConfigs: KernelConfig[] = [
   coshConfig,
   cropAndResizeConfig,
   cumsumConfig,
+  depthToSpaceConfig,
   depthwiseConv2dNativeBackpropFilterConfig,
   depthwiseConv2dNativeBackpropInputConfig,
   depthwiseConv2dNativeConfig,
@@ -227,6 +231,8 @@ const kernelConfigs: KernelConfig[] = [
   softmaxConfig,
   softplusConfig,
   spaceToBatchNDConfig,
+  sparseToDenseConfig,
+  splitVConfig,
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,

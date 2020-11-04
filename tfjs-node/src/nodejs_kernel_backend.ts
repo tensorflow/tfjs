@@ -809,59 +809,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('Imag', opAttrs, inputs) as T;
   }
 
-  depthToSpace(x: Tensor<Rank.R4>, blockSize: number, dataFormat: string):
-      Tensor<Rank.R4> {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x), {
-        name: 'block_size',
-        type: this.binding.TF_ATTR_INT,
-        value: blockSize < 2 ? 2 : blockSize
-      },
-      {
-        name: 'data_format',
-        type: this.binding.TF_ATTR_STRING,
-        value: dataFormat
-      }
-    ];
-    const inputs = [x];
-    return this.executeSingleOutput('DepthToSpace', opAttrs, inputs) as
-        Tensor<Rank.R4>;
-  }
-
-  split<T extends Tensor>(value: T, sizeSplits: number[], axis: number): T[] {
-    const opAttrs = [
-      {
-        name: 'num_split',
-        type: this.binding.TF_ATTR_INT,
-        value: sizeSplits.length
-      },
-      createTensorsTypeOpAttr('T', value), {
-        name: 'Tlen',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_INT32
-      }
-    ];
-    const inputs = [value];
-    inputs.push(tensor1d(sizeSplits, 'int32') as T);
-    inputs.push(scalar(axis, 'int32') as T);
-    return this.executeMultipleOutputs(
-               'SplitV', opAttrs, inputs, sizeSplits.length) as T[];
-  }
-
-  sparseToDense<R extends Rank>(
-      sparseIndices: Tensor, sparseValues: Tensor, outputShape: ShapeMap[R],
-      defaultValue: Tensor<Rank.R0>): Tensor<R> {
-    const opAttrs = [
-      {name: 'validate_indices', type: this.binding.TF_ATTR_BOOL, value: true},
-      createTensorsTypeOpAttr('T', sparseValues.dtype),
-      createTensorsTypeOpAttr('Tindices', sparseIndices.dtype)
-    ];
-    const outputShapeTensor = tensor1d(outputShape, 'int32');
-    return this.executeSingleOutput('SparseToDense', opAttrs, [
-      sparseIndices, outputShapeTensor, sparseValues, defaultValue
-    ]) as Tensor<R>;
-  }
-
   linspace(start: number, stop: number, num: number): Tensor1D {
     const opAttrs = [
       createTensorsTypeOpAttr('T', 'float32'),
