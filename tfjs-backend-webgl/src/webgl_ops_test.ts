@@ -356,6 +356,10 @@ describeWithFlags('conv2d webgl', WEBGL_ENVS, () => {
 
   it('tf.memory() packed input x=[1,1,1,2] f=[1,1,2,2] s=1 d=1 p=0',
      async () => {
+       const startNumBytesInGPU =
+           (tf.memory() as WebGLMemoryInfo).numBytesInGPU;
+       const startNumBytes = tf.memory().numBytes;
+
        const inputShape: [number, number, number, number] = [1, 1, 1, 2];
        const fSize = 1;
        const pad = 0;
@@ -383,8 +387,10 @@ describeWithFlags('conv2d webgl', WEBGL_ENVS, () => {
        x.dispose();
        xInit.dispose();
        w.dispose();
-       expect((tf.memory() as WebGLMemoryInfo).numBytesInGPU).toBe(0);
-       expect(tf.memory().numBytes).toBe(0);
+       expect(
+           (tf.memory() as WebGLMemoryInfo).numBytesInGPU - startNumBytesInGPU)
+           .toBe(0);
+       expect(tf.memory().numBytes - startNumBytes).toBe(0);
      });
 });
 
