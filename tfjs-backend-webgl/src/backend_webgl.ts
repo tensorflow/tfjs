@@ -644,7 +644,7 @@ export class MathBackendWebGL extends KernelBackend {
     const texData = this.texData.get(dataId);
 
     if (texData.refCount > 1) {
-      texData.refCount--;
+      this.decRef(dataId);
     } else {
       if (texture != null) {
         this.numBytesInGPU -= this.computeBytes(texShape, dtype);
