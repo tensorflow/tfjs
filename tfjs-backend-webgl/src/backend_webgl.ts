@@ -192,9 +192,6 @@ function numMBBeforeWarning(): number {
 export class MathBackendWebGL extends KernelBackend {
   texData: DataStorage<TextureData>;
   gpgpu: GPGPUContext;
-  // Used to count the number of 'shallow' sliced tensors that point to the
-  // same data id.
-  dataRefCount = new WeakMap<DataId, number>();
 
   // Maps data ids that have a pending read operation, to list of subscribers.
   private pendingRead = new WeakMap<DataId, Array<(arr: TypedArray) => void>>();
