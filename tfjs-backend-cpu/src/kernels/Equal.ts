@@ -15,25 +15,18 @@
  * =============================================================================
  */
 
-import {KernelConfig, Multiply} from '@tensorflow/tfjs-core';
+import {Equal, KernelConfig} from '@tensorflow/tfjs-core';
+
 import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
-import {binaryKernelFunc, createComplexBinaryKernelImpl} from '../utils/binary_utils';
+import {binaryKernelFunc} from '../utils/binary_utils';
 
-export const multiplyImpl =
-    createSimpleBinaryKernelImpl(((aValue, bValue) => aValue * bValue));
-export const multiplyComplexImpl =
-    createComplexBinaryKernelImpl(((aReal, aImag, bReal, bImag) => {
-      return {
-        real: aReal * bReal - aImag * bImag,
-        imag: aReal * bImag + aImag * bReal
-      };
-    }));
+export const equalImpl =
+    createSimpleBinaryKernelImpl((a: number, b: number) => (a === b) ? 1 : 0);
+export const equal =
+    binaryKernelFunc(Equal, equalImpl, null /* complexImpl */, 'bool');
 
-export const multiply =
-    binaryKernelFunc(Multiply, multiplyImpl, multiplyComplexImpl);
-
-export const multiplyConfig: KernelConfig = {
-  kernelName: Multiply,
+export const equalConfig: KernelConfig = {
+  kernelName: Equal,
   backendName: 'cpu',
-  kernelFunc: multiply
+  kernelFunc: equal
 };

@@ -15,25 +15,18 @@
  * =============================================================================
  */
 
-import {KernelConfig, Multiply} from '@tensorflow/tfjs-core';
+import {KernelConfig, LogicalOr} from '@tensorflow/tfjs-core';
+
 import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
-import {binaryKernelFunc, createComplexBinaryKernelImpl} from '../utils/binary_utils';
+import {binaryKernelFunc} from '../utils/binary_utils';
 
-export const multiplyImpl =
-    createSimpleBinaryKernelImpl(((aValue, bValue) => aValue * bValue));
-export const multiplyComplexImpl =
-    createComplexBinaryKernelImpl(((aReal, aImag, bReal, bImag) => {
-      return {
-        real: aReal * bReal - aImag * bImag,
-        imag: aReal * bImag + aImag * bReal
-      };
-    }));
+export const logicalOrImpl =
+    createSimpleBinaryKernelImpl((a: number, b: number) => a || b);
+export const logicalOr =
+    binaryKernelFunc(LogicalOr, logicalOrImpl, null /* complexImpl */, 'bool');
 
-export const multiply =
-    binaryKernelFunc(Multiply, multiplyImpl, multiplyComplexImpl);
-
-export const multiplyConfig: KernelConfig = {
-  kernelName: Multiply,
+export const logicalOrConfig: KernelConfig = {
+  kernelName: LogicalOr,
   backendName: 'cpu',
-  kernelFunc: multiply
+  kernelFunc: logicalOr
 };
