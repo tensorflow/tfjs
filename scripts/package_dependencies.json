@@ -1,4 +1,3 @@
-
 {
   "tfjs-core": [],
   "tfjs-converter": ["tfjs-core", "tfjs-backend-cpu"],
@@ -15,5 +14,5 @@
   "tfjs-react-native": [],
   "tfjs-vis": [],
   "scripts": [],
-  "e2e": ["tfjs-backend-wasm", "tfjs", "tfjs-node"]
+  "e2e": ["tfjs", "tfjs-backend-cpu", "tfjs-backend-webgl", "tfjs-converter", "tfjs-core", "tfjs-data", "tfjs-layers", "tfjs-node", "tfjs-backend-wasm"]
 }
