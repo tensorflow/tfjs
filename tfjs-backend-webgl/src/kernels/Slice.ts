@@ -62,7 +62,7 @@ export function slice(
   slice_util.assertParamsValid(x, $begin, $size);
 
   if (util.sizeFromShape($size) === 0) {
-    return backend.makeTensorInfo([], x.dtype, []);
+    return backend.makeTensorInfo($size, x.dtype, []);
   }
 
   if (backend.shouldExecuteOnCPU([x])) {
