@@ -56,6 +56,7 @@ import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
+import {tileConfig} from './kernels/Tile';
 import {transposeConfig} from './kernels/Transpose';
 import {uniqueConfig} from './kernels/Unique';
 
@@ -101,6 +102,7 @@ const kernelConfigs: KernelConfig[] = [
   sumConfig,
   squaredDifferenceConfig,
   tanConfig,
+  tileConfig,
   transposeConfig,
   uniqueConfig,
 ];

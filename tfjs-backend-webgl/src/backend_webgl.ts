@@ -20,14 +20,13 @@ import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
 import {DataId, div, engine, env, max, MemoryInfo, range, RecursiveArray, reshape, scalar, softmax, sum, tensor, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
-import {backend_util, buffer, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
+import {backend_util, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
 import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 
 import {ceilImplCPU, expImplCPU, expm1ImplCPU, floorImplCPU, greaterImplCPU, lessImplCPU, logImplCPU, negateImplCPU, rsqrtImplCPU, simpleAbsImplCPU, sliceImplCPU} from './kernel_utils/shared';
 
 const {segment_util} = backend_util;
 const split = kernel_impls.split;
-const tile = kernel_impls.tile;
 const topkImpl = kernel_impls.topkImpl;
 const whereImpl = kernel_impls.whereImpl;
 
@@ -94,7 +93,6 @@ import {StridedSliceProgram} from './strided_slice_gpu';
 import * as tex_util from './tex_util';
 import {TextureData, TextureUsage} from './tex_util';
 import {TextureManager} from './texture_manager';
-import {TileProgram} from './tile_gpu';
 import * as unary_op from './unaryop_gpu';
 import {UnaryOpProgram} from './unaryop_gpu';
 import * as unary_packed_op from './unaryop_packed_gpu';
@@ -858,17 +856,6 @@ export class MathBackendWebGL extends KernelBackend {
     const program =
         new LRNGradProgram(inputImage.shape, depthRadius, bias, alpha, beta);
     return this.compileAndRun(program, [inputImage, outputImage, dy]);
-  }
-
-  tile<T extends Tensor>(x: T, reps: number[]): T {
-    if (x.dtype === 'string') {
-      const data = this.readSync(x.dataId) as Uint8Array[];
-      const decodedData = data.map(d => util.decodeString(d));
-      const buf = buffer(x.shape, x.dtype, decodedData);
-      return tile(buf, reps) as T;
-    }
-    const program = new TileProgram(x.shape, reps);
-    return this.compileAndRun(program, [x]);
   }
 
   pad<T extends Tensor>(
