@@ -427,9 +427,9 @@ export interface LRNAttrs {
   beta: number;
 }
 
-export const LRNBackprop = 'LRNBackprop';
-export type LRNBackpropInputs = Pick<NamedTensorInfoMap, 'x'|'y'|'dy'>;
-export interface LRNBackpropAttrs {
+export const LRNGrad = 'LRNGrad';
+export type LRNGradInputs = Pick<NamedTensorInfoMap, 'x'|'y'|'dy'>;
+export interface LRNGradAttrs {
   depthRadius: number;
   bias: number;
   alpha: number;
@@ -635,7 +635,8 @@ export interface ResizeNearestNeighborAttrs {
 
 export const ResizeNearestNeighborGrad = 'ResizeNearestNeighborGrad';
 export type ResizeNearestNeighborGradInputs =
-    Pick<NamedTensorInfoMap, 'images'>;
+    Pick<NamedTensorInfoMap, 'images'|'dy'>;
+export type ResizeNearestNeighborGradAttrs = ResizeNearestNeighborAttrs;
 
 export const ResizeBilinear = 'ResizeBilinear';
 export type ResizeBilinearInputs = Pick<NamedTensorInfoMap, 'images'>;
@@ -645,7 +646,8 @@ export interface ResizeBilinearAttrs {
 }
 
 export const ResizeBilinearGrad = 'ResizeBilinearGrad';
-export type ResizeBilinearGradInputs = Pick<NamedTensorInfoMap, 'images'>;
+export type ResizeBilinearGradInputs = Pick<NamedTensorInfoMap, 'images'|'dy'>;
+export type ResizeBilinearGradAttrs = ResizeBilinearAttrs;
 
 export const Relu6 = 'Relu6';
 export type Relu6Inputs = Pick<NamedTensorInfoMap, 'x'>;

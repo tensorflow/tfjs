@@ -37,10 +37,16 @@ import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {ceilConfig} from './kernels/Ceil';
 import {concatConfig} from './kernels/Concat';
+import {conv2DConfig} from './kernels/Conv2D';
+import {conv2DBackpropFilterConfig} from './kernels/Conv2DBackpropFilter';
+import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {cumsumConfig} from './kernels/Cumsum';
+import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
+import {depthwiseConv2dNativeBackpropFilterConfig} from './kernels/DepthwiseConv2dNativeBackpropFilter';
+import {depthwiseConv2dNativeBackpropInputConfig} from './kernels/DepthwiseConv2dNativeBackpropInput';
 import {diagConfig} from './kernels/Diag';
 import {dilation2dConfig} from './kernels/Dilation2D';
 import {dilation2dBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
@@ -53,6 +59,9 @@ import {expConfig} from './kernels/Exp';
 import {expm1Config} from './kernels/Expm1';
 import {floorConfig} from './kernels/Floor';
 import {floorDivConfig} from './kernels/FloorDiv';
+import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
+import {fusedConv2DConfig} from './kernels/FusedConv2D';
+import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
 import {gatherNdConfig} from './kernels/GatherNd';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
@@ -66,6 +75,8 @@ import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
 import {logicalNotConfig} from './kernels/LogicalNot';
 import {logicalOrConfig} from './kernels/LogicalOr';
+import {LRNConfig} from './kernels/LRN';
+import {LRNGradConfig} from './kernels/LRNGrad';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {minConfig} from './kernels/Min';
@@ -87,6 +98,10 @@ import {prodConfig} from './kernels/Prod';
 import {reciprocalConfig} from './kernels/Reciprocal';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
+import {resizeBilinearConfig} from './kernels/ResizeBilinear';
+import {resizeBilinearGradConfig} from './kernels/ResizeBilinearGrad';
+import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
+import {resizeNearestNeighborGradConfig} from './kernels/ResizeNearestNeighborGrad';
 import {reverseConfig} from './kernels/Reverse';
 import {roundConfig} from './kernels/Round';
 import {rsqrtConfig} from './kernels/Rsqrt';
@@ -116,6 +131,8 @@ import {zerosLikeConfig} from './kernels/ZerosLike';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
+  LRNConfig,
+  LRNGradConfig,
   absConfig,
   acosConfig,
   acoshConfig,
@@ -134,10 +151,16 @@ const kernelConfigs: KernelConfig[] = [
   batchToSpaceNDConfig,
   ceilConfig,
   concatConfig,
+  conv2DBackpropFilterConfig,
+  conv2DBackpropInputConfig,
+  conv2DConfig,
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
   cumsumConfig,
+  depthwiseConv2dNativeBackpropFilterConfig,
+  depthwiseConv2dNativeBackpropInputConfig,
+  depthwiseConv2dNativeConfig,
   diagConfig,
   dilation2dBackpropFilterConfig,
   dilation2dBackpropInputConfig,
@@ -150,6 +173,9 @@ const kernelConfigs: KernelConfig[] = [
   expm1Config,
   floorConfig,
   floorDivConfig,
+  fusedBatchNormConfig,
+  fusedConv2DConfig,
+  fusedDepthwiseConv2DConfig,
   gatherNdConfig,
   greaterConfig,
   greaterEqualConfig,
@@ -184,6 +210,10 @@ const kernelConfigs: KernelConfig[] = [
   reciprocalConfig,
   relu6Config,
   reluConfig,
+  resizeBilinearConfig,
+  resizeBilinearGradConfig,
+  resizeNearestNeighborConfig,
+  resizeNearestNeighborGradConfig,
   reverseConfig,
   roundConfig,
   rsqrtConfig,
