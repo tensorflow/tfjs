@@ -79,7 +79,7 @@ export function slice(
         new SlicePackedProgram($size) :
         new SliceProgram($size);
     const customSetup = program.getCustomSetupFunc($begin);
-    return backend.runWebGLProgram(program, [x], null, customSetup);
+    return backend.runWebGLProgram(program, [x], x.dtype, customSetup);
   }
   backend.uploadToGPU(x.dataId);
   return shallowSlice(x, $begin, $size, backend);
