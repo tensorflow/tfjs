@@ -359,7 +359,7 @@ steps:
       - yarn-tfjs-backend-webgl
       - build-tfjs-backend-webgl
       - lint-tfjs-backend-webgl
-  - name: 'node:10'
+  - name: 'node:12'
     dir: tfjs-node
     entrypoint: yarn
     id: yarn-tfjs-node
@@ -374,7 +374,7 @@ steps:
       - build-deps-always-tfjs-core
       - build-tfjs-core
       - lint-tfjs-core
-  - name: 'node:10'
+  - name: 'node:12'
     dir: tfjs-node
     entrypoint: yarn
     id: build-addon-tfjs-node
@@ -390,7 +390,7 @@ steps:
       - build-deps-always-tfjs-core
       - build-tfjs-core
       - lint-tfjs-core
-  - name: 'node:10'
+  - name: 'node:12'
     dir: tfjs-node
     entrypoint: yarn
     id: build-tfjs-node
@@ -406,7 +406,7 @@ steps:
       - build-deps-always-tfjs-core
       - build-tfjs-core
       - lint-tfjs-core
-  - name: 'node:10'
+  - name: 'node:12'
     dir: tfjs-node
     entrypoint: yarn
     id: lint-tfjs-node
@@ -422,7 +422,7 @@ steps:
       - build-deps-always-tfjs-core
       - build-tfjs-core
       - lint-tfjs-core
-  - name: 'node:10'
+  - name: 'node:12'
     dir: tfjs-node
     entrypoint: yarn
     id: test-tfjs-node
@@ -439,7 +439,7 @@ steps:
       - build-deps-always-tfjs-core
       - build-tfjs-core
       - lint-tfjs-core
-  - name: 'node:10'
+  - name: 'node:12'
     dir: tfjs-node
     entrypoint: yarn
     id: ensure-cpu-gpu-packages-align-tfjs-node
