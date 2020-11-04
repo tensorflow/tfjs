@@ -523,6 +523,14 @@ export interface MirrorPadAttrs {
 export const Mod = 'Mod';
 export type ModInputs = BinaryInputs;
 
+export const Multinomial = 'Multinomial';
+export type MultinomialInputs = Pick<NamedTensorInfoMap, 'logits'>;
+export interface MultinomialAttrs {
+  numSamples: number;
+  seed: number;
+  normalized: boolean;
+}
+
 export const Multiply = 'Multiply';
 export type MultiplyInputs = BinaryInputs;
 

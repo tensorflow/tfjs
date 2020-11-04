@@ -757,68 +757,6 @@ export class NodeJSKernelBackend extends KernelBackend {
                'GatherV2', opAttrs, [x, indices, axisTensor]) as T;
   }
 
-  multinomial(
-      logits: Tensor2D, normalized: boolean, numSamples: number,
-      seed: number): Tensor2D {
-    if (normalized) {
-      throw new Error(
-          'TF Node backend does not support normalized logits ' +
-          'passed to multinomial');
-    }
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', logits.dtype),
-      createTensorsTypeOpAttr('output_dtype', 'int32'),
-      {name: 'seed', type: this.binding.TF_ATTR_INT, value: seed},
-      {name: 'seed2', type: this.binding.TF_ATTR_INT, value: seed * seed},
-    ];
-    return this.executeSingleOutput(
-               'Multinomial', opAttrs, [logits, scalar(numSamples, 'int32')]) as
-        Tensor2D;
-  }
-
-  oneHot(indices: Tensor1D, depth: number, onValue: number, offValue: number):
-      Tensor2D {
-    const depthTensor = scalar(depth, 'int32');
-    const onValueTensor = scalar(onValue, 'int32');
-    const offValueTensor = scalar(offValue, 'int32');
-
-    const opAttrs = [
-      {name: 'axis', type: this.binding.TF_ATTR_INT, value: -1},
-      createTensorsTypeOpAttr('T', indices.dtype),
-      createTensorsTypeOpAttr('TI', indices.dtype)
-    ];
-
-    return this.executeSingleOutput('OneHot', opAttrs, [
-      indices, depthTensor, onValueTensor, offValueTensor
-    ]) as Tensor2D;
-  }
-
-  cumsum(x: Tensor, axis: number, exclusive: boolean, reverse: boolean):
-      Tensor {
-    const axisTensor = scalar(axis, 'int32');
-    const opAttrs = [
-      {name: 'exclusive', type: this.binding.TF_ATTR_BOOL, value: exclusive},
-      {name: 'reverse', type: this.binding.TF_ATTR_BOOL, value: reverse},
-      createTensorsTypeOpAttr('T', x.dtype),
-      createTensorsTypeOpAttr('Tidx', 'int32')
-    ];
-    return this.executeSingleOutput('Cumsum', opAttrs, [x, axisTensor]);
-  }
-
-  nonMaxSuppression(
-      boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
-      iouThreshold?: number, scoreThreshold?: number): Tensor1D {
-    const opAttrs = [createTensorsTypeOpAttr('T', boxes.dtype)];
-
-    const maxOutputSizeTensor = scalar(maxOutputSize, 'int32');
-    const iouThresholdTensor = scalar(iouThreshold);
-    const scoreThresholdTensor = scalar(scoreThreshold);
-    return this.executeSingleOutput('NonMaxSuppressionV3', opAttrs, [
-      boxes, scores, maxOutputSizeTensor, iouThresholdTensor,
-      scoreThresholdTensor
-    ]) as Tensor1D;
-  }
-
   fft(x: Tensor<Rank.R2>): Tensor<Rank.R2> {
     const opAttrs = [createTensorsTypeOpAttr('Tcomplex', x.dtype)];
     return this.executeSingleOutput('FFT', opAttrs, [x]) as Tensor<Rank.R2>;
@@ -869,24 +807,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     ];
     const inputs = [input];
     return this.executeSingleOutput('Imag', opAttrs, inputs) as T;
-  }
-
-  cropAndResize(
-      image: Tensor<Rank.R4>, boxes: Tensor<Rank.R2>, boxIndex: Tensor<Rank.R1>,
-      cropSize: [number, number], method: 'bilinear'|'nearest',
-      extrapolationValue: number): Tensor<Rank.R4> {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', image.dtype),
-      {name: 'method', type: this.binding.TF_ATTR_STRING, value: method}, {
-        name: 'extrapolation_value',
-        type: this.binding.TF_ATTR_FLOAT,
-        value: extrapolationValue
-      }
-    ];
-    const cropSizeTensor = tensor1d(cropSize, 'int32');
-    return this.executeSingleOutput(
-               'CropAndResize', opAttrs,
-               [image, boxes, boxIndex, cropSizeTensor]) as Tensor<Rank.R4>;
   }
 
   depthToSpace(x: Tensor<Rank.R4>, blockSize: number, dataFormat: string):
