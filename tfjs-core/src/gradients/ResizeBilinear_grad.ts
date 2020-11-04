@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {ENGINE, ForwardFunc} from '../engine';
-import {ResizeBilinear, ResizeBilinearAttrs, ResizeBilinearGrad, ResizeBilinearGradInputs} from '../kernel_names';
+import {ResizeBilinear, ResizeBilinearGrad, ResizeBilinearGradAttrs, ResizeBilinearGradInputs} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor4D} from '../tensor';
@@ -28,12 +28,12 @@ export const resizeBilinearGradConfig: GradConfig = {
     const [images] = saved;
 
     const backPropKernelFunc: ForwardFunc<Tensor> = (backend) => {
-      const {alignCorners} = attrs as {} as ResizeBilinearAttrs;
+      const {alignCorners} = attrs as {} as ResizeBilinearGradAttrs;
       return backend.resizeBilinearBackprop(
           dy, images as Tensor4D, alignCorners);
     };
 
-    const inputs: ResizeBilinearGradInputs = {images};
+    const inputs: ResizeBilinearGradInputs = {dy, images};
     const imagesDer = () => ENGINE.runKernelFunc(
         backPropKernelFunc, inputs as {} as NamedTensorMap, null /* gradient */,
         ResizeBilinearGrad, attrs);

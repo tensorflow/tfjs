@@ -15,20 +15,9 @@
  * =============================================================================
  */
 
-import {KernelConfig, SquaredDifference} from '@tensorflow/tfjs-core';
+// Import shared functionality from tfjs-backend-cpu without triggering
+// side effects.
+// tslint:disable-next-line: no-imports-from-dist
+import {sliceImpl as sliceImplCPU} from '@tensorflow/tfjs-backend-cpu/dist/shared';
 
-import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
-import {binaryKernelFunc} from '../utils/binary_utils';
-
-export const squaredDifferenceImpl = createSimpleBinaryKernelImpl(((a, b) => {
-  const diff = a - b;
-  return diff * diff;
-}));
-export const squaredDifference =
-    binaryKernelFunc(SquaredDifference, squaredDifferenceImpl);
-
-export const squaredDifferenceConfig: KernelConfig = {
-  kernelName: SquaredDifference,
-  backendName: 'cpu',
-  kernelFunc: squaredDifference
-};
+export {sliceImplCPU};
