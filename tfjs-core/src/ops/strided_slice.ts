@@ -68,6 +68,10 @@ function stridedSlice_(
   let $x = convertToTensor(x, 'x', 'stridedSlice');
 
   const forward: ForwardFunc<Tensor> = (backend) => {
+    // make a copy because it may be modified further down.
+    begin = begin.slice();
+    end = end.slice();
+
     if (strides == null) {
       strides = new Array(begin.length);
     }

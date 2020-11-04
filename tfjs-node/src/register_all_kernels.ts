@@ -65,6 +65,7 @@ import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
 import {fusedConv2DConfig} from './kernels/FusedConv2D';
 import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
 import {gatherNdConfig} from './kernels/GatherNd';
+import {gatherV2Config} from './kernels/GatherV2';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {isFiniteConfig} from './kernels/IsFinite';
@@ -123,6 +124,8 @@ import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {stepConfig} from './kernels/Step';
+import {stridedSliceConfig} from './kernels/StridedSlice';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
@@ -184,6 +187,7 @@ const kernelConfigs: KernelConfig[] = [
   fusedConv2DConfig,
   fusedDepthwiseConv2DConfig,
   gatherNdConfig,
+  gatherV2Config,
   greaterConfig,
   greaterEqualConfig,
   isFiniteConfig,
@@ -240,6 +244,8 @@ const kernelConfigs: KernelConfig[] = [
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
+  stepConfig,
+  stridedSliceConfig,
   subConfig,
   sumConfig,
   tanConfig,

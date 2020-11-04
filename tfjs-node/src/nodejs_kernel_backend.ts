@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-import {backend_util, BackendTimingInfo, DataId, DataType, fill, KernelBackend, ModelTensorInfo, ones, Rank, Scalar, scalar, ScalarLike, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, tidy, util} from '@tensorflow/tfjs';
+import {backend_util, BackendTimingInfo, DataId, DataType, KernelBackend, ModelTensorInfo, Rank, Scalar, scalar, ScalarLike, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, tidy, util} from '@tensorflow/tfjs';
 import {isArray, isNullOrUndefined} from 'util';
 
 import {encodeInt32ArrayAsInt64, Int64Scalar} from './int64_tensors';
@@ -245,34 +245,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     return dataId;
   }
 
-  stridedSlice<T extends Tensor>(
-      x: T, begin: number[], end: number[], strides: number[]): T {
-    const beginTensor = tensor1d(begin, 'int32');
-    for (let axis = 0; axis < end.length; axis++) {
-      // Unlike Numpy, when the strides are negative, TF C uses -n-1 instead of
-      // -1 as the "end" in order to include the first element.
-      if (strides[axis] < 0 && end[axis] === -1) {
-        end[axis] -= x.shape[axis];
-      }
-    }
-    const endTensor = tensor1d(end, 'int32');
-    const stridesTensor = tensor1d(strides, 'int32');
-    // All of the masks have already been accounted for in the high level op,
-    // so the backend does NOT need to deal with masks.
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      createTensorsTypeOpAttr('Index', 'int32'),
-      {name: 'begin_mask', type: this.binding.TF_ATTR_INT, value: 0},
-      {name: 'end_mask', type: this.binding.TF_ATTR_INT, value: 0},
-      {name: 'ellipsis_mask', type: this.binding.TF_ATTR_INT, value: 0},
-      {name: 'new_axis_mask', type: this.binding.TF_ATTR_INT, value: 0},
-      {name: 'shrink_axis_mask', type: this.binding.TF_ATTR_INT, value: 0}
-    ];
-    return this.executeSingleOutput(
-               'StridedSlice', opAttrs,
-               [x, beginTensor, endTensor, stridesTensor]) as T;
-  }
-
   applyActivation<T extends Tensor>(
       input: T, activation: string, preluActivationWeights?: Tensor): T {
     let result = input;
@@ -366,15 +338,6 @@ export class NodeJSKernelBackend extends KernelBackend {
       createTensorsTypeOpAttr('Tout', 'float32')
     ];
     return this.executeSingleOutput('ComplexAbs', opAttrs, [x]) as T;
-  }
-
-  step<T extends Tensor>(x: T, alpha: number): T {
-    const dtype = x.dtype;
-    const nans = tf.isNaN(x);
-    const stepNoNans = this.select(
-        tf.greater(x, scalar(0, dtype)), ones(x.shape),
-        fill(x.shape, alpha, dtype));
-    return this.select(nans, x, stepNoNans) as T;
   }
 
   conv3d(
@@ -714,17 +677,6 @@ export class NodeJSKernelBackend extends KernelBackend {
       {name: 'Truncate', type: this.binding.TF_ATTR_BOOL, value: false}
     ];
     return this.executeSingleOutput('Cast', opAttrs, [x]) as T;
-  }
-
-  gather<T extends Tensor>(x: T, indices: Tensor1D, axis: number): T {
-    const axisTensor = scalar(axis, 'int32');
-    const opAttrs = [
-      createTensorsTypeOpAttr('Tparams', x.dtype),
-      createTensorsTypeOpAttr('Tindices', indices.dtype),
-      createTensorsTypeOpAttr('Taxis', 'int32')
-    ];
-    return this.executeSingleOutput(
-               'GatherV2', opAttrs, [x, indices, axisTensor]) as T;
   }
 
   fft(x: Tensor<Rank.R2>): Tensor<Rank.R2> {
