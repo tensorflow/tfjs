@@ -49,6 +49,7 @@ describe('image', () => {
         node.inputParams['images'] = createTensorAttr(0);
         node.inputParams['size'] = createNumericArrayAttrFromIndex(1);
         node.attrParams['alignCorners'] = createBoolAttr(true);
+        node.attrParams['halfPixelCenters'] = createBoolAttr(true);
         node.inputNames = ['input1', 'input2'];
         const input2 = [tfOps.tensor1d([1, 2])];
         spyOn(tfOps.image, 'resizeBilinear');
@@ -61,6 +62,7 @@ describe('image', () => {
         node.inputParams['images'] = createTensorAttr(0);
         node.inputParams['size'] = createNumericArrayAttrFromIndex(1);
         node.attrParams['alignCorners'] = createBoolAttr(true);
+        node.attrParams['halfPixelCenters'] = createBoolAttr(true);
 
         expect(validateParam(node, image.json)).toBeTruthy();
       });
