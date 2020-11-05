@@ -114,7 +114,8 @@ def optimize_graph(graph, signature_def, output_graph,
                    skip_op_check=False, strip_debug_ops=False,
                    weight_shard_size_bytes=1024 * 1024 * 4,
                    experiments=False,
-                   initializer_graph=None):
+                   initializer_graph=None,
+                   metadata=None):
   """Takes a Python Graph object and optimizes the graph.
 
   Args:
@@ -130,6 +131,7 @@ def optimize_graph(graph, signature_def, output_graph,
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
     initializer_graph: The frozen graph for initializers.
+    metadata: User defined metadata map.
   """
 
   # Add a collection 'train_op' so that Grappler knows the outputs.
@@ -205,7 +207,7 @@ def optimize_graph(graph, signature_def, output_graph,
   extract_weights(
       optimized_graph, output_graph, tf_version,
       signature_def, quantization_dtype_map, weight_shard_size_bytes,
-      initializer_graph_def)
+      initializer_graph_def, metadata=metadata)
 
   return optimize_graph
 
@@ -246,7 +248,8 @@ def extract_weights(graph_def,
                     signature_def,
                     quantization_dtype_map=None,
                     weight_shard_size_bytes=1024 * 1024 * 4,
-                    initializer_graph_def=None):
+                    initializer_graph_def=None,
+                    metadata=None):
   """Takes a Python GraphDef object and extract the weights.
 
   Args:
@@ -261,6 +264,7 @@ def extract_weights(graph_def,
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
     initializer_graph_def: tf.GraphDef proto object for initializer graph.
+    metadata: User defined metadata map.
   """
   global_manifest = extract_const_nodes(graph_def.node)
 
@@ -286,7 +290,8 @@ def extract_weights(graph_def,
                   tf_version, signature_def,
                   quantization_dtype_map=quantization_dtype_map,
                   weight_shard_size_bytes=weight_shard_size_bytes,
-                  initializer_graph_def=initializer_graph_def)
+                  initializer_graph_def=initializer_graph_def,
+                  metadata=metadata)
 
 def write_artifacts(topology,
                     weights,
@@ -295,7 +300,8 @@ def write_artifacts(topology,
                     signature_def,
                     quantization_dtype_map=None,
                     weight_shard_size_bytes=1024 * 1024 * 4,
-                    initializer_graph_def=None):
+                    initializer_graph_def=None,
+                    metadata=None):
   """Writes weights and topology to the output_dir.
 
   If `topology` is Falsy (e.g., `None`), only emit weights to output_dir.
@@ -313,16 +319,19 @@ def write_artifacts(topology,
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
     initializer_graph_def: tf.GraphDef proto object for initializer graph.
+    metadata: User defined metadata map.
   """
   model_json = {
       common.FORMAT_KEY: common.TFJS_GRAPH_MODEL_FORMAT,
       # TODO(piyu): Add tensorflow version below by using `meta_info_def`.
       common.GENERATED_BY_KEY: tf_version,
       common.CONVERTED_BY_KEY: common.get_converted_by(),
-      common.SIGNATURE_KEY: MessageToDict(signature_def)
-      common.USER_DEFINED_METADATA_KEY: {}
+      common.SIGNATURE_KEY: MessageToDict(signature_def),
   }
   model_json[common.ARTIFACT_MODEL_TOPOLOGY_KEY] = topology or None
+
+  if metadata:
+    model_json[common.USER_DEFINED_METADATA_KEY] = metadata
 
   if initializer_graph_def:
     model_json[common.ARTIFACT_MODEL_INITIALIZER] = MessageToDict(
@@ -454,7 +463,8 @@ def convert_tf_frozen_model(frozen_model_path,
                             skip_op_check=False,
                             strip_debug_ops=False,
                             weight_shard_size_bytes=1024 * 1024 * 4,
-                            experiments=False):
+                            experiments=False,
+                            metadata=None):
   """Convert frozen model and check the model compatibility with Tensorflow.js.
   Optimize and convert the model to Tensorflow.js format, when the model passes
   the compatiblity check.
@@ -473,6 +483,7 @@ def convert_tf_frozen_model(frozen_model_path,
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
     experiments: Bool enable experimental features.
+    metadata: User defined metadata map.
   """
 
   if not os.path.exists(output_dir):
@@ -489,7 +500,8 @@ def convert_tf_frozen_model(frozen_model_path,
                  skip_op_check=skip_op_check,
                  strip_debug_ops=strip_debug_ops,
                  weight_shard_size_bytes=weight_shard_size_bytes,
-                 experiments=experiments)
+                 experiments=experiments,
+                 metadata=metadata)
 
 def _load_model(saved_model_dir, saved_model_tags):
   model = None
@@ -509,7 +521,8 @@ def convert_tf_saved_model(saved_model_dir,
                            strip_debug_ops=False,
                            weight_shard_size_bytes=1024 * 1024 * 4,
                            control_flow_v2=False,
-                           experiments=False):
+                           experiments=False,
+                           metadata=None):
   """Freeze the SavedModel and check the model compatibility with Tensorflow.js.
 
   Optimize and convert the model to Tensorflow.js format, when the model passes
@@ -534,6 +547,7 @@ def convert_tf_saved_model(saved_model_dir,
       The size of each weight file will be <= this value.
     control_flow_v2: Bool whether to enable control flow v2 ops.
     experiments: Bool enable experimental features.
+    metadata: User defined metadata map.
   """
   if signature_def is None:
     signature_def = 'serving_default'
@@ -637,7 +651,8 @@ def convert_tf_saved_model(saved_model_dir,
                  strip_debug_ops=strip_debug_ops,
                  weight_shard_size_bytes=weight_shard_size_bytes,
                  experiments=experiments,
-                 initializer_graph=frozen_initializer_graph)
+                 initializer_graph=frozen_initializer_graph,
+                 metadata=metadata)
 
 def load_and_initialize_hub_module(module_path, signature='default'):
   """Loads graph of a TF-Hub module and initializes it into a session.
@@ -689,7 +704,8 @@ def convert_tf_hub_module_v1(module_path, output_dir,
                              signature='default', quantization_dtype_map=None,
                              skip_op_check=False, strip_debug_ops=False,
                              weight_shard_size_bytes=1024 * 1024 * 4,
-                             experiments=False):
+                             experiments=False,
+                             metadata=None):
   """Freeze the TF-Hub module and check compatibility with Tensorflow.js.
 
   Optimize and convert the TF-Hub module to Tensorflow.js format, if it passes
@@ -710,6 +726,7 @@ def convert_tf_hub_module_v1(module_path, output_dir,
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
     experiments: Bool enable experimental features.
+    metadata: User defined metadata map.
   """
 
   if signature is None:
@@ -751,7 +768,8 @@ def convert_tf_hub_module_v1(module_path, output_dir,
                    skip_op_check=skip_op_check,
                    strip_debug_ops=strip_debug_ops,
                    weight_shard_size_bytes=weight_shard_size_bytes,
-                   experiments=experiments)
+                   experiments=experiments,
+                   metadata=metadata)
   finally:
     # Clean up the temp files.
     if os.path.exists(frozen_file):
@@ -763,7 +781,9 @@ def convert_tf_hub_module(module_handle, output_dir,
                           quantization_dtype_map=None,
                           skip_op_check=False, strip_debug_ops=False,
                           weight_shard_size_bytes=1024 * 1024 * 4,
-                          control_flow_v2=False, experiments=False):
+                          control_flow_v2=False,
+                          experiments=False,
+                          metadata=None):
   """Conversion for TF Hub modules V1 and V2.
 
   See convert_tf_hub_module and convert_tf_saved_model.
@@ -785,6 +805,7 @@ def convert_tf_hub_module(module_handle, output_dir,
       The size of each weight file will be <= this value.
     control_flow_v2: Bool whether to enable control flow v2 ops.
     experiments: Bool enable experimental features.
+    metadata: User defined metadata map.
   """
   module_path = hub.resolve(module_handle)
   # TODO(vbardiovskyg): We can remove this v1 code path once loading of all v1
@@ -796,7 +817,8 @@ def convert_tf_hub_module(module_handle, output_dir,
                              quantization_dtype_map,
                              skip_op_check, strip_debug_ops,
                              weight_shard_size_bytes,
-                             experiments=experiments)
+                             experiments=experiments,
+                             metadata=metadata)
   else:
     print("Loading the module using TF 2.X interface from %s." % module_path)
     if signature is None:
@@ -810,4 +832,5 @@ def convert_tf_hub_module(module_handle, output_dir,
                            strip_debug_ops=strip_debug_ops,
                            weight_shard_size_bytes=weight_shard_size_bytes,
                            control_flow_v2=control_flow_v2,
-                           experiments=experiments)
+                           experiments=experiments,
+                           metadata=metadata)
