@@ -28,17 +28,18 @@ export const resizeBilinearConfig: KernelConfig = {
     const {alignCorners, halfPixelCenters, size} =
         args.attrs as {} as ResizeBilinearAttrs;
 
+    if (halfPixelCenters) {
+      throw new Error(
+          `The node resizeBilinear kernel does not yet support ` +
+          `halfPixelCenters being true.`);
+    }
+
     const opAttrs = [
       createTensorsTypeOpAttr('T', images.dtype),
       {
         name: 'align_corners',
         type: backend.binding.TF_ATTR_BOOL,
         value: alignCorners
-      },
-      {
-        name: 'half_pixel_centers',
-        type: backend.binding.TF_ATTR_BOOL,
-        value: halfPixelCenters
       },
     ];
     const [newHeight, newWidth] = size;

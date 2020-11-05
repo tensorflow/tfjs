@@ -56,7 +56,7 @@ function resizeBilinear(args: {
 
   if (halfPixelCenters) {
     throw new Error(
-        `The wasm resizeBilinear kernel does not support ` +
+        `The wasm resizeBilinear kernel does not yet support ` +
         `halfPixelCenters being true.`);
   }
 
