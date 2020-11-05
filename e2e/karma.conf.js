@@ -45,6 +45,13 @@ const devConfig = {
       served: true,
       nocache: true
     },
+    {
+      pattern: 'integration_tests/metadata/**/*',
+      watched: true,
+      included: false,
+      served: true,
+      nocache: true
+    },
     // Serve program bundles as files
     {
       pattern: 'custom_bundle/*/dist/**/*',
