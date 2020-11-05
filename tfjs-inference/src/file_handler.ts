@@ -72,6 +72,9 @@ export class FileHandler implements tf.io.IOHandler {
       if (modelJSON.trainingConfig != null) {
         modelArtifacts.trainingConfig = modelJSON.trainingConfig;
       }
+      if (modelJSON.signature != null) {
+        modelArtifacts.signature = modelJSON.signature;
+      }
       if (modelJSON.userDefinedMetadata != null) {
         modelArtifacts.userDefinedMetadata = modelJSON.userDefinedMetadata;
       }
