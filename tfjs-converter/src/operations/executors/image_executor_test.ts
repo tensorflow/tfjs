@@ -55,7 +55,7 @@ describe('image', () => {
         spyOn(tfOps.image, 'resizeBilinear');
         executeOp(node, {input1, input2}, context);
         expect(tfOps.image.resizeBilinear)
-            .toHaveBeenCalledWith(input1[0], [1, 2], true);
+            .toHaveBeenCalledWith(input1[0], [1, 2], true, true);
       });
       it('should match json def', () => {
         node.op = 'ResizeBilinear';
