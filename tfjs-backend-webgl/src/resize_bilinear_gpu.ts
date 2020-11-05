@@ -63,7 +63,7 @@ export class ResizeBilinearProgram implements GPGPUProgram {
         vec2 sourceFracIndexRC = ${sourceFracIndexRC};
 
         // Compute the four integer indices.
-        ivec2 sourceFloorRC = max(ivec2(sourceFracIndexRC), ivec2(0));
+        ivec2 sourceFloorRC = ivec2(max(sourceFracIndexRC, vec2(0.0)));
         ivec2 sourceCeilRC = ivec2(
           min(inputShapeRC - 1.0, ceil(sourceFracIndexRC)));
 
