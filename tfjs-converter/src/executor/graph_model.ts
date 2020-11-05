@@ -139,7 +139,7 @@ export class GraphModel implements InferenceModel {
     this.artifacts = artifacts;
     const graph = this.artifacts.modelTopology as tensorflow.IGraphDef;
 
-    const oldVersion = this.isOldVersion(artifacts.generatedBy);
+    const oldVersion = this.isOldVersion(artifacts.convertedBy);
     let signature;
     if (oldVersion) {
       if (this.artifacts.userDefinedMetadata != null) {
@@ -178,7 +178,8 @@ export class GraphModel implements InferenceModel {
 
   private isOldVersion(version: string) {
     if (version) {
-      const semVer = version.split('.');
+      let semVer = version.split('TensorFlow.js Converter v');
+      semVer = semVer[0].split('.');
       const majorVer = parseInt(semVer[0], 10);
       const minorVer = parseInt(semVer[1], 10);
 
@@ -190,9 +191,11 @@ export class GraphModel implements InferenceModel {
       if (majorVer === 2 && minorVer <= 7) {
         return true;
       }
-    }
 
-    return false;
+      return false;
+    } else {
+      return true;
+    }
   }
 
   /**
