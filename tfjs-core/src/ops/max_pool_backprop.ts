@@ -16,7 +16,7 @@
  */
 
 import {ENGINE, ForwardFunc} from '../engine';
-import {MaxPoolBackprop, MaxPoolBackpropAttrs, MaxPoolBackpropInputs} from '../kernel_names';
+import {MaxPoolGrad, MaxPoolGradAttrs, MaxPoolGradInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -85,14 +85,12 @@ function maxPoolBackprop_(
     return backend.maxPoolBackprop($dy, $input, $output, convInfo);
   };
 
-  const inputs:
-      MaxPoolBackpropInputs = {dy: $dy, input: $input, output: $output};
+  const inputs: MaxPoolGradInputs = {dy: $dy, input: $input, output: $output};
 
-  const attrs:
-      MaxPoolBackpropAttrs = {filterSize, strides, pad, dimRoundingMode};
+  const attrs: MaxPoolGradAttrs = {filterSize, strides, pad, dimRoundingMode};
 
   return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null, MaxPoolBackprop,
+             forward, inputs as {} as NamedTensorMap, null, MaxPoolGrad,
              attrs as {} as NamedAttrMap) as Tensor4D;
 }
 

@@ -16,7 +16,7 @@
  */
 
 import {ENGINE, ForwardFunc} from '../engine';
-import {MaxPool3DBackprop, MaxPool3DBackpropAttrs, MaxPool3DBackpropInputs} from '../kernel_names';
+import {MaxPool3DGrad, MaxPool3DGradAttrs, MaxPool3DGradInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor4D, Tensor5D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -118,14 +118,14 @@ function maxPool3dBackprop_<T extends Tensor4D|Tensor5D>(
   };
 
   const inputs:
-      MaxPool3DBackpropInputs = {dy: dy5D, input: input5D, output: output5D};
+      MaxPool3DGradInputs = {dy: dy5D, input: input5D, output: output5D};
 
-  const attrs: MaxPool3DBackpropAttrs =
+  const attrs: MaxPool3DGradAttrs =
       {filterSize, strides, dilations, pad, dimRoundingMode};
 
   const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */,
-      MaxPool3DBackprop, attrs as {} as NamedAttrMap);
+      forward, inputs as {} as NamedTensorMap, null /* grad */, MaxPool3DGrad,
+      attrs as {} as NamedAttrMap);
 
   if (reshapedTo5D) {
     return reshape(

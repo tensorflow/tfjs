@@ -17,7 +17,7 @@
  */
 
 import {ENGINE, ForwardFunc} from '../engine';
-import {AvgPool3DBackprop, AvgPool3DBackpropAttrs, AvgPool3DBackpropInputs} from '../kernel_names';
+import {AvgPool3DGrad, AvgPool3DGradAttrs, AvgPool3DGradInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor4D, Tensor5D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -108,14 +108,14 @@ function avgPool3dBackprop_<T extends Tensor4D|Tensor5D>(
     return backend.avgPool3dBackprop(dy5D, input5D, convInfo);
   };
 
-  const inputs: AvgPool3DBackpropInputs = {dy: dy5D, input: input5D};
+  const inputs: AvgPool3DGradInputs = {dy: dy5D, input: input5D};
 
-  const attrs: AvgPool3DBackpropAttrs =
+  const attrs: AvgPool3DGradAttrs =
       {filterSize, strides, dilations, pad, dimRoundingMode};
 
   const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */,
-      AvgPool3DBackprop, attrs as {} as NamedAttrMap);
+      forward, inputs as {} as NamedTensorMap, null /* grad */, AvgPool3DGrad,
+      attrs as {} as NamedAttrMap);
 
   if (reshapedTo5D) {
     return reshape(
