@@ -17,7 +17,7 @@
 
 import {MaxPool, MaxPoolAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
-import {maxPoolBackprop} from '../ops/max_pool_backprop';
+import {maxPoolBackprop} from '../ops/max_pool_grad';
 import {Tensor, Tensor4D} from '../tensor';
 
 export const maxPoolGradConfig: GradConfig = {
