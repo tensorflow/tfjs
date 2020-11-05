@@ -33,7 +33,7 @@ export const resizeNearestNeighborGradConfig: GradConfig = {
           dy, images as Tensor4D, alignCorners);
     };
 
-    const inputs: ResizeNearestNeighborGradInputs = {images};
+    const inputs: ResizeNearestNeighborGradInputs = {dy, images};
     const imagesDer = () => ENGINE.runKernelFunc(
         backPropKernelFunc, inputs as {} as NamedTensorMap, null /* gradient */,
         ResizeNearestNeighborGrad, attrs);

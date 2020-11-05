@@ -261,44 +261,6 @@ export class MathBackendCPU extends KernelBackend {
     return res;
   }
 
-  neg<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'neg');
-
-    // TODO(lina128): Use mul directly once neg is modularized.
-    return tf.mul(tf.scalar(-1), x);
-  }
-
-  addN<T extends Tensor>(tensors: T[]): T {
-    assertNotComplex(tensors, 'addN');
-
-    const vals = tensors.map(t => this.readSync(t.dataId) as TypedArray);
-    const result = tf.buffer(tensors[0].shape, tensors[0].dtype as 'float32');
-    const resultVals = result.values;
-    for (let i = 0; i < tensors.length; i++) {
-      const currVals = vals[i];
-      for (let j = 0; j < resultVals.length; j++) {
-        resultVals[j] += currVals[j];
-      }
-    }
-    return result.toTensor() as T;
-  }
-
-  pow<T extends Tensor>(a: T, b: Tensor): T {
-    assertNotComplex([a, b], 'pow');
-
-    return this.broadcastedBinaryOp(
-               a, b, a.dtype, (aValue, bValue) => Math.pow(aValue, bValue)) as
-        T;
-  }
-
-  floorDiv(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'floorDiv');
-
-    const op = (a: number, b: number) => Math.floor(a / b);
-    const outputDtype = 'int32';
-    return this.broadcastedBinaryOp(a, b, outputDtype, op);
-  }
-
   prod(x: Tensor, axes: number[]): Tensor {
     assertNotComplex(x, 'sum');
 
@@ -431,70 +393,6 @@ export class MathBackendCPU extends KernelBackend {
       }
     }
     return result;
-  }
-
-  equal(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'equal');
-
-    return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      return (aVal === bVal) ? 1 : 0;
-    });
-  }
-
-  notEqual(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'notEqual');
-
-    return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      return (aVal !== bVal) ? 1 : 0;
-    });
-  }
-
-  less(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'less');
-
-    return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      return (aVal < bVal) ? 1 : 0;
-    });
-  }
-
-  lessEqual(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'lessEqual');
-
-    return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      return (aVal <= bVal) ? 1 : 0;
-    });
-  }
-
-  greater(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'greater');
-
-    return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      return (aVal > bVal) ? 1 : 0;
-    });
-  }
-
-  greaterEqual(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'greaterEqual');
-
-    return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      return (aVal >= bVal) ? 1 : 0;
-    });
-  }
-
-  logicalAnd(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'logicalAnd');
-
-    return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      return aVal && bVal;
-    });
-  }
-
-  logicalOr(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'logicalOr');
-
-    return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      return aVal || bVal;
-    });
   }
 
   select(condition: Tensor, a: Tensor, b: Tensor): Tensor {

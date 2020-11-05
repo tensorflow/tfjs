@@ -18,7 +18,7 @@
 import {ENGINE} from './engine';
 import {inferShape} from './tensor_util_env';
 import {RecursiveArray, TensorLike, TypedArray} from './types';
-import {arraysEqual, flatten, isString, isTypedArray} from './util';
+import {arraysEqual, encodeString, flatten, isString, isTypedArray} from './util';
 
 const TEST_EPSILON_FLOAT32 = 1e-3;
 export const TEST_EPSILON_FLOAT16 = 1e-1;
@@ -152,4 +152,18 @@ export function expectArrayBuffersEqual(
   // Safari & Jasmine don't like comparing ArrayBuffers directly. Wrapping in
   // a Float32Array solves this issue.
   expect(new Float32Array(actual)).toEqual(new Float32Array(expected));
+}
+
+/** Encodes strings into utf-8 bytes. */
+export function encodeStrings(a: RecursiveArray<{}>):
+    RecursiveArray<Uint8Array> {
+  for (let i = 0; i < (a as Array<{}>).length; i++) {
+    const val = a[i];
+    if (Array.isArray(val)) {
+      encodeStrings(val);
+    } else {
+      a[i] = encodeString(val as string);
+    }
+  }
+  return a as RecursiveArray<Uint8Array>;
 }
