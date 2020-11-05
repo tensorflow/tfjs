@@ -14,11 +14,11 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as tf from '@tensorflow/tfjs-core';
 import {Cast, CastAttrs, CastInputs, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
+import {zeros} from '../utils/zeros_impl';
 
 import {complex} from './Complex';
 import {identity} from './Identity';
@@ -37,14 +37,13 @@ export function cast(
       return identity({inputs: {x}, backend});
     }
 
-    // TODO(lina128): Import kernel function once zeros is modularized.
-    const zerosTensor = tf.zeros(x.shape);
+    const zerosTensorInfo = zeros(backend, x.shape, x.dtype);
     const floatX = cast({inputs: {x}, backend, attrs: {dtype: 'float32'}});
 
     const result =
-        complex({inputs: {real: floatX, imag: zerosTensor}, backend});
+        complex({inputs: {real: floatX, imag: zerosTensorInfo}, backend});
 
-    zerosTensor.dispose();
+    backend.disposeIntermediateTensorInfo(zerosTensorInfo);
     backend.disposeIntermediateTensorInfo(floatX);
 
     return result;

@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, BackendTimingInfo, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, max, NumericDataType, Rank, Scalar, ShapeMap, slice_util, Tensor, Tensor1D, Tensor2D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, slice_util, Tensor, Tensor1D, Tensor2D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
 const nonMaxSuppressionV3Impl = kernel_impls.nonMaxSuppressionV3Impl;
 const split = kernel_impls.split;
@@ -140,7 +140,7 @@ export class MathBackendCPU extends KernelBackend {
     return this.data.get(dataId).values;
   }
 
-  private bufferSync<R extends Rank>(t: Tensor<R>): TensorBuffer<R> {
+  bufferSync<R extends Rank>(t: TensorInfo): TensorBuffer<R> {
     const data = this.readSync(t.dataId);
     let decodedData = data as DataValues;
     if (t.dtype === 'string') {
@@ -151,7 +151,8 @@ export class MathBackendCPU extends KernelBackend {
         throw new Error('Failed to decode encoded string bytes into utf-8');
       }
     }
-    return tf.buffer(t.shape, t.dtype, decodedData) as TensorBuffer<R>;
+    return buffer(t.shape as ShapeMap[R], t.dtype, decodedData) as
+        TensorBuffer<R>;
   }
 
   makeOutput<T extends Tensor>(
@@ -258,101 +259,6 @@ export class MathBackendCPU extends KernelBackend {
       res[i] = tf.slice(x, begin, size).reshape(outShape);
     }
     return res;
-  }
-
-  reverse<T extends Tensor>(x: T, axis: number[]): T {
-    assertNotComplex(x, 'reverse');
-
-    const buffer = tf.buffer(x.shape, x.dtype);
-    const xBuf = this.bufferSync(x);
-
-    for (let i = 0; i < buffer.size; i++) {
-      const outLoc = buffer.indexToLoc(i);
-      const inLoc = outLoc.slice();
-      axis.forEach(ax => inLoc[ax] = x.shape[ax] - 1 - inLoc[ax]);
-      buffer.set(xBuf.get(...inLoc), ...outLoc);
-    }
-
-    return buffer.toTensor() as T;
-  }
-
-  neg<T extends Tensor>(x: T): T {
-    assertNotComplex(x, 'neg');
-
-    // TODO(lina128): Use mul directly once neg is modularized.
-    return tf.mul(tf.scalar(-1), x);
-  }
-
-  addN<T extends Tensor>(tensors: T[]): T {
-    assertNotComplex(tensors, 'addN');
-
-    const vals = tensors.map(t => this.readSync(t.dataId) as TypedArray);
-    const result = tf.buffer(tensors[0].shape, tensors[0].dtype as 'float32');
-    const resultVals = result.values;
-    for (let i = 0; i < tensors.length; i++) {
-      const currVals = vals[i];
-      for (let j = 0; j < resultVals.length; j++) {
-        resultVals[j] += currVals[j];
-      }
-    }
-    return result.toTensor() as T;
-  }
-
-  softmax<T extends Tensor>(logits: T, dim: number): T {
-    const axes = util.parseAxisParam([dim], logits.shape);
-    // TODO(annxingyuan): Call maxImpl rather than op as part of softmax kernel
-    // modularization.
-    const maxLogit = max(logits, axes);
-    const expandedShape =
-        backend_util.expandShapeToKeepDim(maxLogit.shape, axes);
-
-    // TODO(lina128): Use sub directly once softmax is modularized.
-    const a = tf.sub(logits, maxLogit.reshape(expandedShape));
-    const b = tf.exp(a);
-    const sumExp = this.sum(b, axes).reshape(expandedShape);
-
-    // TODO(annxingyuan): Call divImpl rather than op as part of softmax
-    // kernel modularization.
-    return tf.div(b, sumExp);
-  }
-
-  pow<T extends Tensor>(a: T, b: Tensor): T {
-    assertNotComplex([a, b], 'pow');
-
-    return this.broadcastedBinaryOp(
-               a, b, a.dtype, (aValue, bValue) => Math.pow(aValue, bValue)) as
-        T;
-  }
-
-  floorDiv(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'floorDiv');
-
-    const op = (a: number, b: number) => Math.floor(a / b);
-    const outputDtype = 'int32';
-    return this.broadcastedBinaryOp(a, b, outputDtype, op);
-  }
-
-  sum(x: Tensor, axes: number[]): Tensor {
-    assertNotComplex(x, 'sum');
-
-    backend_util.assertAxesAreInnerMostDims('sum', axes, x.rank);
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const resultDtype = upcastType(x.dtype, 'int32');
-    const result = tf.zeros(outShape, resultDtype);
-    const reduceSize = util.sizeFromShape(reduceShape);
-    const vals = this.readSync(result.dataId) as TypedArray;
-
-    const aVals = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < vals.length; ++i) {
-      const offset = i * reduceSize;
-      let sum = 0;
-      for (let j = 0; j < reduceSize; ++j) {
-        sum += aVals[offset + j];
-      }
-      vals[i] = sum;
-    }
-    return result;
   }
 
   prod(x: Tensor, axes: number[]): Tensor {
@@ -487,70 +393,6 @@ export class MathBackendCPU extends KernelBackend {
       }
     }
     return result;
-  }
-
-  equal(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'equal');
-
-    return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      return (aVal === bVal) ? 1 : 0;
-    });
-  }
-
-  notEqual(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'notEqual');
-
-    return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      return (aVal !== bVal) ? 1 : 0;
-    });
-  }
-
-  less(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'less');
-
-    return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      return (aVal < bVal) ? 1 : 0;
-    });
-  }
-
-  lessEqual(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'lessEqual');
-
-    return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      return (aVal <= bVal) ? 1 : 0;
-    });
-  }
-
-  greater(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'greater');
-
-    return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      return (aVal > bVal) ? 1 : 0;
-    });
-  }
-
-  greaterEqual(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'greaterEqual');
-
-    return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      return (aVal >= bVal) ? 1 : 0;
-    });
-  }
-
-  logicalAnd(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'logicalAnd');
-
-    return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      return aVal && bVal;
-    });
-  }
-
-  logicalOr(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'logicalOr');
-
-    return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      return aVal || bVal;
-    });
   }
 
   select(condition: Tensor, a: Tensor, b: Tensor): Tensor {

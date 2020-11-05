@@ -868,6 +868,10 @@
     estree-walker "^1.0.1"
     picomatch "^2.2.2"
 
+"@tensorflow/tfjs-backend-cpu@link:../tfjs-backend-cpu":
+  version "0.0.0"
+  uid ""
+
 "@tensorflow/tfjs-core@link:../tfjs-core":
   version "0.0.0"
   uid ""

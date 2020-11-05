@@ -16,19 +16,23 @@
  */
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
+import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {addConfig} from './kernels/Add';
 import {atan2Config} from './kernels/Atan2';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {avgPoolBackpropConfig} from './kernels/AvgPoolBackprop';
+import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchNormConfig} from './kernels/BatchNorm';
 import {castConfig} from './kernels/Cast';
 import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
+import {conv2DConfig} from './kernels/Conv2D';
 import {cosConfig} from './kernels/Cos';
 import {divConfig} from './kernels/Div';
 import {fftConfig} from './kernels/FFT';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {fromPixelsConfig} from './kernels/FromPixels';
+import {fusedConv2DConfig} from './kernels/FusedConv2D';
 import {identityConfig} from './kernels/Identity';
 import {ifftConfig} from './kernels/IFFT';
 import {imagConfig} from './kernels/Imag';
@@ -50,25 +54,31 @@ import {sinConfig} from './kernels/Sin';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {subConfig} from './kernels/Sub';
+import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
+import {tileConfig} from './kernels/Tile';
 import {transposeConfig} from './kernels/Transpose';
 import {uniqueConfig} from './kernels/Unique';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
+  _fusedMatMulConfig,
   addConfig,
   atan2Config,
   avgPoolConfig,
   avgPoolBackpropConfig,
+  batchMatMulConfig,
   batchNormConfig,
   castConfig,
   complexConfig,
   concatConfig,
+  conv2DConfig,
   cosConfig,
   divConfig,
   fftConfig,
   flipLeftRightConfig,
   fromPixelsConfig,
+  fusedConv2DConfig,
   identityConfig,
   ifftConfig,
   imagConfig,
@@ -89,8 +99,10 @@ const kernelConfigs: KernelConfig[] = [
   sinConfig,
   squareConfig,
   subConfig,
+  sumConfig,
   squaredDifferenceConfig,
   tanConfig,
+  tileConfig,
   transposeConfig,
   uniqueConfig,
 ];

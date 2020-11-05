@@ -19,15 +19,14 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {DataId, div, engine, env, max, MemoryInfo, range, RecursiveArray, reshape, scalar, softmax, tensor, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
-import {backend_util, buffer, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
+import {DataId, div, engine, env, max, MemoryInfo, range, RecursiveArray, reshape, scalar, softmax, sum, tensor, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
+import {backend_util, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
 import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 
-import {ceilImplCPU, expImplCPU, expm1ImplCPU, floorImplCPU, logImplCPU, rsqrtImplCPU, simpleAbsImplCPU, sliceImplCPU} from './kernel_utils/shared';
+import {ceilImplCPU, expImplCPU, expm1ImplCPU, floorImplCPU, greaterImplCPU, lessImplCPU, logImplCPU, negateImplCPU, rsqrtImplCPU, simpleAbsImplCPU, sliceImplCPU} from './kernel_utils/shared';
 
 const {segment_util} = backend_util;
 const split = kernel_impls.split;
-const tile = kernel_impls.tile;
 const topkImpl = kernel_impls.topkImpl;
 const whereImpl = kernel_impls.whereImpl;
 
@@ -46,7 +45,7 @@ import {ClipPackedProgram} from './clip_packed_gpu';
 import {ComplexAbsProgram} from './complex_abs_gpu';
 import {Conv2DDerFilterProgram, Conv2DDerInputProgram, Conv3DDerFilterProgram, Conv3DDerInputProgram} from './conv_backprop_gpu';
 import {DepthwiseConv2DDerFilterProgram, DepthwiseConv2DDerInputProgram} from './conv_backprop_gpu_depthwise';
-import {Conv2DProgram, Conv3DProgram} from './conv_gpu';
+import {Conv3DProgram} from './conv_gpu';
 import {DepthwiseConv2DProgram} from './conv_gpu_depthwise';
 import {DepthwiseConvPacked2DProgram} from './conv_packed_gpu_depthwise';
 import {CropAndResizeProgram} from './crop_and_resize_gpu';
@@ -65,7 +64,6 @@ import {GatherNDProgram} from './gather_nd_gpu';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
 import {GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
-import {Im2ColPackedProgram} from './im2col_packed_gpu';
 import {LRNProgram} from './lrn_gpu';
 import {LRNGradProgram} from './lrn_grad_gpu';
 import {LRNPackedProgram} from './lrn_packed_gpu';
@@ -95,7 +93,6 @@ import {StridedSliceProgram} from './strided_slice_gpu';
 import * as tex_util from './tex_util';
 import {TextureData, TextureUsage} from './tex_util';
 import {TextureManager} from './texture_manager';
-import {TileProgram} from './tile_gpu';
 import * as unary_op from './unaryop_gpu';
 import {UnaryOpProgram} from './unaryop_gpu';
 import * as unary_packed_op from './unaryop_packed_gpu';
@@ -191,11 +188,6 @@ function numMBBeforeWarning(): number {
           window.devicePixelRatio) *
       BEFORE_PAGING_CONSTANT / 1024 / 1024;
 }
-
-// Empirically determined minimal shared dimension in matmul before we forward
-// to a.mul(b).sum() in order to take advantage of GPU parallelism. See
-// https://github.com/tensorflow/tfjs-core/pull/1379 for benchmarks.
-export const MATMUL_SHARED_DIM_THRESHOLD = 1000;
 
 export class MathBackendWebGL extends KernelBackend {
   texData: DataStorage<TextureData>;
@@ -706,7 +698,8 @@ export class MathBackendWebGL extends KernelBackend {
       inputs: TensorInfo[],
       sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
     const cpuBackend = this.getCPUBackend();
-    if (!this.warnedAboutCPUBackend && cpuBackend == null) {
+    if (!env().getBool('IS_TEST') && !this.warnedAboutCPUBackend &&
+        cpuBackend == null) {
       console.warn(
           'Your application contains ops that are small enough to be ' +
           'executed on the CPU backend, however the CPU backend cannot ' +
@@ -727,10 +720,15 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
-    if (this.shouldExecuteOnCPU([x])) {
+    // Run on cpu if dtype is string. For string, the backend represents it
+    // as Uint8Array[], where each Uint8Array is a character. Given that the
+    // computation is only on the outer array, uploading the whole data onto
+    // gpu is wasteful. Also, currently webgl doesn't have a design to
+    // upload and retrieve Uint8Array[] between cpu and gpu. Therefore, we
+    // just run the kernel on cpu if dtype is string.
+    if (this.shouldExecuteOnCPU([x]) || x.dtype === 'string') {
       const outValues = sliceImplCPU(
-          this.texData.get(x.dataId).values as TypedArray, begin, size, x.shape,
-          x.dtype);
+          this.texData.get(x.dataId).values, begin, size, x.shape, x.dtype);
       return this.makeOutput(size, x.dtype, outValues);
     }
     // Short-circuit computation if the slice is zero-sized.
@@ -803,9 +801,10 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   neg<T extends Tensor>(x: T): T {
-    const cpuRes = this.tryRunOnCpuOrThrow([x], () => this.cpuBackend.neg(x));
-    if (cpuRes) {
-      return cpuRes;
+    if (this.shouldExecuteOnCPU([x])) {
+      const [outVals, newShape] = negateImplCPU(
+          this.texData.get(x.dataId).values as TypedArray, x.shape, x.dtype);
+      return this.makeOutput(newShape, x.dtype, outVals);
     }
 
     if (env().getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
@@ -813,42 +812,6 @@ export class MathBackendWebGL extends KernelBackend {
     }
     const program = new UnaryOpProgram(x.shape, unary_op.NEG);
     return this.compileAndRun(program, [x]);
-  }
-
-  batchMatMul(
-      a: Tensor3D, b: Tensor3D, transposeA: boolean,
-      transposeB: boolean): Tensor3D {
-    const outerShapeA = transposeA ? a.shape[2] : a.shape[1];
-    const outerShapeB = transposeB ? b.shape[1] : b.shape[2];
-    const sharedDim = transposeA ? a.shape[1] : a.shape[2];
-    const batch = Math.max(a.shape[0], b.shape[0]);
-
-    // Since the matrices are vectors, it is faster to call mul().sum()
-    // because sum() is O(sqrt(N)) due to divide-and-conquer.
-    if ((outerShapeA === 1 || outerShapeB === 1) &&
-        sharedDim > MATMUL_SHARED_DIM_THRESHOLD) {
-      if (transposeA) {
-        a = transpose(a, [0, 2, 1]);
-      }
-      if (transposeB) {
-        b = transpose(b, [0, 2, 1]);
-      }
-
-      const a3D = outerShapeB === 1 ? a : a.as3D(batch, sharedDim, 1);
-      const axis = outerShapeB === 1 ? 2 : 1;
-      const b3D = outerShapeB === 1 ? b.as3D(batch, 1, sharedDim) : b;
-      // TODO(annxingyuan): Call multiply directly as part of batchMatMul
-      // modularization.
-      const product = tf.mul(a3D, b3D);
-      return product.sum(axis, true /* keepDims */);
-    }
-
-    const dtype = upcastType(a.dtype, b.dtype);
-
-    const program = new MatMulPackedProgram(
-        a.shape, b.shape, [batch, outerShapeA, outerShapeB], transposeA,
-        transposeB);
-    return this.compileAndRun<Tensor3D>(program, [a, b], dtype);
   }
 
   fusedBatchMatMul(
@@ -893,17 +856,6 @@ export class MathBackendWebGL extends KernelBackend {
     const program =
         new LRNGradProgram(inputImage.shape, depthRadius, bias, alpha, beta);
     return this.compileAndRun(program, [inputImage, outputImage, dy]);
-  }
-
-  tile<T extends Tensor>(x: T, reps: number[]): T {
-    if (x.dtype === 'string') {
-      const data = this.readSync(x.dataId) as Uint8Array[];
-      const decodedData = data.map(d => util.decodeString(d));
-      const buf = buffer(x.shape, x.dtype, decodedData);
-      return tile(buf, reps) as T;
-    }
-    const program = new TileProgram(x.shape, reps);
-    return this.compileAndRun(program, [x]);
   }
 
   pad<T extends Tensor>(
@@ -1042,16 +994,6 @@ export class MathBackendWebGL extends KernelBackend {
     return output;
   }
 
-  sum(x: Tensor, axes: number[]): Tensor {
-    backend_util.assertAxesAreInnerMostDims('sum', axes, x.rank);
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const inSize = util.sizeFromShape(reduceShape);
-    const a2D = x.as2D(-1, inSize);
-    const outputDType = tf.sumOutType(x.dtype);
-    return this.reduce(a2D, 'sum', outputDType).reshape(outShape);
-  }
-
   prod(x: Tensor, axes: number[]): Tensor {
     const cpuRes =
         this.tryRunOnCpuOrThrow([x], () => this.cpuBackend.prod(x, axes));
@@ -1175,10 +1117,12 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   less(a: Tensor, b: Tensor): Tensor {
-    const cpuRes =
-        this.tryRunOnCpuOrThrow([a, b], () => this.cpuBackend.less(a, b));
-    if (cpuRes) {
-      return cpuRes;
+    if (this.shouldExecuteOnCPU([a, b])) {
+      const aVals = this.texData.get(a.dataId).values as TypedArray;
+      const bVals = this.texData.get(b.dataId).values as TypedArray;
+      const [outVals, newShape] =
+          lessImplCPU(a.shape, b.shape, aVals, bVals, 'bool');
+      return this.makeOutput(newShape, 'bool', outVals);
     }
 
     if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
@@ -1199,10 +1143,12 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   greater(a: Tensor, b: Tensor): Tensor {
-    const cpuRes =
-        this.tryRunOnCpuOrThrow([a, b], () => this.cpuBackend.greater(a, b));
-    if (cpuRes) {
-      return cpuRes;
+    if (this.shouldExecuteOnCPU([a, b])) {
+      const aVals = this.texData.get(a.dataId).values as TypedArray;
+      const bVals = this.texData.get(b.dataId).values as TypedArray;
+      const [outVals, newShape] =
+          greaterImplCPU(a.shape, b.shape, aVals, bVals, 'bool');
+      return this.makeOutput(newShape, 'bool', outVals);
     }
 
     if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
@@ -1488,7 +1434,7 @@ export class MathBackendWebGL extends KernelBackend {
     // modularization.
     const a = tf.sub(logits, maxLogit.reshape(expandedShape));
     const b = this.exp(a);
-    const sumExp = this.sum(b, axes).reshape(expandedShape);
+    const sumExp = sum(b, axes).reshape(expandedShape);
 
     // TODO(annxingyuan): Call divImpl rather than op as part of softmax kernel
     // modularization.
@@ -1686,215 +1632,6 @@ export class MathBackendWebGL extends KernelBackend {
   step<T extends Tensor>(x: T, alpha: number): T {
     const program = new UnaryOpProgram(x.shape, unary_op.STEP(alpha));
     return this.compileAndRun(program, [x]);
-  }
-
-  private conv2dByMatMul(
-      x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo,
-      bias?: Tensor, activation?: backend_util.Activation,
-      preluActivationWeights?: Tensor): Tensor4D {
-    // Reshapes conv2D input to 2D tensors, uses matMul and then reshape the
-    // result from 2D to 4D.
-    const xShape = x.shape;
-    const xTexData = this.texData.get(x.dataId);
-    const sharedMatMulDim = convInfo.inChannels;
-    const outerShapeX = xShape[0] * xShape[1] * xShape[2];
-    const outerShapeFilter = convInfo.outChannels;
-    const isChannelsLast = convInfo.dataFormat === 'channelsLast';
-    const transposeA = false;
-    const transposeB = false;
-
-    // TODO: Once reduction ops are packed, batchMatMul will always be packed
-    // and we can remove this condition.
-    const batchMatMulWillBeUnpacked =
-        (outerShapeX === 1 || outerShapeFilter === 1) &&
-        sharedMatMulDim > MATMUL_SHARED_DIM_THRESHOLD;
-    const reshapeWillBeExpensive = xShape[2] % 2 !== 0 && !!xTexData.isPacked;
-
-    if (batchMatMulWillBeUnpacked || !env().getBool('WEBGL_LAZILY_UNPACK') ||
-        !env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ||
-        !reshapeWillBeExpensive) {
-      const targetShape = isChannelsLast ? xShape[0] * xShape[1] * xShape[2] :
-                                           xShape[0] * xShape[2] * xShape[3];
-      const xReshaped = reshape(x, [1, targetShape, convInfo.inChannels]);
-      const filterReshaped =
-          reshape(filter, [1, convInfo.inChannels, convInfo.outChannels]);
-
-      const result = this.fusedBatchMatMul({
-        a: xReshaped as Tensor3D,
-        b: filterReshaped as Tensor3D,
-        transposeA,
-        transposeB,
-        bias,
-        activation,
-        preluActivationWeights
-      });
-      return reshape(result, convInfo.outShape);
-    }
-
-    // Following optimization is specific to packed |x| with odd row count
-    // (For example, in channelLast mode, 'row count' refers to x.shape[2]):
-    // we avoid expensive packed 2x2 reshape by padding row count to next,
-    // even number. When x.shape[2] is odd, the result of packed batchMatMul is
-    // the same (has the same texture layout and and values in the texture) as
-    // it is for even x.shape[2] + 1. We make the odd-rows tensor to look like
-    // even-rows tensor before the operation and, after the batchMatMul,
-    // fix the even-rows result to have odd number of rows.
-    const targetShape = isChannelsLast ?
-        xShape[0] * xShape[1] * (xShape[2] + 1) :
-        xShape[0] * xShape[2] * (xShape[3] + 1);
-    const xReshaped: TensorInfo = {
-      dataId: x.dataId,
-      shape: [1, targetShape, convInfo.inChannels],
-      dtype: x.dtype
-    };
-    // xTexData.shape gets referenced from GPGPUBinary.inShapeInfos.
-    // Decrementing row count, after batchMatMul->...->compileProgram leads to
-    // invalid row count within the reference in GPGPUBinary.inShapeInfos.
-    // Alternative fix would be to provide a copy to GPGPUBinary.inShapeInfos
-    // in compileProgram method, but that would affect compilation of all
-    // programs - instead, provide a copy here, with even row count, before
-    // calling batchMatMul->...->compileProgram and after that, the original
-    // xTexData.shape is restored.
-    const originalXTexDataShape = xTexData.shape;
-    xTexData.shape = xTexData.shape.slice();
-    xTexData.shape[xTexData.shape.length - 2]++;
-    util.assert(
-        webgl_util.isReshapeFree(xTexData.shape, xReshaped.shape),
-        () => `packed reshape ${xTexData.shape} to ${
-            xReshaped.shape} isn't free`);
-    const filterReshaped =
-        reshape(filter, [1, convInfo.inChannels, convInfo.outChannels]);
-
-    const pointwiseConv = this.fusedBatchMatMul({
-      a: xReshaped as Tensor3D,
-      b: filterReshaped as Tensor3D,
-      transposeA,
-      transposeB,
-      bias,
-      activation,
-      preluActivationWeights
-    });
-    const pointwiseConvTexData = this.texData.get(pointwiseConv.dataId);
-    util.assert(
-        pointwiseConvTexData.isPacked,
-        () => 'batchMatMul result is expected to be packed');
-    // Restore the input shape to original.
-    xTexData.shape = originalXTexDataShape;
-    // Set the output shape - there is no need for expensive reshape as data
-    // layout is already correct.
-    pointwiseConvTexData.shape = convInfo.outShape;
-    return engine().makeTensorFromDataId(
-               pointwiseConv.dataId, convInfo.outShape, pointwiseConv.dtype) as
-        Tensor4D;
-  }
-
-  private conv2dWithIm2Row(
-      x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo,
-      bias?: Tensor, activation?: backend_util.Activation,
-      preluActivationWeights?: Tensor): Tensor4D {
-    // Rearranges conv2d input so each block to be convolved over forms the
-    // column of a new matrix with shape [filterWidth * filterHeight *
-    // inChannels, outHeight * outWidth]. The filter is also rearranged so each
-    // output channel forms a row of a new matrix with shape [outChannels,
-    // filterWidth * filterHeight * inChannels]. The convolution is then
-    // computed by multiplying these matrices and reshaping the result.
-    const {
-      filterWidth,
-      filterHeight,
-      inChannels,
-      outWidth,
-      outHeight,
-      dataFormat
-    } = convInfo;
-
-    const isChannelsLast = dataFormat === 'channelsLast';
-
-    const sharedDim = filterWidth * filterHeight * inChannels;
-    const numCols = outHeight * outWidth;
-    const x2ColShape = [sharedDim, numCols];
-    const transposeA = true;
-    const transposeB = false;
-
-    const xSqueezed = x.squeeze([0]);
-    const w2Row: Tensor3D = filter.reshape([1, sharedDim, -1]);
-
-    const im2ColProgram =
-        new Im2ColPackedProgram(x2ColShape, xSqueezed.shape, convInfo);
-    const im2Col: Tensor3D =
-        this.compileAndRun<Tensor2D>(im2ColProgram, [xSqueezed]).reshape([
-          1, x2ColShape[0], x2ColShape[1]
-        ]);
-
-    const hasBias = bias != null;
-    const hasPreluActivationWeights = preluActivationWeights != null;
-    const fusedActivation =
-        activation ? mapActivationToShaderProgram(activation, true) : null;
-    const matmulProgram = new MatMulPackedProgram(
-        im2Col.shape, w2Row.shape, [1, numCols, convInfo.outChannels],
-        transposeA, transposeB, hasBias, fusedActivation,
-        hasPreluActivationWeights);
-    const inputs: TensorInfo[] = [im2Col, w2Row];
-    if (bias) {
-      inputs.push(bias);
-    }
-    if (hasPreluActivationWeights) {
-      inputs.push(preluActivationWeights);
-    }
-    const product = this.compileAndRun<Tensor4D>(matmulProgram, inputs);
-
-    if (isChannelsLast) {
-      return product.reshape([1, outHeight, outWidth, convInfo.outChannels]);
-    } else {
-      return product.reshape([1, convInfo.outChannels, outHeight, outWidth]);
-    }
-  }
-
-  fusedConv2d(
-      {input, filter, convInfo, bias, activation, preluActivationWeights}:
-          backend_util.FusedConv2DConfig): Tensor4D {
-    if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
-        convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
-        convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
-        (convInfo.padInfo.type === 'SAME' ||
-         convInfo.padInfo.type === 'VALID')) {
-      return this.conv2dByMatMul(
-          input, filter, convInfo, bias, activation, preluActivationWeights);
-    }
-    if (env().getBool('WEBGL_CONV_IM2COL') && input.shape[0] === 1) {
-      return this.conv2dWithIm2Row(
-          input, filter, convInfo, bias, activation, preluActivationWeights);
-    }
-
-    const hasBias = bias != null;
-    const hasPreluActivationWeights = preluActivationWeights != null;
-    const fusedActivation =
-        activation ? mapActivationToShaderProgram(activation, false) : null;
-    const program = new Conv2DProgram(
-        convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
-    const inputs: TensorInfo[] = [input, filter];
-    if (bias) {
-      inputs.push(bias);
-    }
-    if (preluActivationWeights) {
-      inputs.push(preluActivationWeights);
-    }
-    return this.compileAndRun(program, inputs);
-  }
-
-  conv2d(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
-      Tensor4D {
-    if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
-        convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
-        convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
-        (convInfo.padInfo.type === 'SAME' ||
-         convInfo.padInfo.type === 'VALID')) {
-      return this.conv2dByMatMul(x, filter, convInfo);
-    }
-    if (env().getBool('WEBGL_CONV_IM2COL') && x.shape[0] === 1) {
-      return this.conv2dWithIm2Row(x, filter, convInfo);
-    }
-    const program = new Conv2DProgram(convInfo);
-    return this.compileAndRun(program, [x, filter]);
   }
 
   conv2dDerInput(

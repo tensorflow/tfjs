@@ -30,13 +30,18 @@ export function getAttrs(
 }
 
 function getInputs(kernelName: string, kernelNamesFile: SourceFile): string[] {
-  const inputDecl = kernelNamesFile.getTypeAlias(
+  let inputDecl;
+  inputDecl = kernelNamesFile.getTypeAlias(
       s => s.getText().includes(`type ${kernelName}Inputs`));
+  if (inputDecl == null) {
+    inputDecl = kernelNamesFile.getInterface(
+        s => s.getText().includes(`interface ${kernelName}Inputs`));
+  }
   if (inputDecl == null) {
     // There are a small number of kernels that don't have inputs but
     // we can deal with those separately as the most likely issue is
     // an error.
-    throw new Error(`Could not find inputs for ${kernelName}`);
+    return [];
   }
 
   const propNames =

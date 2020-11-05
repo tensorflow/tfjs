@@ -24,6 +24,7 @@ import {absConfig} from './kernels/Abs';
 import {acosConfig} from './kernels/Acos';
 import {acoshConfig} from './kernels/Acosh';
 import {addConfig} from './kernels/Add';
+import {addNConfig} from './kernels/AddN';
 import {asinConfig} from './kernels/Asin';
 import {asinhConfig} from './kernels/Asinh';
 import {atanConfig} from './kernels/Atan';
@@ -53,6 +54,7 @@ import {dilation2dBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter
 import {dilation2dBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
 import {divConfig} from './kernels/Div';
 import {eluConfig} from './kernels/Elu';
+import {equalConfig} from './kernels/Equal';
 import {erfConfig} from './kernels/Erf';
 import {expConfig} from './kernels/Exp';
 import {expm1Config} from './kernels/Expm1';
@@ -60,34 +62,44 @@ import {fftConfig} from './kernels/FFT';
 import {fillConfig} from './kernels/Fill';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
+import {floorDivConfig} from './kernels/FloorDiv';
 import {fusedConv2DConfig} from './kernels/FusedConv2D';
 import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
+import {greaterConfig} from './kernels/Greater';
+import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
 import {ifftConfig} from './kernels/IFFT';
 import {imagConfig} from './kernels/Imag';
 import {isFiniteConfig} from './kernels/IsFinite';
 import {isInfConfig} from './kernels/IsInf';
 import {isNaNConfig} from './kernels/IsNaN';
+import {lessConfig} from './kernels/Less';
+import {lessEqualConfig} from './kernels/LessEqual';
 import {logConfig} from './kernels/Log';
 import {log1pConfig} from './kernels/Log1p';
+import {logicalAndConfig} from './kernels/LogicalAnd';
 import {logicalNotConfig} from './kernels/LogicalNot';
+import {logicalOrConfig} from './kernels/LogicalOr';
 import {maxConfig} from './kernels/Max';
 import {maxPoolConfig} from './kernels/MaxPool';
 import {maxPoolBackpropConfig} from './kernels/MaxPoolBackprop';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {mirrorPadConfig} from './kernels/MirrorPad';
 import {multiplyConfig} from './kernels/Multiply';
+import {negateConfig} from './kernels/Negate';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
 import {oneHotConfig} from './kernels/OneHot';
 import {padV2Config} from './kernels/PadV2';
+import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {realConfig} from './kernels/Real';
 import {reciprocalConfig} from './kernels/Reciprocal';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
+import {reverseConfig} from './kernels/Reverse';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {roundConfig} from './kernels/Round';
 import {rsqrtConfig} from './kernels/Rsqrt';
@@ -97,6 +109,7 @@ import {signConfig} from './kernels/Sign';
 import {sinConfig} from './kernels/Sin';
 import {sinhConfig} from './kernels/Sinh';
 import {sliceConfig} from './kernels/Slice';
+import {softmaxConfig} from './kernels/Softmax';
 import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {sqrtConfig} from './kernels/Sqrt';
@@ -104,6 +117,7 @@ import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {stepConfig} from './kernels/Step';
 import {subConfig} from './kernels/Sub';
+import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
 import {transposeConfig} from './kernels/Transpose';
@@ -116,6 +130,7 @@ const kernelConfigs: KernelConfig[] = [
   acosConfig,
   acoshConfig,
   addConfig,
+  addNConfig,
   asinConfig,
   asinhConfig,
   atanConfig,
@@ -145,6 +160,7 @@ const kernelConfigs: KernelConfig[] = [
   dilation2dBackpropFilterConfig,
   divConfig,
   eluConfig,
+  equalConfig,
   erfConfig,
   expConfig,
   expm1Config,
@@ -152,34 +168,44 @@ const kernelConfigs: KernelConfig[] = [
   fillConfig,
   flipLeftRightConfig,
   floorConfig,
+  floorDivConfig,
   fusedConv2DConfig,
   fusedDepthwiseConv2DConfig,
+  greaterConfig,
+  greaterEqualConfig,
   identityConfig,
   ifftConfig,
   imagConfig,
   isFiniteConfig,
   isInfConfig,
   isNaNConfig,
+  lessConfig,
+  lessEqualConfig,
   logConfig,
   log1pConfig,
+  logicalAndConfig,
   logicalNotConfig,
+  logicalOrConfig,
   maxPoolConfig,
   maxPoolBackpropConfig,
   maxPoolWithArgmaxConfig,
   maxConfig,
   mirrorPadConfig,
   multiplyConfig,
+  negateConfig,
   nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,
   oneHotConfig,
   padV2Config,
+  powConfig,
   preluConfig,
   realConfig,
   reciprocalConfig,
   reluConfig,
   relu6Config,
   reshapeConfig,
+  reverseConfig,
   rotateWithOffsetConfig,
   roundConfig,
   rsqrtConfig,
@@ -189,6 +215,7 @@ const kernelConfigs: KernelConfig[] = [
   sinConfig,
   sinhConfig,
   sliceConfig,
+  softmaxConfig,
   softplusConfig,
   spaceToBatchNDConfig,
   sqrtConfig,
@@ -196,6 +223,7 @@ const kernelConfigs: KernelConfig[] = [
   squaredDifferenceConfig,
   stepConfig,
   subConfig,
+  sumConfig,
   tanConfig,
   tanhConfig,
   transposeConfig,
