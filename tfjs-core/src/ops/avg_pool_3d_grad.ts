@@ -58,14 +58,14 @@ import {reshape} from './reshape';
  *     number. If none is provided, it will not round and error if the output
  *     is of fractional size.
  */
-function avgPool3dBackprop_<T extends Tensor4D|Tensor5D>(
+function avgPool3dGrad_<T extends Tensor4D|Tensor5D>(
     dy: T|TensorLike, input: T|TensorLike,
     filterSize: [number, number, number]|number,
     strides: [number, number, number]|number,
     dilations: [number, number, number]|number = [1, 1, 1],
     pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-  const $dy = convertToTensor(dy, 'dy', 'avgPool3dBackprop');
-  const $input = convertToTensor(input, 'input', 'avgPool3dBackprop');
+  const $dy = convertToTensor(dy, 'dy', 'avgPool3dGrad');
+  const $input = convertToTensor(input, 'input', 'avgPool3dGrad');
 
   let dy5D = $dy as Tensor5D;
   let input5D = $input as Tensor5D;
@@ -82,22 +82,22 @@ function avgPool3dBackprop_<T extends Tensor4D|Tensor5D>(
 
   util.assert(
       dy5D.rank === 5,
-      () => `Error in avgPool3dBackprop: dy must be rank 5 but got rank ` +
+      () => `Error in avgPool3dGrad: dy must be rank 5 but got rank ` +
           `${dy5D.rank}.`);
   util.assert(
       input5D.rank === 5,
-      () => `Error in avgPool3dBackprop: input must be rank 5 but got rank ` +
+      () => `Error in avgPool3dGrad: input must be rank 5 but got rank ` +
           `${input5D.rank}.`);
 
   util.assert(
       conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
-      () => 'Error in avgPool3dBackprop: Either strides or dilations ' +
+      () => 'Error in avgPool3dGrad: Either strides or dilations ' +
           `must be 1. Got strides ${strides} and dilations '${dilations}'`);
 
   if (dimRoundingMode != null) {
     util.assert(
         util.isInt(pad as number),
-        () => `Error in maxPool3dBackprop: pad must be an integer when ` +
+        () => `Error in avgPool3dGrad: pad must be an integer when ` +
             `using, dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
   }
 
@@ -126,4 +126,4 @@ function avgPool3dBackprop_<T extends Tensor4D|Tensor5D>(
   return res as T;
 }
 
-export const avgPool3dBackprop = op({avgPool3dBackprop_});
+export const avgPool3dGrad = op({avgPool3dGrad_});

@@ -44,11 +44,11 @@ import {reshape} from './reshape';
  * @param pad A string from: 'same', 'valid'. The type of padding algorithm
  *     used in the forward prop of the op.
  */
-function avgPoolBackprop_<T extends Tensor3D|Tensor4D>(
+function avgPoolGrad_<T extends Tensor3D|Tensor4D>(
     dy: T|TensorLike, input: T|TensorLike, filterSize: [number, number]|number,
     strides: [number, number]|number, pad: 'valid'|'same'|number): T {
-  const $dy = convertToTensor(dy, 'dy', 'avgPoolBackprop');
-  const $input = convertToTensor(input, 'input', 'avgPoolBackprop');
+  const $dy = convertToTensor(dy, 'dy', 'avgPoolGrad');
+  const $input = convertToTensor(input, 'input', 'avgPoolGrad');
 
   util.assert(
       $input.rank === $dy.rank,
@@ -68,11 +68,11 @@ function avgPoolBackprop_<T extends Tensor3D|Tensor4D>(
 
   util.assert(
       dy4D.rank === 4,
-      () => `Error in avgPoolBackprop: dy must be rank 4 but got rank ` +
+      () => `Error in avgPoolGrad: dy must be rank 4 but got rank ` +
           `${dy4D.rank}.`);
   util.assert(
       input4D.rank === 4,
-      () => `Error in avgPoolBackprop: input must be rank 4 but got rank ` +
+      () => `Error in avgPoolGrad: input must be rank 4 but got rank ` +
           `${input4D.rank}.`);
 
   const forward: ForwardFunc<Tensor> = backend => {
@@ -96,4 +96,4 @@ function avgPoolBackprop_<T extends Tensor3D|Tensor4D>(
   return res as T;
 }
 
-export const avgPoolBackprop = op({avgPoolBackprop_});
+export const avgPoolGrad = op({avgPoolGrad_});
