@@ -22,7 +22,8 @@ const {join} = require('path');
 
 const filesAllowlistToTriggerBuild = [
   'cloudbuild.yml', 'package.json', 'tsconfig.json', 'tslint.json',
-  'scripts/find_packages_with_diff.js', 'scripts/run-build.sh'
+  'scripts/find_packages_with_diff.js', 'scripts/run-build.sh',
+  'scripts/generate_cloudbuild.js'
 ];
 
 const CLONE_PATH = 'clone';

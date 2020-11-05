@@ -1,3 +1,4 @@
+
 // Copyright 2020 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -100,7 +101,6 @@ function topologicalSort(graph) {
 
     // If there are no such nodes, then the graph has a cycle.
     if (emptyNodes.length === 0) {
-      // TODO(msoulanille): Include the cycle in the error message?
       throw new Error('Dependency graph has a cycle.');
     }
 
