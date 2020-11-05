@@ -30,7 +30,7 @@ import {asinhConfig} from './kernels/Asinh';
 import {atanConfig} from './kernels/Atan';
 import {atanhConfig} from './kernels/Atanh';
 import {avgPoolConfig} from './kernels/AvgPool';
-import {avgPoolBackpropConfig} from './kernels/AvgPoolBackprop';
+import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchNormConfig} from './kernels/BatchNorm';
 import {castConfig} from './kernels/Cast';
@@ -82,7 +82,7 @@ import {logicalNotConfig} from './kernels/LogicalNot';
 import {logicalOrConfig} from './kernels/LogicalOr';
 import {maxConfig} from './kernels/Max';
 import {maxPoolConfig} from './kernels/MaxPool';
-import {maxPoolBackpropConfig} from './kernels/MaxPoolBackprop';
+import {maxPoolGradConfig} from './kernels/MaxPoolGrad';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {mirrorPadConfig} from './kernels/MirrorPad';
 import {multiplyConfig} from './kernels/Multiply';
@@ -136,7 +136,7 @@ const kernelConfigs: KernelConfig[] = [
   atanConfig,
   atanhConfig,
   avgPoolConfig,
-  avgPoolBackpropConfig,
+  avgPoolGradConfig,
   batchMatMulConfig,
   batchNormConfig,
   castConfig,
@@ -187,7 +187,7 @@ const kernelConfigs: KernelConfig[] = [
   logicalNotConfig,
   logicalOrConfig,
   maxPoolConfig,
-  maxPoolBackpropConfig,
+  maxPoolGradConfig,
   maxPoolWithArgmaxConfig,
   maxConfig,
   mirrorPadConfig,

@@ -17,7 +17,7 @@
 
 import {MaxPool3D, MaxPool3DAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
-import {maxPool3dBackprop} from '../ops/max_pool_3d_backprop';
+import {maxPool3dGrad} from '../ops/max_pool_3d_grad';
 import {Tensor, Tensor5D} from '../tensor';
 
 export const maxPool3DGradConfig: GradConfig = {
@@ -33,7 +33,7 @@ export const maxPool3DGradConfig: GradConfig = {
         dilations == null ? [1, 1, 1] as [number, number, number] : dilations;
 
     return {
-      x: () => maxPool3dBackprop(
+      x: () => maxPool3dGrad(
           dy as Tensor5D, x, y, filterSize, strides, $dilations, pad,
           dimRoundingMode)
     };

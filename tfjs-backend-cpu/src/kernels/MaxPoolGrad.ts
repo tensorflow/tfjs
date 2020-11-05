@@ -14,21 +14,21 @@
  * limitations under the License.
  * =============================================================================
  */
-import {backend_util, buffer, KernelConfig, KernelFunc, MaxPoolBackprop, MaxPoolBackpropAttrs, MaxPoolBackpropInputs, Rank, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, KernelConfig, KernelFunc, MaxPoolGrad, MaxPoolGradAttrs, MaxPoolGradInputs, Rank, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 import {maxPoolPositions} from '../utils/pool_utils';
 
-export function maxPoolBackprop(args: {
-  inputs: MaxPoolBackpropInputs,
+export function maxPoolGrad(args: {
+  inputs: MaxPoolGradInputs,
   backend: MathBackendCPU,
-  attrs: MaxPoolBackpropAttrs
+  attrs: MaxPoolGradAttrs
 }): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {dy, input, output} = inputs;
   const x = input;
-  assertNotComplex([input, output], 'maxPoolBackprop');
+  assertNotComplex([input, output], 'maxPoolGrad');
   const {filterSize, strides, pad, dimRoundingMode} = attrs;
 
   const convInfo = backend_util.computePool2DInfo(
@@ -94,8 +94,8 @@ export function maxPoolBackprop(args: {
   return backend.makeTensorInfo(dx.shape, dx.dtype, dx.values);
 }
 
-export const maxPoolBackpropConfig: KernelConfig = {
-  kernelName: MaxPoolBackprop,
+export const maxPoolGradConfig: KernelConfig = {
+  kernelName: MaxPoolGrad,
   backendName: 'cpu',
-  kernelFunc: maxPoolBackprop as {} as KernelFunc
+  kernelFunc: maxPoolGrad as {} as KernelFunc
 };
