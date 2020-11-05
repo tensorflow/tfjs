@@ -41,7 +41,7 @@ function getInputs(kernelName: string, kernelNamesFile: SourceFile): string[] {
     // There are a small number of kernels that don't have inputs but
     // we can deal with those separately as the most likely issue is
     // an error.
-    throw new Error(`Could not find inputs for ${kernelName}`);
+    return [];
   }
 
   const propNames =

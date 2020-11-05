@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-import {backend_util, BackendTimingInfo, DataId, DataType, fill, KernelBackend, ModelTensorInfo, ones, Rank, Scalar, scalar, ScalarLike, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, tidy, util} from '@tensorflow/tfjs';
+import {backend_util, BackendTimingInfo, DataId, DataType, KernelBackend, ModelTensorInfo, Rank, Scalar, scalar, ScalarLike, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, tidy, util} from '@tensorflow/tfjs';
 import {isArray, isNullOrUndefined} from 'util';
 
 import {encodeInt32ArrayAsInt64, Int64Scalar} from './int64_tensors';
@@ -245,64 +245,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     return dataId;
   }
 
-  fill<R extends Rank>(
-      shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
-    // TODO(cais, nkreeger): Investigate whether this can be made into
-    // a dtype helper method. The underlying op kernel doesn't accept undefined
-    // or null dtype.
-    if (dtype == null) {
-      if (typeof value === 'number') {
-        dtype = 'float32';
-      } else {
-        dtype = 'string';
-      }
-    }
-    const shapeTensor = tensor1d(shape, 'int32');
-    const valueTensor = scalar(value, dtype);
-    const opAttrs = [
-      {
-        name: 'T',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.getDTypeInteger(dtype)
-      },
-      {
-        name: 'index_type',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_INT32
-      }
-    ];
-    return this.executeSingleOutput(
-               'Fill', opAttrs, [shapeTensor, valueTensor]) as Tensor<R>;
-  }
-
-  stridedSlice<T extends Tensor>(
-      x: T, begin: number[], end: number[], strides: number[]): T {
-    const beginTensor = tensor1d(begin, 'int32');
-    for (let axis = 0; axis < end.length; axis++) {
-      // Unlike Numpy, when the strides are negative, TF C uses -n-1 instead of
-      // -1 as the "end" in order to include the first element.
-      if (strides[axis] < 0 && end[axis] === -1) {
-        end[axis] -= x.shape[axis];
-      }
-    }
-    const endTensor = tensor1d(end, 'int32');
-    const stridesTensor = tensor1d(strides, 'int32');
-    // All of the masks have already been accounted for in the high level op,
-    // so the backend does NOT need to deal with masks.
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      createTensorsTypeOpAttr('Index', 'int32'),
-      {name: 'begin_mask', type: this.binding.TF_ATTR_INT, value: 0},
-      {name: 'end_mask', type: this.binding.TF_ATTR_INT, value: 0},
-      {name: 'ellipsis_mask', type: this.binding.TF_ATTR_INT, value: 0},
-      {name: 'new_axis_mask', type: this.binding.TF_ATTR_INT, value: 0},
-      {name: 'shrink_axis_mask', type: this.binding.TF_ATTR_INT, value: 0}
-    ];
-    return this.executeSingleOutput(
-               'StridedSlice', opAttrs,
-               [x, beginTensor, endTensor, stridesTensor]) as T;
-  }
-
   applyActivation<T extends Tensor>(
       input: T, activation: string, preluActivationWeights?: Tensor): T {
     let result = input;
@@ -396,15 +338,6 @@ export class NodeJSKernelBackend extends KernelBackend {
       createTensorsTypeOpAttr('Tout', 'float32')
     ];
     return this.executeSingleOutput('ComplexAbs', opAttrs, [x]) as T;
-  }
-
-  step<T extends Tensor>(x: T, alpha: number): T {
-    const dtype = x.dtype;
-    const nans = tf.isNaN(x);
-    const stepNoNans = this.select(
-        tf.greater(x, scalar(0, dtype)), ones(x.shape),
-        fill(x.shape, alpha, dtype));
-    return this.select(nans, x, stepNoNans) as T;
   }
 
   conv3d(
@@ -746,17 +679,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('Cast', opAttrs, [x]) as T;
   }
 
-  gather<T extends Tensor>(x: T, indices: Tensor1D, axis: number): T {
-    const axisTensor = scalar(axis, 'int32');
-    const opAttrs = [
-      createTensorsTypeOpAttr('Tparams', x.dtype),
-      createTensorsTypeOpAttr('Tindices', indices.dtype),
-      createTensorsTypeOpAttr('Taxis', 'int32')
-    ];
-    return this.executeSingleOutput(
-               'GatherV2', opAttrs, [x, indices, axisTensor]) as T;
-  }
-
   fft(x: Tensor<Rank.R2>): Tensor<Rank.R2> {
     const opAttrs = [createTensorsTypeOpAttr('Tcomplex', x.dtype)];
     return this.executeSingleOutput('FFT', opAttrs, [x]) as Tensor<Rank.R2>;
@@ -807,70 +729,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     ];
     const inputs = [input];
     return this.executeSingleOutput('Imag', opAttrs, inputs) as T;
-  }
-
-  depthToSpace(x: Tensor<Rank.R4>, blockSize: number, dataFormat: string):
-      Tensor<Rank.R4> {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x), {
-        name: 'block_size',
-        type: this.binding.TF_ATTR_INT,
-        value: blockSize < 2 ? 2 : blockSize
-      },
-      {
-        name: 'data_format',
-        type: this.binding.TF_ATTR_STRING,
-        value: dataFormat
-      }
-    ];
-    const inputs = [x];
-    return this.executeSingleOutput('DepthToSpace', opAttrs, inputs) as
-        Tensor<Rank.R4>;
-  }
-
-  split<T extends Tensor>(value: T, sizeSplits: number[], axis: number): T[] {
-    const opAttrs = [
-      {
-        name: 'num_split',
-        type: this.binding.TF_ATTR_INT,
-        value: sizeSplits.length
-      },
-      createTensorsTypeOpAttr('T', value), {
-        name: 'Tlen',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_INT32
-      }
-    ];
-    const inputs = [value];
-    inputs.push(tensor1d(sizeSplits, 'int32') as T);
-    inputs.push(scalar(axis, 'int32') as T);
-    return this.executeMultipleOutputs(
-               'SplitV', opAttrs, inputs, sizeSplits.length) as T[];
-  }
-
-  sparseToDense<R extends Rank>(
-      sparseIndices: Tensor, sparseValues: Tensor, outputShape: ShapeMap[R],
-      defaultValue: Tensor<Rank.R0>): Tensor<R> {
-    const opAttrs = [
-      {name: 'validate_indices', type: this.binding.TF_ATTR_BOOL, value: true},
-      createTensorsTypeOpAttr('T', sparseValues.dtype),
-      createTensorsTypeOpAttr('Tindices', sparseIndices.dtype)
-    ];
-    const outputShapeTensor = tensor1d(outputShape, 'int32');
-    return this.executeSingleOutput('SparseToDense', opAttrs, [
-      sparseIndices, outputShapeTensor, sparseValues, defaultValue
-    ]) as Tensor<R>;
-  }
-
-  linspace(start: number, stop: number, num: number): Tensor1D {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', 'float32'),
-      createTensorsTypeOpAttr('Tidx', 'int32')
-    ];
-    const inputs = [
-      scalar(start, 'float32'), scalar(stop, 'float32'), scalar(num, 'int32')
-    ];
-    return this.executeSingleOutput('LinSpace', opAttrs, inputs) as Tensor1D;
   }
 
   decodeJpeg(
