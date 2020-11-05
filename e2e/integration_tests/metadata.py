@@ -1,5 +1,5 @@
 # @license
-# Copyright 2019 Google LLC. All Rights Reserved.
+# Copyright 2020 Google LLC. All Rights Reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -50,7 +50,7 @@ import tensorflowjs as tfjs
 curr_dir = os.path.dirname(os.path.realpath(__file__))
 _tmp_dir = os.path.join(curr_dir, 'metadata')
 
-def _test_model_with_metadata():
+def _create_model_with_metadata():
   # Generate model, inputs, and outputs using Tensorflow.
   tmp_saved_model_dir = tempfile.mkdtemp()
   model_info = _create_saved_model(tmp_saved_model_dir)
@@ -63,7 +63,7 @@ def _test_model_with_metadata():
     f.write(json.dumps(metadata1))
   with open(metadata2_path, 'w') as f:
     f.write(json.dumps(metadata2))
-  metadata_option = 'metadata1:'+metadata1_path+';'+'metadata2:'+metadata2_path
+  metadata_option = 'metadata1:'+metadata1_path+','+'metadata2:'+metadata2_path
 
   # Convert and store model to file.
   args = [
@@ -99,7 +99,7 @@ def main():
     shutil.rmtree(_tmp_dir)
   os.mkdir(_tmp_dir)
 
-  _test_model_with_metadata()
+  _create_model_with_metadata()
 
 if __name__ == '__main__':
   main()

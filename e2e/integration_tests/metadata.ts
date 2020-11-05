@@ -19,7 +19,7 @@ import {KARMA_SERVER, REGRESSION} from './constants';
 
 const DATA_URL = 'metadata';
 
-describe(`${REGRESSION} Metadata `, () => {
+describe(`${REGRESSION} Metadata`, () => {
   it('can load metadata.', async () => {
     const model = await tfconverter.loadGraphModel(
         `${KARMA_SERVER}/${DATA_URL}/model.json`);

@@ -465,7 +465,7 @@ def _parse_quantization_dtype_map(float16, uint8, uint16, quantization_bytes):
 def _parse_metadata_map(metadata_arg):
   if metadata_arg:
     metadata_map = {}
-    metadata_list = metadata_arg.split(';')
+    metadata_list = metadata_arg.split(',')
     for metadata in metadata_list:
       [key, path] = metadata.split(':')
       with open(path, 'rt') as f:
@@ -731,7 +731,7 @@ def get_arg_parser():
       '--%s' % common.METADATA,
       type=str,
       help='Attach user defined metadata in format key:path/metadata.json '
-      'Separate multiple metadata files by semicolon.'
+      'Separate multiple metadata files by comma.'
   )
   return parser
 

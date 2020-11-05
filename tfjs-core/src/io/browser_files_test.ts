@@ -299,7 +299,6 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
     expect(modelArtifacts.format).toEqual('layers-model');
     expect(modelArtifacts.generatedBy).toEqual('TensorFlow.js v0.0.0');
     expect(modelArtifacts.convertedBy).toEqual('1.13.1');
-    expect(modelArtifacts.userDefinedMetadata).toEqual({});
 
     expect(new Uint8Array(modelArtifacts.weightData))
         .toEqual(new Uint8Array(weightData1));

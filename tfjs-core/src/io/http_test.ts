@@ -240,8 +240,6 @@ describeWithFlags('http-save', CHROME_ENVS, () => {
             // tslint:disable-next-line:no-any
             const modelJSON = JSON.parse((event.target as any).result);
             expect(modelJSON.modelTopology).toEqual(modelTopology1);
-            expect(modelJSON.signature).toBeNull();
-            expect(modelJSON.userDefinedMetadata).toEqual({});
             expect(modelJSON.weightsManifest.length).toEqual(1);
             expect(modelJSON.weightsManifest[0].weights).toEqual(weightSpecs1);
 
