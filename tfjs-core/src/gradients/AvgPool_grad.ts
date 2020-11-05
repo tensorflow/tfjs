@@ -17,7 +17,7 @@
 
 import {AvgPool, AvgPoolAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
-import {avgPoolBackprop} from '../ops/avg_pool_backprop';
+import {avgPoolGrad} from '../ops/avg_pool_grad';
 import {Tensor, Tensor4D} from '../tensor';
 
 export const avgPoolGradConfig: GradConfig = {
@@ -26,8 +26,6 @@ export const avgPoolGradConfig: GradConfig = {
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const [x] = saved as [Tensor4D];
     const {filterSize, strides, pad} = attrs as {} as AvgPoolAttrs;
-    return {
-      x: () => avgPoolBackprop(dy as Tensor4D, x, filterSize, strides, pad)
-    };
+    return {x: () => avgPoolGrad(dy as Tensor4D, x, filterSize, strides, pad)};
   }
 };
