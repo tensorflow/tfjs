@@ -642,6 +642,7 @@ export const ResizeBilinear = 'ResizeBilinear';
 export type ResizeBilinearInputs = Pick<NamedTensorInfoMap, 'images'>;
 export interface ResizeBilinearAttrs {
   alignCorners: boolean;
+  halfPixelCenters: boolean;
   size: [number, number];
 }
 

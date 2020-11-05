@@ -48,11 +48,17 @@ function resizeBilinear(args: {
   const {backend, inputs, attrs} = args;
 
   const {images} = inputs;
-  const {alignCorners, size} = attrs;
+  const {alignCorners, halfPixelCenters, size} = attrs;
   const [newHeight, newWidth] = size;
 
   const [batch, oldHeight, oldWidth, numChannels] = images.shape;
   const outShape = [batch, newHeight, newWidth, numChannels];
+
+  if (halfPixelCenters) {
+    throw new Error(
+        `The wasm resizeBilinear kernel does not support ` +
+        `halfPixelCenters being true.`);
+  }
 
   let xData = backend.dataIdMap.get(images.dataId);
   let castedData;
