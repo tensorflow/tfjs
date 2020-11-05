@@ -207,7 +207,7 @@ def optimize_graph(graph, signature_def, output_graph,
       signature_def, quantization_dtype_map, weight_shard_size_bytes,
       initializer_graph_def)
 
-  return optimize_graph
+  return optimized_graph
 
 
 def extract_const_nodes(nodes):
