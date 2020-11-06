@@ -51,6 +51,7 @@ import {realConfig} from './kernels/Real';
 import {reshapeConfig} from './kernels/Reshape';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {sinConfig} from './kernels/Sin';
+import {sliceConfig} from './kernels/Slice';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {subConfig} from './kernels/Sub';
@@ -97,6 +98,7 @@ const kernelConfigs: KernelConfig[] = [
   reshapeConfig,
   rotateWithOffsetConfig,
   sinConfig,
+  sliceConfig,
   squareConfig,
   subConfig,
   sumConfig,
