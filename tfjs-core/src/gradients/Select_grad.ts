@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {SelectV2} from '../kernel_names';
+import {Select} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import {cast} from '../ops/cast';
 import {logicalNot} from '../ops/logical_not';
@@ -23,8 +23,8 @@ import {mul} from '../ops/mul';
 import {zerosLike} from '../ops/zeros_like';
 import {Tensor} from '../tensor';
 
-export const selectV2PoolGradConfig: GradConfig = {
-  kernelName: SelectV2,
+export const selectGradConfig: GradConfig = {
+  kernelName: Select,
   inputsToSave: ['condition'],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
     const [condition] = saved;

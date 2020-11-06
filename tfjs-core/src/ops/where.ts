@@ -16,7 +16,7 @@
  */
 
 import {ENGINE, ForwardFunc} from '../engine';
-import {SelectV2, SelectV2Inputs} from '../kernel_names';
+import {Select, SelectInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
@@ -80,14 +80,14 @@ function where_<T extends Tensor>(
     save([$condition]);
     return res;
   };
-  const inputs: SelectV2Inputs = {
+  const inputs: SelectInputs = {
     condition: $condition,
     t: $broadcastedA,
     e: $broadcastedB
   };
   return ENGINE.runKernelFunc(
              forward, inputs as unknown as NamedTensorMap, null /* gradient */,
-             SelectV2) as T;
+             Select) as T;
 }
 
 export const where = op({where_});

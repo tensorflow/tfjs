@@ -669,8 +669,8 @@ export interface ScatterNdAttrs {
   shape: number[];
 }
 
-export const SelectV2 = 'SelectV2';
-export type SelectV2Inputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
+export const Select = 'Select';
+export type SelectInputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
 
 export const Selu = 'Selu';
 export type SeluInputs = Pick<NamedTensorInfoMap, 'x'>;

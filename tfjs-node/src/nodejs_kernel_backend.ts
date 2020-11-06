@@ -267,12 +267,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     return result;
   }
 
-  select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr(
-        'T', backend_util.upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('Select', opAttrs, [condition, a, b]);
-  }
-
   divide(a: Tensor, b: Tensor): Tensor {
     const opAttrs = [createTensorsTypeOpAttr(
         'T', backend_util.upcastType(a.dtype, b.dtype))];

@@ -85,7 +85,7 @@ import {resizeNearestNeighborGradConfig} from './gradients/ResizeNearestNeighbor
 import {reverseGradConfig} from './gradients/Reverse_grad';
 import {roundGradConfig} from './gradients/Round_grad';
 import {rsqrtGradConfig} from './gradients/Rsqrt_grad';
-import {selectV2PoolGradConfig} from './gradients/SelectV2_grad';
+import {selectGradConfig} from './gradients/Select_grad';
 import {seluGradConfig} from './gradients/Selu_grad';
 import {sigmoidGradConfig} from './gradients/Sigmoid_grad';
 import {signGradConfig} from './gradients/Sign_grad';
@@ -187,7 +187,7 @@ const gradConfigs: GradConfig[] = [
   reverseGradConfig,
   roundGradConfig,
   rsqrtGradConfig,
-  selectV2PoolGradConfig,
+  selectGradConfig,
   seluGradConfig,
   sigmoidGradConfig,
   signGradConfig,
