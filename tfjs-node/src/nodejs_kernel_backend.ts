@@ -267,25 +267,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     return result;
   }
 
-  fusedBatchMatMul(
-      {a, b, transposeA, transposeB, bias, activation, preluActivationWeights}:
-          backend_util.FusedBatchMatMulConfig): Tensor3D {
-    // Core TensorFlow does not have a fused BatchMatMul op. Combine calls to
-    // achieve the same results:
-    let result: Tensor3D = tf.matMul(a, b, transposeA, transposeB);
-    if (bias != null) {
-      result = tf.add(result, bias);
-    }
-
-    result = this.applyActivation(result, activation, preluActivationWeights);
-
-    return result;
-  }
-
-  neg<T extends Tensor>(a: T): T {
-    return this.executeSingleInput('Neg', a) as T;
-  }
-
   select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
     const opAttrs = [createTensorsTypeOpAttr(
         'T', backend_util.upcastType(a.dtype, b.dtype))];

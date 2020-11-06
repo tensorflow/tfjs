@@ -86,7 +86,7 @@ import {maxPoolGradConfig} from './kernels/MaxPoolGrad';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {mirrorPadConfig} from './kernels/MirrorPad';
 import {multiplyConfig} from './kernels/Multiply';
-import {negateConfig} from './kernels/Negate';
+import {negConfig} from './kernels/Neg';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
@@ -192,7 +192,7 @@ const kernelConfigs: KernelConfig[] = [
   maxConfig,
   mirrorPadConfig,
   multiplyConfig,
-  negateConfig,
+  negConfig,
   nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,

@@ -70,7 +70,7 @@ import {minimumGradConfig} from './gradients/Minimum_grad';
 import {mirrorPadGradConfig} from './gradients/MirrorPad_grad';
 import {modGradConfig} from './gradients/Mod_grad';
 import {multiplyGradConfig} from './gradients/Multiply_grad';
-import {negateGradConfig} from './gradients/Negate_grad';
+import {negGradConfig} from './gradients/Neg_grad';
 import {oneHotGradConfig} from './gradients/OneHot_grad';
 import {onesLikeGradConfig} from './gradients/OnesLike_grad';
 import {padV2GradConfig} from './gradients/PadV2_grad';
@@ -171,7 +171,7 @@ const gradConfigs: GradConfig[] = [
   mirrorPadGradConfig,
   modGradConfig,
   multiplyGradConfig,
-  negateGradConfig,
+  negGradConfig,
   oneHotGradConfig,
   onesLikeGradConfig,
   padV2GradConfig,

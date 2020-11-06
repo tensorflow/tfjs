@@ -533,8 +533,8 @@ export interface MultinomialAttrs {
 export const Multiply = 'Multiply';
 export type MultiplyInputs = BinaryInputs;
 
-export const Negate = 'Negate';
-export type NegateInputs = UnaryInputs;
+export const Neg = 'Neg';
+export type NegInputs = UnaryInputs;
 
 export const NotEqual = 'NotEqual';
 export type NotEqualInputs = BinaryInputs;

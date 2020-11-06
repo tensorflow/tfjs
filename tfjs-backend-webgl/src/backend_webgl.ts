@@ -23,7 +23,7 @@ import {DataId, div, engine, env, max, MemoryInfo, range, RecursiveArray, reshap
 import {backend_util, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
 import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 
-import {ceilImplCPU, expImplCPU, expm1ImplCPU, floorImplCPU, greaterImplCPU, lessImplCPU, logImplCPU, negateImplCPU, rsqrtImplCPU, simpleAbsImplCPU} from './kernel_utils/shared';
+import {ceilImplCPU, expImplCPU, expm1ImplCPU, floorImplCPU, greaterImplCPU, lessImplCPU, logImplCPU, negImplCPU, rsqrtImplCPU, simpleAbsImplCPU} from './kernel_utils/shared';
 
 const {segment_util} = backend_util;
 const split = kernel_impls.split;
@@ -740,7 +740,7 @@ export class MathBackendWebGL extends KernelBackend {
 
   neg<T extends Tensor>(x: T): T {
     if (this.shouldExecuteOnCPU([x])) {
-      const [outVals, newShape] = negateImplCPU(
+      const [outVals, newShape] = negImplCPU(
           this.texData.get(x.dataId).values as TypedArray, x.shape, x.dtype);
       return this.makeOutput(newShape, x.dtype, outVals);
     }

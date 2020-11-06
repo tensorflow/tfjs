@@ -19,6 +19,7 @@
 // the contents of this file and import only the kernels that are needed.
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
+import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {absConfig} from './kernels/Abs';
 import {acosConfig} from './kernels/Acos';
 import {acoshConfig} from './kernels/Acosh';
@@ -97,6 +98,7 @@ import {mirrorPadConfig} from './kernels/MirrorPad';
 import {modConfig} from './kernels/Mod';
 import {multinomialConfig} from './kernels/Multinomial';
 import {multiplyConfig} from './kernels/Multiply';
+import {negConfig} from './kernels/Neg';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
@@ -149,6 +151,7 @@ import {zerosLikeConfig} from './kernels/ZerosLike';
 const kernelConfigs: KernelConfig[] = [
   LRNConfig,
   LRNGradConfig,
+  _fusedMatMulConfig,
   absConfig,
   acosConfig,
   acoshConfig,
@@ -225,6 +228,7 @@ const kernelConfigs: KernelConfig[] = [
   modConfig,
   multinomialConfig,
   multiplyConfig,
+  negConfig,
   nonMaxSuppressionV3Config,
   nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config,

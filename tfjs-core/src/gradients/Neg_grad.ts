@@ -14,7 +14,15 @@
  * limitations under the License.
  * =============================================================================
  */
-import {KernelConfig, Negate} from '@tensorflow/tfjs-core';
 
-import {createUnaryKernelConfig} from './unary_kernel';
-export const negateConfig: KernelConfig = createUnaryKernelConfig(Negate);
+import {Neg} from '../kernel_names';
+import {GradConfig} from '../kernel_registry';
+import {neg} from '../ops/neg';
+import {Tensor} from '../tensor';
+
+export const negGradConfig: GradConfig = {
+  kernelName: Neg,
+  gradFunc: (dy: Tensor) => {
+    return {x: () => neg(dy)};
+  }
+};
