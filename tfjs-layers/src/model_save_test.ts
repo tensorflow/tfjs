@@ -243,6 +243,7 @@ describeMathGPU('Save-load round trips', () => {
   });
 
   it('Call predict() and fit() after load: Bidirectional LSTM', async () => {
+    console.log('hi');
     const model = tfl.sequential();
     const lstmUnits = 3;
     const sequenceLength = 4;
