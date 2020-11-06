@@ -400,27 +400,6 @@ export class NodeJSKernelBackend extends KernelBackend {
         Tensor5D;
   }
 
-  reshape<T extends Tensor, R extends Rank>(x: T, shape: ShapeMap[R]):
-      Tensor<R> {
-    const shapeTensor = tensor1d(shape, 'int32');
-
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      createTensorsTypeOpAttr('Tshape', shapeTensor.dtype)
-    ];
-    return this.executeSingleOutput('Reshape', opAttrs, [x, shapeTensor]) as
-        Tensor<R>;
-  }
-
-  cast<T extends Tensor>(x: T, dtype: DataType): T {
-    const opAttrs = [
-      createTensorsTypeOpAttr('SrcT', x.dtype),
-      createTensorsTypeOpAttr('DstT', dtype),
-      {name: 'Truncate', type: this.binding.TF_ATTR_BOOL, value: false}
-    ];
-    return this.executeSingleOutput('Cast', opAttrs, [x]) as T;
-  }
-
   fft(x: Tensor<Rank.R2>): Tensor<Rank.R2> {
     const opAttrs = [createTensorsTypeOpAttr('Tcomplex', x.dtype)];
     return this.executeSingleOutput('FFT', opAttrs, [x]) as Tensor<Rank.R2>;
