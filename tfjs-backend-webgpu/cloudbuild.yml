@@ -13,14 +13,12 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
-# Build core from master.
-# Named 'build-deps' to prevent
-# it from being run in CI.
+# Build dependencies
 - name: 'node:10'
   dir: 'tfjs-backend-webgpu'
   id: 'build-deps'
   entrypoint: 'yarn'
-  args: ['build-core']
+  args: ['build-deps']
   waitFor: ['yarn-common']
 
 # Run tests.

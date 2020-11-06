@@ -237,6 +237,9 @@ steps:
       - install
     waitFor:
       - yarn-common
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
       - yarn-tfjs-core
       - build-deps-always-tfjs-core
       - build-tfjs-core
@@ -253,6 +256,9 @@ steps:
     waitFor:
       - yarn-tfjs-data
       - yarn-common
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
       - yarn-tfjs-core
       - build-deps-always-tfjs-core
       - build-tfjs-core
@@ -269,6 +275,9 @@ steps:
     waitFor:
       - yarn-tfjs-data
       - yarn-common
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
       - yarn-tfjs-core
       - build-deps-always-tfjs-core
       - build-tfjs-core
