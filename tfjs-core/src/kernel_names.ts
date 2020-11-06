@@ -88,9 +88,9 @@ export interface AvgPoolAttrs {
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
 
-export const AvgPoolBackprop = 'AvgPoolBackprop';
-export type AvgPoolBackpropInputs = Pick<NamedTensorInfoMap, 'dy'|'input'>;
-export interface AvgPoolBackpropAttrs {
+export const AvgPoolGrad = 'AvgPoolGrad';
+export type AvgPoolGradInputs = Pick<NamedTensorInfoMap, 'dy'|'input'>;
+export interface AvgPoolGradAttrs {
   filterSize: [number, number]|number;
   strides: [number, number]|number;
   pad: 'valid'|'same'|number;
@@ -107,9 +107,9 @@ export interface AvgPool3DAttrs {
   dilations?: [number, number, number]|number;
 }
 
-export const AvgPool3DBackprop = 'AvgPool3DBackprop';
-export type AvgPool3DBackpropInputs = Pick<NamedTensorInfoMap, 'dy'|'input'>;
-export interface AvgPool3DBackpropAttrs {
+export const AvgPool3DGrad = 'AvgPool3DGrad';
+export type AvgPool3DGradInputs = Pick<NamedTensorInfoMap, 'dy'|'input'>;
+export interface AvgPool3DGradAttrs {
   filterSize: [number, number, number]|number;
   strides: [number, number, number]|number;
   pad: 'valid'|'same'|number;
@@ -455,10 +455,9 @@ export interface MaxPoolAttrs {
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
 
-export const MaxPoolBackprop = 'MaxPoolBackprop';
-export type MaxPoolBackpropInputs =
-    Pick<NamedTensorInfoMap, 'dy'|'input'|'output'>;
-export interface MaxPoolBackpropAttrs {
+export const MaxPoolGrad = 'MaxPoolGrad';
+export type MaxPoolGradInputs = Pick<NamedTensorInfoMap, 'dy'|'input'|'output'>;
+export interface MaxPoolGradAttrs {
   filterSize: [number, number]|number;
   strides: [number, number]|number;
   pad: 'valid'|'same'|number;
@@ -476,10 +475,10 @@ export interface MaxPool3DAttrs {
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
 
-export const MaxPool3DBackprop = 'MaxPool3DBackprop';
-export type MaxPool3DBackpropInputs =
+export const MaxPool3DGrad = 'MaxPool3DGrad';
+export type MaxPool3DGradInputs =
     Pick<NamedTensorInfoMap, 'dy'|'input'|'output'>;
-export interface MaxPool3DBackpropAttrs {
+export interface MaxPool3DGradAttrs {
   filterSize: [number, number, number]|number;
   strides: [number, number, number]|number;
   pad: 'valid'|'same'|number;

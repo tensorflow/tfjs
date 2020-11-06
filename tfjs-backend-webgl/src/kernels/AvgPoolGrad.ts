@@ -14,21 +14,21 @@
  * limitations under the License.
  * =============================================================================
  */
-import {AvgPoolBackprop, AvgPoolBackpropAttrs, AvgPoolBackpropInputs, backend_util, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
+import {AvgPoolGrad, AvgPoolGradAttrs, AvgPoolGradInputs, backend_util, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {AvgPool2DBackpropProgram} from '../avg_pool_backprop_gpu';
 import {MathBackendWebGL} from '../backend_webgl';
 import {assertNotComplex} from '../webgl_util';
 
-export function avgPoolBackprop(args: {
-  inputs: AvgPoolBackpropInputs,
+export function avgPoolGrad(args: {
+  inputs: AvgPoolGradInputs,
   backend: MathBackendWebGL,
-  attrs: AvgPoolBackpropAttrs
+  attrs: AvgPoolGradAttrs
 }): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {dy, input} = inputs;
   const x = input;
-  assertNotComplex([dy, input], 'avgPoolBackprop');
+  assertNotComplex([dy, input], 'avgPoolGrad');
   const {filterSize, strides, pad} = attrs;
 
   const convInfo = backend_util.computePool2DInfo(
@@ -38,8 +38,8 @@ export function avgPoolBackprop(args: {
   return backend.runWebGLProgram(avgPoolBackpropProgram, [dy], x.dtype);
 }
 
-export const avgPoolBackpropConfig: KernelConfig = {
-  kernelName: AvgPoolBackprop,
+export const avgPoolGradConfig: KernelConfig = {
+  kernelName: AvgPoolGrad,
   backendName: 'webgl',
-  kernelFunc: avgPoolBackprop as {} as KernelFunc
+  kernelFunc: avgPoolGrad as {} as KernelFunc
 };

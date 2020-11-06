@@ -16,7 +16,7 @@
  */
 
 import {ENGINE, ForwardFunc} from '../engine';
-import {MaxPoolBackprop, MaxPoolBackpropAttrs, MaxPoolBackpropInputs} from '../kernel_names';
+import {MaxPoolGrad, MaxPoolGradAttrs, MaxPoolGradInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -48,14 +48,14 @@ import {op} from './operation';
  *     number. If none is provided, it will not round and error if the output
  *     is of fractional size.
  */
-function maxPoolBackprop_(
+function maxPoolGrad_(
     dy: Tensor4D|TensorLike, input: Tensor4D|TensorLike,
     output: Tensor4D|TensorLike, filterSize: [number, number]|number,
     strides: [number, number]|number, pad: 'valid'|'same'|number,
     dimRoundingMode?: 'floor'|'round'|'ceil'): Tensor4D {
-  const $dy = convertToTensor(dy, 'dy', 'maxPoolBackprop');
-  const $input = convertToTensor(input, 'input', 'maxPoolBackprop');
-  const $output = convertToTensor(output, 'output', 'maxPoolBackprop');
+  const $dy = convertToTensor(dy, 'dy', 'maxPoolGrad');
+  const $input = convertToTensor(input, 'input', 'maxPoolGrad');
+  const $output = convertToTensor(output, 'output', 'maxPoolGrad');
 
   util.assert(
       $input.rank === $dy.rank,
@@ -64,16 +64,16 @@ function maxPoolBackprop_(
 
   util.assert(
       $dy.rank === 4,
-      () => `Error in maxPoolBackprop: dy must be rank 4 but got rank ` +
+      () => `Error in maxPoolGrad: dy must be rank 4 but got rank ` +
           `${$dy.rank}.`);
   util.assert(
       $input.rank === 4,
-      () => `Error in maxPoolBackprop: input must be rank 4 but got rank ` +
+      () => `Error in maxPoolGrad: input must be rank 4 but got rank ` +
           `${$input.rank}.`);
   if (dimRoundingMode != null) {
     util.assert(
         util.isInt(pad as number),
-        () => `Error in maxPoolBackprop: pad must be an integer when using, ` +
+        () => `Error in maxPoolGrad: pad must be an integer when using, ` +
             `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
   }
 
@@ -85,15 +85,13 @@ function maxPoolBackprop_(
     return backend.maxPoolBackprop($dy, $input, $output, convInfo);
   };
 
-  const inputs:
-      MaxPoolBackpropInputs = {dy: $dy, input: $input, output: $output};
+  const inputs: MaxPoolGradInputs = {dy: $dy, input: $input, output: $output};
 
-  const attrs:
-      MaxPoolBackpropAttrs = {filterSize, strides, pad, dimRoundingMode};
+  const attrs: MaxPoolGradAttrs = {filterSize, strides, pad, dimRoundingMode};
 
   return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null, MaxPoolBackprop,
+             forward, inputs as {} as NamedTensorMap, null, MaxPoolGrad,
              attrs as {} as NamedAttrMap) as Tensor4D;
 }
 
-export const maxPoolBackprop = op({maxPoolBackprop_});
+export const maxPoolGrad = op({maxPoolGrad_});

@@ -16,7 +16,7 @@
  */
 
 import {ENGINE, ForwardFunc} from '../engine';
-import {MaxPool3DBackprop, MaxPool3DBackpropAttrs, MaxPool3DBackpropInputs} from '../kernel_names';
+import {MaxPool3DGrad, MaxPool3DGradAttrs, MaxPool3DGradInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor4D, Tensor5D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -59,15 +59,15 @@ import {reshape} from './reshape';
  *     number. If none is provided, it will not round and error if the output
  *     is of fractional size.
  */
-function maxPool3dBackprop_<T extends Tensor4D|Tensor5D>(
+function maxPool3dGrad_<T extends Tensor4D|Tensor5D>(
     dy: T|TensorLike, input: T|TensorLike, output: T|TensorLike,
     filterSize: [number, number, number]|number,
     strides: [number, number, number]|number,
     dilations: [number, number, number]|number = [1, 1, 1],
     pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-  const $dy = convertToTensor(dy, 'dy', 'maxPool3dBackprop');
-  const $input = convertToTensor(input, 'input', 'maxPool3dBackprop');
-  const $output = convertToTensor(output, 'output', 'maxPool3dBackprop');
+  const $dy = convertToTensor(dy, 'dy', 'maxPool3dGrad');
+  const $input = convertToTensor(input, 'input', 'maxPool3dGrad');
+  const $output = convertToTensor(output, 'output', 'maxPool3dGrad');
 
   let dy5D = $dy as Tensor5D;
   let input5D = $input as Tensor5D;
@@ -88,25 +88,25 @@ function maxPool3dBackprop_<T extends Tensor4D|Tensor5D>(
 
   util.assert(
       dy5D.rank === 5,
-      () => `Error in maxPool3dBackprop: dy must be rank 5 but got rank ` +
+      () => `Error in maxPool3dGrad: dy must be rank 5 but got rank ` +
           `${dy5D.rank}.`);
   util.assert(
       input5D.rank === 5,
-      () => `Error in maxPool3dBackprop: input must be rank 5 but got rank ` +
+      () => `Error in maxPool3dGrad: input must be rank 5 but got rank ` +
           `${input5D.rank}.`);
   util.assert(
       output5D.rank === 5,
-      () => `Error in maxPool3dBackprop: output must be rank 5 but got rank ` +
+      () => `Error in maxPool3dGrad: output must be rank 5 but got rank ` +
           `${output5D.rank}.`);
 
   util.assert(
       conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
-      () => 'Error in maxPool3dBackprop: Either strides or dilations ' +
+      () => 'Error in maxPool3dGrad: Either strides or dilations ' +
           `must be 1. Got strides ${strides} and dilations '${dilations}'`);
   if (dimRoundingMode != null) {
     util.assert(
         util.isInt(pad as number),
-        () => `Error in maxPool3dBackprop: pad must be an integer when ` +
+        () => `Error in maxPool3dGrad: pad must be an integer when ` +
             `using, dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
   }
 
@@ -118,14 +118,14 @@ function maxPool3dBackprop_<T extends Tensor4D|Tensor5D>(
   };
 
   const inputs:
-      MaxPool3DBackpropInputs = {dy: dy5D, input: input5D, output: output5D};
+      MaxPool3DGradInputs = {dy: dy5D, input: input5D, output: output5D};
 
-  const attrs: MaxPool3DBackpropAttrs =
+  const attrs: MaxPool3DGradAttrs =
       {filterSize, strides, dilations, pad, dimRoundingMode};
 
   const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */,
-      MaxPool3DBackprop, attrs as {} as NamedAttrMap);
+      forward, inputs as {} as NamedTensorMap, null /* grad */, MaxPool3DGrad,
+      attrs as {} as NamedAttrMap);
 
   if (reshapedTo5D) {
     return reshape(
@@ -136,4 +136,4 @@ function maxPool3dBackprop_<T extends Tensor4D|Tensor5D>(
   return res as T;
 }
 
-export const maxPool3dBackprop = op({maxPool3dBackprop_});
+export const maxPool3dGrad = op({maxPool3dGrad_});
