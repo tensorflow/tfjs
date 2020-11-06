@@ -2,7 +2,7 @@
   "tfjs-core": [],
   "tfjs-converter": ["tfjs-core", "tfjs-backend-cpu"],
   "tfjs-layers": ["tfjs-core", "tfjs-backend-cpu", "tfjs-backend-webgl"],
-  "tfjs-data": ["tfjs-core", "tfjs-layers"],
+  "tfjs-data": ["tfjs-backend-cpu", "tfjs-core", "tfjs-layers"],
   "tfjs": ["tfjs-core", "tfjs-converter", "tfjs-layers", "tfjs-data", "tfjs-backend-cpu", "tfjs-backend-webgl"],
   "tfjs-node": ["tfjs", "tfjs-core"],
   "tfjs-node-gpu": ["tfjs", "tfjs-core"],
