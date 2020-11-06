@@ -15,17 +15,19 @@
  * =============================================================================
  */
 
-import {Div, KernelConfig} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, RealDiv, RealDivInputs} from '@tensorflow/tfjs';
 
-import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
-import {binaryKernelFunc} from '../utils/binary_utils';
+import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
-export const divImpl =
-    createSimpleBinaryKernelImpl((a: number, b: number) => a / b);
-export const div = binaryKernelFunc(Div, divImpl);
+export const realDivConfig: KernelConfig = {
+  kernelName: RealDiv,
+  backendName: 'tensorflow',
+  kernelFunc: (args) => {
+    const {a, b} = args.inputs as RealDivInputs;
+    const backend = args.backend as NodeJSKernelBackend;
 
-export const divConfig: KernelConfig = {
-  kernelName: Div,
-  backendName: 'cpu',
-  kernelFunc: div
+    const opAttrs = [createTensorsTypeOpAttr(
+        'T', backend_util.upcastType(a.dtype, b.dtype))];
+    return backend.executeSingleOutput(RealDiv, opAttrs, [a, b]);
+  }
 };

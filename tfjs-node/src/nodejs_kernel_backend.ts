@@ -273,12 +273,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('Select', opAttrs, [condition, a, b]);
   }
 
-  realDivide(a: Tensor, b: Tensor): Tensor {
-    const opAttrs = [createTensorsTypeOpAttr(
-        'T', backend_util.upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('RealDiv', opAttrs, [a, b]);
-  }
-
   divide(a: Tensor, b: Tensor): Tensor {
     const opAttrs = [createTensorsTypeOpAttr(
         'T', backend_util.upcastType(a.dtype, b.dtype))];

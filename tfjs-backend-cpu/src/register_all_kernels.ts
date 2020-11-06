@@ -52,7 +52,6 @@ import {depthwiseConv2dNativeBackpropInputConfig} from './kernels/DepthwiseConv2
 import {dilation2dConfig} from './kernels/Dilation2D';
 import {dilation2dBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
 import {dilation2dBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
-import {divConfig} from './kernels/Div';
 import {eluConfig} from './kernels/Elu';
 import {equalConfig} from './kernels/Equal';
 import {erfConfig} from './kernels/Erf';
@@ -95,6 +94,7 @@ import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {realConfig} from './kernels/Real';
+import {realDivConfig} from './kernels/RealDiv';
 import {reciprocalConfig} from './kernels/Reciprocal';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
@@ -158,7 +158,7 @@ const kernelConfigs: KernelConfig[] = [
   dilation2dConfig,
   dilation2dBackpropInputConfig,
   dilation2dBackpropFilterConfig,
-  divConfig,
+  realDivConfig,
   eluConfig,
   equalConfig,
   erfConfig,

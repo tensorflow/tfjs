@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import {Div, KernelConfig} from '@tensorflow/tfjs-core';
+import {KernelConfig, RealDiv} from '@tensorflow/tfjs-core';
 
 import {createBinaryKernelConfig} from './binary_kernel';
 
 const supportsFullBroadcast = true;
-export const divConfig: KernelConfig =
-    createBinaryKernelConfig(Div, supportsFullBroadcast);
+export const realDivConfig: KernelConfig =
+    createBinaryKernelConfig(RealDiv, supportsFullBroadcast);

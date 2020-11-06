@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Div} from '@tensorflow/tfjs-core';
+import {RealDiv} from '@tensorflow/tfjs-core';
 import {KernelConfig} from '@tensorflow/tfjs-core';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
@@ -49,11 +49,11 @@ const DIV_PACKED = `
   return result;
 `;
 
-export const div = binaryKernelFunc(
+export const realDiv = binaryKernelFunc(
     {opSnippet: DIV, packedOpSnippet: DIV_PACKED, checkOutOfBounds: true});
 
-export const divConfig: KernelConfig = {
-  kernelName: Div,
+export const realDivConfig: KernelConfig = {
+  kernelName: RealDiv,
   backendName: 'webgl',
-  kernelFunc: div,
+  kernelFunc: realDiv,
 };
