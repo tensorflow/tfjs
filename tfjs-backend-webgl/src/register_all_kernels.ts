@@ -20,7 +20,7 @@ import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {addConfig} from './kernels/Add';
 import {atan2Config} from './kernels/Atan2';
 import {avgPoolConfig} from './kernels/AvgPool';
-import {avgPoolBackpropConfig} from './kernels/AvgPoolBackprop';
+import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchNormConfig} from './kernels/BatchNorm';
 import {castConfig} from './kernels/Cast';
@@ -38,7 +38,7 @@ import {ifftConfig} from './kernels/IFFT';
 import {imagConfig} from './kernels/Imag';
 import {maxConfig} from './kernels/Max';
 import {maxPoolConfig} from './kernels/MaxPool';
-import {maxPoolBackpropConfig} from './kernels/MaxPoolBackprop';
+import {maxPoolGradConfig} from './kernels/MaxPoolGrad';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {meanConfig} from './kernels/Mean';
 import {mirrorPadConfig} from './kernels/MirrorPad';
@@ -51,6 +51,7 @@ import {realConfig} from './kernels/Real';
 import {reshapeConfig} from './kernels/Reshape';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {sinConfig} from './kernels/Sin';
+import {sliceConfig} from './kernels/Slice';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {subConfig} from './kernels/Sub';
@@ -66,7 +67,7 @@ const kernelConfigs: KernelConfig[] = [
   addConfig,
   atan2Config,
   avgPoolConfig,
-  avgPoolBackpropConfig,
+  avgPoolGradConfig,
   batchMatMulConfig,
   batchNormConfig,
   castConfig,
@@ -84,7 +85,7 @@ const kernelConfigs: KernelConfig[] = [
   imagConfig,
   maxConfig,
   maxPoolConfig,
-  maxPoolBackpropConfig,
+  maxPoolGradConfig,
   maxPoolWithArgmaxConfig,
   meanConfig,
   mirrorPadConfig,
@@ -97,6 +98,7 @@ const kernelConfigs: KernelConfig[] = [
   reshapeConfig,
   rotateWithOffsetConfig,
   sinConfig,
+  sliceConfig,
   squareConfig,
   subConfig,
   sumConfig,
