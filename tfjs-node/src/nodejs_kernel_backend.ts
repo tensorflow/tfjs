@@ -295,11 +295,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     throw new Error('Method not implemented.');
   }
 
-  clip<T extends Tensor>(x: T, min: number, max: number): T {
-    const xMin = tf.minimum(x, scalar(max, x.dtype));
-    return tf.maximum(xMin, scalar(min, x.dtype));
-  }
-
   // todo(yassogba) consider removing. core does not call this directly
   complexAbs<T extends Tensor>(x: T): T {
     const opAttrs = [
