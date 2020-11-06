@@ -579,7 +579,7 @@ def run(dryrun):
           'message': 'Do you want to provide metadata? \n'
                      'Provide your own metadata in the form: \n'
                      'metadata_key:path/metadata.json \n'
-                     'Separate multiple metadata by semicolon.'
+                     'Separate multiple metadata by comma.'
       }
   ]
   params = PyInquirer.prompt(questions, format_params, style=prompt_style)

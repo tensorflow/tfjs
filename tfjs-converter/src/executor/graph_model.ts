@@ -193,9 +193,9 @@ export class GraphModel implements InferenceModel {
       }
 
       return false;
-    } else {
-      return true;
     }
+
+    return true;
   }
 
   /**
