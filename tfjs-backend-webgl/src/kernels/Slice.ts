@@ -25,14 +25,12 @@ import {SlicePackedProgram} from '../slice_packed_gpu';
 function shallowSlice(
     x: TensorInfo, begin: number[], size: number[], backend: MathBackendWebGL) {
   const xTexData = backend.texData.get(x.dataId);
-  // const t = backend.makeTensorInfo(size, x.dtype);
-  // t.dataId = x.dataId;
-  const t = {dataId: x.dataId, shape: size, dtype: x.dtype};
-  // const newTexData = backend.texData.get(t.dataId);
+  const t = backend.makeTensorInfo(size, x.dtype);
+  const newTexData = backend.texData.get(t.dataId);
   // Copy texture data from the original tensor.
-  // Object.assign(newTexData, xTexData);
-  // newTexData.shape = size;
-  // newTexData.dtype = x.dtype;
+  Object.assign(newTexData, xTexData);
+  newTexData.shape = size;
+  newTexData.dtype = x.dtype;
   let flatOffset =
       slice_util.computeFlatOffset(begin, util.computeStrides(x.shape));
   if (xTexData.slice) {
@@ -40,9 +38,12 @@ function shallowSlice(
     // the offset.
     flatOffset += xTexData.slice.flatOffset;
   }
-  xTexData.slice = {flatOffset};
+  newTexData.slice = {
+    flatOffset,
+    origDataId: xTexData.slice && xTexData.slice.origDataId || x.dataId
+  };
 
-  backend.incRef(x.dataId);
+  backend.incRef(newTexData.slice.origDataId);
   return t;
 }
 
