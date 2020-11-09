@@ -637,11 +637,13 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   private releaseGPUData(dataId: DataId): void {
-    const {texture, dtype, texShape, usage, isPacked, slice} =
-        this.texData.get(dataId);
-    const key = slice && slice.origDataId || dataId;
-    const {refCount} = this.texData.get(key);
     const texData = this.texData.get(dataId);
+    const {texture, dtype, texShape, usage, isPacked, slice} = texData;
+    const key = slice && slice.origDataId || dataId;
+    let refCount = 1;
+    if (this.texData.has(key)) {
+      refCount = this.texData.get(key).refCount;
+    }
 
     if (refCount > 1) {
       this.decRef(key);
