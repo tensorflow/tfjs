@@ -196,6 +196,10 @@ export class MathBackendWebGL extends KernelBackend {
   // List of data ids that are scheduled for disposal, but are waiting on a
   // pending read operation.
   private pendingDisposal = new WeakSet<DataId>();
+
+  // Used to count the number of 'shallow' sliced tensors that point to the
+  // same data id.
+  dataRefCount = new WeakMap<DataId, number>();
   private numBytesInGPU = 0;
 
   private canvas: HTMLCanvasElement|OffscreenCanvas;
@@ -637,19 +641,22 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   private releaseGPUData(dataId: DataId): void {
-    const {texture, dtype, texShape, usage, isPacked} =
+    const {texture, dtype, texShape, usage, isPacked, slice} =
         this.texData.get(dataId);
-    const texData = this.texData.get(dataId);
+    const key = slice && slice.origDataId || dataId;
+    const refCount = this.dataRefCount.get(key);
 
-    if (texData.refCount > 1) {
-      this.decRef(dataId);
+    if (refCount > 1) {
+      this.dataRefCount.set(key, refCount - 1);
     } else {
+      this.dataRefCount.delete(key);
       if (texture != null) {
         this.numBytesInGPU -= this.computeBytes(texShape, dtype);
         this.textureManager.releaseTexture(texture, texShape, usage, isPacked);
       }
     }
 
+    const texData = this.texData.get(dataId);
     texData.texture = null;
     texData.texShape = null;
     texData.isPacked = false;
