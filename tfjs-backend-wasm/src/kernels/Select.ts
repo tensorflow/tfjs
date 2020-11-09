@@ -24,7 +24,7 @@ let wasmSelect: (
     outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmSelect = backend.wasm.cwrap(Select, null, [
+  wasmSelect = backend.wasm.cwrap('SelectV2', null, [
     'number',  // conditionId
     'number',  // tId
     'number',  // eId
