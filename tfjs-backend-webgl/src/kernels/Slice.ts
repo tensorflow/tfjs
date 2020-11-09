@@ -38,9 +38,15 @@ function shallowSlice(
     // the offset.
     flatOffset += xTexData.slice.flatOffset;
   }
-  newTexData.slice = {flatOffset};
+  newTexData.slice = {
+    flatOffset,
+    // Point to the original dataId, which is used to do ref counting.
+    origDataId: xTexData.slice && xTexData.slice.origDataId || x.dataId
+  };
 
-  backend.incRef(x.dataId);
+  // Increase the ref count for that data bucket.
+  const refCount = backend.dataRefCount.get(newTexData.slice.origDataId) || 1;
+  backend.dataRefCount.set(newTexData.slice.origDataId, refCount + 1);
   return t;
 }
 

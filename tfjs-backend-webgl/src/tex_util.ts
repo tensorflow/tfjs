@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, DataType, env, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataId, DataType, env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 export enum PackingScheme {
   /**
@@ -98,6 +98,8 @@ export interface TextureData {
   slice?: {
     // Offset in the 'flat index' space.
     flatOffset: number;
+    // Used for counting how many sliced tensors point to the same texture.
+    origDataId: DataId;
   };
 }
 
