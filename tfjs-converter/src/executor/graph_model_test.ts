@@ -684,6 +684,18 @@ describe('Model', () => {
       };
     }
   };
+  const DYNAMIC_HTTP_MODEL_NEW_LOADER = {
+    load: async () => {
+      return {
+        convertedBy: '2.8',
+        modelTopology: DYNAMIC_SHAPE_MODEL,
+        weightSpecs: weightsManifest,
+        weightData: bias.dataSync(),
+        signature: DYNAMIC_SIGNATURE,
+        userDefinedMetadata: {metadata1: {a: '1'}}
+      };
+    }
+  };
   describe('dynamic shape model', () => {
     beforeEach(() => {
       spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
@@ -720,6 +732,31 @@ describe('Model', () => {
          const input = tfc.tensor2d([1, 1], [2, 1], 'bool');
          const res = await model.executeAsync({x: input}, ['y']);
          expect(res).not.toBeNull();
+       });
+
+    it('should allow feed intermediate node with executeAsync', async () => {
+      await model.load();
+      const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+      const res = await model.executeAsync({Where: input});
+      expect(res).not.toBeNull();
+    });
+  });
+  describe('dynamic shape model with metadata', () => {
+    beforeEach(() => {
+      spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+        DYNAMIC_HTTP_MODEL_NEW_LOADER
+      ]);
+      spyOn(tfc.io, 'browserHTTPRequest')
+          .and.returnValue(DYNAMIC_HTTP_MODEL_NEW_LOADER);
+    });
+
+    it('should be success if call executeAsync with signature key',
+       async () => {
+         await model.load();
+         const input = tfc.tensor2d([1, 1], [2, 1], 'bool');
+         const res = await model.executeAsync({x: input}, ['y']);
+         expect(res).not.toBeNull();
+         expect(model.metadata).toEqual({metadata1: {a: '1'}});
        });
 
     it('should allow feed intermediate node with executeAsync', async () => {
