@@ -240,49 +240,6 @@ export class MathBackendCPU extends KernelBackend {
     return buffer.toTensor();
   }
 
-  unstack(x: Tensor, axis: number): Tensor[] {
-    const num = x.shape[axis];
-    const outShape: number[] = new Array(x.rank - 1);
-    let outIndex = 0;
-    for (let i = 0; i < x.rank; i++) {
-      if (i !== axis) {
-        outShape[outIndex++] = x.shape[i];
-      }
-    }
-
-    const begin = new Array(x.rank).fill(0);
-    const size = x.shape.slice();
-    size[axis] = 1;
-    const res = new Array(num);
-    for (let i = 0; i < res.length; i++) {
-      begin[axis] = i;
-      res[i] = tf.slice(x, begin, size).reshape(outShape);
-    }
-    return res;
-  }
-
-  prod(x: Tensor, axes: number[]): Tensor {
-    assertNotComplex(x, 'sum');
-
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const resultDtype = upcastType(x.dtype, 'int32');
-    const result = tf.zeros(outShape, resultDtype);
-    const reduceSize = util.sizeFromShape(reduceShape);
-    const vals = this.readSync(result.dataId) as TypedArray;
-
-    const aVals = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < vals.length; ++i) {
-      const offset = i * reduceSize;
-      let prod = 1;
-      for (let j = 0; j < reduceSize; ++j) {
-        prod *= aVals[offset + j];
-      }
-      vals[i] = prod;
-    }
-    return result;
-  }
-
   unsortedSegmentSum<T extends Tensor>(
       x: T, segmentIds: Tensor1D, numSegments: number): Tensor {
     assertNotComplex(x, 'unsortedSegmentSum');
