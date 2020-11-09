@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-import {backend_util, BackendTimingInfo, DataId, DataType, KernelBackend, ModelTensorInfo, Rank, Scalar, scalar, ScalarLike, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, tidy, util} from '@tensorflow/tfjs';
+import {backend_util, BackendTimingInfo, DataId, DataType, KernelBackend, ModelTensorInfo, Rank, Scalar, scalar, ScalarLike, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, Tensor3D, Tensor4D, TensorInfo, tidy, util} from '@tensorflow/tfjs';
 import {isArray, isNullOrUndefined} from 'util';
 
 import {encodeInt32ArrayAsInt64, Int64Scalar} from './int64_tensors';
@@ -338,102 +338,6 @@ export class NodeJSKernelBackend extends KernelBackend {
       createTensorsTypeOpAttr('Tout', 'float32')
     ];
     return this.executeSingleOutput('ComplexAbs', opAttrs, [x]) as T;
-  }
-
-  conv3d(
-      x: Tensor<Rank.R5>, filter: Tensor<Rank.R5>,
-      convInfo: backend_util.Conv3DInfo): Tensor<Rank.R5> {
-    const strides = [
-      1, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, 1
-    ];
-    const padding = convInfo.padInfo.type;
-    const dataFormat =
-        convInfo.dataFormat === 'channelsLast' ? 'NDHWC' : 'NCDHW';
-
-    if (!this.isGPUPackage && convInfo.dilationDepth > 1) {
-      throw new Error('CPU Dilation depth must be 1');
-    }
-    const dilations = [
-      1, convInfo.dilationDepth, convInfo.dilationHeight,
-      convInfo.dilationWidth, 1
-    ];
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
-      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding}, {
-        name: 'data_format',
-        type: this.binding.TF_ATTR_STRING,
-        value: dataFormat
-      },
-      {name: 'dilations', type: this.binding.TF_ATTR_INT, value: dilations}
-    ];
-    return this.executeSingleOutput('Conv3D', opAttrs, [x, filter]) as Tensor5D;
-  }
-
-  conv3dDerInput(
-      dy: Tensor<Rank.R5>, filter: Tensor<Rank.R5>,
-      convInfo: backend_util.Conv3DInfo): Tensor<Rank.R5> {
-    const strides = [
-      1, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, 1
-    ];
-    const padding = convInfo.padInfo.type;
-    const dataFormat =
-        convInfo.dataFormat === 'channelsLast' ? 'NDHWC' : 'NCDHW';
-    if (!this.isGPUPackage && convInfo.dilationDepth > 1) {
-      throw new Error('CPU Dilation depth must be 1');
-    }
-    const dilations = [
-      1, convInfo.dilationDepth, convInfo.dilationHeight,
-      convInfo.dilationWidth, 1
-    ];
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', dy.dtype),
-      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
-      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding}, {
-        name: 'data_format',
-        type: this.binding.TF_ATTR_STRING,
-        value: dataFormat
-      },
-      {name: 'dilations', type: this.binding.TF_ATTR_INT, value: dilations},
-      createTensorsTypeOpAttr('Tshape', 'int32')
-    ];
-    const inputSizes = tensor1d(convInfo.inShape, 'int32');
-    return this.executeSingleOutput(
-               'Conv3DBackpropInputV2', opAttrs, [inputSizes, filter, dy]) as
-        Tensor5D;
-  }
-
-  conv3dDerFilter(
-      x: Tensor<Rank.R5>, dY: Tensor<Rank.R5>,
-      convInfo: backend_util.Conv3DInfo): Tensor<Rank.R5> {
-    const strides = [
-      1, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, 1
-    ];
-    const padding = convInfo.padInfo.type;
-    const dataFormat =
-        convInfo.dataFormat === 'channelsLast' ? 'NDHWC' : 'NCDHW';
-
-    if (!this.isGPUPackage && convInfo.dilationDepth > 1) {
-      throw new Error('CPU Dilation depth must be 1');
-    }
-    const dilations = [
-      1, convInfo.dilationDepth, convInfo.dilationHeight,
-      convInfo.dilationWidth, 1
-    ];
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
-      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding}, {
-        name: 'data_format',
-        type: this.binding.TF_ATTR_STRING,
-        value: dataFormat
-      },
-      {name: 'dilations', type: this.binding.TF_ATTR_INT, value: dilations}
-    ];
-    const filterSizes = tensor1d(convInfo.filterShape, 'int32');
-    return this.executeSingleOutput(
-               'Conv3DBackpropFilterV2', opAttrs, [x, filterSizes, dY]) as
-        Tensor5D;
   }
 
   reshape<T extends Tensor, R extends Rank>(x: T, shape: ShapeMap[R]):

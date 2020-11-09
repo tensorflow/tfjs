@@ -205,17 +205,18 @@ export interface Conv3DAttrs {
 }
 
 export const Conv3DBackpropFilterV2 = 'Conv3DBackpropFilterV2';
-export type Conv3DBackpropFilterInputs = Pick<NamedTensorInfoMap, 'x'|'dy'>;
+export type Conv3DBackpropFilterV2Inputs = Pick<NamedTensorInfoMap, 'x'|'dy'>;
 
-export interface Conv3DBackpropFilterAttrs {
+export interface Conv3DBackpropFilterV2Attrs {
   strides: [number, number, number]|number;
   pad: 'valid'|'same';
   filterShape: [number, number, number, number, number];
 }
 
 export const Conv3DBackpropInputV2 = 'Conv3DBackpropInputV2';
-export type Conv3DBackpropInputInputs = Pick<NamedTensorInfoMap, 'dy'|'filter'>;
-export interface Conv3DBackpropInputAttrs {
+export type Conv3DBackpropInputV2Inputs =
+    Pick<NamedTensorInfoMap, 'dy'|'filter'>;
+export interface Conv3DBackpropInputV2Attrs {
   strides: [number, number, number]|number;
   pad: 'valid'|'same';
   inputShape: [number, number, number, number, number];
