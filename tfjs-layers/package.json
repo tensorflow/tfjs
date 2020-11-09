@@ -11,10 +11,6 @@
   "jsdelivr": "dist/tf-layers.min.js",
   "unpkg": "dist/tf-layers.min.js",
   "miniprogram": "dist/miniprogram",
-  "dependencies": {
-    "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
-    "@tensorflow/tfjs-backend-webgl": "link:../tfjs-backend-webgl"
-  },
   "devDependencies": {
     "@babel/polyfill": "^7.8.7",
     "@rollup/plugin-commonjs": "^11.0.2",
