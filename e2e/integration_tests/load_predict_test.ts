@@ -26,10 +26,6 @@ import * as tfl from '@tensorflow/tfjs-layers';
 
 import {KARMA_SERVER, SMOKE} from './constants';
 
-function getModelUrl(modelType: string) {
-  return `${KARMA_SERVER}/load_predict_data/${modelType}/model.json`;
-}
-
 /**
  *  This file is the test suites for CUJ: load->predict.
  *
@@ -48,7 +44,8 @@ describe(`${SMOKE} load_predict`, () => {
     ];
 
     beforeAll(async () => {
-      model = await tfl.loadLayersModel(getModelUrl('layers_model'));
+      model = await tfl.loadLayersModel(
+          `${KARMA_SERVER}/load_predict_data/layers_model/model.json`);
     });
 
     beforeEach(() => {
@@ -66,17 +63,12 @@ describe(`${SMOKE} load_predict`, () => {
   });
 
   describeWithFlags(`graph_model`, ALL_ENVS, async () => {
-    let model: tfconverter.GraphModel;
     let a: tfc.Tensor;
 
     const expected = [
       0.7567615509033203, -0.18349379301071167, 0.7567615509033203,
       -0.18349379301071167
     ];
-
-    beforeAll(async () => {
-      model = await tfconverter.loadGraphModel(getModelUrl('graph_model'));
-    });
 
     beforeEach(() => {
       a = tfc.tensor2d([1, 1, 1, 1], [2, 2], 'float32');
@@ -86,8 +78,17 @@ describe(`${SMOKE} load_predict`, () => {
       a.dispose();
     });
 
-    it(`predict with ${tfc.getBackend()}`, async () => {
-      const result = await model.executeAsync(a) as tfc.Tensor;
+    it(`predict with ${tfc.getBackend()} for old model.`, async () => {
+      const model = await tfconverter.loadGraphModel(
+          `${KARMA_SERVER}/load_predict_data/graph_model/model.json`);
+      const result = await model.executeAsync({'Placeholder': a}) as tfc.Tensor;
+      tfc.test_util.expectArraysClose(await result.data(), expected);
+    });
+
+    it(`predict with ${tfc.getBackend()} for new model.`, async () => {
+      const model = await tfconverter.loadGraphModel(
+          `${KARMA_SERVER}/load_predict_data/graph_model/model_new.json`);
+      const result = await model.executeAsync({'Placeholder': a}) as tfc.Tensor;
       tfc.test_util.expectArraysClose(await result.data(), expected);
     });
   });

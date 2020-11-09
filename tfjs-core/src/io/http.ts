@@ -104,9 +104,15 @@ export class HTTPRequest implements IOHandler {
       format: modelArtifacts.format,
       generatedBy: modelArtifacts.generatedBy,
       convertedBy: modelArtifacts.convertedBy,
-      userDefinedMetadata: modelArtifacts.userDefinedMetadata,
       weightsManifest
     };
+    if (modelArtifacts.signature != null) {
+      modelTopologyAndWeightManifest.signature = modelArtifacts.signature;
+    }
+    if (modelArtifacts.userDefinedMetadata != null) {
+      modelTopologyAndWeightManifest.userDefinedMetadata =
+          modelArtifacts.userDefinedMetadata;
+    }
 
     init.body.append(
         'model.json',
@@ -178,6 +184,7 @@ export class HTTPRequest implements IOHandler {
     const generatedBy = modelConfig.generatedBy;
     const convertedBy = modelConfig.convertedBy;
     const format = modelConfig.format;
+    const signature = modelConfig.signature;
     const userDefinedMetadata = modelConfig.userDefinedMetadata;
 
     // We do not allow both modelTopology and weightsManifest to be missing.
@@ -198,11 +205,17 @@ export class HTTPRequest implements IOHandler {
       modelTopology,
       weightSpecs,
       weightData,
-      userDefinedMetadata,
       generatedBy,
       convertedBy,
       format
     };
+
+    if (signature != null) {
+      artifacts.signature = signature;
+    }
+    if (userDefinedMetadata != null) {
+      artifacts.userDefinedMetadata = userDefinedMetadata;
+    }
 
     const initializer = modelConfig.modelInitializer;
     if (initializer) {
