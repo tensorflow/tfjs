@@ -209,9 +209,6 @@ def optimize_graph(graph, signature_def, output_graph,
       signature_def, quantization_dtype_map, weight_shard_size_bytes,
       initializer_graph_def, metadata=metadata)
 
-  return optimize_graph
-
-
 def extract_const_nodes(nodes):
   """Takes a list of nodes and extract the weights. Return weight manifest
   object.

@@ -163,6 +163,8 @@ export function conv2dByMatMul({
 
     out = identity({inputs: {x: pointwiseConv}, backend});
     out.shape = convInfo.outShape;
+
+    intermediates.push(pointwiseConv);
   }
 
   for (const i of intermediates) {
