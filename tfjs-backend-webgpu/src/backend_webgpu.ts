@@ -355,7 +355,7 @@ export class WebGPUBackend extends KernelBackend {
     return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;
   }
 
-  private tensorToBinding(tensor?: TensorInfo): webgpu_program.BindingInfo {
+  private tensorToBinding(tensor?: TensorInfo): GPUBindingResource {
     if (!tensor) {
       return null;
     }
@@ -363,11 +363,9 @@ export class WebGPUBackend extends KernelBackend {
     const tensorData = this.tensorMap.get(tensor.dataId);
 
     return {
-      resource: {
         offset: 0,
         size: tensorData.bufferInfo.byteSize,
         buffer: tensorData.bufferInfo.buffer
-      }
     };
   }
 
@@ -410,7 +408,7 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     let uniformDataLength;
-    let uniforms: webgpu_program.BindingInfo;
+    let uniforms: GPUBindingResource;
     if (program.uniforms) {
       // TODO: handle padding of program-specific uniforms
       const uniformData = new Int32Array(programUniforms);
@@ -468,7 +466,7 @@ export class WebGPUBackend extends KernelBackend {
       const uniformInfo = {
         byteSize: uniformDataLength,
         usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
-        buffer: uniforms.resource.buffer
+        buffer: (uniforms as GPUBufferBinding).buffer
       };
       this.uniformDisposalQueue.push(uniformInfo);
     }
@@ -486,14 +484,12 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   private makeUniforms(data: Uint32Array|
-                       Int32Array): webgpu_program.BindingInfo {
+                       Int32Array): GPUBindingResource {
     const dimensionsBuffer = this.acquireBuffer(
         data.byteLength, GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM);
     this.queue.writeBuffer(dimensionsBuffer, 0, data);
 
-    return {
-      resource: {offset: 0, size: data.byteLength, buffer: dimensionsBuffer}
-    };
+    return {offset: 0, size: data.byteLength, buffer: dimensionsBuffer};
   }
 
   private getCPUBackend(): KernelBackend|null {
