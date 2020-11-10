@@ -10,18 +10,13 @@
   "scripts": {
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "publish-npm": "./scripts/publish-npm.sh",
-    "build-backend-webgl": "cd ../tfjs-backend-webgl && yarn && yarn build",
-    "build-backend-cpu": "cd ../tfjs-backend-cpu && yarn && yarn build",
-    "build-converter": "cd ../tfjs-converter && yarn && yarn build",
-    "build-core": "cd ../tfjs-core && yarn && yarn build",
-    "build-deps": "yarn build-core && yarn build-backend-cpu && yarn build-backend-webgl && yarn build-converter",
-    "build": "yarn build-deps && rimraf dist/ && tsc && yarn bundle",
+    "build": "rimraf dist/ && tsc && yarn bundle",
     "bundle": "rollup -c",
     "build-npm": "yarn build && rollup -c",
     "link-local": "yalc link",
     "unlink-local": "yalc remove",
     "lint": "tslint -p . -t verbose",
-    "test": "yarn && yarn build-deps && karma start --browsers=chrome_webgpu --excludeTest='src/benchmark_ops_test.ts'",
+    "test": "yarn && karma start --browsers=chrome_webgpu --excludeTest='src/benchmark_ops_test.ts'",
     "test-ci": "./scripts/test-ci.sh",
     "benchmark": "yarn build && karma start --grep=benchmark --browsers=chrome_webgpu"
   },
@@ -31,10 +26,10 @@
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
-    "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
-    "@tensorflow/tfjs-backend-webgl": "link:../tfjs-backend-webgl",
-    "@tensorflow/tfjs-core": "link:../tfjs-core",
-    "@tensorflow/tfjs-converter": "link:../tfjs-converter",
+    "@tensorflow/tfjs-backend-cpu": "2.7.0",
+    "@tensorflow/tfjs-backend-webgl": "2.7.0",
+    "@tensorflow/tfjs-core": "2.7.0",
+    "@tensorflow/tfjs-converter": "2.7.0",
     "@types/jasmine": "~3.0.0",
     "clang-format": "~1.2.4",
     "jasmine": "~3.1.0",
@@ -62,6 +57,6 @@
     "@webgpu/types": "0.0.30"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "link:../tfjs-core"
+    "@tensorflow/tfjs-core": "2.7.0"
   }
 }
