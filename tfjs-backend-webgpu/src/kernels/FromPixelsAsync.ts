@@ -44,7 +44,7 @@ async function fromPixelsAsync(args: {
   const {numChannels} = attrs;
 
   if (pixels == null) {
-    throw new Error('pixels passed to tf.browser.fromPixels() can not be null');
+    throw new Error('pixels passed to fromPixelsAsync can not be null');
   }
 
   const outShape = [pixels.height, pixels.width, numChannels];
@@ -59,7 +59,7 @@ async function fromPixelsAsync(args: {
         !(pixels instanceof HTMLCanvasElement) &&
         !(pixels instanceof ImageData)) {
       throw new Error(
-          'pixels passed to tf.browser.fromPixels() must be either an ' +
+          'pixels passed to fromPixelsAsync must be either an ' +
           `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData` +
           `but was ${(pixels as {}).constructor.name}`);
     }
