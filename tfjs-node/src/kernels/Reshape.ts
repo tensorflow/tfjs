@@ -15,29 +15,26 @@
  * =============================================================================
  */
 
-import {backend_util, fill, greater, isNaN as tfIsNan, KernelConfig, ones, scalar, Step, StepAttrs, StepInputs, Tensor, tidy, where} from '@tensorflow/tfjs';
+import {KernelConfig, Reshape, ReshapeAttrs, ReshapeInputs, tensor1d} from '@tensorflow/tfjs';
 
 import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
-export const stepConfig: KernelConfig = {
-  kernelName: Step,
+export const reshapeConfig: KernelConfig = {
+  kernelName: Reshape,
   backendName: 'tensorflow',
   kernelFunc: (args) => {
-    const {x} = args.inputs as StepInputs;
+    const {x} = args.inputs as ReshapeInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {alpha} = args.attrs as {} as StepAttrs;
+    const {shape} = args.attrs as {} as ReshapeAttrs;
 
-    const dtype = x.dtype;
-    return tidy(() => {
-      const nans = tfIsNan(x as Tensor);
-      const stepNoNans = where(
-          greater(x as Tensor, scalar(0, dtype)), ones(x.shape),
-          fill(x.shape, alpha, dtype));
+    const shapeTensor = tensor1d(shape, 'int32');
 
-      const opAttrs = [createTensorsTypeOpAttr(
-          'T', backend_util.upcastType(x.dtype, stepNoNans.dtype))];
-      return backend.executeSingleOutput(
-          'Select', opAttrs, [nans, x, stepNoNans]);
-    });
+    const opAttrs = [
+      createTensorsTypeOpAttr('T', x.dtype),
+      createTensorsTypeOpAttr('Tshape', shapeTensor.dtype)
+    ];
+    const res = backend.executeSingleOutput(Reshape, opAttrs, [x, shapeTensor]);
+    shapeTensor.dispose();
+    return res;
   }
 };

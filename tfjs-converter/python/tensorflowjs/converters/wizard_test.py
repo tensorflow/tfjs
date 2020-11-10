@@ -188,10 +188,12 @@ class CliTest(unittest.TestCase):
                'skip_op_check': False,
                'strip_debug_ops': True,
                'control_flow_v2': True,
+               'metadata': 'metadata_key:metadata.json',
                'output_path': 'tmp/web_model'}
 
     self.assertEqual(['--control_flow_v2=True',
                       '--input_format=tf_saved_model',
+                      '--metadata=metadata_key:metadata.json',
                       '--quantize_float16=conv/*/weights',
                       '--saved_model_tags=test',
                       '--signature_name=test_default',

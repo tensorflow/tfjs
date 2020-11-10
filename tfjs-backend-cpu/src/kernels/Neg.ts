@@ -15,21 +15,20 @@
  * =============================================================================
  */
 
-import {DataType, KernelConfig, KernelFunc, Negate, TensorInfo, TypedArray, UnaryInputs, util} from '@tensorflow/tfjs-core';
+import {DataType, KernelConfig, KernelFunc, Neg, TensorInfo, TypedArray, UnaryInputs, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 import {multiplyImpl} from './Multiply';
 
-export function negateImpl(
-    xVals: TypedArray, xShape: number[],
-    xDtype: DataType): [TypedArray, number[]] {
+export function negImpl(xVals: TypedArray, xShape: number[], xDtype: DataType):
+    [TypedArray, number[]] {
   const minusOne =
       util.createScalarValue(-1 as {} as 'float32', xDtype) as TypedArray;
   return multiplyImpl([], xShape, minusOne, xVals, xDtype);
 }
 
-export function negate(args: {inputs: UnaryInputs, backend: MathBackendCPU}):
+export function neg(args: {inputs: UnaryInputs, backend: MathBackendCPU}):
     TensorInfo {
   const {inputs, backend} = args;
   const {x} = inputs;
@@ -37,13 +36,13 @@ export function negate(args: {inputs: UnaryInputs, backend: MathBackendCPU}):
   assertNotComplex(x, 'neg');
 
   const xVals = backend.data.get(x.dataId).values as TypedArray;
-  const [res, newShape] = negateImpl(xVals, x.shape, x.dtype);
+  const [res, newShape] = negImpl(xVals, x.shape, x.dtype);
 
   return backend.makeTensorInfo(newShape, x.dtype, res);
 }
 
-export const negateConfig: KernelConfig = {
-  kernelName: Negate,
+export const negConfig: KernelConfig = {
+  kernelName: Neg,
   backendName: 'cpu',
-  kernelFunc: negate as {} as KernelFunc
+  kernelFunc: neg as {} as KernelFunc
 };

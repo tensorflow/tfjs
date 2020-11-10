@@ -14,18 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
+import {KernelConfig, Neg} from '@tensorflow/tfjs-core';
 
-import {Div, KernelConfig} from '@tensorflow/tfjs-core';
-
-import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
-import {binaryKernelFunc} from '../utils/binary_utils';
-
-export const divImpl =
-    createSimpleBinaryKernelImpl((a: number, b: number) => a / b);
-export const div = binaryKernelFunc(Div, divImpl);
-
-export const divConfig: KernelConfig = {
-  kernelName: Div,
-  backendName: 'cpu',
-  kernelFunc: div
-};
+import {createUnaryKernelConfig} from './unary_kernel';
+export const negConfig: KernelConfig = createUnaryKernelConfig(Neg);
