@@ -29,7 +29,7 @@ export const fromPixelsConfig: KernelConfig = {
 
 let fromPixels2DContext: CanvasRenderingContext2D;
 
-function fromPixels(args: {
+export function fromPixels(args: {
   inputs: FromPixelsInputs,
   backend: WebGPUBackend,
   attrs: FromPixelsAttrs

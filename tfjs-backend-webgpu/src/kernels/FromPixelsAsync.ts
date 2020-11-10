@@ -23,6 +23,7 @@ import {util} from '@tensorflow/tfjs-core';
 import {WebGPUBackend} from '../backend_webgpu';
 import {FromPixelsAsync} from '../ops/from_pixels_async';
 
+import {fromPixels} from './FromPixels';
 import {FromPixelsProgram} from './FromPixels_utils/from_pixels_webgpu';
 import * as webgpu_program from './webgpu_program';
 
