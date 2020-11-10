@@ -19,7 +19,6 @@ steps:
   entrypoint: 'yarn'
   id: 'test-webgpu'
   args: ['test-ci']
-  waitFor: ['yarn']
 
 # General configuration
 timeout: 1800s

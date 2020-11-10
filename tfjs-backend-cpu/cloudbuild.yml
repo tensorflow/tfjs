@@ -1,4 +1,3 @@
-
 steps:
 # Install common dependencies.
 - name: 'node:10'
