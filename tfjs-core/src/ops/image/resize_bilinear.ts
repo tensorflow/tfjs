@@ -57,6 +57,10 @@ function resizeBilinear_<T extends Tensor3D|Tensor4D>(
       size.length === 2,
       () => `Error in resizeBilinear: new shape must 2D, but got shape ` +
           `${size}.`);
+  util.assert(
+      halfPixelCenters === false || alignCorners === false,
+      () => `Error in resizeBilinear: If halfPixelCenters is true, ` +
+          `alignCorners must be false.`);
 
   let batchImages = $images as Tensor4D;
   let reshapedTo4D = false;

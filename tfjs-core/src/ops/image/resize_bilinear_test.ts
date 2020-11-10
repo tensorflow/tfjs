@@ -97,43 +97,19 @@ describeWithFlags('resizeBilinear', ALL_ENVS, () => {
        ]);
      });
 
-  it('matches tensorflow w/ random numbers alignCorners=true' +
-         ', halfPixelCenters=true',
-     async () => {
-       const input = tf.tensor3d(
-           [
-             1.56324531, 2.13817752, 1.44398421, 1.07632684, 0.59306785,
-             -0.36970865, 1.62451879, 1.8367334, 1.13944798, 2.01993218,
-             2.01919952, 2.67524054
-           ],
-           [2, 3, 2]);
-       const output = input.resizeBilinear([4, 5], true, true);
-
-       expectArraysClose(await output.data(), [
-         1.5632453, 2.1381776,  1.53343,   1.872715,   1.4737995, 1.3417895,
-         1.2312551, 0.714818,   0.8057969, -0.0081998, 1.5632453, 2.1381776,
-         1.53343,   1.872715,   1.4737995, 1.3417895,  1.2312551, 0.714818,
-         0.8057969, -0.0081998, 1.5836698, 2.0376961,  1.5233704, 1.8759876,
-         1.4027715, 1.5525706,  1.2739654, 1.2044652,  1.1369519, 0.8316714,
-         1.6040943, 1.9372147,  1.5133107, 1.8792604,  1.3317435, 1.7633516,
-         1.3166755, 1.6941123,  1.4681069, 1.6715425
-       ]);
-     });
-
-  it('batch of 2, simple, alignCorners=true, ' +
+  it('batch of 2, simple, alignCorners=false, ' +
          'halfPixelCenters=true',
      async () => {
        const input = tf.tensor4d([2, 2, 4, 4, 3, 3, 5, 5], [2, 2, 2, 1]);
        const output =
-           input.resizeBilinear([3, 3], true /* alignCorners */, true);
+           input.resizeBilinear([3, 3], false /* alignCorners */, true);
 
-       expectArraysClose(await output.data(), [
-         2, 2, 2, 2.5, 2.5, 2.5, 3.5, 3.5, 3.5, 3, 3, 3, 3.5, 3.5, 3.5, 4.5,
-         4.5, 4.5
-       ]);
+       expectArraysClose(
+           await output.data(),
+           [2, 2, 2, 3, 3, 3, 4, 4, 4, 3, 3, 3, 4, 4, 4, 5, 5, 5]);
      });
 
-  it('target width = 1, alignCorners=true, ' +
+  it('target width = 1, alignCorners=false, ' +
          'halfPixelCenters=true',
      async () => {
        const input = tf.tensor3d([
@@ -163,11 +139,11 @@ describeWithFlags('resizeBilinear', ALL_ENVS, () => {
          ]
        ]);
 
-       const output = input.resizeBilinear([3, 1], true, true);
+       const output = input.resizeBilinear([3, 1], false, true);
 
        const expected = [
-         107.1343384, 105.9808502, 112.8995972, 104.9820862, 108.1628571,
-         104.5427704, 87.5794067, 102.9686279, 90.7332001
+         104.917, 106.514, 115.411, 112.352, 105.837, 99.7945, 89.2515, 104.222,
+         93.8262
        ];
        expectArraysClose(await output.data(), expected);
        expect(output.shape).toEqual([3, 1, 3]);
