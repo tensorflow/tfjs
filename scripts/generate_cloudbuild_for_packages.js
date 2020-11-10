@@ -19,7 +19,6 @@
 const {findPackagesWithDiff, allPackages} =
     require('./find_packages_with_diff.js');
 const {generateCloudbuild} = require('./generate_cloudbuild.js');
-const shell = require('shelljs');
 const {ArgumentParser} = require('argparse');
 const yaml = require('js-yaml');
 const fs = require('fs');
@@ -33,10 +32,16 @@ const parser = new ArgumentParser({
 parser.addArgument('packages', {
   type: String,
   nargs: '*',
+  help: 'packages to consider as having changed',
+});
+
+parser.addArgument(['-o', '--output'], {
+  type: String,
+  nargs: '?',
+  defaultValue: 'cloudbuild_generated.yml',
 });
 
 const args = parser.parseArgs(process.argv.slice(2));
-console.log(args)
 
 let packages;
 if (args.packages.length > 0) {
@@ -51,4 +56,4 @@ if (args.packages.length > 0) {
 }
 
 const cloudbuild = generateCloudbuild(packages);
-fs.writeFileSync('cloudbuild_generated.yml', yaml.safeDump(cloudbuild));
+fs.writeFileSync(args.output, yaml.safeDump(cloudbuild));

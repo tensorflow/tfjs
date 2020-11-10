@@ -19,7 +19,10 @@ const fs = require('fs');
 const path = require('path');
 
 // These tests only detect changes in the generated file, and may need to be
-// updated if the project structure changes.
+// updated if the project structure changes. To update them, run
+// 'yarn update-cloudbuild-tests`.
+// TODO(mattsoulanille): When Jasmine is updated to >=3.3.0, Use
+// jasmine.withContext to show the above message if the tests fail.
 describe('generateCloudbuild', () => {
   it('generates the correct cloudbuild file for tfjs-core', () => {
     const expectedCloudbuild = yaml.safeLoad(fs.readFileSync(
