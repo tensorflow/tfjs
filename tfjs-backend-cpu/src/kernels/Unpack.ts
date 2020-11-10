@@ -30,26 +30,21 @@ export function unpack(
 
   const valueRank = value.shape.length;
 
-  let $axis = axis;
-  if ($axis < 0) {
-    $axis += value.shape.length;
-  }
-
-  const num = value.shape[$axis];
+  const num = value.shape[axis];
   const outShape: number[] = new Array(valueRank - 1);
   let outIndex = 0;
   for (let i = 0; i < valueRank; i++) {
-    if (i !== $axis) {
+    if (i !== axis) {
       outShape[outIndex++] = value.shape[i];
     }
   }
 
   const begin = new Array(valueRank).fill(0);
   const size = value.shape.slice();
-  size[$axis] = 1;
+  size[axis] = 1;
   const res = new Array(num);
   for (let i = 0; i < res.length; i++) {
-    begin[$axis] = i;
+    begin[axis] = i;
     const tempRes = slice({inputs: {x: value}, backend, attrs: {begin, size}});
     res[i] = reshape({inputs: {x: tempRes}, backend, attrs: {shape: outShape}});
     backend.disposeIntermediateTensorInfo(tempRes);

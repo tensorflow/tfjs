@@ -64,12 +64,12 @@ function prod_<T extends Tensor>(
     x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
   let $x = convertToTensor(x, 'x', 'prod');
 
-  const forward: ForwardFunc<Tensor> = (backend) => {
-    if ($x.dtype === 'bool') {
-      // bool is not an allowed type for the underlying kernel.
-      $x = cast($x, 'int32');
-    }
+  if ($x.dtype === 'bool') {
+    // bool is not an allowed type for the underlying kernel.
+    $x = cast($x, 'int32');
+  }
 
+  const forward: ForwardFunc<Tensor> = (backend) => {
     const axes = parseAxisParam(axis, $x.shape);
 
     const permutation = getAxesPermutation(axes, $x.rank);

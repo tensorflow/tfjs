@@ -19,7 +19,6 @@ import {backend_util, DataType, KernelConfig, KernelFunc, Prod, ProdAttrs, ProdI
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
-import {cast} from './Cast';
 import {transpose} from './Transpose';
 
 export function prodImpl(
@@ -52,38 +51,32 @@ export function prod(
   const {x} = inputs;
   const {axis, keepDims} = attrs;
 
-  assertNotComplex(x, 'sum');
+  assertNotComplex(x, 'prod');
 
-  let $x = x;
-  if (x.dtype === 'bool') {
-    // bool is not an allowed type for the underlying kernel.
-    $x = cast({inputs: {x}, backend, attrs: {dtype: 'int32'}});
-  }
-
-  const xRank = $x.shape.length;
-  const axes = util.parseAxisParam(axis, $x.shape);
+  const xRank = x.shape.length;
+  const axes = util.parseAxisParam(axis, x.shape);
 
   const permutation = backend_util.getAxesPermutation(axes, xRank);
   let reductionAxes = axes;
+  let permutedX = x;
+  const intermediateTensorInfos = [];
   if (permutation != null) {
-    const oldX = $x;
-    $x = transpose({inputs: {x: $x}, backend, attrs: {perm: permutation}});
+    permutedX = transpose({inputs: {x}, backend, attrs: {perm: permutation}});
+    intermediateTensorInfos.push(permutedX);
     reductionAxes = backend_util.getInnerMostAxes(reductionAxes.length, xRank);
-    backend.disposeIntermediateTensorInfo(oldX);
   }
 
-  const xVals = backend.data.get($x.dataId).values as TypedArray;
+  const xVals = backend.data.get(permutedX.dataId).values as TypedArray;
   const {outVals, outShape, outDtype} =
-      prodImpl($x.shape, $x.dtype, xVals, reductionAxes);
+      prodImpl(permutedX.shape, permutedX.dtype, xVals, reductionAxes);
 
   let resultShape = outShape;
   if (keepDims) {
     resultShape = backend_util.expandShapeToKeepDim(outShape, axes);
   }
 
-  if (x.dtype === 'bool') {
-    backend.disposeIntermediateTensorInfo($x);
-  }
+  intermediateTensorInfos.forEach(
+      t => backend.disposeIntermediateTensorInfo(t));
 
   return backend.makeTensorInfo(resultShape, outDtype, outVals);
 }
