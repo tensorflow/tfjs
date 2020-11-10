@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Div} from '../kernel_names';
+import {RealDiv} from '../kernel_names';
 import {GradConfig} from '../kernel_registry';
 import * as broadcast_util from '../ops/broadcast_util';
 import {cast} from '../ops/cast';
@@ -28,7 +28,7 @@ import {sum} from '../ops/sum';
 import {Tensor} from '../tensor';
 
 export const divGradConfig: GradConfig = {
-  kernelName: Div,
+  kernelName: RealDiv,
   inputsToSave: ['a', 'b'],
   gradFunc: (dy: Tensor, saved: Tensor[]) => {
     const [a, b] = saved;

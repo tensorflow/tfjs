@@ -28,7 +28,6 @@ import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
 import {cosConfig} from './kernels/Cos';
-import {divConfig} from './kernels/Div';
 import {fftConfig} from './kernels/FFT';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {fromPixelsConfig} from './kernels/FromPixels';
@@ -48,6 +47,7 @@ import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
 import {realConfig} from './kernels/Real';
+import {realDivConfig} from './kernels/RealDiv';
 import {reshapeConfig} from './kernels/Reshape';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {sinConfig} from './kernels/Sin';
@@ -75,7 +75,6 @@ const kernelConfigs: KernelConfig[] = [
   concatConfig,
   conv2DConfig,
   cosConfig,
-  divConfig,
   fftConfig,
   flipLeftRightConfig,
   fromPixelsConfig,
@@ -95,6 +94,7 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV5Config,
   notEqualConfig,
   realConfig,
+  realDivConfig,
   reshapeConfig,
   rotateWithOffsetConfig,
   sinConfig,

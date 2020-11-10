@@ -306,8 +306,8 @@ export const Dilation2DBackpropFilter = 'Dilation2DBackpropFilter';
 export type Dilation2DBackpropFilterInputs =
     Pick<NamedTensorInfoMap, 'x'|'filter'|'dy'>;
 
-export const Div = 'Div';
-export type DivInputs = BinaryInputs;
+export const RealDiv = 'Div';
+export type RealDivInputs = BinaryInputs;
 
 export const Elu = 'Elu';
 export type EluInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -534,8 +534,8 @@ export interface MultinomialAttrs {
 export const Multiply = 'Multiply';
 export type MultiplyInputs = BinaryInputs;
 
-export const Negate = 'Negate';
-export type NegateInputs = UnaryInputs;
+export const Neg = 'Neg';
+export type NegInputs = UnaryInputs;
 
 export const NotEqual = 'NotEqual';
 export type NotEqualInputs = BinaryInputs;
@@ -670,8 +670,8 @@ export interface ScatterNdAttrs {
   shape: number[];
 }
 
-export const SelectV2 = 'SelectV2';
-export type SelectV2Inputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
+export const Select = 'Select';
+export type SelectInputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
 
 export const Selu = 'Selu';
 export type SeluInputs = Pick<NamedTensorInfoMap, 'x'>;

@@ -21,11 +21,11 @@ import {MathBackendCPU} from '../backend_cpu';
 import {add} from '../kernels/Add';
 import {complex} from '../kernels/Complex';
 import {concat} from '../kernels/Concat';
-import {divConfig} from '../kernels/Div';
 import {identity} from '../kernels/Identity';
 import {imag} from '../kernels/Imag';
 import {multiply} from '../kernels/Multiply';
 import {real} from '../kernels/Real';
+import {realDivConfig} from '../kernels/RealDiv';
 import {slice} from '../kernels/Slice';
 import {sub} from '../kernels/Sub';
 
@@ -128,11 +128,11 @@ export function fftImpl(
           identity({inputs: {x: sizeInfo}, backend: cpuBackend});
 
       const divRealInfo =
-          divConfig.kernelFunc(
+          realDivConfig.kernelFunc(
               {inputs: {a: realInfo, b: sizeInfo}, backend: cpuBackend}) as
           TensorInfo;
       const divImagInfo =
-          divConfig.kernelFunc(
+          realDivConfig.kernelFunc(
               {inputs: {a: imagInfo, b: sizeInfoCopy}, backend: cpuBackend}) as
           TensorInfo;
 

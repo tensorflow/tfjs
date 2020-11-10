@@ -18,9 +18,10 @@
 import {backend_util, KernelConfig, KernelFunc, Softmax, SoftmaxAttrs, SoftmaxInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
-import {div} from './Div';
+
 import {exp} from './Exp';
 import {max} from './Max';
+import {div} from './RealDiv';
 import {reshape} from './Reshape';
 import {sub} from './Sub';
 import {sum} from './Sum';
