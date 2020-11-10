@@ -47,6 +47,7 @@ function unstack_(x: Tensor|TensorLike, axis = 0): Tensor[] {
       axis >= -$x.shape.length && axis < $x.shape.length,
       () =>
           `Axis = ${axis} is not in [-${$x.shape.length}, ${$x.shape.length})`);
+
   if (axis < 0) {
     axis += $x.shape.length;
   }
@@ -54,6 +55,7 @@ function unstack_(x: Tensor|TensorLike, axis = 0): Tensor[] {
   const attrs: UnpackAttrs = {axis};
   const forward: ForwardFunc<Tensor[]> = (backend: KernelBackend) =>
       backend.unstack($x, axis);
+
   return ENGINE.runKernelFunc(
       forward, inputs as {} as NamedTensorMap, null /* grad */, Unpack,
       attrs as {} as NamedAttrMap);
