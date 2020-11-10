@@ -15,16 +15,16 @@
  * =============================================================================
  */
 
-import {Div, DivInputs} from '@tensorflow/tfjs-core';
+import {RealDiv, RealDivInputs} from '@tensorflow/tfjs-core';
 import {KernelConfig} from '@tensorflow/tfjs-core';
 import {WebGPUBackend} from '../backend_webgpu';
 import {divImpl} from './Div_impl';
 
 export const divConfig: KernelConfig = {
-  kernelName: Div,
+  kernelName: RealDiv,
   backendName: 'webgpu',
   kernelFunc: ({inputs, backend}) => {
-    const {a, b} = inputs as DivInputs;
+    const {a, b} = inputs as RealDivInputs;
 
     const webgpuBackend = backend as WebGPUBackend;
 
