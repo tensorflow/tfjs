@@ -34,12 +34,8 @@ const {
   logImpl: logImplCPU,
   maxImpl: maxImplCPU,
   multiplyImpl: multiplyImplCPU,
-<<<<<<< HEAD
   negImpl: negImplCPU,
-=======
-  negateImpl: negateImplCPU,
   prodImpl: prodImplCPU,
->>>>>>> aa3aaa2a (Fix test.)
   rsqrtImpl: rsqrtImplCPU,
   simpleAbsImpl: simpleAbsImplCPU,
   sliceImpl: sliceImplCPU,
@@ -59,12 +55,8 @@ export {
   logImplCPU,
   maxImplCPU,
   multiplyImplCPU,
-<<<<<<< HEAD
   negImplCPU,
-=======
-  negateImplCPU,
   prodImplCPU,
->>>>>>> aa3aaa2a (Fix test.)
   simpleAbsImplCPU,
   sliceImplCPU,
   subImplCPU,
