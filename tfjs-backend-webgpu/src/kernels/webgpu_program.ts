@@ -53,27 +53,24 @@ export interface TensorData {
   dtype: DataType;
 }
 
-export interface BindingInfo {
-  resource: {offset: number, size: number, buffer: GPUBuffer};
-}
-
 export const makeBindGroup =
     (device: GPUDevice, bindGroupLayout: GPUBindGroupLayout,
-     inputs: BindingInfo[], output: BindingInfo, uniforms?: BindingInfo) => {
+     inputs: GPUBindingResource[], output: GPUBindingResource,
+     uniforms?: GPUBindingResource) => {
       const bindings = [output, ...inputs];
       if (uniforms) {
         bindings.push(uniforms);
       }
       return device.createBindGroup({
         layout: bindGroupLayout,
-        entries: bindings.map((b, i) => ({binding: i, resource: b.resource})),
+        entries: bindings.map((b, i) => ({binding: i, resource: b})),
       });
     };
 
 export const compileProgram =
     (glslang: Glslang, device: GPUDevice, program: WebGPUProgram,
      inputsData: shader_preprocessor.InputInfo[], output: TensorInfo,
-     uniforms?: BindingInfo): WebGPUBinary => {
+     uniforms?: GPUBindingResource): WebGPUBinary => {
       const outputData = {dtype: output.dtype, shape: output.shape};
 
       const source =
