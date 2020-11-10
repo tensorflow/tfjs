@@ -15,15 +15,35 @@
  * =============================================================================
  */
 
-import {backend_util, KernelConfig, KernelFunc, Prod, ProdAttrs, ProdInputs, TensorInfo, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataType, KernelConfig, KernelFunc, Prod, ProdAttrs, ProdInputs, TensorInfo, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
-import {zeros} from '../utils/zeros_impl';
 import {cast} from './Cast';
-import {identity} from './Identity';
-import {reshape} from './Reshape';
 import {transpose} from './Transpose';
+
+export function prodImpl(
+    xShape: number[], xDtype: DataType, xVals: TypedArray,
+    reductionAxes: number[]):
+    {outVals: TypedArray, outShape: number[], outDtype: DataType} {
+  const [outShape, reduceShape] =
+      backend_util.computeOutAndReduceShapes(xShape, reductionAxes);
+  const outDtype = upcastType(xDtype, 'int32');
+  const outVals = util.makeZerosTypedArray(
+                      util.sizeFromShape(outShape), outDtype) as TypedArray;
+  const reduceSize = util.sizeFromShape(reduceShape);
+
+  for (let i = 0; i < outVals.length; ++i) {
+    const offset = i * reduceSize;
+    let prod = 1;
+    for (let j = 0; j < reduceSize; ++j) {
+      prod *= xVals[offset + j];
+    }
+    outVals[i] = prod;
+  }
+
+  return {outVals, outShape, outDtype};
+}
 
 export function prod(
     args: {inputs: ProdInputs, backend: MathBackendCPU, attrs: ProdAttrs}):
@@ -38,8 +58,6 @@ export function prod(
   if (x.dtype === 'bool') {
     // bool is not an allowed type for the underlying kernel.
     $x = cast({inputs: {x}, backend, attrs: {dtype: 'int32'}});
-  } else {
-    $x = identity({inputs: {x}, backend});
   }
 
   const xRank = $x.shape.length;
@@ -54,33 +72,20 @@ export function prod(
     backend.disposeIntermediateTensorInfo(oldX);
   }
 
-  const [outShape, reduceShape] =
-      backend_util.computeOutAndReduceShapes($x.shape, reductionAxes);
-  const resultDtype = upcastType($x.dtype, 'int32');
-  let result = zeros(backend, outShape, resultDtype);
-  const reduceSize = util.sizeFromShape(reduceShape);
-  const vals = backend.data.get(result.dataId).values as TypedArray;
-  const aVals = backend.data.get($x.dataId).values as TypedArray;
+  const xVals = backend.data.get($x.dataId).values as TypedArray;
+  const {outVals, outShape, outDtype} =
+      prodImpl($x.shape, $x.dtype, xVals, reductionAxes);
 
-  for (let i = 0; i < vals.length; ++i) {
-    const offset = i * reduceSize;
-    let prod = 1;
-    for (let j = 0; j < reduceSize; ++j) {
-      prod *= aVals[offset + j];
-    }
-    vals[i] = prod;
-  }
-
+  let resultShape = outShape;
   if (keepDims) {
-    const newShape = backend_util.expandShapeToKeepDim(result.shape, axes);
-    const oldResult = result;
-    result = reshape({inputs: {x: result}, backend, attrs: {shape: newShape}});
-    backend.disposeIntermediateTensorInfo(oldResult);
+    resultShape = backend_util.expandShapeToKeepDim(outShape, axes);
   }
 
-  backend.disposeIntermediateTensorInfo($x);
+  if (x.dtype === 'bool') {
+    backend.disposeIntermediateTensorInfo($x);
+  }
 
-  return result;
+  return backend.makeTensorInfo(resultShape, outDtype, outVals);
 }
 
 export const prodConfig: KernelConfig = {
