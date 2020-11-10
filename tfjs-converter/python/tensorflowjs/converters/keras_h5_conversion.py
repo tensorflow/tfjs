@@ -261,7 +261,8 @@ def write_artifacts(topology,
                     weights,
                     output_dir,
                     quantization_dtype_map=None,
-                    weight_shard_size_bytes=1024 * 1024 * 4):
+                    weight_shard_size_bytes=1024 * 1024 * 4,
+                    metadata=None):
   """Writes weights and topology to the output_dir.
 
   If `topology` is Falsy (e.g., `None`), only emit weights to output_dir.
@@ -275,6 +276,7 @@ def write_artifacts(topology,
       supports wildcard substitution.
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
+    metadata: User defined metadata map.
   """
   # TODO(cais, nielsene): This method should allow optional arguments of
   #   `write_weights.write_weights` (e.g., shard size) and forward them.
@@ -293,8 +295,11 @@ def write_artifacts(topology,
   model_json = {
       common.FORMAT_KEY: common.TFJS_LAYERS_MODEL_FORMAT,
       common.GENERATED_BY_KEY: _get_generated_by(topology),
-      common.CONVERTED_BY_KEY: common.get_converted_by(),
+      common.CONVERTED_BY_KEY: common.get_converted_by()
   }
+
+  if metadata:
+    model_json[common.USER_DEFINED_METADATA_KEY] = metadata
 
   model_json[common.ARTIFACT_MODEL_TOPOLOGY_KEY] = topology or None
   weights_manifest = write_weights.write_weights(
@@ -311,7 +316,7 @@ def write_artifacts(topology,
 
 
 def save_keras_model(model, artifacts_dir, quantization_dtype_map=None,
-                     weight_shard_size_bytes=1024 * 1024 * 4):
+                     weight_shard_size_bytes=1024 * 1024 * 4, metadata=None):
   r"""Save a Keras model and its weights in TensorFlow.js format.
 
   Args:
@@ -333,6 +338,7 @@ def save_keras_model(model, artifacts_dir, quantization_dtype_map=None,
       supports wildcard substitution.
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
+    metadata: User defined metadata map.
 
   Raises:
     ValueError: If `artifacts_dir` already exists as a file (not a directory).
@@ -348,5 +354,6 @@ def save_keras_model(model, artifacts_dir, quantization_dtype_map=None,
   write_artifacts(
       topology_json, weight_groups, artifacts_dir,
       quantization_dtype_map=quantization_dtype_map,
-      weight_shard_size_bytes=weight_shard_size_bytes)
+      weight_shard_size_bytes=weight_shard_size_bytes,
+      metadata=metadata)
   os.remove(temp_h5_path)

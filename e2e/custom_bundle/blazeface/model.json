@@ -2,50 +2,48 @@
     "format": "graph-model",
     "generatedBy": "1.15.0",
     "convertedBy": "TensorFlow.js Converter v1.3.2",
-    "userDefinedMetadata": {
-        "signature": {
-            "inputs": {
-                "input:0": {
-                    "name": "input:0",
-                    "dtype": "DT_FLOAT",
-                    "tensorShape": {
-                        "dim": [
-                            {
-                                "size": "-1"
-                            },
-                            {
-                                "size": "128"
-                            },
-                            {
-                                "size": "128"
-                            },
-                            {
-                                "size": "3"
-                            }
-                        ]
-                    }
-                }
-            },
-            "outputs": {
-                "Identity:0": {
-                    "name": "Identity:0",
-                    "dtype": "DT_FLOAT",
-                    "tensorShape": {
-                        "dim": [
-                            {
-                                "size": "-1"
-                            },
-                            {
-                                "size": "-1"
-                            },
-                            {
-                                "size": "17"
-                            }
-                        ]
-                    }
-                }
-            }
-        }
+    "signature": {
+      "inputs": {
+          "input:0": {
+              "name": "input:0",
+              "dtype": "DT_FLOAT",
+              "tensorShape": {
+                  "dim": [
+                      {
+                          "size": "-1"
+                      },
+                      {
+                          "size": "128"
+                      },
+                      {
+                          "size": "128"
+                      },
+                      {
+                          "size": "3"
+                      }
+                  ]
+              }
+          }
+      },
+      "outputs": {
+          "Identity:0": {
+              "name": "Identity:0",
+              "dtype": "DT_FLOAT",
+              "tensorShape": {
+                  "dim": [
+                      {
+                          "size": "-1"
+                      },
+                      {
+                          "size": "-1"
+                      },
+                      {
+                          "size": "17"
+                      }
+                  ]
+              }
+          }
+      }
     },
     "modelTopology": {
         "node": [

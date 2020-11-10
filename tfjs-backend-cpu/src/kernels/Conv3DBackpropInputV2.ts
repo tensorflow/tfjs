@@ -15,15 +15,15 @@
  * =============================================================================
  */
 
-import {backend_util, Conv3DBackpropInputAttrs, Conv3DBackpropInputInputs, Conv3DBackpropInputV2, KernelConfig, KernelFunc, TensorBuffer, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, Conv3DBackpropInputV2, Conv3DBackpropInputV2Attrs, Conv3DBackpropInputV2Inputs, KernelConfig, KernelFunc, TensorBuffer, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 
 export function conv3DBackpropInputV2(args: {
-  inputs: Conv3DBackpropInputInputs,
+  inputs: Conv3DBackpropInputV2Inputs,
   backend: MathBackendCPU,
-  attrs: Conv3DBackpropInputAttrs
+  attrs: Conv3DBackpropInputV2Attrs
 }): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {dy, filter} = inputs;

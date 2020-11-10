@@ -379,6 +379,7 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: ['complex'],
   },
   {include: 'prod'},
+  {include: 'floor'},
 ];
 
 const customInclude = (testName: string) => {
