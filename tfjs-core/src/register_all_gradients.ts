@@ -43,7 +43,6 @@ import {coshGradConfig} from './gradients/Cosh_grad';
 import {cumsumGradConfig} from './gradients/Cumsum_grad';
 import {depthwiseConv2dNativeGradConfig} from './gradients/DepthwiseConv2dNative_grad';
 import {dilation2dGradConfig} from './gradients/Dilation2D_grad';
-import {divGradConfig} from './gradients/Div_grad';
 import {eluGradConfig} from './gradients/Elu_grad';
 import {erfGradConfig} from './gradients/Erf_grad';
 import {expGradConfig} from './gradients/Exp_grad';
@@ -70,12 +69,13 @@ import {minimumGradConfig} from './gradients/Minimum_grad';
 import {mirrorPadGradConfig} from './gradients/MirrorPad_grad';
 import {modGradConfig} from './gradients/Mod_grad';
 import {multiplyGradConfig} from './gradients/Multiply_grad';
-import {negateGradConfig} from './gradients/Negate_grad';
+import {negGradConfig} from './gradients/Neg_grad';
 import {oneHotGradConfig} from './gradients/OneHot_grad';
 import {onesLikeGradConfig} from './gradients/OnesLike_grad';
 import {padV2GradConfig} from './gradients/PadV2_grad';
 import {powGradConfig} from './gradients/Pow_grad';
 import {preluGradConfig} from './gradients/Prelu_grad';
+import {divGradConfig} from './gradients/RealDiv_grad';
 import {reciprocalGradConfig} from './gradients/Reciprocal_grad';
 import {relu6GradConfig} from './gradients/Relu6_grad';
 import {reluGradConfig} from './gradients/Relu_grad';
@@ -85,7 +85,7 @@ import {resizeNearestNeighborGradConfig} from './gradients/ResizeNearestNeighbor
 import {reverseGradConfig} from './gradients/Reverse_grad';
 import {roundGradConfig} from './gradients/Round_grad';
 import {rsqrtGradConfig} from './gradients/Rsqrt_grad';
-import {selectV2PoolGradConfig} from './gradients/SelectV2_grad';
+import {selectGradConfig} from './gradients/Select_grad';
 import {seluGradConfig} from './gradients/Selu_grad';
 import {sigmoidGradConfig} from './gradients/Sigmoid_grad';
 import {signGradConfig} from './gradients/Sign_grad';
@@ -171,7 +171,7 @@ const gradConfigs: GradConfig[] = [
   mirrorPadGradConfig,
   modGradConfig,
   multiplyGradConfig,
-  negateGradConfig,
+  negGradConfig,
   oneHotGradConfig,
   onesLikeGradConfig,
   padV2GradConfig,
@@ -187,7 +187,7 @@ const gradConfigs: GradConfig[] = [
   reverseGradConfig,
   roundGradConfig,
   rsqrtGradConfig,
-  selectV2PoolGradConfig,
+  selectGradConfig,
   seluGradConfig,
   sigmoidGradConfig,
   signGradConfig,

@@ -75,8 +75,7 @@ const artifacts1: tf.io.ModelArtifacts = {
   weightData: weightData1,
   format: 'layers-model',
   generatedBy: 'TensorFlow.js v0.0.0',
-  convertedBy: null,
-  userDefinedMetadata: {}
+  convertedBy: null
 };
 
 describeWithFlags('browserDownloads', BROWSER_ENVS, () => {
@@ -287,8 +286,7 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
       weightsManifest,
       format: 'layers-model',
       generatedBy: 'TensorFlow.js v0.0.0',
-      convertedBy: '1.13.1',
-      userDefinedMetadata: {}
+      convertedBy: '1.13.1'
     };
     const jsonFile = new File(
         [JSON.stringify(weightsTopologyAndManifest)], 'model.json',
@@ -301,7 +299,6 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
     expect(modelArtifacts.format).toEqual('layers-model');
     expect(modelArtifacts.generatedBy).toEqual('TensorFlow.js v0.0.0');
     expect(modelArtifacts.convertedBy).toEqual('1.13.1');
-    expect(modelArtifacts.userDefinedMetadata).toEqual({});
 
     expect(new Uint8Array(modelArtifacts.weightData))
         .toEqual(new Uint8Array(weightData1));

@@ -88,9 +88,9 @@ export interface AvgPoolAttrs {
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
 
-export const AvgPoolBackprop = 'AvgPoolBackprop';
-export type AvgPoolBackpropInputs = Pick<NamedTensorInfoMap, 'dy'|'input'>;
-export interface AvgPoolBackpropAttrs {
+export const AvgPoolGrad = 'AvgPoolGrad';
+export type AvgPoolGradInputs = Pick<NamedTensorInfoMap, 'dy'|'input'>;
+export interface AvgPoolGradAttrs {
   filterSize: [number, number]|number;
   strides: [number, number]|number;
   pad: 'valid'|'same'|number;
@@ -107,9 +107,9 @@ export interface AvgPool3DAttrs {
   dilations?: [number, number, number]|number;
 }
 
-export const AvgPool3DBackprop = 'AvgPool3DBackprop';
-export type AvgPool3DBackpropInputs = Pick<NamedTensorInfoMap, 'dy'|'input'>;
-export interface AvgPool3DBackpropAttrs {
+export const AvgPool3DGrad = 'AvgPool3DGrad';
+export type AvgPool3DGradInputs = Pick<NamedTensorInfoMap, 'dy'|'input'>;
+export interface AvgPool3DGradAttrs {
   filterSize: [number, number, number]|number;
   strides: [number, number, number]|number;
   pad: 'valid'|'same'|number;
@@ -205,17 +205,18 @@ export interface Conv3DAttrs {
 }
 
 export const Conv3DBackpropFilterV2 = 'Conv3DBackpropFilterV2';
-export type Conv3DBackpropFilterInputs = Pick<NamedTensorInfoMap, 'x'|'dy'>;
+export type Conv3DBackpropFilterV2Inputs = Pick<NamedTensorInfoMap, 'x'|'dy'>;
 
-export interface Conv3DBackpropFilterAttrs {
+export interface Conv3DBackpropFilterV2Attrs {
   strides: [number, number, number]|number;
   pad: 'valid'|'same';
   filterShape: [number, number, number, number, number];
 }
 
 export const Conv3DBackpropInputV2 = 'Conv3DBackpropInputV2';
-export type Conv3DBackpropInputInputs = Pick<NamedTensorInfoMap, 'dy'|'filter'>;
-export interface Conv3DBackpropInputAttrs {
+export type Conv3DBackpropInputV2Inputs =
+    Pick<NamedTensorInfoMap, 'dy'|'filter'>;
+export interface Conv3DBackpropInputV2Attrs {
   strides: [number, number, number]|number;
   pad: 'valid'|'same';
   inputShape: [number, number, number, number, number];
@@ -305,8 +306,8 @@ export const Dilation2DBackpropFilter = 'Dilation2DBackpropFilter';
 export type Dilation2DBackpropFilterInputs =
     Pick<NamedTensorInfoMap, 'x'|'filter'|'dy'>;
 
-export const Div = 'Div';
-export type DivInputs = BinaryInputs;
+export const RealDiv = 'Div';
+export type RealDivInputs = BinaryInputs;
 
 export const Elu = 'Elu';
 export type EluInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -455,10 +456,9 @@ export interface MaxPoolAttrs {
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
 
-export const MaxPoolBackprop = 'MaxPoolBackprop';
-export type MaxPoolBackpropInputs =
-    Pick<NamedTensorInfoMap, 'dy'|'input'|'output'>;
-export interface MaxPoolBackpropAttrs {
+export const MaxPoolGrad = 'MaxPoolGrad';
+export type MaxPoolGradInputs = Pick<NamedTensorInfoMap, 'dy'|'input'|'output'>;
+export interface MaxPoolGradAttrs {
   filterSize: [number, number]|number;
   strides: [number, number]|number;
   pad: 'valid'|'same'|number;
@@ -476,10 +476,10 @@ export interface MaxPool3DAttrs {
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
 
-export const MaxPool3DBackprop = 'MaxPool3DBackprop';
-export type MaxPool3DBackpropInputs =
+export const MaxPool3DGrad = 'MaxPool3DGrad';
+export type MaxPool3DGradInputs =
     Pick<NamedTensorInfoMap, 'dy'|'input'|'output'>;
-export interface MaxPool3DBackpropAttrs {
+export interface MaxPool3DGradAttrs {
   filterSize: [number, number, number]|number;
   strides: [number, number, number]|number;
   pad: 'valid'|'same'|number;
@@ -523,11 +523,19 @@ export interface MirrorPadAttrs {
 export const Mod = 'Mod';
 export type ModInputs = BinaryInputs;
 
+export const Multinomial = 'Multinomial';
+export type MultinomialInputs = Pick<NamedTensorInfoMap, 'logits'>;
+export interface MultinomialAttrs {
+  numSamples: number;
+  seed: number;
+  normalized: boolean;
+}
+
 export const Multiply = 'Multiply';
 export type MultiplyInputs = BinaryInputs;
 
-export const Negate = 'Negate';
-export type NegateInputs = UnaryInputs;
+export const Neg = 'Neg';
+export type NegInputs = UnaryInputs;
 
 export const NotEqual = 'NotEqual';
 export type NotEqualInputs = BinaryInputs;
@@ -662,8 +670,8 @@ export interface ScatterNdAttrs {
   shape: number[];
 }
 
-export const SelectV2 = 'SelectV2';
-export type SelectV2Inputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
+export const Select = 'Select';
+export type SelectInputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
 
 export const Selu = 'Selu';
 export type SeluInputs = Pick<NamedTensorInfoMap, 'x'>;

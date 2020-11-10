@@ -75,6 +75,7 @@ describeWithFlags('LocalStorage', BROWSER_ENVS, () => {
     format: 'layers-model',
     generatedBy: 'TensorFlow.js v0.0.0',
     convertedBy: '1.13.1',
+    signature: null,
     userDefinedMetadata: {}
   };
 

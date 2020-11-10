@@ -28,7 +28,7 @@ export {lessImpl} from './kernels/Less';
 export {logImpl} from './kernels/Log';
 export {maxImpl} from './kernels/Max_impl';
 export {multiplyImpl} from './kernels/Multiply';
-export {negateImpl} from './kernels/Negate';
+export {negImpl} from './kernels/Neg';
 export {notEqualImpl} from './kernels/NotEqual';
 export {rsqrtImpl} from './kernels/Rsqrt';
 export {sliceImpl} from './kernels/Slice';
